@@ -67,7 +67,7 @@ begin
       if auxv^.a_type = AT_SYSINFO then begin
         psysinfo := auxv^.a_un.a_val;
         if psysinfo <> 0 then
-          sysenter_supported := 1; // descision factor in asm syscall routines
+          sysenter_supported := 1; // decision factor in asm syscall routines
         Break;
       end;
       Inc(auxv);

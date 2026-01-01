@@ -70,7 +70,7 @@ function DMProcessConfigXML(pszWXMLin:LPCWSTR; dwFlags:DWORD; ppszwXMLout:PLPWST
 
 // - devmgmt.h
 
-function QueryPolicy(dwPolicyId:DWORD; pdwPolicyValue:PDWORD):HRESULT; external UserDLLAyg name 'QueryPolicy';  
+function QueryPolicy(dwPolicyId:DWORD; pdwPolicyValue:PDWORD):HRESULT; external UserDLLAyg name 'QueryPolicy';
 
 // - end of devmgmt.h
 

@@ -241,7 +241,7 @@ const
   NEWSCHEME = UINT(-1);
   {$EXTERNALSYM NEWSCHEME}
 
-// Prototype for EnumPwrSchemes callback proceedures.
+// Prototype for EnumPwrSchemes callback procedures.
 
 type
   PWRSCHEMESENUMPROC = function(uiIndex: UINT; dwName: DWORD; sName: LPWSTR; dwDesc: DWORD; sDesc: LPWSTR; pp: PPOWER_POLICY; lParam: LPARAM): ByteBool; stdcall;

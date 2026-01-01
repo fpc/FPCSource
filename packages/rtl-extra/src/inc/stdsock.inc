@@ -14,7 +14,7 @@
 
 {$define uselibc:=cdecl; external;}
 
-const 
+const
   {$ifdef BEOS}
     {$ifdef HAIKU}
     libname = 'network';
@@ -53,7 +53,7 @@ function fpaccept      (s:cint; addrx : psockaddr; addrlen : psocklen):cint;
 
 begin
  fpaccept:=cfpaccept(s,addrx,addrlen);
- internal_socketerror:=fpgeterrno; 
+ internal_socketerror:=fpgeterrno;
 end;
 
 function fpbind (s:cint; addrx : psockaddr; addrlen : tsocklen):cint;
@@ -138,7 +138,7 @@ end;
 // function unavailable under BeOS
 function fpsocketpair  (d:cint; xtype:cint; protocol:cint; sv:pcint):cint;
 begin
-  internal_socketerror:= -1; // TODO : check if it is an error 
+  internal_socketerror:= -1; // TODO : check if it is an error
 end;
 {$else}
 function fpsocketpair  (d:cint; xtype:cint; protocol:cint; sv:pcint):cint;

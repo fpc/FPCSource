@@ -46,9 +46,9 @@ type
 
 const
   EXTERNAL_RESMAGIC : TExternalResMagic = 'FPCRES';
-  
+
   EXT_CURRENT_VERSION = 1;
-  
+
   EXT_ENDIAN_BIG = 1;
   EXT_ENDIAN_LITTLE = 2;
 

@@ -93,7 +93,7 @@ uses exec;
  *              HD_WIDESCSI;
  *
  *      There are optional restrictions on the alignment, bus
- *      accessability, and size of the data for the data phase.
+ *      accessibility, and size of the data for the data phase.
  *      Be conservative to work with all manufacturer's controllers.
  *
  *------------------------------------------------------------------}
@@ -111,7 +111,7 @@ Type
     tSCSICmd = record
         scsi_Data       : Pointer; { word aligned data for SCSI Data Phase }
                                    { (optional) data need not be byte aligned }
-                                   { (optional) data need not be bus accessable }
+                                   { (optional) data need not be bus accessible }
         scsi_Length     : ULONG;   { even length of Data area }
                                    { (optional) data can have odd length }
                                    { (optional) data length can be > 2**24 }
@@ -155,7 +155,7 @@ Const
     HFERR_BadStatus     = 45;   { status and/or sense error }
 
 {----- OpenDevice io_Error values -----}
-    HFERR_NoBoard       = 50;   { Open failed for non-existant board }
+    HFERR_NoBoard       = 50;   { Open failed for non-existent board }
 
 IMPLEMENTATION
 

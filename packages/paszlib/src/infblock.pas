@@ -6,7 +6,7 @@ unit infblock;
   infblock.c -- interpret and process block types to last block
   Copyright (C) 1995-1998 Mark Adler
 
-  Pascal tranlastion
+  Pascal translation
   Copyright (C) 1998 by Jacques Nomssi Nzali
   For conditions of distribution and use, see copyright notice in readme.txt
 }
@@ -82,7 +82,7 @@ Const
       end-of-block.  Note however that the static length tree defines
       288 codes just to fill out the Huffman codes.  Codes 286 and 287
       cannot be used though, since there is no length base or extra bits
-      defined for them.  Similarily, there are up to 30 distance codes.
+      defined for them.  Similarly, there are up to 30 distance codes.
       However, static trees define 32 codes (all 5 bits) to fill out the
       Huffman codes, but the last two had better not show up in the data.
    7. Unzip can check dynamic Huffman blocks for complete code sets.
@@ -171,7 +171,7 @@ begin
   Inc(s^.zend, w);
   s^.checkfn := c;
   s^.mode := ZTYPE;
-  {$IFDEF ZLIB_DEBUG}  
+  {$IFDEF ZLIB_DEBUG}
   Tracev('inflate:   blocks allocated');
   {$ENDIF}
   inflate_blocks_reset(s^, z, nil);
@@ -203,9 +203,9 @@ var
   i, j, c : cardinal;
 var
   cs : pInflate_codes_state;
-  
+
   function do_btree : TBlockAction;
-  
+
   begin
     while (s.sub.trees.index < 4 + (s.sub.trees.table shr 10)) do
     begin
@@ -272,9 +272,9 @@ var
     { fall through again }
     do_btree:=baFallThrough;
   end;
-  
+
   function do_dtree : TBlockaction;
-  
+
   begin
     while TRUE do
     begin
@@ -425,7 +425,7 @@ var
       end;
       {$IFDEF ZLIB_DEBUG}
       Tracev('inflate:       trees ok');
-      {$ENDIF}          
+      {$ENDIF}
       { c renamed to cs }
       cs := inflate_codes_new(bl, bd, tl, td, z);
       if (cs = nil) then
@@ -449,7 +449,7 @@ var
 
 
   function do_codes: tblockaction;
-  
+
   begin
     { update pointers }
     s.bitb := b;
@@ -507,7 +507,7 @@ var
   end;
 
   function do_dry : tblockaction;
-  
+
   begin
     {FLUSH}
     s.write := q;
@@ -538,7 +538,7 @@ var
   end;
 
   procedure do_blkdone;
-    
+
   begin
     r := Z_STREAM_END;
     { update pointers and return }
@@ -550,7 +550,7 @@ var
     s.write := q;
     inflate_blocks := inflate_flush(s,z,r);
   end;
-  
+
 begin
   { copy input/output information to locals }
   p := z.next_in;
@@ -655,7 +655,7 @@ begin
                 Tracev('inflate:     dynamic codes block (last)')
               else
                 Tracev('inflate:     dynamic codes block');
-              {$ENDIF}                
+              {$ENDIF}
               {DUMPBITS(3);}
               b := b shr 3;
               dec(k, 3);
@@ -1004,7 +1004,7 @@ begin
   s := nil;
   {$IFDEF ZLIB_DEBUG}
   Trace('inflate:   blocks freed');
-  {$ENDIF}  
+  {$ENDIF}
   inflate_blocks_free := Z_OK;
 end;
 

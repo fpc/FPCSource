@@ -42,49 +42,49 @@
   TGstBufferList_queueautoptr = PGQueue;
 
   {
-  
+
   static inline GstBufferList *
   gst_buffer_list_ref (GstBufferList * list)
-  
+
     return ((GstBufferList *)gst_mini_object_ref (((GstMiniObject*)(list))))
                ;
-  
+
   # 90 "gstbufferlist.h"
   static inline void
   gst_buffer_list_unref (GstBufferList * list)
-  
+
     gst_mini_object_unref (((GstMiniObject*)(list)));
-  
+
   # 109 "gstbufferlist.h"
   static inline void
   gst_clear_buffer_list (GstBufferList ** list_ptr)
-  
-    do  _Static_assert (sizeof *(((GstMiniObject **) list_ptr)) == sizeof (gpointer), "Expression evaluates to false"); __typeof__((((GstMiniObject **) list_ptr))) _pp = (((GstMiniObject **) list_ptr)); __typeof__(*(((GstMiniObject **) list_ptr))) _ptr = *_pp; *_pp = 
+
+    do  _Static_assert (sizeof *(((GstMiniObject **) list_ptr)) == sizeof (gpointer), "Expression evaluates to false"); __typeof__((((GstMiniObject **) list_ptr))) _pp = (((GstMiniObject **) list_ptr)); __typeof__(*(((GstMiniObject **) list_ptr))) _ptr = *_pp; *_pp =
   # 112 "gstbufferlist.h" 3 4
    ((void *)0)
   # 112 "gstbufferlist.h"
    ; if (_ptr) (gst_mini_object_unref) (_ptr);  while (0) ;
-  
+
   # 126 "gstbufferlist.h"
   static inline GstBufferList *
   gst_buffer_list_copy (const GstBufferList * list)
-  
+
     return ((GstBufferList *)gst_mini_object_copy (((const GstMiniObject*)(list))));
-  
+
   # 150 "gstbufferlist.h"
   static inline gboolean
   gst_buffer_list_replace (GstBufferList **old_list, GstBufferList *new_list)
-  
+
     return gst_mini_object_replace ((GstMiniObject **) old_list,
         (GstMiniObject *) new_list);
-  
+
   # 172 "gstbufferlist.h"
   static inline gboolean
   gst_buffer_list_take (GstBufferList **old_list, GstBufferList *new_list)
-  
+
     return gst_mini_object_take ((GstMiniObject **) old_list,
         (GstMiniObject *) new_list);
-  
+
    }
 
   function gst_buffer_list_get_type:TGType;cdecl;external gstreamerlib name 'gst_buffer_list_get_type';

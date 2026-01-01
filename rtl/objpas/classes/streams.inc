@@ -122,7 +122,7 @@ end;
 
     begin
     // We do nothing. Pipe streams don't support this
-    // As wel as possible read-ony streams !!
+    // As wel as possible read-only streams !!
     end;
 
   procedure TStream.SetSize(const NewSize: Int64);

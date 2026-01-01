@@ -34,7 +34,7 @@ unit ZBase;
   (zlib format), rfc1951.txt (deflate format) and rfc1952.txt (gzip format).
 
 
-  Pascal tranlastion
+  Pascal translation
   Copyright (C) 1998 by Jacques Nomssi Nzali
   For conditions of distribution and use, see copyright notice in readme.txt
 }

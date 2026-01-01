@@ -167,7 +167,7 @@ procedure GLUTSwapBuffers; inline;
 procedure GLUTPostRedisplay; inline;
 
 function  GLUTGet(t: GLenum): LongInt; inline;
-  
+
 procedure GLUTMainLoop; inline;
 
 procedure GLUTFullScreen; inline;

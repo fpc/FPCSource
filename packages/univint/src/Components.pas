@@ -278,9 +278,9 @@ const
 type
 	ComponentDescriptionPtr = ^ComponentDescription;
 	ComponentDescription = record
-		componentType: OSType;          { A unique 4-byte code indentifying the command set }
+		componentType: OSType;          { A unique 4-byte code identifying the command set }
 		componentSubType: OSType;       { Particular flavor of this instance }
-		componentManufacturer: OSType;  { Vendor indentification }
+		componentManufacturer: OSType;  { Vendor identification }
 		componentFlags: UInt32;         { 8 each for Component,Type,SubType,Manuf/revision }
 		componentFlagsMask: UInt32;     { Mask for specifying which flags to consider in search, zero during registration }
 	end;

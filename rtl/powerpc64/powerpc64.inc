@@ -406,7 +406,7 @@ end;
 {$define FPC_SYSTEM_HAS_FPC_SHORTSTR_COMPARE}
 function fpc_shortstr_compare(const dstr, sstr:shortstring): SizeInt; [public,alias:'FPC_SHORTSTR_COMPARE']; compilerproc;
 assembler;
-{ TODO: improve, because the main compare loop does an unaligned access everytime.. :(
+{ TODO: improve, because the main compare loop does an unaligned access every time.. :(
   TODO: needs some additional opcodes not yet known to the compiler :( }
 asm
   { load length sstr }

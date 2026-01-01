@@ -26,7 +26,7 @@ uses
 uses
   Classes, SysUtils, fphttp, inifiles, httpdefs;
 {$ENDIF FPC_DOTTEDUNITS}
-  
+
 Type
 
   { TIniWebSession }
@@ -79,7 +79,7 @@ Type
     // Sweep session direcory and delete expired files.
     procedure DoCleanupSessions; override;
     Procedure DoDoneSession(Var ASession : TCustomSession); override;
-    Function SessionFilePrefix : String; virtual; 
+    Function SessionFilePrefix : String; virtual;
   Public
     // Directory where sessions are kept.
     Property SessionDir : String Read FSessionDir Write SetSessionDir;
@@ -227,7 +227,7 @@ begin
   FreeAndNil(ASession);
 end;
 
-Function TIniSessionFactory.SessionFilePrefix : String; 
+Function TIniSessionFactory.SessionFilePrefix : String;
 
 begin
   Result:='';
@@ -383,7 +383,7 @@ procedure TIniWebSession.InitSession(ARequest: TRequest; OnNewSession,OnExpired:
 Var
   S,FN : String;
   SF : TIniSessionFactory;
-  
+
 begin
   SF:=SessionFactory as TIniSessionFactory;
 {$ifdef cgidebug}SendMethodEnter('TIniWebSession.InitSession');{$endif}

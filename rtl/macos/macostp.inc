@@ -21,9 +21,9 @@
 in MacOS Universal Headers. The prefix is to avoid name clashes
 with FPC types.}
 
-{For a future possiblity of compiling the RTL under Carbon,
+{For a future possibility of compiling the RTL under Carbon,
  sections containing Carbon only code should be under
- ifdef TARGET_API_MAC_CARBON, at the moment it is always undefinded: }
+ ifdef TARGET_API_MAC_CARBON, at the moment it is always undefined: }
 
 {$UNDEF TARGET_API_MAC_CARBON }
 
@@ -405,8 +405,8 @@ type
       ioVNmFls:      UInt16;                  { number of files in directory }
       ioVDirSt:      UInt16;                  { start block of file directory }
       ioVBlLn:      INTEGER;                { GetVolInfo: length of dir in blocks }
-      ioVNmAlBlks:    UInt16;                  { for compatibilty ioVNmAlBlks * ioVAlBlkSiz <= 2 GB }
-      ioVAlBlkSiz:    UInt32;                  { for compatibilty ioVAlBlkSiz is <= $0000FE00 (65,024) }
+      ioVNmAlBlks:    UInt16;                  { for compatibility ioVNmAlBlks * ioVAlBlkSiz <= 2 GB }
+      ioVAlBlkSiz:    UInt32;                  { for compatibility ioVAlBlkSiz is <= $0000FE00 (65,024) }
       ioVClpSiz:      UInt32;                  { GetVolInfo: bytes to allocate at a time }
       ioAlBlSt:      UInt16;                  { starting disk(512-byte) block in block map }
       ioVNxtFNum:      UInt32;                  { GetVolInfo: next free file number }

@@ -135,7 +135,7 @@ begin
 
     T:=P.Targets.AddUnit('sqlscript.pp');
     T.ResourceStrings:=true;
-    
+
     T:=P.Targets.AddUnit('fieldmap.pp');
     T.ResourceStrings:=true;
 
@@ -339,7 +339,7 @@ begin
         begin
           AddUnit('fpddcodegen');
         end;
-    T.ResourceStrings:=true;    
+    T.ResourceStrings:=true;
     T:=P.Targets.AddUnit('fpcgfieldmap.pp', DatadictOSes);
       with T.Dependencies do
         begin
@@ -849,7 +849,7 @@ begin
     T:=P.Targets.AddUnit('fpjsondataset.pp');
     with T.Dependencies do
       AddUnit('db');
-    
+
     T:=P.Targets.AddUnit('extjsdataset.pp');
     with T.Dependencies do
       AddUnit('fpjsondataset');

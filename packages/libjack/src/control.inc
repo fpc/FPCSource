@@ -122,7 +122,7 @@ type
  * @param flags signals setup flags, use 0 for none. Currently no
  * flags are defined
  *
- * @return the configurated signal set.
+ * @return the configured signal set.
  *)
 
 function jackctl_setup_signals(

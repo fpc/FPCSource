@@ -74,7 +74,7 @@ begin
   while true do
   begin
 		swiWaitForVBlank();
-		if( keys and KEY_START ) <> 0 then 
+		if( keys and KEY_START ) <> 0 then
       break;
   end;
 end.

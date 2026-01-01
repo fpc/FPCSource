@@ -97,7 +97,7 @@ begin
        PutSystemEvent(SystemEvent);
        PollSystemEvent:=true;
      end else if HasResizeWindow(width, height) then begin
-       if (width>0) and (height>0) and 
+       if (width>0) and (height>0) and
           ((width<>lastxsize) or (height<>lastysize)) then begin
          SystemEvent.typ:=SysResize;
          SystemEvent.x:=width;

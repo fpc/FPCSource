@@ -34,7 +34,7 @@ var
   TCNT0 : byte absolute $00+$52; // Timer/Counter0
   TCCR0B : byte absolute $00+$53; // Timer/Counter Control Register B
   OCR0B : byte absolute $00+$49; // Timer/Counter0 Output Compare Register
-  GTCCR : byte absolute $00+$48; // General Timer Conuter Register
+  GTCCR : byte absolute $00+$48; // General Timer Counter Register
   // WATCHDOG
   WDTCR : byte absolute $00+$41; // Watchdog Timer Control Register
   // CPU

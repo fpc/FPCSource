@@ -12,7 +12,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************
-  
+
 
   Purpose:
     This unit contains a XML TestListener for use with the fpcUnit testing
@@ -43,7 +43,7 @@ uses
 uses
   Classes, SysUtils, fpcunit, fpcunitreport, testutils, dom, XMLWrite;
 {$ENDIF FPC_DOTTEDUNITS}
-  
+
 
 type
 
@@ -60,8 +60,8 @@ type
     procedure WriteTestHeader(ATest: TTest; ALevel: integer; ACount: integer); override;
     procedure WriteTestFooter(ATest: TTest; ALevel: integer; ATiming: TDateTime); override;
     procedure WriteSuiteHeader(ATestSuite: TTestSuite; ALevel: integer); override;
-    procedure WriteSuiteFooter(ATestSuite: TTestSuite; ALevel: integer; 
-      ATiming: TDateTime; ANumRuns: integer; ANumErrors: integer; 
+    procedure WriteSuiteFooter(ATestSuite: TTestSuite; ALevel: integer;
+      ATiming: TDateTime; ANumRuns: integer; ANumErrors: integer;
       ANumFailures: integer; ANumIgnores: integer); override;
   public
     constructor Create(aOwner: TComponent); override;
@@ -110,7 +110,7 @@ function TestSuiteAsXML(n: TDOMElement; FDoc: TXMLDocument; aSuite:TTest): strin
 var
   i: integer;
   E,T : TDomElement;
-  
+
 begin
   Result:='';
   if aSuite.GetChildTestCount>0 then
@@ -180,7 +180,7 @@ var
 begin
   inherited;
   n := FDoc.CreateElement('TestSuite');
-  FSuitePath.Add(n); 
+  FSuitePath.Add(n);
   n['Name'] := ATestSuite.TestName;
   if FSuitePath.Count = 1 then
     FListing.AppendChild(n)
@@ -189,7 +189,7 @@ begin
 end;
 
 
-procedure TXMLResultsWriter.WriteSuiteFooter(ATestSuite: TTestSuite; ALevel: integer; 
+procedure TXMLResultsWriter.WriteSuiteFooter(ATestSuite: TTestSuite; ALevel: integer;
   ATiming: TDateTime; ANumRuns: integer; ANumErrors: integer; ANumFailures: integer;
   ANumIgnores: integer);
 var
@@ -250,7 +250,7 @@ begin
   CurrentElement := GetCurrentElement;
   if AFailure.IsIgnoredTest then
     CurrentElement['Result'] := 'Ignored'
-  else  
+  else
     CurrentElement['Result'] := 'Failed';
     CurrentElement.AppendChild(FDoc.CreateElement('Message')).AppendChild
       (FDoc.CreateTextNode(AFailure.AsString));
@@ -310,7 +310,7 @@ begin
   n := FDoc.CreateElement('NumberOfFailures');
   n.AppendChild(FDoc.CreateTextNode(IntToStr(aResult.NumberOfFailures)));
   lResults.AppendChild(n);
-  
+
   n := FDoc.CreateElement('NumberOfIgnoredTests');
   n.AppendChild(FDoc.CreateTextNode(IntToStr(aResult.NumberOfIgnoredTests)));
   lResults.AppendChild(n);

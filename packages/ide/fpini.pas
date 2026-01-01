@@ -37,7 +37,7 @@ uses
   FVConsts,
   Version,
 {$ifdef USE_EXTERNAL_COMPILER}
-   fpintf, { superseeds version_string of version unit }
+   fpintf, { supersedes version_string of version unit }
 {$endif USE_EXTERNAL_COMPILER}
   WConsts,WUtils,WINI,WViews,WEditor,WCEdit,FPSymbol,
   {$ifndef NODEBUG}FPDebug,{$endif}FPConst,FPVars,

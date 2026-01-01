@@ -106,14 +106,14 @@ begin
         InOutFunc:=@StreamWrite;
         FlushFunc:=@StreamWrite;
         if Mode=fmAppend then
-          begin 
-            Mode:=fmOutput; // see comments in text.inc  
+          begin
+            Mode:=fmOutput; // see comments in text.inc
             Try
               GetStream(F).Seek(0,soFromEnd);
             except
               InOutRes:=156;
             end;
-          end;  
+          end;
         end;
     end;
     end;
@@ -139,7 +139,7 @@ begin
     end;
   with TTextRec(F) do
     begin
-    
+
     OpenFunc:=@StreamOpen;
     CloseFunc:=@StreamClose;
     Case DefaultTextLineBreakStyle Of

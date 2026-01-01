@@ -44,7 +44,7 @@ unit regexpr;
 
   interface
 
-    { the following declarions are only in the interface because }
+    { the following declarations are only in the interface because }
     { some procedures return pregexprentry but programs which   }
     { use this unit shouldn't access this data structures        }
     type
@@ -86,7 +86,7 @@ unit regexpr;
         cs_whitespace : tcharset = [' ',#9];
 
      var
-        { these are initilized in the init section of the unit }
+        { these are initialized in the init section of the unit }
         cs_nonwordchars : tcharset;
         cs_nondigits : tcharset;
         cs_nonwhitespace : tcharset;
@@ -430,7 +430,7 @@ unit regexpr;
                   exit;
                 end;
             Val(minOccursString,minOccurs);
-            { possible cases here: commad or end bracket }
+            { possible cases here: command or end bracket }
             if currentpos^= '}' then
               begin
                 inc(currentpos);
@@ -949,7 +949,7 @@ unit regexpr;
 
                          if counter = 0 then
                            begin
-                             { If there was no occurence and the minimum occurence is > 0 then
+                             { If there was no occurrence and the minimum occurrence is > 0 then
                                problem.
                              }
                              if (regexprentry^.minoccurs > 0) then

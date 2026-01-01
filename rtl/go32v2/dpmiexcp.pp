@@ -638,7 +638,7 @@ begin
         movl    8(%edi),%ecx
         movl    12(%edi),%edx
         movl    24(%edi),%ebp
-        { Now for some uglyness.  The dpmi_jmp_buf structure may be ABOVE the
+        { Now for some ugliness.  The dpmi_jmp_buf structure may be ABOVE the
            point on the new SS:ESP we are moving to.  We don't allow overlap,
            but do force that it always be valid.  We will use ES:ESI for
            our new stack before swapping to it.  }

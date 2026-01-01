@@ -195,7 +195,7 @@ begin
       6:nBpLine:=Img.Width*3*(1+Ord(FullWidth));
     end;
 
-    GetMem(aLine,nBpLine);//3 extra byte for BMP 4Bytes alignement.
+    GetMem(aLine,nBpLine);//3 extra byte for BMP 4Bytes alignment.
     dLine:=PWord(aLine);
     for Row:=0 to img.Height-1 do
       begin

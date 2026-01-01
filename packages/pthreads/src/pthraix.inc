@@ -27,7 +27,7 @@ Type
   Psize_t  = ^size_t;
   Ptid_t  = ^tid_t;
   Ptimespec  = ^timespec;
-  
+
   pthread_barrier_t = record
 {$ifdef cpu64}
     __br_word: array[0..4] of clong;
@@ -35,7 +35,7 @@ Type
     __br_word: array[0..7] of cint;
 {$endif}
   end;
-  
+
   pthread_barrierattr_t = pointer;
 
   _once = record
@@ -236,7 +236,7 @@ Type
   priv_t = record
     pv_priv: array[0..1] of cuint;
   end;
-  
+
 
   pcred_ext_t = ^cred_ext_t;
   cred_ext_t = record
@@ -245,27 +245,27 @@ Type
     crx_suid,
     crx_luid,
     crx_acctid : uid_t;
-    
+
     crx_gid,
     crx_rgid,
     crx_sgid : gid_t;
-    
+
     crx_ngrps: cint;
     crx_groups: array[0..128-1] of gid_t;
-    
+
     crx_reserved_1: cint;
-    
+
     crx_caps: __cap_t;
-    
+
     crx_mpriv,
     crx_ipriv,
     crx_epriv,
     crx_bpriv: priv_t;
-    
+
     crx_npags: cint;
     crx_pagids: array[0..15] of byte;
     crx_pags: array[0..15] of cint;
-    
+
     crx_pad: array[0..256-173-1] of cint;
   end;
 
@@ -277,47 +277,47 @@ Type
 
 
 const
-  PTHREAD_PROCESS_SHARED = 0;  
-  PTHREAD_PROCESS_PRIVATE = 1;  
+  PTHREAD_PROCESS_SHARED = 0;
+  PTHREAD_PROCESS_PRIVATE = 1;
 
 {$ifndef _AIX_PTHREADS_D7}
 
 const
-  PTHREAD_MUTEX_ERRORCHECK = 3;  
-  PTHREAD_MUTEX_NORMAL = 5;  
-  PTHREAD_MUTEX_DEFAULT = PTHREAD_MUTEX_NORMAL;  
+  PTHREAD_MUTEX_ERRORCHECK = 3;
+  PTHREAD_MUTEX_NORMAL = 5;
+  PTHREAD_MUTEX_DEFAULT = PTHREAD_MUTEX_NORMAL;
 {$endif}
 
 
 const
-  PTHREAD_MUTEX_RECURSIVE = 4;  
+  PTHREAD_MUTEX_RECURSIVE = 4;
 
-  PTHREAD_PRIO_DEFAULT = 0;  
-  PTHREAD_PRIO_NONE = 1;  
-  PTHREAD_PRIO_PROTECT = 2;  
-  PTHREAD_PRIO_INHERIT = 3;  
-  PTHREAD_INHERIT_SCHED = 0;  
-  PTHREAD_EXPLICIT_SCHED = 1;  
-  PTHREAD_SCOPE_SYSTEM = 0;  
-  PTHREAD_SCOPE_PROCESS = 1;  
+  PTHREAD_PRIO_DEFAULT = 0;
+  PTHREAD_PRIO_NONE = 1;
+  PTHREAD_PRIO_PROTECT = 2;
+  PTHREAD_PRIO_INHERIT = 3;
+  PTHREAD_INHERIT_SCHED = 0;
+  PTHREAD_EXPLICIT_SCHED = 1;
+  PTHREAD_SCOPE_SYSTEM = 0;
+  PTHREAD_SCOPE_PROCESS = 1;
 
-  PTHREAD_CREATE_DETACHED = 1;  
-  PTHREAD_CREATE_JOINABLE = 0;  
+  PTHREAD_CREATE_DETACHED = 1;
+  PTHREAD_CREATE_JOINABLE = 0;
 
 
 const
   PTHREAD_CANCELED = pointer(-1);
 
-  PTHREAD_CANCEL_DISABLE = 0;  
+  PTHREAD_CANCEL_DISABLE = 0;
 
-  PTHREAD_CANCEL_ENABLE = 1;  
+  PTHREAD_CANCEL_ENABLE = 1;
 
-  PTHREAD_CANCEL_DEFERRED = 0;  
+  PTHREAD_CANCEL_DEFERRED = 0;
 
-  PTHREAD_CANCEL_ASYNCHRONOUS = 1;  
+  PTHREAD_CANCEL_ASYNCHRONOUS = 1;
 
-  PTHREAD_BARRIER_SERIAL_THREAD = 2;  
-  _PTH_FLAGS_INIT64 = 2;  
+  PTHREAD_BARRIER_SERIAL_THREAD = 2;
+  _PTH_FLAGS_INIT64 = 2;
 
 
 function pthread_attr_init(_para1:Ppthread_attr_t):cint;cdecl;external;
@@ -516,57 +516,57 @@ function pthread_atfork(_para1:procedure ; _para2:procedure ; _para3:procedure )
 
 
 const
-  LOG_GENERAL = 1;  
-  LOG_LOCKS = 2;  
-  LOG_DATA = 4;  
-  LOG_CREATE = 8;  
-  LOG_USCHED = 16;  
-  LOG_CANCEL = 32;  
-  LOG_SIGNAL = 64;  
-  LOG_SUSPEND = 128;  
-  LOG_MRQ = 256;  
-  LOG_MRQ1 = 512;  
+  LOG_GENERAL = 1;
+  LOG_LOCKS = 2;
+  LOG_DATA = 4;
+  LOG_CREATE = 8;
+  LOG_USCHED = 16;
+  LOG_CANCEL = 32;
+  LOG_SIGNAL = 64;
+  LOG_SUSPEND = 128;
+  LOG_MRQ = 256;
+  LOG_MRQ1 = 512;
 
-  LOG_HANG = 1024;  
-  LOG_LOCKBOOST = 2048;  
+  LOG_HANG = 1024;
+  LOG_LOCKBOOST = 2048;
 
 
 
-  MUTEX_FAST_NP = 2;  
-  MUTEX_RECURSIVE_NP = 1;  
+  MUTEX_FAST_NP = 2;
+  MUTEX_RECURSIVE_NP = 1;
 
-  MUTEX_NONRECURSIVE_NP = 0;  
+  MUTEX_NONRECURSIVE_NP = 0;
 
-  DEFAULT_SCHED = SCHED_OTHER;  
-  DEFAULT_PRIO = PTHREAD_PRIO_MIN;  
-  DEFAULT_INHERIT = PTHREAD_INHERIT_SCHED;  
-  PTHREAD_SCOPE_GLOBAL = PTHREAD_SCOPE_SYSTEM;  
-  PTHREAD_SCOPE_LOCAL = PTHREAD_SCOPE_PROCESS;  
-  DEFAULT_SCOPE = PTHREAD_SCOPE_LOCAL;  
+  DEFAULT_SCHED = SCHED_OTHER;
+  DEFAULT_PRIO = PTHREAD_PRIO_MIN;
+  DEFAULT_INHERIT = PTHREAD_INHERIT_SCHED;
+  PTHREAD_SCOPE_GLOBAL = PTHREAD_SCOPE_SYSTEM;
+  PTHREAD_SCOPE_LOCAL = PTHREAD_SCOPE_PROCESS;
+  DEFAULT_SCOPE = PTHREAD_SCOPE_LOCAL;
 
-  PTHREAD_CREATE_UNDETACHED = 0;  
+  PTHREAD_CREATE_UNDETACHED = 0;
 
-  PTHREAD_CREATE_SUSPENDED_NP = 1;  
-  PTHREAD_CREATE_UNSUSPENDED_NP = 0;  
+  PTHREAD_CREATE_SUSPENDED_NP = 1;
+  PTHREAD_CREATE_UNSUSPENDED_NP = 0;
 {$ifdef _AIX_PTHREADS_D7}
-  DEFAULT_DETACHSTATE = PTHREAD_CREATE_DETACHED;  
+  DEFAULT_DETACHSTATE = PTHREAD_CREATE_DETACHED;
 {$else}
 
 const
-  DEFAULT_DETACHSTATE = PTHREAD_CREATE_JOINABLE;  
+  DEFAULT_DETACHSTATE = PTHREAD_CREATE_JOINABLE;
 {$endif}
 (*
 {$ifdef __64BIT__}
 { was #define dname(params) para_def_expr }
 { argument types are unknown }
-{ return type might be wrong }   
+{ return type might be wrong }
 
 function pthread_mutex_getowner_np(mutex : longint) : longint;
 
 {$else}
 { was #define dname(params) para_def_expr }
 { argument types are unknown }
-{ return type might be wrong }   
+{ return type might be wrong }
 
 function pthread_mutex_getowner_np(mutex : longint) : longint;
 
@@ -604,61 +604,61 @@ const
 {$endif _LARGE_THREADS}
 
 const
-  __pi_suspended = __pi_suspendstate;  
-  __pi_returned = __pi_exit;  
+  __pi_suspended = __pi_suspendstate;
+  __pi_returned = __pi_exit;
 
-  PTHRDSINFO_STATE_NOTSUP = $00000100;  
-  PTHRDSINFO_STATE_IDLE = $00000004;  
-  PTHRDSINFO_STATE_RUN = $00000001;  
-  PTHRDSINFO_STATE_SLEEP = $00000008;  
-  PTHRDSINFO_STATE_READY = $00000002;  
-  PTHRDSINFO_STATE_TERM = $00000010;  
+  PTHRDSINFO_STATE_NOTSUP = $00000100;
+  PTHRDSINFO_STATE_IDLE = $00000004;
+  PTHRDSINFO_STATE_RUN = $00000001;
+  PTHRDSINFO_STATE_SLEEP = $00000008;
+  PTHRDSINFO_STATE_READY = $00000002;
+  PTHRDSINFO_STATE_TERM = $00000010;
 
-  PTHRDSINFO_SUSPENDSTATE_NOTSUP = $00000100;  
-  PTHRDSINFO_SUSPENDSTATE_SUSPENDED = $00000001;  
-  PTHRDSINFO_SUSPENDSTATE_UNSUSPENDED = $00000000;  
+  PTHRDSINFO_SUSPENDSTATE_NOTSUP = $00000100;
+  PTHRDSINFO_SUSPENDSTATE_SUSPENDED = $00000001;
+  PTHRDSINFO_SUSPENDSTATE_UNSUSPENDED = $00000000;
 
 
 const
-  PTHRDSINFO_SIGCTX_BASE = cuint(-1);  
+  PTHRDSINFO_SIGCTX_BASE = cuint(-1);
 
   PTHRDSINFO_SIGCTX_INVALID = cuint(-1);
 
-  PTHRDSINFO_QUERY_GPRS = $00000001;  
+  PTHRDSINFO_QUERY_GPRS = $00000001;
 
-  PTHRDSINFO_QUERY_SPRS = $00000002;  
+  PTHRDSINFO_QUERY_SPRS = $00000002;
 
-  PTHRDSINFO_QUERY_FPRS = $00000004;  
+  PTHRDSINFO_QUERY_FPRS = $00000004;
 
-  PTHRDSINFO_QUERY_REGS = $0000000F;  
+  PTHRDSINFO_QUERY_REGS = $0000000F;
 
-  PTHRDSINFO_QUERY_TID = $00000010;  
+  PTHRDSINFO_QUERY_TID = $00000010;
 
-  PTHRDSINFO_QUERY_ALL = $0000001F;  
-
-
-  PTHRDSINFO_QUERY_SIGCTX = $00000100;  
-
-  PTHRDSINFO_QUERY_EXTCTX = $00000200;  
-
-  PTHRDSINFO_QUERY_TLS = $00000400;  
-
-  PTHRDSINFO_RUSAGE_START = $00000001;  
-  PTHRDSINFO_RUSAGE_STOP = $00000002;  
-  PTHRDSINFO_RUSAGE_COLLECT = $00000004;  
+  PTHRDSINFO_QUERY_ALL = $0000001F;
 
 
-  PTHRDSCREDS_INHERIT_UIDS = $00000001;  
+  PTHRDSINFO_QUERY_SIGCTX = $00000100;
 
-  PTHRDSCREDS_INHERIT_GIDS = $00000010;  
+  PTHRDSINFO_QUERY_EXTCTX = $00000200;
 
-  PTHRDSCREDS_INHERIT_GSETS = $00000100;  
+  PTHRDSINFO_QUERY_TLS = $00000400;
 
-  PTHRDSCREDS_INHERIT_CAPS = $00001000;  
+  PTHRDSINFO_RUSAGE_START = $00000001;
+  PTHRDSINFO_RUSAGE_STOP = $00000002;
+  PTHRDSINFO_RUSAGE_COLLECT = $00000004;
 
-  PTHRDSCREDS_INHERIT_PRIVS = $00010000;  
 
-  PTHRDSCREDS_INHERIT_ALL = $00011111;  
+  PTHRDSCREDS_INHERIT_UIDS = $00000001;
+
+  PTHRDSCREDS_INHERIT_GIDS = $00000010;
+
+  PTHRDSCREDS_INHERIT_GSETS = $00000100;
+
+  PTHRDSCREDS_INHERIT_CAPS = $00001000;
+
+  PTHRDSCREDS_INHERIT_PRIVS = $00010000;
+
+  PTHRDSCREDS_INHERIT_ALL = $00011111;
 
 {$ifdef _AIX_PTHREADS_D7}
   var
@@ -690,8 +690,8 @@ procedure pthread_unlock_global_np;cdecl;external;
 function pthread_atfork_np(_para1:pointer; _para2:procedure (_para1:pointer); _para3:procedure (_para1:pointer); _para4:procedure (_para1:pointer)):cint;cdecl;external;
 
 const
-  PTHREAD_ATFORK_ARGUMENT = $00000001;  
-  PTHREAD_ATFORK_ALL = $00000002;  
+  PTHREAD_ATFORK_ARGUMENT = $00000001;
+  PTHREAD_ATFORK_ALL = $00000002;
 
 function pthread_atfork_unregister_np(_para1:pointer; _para2:procedure ; _para3:procedure ; _para4:procedure ; _para5:cint):cint;cdecl;external;
 function pthread_test_exit_np(_para1:Pcint):cint;cdecl;external;
@@ -726,7 +726,7 @@ function pthread_attr_setstacksize_np(_para1:Ppthread_attr_t; _para2:size_t):cin
 function pthread_attr_setukeyset_np(_para1:Ppthread_attr_t; _para2:Pculonglong):cint;cdecl;external;
 (* Const before type ignored *)
 function pthread_attr_getukeyset_np(_para1:Ppthread_attr_t; _para2:Pculonglong):cint;cdecl;external;
-function pthread_getthrds_np(_para1:Ppthread_t; _para2:cint; _para3:P__pthrdsinfo; _para4:cint; _para5:pointer; 
+function pthread_getthrds_np(_para1:Ppthread_t; _para2:cint; _para3:P__pthrdsinfo; _para4:cint; _para5:pointer;
            _para6:Pcint):cint;cdecl;external;
 function pthread_getrusage_np(_para1:pthread_t; _para2:Prusage; _para3:cint):cint;cdecl;external;
 

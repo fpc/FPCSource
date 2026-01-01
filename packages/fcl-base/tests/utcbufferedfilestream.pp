@@ -29,8 +29,8 @@ var
   lEffectiveRead1: integer;
   lEffectiveRead2: integer;
 begin
-  b1[0]:=0; // Avoid initalization hint
-  b2[0]:=0; // Avoid initalization hint
+  b1[0]:=0; // Avoid initialization hint
+  b2[0]:=0; // Avoid initialization hint
   Result:=false;
   if aStream1.Size<>aStream2.Size then exit;
   aStream1.Position:=0;
@@ -100,7 +100,7 @@ var
   lCheckInitV: integer;
 begin
   Result := '';
-  b[0]:=#0; // Avoid initalization hint
+  b[0]:=#0; // Avoid initialization hint
   lBufferedStream:=TBufferedFileStream.Create(TEST_FILENAME,fmOpenRead or fmShareDenyWrite);
   lStream:=TFileStream.Create(TEST_FILENAME,fmOpenRead or fmShareDenyWrite);
   try

@@ -206,7 +206,7 @@ begin
   AddTypeTree(locXsdFactory);
   doc := nil;
   try
-    tree := locXsdFactory.CreateNew(s_XsdParserNS,s_TypeTreeType); 
+    tree := locXsdFactory.CreateNew(s_XsdParserNS,s_TypeTreeType);
     AddXsdTypes(tree);
     SdoTypesToPasTree(tree,FDataFactory,lst);
     doc := CreateDoc();

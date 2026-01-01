@@ -30,7 +30,7 @@ begin
     if Defaults.CPU<>arm then
       P.OSes := P.OSes + [darwin];
 
-    
+
     P.Dependencies.Add('gtk1');
     P.Dependencies.Add('x11');
 

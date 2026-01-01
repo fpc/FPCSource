@@ -4,7 +4,7 @@
  * Copyright (C) 2002  Red Hat Inc.
  *
  * Licensed under the Academic Free License version 2.1
- * 
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -14,7 +14,7 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
@@ -31,7 +31,7 @@ type
 
   DBusCondVar = record end;
   PDBusCondVar = ^DBusCondVar;
-  
+
   DBusMutexNewFunction = function (): DBusMutex; cdecl;
   DBusMutexFreeFunction = procedure (mutex: PDBusMutex); cdecl;
   DBusMutexLockFunction = function (mutex: PDBusMutex): dbus_bool_t; cdecl;
@@ -72,7 +72,7 @@ type
 
 {
  * Functions that must be implemented to make the D-Bus
- * library thread-aware. 
+ * library thread-aware.
  }
   DBusThreadFunctions = record
    mask: cuint; {< Mask indicating which functions are present. }
@@ -99,7 +99,7 @@ type
    padding3: procedure; {< Reserved for future expansion }
    padding4: procedure; {< Reserved for future expansion }
   end;
-  
+
   PDBusThreadFunctions = ^DBusThreadFunctions;
 
 function dbus_threads_init(const functions: PDBusThreadFunctions): dbus_bool_t; cdecl; external LibDBus;

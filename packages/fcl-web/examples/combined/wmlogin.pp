@@ -5,7 +5,7 @@ unit wmlogin;
 interface
 
 uses
-  Classes, SysUtils, HTTPDefs, websession, fpHTTP, fpWeb, fpjsonrpc, 
+  Classes, SysUtils, HTTPDefs, websession, fpHTTP, fpWeb, fpjsonrpc,
   fpjson, IBConnection, sqldb, webjsonrpc, fpextdirect, sqldbwebdata;
 
 type
@@ -30,7 +30,7 @@ type
     { private declarations }
   public
     { public declarations }
-  end; 
+  end;
 
 var
   SessionManagement: TSessionManagement;

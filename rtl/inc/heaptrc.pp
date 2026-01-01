@@ -62,7 +62,7 @@ procedure CheckPointer(p : pointer);
 
 const
   { tracing level
-    splitted in two if memory is released !! }
+    split in two if memory is released !! }
 {$ifdef EXTRA}
   tracesize = 32;
 {$else EXTRA}
@@ -806,7 +806,7 @@ begin
   dec(l,sizeof(theap_mem_info)+pp^.extra_info_size);
   if add_tail then
    dec(l,tail_size);
-  { this can never happend normaly }
+  { this can never happened normally }
   if pp^.size>l then
    begin
      dump_wrong_size(pp,l,GetOutput^);
@@ -1699,7 +1699,7 @@ Function GetEnv(P:ansistring):Pansichar;
 {
   Searches the environment for a string with name p and
   returns a pansichar to it's value.
-  A pansichar is used to accomodate for strings of length > 255
+  A pansichar is used to accommodate for strings of length > 255
 }
 var
   ep    : ppansichar;

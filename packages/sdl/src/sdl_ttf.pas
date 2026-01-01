@@ -144,7 +144,7 @@ unit sdl_ttf;
   Revision 1.1  2004/02/16 22:16:40  savage
   v1.0 changes
 
-  
+
 }
 {******************************************************************************}
 
@@ -470,9 +470,9 @@ cdecl; external {$IFDEF __GPC__}name 'TTF_RenderGlyph_Blended'{$ELSE} SDLttfLibN
 { For compatibility with previous versions, here are the old functions }
 {#define TTF_RenderText(font, text, fg, bg)
 	TTF_RenderText_Shaded(font, text, fg, bg)
-#define TTF_RenderUTF8(font, text, fg, bg)	
+#define TTF_RenderUTF8(font, text, fg, bg)
 	TTF_RenderUTF8_Shaded(font, text, fg, bg)
-#define TTF_RenderUNICODE(font, text, fg, bg)	
+#define TTF_RenderUNICODE(font, text, fg, bg)
 	TTF_RenderUNICODE_Shaded(font, text, fg, bg)}
 
 { Close an opened font file }

@@ -61,7 +61,7 @@ type
     //SourceDBName and DestinationDBName is "main" for the main database, "temp" for the temporary
     //database, or the name specified after the AS keyword in an ATTACH statement for an
     //attached database
-    //LockUntilFinished: Set to false when simultanuous access from other processes is required.
+    //LockUntilFinished: Set to false when simultaneous access from other processes is required.
     //The backup process will restart when another process writes to the database.
     //Pro: the backup is a correct snapshot
     //Contra: the backup can take a very long time when a lot of writes to the database are made during backup

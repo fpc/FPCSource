@@ -20,9 +20,9 @@ type
     driverSize: cuint8;
     fixSectionsFlags: cuint8;
     allocatedSize: cuint8;
-    
+
     friendlyName: array [0..DLDI_FRIENDLY_NAME_LEN-1]of cchar;
-    
+
     // Pointers to sections that need address fixing
     dldiStart: pointer;
     dldiEnd: pointer;

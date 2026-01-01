@@ -30,7 +30,7 @@
 
     The MPM may or may not be multithreaded.  In the event that it is
     multithreaded, at any instant it guarantees a 1:1 mapping of threads
-    ap_process_connection invocations.  
+    ap_process_connection invocations.
 
     Note: In the future it will be possible for ap_process_connection
     to return to the MPM prior to finishing the entire connection; and
@@ -68,7 +68,7 @@
 
 {
  * This is the function that MPMs must create.  This function is responsible
- * for controlling the parent and child processes.  It will run until a 
+ * for controlling the parent and child processes.  It will run until a
  * restart/shutdown is indicated.
  * @param pconf the configuration pool, reset before the config file is read
  * @param plog the log pool, reset after the config file is read
@@ -82,7 +82,7 @@ function ap_mpm_run(pconf, plog: Papr_pool_t; server_conf: Pserver_rec): Integer
 
 {
  * predicate indicating if a graceful stop has been requested ...
- * used by the connection loop 
+ * used by the connection loop
  * @return 1 if a graceful stop has been requested, 0 otherwise
  * @deffunc int ap_graceful_stop_signalled(*void)
  }
@@ -94,14 +94,14 @@ function ap_graceful_stop_signalled: Integer;
  * Spawn a process with privileges that another module has requested
  * @param r The request_rec of the current request
  * @param newproc The resulting process handle.
- * @param progname The program to run 
- * @param const_args the arguments to pass to the new program.  The first 
+ * @param progname The program to run
+ * @param const_args the arguments to pass to the new program.  The first
  *                   one should be the program name.
- * @param env The new environment apr_table_t for the new process.  This 
+ * @param env The new environment apr_table_t for the new process.  This
  *            should be a list of NULL-terminated strings.
  * @param attr the procattr we should use to determine how to create the new
  *         process
- * @param p The pool to use. 
+ * @param p The pool to use.
  }
 function ap_os_create_privileged_process(
  const r: Prequest_rec;
@@ -143,7 +143,7 @@ const
   AP_MPMQ_MPM_STATE           = 13;  { starting, running, stopping  }
 
 {
- * Query a property of the current MPM.  
+ * Query a property of the current MPM.
  * @param query_code One of APM_MPMQ_*
  * @param result A location to place the result of the query
  * @return APR_SUCCESS or APR_ENOTIMPL

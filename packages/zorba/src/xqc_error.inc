@@ -406,7 +406,7 @@ type
     // through some chain of module dependencies.)
 
     //
-    // XQuery Type erros
+    // XQuery Type errors
     //
 
     XQTY0023,

@@ -110,7 +110,7 @@ type
     fID : TResID;
     fDescType : TDescType;
     fOwner : TAbstractresource;
-    
+
     function GetID : TResID;
     function GetName : TResName;
     procedure SetID(const aID : TResID);
@@ -185,9 +185,9 @@ type
     property OwnerList : TResources read fOwnerList;
     property Owner : TAbstractResource read fOwner;
   end;
-  
+
   TResourceClass = class of TAbstractResource;
-  
+
   { TGenericResource }
 
   TGenericResource = class(TAbstractResource)
@@ -485,7 +485,7 @@ end;
 constructor TAbstractResource.Create;
 begin
   fLangID:=0;
-  
+
   fDataSize:=0;
   fHeaderSize:=0;
   fDataVersion:=0;

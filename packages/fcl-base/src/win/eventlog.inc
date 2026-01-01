@@ -62,7 +62,7 @@ Var
   FEventID : DWord;
   FEventType : Word;
   aMsg : AnsiString {$IF SIZEOF(CHAR)=1} absolute Msg{$ENDIF};
-  
+
 begin
   FCategory:=MapTypeToCategory(EventType);
   FEventID:=MapTypeToEventID(EventType);

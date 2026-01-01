@@ -2,7 +2,7 @@
 unit debug;
 {$ENDIF FPC_DOTTEDUNITS}
 
-{$mode objfpc} 
+{$mode objfpc}
 {$J+}
 {$INLINE ON}
 {$MACRO ON}
@@ -17,7 +17,7 @@ uses
 uses
   ctypes, gctypes;
 {$ENDIF FPC_DOTTEDUNITS}
-  
+
 const
   GDBSTUB_DEVICE_USB = 0;
   GDBSTUB_DEVICE_TCP = 1;
@@ -29,11 +29,11 @@ var
   tcp_netmask: pcchar; cvar; external;
   tcp_gateway: pcchar; cvar; external;
 
-procedure _break(); cdecl; external;	
+procedure _break(); cdecl; external;
 procedure DEBUG_Init(device_type, channel_port: cint32); cdecl; external;
 
 implementation
 
 initialization
-{$linklib db} 
+{$linklib db}
 end.

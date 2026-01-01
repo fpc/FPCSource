@@ -202,7 +202,7 @@ begin
   slValues:=TStringList.Create;
   slValues.Delimiter:=';';
   slValues.DelimitedText:=Utf8Encode(LabeledEditValue);
-  
+
   for k:=0 to slKeys.Count-1 do
     if TestKey(sKey+'\'+Utf8Decode(slKeys[k])) then
     begin

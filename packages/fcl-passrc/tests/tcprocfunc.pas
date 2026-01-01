@@ -386,7 +386,7 @@ begin
     AssertNotNull(N+' Have argument type',A.ArgType);
     AssertEquals(N+' Correct argument type name',TypeName,A.ArgType.Name);
     end
-  else  
+  else
     begin
     AssertNotNull(N+' Have argument type',A.ArgType);
     T:=A.ArgType;
@@ -395,7 +395,7 @@ begin
     AssertNotNull(N+'Have dest type',T);
     AssertEquals(N+' Correct argument dest type name',Copy(TypeName,2,MaxInt),T.Name);
     end;
-    
+
 end;
 
 procedure TTestProcedureFunction.AssertArrayArg(ProcType: TPasProcedureType;

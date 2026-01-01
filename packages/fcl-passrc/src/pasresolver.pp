@@ -1286,7 +1286,7 @@ type
     rraReadAndAssign, // expression is LHS +=, -=, *=, /=
     rraVarParam, // expression is passed to a var parameter
     rraOutParam, // expression is passed to an out parameter
-    rraParamToUnknownProc // used as param, before knowing what overladed proc to call,
+    rraParamToUnknownProc // used as param, before knowing what overloaded proc to call,
       // will later be changed to rraRead, rraVarParam, rraOutParam
     );
   TPRResolveVarAccesses = set of TResolvedRefAccess;
@@ -1432,7 +1432,7 @@ type
   PPRFindGenericData = ^TPRFindGenericData;
 
   TPasResolverOption = (
-    proFixCaseOfOverrides,  // fix Name of overriding proc/property to the overriden proc/property
+    proFixCaseOfOverrides,  // fix Name of overriding proc/property to the overridden proc/property
     proClassPropertyNonStatic,  // class property accessors can be non static
     proPropertyAsVarParam, // allows to pass a property as a var/out argument
     proClassOfIs, // class-of supports is and as operator
@@ -2246,7 +2246,7 @@ type
       Flags: TPasResolverComputeFlags; StartEl: TPasElement = nil): boolean; virtual; // for descendants to return the promise
     function Eval(Expr: TPasExpr; Flags: TResEvalFlags; Store: boolean = true): TResEvalValue; overload;
     function Eval(const Value: TPasResolverResult; Flags: TResEvalFlags; Store: boolean = true): TResEvalValue; overload;
-    // checking compatibilility
+    // checking compatibility
     function IsSameType(TypeA, TypeB: TPasType; ResolveAlias: TPRResolveAlias): boolean; // check if it is exactly the same
     function HasExactType(const ResolvedEl: TPasResolverResult): boolean; // false if HiTypeEl was guessed, e.g. 1 guessed a btLongint
     function IndexOfGenericParam(Params: TPasExprArray): integer;
@@ -6975,7 +6975,7 @@ begin
     TemplTypes:=GetProcTemplateTypes(Proc);
     if (TemplTypes<>nil) then
       begin
-      // Proc is parametrized
+      // Proc is parameterized
       if (Proc is TPasConstructor) or (Proc is TPasDestructor) then
         RaiseMsg(20190911104114,nTypeParamsNotAllowedOnX,sTypeParamsNotAllowedOnX,
           [Proc.ElementTypeName],Proc);
@@ -9463,7 +9463,7 @@ begin
         end;
       end
     else if DeclTemplates<>nil then
-      // declproc is parametrized, implproc is not
+      // declproc is parameterized, implproc is not
       RaiseNotYetImplemented(20190912153439,ImplProc); // inconsistency
     end;
 
@@ -9585,7 +9585,7 @@ begin
       RaiseMsg(20190912144529,nDeclOfXDiffersFromPrevAtY,sDeclOfXDiffersFromPrevAtY,
         [GetProcName(ImplProc),GetElementSourcePosStr(DeclProc)],ImplProc);
 
-    // declaration proc has template type aka is parametrized
+    // declaration proc has template type aka is parameterized
     // -> check template types
     if ImplTemplates.Count<>DeclTemplates.Count then
       RaiseMsg(20190912145320,nDeclOfXDiffersFromPrevAtY,sDeclOfXDiffersFromPrevAtY,
@@ -15056,7 +15056,7 @@ begin
           {$IFNDEF PAS2JS}
           Result:=btAnsiChar // e.g. 'a'
           {$ELSE}
-          Result:=btWideChar           
+          Result:=btWideChar
           {$ENDIF}
         else
           Result:=btWideChar; // e.g. 'a'
@@ -17629,7 +17629,7 @@ procedure TPasResolver.SpecializeElement(GenEl, SpecEl: TPasElement);
 var
   C: TClass;
 begin
-  // first copy sourcefilename and linenumber needed by error messages
+  // first copy source filename and linenumber needed by error messages
   SpecializePasElementProperties(GenEl,SpecEl);
 
   C:=GenEl.ClassType;
@@ -18040,7 +18040,7 @@ begin
     end
   else if SpecializedItem<>nil then
     begin
-    // specialized generic/parametrized procedure
+    // specialized generic/parameterized procedure
     SpecProcScope:=TPasProcedureScope(PushScope(SpecEl,ScopeClass_Procedure));
     SpecProcScope.SpecializedFromItem:=SpecializedItem;
     if GenProcScope.DeclarationProc<>nil then
@@ -21313,7 +21313,7 @@ var
   begin
     if (GenEl.GenericTemplateTypes=nil) or (GenEl.GenericTemplateTypes.Count=0) then
       exit;
-    // referrring to a generic type without params
+    // referring to a generic type without params
     if not (msDelphi in CurrentParser.CurrentModeswitches)
         and (AParent<>nil)
         and AParent.HasParent(GenEl) then
@@ -23442,7 +23442,7 @@ procedure TPasResolver.RaiseIncompatibleTypeDesc(id: TMaxPrecInt; MsgNumber: int
 {$ELSE}
     vtUnicodeString: Result:={%H-}UnicodeString(Args[ArgNo].VUnicodeString);
     vtAnsiString: Result:=AnsiString(Args[ArgNo].VAnsiString);
-{$ENDIF}    
+{$ENDIF}
     else
       Result:='invalid param '+IntToStr(Ord(Args[ArgNo].VType));
     end;

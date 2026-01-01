@@ -5,11 +5,11 @@ uses
 
 const
   n = 5;
-  
+
 var
   i: integer;
   v: array[1..n] of ArbFloat;
-  
+
 begin
   Assign(output, ParamStr(1));
   rewrite(output);

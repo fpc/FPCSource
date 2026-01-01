@@ -19,11 +19,11 @@ unit fpopenapi.reader;
 
 interface
 
-uses 
+uses
   {$IFDEF FPC_DOTTEDUNITS}
-  System.SysUtils, System.Classes, System.Contnrs, FpJson.Data, FpJson.Scanner, 
+  System.SysUtils, System.Classes, System.Contnrs, FpJson.Data, FpJson.Scanner,
   {$ELSE}
-  sysutils, classes, contnrs, fpjson, jsonscanner, 
+  sysutils, classes, contnrs, fpjson, jsonscanner,
   {$ENDIF}
   fpopenapi.types, fpopenapi.objects, fpjson.schema.schema;
 
@@ -445,27 +445,27 @@ begin
     CheckNextToken(tkColon);
     aKeyword:=TOpenAPIKeyword.FromString(aName);
     case aKeyword of
-    oakOpenApi: 
+    oakOpenApi:
       aObj.OpenApi:=Readstring;
-    oakInfo: 
+    oakInfo:
       ReadInfo(aObj.Info);
-    oakJSONSchemaDialect: 
+    oakJSONSchemaDialect:
       aObj.JSONSchemaDialect:=Readstring;
-    oakServers: 
+    oakServers:
       ReadServerList(aObj.Servers);
-    oakPaths: 
+    oakPaths:
       ReadPathsList(aObj.Paths);
-    oakWebHooks: 
+    oakWebHooks:
       ReadPathItemOrReferenceMap(aObj.WebHooks);
-    oakComponents: 
+    oakComponents:
       ReadComponents(aObj.Components);
-    oakSecurity: 
+    oakSecurity:
       ReadSecurityRequirementList(aObj.Security);
-    oakTags: 
+    oakTags:
       ReadTagList(aObj.Tags);
-    oakExternalDocs: 
+    oakExternalDocs:
       ReadExternalDocumentation(aObj.ExternalDocs);
-    else 
+    else
       aObj.Extensions.Add(aName,ReadJSONData);
     end;
     aToken:=CheckNextToken([tkComma,tkCurlyBraceClose]);
@@ -492,21 +492,21 @@ begin
     CheckNextToken(tkColon);
     aKeyword:=TInfoKeyword.FromString(aName);
     case aKeyword of
-    ikTitle: 
+    ikTitle:
       aObj.Title:=Readstring;
-    ikSummary: 
+    ikSummary:
       aObj.Summary:=Readstring;
-    ikDescription: 
+    ikDescription:
       aObj.Description:=Readstring;
-    ikTermsOfService: 
+    ikTermsOfService:
       aObj.TermsOfService:=Readstring;
-    ikContact: 
+    ikContact:
       ReadContact(aObj.Contact);
-    ikLicense: 
+    ikLicense:
       ReadLicense(aObj.License);
-    ikVersion: 
+    ikVersion:
       aObj.Version:=Readstring;
-    else 
+    else
       aObj.Extensions.Add(aName,ReadJSONData);
     end;
     aToken:=CheckNextToken([tkComma,tkCurlyBraceClose]);
@@ -533,13 +533,13 @@ begin
     CheckNextToken(tkColon);
     aKeyword:=TContactKeyword.FromString(aName);
     case aKeyword of
-    cokName: 
+    cokName:
       aObj.Name:=Readstring;
-    cokUrl: 
+    cokUrl:
       aObj.Url:=Readstring;
-    cokEmail: 
+    cokEmail:
       aObj.Email:=Readstring;
-    else 
+    else
       aObj.Extensions.Add(aName,ReadJSONData);
     end;
     aToken:=CheckNextToken([tkComma,tkCurlyBraceClose]);
@@ -566,13 +566,13 @@ begin
     CheckNextToken(tkColon);
     aKeyword:=TLicenseKeyword.FromString(aName);
     case aKeyword of
-    lkName: 
+    lkName:
       aObj.Name:=Readstring;
-    lkIdentifier: 
+    lkIdentifier:
       aObj.Identifier:=Readstring;
-    lkUrl: 
+    lkUrl:
       aObj.Url:=Readstring;
-    else 
+    else
       aObj.Extensions.Add(aName,ReadJSONData);
     end;
     aToken:=CheckNextToken([tkComma,tkCurlyBraceClose]);
@@ -598,13 +598,13 @@ begin
     CheckNextToken(tkColon);
     aKeyword:=TServerKeyword.FromString(aName);
     case aKeyword of
-    skServerUrl: 
+    skServerUrl:
       aObj.Url:=Readstring;
-    skDescription: 
+    skDescription:
       aObj.Description:=Readstring;
-    skVariables: 
+    skVariables:
       ReadServerVariableMap(aObj.Variables);
-    else 
+    else
       aObj.Extensions.Add(aName,ReadJSONData);
     end;
     aToken:=CheckNextToken([tkComma,tkCurlyBraceClose]);
@@ -674,13 +674,13 @@ begin
     CheckNextToken(tkColon);
     aKeyword:=TServerVariableKeyword.FromString(aName);
     case aKeyword of
-    svkEnum: 
+    svkEnum:
       ReadObject(aObj.Enum);
-    svkDefault: 
+    svkDefault:
       aObj.Default:=Readstring;
-    svkDescription: 
+    svkDescription:
       aObj.Description:=Readstring;
-    else 
+    else
       aObj.Extensions.Add(aName,ReadJSONData);
     end;
     aToken:=CheckNextToken([tkComma,tkCurlyBraceClose]);
@@ -760,27 +760,27 @@ begin
     CheckNextToken(tkColon);
     aKeyword:=TComponentsKeyword.FromString(aName);
     case aKeyword of
-    ckSchemas: 
+    ckSchemas:
       ReadJSONSchemaMap(aObj.Schemas);
-    ckResponses: 
+    ckResponses:
       ReadResponseOrReferenceMap(aObj.Responses);
-    ckParameters: 
+    ckParameters:
       ReadParameterOrReferenceMap(aObj.Parameters);
-    ckExamples: 
+    ckExamples:
       ReadExampleOrReferenceMap(aObj.Examples);
-    ckRequestBodies: 
+    ckRequestBodies:
       ReadRequestBodyOrReferenceMap(aObj.RequestBodies);
-    ckHeaders: 
+    ckHeaders:
       ReadHeaderOrReferenceMap(aObj.Headers);
-    ckSecuritySchemes: 
+    ckSecuritySchemes:
       ReadSecuritySchemeOrReferenceMap(aObj.SecuritySchemes);
-    ckLinks: 
+    ckLinks:
       ReadLinkOrReferenceMap(aObj.Links);
-    ckCallbacks: 
+    ckCallbacks:
       ReadLinkOrReferenceMap(aObj.Callbacks);
-    ckPathItems: 
+    ckPathItems:
       ReadPathItemOrReferenceMap(aObj.PathItems);
-    else 
+    else
       aObj.Extensions.Add(aName,ReadJSONData);
     end;
     aToken:=CheckNextToken([tkComma,tkCurlyBraceClose]);
@@ -807,33 +807,33 @@ begin
     CheckNextToken(tkColon);
     aKeyword:=TPathItemKeyword.FromString(aName);
     case aKeyword of
-    pkRef: 
+    pkRef:
       aObj.Ref:=Readstring;
-    pkSummary: 
+    pkSummary:
       aObj.Summary:=Readstring;
-    pkDescription: 
+    pkDescription:
       aObj.Description:=Readstring;
-    pkGet: 
+    pkGet:
       ReadApiOperation(aObj.Get);
-    pkPut: 
+    pkPut:
       ReadApiOperation(aObj.Put);
-    pkPost: 
+    pkPost:
       ReadApiOperation(aObj.Post);
-    pkDelete: 
+    pkDelete:
       ReadApiOperation(aObj.Delete);
-    pkOptions: 
+    pkOptions:
       ReadApiOperation(aObj.Options);
-    pkHead: 
+    pkHead:
       ReadApiOperation(aObj.Head);
-    pkPatch: 
+    pkPatch:
       ReadApiOperation(aObj.Patch);
-    pkTrace: 
+    pkTrace:
       ReadApiOperation(aObj.Trace);
-    pkServers: 
+    pkServers:
       ReadServerList(aObj.Servers);
-    pkParameters: 
+    pkParameters:
       ReadParameterOrReferenceList(aObj.Parameters);
-    else 
+    else
       aObj.Extensions.Add(aName,ReadJSONData);
     end;
     aToken:=CheckNextToken([tkComma,tkCurlyBraceClose]);
@@ -860,33 +860,33 @@ begin
     CheckNextToken(tkColon);
     aKeyword:=TPathItemKeyword.FromString(aName);
     case aKeyword of
-    pkRef: 
+    pkRef:
       aObj.Ref:=Readstring;
-    pkSummary: 
+    pkSummary:
       aObj.Summary:=Readstring;
-    pkDescription: 
+    pkDescription:
       aObj.Description:=Readstring;
-    pkGet: 
+    pkGet:
       ReadApiOperation(aObj.Get);
-    pkPut: 
+    pkPut:
       ReadApiOperation(aObj.Put);
-    pkPost: 
+    pkPost:
       ReadApiOperation(aObj.Post);
-    pkDelete: 
+    pkDelete:
       ReadApiOperation(aObj.Delete);
-    pkOptions: 
+    pkOptions:
       ReadApiOperation(aObj.Options);
-    pkHead: 
+    pkHead:
       ReadApiOperation(aObj.Head);
-    pkPatch: 
+    pkPatch:
       ReadApiOperation(aObj.Patch);
-    pkTrace: 
+    pkTrace:
       ReadApiOperation(aObj.Trace);
-    pkServers: 
+    pkServers:
       ReadServerList(aObj.Servers);
-    pkParameters: 
+    pkParameters:
       ReadParameterOrReferenceList(aObj.Parameters);
-    else 
+    else
       aObj.Extensions.Add(aName,ReadJSONData);
     end;
     aToken:=CheckNextToken([tkComma,tkCurlyBraceClose]);
@@ -926,31 +926,31 @@ begin
     CheckNextToken(tkColon);
     aKeyword:=TApiOperationKeyword.FromString(aName);
     case aKeyword of
-    okTags: 
+    okTags:
       ReadObject(aObj.Tags);
-    okSummary: 
+    okSummary:
       aObj.Summary:=Readstring;
-    okDescription: 
+    okDescription:
       aObj.Description:=Readstring;
-    okExternalDocs: 
+    okExternalDocs:
       ReadExternalDocumentation(aObj.ExternalDocs);
-    okOperationId: 
+    okOperationId:
       aObj.OperationId:=Readstring;
-    okParameters: 
+    okParameters:
       ReadParameterOrReferenceList(aObj.Parameters);
-    okRequestBody: 
+    okRequestBody:
       ReadRequestBody(aObj.RequestBody);
-    okResponses: 
+    okResponses:
       ReadResponses(aObj.Responses);
-    okCallbacks: 
+    okCallbacks:
       ReadCallBackOrReferenceMap(aObj.Callbacks);
-    okDeprecated: 
+    okDeprecated:
       aObj.Deprecated:=ReadBoolean;
-    okSecurity: 
+    okSecurity:
       ReadSecurityRequirementList(aObj.Security);
-    okServers: 
+    okServers:
       ReadServerList(aObj.Servers);
-    else 
+    else
       aObj.Extensions.Add(aName,ReadJSONData);
     end;
     aToken:=CheckNextToken([tkComma,tkCurlyBraceClose]);
@@ -977,11 +977,11 @@ begin
     CheckNextToken(tkColon);
     aKeyword:=TExternalDocumentationKeyword.FromString(aName);
     case aKeyword of
-    edkDescription: 
+    edkDescription:
       aObj.Description:=Readstring;
-    edkUrl: 
+    edkUrl:
       aObj.Url:=Readstring;
-    else 
+    else
       aObj.Extensions.Add(aName,ReadJSONData);
     end;
     aToken:=CheckNextToken([tkComma,tkCurlyBraceClose]);
@@ -1066,33 +1066,33 @@ begin
     CheckNextToken(tkColon);
     aKeyword:=TParameterKeyword.FromString(aName);
     case aKeyword of
-    pakName: 
+    pakName:
       aObj.Name:=Readstring;
-    pakIn: 
+    pakIn:
       aObj.In_:=Readstring;
-    pakDescription: 
+    pakDescription:
       aObj.Description:=Readstring;
-    pakRequired: 
+    pakRequired:
       aObj.Required:=ReadBoolean;
-    pakDeprecated: 
+    pakDeprecated:
       aObj.Deprecated:=ReadBoolean;
-    pakAllowEmptyValue: 
+    pakAllowEmptyValue:
       aObj.AllowEmptyValue:=ReadBoolean;
-    pakStyle: 
+    pakStyle:
       aObj.Style:=Readstring;
-    pakExplode: 
+    pakExplode:
       aObj.Explode:=ReadBoolean;
-    pakAllowReserved: 
+    pakAllowReserved:
       aObj.AllowReserved:=ReadBoolean;
-    pakSchema: 
+    pakSchema:
       ReadJSONSchema(aObj.Schema);
-    pakExample: 
+    pakExample:
       aObj.Example:=ReadJSONData;
-    pakExamples: 
+    pakExamples:
       ReadExampleOrReferenceMap(aObj.Examples);
-    pakContent: 
+    pakContent:
       ReadMediaTypeMap(aObj.Content);
-    else 
+    else
       aObj.Extensions.Add(aName,ReadJSONData);
     end;
     aToken:=CheckNextToken([tkComma,tkCurlyBraceClose]);
@@ -1150,21 +1150,21 @@ begin
     CheckNextToken(tkColon);
     aKeyword:=TParameterStyleKeyword.FromString(aName);
     case aKeyword of
-    pskMatrix: 
+    pskMatrix:
       aObj.Matrix:=Readstring;
-    pskLabel: 
+    pskLabel:
       aObj.Label_:=Readstring;
-    pskForm: 
+    pskForm:
       aObj.Form:=Readstring;
-    pskSimple: 
+    pskSimple:
       aObj.Simple:=Readstring;
-    pskSpaceDelimited: 
+    pskSpaceDelimited:
       aObj.SpaceDelimited:=Readstring;
-    pskPipeDelimited: 
+    pskPipeDelimited:
       aObj.PipeDelimited:=Readstring;
-    pskDeepObject: 
+    pskDeepObject:
       aObj.DeepObject:=Readstring;
-    else 
+    else
       aObj.Extensions.Add(aName,ReadJSONData);
     end;
     aToken:=CheckNextToken([tkComma,tkCurlyBraceClose]);
@@ -1191,13 +1191,13 @@ begin
     CheckNextToken(tkColon);
     aKeyword:=TRequestBodyKeyword.FromString(aName);
     case aKeyword of
-    rbkDescription: 
+    rbkDescription:
       aObj.Description:=Readstring;
-    rbkContent: 
+    rbkContent:
       ReadMediaTypeMap(aObj.Content);
-    rbkRequired: 
+    rbkRequired:
       aObj.Required:=ReadBoolean;
-    else 
+    else
       aObj.Extensions.Add(aName,ReadJSONData);
     end;
     aToken:=CheckNextToken([tkComma,tkCurlyBraceClose]);
@@ -1224,13 +1224,13 @@ begin
     CheckNextToken(tkColon);
     aKeyword:=TRequestBodyKeyword.FromString(aName);
     case aKeyword of
-    rbkDescription: 
+    rbkDescription:
       aObj.Description:=Readstring;
-    rbkContent: 
+    rbkContent:
       ReadMediaTypeMap(aObj.Content);
-    rbkRequired: 
+    rbkRequired:
       aObj.Required:=ReadBoolean;
-    else 
+    else
       aObj.Extensions.Add(aName,ReadJSONData);
     end;
     aToken:=CheckNextToken([tkComma,tkCurlyBraceClose]);
@@ -1269,15 +1269,15 @@ begin
     CheckNextToken(tkColon);
     aKeyword:=TMediaTypeKeyword.FromString(aName);
     case aKeyword of
-    mtkSchema: 
+    mtkSchema:
       ReadJSONSchema(aObj.Schema);
-    mtkExample: 
+    mtkExample:
       aObj.Example:=ReadJSONData;
-    mtkExamples: 
+    mtkExamples:
       ReadExampleOrReferenceMap(aObj.Examples);
-    mtkEncoding: 
+    mtkEncoding:
       ReadEncodingMap(aObj.Encoding);
-    else 
+    else
       aObj.Extensions.Add(aName,ReadJSONData);
     end;
     aToken:=CheckNextToken([tkComma,tkCurlyBraceClose]);
@@ -1316,17 +1316,17 @@ begin
     CheckNextToken(tkColon);
     aKeyword:=TEncodingKeyword.FromString(aName);
     case aKeyword of
-    eckContentType: 
+    eckContentType:
       aObj.ContentType:=Readstring;
-    eckHeaders: 
+    eckHeaders:
       ReadHeaderOrReferenceMap(aObj.Headers);
-    eckStyle: 
+    eckStyle:
       aObj.Style:=Readstring;
-    eckExplode: 
+    eckExplode:
       aObj.Explode:=ReadBoolean;
-    eckAllowReserved: 
+    eckAllowReserved:
       aObj.AllowReserved:=ReadBoolean;
-    else 
+    else
       aObj.Extensions.Add(aName,ReadJSONData);
     end;
     aToken:=CheckNextToken([tkComma,tkCurlyBraceClose]);
@@ -1390,15 +1390,15 @@ begin
     CheckNextToken(tkColon);
     aKeyword:=TResponseKeyword.FromString(aName);
     case aKeyword of
-    rkDescription: 
+    rkDescription:
       aObj.Description:=Readstring;
-    rkHeaders: 
+    rkHeaders:
       ReadHeaderOrReferenceMap(aObj.Headers);
-    rkContent: 
+    rkContent:
       ReadMediaTypeMap(aObj.Content);
-    rkLinks: 
+    rkLinks:
       ReadLinkOrReferenceMap(aObj.Links);
-    else 
+    else
       aObj.Extensions.Add(aName,ReadJSONData);
     end;
     aToken:=CheckNextToken([tkComma,tkCurlyBraceClose]);
@@ -1425,15 +1425,15 @@ begin
     CheckNextToken(tkColon);
     aKeyword:=TResponseKeyword.FromString(aName);
     case aKeyword of
-    rkDescription: 
+    rkDescription:
       aObj.Description:=Readstring;
-    rkHeaders: 
+    rkHeaders:
       ReadHeaderOrReferenceMap(aObj.Headers);
-    rkContent: 
+    rkContent:
       ReadMediaTypeMap(aObj.Content);
-    rkLinks: 
+    rkLinks:
       ReadLinkOrReferenceMap(aObj.Links);
-    else 
+    else
       aObj.Extensions.Add(aName,ReadJSONData);
     end;
     aToken:=CheckNextToken([tkComma,tkCurlyBraceClose]);
@@ -1472,15 +1472,15 @@ begin
     CheckNextToken(tkColon);
     aKeyword:=TExampleKeyword.FromString(aName);
     case aKeyword of
-    exkSummary: 
+    exkSummary:
       aObj.Summary:=Readstring;
-    exkDescription: 
+    exkDescription:
       aObj.Description:=Readstring;
-    exkValue: 
+    exkValue:
       aObj.Value:=ReadJSONData;
-    exkExternalValue: 
+    exkExternalValue:
       aObj.ExternalValue:=Readstring;
-    else 
+    else
       aObj.Extensions.Add(aName,ReadJSONData);
     end;
     aToken:=CheckNextToken([tkComma,tkCurlyBraceClose]);
@@ -1507,15 +1507,15 @@ begin
     CheckNextToken(tkColon);
     aKeyword:=TExampleKeyword.FromString(aName);
     case aKeyword of
-    exkSummary: 
+    exkSummary:
       aObj.Summary:=Readstring;
-    exkDescription: 
+    exkDescription:
       aObj.Description:=Readstring;
-    exkValue: 
+    exkValue:
       aObj.Value:=ReadJSONData;
-    exkExternalValue: 
+    exkExternalValue:
       aObj.ExternalValue:=Readstring;
-    else 
+    else
       aObj.Extensions.Add(aName,ReadJSONData);
     end;
     aToken:=CheckNextToken([tkComma,tkCurlyBraceClose]);
@@ -1555,19 +1555,19 @@ begin
     CheckNextToken(tkColon);
     aKeyword:=TLinkKeyword.FromString(aName);
     case aKeyword of
-    likOperationRef: 
+    likOperationRef:
       aObj.OperationRef:=Readstring;
-    likOperationId: 
+    likOperationId:
       aObj.OperationId:=Readstring;
-    likParameters: 
+    likParameters:
       ReadJSONObject(aObj.Parameters);
-    likRequestBody: 
+    likRequestBody:
       aObj.RequestBody:=ReadJSONData;
-    likDescription: 
+    likDescription:
       aObj.Description:=Readstring;
-    likServer: 
+    likServer:
       ReadServer(aObj.Server);
-    else 
+    else
       aObj.Extensions.Add(aName,ReadJSONData);
     end;
     aToken:=CheckNextToken([tkComma,tkCurlyBraceClose]);
@@ -1594,19 +1594,19 @@ begin
     CheckNextToken(tkColon);
     aKeyword:=TLinkKeyword.FromString(aName);
     case aKeyword of
-    likOperationRef: 
+    likOperationRef:
       aObj.OperationRef:=Readstring;
-    likOperationId: 
+    likOperationId:
       aObj.OperationId:=Readstring;
-    likParameters: 
+    likParameters:
       ReadJSONObject(aObj.Parameters);
-    likRequestBody: 
+    likRequestBody:
       aObj.RequestBody:=ReadJSONData;
-    likDescription: 
+    likDescription:
       aObj.Description:=Readstring;
-    likServer: 
+    likServer:
       ReadServer(aObj.Server);
-    else 
+    else
       aObj.Extensions.Add(aName,ReadJSONData);
     end;
     aToken:=CheckNextToken([tkComma,tkCurlyBraceClose]);
@@ -1646,13 +1646,13 @@ begin
     CheckNextToken(tkColon);
     aKeyword:=TTagKeyword.FromString(aName);
     case aKeyword of
-    tkName: 
+    tkName:
       aObj.Name:=Readstring;
-    tkDescription: 
+    tkDescription:
       aObj.Description:=Readstring;
-    tkExternalDocs: 
+    tkExternalDocs:
       ReadExternalDocumentation(aObj.ExternalDocs);
-    else 
+    else
       aObj.Extensions.Add(aName,ReadJSONData);
     end;
     aToken:=CheckNextToken([tkComma,tkCurlyBraceClose]);
@@ -1679,13 +1679,13 @@ begin
     CheckNextToken(tkColon);
     aKeyword:=TReferenceKeyword.FromString(aName);
     case aKeyword of
-    rfkRef: 
+    rfkRef:
       aObj.Ref:=Readstring;
-    rfkSummary: 
+    rfkSummary:
       aObj.Summary:=Readstring;
-    rfkDescription: 
+    rfkDescription:
       aObj.Description:=Readstring;
-    else 
+    else
       aObj.Extensions.Add(aName,ReadJSONData);
     end;
     aToken:=CheckNextToken([tkComma,tkCurlyBraceClose]);
@@ -1712,15 +1712,15 @@ begin
     CheckNextToken(tkColon);
     aKeyword:=TSchemaKeyword.FromString(aName);
     case aKeyword of
-    sckDiscriminator: 
+    sckDiscriminator:
       ReadDiscriminator(aObj.Discriminator);
-    sckXML: 
+    sckXML:
       ReadXML(aObj.XML);
-    sckExternalDocs: 
+    sckExternalDocs:
       ReadExternalDocumentation(aObj.ExternalDocs);
-    sckExample: 
+    sckExample:
       aObj.Example:=ReadJSONData;
-    else 
+    else
       aObj.Extensions.Add(aName,ReadJSONData);
     end;
     aToken:=CheckNextToken([tkComma,tkCurlyBraceClose]);
@@ -1747,11 +1747,11 @@ begin
     CheckNextToken(tkColon);
     aKeyword:=TDiscriminatorKeyword.FromString(aName);
     case aKeyword of
-    dikPropertyName: 
+    dikPropertyName:
       aObj.PropertyName:=Readstring;
-    dikMapping: 
+    dikMapping:
       ReadObject(aObj.Mapping);
-    else 
+    else
       aObj.Extensions.Add(aName,ReadJSONData);
     end;
     aToken:=CheckNextToken([tkComma,tkCurlyBraceClose]);
@@ -1778,17 +1778,17 @@ begin
     CheckNextToken(tkColon);
     aKeyword:=TXMLKeyword.FromString(aName);
     case aKeyword of
-    xmkName: 
+    xmkName:
       aObj.Name:=Readstring;
-    xmkNamespace: 
+    xmkNamespace:
       aObj.Namespace:=Readstring;
-    xmkPrefix: 
+    xmkPrefix:
       aObj.Prefix:=Readstring;
-    xmkAttribute: 
+    xmkAttribute:
       aObj.Attribute:=ReadBoolean;
-    xmkWrapped: 
+    xmkWrapped:
       aObj.Wrapped:=ReadBoolean;
-    else 
+    else
       aObj.Extensions.Add(aName,ReadJSONData);
     end;
     aToken:=CheckNextToken([tkComma,tkCurlyBraceClose]);
@@ -1815,23 +1815,23 @@ begin
     CheckNextToken(tkColon);
     aKeyword:=TSecuritySchemeKeyword.FromString(aName);
     case aKeyword of
-    sskType: 
+    sskType:
       aObj.Type_:=Readstring;
-    sskDescription: 
+    sskDescription:
       aObj.Description:=Readstring;
-    sskName: 
+    sskName:
       aObj.Name:=Readstring;
-    sskIn: 
+    sskIn:
       aObj.In_:=Readstring;
-    sskScheme: 
+    sskScheme:
       aObj.Scheme:=Readstring;
-    sskBearerFormat: 
+    sskBearerFormat:
       aObj.BearerFormat:=Readstring;
-    sskFlows: 
+    sskFlows:
       ReadOAuthFlows(aObj.Flows);
-    sskOpenIdConnectUrl: 
+    sskOpenIdConnectUrl:
       aObj.OpenIdConnectUrl:=Readstring;
-    else 
+    else
       aObj.Extensions.Add(aName,ReadJSONData);
     end;
     aToken:=CheckNextToken([tkComma,tkCurlyBraceClose]);
@@ -1858,23 +1858,23 @@ begin
     CheckNextToken(tkColon);
     aKeyword:=TSecuritySchemeKeyword.FromString(aName);
     case aKeyword of
-    sskType: 
+    sskType:
       aObj.Type_:=Readstring;
-    sskDescription: 
+    sskDescription:
       aObj.Description:=Readstring;
-    sskName: 
+    sskName:
       aObj.Name:=Readstring;
-    sskIn: 
+    sskIn:
       aObj.In_:=Readstring;
-    sskScheme: 
+    sskScheme:
       aObj.Scheme:=Readstring;
-    sskBearerFormat: 
+    sskBearerFormat:
       aObj.BearerFormat:=Readstring;
-    sskFlows: 
+    sskFlows:
       ReadOAuthFlows(aObj.Flows);
-    sskOpenIdConnectUrl: 
+    sskOpenIdConnectUrl:
       aObj.OpenIdConnectUrl:=Readstring;
-    else 
+    else
       aObj.Extensions.Add(aName,ReadJSONData);
     end;
     aToken:=CheckNextToken([tkComma,tkCurlyBraceClose]);
@@ -1913,15 +1913,15 @@ begin
     CheckNextToken(tkColon);
     aKeyword:=TOAuthFlowsKeyword.FromString(aName);
     case aKeyword of
-    ofskImplicit: 
+    ofskImplicit:
       ReadOauthFlow(aObj.Implicit);
-    ofskPassword: 
+    ofskPassword:
       ReadOauthFlow(aObj.Password);
-    ofskClientCredentials: 
+    ofskClientCredentials:
       ReadOauthFlow(aObj.ClientCredentials);
-    ofskClientAuthorizationCode: 
+    ofskClientAuthorizationCode:
       ReadOauthFlow(aObj.ClientAuthorizationCode);
-    else 
+    else
       aObj.Extensions.Add(aName,ReadJSONData);
     end;
     aToken:=CheckNextToken([tkComma,tkCurlyBraceClose]);
@@ -1948,15 +1948,15 @@ begin
     CheckNextToken(tkColon);
     aKeyword:=TOauthFlowKeyword.FromString(aName);
     case aKeyword of
-    ofkAuthorizationUrl: 
+    ofkAuthorizationUrl:
       aObj.AuthorizationUrl:=Readstring;
-    ofkTokenURL: 
+    ofkTokenURL:
       aObj.TokenURL:=Readstring;
-    ofkRefreshURL: 
+    ofkRefreshURL:
       aObj.RefreshURL:=Readstring;
-    ofkScopes: 
+    ofkScopes:
       ReadObject(aObj.Scopes);
-    else 
+    else
       aObj.Extensions.Add(aName,ReadJSONData);
     end;
     aToken:=CheckNextToken([tkComma,tkCurlyBraceClose]);
@@ -2033,7 +2033,7 @@ begin
     CheckNextToken(tkColon);
     case aName of
       'ref' : ReadReference(aObj.Reference);
-    else 
+    else
       Itm:=aObj.AddItem(Name);
       ReadPathItem(Itm);
     end;

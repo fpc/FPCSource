@@ -96,7 +96,7 @@ unit sdl;
 {                           As most games will need it.                        }
 {                                                                              }
 {   April    02 2001 - DL : Added SDL_getenv.h definitions and tested version  }
-{                           1.2.0 compatability.                               }
+{                           1.2.0 compatibility.                               }
 {                                                                              }
 {   March    13 2001 - MT : Added Linux compatibility.                         }
 {                                                                              }
@@ -216,7 +216,7 @@ unit sdl;
   forgot to apply Michalis Kamburelis' patch to the implementation section. now fixed
 
   Revision 1.14  2004/12/23 23:42:18  savage
-  Applied Patches supplied by Michalis Kamburelis ( THANKS! ), for greater FreePascal compatability.
+  Applied Patches supplied by Michalis Kamburelis ( THANKS! ), for greater FreePascal compatibility.
 
   Revision 1.13  2004/09/30 22:31:59  savage
   Updated with slightly different header comments
@@ -250,7 +250,7 @@ unit sdl;
   SDL_GetEnv Fix so that it is not define twice for FPC. Thanks to Rene Hugentobler for pointing out this bug,
 
   Revision 1.3  2004/02/18 22:35:51  savage
-  Brought sdl.pas up to 1.2.7 compatability
+  Brought sdl.pas up to 1.2.7 compatibility
   Thus...
   Added SDL_GL_STEREO,
       SDL_GL_MULTISAMPLEBUFFERS,
@@ -309,7 +309,7 @@ uses
   UnixApi.Pthreads,
   UnixApi.Types,
   UnixApi.Base,
-  {$IFNDEF GP2X}    
+  {$IFNDEF GP2X}
   UnixApi.Unix,
   {$ELSE}
   UnixApi.Unix;
@@ -359,7 +359,7 @@ uses
   pthreads,
   unixtype,
   baseunix,
-  {$IFNDEF GP2X}    
+  {$IFNDEF GP2X}
   unix,
   {$ELSE}
   unix;
@@ -425,7 +425,7 @@ const
   SDLLibName = 'powersdl.library';
 {$ENDIF}
 
-  // SDL_verion.h constants
+  // SDL_version.h constants
   // Printable format: "%d.%d.%d", MAJOR, MINOR, PATCHLEVEL
   SDL_MAJOR_VERSION = 1;
 {$EXTERNALSYM SDL_MAJOR_VERSION}
@@ -1560,7 +1560,7 @@ type
   {$ELSE}
   TSDL_NewTimerCallback = function( interval: UInt32; param: Pointer ): UInt32;
   {$ENDIF}
-  
+
   // Definition of the timer ID type
   PSDL_TimerID = ^TSDL_TimerID;
   TSDL_TimerID = record
@@ -1704,7 +1704,7 @@ type
     ref_count: Integer; // Reference count for multiple opens
   end;
 
-  // SDL_verion.h types
+  // SDL_version.h types
   PSDL_version = ^TSDL_version;
   TSDL_version = record
     major: UInt8;
@@ -1914,7 +1914,7 @@ type
     wmwindow : TWindow ;	// The X11 managed input window */
   end;
   {$ENDIF}
-  
+
   PSDL_SysWMinfo = ^TSDL_SysWMinfo;
   TSDL_SysWMinfo = record
      version : TSDL_version ;
@@ -2215,14 +2215,14 @@ type
 
 PSDL_semaphore = ^TSDL_semaphore;
 {$IFDEF WINDOWS}
-  // WINDOWS or Machintosh
+  // WINDOWS or Macintosh
   TSDL_semaphore = record
     id: THANDLE;
     count: UInt32;
   end;
 {$ELSE}
   {$IFDEF FPC}
-  // This should be semaphore.h 
+  // This should be semaphore.h
   __sem_lock_t = {packed} record { Not in header file - anonymous }
     status: Longint;
     spinlock: Integer;
@@ -2234,7 +2234,7 @@ PSDL_semaphore = ^TSDL_semaphore;
     __sem_waiting: longint ; {_pthread_queue;}
   end;
   {$ENDIF}
-  
+
   TSDL_semaphore = record
     sem: Pointer; //PSem_t;
   {$IFNDEF USE_NAMED_SEMAPHORES}
@@ -3414,12 +3414,12 @@ cdecl; external {$IFNDEF NDS}{$IFDEF __GPC__}name 'SDL_ConvertSurface'{$ELSE} SD
   surface (src or dst) is copied.  The final blit rectangles are saved
   in 'srcrect' and 'dstrect' after all clipping is performed.
   If the blit is successful, it returns 0, otherwise it returns -1.
- 
+
   The blit function should not be called on a locked surface.
- 
+
   The blit semantics for surfaces with and without alpha and colorkey
   are defined as follows:
- 
+
   RGBA->RGB:
       SDL_SRCALPHA set:
    alpha-blend (using alpha-channel).
@@ -3429,7 +3429,7 @@ cdecl; external {$IFNDEF NDS}{$IFDEF __GPC__}name 'SDL_ConvertSurface'{$ELSE} SD
    if SDL_SRCCOLORKEY set, only copy the pixels matching the
    RGB values of the source colour key, ignoring alpha in the
    comparison.
- 
+
   RGB->RGBA:
       SDL_SRCALPHA set:
    alpha-blend (using the source per-surface alpha value);
@@ -3439,7 +3439,7 @@ cdecl; external {$IFNDEF NDS}{$IFDEF __GPC__}name 'SDL_ConvertSurface'{$ELSE} SD
       both:
    if SDL_SRCCOLORKEY set, only copy the pixels matching the
    source colour key.
- 
+
   RGBA->RGBA:
       SDL_SRCALPHA set:
    alpha-blend (using the source alpha channel) the RGB values;
@@ -3450,7 +3450,7 @@ cdecl; external {$IFNDEF NDS}{$IFDEF __GPC__}name 'SDL_ConvertSurface'{$ELSE} SD
    if SDL_SRCCOLORKEY set, only copy the pixels matching the
    RGB values of the source colour key, ignoring alpha in the
    comparison.
- 
+
   RGB->RGB:
       SDL_SRCALPHA set:
    alpha-blend (using the source per-surface alpha value).
@@ -3459,7 +3459,7 @@ cdecl; external {$IFNDEF NDS}{$IFDEF __GPC__}name 'SDL_ConvertSurface'{$ELSE} SD
       both:
    if SDL_SRCCOLORKEY set, only copy the pixels matching the
    source colour key.
- 
+
   If either of the surfaces were in video memory, and the blit returns -2,
   the video memory was lost, so it should be reloaded with artwork and
   re-blitted:
@@ -3596,7 +3596,7 @@ function SDL_GL_GetProcAddress(procname: PAnsiChar) : Pointer;
 cdecl; external {$IFNDEF NDS}{$IFDEF __GPC__}name 'SDL_GL_GetProcAddress'{$ELSE} SDLLibName{$ENDIF __GPC__}{$ENDIF};
 {$EXTERNALSYM SDL_GL_GetProcAddress}
 
-{ Set an attribute of the OpenGL subsystem before intialization. }
+{ Set an attribute of the OpenGL subsystem before initialization. }
 function SDL_GL_SetAttribute(attr: TSDL_GLAttr; value: Integer) : Integer;
 cdecl; external {$IFNDEF NDS}{$IFDEF __GPC__}name 'SDL_GL_SetAttribute'{$ELSE} SDLLibName{$ENDIF __GPC__}{$ENDIF};
 {$EXTERNALSYM SDL_GL_SetAttribute}
@@ -4268,7 +4268,7 @@ begin
   {$IFDEF FPC}
   Result := fpgetenv(name);
   {$ELSE}
-  Result := libc.getenv(name);  
+  Result := libc.getenv(name);
   {$ENDIF}
 
   {$ELSE UNIX}

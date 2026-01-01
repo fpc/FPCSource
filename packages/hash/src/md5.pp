@@ -118,7 +118,7 @@ procedure MDFinal(var Context: TMDContext; out Digest: TMDDigest);
 
 
 (******************************************************************************
- * Auxilary functions
+ * Auxiliary functions
  ******************************************************************************)
 
 function MDString(const S: RawByteString; const Version: TMDVersion): TMDDigest;
@@ -152,7 +152,7 @@ procedure MD5Final(var Context: TMD5Context; out Digest: TMD5Digest); external n
 
 
 (******************************************************************************
- * Dedicated auxilary functions
+ * Dedicated auxiliary functions
  ******************************************************************************)
 
 function MD2String(const S: RawByteString): TMD2Digest; inline;

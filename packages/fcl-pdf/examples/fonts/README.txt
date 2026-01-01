@@ -48,7 +48,7 @@ License:
 
 Liberation
 ==========
-Official website: 
+Official website:
     https://pagure.io/liberation-fonts
 
 Download URL:
@@ -59,11 +59,11 @@ Description:
     with Arial, Times New Roman, and Courier New. It is sponsored by Red Hat.
 
 License:
-    * The Liberation(tm) version 2.00.0 onward are Licensed under the SIL Open 
+    * The Liberation(tm) version 2.00.0 onward are Licensed under the SIL Open
       Font License, Version 1.1.
     * Older versions of the Liberation(tm) Fonts is released as open source under
       the GNU General Public License version 2 with exceptions. ​
-      https://fedoraproject.org/wiki/Licensing/LiberationFontLicense 
+      https://fedoraproject.org/wiki/Licensing/LiberationFontLicense
 
 
 Ubuntu

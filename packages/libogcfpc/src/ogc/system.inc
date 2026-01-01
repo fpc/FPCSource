@@ -7,21 +7,21 @@ const
 
   SYS_WD_NULL = $ffffffff;
 
-  SYS_RESTART = 0;			
+  SYS_RESTART = 0;
   SYS_HOTRESET = 1;
-  SYS_SHUTDOWN = 2;			
-                       
+  SYS_SHUTDOWN = 2;
+
   SYS_RETURNTOMENU     = 3;
-  SYS_POWEROFF         = 4;			
+  SYS_POWEROFF         = 4;
   SYS_POWEROFF_STANDBY = 5;
-  SYS_POWEROFF_IDLE    = 6;				
+  SYS_POWEROFF_IDLE    = 6;
 
 
   SYS_PROTECTCHAN0   = 0;
-  SYS_PROTECTCHAN1   = 1;			
-  SYS_PROTECTCHAN2   = 2;			
-  SYS_PROTECTCHAN3   = 3;			
-  SYS_PROTECTCHANMAX = 4;	
+  SYS_PROTECTCHAN1   = 1;
+  SYS_PROTECTCHAN2   = 2;
+  SYS_PROTECTCHAN3   = 3;
+  SYS_PROTECTCHANMAX = 4;
 
   SYS_PROTECTNONE  = $00000000;
   SYS_PROTECTREAD  = $00000001;
@@ -82,7 +82,7 @@ type
   syssramex = _syssramex;
 
   alarmcallback = procedure(alarm: syswd_t; cb_arg: pointer);
-  
+
 
 
   _sys_fontheader = packed record

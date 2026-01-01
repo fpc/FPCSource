@@ -11,7 +11,7 @@ Type
 
 {$ifndef GTK_TEXT_TYPES_H}
 {$define GTK_TEXT_TYPES_H}
-{ C++ extern C conditionnal removed }
+{ C++ extern C conditional removed }
 { __cplusplus  }
 
 {$include gtktextbuffer.inc}
@@ -43,7 +43,7 @@ const
 
 
 function gtk_text_byte_begins_utf8_char(byte:Pgchar):gboolean; cdecl; external gtklib;
-{ C++ end of extern C conditionnal removed }
+{ C++ end of extern C conditional removed }
 { __cplusplus  }
 {$endif}
 

@@ -346,7 +346,7 @@ function ATSUDrawText( iTextLayout: ATSUTextLayout; iLineOffset: UniCharArrayOff
  *    Justification, truncation, and device level positioning are not
  *    taken into account. To obtain the typographic bounds of a line
  *    after it is laid out, you can call the function
- *    ATSUGetGlyphBounds. For more infomration about the difference
+ *    ATSUGetGlyphBounds. For more information about the difference
  *    between typographic and image bounds, please refer to the ATSUI
  *    documentation. Note that ATSUGetUnjustifiedBounds treats the
  *    specified text range as a single line. That is, if the range of

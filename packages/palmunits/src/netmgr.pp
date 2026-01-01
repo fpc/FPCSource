@@ -21,7 +21,7 @@
  *       jrb   3/13/98  Removed NetIFSettings that are Mobitex specific.
  *                      Added RadioStateEnum for the setting.
  *                      Added NetIFSettingSpecificMobitex
- *                      Added what are considered "generic" wirless settings.
+ *                      Added what are considered "generic" wireless settings.
  *       jaq   10/1/98  added netMaxIPAddrStrLen constant
  *       scl   3/ 5/99  integrated Eleven's changes into Main
  *       jhl   7/14/00  added net notice
@@ -245,7 +245,7 @@ const
 
   netIFMediaDown = Succ(netIFMediaUp);
                     // Sent by Network interface's when their inactivity timer
-                    // is ellapsed.
+                    // is elapsed.
 
 // Notification structure sent in SysNotifyNetLibIFMedia.
 type
@@ -444,7 +444,7 @@ type
     iov: NetIOVecPtr;        // scatter/gather array
     iovLen: UInt16;          // length of above array
     accessRights: ^UInt8;    // access rights
-    accessRightsLen: UInt16; // length of accessrights
+    accessRightsLen: UInt16; // length of access rights
   end;
 
   NetIOParamPtr = ^NetIOParamType;
@@ -970,7 +970,7 @@ const
     //  stack into various modes for debugging, etc.
     //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
     netIFSettingTraceBits = $1000;     // UInt32, enable/disable various trace flags (netTraceBitXXXX)
-    netIFSettingGlobalsPtr = Succ(netIFSettingTraceBits);                   // UInt32, (Read-Only) sinterface's globals ptr
+    netIFSettingGlobalsPtr = Succ(netIFSettingTraceBits);                   // UInt32, (Read-Only) interface's globals ptr
     netIFSettingActualIPAddr = Succ(netIFSettingGlobalsPtr);                // UInt32, (Read-Only) the actual IP address that the interface
                                                                             //   ends up using. The login script executor stores
                                                                             //   the result of the "g" script command here as does

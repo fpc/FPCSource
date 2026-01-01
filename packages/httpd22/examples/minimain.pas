@@ -1,20 +1,20 @@
-unit minimain; 
- 
-interface 
+unit minimain;
+
+interface
 
 {$mode delphi}{$H+}
- 
-uses 
+
+uses
   SysUtils, Classes, httpd, apr;
 
-procedure RegisterHooks(p: Papr_pool_t); cdecl; 
- 
-implementation 
- 
+procedure RegisterHooks(p: Papr_pool_t); cdecl;
+
+implementation
+
 function DefaultHandler(r: Prequest_rec): Integer; cdecl;
 var
   RequestedHandler: ansistring;
-begin 
+begin
   RequestedHandler := r^.handler;
 
   { We decline to handle a request if hello-handler is not the value of r->handler }
@@ -57,10 +57,10 @@ begin
          * OK, then no other modules will attempt to process this request }
   Result := OK;
 end;
- 
-procedure RegisterHooks(p: Papr_pool_t); cdecl; 
-begin 
-  ap_hook_handler(DefaultHandler,nil,nil,APR_HOOK_MIDDLE); 
-end; 
- 
-end. 
+
+procedure RegisterHooks(p: Papr_pool_t); cdecl;
+begin
+  ap_hook_handler(DefaultHandler,nil,nil,APR_HOOK_MIDDLE);
+end;
+
+end.

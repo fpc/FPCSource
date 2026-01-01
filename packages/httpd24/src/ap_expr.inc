@@ -364,7 +364,7 @@ type
 
 {** Function for looking up the provider function for a variable, operator
  *  or function in an expression.
- *  @param parms The parameter struct, also determins where the result is
+ *  @param parms The parameter struct, also determines where the result is
  *               stored.
  *  @return OK on success,
  *          !OK on failure,

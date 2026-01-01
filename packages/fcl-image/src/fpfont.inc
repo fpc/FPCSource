@@ -44,7 +44,7 @@ begin
      self.FSize := FSize;
      self.FOrientation := FOrientation
      end;
-  Inherited;  
+  Inherited;
 end;
 
 function TFPCustomFont.CopyFont : TFPCustomFont;
@@ -68,7 +68,7 @@ begin
   else
    if assigned(FCanvas) then
      result := FCanvas.GetTextHeight (text)
-   else 
+   else
      result :=16; // *some* default better than none.
 end;
 
@@ -79,7 +79,7 @@ begin
   else
    if assigned(FCanvas) then
      result := FCanvas.GetTextWidth (text)
-   else 
+   else
      result :=16; // *some* default better than none.
 end;
 

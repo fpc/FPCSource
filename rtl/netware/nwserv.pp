@@ -1611,7 +1611,7 @@ const
      }
    EVENT_TRUSTEE_CHANGE = 19;
 { Parameter is a pointer to type struct EventTrusteeChangeStruct. The
-      report routine is called everytime there is a change to a trustee in
+      report routine is called every time there is a change to a trustee in
       the file system. Shouldn't sleep.
      }
    EVENT_OPEN_SCREEN = 20;
@@ -1769,9 +1769,9 @@ const
       IOEngineState                          0
       PrimaryNoSecondaryState                1
       PrimarySyncingWithSecondaryState       2
-      PrimaryTransferingMemoryImageState     3
+      PrimaryTransferringMemoryImageState    3
       PrimaryWithSecondaryState              4
-      SecondaryTransferingMemoryImageState   5
+      SecondaryTransferringMemoryImageState  5
       SecondaryMirroredState                 6
     }
    EVENT_SFT3_IMAGE_STATE = 61;
@@ -1781,13 +1781,13 @@ const
    EVENT_SFT3_PRESYNC_STATE = 62;
 { called when the primary is about ready to synchronize  }
 { with the secondary   }
-{ Parameter is unsed for now.  }
+{ Parameter is unused for now.  }
 { This event report is allowed to sleep  }
    EVENT_ALTERNATE_MOUNT_VOLUME = 63;
 { called when NetWare is not aware of the volume name to be mounted,  }
 { Parameter is used to pass a event structure EventAlternateMountVolume. }
 { This event report is allowed to sleep, also the return code is in the  }
-{ structre, after it has been processed.  }
+{ structure, after it has been processed.  }
    EVENT_CONSOLE_CONFIG_COMMAND = 64;
 { called when the console command CONFIG is typed on the server command  }
 { line. The event report is allowed to sleep.  The console screen handle  }

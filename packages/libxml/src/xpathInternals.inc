@@ -92,15 +92,15 @@
  *)
 #define xmlXPathGetContextNode(ctxt)	((ctxt)->context->node)
 
-external xml2lib int EXTDECL		
+external xml2lib int EXTDECL
 		xmlXPathPopBoolean	(xmlXPathParserContextPtr ctxt);
-external xml2lib double EXTDECL		
+external xml2lib double EXTDECL
     		xmlXPathPopNumber	(xmlXPathParserContextPtr ctxt);
-external xml2lib xmlChar * EXTDECL	
+external xml2lib xmlChar * EXTDECL
     		xmlXPathPopString	(xmlXPathParserContextPtr ctxt);
-external xml2lib xmlNodeSetPtr EXTDECL	
+external xml2lib xmlNodeSetPtr EXTDECL
     		xmlXPathPopNodeSet	(xmlXPathParserContextPtr ctxt);
-external xml2lib void * EXTDECL		
+external xml2lib void * EXTDECL
     		xmlXPathPopExternal	(xmlXPathParserContextPtr ctxt);
 
 (**
@@ -405,27 +405,27 @@ function xmlXPathParseNCName(ctxt: xmlXPathParserContextPtr): xmlCharPtr; EXTDEC
 (*
  * Existing functions.
  *)
-{external xml2lib double EXTDECL 
+{external xml2lib double EXTDECL
 		xmlXPathStringEvalNumber	(xmlChar *str);
-external xml2lib int EXTDECL 
-		xmlXPathEvaluatePredicateResult (xmlXPathParserContextPtr ctxt, 
+external xml2lib int EXTDECL
+		xmlXPathEvaluatePredicateResult (xmlXPathParserContextPtr ctxt,
 						 xmlXPathObjectPtr res);
-external xml2lib void EXTDECL 
+external xml2lib void EXTDECL
 		xmlXPathRegisterAllFunctions	(xmlXPathContextPtr ctxt);
-external xml2lib xmlNodeSetPtr EXTDECL 
-		xmlXPathNodeSetMerge		(xmlNodeSetPtr val1, 
+external xml2lib xmlNodeSetPtr EXTDECL
+		xmlXPathNodeSetMerge		(xmlNodeSetPtr val1,
 						 xmlNodeSetPtr val2);
-external xml2lib void EXTDECL 
-		xmlXPathNodeSetDel		(xmlNodeSetPtr cur, 
+external xml2lib void EXTDECL
+		xmlXPathNodeSetDel		(xmlNodeSetPtr cur,
 						 xmlNodePtr val);
-external xml2lib void EXTDECL 
-		xmlXPathNodeSetRemove		(xmlNodeSetPtr cur, 
+external xml2lib void EXTDECL
+		xmlXPathNodeSetRemove		(xmlNodeSetPtr cur,
 						 int val);
-external xml2lib xmlXPathObjectPtr EXTDECL 
+external xml2lib xmlXPathObjectPtr EXTDECL
 		xmlXPathNewNodeSetList		(xmlNodeSetPtr val);
-external xml2lib xmlXPathObjectPtr EXTDECL 
+external xml2lib xmlXPathObjectPtr EXTDECL
 		xmlXPathWrapNodeSet		(xmlNodeSetPtr val);
-external xml2lib xmlXPathObjectPtr EXTDECL 
+external xml2lib xmlXPathObjectPtr EXTDECL
 		xmlXPathWrapExternal		(void *val);}
 
 function xmlXPathEqualValues(ctxt: xmlXPathParserContextPtr): cint; EXTDECL; external xml2lib;

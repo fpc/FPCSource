@@ -29,18 +29,18 @@ uses
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
-  
-  TWriteTestHeaderEvent = procedure(Sender: TObject; ATest: TTest; 
+
+  TWriteTestHeaderEvent = procedure(Sender: TObject; ATest: TTest;
     ALevel: integer; ACount: integer) of object;
-  TWriteTestFooterEvent = procedure(Sender: TObject; ATest: TTest; 
+  TWriteTestFooterEvent = procedure(Sender: TObject; ATest: TTest;
     ALevel: integer; ATiming: TDateTime) of object;
   TTestNameEvent = procedure(Sender: TObject; const AName: string) of object;
   TFailureEvent = procedure(Sender: TObject; ATest: TTest; AFailure: TTestFailure) of object;
-  TTestEvent = procedure(Sender: TObject; ATest: TTest) of object;  
-  TWriteTestSuiteHeaderEvent = procedure(Sender: TObject; ATestSuite: TTestSuite; 
+  TTestEvent = procedure(Sender: TObject; ATest: TTest) of object;
+  TWriteTestSuiteHeaderEvent = procedure(Sender: TObject; ATestSuite: TTestSuite;
     ALevel: integer) of object;
-  TWriteTestSuiteFooterEvent = procedure(Sender: TObject; ATestSuite: TTestSuite; 
-    ALevel: integer; ATiming: TDateTime; ANumRuns: integer; ANumErrors: integer; 
+  TWriteTestSuiteFooterEvent = procedure(Sender: TObject; ATestSuite: TTestSuite;
+    ALevel: integer; ATiming: TDateTime; ANumRuns: integer; ANumErrors: integer;
     ANumFailures: integer; ANumIgnores: integer) of object;
 
   TSuiteResults = class(TObject)
@@ -97,10 +97,10 @@ type
     procedure WriteTestHeader(ATest: TTest; ALevel: integer; ACount: integer); virtual;
     procedure WriteTestFooter(ATest: TTest; ALevel: integer; ATiming: TDateTime); virtual;
     procedure WriteSuiteHeader(ATestSuite: TTestSuite; ALevel: integer); virtual;
-    procedure WriteSuiteFooter(ATestSuite: TTestSuite; ALevel: integer; 
+    procedure WriteSuiteFooter(ATestSuite: TTestSuite; ALevel: integer;
       ATiming: TDateTime; ANumRuns: integer; ANumErrors: integer; aNumFailures: integer;
       ANumIgnores: integer); virtual;
-    procedure WriteHeader; virtual; 
+    procedure WriteHeader; virtual;
     procedure WriteFooter; virtual;
   public
   {ITestListener}
@@ -118,13 +118,13 @@ type
     procedure WriteResult(aResult: TTestResult); virtual;
   published
     property FileName: string read FFileName write FFileName;
-    property OnWriteSuiteHeader: TWriteTestSuiteHeaderEvent read FOnWriteSuiteHeader 
+    property OnWriteSuiteHeader: TWriteTestSuiteHeaderEvent read FOnWriteSuiteHeader
       write FOnWriteSuiteHeader;
-    property OnWriteSuiteFooter: TWriteTestSuiteFooterEvent read FOnWriteSuiteFooter 
+    property OnWriteSuiteFooter: TWriteTestSuiteFooterEvent read FOnWriteSuiteFooter
       write FOnWriteSuiteFooter;
-    property OnWriteTestHeader: TWriteTestHeaderEvent read FOnWriteTestHeader 
+    property OnWriteTestHeader: TWriteTestHeaderEvent read FOnWriteTestHeader
       write FOnWriteTestHeader;
-    property OnWriteTestFooter: TWriteTestFooterEvent read FOnWriteTestFooter 
+    property OnWriteTestFooter: TWriteTestFooterEvent read FOnWriteTestFooter
       write FOnWriteTestFooter;
     property OnAddFailure: TFailureEvent read FOnAddFailure write FOnAddFailure;
     property OnAddError: TFailureEvent read FOnAddError write FOnAddError;
@@ -148,7 +148,7 @@ destructor TSuiteResultsStack.Destroy;
 var
   i: integer;
 begin
-  for i := 0 to FResultsList.Count -1 do 
+  for i := 0 to FResultsList.Count -1 do
     TObject(FResultsList[i]).Free;
   FResultsList.Free;
   inherited Destroy;
@@ -174,7 +174,7 @@ procedure TSuiteResultsStack.IncrementRuns;
 var
   i: integer;
 begin
-  for i := 0 to FResultsList.Count -1 do 
+  for i := 0 to FResultsList.Count -1 do
     Inc(TSuiteResults(FResultsList[i]).Runs);
 end;
 
@@ -182,7 +182,7 @@ procedure TSuiteResultsStack.IncrementFailures;
 var
   i: integer;
 begin
-  for i := 0 to FResultsList.Count -1 do 
+  for i := 0 to FResultsList.Count -1 do
     Inc(TSuiteResults(FResultsList[i]).Failures);
 end;
 
@@ -190,7 +190,7 @@ procedure TSuiteResultsStack.IncrementErrors;
 var
   i: integer;
 begin
-  for i := 0 to FResultsList.Count -1 do 
+  for i := 0 to FResultsList.Count -1 do
     Inc(TSuiteResults(FResultsList[i]).Errors);
 end;
 
@@ -198,7 +198,7 @@ procedure TSuiteResultsStack.IncrementIgnores;
 var
   i: integer;
 begin
-  for i := 0 to FResultsList.Count -1 do 
+  for i := 0 to FResultsList.Count -1 do
     Inc(TSuiteResults(FResultsList[i]).Ignores);
 end;
 
@@ -230,7 +230,7 @@ end;
 procedure TCustomResultsWriter.StartTest(ATest: TTest);
 begin
   WriteTestHeader(ATest, FLevel, FCount);
-  if Assigned(FOnStartTest) then 
+  if Assigned(FOnStartTest) then
     FOnStartTest(Self, ATest);
   FTestTime := Now;
 end;
@@ -241,7 +241,7 @@ begin
   FTestTime := Now - FTestTime;
   FSuiteResultsStack.IncrementRuns;
   WriteTestFooter(ATest, FLevel, FTestTime);
-  if Assigned(FOnEndTest) then 
+  if Assigned(FOnEndTest) then
     FOnEndTest(Self, ATest);
 end;
 
@@ -249,7 +249,7 @@ procedure TCustomResultsWriter.StartTestSuite(ATestSuite: TTestSuite);
 begin
   inc(FLevel);
   WriteSuiteHeader(ATestSuite, FLevel);
-  if Assigned(FOnStartTestSuite) then 
+  if Assigned(FOnStartTestSuite) then
     FOnStartTestSuite(Self, ATestSuite);
   FSuiteResultsStack.Add;
   FSuiteResultsStack.Last.StartTime := now;
@@ -257,31 +257,31 @@ end;
 
 procedure TCustomResultsWriter.EndTestSuite(ATestSuite: TTestSuite);
 begin
-  with FSuiteResultsStack.Last do 
+  with FSuiteResultsStack.Last do
   begin
     WriteSuiteFooter(ATestSuite, FLevel, Now - StartTime,
     Runs, Errors, Failures, Ignores);
   end;
   FSuiteResultsStack.RemoveLast;
   dec(FLevel);
-  if Assigned(FOnEndTestSuite) then 
+  if Assigned(FOnEndTestSuite) then
     FOnEndTestSuite(Self, ATestSuite);
 end;
 
 procedure TCustomResultsWriter.AddFailure(ATest: TTest; AFailure: TTestFailure);
 begin
-  if AFailure.IsIgnoredTest then 
+  if AFailure.IsIgnoredTest then
     FSuiteResultsStack.IncrementIgnores
-  else 
+  else
     FSuiteResultsStack.IncrementFailures;
-  if Assigned(FOnAddFailure) then 
+  if Assigned(FOnAddFailure) then
     FOnAddFailure(Self, ATest, AFailure);
-end; 
-    
+end;
+
 procedure TCustomResultsWriter.AddError(ATest: TTest; AError: TTestFailure);
 begin
   FSuiteResultsStack.IncrementErrors;
-  if Assigned(FOnAddError) then 
+  if Assigned(FOnAddError) then
     FOnAddError(Self, ATest, AError);
 end;
 
@@ -299,20 +299,20 @@ end;
 
 procedure TCustomResultsWriter.WriteTestHeader(ATest: TTest; ALevel: integer; ACount: integer);
 begin
-  if Assigned(FOnWriteTestHeader) then 
+  if Assigned(FOnWriteTestHeader) then
     FOnWriteTestHeader(Self, ATest, ALevel, ACount);
 end;
 
-procedure TCustomResultsWriter.WriteTestFooter(ATest: TTest; ALevel: integer; 
+procedure TCustomResultsWriter.WriteTestFooter(ATest: TTest; ALevel: integer;
   ATiming: TDateTime);
 begin
-  if Assigned(FOnWriteTestFooter) then 
+  if Assigned(FOnWriteTestFooter) then
     FOnWriteTestFooter(Self, ATest, ALevel, ATiming);
 end;
 
 procedure TCustomResultsWriter.WriteSuiteHeader(ATestSuite: TTestSuite; ALevel: integer);
 begin
-  if Assigned(FOnWriteSuiteHeader) then 
+  if Assigned(FOnWriteSuiteHeader) then
     FOnWriteSuiteHeader(Self, ATestSuite, ALevel);
 end;
 
@@ -320,8 +320,8 @@ procedure TCustomResultsWriter.WriteSuiteFooter(ATestSuite: TTestSuite;
   ALevel: integer; ATiming: TDateTime; ANumRuns: integer; ANumErrors: integer;
   aNumFailures: integer; ANumIgnores: integer);
 begin
-  if Assigned(FOnWriteSuiteFooter) then 
-    FOnWriteSuiteFooter(Self, ATestSuite, ALevel, ATiming, ANumRuns, ANumErrors, 
+  if Assigned(FOnWriteSuiteFooter) then
+    FOnWriteSuiteFooter(Self, ATestSuite, ALevel, ATiming, ANumRuns, ANumErrors,
       aNumFailures, ANumIgnores);
 end;
 
@@ -334,7 +334,7 @@ procedure TCustomResultsWriter.WriteFooter;
 begin
   // do nothing
 end;
-    
+
 procedure TCustomResultsWriter.WriteResult(aResult: TTestResult);
 begin
   // do nothing

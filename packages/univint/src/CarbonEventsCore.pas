@@ -272,7 +272,7 @@ const
 
   {
    * This is what you should return from a kEventClassAccessibility
-   * event handler when asked to process a directly dispached event
+   * event handler when asked to process a directly dispatched event
    * that would cause your handler proc to not return after more than a
    * split-second. This will cause the accessibility engine to defer
    * the event until a later time when your handler will be able to
@@ -2709,7 +2709,7 @@ function RemoveEventHandler( inHandlerRef: EventHandlerRef ): OSStatus; external
  *    installed by default, but may be requested. A standard handler
  *    typically provides higher-level behavior for its target. Prior to
  *    Mac OS X 10.5, only  window event targets have a standard
- *    handler; the window standard event hander may also be installed
+ *    handler; the window standard event handler may also be installed
  *    by setting the kWindowStandardHandlerAttribute flag. In Mac OS X
  *    10.5 and later, the application and menubar event targets also
  *    support standard event handlers. Calling

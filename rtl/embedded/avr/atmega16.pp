@@ -202,7 +202,7 @@ const
   SPR = 0; // SPI Clock Rate Selects
   // UCSRA
   RXC = 7; // USART Receive Complete
-  TXC = 6; // USART Transmitt Complete
+  TXC = 6; // USART Transmit Complete
   UDRE = 5; // USART Data Register Empty
   FE = 4; // Framing Error
   DOR = 3; // Data overRun

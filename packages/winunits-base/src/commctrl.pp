@@ -26,7 +26,7 @@
        is because my conversion tool was flawed, and a lot of postediting
        was needed, which is bound to introduce bugs and inconsequencies
 
-       This is an huge unit, and its maintenance and compability is not
+       This is an huge unit, and its maintenance and compatibility is not
        a top-priority.
        I prefer patches as bugfix over bugreports, and
        preferably patches with lots of fixes at once.
@@ -60,7 +60,7 @@ Uses Windows,CTypes,ActiveX;
 // --------------------
 CONST CommCtrlDLL = 'comctl32.dll';
 
-// Some reasonal defaults.
+// Some reasonable defaults.
 // for XP only set NT to $%0501 and IE to $0600
 //
 // The NT conditional is only used for XP/no XP.
@@ -69,7 +69,7 @@ CONST CommCtrlDLL = 'comctl32.dll';
 {$DEFINE IE3PLUS}
 {$DEFINE IE4PLUS}
 {$define IE5plus}
-{$define WIN32XP} 
+{$define WIN32XP}
 {$define win32vista} // till WC_STATICA
 {$define ie501plus}
 {$ifdef win32}
@@ -305,7 +305,7 @@ CONST
          CCM_GETUNICODEFORMAT           = (CCM_FIRST + 6);
 
 {$ifdef ie5plus}
-{$ifdef win32xp} 
+{$ifdef win32xp}
          COMCTL32_VERSION               = 6;
 {$ELSE}
          COMCTL32_VERSION               = 5;
@@ -464,7 +464,7 @@ Type
 				 hDC      : HDC;
                                  lpString : LPCWSTR;
 			         nCount   : cint;
-			         lpRect   : LPRECT; 
+			         lpRect   : LPRECT;
 			         uFormat  : UINT;
 			         fLink    : bool;
 				end;
@@ -650,7 +650,7 @@ function ImageList_SetOverlayImage(himl:HIMAGELIST;iImage:cint;iOverlay:cint):BO
 Function ImageList_AddIcon(Himl:HIMAGELIST;hicon:HICON):cint;
 
 // Vista++
-function HIMAGELIST_QueryInterface(himl  : HIMAGELIST;constref riid : REFIID; out ppv) : HRESULT; stdcall; external commctrldll name 'HIMAGELIST_QueryInterface';    
+function HIMAGELIST_QueryInterface(himl  : HIMAGELIST;constref riid : REFIID; out ppv) : HRESULT; stdcall; external commctrldll name 'HIMAGELIST_QueryInterface';
 
 CONST
          ILD_NORMAL                     = $00000000;
@@ -697,7 +697,7 @@ function ImageList_Draw(himl:HIMAGELIST;i:cint;hdcDst:HDC;x:cint;y:cint;fStyle:U
 {$IFDEF _WIN32}
 
 {$ifdef win32vista}
-const 
+const
   HBITMAP_CALLBACK               =HBITMAP(-1);       // only for SparseImageList
 {$endif}
 function ImageList_Replace(himl:HIMAGELIST;i:cint;hbmImage:HBITMAP;hbmMask:HBITMAP):BOOL; stdcall; external commctrldll name 'ImageList_Replace';
@@ -757,8 +757,8 @@ function ImageList_Write(himl:HIMAGELIST;pstm:ISTREAM):BOOL; stdcall; external c
 {$ifdef Win32XP}
 
 CONST
-         ILP_NORMAL                     = 0;                  // Writes or reads the stream using new sematics for this version of comctl32
-         ILP_DOWNLEVEL                  = 1;                  // Write or reads the stream using downlevel sematics.
+         ILP_NORMAL                     = 0;                  // Writes or reads the stream using new semantics for this version of comctl32
+         ILP_DOWNLEVEL                  = 1;                  // Write or reads the stream using downlevel semantics.
 
 
 function ImageList_ReadEx(dwFlags:DWORD;pstm:ISTREAM;constref riid:REFIID;ppv:PPointer):HRESULT; stdcall; external commctrldll name 'ImageList_ReadEx';
@@ -872,7 +872,7 @@ TYPE
 
 
          _HD_TEXTFILTERW      = Record
-                                 pszText      : LPWSTR;          // [in] pointer to the buffer contiaining the filter (UNICODE)
+                                 pszText      : LPWSTR;          // [in] pointer to the buffer containing the filter (UNICODE)
                                  cchTextMax   : cint;          // [in] max size of buffer/edit control buffer
                                  END;
          HD_TEXTFILTERW       = _HD_TEXTFILTERW;
@@ -4277,7 +4277,7 @@ TYPE
 {$ifdef win32vista}
 		 		 cxmin 	      : cint; // min snap point
 				 cxDefault    : cint;   // default snap point
-				 cxIdeal      : cint;     // read only. ideal may not eqaul current width if auto sized (LVS_EX_AUTOSIZECOLUMNS) to a lesser width.
+				 cxIdeal      : cint;     // read only. ideal may not equal current width if auto sized (LVS_EX_AUTOSIZECOLUMNS) to a lesser width.
 {$endif}
                                  END;
          LVCOLUMNA            = tagLVCOLUMNA;
@@ -4300,7 +4300,7 @@ TYPE
 {$ifdef win32vista}
 		 		 cxmin 	      : cint; // min snap point
 				 cxDefault    : cint;   // default snap point
-				 cxIdeal      : cint;     // read only. ideal may not eqaul current width if auto sized (LVS_EX_AUTOSIZECOLUMNS) to a lesser width.
+				 cxIdeal      : cint;     // read only. ideal may not equal current width if auto sized (LVS_EX_AUTOSIZECOLUMNS) to a lesser width.
 {$endif}
                                  END;
          LVCOLUMNW            = tagLVCOLUMNW;
@@ -5227,7 +5227,7 @@ Procedure ListView_CancelEditLabel( hwnd : hwnd);
 
 // These next to methods make it easy to identify an item that can be repositioned
 // within listview. For example: Many developers use the lParam to store an identifier that is
-// unique. Unfortunatly, in order to find this item, they have to iterate through all of the items
+// unique. Unfortunately, in order to find this item, they have to iterate through all of the items
 // in the listview. Listview will maintain a unique identifier.  The upper bound is the size of a DWORD.
 
 CONST
@@ -5866,7 +5866,7 @@ CONST
          TVIF_INTEGRAL                  = $0080;
 {$ENDIF}
 {$ifdef win32vista}
- 	 TVIF_STATEEX            	= $0100;	
+ 	 TVIF_STATEEX            	= $0100;
 	 TVIF_EXPANDEDIMAGE      	= $0200;
 {$endif}
          TVIS_SELECTED                  = $0002;
@@ -6234,7 +6234,7 @@ function TreeView_GetRoot(hwnd:hwnd) : HTREEITEM;inline;
 function TreeView_GetLastVisible(hwnd:hwnd) : HTREEITEM;inline;
 
 {$ifdef win32vista}
-function  TreeView_GetNextSelected(hwnd:hwnd; hitem:HTREEITEM):HTREEITEM;inline;   
+function  TreeView_GetNextSelected(hwnd:hwnd; hitem:HTREEITEM):HTREEITEM;inline;
 {$endif}
 
 CONST
@@ -6623,7 +6623,7 @@ Function TreeView_MapHTREEITEMToAccID( hwnd : hwnd; htreeitem : WPARAM):UINT;
 {$ENDIF}
 
 {$ifdef win32vista}
-CONST 
+CONST
          TVM_GETSELECTEDCOUNT       	= (TV_FIRST + 70);
 	 TVM_SHOWINFOTIP            	= (TV_FIRST + 71);
 	 TVM_GETITEMPARTRECT            = (TV_FIRST + 72);
@@ -7015,7 +7015,7 @@ Type
      PNMTVITEMCHANGE = ^NMTVITEMCHANGE;
 
      tagNMTVASYNCDRAW = packed record
-          hdr : NMHDR; 
+          hdr : NMHDR;
           pimldp : PIMAGELISTDRAWPARAMS;   { the draw that failed }
           hr : HRESULT;                    { why it failed }
           hItem : HTREEITEM;               { item that failed to draw icon }
@@ -8071,7 +8071,7 @@ CONST
 //   to the value returned from MonthCal_GetMonthRange(hmc, GMR_DAYSTATE, NULL)
 //   This sets the DAYSTATE bits for each month (grayed and non-grayed
 //   days) displayed in the calendar. The first bit in a month's DAYSTATE
-//   corresponts to bolding day 1, the second bit affects day 2, etc.
+//   corresponds to bolding day 1, the second bit affects day 2, etc.
 
 function MonthCal_GetMonthRange(hwndMC:HWND; gmr: DWORD;lpSysTime :LPSYSTEMTIME):Bool;
 
@@ -8166,7 +8166,7 @@ TYPE
 				 iOffset      : cint;
 				 iRow         : cint;
 				 iCol	      : cint;
-{$endif}				 
+{$endif}
                                  END;
          MCHITTESTINFO        = DummyStruct16;
          PMCHITTESTINFO       = ^DummyStruct16;
@@ -10008,7 +10008,7 @@ const
   TD_SHIELD_ERROR_ICON    = MAKEINTRESOURCEW(Word(-7));
   TD_SHIELD_OK_ICON       = MAKEINTRESOURCEW(Word(-8));
   TD_SHIELD_GRAY_ICON     = MAKEINTRESOURCEW(Word(-9));
-  TD_QUESTION_ICON        = MAKEINTRESOURCEW(Word(32514)); 
+  TD_QUESTION_ICON        = MAKEINTRESOURCEW(Word(32514));
 
   // _TASKDIALOG_COMMON_BUTTON_FLAGS enum
   TDCBF_OK_BUTTON            = $0001; // selected control return value IDOK
@@ -12519,10 +12519,10 @@ end;
 function  TreeView_GetItemPartRect(hwnd:HWND; hitem:HTREEITEM; prc:prect; partid:TVITEMPART):bool;
 var info : TVGETITEMPARTRECTINFO;
 Begin
-  info.hti := (hitem); 
+  info.hti := (hitem);
   info.prc := (prc);
   info.partID := (partid);
-  Result:=BOOL(SendMessage((hwnd), TVM_GETITEMPARTRECT, 0, LPARAM(@info))); 
+  Result:=BOOL(SendMessage((hwnd), TVM_GETITEMPARTRECT, 0, LPARAM(@info)));
 end;
 {$endif}
 
@@ -13550,7 +13550,7 @@ Begin
 end;
 
 {$ifdef win32vista}
-function  TreeView_GetNextSelected(hwnd:hwnd; hitem:HTREEITEM):HTREEITEM;inline;   
+function  TreeView_GetNextSelected(hwnd:hwnd; hitem:HTREEITEM):HTREEITEM;inline;
 begin
  result:=TreeView_GetNextItem(hwnd, hitem,  TVGN_NEXTSELECTED)
 end;
@@ -13745,5 +13745,5 @@ end;
 initialization
   Initialize;
 Finalization
-  Finalize;  
+  Finalize;
 End.

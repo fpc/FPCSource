@@ -487,7 +487,7 @@ function atanh( x: double_t ): double_t; external name '_atanh';
 *                                  1   <=   x * 2^(-logb(x))   <   2            *
 *   modf        Returns fractional part of x as function result and returns     *
 *               integral part of x via iptr. Note C9X uses double not double_t. *
-*   scalb       Computes x * 2^n efficently.  This is not normally done by      *
+*   scalb       Computes x * 2^n efficiently.  This is not normally done by     *
 *               computing 2^n explicitly.                                       *
 *                                                                               *
 *******************************************************************************}

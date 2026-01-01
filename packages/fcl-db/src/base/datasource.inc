@@ -92,7 +92,7 @@ begin
   // During loading, dataset may not be set yet.
   If (Dataset=Nil) then
     begin
-    FFirstRecord:=0; 
+    FFirstRecord:=0;
     exit;
     end;
   aMin:= DataSet.FActiveRecord - FBufferCount + 1;
@@ -177,7 +177,7 @@ begin
   If Assigned(Datasource) then
     Result:=DataSource.DataSet
   else
-    Result:=Nil;  
+    Result:=Nil;
 end;
 
 
@@ -392,7 +392,7 @@ begin
     if Active and (FFields.Count > 0) then
       DoMasterChange
     else
-      DoMasterDisable;  
+      DoMasterDisable;
 end;
 
 
@@ -423,7 +423,7 @@ begin
   if (DataSource.State <> dsSetKey) and FDetailDataSet.Active and
      (FFields.Count > 0) and ((Field = nil) or
      (FFields.IndexOf(Field) >= 0)) then
-    DoMasterChange;  
+    DoMasterChange;
 end;
 
 procedure TMasterDatalink.SetFieldNames(const Value: string);
@@ -436,14 +436,14 @@ begin
     end;
 end;
 
-Procedure TMasterDataLink.DoMasterDisable; 
+Procedure TMasterDataLink.DoMasterDisable;
 
 begin
-  if Assigned(FOnMasterDisable) then 
+  if Assigned(FOnMasterDisable) then
     FOnMasterDisable(Self);
 end;
 
-Procedure TMasterDataLink.DoMasterChange; 
+Procedure TMasterDataLink.DoMasterChange;
 
 begin
   If Assigned(FOnMasterChange) then
@@ -466,7 +466,7 @@ begin
     P:=TParams(GetObjectProp(ADataset,'Params',TParams));
     if (P<>Nil) then
       Params:=P;
-    end;  
+    end;
 end;
 
 
@@ -478,7 +478,7 @@ begin
     RefreshParamNames;
 end;
 
-Procedure TMasterParamsDataLink.RefreshParamNames; 
+Procedure TMasterParamsDataLink.RefreshParamNames;
 
 Var
   FN : String;
@@ -510,7 +510,7 @@ begin
         end;
       end;
     end;
-  FieldNames:=FN;  
+  FieldNames:=FN;
 end;
 
 Procedure TMasterParamsDataLink.CopyParamsFromMaster(CopyBound : Boolean);
@@ -520,7 +520,7 @@ begin
     FParams.CopyParamValuesFromDataset(Dataset,CopyBound);
 end;
 
-Procedure TMasterParamsDataLink.DoMasterDisable; 
+Procedure TMasterParamsDataLink.DoMasterDisable;
 
 begin
   Inherited;
@@ -528,7 +528,7 @@ begin
   // If master dataset is reopened, relationship will be reestablished
 end;
 
-Procedure TMasterParamsDataLink.DoMasterChange; 
+Procedure TMasterParamsDataLink.DoMasterChange;
 
 begin
   Inherited;

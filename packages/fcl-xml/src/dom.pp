@@ -276,7 +276,7 @@ type
     function CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): TDOMNode; overload; virtual;
     function FindNode(const ANodeName: DOMString): TDOMNode; virtual;
     function CompareName(const name: DOMString): Integer; virtual;
-    procedure SetReadOnly(Value: Boolean);    
+    procedure SetReadOnly(Value: Boolean);
     property Flags: TNodeFlags read FFlags;
   end;
 
@@ -2165,7 +2165,7 @@ begin
         Exit;
       end;
     // Name validity has already been checked by IsXmlName() call above.
-    // So just check that colon isn't first or last AnsiChar, and that it is follwed by NameStartChar.
+    // So just check that colon isn't first or last AnsiChar, and that it is followed by NameStartChar.
     if ((Result = 1) or (Result = L) or not IsXmlName(@QName[Result+1], 1)) then
     begin
       Result := -NAMESPACE_ERR;
@@ -2270,7 +2270,7 @@ var
   id: DOMString;
   Item: PHashItem;
 begin
-  if aRoot=Nil then 
+  if aRoot=Nil then
     exit;
   for i := 0 to aRoot.Attributes.Length - 1 do
   begin
@@ -2297,7 +2297,7 @@ begin
     FIDList := THashTable.Create(256, False);
   FIDList.Clear;
   RebuildIDsOfElement(Self.DocumentElement);
-end;    
+end;
 
 
 function TDOMDocument.CloneNode(deep: Boolean): TDOMNode;

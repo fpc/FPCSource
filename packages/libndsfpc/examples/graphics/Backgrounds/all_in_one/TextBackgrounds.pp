@@ -7,8 +7,8 @@ uses
 
 //======================================================================
 //
-//	Layer128x128, 128x128@8, 
-//	+ regular map (flat), not compressed, 16x16 
+//	Layer128x128, 128x128@8,
+//	+ regular map (flat), not compressed, 16x16
 //	Total size: 512 = 512
 //
 //	Time-stamp: 2007-12-05, 16:39:14
@@ -24,8 +24,8 @@ var
 
 //======================================================================
 //
-//	Layer256x256, 256x256@8, 
-//	+ regular map (flat), not compressed, 32x32 
+//	Layer256x256, 256x256@8,
+//	+ regular map (flat), not compressed, 32x32
 //	Total size: 2048 = 2048
 //
 //	Time-stamp: 2007-12-05, 16:39:14
@@ -41,8 +41,8 @@ var
 
 //======================================================================
 //
-//	Layer_512x512, 512x512@8, 
-//	+ regular map (flat), not compressed, 64x64 
+//	Layer_512x512, 512x512@8,
+//	+ regular map (flat), not compressed, 64x64
 //	Total size: 8192 = 8192
 //
 //	Time-stamp: 2007-12-05, 16:39:14
@@ -58,8 +58,8 @@ var
 
 //======================================================================
 //
-//	Layer1024x1024, 1024x1024@8, 
-//	+ regular map (flat), not compressed, 128x128 
+//	Layer1024x1024, 1024x1024@8,
+//	+ regular map (flat), not compressed, 128x128
 //	Total size: 32768 = 32768
 //
 //	Time-stamp: 2007-12-05, 16:39:14
@@ -74,8 +74,8 @@ var
 
 //======================================================================
 //
-//	Layer256x512, 256x512@8, 
-//	+ regular map (flat), not compressed, 32x64 
+//	Layer256x512, 256x512@8,
+//	+ regular map (flat), not compressed, 32x64
 //	Total size: 4096 = 4096
 //
 //	Time-stamp: 2007-12-05, 16:39:14
@@ -91,8 +91,8 @@ var
 
 //======================================================================
 //
-//	Layer512x256, 512x256@8, 
-//	+ regular map (flat), not compressed, 64x32 
+//	Layer512x256, 512x256@8,
+//	+ regular map (flat), not compressed, 64x32
 //	Total size: 4096 = 4096
 //
 //	Time-stamp: 2007-12-05, 16:39:14
@@ -107,7 +107,7 @@ var
 
 //======================================================================
 //
-//	TextBackgrounds, 8x6512@8, 
+//	TextBackgrounds, 8x6512@8,
 //	+ palette 256 entries, not compressed
 //	+ 814 tiles not compressed
 //	Total size: 512 + 52096 = 52608

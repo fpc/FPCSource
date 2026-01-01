@@ -7,7 +7,7 @@ procedure CON_GetMetrics(cols, rows: pcint); cdecl; external;
 procedure CON_GetPosition(cols, rows: pcint); cdecl; external;
 procedure CON_EnableGecko(channel, safe: cint); cdecl; external;
 
-// Function aliases 
+// Function aliases
 procedure console_init(framebuffer: pointer;
   xstart, ystart, xres, yres, stride: cint); cdecl; external name 'CON_Init';
 function SYS_ConsoleInit(rmode: PGXRModeObj;

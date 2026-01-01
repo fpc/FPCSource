@@ -1,5 +1,5 @@
 unit gba;
-{$mode objfpc} 
+{$mode objfpc}
 
 {$J+}
 {$INLINE ON}

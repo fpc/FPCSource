@@ -325,7 +325,7 @@ procedure TIMER1_COMPA_ISR; external name 'TIMER1_COMPA_ISR'; // Interrupt 8 Tim
 procedure TIMER1_COMPB_ISR; external name 'TIMER1_COMPB_ISR'; // Interrupt 9 Timer 1 Compare Match B
 procedure TIMER1_OVF_ISR; external name 'TIMER1_OVF_ISR'; // Interrupt 10 Timer 1 overflow
 procedure TIMER0_IC_ISR; external name 'TIMER0_IC_ISR'; // Interrupt 11 Timer 0 Input Capture
-procedure TIMER0_COMPA_ISR; external name 'TIMER0_COMPA_ISR'; // Interrupt 12 Timer 0 Comapre Match A
+procedure TIMER0_COMPA_ISR; external name 'TIMER0_COMPA_ISR'; // Interrupt 12 Timer 0 Compare Match A
 procedure TIMER0_COMPB_ISR; external name 'TIMER0_COMPB_ISR'; // Interrupt 13 Timer 0 Compare Match B
 procedure TIMER0_OVF_ISR; external name 'TIMER0_OVF_ISR'; // Interrupt 14 Timer 0 Overflow
 procedure SPI_STC_ISR; external name 'SPI_STC_ISR'; // Interrupt 15 SPI Serial transfer complete

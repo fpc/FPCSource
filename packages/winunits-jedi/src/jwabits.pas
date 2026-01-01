@@ -216,7 +216,7 @@ type
     BG_JOB_STATE_CANCELLED);
   {$EXTERNALSYM BG_JOB_STATE}
   TBgJobState = BG_JOB_STATE;
-  PBgJobState = ^BG_JOB_STATE;  
+  PBgJobState = ^BG_JOB_STATE;
 
   BG_JOB_TYPE = (
     BG_JOB_TYPE_DOWNLOAD,
@@ -413,7 +413,7 @@ type
     function JobError(pJob: IBackgroundCopyJob; pError: IBackgroundCopyError): HRESULT; stdcall;
 
     //
-    // The job has been modified.   Intendended for user interfaces.
+    // The job has been modified.   Intended for user interfaces.
     //
     function JobModification(pJob: IBackgroundCopyJob; dwReserved: DWORD): HRESULT; stdcall;
 

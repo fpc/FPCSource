@@ -16,7 +16,7 @@
 
 {
  * @file apr_user.h
- * @brief APR User ID Services 
+ * @brief APR User ID Services
  }
 
 {#include "apr.h"
@@ -25,7 +25,7 @@
 
 {
  * @defgroup apr_user User and Group ID Services
- * @ingroup APR 
+ * @ingroup APR
  }
 
 {
@@ -108,7 +108,7 @@ function apr_uid_homepath_get(dirname: PPAnsiChar; const username: PAnsiChar;
  * Compare two user identifiers for equality.
  * @param left One uid to test
  * @param right Another uid to test
- * @return APR_SUCCESS if the apr_uid_t strutures identify the same user,
+ * @return APR_SUCCESS if the apr_uid_t structures identify the same user,
  * APR_EMISMATCH if not, APR_BADARG if an apr_uid_t is invalid.
  * @remark This function is available only if APR_HAS_USER is defined.
  }
@@ -147,7 +147,7 @@ function apr_gid_get(groupid: Papr_gid_t; const groupname: PAnsiChar;
  * Compare two group identifiers for equality.
  * @param left One gid to test
  * @param right Another gid to test
- * @return APR_SUCCESS if the apr_gid_t strutures identify the same group,
+ * @return APR_SUCCESS if the apr_gid_t structures identify the same group,
  * APR_EMISMATCH if not, APR_BADARG if an apr_gid_t is invalid.
  * @remark This function is available only if APR_HAS_USER is defined.
  }

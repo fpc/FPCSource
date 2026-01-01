@@ -15,7 +15,7 @@ uses
   {$endif}
   SysUtils,
   fpcunit,  testreport, testregistry, consoletestrunner,
-// Units wich contains the tests
+// Units which contains the tests
   regtcxmlreg,
   regtestbasics;
 

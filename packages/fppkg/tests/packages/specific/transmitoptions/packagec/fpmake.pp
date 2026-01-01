@@ -25,7 +25,7 @@ begin
     P.Dependencies.Add('packageb2');
 
     P.SourcePath.Add('src');
- 
+
     T:=P.Targets.AddProgram('PackageC.pas');
     Run;
     end;

@@ -1,7 +1,7 @@
 FPC WebData architecture
 ========================
 
-The aim of this set of components is to be able to easily send data 
+The aim of this set of components is to be able to easily send data
 to a webapplication, and to handle updates of this data, all in a
 webserver module.
 
@@ -12,7 +12,7 @@ The following components are used
 
 - TCustomWebdataInputAdaptor
     A class that transforms the input of a web request to something that
-    TFPWebDataProvider understands. Example implementations are provided 
+    TFPWebDataProvider understands. Example implementations are provided
     for ExtJS, XML and JSON.
 
 - TWebdataInputAdaptor
@@ -39,11 +39,11 @@ Typically, one will do the following
  - Create a TFPWebProviderDataModule from the IDE.
  - Drop some dataset components on it, and set them up for use with some
    datasources
- - For each dataset, drop a TFPWebDataProvider component on the module, 
+ - For each dataset, drop a TFPWebDataProvider component on the module,
    and connect it to the datasource. The name of this component is exposed
    to the client.
  - Drop a suitable input adaptor.
- 
+
 The data can then typically be read through the URL:
 baseurl/modulename/providername/read
 Or updated through the URLs
@@ -78,14 +78,14 @@ Procedure RegisterDatamodule(Const AClass : TDatamoduleClass);
 
 This will register all WebDataProvider instances on the datamodule:
 An instance will be created, all  TFPCustomWebDataProvider instances
-will be registered with their component names. 
+will be registered with their component names.
 When a provider belonging to such a datamodule is requested, then
-the module will be created, and the requested TFPCustomWebDataProvider 
-instance is returned. 
+the module will be created, and the requested TFPCustomWebDataProvider
+instance is returned.
 
 A provider instance can be requested with the following factory methods:
 
-Function GetProvider(Const ADef : TWebDataProviderDef; AOwner : TComponent;out AContainer : TComponent): TFPCustomWebDataProvider; 
+Function GetProvider(Const ADef : TWebDataProviderDef; AOwner : TComponent;out AContainer : TComponent): TFPCustomWebDataProvider;
 Function GetProvider(Const AProviderName : String; AOwner : TComponent; Out AContainer : TComponent): TFPCustomWebDataProvider;
 
 The result is the provider instance. All instances are created using a
@@ -105,7 +105,7 @@ to handle requests for the TFPWebDataProvider instances on the datamodule.
 
 Note that the RegisterDataModule routine will create an instance of the
 datamodule to get a list of provider components (it uses the component.name
-property). The WebDataProviderManager's 'registering' property will be set 
+property). The WebDataProviderManager's 'registering' property will be set
 to true: this way one can avoid connecting to a database during registration.
 
 The WebDataProviderManager also handles the registration of inputadataptors

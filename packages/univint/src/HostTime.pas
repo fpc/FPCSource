@@ -231,7 +231,7 @@ uses MacTypes,CoreAudioTypes;
 {!
     @header HostTime
     This collection of functions provides access to the host's time base. It also provides
-    discriptive information about the time base and translations to and from nanoseconds.
+    descriptive information about the time base and translations to and from nanoseconds.
 }
 
 
@@ -270,7 +270,7 @@ function AudioGetHostClockMinimumTimeDelta: UInt32; external name '_AudioGetHost
     @abstract       Convert the given host time into a time in nanoseconds.
     @param          inHostTime
                         A UInt64 containing the host time to convert.
-    @result         A UInt64 containining the converted host time.
+    @result         A UInt64 containing the converted host time.
 }
 function AudioConvertHostTimeToNanos( inHostTime: UInt64 ): UInt64; external name '_AudioConvertHostTimeToNanos';
 (* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_2_0) *)
@@ -280,7 +280,7 @@ function AudioConvertHostTimeToNanos( inHostTime: UInt64 ): UInt64; external nam
     @abstract       Convert the given nanosecond time into a host time.
     @param          inNanos
                         A UInt64 containing the nanosecond time to convert.
-    @result         A UInt64 containining the converted nanosecond time.
+    @result         A UInt64 containing the converted nanosecond time.
 }
 function AudioConvertNanosToHostTime( inNanos: UInt64 ): UInt64; external name '_AudioConvertNanosToHostTime';
 (* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_2_0) *)

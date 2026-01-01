@@ -85,7 +85,7 @@ begin
     DoError('Could not allocate statement handle.',Res);
   { Bind result buffers.
     Note that for many queries, the result is not known on beforehand,
-    And must be queried with SQLPrepare, SQLNumResulCols and SQLDescribeCol
+    And must be queried with SQLPrepare, SQLNumResultCols and SQLDescribeCol
     before the statement is executed.}
   SQLBindCol(stmtHandle,1,SQL_INTEGER,SQLPointer(@ResID),4,@ErrCode);
   SQLBindCol(stmtHandle,2,SQL_CHAR,SQLPointer(@ResName),256,@ErrCode);

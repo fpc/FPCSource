@@ -43,7 +43,7 @@ type
     dbCardNo: UInt16;       // card number of the database record was found in
     dbID: LocalID;                   // LocalID of the database record was found in
     recordNum: UInt16;      // index of record that contain a match
-    matchPos: UInt16;       // postion in record of the match.
+    matchPos: UInt16;       // position in record of the match.
     matchFieldNum: UInt16;  // field number
     matchCustom: UInt32;    // app specific data
   end;
@@ -64,8 +64,8 @@ type
     // should NOT be accessed by applications.
   {$ifdef ALLOW_ACCESS_TO_INTERNALS_OF_FINDPARAMS} // These fields will not be available in the next OS release!
     numMatches: UInt16;                           // # of matches
-    lineNumber: UInt16;                           // next line in the results tabel
-    continuation: Boolean;                        // true if contining search of same app
+    lineNumber: UInt16;                           // next line in the results table
+    continuation: Boolean;                        // true if containing search of same app
     searchedCaller: Boolean;                      // true after we've searched app that initiated the find
 
     callerAppDbID: LocalID;                       // dbID of app that initiated search
@@ -80,21 +80,21 @@ type
     match: array [0..maxFinds-1] of FindMatchType;
   {$else}
     noAccessAllowed1: UInt16;  // # of matches
-    lineNumber: UInt16;        // next line in the results tabel
-    continuation: Boolean;     // true if contining search of same app
+    lineNumber: UInt16;        // next line in the results table
+    continuation: Boolean;     // true if containing search of same app
     noAccessAllowed2: Boolean; // padding
   {$endif}
   end;
 
   FindParamsPtr = ^FindParamsType;
 
-// Param Block passsed with the sysAppLaunchCmdGoto Command
+// Param Block passed with the sysAppLaunchCmdGoto Command
   GoToParamsType = record
     searchStrLen: Int16;   // length of search string.
     dbCardNo: UInt16;      // card number of the database
     dbID: LocalID;         // LocalID of the database
     recordNum: UInt16;     // index of record that contain a match
-    matchPos: UInt16;      // postion in record of the match.
+    matchPos: UInt16;      // position in record of the match.
     matchFieldNum: UInt16; // field number string was found int
     matchCustom: UInt32;   // application specific info
   end;

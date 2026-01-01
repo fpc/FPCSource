@@ -97,7 +97,7 @@ uses
 uses
   resfactory;
 {$ENDIF FPC_DOTTEDUNITS}
-  
+
 type
   TVSFixedFileInfo = packed record
     signature : longword;
@@ -188,7 +188,7 @@ begin
   LoadFixedInfos;
   AlignDWordReading;
   dec(toread,RawData.Position);
-  
+
   fStringFileInfo:=TVersionStringFileInfo.Create;
   fVarFileInfo:=TVersionVarFileInfo.Create;
 
@@ -429,10 +429,10 @@ begin
   RawData.WriteBuffer(block,6);
   WriteWideString(block.key);
   AlignDWordWriting;
-  
+
   for i:=0 to fStringFileInfo.Count-1 do
     WriteStringTable(fStringFileInfo[i]);
-  
+
   WriteFixedBlockLength(before);
 end;
 

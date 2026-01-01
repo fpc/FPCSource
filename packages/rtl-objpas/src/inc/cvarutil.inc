@@ -1491,7 +1491,7 @@ begin
   DumpVariant(F, '', TVarData(VSrc));
 end;
 
-procedure DumpVariant(var F : Text; const aName: string; const VSrc : Variant); 
+procedure DumpVariant(var F : Text; const aName: string; const VSrc : Variant);
 begin
   DumpVariant(F, aName, TVarData(VSrc));
 end;

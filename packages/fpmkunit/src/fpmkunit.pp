@@ -1278,7 +1278,7 @@ Type
     // current target and for which all dependencies are compiled earlier.
     // When no package is available the thread remains idle until another thread
     // has finished it's task. Compilation stops when all packages are compiled
-    // or when an error occures.
+    // or when an error occurs.
     //
     // When ThreadsAmount is not specified (-1), all packages are compiled on by one.
     // Dependencies are compiled recursively. When a package is already compiled
@@ -1319,7 +1319,7 @@ Type
     Property BuildMode: TBuildMode read FBuildMode write FBuildMode;
     Property SingleFPDocFile : Boolean Read FSingleFPDocFile Write FSingleFPDocFile;
     Property Namespaces : Boolean Read FNamespaces Write FNameSpaces;
-    // Installation optioms
+    // Installation options
     Property InstallExamples: Boolean read FInstallExamples write FInstallExamples;
     Property SkipCrossPrograms: boolean read FSkipCrossPrograms write FSkipCrossPrograms;
     Property SkipAllPrograms: boolean read FSkipAllPrograms write FSkipAllPrograms;
@@ -1565,7 +1565,7 @@ Type
   TValueItem = Class(TObject)
   Private
     FValue : String;
-  Public  
+  Public
     Constructor Create(AValue : String);
     Property Value : String Read FValue;
   end;
@@ -1575,8 +1575,8 @@ Type
   TFunctionItem = Class(TObject)
   Private
     FFunc : TReplaceFunction;
-  public  
-    Constructor Create(AFunc : TReplaceFunction); 
+  public
+    Constructor Create(AFunc : TReplaceFunction);
     Property Func : TReplaceFunction Read FFunc;
   end;
 

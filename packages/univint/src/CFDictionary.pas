@@ -240,7 +240,7 @@ uses MacTypes,CFBase;
 	capacity, which can have an unlimited number of values (or rather,
 	limited only by constraints external to CFDictionary, like the
 	amount of available memory). Fixed-capacity dictionaries can be
-	somewhat higher performing, if you can put a definate upper limit
+	somewhat higher performing, if you can put a definite upper limit
 	on the number of values that might be put into the dictionary.
 #else
 	Dictionaries come in two flavors, immutable, which cannot have

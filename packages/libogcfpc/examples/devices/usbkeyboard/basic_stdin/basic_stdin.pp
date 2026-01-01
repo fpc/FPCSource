@@ -23,7 +23,7 @@ begin
 
 	if (sym > 31 ) then putchar(sym);
 	if (sym = 13) then putchar(Ord($10));
-	
+
 	if (Ord(sym) = $1b) then quitapp := true;
 end;
 
@@ -31,26 +31,26 @@ end;
 begin
 	// Initialise the video system
 	VIDEO_Init();
-	
+
 	// This function initialises the attached controllers
 	WPAD_Init();
-	
+
 	// Obtain the preferred video mode from the system
 	// This will correspond to the settings in the Wii menu
 	rmode := VIDEO_GetPreferredMode(nil);
 
 	// Allocate memory for the display in the uncached region
 	xfb := SYS_AllocateFramebuffer(rmode);
-	
+
 	// Initialise the console, required for printf
 	console_init(xfb,20,20,rmode^.fbWidth,rmode^.xfbHeight,rmode^.fbWidth*VI_DISPLAY_PIX_SZ);
-	
+
 	// Set up the video registers with the chosen mode
 	VIDEO_Configure(rmode);
-	
+
 	// Tell the video hardware where our display memory is
 	VIDEO_SetNextFramebuffer(xfb);
-	
+
 	// Make the display visible
 	VIDEO_SetBlack(FALSE);
 
@@ -67,8 +67,8 @@ begin
 	// we can use variables for this with format codes too
 	// e.g. printf ("\x1b[%d;%dH", row, column );
 	printf(#$1b'[2;0HHello World!'#10);
-	
-	if (KEYBOARD_Init(@keyPress_cb) = 0) then 
+
+	if (KEYBOARD_Init(@keyPress_cb) = 0) then
     printf('keyboard initialised'#10);
 
 	repeat

@@ -88,7 +88,7 @@ Type
   PPCRE2_SPTR8  = ^TPCRE2_SPTR8;
   Ppcre2_substitute_callout_block_8  = ^Tpcre2_substitute_callout_block_8;
   PPCRE2_UCHAR8  = ^TPCRE2_UCHAR8;
-  
+
   Psize_t  = ^tsize_t;
   Puint8_t  = ^byte;
   PTuint8_t = Puint8_t;
@@ -225,7 +225,7 @@ Type
   tpcre2_set_callout_8_callback = function (_para1:Ppcre2_callout_block_8; _para2:pointer):Tcint; cdecl;
   tpcre2_callout_enumerate_8_callback = function (_para1: PTpcre2_callout_enumerate_block_8; _para2:pointer):Tcint; cdecl;
   tpcre2_set_substitute_callout_8_callback =   function (_para1:Ppcre2_substitute_callout_block_8; _para2:pointer):Tcint; cdecl;
-     
+
 var
   pcre2_config:function(_para1:Tuint32_t; _para2:pointer):Tcint;cdecl;
   pcre2_general_context_copy:function(_para1:PTpcre2_general_context_8): PTpcre2_general_context_8;cdecl;

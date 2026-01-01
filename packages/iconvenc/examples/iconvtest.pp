@@ -23,12 +23,12 @@ uses
   iconvenc;
 
 // some random Hebrew string for testing in CP1255
-Const InputString : array[0..21] of AnsiChar = 
+Const InputString : array[0..21] of AnsiChar =
           (#$e0,#$e1,#$e2,#$e3,#$e4,#$e5,#$e6,#$e7,
 	   #$e8,#$e9,#$eb,#$ec,#$ee,#$f0,#$f1,#$f2,
   	   #$f4,#$f6,#$f7,#$f8,#$f9,#$fa);
       InputEncoding = 'CP1255';
-   
+
 procedure DoOneConversion(TargetEncoding:AnsiString);
 var
   fn : String;
@@ -49,7 +49,7 @@ begin
     assignfile(f1,fn);
     rewrite(f1);
     Write(f1,res);
-    closefile(f1); 
+    closefile(f1);
    end
   else
    Writeln('Failure for ',TargetEncoding,' error: ',convres);

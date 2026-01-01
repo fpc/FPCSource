@@ -30,7 +30,7 @@ end;
 {$IFDEF read_interface_functions}
 
 function PANGO_TYPE_GLYPH_ITEM : GType;
-  
+
 function pango_glyph_item_get_type():GType;cdecl;external pangolib;
 function pango_glyph_item_split(orig:PPangoGlyphItem; text:PAnsiChar; split_index:longint):PPangoGlyphItem;cdecl;external pangolib;
 function pango_glyph_item_copy(orig:PPangoGlyphItem):PPangoGlyphItem;cdecl;external pangolib;

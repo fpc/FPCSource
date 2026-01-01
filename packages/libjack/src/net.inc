@@ -176,7 +176,7 @@ function jack_net_slave_deactivate(net: Pjack_net_slave_t): cint; cdecl; externa
  *
  * @param net the network connection
  *
- * @return a boolean 
+ * @return a boolean
  *)
 function jack_net_slave_is_active(net: Pjack_net_slave_t): cint; cdecl; external libjacknet;
 
@@ -244,9 +244,9 @@ type
 function jack_set_net_slave_shutdown_callback(net: Pjack_net_slave_t; shutdown_callback: TJackNetSlaveShutdownCallback; arg: Pointer): cint; cdecl; JACK_NET_OPTIONAL_WEAK_DEPRECATED_EXPORT;
 
 (**
- * Prototype for server Restart callback : this is the new preferable way to be notified when the master has disappeared. 
- * The client may want to retry connecting a certain number of time (which will be done using the time_out value given in jack_net_slave_open) 
- * by returning 0. Otherwise returning a non-zero error code will definively close the connection 
+ * Prototype for server Restart callback : this is the new preferable way to be notified when the master has disappeared.
+ * The client may want to retry connecting a certain number of time (which will be done using the time_out value given in jack_net_slave_open)
+ * by returning 0. Otherwise returning a non-zero error code will definively close the connection
  * (and jack_net_slave_is_active will later on return false).
  * If both Shutdown and Restart are supplied, Restart callback will be used.
  *

@@ -508,7 +508,7 @@ type
      PBT_LINK_KEY_EVENT = ^BT_LINK_KEY_EVENT;
 
 //
-// Class of events to notify changes specific to the 
+// Class of events to notify changes specific to the
 // local device (cod, name)
 //
 const

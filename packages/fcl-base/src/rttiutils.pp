@@ -71,7 +71,7 @@ type
   TEraseSectEvent = procedure(const ASection: string) of object;
   TPropStorageOption = (psoAlwaysStoreStringsCount);
   TPropStorageOptions = set of TPropStorageOption;
-  
+
   TPropsStorage = class(TObject)
   private
     FObject: TObject;
@@ -123,7 +123,7 @@ type
     procedure LoadProperties(PropList: TStrings);
     procedure LoadObjectsProps(AComponent: TComponent; StoredList: TStrings);
     procedure StoreObjectsProps(AComponent: TComponent; StoredList: TStrings);
-    Property Options : TPropStorageOptions Read FOptions Write FOptions; 
+    Property Options : TPropStorageOptions Read FOptions Write FOptions;
     property AObject: TObject read FObject write FObject;
     property Prefix: string read FPrefix write FPrefix;
     property Section: string read FSection write FSection;
@@ -476,8 +476,8 @@ begin
   List := TObject(GetObjectProp(Self.FObject, PropInfo));
   SectName := Format('%s.%s', [Section, GetItemName(PropInfo^.Name)]);
   EraseSection(SectName);
-  if (List is TStrings) 
-     and ((TStrings(List).Count > 0) or (psoAlwaysStoreStringsCount in Options)) then 
+  if (List is TStrings)
+     and ((TStrings(List).Count > 0) or (psoAlwaysStoreStringsCount in Options)) then
     begin
     WriteString(SectName, sCount, IntToStr(TStrings(List).Count));
     for I := 0 to TStrings(List).Count - 1 do

@@ -97,7 +97,7 @@ const
       NAP_BIT_OFFSET          = 8 * 4;
       SAP_BIT_OFFSET          = 0;
 
-// Macro functions.      
+// Macro functions.
 function GET_NAP(const _bt_addr:BT_ADDR):USHORT;
 
 function GET_SAP(const _bt_addr:BT_ADDR):ULONG;
@@ -106,7 +106,7 @@ function SET_NAP(const _nap:USHORT):ULONGLONG;
 
 function SET_SAP(const _sap:ULONG):ULONGLONG;
 
-function SET_NAP_SAP(const _nap:USHORT; const _sap:ULONG):ULONGLONG; 
+function SET_NAP_SAP(const _nap:USHORT; const _sap:ULONG):ULONGLONG;
 
 
 // Turn 1 byte packing of structures on

@@ -104,7 +104,7 @@ const
   kEventFlush         = $466c7368; // 'Flsh'
   kEventCloseGraph    = $446f6e65; // 'Done'
   kEventQuit          = $51756974; // 'Quit'
-  
+
   kEventGraphInited   = $49746564 ; // Ited;
   kEventGraphClosed   = $436c6564 ; // Cled;
 
@@ -301,7 +301,7 @@ function CreateHIView (inWindow: WindowRef; const inBounds: Rect; var outControl
                         GetCurrentEventTime(), 0, event );
     if (err <> noErr) then
       goto CantCreateEvent;
- 
+
     // If bounds were specified, push the them into the initialization event
     // so that they can be used in the initialization handler.
     err := SetEventParameter( event, FOUR_CHAR_CODE('boun'), typeQDRectangle,
@@ -311,7 +311,7 @@ function CreateHIView (inWindow: WindowRef; const inBounds: Rect; var outControl
 
     err := HIObjectCreate( { kHIViewClassID } CFSTR('com.apple.hiview'), event, outControl );
     assert(err = noErr);
- 
+
     // If a parent window was specified, place the new view into the
     // parent window.
     err := GetRootControl( inWindow, root );
@@ -322,20 +322,20 @@ function CreateHIView (inWindow: WindowRef; const inBounds: Rect; var outControl
       goto CantGetRootControl;
 
     err := HIViewSetVisible(outControl, true);
- 
+
 CantCreate:
 CantGetRootControl:
 CantSetParameter:
 CantCreateEvent:
     ReleaseEvent( event );
- 
+
     CreateHIView := err;
   end;
 
 
 { Event handler which does the actual drawing by copying the offscreen to }
 { the HIView of the drawing window                                        }
-function MyDrawEventHandler (myHandler: EventHandlerCallRef; 
+function MyDrawEventHandler (myHandler: EventHandlerCallRef;
                         event: EventRef; userData: pointer): OSStatus; mwpascal;
   var
     myContext: CGContextRef;
@@ -344,9 +344,9 @@ function MyDrawEventHandler (myHandler: EventHandlerCallRef;
   begin
 //      writeln('event');
       MyDrawEventHandler := GetEventParameter (event, // 1
-                              kEventParamCGContextRef, 
-                              typeCGContextRef, 
-                              nil, 
+                              kEventParamCGContextRef,
+                              typeCGContextRef,
+                              nil,
                               sizeof (CGContextRef),
                               nil,
                               @myContext);
@@ -754,29 +754,29 @@ const
   myHIViewSpec  : EventTypeSpec = (eventClass: kEventClassControl; eventKind: kEventControlDraw);
 var
  windowAttrs:   WindowAttributes;
- contentRect:   Rect; 
+ contentRect:   Rect;
  titleKey:      CFStringRef;
- windowTitle:   CFStringRef; 
+ windowTitle:   CFStringRef;
  err:           OSStatus;
  hiviewbounds : HIRect;
  b: boolean;
 begin
   windowAttrs := kWindowStandardDocumentAttributes // 1
-                        or kWindowStandardHandlerAttribute 
+                        or kWindowStandardHandlerAttribute
                         or kWindowInWindowMenuAttribute
                         or kWindowCompositingAttribute
                         or kWindowLiveResizeAttribute
-                        or kWindowNoUpdatesAttribute; 
+                        or kWindowNoUpdatesAttribute;
 
   SetRect (contentRect, 0,  0,
                          MaxX+1, MaxY+1);
-  
+
   CreateNewWindow (kDocumentWindowClass, windowAttrs,// 3
                          contentRect, myMainWindow);
-  
+
   SetRect (contentRect, 0,  50,
                          MaxX+1, 51+MaxY);
-  
+
   SetWindowBounds(myMainWindow,kWindowContentRgn,contentrect);
   titleKey    := CFSTR('Graph Window'); // 4
   windowTitle := CFCopyLocalizedString(titleKey, nil); // 5
@@ -791,7 +791,7 @@ begin
       bottom:=MaxY+1;
       right:=MaxX+1;
     end;
-    
+
   offscreen:=CreateBitmapContext(MaxX+1,MaxY+1);
   if (offscreen = nil) then
     begin
@@ -811,9 +811,9 @@ begin
 //   HIViewFindByID( HIViewGetRoot( myMainWindow ), kHIViewWindowContentID, graphHIView );
 
   if InstallEventHandler (GetControlEventTarget (graphHIView),
-                          NewEventHandlerUPP (@MyDrawEventHandler), 
+                          NewEventHandlerUPP (@MyDrawEventHandler),
                           { GetEventTypeCount (myHIViewSpec)} 1,
-                          @myHIViewSpec, 
+                          @myHIViewSpec,
                           pointer(graphHIView),
                           Nil) <> noErr then
     begin
@@ -834,7 +834,7 @@ begin
   CGContextFillRect(offscreen,CGRectMake(0,0,MaxX+1,MaxY+1));
   HIViewSetNeedsDisplay(graphHIView, true);
 
-  ShowWindow (myMainWindow);  
+  ShowWindow (myMainWindow);
 
 {
   write('view is active: ',HIViewIsActive(graphHIView,@b));
@@ -894,7 +894,7 @@ begin
       _GraphResult:=grError;
       exit;
     end;
-    
+
   if (ReceiveNextEvent(length(GraphClosedSpec),@GraphClosedSpec,kEventDurationForever,true,event) <> noErr) then
     runerror(218);
   ReleaseEvent(event);
@@ -1042,13 +1042,13 @@ end;
          else if (colorstr='256') then
            colors:=256
 {
-         These don't work very well 
+         These don't work very well
          else if (colorstr='32K') then
            colors:=32768
          else if (colorstr='64K') then
            colors:=65536
 }
-         else 
+         else
 //           1/24/32 bit not supported
            continue;
          if (xres <= dispxres) and
@@ -1061,7 +1061,7 @@ end;
 
 { ************************************************* }
 
-function GraphEventHandler (myHandler: EventHandlerCallRef; 
+function GraphEventHandler (myHandler: EventHandlerCallRef;
                         event: EventRef; userData: pointer): OSStatus; mwpascal;
 var
   source: EventQueueRef;
@@ -1116,7 +1116,7 @@ procedure FPCMacOSXGraphMain(argcpara: cint; argvpara, envppara: PPAnsiChar); cd
 function wrapper(p: pointer): pointer; cdecl;
   var
     mainparas: pmainparas absolute p;
-  begin 
+  begin
     FPCMacOSXGraphMain(mainparas^.argc, mainparas^.argv, mainparas^.envp);
     wrapper:=nil;
     { the main program should exit }
@@ -1135,13 +1135,13 @@ procedure main(argcpara: cint; argvpara, envppara: PPAnsiChar); cdecl; [public];
     mainparas: tmainparas;
   begin
     if InstallEventHandler (GetApplicationEventTarget,
-                            NewEventHandlerUPP (@GraphEventHandler), 
+                            NewEventHandlerUPP (@GraphEventHandler),
                             length(allGraphSpec),
-                            @allGraphSpec, 
+                            @allGraphSpec,
                             nil,
                             nil) <> noErr then
       fpexit(1);
-  
+
     { main program has to be the first one to access the event queue, see }
     { http://lists.apple.com/archives/carbon-dev/2007/Jun/msg00612.html   }
     eventavail(0,eventRec);

@@ -3077,7 +3077,7 @@ const
   WS_EX_LAYERED = $00080000;
   {$EXTERNALSYM WS_EX_LAYERED}
 
-  WS_EX_NOINHERITLAYOUT = $00100000; // Disable inheritence of mirroring by children
+  WS_EX_NOINHERITLAYOUT = $00100000; // Disable inheritance of mirroring by children
   {$EXTERNALSYM WS_EX_NOINHERITLAYOUT}
   WS_EX_LAYOUTRTL       = $00400000; // Right to left mirroring
   {$EXTERNALSYM WS_EX_LAYOUTRTL}
@@ -5413,7 +5413,7 @@ function DrawMenuBar(hWnd: HWND): BOOL; stdcall;
 const
   PMB_ACTIVE = $00000001;
   {$EXTERNALSYM PMB_ACTIVE}
-  
+
 function GetSystemMenu(hWnd: HWND; bRevert: BOOL): HMENU; stdcall;
 {$EXTERNALSYM GetSystemMenu}
 
@@ -5826,7 +5826,7 @@ const
   {$EXTERNALSYM TPM_NOANIMATION}
   TPM_LAYOUTRTL       = $8000;
   {$EXTERNALSYM TPM_LAYOUTRTL}
-  
+
 //
 // Drag-and-drop support
 // Obsolete - use OLE instead
@@ -7972,7 +7972,7 @@ const
   {$EXTERNALSYM SS_ELLIPSISMASK}
 
 //
-// Static Control Mesages
+// Static Control Messages
 //
 
   STM_SETICON  = $0170;
@@ -8351,7 +8351,7 @@ const
   {$EXTERNALSYM LBS_NOSEL}
   LBS_COMBOBOX          = $8000;
   {$EXTERNALSYM LBS_COMBOBOX}
-  
+
   LBS_STANDARD          = LBS_NOTIFY or LBS_SORT or WS_VSCROLL or WS_BORDER;
   {$EXTERNALSYM LBS_STANDARD}
 
@@ -8554,7 +8554,7 @@ const
   {$EXTERNALSYM SBM_SETSCROLLINFO}
   SBM_GETSCROLLINFO  = $00EA;
   {$EXTERNALSYM SBM_GETSCROLLINFO}
-  
+
   SBM_GETSCROLLBARINFO = $00EB;
   {$EXTERNALSYM SBM_GETSCROLLBARINFO}
 
@@ -10070,7 +10070,7 @@ const
   {$IFNDEF JWA_INCLUDEMODE}
   CCHDEVICENAME = 32;
   {$EXTERNALSYM CCHDEVICENAME}
-  {$ENDIF JWA_INCLUDEMODE}  
+  {$ENDIF JWA_INCLUDEMODE}
 
 type
   LPMONITORINFO = ^MONITORINFO;

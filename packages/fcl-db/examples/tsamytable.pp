@@ -29,7 +29,7 @@ Const
   FLD_MyTypeSafeAccess_MyQWordLargeInt = 'MyQWordLargeInt';
   FLD_MyTypeSafeAccess_MyBlob = 'MyBlob';
 
-  SQLMyTypeSafeAccess = 
+  SQLMyTypeSafeAccess =
     'SELECT' + sLineBreak +
     'MyString' + sLineBreak +
     ', MyFixedChar' + sLineBreak +
@@ -233,7 +233,7 @@ Type
     Property MyQWordLargeInt : TField read FMyQWordLargeInt;
     Property MyBlob : TField read FMyBlob;
   end;
- { TMyTypeSafeAccess } 
+ { TMyTypeSafeAccess }
 
  { Constructor and destructor }
 
@@ -561,7 +561,7 @@ Var
   MySQL : String;
 begin
   If aSQL='' then
-    MySQL:=SQLMyTypeSafeAccess 
+    MySQL:=SQLMyTypeSafeAccess
   else
     MySQL:=aSQL;
   Q:=TSQLQuery.Create(aConnection);

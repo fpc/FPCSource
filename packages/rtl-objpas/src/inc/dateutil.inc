@@ -284,7 +284,7 @@ Function HoursBetween(const ANow, AThen: TDateTime): Int64;
 Function MinutesBetween(const ANow, AThen: TDateTime): Int64;
 Function SecondsBetween(const ANow, AThen: TDateTime): Int64;
 Function MilliSecondsBetween(const ANow, AThen: TDateTime): Int64;
-Procedure PeriodBetween(const ANow, AThen: TDateTime; Out Years, months, days : Word); 
+Procedure PeriodBetween(const ANow, AThen: TDateTime; Out Years, months, days : Word);
 
 { ---------------------------------------------------------------------
     Timespan in xxx functions.
@@ -378,7 +378,7 @@ Function RecodeDateTime(const AValue: TDateTime; const AYear, AMonth, ADay, AHou
 Function TryRecodeDateTime(const AValue: TDateTime; const AYear, AMonth, ADay, AHour, AMinute, ASecond, AMilliSecond: Word; out AResult: TDateTime): Boolean;
 
 { ---------------------------------------------------------------------
-    Comparision of date/time
+    Comparison of date/time
   ---------------------------------------------------------------------}
 
 Function CompareDateTime(const A, B: TDateTime): TValueRelationship;
@@ -487,7 +487,7 @@ Function TryISO8601ToDate(const DateString: string; out ADateTime: TDateTime; Re
 type
   // Original code by Colin Johnsun, used with permission under FPC license.
   // See https://gitlab.com/freepascal.org/fpc/source/-/issues/40097
-  
+
   { TDateTimeHelper }
 
   TDateTimeHelper = type helper for TDateTime
@@ -826,7 +826,7 @@ begin
 end;
 
 
-Function Tomorrow: TDateTime; 
+Function Tomorrow: TDateTime;
 begin
   Result:=Date()+1;
 end;
@@ -1477,7 +1477,7 @@ begin
 end;
 
 
- 
+
 function DateTimeInRange(ADateTime: TDateTime; AStartDateTime, AEndDateTime: TDateTime; aInclusive: Boolean = True): Boolean;
 
 begin
@@ -1492,7 +1492,7 @@ function TimeInRange(ATime: System.TTime; AStartTime, AEndTime: System.TTime; AI
 
 var
  LTime, LStartTime, LEndTime: System.TTime;
- 
+
 begin
   LTime:=TimeOf(ATime);
   LStartTime:=TimeOf(AStartTime);
@@ -1573,7 +1573,7 @@ Function YearsBetween(const ANow, AThen: TDateTime; AExact : Boolean = False): I
 
 var
   yy, mm, dd: Word;
-  
+
 begin
   if AExact and (ANow >= -DateDelta) and (AThen >= -DateDelta) and
      (ANow <= MaxDateTime) and (AThen <= MaxDateTime) then
@@ -1615,7 +1615,7 @@ begin
     Result:=Trunc(Abs(DateTimeDiff(ANow,AThen))+HalfMilliSecond)
   else
     Result:=Trunc(Abs(DateTimeDiff(AThen,ANow))+HalfMilliSecond); // bug 37361
-end;            
+end;
 
 Function HoursBetween(const ANow, AThen: TDateTime): Int64;
 begin
@@ -1640,7 +1640,7 @@ begin
   Result:=Trunc((Abs(DateTimeDiff(ANow,AThen))+HalfMilliSecond)*MSecsPerDay);
 end;
 
-Procedure PeriodBetween(Const ANow, AThen: TDateTime; Out Years, months, days : Word); 
+Procedure PeriodBetween(Const ANow, AThen: TDateTime; Out Years, months, days : Word);
 
 var
   Y1, Y2, M1, M2, D1, D2: word;
@@ -1652,7 +1652,7 @@ begin
     DecodeDate(AThen,Y2,M2,D2);
     end
   else
-    begin  
+    begin
     DecodeDate(AThen,Y1,M1,D1);
     DecodeDate(ANow,Y2,M2,D2);
     end;
@@ -1670,7 +1670,7 @@ begin
       Dec(Months);
     Days:=(DaysInAMonth(Y1,M1)-D1)+D2;
     end;
-end;                    
+end;
 
 { ---------------------------------------------------------------------
     Timespan in xxx functions.
@@ -2163,7 +2163,7 @@ begin
 end;
 
 { ---------------------------------------------------------------------
-    Comparision of date/time
+    Comparison of date/time
   ---------------------------------------------------------------------}
 
 
@@ -2173,16 +2173,16 @@ begin
     Result:=EqualsValue
   else if trunc(a)=trunc(b) then
     begin
-    if abs(frac(a))>abs(frac(b)) then 
+    if abs(frac(a))>abs(frac(b)) then
       result:=GreaterThanValue
-    else 
+    else
       result:=LessThanValue;
-    end 
-  else 
+    end
+  else
     begin
-    if a>b then 
+    if a>b then
       result:=GreaterThanValue
-    else 
+    else
       result:=LessThanValue;
     end;
 end;
@@ -2877,7 +2877,7 @@ function UniversalTimeToLocal(UT: TDateTime; TZOffset : Integer): TDateTime;
 begin
   Result:={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.UniversalTimeToLocal(UT,TZOffset);
 end;
- 
+
 Function LocalTimeToUniversal(LT: TDateTime): TDateTime;
 
 begin

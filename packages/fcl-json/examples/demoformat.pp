@@ -6,8 +6,8 @@ uses fpjson;
 
 var
   O : TJSONObject;
-  A : TJSONArray;  
-begin  
+  A : TJSONArray;
+begin
   O:=TJSONObject.Create(['a',1,'b','two','three',TJSONObject.Create(['x',10,'y',20])]);
   Writeln (O.FormatJSon);
   Writeln (O.FormatJSon([foDonotQuoteMembers,foUseTabChar],1));

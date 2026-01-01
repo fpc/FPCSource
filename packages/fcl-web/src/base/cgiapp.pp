@@ -163,16 +163,16 @@ uses
 uses
   iostream;
 {$ENDIF FPC_DOTTEDUNITS}
-  
+
 Type
   TFormFile = Class(TObject)
   Private
     FFileName : String;
-  Public  
+  Public
     Constructor Create(Const AFileName : String);
     Property FileName : String Read FFileName Write FFileName;
-  end;  
-  
+  end;
+
 Constructor  TFormFile.Create(Const AFileName : String);
 
 begin
@@ -274,7 +274,7 @@ begin
       If FileExists(FF.FileName) then
         DeleteFile(FF.FileName);
       FF.Free;
-      end;  
+      end;
     end;
 end;
 
@@ -929,7 +929,7 @@ Function TCGIApplication.UploadedFileName(Const VarName : String) : String;
 Var
   FF : TFormFile;
   i : Integer;
- 
+
 begin
   Result:='';
   I:=FFormFiles.IndexOf(VarName);
@@ -938,7 +938,7 @@ begin
     FF:=TFormFile(FFormFiles.Objects[i]);
     If Assigned(FF) then
       Result:=FF.FileName;
-    end;  
+    end;
 end;
 
 {$ifdef cgidebug}

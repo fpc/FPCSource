@@ -97,7 +97,7 @@ procedure gtk_tree_view_columns_autosize(tree_view:PGtkTreeView); cdecl; externa
 procedure gtk_tree_view_set_headers_clickable(tree_view:PGtkTreeView; setting:gboolean); cdecl; external gtklib;
 procedure gtk_tree_view_set_rules_hint(tree_view:PGtkTreeView; setting:gboolean); cdecl; external gtklib;
 function gtk_tree_view_get_rules_hint(tree_view:PGtkTreeView):gboolean; cdecl; external gtklib;
-{ Column funtions  }
+{ Column functions  }
 function gtk_tree_view_append_column(tree_view:PGtkTreeView; column:PGtkTreeViewColumn):gint; cdecl; external gtklib;
 function gtk_tree_view_remove_column(tree_view:PGtkTreeView; column:PGtkTreeViewColumn):gint; cdecl; external gtklib;
 function gtk_tree_view_insert_column(tree_view:PGtkTreeView; column:PGtkTreeViewColumn; position:gint):gint; cdecl; external gtklib;

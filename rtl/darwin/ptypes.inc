@@ -64,7 +64,7 @@ type
     TPid     = pid_t;
     pPid     = ^pid_t;
 
-    size_t   = culong;          { as definied in the C standard}
+    size_t   = culong;          { as defined in the C standard}
     TSize    = size_t;
     pSize    = ^size_t;
     psize_t  = ^size_t;

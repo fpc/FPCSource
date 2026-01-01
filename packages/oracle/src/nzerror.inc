@@ -14,7 +14,7 @@
   {
    * $Header: nzerror.h 30-jan-2005.21:20:26 skalyana Exp $
    *
-   * Copyright (c) 1995, 2005, Oracle. All rights reserved.  
+   * Copyright (c) 1995, 2005, Oracle. All rights reserved.
     }
   { ENABLE check_long_lines   }
   {
@@ -30,12 +30,12 @@
        A pragma is used to silence olint about the enum value names not being
        unique within 7 characters. This limit is being changed to 30.
     MODIFIED
-       skalyana   01/30/05 - 
-       rchahal    07/16/04 - add cert label 
-       rchahal    07/06/04 - 
-       rchahal    10/15/03 - bug 2513821 
-       rchahal    08/14/03 - new error range (43000 - 43499) 
-       skalyana   08/25/03 - Error changes 
+       skalyana   01/30/05 -
+       rchahal    07/16/04 - add cert label
+       rchahal    07/06/04 -
+       rchahal    10/15/03 - bug 2513821
+       rchahal    08/14/03 - new error range (43000 - 43499)
+       skalyana   08/25/03 - Error changes
        rchahal    06/27/03 - RSA errors
        rchahal    05/27/03 - convert wallet
        skalyana   03/07/03 - Move FIPS errors
@@ -60,7 +60,7 @@
        lkethana   07/30/00 - add pkcs12 errors
        lkethana   06/17/00 - mult cert errors
        lkethana   06/11/00 - multiple cert support
-       rturlapa   03/29/00 - Add error meesage for Entrust Login failure.
+       rturlapa   03/29/00 - Add error message for Entrust Login failure.
        rwessman   07/07/99 - Deleted include of sslerrs.h. It caused the RDBMS bu
        rwessman   07/02/99 - fixed merge errors
        rwessman   07/01/99 - moved NZOS errors to nzerror to make them visible
@@ -173,7 +173,7 @@
   { Data method specified not supported  }
   { Invalid data type specified for key  }
   { Number of sub-keys to bind does not match count in initialized key  }
-  { Failed to retreieve authentication information from the shared memory  }
+  { Failed to retrieve authentication information from the shared memory  }
   { RIO Open Failed  }
   { RIO object type invalid  }
   { RIO mode invalid  }
@@ -227,7 +227,7 @@
   { no clear trustpoints  }
   { no encrypted trustpoints  }
   { bad password  }
-  { init failed or 
+  { init failed or
                         module loading failed  }
   {****************************** SSL ERRORS ******************************* }
   {
@@ -268,23 +268,23 @@
   { ============>>>  ADD ERRORS HERE -- NOTE DECREASING numbers  }
   { for nztCompareDN  }
   { unable to create a cert chain
-                   * with the existing TPs for the 
-                   * cert to be installed. 
+                   * with the existing TPs for the
+                   * cert to be installed.
                     }
-  { No matching cert_req was 
+  { No matching cert_req was
                    * found the corresponding to
                    * the privatekey which
                    * matches the cert to be
                    * installed  }
   { we are attempting to
                     * install a cert again into
-                    * a persona which already 
+                    * a persona which already
                     * has it installed.
                      }
-  { could not find a matching 
+  { could not find a matching
                      * persona-private(privatekey) in
                      * the Persona, for the given
-                     * cert(public key). 
+                     * cert(public key).
                       }
   { certificate validity date expired  }
   { Couldn't determine # of bytes needed  }
@@ -637,7 +637,7 @@
     }
   { was #define dname(params) para_def_expr }
   { argument types are unknown }
-  { return type might be wrong }   
+  { return type might be wrong }
 //  function NZERROR_SSL_TO_ORACLE(ssl_error_ : longint) : longint;
 
 {implementation

@@ -49,7 +49,7 @@ function ap_find_path_info(const uri, path_info: PAnsiChar): Integer;
  external LibHTTPD name LibNamePrefix + 'ap_find_path_info' + LibSuff8;
 
 {
- * Add CGI environment variables required by HTTP/1.1 to the request's 
+ * Add CGI environment variables required by HTTP/1.1 to the request's
  * environment table
  * @param r the current request
  * @deffunc void ap_add_cgi_vars(request_rec *r)
@@ -74,7 +74,7 @@ procedure ap_add_common_vars(r: Prequest_rec);
  * @param r The current request
  * @param f The file to read from
  * @param buffer Empty when calling the function.  On output, if there was an
- *               error, the string that cause the error is stored here. 
+ *               error, the string that cause the error is stored here.
  * @return HTTP_OK on success, HTTP_INTERNAL_SERVER_ERROR otherwise
  * @deffunc int ap_scan_script_header_err(request_rec *r, apr_file_t *f, AnsiChar *buffer)
  }
@@ -90,7 +90,7 @@ function ap_scan_script_header_err(r: Prequest_rec;
  * @param r The current request
  * @param bb The brigade from which to read
  * @param buffer Empty when calling the function.  On output, if there was an
- *               error, the string that cause the error is stored here. 
+ *               error, the string that cause the error is stored here.
  * @return HTTP_OK on success, HTTP_INTERNAL_SERVER_ERROR otherwise
  * @deffunc int ap_scan_script_header_err_brigade(request_rec *r, apr_bucket_brigade *bb, AnsiChar *buffer)
  }
@@ -105,10 +105,10 @@ function ap_scan_script_header_err_brigade(r: Prequest_rec;
  * current request
  * @param r The current request
  * @param buffer Empty when calling the function.  On output, if there was an
- *               error, the string that cause the error is stored here. 
+ *               error, the string that cause the error is stored here.
  * @param termch Pointer to the last character parsed.
  * @param termarg Pointer to an int to capture the last argument parsed.
- * @param args   String arguments to parse consecutively for headers, 
+ * @param args   String arguments to parse consecutively for headers,
  *               a NULL argument terminates the list.
  * @return HTTP_OK on success, HTTP_INTERNAL_SERVER_ERROR otherwise
  * @deffunc int ap_scan_script_header_err_core(request_rec *r, AnsiChar *buffer, int (*getsfunc)(AnsiChar *, int, void *), void *getsfunc_data)
@@ -123,7 +123,7 @@ function ap_scan_script_header_err_strs(buffer: PAnsiChar;
  * current request
  * @param r The current request
  * @param buffer Empty when calling the function.  On output, if there was an
- *               error, the string that cause the error is stored here. 
+ *               error, the string that cause the error is stored here.
  * @param getsfunc Function to read the headers from.  This function should
                    act like gets()
  * @param getsfunc_data The place to read from
@@ -132,7 +132,7 @@ function ap_scan_script_header_err_strs(buffer: PAnsiChar;
  }
 type
   getsfunc_t = function(p1: PAnsiChar; p2: Integer; p3: Pointer): Integer;
-  
+
 function ap_scan_script_header_err_core(r: Prequest_rec;
  buffer: PAnsiChar; getsfunc: getsfunc_t; getsfunc_data: Pointer): Integer;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}

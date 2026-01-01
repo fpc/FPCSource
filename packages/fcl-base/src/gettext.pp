@@ -107,7 +107,7 @@ var I:integer;
 begin
   if n>0 then
     for i:=0 to n-1 do
-      begin 
+      begin
         p^[i].length:=swapendian(p^[i].length);
         p^[i].offset:=swapendian(p^[i].offset);
       end;
@@ -118,7 +118,7 @@ var I:integer;
 begin
   if n>0 then
     for i:=0 to n-1 do
-      begin 
+      begin
         p^[i]:=swapendian(p^[i]);
       end;
 end;
@@ -138,10 +138,10 @@ begin
     raise EMOFileError.Create('Invalid magic - not a MO file?');
 
   endianswap:=header.magic<>MOFileHeaderMagic;
-  If EndianSwap then 
+  If EndianSwap then
     begin
      with header do
-       begin 
+       begin
           revision	:=SwapEndian(revision);
           nstrings	:=SwapEndian(nstrings);
           OrigTabOffset :=SwapEndian(OrigTabOffset);
@@ -159,12 +159,12 @@ begin
 
   AStream.Position := header.OrigTabOffset;
   AStream.Read(OrigTable^, header.nstrings * SizeOf(TMOStringInfo));
-  if EndianSwap then 
+  if EndianSwap then
     EndianFixmotable(OrigTable,Header.NStrings);
 
   AStream.Position := header.TransTabOffset;
   AStream.Read(TranslTable^, header.nstrings * SizeOf(TMOStringInfo));
-  if EndianSwap then 
+  if EndianSwap then
     EndianFixmotable(TranslTable,Header.NStrings);
 
   StringCount := header.nstrings;
@@ -197,7 +197,7 @@ begin
   GetMem(HashTable, 4 * HashTableSize);
   AStream.Position := header.HashTabOffset;
   AStream.Read(HashTable^, 4 * HashTableSize);
-  if EndianSwap then 
+  if EndianSwap then
     EndianFixHashTable(hashtable,hashtablesize);
 end;
 
@@ -328,8 +328,8 @@ begin
     // some 2 letter codes are not the first two letters of the 3 letter code
     // there are probably more, but first let us see if there are translations
     if (Buffer='PRT') then Country:='PT';
-    
-    if (Copy(Buffer,1,3)='CHN') then Country:='CN';  
+
+    if (Copy(Buffer,1,3)='CHN') then Country:='CN';
 
     Lang := FallbackLang+'_'+Country;
   end;
@@ -365,7 +365,7 @@ end;
 
 procedure TranslateResourceStrings(const AFilename: AnsiString);
 
-  
+
 var
   mo: TMOFile;
   lang, FallbackLang: AnsiString;
@@ -384,7 +384,7 @@ begin
           mo.Free;
         end;
       except
-        on e: Exception do 
+        on e: Exception do
           if DoReRaise(FN,'',E) then
             Raise ;
       end;

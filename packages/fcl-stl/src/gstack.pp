@@ -24,7 +24,7 @@ uses System.Stl.Vector;
 uses gvector;
 {$ENDIF FPC_DOTTEDUNITS}
 
-type 
+type
   generic TStack<T>=class
     private
     type TContainer= specialize TVector<T>;

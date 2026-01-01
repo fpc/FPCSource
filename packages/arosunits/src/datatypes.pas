@@ -72,7 +72,7 @@ const
 
   // Text, formatted or not
   GID_TEXT = Ord('t') shl 24 + Ord('e') shl 16 + Ord('x') shl 8 + Ord('t'); // text
-  ID_ASCII = Ord('a') shl 24 + Ord('s') shl 16 + Ord('c') shl 8 + Ord('i'); // asci
+  ID_ASCII = Ord('a') shl 24 + Ord('s') shl 16 + Ord('c') shl 8 + Ord('i'); // ASCII
 
   // Formatted text combined with graphics or other DataTypes
   GID_DOCUMENT = Ord('d') shl 24 + Ord('o') shl 16 + Ord('c') shl 8 + Ord('u'); // docu
@@ -202,7 +202,7 @@ const
   DTA_VertUnit       = DTA_Dummy + 14; // (LongInt) Number of pixels per vertical unit
   DTA_TopHoriz       = DTA_Dummy + 15; // (LongInt) Top horizontal unit
   DTA_VisibleHoriz   = DTA_Dummy + 16; // (LongInt) Number of visible horizontal units
-  DTA_TotalHoriz     = DTA_Dummy + 17; // (LongInt) Total number of horiziontal units
+  DTA_TotalHoriz     = DTA_Dummy + 17; // (LongInt) Total number of horizontal units
   DTA_HorizUnit      = DTA_Dummy + 18; // (LongInt) Number of pixels per horizontal unit
   DTA_NodeName       = DTA_Dummy + 19; // (PByte) Name of the current element within the object
   DTA_Title          = DTA_Dummy + 20; // (STRPTR) Object's title

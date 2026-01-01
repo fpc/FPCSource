@@ -71,7 +71,7 @@ Things I like:
 11
 
 When I press F7 to start tracing, always some sources (and the main
-exe) 
+exe)
 are rebuilt, even when I didn't change anything. (test source: the
 compiler)
 

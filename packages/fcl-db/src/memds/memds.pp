@@ -1018,9 +1018,9 @@ begin
   Try
     FFilterBuffer:=Buffer;
     OnFilterRecord(Self,Result);
-  Finally  
+  Finally
     RestoreState(SaveState);
-  end;  
+  end;
 end;
 
 function TMemDataset.DataSize: Integer;

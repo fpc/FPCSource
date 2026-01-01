@@ -31,7 +31,7 @@ Type
 
 (* GTK Helper Widgets *)
 
-{$include gtkpixmapmenuitem.inc}(* Menu item diplaying pixmap *)
+{$include gtkpixmapmenuitem.inc}(* Menu item displaying pixmap *)
 {$include gtkclock.inc}(* clock widget for counting or realtime *)
 {$include gtkdial.inc}(* Analog dial widget for number selection *)
 
@@ -52,7 +52,7 @@ type
 
 (* GNOME MISC. Required Widgets *)
 
-{$include gnomepixmap.inc} (* widget for diplaying pixmaps *)
+{$include gnomepixmap.inc} (* widget for displaying pixmaps *)
 {$include gnomedialog.inc}  (* base dialog class *)
 {$include gnomemessagebox.inc}(* message/error dialog class *)
 {$include gnomeclient.inc} (*routines to add session-management to apps *)
@@ -98,7 +98,7 @@ type
 {$include gnomeiconsel.inc}(* Widget used to select an icon *)
 
 
-(* GNOME Muliple Document Interface *)
+(* GNOME Multiple Document Interface *)
 
 {$include gnomemdichild.inc}
 {$include gnomemdigenericchild.inc}
@@ -149,7 +149,7 @@ implementation
 
 (* GTK Helper Widgets *)
 
-{$include gtkpixmapmenuitem.inc}(* Menu item diplaying pixmap *)
+{$include gtkpixmapmenuitem.inc}(* Menu item displaying pixmap *)
 {$include gtkclock.inc}(* clock widget for counting or realtime *)
 {$include gtkdial.inc}(* Analog dial widget for number selection *)
 
@@ -166,7 +166,7 @@ implementation
 
 (* GNOME MISC. Required Widgets *)
 
-{$include gnomepixmap.inc} (* widget for diplaying pixmaps *)
+{$include gnomepixmap.inc} (* widget for displaying pixmaps *)
 {$include gnomedialog.inc}  (* base dialog class *)
 {$include gnomemessagebox.inc}(* message/error dialog class *)
 {$include gnomeclient.inc} (*routines to add session-management to apps *)
@@ -212,7 +212,7 @@ implementation
 {$include gnomeiconsel.inc}(* Widget used to select an icon *)
 
 
-(* GNOME Muliple Document Interface *)
+(* GNOME Multiple Document Interface *)
 
 {$include gnomemdichild.inc}
 {$include gnomemdigenericchild.inc}

@@ -20,7 +20,7 @@ const
 type
 
 
-  TStoreGeneratedPattern = ( 
+  TStoreGeneratedPattern = (
     None
     ,Identity
     ,Computed

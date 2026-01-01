@@ -931,7 +931,7 @@ function DCMGetDictionaryPropertyList( dictionaryID: DCMDictionaryID; maxPropert
 
 
 {
-    Seaarch dictionary
+    Search dictionary
 }
 {
  *  DCMCreateDictionaryIterator()   *** DEPRECATED ***

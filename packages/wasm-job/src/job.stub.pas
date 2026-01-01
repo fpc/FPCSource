@@ -32,7 +32,7 @@ Type
 //  TDOMHighResTimeStamp = Int64;
   TJOBObjectID = Integer;
   TJOBResult = integer;
-  
+
   EJSObject = class(Exception);
   EJSInvoke = class(EJSObject)
   public
@@ -372,10 +372,10 @@ type
   public
     class function Cast(const Intf: IJSObject): IJSString; overload;
   end;
-  
+
   IJSIterator = interface (IJSObject) ['{21E331BA-7B57-42DD-8DCE-B26FEA85C639}']
   end;
-  
+
   TJSIterator = class(TJSObject,IJSIterator)
   end;
 
@@ -524,13 +524,13 @@ type
   end;
 
   { IJSArrayBufferView }
-  
+
   IJSArrayBufferView = interface(IJSObject)
     ['{A1612EED-4F05-46C0-90BE-ACD511B1598E}']
   end;
-  
+
   { TJSArrayBufferView }
-  
+
   TJSArrayBufferView = class(TJSObject,IJSArrayBufferView)
   public
     class function Cast(const Intf: IJSObject): IJSArrayBufferView; overload;
@@ -827,7 +827,7 @@ begin
  FValue:=aValue;
  FAccept:=aAccept;
 end;
- 
+
 function TJSPromise.all(const arg: Variant): IJSPromise;
 begin
   Result:=TJSPromise.Create;
@@ -861,7 +861,7 @@ end;
 function TJSPromise._then(const OnAccepted: TJSPromiseResolver): IJSPromise;
 
 begin
-  if Faccept then 
+  if Faccept then
     OnAccepted(FValue);
 end;
 
@@ -873,7 +873,7 @@ begin
   if FAccept then
     OnAccepted(FValue)
   else
-    OnRejected(FValue);  
+    OnRejected(FValue);
 end;
 
 function TJSPromise.catch(const OnRejected: TJSPromiseResolver): IJSPromise;
@@ -885,7 +885,7 @@ end;
 function TJSPromise._finally(const Handler: TJSPromiseFinallyHandler
   ): IJSPromise;
 begin
-  // 
+  //
 end;
 
 { TJSError }
@@ -1050,7 +1050,7 @@ end;
 
 procedure TJSArray._SetElements(Index: NativeInt; const AValue: TJOB_JSValue);
 begin
-  // 
+  //
 end;
 
 procedure TJSArray._SetLength(const AValue: NativeInt);
@@ -1238,7 +1238,7 @@ end;
 
 procedure TJSRegExp._SetGlobal(const AValue: Boolean);
 begin
-  // 
+  //
 end;
 
 procedure TJSRegExp._SetIgnoreCase(const AValue: Boolean);

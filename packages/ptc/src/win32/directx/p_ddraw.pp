@@ -45,7 +45,7 @@ uses
 (*
  * If you wish an application built against the newest version of DirectDraw
  * to run against an older DirectDraw run time then define DIRECTDRAW_VERSION
- * to be the earlies version of DirectDraw you wish to run against. For,
+ * to be the earliest version of DirectDraw you wish to run against. For,
  * example if you wish an application to run against a DX 3 runtime define
  * DIRECTDRAW_VERSION to be 0x0300.
  *)
@@ -195,7 +195,7 @@ type
     #endif}
 //    typedef BOOL (FAR PASCAL * LPDDENUMCALLBACKEXA)(GUID FAR *, LPSTR, LPSTR, LPVOID, HMONITOR);
     LPDDENUMCALLBACKEXA = function(lpGUID: PGUID; lpDriverDescription: LPSTR; lpDriverName: LPSTR; lpContext: LPVOID; hm: HMONITOR): BOOL; stdcall;
-  
+
 //    typedef BOOL (FAR PASCAL * LPDDENUMCALLBACKEXW)(GUID FAR *, LPWSTR, LPWSTR, LPVOID, HMONITOR);
     LPDDENUMCALLBACKEXW = function(lpGUID: PGUID; lpDriverDescription: LPWSTR; lpDriverName: LPWSTR; lpContext: LPVOID; hm: HMONITOR): BOOL; stdcall;
 
@@ -223,7 +223,7 @@ type
 
 (*
  * Flags for DirectDrawEnumerateEx
- * DirectDrawEnumerateEx supercedes DirectDrawEnumerate. You must use GetProcAddress to
+ * DirectDrawEnumerateEx supersedes DirectDrawEnumerate. You must use GetProcAddress to
  * obtain a function pointer (of type LPDIRECTDRAWENUMERATEEX) to DirectDrawEnumerateEx.
  * By default, only the primary display device is enumerated.
  * DirectDrawEnumerate is equivalent to DirectDrawEnumerate(,,DDENUM_NONDISPLAYDEVICES)
@@ -443,9 +443,9 @@ type
   TDDCAPS_DX1 = record
     dwSize: DWORD;                      // size of the DDDRIVERCAPS structure
     dwCaps: DWORD;                      // driver specific capabilities
-    dwCaps2: DWORD;                     // more driver specific capabilites
+    dwCaps2: DWORD;                     // more driver specific capabilities
     dwCKeyCaps: DWORD;                  // color key capabilities of the surface
-    dwFXCaps: DWORD;                    // driver specific stretching and effects capabilites
+    dwFXCaps: DWORD;                    // driver specific stretching and effects capabilities
     dwFXAlphaCaps: DWORD;               // alpha driver specific capabilities
     dwPalCaps: DWORD;                   // palette capabilities
     dwSVCaps: DWORD;                    // stereo vision capabilities
@@ -470,10 +470,10 @@ type
     ddsCaps: TDDSCAPS;                  // DDSCAPS structure has all the general capabilities
     dwMinOverlayStretch: DWORD;         // minimum overlay stretch factor multiplied by 1000, eg 1000 == 1.0, 1300 == 1.3
     dwMaxOverlayStretch: DWORD;         // maximum overlay stretch factor multiplied by 1000, eg 1000 == 1.0, 1300 == 1.3
-    dwMinLiveVideoStretch: DWORD;       // OBSOLETE! This field remains for compatability reasons only
-    dwMaxLiveVideoStretch: DWORD;       // OBSOLETE! This field remains for compatability reasons only
-    dwMinHwCodecStretch: DWORD;         // OBSOLETE! This field remains for compatability reasons only
-    dwMaxHwCodecStretch: DWORD;         // OBSOLETE! This field remains for compatability reasons only
+    dwMinLiveVideoStretch: DWORD;       // OBSOLETE! This field remains for compatibility reasons only
+    dwMaxLiveVideoStretch: DWORD;       // OBSOLETE! This field remains for compatibility reasons only
+    dwMinHwCodecStretch: DWORD;         // OBSOLETE! This field remains for compatibility reasons only
+    dwMaxHwCodecStretch: DWORD;         // OBSOLETE! This field remains for compatibility reasons only
     dwReserved1: DWORD;                 // reserved
     dwReserved2: DWORD;                 // reserved
     dwReserved3: DWORD;                 // reserved
@@ -481,15 +481,15 @@ type
 
 (*
  * This structure is the DDCAPS structure as it was in version 2 and 3 of Direct X.
- * It is present for back compatability.
+ * It is present for back compatibility.
  *)
   PDDCAPS_DX3 = ^TDDCAPS_DX3;
   TDDCAPS_DX3 = record
     dwSize: DWORD;                      // size of the DDDRIVERCAPS structure
     dwCaps: DWORD;                      // driver specific capabilities
-    dwCaps2: DWORD;                     // more driver specific capabilites
+    dwCaps2: DWORD;                     // more driver specific capabilities
     dwCKeyCaps: DWORD;                  // color key capabilities of the surface
-    dwFXCaps: DWORD;                    // driver specific stretching and effects capabilites
+    dwFXCaps: DWORD;                    // driver specific stretching and effects capabilities
     dwFXAlphaCaps: DWORD;               // alpha driver specific capabilities
     dwPalCaps: DWORD;                   // palette capabilities
     dwSVCaps: DWORD;                    // stereo vision capabilities
@@ -541,15 +541,15 @@ type
 
 (*
  * This structure is the DDCAPS structure as it was in version 5 of Direct X.
- * It is present for back compatability.
+ * It is present for back compatibility.
  *)
   PDDCAPS_DX5 = ^TDDCAPS_DX5;
   TDDCAPS_DX5 = record
 (*  0*) dwSize: DWORD;                  // size of the DDDRIVERCAPS structure
 (*  4*) dwCaps: DWORD;                  // driver specific capabilities
-(*  8*) dwCaps2: DWORD;                 // more driver specific capabilites
+(*  8*) dwCaps2: DWORD;                 // more driver specific capabilities
 (*  c*) dwCKeyCaps: DWORD;              // color key capabilities of the surface
-(* 10*) dwFXCaps: DWORD;                // driver specific stretching and effects capabilites
+(* 10*) dwFXCaps: DWORD;                // driver specific stretching and effects capabilities
 (* 14*) dwFXAlphaCaps: DWORD;           // alpha driver specific capabilities
 (* 18*) dwPalCaps: DWORD;               // palette capabilities
 (* 1c*) dwSVCaps: DWORD;                // stereo vision capabilities
@@ -608,9 +608,9 @@ type
   TDDCAPS_DX6 = record
 (*  0*) dwSize: DWORD;                  // size of the DDDRIVERCAPS structure
 (*  4*) dwCaps: DWORD;                  // driver specific capabilities
-(*  8*) dwCaps2: DWORD;                 // more driver specific capabilites
+(*  8*) dwCaps2: DWORD;                 // more driver specific capabilities
 (*  c*) dwCKeyCaps: DWORD;              // color key capabilities of the surface
-(* 10*) dwFXCaps: DWORD;                // driver specific stretching and effects capabilites
+(* 10*) dwFXCaps: DWORD;                // driver specific stretching and effects capabilities
 (* 14*) dwFXAlphaCaps: DWORD;           // alpha caps
 (* 18*) dwPalCaps: DWORD;               // palette capabilities
 (* 1c*) dwSVCaps: DWORD;                // stereo vision capabilities
@@ -670,9 +670,9 @@ type
   TDDCAPS_DX7 = record
 (*  0*) dwSize: DWORD;                  // size of the DDDRIVERCAPS structure
 (*  4*) dwCaps: DWORD;                  // driver specific capabilities
-(*  8*) dwCaps2: DWORD;                 // more driver specific capabilites
+(*  8*) dwCaps2: DWORD;                 // more driver specific capabilities
 (*  c*) dwCKeyCaps: DWORD;              // color key capabilities of the surface
-(* 10*) dwFXCaps: DWORD;                // driver specific stretching and effects capabilites
+(* 10*) dwFXCaps: DWORD;                // driver specific stretching and effects capabilities
 (* 14*) dwFXAlphaCaps: DWORD;           // alpha driver specific capabilities
 (* 18*) dwPalCaps: DWORD;               // palette capabilities
 (* 1c*) dwSVCaps: DWORD;                // stereo vision capabilities
@@ -1026,7 +1026,7 @@ end;
 (*
  * This flag causes GetDeviceIdentifier to return information about the host (typically 2D) adapter in a system equipped
  * with a stacked secondary 3D adapter. Such an adapter appears to the application as if it were part of the
- * host adapter, but is typically physcially located on a separate card. The stacked secondary's information is
+ * host adapter, but is typically physically located on a separate card. The stacked secondary's information is
  * returned when GetDeviceIdentifier's dwFlags field is zero, since this most accurately reflects the qualities
  * of the DirectDraw object involved.
  *)
@@ -1108,7 +1108,7 @@ type
 
         case Integer of
         0: (
-          dwMipMapCount: DWORD;                 // number of mip-map levels requestde
+          dwMipMapCount: DWORD;                 // number of mip-map levels requested
                                                 // dwZBufferBitDepth removed, use ddpfPixelFormat one instead
         );
         1: (
@@ -1906,7 +1906,7 @@ const
  * It indicates that this surface is THE back buffer of a surface
  * flipping structure.  DirectDraw supports N surfaces in a
  * surface flipping structure.  Only the surface that immediately
- * precedeces the DDSCAPS_FRONTBUFFER has this capability bit set.
+ * precedes the DDSCAPS_FRONTBUFFER has this capability bit set.
  * The other surfaces are identified as back buffers by the presence
  * of the DDSCAPS_FLIP capability, their attachment order, and the
  * absence of the DDSCAPS_FRONTBUFFER and DDSCAPS_BACKBUFFER
@@ -1942,7 +1942,7 @@ const
  * Indicates that this surface is THE front buffer of a surface flipping
  * structure.  It is generally set by CreateSurface when the DDSCAPS_FLIP
  * capability bit is set.
- * If this capability is sent to CreateSurface then a standalonw front buffer
+ * If this capability is sent to CreateSurface then a standalone front buffer
  * is created.  This surface will not have the DDSCAPS_FLIP capability.
  * It can be attached to other back buffers to form a flipping structure.
  * See AddAttachments for a detailed description of the behaviors in this
@@ -2230,7 +2230,7 @@ const
   DDSCAPS2_POINTS                         = $00800000;
 
 (*
- * Indicates that the vertex buffer data can be used to render rt pactches.
+ * Indicates that the vertex buffer data can be used to render rt patches.
  *)
   DDSCAPS2_RTPATCHES                      = $01000000;
 
@@ -2437,7 +2437,7 @@ const
   DDCAPS_PALETTE                  = $00008000;
 
 (*
- * Indicates that palette changes can be syncd with the veritcal refresh.
+ * Indicates that palette changes can be synchronized with the vertical refresh.
  *)
   DDCAPS_PALETTEVSYNC             = $00010000;
 
@@ -2670,7 +2670,7 @@ const
  * This caps bit is intended for internal DirectDraw use.
  * -It is only valid if DDCAPS2_NONLOCALVIDMEMCAPS is set.
  * -If this bit is set, then DDCAPS_CANBLTSYSMEM MUST be set by the driver (and
- *  all the assoicated system memory blt caps must be correct).
+ *  all the associated system memory blt caps must be correct).
  * -It implies that the system->video blt caps in DDCAPS also apply to system to
  *  nonlocal blts. I.e. the dwSVBCaps, dwSVBCKeyCaps, dwSVBFXCaps and dwSVBRops
  *  members of DDCAPS (DDCORECAPS) are filled in correctly.
@@ -2714,7 +2714,7 @@ const
 {$IFNDEF D3D_DISABLE_9EX}
 
 (*
- * Driver supports sharing of cross process resouces
+ * Driver supports sharing of cross process resources
  *)
   DDCAPS2_CANSHARERESOURCE              = $80000000;
 
@@ -3133,7 +3133,7 @@ const
  * The passed pointer is an IUnknown ptr. The cbData argument to SetPrivateData
  * must be set to sizeof(IUnknown* ). DirectDraw will call AddRef through this
  * pointer and Release when the private data is destroyed. This includes when
- * the surface or palette is destroyed before such priovate data is destroyed.
+ * the surface or palette is destroyed before such private data is destroyed.
  *)
   DDSPD_IUNKNOWNPOINTER           = $00000001;
 
@@ -3854,7 +3854,7 @@ const
 
 (*
  * EXTENDED FLAG. SEE DEFINITION OF DDBLT_EXTENDED_FLAGS.
- * This flag indidcates that the source surface contains content in a
+ * This flag indicates that the source surface contains content in a
  * linear color space. The driver may perform gamma correction to the
  * desktop color space (i.e. sRGB, gamma 2.2) as part of this blt.
  * If the device can perform such a conversion as part of the copy,
@@ -3918,7 +3918,7 @@ const
  * Flip Interval Flags. These flags indicate how many vertical retraces to wait between
  * each flip. The default is one. DirectDraw will return DDERR_WASSTILLDRAWING for each
  * surface involved in the flip until the specified number of vertical retraces has
- * ocurred. Only effective if DDCAPS2_FLIPINTERVAL is set. If that bit is not set,
+ * occurred. Only effective if DDCAPS2_FLIPINTERVAL is set. If that bit is not set,
  * DDFLIP_INTERVALn has no effect.
  *)
 
@@ -4179,7 +4179,7 @@ const
 
 (*
  * Used only with Direct3D Vertex Buffer Locks. Indicates that no vertices
- * that were referred to in Draw*PrimtiveVB calls since the start of the
+ * that were referred to in Draw*PrimitiveVB calls since the start of the
  * frame (or the last lock without this flag) will be modified during the
  * lock. This can be useful when one is only appending data to the vertex
  * buffer
@@ -4299,7 +4299,7 @@ const
 
 (*
  * Do this z blt adding the dwZBufferBaseDest to each of the sources z values
- * before comparing it with the desting z values.
+ * before comparing it with the destining z values.
  *)
   DDBLTFX_ZBUFFERBASEDEST                 = $00000100;
 
@@ -4615,7 +4615,7 @@ const
   DDERR_NO3D                              = HRESULT((DWORD(1) shl 31) or (_FACDD shl 16) or 170);
 
 (*
- * Operation could not be carried out because there is no alpha accleration
+ * Operation could not be carried out because there is no alpha acceleration
  * hardware present or available.
  *)
   DDERR_NOALPHAHW                         = HRESULT((DWORD(1) shl 31) or (_FACDD shl 16) or 180);
@@ -4788,7 +4788,7 @@ const
   DDERR_OVERLAYCANTCLIP                   = HRESULT((DWORD(1) shl 31) or (_FACDD shl 16) or 382);
 
 (*
- * Can only have ony color key active at one time for overlays
+ * Can only have only color key active at one time for overlays
  *)
   DDERR_OVERLAYCOLORKEYONLYONEACTIVE      = HRESULT((DWORD(1) shl 31) or (_FACDD shl 16) or 384);
 
@@ -4888,7 +4888,7 @@ const
   DDERR_VERTICALBLANKINPROGRESS           = HRESULT((DWORD(1) shl 31) or (_FACDD shl 16) or 537);
 
 (*
- * Informs DirectDraw that the previous Blt which is transfering information
+ * Informs DirectDraw that the previous Blt which is transferring information
  * to or from this Surface is incomplete.
  *)
   DDERR_WASSTILLDRAWING                   = HRESULT((DWORD(1) shl 31) or (_FACDD shl 16) or 540);
@@ -5000,13 +5000,13 @@ const
 
 (*
  * returned when GetOverlayPosition is called on a overlay that UpdateOverlay
- * has never been called on to establish a destionation.
+ * has never been called on to establish a destination.
  *)
   DDERR_NOOVERLAYDEST                     = HRESULT((DWORD(1) shl 31) or (_FACDD shl 16) or 578);
 
 (*
- * returned when the position of the overlay on the destionation is no longer
- * legal for that destionation.
+ * returned when the position of the overlay on the destination is no longer
+ * legal for that destination.
  *)
   DDERR_INVALIDPOSITION                   = HRESULT((DWORD(1) shl 31) or (_FACDD shl 16) or 579);
 
@@ -5039,7 +5039,7 @@ const
   DDERR_NOTLOCKED                         = HRESULT((DWORD(1) shl 31) or (_FACDD shl 16) or 584);
 
 (*
- * Windows can not create any more DCs, or a DC was requested for a paltte-indexed
+ * Windows can not create any more DCs, or a DC was requested for a palette-indexed
  * surface when the surface had no palette AND the display mode was not palette-indexed
  * (in this case DirectDraw cannot select a proper palette into the DC)
  *)
@@ -5238,7 +5238,7 @@ function GET_WHQL_DAY(dwWHQLLevel: DWORD): Integer; inline;
 implementation
 
 (*
- * Macros for interpretting DDEVICEIDENTIFIER2.dwWHQLLevel
+ * Macros for interpreting DDEVICEIDENTIFIER2.dwWHQLLevel
  *)
 {#define GET_WHQL_YEAR( dwWHQLLevel ) \
     ( (dwWHQLLevel) / 0x10000 )

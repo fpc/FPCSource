@@ -6,85 +6,85 @@ uses
   ctypes, nds9;
 
 procedure renderCube(angle: cint);
-begin 
+begin
   glPushMatrix();
   glTranslatef(0, 0, -4);
-  glRotatef32i(degreesToAngle(angle), inttof32(1), inttof32(1), inttof32(1)); 
-  
+  glRotatef32i(degreesToAngle(angle), inttof32(1), inttof32(1), inttof32(1));
+
   glBegin(GL_QUADS);
-    glColor3b(255,0,0);   glVertex3f(-1.0,  1.0,  1.0);					
-    glColor3b(0,255,0);   glVertex3f( 1.0,  1.0,  1.0);					
-    glColor3b(0,0,255);   glVertex3f( 1.0, -1.0,  1.0);					
-    glColor3b(255,255,0); glVertex3f(-1.0, -1.0,  1.0);					
-    
-    glColor3b(255,0,0);   glVertex3f(-1.0,  1.0, -1.0);					
-    glColor3b(0,255,0);   glVertex3f( 1.0,  1.0, -1.0);					
-    glColor3b(0,0,255);   glVertex3f( 1.0, -1.0, -1.0);					
-    glColor3b(255,255,0); glVertex3f(-1.0, -1.0, -1.0);					
-    
-    glColor3b(255,0,0);   glVertex3f(-1.0,  1.0,  1.0);					
-    glColor3b(0,255,0);   glVertex3f( 1.0,  1.0,  1.0);					
-    glColor3b(0,0,255);   glVertex3f( 1.0,  1.0, -1.0);					
-    glColor3b(255,255,0); glVertex3f(-1.0,  1.0, -1.0);					
-    
-    glColor3b(255,0,0);   glVertex3f(-1.0, -1.0,  1.0);					
-    glColor3b(0,255,0);   glVertex3f( 1.0, -1.0,  1.0);					
-    glColor3b(0,0,255);   glVertex3f( 1.0, -1.0, -1.0);					
-    glColor3b(255,255,0); glVertex3f(-1.0, -1.0, -1.0);					
-    
-    glColor3b(255,0,0);   glVertex3f( 1.0, 1.0,  -1.0);					
-    glColor3b(0,255,0);   glVertex3f( 1.0, 1.0,   1.0);					
-    glColor3b(0,0,255);   glVertex3f( 1.0,-1.0,   1.0);					
-    glColor3b(255,255,0); glVertex3f( 1.0,-1.0,  -1.0);					
-    
-    glColor3b(255,0,0);   glVertex3f(-1.0, 1.0,  -1.0);					
-    glColor3b(0,255,0);   glVertex3f(-1.0, 1.0,   1.0);					
-    glColor3b(0,0,255);   glVertex3f(-1.0,-1.0,   1.0);					
-    glColor3b(255,255,0); glVertex3f(-1.0,-1.0,  -1.0);					
-  
+    glColor3b(255,0,0);   glVertex3f(-1.0,  1.0,  1.0);
+    glColor3b(0,255,0);   glVertex3f( 1.0,  1.0,  1.0);
+    glColor3b(0,0,255);   glVertex3f( 1.0, -1.0,  1.0);
+    glColor3b(255,255,0); glVertex3f(-1.0, -1.0,  1.0);
+
+    glColor3b(255,0,0);   glVertex3f(-1.0,  1.0, -1.0);
+    glColor3b(0,255,0);   glVertex3f( 1.0,  1.0, -1.0);
+    glColor3b(0,0,255);   glVertex3f( 1.0, -1.0, -1.0);
+    glColor3b(255,255,0); glVertex3f(-1.0, -1.0, -1.0);
+
+    glColor3b(255,0,0);   glVertex3f(-1.0,  1.0,  1.0);
+    glColor3b(0,255,0);   glVertex3f( 1.0,  1.0,  1.0);
+    glColor3b(0,0,255);   glVertex3f( 1.0,  1.0, -1.0);
+    glColor3b(255,255,0); glVertex3f(-1.0,  1.0, -1.0);
+
+    glColor3b(255,0,0);   glVertex3f(-1.0, -1.0,  1.0);
+    glColor3b(0,255,0);   glVertex3f( 1.0, -1.0,  1.0);
+    glColor3b(0,0,255);   glVertex3f( 1.0, -1.0, -1.0);
+    glColor3b(255,255,0); glVertex3f(-1.0, -1.0, -1.0);
+
+    glColor3b(255,0,0);   glVertex3f( 1.0, 1.0,  -1.0);
+    glColor3b(0,255,0);   glVertex3f( 1.0, 1.0,   1.0);
+    glColor3b(0,0,255);   glVertex3f( 1.0,-1.0,   1.0);
+    glColor3b(255,255,0); glVertex3f( 1.0,-1.0,  -1.0);
+
+    glColor3b(255,0,0);   glVertex3f(-1.0, 1.0,  -1.0);
+    glColor3b(0,255,0);   glVertex3f(-1.0, 1.0,   1.0);
+    glColor3b(0,0,255);   glVertex3f(-1.0,-1.0,   1.0);
+    glColor3b(255,255,0); glVertex3f(-1.0,-1.0,  -1.0);
+
   glEnd();
-  
+
   glPopMatrix(1);
 end;
- 
+
 
 procedure renderPyramid(angle: cint);
 begin
   glPushMatrix();
   glTranslatef(0, 0, -4);
-  glRotatef32i(degreesToAngle(angle), inttof32(1),inttof32(1),inttof32(1)); 
-	
+  glRotatef32i(degreesToAngle(angle), inttof32(1),inttof32(1),inttof32(1));
+
   glBegin(GL_QUADS);
-    glColor3b(255,0,0);		glVertex3f(-1.0, -1.0,  1.0);					
-    glColor3b(0,255,0);		glVertex3f( 1.0, -1.0,  1.0);					
-    glColor3b(0,0,255);		glVertex3f( 1.0, -1.0, -1.0);					
-    glColor3b(255,255,0);	glVertex3f(-1.0, -1.0, -1.0);					
+    glColor3b(255,0,0);		glVertex3f(-1.0, -1.0,  1.0);
+    glColor3b(0,255,0);		glVertex3f( 1.0, -1.0,  1.0);
+    glColor3b(0,0,255);		glVertex3f( 1.0, -1.0, -1.0);
+    glColor3b(255,255,0);	glVertex3f(-1.0, -1.0, -1.0);
   glEnd();
 
   glBegin(GL_TRIANGLES);
-    glColor3b(255,0,0);		glVertex3f( 0.0,  1.0,  0.0);					
-    glColor3b(0,255,0);		glVertex3f(-1.0, -1.0,  1.0);					
-    glColor3b(0,0,255);		glVertex3f( 1.0, -1.0,  1.0);					
-    
-    glColor3b(255,0,0);		glVertex3f( 0.0,  1.0,  0.0);					
-    glColor3b(0,255,0);		glVertex3f(-1.0, -1.0, -1.0);					
-    glColor3b(0,0,255);		glVertex3f( 1.0, -1.0, -1.0);					
-    
-    glColor3b(255,0,0);		glVertex3f( 0.0,  1.0,  0.0);					
-    glColor3b(0,255,0);		glVertex3f(-1.0, -1.0,  1.0);					
-    glColor3b(0,0,255);		glVertex3f(-1.0, -1.0, -1.0);					
-    
-    glColor3b(255,0,0);		glVertex3f( 0.0,  1.0,  0.0);					
-    glColor3b(0,255,0);		glVertex3f( 1.0, -1.0,  1.0);					
-    glColor3b(0,0,255);		glVertex3f( 1.0, -1.0, -1.0);					
+    glColor3b(255,0,0);		glVertex3f( 0.0,  1.0,  0.0);
+    glColor3b(0,255,0);		glVertex3f(-1.0, -1.0,  1.0);
+    glColor3b(0,0,255);		glVertex3f( 1.0, -1.0,  1.0);
+
+    glColor3b(255,0,0);		glVertex3f( 0.0,  1.0,  0.0);
+    glColor3b(0,255,0);		glVertex3f(-1.0, -1.0, -1.0);
+    glColor3b(0,0,255);		glVertex3f( 1.0, -1.0, -1.0);
+
+    glColor3b(255,0,0);		glVertex3f( 0.0,  1.0,  0.0);
+    glColor3b(0,255,0);		glVertex3f(-1.0, -1.0,  1.0);
+    glColor3b(0,0,255);		glVertex3f(-1.0, -1.0, -1.0);
+
+    glColor3b(255,0,0);		glVertex3f( 0.0,  1.0,  0.0);
+    glColor3b(0,255,0);		glVertex3f( 1.0, -1.0,  1.0);
+    glColor3b(0,0,255);		glVertex3f( 1.0, -1.0, -1.0);
   glEnd();
- 
+
   glPopMatrix(1);
 end;
- 
+
 var
   angle: cshort = 0;
-  
+
 procedure renderScene(top: boolean);
 begin
   if (top) then
@@ -94,8 +94,8 @@ begin
 
 	inc(angle);
 end;
- 
- 
+
+
 //-------------------------------------------------------
 // set up a 2D layer construced of bitmap sprites
 // this holds the image when rendering to the top screen
@@ -108,7 +108,7 @@ var
   offset: pcuint16;
 begin
   oamInit(oamSub, SpriteMapping_Bmp_2D_256, false);
-  
+
   x := 0;
   y := 0;
 
@@ -117,16 +117,16 @@ begin
     for x := 0 to 3 do
     begin
 //      offset := pcuint16(@SPRITE_GFX_SUB[(x * 64) + (y * 64 * 256)]);
-//      oamSet(oamSub, x + y * 4, x * 64, y * 64, 0, 15, SpriteSize_64x64, 
+//      oamSet(oamSub, x + y * 4, x * 64, y * 64, 0, 15, SpriteSize_64x64,
 //      SpriteColorFormat_Bmp, offset, -1, false,false,false,false,false);
       oamSub.oamMemory[id].attribute[0] := ATTR0_BMP or ATTR0_SQUARE or (64 * y);
       oamSub.oamMemory[id].attribute[1] := ATTR1_SIZE_64 or (64 * x);
       oamSub.oamMemory[id].attribute[2] := ATTR2_ALPHA(1) or (8 * 32 * y) or (8 * x);
       inc(id);
     end;
- 
+
   swiWaitForVBlank();
- 
+
   oamUpdate(oamSub);
 end;
 
@@ -134,53 +134,53 @@ var
 	top: boolean = true;
   keys: integer;
 
-begin 
+begin
   videoSetMode(MODE_0_3D);
   videoSetModeSub(MODE_5_2D);
- 
+
   glInit();
- 
+
   // sub sprites hold the bottom image when 3D directed to top
   initSubSprites();
-  
+
   // sub background holds the top image when 3D directed to bottom
   bgInitSub(3, BgType_Bmp16, BgSize_B16_256x256, 0, 0);
- 
+
 //-------------------------------------------------------
 //	 Setup gl
 //-------------------------------------------------------
   glEnable(GL_ANTIALIAS);
-  
-  glClearColor(0,0,0,31); 
+
+  glClearColor(0,0,0,31);
   glClearPolyID(63);
   glClearDepth($7FFF);
-  
+
   glViewport(0,0,255,191);
-  
+
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
   gluPerspective(70, 256.0 / 192.0, 0.1, 100);
-  
+
   glPolyFmt(POLY_ALPHA(31) or POLY_CULL_NONE);
- 
+
 //-------------------------------------------------------
 //	 main loop
 //-------------------------------------------------------
 
-  while true do 
+  while true do
   begin
     // wait for capture unit to be ready
     while (REG_DISPCAPCNT^ and DCAP_ENABLE) <> 0 do;
-    
+
     scanKeys();
 		keys := keysDown();
 		if (keys and KEY_START) <> 0 then break;
-    
+
     //-------------------------------------------------------
     //	 Switch render targets
     //-------------------------------------------------------
     top := not top;
- 
+
     if (top) then
     begin
       lcdMainOnBottom();
@@ -194,14 +194,14 @@ begin
       vramSetBankC(VRAM_C_SUB_BG);
       REG_DISPCAPCNT^ := DCAP_BANK(3) or DCAP_ENABLE or DCAP_SIZE(3);
     end;
- 
+
     //-------------------------------------------------------
     //	 Render the scene
     //-------------------------------------------------------
     glMatrixMode(GL_MODELVIEW);
-    
+
     renderScene(top);
-    
+
     glFlush(0);
-  end; 
+  end;
 end.

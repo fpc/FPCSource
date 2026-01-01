@@ -1,8 +1,8 @@
 {
     This file is part of the fpgtk package
     Copyright (c) 1999-2000 by Michael van Canney, Sebastian Guenther
- 
-    Object definitions   
+
+    Object definitions
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.

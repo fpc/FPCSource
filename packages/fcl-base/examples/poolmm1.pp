@@ -96,7 +96,7 @@ begin
 
   // free the record
   MyRecordMemManager.DisposeMyRecord(MyRecord);
-  
+
   // free the manager
   MyRecordMemManager.Free;
 end.

@@ -230,7 +230,7 @@ uses MacTypes,CFBase,CFString,CFDictionary,CFArray,MDItem,MacOSXPosix;
         the progress notifications are sent out, so the query is in a
         good state during those events.
 
-        Result Retreval
+        Result Retrieval
                 An MDQueryRef presents its results as if it were a simple
                 array object.  The results can either be MDItemRefs (the
                 default) or custom structs, CFTypeRefs, or Objective C
@@ -246,7 +246,7 @@ uses MacTypes,CFBase,CFString,CFDictionary,CFArray,MDItem,MacOSXPosix;
                 two ways. First is to let the library sort the results for you
                 by passing an array of attributes to sort on to
                 MDQueryCreate(). The default sort provided by MDQueryCreate()
-                is a assending sort strings are compared using
+                is a ascending sort strings are compared using
                 CFStringCompare() with the options kCFCompareNonliteral |
                 kCFCompareLocalized | kCFCompareNumerically. CFDataRefs are
                 compared by using memcmp() of the data pointers. If an Item
@@ -300,7 +300,7 @@ type
                 will allow anything registered in that mode with this run
                 loop to execute as well. If this parameter is false, the
                 function returns immediately after starting the query
-                asychronously.
+                asynchronously.
         @constant kMDQueryWantsUpdates When set, after gathering the initial results
                 the query will watch for changes in the system which should
                 update the list of results. This can be changes which cause
@@ -765,10 +765,10 @@ procedure MDQuerySetDispatchQueue( query: MDQueryRef; queue: dispatch_queue_t );
                 [[There are three operational modes: (1) synchronous static
                 queries, which collect the list of current results and then
                 do not watch for updates to the results, (2) asynchronous
-                static queries, which collect the results asychronously
+                static queries, which collect the results asynchronously
                 after this function returns, and then do not watch for
                 updates to the results, and (3) asynchronous live queries
-                which collect the initial results asychronously after this
+                which collect the initial results asynchronously after this
                 function returns, and then do watch for updates to the
                 results, until the query is destroyed. There is little
                 reason not to allow the fourth case, synchronous collection
@@ -1047,7 +1047,7 @@ type
                 returns. The function pointer can be NULL to cancel
                 custom sorting and revert to the default sorting.
                 The default sort provided by MDQueryCreate()
-                is a assending sort strings are compared using
+                is a ascending sort strings are compared using
                 CFStringCompare() with the options kCFCompareNonliteral |
                 kCFCompareLocalized | kCFCompareNumerically. CFDataRefs are
                 compared by using memcmp() of the data pointers.
@@ -1079,7 +1079,7 @@ procedure MDQuerySetSortComparator( query: MDQueryRef; comparator: MDQuerySortCo
                 returns. The block can be NULL to cancel
                 custom sorting and revert to the default sorting.
                 The default sort provided by MDQueryCreate()
-                is a assending sort strings are compared using
+                is a ascending sort strings are compared using
                 CFStringCompare() with the options kCFCompareNonliteral |
                 kCFCompareLocalized | kCFCompareNumerically. CFDataRefs are
                 compared by using memcmp() of the data pointers.
@@ -1227,7 +1227,7 @@ var kMDQueryResultContentRelevance: CFStringRef; external name '_kMDQueryResultC
 			 options. This must be called before the query is executed.
     @param query The query object to modify.
     @param scopeDirectories a CFArray of CFStringRef or CFURLRef objects which
-           specify where to search.  For conveinience, the kMDQueryScopeHome,
+           specify where to search.  For convenience, the kMDQueryScopeHome,
 			kMDQueryScopeComputer and kMDQueryScopeNetwork constants may also
 			be present in this array.
     @param scopeOptions additional options for modifying the search.

@@ -1,6 +1,6 @@
 {******************************************************************************}
 {                                                                              }
-{ Security Service Attachements API interface Unit for Object Pascal           }
+{ Security Service Attachments API interface Unit for Object Pascal            }
 {                                                                              }
 { Portions created by Microsoft are Copyright (C) 1995-2001 Microsoft          }
 { Corporation. All Rights Reserved.                                            }

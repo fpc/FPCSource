@@ -1116,7 +1116,7 @@ end;
 function TPasTreeContainer.GetDefaultClassVisibility(AClass: TPasClassType
   ): TPasMemberVisibility;
 begin
-  Result:=visDefault; 
+  Result:=visDefault;
   if AClass=nil then ;  // avoid compiler warning
 end;
 
@@ -1265,7 +1265,7 @@ begin
   FMaxErrorCount:=1;
   FFailOnModuleErors:=True;
   FImplicitUses := TStringList.Create;
-  FImplicitUses.Add('System'); // system always implicitely first.
+  FImplicitUses.Add('System'); // system always implicitly first.
 end;
 
 destructor TPasParser.Destroy;
@@ -1555,7 +1555,7 @@ function TPasParser.TryErrorRecovery(const aContext: TRecoveryContext): boolean;
 var
   StopAt : TTokens;
   Obj : TObject;
-  
+
 begin
   Inc(FErrorCount);
   Result:=FErrorCount<FMaxErrorCount;

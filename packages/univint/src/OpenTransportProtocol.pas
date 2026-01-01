@@ -476,7 +476,7 @@ type
    structure.  The problem with doing that is that
    the interface definition language doesn't allow
    my to set the alignment in the middle of a file,
-   so I have to do this via "pass throughs".  This
+   so I have to do this via "pass through".  This
    works fine for the well known languages (C, Pascal),
    but may cause problems for other languages (Java,
    Asm).
@@ -629,7 +629,7 @@ type
 { copyreq defines }
 const
 	STRCANON = $01; { b_cont data block contains canonical format specifier }
-	RECOPY = $02;  { perform I_STR copyin again this time using canonical format specifier }
+	RECOPY = $02;  { perform I_STR copying again this time using canonical format specifier }
 
 { structure contained in M_IOCDATA message block }
 type
@@ -858,7 +858,7 @@ const
 	S_OUTPUT = $04; { The write queue is no longer full }
 	S_MSG = $08; { A signal message has reached the front of read queue }
 	S_RDNORM = $10; { A non-priority message is available }
-	S_RDBAND = $20; { A banded messsage is available }
+	S_RDBAND = $20; { A banded message is available }
 	S_WRNORM = $40; { Same as S_OUTPUT }
 	S_WRBAND = $80; { A priority band exists and is writable }
 	S_ERROR = $0100; { Error message has arrived }
@@ -1885,7 +1885,7 @@ const
 
 const
 	DL_PROMISC_PHYS = $01; { promiscuous mode at phys level }
-	DL_PROMISC_SAP = $02; { promiscous mode at sap level }
+	DL_PROMISC_SAP = $02; { promiscuous mode at sap level }
 	DL_PROMISC_MULTI = $03;  { promiscuous mode for multicast }
 
 { M_DATA "raw" mode }
@@ -3189,7 +3189,7 @@ const
    OTPutCommand, OTPutData, and OTPutWriteData flags.
    These equates must not conflict with any of the other putmsg flags,
    ie MSG_ANY, MSG_BAND, MSG_HIPRI, or RS_HIPRI.
-   еее These should probably move into whereever their
+   еее These should probably move into wherever their
    corresponding functions end up but, seeing as this
    is APPLE_ONLY, I'm not too concerned еее
 }
@@ -4632,7 +4632,7 @@ type
 
 
 {
-    Returns the location for the icon familly representing the port.
+    Returns the location for the icon family representing the port.
     Returns false if the port has no icon.
 }
 {

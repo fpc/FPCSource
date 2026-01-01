@@ -14,9 +14,9 @@ var
   xfb: pcuint32 = nil;
   rmode: PGXRModeObj = nil;
   httd_handle: lwp_t;
-	hits: cint = 0; 
+	hits: cint = 0;
 
-var 
+var
   http_200: PAnsiChar = 'HTTP/1.1 200 OK\r\n';
   indexdata: PAnsiChar = '<html> \' +
               '  <head><title>A test page</title></head> \' +
@@ -35,14 +35,14 @@ var
 	client: sockaddr_in;
 	server: sockaddr_in;
 	temp: array [0..1025] of cchar;
-begin	
+begin
 	clientlen := sizeof(client);
 
 	sock := net_socket (AF_INET, SOCK_STREAM, IPPROTO_IP);
 
 	if (sock = INVALID_SOCKET) then
       printf ('Cannot create a socket!'#10)
-  else 
+  else
   begin
 		memset(@server, 0, sizeof(server));
 		memset(@client, 0, sizeof(client));
@@ -53,11 +53,11 @@ begin
 		ret := net_bind(sock, psockaddr(@server), sizeof(server));
 		if ret <> 0 then
 			printf('Error %d binding socket!'#10, ret)
-    else 
+    else
     begin
 			if ret = net_listen(sock, 5) then
 				printf('Error %d listening!'#10, ret)
-    else 
+    else
     begin
 		  while true do
 		  begin
@@ -97,11 +97,11 @@ var
 begin
 	VIDEO_Init();
 	WPAD_Init();
-	
+
 	rmode := VIDEO_GetPreferredMode(nil);
 	framebuffer := (SYS_AllocateFramebuffer(rmode));
 	console_init(framebuffer,20,20,rmode^.fbWidth,rmode^.xfbHeight,rmode^.fbWidth*VI_DISPLAY_PIX_SZ);
-	
+
 	VIDEO_Configure(rmode);
 	VIDEO_SetNextFramebuffer(framebuffer);
 	VIDEO_SetBlack(FALSE);
@@ -120,7 +120,7 @@ var
 	gateway: array [0..15] of cchar;
 	netmask: array [0..15] of cchar;
 begin
-	
+
 	xfb := initialise();
 
 	printf(#10'libogc network demo'#10);
@@ -128,18 +128,18 @@ begin
 
 	// Configure the network interface
 	ret := if_config(localip, netmask, gateway, TRUE);
-	if (ret >= 0) then 
+	if (ret >= 0) then
 	begin
 		printf('network configured, ip: %s, gw: %s, mask %s'#10, @localip, @gateway, @netmask);
 
-		LWP_CreateThread(@httd_handle,	// thread handle 
-        							@httpd,			// code  
-        							@localip,		// arg pointer for thread 
-        							nil,			  // stack base  
-        							16*1024,		// stack size 
-        							50				  // thread priority 
+		LWP_CreateThread(@httd_handle,	// thread handle
+        							@httpd,			// code
+        							@localip,		// arg pointer for thread
+        							nil,			  // stack base
+        							16*1024,		// stack size
+        							50				  // thread priority
                     );
-  end else 
+  end else
 		printf ('network configuration failed!'#10);
 
 	while true do
@@ -147,9 +147,9 @@ begin
 
 		VIDEO_WaitVSync();
 		WPAD_ScanPads();
-		if (WPAD_ButtonsDown(0) and WPAD_BUTTON_HOME) <> 0 then 
+		if (WPAD_ButtonsDown(0) and WPAD_BUTTON_HOME) <> 0 then
 			exit;
-		
+
 	end;
 
 end.

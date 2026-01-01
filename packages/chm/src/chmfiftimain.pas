@@ -395,7 +395,7 @@ constructor TChmSearchWriter.Create ( AStream: TStream;
 begin
   FStream := AStream;
   FWordList := AWordList;
-  FActiveLeafNode:=NIL; 
+  FActiveLeafNode:=NIL;
 end;
 
 destructor TChmSearchWriter.Destroy;
@@ -649,7 +649,7 @@ var
   i,
   j: Integer;
   Doc: TIndexDocument;
-//  proced
+//  proceed
 begin
   StartPos := FWriteStream.Position;
   LastDocIndex := 0;

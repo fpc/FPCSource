@@ -34,29 +34,29 @@
 #include <stddef.h>}
 
 {
- * API_DECLARE_EXPORT is defined when building the libapriconv dynamic 
+ * API_DECLARE_EXPORT is defined when building the libapriconv dynamic
  * library, so that all public symbols are exported.
  *
- * API_DECLARE_STATIC is defined when including the apriconv public headers, 
+ * API_DECLARE_STATIC is defined when including the apriconv public headers,
  * to provide static linkage when the dynamic library may be unavailable.
  *
  * API_DECLARE_STATIC and API_DECLARE_EXPORT are left undefined when
- * including the apr-iconv public headers, to import and link the symbols 
- * from the dynamic libapriconv library and assure appropriate indirection 
+ * including the apr-iconv public headers, to import and link the symbols
+ * from the dynamic libapriconv library and assure appropriate indirection
  * and calling conventions at compile time.
  }
 
 //#if !defined(WIN32)
 {
- * The public apr-iconv functions are declared with API_DECLARE(), so they 
- * use the most portable calling convention.  Public apr-iconv functions 
+ * The public apr-iconv functions are declared with API_DECLARE(), so they
+ * use the most portable calling convention.  Public apr-iconv functions
  * with variable arguments must use API_DECLARE_NONSTD().
  *
  * @deffunc API_DECLARE(rettype) apr_func(args);
  }
 //#define API_DECLARE(type)            type
 {
- * The private apr-iconv functions are declared with API_DECLARE_NONSTD(), 
+ * The private apr-iconv functions are declared with API_DECLARE_NONSTD(),
  * so they use the most optimal C language calling conventions.
  *
  * @deffunc API_DECLARE(rettype) apr_func(args);

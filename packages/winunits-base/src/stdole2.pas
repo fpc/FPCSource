@@ -100,43 +100,43 @@ Type
 
 //interface declarations
 
-// Font : 
+// Font :
 
  Font = dispinterface
    ['{BEF6E003-A874-101A-8BBA-00AA00300CAB}']
-    // Name :  
+    // Name :
    property Name:WideString  dispid 0;
-    // Size :  
+    // Size :
    property Size:Currency  dispid 2;
-    // Bold :  
+    // Bold :
    property Bold:WordBool  dispid 3;
-    // Italic :  
+    // Italic :
    property Italic:WordBool  dispid 4;
-    // Underline :  
+    // Underline :
    property Underline:WordBool  dispid 5;
-    // Strikethrough :  
+    // Strikethrough :
    property Strikethrough:WordBool  dispid 6;
-    // Weight :  
+    // Weight :
    property Weight:Smallint  dispid 7;
-    // Charset :  
+    // Charset :
    property Charset:Smallint  dispid 8;
   end;
 
-// Picture : 
+// Picture :
 
  Picture = dispinterface
    ['{7BF80981-BF32-101A-8BBB-00AA00300CAB}']
-    // Render :  
+    // Render :
    procedure Render(hdc:SYSINT;x:Integer;y:Integer;cx:Integer;cy:Integer;xSrc:OLE_XPOS_HIMETRIC;ySrc:OLE_YPOS_HIMETRIC;cxSrc:OLE_XSIZE_HIMETRIC;cySrc:OLE_YSIZE_HIMETRIC;prcWBounds:{!! pointer !!} OleVariant);dispid 6;
-    // Handle :  
+    // Handle :
    property Handle:OLE_HANDLE  dispid 0;
-    // hPal :  
+    // hPal :
    property hPal:OLE_HANDLE  dispid 2;
-    // Type :  
+    // Type :
    property Type_:Smallint  dispid 3;
-    // Width :  
+    // Width :
    property Width:OLE_XSIZE_HIMETRIC  dispid 4;
-    // Height :  
+    // Height :
    property Height:OLE_YSIZE_HIMETRIC  dispid 5;
   end;
 
@@ -144,7 +144,7 @@ Type
 
  FontEvents = dispinterface
    ['{4EF6100A-AF88-11D0-9846-00C04FC29993}']
-    // FontChanged :  
+    // FontChanged :
    procedure FontChanged(PropertyName:WideString);dispid 9;
   end;
 

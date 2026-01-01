@@ -143,7 +143,7 @@ begin
 end;
 
 Function CompareProcObj(Node1, Node2: Pointer): integer;
-var n1,n2 : TIndexedWord; 
+var n1,n2 : TIndexedWord;
 begin
   n1:=TIndexedWord(Node1); n2:=TIndexedWord(Node2);
   Result := CompareText(n1.theword, n2.theword);
@@ -157,12 +157,12 @@ end;
 
 { TIndexedWordList }
 function TIndexedWordList.AddGetWord(AWord: AnsiString; IsTitle: Boolean): TIndexedWord;
-var 
+var
 {$ifdef userb}
    key : AnsiString;
 {$else}
    n : TAVLTreeNode;
-{$endif}   
+{$endif}
 begin
   Result := nil;
   AWord := LowerCase(AWord);
@@ -182,7 +182,7 @@ begin
   if assigned(n) then
    result:=TIndexedWord(n.Data);
   {$endif}
-  
+
   if Result = nil then
   begin
     Inc(FTotalDifferentWordLength, Length(AWord));
@@ -323,7 +323,7 @@ procedure FreeObject(const Obj:TIndexedWord);
 begin
  obj.free;
 end;
- 
+
 
 destructor TIndexedWordList.Destroy;
 begin
@@ -390,17 +390,17 @@ procedure TIndexedWordList.ForEach(Proc:TForEachMethod);
 var key : AnsiString;
     val:TIndexedWord;
 {$else}
-var   
+var
     AVLNode   : TAVLTreeNode;
 {$endif}
 begin
  {$ifdef userb}
-    if favltree.FirstNode(key,val) then 
+    if favltree.FirstNode(key,val) then
       begin  // Scan it forward
         repeat
           proc(val);
         until not favltree.FindNext(key,val);
-      end;         
+      end;
  {$else}
    AVLNode:=fAVLTree.FindLowest;
    while (AVLNode<>nil) do
@@ -409,25 +409,25 @@ begin
         AVLNode:=FAVLTree.FindSuccessor(AVLNode)
       end;
  {$endif}
-end; 
+end;
 
-procedure TIndexedWordList.ForEach(Proc:TForEachProcedure;state:pointer); 
+procedure TIndexedWordList.ForEach(Proc:TForEachProcedure;state:pointer);
 
 {$ifdef userb}
 var key : AnsiString;
     val:TIndexedWord;
 {$else}
-var   
+var
     AVLNode   : TAVLTreeNode;
 {$endif}
 begin
  {$ifdef userb}
-    if favltree.FirstNode(key,val) then 
+    if favltree.FirstNode(key,val) then
       begin  // Scan it forward
         repeat
           proc(val,state);
         until not favltree.FindNext(key,val);
-      end;         
+      end;
  {$else}
    AVLNode:=fAVLTree.FindLowest;
    while (AVLNode<>nil) do
@@ -436,7 +436,7 @@ begin
         AVLNode:=FAVLTree.FindSuccessor(AVLNode)
       end;
   {$endif}
-end; 
+end;
 
 { TIndexedWord }
 function TIndexedWord.GetDocument ( TopicIndexNum: Integer ) : TIndexDocument;
@@ -492,7 +492,7 @@ begin
   if FLastEntry>=Length(WordIndex) Then
   SetLength(WordIndex, Length(WordIndex)+GrowSpeed);
   WordIndex[FLastEntry] := AIndex;
-  Inc(FLastEntry); 
+  Inc(FLastEntry);
 end;
 
 constructor TIndexDocument.Create ( ADocumentIndex: Integer ) ;
@@ -503,7 +503,7 @@ end;
 
 function TIndexDocument.GetWordIndex(i:integer):integer;
 begin
-  result:=WordIndex[i];  
+  result:=WordIndex[i];
 end;
 
 function TIndexDocument.getindexentries:integer;

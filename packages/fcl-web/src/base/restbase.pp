@@ -1,12 +1,12 @@
 { **********************************************************************
   This file is part of the Free Component Library (FCL)
   Copyright (c) 2015 by the Free Pascal development team
-        
-  Base for REST classes 
-            
+
+  Base for REST classes
+
   See the file COPYING.FPC, included in this distribution,
   for details about the copyright.
-                   
+
   This program is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
@@ -309,7 +309,7 @@ begin
     begin
     // skip the name
     hp:=GetTypeData(Typeinfo);
-    // the class info rtti the property rtti follows immediatly
+    // the class info rtti the property rtti follows immediately
     pd:=aligntoptr(pointer(pointer(@hp^.UnitName)+Length(hp^.UnitName)+1));
     Result:=Result+Pd^.PropCount;
     if Recurse then
@@ -1293,7 +1293,7 @@ begin
       jtNumber  :
         if P^.PropType^.Kind = tkFloat then
           SetFloatProperty(P,JSON.AsFLoat)
-        else  
+        else
           case TJSONNumber(JSON).NumberType of
             ntFloat   : SetFloatProperty(P,JSON.asFloat);
             ntInteger : SetIntegerProperty(P,JSON.asInteger);

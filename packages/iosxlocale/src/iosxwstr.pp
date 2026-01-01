@@ -96,7 +96,7 @@ implementation
           CFRelease(str);
           runerror(231);
         end
-      { if partially succesful, recreate with the required len }
+      { if partially successful, recreate with the required len }
       else if convertedchars<strlen then
         begin
           setlength(dest,encodedlen);

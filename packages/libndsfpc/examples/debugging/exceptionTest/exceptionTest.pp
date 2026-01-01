@@ -17,7 +17,7 @@ begin
 
   // generate an exception
   pu32(8192)^ := 100;
-  
+
   while true do
     swiWaitForVBlank();
 

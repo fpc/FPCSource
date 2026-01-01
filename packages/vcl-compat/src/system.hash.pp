@@ -642,7 +642,7 @@ begin
     SHA1.Update(aKey);
     aDigest:=SHA1.GetDigest;
     System.Move(aDigest[0],KeyBuffer[0],SHA1.GetHashSize);
-  end else   
+  end else
     if KeySize>0 then
       System.Move(aKey[0], KeyBuffer[0], KeySize);
   // XOR the key buffer with the iPad value
@@ -795,7 +795,7 @@ begin
     SHA2.Update(aKey);
     aDigest:=SHA2.GetDigest;
     System.Move(aDigest[0],KeyBuffer[0],SHA2.GetHashSize);
-  end else  
+  end else
     if KeySize>0 then
       System.Move(aKey[0], KeyBuffer[0], KeySize);
   // XOR the key buffer with the iPad value

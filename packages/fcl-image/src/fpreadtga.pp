@@ -346,7 +346,7 @@ var
   hdr: TTargaHeader;
   oldPos: Int64;
   n: Integer;
-  
+
 begin
   Result:=False;
   if Stream = nil then
@@ -355,7 +355,7 @@ begin
   try
     n := SizeOf(hdr);
     Result:=(Stream.Read(hdr, n)=n)
-            and (hdr.ImgType in [1, 2, 3, 9, 10, 11]) 
+            and (hdr.ImgType in [1, 2, 3, 9, 10, 11])
             and (hdr.PixelSize in [8, 16, 24, 32]);
   finally
     Stream.Position := oldPos;

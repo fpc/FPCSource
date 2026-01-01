@@ -8,7 +8,7 @@ elements create a complete URI
 
 This provides the equivalent of the Inet unit, but the implementation is
 written completely in pascal. It parses the hosts,services and networks
-files just as the C library does (it should, anyway). 
+files just as the C library does (it should, anyway).
 
 The DNS routines also do a DNS lookup and parse /etc/resolv.conf
 The 'domain' and 'search' entries in this file are parsed, but ignored.

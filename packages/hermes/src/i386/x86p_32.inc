@@ -33,7 +33,7 @@
 
 
 { _Convert_*
- Paramters:
+ Parameters:
    ESI = source
    EDI = dest
    ECX = amount (NOT 0!!! (the _ConvertX86 routine checks for that though))

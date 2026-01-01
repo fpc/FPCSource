@@ -44,7 +44,7 @@ uses
  {$ENDIF FPC_DOTTEDUNITS}
 
 Type
-  THostAddr = in_addr;		
+  THostAddr = in_addr;
   PHostAddr = ^THostAddr;
   TNetAddr = in_addr;
   PNetAddr = ^TNetAddr;
@@ -338,7 +338,7 @@ begin
     if not Result then
       Result:=ResolveHostByName(S,H)
     else
-      H.Addr:=HostToNet(H.Addr);    
+      H.Addr:=HostToNet(H.Addr);
     If Result then
       SaveHostEntry(@H);
     end;

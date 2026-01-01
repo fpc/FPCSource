@@ -354,7 +354,7 @@ type
   end;
 
   EJSONDataset = Class(EDatabaseError);
-  
+
 implementation
 
 {$IFDEF FPC_DOTTEDUNITS}
@@ -897,7 +897,7 @@ end;
 
 procedure TBaseJSONDataSet.InternalClose;
 begin
-  // disconnet and destroy field objects
+  // disconnect and destroy field objects
   BindFields (False);
   if DefaultFields then
     DestroyFields;
@@ -1315,7 +1315,7 @@ begin
   if (Value < 0) or (Value > FCurrentIndex.Count) then
     raise EJSONDataset.CreateFmt('SetRecNo: index %d out of range',[Value]);
   FCurrent := Value - 1;
-  Resync([]); 
+  Resync([]);
   DoAfterScroll;
 end;
 

@@ -1,14 +1,14 @@
 {$ifdef NDS_INTERFACE}
 
-type 
+type
   WINDOW = integer;
 const
   WINDOW_0: WINDOW    = DISPLAY_WIN0_ON;
-  WINDOW_1: WINDOW    = DISPLAY_WIN1_ON;  
+  WINDOW_1: WINDOW    = DISPLAY_WIN1_ON;
   WINDOW_OBJ: WINDOW  = DISPLAY_SPR_WIN_ON;
   WINDOW_OUT: WINDOW  = (1 shl 16);
- 
-{$DEFINE WINDOW_MASK := (WINDOW_0 or WINDOW_1 or WINDOW_OBJ)} 
+
+{$DEFINE WINDOW_MASK := (WINDOW_0 or WINDOW_1 or WINDOW_OBJ)}
 
 procedure windowEnable(w: WINDOW); inline;
 procedure windowDisable(w: WINDOW); inline;

@@ -424,7 +424,7 @@ function fpc_shortstr_compare_intern(const left,right:shortstring) : longint; ex
 
 function fpc_shortstr_compare_equal(const left,right:shortstring) : longint; compilerproc;
 begin
-  { perform normal comparsion, because JUArrays.equals() only returns true if
+  { perform normal comparison, because JUArrays.equals() only returns true if
     the arrays have equal length, while we only want to compare curlen bytes }
   result:=fpc_shortstr_compare_intern(left,right);
 end;

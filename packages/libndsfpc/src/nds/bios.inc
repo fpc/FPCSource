@@ -4,15 +4,15 @@ type
   TGetHeaderCallback = function(source: pcuint8;  dest: pcuint16; r2: cuint32): pcint;
   getHeaderCallback = TGetHeaderCallback;
   TGetResultCallback = function(source: pcuint8): pcint;
-  getResultCallback = TGetResultCallback; 
-  TGetByteCallback = function(source: pcuint8): pcuint8; 
+  getResultCallback = TGetResultCallback;
+  TGetByteCallback = function(source: pcuint8): pcuint8;
   getByteCallback = TGetByteCallback;
 
 type
   DecompressionStream = packed record
-    getSize: TGetHeaderCallback; 
-    getResult: TGetResultCallback; 
-    readByte: TGetByteCallback; 
+    getSize: TGetHeaderCallback;
+    getResult: TGetResultCallback;
+    readByte: TGetByteCallback;
   end;
   TDecompressionStream = DecompressionStream;
   PDecompressionStream = ^TDecompressionStream;

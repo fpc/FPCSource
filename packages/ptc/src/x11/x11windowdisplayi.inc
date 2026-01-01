@@ -567,7 +567,7 @@ begin
       { XGrabPointer may fail if someone else is already holding a mouse grab.
         It happens e.g. sometimes when alt+tabbing away and back to the application
         in GNOME. That's why we check the result and try again on the next call.
-        And that's why this method is called everytime HandleEvents is called. }
+        And that's why this method is called every time HandleEvents is called. }
       FMouseGrabbed := GrabResult = GrabSuccess;
     end;
   end

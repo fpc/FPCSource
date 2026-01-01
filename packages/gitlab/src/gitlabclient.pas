@@ -377,7 +377,7 @@ begin
       Result:=D as TJSONArray;
     except
       On E :Exception do
-        begin 
+        begin
         E.Message:='Error getting resource'+aName+': '+E.Message;
         Raise;
         end;
@@ -574,7 +574,7 @@ begin
     aResponse:=FClient.ExecuteRequest('GET',aURL,aRequest);
     if (aResponse.StatusCode div 100)<>2 then
       Raise EGitLab.CreateFmt('Failed to get URL "%s" : %d (%s)',[aURL,aResponse.StatusCode,aResponse.StatusText]);
-    aResult.Position:=0;  
+    aResult.Position:=0;
   finally
     aRequest.Free;
     aResponse.Free;

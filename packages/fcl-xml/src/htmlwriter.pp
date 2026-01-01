@@ -12,7 +12,7 @@
 
  **********************************************************************}
 {$IFNDEF FPC_DOTTEDUNITS}
-unit htmlwriter; 
+unit htmlwriter;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}

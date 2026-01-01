@@ -403,7 +403,7 @@ end;
 
 Function TCustomWebsocketClient.CheckHandShakeResponse(aHeaders : TStrings) : Boolean;
 
-Var 
+Var
   K : String;
   {%H-}hash : TSHA1Digest;
   B : TBytes;

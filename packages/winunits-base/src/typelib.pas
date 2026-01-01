@@ -57,7 +57,7 @@ Reads type information from 'FileName' and converts it in a freepascal binding u
 contents of the unit is returned as the function result.
 Returns in 'sUnitName' the unit name with '.pas' extension.
 Appends to 'slDependencies' the filenames of the additional typelibs needed.
-If bActiveX is true an ActiveXContainer descendant is created with the evenual OnEvent hooks
+If bActiveX is true an ActiveXContainer descendant is created with the eventual OnEvent hooks
 If bActiveX is false and an event source is found an TEventSink descendant is created with the OnEvent hooks
 
 By default, the type library is extracted from the first resource of type ITypeLib.
@@ -846,7 +846,7 @@ begin
                 end;
               end;
             tmp:='   procedure Set_%s(%s %s:%s); %s;'#13#10;
-            if not bParamByRef then 
+            if not bParamByRef then
               Modifier:='const'
             else
               Modifier:='var';

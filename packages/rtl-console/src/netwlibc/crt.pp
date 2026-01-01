@@ -226,7 +226,7 @@ var
 begin
   if FullWin then
   begin
-    clearscreen;  {seems to swich cursor off}
+    clearscreen;  {seems to switch cursor off}
     //_DisplayInputCursor;
   end else
   begin

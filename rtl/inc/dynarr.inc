@@ -524,7 +524,7 @@ procedure fpc_dynarray_concat_multi(var dest : pointer; pti: pointer; const sarr
       begin
         if assigned(eletypemngd) then
           begin
-            { Find dest occurence among inputs. If found, reuse: remember its position, don't finalize now and don't AddRef later. }
+            { Find dest occurrence among inputs. If found, reuse: remember its position, don't finalize now and don't AddRef later. }
             newdestdatapos:=0;
             for i:=0 to high(sarr) do
               if assigned(sarr[i]) then

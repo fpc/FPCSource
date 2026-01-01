@@ -32,7 +32,7 @@
 
 {
  * @defgroup apr_general Miscellaneous library routines
- * @ingroup APR 
+ * @ingroup APR
  * This is collection of oddballs that didn't fit anywhere else,
  * and might move to more appropriate headers with the release
  * of APR 1.0.
@@ -41,7 +41,7 @@
 const
 { a space }
   APR_ASCII_BLANK = #040;
-{ a carrige return }
+{ a carriage return }
   APR_ASCII_CR    = #015;
 { a line feed }
   APR_ASCII_LF    = #012;
@@ -153,7 +153,7 @@ void *memchr(const void *s, int c, size_t n);
  }
 
 {
- * Setup any APR internal data structures.  This MUST be the first function 
+ * Setup any APR internal data structures.  This MUST be the first function
  * called for any APR library.
  * @remark See apr_app_initialize if this is an application, rather than
  * a library consumer of apr.
@@ -179,9 +179,9 @@ function apr_app_initialize(argc: PInteger; argv, env: PPAnsiChar): apr_status_t
  external LibAPR name LibNamePrefix + 'apr_app_initialize' + LibSuff12;
 
 {
- * Tear down any APR internal data structures which aren't torn down 
+ * Tear down any APR internal data structures which aren't torn down
  * automatically.
- * @remark An APR program must call this function at termination once it 
+ * @remark An APR program must call this function at termination once it
  *         has stopped using APR services.  The APR developers suggest using
  *         atexit to ensure this is called.  When using APR from a language
  *         other than C that has problems with the calling convention, use
@@ -191,12 +191,12 @@ procedure apr_terminate;
  cdecl; external LibAPR name 'apr_terminate';
 
 {
- * Tear down any APR internal data structures which aren't torn down 
+ * Tear down any APR internal data structures which aren't torn down
  * automatically, same as apr_terminate
- * @remark An APR program must call either the apr_terminate or apr_terminate2 
- *         function once it it has finished using APR services.  The APR 
+ * @remark An APR program must call either the apr_terminate or apr_terminate2
+ *         function once it it has finished using APR services.  The APR
  *         developers suggest using atexit(apr_terminate) to ensure this is done.
- *         apr_terminate2 exists to allow non-c language apps to tear down apr, 
+ *         apr_terminate2 exists to allow non-c language apps to tear down apr,
  *         while apr_terminate is recommended from c language applications.
  }
 procedure apr_terminate2;

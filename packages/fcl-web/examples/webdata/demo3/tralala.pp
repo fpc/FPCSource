@@ -1,11 +1,11 @@
-unit tralala; 
+unit tralala;
 
 {$mode objfpc}{$H+}
 
 interface
 
 uses
-  Classes, SysUtils, FileUtil, LResources, HTTPDefs, websession, fpHTTP, fpWeb; 
+  Classes, SysUtils, FileUtil, LResources, HTTPDefs, websession, fpHTTP, fpWeb;
 
 type
   TFPWebModule1 = class(TFPWebModule)
@@ -13,16 +13,16 @@ type
     { private declarations }
   public
     { public declarations }
-  end; 
+  end;
 
 var
-  FPWebModule1: TFPWebModule1; 
+  FPWebModule1: TFPWebModule1;
 
 implementation
 
 initialization
   {$I tralala.lrs}
 
-  RegisterHTTPModule('TFPWebModule1', TFPWebModule1); 
+  RegisterHTTPModule('TFPWebModule1', TFPWebModule1);
 end.
 

@@ -261,7 +261,7 @@ type
     property FileName: String read fFileName;
     property PreferStringValues: Boolean read fPreferStringValues
                 write fPreferStringValues;
-  end{$ifdef XMLREG}deprecated 'Use TRegistry instead. Will be removed in 4.0'{$endif} platform; 
+  end{$ifdef XMLREG}deprecated 'Use TRegistry instead. Will be removed in 4.0'{$endif} platform;
 
 { ---------------------------------------------------------------------
     TRegIniFile
@@ -298,7 +298,7 @@ type
     function ValueExists(const Section, Ident: string): Boolean; override;
     function SectionExists(const Section: string): Boolean; override;
     property RegIniFile: TRegIniFile read FRegIniFile;
-  end{$ifdef XMLREG}deprecated 'Use TRegistry instead. Will be removed in 4.0'{$endif} platform; 
+  end{$ifdef XMLREG}deprecated 'Use TRegistry instead. Will be removed in 4.0'{$endif} platform;
 
 ResourceString
   SInvalidRegType   = 'Invalid registry data type: "%s"';

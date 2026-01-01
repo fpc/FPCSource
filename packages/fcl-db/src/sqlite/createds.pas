@@ -4,7 +4,7 @@ program createds;
 {$H+}
 {$define DEBUGHEAP}
 
-uses 
+uses
 {$ifdef DEBUGHEAP}
   Heaptrc,
 {$endif}
@@ -18,12 +18,12 @@ const
   SQLITEDS_TESTS_INI_FILE = 'sqlitedstests.ini';
   DEFAULT_TABLENAME = 'tabletest';
   DEFAULT_FILENAME = 'test.db';
-  
-var 
+
+var
   dsTest: TSqlite3Dataset;
   ini: TIniFile;
 
-begin 
+begin
   {$ifdef DEBUGHEAP}
   SetHeapTraceOutput(ExtractFileName(ParamStr(0))+'.heap.log');
   {$endif}
@@ -54,13 +54,13 @@ begin
       Add('Memo',ftMemo);
       Add('LargeInt',ftLargeint);
       Add('Currency',ftCurrency);
-    end; 
+    end;
     if CreateTable then
 	begin
 	  WriteLn('Table created successfully');
 	  if not TableExists then
 	    WriteLn('TableExists check failed with error: ', ReturnString);
-	end  
+	end
 	else
       WriteLn('Error creating table');
     WriteLn('ReturnString after CreateTable: ',ReturnString);

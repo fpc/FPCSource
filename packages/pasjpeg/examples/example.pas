@@ -375,14 +375,14 @@ begin
   { We set up the normal JPEG error routines, then override error_exit. }
   cinfo.err := jpeg_std_error(jerr.pub);
   jerr.pub.error_exit := my_error_exit;
-  jerr.pub.trace_level := 3;    { I'm debbuging a lot (Nomssi) }
+  jerr.pub.trace_level := 3;    { I'm debugging a lot (Nomssi) }
   { Establish the setjmp return context for my_error_exit to use. }
   if (setjmp(jerr.setjmp_buffer)<>0) then
   begin
     { If we get here, the JPEG code has signaled an error.
       We need to clean up the JPEG object, close the input file, and return. }
     { Nomssi: if we get here, we are in trouble, because e.g. cinfo.mem
-              is not guaranted to be NIL }
+              is not guaranteed to be NIL }
     jpeg_destroy_decompress(@cinfo);
 {$ifdef delphi_stream}
     infile.Free;

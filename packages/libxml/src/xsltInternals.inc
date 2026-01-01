@@ -177,9 +177,9 @@ extern const xmlChar *xsltConstNamespaceNameXSLT;
 /**
  * XSLT_REFACTORED_MANDATORY_VERSION:
  *
- * TODO: Currently disabled to surpress regression test failures, since
+ * TODO: Currently disabled to suppress regression test failures, since
  *  the old behaviour was that a missing version attribute
- *  produced a only a warning and not an error, which was incerrect.
+ *  produced a only a warning and not an error, which was incorrect.
  *  So the regression tests need to be fixed if this is enabled.
  */
 /* #define XSLT_REFACTORED_MANDATORY_VERSION */
@@ -302,7 +302,7 @@ extern const xmlChar *xsltConstNamespaceNameXSLT;
     params: Pointer;          (* xsl:param instructions *)
 
     templNr: cint;         (* Nb of templates in the stack *)
-    templMax: cint;        (* Size of the templtes stack *)
+    templMax: cint;        (* Size of the templates stack *)
     templCalledTab: xsltTemplatePtrPtr; (* templates called *)
     templCountTab: PLongint;  (* .. and how often *)
 
@@ -1546,7 +1546,7 @@ function xsltPointerListAddSize(list: xsltPointerListPtr; item: Pointer; initial
 
     templ: xsltTemplatePtr;             (* the current template *)
     templNr: cint;                      (* Nb of templates in the stack *)
-    templMax: cint;                     (* Size of the templtes stack *)
+    templMax: cint;                     (* Size of the templates stack *)
     templTab: xsltTemplatePtrPtr;       (* the template stack *)
 
     vars: xsltStackElemPtr;             (* the current variable list *)
@@ -1592,7 +1592,7 @@ function xsltPointerListAddSize(list: xsltPointerListPtr; item: Pointer; initial
     profile: cint;                      (* is this run profiled *)
     prof: clong;                        (* the current profiled value *)
     profNr: cint;                       (* Nb of templates in the stack *)
-    profMax: cint;                      (* Size of the templtaes stack *)
+    profMax: cint;                      (* Size of the templates stack *)
     profTab: pclong;                    (* the profile template stack *)
 
     _private: Pointer;                  (* user defined data *)
@@ -1613,8 +1613,8 @@ function xsltPointerListAddSize(list: xsltPointerListPtr; item: Pointer; initial
      * handling of temporary Result Value Tree
      * (XSLT 1.0 term: "Result Tree Fragment")
      *)
-    tmpRVT: xmlDocPtr;                  (* list of RVT without persistance *)
-    persistRVT: xmlDocPtr;              (* list of persistant RVTs *)
+    tmpRVT: xmlDocPtr;                  (* list of RVT without persistence *)
+    persistRVT: xmlDocPtr;              (* list of persistent RVTs *)
     ctxtflags: cint;                    (* context processing flags *)
 
     (*

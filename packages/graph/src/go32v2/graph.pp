@@ -3982,7 +3982,7 @@ begin
   exitproc := @freeSaveStateBuffer;
   { windows screws up the display if the savestate/restore state  }
   { stuff is used (or uses an abnormal amount of cpu time after   }
-  { such a problem has exited), so detect its presense and do not }
+  { such a problem has exited), so detect its presence and do not }
   { use those functions if it's running. I'm really tired of      }
   { working around Windows bugs :( (JM)                           }
   asm

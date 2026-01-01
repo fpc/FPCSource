@@ -271,7 +271,7 @@ Var
         Raise EProcess.CreateFmt(SErrCannotExecute,[FCommandLine,GetLastError]);
       FProcessHandle:=FProcessInformation.hProcess;
       FThreadHandle:=FProcessInformation.hThread;
-      FThreadId:=FProcessInformation.dwThreadId;  
+      FThreadId:=FProcessInformation.dwThreadId;
       FProcessID:=FProcessINformation.dwProcessID;
     Finally
       FDescriptors[phtInput].CloseTheirHandle;
@@ -380,14 +380,14 @@ function TIODescriptor.SysPrepareCreatedHandleForProcess(aHandle: THandle): THan
 var
   oldHandle: THandle;
   Res : Boolean;
-  
+
 begin
   if IOType in [iotDefault,iotFile] then begin
     Result:=aHandle;
     exit;
   end;
   oldHandle := ahandle;
-  ahandle:=THandle(INVALID_HANDLE_VALUE); 
+  ahandle:=THandle(INVALID_HANDLE_VALUE);
   Res := DuplicateHandle
   ( GetCurrentProcess(),
     oldHandle,
@@ -405,7 +405,7 @@ begin
     Raise EProcess.CreateFmt('Could not make handle %d inheritable',[aHandle]);
     end;
   Result:=aHandle;
-end;    
+end;
 
 function TIODescriptor.SysNullFileName: string;
 begin

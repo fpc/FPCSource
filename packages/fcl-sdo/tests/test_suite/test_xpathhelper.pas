@@ -680,7 +680,7 @@ const
         Result[k-1] := k;
     end;
   end;
-  
+
   procedure fill_p_ab_list(const AList : ISDODataObjectList; const ACount : Byte; const AFac : ISDODataFactory);
   var
     tmp : ISDODataObject;
@@ -726,7 +726,7 @@ begin
         CheckEquals(PtrUInt(tmpListAB.getDataObject(i)), PtrUInt(locX.Context.ObjectItem));
         CheckEquals(PtrUInt(locRootObject.getProperty('p_ab_list')), PtrUInt(locX.Context.CurrentProperty));
         CheckEquals(i, tmpListAB.getCursor().GetPosition());
-        
+
     i := 150;
       locX.Context.SetObject(locRootObject,nil);
       locExp.SetRoot(ParseXPath(Format('p_ab_list[%s="%s"]',[SIMPLE_PROP_B,BytesToString(ComputeValue(i))])));
@@ -735,7 +735,7 @@ begin
         CheckEquals(PtrUInt(tmpListAB.getDataObject(i)), PtrUInt(locX.Context.ObjectItem));
         CheckEquals(PtrUInt(locRootObject.getProperty('p_ab_list')), PtrUInt(locX.Context.CurrentProperty));
         CheckEquals(i, tmpListAB.getCursor().GetPosition());
-        
+
     i := 0;
       locX.Context.SetObject(locRootObject,nil);
       locExp.SetRoot(ParseXPath(Format('p_ab_list[%s="%s"]',[SIMPLE_PROP_B,BytesToString(ComputeValue(i))])));
@@ -801,7 +801,7 @@ var
   begin
     Result := CHAR_LIST[AInput];
   end;
-  
+
   procedure fill_p_ab_list(const AList : ISDODataObjectList; const ACount : Byte; const AFac : ISDODataFactory);
   var
     tmp : ISDODataObject;
@@ -901,7 +901,7 @@ const
     if ( ( AInput mod 2) = 0 ) then
       Result := -Result;
   end;
-  
+
   procedure fill_p_ab_list(const AList : ISDODataObjectList; const ACount : Byte; const AFac : ISDODataFactory);
   var
     tmp : ISDODataObject;
@@ -956,7 +956,7 @@ begin
         CheckEquals(PtrUInt(tmpListAB.getDataObject(j)), PtrUInt(locX.Context.ObjectItem));
         CheckEquals(PtrUInt(locRootObject.getProperty('p_ab_list')), PtrUInt(locX.Context.CurrentProperty));
         CheckEquals(v, tmpListAB.getCursor().GetPosition());
-    j := 200; 
+    j := 200;
       locX.Context.SetObject(locRootObject,nil);
       locExp.SetRoot(ParseXPath(Format('p_ab_list[%s=%s]',[SIMPLE_PROP_B,TSDOConvertHelper.CurrencyToString(ComputeValue(j))])));
       locX.Execute(locExp);
@@ -1001,7 +1001,7 @@ const
     if ( ( AInput mod 2) = 0 ) then
       Result := -Result;
   end;
-  
+
   procedure fill_p_ab_list(const AList : ISDODataObjectList; const ACount : Byte; const AFac : ISDODataFactory);
   var
     tmp : ISDODataObject;
@@ -1101,7 +1101,7 @@ const
     if ( ( AInput mod 2) = 0 ) then
       Result := -Result;
   end;
-  
+
   procedure fill_p_ab_list(const AList : ISDODataObjectList; const ACount : Byte; const AFac : ISDODataFactory);
   var
     tmp : ISDODataObject;
@@ -1201,7 +1201,7 @@ const
     if ( ( AInput mod 2) = 0 ) then
       Result := -Result;
   end;
-  
+
   procedure fill_p_ab_list(const AList : ISDODataObjectList; const ACount : Byte; const AFac : ISDODataFactory);
   var
     tmp : ISDODataObject;
@@ -1300,7 +1300,7 @@ const
     if ( ( AInput mod 2) = 0 ) then
       Result := -Result;
   end;
-  
+
   procedure fill_p_ab_list(const AList : ISDODataObjectList; const ACount : Byte; const AFac : ISDODataFactory);
   var
     tmp : ISDODataObject;
@@ -1607,7 +1607,7 @@ begin
       CheckEquals('prop_a',locObj.TokenString);
     CheckEquals(Ord(xtkSlash), Ord(locObj.NextToken()));
       CheckEquals(Ord(xtkSlash), Ord(locObj.Token));
-      CheckEquals('/',locObj.TokenString);      
+      CheckEquals('/',locObj.TokenString);
     CheckEquals(Ord(xtkSymbol), Ord(locObj.NextToken()));
       CheckEquals(Ord(xtkSymbol), Ord(locObj.Token));
       CheckEquals('prop_b',locObj.TokenString);
@@ -1622,7 +1622,7 @@ begin
       CheckEquals(']',locObj.TokenString);
     CheckEquals(Ord(xtkSlash), Ord(locObj.NextToken()));
       CheckEquals(Ord(xtkSlash), Ord(locObj.Token));
-      CheckEquals('/',locObj.TokenString);      
+      CheckEquals('/',locObj.TokenString);
     CheckEquals(Ord(xtkSymbol), Ord(locObj.NextToken()));
       CheckEquals(Ord(xtkSymbol), Ord(locObj.Token));
       CheckEquals('prop_c',locObj.TokenString);
@@ -1631,7 +1631,7 @@ begin
       CheckEquals('[',locObj.TokenString);
     CheckEquals(Ord(xtkSymbol), Ord(locObj.NextToken()));
       CheckEquals(Ord(xtkSymbol), Ord(locObj.Token));
-      CheckEquals('prop_d',locObj.TokenString);      
+      CheckEquals('prop_d',locObj.TokenString);
     CheckEquals(Ord(xtkEqual), Ord(locObj.NextToken()));
       CheckEquals(Ord(xtkEqual), Ord(locObj.Token));
       CheckEquals('=',locObj.TokenString);
@@ -1640,7 +1640,7 @@ begin
       CheckEquals('azerty',locObj.TokenString);
     CheckEquals(Ord(xtkSquaredBraceRigth), Ord(locObj.NextToken()));
       CheckEquals(Ord(xtkSquaredBraceRigth), Ord(locObj.Token));
-      CheckEquals(']',locObj.TokenString);      
+      CheckEquals(']',locObj.TokenString);
   finally
     FreeAndNil(locObj);
   end;

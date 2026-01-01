@@ -1449,9 +1449,9 @@ const
 	kPROPWSDirectionClass = 10;   { Whitespace }
 	kPROPONDirectionClass = 11;   { Other Neutral }
 	kPROPSENDirectionClass = 12;   { Special European Number (not a Unicode class) }
-	kPROPLREDirectionClass = 13;   { Left-to-Right Embeding }
+	kPROPLREDirectionClass = 13;   { Left-to-Right Embedding}
 	kPROPLRODirectionClass = 14;   { Left-to-Right Override }
-	kPROPRLEDirectionClass = 15;   { Right-to-Left Embeding }
+	kPROPRLEDirectionClass = 15;   { Right-to-Left Embedding}
 	kPROPRLODirectionClass = 16;   { Right-to-Left Override }
 	kPROPPDFDirectionClass = 17;   { Pop Directional Format }
 	kPROPNSMDirectionClass = 18;   { Non-Spacing Mark }
@@ -1533,7 +1533,7 @@ const
 	kKERNOrderedList = 0;    { ordered list of kerning pairs }
 	kKERNStateTable = 1;    { state table for n-way contextual kerning }
 	kKERNSimpleArray = 2;    { simple n X m array of kerning values }
-	kKERNIndexArray = 3;     { modifed version of SimpleArray }
+	kKERNIndexArray = 3;     { modified version of SimpleArray }
 
 { Message Type Flags }
 const
@@ -1720,7 +1720,7 @@ const
 	kKERXOrderedList = 0;    { ordered list of kerning pairs }
 	kKERXStateTable = 1;    { state table for n-way contextual kerning }
 	kKERXSimpleArray = 2;    { simple n X m array of kerning values }
-	kKERXIndexArray = 3;    { modifed version of SimpleArray }
+	kKERXIndexArray = 3;    { modified version of SimpleArray }
 	kKERXControlPoint = 4;     { state table for control point positioning }
 
 { Message Type Flags }
@@ -1909,7 +1909,7 @@ type
 type
 	KerxSubtableHeader = record
 		length: UInt32;                 { length in bytes (including this header) }
-		stInfo: KerxSubtableCoverage;               { subtable converage }
+		stInfo: KerxSubtableCoverage;               { subtable converge }
 		tupleIndex: UInt32;             { tuple index for variation subtables }
 		fsHeader: KerxFormatSpecificHeader;         { format specific sub-header }
 	end;

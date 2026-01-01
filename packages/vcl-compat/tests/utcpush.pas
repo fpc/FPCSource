@@ -8,7 +8,7 @@ uses
   Classes, SysUtils, fpcunit, testutils, testregistry, system.pushnotifications;
 
 type
-  
+
   { TMyPushService }
 
   TMyPushService = class(TPushService)

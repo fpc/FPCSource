@@ -615,7 +615,7 @@ const
     @constant       kAudioHardwarePropertyPlugInForBundleID
                         Using an AudioValueTranslation structure, this property translates the input
                         CFString containing a bundle ID into the AudioObjectID of the AudioPlugIn
-                        that corresponds to it. This property will return kAudioObjectUnkown if the
+                        that corresponds to it. This property will return kAudioObjectUnknown if the
                         given bundle ID doesn't match any AudioPlugIns.
     @constant       kAudioHardwarePropertyUserSessionIsActiveOrHeadless
                         A UInt32 where a value other than 0 indicates that the login session of the
@@ -1473,7 +1473,7 @@ const
                         device.
     @constant       kAudioAggregateDevicePropertyComposition
                         A CFDictionary that describes the composition of the AudioAggregateDevice.
-                        The keys for this CFDicitionary are defined in the AudioAggregateDevice
+                        The keys for this CFDictionary are defined in the AudioAggregateDevice
                         Constants section. The caller is responsible for releasing the returned
                         CFObject.
     @constant       kAudioAggregateDevicePropertyMasterSubDevice
@@ -1596,7 +1596,7 @@ const
     @abstract       AudioObjectPropertySelector values provided by the AudioSubDevice class.
     @discussion     The AudioSubDevice class is a subclass of AudioDevice class and has the same
                     scope and element structure. However, AudioSubDevice objects do not implement an
-                    IO path of their own and as such do not implmenent any  AudioDevice properties
+                    IO path of their own and as such do not implement any  AudioDevice properties
                     associated with the IO path. They also don't have any streams.
     @constant       kAudioSubDevicePropertyExtraLatency
                         A Float64 indicating the number of sample frames to add to or subtract from

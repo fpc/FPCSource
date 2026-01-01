@@ -4,7 +4,7 @@ program AudioModes;
 {$mode objfpc}
 uses
   ctypes, nds9, maxmod9;
-  
+
 (***********************************************
  * this example demonstrates the 3 audio modes
  *
@@ -28,7 +28,7 @@ uses
  *       1: MM_MODE_B, interpolated audio mode
  *       2: MM_MODE_C, extended audio mode
  *********************************************************)
- 
+
 
 var
   soundbank_bin_end: array [0..0] of cuint8; cvar; external;
@@ -51,11 +51,11 @@ const
                       ' Up/Down: Change Audio Mode'#10 +
                       ' A: Start Playback'#10 +
                       ' B: Stop Playback'#10#10 +
-                      
+
                       ' Tip: Play subtonal with the'#10 +
                       ' extended mode or else it won''t'#10 +
                       ' sound right.'#10#10 +
-                      
+
                       ' Another Tip: The interpolated'#10 +
                       ' mode doesn''t work in current'#10 +
                       ' emulators.';
@@ -69,7 +69,7 @@ var
   song_volumes: array [0..2] of cshort = ( 1024, 500, 1024 );
 
   // strings for the "Song: " display
-  song_titles: array [0..2] of PAnsiChar = ( 
+  song_titles: array [0..2] of PAnsiChar = (
         'subtonal (30ch)  ',
         'monday (14ch)    ',
         'inspiration (4ch)');
@@ -97,35 +97,35 @@ begin
 end;
 
 
-begin	
+begin
 	//---------------------------------------------------------
 	// setup console
 	//---------------------------------------------------------
 	consoleDemoInit();
-	
+
 	// set a dark blue backdrop
 	BG_PALETTE_SUB[0] := RGB15( 0, 0, 10 );
-	
+
 	//---------------------------------------------------------
 	// init maxmod with default settings
 	//---------------------------------------------------------
 	mmInitDefaultMem(mm_addr(@soundbank_bin));
-	
+
 	//---------------------------------------------------------
 	// load songs (must be loaded before using with mmStart)
 	//---------------------------------------------------------
 	mmLoad( MOD_KEYG_SUBTONAL );
 	mmLoad( MOD_REZ_MONDAY );
 	mmLoad( MOD_PURPLE_MOTION_INSPIRATION );
-	
-	
+
+
 	//---------------------------------------------------------
 	// display screen info
 	//---------------------------------------------------------
 	iprintf( SHOW_TEXT );
 	print_song( song );
 	print_mode( mode );
-	
+
 	//---------------------------------------------------------
 	// main loop
 	//---------------------------------------------------------
@@ -136,7 +136,7 @@ begin
 		//-----------------------------------------------------
 		scanKeys();
 		keys := keysDown();
-		
+
 		//-----------------------------------------------------
 		// LEFT: select previous song
 		//-----------------------------------------------------
@@ -146,7 +146,7 @@ begin
 			if( song < 0 ) then song := 2;
 			print_song( song );
 		end;
-		
+
 		//-----------------------------------------------------
 		// RIGHT: select next song
 		//-----------------------------------------------------
@@ -156,18 +156,18 @@ begin
 			if( song > 2 ) then song := 0;
 			print_song( song );
 		end;
-		
+
 		//-----------------------------------------------------
 		// A: start song
 		//-----------------------------------------------------
 		if( keys and KEY_A ) <> 0 then
 		begin
 			mmSetModuleVolume( song_volumes[song] );
-			
+
 			// loop module until stopped with B keypress
 			mmStart( song_order[song], MM_PLAY_LOOP );
 		end;
-		
+
 		//-----------------------------------------------------
 		// B: stop song
 		//-----------------------------------------------------
@@ -175,7 +175,7 @@ begin
 		begin
 			mmStop();
 		end;
-	
+
 		//-----------------------------------------------------
 		// UP: next audio mode
 		//-----------------------------------------------------
@@ -184,11 +184,11 @@ begin
 			inc(mode);
 			if( mode > 2 ) then mode := 0;
 			print_mode( mode );
-			
+
 			// switch audio mode
 			mmSelectMode( mode );
 		end;
-		
+
 		//-----------------------------------------------------
 		// DOWN: previous audio mode
 		//-----------------------------------------------------
@@ -197,7 +197,7 @@ begin
 			dec(mode);
 			if( mode < 0 ) then mode := 2;
 			print_mode( mode );
-			
+
 			// switch audio mode
 			mmSelectMode( mode );
 		end;
@@ -205,14 +205,14 @@ begin
 		//-----------------------------------------------------
 		// START: exit
 		//-----------------------------------------------------
-		if( keys and KEY_START ) <> 0 then 
+		if( keys and KEY_START ) <> 0 then
       break;
 		//-----------------------------------------------------
-		
+
 		//-----------------------------------------------------
 		// wait until next frame
 		//-----------------------------------------------------
 		swiWaitForVBlank();
 	end;
-	
+
 end.

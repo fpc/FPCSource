@@ -89,7 +89,7 @@ procedure TTestParser.TestEmpty;
 Var
   P : TJSONParser;
   J : TJSONData;
-  
+
 begin
   P:=TJSONParser.Create('',[joUTF8]);
   Try

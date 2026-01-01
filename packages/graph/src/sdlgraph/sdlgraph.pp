@@ -18,11 +18,11 @@
 
 {Important TODO list
 
-TODO: color conversion. from pascal color constant to color (pixel) from SDL_putpixel. At this moment you may gent another colors than you're waiting for. The worsest thing is it may be black on the black
+TODO: color conversion. from pascal color constant to color (pixel) from SDL_putpixel. At this moment you may gent another colors than you're waiting for. The worst thing is it may be black on the black
 
 TODO: check all mode.HardwarePages and find true value for each mode!
 
-TODO: check initgraph(0,0,' ') and work with modes to set up best SDL mode. 
+TODO: check initgraph(0,0,' ') and work with modes to set up best SDL mode.
 Maybe to hook internDetectGraph and detectGraph. I thing they are not needed for sdlgraph
 
 TODO: check VESA modes ModeNumber (if they needed)
@@ -60,8 +60,8 @@ interface
 const
 
 {==================================================================================================================================================
-Graphics Drivers Constants. Needed to support turbo pascale code  TODO: is it needed???
-It's highly recommended to use Detect (0 constant) for grDriver and grmode: initGraph(0,0,' ') to allow SDL to configure app for the best perfomance
+Graphics Drivers Constants. Needed to support turbo pascal code  TODO: is it needed???
+It's highly recommended to use Detect (0 constant) for grDriver and grmode: initGraph(0,0,' ') to allow SDL to configure app for the best performance
 ====================================================================================================================================================
 }
 
@@ -83,35 +83,35 @@ It's highly recommended to use Detect (0 constant) for grDriver and grmode: init
  //CGAC2         =2;   is in graphh.inc
  //CGAC3         =3;   is in graphh.inc
  //CGAHi         =4;   is in graphh.inc
- 
+
  //MCGAC0        =0;   is in graphh.inc
  //MCGAC         =1;   is in graphh.inc
  //MCGAC2        =2;   is in graphh.inc
  //MCGAC3        =3;   is in graphh.inc
  //MCGAMed       =4;   is in graphh.inc
  //MCGAHi        =5;   is in graphh.inc
- 
+
  //EGAMonoHi     =3;   is in graphh.inc
  //HercMonoHi    =0;      is in the graphh.inc
  //VGALo         =0;      is in the graphh.inc
  //VGAMed        =1;      is in the graphh.inc
  //VGAHi         =2;      is in the graphh.inc
- 
+
  //EGALo         =0;   is in graphh.inc
  //EGAHi         =1;   is in graphh.inc
  //EGA64Lo       =0;   is in graphh.inc
  //EGA64Hi       =1;   is in graphh.inc
- 
+
  ATT400C0      =0;
  ATT400C1      =1;
  ATT400C2      =2;
  ATT400C3      =3;
  ATT400CMed    =4;
  ATT400Hi      =5;
- 
+
  IBM8514Lo     =0;
  IBM8514Hi     =1;
- 
+
  PC3270Hi      =0;
 
 { From *Go32* VESA Specific video modes. }
@@ -160,7 +160,7 @@ const
 {$i graph.inc}
 
 var
-screen: PSDL_Surface; //Global becouse its value is needed by some functions
+screen: PSDL_Surface; //Global because its value is needed by some functions
 
 
 
@@ -173,7 +173,7 @@ begin
  end;
    isgraphmode := false;
    SDL_Quit();
- //Halt(0);   TODO: check, if it close application wich calls sdlgraph
+ //Halt(0);   TODO: check, if it close application which calls sdlgraph
 end;
 
 
@@ -210,7 +210,7 @@ end;
 
 procedure Sulock; //Unlock and flip the surface
 begin
-  if SDL_MUSTLOCK(screen) then 
+  if SDL_MUSTLOCK(screen) then
     SDL_UnlockSurface(screen);
   SDL_Flip(screen);
 
@@ -377,7 +377,7 @@ procedure InitSDLgraph(Width,Height,BPP:Integer);
 var
  videoflags : Uint32;
  videoInfo : PSDL_VideoInfo;
- 
+
  flip_callback_param:Pointer;
  flip_timer_id:PSDL_TimerID;
 begin
@@ -388,7 +388,7 @@ begin
   end;
 
 
-  // Fetch the video info 
+  // Fetch the video info
   videoInfo := SDL_GetVideoInfo;
 
   if ( videoInfo = nil ) then
@@ -399,11 +399,11 @@ begin
   end;
 
 
-  // the flags to pass to SDL_SetVideoMode 
-  videoFlags := SDL_DOUBLEBUF; // Enable double buffering 
-  videoFlags := videoFlags or SDL_HWPALETTE; // Store the palette in hardware 
+  // the flags to pass to SDL_SetVideoMode
+  videoFlags := SDL_DOUBLEBUF; // Enable double buffering
+  videoFlags := videoFlags or SDL_HWPALETTE; // Store the palette in hardware
 
-  // This checks to see if surfaces can be stored in memory 
+  // This checks to see if surfaces can be stored in memory
  if  videoInfo^.hw_available <> 0  then
     videoFlags := videoFlags or SDL_HWSURFACE
   else
@@ -417,13 +417,13 @@ begin
 
   if (SDL_VideoModeOK(Width,Height,BPP,videoFlags) = 0) then
      begin
-     //TODO: create 1 string from parametres!
+     //TODO: create 1 string from parameters!
      //Log.LogError('InitSDLgraph: ',Width,'x',Height,'x',BPP,' - no such mode (also you may check videoflags in the sdlgraph unit (procedure InitSDLgraph)');
      exit;
      end;
 
   screen := SDL_SetVideoMode(Width, Height, BPP, SDL_SWSURFACE );   // TODO: use videoflags but not SDL_SWSURFACE!
-    
+
 //It doesn't work yet!
 {if ( surface = nil ) then
   begin
@@ -834,7 +834,7 @@ begin
             mode.InitMode := {$ifdef fpc}@{$endif}sdlgraph_Init800x600x64k;
             setupSDLgraphDefaults;
             AddMode(mode);
-   
+
             InitMode(mode);
             mode.ModeNumber:=m1024x768x16;
             mode.DriverNumber := VESA;
@@ -848,7 +848,7 @@ begin
             mode.InitMode := {$ifdef fpc}@{$endif}sdlgraph_Init1024x768x16;
             setupSDLgraphDefaults;
             AddMode(mode);
-            
+
             InitMode(mode);
             mode.ModeNumber:=m1024x768x256;
             mode.DriverNumber := VESA;
@@ -862,7 +862,7 @@ begin
             mode.InitMode := {$ifdef fpc}@{$endif}sdlgraph_Init1024x768x256;
             setupSDLgraphDefaults;
             AddMode(mode);
-       
+
             InitMode(mode);
             mode.ModeNumber:=m1024x768x32k;
             mode.DriverNumber := VESA;

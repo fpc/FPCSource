@@ -121,7 +121,7 @@
      handles the emission.
      Implementation of this signal is optional.
     }
-{ seldomly overidden  }
+{ seldomly overridden  }
 { basics  }
 { Mnemonics  }
 { explicit focus  }
@@ -520,7 +520,7 @@ procedure gtk_widget_shape_combine_mask(widget:PGtkWidget; shape_mask:PGdkBitmap
 { internal function  }
 procedure gtk_widget_reset_shapes(widget:PGtkWidget); cdecl; external gtklib;
 { Compute a widget's path in the form "GtkWindow.MyLabel", and
-   return newly alocated strings.
+   return newly allocated strings.
   }
 procedure gtk_widget_path(widget:PGtkWidget; path_length:Pguint; path:PPgchar; path_reversed:PPgchar); cdecl; external gtklib;
 procedure gtk_widget_class_path(widget:PGtkWidget; path_length:Pguint; path:PPgchar; path_reversed:PPgchar); cdecl; external gtklib;

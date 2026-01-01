@@ -1527,7 +1527,7 @@ const
 
 const
 {    On Mac OS X, the user visible machine name may something like "PowerMac3,4", which is}
-                                        {    a unique string for each signifigant Macintosh computer which Apple creates, but is}
+                                        {    a unique string for each significant Macintosh computer which Apple creates, but is}
                                         {    not terribly useful as a user visible string.}
 	gestaltUserVisibleMachineName = FourCharCode('mnam'); { Coerce response into a StringPtr to get a user visible machine name }
 
@@ -1562,7 +1562,7 @@ const
 	gestaltOCETBPresent = $01; { OCE toolbox is present, not running }
 	gestaltOCETBAvailable = $02; { OCE toolbox is running and available }
 	gestaltOCESFServerAvailable = $04; { S&F Server is running and available }
-	gestaltOCETBNativeGlueAvailable = $10; { Native PowerPC Glue routines are availible }
+	gestaltOCETBNativeGlueAvailable = $10; { Native PowerPC Glue routines are available }
 
 const
 	gestaltOpenFirmwareInfo = FourCharCode('opfw'); { Open Firmware info }
@@ -1705,7 +1705,7 @@ const
 {
  * PPC will return the combination of following bit fields.
  * e.g. gestaltPPCSupportsRealTime +gestaltPPCSupportsIncoming + gestaltPPCSupportsOutGoing
- * indicates PPC is cuurently is only supports real time delivery
+ * indicates PPC is currently is only supports real time delivery
  * and both incoming and outgoing network sessions are allowed.
  * By default local real time delivery is supported as long as PPCInit has been called.}
 const
@@ -2132,7 +2132,7 @@ const
 const
 	gestaltALMAttr = FourCharCode('trip'); { Settings Manager attributes (see also gestaltALMVers) }
 	gestaltALMPresent = 0;    { bit true if ALM is available }
-	gestaltALMHasSFGroup = 1;    { bit true if Put/Get/Merge Group calls are implmented }
+	gestaltALMHasSFGroup = 1;    { bit true if Put/Get/Merge Group calls are implemented }
 	gestaltALMHasCFMSupport = 2;    { bit true if CFM-based modules are supported }
 	gestaltALMHasRescanNotifiers = 3;     { bit true if Rescan notifications/events will be sent to clients }
 
@@ -2336,7 +2336,7 @@ const
 	gestaltX86HasSupplementalSSE3 = 9;    { Supplemental SSE3 instructions}
 	gestaltX86HasCID = 10;   { L1 Context ID}
 	gestaltX86HasCX16 = 13;   { CmpXchg16b instruction}
-	gestaltX86HasxTPR = 14;    { Send Task PRiority msgs}
+	gestaltX86HasxTPR = 14;    { Send Task PPriority msgs}
 
 const
 	gestaltTranslationAttr = FourCharCode('xlat'); { Translation Manager attributes }

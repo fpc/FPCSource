@@ -214,7 +214,7 @@ begin
     begin
     {$IFDEF DEBUGWASMTHREADS}DebugWriteln('resuming thread '+IntToStr(ptruint(self)));{$ENDIF}
     { don't compare with ord(true) or ord(longbool(true)), }
-    { becaue a longbool's "true" value is anyting <> false }
+    { because a longbool's "true" value is anything <> false}
     if FSuspended and
        (InterLockedExchange(longint(FSuspended),longint(false)) <> longint(longbool(false))) then
       begin
@@ -232,7 +232,7 @@ begin
   if FThreadID<>GetCurrentThreadID then
     Raise EThread.create('Suspending one thread from inside another one is unsupported (because it is unsafe and deadlock prone) by *nix and posix operating systems');
   { don't compare with ord(true) or ord(longbool(true)), }
-  { becaue a longbool's "true" value is anyting <> false }
+  { because a longbool's "true" value is anything <> false}
   if not FSuspended and
      (InterLockedExchange(longint(FSuspended),longint(longbool(true))) = longint(longbool(false))) then
      RtlEventWaitFor(FSuspendEvent)

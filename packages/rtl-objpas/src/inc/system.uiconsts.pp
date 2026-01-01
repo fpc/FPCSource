@@ -257,8 +257,8 @@ const
     (Value: crVSplit;     Name: 'crVSplit'),
     // These must be last, duplicates!
     (Value: crSize;       Name: 'crSize'),
-    (Value: crLow;        Name: 'crLow') 
-  );    
+    (Value: crLow;        Name: 'crLow')
+  );
 
   // Please keep these sorted.
   ColorNames: array[0..51] of TIdentMapEntry = (
@@ -522,7 +522,7 @@ var
   C: Integer;
 
 begin
-  for C:=Low(ColorNames) to High(ColorNames) do 
+  for C:=Low(ColorNames) to High(ColorNames) do
     Proc(ColorNames[C].Name);
 end;
 
@@ -555,7 +555,7 @@ function IdentToAlphaColor(const Ident: string; var Color: LongInt): Boolean;
 
 var
   S: string;
-  
+
 begin
   S:=Ident;
   Result:=(Length(S)>1) and (S[1]='x');
@@ -569,7 +569,7 @@ begin
       Insert('a',S,3);
       Result:=IdentToInt(S,Color,AlphaColorNames);
       end;
-    end;  
+    end;
 end;
 
 
@@ -577,7 +577,7 @@ procedure GetAlphaColorValues(Proc: TGetStrProc);
 
 var
   AC: Integer;
-  
+
 begin
   for AC:=Low(AlphaColorNames) to High(AlphaColorNames) do
     Proc(Copy(AlphaColorNames[AC].Name,4));
@@ -592,14 +592,14 @@ begin
       Result[1]:='#'
     else
       Delete(Result,1,3); // Strip cla...
-    end;  
+    end;
 end;
 
 function StringToAlphaColor(const Value: string): TAlphaColor;
 
 var
   S: string;
-  
+
 begin
   S:=Value;
   if (S=#0) or (S='') then
@@ -609,7 +609,7 @@ begin
     S:='$'+Copy(S,2);
     Result:=TAlphaColor(StrToIntDef(S,TAlphaColors.Black));
     end
-  else 
+  else
     if not IdentToAlphaColor(S,LongInt(Result)) then
       if not IdentToAlphaColor('cla'+S,LongInt(Result)) then
         Result:=TAlphaColor(StrToIntDef(S,TAlphaColors.Black));
@@ -626,7 +626,7 @@ function AlphaColorToColor(const Color: TAlphaColor): TColor;
 
 Var
   R : TColorRec;
-  
+
 begin
   R.A:=0;
   R.R:=TAlphaColorRec(Color).R;
@@ -638,22 +638,22 @@ end;
 function AppendColor(Start, Stop: TAlphaColor): TAlphaColor;
 
   function Channel(aStart,aStop : Byte) : byte;
-  
+
   var
     R : Integer;
-  
+
   begin
     Result:=MaxColorChannel;
     R:=aStart+aStop;
     if R<Result then
       Result:=R;
   end;
-  
+
 var
   RSA : TAlphaColorRec absolute start;
-  RSS : TAlphaColorRec absolute stop;  
+  RSS : TAlphaColorRec absolute stop;
   R : TAlphaColorRec;
-  
+
 begin
   R.A:=Channel(RSA.A,RSS.A);
   R.R:=Channel(RSA.R,RSS.R);
@@ -665,22 +665,22 @@ end;
 function SubtractColor(Start, Stop: TAlphaColor): TAlphaColor;
 
   function Channel(aStart,aStop : Byte) : byte;
-  
+
   var
     R : Integer;
-  
+
   begin
     Result:=MaxColorChannel;
     R:=aStart-aStop;
     if R>=0 then
       Result:=R;
   end;
-  
+
 var
   RSA : TAlphaColorRec absolute start;
-  RSS : TAlphaColorRec absolute stop;  
+  RSS : TAlphaColorRec absolute stop;
   R : TAlphaColorRec absolute Result;
-  
+
 begin
   R.A:=Channel(RSA.A,RSS.A);
   R.R:=Channel(RSA.R,RSS.R);
@@ -693,7 +693,7 @@ function RGBtoBGR(const C: TAlphaColor): TAlphaColor;
 Var
   R : TAlphaColorRec absolute result;
   CR : TAlphaColorRec absolute c;
-  
+
 begin
   Result:=C;
   R.R:=CR.B;
@@ -705,7 +705,7 @@ function CorrectColor(const C: TAlphaColor): TAlphaColor;
 begin
 {$IFNDEF WINDOWS}
   Result:=RGBtoBGR(C);
-{$ELSE}  
+{$ELSE}
   Result:=C;
 {$ENDIF}
 end;
@@ -714,7 +714,7 @@ end;
 function PremultiplyAlpha(const C: TAlphaColor): TAlphaColor;
 
   Function Mul(C,A : Byte) : Byte; inline;
-  
+
   begin
     Result:=Trunc(C*A/MaxColorChannel);
   end;
@@ -722,7 +722,7 @@ function PremultiplyAlpha(const C: TAlphaColor): TAlphaColor;
 var
   CR :  TAlphaColorRec absolute C;
   R : TAlphaColorRec absolute Result;
-  
+
 begin
   if CR.A=0 then
     Result:=0
@@ -740,11 +740,11 @@ end;
 function UnpremultiplyAlpha(const C: TAlphaColor): TAlphaColor;
 
   Function CDiv(C,A : Byte) : Byte; inline;
-  
+
   begin
     Result:=Trunc(C/A/MaxColorChannel);
   end;
-  
+
 var
   CR :  TAlphaColorRec absolute C;
   R : TAlphaColorRec absolute Result;
@@ -827,7 +827,7 @@ var
   H,S,L: Single;
   CR : TAlphaColorRec absolute C;
   R : TAlphaColorRec absolute Result;
-  
+
 begin
   RGBtoHSL(C,H,S,L);
   H:=ToRange01(H+dH);
@@ -854,9 +854,9 @@ function HSLtoRGB(H, S, L: Single): TAlphaColor;
 
 const
   Fact = 1/3;
-  
+
   Function UpScale(S : Single) : Byte; inline;
-  
+
   begin
     Result:=round(S*MaxColorChannel);
   end;
@@ -864,7 +864,7 @@ const
 var
   R, G, B: Single;
   Q, P: Single;
-  
+
 begin
   if (S = 0) then
     begin
@@ -872,7 +872,7 @@ begin
     R:=L;
     G:=L;
     B:=L;
-    end 
+    end
   else
     begin
     if (L < 0.5) then
@@ -971,7 +971,7 @@ function StringToCursor(const S: string): TCursor;
 var
   C : Longint;
 begin
-  if IdentToCursor(S,C) then 
+  if IdentToCursor(S,C) then
     Exit(TCursor(C));
   Result:=StrToIntDef(S, Integer(crDefault));
 end;
@@ -981,10 +981,10 @@ procedure GetCursorValues(const Proc: TGetStrProc);
 
 var
   C: Integer;
-  
+
 begin
   // Last 2 are duplicates
-  for C:=Low(CursorNames) to High(CursorNames)-2 do 
+  for C:=Low(CursorNames) to High(CursorNames)-2 do
     Proc(CursorNames[C].Name);
 end;
 

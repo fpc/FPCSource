@@ -24,9 +24,9 @@
 ** and at http://www.mega-nerd.com/libsndfile/api.html.
 
  This is the version 1.0.X header file.
- 
+
  For the Metrowerks CodeWarrior Pro Compiler (mainly MacOS)
- 
+
 ** The following file types can be read and written.
 ** A file type would consist of a major type (ie SF_FORMAT_WAV) bitwise
 ** ORed with a minor type (ie SF_FORMAT_PCM). SF_FORMAT_TYPEMASK and
@@ -35,7 +35,7 @@
 }
 {$PACKRECORDS C}{$MACRO ON}
 {$IFNDEF FPC_DOTTEDUNITS}
-unit sndfile; 
+unit sndfile;
 {$ENDIF FPC_DOTTEDUNITS}
 
 interface
@@ -74,7 +74,7 @@ const
 	SF_FORMAT_SD2   = $160000;		// Sound Designer 2
 	SF_FORMAT_FLAC  = $170000;		// FLAC lossless file format
 	SF_FORMAT_CAF   = $180000;		// Core Audio File format
- 
+
 const
   //Subtypes from here on.
   SF_FORMAT_PCM_S8    = $0001;    // Signed 8 bit data
@@ -184,7 +184,7 @@ const
   {
 	** SFC_SET_ADD_* values are deprecated and will disappear at some
 	** time in the future. They are guaranteed to be here up to and
-	** including version 1.0.8 to avoid breakage of existng software.
+	** including version 1.0.8 to avoid breakage of existing software.
 	** They currently do nothing and will continue to do nothing.
   }
 	SFC_SET_ADD_DITHER_ON_WRITE	   = $1070;
@@ -202,7 +202,7 @@ const
 	SF_STR_ARTIST    = $04;
 	SF_STR_COMMENT   = $05;
 	SF_STR_DATE      = $06;
- 
+
 {
 ** Use the following as the start and end index when doing metadata
 ** transcoding.
@@ -327,7 +327,7 @@ const
   SF_LOOP_FORWARD     = 801;
   SF_LOOP_BACKWARD    = 802;
   SF_LOOP_ALTERNATING = 803;
-  
+
 type
   PSF_INSTRUMENT = ^TSF_INSTRUMENT;
   TSF_INSTRUMENT = record
@@ -352,19 +352,19 @@ type
                     time_sig_num : cushort;             // any positive integer    > 0
                     time_sig_den : cushort;             // any positive power of 2 > 0
                     loop_mode    : cint;                // see SF_LOOP enum
-                    
+
                     num_beats    : cint;                // this is NOT the amount of quarter notes !!!
                                                                // a full bar of 4/4 is 4 beats
                                                                // a full bar of 7/8 is 7 beats
-                                                   
+
                     bpm          : cfloat;              // suggestion, as it can be calculated using other fields:
                                                                // file's lenght, file's sampleRate and our time_sig_den
                                                                // -> bpms are always the amount of _quarter notes_ per minute
-                                                   
+
                     root_key     : cint;                // MIDI note, or -1 for None
                     future       : array[0..5] of cint;
                   end;
-                  
+
 
 {
 **	Struct used to retrieve broadcast (EBU) information from a file.
@@ -389,16 +389,16 @@ type
 
 type
    Tsf_vio_get_filelen = function (user_date : pointer) : Tsf_count_t;           cdecl;
-   
+
    Tsf_vio_seek        = function (offest : Tsf_count_t; whence : cint;
                                    user_date : pointer) : Tsf_count_t;           cdecl;
-                                   
+
    Tsf_vio_read        = function (ptr : Pointer; count : Tsf_count_t;
                                    user_date : pointer) : Tsf_count_t;           cdecl;
 
    Tsf_vio_write       = function (ptr : Pointer; count : Tsf_count_t;
                                    user_date : pointer) : Tsf_count_t;           cdecl;
-                                   
+
    Tsf_vio_tell        = function (user_data : Pointer) : Tsf_count_t;           cdecl;
 
 
@@ -423,7 +423,7 @@ function sf_open (path : PAnsiChar; mode : cint; sfinfo : PSF_INFO) : PSNDFILE; 
 {
 ** Use the existing file descriptor to create a SNDFILE object. If close_desc
 ** is TRUE, the file descriptor will be closed when sf_close() is called. If
-** it is FALSE, the descritor will not be closed.
+** it is FALSE, the descriptor will not be closed.
 ** When passed a descriptor like this, the library will assume that the start
 ** of file header is at the current file offset. This allows sound files within
 ** larger container files to be read and/or written.
@@ -517,7 +517,7 @@ function sf_seek (sndfile : PSNDFILE; frame : Tsf_count_t;
 function sf_set_string (sndfile : PSNDFILE;      str_type : cint;
                         str     : pcchar) : cint; cdecl;
   external sndfilelib name 'sf_set_string';
-  
+
 function sf_get_string (sndfile : PSNDFILE; str_type : cint) : pcchar; cdecl;
   external sndfilelib name 'sf_get_string';
 
@@ -526,7 +526,7 @@ function sf_get_string (sndfile : PSNDFILE; str_type : cint) : pcchar; cdecl;
 function sf_read_raw (sndfile : PSNDFILE; ptr : Pointer;
                       bytes   : Tsf_count_t) : Tsf_count_t; cdecl;
   external sndfilelib name 'sf_read_raw';
-  
+
 function sf_write_raw (sndfile : PSNDFILE; ptr : Pointer;
                       bytes   : Tsf_count_t) : Tsf_count_t; cdecl;
   external sndfilelib name 'sf_write_raw';
@@ -545,7 +545,7 @@ function sf_write_raw (sndfile : PSNDFILE; ptr : Pointer;
 function sf_readf_short (sndfile : PSNDFILE; ptr : pcshort;
                          frames  : Tsf_count_t) : Tsf_count_t; cdecl;
   external sndfilelib name 'sf_readf_short';
-                         
+
 function sf_writef_short (sndfile : PSNDFILE; ptr : pcshort;
                           frames  : Tsf_count_t) : Tsf_count_t; cdecl;
   external sndfilelib name 'sf_writef_short';
@@ -599,7 +599,7 @@ function sf_write_int (sndfile : PSNDFILE; ptr : pcint;
 function sf_read_float (sndfile : PSNDFILE; ptr : pcfloat;
                         frames  : Tsf_count_t) : Tsf_count_t; cdecl;
   external sndfilelib name 'sf_read_float';
-  
+
 function sf_write_float (sndfile : PSNDFILE; ptr : pcfloat;
                          frames  : Tsf_count_t) : Tsf_count_t; cdecl;
   external sndfilelib name 'sf_write_float';

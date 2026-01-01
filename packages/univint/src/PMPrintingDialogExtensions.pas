@@ -330,7 +330,7 @@ Define the Kind IDs for Universal and Standard Printing Dialog Extensions.
 {$definec SUMMARY_DISPLAY_ORDER CFSTRP('Summary Display Order')}
 {$endc}
 
-{  Boolean key in the Bundle's Info.plist file that sepecifies whether the PDEPanels created by the Bundle are Sandbox compatible }
+{  Boolean key in the Bundle's Info.plist file that specifies whether the PDEPanels created by the Bundle are Sandbox compatible }
 {$ifc USE_CFSTR_CONSTANT_MACROS}
 {$definec kPMSandboxCompatiblePDEs CFSTRP('PMSandboxCompatiblePDEs')}
 {$endc}

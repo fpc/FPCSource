@@ -70,9 +70,9 @@ var
 
 
 begin
-	VIDEO_Init();		
+	VIDEO_Init();
 	WPAD_Init();
-	
+
 	screenMode := VIDEO_GetPreferredMode(nil);
 
 	frameBuffer	:= MEM_K0_TO_K1(integer(SYS_AllocateFramebuffer(screenMode)));
@@ -87,7 +87,7 @@ begin
 
 	fifoBuffer := MEM_K0_TO_K1(integer(memalign(32,FIFO_SIZE)));
 	memset(fifoBuffer,	0, FIFO_SIZE);
-	
+
 	GX_Init(fifoBuffer, FIFO_SIZE);
 	GX_SetCopyClear(backgroundColor, $00ffffff);
 	GX_SetViewport(0,0,screenMode^.fbWidth,screenMode^.efbHeight,0,1);
@@ -102,7 +102,7 @@ begin
 	  GX_SetFieldMode(screenMode^.field_rendering,GX_ENABLE)
 	else
 	  GX_SetFieldMode(screenMode^.field_rendering,GX_DISABLE);
-					 
+
 	GX_SetCullMode(GX_CULL_NONE);
 	GX_CopyDisp(frameBuffer,GX_TRUE);
 	GX_SetDispCopyGamma(GX_GM_1_0);
@@ -141,7 +141,7 @@ begin
 		update_screen(view);
 
 		WPAD_ScanPads();
-		if (WPAD_ButtonsDown(0) and WPAD_BUTTON_HOME) <> 0 then 
+		if (WPAD_ButtonsDown(0) and WPAD_BUTTON_HOME) <> 0 then
       exit;
 	end;
 end.

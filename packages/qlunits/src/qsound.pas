@@ -76,7 +76,7 @@ const
 
 const
   _AYCT_AY   = 0;
-  _AYCT_YM   = 1; 
+  _AYCT_YM   = 1;
 
   _AYCT_QUERY = -1;
 
@@ -90,7 +90,7 @@ type
   Pay_all = ^Tay_all;
 
 
-{ "low level" programming, direct calls to ROM functions } 
+{ "low level" programming, direct calls to ROM functions }
 procedure ay_reset;
 function ay_wrreg(const reg: byte; const value: byte): smallint;
 function ay_rdreg(const reg: byte): smallint;

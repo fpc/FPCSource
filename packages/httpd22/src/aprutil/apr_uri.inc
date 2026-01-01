@@ -99,7 +99,7 @@ type
 
     { The port number, numeric, valid only if port_str != NULL }
     port: apr_port_t;
-    
+
     BitFlags : Cardinal; // Takes care of is_initialized, dns_looked_up and dns_resolved
     { has the structure been initialized }
 //    unsigned is_initialized:1;
@@ -122,19 +122,19 @@ function apr_uri_port_of_scheme(const scheme_str: PAnsiChar): apr_port_t;
  external LibAPRUtil name LibNamePrefix + 'apr_uri_port_of_scheme' + LibSuff4;
 
 {
- * Unparse a apr_uri_t structure to an URI string.  Optionally 
+ * Unparse a apr_uri_t structure to an URI string.  Optionally
  * suppress the password for security reasons.
  * @param p The pool to allocate out of
  * @param uptr All of the parts of the uri
  * @param flags How to unparse the uri.  One of:
  * <PRE>
- *    APR_URI_UNP_OMITSITEPART        Suppress "scheme://user\@site:port" 
- *    APR_URI_UNP_OMITUSER            Just omit user 
- *    APR_URI_UNP_OMITPASSWORD        Just omit password 
+ *    APR_URI_UNP_OMITSITEPART        Suppress "scheme://user\@site:port"
+ *    APR_URI_UNP_OMITUSER            Just omit user
+ *    APR_URI_UNP_OMITPASSWORD        Just omit password
  *    APR_URI_UNP_OMITUSERINFO        Omit "user:password\@" part
  *    APR_URI_UNP_REVEALPASSWORD      Show plain text password (default: show XXXXXXXX)
- *    APR_URI_UNP_OMITPATHINFO        Show "scheme://user\@site:port" only 
- *    APR_URI_UNP_OMITQUERY           Omit "?queryarg" or "#fragment" 
+ *    APR_URI_UNP_OMITPATHINFO        Show "scheme://user\@site:port" only
+ *    APR_URI_UNP_OMITQUERY           Omit "?queryarg" or "#fragment"
  * </PRE>
  * @return The uri as a string
  }

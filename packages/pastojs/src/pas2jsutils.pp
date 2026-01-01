@@ -362,7 +362,7 @@ begin
       end;
       {$IFNDEF CPUWASM}
       Result:=GetUnixEncoding;
-      {$ELSE} 
+      {$ELSE}
       // wasm
       Result:='UTF8'; // some choice needs to be made
       {$ENDIF}
@@ -481,9 +481,9 @@ function GetConsoleTextEncoding: string;
 begin
 {$IFDEF WINDOWS}
   Result:=GetWindowsEncoding(True);
-{$ELSE} 
+{$ELSE}
   Result:=GetDefaultTextEncoding;
-{$ENDIF}  
+{$ENDIF}
 end;
 
 {$IFDEF WINDOWS}

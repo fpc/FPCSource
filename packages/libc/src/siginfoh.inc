@@ -22,17 +22,17 @@ type
      si_utime: __clock_t;
      si_stime: __clock_t;
   end;
-                        
+
   _si_kill =  record
     si_pid: __pid_t;
     si_uid: __uid_t;
   end;
   _si_pad = packed array[0..__SI_PAD_SIZE-1] of Integer;
   _si_sigfault = record
-    si_addr: Pointer; 
+    si_addr: Pointer;
   end;
   _si_sigpoll = record
-    si_band: Longint; 
+    si_band: Longint;
     si_fd: Integer;
   end;
   _si_timer = record
@@ -55,7 +55,7 @@ type
         si_signo : longint;
         si_errno : longint;
         si_code : longint;
-        Case integer of 
+        Case integer of
           0: (_pad: _si_pad);
           1: (_kill: _si_kill);
           2: (_timer: _si_timer);

@@ -14,7 +14,7 @@ Const
 Var
   P : TPackage;
   T : TTarget;
-  
+
 begin
   With Installer do
     begin
@@ -44,7 +44,7 @@ begin
     P.NamespaceMap:='namespaces.lst';
     end;
 end;
-    
+
 {$ifndef ALLPACKAGES}
 begin
   add_gitlab('');

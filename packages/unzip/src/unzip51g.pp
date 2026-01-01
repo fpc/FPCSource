@@ -359,7 +359,7 @@ VAR w : longint;                 {Current Position in slide}
     k : byte;                 {Bits in bit buffer}
     infile,                 {handle to zipfile}
     outfile : file;           {handle to extracted file}
-    compsize,               {comressed size of file}
+    compsize,               {compressed size of file}
     reachedsize,            {number of bytes read from zipfile}
     uncompsize : longint;     {uncompressed size of file}
     crc32val : cardinal;       {crc calculated from data}
@@ -1354,7 +1354,7 @@ BEGIN
     copystored := unzip_Userabort;
 END;
 (***************************************************************************)
-{.$I z_explod.pas}  {Explode imploded file}
+{.$I z_explode.pas}  {Explode imploded file}
 {include for unzip.pas: Explode imploded file}
 
 {C code by info-zip group, translated to Pascal by Christian Ghisler}
@@ -2000,9 +2000,9 @@ END;
 {Written and NOT copyrighted by Christian Ghisler.
  I have rewritten unshrink because the original
  function was copyrighted by Mr. Smith of Info-zip
- This funtion here is now completely FREE!!!!
+ This function here is now completely FREE!!!!
  The only right I claim on this code is that
- noone else claims a copyright on it!}
+ none else claims a copyright on it!}
 
 
 CONST max_code = 8192;

@@ -28,7 +28,7 @@ Const
   PTHREAD_RWLOCK_DEFAULT_NP = PTHREAD_RWLOCK_PREFER_WRITER_NP;
 
   PTHREAD_ONCE_INIT = 0;
-      
+
 type
   TPThreadCleanupRoutine = procedure(Arg: Pointer); cdecl;
 
@@ -53,9 +53,9 @@ Const
 
   NONRECURSIVE  = 0;
   RECURSIVE     = 1;
-  
-  
-      
+
+
+
 
   // procedural types used in parameters to pthread functions
 Type
@@ -63,8 +63,8 @@ Type
   TKeyValueDestructor = procedure(ValueInKey: Pointer); cdecl;
   TInitOnceProc = Procedure;cdecl;
   TForkHandler = procedure; cdecl;
-  
-  
+
+
 
 procedure __pthread_initialize;cdecl;external threadslib name '__pthread_initialize';
 function pthread_create(__thread:Ppthread_t; __attr:Ppthread_attr_t; __start_routine:TStartRoutine; __arg:pointer):longint;cdecl;external threadslib name 'pthread_create';
@@ -255,12 +255,12 @@ function pthread_sigmask(__how:longint; var __newmask:__sigset_t; var __oldmask:
 { Borland compatibility }
 
 function GetCurrentThreadID: TTHreadID ; cdecl; external threadslib name 'pthread_self';
-function InitializeCriticalSection(var lpCriticalSection: TRTLCriticalSection): Integer; 
+function InitializeCriticalSection(var lpCriticalSection: TRTLCriticalSection): Integer;
 function EnterCriticalSection(var lpCriticalSection: TRTLCriticalSection): Integer; cdecl; external threadslib name 'pthread_mutex_lock';
 function LeaveCriticalSection(var lpCriticalSection: TRTLCriticalSection): Integer; cdecl; external threadslib name 'pthread_mutex_unlock';
-function TryEnterCriticalSection(var lpCriticalSection: TRTLCriticalSection): Boolean; 
+function TryEnterCriticalSection(var lpCriticalSection: TRTLCriticalSection): Boolean;
 function DeleteCriticalSection(var lpCriticalSection: TRTLCriticalSection): Integer; cdecl; external threadslib name 'pthread_mutex_destroy';
-          
+
 Type
   TPThreadFunc = function(Parameter: Pointer): Integer; cdecl;
   PPthreadCleanupBuffer = ^_pthread_cleanup_buffer;

@@ -55,7 +55,7 @@ type
   private type
     TStreamClass = class of TStream;
   private const
-    // TMemoryStream uses an effecient grow algorithm.
+    // TMemoryStream uses an efficient grow algorithm.
     DefaultStreamClass: TStreamClass = TMemoryStream;
   strict private
     FStream: TStream;
@@ -96,7 +96,7 @@ type
   TIPCServerComm = Class(TObject)
   Private
     FOwner  : TSimpleIPCServer;
-  Protected  
+  Protected
     Function  GetInstanceID : String; virtual; abstract;
     Procedure DoError(const Msg : String; const Args : Array of const);
     Procedure PushMessage(Const Hdr : TMsgHeader; AStream : TStream);
@@ -258,7 +258,7 @@ type
     Procedure SendMessage(MsgType : TMessageType; Stream : TStream);virtual;Abstract;
   end;
   TIPCClientCommClass = Class of TIPCClientComm;
-  
+
   { TSimpleIPCClient }
   TSimpleIPCClient = Class(TSimpleIPC)
   Private
@@ -306,10 +306,10 @@ resourcestring
 implementation
 
 { ---------------------------------------------------------------------
-  Include platform specific implementation. 
-  Should implement the CommClass method of both server and client component, 
+  Include platform specific implementation.
+  Should implement the CommClass method of both server and client component,
   as well as the communication class itself.
-  
+
   This comes first, to allow the uses clause to be set.
   If the include file defines OSNEEDIPCINITDONE then the unit will
   call IPCInit and IPCDone in the initialization/finalization code.
@@ -528,7 +528,7 @@ end;
 {$ENDREGION}
 
 {$REGION 'TIPCClientComm'}
-  
+
 constructor TIPCClientComm.Create(AOwner: TSimpleIPCClient);
 begin
   FOwner:=AOwner;
@@ -538,7 +538,7 @@ Procedure TIPCClientComm.DoError(const Msg : String; const Args : Array of const
 
 begin
   FOwner.DoError(Msg,Args);
-end;  
+end;
 
 {$ENDREGION}
 
@@ -575,7 +575,7 @@ begin
   begin
     if ([]<>([csLoading,csDesigning]*ComponentState)) then
       FActive:=AValue
-    else  
+    else
       If AValue then
         Activate
       else
@@ -1107,7 +1107,7 @@ begin
     Except
       FreeAndNil(FIPCComm);
       Raise;
-    end;  
+    end;
     FActive:=True;
   end;
 end;
@@ -1120,7 +1120,7 @@ begin
     Finally
       FActive:=False;
       FreeAndNil(FIPCComm);
-    end;  
+    end;
 end;
 
 function TSimpleIPCClient.ServerRunning: Boolean;

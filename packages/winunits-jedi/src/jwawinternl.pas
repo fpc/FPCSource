@@ -64,7 +64,7 @@
 *       application will be able to detect.  GetProcAddress() may not   *
 *       be able to detect all signature changes, thus avoid using these *
 *       internal functions.  Instead, your application should use the   *
-*       appropriate Win32 function that provides equivalent or similiar *
+*       appropriate Win32 function that provides equivalent or similar  *
 *       functionality.                                                  *
 *                                                                       *
 *   Copyright (c) Microsoft Corp. All rights reserved.                  *
@@ -388,7 +388,7 @@ type
   _FILE_INFORMATION_CLASS = DWORD;
   FILE_INFORMATION_CLASS = _FILE_INFORMATION_CLASS;
   TFileInformationClass = FILE_INFORMATION_CLASS;
-{$ENDIF JWA_INCLUDEMODE}  
+{$ENDIF JWA_INCLUDEMODE}
 
 {
 const
@@ -457,7 +457,7 @@ const
 type
   _SYSTEM_INFORMATION_CLASS = DWORD;
   SYSTEM_INFORMATION_CLASS = _SYSTEM_INFORMATION_CLASS;
-{$ENDIF JWA_INCLUDEMODE}  
+{$ENDIF JWA_INCLUDEMODE}
 
 {$IFDEF WINXP}
 
@@ -757,7 +757,7 @@ type
 //
 // this function is implemented in winsta.dll (you need to loadlibrary to call this function)
 // this internal function retrives the LogonId (also called SessionId) for the current process
-// You should avoid using this function as it can change. you can retrieve the same information 
+// You should avoid using this function as it can change. you can retrieve the same information
 // Using public api WTSQuerySessionInformation. Pass WTSSessionId as the WTSInfoClass parameter
 //
 
@@ -770,7 +770,7 @@ type
 
 {$IFNDEF JWA_OMIT_SECTIONS}
 implementation
-         
+
 {$IFDEF FPC_DOTTEDUNITS}
 uses
   WinApi.Jedi.Windllnames;
@@ -858,7 +858,7 @@ begin
         JMP     [_NtWaitForSingleObject]
   end;
 end;
- 
+
 var _RtlIsNameLegalDOS8Dot3: Pointer;
 
 
@@ -871,7 +871,7 @@ begin
         JMP     [_RtlIsNameLegalDOS8Dot3]
   end;
 end;
- 
+
 var _RtlNtStatusToDosError: Pointer;
 
 
@@ -884,7 +884,7 @@ begin
         JMP     [_RtlNtStatusToDosError]
   end;
 end;
-    
+
 var _NtQueryInformationProcess: Pointer;
 
 
@@ -897,7 +897,7 @@ begin
         JMP     [_NtQueryInformationProcess]
   end;
 end;
- 
+
 var _NtQueryInformationThread: Pointer;
 
 
@@ -910,7 +910,7 @@ begin
         JMP     [_NtQueryInformationThread]
   end;
 end;
- 
+
 var _NtQuerySystemInformation: Pointer;
 
 

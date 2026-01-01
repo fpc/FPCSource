@@ -20,7 +20,7 @@ unit fnvhash;
 
 interface
 
-uses 
+uses
 {$IFDEF FPC_DOTTEDUNITS}
   System.SysUtils, System.Types;
 {$ELSE}

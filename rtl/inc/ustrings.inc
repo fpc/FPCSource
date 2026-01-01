@@ -501,7 +501,7 @@ begin
       if not Assigned(p) then
         continue;
       if p=OldDestP then
-        { DestS occured among pieces in the ReallocMem case! Use the new pointer. Its header still conveniently contains old DestS length. }
+        { DestS occurred among pieces in the ReallocMem case! Use the new pointer. Its header still conveniently contains old DestS length. }
         p:=NewDestP;
       Size:=PUnicodeRec(p-UnicodeFirstOff)^.Len*sizeof(UnicodeChar);
       dec(pc,size);

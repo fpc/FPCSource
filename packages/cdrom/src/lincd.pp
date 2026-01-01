@@ -1242,7 +1242,7 @@ begin
   {$endif}
   If DeviceMajor in [IDE0_MAJOR,IDE1_MAJOR,IDE2_MAJOR,IDE3_MAJOR] then
     Result:=TestCDRomIOCTL(Device)
-  else 
+  else
     begin
     Result:= DeviceMajor=SCSI_CDROM_MAJOR;
     If not Result then
@@ -1260,7 +1260,7 @@ begin
           fpClose(F);
         end;
       end;
-    end;  
+    end;
 end;
 
 Function TestCDRomIOCTL(Device : AnsiString) : Boolean;

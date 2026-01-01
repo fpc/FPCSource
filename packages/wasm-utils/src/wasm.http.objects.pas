@@ -22,10 +22,10 @@ interface
 
 uses
 {$IFDEF FPC_DOTTEDUNITS}
-  System.Classes, System.SysUtils, System.Contnrs, 
+  System.Classes, System.SysUtils, System.Contnrs,
 {$ELSE}
-  Classes, sysutils, contnrs, 
-{$ENDIF}  
+  Classes, sysutils, contnrs,
+{$ENDIF}
   wasm.http.shared, wasm.http.api;
 
 Type

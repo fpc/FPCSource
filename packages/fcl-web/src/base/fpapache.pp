@@ -83,8 +83,8 @@ end;
 
 Initialization
   InitApache;
-  
+
 Finalization
   DoneApache;
-  
+
 end.

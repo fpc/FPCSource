@@ -25,7 +25,7 @@ const
 const
 	NSNotificationDeliverImmediately = 1 shl 0;
 	NSNotificationPostToAllSessions = 1 shl 1;
-	
+
 {$endif}
 
 {$ifdef CLASSES}

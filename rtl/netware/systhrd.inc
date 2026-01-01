@@ -15,10 +15,10 @@
  **********************************************************************}
 
 { Multithreading for netware, armin 16 Mar 2002
-  - threads are basicly tested and working
+  - threads are basically tested and working
   - TRTLCriticalSections are working but NEVER call Enter or
     LeaveCriticalSection with uninitialized CriticalSections.
-    Critial Sections are based on local semaphores and the
+    Critical Sections are based on local semaphores and the
     Server will abend if the semaphore handles are invalid. There
     are basic tests in the rtl but this will not work in every case.
     Not closed semaphores will be closed by the rtl on program

@@ -179,7 +179,7 @@ TYPE
        {$ENDIF}
 
        pVLIWEvalWord  = ^VLIWEvalWord;
-        VLIWEvalword  = record	
+        VLIWEvalword  = record
                          case VLIWEntity :  VLIWWordType OF
                           AVariable  : (IndexOfVar : ArbInt);
                           AnOperation: (op:vliwop2);       {2 arguments}
@@ -509,7 +509,7 @@ begin
      VarName:=TStringList.Create;
        try
          Eval:=TEvaluator.Create(Varname,Expr);
-         try 
+         try
            if high(variablenames)>=0 then
              begin
                for i:=low(variablenames) to high(variablenames) do
@@ -519,7 +519,7 @@ begin
                      begin
                        case variablevalues[i].vtype of
                          vtinteger : x:=variablevalues[i].vinteger;
-                         vtextended: x:=variablevalues[i].vextended^;		
+                         vtextended: x:=variablevalues[i].vextended^;
                        else
                          raise exception.CreateFmt(SEvalUnknownParameterType,[variablenames[i]]);
                          end;
@@ -527,8 +527,8 @@ begin
                        symvars.objects[j]:=tobject(1);
                      end;
                  end;
-                 
-             end; 
+
+             end;
            i:=0;
            while (i<symvars.count) and (symvars.objects[i]=tobject(1)) do inc(i);
            if i<symvars.count then
@@ -537,10 +537,10 @@ begin
                raise Exception.CreateFmt(SEvalUndefinedVar,[symvars[i]]);
              end;
            result:=Eval.Evaluate([]);
-         finally 
+         finally
            varname:=nil;
            eval.free;
-           end; 
+           end;
        finally
          VarName.free;
          end

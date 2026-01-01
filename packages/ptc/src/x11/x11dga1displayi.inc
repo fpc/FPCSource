@@ -77,7 +77,7 @@ begin
   FWidth := AWidth;
   FHeight := AHeight;
 
-  { Get all availabe video modes }
+  { Get all available video modes }
   XF86VidModeGetAllModeLines(FDisplay, FScreen, @FModeInfoNum, @FModeInfo);
 
   FPreviousMode := -1;

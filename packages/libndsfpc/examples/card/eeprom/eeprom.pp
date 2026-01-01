@@ -21,7 +21,7 @@ begin
 		scanKeys();
    buttons := keysDown();
 		if (buttons and KEY_START)<>0 then
-			exit;  
+			exit;
     if buttons <> 0 then
       break;
 		swiWaitForVBlank();
@@ -59,11 +59,11 @@ begin
 
 		// Add a null AnsiChar right after the game title, so we can print it
 		header1[32] :=  cchar(#0);
-  
+
     // Read some various info about the EEPROM
     vtype := cardEepromGetType();
     vsize := cardEepromGetSize();
-  
+
     iprintf('Game ID: %s'#10, header1[0]);
     iprintf('EEPROM:'#10);
     iprintf(' Type: %d'#10, vtype);
@@ -74,7 +74,7 @@ begin
     cardReadEeprom(0, @data, 512, vtype);
 
     iprintf('First 160 bytes of EEPROM: '#10);
-    
+
     // Print 20 rows of 8 bytes each
     for y := 0 to 19 do
     begin
@@ -83,7 +83,7 @@ begin
       begin
         iprintf('%02x ', data[y*8 + x]);
       end;
-  
+
       // print 8 bytes as characters
       for x := 0 to 7 do
       begin
@@ -94,7 +94,7 @@ begin
           iprintf('.');
       end;
     end;
-  
+
     iprintf('Insert a new card to read again'#10);
     ButtonWait();
   end;

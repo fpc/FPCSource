@@ -50,27 +50,27 @@
   {
   static inline GstContext *
   gst_context_ref (GstContext * context)
-  
+
     return (GstContext *) gst_mini_object_ref (((GstMiniObject*)(context)));
-  
+
   # 71 "gstcontext.h"
   static inline void
   gst_context_unref (GstContext * context)
-  
+
     gst_mini_object_unref (((GstMiniObject*)(context)));
-  
+
   # 88 "gstcontext.h"
   static inline GstContext *
   gst_context_copy (const GstContext * context)
-  
+
     return ((GstContext*)(gst_mini_object_copy (((const GstMiniObject*)(context)))));
-  
+
   # 130 "gstcontext.h"
   static inline gboolean
   gst_context_replace (GstContext **old_context, GstContext *new_context)
-  
+
     return gst_mini_object_replace ((GstMiniObject **) old_context, (GstMiniObject *) new_context);
-  
+
    }
 (* Const before type ignored *)
   function gst_context_new(context_type:Pgchar; persistent:Tgboolean):PGstContext;cdecl;external gstreamerlib name 'gst_context_new';

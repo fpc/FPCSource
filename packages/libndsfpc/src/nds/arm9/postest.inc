@@ -11,7 +11,7 @@ begin
 end;
 
 procedure PosTest(x, y, z: v16); inline;
-begin 
+begin
 	PosTest_Asynch(x, y, z);
 	while PosTestBusy() do;
 end;

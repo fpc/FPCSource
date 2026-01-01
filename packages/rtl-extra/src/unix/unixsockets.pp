@@ -15,7 +15,7 @@ uses
 uses
   cTypes, BaseUnix;
 {$ENDIF FPC_DOTTEDUNITS}
-  
+
 {$unixsocketsh.inc}
 
 implementation

@@ -162,7 +162,7 @@ procedure jpeg_set_marker_processor (cinfo : j_decompress_ptr;
                                      routine : jpeg_marker_parser_method);
 Var
   on_unknown_marker : function (cinfo : j_decompress_ptr) : int; far;
-  
+
 implementation
 
 {$IFDEF FPC_DOTTEDUNITS}
@@ -1943,7 +1943,7 @@ begin
       numtoread := uint(length)
     else
       numtoread := 0;
-      
+
   if numtoread > 0 then
   begin
     for i := 0 to numtoread-1 do
@@ -2592,7 +2592,7 @@ begin
           end;
         { // This is the previous code.
           ERREXIT1(j_common_ptr(cinfo) , JERR_UNKNOWN_MARKER,cinfo^.unread_marker);
-        }  
+        }
     end; { end of case }
     { Successfully processed marker, so reset state variable }
     cinfo^.unread_marker := 0;

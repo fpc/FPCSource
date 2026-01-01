@@ -105,7 +105,7 @@ Const
   KWOperationSecurity = 'security';
   KWOperationServers = 'servers';
 
-  // External documentaton object
+  // External documentation object
   KWExternalDocsDescription = 'description';
   KWExternalDocsUrl = 'url';
 

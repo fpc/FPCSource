@@ -15,7 +15,7 @@
  }
 
 {
- * @file apr_signal.h 
+ * @file apr_signal.h
  * @brief APR Signal Handling
  }
 
@@ -28,7 +28,7 @@
 
 {
  * @defgroup apr_signal Handling
- * @ingroup APR 
+ * @ingroup APR
  }
 
 {$if defined(APR_HAVE_SIGACTION) or defined(DOXYGEN)}

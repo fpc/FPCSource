@@ -696,7 +696,7 @@ begin
      do_error(1101);
    DestroyregExprEngine(r);
 
-   { with parenthsis }
+   { with parenthesis }
    GenerateRegExprEngine('(foo)1234',[],r);
    if not(RegExprPos(r,'1234   foo1234XXXX',index,len)) or
      (index<>7) or (len<>7) then

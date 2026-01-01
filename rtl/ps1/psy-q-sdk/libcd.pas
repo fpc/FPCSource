@@ -14,7 +14,7 @@
  *	CdlForward	B	Forward
  *	CdlBackward	B	Backward
  *	CdlReadN	B	Read with retry
- *	CdlStanby	N	Standby
+ *	CdlStandby	N	Standby
  *	CdlStop		N	Stop
  *	CdlPause	N	Pause
  *	CdlMute		B	Mute on
@@ -22,9 +22,9 @@
  *	CdlSetfilter	B	Set SubHeader filter
  *	CdlSetmode	B	Set mode
  *	CdlGetlocL	B	Get logical position
- *	CdlGetlocP	B	Get phisycal position
+ *	CdlGetlocP	B	Get physical position
  *	CdlSeekL	N	Logical Seek
- *	CdlSeekP	N	Phisical Seek
+ *	CdlSeekP	N	Physical Seek
  *	CdlReadS	B	Read without retry
  *	------------------------------------------------------
  *			B: Blocking, N: Non-Blocking operation
@@ -38,7 +38,7 @@
  *	CdlForward	-		status
  *	CdlBackward	-		status
  *	CdlReadN	-		status
- *	CdlStanby	-		status
+ *	CdlStandby	-		status
  *	CdlStop		-		status
  *	CdlPause	-		status
  *	CdlMute		-		status

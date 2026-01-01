@@ -29,7 +29,7 @@ uses palmos, coretraps, rect, font, window, control;
 const
   maxFieldTextLen = $7fff;
 
-// default maximun number of line the a dynamicly sizing field will expand to.
+// default maximum number of line the a dynamically sizing field will expand to.
 // Can be changed with FldSetMaxVisibleLines
 
   maxFieldLines = 11;
@@ -89,7 +89,7 @@ type
  UInt16 justification :2; // text alignment
  UInt16 autoShift  :1; // Set if auto case shift
  UInt16 hasScrollBar :1; // Set if the field has a scroll bar
- UInt16 numeric   :1; // Set if numeric, digits and secimal separator only
+ UInt16 numeric   :1; // Set if numeric, digits and decimal separator only
  UInt16 reserved  :1;   // Reserved for future use
 }
   end;

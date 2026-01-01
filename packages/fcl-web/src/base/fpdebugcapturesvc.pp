@@ -22,7 +22,7 @@ interface
 
 uses
 {$IFDEF FPC_DOTTEDUNITS}
-  System.Classes, System.SysUtils, FpWeb.Http.Defs, FpWeb.Http.Base, FpJson.Data; 
+  System.Classes, System.SysUtils, FpWeb.Http.Defs, FpWeb.Http.Base, FpJson.Data;
 {$ELSE}
   Classes, SysUtils, httpdefs, fphttp, fpjson;
 {$ENDIF}

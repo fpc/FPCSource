@@ -24,10 +24,10 @@ uses
 
 {$IFDEF UNIX}
   const libaspell = 'aspell';
-{$ELSE} 
+{$ELSE}
  {$IFDEF WINDOWS}
   const libaspell = 'aspell-15.dll';
- {$ELSE} 
+ {$ELSE}
   {$MESSAGE ERROR Target not supported'}
  {$ENDIF}
 {$ENDIF}
@@ -254,7 +254,7 @@ uses
      * The speller class is expected to last until
      * this class is destroyed.
      * If config is given it will be used to override
-     * any relevent options set by this speller class.
+     * any relevant options set by this speller class.
      * The config class is not once this function is done.
      * If filter is given then it will take ownership of
      * the filter class and use it to do the filtering.
@@ -437,7 +437,7 @@ uses
      * "decode", "dictionary", "language", and "keyboard".  }
 
     function aspell_reset_cache(which:PAnsiChar):cint;cdecl;external libaspell name 'aspell_reset_cache';
-    
+
   function aspell_init(const libn: ansistring): Boolean;
   function aspell_loaded: Boolean;
 

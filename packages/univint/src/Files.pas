@@ -600,8 +600,8 @@ type
 		ioVNmFls: UInt16;               {number of files in directory}
 		ioVDirSt: UInt16;               {start block of file directory}
 		ioVBlLn: SInt16;                {GetVolInfo: length of dir in blocks}
-		ioVNmAlBlks: UInt16;            {for compatibilty ioVNmAlBlks * ioVAlBlkSiz <= 2 GB}
-		ioVAlBlkSiz: UInt32;            {for compatibilty ioVAlBlkSiz is <= $0000FE00 (65,024)}
+		ioVNmAlBlks: UInt16;            {for compatibility ioVNmAlBlks * ioVAlBlkSiz <= 2 GB}
+		ioVAlBlkSiz: UInt32;            {for compatibility ioVAlBlkSiz is <= $0000FE00 (65,024)}
 		ioVClpSiz: UInt32;              {GetVolInfo: bytes to allocate at a time}
 		ioAlBlSt: UInt16;               {starting disk(512-byte) block in block map}
 		ioVNxtFNum: UInt32;             {GetVolInfo: next free file number}
@@ -710,8 +710,8 @@ type
 			ioVNmFls:			UInt16;									{ number of files in directory }
 			ioVDirSt:			UInt16;									{ start block of file directory }
 			ioVBlLn:			SInt16;								{ GetVolInfo: length of dir in blocks }
-			ioVNmAlBlks:		UInt16;									{ for compatibilty ioVNmAlBlks * ioVAlBlkSiz <= 2 GB }
-			ioVAlBlkSiz:		UInt32;									{ for compatibilty ioVAlBlkSiz is <= $0000FE00 (65,024) }
+			ioVNmAlBlks:		UInt16;									{ for compatibility ioVNmAlBlks * ioVAlBlkSiz <= 2 GB }
+			ioVAlBlkSiz:		UInt32;									{ for compatibility ioVAlBlkSiz is <= $0000FE00 (65,024) }
 			ioVClpSiz:			UInt32;									{ GetVolInfo: bytes to allocate at a time }
 			ioAlBlSt:			UInt16;									{ starting disk(512-byte) block in block map }
 			ioVNxtFNum:			UInt32;									{ GetVolInfo: next free file number }
@@ -1980,12 +1980,12 @@ type
 { volume mount flags }
 const
 	volMountNoLoginMsgFlagBit = 0;    { Input to VolumeMount: If set, the file system }
-	volMountNoLoginMsgFlagMask = $0001; {  should suppresss any log-in message/greeting dialog }
+	volMountNoLoginMsgFlagMask = $0001; {  should suppress any log-in message/greeting dialog }
 	volMountExtendedFlagsBit = 7;    { Input to VolumeMount: If set, the mount info is a }
 	volMountExtendedFlagsMask = $0080; {  AFPXVolMountInfo record for 3.7 AppleShare Client }
 	volMountInteractBit = 15;   { Input to VolumeMount: If set, it's OK for the file system }
 	volMountInteractMask = $8000; {  to perform user interaction to mount the volume }
-	volMountChangedBit = 14;   { Output from VoumeMount: If set, the volume was mounted, but }
+	volMountChangedBit = 14;   { Output from VolumeMount: If set, the volume was mounted, but }
 	volMountChangedMask = $4000; {  the volume mounting information record needs to be updated. }
 	volMountFSReservedMask = $00FF; { bits 0-7 are defined by each file system for its own use }
 	volMountSysReservedMask = $FF00; { bits 8-15 are reserved for Apple system use }
@@ -5992,7 +5992,7 @@ const
 
   {
    * Do not perform a copy/delete to move an item across volume
-   * boundries - fail the operation instead.
+   * boundaries - fail the operation instead.
    }
 	kFSFileOperationDoNotMoveAcrossVolumes = $04;
 
@@ -6019,7 +6019,7 @@ const
 	kFSOperationStageUndefined = 0;
 
   {
-   * Operation is calulating sizes and number of items involved in the
+   * Operation is calculating sizes and number of items involved in the
    * operation.
    }
 	kFSOperationStagePreflighting = 1;

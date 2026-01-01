@@ -7,7 +7,7 @@
 type
   DecompressType = integer;
 const
-  LZ77    : DecompressType = 0; 
+  LZ77    : DecompressType = 0;
   LZ77Vram: DecompressType = 1;
   HUFF    : DecompressType = 2;
   RLE     : DecompressType = 3;

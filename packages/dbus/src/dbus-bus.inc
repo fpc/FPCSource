@@ -4,7 +4,7 @@
  * Copyright (C) 2003  CodeFactory AB
  *
  * Licensed under the Academic Free License version 2.1
- * 
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -14,7 +14,7 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
@@ -26,7 +26,7 @@
 
 function dbus_bus_get(type_: DBusBusType; error: PDBusError): PDBusConnection; cdecl; external LibDBus;
 function dbus_bus_get_private(type_: DBusBusType; error: PDBusError): PDBusConnection; cdecl; external LibDBus;
- 
+
 function dbus_bus_register(connection: PDBusConnection; error: PDBusError): dbus_bool_t; cdecl; external LibDBus;
 function dbus_bus_set_unique_name(connection: PDBusConnection;
  const unique_name: PAnsiChar): dbus_bool_t; cdecl; external LibDBus;

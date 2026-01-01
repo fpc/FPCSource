@@ -1,12 +1,12 @@
 { **********************************************************************
   This file is part of the Free Component Library (FCL)
   Copyright (c) 2015 by the Free Pascal development team
-        
-  OAuth2 web request handler classes 
-            
+
+  OAuth2 web request handler classes
+
   See the file COPYING.FPC, included in this distribution,
   for details about the copyright.
-                   
+
   This program is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
@@ -185,7 +185,7 @@ Type
     FOnAuthConfigChange: TOnAuthConfigChangeHandler;
     FOnUserConsent: TUserConsentHandler;
     Function GetAutoStore : Boolean;
-    Procedure SetAutoStore(AValue : Boolean); 
+    Procedure SetAutoStore(AValue : Boolean);
     procedure SetConfig(AValue: TOAuth2Config);
     procedure SetSession(AValue: TOAuth2Session);
     procedure SetStore(AValue: TAbstracTOAuth2ConfigStore);
@@ -223,7 +223,7 @@ Type
     procedure LoadConfig(Force : Boolean = false);
     // Save config to store
     procedure SaveConfig;
-    // Load Session from store.If AUser is empty, then ID Token.GetUniqueUser is used. 
+    // Load Session from store.If AUser is empty, then ID Token.GetUniqueUser is used.
     procedure LoadSession(Const AUser : String = ''; AForce : Boolean = False);
     // Save session in store. If AUser is empty, then ID Token.GetUniqueUser is used. Will call OnAuthSessionChange
     procedure SaveSession(Const AUser : String = '');
@@ -243,7 +243,7 @@ Type
     Property WebClient : TAbstractWebClient Read FWebClient Write FWebClient;
     // Event handler to get user consent if no access token or refresh token is available
     Property OnUserConsent : TUserConsentHandler Read FOnUserConsent Write FOnUserConsent;
-    // Called when the auth config informaion changes
+    // Called when the auth config information changes
     Property OnAuthConfigChange : TOnAuthConfigChangeHandler Read FOnAuthConfigChange Write FOnAuthConfigChange;
     // Called when the auth sesson information changes
     Property OnAuthSessionChange : TOnAuthSessionChangeHandler Read FOnAuthSessionChange Write FOnAuthSessionChange;
@@ -278,7 +278,7 @@ Resourcestring
 { TOAuth2Handler }
 
 { Several possibilities:
-  1. Acess token is available.
+  1. Access token is available.
      A) Access token is not yet expired
         -> All is well, continue.
      B) Access token is available, but is expired.
@@ -477,7 +477,7 @@ begin
   Result:=AutoSession and AutoConfig;
 end;
 
-Procedure TOAuth2Handler.SetAutoStore(AValue : Boolean); 
+Procedure TOAuth2Handler.SetAutoStore(AValue : Boolean);
 
 begin
   AutoSession:=True;
@@ -612,8 +612,8 @@ begin
   SaveConfig;
 end;
 
-procedure TOAuth2Handler.DoAuthSessionChange(Const AUser : String = ''); 
-    
+procedure TOAuth2Handler.DoAuthSessionChange(Const AUser : String = '');
+
 begin
   If Assigned(FOnAuthSessionChange) then
     FOnAuthSessionChange(Self,Session);

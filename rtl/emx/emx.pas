@@ -14,7 +14,7 @@ EMX.DLL is Copyright (c) -1999-2000 by Eberhard Mattes.
 
 Modifying this unit is allowed, under the following conditions:
 
-- You will not make anyone beleive that you or someone else wrote this.
+- You will not make anyone believe that you or someone else wrote this.
 - Unless you are developing on the official version of FPC, you will make a
   note in this file that it is not the original one.
 

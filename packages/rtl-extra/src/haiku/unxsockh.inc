@@ -136,7 +136,7 @@ Const
         SO_REUSEPORT     = $00000080;        { allow local address & port reuse }
         SO_USELOOPBACK   = $00000100;        { bypass hardware when possible }
         SO_LINGER        = $00000200;        { linger on close if data present }
-        
+
 (* Values not yet defined under Haiku (see sys/socket.h)
         SO_TIMESTAMP     = $0400;        { timestamp received dgram traffic }
 *)
@@ -255,7 +255,7 @@ Const
 	IPPROTO_IGRP		= 88; 		{ Cisco/GXS IGRP }
 	IPPROTO_OSPFIGP		= 89; 		{ OSPFIGP }
 	IPPROTO_SRPC		= 90; 		{ Strite RPC protocol }
-	IPPROTO_LARP		= 91; 		{ Locus Address Resoloution }
+	IPPROTO_LARP		= 91; 		{ Locus Address Resolution }
 	IPPROTO_MTP		= 92; 		{ Multicast Transport }
 	IPPROTO_AX25		= 93; 		{ AX.25 Frames }
 	IPPROTO_IPEIP		= 94; 		{ IP encapsulated in IP }
@@ -283,7 +283,7 @@ Const
  }
 	IP_OPTIONS		= 1 ;   { buf/ip_opts; set/get IP options }
 	IP_HDRINCL		= 2 ;   { int; header is included with data }
-	IP_TOS			= 3 ;   { int; IP type of service and preced. }
+	IP_TOS			= 3 ;   { int; IP type of service and precede. }
 	IP_TTL			= 4 ;   { int; IP time to live }
 	IP_RECVOPTS		= 5 ;   { bool; receive all IP opts w/dgram }
 	IP_RECVRETOPTS		= 6 ;   { bool; receive IP opts for response }
@@ -295,7 +295,7 @@ Const
 	IP_MULTICAST_LOOP	= 11;   { u_char; set/get IP multicast loopback }
 	IP_ADD_MEMBERSHIP	= 12;   { ip_mreq; add an IP group membership }
 	IP_DROP_MEMBERSHIP	= 13;   { ip_mreq; drop an IP group membership }
-	
+
 	IP_BLOCK_SOURCE				= 14;	{ ip_mreq_source }
 	IP_UNBLOCK_SOURCE			= 15;	{ ip_mreq_source }
 	IP_ADD_SOURCE_MEMBERSHIP	= 16;	{ ip_mreq_source }
@@ -306,14 +306,14 @@ Const
 	MCAST_LEAVE_GROUP			= 21;	{ group_req }
 	MCAST_JOIN_SOURCE_GROUP		= 22;	{ group_source_req }
 	MCAST_LEAVE_SOURCE_GROUP	= 23;	{ group_source_req }
-	
+
 (* Values not yet defined under Haiku (see netinet/in.h)
 	IP_MULTICAST_VIF	= 14;   { set/get IP mcast virt. iface }
 	IP_RSVP_ON		= 15;   { enable RSVP in kernel }
 	IP_RSVP_OFF		= 16;   { disable RSVP in kernel }
 	IP_RSVP_VIF_ON		= 17;   { set RSVP per-vif socket }
 	IP_RSVP_VIF_OFF		= 18;   { unset RSVP per-vif socket }
-	IP_PORTRANGE		= 19;   { int; range to choose for unspec port }
+	IP_PORTRANGE		= 19;   { int; range to choose for unspecified port }
 	IP_RECVIF		= 20;   { bool; receive reception if w/dgram }
 
 { for IPSEC }
@@ -321,7 +321,7 @@ Const
 	IP_FAITH		= 22;   { bool; accept FAITH'ed connections }
 
 	IP_ONESBCAST		= 23;   { bool: send all-ones broadcast }
-                                
+
 	IP_FW_TABLE_ADD		= 40;   { add entry }
 	IP_FW_TABLE_DEL		= 41;   { delete entry }
 	IP_FW_TABLE_FLUSH	= 42;   { flush table }
@@ -353,17 +353,17 @@ Const
 (* Values not yet defined under Haiku (see netinet/in.h)
 	IPV6_JOIN_GROUP		= 12; { ip6_mreq; join a group membership }
 	IPV6_LEAVE_GROUP	= 13; { ip6_mreq; leave a group membership }
-	IPV6_PORTRANGE		= 14; { int; range to choose for unspec port }
+	IPV6_PORTRANGE		= 14; { int; range to choose for unspecified port }
 
-	IPV6_PKTINFO            = 46; { in6_pktinfo; send if, src addr }	
+	IPV6_PKTINFO            = 46; { in6_pktinfo; send if, src addr }
  	IPV6_HOPLIMIT           = 47; { int; send hop limit }
  	IPV6_NEXTHOP            = 48; { sockaddr; next hop addr }
  	IPV6_HOPOPTS            = 49; { ip6_hbh; send hop-by-hop option }
  	IPV6_DSTOPTS            = 50; { ip6_dest; send dst option befor rthdr }
  	IPV6_RTHDR              = 51; { ip6_rthdr; send routing header }
  	IPV6_PKTOPTIONS         = 52; { buf/cmsghdr; set/get IPv6 options }
-*)  
-  
+*)
+
   { Flags for send, recv etc. }
   MSG_OOB       = $0001;              { process out-of-band data}
   MSG_PEEK      = $0002;              { peek at incoming messages }
@@ -376,7 +376,7 @@ Const
   MSG_BCAST     = $0100;              { this message rec'd as broadcast }
   MSG_MCAST     = $0200;              { this message rec'd as multicast }
   MSG_EOF       = $0400;              { data completes connection }
-  
+
 (* Values not yet defined under Haiku (see sys/socket.h)
   MSG_NBIO      = $4000;
   MSG_COMPAT    = $8000;
@@ -386,10 +386,10 @@ Const
 
   { SOL_SOCKET control message types }
   SCM_RIGHTS     = $01;
-  
+
   INVALID_SOCKET = -1;
   SOCKET_ERROR = -1;
-  
+
      TCP_NODELAY = $01;
   { don't delay sending smaller packets  }
      TCP_MAXSEG = $02;

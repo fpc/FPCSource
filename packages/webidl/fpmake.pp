@@ -54,7 +54,7 @@ begin
     T.Dependencies.addUnit('webidltopas');
     T:=P.Targets.AddUnit('webidltowasmstub.pp');
     T.Dependencies.addUnit('webidltowasmjob');
-    
+
     P.NamespaceMap:='namespaces.lst';
 
 {$ifndef ALLPACKAGES}

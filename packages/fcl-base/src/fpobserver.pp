@@ -160,7 +160,7 @@ Type
   Published
     // General component which can be set in Object Inspector
     Property ViewComponent : TComponent Read FViewComponent Write SetComponent;
-    // Punlish property so it can be set in Object Inspector
+    // Publish property so it can be set in Object Inspector
     Property ViewPropertyName;
   end;
 
@@ -1230,7 +1230,7 @@ procedure TBaseListMediator.CreateSubMediators;
 var
   I : integer;
   Model : TObjectList;
-  
+
 begin
   Model:=Subject as TObjectList;
   for i := 0 to Model.Count - 1 do

@@ -263,7 +263,7 @@ Unit UComplex;
   {$ifdef TEST_INLINE}
   inline;
   {$endif TEST_INLINE}
-    { substraction : z := z1 - z2 }
+    { subtraction : z := z1 - z2 }
     begin
        z.re := z1.re - z2.re;
        z.im := z1.im - z2.im;
@@ -273,7 +273,7 @@ Unit UComplex;
   {$ifdef TEST_INLINE}
   inline;
   {$endif TEST_INLINE}
-    { substraction : z := z1 - r }
+    { subtraction : z := z1 - r }
     begin
        z.re := z1.re - r;
        z.im := z1.im;
@@ -283,7 +283,7 @@ Unit UComplex;
   {$ifdef TEST_INLINE}
   inline;
   {$endif TEST_INLINE}
-    { substraction : z := - z1 }
+    { subtraction : z := - z1 }
     begin
        z.re := -z1.re;
        z.im := -z1.im;
@@ -293,7 +293,7 @@ Unit UComplex;
   {$ifdef TEST_INLINE}
   inline;
   {$endif TEST_INLINE}
-    { substraction : z := r - z1 }
+    { subtraction : z := r - z1 }
     begin
        z.re := r - z1.re;
        z.im := - z1.im;
@@ -436,7 +436,7 @@ Unit UComplex;
   { fonctions elementaires }
 
   function cexp (const z : complex) : complex;
-    { exponantial : r := exp(z) }
+    { exponential : r := exp(z) }
     { exp(x + iy) = exp(x).exp(iy) = exp(x).[cos(y) + i sin(y)] }
     var expz : real;
     begin

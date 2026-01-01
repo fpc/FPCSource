@@ -358,10 +358,10 @@ begin
   // Exceptions are handled by (Do)HandleRequest. It also frees the response/request
   try
     DoHandleRequest(ARequest,AResponse);
-  finally  
+  finally
     ARequest:=Nil;
     AResponse:=Nil;
-  end;    
+  end;
   if Assigned(OnIdle) then
     OnIdle(Self);
 end;

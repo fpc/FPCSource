@@ -55,7 +55,7 @@ procedure xsltFreeStyleDocuments(style: xsltStylesheetPtr); EXTDECL; external xs
  *
  * An xsltDocLoaderFunc is a signature for a function which can be
  * registered to load document not provided by the compilation or
- * transformation API themselve, for example when an xsl:import,
+ * transformation API themselves, for example when an xsl:import,
  * xsl:include is found at compilation time or when a document()
  * call is made at runtime.
  *

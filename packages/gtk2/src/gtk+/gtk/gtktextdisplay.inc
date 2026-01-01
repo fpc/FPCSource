@@ -87,7 +87,7 @@ Type
 {$ifndef GTK_TEXT_DISPLAY_H}
 {$define GTK_TEXT_DISPLAY_H}
 {$include gtktextlayout.inc}
-{ C++ extern C conditionnal removed }
+{ C++ extern C conditional removed }
 { __cplusplus  }
 { A semi-public header intended for use by code that also
    uses GtkTextLayout
@@ -105,7 +105,7 @@ Type
 procedure gtk_text_layout_draw(layout:PGtkTextLayout; widget:PGtkWidget; drawable:PGdkDrawable; cursor_gc:PGdkGC; x_offset:gint;
             y_offset:gint; x:gint; y:gint; width:gint; height:gint;
             widgets:PPGList); cdecl; external gtklib;
-{ C++ end of extern C conditionnal removed }
+{ C++ end of extern C conditional removed }
 { __cplusplus  }
 {$endif}
 { GTK_TEXT_DISPLAY_H  }

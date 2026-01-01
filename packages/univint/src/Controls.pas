@@ -744,7 +744,7 @@ type
 {      processing the click. If activation is requested, you may also want to immediately redraw the   }
 {      newly exposed portion of the window.                                                            }
 {  ¥ Ignore/Handle Click indicates whether or not to call an appropriate click handling API (like      }
-{      HandleControlClick) in respose to the event.                                                    }
+{      HandleControlClick) in response to the event.                                                   }
 const
 	kDoNotActivateAndIgnoreClick = 0;    { probably never used. here for completeness.}
 	kDoNotActivateAndHandleClick = 1;    { let the control handle the click while the window is still in the background.}
@@ -948,7 +948,7 @@ const
 	kControlMsgGetRegion = 31;   { Available in Appearance 1.1 or later}
 	kControlMsgFlatten = 32;   { Available in Carbon. Param is Collection.}
 	kControlMsgSetCursor = 33;   { Available in Carbon. Param is ControlSetCursorRec}
-	kControlMsgDragEnter = 38;   { Available in Carbon. Param is DragRef, result is boolean indicating acceptibility of drag.}
+	kControlMsgDragEnter = 38;   { Available in Carbon. Param is DragRef, result is boolean indicating acceptability of drag.}
 	kControlMsgDragLeave = 39;   { Available in Carbon. As above.}
 	kControlMsgDragWithin = 40;   { Available in Carbon. As above.}
 	kControlMsgDragReceive = 41;   { Available in Carbon. Param is DragRef, result is OSStatus indicating success/failure.}
@@ -1285,7 +1285,7 @@ function InvokeControlKeyFilterUPP( theControl: ControlRef; var keyCode: SInt16;
 
 
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
-{  ¥ DragGrayRgn Constatns                                                             }
+{  ¥ DragGrayRgn Constants                                                             }
 {   For DragGrayRgnUPP used in TrackControl()                                          }
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
 const

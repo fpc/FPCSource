@@ -29,7 +29,7 @@ uses
 uses
   Classes, SysUtils, sqldb, fpdatadict, fpddsqldb;
 {$ENDIF FPC_DOTTEDUNITS}
-  
+
 Type
   { TSQLDBORACLEEngine }
   TSQLDBOracleDDEngine = Class(TSQLDBDDEngine)

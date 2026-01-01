@@ -136,7 +136,7 @@ type
     ReceiverName: LPCWSTR; // Receiver's name
     ReceiverNumber: LPCWSTR; // Receiver's fax number
     DeviceName: LPCWSTR; // Device name for the line that received the fax
-    DeviceId: DWORD; // Permenant line identifier for the receiving device
+    DeviceId: DWORD; // Permanent line identifier for the receiving device
     RoutingInfoData: LPBYTE; // Routing infor data to override configured info
     RoutingInfoDataSize: DWORD; // Size of routing info data
   end;
@@ -175,7 +175,7 @@ type
   {$EXTERNALSYM PFAXROUTEGETROUTINGINFO}
   PFAXROUTESETROUTINGINFO = function(RoutingGuid: LPCWSTR; DeviceId: DWORD; RoutingInfo: LPBYTE; RoutingInfoSize: DWORD): BOOL; stdcall;
   {$EXTERNALSYM PFAXROUTESETROUTINGINFO}
-  
+
 {$ENDIF JWA_IMPLEMENTATIONSECTION}
 
 

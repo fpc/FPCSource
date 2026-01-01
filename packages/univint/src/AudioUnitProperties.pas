@@ -1649,7 +1649,7 @@ const
 
 {!
 	@define		kAudioUnitConfigurationInfo_InitialInputs
-	@discussion	An array of numbers whose size is equal to the number of input buses posessed by the
+	@discussion	An array of numbers whose size is equal to the number of input buses possessed by the
 				AU. Each number in the array represents the number of channels for the corresponding
 				bus.
 }
@@ -1658,7 +1658,7 @@ const
 
 {!
 	@define		kAudioUnitConfigurationInfo_InitialOutputs
-	@discussion	An array of numbers whose size is equal to the number of output buses posessed by
+	@discussion	An array of numbers whose size is equal to the number of output buses possessed by
 				the AU. Each number in the array represents the number of channels for the
 				corresponding bus.
 }
@@ -3071,7 +3071,7 @@ const
 	kAudioUnitProperty_ScheduledFileNumberBuffers = 3314;
 
 type
-	ScheduledAudioFileRegionPtr = ^ScheduledAudioFileRegion; //forward declaraion, see definition below
+	ScheduledAudioFileRegionPtr = ^ScheduledAudioFileRegion; //forward declaration, see definition below
 {!
 	@typedef		ScheduledAudioFileRegionCompletionProc
 }

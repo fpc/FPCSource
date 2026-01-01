@@ -865,7 +865,7 @@ const
 	{ Given a CSSM_KEY_PTR in any format, obtain the SHA-1 hash of the
 	 * associated key blob.
 	 * Key is specified in CSSM_CSP_CreatePassThroughContext.
-	 * Hash is allocated bythe CSP, in the App's memory, and returned
+	 * Hash is allocated by the CSP, in the App's memory, and returned
 	 * in *outData. }
 	CSSM_APPLECSP_KEYDIGEST = $100;
 

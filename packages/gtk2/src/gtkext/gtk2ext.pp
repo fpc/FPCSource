@@ -13,7 +13,7 @@ uses
 uses
   glib2, gdk2, gdk2pixbuf, gtk2;
 {$ENDIF FPC_DOTTEDUNITS}
-  
+
 const
   { This is equired when people don't have -dev/-devel packages on linux.
     I'm not sure how Darwin is handled tho }
@@ -26,7 +26,7 @@ const
     GtkLibNames: array[1..2] of ansistring = (gtklib, gtklib + '.0');
     {$endif}
   {$endif}
-  
+
 {$i gtkstatusiconh.inc}
 {$i gtkscalebuttonh.inc}
 {$i gtkvolumebuttonh.inc}

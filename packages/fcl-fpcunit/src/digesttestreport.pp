@@ -120,12 +120,12 @@ type
     procedure EndTest(ATest: TTest); override;
     procedure StartTestSuite(ATestSuite: TTestSuite); override;
     procedure EndTestSuite(ATestSuite: TTestSuite); override;
-    
+
     property Comment: string read FComment write FComment;
     property Category: string read FCategory write FCategory;
     property RelSrcDir: string read FRelSrcDir write FRelSrcDir;
   end;
-  
+
 implementation
 
 {$IFDEF FPC_DOTTEDUNITS}
@@ -147,7 +147,7 @@ uses LibTar,
 {$ENDIF}
      zstream;
 {$ENDIF FPC_DOTTEDUNITS}
-     
+
 Function PathExists (Const F : String) : Boolean;
 {
   Returns True if the file exists, False if not.
@@ -265,7 +265,7 @@ begin
   TarFileName:= FHostName+'-'+FormatDateTime('yyyymmddhhmm',Now)+'.tar.gz';
   getdir(0,OldDir);
   Chdir(FOutputDir);
-  
+
   C:=TGZFileStream.Create(TarFileName,gzOpenWrite);
   TarWriter := TTarWriter.Create (C);
   CurrentDate := Now;

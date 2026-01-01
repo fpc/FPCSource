@@ -624,7 +624,7 @@ type
   MDITILE_SKIPDISABLED = $0002;
 
 { Static control }
-{ Static Control Mesages }
+{ Static Control Messages }
   STM_SETICON = (WM_USER+0);
   STM_GETICON = (WM_USER+1);
 

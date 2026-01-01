@@ -16,7 +16,7 @@
 {$mode objfpc}
 {$H+}
 
-{ Disable rangechecks. 
+{ Disable rangechecks.
   Buffers of unknown size are received and handled with a dummy array type }
 
 {$RANGECHECKS OFF}
@@ -33,7 +33,7 @@ Interface
 
 {$IFDEF FPC_DOTTEDUNITS}
 uses
-  System.Classes,System.SysUtils, FpWeb.Http.Defs, 
+  System.Classes,System.SysUtils, FpWeb.Http.Defs,
 {$ifdef Unix}
   UnixApi.Base,
 {$else}
@@ -42,7 +42,7 @@ uses
   System.Net.Sockets, FpWeb.Handler, FpWeb.Cgi.Protocol, FpWeb.Http.Protocol, FpWeb.HostApp.Custom.Cgi, Api.Fastcgi;
 {$ELSE FPC_DOTTEDUNITS}
 uses
-  Classes,SysUtils, httpdefs, 
+  Classes,SysUtils, httpdefs,
 {$ifdef unix}
   BaseUnix,
 {$else}
@@ -207,7 +207,7 @@ ResourceString
   SErrReadingHeader = 'Failed to read FastCGI header. Read only %d bytes';
   SErrWritingSocket = 'Failed to write data to socket. Error: %d';
   SErrNoRequest     = 'Internal error: No request available when writing data';
-  
+
 Implementation
 
 {$IFDEF FPC_DOTTEDUNITS}
@@ -245,7 +245,7 @@ Type
   end;
 {$ENDIF}
 
-Const 
+Const
    NoSignalAttr =  {$ifdef nosignal} MSG_NOSIGNAL{$else}0{$endif};
 
 {$IFDEF WINDOWS}
@@ -461,7 +461,7 @@ var ErrorCode,
     BytesWritten  : Integer;
     P : PByte;
     r : TFCGIRequest;
-    
+
 begin
   if Not (Request is TFCGIRequest) then
     TFCgiHandler.DoError(SErrNorequest);

@@ -21,7 +21,7 @@ database available. If not, you must run
   rmdb databasename
 manually. You need create permission on the database for this to work.
 
-Win32 users: There are multiple .dll files circulating around. 
+Win32 users: There are multiple .dll files circulating around.
 you should fix the statement
 mysqllib = 'libmysql'
 in the mysql unit, so it matches the version you have.

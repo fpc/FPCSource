@@ -343,7 +343,7 @@ function apr_table_overlay(t: Papr_table_t;
 type
   apr_table_do_callback_fn_t = function (rec: Pointer;
    const key, value: PAnsiChar): Integer;
-   
+
   Papr_table_do_callback_fn_t = ^apr_table_do_callback_fn_t;
 
 {
@@ -434,7 +434,7 @@ procedure apr_table_overlap(a: Papr_table_t;
  external LibAPR name LibNamePrefix + 'apr_table_overlap' + LibSuff12;
 
 {
- * Eliminate redunandant entries in a table by either overwriting
+ * Eliminate redundant entries in a table by either overwriting
  * or merging duplicates
  *
  * @param t Table.

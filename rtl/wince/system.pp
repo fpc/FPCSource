@@ -1063,7 +1063,7 @@ var
   i : longint;
 begin
   result:=false;
-  { read memory savely without causing another exeception }
+  { read memory safely without causing another exeception }
   if not(ReadProcessMemory(GetCurrentProcess,p,@a,sizeof(a),nil)) then
     exit;
   i:=0;
@@ -1421,7 +1421,7 @@ begin
 end;
 
 {****************************************************************************
-                      OS dependend widestrings
+                      OS dependent widestrings
 ****************************************************************************}
 
 function CharUpperBuff(lpsz:LPWSTR; cchLength:DWORD):DWORD; cdecl; external KernelDLL name 'CharUpperBuffW';
@@ -1534,7 +1534,7 @@ function WinCEGetStandardCodePage(const stdcp: TStandardCodePageEnum): TSystemCo
     end;
   end;
 
-{ there is a similiar procedure in sysutils which inits the fields which
+{ there is a similar procedure in sysutils which inits the fields which
   are only relevant for the sysutils units }
 procedure InitWinCEWidestrings;
   begin

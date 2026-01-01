@@ -272,7 +272,7 @@ const
 
 
 {
- * AEEventSource is defined as an SInt8 for compatability with pascal.
+ * AEEventSource is defined as an SInt8 for compatibility with pascal.
  * Important note: keyEventSourceAttr is returned by AttributePtr as a typeShortInteger.
  * Be sure to pass at least two bytes of storage to AEGetAttributePtr - the result can be
  * compared directly against the following enums.
@@ -546,7 +546,7 @@ type
  *    Create a Remote Process List Resolver object.  The allocator is
  *    used for any CoreFoundation types created or returned by this
  *    API.  The resulting object can be scheduled on a run loop, or
- *    queried synchronously.  Once the object has retreived results
+ *    queried synchronously.  Once the object has retrieved results
  *    from the server, or got an error doing so, it will not re-fetch
  *    the data.  To retrieve a new list of processes, create a new
  *    instance of this object.

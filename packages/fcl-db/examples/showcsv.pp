@@ -17,7 +17,7 @@ Var
   F : TField;
 
 begin
-  if (paramcount=0) or (paramstr(1)='-h') then 
+  if (paramcount=0) or (paramstr(1)='-h') then
     usage;
   if (Paramstr(1)='-c') then
     begin
@@ -26,7 +26,7 @@ begin
     end
   else if ParamCount<>1 then
     Usage
-  else   
+  else
     FN:=Paramstr(1);
   With TCSVDataset.Create(Nil) do
     try
@@ -40,9 +40,9 @@ begin
           if (Column='') or (Column=F.FIeldName) then
             Write(' ',F.AsString);
         Writeln;
-        Next;  
-        end;      
+        Next;
+        end;
     finally
       Free;
-    end;    
+    end;
 end.

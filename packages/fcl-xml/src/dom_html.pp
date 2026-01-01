@@ -1198,14 +1198,14 @@ type
     function NodeFilter(aNode: TDOMNode): TFilterResult; override;
   public
     constructor Create(aNode: TDOMNode; const aFilter: DOMString);
-  end;  
+  end;
 
 constructor TByClassNameNodeList.Create(aNode: TDOMNode;
   const aFilter: DOMString);
 begin
   inherited Create(aNode);
   FFilter := aFilter;
-end; 
+end;
 
 function TByClassNameNodeList.NodeFilter(aNode: TDOMNode): TFilterResult;
 begin
@@ -1213,7 +1213,7 @@ begin
     Result := frTrue
   else
     Result := frFalse;
-end; 
+end;
 
 function THTMLDocument.GetAnchors: THTMLCollection;
 begin
@@ -1283,7 +1283,7 @@ end;
 function THTMLDocument.GetElementsByClassName(const ElementName: DOMString): TDOMNodeList;
 begin
   Result := TByClassNameNodeList.Create(Self, ElementName);
-end; 
+end;
 
 function THTMLDocument.CreateElement(const tagName: DOMString; UseSpecificClass : Boolean = True): THTMLElement;
 

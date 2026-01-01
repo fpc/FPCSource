@@ -20,7 +20,7 @@ end;
 begin
   if TFontmapper.find('Courier New','bold italic',lst) then
     dump(lst);
-  
+
   if TFontmapper.find('Arial','',lst) then
     dump(lst);
 
@@ -29,6 +29,6 @@ begin
 
   if TFontmapper.find('FreeSans','italic',lst) then
     dump(lst);
- 
+
 
 end.

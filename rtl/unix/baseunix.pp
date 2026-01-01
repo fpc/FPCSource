@@ -94,7 +94,7 @@ Uses {$IFDEF FPC_DOTTEDUNITS}BsdApi.{$ENDIF}SysCtl;
   {$i settimeo.inc}
 {$endif}
 
-{$i osmacro.inc}        { macro implenenations }
+{$i osmacro.inc}        { macro implementations }
 {$i bunxovl.inc}        { redefs and overloads implementation }
 
 {$ifdef FPC_HAS_SETSYSNR_INC}

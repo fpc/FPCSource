@@ -8,7 +8,7 @@
      blue: word;
      alpha: word;
    end;
-   
+
    PPXRectangle = ^PXRectangle;
 {$ENDIF read_forward_definitions}
 

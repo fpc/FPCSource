@@ -34,9 +34,9 @@ uses
   Classes, SysUtils;
 {$ENDIF FPC_DOTTEDUNITS}
 
-const 
+const
   CHMPackageVersion = '3.3.1'; // to be put in readme
-  
+
 type
   {$PACKRECORDS C}
   TITSFHeader= record
@@ -51,12 +51,12 @@ type
     PosFromZero: QWord;
     Length: QWord;
   end;
-  
+
   //Version 3 has this qword. 2 does not
   TITSFHeaderSuffix = record
     Offset: QWord; // offset within file of content section 0
   end;
-  
+
   TITSPHeaderPrefix = record
     Unknown1: LongWord;// = $01FE
     Unknown2: LongWord;// = 0
@@ -64,7 +64,7 @@ type
     Unknown3: LongWord;// =0
     Unknown4: LongWord;// =0
   end;
-  
+
   TITSPHeader = record
     ITSPsig: array [0..3] of AnsiChar; // = 'ITSP'
     Version: LongWord;             // =1
@@ -85,9 +85,9 @@ type
     Unknown4: LongInt; // = -1
     Unknown5: LongInt; // = -1
   end;
-  
+
   TDirChunkType = (ctPMGL, ctPMGI, ctAOLL, ctAOLI, ctUnknown);
-  
+
   TPMGListChunk = record
     PMGLsig: array [0..3] of AnsiChar;
     UnusedSpace: Longword; ///!!! this value can also represent the size of quickref area in the end of the chunk
@@ -99,28 +99,28 @@ type
 
   PPMGListChunkEntry = ^TPMGListChunkEntry;
   TPMGListChunkEntry = record
-    //NameLength: LongInt; we don't need this permanantly so I've moved it to a temp var
+    //NameLength: LongInt; we don't need this permanently so I've moved it to a temp var
     Name: String;
     ContentSection: LongWord;//QWord;
     ContentOffset: QWord;
     DecompressedLength: QWord;
   end;
-  
+
   TPMGIIndexChunk = record
     PMGIsig: array [0..3] of AnsiChar;
     UnusedSpace: LongWord; // has a quickref area
   end;
-  
+
   TPMGIIndexChunkEntry = record
     Name: String;
     ListingChunk: DWord;
   end;
 
-  
+
 const
   ITSFHeaderGUID : TGuid = '{7C01FD10-7BAA-11D0-9E0C-00A0C922E6EC}';
   ITSFFileSig: array [0..3] of AnsiChar = 'ITSF';
-  
+
   ITSPHeaderGUID : TGuid = '{5D02926A-212E-11D0-9DF9-00A0C922E6EC}';
   ITSPHeaderSig: array [0..3] of AnsiChar = 'ITSP';
 
@@ -130,7 +130,7 @@ const
   // returns the number of bytes written to the stream
   function WriteCompressedInteger(const Stream: TStream; ANumber: DWord): DWord;
   function WriteCompressedInteger(Buffer: Pointer; ANumber: DWord): DWord;
-  
+
   // stupid needed function
   function ChmCompareText(const S1, S2: String): Integer; inline;
 
@@ -200,7 +200,7 @@ begin
   end;
 
   {$pop}
-  
+
   buf := @Value;
   Result := TheEnd+1;
   Move(Value, Buffer^, Result);

@@ -433,7 +433,7 @@ function CGWarpMouseCursorPosition( newCursorPosition: CGPoint ): CGError; exter
    dead" problems.
 
    Mouse-down conditions of arbitrary length may be produced deliberately,
-   as when scrolling through a lengthly document. }
+   as when scrolling through a lengthy document. }
 
 {$endc}
 

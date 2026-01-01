@@ -26,9 +26,9 @@ begin
     P.Email := '';
     P.Description := 'This package provides an interface with Common UNIX Printing System.';
     P.NeedLibC:= false;  // true for headers that indirectly link to libc?
-    
+
     P.Dependencies.Add('rtl-extra');
-    
+
     P.SourcePath.Add('src');
 
     T:=P.Targets.AddUnit('cupsdyn.pp');

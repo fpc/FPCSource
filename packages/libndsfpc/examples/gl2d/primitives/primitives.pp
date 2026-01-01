@@ -1,6 +1,6 @@
 (*
   Easy GL2D
-  Relminator 2011 
+  Relminator 2011
   Richard Eric M. Lope BSN RN
   Http://Rel.Phatcode.Net
   A very small, simple, yet very fast DS 2D rendering lib using the DS' 3D core.
@@ -35,7 +35,7 @@ begin
 		red   := abs(sinLerp(frame * 220) * 31) shr 12;
 		green := abs(sinLerp(frame * 140) * 31) shr 12;
 		blue  := abs(sinLerp(frame *  40) * 31) shr 12;
-		
+
 		// fill the whole screen with a gradient box
 		glBoxFilledGradient( 0, 0, 255, 191,
 							 RGB15( red,  green,  blue ),
@@ -43,26 +43,26 @@ begin
 							 RGB15( green,  blue, 31 - red ),
 							 RGB15(  31 - green, red, blue )
 						   );
-		
+
 		// draw a black box
 		glBoxFilled( 200, 10,
 					       250, 180,
 					       RGB15(0,0,0)
 				       );
-		
+
 		// draw a border around the black box
 		glBox( 200, 10,
 			     250, 180,
 			     RGB15(0,31,0)
 		     );
-	
+
 		// draw a triangle
 		glTriangleFilled( 20, 100,
 						          200, 30,
 						          60, 40,
 						          RGB15(31,0,31)
 						        );
-	
+
 		// draw a gradient triangle
 		glTriangleFilledGradient( 20, 100,
 								  200, 30,
@@ -101,9 +101,9 @@ begin
     begin
 			x := sar(cosLerp(i * 256) * 80, 12);
 			y := sar(sinLerp(i * 256) * 70, 12);
-			glPutPixel( HALF_WIDTH  + x, 
-                  HALF_HEIGHT + y, 
-                  RGB15(red, green, blue) 
+			glPutPixel( HALF_WIDTH  + x,
+                  HALF_HEIGHT + y,
+                  RGB15(red, green, blue)
                 );
     end;
     }
@@ -131,7 +131,7 @@ begin
 	red   := abs(sinLerp(frame * 220) * 31) shr 12 ;
 	green := abs(sinLerp(frame * 140) * 31) shr 12 ;
 	blue  := abs(sinLerp(frame *  40) * 31) shr 12 ;
-	
+
 	// set up GL2D for 2d mode
 	glBegin2D();
 		// draw a bunch (4096/32) of colored lines
@@ -169,7 +169,7 @@ var
 begin
 	// Elastic radius
 	radius := 40 + (abs(sinLerp(frame * 20) * 80) shr 12);
-	
+
 	// Do some funky color cycling
 	red := abs(sinLerp(frame * 220) * 31) shr 12 ;
 	green := abs(sinLerp(frame * 140) * 31) shr 12 ;
@@ -177,13 +177,13 @@ begin
 
 	// speed opf animation
 	i := (frame * 140) and 32767;
-	
+
 	// duh!
 	angle := 0;
-	
+
 	// set up GL2D for 2d mode
 	glBegin2D();
-		// Draw a full revolution of some radially dispalced pixels
+		// Draw a full revolution of some radially displaced pixels
 		for angle := 0 to 512 do
 		begin
 			a2 := (angle * 64) + i;
@@ -193,13 +193,13 @@ begin
 			y := sinLerp(x div 64 + a2) * radius;
 			x2 := -y;
 			y2 := x;
-			
-			glPutPixel( HALF_WIDTH  + SarLongint(x, 12), 
-						      HALF_HEIGHT + SarLongint(y, 12), 
+
+			glPutPixel( HALF_WIDTH  + SarLongint(x, 12),
+						      HALF_HEIGHT + SarLongint(y, 12),
 						      RGB15(red, green, blue)
 					      );
-			glPutPixel( HALF_WIDTH  + SarLongint(x2, 12), 
-						      HALF_HEIGHT + SarLongint(y2, 12), 
+			glPutPixel( HALF_WIDTH  + SarLongint(x2, 12),
+						      HALF_HEIGHT + SarLongint(y2, 12),
 						      RGB15(green, blue, red)
 					      );
 		end;
@@ -217,46 +217,46 @@ var
   frame: integer = 0;
   demonum: integer = 0;
   key: integer;
-  
+
 begin
   defaultExceptionHandler();
-	
+
   // Set it to my favorite mode
 	videoSetMode( MODE_5_3D );
 	consoleDemoInit();
-	
+
 	// Initialize GL in 3d mode
 	glScreen2D();
 	iprintf(#$1b'[1;1HEasy GL2D Primitives Example');
 	iprintf(#$1b'[3;1HRelminator');
 	iprintf(#$1b'[4;1Hhttp://rel.betterwebber.com');
 	iprintf(#$1b'[6;1HPress Arrow keys to Change FX');
-	
+
 	while true do
-	begin	
-		// increment frame counter 
+	begin
+		// increment frame counter
 		inc(frame);
-		
+
 		// get input
 		scanKeys();
 		key := keysDown();
-		
-		
+
+
 		// process input
 		if ((key and KEY_DOWN) <> 0) or ((key and KEY_RIGHT) <> 0) then
 			demonum := (demonum + 1) mod 3;
-		
+
 		if ((key and KEY_UP) <> 0) or ((key and KEY_LEFT) <> 0) then
 		begin
 			dec(demonum);
-			if demonum < 0 then 
+			if demonum < 0 then
         demonum := 2;
 		end;
 
 		// figure out what demo should be viewed
 		case demonum of
 			0: pixels(frame);
-			1: lines(frame); 
+			1: lines(frame);
       2: simple(frame);
 		else
 			pixels(frame);

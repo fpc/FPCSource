@@ -22,7 +22,7 @@ interface
 uses
 {$IFNDEF FPC_DOTTEDUNITS}
   Math, Classes, FPImage, FPCanvas, PixTools;
-{$ELSE}  
+{$ELSE}
   System.Math, System.Classes, FpImage, FpImage.Canvas, FpImage.PixelTools;
 {$ENDIF}
 

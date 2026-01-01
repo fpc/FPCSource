@@ -101,7 +101,7 @@ type
     destructor Destroy; override;
     property MachineType : integer read fMachineType;
   end;
-  
+
 (*
 Almost all differences in 32 and 64 bit elf files lie in record sizes.
 Generics don't work with record types, so use macros to do this task

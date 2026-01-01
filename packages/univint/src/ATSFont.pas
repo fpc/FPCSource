@@ -262,7 +262,7 @@ const
 
 { Iteration Option Flags }
 const
-	kATSOptionFlagsIterateByPrecedenceMask = $00000001 shl 5; { Fonts returned from highest to lowest precedece }
+	kATSOptionFlagsIterateByPrecedenceMask = $00000001 shl 5; { Fonts returned from highest to lowest precede }
 	kATSOptionFlagsIncludeDisabledMask = $00000001 shl 7; { Disabled Fonts will show up in iteration, also valid for ATSFontFindFromContainer }
 	kATSOptionFlagsIterationScopeMask = $00000007 shl 12; { Mask option bits 12-14 for iteration scopes }
 	kATSOptionFlagsDefaultScope = $00000000 shl 12;
@@ -1350,7 +1350,7 @@ const
 {
    * The message ID for a font request query. The data for a message
    * with this ID is a flattened CFDictionaryRef with keys and values
-   * as decribed below. A query dictionary may have any or all of these
+   * as described below. A query dictionary may have any or all of these
    * entries.
    }
 	kATSQueryActivateFontMessage = FourCharCode('atsa');

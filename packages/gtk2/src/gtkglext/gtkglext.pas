@@ -37,9 +37,9 @@ uses Glib2, Gdk2, Gtk2, GdkGLExt;
 {$ENDIF FPC_DOTTEDUNITS}
 
 const
-  GtkGLExtLib = 
+  GtkGLExtLib =
     {$ifdef WINDOWS} 'libgtkglext-win32-1.0-0.dll'
-    {$else}        
+    {$else}
       {$ifdef DARWIN}
         'gtkglext-x11-1.0'
         {$linklib gtkglext-x11-1.0}

@@ -15,7 +15,7 @@ uses SysUtils,dynlibs;
 Var
   LibUUIDName : String = 'libuuid.so.1';
   ProcName    : String = 'uuid_generate_time';
-  
+
 function CCreateGUID(out Guid: TGUID): HResult;
 
 Implementation

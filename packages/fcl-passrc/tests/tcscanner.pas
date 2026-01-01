@@ -485,9 +485,9 @@ begin
   FResolver.OwnsStreams:=True;
   FScanner:=TTestingPascalScanner.Create(FResolver);
   // Do nothing
-end; 
+end;
 
-procedure TTestScanner.TearDown; 
+procedure TTestScanner.TearDown;
 begin
   FreeAndNil(FScanner);
   FreeAndNil(FResolver);

@@ -31,7 +31,7 @@ end;
 function Test_max(clientData: Tcl_ClientData;  {* Some user defined data. *}
                   interp: PTcl_Interp;         {* Pointer to Tcl interpreter *}
                   argc: integer;               {* Arguments counter, arguments, etc *}
-                  argv: Tcl_Argv): longint;    {* Remeber! *NIX `integer` type is 16 bit! *}
+                  argv: Tcl_Argv): longint;    {* Remember! *NIX `integer` type is 16 bit! *}
                   cdecl;                       {* C calling convention *}
 var
    arg    : PAnsiChar;

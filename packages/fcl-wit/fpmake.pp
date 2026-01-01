@@ -34,7 +34,7 @@ begin
     P.SourcePath.Add('src');
 
     T:=P.Targets.AddUnit('wit.model.pp');
-    
+
     T:=P.Targets.AddUnit('wit.scanner.pp');
     T.ResourceStrings:=true;
 
@@ -45,7 +45,7 @@ begin
       AddUnit('wit.model');
       AddUnit('wit.scanner');
       end;
-      
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

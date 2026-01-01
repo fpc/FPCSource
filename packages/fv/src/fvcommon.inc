@@ -11,7 +11,7 @@
 {                                                          }
 {****************[ THIS CODE IS FREEWARE ]*****************}
 {                                                          }
-{     This sourcecode is released for the purpose to       }
+{     This source code is released for the purpose to      }
 {   promote the pascal language on all platforms. You may  }
 {   redistribute it and/or modify with the following       }
 {   DISCLAIMER.                                            }
@@ -294,7 +294,7 @@ CONST
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
 
 {$IFDEF PPC_DELPHI3}                                  { DELPHI 3+ COMPILER }
-USES WinTypes, WinProcs;                              { Stardard units }
+USES WinTypes, WinProcs;                              { Standard units }
 {$ENDIF}
 
 {***************************************************************************}

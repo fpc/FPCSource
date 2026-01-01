@@ -3,7 +3,7 @@
     Copyright (c) 2000 by Marco van de Voort(marco@freepascal.org)
     member of the Free Pascal development team
 
-    libiconv header translation + a helper routine  
+    libiconv header translation + a helper routine
     http://wiki.freepascal.org/iconvenc
 
     See the file COPYING.FPC, included in this distribution,
@@ -55,7 +55,7 @@ type
    {$endif}
  {$define useiconv}
 {$endif linux}
-          
+
 Const
 {$ifndef useiconv}
   libiconvname='c';  // is in libc under Linux.
@@ -68,11 +68,11 @@ Const
 {$endif}
 
 {$if (defined(darwin) and defined(cpupowerpc32)) or defined(haiku)}
-  iconvprefix='lib';  
+  iconvprefix='lib';
 {$else}
   iconvprefix='';
 {$endif}
-                           
+
 function iconv_open(__tocode: PAnsiChar; __fromcode: PAnsiChar): iconv_t; cdecl; external libiconvname name iconvprefix+'iconv_open';
 function iconv (__cd: iconv_t; __inbuf: PPAnsiChar; __inbytesleft: psize_t; __outbuf: PPAnsiChar; __outbytesleft: psize_t): size_t; cdecl; external libiconvname name iconvprefix+'iconv';
 function iconv_close (__cd: iconv_t): cint; cdecl; external libiconvname name iconvprefix+'iconv_close';

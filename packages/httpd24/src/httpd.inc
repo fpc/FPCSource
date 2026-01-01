@@ -32,18 +32,18 @@
 const
 {$ifdef OS2}
   {* Set default for OS/2 file system  }
-    HTTPD_ROOT = '/os2httpd';    
+    HTTPD_ROOT = '/os2httpd';
 {$else}
   {$ifdef WIN32}
   {* Set default for Windows file system  }
-    HTTPD_ROOT = '/apache';    
+    HTTPD_ROOT = '/apache';
   {$else}
     {$ifdef NETWARE}
   {* Set the default for NetWare  }
-    HTTPD_ROOT = '/apache';    
+    HTTPD_ROOT = '/apache';
    {$else}
   {* Set for all other OSs  }
-    HTTPD_ROOT = '/usr/local/apache';    
+    HTTPD_ROOT = '/usr/local/apache';
     {$endif}
   {$endif}
 {$endif}
@@ -67,39 +67,39 @@ const
 {$endif}
 
     {* Maximum number of dynamically loaded modules  }
-    DYNAMIC_MODULE_LIMIT = 256;      
+    DYNAMIC_MODULE_LIMIT = 256;
 
     {* Default administrator's address  }
-    DEFAULT_ADMIN = '[no address given]';      
+    DEFAULT_ADMIN = '[no address given]';
 
     {* The name of the log files  }
-    DEFAULT_ERRORLOG = 'logs/error_log';      
+    DEFAULT_ERRORLOG = 'logs/error_log';
 
     {* Define this to be what your per-directory security files are called  }
 {$ifdef OS2}
     { Set default for OS/2 file system  }
-    DEFAULT_ACCESS_FNAME = 'htaccess';      
+    DEFAULT_ACCESS_FNAME = 'htaccess';
 {$else}
-    DEFAULT_ACCESS_FNAME = '.htaccess';      
+    DEFAULT_ACCESS_FNAME = '.htaccess';
 {$endif}
 
     {* The name of the server config file  }
-    SERVER_CONFIG_FILE = 'conf/httpd.conf';      
+    SERVER_CONFIG_FILE = 'conf/httpd.conf';
 
     {* The default path for CGI scripts if none is currently set  }
-    DEFAULT_PATH = '/bin:/usr/bin:/usr/ucb:/usr/bsd:/usr/local/bin';      
+    DEFAULT_PATH = '/bin:/usr/bin:/usr/ucb:/usr/bsd:/usr/local/bin';
 
     {* The path to the suExec wrapper, can be overridden in Configuration  }
     SUEXEC_BIN = HTTPD_ROOT + '/bin/suexec';
 
     {* The timeout for waiting for messages  }
-    DEFAULT_TIMEOUT = 60;      
+    DEFAULT_TIMEOUT = 60;
 
     {* The timeout for waiting for keepalive timeout until next request  }
-    DEFAULT_KEEPALIVE_TIMEOUT = 5;      
+    DEFAULT_KEEPALIVE_TIMEOUT = 5;
 
     {* The number of requests to entertain per connection  }
-    DEFAULT_KEEPALIVE = 100;      
+    DEFAULT_KEEPALIVE = 100;
 
     {
      * Limits on the size of various request items.  These limits primarily
@@ -119,50 +119,50 @@ const
      * the server config directive LimitRequestFields.
       }
     {* default limit on bytes in Request-Line (Method+URI+HTTP-version)  }
-    DEFAULT_LIMIT_REQUEST_LINE = 8190;      
+    DEFAULT_LIMIT_REQUEST_LINE = 8190;
 
     {* default limit on bytes in any one header field   }
-    DEFAULT_LIMIT_REQUEST_FIELDSIZE = 8190;      
+    DEFAULT_LIMIT_REQUEST_FIELDSIZE = 8190;
 
     {* default limit on number of request header fields  }
-    DEFAULT_LIMIT_REQUEST_FIELDS = 100;      
+    DEFAULT_LIMIT_REQUEST_FIELDS = 100;
 
     {*
      * The default default character set name to add if AddDefaultCharset is
      * enabled.  Overridden with AddDefaultCharsetName.
       }
-    DEFAULT_ADD_DEFAULT_CHARSET_NAME = 'iso-8859-1';      
+    DEFAULT_ADD_DEFAULT_CHARSET_NAME = 'iso-8859-1';
 
     {* default HTTP Server protocol  }
-    AP_SERVER_PROTOCOL = 'HTTP/1.1';      
+    AP_SERVER_PROTOCOL = 'HTTP/1.1';
 
     { ------------------ stuff that modules are allowed to look at -----------  }
     {* Define this to be what your HTML directory content files are called  }
-    AP_DEFAULT_INDEX = 'index.html';      
+    AP_DEFAULT_INDEX = 'index.html';
 
     {* The name of the MIME types file  }
-    AP_TYPES_CONFIG_FILE = 'conf/mime.types';      
+    AP_TYPES_CONFIG_FILE = 'conf/mime.types';
 
     {
      * Define the HTML doctype strings centrally.
       }
     {* HTML 2.0 Doctype  }
-    DOCTYPE_HTML_2_0 = '<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN">' + LineEnding;      
+    DOCTYPE_HTML_2_0 = '<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN">' + LineEnding;
 
     {* HTML 3.2 Doctype  }
-    DOCTYPE_HTML_3_2 = '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">' + LineEnding;      
+    DOCTYPE_HTML_3_2 = '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">' + LineEnding;
 
     {* HTML 4.0 Strict Doctype  }
     DOCTYPE_HTML_4_0S = '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN"' + LineEnding +
-                        'http://www.w3.org/TR/REC-html40/strict.dtd">' + LineEnding;      
+                        'http://www.w3.org/TR/REC-html40/strict.dtd">' + LineEnding;
 
     {* HTML 4.0 Transitional Doctype  }
     DOCTYPE_HTML_4_0T = '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"' + LineEnding +
-                        '"http://www.w3.org/TR/REC-html40/loose.dtd">' + LineEnding;      
+                        '"http://www.w3.org/TR/REC-html40/loose.dtd">' + LineEnding;
 
     {* HTML 4.0 Frameset Doctype  }
     DOCTYPE_HTML_4_0F = '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Frameset//EN"' + LineEnding +
-                        '"http://www.w3.org/TR/REC-html40/frameset.dtd">' + LineEnding;      
+                        '"http://www.w3.org/TR/REC-html40/frameset.dtd">' + LineEnding;
 
     {* XHTML 1.0 Strict Doctype  }
     DOCTYPE_XHTML_1_0S = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"' + LineEnding +
@@ -170,7 +170,7 @@ const
 
     {* XHTML 1.0 Transitional Doctype  }
     DOCTYPE_XHTML_1_0T = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"' + LineEnding +
-                         '"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">' + LineEnding;      
+                         '"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">' + LineEnding;
 
     {* XHTML 1.0 Frameset Doctype  }
     DOCTYPE_XHTML_1_0F = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Frameset//EN"' + LineEnding +
@@ -179,8 +179,8 @@ const
     {* Internal representation for a HTTP protocol number, e.g., HTTP/1.1  }
     { was #define dname(params) para_def_expr }
     { argument types are unknown }
-    { return type might be wrong }   
-    function HTTP_VERSION(major,minor : Integer) : Integer;    
+    { return type might be wrong }
+    function HTTP_VERSION(major,minor : Integer) : Integer;
 
     {* Major part of HTTP protocol  }
     function HTTP_VERSION_MAJOR(number : Integer) : Integer;
@@ -191,9 +191,9 @@ const
     { -------------- Port number for server running standalone ---------------  }
     const
     {* default HTTP Port  }
-      DEFAULT_HTTP_PORT = 80;      
+      DEFAULT_HTTP_PORT = 80;
     {* default HTTPS Port  }
-      DEFAULT_HTTPS_PORT = 443;      
+      DEFAULT_HTTPS_PORT = 443;
     {*
      * Check whether @a port is the default port for the request @a r.
      * @param port The port number
@@ -202,8 +202,8 @@ const
       }
     { was #define dname(params) para_def_expr }
     { argument types are unknown }
-    { return type might be wrong }   
-//    function ap_is_default_port(port,r : longint) : longint;    
+    { return type might be wrong }
+//    function ap_is_default_port(port,r : longint) : longint;
 
   {*
    * Get the default port for a request (which depends on the scheme).
@@ -211,8 +211,8 @@ const
     }
   { was #define dname(params) para_def_expr }
   { argument types are unknown }
-  { return type might be wrong }   
-//  function ap_default_port(r : longint) : longint;  
+  { return type might be wrong }
+//  function ap_default_port(r : longint) : longint;
 
   {*
    * Get the scheme for a request.
@@ -220,30 +220,30 @@ const
     }
   { was #define dname(params) para_def_expr }
   { argument types are unknown }
-  { return type might be wrong }   
-//  function ap_http_scheme(r : longint) : longint;  
+  { return type might be wrong }
+//  function ap_http_scheme(r : longint) : longint;
 
   const
   {* The length of a Huge string  }
     HUGE_STRING_LEN = 8192;
 
   {* The default string length  }
-    MAX_STRING_LEN = HUGE_STRING_LEN;    
+    MAX_STRING_LEN = HUGE_STRING_LEN;
 
   {* The size of the server's internal read-write buffers  }
-    AP_IOBUFSIZE = 8192;    
+    AP_IOBUFSIZE = 8192;
 
   {* The max number of regex captures that can be expanded by ap_pregsub  }
-    AP_MAX_REG_MATCH = 10;    
+    AP_MAX_REG_MATCH = 10;
 
   {*
    * APR_HAS_LARGE_FILES introduces the problem of spliting sendfile into
-   * mutiple buckets, no greater than MAX(apr_size_t), and more granular
+   * multiple buckets, no greater than MAX(apr_size_t), and more granular
    * than that in case the brigade code/filters attempt to read it directly.
    * ### 16mb is an invention, no idea if it is reasonable.
     }
   { 2^24  }
-    AP_MAX_SENDFILE = 16777216;    
+    AP_MAX_SENDFILE = 16777216;
 
   {*
    * MPM child process exit status values
@@ -251,27 +251,27 @@ const
    * error handling is required.
     }
   {* a normal exit  }
-    APEXIT_OK = $0;    
+    APEXIT_OK = $0;
 
   {* A fatal error arising during the server's init sequence  }
-    APEXIT_INIT = $2;    
+    APEXIT_INIT = $2;
 
   {*  The child died during its init sequence  }
-    APEXIT_CHILDINIT = $3;    
+    APEXIT_CHILDINIT = $3;
 
   {*
    *   The child exited due to a resource shortage.
    *   The parent should limit the rate of forking until
    *   the situation is resolved.
     }
-    APEXIT_CHILDSICK = $7;    
+    APEXIT_CHILDSICK = $7;
 
   {*
    *     A fatal error, resulting in the whole server aborting.
    *     If a child exits with this error, the parent process
    *     considers this a server-wide fatal error and aborts.
     }
-    APEXIT_CHILDFATAL = $f;    
+    APEXIT_CHILDFATAL = $f;
 
   {*
    * Stuff marked #AP_DECLARE is part of the API, and intended for use
@@ -280,49 +280,49 @@ const
     }
   { was #define dname(params) para_def_expr }
   { argument types are unknown }
-  { return type might be wrong }   
-//  function AP_DECLARE(_type : longint) : longint;  
+  { return type might be wrong }
+//  function AP_DECLARE(_type : longint) : longint;
 
   {*
    * Stuff marked #AP_DECLARE_NONSTD is part of the API, and intended for
    * use by modules.  The difference between #AP_DECLARE and
    * #AP_DECLARE_NONSTD is that the latter is required for any functions
    * which use varargs or are used via indirect function call.  This
-   * is to accomodate the two calling conventions in windows dlls.
+   * is to accommodate the two calling conventions in windows dlls.
     }
   { was #define dname(params) para_def_expr }
   { argument types are unknown }
-  { return type might be wrong }   
-//  function AP_DECLARE_NONSTD(_type : longint) : longint;  
+  { return type might be wrong }
+//  function AP_DECLARE_NONSTD(_type : longint) : longint;
 
 
-{$define AP_DECLARE_DATA}  
-
-  { was #define dname(params) para_def_expr }
-  { argument types are unknown }
-  { return type might be wrong }   
-//  function AP_MODULE_DECLARE(_type : longint) : longint;  
+{$define AP_DECLARE_DATA}
 
   { was #define dname(params) para_def_expr }
   { argument types are unknown }
-  { return type might be wrong }   
-//  function AP_MODULE_DECLARE_NONSTD(_type : longint) : longint;  
+  { return type might be wrong }
+//  function AP_MODULE_DECLARE(_type : longint) : longint;
 
-{$define AP_MODULE_DECLARE_DATA}  
+  { was #define dname(params) para_def_expr }
+  { argument types are unknown }
+  { return type might be wrong }
+//  function AP_MODULE_DECLARE_NONSTD(_type : longint) : longint;
+
+{$define AP_MODULE_DECLARE_DATA}
 
   {*
    * @internal
    * modules should not use functions marked AP_CORE_DECLARE
     }
 //  const
-//    AP_CORE_DECLARE = AP_DECLARE;    
+//    AP_CORE_DECLARE = AP_DECLARE;
 
   {*
    * @internal
    * modules should not use functions marked AP_CORE_DECLARE_NONSTD
     }
 //  const
-//    AP_CORE_DECLARE_NONSTD = AP_DECLARE_NONSTD;    
+//    AP_CORE_DECLARE_NONSTD = AP_DECLARE_NONSTD;
 
   {*
    * @defgroup APACHE_APR_STATUS_T HTTPD specific values of apr_status_t
@@ -330,10 +330,10 @@ const
     }
 
 //  const
-//    AP_START_USERERR = APR_OS_START_USERERR+2000;    
-//    AP_USERERR_LEN = 1000;    
+//    AP_START_USERERR = APR_OS_START_USERERR+2000;
+//    AP_USERERR_LEN = 1000;
   {* The function declines to handle the request  }
-//    AP_DECLINED = AP_START_USERERR+0;    
+//    AP_DECLINED = AP_START_USERERR+0;
 
   {* @  }
   {*
@@ -415,13 +415,13 @@ const
 
   {* Returned by the bottom-most filter if no data was written.
    *  @see ap_pass_brigade().  }
-    AP_NOBODY_WROTE = -100;    
+    AP_NOBODY_WROTE = -100;
   {* Returned by the bottom-most filter if no data was read.
    *  @see ap_get_brigade().  }
-    AP_NOBODY_READ = -101;    
+    AP_NOBODY_READ = -101;
   {* Returned by any filter if the filter chain encounters an error
    *  and has already dealt with the error response.    }
-    AP_FILTER_ERROR = -102;    
+    AP_FILTER_ERROR = -102;
 
   {*
    * @defgroup HTTP_Status HTTP Status Codes
@@ -433,65 +433,65 @@ const
    * When adding a new code here add it to status_lines as well.
    * A future version should dynamically generate the apr_table_t at startup.
     }
-    RESPONSE_CODES =				83;    
+    RESPONSE_CODES =				83;
 
-    HTTP_CONTINUE =				100;    
-    HTTP_SWITCHING_PROTOCOLS =			101;    
-    HTTP_PROCESSING =				102;    
-    HTTP_OK =					200;    
-    HTTP_CREATED =				201;    
-    HTTP_ACCEPTED =				202;    
-    HTTP_NON_AUTHORITATIVE =			203;    
-    HTTP_NO_CONTENT =				204;    
-    HTTP_RESET_CONTENT =			205;    
-    HTTP_PARTIAL_CONTENT =			206;    
-    HTTP_MULTI_STATUS =				207;    
-    HTTP_ALREADY_REPORTED =			208;    
-    HTTP_IM_USED =				226;    
-    HTTP_MULTIPLE_CHOICES =			300;    
-    HTTP_MOVED_PERMANENTLY =			301;    
-    HTTP_MOVED_TEMPORARILY =			302;    
-    HTTP_SEE_OTHER =				303;    
-    HTTP_NOT_MODIFIED =				304;    
-    HTTP_USE_PROXY =				305;    
-    HTTP_TEMPORARY_REDIRECT =			307;    
-    HTTP_PERMANENT_REDIRECT =			308;    
-    HTTP_BAD_REQUEST =				400;    
-    HTTP_UNAUTHORIZED =				401;    
-    HTTP_PAYMENT_REQUIRED =			402;    
-    HTTP_FORBIDDEN =				403;    
-    HTTP_NOT_FOUND =				404;    
-    HTTP_METHOD_NOT_ALLOWED =			405;    
-    HTTP_NOT_ACCEPTABLE =			406;    
-    HTTP_PROXY_AUTHENTICATION_REQUIRED =	407;    
-    HTTP_REQUEST_TIME_OUT =			408;    
-    HTTP_CONFLICT =				409;    
-    HTTP_GONE =					410;    
-    HTTP_LENGTH_REQUIRED =			411;    
-    HTTP_PRECONDITION_FAILED =			412;    
-    HTTP_REQUEST_ENTITY_TOO_LARGE =		413;    
-    HTTP_REQUEST_URI_TOO_LARGE =		414;    
-    HTTP_UNSUPPORTED_MEDIA_TYPE =		415;    
-    HTTP_RANGE_NOT_SATISFIABLE =		416;    
-    HTTP_EXPECTATION_FAILED =			417;    
-    HTTP_UNPROCESSABLE_ENTITY =			422;    
-    HTTP_LOCKED =				423;    
-    HTTP_FAILED_DEPENDENCY =			424;    
-    HTTP_UPGRADE_REQUIRED =			426;    
-    HTTP_PRECONDITION_REQUIRED =		428;    
-    HTTP_TOO_MANY_REQUESTS =			429;    
-    HTTP_REQUEST_HEADER_FIELDS_TOO_LARGE =	431;    
-    HTTP_INTERNAL_SERVER_ERROR =		500;    
-    HTTP_NOT_IMPLEMENTED =			501;    
-    HTTP_BAD_GATEWAY =				502;    
-    HTTP_SERVICE_UNAVAILABLE =			503;    
-    HTTP_GATEWAY_TIME_OUT =			504;    
-    HTTP_VERSION_NOT_SUPPORTED =		505;    
-    HTTP_VARIANT_ALSO_VARIES =			506;    
-    HTTP_INSUFFICIENT_STORAGE =			507;    
-    HTTP_LOOP_DETECTED =			508;    
-    HTTP_NOT_EXTENDED =				510;    
-    HTTP_NETWORK_AUTHENTICATION_REQUIRED =	511;    
+    HTTP_CONTINUE =				100;
+    HTTP_SWITCHING_PROTOCOLS =			101;
+    HTTP_PROCESSING =				102;
+    HTTP_OK =					200;
+    HTTP_CREATED =				201;
+    HTTP_ACCEPTED =				202;
+    HTTP_NON_AUTHORITATIVE =			203;
+    HTTP_NO_CONTENT =				204;
+    HTTP_RESET_CONTENT =			205;
+    HTTP_PARTIAL_CONTENT =			206;
+    HTTP_MULTI_STATUS =				207;
+    HTTP_ALREADY_REPORTED =			208;
+    HTTP_IM_USED =				226;
+    HTTP_MULTIPLE_CHOICES =			300;
+    HTTP_MOVED_PERMANENTLY =			301;
+    HTTP_MOVED_TEMPORARILY =			302;
+    HTTP_SEE_OTHER =				303;
+    HTTP_NOT_MODIFIED =				304;
+    HTTP_USE_PROXY =				305;
+    HTTP_TEMPORARY_REDIRECT =			307;
+    HTTP_PERMANENT_REDIRECT =			308;
+    HTTP_BAD_REQUEST =				400;
+    HTTP_UNAUTHORIZED =				401;
+    HTTP_PAYMENT_REQUIRED =			402;
+    HTTP_FORBIDDEN =				403;
+    HTTP_NOT_FOUND =				404;
+    HTTP_METHOD_NOT_ALLOWED =			405;
+    HTTP_NOT_ACCEPTABLE =			406;
+    HTTP_PROXY_AUTHENTICATION_REQUIRED =	407;
+    HTTP_REQUEST_TIME_OUT =			408;
+    HTTP_CONFLICT =				409;
+    HTTP_GONE =					410;
+    HTTP_LENGTH_REQUIRED =			411;
+    HTTP_PRECONDITION_FAILED =			412;
+    HTTP_REQUEST_ENTITY_TOO_LARGE =		413;
+    HTTP_REQUEST_URI_TOO_LARGE =		414;
+    HTTP_UNSUPPORTED_MEDIA_TYPE =		415;
+    HTTP_RANGE_NOT_SATISFIABLE =		416;
+    HTTP_EXPECTATION_FAILED =			417;
+    HTTP_UNPROCESSABLE_ENTITY =			422;
+    HTTP_LOCKED =				423;
+    HTTP_FAILED_DEPENDENCY =			424;
+    HTTP_UPGRADE_REQUIRED =			426;
+    HTTP_PRECONDITION_REQUIRED =		428;
+    HTTP_TOO_MANY_REQUESTS =			429;
+    HTTP_REQUEST_HEADER_FIELDS_TOO_LARGE =	431;
+    HTTP_INTERNAL_SERVER_ERROR =		500;
+    HTTP_NOT_IMPLEMENTED =			501;
+    HTTP_BAD_GATEWAY =				502;
+    HTTP_SERVICE_UNAVAILABLE =			503;
+    HTTP_GATEWAY_TIME_OUT =			504;
+    HTTP_VERSION_NOT_SUPPORTED =		505;
+    HTTP_VARIANT_ALSO_VARIES =			506;
+    HTTP_INSUFFICIENT_STORAGE =			507;
+    HTTP_LOOP_DETECTED =			508;
+    HTTP_NOT_EXTENDED =				510;
+    HTTP_NETWORK_AUTHENTICATION_REQUIRED =	511;
 
   {* is the status code informational  }
   function ap_is_HTTP_INFO(x : Integer): Boolean;
@@ -499,37 +499,37 @@ const
   {* is the status code OK ? }
   { was #define dname(params) para_def_expr }
   { argument types are unknown }
-  { return type might be wrong }   
+  { return type might be wrong }
   function ap_is_HTTP_SUCCESS(x : Integer): Boolean;
 
   {* is the status code a redirect  }
   { was #define dname(params) para_def_expr }
   { argument types are unknown }
-  { return type might be wrong }   
+  { return type might be wrong }
   function ap_is_HTTP_REDIRECT(x : Integer): Boolean;
 
   {* is the status code a error (client or server)  }
   { was #define dname(params) para_def_expr }
   { argument types are unknown }
-  { return type might be wrong }   
+  { return type might be wrong }
   function ap_is_HTTP_ERROR(x : Integer): Boolean;
 
   {* is the status code a client error   }
   { was #define dname(params) para_def_expr }
   { argument types are unknown }
-  { return type might be wrong }   
+  { return type might be wrong }
   function ap_is_HTTP_CLIENT_ERROR(x : Integer): Boolean;
 
   {* is the status code a server error   }
   { was #define dname(params) para_def_expr }
   { argument types are unknown }
-  { return type might be wrong }   
+  { return type might be wrong }
   function ap_is_HTTP_SERVER_ERROR(x : Integer): Boolean;
 
   {* is the status code a (potentially) valid response code?   }
   { was #define dname(params) para_def_expr }
   { argument types are unknown }
-  { return type might be wrong }   
+  { return type might be wrong }
   function ap_is_HTTP_VALID_RESPONSE(x : Integer): Boolean;
 
   {* should the status code drop the connection  }
@@ -552,43 +552,43 @@ const
   const
     M_GET =			0;      {* RFC 2616: HTTP  }
     M_PUT =			1;      {  :              }
-    M_POST =			2;      
-    M_DELETE =			3;      
-    M_CONNECT =			4;      
-    M_OPTIONS =			5;      
+    M_POST =			2;
+    M_DELETE =			3;
+    M_CONNECT =			4;
+    M_OPTIONS =			5;
     M_TRACE =			6;      {* RFC 2616: HTTP  }
     M_PATCH =			7;      {* no rfc(!)  ### remove this one?  }
     M_PROPFIND =		8;      {* RFC 2518: WebDAV  }
     M_PROPPATCH =		9;      {  :                }
-    M_MKCOL =			10;      
-    M_COPY =			11;      
-    M_MOVE =			12;      
-    M_LOCK =			13;      
+    M_MKCOL =			10;
+    M_COPY =			11;
+    M_MOVE =			12;
+    M_LOCK =			13;
     M_UNLOCK =			14;     {* RFC 2518: WebDAV  }
     M_VERSION_CONTROL =		15;     {* RFC 3253: WebDAV Versioning  }
     M_CHECKOUT =		16;     {  :                           }
-    M_UNCHECKOUT =		17;      
-    M_CHECKIN =			18;      
-    M_UPDATE =			19;      
-    M_LABEL =			20;      
-    M_REPORT =			21;      
-    M_MKWORKSPACE =		22;      
-    M_MKACTIVITY =		23;      
-    M_BASELINE_CONTROL =	24;      
-    M_MERGE =			25;      
+    M_UNCHECKOUT =		17;
+    M_CHECKIN =			18;
+    M_UPDATE =			19;
+    M_LABEL =			20;
+    M_REPORT =			21;
+    M_MKWORKSPACE =		22;
+    M_MKACTIVITY =		23;
+    M_BASELINE_CONTROL =	24;
+    M_MERGE =			25;
     M_INVALID =			26;     {* no valid method  }
 
     {*
      * METHODS needs to be equal to the number of bits
      * we are using for limit masks.
       }
-    METHODS = 64;      
+    METHODS = 64;
     {*
      * The method mask bit to shift for anding with a bitmask.
       }
 
     { was #define dname def_expr }
-    AP_METHOD_BIT = apr_int64_t(1);      
+    AP_METHOD_BIT = apr_int64_t(1);
 
   {* @see ap_method_list_t  }
   type
@@ -613,23 +613,23 @@ const
     }
   const
   {* Magic for mod_cgi[d]  }
-    CGI_MAGIC_TYPE = 'application/x-httpd-cgi';    
+    CGI_MAGIC_TYPE = 'application/x-httpd-cgi';
   {* Magic for mod_include  }
-    INCLUDES_MAGIC_TYPE = 'text/x-server-parsed-html';    
+    INCLUDES_MAGIC_TYPE = 'text/x-server-parsed-html';
   {* Magic for mod_include  }
-    INCLUDES_MAGIC_TYPE3 = 'text/x-server-parsed-html3';    
+    INCLUDES_MAGIC_TYPE3 = 'text/x-server-parsed-html3';
   {* Magic for mod_dir  }
-    DIR_MAGIC_TYPE = 'httpd/unix-directory';    
+    DIR_MAGIC_TYPE = 'httpd/unix-directory';
   {* @  }
 
   { Just in case your linefeed isn't the one the other end is expecting.  }
   const
   {* linefeed  }
-    LF = 10;    
+    LF = 10;
   {* carrige return  }
-    CR = 13;    
+    CR = 13;
   {* carrige return /Line Feed Combo  }
-    CRLF = #015#012;    
+    CRLF = #015#012;
 
   {*
    * @defgroup values_request_rec_body Possible values for request_rec.read_body
@@ -637,11 +637,11 @@ const
    * Possible values for request_rec.read_body (set by handling module):
     }
   {* Send 413 error if message has any body  }
-    REQUEST_NO_BODY =		0;    
+    REQUEST_NO_BODY =		0;
   {* Send 411 error if body without Content-Length  }
-    REQUEST_CHUNKED_ERROR =	1;    
+    REQUEST_CHUNKED_ERROR =	1;
   {* If chunked, remove the chunks for me.  }
-    REQUEST_CHUNKED_DECHUNK =	2;    
+    REQUEST_CHUNKED_DECHUNK =	2;
 
   {* @ // values_request_rec_body  }
   {*
@@ -651,11 +651,11 @@ const
    * Possible values for request_rec.used_path_info:
     }
   {* Accept the path_info from the request  }
-    AP_REQ_ACCEPT_PATH_INFO =	0;    
+    AP_REQ_ACCEPT_PATH_INFO =	0;
   {* Return a 404 error if path_info was given  }
-    AP_REQ_REJECT_PATH_INFO =	1;    
+    AP_REQ_REJECT_PATH_INFO =	1;
   {* Module may chose to use the given path_info  }
-    AP_REQ_DEFAULT_PATH_INFO =	2;    
+    AP_REQ_DEFAULT_PATH_INFO =	2;
 
   {* @ // values_request_rec_used_path_info  }
   {
@@ -931,7 +931,7 @@ const
         log_id : PAnsiChar;
   {* This points to the current thread being used to process this request,
    * over the lifetime of a request, the value may change. Users of the connection
-   * record should not rely upon it staying the same between calls that invole
+   * record should not rely upon it staying the same between calls that involve
    * the MPM.
    }
 //{$if APR_HAS_THREADS}
@@ -1179,7 +1179,7 @@ const
    *  tell the difference between the two, such as for authentication.
    * @
     }
-  
+
 
   const
     PROXYREQ_NONE =	0;{*< No proxy  }
@@ -1200,7 +1200,7 @@ const
    * will become the "default" server when the ip doesn't match other vhosts.
     }
   const
-    DEFAULT_VHOST_ADDR = $ffffffff;    
+    DEFAULT_VHOST_ADDR = $ffffffff;
 
   {*
    * Get the context_document_root for a request. This is a generalization of
@@ -1229,7 +1229,7 @@ function ap_context_prefix(r: Prequest_rec): PAnsiChar;
    * @param prefix the URI prefix, without trailing slash
    * @param document_root the corresponding directory on disk, without trailing
    * slash
-   * @note If one of prefix of document_root is NULL, the corrsponding
+   * @note If one of prefix of document_root is NULL, the corresponding
    * property will not be changed.
     }
 procedure ap_set_context_info(r: Prequest_rec; const prefix, document_root: PAnsiChar);
@@ -1323,7 +1323,7 @@ function ap_getword_white_nc(p: Papr_pool_t; line: PPAnsiChar): PAnsiChar;
    * @param p The pool to allocate memory from
    * @param line The line to traverse
    * @param stop The character to start at
-   * @return A copy of all caracters after the first occurance of the specified
+   * @return A copy of all characters after the first occurance of the specified
    *         character
     }
 function ap_getword_nulls(p: Papr_pool_t; const line: PPAnsiChar; stop: AnsiChar): PAnsiChar;
@@ -1335,7 +1335,7 @@ function ap_getword_nulls(p: Papr_pool_t; const line: PPAnsiChar; stop: AnsiChar
    * @param p The pool to allocate memory from
    * @param line The line to traverse
    * @param stop The character to start at
-   * @return A copy of all caracters after the first occurance of the specified
+   * @return A copy of all characters after the first occurance of the specified
    *         character
    * @note The same as ap_getword_nulls(), except it doesn't use const AnsiChar **.
     }
@@ -1554,9 +1554,9 @@ function ap_os_escape_path(p: Papr_pool_t; const path: PAnsiChar; partial: Integ
   {* @see ap_os_escape_path  }
   { was #define dname(params) para_def_expr }
   { argument types are unknown }
-  { return type might be wrong }   
+  { return type might be wrong }
 //#define ap_escape_uri(ppool,path) ap_os_escape_path(ppool,path,1)
-function ap_escape_uri(ppool: Papr_pool_t; const path: PAnsiChar) : PAnsiChar;  
+function ap_escape_uri(ppool: Papr_pool_t; const path: PAnsiChar) : PAnsiChar;
 
 {*
  * Escape a string as application/x-www-form-urlencoded
@@ -1718,7 +1718,7 @@ function ap_is_matchexp(const str: PAnsiChar): Integer;
  external LibHTTPD name LibNamePrefix + 'ap_is_matchexp' + LibSuff4;
 
 {*
- * Determine if a string matches a patterm containing the wildcards '?' or '*'
+ * Determine if a string matches a pattern containing the wildcards '?' or '*'
  * @param str The string to check
  * @param expected The pattern to match against
  * @return 0 if the two strings match, 1 otherwise
@@ -1728,7 +1728,7 @@ function ap_strcmp_match(const str, expected: PAnsiChar): Integer;
  external LibHTTPD name LibNamePrefix + 'ap_strcmp_match' + LibSuff8;
 
 {*
- * Determine if a string matches a patterm containing the wildcards '?' or '*',
+ * Determine if a string matches a pattern containing the wildcards '?' or '*',
  * ignoring case
  * @param str The string to check
  * @param expected The pattern to match against
@@ -1914,13 +1914,13 @@ function ap_escape_quotes(p: Papr_pool_t; const instring: PAnsiChar): PAnsiChar;
  external LibHTTPD name LibNamePrefix + 'ap_escape_quotes' + LibSuff8;
 
 {*
- * Given a string, append the PID deliminated by delim.
+ * Given a string, append the PID delimitated by delim.
  * Usually used to create a pid-appended filepath name
  * (eg: /a/b/foo -> /a/b/foo.6726). A function, and not
  * a macro, to avoid unistd.h dependency
  * @param p The pool to allocate memory from
  * @param string The string to append the PID to
- * @param delim The string to use to deliminate the string from the PID
+ * @param delim The string to use to delimitate the string from the PID
  * @return A copy of the string with the PID appended
   }
 function ap_append_pid(p: Papr_pool_t; const string_, delim: PAnsiChar): PAnsiChar;

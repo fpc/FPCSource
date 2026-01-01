@@ -46,7 +46,7 @@ type
   TPathFlags = set of (pfHasValue, pfWriteAccess);
 
   {"APath" is the path and name of a value: A XML configuration file is
-   hierachical. "/" is the path delimiter, the part after the last "/"
+   hierarchical. "/" is the path delimiter, the part after the last "/"
    is the name of the value. The path components will be mapped to XML
    elements, the name will be an element attribute.}
 

@@ -874,7 +874,7 @@ const
 const
 	kUnicodeByteOrderMark = $FEFF;
 	kUnicodeObjectReplacement = $FFFC; { placeholder for non-text object}
-	kUnicodeReplacementChar = $FFFD; { Unicode replacement for unconvertable input AnsiChar}
+	kUnicodeReplacementChar = $FFFD; { Unicode replacement for nonconvertible input AnsiChar}
 	kUnicodeSwappedByteOrderMark = $FFFE; { not a Unicode AnsiChar; byte-swapped version of FEFF}
 	kUnicodeNotAChar = $FFFF; { not a Unicode AnsiChar; may be used as a terminator}
 

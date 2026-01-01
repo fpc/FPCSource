@@ -749,7 +749,7 @@ begin
         gotoutputstderr:=false;
         if assigned(stderr) then
             gotoutputstderr:=ReadInputStream(StdErr,StdErrBytesRead,StdErrLength,StdErrString,1);
- 
+
         if (porunidle in options) and not gotoutput and not gotoutputstderr and Assigned(FOnRunCommandEvent) Then
           FOnRunCommandEvent(self,Nil,RunCommandIdle,'');
       end;

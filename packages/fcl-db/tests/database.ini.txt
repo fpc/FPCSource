@@ -1,6 +1,6 @@
-; This file contains several sections, one for each database type. 
+; This file contains several sections, one for each database type.
 
-; Select here which section is to be used currently, 
+; Select here which section is to be used currently,
 ; i.e. which database you want to use
 [Database]
 type=bufdataset
@@ -31,7 +31,7 @@ user=sysdba
 ; masterke or masterkey is default for Interbase/Firebird
 password=masterkey
 
-; hostname or IP address 
+; hostname or IP address
 ; of the database server
 hostname=localhost
 

@@ -87,7 +87,7 @@ function ap_sub_req_lookup_file(const new_file: PAnsiChar;
  external LibHTTPD name LibNamePrefix + 'ap_sub_req_lookup_file' + LibSuff12;
 
 {
- * Create a subrequest for the given apr_dir_read result.  This subrequest 
+ * Create a subrequest for the given apr_dir_read result.  This subrequest
  * can be inspected to find information about the requested file
  * @param finfo The apr_dir_read result to lookup
  * @param r The current request
@@ -100,7 +100,7 @@ function ap_sub_req_lookup_file(const new_file: PAnsiChar;
  *                    NULL, it defaults to the first filter for the main request
  * @return The new request record
  * @deffunc request_rec * ap_sub_req_lookup_dirent(apr_finfo_t *finfo, int subtype, const request_rec *r)
- * @tip The apr_dir_read flags value APR_FINFO_MIN|APR_FINFO_NAME flag is the 
+ * @tip The apr_dir_read flags value APR_FINFO_MIN|APR_FINFO_NAME flag is the
  * minimum recommended query if the results will be passed to apr_dir_read.
  * The file info passed must include the name, and must have the same relative
  * directory as the current request.
@@ -282,7 +282,7 @@ const
 //void ap_process_request(request_rec *);
 {
  * Kill the current request
- * @param type Why the request is dieing
+ * @param type Why the request is dying
  * @param r The current request
  * @deffunc void ap_die(int type, request_rec *r)
  }
@@ -326,15 +326,15 @@ procedure ap_hook_translate_name(pf: ap_HOOK_translate_name_t; const aszPre: PPA
 
 {
  * This hook allow modules to set the per_dir_config based on their own
- * context (such as <Proxy > sections) and responds to contextless requests 
+ * context (such as <Proxy > sections) and responds to contextless requests
  * such as TRACE that need no security or filesystem mapping.
  * based on the filesystem.
  * @param r The current request
- * @return DONE (or HTTP_) if this contextless request was just fulfilled 
+ * @return DONE (or HTTP_) if this contextless request was just fulfilled
  * (such as TRACE), OK if this is not a file, and DECLINED if this is a file.
  * The core map_to_storage (HOOK_RUN_REALLY_LAST) will directory_walk
  * and file_walk the r->filename.
- * 
+ *
  * @ingroup hooks
  }
 type

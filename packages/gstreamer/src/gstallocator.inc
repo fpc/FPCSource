@@ -91,7 +91,7 @@
 
   procedure gst_allocator_free(allocator:PGstAllocator; memory:PGstMemory);cdecl;external gstreamerlib name 'gst_allocator_free';
 
-  function gst_memory_new_wrapped(flags:TGstMemoryFlags; data:Tgpointer; maxsize:Tgsize; offset:Tgsize; size:Tgsize; 
+  function gst_memory_new_wrapped(flags:TGstMemoryFlags; data:Tgpointer; maxsize:Tgsize; offset:Tgsize; size:Tgsize;
              user_data:Tgpointer; notify:TGDestroyNotify):PGstMemory;cdecl;external gstreamerlib name 'gst_memory_new_wrapped';
 
 

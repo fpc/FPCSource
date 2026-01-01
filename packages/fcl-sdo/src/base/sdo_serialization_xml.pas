@@ -119,7 +119,7 @@ type
   protected
     function CreateList(const ANodeName : string):TDOMNodeList;override;
   public
-    destructor Destroy();override;  
+    destructor Destroy();override;
   end;
 
   { TEmbeddedArrayStackItem }
@@ -190,7 +190,7 @@ type
   private
     function InternalPutData(
       const AName : string;
-      const AData : TSDOString; 
+      const AData : TSDOString;
       const ANameSpace : string
     ) : TDOMNode;
     function PutBoolean(const AName : string; const AData : TSDOBoolean; const ANameSpace : string):TDOMNode;{$IFDEF USE_INLINE}inline;{$ENDIF}
@@ -324,7 +324,7 @@ type
 
     function GetBookMark() : TStreamBookmark;
     function GotoBookmark(const AValue : TStreamBookmark) : Boolean;
-    
+
     // This procedures will raise exceptions!!!
     procedure Error(Const AMsg:string);overload;
     procedure Error(Const AMsg:string; Const AArgs : array of const);overload;
@@ -522,11 +522,11 @@ end;
 
 { TScopedArrayStackItem }
 
-destructor TScopedArrayStackItem.Destroy();  
+destructor TScopedArrayStackItem.Destroy();
 begin
   if ( FItemList <> nil ) then
     FItemList := nil;
-  inherited Destroy();  
+  inherited Destroy();
 end;
 
 function TScopedArrayStackItem.CreateList(const ANodeName : string): TDOMNodeList;
@@ -1220,7 +1220,7 @@ end;
 
 function TSDOSerializerStreamXML.InternalPutData(
   const AName : string;
-  const AData : TSDOString; 
+  const AData : TSDOString;
   const ANameSpace : string
 ): TDOMNode;
 var

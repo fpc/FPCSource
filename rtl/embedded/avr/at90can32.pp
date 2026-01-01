@@ -227,7 +227,7 @@ const
   TWGCE = 0; // TWI General Call Recognition Enable Bit
   // UCSR0A
   RXC0 = 7; // USART Receive Complete
-  TXC0 = 6; // USART Transmitt Complete
+  TXC0 = 6; // USART Transmit Complete
   UDRE0 = 5; // USART Data Register Empty
   FE0 = 4; // Framing Error
   DOR0 = 3; // Data overRun
@@ -251,7 +251,7 @@ const
   UCPOL0 = 0; // Clock Polarity
   // UCSR1A
   RXC1 = 7; // USART Receive Complete
-  TXC1 = 6; // USART Transmitt Complete
+  TXC1 = 6; // USART Transmit Complete
   UDRE1 = 5; // USART Data Register Empty
   FE1 = 4; // Framing Error
   DOR1 = 3; // Data overRun
@@ -495,12 +495,12 @@ const
   SERG = 3; // Stuff Error General
   CERG = 2; // CRC Error General
   FERG = 1; // Form Error General
-  AERG = 0; // Ackknowledgement Error General
+  AERG = 0; // Acknowledgment Error General
   // CANGIE
   ENIT = 7; // Enable all Interrupts
   ENBOFF = 6; // Enable Bus Off INterrupt
   ENRX = 5; // Enable Receive Interrupt
-  ENTX = 4; // Enable Transmitt Interrupt
+  ENTX = 4; // Enable Transmit Interrupt
   ENERR = 3; // Enable MOb Error Interrupt
   ENBX = 2; // Enable Burst Receive Interrupt
   ENERG = 1; // Enable General Error Interrupt
@@ -526,7 +526,7 @@ const
   SERR = 3; // Stuff Error
   CERR = 2; // CRC Error
   FERR = 1; // Form Error
-  AERR = 0; // Ackknowledgement Error
+  AERR = 0; // Acknowledgment Error
   // CANCDMOB
   CONMOB = 6; // MOb Config Bits
   RPLV = 5; // Reply Valid

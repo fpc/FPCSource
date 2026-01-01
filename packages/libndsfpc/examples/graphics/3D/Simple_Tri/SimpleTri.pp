@@ -34,7 +34,7 @@ begin
   glLoadIdentity();
   gluPerspective(70, 256.0 / 192.0, 0.1, 40);
 
-  gluLookAt(  0.0, 0.0, 1.0,    //camera possition
+  gluLookAt(  0.0, 0.0, 1.0,    //camera position
               0.0, 0.0, 0.0,    //look at
               0.0, 1.0, 0.0);   //up
 
@@ -85,7 +85,7 @@ begin
     glFlush(0);
 
     swiWaitForVBlank();
-    
+
     if (keys and KEY_START) <> 0 then break;
   end;
 

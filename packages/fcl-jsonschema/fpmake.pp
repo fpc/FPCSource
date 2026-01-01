@@ -37,7 +37,7 @@ begin
 
     T:=P.Targets.AddUnit('fpjson.schema.consts.pp');
     T.ResourceStrings:=true;
-    
+
     T:=P.Targets.AddUnit('fpjson.schema.types.pp');
     with T.Dependencies do
       AddUnit('fpjson.schema.consts');
@@ -94,8 +94,8 @@ begin
      AddUnit('fpjson.schema.schema');
      end;
 
- 
-      
+
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

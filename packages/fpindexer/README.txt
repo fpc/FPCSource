@@ -13,7 +13,7 @@ The indexer and search mechanism design is modular:
 
 The indexer uses a text processing class and a storage mechanism to create a
 search database. The search class uses the same storage mechanism to search
-the database. 
+the database.
 
 Currently, 3 databases are supported:
   - In memory database (plus flat file storage)
@@ -39,28 +39,28 @@ in the examples dir.
 Overview of units:
 ==================
 fpindexer:
-  The indexer, search and abstract database engine classes. 
+  The indexer, search and abstract database engine classes.
   An abstract SQL storage engine class.
 
-ireaderhtml  
+ireaderhtml
   an input engine for HTML files.
 
-ireaderpas  
+ireaderpas
   an input engine for pascal files.
 
 ireadertxt
   an input engine for plain text files.
 
-masks  
+masks
   Copied from the LCL, to implement masks on words.
 
-memindexdb  
+memindexdb
   A memory storage engine.
 
-sqldbindexdb  
+sqldbindexdb
   An abstract SQLDB storage engine.
 
-fbindexdb  
+fbindexdb
   A descendent of the SQLDB storage engine which uses a firebird database.
 
 sqliteindexdb
@@ -86,7 +86,7 @@ TFPSearch: the search engine.
 TCustomIndexDB: Abstract storage engine.
 TSQLIndexDB: Abstract SQL-Based storage engine.
 
-ireaderhtml: 
+ireaderhtml:
 ------------
 
  TIReaderHTML:  HTML input engine.
@@ -96,7 +96,7 @@ ireaderpas:
 
  TIReaderPAS: pascal input engine.
 
-ireadertxt:  
+ireadertxt:
 -----------
 
   TIReaderTXT: plain text input engine.
@@ -107,15 +107,15 @@ memindexdb:
   TFileIndexDB: Descendent of TMemIndexDB which stores everything in a flat
 file using a custom format.
 
-sqldbindexdb:  
+sqldbindexdb:
 -------------
   TSQLDBIndexDB: Abstract class for SQLDB-based storage (descendent of TSQLIndexDB)
 
 sqliteindexdb:
---------------  
+--------------
   TSQLiteIndexDB: SQLIte based storage engine, descendent of TSQLIndexDB
 
-fbindexdb:  
+fbindexdb:
 ----------
   TFBIndexDB TSQLDBIndexDB descendent for Firebird.
 

@@ -1,8 +1,8 @@
 {$ifdef NDS_INTERFACE}
 type
-  DynamicArray = record 
+  DynamicArray = record
     data: ppointer;  // pointer to array of void pointers
-    cur_size: cuint; // currently allocated size of the array 
+    cur_size: cuint; // currently allocated size of the array
   end;
   TDynamicArray = DynamicArray;
   PDynamicArray = ^TDynamicArray;

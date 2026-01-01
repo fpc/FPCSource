@@ -23,17 +23,17 @@
     Quality status:     not exited
     Identification tag: [ one or more letters to identify the .h file ]
     Revision code:      11/24/93
-   
+
     NAME
-  
+
       ORL - ORacle's external C Language interface to primitive OTS types
-   
+
     DESCRIPTION
-  
+
       This header file contains C langauge interface to the OTS primitive
       types. The interface includes C mapping of OTS primitive types and
       the prototype of the pre-defined operations on the primitive types.
-   
+
       ***********************************************************************
       *** NOTE: The OCI functions for objects requires the                ***
       ***       application to be running in OBJECT mode. That is, during ***
@@ -41,9 +41,9 @@
       ***       specified should be OBJECT mode.                          ***
       **                OCIInitialize(OCI_OBJECT, ..);                    ***
       ***********************************************************************
-  
+
     RELATED DOCUMENTS
-  
+
       [1] Krishnaswamy, Srinath and Nguyen, Tin A., "Functional Specification
           for C Language Mapping of OTS Types, Object Management Subsystem",
           March 1994.
@@ -51,9 +51,9 @@
           February 1994.
       [3] Klein, Jonathan D., "Large Field Management", Oracle Corporation,
           October 1993.
-   
+
     PUBLIC FUNCTIONS
-   
+
       OCI - OCI functions to manipulate Oracle Number, float and decimal
         ARITHMETIC
           OCINumberInc - OCINumber INCrement (optimized)
@@ -108,14 +108,14 @@
           OCINumberExp - OCINumber EXPonentiation to base e
           OCINumberLn  - OCINumber Logarithm Natural
           OCINumberLog - OCINumber LOGarithm to arbitrary base
-  
+
       OCIDate - OCI functions to manipulate OCI Date
         OCIDateToExternal - OCIDate convert date to external form
         OCIDateFromExternal - OCIDate convert external form of date into OCIDate
         OCIDateAssign - OCIDate Assignment
         OCIDateToText  - OCIDate convert date TO String
         OCIDateFromText - OCIDate convert String TO Date
-        OCIDateZoneToZone - OCIDate convert date from one time 
+        OCIDateZoneToZone - OCIDate convert date from one time
                           Zone TO another Zone
         OCIDateCompare - OCIDate CoMPare dates
         OCIDateAddMonths - OCIDate ADd or subtract Months
@@ -125,7 +125,7 @@
         OCIDateNextDay - OCIDate get date of Next DaY
         OCIDateCheck - OCIDate CHecK if the given date is valid
         OCIDateSysDate - OCIDate get current SYStem date and time
-  
+
       OCIString - OCI String functions to manipulate Variable-length string
         OCIStringAssign - OCIString Assign string to string
         OCIStringAssignText - OCIString Assign Text string to string
@@ -133,7 +133,7 @@
         OCIStringSize - OCIString get String Size
         OCIStringPtr - OCIString get String PoinTeR
         OCIStringAllocSize - OCIString get Allocated SiZe
-   
+
       OCIRaw - OCI Raw functions to manipulate variable-length raW
         OCIRawAssignRaw - OCIRaw Assign Raw (of type OCIRaw*) to raw
                           (of type OCIRaw*)
@@ -141,93 +141,93 @@
         OCIRawSize - OCIRaw get Raw Size
         OCIRawPtr  - OCIRaw get Raw data Pointer
         OCIRawAllocSize - OCIRaw get Allocated Size
-  
-      OCIColl - OCI Collection generic functions. These functions can be 
-                  used to manipulate both variable-length array (varray) and 
+
+      OCIColl - OCI Collection generic functions. These functions can be
+                  used to manipulate both variable-length array (varray) and
                   nested table.
         OCICollSize  - OCIColl return current SIZe of the given collection
                   (in number of elements)
         OCICollMax  - OCIColl return the MAXimum number of elements in the
                   collection (i.e. upper-bound)
-        OCICollGetElem  - OCIColl GET pointer to the element at the given 
+        OCICollGetElem  - OCIColl GET pointer to the element at the given
                   position
         OCICollAssignElem  - OCIColl assign to element at given index
-        OCICollAssign  - OCIColl ASsiGn collection; perform deep-copy of source 
+        OCICollAssign  - OCIColl ASsiGn collection; perform deep-copy of source
                   collection to target collection
         OCICollAppend  - OCIColl aPPend the given element to the end of the
                   collection
-        OCICollTrim  - OCIColl trim (delete) the given number of elements 
+        OCICollTrim  - OCIColl trim (delete) the given number of elements
                   from the end of the collection
         OCICollIsLocator - OCIColl indicates whether a collection is locator
                            based or not.
-        OCIIterCreate  - OCIColl Create an ITerator to scan the collection 
+        OCIIterCreate  - OCIColl Create an ITerator to scan the collection
                   elements
         OCIIterDelete  - OCIColl Delete ITerator
         OCIIterInit  - OCIColl Initialize ITerator to scan the given collection
-        OCIIterGetCurrent - OCIColl Iterator based, get CURrent 
+        OCIIterGetCurrent - OCIColl Iterator based, get CURrent
                   collection element
         OCIIterNext - OCIColl Iterator based, get NeXT collection element
         OCIIterPrev - OCIColl Iterator based, get PReVious collection element
-   
-        OCITable - OCI functions to manipulate nested Table. The OCIColl*() and 
+
+        OCITable - OCI functions to manipulate nested Table. The OCIColl*() and
                   OCITable*() functions can be used to manipulate nested table
-        OCITableDelete(i) - OCITable if element(i) exists then the element is 
-                  marked as deleted else the function returns false. So 
+        OCITableDelete(i) - OCITable if element(i) exists then the element is
+                  marked as deleted else the function returns false. So
                   delete's create "holes".
         OCITableExists(i) - OCITable return true iff an element at
                   position i EXIsts
         OCITableFirst  - OCITable return the smallest value of i for which
                   exists(i) is true.
-        OCITableLast  - OCITable return the largest value of i for which 
+        OCITableLast  - OCITable return the largest value of i for which
                   exists(i) is true.
-        OCITableNext(i) - OCITable return pointer to the smallest position j, 
+        OCITableNext(i) - OCITable return pointer to the smallest position j,
                   greater than i, such that OCITableExists(j) is true
         OCITablePrev(i) - OCITable return pointer to the largest position j,
                   less than i, such that OCITableExists(j) is true
         OCITableSize - OCITable return current SIZe of the given nested table not
                   including deleted elements
-  
+
       OCIRef - OCI functions to manipulate object Reference
         OCIRefClear  - OCIRef CLeaR or nullify a ref
         OCIRefAssign  - OCIRef ASsiGn a ref to another
         OCIRefIsEqual  - OCIRef compare two refs for EQUality
-        OCIRefIsNull  - OCIRef test if a ref is NULl 
+        OCIRefIsNull  - OCIRef test if a ref is NULl
         OCIRefFromHex  - OCIRef convert a Hexadecimal string TO a Ref
         OCIRefToHex   - OCIRef convert a ref to a Hexadecimal string
         OCIRefHexSize  - OCIRef get size of buffer in bytes to store hexadecimal
                   string
-  
+
     OBSOLETE: to be replaced by functions from oci.h:
-  
+
       ORLL - ORL functions to manipulate lob Locators
         orllasg   - ORLL AsiGn one locator to another
         orllequ   - ORLL compare two locators for EQUality
         orlliini  - ORLL Is the locator INItialized?
         orllgsz   - ORLL Get locator SiZe
         orllgcid  - ORLL Get Character set ID
-  
+
         NOTE: The following are specific to FILE lobs:
-  
+
         orllsnm - ORLL Set directory alias and file NaMe in the locator
         orllgnm - ORLL Get directory alias and file NaMe from the locator
-   
+
     EXAMPLES
-  
+
       Examples are given in the description of each function where
       relevant.
-   
+
     NOTES
-  
+
       This file has been subsetted to contain ONLY the routines that will
       be in the first release.
-   
+
     QUESTIONS
-       
+
     MODIFIED
       srseshad   03/12/03 - convert oci public api to ansi
       rpingte    11/21/02 - Add OCICollGetElemArray and OCINumberToRealArray
       aahluwal   06/03/02 - bug 2360115
-      gayyappa   02/01/02 - fix 2210776 : change Dom to DOM 
+      gayyappa   02/01/02 - fix 2210776 : change Dom to DOM
       whe        09/25/01 - add OCIXMLType & OCIDomDocument opaque types
       bpalaval   02/09/01   - Change text to oratext.
       rkasamse   09/20/99 -   lint changes
@@ -237,7 +237,7 @@
       rxgovind   06/09/98 -  update OCIRowTypeCreate
       nmantrav   05/11/98 -  add OCIRowTypeGetCount
       rxgovind   03/29/98 -  add OCIRowType and OCIRowData interfaces
-      jwijaya    05/06/98  - add OCICollIsLocator                                
+      jwijaya    05/06/98  - add OCICollIsLocator
       rxgovind   03/18/98 -  opaque types: move to kolo.h
       etucker    02/02/98 -  add comments for Dec and Inc
       etucker    01/29/98 -  Finish core5 integration
@@ -246,7 +246,7 @@
       cxcheng    07/28/97 -  remove OCILobLocator #define
       skmishra   05/13/97 -  stdcc compatibility changes
       skrishna   04/25/97 -  rename OCINumber*(): Exp Power TanHyp Zero Init
-                             TanToArc Sqr Truncate and Compare 
+                             TanToArc Sqr Truncate and Compare
       skotsovo   03/31/97 -  remove OCILobLocatorSize
       skrishna   03/25/97 -  remove orld2i and orldi2d
       skrishna   03/18/97 -  fix ifdef for supporting ansi and k&r proto-types
@@ -291,7 +291,7 @@
       skotsovo   06/13/96 -  orll functions take lob descriptors instead of locat
       rxgovind   06/05/96 -  change prototype of orlrcur to take ocienvh
       skrishna   05/30/96 -  support collection trimming
-      skrishna   05/30/96 -  remove orlralo/fre and orllalo/fre instead use 
+      skrishna   05/30/96 -  remove orlralo/fre and orllalo/fre instead use
                              orionew/fre
       skrishna   05/28/96 -  add orlt*() and modify orla*()
       skotsovo   05/23/96 -  add orlbl typedefs for pro*c
@@ -311,7 +311,7 @@
       skotsovo   02/14/96 -  add text file lobs.
       skrishna   01/31/96 -  update comments of orln2r, orldchk, orlds2d & orld2s
       skrishna   01/31/96 -  change orld2s() and orln2s() to return string length
-      skrishna   01/21/96 -  remove old raw interface 
+      skrishna   01/21/96 -  remove old raw interface
       skrishna   12/14/95 -  add raw interface
       skotsovo   01/03/96 -  change LOB offsets and lengths from ub4 to ubig_ora
                              to support 64 bit machines.
@@ -323,15 +323,15 @@
       cxcheng    08/29/95 -  Support for segmented varrays
       cxcheng    08/18/95 -  modifiy orlmls structure
       skrishna   06/06/95 -  rename orln, orld, orlvs and orlva to orlnum,
-                             orldat, orlvstr and orlvary respectively 
-      skrishna   11/15/94 -  remove orlnget() function 
-      skrishna   09/20/94 -  modify orldbtw() to return number of days only 
-      skrishna   08/24/94 -  change format string length type from ub4 to ub1 
-      skrishna   07/19/94 -  Rename orln2c & orlnc2n to orln2s & orlns2n 
-      skrishna   06/29/94 -  Add blob interface; add examples 
-      skrishna   06/23/94 -  Update comments and format 
-      skrishna   05/19/94 -  update varray append comments 
-      skrishna    05/05/94 -  Subsetting 
+                             orldat, orlvstr and orlvary respectively
+      skrishna   11/15/94 -  remove orlnget() function
+      skrishna   09/20/94 -  modify orldbtw() to return number of days only
+      skrishna   08/24/94 -  change format string length type from ub4 to ub1
+      skrishna   07/19/94 -  Rename orln2c & orlnc2n to orln2s & orlns2n
+      skrishna   06/29/94 -  Add blob interface; add examples
+      skrishna   06/23/94 -  Update comments and format
+      skrishna   05/19/94 -  update varray append comments
+      skrishna    05/05/94 -  Subsetting
       skrishna    11/24/93 -  Creation
    }
   {--------------------------------------------------------------------------- }
@@ -344,121 +344,121 @@
      the short names here  }
 
   const
-     OCIArray = orlvary;     
-     OCIColl = orlcol;     
-     OCICollAppend = orlcapp;     
-     OCICollAssign = orlcasg;     
-     OCICollAssignElem = orlcase;     
-     OCICollGetElem = orlcget;     
-     OCICollGetElemArray = orlcgeta;     
-     OCICollMax = orlcmax;     
-     OCICollSize = orlcsiz;     
-     OCICollTrim = orlctrm;     
-     OCICollIsLocator = orlcilc;     
-     OCIDate = orldat;     
-     OCIDateAddDays = orldadd;     
-     OCIDateAddMonths = orldadm;     
-     OCIDateCheck = orldchk;     
-     OCIDateCompare = orldcmp;     
-     OCIDateDD = day_orldat;     
-     OCIDateDaysBetween = orldbtw;     
-     OCIDateFromText = orlds2d;     
-     OCIDateLastDay = orldlst;     
-     OCIDateMM = mon_orldat;     
-     OCIDateNextDay = orldndy;     
-     OCIDateSysDate = orldsys;     
-     OCIDateTime = time_orldat;     
-     OCIDateYYYY = gye_orldat;     
-     OCIDateZoneToZone = orldz2z;     
-     OCIIter = orlcitr;     
-     OCIIterCreate = orlccit;     
-     OCIIterDelete = orlcdit;     
-     OCIIterGetCurrent = orlcicur;     
-     OCIIterInit = orlciit;     
-     OCIIterNext = orlcinxt;     
-     OCIIterPrev = orlciprv;     
-     OCINumber = orlnum;     
-     OCINumberAbs = orlnabs;     
-     OCINumberAdd = orlnadd;     
-     OCINumberArcCos = orlnacos;     
-     OCINumberArcSin = orlnasin;     
-     OCINumberArcTan = orlnatan;     
-     OCINumberAssign = orlnasg;     
-     OCINumberCeil = orlncel;     
-     OCINumberCos = orlncos;     
-     OCINumberDiv = orlndiv;     
-     OCINumberPower = orlnbex;     
-     OCINumberFloor = orlnflr;     
-     OCINumberFromInt = orlni2n;     
-     OCINumberFromReal = orlnr2n;     
-     OCINumberFromText = orlns2n;     
-     OCINumberHypCos = orlncsh;     
-     OCINumberHypSin = orlnsnh;     
-     OCINumberSetZero = orlnini;     
-     OCINumberSetPi = orlnspi;     
-     OCINumberInc = orlninc;     
-     OCINumberDec = orlndec;     
-     OCINumberIntPower = orlnpwr;     
-     OCINumberLn = orlnln;     
-     OCINumberLog = orlnlog;     
-     OCINumberMod = orlnmod;     
-     OCINumberMul = orlnmul;     
-     OCINumberNeg = orlnneg;     
-     OCINumberPart = orlnpart;     
-     OCINumberExp = orlnexp;     
-     OCINumberRound = orlnrou;     
-     OCINumberPrec = orlnpre;     
-     OCINumberShift = orlnsft;     
-     OCINumberSign = orlnsgn;     
-     OCINumberSin = orlnsin;     
-     OCINumberSqrt = orlnsqr;     
-     OCINumberSub = orlnsub;     
-     OCINumberTan = orlntan;     
-     OCINumberHypTan = orlntnh;     
-     OCINumberArcTan2 = orlnatn2;     
-     OCINumberToInt = orln2i;     
-     OCINumberToReal = orln2r;     
-     OCINumberToRealArray = orln2ra;     
-     OCINumberToText = orln2s;     
-     OCINumberTrunc = orlntru;     
-     OCINumberCmp = orlncmp;     
-     OCINumberIsZero = orlnzer;     
-     OCINumberIsInt = orlnint;     
-     OCIRaw = orlraw;     
-     OCIRawAllocSize = orlwasz;     
-     OCIRawAssignBytes = orlwabr;     
-     OCIRawAssignRaw = orlwarr;     
-     OCIRawPtr = orlwgrp;     
-     OCIRawResize = orlwrsz;     
-     OCIRawSize = orlwgsz;     
-     OCIRefAssign = orlrasg;     
-     OCIRefClear = orlrclr;     
-     OCIRefFromHex = orlrh2r;     
-     OCIRefHexSize = orlrhsz;     
-     OCIRefIsEqual = orlrequ;     
-     OCIRefIsNull = orlrnul;     
-     OCIRefToHex = orlr2h;     
-     OCIString = orlvstr;     
-     OCIStringAllocSize = orlvasz;     
-     OCIStringAssign = orlvass;     
-     OCIStringAssignText = orlvats;     
-     OCIStringPtr = orlvgsp;     
-     OCIStringResize = orlvrsz;     
-     OCIStringSize = orlvgsz;     
-     OCITable = orltbl;     
-     OCITableDelete = orltdel;     
-     OCITableExists = orltexi;     
-     OCITableFirst = orltfst;     
-     OCITableLast = orltlst;     
-     OCITableNext = orltnxt;     
-     OCITablePrev = orltprv;     
-     OCITableSize = orltsiz;     
-     OCITime = orldtm;     
-     OCITimeHH = orldtmhh;     
-     OCITimeMI = orldtmmm;     
-     OCITimeSS = orldtmss;     
-     OCI_LOBMODE_READONLY = ORLBMORO;     
-     OCI_LOBMODE_READWRITE = ORLBMORW;     
+     OCIArray = orlvary;
+     OCIColl = orlcol;
+     OCICollAppend = orlcapp;
+     OCICollAssign = orlcasg;
+     OCICollAssignElem = orlcase;
+     OCICollGetElem = orlcget;
+     OCICollGetElemArray = orlcgeta;
+     OCICollMax = orlcmax;
+     OCICollSize = orlcsiz;
+     OCICollTrim = orlctrm;
+     OCICollIsLocator = orlcilc;
+     OCIDate = orldat;
+     OCIDateAddDays = orldadd;
+     OCIDateAddMonths = orldadm;
+     OCIDateCheck = orldchk;
+     OCIDateCompare = orldcmp;
+     OCIDateDD = day_orldat;
+     OCIDateDaysBetween = orldbtw;
+     OCIDateFromText = orlds2d;
+     OCIDateLastDay = orldlst;
+     OCIDateMM = mon_orldat;
+     OCIDateNextDay = orldndy;
+     OCIDateSysDate = orldsys;
+     OCIDateTime = time_orldat;
+     OCIDateYYYY = gye_orldat;
+     OCIDateZoneToZone = orldz2z;
+     OCIIter = orlcitr;
+     OCIIterCreate = orlccit;
+     OCIIterDelete = orlcdit;
+     OCIIterGetCurrent = orlcicur;
+     OCIIterInit = orlciit;
+     OCIIterNext = orlcinxt;
+     OCIIterPrev = orlciprv;
+     OCINumber = orlnum;
+     OCINumberAbs = orlnabs;
+     OCINumberAdd = orlnadd;
+     OCINumberArcCos = orlnacos;
+     OCINumberArcSin = orlnasin;
+     OCINumberArcTan = orlnatan;
+     OCINumberAssign = orlnasg;
+     OCINumberCeil = orlncel;
+     OCINumberCos = orlncos;
+     OCINumberDiv = orlndiv;
+     OCINumberPower = orlnbex;
+     OCINumberFloor = orlnflr;
+     OCINumberFromInt = orlni2n;
+     OCINumberFromReal = orlnr2n;
+     OCINumberFromText = orlns2n;
+     OCINumberHypCos = orlncsh;
+     OCINumberHypSin = orlnsnh;
+     OCINumberSetZero = orlnini;
+     OCINumberSetPi = orlnspi;
+     OCINumberInc = orlninc;
+     OCINumberDec = orlndec;
+     OCINumberIntPower = orlnpwr;
+     OCINumberLn = orlnln;
+     OCINumberLog = orlnlog;
+     OCINumberMod = orlnmod;
+     OCINumberMul = orlnmul;
+     OCINumberNeg = orlnneg;
+     OCINumberPart = orlnpart;
+     OCINumberExp = orlnexp;
+     OCINumberRound = orlnrou;
+     OCINumberPrec = orlnpre;
+     OCINumberShift = orlnsft;
+     OCINumberSign = orlnsgn;
+     OCINumberSin = orlnsin;
+     OCINumberSqrt = orlnsqr;
+     OCINumberSub = orlnsub;
+     OCINumberTan = orlntan;
+     OCINumberHypTan = orlntnh;
+     OCINumberArcTan2 = orlnatn2;
+     OCINumberToInt = orln2i;
+     OCINumberToReal = orln2r;
+     OCINumberToRealArray = orln2ra;
+     OCINumberToText = orln2s;
+     OCINumberTrunc = orlntru;
+     OCINumberCmp = orlncmp;
+     OCINumberIsZero = orlnzer;
+     OCINumberIsInt = orlnint;
+     OCIRaw = orlraw;
+     OCIRawAllocSize = orlwasz;
+     OCIRawAssignBytes = orlwabr;
+     OCIRawAssignRaw = orlwarr;
+     OCIRawPtr = orlwgrp;
+     OCIRawResize = orlwrsz;
+     OCIRawSize = orlwgsz;
+     OCIRefAssign = orlrasg;
+     OCIRefClear = orlrclr;
+     OCIRefFromHex = orlrh2r;
+     OCIRefHexSize = orlrhsz;
+     OCIRefIsEqual = orlrequ;
+     OCIRefIsNull = orlrnul;
+     OCIRefToHex = orlr2h;
+     OCIString = orlvstr;
+     OCIStringAllocSize = orlvasz;
+     OCIStringAssign = orlvass;
+     OCIStringAssignText = orlvats;
+     OCIStringPtr = orlvgsp;
+     OCIStringResize = orlvrsz;
+     OCIStringSize = orlvgsz;
+     OCITable = orltbl;
+     OCITableDelete = orltdel;
+     OCITableExists = orltexi;
+     OCITableFirst = orltfst;
+     OCITableLast = orltlst;
+     OCITableNext = orltnxt;
+     OCITablePrev = orltprv;
+     OCITableSize = orltsiz;
+     OCITime = orldtm;
+     OCITimeHH = orldtmhh;
+     OCITimeMI = orldtmmm;
+     OCITimeSS = orldtmss;
+     OCI_LOBMODE_READONLY = ORLBMORO;
+     OCI_LOBMODE_READWRITE = ORLBMORW;
 {$endif}
   { SLSHORTNAME  }
   {*************************************************************************** }
@@ -466,7 +466,7 @@
   {*************************************************************************** }
 
   const
-     OCI_NUMBER_SIZE = 22;     
+     OCI_NUMBER_SIZE = 22;
 
   type
      POCINumber = ^OCINumber;
@@ -474,28 +474,28 @@
           OCINumberPart : array[0..(OCI_NUMBER_SIZE)-1] of ub1;
        end;
 
-  { 
+  {
    * OCINumber - OCI Number mapping in c
    *
    * The OTS types: NUMBER, NUMERIC, INT, SHORTINT, REAL, DOUBLE PRECISION,
    * FLOAT and DECIMAL are represented by OCINumber.
-   * The contents of OCINumber is opaque to clients. 
+   * The contents of OCINumber is opaque to clients.
    *
    * For binding variables of type OCINumber in OCI calls (OCIBindByName(),
    * OCIBindByPos(), and OCIDefineByPos()) use the type code SQLT_VNU.
     }
   {
-     EXAMPLE 
-  
-     The following example shows how to manipulate an attribute of type 
+     EXAMPLE
+
+     The following example shows how to manipulate an attribute of type
      oracle number.
-    
+
        struct person
-       
+
          OCINumber sal;
        ;
        typedef struct person person;
-  
+
        OCIError *err;
        person* joe;
        person* tom;
@@ -510,12 +510,12 @@
        AnsiChar    buffer[21];
        ub4     buflen;
        sword   result;
-       
+
        /o See oci.h for an example of how to initialize OCIError.
         o For this example, assume the OCIEnv and OCIError has been
         o initialized.
         o/
-  
+
        /o Pin joe, tom and debbie person objects in the object cache. See ori.h
         o for an example on pinning objects. For this example, assume that
         o joe, tom and debbie are pointing to pinned objects.
@@ -523,17 +523,17 @@
        joesal = &joe->sal;
        tomsal = &tom->sal;
        debsal = &debbie->sal;
-  
+
        /o initialize joe's salary to be $12,000 o/
        inum = 12000;
        status = OCINumberFromInt(err, &inum, sizeof(inum), OCI_NUMBER_SIGNED,
                                  joesal);
        if (status != OCI_SUCCESS)
                                 /o goto to handle error from OCINumberFromInt o/;
-  
+
        /o initialize tom's salary to be same as joe o/
        OCINumberAssign(err, joesal, tomsal);
-  
+
        /o initialize debbie's salary to be 20% more than joe's o/
        dnum = 1.2;
        status = OCINumberFromReal(err, &dnum, sizeof(double), &ornum);
@@ -541,7 +541,7 @@
                               /o goto to handle error from OCINumberFromReal o/;
        status = OCINumberMul(err, joesal, &ornum, debsal);
        if (status != OCI_SUCCESS)  /o goto to handle error from OCINumberMul o/;
-  
+
        /o give tom a 50% raise o/
        dnum = 1.5;
        status = OCINumberFromReal(err, &dnum, sizeof(double), &ornum);
@@ -549,42 +549,42 @@
                               /o goto to handle error from OCINumberFromReal o/;
        status = OCINumberMul(err, tomsal, &ornum, tomsal);
        if (status != OCI_SUCCESS)  /o goto to handle error from OCINumberMul o/;
-  
+
        /o double joe's salary o/
        status = OCINumberAdd(err, joesal, joesal, joesal);
        if (status != OCI_SUCCESS)  /o goto to handle error from OCINumberAdd o/;
-  
+
        /o get joe's salary in integer o/
        status = OCINumberToInt(err, joesal, sizeof(inum), OCI_NUMBER_SIGNED,
                                &inum);
        if (status != OCI_SUCCESS)/o goto to handle error from OCINumberToInt o/;
        /o inum is set to 24000 o/
-  
+
        /o get debbie's salary in double o/
        status = OCINumberToReal(err, debsal, sizeof(dnum), &dnum);
        if (status != OCI_SUCCESS)/o goto to handle error from OCINumberToReal o/;
        /o dnum is set to 14400 o/
-  
+
        /o print tom's salary as DEM0001`8000.00 o/
        buflen = sizeof(buffer);
-       status = OCINumberToText(err, tomsal, "C0999G9999D99", 13, 
+       status = OCINumberToText(err, tomsal, "C0999G9999D99", 13,
                    "NLS_NUMERIC_CHARACTERS='.`' NLS_ISO_CURRENCY='Germany'", 54,
                    &buflen, buffer);
        if (status != OCI_SUCCESS)/o goto to handle error from OCINumberToText o/;
        printf("tom's salary = %s\n", buffer);
-  
+
        /o compare joe and tom's salary o/
        status = OCINumberCmp(err, joesal, tomsal, &result);
        if (status != OCI_SUCCESS)  /o goto to handle error from OCINumberCmp o/;
        /o result is positive o/
-  
+
        /o read debbie's new salary from string o/
        status = OCINumberFromText(err, "48`000.00", 9, "99G999D99", 9,
                         "NLS_NUMERIC_CHARACTERS='.`'", 27, debsal);
        if (status != OCI_SUCCESS)
                               /o goto to handle error from OCINumberFromText o/;
        /o debbie's salary is now 48000.00 o/
-  
+
    }
   {----------------------------- OCINumberInc -------------------------------- }
 
@@ -762,9 +762,9 @@ var OCINumberInc : function (err:POCIError; number:POCINumber):sword;cdecl;
           OCI_INVALID_HANDLE if 'err' is NULL.
           OCI_ERROR if
             any of the number arguments is null
-            underflow errorr
-            overflow errorr
-            divide by zero errorr
+            underflow error
+            overflow error
+            divide by zero error
     }
   {----------------------------- OCINumberMod -------------------------------- }
 {$IFNDEF LinkDynamically}
@@ -790,7 +790,7 @@ var OCINumberInc : function (err:POCIError; number:POCINumber):sword;cdecl;
           OCI_INVALID_HANDLE if 'err' is NULL.
           OCI_ERROR if
             any of the number arguments is null
-            divide by zero errorr
+            divide by zero error
     }
   {------------------------ OCINumberIntPower -------------------------------- }
 {$IFNDEF LinkDynamically}
@@ -800,7 +800,7 @@ var OCINumberInc : function (err:POCIError; number:POCINumber):sword;cdecl;
 {$ENDIF}
 
   {
-     NAME: OCINumberIntPower - OCINumber takes an arbitary base to an arbitary
+     NAME: OCINumberIntPower - OCINumber takes an arbitrary base to an arbitrary
                                integer PoWeR
      PARAMETERS:
           err (IN/OUT) - error handle. If there is an error, it is
@@ -811,7 +811,7 @@ var OCINumberInc : function (err:POCIError; number:POCINumber):sword;cdecl;
           exp (IN) - exponent to which the base is to be raised
           result (OUT) - output of exponentiation
      DESCRIPTION:
-          Takes an arbitary base to an arbitary integer power.
+          Takes an arbitrary base to an arbitrary integer power.
      RETURNS:
           OCI_SUCCESS if the function completes successfully.
           OCI_INVALID_HANDLE if 'err' is NULL.
@@ -827,7 +827,7 @@ var OCINumberInc : function (err:POCIError; number:POCINumber):sword;cdecl;
 
   {
      NAME: OCINumberShift - OCINumber multiplies by a power of 10.
-  
+
      PARAMETERS:
           err (IN/OUT) - error handle. If there is an error, it is
                   recorded in 'err' and this function returns OCI_ERROR.
@@ -878,7 +878,7 @@ var OCINumberInc : function (err:POCIError; number:POCINumber):sword;cdecl;
 {$ENDIF}
 
   {
-     NAME: OCINumberToText - OCINumber convert number TO String 
+     NAME: OCINumberToText - OCINumber convert number TO String
      PARAMETERS:
           err (IN/OUT) - error handle. If there is an error, it is
                   recorded in 'err' and this function returns OCI_ERROR.
@@ -887,22 +887,22 @@ var OCINumberInc : function (err:POCIError; number:POCINumber):sword;cdecl;
           number (IN) - Oracle number to be converted
           fmt (IN) - conversion format
           fmt_length (IN) - length of the 'fmt' parameter
-          nls_params (IN) - nls format specification, if null string 
-                  i.e. (oratext *)0, then the default parameters for the 
+          nls_params (IN) - nls format specification, if null string
+                  i.e. (oratext *)0, then the default parameters for the
                   session is used
           nls_p_length (IN) - length of the 'nls_params' parameter
           buf_size (IN/OUT) - size of the buffer must be passed as input by
-                  the caller, this function will return the length of the 
-                  resulting string in bytes via this parameter. The length 
+                  the caller, this function will return the length of the
+                  resulting string in bytes via this parameter. The length
                   does not include the terminating null ('\0').
           buf (OUT) - buffer into which the converted string is placed. The
                   resulting string is null terminated.
      DESCRIPTION:
-          Converts the given number to a character string 
+          Converts the given number to a character string
           according to the specified format. Refer to "TO_NUMBER" conversion
           function described in "Oracle SQL Language Reference Manual" for a
           description of format and NLS parameters.
-          The converted number string is stored in the buffer 'buf', up to 
+          The converted number string is stored in the buffer 'buf', up to
           a max of '*buf_size' bytes. Length of the resulting string is
           returned via 'buf_size'.
      RETURNS:
@@ -935,8 +935,8 @@ var OCINumberInc : function (err:POCIError; number:POCINumber):sword;cdecl;
           str_length (IN) - size of the input string
           fmt (IN) - conversion format
           fmt_length (IN) - length of the 'fmt' parameter
-          nls_params (IN) - nls format specification, if null string 
-                  i.e. (oratext *)0, then the default parameters for the 
+          nls_params (IN) - nls format specification, if null string
+                  i.e. (oratext *)0, then the default parameters for the
                   session is used
           nls_p_length (IN) - length of the 'nls_params' parameter
           number (OUT) - given string converted to number
@@ -959,9 +959,9 @@ var OCINumberInc : function (err:POCIError; number:POCINumber):sword;cdecl;
   { Unsigned type -- ubX  }
 
   const
-     OCI_NUMBER_UNSIGNED = 0;     
+     OCI_NUMBER_UNSIGNED = 0;
   { Signed type -- sbX  }
-     OCI_NUMBER_SIGNED = 2;     
+     OCI_NUMBER_SIGNED = 2;
 
 {$IFNDEF LinkDynamically}
   function OCINumberToInt(err:POCIError; number:POCINumber; rsl_length:uword; rsl_flag:uword; rsl:Pdvoid):sword;cdecl;external ocilib name 'OCINumberToInt';
@@ -978,7 +978,7 @@ var OCINumberToInt : function (err:POCIError; number:POCINumber; rsl_length:uwor
                   OCIErrorGet().
           number (IN) - number to be converted
           rsl_length (IN) - size of the desired result
-          rsl_s_flag (IN) - flag denoting the desired sign of the output; valid 
+          rsl_s_flag (IN) - flag denoting the desired sign of the output; valid
                   values are OCI_NUMBER_UNSIGNED, OCI_NUMBER_SIGNED
           rsl (OUT) - pointer to space for the result
      DESCRIPTION:
@@ -1001,7 +1001,7 @@ var OCINumberToInt : function (err:POCIError; number:POCINumber; rsl_length:uwor
 {$ENDIF}
 
   {
-     NAME: OCINumberFromInt - OCINumber convert Integer TO Number 
+     NAME: OCINumberFromInt - OCINumber convert Integer TO Number
      PARAMETERS:
           err (IN/OUT) - error handle. If there is an error, it is
                   recorded in 'err' and this function returns OCI_ERROR.
@@ -1009,7 +1009,7 @@ var OCINumberToInt : function (err:POCIError; number:POCINumber; rsl_length:uwor
                   OCIErrorGet().
           inum (IN) - pointer to the integer to be converted
           inum_length (IN) - size of the integer
-          inum_s_flag (IN) - flag that designates the sign of the integer; valid 
+          inum_s_flag (IN) - flag that designates the sign of the integer; valid
                   values are OCI_NUMBER_UNSIGNED, OCI_NUMBER_SIGNED
           number (OUT) - given integer converted to Oracle number
      DESCRIPTION:
@@ -1039,7 +1039,7 @@ var OCINumberToInt : function (err:POCIError; number:POCINumber; rsl_length:uwor
                   The error recorded in 'err' can be retrieved by calling
                   OCIErrorGet().
           number (IN) - number to be converted
-          rsl_length (IN) - is the size of the desired result, 
+          rsl_length (IN) - is the size of the desired result,
                   sizeof( float | double | long double)
           rsl (OUT) - pointer to space for storing the result
      DESCRIPTION:
@@ -1093,7 +1093,7 @@ var OCINumberToInt : function (err:POCIError; number:POCINumber; rsl_length:uwor
 {$ENDIF}
 
   {
-     NAME: OCINumberFromReal - OCINumber convert Real TO Number 
+     NAME: OCINumberFromReal - OCINumber convert Real TO Number
      PARAMETERS:
           err (IN/OUT) - error handle. If there is an error, it is
                   recorded in 'err' and this function returns OCI_ERROR.
@@ -1121,22 +1121,22 @@ var OCINumberToInt : function (err:POCIError; number:POCINumber; rsl_length:uwor
 {$ENDIF}
 
   {
-     NAME: OCINumberCmp - OCINumber CoMPare numbers 
+     NAME: OCINumberCmp - OCINumber CoMPare numbers
      PARAMETERS:
           err (IN/OUT) - error handle. If there is an error, it is
                   recorded in 'err' and this function returns OCI_ERROR.
                   The error recorded in 'err' can be retrieved by calling
                   OCIErrorGet().
           number1, number2 (IN) - numbers to be compared
-          result (OUT) - 0 if equal, negative if number1 < number2, 
-                  positive if number1 > number2 
+          result (OUT) - 0 if equal, negative if number1 < number2,
+                  positive if number1 > number2
      DESCRIPTION:
           The function OCINumberCmp compares two numbers.
      RETURNS:
           OCI_SUCCESS if the function completes successfully.
           OCI_INVALID_HANDLE if 'err' is NULL.
           OCI_ERROR if
-              'number1' or 'number2' or 'result' is null 
+              'number1' or 'number2' or 'result' is null
     }
   {---------------------------- OCINumberSign -------------------------------- }
 {$IFNDEF LinkDynamically}
@@ -1153,8 +1153,8 @@ var OCINumberToInt : function (err:POCIError; number:POCINumber; rsl_length:uwor
                   The error recorded in 'err' can be retrieved by calling
                   OCIErrorGet().
           number (IN) - number whose sign is returned
-          result (OUT) - 0 if number == 0, -1 if number < 0, 
-                  1 if number > 0 
+          result (OUT) - 0 if number == 0, -1 if number < 0,
+                  1 if number > 0
      DESCRIPTION:
           Obtains sign of an Oracle number
      RETURNS:
@@ -1250,7 +1250,7 @@ var OCINumberToInt : function (err:POCIError; number:POCINumber; rsl_length:uwor
                   The error recorded in 'err' can be retrieved by calling
                   OCIErrorGet().
           number (IN) - input number
-          result (OUT) - output which will contain the absolue value of the
+          result (OUT) - output which will contain the absolute value of the
                   input number
      DESCRIPTION:
           Computes the absolute value of an Oracle number.
@@ -1344,7 +1344,7 @@ var OCINumberToInt : function (err:POCIError; number:POCINumber; rsl_length:uwor
 {$ENDIF}
 
   {
-     NAME: OCINumberTrunc - OCINumber TRUncate an Oracle number at a 
+     NAME: OCINumberTrunc - OCINumber TRUncate an Oracle number at a
                             specified decimal place
      PARAMETERS:
           err (IN/OUT) - error handle. If there is an error, it is
@@ -1352,7 +1352,7 @@ var OCINumberToInt : function (err:POCIError; number:POCINumber; rsl_length:uwor
                   The error recorded in 'err' can be retrieved by calling
                   OCIErrorGet().
           number (IN) - input number
-          decplace (IN) - number of decimal digits to the right of the 
+          decplace (IN) - number of decimal digits to the right of the
                   decimal point to truncate at. Negative values are allowed.
           result (OUT) - output of truncation
      DESCRIPTION:
@@ -1371,7 +1371,7 @@ var OCINumberToInt : function (err:POCIError; number:POCINumber; rsl_length:uwor
 {$ENDIF}
 
   {
-     NAME: OCINumberPower - OCINumber takes an arbitary Base to an 
+     NAME: OCINumberPower - OCINumber takes an arbitary Base to an
                             arbitary Power
      PARAMETERS:
           err (IN/OUT) - error handle. If there is an error, it is
@@ -1382,7 +1382,7 @@ var OCINumberToInt : function (err:POCIError; number:POCINumber; rsl_length:uwor
           number (IN) - exponent to which the base is to be raised
           result (OUT) - output of exponentiation
      DESCRIPTION:
-          Takes an arbitary base to an arbitary power.
+          Takes an arbitrary base to an arbitrary power.
      RETURNS:
           OCI_SUCCESS if the function completes successfully.
           OCI_INVALID_HANDLE if 'err' is NULL.
@@ -1397,7 +1397,7 @@ var OCINumberToInt : function (err:POCIError; number:POCINumber; rsl_length:uwor
 {$ENDIF}
 
   {
-     NAME: OCINumberRound - OCINumber ROUnds an Oracle number to a specified 
+     NAME: OCINumberRound - OCINumber ROUnds an Oracle number to a specified
                     decimal place
      PARAMETERS:
           err (IN/OUT) - error handle. If there is an error, it is
@@ -1405,7 +1405,7 @@ var OCINumberToInt : function (err:POCIError; number:POCINumber; rsl_length:uwor
                   The error recorded in 'err' can be retrieved by calling
                   OCIErrorGet().
           number (IN) - round this number and return result in 'result'
-          decplace (IN) - number of decimal digits to the right of the 
+          decplace (IN) - number of decimal digits to the right of the
                   decimal point to round to. Negative values are allowed.
           result (OUT) - output of rounding
      DESCRIPTION:
@@ -1500,7 +1500,7 @@ var OCINumberToInt : function (err:POCIError; number:POCINumber; rsl_length:uwor
 {$ENDIF}
 
   {
-     NAME: OCINumberHypSin - OCINumber takes the SiNe Hyperbolic of an 
+     NAME: OCINumberHypSin - OCINumber takes the SiNe Hyperbolic of an
                              Oracle number
      PARAMETERS:
           err (IN/OUT) - error handle. If there is an error, it is
@@ -1576,7 +1576,7 @@ var OCINumberToInt : function (err:POCIError; number:POCINumber; rsl_length:uwor
 {$ENDIF}
 
   {
-     NAME: OCINumberHypCos - OCINumber takes the CoSine Hyperbolic of an 
+     NAME: OCINumberHypCos - OCINumber takes the CoSine Hyperbolic of an
                              Oracle number
      PARAMETERS:
           err (IN/OUT) - error handle. If there is an error, it is
@@ -1657,9 +1657,9 @@ var OCINumberToInt : function (err:POCIError; number:POCINumber; rsl_length:uwor
                   recorded in 'err' and this function returns OCI_ERROR.
                   The error recorded in 'err' can be retrieved by calling
                   OCIErrorGet().
-          number1 (IN) - first argument of atan2(y,x) function which 
+          number1 (IN) - first argument of atan2(y,x) function which
                   corresponds to 'y' parameter in the function
-          number2 (IN) - second argument of atan2(y,x) function which 
+          number2 (IN) - second argument of atan2(y,x) function which
                   corresponds to 'x' parameter in the function
           result (OUT) - result of the atan2() in radians
      DESCRIPTION:
@@ -1763,7 +1763,7 @@ var OCINumberToInt : function (err:POCIError; number:POCINumber; rsl_length:uwor
                   The error recorded in 'err' can be retrieved by calling
                   OCIErrorGet().
           base (IN) - base of the logarithm
-          number (IN) - opearnd
+          number (IN) - operand
           result (OUT) - logarithm result
      DESCRIPTION:
           Takes the logarithm with the specified base of an Oracle number.
@@ -1790,11 +1790,11 @@ var OCINumberToInt : function (err:POCIError; number:POCINumber; rsl_length:uwor
           OCITimeSS : ub1;
        end;
 
-  { 
+  {
    * OCITime - OCI TiMe portion of date
    *
    * This structure should be treated as an opaque structure as the format
-   * of this structure may change. Use OCIDateGetTime/OCIDateSetTime 
+   * of this structure may change. Use OCIDateGetTime/OCIDateSetTime
    * to manipulate time portion of OCIDate.
     }
   { gregorian year; range is -4712 <= year <= 9999  }
@@ -1809,7 +1809,7 @@ var OCINumberToInt : function (err:POCIError; number:POCINumber; rsl_length:uwor
           OCIDateTime : OCITime;
        end;
 
-  { 
+  {
    * OCIDate - OCI oracle Date representation in C
    *
    * OCIDate represents the C mapping of Oracle date.
@@ -1822,55 +1822,55 @@ var OCINumberToInt : function (err:POCIError; number:POCINumber; rsl_length:uwor
    * OCIBindByPos(), and OCIDefineByPos()) use the type code SQLT_ODT.
     }
   {
-     EXAMPLE 
-  
-     The following example shows how to manipulate an attribute of type 
+     EXAMPLE
+
+     The following example shows how to manipulate an attribute of type
      oracle date.
-    
+
        #define FMT "Month dd, YYYY, HH:MI A.M."
        #define LANG "American"
-  
+
        struct person
-       
+
          OCIDate start_date;
        ;
        typedef struct person person;
-  
+
        OCIError *err;
        person *joe;
        sword status;                                           /o error status o/
-       
+
        /o See oci.h for an example of how to initialize OCIError.
         o For this example, assume the OCIEnv and OCIError has been
         o initialized.
         o/
-  
+
        /o Pin joe person object in the object cache. See ori.h
         o for an example on pinning objects. For this example, assume that
         o joe is pointing to the pinned object.
         o/
-  
+
        /o set the start date of joe o/
        OCIDateSetTime(&joe->start_date, 8, 0, 0);
-       OCIDateSetDate(&joe->start_date, 1990, 10, 5); 
-  
+       OCIDateSetDate(&joe->start_date, 1990, 10, 5);
+
        /o check if the date is valid o/
        uword invalid;
        if (OCIDateCheck(err, &joe->start_date, &invalid) != OCI_SUCCESS)
          /o error handling code o/
        if (invalid)
          /o error handling code o/
-  
+
        /o convert date for display purposes o/
        AnsiChar str[100];
        ub4 strlen = sizeof(str);
        if (OCIDateToText(err, &joe->start_date, FMT, sizeof(FMT)-1, LANG,
                   sizeof(LANG)-1, &strlen, str) != OCI_SUCCESS)
          /o error handling code o/
-  
+
     }
   {--------------------------- OCIDateGetTime -------------------------------- }
-  { void OCIDateGetTime(/o_ CONST OCIDate *date, ub1 *hour, ub1 *min, 
+  { void OCIDateGetTime(/o_ CONST OCIDate *date, ub1 *hour, ub1 *min,
                              ub1 *sec _o/);  }
 (* error
   { \
@@ -1898,16 +1898,16 @@ in declaration at line 1789
             min (OUT) - minute value returned
             sec (OUT) - second value returned
        DESCRIPTION:
-            Return time inforamtion stored in the given date. The time
+            Return time information stored in the given date. The time
             information returned is: hour, minute and seconds.
        RETURNS:
             NONE
       }
     {--------------------------- OCIDateGetDate -------------------------------- }
-    { void OCIDateGetDate(/o_ CONST OCIDate *date, sb2 *year, ub1 *month, 
+    { void OCIDateGetDate(/o_ CONST OCIDate *date, sb2 *year, ub1 *month,
                                ub1 *day _o/);  }
 (*in declaration at line 1810 *)
-(* error 
+(* error
      *year = (date)->OCIDateYYYY; \
  error
      *month = (date)->OCIDateMM; \
@@ -1929,12 +1929,12 @@ in declaration at line 1812 *)
             month (OUT) - month value returned
             day (OUT) - day value returned
        DESCRIPTION:
-            Return year, month, day inforamtion stored in the given date.
+            Return year, month, day information stored in the given date.
        RETURNS:
             NONE
       }
     {--------------------------- OCIDateSetTime -------------------------------- }
-    { void OCIDateSetTime(/o_ OCIDate *date, ub1 hour, ub1 min, 
+    { void OCIDateSetTime(/o_ OCIDate *date, ub1 hour, ub1 min,
                                ub1 sec _o/);  }
 in declaration at line 1832
  error
@@ -1955,11 +1955,11 @@ in declaration at line 1834
        NAME: OCIDateSetTime - OCIDate Set Time portion of date
        PARAMETERS:
             date (OUT) - Oracle date whose time data is set
-            hour (IN) - hour value to be set 
+            hour (IN) - hour value to be set
             min (IN) - minute value to be set
             sec (IN) - second value to be set
        DESCRIPTION:
-            Set the date with the given time inforamtion.
+            Set the date with the given time information.
        RETURNS:
             NONE
       }
@@ -1988,7 +1988,7 @@ in declaration at line 1855
             month (OUT) - month value to be set
             day (OUT) - day value to be set
        DESCRIPTION:
-            Set the date with the given year, month, day inforamtion.
+            Set the date with the given year, month, day information.
        RETURNS:
             NONE
       }
@@ -2020,7 +2020,7 @@ var OCIDateToText : function (err:POCIError; date:POCIDate; fmt:Poratext; fmt_le
 
 
     {
-       NAME: OCIDateToText - OCIDate convert date TO String 
+       NAME: OCIDateToText - OCIDate convert date TO String
        PARAMETERS:
             err (IN/OUT) - error handle. If there is an error, it is
                     recorded in 'err' and this function returns OCI_ERROR.
@@ -2031,9 +2031,9 @@ var OCIDateToText : function (err:POCIError; date:POCIDate; fmt:Poratext; fmt_le
                     the date is converted to a character string in the
                     date format "DD-MON-YY".
             fmt_length (IN) - length of the 'fmt' parameter
-            lang_name (IN) - specifies the language in which the names and 
+            lang_name (IN) - specifies the language in which the names and
                     abbreviations of months and days are returned;
-                    default language of session is used if 'lang_name' 
+                    default language of session is used if 'lang_name'
                     is null i.e. (oratext *)0
             lang_length (IN) - length of the 'nls_params' parameter
             buf_size (IN/OUT) - size of the buffer; size of the resulting string
@@ -2045,7 +2045,7 @@ var OCIDateToText : function (err:POCIError; date:POCIDate; fmt:Poratext; fmt_le
             "Oracle SQL Language Reference Manual" for a description of format
             and NLS arguments. The converted null-terminated date string is
             stored in the buffer 'buf'.
-     
+
             An error is reported upon overflow, e.g. trying to convert a number
             of value 10 using format '9' causes an overflow.
        RETURNS:
@@ -2081,7 +2081,7 @@ var OCIDateToText : function (err:POCIError; date:POCIDate; fmt:Poratext; fmt_le
             fmt_length (IN) - length of the 'fmt' parameter
             lang_name (IN) - language in which the names and abbreviations of
                     days and months are specified, if null i.e. (oratext *)0,
-                    the default language of session is used, 
+                    the default language of session is used,
             lang_length (IN) - length of the 'lang_name' parameter
             date (OUT) - given string converted to date
        DESCRIPTION:
@@ -2113,11 +2113,11 @@ var OCIDateToText : function (err:POCIError; date:POCIDate; fmt:Poratext; fmt_le
                     The error recorded in 'err' can be retrieved by calling
                     OCIErrorGet().
             date1, date2 (IN) - dates to be compared
-            result (OUT) - comparison result, 0 if equal, -1 if date1 < date2, 
+            result (OUT) - comparison result, 0 if equal, -1 if date1 < date2,
                     1 if date1 > date2
        DESCRIPTION:
-            The function OCIDateCompare compares two dates. It returns -1 if date1 
-            is smaller than date2, 0 if they are equal, and 1 if date1 is greater 
+            The function OCIDateCompare compares two dates. It returns -1 if date1
+            is smaller than date2, 0 if they are equal, and 1 if date1 is greater
             than date2.
        RETURNS:
             OCI_SUCCESS if the function completes successfully.
@@ -2141,17 +2141,17 @@ var OCIDateToText : function (err:POCIError; date:POCIDate; fmt:Poratext; fmt_le
                     The error recorded in 'err' can be retrieved by calling
                     OCIErrorGet().
             date (IN) - 'num_months' added or subtracted from 'date'
-            num_months (IN) - number of months to be added or subtracted 
+            num_months (IN) - number of months to be added or subtracted
                     (a negative value will be subtracted)
             result (IN/OUT) - result of adding or subtracting to 'date'
        DESCRIPTION:
-            The function OCIDateAddDays adds or subtracts num_months from the 
+            The function OCIDateAddDays adds or subtracts num_months from the
             date 'date'.
-              If the input 'date' is the last day of a month, then 
-            appropriate adjustments are made to ensure that the output date is 
+              If the input 'date' is the last day of a month, then
+            appropriate adjustments are made to ensure that the output date is
             also the last day of the month. For example, Feb. 28 + 1 month =
             March 31, and November 30 - 3 months = August 31. Otherwise the
-            'result' date has the same day component as 'date'. 
+            'result' date has the same day component as 'date'.
        RETURNS:
             OCI_SUCCESS if the function completes successfully.
             OCI_INVALID_HANDLE if 'err' is NULL.
@@ -2174,11 +2174,11 @@ var OCIDateToText : function (err:POCIError; date:POCIDate; fmt:Poratext; fmt_le
                     The error recorded in 'err' can be retrieved by calling
                     OCIErrorGet().
             date (IN) - 'num_days' added or subtracted from 'date'
-            num_days (IN) - number of days to be added or subtracted 
+            num_days (IN) - number of days to be added or subtracted
                     (a negative value will be subtracted)
             result (IN/OUT) - result of adding or subtracting to 'date'
        DESCRIPTION:
-            The function OCIDateAddDays adds or subtracts num_days from the 
+            The function OCIDateAddDays adds or subtracts num_days from the
             date 'date'.
        RETURNS:
             OCI_SUCCESS if the function completes successfully.
@@ -2230,7 +2230,7 @@ var OCIDateToText : function (err:POCIError; date:POCIDate; fmt:Poratext; fmt_le
             date1, date2 (IN) - input dates
             num_days (OUT) - number of days between date1 and date2
        DESCRIPTION:
-            The function OCIDateDaysBetween returns the number of days between 
+            The function OCIDateDaysBetween returns the number of days between
             date1 and date2. The time is ignored in this computation.
        RETURNS:
             OCI_SUCCESS if the function completes successfully.
@@ -2262,13 +2262,13 @@ var OCIDateToText : function (err:POCIError; date:POCIDate; fmt:Poratext; fmt_le
             zon2_length (IN) - length in bytes of string 'zon2'
             date2 (OUT) - converted date (in 'zon2')
        DESCRIPTION:
-            Converts date from one time zone to another. Given date 'date1' 
+            Converts date from one time zone to another. Given date 'date1'
             in time zone 'zon1' returns date 'date2' in time zone 'zon2'.
        RETURNS:
             OCI_SUCCESS if the function completes successfully.
             OCI_INVALID_HANDLE if 'err' is NULL.
             OCI_ERROR if
-              invlid date
+              invalid date
               invald input time zone
               invald output time zone
               <to be discovered>
@@ -2307,35 +2307,35 @@ var OCIDateToText : function (err:POCIError; date:POCIDate; fmt:Poratext; fmt_le
     { Bad DAy  }
 
     const
-       OCI_DATE_INVALID_DAY = $1;       
+       OCI_DATE_INVALID_DAY = $1;
     { Bad DAy Low/high bit (1=low) }
-       OCI_DATE_DAY_BELOW_VALID = $2;       
+       OCI_DATE_DAY_BELOW_VALID = $2;
     { Bad MOnth  }
-       OCI_DATE_INVALID_MONTH = $4;       
+       OCI_DATE_INVALID_MONTH = $4;
     { Bad MOnth Low/high bit (1=low) }
-       OCI_DATE_MONTH_BELOW_VALID = $8;       
+       OCI_DATE_MONTH_BELOW_VALID = $8;
     { Bad YeaR  }
-       OCI_DATE_INVALID_YEAR = $10;       
+       OCI_DATE_INVALID_YEAR = $10;
     { Bad YeaR Low/high bit (1=low) }
-       OCI_DATE_YEAR_BELOW_VALID = $20;       
+       OCI_DATE_YEAR_BELOW_VALID = $20;
     { Bad HouR  }
-       OCI_DATE_INVALID_HOUR = $40;       
+       OCI_DATE_INVALID_HOUR = $40;
     { Bad HouR Low/high bit (1=low) }
-       OCI_DATE_HOUR_BELOW_VALID = $80;       
+       OCI_DATE_HOUR_BELOW_VALID = $80;
     { Bad MiNute  }
-       OCI_DATE_INVALID_MINUTE = $100;       
-       OCI_DATE_MINUTE_BELOW_VALID = $200;       
+       OCI_DATE_INVALID_MINUTE = $100;
+       OCI_DATE_MINUTE_BELOW_VALID = $200;
     { Bad MiNute Low/high bit (1=low) }
     { Bad SeCond  }
-       OCI_DATE_INVALID_SECOND = $400;       
-       OCI_DATE_SECOND_BELOW_VALID = $800;       
+       OCI_DATE_INVALID_SECOND = $400;
+       OCI_DATE_SECOND_BELOW_VALID = $800;
     { bad second Low/high bit (1=low) }
-       OCI_DATE_DAY_MISSING_FROM_1582 = $1000;       
+       OCI_DATE_DAY_MISSING_FROM_1582 = $1000;
     { Day is one of those "missing" from 1582  }
     { Year may not equal zero  }
-       OCI_DATE_YEAR_ZERO = $2000;       
+       OCI_DATE_YEAR_ZERO = $2000;
     { Bad date format input  }
-       OCI_DATE_INVALID_FORMAT = $8000;       
+       OCI_DATE_INVALID_FORMAT = $8000;
 {$IFNDEF LinkDynamically}
     function OCIDateCheck(err:POCIError; date:POCIDate; valid:Puword):sword;cdecl;external ocilib name 'OCIDateCheck';
 {$ELSE}
@@ -2351,9 +2351,9 @@ var OCIDateCheck : function(err:POCIError; date:POCIDate; valid:Puword):sword;cd
                     The error recorded in 'err' can be retrieved by calling
                     OCIErrorGet().
             date (IN) - date to be checked
-            valid (OUT) -  returns zero for a valid date, otherwise 
+            valid (OUT) -  returns zero for a valid date, otherwise
                     the ORed combination of all error bits specified below:
-      
+
        Macro name                   Bit number      Error
        ----------                   ----------      -----
        OCI_DATE_INVALID_DAY         0x1             Bad day
@@ -2372,12 +2372,12 @@ var OCIDateCheck : function(err:POCIError; date:POCIDate; valid:Puword):sword;cd
                                                     from 1582
        OCI_DATE_YEAR_ZERO           0x2000          Year may not equal zero
        OCI_DATE_INVALID_FORMAT      0x8000          Bad date format input
-      
+
        So, for example, if the date passed in was 2/0/1990 25:61:10 in
        (month/day/year hours:minutes:seconds format), the erroor returned
        would be OCI_DATE_INVALID_DAY | OCI_DATE_DAY_BELOW_VALID |
        OCI_DATE_INVALID_HOUR | OCI_DATE_INVALID_MINUTE
-    
+
        DESCRIPTION:
             Check if the given date is valid.
        RETURNS:
@@ -2423,7 +2423,7 @@ var OCIDateCheck : function(err:POCIError; date:POCIDate; valid:Puword):sword;cd
      * The variable-length string is represented in C as a pointer to OCIString
      * structure. The OCIString structure is opaque to the user. Functions are
      * provided to allow the user to manipulate a variable-length string.
-     *     
+     *
      * A variable-length string can be declared as:
      *
      * OCIString *vstr;
@@ -2509,7 +2509,7 @@ var OCIStringAssign : function (env:POCIEnv; err:POCIError; rhs:POCIString; var 
                     The error recorded in 'err' can be retrieved by calling
                     OCIErrorGet().
             new_size (IN) - new memory size of the string in bytes
-            str (IN/OUT) - allocated memory for the string is freed from the 
+            str (IN/OUT) - allocated memory for the string is freed from the
                     OOCI heap
        DESCRIPTION:
             This function resizes the memory of the given variable-length string in
@@ -2518,10 +2518,10 @@ var OCIStringAssign : function (env:POCIEnv; err:POCIError; rhs:POCIString; var 
             which case the original memory occupied by the given string will
             be freed. If the input string is null (str == NULL), then this
             function will allocate memory for the string.
-     
+
             If the new_size is 0, then this function frees the memory occupied
             by 'str' and a null pointer value is returned.
-     
+
             NOTE: The caller must compute 'new_size' taking into account space
             for the null character ('\0').
        RETURNS:
@@ -2572,7 +2572,7 @@ var OCIStringAssign : function (env:POCIEnv; err:POCIError; rhs:POCIString; var 
 {$ENDIF}
 
     {
-       NAME: OCIStringAllocSize - OCIString get Allocated SiZe of string memory 
+       NAME: OCIStringAllocSize - OCIString get Allocated SiZe of string memory
                                   in bytes
        PARAMETERS:
             env (IN/OUT) - OCI environment handle initialized in object mode.
@@ -2599,7 +2599,7 @@ var OCIStringAssign : function (env:POCIEnv; err:POCIError; rhs:POCIString; var 
      * The variable-length raw is represented in C as a pointer to OCIRaw
      * structure. The OCIRaw structure is opaque to the user. Functions are
      * provided to allow the user to manipulate a variable-length raw.
-     *     
+     *
      * A variable-length raw can be declared as:
      *
      * OCIRaw *raw;
@@ -2647,7 +2647,7 @@ var OCIRawAssignRaw : function (env:POCIEnv; err:POCIError; rhs:POCIRaw; var lhs
 {$ENDIF}
 
     {
-       NAME: OCIRawAssignBytes - OCIRaw Assign raw Bytes (of type ub1*) to Raw 
+       NAME: OCIRawAssignBytes - OCIRaw Assign raw Bytes (of type ub1*) to Raw
                        (of type OCIRaw*)
        PARAMETERS:
             env (IN/OUT) - OCI environment handle initialized in object mode.
@@ -2687,13 +2687,13 @@ var OCIRawAssignRaw : function (env:POCIEnv; err:POCIError; rhs:POCIRaw; var lhs
                     resized to 'new_size'
        DESCRIPTION:
             This function resizes the memory of the given variable-length raw in
-            the object cache. 
+            the object cache.
             The previous contents of the raw are NOT preserved.
             This function may allocate the raw in a new memory region in
             which case the original memory occupied by the given raw will
             be freed. If the input raw is null (raw == NULL), then this
             function will allocate memory for the raw data.
-     
+
             If the new_size is 0, then this function frees the memory occupied
             by 'raw' and a null pointer value is returned.
        RETURNS:
@@ -2766,12 +2766,12 @@ var OCIRawAssignRaw : function (env:POCIEnv; err:POCIError; rhs:POCIRaw; var lhs
     {*************************************************************************** }
     {                     OBJECT REFERENCE OPERATIONS                            }
     {*************************************************************************** }
-    { 
+    {
      * See the definition of OCIRef in oro.h.
      *
      * For binding variables of type OCIRef* in OCI calls (OCIBindByName(),
      * OCIBindByPos() and OCIDefineByPos()) use the code SQLT_REF.
-     * 
+     *
       }
     {---------------------------- OCIRefClear ---------------------------------- }
 {$IFNDEF LinkDynamically}
@@ -2789,11 +2789,11 @@ var OCIRawAssignRaw : function (env:POCIEnv; err:POCIError; rhs:POCIRaw; var lhs
             Clear or nullify the given ref. A ref is considered to be a null ref
             if it does not contain a valid OID (and thus doesn't point to an
             object). Logically, a null ref is a dangling ref.
-    
+
             Note that a null ref is still a valid SQL value and is not SQL-ly null.
             It can be used as a valid non-null constant ref value for NOT NULL
             column or attribute of a row in a table.
-            
+
             If a null pointer value is passed as a ref,
             then this function is a no-op.
       }
@@ -2843,7 +2843,7 @@ var OCIRawAssignRaw : function (env:POCIEnv; err:POCIError; rhs:POCIRaw; var lhs
             Two refs are equal if and only if:
               - they are both referencing the same persistent object, or
               - they are both referencing the same transient object.
-    
+
             NOTE THAT TWO NULL REFS ARE CONSIDERED NOT EQUAL BY THIS FUNCTION.
        RETURNS:
             TRUE if the two refs are equal
@@ -2967,52 +2967,52 @@ var OCIRawAssignRaw : function (env:POCIEnv; err:POCIError; rhs:POCIRaw; var lhs
     {*************************************************************************** }
     {                          COLLECTION FUNCTIONS                              }
     {*************************************************************************** }
-    { 
+    {
        The generic collection is represented by the type 'OCIColl'. The following
        operations OCIColl*() are provided on a generic collection:
          - get current size of collection
          - get upper bound of collection
          - get pointer to an element given its index
          - set element at given index (assign element)
-         - append an element 
+         - append an element
          - trim the given number of elements from the end of the collection
          - collection assignment
-    
+
        The following iterator based scanning functions are also provided on a
        generic collection. These functions make use of an iterator which is
        defined to be of type OCIIter.
-    
+
          - create an iterator for scanning collection
          - destroy iterator
          - reset iterator to the beginning of collection
          - get pointer to current element pointed by iterator
          - get pointer to next element
          - get pointer to previous element
-    
+
        The collections variable-length array (varray) and nested table
-       are sub-types of generic collection. This means that the OCIColl*() 
+       are sub-types of generic collection. This means that the OCIColl*()
        functions can also be used to manipulate varray and nested table.
-    
+
        The varray is represented by OCIArray type and nested table by OCITable.
        Besides OCIColl*() functions no additional functions are provided for
-       manipulating varrays. The OCIColl*() functions are a complete set of 
+       manipulating varrays. The OCIColl*() functions are a complete set of
        functions to manipulate varrays.
-    
-       Besides OCIColl*() functions, the following functions OCITable*() can be 
-       used to manipulate nested table. The OCITable*() functions operate on 
+
+       Besides OCIColl*() functions, the following functions OCITable*() can be
+       used to manipulate nested table. The OCITable*() functions operate on
        nested tables only and should not be used on a varray.
-    
+
          - delete an element at index i. Note that the position
            ordinals of the remaining elements of the table is not changed by the
            delete operation. So delete creates "holes" in the table.
          - check if an element exists at the given index i
          - return the smallest value of i for which exists(i) is true
          - return the largest value of i for which exists(i) is true
-         - return pointer to the smallest position j, greater than i, such that 
+         - return pointer to the smallest position j, greater than i, such that
            OCITableExists(j) is true
-         - return pointer to the largest position j, less than i, such that 
+         - return pointer to the largest position j, less than i, such that
            OCITableExists(j) is true
-    
+
        For binding variables of type OCIColl* or OCITable* in OCI calls
        (OCIBindByName(), OCIBindByPos() and OCIDefineByPos()) use the external
        type code SQLT_NTY.
@@ -3054,26 +3054,26 @@ var OCICollSize : function (env:POCIEnv; err:POCIError; coll:POCIColl; size:Psb4
             size (OUT) - current number of elements in the collection
        DESCRIPTION:
               Returns the current number of elements in the given collection.
-    
+
               For collections of type nested table wherein 'delete element'
               operation is allowed, the count returned by OCICollSize() will
               NOT be decremented upon deleting elements. For example:
-    
-                OCICollSize(...); 
+
+                OCICollSize(...);
                 // assume 'size' returned is equal to 5
                 OCITableDelete(...); // delete one element
                 OCICollSize(...);
                 // 'size' returned will still be 5
-    
-              To get the count minus the deleted elements use OCITableSize(). 
+
+              To get the count minus the deleted elements use OCITableSize().
               Continuing the above example,
-    
+
                 OCITableSize(...)
                 // 'size' returned will be equal to 4
-    
-              Note, a trim operation (OCICollTrim) will decrement the count 
+
+              Note, a trim operation (OCICollTrim) will decrement the count
               by the number of trimmed elements. Continuing the above example,
-    
+
                 OCICollTrim(..,1..); // trim one element
                 OCICollSize(...);
                 // 'size' returned will be equal to 4
@@ -3096,7 +3096,7 @@ var OCICollSize : function (env:POCIEnv; err:POCIError; coll:POCIColl; size:Psb4
                        given collection (in number of elements)
        PARAMETERS:
             env(IN) - pointer to OCI environment handle
-            coll (IN) - collection whose upper-bound in number of elements 
+            coll (IN) - collection whose upper-bound in number of elements
                     is returned
        DESCRIPTION:
             Returns the max number of elements that the given collection can hold.
@@ -3125,21 +3125,21 @@ var OCICollSize : function (env:POCIEnv; err:POCIError; coll:POCIColl; size:Psb4
                     OCIErrorGet().
             coll (IN) - pointer to the element in this collection is returned
             index (IN) - index of the element whose pointer is returned
-            exists (OUT) - set to FALSE if element at the specified index does 
+            exists (OUT) - set to FALSE if element at the specified index does
                     not exist else TRUE
             elem (OUT) - address of the desired element is returned
-            elemind (OUT) [optional] - address of the null indicator information 
+            elemind (OUT) [optional] - address of the null indicator information
                     is returned; if (elemind == NULL) then the null indicator
                     information will NOT be returned
        DESCRIPTION:
             Get the address of the element at the given position. Optionally
             this function also returns the address of the element's null indicator
             information.
-     
+
             The following table describes for each collection element type
             what the corresponding element pointer type is. The element pointer
             is returned via the 'elem' parameter of OCICollGetElem().
-     
+
                Element Type                       *elem is set to
             -----------------------               ---------------
              Oracle Number (OCINumber)              OCINumber*
@@ -3149,36 +3149,36 @@ var OCICollSize : function (env:POCIEnv; err:POCIError; coll:POCIColl; size:Psb4
              object reference (OCIRef*)             OCIRef**
              lob locator (OCILobLocator*)           OCILobLocator**
              object type (e.g. person)              person*
-     
+
             The element pointer returned by OCICollGetElem() is in a form
             such that it can not only be used to access the
             element data but also is in a form that can be used as the target
             (i.e left-hand-side) of an assignment statement.
-     
+
             For example, assume the user is iterating over the elements of
             a collection whose element type is object reference (OCIRef*). A call
             to OCICollGetElem() returns pointer to a reference handle
             (i.e. OCIRef**). After getting, the pointer to the collection
             element, the user may wish to modify it by assigning a new reference.
             This can be accomplished via the ref assignment function shown below:
-     
+
             sword OCIRefAssign( OCIEnv *env, OCIError *err, CONST OCIRef *source,
                                 OCIRef **target );
-     
+
             Note that the 'target' parameter of OCIRefAssign() is of type
             'OCIRef**'. Hence OCICollGetElem() returns 'OCIRef**'.
             If '*target == NULL' a new ref will be allocated by OCIRefAssign()
             and returned via the 'target' parameter.
-     
+
             Similarly, if the collection element was of type string (OCIString*),
             OCICollGetElem() returns pointer to string handle
             (i.e. OCIString**). If a new string is assigned, via
             OCIStringAssign() or OCIStringAssignText() the type of the target
             must be 'OCIString **'.
-     
+
             If the collection element is of type Oracle number, OCICollGetElem()
             returns OCINumber*. The prototype of OCINumberAssign() is shown below:
-     
+
             sword OCINumberAssign(OCIError *err, CONST OCINumber *from,
                                   OCINumber *to);
        RETURNS:
@@ -3206,10 +3206,10 @@ var OCICollSize : function (env:POCIEnv; err:POCIError; coll:POCIColl; size:Psb4
                     OCIErrorGet().
             coll (IN) - pointers to the elements in this collection is returned
             index (IN) - starting index of the element
-            exists (OUT) - set to FALSE if element at the specified index does 
+            exists (OUT) - set to FALSE if element at the specified index does
                     not exist else TRUE
             elem (OUT) - address of the desired elements is returned
-            elemind (OUT) [optional] - address of the null indicators information 
+            elemind (OUT) [optional] - address of the null indicators information
                     is returned; if (elemind == NULL) then the null indicator
                     information will NOT be returned
             nelems(IN/OUT) - Upper bound of elem and/or elemind array
@@ -3217,11 +3217,11 @@ var OCICollSize : function (env:POCIEnv; err:POCIError; coll:POCIColl; size:Psb4
             Get the address of the elements from the given position. Optionally
             this function also returns the address of the element's null indicator
             information.
-     
+
             The following table describes for each collection element type
             what the corresponding element pointer type is. The element pointer
             is returned via the 'elem' parameter of OCICollGetElem().
-     
+
                Element Type                       *elem is set to
             -----------------------               ---------------
              Oracle Number (OCINumber)              OCINumber*
@@ -3231,36 +3231,36 @@ var OCICollSize : function (env:POCIEnv; err:POCIError; coll:POCIColl; size:Psb4
              object reference (OCIRef*)             OCIRef**
              lob locator (OCILobLocator*)           OCILobLocator**
              object type (e.g. person)              person*
-     
+
             The element pointer returned by OCICollGetElem() is in a form
             such that it can not only be used to access the
             element data but also is in a form that can be used as the target
             (i.e left-hand-side) of an assignment statement.
-     
+
             For example, assume the user is iterating over the elements of
             a collection whose element type is object reference (OCIRef*). A call
             to OCICollGetElem() returns pointer to a reference handle
             (i.e. OCIRef**). After getting, the pointer to the collection
             element, the user may wish to modify it by assigning a new reference.
             This can be accomplished via the ref assignment function shown below:
-     
+
             sword OCIRefAssign( OCIEnv *env, OCIError *err, CONST OCIRef *source,
                                 OCIRef **target );
-     
+
             Note that the 'target' parameter of OCIRefAssign() is of type
             'OCIRef**'. Hence OCICollGetElem() returns 'OCIRef**'.
             If '*target == NULL' a new ref will be allocated by OCIRefAssign()
             and returned via the 'target' parameter.
-     
+
             Similarly, if the collection element was of type string (OCIString*),
             OCICollGetElem() returns pointer to string handle
             (i.e. OCIString**). If a new string is assigned, via
             OCIStringAssign() or OCIStringAssignText() the type of the target
             must be 'OCIString **'.
-     
+
             If the collection element is of type Oracle number, OCICollGetElem()
             returns OCINumber*. The prototype of OCINumberAssign() is shown below:
-     
+
             sword OCINumberAssign(OCIError *err, CONST OCINumber *from,
                                   OCINumber *to);
        RETURNS:
@@ -3288,19 +3288,19 @@ var OCICollSize : function (env:POCIEnv; err:POCIError; coll:POCIColl; size:Psb4
                     OCIErrorGet().
             index (IN) - index of the element whose is assigned to
             elem (IN) - element which is assigned from (source element)
-            elemind (IN) [optional] - pointer to the element's null indicator 
+            elemind (IN) [optional] - pointer to the element's null indicator
                     information; if (elemind == NULL) then the null indicator
                     information of the assigned element will be set to non-null.
             coll (IN/OUT) - collection to be updated
        DESCRIPTION:
             Assign the given element value 'elem' to the element at coll[index].
-            If the collection is of type nested table, the element at the given 
-            index may not exist (i.e. may have been deleted). In this case, the 
+            If the collection is of type nested table, the element at the given
+            index may not exist (i.e. may have been deleted). In this case, the
             given element is inserted at index 'index'.
             Otherwise, the element at index 'index' is updated with the value
             of 'elem'.
-      
-            Note that the given element is deep-copied and 
+
+            Note that the given element is deep-copied and
             'elem' is strictly an input parameter.
        RETURNS:
             OCI_SUCCESS if the function completes successfully.
@@ -3328,15 +3328,15 @@ var OCICollSize : function (env:POCIEnv; err:POCIError; coll:POCIColl; size:Psb4
             rhs (IN) - collection to be assigned from
             lhs (OUT) - collection to be assigned to
        DESCRIPTION:
-            Assign 'rhs' to 'lhs'. The 'lhs' collection may be decreased or 
-            increased depending upon the size of 'rhs'. If the 'lhs' contains 
-            any elements then the elements will be deleted prior to the 
-            assignment. This function performs a deep-copy. The memory for the 
+            Assign 'rhs' to 'lhs'. The 'lhs' collection may be decreased or
+            increased depending upon the size of 'rhs'. If the 'lhs' contains
+            any elements then the elements will be deleted prior to the
+            assignment. This function performs a deep-copy. The memory for the
             elements comes from the object cache.
-     
-            An error is returned if the element types of the lhs and rhs 
-            collections do not match. Also, an error is returned if the 
-            upper-bound of the lhs collection is less than the current number of 
+
+            An error is returned if the element types of the lhs and rhs
+            collections do not match. Also, an error is returned if the
+            upper-bound of the lhs collection is less than the current number of
             elements in the rhs collection.
        RETURNS:
             OCI_SUCCESS if the function completes successfully.
@@ -3345,7 +3345,7 @@ var OCICollSize : function (env:POCIEnv; err:POCIError; coll:POCIColl; size:Psb4
               any of the input parameters is null
               out of memory error
               type mis-match of lhs and rhs collections
-              upper-bound of lhs collection is less than the current number of 
+              upper-bound of lhs collection is less than the current number of
               elements in the rhs collection
       }
     {--------------------------- OCICollAppend --------------------------------- }
@@ -3365,21 +3365,21 @@ var OCICollSize : function (env:POCIEnv; err:POCIError; coll:POCIColl; size:Psb4
                     OCIErrorGet().
             elem (IN) - pointer to the element which is appended to the end
                     of the given collection
-            elemind (IN) [optional] - pointer to the element's null indicator 
+            elemind (IN) [optional] - pointer to the element's null indicator
                     information; if (elemind == NULL) then the null indicator
                     information of the appended element will be set to non-null.
             coll (IN/OUT) - updated collection
        DESCRIPTION:
-            Append the given element to the end of the given collection. 
+            Append the given element to the end of the given collection.
             Appending an element is equivalent to:
               - increasing the size of the collection by 1 element
-              - updating (deep-copying) the last element's data with the given 
+              - updating (deep-copying) the last element's data with the given
                 element's data
-      
-            Note that the pointer to the given element 'elem' will not be saved 
+
+            Note that the pointer to the given element 'elem' will not be saved
             by this function. So 'elem' is strictly an input parameter.
             An error is returned if the current size of the collection
-            is equal to the max size (upper-bound) of the collection prior to 
+            is equal to the max size (upper-bound) of the collection prior to
             appending the element.
        RETURNS:
             OCI_SUCCESS if the function completes successfully.
@@ -3408,10 +3408,10 @@ var OCICollSize : function (env:POCIEnv; err:POCIError; coll:POCIColl; size:Psb4
             coll (IN/OUT) - 'trim_num' of elements are removed (freed) from the
                     end of the collection
        DESCRIPTION:
-            Trim the collection by the given number of elements. The elements are 
+            Trim the collection by the given number of elements. The elements are
             removed from the end of the collection.
-      
-            An error is returned if the 'trim_num' is greater than the current 
+
+            An error is returned if the 'trim_num' is greater than the current
             size of the collection.
        RETURNS:
             OCI_SUCCESS if the function completes successfully.
@@ -3462,7 +3462,7 @@ var OCICollSize : function (env:POCIEnv; err:POCIError; coll:POCIColl; size:Psb4
                     recorded in 'err' and this function returns OCI_ERROR.
                     The error recorded in 'err' can be retrieved by calling
                     OCIErrorGet().
-            coll (IN) - collection which will be scanned; the different 
+            coll (IN) - collection which will be scanned; the different
                     collection types are varray and nested table
             itr (OUT) - address to the allocated collection iterator is
                     returned by this function
@@ -3470,12 +3470,12 @@ var OCICollSize : function (env:POCIEnv; err:POCIError; coll:POCIColl; size:Psb4
             Create an iterator to scan the elements of the collection. The
             iterator is created in the object cache. The iterator is initialized
             to point to the beginning of the collection.
-      
-            If the next function (OCIIterNext) is called immediately 
-            after creating the iterator then the first element of the collection 
-            is returned. 
-            If the previous function (OCIIterPrev) is called immediately after 
-            creating the iterator then "at beginning of collection" error is 
+
+            If the next function (OCIIterNext) is called immediately
+            after creating the iterator then the first element of the collection
+            is returned.
+            If the previous function (OCIIterPrev) is called immediately after
+            creating the iterator then "at beginning of collection" error is
             returned.
        RETURNS:
             OCI_SUCCESS if the function completes successfully.
@@ -3502,7 +3502,7 @@ var OCICollSize : function (env:POCIEnv; err:POCIError; coll:POCIColl; size:Psb4
             itr (IN/OUT) - the allocated collection iterator is destroyed and
                     the 'itr' is set to NULL prior to returning
        DESCRIPTION:
-            Delete the iterator which was previously created by a call to 
+            Delete the iterator which was previously created by a call to
             OCIIterCreate.
        RETURNS:
             OCI_SUCCESS if the function completes successfully.
@@ -3519,7 +3519,7 @@ var OCICollSize : function (env:POCIEnv; err:POCIError; coll:POCIColl; size:Psb4
 {$ENDIF}
 
     {
-       NAME: OCIIterInit - OCIColl Initialize ITerator to scan the given 
+       NAME: OCIIterInit - OCIColl Initialize ITerator to scan the given
                        collection
        PARAMETERS:
             env (IN/OUT) - OCI environment handle initialized in object mode.
@@ -3527,14 +3527,14 @@ var OCICollSize : function (env:POCIEnv; err:POCIError; coll:POCIColl; size:Psb4
                     recorded in 'err' and this function returns OCI_ERROR.
                     The error recorded in 'err' can be retrieved by calling
                     OCIErrorGet().
-            coll (IN) - collection which will be scanned; the different 
+            coll (IN) - collection which will be scanned; the different
                     collection types are varray and nested table
             itr (IN/OUT) - pointer to an allocated  collection iterator
        DESCRIPTION:
-            Initializes the given iterator to point to the beginning of the 
+            Initializes the given iterator to point to the beginning of the
             given collection. This function can be used to:
-      
-            a. reset an iterator to point back to the beginning of the collection 
+
+            a. reset an iterator to point back to the beginning of the collection
             b. reuse an allocated iterator to scan a different collection
        RETURNS:
             OCI_SUCCESS if the function completes successfully.
@@ -3560,8 +3560,8 @@ var OCICollSize : function (env:POCIEnv; err:POCIError; coll:POCIColl; size:Psb4
                     OCIErrorGet().
             itr (IN) - iterator which points to the current element
             elem (OUT) - address of the element pointed by the iterator is returned
-            elemind (OUT) [optional] - address of the element's null indicator 
-                    information is returned; if (elemind == NULL) then the null 
+            elemind (OUT) [optional] - address of the element's null indicator
+                    information is returned; if (elemind == NULL) then the null
                     indicator information will NOT be returned
        DESCRIPTION:
             Returns pointer to the current element and its corresponding null
@@ -3592,17 +3592,17 @@ var OCICollSize : function (env:POCIEnv; err:POCIError; coll:POCIColl; size:Psb4
             itr (IN/OUT) - iterator is updated to point to the next element
             elem (OUT) - after updating the iterator to point to the next element,
                     address of the element is returned
-            elemind (OUT) [optional] - address of the element's null indicator 
-                    information is returned; if (elemind == NULL) then the null 
+            elemind (OUT) [optional] - address of the element's null indicator
+                    information is returned; if (elemind == NULL) then the null
                     indicator information will NOT be returned
             eoc (OUT) - TRUE if iterator is at End Of Collection (i.e. next
                     element does not exist) else FALSE
        DESCRIPTION:
             Returns pointer to the next element and its corresponding null
             information. The iterator is updated to point to the next element.
-      
+
             If the iterator is pointing to the last element of the collection
-            prior to executing this function, then calling this function will 
+            prior to executing this function, then calling this function will
             set eoc flag to TRUE. The iterator will be left unchanged in this
             situation.
        RETURNS:
@@ -3628,22 +3628,22 @@ var OCICollSize : function (env:POCIEnv; err:POCIError; coll:POCIColl; size:Psb4
                     recorded in 'err' and this function returns OCI_ERROR.
                     The error recorded in 'err' can be retrieved by calling
                     OCIErrorGet().
-            itr (IN/OUT) - iterator is updated to point to the previous 
+            itr (IN/OUT) - iterator is updated to point to the previous
                     element
-            elem (OUT) - after updating the iterator to point to the previous 
+            elem (OUT) - after updating the iterator to point to the previous
                     element, address of the element is returned
-            elemind (OUT) [optional] - address of the element's null indicator 
-                    information is returned; if (elemind == NULL) then the null 
+            elemind (OUT) [optional] - address of the element's null indicator
+                    information is returned; if (elemind == NULL) then the null
                     indicator information will NOT be returned
             boc (OUT) - TRUE if iterator is at Beginning Of Collection (i.e.
                     previous element does not exist) else FALSE.
        DESCRIPTION:
             Returns pointer to the previous element and its corresponding null
             information. The iterator is updated to point to the previous element.
-      
+
             If the iterator is pointing to the first element of the collection
-            prior to executing this function, then calling this function will 
-            set 'boc' to TRUE. The iterator will be left unchanged in this 
+            prior to executing this function, then calling this function will
+            set 'boc' to TRUE. The iterator will be left unchanged in this
             situation.
        RETURNS:
             OCI_SUCCESS if the function completes successfully.
@@ -3662,7 +3662,7 @@ var OCICollSize : function (env:POCIEnv; err:POCIError; coll:POCIColl; size:Psb4
 {$ENDIF}
 
     {
-       NAME: OCITableSize - OCITable return current SIZe of the given 
+       NAME: OCITableSize - OCITable return current SIZe of the given
                        nested table (not including deleted elements)
        PARAMETERS:
             env(IN) - pointer to OCI environment handle
@@ -3674,22 +3674,22 @@ var OCICollSize : function (env:POCIEnv; err:POCIError; coll:POCIColl; size:Psb4
             size (OUT) - current number of elements in the nested table. The count
                     does not include deleted elements.
        DESCRIPTION:
-            Returns the count of elements in the given nested table. 
-    
-            The count returned by OCITableSize() will be decremented upon 
-            deleting elements from the nested table. So, this count DOES NOT 
-            includes any "holes" created by deleting elements. 
+            Returns the count of elements in the given nested table.
+
+            The count returned by OCITableSize() will be decremented upon
+            deleting elements from the nested table. So, this count DOES NOT
+            includes any "holes" created by deleting elements.
             For example:
-    
-                OCITableSize(...); 
+
+                OCITableSize(...);
                 // assume 'size' returned is equal to 5
                 OCITableDelete(...); // delete one element
                 OCITableSize(...);
                 // 'size' returned will be equal to 4
-    
-            To get the count plus the count of deleted elements use 
+
+            To get the count plus the count of deleted elements use
             OCICollSize(). Continuing the above example,
-    
+
                 OCICollSize(...)
                 // 'size' returned will still be equal to 5
        RETURNS:
@@ -3748,7 +3748,7 @@ var OCICollSize : function (env:POCIEnv; err:POCIError; coll:POCIColl; size:Psb4
             Delete the element at the given 'index'. Note that the position
             ordinals of the remaining elements of the table is not changed by the
             delete operation. So delete creates "holes" in the table.
-    
+
             An error is returned if the element at the specified 'index' has
             been previously deleted.
        RETURNS:
@@ -3774,11 +3774,11 @@ var OCICollSize : function (env:POCIEnv; err:POCIError; coll:POCIColl; size:Psb4
                     The error recorded in 'err' can be retrieved by calling
                     OCIErrorGet().
             tbl (IN) - table which is scanned
-            index (OUT) - first index of the element which exists in the given 
+            index (OUT) - first index of the element which exists in the given
                     table is returned
        DESCRIPTION:
-            Return the first index of the element which exists in the given 
-            table. 
+            Return the first index of the element which exists in the given
+            table.
        RETURNS:
             OCI_SUCCESS if the function completes successfully.
             OCI_INVALID_HANDLE if 'env' or 'err' is NULL.
@@ -3801,11 +3801,11 @@ var OCICollSize : function (env:POCIEnv; err:POCIError; coll:POCIColl; size:Psb4
                     The error recorded in 'err' can be retrieved by calling
                     OCIErrorGet().
             tbl (IN) - table which is scanned
-            index (OUT) - last index of the element which exists in the given 
+            index (OUT) - last index of the element which exists in the given
                     table is returned
        DESCRIPTION:
-            Return the last index of the element which exists in the given 
-            table. 
+            Return the last index of the element which exists in the given
+            table.
        RETURNS:
             OCI_SUCCESS if the function completes successfully.
             OCI_INVALID_HANDLE if 'env' or 'err' is NULL.
@@ -3832,11 +3832,11 @@ var OCICollSize : function (env:POCIEnv; err:POCIError; coll:POCIColl; size:Psb4
             index (IN) - starting at 'index' the index of the next element
                     which exists is returned
             tbl (IN) - table which is scanned
-            next_index (OUT) - index of the next element which exists 
+            next_index (OUT) - index of the next element which exists
                     is returned
             exists (OUT) - FALSE if no next index available else TRUE
        DESCRIPTION:
-            Return the smallest position j, greater than 'index', such that 
+            Return the smallest position j, greater than 'index', such that
             exists(j) is TRUE.
        RETURNS:
             OCI_SUCCESS if the function completes successfully.
@@ -3864,11 +3864,11 @@ var OCICollSize : function (env:POCIEnv; err:POCIError; coll:POCIColl; size:Psb4
             index (IN) - starting at 'index' the index of the previous element
                     which exists is returned
             tbl (IN) - table which is scanned
-            prev_index (OUT) - index of the previous element which exists 
+            prev_index (OUT) - index of the previous element which exists
                     is returned
             exists (OUT) - FALSE if no next index available else TRUE
        DESCRIPTION:
-            Return the largest position j, less than 'index', such that 
+            Return the largest position j, less than 'index', such that
             exists(j) is TRUE.
        RETURNS:
             OCI_SUCCESS if the function completes successfully.
@@ -3882,16 +3882,16 @@ var OCICollSize : function (env:POCIEnv; err:POCIError; coll:POCIColl; size:Psb4
     { argument types are unknown }
 //    function OCINumberToLnx(num : longint) : Plnxnum_t;
 
-    { 
+    {
        NAME:   OCINumberToLnx
        PARAMETERS:
                num (IN) - OCINumber to convert ;
-       DESCRIPTION: 
-               Converts OCINumber to its internal lnx format 
+       DESCRIPTION:
+               Converts OCINumber to its internal lnx format
                This is not to be used in Public interfaces , but
-               has been provided due to special requirements from 
-               SQLPLUS development group as they require to call 
-               Core funtions directly . 
+               has been provided due to special requirements from
+               SQLPLUS development group as they require to call
+               Core funtions directly .
      }
     type
     { OCI representation of XMLType  }

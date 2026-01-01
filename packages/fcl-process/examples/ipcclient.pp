@@ -18,11 +18,11 @@ begin
         DoStop:=(ParamStr(1)='-s') or (paramstr(1)='--stop');
         if DoStop then
           ServerInstance:=Paramstr(2)
-        else  
+        else
           ServerInstance:=Paramstr(1);
         if (Not DoStop) and (ParamCount>1) then
-          Count:=StrToIntDef(ParamStr(2),1);  
-        end;  
+          Count:=StrToIntDef(ParamStr(2),1);
+        end;
       Active:=True;
       if DoStop then
         SendStringMessage('stop')

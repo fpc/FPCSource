@@ -28,7 +28,7 @@ uses
 uses
   Classes, SysUtils, db,dbf, fpdatadict, sqltypes;
 {$ENDIF FPC_DOTTEDUNITS}
-  
+
 Type
 
   { TDBFDDimporter }
@@ -50,7 +50,7 @@ Type
     Class function DBType : String; override;
     Class function EngineCapabilities : TFPDDEngineCapabilities; override;
   end;
-  
+
 Procedure InitDBFImporter;
 Procedure DoneDBFImporter;
 
@@ -105,7 +105,7 @@ Function TDBFDDEngine.GetTableList(List: TStrings) : Integer;
 Var
   Info : TSearchrec;
   FN : String;
- 
+
 begin
   Result:=0;
   If Assigned(FDBF) then
@@ -141,10 +141,10 @@ end;
 
 function TDBFDDEngine.ViewTable(const TableName: String;
   DatasetOwner: TComponent): TDataset;
-  
+
 Var
   D : TDBF;
-  
+
 begin
   If DatasetOwner=Nil then
    DatasetOwner:=Self;
@@ -156,13 +156,13 @@ end;
 
 function TDBFDDEngine.GetTableIndexDefs(ATableName: String; Defs: TDDIndexDefs
   ): integer;
-  
+
 Var
   D : TDBF;
   DBD : TDBFIndexDef;
   DD : TDDIndexDef;
   I : Integer;
-  
+
 begin
   D:=TDBF.Create(Self);
   Try

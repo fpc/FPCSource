@@ -63,7 +63,7 @@ change it, your changes will probably be lost.
 
 All the prototypes and definitions following the comment "THE FOLLOWING
 IS EXTRACTED FROM THE SOURCE" are extracted from the source files for
-BFD.  If you change it, someone oneday will extract it from the source
+BFD.  If you change it, someone one day will extract it from the source
 again, and your changes will be lost.  To save yourself from this bind,
 change the definitions in the source in the bfd directory.  Type "make
 docs" and then "make headers" in that directory, and magically this file
@@ -959,7 +959,7 @@ is in practice already 0 *)
   (* IBM 370/390 relocations *)
     BFD_RELOC_I370_D12,
 
-  (* The type of reloc used to build a contructor table - at the moment
+  (* The type of reloc used to build a constructor table - at the moment
   probably a 32 bit wide absolute relocation, but the target can choose.
   It generally does map to one of the other relocation types. *)
     BFD_RELOC_CTOR,
@@ -1189,11 +1189,11 @@ is in practice already 0 *)
     BFD_RELOC_V850_TDA_4_4_OFFSET,
 
   (* This is a 16 bit offset from the SmallInt data area pointer, with the
-  bits placed non-contigously in the instruction. *)
+  bits placed non-contiguously in the instruction. *)
     BFD_RELOC_V850_SDA_16_16_SPLIT_OFFSET,
 
   (* This is a 16 bit offset from the zero data area pointer, with the
-  bits placed non-contigously in the instruction. *)
+  bits placed non-contiguously in the instruction. *)
     BFD_RELOC_V850_ZDA_16_16_SPLIT_OFFSET,
 
   (* This is a 6 bit offset from the call table base pointer. *)
@@ -1353,7 +1353,7 @@ is in practice already 0 *)
   included in the output.
 
   VTABLE_INHERIT is a zero-space relocation used to describe to the
-  linker the inheritence tree of a C++ virtual function table.  The
+  linker the inheritance tree of a C++ virtual function table.  The
   relocation's symbol should be the parent class' vtable, and the
   relocation should be located at the child vtable.
 
@@ -1795,7 +1795,7 @@ is in practice already 0 *)
 
          (* If this field is non null, then the supplied function is
             called rather than the normal function. This allows really
-            strange relocation methods to be accomodated (e.g., i960 callj
+            strange relocation methods to be accommodated (e.g., i960 callj
             instructions). *)
     special_function: function( abfd: PBFD;
                                 reloc_entry: Parelent;
@@ -2240,7 +2240,7 @@ const
           <<BSF_LOCAL>>, <<BSF_FORT_COMM>>,  <<BSF_UNDEFINED>> or
           <<BSF_GLOBAL>> *)
 
-       (* The symbol is a debugging record. The value has an arbitary
+       (* The symbol is a debugging record. The value has an arbitrary
           meaning, unless BSF_DEBUGGING_RELOC is also set.  *)
   BSF_DEBUGGING  = $08;
 
@@ -2346,7 +2346,7 @@ procedure bfd_putl32(vma: bfd_vma; var val);cdecl; external BFD_LIB_NAME;
 procedure bfd_putb16(vma: bfd_vma; var val);cdecl; external BFD_LIB_NAME;
 procedure bfd_putl16(vma: bfd_vma; var val);cdecl; external BFD_LIB_NAME;
 
-(* Byte swapping routines which take size and endiannes as arguments.  *)
+(* Byte swapping routines which take size and endianness as arguments.  *)
 
 function  bfd_get_bits (a: Pbfd_byte; b:integer; c: bfd_boolean): bfd_vma;cdecl; external BFD_LIB_NAME;
 procedure bfd_put_bits (a: bfd_vma; b:Pbfd_byte; c:integer; d:bfd_boolean);cdecl; external BFD_LIB_NAME;
@@ -2667,7 +2667,7 @@ const
 //todo:#define bfd_get_section_size_after_reloc(section)    ((section)->reloc_done ? (section)->_cooked_size : (abort (), (bfd_size_type) 1))
 //todo:asection * bfd_get_section_by_name (PBFD abfd, const ShortInt *name));
 
-//todo:PAnsiChar bfd_get_unique_section_name (PBFD abfd, const ShortInt *templat,  integer *count));
+//todo:PAnsiChar bfd_get_unique_section_name (PBFD abfd, const ShortInt *template,  integer *count));
 
 //todo:asection * bfd_make_section_old_way (PBFD abfd, const ShortInt *name));
 

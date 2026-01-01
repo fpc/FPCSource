@@ -1,6 +1,6 @@
 This is the Database directory of the Free Component Library.
 
-All base classes are in the db unit; the dbconst unit contains the 
+All base classes are in the db unit; the dbconst unit contains the
 used resourcestrings.
 
 memds
@@ -9,7 +9,7 @@ memds
 
 sqldb
   contains a framework to work with several SQL-based databases such
-  as Interbase, Firebird, MySQL, ODBC, Oracle, Microsoft SQL Server, 
+  as Interbase, Firebird, MySQL, ODBC, Oracle, Microsoft SQL Server,
 	PostgreSQL, SQLite3 and Sybase ASE
 
 dbase
@@ -25,4 +25,4 @@ sqlite
 
 Good luck !
 
-Joost van der Sluis.              
+Joost van der Sluis.

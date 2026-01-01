@@ -73,23 +73,23 @@
   {
   static inline GstSample *
   gst_sample_ref (GstSample * sample)
-  
+
     return ((GstSample *)gst_mini_object_ref (((GstMiniObject*)(sample))))
                  ;
-  
+
   # 113 "gstsample.h"
   static inline void
   gst_sample_unref (GstSample * sample)
-  
+
     gst_mini_object_unref (((GstMiniObject*)(sample)));
-  
-  
+
+
   # 170 "gstsample.h"
   static inline GstSample *
   gst_sample_copy (const GstSample * buf)
-  
+
     return ((GstSample *)gst_mini_object_copy (((const GstMiniObject*)(buf))));
-  
+
    }
 
   var

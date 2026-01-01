@@ -387,8 +387,8 @@ const
 // When drawing into a RastPort, if the ptr to ClipRect is nil then there
 // is no clipping done, this is dangerous but useful for speed
 
-  // graphics copper list intstruction definitions
-  COPPER_MOVE = 0;      // pseude opcode for move #XXXX,dir
+  // graphics copper list instruction definitions
+  COPPER_MOVE = 0;      // pseudo opcode for move #XXXX,dir
   COPPER_WAIT = 1;      // pseudo opcode for wait y,x
   CPRNXTBUF   = 2;      // continue processing with next buffer
   CPR_NT_LOF  = $8000;  // copper instruction only for short frames
@@ -1448,7 +1448,7 @@ const
   MVP_OK        =  0; // you want to see this one
   MVP_NO_MEM    =  1; // insufficient memory for intermediate workspace
   MVP_NO_VPE    =  2; // ViewPort does not have a ViewPortExtra, and insufficient memory to allocate a temporary one.
-  MVP_NO_DSPINS =  3; // insufficient memory for intermidiate copper instructions.
+  MVP_NO_DSPINS =  3; // insufficient memory for intermediate copper instructions.
   MVP_NO_DISPLAY = 4; // BitMap data is misaligned for this viewport's mode and depth - see AllocBitMap().
   MVP_OFF_BOTTOM = 5; // PRIVATE - you will never see this.
 
@@ -1825,7 +1825,7 @@ type
     NotAvailable: Word;        // if 0 available, else see defines
     PropertyFlags: LongWord;   // Properties of this mode see defines
     Resolution: TPoint;        // ticks-per-pixel X/Y
-    PixelSpeed: Word;          // aproximation in nanoseconds
+    PixelSpeed: Word;          // approximation in nanoseconds
     NumStdSprites: Word;       // number of standard amiga sprites
     PaletteRange: Word;        // OBSOLETE - use Red/Green/Blue bits instead
     SpriteResolution: TPoint;  // std sprite ticks-per-pixel X/Y
@@ -1985,7 +1985,7 @@ const
   VTAG_USERCLIP_GET      = $80000023;
   VTAG_USERCLIP_SET      = $80000024;
   VTAG_USERCLIP_CLR      = $80000025;
-  //The following tags are V39 specific. They will be ignored (returing error -3) by earlier versions
+  //The following tags are V39 specific. They will be ignored (returning error -3) by earlier versions
   VTAG_PF1_BASE_GET         =  $80000026;
   VTAG_PF2_BASE_GET         =  $80000027;
   VTAG_SPEVEN_BASE_GET      =  $80000028;

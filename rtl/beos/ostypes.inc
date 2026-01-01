@@ -361,7 +361,7 @@ const B_SYMBOL_TYPE_DATA = $1;
 const B_SYMBOL_TYPE_TEXT = $2;
 const B_SYMBOL_TYPE_ANY  = $5;
 
-{ Constansts for MMAP }
+{ Constants for MMAP }
 const
   MAP_ANONYMOUS =$1000;
 

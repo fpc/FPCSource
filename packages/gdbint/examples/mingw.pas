@@ -29,7 +29,7 @@ function atexit(p:TCFunction):longint; cdecl;  // export our own atexit handler
 
 implementation
 
-uses gdbint; // force dependancies that hopefully make it execute at the right moment.
+uses gdbint; // force dependencies that hopefully make it execute at the right moment.
 
 // prototype of atexit:
 Type

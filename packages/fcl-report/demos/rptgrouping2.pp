@@ -76,13 +76,13 @@ begin
   If W=0 then
     AValue:=''
   else
-    begin  
+    begin
     S:=ExtractWord(W,sl[lReportData.RecNo-1],[';']);
     if W=5 then
       AValue:=StrToIntDef(S,5)
     else
       AValue:=S;
-    end;    
+    end;
 end;
 
 procedure TGrouping2Demo.GetReportDataEOF(Sender: TObject; var IsEOF: Boolean);

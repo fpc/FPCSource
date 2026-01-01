@@ -223,7 +223,7 @@ uses MacTypes,CGBase;
    A common set of window levels is defined here for use within higher level
    frameworks. The levels are accessed via a key and function, so that
    levels may be changed or adjusted in future releases without breaking
-   binary compatability. }
+   binary compatibility. }
 
 type
 	CGWindowLevel = SInt32;

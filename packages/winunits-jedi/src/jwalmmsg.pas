@@ -5,7 +5,7 @@
 { Portions created by Microsoft are Copyright (C) 1995-2001 Microsoft          }
 { Corporation. All Rights Reserved.                                            }
 {                                                                              }
-{ The original file is: lmmsg.h, released November 2001. The original Pascal   } 
+{ The original file is: lmmsg.h, released November 2001. The original Pascal   }
 { code is: LmMsg.pas, released Februari 2002. The initial developer of the     }
 { Pascal code is Marcel van Brakel (brakelm att chello dott nl).               }
 {                                                                              }

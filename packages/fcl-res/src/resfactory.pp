@@ -32,10 +32,10 @@ uses
 type
   EResourceFactoryException = class(EResourceException);
   EResourceClassAlreadyRegisteredException = class(EResourceFactoryException);
-  
+
 resourcestring
   SAlreadyRegistered = 'A resource class for the type %s is already registered.';
-  
+
 type
 
   { TResourceFactory }
@@ -61,7 +61,7 @@ type
     _class : TResourceClass;
   end;
   PRegisteredResourceEntry = ^TRegisteredResourceEntry;
-  
+
 var
   ResTypeList : TFPList = nil;
 

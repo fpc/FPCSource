@@ -55,7 +55,7 @@ type
   public
     destructor Destroy(); override;
   end;
-  
+
   TOraFieldBuf = record
     DescType : ub4;      // descriptor type
     Buffer   : pointer;
@@ -609,10 +609,10 @@ end;
 
 procedure TOracleConnection.PrepareStatement(cursor: TSQLCursor;
   ATransaction: TSQLTransaction; buf: string; AParams: TParams);
-  
+
 var i        : integer;
     FOcibind : POCIDefine;
-    
+
     OFieldType   : ub2;
     OFieldSize   : sb4;
     ODescType    : ub4;
@@ -930,7 +930,7 @@ begin
         HandleError;
 
       FieldSize := 0;
-      
+
       case OFieldType of
         OCI_TYPECODE_NUMBER   : begin
                                 if OCIAttrGet(Param,OCI_DTYPE_PARAM,@Oprecision,nil,OCI_ATTR_PRECISION,FOciError) = OCI_ERROR then
@@ -1268,7 +1268,7 @@ begin
                         'FROM ALL_TAB_COLUMNS '+
                         'WHERE Upper(TABLE_NAME) = '''+UpperCase(SchemaObjectName)+''' '+
                         'ORDER BY COLUMN_NAME';
-    // Columns of tables, views and clusters accessible to user; hidden columns are filtered out.												
+    // Columns of tables, views and clusters accessible to user; hidden columns are filtered out.
     stProcedures : s := 'SELECT '+
                           'case when PROCEDURE_NAME is null then OBJECT_NAME ELSE OBJECT_NAME || ''.'' || PROCEDURE_NAME end AS procedure_name '+
                         'FROM USER_PROCEDURES ';

@@ -40,7 +40,7 @@ Thanks:
          while translating this code. ;)
 
          I want to thanks #fpc channel in freenode irc, for helping me, and to put up with my
-         wierd questions ;)
+         weird questions ;)
 
          Thanks for mmc in #xlib on freenode irc And so for the channel itself for the helping me to
          understanding some of the problems I had converting this headers and pointing me to resources
@@ -50,9 +50,9 @@ Thanks:
 
 History:
         2004/10/15           - Fixed a bug of accessing second based records by removing "paced record" and
-                               chnaged it to "reocrd" only.
+                               chnaged it to "record" only.
         2004/10/04 - 06      - Convertion from the c header of XKBgeom.h.
-        2004/10/03           - Removed the XKBstr_UNIT compiler decleration. Afther the joined files,
+        2004/10/03           - Removed the XKBstr_UNIT compiler declaration. Afther the joined files,
                                There is no need for it anymore.
                              - There is a need to define (for now) XKBgeom (compiler define) in order
                                to use the code of it. At this moment, I did not yet converted it to Pascal.
@@ -62,7 +62,7 @@ History:
         2004/10/03           - Joined xkbstr.pas into xkb.pas because of the circular calls problems.
                              - Added the history of xkbstr.pas above this addition.
 
-        2004/09/17           - Fixed a wrong convertion number of XkbPerKeyBitArraySize, insted
+        2004/09/17           - Fixed a wrong convertion number of XkbPerKeyBitArraySize, instead
                                of float, it's now converted into integer (as it should have been).
 
         2004/09/15 - 16      - Convertion from the c header of XKB.h.
@@ -542,7 +542,7 @@ const
         XkbAllControlsMask      = $F8001FFF;
 
     {
-      Compatibility Map Compontents:
+      Compatibility Map Components:
        - Specifies the components to be allocated in XkbAllocCompatMap.
                 }
 const
@@ -608,7 +608,7 @@ const
 
   {
       Miscellaneous event details:
-      - event detail masks for assorted events that don't reall
+      - event detail masks for assorted events that don't really
         have any details.
                 }
 const
@@ -1511,7 +1511,7 @@ type
                           num_overlays : Word;
                           sz_rows      : Word;
                           sz_doodads   : Word;
-                          sz_overlays  : Word;                          
+                          sz_overlays  : Word;
                           rows         : PXkbRowPtr;
                           doodads      : PXkbDoodadPtr;
                           bounds       : TXkbBoundsRec;

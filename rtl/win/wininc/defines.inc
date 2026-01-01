@@ -965,7 +965,7 @@
      DDD_RAW_TARGET_PATH = 1;
      DDD_REMOVE_DEFINITION = 2;
      DDD_EXACT_MATCH_ON_REMOVE = 4;
-  { DeviceCapbilities  }
+  { DeviceCapabilities  }
      DC_BINNAMES = 12;
      DC_BINS = 6;
      DC_COPIES = 18;
@@ -2538,7 +2538,7 @@
      HKEY_DYN_DATA = HKEY(longint($80000006));
 
 Type
-    SE_OBJECT_TYPE = (   // enum in Delphi apparantly.
+    SE_OBJECT_TYPE = (   // enum in Delphi apparently.
         SE_UNKNOWN_OBJECT_TYPE	= 0,
 	SE_FILE_OBJECT,
 	SE_SERVICE,
@@ -5995,7 +5995,7 @@ Type
 
 {$ifdef cpui386}
   { x86  }
-  { The doc refered me to winnt.h, so I had to look...  }
+  { The doc referred me to winnt.h, so I had to look...  }
 
   const
      SIZE_OF_80387_REGISTERS = 80;

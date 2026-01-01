@@ -401,7 +401,7 @@ type
   PSEC_CHANNEL_BINDINGS = ^SEC_CHANNEL_BINDINGS;
   {$EXTERNALSYM PSEC_CHANNEL_BINDINGS}
   TSecChannelBindings = SEC_CHANNEL_BINDINGS;
-  PSecChannelBindings = PSEC_CHANNEL_BINDINGS;  
+  PSecChannelBindings = PSEC_CHANNEL_BINDINGS;
 
 //
 //  Data Representation Constant:
@@ -1173,7 +1173,7 @@ type
   PSecPkgContext_AuthzID = ^SecPkgContext_AuthzID;
   {$EXTERNALSYM PSecPkgContext_AuthzID}
   TSecPkgContextAuthzID = SecPkgContext_AuthzID;
-  PSecPkgContextAuthzID = PSecPkgContext_AuthzID;  
+  PSecPkgContextAuthzID = PSecPkgContext_AuthzID;
 
   _SecPkgContext_Target = record
     TargetLength: Cardinal;
@@ -1185,7 +1185,7 @@ type
   PSecPkgContext_Target = ^SecPkgContext_Target;
   {$EXTERNALSYM PSecPkgContext_Target}
   TSecPkgContextTarget = SecPkgContext_Target;
-  PSecPkgContextTarget = PSecPkgContext_Target;  
+  PSecPkgContextTarget = PSecPkgContext_Target;
 
   SEC_GET_KEY_FN = procedure(
     Arg: Pointer;                           // Argument passed in

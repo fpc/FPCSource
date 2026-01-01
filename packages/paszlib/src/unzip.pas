@@ -18,7 +18,7 @@ unit Unzip;
    Encryption and multi volume ZipFile (span) are not supported.
    Old compressions used by old PKZip 1.x are not supported
 
-  Pascal tranlastion
+  Pascal translation
   Copyright (C) 2000 by Jacques Nomssi Nzali
   For conditions of distribution and use, see copyright notice in readme.txt }
 
@@ -100,11 +100,11 @@ type
 
 function unzStringFileNameCompare(const fileName1: PAnsiChar; const fileName2: PAnsiChar; iCaseSensitivity: longint): longint;
 { Compare two filename (fileName1,fileName2).
-  If iCaseSenisivity = 1 (1=true),
-    comparision is case sensitive (like strcmp)
-  If iCaseSenisivity = 2 (0=false),
-    comparision is not case sensitive (like strcmpi or strcasecmp)
-  If iCaseSenisivity = 0, case sensitivity is defaut of your
+  If iCaseSensitivity = 1 (1=true),
+    comparison is case sensitive (like strcmp)
+  If iCaseSensitivity = 2 (0=false),
+    comparison is not case sensitive (like strcmpi or strcasecmp)
+  If iCaseSensitivity = 0, case sensitivity is default of your
     operating system like 1 on Unix, 2 on Windows)
 }
 
@@ -168,7 +168,7 @@ function unzLocateFile(afile: unzFile; const szFileName: PAnsiChar; iCaseSensiti
 function unzGetCurrentFileInfo(afile: unzFile; pfile_info: unz_file_info_ptr; szFileName: PAnsiChar; fileNameBufferSize: longint; extraField: pointer; extraFieldBufferSize: longint; szComment: PAnsiChar; commentBufferSize: longint): longint; { ZEXPORT }
 
 { Get Info about the current file
-  if pfile_info<>NIL, the pfile_info^ structure will contain somes
+  if pfile_info<>NIL, the pfile_info^ structure will contain some
   info about the current file
   if szFileName<>NIL, the filemane string will be copied in szFileName
       (fileNameBufferSize is the size of the buffer)
@@ -202,7 +202,7 @@ function unzReadCurrentFile(afile: unzFile; buf: pointer; len: cardinal): longin
   buf contain buffer where data must be copied
   len the size of buf.
 
-  return the number of byte copied if somes bytes are copied
+  return the number of byte copied if some bytes are copied
   return 0 if the end of file was reached
   return <0 with error code if there is an error
     (UNZ_ERRNO for IO error, or zLib error for uncompress error) }
@@ -300,7 +300,7 @@ type
 { unz_s contain internal information about the zipfile }
 type
   unz_s = record
-    afile: FILEptr;                 { io structore of the zipfile }
+    afile: FILEptr;                 { io structure of the zipfile }
     gi:    unz_global_info;         { public global information }
     byte_before_the_zipfile: longint; { byte before the zipfile, (>0 for sfx)}
     num_file: longint;                { number of the current file in the zipfile}
@@ -323,7 +323,7 @@ type
 { ===========================================================================
   Read a byte from a gz_stream; update next_in and avail_in. Return EOF
   for end of file.
-  IN assertion: the stream s has been sucessfully opened for reading. }
+  IN assertion: the stream s has been successfully opened for reading. }
 
 
 function unzlocal_getByte(fin: FILEptr; var pi: longint): longint;
@@ -445,11 +445,11 @@ const
 
 function unzStringFileNameCompare(const fileName1: PAnsiChar; const fileName2: PAnsiChar; iCaseSensitivity: longint): longint; { ZEXPORT }
 { Compare two filename (fileName1,fileName2).
-  If iCaseSenisivity = 1 (1=true),
-    comparision is case sensitive (like strcmp)
-  If iCaseSenisivity = 2 (0=false),
-    comparision is not case sensitive (like strcmpi or strcasecmp)
-  If iCaseSenisivity = 0, case sensitivity is defaut of your
+  If iCaseSensitivity = 1 (1=true),
+    comparison is case sensitive (like strcmp)
+  If iCaseSensitivity = 2 (0=false),
+    comparison is not case sensitive (like strcmpi or strcasecmp)
+  If iCaseSensitivity = 0, case sensitivity is default of your
     operating system like 1 on Unix, 2 on Windows)
 }
 begin
@@ -560,10 +560,10 @@ var
   central_pos, uL: longint;
   fin: FILEptr;
 
-  number_disk:     longint; { number of the current dist, used for spaning ZIP,
+  number_disk:     longint; { number of the current dist, used for spanning ZIP,
                          unsupported, always 0 }
   number_disk_with_CD: longint; { number the the disk with central dir,
-                        used for spaning ZIP, unsupported, always 0 }
+                        used for spanning ZIP, unsupported, always 0 }
   number_entry_CD: longint; { total number of entries in the central dir
                                  (same than number_entry on nospan) }
 
@@ -870,7 +870,7 @@ end;
 function unzGetCurrentFileInfo(afile: unzFile; pfile_info: unz_file_info_ptr; szFileName: PAnsiChar; fileNameBufferSize: longint; extraField: pointer; extraFieldBufferSize: longint; szComment: PAnsiChar; commentBufferSize: longint): longint; { ZEXPORT }
 
 { Get Info about the current file
-  if pfile_info<>NIL, the pfile_info^ structure will contain somes
+  if pfile_info<>NIL, the pfile_info^ structure will contain some
   info about the current file
   if szFileName<>NIL, the filemane string will be copied in szFileName
       (fileNameBufferSize is the size of the buffer)
@@ -1204,7 +1204,7 @@ end;
   buf contain buffer where data must be copied
   len the size of buf.
 
-  return the number of byte copied if somes bytes are copied
+  return the number of byte copied if some bytes are copied
   return 0 if the end of file was reached
   return <0 with error code if there is an error
     (UNZ_ERRNO for IO error, or zLib error for uncompress error) }

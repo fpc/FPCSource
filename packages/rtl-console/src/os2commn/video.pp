@@ -476,7 +476,7 @@ begin
     rType := 2;
     end;
   VioGetState (OrigHighBit, 0);
-  { Register the curent video mode in reserved slot in System Modes}
+  { Register the current video mode in reserved slot in System Modes}
   with OrigVioMode do
     begin
     {Assume we have at least 16 colours available in "colour" modes}

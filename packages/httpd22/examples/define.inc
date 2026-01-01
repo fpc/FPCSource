@@ -1,6 +1,6 @@
 { **********************************************************************
   Define one of the following versions. Default 2.0 will be taken if none
-  is defined  
+  is defined
   **********************************************************************}
 
 { $define apache1_3}

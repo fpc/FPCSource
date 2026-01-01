@@ -396,7 +396,7 @@ const
 {
    Properties of class cControlPanel (Views CP only) (subclass of cFile)
    Note: the other view-like preference settings are not available in the Views
-   control panel. These properties are only offered here for backward compatability.
+   control panel. These properties are only offered here for backward compatibility.
    To set the full range of Finder Preferences, use the Preferences object.
 }
 const

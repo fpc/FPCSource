@@ -27,10 +27,10 @@ const
  * The tokens are listed in order of their significance for identifying the
  * application.
  *
- * "Product tokens should be short and to the point -- use of them for 
+ * "Product tokens should be short and to the point -- use of them for
  * advertizing or other non-essential information is explicitly forbidden."
  *
- * Example: "Apache/1.1.0 MrWidget/0.1-alpha" 
+ * Example: "Apache/1.1.0 MrWidget/0.1-alpha"
  }
   AP_SERVER_BASEVENDOR = 'Apache Software Foundation';
   AP_SERVER_BASEPRODUCT = 'Apache';

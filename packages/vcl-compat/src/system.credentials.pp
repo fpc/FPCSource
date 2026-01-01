@@ -20,12 +20,12 @@ Type
   public const
     Default        = '';
     DefaultUsrPw   = 'DefaultUsrPw';
-    DefaultUsrPwDm = 'DefaultUsrPwDm'; 
+    DefaultUsrPwDm = 'DefaultUsrPwDm';
   public type
     TLoginFunc = reference to function (const Username, Password, Domain: string): Boolean;
     TLoginEvent = procedure (Sender: TObject; const Username, Password, Domain: string; var Handled: Boolean) of object;
     TLoginCredentialEvent = procedure (Sender: TObject; Callback: TLoginEvent; var Success: Boolean) of object;
-  private 
+  private
     type
 
       { TRegisteredHandler }

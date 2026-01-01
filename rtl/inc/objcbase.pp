@@ -218,7 +218,7 @@ type
     function methodSignatureForSelector(aSelector: SEL): NSMethodSignature; message 'methodSignatureForSelector:';
     function methodSignatureForSelector_(aSelector: SEL): NSMethodSignature; message 'methodSignatureForSelector:';
 
-    // can't be classDescription, becaue there's a method in another
+    // can't be classDescription, because there's a method in another
     // class that's also called classDescription
     class function _classDescription: NSString; message 'description';
 

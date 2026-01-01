@@ -13,7 +13,7 @@ var
   tcp_gateway: pcchar; cvar; external;
 
 
-procedure _break(); cdecl; external;	
+procedure _break(); cdecl; external;
 
 
 procedure DEBUG_Init(device_type, channel_port: cint32); cdecl; external;

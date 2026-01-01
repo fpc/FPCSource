@@ -24,7 +24,7 @@ begin
 
   // using for..in to check everything changed to 47. For in is shorter and autoallocated, but can't write to cells via iterator.
   for pair in data.min do
-    writeln('Min: ',pair.Key, ' ', pair.Value);         
+    writeln('Min: ',pair.Key, ' ', pair.Value);
 
   iterator := data.FindLess(7);
   writeln(iterator.Value);

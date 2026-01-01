@@ -1,6 +1,6 @@
 
 
-{$include libversion.inc} 
+{$include libversion.inc}
 { $include helper.inc}
 {$include ndstypes.inc}
 {$include bios.inc}
@@ -15,11 +15,11 @@
 {$include fifocommon.inc}
 {$include system.inc}
 {$include timers.inc}
-{$include fifomessages.inc} 
-{$include input.inc} 
-{$include rsa.inc} 
-{$include sha1.inc} 
- 
+{$include fifomessages.inc}
+{$include input.inc}
+{$include rsa.inc}
+{$include sha1.inc}
+
 {$ifdef ARM9}
   {$include arm9/dynamicArray.inc}
   {$include arm9/linkedlist.inc}

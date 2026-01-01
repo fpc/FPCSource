@@ -42,7 +42,7 @@ type
 
   generic TSet<T, TCompare>=class
   public
-  type 
+  type
     PNode=^Node;
     Node=record
       Data:T;
@@ -55,7 +55,7 @@ type
   private
     FBase:PNode;
     FSize:SizeUInt;
-    
+
     function CreateNode(Data:T):PNode;inline;
     procedure DestroyNodeAndChilds(nod:PNode);
     procedure DestroyNode(nod:PNode);
@@ -69,7 +69,7 @@ type
     function MoveRedRight(nod:PNode):PNode;inline;
     function DeleteMin(nod:PNode):PNode;
     function Delete(value:T; nod:PNode):PNode;
-    function Min(nod:PNode):PNode;inline; 
+    function Min(nod:PNode):PNode;inline;
   public
     function Find(value:T):TIterator;inline;
     function FindLess(value:T):TIterator;inline;
@@ -203,7 +203,7 @@ end;
 function TSet.MoveRedLeft(nod:PNode):PNode;inline;
 begin
   flipColors(nod);
-    if (IsRed(nod^.Right^.Left)) then begin 
+    if (IsRed(nod^.Right^.Left)) then begin
           nod^.Right := rotateRight(nod^.Right);
           nod := rotateLeft(nod);
           flipColors(nod);
@@ -214,7 +214,7 @@ end;
 function TSet.MoveRedRight(nod:PNode):PNode;inline;
 begin
   flipColors(nod);
-    if (IsRed(nod^.Left^.Left)) then begin 
+    if (IsRed(nod^.Left^.Left)) then begin
           nod := rotateRight(nod);
           flipColors(nod);
     end;
@@ -239,15 +239,15 @@ function TSet.Delete(value:T; nod:PNode):PNode;
 begin
   if (TCompare.c(value, nod^.Data)) then begin
     if (nod^.Left=nil) then exit(nod);
-    if ((not IsRed(nod^.Left)) and ( not IsRed(nod^.Left^.Left))) then 
+    if ((not IsRed(nod^.Left)) and ( not IsRed(nod^.Left^.Left))) then
       nod := MoveRedLeft(nod);
     nod^.Left := Delete(value, nod^.Left);
   end
   else begin
-    if (IsRed(nod^.Left)) then begin 
+    if (IsRed(nod^.Left)) then begin
       nod := rotateRight(nod);
     end;
-    if ((not TCompare.c(value,nod^.Data)) and (not TCompare.c(nod^.Data,value)) and (nod^.Right = nil)) then 
+    if ((not TCompare.c(value,nod^.Data)) and (not TCompare.c(nod^.Data,value)) and (nod^.Right = nil)) then
     begin
       DestroyNode(nod);
       exit(nil);
@@ -430,11 +430,11 @@ begin
     position:=nod;
     exit(nod);
   end;
-  if(TCompare.c(value,nod^.Data)) then begin 
+  if(TCompare.c(value,nod^.Data)) then begin
     nod^.Left:=Insert(value, nod^.Left, position);
-    nod^.Left^.Parent:=nod; 
+    nod^.Left^.Parent:=nod;
   end
-  else if TCompare.c(nod^.Data,value) then begin 
+  else if TCompare.c(nod^.Data,value) then begin
     nod^.Right:=Insert(value, nod^.Right, position);
     nod^.Right^.Parent:=nod;
   end
@@ -446,7 +446,7 @@ begin
   if(IsRed(nod^.Right)) and (not IsRed(nod^.Left)) then nod := rotateLeft(nod);
   if(IsRed(nod^.Left)) and (IsRed(nod^.Left^.Left)) then nod := rotateRight(nod);
   if(IsRed(nod^.Right)) and (IsRed(nod^.Left)) then flipColors(nod);
-  
+
   Insert:=nod;
 end;
 
@@ -485,12 +485,12 @@ begin
 end;
 
 function TSet.NMax:PNode;inline;
-var temp:PNode; 
+var temp:PNode;
 begin
   if FBase=nil then exit(nil);
   temp:=FBase;
   while(temp^.Right<>nil) do temp:=temp^.Right;
-  
+
   NMax := temp;
 end;
 
@@ -500,7 +500,7 @@ begin
   if FBase=nil then exit(nil);
   temp:=FBase;
   while(temp^.Right<>nil) do temp:=temp^.Right;
-  
+
   ret := TIterator.create;
   ret.FNode := temp;
   Max := ret;

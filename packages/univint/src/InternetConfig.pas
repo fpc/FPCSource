@@ -933,7 +933,7 @@ function ICStart( var inst: ICInstance; signature: OSType ): OSStatus; external 
 
 
 { Call this at application initialisation. Set signature to a value
-   * which has been regsitered with DTS to allow for future expansion
+   * which has been registered with DTS to allow for future expansion
    * of the IC system. Returns inst as a connection to the IC system.
    }
 {

@@ -356,7 +356,7 @@ begin
     exit;
 
   GetMem(TempBuf, ItemSize);
-  
+
 {$ifdef FPC_HAS_FEATURE_EXCEPTIONS}
   try
 {$endif FPC_HAS_FEATURE_EXCEPTIONS}
@@ -373,7 +373,7 @@ begin
     end;
 {$ifdef FPC_HAS_FEATURE_EXCEPTIONS}
   finally
-{$endif FPC_HAS_FEATURE_EXCEPTIONS}  
+{$endif FPC_HAS_FEATURE_EXCEPTIONS}
     FreeMem(TempBuf, ItemSize);
 {$ifdef FPC_HAS_FEATURE_EXCEPTIONS}
   end;

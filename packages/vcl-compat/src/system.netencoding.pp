@@ -56,7 +56,7 @@ type
     Function DoDecode(const aInput: RawByteString): RawByteString; overload; virtual; abstract;
     Function DoEncode(const aInput: RawByteString): RawByteString; overload; virtual; abstract;
 
-    // These can be overridden by descendents for effiency
+    // These can be overridden by descendents for efficiency
     Function DoDecode(const aInput: UnicodeString): UnicodeString; overload; virtual;
     Function DoEncode(const aInput: UnicodeString): UnicodeString; overload; virtual;
 

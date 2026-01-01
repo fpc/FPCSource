@@ -4054,7 +4054,7 @@ Var
 begin
   TestSelect('SELECT A.B FROM A');
   AssertEquals('One field',1,Select.Fields.Count);
-  // Field supports linking/refering to a table
+  // Field supports linking/referring to a table
   AssertField(Select.Fields[0],'B');
   Expr := ((Select.Fields[0] as TSQLSelectField).Expression as TSQLIdentifierExpression);
   AssertEquals('Field has explicit table',2,Expr.IdentifierPath.Count);
@@ -4753,7 +4753,7 @@ begin
   AssertField(Select.Fields[0],'B');
   AssertTable(Select.Tables[0],'A');
   AssertEquals('One order by field',1,Select.Orderby.Count);
-  // Field does not support linking/refering to a table, so the field name is
+  // Field does not support linking/referring to a table, so the field name is
   // assigned as C.D (instead of D with a <link to table C>)
   AssertOrderBy(Select.OrderBy[0],'C.D',0,obAscending);
 end;

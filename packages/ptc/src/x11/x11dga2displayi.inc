@@ -83,7 +83,7 @@ procedure TX11DGA2Display.Open(ATitle: AnsiString; AWidth, AHeight: Integer; AFo
     if Result <> '' then
       Delete(Result, 1, 1);
   end;
-  
+
   function ViewportFlagsToString(AViewportFlags: cint): AnsiString;
   begin
     Result := '';
@@ -94,7 +94,7 @@ procedure TX11DGA2Display.Open(ATitle: AnsiString; AWidth, AHeight: Integer; AFo
     if Result <> '' then
       Delete(Result, 1, 1);
   end;
-  
+
   function ByteOrderToString(AByteOrder: cint): AnsiString;
   begin
     case AByteOrder of

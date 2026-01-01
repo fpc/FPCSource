@@ -129,17 +129,17 @@ TGstClockEntry =T_GstClockEntry;
 
   function gst_clock_add_observation(clock:PGstClock; slave:TGstClockTime; master:TGstClockTime; r_squared:Pgdouble):Tgboolean;cdecl;external gstreamerlib name 'gst_clock_add_observation';
 
-  function gst_clock_add_observation_unapplied(clock:PGstClock; slave:TGstClockTime; master:TGstClockTime; r_squared:Pgdouble; internal:PGstClockTime; 
+  function gst_clock_add_observation_unapplied(clock:PGstClock; slave:TGstClockTime; master:TGstClockTime; r_squared:Pgdouble; internal:PGstClockTime;
              external:PGstClockTime; rate_num:PGstClockTime; rate_denom:PGstClockTime):Tgboolean;cdecl;external gstreamerlib name 'gst_clock_add_observation_unapplied';
 
   function gst_clock_get_internal_time(clock:PGstClock):TGstClockTime;cdecl;external gstreamerlib name 'gst_clock_get_internal_time';
 
   function gst_clock_adjust_unlocked(clock:PGstClock; internal:TGstClockTime):TGstClockTime;cdecl;external gstreamerlib name 'gst_clock_adjust_unlocked';
 
-  function gst_clock_adjust_with_calibration(clock:PGstClock; internal_target:TGstClockTime; cinternal:TGstClockTime; cexternal:TGstClockTime; cnum:TGstClockTime; 
+  function gst_clock_adjust_with_calibration(clock:PGstClock; internal_target:TGstClockTime; cinternal:TGstClockTime; cexternal:TGstClockTime; cnum:TGstClockTime;
              cdenom:TGstClockTime):TGstClockTime;cdecl;external gstreamerlib name 'gst_clock_adjust_with_calibration';
 
-  function gst_clock_unadjust_with_calibration(clock:PGstClock; external_target:TGstClockTime; cinternal:TGstClockTime; cexternal:TGstClockTime; cnum:TGstClockTime; 
+  function gst_clock_unadjust_with_calibration(clock:PGstClock; external_target:TGstClockTime; cinternal:TGstClockTime; cexternal:TGstClockTime; cnum:TGstClockTime;
              cdenom:TGstClockTime):TGstClockTime;cdecl;external gstreamerlib name 'gst_clock_unadjust_with_calibration';
 
   function gst_clock_unadjust_unlocked(clock:PGstClock; external:TGstClockTime):TGstClockTime;cdecl;external gstreamerlib name 'gst_clock_unadjust_unlocked';

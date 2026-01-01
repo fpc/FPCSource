@@ -405,8 +405,8 @@ type
 
   // these are the variables that Intuition sets and maintains
 
-    CWidth: Word;     // Container width (with any relativity absoluted)
-    CHeight: Word;    // Container height (with any relativity absoluted)
+    CWidth: Word;     // Container width (with any relativity obsoleted)
+    CHeight: Word;    // Container height (with any relativity obsoleted)
     HPotRes,
     VPotRes: Word;    // pot increments
     LeftBorder: Word; // Container borders
@@ -1165,16 +1165,16 @@ const
 
   WA_SkinInfo             = WA_Dummy + 159; // [I..]
 
-{ Intuition skins system usualy enchances window size when SIZEIMAGE width/height forces non-std border sizes.
+{ Intuition skins system usually enhances window size when SIZEIMAGE width/height forces non-std border sizes.
   If your app already knows about the border sizes (GetSkinInfo) please add this tag to your OpenWindow call. This will switch
   off window size adjustment. ti_Data should point to SkinInfo struct allocated by GetSkinInfo.
-  IMPORTANT: passing WA_SkinInfo tag to OpenWindowTags means that your app IS Skin compilant. Expect windows with non
+  IMPORTANT: passing WA_SkinInfo tag to OpenWindowTags means that your app IS Skin compliant. Expect windows with non
    standard titlebar height, etc when you pass it (also with nil tag^.ti_Data!)}
   WA_TransparentRegion     = WA_Dummy + 160; // [I..]
   { Installs the provided region as a transparent region in window's layer. Best solution for fixed size windows. Setting WA_TransparentRegion clears
     previously set WA_TransparentRegionHook! For more information please refer to intuition/TransparencyControl() autodoc.}
   WA_TransparentRegionHook = WA_Dummy + 161; // [I..]
-  { Installs the provided transparent region hook. The hook is called whenever window's layer needs updating (usualy on resize). The hook is called with
+  { Installs the provided transparent region hook. The hook is called whenever window's layer needs updating (usually on resize). The hook is called with
     window pointer in A2 and struct TransparencyMessage * in A1 registers. Setting this tag clears previously set WA_TransparentRegion!
     For more information please refer to intuition/TransparencyControl() autodoc.}
   WA_UserPort              = WA_Dummy + 162; // [I.G]
@@ -1185,7 +1185,7 @@ const
   WA_ToolbarWindow         = WA_Dummy + 163; // [I..]
   { Toolbar windows are windows that cannot be activated. They react fine on IDCMP_MOUSEBUTTONS, IDCMP_MOUSEMOVE, IDCMP_INTUITICKS, but
     only on those. The one and only supported intuition gadget is a GTYP_WDRAGGING(2) gadget, rest will be ignored. Toolbar windows are _always_ borderless.}
-  WA_PointerType           = WA_Dummy + 164; // [ISG] Use one of intuition's built-in pointers in your window. There's basicly everything an app should need there - please avoid using custom pointers when possible.
+  WA_PointerType           = WA_Dummy + 164; // [ISG] Use one of intuition's built-in pointers in your window. There's basically everything an app should need there - please avoid using custom pointers when possible.
   WA_FrontWindow           = WA_Dummy + 165; // [I..] Window stays always on front of other windows.
   WA_Parent                = WA_Dummy + 166; // [I.G]
   { PWindow. Makes the new window a child window of the one passed in ti_Data. Useful for popup windows - you can set child window position relatively to parent top/leftedge, child
@@ -1207,7 +1207,7 @@ const
   WA_ShadowBottom = WA_Dummy + 179; // [ISG] part of the shadow. Set any of the tags above to true to force shadows in a borderless window
 
   WA_VisibleOnMaximize = WA_Dummy + 180; // [ISG]
-  { LongBool. When maximizing windows, intuition will take the windows with this tag on into the account and substract them from the
+  { LongBool. When maximizing windows, intuition will take the windows with this tag on into the account and subtract them from the
     area the maximized window will cover. Do note that intuition will not take windows that are not touching any screen border into the
     account. You should generally let user decide if he wants this functionality or not}
 
@@ -1533,7 +1533,7 @@ const
   SA_ScreenbarSignal    = SA_Dummy + 137; // [..G] LongWord. Returns a common signal bit num (not mask!) that sbars may use. Mind that the signal is not yours to free
 
   SA_ExactMatchMonitorName = SA_Dummy + 138; // [I..] LongBool. If True, the screen will either be opened on the monitor matched by SA_MonitorName or won't open at all
-  SA_CompositingLayers     = SA_Dummy + 139; // [I.G] LongBool. Set this to true to request a compositing engine to handle layers on your screen. Get this attr to see if this succceeded. From v51.30
+  SA_CompositingLayers     = SA_Dummy + 139; // [I.G] LongBool. Set this to true to request a compositing engine to handle layers on your screen. Get this attr to see if this succeeded. From v51.30
 
 
 // OpenScreen error codes, which are returned in the (optional) LongInt pointed to by ti_Data for the SA_ErrorCode tag item
@@ -1630,7 +1630,7 @@ const
   SHANGHAI     = $0001; // put workbench windows on pub screen
   POPPUBSCREEN = $0002; // pop pub screen to front when visitor opens
 
-  // ScreenDepth() flags, it's generaly easier to use ScreenToFront()/ScreenToBack() calls
+  // ScreenDepth() flags, it's generally easier to use ScreenToFront()/ScreenToBack() calls
   SDEPTH_TOFRONT = 0; // Bring screen to front
   SDEPTH_TOBACK  = 1; // Send screen to back
 
@@ -2137,7 +2137,7 @@ const
   GA_Immediate     = GA_Dummy + 21; // (LongBool) When set indicates that the gadget is to notify the application when it becomes active.  Defaults to False.
   GA_RelVerify     = GA_Dummy + 22; // (LongBool) When set indicates that the application wants to verify that the pointer was still over the gadget when the select button is released.  Defaults to False
   GA_FollowMouse   = GA_Dummy + 23; // (LongBool) When set indicates that the application wants to  be notified of mouse movements while the gadget is active.
-                                    //   It is recommmended that GA_Immediate and GA_RelVerify are also used so that the active gadget can be tracked by the application.  Defaults to FALSE. }
+                                    //   It is recommended that GA_Immediate and GA_RelVerify are also used so that the active gadget can be tracked by the application.  Defaults to FALSE. }
   GA_RightBorder   = GA_Dummy + 24; // (LongBool) Indicate whether the gadget is in the right border or not.  Defaults to False
   GA_LeftBorder    = GA_Dummy + 25; // (LongBool) Indicate whether the gadget is in the left border or not.  Defaults to False.
   GA_TopBorder     = GA_Dummy + 26; // (LongBool) Indicate whether the gadget is in the top border or not.  Defaults to False.
@@ -2167,7 +2167,7 @@ const
   GA_ActivateKey    = GA_Dummy + 43; // (PAnsiChar) Set/Get the gadgets shortcut/activation key(s) Defaults to nil
   GA_BackFill       = GA_Dummy + 44; // (PHook) Backfill pattern hook. Defaults to nil.
   GA_GadgetHelpText = GA_Dummy + 45; // (PAnsiChar) RESERVERD/PRIVATE DO NOT USE Defaults to nil.
-  GA_UserInput      = GA_Dummy + 46; // (LongBool) Notification tag indicates this notification is from the activite
+  GA_UserInput      = GA_Dummy + 46; // (LongBool) Notification tag indicates this notification is from the activity
                                      //   gadget receiving user input - an attempt to make IDCMPUPDATE more efficient. Defaults to False
   // V50
   GA_LabelPlace     = GA_Dummy + 100; // [I..] (LongInt) Choose the placing of the label. GadgetClass does not support
@@ -2365,7 +2365,7 @@ const
   GDOMAIN_NOMINAL = 1; // Nominal size
   GDOMAIN_MAXIMUM = 2; // Maximum size
 
-// The GM_KEYTEST method is used to determin if a key press matches an object's activation key(s).
+// The GM_KEYTEST method is used to determine if a key press matches an object's activation key(s).
 // GM_KEYTEST send this message
 type
   PgpKeyTest = ^TgpKeyTest;
@@ -2960,7 +2960,7 @@ type
   TBTDDrawInfo = record
     BDI_RPort: PRastPort; // RastPort with or without layer, the bitmap will never be a CLUT one!
     BDI_Screen: PScreen;  // In case your renderer needs to know the gfx card, call WaitBOVP. might be nil!
-    BDI_Left: LongInt;    // position and dimmensions of your draw area
+    BDI_Left: LongInt;    // position and dimensions of your draw area
     BDI_Top: LongInt;     // NOTE: starting with BTDI_Revision 7 this will always be 0,0,screenw,screenh
     BDI_Width: LongInt;
     BDI_Height: LongInt;
@@ -3144,7 +3144,7 @@ type
   end;
 const
   EES_Dummy        = TAG_USER;
-  EES_ActiveButton = EES_Dummy + 1; // the button which will be hilighted when requester pops up, uses 1,2,..,n,0 numbering!
+  EES_ActiveButton = EES_Dummy + 1; // the button which will be highlighted when requester pops up, uses 1,2,..,n,0 numbering!
   EES_DosLogo      = EES_Dummy + 2;
   EES_DiskBased    = EES_Dummy + 3; // if True, the requesters may use diskbased components. if FALSE, no I/O will be done when displaying the requester. defaults to True
 
@@ -3178,7 +3178,7 @@ const
   IMSGA_Seconds           = IMSGA_Dummy + 8; // ULONG
   IMSGA_Micros            = IMSGA_Dummy + 9; // ULONG
   IMSGA_IDCMPWindow       = IMSGA_Dummy + 10; // PWindow
-  IMSGA_RawMouseX         = IMSGA_Dummy + 11; // LONG, raw, unaccelerated delta
+  IMSGA_RawMouseX         = IMSGA_Dummy + 11; // LONG, raw, decelerated delta
   IMSGA_RawMouseY         = IMSGA_Dummy + 12; // LONG
   IMSGA_UCS4              = IMSGA_Dummy + 13; // ULONG, UCS4
 
@@ -3767,7 +3767,7 @@ begin
   FULLMENUNUM := ((Sub and $1f) shl 11) or ((Item and $3f) shl 5) or (Menu and $1f);
 end;
 
-{ The next functons _BGPEN AND _FGPEN aren't a full replacement of the
+{ The next functions _BGPEN AND _FGPEN aren't a full replacement of the
   C macros because the C preprocessor makes it possible to set the
   A/BPen values of the image class objects as well. This can't work
   in pascal, of course! }

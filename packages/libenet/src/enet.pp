@@ -410,7 +410,7 @@ type
   { enums }
   ENetSocketType = ( ENET_SOCKET_TYPE_STREAM   = 1,
                      ENET_SOCKET_TYPE_DATAGRAM = 2 );
-  
+
   ENetSocketOption = ( ENET_SOCKOPT_NONBLOCK  = 1,
                        ENET_SOCKOPT_BROADCAST = 2,
                        ENET_SOCKOPT_RCVBUF    = 3,

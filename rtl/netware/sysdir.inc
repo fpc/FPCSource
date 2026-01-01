@@ -66,7 +66,7 @@ begin
     Move (P, dir[1], i);
     DoDirSeparators(dir);
     // fix / after volume, the compiler needs that
-    // normaly root of a volumes is SERVERNAME/SYS:, change that
+    // normally root of a volumes is SERVERNAME/SYS:, change that
     // to SERVERNAME/SYS:/
     i := pos (':',dir);
     if (i > 0) then

@@ -20,12 +20,12 @@ uses
 
 begin
   ReadIniFile;
-  
+
   CreateFConnection;
   CreateFTransaction;
 
   Fconnection.Transaction := Ftransaction;
-  
+
   Fconnection.ExecuteDirect('create table FPDEV (       ' +
                             '  id INT NOT NULL,           ' +
                             '  Name VARCHAR(50),          ' +

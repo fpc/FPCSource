@@ -299,7 +299,7 @@ uses libc;
   {    fieldFlags Type masks     }
   { normal editable field  }
      NORMAL_FIELD = $00;
-  { non accessable  }
+  { non accessible  }
      LOCKED_FIELD = $01;
   { non editable  }
      SECURE_FIELD = $02;

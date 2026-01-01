@@ -813,7 +813,7 @@ type
     type_ : cuint8;  (*!< \ref vtxattrin for this element.  *)
   end;
   PGXVtxDesc = ^GXVtxDesc;
-  
+
   GXVtxAttrFmt = record
     vtxattr : cuint32;  (*!< \ref vtxattr for this element.  *)
     comptype : cuint32;  (*!< \ref comptype for this element.  *)
@@ -1348,7 +1348,7 @@ procedure GX_SetDispCopySrc(left, top, wd, ht: cuint16); cdecl; external;
 
 (*!
  * \fn void GX_SetDispCopyDst(u16 wd,u16 ht)
- * \brief Sets the witdth and height of the display buffer in pixels.
+ * \brief Sets the width and height of the display buffer in pixels.
  *
  * \details The application typical renders an image into the EFB(source) and then copies it into the XFB(destination) in main memory. \a wd
  * specifies the number of pixels between adjacent lines in the destination buffer and can be different than the width of the EFB.
@@ -1710,7 +1710,7 @@ procedure GX_PeekARGB(x, y: cuint16; var color: GXColor); cdecl; external;
  * \fn void GX_PokeZ(u16 x,u16 y,u32 z)
  * \brief Allows the CPU to write a z value directly to the Embedded Frame Buffer (EFB) at position \a x,\a y.
  *
- * \details The \a z value can be compared with the current contents of the EFB. The Z compare fuction is set using GX_PokeZMode().
+ * \details The \a z value can be compared with the current contents of the EFB. The Z compare function is set using GX_PokeZMode().
  *
  * \note The \a z value should be in the range of 0x00000000 <= \a z < 0x00FFFFFF in the case of non-antialiased frame buffer. For an antialiased
  * frame buffer, the \a z value should be in the compressed 16-bit format (0x00000000 <= \a z <= 0x0000FFFF), and the poke will affect all 3
@@ -2147,7 +2147,7 @@ procedure GX_LoadTexObj(obj: PGXTexObj; mapid: cuint8); cdecl; external;
  * location of the TLUT in main memory, the TLUT format, and the TLUT size. \a obj should have been previously initialized using GX_InitTlutObj().
  *
  * \note GX_Init() sets a default callback to convert \a tlut_names from \ref tlutname to \ref GXTlutRegion pointers. The default configuration of
- * TMEM has 20 TLUTs, 16 each 256 entries by 16 bits, and 4 each 1k entries by 16 bits. This configuration can be overriden by calling
+ * TMEM has 20 TLUTs, 16 each 256 entries by 16 bits, and 4 each 1k entries by 16 bits. This configuration can be overridden by calling
  * GX_InitTlutRegion() and GX_InitTexCacheRegion() to allocate TMEM. Then you can define your own region allocation scheme using GX_SetTlutRegionCallback()
  * and GX_SetTexRegionCallback().
  *
@@ -2515,7 +2515,7 @@ procedure GX_InitLightDistAttn(lit_obj: PGXLightObj; ref_dist, ref_brite: f32;
  * multiplied by the <i>atten</i> factor when the attenuation function for the color channel referencing this light is set to <tt>GX_AF_SPOT</tt>
  * (see GX_SetChanCtrl()).
  *
- * \note The convenience function GX_InitLightSpot() can be used to set the angle attenuation coefficents based on several spot light
+ * \note The convenience function GX_InitLightSpot() can be used to set the angle attenuation coefficients based on several spot light
  * types. The convenience function GX_InitLightDistAttn() can be used to set the distance attenuation coefficients using one of several
  * common attenuation functions.<br><br>
  *
@@ -2555,7 +2555,7 @@ procedure GX_InitLightAttn(lit_obj: PGXLightObj; a0, a1, a2, k0, k1, k2: f32); c
  * can be set using GX_InitLightAttn(). The light color will be multiplied by the <i>atten</i> factor when the attenuation function for the color channel
  * referencing this light is set to <tt>GX_AF_SPOT</tt> (see GX_SetChanCtrl()).
  *
- * \note The convenience function GX_InitLightSpot() can be used to set the angle attenuation coefficents based on several spot light types. The
+ * \note The convenience function GX_InitLightSpot() can be used to set the angle attenuation coefficients based on several spot light types. The
  * convenience function GX_InitLightDistAttn() can be used to set the distance attenuation coefficients using one of several common attenuation functions.<br><br>
  *
  * \note This function does not load any hardware registers directly. To load a light object into a hardware light, use GX_LoadLightObj() or GX_LoadLightObjIdx().
@@ -2584,7 +2584,7 @@ procedure GX_InitLightAttnA(lit_obj: PGXLightObj; a0, a1, a2: f32); cdecl; exter
  * can be set using GX_InitLightAttn(). The light color will be multiplied by the <i>atten</i> factor when the attenuation function for the color channel
  * referencing this light is set to <tt>GX_AF_SPOT</tt> (see GX_SetChanCtrl()).
  *
- * \note The convenience function GX_InitLightSpot() can be used to set the angle attenuation coefficents based on several spot light types. The convenience
+ * \note The convenience function GX_InitLightSpot() can be used to set the angle attenuation coefficients based on several spot light types. The convenience
  * function GX_InitLightDistAttn() can be used to set the distance attenuation coefficients using one of several common attenuation functions.<br><br>
  *
  * \note Note that this function does not load any hardware registers directly. To load a light object into a hardware light, use GX_LoadLightObj() or
@@ -3053,7 +3053,7 @@ end;
 procedure GX_Position1x8(index: cuint8); inline;
 begin
 	wgPipe^.U8 := index;
-end;    
+end;
 
 procedure GX_Position1x16(index: cuint16); inline;
 begin

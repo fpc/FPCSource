@@ -348,7 +348,7 @@ type
   TPDFUTF8String = class(TPDFAbstractString)
   private
     FValue: UTF8String;
-    { Remap each character to the equivalant dictionary character code }
+    { Remap each character to the equivalent dictionary character code }
     function RemapedText: AnsiString;
   protected
     procedure Write(const AStream: TStream); override;
@@ -821,7 +821,7 @@ type
     Procedure DrawImage(const APos: TPDFCoord; const AWidth, AHeight: TPDFFloat; const ANumber: integer; const ADegrees: single = 0.0); overload;
     { X, Y coordinates are the bottom-left coordinate of the boundry rectangle.
       The W and H parameters are in the UnitOfMeasure units. A negative AWidth will
-      cause the ellpise to draw to the left of the origin point. }
+      cause the ellipse to draw to the left of the origin point. }
     Procedure DrawEllipse(const APosX, APosY, AWidth, AHeight, ALineWidth: TPDFFloat; const AFill: Boolean = True; AStroke: Boolean = True; const ADegrees: single = 0.0); overload;
     Procedure DrawEllipse(const APos: TPDFCoord; const AWidth, AHeight, ALineWidth: TPDFFloat; const AFill: Boolean = True; AStroke: Boolean = True; const ADegrees: single = 0.0); overload;
     procedure DrawPolygon(const APoints: array of TPDFCoord; const ALineWidth: TPDFFloat);
@@ -1724,7 +1724,7 @@ begin
   WriteString('</rdf:RDF>'+CRLF, AStream);
   WriteString('</x:xmpmeta>'+CRLF, AStream);
 
-  //Recomended whitespace padding for inplace editing
+  //Recommended whitespace padding for inplace editing
   for i := 1 to 21 do
     WriteString('                                                                                                   '+CRLF, AStream);
   WriteString('<?xpacket end="w"?>', AStream);
@@ -4317,7 +4317,7 @@ var
   lUnderlinePos, lUnderlineSize, lStrikeOutPos, lStrikeOutSize: Single;
   a1, b1, c1, d1, a2, b2, c2, d2: Single;
   v : UTF8String;
-  
+
 begin
   inherited Write(AStream);
   WriteString('q' + CRLF, AStream);
@@ -5442,13 +5442,13 @@ var
   IDict: TPDFDictionary;
 
   Procedure DoEntry(aName, aValue : String; NoUnicode: boolean = false);
-  
+
   begin
     if aValue='' then exit;
     if UseUTF16 and not NoUnicode then
       IDict.AddString(aName,utf8decode(aValue))
     else
-      IDict.AddString(aName,aValue);  
+      IDict.AddString(aName,aValue);
   end;
 
 begin

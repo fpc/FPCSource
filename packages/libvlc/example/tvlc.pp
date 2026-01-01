@@ -11,7 +11,7 @@ uses  {$ifdef unix}cthreads,{$endif}libvlc, math;
 Var
   Args: Array[0..3] of PAnsiChar;
   fhandle : pointer;
- 
+
 begin
   // This is needed, or loading the VLC libraries will fail with a SIGFPE
   setexceptionmask([exInvalidOp, exDenormalized, exZeroDivide,

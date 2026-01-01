@@ -455,7 +455,7 @@ procedure TIMER1_CAPT_ISR; external name 'TIMER1_CAPT_ISR'; // Interrupt 11 Time
 procedure TIMER1_OVF_ISR; external name 'TIMER1_OVF_ISR'; // Interrupt 12 Timer/Counter1 Overflow
 procedure ADC_ISR; external name 'ADC_ISR'; // Interrupt 13 ADC Conversion Complete
 procedure INT1_ISR; external name 'INT1_ISR'; // Interrupt 14 External Interrupt Request 1
-procedure SPI__STC_ISR; external name 'SPI__STC_ISR'; // Interrupt 15 SPI Serial Transfer Complet
+procedure SPI__STC_ISR; external name 'SPI__STC_ISR'; // Interrupt 15 SPI Serial Transfer Complete
 procedure INT2_ISR; external name 'INT2_ISR'; // Interrupt 16 External Interrupt Request 2
 procedure WDT_ISR; external name 'WDT_ISR'; // Interrupt 17 Watchdog Timeout Interrupt
 procedure EE_READY_ISR; external name 'EE_READY_ISR'; // Interrupt 18 EEPROM Ready

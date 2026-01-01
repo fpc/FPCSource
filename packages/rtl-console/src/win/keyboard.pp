@@ -66,7 +66,7 @@ type
 var
    keyboardeventqueue : array[0..maxqueuesize] of TFPKeyEventRecord;
    nextkeyevent,nextfreekeyevent : longint;
-   newKeyEvent    : THandle;            {sinaled if key is available}
+   newKeyEvent    : THandle;            {signaled if key is available}
    lockVar        : TCriticalSection;   {for queue access}
    lastShiftState : byte;               {set by handler for PollShiftStateEvent}
    altNumActive   : boolean;            {for alt+0..9}
@@ -408,7 +408,7 @@ end;
 
 {$define USEKEYCODES}
 
-{Translatetable Win32 -> Dos for Special Keys = Function Key, Cursor Keys
+{Translatable Win32 -> Dos for Special Keys = Function Key, Cursor Keys
  and Keys other than numbers on numblock (to make fv happy) }
 {combinations under dos: Shift+Ctrl: same as Ctrl
                          Shift+Alt : same as alt
@@ -813,7 +813,7 @@ begin
   Key := NilEnhancedKeyEvent;
   if t.ev.bKeyDown then
   begin
-    { unicode-AnsiChar is <> 0 if not a specal key }
+    { unicode-AnsiChar is <> 0 if not a special key }
     { we return it here otherwise we have to translate more later }
     if t.ev.UnicodeChar <> WideChar(0) then
     begin

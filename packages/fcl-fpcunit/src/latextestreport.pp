@@ -29,7 +29,7 @@ uses
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
-   
+
   { TLatexResultsWriter }
 
   TLatexResultsWriter = class(TCustomResultsWriter)
@@ -43,8 +43,8 @@ type
     procedure WriteTestHeader(ATest: TTest; ALevel: integer; ACount: integer); override;
     procedure WriteTestFooter(ATest: TTest; ALevel: integer; ATiming: TDateTime); override;
     procedure WriteSuiteHeader(ATestSuite: TTestSuite; ALevel: integer); override;
-    procedure WriteSuiteFooter(ATestSuite: TTestSuite; ALevel: integer; 
-      ATiming: TDateTime; ANumRuns: integer; ANumErrors: integer; 
+    procedure WriteSuiteFooter(ATestSuite: TTestSuite; ALevel: integer;
+      ATiming: TDateTime; ANumRuns: integer; ANumErrors: integer;
       ANumFailures: integer; ANumIgnores: integer); override;
   public
     constructor Create(aOwner: TComponent); override;
@@ -139,9 +139,9 @@ end;
 procedure TLatexResultsWriter.WriteFooter;
 begin
   inherited WriteFooter;
-  
+
 end;
-    
+
 procedure TLatexResultsWriter.WriteResult(aResult: TTestResult);
 var
   f: text;
@@ -162,9 +162,9 @@ begin
   writeln(f, FDoc.Text);
   close(f);
 end;
-  
+
 {ITestListener}
-    
+
 procedure TLatexResultsWriter.AddFailure(ATest: TTest; AFailure: TTestFailure);
 begin
   inherited AddFailure(ATest, AFailure);
@@ -176,7 +176,7 @@ begin
   inherited;
   FTempFailure := AError;
 end;
-    
+
 procedure TLatexResultsWriter.WriteTestHeader(ATest: TTest; ALevel: integer; ACount: integer);
 begin
   inherited;
@@ -195,8 +195,8 @@ begin
   FDoc.Add(S);
   if Assigned(FTempFailure) then
   begin
-    //check if it's an error 
-    if not FTempFailure.IsFailure then 
+    //check if it's an error
+    if not FTempFailure.IsFailure then
     begin
       FDoc[FDoc.Count -1] := '{\color{Red}'+FDoc[FDoc.Count -1];
       FDoc.Add('\begin{description}');
@@ -210,12 +210,12 @@ begin
     else
       if FTempFailure.IsIgnoredTest then
       begin
-        FDoc[FDoc.Count -1] := '{\color{Yellow}'+FDoc[FDoc.Count -1] + '  {\bf IGNORED TEST: ' + 
+        FDoc[FDoc.Count -1] := '{\color{Yellow}'+FDoc[FDoc.Count -1] + '  {\bf IGNORED TEST: ' +
           EscapeText(FTempFailure.ExceptionMessage) +'}}'
       end
       else
         //is a failure
-        FDoc[FDoc.Count -1] := '{\color{Pink}'+FDoc[FDoc.Count -1] + '  {\bf FAILED: ' + 
+        FDoc[FDoc.Count -1] := '{\color{Pink}'+FDoc[FDoc.Count -1] + '  {\bf FAILED: ' +
           EscapeText(FTempFailure.ExceptionMessage) +'}}';
   end;
   FTempFailure := nil;
@@ -224,7 +224,7 @@ end;
 procedure TLatexResultsWriter.WriteSuiteHeader(ATestSuite: TTestSuite; ALevel: integer);
 begin
   inherited;
-  FDoc.Add('{\bf {\color{Blue}'+ StringOfChar(' ',ALevel*2)+ '\item[-] '+ 
+  FDoc.Add('{\bf {\color{Blue}'+ StringOfChar(' ',ALevel*2)+ '\item[-] '+
     EscapeText(ATestSuite.TestName)+ '}}');
   FSuiteHeaderIdx.Add(Pointer(FDoc.Count - 1));
   FDoc.Add(StringOfChar(' ',ALevel*2)+ '\begin{itemize}');
@@ -254,11 +254,11 @@ procedure TLatexResultsWriter.StartTest(ATest: TTest);
 begin
   inherited StartTest(ATest);
 end;
-    
+
 procedure TLatexResultsWriter.EndTest(ATest: TTest);
 begin
   inherited EndTest(ATest);
-  
+
 end;
 
 function TestSuiteAsLatex(aSuite:TTest): string;

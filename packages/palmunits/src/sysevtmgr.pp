@@ -127,7 +127,7 @@ function EvtSysEventAvail(ignorePenUps: Boolean): Boolean; syscall sysTrapEvtSys
 function EvtProcessSoftKeyStroke(var startPtP, endPtP: PointType): Err; syscall sysTrapEvtProcessSoftKeyStroke;
 
 //-----------------------------------------------------------------
-// Pen Queue Utilties
+// Pen Queue Utilities
 //------------------------------------------------------------------
 
 // Replace current pen queue with another of the given size
@@ -156,11 +156,11 @@ function EvtDequeuePenPoint(var retP: PointType): Err; syscall sysTrapEvtDequeue
 function EvtFlushNextPenStroke: Err; syscall sysTrapEvtFlushNextPenStroke;
 
 //-----------------------------------------------------------------
-// Key Queue Utilties
+// Key Queue Utilities
 //------------------------------------------------------------------
 
 // Replace current key queue with another of the given size. This routine will
-//  intialize the given key queue before installing it
+//  initialize the given key queue before installing it
 function EvtSetKeyQueuePtr(keyQueueP: MemPtr; size: UInt32): Err; syscall sysTrapEvtSetKeyQueuePtr;
 
 // Return size of current key queue in bytes

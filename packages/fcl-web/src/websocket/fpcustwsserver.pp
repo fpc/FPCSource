@@ -196,7 +196,7 @@ Type
     procedure SetOptions(const Value: TWSOptions);
     procedure SetResource(const AValue: string);
   protected
-    // Virtual so it can be overriden;
+    // Virtual so it can be overridden;
     procedure SetThreadMode(AValue: TWSThreadMode); virtual;
     // Called when a connection is disconnected
     Procedure DoDisconnect(Sender : TObject);  virtual;

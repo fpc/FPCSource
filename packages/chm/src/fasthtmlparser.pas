@@ -10,7 +10,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
                     FastHTMLParser unit to parse HTML
-                  (disect html into its tags and text.)
+                  (dissect html into its tags and text.)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -53,7 +53,7 @@
      dynamically parse info from websites and display data on your site in real
      time.
     -HTML editor.. WYSIWYG or a partial WYSIWYG editor. Ambitious, but possible.
-    -HTML property editor. Not completely wysiwyg but ability to edit proprties
+    -HTML property editor. Not completely wysiwyg but ability to edit properties
      of tags. Work would need to be done to parse each property in a tag.
 
 
@@ -139,7 +139,7 @@ uses
 {$IFDEF DEBUGLN_ON}
   // dummy, default debugging
   procedure debugproc(s: String);
-  // for custom debugging, assign this in your units 
+  // for custom debugging, assign this in your units
   var debugln: procedure(s: String) = debugproc;
 {$ENDIF}
 
@@ -152,7 +152,7 @@ type
   // when text  found in the HTML
   TOnFoundText = procedure(Text: AnsiString) of object;
 
-  // Lars's modified html parser, case insensitive or case sensitive 
+  // Lars's modified html parser, case insensitive or case sensitive
 
   { THTMLParser }
 
@@ -181,7 +181,7 @@ implementation
 
 // default debugging, do nothing, let user do his own by assigning DebugLn var
 procedure debugproc(s: String);
-begin 
+begin
 end;
 
 function CopyBuffer(StartIndex: PAnsiChar; Length: Integer): AnsiString;
@@ -216,11 +216,11 @@ end;
 
 { default dummy "do nothing" events if events are unassigned }
 procedure THTMLParser.NilOnFoundTag(NoCaseTag, ActualTag: AnsiString);
-begin 
+begin
 end;
 
 procedure THTMLParser.NilOnFoundText(Text: AnsiString);
-begin 
+begin
 end;
 
 function THTMLParser.CurrentPos: Integer;

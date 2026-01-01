@@ -53,7 +53,7 @@ type
     class function StartNew: TStopwatch; static;
     class property Frequency: Int64 read _Frequency;
     class property IsHighResolution: Boolean read _IsHighResolution;
-  public  
+  public
     procedure Reset;
     procedure Start;
     procedure Stop;

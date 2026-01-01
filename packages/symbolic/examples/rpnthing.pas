@@ -32,7 +32,7 @@ begin
  repeat
   while keypressed DO ;
   result:=ReadKey;
-  if result=#0 then      {Make sure control codes are skipped apropiately}
+  if result=#0 then      {Make sure control codes are skipped appropriately}
    begin
     result:=readKey;
     result:=#0;
@@ -112,7 +112,7 @@ begin
                 Redraw;
               end;
    'T','t' :  If StackPtr>1 then        {Stackptr-1=function.  Stackptr-2=degree
-                                           x is assumed, and x0 is substed}
+                                           x is assumed, and x0 is substituted}
                begin
                 Flag:=True;
                 Try

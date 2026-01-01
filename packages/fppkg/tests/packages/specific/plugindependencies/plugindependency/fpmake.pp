@@ -18,9 +18,9 @@ begin
     P.Description := 'Package on which the plugin depends';
 
     P.Dependencies.Add('fpmkunit');
- 
+
     P.SourcePath.Add('src');
- 
+
     T:=P.Targets.AddUnit('plugindependencyunit.pas');
     Run;
     end;

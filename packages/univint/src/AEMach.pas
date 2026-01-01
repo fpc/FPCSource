@@ -233,7 +233,7 @@ uses MacTypes,MacOSXPosix,AEDataModel;
  *
  * AppleEvents are directed to a well known port uniquely tied to a
  * process.  The AE framework will discover this port based on the
- * keyAddressAttr of the event (as specifed in AECreateAppleEvent by
+ * keyAddressAttr of the event (as specified in AECreateAppleEvent by
  * the target parameter.)  If a port cannot be found,
  * procNotFound (-600) will be returned on AESend.
  *
@@ -254,7 +254,7 @@ uses MacTypes,MacOSXPosix,AEDataModel;
  *
  * In general, the AppleEvent APIs are thread safe, but the mechanism
  * of their delivery (AEProcessAppleEvent, AEResumeTheCurrentEvent)
- * are not.  If you're attemping to write a thread safe server, you
+ * are not.  If you're attempting to write a thread safe server, you
  * should avoid AppleEvent routines that don't explicitly state their
  * thread safety.
  *

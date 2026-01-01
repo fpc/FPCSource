@@ -299,7 +299,7 @@ function CVOpenGLBufferPoolGetOpenGLBufferAttributes( pool: CVOpenGLBufferPoolRe
 {!
     @function   CVOpenGLBufferPoolCreateOpenGLBuffer
     @abstract   Creates a new OpenGLBuffer object from the pool.
-    @discussion The function creates a new CVOpenGLBuffer with the default attachments using the OpenGL buffer attributes specifed during pool creation.
+    @discussion The function creates a new CVOpenGLBuffer with the default attachments using the OpenGL buffer attributes specified during pool creation.
     @param      allocator The CFAllocatorRef to use for creating the OpenGL buffer.  May be NULL.
     @param      openGLBufferPool      The CVOpenGLBufferPool that should create the new CVOpenGLBuffer.
     @param      openGLBufferOut   The newly created OpenGL buffer will be placed here

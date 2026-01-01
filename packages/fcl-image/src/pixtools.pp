@@ -261,7 +261,7 @@ begin
 end;
 
 procedure DrawPatternLine (Canv:TFPCustomCanvas; x1,y1, x2,y2:integer; Pattern:TPenPattern; const color:TFPColor);
-// Is copy of DrawSolidLine with paterns added. Not the same procedure for faster solid lines
+// Is copy of DrawSolidLine with patterns added. Not the same procedure for faster solid lines
 var LinePoints : TLinePoints;
     PutPixelProc : TPutPixelProc;
   procedure HorizontalLine (x1,x2,y:integer);

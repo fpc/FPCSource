@@ -314,7 +314,7 @@ type
     offsets         : pogg_int64_t;
     dataoffsets     : pogg_int64_t;
     serialnos       : pclong;
-    pcmlengths      : pogg_int64_t; { overloaded to maintain binary compatability; x2 size, stores both beginning and end values }
+    pcmlengths      : pogg_int64_t; { overloaded to maintain binary compatibility; x2 size, stores both beginning and end values }
     vi              : pvorbis_info;
     vc              : pvorbis_comment;
 

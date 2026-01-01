@@ -37,7 +37,7 @@
       end;
 
 
-  function pw_resource_new(client:Ppw_impl_client; id:Tuint32_t; permissions:Tuint32_t; _type:Pchar; version:Tuint32_t; 
+  function pw_resource_new(client:Ppw_impl_client; id:Tuint32_t; permissions:Tuint32_t; _type:Pchar; version:Tuint32_t;
              user_data_size:Tsize_t):Ppw_resource;cdecl;external libpipewire name 'pw_resource_new';
 
   procedure pw_resource_destroy(resource:Ppw_resource);cdecl;external libpipewire name 'pw_resource_destroy';

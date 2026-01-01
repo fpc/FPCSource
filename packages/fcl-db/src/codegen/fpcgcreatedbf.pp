@@ -28,7 +28,7 @@ uses
 uses
   Classes, SysUtils, fpddCodeGen;
 {$ENDIF FPC_DOTTEDUNITS}
-  
+
 Type
 
   { TDDCreateDBFOptions }
@@ -50,7 +50,7 @@ Type
     Property ProcedureName : String Read FProcName Write SetProcName;
     Property TableName : String Read FTableName Write FTableName;
   end;
-  
+
   { TDDCreateDBFGenerator }
 
   TDDCreateDBFGenerator = Class(TDDCustomCodeGenerator)
@@ -147,7 +147,7 @@ Var
   F : TFieldPropDef;
   S : String;
   N : String;
-  
+
 begin
   N:=DBFOptions.Identifier;
   If (DBFoptions.ProcedureName<>'') then

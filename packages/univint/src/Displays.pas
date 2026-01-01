@@ -449,7 +449,7 @@ type
 	DMComponentListEntryRec = record
 		itemID: DisplayIDType;                 { DisplayID Manager}
 		itemComponent: Component;          { Component Manager}
-		itemDescription: ComponentDescription;      { We can always construct this if we use something beyond the compontent mgr.}
+		itemDescription: ComponentDescription;      { We can always construct this if we use something beyond the component mgr.}
 
 		itemClass: ResType;              { Class of group to put this panel (eg geometry/color/etc for panels, brightness/contrast for engines, video out/sound/etc for devices)}
 		itemFidelity: DMFidelityType;           { How good is this item for the specified search?}
@@ -549,7 +549,7 @@ const
 	kDMModeListIncludeAllModesMask = 1 shl 0; { Include all timing modes not _explicitly_ excluded (see other bits)}
 	kDMModeListIncludeOfflineModesMask = 1 shl 1;
 	kDMModeListExcludeDriverModesMask = 1 shl 2; { Exclude old-style timing modes (cscGetNextResolution/kDisplayModeIDFindFirstResolution modes)}
-	kDMModeListExcludeDisplayModesMask = 1 shl 3; { Exclude timing modes that come from the display (always arbritrary timing modes)}
+	kDMModeListExcludeDisplayModesMask = 1 shl 3; { Exclude timing modes that come from the display (always arbitrary timing modes)}
 	kDMModeListExcludeCustomModesMask = 1 shl 4; { Exclude custom modes that came neither from the driver or display (need a better name)}
 	kDMModeListPreferStretchedModesMask = 1 shl 5; { Prefer modes that are stretched over modes that are letterboxed when setting kDisplayModeListNotPreferredBit}
 	kDMModeListPreferSafeModesMask = 1 shl 6; { Prefer modes that are safe over modes that are not when setting kDisplayModeListNotPreferredBit}

@@ -5,7 +5,7 @@
     card.resource interface for m68k-amiga
 
     Pascal translation of:
-    card.h 1.11 (14.12.1992) 
+    card.h 1.11 (14.12.1992)
     (C) Copyright 1991-1999 Amiga, Inc.
 
     With misc. extensions from various other sources.
@@ -170,7 +170,7 @@ const
  * such software which wants to use execute-in-place software stored
  * on a credit-card, such as a ROM card).
  *
- * See documentatin for IfAmigaXIP().
+ * See documentation for IfAmigaXIP().
  *}
 const
   CISTPL_AMIGAXIP = $91;
@@ -207,7 +207,7 @@ procedure ReleaseCard(handle: PCardHandle location 'a1'; flags: Dword location '
 function GetCardMap: PCardMemoryMap; syscall CardResBase 18;
 function BeginCardAccess(handle: PCardHandle location 'a1'): longbool; syscall CardResBase 24;
 function EndCardAccess(handle: PCardHandle location 'a1'): longbool; syscall CardResBase 30;
-function ReadCardStatus: byte; syscall CardResBase 36; 
+function ReadCardStatus: byte; syscall CardResBase 36;
 function CardResetRemove(handle: PCardHandle location 'a1'; flag: dword location 'd0'): longbool; syscall CardResBase 42;
 function CardMiscControl(handle: PCardHandle location 'a1'; control_bits: dword location 'd1'): byte; syscall CardResBase 48;
 function CardAccessSpeed(handle: PCardHandle location 'a1'; nanoseconds: dword location 'd0'): dword; syscall CardResBase 54;

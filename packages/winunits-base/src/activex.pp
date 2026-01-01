@@ -65,7 +65,7 @@ type
    DATE	               = DOUBLE;
    BSTR	               = POLESTR;
    TOleDate	       = DATE;
-   POleDate	       = ^TOleDate;	
+   POleDate	       = ^TOleDate;
    TOleBool	       = wordbool;
    OLE_HANDLE	       = UINT;
    OLE_XSIZE_HIMETRIC = LONG;
@@ -275,7 +275,7 @@ CONST
 
     CALLTYPE_TOPLEVEL           = 1;      // toplevel call - no outgoing call
     CALLTYPE_NESTED             = 2;      // callback on behalf of previous outgoing call - should always handle
-    CALLTYPE_ASYNC              = 3;      // aysnchronous call - can NOT be rejected
+    CALLTYPE_ASYNC              = 3;      // asynchronous call - can NOT be rejected
     CALLTYPE_TOPLEVEL_CALLPENDING = 4;  // new toplevel call with new LID
     CALLTYPE_ASYNC_CALLPENDING  = 5;   // async call - can NOT be rejected
 
@@ -685,7 +685,7 @@ Const
 
 // The range -500 through -999 is reserved for Controls
 // The range 0x80010000 through 0x8001FFFF is reserved for Controls
-// The range -5000 through -5499 is reserved for ActiveX Accessability
+// The range -5000 through -5499 is reserved for ActiveX Accessibility
 // The range -2000 through -2499 is reserved for VB5
 // The range -3900 through -3999 is reserved for Forms
 // The range -5500 through -5550 is reserved for Forms
@@ -763,7 +763,7 @@ Const
     VARFLAG_FIMMEDIATEBIND      = $1000;
 
     FADF_AUTO                   = USHORT($0001);  // array is allocated on the stack
-    FADF_STATIC                 = USHORT($0002);  // array is staticly allocated
+    FADF_STATIC                 = USHORT($0002);  // array is statically allocated
     FADF_EMBEDDED               = USHORT($0004);  // array is embedded in a structure
     FADF_FIXEDSIZE              = USHORT($0010);  // may not be resized or reallocated
     FADF_RECORD                 = USHORT($0020);  // an array of records
@@ -2070,7 +2070,7 @@ TYPE
                   ulKind : ULONG ;
                   case boolean of
                     false : ( propid:propid);
-                    true  :  (lpwstr: LPOLEStr);	
+                    true  :  (lpwstr: LPOLEStr);
                     end;
 
   PROPSPEC= tagPROPSPEC;
@@ -2417,7 +2417,7 @@ TYPE
                   pElems : PLongWord;
                  end;
 
-// Unknwn.idl
+// Unknown.idl
 
 // IUnknown is in classesh.inc
 
@@ -2900,9 +2900,9 @@ TYPE
 // This interface is only valid on Windows NT 4.0
 
 // This structure contains additional data for hooks.  As a backward
-// compatability hack, the entire structure is passed in place of the
+// compatibility hack, the entire structure is passed in place of the
 // RIID parameter on all hook methods.  Thus the IID must be the first
-// parameter.  As a forward compatability hack the second field is the
+// parameter.  As a forward compatibility hack the second field is the
 // current size of the structure.
 
     SChannelHookCallInfo= Record;
@@ -4061,7 +4061,7 @@ type
        function GetPageInfo(out pnFirstPage:Integer;out pcPages:Integer):HRESULT;stdcall;
        function RemotePrint(grfFlags:LongWord;var pptd:PtagDVTARGETDEVICE;var pppageset:PtagPAGESET;var pstgmOptions:tagRemSTGMEDIUM;pcallback:IContinueCallback;nFirstPage:Integer;out pcPagesPrinted:Integer;out pnLastPage:Integer):HRESULT;stdcall;
       end;
-  
+
     IOleCommandTarget = interface(IUnknown)
        ['{B722BCCB-4E68-101B-A2BC-00AA00404770}']
        function QueryStatus(var pguidCmdGroup:GUID;cCmds:LongWord;var prgCmds:_tagOLECMD;var pCmdText:_tagOLECMDTEXT):HRESULT;stdcall;
@@ -4628,7 +4628,7 @@ type
 	const
 	  ACTIVEOBJECT_STRONG = 0;
 	  ACTIVEOBJECT_WEAK = 1;
-	
+
 	function RegisterActiveObject(unk: IUnknown; const clsid: TCLSID; dwFlags: DWORD; out dwRegister: culong): HResult; stdcall; external oleaut32dll name 'RegisterActiveObject';
 	function RevokeActiveObject(dwRegister: culong; pvReserved: Pointer) : HResult; stdcall; external oleaut32dll name 'RevokeActiveObject';
 	function GetActiveObject(const clsid: TCLSID; pvReserved: Pointer; out unk: IUnknown) : HResult; stdcall; external oleaut32dll name 'GetActiveObject';
@@ -4952,7 +4952,7 @@ function SafeArrayCopy(psa: PSafeArray; out psaOut: PSafeArray): HResult; stdcal
   external oleaut32dll name 'SafeArrayCopy';
 function SafeArrayPtrOfIndex(psa: PSafeArray; rgIndices: PLongint; out pvData: Pointer): HResult; stdcall;
   external oleaut32dll name 'SafeArrayPtrOfIndex';
-  
+
 implementation
 
 function Succeeded(Res: HResult) : Boolean;inline;

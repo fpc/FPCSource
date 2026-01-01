@@ -409,7 +409,7 @@ const
 {!
     @enum           Wildcard Constants
     @abstract       Constants that are used as wildcards.
-    @discussion     Wildcards match any and all values for thier associated type. They are useful
+    @discussion     Wildcards match any and all values for their associated type. They are useful
                     when registering to receive notificationss.
     @constant       kAudioObjectPropertySelectorWildcard
                         The wildcard value for AudioObjectPropertySelectors.
@@ -449,7 +449,7 @@ const
     @discussion     The AudioObject class is the base class for all classes. As such, all classes
                     inherit this set of properties.
     @constant       kAudioObjectPropertyBaseClass
-                        An AudioClassID that identifies the class from which the clase of the
+                        An AudioClassID that identifies the class from which the class of the
                         AudioObject is derived. This value must always be one of the standard
                         classes.
     @constant       kAudioObjectPropertyClass
@@ -853,13 +853,13 @@ const
                     element structure.
     @constant       kAudioEndPointDevicePropertyComposition
                         A CFDictionary that describes the composition of the AudioEndPointDevice.
-                        The keys for this CFDicitionary are defined in the AudioEndPointDevice
+                        The keys for this CFDictionary are defined in the AudioEndPointDevice
                         Constants section. The caller is responsible for releasing the returned
                         CFObject.
     @constant       kAudioEndPointDevicePropertyEndPointList
                         An array of AudioObjectIDs for all the AudioEndPoints in the device.
     @constant       kAudioEndPointDevicePropertyIsPrivate
-                        A pid_t where a value of 0 idicates that the device is public and a non-zero
+                        A pid_t where a value of 0 indicates that the device is public and a non-zero
                         value indicates the pid of the process that owns the device.
 }
 const
@@ -876,7 +876,7 @@ const
     @abstract       Various constants related to the AudioEndPoint class.
     @discussion     The AudioEndPoint class is a subclass of AudioDevice class and has the same
                     scope and element structure. However, AudioEndPoint objects do not implement an
-                    IO path of their own and as such do not implmenent any  AudioDevice properties
+                    IO path of their own and as such do not implement any  AudioDevice properties
                     associated with the IO path.
     @constant       kAudioEndPointDeviceClassID
                         The AudioClassID that identifies the AudioEndPointDevice class.
@@ -931,7 +931,7 @@ const
     @abstract       This structure allows a specific sample rate range to be associated with an
                     AudioStreamBasicDescription that specifies it's sample rate as
                     kAudioStreamAnyRate.
-    @discussion     Note that this structure is only used to desicribe the the available formats
+    @discussion     Note that this structure is only used to describe the the available formats
                     for a stream. It is not used for the current format.
     @field          mFormat
                         The AudioStreamBasicDescription that describes the format of the stream.
@@ -988,7 +988,7 @@ const
     @constant       kAudioStreamTerminalTypeHeadsetMicrophone
                         The ID for a terminal type of a microphone attached to an headset.
     @constant       kAudioStreamTerminalTypeReceiverMicrophone
-                        The ID for a terminal type of a microhpone on a telephone handset recevier.
+                        The ID for a terminal type of a microhpone on a telephone handset receiver.
     @constant       kAudioStreamTerminalTypeTTY
                         The ID for a terminal type of a device providing a TTY signal.
     @constant       kAudioStreamTerminalTypeHDMI

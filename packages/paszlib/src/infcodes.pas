@@ -5,7 +5,7 @@ unit infcodes;
 { infcodes.c -- process literals and length/distance pairs
   Copyright (C) 1995-1998 Mark Adler
 
-  Pascal tranlastion
+  Pascal translation
   Copyright (C) 1998 by Jacques Nomssi Nzali
   For conditions of distribution and use, see copyright notice in readme.txt
 }
@@ -198,7 +198,7 @@ begin
           Tracevv('inflate:         literal '+AnsiChar(t^.base))
         else
           Tracevv('inflate:         literal $'+IntToHex(t^.base, 2));
-        {$ENDIF}          
+        {$ENDIF}
         c^.mode := LIT;
         continue;  { break switch statement }
       end;
@@ -219,7 +219,7 @@ begin
       begin
         {$IFDEF ZLIB_DEBUG}
         Tracevv('inflate:         end of block');
-        {$ENDIF}        
+        {$ENDIF}
         c^.mode := WASH;
         continue;         { break C-switch statement }
       end;
@@ -592,7 +592,7 @@ procedure inflate_codes_free(var c : pInflate_codes_state;
 begin
   dispose(c);
   c := nil;
-  {$IFDEF ZLIB_DEBUG}  
+  {$IFDEF ZLIB_DEBUG}
   Tracev('inflate:       codes free');
   {$ENDIF}
 end;

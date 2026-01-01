@@ -10,7 +10,7 @@ The docindexer essentially works as
 docindexer -c sample.ini -d /the/directory/to/index
 
 The httpsearch program can be compiled and started as a standalone HTTP server
-(no command-line args needed) 
+(no command-line args needed)
 or can be compiled as a .cgi program. See the project source, the usecgi
 define can be enabled/disabled to switch between the behaviour.
 
@@ -22,7 +22,7 @@ SQLite
 File
 
 Which ones are compiled-in depend on some defines in the httpsearcher.pp file
- 
+
 The HTTP server supports 2 kinds of queries:
 [baseURL]/search  : search pages matching the search term.
 [baseURL]/list    : search words matching the search term. Can be used for typeahead funcionnality
@@ -54,7 +54,7 @@ Defaults are shown
 ; Format the returned JSON (boolean)
 formatjson=0
 ; Default for minimum rank in search results (integer)
-minrank=1 
+minrank=1
 ; Default for returning metadata (boolean)
 metadata=1
 ; Set a CORS header on the response or not (boolean)

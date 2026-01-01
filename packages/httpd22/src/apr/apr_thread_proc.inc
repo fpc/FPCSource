@@ -31,7 +31,7 @@
 
 {
  * @defgroup apr_thread_proc Threads and Process Functions
- * @ingroup APR 
+ * @ingroup APR
  }
 
 type
@@ -96,7 +96,7 @@ const
   APR_OC_REASON_DEATH        = 0;     {< child has died, caller must call
                                            * unregister still }
   APR_OC_REASON_UNWRITABLE   = 1;     {< write_fd is unwritable }
-  APR_OC_REASON_RESTART      = 2;     {< a restart is occuring, perform
+  APR_OC_REASON_RESTART      = 2;     {< a restart is occurring, perform
                                            * any necessary cleanup (including
                                            * sending a special signal to child)
                                            }
@@ -105,8 +105,8 @@ const
                                            * kill the child) }
   APR_OC_REASON_LOST         = 4;     {< somehow the child exited without
                                            * us knowing ... buggy os? }
-  APR_OC_REASON_RUNNING      = 5;     {< a health check is occuring,
-                                           * for most maintainence functions
+  APR_OC_REASON_RUNNING      = 5;     {< a health check is occurring,
+                                           * for most maintenance functions
                                            * this is a no-op.
                                            }
 
@@ -122,7 +122,7 @@ type
     { Parent's side of pipe to child's stdouterr }
     err: Papr_file_t;
 {$if defined(APR_HAS_PROC_INVOKED) or defined(DOXYGEN)}
-    { Diagnositics/debugging string of the command invoked for
+    { Diagnostics/debugging string of the command invoked for
      *  this process [only present if APR_HAS_PROC_INVOKED is true]
      * @remark Only enabled on Win32 by default.
      * @bug This should either always or never be present in release
@@ -141,7 +141,7 @@ type
     hproc: HANDLE;
 {$endif}
   end;
-  
+
   Papr_proc_t = ^apr_proc_t;
 
 {
@@ -215,7 +215,7 @@ function apr_threadattr_create(new_attr: PPapr_threadattr_t; cont: Papr_pool_t):
 
 {
  * Set if newly created threads should be created in detached state.
- * @param attr The threadattr to affect 
+ * @param attr The threadattr to affect
  * @param on Thread detach state on or off
  }
 function apr_threadattr_detach_set(attr: Papr_threadattr_t; on_: apr_int32_t): apr_status_t;
@@ -224,7 +224,7 @@ function apr_threadattr_detach_set(attr: Papr_threadattr_t; on_: apr_int32_t): a
 
 {
  * Get the detach state for this threadattr.
- * @param attr The threadattr to reference 
+ * @param attr The threadattr to reference
  }
 function apr_threadattr_detach_get(attr: PPapr_threadattr_t): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
@@ -232,7 +232,7 @@ function apr_threadattr_detach_get(attr: PPapr_threadattr_t): apr_status_t;
 
 {
  * Set the stack size of newly created threads.
- * @param attr The threadattr to affect 
+ * @param attr The threadattr to affect
  * @param stacksize The stack size in bytes
  }
 function apr_threadattr_stacksize_set(new_attr: PPapr_threadattr_t; stacksize: apr_size_t): apr_status_t;
@@ -313,14 +313,14 @@ function apr_thread_once_init(control: PPapr_thread_once_t; p: Papr_pool_t): apr
  }
 type
   func_t = procedure;
-  
+
 function apr_thread_once(control: Papr_thread_once_t; func: func_t): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_thread_once' + LibSuff8;
 
 {
  * detach a thread
- * @param thd The thread to detach 
+ * @param thd The thread to detach
  }
 function apr_thread_detach(thd: Papr_thread_t): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
@@ -357,7 +357,7 @@ function apr_thread_data_set(data: Pointer; const key: PAnsiChar;
  }
 type
   dest_t = procedure (param: Pointer);
-  
+
 function apr_threadkey_private_create(key: PPapr_threadkey_t;
  dest: dest_t; cont: Papr_pool_t): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
@@ -365,8 +365,8 @@ function apr_threadkey_private_create(key: PPapr_threadkey_t;
 
 {
  * Get a pointer to the thread private memory
- * @param new_mem The data stored in private memory 
- * @param key The handle for the desired thread private memory 
+ * @param new_mem The data stored in private memory
+ * @param key The handle for the desired thread private memory
  }
 function apr_threadkey_private_get(new_mem: PPointer; key: Papr_threadkey_t): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
@@ -374,8 +374,8 @@ function apr_threadkey_private_get(new_mem: PPointer; key: Papr_threadkey_t): ap
 
 {
  * Set the data to be stored in thread private memory
- * @param priv The data to be stored in private memory 
- * @param key The handle for the desired thread private memory 
+ * @param priv The data to be stored in private memory
+ * @param key The handle for the desired thread private memory
  }
 function apr_threadkey_private_set(priv: Pointer; key: Papr_threadkey_t): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
@@ -383,7 +383,7 @@ function apr_threadkey_private_set(priv: Pointer; key: Papr_threadkey_t): apr_st
 
 {
  * Free the thread private memory
- * @param key The handle for the desired thread private memory 
+ * @param key The handle for the desired thread private memory
  }
 function apr_threadkey_private_delete(key: Papr_threadkey_t): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
@@ -416,7 +416,7 @@ function apr_threadkey_data_set(data: Pointer; const key: PAnsiChar;
 
 {
  * Create and initialize a new procattr variable
- * @param new_attr The newly created procattr. 
+ * @param new_attr The newly created procattr.
  * @param cont The pool to use
  }
 function apr_procattr_create(new_attr: PPapr_procattr_t; cont: Papr_pool_t): apr_status_t;
@@ -424,9 +424,9 @@ function apr_procattr_create(new_attr: PPapr_procattr_t; cont: Papr_pool_t): apr
  external LibAPR name LibNamePrefix + 'apr_procattr_create' + LibSuff8;
 
 {
- * Determine if any of stdin, stdout, or stderr should be linked to pipes 
+ * Determine if any of stdin, stdout, or stderr should be linked to pipes
  * when starting a child process.
- * @param attr The procattr we care about. 
+ * @param attr The procattr we care about.
  * @param in Should stdin be a pipe back to the parent?
  * @param out Should stdout be a pipe back to the parent?
  * @param err Should stderr be a pipe back to the parent?
@@ -438,13 +438,13 @@ function apr_procattr_io_set(attr: Papr_procattr_t;
 
 {
  * Set the child_in and/or parent_in values to existing apr_file_t values.
- * @param attr The procattr we care about. 
+ * @param attr The procattr we care about.
  * @param child_in apr_file_t value to use as child_in. Must be a valid file.
  * @param parent_in apr_file_t value to use as parent_in. Must be a valid file.
  * @remark  This is NOT a required initializer function. This is
  *          useful if you have already opened a pipe (or multiple files)
  *          that you wish to use, perhaps persistently across multiple
- *          process invocations - such as a log file. You can save some 
+ *          process invocations - such as a log file. You can save some
  *          extra function calls by not creating your own pipe since this
  *          creates one in the process space for you.
  }
@@ -455,13 +455,13 @@ function apr_procattr_child_in_set(attr: Papr_procattr_t;
 
 {
  * Set the child_out and parent_out values to existing apr_file_t values.
- * @param attr The procattr we care about. 
+ * @param attr The procattr we care about.
  * @param child_out apr_file_t value to use as child_out. Must be a valid file.
  * @param parent_out apr_file_t value to use as parent_out. Must be a valid file.
  * @remark This is NOT a required initializer function. This is
  *         useful if you have already opened a pipe (or multiple files)
  *         that you wish to use, perhaps persistently across multiple
- *         process invocations - such as a log file. 
+ *         process invocations - such as a log file.
  }
 function apr_procattr_child_out_set(attr: Papr_procattr_t;
  child_out, parent_out: Papr_file_t): apr_status_t;
@@ -470,13 +470,13 @@ function apr_procattr_child_out_set(attr: Papr_procattr_t;
 
 {
  * Set the child_err and parent_err values to existing apr_file_t values.
- * @param attr The procattr we care about. 
+ * @param attr The procattr we care about.
  * @param child_err apr_file_t value to use as child_err. Must be a valid file.
  * @param parent_err apr_file_t value to use as parent_err. Must be a valid file.
  * @remark This is NOT a required initializer function. This is
  *         useful if you have already opened a pipe (or multiple files)
  *         that you wish to use, perhaps persistently across multiple
- *         process invocations - such as a log file. 
+ *         process invocations - such as a log file.
  }
 function apr_procattr_child_err_set(attr: Papr_procattr_t;
  child_err, parent_err: Papr_file_t): apr_status_t;
@@ -485,10 +485,10 @@ function apr_procattr_child_err_set(attr: Papr_procattr_t;
 
 {
  * Set which directory the child process should start executing in.
- * @param attr The procattr we care about. 
+ * @param attr The procattr we care about.
  * @param dir Which dir to start in.  By default, this is the same dir as
  *            the parent currently resides in, when the createprocess call
- *            is made. 
+ *            is made.
  }
 function apr_procattr_dir_set(attr: Papr_procattr_t; const dir: PAnsiChar): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
@@ -496,11 +496,11 @@ function apr_procattr_dir_set(attr: Papr_procattr_t; const dir: PAnsiChar): apr_
 
 {
  * Set what type of command the child process will call.
- * @param attr The procattr we care about. 
+ * @param attr The procattr we care about.
  * @param cmd The type of command.  One of:
  * <PRE>
  *            APR_SHELLCMD     --  Anything that the shell can handle
- *            APR_PROGRAM      --  Executable program   (default) 
+ *            APR_PROGRAM      --  Executable program   (default)
  *            APR_PROGRAM_ENV  --  Executable program, copy environment
  *            APR_PROGRAM_PATH --  Executable program on PATH, copy env
  * </PRE>
@@ -511,8 +511,8 @@ function apr_procattr_cmdtype_set(attr: Papr_procattr_t; cmd: apr_cmdtype_e): ap
 
 {
  * Determine if the child should start in detached state.
- * @param attr The procattr we care about. 
- * @param detach Should the child start in detached state?  Default is no. 
+ * @param attr The procattr we care about.
+ * @param detach Should the child start in detached state?  Default is no.
  }
 function apr_procattr_detach_set(attr: Papr_procattr_t; detach: apr_int32_t): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
@@ -521,7 +521,7 @@ function apr_procattr_detach_set(attr: Papr_procattr_t; detach: apr_int32_t): ap
 {$ifdef APR_HAVE_STRUCT_RLIMIT}
 {
  * Set the Resource Utilization limits when starting a new process.
- * @param attr The procattr we care about. 
+ * @param attr The procattr we care about.
  * @param what Which limit to set, one of:
  * <PRE>
  *                 APR_LIMIT_CPU
@@ -570,9 +570,9 @@ function apr_procattr_error_check_set(attr: Papr_procattr_t; chk: apr_int32_t): 
  external LibAPR name LibNamePrefix + 'apr_procattr_error_check_set' + LibSuff8;
 
 {
- * Determine if the child should start in its own address space or using the 
+ * Determine if the child should start in its own address space or using the
  * current one from its parent
- * @param attr The procattr we care about. 
+ * @param attr The procattr we care about.
  * @param addrspace Should the child start in its own address space?  Default
  *                  is no on NetWare and yes on other platforms.
  }
@@ -605,10 +605,10 @@ function apr_procattr_group_set(attr: Papr_procattr_t;
 
 {$ifdef APR_HAS_FORK}
 {
- * This is currently the only non-portable call in APR.  This executes 
+ * This is currently the only non-portable call in APR.  This executes
  * a standard unix fork.
- * @param proc The resulting process handle. 
- * @param cont The pool to use. 
+ * @param proc The resulting process handle.
+ * @param cont The pool to use.
  }
 function apr_proc_fork(proc: Papr_proc_t; cont: Papr_pool_t): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
@@ -619,10 +619,10 @@ function apr_proc_fork(proc: Papr_proc_t; cont: Papr_pool_t): apr_status_t;
 {
  * Create a new process and execute a new program within that process.
  * @param new_proc The resulting process handle.
- * @param progname The program to run 
- * @param args the arguments to pass to the new program.  The first 
+ * @param progname The program to run
+ * @param args the arguments to pass to the new program.  The first
  *             one should be the program name.
- * @param env The new environment table for the new process.  This 
+ * @param env The new environment table for the new process.  This
  *            should be a list of NULL-terminated strings. This argument
  *            is ignored for APR_PROGRAM_ENV, APR_PROGRAM_PATH, and
  *            APR_SHELLCMD_ENV types of commands.
@@ -639,10 +639,10 @@ function apr_proc_create(new_proc: Papr_proc_t;
 
 {
  * Wait for a child process to die
- * @param proc The process handle that corresponds to the desired child process 
- * @param exitcode The returned exit status of the child, if a child process 
+ * @param proc The process handle that corresponds to the desired child process
+ * @param exitcode The returned exit status of the child, if a child process
  *                 dies, or the signal that caused the child to die.
- *                 On platforms that don't support obtaining this information, 
+ *                 On platforms that don't support obtaining this information,
  *                 the status parameter will be returned as APR_ENOTIMPL.
  * @param exitwhy Why the child died, the bitwise or of:
  * <PRE>
@@ -654,7 +654,7 @@ function apr_proc_create(new_proc: Papr_proc_t;
  * @param waithow How should we wait.  One of:
  * <PRE>
  *            APR_WAIT   -- block until the child process dies.
- *            APR_NOWAIT -- return immediately regardless of if the 
+ *            APR_NOWAIT -- return immediately regardless of if the
  *                          child is dead or not.
  * </PRE>
  * @remark The childs status is in the return code to this process.  It is one of:
@@ -669,13 +669,13 @@ function apr_proc_wait(proc: Papr_proc_t; exitcode: PInteger;
  external LibAPR name LibNamePrefix + 'apr_proc_wait' + LibSuff16;
 
 {
- * Wait for any current child process to die and return information 
+ * Wait for any current child process to die and return information
  * about that child.
- * @param proc Pointer to NULL on entry, will be filled out with child's 
- *             information 
- * @param exitcode The returned exit status of the child, if a child process 
+ * @param proc Pointer to NULL on entry, will be filled out with child's
+ *             information
+ * @param exitcode The returned exit status of the child, if a child process
  *                 dies, or the signal that caused the child to die.
- *                 On platforms that don't support obtaining this information, 
+ *                 On platforms that don't support obtaining this information,
  *                 the status parameter will be returned as APR_ENOTIMPL.
  * @param exitwhy Why the child died, the bitwise or of:
  * <PRE>
@@ -687,7 +687,7 @@ function apr_proc_wait(proc: Papr_proc_t; exitcode: PInteger;
  * @param waithow How should we wait.  One of:
  * <PRE>
  *            APR_WAIT   -- block until the child process dies.
- *            APR_NOWAIT -- return immediately regardless of if the 
+ *            APR_NOWAIT -- return immediately regardless of if the
  *                          child is dead or not.
  * </PRE>
  * @param p Pool to allocate child information out of.
@@ -716,15 +716,15 @@ const
 // external LibAPR name LibNamePrefix + 'apr_proc_detach' + LibSuff4;
 
 {
- * Register another_child -- a child associated to its registered 
+ * Register another_child -- a child associated to its registered
  * maintence callback.  This callback is invoked when the process
  * dies, is disconnected or disappears.
  * @param proc The child process to register.
- * @param maintenance maintenance is a function that is invoked with a 
+ * @param maintenance maintenance is a function that is invoked with a
  *                    reason and the data pointer passed here.
  * @param data Opaque context data passed to the maintenance function.
  * @param write_fd An fd that is probed for writing.  If it is ever unwritable
- *                 then the maintenance is invoked with reason 
+ *                 then the maintenance is invoked with reason
  *                 OC_REASON_UNWRITABLE.
  * @param p The pool to use for allocating memory.
  * @bug write_fd duplicates the proc->out stream, it's really redundant
@@ -734,7 +734,7 @@ const
  }
 type
   maintenance_t = procedure (reason: Integer; param: Pointer; status: Integer);
-  
+
 procedure apr_proc_other_child_register(proc: Papr_proc_t;
  maintenance: maintenance_t; data: Pointer; write_fd: Papr_file_t;
  p: Papr_pool_t);
@@ -742,12 +742,12 @@ procedure apr_proc_other_child_register(proc: Papr_proc_t;
  external LibAPR name LibNamePrefix + 'apr_proc_other_child_register' + LibSuff20;
 
 {
- * Stop watching the specified other child.  
+ * Stop watching the specified other child.
  * @param data The data to pass to the maintenance function.  This is
  *             used to find the process to unregister.
  * @warning Since this can be called by a maintenance function while we're
- *          scanning the other_children list, all scanners should protect 
- *          themself by loading ocr->next before calling any maintenance 
+ *          scanning the other_children list, all scanners should protect
+ *          themself by loading ocr->next before calling any maintenance
  *          function.
  }
 procedure apr_proc_other_child_unregister(data: Pointer);
@@ -780,8 +780,8 @@ function apr_proc_other_child_alert(proc: Papr_proc_t;
  external LibAPR name LibNamePrefix + 'apr_proc_other_child_alert' + LibSuff12;
 
 {
- * Test one specific other child processes and invoke the maintenance callback 
- * with the appropriate reason code, if still running, or the appropriate reason 
+ * Test one specific other child processes and invoke the maintenance callback
+ * with the appropriate reason code, if still running, or the appropriate reason
  * code if the process is no longer healthy.
  * @param ocr The registered other child
  * @param reason The reason code (e.g. APR_OC_REASON_RESTART) if still running
@@ -791,8 +791,8 @@ procedure apr_proc_other_child_refresh(ocr: Papr_other_child_rec_t; reason: Inte
  external LibAPR name LibNamePrefix + 'apr_proc_other_child_refresh' + LibSuff8;
 
 {
- * Test all registered other child processes and invoke the maintenance callback 
- * with the appropriate reason code, if still running, or the appropriate reason 
+ * Test all registered other child processes and invoke the maintenance callback
+ * with the appropriate reason code, if still running, or the appropriate reason
  * code if the process is no longer healthy.
  * @param reason The reason code (e.g. APR_OC_REASON_RESTART) to running processes
  }
@@ -811,7 +811,7 @@ function apr_proc_kill(proc: Papr_proc_t; sig: Integer): apr_status_t;
 
 {
  * Register a process to be killed when a pool dies.
- * @param a The pool to use to define the processes lifetime 
+ * @param a The pool to use to define the processes lifetime
  * @param proc The process to register
  * @param how How to kill the process, one of:
  * <PRE>
@@ -848,7 +848,7 @@ function apr_setup_signal_thread: apr_status_t;
  }
 type
   signal_handler_t = function (signum: Integer): Integer;
-  
+
 function apr_signal_thread(signal_handler: signal_handler_t): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_signal_thread' + LibSuff8;

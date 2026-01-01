@@ -61,7 +61,7 @@ Procedure rooqua(p, q: ArbFloat; Var z1, z2: complex);
 Procedure roofnr(f: roofnrfunc; n: ArbInt; Var x, residu: ArbFloat; re: ArbFloat;
                  Var term: ArbInt);
 
-{ term : 1     succesful termination
+{ term : 1     successful termination
          2     Couldn't reach the specified precision
                Value X is the best one which could be found.
          3     Wrong input
@@ -159,7 +159,7 @@ Procedure roof1r(f: rfunc1r; a, b, ae, re: ArbFloat; Var x: ArbFloat;
 
 begin
   roof1rn(@nested_f, a, b, ae, re, x, term);
-end;  
+end;
 
 Procedure roof1rn(f: rfunc1rn; a, b, ae, re: ArbFloat; Var x: ArbFloat;
                  Var term: ArbInt);

@@ -80,11 +80,11 @@ interface
 {$i jediapilib.inc}
 {$IFDEF FPC_DOTTEDUNITS}
 uses
-  WinApi.Windows, WinApi.Activex, System.Classes 
+  WinApi.Windows, WinApi.Activex, System.Classes
      {$ifndef FPC} {$IFNDEF NOVCL} , Graphics, OleServer, OleCtrls, StdVCL {$ENDIF} {$endif} ;  // Are these used at all?
 {$ELSE FPC_DOTTEDUNITS}
 uses
-  Windows, ActiveX, Classes 
+  Windows, ActiveX, Classes
      {$ifndef FPC} {$IFNDEF NOVCL} , Graphics, OleServer, OleCtrls, StdVCL {$ENDIF} {$endif} ;  // Are these used at all?
 {$ENDIF FPC_DOTTEDUNITS}
 

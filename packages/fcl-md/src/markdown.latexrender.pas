@@ -21,12 +21,12 @@ interface
 
 uses
 {$IFDEF FPC_DOTTEDUNITS}
-  System.Classes, System.SysUtils, System.StrUtils, System.Contnrs, 
+  System.Classes, System.SysUtils, System.StrUtils, System.Contnrs,
 {$ELSE}
   Classes, SysUtils,  contnrs,
-{$ENDIF}  
-  MarkDown.Elements, 
-  MarkDown.Render, 
+{$ENDIF}
+  MarkDown.Elements,
+  MarkDown.Render,
   MarkDown.Utils;
 
 type
@@ -426,10 +426,10 @@ begin
         lUrl := '';
         if aElement.HasAttrs then
           aElement.Attrs.TryGet('href', lUrl);
-          
-        if Closing then 
-          Result := '}' 
-        else 
+
+        if Closing then
+          Result := '}'
+        else
           Result := '\href{' + lUrl + '}{';
       end;
     nkImg:
@@ -438,9 +438,9 @@ begin
         if aElement.HasAttrs then
           aElement.Attrs.TryGet('src', lUrl);
 
-        if Closing then 
-          Result := '}' 
-        else 
+        if Closing then
+          Result := '}'
+        else
           Result := '\includegraphics{' + lUrl + '}{';
       end;
   end;
@@ -528,7 +528,7 @@ begin
     lTag := Self.GetNodeTag(aElement, True);
     Append(lTag);
   end;
-  
+
   aElement.Active:=False;
 end;
 
@@ -606,9 +606,9 @@ begin
     AppendNl('\begin{itemize}')
   else
     AppendNl('\begin{enumerate}');
-    
+
   Renderer.RenderChildren(lNode);
-  
+
   if lNode.Ordered then
     AppendNl('\end{enumerate}')
   else
@@ -628,7 +628,7 @@ var
   lItemBlock : TMarkDownListItemBlock absolute aElement;
   lBlock : TMarkDownBlock;
   lPar : TMarkDownParagraphBlock absolute lBlock;
-  
+
   function IsPlainBlock(aBlock : TMarkDownBlock) : boolean;
   begin
     Result:=(aBlock is TMarkDownParagraphBlock)
@@ -710,11 +710,11 @@ begin
 
   AppendNl('\begin{tabular}{' + lCols + '}');
   AppendNl('\hline');
-  
+
   // Header
   Renderer.RenderBlock(lNode.blocks[0]);
   AppendNl('\hline');
-  
+
   if lNode.blocks.Count > 1 then
   begin
     for i := 1 to lNode.blocks.Count -1  do
@@ -767,7 +767,7 @@ begin
     5: lSection := 'subparagraph';
     else lSection := 'textbf'; // Fallback
   end;
-  
+
   if not lNumbered then
     lSection := lSection + '*';
 
@@ -796,23 +796,23 @@ begin
     AppendNL('\usepackage{graphicx}');
     AppendNL('\usepackage{hyperref}');
     AppendNL('\usepackage{ulem}'); // For strikethrough
-    
+
     if LaTeXRenderer.Title<>'' then
       AppendNL('\title{' + LaTeXRenderer.EscapeLaTeX(LaTeXRenderer.Title) + '}');
     if LaTeXRenderer.Author<>'' then
       AppendNL('\author{' + LaTeXRenderer.EscapeLaTeX(LaTeXRenderer.Author) + '}');
-      
+
     for H in LaTeXRenderer.Head do
       AppendNL(H);
-      
+
     AppendNL('\begin{document}');
-    
+
     if LaTeXRenderer.Title<>'' then
       AppendNL('\maketitle');
     end;
-    
+
   Renderer.RenderChildren(aElement as TMarkDownDocument);
-  
+
   if HasOption(loEnvelope) then
     begin
     AppendNL('\end{document}');

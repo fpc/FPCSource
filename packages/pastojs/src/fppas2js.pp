@@ -1707,7 +1707,7 @@ type
     procedure AddElementData(Data: TPas2JsElementData); virtual;
     function CreateElementData(DataClass: TPas2JsElementDataClass;
       El: TPasElement): TPas2JsElementData; virtual;
-    // checking compatibilility
+    // checking compatibility
     function CheckEqualCompatibilityUserType(const LHS,
       RHS: TPasResolverResult; ErrorEl: TPasElement;
       RaiseOnIncompatible: boolean): integer; override;
@@ -4808,7 +4808,7 @@ begin
           else if C=TPasConstructor then
             begin
             if Proc.IsVirtual then
-              // constructor of external class can't be overriden -> forbid virtual
+              // constructor of external class can't be overridden -> forbid virtual
               RaiseMsg(20170323100447,nInvalidXModifierY,sInvalidXModifierY,
                 [Proc.ElementTypeName,'virtual,external'],Proc);
             ComputeConstString(Proc.LibrarySymbolName,true,true);
@@ -11111,7 +11111,7 @@ function TPasToJSConverter.ConvertInheritedExpr(El: TInheritedExpr;
           and TPasClassType(AncestorProc.Parent).IsExternal then
         begin
         // ancestor is in an external class
-        // They could be overriden, without a Pascal declaration
+        // They could be overridden, without a Pascal declaration
         // -> use the direct ancestor class of the current proc
         aClass:=SelfContext.ThisVar.Element as TPasClassType;
         if aClass.CustomData=nil then
@@ -13384,7 +13384,7 @@ begin
       ElType:=aResolver.ResolveAliasType(aResolver.GetArrayElType(ArrayType));
       while (ElType.ClassType=TPasArrayType) and (length(TPasArrayType(ElType).Ranges)>0) do
         begin
-        // array of static array, Note: setlength reallocs static arrays
+        // array of static array, Note: setlength reallocate static arrays
         ArrayType:=ElType as TPasArrayType;
         for i:=0 to length(ArrayType.Ranges)-1 do
           begin
@@ -21720,7 +21720,7 @@ begin
       else if C.InheritsFrom(TPasProcedure) then
         begin
         if aResolver.GetProcTemplateTypes(TPasProcedure(P))<>nil then
-          continue; // parametrized functions cannot be published
+          continue; // parameterized functions cannot be published
         if (P.CustomData as TPas2JSProcedureScope).SpecializedFromItem<>nil then
           continue; // specialized function cannot be published
         NewEl:=CreateRTTIMemberMethod(El,Members,i,MembersFuncContext);

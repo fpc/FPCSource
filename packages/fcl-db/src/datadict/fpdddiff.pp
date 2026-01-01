@@ -34,12 +34,12 @@ type
   TDiffKindSet = set of TDiffKind;
 
   TDifferenceType = (dtMissing, dtDifferent, dtSurplus);
-  
+
 const
   diffAll = [DiffTables, DiffFields, DiffIndexes, DiffSequences, DiffDomains];
-  
+
 type
-  
+
   { TCustomDDDiffer }
 
   TCustomDDDiffer = class
@@ -67,9 +67,9 @@ type
     property SourceDD : TFPdatadictionary read FSourceDD write FSourceDD;
     property TargetDD : TFPdatadictionary read FTargetDD write FTargetDD;
   end;
-  
+
   EDataDictDiff = Class(EDataDict);
-  
+
 implementation
 
 {$IFDEF FPC_DOTTEDUNITS}

@@ -79,11 +79,11 @@ begin
   Result:=GetParts(aJWT,J,C,S);
   if Not Result then
     exit;
-{$IF SIZEOF(CHAR)=2}    
+{$IF SIZEOF(CHAR)=2}
   B:=TEncoding.UTF8.GetBytes(J+'.'+C);
-{$ELSE}  
+{$ELSE}
   B:=TEncoding.UTF8.GetAnsiBytes(J+'.'+C);
-{$ENDIF}  
+{$ENDIF}
   BytesToVar(Base64url.Decode(S),aSignature,Sizeof(aSignature));
   Result:=TECDSA.verifySHA256(B,aPrivateKey,aSignature);
 end;
@@ -99,11 +99,11 @@ begin
   Result:=GetParts(aJWT,J,C,S);
   if Not Result then
     exit;
-{$IF SIZEOF(CHAR)=2}    
+{$IF SIZEOF(CHAR)=2}
   B:=TEncoding.UTF8.GetBytes(J+'.'+C);
-{$ELSE}     
+{$ELSE}
   B:=TEncoding.UTF8.GetAnsiBytes(J+'.'+C);
-{$ENDIF}  
+{$ENDIF}
   Base64url.Decode(S,@aSignature);
   Result:=TECDSA.verifySHA256(B,aPublicKey,aSignature);
 end;

@@ -33,7 +33,7 @@
 {$IFNDEF FPC_DOTTEDUNITS}
 unit nds7;
 {$ENDIF FPC_DOTTEDUNITS}
-{$mode objfpc} 
+{$mode objfpc}
 {$apptype arm7}
 {$define arm7}
 

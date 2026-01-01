@@ -21,7 +21,7 @@ initialization
                                          'Indeks: %s'+#13+#10+'Rekord=%d Klucz=''%s''.';
 
   STRING_INVALID_DBF_FILE             := 'Nieprawid³owy plik DBF.';
-  STRING_INVALID_DBF_FILE_FIELDERROR  := 'Nieprawid³owy plik DBF. B³êdna definicja pola.'; 
+  STRING_INVALID_DBF_FILE_FIELDERROR  := 'Nieprawid³owy plik DBF. B³êdna definicja pola.';
   STRING_FIELD_TOO_LONG               := 'Wartoœæ jest za d³uga: %d znaków (maksymalnie %d).';
   STRING_INVALID_FIELD_COUNT          := 'Nieprawid³owa liczba pól: %d (dozwolone 1 do 4095).';
   STRING_INVALID_FIELD_TYPE           := 'Nieprawid³owy typ pola ''%s'' dla pola ''%s''.';

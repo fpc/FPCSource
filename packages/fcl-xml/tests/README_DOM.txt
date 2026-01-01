@@ -58,13 +58,13 @@ Level 1 Core (527 tests):
 
 Level 2 Core (282 tests):
   testgen 2001/DOM-Test-Suite/tests/level2/core core2.pp
-  
+
 Level 2 HTML (677 out of 685 tests, only conversion -- not runnable yet):
   testgen 2001/DOM-Test-Suite/tests/level2/html html2.pp
 
 Level 3 Core (partial only, 131 out of 722 tests):
   testgen 2001/DOM-Test-Suite/tests/level3/core core3.pp
-  
+
 Level 3 XPath (63 tests, only conversion -- not runnable yet):
   testgen 2001/DOM-Test-Suite/tests/level3/xpath xpath3.pp
 
@@ -76,7 +76,7 @@ Normally, tests that contain properties/methods unsupported by FCL DOM, or
 other elements not yet known to testgen, will be skipped. The conversion may be forced
 by using -f commandline switch, but in this case the resulting Pascal unit will likely
 fail to compile.
- 
+
 4) Now, pick up your preferred fpcunit test runner, add the generated units to its
 uses clause, and compile. You may as well add the suppied 'extras.pp' and 'extras2.pp'
 units. During compilation, path to 'domunit.pp' should be added to the unit search

@@ -23,7 +23,7 @@ File format references:
 Flagship/FoxPro/Clipper/DBase III..V .dbf file format description
 ftp://fship.com/pub/multisoft/flagship/docu/dbfspecs.txt
 
-DBase IV language drivers 
+DBase IV language drivers
 - Russian list: ...
 http://www.autopark.ru/ASBProgrammerGuide/DBFSTRUC.HTM
 ... English extract:

@@ -826,7 +826,7 @@ begin
         Continue;
     end;
 
-    // jtUnkown accepts all data types
+    // jtUnknown accepts all data types
     if (def.DataType<>jtUnknown) and not (Param.JSONType=def.DataType) then
       JSONRPCParamError(SErrParamsDataTypeMismatch,[def.Name,JSONTypeName(def.DataType),JSONTypeName(Param.JSONType)]);
   end;
@@ -860,12 +860,12 @@ begin
         JSONRPCParamError(SErrParamsRequiredParamNotFound,[def.Name]);
       end
     else
-      begin  
+      begin
       Param:=ParamArray[i];
       // jtUnkown accepts all data types
       if (def.DataType<>jtUnknown) and not (Param.JSONType=def.DataType) then
         JSONRPCParamError(SErrParamsDataTypeMismatch,[def.Name,JSONTypeName(def.DataType),JSONTypeName(Param.JSONType)]);
-      end;  
+      end;
     end;
 end;
 
@@ -1338,16 +1338,16 @@ begin
     else if (jdoRequireClass in options) then
       Exit(CreateJSON2Error(SErrNoClassName,[ClassNameProperty],EJSONRPCInvalidRequest,ID,transactionproperty))
     else
-      D:=Nil;  
+      D:=Nil;
     if Assigned(D) then
-     begin  
+     begin
       // Check if it is a string
       if Not (D is TJSONString) then
         Exit(CreateJSON2Error(SErrInvalidClassNameType,[ClassNameProperty],EJSONRPCInvalidRequest,ID,transactionproperty));
       AClassName:=D.AsString;
       If (AClassName='') and (jdoRequireClass in options)  then
         Exit(CreateJSON2Error(SErrNoClassName,[ClassNameProperty],EJSONRPCInvalidRequest,ID,transactionproperty));
-      end;  
+      end;
     end;
   // Get params, if they exist
   I:=O.IndexOfName(ParamsProperty);

@@ -22,7 +22,7 @@ interface
 
 {$IFDEF FPC_DOTTEDUNITS}
 uses
-  System.Classes, System.SysUtils, Data.Db, Data.Sqldb, FpWeb.Http.Defs, FpWeb.Route, FpJson.Data, FpWeb.RestBridge.Schema, FpWeb.RestBridge.IO, 
+  System.Classes, System.SysUtils, Data.Db, Data.Sqldb, FpWeb.Http.Defs, FpWeb.Route, FpJson.Data, FpWeb.RestBridge.Schema, FpWeb.RestBridge.IO,
   FpWeb.RestBridge.Data, FpWeb.RestBridge.Auth, Data.SqlDb.Pool;
 {$ELSE FPC_DOTTEDUNITS}
 uses
@@ -1666,9 +1666,9 @@ end;
 
 function TSQLDBRestDispatcher.CreateMetadataParameterDataset(IO: TRestIO;
   const aResourceName: String; AOwner: TComponent): TDataset;
-  
+
 Var
-  BD :  TRestBufDataset;  
+  BD :  TRestBufDataset;
   R : TSQLDBRestResource;
 
 begin

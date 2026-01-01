@@ -12,11 +12,11 @@ var
 begin
 	// Initialise the console, required for printf
 	consoleDemoInit();
-	
+
 	if (fatInitDefault()) then
 	begin
 
-	
+
 		MyDir := opendir('/');
 
 		if (MyDir) <> nil then
@@ -37,7 +37,7 @@ begin
 			iprintf ('opendir() failure; terminating'#10);
 		end;
 
-	end else 
+	end else
 	begin
 		iprintf('fatInitDefault failure: terminating'#10);
 	end;

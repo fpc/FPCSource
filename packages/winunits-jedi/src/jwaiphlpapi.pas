@@ -78,7 +78,7 @@ uses
 
 //////////////////////////////////////////////////////////////////////////////
 //                                                                          //
-// IPRTRMIB.H has the definitions of the strcutures used to set and get     //
+// IPRTRMIB.H has the definitions of the structures used to set and get     //
 // information                                                              //
 //                                                                          //
 //////////////////////////////////////////////////////////////////////////////

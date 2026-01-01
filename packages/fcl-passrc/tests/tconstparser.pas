@@ -684,7 +684,7 @@ begin
   AssertEquals('Correct name','A',TheStr.Name);
   AssertEquals('Correct expression kind',aKind,TheExpr.Kind);
   AssertEquals('Correct expression class',AClass,TheExpr.ClassType);
-  // Writeln('Delcaration : ',TheStr.GetDeclaration(True));
+  // Writeln('Declaration : ',TheStr.GetDeclaration(True));
 end;
 
 procedure TTestResourcestringParser.DoTestSimple;

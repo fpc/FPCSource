@@ -54,7 +54,7 @@ begin
       if Assigned(AMsgPort^.mp_Node.ln_Name) and (string(AMsgPort^.mp_Node.ln_Name) <> '') and Assigned(FindPort(AMsgPort^.mp_Node.ln_Name)) then
         RemPort(AMsgPort);
       DeleteMsgPort(AMsgPort);
-    end;  
+    end;
   end;
 end;
 
@@ -71,9 +71,9 @@ begin
   try
     for i := 0 to MsgPorts.Count - 1 do
         RemoveMsgPort(PMsgPort(MsgPorts[i]));
-    finally  
-      FreeAndNil(MsgPorts);  
-    end;  
+    finally
+      FreeAndNil(MsgPorts);
+    end;
 end;
 
 
@@ -104,9 +104,9 @@ Type
     Procedure ReadMessage ; override;
     Function GetInstanceID : String;override;
   end;
-  
-// ####### CLIENT  
-  
+
+// ####### CLIENT
+
 function SafePutToPort(Msg: PMessage; Portname: string): Boolean;
  var
    Port: PMsgPort;
@@ -132,12 +132,12 @@ end;
 
 Procedure TAmigaClientComm.Connect;
 begin
- 
+
 end;
 
 Procedure TAmigaClientComm.Disconnect;
 begin
-  
+
 end;
 
 Procedure TAmigaClientComm.SendMessage(MsgType : TMessageType; AStream : TStream);
@@ -174,7 +174,7 @@ end;
 
 Function TAmigaClientComm.ServerRunning : Boolean;
 begin
-  Result := SafePutToPort(nil, PORTNAMESTART + Owner.ServerID); 
+  Result := SafePutToPort(nil, PORTNAMESTART + Owner.ServerID);
 end;
 
 // ###### SERVER
@@ -207,7 +207,7 @@ begin
   FMsgPort^.mp_Node.ln_Pri := 0;
   AddPort(FMsgPort);
   if Assigned(MsgBody) then
-    System.FreeMem(MsgBody); 
+    System.FreeMem(MsgBody);
   MsgBody := nil;
 end;
 

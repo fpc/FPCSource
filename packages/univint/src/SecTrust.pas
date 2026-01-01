@@ -243,7 +243,7 @@ uses MacTypes,SecBase,cssmtype,cssmapple,CFBase,CFArray,CFData,CFDate,CFDictiona
     @typedef SecTrustResultType
     @abstract Specifies the trust result type.
     @discussion SecTrustResultType results have two dimensions.  They specify
-    both whether evaluation suceeded and whether this is because of a user
+    both whether evaluation succeeded and whether this is because of a user
     decision.  The commonly expected result is kSecTrustResultUnspecified,
     which indicates a positive result that wasn't decided by the user.  The
     common failure is kSecTrustResultRecoverableTrustFailure, which means a

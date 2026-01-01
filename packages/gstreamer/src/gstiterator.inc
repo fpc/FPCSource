@@ -91,10 +91,10 @@
 
   function gst_iterator_get_type:TGType;cdecl;external gstreamerlib name 'gst_iterator_get_type';
 
-  function gst_iterator_new(size:Tguint; _type:TGType; lock:PGMutex; master_cookie:Pguint32; copy:TGstIteratorCopyFunction; 
+  function gst_iterator_new(size:Tguint; _type:TGType; lock:PGMutex; master_cookie:Pguint32; copy:TGstIteratorCopyFunction;
              next:TGstIteratorNextFunction; item:TGstIteratorItemFunction; resync:TGstIteratorResyncFunction; free:TGstIteratorFreeFunction):PGstIterator;cdecl;external gstreamerlib name 'gst_iterator_new';
 
-  function gst_iterator_new_list(_type:TGType; lock:PGMutex; master_cookie:Pguint32; list:PPGList; owner:PGObject; 
+  function gst_iterator_new_list(_type:TGType; lock:PGMutex; master_cookie:Pguint32; list:PPGList; owner:PGObject;
              item:TGstIteratorItemFunction):PGstIterator;cdecl;external gstreamerlib name 'gst_iterator_new_list';
 
 (* Const before type ignored *)

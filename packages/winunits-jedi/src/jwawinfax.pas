@@ -103,7 +103,7 @@ const
   {$EXTERNALSYM FAX_ERR_DEVICE_NUM_LIMIT_EXCEEDED}
   FAX_ERR_NOT_SUPPORTED_ON_THIS_SKU = 7011;
   {$EXTERNALSYM FAX_ERR_NOT_SUPPORTED_ON_THIS_SKU}
-  FAX_ERR_VERSION_MISMATCH          = 7012; // Fax client/server versions mismtach
+  FAX_ERR_VERSION_MISMATCH          = 7012; // Fax client/server versions mismatch
   {$EXTERNALSYM FAX_ERR_VERSION_MISMATCH}
   FAX_ERR_RECIPIENTS_LIMIT          = 7013; // Recipients limit in a single broadcast
   {$EXTERNALSYM FAX_ERR_RECIPIENTS_LIMIT}

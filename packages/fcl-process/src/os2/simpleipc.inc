@@ -171,7 +171,7 @@ procedure TPipeServerComm.ReadMessage;
 
 var
   Hdr: TMsgHeader;
-  
+
 begin
   FStream.ReadBuffer(Hdr,SizeOf(Hdr));
   PushMessage(Hdr,FStream);

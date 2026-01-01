@@ -28,7 +28,7 @@ uses
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
-    size_t   = cuint32;         { as definied in the C standard}
+    size_t   = cuint32;         { as defined in the C standard}
     ssize_t  = cint32;          { used by function for returning number of bytes}
 
     socklen_t= cuint32;
@@ -117,7 +117,7 @@ const
   SO_LINGER      = $0080;   //* linger on close if data present */
   SO_OOBINLINE   = $0100;   //* leave received OOB data in line */
   SO_REUSEPORT   = $0200;   //* allow local address & port reuse */
-  
+
  // Additional options, not kept in so_options.
   SO_SNDBUF     = $1001; //* send buffer size */
   SO_RCVBUF     = $1002; //* receive buffer size */

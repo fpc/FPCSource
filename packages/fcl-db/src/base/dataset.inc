@@ -28,7 +28,7 @@ begin
   FFieldList:=FieldsClass.Create(Self);
   FDataSources:=TFPList.Create;
   FConstraints:=TCheckConstraints.Create(Self);
-  
+
 // FBuffer must be allocated on create, to make Activebuffer return nil
   ReAllocMem(FBuffers,SizeOf(TRecordBuffer));
 //  pointer(FBuffers^) := nil;
@@ -144,7 +144,7 @@ var
   i: Integer;
   OldState: TDatasetState;
 begin
-  FCalcBuffer := Buffer; 
+  FCalcBuffer := Buffer;
   if FState <> dsInternalCalc then
   begin
     OldState := FState;
@@ -237,7 +237,7 @@ procedure TDataSet.DataEvent(Event: TDataEvent; Info: Ptrint);
   begin
     if aField.FieldKind in [fkData, fkInternalCalc] then
       SetModified(True);
-      
+
     if State <> dsSetKey then begin
       if aField.FieldKind = fkData then begin
         if FInternalCalcFields then
@@ -245,11 +245,11 @@ procedure TDataSet.DataEvent(Event: TDataEvent; Info: Ptrint);
         else if FAutoCalcFields and (FCalcFieldsSize <> 0) then
           CalculateFields(ActiveBuffer);
       end;
-      
+
       aField.Change;
     end;
   end;
-  
+
   procedure HandleScrollOrChange;
   begin
     if State <> dsInsert then
@@ -263,7 +263,7 @@ begin
     deFieldChange   : HandleFieldChange(TField(Info));
     deDataSetChange,
     deDataSetScroll : HandleScrollOrChange;
-    deLayoutChange  : FEnableControlsEvent:=deLayoutChange;    
+    deLayoutChange  : FEnableControlsEvent:=deLayoutChange;
   end;
 
   if not ControlsDisabled and (FState <> dsBlockRead) then begin
@@ -709,10 +709,10 @@ end;
 
 function TDataSet.GetIndexDefs(IndexDefs: TIndexDefs; IndexTypes: TIndexOptions
   ): TIndexDefs;
-  
+
 var i,f : integer;
     IndexFields : TStrings;
-    
+
 begin
   IndexDefs.Update;
   Result := TIndexDefs.Create(Self);
@@ -863,15 +863,15 @@ begin
   FBlockReadSize := AValue;
   if AValue > 0 then
   begin
-    CheckActive; 
+    CheckActive;
     SetState(dsBlockRead);
-  end	
+  end
   else
   begin
-    //update state only when in dsBlockRead 
+    //update state only when in dsBlockRead
     if FState = dsBlockRead then
       SetState(dsBrowse);
-  end;	
+  end;
 end;
 
 procedure TDataSet.SetFieldDefs(AFieldDefs: TFieldDefs);
@@ -1155,7 +1155,7 @@ begin
     ABufferCount := GetDefaultBufferCount;
     if aBufferCount<2 then
       aBufferCount:=2;
-    end;  
+    end;
 
   for i := 0 to MyDataSourceCount - 1 do
     for j := 0 to MyDataSources[i].DataLinkCount - 1 do

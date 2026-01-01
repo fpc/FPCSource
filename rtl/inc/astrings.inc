@@ -362,7 +362,7 @@ begin
           if not assigned(p) then
             continue;
           if p=olddestp then
-            { DestS occured among pieces in the ReallocMem case! Use the new pointer. Its header still conveniently contains old DestS length. }
+            { DestS occurred among pieces in the ReallocMem case! Use the new pointer. Its header still conveniently contains old DestS length. }
             p:=newdestp;
           Size:=PAnsiRec(p-AnsiFirstOff)^.Len;
           dec(pc,size);
@@ -393,7 +393,7 @@ begin
   If Size=0 then
     exit;
   { Setlength takes case of uniqueness
-    and alllocated memory. We need to use length,
+    and allocated memory. We need to use length,
     to take into account possibility of S1=Nil }
   SetLength (S1,Size+Length(S1));
   Move (S2[1],Pointer(Pointer(S1)+Location)^,Size);

@@ -1126,7 +1126,7 @@ begin
 end;
 
 procedure TPQConnection.PrepareStatement(cursor: TSQLCursor;ATransaction : TSQLTransaction;buf : string; AParams : TParams);
-                          
+
 const TypeStrings : array[TFieldType] of string =
     (
       'Unknown',   // ftUnknown
@@ -1144,7 +1144,7 @@ const TypeStrings : array[TFieldType] of string =
       'Unknown',   // ftBytes
       'bytea',     // ftVarBytes
       'Unknown',   // ftAutoInc
-      'bytea',     // ftBlob 
+      'bytea',     // ftBlob
       'text',      // ftMemo
       'bytea',     // ftGraphic
       'text',      // ftFmtMemo
@@ -1570,7 +1570,7 @@ begin
     // Joost, 5 jan 2006: I disabled the following, since it's useful for
     // debugging, but it also slows things down. In principle things can only go
     // wrong when FieldDefs is changed while the dataset is opened. A user just
-    // shoudn't do that. ;) (The same is done in IBConnection)
+    // shouldn't do that. ;) (The same is done in IBConnection)
     //if PQfname(Res, x) <> FieldDef.Name then
     //  DatabaseErrorFmt(SFieldNotFound,[FieldDef.Name],self);
 
@@ -1787,7 +1787,7 @@ function TPQConnection.GetSchemaInfoSQL(SchemaType: TSchemaType;
 var s : string;
 
 begin
-  // select * from information_schema.tables with 
+  // select * from information_schema.tables with
   // where table_schema [not] in ('pg_catalog','information_schema') may be better.
   // But the following should work:
   case SchemaType of

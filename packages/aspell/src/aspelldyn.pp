@@ -30,10 +30,10 @@ uses
   {WARNING Is it possible to omit the path?}
   const libaspell = 'libaspell.dylib';
   {$ENDIF}
-{$ELSE} 
+{$ELSE}
  {$IFDEF WINDOWS}
   const libaspell = 'aspell-15.dll';
- {$ELSE} 
+ {$ELSE}
   {$MESSAGE ERROR Target not supported'}
  {$ENDIF}
 {$ENDIF}
@@ -260,7 +260,7 @@ var
        * The speller class is expected to last until
        * this class is destroyed.
        * If config is given it will be used to override
-       * any relevent options set by this speller class.
+       * any relevant options set by this speller class.
   is: function done.cdecl;
        * If filter is given then it will take ownership of
        * the filter class and use it to do the filtering.

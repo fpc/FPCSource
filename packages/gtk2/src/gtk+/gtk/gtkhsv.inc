@@ -41,7 +41,7 @@ Type
    GTK+ at ftp://ftp.gtk.org/pub/gtk/.
   }
 {$include gtkcontainer.inc}
-{ C++ extern C conditionnal removed }
+{ C++ extern C conditional removed }
 function GTK_TYPE_HSV : GType;
 function GTK_HSV(obj: pointer) : longint;
 function GTK_HSV_CLASS(klass: pointer) : longint;
@@ -78,7 +78,7 @@ procedure gtk_hsv_to_rgb(h:gdouble; s:gdouble; v:gdouble; r:Pgdouble; g:Pgdouble
             b:Pgdouble); cdecl; external gtklib;
 procedure gtk_rgb_to_hsv(r:gdouble; g:gdouble; b:gdouble; h:Pgdouble; s:Pgdouble;
             v:Pgdouble); cdecl; external gtklib;
-{ C++ end of extern C conditionnal removed }
+{ C++ end of extern C conditional removed }
 {$endif}
 { __GTK_HSV_H__  }
 function GTK_TYPE_HSV : GType;

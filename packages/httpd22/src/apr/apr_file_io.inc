@@ -32,7 +32,7 @@
 
 {
  * @defgroup apr_file_io File I/O Handling Functions
- * @ingroup APR 
+ * @ingroup APR
  }
 
 {
@@ -168,7 +168,7 @@ const
  *         APR_CREATE            create the file if not there
  *         APR_APPEND            file ptr is set to end prior to all writes
  *         APR_TRUNCATE          set length to zero if file exists
- *         APR_BINARY            not a text file (This flag is ignored on 
+ *         APR_BINARY            not a text file (This flag is ignored on
  *                               UNIX because it has no meaning)
  *         APR_BUFFERED          buffer the data.  Default is non-buffered
  *         APR_EXCL              return error if APR_CREATE and file exists
@@ -178,7 +178,7 @@ const
  *         APR_SHARELOCK         Platform dependent support for higher
  *                               level locked read/write access to support
  *                               writes across process/machines
- *         APR_FILE_NOCLEANUP    Do not register a cleanup with the pool 
+ *         APR_FILE_NOCLEANUP    Do not register a cleanup with the pool
  *                               passed in on the <EM>pool</EM> argument (see below).
  *                               The apr_os_file_t handle in apr_file_t will not
  *                               be closed when the pool is destroyed.
@@ -188,8 +188,8 @@ const
  * </PRE>
  * @param perm Access permissions for file.
  * @param pool The pool to use.
- * @remark If perm is APR_OS_DEFAULT and the file is being created, appropriate 
- *      default permissions will be used.  *arg1 must point to a valid file_t, 
+ * @remark If perm is APR_OS_DEFAULT and the file is being created, appropriate
+ *      default permissions will be used.  *arg1 must point to a valid file_t,
  *      or NULL (in which case it will be allocated)
  }
 function apr_file_open(newf: PPapr_file_t; const fname: PAnsiChar;
@@ -221,7 +221,7 @@ function apr_file_remove(const path: PAnsiChar; pool: Papr_pool_t): apr_status_t
  * @param from_path The full path to the original file (using / on all systems)
  * @param to_path The full path to the new file (using / on all systems)
  * @param pool The pool to use.
- * @warning If a file exists at the new location, then it will be overwritten.  
+ * @warning If a file exists at the new location, then it will be overwritten.
  *      Moving files or directories across devices may not be possible.
  }
 function apr_file_rename(const from_path, to_path: PAnsiChar; pool: Papr_pool_t): apr_status_t;
@@ -274,11 +274,11 @@ function apr_file_eof(fptr: Papr_file_t): apr_status_t;
  * open standard error as an apr file pointer.
  * @param thefile The apr file to use as stderr.
  * @param pool The pool to allocate the file out of.
- * 
+ *
  * @remark The only reason that the apr_file_open_std* functions exist
  * is that you may not always have a stderr/out/in on Windows.  This
  * is generally a problem with newer versions of Windows and services.
- * 
+ *
  * The other problem is that the C library functions generally work
  * differently on Windows and Unix.  So, by using apr_file_open_std*
  * functions, you can get a handle to an APR struct that works with
@@ -473,7 +473,7 @@ function apr_file_ungetc(ch: AnsiChar; thefile: PPapr_file_t): apr_status_t;
 
 {
  * Get a string from a specified file.
- * @param str The buffer to store the string in. 
+ * @param str The buffer to store the string in.
  * @param len The length of the string
  * @param thefile The file descriptor to read from
  * @remark The buffer will be '\0'-terminated if any characters are stored.
@@ -485,7 +485,7 @@ function apr_file_gets(str: PAnsiChar; len: Integer;
 
 {
  * Put the string into a specified file.
- * @param str The string to write. 
+ * @param str The string to write.
  * @param thefile The file descriptor to write to
  }
 function apr_file_puts(const str: PAnsiChar; thefile: Papr_file_t): apr_status_t;
@@ -502,7 +502,7 @@ function apr_file_flush(thefile: PPapr_file_t): apr_status_t;
 
 {
  * duplicate the specified file descriptor.
- * @param new_file The structure to duplicate into. 
+ * @param new_file The structure to duplicate into.
  * @param old_file The file to duplicate.
  * @param p The pool to use for the new file.
  * @remark *new_file must point to a valid apr_file_t, or point to NULL
@@ -547,8 +547,8 @@ function apr_file_setaside(new_file: PPapr_file_t; old_file: PPapr_file_t;
  * @param where How to move the pointer, one of:
  * <PRE>
  *            APR_SET  --  set the offset to offset
- *            APR_CUR  --  add the offset to the current position 
- *            APR_END  --  add the offset to the current file size 
+ *            APR_CUR  --  add the offset to the current position
+ *            APR_END  --  add the offset to the current file size
  * </PRE>
  * @param offset The offset to move the pointer to.
  * @remark The third argument is modified to be the offset the pointer
@@ -584,7 +584,7 @@ function apr_file_namedpipe_create(const filename: PAnsiChar;
 {
  * Get the timeout value for a pipe or manipulate the blocking state.
  * @param thepipe The pipe we are getting a timeout for.
- * @param timeout The current timeout value in microseconds. 
+ * @param timeout The current timeout value in microseconds.
  }
 function apr_file_pipe_timeout_get(thepipe: Papr_file_t;
  timeout: Papr_interval_time_t): apr_status_t;
@@ -594,7 +594,7 @@ function apr_file_pipe_timeout_get(thepipe: Papr_file_t;
 {
  * Set the timeout value for a pipe or manipulate the blocking state.
  * @param thepipe The pipe we are setting a timeout on.
- * @param timeout The timeout value in microseconds.  Values < 0 mean wait 
+ * @param timeout The timeout value in microseconds.  Values < 0 mean wait
  *        forever, 0 means do not wait at all.
  }
 function apr_file_pipe_timeout_set(thepipe: Papr_file_t;
@@ -629,7 +629,7 @@ function apr_file_unlock(thefile: Papr_file_t): apr_status_t;
 
 {
  * return the file name of the current file.
- * @param new_path The path of the file.  
+ * @param new_path The path of the file.
  * @param thefile The currently open file.
  }
 function apr_file_name_get(const newpath: PPAnsiChar; thefile: Papr_file_t): apr_status_t;
@@ -638,7 +638,7 @@ function apr_file_name_get(const newpath: PPAnsiChar; thefile: Papr_file_t): apr
 
 {
  * Return the data associated with the current file.
- * @param data The user data associated with the file.  
+ * @param data The user data associated with the file.
  * @param key The key to use for retreiving data associated with this file.
  * @param file The currently open file.
  }
@@ -650,7 +650,7 @@ function apr_file_data_get(data: PPointer; const key: PAnsiChar;
 {
  * Set the data associated with the current file.
  * @param file The currently open file.
- * @param data The user data to associate with the file.  
+ * @param data The user data to associate with the file.
  * @param key The key to use for assocaiteing data with the file.
  * @param cleanup The cleanup routine to use when the file is destroyed.
  }
@@ -676,8 +676,8 @@ function apr_file_printf(fptr: Papr_file_t; const format: PAnsiChar;
  * set the specified file's permission bits.
  * @param fname The file (name) to apply the permissions to.
  * @param perms The permission bits to apply to the file.
- * @warning Some platforms may not be able to apply all of the available 
- *      permission bits; APR_INCOMPLETE will be returned if some permissions 
+ * @warning Some platforms may not be able to apply all of the available
+ *      permission bits; APR_INCOMPLETE will be returned if some permissions
  *      are specified which could not be set.
  *
  *      Platforms which do not implement this feature will return APR_ENOTIMPL.
@@ -698,7 +698,7 @@ function apr_file_perms_set(const fname: PAnsiChar;
  * </PRE>
  * @param attr_mask Mask of valid bits in attributes.
  * @param pool the pool to use.
- * @remark This function should be used in preference to explict manipulation
+ * @remark This function should be used in preference to explicit manipulation
  *      of the file permissions, because the operations to provide these
  *      attributes are platform specific and may involve more than simply
  *      setting permission bits.
@@ -727,7 +727,7 @@ function apr_file_mtime_set(const fname: PAnsiChar;
 {
  * Create a new directory on the file system.
  * @param path the path for the directory to be created.  (use / on all systems)
- * @param perm Permissions for the new direcoty.
+ * @param perm Permissions for the new directory.
  * @param pool the pool to use.
  }
 function apr_dir_make(const path: PAnsiChar; perm: apr_fileperms_t;
@@ -739,7 +739,7 @@ function apr_dir_make(const path: PAnsiChar; perm: apr_fileperms_t;
  * 'mkdir -p'. Creates intermediate directories as required. No error
  * will be reported if PATH already exists.
  * @param path the path for the directory to be created.  (use / on all systems)
- * @param perm Permissions for the new direcoty.
+ * @param perm Permissions for the new directory.
  * @param pool the pool to use.
  }
 function apr_dir_make_recursive(const path: PAnsiChar;
@@ -759,7 +759,7 @@ function apr_dir_remove(const path: PAnsiChar; pool: Papr_pool_t): apr_status_t;
 {
  * get the specified file's stats.
  * @param finfo Where to store the information about the file.
- * @param wanted The desired apr_finfo_t fields, as a bit flag of APR_FINFO_ values 
+ * @param wanted The desired apr_finfo_t fields, as a bit flag of APR_FINFO_ values
  * @param thefile The file to get information about.
  }
 function apr_file_info_get(finfo: Papr_finfo_t;
@@ -808,15 +808,15 @@ function apr_file_flags_get(f: Papr_file_t): apr_int32_t;
  * @param fp The apr file to use as a temporary file.
  * @param templ The template to use when creating a temp file.
  * @param flags The flags to open the file with. If this is zero,
- *              the file is opened with 
+ *              the file is opened with
  *              APR_CREATE | APR_READ | APR_WRITE | APR_EXCL | APR_DELONCLOSE
  * @param p The pool to allocate the file out of.
- * @remark   
- * This function  generates  a unique temporary file name from template.  
- * The last six characters of template must be XXXXXX and these are replaced 
+ * @remark
+ * This function  generates  a unique temporary file name from template.
+ * The last six characters of template must be XXXXXX and these are replaced
  * with a string that makes the filename unique. Since it will  be  modified,
  * template must not be a string constant, but should be declared as a character
- * array.  
+ * array.
  *
  }
 function apr_file_mktemp(fp: PPapr_file_t; templ: PAnsiChar;
@@ -828,7 +828,7 @@ function apr_file_mktemp(fp: PPapr_file_t; templ: PAnsiChar;
  * Find an existing directory suitable as a temporary storage location.
  * @param temp_dir The temp directory.
  * @param p The pool to use for any necessary allocations.
- * @remark   
+ * @remark
  * This function uses an algorithm to search for a directory that an
  * an application can use for temporary storage.  Once such a
  * directory is found, that location is cached by the library.  Thus,

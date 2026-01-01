@@ -23,7 +23,7 @@ begin
     P.OSes := [linux,darwin,win64];
     P.CPUs:=[x86_64];
     T:=P.Targets.AddUnit('libwasmedge.pp');
-    
+
     {
     // Need to convert wasmtime examples to wasmedge
     P.ExamplePath.Add('examples');
@@ -32,7 +32,7 @@ begin
     P.Targets.AddExampleProgram('memory.pp');
     P.Targets.AddExampleProgram('wasi.pp');
     }
-    
+
     P.NamespaceMap:='namespaces.lst';
 
 {$ifndef ALLPACKAGES}

@@ -95,7 +95,7 @@ type
     ); stdcall;
   {$EXTERNALSYM FN_PROGRESS}
   TFnProgress = FN_PROGRESS;
-{$ENDIF JWA_INCLUDEMODE}  
+{$ENDIF JWA_INCLUDEMODE}
 
 function SetEntriesInAclA(cCountOfExplicitEntries: ULONG;
   pListOfExplicitEntries: PEXPLICIT_ACCESS_A; OldAcl: PACL;

@@ -240,8 +240,8 @@ uses MacTypes,AEDataModel,CFBase,QuickdrawTypes,Finder,Events,AppleEvents,Transl
  *    Once cast to the appropriate Cocoa object you can call Cocoa APIs
  *    on that object normally. For instance, the custom area of the Nav
  *    dialog may be populated with Cocoa NSViews
- *    [(NSSavePanel*)myNavDialogRef setAccesoryView:myNSView].
- *    Exception: Once a dialog is created via the NavgationServices API
+ *    [(NSSavePanel*)myNavDialogRef setAccessoryView:myNSView].
+ *    Exception: Once a dialog is created via the NavigationServices API
  *    it must be invoked with NavDialogRun. Custom preview support is
  *    no longer available on Mac OS X 10.5. NavPreview procedures are
  *    no longer called, kNavCBAdjustPreview Nav event callback messages
@@ -560,7 +560,7 @@ const
   {
    * The target folder of the dialog has changed. The
    * NavCBRec.eventData.eventDataParms.param field is an AEDesc*
-   * containing an descriptor of the new location (ususally an FSSpec
+   * containing an descriptor of the new location (usually an FSSpec
    * or an FSRef).
    }
 	kNavCBNewLocation = 5;
@@ -916,7 +916,7 @@ type
 
   {
    * True if translation was performed on the file(s) to be opened or
-   * if transtlation will be needed on the file to be saved.
+   * if translation will be needed on the file to be saved.
    }
 		translationNeeded: Boolean;
 
@@ -972,7 +972,7 @@ type
    * file. However, the client needs to know that the extension is
    * hidden so that it can display the document name correctly in the
    * UI, such as in window titles and menus. This field is only used if
-   * the client has r equested extension preservation using the
+   * the client has r requested extension preservation using the
    * kNavPreserveSaveFileExtension dialog option flag. This field was
    * added in structure version 2.
    }
@@ -1067,7 +1067,7 @@ type
 	NavDialogCreationOptionsPtr = ^NavDialogCreationOptions;
 	NavDialogCreationOptions = record
 {
-   * The version of the struture. Currently, the only valid version is
+   * The version of the structure. Currently, the only valid version is
    * 0, containing all the fields described here.
    }
 		version: UInt16;

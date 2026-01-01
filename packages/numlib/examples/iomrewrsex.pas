@@ -9,7 +9,7 @@ var
   j:    longint;
   s:    ArbString;
   n, m: longint;
-  
+
 begin
   iomrems('{1 2}{3 4}{5 6}', A[1, 1], m, n, 10);
 

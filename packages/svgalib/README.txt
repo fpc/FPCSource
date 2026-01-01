@@ -22,11 +22,11 @@ testvga : Small program to demonstrate that you can draw lines on the screen in 
 
 typing 'make test' will compile the programs.
 
-It is possible that you must be root to run these programs, 
+It is possible that you must be root to run these programs,
 The SVGAlib docs I have aren't clear about that.
 If the programs should be able run as another user, you should make them setuid root.
 
 I tested everything as root, and it ran smoothly, your mileage may vary, however.
 
 Michael.
- 
+

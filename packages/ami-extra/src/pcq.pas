@@ -92,7 +92,7 @@ Function isalnum(c : AnsiChar) : Boolean;
 Function isspace(c : AnsiChar) : Boolean;
 {
     Returns true if the character is "white space", like a space,
-    form feed, line feed, carraige return, tab, whatever.
+    form feed, line feed, carriage return, tab, whatever.
 }
 
 Function toupper(c : AnsiChar) : AnsiChar;

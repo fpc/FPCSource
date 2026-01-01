@@ -201,7 +201,7 @@ const
     GGICMD_NOHALT_ON_UNMAP. When a GGI_REQSW_UNMAP request is sent the
     application should respond by sending a GGICMD_ACKNOWLEDGE_SWITCH event
     as quickly as possible. After the acknowledge event is sent the
-    application must not draw onto the visual until it recieves an evExpose
+    application must not draw onto the visual until it receives an evExpose
      event, which tells the application that the visual is mapped back again.
   }
 

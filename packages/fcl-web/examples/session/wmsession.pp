@@ -5,7 +5,7 @@ unit wmsession;
 interface
 
 uses
-  Classes, SysUtils, HTTPDefs, websession, fpHTTP, fpWeb; 
+  Classes, SysUtils, HTTPDefs, websession, fpHTTP, fpWeb;
 
 type
 
@@ -23,7 +23,7 @@ type
     { private declarations }
   public
     { public declarations }
-  end; 
+  end;
 
 var
   SessionModule: TSessionModule;
@@ -55,16 +55,16 @@ end;
     something like:
 
   http://localhost/cgi-bin/sessiondemo.cgi?DemoSession=NewSession
-  
+
   in either case, the NewSession action is called, and this event is triggered:
 }
 
 procedure TSessionModule.NewSessionRequest(Sender: TObject; ARequest: TRequest;
   AResponse: TResponse; var Handled: Boolean);
-  
+
 Var
   C : TCookie;
-  
+
 begin
   With AResponse.Contents do
     begin

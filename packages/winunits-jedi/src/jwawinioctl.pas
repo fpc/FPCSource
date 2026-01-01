@@ -463,7 +463,7 @@ const
   {$EXTERNALSYM IOCTL_STORAGE_PREDICT_FAILURE}
 
 //
-// These ioctl codes are obsolete.  They are defined here to avoid resuing them
+// These ioctl codes are obsolete.  They are defined here to avoid reusing them
 // and to allow class drivers to respond to them more easily.
 //
 
@@ -505,7 +505,7 @@ type
 // output - STORAGE_DEVICE_NUMBER structure
 //          The values in the STORAGE_DEVICE_NUMBER structure are guaranteed
 //          to remain unchanged until the system is rebooted.  They are not
-//          guaranteed to be persistant across boots.
+//          guaranteed to be persistent across boots.
 //
 
 type
@@ -562,7 +562,7 @@ type
   PSTORAGE_BREAK_RESERVATION_REQUEST = ^STORAGE_BREAK_RESERVATION_REQUEST;
   {$EXTERNALSYM PSTORAGE_BREAK_RESERVATION_REQUEST}
   TStorageBreakReservationRequest = STORAGE_BREAK_RESERVATION_REQUEST;
-  PStorageBreakReservationRequest = PSTORAGE_BREAK_RESERVATION_REQUEST;  
+  PStorageBreakReservationRequest = PSTORAGE_BREAK_RESERVATION_REQUEST;
 
 //
 // IOCTL_STORAGE_MEDIA_REMOVAL disables the mechanism
@@ -687,7 +687,7 @@ const
   // F3_128Mb_512,           // 3.5" MO 128Mb   512 bytes/sector
   // F3_230Mb_512,           // 3.5" MO 230Mb   512 bytes/sector
   // F8_256_128,             // 8",     256KB,  128 bytes/sector
-  // F3_200Mb_512,           // 3.5",   200M Floppy (HiFD)  
+  // F3_200Mb_512,           // 3.5",   200M Floppy (HiFD)
   //
 
   DDS_4mm            = $20;  // Tape - DAT DDS1,2,... (all vendors)
@@ -1515,7 +1515,7 @@ type
 // AT-style master boot record (PARTITION_STYLE_MBR) and with a new, GPT
 // partition table (PARTITION_STYLE_GPT). RAW is for an unrecognizable
 // partition style. There are a very limited number of things you can
-// do with a RAW partititon.
+// do with a RAW partition.
 //
 
 type
@@ -1626,7 +1626,7 @@ type
   {$EXTERNALSYM PCREATE_DISK_GPT}
   _CREATE_DISK_GPT = record
     DiskId: GUID; // Unique disk id for the disk.
-    MaxPartitionCount: DWORD; // Maximim number of partitions allowable.
+    MaxPartitionCount: DWORD; // Maximum number of partitions allowable.
   end;
   {$EXTERNALSYM _CREATE_DISK_GPT}
   CREATE_DISK_GPT = _CREATE_DISK_GPT;
@@ -1903,7 +1903,7 @@ type
 // provided.
 //
 // If the structure is provided as an output buffer for the ioctl the state
-// of the read & write caches will be returned. If both input and outut buffers
+// of the read & write caches will be returned. If both input and output buffers
 // are provided the output buffer will contain the cache state BEFORE any
 // changes are made
 //
@@ -1975,7 +1975,7 @@ type
     // Contains the minimum and maximum amount of data which will be
     // will be prefetched into the cache on a disk operation.  This value
     // may either be a scalar multiplier of the transfer length of the request,
-    // or an abolute number of disk blocks.  PrefetchScalar (above) indicates
+    // or an absolute number of disk blocks.  PrefetchScalar (above) indicates
     // which interpretation is used.
     //
 
@@ -2077,7 +2077,7 @@ const
 // capabilities. The IOCTLs are directed to one of   //
 // the two disk filter drivers.                      //
 //                                                   //
-// DISKPERF is a utilty for collecting disk request  //
+// DISKPERF is a utility for collecting disk request //
 // statistics.                                       //
 //                                                   //
 // SIMBAD is a utility for injecting faults in       //
@@ -2304,7 +2304,7 @@ const
   {$EXTERNALSYM CAP_ATA_ID_CMD}
   CAP_ATAPI_ID_CMD = 2;         // ATAPI ID command supported
   {$EXTERNALSYM CAP_ATAPI_ID_CMD}
-  CAP_SMART_CMD    = 4;         // SMART commannds supported
+  CAP_SMART_CMD    = 4;         // SMART commands supported
   {$EXTERNALSYM CAP_SMART_CMD}
 
 //
@@ -3582,7 +3582,7 @@ const
     (30 shl 2) or METHOD_BUFFERED);
   {$EXTERNALSYM FSCTL_IS_VOLUME_DIRTY}
 
-// decomissioned fsctl value  31
+// decommissioned fsctl value  31
 (*  FSCTL_GET_HFS_INFORMATION = (
     (FILE_DEVICE_FILE_SYSTEM shl 16) or (FILE_ANY_ACCESS shl 14) or
     (31 shl 2) or METHOD_BUFFERED);
@@ -3611,7 +3611,7 @@ const
 
   FSCTL_FIND_FILES_BY_SID = (
     (FILE_DEVICE_FILE_SYSTEM shl 16) or (FILE_ANY_ACCESS shl 14) or
-    (35 shl 2) or METHOD_NEITHER);  
+    (35 shl 2) or METHOD_NEITHER);
   {$EXTERNALSYM FSCTL_FIND_FILES_BY_SID}
 
 // decommissioned fsctl value                                             36
@@ -4000,7 +4000,7 @@ type
   {$EXTERNALSYM PMOVE_FILE_DATA32}
   TMoveFileData32 = MOVE_FILE_DATA32;
   PMoveFileData32 = PMOVE_FILE_DATA32;
-  
+
 {$ENDIF WIN64}
 
 //
@@ -4026,7 +4026,7 @@ type
   {$EXTERNALSYM FIND_BY_SID_OUTPUT}
   PFIND_BY_SID_OUTPUT = ^FIND_BY_SID_OUTPUT;
   TFindBySidOutput = FIND_BY_SID_OUTPUT;
-  PFindBySidOutput = PFIND_BY_SID_OUTPUT;  
+  PFindBySidOutput = PFIND_BY_SID_OUTPUT;
 
 //
 //  The following structures apply to Usn operations.
@@ -4322,7 +4322,7 @@ type
   PFILE_PREFETCH = ^FILE_PREFETCH;
   {$EXTERNALSYM PFILE_PREFETCH}
   TFilePrefetch = FILE_PREFETCH;
-  PFilePrefetch = PFILE_PREFETCH;  
+  PFilePrefetch = PFILE_PREFETCH;
 
 const
   FILE_PREFETCH_TYPE_FOR_CREATE = $1;
@@ -4339,7 +4339,7 @@ type
   _FILESYSTEM_STATISTICS = record
     FileSystemType: WORD;
     Version: WORD;                  // currently version 1
-    SizeOfCompleteStructure: DWORD; // must by a mutiple of 64 bytes
+    SizeOfCompleteStructure: DWORD; // must by a multiple of 64 bytes
     UserFileReads: DWORD;
     UserFileReadBytes: DWORD;
     UserDiskReads: DWORD;
@@ -4428,7 +4428,7 @@ type
     Clusters: DWORD;             // number of clusters allocated
     Hints: DWORD;                // number of times a hint was specified
 
-    RunsReturned: DWORD;         // number of runs used to satisify all the requests
+    RunsReturned: DWORD;         // number of runs used to satisfy all the requests
 
     HintsHonored: DWORD;         // number of times the hint was useful
     HintsClusters: DWORD;        // number of clusters allocated via the hint
@@ -4862,7 +4862,7 @@ type
   PPLEX_READ_DATA_REQUEST = ^PLEX_READ_DATA_REQUEST;
   {$EXTERNALSYM PPLEX_READ_DATA_REQUEST}
   TPlexReadDataRequest = PLEX_READ_DATA_REQUEST;
-  PPlexReadDataRequest = PPLEX_READ_DATA_REQUEST;  
+  PPlexReadDataRequest = PPLEX_READ_DATA_REQUEST;
 
 //
 // FSCTL_SIS_COPYFILE support

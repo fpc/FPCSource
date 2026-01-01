@@ -125,6 +125,6 @@ type
     procedure Paint;
 
     procedure Blocking(ABlocking: Boolean);
-    
+
     property Fullscreen: Boolean read FFullscreen;
   end;

@@ -24,7 +24,7 @@ uses
    Sqlite3DSToolsUnit,
    TestSpecificTSqlite3Dataset,
  {$ENDIF}
-// Units wich contain the tests
+// Units which contain the tests
   tcsdfdata,
   TestBasics,
   TestDBBasics,
@@ -35,7 +35,7 @@ uses
   TestSpecificTBufDataset,
   TestSpecificTDBF,
   TestSpecificTMemDataset,
-  TestDBExport, 
+  TestDBExport,
   tccsvdataset,
   testsqlscript,
   consoletestrunner;
@@ -67,10 +67,10 @@ begin
     FDigestResultsWriter.Free;
   end;
 end;
-  
+
 Var
-  Application : TTestRunner;  
-  
+  Application : TTestRunner;
+
 begin
   InitialiseDBConnector;
   Try
@@ -80,7 +80,7 @@ begin
         if HasOption('g','legacy') then
           LegacyOutput
         else
-          begin  
+          begin
           DefaultFormat:=fplain;
           DefaultRunAllTests:=True;
           Initialize;
@@ -89,7 +89,7 @@ begin
       finally
         Free;
       end;
-  Finally    
+  Finally
     FreeDBConnector;
-  end;  
+  end;
 end.

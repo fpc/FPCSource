@@ -45,7 +45,7 @@ uses
 const
   LastCursorType : word = crUnderline;
 
-{ allways set blink state again }
+{ always set blink state again }
 
 procedure SetHighBitBlink;
 var

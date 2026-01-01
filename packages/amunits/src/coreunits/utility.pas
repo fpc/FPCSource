@@ -18,7 +18,7 @@
     History:
 
     Added functions and procedures with array of const.
-    For use with fpc 1.0.7. Thay are in systemvartags.
+    For use with fpc 1.0.7. They are in systemvartags.
     11 Nov 2002.
 
 
@@ -227,7 +227,7 @@ const
 
 
 { Macros used by the next batch of macros below. Normally, you don't use
- * this batch directly. Then again, some folks are wierd
+ * this batch directly. Then again, some folks are weird
  }
 
 

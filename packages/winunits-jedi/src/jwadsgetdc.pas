@@ -271,7 +271,7 @@ function DsValidateSubnetName(SubnetName: LPCTSTR): DWORD; stdcall;
 // Only include if winsock2.h has been included
 //
 
-// Types from Winsock2.h 
+// Types from Winsock2.h
 
 
 
@@ -374,7 +374,7 @@ type
     // The trust type and attributes of this trust.
     //
     // If NETLOGON_DOMAIN_DIRECTLY_TRUSTED is not set,
-    //  these value are infered.
+    //  these value are inferred.
     //
     TrustType: ULONG;
     TrustAttributes: ULONG;
@@ -445,8 +445,8 @@ function DsEnumerateDomainTrusts(ServerName: LPTSTR; Flags: ULONG;
 {$EXTERNALSYM DsEnumerateDomainTrusts}
 
 //
-// Only define this API if the caller has #included the pre-requisite 
-// ntlsa.h or ntsecapi.h  
+// Only define this API if the caller has #included the pre-requisite
+// ntlsa.h or ntsecapi.h
 //
 
 function DsGetForestTrustInformationW(ServerName, TrustedDomainName: LPCWSTR;

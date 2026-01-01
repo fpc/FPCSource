@@ -371,7 +371,7 @@ asm
        bmi     @LSTRCONCAT2
        or.l    d0,d0      { Make sure to set Zerfo flag to 0          }
     @LSTRCONCAT5:
-       { Workaroung for GAS v.134 bug }
+       { Workaround for GAS v.134 bug }
        {  old: cmp.b (a1)+,(a0)+      }
        cmpm.b  (a1)+,(a0)+
     @LSTRCONCAT4:

@@ -82,7 +82,7 @@ const
   FUSE_FI_NONSEEKABLE = 8
   {$endif}
 
-  { Operation Flags (see TFuseOpereation)
+  { Operation Flags (see TFuseOperations)
 
     FUSE_OP_NONE       - No Flags Set
     FUSE_OP_NULLPATHOK - Flag indicating, that the filesystem can accept a NULL
@@ -156,7 +156,7 @@ type
   }
   TStatVFS = record
     f_bsize : culong;                // File system block size
-    f_frsize : culong;               // Fudamental file system block size
+    f_frsize : culong;               // Fundamental file system block size
     f_blocks,                        // Total number of blocks on file system in
                                      // units of f_frsize.
     f_bfree,                         // Total number of free blocks.
@@ -181,7 +181,7 @@ type
     flags : cint;                    // Open flags. Available in open() and
                                      // release()
     fh_old : culong deprecated;      // Old file handle, don't use
-    writepage : cint;                // In case of a write oprtation indicates
+    writepage : cint;                // In case of a write operation indicates
                                      // if this was caused by a writepage
     fi_flags : cuint;                // See FUSE_FI_  flags
     fh : cuint64;                    // File handle. May be filled in by
@@ -550,7 +550,7 @@ type
       and if a conflicting lock is found it will return information without
       calling this method. This ensures, that for local locks the l_pid field is
       correctly filled in. The results may not be accurate in case of race
-      conditions and inthe presence of hard links, but it's unlikly that an
+      conditions and inthe presence of hard links, but it's unlikely that an
       application would rely on accurate GETLK results in these cases. If a
       conflicting lock is not found, this method will be called, and the
       filesystem may fill out l_pid by a meaningful value, or it may leave this
@@ -635,7 +635,7 @@ type
   { Argument list }
   TFuseArgs = record
     argc : cint;       // Argument count
-    argv : PPAnsiChar;     // Argument vector. NULL termiated
+    argv : PPAnsiChar;     // Argument vector. NULL terminated
     allocated : cint;  // Is 'argv' allocated?
   end;
   PFuseArgs = ^TFuseArgs;

@@ -7,7 +7,7 @@ uses fpcunit, testregistry, consoletestrunner;
 {$ENDIF FPC_DOTTEDUNITS}
 
 Type
-  TTestNeedAssert = Class(TTestCase) 
+  TTestNeedAssert = Class(TTestCase)
   Published
     Procedure NeedsToFail;
     Procedure NeedsToBeOK;
@@ -29,7 +29,7 @@ end;
 
 Var
   Application : TTestRunner;
-  
+
 begin
   RegisterTest(TTestNeedAssert);
   TTestCase.CheckAssertCalled:=true;

@@ -33,7 +33,7 @@
 { o Add support for FPU if present.                                  }
 { o Verify if single comparison works in all cases.                  }
 { o Add support for  NANs in SINGLE_CMP                              }
-{ o Add comp (80-bit) multiplication,addition,substract,division,    }
+{ o Add comp (80-bit) multiplication,addition,subtract,division,     }
 {    shift.                                                          }
 { o Add stack checking for the routines which use the stack.         }
 {    (This will probably have to be done in the code generator).     }
@@ -86,7 +86,7 @@ Asm
    bra      @normlab6
 @normlab7:
    tst.b    d1             { check rounding bits          }
-   bge      @normlab9      { round down - no action neccessary }
+   bge      @normlab9      { round down - no action necessary }
    neg.b    d1
    bvc      @normlab8      { round up                     }
    move.w   d4,d1          { tie case - round to even     }
@@ -233,7 +233,7 @@ XDEF SINGLE_ADD
    moveq.l    #-1,d0
    lsr.l      #1,d0                { 0x7fffffff -> d0        }
    bra        @return
-{ Ok, no inifinty or NaN involved.. }
+{ Ok, no infinity or NaN involved.. }
 @nospec:
    tst.b           d2
    beq        @alabel4
@@ -259,8 +259,8 @@ XDEF SINGLE_ADD
    moveq.l    #0,d3           { (put initial zero rounding bits in d3) }
    neg.w      d1              { d1 = u.exp - v.exp            }
    add.w      d0,d1
-   beq        @alabel8      { exponents are equal - no shifting neccessary }
-   bgt        @alabel7      { not equal but no exchange neccessary         }
+   beq        @alabel8      { exponents are equal - no shifting necessary  }
+   bgt        @alabel7      { not equal but no exchange necessary          }
    exg        d4,d5                { exchange u and v }
    sub.w      d1,d0                { d0 = u.exp - (u.exp - v.exp) = v.exp }
    neg.w      d1
@@ -448,7 +448,7 @@ XDEF SINGLE_MUL
 { see Knuth, Seminumerical Algorithms, section 4.3. algorithm M      }
 {--------------------------------------------------------------------}
    move.w  d4,d3
-   mulu.w  d5,d3        { mulitply with bigit from multiplier      }
+   mulu.w  d5,d3        { multiply with bigit from multiplier      }
    move.l  d3,4(sp)     { store into result                        }
 
    move.l  d4,d3
@@ -459,7 +459,7 @@ XDEF SINGLE_MUL
    swap    d5           { [TOP 8 BITS SHOULD BE ZERO !]            }
 
    move.w  d4,d3
-   mulu.w  d5,d3        { mulitply with bigit from multiplier      }
+   mulu.w  d5,d3        { multiply with bigit from multiplier      }
    add.l   d3,2(sp)     { store into result (no carry can occur here) }
 
    move.l  d4,d3
@@ -501,13 +501,13 @@ XDEF SINGLE_MUL
    lsl.w   #1,d2      { and set it sign as for d2                  }
    roxr.l  #1,d0
    movem.l (sp)+,d2-d5
-   rts                { no normalizing neccessary                  }
+   rts                { no normalizing necessary                  }
 end;
 
 
 Procedure Single_Div;Assembler;
 {--------------------------------------------}
-{ Low-level routine to dividr two single     }
+{ Low-level routine to divide two single     }
 {  IEEE floating point values. Never called  }
 {  directly.                                 }
 { Om Entry:                                  }
@@ -818,7 +818,7 @@ XDEF LONGDIV
    move.l      d2,a0      { save registers                        }
    move.l      d3,a1
    move.l      d4,-(sp)   { divisor = d1 = d4                     }
-   move.l      d5,-(sp)   { divident = d0 = d5                    }
+   move.l      d5,-(sp)   { dividend = d0 = d5                    }
 
    move.l      d1,d4      { save divisor                          }
    move.l      d0,d5      { save dividend                         }
@@ -837,8 +837,8 @@ XDEF LONGDIV
    neg.l       d1         { negate it                             }
    not.w       (sp)       { remember sign                         }
 @LDiv2:
-{;== case 1) divident < divisor}
-   cmp.l       d2,d1      { is divident smaller then divisor ?    }
+{;== case 1) dividend < divisor}
+   cmp.l       d2,d1      { is dividend smaller then divisor ?    }
    bcs         @LDiv7     { yes, return immediately               }
 {;== case 2) divisor has <= 16 significant bits}
    move.l      d4,d6      { put divisor in d6 register            }
@@ -864,7 +864,7 @@ XDEF LONGDIV
 @LDiv3:
    moveq.l     #31,d3     { loop count                            }
 @LDiv5:
-   add.l       d1,d1      { shift divident ...                    }
+   add.l       d1,d1      { shift dividend ...                    }
    addx.l      d0,d0      {  ... into d0                          }
    cmp.l       d2,d0      { compare with divisor                  }
    bcs         @LDiv6

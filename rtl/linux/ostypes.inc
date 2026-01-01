@@ -397,7 +397,7 @@ CONST
   S_ISGID = &2000;
   S_ISVTX = &1000;
 
-  { Constansts for MMAP }
+  { Constants for MMAP }
  {$IFDEF FPC_IS_SYSTEM}
   MAP_PRIVATE   =2;
  {$ENDIF}

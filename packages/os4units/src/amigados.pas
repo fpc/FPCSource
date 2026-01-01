@@ -46,7 +46,7 @@ const
   MODE_READWRITE = 1004; // Open old file w/exclusive lock
 
 // Relative position to Seek(deprecated) and ChangeFilePosition()
-  OFFSET_BEGINNING = -1; // relative to Begining Of File
+  OFFSET_BEGINNING = -1; // relative to Beginning Of File
   OFFSET_CURRENT   = 0;  // relative to Current file position
   OFFSET_END       = 1;  // relative to End Of File
 
@@ -102,7 +102,7 @@ const
   SBM_NON_BLOCKING = 2;
 
 // *********************************************************************
-// GetPID() function, this flag determins which PID is returned. 53.58
+// GetPID() function, this flag determines which PID is returned. 53.58
   GPID_PROCESS = 1;
   GPID_PARENT  = 2;
 
@@ -132,7 +132,7 @@ const
 // *********************************************************************
 // V52 Struct ExamineData, returned by ExamineObject() and ExamineDir().
 // This structure supports unlimited string lengths, 64 bit file sizes,
-// automatic resolution of link targets and extended auxilliary information.
+// automatic resolution of link targets and extended auxiliary information.
 //
 // NOTE; Applications DO NOT allocate these, the filesystem does it.
 //       Also, the filesystem itself must always allocate these using
@@ -182,7 +182,7 @@ type
           It will be undefined if the caller fails to specify the
           EXF_REFCOUNT bit in the EX_DataFields mask.
 
- [Note 2] This field is the mandatory unique object identfier for all
+ [Note 2] This field is the mandatory unique object identifier for all
           objects on this volume, the value used here may be any arbitrary
           value as long as it is unique from all other objects on this
           volume, it may use the object node address, the disk header block
@@ -829,9 +829,9 @@ const
      EXT_COMMON     = 130;     {   32 bit reference to COMMON block }
      EXT_REF16      = 131;     {   16 bit reference to symbol }
      EXT_REF8       = 132;     {    8 bit reference to symbol }
-     EXT_DEXT32     = 133;     {   32 bit data releative reference }
-     EXT_DEXT16     = 134;     {   16 bit data releative reference }
-     EXT_DEXT8      = 135;     {    8 bit data releative reference }
+     EXT_DEXT32     = 133;     {   32 bit data relative reference  }
+     EXT_DEXT16     = 134;     {   16 bit data relative reference  }
+     EXT_DEXT8      = 135;     {    8 bit data relative reference  }
 
 
 type
@@ -1669,14 +1669,14 @@ type
     ed_OwnerGID: Word;
   end;
 
-{ Control structure passed to ExAll.  Unused fields MUST be initialized to 0, expecially eac_LastKey.
+{ Control structure passed to ExAll.  Unused fields MUST be initialized to 0, especially eac_LastKey.
   eac_MatchFunc is a hook (see utility.library documentation for usage)
   It should return true if the entry is to returned, false if it is to be ignored.
   This structure MUST be allocated by AllocDosObject()!}
   PExAllControl = ^TExAllControl;
   TExAllControl = record
     eac_Entries: LongWord;   // number of entries returned in buffer
-    eac_LastKey: LongWord;   // Don't touch inbetween linked ExAll calls!
+    eac_LastKey: LongWord;   // Don't touch in between linked ExAll calls!
     eac_MatchString: STRPTR; // wildcard string for pattern match OR nil
     eac_MatchFunc: PHook;    // optional private wildcard function
   end;
@@ -2134,7 +2134,7 @@ const
   GVB_BINARY_VAR        = 10; // treat as binary var, don't truncate at a newline or carriage return AnsiChar.
   GVB_DONT_NULL_TERM    = 11; // can only be used with GVF_BINARY_VAR do not add a nul-terminator 0 byte at the end of data.
   GVB_SAVE_VAR          = 12; // only works with GVF_GLOBAL_VAR this is only supported in >= V39 dos.  V37 dos ignores this. this causes SetVar to affect ENVARC: as well as ENV:
-  GVB_SCAN_ENVARC       = 13; // only usefull with GLOBAL vars scan envarc: instead of env: for use in ScanVars() - v50
+  GVB_SCAN_ENVARC       = 13; // only useful with GLOBAL vars scan envarc: instead of env: for use in ScanVars() - v50
   GVB_SCAN_LEVEL        = 14; // for ScanVars() - v53 scan single directory level do not go into further sub directories. - v53
   GVB_SCAN_TOPLEVEL     = GVB_SCAN_LEVEL;
   GVB_SCAN_STARTDIR     = 15;
@@ -2410,12 +2410,12 @@ const
   EX_StringNameInput = EX_Dummy + 1; // (STRPTR) -- Pointer to a nul-terminated string name, to specify the filesystem object required. This may be relative to the current directory an assignment
   EX_StringName      = EX_Dummy + 1; //   or an absolute path.  DOS will internally perform a Lock() on the string provided, it will also Unlock() it again for you. Failure will occur if the object is already exclusively locked.
 
-  EX_FileHandleInput = EX_Dummy + 2; // (BPTR) -- BCPL pointer to a FileHandle. Identify the parent directory from the stream pointed to by an open FileHandle.  DOS determins the parent directory of the
+  EX_FileHandleInput = EX_Dummy + 2; // (BPTR) -- BCPL pointer to a FileHandle. Identify the parent directory from the stream pointed to by an open FileHandle.  DOS determines the parent directory of the
   EX_FileHandle      = EX_Dummy + 2; //   file by calling ParentOfFH() internally. The internal lock is UnLock'ed when the caller invokes ReleaseDirContext().
 
   EX_LockInput       = EX_Dummy + 3; // (BPTR) -- BCPL pointer to a Lock.
   EX_FileLockInput   = EX_Dummy + 3; //   Identify the filesystem object by this associated Lock.
-  EX_DirLockInput    = EX_Dummy + 3; //   This lock is always passed directly throught to the filesystem.
+  EX_DirLockInput    = EX_Dummy + 3; //   This lock is always passed directly through to the filesystem.
   EX_FileLock        = EX_Dummy + 3;
   EX_DirLock         = EX_Dummy + 3;
 

@@ -253,7 +253,7 @@ function CFBundleGetBundleWithIdentifier( bundleID: CFStringRef ): CFBundleRef; 
 
 function CFBundleGetAllBundles: CFArrayRef; external name '_CFBundleGetAllBundles';
     { This is potentially expensive, and not thread-safe.  Use with care. }
-    { Best used for debuggging or other diagnostic purposes. }
+    { Best used for debugging or other diagnostic purposes. }
 
 { ===================== Creating Bundles ===================== }
 

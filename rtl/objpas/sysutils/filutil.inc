@@ -532,7 +532,7 @@ end;
 { FindFirst/FindNext. In order to avoid having to duplicate most code in th
   OS-specific implementations, we let those implementations fill in all
   fields of TRawbyte/UnicodeSearchRec, except for the name. That field is
-  filled in by the OS-indepedent wrappers, which also takes care of setting
+  filled in by the OS-independent wrappers, which also takes care of setting
   the appropriate code page if applicable.
 }
 

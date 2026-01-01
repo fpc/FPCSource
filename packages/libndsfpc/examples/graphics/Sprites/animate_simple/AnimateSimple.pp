@@ -31,7 +31,7 @@ often they are being used and be sure to mark all a sprites frames as unused whe
 
 This demo is using a very rigid animation engine in that it assumes that each frame of sprite
 graphics is the same size, that each sprite can only walk up down left or right and that
-each of these states is 3 frames in durration.  Significantly more advance animations can be
+each of these states is 3 frames in duration.  Significantly more advance animations can be
 done by creating data structures to describe an animation sequence.  Perhaps more advanced
 demos will follow this one.
 
@@ -74,7 +74,7 @@ type
   PMan = ^TMan;
 
   //---------------------------------------------------------------------
-  // The womman sprite
+  // The woman sprite
   // she needs an array of pointers to sprite memory since all
   // her frames are to be loaded.
   // she also needs to keep track of which sprite memory pointer is in use
@@ -100,7 +100,7 @@ const
   W_LEFT  = 3;
 
   //---------------------------------------------------------------------
-  // Screen dimentions
+  // Screen dimensions
   //---------------------------------------------------------------------
   SCREEN_TOP    = 0;
   SCREEN_BOTTOM = 192;
@@ -159,7 +159,7 @@ var
   Man: TMan;
   Woman: TWoman;
   keys: cint;
-  
+
 begin
   Man.x := 0;
   Man.y := 0;
@@ -199,10 +199,10 @@ begin
     scanKeys();
 
     keys := keysHeld();
-		
-    if (keys and KEY_START) <> 0 then 
+
+    if (keys and KEY_START) <> 0 then
       exit;
-      
+
     if keys <> 0 then
     begin
       if (keys and KEY_UP) <> 0 then

@@ -48,7 +48,7 @@
 
 (**
  * @defgroup apr_pools Memory Pool Functions
- * @ingroup APR 
+ * @ingroup APR
  * @{
  *)
 
@@ -73,7 +73,7 @@ type
  * becomes:
  *    APR_DECLARE(apr_pool_t *) apr_file_pool_get(apr_file_t *ob);
  * </pre>
- * @remark Doxygen unwraps this macro (via doxygen.conf) to provide 
+ * @remark Doxygen unwraps this macro (via doxygen.conf) to provide
  * actual help for each specific occurance of apr_foo_pool_get.
  * @remark the linkage is specified for APR. It would be possible to expand
  *       the macros to support other linkages.
@@ -723,7 +723,7 @@ procedure apr_pool_cleanup_register(p: Papr_pool_t;
  *
  * Unlike apr_pool_cleanup_register which register a cleanup
  * that is called AFTER all subpools are destroyed this function register
- * a function that will be called before any of the subpool is destoryed.
+ * a function that will be called before any of the subpool is destroyed.
  *
  * @param p The pool register the cleanup with
  * @param data The data to pass to the cleanup function.
@@ -742,7 +742,7 @@ procedure apr_pool_pre_cleanup_register(p: Papr_pool_t;
 
 {**
  * Remove a previously registered cleanup function.
- * 
+ *
  * The cleanup most recently registered with @a p having the same values of
  * @a data and @a cleanup will be removed.
  *
@@ -762,7 +762,7 @@ procedure apr_pool_cleanup_kill(p: Papr_pool_t;
 
 {**
  * Replace the child cleanup function of a previously registered cleanup.
- * 
+ *
  * The cleanup most recently registered with @a p having the same values of
  * @a data and @a plain_cleanup will have the registered child cleanup
  * function replaced with @a child_cleanup.
@@ -806,7 +806,7 @@ procedure apr_pool_cleanup_run(p: Papr_pool_t;
 
 {**
  * An empty cleanup function.
- * 
+ *
  * Passed to apr_pool_cleanup_register() when no cleanup is required.
  *
  * @param data The data to cleanup, will not be used by this function.

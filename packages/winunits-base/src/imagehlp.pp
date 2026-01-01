@@ -10,13 +10,13 @@
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-    Notes 
-	  - some callback types had Pxxx naming in the original header. 
-	     Since that is a-typical, I can't predict how Borland did 
+    Notes
+	  - some callback types had Pxxx naming in the original header.
+	     Since that is a-typical, I can't predict how Borland did
 		 handle that. If you have problems, add a bugreport.
-	  - some anonymous unions were not representable in FPC. As a first approx 
+	  - some anonymous unions were not representable in FPC. As a first approx
 	    I added a dummy nested record union.
-	  
+
 }
 {$IFNDEF FPC_DOTTEDUNITS}
 unit imagehlp;
@@ -39,11 +39,11 @@ Uses Windows;
   {$define UNICODE}
 {$endif}
 
-Const 
-     IMAGE_SEPARATION    = 64*1024;  	
-     DBHHEADER_DEBUGDIRS = $1;     
-     API_VERSION_NUMBER  = 9;  	 
-     SLMFLAG_VIRTUAL     = $1;     
+Const
+     IMAGE_SEPARATION    = 64*1024;
+     DBHHEADER_DEBUGDIRS = $1;
+     API_VERSION_NUMBER  = 9;
+     SLMFLAG_VIRTUAL     = $1;
      MINIDUMP_SIGNATURE  = 'PMDM';  // dword value?
      MINIDUMP_VERSION    = 42899;
      External_Library	 = 'imagehlp.dll';
@@ -202,7 +202,7 @@ Const
      MINIDUMP_MISC1_PROCESS_ID    = $00000001;
      MINIDUMP_MISC1_PROCESS_TIMES = $00000002;
 
- 
+
 Type
    DIGEST_HANDLE = POINTER;
    TDIGEST_HANDLE = DIGEST_HANDLE;
@@ -211,7 +211,7 @@ Type
    RVA  = TRVA;
    ULONG64 = QWORD; // to windows unit ?
    ULONG32 = CARDINAL;
-   PRVA64 = ^TRVA64;   
+   PRVA64 = ^TRVA64;
    TRVA64 = ULONG64;
    RVA64  = TRVA64;
    PPSTR  = ^PSTR;
@@ -237,8 +237,8 @@ Type
     BindForwarder64,
     BindForwarderNOT32,
     BindForwarderNOT64);
-  IMAGEHLP_STATUS_REASON = _IMAGEHLP_STATUS_REASON;	
-  TIMAGEHLP_STATUS_REASON = _IMAGEHLP_STATUS_REASON;	
+  IMAGEHLP_STATUS_REASON = _IMAGEHLP_STATUS_REASON;
+  TIMAGEHLP_STATUS_REASON = _IMAGEHLP_STATUS_REASON;
   ADDRESS_MODE =(
     AddrMode1616,
     AddrMode1632,
@@ -257,7 +257,7 @@ Type
     SymVirtual,
     NumSymTypes);
   TSYM_TYPE = SYM_TYPE;
-  
+
   _IMAGEHLP_SYMBOL_TYPE_INFO = (
     TI_GET_SYMTAG,
     TI_GET_SYMNAME,
@@ -309,7 +309,7 @@ Type
     LastReservedStream          = $ffff);
 
   MINIDUMP_STREAM_TYPE = _MINIDUMP_STREAM_TYPE;
-	
+
   _MINIDUMP_CALLBACK_TYPE =(
     ModuleCallback,
     ThreadCallback,
@@ -334,21 +334,21 @@ Type
     ModuleWriteCvRecord      = $0008,
     ModuleReferencedByMemory = $0010);
   MODULE_WRITE_FLAGS = _MODULE_WRITE_FLAGS;
-  
+
   tagan = (
     sevInfo = 0,
     sevProblem,
     sevAttn,
     sevFatal,
     sevMax  );
-	
+
   Anonymous = (
     hdBase = 0, // root directory for dbghelp
     hdSym,      // where symbols are stored
     hdSrc,      // where source is stored
     hdMax       // end marker
 	);
-	
+
   _MINIDUMP_TYPE = (
     MiniDumpNormal                         = $0000,
     MiniDumpWithDataSegs                   = $0001,
@@ -364,16 +364,16 @@ Type
     MiniDumpWithoutOPTIONALData            = $0400);
   MINIDUMP_TYPE = _MINIDUMP_TYPE;
   TMINIDUMP_TYPE = _MINIDUMP_TYPE;
-  
+
   TLOADED_IMAGE = record
           ModuleName : PSTR;
           hFile : THANDLE;
           MappedAddress : PUCHAR;
 {$ifdef IMAGEHLP64}
           FileHeader : PIMAGE_NT_HEADERS64;
-{$else}		  
+{$else}
           FileHeader : PIMAGE_NT_HEADERS32;
-{$endif}		  
+{$endif}
           LastRvaSection : PIMAGE_SECTION_HEADER;
           NumberOfSections : ULONG;
           Sections : PIMAGE_SECTION_HEADER;
@@ -386,7 +386,7 @@ Type
   LOADED_IMAGE   = TLOADED_IMAGE;
   PLOADED_IMAGE  = ^TLOADED_IMAGE;
   PPLOADED_IMAGE = ^PLOADED_IMAGE;
-{$ifndef win64}  
+{$ifndef win64}
   PIMAGE_DEBUG_INFORMATION = ^TIMAGE_DEBUG_INFORMATION;
   TIMAGE_DEBUG_INFORMATION = record
           List : TLISTENTRY;
@@ -422,7 +422,7 @@ Type
           Reserved : array[0..1] of DWORD;
        end;
   IMAGE_DEBUG_INFORMATION = TIMAGE_DEBUG_INFORMATION;
-{$ENDIF}  
+{$ENDIF}
   PMODLOAD_DATA = ^TMODLOAD_DATA;
   TMODLOAD_DATA = record
           ssize : DWORD;
@@ -455,7 +455,7 @@ Type
     LPADDRESS = PADDRESS;
   {$ENDIF}
   PKDHELP64 = ^TKDHELP64;
-  TKDHELP64 = record          
+  TKDHELP64 = record
           Thread : DWORD64;
           ThCallbackStack : DWORD;
           ThCallbackBStore : DWORD;
@@ -484,7 +484,7 @@ Type
           ThCallbackBStore : DWORD;
           Reserved : array[0..7] of DWORD;
        end;
-    KDHELP = TKDHELP;     
+    KDHELP = TKDHELP;
   {$ENDIF}
   tagSTACKFRAME64 = record
           AddrPC : TADDRESS64;
@@ -501,13 +501,13 @@ Type
        end;
   TSTACKFRAME64 = tagSTACKFRAME64;
   PSTACKFRAME64 = ^TSTACKFRAME64;
-  LPSTACKFRAME64= ^TSTACKFRAME64;  
+  LPSTACKFRAME64= ^TSTACKFRAME64;
   {$IFDEF IMAGEHLP64}
-    STACKFRAME   = TSTACKFRAME64;     
-    LPSTACKFRAME = LPSTACKFRAME64;     
-	TSTACKFRAME  = TSTACKFRAME64;     
-    PSTACKFRAME  = PSTACKFRAME64;     	
-  {$ELSE}    
+    STACKFRAME   = TSTACKFRAME64;
+    LPSTACKFRAME = LPSTACKFRAME64;
+	TSTACKFRAME  = TSTACKFRAME64;
+    PSTACKFRAME  = PSTACKFRAME64;
+  {$ELSE}
     tagSTACKFRAME = record
           AddrPC : TADDRESS;
           AddrReturn : TADDRESS;
@@ -523,10 +523,10 @@ Type
        end;
     TSTACKFRAME = tagSTACKFRAME;
     PSTACKFRAME = ^TSTACKFRAME;
-    LPSTACKFRAME= ^TSTACKFRAME;	
+    LPSTACKFRAME= ^TSTACKFRAME;
   {$ENDIF}
    PAPI_VERSION = ^TAPI_VERSION;
-   LPAPI_VERSION= PAPI_VERSION;   
+   LPAPI_VERSION= PAPI_VERSION;
    TAPI_VERSION = record
           MajorVersion : ushort;
           MinorVersion : ushort;
@@ -534,7 +534,7 @@ Type
           Reserved : ushort;
        end;
    API_VERSION = TAPI_VERSION;
-      
+
    PIMAGEHLP_SYMBOL64 = ^TIMAGEHLP_SYMBOL64;
    TIMAGEHLP_SYMBOL64 = record
           SizeOfStruct : dword;
@@ -546,7 +546,7 @@ Type
        end;
    IMAGEHLP_SYMBOL64 = TIMAGEHLP_SYMBOL64;
    LPIMAGEHLP_SYMBOL64 = PIMAGEHLP_SYMBOL64;
-   
+
    PIMAGEHLP_SYMBOL64_PACKAGE = ^TIMAGEHLP_SYMBOL64_PACKAGE;
    TIMAGEHLP_SYMBOL64_PACKAGE = record
           sym : TIMAGEHLP_SYMBOL64;
@@ -554,12 +554,12 @@ Type
        end;
    IMAGEHLP_SYMBOL64_PACKAGE = TIMAGEHLP_SYMBOL64_PACKAGE;
    LPIMAGEHLP_SYMBOL64_PACKAGE = ^TIMAGEHLP_SYMBOL64_PACKAGE;
-   
+
    {$IFDEF IMAGEHLP64}
     IMAGEHLP_SYMBOL  = IMAGEHLP_SYMBOL64;
     TIMAGEHLP_SYMBOL = IMAGEHLP_SYMBOL64;
     PIMAGEHLP_SYMBOL = PIMAGEHLP_SYMBOL64;
-    TIMAGEHLP_SYMBOL_PACKAGE = IMAGEHLP_SYMBOL64_PACKAGE;	
+    TIMAGEHLP_SYMBOL_PACKAGE = IMAGEHLP_SYMBOL64_PACKAGE;
     IMAGEHLP_SYMBOL_PACKAGE = IMAGEHLP_SYMBOL64_PACKAGE;
     PIMAGEHLP_SYMBOL_PACKAGE= PIMAGEHLP_SYMBOL64_PACKAGE;
    {$ELSE}
@@ -608,7 +608,7 @@ Type
           TypeInfo : bool;
        end;
    IMAGEHLP_MODULE64 = TIMAGEHLP_MODULE64;
-     
+
    PIMAGEHLP_MODULE64W = ^TIMAGEHLP_MODULE64W;
    TIMAGEHLP_MODULE64W = record
           SizeOfStruct : dword;
@@ -636,13 +636,13 @@ Type
   IMAGEHLP_MODULE64W = TIMAGEHLP_MODULE64W;
   LPIMAGEHLP_MODULE64W = PIMAGEHLP_MODULE64W;
   IMAGEHLP_MODULEW64 = TIMAGEHLP_MODULE64W;
-  TIMAGEHLP_MODULEW64 = TIMAGEHLP_MODULE64W;    
+  TIMAGEHLP_MODULEW64 = TIMAGEHLP_MODULE64W;
   PIMAGEHLP_MODULEW64 = PIMAGEHLP_MODULE64W;
   {$IFDEF IMAGEHLP64}
    IMAGEHLP_MODULE   = TIMAGEHLP_MODULE64;
-   LPIMAGEHLP_MODULE = PIMAGEHLP_MODULE64; 
+   LPIMAGEHLP_MODULE = PIMAGEHLP_MODULE64;
    IMAGEHLP_MODULEW = TIMAGEHLP_MODULE64W;
-   LPIMAGEHLP_MODULEW = PIMAGEHLP_MODULE64W;  
+   LPIMAGEHLP_MODULEW = PIMAGEHLP_MODULE64W;
   {$ELSE}
    PIMAGEHLP_MODULE = ^TIMAGEHLP_MODULE;
    TIMAGEHLP_MODULE = record
@@ -659,7 +659,7 @@ Type
        end;
    IMAGEHLP_MODULE = TIMAGEHLP_MODULE;
    LPIMAGEHLP_MODULE = PIMAGEHLP_MODULE;
-   
+
    PIMAGEHLP_MODULEW = ^TIMAGEHLP_MODULEW;
    TIMAGEHLP_MODULEW = record
           SizeOfStruct : dword;
@@ -676,7 +676,7 @@ Type
    IMAGEHLP_MODULEW = TIMAGEHLP_MODULEW;
    LPIMAGEHLP_MODULEW = PIMAGEHLP_MODULEW;
   {$ENDIF}
-  
+
    PIMAGEHLP_LINE64 = ^TIMAGEHLP_LINE64;
    TIMAGEHLP_LINE64 = record
           SizeOfStruct : dword;
@@ -687,12 +687,12 @@ Type
        end;
    IMAGEHLP_LINE64 = TIMAGEHLP_LINE64;
    LPIMAGEHLP_LINE64 = PIMAGEHLP_LINE64;
-	 
+
 {$ifdef IMAGEHLP64}
-     IMAGEHLP_LINE = IMAGEHLP_LINE64;     
-     TIMAGEHLP_LINE = IMAGEHLP_LINE64;     	 
-     PIMAGEHLP_LINE = PIMAGEHLP_LINE64;     
-	 LPIMAGEHLP_LINE = PIMAGEHLP_LINE64;     
+     IMAGEHLP_LINE = IMAGEHLP_LINE64;
+     TIMAGEHLP_LINE = IMAGEHLP_LINE64;
+     PIMAGEHLP_LINE = PIMAGEHLP_LINE64;
+	 LPIMAGEHLP_LINE = PIMAGEHLP_LINE64;
 {$else}
      PIMAGEHLP_LINE = ^TIMAGEHLP_LINE;
      TIMAGEHLP_LINE = record
@@ -705,13 +705,13 @@ Type
      IMAGEHLP_LINE   = TIMAGEHLP_LINE;
      LPIMAGEHLP_LINE = PIMAGEHLP_LINE;
 {$endif}
-  
+
   PSOURCEFILE = ^TSOURCEFILE;
   TSOURCEFILE = record
           ModBase : dword64;
           FileName : PAnsiChar;
-       end;  
-  
+       end;
+
   PIMAGEHLP_CBA_READ_MEMORY = ^TIMAGEHLP_CBA_READ_MEMORY;
   TIMAGEHLP_CBA_READ_MEMORY = record
           addr : dword64;
@@ -721,7 +721,7 @@ Type
        end;
   IMAGEHLP_CBA_READ_MEMORY = TIMAGEHLP_CBA_READ_MEMORY;
   LPIMAGEHLP_CBA_READ_MEMORY = PIMAGEHLP_CBA_READ_MEMORY;
-   
+
   PIMAGEHLP_CBA_EVENT = ^TIMAGEHLP_CBA_EVENT;
   TIMAGEHLP_CBA_EVENT = record
           severity : dword;
@@ -731,7 +731,7 @@ Type
        end;
   IMAGEHLP_CBA_EVENT = TIMAGEHLP_CBA_EVENT;
   LPIMAGEHLP_CBA_EVENT = PIMAGEHLP_CBA_EVENT;
-    
+
   PIMAGEHLP_DEFERRED_SYMBOL_LOAD64 = ^TIMAGEHLP_DEFERRED_SYMBOL_LOAD64;
   TIMAGEHLP_DEFERRED_SYMBOL_LOAD64 = record
           SizeOfStruct : dword;
@@ -745,11 +745,11 @@ Type
        end;
   IMAGEHLP_DEFERRED_SYMBOL_LOAD64 = TIMAGEHLP_DEFERRED_SYMBOL_LOAD64;
   LPIMAGEHLP_DEFERRED_SYMBOL_LOAD64 = PIMAGEHLP_DEFERRED_SYMBOL_LOAD64;
-     
+
 {$ifdef IMAGEHLP64}
-  IMAGEHLP_DEFERRED_SYMBOL_LOAD = IMAGEHLP_DEFERRED_SYMBOL_LOAD64;     
-  TIMAGEHLP_DEFERRED_SYMBOL_LOAD = IMAGEHLP_DEFERRED_SYMBOL_LOAD64;       
-  PIMAGEHLP_DEFERRED_SYMBOL_LOAD = PIMAGEHLP_DEFERRED_SYMBOL_LOAD64;     
+  IMAGEHLP_DEFERRED_SYMBOL_LOAD = IMAGEHLP_DEFERRED_SYMBOL_LOAD64;
+  TIMAGEHLP_DEFERRED_SYMBOL_LOAD = IMAGEHLP_DEFERRED_SYMBOL_LOAD64;
+  PIMAGEHLP_DEFERRED_SYMBOL_LOAD = PIMAGEHLP_DEFERRED_SYMBOL_LOAD64;
 {$else}
   PIMAGEHLP_DEFERRED_SYMBOL_LOAD = ^TIMAGEHLP_DEFERRED_SYMBOL_LOAD;
   TIMAGEHLP_DEFERRED_SYMBOL_LOAD = record
@@ -775,10 +775,10 @@ Type
   IMAGEHLP_DUPLICATE_SYMBOL64   = TIMAGEHLP_DUPLICATE_SYMBOL64;
   LPIMAGEHLP_DUPLICATE_SYMBOL64 = PIMAGEHLP_DUPLICATE_SYMBOL64;
 {$ifdef IMAGEHLP64}
-  IMAGEHLP_DUPLICATE_SYMBOL   = IMAGEHLP_DUPLICATE_SYMBOL64;     
-  PIMAGEHLP_DUPLICATE_SYMBOL  = PIMAGEHLP_DUPLICATE_SYMBOL64;     
-  TIMAGEHLP_DUPLICATE_SYMBOL  = IMAGEHLP_DUPLICATE_SYMBOL64;     
-  LPIMAGEHLP_DUPLICATE_SYMBOL = PIMAGEHLP_DUPLICATE_SYMBOL64;       
+  IMAGEHLP_DUPLICATE_SYMBOL   = IMAGEHLP_DUPLICATE_SYMBOL64;
+  PIMAGEHLP_DUPLICATE_SYMBOL  = PIMAGEHLP_DUPLICATE_SYMBOL64;
+  TIMAGEHLP_DUPLICATE_SYMBOL  = IMAGEHLP_DUPLICATE_SYMBOL64;
+  LPIMAGEHLP_DUPLICATE_SYMBOL = PIMAGEHLP_DUPLICATE_SYMBOL64;
 {$else}
   PIMAGEHLP_DUPLICATE_SYMBOL = ^TIMAGEHLP_DUPLICATE_SYMBOL;
   TIMAGEHLP_DUPLICATE_SYMBOL = record
@@ -811,7 +811,7 @@ Type
        end;
   IMAGEHLP_SYMBOL_SRC = TIMAGEHLP_SYMBOL_SRC;
   LPIMAGEHLP_SYMBOL_SRC = PIMAGEHLP_SYMBOL_SRC;
-  
+
   PMODULE_TYPE_INFO = ^TMODULE_TYPE_INFO;
   TMODULE_TYPE_INFO = record
           dataLength : USHORT;
@@ -820,7 +820,7 @@ Type
        end;
   MODULE_TYPE_INFO = TMODULE_TYPE_INFO;
   LPMODULE_TYPE_INFO = PMODULE_TYPE_INFO;
-  
+
   PSYMBOL_INFO = ^TSYMBOL_INFO;
   TSYMBOL_INFO = record
           SizeOfStruct : ULONG;
@@ -869,7 +869,7 @@ Type
   PIMAGEHLP_CONTEXT = ^TIMAGEHLP_CONTEXT;
   TIMAGEHLP_CONTEXT = pointer;
   PPIMAGEHLP_CONTEXT = ^PIMAGEHLP_CONTEXT;
-  
+
   PTI_FINDCHILDREN_PARAMS = ^TTI_FINDCHILDREN_PARAMS;
   TTI_FINDCHILDREN_PARAMS = record
           Count : ULONG;
@@ -889,7 +889,7 @@ Type
           Rva : TRVA64;
        end;
   MINIDUMP_LOCATION_DESCRIPTOR64 =   TMINIDUMP_LOCATION_DESCRIPTOR64;
-  
+
   PMINIDUMP_MEMORY_DESCRIPTOR = ^TMINIDUMP_MEMORY_DESCRIPTOR;
   TMINIDUMP_MEMORY_DESCRIPTOR = record
           StartOfMemoryRange : ULONG64;
@@ -897,7 +897,7 @@ Type
        end;
   MINIDUMP_MEMORY_DESCRIPTOR = TMINIDUMP_MEMORY_DESCRIPTOR;
   LPMINIDUMP_MEMORY_DESCRIPTOR = PMINIDUMP_MEMORY_DESCRIPTOR;
-  
+
   PMINIDUMP_MEMORY_DESCRIPTOR64 = ^TMINIDUMP_MEMORY_DESCRIPTOR64;
   TMINIDUMP_MEMORY_DESCRIPTOR64 = record
           StartOfMemoryRange : ULONG64;
@@ -922,7 +922,7 @@ Type
        end;
   MINIDUMP_HEADER = TMINIDUMP_HEADER;
   LPMINIDUMP_HEADER = PMINIDUMP_HEADER;
-  
+
   PMINIDUMP_DIRECTORY = ^TMINIDUMP_DIRECTORY;
   TMINIDUMP_DIRECTORY = record
           StreamType : ULONG32;
@@ -931,7 +931,7 @@ Type
   MINIDUMP_DIRECTORY = TMINIDUMP_DIRECTORY;
   LPMINIDUMP_DIRECTORY = PMINIDUMP_DIRECTORY;
   PPMINIDUMP_DIRECTORY = ^PMINIDUMP_DIRECTORY;
-  
+
   PMINIDUMP_STRING = ^TMINIDUMP_STRING;
   TMINIDUMP_STRING = record
           Length : ULONG32;
@@ -939,8 +939,8 @@ Type
        end;
   MINIDUMP_STRING = TMINIDUMP_STRING;
   LPMINIDUMP_STRING = PMINIDUMP_STRING;
-  
-  
+
+
   PCPU_INFORMATION = ^TCPU_INFORMATION;
   TCPU_INFORMATION = record
          case longint of
@@ -956,7 +956,7 @@ Type
          end;
   CPU_INFORMATION = TCPU_INFORMATION;
   LPCPU_INFORMATION = PCPU_INFORMATION;
-  
+
   PMINIDUMP_SYSTEM_INFO = ^TMINIDUMP_SYSTEM_INFO;
   TMINIDUMP_SYSTEM_INFO = record
           ProcessorArchitecture : USHORT;
@@ -987,7 +987,7 @@ Type
        end;
   MINIDUMP_SYSTEM_INFO = TMINIDUMP_SYSTEM_INFO;
   LPMINIDUMP_SYSTEM_INFO = PMINIDUMP_SYSTEM_INFO;
-  
+
   PMINIDUMP_THREAD = ^TMINIDUMP_THREAD;
   TMINIDUMP_THREAD = record
           ThreadId : ULONG32;
@@ -1000,7 +1000,7 @@ Type
        end;
   MINIDUMP_THREAD = TMINIDUMP_THREAD;
   LPMINIDUMP_THREAD = PMINIDUMP_THREAD;
-  
+
   PMINIDUMP_THREAD_LIST = ^TMINIDUMP_THREAD_LIST;
   TMINIDUMP_THREAD_LIST = record
           NumberOfThreads : ULONG32;
@@ -1022,7 +1022,7 @@ Type
        end;
   MINIDUMP_THREAD_EX = PMINIDUMP_THREAD_EX;
   LPMINIDUMP_THREAD_EX = PMINIDUMP_THREAD_EX;
-  
+
 
   PMINIDUMP_THREAD_EX_LIST = ^TMINIDUMP_THREAD_EX_LIST;
   TMINIDUMP_THREAD_EX_LIST = record
@@ -1031,7 +1031,7 @@ Type
        end;
   MINIDUMP_THREAD_EX_LIST = TMINIDUMP_THREAD_EX_LIST;
   LPMINIDUMP_THREAD_EX_LIST = PMINIDUMP_THREAD_EX_LIST;
- 
+
 
   PMINIDUMP_EXCEPTION = ^TMINIDUMP_EXCEPTION;
   TMINIDUMP_EXCEPTION = record
@@ -1045,7 +1045,7 @@ Type
        end;
   MINIDUMP_EXCEPTION = TMINIDUMP_EXCEPTION;
   LPMINIDUMP_EXCEPTION = PMINIDUMP_EXCEPTION;
-   
+
 
   PMINIDUMP_EXCEPTION_STREAM = ^TMINIDUMP_EXCEPTION_STREAM;
   TMINIDUMP_EXCEPTION_STREAM = record
@@ -1056,7 +1056,7 @@ Type
        end;
   MINIDUMP_EXCEPTION_STREAM = TMINIDUMP_EXCEPTION_STREAM;
   LPMINIDUMP_EXCEPTION_STREAM = PMINIDUMP_EXCEPTION_STREAM;
-  
+
   PMINIDUMP_MODULE = ^TMINIDUMP_MODULE;
   TMINIDUMP_MODULE = record
           BaseOfImage : ULONG64;
@@ -1072,7 +1072,7 @@ Type
        end;
   MINIDUMP_MODULE = TMINIDUMP_MODULE;
   LPMINIDUMP_MODULE = PMINIDUMP_MODULE;
-  
+
 
   PMINIDUMP_MODULE_LIST = ^TMINIDUMP_MODULE_LIST;
   TMINIDUMP_MODULE_LIST = record
@@ -1081,7 +1081,7 @@ Type
        end;
   MINIDUMP_MODULE_LIST = TMINIDUMP_MODULE_LIST;
   LPMINIDUMP_MODULE_LIST = PMINIDUMP_MODULE_LIST;
-   
+
 
   PMINIDUMP_MEMORY_LIST = ^TMINIDUMP_MEMORY_LIST;
   TMINIDUMP_MEMORY_LIST = record
@@ -1099,7 +1099,7 @@ Type
        end;
   MINIDUMP_MEMORY64_LIST = TMINIDUMP_MEMORY64_LIST;
   LPMINIDUMP_MEMORY64_LIST = PMINIDUMP_MEMORY64_LIST;
-  
+
   PMINIDUMP_EXCEPTION_INFORMATION = ^TMINIDUMP_EXCEPTION_INFORMATION;
   TMINIDUMP_EXCEPTION_INFORMATION = record
           ThreadId : dword;
@@ -1118,7 +1118,7 @@ Type
        end;
   MINIDUMP_EXCEPTION_INFORMATION64 = TMINIDUMP_EXCEPTION_INFORMATION64;
   LPMINIDUMP_EXCEPTION_INFORMATION64 = PMINIDUMP_EXCEPTION_INFORMATION64;
-  
+
   PMINIDUMP_HANDLE_DESCRIPTOR = ^TMINIDUMP_HANDLE_DESCRIPTOR;
   TMINIDUMP_HANDLE_DESCRIPTOR = record
           Handle : ULONG64;
@@ -1141,7 +1141,7 @@ Type
        end;
   MINIDUMP_HANDLE_DATA_STREAM = TMINIDUMP_HANDLE_DATA_STREAM;
   LPMINIDUMP_HANDLE_DATA_STREAM = PMINIDUMP_HANDLE_DATA_STREAM;
-  
+
 
   PMINIDUMP_FUNCTION_TABLE_DESCRIPTOR = ^TMINIDUMP_FUNCTION_TABLE_DESCRIPTOR;
   TMINIDUMP_FUNCTION_TABLE_DESCRIPTOR = record
@@ -1165,7 +1165,7 @@ Type
        end;
   MINIDUMP_FUNCTION_TABLE_STREAM = TMINIDUMP_FUNCTION_TABLE_STREAM;
   LPPMINIDUMP_FUNCTION_TABLE_STREAM = PMINIDUMP_FUNCTION_TABLE_STREAM;
-  
+
 
   PMINIDUMP_UNLOADED_MODULE = ^TMINIDUMP_UNLOADED_MODULE;
   TMINIDUMP_UNLOADED_MODULE = record
@@ -1177,7 +1177,7 @@ Type
        end;
   MINIDUMP_UNLOADED_MODULE = TMINIDUMP_UNLOADED_MODULE;
   LPMINIDUMP_UNLOADED_MODULE = PMINIDUMP_UNLOADED_MODULE;
-  
+
   PMINIDUMP_UNLOADED_MODULE_LIST = ^TMINIDUMP_UNLOADED_MODULE_LIST;
   TMINIDUMP_UNLOADED_MODULE_LIST = record
           SizeOfHeader : ULONG32;
@@ -1186,7 +1186,7 @@ Type
        end;
   MINIDUMP_UNLOADED_MODULE_LIST = TMINIDUMP_UNLOADED_MODULE_LIST;
   LPMINIDUMP_UNLOADED_MODULE_LIST = PMINIDUMP_UNLOADED_MODULE_LIST;
-  
+
   PMINIDUMP_MISC_INFO = ^TMINIDUMP_MISC_INFO;
   TMINIDUMP_MISC_INFO = record
           SizeOfInfo : ULONG32;
@@ -1223,7 +1223,7 @@ Type
        end;
   MINIDUMP_USER_STREAM_INFORMATION = TMINIDUMP_USER_STREAM_INFORMATION;
   LPMINIDUMP_USER_STREAM_INFORMATION = PMINIDUMP_USER_STREAM_INFORMATION;
-  	 
+
   PMINIDUMP_THREAD_CALLBACK = ^TMINIDUMP_THREAD_CALLBACK;
   TMINIDUMP_THREAD_CALLBACK = record
           ThreadId : ULONG;
@@ -1280,7 +1280,7 @@ Type
   MINIDUMP_INCLUDE_MODULE_CALLBACK = TMINIDUMP_INCLUDE_MODULE_CALLBACK;
   LPMINIDUMP_INCLUDE_MODULE_CALLBACK = PMINIDUMP_INCLUDE_MODULE_CALLBACK;
 
-     
+
   PMINIDUMP_CALLBACK_INPUT = ^TMINIDUMP_CALLBACK_INPUT;
   TMINIDUMP_CALLBACK_INPUT = record
           ProcessId : ULONG;
@@ -1312,18 +1312,18 @@ Type
        end;
   MINIDUMP_CALLBACK_OUTPUT = TMINIDUMP_CALLBACK_OUTPUT;
   LPMINIDUMP_CALLBACK_OUTPUT = PMINIDUMP_CALLBACK_OUTPUT;
-  
-  
-  
-  
+
+
+
+
   TIMAGEHLP_STATUS_ROUTINE   = function (Reason:TIMAGEHLP_STATUS_REASON; ImageName:PSTR; DllName:PSTR; Va:ULONG_PTR; Parameter:ULONG_PTR):BOOL;stdcall;
   TIMAGEHLP_STATUS_ROUTINE32 = function (Reason:TIMAGEHLP_STATUS_REASON; ImageName:PSTR; DllName:PSTR; Va:ULONG; Parameter:ULONG_PTR):BOOL;stdcall;
   TIMAGEHLP_STATUS_ROUTINE64 = function (Reason:TIMAGEHLP_STATUS_REASON; ImageName:PSTR; DllName:PSTR; Va:ULONG64; Parameter:ULONG_PTR):BOOL;stdcall;
   TDIGEST_FUNCTION 			 = function (refdata:TDIGEST_HANDLE; pData:pbyte; dwLength:DWORD):bool;stdcall;
   TFIND_DEBUG_FILE_CALLBACK  = function (FileHandle:THANDLE; FileName:PSTR; CallerData:pointer):bool;stdcall;	    // callback
   TFINDFILEINPATHCALLBACK    = function (filename:PSTR; context:pointer):bool;stdcall;
-  TFIND_EXE_FILE_CALLBACK    = function (FileHandle:THANDLE; FileName:PSTR; CallerData:pointer):bool;stdcall;  
-  
+  TFIND_EXE_FILE_CALLBACK    = function (FileHandle:THANDLE; FileName:PSTR; CallerData:pointer):bool;stdcall;
+
   TSYMBOLSERVERPROC          = function (para1:LPCSTR; para2:LPCSTR; para3:pointer; para4:DWORD; para5:DWORD; para6:lpstr):bool;stdcall;
   TSYMBOLSERVEROPENPROC      = function (para1:pointer):bool;stdcall;
   TSYMBOLSERVERCLOSEPROC     = function (para1:pointer):bool;stdcall;
@@ -1332,7 +1332,7 @@ Type
   TSYMBOLSERVERGETOPTIONSPROC= function :UINT_PTR;stdcall;
   TSYMBOLSERVERPINGPROC      = function (para1:LPCSTR):bool;stdcall;
   TENUMDIRTREE_CALLBACK      = function (FilePath:LPCSTR; CallerData:pointer):bool;stdcall;
-  
+
   TREAD_PROCESS_MEMORY_ROUTINE64  = function (hProcess:THANDLE; qwBaseAddress:dword64; lpBuffer:pointer; nSize:dword; lpNumberOfBytesRead:lpdword):bool;stdcall;
   TFUNCTION_TABLE_ACCESS_ROUTINE64= function (hProcess:THANDLE; AddrBase:dword64):pointer;stdcall;
   TGET_MODULE_BASE_ROUTINE64      = function (hProcess:THANDLE; Address:dword64):dword64;stdcall;
@@ -1352,27 +1352,27 @@ Type
   TSYM_ENUMSYMBOLS_CALLBACK64 = function (SymbolName:PSTR; SymbolAddress:dword64; SymbolSize:ULONG; UserContext:pointer):bool;stdcall;   {CALLBACK }
   TSYM_ENUMSYMBOLS_CALLBACK64W = function (SymbolName:lpwstr; SymbolAddress:dword64; SymbolSize:ULONG; UserContext:pointer):bool;stdcall;   {CALLBACK }
   TENUMLOADED_MODULES_CALLBACK64 = function (ModuleName:PSTR; ModuleBase:dword64; ModuleSize:ULONG; UserContext:pointer):bool;stdcall;   {CALLBACK }
-  TSYMBOL_REGISTERED_CALLBACK64 = function (hProcess:THANDLE; ActionCode:ULONG; CallbackData:ULONG64; UserContext:ULONG64):bool;stdcall;   {CALLBACK } 
+  TSYMBOL_REGISTERED_CALLBACK64 = function (hProcess:THANDLE; ActionCode:ULONG; CallbackData:ULONG64; UserContext:ULONG64):bool;stdcall;   {CALLBACK }
   TSYMBOL_FUNCENTRY_CALLBACK64 = function (hProcess:THANDLE; AddrBase:ULONG64; UserContext:ULONG64):pointer;stdcall;  {CALLBACK }
   {$IFDEF IMAGEHLP64}
    TSYM_ENUMMODULES_CALLBACK    = TSYM_ENUMMODULES_CALLBACK64;
    TSYM_ENUMSYMBOLS_CALLBACK    = TSYM_ENUMSYMBOLS_CALLBACK64;
    TSYM_ENUMSYMBOLS_CALLBACKW   = TSYM_ENUMSYMBOLS_CALLBACK64W;
    TENUMLOADED_MODULES_CALLBACK = TENUMLOADED_MODULES_CALLBACK64;
-   TSYMBOL_REGISTERED_CALLBACK  = TSYMBOL_REGISTERED_CALLBACK64; 
+   TSYMBOL_REGISTERED_CALLBACK  = TSYMBOL_REGISTERED_CALLBACK64;
    TSYMBOL_FUNCENTRY_CALLBACK   = TSYMBOL_FUNCENTRY_CALLBACK64;
   {$ELSE}
-   TSYM_ENUMMODULES_CALLBACK = function (ModuleName:PSTR; BaseOfDll:ULONG; UserContext:pointer):bool;stdcall;  
-   TSYM_ENUMSYMBOLS_CALLBACK = function (SymbolName:PSTR; SymbolAddress:ULONG; SymbolSize:ULONG; UserContext:pointer):bool;stdcall;  
-   TSYM_ENUMSYMBOLS_CALLBACKW = function (SymbolName:lpwstr; SymbolAddress:ULONG; SymbolSize:ULONG; UserContext:pointer):bool;stdcall;  
+   TSYM_ENUMMODULES_CALLBACK = function (ModuleName:PSTR; BaseOfDll:ULONG; UserContext:pointer):bool;stdcall;
+   TSYM_ENUMSYMBOLS_CALLBACK = function (SymbolName:PSTR; SymbolAddress:ULONG; SymbolSize:ULONG; UserContext:pointer):bool;stdcall;
+   TSYM_ENUMSYMBOLS_CALLBACKW = function (SymbolName:lpwstr; SymbolAddress:ULONG; SymbolSize:ULONG; UserContext:pointer):bool;stdcall;
    TENUMLOADED_MODULES_CALLBACK = function (ModuleName:PSTR; ModuleBase:ULONG; ModuleSize:ULONG; UserContext:pointer):bool;stdcall;
-   TSYMBOL_REGISTERED_CALLBACK = function (hProcess:THANDLE; ActionCode:ULONG; CallbackData:pointer; UserContext:pointer):bool;stdcall;  
-   TSYMBOL_FUNCENTRY_CALLBACK = function (hProcess:THANDLE; AddrBase:dword; UserContext:pointer):pointer;stdcall;   {CALLBACK }  
+   TSYMBOL_REGISTERED_CALLBACK = function (hProcess:THANDLE; ActionCode:ULONG; CallbackData:pointer; UserContext:pointer):bool;stdcall;
+   TSYMBOL_FUNCENTRY_CALLBACK = function (hProcess:THANDLE; AddrBase:dword; UserContext:pointer):pointer;stdcall;   {CALLBACK }
   {$ENDIF}
    TSYM_ENUMSOURCFILES_CALLBACK = function (pSourceFile:PSOURCEFILE; UserContext:pointer):BOOL;stdcall;
    TSYM_ENUMLINES_CALLBACK = function (LineInfo:PSRCCODEINFO; UserContext:pointer):BOOL;stdcall;
    TSYM_ENUMERATESYMBOLS_CALLBACK = function (pSymInfo:PSYMBOL_INFO; SymbolSize:ULONG; UserContext:pointer):BOOL;stdcall;
-   TDBGHELP_CREATE_USER_DUMP_CALLBACK = function (DataType:dword; Data:PPOINTER; DataLength:lpdword; UserData:pointer):BOOL;stdcall;   
+   TDBGHELP_CREATE_USER_DUMP_CALLBACK = function (DataType:dword; Data:PPOINTER; DataLength:lpdword; UserData:pointer):BOOL;stdcall;
    TMINIDUMP_CALLBACK_ROUTINE = function (CallbackParam:pointer; CallbackInput:PMINIDUMP_CALLBACK_INPUT; CallbackOutput:PMINIDUMP_CALLBACK_OUTPUT):BOOL;stdcall;
    PMINIDUMP_CALLBACK_INFORMATION = ^TMINIDUMP_CALLBACK_INFORMATION;
    TMINIDUMP_CALLBACK_INFORMATION = record
@@ -1381,14 +1381,14 @@ Type
        end;
    MINIDUMP_CALLBACK_INFORMATION = TMINIDUMP_CALLBACK_INFORMATION;
    LPMINIDUMP_CALLBACK_INFORMATION = PMINIDUMP_CALLBACK_INFORMATION;
-   
-function BindImage(ImageName:PSTR; DllPath:PSTR; SymbolPath:PSTR):BOOL;stdcall;external External_library name 'BindImage'; 
+
+function BindImage(ImageName:PSTR; DllPath:PSTR; SymbolPath:PSTR):BOOL;stdcall;external External_library name 'BindImage';
 function BindImageEx(Flags:DWORD; ImageName:PSTR; DllPath:PSTR; SymbolPath:PSTR; StatusRoutine:TIMAGEHLP_STATUS_ROUTINE):BOOL;stdcall;external External_library name 'BindImageEx';
-function ReBaseImage(CurrentImageName:PSTR; SymbolPath:PSTR; fReBase:bool; fRebaseSysfileOk:bool; fGoingDown:bool; 
-             CheckImageSize:ULONG; OldImageSize:PULONG; OldImageBase:PULONG_PTR; NewImageSize:PULONG; NewImageBase:PULONG_PTR; 
-             TimeStamp:ULONG):bool;stdcall;external External_library name 'ReBaseImage'; 
-function ReBaseImage64(CurrentImageName:PSTR; SymbolPath:PSTR; fReBase:bool; fRebaseSysfileOk:bool; fGoingDown:bool; 
-             CheckImageSize:ULONG; OldImageSize:PULONG; OldImageBase:PULONG64; NewImageSize:PULONG; NewImageBase:PULONG64; 
+function ReBaseImage(CurrentImageName:PSTR; SymbolPath:PSTR; fReBase:bool; fRebaseSysfileOk:bool; fGoingDown:bool;
+             CheckImageSize:ULONG; OldImageSize:PULONG; OldImageBase:PULONG_PTR; NewImageSize:PULONG; NewImageBase:PULONG_PTR;
+             TimeStamp:ULONG):bool;stdcall;external External_library name 'ReBaseImage';
+function ReBaseImage64(CurrentImageName:PSTR; SymbolPath:PSTR; fReBase:bool; fRebaseSysfileOk:bool; fGoingDown:bool;
+             CheckImageSize:ULONG; OldImageSize:PULONG; OldImageBase:PULONG64; NewImageSize:PULONG; NewImageBase:PULONG64;
              TimeStamp:ULONG):bool;stdcall;external External_library name 'ReBaseImage64';
 function CheckSumMappedFile(BaseAddress:pointer; FileLength:DWORD; HeaderSum:PDWORD; CheckSum:PDWORD):PIMAGE_NT_HEADERS;stdcall;external External_library name 'CheckSumMappedFile';
 function MapFileAndCheckSumA(Filename:PSTR; HeaderSum:PDWORD; CheckSum:PDWORD):DWORD;stdcall;external External_library name 'MapFileAndCheckSumA';
@@ -1418,8 +1418,8 @@ function UpdateDebugInfoFile(ImageFileName:PSTR; SymbolPath:PSTR; DebugFilePath:
 function UpdateDebugInfoFileEx(ImageFileName:PSTR; SymbolPath:PSTR; DebugFilePath:PSTR; NtHeaders:PIMAGE_NT_HEADERS32; OldChecksum:DWORD):bool;stdcall;external External_library name 'UpdateDebugInfoFileEx';
 function FindDebugInfoFile(FileName:PSTR; SymbolPath:PSTR; DebugFilePath:PSTR):THANDLE;stdcall;external External_library name 'FindDebugInfoFile';
 
-function FindDebugInfoFileEx(FileName:PSTR; SymbolPath:PSTR; DebugFilePath:PSTR; Callback:TFIND_DEBUG_FILE_CALLBACK; CallerData:pointer):THANDLE;stdcall;external External_library name 'FindDebugInfoFileEx';  
-function SymFindFileInPath(hprocess:THANDLE; SearchPath:lpstr; FileName:lpstr; id:pointer; two:DWORD; 
+function FindDebugInfoFileEx(FileName:PSTR; SymbolPath:PSTR; DebugFilePath:PSTR; Callback:TFIND_DEBUG_FILE_CALLBACK; CallerData:pointer):THANDLE;stdcall;external External_library name 'FindDebugInfoFileEx';
+function SymFindFileInPath(hprocess:THANDLE; SearchPath:lpstr; FileName:lpstr; id:pointer; two:DWORD;
              three:DWORD; flags:DWORD; FoundFile:lpstr; callback:TFINDFILEINPATHCALLBACK; context:pointer):bool;stdcall;external External_library name 'SymFindFileInPath';
 function FindExecutableImage(FileName:PSTR; SymbolPath:PSTR; ImageFilePath:PSTR):THANDLE;stdcall;external External_library name 'FindExecutableImage';
 function FindExecutableImageEx(FileName:PSTR; SymbolPath:PSTR; ImageFilePath:PSTR; Callback:TFIND_EXE_FILE_CALLBACK; CallerData:pointer):THANDLE;stdcall;external External_library name 'FindExecutableImageEx';
@@ -1433,17 +1433,17 @@ function MapDebugInformation(FileHandle:THANDLE; FileName:PSTR; SymbolPath:PSTR;
 function UnmapDebugInformation(DebugInfo:PIMAGE_DEBUG_INFORMATION):bool;stdcall;external External_library name 'UnmapDebugInformation';
 {$ENDIF}
 function SearchTreeForFile(RootPath:PSTR; InputPathName:PSTR; OutputPathBuffer:PSTR):bool;stdcall;external External_library name 'SearchTreeForFile';
-function EnumDirTree(hProcess:THANDLE; RootPath:PSTR; InputPathName:PSTR; OutputPathBuffer:PSTR; Callback:TENUMDIRTREE_CALLBACK; 
+function EnumDirTree(hProcess:THANDLE; RootPath:PSTR; InputPathName:PSTR; OutputPathBuffer:PSTR; Callback:TENUMDIRTREE_CALLBACK;
              CallbackData:pointer):bool;stdcall;external External_library name 'EnumDirTree';
 function MakeSureDirectoryPathExists(DirPath:LPCSTR):bool;stdcall;external External_library name 'MakeSureDirectoryPathExists';
 function UnDecorateSymbolName(DecoratedName:LPCSTR; UnDecoratedName:PSTR; UndecoratedLength:dword; Flags:dword):dword;stdcall;external External_library name 'UnDecorateSymbolName';
-function StackWalk64(MachineType:dword; hProcess:THANDLE; hThread:THANDLE; StackFrame:LPSTACKFRAME64; ContextRecord:pointer; 
+function StackWalk64(MachineType:dword; hProcess:THANDLE; hThread:THANDLE; StackFrame:LPSTACKFRAME64; ContextRecord:pointer;
       ReadMemoryRoutine:TREAD_PROCESS_MEMORY_ROUTINE64; FunctionTableAccessRoutine:TFUNCTION_TABLE_ACCESS_ROUTINE64; GetModuleBaseRoutine:TGET_MODULE_BASE_ROUTINE64; TranslateAddress:TTRANSLATE_ADDRESS_ROUTINE64):bool;stdcall;external External_library name 'StackWalk64';
 {$IFDEF IMAGEHLP64}
-function StackWalk(MachineType:dword; hProcess:THANDLE; hThread:THANDLE; StackFrame:LPSTACKFRAME64; ContextRecord:pointer; 
+function StackWalk(MachineType:dword; hProcess:THANDLE; hThread:THANDLE; StackFrame:LPSTACKFRAME64; ContextRecord:pointer;
       ReadMemoryRoutine:TREAD_PROCESS_MEMORY_ROUTINE64; FunctionTableAccessRoutine:TFUNCTION_TABLE_ACCESS_ROUTINE64; GetModuleBaseRoutine:TGET_MODULE_BASE_ROUTINE64; TranslateAddress:TTRANSLATE_ADDRESS_ROUTINE64):bool;stdcall;external External_library name 'StackWalk64';
 {$ELSE}
-function StackWalk(MachineType:dword; hProcess:THANDLE; hThread:THANDLE; StackFrame:LPSTACKFRAME; ContextRecord:pointer; 
+function StackWalk(MachineType:dword; hProcess:THANDLE; hThread:THANDLE; StackFrame:LPSTACKFRAME; ContextRecord:pointer;
       ReadMemoryRoutine:TREAD_PROCESS_MEMORY_ROUTINE; FunctionTableAccessRoutine:TFUNCTION_TABLE_ACCESS_ROUTINE; GetModuleBaseRoutine:TGET_MODULE_BASE_ROUTINE; TranslateAddress:TTRANSLATE_ADDRESS_ROUTINE):bool;stdcall;external External_library name 'StackWalk';
 {$ENDIF}
 function ImagehlpApiVersion:LPAPI_VERSION;stdcall;external External_library name 'ImagehlpApiVersion';
@@ -1459,29 +1459,29 @@ function SymMatchString(_string:lpstr; expression:lpstr; fCase:BOOL):BOOL;stdcal
 function SymEnumSourceFiles(hProcess:THANDLE; ModBase:ULONG64; Mask:lpstr; cbSrcFiles:TSYM_ENUMSOURCFILES_CALLBACK; UserContext:pointer):BOOL;stdcall;external External_library name 'SymEnumSourceFiles';
 
 function SymEnumerateModules64(hProcess:THANDLE; EnumModulesCallback:TSYM_ENUMMODULES_CALLBACK64; UserContext:pointer):BOOL;stdcall;external External_library name 'SymEnumerateModules64';
-function SymEnumerateSymbols64(hProcess:THANDLE; BaseOfDll:dword64; EnumSymbolsCallback:TSYM_ENUMSYMBOLS_CALLBACK64; UserContext:pointer):BOOL;stdcall;external External_library name 'SymEnumerateSymbols64';  
+function SymEnumerateSymbols64(hProcess:THANDLE; BaseOfDll:dword64; EnumSymbolsCallback:TSYM_ENUMSYMBOLS_CALLBACK64; UserContext:pointer):BOOL;stdcall;external External_library name 'SymEnumerateSymbols64';
 function SymEnumerateSymbolsW64(hProcess:THANDLE; BaseOfDll:dword64; EnumSymbolsCallback:TSYM_ENUMSYMBOLS_CALLBACK64W; UserContext:pointer):BOOL;stdcall;external External_library name 'SymEnumerateSymbolsW64';
 function EnumerateLoadedModules64(hProcess:THANDLE; EnumLoadedModulesCallback:TENUMLOADED_MODULES_CALLBACK64; UserContext:pointer):BOOL;stdcall;external External_library name 'EnumerateLoadedModules64';
 function SymFunctionTableAccess64(hProcess:THANDLE; AddrBase:dword64):pointer;stdcall;external External_library name 'SymFunctionTableAccess64';
 function SymGetModuleInfo64(hProcess:THANDLE; qwAddr:dword64; ModuleInfo:PIMAGEHLP_MODULE64):BOOL;stdcall;external External_library name 'SymGetModuleInfo64';
 function SymGetModuleInfoW64(hProcess:THANDLE; qwAddr:dword64; ModuleInfo:PIMAGEHLP_MODULEW64):BOOL;stdcall;external External_library name 'SymGetModuleInfoW64';
-function SymGetModuleBase64(hProcess:THANDLE; qwAddr:dword64):dword64;stdcall;external External_library name 'SymGetModuleBase64';  
+function SymGetModuleBase64(hProcess:THANDLE; qwAddr:dword64):dword64;stdcall;external External_library name 'SymGetModuleBase64';
 function SymGetSymNext64(hProcess:THANDLE; Symbol:PIMAGEHLP_SYMBOL64):BOOL;stdcall;external External_library name 'SymGetSymNext64';
 function SymGetSymPrev64(hProcess:THANDLE; Symbol:PIMAGEHLP_SYMBOL64):BOOL;stdcall;external External_library name 'SymGetSymPrev64';
 
 {$ifdef IMAGEHLP64}
 function SymEnumerateModules(hProcess:THANDLE; EnumModulesCallback:TSYM_ENUMMODULES_CALLBACK64; UserContext:pointer):BOOL;stdcall;external External_library name 'SymEnumerateModules64';
-function SymEnumerateSymbols(hProcess:THANDLE; BaseOfDll:dword64; EnumSymbolsCallback:TSYM_ENUMSYMBOLS_CALLBACK64; UserContext:pointer):BOOL;stdcall;external External_library name 'SymEnumerateSymbols64';  
+function SymEnumerateSymbols(hProcess:THANDLE; BaseOfDll:dword64; EnumSymbolsCallback:TSYM_ENUMSYMBOLS_CALLBACK64; UserContext:pointer):BOOL;stdcall;external External_library name 'SymEnumerateSymbols64';
 function SymEnumerateSymbolsW(hProcess:THANDLE; BaseOfDll:dword64; EnumSymbolsCallback:TSYM_ENUMSYMBOLS_CALLBACK64W; UserContext:pointer):BOOL;stdcall;external External_library name 'SymEnumerateSymbolsW64';
 function EnumerateLoadedModules(hProcess:THANDLE; EnumLoadedModulesCallback:TENUMLOADED_MODULES_CALLBACK64; UserContext:pointer):BOOL;stdcall;external External_library name 'EnumerateLoadedModules64';
 function SymFunctionTableAccess(hProcess:THANDLE; AddrBase:dword64):pointer;stdcall;external External_library name 'SymFunctionTableAccess64';
 function SymGetModuleInfo(hProcess:THANDLE; qwAddr:dword64; ModuleInfo:PIMAGEHLP_MODULE64):BOOL;stdcall;external External_library name 'SymGetModuleInfo64';
 function SymGetModuleInfoW(hProcess:THANDLE; qwAddr:dword64; ModuleInfo:PIMAGEHLP_MODULEW64):BOOL;stdcall;external External_library name 'SymGetModuleInfoW64';
-function SymGetModuleBase(hProcess:THANDLE; qwAddr:dword64):dword64;stdcall;external External_library name 'SymGetModuleBase64';  
+function SymGetModuleBase(hProcess:THANDLE; qwAddr:dword64):dword64;stdcall;external External_library name 'SymGetModuleBase64';
 function SymGetSymNext(hProcess:THANDLE; Symbol:PIMAGEHLP_SYMBOL64):BOOL;stdcall;external External_library name 'SymGetSymNext64';
 function SymGetSymPrev(hProcess:THANDLE; Symbol:PIMAGEHLP_SYMBOL64):BOOL;stdcall;external External_library name 'SymGetSymPrev64';
 {$ELSE}
-function SymEnumerateModules(hProcess:THANDLE; EnumModulesCallback:TSYM_ENUMMODULES_CALLBACK; UserContext:pointer):BOOL;stdcall;external External_library name 'SymEnumerateModules';  
+function SymEnumerateModules(hProcess:THANDLE; EnumModulesCallback:TSYM_ENUMMODULES_CALLBACK; UserContext:pointer):BOOL;stdcall;external External_library name 'SymEnumerateModules';
 function SymEnumerateSymbols(hProcess:THANDLE; BaseOfDll:dword; EnumSymbolsCallback:TSYM_ENUMSYMBOLS_CALLBACK; UserContext:pointer):BOOL;stdcall;external External_library name 'SymEnumerateSymbols';
 function SymEnumerateSymbolsW(hProcess:THANDLE; BaseOfDll:dword; EnumSymbolsCallback:TSYM_ENUMSYMBOLS_CALLBACKW; UserContext:pointer):BOOL;stdcall;external External_library name 'SymEnumerateSymbolsW';
 function EnumerateLoadedModules(hProcess:THANDLE; EnumLoadedModulesCallback:TENUMLOADED_MODULES_CALLBACK; UserContext:pointer):BOOL;stdcall;external External_library name 'EnumerateLoadedModules';
@@ -1489,54 +1489,54 @@ function SymFunctionTableAccess(hProcess:THANDLE; AddrBase:dword):pointer;stdcal
 function SymGetModuleInfo(hProcess:THANDLE; dwAddr:dword; ModuleInfo:PIMAGEHLP_MODULE):BOOL;stdcall;external External_library name 'SymGetModuleInfo';
 function SymGetModuleInfoW(hProcess:THANDLE; dwAddr:dword; ModuleInfo:PIMAGEHLP_MODULEW):BOOL;stdcall;external External_library name 'SymGetModuleInfoW';
 function SymGetSymPrev(hProcess:THANDLE; Symbol:PIMAGEHLP_SYMBOL):BOOL;stdcall;external External_library name 'SymGetSymPrev';
-function SymGetSymNext(hProcess:THANDLE; Symbol:PIMAGEHLP_SYMBOL):BOOL;stdcall;external External_library name 'SymGetSymNext';  
+function SymGetSymNext(hProcess:THANDLE; Symbol:PIMAGEHLP_SYMBOL):BOOL;stdcall;external External_library name 'SymGetSymNext';
 function SymGetModuleBase(hProcess:THANDLE; dwAddr:dword):dword;stdcall;external External_library name 'SymGetModuleBase';
 {$ENDIF}
 function SymGetLineFromAddr64(hProcess:THANDLE; qwAddr:dword64; pdwDisplacement:PDWORD; Line64:PIMAGEHLP_LINE64):BOOL;stdcall;external External_library name 'SymGetLineFromAddr64';
-function SymGetLineFromName64(hProcess:THANDLE; ModuleName:PSTR; FileName:PSTR; dwLineNumber:dword; plDisplacement:PLONG; 
+function SymGetLineFromName64(hProcess:THANDLE; ModuleName:PSTR; FileName:PSTR; dwLineNumber:dword; plDisplacement:PLONG;
              Line:PIMAGEHLP_LINE64):BOOL;stdcall;external External_library name 'SymGetLineFromName64';
-function SymGetLineNext64(hProcess:THANDLE; Line:PIMAGEHLP_LINE64):BOOL;stdcall;external External_library name 'SymGetLineNext64';			 
-function SymGetLinePrev64(hProcess:THANDLE; Line:PIMAGEHLP_LINE64):BOOL;stdcall;external External_library name 'SymGetLinePrev64'; 
-function SymLoadModule64(hProcess:THANDLE; hFile:THANDLE; ImageName:PSTR; ModuleName:PSTR; BaseOfDll:dword64; 
-             SizeOfDll:dword):dword64;stdcall;external External_library name 'SymLoadModule64';               
-function SymUnloadModule64(hProcess:THANDLE; BaseOfDll:dword64):BOOL;stdcall;external External_library name 'SymUnloadModule64'; 
+function SymGetLineNext64(hProcess:THANDLE; Line:PIMAGEHLP_LINE64):BOOL;stdcall;external External_library name 'SymGetLineNext64';
+function SymGetLinePrev64(hProcess:THANDLE; Line:PIMAGEHLP_LINE64):BOOL;stdcall;external External_library name 'SymGetLinePrev64';
+function SymLoadModule64(hProcess:THANDLE; hFile:THANDLE; ImageName:PSTR; ModuleName:PSTR; BaseOfDll:dword64;
+             SizeOfDll:dword):dword64;stdcall;external External_library name 'SymLoadModule64';
+function SymUnloadModule64(hProcess:THANDLE; BaseOfDll:dword64):BOOL;stdcall;external External_library name 'SymUnloadModule64';
 function SymUnDName64(sym:PIMAGEHLP_SYMBOL64; UnDecName:PSTR; UnDecNameLength:dword):BOOL;stdcall;external External_library name 'SymUnDName64';
 function SymRegisterCallback64(hProcess:THANDLE; CallbackFunction:TSYMBOL_REGISTERED_CALLBACK64; UserContext:ULONG64):BOOL;stdcall;external External_library name 'SymRegisterCallback64';
-function SymRegisterFunctionEntryCallback64(hProcess:THANDLE; CallbackFunction:TSYMBOL_FUNCENTRY_CALLBACK64; UserContext:ULONG64):BOOL;stdcall;external External_library name 'SymRegisterFunctionEntryCallback64';     
+function SymRegisterFunctionEntryCallback64(hProcess:THANDLE; CallbackFunction:TSYMBOL_FUNCENTRY_CALLBACK64; UserContext:ULONG64):BOOL;stdcall;external External_library name 'SymRegisterFunctionEntryCallback64';
 
 {$ifdef IMAGEHLP64}
 function SymGetLineFromAddr(hProcess:THANDLE; qwAddr:dword64; pdwDisplacement:PDWORD; Line64:PIMAGEHLP_LINE64):BOOL;stdcall;external External_library name 'SymGetLineFromAddr64';
-function SymGetLineFromName(hProcess:THANDLE; ModuleName:PSTR; FileName:PSTR; dwLineNumber:dword; plDisplacement:PLONG; 
+function SymGetLineFromName(hProcess:THANDLE; ModuleName:PSTR; FileName:PSTR; dwLineNumber:dword; plDisplacement:PLONG;
              Line:PIMAGEHLP_LINE64):BOOL;stdcall;external External_library name 'SymGetLineFromName64';
-function SymGetLineNext(hProcess:THANDLE; Line:PIMAGEHLP_LINE64):BOOL;stdcall;external External_library name 'SymGetLineNext64';			 
-function SymGetLinePrev(hProcess:THANDLE; Line:PIMAGEHLP_LINE64):BOOL;stdcall;external External_library name 'SymGetLinePrev64'; 
-function SymLoadModule(hProcess:THANDLE; hFile:THANDLE; ImageName:PSTR; ModuleName:PSTR; BaseOfDll:dword64; 
-             SizeOfDll:dword):dword64;stdcall;external External_library name 'SymLoadModule64';               
-function SymUnloadModule(hProcess:THANDLE; BaseOfDll:dword64):BOOL;stdcall;external External_library name 'SymUnloadModule64'; 
+function SymGetLineNext(hProcess:THANDLE; Line:PIMAGEHLP_LINE64):BOOL;stdcall;external External_library name 'SymGetLineNext64';
+function SymGetLinePrev(hProcess:THANDLE; Line:PIMAGEHLP_LINE64):BOOL;stdcall;external External_library name 'SymGetLinePrev64';
+function SymLoadModule(hProcess:THANDLE; hFile:THANDLE; ImageName:PSTR; ModuleName:PSTR; BaseOfDll:dword64;
+             SizeOfDll:dword):dword64;stdcall;external External_library name 'SymLoadModule64';
+function SymUnloadModule(hProcess:THANDLE; BaseOfDll:dword64):BOOL;stdcall;external External_library name 'SymUnloadModule64';
 function SymUnDName(sym:PIMAGEHLP_SYMBOL64; UnDecName:PSTR; UnDecNameLength:dword):BOOL;stdcall;external External_library name 'SymUnDName64';
 function SymRegisterCallback(hProcess:THANDLE; CallbackFunction:TSYMBOL_REGISTERED_CALLBACK64; UserContext:ULONG64):BOOL;stdcall;external External_library name 'SymRegisterCallback64';
-function SymRegisterFunctionEntryCallback(hProcess:THANDLE; CallbackFunction:TSYMBOL_FUNCENTRY_CALLBACK64; UserContext:ULONG64):BOOL;stdcall;external External_library name 'SymRegisterFunctionEntryCallback64';     
+function SymRegisterFunctionEntryCallback(hProcess:THANDLE; CallbackFunction:TSYMBOL_FUNCENTRY_CALLBACK64; UserContext:ULONG64):BOOL;stdcall;external External_library name 'SymRegisterFunctionEntryCallback64';
 {$else}
 function SymGetLineFromAddr(hProcess:THANDLE; dwAddr:dword; pdwDisplacement:PDWORD; Line:PIMAGEHLP_LINE):BOOL;stdcall;external External_library name 'SymGetLineFromAddr';
-function SymGetLineFromName(hProcess:THANDLE; ModuleName:PSTR; FileName:PSTR; dwLineNumber:dword; plDisplacement:PLONG; 
+function SymGetLineFromName(hProcess:THANDLE; ModuleName:PSTR; FileName:PSTR; dwLineNumber:dword; plDisplacement:PLONG;
              Line:PIMAGEHLP_LINE):BOOL;stdcall;external External_library name 'SymGetLineFromName';
 function SymGetLineNext(hProcess:THANDLE; Line:PIMAGEHLP_LINE):BOOL;stdcall;external External_library name 'SymGetLineNext';
-function SymGetLinePrev(hProcess:THANDLE; Line:PIMAGEHLP_LINE):BOOL;stdcall;external External_library name 'SymGetLinePrev';     		 
-function SymLoadModule(hProcess:THANDLE; hFile:THANDLE; ImageName:PSTR; ModuleName:PSTR; BaseOfDll:dword; 
+function SymGetLinePrev(hProcess:THANDLE; Line:PIMAGEHLP_LINE):BOOL;stdcall;external External_library name 'SymGetLinePrev';
+function SymLoadModule(hProcess:THANDLE; hFile:THANDLE; ImageName:PSTR; ModuleName:PSTR; BaseOfDll:dword;
              SizeOfDll:dword):dword;stdcall;external External_library name 'SymLoadModule';
 function SymUnloadModule(hProcess:THANDLE; BaseOfDll:dword):BOOL;stdcall;external External_library name 'SymUnloadModule';
-function SymUnDName(sym:PIMAGEHLP_SYMBOL; UnDecName:PSTR; UnDecNameLength:dword):BOOL;stdcall;external External_library name 'SymUnDName';     
+function SymUnDName(sym:PIMAGEHLP_SYMBOL; UnDecName:PSTR; UnDecNameLength:dword):BOOL;stdcall;external External_library name 'SymUnDName';
 function SymRegisterCallback(hProcess:THANDLE; CallbackFunction:TSYMBOL_REGISTERED_CALLBACK; UserContext:pointer):BOOL;stdcall;external External_library name 'SymRegisterCallback';
 function SymRegisterFunctionEntryCallback(hProcess:THANDLE; CallbackFunction:TSYMBOL_FUNCENTRY_CALLBACK; UserContext:pointer):BOOL;stdcall;external External_library name 'SymRegisterFunctionEntryCallback';
 {$endif}
 
-function SymEnumLines(hProcess:THANDLE; Base:ULONG64; Obj:LPCSTR; _File:LPCSTR; EnumLinesCallback:TSYM_ENUMLINES_CALLBACK; 
+function SymEnumLines(hProcess:THANDLE; Base:ULONG64; Obj:LPCSTR; _File:LPCSTR; EnumLinesCallback:TSYM_ENUMLINES_CALLBACK;
              UserContext:pointer):BOOL;stdcall;external External_library name 'SymEnumLines';
 function SymMatchFileName(FileName:PSTR; Match:PSTR; FileNameStop:PPSTR; MatchStop:PPSTR):BOOL;stdcall;external External_library name 'SymMatchFileName';
 function SymInitialize(hProcess:THANDLE; UserSearchPath:PSTR; fInvadeProcess:BOOL):BOOL;stdcall;external External_library name 'SymInitialize';
 function SymGetSearchPath(hProcess:THANDLE; SearchPath:PSTR; SearchPathLength:dword):BOOL;stdcall;external External_library name 'SymGetSearchPath';
 function SymSetSearchPath(hProcess:THANDLE; SearchPath:PSTR):BOOL;stdcall;external External_library name 'SymSetSearchPath';
-function SymLoadModuleEx(hProcess:THANDLE; hFile:THANDLE; ImageName:PSTR; ModuleName:PSTR; BaseOfDll:dword64; 
+function SymLoadModuleEx(hProcess:THANDLE; hFile:THANDLE; ImageName:PSTR; ModuleName:PSTR; BaseOfDll:dword64;
              DllSize:dword; Data:PMODLOAD_DATA; Flags:dword):dword64;stdcall;external External_library name 'SymLoadModuleEx';
 
 function SymSetContext(hProcess:THANDLE; StackFrame:PIMAGEHLP_STACK_FRAME; Context:PIMAGEHLP_CONTEXT):BOOL;stdcall;external External_library name 'SymSetContext';
@@ -1545,11 +1545,11 @@ function SymFromToken(hProcess:THANDLE; Base:dword64; Token:dword; Symbol:PSYMBO
 function SymFromName(hProcess:THANDLE; Name:lpstr; Symbol:PSYMBOL_INFO):BOOL;stdcall;external External_library name 'SymFromName';
 function SymEnumSymbols(hProcess:THANDLE; BaseOfDll:ULONG64; Mask:LPCSTR; EnumSymbolsCallback:TSYM_ENUMERATESYMBOLS_CALLBACK; UserContext:pointer):BOOL;stdcall;external External_library name 'SymEnumSymbols';
 function SymEnumSymbolsForAddr(hProcess:THANDLE; Address:dword64; EnumSymbolsCallback:TSYM_ENUMERATESYMBOLS_CALLBACK; UserContext:pointer):BOOL;stdcall;external External_library name 'SymEnumSymbolsForAddr';
-	
+
 function SymGetTypeInfo(hProcess:THANDLE; ModBase:dword64; TypeId:ULONG; GetType:TIMAGEHLP_SYMBOL_TYPE_INFO; pInfo:pointer):BOOL;stdcall;external External_library name 'SymGetTypeInfo';
 function SymEnumTypes(hProcess:THANDLE; BaseOfDll:ULONG64; EnumSymbolsCallback:TSYM_ENUMERATESYMBOLS_CALLBACK; UserContext:pointer):BOOL;stdcall;external External_library name 'SymEnumTypes';
 function SymGetTypeFromName(hProcess:THANDLE; BaseOfDll:ULONG64; Name:lpstr; Symbol:PSYMBOL_INFO):BOOL;stdcall;external External_library name 'SymGetTypeFromName';
-function SymAddSymbol(hProcess:THANDLE; BaseOfDll:ULONG64; Name:LPCSTR; Address:dword64; Size:dword; 
+function SymAddSymbol(hProcess:THANDLE; BaseOfDll:ULONG64; Name:LPCSTR; Address:dword64; Size:dword;
              Flags:dword):BOOL;stdcall;external External_library name 'SymAddSymbol';
 function SymDeleteSymbol(hProcess:THANDLE; BaseOfDll:ULONG64; Name:LPCSTR; Address:dword64; Flags:dword):BOOL;stdcall;external External_library name 'SymDeleteSymbol';
 function DbgHelpCreateUserDump(FileName:lpstr; Callback:TDBGHELP_CREATE_USER_DUMP_CALLBACK; UserData:pointer):BOOL;stdcall;external External_library name 'DbgHelpCreateUserDump';
@@ -1563,14 +1563,14 @@ function SymGetSymFromAddr(hProcess:THANDLE; dwAddr:dword; pdwDisplacement:PDWOR
 function SymGetSymFromName(hProcess:THANDLE; Name:PSTR; Symbol:PIMAGEHLP_SYMBOL):BOOL;stdcall;external External_library name 'SymGetSymFromName';
 {$endif}
 
-function FindFileInPath(hprocess:THANDLE; SearchPath:lpstr; FileName:lpstr; id:pointer; two:dword; 
+function FindFileInPath(hprocess:THANDLE; SearchPath:lpstr; FileName:lpstr; id:pointer; two:dword;
              three:dword; flags:dword; FilePath:lpstr):BOOL;stdcall;external External_library name 'FindFileInPath';
-function FindFileInSearchPath(hprocess:THANDLE; SearchPath:lpstr; FileName:lpstr; one:dword; two:dword; 
+function FindFileInSearchPath(hprocess:THANDLE; SearchPath:lpstr; FileName:lpstr; one:dword; two:dword;
              three:dword; FilePath:lpstr):BOOL;stdcall;external External_library name 'FindFileInSearchPath';
 function SymEnumSym(hProcess:THANDLE; BaseOfDll:ULONG64; EnumSymbolsCallback:TSYM_ENUMERATESYMBOLS_CALLBACK; UserContext:pointer):BOOL;stdcall;external External_library name 'SymEnumSym';
-function MiniDumpWriteDump(hProcess:THANDLE; ProcessId:dword; hFile:THANDLE; DumpType:TMINIDUMP_TYPE; ExceptionParam:PMINIDUMP_EXCEPTION_INFORMATION; 
+function MiniDumpWriteDump(hProcess:THANDLE; ProcessId:dword; hFile:THANDLE; DumpType:TMINIDUMP_TYPE; ExceptionParam:PMINIDUMP_EXCEPTION_INFORMATION;
              UserStreamParam:PMINIDUMP_USER_STREAM_INFORMATION; CallbackParam:TMINIDUMP_CALLBACK_INFORMATION):BOOL;stdcall;external External_library name 'MiniDumpWriteDump';
-	
+
 function MiniDumpReadDumpStream(BaseOfDump:pointer; StreamNumber:ULONG; Dir:PPMINIDUMP_DIRECTORY; StreamPointer:PPOINTER; StreamSize:PULONG):BOOL;stdcall;external External_library name 'MiniDumpReadDumpStream';
 
 function RVA_TO_ADDR(Mapping:ULONG_PTR;RVA:CARDINAL):POINTER; inline;
@@ -1579,11 +1579,11 @@ Procedure Address32To64(a32: LPADDRESS ;a64:LPADDRESS64); inline;
 procedure KdHelp32To64(p32:PKDHELP;p64:PKDHELP64); inline;
 implementation
 
-function RVA_TO_ADDR(Mapping:ULONG_PTR;RVA:CARDINAL):POINTER; 
+function RVA_TO_ADDR(Mapping:ULONG_PTR;RVA:CARDINAL):POINTER;
 begin
   rva_to_addr:=pointer(ulong_ptr(mapping)+rva);
 end;
- 
+
 Procedure Address32To64(a32: LPADDRESS ;a64:LPADDRESS64);
 begin
     a64^.Offset := ULONG64(LONG64(LONG(a32^.Offset))); // I assume these multiple typecasts are to avoid sign problems?
@@ -1608,5 +1608,5 @@ begin
     p64^.KeUserCallbackDispatcher := p32^.KeUserCallbackDispatcher;
     p64^.SystemRangeStart := p32^.SystemRangeStart;
 end;
- 
+
 end.

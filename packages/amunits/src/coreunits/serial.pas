@@ -110,7 +110,7 @@ const
   SERB_PARTY_ON       = 0;                     // parity-enabled
   SERF_PARTY_ON       = 1 shl SERB_PARTY_ON;
 
-// These now refect the actual bit positions in the TIOExtSer.io_Status LongWord
+// These now reflect the actual bit positions in the TIOExtSer.io_Status LongWord
   IO_STATB_XOFFREAD   = 12;                       // receive currently xOFF'ed
   IO_STATF_XOFFREAD   = 1 shl IO_STATB_XOFFREAD;
   IO_STATB_XOFFWRITE  = 11;                       // transmit currently xOFF'ed
@@ -160,7 +160,7 @@ const
   IOSERF_QUEUED   = 1 shl IOSERB_QUEUED;
   IOSERB_ABORT    = 5;                     // rqst-aborted
   IOSERF_ABORT    = 1 shl IOSERB_ABORT;
-  IOSERB_ACTIVE   = 4;                     // rqst-qued-OR-current
+  IOSERB_ACTIVE   = 4;                     // rqst-queued-OR-current
   IOSERF_ACTIVE   = 1 shl IOSERB_ACTIVE;
 
   SERIALNAME: PAnsiChar = 'serial.device';

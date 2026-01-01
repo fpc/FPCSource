@@ -222,7 +222,7 @@ uses MacTypes,Files;
 
 
 {
-    These typedefs were originally created for the Copland Resource Mangager
+    These typedefs were originally created for the Copland Resource Manager
 }
 type
 	ResID = SInt16;

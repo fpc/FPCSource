@@ -52,7 +52,7 @@ uses
   that decides to use assembler or normal code
   needs to stay after the _INTERFACE keyword
   because FPC_PIC macro is only set after this keyword,
-  as it can be modified before by the global $PIC preprocessor directive. 
+  as it can be modified before by the global $PIC preprocessor directive.
   Pierre Muller 2018/07/04 }
 
 {$ifdef FPC_PIC}
@@ -1657,7 +1657,7 @@ end;
 {$ifdef CPUINTEL}
 
 {$ifdef CPU64}
-function crc32csse42(crc: cardinal; buf: PAnsiChar; len: cardinal): cardinal; nostackframe; assembler; 
+function crc32csse42(crc: cardinal; buf: PAnsiChar; len: cardinal): cardinal; nostackframe; assembler;
 asm
         mov     eax, crc
         test    len, len

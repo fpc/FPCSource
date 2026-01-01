@@ -161,7 +161,7 @@ begin
     end;
   //Test for the "CharLen" conforms UTF-8 string
   //This means the 10xxxxxx pattern.
-  if SizeUInt(CharLen-1)>MaxLookAead then //Insuficient chars in string to decode UTF-8 array
+  if SizeUInt(CharLen-1)>MaxLookAead then //Insufficient chars in string to decode UTF-8 array
     exit(-1);
   for LookAhead := 1 to CharLen-1 do
     begin

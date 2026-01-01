@@ -25,14 +25,14 @@
 
 
   ------------------------------------------------------------------------------
-    
-    
+
+
   Conversion by Legolas (http://itaprogaming.free.fr) for freepascal compiler
   (http://www.freepascal.org)
-   
+
   Copyright (C) 2006  Francesco Lombardi
   Check http://sourceforge.net/projects/libndsfpc for updates
-   
+
   ------------------------------------------------------------------------------
 
   $Log$
@@ -103,7 +103,7 @@ const
 	LCDC_VCNT  : LCDC_IRQ = (1 shl 5);
 
 
-function VCOUNT(m: integer): u32; inline; 
+function VCOUNT(m: integer): u32; inline;
 
 
 const
@@ -155,7 +155,7 @@ const
 	BG_16_COLOR    : BG_CTRL_BITS =	(0 shl 7);		(* background uses 16 color tiles		*)
 	BG_256_COLOR   : BG_CTRL_BITS =	(1 shl 7);		(* background uses 256 color tiles	*)
 	BG_WRAP			: BG_CTRL_BITS =	  (1 shl 13);	  (* background wraps when scrolling	*)
-	
+
   BG_SIZE_0		: BG_CTRL_BITS = (0 shl 14);	(* Map Size 256x256	*)
   BG_SIZE_1		: BG_CTRL_BITS = (1 shl 14);	(* Map Size 512x256	*)
   BG_SIZE_2		: BG_CTRL_BITS = (2 shl 14);	(* Map Size 256x512	*)
@@ -211,7 +211,7 @@ const
 //---------------------------------------------------------------------------------
 // Symbolic names for the rot/scale map sizes
 //---------------------------------------------------------------------------------
-  
+
   ROTBG_SIZE_16  = 0 shl 14;
   ROTBG_SIZE_32  = 1 shl 14;
   ROTBG_SIZE_64  = 2 shl 14;
@@ -235,7 +235,7 @@ type
   PMODE3_LINE = ^MODE3_LINE;
   MODE5_LINE = array [0..159] of u16;
   PMODE5_LINE = ^MODE5_LINE;
-  
+
 const
   MODE3_FB : PMODE3_LINE = pointer($06000000);
   MODE5_FB : PMODE5_LINE = pointer($06000000);
@@ -270,9 +270,9 @@ const
 
 
 {$ifdef GBA_IMPLEMENTATION}
-function VCOUNT(m: integer): u32; inline; 
+function VCOUNT(m: integer): u32; inline;
 begin
-  VCOUNT := m shl 8; 
+  VCOUNT := m shl 8;
 end;
 
 function BG_SIZE(m: integer): integer; inline;
@@ -286,7 +286,7 @@ begin
 end;
 
 function BG_TILE_BASE(m: integer): integer; inline;
-begin		
+begin
   BG_TILE_BASE := ((m) shl 2);
 end;
 
@@ -301,12 +301,12 @@ begin
 end;
 
 function MAP_BASE_ADR(m: integer): pointer; inline;
-begin		
+begin
   MAP_BASE_ADR := pointer(VRAM + ((m) shl 11));
 end;
 
 function SCREEN_BASE_BLOCK(m: integer): pointer; inline;
-begin		
+begin
   SCREEN_BASE_BLOCK := pointer(VRAM + ((m) shl 11));
 end;
 
@@ -367,7 +367,7 @@ begin
 end;
 
 procedure SetMode(mode: integer); inline;
-begin	
+begin
   REG_DISPCNT^ := mode
 end;
 

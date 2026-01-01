@@ -1,7 +1,7 @@
 {$IFNDEF FPC_DOTTEDUNITS}
 unit gccore;
 {$ENDIF FPC_DOTTEDUNITS}
-{$mode objfpc} 
+{$mode objfpc}
 {$J+}
 {$INLINE ON}
 {$MACRO ON}
@@ -48,9 +48,9 @@ initialization
 {$linklib ogc}
 {$linklib m}
 
-{$linklib c} 
-{$linklib gcc}  
-{$linklib g} 
+{$linklib c}
+{$linklib gcc}
+{$linklib g}
 {$linklib sysbase}
 
 {$linklib iberty}

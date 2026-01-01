@@ -129,7 +129,7 @@ begin
 
     demoCount := categories[selectedCategory].count;
     if demoCount = o then exit;
-    
+
     while not (selected) do
     begin
       scanKeys();

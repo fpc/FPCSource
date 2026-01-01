@@ -27,7 +27,7 @@ Var
   C : TJSONConfig;
   L : TStrings;
   I : Integer;
-  
+
 begin
   // TJSONConf is component, so needs an owner.
   C:=TJSONConfig.Create(nil);

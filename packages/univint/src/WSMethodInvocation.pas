@@ -237,7 +237,7 @@ uses MacTypes,CFBase,CFArray,CFData,CFDictionary,CFRunLoop,CFXMLNode,WSTypes;
     than one value, wherein the result data is duplicated several
     times.  If you don't know what to ask for to dump the reply, you
     can ask for this key.  If you do know what you want, you should
-    request that field expliclty.
+    request that field explicitly.
 
     You can also specify the name of the reply parameter in the
     invocation using kWSMethodInvocationResultParameterName.  This will

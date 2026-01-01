@@ -461,7 +461,7 @@ type
  *    Note that SetSystemUIMode should _not_ be used from UIElement or
  *    BackgroundOnly applications. The presentation mode of the current
  *    login session is determined by the presentation mode of the
- *    frontmost faceful application. Therefore, the presentation mode
+ *    frontmost fateful application. Therefore, the presentation mode
  *    of a UIElement or BackgroundOnly application will be ignored,
  *    since these types of applications can't be the frontmost faceful
  *    application.
@@ -502,8 +502,8 @@ function SetSystemUIMode( inMode: SystemUIMode; inOptions: SystemUIOptions ): OS
  *    calling application, _not_ the mode of the current login session.
  *    The login session mode may be different, since the login session
  *    mode is determined by the presentation mode of the frontmost
- *    faceful application. If the calling application is not currently
- *    the frontmost faceful application, then its presentation mode
+ *    fateful application. If the calling application is not currently
+ *    the frontmost fateful application, then its presentation mode
  *    will not be in use. You may use the kEventAppSystemUIModeChanged
  *    Carbon event to track changes in the login session's presentation
  *    mode.

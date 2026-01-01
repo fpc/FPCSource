@@ -123,8 +123,8 @@ begin
   lzi^.block_buf_size := wsize + lzi^.max_dist;
   lzi^.block_buf := GetMem(lzi^.block_buf_size);
   lzi^.block_bufe := lzi^.block_buf + lzi^.block_buf_size;
-  
-  
+
+
   //assert(lzi^.block_buf != NULL);
 
   lzi^.cur_loc := 0;
@@ -151,7 +151,7 @@ end;
 procedure lz_reset(lzi: plz_info);
 var
   residual: longint;
-  
+
 begin
   residual := lzi^.chars_in_buf - lzi^.block_loc;
   move(PByte(lzi^.block_buf)[lzi^.block_loc], lzi^.block_buf[0], residual);
@@ -210,7 +210,7 @@ begin
 
   FillChar(prevtab[0], sizeof(prevtab) * lzi^.chars_in_buf, 0);
   FillChar(lentab[0], sizeof(prevtab) * lzi^.chars_in_buf, 0);
-  
+
   bbp := lzi^.block_buf;
   bbe := bbp + lzi^.chars_in_buf;
   while (bbp < bbe) do begin
@@ -283,7 +283,7 @@ begin
       bytes_to_move := lzi^.max_dist + residual;
       if (bytes_to_move > lzi^.chars_in_buf) then
 	bytes_to_move := lzi^.chars_in_buf;
- 
+
       move(PByte(lzi^.block_buf)[lzi^.chars_in_buf - bytes_to_move], lzi^.block_buf, bytes_to_move);
 
       lzi^.block_loc := bytes_to_move - residual;
@@ -338,7 +338,7 @@ begin
       Inc(lenp, len);
       Inc(lzi^.cur_loc, len);
       Inc(lzi^.block_loc, len);
-      
+
       //assert(nchars >= len);
 
       Dec(nchars, len);

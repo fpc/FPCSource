@@ -29,7 +29,7 @@
 
 (**
  * @defgroup apr_allocator Internal Memory Allocation
- * @ingroup APR 
+ * @ingroup APR
  * @{
  *)
 
@@ -50,7 +50,7 @@ type
  *       caller of apr_allocator_alloc(), the remaining fields are read-only.
  *       The next field has to be used with caution and sensibly set when the
  *       memnode is passed back to apr_allocator_free().  See apr_allocator_free()
- *       for details.  
+ *       for details.
  *       The ref and first_avail fields will be properly restored by
  *       apr_allocator_free().
  *}

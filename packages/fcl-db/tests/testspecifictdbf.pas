@@ -404,17 +404,17 @@ begin
   DS.FieldDefs.Add('NAME',ftMemo);
   DS.OpenMode:=omAutoCreate; //let dbf code create memo etc files when needed
   DS.CreateTable;
-  
-  DS.Open;  
+
+  DS.Open;
   for i := 1 to MaxRecs do
     begin
     DS.Append;
     DS.FieldByName('ID').AsInteger := i;
     DS.FieldByName('NAME').AsString := 'TestName' + inttostr(i);
     DS.Post;
-    end;  
+    end;
   DS.Close; //in old implementations, this erased memo memory
-  
+
   DS.Open;
   DS.First;
   for i := 1 to MaxRecs do
@@ -423,9 +423,9 @@ begin
     CheckEquals('TestName' + inttostr(i),DS.fieldbyname('NAME').AsString);
     DS.next;
     end;
-  CheckTrue(DS.EOF,'After reading all records the dataset should show EOF');  
+  CheckTrue(DS.EOF,'After reading all records the dataset should show EOF');
   DS.Close;
-  
+
   ds.free;
   DBFStream.Free;
   MemoStream.Free;

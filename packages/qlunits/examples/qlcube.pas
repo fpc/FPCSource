@@ -183,7 +183,7 @@ begin
     end;
 
   sd_clear(stdOutputHandle,-1);
-  for i:=0 to 3 do 
+  for i:=0 to 3 do
     begin
       e:=(i+1) and 3;
       sd_line(stdOutputHandle,-1,@fcubex[i],@fcubey[i],@fcubex[e],@fcubey[e]);

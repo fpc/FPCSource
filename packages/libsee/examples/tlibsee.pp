@@ -6,10 +6,10 @@ Var
   Interp : TSEE_interpreter;
   ainput : PSEE_INPUT;
   res : TSEE_Value;
-  
+
 Const
   Program_text = 'Math.sqrt(3 + 4 * 7)+9;';
-  
+
 begin
   see_init;
   SEE_interpreter_init(@Interp);

@@ -4,7 +4,7 @@ interface
 
 uses
   ctypes;
-  
+
 
 const
   CRONO_BITMAP_WIDTH  = 256;

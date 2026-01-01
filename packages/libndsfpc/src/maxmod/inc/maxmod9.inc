@@ -26,7 +26,7 @@
   {$error maxmod9 is for ARM9!}
 {$endif}
 
- 
+
 {$ifdef NDS_INTERFACE}
 procedure mmInitDefault(soundbank_file: pcchar); cdecl; external;
 
@@ -105,7 +105,7 @@ procedure mmStreamUpdate(); cdecl; external;
 procedure mmStreamClose(); cdecl; external;
 
 procedure mmReverbEnable(); cdecl; external;
- 
+
 procedure mmReverbConfigure(config: pmm_reverb_cfg); cdecl; external;
 
 procedure mmReverbStart(channels: mm_reverbch); cdecl; external;

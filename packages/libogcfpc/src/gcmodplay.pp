@@ -1,7 +1,7 @@
 {$IFNDEF FPC_DOTTEDUNITS}
 unit gcmodplay;
 {$ENDIF FPC_DOTTEDUNITS}
-{$mode objfpc} 
+{$mode objfpc}
 {$J+}
 {$INLINE ON}
 {$MACRO ON}

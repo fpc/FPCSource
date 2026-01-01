@@ -18,7 +18,7 @@ Var
   S : TStream;
   M : TMemoryStream;
   D,P : TJSONData;
-  
+
 begin
   if (ParamCount<1) then
     Usage('Need path expression');
@@ -40,11 +40,11 @@ begin
       P:=D.FindPath(ParamStr(1));
     if Not Assigned(P) then
       Writeln('null')
-    else  
+    else
       if P.JSONType in [jtArray,jtObject] then
         Writeln(P.AsJSON)
       else
-        Writeln(P.AsString);  
+        Writeln(P.AsString);
   Finally
     M.Free;
     S.Free;

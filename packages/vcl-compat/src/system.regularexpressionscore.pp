@@ -241,7 +241,7 @@ type
     property OnReplace: TPerlRegExReplaceEvent read FOnReplace write FOnReplace;
   end;
 
-                                                                             
+
   TRegExStudyOption = (preJIT, preJITPartialHard, preJITPartialSoft);
   TRegExStudyOptions = set of TRegExStudyOption;
 

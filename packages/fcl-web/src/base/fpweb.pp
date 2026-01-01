@@ -39,7 +39,7 @@ Type
     function  GetContents: TStrings;
     procedure SetContents(const AValue: TStrings);
     Procedure SetTemplate(const AValue : TFPTemplate);
-  Protected  
+  Protected
     Procedure DoHandleRequest(ARequest : TRequest; AResponse : TResponse; Var Handled : Boolean); override;
     Procedure DoGetContent(ARequest : TRequest; Content : TStream; Var Handled : Boolean); virtual;
     Procedure GetContent(ARequest : TRequest; Content : TStream; Var Handled : Boolean);
@@ -51,7 +51,7 @@ Type
     Property Contents : TStrings Read GetContents Write SetContents;
     Property OnRequest: TWebActionEvent Read FOnrequest Write FOnrequest;
     Property Template : TFPTemplate Read FTemplate Write SetTemplate;
-  end;  
+  end;
 
   { TFPWebActions }
 
@@ -153,7 +153,7 @@ Type
     Property Request: TRequest Read FRequest;
     Property Response: TResponse Read FResponse;
   end;
-  
+
   { TFPWebModule }
 
   TFPWebModule = Class(TCustomFPWebModule)
@@ -399,10 +399,10 @@ begin
 end;
 
 procedure TCustomFPWebModule.GetParam(const ParamName: String; out Value: String);
-  
+
 Var
   T : TTemplateVar;
-  
+
 begin
   If (0=CompareText(ParamName,'CONTENT')) then
     Value:=GetContent
@@ -419,7 +419,7 @@ end;
 
 procedure TCustomFPWebModule.GetTemplateContent(ARequest: TRequest;
   AResponse: TResponse);
-  
+
 begin
   TFPWebTemplate(FTemplate).Request:=ARequest;
   {$IF SIZEOF(CHAR)=2}
@@ -434,7 +434,7 @@ function TCustomFPWebModule.GetContent: String;
 Var
   S : TStringStream;
   B : Boolean;
-  
+
 begin
   S:=TStringStream.Create('');
   Try

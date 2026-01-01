@@ -27,7 +27,7 @@
 (**
  * XML_CATALOG_PI:
  *
- * The specific XML Catalog Processing Instuction name.
+ * The specific XML Catalog Processing Instruction name.
  *)
   XML_CATALOG_PI: xmlCharPtr = 'oasis-xml-catalog';
 {$ENDIF}

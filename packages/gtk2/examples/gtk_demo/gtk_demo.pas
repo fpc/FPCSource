@@ -4,7 +4,7 @@
  *
  *
  * This demo is an adaption of the GTK Demo included in the GTK+-2.0 source.
- * A new feature is syntax highligting for pascal.
+ * A new feature is syntax highlighting for pascal.
  *)
 
 program gtk_demo;

@@ -107,7 +107,7 @@ Type
     property OddPageStyle : string read FOddPageStyle write FOddPageStyle;
     // Even page style elements.
     property EvenPageStyle : string read FEvenPageStyle write FEvenPageStyle;
-    // Skip styling alltogether
+    // Skip styling altogether
     Property SkipStyling : Boolean Read FSkipStyling Write FSkipStyling;
   end;
 

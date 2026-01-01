@@ -53,7 +53,7 @@ Var
   OutputRedir, InputRedir : boolean; { is the output/input being redirected (not a TTY) }
 {$ifdef debugcrt}
   DebugFile : Text;
-{$endif}   
+{$endif}
 {*****************************************************************************
                     Some Handy Functions Not in the System.PP
 *****************************************************************************}
@@ -381,7 +381,7 @@ end;
 procedure ttyGotoXY(x,y:longint);
 {
   Goto XY on the Screen, if a value is 0 the goto the current
-  postion of that value and always recalc the ansicode for it
+  position of that value and always recalc the ansicode for it
 }
 begin
   if x=0 then
@@ -680,7 +680,7 @@ Begin
    end
   else
    begin
-   { Tweak WindMaxx and WindMaxy so no scrolling happends }
+   { Tweak WindMaxx and WindMaxy so no scrolling happens }
      len:=WindMaxX-CurrX+1;
      IsLastLine:=false;
      if CurrY=WindMaxY then
@@ -1050,7 +1050,7 @@ Begin
                'C' : PushExt(77);
                'D' : PushExt(75);
                'P' : PushExt(59);
-               'Q' : PushExt(60); 
+               'Q' : PushExt(60);
                'R' : PushExt(61);
                'S' : PushExt(62);
               end;
@@ -1418,13 +1418,13 @@ End;
  {$endif}
 {$endif}
 
-// ioctl might fail e.g. in putty. A redirect check is not enough, 
+// ioctl might fail e.g. in putty. A redirect check is not enough,
 // needs check for physical console too.
 
 Procedure Sound(Hz: Word);
 begin
 {$ifdef havekiocsound}
-  if (not OutputRedir) and (hz>0) then 
+  if (not OutputRedir) and (hz>0) then
     fpIoctl(TextRec(Output).Handle, KIOCSOUND, Pointer(1193180 div Hz));
 {$endif}
 end;
@@ -1600,7 +1600,7 @@ Initialization
 {$ifdef debugcrt}
   Assign(DebugFile,'debug.txt');
   ReWrite(DebugFile);
-{$endif}  
+{$endif}
 { Redirect the standard output }
   assigncrt(Output);
   Rewrite(Output);
@@ -1647,7 +1647,7 @@ Initialization
 Finalization
 {$ifdef debugcrt}
   Close(DebugFile);
-{$endif}  
+{$endif}
   ttyFlushOutput;
   if not OutputRedir then
     SetRawMode(False);

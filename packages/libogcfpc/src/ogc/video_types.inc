@@ -64,27 +64,27 @@ function VI_TVMODE(fmt, mode: cint): cint; inline;
 
 var
   TVNtsc240Ds: GXRModeObj; cvar; external;
-  TVNtsc240DsAa: GXRModeObj; cvar; external;		
-  TVNtsc240Int: GXRModeObj; cvar; external;			
-  TVNtsc240IntAa: GXRModeObj; cvar; external;	
-  TVNtsc480Int: GXRModeObj; cvar; external;			
-  TVNtsc480IntDf: GXRModeObj; cvar; external;	
-  TVNtsc480IntAa: GXRModeObj; cvar; external;	
-  TVNtsc480Prog: GXRModeObj; cvar; external;  
+  TVNtsc240DsAa: GXRModeObj; cvar; external;
+  TVNtsc240Int: GXRModeObj; cvar; external;
+  TVNtsc240IntAa: GXRModeObj; cvar; external;
+  TVNtsc480Int: GXRModeObj; cvar; external;
+  TVNtsc480IntDf: GXRModeObj; cvar; external;
+  TVNtsc480IntAa: GXRModeObj; cvar; external;
+  TVNtsc480Prog: GXRModeObj; cvar; external;
   TVNtsc480ProgSoft: GXRModeObj; cvar; external;
   TVNtsc480ProgAa: GXRModeObj; cvar; external;
   TVMpal240Ds: GXRModeObj; cvar; external;
   TVMpal240DsAa: GXRModeObj; cvar; external;
-  TVMpal480IntDf: GXRModeObj; cvar; external;	
+  TVMpal480IntDf: GXRModeObj; cvar; external;
   TVMpal480IntAa: GXRModeObj; cvar; external;
   TVMpal480Prog: GXRModeObj; cvar; external;
-  TVPal264Ds: GXRModeObj; cvar; external;				
-  TVPal264DsAa: GXRModeObj; cvar; external;			
-  TVPal264Int: GXRModeObj; cvar; external;				
-  TVPal264IntAa: GXRModeObj; cvar; external;		
-  TVPal524IntAa: GXRModeObj; cvar; external;		
-  TVPal528Int: GXRModeObj; cvar; external;				
-  TVPal528IntDf: GXRModeObj; cvar; external;		
+  TVPal264Ds: GXRModeObj; cvar; external;
+  TVPal264DsAa: GXRModeObj; cvar; external;
+  TVPal264Int: GXRModeObj; cvar; external;
+  TVPal264IntAa: GXRModeObj; cvar; external;
+  TVPal524IntAa: GXRModeObj; cvar; external;
+  TVPal528Int: GXRModeObj; cvar; external;
+  TVPal528IntDf: GXRModeObj; cvar; external;
   TVPal576IntDfScale: GXRModeObj; cvar; external;
   TVPal576ProgScale: GXRModeObj; cvar; external;
   TVEurgb60Hz240Ds: GXRModeObj; cvar; external;
@@ -111,6 +111,6 @@ end;
 function VI_TVMODE(fmt, mode: cint): cint; inline;
 begin
   VI_TVMODE :=  (fmt shl 2) + mode;
-end; 
+end;
 
 {$endif OGC_IMPLEMENTATION}

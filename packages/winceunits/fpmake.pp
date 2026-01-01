@@ -9,7 +9,7 @@ Var
   T : TTarget;
 
 begin
-  With Installer do 
+  With Installer do
     begin
 {$endif ALLPACKAGES}
 
@@ -31,7 +31,7 @@ begin
     P.SupportBuildModes := [bmOneByOne];
     P.Dependencies.Add('rtl-objpas');
     P.Dependencies.Add('rtl-extra');
-   
+
     P.Options.Add('-Ur');
 
     // These units are from the winunits-base package.
@@ -44,7 +44,7 @@ begin
     T:=P.Targets.AddUnit('../winunits-base/src/eventsink.pp', [wince]);
     T:=P.Targets.AddUnit('../winunits-base/src/stdole2.pas', [wince]);
     T:=P.Targets.AddUnit('../winunits-base/src/oleserver.pp', [wince]);
- 
+
     T:=P.Targets.AddUnit('buildwinceunits.pp', [wince]);
     T.Install:=False;
 

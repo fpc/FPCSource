@@ -1,8 +1,8 @@
 {
     This file is part of the Free Component Library (FCL)
     Copyright (c) 2025 by the Free Pascal development team
-      
-    Simple service application class for windows.  
+
+    Simple service application class for windows.
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -19,7 +19,7 @@ unit fpsimpleservice;
   -r run service
   -i install service
   -u uninstall service.
-  
+
   When the service is run, a descendent of TFPServiceThread is created and executed.
   You must set the descendant class to use in Application.ServiceClass before calling initialize.
 }
@@ -94,15 +94,15 @@ Type
     // Thread class to use when starting the service.
     Property ServiceClass : TFPServiceThreadClass Read FServiceClass Write FServiceClass;
     // Time before to generate an error. Default 20000 milliseconds
-    property Timeout : integer read FTimeout write FTimeout; 
+    property Timeout : integer read FTimeout write FTimeout;
     // Exit code to return to Service Manager
     property ExitCode : integer read FExitCode write FExitCode;
     // Parameter list passed when the service was started
-    property ServiceParamStr : string read FServiceParamStr; 
+    property ServiceParamStr : string read FServiceParamStr;
     // Number of parameters passed when the service was started
-    property ServiceParamCount : integer read FServiceParamCount; 
+    property ServiceParamCount : integer read FServiceParamCount;
     // Does the service accept pause/continue commands ?
-    Property AllowServicePause : Boolean Read FAllowServicePause Write FAllowServicePause; 
+    Property AllowServicePause : Boolean Read FAllowServicePause Write FAllowServicePause;
   end;
 
   EFPService = Class(Exception);

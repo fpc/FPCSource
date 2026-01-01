@@ -954,7 +954,7 @@ function CFStringConvertEncodingToWindowsCodepage( encoding: CFStringEncoding ):
 
 function CFStringConvertWindowsCodepageToEncoding( codepage: UInt32 ): CFStringEncoding; external name '_CFStringConvertWindowsCodepageToEncoding';
 
-{ ID mapping functions from/to IANA registery charset names.  Returns kCFStringEncodingInvalidId if no mapping exists.
+{ ID mapping functions from/to IANA registry charset names.  Returns kCFStringEncodingInvalidId if no mapping exists.
 }
 function CFStringConvertIANACharSetNameToEncoding( theString: CFStringRef ): CFStringEncoding; external name '_CFStringConvertIANACharSetNameToEncoding';
 

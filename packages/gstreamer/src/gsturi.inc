@@ -59,7 +59,7 @@
         set_uri : function (handler:PGstURIHandler; uri:Pgchar; error:PPGError):Tgboolean;cdecl;
       end;
 
-      
+
     T_GstUri = record
         {undefined structure}
       end;
@@ -129,7 +129,7 @@
 (* Const before type ignored *)
 (* Const before type ignored *)
 (* Const before type ignored *)
-  function gst_uri_new(scheme:Pgchar; userinfo:Pgchar; host:Pgchar; port:Tguint; path:Pgchar; 
+  function gst_uri_new(scheme:Pgchar; userinfo:Pgchar; host:Pgchar; port:Tguint; path:Pgchar;
              query:Pgchar; fragment:Pgchar):PGstUri;cdecl;external gstreamerlib name 'gst_uri_new';
 
 (* Const before type ignored *)
@@ -138,7 +138,7 @@
 (* Const before type ignored *)
 (* Const before type ignored *)
 (* Const before type ignored *)
-  function gst_uri_new_with_base(base:PGstUri; scheme:Pgchar; userinfo:Pgchar; host:Pgchar; port:Tguint; 
+  function gst_uri_new_with_base(base:PGstUri; scheme:Pgchar; userinfo:Pgchar; host:Pgchar; port:Tguint;
              path:Pgchar; query:Pgchar; fragment:Pgchar):PGstUri;cdecl;external gstreamerlib name 'gst_uri_new_with_base';
 
 (* Const before type ignored *)
@@ -262,21 +262,21 @@
   {
   static inline GstUri *
   gst_uri_copy (const GstUri * uri)
-  
+
     return ((GstUri *)(gst_mini_object_copy (((const GstMiniObject*)(uri)))));
-  
+
   # 373 "gsturi.h"
   static inline GstUri *
   gst_uri_ref (GstUri * uri)
-  
+
     return ((GstUri *)(gst_mini_object_ref (((GstMiniObject*)(uri)))));
-  
+
   # 389 "gsturi.h"
   static inline void
   gst_uri_unref (GstUri * uri)
-  
+
     gst_mini_object_unref (((GstMiniObject*)(uri)));
-  
+
    }
 
 

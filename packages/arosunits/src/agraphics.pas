@@ -496,7 +496,7 @@ type
     Scroll_Y: SmallInt;
     cr,
     cr2,
-    crnew: PClipRect;              // used by dedice
+    crnew: PClipRect;              // used by device
     SuperSaveClipRects: PClipRect; // preallocated cr's
     _cliprects: PClipRect;         // system use during refresh
     LayerInfo: PLayer_Info;        // points to head of the list
@@ -1138,7 +1138,7 @@ const
   EXACT_LINE = 1;
   HALF_LINE  = 2;
 // Copper commands
-  COPPER_MOVE = 0;     // pseude opcode for move #XXXX,dir
+  COPPER_MOVE = 0;     // pseudo opcode for move #XXXX,dir
   COPPER_WAIT = 1;     // pseudo opcode for wait y,x
   CPRNXTBUF   = 2;     // continue processing with next buffer
   CPR_NT_SYS  = $2000; // copper user instruction only
@@ -1210,7 +1210,7 @@ const
   MVP_OK           =  0; // you want to see this one
   MVP_NO_MEM       =  1; // insufficient memory for intermediate workspace
   MVP_NO_VPE       =  2; // ViewPort does not have a ViewPortExtra, and insufficient memory to allocate a temporary one.
-  MVP_NO_DSPINS    =  3; // insufficient memory for intermidiate copper instructions.
+  MVP_NO_DSPINS    =  3; // insufficient memory for intermediate copper instructions.
   MVP_NO_DISPLAY   =  4; // BitMap data is misaligned for this viewport's mode and depth - see AllocBitMap().
   MVP_OFF_BOTTOM   =  5; // PRIVATE - you will never see this.
 { MrgCop() will return an error if there is not enough memory,
@@ -1737,7 +1737,7 @@ const
   VTAG_USERCLIP_GET      = $80000023;
   VTAG_USERCLIP_SET      = $80000024;
   VTAG_USERCLIP_CLR      = $80000025;
-// The following tags are V39 specific. They will be ignored (returing error -3) by earlier versions
+// The following tags are V39 specific. They will be ignored (returning error -3) by earlier versions
   VTAG_PF1_BASE_GET             =  $80000026;
   VTAG_PF2_BASE_GET             =  $80000027;
   VTAG_SPEVEN_BASE_GET          =  $80000028;

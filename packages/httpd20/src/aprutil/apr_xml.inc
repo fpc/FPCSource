@@ -19,7 +19,7 @@
  }
 
 {
- * @defgroup APR_Util_XML XML 
+ * @defgroup APR_Util_XML XML
  * @ingroup APR_Util
  }
 {#include "apr_pools.h"
@@ -221,7 +221,7 @@ function apr_xml_parser_create(pool: Papr_pool_t): Papr_xml_parser;
  *               errors), will be set to NULL on successfull completion.
  * @param ppdoc  A pointer to *apr_xml_doc (which has the parsed results in it)
  * @param xmlfd  A file to read from.
- * @param buffer_length Buffer length which would be suitable 
+ * @param buffer_length Buffer length which would be suitable
  * @return Any errors found during parsing.
  }
 function apr_xml_parse_file(p: Papr_pool_t;
@@ -269,15 +269,15 @@ function apr_xml_parser_geterror(parser: Papr_xml_parser;
  external LibAPRUtil name LibNamePrefix + 'apr_xml_parser_geterror' + LibSuff12;
 
 {
- * Converts an XML element tree to flat text 
+ * Converts an XML element tree to flat text
  * @param p The pool to allocate out of
  * @param elem The XML element to convert
  * @param style How to covert the XML.  One of:
  * <PRE>
- *     APR_XML_X2T_FULL                start tag, contents, end tag 
- *     APR_XML_X2T_INNER               contents only 
- *     APR_XML_X2T_LANG_INNER          xml:lang + inner contents 
- *     APR_XML_X2T_FULL_NS_LANG        FULL + ns defns + xml:lang 
+ *     APR_XML_X2T_FULL                start tag, contents, end tag
+ *     APR_XML_X2T_INNER               contents only
+ *     APR_XML_X2T_LANG_INNER          xml:lang + inner contents
+ *     APR_XML_X2T_FULL_NS_LANG        FULL + ns defns + xml:lang
  * </PRE>
  * @param namespaces The namespace of the current XML element
  * @param ns_map Namespace mapping
@@ -334,7 +334,7 @@ procedure apr_xml_quote_elem(p: Papr_pool_t; elem: Papr_xml_elem);
 { manage an array of unique URIs: apr_xml_insert_uri() and APR_XML_URI_ITEM() }
 
 {
- * return the URI's (existing) index, or insert it and return a new index 
+ * return the URI's (existing) index, or insert it and return a new index
  * @param uri_array array to insert into
  * @param uri The uri to insert
  * @return int The uri's index

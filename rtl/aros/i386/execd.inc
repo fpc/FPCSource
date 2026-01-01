@@ -758,7 +758,7 @@ type
     { * Don't touch!!!!!!!!!..there'll be an interface
       * sooner than later.
       * New Entries...most of the above entries
-      * are only their for structure compatability.
+      * are only their for structure compatibility.
       * They have no meaning as the OS never supported
       * them.
       * }
@@ -1439,7 +1439,7 @@ const
     * You shouldn't use this for any normal code
     * as there's no real reason to do so. If you
     * really think you need to use it please ask
-    * us first on the dev mailinglist.
+    * us first on the dev mailing list.
     * (ULONG) $ffffffff stops it
     * }
   FUNCARRAY_32BIT_QUICK_NATIVE   = $fffbfffb;

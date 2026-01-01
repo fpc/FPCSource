@@ -23,7 +23,7 @@ interface
 
 {$IFDEF FPC_DOTTEDUNITS}
 uses
-  System.Classes, System.SysUtils, System.Resources.StringTable.Types, System.Resources.Resource, System.Resources.Tree,  
+  System.Classes, System.SysUtils, System.Resources.StringTable.Types, System.Resources.Resource, System.Resources.Tree,
   System.Resources.Coff.Types, System.Resources.Coff.Writer;
 {$ELSE FPC_DOTTEDUNITS}
 uses
@@ -395,7 +395,7 @@ begin
   inherited;
   fResStrTable:=TResStringTable.Create;
   fResDataSectionSymIdx:=0;
-  { skip auxilary symtable entry part of data section symbol and FPC_RESSYMBOL }
+  { skip auxiliary symtable entry part of data section symbol and FPC_RESSYMBOL }
   fResHandlesSectionSymIdx:=4;
   // TODO: 64 bit
   fDataAlignment:=4;

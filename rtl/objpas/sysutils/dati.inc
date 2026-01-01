@@ -455,7 +455,7 @@ begin
      if s[i] in ['0'..'9'] then
       s1 := s1 + s[i];
 
-     { space can be part of the shortdateformat, and is defaultly in slovak
+     { space can be part of the shortdateformat, and is by default in slovak
        windows, therefor it shouldn't be taken as separator (unless so specified)
        and ignored }
      if (Separator <> ' ') and (s[i] = ' ') then
@@ -663,7 +663,7 @@ var
          //writeln('Digit');
          //Digits are only allowed after starting Am/PM or at beginning of string or after Separator
          //and TimeIndex must be <= tiMSec
-         //Uncomment "or (#32 = Separator)" and it will allllow #32 as separator
+         //Uncomment "or (#32 = Separator)" and it will allow #32 as separator
          if (not (DigitPending {or (#32 = Separator)})) or (TimeIndex > tiMSec) then Exit;
          OffSet := Cur;
          if (CurChar <> '0') then FirstSignificantDigit := OffSet else FirstSignificantDigit := -1;

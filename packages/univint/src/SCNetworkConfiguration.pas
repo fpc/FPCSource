@@ -241,7 +241,7 @@ uses MacTypes,CFBase,CFArray,CFDictionary,CFNumber,SCPreferences;
 		system, the network sets, network services, and network
 		protocols.
 
-		Note: When using the SCNetworkConfiguraiton APIs you must
+		Note: When using the SCNetworkConfiguration APIs you must
 		keep in mind that in order for any of your changes to be
 		committed to permanent storage a call must be made to the
 		SCPreferencesCommitChanges function.
@@ -1148,7 +1148,7 @@ function SCNetworkServiceGetTypeID: CFTypeID; external name '_SCNetworkServiceGe
 {!
 	@function SCNetworkServiceAddProtocolType
 	@discussion Adds a network protocol of the specified type to the
-		service.  The protocal configuration is set to default values
+		service.  The protocol configuration is set to default values
 		that are appropriate for the interface associated with the
 		service.
 	@param service The network service.
@@ -1303,7 +1303,7 @@ function SCNetworkServiceSetEnabled( service: SCNetworkServiceRef; enabled: Bool
 
 	Note: although not technically required, the [user specified] names
 	for all services within any given set should be unique.  As such, an
-	error will be returned if you attemp to name two services with the
+	error will be returned if you attempt to name two services with the
 	same string.
  }
 function SCNetworkServiceSetName( service: SCNetworkServiceRef; name: CFStringRef ): Boolean; external name '_SCNetworkServiceSetName';
@@ -1477,7 +1477,7 @@ function SCNetworkSetSetCurrent( set_: SCNetworkSetRef ): Boolean; external name
 
 	Note: although not technically required, the [user specified] names
 	for all set should be unique.  As such, an error will be returned if
-	you attemp to name two sets with the same string.
+	you attempt to name two sets with the same string.
  }
 function SCNetworkSetSetName( set_: SCNetworkSetRef; name: CFStringRef ): Boolean; external name '_SCNetworkSetSetName';
 (* __OSX_AVAILABLE_STARTING(__MAC_10_4,__IPHONE_NA) *)

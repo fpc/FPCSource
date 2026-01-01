@@ -84,10 +84,10 @@ function IRQMASK(irq: cint): cint; inline;
 {$ifdef HW_RVL}
   {$define IM_PI_ACR := IRQMASK(IRQ_PI_ACR)}
   {$define IM_PI := (IM_PI_CP or IM_PI_PETOKEN or IM_PI_PEFINISH or IM_PI_SI or IM_PI_DI or IM_PI_RSW or IM_PI_ERROR or IM_PI_VI or IM_PI_DEBUG or IM_PI_HSP or IM_PI_ACR)}
-{$else}  
-  // And default code here  
-{$endif}  
-{$endif} 
+{$else}
+  // And default code here
+{$endif}
+{$endif}
 
 
 type

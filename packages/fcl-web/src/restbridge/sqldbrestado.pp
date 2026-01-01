@@ -22,7 +22,7 @@ interface
 
 {$IFDEF FPC_DOTTEDUNITS}
 uses
-  System.Classes, System.SysUtils, System.DateUtils, Data.Db, FpJson.Data, Xml.Dom, Xml.Read, 
+  System.Classes, System.SysUtils, System.DateUtils, Data.Db, FpJson.Data, Xml.Dom, Xml.Read,
   Xml.Writer, FpWeb.RestBridge.Schema, FpWeb.RestBridge.IO, FpWeb.RestBridge.Bridge;
 {$ELSE FPC_DOTTEDUNITS}
 uses
@@ -87,7 +87,7 @@ Type
     Class Function GetContentType: String; override;
     Class function FileExtension : string; override;
     function RequireMetadata : Boolean; override;
-   
+
     procedure InitStreaming; override;
     Property DataName : UTF8String Read FDataName Write FDataName;
     Property RowName : UTF8String Read FRowName Write FRowName;
@@ -359,7 +359,7 @@ begin
   Result:='text/xml';
 end;
 
-Class function TADOOutputStreamer.FileExtension : string; 
+Class function TADOOutputStreamer.FileExtension : string;
 
 begin
   Result:='.xml';

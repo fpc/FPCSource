@@ -68,20 +68,20 @@ procedure InvokeKernelRegister(aCodeAddress: CodePointer; aArgs: Pointer; aArgCo
 label
   nostackargs;
 asm
-  pushl %ebp  
+  pushl %ebp
   movl %esp, %ebp
 
   { keep stack aligned to 16 bytes? }
 {$if FPC_STACKALIGNMENT=16}
   leal  -8(%esp),%esp
 {$endif FPC_STACKALIGNMENT=16}
-  
+
   pushl %edi
   pushl %esi
 
   pushl %eax
   pushl %edx
-  
+
   cmpl $3, %ecx
   jle nostackargs
 
@@ -100,10 +100,10 @@ asm
   andl $15, %esi
   subl %esi, %eax
 {$endif FPC_STACKALIGNMENT=16}
-  
+
   sub %eax, %esp
 
-  movl %esp, %edi  
+  movl %esp, %edi
   lea 12(%edx), %esi
 
   cld
@@ -119,10 +119,10 @@ nostackargs:
   call -20(%ebp)
   { ensure stack is cleared }
   leal -24(%ebp),%esp
-{$else FPC_STACKALIGNMENT=16}  
+{$else FPC_STACKALIGNMENT=16}
   call -12(%ebp)
 {$endif FPC_STACKALIGNMENT=16}
-  
+
   popl %ecx
   movl %eax, (%ecx)
   movl %edx, 4(%ecx)
@@ -498,7 +498,7 @@ asm
   { keep stack aligned, before the call below stack must be aligned to a 16 byte boundary }
   leal -8(%esp),%esp
 {$endif FPC_STACKALIGNMENT=16}
-  
+
   { also store ebx as we'll use that for the function address }
   pushl %ebx
 

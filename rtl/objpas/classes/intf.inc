@@ -11,7 +11,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-{ TInerfaceListEnumerator }
+{ TInterfaceListEnumerator }
 
     constructor TInterfaceListEnumerator.Create(AList: TInterfaceList);
       begin

@@ -4,7 +4,7 @@
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Florian Klaempfl
     Copyright (c) 1999-2000 by Ramon Bosque
-    Copyrigth (c) 2003 by Yuri Prokushev
+    Copyright (c) 2003 by Yuri Prokushev
 
     OS/2 Presentation Manager windowing functions, plus common
     PM constants and types (PMWIN.DLL interface unit).

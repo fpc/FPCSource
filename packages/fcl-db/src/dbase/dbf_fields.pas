@@ -176,7 +176,7 @@ const
 (*
 The theory for Delphi/FPC is:
     ftSmallint  16 bits = -32768 to 32767
-                          123456 = 6 digit max theorically
+                          123456 = 6 digit max theoretically
                           DIGITS_SMALLINT = 6;
     ftInteger  32 bits = -2147483648 to 2147483647
                          12345678901 = 11 digits max

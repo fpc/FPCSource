@@ -12,7 +12,7 @@ uses
 
 const glass = 0;
 
-const 
+const
   DEFAULT_FIFO_SIZE = (256 * 1024);
 
 type
@@ -59,7 +59,7 @@ begin
 	GX_InitLightPos(@lobj,lpos.x,lpos.y,lpos.z);
 	GX_InitLightColor(@lobj,litcol);
 	GX_LoadLightObj(@lobj,GX_LIGHT0);
-	
+
 	// set number of rasterized color channels
 	GX_SetNumChans(1);
     GX_SetChanCtrl(GX_COLOR0A0,GX_ENABLE,GX_SRC_REG,GX_SRC_REG,GX_LIGHT0,GX_DF_CLAMP,GX_AF_NONE);
@@ -68,7 +68,7 @@ begin
 end;
 
 var
-	yscale: f32 = 0; 
+	yscale: f32 = 0;
   zt: f32 = 0;
 	xfbHeight: cuint32;
 	fb: cuint32 = 0;
@@ -113,10 +113,10 @@ begin
 
 	// init the flipper
 	GX_Init(gpfifo,DEFAULT_FIFO_SIZE);
- 
+
 	// clears the bg to color and clears the z buffer
 	GX_SetCopyClear(background, $00ffffff);
- 
+
 	// other gx setup
 	GX_SetViewport(0,0,rmode^.fbWidth,rmode^.efbHeight,0,1);
 	yscale := GX_GetYScaleFactor(rmode^.efbHeight,rmode^.xfbHeight);
@@ -130,7 +130,7 @@ begin
     GX_SetFieldMode(rmode^.field_rendering, GX_ENABLE)
   else
     GX_SetFieldMode(rmode^.field_rendering, GX_DISABLE);
- 
+
 	if (rmode^.aa) <> 0 then
         GX_SetPixelFmt(GX_PF_RGB565_Z16, GX_ZC_LINEAR)
   else
@@ -170,11 +170,11 @@ begin
 	GX_InvalidateTexAll();
 	TPL_OpenTPLFromMemory(@glassTPL, @glass_tpl[0], glass_tpl_size);
 	TPL_GetTexture(@glassTPL,glass,@texture);
-	
+
 	// setup our camera at the origin
 	// looking down the -z axis with y up
 	guLookAt(view, @cam, @up, @look);
- 
+
 	// setup our projection matrix
 	// this creates a perspective matrix with a view angle of 90,
 	// and aspect ratio based on the display resolution
@@ -185,9 +185,9 @@ begin
 	begin
 		WPAD_ScanPads();
 		if (WPAD_ButtonsDown(0) and WPAD_BUTTON_HOME) <> 0 then exit
-		else 
+		else
     if (WPAD_ButtonsHeld(0) and WPAD_BUTTON_UP) <> 0 then zt := zt - 0.25
-		else 
+		else
     if (WPAD_ButtonsHeld(0) and WPAD_BUTTON_DOWN) <> 0 then zt := zt + 0.25;
 
 		// set number of rasterized color channels
@@ -209,7 +209,7 @@ begin
 
 		// load the modelview matrix into matrix memory
 		GX_LoadPosMtxImm(modelview, GX_PNMTX0);
-		
+
 		guMtxInverse(modelview,mvi);
 		guMtxTranspose(mvi,modelview);
 	    GX_LoadNrmMtxImm(modelview, GX_PNMTX0);
@@ -294,7 +294,7 @@ begin
 			GX_Normal3f32(1.0,-1.0,1.0);		// Bottom Left of the quad (right)
 			GX_TexCoord2f32(0.0,0.0);
 
-		GX_End();									// Done Drawing The Quad 
+		GX_End();									// Done Drawing The Quad
 
 		GX_SetZMode(GX_TRUE, GX_LEQUAL, GX_TRUE);
 		GX_SetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_ONE, GX_LO_SET);

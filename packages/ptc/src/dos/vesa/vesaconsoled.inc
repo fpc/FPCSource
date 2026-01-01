@@ -86,7 +86,7 @@ type
     { internal console management routines }
     procedure internal_close;
     function FindBestMode(const AMode: IPTCMode): Integer;
-    
+
     procedure UpdateModeList;
     procedure EnableLFB;
     procedure DisableLFB;

@@ -115,7 +115,7 @@ TYPE
 
 const
        {There is a problem with boolean
-       vaules in taglists, just use this
+       values in taglists, just use this
        for now instead}
        ltrue  : longint = 1;
        lfalse : longint = 0;
@@ -428,7 +428,7 @@ CONST
 { ------ expansion.library }
 
   AN_ExpansionLib       = $0A000000;
-  AN_BadExpansionFree   = $0A000001; {  freeed free region }
+  AN_BadExpansionFree   = $0A000001; {  freed free region }
 
 { ------ diskfont.library }
 

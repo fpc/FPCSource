@@ -70,14 +70,14 @@ const
     // unknown command is passed.
 
   sndCmdNoteOn = Succ(sndCmdFreqDurationAmp); // start a sound given its MIDI key index, max duration and velocity;
-                                            // the call will not wait for the sound to complete, returning imeediately;
+                                            // the call will not wait for the sound to complete, returning immediately;
                                             // any other sound play request made before this one completes will interrupt it.
                                             // param1 = MIDI key index (0-127)
                                             // param2 = maximum duration in milliseconds
                                             // param3 = velocity (0 - 127) (will be interpolated as amplitude)
 
   sndCmdFrqOn = Succ(sndCmdNoteOn);         // start a sound given its frequency in Hz, max duration and amplitude;
-                                            // the call will not wait for the sound to complete, returning imeediately;
+                                            // the call will not wait for the sound to complete, returning immediately;
                                             // any other sound play request made before this one completes will interrupt it.
                                             // param1 = frequency in Hz
                                             // param2 = maximum duration in milliseconds
@@ -206,7 +206,7 @@ type
 
     interruptible: Boolean;                 // if true, sound play will be interrupted if
                                             // user interacts with the controls (digitizer, buttons, etc.);
-                                            // if false, the paly will not be interrupted; the default behavior
+                                            // if false, the play will not be interrupted; the default behavior
                                             // is "interruptible" if this structure is not passed in
 
     reserved1: UInt8;

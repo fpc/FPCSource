@@ -156,7 +156,7 @@ begin
   prev := el.PreviousSibling;
   next := el.NextSibling;
   AssertNotNull('prev_after', prev);
-  AssertNotNull('prev_after', next);  
+  AssertNotNull('prev_after', next);
   AssertEqualsW('prev_name_after', 'child1', prev.NodeName);
   AssertEqualsW('next_name_after', 'child3', next.NodeName);
 end;

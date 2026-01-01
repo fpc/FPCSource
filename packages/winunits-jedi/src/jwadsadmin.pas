@@ -115,9 +115,9 @@ const
   {$EXTERNALSYM IID_IDsAdminNotifyHandler}
 
 // ----------------------------------------------------------------------------
-// 
+//
 // Interface: IDsAdminCreateObj
-//  
+//
 // Implemented by the object (implemented by the system) CLSID_DsAdminCreateObj
 //
 // Used by: any client needing to invoke the creation UI
@@ -135,7 +135,7 @@ type
 //---------------------------------------------------------------------------
 //
 // Interface: IDsAdminNewObj
-// 
+//
 // Implemented by: DS Admin
 //
 // Used by: creation extension in proc server (both primary and regular)
@@ -151,7 +151,7 @@ type
 //---------------------------------------------------------------------------
 //
 // Interface: IDsAdminNewObjPrimarySite
-// 
+//
 // Implemented by: DS Admin
 //
 // Used by: creation extension in proc server (primary only)
@@ -249,7 +249,7 @@ const
 //---------------------------------------------------------------------------
 //
 // Interface: IDsAdminNotifyHandler
-// 
+//
 // Implemented by: notification handler in proc server
 //
 // Used by: DS Admin

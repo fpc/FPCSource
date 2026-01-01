@@ -24,7 +24,7 @@ type
         tm_wday : longint;
         tm_yday : longint;
         tm_isdst : longint;
-        case boolean of 
+        case boolean of
          false : (tm_gmtoff : longint;tm_zone : PAnsiChar);
          true  : (__tm_gmtoff : longint;__tm_zone : PAnsiChar);
 	end;

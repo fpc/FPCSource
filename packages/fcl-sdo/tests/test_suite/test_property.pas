@@ -438,23 +438,23 @@ begin
   CheckEquals(0, locObj.getByteDefault());
 {$IFDEF HAS_SDO_CHAR}
   CheckEquals(#0, locObj.getCharacterDefault());
-{$ENDIF HAS_SDO_CHAR}  
- 
+{$ENDIF HAS_SDO_CHAR}
+
 {$IFDEF HAS_SDO_DOUBLE}
   CheckEquals(0, locObj.getDoubleDefault());
 {$ENDIF HAS_SDO_DOUBLE}
 {$IFDEF HAS_SDO_FLOAT}
   CheckEquals(0, locObj.getFloatDefault());
 {$ENDIF HAS_SDO_FLOAT}
-{$IFDEF HAS_SDO_LONG}  
+{$IFDEF HAS_SDO_LONG}
   CheckEquals(0, locObj.getLongDefault());
 {$ENDIF HAS_SDO_LONG}
 {$IFDEF HAS_SDO_SHORT}
   CheckEquals(0, locObj.getShortDefault());
 {$ENDIF HAS_SDO_SHORT}
-  CheckEquals(0, locObj.getIntegerDefault()); 
+  CheckEquals(0, locObj.getIntegerDefault());
   CheckEquals('', locObj.getStringDefault());
-  
+
   CheckEquals(0, locObj.getCurrencyDefault());
 
   tmpVal := test_suite_utils.RandomRange(Low(Word),High(Word));
@@ -515,15 +515,15 @@ begin
 {$IFDEF HAS_SDO_FLOAT}
   CheckEquals(0, locObj.getFloatDefault());
 {$ENDIF HAS_SDO_FLOAT}
-{$IFDEF HAS_SDO_LONG}  
+{$IFDEF HAS_SDO_LONG}
   CheckEquals(0, locObj.getLongDefault());
 {$ENDIF HAS_SDO_LONG}
 {$IFDEF HAS_SDO_SHORT}
   CheckEquals(0, locObj.getShortDefault());
 {$ENDIF HAS_SDO_SHORT}
-  CheckEquals(0, locObj.getIntegerDefault()); 
+  CheckEquals(0, locObj.getIntegerDefault());
   CheckEquals('', locObj.getStringDefault());
-  
+
   CheckEquals(0, locObj.getDoubleDefault());
 
   tmpVal := test_suite_utils.RandomRange(Low(Word),High(Word));
@@ -577,22 +577,22 @@ begin
   CheckEquals(0, locObj.getByteDefault());
 {$IFDEF HAS_SDO_CHAR}
   CheckEquals(#0, locObj.getCharacterDefault());
-{$ENDIF HAS_SDO_CHAR}  
-{$IFDEF HAS_SDO_CURRENCY}  
+{$ENDIF HAS_SDO_CHAR}
+{$IFDEF HAS_SDO_CURRENCY}
   CheckEquals(0, locObj.getCurrencyDefault());
-{$ENDIF HAS_SDO_CURRENCY}  
+{$ENDIF HAS_SDO_CURRENCY}
 {$IFDEF HAS_SDO_DOUBLE}
   CheckEquals(0, locObj.getDoubleDefault());
 {$ENDIF HAS_SDO_DOUBLE}
-{$IFDEF HAS_SDO_LONG}  
+{$IFDEF HAS_SDO_LONG}
   CheckEquals(0, locObj.getLongDefault());
 {$ENDIF HAS_SDO_LONG}
 {$IFDEF HAS_SDO_SHORT}
   CheckEquals(0, locObj.getShortDefault());
 {$ENDIF HAS_SDO_SHORT}
-  CheckEquals(0, locObj.getIntegerDefault()); 
+  CheckEquals(0, locObj.getIntegerDefault());
   CheckEquals('', locObj.getStringDefault());
-  
+
   CheckEquals(0, locObj.getFloatDefault());
 
   tmpVal := test_suite_utils.RandomRange(Low(Word),High(Word));
@@ -645,14 +645,14 @@ begin
   CheckEquals(0, locObj.getByteDefault());
 {$IFDEF HAS_SDO_CHAR}
   CheckEquals(#0, locObj.getCharacterDefault());
-{$ENDIF HAS_SDO_CHAR}    
+{$ENDIF HAS_SDO_CHAR}
   CheckEquals(0, locObj.getIntegerDefault());
-{$IFDEF HAS_SDO_LONG}  
+{$IFDEF HAS_SDO_LONG}
   CheckEquals(0, locObj.getLongDefault());
-{$ENDIF HAS_SDO_LONG}  
-{$IFDEF HAS_SDO_SHORT}  
+{$ENDIF HAS_SDO_LONG}
+{$IFDEF HAS_SDO_SHORT}
   CheckEquals(0, locObj.getShortDefault());
-{$ENDIF HAS_SDO_SHORT}  
+{$ENDIF HAS_SDO_SHORT}
   CheckEquals('', locObj.getStringDefault());
 
   tmpVal := test_suite_utils.RandomRange(Low(TSDOLong),High(TSDOLong));
@@ -705,14 +705,14 @@ begin
   CheckEquals(0, locObj.getByteDefault());
 {$IFDEF HAS_SDO_CHAR}
   CheckEquals(#0, locObj.getCharacterDefault());
-{$ENDIF HAS_SDO_CHAR}    
+{$ENDIF HAS_SDO_CHAR}
   CheckEquals(0, locObj.getIntegerDefault());
 {$IFDEF HAS_SDO_LONG}
   CheckEquals(0, locObj.getLongDefault());
 {$ENDIF HAS_SDO_LONG}
-{$IFDEF HAS_SDO_SHORT}  
+{$IFDEF HAS_SDO_SHORT}
   CheckEquals(0, locObj.getShortDefault());
-{$ENDIF HAS_SDO_SHORT}  
+{$ENDIF HAS_SDO_SHORT}
   CheckEquals('', locObj.getStringDefault());
 
   tmpVal := RandomRange(Low(TSDOShort),High(TSDOShort));
@@ -945,7 +945,7 @@ begin
     CheckEquals(Ord(locObj.getType().getTypeEnum), Ord(locObj.getTypeEnum()), 'getTypeEnum');
     CheckEquals(False, locObj.isReference(), 'isReference');
     CheckEquals(True, locObj.isAttribute(), 'isAttribute');
-    CheckEquals(False, locObj.isDefaulted(), 'isDefaulted');   
+    CheckEquals(False, locObj.isDefaulted(), 'isDefaulted');
 
   locObj := create_obj(
               (*Name*)            'p_string',
@@ -1022,7 +1022,7 @@ begin
   if AContained then
     Include(f, pfIsContainment);
   if AReadOnly then
-    Include(f, pfIsReadOnly);    
+    Include(f, pfIsReadOnly);
   if AIsAttribute then
     Include(f, pfIsAttribute);
 

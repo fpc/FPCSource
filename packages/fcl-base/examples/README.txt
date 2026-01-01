@@ -1,7 +1,7 @@
 This directory contains test programs for different elements/classes in
-the FCL. 
+the FCL.
 
-If you add a test give in this file a short description of what 
+If you add a test give in this file a short description of what
 class/function it tests, and your initials..
 
 Names
@@ -20,7 +20,7 @@ list.pp      TList object from unit 'classes'.  (MVC)
 mstream.pp   TMemorySteam object from unit 'classes' (MVC)
 fstream.pp   TFileStream object from unit 'classes' (MVC)
 dparser.pp   TParser object from unit 'classes' (MVC)
-stringl.pp   TStringList object from unit classes' (MVC) 
+stringl.pp   TStringList object from unit classes' (MVC)
 thread.pp    TTHread object from unit classes (PFV)
 testz.pp     T(De)Compressionstream objects from Zstream (MVC)
 testz2.pp    TGZFilestream object from Zstream (MVC)
@@ -49,7 +49,7 @@ sstream.pp   Tests TStringStream object.
 testol.pp    Tests TObjectList in contnrs. (MVC)
 testcont.pp  Tests TStack/TQueue in contnrs. (MVC)
 testhres.pp  Test hostresolver in resolve (MVC)
-testnres.pp  Test netresolver in resolve (MVC) 
+testnres.pp  Test netresolver in resolve (MVC)
 testsres.pp  Test serviceresolver in resolve (MVC)
 testrhre.pp  Test reverse hostresolver in resolve (MVC)
 testrnre.pp  Test reverse netresolver in resolve (MVC)
@@ -67,8 +67,8 @@ ipcclient    Client part of SimpleIPC unit test, console app (MVC)
 testdebug    Client part of dbugintf debugging info test (MVC)
 testbf.pp    Test for BlowFish encryption (MVC)
 testbf2.pp    Test for BlowFish 2 encryption (MVC)
-testbfs.pp   Test for BlowFish encryption/descryption stream (MVC)
-testbf2s.pp   Test for BlowFish 2 encryption/descryption stream (MVC)
+testbfs.pp   Test for BlowFish encryption/decryption stream (MVC)
+testbf2s.pp   Test for BlowFish 2 encryption/decryption stream (MVC)
 testzip.pp   Test for TZipper class (MVC)
 poolmm1.pp   Test for pooledmm (free) (MG)
 poolmm2.pp   Test for pooledmm (nonfree) (VS)
@@ -76,7 +76,7 @@ testweb.pp   Test for fpcgi (MVC)
 daemon.pp    Test for daemonapp (MVC)
 testtimer.pp Test for TFPTimer (MVC)
 testini.pp   Test/Demo for inifiles, ReadSectionValues.
-contit.pp    Test/Demo for iterators in contnr.pp
+condition.pp    Test/Demo for iterators in contnr.pp
 csvbom.pp    Test/Demo for BOM detection in CSV document. (needs databom.txt)
 testappexit.pp Test/Demo for TApplication exit code handling. (ExitCode and ExceptionExitcode)
 demoio.pp    Demo for AssignStream from streamio unit.

@@ -236,7 +236,7 @@ function CGPDFContextCreateWithURL( url: CFURLRef; const (*var*) mediaBox: CGRec
 
 { Close a PDF context. After closing the context, all pending data is
    written to the context's destination, and the PDF file is completed. No
-   additional data will be written to the context's destionation after
+   additional data will be written to the context's destination after
    closing. }
 
 procedure CGPDFContextClose( context: CGContextRef ); external name '_CGPDFContextClose';

@@ -34,7 +34,7 @@ const
   OAM           : pcuint16 = pointer($07000000);
   OAM_SUB       : pcuint16 = pointer($07000400);
 
-function RGB15(r, g, b: cint): cuint16; inline; 
+function RGB15(r, g, b: cint): cuint16; inline;
 function RGB5(r, g, b: cint): cuint16; inline;
 function RGB8(r, g, b: cint): cuint16; inline;
 function ARGB16(a, r, g, b: cint): cuint32; inline;
@@ -42,7 +42,7 @@ function ARGB16(a, r, g, b: cint): cuint32; inline;
 const
   SCREEN_HEIGHT = 192;
   SCREEN_WIDTH  = 256;
-  
+
 //	Vram Control
   VRAM_CR			: pcuint32 = pointer($04000240);
   VRAM_A_CR		: pcuint8 = pointer($04000240);
@@ -59,11 +59,11 @@ const
 
   VRAM_ENABLE	= (1 shl 7);
 
-function  VRAM_OFFSET(n: cint): cint; inline;	
+function  VRAM_OFFSET(n: cint): cint; inline;
 
 type
   VRAM_A_TYPE = cint;
-const 
+const
   VRAM_A_LCD                    : VRAM_A_TYPE = 0;
   VRAM_A_MAIN_BG                : VRAM_A_TYPE = 1;
   VRAM_A_MAIN_BG_0x06000000     : VRAM_A_TYPE = 1 or (0 shl 3);
@@ -72,7 +72,7 @@ const
   VRAM_A_MAIN_BG_0x06060000     : VRAM_A_TYPE = 1 or (3 shl 3);
   VRAM_A_MAIN_SPRITE            : VRAM_A_TYPE = 2;
   VRAM_A_MAIN_SPRITE_0x06400000 : VRAM_A_TYPE = 2;
-  VRAM_A_MAIN_SPRITE_0x06420000 : VRAM_A_TYPE = 2 or (1 shl 3);  
+  VRAM_A_MAIN_SPRITE_0x06420000 : VRAM_A_TYPE = 2 or (1 shl 3);
   VRAM_A_TEXTURE                : VRAM_A_TYPE = 3;
   VRAM_A_TEXTURE_SLOT0          : VRAM_A_TYPE = 3 or (0 shl 3);
   VRAM_A_TEXTURE_SLOT1          : VRAM_A_TYPE = 3 or (1 shl 3);
@@ -109,7 +109,7 @@ const
   VRAM_C_MAIN_BG_0x06060000 : VRAM_C_TYPE = 1 or (3 shl 3);
   VRAM_C_ARM7               : VRAM_C_TYPE = 2;
   VRAM_C_ARM7_0x06000000    : VRAM_C_TYPE = 2;
-  VRAM_C_ARM7_0x06020000    : VRAM_C_TYPE = 2 or (1 shl 3);  
+  VRAM_C_ARM7_0x06020000    : VRAM_C_TYPE = 2 or (1 shl 3);
   VRAM_C_SUB_BG             : VRAM_C_TYPE = 4;
   VRAM_C_SUB_BG_0x06200000  : VRAM_C_TYPE = 4 or (0 shl 3);
   VRAM_C_TEXTURE            : VRAM_C_TYPE = 3 or (2 shl 3);
@@ -130,7 +130,7 @@ const
   VRAM_D_MAIN_BG_0x06060000 : VRAM_D_TYPE = 1 or (3 shl 3);
   VRAM_D_ARM7               : VRAM_D_TYPE = 2 or (1 shl 3);
   VRAM_D_ARM7_0x06000000    : VRAM_D_TYPE = 2;
-  VRAM_D_ARM7_0x06020000    : VRAM_D_TYPE = 2 or (1 shl 3);  
+  VRAM_D_ARM7_0x06020000    : VRAM_D_TYPE = 2 or (1 shl 3);
   VRAM_D_SUB_SPRITE         : VRAM_D_TYPE = 4;
   VRAM_D_TEXTURE            : VRAM_D_TYPE = 3 or (3 shl 3);
   VRAM_D_TEXTURE_SLOT0      : VRAM_D_TYPE = 3 or (0 shl 3);
@@ -155,12 +155,12 @@ const
   VRAM_F_MAIN_BG_0x06000000     : VRAM_F_TYPE = 1;
   VRAM_F_MAIN_BG_0x06004000     : VRAM_F_TYPE = 1 or (1 shl 3);
   VRAM_F_MAIN_BG_0x06010000     : VRAM_F_TYPE = 1 or (2 shl 3);
-  VRAM_F_MAIN_BG_0x06014000     : VRAM_F_TYPE = 1 or (3 shl 3);  
+  VRAM_F_MAIN_BG_0x06014000     : VRAM_F_TYPE = 1 or (3 shl 3);
   VRAM_F_MAIN_SPRITE            : VRAM_F_TYPE = 2;
   VRAM_F_MAIN_SPRITE_0x06400000 : VRAM_F_TYPE = 2;
   VRAM_F_MAIN_SPRITE_0x06404000 : VRAM_F_TYPE = 2 or (1 shl 3);
   VRAM_F_MAIN_SPRITE_0x06410000 : VRAM_F_TYPE = 2 or (2 shl 3);
-  VRAM_F_MAIN_SPRITE_0x06414000 : VRAM_F_TYPE = 2 or (3 shl 3); 
+  VRAM_F_MAIN_SPRITE_0x06414000 : VRAM_F_TYPE = 2 or (3 shl 3);
   VRAM_F_TEX_PALETTE            : VRAM_F_TYPE = 3;
   VRAM_F_TEX_PALETTE_SLOT0      : VRAM_F_TYPE = 3;
   VRAM_F_TEX_PALETTE_SLOT1      : VRAM_F_TYPE = 3 or (1 shl 3);
@@ -179,12 +179,12 @@ const
   VRAM_G_MAIN_BG_0x06000000     : VRAM_G_TYPE = 1;
   VRAM_G_MAIN_BG_0x06004000     : VRAM_G_TYPE = 1 or (1 shl 3);
   VRAM_G_MAIN_BG_0x06010000     : VRAM_G_TYPE = 1 or (2 shl 3);
-  VRAM_G_MAIN_BG_0x06014000     : VRAM_G_TYPE = 1 or (3 shl 3);  
+  VRAM_G_MAIN_BG_0x06014000     : VRAM_G_TYPE = 1 or (3 shl 3);
   VRAM_G_MAIN_SPRITE            : VRAM_G_TYPE = 2;
   VRAM_G_MAIN_SPRITE_0x06400000 : VRAM_G_TYPE = 2;
   VRAM_G_MAIN_SPRITE_0x06404000 : VRAM_G_TYPE = 2 or (1 shl 3);
   VRAM_G_MAIN_SPRITE_0x06410000 : VRAM_G_TYPE = 2 or (2 shl 3);
-  VRAM_G_MAIN_SPRITE_0x06414000 : VRAM_G_TYPE = 2 or (3 shl 3);    
+  VRAM_G_MAIN_SPRITE_0x06414000 : VRAM_G_TYPE = 2 or (3 shl 3);
   VRAM_G_TEX_PALETTE            : VRAM_G_TYPE = 3;
   VRAM_G_TEX_PALETTE_SLOT0      : VRAM_G_TYPE = 3;
   VRAM_G_TEX_PALETTE_SLOT1      : VRAM_G_TYPE = 3 or (1 shl 3);
@@ -192,7 +192,7 @@ const
   VRAM_G_TEX_PALETTE_SLOT5      : VRAM_G_TYPE = 3 or (3 shl 3);
   VRAM_G_BG_EXT_PALETTE         : VRAM_G_TYPE = 4;
   VRAM_G_BG_EXT_PALETTE_SLOT01  : VRAM_G_TYPE = 4 or (0 shl 3);
-  VRAM_G_BG_EXT_PALETTE_SLOT23  : VRAM_G_TYPE = 4 or (1 shl 3);  
+  VRAM_G_BG_EXT_PALETTE_SLOT23  : VRAM_G_TYPE = 4 or (1 shl 3);
   VRAM_G_SPRITE_EXT_PALETTE     : VRAM_G_TYPE = 5;
 
 type
@@ -222,7 +222,7 @@ var
   VRAM_G_EXT_PALETTE : P_ext_palette absolute VRAM_G;
   VRAM_H_EXT_PALETTE : P_ext_palette absolute VRAM_H;
 
-function vramSetPrimaryBanks(a: VRAM_A_TYPE; b: VRAM_B_TYPE; c: VRAM_C_TYPE; d: VRAM_D_TYPE): cuint32; cdecl; external; 
+function vramSetPrimaryBanks(a: VRAM_A_TYPE; b: VRAM_B_TYPE; c: VRAM_C_TYPE; d: VRAM_D_TYPE): cuint32; cdecl; external;
 function vramSetMainBanks(a: VRAM_A_TYPE; b: VRAM_B_TYPE; c: VRAM_C_TYPE; d: VRAM_D_TYPE): cuint32; cdecl; external; deprecated;
 function vramDefault(): cuint32; cdecl; external;
 procedure vramRestorePrimaryBanks(vramTemp: cuint32); cdecl; external;
@@ -254,10 +254,10 @@ const
   DISPLAY_WIN1_ON       = (1 shl 14);
   DISPLAY_SPR_WIN_ON    = (1 shl 15);
 
- 
+
 type
   VideoMode = integer;
-const   
+const
   MODE_0_2D: VideoMode = $10000;
   MODE_1_2D: VideoMode = $10001;
   MODE_2_2D: VideoMode = $10002;
@@ -306,15 +306,15 @@ const
 function DISPLAY_CHAR_BASE(n: cuint32): cuint32; inline;
 function DISPLAY_SCREEN_BASE(n: cuint32): cuint32; inline;
 
-procedure videoSetMode(mode: cuint32); inline;  
-procedure videoSetModeSub(mode: cuint32); inline;  
+procedure videoSetMode(mode: cuint32); inline;
+procedure videoSetModeSub(mode: cuint32); inline;
 
-function videoGetMode(): cint; inline;	 	 
-function videoGetModeSub(): cint; inline;	 	 
-function video3DEnabled(): cbool; inline;	 	 
-procedure videoBgEnable(number: cint); inline;	 	 
-procedure videoBgEnableSub(number: cint); inline;	 	 
-procedure videoBgDisable(number: cint); inline;	 	 
+function videoGetMode(): cint; inline;
+function videoGetModeSub(): cint; inline;
+function video3DEnabled(): cbool; inline;
+procedure videoBgEnable(number: cint); inline;
+procedure videoBgEnableSub(number: cint); inline;
+procedure videoBgDisable(number: cint); inline;
 procedure videoBgDisableSub(number: cint); inline;
 procedure setBrightness(screen, level: cint); cdecl; external;
 procedure setBackdropColor(const color: cuint16); inline;
@@ -389,16 +389,16 @@ const
 
   DCAP_ENABLE    = (1 shl 31);
 
-function DCAP_MODE(n: cint): cint; inline;   
-function DCAP_SRC_ADDR(n: cint): cint; inline;    
-function DCAP_SRC(n: cint): cint; inline;    
+function DCAP_MODE(n: cint): cint; inline;
+function DCAP_SRC_ADDR(n: cint): cint; inline;
+function DCAP_SRC(n: cint): cint; inline;
 function DCAP_SRC_A(n: cint): cint;
 function DCAP_SRC_B(n: cint): cint;
-function DCAP_SIZE(n: cint): cint; inline;   
-function DCAP_OFFSET(n: cint): cint; inline; 
-function DCAP_BANK(n: cint): cint; inline;   
-function DCAP_B(n: cint): cint; inline;      
-function DCAP_A(n: cint): cint; inline;      
+function DCAP_SIZE(n: cint): cint; inline;
+function DCAP_OFFSET(n: cint): cint; inline;
+function DCAP_BANK(n: cint): cint; inline;
+function DCAP_B(n: cint): cint; inline;
+function DCAP_A(n: cint): cint; inline;
 
 const
   DCAP_MODE_A           = 0;
@@ -501,14 +501,14 @@ function RGB15(r, g, b: cint): cuint16; inline;
 begin
   RGB15 := ((r) or ((g) shl 5) or ((b) shl 10));
 end;
-  
+
 function RGB5(r, g, b: cint): cuint16; inline;
 begin
   RGB5 := ((r) or ((g) shl 5) or ((b) shl 10));
 end;
 
 function RGB8(r, g, b: cint): cuint16; inline;
-begin                
+begin
   RGB8 := (((r) shr 3) or (((g) shr 3) shl 5) or (((b) shr 3) shl 10));
 end;
 
@@ -517,42 +517,42 @@ begin
   ARGB16 := ((a shl 15) or r or (g shl 5) or (b shl 10));
 end;
 
-function  VRAM_OFFSET(n: cint): cint; inline;	
+function  VRAM_OFFSET(n: cint): cint; inline;
 begin
   VRAM_OFFSET := ((n) shl 3);
 end;
 
-function videoGetMode(): cint; inline; 
+function videoGetMode(): cint; inline;
 begin
   result := (REG_DISPCNT^ and $30007);
-end;	 	 
+end;
 
-function videoGetModeSub(): cint; inline;  
+function videoGetModeSub(): cint; inline;
 begin
   result := (REG_DISPCNT_SUB^ and $30007);
 end;
 
-function video3DEnabled(): cbool; inline;  
+function video3DEnabled(): cbool; inline;
 begin
   result := (REG_DISPCNT^ and ENABLE_3D) <> 0;
 end;
-	 	 
-procedure videoBgEnable(number: cint); inline; 
+
+procedure videoBgEnable(number: cint); inline;
 begin
   REG_DISPCNT^ :=  REG_DISPCNT^ or (1 shl (DISPLAY_ENABLE_SHIFT + number));
 end;
-	 	 	 	 
-procedure videoBgEnableSub(number: cint); inline; 
+
+procedure videoBgEnableSub(number: cint); inline;
 begin
   REG_DISPCNT_SUB^ := REG_DISPCNT_SUB^ or (1 shl (DISPLAY_ENABLE_SHIFT + number));
 end;
-	 	 	 	 
-procedure videoBgDisable(number: cint); inline; 
+
+procedure videoBgDisable(number: cint); inline;
 begin
   REG_DISPCNT^ := REG_DISPCNT^ and not (1 shl (DISPLAY_ENABLE_SHIFT + number));
 end;
-	 	 	 	 
-procedure videoBgDisableSub(number: cint); inline; 
+
+procedure videoBgDisableSub(number: cint); inline;
 begin
   REG_DISPCNT_SUB^ := REG_DISPCNT_SUB^ and not (1 shl (DISPLAY_ENABLE_SHIFT + number));
 end;
@@ -563,31 +563,31 @@ begin
 end;
 
 function DISPLAY_SCREEN_BASE(n: cuint32): cuint32; inline;
-begin 
+begin
   DISPLAY_SCREEN_BASE := ((n) and 7) shl 27;
-end;	 
-	 
-procedure videoSetMode(mode: cuint32); inline;  
+end;
+
+procedure videoSetMode(mode: cuint32); inline;
 begin
   REG_DISPCNT^ := mode;
 end;
 
-procedure videoSetModeSub(mode: cuint32); inline;  
+procedure videoSetModeSub(mode: cuint32); inline;
 begin
   REG_DISPCNT_SUB^ := mode;
 end;
 
-function DCAP_MODE(n: cint): cint; inline;   
+function DCAP_MODE(n: cint): cint; inline;
 begin
   DCAP_MODE := (((n) and 3) shl 29);
 end;
 
-function DCAP_SRC_ADDR(n: cint): cint; inline;    
+function DCAP_SRC_ADDR(n: cint): cint; inline;
 begin
   DCAP_SRC_ADDR := (((n) and 3) shl 26);
 end;
 
-function DCAP_SRC(n: cint): cint; inline;    
+function DCAP_SRC(n: cint): cint; inline;
 begin
   DCAP_SRC := (((n) and 3) shl 24);
 end;
@@ -602,27 +602,27 @@ begin
   DCAP_SRC_B := (((n) and 1) shl 25);
 end;
 
-function DCAP_SIZE(n: cint): cint; inline;   
+function DCAP_SIZE(n: cint): cint; inline;
 begin
   DCAP_SIZE := (((n) and 3) shl 20);
 end;
 
-function DCAP_OFFSET(n: cint): cint; inline; 
+function DCAP_OFFSET(n: cint): cint; inline;
 begin
   DCAP_OFFSET := (((n) and 3) shl 18);
 end;
 
-function DCAP_BANK(n: cint): cint; inline;   
+function DCAP_BANK(n: cint): cint; inline;
 begin
   DCAP_BANK := (((n) and 3) shl 16);
 end;
 
-function DCAP_B(n: cint): cint; inline;      
+function DCAP_B(n: cint): cint; inline;
 begin
   DCAP_B := (((n) and $1F) shl 8);
 end;
 
-function DCAP_A(n: cint): cint; inline;      
+function DCAP_A(n: cint): cint; inline;
 begin
   DCAP_A := (((n) and $1F) shl 0);
 end;

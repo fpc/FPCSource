@@ -36,7 +36,7 @@ type
     procedure TestCalcLookupValue;
     procedure TestEnableControls;
   end;
-  
+
 implementation
 
 uses ToolsUnit, dbf, testregistry, variants{$IFDEF UNIX},cwstring {$ENDIF};
@@ -150,9 +150,9 @@ begin
     DataEvents := '';
     THackDataset(ds).DataEvent(deDataSetScroll,0);
     AssertEquals('SetCurrentRecord;deDataSetScroll:0;DataSetScrolled:0;',DataEvents);
-    
+
     // unless TDataset.State is dsInsert
-    
+
     ds.insert;
     DataEvents := '';
     AssertTrue(ds.State=dsInsert);
@@ -217,7 +217,7 @@ begin
   with ds do
     begin
     aDatasource.DataSet := ds;
-    
+
     // Ugly hack to imitate InternalCalcField, see
     // TDbfTraceDataset.InternalInitFieldDefs
     FieldDefs.Add('Name',ftString);
@@ -226,7 +226,7 @@ begin
     AssertTrue(THackDataset(ds).InternalCalcFields);
     // If there are InternalCalcFields (InternalCalcFields=True) and the fieldkind
     // of the field from the deFieldChange event is fkData, then
-    // RefreshIntenralCalcFields is called
+    // RefreshInternalCalcFields is called
     AFld := FieldByName('id');
     DataEvents := '';
     THackDataset(ds).DataEvent(deFieldChange,PtrInt(AFld));
@@ -238,7 +238,7 @@ begin
     THackDataset(ds).DataEvent(deFieldChange,PtrInt(AFld));
     AssertEquals('deFieldChange:NAME;',DataEvents);
 
-    // If the TDataset.State is dsSetKey then IntenralCalcFields shoudn't get called
+    // If the TDataset.State is dsSetKey then InternalCalcFields shouldn't get called
     THackDataset(ds).SetState(dsSetKey);
     AFld := FieldByName('id');
     DataEvents := '';
@@ -322,7 +322,7 @@ begin
     THackDataset(ds).DataEvent(deFieldChange,PtrInt(AFld));
     AssertEquals('deFieldChange:CALCFLD;',DataEvents);
 
-    // If the TDataset.State is dsSetKey then CalculateFields shoudn't get called
+    // If the TDataset.State is dsSetKey then CalculateFields shouldn't get called
     THackDataset(ds).SetState(dsSetKey);
     AFld := FieldByName('id');
     DataEvents := '';
@@ -348,7 +348,7 @@ begin
     AFld := TIntegerField.Create(ds);
     AFld.FieldName := 'ID';
     AFld.DataSet := ds;
-    
+
     AFld := TStringField.Create(ds);
     AFld.FieldName := 'NAME';
     AFld.DataSet := ds;
@@ -377,7 +377,7 @@ begin
     THackDataset(ds).DataEvent(deFieldChange,PtrInt(AFld));
     AssertEquals('deFieldChange:NAME;',DataEvents);
 
-    // If the TDataset.State is dsSetKey then InternalCalcFields shoudn't get called
+    // If the TDataset.State is dsSetKey then InternalCalcFields shouldn't get called
     THackDataset(ds).SetState(dsSetKey);
     AFld := FieldByName('id');
     DataEvents := '';
@@ -401,7 +401,7 @@ begin
     begin
     open;
     FirstRec := THackDataLink(aDatalink).FirstRecord;
-    
+
     // Scroll '0' records, FirstRecord should stay the same,
     // and the there's no need to scroll the buffer.
     DataEvents := '';
@@ -429,11 +429,11 @@ begin
     DataEvents := '';
     THackDataset(ds).DataEvent(deDataSetScroll,1);
     AssertEquals('',DataEvents);
-    
+
     // Set the buffer-size to 5 and add it to the dataset again
     aDatalink.BufferCount:=5;
     aDatasource.DataSet := ds;
-    
+
     // Scroll '0' records, firstrecord should stay the same again,
     // and there's no need to scroll the buffer.
     DataEvents := '';
@@ -463,7 +463,7 @@ begin
     THackDataset(ds).DataEvent(deDataSetScroll,1);
     AssertEquals('deDataSetScroll:1;DataSetScrolled:-1;',DataEvents);
     AssertEquals(FirstRec,THackDataLink(aDatalink).FirstRecord);
-    
+
     // Scroll two records backward, no buffer scroll, FirstRecord
     // is inremented twice
     DataEvents := '';
@@ -495,7 +495,7 @@ procedure TTestDatasources.TestRefreshLookupList;
 var ds, lkpDs   : TDataset;
     AFld1, AFld2, AFld3 : Tfield;
     Var1,Var2 : Variant;
-    
+
   procedure TestLookupList;
   begin
     lkpDs.Open;
@@ -536,7 +536,7 @@ begin
       LookupResultField:='ID';
       RefreshLookupList;
       KeyFields:='name';
-      // Everything is filled in, this should run wihout any problems:
+      // Everything is filled in, this should run without any problems:
       RefreshLookupList;
       // The lookupdataset was closed, and should be closed again:
       AssertFalse(lkpDs.Active);
@@ -693,7 +693,7 @@ begin
     THackDataset(ds).CalculateFields(Buffer);
     AssertTrue(AFld3.IsNull);
     lkpds.Open;
-    
+
     // Thing are getting interesting with multiple fields in the key:
     AFld3.LookupKeyFields:='name;id';
     AFld3.KeyFields := 'name;id';
@@ -729,7 +729,7 @@ begin
   with ds do
     begin
     Open;
-    
+
     // If DisableControls isn't called, nothing should happen.
     DataEvents:='';
     EnableControls;

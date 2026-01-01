@@ -89,7 +89,7 @@ function ap_document_root(r: Prequest_rec): PAnsiChar;
 				      * that, it'll screw you.  But it's
 				      * back-compatible...
                                       }
-                                      
+
 function ap_get_remote_host(conn: Pconn_rec; dir_config: Pointer; type_: cint): PAnsiChar;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
@@ -130,15 +130,15 @@ function ap_is_recursion_limit_exceeded(const r: Prequest_rec): cint;
  * to maintain common state for all of them in the core, and make it
  * available to the other modules through interfaces.
  }
-    
+
 type
   require_line = record
     method_mask: cint;
     requirement: PAnsiChar;
   end;
-     
+
 {API_EXPORT(const AnsiChar *) ap_auth_type (request_rec *);
-API_EXPORT(const AnsiChar *) ap_auth_name (request_rec *);     
+API_EXPORT(const AnsiChar *) ap_auth_name (request_rec *);
 API_EXPORT(const AnsiChar *) ap_auth_nonce (request_rec *);
 API_EXPORT(int) ap_satisfies (request_rec *r);
 API_EXPORT(const array_header *) ap_requires (request_rec *);    }
@@ -191,9 +191,9 @@ const
   ETAG_SIZE  = (1 shl 3);
   ETAG_BACKWARD = (ETAG_MTIME or ETAG_INODE or ETAG_SIZE);
   ETAG_ALL   = (ETAG_MTIME or ETAG_INODE or ETAG_SIZE);
-  
+
   { Things moved up }
-  
+
   HOSTNAME_LOOKUP_OFF	= 0;
   HOSTNAME_LOOKUP_ON	= 1;
   HOSTNAME_LOOKUP_DOUBLE= 2;
@@ -231,7 +231,7 @@ type
     AP_FLAG_ON = 1,
     AP_FLAG_OFF = 2
   );
-  
+
   server_signature_t = ( srv_sig_unset, srv_sig_off, srv_sig_on,
    srv_sig_withmail);
 
@@ -253,16 +253,16 @@ type
     opts_add: allow_options_t;
     opts_remove: allow_options_t;
     override_: overrides_t;
-    
+
     { MIME typing --- the core doesn't do anything at all with this,
      * but it does know what to slap on a request for a document which
      * goes untyped by other mechanisms before it slips out the door...
      }
-    
+
     ap_default_type: PAnsiChar;
-  
+
     { Authentication stuff.  Groan... }
-    
+
     satisfy: cint;
     ap_auth_type: PAnsiChar;
     ap_auth_name: PAnsiChar;
@@ -273,13 +273,13 @@ type
      * if it's not null then it's allocated to sizeof(AnsiChar*)*RESPONSE_CODES.
      * This lets us do quick merges in merge_core_dir_configs().
      }
-  
+
     response_code_strings: PPAnsiChar; { from ErrorDocument, not from
                                    * ap_custom_response()
                                    }
 
     { Hostname resolution etc }
-    
+
     { Moved Up }
 
 //    unsigned int hostname_lookups : 4;
@@ -301,7 +301,7 @@ type
     { should we force a charset on any outgoing parameterless content-type?
      * if so, which charset?
      }
-     
+
     { Moved up }
 
 //    unsigned add_default_charset : 2;
@@ -322,7 +322,7 @@ type
     { logging options }
     server_signature: server_signature_t;
     loglevel: cint;
-    
+
     { Access control }
     sec: Parray_header;
     r: Pregex_t;
@@ -331,7 +331,7 @@ type
     { Where to find interpreter to run scripts }
     script_interpreter_source: interpreter_source_e;
 {$endif}
-    
+
 {$ifdef CHARSET_EBCDIC}
 
     { Moved up }
@@ -345,7 +345,7 @@ type
     ebcdicconversion_by_type_out: Ptable;
 
     { Moved up }
-    
+
     x_ascii_magic_kludge: cint;   { whether to handle the text/x-ascii- kludge }
 
 {$ifdef ADD_EBCDICCONVERT_DEBUG_HEADER}
@@ -375,7 +375,7 @@ type
 
 type
   core_server_config = record
-  
+
 {$ifdef GPROF}
     gprof_dir: PAnsiChar;
 {$endif}
@@ -385,7 +385,7 @@ type
      * can be tested that way).  But let's keep it to the bare minimum:
      }
     ap_document_root: PAnsiChar;
-  
+
     { Access control }
 
     access_name: PAnsiChar;

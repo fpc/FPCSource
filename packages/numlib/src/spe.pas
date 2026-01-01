@@ -60,7 +60,7 @@ function speby0(x: ArbFloat): ArbFloat;
 {  Calculate Besselfunction "of the second kind" Y1(x) }
 function speby1(x: ArbFloat): ArbFloat;
 
-{  Entier function, calculates first integer greater or equal than X}
+{  Entire function, calculates first integer greater or equal than X}
 function speent(x: ArbFloat): longint;
 
 {  Errorfunction ( 2/sqrt(pi)* Int(t,0,pi,exp(sqr(t)) )}

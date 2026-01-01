@@ -54,7 +54,7 @@ function cpuid_support : boolean;assembler;nostackframe;
 procedure fpc_cpuinit;
   begin
     { because of the brain dead sse detection on x86, this test is post poned to fpc_cpucodeinit which
-      must be implemented OS dependend (FK)
+      must be implemented OS dependent (FK)
     has_sse_support:=sse_support;
     has_mmx_support:=mmx_support;
     }

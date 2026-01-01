@@ -21,11 +21,11 @@ interface
 
 uses
 {$IFDEF FPC_DOTTEDUNITS}
-  System.CodePages.unicodedata, System.Types,  System.SysUtils, 
+  System.CodePages.unicodedata, System.Types,  System.SysUtils,
   System.Classes, System.StrUtils, System.Contnrs,
 {$ELSE}
   UnicodeData, Types,  SysUtils, Classes, StrUtils, Contnrs,
-{$ENDIF}  
+{$ENDIF}
   MarkDown.Elements,
   MarkDown.Utils,
   MarkDown.Line,

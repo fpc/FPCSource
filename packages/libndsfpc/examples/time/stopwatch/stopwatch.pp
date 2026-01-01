@@ -16,7 +16,7 @@ var
   ticks: cuint = 0;
 	state: TTimerStates = timerState_Stop;
 	down: cint;
-      
+
 begin
   consoleDemoInit();
 
@@ -38,18 +38,18 @@ begin
 			begin
 				timerStart(0, ClockDivider_1024, 0, nil);
 				state := timerState_Running;
-			end else 
+			end else
       if (state = timerState_Pause) then
 			begin
 				timerUnpause(0);
 				state := timerState_Running;
-			end else 
+			end else
       if (state = timerState_Running) then
 			begin
 				ticks := ticks + timerPause(0);
 				state := timerState_Pause;
 			end;
-		end else 
+		end else
     if (down and KEY_B) <> 0 then
 		begin
 			timerStop(0);

@@ -27,7 +27,7 @@ uses
 uses
   Classes, SysUtils, DB;
 {$ENDIF FPC_DOTTEDUNITS}
-  
+
 Type
   TCustomDatasetExporter = Class;
 
@@ -61,7 +61,7 @@ Type
     Property FieldName : String Read FFieldName Write SetFieldName;
     Property ExportedName : UTF8String Read GetExportedName Write SetExportedName;
   end;
-  
+
   { TExportFields }
 
   TExportFields = Class(TCollection)
@@ -113,7 +113,7 @@ Type
     Procedure Assign(Source : TPersistent); override;
   end;
   TCustomExportFormatSettingsClass = Class of TCustomExportFormatSettings;
-  
+
   { TExportFormatSettings }
   TExportFormatSettings = Class(TCustomExportFormatSettings)
   Published
@@ -213,7 +213,7 @@ Type
     Property OnExportRow : TOnExportRowEvent Read FOnExportRow Write FOnExportRow;
     Property OnProgress : TExportProgressEvent Read FonProgress Write FOnProgress;
   end;
-  
+
   TCustomDatasetExporterClass = Class of TCustomDatasetExporter;
 
   { TStreamExporter }
@@ -228,7 +228,7 @@ Type
   Public
     Procedure ExportToStream(AStream : TStream);
   end;
-  
+
   { TCustomFileExporter }
 
   TCustomFileExporter = Class(TStreamExporter)
@@ -256,13 +256,13 @@ Type
     // Publish in descendents.
     Property FileName : String Read FFileName Write SetFileName;
   end;
-  
+
 
 
 
 
   EDataExporter = Class(Exception);
-  
+
   { TExportFormatItem }
 
   TExportConfigureEvent = Function (Exporter : TCustomDatasetExporter) : Boolean of object;
@@ -283,7 +283,7 @@ Type
     Property Extensions : String Read FExtensions Write FExtensions;
     Property OnConfigureDialog : TExportConfigureEvent Read FOnConfigure Write FOnConfigure;
   end;
-  
+
   TExportFormats = Class(TCollection)
   private
     function GetFormat(Index : Integer): TExportFormatItem;
@@ -305,7 +305,7 @@ Type
     Function ConstructFilter(AnExport : TCustomDatasetExporter) : String;
     Property Formats[Index : Integer] : TExportFormatItem Read GetFormat Write SetFormat; default;
   end;
-  
+
 Function ExportFormats : TExportFormats;
 
 // Easy access functions
@@ -323,7 +323,7 @@ Const
   DateFieldTypes   = [ftDate,ftTime,ftDateTime,ftTimeStamp];
   MemoFieldTypes   = [ftMemo,ftFmtMemo,ftWideMemo];
   BlobFieldTypes   =  [ftBlob,ftDBaseOLE,ftGraphic,ftOraBlob,ftOraClob,ftParadoxOLE];
-  
+
 
 implementation
 
@@ -377,7 +377,7 @@ procedure TExportFieldItem.SetExportedName(const AValue: UTF8String);
 
 Var
   I : TExportFieldItem;
-  
+
 begin
   If (FExportedName<>AValue) then
     begin
@@ -443,10 +443,10 @@ end;
 
 function TExportFields.FindExportField(const AFieldName: String
   ): TExportFieldItem;
-  
+
 Var
   I : Integer;
-  
+
 begin
   I:=IndexOfField(AFieldName);
   If (I<>-1) then
@@ -624,7 +624,7 @@ begin
     else if FormatSettings.UseDisplayText then
       Result:=F.DisplayText
     else
-      Result:=F.AsUTF8String;  
+      Result:=F.AsUTF8String;
     end
   else if (F.DataType=ftBoolean) then
     begin
@@ -665,7 +665,7 @@ begin
       Result:=F.DisplayText
     else
       Result:=F.AsUTF8String;
-    end 
+    end
   else if (F.DataType=ftCurrency) then
     begin
     If (FormatSettings.CurrencySymbol<>'') and (not F.IsNull) then
@@ -676,7 +676,7 @@ begin
       end
     else if FormatSettings.UseDisplayText then
       Result:=F.DisplayText
-    else 
+    else
       Result:=F.AsUTF8String;
     end
   else if FormatSettings.UseDisplayText then
@@ -717,7 +717,7 @@ procedure TCustomDatasetExporter.BuildDefaultFieldMap(AMap : TExportFields);
 Var
   I : Integer;
   F : TField;
-  
+
 begin
   CheckDataset(False);
   AMap.Clear;
@@ -957,7 +957,7 @@ function TExportFormats.FindFormat(const AName: String): TExportFormatItem;
 
 Var
   I : Integer;
-  
+
 begin
   I:=IndexOfFormat(AName);
   If (I=-1) then
@@ -967,7 +967,7 @@ begin
 end;
 
 function TExportFormats.FindFormatByClass(AClass: TCustomDataSetExporterClass): TExportFormatItem;
-  
+
 Var
   I : Integer;
 
@@ -981,10 +981,10 @@ end;
 
 function TExportFormats.ConfigureExport(AnExport: TCustomDatasetExporter
   ): Boolean;
-  
+
 Var
   F : TExportFormatItem;
-  
+
 begin
   Result:=True;
   F:=FindFormatByClass(TCustomDatasetExporterClass(AnExport.ClassType));
@@ -1001,20 +1001,20 @@ end;
 
 function TExportFormats.ConstructFilter(AnExport: TCustomDatasetExporter
   ): String;
-  
+
   Procedure AddToResult(const S : String);
-  
+
   begin
     If (Result<>'') and (S<>'') then
       Result:=Result+'|';
     Result:=Result+S;
   end;
-  
+
 Var
   F : TExportFormatItem;
   P : Integer;
   S,E : String;
-  
+
 begin
   Result:='';
   F:=FindFormatByClass(TCustomDatasetExporterClass(AnExport.ClassType));

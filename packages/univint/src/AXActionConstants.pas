@@ -227,7 +227,7 @@ uses MacTypes;
 
 {
 	TBD: Explain general philosophy on whether to expose an action or not.
-	Our initial philopsophy is to not to have an action where there is a menu item
+	Our initial philosophy is to not to have an action where there is a menu item
 	or button that does the same thing.
 }
 

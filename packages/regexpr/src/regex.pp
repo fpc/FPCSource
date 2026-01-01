@@ -2,9 +2,9 @@
     This file is part of the Free Pascal packages library.
     Copyright (c) 2008 by Joost van der Sluis, member of the
     Free Pascal development team
-    
+
     Regexpression parser
-    
+
     This code is based on the examples in the book
     'Tomes of Delphi: Algorithms and Data Structures' by Julian M Bucknall
     The code is used with his permission. For an excellent explanation of
@@ -136,7 +136,7 @@ type
       FCapacity : integer;
       FHead : integer;
       FTail : integer;
-      
+
       FRegexType : TRegexType;
     protected
       procedure DequeEnqueue(aValue : integer);
@@ -565,7 +565,7 @@ begin
   FHead := FCapacity div 2;
   FTail := FHead;
 
-  
+
   {enqueue the special value to start scanning}
   DequeEnqueue(MustScan);
   {enqueue the first state}

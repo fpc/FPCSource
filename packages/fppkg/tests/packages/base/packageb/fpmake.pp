@@ -21,7 +21,7 @@ begin
     P.Dependencies.Add('packagea');
 
     P.SourcePath.Add('src');
- 
+
     T:=P.Targets.AddUnit('PackageBUnitB.pas');
     Run;
     end;

@@ -294,7 +294,7 @@ const
   {$EXTERNALSYM SDDL_PERFLOG_USERS}
 
 //
-// SDDL Seperators - character version
+// SDDL Separators - character version
 //
 
   SDDL_SEPERATORC   = ';';
@@ -307,7 +307,7 @@ const
   {$EXTERNALSYM SDDL_ACE_ENDC}
 
 //
-// SDDL Seperators - string version
+// SDDL Separators - string version
 //
 
   SDDL_SEPERATOR   = ';';

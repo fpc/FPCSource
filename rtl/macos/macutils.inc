@@ -141,7 +141,7 @@ end;
     {parameter mpw affects how the root volume is denoted. If mpw is true, }
     {the path is intended for use in MPW, and the environment variable Boot is}
     {prepended. Otherwise the actual boot volume name is appended.}
-    {All kinds of paths are attempted to be translated, except the unusal }
+    {All kinds of paths are attempted to be translated, except the unusual }
     {dos construct: a relative path on a certain drive like : C:xxx\yyy}
 
   function TranslatePathToMac (const path: shortstring; mpw: Boolean): Shortstring;
@@ -228,7 +228,7 @@ end;
                 end
               else if (oldpos + 1 > oldlen) or (path[oldPos + 1] in AllowDirectorySeparators) then
                 begin
-                  {It is "./" or "."  ignor it }
+                  {It is "./" or "."  ignore it }
                   oldPos := oldPos + 2;
                   continue;  {Start over again}
                 end;
@@ -268,7 +268,7 @@ end;
       TranslatePathToMac := path;  {its a mac path}
   end;
 
-  {Concats the relative or full path path1 and the relative path path2.}
+  {Concatenate the relative or full path path1 and the relative path path2.}
   function ConcatMacPath (path1, path2: Shortstring): Shortstring;
 
   begin

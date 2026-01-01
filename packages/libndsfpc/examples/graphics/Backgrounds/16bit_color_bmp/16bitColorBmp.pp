@@ -37,7 +37,7 @@ begin
   begin
     swiWaitForVBlank();
     ScanKeys();
-    if (keysDown() and KEY_START) <> 0 then 
+    if (keysDown() and KEY_START) <> 0 then
       break;
   end;
 end.

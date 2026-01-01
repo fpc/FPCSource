@@ -17,7 +17,7 @@ uses
   Classes, sysutils,
   sqldb,
   SqldbExampleUnit;
-  
+
 var i : integer;
 
 begin
@@ -31,7 +31,7 @@ begin
     begin
 
     SQL.Clear;
-    
+
     SQL.Add('insert into FPDEV ( id, Name, Email, BirthDate)       ');
     SQL.Add('           values ( :id, :name, :email, :birthdate )   ');
 

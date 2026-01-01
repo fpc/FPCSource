@@ -24,10 +24,10 @@ uses System.Stl.Deque;
 uses gdeque;
 {$ENDIF FPC_DOTTEDUNITS}
 
-type 
+type
   generic TQueue<T>=class
   private
-  type 
+  type
     TContainer = specialize TDeque<T>;
   var
     FData:TContainer;

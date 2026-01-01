@@ -29,8 +29,8 @@ var
     Errno : longint; external name 'errno';}
 
 // These are Linux ErrNo - NOT TRANSLATED
-// Most shoul be equal
-// There seem to be some translation, because from 35 upward it is differnt
+// Most should be equal
+// There seem to be some translation, because from 35 upward it is different
 
 Const
 

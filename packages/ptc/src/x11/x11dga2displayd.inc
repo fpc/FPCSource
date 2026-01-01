@@ -38,7 +38,7 @@ type
     FOpen: Boolean;
     FXDGAEventBase: cint;
     FXDGAErrorBase: cint;
-  
+
     { The list of available modes (todo: move to local vars in the open function) }
     FXDGAModes: PXDGAMode;
     FXDGAModesNum: cint;

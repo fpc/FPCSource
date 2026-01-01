@@ -541,7 +541,7 @@ function GetLogColorSpace(p1: HCOLORSPACE; var ColorSpace: TLogColorSpace; Size:
 function GetLogColorSpaceA(p1: HCOLORSPACE; var ColorSpace: TLogColorSpaceA; Size: DWORD): BOOL; external 'gdi32' name 'GetLogColorSpaceA';
 //function GetLogColorSpaceW(p1: HCOLORSPACE; var ColorSpace: TLogColorSpaceW; Size: DWORD): BOOL; external 'gdi32' name 'GetLogColorSpaceW';
 function GetMailslotInfo(hMailslot: THandle; lpMaxMessageSize: Pointer; var lpNextSize: DWORD; lpMessageCount, lpReadTimeout: Pointer): BOOL; external 'kernel32' name 'GetMailslotInfo';
-//function GetMenuBarInfo(hend: HWND; idObject, idItem: Longint; var pmbi: TMenuBarInfo): BOOL;external 'user32' name 'GetMenuBarInfo';
+//function GetMenuBarInfo(hand: HWND; idObject, idItem: Longint; var pmbi: TMenuBarInfo): BOOL;external 'user32' name 'GetMenuBarInfo';
 //function GetMenuInfo(hMenu: HMENU; var lpmi: TMenuInfo): BOOL;external 'user32' name 'GetMenuInfo';
 function GetMenuItemInfo(p1: HMENU; p2: UINT; p3: BOOL; var p4: TMenuItemInfo): BOOL;external 'user32' name 'GetMenuItemInfoA';
 function GetMenuItemInfoA(p1: HMENU; p2: UINT; p3: BOOL; var p4: TMenuItemInfoA): BOOL; external 'user32' name 'GetMenuItemInfoA';
@@ -876,7 +876,7 @@ function SetWinMetaFileBits(p1: UINT; p2: PAnsiChar; p3: HDC; const p4: TMetaFil
 function StartDoc(DC: HDC; const p2: TDocInfo): Integer;external 'gdi32' name 'StartDocA';
 function StartDocA(DC: HDC; const p2: TDocInfoA): Integer; external 'gdi32' name 'StartDocA';
 //function StartDocW(DC: HDC; const p2: TDocInfoW): Integer; external 'gdi32' name 'StartDocW';
-//function StretchDIBits(DC: HDC; DestX, DestY, DestWidth, DestHegiht, SrcX, SrcY, SrcWidth, SrcHeight: Integer; Bits: Pointer; var BitsInfo: TBitmapInfo; Usage: UINT; Rop: DWORD): Integer; external 'gdi32' name 'StretchDIBits';
+//function StretchDIBits(DC: HDC; DestX, DestY, DestWidth, DestHeight, SrcX, SrcY, SrcWidth, SrcHeight: Integer; Bits: Pointer; var BitsInfo: TBitmapInfo; Usage: UINT; Rop: DWORD): Integer; external 'gdi32' name 'StretchDIBits';
 function SubtractRect(var lprcDst: TRect; const lprcSrc1, lprcSrc2: TRect): BOOL; external 'user32' name 'SubtractRect';
 function SystemTimeToFileTime(const lpSystemTime: TSystemTime; var lpFileTime: TFileTime): BOOL; external 'kernel32' name 'SystemTimeToFileTime';
 function SystemTimeToTzSpecificLocalTime(lpTimeZoneInformation: PTimeZoneInformation; var lpUniversalTime, lpLocalTime: TSystemTime): BOOL; external 'kernel32' name 'SystemTimeToTzSpecificLocalTime';

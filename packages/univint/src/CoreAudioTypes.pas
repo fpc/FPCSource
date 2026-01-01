@@ -365,7 +365,7 @@ const
                     However, where applicable, the appropriate fields will be filled out correctly
                     for these kinds of formats (the extra data is provided via separate properties).
                     In all fields, a value of 0 indicates that the field is either unknown, not
-                    applicable or otherwise is inapproprate for the format and should be ignored.
+                    applicable or otherwise is inappropriate for the format and should be ignored.
                     Note that 0 is still a valid value for most formats in the mFormatFlags field.
 
                     In audio data a frame is one sample across all channels. In non-interleaved
@@ -966,7 +966,7 @@ type
 
 {!
     @typedef        AudioChannelLabel
-    @abstract       A tag idenitfying how the channel is to be used.
+    @abstract       A tag identifying how the channel is to be used.
 }
 type
 	AudioChannelLabel = UInt32;
@@ -1145,11 +1145,11 @@ const
                     AudioChannelDescription structure.
     @constant       kAudioChannelFlags_RectangularCoordinates
                         The channel is specified by the cartesioan coordinates of the speaker
-                        position. This flag is mutally exclusive with
+                        position. This flag is mutually exclusive with
                         kAudioChannelFlags_SphericalCoordinates.
     @constant       kAudioChannelFlags_SphericalCoordinates
                         The channel is specified by the spherical coordinates of the speaker
-                        position. This flag is mutally exclusive with
+                        position. This flag is mutually exclusive with
                         kAudioChannelFlags_RectangularCoordinates.
     @constant       kAudioChannelFlags_Meters
                         Set to indicate the units are in meters, clear to indicate the units are
@@ -1161,17 +1161,17 @@ const
 	kAudioChannelFlags_SphericalCoordinates = 1 shl 1;
 	kAudioChannelFlags_Meters = 1 shl 2;
 
-// these are indices for acessing the mCoordinates array in struct AudioChannelDescription
+// these are indices for accessing the mCoordinates array in struct AudioChannelDescription
 {!
     @enum           Channel Coordinate Index Constants
     @abstract       Constants for indexing the mCoordinates array in an AudioChannelDescription
                     structure.
     @constant       kAudioChannelCoordinates_LeftRight
-                        For rectangulare coordinates, negative is left and positive is right.
+                        For rectangular coordinates, negative is left and positive is right.
     @constant       kAudioChannelCoordinates_BackFront
-                        For rectangulare coordinates, negative is back and positive is front.
+                        For rectangular coordinates, negative is back and positive is front.
     @constant       kAudioChannelCoordinates_DownUp
-                        For rectangulare coordinates, negative is below ground level, 0 is ground
+                        For rectangular coordinates, negative is below ground level, 0 is ground
                         level, and positive is above ground level.
     @constant       kAudioChannelCoordinates_Azimuth
                         For spherical coordinates, 0 is front center, positive is right, negative is

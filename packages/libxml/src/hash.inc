@@ -1,6 +1,6 @@
 (*
  * Summary: Chained hash tables
- * Description: This module implements the hash table support used in 
+ * Description: This module implements the hash table support used in
  * 		various places in the library.
  *
  * Copy: See Copyright for the status of this software.
@@ -52,7 +52,7 @@
 (**
  * xmlHashScanner:
  * @payload:  the data in the hash
- * @data:  extra scannner data
+ * @data:  extra scanner data
  * @name:  the name associated
  *
  * Callback when scanning data in a hash with the simple scanner.
@@ -62,7 +62,7 @@
 (**
  * xmlHashScannerFull:
  * @payload:  the data in the hash
- * @data:  extra scannner data
+ * @data:  extra scanner data
  * @name:  the name associated
  * @name2:  the second name associated
  * @name3:  the third name associated

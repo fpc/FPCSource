@@ -17,7 +17,7 @@
 
   PGTraverseFlags = ^TGTraverseFlags;
   TGTraverseFlags = gint;
-  
+
   PGTraverseType = ^TGTraverseType;
   TGTraverseType = (
     G_IN_ORDER,

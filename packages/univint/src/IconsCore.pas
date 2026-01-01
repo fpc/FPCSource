@@ -343,7 +343,7 @@ const
 {
    Type of the predefined/generic icons. For example, the call:
       err = GetIconRef(kOnSystemDisk, kSystemIconsCreator, kHelpIcon, &iconRef);
-   will retun in iconRef the IconRef for the standard help icon.
+   will return in iconRef the IconRef for the standard help icon.
 }
 
 { Generic Finder icons }
@@ -1293,7 +1293,7 @@ function FlushIconRefsByVolume( vRefNum: SInt16 ): OSErr; external name '_FlushI
 
 {
   ==============================================================================
-   Controling custom icons
+   Controlling custom icons
   ==============================================================================
 }
 

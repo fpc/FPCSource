@@ -110,7 +110,7 @@ implementation
 {  Read Processor dependent part, shared with sysutils unit }
 {$i strings.inc }
 
-{ Read processor denpendent part, NOT shared with sysutils unit }
+{ Read processor dependent part, NOT shared with sysutils unit }
 {$i stringss.inc }
 
 { Read generic string functions that are not implemented for the processor }

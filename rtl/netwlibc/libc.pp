@@ -276,7 +276,7 @@ function Lstrstr(_para1, _para2:PAnsiChar):PAnsiChar;cdecl;external libc_nlm nam
 function Lstrtok_r(__restrict:PAnsiChar; __restrict1:PAnsiChar; __restrict2:PPAnsiChar):PAnsiChar;cdecl;external libc_nlm name 'Lstrtok_r';
 function Lstrupr(_para1:PAnsiChar):PAnsiChar;cdecl;external libc_nlm name 'Lstrupr';
 function Lstrxfrm(__restrict:PAnsiChar; __restrict1:PAnsiChar; _para3:size_t):size_t;cdecl;external libc_nlm name 'Lstrxfrm';
-{ length-preceeded string manipulation...  }
+{ length-preceded string manipulation...  }
 function ASCIIZToLenStr(_para1, _para2:PAnsiChar):longint;cdecl;external libc_nlm name 'ASCIIZToLenStr';
 function ASCIIZToMaxLenStr(_para1, _para2:PAnsiChar; _para3:size_t):longint;cdecl;external libc_nlm name 'ASCIIZToMaxLenStr';
 function LenStrCat(_para1, _para2:PAnsiChar):PAnsiChar;cdecl;external libc_nlm name 'LenStrCat';
@@ -1601,7 +1601,7 @@ function Fpwritev(fildes:longint; iov:Piovec; iovcnt:longint):ssize_t;cdecl;exte
 **
 ** The Novell NDK headers for NKS/LibC contain structures that are explicitly
 ** hand-packed for best use on the platform in question (usually IA32). To
-** avoid the impredictability encountered when compiling with different
+** avoid the impracticability encountered when compiling with different
 ** compilers, these headers rely on 1-byte packing.
  }
 { this header sets packing to 1 for different compilers  }
@@ -3676,7 +3676,7 @@ const
      //QAlertMask = ((AlertIDValidMask or AlertLocusValidMask) or NoDisplayAlertIDBit) or QueueThisAle
      //QAlert320Mask = Alert320Mask or QueueThisAlertMask;
  { allotted ModuleNumbers for 'alertID' in EventNetWareAlertStruct_t...  }
-     ALERT_BINDERY    = $01020000;   // Bindary
+     ALERT_BINDERY    = $01020000;   // Bindery
      ALERT_OS         = $01030000;   // OS Event Subject
      ALERT_LLC        = $01040000;   // LLC
      ALERT_SDLC       = $01050000;   // SDLC Stack
@@ -4451,7 +4451,7 @@ procedure _Free(addr:pointer);cdecl;external system_nlm name 'Free';
        CMD_ANY_PROCESS     = $80000000;   { can run on any process with keyboard  }
     { keyword flags for RegisterCommand()...  }
        CMD_MSG_NUMBER      = $80000000;   { pointer to keyword is number  }
-       CMD_LENGTH_PREC     = $40000000;   { keyword is length-preceeded  }
+       CMD_LENGTH_PREC     = $40000000;   { keyword is length-preceded  }
     { insertion flags for RegisterCommand()...  }
        CMD_INSERT_AT_HEAD  = $00000001;   { insert at head  }
        CMD_INSERT_AT_TAIL  = $00000002;   { insert at tail  }
@@ -5592,7 +5592,7 @@ type
         esStdout : NXStreamSpec_t;
         esStderr : NXStreamSpec_t;
      end;
-{ maxmimum number of threads in worker pool      }
+{ maximum number of threads in worker pool       }
 { implementation-reserved                        }
 
    PNXVmWorkerThreadConfig_t = ^NXVmWorkerThreadConfig_t;
@@ -5823,7 +5823,7 @@ type
      RTLD_LOCAL = $08;             { ignored }
      RTLD_MULTIPLE = $10;          { NetWare: force-load multiple times  }
      MAX_DLL_NAME_LEN = 8;         { special purpose value for 'handle' in dlsym()...  }
-     MAX_SYMNAME_LEN = 255;        { maximim length of 'name' in dlsym()...  }
+     MAX_SYMNAME_LEN = 255;        { maximum length of 'name' in dlsym()...  }
 
 
 function dlopen(path:PAnsiChar; mode:longint):pointer;cdecl;external libc_nlm name 'dlopen';
@@ -6012,7 +6012,7 @@ function ___lastFileSysErrno:Plongint;cdecl;external libc_nlm name '___lastFileS
      ERR_ESM_AVAL = 1;
      ERR_SIZE_ZERO = 2;           { ESMAlloc size requested is zero          }
      ERR_TABLE_FULL = 3;          { allocation table is full                 }
-     ERR_NOT_CONTIGUOUS = 4;      { ESMAlloc request cannot be continguous   }
+     ERR_NOT_CONTIGUOUS = 4;      { ESMAlloc request cannot be contiguous    }
      ERR_INVAL_ADDRESS = 5;       { already free or out of range             }
      ERR_INVAL_SRC_ADDR = 6;      { bad source address (ESMCopy)             }
      ERR_INVAL_DEST_ADDR = 7;     { bad destination address(ESMCopy/ESMFill) }
@@ -6248,7 +6248,7 @@ type
    Ttimeinfo = timeinfo_t;
    Ptimeinfo = Ptimeinfo_t;
 
-{ commonlity in call-back structures...  }
+{ commonality in call-back structures...  }
 { NSS (NetWare 6) filesystem hooks events and call-back data structures...  }
 
    Pdel_warn_t = ^del_warn_t;
@@ -9116,7 +9116,7 @@ function iswascii(_para1:wint_t):longint;cdecl;external libc_nlm name 'iswascii'
      DLL_THREAD_ATTACH = 4;      { application creating new thread        }
      DLL_THREAD_DETACH = 5;      { application thread exiting cleanly     }
      DLL_PROCESS_DETACH = 6;     { DLL "unloaded" from application space  }
-     TLS_MINIMUM_AVAILABLE = 64; { minumum number of keys available       }
+     TLS_MINIMUM_AVAILABLE = 64; { minimum number of keys available       }
 
 
 type

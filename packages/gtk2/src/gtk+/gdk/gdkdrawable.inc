@@ -76,7 +76,7 @@
         _gdk_reserved15 : procedure ; cdecl;
         _gdk_reserved16 : procedure ; cdecl;
      end;
-    
+
    PGdkTrapezoid = ^TGdkTrapezoid;
    TGdkTrapezoid = record
         y1 : double;

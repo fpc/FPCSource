@@ -27,8 +27,8 @@ uses
   WinApi.Windows,
 {$else}
 {$ifdef KYLIX}
-  Api.Libc, 
-{$endif}  
+  Api.Libc,
+{$endif}
   System.Types, Data.Dbf.Wtil,
 {$endif}
   Data.Db,
@@ -45,8 +45,8 @@ uses
   Windows,
 {$else}
 {$ifdef KYLIX}
-  Libc, 
-{$endif}  
+  Libc,
+{$endif}
   Types, dbf_wtil,
 {$endif}
   Db,
@@ -162,11 +162,11 @@ type
     function  GetFieldInfo(const FieldName: string): TDbfFieldDef;
     // Copies record buffer to field buffer
     // Returns true if not null & data succesfully copied; false if field is null
-    function  GetFieldData(Column: Integer; DataType: TFieldType; Src,Dst: Pointer; 
+    function  GetFieldData(Column: Integer; DataType: TFieldType; Src,Dst: Pointer;
       NativeFormat: boolean): Boolean;
     // Copies record buffer to field buffer
     // Returns true if not null & data succesfully copied; false if field is null
-    function  GetFieldDataFromDef(AFieldDef: TDbfFieldDef; DataType: TFieldType; 
+    function  GetFieldDataFromDef(AFieldDef: TDbfFieldDef; DataType: TFieldType;
       Src, Dst: Pointer; NativeFormat: boolean): Boolean;
     // Copies field buffer to record buffer for this field
     procedure SetFieldData(Column: Integer; DataType: TFieldType; Src,Dst: Pointer; NativeFormat: boolean);
@@ -666,7 +666,7 @@ begin
     // record changes
     if lModified then
       WriteHeader;
-    
+
     // open indexes
     for I := 0 to FIndexFiles.Count - 1 do
       TIndexFile(FIndexFiles.Items[I]).Open;
@@ -1270,7 +1270,7 @@ begin
       end;
 
       // apply field transformation tricks
-      if (lNativeFieldType = 'C') 
+      if (lNativeFieldType = 'C')
 {$ifndef USE_LONG_CHAR_FIELDS}
         and (FDbfVersion in [xFoxPro,xVisualFoxPro])
 {$endif}
@@ -1343,7 +1343,7 @@ begin
     if FFieldDefs.Count >= 4096 then
       raise EDbfError.CreateFmt(STRING_INVALID_FIELD_COUNT, [FFieldDefs.Count]);
 
-    // do not check FieldOffset = PDbfHdr(Header).RecordSize because additional 
+    // do not check FieldOffset = PDbfHdr(Header).RecordSize because additional
     // data could be present in record
 
     // get current position
@@ -1536,7 +1536,7 @@ begin
   // todo: verify if this works with memo files
   // get memory for index file list
   lIndexFileNames := TStringList.Create;
-  try 
+  try
     // save index filenames
     for I := 0 to FIndexFiles.Count - 1 do
     begin
@@ -1557,7 +1557,7 @@ begin
       I := 0;
       FindNextName(DestFileName, NewBaseName, I);
       {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.RenameFile(DestFileName, NewBaseName);
-      {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.RenameFile(ChangeFileExt(DestFileName, GetMemoExt), 
+      {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.RenameFile(ChangeFileExt(DestFileName, GetMemoExt),
         ChangeFileExt(NewBaseName, GetMemoExt));
     end;
     // delete old index files
@@ -1565,14 +1565,14 @@ begin
       {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.DeleteFile(NewIndexFileNames.Strings[I]);
     // rename the new dbf files
     {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.RenameFile(FileName, DestFileName);
-    {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.RenameFile(ChangeFileExt(FileName, GetMemoExt), 
+    {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.RenameFile(ChangeFileExt(FileName, GetMemoExt),
       ChangeFileExt(DestFileName, GetMemoExt));
     // rename new index files
     for I := 0 to NewIndexFileNames.Count - 1 do
       {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.RenameFile(lIndexFileNames.Strings[I], NewIndexFileNames.Strings[I]);
   finally
     lIndexFileNames.Free;
-  end;  
+  end;
 end;
 
 type
@@ -1660,7 +1660,7 @@ begin
           Min(TempSrcDef.Size - TempSrcDef.Precision,
             TempDstDef.Size - TempDstDef.Precision);
         // if one has dec separator, but other not, we lose one digit
-        if (TempDstDef.Precision > 0) xor 
+        if (TempDstDef.Precision > 0) xor
           ((TempSrcDef.NativeFieldType in ['F', 'N']) and (TempSrcDef.Precision > 0)) then
           Dec(lFieldSize);
         // should not happen, but check nevertheless (maybe corrupt data)
@@ -1800,7 +1800,7 @@ begin
     // if restructure -> rename the old dbf files
     // if pack only -> delete the old dbf files
     DestDbfFile.Rename(FileName, OldIndexFiles, DbfFieldDefs = nil);
-    
+
     // we have to reinit fielddefs if restructured
     Open;
 
@@ -1853,7 +1853,7 @@ begin
 end;
 
 // NOTE: Dst may be nil!
-function TDbfFile.GetFieldData(Column: Integer; DataType: TFieldType; 
+function TDbfFile.GetFieldData(Column: Integer; DataType: TFieldType;
   Src, Dst: Pointer; NativeFormat: boolean): Boolean;
 var
   TempFieldDef: TDbfFieldDef;
@@ -1863,7 +1863,7 @@ begin
 end;
 
 // NOTE: Dst may be nil!
-function TDbfFile.GetFieldDataFromDef(AFieldDef: TDbfFieldDef; DataType: TFieldType; 
+function TDbfFile.GetFieldDataFromDef(AFieldDef: TDbfFieldDef; DataType: TFieldType;
   Src, Dst: Pointer; NativeFormat: boolean): Boolean;
 var
   FieldOffset, FieldSize: Integer;
@@ -2000,11 +2000,11 @@ begin
     'T':
       begin
         // all binary zeroes -> empty datetime
-{$ifdef SUPPORT_INT64}        
+{$ifdef SUPPORT_INT64}
         Result := Unaligned(PInt64(Src)^) <> 0;
-{$else}        
+{$else}
         Result := (Unaligned(PInteger(Src)^) <> 0) or (Unaligned(PInteger(PAnsiChar(Src)+4)^) <> 0);
-{$endif}        
+{$endif}
         if Result and (Dst <> nil) then
         begin
           timeStamp.Date := SwapIntLE(Unaligned(PInteger(Src)^)) - JulianDateDelta;
@@ -2136,8 +2136,8 @@ begin
           ldd := GetIntFromStrLength(PAnsiChar(Src) + 6, 2, 1);
           //if (ly<1900) or (ly>2100) then ly := 1900;
           //Year from 0001 to 9999 is possible
-          //everyting else is an error, an empty string too
-          //Do DateCorrection with Delphis possibillities for one or two digits
+          //everything else is an error, an empty string too
+          //Do DateCorrection with Delphis possibilities for one or two digits
           if (ldy < 100) and (PAnsiChar(Src)[0] = #32) and (PAnsiChar(Src)[1] = #32) then
             CorrectYear(ldy);
           try
@@ -2175,7 +2175,7 @@ begin
   end;
 end;
 
-procedure TDbfFile.UpdateNullField(Buffer: Pointer; AFieldDef: TDbfFieldDef; 
+procedure TDbfFile.UpdateNullField(Buffer: Pointer; AFieldDef: TDbfFieldDef;
   Action: TUpdateNullField; WhichField: TNullFieldFlag);
 var
   NullDst: pbyte;
@@ -2212,7 +2212,7 @@ begin
   end;
 end;
 
-procedure TDbfFile.SetFieldData(Column: Integer; DataType: TFieldType; 
+procedure TDbfFile.SetFieldData(Column: Integer; DataType: TFieldType;
   Src, Dst: Pointer; NativeFormat: boolean);
 const
   IsBlobFieldToPadChar: array[Boolean] of AnsiChar = (#32, '0');
@@ -2305,7 +2305,7 @@ begin
         begin
 {$ifdef SUPPORT_INT64}
           Unaligned(PInt64(Dst)^) := 0;
-{$else}          
+{$else}
           Unaligned(PInteger(Dst)^) := 0;
           Unaligned(PInteger(PAnsiChar(Dst)+4)^) := 0;
 {$endif}
@@ -2323,10 +2323,10 @@ begin
         begin
 {$ifdef SUPPORT_INT64}
           Unaligned(PInt64(Dst)^) := 0;
-{$else}          
+{$else}
           Unaligned(PInteger(Dst)^) := 0;
           Unaligned(PInteger(PAnsiChar(Dst)+4)^) := 0;
-{$endif}          
+{$endif}
         end else begin
           LoadDateFromSrc;
           timeStamp := DateTimeToTimeStamp(date);
@@ -2499,7 +2499,7 @@ begin
   //   note: Self.RecordSize is used for reading fielddefs too
   GetMem(FDefaultBuffer, lRecordSize+1);
   FillChar(FDefaultBuffer^, lRecordSize, ' ');
-  
+
   // set nullflags field so that all fields are null (and var* fields marked as full)
   if FNullField <> nil then
     FillChar(PAnsiChar(FDefaultBuffer+FNullField.Offset)^, FNullField.Size, $FF);
@@ -2604,7 +2604,7 @@ begin
 
     // write modified header (new autoinc values) to file
     WriteHeader;
-    
+
     // release lock if locked
     if NeedLocks then
       UnlockPage(0);
@@ -3351,7 +3351,7 @@ begin
 {$else}
   FUserNameLen := MAX_COMPUTERNAME_LENGTH+1;
   SetLength(FUserName, FUserNameLen);
-  {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.GetComputerName(PAnsiChar(FUserName), 
+  {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.GetComputerName(PAnsiChar(FUserName),
     {$ifdef DELPHI_3}Windows.DWORD({$endif}
       FUserNameLen
     {$ifdef DELPHI_3}){$endif}
@@ -3367,7 +3367,7 @@ begin
   FUserName := TempName.machine;
  {$ENDIF OS2}
   FUserNameLen := Length(FUserName);
-{$endif}  
+{$endif}
 {$endif}
 end;
 

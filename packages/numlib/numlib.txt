@@ -20,7 +20,7 @@
 
  **********************************************************************}
 
-NumLib ported.txt, internals or "Developpers docs".
+NumLib ported.txt, internals or "Developers docs".
 
 ARBFLOAT, basic Floating point type.
 -----------------------------------
@@ -95,7 +95,7 @@ Questions that remain open/incompleteneses in the package we got:
    .dll. All graphics using routines, and new units were never finished.
    The problem is that also the documentation was never finished.
 - How to implement a less ugly calling convention, without loosing speed.
-  (which still can be important in nummerics)?
+  (which still can be important in numeric)?
 
 Other remarks:
 - Spe needs some constants recalculated to get full precision for extended,

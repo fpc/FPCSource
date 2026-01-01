@@ -14,7 +14,7 @@ type TGMapTest = class(TTestCase)
     procedure MapTest;
   public
     procedure Setup;override;
-  private 
+  private
     data:maplli;
   end;
 
@@ -44,7 +44,7 @@ begin
   data[3]:=47;
   AssertEquals('Wrong val 2', 47, data[3]);
 
-  if(data.find(4)<>nil) then 
+  if(data.find(4)<>nil) then
     AssertEquals('Found key which not there', 0, 1);
 
   data[17]:=42;

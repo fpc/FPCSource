@@ -75,7 +75,7 @@ const
 { The structure representing a compiled regular expression. }
 type
   Pap_regex_t = ^ap_regex_t;
-  
+
   ap_regex_t = record
     re_pcre: Pointer;
     re_nsub: apr_size_t;
@@ -109,7 +109,7 @@ function ap_regcomp(preg: Pap_regex_t; const regex: PAnsiChar; cflags: Integer):
  * @param string The string to match
  * @param nmatch Provide information regarding the location of any matches
  * @param pmatch Provide information regarding the location of any matches
- * @param eflags Bitwise OR of any of AP_REG_* flags 
+ * @param eflags Bitwise OR of any of AP_REG_* flags
  * @return 0 for successful match, #REG_NOMATCH otherwise
  }
 function ap_regexec(const preg: Pap_regex_t; const string_: PAnsiChar;

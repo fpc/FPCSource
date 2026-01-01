@@ -173,7 +173,7 @@ type
     // eg: CN=User Name,OU=Users,DC=Example,DC=Microsoft,DC=Com
     DS_FQDN_1779_NAME,
 
-    // eg: Exmaple\UserName
+    // eg: Example\UserName
     // Domain-only version includes trailing '\\'.
     DS_NT4_ACCOUNT_NAME,
 
@@ -405,7 +405,7 @@ type
 // Allow the Bind to use delegate service level, so that you can
 // do ntdsapi operations that require delegation, such as
 // DsAddSidHistory, and DsReplicaSyncAll().  Most operations do
-// not require DELEGATE so this flag should only be specified 
+// not require DELEGATE so this flag should only be specified
 // if you need it, because if you bind to a rogue server with
 // the DELEGATE flag, you'll allow the rogue server to use your
 // credentials to connect back to a non-rogue server and perform
@@ -978,10 +978,10 @@ type
 //      obtained via DsGetDcName (i.e. Field with the same name in a
 //      DOMAIN_CONTROLLER_INFO struct on return from DsGetDcName call.)
 //      The client is bound to the domain controller at this name.
-//      
+//
 //      Mutual authentication will be performed using an SPN of
 //      LDAP/DomainControllerName provided DomainControllerName
-//      is not a NETBIOS name or IP address - i.e. it must be a 
+//      is not a NETBIOS name or IP address - i.e. it must be a
 //      DNS host name.
 //
 // DomainControllerName(value), DnsDomainName(value)
@@ -996,7 +996,7 @@ type
 // DomainControllerName(NULL), DnsDomainName(NULL)
 //
 //      DsBind will attempt to find to a global catalog and fail if one
-//      can not be found.  
+//      can not be found.
 //
 //      Mutual authentication will be performed using an SPN of
 //      GC/DnsHostName/ForestName where DnsHostName and ForestName
@@ -1324,7 +1324,7 @@ function DsCrackSpn(pszSpn: LPCTSTR; pcServiceClass: LPDWORD; ServiceClass: LPTS
 // writes to the SPN property are not allowed -- all writes must come through
 // this RPC call. (Reads via // LDAP are OK.)
 //
-// The account object can be a machine accout, or a service (user) account.
+// The account object can be a machine account, or a service (user) account.
 //
 // If called by the service to register itself, it can most easily get
 // the names by calling DsGetSpn with each of the names that
@@ -1398,7 +1398,7 @@ function DsClientMakeSpnForTargetServer(ServiceClass: LPCTSTR; ServiceName: LPCT
 {$EXTERNALSYM DsClientMakeSpnForTargetServer}
 
 {++
-outine Description:
+routine Description:
 
 Register Service Principal Names for a server application.
 
@@ -1449,7 +1449,7 @@ function DsServerRegisterSpn(Operation: DS_SPN_WRITE_OP; ServiceClass: LPCTSTR;
 // with respect to a source system.  The source system is identified by the
 // uuid.  The uuid is that of the source system's "NTDS Settings" object.
 // The destination system must already be configured such that the source
-// system is one of the systems from which it recieves replication data
+// system is one of the systems from which it receives replication data
 // ("replication from"). This is usually done automatically by the KCC.
 //
 //  PARAMETERS:
@@ -1613,7 +1613,7 @@ function DsReplicaModify(hDS: HANDLE; NameContext: LPCTSTR; pUuidSourceDsa: LPUU
 
 // DsReplicaUpdateRefs
 //
-// In this case, the RPC is being executed on the "source" of destination-sourc
+// In this case, the RPC is being executed on the "source" of destination-source
 // replication relationship.  This function tells the source that it no longer
 // supplies replication information to the indicated destination system.
 // Add or remove a target server from the Reps-To property on the given NC.
@@ -1627,7 +1627,7 @@ function DsReplicaModify(hDS: HANDLE; NameContext: LPCTSTR; pUuidSourceDsa: LPUU
 //          Network address of DSA for which the reference should be added
 //          or deleted.
 //      pUuidDsaDest (UUID *)
-//          objectGuid of the DSA object for which the reference should be 
+//          objectGuid of the DSA object for which the reference should be
 //          added or deleted.
 //      ulOptions (ULONG)
 //          Bitwise OR of zero or more of the following:
@@ -2206,10 +2206,10 @@ type
   PDsDomainControllerInfo2 = PDsDomainControllerInfo2A;
   {$ENDIF UNICODE}
 
-// The following APIs strictly find domain controller account objects 
+// The following APIs strictly find domain controller account objects
 // in the DS and return information associated with them.  As such, they
 // may return entries which correspond to domain controllers long since
-// decommissioned, etc. and there is no guarantee that there exists a 
+// decommissioned, etc. and there is no guarantee that there exists a
 // physical domain controller at all.  Use DsGetDcName (dsgetdc.h) to find
 // live domain controllers for a domain.
 
@@ -2409,7 +2409,7 @@ type
   DS_REPL_NEIGHBORW_BLOB = _DS_REPL_NEIGHBORW_BLOB;
   {$EXTERNALSYM DS_REPL_NEIGHBORW_BLOB}
   TDsReplNeighborwBlob = DS_REPL_NEIGHBORW_BLOB;
-  PDsReplNeighborwBlob = ^DS_REPL_NEIGHBORW_BLOB;  
+  PDsReplNeighborwBlob = ^DS_REPL_NEIGHBORW_BLOB;
 
   _DS_REPL_NEIGHBORSW = record
     cNumNeighbors: DWORD;
@@ -2467,7 +2467,7 @@ type
   DS_REPL_CURSOR_BLOB = _DS_REPL_CURSOR_BLOB;
   {$EXTERNALSYM DS_REPL_CURSOR_BLOB}
   TDsReplCursorBlob = DS_REPL_CURSOR_BLOB;
-  PDsReplCursorBlob = ^DS_REPL_CURSOR_BLOB;  
+  PDsReplCursorBlob = ^DS_REPL_CURSOR_BLOB;
 
   _DS_REPL_CURSORS = record
     cNumCursors: DWORD;
@@ -2502,7 +2502,7 @@ type
   DS_REPL_CURSORS_3W = _DS_REPL_CURSORS_3W;
   {$EXTERNALSYM DS_REPL_CURSORS_3W}
   TDsReplCursors3W = DS_REPL_CURSORS_3W;
-  PDsReplCursors3W = ^DS_REPL_CURSORS_3W;  
+  PDsReplCursors3W = ^DS_REPL_CURSORS_3W;
 
   _DS_REPL_ATTR_META_DATA = record
     pszAttributeName: LPWSTR;
@@ -2548,7 +2548,7 @@ type
   DS_REPL_ATTR_META_DATA_BLOB = _DS_REPL_ATTR_META_DATA_BLOB;
   {$EXTERNALSYM DS_REPL_ATTR_META_DATA_BLOB}
   TDsReplAttrMetaDataBlob = DS_REPL_ATTR_META_DATA_BLOB;
-  PDsReplAttrMetaDataBlob = ^DS_REPL_ATTR_META_DATA_BLOB;  
+  PDsReplAttrMetaDataBlob = ^DS_REPL_ATTR_META_DATA_BLOB;
 
   _DS_REPL_OBJ_META_DATA = record
     cNumEntries: DWORD;
@@ -2570,7 +2570,7 @@ type
   DS_REPL_OBJ_META_DATA_2 = _DS_REPL_OBJ_META_DATA_2;
   {$EXTERNALSYM DS_REPL_OBJ_META_DATA_2}
   TDsReplObjMetaData2 = DS_REPL_OBJ_META_DATA_2;
-  PDsReplObjMetaData2 = ^DS_REPL_OBJ_META_DATA_2;  
+  PDsReplObjMetaData2 = ^DS_REPL_OBJ_META_DATA_2;
 
   _DS_REPL_KCC_DSA_FAILUREW = record
     pszDsaDN: LPWSTR;
@@ -2598,7 +2598,7 @@ type
   DS_REPL_KCC_DSA_FAILUREW_BLOB = _DS_REPL_KCC_DSA_FAILUREW_BLOB;
   {$EXTERNALSYM DS_REPL_KCC_DSA_FAILUREW_BLOB}
   TDsReplKccDsaFailureWBlob = DS_REPL_KCC_DSA_FAILUREW_BLOB;
-  PDsReplKccDsaFailureWBlob = ^DS_REPL_KCC_DSA_FAILUREW_BLOB;  
+  PDsReplKccDsaFailureWBlob = ^DS_REPL_KCC_DSA_FAILUREW_BLOB;
 
   _DS_REPL_KCC_DSA_FAILURESW = record
     cNumEntries: DWORD;
@@ -2693,7 +2693,7 @@ type
   DS_REPL_VALUE_META_DATA = _DS_REPL_VALUE_META_DATA;
   {$EXTERNALSYM DS_REPL_VALUE_META_DATA}
   TDsReplValueMetaData = DS_REPL_VALUE_META_DATA;
-  PDsReplValueMetaData = ^DS_REPL_VALUE_META_DATA;  
+  PDsReplValueMetaData = ^DS_REPL_VALUE_META_DATA;
 
   _DS_REPL_VALUE_META_DATA_2 = record
     pszAttributeName: LPWSTR;
@@ -2736,7 +2736,7 @@ type
   {$EXTERNALSYM DS_REPL_VALUE_META_DATA_BLOB}
   TDsReplValueMetaDataBlob = DS_REPL_VALUE_META_DATA_BLOB;
   PsReplValueMetaDataBlob =  ^DS_REPL_VALUE_META_DATA_BLOB;
-  
+
   _DS_REPL_ATTR_VALUE_META_DATA = record
     cNumEntries: DWORD;
     dwEnumerationContext: DWORD;
@@ -2757,7 +2757,7 @@ type
   DS_REPL_ATTR_VALUE_META_DATA_2 = _DS_REPL_ATTR_VALUE_META_DATA_2;
   {$EXTERNALSYM DS_REPL_ATTR_VALUE_META_DATA_2}
   TDsReplAttrValueMetaData2 = DS_REPL_ATTR_VALUE_META_DATA_2;
-  PDsReplAttrValueMetaData2 = ^DS_REPL_ATTR_VALUE_META_DATA_2;  
+  PDsReplAttrValueMetaData2 = ^DS_REPL_ATTR_VALUE_META_DATA_2;
 
   _DS_REPL_QUEUE_STATISTICSW = record
     ftimeCurrentOpStarted: FILETIME;
@@ -2772,7 +2772,7 @@ type
   DS_REPL_QUEUE_STATISTICSW = _DS_REPL_QUEUE_STATISTICSW;
   {$EXTERNALSYM DS_REPL_QUEUE_STATISTICSW}
   TDsReplQueueStatisticsW = DS_REPL_QUEUE_STATISTICSW;
-  PDsReplQueueStatisticsW = ^DS_REPL_QUEUE_STATISTICSW;  
+  PDsReplQueueStatisticsW = ^DS_REPL_QUEUE_STATISTICSW;
 
 // Fields can be added only to the end of this structure.
 
@@ -2897,7 +2897,7 @@ Arguments:
 
     psUnquotedRdnValue - Unquoted RDN value.
 
-    pcQuotedRdnValueeLength - IN, maximum length of psQuotedRdnValue, in chars
+    pcQuotedRdnValueLength - IN, maximum length of psQuotedRdnValue, in chars
                         OUT ERROR_SUCCESS, chars utilized in psQuotedRdnValue
                         OUT ERROR_BUFFER_OVERFLOW, chars needed in psQuotedRdnValue
 

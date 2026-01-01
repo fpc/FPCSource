@@ -12,20 +12,20 @@ Const
   LibMicroHttpdOSes = AllUnixOSes + [win32,win64];
   SqldbConnectionOSes = [aix,beos,haiku,linux,freebsd,darwin,iphonesim,ios,netbsd,openbsd,solaris,win32,win64,wince,android,dragonfly];
   SqliteOSes          = [aix,beos,haiku,linux,freebsd,darwin,iphonesim,ios,netbsd,openbsd,solaris,win32,win64,wince,android,dragonfly];
-  
+
   NoSocketsOSes       = [wasip1,wasip1threads];
   NoApacheOSes        = [amiga,aros,morphos,wasip1,wasip1threads];
   NoCGIOSes           = [amiga,aros,morphos,wasip1,wasip1threads];
-  
+
   ApacheOSes          = AllOSes - NoApacheOSes;
   SocketsOSes         = AllOSes - NoSocketsOSes;
   CGIOSes             = ALLOSes - NoCGIOSes;
-  
+
 Var
   T : TTarget;
   P : TPackage;
   lOSes : TOSes;
-  
+
 begin
   With Installer do
     begin
@@ -51,17 +51,17 @@ begin
     P.Dependencies.Add('fastcgi',CGIOSes);
 {$ifndef ALLPACKAGES}
     P.Dependencies.Add('httpd20', ApacheOSes);
-{$endif ALLPACKAGES}    
+{$endif ALLPACKAGES}
     P.Dependencies.Add('httpd22', ApacheOSes);
     P.Dependencies.Add('httpd24', ApacheOSes);
     P.Dependencies.Add('winunits-base', [Win32,Win64]);
     // (Temporary) indirect dependencies, not detected by fpcmake:
     P.Dependencies.Add('univint', [MacOSX,iphonesim,ios]);
     P.Dependencies.Add('libmicrohttpd', LibMicroHttpdOSes);
-    
+
     P.Dependencies.Add('fcl-jsonschema');
     P.Dependencies.Add('fcl-openapi');
-    
+
     P.Author := 'FreePascal development team';
     P.License := 'LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';
@@ -139,7 +139,7 @@ begin
     T:=P.Targets.AddUnit('httpprotocol.pp');
     T:=P.Targets.AddUnit('cgiprotocol.pp');
 
-    
+
     T:=P.Targets.AddUnit('iniwebsession.pp');
     T.ResourceStrings:=true;
       with T.Dependencies do
@@ -232,7 +232,7 @@ begin
         OSes := LibMicroHttpdOSes;
         if Defaults.CPU=jvm then
           OSes := OSes - [java,android];
-      end;  
+      end;
     with P.Targets.AddUnit('microhttpapp.pp') do
       begin
         Dependencies.AddUnit('custweb');
@@ -242,9 +242,9 @@ begin
         OSes := LibMicroHttpdOSes;
         if Defaults.CPU=jvm then
           OSes := OSes - [java,android];
-      end;  
+      end;
 
-      
+
     with P.Targets.AddUnit('fphttpstatus.pas') do
       begin
         OSes:=SocketsOSes;
@@ -258,7 +258,7 @@ begin
         Dependencies.AddUnit('httpdefs');
         Dependencies.AddUnit('custcgi');
       end;
-      
+
     T:=P.Targets.AddUnit('fphttpserver.pp');
     T.ResourceStrings:=true;
     T.OSes:=SocketsOSes;
@@ -266,11 +266,11 @@ begin
         begin
           AddUnit('httpdefs');
         end;
-        
+
     T:=P.Targets.AddUnit('fphttpclient.pp');
     T.OSes:=SocketsOSes;
     T.ResourceStrings:=true;
-    
+
     T:=P.Targets.AddUnit('custhttpapp.pp');
     T.OSes:=SocketsOSes;
     // T.ResourceStrings:=true;
@@ -398,34 +398,34 @@ begin
 
     T:=P.Targets.AddUnit('uhpacktables.pp');
     T:=P.Targets.AddUnit('uhpackimp.pp');
-    With T.Dependencies do  
+    With T.Dependencies do
       AddUnit('uhpacktables');
     T:=P.Targets.AddUnit('uhpack.pp');
-    With T.Dependencies do  
+    With T.Dependencies do
       begin
       AddUnit('uhpackimp');
       end;
-    
+
     T:=P.Targets.AddUnit('sqldbrestconst.pp');
     T.ResourceStrings:=true;
     T.OSes:=SqldbConnectionOSes;
-    
+
     T:=P.Targets.AddUnit('sqldbrestschema.pp');
     T.OSes:=SqldbConnectionOSes;
-    With T.Dependencies do  
+    With T.Dependencies do
       begin
       AddUnit('sqldbrestconst');
       end;
     T:=P.Targets.AddUnit('sqldbrestio.pp');
     T.OSes:=SqldbConnectionOSes;
-    With T.Dependencies do  
+    With T.Dependencies do
       begin
       AddUnit('sqldbrestconst');
       AddUnit('sqldbrestschema');
       end;
     T:=P.Targets.AddUnit('sqldbrestdata.pp');
     T.OSes:=SqldbConnectionOSes;
-    With T.Dependencies do  
+    With T.Dependencies do
       begin
       AddUnit('sqldbrestconst');
       AddUnit('sqldbrestschema');
@@ -433,7 +433,7 @@ begin
       end;
     T:=P.Targets.AddUnit('sqldbrestauth.pp');
     T.OSes:=SqldbConnectionOSes;
-    With T.Dependencies do  
+    With T.Dependencies do
       begin
       AddUnit('sqldbrestconst');
       AddUnit('sqldbrestio');
@@ -441,7 +441,7 @@ begin
       end;
     T:=P.Targets.AddUnit('sqldbrestjson.pp');
     T.OSes:=SqldbConnectionOSes;
-    With T.Dependencies do  
+    With T.Dependencies do
       begin
       AddUnit('sqldbrestio');
       AddUnit('sqldbrestschema');
@@ -449,7 +449,7 @@ begin
       end;
     T:=P.Targets.AddUnit('sqldbrestbridge.pp');
     T.OSes:=SqldbConnectionOSes;
-    With T.Dependencies do  
+    With T.Dependencies do
       begin
       AddUnit('sqldbrestio');
       AddUnit('sqldbrestdata');
@@ -458,7 +458,7 @@ begin
       end;
     T:=P.Targets.AddUnit('sqldbrestcds.pp');
     T.OSes:=SqldbConnectionOSes;
-    With T.Dependencies do  
+    With T.Dependencies do
       begin
       AddUnit('sqldbrestio');
       AddUnit('sqldbrestschema');
@@ -466,7 +466,7 @@ begin
       end;
     T:=P.Targets.AddUnit('sqldbrestcsv.pp');
     T.OSes:=SqldbConnectionOSes;
-    With T.Dependencies do  
+    With T.Dependencies do
       begin
       AddUnit('sqldbrestio');
       AddUnit('sqldbrestschema');
@@ -474,7 +474,7 @@ begin
       end;
     T:=P.Targets.AddUnit('sqldbrestxml.pp');
     T.OSes:=SqldbConnectionOSes;
-    With T.Dependencies do  
+    With T.Dependencies do
       begin
       AddUnit('sqldbrestio');
       AddUnit('sqldbrestschema');
@@ -482,7 +482,7 @@ begin
       end;
     T:=P.Targets.AddUnit('sqldbrestado.pp');
     T.OSes:=SqldbConnectionOSes;
-    With T.Dependencies do  
+    With T.Dependencies do
       begin
       AddUnit('sqldbrestio');
       AddUnit('sqldbrestschema');
@@ -490,7 +490,7 @@ begin
       end;
     T:=P.Targets.AddUnit('sqldbrestini.pp');
     T.OSes:=SqldbConnectionOSes;
-    With T.Dependencies do  
+    With T.Dependencies do
       begin
       AddUnit('sqldbrestbridge');
       AddUnit('sqldbrestschema');
@@ -498,7 +498,7 @@ begin
       end;
     T:=P.Targets.AddUnit('sqldbrestauthini.pp');
     T.OSes:=SqldbConnectionOSes;
-    With T.Dependencies do  
+    With T.Dependencies do
       begin
       AddUnit('sqldbrestauth');
       AddUnit('sqldbrestschema');
@@ -506,7 +506,7 @@ begin
       end;
     T:=P.Targets.AddUnit('sqldbrestmodule.pp');
     T.OSes:=SqldbConnectionOSes;
-    With T.Dependencies do  
+    With T.Dependencies do
       begin
       AddUnit('sqldbrestbridge');
       AddUnit('sqldbrestconst');
@@ -516,26 +516,26 @@ begin
     T.Resourcestrings:=True;
     T:=P.Targets.AddUnit('fpcustwsserver.pp');
     T.OSes:=SocketsOSes;
-    With T.Dependencies do  
+    With T.Dependencies do
       begin
       AddUnit('fpwebsocket');
       end;
     T:=P.Targets.AddUnit('fpwebsocketserver.pp');
     T.OSes:=SocketsOSes;
-    With T.Dependencies do  
+    With T.Dependencies do
       begin
       AddUnit('fpwebsocket');
       AddUnit('fpcustwsserver');
       end;
     T:=P.Targets.AddUnit('fpwebsocketclient.pp');
     T.OSes:=SocketsOSes;
-    With T.Dependencies do  
+    With T.Dependencies do
       begin
       AddUnit('fpwebsocket');
       end;
     T:=P.Targets.AddUnit('wsupgrader.pp');
     T.OSes:=SocketsOSes;
-    With T.Dependencies do  
+    With T.Dependencies do
       begin
       AddUnit('fpwebsocket');
       AddUnit('fpcustwsserver');
@@ -544,13 +544,13 @@ begin
     T:=P.Targets.AddUnit('fphttpclientpool.pas');
     T.OSes:=SocketsOSes;
     T.Resourcestrings:=True;
-    With T.Dependencies do  
+    With T.Dependencies do
       begin
       AddUnit('fphttpclient');
       end;
     T:=P.Targets.AddUnit('fphttpclientasyncpool.pas');
     T.OSes:=SocketsOSes;
-    With T.Dependencies do  
+    With T.Dependencies do
       begin
       AddUnit('fphttpclient');
       AddUnit('fphttpclientpool');
@@ -595,7 +595,7 @@ begin
     T.Dependencies.AddUnit('httpdefs');
     T.Dependencies.AddUnit('httproute');
 end;
-    
+
 {$ifndef ALLPACKAGES}
 begin
   add_fcl_web('');

@@ -237,7 +237,7 @@ begin
   regs.ax := $1114; { Set font }
   regs.bx := 0;
   realintr($10, regs);
-  regs.bh := 0;      { Ressurrect cursor }
+  regs.bh := 0;      { Resurrect cursor }
   regs.ah := 3;
   realintr($10, regs);
   regs.cx := regs.cx and $dfff;
@@ -372,7 +372,7 @@ end;
  *
  * Bright and dark color values are just thrown in without any
  * math background. (How could there be some? At this point you
- * should realize we have thrown all accurancy out the window).
+ * should realize we have thrown all accuracy out the window).
  *
  * So. They work - kinda. They don't work correctly, but there
  * you go.

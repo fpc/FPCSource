@@ -304,7 +304,7 @@ type
     msTPProcVar,           { tp style procvars (no @ needed) }
     msMacProcVar,          { macpas style procvars }
     msRepeatForward,       { repeating forward declarations is needed }
-    msPointer2Procedure,   { allows the assignement of pointers to
+    msPointer2Procedure,   { allows the assignment of pointers to
                              procedure variables                     }
     msAutoDeref,           { does auto dereferencing of struct. vars }
     msInitFinal,           { initialization/finalization for units }
@@ -920,7 +920,7 @@ type
     procedure PushStackItem; virtual;
     procedure PopStackItem; virtual;
     function DoFetchTextToken: TToken; // including quotes
-    function DoFetchMultilineTextToken: TToken; // back ticks are converted to apostrophs, unindented
+    function DoFetchMultilineTextToken: TToken; // back ticks are converted to apostrophes, unindented
     function DoFetchDelphiMultiLineTextToken(QuoteLen: Integer): TToken;
     function DoFetchToken: TToken;
     procedure ClearFiles;
@@ -4201,7 +4201,7 @@ begin
                   end;
               '''':
                 begin
-                // convert apostroph to two apostrophs
+                // convert apostroph to two apostrophes
                 Inc(FTokenPos);
                 AddToCurString(false);
                 AddApostroph;
@@ -5227,13 +5227,13 @@ begin
      HandleIFNDEF(Param);
   'IFOPT':
      HandleIFOPT(Param);
-  'IFC',   
+  'IFC',
   'IF':
      HandleIF(Param,UpperCase(Directive)='IFC');
   'ELIFC',
   'ELSEIF':
      HandleELSEIF(Param,UpperCase(Directive)='ELIFC');
-  'ELSEC',   
+  'ELSEC',
   'ELSE':
      HandleELSE(Param);
   'ENDC',
@@ -5394,7 +5394,7 @@ procedure TPascalScanner.HandleBoolDirective(bs: TBoolSwitch;
   const Param: TPasScannerString);
 var
   NewValue: Boolean;
-  
+
 begin
   if CompareText(Param,'on')=0 then
     NewValue:=true
@@ -5958,7 +5958,7 @@ begin
           Inc(FTokenPos);
           Result:=tkDotDotDot;
           end
-        else  
+        else
           Result := tkDotDot;
         end
       else

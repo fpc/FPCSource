@@ -25,14 +25,14 @@
 
 
   ------------------------------------------------------------------------------
-    
-    
+
+
   Conversion by Legolas (http://itaprogaming.free.fr) for freepascal compiler
   (http://www.freepascal.org)
-   
+
   Copyright (C) 2006  Francesco Lombardi
   Check http://sourceforge.net/projects/libndsfpc for updates
-   
+
   ------------------------------------------------------------------------------
 
   $Log$
@@ -53,7 +53,7 @@ const
   KEY_A: KEYPAD_BITS       = (1 shl 0);
   KEY_B: KEYPAD_BITS       = (1 shl 1);
   KEY_SELECT: KEYPAD_BITS  = (1 shl 2);
-  KEY_START: KEYPAD_BITS   = (1 shl 3);	
+  KEY_START: KEYPAD_BITS   = (1 shl 3);
   KEY_RIGHT: KEYPAD_BITS   = (1 shl 4);
   KEY_LEFT: KEYPAD_BITS    = (1 shl 5);
   KEY_UP: KEYPAD_BITS      = (1 shl 6);

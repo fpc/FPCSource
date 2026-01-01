@@ -565,7 +565,7 @@ end;
 procedure ASNDebugItem(var Buffer: PByte; BufferEnd: PByte; Out ASNType, ASNSize: Integer; var Output: TBytes);
 
   procedure BufToString(out S : AnsiString);
-  
+
   var
     SA : AnsiString;
 

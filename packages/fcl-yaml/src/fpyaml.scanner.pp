@@ -159,7 +159,7 @@ type
     function IsCurrSpace: Boolean;
     function IsNextBlank: Boolean;
     Function IsEOL : Boolean;
-    // Actual sacanning
+    // Actual scanning
     function ScanDirective: TYAMLTokenData;
     function ScanAnchorOrAlias(ATokenType: TYAMLToken): TYAMLTokenData;
     function ScanTag: TYAMLTokenData;

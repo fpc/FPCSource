@@ -238,7 +238,7 @@ const
   {$EXTERNALSYM SNAPSHOT_POLICY_UNPLANNED}
 
 (*
- * Maximue user defined reasons
+ * Maximum user defined reasons
  *)
 
   MAX_NUM_REASONS = 256;

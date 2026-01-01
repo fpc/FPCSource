@@ -493,7 +493,7 @@ begin
         dispose(precalcbuf[back, pal]);
 	precalcbuf[back, pal] := nil;
       end;
-      
+
       if precalcerror[back, pal] <> nil then
       begin
         dispose(precalcerror[back, pal]);

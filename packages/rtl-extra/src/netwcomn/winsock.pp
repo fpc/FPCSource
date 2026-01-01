@@ -27,13 +27,13 @@ unit winsock;
 {$mode objfpc}
 
   interface
-  
+
   {$ifdef netwlibc}
     {$define netware}
   {$endif}
     const
        {
-         Default maximium number of sockets.
+         Default maximum number of sockets.
          this does not mean that the underlying netware
          Sockets implementation has to support that many!
        }
@@ -1318,7 +1318,7 @@ unit winsock;
   { There are three interesting authentication types }
   { CLIENT -    Client initiates a SSL connection.  }
   { SERVER - Listener set up to listen for incoming SSL conns, (Server sends it's cert during auth) }
-  { MUTUAL is SSL Server requesting client authentication, (Server asks for client cert inaddition to sending it's cert) }
+  { MUTUAL is SSL Server requesting client authentication, (Server asks for client cert in addition to sending it's cert) }
   { optval is a DWORD defined as }
 
   const

@@ -117,7 +117,7 @@ Begin
   pflags^:=pflags^ + i;
   unmasked_flags := pflags^ - softfloat_exception_mask;
   { before we raise the exception, we mark it as handled,
-    this behaviour is similiar to the hardware handler in SignalToRunerror }
+    this behaviour is similar to the hardware handler in SignalToRunerror }
   SysResetFPU;
   if (float_flag_invalid in unmasked_flags) then
      HandleError(207)
@@ -514,7 +514,7 @@ end;
     *                      64-bit  precision       2
     *                      113-bit precision       3
     *              The actual value is the sum of them. Thus for 113-bit
-    *              precison, one may have to do something like:
+    *              precision, one may have to do something like:
     *
     *              long double t,w,r_head, r_tail;
     *              t = (long double)y[2] + (long double)y[1];
@@ -643,7 +643,7 @@ end;
       jz := jk;
 
       repeat
-        {distill q[] into iq[] reversingly}
+        {distill q[] into iq[] reversely}
         i := 0;
         z := q[jz];
         for j:=jz downto 1 do

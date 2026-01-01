@@ -620,7 +620,7 @@ type
     //    SetOptions (GPO_OPTION_DISABLED, GPO_OPTION_DISABLED);
     //
     // dwOptions specifies one or more GPO_OPTION_* flags
-    // dwMask specificies which of the dwOptions to change
+    // dwMask specifies which of the dwOptions to change
     //
 
     function SetOptions(dwOptions, dwMask: DWORD): HRESULT; stdcall;
@@ -666,7 +666,7 @@ type
     //
 
     function GetPropertySheetPages(var hPages: PHPROPSHEETPAGE; var uPageCount: UINT): HRESULT; stdcall;
-    
+
   end;
   {$EXTERNALSYM IGroupPolicyObject}
 

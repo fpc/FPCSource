@@ -67,12 +67,12 @@ procedure fpc_copy_jbitset_array(src, dst: TJBitSetArray; srcstart: jint = -1; s
 procedure fpc_copy_jprocvar_array(src, dst: TJProcVarArray; srcstart: jint = -1; srccopylen: jint = -1);
 procedure fpc_copy_jshortstring_array(src, dst: TShortstringArray; srcstart: jint = -1; srccopylen: jint = -1);
 
-{ multi-dimendional setlength routine: all intermediate dimensions are arrays
+{ multi-dimensional setlength routine: all intermediate dimensions are arrays
   of arrays, so that's the same for all array kinds. Only the type of the final
   dimension matters.
 
   org is the current array, new is a newly allocated array of the
-  (multi-demensional) size specified to setlength.
+  (multi-dimensional) size specified to setlength.
 
   This routine uses the intermediate levels from the old array if possible so
   that an unchanged array remains in the same place.

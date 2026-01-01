@@ -1,15 +1,15 @@
 {
   Headers for the xwd image format.
-  
+
   The original headers are part of the X11 headers located at:
   /usr/X11R6/include/X11/XWDFile.h
   or
   Mandriva 2006: /usr/include/X11/XWDFile.h
-  
+
   But the file was added to fcl-image so that xwd files can be read in any system.
-  
+
   Authors of the C to Pascal conversion:
-  
+
   Felipe Monteiro de Carvalho
 }
 {***********************************************************
@@ -44,7 +44,7 @@ in this Software without prior written authorization from The Open Group.
  *
  *  Author:	Tony Della Fera, DEC
  *		27-Jun-85
- * 
+ *
  * Modifier:    William F. Wyatt, SAO
  *              18-Nov-86  - version 6 for saving/restoring color maps
 }
@@ -79,7 +79,7 @@ type
 
     { bitmap_unit applies to bitmaps (depth 1 format XY) only.
     * It is the number of bits that each scanline is padded to. }
-    bitmap_unit: Cardinal;		
+    bitmap_unit: Cardinal;
 
     bitmap_bit_order: Cardinal;	// bitmaps only: MSBFirst, LSBFirst */
 

@@ -40,7 +40,7 @@ unit doublebuffer;
         so it's transparent to RastPorts.
 
         When you have finished, call CloseDoubleBuffer.  If you
-        close the window and screen seperately it might crash
+        close the window and screen separately it might crash
         (I'm not sure), but you'll definitely lose memory.
 
         One last point: GfxBase must be open before you call

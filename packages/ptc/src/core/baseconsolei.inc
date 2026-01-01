@@ -215,7 +215,7 @@ begin
   Result := FReleaseEnabled;
 end;
 
-{ must be overriden in consoles, that support moving the mouse cursor }
+{ must be overridden in consoles, that support moving the mouse cursor }
 function TPTCBaseConsole.MoveMouseTo(X, Y: Integer): Boolean;
 begin
   Result := False;

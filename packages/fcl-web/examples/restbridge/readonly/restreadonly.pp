@@ -2,7 +2,7 @@
     This file is part of the Free Pascal run time library.
     Copyright (c) 2019 by the Free Pascal development team
 
-    SQLDB REST rest bridge demo applocation:  readonly access
+    SQLDB REST rest bridge demo application:  readonly access
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -53,14 +53,14 @@ var
 begin
   // quick check parameters
   ErrorMsg:=CheckOptions('hc:p:q', ['help','config:','port:','quiet']);
-  if ErrorMsg<>'' then 
+  if ErrorMsg<>'' then
     begin
     ShowException(Exception.Create(ErrorMsg));
     Terminate;
     Exit;
     end;
   // parse parameters
-  if HasOption('h', 'help') then 
+  if HasOption('h', 'help') then
     begin
     WriteHelp;
     Terminate;

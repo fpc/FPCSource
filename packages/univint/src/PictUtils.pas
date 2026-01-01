@@ -250,7 +250,7 @@ const
 type
 	PictInfoID = SIGNEDLONG;
 	CommentSpec = record
-		count: SInt16;                  { number of occurrances of this comment ID }
+		count: SInt16;                  { number of occurrences of this comment ID }
 		ID: SInt16;                     { ID for the comment in the picture }
 	end;
 	CommentSpecPtr = ^CommentSpec;
@@ -260,7 +260,7 @@ type
 		pictFontID: SInt16;             { ID of the font in the picture }
 		sysFontID: SInt16;              { ID of the same font in the current system file }
 		size: array [0..3] of SInt32;                { bit array of all the sizes found (1..127) (bit 0 means > 127) }
-		style: SInt16;                  { combined style of all occurrances of the font }
+		style: SInt16;                  { combined style of all occurrences of the font }
 		nameOffset: SIGNEDLONG;             { offset into the fontNamesHdl handle for the font’s name }
 	end;
 	FontSpecPtr = ^FontSpec;

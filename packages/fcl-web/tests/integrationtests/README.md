@@ -13,7 +13,7 @@ application. For example using a Apache or NGINX setup.
 
 Then check the local-settings within the jMeter test script, and run it.
 
-In principle it is also possible to test plain CGI or the embeddes web-server
+In principle it is also possible to test plain CGI or the embeds web-server
 with small changes to fcgi_dump_request.pp.
 
 Note that at the end of the jMeter script a call is made that makes the

@@ -71,7 +71,7 @@ implementation
 *****************************************************************************}
 Function FileSearch(const path:shortstring;dirlist:shortstring):shortstring;
 {
-  Searches for a file 'path' in the list of direcories in 'dirlist'.
+  Searches for a file 'path' in the list of directories in 'dirlist'.
   returns an empty string if not found. Wildcards are NOT allowed.
   If dirlist is empty, it is set to '.'
 }
@@ -126,7 +126,7 @@ Function GetEnv(EnvVar:shortstring):shortstring;
 {
   Searches the environment for a string with name p and
   returns a PAnsiChar to it's value.
-  A PAnsiChar is used to accomodate for strings of length > 255
+  A PAnsiChar is used to accommodate for strings of length > 255
 }
 var
   ep    : PPAnsiChar;

@@ -254,7 +254,7 @@ function ImmGetIMEFileName(_hkl:HKL; lpszFileName:LPSTR; uBufLen:UINT):UINT; ext
 
 function ImmGetProperty(_hkl:HKL; fdwIndex:DWORD):DWORD; external ImmDLL name 'ImmGetProperty'; // 460
 
-function ImmIsIME(_hkl:HKL):BOOL; external ImmDLL name 'ImmIsIME'; // 448 
+function ImmIsIME(_hkl:HKL):BOOL; external ImmDLL name 'ImmIsIME'; // 448
 
 function ImmSimulateHotKey(_hwnd:HWND; dwHotKeyID:DWORD):BOOL; external ImmDLL name 'ImmSimulateHotKey'; // 472
 
@@ -303,7 +303,7 @@ function ImmGetCandidateListCount(_himc:HIMC; lpdwListCount:LPDWORD):DWORD; exte
 
 function ImmGetCandidateListW(_himc:HIMC; deIndex:DWORD; lpCandList:LPCANDIDATELIST; dwBufLen:DWORD):DWORD; external ImmDLL name 'ImmGetCandidateListW'; // 453
 {$IFDEF UNICODE}
-function ImmGetCandidateList(_himc:HIMC; deIndex:DWORD; lpCandList:LPCANDIDATELIST; dwBufLen:DWORD):DWORD; external ImmDLL name 'ImmGetCandidateListW'; 
+function ImmGetCandidateList(_himc:HIMC; deIndex:DWORD; lpCandList:LPCANDIDATELIST; dwBufLen:DWORD):DWORD; external ImmDLL name 'ImmGetCandidateListW';
 {$ELSE UNICODE}
 function ImmGetCandidateList(_himc:HIMC; deIndex:DWORD; lpCandList:LPCANDIDATELIST; dwBufLen:DWORD):DWORD; external ImmDLL name 'ImmGetCandidateListA';
 {$ENDIF UNICODE}
@@ -381,7 +381,7 @@ function ImmSetStatusWindowPos(_himc:HIMC; lpptPos:LPPOINT):BOOL; external ImmDL
 function ImmGetCompositionWindow(_himc:HIMC; lpCompForm:LPCOMPOSITIONFORM):BOOL; external ImmDLL name 'ImmGetCompositionWindow'; // 457
 function ImmSetCompositionWindow(_himc:HIMC; lpCompForm:LPCOMPOSITIONFORM):BOOL; external ImmDLL name 'ImmSetCompositionWindow'; // 46C
 function ImmGetCandidateWindow(_himc:HIMC; dwIndex:DWORD; lpCandidate:LPCANDIDATEFORM):BOOL; external ImmDLL name 'ImmGetCandidateWindow'; // 455
-function ImmSetCandidateWindow(_himc:HIMC; lpCandidate:LPCANDIDATEFORM):BOOL; external ImmDLL name 'ImmSetCandidateWindow'; // 469 
+function ImmSetCandidateWindow(_himc:HIMC; lpCandidate:LPCANDIDATEFORM):BOOL; external ImmDLL name 'ImmSetCandidateWindow'; // 469
 
 function ImmIsUIMessageW(hWndIME:HWND; msg:UINT; wParam:WPARAM; lParam:LPARAM):BOOL; external ImmDLL name 'ImmIsUIMessageW'; // 462
 {$IFDEF UNICODE}
@@ -994,8 +994,8 @@ type
 
 
 function ImmGetHotKey(dwHotKeyID:DWORD; lpuModifiers:LPUINT; lpuVKey:LPUINT; _lphkl:LPHKL):BOOL; external ImmDLL name 'ImmGetHotKey'; // 46E
-function ImmSetHotKey(dwHotKeyID:DWORD; uModifiers:UINT; uVKey:UINT; _hkl:HKL):BOOL; external ImmDLL name 'ImmSetHotKey'; // 46D 
-function ImmGenerateMessage(_himc:HIMC):BOOL; external ImmDLL name 'ImmGenerateMessage'; // 452 
+function ImmSetHotKey(dwHotKeyID:DWORD; uModifiers:UINT; uVKey:UINT; _hkl:HKL):BOOL; external ImmDLL name 'ImmSetHotKey'; // 46D
+function ImmGenerateMessage(_himc:HIMC):BOOL; external ImmDLL name 'ImmGenerateMessage'; // 452
 
 {$IFNDEF WINCE}
 function ImmRequestMessageA(HIMC, WPARAM, LPARAM):LRESULT; external ImmDLL name 'ImmRequestMessageA';
@@ -1018,10 +1018,10 @@ function ImmShowSoftKeyboard(_hwnd:HWND; param2:longint):BOOL; external ImmDLL n
 {$ENDIF WINCE}
 
 function ImmLockIMC(_himc:HIMC):LPINPUTCONTEXT; external ImmDLL name 'ImmLockIMC'; // 463
-function ImmUnlockIMC(_himc:HIMC):BOOL; external ImmDLL name 'ImmUnlockIMC'; // 473 
-function ImmGetIMCLockCount(_himc:HIMC):DWORD; external ImmDLL name 'ImmGetIMCLockCount'; // 45E 
+function ImmUnlockIMC(_himc:HIMC):BOOL; external ImmDLL name 'ImmUnlockIMC'; // 473
+function ImmGetIMCLockCount(_himc:HIMC):DWORD; external ImmDLL name 'ImmGetIMCLockCount'; // 45E
 
-function ImmCreateIMCC(dwSize:DWORD):HIMCC; external ImmDLL name 'ImmCreateIMCC'; // 44E 
+function ImmCreateIMCC(dwSize:DWORD):HIMCC; external ImmDLL name 'ImmCreateIMCC'; // 44E
 function ImmDestroyIMCC(_himcc:HIMCC):HIMCC; external ImmDLL name 'ImmDestroyIMCC'; // 44F
 function ImmLockIMCC(_himcc:HIMCC):LPVOID; external ImmDLL name 'ImmLockIMCC'; // 464
 function ImmUnlockIMCC(_himcc:HIMCC):BOOL; external ImmDLL name 'ImmUnlockIMCC'; // 474
@@ -1251,7 +1251,7 @@ const
 
 
 //*****************************************
-// Structure for Globaled candidate proc
+// Structure for Globalized candidate proc
 //*****************************************
 type
      _MYCANDLIST = record
@@ -1306,7 +1306,7 @@ const
 // Edit control is in composition mode, but not in conversion mode.
       IMCR_COMPOSITION            = $0004;
 
-// For set cursor posision on composition string ( Internal )
+// For set cursor position on composition string ( Internal )
       IME_ESC_SETCURSOR           = $100A;
 
 

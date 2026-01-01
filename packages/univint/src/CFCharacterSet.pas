@@ -232,7 +232,7 @@ uses MacTypes,CFBase,CFData;
         bitmap representation rarely has 136K byte.  For detailed
         discussion of the external bitmap representation, refer to the
         comments for CFCharacterSetCreateWithBitmapRepresentation below.
-        Note that the existance of non-BMP characters in a character set
+        Note that the existence of non-BMP characters in a character set
         does not imply the membership of the corresponding surrogate
         characters.  For example, a character set with U+10000 does not
         match with U+D800.
@@ -336,7 +336,7 @@ function CFCharacterSetCreateWithCharactersInString( alloc: CFAllocatorRef; theS
 
 {!
 	@function CFCharacterSetCreateWithBitmapRepresentation
-	Creates a new immutable character set with the bitmap representtion in the given data.
+	Creates a new immutable character set with the bitmap representation in the given data.
 	@param alloc The CFAllocator which should be used to allocate
 		memory for the array and its storage for values. This
 		parameter may be NULL in which case the current default
@@ -490,7 +490,7 @@ function CFCharacterSetCreateBitmapRepresentation( alloc: CFAllocatorRef; theSet
 
 {!
 	@function CFCharacterSetAddCharactersInRange
-	Adds the given range to the charaacter set.
+	Adds the given range to the character set.
 	@param theSet The character set to which the range is to be added.
                 If this parameter is not a valid mutable CFCharacterSet,
                 the behavior is undefined.
@@ -504,7 +504,7 @@ procedure CFCharacterSetAddCharactersInRange( theSet: CFMutableCharacterSetRef; 
 
 {!
 	@function CFCharacterSetRemoveCharactersInRange
-	Removes the given range from the charaacter set.
+	Removes the given range from the character set.
 	@param theSet The character set from which the range is to be
                 removed.  If this parameter is not a valid mutable
                 CFCharacterSet, the behavior is undefined.
@@ -518,7 +518,7 @@ procedure CFCharacterSetRemoveCharactersInRange( theSet: CFMutableCharacterSetRe
 
 {!
 	@function CFCharacterSetAddCharactersInString
-	Adds the characters in the given string to the charaacter set.
+	Adds the characters in the given string to the character set.
 	@param theSet The character set to which the characters in the
                 string are to be added.  If this parameter is not a
                 valid mutable CFCharacterSet, the behavior is undefined.
@@ -530,7 +530,7 @@ procedure CFCharacterSetAddCharactersInString( theSet: CFMutableCharacterSetRef;
 
 {!
 	@function CFCharacterSetRemoveCharactersInString
-	Removes the characters in the given string from the charaacter set.
+	Removes the characters in the given string from the character set.
 	@param theSet The character set from which the characters in the
                 string are to be remove.  If this parameter is not a
                 valid mutable CFCharacterSet, the behavior is undefined.

@@ -37,7 +37,7 @@ type
   puint16 = pcuint16;
   puint32 = pcuint32;
   puint64 = pcuint64;
-  
+
   (* Signed types *)
   int8  = cint8;
   int16 = cint16;
@@ -78,7 +78,7 @@ typedef volatile int32          vfixed;
   pu16 = pcuint16;
   pu32 = pcuint32;
   pu64 = pcuint64;
-  
+
   s8  = cint8;
   s16 = cint16;
   s32 = cint32;
@@ -114,7 +114,7 @@ typedef volatile s64          vs64;
   fp = procedure;
 {$endif NDS_INTERFACE}
 
-{$ifdef NDS_IMPLEMENTATION} 
+{$ifdef NDS_IMPLEMENTATION}
 function BIT(n: cint): cint; inline;
 begin
   BIT := (1 shl (n));

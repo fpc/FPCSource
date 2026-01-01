@@ -19,7 +19,7 @@ begin
     P.HomepageURL := 'www.freepascal.org';
     P.Email := '';
     P.Description := 'Package that does not work at all';
- 
+
     Run;
     end;
 end.

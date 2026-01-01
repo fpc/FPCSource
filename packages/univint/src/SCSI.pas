@@ -1034,12 +1034,12 @@ const
 
 { scsiWeirdStuff field bits }
 const
-	scsiOddDisconnectUnsafeRead1 = $0001; { Disconnects on odd byte boundries are unsafe with DMA and/or blind reads }
-	scsiOddDisconnectUnsafeWrite1 = $0002; { Disconnects on odd byte boundries are unsafe with DMA and/or blind writes }
+	scsiOddDisconnectUnsafeRead1 = $0001; { Disconnects on odd byte boundaries are unsafe with DMA and/or blind reads }
+	scsiOddDisconnectUnsafeWrite1 = $0002; { Disconnects on odd byte boundaries are unsafe with DMA and/or blind writes }
 	scsiBusErrorsUnsafe = $0004; { Non-handshaked delays or disconnects during blind transfers may cause a crash }
 	scsiRequiresHandshake = $0008; { Non-handshaked delays or disconnects during blind transfers may cause data corruption }
 	scsiTargetDrivenSDTRSafe = $0010; { Targets which initiate synchronous negotiations are supported }
-	scsiOddCountForPhysicalUnsafe = $0020; { If using physical addrs all counts must be even, and disconnects must be on even boundries }
+	scsiOddCountForPhysicalUnsafe = $0020; { If using physical addrs all counts must be even, and disconnects must be on even boundaries }
 	scsiAbortCmdFixed = $0040; { Set if abort command is fixed to properly make callbacks }
 	scsiMeshACKTimingFixed = $0080; { Set if bug allowing Mesh to release ACK prematurely is fixed }
 

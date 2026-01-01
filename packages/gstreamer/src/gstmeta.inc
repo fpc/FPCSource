@@ -82,7 +82,7 @@ var
 
 (* Const before type ignored *)
 (* Const before type ignored *)
-  function gst_meta_register(api:TGType; impl:Pgchar; size:Tgsize; init_func:TGstMetaInitFunction; free_func:TGstMetaFreeFunction; 
+  function gst_meta_register(api:TGType; impl:Pgchar; size:Tgsize; init_func:TGstMetaInitFunction; free_func:TGstMetaFreeFunction;
              transform_func:TGstMetaTransformFunction):PGstMetaInfo;cdecl;external gstreamerlib name 'gst_meta_register';
 
 (* Const before type ignored *)

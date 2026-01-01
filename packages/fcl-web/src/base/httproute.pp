@@ -142,7 +142,7 @@ Type
 
   TRouteObject = Class(TObject,IRouteInterface)
   Public
-    Constructor Create; virtual; 
+    Constructor Create; virtual;
     Procedure HandleRequest(ARequest : TRequest; AResponse : TResponse); virtual; abstract;
   end;
   TRouteObjectClass = Class of TRouteObject;
@@ -927,18 +927,18 @@ end;
 Function THTTPRoute.MatchPattern(Const Path : String; L : TStrings; Options: TRouteOptions) : Boolean;
 
   // This is used only with special chars, so we do not check case sensitivity
-  Function StartsWith(C : Char; const S : String): Boolean; 
-  
+  Function StartsWith(C : Char; const S : String): Boolean;
+
   begin
     Result:=(Length(S)>0) and (S[1]=C);
   end;
-  
+
   // This is used only with special chars, so we do not check case sensitivity
   Function EndsWith(C : Char; const S : String): Boolean;
-  
+
   Var
   L : Integer;
-  
+
   begin
     L:=Length(S);
     Result:=(L>0) and (S[L]=C);
@@ -952,7 +952,7 @@ Function THTTPRoute.MatchPattern(Const Path : String; L : TStrings; Options: TRo
     else
       Result:=SameText(A,B);
   end;
-  
+
 
   procedure ExtractNextPathLevel(var ALeft: string;
     var ALvl: string; var ARight: string; const ADelim: Char = '/');

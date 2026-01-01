@@ -1,7 +1,7 @@
 This is the beginning of a server side web system for FPC.
 Although it is non-visual, it is geared towards use in Lazarus.
 
-NOTE: the template support (fptemplate unit) was moved to 
+NOTE: the template support (fptemplate unit) was moved to
 fcl-base. See the fcl-base/texts/fptemplate.txt file.
 
 Architecture:
@@ -14,21 +14,21 @@ Mostly standard HTTP header definitions, and some auxiliary routines.
 
 httpdefs
 --------
-contains the basic HTTP system definitions: 
+contains the basic HTTP system definitions:
 header field names
-TCookie(s): 
+TCookie(s):
   collection with cookies in web request
-TUploadedFile(s): 
+TUploadedFile(s):
   collection with uploaded files in request
-THTTPHeader:  
+THTTPHeader:
   Class describes HTTP Request/Response headers.
   it has properties for all possible HTTP headers, including cookies
-TRequest: 
+TRequest:
   Descendent of THTTPHeader, describes client request.
   Contains uploaded files.
-TResponse: 
-  describes the web server response. Includes headers and contents. 
-TCustomSession: 
+TResponse:
+  describes the web server response. Includes headers and contents.
+TCustomSession:
  Base for all session components.
 
 httproute
@@ -48,7 +48,7 @@ The new routing is more flexible in 3 ways.
 
   - Using a callback procedure
     TRouteCallback = Procedure(ARequest: TRequest; AResponse);
- 
+
   - Using a callback event:
     TRouteEvent = Procedure(ARequest: TRequest; AResponse) of object;
 
@@ -66,12 +66,12 @@ The new routing is more flexible in 3 ways.
     TRouteObjectClass = Class of TRouteObject;
   The object class needs to be registered. The router will instantiate the
   object and release it once the request was handled.
- 
+
   More methods can be added, if need be.
   All routes are registered using the HTTPRouter.RegisterRoute method.
   it is overloaded to accept any of the above parameters.
 
-- The router can now match more complex, parametrized routes.
+- The router can now match more complex, parameterized routes.
 
   A route is the path part of an URL; query parameters are not examined.
 
@@ -83,20 +83,20 @@ The new routing is more flexible in 3 ways.
 
   examples:
 
-  /path1  
+  /path1
   /REST/:Resource/:ID
   /REST/:Resource
   /*/something
   /*path/somethiingelse
-  /*path  
- 
+  /*path
+
   The parameters will be added to TRequest, they are available in the (new) RouteParams array property of TRequest.
-  
+
   Paths are matched case sensitively by default, and the first matching pattern is used.
- 
+
   HTTP Modules are registered in the router using classname/* or defaultmodulename/*
 
-- A set of methods can be added to the route registration (default is to  accept all methods). 
+- A set of methods can be added to the route registration (default is to  accept all methods).
   The router will  match the request method. If the method does not match, it will raise an
   exception which will result in a 405 HTTP error.
 
@@ -104,16 +104,16 @@ fphttp:
 -------
 Basic web system components/classes
 
-TCustomHTTPModule: 
+TCustomHTTPModule:
   Abstract TDataModule descendant, which processes a webrequest
   and prepares a response.
-TModuleFactory/TModuleItem: 
+TModuleFactory/TModuleItem:
   Module registration and creation system.
-TCustomWebAction(s): 
+TCustomWebAction(s):
   Webactions.
 RegisterHTTPModule():
   routine registers a module with the web system.
-THTTPContentProducer : 
+THTTPContentProducer :
   abstract HTTP producer component.
 
 The idea is that the URL relative to the server is taken and parsed as
@@ -129,20 +129,20 @@ websession
 ----------
 Implements basic session support.
 
-TSessionHTTPModule:  
+TSessionHTTPModule:
   TCustomHTTPModule descendent with session support.
-TIniWebSession: 
+TIniWebSession:
   TCustomSession descendent which stores session variables in inifiles.
-TFPWebSession:  
+TFPWebSession:
   TIniWebSession descendent for use in fpweb. Uses cookies to store session info.
-GetDefaultSession() : 
+GetDefaultSession() :
   returns default session object.
 
 fptemplate
 ----------
 Unit which implements template support.
 
-TTemplateParser: 
+TTemplateParser:
   Template parse object. Does the actual parsing and replacing. Delimiters
   are configurable. Standard variables can be specified, callbacks for unknown
   values can be set.
@@ -153,25 +153,25 @@ TFPCustomTemplate:
 
 fpweb
 -----
-Actual usable implementation of TCustomHTTPModule. 
+Actual usable implementation of TCustomHTTPModule.
 
-TFPWebAction(s): 
+TFPWebAction(s):
   Web actions with template support.
-TCustomFPWebModule: 
+TCustomFPWebModule:
   Descends from TSessionHTTPModule, implements WebActions and has template support.
-TFPWebModule: 
+TFPWebModule:
   published TCustomFPWebModule properties for use in Lazarus.
 
 fphtml
 ------
 This creates web modules specialized in creating HTML content.
 
-THTMLContentProducer: 
+THTMLContentProducer:
   Descendent of THTTPContentProducer which produces HTML
-THTMLCustomDatasetContentProducer: 
+THTMLCustomDatasetContentProducer:
   Descendent of THTTPContentProducer which produces HTML from datasets.
-THTMLDatasetContentProducer: 
-  Descendent of THTMLCustomDatasetContentProducer which publishes some 
+THTMLDatasetContentProducer:
+  Descendent of THTMLCustomDatasetContentProducer which publishes some
   properties.
 THTMLSelectProducer:
   Produces a combo box.
@@ -185,7 +185,7 @@ Note that classes for HTML document creation come from package fcl-xml.
 fpdatasetform
 -------------
 
-This contains classes which allow to create complicated HTML/forms 
+This contains classes which allow to create complicated HTML/forms
 based on a TDataset.
 
 THTMLDatasetFormProducer
@@ -201,12 +201,12 @@ custcgi:
   CGI application base class. It knows nothing of the fp
   HTTP module system.
 
-TCustomCGIApplication : 
+TCustomCGIApplication :
   TCustomApplication descendent which handles a CGI request.
   No instance of this class is created, this is done in fpcgi.
 
 TCGIRequest:
-  TRequest descendent which retrieves content from the CGI 
+  TRequest descendent which retrieves content from the CGI
   environment.
 
 TCGIResponse:
@@ -227,8 +227,8 @@ fpApache:
   Apache Module support.
 
 TCustomApacheApplication:
-  Uses fpweb to create TCustomHTTPModuleClass instances to 
-  handle the request. 
+  Uses fpweb to create TCustomHTTPModuleClass instances to
+  handle the request.
 
 fphttpclient:
 -------------
@@ -255,7 +255,7 @@ TFPCustomHttpServer:
   class itself does not serve files. The OnRequest handler must be
   implemented to actually serve files or respond to requests.
   It can work threaded or non-threaded.
-  It works using the ssockets unit of FPC, so no third-party package to 
+  It works using the ssockets unit of FPC, so no third-party package to
   handle the socket communication is needed.
 
 A demo application for this class exists.
@@ -277,7 +277,7 @@ TCustomHTTPApplication:
 fphttpApp:
 ----------
 
-THTTPApplication: 
+THTTPApplication:
   A descendent of TCustomHTTPApplication. It does nothing except expose
   properties which exist in TCustomHTTPApplication. A global instance of
   this class is defined in fphttpApp. Use this unit and class if you want a
@@ -292,5 +292,5 @@ Used to implement file serving.
 TFPCustomFileModule:
   TFPCustomHTTPModule descendant which will serve files. Can be used as-is,
   but descendents can be made to implement e.g. logging, authorisation etc.
-  must not be registered directly, register locations using the RegisterFileLocation 
+  must not be registered directly, register locations using the RegisterFileLocation
   call.

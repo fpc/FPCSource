@@ -189,7 +189,7 @@ begin
   Result:='text/csv';
 end;
 
-Class Function TCSVOutputStreamer.FileExtension : String; 
+Class Function TCSVOutputStreamer.FileExtension : String;
 begin
   Result:='.csv';
 end;

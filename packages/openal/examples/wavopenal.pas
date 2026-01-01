@@ -33,8 +33,8 @@ program wavopenal;
 uses
   classes, sysutils, openal;
 
-// WAVE UTILS   
-  
+// WAVE UTILS
+
 type
   TRiffHeader = packed record
     ID      : array [0..3] of AnsiChar;
@@ -105,7 +105,7 @@ begin
     fmt.ByteRate:=LEtoN(fmt.ByteRate);
     fmt.BlockAlign:=LEtoN(fmt.BlockAlign);
     fmt.BitsPerSample:=LEtoN(fmt.BitsPerSample);
-    
+
     Result:=fmt.ID=ID_fmt;
     pos:=-1;
   except
@@ -129,7 +129,7 @@ begin
   FillChar(Buffer, BufferSize, 0);
   Result:=0;
   // all data read
-  if eof then Exit; 
+  if eof then Exit;
 
   p:=@Buffer;
   i:=0;
@@ -161,7 +161,7 @@ begin
   end;
   Result:=i;
 end;
-  
+
 // ------------------------ OPEN AL ----------------------
 
 var
@@ -183,7 +183,7 @@ var
   al_bufsize  : Longword;
   al_readbuf  : Pointer;
   al_rate     : Longword;
-  
+
   wave       : TWaveReader;
 
 procedure alPlay;
@@ -258,7 +258,7 @@ begin
 
   source := TFileStream.Create(Filename, fmOpenRead);
 
-  // inittialize codec
+  // initialize codec
   wave:=TWaveReader.Create;
   if not wave.LoadFromStream(source) then begin
     writeln('unable to read WAVE format');
@@ -275,7 +275,7 @@ begin
     if wave.fmt.BitsPerSample=8 then al_format:=AL_FORMAT_MONO8
     else al_format:=AL_FORMAT_MONO16
   end;
-  
+
   codec_bs:=2*wave.fmt.Channels;
 
   //al_bufsize := 20000 - (20000 mod codec_bs);
@@ -324,7 +324,7 @@ begin
 
   // finalize codec
   wave.Free;
-  
+
   // close file
   source.Free;
 end.

@@ -59,7 +59,7 @@
 {**   Ex   = Executive                                                       **}
 {**   Fs   = File system support functions                                   **}
 {**   Hal  = Hardware abstraction layer functions                            **}
-{**   Inbv = Something like: _In_itial _B_oot _V_ideo functions              **}
+{**   Inbv = Something like: _In_initial _B_oot _V_ideo functions            **}
 {**   Io   = I/O manager support functions                                   **}
 {**   Kd   = Kernel debugger support functions                               **}
 {**   Ke   = General Kernel                                                  **}
@@ -21017,7 +21017,7 @@ RtlGetElementGenericTableAvl [WXP, 2K3]
 RtlGetFrame [WXP, 2K3]
 RtlGetFullPathName_UstrEx [2K3]
 RtlGetLengthWithoutLastFullDosOrNtPathElement [WXP, 2K3]
-RtlGetLengthWithoutTrailingPathSeperators [WXP, 2K3]
+RtlGetLengthWithoutTrailingPathSeparators [WXP, 2K3]
 RtlGetNativeSystemInformation [WXP, 2K3]
 RtlGetSecurityDescriptorRMControl [W2K, WXP, 2K3]
 RtlGetSetBootStatusData [WXP, 2K3]

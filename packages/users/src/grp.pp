@@ -19,7 +19,7 @@ uses
 const
       External_library= clib;  {Setup as you need}
 
-     _PATH_GROUP = '/etc/group';     
+     _PATH_GROUP = '/etc/group';
 
 Type
 
@@ -27,7 +27,7 @@ Type
      PPGroup = ^PGroup;
      TGroup = record
           gr_name   : PAnsiChar;                { group name  }
-          gr_passwd : PAnsiChar;		     { group password  }	
+          gr_passwd : PAnsiChar;		     { group password  }
           gr_gid    : gid_t;		     { group id  }
           gr_mem    : PPAnsiChar;		     { group members  }
        end;

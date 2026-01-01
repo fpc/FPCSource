@@ -5,7 +5,7 @@ const
   DSPTASK_RUN = 1;  (*!< DSP task is running  *)
   DSPTASK_YIELD = 2;  (*!< DSP task has yield  *)
   DSPTASK_DONE = 3;  (*!< DSP task is done/ready  *)
-  DSPTASK_CLEARALL = $00000000;  (*!< DSP task emtpy/ready  *)
+  DSPTASK_CLEARALL = $00000000;  (*!< DSP task empty/ready  *)
   DSPTASK_ATTACH = $00000001;  (*!< DSP task attached  *)
   DSPTASK_CANCEL = $00000002;  (*!< DSP task canceled  *)
 

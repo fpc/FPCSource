@@ -20,7 +20,7 @@ uses
 
 const
   STestRegPath = 'Software\FPC-RegTest';
-  
+
 procedure TestFailed(ErrCode: integer);
 begin
   writeln('Test FAILED. Error code: ' + IntToStr(ErrCode));

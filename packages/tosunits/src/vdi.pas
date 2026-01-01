@@ -3172,7 +3172,7 @@ begin
        * each short value (vdi_ptsout[x]) contains 2 characters.
        * When ptsout contains a device name, NVDI/SpeedoGDOS seems to always write the value "13"
        * in vdi_control[1] (hey! this should be a read only value from the VDI point of view!!!),
-       * and SpeedoGDOS 5 may set vdi_control[2] == 1 (intead of the size of vdi_ptsout, including
+       * and SpeedoGDOS 5 may set vdi_control[2] == 1 (instead of the size of vdi_ptsout, including
        * the device_name). It's seems that this value "13" (written in vdi_control[1]) has missed
        * its target (vdi_control[2]). So, here is a workaround:
        *)

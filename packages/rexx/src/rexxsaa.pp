@@ -25,7 +25,7 @@
 @created(01 Feb 2003)
 @lastmod(13 Feb 2003)
 REXX SAA Interface
-Warning: This code is alfa. Future versions of this unit will propably
+Warning: This code is alfa. Future versions of this unit will probably
 not be compatible.
 }
 (*********************************************************************
@@ -98,7 +98,7 @@ Procedure MAKERXSTRING(VAR r:RXSTRING;p:PAnsiChar;l:LONGINT);
 //Call type codes for use on interpreter startup
 Const
   RxCommand=0;              // Program called as Command
-  RxSubroutine=1;           // Program called as Subroutin
+  RxSubroutine=1;           // Program called as Subroutine
   RxFunction=2;             // Program called as Function
 
 // Subcommand Interface defines
@@ -117,7 +117,7 @@ Const
   RXSUBCOM_ERROR     = $01;    // Subcommand Ended in Error
   RXSUBCOM_FAILURE   = $02;    // Subcommand Ended in Failure
   RXSUBCOM_BADENTRY  = 1001;    // Invalid Entry Conditions
-  RXSUBCOM_NOEMEM    = 1002;    // Insuff stor to complete req
+  RXSUBCOM_NOEMEM    = 1002;    // Insufficient stor to complete req
   RXSUBCOM_BADTYPE   = 1003;    // Bad registration type.
   RXSUBCOM_NOTINIT   = 1004;    // API system not initialized.
   RXSUBCOM_OK        =  0;      // Function Complete
@@ -210,7 +210,7 @@ Const
   RXEXIT_ERROR       =  $01;    // Exit Ended in Error
   RXEXIT_FAILURE     =  $02;    // Exit Ended in Failure
   RXEXIT_BADENTRY    = 1001;    // Invalid Entry Conditions
-  RXEXIT_NOEMEM      = 1002;    // Insuff stor to complete req
+  RXEXIT_NOEMEM      = 1002;    // Insufficient stor to complete req
   RXEXIT_BADTYPE     = 1003;    // Bad registration type.
   RXEXIT_NOTINIT     = 1004;    // API system not initialized.
   RXEXIT_OK          =  0;      // Function Complete
@@ -296,7 +296,7 @@ Function RexxStart(ArgC: Longint;      // Num of args passed to rexx
          Filename: PAnsiChar;              // [d:][path] filename[.ext]
          Proc: PRXSTRING;              // Loc of rexx proc in memory
          Env: PAnsiChar;                   // ASCIIZ initial environment.
-         rType: Longint;               // type (command,subrtn,funct)
+         rType: Longint;               // type (command,subroutine,funct)
          Exit_: PRXSYSEXIT;             // SysExit env. names &  codes
          Ret: PInteger;                   // Ret code from if numeric
          RetVal: PRXSTRING): Longint; cdecl;  // Retvalue from the rexx proc
@@ -306,7 +306,7 @@ Function RexxStart(ArgC: Longint;      // Num of args passed to rexx
          Filename: PAnsiChar;              // [d:][path] filename[.ext]
          Proc: PRXSTRING;              // Loc of rexx proc in memory
          Env: PAnsiChar;                   // ASCIIZ initial environment.
-         rType: Longint;               // type (command,subrtn,funct)
+         rType: Longint;               // type (command,subroutine,funct)
          Exit_: PRXSYSEXIT;             // SysExit env. names &  codes
      var Ret: Integer;                    // Ret code from if numeric
      var RetVal: RXSTRING): Longint; cdecl;  // Retvalue from the rexx proc
@@ -335,18 +335,18 @@ Function RexxRegisterSubcomExe(
          HandlerAddr: PFn;              // address of handler in EXE
          UserArea:    PWord): Cardinal; cdecl; // User area
 
-// RexxQuerySubcom - Query an environment for Existance
+// RexxQuerySubcom - Query an environment for Existence
 
 Function RexxQuerySubcom(
          EnvName: PAnsiChar;                // Name of the Environment
          DllName: PAnsiChar;                // DLL Module Name
-         ExCode:  PWord;                // Stor for existance code
+         ExCode:  PWord;                // Stor for existence code
          User:    PWord): Cardinal; cdecl;       // Stor for user word
 
 Function RexxQuerySubcom(
          EnvName: PAnsiChar;                // Name of the Environment
          DllName: PAnsiChar;                // DLL Module Name
-     var ExCode:  Word;                 // Stor for existance code
+     var ExCode:  Word;                 // Stor for existence code
      var User:    Word): Cardinal; cdecl;        // Stor for user word
 
 // RexxDeregisterSubcom - Drop registration of a Subcommand
@@ -545,30 +545,30 @@ Function RexxDeregisterExit(
          ExitName: PAnsiChar;                   // Exit name
          DllName:  PAnsiChar): Cardinal; cdecl; // DLL module name
 
-// RexxQueryExit - Query an exit for existance.
+// RexxQueryExit - Query an exit for existence.
 
 Function RexxQueryExit(
          ExitName: PAnsiChar;               // Exit name
          DllName:  PAnsiChar;               // DLL Module name.
-     var ExFlag:   Word;                // Existance flag.
+     var ExFlag:   Word;                // Existence flag.
          UserArea: Pointer): Cardinal; cdecl;    // User data.
 
 Function RexxQueryExit(
          ExitName: PAnsiChar;                   // Exit name
          DllName:  PAnsiChar;                   // DLL Module name.
-     var ExFlag:   Word;                    // Existance flag.
+     var ExFlag:   Word;                    // Existence flag.
          UserArea: PByte): Cardinal; cdecl; // User data.
 
 Function RexxQueryExit(
          ExitName: PAnsiChar;                   // Exit name
          DllName:  PAnsiChar;                   // DLL Module name.
-         ExFlag:   PWord;                   // Existance flag.
+         ExFlag:   PWord;                   // Existence flag.
          UserArea: PByte): Cardinal; cdecl; // User data.
 
 Function RexxQueryExit(
          ExitName: PAnsiChar;                   // Exit name
          DllName:  PAnsiChar;                   // DLL Module name.
-         ExFlag:   PWord;                   // Existance flag.
+         ExFlag:   PWord;                   // Existence flag.
          UserArea: Pointer): Cardinal; cdecl; // User data.
 
 // Asynchronous Request Interface
@@ -638,7 +638,7 @@ Function RexxClearMacroSpace: Cardinal; cdecl; // No Arguments.
 (* Not supported yet!!
 /* REGINA EXTENSIONS *********************************************************/
 /* The following function is an extension to the standard. Never try to
- * address the function directly. Use the dynamic linking machanism of
+ * address the function directly. Use the dynamic linking mechanism of
  * your operating system instead. This function was introduced in version
  * 2.0.
  * Returns: ULONG, in lower byte the two-digit fraction part of the version.
@@ -669,7 +669,7 @@ Function RexxStart(ArgC: Longint;      // Num of args passed to rexx
          Filename: PAnsiChar;              // [d:][path] filename[.ext]
          Proc: PRXSTRING;              // Loc of rexx proc in memory
          Env: PAnsiChar;                   // ASCIIZ initial environment.
-         rType: Longint;               // type (command,subrtn,funct)
+         rType: Longint;               // type (command,subroutine,funct)
          Exit_: PRXSYSEXIT;            // SysExit env. names &  codes
          Ret: PInteger;                // Ret code from if numeric
          RetVal: PRXSTRING): Longint; cdecl;  // Retvalue from the rexx proc
@@ -680,7 +680,7 @@ Function RexxStart(ArgC: Longint;      // Num of args passed to rexx
          Filename: PAnsiChar;              // [d:][path] filename[.ext]
          Proc: PRXSTRING;              // Loc of rexx proc in memory
          Env: PAnsiChar;                   // ASCIIZ initial environment.
-         rType: Longint;               // type (command,subrtn,funct)
+         rType: Longint;               // type (command,subroutine,funct)
          Exit_: PRXSYSEXIT;            // SysExit env. names &  codes
      var Ret: integer;                 // Ret code from if numeric
      var RetVal: RXSTRING): Longint; cdecl;  // Retvalue from the rexx proc
@@ -703,14 +703,14 @@ Function RexxRegisterSubcomExe(
 Function RexxQuerySubcom(
          EnvName: PAnsiChar;                // Name of the Environment
          DllName: PAnsiChar;                // DLL Module Name
-         ExCode:  PWord;                // Stor for existance code
+         ExCode:  PWord;                // Stor for existence code
          User:    PWord): Cardinal; cdecl;       // Stor for user word
     external REXXAPI name 'RexxQuerySubcom';
 
 Function RexxQuerySubcom(
          EnvName: PAnsiChar;                // Name of the Environment
          DllName: PAnsiChar;                // DLL Module Name
-     var ExCode:  Word;                 // Stor for existance code
+     var ExCode:  Word;                 // Stor for existence code
      var User:    Word): Cardinal; cdecl;        // Stor for user word
     external REXXAPI name 'RexxQuerySubcom';
 
@@ -763,28 +763,28 @@ Function RexxDeregisterExit(
 Function RexxQueryExit(
          ExitName: PAnsiChar;               // Exit name
          DllName:  PAnsiChar;               // DLL Module name.
-     var ExFlag:   Word;                // Existance flag.
+     var ExFlag:   Word;                // Existence flag.
          UserArea: Pointer): Cardinal; cdecl;    // User data.
     external REXXAPI name 'RexxQueryExit';
 
 Function RexxQueryExit(
          ExitName: PAnsiChar;                   // Exit name
          DllName:  PAnsiChar;                   // DLL Module name.
-     var ExFlag:   Word;                    // Existance flag.
+     var ExFlag:   Word;                    // Existence flag.
          UserArea: PByte): Cardinal; cdecl; // User data.
     external REXXAPI name 'RexxQueryExit';
 
 Function RexxQueryExit(
          ExitName: PAnsiChar;                   // Exit name
          DllName:  PAnsiChar;                   // DLL Module name.
-         ExFlag:   PWord;                   // Existance flag.
+         ExFlag:   PWord;                   // Existence flag.
          UserArea: PByte): Cardinal; cdecl; // User data.
     external REXXAPI name 'RexxQueryExit';
 
 Function RexxQueryExit(
          ExitName: PAnsiChar;                   // Exit name
          DllName:  PAnsiChar;                   // DLL Module name.
-         ExFlag:   PWord;                   // Existance flag.
+         ExFlag:   PWord;                   // Existence flag.
          UserArea: Pointer): Cardinal; cdecl; // User data.
     external REXXAPI name 'RexxQueryExit';
 

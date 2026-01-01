@@ -1,7 +1,7 @@
 {$INCLUDE sdo_global.inc}
 unit test_xsdparser;
 
-interface        
+interface
 
 uses
   Classes, SysUtils,
@@ -22,7 +22,7 @@ type
     function LoadSimpleType_Enum_Schema(var AFactory : ISDODataFactory) : ISDODataObject;virtual;abstract;
     function LoadSimpleType_Enum_Embedded_Schema(var AFactory : ISDODataFactory) : ISDODataObject;virtual;abstract;
     function LoadSimpleType_AliasToNativeType_Schema(var AFactory : ISDODataFactory) : ISDODataObject;virtual;abstract;
-    
+
     function LoadComplexType_Class_Schema(var AFactory : ISDODataFactory) : ISDODataObject;virtual;abstract;
     function LoadComplexType_Class_default_values(var AFactory : ISDODataFactory) : ISDODataObject;virtual;abstract;
     function LoadComplexType_Class_properties_extended_metadata(var AFactory : ISDODataFactory) : ISDODataObject;virtual;abstract;
@@ -67,8 +67,8 @@ type
 
     procedure class_property_composed_name();
 
-    procedure schema_import();      
-  end;      
+    procedure schema_import();
+  end;
 
   { TTest_XsdParser }
 
@@ -98,7 +98,7 @@ type
 
     function load_class_property_composed_name(var AFactory : ISDODataFactory) : ISDODataObject;override;
 
-    function load_schema_import(var AFactory : ISDODataFactory) : ISDODataObject;override;  
+    function load_schema_import(var AFactory : ISDODataFactory) : ISDODataObject;override;
   end;
 
 implementation
@@ -108,7 +108,7 @@ uses
 const
   x_complexType_SampleArrayIntFieldType     = 'TArrayIntFieldType';
   x_complexType_SampleArrayItemType         = 'TArrayItemType';
-  
+
   x_complexType_SampleCollectionComplexType = 'TComplexType';
   x_complexType_SampleCollectionCollectionComplexType = 'TCollectionComplexType';
   x_complexType_SampleCollectionItemType    = 'TCollectionItemType';
@@ -127,7 +127,7 @@ const
   x_complexType_array_sequence_embedded  = 'complex_array_sequence_embedded';
   x_complexType_array_sequence_collection      = 'complex_array_sequence_collection';
   x_complexType_array_soaparray      = 'complex_array_soaparray';
-  
+
   x_complexType_class               = 'complex_class';
   x_complexType_class_default       = 'complex_class_default';
   x_complexType_class_properties_extended_metadata = 'class_properties_extended_metadata';
@@ -221,7 +221,7 @@ begin
 end;
 
 procedure TTest_CustomXsdParser.SimpleType_Enum_Embedded();
-var   
+var
   fact :ISDODataFactory;
   tr : ISDODataObject;
   mdl : ISDODataObject;
@@ -246,7 +246,7 @@ begin
 end;
 
 procedure TTest_CustomXsdParser.SimpleType_AliasToNativeType();
-var    
+var
   fact :ISDODataFactory;
   tr : ISDODataObject;
   mdl : ISDODataObject;
@@ -404,7 +404,7 @@ var
         CheckProperty(x_strAtt + 'E','string',ptAttribute,nestedClsType);
         CheckProperty(x_intAtt + 'E','int',ptAttribute,nestedClsType);
   end;
-  
+
   procedure CheckEmbeddedEnum();
   var
     e : ISDODataObject;
@@ -422,7 +422,7 @@ var
         CheckEquals(x_enumSampleLIST[k],enumType.getList(s_EnumValue).getString(k));
   end;
 
-var        
+var
   fact :ISDODataFactory;
   mdl : ISDODataObject;
   clsType : ISDODataObject;
@@ -435,7 +435,7 @@ begin
   CheckNotNull(mdl);
   CheckEquals(x_complexType_class_embedded,mdl.getString(s_Name));
   CheckEquals(x_targetNamespace,mdl.getString(s_NameSpace));
-  CheckEquals(3,mdl.getList(s_Type).size()); 
+  CheckEquals(3,mdl.getList(s_Type).size());
 
   CheckEmbeddedClassType();
   CheckEmbeddedEnum();
@@ -515,7 +515,7 @@ begin
 end;
 
 procedure TTest_CustomXsdParser.ComplexType_Class_open_type_any();
-var     
+var
   fact :ISDODataFactory;
   tr : ISDODataObject;
   clsType : ISDODataObject;
@@ -546,7 +546,7 @@ begin
 end;
 
 procedure TTest_CustomXsdParser.ComplexType_Class_open_extension_type_any();
-var    
+var
   fact :ISDODataFactory;
   tr : ISDODataObject;
   clsType : ISDODataObject;
@@ -576,7 +576,7 @@ begin
 end;
 
 procedure TTest_CustomXsdParser.ComplexType_Class_open_extension_type_anyAttribute();
-var        
+var
   fact :ISDODataFactory;
   tr : ISDODataObject;
   clsType : ISDODataObject;
@@ -605,7 +605,7 @@ begin
 end;
 
 procedure TTest_CustomXsdParser.ComplexType_Class_sequence_open_type_anyAttribute();
-var          
+var
   fact :ISDODataFactory;
   tr : ISDODataObject;
   clsType : ISDODataObject;
@@ -634,7 +634,7 @@ begin
 end;
 
 procedure TTest_CustomXsdParser.ComplexType_Class_all_open_type_anyAttribute();
-var      
+var
   fact :ISDODataFactory;
   tr : ISDODataObject;
   clsType : ISDODataObject;
@@ -649,7 +649,7 @@ begin
   elt := Find(tr,'TClassSampleTypeAll');
   CheckNotNull(elt,'TClassSampleTypeAll');
   CheckEquals(ELEMENT_KIND_TYPE,elt.getByte(s_ElementKind),s_ElementKind);
-  clsType := elt;                                      
+  clsType := elt;
   strBuffer := FindTag(clsType,Format('%s#%s',[s_xs,s_anyAttribute]));
   Check(Length(strBuffer) > 0, s_anyAttribute);
   ls := TStringList.Create();
@@ -679,7 +679,7 @@ var
       CheckEquals(PropertyType_Att[AFieldType],prp.getBoolean(s_IsAttribute),Format('%s.%s, %s',[clsType.getString(s_Name),AName,s_IsAttribute]));
   end;
 
-var                    
+var
   fact :ISDODataFactory;
   mdl : ISDODataObject;
   elt : ISDODataObject;
@@ -1092,7 +1092,7 @@ end;
 
 procedure TTest_CustomXsdParser.ComplexType_Class_properties_extended_metadata2();
 const s_ProjectType = 'ProjectType';
-var         
+var
   fact :ISDODataFactory;
   tr : ISDODataObject;
   clsType : ISDODataObject;
@@ -1160,7 +1160,7 @@ const
   s_base_type = 'SampleBase_Type';
   s_second_namespace = 'urn:second-library';
   s_second_type = 'Second_Type';
-var     
+var
   fact :ISDODataFactory;
   tr : ISDODataObject;
   mdl : ISDODataObject;
@@ -1289,7 +1289,7 @@ end;
 
 function TTest_XsdParser.load_class_property_composed_name(var AFactory : ISDODataFactory) : ISDODataObject;
 begin
-  Result := ParseDoc(AFactory, 'class_property_composed_name');  
+  Result := ParseDoc(AFactory, 'class_property_composed_name');
 end;
 
 function TTest_XsdParser.load_schema_import(var AFactory : ISDODataFactory): ISDODataObject;

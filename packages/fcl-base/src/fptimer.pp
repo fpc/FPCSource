@@ -15,12 +15,12 @@
   A generic timer component. Can be used in GUI and non-GUI apps.
   Based heavily on an idea by Graeme Geldenhuys, extended so
   the tick mechanism is pluggable.
-  
+
   Note that the system implementation will only work for timers
   in the main thread, as it uses synchronize to do the job.
   You need to enable threads in your application for the system
   implementation to work.
-  
+
   A nice improvement would be an implementation that works
   in all threads, such as the threadedtimer of IBX for linux.
 
@@ -30,7 +30,7 @@
      resulting in drift.  A five minute timer could be up to 40 seconds late
      do to entering and returning (linux x64).  MOdified to check the absolute
      time every minute, has reduced that lag to about 0.100 second.  This is
-     still greater than TEvent, where the delay is only a few milliseconds (0-3).     
+     still greater than TEvent, where the delay is only a few milliseconds (0-3).
 }
 
 {$IFNDEF FPC_DOTTEDUNITS}
@@ -39,7 +39,7 @@ unit fptimer;
 
 {$mode objfpc}{$H+}
 
-{ 
+{
   Windows, or any platform that uses Cthreads has TEvent with a timed wait
   which can include android and embedded.
   You can force the use of the Sleep() based timer by defining USESLEEP
@@ -254,7 +254,7 @@ end;
 
 const
   cMilliSecs: Extended = 60.0 * 60.0 * 24.0 * 1000.0;
-  
+
 Type
 
   { TFPTimerThread }
@@ -344,7 +344,7 @@ Function TFPTimerThread.GetWakeTime(var AInterval,Counter : Int64; Out WakeInter
 
 Var
   Diff: Extended;
-   
+
 begin
   Result:=False;
     { Use Counter*fInterval to avoid numerical errors resulting from adding
@@ -383,13 +383,13 @@ var
   Counter: int64; { use Int64 to avoid overflow with Counter*fInterval (~49 days)}
   AInterval: int64;
   Diff: Extended;
-  
+
 Const
   wrSignaled = 0;
   wrTimeout  = 1;
   wrAbandoned= 2;
   wrError    = 3;
-  
+
 begin
   WakeInterval := MaxInt;
   Counter := 1;
@@ -397,7 +397,7 @@ begin
   FStartTime := Now;
   while not Terminated do
     begin
-    if GetWakeTime(AInterval,Counter,WakeInterval,WakeTime) then 
+    if GetWakeTime(AInterval,Counter,WakeInterval,WakeTime) then
       Continue;
     if not Terminated then
       case BasicEventWaitFor(WakeInterval,fWaitEvent) of
@@ -425,11 +425,11 @@ begin
         begin
         if Terminated then
           Break
-        else 
+        else
           begin                      // Interval has changed
           Counter := 1;              // Restart timer without creating new thread
           AInterval := fInterval;
-          FStartTime := Now; 
+          FStartTime := Now;
           end;
         end;
       else
@@ -451,11 +451,11 @@ var
   Diff: Extended;
   S: Cardinal;
   RecheckTimeCounter: integer;
-  
+
 const
   cSleepTime = 500;           // 0.5 second, better than every 5 milliseconds
   cRecheckTimeCount = 120;    // Recheck clock every minute, as the sleep loop can loose time
-  
+
 begin
   WakeInterval := MaxInt;
   Counter := 1;
@@ -544,7 +544,7 @@ begin
     begin
     try
       // Cannot wait on thread in case
-      // 1.  this is called in a Synchonize method and the FThread is
+      // 1.  this is called in a Synchronize method and the FThread is
       //     about to run a synchronize method. In these cases we would have a deadlock
       // 2.  In a DLL and this is called as part of DLLMain, which never
       //     returns endthread (hence WaitFor) until DLLMain is exited

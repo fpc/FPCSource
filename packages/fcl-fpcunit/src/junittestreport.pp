@@ -12,7 +12,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************
-  
+
 
   Purpose:
     This unit contains a XML/JUnit TestListener for use with the fpcUnit testing
@@ -49,7 +49,7 @@ uses
   {$ifdef unix}unix,{$endif}
   DateUtils;
 {$ENDIF FPC_DOTTEDUNITS}
-  
+
 
 type
 
@@ -81,8 +81,8 @@ type
     procedure WriteTestHeader(ATest: TTest; ALevel: integer; ACount: integer); override;
     procedure WriteTestFooter(ATest: TTest; ALevel: integer; ATiming: TDateTime); override;
     procedure WriteSuiteHeader(ATestSuite: TTestSuite; ALevel: integer); override;
-    procedure WriteSuiteFooter(ATestSuite: TTestSuite; ALevel: integer; 
-      ATiming: TDateTime; ANumRuns: integer; ANumErrors: integer; 
+    procedure WriteSuiteFooter(ATestSuite: TTestSuite; ALevel: integer;
+      ATiming: TDateTime; ANumRuns: integer; ANumErrors: integer;
       ANumFailures: integer; ANumIgnores: integer); override;
   public
     constructor Create(aOwner: TComponent); override;

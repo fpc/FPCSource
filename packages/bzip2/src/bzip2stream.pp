@@ -15,7 +15,7 @@ inpired by Julian R. Seward's libbzip2 library and therefore you should
 send credits to him and bug reports to me :)
 
 This code is licensed under the same terms as the original libbz2 library,
-which is decsribed in the file LICENSE. If you don't have this file, look
+which is described in the file LICENSE. If you don't have this file, look
 at http://www.freepascal.org for this bzip2 unit, the LICENSE file will
 be included. In case of problems, contact the author.
 
@@ -69,7 +69,7 @@ Type
     cftab:array[0..257] of cardinal;
     mtfbase:array[0..256 div mtfl_size-1] of cardinal;
     mtfa:array[0..mtfa_size-1] of byte;
-    
+
     function get_bits(n:byte):byte;
     function get_boolean:boolean;
     function get_byte:byte;
@@ -90,12 +90,12 @@ Type
     Function consume_rle : Boolean; inline;
     Function rle_read(bufptr:Pbyte;count:Longint) : longint;
     Procedure Error(Msg : String; ACode : Integer);
-  Public  
+  Public
     Constructor Create(ASource : TStream);
     Destructor Destroy; override;
     function Read(var Buffer; Count: Longint): Longint; override;
   end;
-  
+
   EBzip2 = Class(Exception)
     ErrCode : Integer;
   end;
@@ -114,7 +114,7 @@ Resourcestring
   BZip2Initialize   = 'Invalid BZip2 stream: invalid header';
   SDecodingError    = 'Decoding error';
   SErrUnimplemented = 'Feature not implemented';
-  
+
 Constructor TDecompressBzip2Stream.Create(ASource: TStream);
 
 var magic:array[1..3] of AnsiChar;
@@ -143,7 +143,7 @@ begin
   BE.ErrCode:=ACode;
   Raise BE;
 end;
-   
+
 function TDecompressBzip2Stream.get_bits(n:byte):byte;
 
 var data:byte;
@@ -545,7 +545,7 @@ begin
       {Receive the mapping table.}
       receive_mapping_table;
       alphasize:=cardinal(inuse_count)+2;
-      
+
       {Receive the selectors. Raises exception}
       receive_selectors;
       {Undo the MTF values for the selectors.}
@@ -591,7 +591,7 @@ begin
   if decode_available=0 then
     Result:=new_block
   else
-    Result:=True;  
+    Result:=True;
 end;
 
 Function TDecompressBzip2Stream.rle_read(bufptr:Pbyte;Count:Longint) : LongInt;

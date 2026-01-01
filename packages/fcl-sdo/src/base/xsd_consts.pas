@@ -97,7 +97,7 @@ const
   s_wsdl                                    = 'http://schemas.xmlsoap.org/wsdl/';
   s_xmlns                                   = 'xmlns';
 
-  
+
   s_SDO                           = 'sdo';
   s_SDO_base_namespace            = 'urn:sdo_base';
   s_SDO_collection                = 'sdo_collection';
@@ -107,7 +107,7 @@ const
   s_SDO_storeType                 = 'StoreType';
   s_SDO_typeHint                  = 'TypeHint';
 
-  
+
 implementation
 
 end.

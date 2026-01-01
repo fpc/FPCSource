@@ -3,7 +3,7 @@
     member of the Free Pascal development team
 
     This is a OOP wrapper around the VLC libraries.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -1207,7 +1207,7 @@ begin
                                            DoOnLengthChanged(e^.media_player_length_changed.new_length);
       end;
     else
-      // Not sure what to do here. 
+      // Not sure what to do here.
       // Writeln('Unknown event type ',e^._type);
     end;
   finally

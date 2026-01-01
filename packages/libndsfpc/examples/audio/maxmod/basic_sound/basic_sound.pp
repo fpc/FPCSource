@@ -19,7 +19,7 @@ var
   soundbank_bin: array [0..0] of cuint8; cvar; external;
   soundbank_bin_size: cuint32; cvar; external;
 
-  ambulance, boom: mm_sound_effect; 
+  ambulance, boom: mm_sound_effect;
 
   amb: mm_sfxhand;
 	keys_pressed, keys_released: integer;
@@ -28,14 +28,14 @@ begin
   consoleDemoInit();
 
   mmInitDefaultMem(mm_addr(@soundbank_bin));
-  
+
   // load the module
   mmLoad(MOD_FLATOUTLIES);
-  
+
   // load sound effects
   mmLoadEffect(SFX_AMBULANCE);
   mmLoadEffect(SFX_BOOM);
-  
+
   // Start playing module
   mmStart(MOD_FLATOUTLIES, MM_PLAY_LOOP);
 
@@ -50,7 +50,7 @@ begin
 
   with boom do
   begin
-    id := SFX_BOOM; 
+    id := SFX_BOOM;
     rate := trunc(1.0 * (1 shl 10));
     handle := 0;
     volume := 255;
@@ -66,7 +66,7 @@ begin
 	iprintf(#$1b'[0;8HMaxMod Audio demo');
 	iprintf(#$1b'[3;0HHold A for ambulance sound');
 	iprintf(#$1b'[4;0HPress B for boom sound');
-	
+
 	// sound effect handle (for cancelling it later)
 	amb := 0;
 
@@ -83,7 +83,7 @@ begin
 		begin
     	amb := mmEffectEx(@ambulance);
     end;
-    
+
 		// stop ambulance sound when A button is released
 		if ( keys_released and KEY_A ) <> 0 then
 		begin

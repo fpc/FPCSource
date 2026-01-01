@@ -25,7 +25,7 @@
         button_number : array[0..1] of guint;
         double_click_time : guint;
         core_pointer: PGdkDevice;
-        pointer_hooks: PGdkDisplayPointerHooks;  
+        pointer_hooks: PGdkDisplayPointerHooks;
         closed: guint;
         double_click_distance: guint;
         button_x: array[0..1] of guint;
@@ -84,7 +84,7 @@ function gdk_display_get_core_pointer(display:PGdkDisplay): PGdkDevice; cdecl; e
 procedure gdk_display_get_pointer(display:PGdkDisplay; screen :PGdkScreen; x :Pgint; y : Pgint; mask : PGdkModifierType); cdecl; external gdklib;
 function gdk_display_get_window_at_pointer(display:PGdkDisplay; win_x: Pgint; win_y: Pgint): PGdkWindow; cdecl; external gdklib;
 function gdk_display_set_pointer_hooks(display: PGdkDisplay; new_hooks: PGdkDisplayPointerHooks): PGdkDisplayPointerHooks; cdecl; external gdklib;
-// 2.4 
+// 2.4
 procedure gdk_display_flush(display: PGdkDisplay); cdecl; external gdklib;
 function gdk_display_get_default_cursor_size(display: PGdkDisplay): guint; cdecl; external gdklib;
 procedure gdk_display_get_maximal_cursor_size(display: PGdkDisplay; w, h: pguint); cdecl; external gdklib;

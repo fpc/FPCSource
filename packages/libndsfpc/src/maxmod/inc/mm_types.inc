@@ -72,7 +72,7 @@ const
   MMRF_LEFT       : mm_reverbflags = $20;
   MMRF_RIGHT      : mm_reverbflags = $40;
   MMRF_BOTH       : mm_reverbflags = $60;
-  
+
   MMRF_INVERSEPAN : mm_reverbflags = $80;
   MMRF_NODRYLEFT  : mm_reverbflags = $100;
   MMRF_NODRYRIGHT : mm_reverbflags = $200;
@@ -82,7 +82,7 @@ const
   MMRF_16BITRIGHT : mm_reverbflags = $2000;
   MMRF_DRYLEFT    : mm_reverbflags = $4000;
   MMRF_DRYRIGHT   : mm_reverbflags = $8000;
-  
+
 type
   mm_reverbch = integer;
 const
@@ -186,7 +186,7 @@ type
     format        : mm_word;
     timer         : mm_word;
     manual        : mm_bool;
-  end;	
+  end;
   mm_stream  = t_mmstream;
   pmm_stream = ^t_mmstream;
 

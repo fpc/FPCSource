@@ -55,7 +55,7 @@ begin
            res:=s;
            exit(-1);
          end;
-    {$else}    
+    {$else}
     while InLen > 0 do
     begin
       iconvres := iconv(H, @Src, @InLen, @Dst, @OutLen);
@@ -82,7 +82,7 @@ begin
             exit(-1)
       end;
     end;
-   
+
     // iconv has a buffer that needs flushing, specially if the last AnsiChar is not #0
     iconvres:=iconv(H, nil, nil, @Dst, @Outlen);
     lerr:=cerrno;
@@ -98,7 +98,7 @@ begin
    {$endif}
     // trim output buffer
     SetLength(Res, Length(Res) - Outlen);
-  finally 
+  finally
         Offset:=Dst-PAnsiChar(Res);
         SetLength(Res, Length(Res)+InLen*2+5); // 5 is minimally one utf-8 AnsiChar
         Dst:=PAnsiChar(Res)+Offset;
@@ -108,6 +108,6 @@ begin
         setlength(Res,Length(Res) - Outlen);
     iconv_close(H);
   end;
-  
+
   Result := 0;
 end;

@@ -285,7 +285,7 @@ begin
     CreateParamMapImplementation(Strings,GetOpt.ObjectClassName,GetOpt.ParamMapClassName);
 end;
 
-Function TDDDBFieldMapCodeGenerator.CreateOptions : TCodeGeneratorOptions; 
+Function TDDDBFieldMapCodeGenerator.CreateOptions : TCodeGeneratorOptions;
 
 begin
   Result:=TGenFieldMapCodeGenOptions.Create
@@ -746,7 +746,7 @@ end;
 function TGenFieldMapOptions.GetMapAncestorName: String;
 begin
   Result:=FMapAncestorClassName;
-  if Result='' then 
+  if Result='' then
     Result:='TFieldMap';
 end;
 

@@ -205,7 +205,7 @@ FL_MBUTTON4=4;
 FL_MBUTTON5=5;
 
 
-{ control when to reutrn input, slider and dial object. }
+{ control when to return input, slider and dial object. }
 
     FL_RETURN_END_CHANGED = 0;
     FL_RETURN_CHANGED = 1;
@@ -214,7 +214,7 @@ FL_MBUTTON5=5;
     FL_RETURN_DBLCLICK = 4;
 
 {
- *  Some special color indeces for FL private colormap. It does not matter
+ *  Some special color indexes for FL private colormap. It does not matter
  *  what the value of each enum is, but it must start from 0 and be
  *  consecutive.
  }
@@ -1277,7 +1277,7 @@ Procedure fl_get_wingeometry(p1 : TWindow; p2,p3,p4,p5 : PFL_COORD); cdecl;exter
 #define FL_ObjectDisplay(p1 : object)   fl_display
 }
 
-{ the window an object belongints }
+{ the window an object belongs }
 
 Function FL_ObjWin ( P : PFL_Object) : TWindow;
 
@@ -1314,7 +1314,7 @@ Function fl_remove_selected_xevent(p1 : TWindow; p2 :  longint) : cardinal; cdec
 #define fl_add_selected_xevent  fl_addto_selected_xevent
 }
 {
- * Group some WM stuff into a structure for easy maintainance
+ * Group some WM stuff into a structure for easy maintenance
  }
 const
     FL_WM_SHIFT = 1;
@@ -1618,7 +1618,7 @@ type TFL_BUTTON_SPEC = record
     mousebut,           { mouse button that caused the push     }
     timdel,                     { time since last touch (p1 : TOUCH buttons) }
     event : Longint;                    { what event triggers redraw            }
-    cspecl : longint;           { reserved for class specfic stuff      }
+    cspecl : longint;           { reserved for class specific stuff     }
     cspecv : pointer;           { misc. things                          }
     filename : PAnsiChar;
 end;
@@ -2364,7 +2364,7 @@ type TFL_EditKeymap = record
     moveto_next_word : Longint; { one word right           }
     moveto_prev_page : Longint; { one page up              }
     moveto_next_page : Longint; { one page down            }
-    moveto_bol : Longint;               { move to begining of line }
+    moveto_bol : Longint;               { move to beginning of line}
     moveto_eol : Longint;               { move to end of line      }
     moveto_bof : Longint;               { move to begin of file    }
     moveto_eof : Longint;               { move to end of file      }
@@ -2373,7 +2373,7 @@ type TFL_EditKeymap = record
     transpose : Longint;                { switch two AnsiChar positions }
     paste : Longint;                    { paste the edit buffer    }
     backspace : Longint;                { another  del_prev_char   }
-    del_to_bol : Longint;               { cut to begining of line  }
+    del_to_bol : Longint;               { cut to beginning of line }
     del_to_eol : Longint;               { cut to end of line       }
     clear_field : Longint;              { delete everything        }
     del_to_eos : Longint;               { not implemented          }
@@ -2744,7 +2744,7 @@ Const
     FL_POINTS_XYPLOT    = 4;            { only data points                  }
     FL_DASHED_XYPLOT    = 5;            { dashed line                       }
     FL_IMPULSE_XYPLOT   = 6;
-    FL_ACTIVE_XYPLOT    = 7;            { accepts Longint eractive manipulations }
+    FL_ACTIVE_XYPLOT    = 7;            { accepts Longint reactive manipulations }
     FL_EMPTY_XYPLOT     = 8;
 Type
     TFL_XYPLOT_TYPE = Longint;

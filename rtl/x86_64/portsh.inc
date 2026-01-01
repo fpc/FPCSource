@@ -42,7 +42,7 @@ type
    end;
 
 
-    { Non-Instantiaded vars. As yet, they don't have to be instantiated,
+    { Non-Instantiated vars. As yet, they don't have to be instantiated,
       because there is no need for 'self' etc. }
 
 var

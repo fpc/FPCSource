@@ -369,7 +369,7 @@ end;
 
 {$IFNDEF HAS_SOUND}
 procedure Sound (Hz: word);
-(* Dummy Sound implementation - for platforms requiring both frequence
+(* Dummy Sound implementation - for platforms requiring both frequency
    and duration at the beginning instead of start and stop procedures. *)
 begin
 end;
@@ -378,7 +378,7 @@ end;
 
 {$IFNDEF HAS_NOSOUND}
 procedure NoSound;
-(* Dummy NoSound implementation - for platforms requiring both frequence
+(* Dummy NoSound implementation - for platforms requiring both frequency
    and duration at the beginning instead of start and stop procedures.   *)
 begin
 end;

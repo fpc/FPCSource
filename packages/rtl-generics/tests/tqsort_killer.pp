@@ -1,7 +1,7 @@
-{$mode objfpc} 
-{$h+} 
-{$typedaddress on} 
-{$modeswitch advancedrecords} 
+{$mode objfpc}
+{$h+}
+{$typedaddress on}
+{$modeswitch advancedrecords}
 {$coperators on}
 {$modeswitch anonymousfunctions}
 {$modeswitch duplicatelocals}

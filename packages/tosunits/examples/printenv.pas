@@ -13,7 +13,7 @@ begin
 	  writeln(i,': ',s);
 	end;
     writeln('');
-	
+
 	writeln('Environment:');
 	count := GetEnvironmentVariableCount;
 	for i := 1 to count do

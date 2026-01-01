@@ -24,7 +24,7 @@
         callback : gpointer;
      end;
 
-   TGCallBackProcedure = procedure; 
+   TGCallBackProcedure = procedure;
    TGCallback = procedure (para1: TGCallBackProcedure); cdecl;
 
    TGClosureMarshal = procedure (closure:PGClosure; return_value:PGValue; n_param_values:guint; param_values:PGValue; invocation_hint:gpointer;

@@ -57,7 +57,7 @@ Function GetProcedureAddress(Lib : TLibHandle; Ordinal: TOrdinalEntry) : {$ifdef
 Function UnloadLibrary(Lib : TLibHandle) : Boolean;
 Function GetLoadErrorStr: AnsiString;
 
-// Kylix/Delphi compability
+// Kylix/Delphi compatibility
 
 Function FreeLibrary(Lib : TLibHandle) : Boolean; inline;
 Function GetProcAddress(Lib : TlibHandle; const ProcName : AnsiString) : {$ifdef cpui8086}FarPointer{$else}Pointer{$endif}; inline;

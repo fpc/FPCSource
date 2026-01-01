@@ -159,17 +159,17 @@ type
     property InternalData: Dword read FInternalData write FInternalData;
     property ParentName : String read getparentname;
   end;
-  
+
 
   { TChmSiteMapTree }
   TSiteMapType = (stTOC, stIndex);
-  
+
   TSiteMapTag = (smtUnknown, smtNone, smtHTML, smtHEAD, smtBODY);
   TSiteMapTags = set of TSiteMapTag;
 
   TSiteMapBodyTag = (smbtUnknown, smbtNone, smbtUL, smbtLI, smbtOBJECT, smbtPARAM);
   TSiteMapBodyTags = set of TSiteMapBodyTag;
-  
+
   TLIObjectParamType = (ptName, ptLocal, ptKeyword);
 
   TChmSiteMap = class
@@ -627,7 +627,7 @@ begin
       WriteParam('Font', Font);
   Dec(Indent, 8);
   WriteString('</OBJECT>');
-  
+
   // And now the items
   if Items.Count > 0 then begin
     WriteString('<UL>');
@@ -637,9 +637,9 @@ begin
     Dec(Indent, 8);
     WriteString('</UL>');
   end;
-  
+
   WriteString('</BODY></HTML>');
-  
+
   AStream.Size := AStream.Position;
 end;
 

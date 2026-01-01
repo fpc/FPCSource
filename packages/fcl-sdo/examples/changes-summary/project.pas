@@ -44,9 +44,9 @@ const
 
   procedure GenerateSchemaFileFromFactory(AFactory : ISDODataFactory; AFileName : string);
   var
-    xsdHelper : IXSDHelper;     
+    xsdHelper : IXSDHelper;
   begin
-    xsdHelper := TXSDHelper.Create(AFactory); 
+    xsdHelper := TXSDHelper.Create(AFactory);
     xsdHelper.Generate(AFactory.getTypes(),s_uri,AFileName);
   end;
 
@@ -63,7 +63,7 @@ begin
   GenerateSchemaFileFromFactory(fact,locSchemaFileName);
   WriteLn('Schema file generated !');
 
-  projList := fact.createNew(s_uri,s_project_list_type); 
+  projList := fact.createNew(s_uri,s_project_list_type);
   // stop changes tracking
   projList.getChangeSummary().endLogging();
   //Add some data
@@ -119,18 +119,18 @@ begin
       pers.setString(s_name,'SDO dev 2');
       pers.setDataObject(s_manager,projList.getDataObject('Project[2]/Member[Name="SDO dev manager"]'));
     proj.setDataObject('ProjectLeader',proj.getDataObject('Member[Name="SDO dev manager"]'));
-  
+
   projList.getList(s_project).delete(0);
-  
+
   //save it now to file
-  serializer := TSDOSerializer.Create(fact,TSDOSerializerStreamXML.Create());   
+  serializer := TSDOSerializer.Create(fact,TSDOSerializerStreamXML.Create());
   serializer.save(s_project_list_type,projList,'data.xml');
   WriteLn('Data file created.');
 
-  
+
   //revert changes
   projList.getChangeSummary.undoChanges();
-  serializer := TSDOSerializer.Create(fact,TSDOSerializerStreamXML.Create());   
+  serializer := TSDOSerializer.Create(fact,TSDOSerializerStreamXML.Create());
   serializer.save(s_project_list_type,projList,'data-original.xml');
   WriteLn('Original Data file created.');
 

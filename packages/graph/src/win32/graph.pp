@@ -28,7 +28,7 @@ interface
 {
   To be able to use standard file handles in the graph thread,
   we need to use the system functions handling threads,
-  to ensure that thread varaibles are correctly initialized.
+  to ensure that thread variables are correctly initialized.
   This new default setting can be overridden by defining
   USE_WINDOWS_API_THREAD_FUNCTIONS macro.
 
@@ -1536,7 +1536,7 @@ const
    winregistered : boolean = false;
 
    { Thread functions have different return type and calling convention
-     for system unit funcitons andfor windows API. }
+     for system unit functions andfor windows API. }
 {$ifdef USE_SYSTEM_BEGIN_THREAD}
 function MessageHandleThread(p : pointer) : ptrint;
 {$else not USE_SYSTEM_BEGIN_THREAD}
@@ -1610,7 +1610,7 @@ procedure InitWin32GUI16colors;
      { start graph subsystem }
      InitializeCriticalSection(graphdrawing);
      graphrunning:=false;
-     {Use system BeginThread instead of CreteThreead
+     {Use system BeginThread instead of CreteThread
      function BeginThread(sa : Pointer;stacksize : SizeUInt;
   ThreadFunction : tthreadfunc;p : pointer;creationFlags : dword;
   var ThreadId : TThreadID) : TThreadID;}
@@ -1971,7 +1971,7 @@ procedure LineWin32GUI(X1, Y1, X2, Y2: smallint); {$ifndef fpc}far;{$endif fpc}
                    end
                   else
                    Begin
-                    { instead of putting in loop , substract by one now }
+                    { instead of putting in loop , subtract by one now }
                     TmpNumPixels := NumPixels-1;
                    { NormWidth }
                     for i := 0 to TmpNumPixels do
@@ -2049,7 +2049,7 @@ function queryadapterinfo : pmodeinfo;
      ScreenHeight:=GetSystemMetrics(SM_CYSCREEN)-
        2*GetSystemMetrics(SM_CYFRAME)-
        GetSystemMetrics(SM_CYCAPTION);
-     { for maximozed windows it's again different }
+     { for maximized windows it's again different }
      { here we've only a caption }
      ScreenWidthMaximized:=GetSystemMetrics(SM_CXFULLSCREEN);
      { neither GetSystemMetrics(SM_CYFULLSCREEN nor     }

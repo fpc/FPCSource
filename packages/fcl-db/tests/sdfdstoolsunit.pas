@@ -57,7 +57,7 @@ begin
       ForceDirectories(dbname);
       DeleteFile(FileName);
       FileMustExist:=False;
-      
+
       SetNDatasetSchema(Schema);
 
       Open;

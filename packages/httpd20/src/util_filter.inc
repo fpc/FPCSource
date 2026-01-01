@@ -46,7 +46,7 @@ type
     { The filter should return at most readbytes data. }
     AP_MODE_READBYTES,
     { The filter should return at most one line of CRLF data.
-     *  (If a potential line is too long or no CRLF is found, the 
+     *  (If a potential line is too long or no CRLF is found, the
      *   filter may return partial data).
      }
     AP_MODE_GETLINE,
@@ -107,7 +107,7 @@ type
  *
  * Callbacks are associated with a filter definition, which is specified
  * by name. See ap_register_input_filter() and ap_register_output_filter()
- * for setting the association between a name for a filter and its 
+ * for setting the association between a name for a filter and its
  * associated callback (and other information).
  *
  * If the initialization function argument passed to the registration
@@ -123,7 +123,7 @@ type
  * For the input and output filters, the return value of a filter should be
  * an APR status value.  For the init function, the return value should
  * be an HTTP error code or OK if it was successful.
- * 
+ *
  * @ingroup filter
  }
 
@@ -133,7 +133,7 @@ type
   ap_in_filter_func = function (f: Pap_filter_t;
    b: Papr_bucket_brigade; mode: ap_input_mode_t;
    block: apr_read_type_e; readbytes: apr_off_t): apr_status_t;
-                                          
+
   ap_init_filter_func = function (f: Pap_filter_t): Integer;
 
   ap_filter_func = record
@@ -147,7 +147,7 @@ type
  * and sort the filters to properly sequence their operation.
  *
  * The types have a particular sort order, which allows us to insert them
- * into the filter chain in a determistic order. Within a particular grouping,
+ * into the filter chain in a deterministic order. Within a particular grouping,
  * the ordering is equivalent to the order of calls to ap_add_*_filter().
  }
   ap_filter_type = (
@@ -212,8 +212,8 @@ type
      * initiliazed by the protocols themselves. }
     filter_init_func: ap_init_filter_func;
     { The type of filter, either AP_FTYPE_CONTENT or AP_FTYPE_CONNECTION.
-     * An AP_FTYPE_CONTENT filter modifies the data based on information 
-     * found in the content.  An AP_FTYPE_CONNECTION filter modifies the 
+     * An AP_FTYPE_CONTENT filter modifies the data based on information
+     * found in the content.  An AP_FTYPE_CONNECTION filter modifies the
      * data based on the type of connection.
      }
     ftype: ap_filter_type;
@@ -253,7 +253,7 @@ type
 
 {
  * Get the current bucket brigade from the next filter on the filter
- * stack.  The filter returns an apr_status_t value.  If the bottom-most 
+ * stack.  The filter returns an apr_status_t value.  If the bottom-most
  * filter doesn't read from the network, then ::AP_NOBODY_READ is returned.
  * The bucket brigade will be empty when there is nothing left to get.
  * @param filter The next filter in the chain
@@ -272,7 +272,7 @@ function ap_get_brigade(filter: Pap_filter_t;
 
 {
  * Pass the current bucket brigade down to the next filter on the filter
- * stack.  The filter returns an apr_status_t value.  If the bottom-most 
+ * stack.  The filter returns an apr_status_t value.  If the bottom-most
  * filter doesn't write to the network, then ::AP_NOBODY_WROTE is returned.
  * The caller relinquishes ownership of the brigade.
  * @param filter The next filter in the chain
@@ -284,14 +284,14 @@ function ap_pass_brigade(filter: Pap_filter_t;
  external LibHTTPD name LibNamePrefix + 'ap_pass_brigade' + LibSuff8;
 
 {
- * This function is used to register an input filter with the system. 
- * After this registration is performed, then a filter may be added 
- * into the filter chain by using ap_add_input_filter() and simply 
+ * This function is used to register an input filter with the system.
+ * After this registration is performed, then a filter may be added
+ * into the filter chain by using ap_add_input_filter() and simply
  * specifying the name.
  *
  * @param name The name to attach to the filter function
  * @param filter_func The filter function to name
- * @param filter_init The function to call before the filter handlers 
+ * @param filter_init The function to call before the filter handlers
                       are invoked
  * @param ftype The type of filter function, either ::AP_FTYPE_CONTENT or
  *              ::AP_FTYPE_CONNECTION
@@ -304,14 +304,14 @@ function ap_register_input_filter(const name: PAnsiChar;
  external LibHTTPD name LibNamePrefix + 'ap_register_input_filter' + LibSuff16;
 
 {
- * This function is used to register an output filter with the system. 
- * After this registration is performed, then a filter may be added 
- * into the filter chain by using ap_add_output_filter() and simply 
+ * This function is used to register an output filter with the system.
+ * After this registration is performed, then a filter may be added
+ * into the filter chain by using ap_add_output_filter() and simply
  * specifying the name.
  *
  * @param name The name to attach to the filter function
  * @param filter_func The filter function to name
- * @param filter_init The function to call before the filter handlers 
+ * @param filter_init The function to call before the filter handlers
  *                    are invoked
  * @param ftype The type of filter function, either ::AP_FTYPE_CONTENT or
  *              ::AP_FTYPE_CONNECTION
@@ -332,7 +332,7 @@ function ap_register_output_filter(const name: PAnsiChar;
  * calls to ap_add_filter). If the current filter chain contains filters
  * from another request, then this filter will be added before those other
  * filters.
- * 
+ *
  * To re-iterate that last comment.  This function is building a FIFO
  * list of filters.  Take note of that when adding your filter to the chain.
  *
@@ -436,7 +436,7 @@ procedure ap_remove_output_filter(f: Pap_filter_t);
  }
 
 {
- * prepare a bucket brigade to be setaside.  If a different brigade was 
+ * prepare a bucket brigade to be setaside.  If a different brigade was
  * set-aside earlier, then the two brigades are concatenated together.
  * @param f The current filter
  * @param save_to The brigade that was previously set-aside.  Regardless, the
@@ -513,7 +513,7 @@ function ap_fputstrs(f: Pap_filter_t; bb: Papr_bucket_brigade;
  * @param f the filter doing the writing
  * @param bb The brigade to buffer into
  * @param fmt The format string
- * @param ... The argumets to use to fill out the format string
+ * @param ... The arguments to use to fill out the format string
  }
 function ap_fprintf(f: Pap_filter_t; bb: Papr_bucket_brigade;
  const fmt: PAnsiChar; others: array of const): apr_status_t;

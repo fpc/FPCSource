@@ -192,7 +192,7 @@ type
     // COD_SERVICE_* bit(s) associated with this SDP record, which will be
     // advertised when the local radio is found during device inquiry.
     // When the last SDP record associated with a bit is deleted, that
-    // service bit is no longer reported in repsonse to inquiries
+    // service bit is no longer reported in response to inquiries
     //
     fCodService: ULONG;    // COD_SERVICE_* bits
 

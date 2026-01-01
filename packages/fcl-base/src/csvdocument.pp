@@ -119,9 +119,9 @@ type
     function  HasRow(ARow: Integer): Boolean;
     // Indicates if there is a cell at specified position
     function  HasCell(ACol, ARow: Integer): Boolean;
-    
+
     // Search
-    
+
     // Return column for cell data AString at row ARow
     function  IndexOfCol(const AString: String; ARow: Integer): Integer;
     // Return row for cell data AString at coloumn ACol

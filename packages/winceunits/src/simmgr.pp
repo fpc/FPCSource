@@ -57,7 +57,7 @@ const
   // Error | Various errors
   SIM_E_SIMFAILURE       = MSE_ERRORCLASS_SIM or $01; // SIM failure was detected
   SIM_E_SIMBUSY          = MSE_ERRORCLASS_SIM or $02; // SIM is busy
-  SIM_E_SIMWRONG         = MSE_ERRORCLASS_SIM or $03; // Inorrect SIM was inserted
+  SIM_E_SIMWRONG         = MSE_ERRORCLASS_SIM or $03; // Incorrect SIM was inserted
   SIM_E_NOSIMMSGSTORAGE  = MSE_ERRORCLASS_SIM or $04; // SIM isn't capable of storing messages
   SIM_E_SIMTOOLKITBUSY   = MSE_ERRORCLASS_SIM or $05; // SIM Application Toolkit is busy
   SIM_E_SIMDOWNLOADERROR = MSE_ERRORCLASS_SIM or $06; // SIM data download error
@@ -101,7 +101,7 @@ const
   SIM_E_RADIOOFF          = MSE_ERRERRORCLASS_NONE or $6B; // The Radio is off
 
   // Callback | Various notifications that are passed to the callback
-  
+
   SIM_NOTIFY_CARD_REMOVED = $100; // SIM card was removed; lpData is NULL
   SIM_NOTIFY_FILE_REFRESH = $101; // Files on the SIM were refreshed; lpData points to a SIMFILEREFRESH structure
   SIM_NOTIFY_MSG_STORED   = $102; // A message was stored to the SIM; lpData points to a SIMMESSAGECHANGE structure
@@ -232,7 +232,7 @@ const
   SIM_LOCKEDSTATE_PH_CORP_PUK   = $00000010; // Awaiting the Corporate Personalization PUK
 
   // Phonebook Misc | Special phonebook constants }
-  
+
   SIM_PBINDEX_FIRSTAVAILABLE = $ffffffff; //  Use first phonebook storage entry available
 
   // Phone Locking | Indicates the phone's locking behavior }
@@ -251,7 +251,7 @@ const
 
   // SIM Record | Different SIM file types
   SIM_RECORDTYPE_UNKNOWN     = $00000000; // An unknown file type
-  SIM_RECORDTYPE_TRANSPARENT = $00000001; // A single veriable lengthed record
+  SIM_RECORDTYPE_TRANSPARENT = $00000001; // A single variable lengthed record
   SIM_RECORDTYPE_CYCLIC      = $00000002; // A cyclic set of records, each of the same length
   SIM_RECORDTYPE_LINEAR      = $00000003; // A linear set of records, each of the same length
   SIM_RECORDTYPE_MASTER      = $00000004; // Every SIM has a single master record, effectively the head node
@@ -261,7 +261,7 @@ const
   // have been updated
   SIMFILE_FULLFILECHANGE = $00000001; //  All files have been changed
   SIMFILE_FILECHANGE     = $00000002; // Only a few files have been changed
-  SIMFILE_SIMINIT        = $00000004; // SIM Initiailization
+  SIMFILE_SIMINIT        = $00000004; // SIM Initialization
   SIMFILE_SIMRESET       = $00000008; // Reset the SIM
 
   // Max_Length | Maximum length constants }
@@ -290,11 +290,11 @@ type
        lpszAddress : array[0..(MAX_LENGTH_ADDRESS)-1] of TCHAR; // The actual phone number
        dwAddressType : DWORD; // A SIM_ADDRTYPE_* constant
        dwNumPlan : DWORD;     // A SIM_NUMPLAN_* constant
-       lpszText : array[0..(MAX_LENGTH_PHONEBOOKENTRYTEXT)-1] of TCHAR; // Text assocaited with the entry
+       lpszText : array[0..(MAX_LENGTH_PHONEBOOKENTRYTEXT)-1] of TCHAR; // Text associated with the entry
     end;
   TSIMPHONEBOOKENTRY = simphonebookentry_tag;
   LPSIMPHONEBOOKENTRY = ^simphonebookentry_tag;
-  
+
   // SIMMESSAGE | A SIM message entry
 
   simmessage_tag = record
@@ -387,7 +387,7 @@ type
   // Size of data structure in bytes
   // Parameter passed to simInititialize
   TSIMCALLBACK = procedure (dwNotifyCode:DWORD; const pData:pointer; dwDataSize:DWORD; dwParam:DWORD);
-  
+
 //*****************************************************************************
 // functions
 //*****************************************************************************
@@ -468,7 +468,7 @@ function SimUnlockPhone(hSim:HSIM; lpszPassword:LPTSTR; lpszNewPin:LPTSTR):HRESU
 // Points to a valid HSIM handle
 // A SIMLOCKFACILITY_* constant
 // Some facilities require a password
-// Enabled or diabled
+// Enabled or disabled
 function SimGetLockingStatus(hSim:HSIM; dwLockingFacility:DWORD; lpszPassword:LPTSTR; var pfEnabled:BOOL):HRESULT;external CellCoreDLL name 'SimGetLockingStatus';
 
 // Sets the locking status of the phone.
@@ -476,7 +476,7 @@ function SimGetLockingStatus(hSim:HSIM; dwLockingFacility:DWORD; lpszPassword:LP
 // Points to a valid HSIM handle
 // A SIMLOCKFACILITY_* constant
 // Some facilities require a password
-// Enable or diable
+// Enable or disable
 function SimSetLockingStatus(hSim:HSIM; dwLockingFacility:DWORD; lpszPassword:LPTSTR; fEnabled:BOOL):HRESULT;external CellCoreDLL name 'SimSetLockingStatus';
 
 // Changes a locking password.

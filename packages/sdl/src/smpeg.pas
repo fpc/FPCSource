@@ -4,7 +4,7 @@ unit smpeg;
 {******************************************************************************}
 {
   $Id: smpeg.pas,v 1.7 2004/08/14 22:54:30 savage Exp $
-  
+
 }
 {                                                                              }
 {       Borland Delphi SMPEG - SDL MPEG Player Library                         }
@@ -124,7 +124,7 @@ unit smpeg;
   Revision 1.1  2004/02/14 23:35:42  savage
   version 1 of sdl_image, sdl_mixer and smpeg.
 
-  
+
 }
 {******************************************************************************}
 
@@ -204,7 +204,7 @@ type
   TSMPEG_FilterDestroy = function( Filter: PSMPEG_Filter ): Pointer; cdecl;
   {$ELSE}
   TSMPEG_FilterDestroy = function( Filter: PSMPEG_Filter ): Pointer;
-  {$ENDIF}  
+  {$ENDIF}
 
 { The filter definition itself }
   TSMPEG_Filter = record
@@ -272,7 +272,7 @@ type
   SMPEG_Info = _SMPEG_Info;
   TSMPEG_Info = _SMPEG_Info;
   PSMPEG_Info = ^_SMPEG_Info;
-  
+
 { Possible MPEG status codes }
 const
   STATUS_SMPEG_ERROR = -1;

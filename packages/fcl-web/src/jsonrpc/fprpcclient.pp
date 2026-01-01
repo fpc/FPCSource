@@ -69,10 +69,10 @@ Type
     function EncodeParams(aMethod: TRttiMethod; const aArgs: TValueArray; out VarParamCount: Integer): TJSONData;
     // Decode JSON-RPC result to method call result and var/out params.
     function DecodeResult(Response: TJSONObject; aMethod: TRttiMethod; const aArgs: TValueArray; HaveReturnValues: Boolean): TValue;
-    // Find registered interfacen return instance in aObj. Return true if successful.
+    // Find registered interface return instance in aObj. Return true if successful.
     function DoCreateProxy(constref aIID: TGuid; out aObj): Boolean;
     function DoCreateProxy(const aName: String; out aObj): Boolean;
-    // Called from TFPRPCVirtualInterface to actuall handle call.
+    // Called from TFPRPCVirtualInterface to actual handle call.
     procedure HandleInvoke(const aClassName : String; aMethod: TRttiMethod; const aArgs: TValueArray; out aResult: TValue); virtual;
     // Do actual HTTP request.
     function DoRequest(aRequest : TJSONObject) : TJSONObject; virtual;

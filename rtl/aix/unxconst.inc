@@ -76,7 +76,7 @@ const
   STAT_IWUSR = STAT_IWOTH shl 6;
   STAT_IXUSR = STAT_IXOTH shl 6;
 
-  {Constansts Termios/Ioctl (used in Do_IsDevice) }
+  {Constants Termios/Ioctl (used in Do_IsDevice) }
   IOCtl_TCGETS= (ord('T') shl 8) or 1; // TCGETS is also in termios.inc, but the sysunix needs only this
 
   ITimer_Real    =0;

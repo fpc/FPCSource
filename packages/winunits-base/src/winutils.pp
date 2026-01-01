@@ -39,9 +39,9 @@ const
   NET_FW_PROFILE2_PUBLIC  = 4;
   NET_FW_IP_PROTOCOL_TCP = 6;
   NET_FW_IP_PROTOCOL_UDP = 17;
-  NET_FW_ACTION_ALLOW    = 1;  
+  NET_FW_ACTION_ALLOW    = 1;
 
-// add firewall rule e.g. 
+// add firewall rule e.g.
 // AddProgramExceptionToFireWall( Application.Title,Application.Title, Application.ExeName, NET_FW_IP_PROTOCOL_TCP, NET_FW_PROFILE2_DOMAIN or NET_FW_PROFILE2_PRIVATE or NET_FW_PROFILE2_PUBLIC);
 procedure AddProgramExceptionToFireWall(Const wsCaption, wsDescription, wsExecutable: WideString; iProtocol,iProfile:Integer);
 
@@ -129,7 +129,7 @@ begin
   NewRule.Profiles         := iProfile;
   NewRule.Action           := NET_FW_ACTION_ALLOW;
   RulesObject.Add(NewRule);
-end; 
+end;
 
 procedure RemoveExceptionFromFW(Const exCaption: WideString);
 var
@@ -137,6 +137,6 @@ var
 begin
   fwPolicy2      := CreateOleObject('HNetCfg.FwPolicy2');
   fwPolicy2.Rules.Remove(exCaption);
-end;   
+end;
 
 end.

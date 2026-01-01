@@ -1279,7 +1279,7 @@ function CFURLCreateBookmarkData( allocator: CFAllocatorRef; url: CFURLRef; opti
 	@param	options options which affect the resolution
 	@param relativeToURL If non-NULL, and if the bookmark was created relative to another url, then resolve it relative to this url.  If
                 kCFURLBookmarkCreationWithSecurityScope was provided at creation, and kCFURLBookmarkResolutionWithSecurityScope is set, then relativeURL
-                should point to the same item which was passed as relavitiveURL at creation time.
+                should point to the same item which was passed as relativeURL at creation time.
 	@param resourcePropertiesToInclude If non-NULL, a CFArray containing those properties which the caller would like to already be cached on the given url
 	@param isStale If non-NULL, on exit will be set to true if during resolution any of the properties in the bookmark no longer seemed to match the
 		corresponding properties on the returned file.  Clients, upon seeing a stale representation, may want to replace whatever stored bookmark data they

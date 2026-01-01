@@ -127,8 +127,8 @@
  * 19980816 (1.3.2-dev)	- change proxy to use tables for headers, change
  *                        struct cache_req to typedef cache_req.
  *                        Delete ap_proxy_get_header(), ap_proxy_add_header(),
- *                        ap_proxy_del_header(). Change interface of 
- *                        ap_proxy_send_fb() and ap_proxy_cache_error(). 
+ *                        ap_proxy_del_header(). Change interface of
+ *                        ap_proxy_send_fb() and ap_proxy_cache_error().
  *                        Add ap_proxy_send_hdr_line() and ap_proxy_bputs2().
  * 19980825 (1.3.2-dev) - renamed is_HTTP_xxx() macros to ap_is_HTTP_xxx()
  * 19980825.1           - mod_proxy only (minor change): modified interface of
@@ -171,7 +171,7 @@
  * 19990108.7           - ap_isxdigit added
  * 19990320             - METHODS and M_INVALID symbol values modified
  * 19990320.1           - add ap_vrprintf()
- * 19990320.2           - add cmd_parms.context, ap_set_config_vectors, 
+ * 19990320.2           - add cmd_parms.context, ap_set_config_vectors,
  *                        export ap_add_file_conf
  * 19990320.3           - add ap_regexec() and ap_regerror()
  * 19990320.4           - add ap_field_noparam()

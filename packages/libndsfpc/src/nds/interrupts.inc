@@ -57,7 +57,7 @@ const
 
 type
   TVoidFn = procedure of object;
-  
+
 var
 //  __irq_vector: array [0..0] of VoidFunctionPointer; cvar; external;
 //  __irq_vector: array [0..0] of Pointer; cvar; external;
@@ -78,7 +78,7 @@ var
 
 type
   IntTable = record
-    handler: IntFn; 
+    handler: IntFn;
     mask: cuint32;
   end;
 

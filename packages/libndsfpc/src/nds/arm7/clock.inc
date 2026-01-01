@@ -18,15 +18,15 @@ const
 
   WRITE_STATUS_REG2  = $62;
   READ_STATUS_REG2   = $63;
-  STATUS_TEST      = (1 shl 7);  // 
-  STATUS_INT2AE    = (1 shl 6);  // 
+  STATUS_TEST      = (1 shl 7);  //
+  STATUS_INT2AE    = (1 shl 6);  //
   STATUS_SC3       = (1 shl 5);  // R/W scratch bit
   STATUS_SC2       = (1 shl 4);  // R/W scratch bit
 
   STATUS_32kE      = (1 shl 3);  // Interrupt mode bits
-  STATUS_INT1AE    = (1 shl 2);  // 
-  STATUS_INT1ME    = (1 shl 1);  // 
-  STATUS_INT1FE    = (1 shl 0);  // 
+  STATUS_INT1AE    = (1 shl 2);  //
+  STATUS_INT1ME    = (1 shl 1);  //
+  STATUS_INT1FE    = (1 shl 0);  //
 
   // full 7 bytes for time and date
   WRITE_TIME_AND_DATE = $64;

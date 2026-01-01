@@ -108,11 +108,11 @@ function gst_object_check_uniqueness(list:PGList; name:Pgchar):Tgboolean;cdecl;e
   function gst_object_get_value(object_:PGstObject; property_name:Pgchar; timestamp:TGstClockTime):PGValue;cdecl;external gstreamerlib name 'gst_object_get_value';
 
 (* Const before type ignored *)
-  function gst_object_get_value_array(object_:PGstObject; property_name:Pgchar; timestamp:TGstClockTime; interval:TGstClockTime; n_values:Tguint; 
+  function gst_object_get_value_array(object_:PGstObject; property_name:Pgchar; timestamp:TGstClockTime; interval:TGstClockTime; n_values:Tguint;
              values:Tgpointer):Tgboolean;cdecl;external gstreamerlib name 'gst_object_get_value_array';
 
 (* Const before type ignored *)
-  function gst_object_get_g_value_array(object_:PGstObject; property_name:Pgchar; timestamp:TGstClockTime; interval:TGstClockTime; n_values:Tguint; 
+  function gst_object_get_g_value_array(object_:PGstObject; property_name:Pgchar; timestamp:TGstClockTime; interval:TGstClockTime; n_values:Tguint;
              values:PGValue):Tgboolean;cdecl;external gstreamerlib name 'gst_object_get_g_value_array';
 
   function gst_object_get_control_rate(object_:PGstObject):TGstClockTime;cdecl;external gstreamerlib name 'gst_object_get_control_rate';

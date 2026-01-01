@@ -1435,7 +1435,7 @@ begin
     end;
   529:
     begin
-      //MaxM: is correct to Read 3 Rational in sequense??? TEST
+      //MaxM: is correct to Read 3 Rational in sequence??? TEST
       Value:=ReadEntryRational;
       if Value.Denominator>0
       then IFD.YCbCr_LumaRed :=Value.Numerator/Value.Denominator

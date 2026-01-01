@@ -52,7 +52,7 @@ type
     function Create_Type() : ISDOType;override;
   end;
 
-{$IFDEF HAS_SDO_BYTES}  
+{$IFDEF HAS_SDO_BYTES}
   TSDOBytesType_Test = class(TTSDOSimpleType_Test)
   protected
     function Create_Type() : ISDOType;override;
@@ -303,7 +303,7 @@ begin
         ,IntegerType
         {$IFDEF HAS_SDO_LONG},LongType{$ENDIF}
         {$IFDEF HAS_SDO_SHORT},ShortType{$ENDIF}
-        ,StringType 
+        ,StringType
       ]
     );
 end;
@@ -760,7 +760,7 @@ begin
 
   CheckEquals(True,obj.getPropertyIndex('a') < obj.getPropertyIndex('b'), 'Index(a) < Index(b)');
   CheckEquals(True,obj.getProperties().getIndex('a') < obj.getProperties().getIndex('b'), 'getProperties : Index(a) < Index(b)');
- 
+
 end;
 
 class function TTSDOBaseObjectType_Test.GetTestSuitePath: string;
@@ -1454,7 +1454,7 @@ var
   locFac : ISDODataFactory;
   ok : Boolean;
   locTypeX : ISDOObjectType;
-begin  
+begin
   { Auto reference should be allowed!
   locFac := Create_Factory();
   locFac.AddType(s_uri,'A',[]);
@@ -1470,7 +1470,7 @@ begin
           ok := True;
         end;
       end;
-      Check(ok, 'Succefully create a object who''s type tree contains circular dependency.');
+      Check(ok, 'Successfully create a object who''s type tree contains circular dependency.');
       locTypeX := locFac.getType(s_uri,'B') as ISDOObjectType;
       locTypeX.DropProperty(locTypeX.getProperty('p_BB'));
       locFac := nil;}

@@ -80,185 +80,185 @@ type
   function gst_util_group_id_next:Tguint;cdecl;external gstreamerlib name 'gst_util_group_id_next';
 
   {
-  static inline guint16 __gst_fast_read16(const guint8 *v) 
+  static inline guint16 __gst_fast_read16(const guint8 *v)
     return *(const guint16*)(const void*)(v);
-  
-  static inline guint32 __gst_fast_read32(const guint8 *v) 
+
+  static inline guint32 __gst_fast_read32(const guint8 *v)
     return *(const guint32*)(const void*)(v);
-  
-  static inline guint64 __gst_fast_read64(const guint8 *v) 
+
+  static inline guint64 __gst_fast_read64(const guint8 *v)
     return *(const guint64*)(const void*)(v);
-  
-  static inline guint16 __gst_fast_read_swap16(const guint8 *v) 
+
+  static inline guint16 __gst_fast_read_swap16(const guint8 *v)
     return (((guint16) ( (guint16) ((guint16) (*(const guint16*)(const void*)(v)) >> 8) | (guint16) ((guint16) (*(const guint16*)(const void*)(v)) << 8))));
-  
-  static inline guint32 __gst_fast_read_swap32(const guint8 *v) 
+
+  static inline guint32 __gst_fast_read_swap32(const guint8 *v)
     return (((guint32) ( (((guint32) (*(const guint32*)(const void*)(v)) & (guint32) 0x000000ffU) << 24) | (((guint32) (*(const guint32*)(const void*)(v)) & (guint32) 0x0000ff00U) << 8) | (((guint32) (*(const guint32*)(const void*)(v)) & (guint32) 0x00ff0000U) >> 8) | (((guint32) (*(const guint32*)(const void*)(v)) & (guint32) 0xff000000U) >> 24))));
-  
-  static inline guint64 __gst_fast_read_swap64(const guint8 *v) 
+
+  static inline guint64 __gst_fast_read_swap64(const guint8 *v)
     return (((guint64) ( (((guint64) (*(const guint64*)(const void*)(v)) & (guint64) (0x00000000000000ffUL)) << 56) | (((guint64) (*(const guint64*)(const void*)(v)) & (guint64) (0x000000000000ff00UL)) << 40) | (((guint64) (*(const guint64*)(const void*)(v)) & (guint64) (0x0000000000ff0000UL)) << 24) | (((guint64) (*(const guint64*)(const void*)(v)) & (guint64) (0x00000000ff000000UL)) << 8) | (((guint64) (*(const guint64*)(const void*)(v)) & (guint64) (0x000000ff00000000UL)) >> 8) | (((guint64) (*(const guint64*)(const void*)(v)) & (guint64) (0x0000ff0000000000UL)) >> 24) | (((guint64) (*(const guint64*)(const void*)(v)) & (guint64) (0x00ff000000000000UL)) >> 40) | (((guint64) (*(const guint64*)(const void*)(v)) & (guint64) (0xff00000000000000UL)) >> 56))));
-  
-  
-  
-  
-  static inline void __gst_fast_write16 (guint8 *p, guint16 v) 
+
+
+
+
+  static inline void __gst_fast_write16 (guint8 *p, guint16 v)
     *(guint16*)(void*)(p) = v;
-  
-  static inline void __gst_fast_write32 (guint8 *p, guint32 v) 
+
+  static inline void __gst_fast_write32 (guint8 *p, guint32 v)
     *(guint32*)(void*)(p) = v;
-  
-  static inline void __gst_fast_write64 (guint8 *p, guint64 v) 
+
+  static inline void __gst_fast_write64 (guint8 *p, guint64 v)
     *(guint64*)(void*)(p) = v;
-  
-  static inline void __gst_fast_write_swap16 (guint8 *p, guint16 v) 
+
+  static inline void __gst_fast_write_swap16 (guint8 *p, guint16 v)
     *(guint16*)(void*)(p) = (((guint16) ( (guint16) ((guint16) (v) >> 8) | (guint16) ((guint16) (v) << 8))));
-  
-  static inline void __gst_fast_write_swap32 (guint8 *p, guint32 v) 
+
+  static inline void __gst_fast_write_swap32 (guint8 *p, guint32 v)
     *(guint32*)(void*)(p) = (((guint32) ( (((guint32) (v) & (guint32) 0x000000ffU) << 24) | (((guint32) (v) & (guint32) 0x0000ff00U) << 8) | (((guint32) (v) & (guint32) 0x00ff0000U) >> 8) | (((guint32) (v) & (guint32) 0xff000000U) >> 24))));
-  
-  static inline void __gst_fast_write_swap64 (guint8 *p, guint64 v) 
+
+  static inline void __gst_fast_write_swap64 (guint8 *p, guint64 v)
     *(guint64*)(void*)(p) = (((guint64) ( (((guint64) (v) & (guint64) (0x00000000000000ffUL)) << 56) | (((guint64) (v) & (guint64) (0x000000000000ff00UL)) << 40) | (((guint64) (v) & (guint64) (0x0000000000ff0000UL)) << 24) | (((guint64) (v) & (guint64) (0x00000000ff000000UL)) << 8) | (((guint64) (v) & (guint64) (0x000000ff00000000UL)) >> 8) | (((guint64) (v) & (guint64) (0x0000ff0000000000UL)) >> 24) | (((guint64) (v) & (guint64) (0x00ff000000000000UL)) >> 40) | (((guint64) (v) & (guint64) (0xff00000000000000UL)) >> 56))));
-  
+
   # 321 "gstutils.h"
-  static inline guint32 __gst_slow_read24_be (const guint8 * data) 
+  static inline guint32 __gst_slow_read24_be (const guint8 * data)
     return ((((guint32) (((const guint8 *) (data))[0])) << (16)) | (((guint32) (((const guint8 *) (data))[1])) << (8)) | (((guint32) (((const guint8 *) (data))[2])) << (0)));
-  
+
   # 336 "gstutils.h"
-  static inline guint32 __gst_slow_read24_le (const guint8 * data) 
+  static inline guint32 __gst_slow_read24_le (const guint8 * data)
     return ((((guint32) (((const guint8 *) (data))[2])) << (16)) | (((guint32) (((const guint8 *) (data))[1])) << (8)) | (((guint32) (((const guint8 *) (data))[0])) << (0)));
-  
+
   # 568 "gstutils.h"
   static inline gfloat
   GFLOAT_SWAP_LE_BE(gfloat in)
-  
+
     union
-    
+
       guint32 i;
       gfloat f;
      u;
-  
+
     u.f = in;
     u.i = (((guint32) ( (((guint32) (u.i) & (guint32) 0x000000ffU) << 24) | (((guint32) (u.i) & (guint32) 0x0000ff00U) << 8) | (((guint32) (u.i) & (guint32) 0x00ff0000U) >> 8) | (((guint32) (u.i) & (guint32) 0xff000000U) >> 24))));
     return u.f;
-  
+
   # 590 "gstutils.h"
   static inline gdouble
   GDOUBLE_SWAP_LE_BE(gdouble in)
-  
+
     union
-    
+
       guint64 i;
       gdouble d;
      u;
-  
+
     u.d = in;
     u.i = (((guint64) ( (((guint64) (u.i) & (guint64) (0x00000000000000ffUL)) << 56) | (((guint64) (u.i) & (guint64) (0x000000000000ff00UL)) << 40) | (((guint64) (u.i) & (guint64) (0x0000000000ff0000UL)) << 24) | (((guint64) (u.i) & (guint64) (0x00000000ff000000UL)) << 8) | (((guint64) (u.i) & (guint64) (0x000000ff00000000UL)) >> 8) | (((guint64) (u.i) & (guint64) (0x0000ff0000000000UL)) >> 24) | (((guint64) (u.i) & (guint64) (0x00ff000000000000UL)) >> 40) | (((guint64) (u.i) & (guint64) (0xff00000000000000UL)) >> 56))));
     return u.d;
-  
+
   # 693 "gstutils.h"
   static inline gfloat
   GST_READ_FLOAT_LE(const guint8 *data)
-  
+
     union
-    
+
       guint32 i;
       gfloat f;
      u;
-  
+
     u.i = __gst_fast_read32((const guint8 *)(data));
     return u.f;
-  
+
   # 714 "gstutils.h"
   static inline gfloat
   GST_READ_FLOAT_BE(const guint8 *data)
-  
+
     union
-    
+
       guint32 i;
       gfloat f;
      u;
-  
+
     u.i = __gst_fast_read_swap32((const guint8 *)(data));
     return u.f;
-  
+
   # 735 "gstutils.h"
   static inline gdouble
   GST_READ_DOUBLE_LE(const guint8 *data)
-  
+
     union
-    
+
       guint64 i;
       gdouble d;
      u;
-  
+
     u.i = __gst_fast_read64((const guint8 *)(data));
     return u.d;
-  
+
   # 756 "gstutils.h"
   static inline gdouble
   GST_READ_DOUBLE_BE(const guint8 *data)
-  
+
     union
-    
+
       guint64 i;
       gdouble d;
      u;
-  
+
     u.i = __gst_fast_read_swap64((const guint8 *)(data));
     return u.d;
-  
+
   # 776 "gstutils.h"
   static inline void
   GST_WRITE_FLOAT_LE(guint8 *data, gfloat num)
-  
+
     union
-    
+
       guint32 i;
       gfloat f;
      u;
-  
+
     u.f = num;
     __gst_fast_write32((guint8 *)(data), (u.i));
-  
+
   # 796 "gstutils.h"
   static inline void
   GST_WRITE_FLOAT_BE(guint8 *data, gfloat num)
-  
+
     union
-    
+
       guint32 i;
       gfloat f;
      u;
-  
+
     u.f = num;
     __gst_fast_write_swap32((guint8 *)(data), (u.i));
-  
+
   # 816 "gstutils.h"
   static inline void
   GST_WRITE_DOUBLE_LE(guint8 *data, gdouble num)
-  
+
     union
-    
+
       guint64 i;
       gdouble d;
      u;
-  
+
     u.d = num;
     __gst_fast_write64((guint8 *)(data), (u.i));
-  
+
   # 836 "gstutils.h"
   static inline void
   GST_WRITE_DOUBLE_BE(guint8 *data, gdouble num)
-  
+
     union
-    
+
       guint64 i;
       gdouble d;
      u;
-  
+
     u.d = num;
     __gst_fast_write_swap64((guint8 *)(data), (u.i));
-  
+
    }
 (* Const before type ignored *)
 (* Const before type ignored *)
@@ -408,16 +408,16 @@ type
 
   procedure gst_util_double_to_fraction(src:Tgdouble; dest_n:Pgint; dest_d:Pgint);cdecl;external gstreamerlib name 'gst_util_double_to_fraction';
 
-  function gst_util_fraction_multiply(a_n:Tgint; a_d:Tgint; b_n:Tgint; b_d:Tgint; res_n:Pgint; 
+  function gst_util_fraction_multiply(a_n:Tgint; a_d:Tgint; b_n:Tgint; b_d:Tgint; res_n:Pgint;
              res_d:Pgint):Tgboolean;cdecl;external gstreamerlib name 'gst_util_fraction_multiply';
 
-  function gst_util_fraction_add(a_n:Tgint; a_d:Tgint; b_n:Tgint; b_d:Tgint; res_n:Pgint; 
+  function gst_util_fraction_add(a_n:Tgint; a_d:Tgint; b_n:Tgint; b_d:Tgint; res_n:Pgint;
              res_d:Pgint):Tgboolean;cdecl;external gstreamerlib name 'gst_util_fraction_add';
 
   function gst_util_fraction_compare(a_n:Tgint; a_d:Tgint; b_n:Tgint; b_d:Tgint):Tgint;cdecl;external gstreamerlib name 'gst_util_fraction_compare';
 
 (* Const before type ignored *)
-  function gst_calculate_linear_regression(xy:PGstClockTime; temp:PGstClockTime; n:Tguint; m_num:PGstClockTime; m_denom:PGstClockTime; 
+  function gst_calculate_linear_regression(xy:PGstClockTime; temp:PGstClockTime; n:Tguint; m_num:PGstClockTime; m_denom:PGstClockTime;
              b:PGstClockTime; xbase:PGstClockTime; r_squared:Pgdouble):Tgboolean;cdecl;external gstreamerlib name 'gst_calculate_linear_regression';
 
 

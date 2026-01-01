@@ -67,7 +67,7 @@ begin
 {Reopen StdOut/StdErr/StdIn}
     OrigCP := GetACP;
     with SecAttr do
-     begin 
+     begin
       nLength := SizeOf (TSecurityAttributes);
       SecAttr.bInheritHandle := true;
       SecAttr.lpSecurityDescriptor := nil;
@@ -469,7 +469,7 @@ begin
     begin
 { StdOut may be redirected, let's try to access the console using a new handle }
      with SecAttr do
-      begin 
+      begin
        nLength := SizeOf (TSecurityAttributes);
        SecAttr.bInheritHandle := true;
        SecAttr.lpSecurityDescriptor := nil;
@@ -494,7 +494,7 @@ begin
       OrigScreenSize := max(dwMaximumWindowSize.X,dwSize.X) * max(dwMaximumWindowSize.Y,dwSize.Y) * SizeOf (Char_Info);
       if OrigScreenSize > 0 then
        begin
-      { Register the curent video mode in reserved slot in System Modes}
+      { Register the current video mode in reserved slot in System Modes}
         SysVMD[SysVideoModeCount-1].Col:=dwMaximumWindowSize.X;
         SysVMD[SysVideoModeCount-1].Row:=dwMaximumWindowSize.Y;
         SysVMD[SysVideoModeCount-1].Color:=true;

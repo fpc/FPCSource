@@ -155,7 +155,7 @@ type
   They must be at least as wide as specified; but making them too big
   won't cost a huge amount of memory, so we don't provide special
   extraction code like we did for JSAMPLE.  (In other words, these
-  typedefs live at a different point on the speed/space tradeoff curve.) }
+  typedefs live at a different point on the speed/space trade-off curve.) }
 
 
 { UINT8 must hold at least the values 0..255. }

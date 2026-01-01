@@ -20,10 +20,10 @@ type
     { private declarations }
   public
     { public declarations }
-  end; 
+  end;
 
 var
-  DataModule1: TDataModule1; 
+  DataModule1: TDataModule1;
 
 implementation
 

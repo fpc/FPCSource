@@ -35,7 +35,7 @@ Type
 Var
   Application : TCGIApplication;
   ShowCleanUpErrors : Boolean = False;
-  
+
 Implementation
 
 {$IFDEF FPC_DOTTEDUNITS}
@@ -67,8 +67,8 @@ end;
 
 Initialization
   InitCGI;
-  
+
 Finalization
   DoneCGI;
-  
+
 end.

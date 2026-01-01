@@ -36,7 +36,7 @@ interface
    * Boston, MA 02110-1301, USA.
     }
 {$ifndef __GST_FORMAT_H__}
-{$define __GST_FORMAT_H__}  
+{$define __GST_FORMAT_H__}
 {$include <glib.h>}
 {$include <gst/gstiterator.h>}
   {*
@@ -57,7 +57,7 @@ interface
     }
   { NOTE: don't forget to update the table in gstformat.c when changing
    * this enum  }
-(* error 
+(* error
 typedef enum {
   { must be first in list  }
 in declaration at line 59 *)
@@ -101,39 +101,39 @@ in declaration at line 59 *)
           quark : GQuark;
         end;
 
-(* error 
+(* error
 const gchar*    gst_format_get_name             (GstFormat format);
  in declarator_list *)
-(* error 
+(* error
 GQuark          gst_format_to_quark             (GstFormat format);
  in declarator_list *)
     { register a new format  }
-(* error 
+(* error
 GstFormat       gst_format_register             (const gchar *nick,
-(* error 
+(* error
                                                  const gchar *description);
  in declarator_list *)
  in declarator_list *)
-(* error 
+(* error
 GstFormat       gst_format_get_by_nick          (const gchar *nick);
  in declarator_list *)
     { check if a format is in an array of formats  }
-(* error 
+(* error
 gboolean        gst_formats_contains            (const GstFormat *formats, GstFormat format);
-(* error 
+(* error
 gboolean        gst_formats_contains            (const GstFormat *formats, GstFormat format);
  in declarator_list *)
  in declarator_list *)
     { query for format details  }
-(* error 
+(* error
 const GstFormatDefinition*
  in declarator_list *)
-(* error 
+(* error
 GstIterator*    gst_format_iterate_definitions  (void);
  in declarator_list *)
 {$endif}
     { __GST_FORMAT_H__  }
-(* error 
+(* error
 #endif /* __GST_FORMAT_H__ */
 
 implementation

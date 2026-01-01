@@ -200,7 +200,7 @@ type
                Free_Clusters: cardinal;
                Bytes_Per_Sector: word);
              2:                           {For date/time description,
-                                           see file searching realted
+                                           see file searching related
                                            routines.}
               (Label_Date,                {Date when volume label was created.}
                Label_Time: word;          {Time when volume label was created.}

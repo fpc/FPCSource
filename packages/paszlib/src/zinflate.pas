@@ -140,7 +140,7 @@ function inflate(var z : z_stream;
 
      If a preset dictionary is needed at this point (see inflateSetDictionary
   below), inflate sets strm-adler to the adler32 checksum of the
-  dictionary chosen by the compressor and returns Z_NEED_DICT; otherwise 
+  dictionary chosen by the compressor and returns Z_NEED_DICT; otherwise
   it sets strm->adler to the adler32 checksum of all output produced
   so far (that is, total_out bytes) and returns Z_OK, Z_STREAM_END or
   an error code as described below. At the end of the stream, inflate()

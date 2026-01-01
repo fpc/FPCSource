@@ -4,7 +4,7 @@ interface
 
 uses
   ctypes;
-  
+
 const
   ENEMIES_BITMAP_WIDTH = 256;
   ENEMIES_BITMAP_HEIGHT = 256;

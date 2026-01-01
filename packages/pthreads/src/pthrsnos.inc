@@ -13,7 +13,7 @@ type
   psem_t          = ^sem_t;
   TSemaphore  = sem_t;
   PSemaphore  = ^TSemaphore;
-  
+
 const
   External_library='c'; {Setup as you need}
 
@@ -30,17 +30,17 @@ Type
 
     {already in unixtype
     pthread_t = culong
-    } 	    
-  
+    }
+
     sched_param = record
       __sched_priority: cint;
     end;
-  
+
     pthread_attr_t = record
       __pthread_attrp : pointer;
     end;
 
-{ already in unixtype  
+{ already in unixtype
     pthread_mutex_t = record
       __pthread_mutex_flags : record
            __pthread_mutex_flag1 : word;
@@ -63,15 +63,15 @@ Type
           end;
       __pthread_mutex_data : qword;
     end;
-}  
+}
     pthread_spinlock_t = pthread_mutex_t;
-  
+
 { already in unix type
     pthread_mutexattr_t = record
       __pthread_mutexattrp : pointer;
     end;
 }
-  
+
 { already in unix type
     pthread_cond_t = record
       __pthread_cond_flags : record
@@ -82,13 +82,13 @@ Type
       __pthread_cond_data : upad64_t;
     end;
 
-  
+
     pthread_condattr_t = record
       __pthread_condattrp : pointer;
     end;
-  
+
     pthread_key_t = cuint;
-  
+
     pthread_rwlock_t = record
       __pthread_rwlock_readers : int32_t;
       __pthread_rwlock_type : uint16_t;
@@ -97,16 +97,16 @@ Type
       __pthread_rwlock_readercv : pthread_cond_t;
       __pthread_rwlock_writercv : pthread_cond_t;
     end;
-}  
+}
     pthread_rwlockattr_t = record
       __pthread_rwlockattrp : pointer;
     end;
-  
+
     _once = record
        __pthread_once_pad : array[0..3] of upad64_t;
     end;
     pthread_once_t = _once;
-  
+
     pthread_barrier_t = record
        __pthread_barrier_count : uint32_t;
        __pthread_barrier_current : uint32_t;
@@ -115,18 +115,18 @@ Type
        __pthread_barrier_lock : pthread_mutex_t;
        __pthread_barrier_cond : pthread_cond_t;
     end;
-  
+
     pthread_barrierattr_t = record
        __pthread_barrierattrp : pointer;
     end;
-    
+
   P_cleanup_t  = ^_cleanup_t;
   Pclockid_t  = ^clockid_t;
   Plongint  = ^longint;
   Ppthread_barrier_t  = ^pthread_barrier_t;
   Ppthread_barrierattr_t  = ^pthread_barrierattr_t;
-  
-    
+
+
   Ppthread_once_t  = ^pthread_once_t;
   Ppthread_rwlock_t  = ^pthread_rwlock_t;
   Ppthread_rwlockattr_t  = ^pthread_rwlockattr_t;
@@ -141,51 +141,51 @@ Type
    _cleanup_t = _cleanup;
 
 const
-   PTHREAD_CREATE_DETACHED = $40;   
-   PTHREAD_CREATE_JOINABLE = 0;   
+   PTHREAD_CREATE_DETACHED = $40;
+   PTHREAD_CREATE_JOINABLE = 0;
 
 
-   PTHREAD_SCOPE_SYSTEM = $01;   
-   PTHREAD_SCOPE_PROCESS = 0;   
+   PTHREAD_SCOPE_SYSTEM = $01;
+   PTHREAD_SCOPE_PROCESS = 0;
 
 
-   PTHREAD_INHERIT_SCHED = 1;   
-   PTHREAD_EXPLICIT_SCHED = 0;   
+   PTHREAD_INHERIT_SCHED = 1;
+   PTHREAD_EXPLICIT_SCHED = 0;
 
 
-   PTHREAD_PROCESS_SHARED = 1;   
+   PTHREAD_PROCESS_SHARED = 1;
 
-   PTHREAD_PROCESS_PRIVATE = 0;   
-   _DEFAULT_TYPE = PTHREAD_PROCESS_PRIVATE;   
-
-const
-   DEFAULT_TYPE = _DEFAULT_TYPE;   
-
+   PTHREAD_PROCESS_PRIVATE = 0;
+   _DEFAULT_TYPE = PTHREAD_PROCESS_PRIVATE;
 
 const
-  PTHREAD_MUTEX_NORMAL = $0;   
-  PTHREAD_MUTEX_ERRORCHECK = $2;   
-  PTHREAD_MUTEX_RECURSIVE = $4;   
-  PTHREAD_MUTEX_DEFAULT = PTHREAD_MUTEX_NORMAL;   
-  
-  PTHREAD_PRIO_NONE = $0;   
-  PTHREAD_PRIO_INHERIT = $10;   
-  PTHREAD_PRIO_PROTECT = $20;   
-  
-  PTHREAD_MUTEX_STALL_NP = $0;   
-  PTHREAD_MUTEX_ROBUST_NP = $40;   
-  
-  
-  PTHREAD_CANCEL_ENABLE = $00;   
-  PTHREAD_CANCEL_DISABLE = $01;   
-  PTHREAD_CANCEL_DEFERRED = $00;   
-  PTHREAD_CANCEL_ASYNCHRONOUS = $02;   
+   DEFAULT_TYPE = _DEFAULT_TYPE;
+
+
+const
+  PTHREAD_MUTEX_NORMAL = $0;
+  PTHREAD_MUTEX_ERRORCHECK = $2;
+  PTHREAD_MUTEX_RECURSIVE = $4;
+  PTHREAD_MUTEX_DEFAULT = PTHREAD_MUTEX_NORMAL;
+
+  PTHREAD_PRIO_NONE = $0;
+  PTHREAD_PRIO_INHERIT = $10;
+  PTHREAD_PRIO_PROTECT = $20;
+
+  PTHREAD_MUTEX_STALL_NP = $0;
+  PTHREAD_MUTEX_ROBUST_NP = $40;
+
+
+  PTHREAD_CANCEL_ENABLE = $00;
+  PTHREAD_CANCEL_DISABLE = $01;
+  PTHREAD_CANCEL_DEFERRED = $00;
+  PTHREAD_CANCEL_ASYNCHRONOUS = $02;
   PTHREAD_CANCELED = pointer(-(19));
 
-  PTHREAD_ONCE_NOTDONE = 0;   
-  PTHREAD_ONCE_DONE = 1;   
-  
-  PTHREAD_BARRIER_SERIAL_THREAD = -(2);   
+  PTHREAD_ONCE_NOTDONE = 0;
+  PTHREAD_ONCE_DONE = 1;
+
+  PTHREAD_BARRIER_SERIAL_THREAD = -(2);
 
 type
    _Voidpfp = function(_para1:pointer) : pointer;cdecl;
@@ -356,4 +356,4 @@ type
 
   TPthreadMutex = pthread_mutex_t;
   PPthreadMutex = ^TPthreadMutex;
-  
+

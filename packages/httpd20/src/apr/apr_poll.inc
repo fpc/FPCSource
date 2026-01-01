@@ -21,9 +21,9 @@
 {#include "apr.h"
 #include "apr_pools.h"
 #include "apr_errno.h"
-#include "apr_inherit.h" 
-#include "apr_file_io.h" 
-#include "apr_network_io.h" 
+#include "apr_inherit.h"
+#include "apr_file_io.h"
+#include "apr_network_io.h"
 
 #if APR_HAVE_NETINET_IN_H
 #include <netinet/in.h>
@@ -31,7 +31,7 @@
 
 {
  * @defgroup apr_poll Poll Routines
- * @ingroup APR 
+ * @ingroup APR
  }
 
 {
@@ -43,7 +43,7 @@ const
   APR_POLLOUT  = $004;     {< Can write without blocking }
   APR_POLLERR  = $010;     {< Pending error }
   APR_POLLHUP  = $020;     {< Hangup occurred }
-  APR_POLLNVAL = $040;     {< Descriptior invalid }
+  APR_POLLNVAL = $040;     {< Descriptor invalid }
 
 { Used in apr_pollfd_t to determine what the apr_descriptor is }
 type
@@ -78,7 +78,7 @@ type
 
 {
  * Setup the memory required for poll to operate properly
- * @param new_poll The poll structure to be used. 
+ * @param new_poll The poll structure to be used.
  * @param num The number of socket descriptors to be polled.
  * @param cont The pool to operate on.
  * @deprecated This function is deprecated, APR applications should control the pollset memory themselves.
@@ -90,19 +90,19 @@ function apr_poll_setup(new_poll: PPapr_pollfd_t; num: apr_int32_t;
 
 {
  * Poll the sockets in the poll structure
- * @param aprset The poll structure we will be using. 
+ * @param aprset The poll structure we will be using.
  * @param numsock The number of sockets we are polling
  * @param nsds The number of sockets signalled.
- * @param timeout The amount of time in microseconds to wait.  This is 
- *                a maximum, not a minimum.  If a socket is signalled, we 
- *                will wake up before this time.  A negative number means 
+ * @param timeout The amount of time in microseconds to wait.  This is
+ *                a maximum, not a minimum.  If a socket is signalled, we
+ *                will wake up before this time.  A negative number means
  *                wait until a socket is signalled.
  * @remark
  * <PRE>
- * The number of sockets signalled is returned in the second argument. 
+ * The number of sockets signalled is returned in the second argument.
  *
- *        This is a blocking call, and it will not return until either a 
- *        socket has been signalled, or the timeout has expired. 
+ *        This is a blocking call, and it will not return until either a
+ *        socket has been signalled, or the timeout has expired.
  * </PRE>
  }
 function apr_poll(aprset: Papr_pollfd_t; numsock: apr_int32_t;
@@ -112,12 +112,12 @@ function apr_poll(aprset: Papr_pollfd_t; numsock: apr_int32_t;
 
 {
  * Add a socket to the poll structure.
- * @param aprset The poll structure we will be using. 
- * @param sock The socket to add to the current poll structure. 
+ * @param aprset The poll structure we will be using.
+ * @param sock The socket to add to the current poll structure.
  * @param event The events to look for when we do the poll.  One of:
  * <PRE>
  *            APR_POLLIN       signal if read will not block
- *            APR_POLLPRI      signal if prioirty data is availble to be read
+ *            APR_POLLPRI      signal if priority data is available to be read
  *            APR_POLLOUT      signal if write will not block
  * </PRE>
  * @deprecated This function is deprecated, APR applications should control the pollset memory themselves.
@@ -129,8 +129,8 @@ function apr_poll_socket_add(aprset: Papr_pollfd_t; sock: Papr_socket_t;
 
 {
  * Modify a socket in the poll structure with mask.
- * @param aprset The poll structure we will be using. 
- * @param sock The socket to modify in poll structure. 
+ * @param aprset The poll structure we will be using.
+ * @param sock The socket to modify in poll structure.
  * @param events The events to stop looking for during the poll.  One of:
  * <PRE>
  *            APR_POLLIN       signal if read will not block
@@ -146,8 +146,8 @@ function apr_poll_socket_mask(aprset: Papr_pollfd_t; sock: Papr_socket_t;
 
 {
  * Remove a socket from the poll structure.
- * @param aprset The poll structure we will be using. 
- * @param sock The socket to remove from the current poll structure. 
+ * @param aprset The poll structure we will be using.
+ * @param sock The socket to remove from the current poll structure.
  * @deprecated This function is deprecated, APR applications should control the pollset memory themselves.
  }
 function apr_poll_socket_remove(aprset: Papr_pollfd_t; sock: Papr_socket_t): apr_status_t;
@@ -156,7 +156,7 @@ function apr_poll_socket_remove(aprset: Papr_pollfd_t; sock: Papr_socket_t): apr
 
 {
  * Clear all events in the poll structure.
- * @param aprset The poll structure we will be using. 
+ * @param aprset The poll structure we will be using.
  * @param events The events to clear from all sockets.  One of:
  * <PRE>
  *            APR_POLLIN       signal if read will not block
@@ -174,7 +174,7 @@ function apr_poll_socket_clear(aprset: Papr_pollfd_t;
  * Get the return events for the specified socket.
  * @param event The returned events for the socket.  One of:
  * <PRE>
- *            APR_POLLIN       Data is available to be read 
+ *            APR_POLLIN       Data is available to be read
  *            APR_POLLPRI      Priority data is availble to be read
  *            APR_POLLOUT      Write will succeed
  *            APR_POLLERR      An error occurred on the socket
@@ -182,8 +182,8 @@ function apr_poll_socket_clear(aprset: Papr_pollfd_t;
  *            APR_POLLNVAL     This is an invalid socket to poll on.
  *                             Socket not open.
  * </PRE>
- * @param sock The socket we wish to get information about. 
- * @param aprset The poll structure we will be using. 
+ * @param sock The socket we wish to get information about.
+ * @param aprset The poll structure we will be using.
  * @deprecated This function is deprecated, APR applications should control the pollset memory themselves.
  }
 function apr_poll_revents_get(event: Papr_int16_t; sock: Papr_socket_t;
@@ -203,7 +203,7 @@ type
 
 {
  * Setup a pollset object
- * @param pollset  The pointer in which to return the newly created object 
+ * @param pollset  The pointer in which to return the newly created object
  * @param size The maximum number of descriptors that this pollset can hold
  * @param p The pool from which to allocate the pollset
  * @param flags Optional flags to modify the operation of the pollset

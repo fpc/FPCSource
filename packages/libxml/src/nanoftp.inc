@@ -12,7 +12,7 @@
 
 {$IFDEF TYPE}
 (**
- * ftpListCallback: 
+ * ftpListCallback:
  * @userData:  user provided data for the callback
  * @filename:  the file name (including "->" when links are shown)
  * @attrib:  the attribute string
@@ -32,7 +32,7 @@
   ftpListCallback = procedure(userData: pointer; filename, attrib, owner, group: PAnsiChar; size: culong; links, year: cint; month: PAnsiChar; day, hour, minute: cint); EXTDECL;
 
 (**
- * ftpDataCallback: 
+ * ftpDataCallback:
  * @userData: the user provided context
  * @data: the data received
  * @len: its size in bytes

@@ -30,8 +30,8 @@ uses SysUtils, Classes, DB, bufdataset, sqlscript, sqltypes;
 
 type
   TSchemaType = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.TSchemaType;
-  TStatementType = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.TStatementType; 
-  TDBEventType = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.TDBEventType; 
+  TStatementType = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.TStatementType;
+  TDBEventType = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.TDBEventType;
   TDBEventTypes = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.TDBEventTypes;
   TQuoteChars = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.TQuoteChars;
 
@@ -50,7 +50,7 @@ const
   LogAllEventsExtra = [detCustom, detPrepare, detExecute, detFetch, detCommit, detRollBack, detParamValue,detActualSQL];
 
   // Backwards compatibility alias constants.
-  
+
   stNoSchema         = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.stNoSchema;
   stTables           = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.stTables;
   stSysTables        = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.stSysTables;
@@ -62,27 +62,27 @@ const
   stSchemata         = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.stSchemata;
   stSequences        = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.stSequences;
 
-  stUnknown       = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.stUnknown; 
-  stSelect        = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.stSelect; 
-  stInsert        = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.stInsert; 
-  stUpdate        = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.stUpdate; 
+  stUnknown       = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.stUnknown;
+  stSelect        = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.stSelect;
+  stInsert        = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.stInsert;
+  stUpdate        = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.stUpdate;
   stDelete        = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.stDelete;
-  stDDL           = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.stDDL; 
-  stGetSegment    = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.stGetSegment; 
-  stPutSegment    = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.stPutSegment; 
+  stDDL           = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.stDDL;
+  stGetSegment    = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.stGetSegment;
+  stPutSegment    = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.stPutSegment;
   stExecProcedure = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.stExecProcedure;
-  stStartTrans    = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.stStartTrans; 
-  stCommit        = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.stCommit; 
-  stRollback      = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.stRollback;  
+  stStartTrans    = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.stStartTrans;
+  stCommit        = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.stCommit;
+  stRollback      = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.stRollback;
   stSelectForUpd  = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.stSelectForUpd;
 
-  detCustom      = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.detCustom; 
-  detPrepare     = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.detPrepare; 
-  detExecute     = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.detExecute; 
-  detFetch       = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.detFetch; 
-  detCommit      = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.detCommit; 
-  detRollBack    = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.detRollBack; 
-  detParamValue  = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.detParamValue; 
+  detCustom      = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.detCustom;
+  detPrepare     = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.detPrepare;
+  detExecute     = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.detExecute;
+  detFetch       = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.detFetch;
+  detCommit      = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.detCommit;
+  detRollBack    = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.detRollBack;
+  detParamValue  = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.detParamValue;
   detActualSQL   = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.detActualSQL;
   DefaultMacroChar     = '%';
 Type
@@ -177,7 +177,7 @@ type
 type
 
   { TSQLConnection }
-  
+
   TDBLogNotifyEvent = Procedure (Sender : TSQLConnection; EventType : TDBEventType; Const Msg : String) of object;
 
   TConnOption = (sqSupportParams, sqSupportEmptyDatabaseName, sqEscapeSlash, sqEscapeRepeat, sqImplicitTransaction, sqLastInsertID, sqSupportReturning,sqSequences, sqCommitEndsPrepared, sqRollbackEndsPrepared);
@@ -205,8 +205,8 @@ type
     function GetPort: cardinal;
     procedure SetOptions(AValue: TSQLConnectionOptions);
     procedure SetPort(const AValue: cardinal);
-    function AttemptCommit(trans : TSQLHandle) : boolean; 
-    function AttemptRollBack(trans : TSQLHandle) : boolean; 
+    function AttemptCommit(trans : TSQLHandle) : boolean;
+    function AttemptRollBack(trans : TSQLHandle) : boolean;
   protected
     FConnOptions         : TConnOptions;
     FSQLFormatSettings   : TFormatSettings;
@@ -399,7 +399,7 @@ type
     Procedure CheckUnprepare;
     Procedure CheckPrepare;
     Function HasParams : Boolean;
-    Function HasMacros : Boolean; 
+    Function HasMacros : Boolean;
   Protected
     Function CreateDataLink : TDataLink; virtual;
     procedure OnChangeSQL(Sender : TObject); virtual;
@@ -610,9 +610,9 @@ type
     Property Prepared : boolean read IsPrepared;
     Property SQLConnection : TSQLConnection Read GetSQLConnection Write SetSQLConnection;
     Property SQLTransaction: TSQLTransaction Read GetSQLTransaction Write SetSQLTransaction;
-    // overriden TBufDataSet methods
+    // overridden TBufDataSet methods
     Procedure ApplyUpdates(MaxErrors: Integer); override; overload;
-    // overriden TDataSet methods
+    // overridden TDataSet methods
     Procedure Post; override;
     Procedure Delete; override;
   protected
@@ -1129,8 +1129,8 @@ end;
   begin
     Result:=Params.Count>0;
   end;
-  
-  Function TCustomSQLStatement.HasMacros : Boolean; 
+
+  Function TCustomSQLStatement.HasMacros : Boolean;
 
 begin
   Result:=Macros.Count>0;
@@ -1421,14 +1421,14 @@ destructor TSQLConnection.Destroy;
 begin
   try
     CloseForDestroy; // needed because we want to de-allocate statements
-  Finally  
+  Finally
     FreeAndNil(FStatements);
     inherited Destroy;
   end;
 end;
 
 function TSQLConnection.StrToStatementType(s : string) : TStatementType;
-var 
+var
   T : TStatementType;
   LS : String;
 begin
@@ -1639,13 +1639,13 @@ begin
       end;
   finally
     qry.free;
-  end;  
+  end;
 end;
 
 function TSQLConnection.GetConnectionCharSet: string;
 begin
   // default implementation returns user supplied FCharSet
-  // (can be overriden by descendants, which are able retrieve current connection charset using client API)
+  // (can be overridden by descendants, which are able retrieve current connection charset using client API)
   Result := LowerCase(FCharSet);
 end;
 
@@ -1706,7 +1706,7 @@ end;
   See if we can integrate/merge this with GetDBInfo. They are virtually identical
 }
 
-Function TSQLConnection.GetObjectNames(ASchemaType: TSchemaType; AList : TSqlObjectIdentifierList) : Integer; 
+Function TSQLConnection.GetObjectNames(ASchemaType: TSchemaType; AList : TSqlObjectIdentifierList) : Integer;
 var
   qry : TCustomSQLQuery;
   vSchemaName, vObjectName: String;

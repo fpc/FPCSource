@@ -142,7 +142,7 @@
 {     requested                                          }
 { 12th April  1999:                                      }
 {   + FloodFill - first working implementation           }
-{      Horrbly slow even on very fast cpu's              }
+{      Horribly slow even on very fast cpu's             }
 {   + Some suggestions of Thomas implemented             }
 { 13th April  1999:                                      }
 {   * FloodFill() vertical index was off by one pixel    }

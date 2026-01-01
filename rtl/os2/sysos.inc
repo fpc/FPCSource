@@ -366,7 +366,7 @@ function DosSetSignalExceptionFocus (Enable: cardinal;
 external 'DOSCALLS' index 378;
 
 {Tell we want further signal exceptions.
- SignalNum  = Signal number to acknowlegde.}
+ SignalNum  = Signal number to acknowledge.}
 function DosAcknowledgeSignalException (SignalNum: cardinal): cardinal; cdecl;
 external 'DOSCALLS' index 418;
 

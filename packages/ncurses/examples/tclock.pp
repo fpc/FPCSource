@@ -52,7 +52,7 @@ begin
   freemem(rest)
 end;
 
-(* Draw a diagonal(arbitrary) line using Bresenham's alogrithm. *)
+(* Draw a diagonal(arbitrary) line using Bresenham's algorithm. *)
 procedure dline(from_y, from_x, end_y,  end_x: Smallint; ch: chtype; var rest: PRchar);
 var
   dx, dy: Smallint;

@@ -269,7 +269,7 @@ begin
 end;
 
 function TFPOpenAPIServiceClient.StreamToString(aStream : TStream) : string;
-  
+
 begin
   Result:='';
   SetLength(Result,aStream.Size);
@@ -281,7 +281,7 @@ end;
 
 
 {$IFNDEF VER3_2}
-function TFPOpenAPIServiceClient.ExecuteRequest(const aMethod,aURL: String; aBody,aResponseBody : TStream; aRequestID : TServiceRequestID = '') : TServiceResponse; 
+function TFPOpenAPIServiceClient.ExecuteRequest(const aMethod,aURL: String; aBody,aResponseBody : TStream; aRequestID : TServiceRequestID = '') : TServiceResponse;
 
 var
   lReq : TWebClientRequest;
@@ -318,7 +318,7 @@ begin
   end;
 end;
 
-function TFPOpenAPIServiceClient.ExecuteRequest(const aMethod,aURL: String; aBody : TStream; aRequestID : TServiceRequestID = '') : TServiceResponse; 
+function TFPOpenAPIServiceClient.ExecuteRequest(const aMethod,aURL: String; aBody : TStream; aRequestID : TServiceRequestID = '') : TServiceResponse;
 var
   lResponse : TStream;
 begin
@@ -329,7 +329,7 @@ begin
     Result.Content:=StreamToString(lResponse);
   finally
     lResponse.Free;
-  end;  
+  end;
 end;
 
 
@@ -337,14 +337,14 @@ function TFPOpenAPIServiceClient.ExecuteRequest(const aMethod, aURL, aBody: Stri
 
 var
   lBody : TStringStream;
-  
+
 begin
   lBody:=TStringStream.Create(aBody);
   try
     Result:=ExecuteRequest(aMethod,aURL,lBody,aResponseBody,aRequestID);
   finally
     lBody.Free;
-  end;  
+  end;
 end;
 
 
@@ -360,7 +360,7 @@ begin
     Result.Content:=StreamToString(lResponse);
   finally
     lResponse.Free;
-  end;  
+  end;
 end;
 
 function TFPOpenAPIServiceClient.ExecuteRequest(const aMethod,aURL,aBody : String; aCallback : TServiceResponseCallback; aRequestID : TServiceRequestID = '') : TServiceRequestID;
@@ -424,7 +424,7 @@ end;
 
 {$ELSE}
 
-function TFPOpenAPIServiceClient.ExecuteRequest(const aMethod,aURL,aBody : String; aResponseBody : TStream; aRequestID : TServiceRequestID = '') : TServiceResponse; 
+function TFPOpenAPIServiceClient.ExecuteRequest(const aMethod,aURL,aBody : String; aResponseBody : TStream; aRequestID : TServiceRequestID = '') : TServiceResponse;
 
 
 var
@@ -478,7 +478,7 @@ begin
   finally
     lResponse.Free;
   end;
-end;  
+end;
 {$ENDIF}
 
 constructor TFPOpenAPIServiceClient.create(aOwner: TComponent);

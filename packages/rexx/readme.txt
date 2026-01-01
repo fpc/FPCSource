@@ -1,7 +1,7 @@
 Hi/2.
 
 This is REXX SAA interface. Nothing specific for this library. Only one thing:
-This interface can be easely adapted to be used also for other OSes, not only
+This interface can be easily adapted to be used also for other OSes, not only
 for OS/2. Look at Regina REXX for more info. As I know, early Regina REXX was
 distributed with Win32 SDK.
 

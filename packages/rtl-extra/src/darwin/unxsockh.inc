@@ -14,98 +14,98 @@
 }
 
 Const
-   AF_UNSPEC = 0;     
-   AF_UNIX = 1;     
-   AF_LOCAL = AF_UNIX;     
-   AF_INET = 2;     
-   AF_IMPLINK = 3;     
-   AF_PUP = 4;     
-   AF_CHAOS = 5;     
-   AF_NS = 6;     
-   AF_ISO = 7;     
-   AF_OSI = AF_ISO;     
-   AF_ECMA = 8;     
-   AF_DATAKIT = 9;     
-   AF_CCITT = 10;     
-   AF_SNA = 11;     
-   AF_DECnet = 12;     
-   AF_DLI = 13;     
-   AF_LAT = 14;     
-   AF_HYLINK = 15;     
-   AF_APPLETALK = 16;     
-   AF_ROUTE = 17;     
-   AF_LINK = 18;     
-   pseudo_AF_XTP = 19;     
-   AF_COIP = 20;     
-   AF_CNT = 21;     
-   pseudo_AF_RTIP = 22;     
-   AF_IPX = 23;     
-   AF_SIP = 24;     
-   pseudo_AF_PIP = 25;     
-   AF_NDRV = 27;     
-   AF_ISDN = 28;     
-   AF_E164 = AF_ISDN;     
-   pseudo_AF_KEY = 29;     
-   AF_INET6 = 30;     
-   AF_NATM = 31;     
-   AF_SYSTEM = 32;     
-   AF_NETBIOS = 33;     
-   AF_PPP = 34;     
-   AF_ATM = 30;     
-   pseudo_AF_HDRCMPLT = 35;     
-   AF_RESERVED_36 = 36;     
-   AF_NETGRAPH = 32;     
-   AF_MAX = 37;     
+   AF_UNSPEC = 0;
+   AF_UNIX = 1;
+   AF_LOCAL = AF_UNIX;
+   AF_INET = 2;
+   AF_IMPLINK = 3;
+   AF_PUP = 4;
+   AF_CHAOS = 5;
+   AF_NS = 6;
+   AF_ISO = 7;
+   AF_OSI = AF_ISO;
+   AF_ECMA = 8;
+   AF_DATAKIT = 9;
+   AF_CCITT = 10;
+   AF_SNA = 11;
+   AF_DECnet = 12;
+   AF_DLI = 13;
+   AF_LAT = 14;
+   AF_HYLINK = 15;
+   AF_APPLETALK = 16;
+   AF_ROUTE = 17;
+   AF_LINK = 18;
+   pseudo_AF_XTP = 19;
+   AF_COIP = 20;
+   AF_CNT = 21;
+   pseudo_AF_RTIP = 22;
+   AF_IPX = 23;
+   AF_SIP = 24;
+   pseudo_AF_PIP = 25;
+   AF_NDRV = 27;
+   AF_ISDN = 28;
+   AF_E164 = AF_ISDN;
+   pseudo_AF_KEY = 29;
+   AF_INET6 = 30;
+   AF_NATM = 31;
+   AF_SYSTEM = 32;
+   AF_NETBIOS = 33;
+   AF_PPP = 34;
+   AF_ATM = 30;
+   pseudo_AF_HDRCMPLT = 35;
+   AF_RESERVED_36 = 36;
+   AF_NETGRAPH = 32;
+   AF_MAX = 37;
 
 
   {
    * Protocol families, same as address families for now.
     }
 
-     PF_UNSPEC = AF_UNSPEC;     
-     PF_LOCAL = AF_LOCAL;     
+     PF_UNSPEC = AF_UNSPEC;
+     PF_LOCAL = AF_LOCAL;
   { backward compatibility  }
-     PF_UNIX = PF_LOCAL;     
-     PF_INET = AF_INET;     
-     PF_IMPLINK = AF_IMPLINK;     
-     PF_PUP = AF_PUP;     
-     PF_CHAOS = AF_CHAOS;     
-     PF_NS = AF_NS;     
-     PF_ISO = AF_ISO;     
-     PF_OSI = AF_ISO;     
-     PF_ECMA = AF_ECMA;     
-     PF_DATAKIT = AF_DATAKIT;     
-     PF_CCITT = AF_CCITT;     
-     PF_SNA = AF_SNA;     
-     PF_DECnet = AF_DECnet;     
-     PF_DLI = AF_DLI;     
-     PF_LAT = AF_LAT;     
-     PF_HYLINK = AF_HYLINK;     
-     PF_APPLETALK = AF_APPLETALK;     
-     PF_ROUTE = AF_ROUTE;     
-     PF_LINK = AF_LINK;     
+     PF_UNIX = PF_LOCAL;
+     PF_INET = AF_INET;
+     PF_IMPLINK = AF_IMPLINK;
+     PF_PUP = AF_PUP;
+     PF_CHAOS = AF_CHAOS;
+     PF_NS = AF_NS;
+     PF_ISO = AF_ISO;
+     PF_OSI = AF_ISO;
+     PF_ECMA = AF_ECMA;
+     PF_DATAKIT = AF_DATAKIT;
+     PF_CCITT = AF_CCITT;
+     PF_SNA = AF_SNA;
+     PF_DECnet = AF_DECnet;
+     PF_DLI = AF_DLI;
+     PF_LAT = AF_LAT;
+     PF_HYLINK = AF_HYLINK;
+     PF_APPLETALK = AF_APPLETALK;
+     PF_ROUTE = AF_ROUTE;
+     PF_LINK = AF_LINK;
   { really just proto family, no AF  }
-     PF_XTP = pseudo_AF_XTP;     
-     PF_COIP = AF_COIP;     
-     PF_CNT = AF_CNT;     
-     PF_SIP = AF_SIP;     
+     PF_XTP = pseudo_AF_XTP;
+     PF_COIP = AF_COIP;
+     PF_CNT = AF_CNT;
+     PF_SIP = AF_SIP;
   { same format as AF_NS  }
-     PF_IPX = AF_IPX;     
+     PF_IPX = AF_IPX;
   { same format as AF_INET  }
-     PF_RTIP = pseudo_AF_RTIP;     
-     PF_PIP = pseudo_AF_PIP;     
-     PF_NDRV = AF_NDRV;     
-     PF_ISDN = AF_ISDN;     
-     PF_KEY = pseudo_AF_KEY;     
-     PF_INET6 = AF_INET6;     
-     PF_NATM = AF_NATM;     
-     PF_SYSTEM = AF_SYSTEM;     
-     PF_NETBIOS = AF_NETBIOS;     
-     PF_PPP = AF_PPP;     
-     PF_RESERVED_36 = AF_RESERVED_36;     
-     PF_ATM = AF_ATM;     
-     PF_NETGRAPH = AF_NETGRAPH;     
-     PF_MAX = AF_MAX;     
+     PF_RTIP = pseudo_AF_RTIP;
+     PF_PIP = pseudo_AF_PIP;
+     PF_NDRV = AF_NDRV;
+     PF_ISDN = AF_ISDN;
+     PF_KEY = pseudo_AF_KEY;
+     PF_INET6 = AF_INET6;
+     PF_NATM = AF_NATM;
+     PF_SYSTEM = AF_SYSTEM;
+     PF_NETBIOS = AF_NETBIOS;
+     PF_PPP = AF_PPP;
+     PF_RESERVED_36 = AF_RESERVED_36;
+     PF_ATM = AF_ATM;
+     PF_NETGRAPH = AF_NETGRAPH;
+     PF_MAX = AF_MAX;
 
 
   SOCK_PACKET     = 10;
@@ -209,7 +209,7 @@ Const
       	IPPROTO_INLSP		= 52;		{ Integ. Net Layer Security }
       	IPPROTO_SWIPE		= 53;		{ IP with encryption }
       	IPPROTO_NHRP		= 54;		{ Next Hop Resolution }
-{ 55-57: Unassigned }               
+{ 55-57: Unassigned }
        	IPPROTO_ICMPV6	  	= 58; 		{ ICMP6 }
        	IPPROTO_NONE		= 59;		{ IP6 no next header }
        	IPPROTO_DSTOPTS		= 60;  		{ IP6 destination option }
@@ -243,7 +243,7 @@ Const
       	IPPROTO_IGRP		= 88;		{ Cisco/GXS IGRP }
       	IPPROTO_OSPFIGP		= 89;		{ OSPFIGP }
       	IPPROTO_SRPC		= 90;		{ Strite RPC protocol }
-      	IPPROTO_LARP		= 91;		{ Locus Address Resoloution }
+      	IPPROTO_LARP		= 91;		{ Locus Address Resolution }
       	IPPROTO_MTP		= 92;		{ Multicast Transport }
       	IPPROTO_AX25		= 93;		{ AX.25 Frames }
       	IPPROTO_IPEIP		= 94;		{ IP encapsulated in IP }
@@ -254,10 +254,10 @@ Const
       	IPPROTO_APES		= 99;		{ any private encr. scheme }
       	IPPROTO_GMTP		=100;		{ GMTP}
       	IPPROTO_IPCOMP		=108;		{ payload compression (IPComp) }
-{ 101-254: Partly Unassigned }	    
+{ 101-254: Partly Unassigned }
       	IPPROTO_PIM		=103;		{ Protocol Independent Mcast }
       	IPPROTO_PGM		=113;		{ PGM }
-{ 255: Reserved }		    
+{ 255: Reserved }
 { BSD Private, local use, namespace incursion }
       	IPPROTO_DIVERT		=254;		{ divert pseudo-protocol }
       	IPPROTO_RAW		=255;		{ raw IP packet }
@@ -278,7 +278,7 @@ Const
         IPV6_MULTICAST_LOOP	=11; { __uint8_t; set/get IP6 mcast loopback }
         IPV6_JOIN_GROUP		=12; { ip6_mreq; join a group membership }
         IPV6_LEAVE_GROUP	=13; { ip6_mreq; leave a group membership }
-        IPV6_PORTRANGE		=14; { int; range to choose for unspec port }
+        IPV6_PORTRANGE		=14; { int; range to choose for unspecified port }
         ICMP6_FILTER		=18; { icmp6_filter; icmp6 filter }
         IPV6_PKTINFO		=19; { bool; send/recv if, src/dst addr }
         IPV6_HOPLIMIT		=20; { bool; hop limit }
@@ -293,7 +293,7 @@ Const
         IPV6_IPSEC_POLICY	=28; { struct; get/set security policy }
       	IP_OPTIONS		=  1;    { buf/ip_opts; set/get IP options }
       	IP_HDRINCL		=  2;    { int; header is included with data }
-      	IP_TOS			=  3;    { int; IP type of service and preced. }
+      	IP_TOS			=  3;    { int; IP type of service and precede. }
       	IP_TTL			=  4;    { int; IP time to live }
       	IP_RECVOPTS		=  5;    { bool; receive all IP opts w/dgram }
       	IP_RECVRETOPTS		=  6;    { bool; receive IP opts for response }
@@ -333,7 +333,7 @@ Const
      TCP_NOOPT = $08;
   { idle time used when SO_KEEPALIVE is enabled  }
      TCP_KEEPALIVE = $10;
-     
+
   { don't checksum outbound payloads }
      UDP_NOCKSUM = $01;
 

@@ -34,7 +34,7 @@ implementation
 procedure DumpRequest (ARequest : TRequest; Dump : TStrings; Environment : Boolean = False);
 
   Procedure AddNV(Const N,V : String);
-  
+
   begin
     Dump.Add('<TR><TD>'+N+'</TD><TD>'+V+'</TD></TR>');
   end;

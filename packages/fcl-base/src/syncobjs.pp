@@ -21,7 +21,7 @@
 {$DEFINE NO_SEMAPHORE_SUPPORT}
 {$ENDIF}
 
-{$IF DEFINED(WINCE)} 
+{$IF DEFINED(WINCE)}
 {$DEFINE NO_MUTEX_SUPPORT}
 {$ENDIF}
 
@@ -46,7 +46,7 @@ uses
   System.DateUtils,
   System.Classes,
   System.SysUtils;
-  
+
 {$ELSE FPC_DOTTEDUNITS}
   {$IFNDEF VER3_2}
   system.timespan,
@@ -80,7 +80,7 @@ type
    ESyncObjectException = Class(Exception);
    ELockException = Class(ESyncObjectException);
    ELockRecursionException = Class(ESyncObjectException);
-   
+
    TWaitResult = (wrSignaled, wrTimeout, wrAbandoned, wrError);
 
    TSynchroObject = class(TObject)
@@ -93,7 +93,7 @@ type
      obj: T;
      class operator Initialize(var hdl: TLockGuard);
      class operator Finalize(var hdl: TLockGuard);
-     procedure Init(AObj: T); 
+     procedure Init(AObj: T);
    end;
 
    TCriticalSection = class(TSynchroObject)
@@ -155,8 +155,8 @@ type
    TSimpleEvent = class(TEventObject)
       constructor Create;
    end;
-   
-{$IFDEF CPU16}   
+
+{$IFDEF CPU16}
 {$DEFINE NOPOINTER}
 {$ENDIF}
 
@@ -263,7 +263,7 @@ type
   end;
 
   // Guardian pattern. Use to see if an object was freed or not by adding a guardian instance to it.
-  
+
   IGuardian = interface
     function GetIsDismantled: Boolean;
     procedure Dismantle;
@@ -307,7 +307,7 @@ Resourcestring
   SErrInvalidReleaseCount = '%d is not a valid release count, count must be >0';
   SErrFailedToSignalSemaphore = 'Failed to signal semaphore at count %d';
   SErrMutexNotSupported   = 'Mutexes are not supported on this platform';
-  
+
 { ---------------------------------------------------------------------
     Real syncobjs implementation
   ---------------------------------------------------------------------}
@@ -372,7 +372,7 @@ end;
 { THandleObject }
 
 constructor THandleObject.Create(UseComWait : Boolean=false);
-// cmompatibility shortcut constructor, Com waiting not implemented yet
+// compatibility shortcut constructor, Com waiting not implemented yet
 begin
   FHandle := BasicEventCreate(nil, True,False,'');
   if (FHandle=Nil) then
@@ -657,7 +657,7 @@ end;
 { ---------------------------------------------------------------------
   Pointer versions
   ---------------------------------------------------------------------}
-  
+
 {$IFNDEF NOPOINTER}
 class function TInterlocked.CompareExchange(var Target: Pointer; Value: Pointer; Comparand: Pointer): Pointer; overload; static; inline;
 begin
@@ -705,14 +705,14 @@ end;
 {$IFDEF WAITLOOP}
 Const
   WaitloopMsecsInterval = 10;
-  
+
 function MsecsBetween(tnow,tthen : Timeval) : Int64;
 
 
 begin
   Result:=(tnow.tv_sec-tthen.tv_sec)*1000;
   Result:=Result+((tnow.tv_usec-tthen.tv_usec) div 1000);
-end; 
+end;
 {$ENDIF WAITLOOP}
 
 procedure MSecsFromNow (tNow : Timeval; aTimeout : Integer; out tfuture: TTimespec);
@@ -732,18 +732,18 @@ end;
   TSemaphore
   ---------------------------------------------------------------------}
 {$IFNDEF NO_SEMAPHORE_SUPPORT}
-constructor TSemaphore.Create(aUseCOMWait: boolean = false); 
- 
+constructor TSemaphore.Create(aUseCOMWait: boolean = false);
+
 begin
-  Create(Nil,1,1,'',aUseComWait); 
+  Create(Nil,1,1,'',aUseComWait);
 end;
- 
-constructor TSemaphore.Create(aAttributes: PSecurityAttributes; aInitial, aMaximum: Integer; const aName: string; aUseCOMWait: boolean = false); 
+
+constructor TSemaphore.Create(aAttributes: PSecurityAttributes; aInitial, aMaximum: Integer; const aName: string; aUseCOMWait: boolean = false);
 
 {$IFDEF WINDOWS}
 var
   PN : PChar;
-{$ENDIF}  
+{$ENDIF}
 begin
 {$IFDEF WINDOWS}
   inherited Create(aUseCOMWait);
@@ -751,7 +751,7 @@ begin
 {$IF SIZEOF(CHAR)=1}
   FHandle:=TEventHandle(CreateSemaphoreA(aAttributes,aInitial,aMaximum,PN));
 {$ELSE}
-  FHandle:=TEventHandle(CreateSemaphoreW(aAttributes,aInitial,aMaximum,PN));  
+  FHandle:=TEventHandle(CreateSemaphoreW(aAttributes,aInitial,aMaximum,PN));
 {$ENDIF}
   if (FHandle=TEventHandle(0)) then
     RaiseLastOSError;
@@ -781,21 +781,21 @@ var
 begin
 {$IFNDEF WINDOWS}
   Create(Nil,1,1,aName,aUseCOMWait);
-{$ELSE WINDOWS}  
+{$ELSE WINDOWS}
   inherited Create(aUseCOMWait);
   PN:=PChar(Pointer(aName));
-{$IF SIZEOF(CHAR)=1}    
+{$IF SIZEOF(CHAR)=1}
   FHandle:=TEventHandle(OpenSemaphoreA(aAccess,aInherit,PN));
-{$ELSE}  
+{$ELSE}
   FHandle:=TEventHandle(OpenSemaphoreW(aAccess,aInherit,PN));
-{$ENDIF}  
+{$ENDIF}
   if (FHandle=TEventHandle(0)) then
     RaiseLastOSError;
 {$ENDIF WINDOWS}
 end;
 
 
-destructor TSemaphore.Destroy; 
+destructor TSemaphore.Destroy;
 
 begin
 {$IFDEF UNIX}
@@ -810,7 +810,7 @@ end;
 
 
 
-function TSemaphore.WaitFor(aTimeout: Cardinal = INFINITE): TWaitResult; 
+function TSemaphore.WaitFor(aTimeout: Cardinal = INFINITE): TWaitResult;
 
 {$IFDEF wasm32}
 var
@@ -825,7 +825,7 @@ var
   {$ENDIF}
   tnow : timeval;
   Tmp: ttimespec;
-{$ENDIF}  
+{$ENDIF}
 begin
 {$IFDEF UNIX}
   Result:=wrError;
@@ -843,12 +843,12 @@ begin
     MsecsFromNow(tnow,aTimeOut,tmp);
     errno:=sem_timedwait(@FSem,@tmp);
     {$ELSE USE_SEM_TRYWAIT}
-    Repeat  
-      ErrNo:=sem_trywait(@FSem); 
+    Repeat
+      ErrNo:=sem_trywait(@FSem);
       if ErrNo=ESysEAGAIN then
         begin
         Sleep(10);
-        fpgettimeofday(@tnew,Nil);  
+        fpgettimeofday(@tnew,Nil);
         if MSecsBetween(tnew,tnow)>aTimeOut then
           errNo:=ESysETIMEDOUT;
         end
@@ -860,8 +860,8 @@ begin
       Result:=wrSignaled
     else if errno=ESysETIMEDOUT then
       Result:=wrTimeout;
-    end 
-  else 
+    end
+  else
     begin
     if (sem_wait(@FSem)=0) then
       Result:=wrSignaled
@@ -884,30 +884,30 @@ begin
 end;
 
 
-procedure TSemaphore.Acquire; 
+procedure TSemaphore.Acquire;
 
 begin
   if WaitFor(INFINITE)=wrError then
     RaiseLastOSError;
 end;
 
-procedure TSemaphore.Release; 
+procedure TSemaphore.Release;
 
 begin
   Release(1);
 end;
 
 
-function TSemaphore.Release(aCount: Integer): Integer; 
+function TSemaphore.Release(aCount: Integer): Integer;
 
 begin
   if (aCount<1) then
     raise ESyncObjectException.CreateFmt(SErrInvalidReleaseCount, [aCount]);
 {$IFDEF WINDOWS}
   if not ReleaseSemaphore(PtrUint(FHandle),aCount,@Result) then
-    RaiseLastOSError;  
+    RaiseLastOSError;
 {$ENDIF}
-{$IFDEF UNIX} 
+{$IFDEF UNIX}
   Result:=0;
   While aCount>0 do
     begin
@@ -952,7 +952,7 @@ var
 {$IFDEF WINDOWS}
 var
   PN : PChar;
-{$ENDIF}  
+{$ENDIF}
 
 begin
 {$IFDEF UNIX}
@@ -963,12 +963,12 @@ begin
   try
     CheckOSError(pthread_mutexattr_settype(@Mattr,Ord(PTHREAD_MUTEX_RECURSIVE)));
     CheckOSError(pthread_mutex_init(@FMutex,@Mattr));
-  finally  
+  finally
     pthread_mutexattr_destroy(@Mattr); // don't raise second error, it would hide the first
-  end;  
+  end;
   if aInitialOwner then
     Acquire;
-{$ELSE}    
+{$ELSE}
 {$IFDEF WINDOWS}
   inherited Create(aUseCOMWait);
   PN:=PChar(Pointer(aName));
@@ -985,11 +985,11 @@ begin
 {$ELSE}
   raise ESyncObjectException.Create(SErrMutexNotSupported);
 {$ENDIF CPUWASM}
-{$ENDIF WINDOWS}  
+{$ENDIF WINDOWS}
 {$ENDIF UNIX}
 end;
 
-constructor TMutex.Create(aAccess: Cardinal; aInherit: Boolean; const aName: string; aUseCOMWait: Boolean = False); 
+constructor TMutex.Create(aAccess: Cardinal; aInherit: Boolean; const aName: string; aUseCOMWait: Boolean = False);
 
 {$IFDEF WINDOWS}
 var
@@ -999,7 +999,7 @@ var
 begin
 {$IFDEF UNIX}
   Create(nil,false,aName,aUseCOMWait);
-{$ELSE}  
+{$ELSE}
 {$IFDEF WINDOWS}
   inherited Create(aUseCOMWait);
   PN:=PChar(Pointer(aName));
@@ -1015,17 +1015,17 @@ begin
   // Todo
 {$ELSE}
   raise ESyncObjectException.Create(SErrMutexNotSupported);
-{$ENDIF CPUWASM}  
+{$ENDIF CPUWASM}
 {$ENDIF WINDOWS}
 {$ENDIF UNIX}
 end;
 
-destructor TMutex.Destroy; 
+destructor TMutex.Destroy;
 
 begin
 {$IFDEF UNIX}
    pthread_mutex_destroy(@FMutex);
-{$ENDIF}   
+{$ENDIF}
    Inherited;
 end;
 
@@ -1037,14 +1037,14 @@ var
   td,tm,Errno: Integer;
   {$IFDEF USE_pthread_mutex_trylock}
   tnew : timeval;
-  {$ENDIF}  
+  {$ENDIF}
   tnow: ttimeval;
   Tmp: timespec;
-{$ENDIF}  
+{$ENDIF}
 begin
 {$IFNDEF UNIX}
   Result:=Inherited WaitFor(aTimeOut);
-{$ELSE}  
+{$ELSE}
   Result:=wrError;
   if (aTimeout=0) then
     begin
@@ -1062,12 +1062,12 @@ begin
     MsecsFromNow(tnow,aTimeOut,tmp);
     ErrNo:=pthread_mutex_timedlock(@FMutex,@tmp);
     {$ELSE}
-    Repeat  
-      ErrNo:=pthread_mutex_trylock(@FMutex); 
+    Repeat
+      ErrNo:=pthread_mutex_trylock(@FMutex);
       if ErrNo=ESysEAGAIN then
         begin
         Sleep(10);
-        fpgettimeofday(@tnew,Nil);  
+        fpgettimeofday(@tnew,Nil);
         if MSecsBetween(tnew,tnow)>aTimeOut then
           errNo:=ESysETIMEDOUT;
         end
@@ -1079,23 +1079,23 @@ begin
       Result:=wrSignaled
     else if (Errno=ESysEBUSY) or (errNo=ESysETIMEDOUT) then
       Result:=wrTimeout
-    end 
-  else 
+    end
+  else
     begin
     if (pthread_mutex_lock(@FMutex)=0) then
       Result:=wrSignaled
     end;
-{$ENDIF}    
+{$ENDIF}
 end;
 
-procedure TMutex.Acquire; 
+procedure TMutex.Acquire;
 
 begin
   if WaitFor(INFINITE)=wrError then
     RaiseLastOSError;
 end;
 
-procedure TMutex.Release; 
+procedure TMutex.Release;
 
 begin
 {$IFDEF WINDOWS}

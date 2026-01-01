@@ -452,7 +452,7 @@ type
     // Cleartext password of the user account.  If the OldPassword
     // field is non-null, then this field contains the new password
     // in a password change operation.  The string pointed to by
-    // this field must be separately allocated and will be seperately
+    // this field must be separately allocated and will be separately
     // deallocated by Winlogon.
     //
     pszPassword: PWSTR;
@@ -577,7 +577,7 @@ type
   PWLX_CLIENT_CREDENTIALS_INFO_V2_0 = ^WLX_CLIENT_CREDENTIALS_INFO_V2_0;
   {$EXTERNALSYM PWLX_CLIENT_CREDENTIALS_INFO_V2_0}
   TWlxClientCredentialsInfoV2_0 = WLX_CLIENT_CREDENTIALS_INFO_V2_0;
-  PWlxClientCredentialsInfoV2_0 = PWLX_CLIENT_CREDENTIALS_INFO_V2_0;  
+  PWlxClientCredentialsInfoV2_0 = PWLX_CLIENT_CREDENTIALS_INFO_V2_0;
 
 /////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////
@@ -652,7 +652,7 @@ type
   PWLX_CONSOLESWITCH_CREDENTIALS_INFO_V1_0 = ^WLX_CONSOLESWITCH_CREDENTIALS_INFO_V1_0;
   {$EXTERNALSYM PWLX_CONSOLESWITCH_CREDENTIALS_INFO_V1_0}
   TWlxConsoleSwitchCredentialsInfoV1_0 = WLX_CONSOLESWITCH_CREDENTIALS_INFO_V1_0;
-  PWlxConsoleSwitchCredentialsInfoV1_0 = PWLX_CONSOLESWITCH_CREDENTIALS_INFO_V1_0;  
+  PWlxConsoleSwitchCredentialsInfoV1_0 = PWLX_CONSOLESWITCH_CREDENTIALS_INFO_V1_0;
 
 ////////////////////////////////////////////////////////////////////////
 //                                                                    //

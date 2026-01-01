@@ -234,7 +234,7 @@ uses MacTypes,AEDataModel,MacErrors,AppleEvents,AEObjects,AEInteraction,Componen
     Types and Constants
 *************************************************************************}
 
-{    The componenent manager type code for components that
+{    The component manager type code for components that
         support the OSA interface defined here. }
 { 0x6f736120 }
 const
@@ -575,7 +575,7 @@ const
         This mode flag may be passed to OSADisplay or OSADoScript to indicate
         that output only need be human-readable, not re-compilable by OSACompile.
         If used, output may be arbitrarily "beautified", e.g. quotes may be left
-        off of string values, long lists may have elipses, etc.
+        off of string values, long lists may have ellipsis, etc.
     }
 const
 	kOSAModeDisplayForHumans = $00000008;
@@ -1721,7 +1721,7 @@ function OSASetResumeDispatchProc( scriptingComponent: ComponentInstance; resume
         OSAComponentFunctionInline(kOSASelectSetResumeDispatchProc, 8);
         This function is used to set the ResumeDispatchProc that will be used
         by OSAExecuteEvent and OSADoEvent if either no event handler can be
-        found in the context, or the context event hander "continues" control
+        found in the context, or the context event handler "continues" control
         onward. The two constants kOSAUseStandardDispatch and kOSANoDispatch
         may also be passed to this routine indicating that the handler registered
         in the application with AEInstallEventHandler should be used, or no
@@ -1846,7 +1846,7 @@ function OSADoEvent( scriptingComponent: ComponentInstance; const (*var*) theApp
         AppleEvent reply record.  If the contextID defines any event handlers
         for that event, they are used to process the event.  If no event handler
         can be found in the context errAEEventNotHandled is returned.  If an
-        event handler is found and the hander "continues" control onward, the
+        event handler is found and the handler "continues" control onward, the
         ResumeDispatchProc (registered with OSASetResumeDispatchProc, above) is
         called given the AppleEvent.  The result is returned in the form of an
         AppleEvent reply descriptor. If at any time the script gets an error, or

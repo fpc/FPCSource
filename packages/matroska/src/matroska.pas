@@ -16,12 +16,12 @@
 ** modify it under the terms of the GNU Lesser General Public
 ** License as published by the Free Software Foundation; either
 ** version 2.1 of the License, or (at your option) any later version.
-** 
+**
 ** This library is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
 ** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 ** Lesser General Public License for more details.
-** 
+**
 ** You should have received a copy of the GNU Lesser General Public
 ** License along with this library; if not, write to the Free Software
 ** Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
@@ -171,7 +171,7 @@ type
     \author Ingo Ralf Blum   <ingoralfblum @ users.sf.net>
 
     \brief C API to the libmatroska library
-    \note These are the functions that should be exported (visible from outisde the library)
+    \note These are the functions that should be exported (visible from outside the library)
     \todo Put a function here for all the MUST in the Matroska spec
     \todo Put a brief description of each function, and a description of the params and return value
     \todo Change the int values to sized types
@@ -194,7 +194,7 @@ function matroska_unplug_log(callback: matroska_error_callback): cint; cdecl; ex
 (*!
     \fn matroska_id matroska_open_file(c_string,matroska_file_mode)
     \brief Open an instance of an Matroska file
-    \param string The name of the file to open (including OS depedant path) \param mode The mode to open the file (read, write, etc)
+    \param string The name of the file to open (including OS dependent path) \param mode The mode to open the file (read, write, etc)
     \return NULL if the opening failed or an ID that will be used to access this file from the API
 *)
 function matroska_open_stream_file(_string: c_string; mode: open_mode): matroska_stream; cdecl; external {$IFDEF DYNLINK}matroskalib{$ENDIF};

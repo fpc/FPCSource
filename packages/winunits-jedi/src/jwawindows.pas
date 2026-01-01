@@ -71,7 +71,7 @@
 {   JwaWindows.dcu file to use in projects and remove every search path to     }
 {   the source codes except for debugger search path (so you can browse the    }
 {   sources in the Delphi IDE). You can also create dynamic and static linked  }
-{   JwaWindows.dcu seperatly and just change the search path. There can also   }
+{   JwaWindows.dcu separately and just change the search path. There can also  }
 {   be a debug and a much smaller release version of the file.                 }
 {   In conclusion there can be 4 JwaWindows.dcu versions:                      }
 {    JwaWindows.dcu                                                            }
@@ -140,7 +140,7 @@ the one of the project.
 
 
 
-{Exclude some units that are not compilabe under FPC
+{Exclude some units that are not compilable under FPC
   JwaSensEvts.pas - not supported
   JwaWinFax.pas - partially fixed
   JwaFaxDev.pas depends on jwaWinFax
@@ -195,7 +195,7 @@ uses
   OleCtrls,
 //JwaAdsTlb.pas and WinApi.Jedi.Dde.pas use these units and is therfore excluded
 {$ENDIF JWA_INCLUDE_JWAADSTLB}
-  
+
   {$ENDIF USE_DELPHI_TYPES}
   System.SysUtils, // TODO
 
@@ -203,7 +203,7 @@ uses
   WinApi.Commctrl, //used by SetupAPI.pas
 {$ENDIF JWA_INCLUDE_SETUP_API}
 
-  WinApi.Activex, System.Classes, WinApi.Comobj 
+  WinApi.Activex, System.Classes, WinApi.Comobj
 {$IFNDEF NOVCL}
   ,Graphics,
   StdVCL
@@ -224,7 +224,7 @@ uses
   OleCtrls,
 //JwaAdsTlb.pas and JwaDde.pas use these units and is therfore excluded
 {$ENDIF JWA_INCLUDE_JWAADSTLB}
-  
+
   {$ENDIF USE_DELPHI_TYPES}
   SysUtils, // TODO
 
@@ -232,7 +232,7 @@ uses
   CommCtrl, //used by SetupAPI.pas
 {$ENDIF JWA_INCLUDE_SETUP_API}
 
-  ActiveX, Classes, ComObj 
+  ActiveX, Classes, ComObj
 {$IFNDEF NOVCL}
   ,Graphics,
   StdVCL
@@ -283,7 +283,7 @@ your implementation here
 end.
 {$ENDIF JWA_OMIT_SECTIONS}
 
-*)                         
+*)
 
 {$DEFINE JWA_OMIT_SECTIONS}
 {$DEFINE JWA_INTERFACESECTION}
@@ -884,7 +884,7 @@ The list has no order!}
 {$I JwaTmSchema.pas}
 {$I JwaTraffic.pas}
 {$I JwaSceSvc.pas}
-{$I JwaSchemaDef.pas} 
+{$I JwaSchemaDef.pas}
 {$I JwaObjSel.pas}
 {$I JwaPatchApi.pas}
 {$I JwaPatchWiz.pas}
@@ -947,13 +947,13 @@ The list has no order!}
 {$IFDEF JWA_INCLUDE_SETUP_API}
 {$DEFINE SETUPAPI_LINKONREQUEST}
 
-{If the compiler cannot find "SetupApi.pas" its 	
+{If the compiler cannot find "SetupApi.pas" its
 because it resides in "Setup and Config Manager API".
 But the compiler cannot include folders with spaces in it.
 Simply hard link or copy the following files
 into the new folder named "SaCMAPI".
 This issue should be fixed in newer versions of JEDI API LIB.
-If you get this error you should do the things described or upgrade. 
+If you get this error you should do the things described or upgrade.
 }
 {$I ..\SaCMAPI\SetupApi.pas}
 {$I ..\SaCMAPI\Cfg.pas}

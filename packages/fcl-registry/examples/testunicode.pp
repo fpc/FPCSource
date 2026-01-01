@@ -202,7 +202,7 @@ begin
   slValues:=TStringList.Create;
   slValues.Delimiter:=';';
   slValues.DelimitedText:=LabeledEditValue;
-  
+
   for k:=0 to slKeys.Count-1 do
     if TestKey(sKey+'\'+slKeys[k]) then
     begin

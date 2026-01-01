@@ -6748,11 +6748,11 @@ begin
   val_3 := RandomRange(-12345,12345);
   ls := Create_List(TSDOIntegerType.Create(FFactory) as ISDOType);
   c := ls.getCursor();
-                            
+
   CheckInvalidIndex(-12, val_1);
   CheckInvalidIndex(-1, val_1);
   CheckInvalidIndex(1, val_1);
-  CheckInvalidIndex(12, val_1);  
+  CheckInvalidIndex(12, val_1);
 
   ls.insert(0,val_1);
     CheckEquals(1, ls.size(), 'size()');

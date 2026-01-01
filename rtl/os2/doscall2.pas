@@ -1113,7 +1113,7 @@ Command = Command to be performed; the following commands are accepted:
                        taking a snapshot of the time stamp counters. To
                        determine CPU utilization, the application must compute
                        the difference between two time stamp snapshots using 64
-                       bit aritimetic.
+                       bit arithmetic.
   CMD_SOFTTRACE_LOG ($14) - records software trace information.
 Parm1 (CPUUtil) = Command-specific. In case of CMD_KI_RDCNT, pointer to
                   TCPUUtil record. In case of CMD_SOFTTRACE_LOG, major code for

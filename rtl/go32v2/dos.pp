@@ -302,7 +302,7 @@ var
     { Also copy parameter 0 }
     la_argv_ofs[0]:=TB+current_dos_buffer_pos-la_proxy_seg*16;
     { Note that this should be done before
-      alteriing p value }
+      altering p value }
     paste_to_dos(p,false,false);
     inc(proxy_argc);
     for i:=1 to length(c) do

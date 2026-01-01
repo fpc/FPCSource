@@ -1,10 +1,10 @@
 {
- Objective-C rtl Test application by dmitry boyarintsev 
+ Objective-C rtl Test application by dmitry boyarintsev
 
  Should compile and run with no problems
  program output should look like:
 
- Objective-C runtime initialized successfuly
+ Objective-C runtime initialized successfully
  -init method
  called newMethod1
  called newMethod2, a = 5; b = 4

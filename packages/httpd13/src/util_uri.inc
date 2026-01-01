@@ -62,7 +62,7 @@ type
     hostent: Phostent;
 
     port: cushort;	{ The port number, numeric, valid only if port_str != NULL }
-    
+
 //    unsigned is_initialized:1;
 
 //    unsigned dns_looked_up:1;

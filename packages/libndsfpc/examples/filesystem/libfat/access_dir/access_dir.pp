@@ -25,15 +25,15 @@ begin
 
     if  (dir = nil) then
       iprintf ('Unable to open the directory.'#10)
-    else 
+    else
     begin
       while dirnext(dir, PAnsiChar(@filename), @st) = 0 do
       begin
         // st.st_mode & _IFDIR indicates a directory
         if (st.st_mode and $4000) <> 0 then
-          iprintf ('%s: %s'#10, ' DIR', PAnsiChar(@filename)) 
+          iprintf ('%s: %s'#10, ' DIR', PAnsiChar(@filename))
         else
-          iprintf ('%s: %s'#10, 'FILE', PAnsiChar(@filename)); 
+          iprintf ('%s: %s'#10, 'FILE', PAnsiChar(@filename));
       end;
     end;
   end else

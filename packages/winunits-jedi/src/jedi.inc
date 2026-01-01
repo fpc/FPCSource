@@ -135,7 +135,7 @@
   DELPHI2005          Defined when compiling with Delphi 2005
   DELPHI9             Alias for DELPHI2005
   DELPHI10            Defined when compiling with Delphi Personality of BDS 4.0
-  DELPHI11            Defined when compiling with Delphi for Win32 2007 
+  DELPHI11            Defined when compiling with Delphi for Win32 2007
   DELPHI1_UP          Defined when compiling with Delphi 1 or higher
   DELPHI2_UP          Defined when compiling with Delphi 2 or higher
   DELPHI3_UP          Defined when compiling with Delphi 3 or higher
@@ -241,7 +241,7 @@
 
   The following directives are direct mappings from the VERXXX directives to a
   friendly name of the associated compiler. Unlike the DELPHI_X and BCB_X
-  directives, these directives are indepedent of the development environment.
+  directives, these directives are independent of the development environment.
   That is, they are defined regardless of whether compilation takes place using
   Delphi or C++ Builder.
 
@@ -351,7 +351,7 @@
   ACCEPT_LIBRARY                Compiler supports or ignores the library directive (D6+/BCB6+)
   SUPPORTS_CUSTOMVARIANTS       Compiler supports custom variants (D6+/BCB6+)
   SUPPORTS_VARARGS              Compiler supports varargs (D6+/BCB6+)
-  SUPPORTS_ENUMVALUE            Compiler supports assigning ordinalities to values of enums (D6+/BCB6+)
+  SUPPORTS_ENUMVALUE            Compiler supports assigning ordinals to values of enums (D6+/BCB6+)
   SUPPORTS_DEPRECATED_WARNINGS  Compiler supports deprecated warnings (D6+/BCB6+)
   SUPPORTS_LIBRARY_WARNINGS     Compiler supports library warnings (D6+/BCB6+)
   SUPPORTS_PLATFORM_WARNINGS    Compiler supports platform warnings (D6+/BCB6+)
@@ -371,7 +371,7 @@
 
   The compiler settings directives indicate whether a specific compiler setting
   is in effect. This facilitates changing compiler settings locally in a more
-  compact and readible manner.
+  compact and readable manner.
 
   Directive              Description
   ------------------------------------------------------------------------------
@@ -387,7 +387,7 @@
   TYPEINFO_ON            Compiling in the M+ state (RTTI generation on)
   OPTIMIZATION_ON        Compiling in the O+ state (code optimization on)
   OPENSTRINGS_ON         Compiling in the P+ state (variable string parameters are openstrings)
-  OVERFLOWCHECKS_ON      Compiling in the Q+ state (overflow checing on)
+  OVERFLOWCHECKS_ON      Compiling in the Q+ state (overflow checking on)
   RANGECHECKS_ON         Compiling in the R+ state (range checking on)
   TYPEDADDRESS_ON        Compiling in the T+ state (pointers obtained using the @ operator are typed)
   SAFEDIVIDE_ON          Compiling in the U+ state (save FDIV instruction through RTL emulation)

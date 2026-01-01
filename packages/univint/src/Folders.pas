@@ -474,9 +474,9 @@ const
 	kTemporaryFolderType = FourCharCode('temp'); {    On Mac OS X, each user has their own temporary items folder, and the Folder Manager attempts to set permissions of these}
                                         {    folders such that other users can not access the data inside.  On Mac OS X 10.4 and later the data inside the temporary}
                                         {    items folder is deleted at logout and at boot, but not otherwise.  Earlier version of Mac OS X would delete items inside}
-                                        {    the temporary items folder after a period of inaccess.  You can ask for a temporary item in a specific domain or on a }
+                                        {    the temporary items folder after a period of inaccessible.  You can ask for a temporary item in a specific domain or on a }
                                         {    particular volume by FSVolumeRefNum.  If you want a location for temporary items for a short time, then use either}
-                                        {    ( kUserDomain, kkTemporaryFolderType ) or ( kSystemDomain, kTemporaryFolderType ).  The kUserDomain varient will always be}
+                                        {    ( kUserDomain, kkTemporaryFolderType ) or ( kSystemDomain, kTemporaryFolderType ).  The kUserDomain variant will always be}
                                         {    on the same volume as the user's home folder, while the kSystemDomain version will be on the same volume as /var/tmp/ ( and}
                                         {    will probably be on the local hard drive in case the user's home is a network volume ).  If you want a location for a temporary}
                                         {    file or folder to use for saving a document, especially if you want to use FSpExchangeFile() to implement a safe-save, then}
@@ -519,7 +519,7 @@ const
 	kVoicesFolderType = FourCharCode('fvoc'); { macintalk can live here }
 	kUtilitiesFolderType = FourCharCode('utiÄ'); { for Utilities folder }
 	kThemesFolderType = FourCharCode('thme'); { for Theme data files }
-	kFavoritesFolderType = FourCharCode('favs'); { Favorties folder for Navigation Services }
+	kFavoritesFolderType = FourCharCode('favs'); { Favorites folder for Navigation Services }
 	kInternetSearchSitesFolderType = FourCharCode('issf'); { Internet Search Sites folder }
 	kInstallerLogsFolderType = FourCharCode('ilgf'); { Installer Logs folder }
 	kScriptsFolderType = FourCharCode('scrÄ'); { Scripts folder }

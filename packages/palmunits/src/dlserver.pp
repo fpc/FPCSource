@@ -174,7 +174,7 @@ type
   DlkEventDatabaseOpenedType = record
     dbR: DmOpenRef;    // open database ref (v2.0)
     dbNameP: PAnsiChar;    // database name
-    dbType: UInt32;    // databse type (v2.0)
+    dbType: UInt32;    // database type (v2.0)
     dbCreator: UInt32; // database creator
   end;
 

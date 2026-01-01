@@ -36,48 +36,48 @@ end;
 var
   keys: integer;
 begin
-  // Setup the Main screen for 3D 
+  // Setup the Main screen for 3D
   videoSetMode(MODE_0_3D);
 
   glInit();
 
   // enable antialiasing
   glEnable(GL_ANTIALIAS);
-  
+
   // setup the rear plane
   glClearColor(0,0,0,31); // BG must be opaque for AA to work
   glClearPolyID(63); // BG must have a unique polygon ID for AA to work
   glClearDepth($7FFF);
-   
+
   // Set our viewport to be the same size as the screen
   glViewPort(0,0,255,191);
-  
+
 
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
   gluPerspective(70, 256.0 / 192.0, 0.1, 100);
 
-  //ds specific, several attributes can be set here 
+  //ds specific, several attributes can be set here
   glPolyFmt(POLY_ALPHA(31) or POLY_CULL_NONE);
-    
+
   // Set the current matrix to be the model matrix
   glMatrixMode(GL_MODELVIEW);
-  
+
   glColor3f(1, 1, 1);                 // Set the color..not in nehe source...ds gl default will be black
-  
-  while true do 
+
+  while true do
   begin
 
     DrawGLScene();
-    
-    // flush to screen  
+
+    // flush to screen
     glFlush(0);
 
     //a handy little built in function to wait for a screen refresh
     swiWaitForVBlank();
     scanKeys();
     keys := keysDown();
-    if (keys and KEY_START) <> 0 then break;    
+    if (keys and KEY_START) <> 0 then break;
   end;
-  
+
 end.

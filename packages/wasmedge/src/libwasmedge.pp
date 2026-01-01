@@ -9,7 +9,7 @@ interface
 uses
 {$IFDEF FPC_DOTTEDUNITS}
   System.CTypes;
-{$ELSE}  
+{$ELSE}
   ctypes;
 {$ENDIF}
 {
@@ -46,8 +46,8 @@ const
 {$ENDIF}
 
 Type
- Puint64_t = ^PQWord; 
- Puint8_t = ^PByte; 
+ Puint64_t = ^PQWord;
+ Puint8_t = ^PByte;
  uint128_t = record
   Low : QWord;
   High : QWord;
@@ -60,7 +60,7 @@ Type
  end;
  tint128_t = int128_t;
 
- tcint = cint; 
+ tcint = cint;
  tuint32_t = uint32;
  tint32_t = int32;
  tint64_t = int64;
@@ -69,7 +69,7 @@ Type
  tdouble = double;
  tbool = cbool;
  Ppcchar = ^PAnsichar;
-    
+
  (*
 libwasmedge.pp(68,1) Error: Forward type not resolved "Tuint64_t"
 libwasmedge.pp(68,1) Error: Forward type not resolved "Tuint8_t"
@@ -106,7 +106,7 @@ libwasmedge.pp(68,1) Error: Forward type not resolved "TWasmEdge_TableInstanceCo
 libwasmedge.pp(68,1) Error: Forward type not resolved "TWasmEdge_TableTypeContext"
 libwasmedge.pp(68,1) Error: Forward type not resolved "TWasmEdge_ValidatorContext"
 libwasmedge.pp(68,1) Error: Forward type not resolved "TWasmEdge_ValType"
-libwasmedge.pp(68,1) Error: Forward type not resolved "TWasmEdge_VMContext 
+libwasmedge.pp(68,1) Error: Forward type not resolved "TWasmEdge_VMContext
  *)
 
 TWasmEdge_ConfigureContext= record end;
@@ -482,7 +482,7 @@ WasmEdge_ExecutorCreate : function(ConfCxt:PWasmEdge_ConfigureContext; StatCxt:P
 WasmEdge_ExecutorInstantiate : function(Cxt:PWasmEdge_ExecutorContext; ModuleCxt:PPWasmEdge_ModuleInstanceContext; StoreCxt:PWasmEdge_StoreContext; ASTCxt:PWasmEdge_ASTModuleContext):TWasmEdge_Result;cdecl;
 WasmEdge_ExecutorRegister : function(Cxt:PWasmEdge_ExecutorContext; ModuleCxt:PPWasmEdge_ModuleInstanceContext; StoreCxt:PWasmEdge_StoreContext; ASTCxt:PWasmEdge_ASTModuleContext; ModuleName:TWasmEdge_String):TWasmEdge_Result;cdecl;
 WasmEdge_ExecutorRegisterImport : function(Cxt:PWasmEdge_ExecutorContext; StoreCxt:PWasmEdge_StoreContext; ImportCxt:PWasmEdge_ModuleInstanceContext):TWasmEdge_Result;cdecl;
-WasmEdge_ExecutorInvoke : function(Cxt:PWasmEdge_ExecutorContext; FuncCxt:PWasmEdge_FunctionInstanceContext; Params:PWasmEdge_Value; ParamLen:Tuint32_t; Returns:PWasmEdge_Value; 
+WasmEdge_ExecutorInvoke : function(Cxt:PWasmEdge_ExecutorContext; FuncCxt:PWasmEdge_FunctionInstanceContext; Params:PWasmEdge_Value; ParamLen:Tuint32_t; Returns:PWasmEdge_Value;
     ReturnLen:Tuint32_t):TWasmEdge_Result;cdecl;
 WasmEdge_ExecutorAsyncInvoke : function(Cxt:PWasmEdge_ExecutorContext; FuncCxt:PWasmEdge_FunctionInstanceContext; Params:PWasmEdge_Value; ParamLen:Tuint32_t):PWasmEdge_Async;cdecl;
 WasmEdge_ExecutorDelete : procedure(Cxt:PWasmEdge_ExecutorContext);cdecl;
@@ -496,9 +496,9 @@ Type
   tfinalizer = procedure (para1:pointer); cdecl;
 var
 WasmEdge_ModuleInstanceCreateWithData : function(ModuleName:TWasmEdge_String; HostData:pointer; Finalizer: tfinalizer):PWasmEdge_ModuleInstanceContext;cdecl;
-WasmEdge_ModuleInstanceCreateWASI : function(Args:Ppcchar; ArgLen:Tuint32_t; Envs:Ppcchar; EnvLen:Tuint32_t; Preopens:Ppcchar; 
+WasmEdge_ModuleInstanceCreateWASI : function(Args:Ppcchar; ArgLen:Tuint32_t; Envs:Ppcchar; EnvLen:Tuint32_t; Preopens:Ppcchar;
     PreopenLen:Tuint32_t):PWasmEdge_ModuleInstanceContext;cdecl;
-WasmEdge_ModuleInstanceInitWASI : procedure(Cxt:PWasmEdge_ModuleInstanceContext; Args:Ppcchar; ArgLen:Tuint32_t; Envs:Ppcchar; EnvLen:Tuint32_t; 
+WasmEdge_ModuleInstanceInitWASI : procedure(Cxt:PWasmEdge_ModuleInstanceContext; Args:Ppcchar; ArgLen:Tuint32_t; Envs:Ppcchar; EnvLen:Tuint32_t;
     Preopens:Ppcchar; PreopenLen:Tuint32_t);cdecl;
 WasmEdge_ModuleInstanceWASIGetExitCode : function(Cxt:PWasmEdge_ModuleInstanceContext):Tuint32_t;cdecl;
 WasmEdge_ModuleInstanceWASIGetNativeHandler : function(Cxt:PWasmEdge_ModuleInstanceContext; Fd:Tint32_t; NativeHandler:Puint64_t):Tuint32_t;cdecl;
@@ -529,7 +529,7 @@ var
 WasmEdge_FunctionInstanceCreate : function(_Type:PWasmEdge_FunctionTypeContext; HostFunc:TWasmEdge_HostFunc_t; Data:pointer; Cost:Tuint64_t):PWasmEdge_FunctionInstanceContext;cdecl;
 type
 
-  TWasmEdge_WrapFunc_t = function (This:pointer; Data:pointer; CallFrameCxt:PWasmEdge_CallingFrameContext; Params:PWasmEdge_Value; ParamLen:Tuint32_t; 
+  TWasmEdge_WrapFunc_t = function (This:pointer; Data:pointer; CallFrameCxt:PWasmEdge_CallingFrameContext; Params:PWasmEdge_Value; ParamLen:Tuint32_t;
                Returns:PWasmEdge_Value; ReturnLen:Tuint32_t):TWasmEdge_Result;cdecl;
 var
 WasmEdge_FunctionInstanceCreateBinding : function(_Type:PWasmEdge_FunctionTypeContext; WrapFunc:TWasmEdge_WrapFunc_t; Binding:pointer; Data:pointer; Cost:Tuint64_t):PWasmEdge_FunctionInstanceContext;cdecl;
@@ -570,14 +570,14 @@ WasmEdge_VMRegisterModuleFromFile : function(Cxt:PWasmEdge_VMContext; ModuleName
 WasmEdge_VMRegisterModuleFromBuffer : function(Cxt:PWasmEdge_VMContext; ModuleName:TWasmEdge_String; Buf:Puint8_t; BufLen:Tuint32_t):TWasmEdge_Result;cdecl;
 WasmEdge_VMRegisterModuleFromASTModule : function(Cxt:PWasmEdge_VMContext; ModuleName:TWasmEdge_String; ASTCxt:PWasmEdge_ASTModuleContext):TWasmEdge_Result;cdecl;
 WasmEdge_VMRegisterModuleFromImport : function(Cxt:PWasmEdge_VMContext; ImportCxt:PWasmEdge_ModuleInstanceContext):TWasmEdge_Result;cdecl;
-WasmEdge_VMRunWasmFromFile : function(Cxt:PWasmEdge_VMContext; Path:pcchar; FuncName:TWasmEdge_String; Params:PWasmEdge_Value; ParamLen:Tuint32_t; 
+WasmEdge_VMRunWasmFromFile : function(Cxt:PWasmEdge_VMContext; Path:pcchar; FuncName:TWasmEdge_String; Params:PWasmEdge_Value; ParamLen:Tuint32_t;
     Returns:PWasmEdge_Value; ReturnLen:Tuint32_t):TWasmEdge_Result;cdecl;
-WasmEdge_VMRunWasmFromBuffer : function(Cxt:PWasmEdge_VMContext; Buf:Puint8_t; BufLen:Tuint32_t; FuncName:TWasmEdge_String; Params:PWasmEdge_Value; 
+WasmEdge_VMRunWasmFromBuffer : function(Cxt:PWasmEdge_VMContext; Buf:Puint8_t; BufLen:Tuint32_t; FuncName:TWasmEdge_String; Params:PWasmEdge_Value;
     ParamLen:Tuint32_t; Returns:PWasmEdge_Value; ReturnLen:Tuint32_t):TWasmEdge_Result;cdecl;
-WasmEdge_VMRunWasmFromASTModule : function(Cxt:PWasmEdge_VMContext; ASTCxt:PWasmEdge_ASTModuleContext; FuncName:TWasmEdge_String; Params:PWasmEdge_Value; ParamLen:Tuint32_t; 
+WasmEdge_VMRunWasmFromASTModule : function(Cxt:PWasmEdge_VMContext; ASTCxt:PWasmEdge_ASTModuleContext; FuncName:TWasmEdge_String; Params:PWasmEdge_Value; ParamLen:Tuint32_t;
     Returns:PWasmEdge_Value; ReturnLen:Tuint32_t):TWasmEdge_Result;cdecl;
 WasmEdge_VMAsyncRunWasmFromFile : function(Cxt:PWasmEdge_VMContext; Path:pcchar; FuncName:TWasmEdge_String; Params:PWasmEdge_Value; ParamLen:Tuint32_t):PWasmEdge_Async;cdecl;
-WasmEdge_VMAsyncRunWasmFromBuffer : function(Cxt:PWasmEdge_VMContext; Buf:Puint8_t; BufLen:Tuint32_t; FuncName:TWasmEdge_String; Params:PWasmEdge_Value; 
+WasmEdge_VMAsyncRunWasmFromBuffer : function(Cxt:PWasmEdge_VMContext; Buf:Puint8_t; BufLen:Tuint32_t; FuncName:TWasmEdge_String; Params:PWasmEdge_Value;
     ParamLen:Tuint32_t):PWasmEdge_Async;cdecl;
 WasmEdge_VMAsyncRunWasmFromASTModule : function(Cxt:PWasmEdge_VMContext; ASTCxt:PWasmEdge_ASTModuleContext; FuncName:TWasmEdge_String; Params:PWasmEdge_Value; ParamLen:Tuint32_t):PWasmEdge_Async;cdecl;
 WasmEdge_VMLoadWasmFromFile : function(Cxt:PWasmEdge_VMContext; Path:pcchar):TWasmEdge_Result;cdecl;
@@ -585,9 +585,9 @@ WasmEdge_VMLoadWasmFromBuffer : function(Cxt:PWasmEdge_VMContext; Buf:Puint8_t; 
 WasmEdge_VMLoadWasmFromASTModule : function(Cxt:PWasmEdge_VMContext; ASTCxt:PWasmEdge_ASTModuleContext):TWasmEdge_Result;cdecl;
 WasmEdge_VMValidate : function(Cxt:PWasmEdge_VMContext):TWasmEdge_Result;cdecl;
 WasmEdge_VMInstantiate : function(Cxt:PWasmEdge_VMContext):TWasmEdge_Result;cdecl;
-WasmEdge_VMExecute : function(Cxt:PWasmEdge_VMContext; FuncName:TWasmEdge_String; Params:PWasmEdge_Value; ParamLen:Tuint32_t; Returns:PWasmEdge_Value; 
+WasmEdge_VMExecute : function(Cxt:PWasmEdge_VMContext; FuncName:TWasmEdge_String; Params:PWasmEdge_Value; ParamLen:Tuint32_t; Returns:PWasmEdge_Value;
     ReturnLen:Tuint32_t):TWasmEdge_Result;cdecl;
-WasmEdge_VMExecuteRegistered : function(Cxt:PWasmEdge_VMContext; ModuleName:TWasmEdge_String; FuncName:TWasmEdge_String; Params:PWasmEdge_Value; ParamLen:Tuint32_t; 
+WasmEdge_VMExecuteRegistered : function(Cxt:PWasmEdge_VMContext; ModuleName:TWasmEdge_String; FuncName:TWasmEdge_String; Params:PWasmEdge_Value; ParamLen:Tuint32_t;
     Returns:PWasmEdge_Value; ReturnLen:Tuint32_t):TWasmEdge_Result;cdecl;
 WasmEdge_VMAsyncExecute : function(Cxt:PWasmEdge_VMContext; FuncName:TWasmEdge_String; Params:PWasmEdge_Value; ParamLen:Tuint32_t):PWasmEdge_Async;cdecl;
 WasmEdge_VMAsyncExecuteRegistered : function(Cxt:PWasmEdge_VMContext; ModuleName:TWasmEdge_String; FuncName:TWasmEdge_String; Params:PWasmEdge_Value; ParamLen:Tuint32_t):PWasmEdge_Async;cdecl;

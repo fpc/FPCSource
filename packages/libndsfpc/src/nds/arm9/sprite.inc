@@ -38,13 +38,13 @@ const
 
 function OBJ_X(m: cint): cint; inline;
 
-function ATTR2_PRIORITY(n: cint): cint; inline;     
-function ATTR2_PALETTE(n: cint): cint; inline;      
-function ATTR2_ALPHA(n: cint): cint; inline;		  
+function ATTR2_PRIORITY(n: cint): cint; inline;
+function ATTR2_PALETTE(n: cint): cint; inline;
+function ATTR2_ALPHA(n: cint): cint; inline;
 
-type 
+type
   ObjBlendMode = (
-    OBJMODE_NORMAL   = 0, 
+    OBJMODE_NORMAL   = 0,
     OBJMODE_BLENDED  = 1,
     OBJMODE_WINDOWED = 2,
     OBJMODE_BITMAP   = 3
@@ -56,16 +56,16 @@ type
     OBJSHAPE_TALL       = 2,
     OBJSHAPE_FORBIDDEN  = 3
   );
-  
+
   ObjSize = (
     OBJSIZE_8   = 0,
     OBJSIZE_16  = 1,
-    OBJSIZE_32  = 2, 
+    OBJSIZE_32  = 2,
     OBJSIZE_64  = 3
   );
-  
+
   ObjColMode = (
-    OBJCOLOR_16  = 0, 
+    OBJCOLOR_16  = 0,
     OBJCOLOR_256 = 1
   );
 
@@ -93,11 +93,11 @@ type
     case integer of
       0: (
         y: Unsigned_8;//0..8;
-        case integer of 
+        case integer of
           0: (
   				  __padding1: Unsigned_1;//0..1;
   				  isHidden: Unsigned_1;//0..1;
-  				  __padding2: Unsigned_6;//0..6;          
+  				  __padding2: Unsigned_6;//0..6;
           );
           1: (
             isRotateScale: Unsigned_1;//0..1;
@@ -105,7 +105,7 @@ type
             blendMode: Unsigned_2;//0..2;
             isMosaic: Unsigned_1;//0..1;
             colorMode: Unsigned_1;//0..1;
-            shape: Unsigned_2;//0..2;          
+            shape: Unsigned_2;//0..2;
 //          );
 
             case integer of
@@ -128,19 +128,19 @@ type
     						    size: Unsigned_2;//0..2;
     //              );
     //          );
-     
+
                     gfxIndex: Unsigned_10;//0..10;
                     priority: Unsigned_2;//0..2;
                     palette: Unsigned_4;//0..4;
-                    
+
                     attribute3: cuint16;
                   );
-              );     
+              );
           );
-      ); 
+      );
       1: (
         attribute: array [0..2] of cuint16;
-        filler: cuint16;   
+        filler: cuint16;
       );
   end;
   SpriteEntry = sSpriteEntry;
@@ -179,8 +179,8 @@ type
   TOAMTable = OAMTable;
   POAMTable = ^OAMTable;
 
-type  
-  SpriteSize = integer; 
+type
+  SpriteSize = integer;
 const
   SpriteSize_8x8  : SpriteSize = (integer(OBJSIZE_8)  shl 14) or (integer(OBJSHAPE_SQUARE) shl 12) or ((8*8)   shr 5);
   SpriteSize_16x16: SpriteSize = (integer(OBJSIZE_16) shl 14) or (integer(OBJSHAPE_SQUARE) shl 12) or ((16*16) shr 5);
@@ -193,7 +193,7 @@ const
   SpriteSize_8x16 : SpriteSize = (integer(OBJSIZE_8)  shl 14) or (integer(OBJSHAPE_TALL)   shl 12) or ((8*16)  shr 5);
   SpriteSize_8x32 : SpriteSize = (integer(OBJSIZE_16) shl 14) or (integer(OBJSHAPE_TALL)   shl 12) or ((8*32)  shr 5);
   SpriteSize_16x32: SpriteSize = (integer(OBJSIZE_32) shl 14) or (integer(OBJSHAPE_TALL)   shl 12) or ((16*32) shr 5);
-  SpriteSize_32x64: SpriteSize = (integer(OBJSIZE_64) shl 14) or (integer(OBJSHAPE_TALL)   shl 12) or ((32*64) shr 5);  
+  SpriteSize_32x64: SpriteSize = (integer(OBJSIZE_64) shl 14) or (integer(OBJSHAPE_TALL)   shl 12) or ((32*64) shr 5);
 
 function SPRITE_SIZE_SHAPE(size: cint): cuint32; inline;
 function SPRITE_SIZE_SIZE(size: cint): cuint32; inline;
@@ -215,40 +215,40 @@ const
 
 type
   SpriteColorFormat = integer;
-const 
+const
   SpriteColorFormat_16Color : SpriteColorFormat = integer(OBJCOLOR_16);
   SpriteColorFormat_256Color: SpriteColorFormat = integer(OBJCOLOR_256);
-  SpriteColorFormat_Bmp     : SpriteColorFormat = integer(OBJMODE_BITMAP);	 	 	 
+  SpriteColorFormat_Bmp     : SpriteColorFormat = integer(OBJMODE_BITMAP);
 
-  
+
 type
   AllocHeader = record
-    nextFree: cuint16;	    
+    nextFree: cuint16;
     size: cuint16;
-  end;  
+  end;
   TAllocHeader = AllocHeader;
   PAllocHeader = ^AllocHeader;
-  
+
   OamState = record
-    gfxOffsetStep: cint; 
+    gfxOffsetStep: cint;
     firstFree: cint16;
-    allocBuffer: PAllocHeader; 
+    allocBuffer: PAllocHeader;
     allocBufferSize: cint16;
-    spriteMapping: TSpriteMapping;     
+    spriteMapping: TSpriteMapping;
     case integer of
       0: (
             oamMemory: PSpriteEntry;
-      ); 
+      );
       1: (
             oamRotationMemory: PSpriteRotation;
       );
   end;
   TOamState = OamState;
-  POamState = ^OamState; 
+  POamState = ^OamState;
 
 var
   oamMain: OamState; cvar; external;
-  oamSub: OamState; cvar; external;  
+  oamSub: OamState; cvar; external;
 
 procedure oamInit(var oam: OamState; mapping: TSpriteMapping; extPalette: cbool); cdecl; external;
 procedure oamDisable(var oam: OamState); cdecl; external;
@@ -260,12 +260,12 @@ procedure oamFreeGfx(var oam: OamState; const gfxOffset: pointer); cdecl; extern
 procedure oamSetMosaic(dx, dy: cuint); inline;
 procedure oamSetMosaicSub(dx, dy: cuint); inline;
 
-procedure oamSet( var oam: OamState; 
-                  id, x, y, priority, palette_alpha: cint; 
-                  size: SpriteSize; 
-                  format: SpriteColorFormat; 
-                  const gfxOffset: pointer; 
-                  affineIndex: cint; 
+procedure oamSet( var oam: OamState;
+                  id, x, y, priority, palette_alpha: cint;
+                  size: SpriteSize;
+                  format: SpriteColorFormat;
+                  const gfxOffset: pointer;
+                  affineIndex: cint;
                   sizeDouble, hide, hflip, vflip, mosaic: cbool); cdecl; external;
 procedure oamClear(var oam: OamState; start, count: cint); cdecl; external;
 procedure oamClearSprite(var oam: OamState; index: cint); inline;
@@ -277,7 +277,7 @@ function oamCountFragments(var oam: OamState): cint; cdecl; external;
 procedure oamAllocReset(var oam: OamState); cdecl; external;
 function oamGfxPtrToOffset(var oam: OamState; const offset: pointer): cuint; cdecl; external;
 {$endif NDS_INTERFACE}
- 
+
 {$ifdef NDS_IMPLEMENTATION}
 function OBJ_Y(m: cint): cint; inline;
 begin
@@ -294,17 +294,17 @@ begin
   OBJ_X := ((m) and $01ff);
 end;
 
-function ATTR2_PRIORITY(n: cint): cint; inline;     
+function ATTR2_PRIORITY(n: cint): cint; inline;
 begin
   ATTR2_PRIORITY := ((n) shl 10);
 end;
 
-function ATTR2_PALETTE(n: cint): cint; inline;      
+function ATTR2_PALETTE(n: cint): cint; inline;
 begin
   ATTR2_PALETTE := ((n) shl 12);
 end;
 
-function ATTR2_ALPHA(n: cint): cint; inline;		  
+function ATTR2_ALPHA(n: cint): cint; inline;
 begin
   ATTR2_ALPHA := ((n) shl 12);
 end;

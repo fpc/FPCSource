@@ -28,7 +28,7 @@ uses
 uses
   Classes, SysUtils, resource;
 {$ENDIF FPC_DOTTEDUNITS}
-  
+
 type
   EVersionStringTableException = class(Exception);
   ENameNotAllowedException = class(EVersionStringTableException);
@@ -42,7 +42,7 @@ resourcestring
 
 type
   TFileProductVersion = array[0..3] of word;
-  
+
   TVerTranslationInfo = packed record
     language : word;
     codepage : word;
@@ -125,7 +125,7 @@ type
     property Count : integer read GetCount;
     property Items[index : integer] : TVersionStringTable read GetItem write SetItem; default;
   end;
-  
+
   { TVersionVarFileInfo }
 
   TVersionVarFileInfo = class

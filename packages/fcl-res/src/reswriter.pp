@@ -28,7 +28,7 @@ uses
 uses
   Classes, SysUtils, resource;
 {$ENDIF FPC_DOTTEDUNITS}
-  
+
 type
 
   { TResResourceWriter }
@@ -106,7 +106,7 @@ begin
   WriteNameId(aStream,aRes._Type);            //type
   WriteNameId(aStream,aRes.Name);             //name
   AlignDword(aStream);
-  
+
   DataVersion:=aRes.DataVersion;
   MemoryFlags:=aRes.MemoryFlags;
   LanguageID:=aRes.LangID;

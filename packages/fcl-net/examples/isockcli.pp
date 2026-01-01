@@ -16,7 +16,7 @@ Program Client;
   TInetSocket client program. Before running this, run either
   'isocksvr' or 'dsocksvr -i' in another terminal or in the
   background.
-  
+
   You can specify a connection timeout in milliseconds on the command-line:
   isockcli 1000
   will wait 1 second.

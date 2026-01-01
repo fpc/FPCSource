@@ -88,7 +88,7 @@ var
       begin
         APath:=ExtractFilePath(ADir);
         //this can happen on Windows if user specifies Dir like \user\name/test/
-        //and would, if not checked for, cause an infinite recusrsion and a stack overflow
+        //and would, if not checked for, cause an infinite recursion and a stack overflow
         if (APath=ADir) then
           Result:=False
         else

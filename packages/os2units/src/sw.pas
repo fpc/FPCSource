@@ -27,7 +27,7 @@
 @lastmod(23 Jan 2003)
 This is the multimedia unit file that has the typedefs, defines and
 function prototypes for Multimedia Applets.
-Warning: This code is alfa. Future versions of this unit will propably
+Warning: This code is alfa. Future versions of this unit will probably
 not be compatible.
 }
 {$IFNDEF FPC_DOTTEDUNITS}
@@ -235,8 +235,8 @@ Const
 
   GB_TOGGLE                     = 10;          // GraphicButton toggle
   GB_CURRENTSTATE               = 11;          // GraphicButton's current state
-  GB_ANIMATIONBEGIN             = 12;          // when refering to index of anim start
-  GB_ANIMATIONEND               = 13;          // when refering to index of anim end
+  GB_ANIMATIONBEGIN             = 12;          // when referring to index of anim start
+  GB_ANIMATIONEND               = 13;          // when referring to index of anim end
   GB_MAXINDEX                   = 14;          // GraphicButton max. index
 
 //************************************************************************/
@@ -362,7 +362,7 @@ const
 //* mp2 = NULL;                    not used                              */
 //*                                                                      */
 //*                                                                      */
-//* Returns ULONG sepcifying animation rate in milliseconds              */
+//* Returns ULONG specifying animation rate in milliseconds              */
 //*                                                                      */
 //*                                                                      */
 //************************************************************************/

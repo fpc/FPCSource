@@ -11,7 +11,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
- 
+
 {$DEFINE OS_HASEXITCODE}
 
 {$IFDEF FPC_DOTTEDUNITS}
@@ -208,13 +208,13 @@ Const
 Const
   TerminalApp = 'Terminal';
 {$endif}
-  
+
 Var
   Cmd : String;
   S  : TStringList;
   G : String;
   PA,PC : String;
-  
+
 begin
   PA:=P.ApplicationName;
   PC:=P.CommandLine;
@@ -385,7 +385,7 @@ begin
         { can't use vfork in case the child has to be
           suspended immediately, because with vfork the
           child borrows the execution thread of the parent
-          unit it either exits or execs -> potential 
+          unit it either exits or execs -> potential
           deadlock depending on how quickly the SIGSTOP
           signal is delivered
 

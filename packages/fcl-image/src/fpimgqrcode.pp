@@ -157,7 +157,7 @@ function TImageQRCodeGenerator.SaveToFile(const AFileName: String): Boolean;
     Result := FindWriterFromExtension(ExtractFileExt(filename));
   end;
   {$ENDIF}
-  
+
 Var
   WriterClass : TFPCustomImageWriterClass;
   Writer : TFPCustomImageWriter;

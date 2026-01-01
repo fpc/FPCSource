@@ -8,7 +8,7 @@ unit Trees;
   trees.c -- output deflated data using Huffman coding
   Copyright (C) 1995-1998 Jean-loup Gailly
 
-  Pascal tranlastion
+  Pascal translation
   Copyright (C) 1998 by Jacques Nomssi Nzali
   For conditions of distribution and use, see copyright notice in readme.txt
 }

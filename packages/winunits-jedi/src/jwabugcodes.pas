@@ -1471,17 +1471,17 @@ const
 //  If this is the first time you've seen this Stop error screen,
 //  restart your computer. If this screen appears again, follow
 //  these steps:
-//  
+//
 //  Check to make sure any new hardware or software is properly installed.
 //  If this is a new installation, ask your hardware or software manufacturer
 //  for any Windows 2000 updates you might need.
-//  
+//
 //  If problems continue, disable or remove any newly installed hardware
 //  or software. Disable BIOS memory options such as caching or shadowing.
 //  If you need to use Safe Mode to remove or disable components, restart
 //  your computer, press F8 to select Advanced Startup Options, and then
 //  select Safe Mode.
-//  
+//
 //  Refer to your Getting Started manual for more information on
 //  troubleshooting Stop errors.
 //
@@ -1936,10 +1936,10 @@ const
 //
 // MessageText:
 //
-//  The ACPI BIOS in this system is not fully compliant with the ACPI 
+//  The ACPI BIOS in this system is not fully compliant with the ACPI
 //  specification. Please read the README.TXT for possible workarounds.  You
 //  can also contact your system's manufacturer for an updated BIOS, or visit
-//  http://www.hardware-update.com to see if a new BIOS is available.  
+//  http://www.hardware-update.com to see if a new BIOS is available.
 //
 
   ACPI_BIOS_ERROR = ULONG($000000A5);
@@ -2030,18 +2030,18 @@ const
 //  If this is the first time you've seen this Stop error screen,
 //  restart your computer. If this screen appears again, follow
 //  these steps:
-//  
+//
 //  Check to make sure any new hardware or software is properly installed.
 //  If this is a new installation, ask your hardware or software manufacturer
 //  for any Windows 2000 updates you might need.
-//  
+//
 //  If problems continue, disable or remove any newly installed hardware
 //  or software. Disable BIOS memory options such as caching or shadowing.
 //  Check your hard drive to make sure it is properly configured and
 //  terminated. If you need to use Safe Mode to remove or disable components,
 //  restart your computer, press F8 to select Advanced Startup Options,
 //  and then select Safe Mode.
-//  
+//
 //  Refer to your Getting Started manual for more information on
 //  troubleshooting Stop errors.
 //
@@ -2057,18 +2057,18 @@ const
 //  If this is the first time you've seen this Stop error screen,
 //  restart your computer. If this screen appears again, follow
 //  these steps:
-//  
+//
 //  Check to be sure you have adequate disk space. If a driver is
 //  identified in the Stop message, disable the driver or check
 //  with the manufacturer for driver updates. Try changing video
 //  adapters.
-//  
+//
 //  Check with your hardware vendor for any BIOS updates. Disable
 //  BIOS memory options such as caching or shadowing. If you need
 //  to use Safe Mode to remove or disable components, restart your
 //  computer, press F8 to select Advanced Startup Options, and then
 //  select Safe Mode.
-//  
+//
 //  Refer to your Getting Started manual for more information on
 //  troubleshooting Stop errors.
 //
@@ -2084,12 +2084,12 @@ const
 //  If this is the first time you've seen this Stop error screen,
 //  restart your computer. If this screen appears again, follow
 //  these steps:
-//  
+//
 //  Disable or uninstall any anti-virus, disk defragmentation
 //  or backup utilities. Check your hard drive configuration,
 //  and check for any updated drivers. Run CHKDSK /F to check
 //  for hard drive corruption, and then restart your computer.
-//  
+//
 //  Refer to your Getting Started manual for more information on
 //  troubleshooting Stop errors.
 //
@@ -2105,17 +2105,17 @@ const
 //  If this is the first time you've seen this Stop error screen,
 //  restart your computer. If this screen appears again, follow
 //  these steps:
-//  
+//
 //  Run system diagnostics supplied by your hardware manufacturer.
 //  In particular, run a memory check, and check for faulty or
 //  mismatched memory. Try changing video adapters.
-//  
+//
 //  Check with your hardware vendor for any BIOS updates. Disable
 //  BIOS memory options such as caching or shadowing. If you need
 //  to use Safe Mode to remove or disable components, restart your
 //  computer, press F8 to select Advanced Startup Options, and then
 //  select Safe Mode.
-//  
+//
 //  Refer to your Getting Started manual for more information on
 //  troubleshooting Stop errors.
 //
@@ -2131,14 +2131,14 @@ const
 //  If this is the first time you've seen this Stop error screen,
 //  restart your computer. If this screen appears again, follow
 //  these steps:
-//  
+//
 //  Remove any recently installed software including backup
 //  utilities or disk-intensive applications.
-//  
+//
 //  If you need to use Safe Mode to remove or disable components,
 //  restart your computer, press F8 to select Advanced Startup
 //  Options, and then select Safe Mode.
-//  
+//
 //  Refer to your Getting Started manual for more information on
 //  troubleshooting Stop errors.
 //
@@ -2154,13 +2154,13 @@ const
 //  If this is the first time you've seen this Stop error screen,
 //  restart your computer. If this screen appears again, follow
 //  these steps:
-//  
+//
 //  Check for viruses on your computer. Remove any newly installed
 //  hard drives or hard drive controllers. Check your hard drive
 //  to make sure it is properly configured and terminated.
 //  Run CHKDSK /F to check for hard drive corruption, and then
 //  restart your computer.
-//  
+//
 //  Refer to your Getting Started manual for more information on
 //  troubleshooting Stop errors.
 //
@@ -2176,16 +2176,16 @@ const
 //  If this is the first time you've seen this Stop error screen,
 //  restart your computer. If this screen appears again, follow
 //  these steps:
-//  
+//
 //  Run a system diagnostic utility supplied by your hardware manufacturer.
 //  In particular, run a memory check, and check for faulty or mismatched
 //  memory. Try changing video adapters.
-//  
+//
 //  Disable or remove any newly installed hardware and drivers. Disable or
 //  remove any newly installed software. If you need to use Safe Mode to
 //  remove or disable components, restart your computer, press F8 to select
 //  Advanced Startup Options, and then select Safe Mode.
-//  
+//
 //  Refer to your Getting Started manual for more information on
 //  troubleshooting Stop errors.
 //
@@ -2364,7 +2364,7 @@ const
 //
 // MessageText:
 //
-//  
+//
 //  A system file that is owned by Windows 2000 was replaced by an application
 //  running on your system.  The operating system detected this and tried to
 //  verify the validity of the file's signature.  The operating system found that
@@ -2380,7 +2380,7 @@ const
 //
 // MessageText:
 //
-//  
+//
 //  A device driver attempting to corrupt the system has been caught.
 //  The faulty driver currently on the kernel stack must be replaced
 //  with a working version.
@@ -2394,26 +2394,26 @@ const
 //
 // MessageText:
 //
-//  
+//
 //  A device driver has corrupted the executive memory pool.
-//  
+//
 //  If this is the first time you've seen this Stop error screen,
 //  restart your computer. If this screen appears again, follow
 //  these steps:
-//  
+//
 //  Check to make sure any new hardware or software is properly installed.
 //  If this is a new installation, ask your hardware or software manufacturer
 //  for any Windows 2000 updates you might need.
-//  
+//
 //  Run the driver verifier against any new (or suspect) drivers.
 //  If that doesn't reveal the corrupting driver, try enabling special pool.
 //  Both of these features are intended to catch the corruption at an earlier
 //  point where the offending driver can be identified.
-//  
+//
 //  If you need to use Safe Mode to remove or disable components,
 //  restart your computer, press F8 to select Advanced Startup Options,
 //  and then select Safe Mode.
-//  
+//
 //  Refer to your Getting Started manual for more information on
 //  troubleshooting Stop errors.
 //
@@ -2426,7 +2426,7 @@ const
 //
 // MessageText:
 //
-//  
+//
 //  A device driver attempting to corrupt the system has been caught.
 //  The faulty driver currently on the kernel stack must be replaced
 //  with a working version.
@@ -2440,7 +2440,7 @@ const
 //
 // MessageText:
 //
-//  
+//
 //  A kernel timer or DPC was found in memory which must not contain such
 //  items.  Usually this is memory being freed.  This is usually caused by
 //  a device driver that has not cleaned up properly before freeing memory.
@@ -2454,7 +2454,7 @@ const
 //
 // MessageText:
 //
-//  
+//
 //  The processor's IRQL is not valid for the currently executing context.
 //  This is a software error condition and is usually caused by a device
 //  driver changing IRQL and not restoring it to its previous value when
@@ -2469,7 +2469,7 @@ const
 //
 // MessageText:
 //
-//  
+//
 //  The IO manager has detected a violation by a driver that is being verified.
 //  The faulty driver that is being verified must be debugged and
 //  replaced with a working version.
@@ -2483,7 +2483,7 @@ const
 //
 // MessageText:
 //
-//  
+//
 //  Plug and Play detected an error most likely caused by a faulty driver.
 //
 
@@ -2506,7 +2506,7 @@ const
 //
 // MessageText:
 //
-//  
+//
 //  The system is attempting to access memory after it has been freed.
 //  This usually indicates a system-driver synchronization issue.
 //
@@ -2519,7 +2519,7 @@ const
 //
 // MessageText:
 //
-//  
+//
 //  The system is attempting to access memory beyond the end of the allocation.
 //  This usually indicates a system-driver synchronization issue.
 //
@@ -2554,26 +2554,26 @@ const
 //
 // MessageText:
 //
-//  
+//
 //  A device driver has corrupted the system memory management pool.
-//  
+//
 //  If this is the first time you've seen this Stop error screen,
 //  restart your computer. If this screen appears again, follow
 //  these steps:
-//  
+//
 //  Check to make sure any new hardware or software is properly installed.
 //  If this is a new installation, ask your hardware or software manufacturer
 //  for any Windows 2000 updates you might need.
-//  
+//
 //  Run the driver verifier against any new (or suspect) drivers.
 //  If that doesn't reveal the corrupting driver, try enabling special pool.
 //  Both of these features are intended to catch the corruption at an earlier
 //  point where the offending driver can be identified.
-//  
+//
 //  If you need to use Safe Mode to remove or disable components,
 //  restart your computer, press F8 to select Advanced Startup Options,
 //  and then select Safe Mode.
-//  
+//
 //  Refer to your Getting Started manual for more information on
 //  troubleshooting Stop errors.
 //
@@ -2630,7 +2630,7 @@ const
 //
 // MessageText:
 //
-//  
+//
 //  The driver is attempting to access memory after it has been freed.
 //
 
@@ -2642,7 +2642,7 @@ const
 //
 // MessageText:
 //
-//  
+//
 //  The driver is attempting to access memory beyond the end of the allocation.
 //
 
@@ -2654,7 +2654,7 @@ const
 //
 // MessageText:
 //
-//  
+//
 //  The driver is attempting to unmap an invalid memory address.
 //
 
@@ -2666,7 +2666,7 @@ const
 //
 // MessageText:
 //
-//  
+//
 //  The driver has used an excessive number of system PTEs.
 //
 
@@ -2678,7 +2678,7 @@ const
 //
 // MessageText:
 //
-//  
+//
 //  The driver is corrupting the locked pages tracking structures.
 //
 
@@ -2690,7 +2690,7 @@ const
 //
 // MessageText:
 //
-//  
+//
 //  The driver is mismanaging system PTEs.
 //
 
@@ -2702,7 +2702,7 @@ const
 //
 // MessageText:
 //
-//  
+//
 //  A driver has corrupted the memory management system PTEs.
 //
 
@@ -2714,7 +2714,7 @@ const
 //
 // MessageText:
 //
-//  
+//
 //  A driver accessed a stack address that lies below the current stack pointer
 //  of the stack's thread.
 //
@@ -2727,14 +2727,14 @@ const
 //
 // MessageText:
 //
-//  
+//
 //  The BIOS in this system is not fully ACPI compliant.  Please contact your
-//  system vendor or visit http://www.hardware-update.com for an updated BIOS.  
-//  If you are unable to obtain an updated BIOS or the latest BIOS supplied by 
-//  your vendor is not ACPI compliant, you can turn off ACPI mode during text 
-//  mode setup.  To do this, simply press the F7 key when you are prompted to 
-//  install storage drivers.  The system will not notify you that the F7 key 
-//  was pressed - it will silently disable ACPI and allow you to continue 
+//  system vendor or visit http://www.hardware-update.com for an updated BIOS.
+//  If you are unable to obtain an updated BIOS or the latest BIOS supplied by
+//  your vendor is not ACPI compliant, you can turn off ACPI mode during text
+//  mode setup.  To do this, simply press the F7 key when you are prompted to
+//  install storage drivers.  The system will not notify you that the F7 key
+//  was pressed - it will silently disable ACPI and allow you to continue
 //  your installation.
 //
 
@@ -2746,7 +2746,7 @@ const
 //
 // MessageText:
 //
-//  
+//
 //  A driver corrupted pool memory used for holding pages destined for disk.
 //
 
@@ -2791,7 +2791,7 @@ const
 //
 // MessageText:
 //
-//  
+//
 //  A worker thread is impersonating another process. The work item forgot to
 //  disable impersonation before it returned.
 //
@@ -2804,11 +2804,11 @@ const
 //
 // MessageText:
 //
-//  
+//
 //  Your computer (BIOS) has reported that a component in your system is faulty and
 //  has prevented Windows from operating.  You can determine which component is
 //  faulty by running the diagnostic disk or tool that came with your computer.
-//  
+//
 //  If you do not have this tool, you must contact your system vendor and report
 //  this error message to them.  They will be able to assist you in correcting this
 //  hardware problem thereby allowing Windows to operate.
@@ -2833,7 +2833,7 @@ const
 //
 // MessageText:
 //
-//  
+//
 //  The end-user manually generated the crashdump.
 //
 
@@ -2845,7 +2845,7 @@ const
 //
 // MessageText:
 //
-//  
+//
 //  A thread tried to release a resource it did not own.
 //
 
@@ -2857,7 +2857,7 @@ const
 //
 // MessageText:
 //
-//  
+//
 //  A executive worker item was found in memory which must not contain such
 //  items.  Usually this is memory being freed.  This is usually caused by
 //  a device driver that has not cleaned up properly before freeing memory.

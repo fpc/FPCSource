@@ -75,7 +75,7 @@ begin
   dbuser := IniFile.ReadString('Database','User','');
   dbpassword := IniFile.ReadString('Database','Password','');
   IniFile.Free;
-  
+
   For I:=1 to 8 do
     FPdevBirthDates[i] := EncodeDate(1990+i,i,i);
 end;

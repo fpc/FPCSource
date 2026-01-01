@@ -518,7 +518,7 @@ end;
 procedure TField.FreeBuffers;
 
 begin
-  // Empty. Provided for backward compatibiliy;
+  // Empty. Provided for backward compatibility;
   // TDataset manages the buffers.
 end;
 
@@ -847,7 +847,7 @@ begin
   if not Assigned(FLookupDataSet) or (Length(FLookupKeyfields) = 0)
   or (Length(FLookupresultField) = 0) or (Length(FKeyFields) = 0) then
     Exit;
-    
+
   tmpActive := FLookupDataSet.Active;
   try
     FLookupDataSet.Active := True;
@@ -1288,7 +1288,7 @@ var s : rawbytestring;
 begin
   If GetValue(s) then
     begin
-    SetCodePage(s, CP_ACP, True); 
+    SetCodePage(s, CP_ACP, True);
     Result:=s
     end
   else
@@ -2303,7 +2303,7 @@ begin
     Fmt:=FDisplayFormat
   else
     Fmt:=FEditFormat;
-    
+
   Digits := 0;
   if not FCurrency then
     ff := ffGeneral
@@ -2359,7 +2359,7 @@ var f : Double;
 begin
   If (AValue='') then
     Clear
-  else  
+  else
     begin
     If not TryStrToFloat(AValue,F) then
       DatabaseErrorFmt(SNotAFloat, [AValue]);
@@ -4315,7 +4315,7 @@ procedure TFields.Clear;
 var
   AField: TField;
 begin
-  while FFieldList.Count > 0 do 
+  while FFieldList.Count > 0 do
     begin
     AField := TField(FFieldList.Last);
     AField.FDataSet := Nil;

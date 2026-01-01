@@ -218,7 +218,7 @@ Procedure SysInitFPU;
               { Reset CR0  Numeric Error bit,
                 to trigger IRQ13 - interrupt $75,
                 and thus avoid the generation of a $10 trap
-                which iterferes with video interrupt handler }
+                which interferes with video interrupt handler }
               and ax,CR0_NOT_NE
               db $0f, $22, $c0 { mov cr0,eax }
             end;

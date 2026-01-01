@@ -114,7 +114,7 @@ begin
 	level := isr_level^;
 	exec := _thr_executing;
 	exec^.wait.ret_code := LWP_MUTEX_SUCCESSFUL;
-	if not __lwp_mutex_locked(mutex) then 
+	if not __lwp_mutex_locked(mutex) then
 	begin
 		mutex^.lock := LWP_MUTEX_LOCKED;
 		mutex^.holder := exec;

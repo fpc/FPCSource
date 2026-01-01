@@ -5,10 +5,10 @@ uses
 
 const
   n = 5;
-  
+
 var
   v: array[1..n] of ArbFloat;
-  
+
 begin
   Assign(input, ParamStr(1));
   reset(input);

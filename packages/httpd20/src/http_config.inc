@@ -91,7 +91,7 @@ type
     RAW_ARGS,			{< cmd_func parses command line itself }
     TAKE1,			{< one argument only }
     TAKE2,			{< two arguments only }
-    ITERATE,			{< one argument, occuring multiple times
+    ITERATE,			{< one argument, occurring multiple times
 				 * (e.g., IndexIgnore)
                                  }
     ITERATE2,			{< two arguments, 2nd occurs multiple times
@@ -112,7 +112,7 @@ type
  * use to *somebody*...
  }
   Pcmd_parms = ^cmd_parms_struct;
-  
+
 //#if defined(AP_HAVE_DESIGNATED_INITIALIZER) || defined(DOXYGEN)
 
 {
@@ -143,8 +143,8 @@ type
       cfk_take3     : ( func_take3 : take3_t);
       cfk_flag      : ( func_flag : flag_t);
   end;
-  Pcmd_func = ^cmd_func; 
-  
+  Pcmd_func = ^cmd_func;
+
 //const
   { This configuration directive does not take any arguments }
 //  AP_NO_ARGS =	func.no_args;
@@ -262,9 +262,9 @@ type
   { Common structure for reading of config files / passwd files etc. }
 
   getch_t = function (param: Pointer): Integer;
-  
+
   getstr_t = function (buf: Pointer; bufsiz: size_t; param: Pointer): Pointer;
-  
+
   close_t = function (param: Pointer): Integer;
 
   ap_configfile_t = record
@@ -275,7 +275,7 @@ type
     name: PAnsiChar;       {< the filename / description }
     line_number: cuint;{< current line number, starting at 1 }
   end;
-  
+
   Pap_configfile_t = ^ap_configfile_t;
   PPap_configfile_t = ^Pap_configfile_t;
 
@@ -309,10 +309,10 @@ type
     { Server_rec being configured for }
     server: Pserver_rec;
     { If configuring for a directory, pathname of that directory.
-     *  NOPE!  That's what it meant previous to the existance of <Files>, 
-     * <Location> and regex matching.  Now the only usefulness that can be 
-     * derived from this field is whether a command is being called in a 
-     * server context (path == NULL) or being called in a dir context 
+     *  NOPE!  That's what it meant previous to the existance of <Files>,
+     * <Location> and regex matching.  Now the only usefulness that can be
+     * derived from this field is whether a command is being called in a
+     * server context (path == NULL) or being called in a dir context
      * (path != NULL).  }
     path: PAnsiChar;
     { configuration command }
@@ -507,7 +507,7 @@ function ap_set_int_slot(cmd: Pcmd_parms; struct_ptr: Pointer; const arg: PAnsiC
 
 {
  * Return true if the specified method is limited by being listed in
- * a <Limit> container, or by *not* being listed in a <LimiteExcept>
+ * a <Limit> container, or by *not* being listed in a <LimitExcept>
  * container.
  *
  * @param   method  Pointer to a string specifying the method to check.
@@ -558,7 +558,7 @@ function ap_set_file_slot(cmd: Pcmd_parms; struct_ptr: Pointer; const arg: PAnsi
  * @return The cmd->help value as the error string
  * @tip This allows simple declarations such as;
  * <pre>
- *     AP_INIT_RAW_ARGS("Foo", ap_set_deprecated, NULL, OR_ALL, 
+ *     AP_INIT_RAW_ARGS("Foo", ap_set_deprecated, NULL, OR_ALL,
  *         "The Foo directive is no longer supported, use Bar"),
  * </pre>
  }
@@ -656,7 +656,7 @@ function ap_pcfg_openfile(ret_cfg: PPap_configfile_t;
  external LibHTTPD name LibNamePrefix + 'ap_pcfg_openfile' + LibSuff12;
 
 {
- * Allocate a ap_configfile_t handle with user defined functions and params 
+ * Allocate a ap_configfile_t handle with user defined functions and params
  * @param p The pool to allocate from
  * @param descr The name of the file
  * @param param The argument passed to getch/getstr/close
@@ -689,7 +689,7 @@ function ap_cfg_getline(bug: PAnsiChar;
  external LibHTTPD name LibNamePrefix + 'ap_cfg_getline' + LibSuff12;
 
 {
- * Read one AnsiChar from open configfile_t, increase line number upon LF 
+ * Read one AnsiChar from open configfile_t, increase line number upon LF
  * @param cfp The file to read from
  * @return the character read
  }
@@ -700,7 +700,7 @@ function ap_cfg_getc(cfp: Pap_configfile_t): Integer;
 {
  * Detach from open ap_configfile_t, calling the close handler
  * @param cfp The file to close
- * @return 1 on sucess, 0 on failure
+ * @return 1 on success, 0 on failure
  }
 function ap_cfg_closefile(cfp: Pap_configfile_t): Integer;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
@@ -708,7 +708,7 @@ function ap_cfg_closefile(cfp: Pap_configfile_t): Integer;
 
 {
  * Read all data between the current <foo> and the matching </foo>.  All
- * of this data is forgotten immediately.  
+ * of this data is forgotten immediately.
  * @param cmd The cmd_parms to pass to the directives inside the container
  * @param directive The directive name to read until
  * @return Error string on failure, NULL on success
@@ -838,7 +838,7 @@ procedure ap_show_directives;
  external LibHTTPD name LibNamePrefix + 'ap_show_directives' + LibSuff0;
 
 {
- * Show the preloaded module names.  Used for httpd -l. 
+ * Show the preloaded module names.  Used for httpd -l.
  }
 procedure ap_show_modules;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
@@ -1112,7 +1112,7 @@ procedure ap_hook_open_logs(pf: ap_HOOK_open_logs_t; const aszPre: PPAnsiChar;
 {
  * Run the child_init functions for each module
  * @param pchild The child pool
- * @param s The list of server_recs in this server 
+ * @param s The list of server_recs in this server
  }
 type
   ap_HOOK_child_init_t = procedure(pchild: Papr_pool_t; s: Pserver_rec); cdecl;
@@ -1140,10 +1140,10 @@ procedure ap_hook_handler(pf: ap_HOOK_handler_t; const aszPre: PPAnsiChar;
  * is run before any other requests hooks are called (location_walk,
  * directory_walk, access checking, et. al.). This hook was added
  * to provide a quick way to serve content from a URI keyed cache.
- * 
+ *
  * @param r The request_rec
  * @param lookup_uri Controls whether the caller actually wants content or not.
- * lookup is set when the quick_handler is called out of 
+ * lookup is set when the quick_handler is called out of
  * ap_sub_req_lookup_uri()
  }
 type

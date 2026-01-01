@@ -119,25 +119,25 @@ begin
          yyval := yyv[yysp-0];
        end;
   11 : begin
-         create_resource(yyv[yysp-1].yyTResourceDesc, RT_BITMAP); 
+         create_resource(yyv[yysp-1].yyTResourceDesc, RT_BITMAP);
        end;
   12 : begin
-         TBitmapResource(aktresource).SetCustomBitmapDataStream(yyv[yysp-0].yyTFileStream); 
+         TBitmapResource(aktresource).SetCustomBitmapDataStream(yyv[yysp-0].yyTFileStream);
        end;
   13 : begin
-         create_resource(yyv[yysp-1].yyTResourceDesc, RT_CURSOR); 
+         create_resource(yyv[yysp-1].yyTResourceDesc, RT_CURSOR);
        end;
   14 : begin
-         TGroupCursorResource(aktresource).SetCustomItemDataStream(yyv[yysp-0].yyTFileStream); 
+         TGroupCursorResource(aktresource).SetCustomItemDataStream(yyv[yysp-0].yyTFileStream);
        end;
   15 : begin
-         create_resource(yyv[yysp-1].yyTResourceDesc, RT_ICON); 
+         create_resource(yyv[yysp-1].yyTResourceDesc, RT_ICON);
        end;
   16 : begin
-         TGroupIconResource(aktresource).SetCustomItemDataStream(yyv[yysp-0].yyTFileStream); 
+         TGroupIconResource(aktresource).SetCustomItemDataStream(yyv[yysp-0].yyTFileStream);
        end;
   17 : begin
-         create_resource(yyv[yysp-1].yyTResourceDesc, RT_VERSION); 
+         create_resource(yyv[yysp-1].yyTResourceDesc, RT_VERSION);
        end;
   18 : begin
          yyval := yyv[yysp-6];
@@ -145,25 +145,25 @@ begin
   19 : begin
        end;
   20 : begin
-         TVersionResource(aktresource).FixedInfo.FileVersion:= make_version(yyv[yysp-6].yyrcnumtype.v, yyv[yysp-4].yyrcnumtype.v, yyv[yysp-2].yyrcnumtype.v, yyv[yysp-0].yyrcnumtype.v); 
+         TVersionResource(aktresource).FixedInfo.FileVersion:= make_version(yyv[yysp-6].yyrcnumtype.v, yyv[yysp-4].yyrcnumtype.v, yyv[yysp-2].yyrcnumtype.v, yyv[yysp-0].yyrcnumtype.v);
        end;
   21 : begin
-         TVersionResource(aktresource).FixedInfo.ProductVersion:= make_version(yyv[yysp-6].yyrcnumtype.v, yyv[yysp-4].yyrcnumtype.v, yyv[yysp-2].yyrcnumtype.v, yyv[yysp-0].yyrcnumtype.v); 
+         TVersionResource(aktresource).FixedInfo.ProductVersion:= make_version(yyv[yysp-6].yyrcnumtype.v, yyv[yysp-4].yyrcnumtype.v, yyv[yysp-2].yyrcnumtype.v, yyv[yysp-0].yyrcnumtype.v);
        end;
   22 : begin
-         TVersionResource(aktresource).FixedInfo.FileFlagsMask:= yyv[yysp-0].yyrcnumtype.v; 
+         TVersionResource(aktresource).FixedInfo.FileFlagsMask:= yyv[yysp-0].yyrcnumtype.v;
        end;
   23 : begin
-         TVersionResource(aktresource).FixedInfo.FileFlags:= yyv[yysp-0].yyrcnumtype.v; 
+         TVersionResource(aktresource).FixedInfo.FileFlags:= yyv[yysp-0].yyrcnumtype.v;
        end;
   24 : begin
-         TVersionResource(aktresource).FixedInfo.FileOS:= yyv[yysp-0].yyrcnumtype.v; 
+         TVersionResource(aktresource).FixedInfo.FileOS:= yyv[yysp-0].yyrcnumtype.v;
        end;
   25 : begin
-         TVersionResource(aktresource).FixedInfo.FileType:= yyv[yysp-0].yyrcnumtype.v; 
+         TVersionResource(aktresource).FixedInfo.FileType:= yyv[yysp-0].yyrcnumtype.v;
        end;
   26 : begin
-         TVersionResource(aktresource).FixedInfo.FileSubType:= yyv[yysp-0].yyrcnumtype.v; 
+         TVersionResource(aktresource).FixedInfo.FileSubType:= yyv[yysp-0].yyrcnumtype.v;
        end;
   27 : begin
        end;
@@ -176,7 +176,7 @@ begin
   30 : begin
        end;
   31 : begin
-         version_string_tab_begin(yyv[yysp-1].yyrcstrtype.v^); 
+         version_string_tab_begin(yyv[yysp-1].yyrcstrtype.v^);
        end;
   32 : begin
          yyval := yyv[yysp-6];
@@ -184,34 +184,34 @@ begin
   33 : begin
        end;
   34 : begin
-         version_string_tab_add(yyv[yysp-2].yyrcstrtype.v^, yyv[yysp-0].yyrcstrtype.v^); 
+         version_string_tab_add(yyv[yysp-2].yyrcstrtype.v^, yyv[yysp-0].yyrcstrtype.v^);
        end;
   35 : begin
          yyval := yyv[yysp-3];
        end;
   36 : begin
-         version_var_translation_add(yyv[yysp-2].yyrcnumtype.v, yyv[yysp-0].yyrcnumtype.v); 
+         version_var_translation_add(yyv[yysp-2].yyrcnumtype.v, yyv[yysp-0].yyrcnumtype.v);
        end;
   37 : begin
-         version_var_translation_add(yyv[yysp-2].yyrcnumtype.v, yyv[yysp-0].yyrcnumtype.v); 
+         version_var_translation_add(yyv[yysp-2].yyrcnumtype.v, yyv[yysp-0].yyrcnumtype.v);
        end;
   38 : begin
-         create_resource(yyv[yysp-1].yyTResourceDesc, yyv[yysp-0].yyTResourceDesc); 
+         create_resource(yyv[yysp-1].yyTResourceDesc, yyv[yysp-0].yyTResourceDesc);
        end;
   39 : begin
-         aktresource.SetCustomRawDataStream(yyv[yysp-0].yyTFileStream); 
+         aktresource.SetCustomRawDataStream(yyv[yysp-0].yyTFileStream);
        end;
   40 : begin
-         create_resource(yyv[yysp-1].yyTResourceDesc, yyv[yysp-0].yyTResourceDesc); 
+         create_resource(yyv[yysp-1].yyTResourceDesc, yyv[yysp-0].yyTResourceDesc);
        end;
   41 : begin
-         aktresource.SetCustomRawDataStream(yyv[yysp-1].yyTMemoryStream); 
+         aktresource.SetCustomRawDataStream(yyv[yysp-1].yyTMemoryStream);
        end;
   42 : begin
-         stringtable_begin(); 
+         stringtable_begin();
        end;
   43 : begin
-         stringtable_end(); 
+         stringtable_end();
        end;
   44 : begin
        end;
@@ -219,49 +219,49 @@ begin
          yyval := yyv[yysp-1];
        end;
   46 : begin
-         stringtable_add(yyv[yysp-2].yyrcnumtype.v, yyv[yysp-0].yyrcstrtype.v^); 
+         stringtable_add(yyv[yysp-2].yyrcnumtype.v, yyv[yysp-0].yyrcstrtype.v^);
        end;
   47 : begin
-         stringtable_add(yyv[yysp-1].yyrcnumtype.v, yyv[yysp-0].yyrcstrtype.v^); 
+         stringtable_add(yyv[yysp-1].yyrcnumtype.v, yyv[yysp-0].yyrcstrtype.v^);
        end;
   48 : begin
-         yyval.yyTResourceDesc:= TResourceDesc.Create(RT_ANICURSOR); 
+         yyval.yyTResourceDesc:= TResourceDesc.Create(RT_ANICURSOR);
        end;
   49 : begin
-         yyval.yyTResourceDesc:= TResourceDesc.Create(RT_ANIICON); 
+         yyval.yyTResourceDesc:= TResourceDesc.Create(RT_ANIICON);
        end;
   50 : begin
-         yyval.yyTResourceDesc:= TResourceDesc.Create(RT_DLGINCLUDE); 
+         yyval.yyTResourceDesc:= TResourceDesc.Create(RT_DLGINCLUDE);
        end;
   51 : begin
-         yyval.yyTResourceDesc:= TResourceDesc.Create(RT_DLGINIT); 
+         yyval.yyTResourceDesc:= TResourceDesc.Create(RT_DLGINIT);
        end;
   52 : begin
-         yyval.yyTResourceDesc:= TResourceDesc.Create(23); 
+         yyval.yyTResourceDesc:= TResourceDesc.Create(23);
        end;
   53 : begin
-         yyval.yyTResourceDesc:= TResourceDesc.Create(RT_MANIFEST); 
+         yyval.yyTResourceDesc:= TResourceDesc.Create(RT_MANIFEST);
        end;
   54 : begin
-         yyval.yyTResourceDesc:= TResourceDesc.Create(RT_MESSAGETABLE); 
+         yyval.yyTResourceDesc:= TResourceDesc.Create(RT_MESSAGETABLE);
        end;
   55 : begin
-         yyval.yyTResourceDesc:= TResourceDesc.Create(RT_PLUGPLAY); 
+         yyval.yyTResourceDesc:= TResourceDesc.Create(RT_PLUGPLAY);
        end;
   56 : begin
-         yyval.yyTResourceDesc:= TResourceDesc.Create(RT_RCDATA); 
+         yyval.yyTResourceDesc:= TResourceDesc.Create(RT_RCDATA);
        end;
   57 : begin
-         yyval.yyTResourceDesc:= TResourceDesc.Create(RT_VXD); 
+         yyval.yyTResourceDesc:= TResourceDesc.Create(RT_VXD);
        end;
   58 : begin
          yyval := yyv[yysp-0];
        end;
   59 : begin
-         yyval.yyTResourceDesc:= TResourceDesc.Create(yyv[yysp-0].yyrcnumtype.v); 
+         yyval.yyTResourceDesc:= TResourceDesc.Create(yyv[yysp-0].yyrcnumtype.v);
        end;
   60 : begin
-         yyval.yyTResourceDesc:= TResourceDesc.Create(yyv[yysp-0].yyrcstrtype.v^); 
+         yyval.yyTResourceDesc:= TResourceDesc.Create(yyv[yysp-0].yyrcstrtype.v^);
        end;
   61 : begin
        end;
@@ -269,153 +269,153 @@ begin
          yyval := yyv[yysp-1];
        end;
   63 : begin
-         change_lang_id(MakeLangID(yyv[yysp-2].yyrcnumtype.v, yyv[yysp-0].yyrcnumtype.v)); 
+         change_lang_id(MakeLangID(yyv[yysp-2].yyrcnumtype.v, yyv[yysp-0].yyrcnumtype.v));
        end;
   64 : begin
-         aktresource.Characteristics:= yyv[yysp-0].yyrcnumtype.v; 
+         aktresource.Characteristics:= yyv[yysp-0].yyrcnumtype.v;
        end;
   65 : begin
-         aktresource.Version:= yyv[yysp-0].yyrcnumtype.v; 
+         aktresource.Version:= yyv[yysp-0].yyrcnumtype.v;
        end;
   66 : begin
-         aktresource.MemoryFlags:= aktresource.MemoryFlags or MF_MOVEABLE; 
+         aktresource.MemoryFlags:= aktresource.MemoryFlags or MF_MOVEABLE;
        end;
   67 : begin
-         aktresource.MemoryFlags:= aktresource.MemoryFlags and not MF_MOVEABLE; 
+         aktresource.MemoryFlags:= aktresource.MemoryFlags and not MF_MOVEABLE;
        end;
   68 : begin
-         aktresource.MemoryFlags:= aktresource.MemoryFlags or MF_PURE; 
+         aktresource.MemoryFlags:= aktresource.MemoryFlags or MF_PURE;
        end;
   69 : begin
-         aktresource.MemoryFlags:= aktresource.MemoryFlags and not MF_PURE; 
+         aktresource.MemoryFlags:= aktresource.MemoryFlags and not MF_PURE;
        end;
   70 : begin
-         aktresource.MemoryFlags:= aktresource.MemoryFlags or MF_PRELOAD; 
+         aktresource.MemoryFlags:= aktresource.MemoryFlags or MF_PRELOAD;
        end;
   71 : begin
-         aktresource.MemoryFlags:= aktresource.MemoryFlags and not MF_PRELOAD; 
+         aktresource.MemoryFlags:= aktresource.MemoryFlags and not MF_PRELOAD;
        end;
   72 : begin
-         aktresource.MemoryFlags:= aktresource.MemoryFlags or MF_DISCARDABLE; 
+         aktresource.MemoryFlags:= aktresource.MemoryFlags or MF_DISCARDABLE;
        end;
   73 : begin
-         language:= MakeLangID(yyv[yysp-2].yyrcnumtype.v, yyv[yysp-0].yyrcnumtype.v); 
+         language:= MakeLangID(yyv[yysp-2].yyrcnumtype.v, yyv[yysp-0].yyrcnumtype.v);
        end;
   74 : begin
          yyval := yyv[yysp-0];
        end;
   75 : begin
-         yyval.yyrcnumtype:= str_to_num(yytext); 
+         yyval.yyrcnumtype:= str_to_num(yytext);
        end;
   76 : begin
          yyval := yyv[yysp-0];
        end;
   77 : begin
-         yyval.yyrcnumtype:= yyv[yysp-1].yyrcnumtype; 
+         yyval.yyrcnumtype:= yyv[yysp-1].yyrcnumtype;
        end;
   78 : begin
-         yyval.yyrcnumtype.v:= not yyv[yysp-0].yyrcnumtype.v; yyval.yyrcnumtype.long:= yyv[yysp-0].yyrcnumtype.long; 
+         yyval.yyrcnumtype.v:= not yyv[yysp-0].yyrcnumtype.v; yyval.yyrcnumtype.long:= yyv[yysp-0].yyrcnumtype.long;
        end;
   79 : begin
-         yyval.yyrcnumtype.v:= -yyv[yysp-0].yyrcnumtype.v; yyval.yyrcnumtype.long:= yyv[yysp-0].yyrcnumtype.long; 
+         yyval.yyrcnumtype.v:= -yyv[yysp-0].yyrcnumtype.v; yyval.yyrcnumtype.long:= yyv[yysp-0].yyrcnumtype.long;
        end;
   80 : begin
-         yyval.yyrcnumtype.v:= yyv[yysp-2].yyrcnumtype.v * yyv[yysp-0].yyrcnumtype.v; yyval.yyrcnumtype.long:= yyv[yysp-2].yyrcnumtype.long or yyv[yysp-0].yyrcnumtype.long; 
+         yyval.yyrcnumtype.v:= yyv[yysp-2].yyrcnumtype.v * yyv[yysp-0].yyrcnumtype.v; yyval.yyrcnumtype.long:= yyv[yysp-2].yyrcnumtype.long or yyv[yysp-0].yyrcnumtype.long;
        end;
   81 : begin
-         yyval.yyrcnumtype.v:= yyv[yysp-2].yyrcnumtype.v div Max(1, yyv[yysp-0].yyrcnumtype.v); yyval.yyrcnumtype.long:= yyv[yysp-2].yyrcnumtype.long or yyv[yysp-0].yyrcnumtype.long; 
+         yyval.yyrcnumtype.v:= yyv[yysp-2].yyrcnumtype.v div Max(1, yyv[yysp-0].yyrcnumtype.v); yyval.yyrcnumtype.long:= yyv[yysp-2].yyrcnumtype.long or yyv[yysp-0].yyrcnumtype.long;
        end;
   82 : begin
-         yyval.yyrcnumtype.v:= yyv[yysp-2].yyrcnumtype.v mod Max(1, yyv[yysp-0].yyrcnumtype.v); yyval.yyrcnumtype.long:= yyv[yysp-2].yyrcnumtype.long or yyv[yysp-0].yyrcnumtype.long; 
+         yyval.yyrcnumtype.v:= yyv[yysp-2].yyrcnumtype.v mod Max(1, yyv[yysp-0].yyrcnumtype.v); yyval.yyrcnumtype.long:= yyv[yysp-2].yyrcnumtype.long or yyv[yysp-0].yyrcnumtype.long;
        end;
   83 : begin
-         yyval.yyrcnumtype.v:= yyv[yysp-2].yyrcnumtype.v + yyv[yysp-0].yyrcnumtype.v; yyval.yyrcnumtype.long:= yyv[yysp-2].yyrcnumtype.long or yyv[yysp-0].yyrcnumtype.long; 
+         yyval.yyrcnumtype.v:= yyv[yysp-2].yyrcnumtype.v + yyv[yysp-0].yyrcnumtype.v; yyval.yyrcnumtype.long:= yyv[yysp-2].yyrcnumtype.long or yyv[yysp-0].yyrcnumtype.long;
        end;
   84 : begin
-         yyval.yyrcnumtype.v:= yyv[yysp-2].yyrcnumtype.v - yyv[yysp-0].yyrcnumtype.v; yyval.yyrcnumtype.long:= yyv[yysp-2].yyrcnumtype.long or yyv[yysp-0].yyrcnumtype.long; 
+         yyval.yyrcnumtype.v:= yyv[yysp-2].yyrcnumtype.v - yyv[yysp-0].yyrcnumtype.v; yyval.yyrcnumtype.long:= yyv[yysp-2].yyrcnumtype.long or yyv[yysp-0].yyrcnumtype.long;
        end;
   85 : begin
-         yyval.yyrcnumtype.v:= yyv[yysp-2].yyrcnumtype.v and yyv[yysp-0].yyrcnumtype.v; yyval.yyrcnumtype.long:= yyv[yysp-2].yyrcnumtype.long or yyv[yysp-0].yyrcnumtype.long; 
+         yyval.yyrcnumtype.v:= yyv[yysp-2].yyrcnumtype.v and yyv[yysp-0].yyrcnumtype.v; yyval.yyrcnumtype.long:= yyv[yysp-2].yyrcnumtype.long or yyv[yysp-0].yyrcnumtype.long;
        end;
   86 : begin
-         yyval.yyrcnumtype.v:= yyv[yysp-2].yyrcnumtype.v xor yyv[yysp-0].yyrcnumtype.v; yyval.yyrcnumtype.long:= yyv[yysp-2].yyrcnumtype.long or yyv[yysp-0].yyrcnumtype.long; 
+         yyval.yyrcnumtype.v:= yyv[yysp-2].yyrcnumtype.v xor yyv[yysp-0].yyrcnumtype.v; yyval.yyrcnumtype.long:= yyv[yysp-2].yyrcnumtype.long or yyv[yysp-0].yyrcnumtype.long;
        end;
   87 : begin
-         yyval.yyrcnumtype.v:= yyv[yysp-2].yyrcnumtype.v or yyv[yysp-0].yyrcnumtype.v; yyval.yyrcnumtype.long:= yyv[yysp-2].yyrcnumtype.long or yyv[yysp-0].yyrcnumtype.long; 
+         yyval.yyrcnumtype.v:= yyv[yysp-2].yyrcnumtype.v or yyv[yysp-0].yyrcnumtype.v; yyval.yyrcnumtype.long:= yyv[yysp-2].yyrcnumtype.long or yyv[yysp-0].yyrcnumtype.long;
        end;
   88 : begin
-         string_new(yyval.yyrcstrtype, yytext, opt_code_page); 
+         string_new(yyval.yyrcstrtype, yytext, opt_code_page);
        end;
   89 : begin
          yyval := yyv[yysp-0];
        end;
   90 : begin
-         string_new(yyval.yyrcstrtype, yytext, opt_code_page); 
+         string_new(yyval.yyrcstrtype, yytext, opt_code_page);
        end;
   91 : begin
-         yyval.yyTFileStream:= TFileStream.Create(yyv[yysp-0].yyrcstrtype.v^, fmOpenRead or fmShareDenyWrite); 
+         yyval.yyTFileStream:= TFileStream.Create(yyv[yysp-0].yyrcstrtype.v^, fmOpenRead or fmShareDenyWrite);
        end;
   92 : begin
-         yyval.yyTFileStream:= TFileStream.Create(yyv[yysp-0].yyrcstrtype.v^, fmOpenRead or fmShareDenyWrite); 
+         yyval.yyTFileStream:= TFileStream.Create(yyv[yysp-0].yyrcstrtype.v^, fmOpenRead or fmShareDenyWrite);
        end;
   93 : begin
-         string_new_uni(yyval.yyrcstrtype, @strbuf[0], strbuflen, opt_code_page, false); 
+         string_new_uni(yyval.yyrcstrtype, @strbuf[0], strbuflen, opt_code_page, false);
        end;
   94 : begin
-         string_new_uni(yyval.yyrcstrtype, @strbuf[0], strbuflen, CP_UTF16, false); 
+         string_new_uni(yyval.yyrcstrtype, @strbuf[0], strbuflen, CP_UTF16, false);
        end;
   95 : begin
-         string_new(yyval.yyrcstrtype, yytext, opt_code_page); 
+         string_new(yyval.yyrcstrtype, yytext, opt_code_page);
        end;
   96 : begin
-         string_new(yyval.yyrcstrtype, yytext, opt_code_page); 
+         string_new(yyval.yyrcstrtype, yytext, opt_code_page);
        end;
   97 : begin
-         string_new(yyval.yyrcstrtype, yytext, opt_code_page); 
+         string_new(yyval.yyrcstrtype, yytext, opt_code_page);
        end;
   98 : begin
-         string_new_uni(yyval.yyrcstrtype, @strbuf[0], strbuflen, opt_code_page, true); 
+         string_new_uni(yyval.yyrcstrtype, @strbuf[0], strbuflen, opt_code_page, true);
        end;
   99 : begin
-         string_new_uni(yyval.yyrcstrtype, @strbuf[0], strbuflen, CP_UTF16, true); 
+         string_new_uni(yyval.yyrcstrtype, @strbuf[0], strbuflen, CP_UTF16, true);
        end;
  100 : begin
-         string_new(yyval.yyrcstrtype, yytext, opt_code_page); 
+         string_new(yyval.yyrcstrtype, yytext, opt_code_page);
        end;
  101 : begin
-         string_new(yyval.yyrcstrtype, yytext, opt_code_page); 
+         string_new(yyval.yyrcstrtype, yytext, opt_code_page);
        end;
  102 : begin
-         string_new(yyval.yyrcstrtype, yytext, opt_code_page); 
+         string_new(yyval.yyrcstrtype, yytext, opt_code_page);
        end;
  103 : begin
-         yyval.yyTMemoryStream:= TMemoryStream.Create; 
+         yyval.yyTMemoryStream:= TMemoryStream.Create;
        end;
  104 : begin
          yyval := yyv[yysp-1];
        end;
  105 : begin
-         yyval.yyTMemoryStream:= yyv[yysp-1].yyTMemoryStream; 
+         yyval.yyTMemoryStream:= yyv[yysp-1].yyTMemoryStream;
        end;
  106 : begin
          yyval := yyv[yysp-3];
        end;
  107 : begin
-         
+
          yyval.yyTMemoryStream:= yyv[yysp-0].yyTMemoryStream;
-         
+
        end;
  108 : begin
-         
+
          yyval.yyTMemoryStream:= yyv[yysp-1].yyTMemoryStream;
          raw_write_string(yyval.yyTMemoryStream, yyv[yysp-0].yyrcstrtype);
-         
+
        end;
  109 : begin
-         
+
          yyval.yyTMemoryStream:= yyv[yysp-1].yyTMemoryStream;
          raw_write_int(yyval.yyTMemoryStream, yyv[yysp-0].yyrcnumtype);
-         
+
        end;
   end;
 end(*yyaction*);

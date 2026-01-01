@@ -51,7 +51,7 @@ uses
 {$ELSE}
 {$IFDEF Mysql51}
    Api.Mysql51dyn;
-{$ELSE}  
+{$ELSE}
   {$IfDef Mysql50}
     Api.Mysql50dyn;
   {$ELSE}
@@ -84,7 +84,7 @@ uses
 {$ELSE}
 {$IFDEF mysql51}
    mysql51dyn;
-{$ELSE}  
+{$ELSE}
   {$IfDef mysql50}
     mysql50dyn;
   {$ELSE}
@@ -118,7 +118,7 @@ Const
 {$ELSE}
 {$IFDEF mysql51}
     '5.1';
-{$else}    
+{$else}
   {$IfDef mysql50}
     '5.0';
   {$ELSE}
@@ -488,11 +488,11 @@ function TConnectionName.GetClientInfo: string;
 begin
   // To make it possible to call this if there's no connection yet
   InitialiseMysql;
-  Try  
+  Try
     Result:=strpas(mysql_get_client_info());
-  Finally  
+  Finally
     ReleaseMysql;
-  end;  
+  end;
 end;
 
 function TConnectionName.GetServerStatus: String;
@@ -556,7 +556,7 @@ begin
       CS:='SET NAMES ''' + EscapeString(CharSet) +'''';
       if mysql_query(HMySQL,PAnsiChar(CS)) <> 0 then
         MySQLError(HMySQL,SErrExecuting,Self);
-      end;  
+      end;
 end;
 
 function TConnectionName.GetAsSQLText(Param: TParam) : string;
@@ -610,7 +610,7 @@ end;
 
 procedure TConnectionName.ExecuteDirectMySQL(const query : string);
 
-var 
+var
   AMySQL      : PMySQL;
   Qry : AnsiString;
 begin
@@ -639,7 +639,7 @@ end;
 
 function TConnectionName.EscapeString(const Str: ansistring): ansistring;
 
-var 
+var
   Len : integer;
 begin
   SetLength(result,length(str)*2+1);
@@ -667,7 +667,7 @@ begin
     if (pos(MySQLVersion, FullVersion) <> 1) and
        (pos(MariaDBVersion, FullVersion) <> 1) then
       Raise EInOutError.CreateFmt(SErrVersionMisMatch,[ClassName,MySQLVersion,FullVersion]);
-    end;  
+    end;
   inherited DoInternalConnect;
   ConnectToServer;
   SelectDatabase;
@@ -816,7 +816,7 @@ begin
     if LogEvent(detActualSQL) then
       Log(detActualSQL,C.FActualStatement);
     {$IF SIZEOF(CHAR)=2}
-    FStat:=UTF8Encode(C.FActualStatement);  
+    FStat:=UTF8Encode(C.FActualStatement);
     {$ELSE}
     FStat:=C.FActualStatement;
     {$ENDIF}
@@ -906,7 +906,7 @@ begin
 {$ifdef mysql50_up}
     FIELD_TYPE_NEWDECIMAL,
 {$endif}
-    FIELD_TYPE_DECIMAL: 
+    FIELD_TYPE_DECIMAL:
       begin
         ADecimals:=AField^.decimals;
         if (ADecimals < 5) and (ASize-2-ADecimals < 15) then //ASize is display size i.e. with sign and decimal point

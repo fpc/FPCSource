@@ -28,7 +28,7 @@ type
 
    TSQLite = class(TObject)
 {*************************************************************}
-{*************************************************************}   
+{*************************************************************}
    private
    type
      TFieldList = class(TList)
@@ -57,7 +57,7 @@ type
    fList_Field : TList;
    procedure SetBusyTimeout(Timeout: integer);
 {*************************************************************}
-{*************************************************************}   
+{*************************************************************}
    public
    constructor Create(const DBFileName: AnsiString);
    destructor Destroy; override;
@@ -173,7 +173,7 @@ G. Marcou
 var
    n		     : integer;
    lstName, lstValue : TStringList;
-begin		     
+begin
    if NameValuePairs <> nil then
    begin
       lstName := TStringList.Create;
@@ -210,7 +210,7 @@ begin}
 function BusyCallback(Sender : pointer;
 BusyCount		     : integer): longint; cdecl;
 {*************************************************************
-SQlite3 busy callback 
+SQlite3 busy callback
 G. Marcou
 *************************************************************}
 var

@@ -260,7 +260,7 @@ const
 	kCFStreamErrorHTTPRedirectionLoop = -2;
 
   {
-   * Could not retreive url for request/response.
+   * Could not retrieve url for request/response.
    }
 	kCFStreamErrorHTTPBadURL = -3;
 

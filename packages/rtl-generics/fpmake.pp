@@ -72,7 +72,7 @@ begin
     T:=P.Targets.AddExampleProgram('tstackproject.lpr');
 
     P.NamespaceMap:='namespaces.lst';
-    
+
     end;
 end;
 

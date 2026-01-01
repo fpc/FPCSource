@@ -161,7 +161,7 @@ type
         Scroll_Y        : Word;
         cr,
         cr2,
-        crnew           : pClipRect;  { used by dedice }
+        crnew           : pClipRect;  { used by device }
         SuperSaveClipRects : pClipRect; { preallocated cr's }
         _cliprects      : pClipRect;  { system use during refresh }
         LayerInfo       : Pointer;      { points to head of the list }
@@ -357,7 +357,7 @@ Type
 
 const
 
-    COPPER_MOVE = 0;    { pseude opcode for move #XXXX,dir }
+    COPPER_MOVE = 0;    { pseudo opcode for move #XXXX,dir }
     COPPER_WAIT = 1;    { pseudo opcode for wait y,x }
     CPRNXTBUF   = 2;    { continue processing with next buffer }
     CPR_NT_LOF  = $8000; { copper instruction only for Longint frames }
@@ -1303,7 +1303,7 @@ Const
  MVP_NO_VPE    =  2;       { ViewPort does not have a ViewPortExtra, and
                                  * insufficient memory to allocate a temporary one.
                                  }
- MVP_NO_DSPINS =  3;       { insufficient memory for intermidiate copper
+ MVP_NO_DSPINS =  3;       { insufficient memory for intermediate copper
                                  * instructions.
                                  }
  MVP_NO_DISPLAY = 4;       { BitMap data is misaligned for this viewport's
@@ -1769,7 +1769,7 @@ Type
    NotAvailable : Word;    { IF NULL available, else see defines }
    PropertyFlags : ULONG;  { Properties of this mode see defines }
    Resolution : tPoint;     { ticks-per-pixel X/Y                 }
-   PixelSpeed : Word;     { aproximation in nanoseconds         }
+   PixelSpeed : Word;     { approximation in nanoseconds        }
    NumStdSprites : Word;  { number of standard amiga sprites    }
    PaletteRange : Word;   { distinguishable shades available    }
    SpriteResolution : tPoint; { std sprite ticks-per-pixel X/Y    }
@@ -1942,7 +1942,7 @@ CONST
  VTAG_USERCLIP_GET      = $80000023;
  VTAG_USERCLIP_SET      = $80000024;
  VTAG_USERCLIP_CLR      = $80000025;
-{ The following tags are V39 specific. They will be ignored (returing error -3) by
+{ The following tags are V39 specific. They will be ignored (returning error -3) by
         earlier versions }
  VTAG_PF1_BASE_GET             =  $80000026;
  VTAG_PF2_BASE_GET             =  $80000027;

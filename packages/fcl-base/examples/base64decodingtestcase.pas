@@ -90,7 +90,7 @@ type
     procedure TestResetMIME2;
     procedure TestResetMIME3;
   end;
-  
+
 implementation
 
 uses
@@ -99,7 +99,7 @@ uses
 // utility routines
 type
   TChars = set of AnsiChar;
-  
+
 function SetToString(chars:TChars):ansistring;
 var
   pos: Integer;
@@ -326,6 +326,6 @@ procedure TBase64DecodingStreamTestCase.TestResetMIME3; begin TestReset(bdmMIME,
 initialization
 
   RegisterTest(TBase64DecodingStreamTestCase);
-  
+
 end.
 

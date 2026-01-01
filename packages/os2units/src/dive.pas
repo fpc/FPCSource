@@ -34,7 +34,7 @@
 Unit DIVE;
 {$ENDIF FPC_DOTTEDUNITS}
 
-{Warning: This code is alfa. Future versions of this unit will propably
+{Warning: This code is alfa. Future versions of this unit will probably
  not be compatible.}
 
 Interface

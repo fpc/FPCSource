@@ -1285,7 +1285,7 @@ begin
       ,LongType
 {$ENDIF HAS_SDO_LONG}
 {$IFDEF HAS_SDO_SHORT}
-      ,ShortType 
+      ,ShortType
 {$ENDIF HAS_SDO_SHORT}
        :
         begin
@@ -2407,7 +2407,7 @@ function TManyValuePropChanges.Add(
 ) : TManyValuePropRecordData;
 begin
   Result := InternalAdd(AAction,AIndex);
-  Result.FValue.BytesValue^ := AValue;  
+  Result.FValue.BytesValue^ := AValue;
 end;
 {$ENDIF HAS_SDO_BYTES}
 

@@ -13,7 +13,7 @@ uses sysutils, classes, fpjson, restbase, odatabase, odataservice;
 {$ENDIF FPC_DOTTEDUNITS}
 
 (*
-  Options used to generate: 
+  Options used to generate:
   OData version : ODataV4
   BasecomplexType : TODataObject
   BaseEntityType : TODataEntity
@@ -23,7 +23,7 @@ uses sysutils, classes, fpjson, restbase, odatabase, odataservice;
   Aliases[0] : microsoft.graph=
   SchemaAncestor : TObject
   FieldPrefix : F
-  ServiceSuffix : 
+  ServiceSuffix :
   EnumerationMode : emScoped
 *)
 type
@@ -234,9 +234,9 @@ type
   TService = class;
   TServiceArray = Array of TService;
   //
-  
+
   // Enumerations
-  
+
   {$SCOPEDENUMS ON}
   TbodyType = (text,html);
   TbodyTypeArray = Array of TbodyType;
@@ -270,11 +270,11 @@ type
                        meetingAccepted,meetingTenativelyAccepted,
                        meetingDeclined);
   TmeetingMessageTypeArray = Array of TmeetingMessageType;
-  
+
   { --------------------------------------------------------------------
     microsoft.graph: alternativeSecurityId
     --------------------------------------------------------------------}
-  
+
   TalternativeSecurityId = Class(TODataEntity)
   private
     F_type : TInt32;
@@ -292,12 +292,12 @@ type
     Property identityProvider : string index 8 read FidentityProvider write SetidentityProvider;
     Property key : TBinary index 16 read Fkey write Setkey;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: licenseUnitsDetail
     --------------------------------------------------------------------}
-  
+
   TlicenseUnitsDetail = Class(TODataEntity)
   private
     Fenabled : TInt32;
@@ -313,12 +313,12 @@ type
     Property suspended : TInt32 index 8 read Fsuspended write Setsuspended;
     Property warning : TInt32 index 16 read Fwarning write Setwarning;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: servicePlanInfo
     --------------------------------------------------------------------}
-  
+
   TservicePlanInfo = Class(TODataEntity)
   private
     FservicePlanId : TGUIDString;
@@ -337,12 +337,12 @@ type
     Property provisioningStatus : string index 16 read FprovisioningStatus write SetprovisioningStatus;
     Property appliesTo : string index 24 read FappliesTo write SetappliesTo;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: assignedPlan
     --------------------------------------------------------------------}
-  
+
   TassignedPlan = Class(TODataEntity)
   private
     FassignedDateTime : TDateTime;
@@ -361,12 +361,12 @@ type
     Property service : string index 16 read Fservice write Setservice;
     Property servicePlanId : TGUIDString index 24 read FservicePlanId write SetservicePlanId;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: provisionedPlan
     --------------------------------------------------------------------}
-  
+
   TprovisionedPlan = Class(TODataEntity)
   private
     FcapabilityStatus : string;
@@ -382,12 +382,12 @@ type
     Property provisioningStatus : string index 8 read FprovisioningStatus write SetprovisioningStatus;
     Property service : string index 16 read Fservice write Setservice;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: verifiedDomain
     --------------------------------------------------------------------}
-  
+
   TverifiedDomain = Class(TODataEntity)
   private
     Fcapabilities : string;
@@ -411,17 +411,17 @@ type
     Property name : string index 24 read Fname write Setname;
     Property _type : string index 32 read F_type write Set_type;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: assignedLicense
     --------------------------------------------------------------------}
-  
+
   TassignedLicense = Class(TODataEntity)
   private
     FdisabledPlans : TGuidStringArray;
     FskuId : TGUIDString;
-    procedure SetdisabledPlans(AIndex: Integer; 
+    procedure SetdisabledPlans(AIndex: Integer;
                           const AValue: TGuidStringArray);
     procedure SetskuId(AIndex: Integer; const AValue: TGUIDString);
   protected
@@ -435,18 +435,18 @@ type
     Property disabledPlans : TGuidStringArray index 0 read FdisabledPlans write SetdisabledPlans;
     Property skuId : TGUIDString index 8 read FskuId write SetskuId;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: passwordProfile
     --------------------------------------------------------------------}
-  
+
   TpasswordProfile = Class(TODataEntity)
   private
     Fpassword : string;
     FforceChangePasswordNextSignIn : boolean;
     procedure Setpassword(AIndex: Integer; const AValue: string);
-    procedure SetforceChangePasswordNextSignIn(AIndex: Integer; 
+    procedure SetforceChangePasswordNextSignIn(AIndex: Integer;
                                           const AValue: boolean);
   public
     class function ObjectRestKind : String;  Override;
@@ -454,12 +454,12 @@ type
     Property password : string index 0 read Fpassword write Setpassword;
     Property forceChangePasswordNextSignIn : boolean index 8 read FforceChangePasswordNextSignIn write SetforceChangePasswordNextSignIn;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: reminder
     --------------------------------------------------------------------}
-  
+
   Treminder = Class(TODataEntity)
   private
     FeventId : string;
@@ -471,15 +471,15 @@ type
     FeventWebLink : string;
     FreminderFireTime : TdateTimeTimeZone;
     procedure SeteventId(AIndex: Integer; const AValue: string);
-    procedure SeteventStartTime(AIndex: Integer; 
+    procedure SeteventStartTime(AIndex: Integer;
                            const AValue: TdateTimeTimeZone);
-    procedure SeteventEndTime(AIndex: Integer; 
+    procedure SeteventEndTime(AIndex: Integer;
                          const AValue: TdateTimeTimeZone);
     procedure SetchangeKey(AIndex: Integer; const AValue: string);
     procedure SeteventSubject(AIndex: Integer; const AValue: string);
     procedure SeteventLocation(AIndex: Integer; const AValue: Tlocation);
     procedure SeteventWebLink(AIndex: Integer; const AValue: string);
-    procedure SetreminderFireTime(AIndex: Integer; 
+    procedure SetreminderFireTime(AIndex: Integer;
                              const AValue: TdateTimeTimeZone);
   public
     class function ObjectRestKind : String;  Override;
@@ -493,12 +493,12 @@ type
     Property eventWebLink : string index 48 read FeventWebLink write SeteventWebLink;
     Property reminderFireTime : TdateTimeTimeZone index 56 read FreminderFireTime write SetreminderFireTime;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: dateTimeTimeZone
     --------------------------------------------------------------------}
-  
+
   TdateTimeTimeZone = Class(TODataEntity)
   private
     FdateTime : string;
@@ -511,12 +511,12 @@ type
     Property dateTime : string index 0 read FdateTime write SetdateTime;
     Property timeZone : string index 8 read FtimeZone write SettimeZone;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: location
     --------------------------------------------------------------------}
-  
+
   Tlocation = Class(TODataEntity)
   private
     FdisplayName : string;
@@ -529,12 +529,12 @@ type
     Property displayName : string index 0 read FdisplayName write SetdisplayName;
     Property address : TphysicalAddress index 8 read Faddress write Setaddress;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: physicalAddress
     --------------------------------------------------------------------}
-  
+
   TphysicalAddress = Class(TODataEntity)
   private
     Fstreet : string;
@@ -556,12 +556,12 @@ type
     Property countryOrRegion : string index 24 read FcountryOrRegion write SetcountryOrRegion;
     Property postalCode : string index 32 read FpostalCode write SetpostalCode;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: itemBody
     --------------------------------------------------------------------}
-  
+
   TitemBody = Class(TODataEntity)
   private
     FcontentType : TbodyType;
@@ -574,12 +574,12 @@ type
     Property contentType : TbodyType index 0 read FcontentType write SetcontentType;
     Property content : string index 8 read Fcontent write Setcontent;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: recipient
     --------------------------------------------------------------------}
-  
+
   Trecipient = Class(TODataEntity)
   private
     FemailAddress : TemailAddress;
@@ -589,12 +589,12 @@ type
   published
     Property emailAddress : TemailAddress index 0 read FemailAddress write SetemailAddress;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: emailAddress
     --------------------------------------------------------------------}
-  
+
   TemailAddress = Class(TODataEntity)
   private
     Fname : string;
@@ -607,12 +607,12 @@ type
     Property name : string index 0 read Fname write Setname;
     Property address : string index 8 read Faddress write Setaddress;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: responseStatus
     --------------------------------------------------------------------}
-  
+
   TresponseStatus = Class(TODataEntity)
   private
     Fresponse : TresponseType;
@@ -625,12 +625,12 @@ type
     Property response : TresponseType index 0 read Fresponse write Setresponse;
     Property time : TDateTime index 8 read Ftime write Settime;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: patternedRecurrence
     --------------------------------------------------------------------}
-  
+
   TpatternedRecurrence = Class(TODataEntity)
   private
     Fpattern : TrecurrencePattern;
@@ -643,12 +643,12 @@ type
     Property pattern : TrecurrencePattern index 0 read Fpattern write Setpattern;
     Property range : TrecurrenceRange index 8 read Frange write Setrange;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: recurrencePattern
     --------------------------------------------------------------------}
-  
+
   TrecurrencePattern = Class(TODataEntity)
   private
     F_type : TrecurrencePatternType;
@@ -658,7 +658,7 @@ type
     FdaysOfWeek : TdayOfWeekArray;
     FfirstDayOfWeek : TdayOfWeek;
     Findex : TweekIndex;
-    procedure Set_type(AIndex: Integer; 
+    procedure Set_type(AIndex: Integer;
                   const AValue: TrecurrencePatternType);
     procedure Setinterval(AIndex: Integer; const AValue: TInt32);
     procedure Setmonth(AIndex: Integer; const AValue: TInt32);
@@ -684,12 +684,12 @@ type
     Property firstDayOfWeek : TdayOfWeek index 40 read FfirstDayOfWeek write SetfirstDayOfWeek;
     Property index : TweekIndex index 48 read Findex write Setindex;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: recurrenceRange
     --------------------------------------------------------------------}
-  
+
   TrecurrenceRange = Class(TODataEntity)
   private
     F_type : TrecurrenceRangeType;
@@ -713,12 +713,12 @@ type
     Property recurrenceTimeZone : string index 24 read FrecurrenceTimeZone write SetrecurrenceTimeZone;
     Property numberOfOccurrences : TInt32 index 32 read FnumberOfOccurrences write SetnumberOfOccurrences;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: attendee
     --------------------------------------------------------------------}
-  
+
   Tattendee = Class(Trecipient)
   private
     Fstatus : TresponseStatus;
@@ -733,12 +733,12 @@ type
     Property status : TresponseStatus index 8 read Fstatus write Setstatus;
     Property _type : TattendeeType index 16 read F_type write Set_type;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: identitySet
     --------------------------------------------------------------------}
-  
+
   TidentitySet = Class(TODataEntity)
   private
     Fapplication : Tidentity;
@@ -754,12 +754,12 @@ type
     Property device : Tidentity index 8 read Fdevice write Setdevice;
     Property user : Tidentity index 16 read Fuser write Setuser;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: identity
     --------------------------------------------------------------------}
-  
+
   Tidentity = Class(TODataEntity)
   private
     FdisplayName : string;
@@ -772,12 +772,12 @@ type
     Property displayName : string index 0 read FdisplayName write SetdisplayName;
     Property id : string index 8 read Fid write Setid;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: quota
     --------------------------------------------------------------------}
-  
+
   Tquota = Class(TODataEntity)
   private
     Fdeleted : int64;
@@ -799,12 +799,12 @@ type
     Property total : int64 index 24 read Ftotal write Settotal;
     Property used : int64 index 32 read Fused write Setused;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: itemReference
     --------------------------------------------------------------------}
-  
+
   TitemReference = Class(TODataEntity)
   private
     FdriveId : string;
@@ -820,12 +820,12 @@ type
     Property id : string index 8 read Fid write Setid;
     Property path : string index 16 read Fpath write Setpath;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: audio
     --------------------------------------------------------------------}
-  
+
   Taudio = Class(TODataEntity)
   private
     Falbum : string;
@@ -880,12 +880,12 @@ type
     Property trackCount : TInt32 index 112 read FtrackCount write SettrackCount;
     Property year : TInt32 index 120 read Fyear write Setyear;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: deleted
     --------------------------------------------------------------------}
-  
+
   Tdeleted = Class(TODataEntity)
   private
     Fstate : string;
@@ -895,12 +895,12 @@ type
   published
     Property state : string index 0 read Fstate write Setstate;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: file
     --------------------------------------------------------------------}
-  
+
   T_file = Class(TODataEntity)
   private
     Fhashes : Thashes;
@@ -913,12 +913,12 @@ type
     Property hashes : Thashes index 0 read Fhashes write Sethashes;
     Property mimeType : string index 8 read FmimeType write SetmimeType;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: hashes
     --------------------------------------------------------------------}
-  
+
   Thashes = Class(TODataEntity)
   private
     Fcrc32Hash : string;
@@ -931,18 +931,18 @@ type
     Property crc32Hash : string index 0 read Fcrc32Hash write Setcrc32Hash;
     Property sha1Hash : string index 8 read Fsha1Hash write Setsha1Hash;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: fileSystemInfo
     --------------------------------------------------------------------}
-  
+
   TfileSystemInfo = Class(TODataEntity)
   private
     FcreatedDateTime : TDateTime;
     FlastModifiedDateTime : TDateTime;
     procedure SetcreatedDateTime(AIndex: Integer; const AValue: TDateTime);
-    procedure SetlastModifiedDateTime(AIndex: Integer; 
+    procedure SetlastModifiedDateTime(AIndex: Integer;
                                  const AValue: TDateTime);
   public
     class function ObjectRestKind : String;  Override;
@@ -950,12 +950,12 @@ type
     Property createdDateTime : TDateTime index 0 read FcreatedDateTime write SetcreatedDateTime;
     Property lastModifiedDateTime : TDateTime index 8 read FlastModifiedDateTime write SetlastModifiedDateTime;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: folder
     --------------------------------------------------------------------}
-  
+
   Tfolder = Class(TODataEntity)
   private
     FchildCount : TInt32;
@@ -965,12 +965,12 @@ type
   published
     Property childCount : TInt32 index 0 read FchildCount write SetchildCount;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: image
     --------------------------------------------------------------------}
-  
+
   Timage = Class(TODataEntity)
   private
     Fheight : TInt32;
@@ -983,12 +983,12 @@ type
     Property height : TInt32 index 0 read Fheight write Setheight;
     Property width : TInt32 index 8 read Fwidth write Setwidth;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: geoCoordinates
     --------------------------------------------------------------------}
-  
+
   TgeoCoordinates = Class(TODataEntity)
   private
     Faltitude : Double;
@@ -1004,12 +1004,12 @@ type
     Property latitude : Double index 8 read Flatitude write Setlatitude;
     Property longitude : Double index 16 read Flongitude write Setlongitude;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: photo
     --------------------------------------------------------------------}
-  
+
   Tphoto = Class(TODataEntity)
   private
     FcameraMake : string;
@@ -1040,12 +1040,12 @@ type
     Property takenDateTime : TDateTime index 48 read FtakenDateTime write SettakenDateTime;
     Property iso : TInt32 index 56 read Fiso write Setiso;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: remoteItem
     --------------------------------------------------------------------}
-  
+
   TremoteItem = Class(TODataEntity)
   private
     F_file : T_file;
@@ -1056,12 +1056,12 @@ type
     FparentReference : TitemReference;
     Fsize : int64;
     procedure Set_file(AIndex: Integer; const AValue: T_file);
-    procedure SetfileSystemInfo(AIndex: Integer; 
+    procedure SetfileSystemInfo(AIndex: Integer;
                            const AValue: TfileSystemInfo);
     procedure Setfolder(AIndex: Integer; const AValue: Tfolder);
     procedure Setid(AIndex: Integer; const AValue: string);
     procedure Setname(AIndex: Integer; const AValue: string);
-    procedure SetparentReference(AIndex: Integer; 
+    procedure SetparentReference(AIndex: Integer;
                             const AValue: TitemReference);
     procedure Setsize(AIndex: Integer; const AValue: int64);
   public
@@ -1077,12 +1077,12 @@ type
     Property parentReference : TitemReference index 40 read FparentReference write SetparentReference;
     Property size : int64 index 48 read Fsize write Setsize;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: searchResult
     --------------------------------------------------------------------}
-  
+
   TsearchResult = Class(TODataEntity)
   private
     FonClickTelemetryUrl : string;
@@ -1092,12 +1092,12 @@ type
   published
     Property onClickTelemetryUrl : string index 0 read FonClickTelemetryUrl write SetonClickTelemetryUrl;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: shared
     --------------------------------------------------------------------}
-  
+
   Tshared = Class(TODataEntity)
   private
     Fowner : TidentitySet;
@@ -1110,12 +1110,12 @@ type
     Property owner : TidentitySet index 0 read Fowner write Setowner;
     Property scope : string index 8 read Fscope write Setscope;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: specialFolder
     --------------------------------------------------------------------}
-  
+
   TspecialFolder = Class(TODataEntity)
   private
     Fname : string;
@@ -1125,12 +1125,12 @@ type
   published
     Property name : string index 0 read Fname write Setname;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: video
     --------------------------------------------------------------------}
-  
+
   Tvideo = Class(TODataEntity)
   private
     Fbitrate : TInt32;
@@ -1149,12 +1149,12 @@ type
     Property height : TInt32 index 16 read Fheight write Setheight;
     Property width : TInt32 index 24 read Fwidth write Setwidth;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: package
     --------------------------------------------------------------------}
-  
+
   Tpackage = Class(TODataEntity)
   private
     F_type : string;
@@ -1166,12 +1166,12 @@ type
   published
     Property _type : string index 0 read F_type write Set_type;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: sharingInvitation
     --------------------------------------------------------------------}
-  
+
   TsharingInvitation = Class(TODataEntity)
   private
     Femail : string;
@@ -1190,12 +1190,12 @@ type
     Property redeemedBy : string index 16 read FredeemedBy write SetredeemedBy;
     Property signInRequired : boolean index 24 read FsignInRequired write SetsignInRequired;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: sharingLink
     --------------------------------------------------------------------}
-  
+
   TsharingLink = Class(TODataEntity)
   private
     Fapplication : Tidentity;
@@ -1213,12 +1213,12 @@ type
     Property _type : string index 8 read F_type write Set_type;
     Property webUrl : string index 16 read FwebUrl write SetwebUrl;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: thumbnail
     --------------------------------------------------------------------}
-  
+
   Tthumbnail = Class(TODataEntity)
   private
     Fcontent : TStream;
@@ -1237,12 +1237,12 @@ type
     Property url : string index 16 read Furl write Seturl;
     Property width : TInt32 index 24 read Fwidth write Setwidth;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: entity
     --------------------------------------------------------------------}
-  
+
   Tentity = Class(TODataEntity)
   private
     Fid : string;
@@ -1253,28 +1253,28 @@ type
   published
     Property id : string index 0 read Fid write Setid;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: directoryObject
     --------------------------------------------------------------------}
-  
+
   TdirectoryObject = Class(Tentity)
   public
-    function checkMemberGroups(AService: TODataService; 
+    function checkMemberGroups(AService: TODataService;
                           groupIds: TStringArray) : TStringArray;
-    function getMemberGroups(AService: TODataService; 
+    function getMemberGroups(AService: TODataService;
                         securityEnabledOnly: boolean) : TStringArray;
-    function getMemberObjects(AService: TODataService; 
+    function getMemberObjects(AService: TODataService;
                          securityEnabledOnly: boolean) : TStringArray;
     class function ObjectRestKind : String;  Override;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: device
     --------------------------------------------------------------------}
-  
+
   Tdevice = Class(TdirectoryObject)
   private
     FaccountEnabled : boolean;
@@ -1293,9 +1293,9 @@ type
     FphysicalIds : TStringArray;
     FtrustType : string;
     procedure SetaccountEnabled(AIndex: Integer; const AValue: boolean);
-    procedure SetalternativeSecurityIds(AIndex: Integer; 
+    procedure SetalternativeSecurityIds(AIndex: Integer;
                                    const AValue: TalternativeSecurityIdArray);
-    procedure SetapproximateLastSignInDateTime(AIndex: Integer; 
+    procedure SetapproximateLastSignInDateTime(AIndex: Integer;
                                           const AValue: TDateTime);
     procedure SetdeviceId(AIndex: Integer; const AValue: string);
     procedure SetdeviceMetadata(AIndex: Integer; const AValue: string);
@@ -1303,12 +1303,12 @@ type
     procedure SetdisplayName(AIndex: Integer; const AValue: string);
     procedure SetisCompliant(AIndex: Integer; const AValue: boolean);
     procedure SetisManaged(AIndex: Integer; const AValue: boolean);
-    procedure SetonPremisesLastSyncDateTime(AIndex: Integer; 
+    procedure SetonPremisesLastSyncDateTime(AIndex: Integer;
                                        const AValue: TDateTime);
-    procedure SetonPremisesSyncEnabled(AIndex: Integer; 
+    procedure SetonPremisesSyncEnabled(AIndex: Integer;
                                   const AValue: boolean);
     procedure SetoperatingSystem(AIndex: Integer; const AValue: string);
-    procedure SetoperatingSystemVersion(AIndex: Integer; 
+    procedure SetoperatingSystemVersion(AIndex: Integer;
                                    const AValue: string);
     procedure SetphysicalIds(AIndex: Integer; const AValue: TStringArray);
     procedure SettrustType(AIndex: Integer; const AValue: string);
@@ -1340,12 +1340,12 @@ type
     Property physicalIds : TStringArray index 112 read FphysicalIds write SetphysicalIds;
     Property trustType : string index 120 read FtrustType write SettrustType;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: directoryRole
     --------------------------------------------------------------------}
-  
+
   TdirectoryRole = Class(TdirectoryObject)
   private
     Fdescription : string;
@@ -1362,12 +1362,12 @@ type
     Property displayName : string index 16 read FdisplayName write SetdisplayName;
     Property roleTemplateId : string index 24 read FroleTemplateId write SetroleTemplateId;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: directoryRoleTemplate
     --------------------------------------------------------------------}
-  
+
   TdirectoryRoleTemplate = Class(TdirectoryObject)
   private
     Fdescription : string;
@@ -1380,12 +1380,12 @@ type
     Property description : string index 8 read Fdescription write Setdescription;
     Property displayName : string index 16 read FdisplayName write SetdisplayName;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: group
     --------------------------------------------------------------------}
-  
+
   Tgroup = Class(TdirectoryObject)
   private
     Fdescription : string;
@@ -1410,18 +1410,18 @@ type
     procedure Setmail(AIndex: Integer; const AValue: string);
     procedure SetmailEnabled(AIndex: Integer; const AValue: boolean);
     procedure SetmailNickname(AIndex: Integer; const AValue: string);
-    procedure SetonPremisesLastSyncDateTime(AIndex: Integer; 
+    procedure SetonPremisesLastSyncDateTime(AIndex: Integer;
                                        const AValue: TDateTime);
-    procedure SetonPremisesSecurityIdentifier(AIndex: Integer; 
+    procedure SetonPremisesSecurityIdentifier(AIndex: Integer;
                                          const AValue: string);
-    procedure SetonPremisesSyncEnabled(AIndex: Integer; 
+    procedure SetonPremisesSyncEnabled(AIndex: Integer;
                                   const AValue: boolean);
     procedure SetproxyAddresses(AIndex: Integer; const AValue: TStringArray);
     procedure SetsecurityEnabled(AIndex: Integer; const AValue: boolean);
     procedure Setvisibility(AIndex: Integer; const AValue: string);
-    procedure SetallowExternalSenders(AIndex: Integer; 
+    procedure SetallowExternalSenders(AIndex: Integer;
                                  const AValue: boolean);
-    procedure SetautoSubscribeNewMembers(AIndex: Integer; 
+    procedure SetautoSubscribeNewMembers(AIndex: Integer;
                                     const AValue: boolean);
     procedure SetisSubscribedByMail(AIndex: Integer; const AValue: boolean);
     procedure SetunseenCount(AIndex: Integer; const AValue: TInt32);
@@ -1472,12 +1472,12 @@ type
     Property isSubscribedByMail : boolean index 120 read FisSubscribedByMail write SetisSubscribedByMail;
     Property unseenCount : TInt32 index 128 read FunseenCount write SetunseenCount;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: conversationThread
     --------------------------------------------------------------------}
-  
+
   TconversationThread = Class(Tentity)
   private
     FtoRecipients : TrecipientArray;
@@ -1488,14 +1488,14 @@ type
     FccRecipients : TrecipientArray;
     Fpreview : string;
     FisLocked : boolean;
-    procedure SettoRecipients(AIndex: Integer; 
+    procedure SettoRecipients(AIndex: Integer;
                          const AValue: TrecipientArray);
     procedure Settopic(AIndex: Integer; const AValue: string);
     procedure SethasAttachments(AIndex: Integer; const AValue: boolean);
-    procedure SetlastDeliveredDateTime(AIndex: Integer; 
+    procedure SetlastDeliveredDateTime(AIndex: Integer;
                                   const AValue: TDateTime);
     procedure SetuniqueSenders(AIndex: Integer; const AValue: TStringArray);
-    procedure SetccRecipients(AIndex: Integer; 
+    procedure SetccRecipients(AIndex: Integer;
                          const AValue: TrecipientArray);
     procedure Setpreview(AIndex: Integer; const AValue: string);
     procedure SetisLocked(AIndex: Integer; const AValue: boolean);
@@ -1518,12 +1518,12 @@ type
     Property preview : string index 56 read Fpreview write Setpreview;
     Property isLocked : boolean index 64 read FisLocked write SetisLocked;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: calendar
     --------------------------------------------------------------------}
-  
+
   Tcalendar = Class(Tentity)
   private
     Fname : string;
@@ -1541,12 +1541,12 @@ type
     Property color : TcalendarColor index 16 read Fcolor write Setcolor;
     Property changeKey : string index 24 read FchangeKey write SetchangeKey;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: outlookItem
     --------------------------------------------------------------------}
-  
+
   ToutlookItem = Class(Tentity)
   private
     FcreatedDateTime : TDateTime;
@@ -1554,7 +1554,7 @@ type
     FchangeKey : string;
     Fcategories : TStringArray;
     procedure SetcreatedDateTime(AIndex: Integer; const AValue: TDateTime);
-    procedure SetlastModifiedDateTime(AIndex: Integer; 
+    procedure SetlastModifiedDateTime(AIndex: Integer;
                                  const AValue: TDateTime);
     procedure SetchangeKey(AIndex: Integer; const AValue: string);
     procedure Setcategories(AIndex: Integer; const AValue: TStringArray);
@@ -1571,12 +1571,12 @@ type
     Property changeKey : string index 24 read FchangeKey write SetchangeKey;
     Property categories : TStringArray index 32 read Fcategories write Setcategories;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: event
     --------------------------------------------------------------------}
-  
+
   Tevent = Class(ToutlookItem)
   private
     ForiginalStartTimeZone : string;
@@ -1606,13 +1606,13 @@ type
     Fattendees : TattendeeArray;
     Forganizer : Trecipient;
     FwebLink : string;
-    procedure SetoriginalStartTimeZone(AIndex: Integer; 
+    procedure SetoriginalStartTimeZone(AIndex: Integer;
                                   const AValue: string);
     procedure SetoriginalEndTimeZone(AIndex: Integer; const AValue: string);
-    procedure SetresponseStatus(AIndex: Integer; 
+    procedure SetresponseStatus(AIndex: Integer;
                            const AValue: TresponseStatus);
     procedure SetiCalUId(AIndex: Integer; const AValue: string);
-    procedure SetreminderMinutesBeforeStart(AIndex: Integer; 
+    procedure SetreminderMinutesBeforeStart(AIndex: Integer;
                                        const AValue: TInt32);
     procedure SetisReminderOn(AIndex: Integer; const AValue: boolean);
     procedure SethasAttachments(AIndex: Integer; const AValue: boolean);
@@ -1628,7 +1628,7 @@ type
     procedure SetisAllDay(AIndex: Integer; const AValue: boolean);
     procedure SetisCancelled(AIndex: Integer; const AValue: boolean);
     procedure SetisOrganizer(AIndex: Integer; const AValue: boolean);
-    procedure Setrecurrence(AIndex: Integer; 
+    procedure Setrecurrence(AIndex: Integer;
                        const AValue: TpatternedRecurrence);
     procedure SetresponseRequested(AIndex: Integer; const AValue: boolean);
     procedure SetseriesMasterId(AIndex: Integer; const AValue: string);
@@ -1643,13 +1643,13 @@ type
                         ;  Override;
     {$ENDIF VER2_6}
   public
-    procedure accept(AService: TODataService; Comment: string; 
+    procedure accept(AService: TODataService; Comment: string;
                 SendResponse: boolean);
-    procedure decline(AService: TODataService; Comment: string; 
+    procedure decline(AService: TODataService; Comment: string;
                  SendResponse: boolean);
-    procedure tentativelyAccept(AService: TODataService; Comment: string; 
+    procedure tentativelyAccept(AService: TODataService; Comment: string;
                            SendResponse: boolean);
-    procedure snoozeReminder(AService: TODataService; 
+    procedure snoozeReminder(AService: TODataService;
                         NewReminderTime: TdateTimeTimeZone);
     procedure dismissReminder(AService: TODataService);
     class function ObjectRestKind : String;  Override;
@@ -1688,12 +1688,12 @@ type
     Property organizer : Trecipient index 240 read Forganizer write Setorganizer;
     Property webLink : string index 248 read FwebLink write SetwebLink;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: conversation
     --------------------------------------------------------------------}
-  
+
   Tconversation = Class(Tentity)
   private
     Ftopic : string;
@@ -1703,7 +1703,7 @@ type
     Fpreview : string;
     procedure Settopic(AIndex: Integer; const AValue: string);
     procedure SethasAttachments(AIndex: Integer; const AValue: boolean);
-    procedure SetlastDeliveredDateTime(AIndex: Integer; 
+    procedure SetlastDeliveredDateTime(AIndex: Integer;
                                   const AValue: TDateTime);
     procedure SetuniqueSenders(AIndex: Integer; const AValue: TStringArray);
     procedure Setpreview(AIndex: Integer; const AValue: string);
@@ -1723,12 +1723,12 @@ type
     Property uniqueSenders : TStringArray index 32 read FuniqueSenders write SetuniqueSenders;
     Property preview : string index 40 read Fpreview write Setpreview;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: profilePhoto
     --------------------------------------------------------------------}
-  
+
   TprofilePhoto = Class(Tentity)
   private
     Fheight : TInt32;
@@ -1737,20 +1737,20 @@ type
     procedure Setwidth(AIndex: Integer; const AValue: TInt32);
   public
     class function ObjectRestKind : String;  Override;
-    procedure GetStream(AService: TODataService; AContentType: String; 
+    procedure GetStream(AService: TODataService; AContentType: String;
                    AStream: TStream);
-    procedure SetStream(AService: TODataService; AContentType: String; 
+    procedure SetStream(AService: TODataService; AContentType: String;
                    AStream: TStream);
   published
     Property height : TInt32 index 8 read Fheight write Setheight;
     Property width : TInt32 index 16 read Fwidth write Setwidth;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: drive
     --------------------------------------------------------------------}
-  
+
   Tdrive = Class(Tentity)
   private
     FdriveType : string;
@@ -1771,12 +1771,12 @@ type
     Property owner : TidentitySet index 16 read Fowner write Setowner;
     Property quota : Tquota index 24 read Fquota write Setquota;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: subscribedSku
     --------------------------------------------------------------------}
-  
+
   TsubscribedSku = Class(Tentity)
   private
     FcapabilityStatus : string;
@@ -1788,9 +1788,9 @@ type
     FappliesTo : string;
     procedure SetcapabilityStatus(AIndex: Integer; const AValue: string);
     procedure SetconsumedUnits(AIndex: Integer; const AValue: TInt32);
-    procedure SetprepaidUnits(AIndex: Integer; 
+    procedure SetprepaidUnits(AIndex: Integer;
                          const AValue: TlicenseUnitsDetail);
-    procedure SetservicePlans(AIndex: Integer; 
+    procedure SetservicePlans(AIndex: Integer;
                          const AValue: TservicePlanInfoArray);
     procedure SetskuId(AIndex: Integer; const AValue: TGUIDString);
     procedure SetskuPartNumber(AIndex: Integer; const AValue: string);
@@ -1811,12 +1811,12 @@ type
     Property skuPartNumber : string index 48 read FskuPartNumber write SetskuPartNumber;
     Property appliesTo : string index 56 read FappliesTo write SetappliesTo;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: organization
     --------------------------------------------------------------------}
-  
+
   Torganization = Class(TdirectoryObject)
   private
     FassignedPlans : TassignedPlanArray;
@@ -1837,32 +1837,32 @@ type
     Fstreet : string;
     FtechnicalNotificationMails : TStringArray;
     FverifiedDomains : TverifiedDomainArray;
-    procedure SetassignedPlans(AIndex: Integer; 
+    procedure SetassignedPlans(AIndex: Integer;
                           const AValue: TassignedPlanArray);
     procedure SetbusinessPhones(AIndex: Integer; const AValue: TStringArray);
     procedure Setcity(AIndex: Integer; const AValue: string);
     procedure Setcountry(AIndex: Integer; const AValue: string);
     procedure SetcountryLetterCode(AIndex: Integer; const AValue: string);
     procedure SetdisplayName(AIndex: Integer; const AValue: string);
-    procedure SetmarketingNotificationEmails(AIndex: Integer; 
+    procedure SetmarketingNotificationEmails(AIndex: Integer;
                                         const AValue: TStringArray);
-    procedure SetonPremisesLastSyncDateTime(AIndex: Integer; 
+    procedure SetonPremisesLastSyncDateTime(AIndex: Integer;
                                        const AValue: TDateTime);
-    procedure SetonPremisesSyncEnabled(AIndex: Integer; 
+    procedure SetonPremisesSyncEnabled(AIndex: Integer;
                                   const AValue: boolean);
     procedure SetpostalCode(AIndex: Integer; const AValue: string);
     procedure SetpreferredLanguage(AIndex: Integer; const AValue: string);
-    procedure SetprovisionedPlans(AIndex: Integer; 
+    procedure SetprovisionedPlans(AIndex: Integer;
                              const AValue: TprovisionedPlanArray);
-    procedure SetsecurityComplianceNotificationMails(AIndex: Integer; 
+    procedure SetsecurityComplianceNotificationMails(AIndex: Integer;
                                                 const AValue: TStringArray);
-    procedure SetsecurityComplianceNotificationPhones(AIndex: Integer; 
+    procedure SetsecurityComplianceNotificationPhones(AIndex: Integer;
                                                  const AValue: TStringArray);
     procedure Setstate(AIndex: Integer; const AValue: string);
     procedure Setstreet(AIndex: Integer; const AValue: string);
-    procedure SettechnicalNotificationMails(AIndex: Integer; 
+    procedure SettechnicalNotificationMails(AIndex: Integer;
                                        const AValue: TStringArray);
-    procedure SetverifiedDomains(AIndex: Integer; 
+    procedure SetverifiedDomains(AIndex: Integer;
                             const AValue: TverifiedDomainArray);
   protected
     {$IFDEF VER2_6}
@@ -1891,12 +1891,12 @@ type
     Property technicalNotificationMails : TStringArray index 136 read FtechnicalNotificationMails write SettechnicalNotificationMails;
     Property verifiedDomains : TverifiedDomainArray index 144 read FverifiedDomains write SetverifiedDomains;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: user
     --------------------------------------------------------------------}
-  
+
   Tuser = Class(TdirectoryObject)
   private
     FaccountEnabled : boolean;
@@ -1941,9 +1941,9 @@ type
     Fschools : TStringArray;
     Fskills : TStringArray;
     procedure SetaccountEnabled(AIndex: Integer; const AValue: boolean);
-    procedure SetassignedLicenses(AIndex: Integer; 
+    procedure SetassignedLicenses(AIndex: Integer;
                              const AValue: TassignedLicenseArray);
-    procedure SetassignedPlans(AIndex: Integer; 
+    procedure SetassignedPlans(AIndex: Integer;
                           const AValue: TassignedPlanArray);
     procedure SetbusinessPhones(AIndex: Integer; const AValue: TStringArray);
     procedure Setcity(AIndex: Integer; const AValue: string);
@@ -1956,21 +1956,21 @@ type
     procedure Setmail(AIndex: Integer; const AValue: string);
     procedure SetmailNickname(AIndex: Integer; const AValue: string);
     procedure SetmobilePhone(AIndex: Integer; const AValue: string);
-    procedure SetonPremisesImmutableId(AIndex: Integer; 
+    procedure SetonPremisesImmutableId(AIndex: Integer;
                                   const AValue: string);
-    procedure SetonPremisesLastSyncDateTime(AIndex: Integer; 
+    procedure SetonPremisesLastSyncDateTime(AIndex: Integer;
                                        const AValue: TDateTime);
-    procedure SetonPremisesSecurityIdentifier(AIndex: Integer; 
+    procedure SetonPremisesSecurityIdentifier(AIndex: Integer;
                                          const AValue: string);
-    procedure SetonPremisesSyncEnabled(AIndex: Integer; 
+    procedure SetonPremisesSyncEnabled(AIndex: Integer;
                                   const AValue: boolean);
     procedure SetpasswordPolicies(AIndex: Integer; const AValue: string);
-    procedure SetpasswordProfile(AIndex: Integer; 
+    procedure SetpasswordProfile(AIndex: Integer;
                             const AValue: TpasswordProfile);
     procedure SetofficeLocation(AIndex: Integer; const AValue: string);
     procedure SetpostalCode(AIndex: Integer; const AValue: string);
     procedure SetpreferredLanguage(AIndex: Integer; const AValue: string);
-    procedure SetprovisionedPlans(AIndex: Integer; 
+    procedure SetprovisionedPlans(AIndex: Integer;
                              const AValue: TprovisionedPlanArray);
     procedure SetproxyAddresses(AIndex: Integer; const AValue: TStringArray);
     procedure Setstate(AIndex: Integer; const AValue: string);
@@ -1986,7 +1986,7 @@ type
     procedure SetmySite(AIndex: Integer; const AValue: string);
     procedure SetpastProjects(AIndex: Integer; const AValue: TStringArray);
     procedure SetpreferredName(AIndex: Integer; const AValue: string);
-    procedure Setresponsibilities(AIndex: Integer; 
+    procedure Setresponsibilities(AIndex: Integer;
                              const AValue: TStringArray);
     procedure Setschools(AIndex: Integer; const AValue: TStringArray);
     procedure Setskills(AIndex: Integer; const AValue: TStringArray);
@@ -1996,14 +1996,14 @@ type
                         ;  Override;
     {$ENDIF VER2_6}
   public
-    function reminderView(AService: TODataService; StartDateTime: string; 
+    function reminderView(AService: TODataService; StartDateTime: string;
                      EndDateTime: string) : TreminderArray;
-    function assignLicense(AService: TODataService; 
-                      addLicenses: TassignedLicenseArray; 
+    function assignLicense(AService: TODataService;
+                      addLicenses: TassignedLicenseArray;
                       removeLicenses: TGuidStringArray) : Tuser;
-    procedure changePassword(AService: TODataService; 
+    procedure changePassword(AService: TODataService;
                         currentPassword: string; newPassword: string);
-    procedure sendMail(AService: TODataService; Message: Tmessage; 
+    procedure sendMail(AService: TODataService; Message: Tmessage;
                   SaveToSentItems: boolean);
     class function ObjectRestKind : String;  Override;
     function ownedDevices(AService: TODataService)
@@ -2075,12 +2075,12 @@ type
     Property schools : TStringArray index 320 read Fschools write Setschools;
     Property skills : TStringArray index 328 read Fskills write Setskills;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: message
     --------------------------------------------------------------------}
-  
+
   Tmessage = Class(ToutlookItem)
   private
     FreceivedDateTime : TDateTime;
@@ -2116,18 +2116,18 @@ type
     procedure SetparentFolderId(AIndex: Integer; const AValue: string);
     procedure Setsender(AIndex: Integer; const AValue: Trecipient);
     procedure Setfrom(AIndex: Integer; const AValue: Trecipient);
-    procedure SettoRecipients(AIndex: Integer; 
+    procedure SettoRecipients(AIndex: Integer;
                          const AValue: TrecipientArray);
-    procedure SetccRecipients(AIndex: Integer; 
+    procedure SetccRecipients(AIndex: Integer;
                          const AValue: TrecipientArray);
-    procedure SetbccRecipients(AIndex: Integer; 
+    procedure SetbccRecipients(AIndex: Integer;
                           const AValue: TrecipientArray);
     procedure SetreplyTo(AIndex: Integer; const AValue: TrecipientArray);
     procedure SetconversationId(AIndex: Integer; const AValue: string);
     procedure SetuniqueBody(AIndex: Integer; const AValue: TitemBody);
-    procedure SetisDeliveryReceiptRequested(AIndex: Integer; 
+    procedure SetisDeliveryReceiptRequested(AIndex: Integer;
                                        const AValue: boolean);
-    procedure SetisReadReceiptRequested(AIndex: Integer; 
+    procedure SetisReadReceiptRequested(AIndex: Integer;
                                    const AValue: boolean);
     procedure SetisRead(AIndex: Integer; const AValue: boolean);
     procedure SetisDraft(AIndex: Integer; const AValue: boolean);
@@ -2145,7 +2145,7 @@ type
     function createForward(AService: TODataService) : Tmessage;
     procedure reply(AService: TODataService; Comment: string);
     procedure replyAll(AService: TODataService; Comment: string);
-    procedure forward(AService: TODataService; Comment: string; 
+    procedure forward(AService: TODataService; Comment: string;
                  ToRecipients: TrecipientArray);
     procedure send(AService: TODataService);
     class function ObjectRestKind : String;  Override;
@@ -2175,12 +2175,12 @@ type
     Property isDraft : boolean index 200 read FisDraft write SetisDraft;
     Property webLink : string index 208 read FwebLink write SetwebLink;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: mailFolder
     --------------------------------------------------------------------}
-  
+
   TmailFolder = Class(Tentity)
   private
     FdisplayName : string;
@@ -2209,12 +2209,12 @@ type
     Property unreadItemCount : TInt32 index 32 read FunreadItemCount write SetunreadItemCount;
     Property totalItemCount : TInt32 index 40 read FtotalItemCount write SettotalItemCount;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: calendarGroup
     --------------------------------------------------------------------}
-  
+
   TcalendarGroup = Class(Tentity)
   private
     Fname : string;
@@ -2231,12 +2231,12 @@ type
     Property classId : TGUIDString index 16 read FclassId write SetclassId;
     Property changeKey : string index 24 read FchangeKey write SetchangeKey;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: contact
     --------------------------------------------------------------------}
-  
+
   Tcontact = Class(ToutlookItem)
   private
     FparentFolderId : string;
@@ -2286,7 +2286,7 @@ type
     procedure SetyomiSurname(AIndex: Integer; const AValue: string);
     procedure SetyomiCompanyName(AIndex: Integer; const AValue: string);
     procedure Setgeneration(AIndex: Integer; const AValue: string);
-    procedure SetemailAddresses(AIndex: Integer; 
+    procedure SetemailAddresses(AIndex: Integer;
                            const AValue: TemailAddressArray);
     procedure SetimAddresses(AIndex: Integer; const AValue: TStringArray);
     procedure SetjobTitle(AIndex: Integer; const AValue: string);
@@ -2300,11 +2300,11 @@ type
     procedure SethomePhones(AIndex: Integer; const AValue: TStringArray);
     procedure SetmobilePhone(AIndex: Integer; const AValue: string);
     procedure SetbusinessPhones(AIndex: Integer; const AValue: TStringArray);
-    procedure SethomeAddress(AIndex: Integer; 
+    procedure SethomeAddress(AIndex: Integer;
                         const AValue: TphysicalAddress);
-    procedure SetbusinessAddress(AIndex: Integer; 
+    procedure SetbusinessAddress(AIndex: Integer;
                             const AValue: TphysicalAddress);
-    procedure SetotherAddress(AIndex: Integer; 
+    procedure SetotherAddress(AIndex: Integer;
                          const AValue: TphysicalAddress);
     procedure SetspouseName(AIndex: Integer; const AValue: string);
     procedure SetpersonalNotes(AIndex: Integer; const AValue: string);
@@ -2352,12 +2352,12 @@ type
     Property personalNotes : string index 288 read FpersonalNotes write SetpersonalNotes;
     Property children : TStringArray index 296 read Fchildren write Setchildren;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: contactFolder
     --------------------------------------------------------------------}
-  
+
   TcontactFolder = Class(Tentity)
   private
     FparentFolderId : string;
@@ -2373,12 +2373,12 @@ type
     Property parentFolderId : string index 8 read FparentFolderId write SetparentFolderId;
     Property displayName : string index 16 read FdisplayName write SetdisplayName;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: attachment
     --------------------------------------------------------------------}
-  
+
   Tattachment = Class(Tentity)
   private
     FlastModifiedDateTime : TDateTime;
@@ -2386,7 +2386,7 @@ type
     FcontentType : string;
     Fsize : TInt32;
     FisInline : boolean;
-    procedure SetlastModifiedDateTime(AIndex: Integer; 
+    procedure SetlastModifiedDateTime(AIndex: Integer;
                                  const AValue: TDateTime);
     procedure Setname(AIndex: Integer; const AValue: string);
     procedure SetcontentType(AIndex: Integer; const AValue: string);
@@ -2401,12 +2401,12 @@ type
     Property size : TInt32 index 32 read Fsize write Setsize;
     Property isInline : boolean index 40 read FisInline write SetisInline;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: fileAttachment
     --------------------------------------------------------------------}
-  
+
   TfileAttachment = Class(Tattachment)
   private
     FcontentId : string;
@@ -2422,27 +2422,27 @@ type
     Property contentLocation : string index 56 read FcontentLocation write SetcontentLocation;
     Property contentBytes : TBinary index 64 read FcontentBytes write SetcontentBytes;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: itemAttachment
     --------------------------------------------------------------------}
-  
+
   TitemAttachment = Class(Tattachment)
   public
     class function ObjectRestKind : String;  Override;
     function item(AService: TODataService) : ToutlookItem;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: eventMessage
     --------------------------------------------------------------------}
-  
+
   TeventMessage = Class(Tmessage)
   private
     FmeetingMessageType : TmeetingMessageType;
-    procedure SetmeetingMessageType(AIndex: Integer; 
+    procedure SetmeetingMessageType(AIndex: Integer;
                                const AValue: TmeetingMessageType);
   public
     class function ObjectRestKind : String;  Override;
@@ -2450,22 +2450,22 @@ type
   published
     Property meetingMessageType : TmeetingMessageType index 216 read FmeetingMessageType write SetmeetingMessageType;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: referenceAttachment
     --------------------------------------------------------------------}
-  
+
   TreferenceAttachment = Class(Tattachment)
   public
     class function ObjectRestKind : String;  Override;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: post
     --------------------------------------------------------------------}
-  
+
   Tpost = Class(ToutlookItem)
   private
     Fbody : TitemBody;
@@ -2482,7 +2482,7 @@ type
     procedure Setfrom(AIndex: Integer; const AValue: Trecipient);
     procedure Setsender(AIndex: Integer; const AValue: Trecipient);
     procedure SetconversationThreadId(AIndex: Integer; const AValue: string);
-    procedure SetnewParticipants(AIndex: Integer; 
+    procedure SetnewParticipants(AIndex: Integer;
                             const AValue: TrecipientArray);
     procedure SetconversationId(AIndex: Integer; const AValue: string);
   protected
@@ -2491,7 +2491,7 @@ type
                         ;  Override;
     {$ENDIF VER2_6}
   public
-    procedure forward(AService: TODataService; Comment: string; 
+    procedure forward(AService: TODataService; Comment: string;
                  ToRecipients: TrecipientArray);
     procedure reply(AService: TODataService; _Post: Tpost);
     class function ObjectRestKind : String;  Override;
@@ -2508,12 +2508,12 @@ type
     Property newParticipants : TrecipientArray index 88 read FnewParticipants write SetnewParticipants;
     Property conversationId : string index 96 read FconversationId write SetconversationId;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: driveItem
     --------------------------------------------------------------------}
-  
+
   TdriveItem = Class(Tentity)
   private
     Fcontent : TStream;
@@ -2550,10 +2550,10 @@ type
     procedure Setdescription(AIndex: Integer; const AValue: string);
     procedure SeteTag(AIndex: Integer; const AValue: string);
     procedure SetlastModifiedBy(AIndex: Integer; const AValue: TidentitySet);
-    procedure SetlastModifiedDateTime(AIndex: Integer; 
+    procedure SetlastModifiedDateTime(AIndex: Integer;
                                  const AValue: TDateTime);
     procedure Setname(AIndex: Integer; const AValue: string);
-    procedure SetparentReference(AIndex: Integer; 
+    procedure SetparentReference(AIndex: Integer;
                             const AValue: TitemReference);
     procedure Setsize(AIndex: Integer; const AValue: int64);
     procedure SetwebDavUrl(AIndex: Integer; const AValue: string);
@@ -2561,7 +2561,7 @@ type
     procedure Setaudio(AIndex: Integer; const AValue: Taudio);
     procedure Setdeleted(AIndex: Integer; const AValue: Tdeleted);
     procedure Set_file(AIndex: Integer; const AValue: T_file);
-    procedure SetfileSystemInfo(AIndex: Integer; 
+    procedure SetfileSystemInfo(AIndex: Integer;
                            const AValue: TfileSystemInfo);
     procedure Setfolder(AIndex: Integer; const AValue: Tfolder);
     procedure Setimage(AIndex: Integer; const AValue: Timage);
@@ -2570,7 +2570,7 @@ type
     procedure SetremoteItem(AIndex: Integer; const AValue: TremoteItem);
     procedure SetsearchResult(AIndex: Integer; const AValue: TsearchResult);
     procedure Setshared(AIndex: Integer; const AValue: Tshared);
-    procedure SetspecialFolder(AIndex: Integer; 
+    procedure SetspecialFolder(AIndex: Integer;
                           const AValue: TspecialFolder);
     procedure Setvideo(AIndex: Integer; const AValue: Tvideo);
     procedure Setpackage(AIndex: Integer; const AValue: Tpackage);
@@ -2578,9 +2578,9 @@ type
     function search(AService: TODataService; q: string) : TdriveItemArray;
     function delta(AService: TODataService; token: string) : TdriveItemArray;
     function delta(AService: TODataService) : TdriveItemArray;
-    function createLink(AService: TODataService; _type: string; 
+    function createLink(AService: TODataService; _type: string;
                    scope: string) : Tpermission;
-    function copy(AService: TODataService; name: string; 
+    function copy(AService: TODataService; name: string;
              parentReference: TitemReference) : TdriveItem;
     class function ObjectRestKind : String;  Override;
     class function ExportPropertyName(const AName: String) : String
@@ -2621,12 +2621,12 @@ type
     Property video : Tvideo index 208 read Fvideo write Setvideo;
     Property package : Tpackage index 216 read Fpackage write Setpackage;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: permission
     --------------------------------------------------------------------}
-  
+
   Tpermission = Class(Tentity)
   private
     FgrantedTo : TidentitySet;
@@ -2636,9 +2636,9 @@ type
     Froles : TStringArray;
     FshareId : string;
     procedure SetgrantedTo(AIndex: Integer; const AValue: TidentitySet);
-    procedure Setinvitation(AIndex: Integer; 
+    procedure Setinvitation(AIndex: Integer;
                        const AValue: TsharingInvitation);
-    procedure SetinheritedFrom(AIndex: Integer; 
+    procedure SetinheritedFrom(AIndex: Integer;
                           const AValue: TitemReference);
     procedure Setlink(AIndex: Integer; const AValue: TsharingLink);
     procedure Setroles(AIndex: Integer; const AValue: TStringArray);
@@ -2658,12 +2658,12 @@ type
     Property roles : TStringArray index 40 read Froles write Setroles;
     Property shareId : string index 48 read FshareId write SetshareId;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: thumbnailSet
     --------------------------------------------------------------------}
-  
+
   TthumbnailSet = Class(Tentity)
   private
     Flarge : Tthumbnail;
@@ -2682,12 +2682,12 @@ type
     Property small : Tthumbnail index 24 read Fsmall write Setsmall;
     Property source : Tthumbnail index 32 read Fsource write Setsource;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: subscription
     --------------------------------------------------------------------}
-  
+
   Tsubscription = Class(Tentity)
   private
     Fresource : string;
@@ -2699,7 +2699,7 @@ type
     procedure SetchangeType(AIndex: Integer; const AValue: string);
     procedure SetclientState(AIndex: Integer; const AValue: string);
     procedure SetnotificationUrl(AIndex: Integer; const AValue: string);
-    procedure SetexpirationDateTime(AIndex: Integer; 
+    procedure SetexpirationDateTime(AIndex: Integer;
                                const AValue: TDateTime);
   public
     class function ObjectRestKind : String;  Override;
@@ -2710,12 +2710,12 @@ type
     Property notificationUrl : string index 32 read FnotificationUrl write SetnotificationUrl;
     Property expirationDateTime : TDateTime index 40 read FexpirationDateTime write SetexpirationDateTime;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: GraphService
     --------------------------------------------------------------------}
-  
+
   TGraphService = Class(TODataEntityContainer)
   private
     FdirectoryObjects : TdirectoryObjectsEntitySet;
@@ -2771,12 +2771,12 @@ type
     Property me : Tuser read Getme;
     Property drive : Tdrive read Getdrive;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: directoryObjects
     --------------------------------------------------------------------}
-  
+
   TdirectoryObjectsEntitySet = Class(TODataEntitySet)
   public
     class function ObjectRestKind : String;  Override;
@@ -2789,12 +2789,12 @@ type
     function ListAll(const AQuery: String) : TdirectoryObjectArray;
     function ListAll(const AQuery: TQueryParams) : TdirectoryObjectArray;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: devices
     --------------------------------------------------------------------}
-  
+
   TdevicesEntitySet = Class(TODataEntitySet)
   public
     class function ObjectRestKind : String;  Override;
@@ -2806,12 +2806,12 @@ type
     function ListAll(const AQuery: String) : TdeviceArray;
     function ListAll(const AQuery: TQueryParams) : TdeviceArray;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: groups
     --------------------------------------------------------------------}
-  
+
   TgroupsEntitySet = Class(TODataEntitySet)
   public
     class function ObjectRestKind : String;  Override;
@@ -2823,12 +2823,12 @@ type
     function ListAll(const AQuery: String) : TgroupArray;
     function ListAll(const AQuery: TQueryParams) : TgroupArray;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: directoryRoles
     --------------------------------------------------------------------}
-  
+
   TdirectoryRolesEntitySet = Class(TODataEntitySet)
   public
     class function ObjectRestKind : String;  Override;
@@ -2841,12 +2841,12 @@ type
     function ListAll(const AQuery: String) : TdirectoryRoleArray;
     function ListAll(const AQuery: TQueryParams) : TdirectoryRoleArray;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: directoryRoleTemplates
     --------------------------------------------------------------------}
-  
+
   TdirectoryRoleTemplatesEntitySet = Class(TODataEntitySet)
   public
     class function ObjectRestKind : String;  Override;
@@ -2860,12 +2860,12 @@ type
     function ListAll(const AQuery: TQueryParams)
                  : TdirectoryRoleTemplateArray;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: organization
     --------------------------------------------------------------------}
-  
+
   TorganizationEntitySet = Class(TODataEntitySet)
   public
     class function ObjectRestKind : String;  Override;
@@ -2878,12 +2878,12 @@ type
     function ListAll(const AQuery: String) : TorganizationArray;
     function ListAll(const AQuery: TQueryParams) : TorganizationArray;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: subscribedSkus
     --------------------------------------------------------------------}
-  
+
   TsubscribedSkusEntitySet = Class(TODataEntitySet)
   public
     class function ObjectRestKind : String;  Override;
@@ -2896,12 +2896,12 @@ type
     function ListAll(const AQuery: String) : TsubscribedSkuArray;
     function ListAll(const AQuery: TQueryParams) : TsubscribedSkuArray;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: users
     --------------------------------------------------------------------}
-  
+
   TusersEntitySet = Class(TODataEntitySet)
   public
     class function ObjectRestKind : String;  Override;
@@ -2913,12 +2913,12 @@ type
     function ListAll(const AQuery: String) : TuserArray;
     function ListAll(const AQuery: TQueryParams) : TuserArray;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: drives
     --------------------------------------------------------------------}
-  
+
   TdrivesEntitySet = Class(TODataEntitySet)
   public
     class function ObjectRestKind : String;  Override;
@@ -2930,12 +2930,12 @@ type
     function ListAll(const AQuery: String) : TdriveArray;
     function ListAll(const AQuery: TQueryParams) : TdriveArray;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: subscriptions
     --------------------------------------------------------------------}
-  
+
   TsubscriptionsEntitySet = Class(TODataEntitySet)
   public
     class function ObjectRestKind : String;  Override;
@@ -2948,12 +2948,12 @@ type
     function ListAll(const AQuery: String) : TsubscriptionArray;
     function ListAll(const AQuery: TQueryParams) : TsubscriptionArray;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: conversationThreadImplicitEntitySet
     --------------------------------------------------------------------}
-  
+
   TconversationThreadImplicitEntitySet = Class(TODataEntitySet)
   public
     class function ObjectRestKind : String;  Override;
@@ -2966,24 +2966,24 @@ type
     function ListAll(const AQuery: String) : TconversationThreadArray;
     function ListAll(const AQuery: TQueryParams) : TconversationThreadArray;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: calendarImplicitEntitySet
     --------------------------------------------------------------------}
-  
+
   TcalendarImplicitEntitySet = Class(TODataEntitySet)
   public
     class function ObjectRestKind : String;  Override;
     class function EntityClass : TODataEntityClass;  Override;
     function Get(const id: string) : Tcalendar;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: eventImplicitEntitySet
     --------------------------------------------------------------------}
-  
+
   TeventImplicitEntitySet = Class(TODataEntitySet)
   public
     class function ObjectRestKind : String;  Override;
@@ -2995,12 +2995,12 @@ type
     function ListAll(const AQuery: String) : TeventArray;
     function ListAll(const AQuery: TQueryParams) : TeventArray;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: conversationImplicitEntitySet
     --------------------------------------------------------------------}
-  
+
   TconversationImplicitEntitySet = Class(TODataEntitySet)
   public
     class function ObjectRestKind : String;  Override;
@@ -3013,24 +3013,24 @@ type
     function ListAll(const AQuery: String) : TconversationArray;
     function ListAll(const AQuery: TQueryParams) : TconversationArray;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: profilePhotoImplicitEntitySet
     --------------------------------------------------------------------}
-  
+
   TprofilePhotoImplicitEntitySet = Class(TODataEntitySet)
   public
     class function ObjectRestKind : String;  Override;
     class function EntityClass : TODataEntityClass;  Override;
     function Get(const id: string) : TprofilePhoto;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: postImplicitEntitySet
     --------------------------------------------------------------------}
-  
+
   TpostImplicitEntitySet = Class(TODataEntitySet)
   public
     class function ObjectRestKind : String;  Override;
@@ -3042,12 +3042,12 @@ type
     function ListAll(const AQuery: String) : TpostArray;
     function ListAll(const AQuery: TQueryParams) : TpostArray;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: attachmentImplicitEntitySet
     --------------------------------------------------------------------}
-  
+
   TattachmentImplicitEntitySet = Class(TODataEntitySet)
   public
     class function ObjectRestKind : String;  Override;
@@ -3060,12 +3060,12 @@ type
     function ListAll(const AQuery: String) : TattachmentArray;
     function ListAll(const AQuery: TQueryParams) : TattachmentArray;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: driveItemImplicitEntitySet
     --------------------------------------------------------------------}
-  
+
   TdriveItemImplicitEntitySet = Class(TODataEntitySet)
   public
     class function ObjectRestKind : String;  Override;
@@ -3078,12 +3078,12 @@ type
     function ListAll(const AQuery: String) : TdriveItemArray;
     function ListAll(const AQuery: TQueryParams) : TdriveItemArray;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: messageImplicitEntitySet
     --------------------------------------------------------------------}
-  
+
   TmessageImplicitEntitySet = Class(TODataEntitySet)
   public
     class function ObjectRestKind : String;  Override;
@@ -3096,12 +3096,12 @@ type
     function ListAll(const AQuery: String) : TmessageArray;
     function ListAll(const AQuery: TQueryParams) : TmessageArray;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: mailFolderImplicitEntitySet
     --------------------------------------------------------------------}
-  
+
   TmailFolderImplicitEntitySet = Class(TODataEntitySet)
   public
     class function ObjectRestKind : String;  Override;
@@ -3114,12 +3114,12 @@ type
     function ListAll(const AQuery: String) : TmailFolderArray;
     function ListAll(const AQuery: TQueryParams) : TmailFolderArray;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: calendarGroupImplicitEntitySet
     --------------------------------------------------------------------}
-  
+
   TcalendarGroupImplicitEntitySet = Class(TODataEntitySet)
   public
     class function ObjectRestKind : String;  Override;
@@ -3132,12 +3132,12 @@ type
     function ListAll(const AQuery: String) : TcalendarGroupArray;
     function ListAll(const AQuery: TQueryParams) : TcalendarGroupArray;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: contactImplicitEntitySet
     --------------------------------------------------------------------}
-  
+
   TcontactImplicitEntitySet = Class(TODataEntitySet)
   public
     class function ObjectRestKind : String;  Override;
@@ -3150,12 +3150,12 @@ type
     function ListAll(const AQuery: String) : TcontactArray;
     function ListAll(const AQuery: TQueryParams) : TcontactArray;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: contactFolderImplicitEntitySet
     --------------------------------------------------------------------}
-  
+
   TcontactFolderImplicitEntitySet = Class(TODataEntitySet)
   public
     class function ObjectRestKind : String;  Override;
@@ -3168,24 +3168,24 @@ type
     function ListAll(const AQuery: String) : TcontactFolderArray;
     function ListAll(const AQuery: TQueryParams) : TcontactFolderArray;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: outlookItemImplicitEntitySet
     --------------------------------------------------------------------}
-  
+
   ToutlookItemImplicitEntitySet = Class(TODataEntitySet)
   public
     class function ObjectRestKind : String;  Override;
     class function EntityClass : TODataEntityClass;  Override;
     function Get(const id: string) : ToutlookItem;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: permissionImplicitEntitySet
     --------------------------------------------------------------------}
-  
+
   TpermissionImplicitEntitySet = Class(TODataEntitySet)
   public
     class function ObjectRestKind : String;  Override;
@@ -3198,12 +3198,12 @@ type
     function ListAll(const AQuery: String) : TpermissionArray;
     function ListAll(const AQuery: TQueryParams) : TpermissionArray;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: thumbnailSetImplicitEntitySet
     --------------------------------------------------------------------}
-  
+
   TthumbnailSetImplicitEntitySet = Class(TODataEntitySet)
   public
     class function ObjectRestKind : String;  Override;
@@ -3216,12 +3216,12 @@ type
     function ListAll(const AQuery: String) : TthumbnailSetArray;
     function ListAll(const AQuery: TQueryParams) : TthumbnailSetArray;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     microsoft.graph: microsoft.graph
     --------------------------------------------------------------------}
-  
+
   TService = Class(TODataService)
   private
     FGraphService : TGraphService;
@@ -3232,7 +3232,7 @@ type
   published
     Property GraphService : TGraphService read GetGraphService;
   end;
-  
+
 
 implementation
 
@@ -3242,14 +3242,14 @@ implementation
   --------------------------------------------------------------------}
 
 
-Class Function TalternativeSecurityId.ObjectRestKind : String; 
+Class Function TalternativeSecurityId.ObjectRestKind : String;
 
 begin
   Result:='alternativeSecurityId';
 end;
 
 
-Procedure TalternativeSecurityId.Set_type(AIndex: Integer; const AValue: TInt32); 
+Procedure TalternativeSecurityId.Set_type(AIndex: Integer; const AValue: TInt32);
 
 
 begin
@@ -3259,7 +3259,7 @@ begin
 end;
 
 
-Procedure TalternativeSecurityId.SetidentityProvider(AIndex: Integer; const AValue: string); 
+Procedure TalternativeSecurityId.SetidentityProvider(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -3269,7 +3269,7 @@ begin
 end;
 
 
-Procedure TalternativeSecurityId.Setkey(AIndex: Integer; const AValue: TBinary); 
+Procedure TalternativeSecurityId.Setkey(AIndex: Integer; const AValue: TBinary);
 
 
 begin
@@ -3295,14 +3295,14 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function TlicenseUnitsDetail.ObjectRestKind : String; 
+Class Function TlicenseUnitsDetail.ObjectRestKind : String;
 
 begin
   Result:='licenseUnitsDetail';
 end;
 
 
-Procedure TlicenseUnitsDetail.Setenabled(AIndex: Integer; const AValue: TInt32); 
+Procedure TlicenseUnitsDetail.Setenabled(AIndex: Integer; const AValue: TInt32);
 
 
 begin
@@ -3312,7 +3312,7 @@ begin
 end;
 
 
-Procedure TlicenseUnitsDetail.Setsuspended(AIndex: Integer; const AValue: TInt32); 
+Procedure TlicenseUnitsDetail.Setsuspended(AIndex: Integer; const AValue: TInt32);
 
 
 begin
@@ -3322,7 +3322,7 @@ begin
 end;
 
 
-Procedure TlicenseUnitsDetail.Setwarning(AIndex: Integer; const AValue: TInt32); 
+Procedure TlicenseUnitsDetail.Setwarning(AIndex: Integer; const AValue: TInt32);
 
 
 begin
@@ -3337,14 +3337,14 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function TservicePlanInfo.ObjectRestKind : String; 
+Class Function TservicePlanInfo.ObjectRestKind : String;
 
 begin
   Result:='servicePlanInfo';
 end;
 
 
-Procedure TservicePlanInfo.SetservicePlanId(AIndex: Integer; const AValue: TGUIDString); 
+Procedure TservicePlanInfo.SetservicePlanId(AIndex: Integer; const AValue: TGUIDString);
 
 
 begin
@@ -3354,7 +3354,7 @@ begin
 end;
 
 
-Procedure TservicePlanInfo.SetservicePlanName(AIndex: Integer; const AValue: string); 
+Procedure TservicePlanInfo.SetservicePlanName(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -3364,7 +3364,7 @@ begin
 end;
 
 
-Procedure TservicePlanInfo.SetprovisioningStatus(AIndex: Integer; const AValue: string); 
+Procedure TservicePlanInfo.SetprovisioningStatus(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -3374,7 +3374,7 @@ begin
 end;
 
 
-Procedure TservicePlanInfo.SetappliesTo(AIndex: Integer; const AValue: string); 
+Procedure TservicePlanInfo.SetappliesTo(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -3389,14 +3389,14 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function TassignedPlan.ObjectRestKind : String; 
+Class Function TassignedPlan.ObjectRestKind : String;
 
 begin
   Result:='assignedPlan';
 end;
 
 
-Procedure TassignedPlan.SetassignedDateTime(AIndex: Integer; const AValue: TDateTime); 
+Procedure TassignedPlan.SetassignedDateTime(AIndex: Integer; const AValue: TDateTime);
 
 
 begin
@@ -3406,7 +3406,7 @@ begin
 end;
 
 
-Procedure TassignedPlan.SetcapabilityStatus(AIndex: Integer; const AValue: string); 
+Procedure TassignedPlan.SetcapabilityStatus(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -3416,7 +3416,7 @@ begin
 end;
 
 
-Procedure TassignedPlan.Setservice(AIndex: Integer; const AValue: string); 
+Procedure TassignedPlan.Setservice(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -3426,7 +3426,7 @@ begin
 end;
 
 
-Procedure TassignedPlan.SetservicePlanId(AIndex: Integer; const AValue: TGUIDString); 
+Procedure TassignedPlan.SetservicePlanId(AIndex: Integer; const AValue: TGUIDString);
 
 
 begin
@@ -3441,14 +3441,14 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function TprovisionedPlan.ObjectRestKind : String; 
+Class Function TprovisionedPlan.ObjectRestKind : String;
 
 begin
   Result:='provisionedPlan';
 end;
 
 
-Procedure TprovisionedPlan.SetcapabilityStatus(AIndex: Integer; const AValue: string); 
+Procedure TprovisionedPlan.SetcapabilityStatus(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -3458,7 +3458,7 @@ begin
 end;
 
 
-Procedure TprovisionedPlan.SetprovisioningStatus(AIndex: Integer; const AValue: string); 
+Procedure TprovisionedPlan.SetprovisioningStatus(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -3468,7 +3468,7 @@ begin
 end;
 
 
-Procedure TprovisionedPlan.Setservice(AIndex: Integer; const AValue: string); 
+Procedure TprovisionedPlan.Setservice(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -3483,14 +3483,14 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function TverifiedDomain.ObjectRestKind : String; 
+Class Function TverifiedDomain.ObjectRestKind : String;
 
 begin
   Result:='verifiedDomain';
 end;
 
 
-Procedure TverifiedDomain.Setcapabilities(AIndex: Integer; const AValue: string); 
+Procedure TverifiedDomain.Setcapabilities(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -3500,7 +3500,7 @@ begin
 end;
 
 
-Procedure TverifiedDomain.SetisDefault(AIndex: Integer; const AValue: boolean); 
+Procedure TverifiedDomain.SetisDefault(AIndex: Integer; const AValue: boolean);
 
 
 begin
@@ -3510,7 +3510,7 @@ begin
 end;
 
 
-Procedure TverifiedDomain.SetisInitial(AIndex: Integer; const AValue: boolean); 
+Procedure TverifiedDomain.SetisInitial(AIndex: Integer; const AValue: boolean);
 
 
 begin
@@ -3520,7 +3520,7 @@ begin
 end;
 
 
-Procedure TverifiedDomain.Setname(AIndex: Integer; const AValue: string); 
+Procedure TverifiedDomain.Setname(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -3530,7 +3530,7 @@ begin
 end;
 
 
-Procedure TverifiedDomain.Set_type(AIndex: Integer; const AValue: string); 
+Procedure TverifiedDomain.Set_type(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -3556,14 +3556,14 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function TassignedLicense.ObjectRestKind : String; 
+Class Function TassignedLicense.ObjectRestKind : String;
 
 begin
   Result:='assignedLicense';
 end;
 
 
-Procedure TassignedLicense.SetdisabledPlans(AIndex: Integer; const AValue: TGuidStringArray); 
+Procedure TassignedLicense.SetdisabledPlans(AIndex: Integer; const AValue: TGuidStringArray);
 
 
 begin
@@ -3573,7 +3573,7 @@ begin
 end;
 
 
-Procedure TassignedLicense.SetskuId(AIndex: Integer; const AValue: TGUIDString); 
+Procedure TassignedLicense.SetskuId(AIndex: Integer; const AValue: TGUIDString);
 
 
 begin
@@ -3584,7 +3584,7 @@ end;
 
 {$IFDEF VER2_6}
 
-Procedure TassignedLicense.SetArrayLength(const AName: String; ALength: Longint); 
+Procedure TassignedLicense.SetArrayLength(const AName: String; ALength: Longint);
 
 begin
   Case aName of
@@ -3601,14 +3601,14 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function TpasswordProfile.ObjectRestKind : String; 
+Class Function TpasswordProfile.ObjectRestKind : String;
 
 begin
   Result:='passwordProfile';
 end;
 
 
-Procedure TpasswordProfile.Setpassword(AIndex: Integer; const AValue: string); 
+Procedure TpasswordProfile.Setpassword(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -3618,7 +3618,7 @@ begin
 end;
 
 
-Procedure TpasswordProfile.SetforceChangePasswordNextSignIn(AIndex: Integer; const AValue: boolean); 
+Procedure TpasswordProfile.SetforceChangePasswordNextSignIn(AIndex: Integer; const AValue: boolean);
 
 
 begin
@@ -3633,14 +3633,14 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function Treminder.ObjectRestKind : String; 
+Class Function Treminder.ObjectRestKind : String;
 
 begin
   Result:='reminder';
 end;
 
 
-Procedure Treminder.SeteventId(AIndex: Integer; const AValue: string); 
+Procedure Treminder.SeteventId(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -3650,7 +3650,7 @@ begin
 end;
 
 
-Procedure Treminder.SeteventStartTime(AIndex: Integer; const AValue: TdateTimeTimeZone); 
+Procedure Treminder.SeteventStartTime(AIndex: Integer; const AValue: TdateTimeTimeZone);
 
 
 begin
@@ -3660,7 +3660,7 @@ begin
 end;
 
 
-Procedure Treminder.SeteventEndTime(AIndex: Integer; const AValue: TdateTimeTimeZone); 
+Procedure Treminder.SeteventEndTime(AIndex: Integer; const AValue: TdateTimeTimeZone);
 
 
 begin
@@ -3670,7 +3670,7 @@ begin
 end;
 
 
-Procedure Treminder.SetchangeKey(AIndex: Integer; const AValue: string); 
+Procedure Treminder.SetchangeKey(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -3680,7 +3680,7 @@ begin
 end;
 
 
-Procedure Treminder.SeteventSubject(AIndex: Integer; const AValue: string); 
+Procedure Treminder.SeteventSubject(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -3690,7 +3690,7 @@ begin
 end;
 
 
-Procedure Treminder.SeteventLocation(AIndex: Integer; const AValue: Tlocation); 
+Procedure Treminder.SeteventLocation(AIndex: Integer; const AValue: Tlocation);
 
 
 begin
@@ -3700,7 +3700,7 @@ begin
 end;
 
 
-Procedure Treminder.SeteventWebLink(AIndex: Integer; const AValue: string); 
+Procedure Treminder.SeteventWebLink(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -3710,7 +3710,7 @@ begin
 end;
 
 
-Procedure Treminder.SetreminderFireTime(AIndex: Integer; const AValue: TdateTimeTimeZone); 
+Procedure Treminder.SetreminderFireTime(AIndex: Integer; const AValue: TdateTimeTimeZone);
 
 
 begin
@@ -3725,14 +3725,14 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function TdateTimeTimeZone.ObjectRestKind : String; 
+Class Function TdateTimeTimeZone.ObjectRestKind : String;
 
 begin
   Result:='dateTimeTimeZone';
 end;
 
 
-Procedure TdateTimeTimeZone.SetdateTime(AIndex: Integer; const AValue: string); 
+Procedure TdateTimeTimeZone.SetdateTime(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -3742,7 +3742,7 @@ begin
 end;
 
 
-Procedure TdateTimeTimeZone.SettimeZone(AIndex: Integer; const AValue: string); 
+Procedure TdateTimeTimeZone.SettimeZone(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -3757,14 +3757,14 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function Tlocation.ObjectRestKind : String; 
+Class Function Tlocation.ObjectRestKind : String;
 
 begin
   Result:='location';
 end;
 
 
-Procedure Tlocation.SetdisplayName(AIndex: Integer; const AValue: string); 
+Procedure Tlocation.SetdisplayName(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -3774,7 +3774,7 @@ begin
 end;
 
 
-Procedure Tlocation.Setaddress(AIndex: Integer; const AValue: TphysicalAddress); 
+Procedure Tlocation.Setaddress(AIndex: Integer; const AValue: TphysicalAddress);
 
 
 begin
@@ -3789,14 +3789,14 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function TphysicalAddress.ObjectRestKind : String; 
+Class Function TphysicalAddress.ObjectRestKind : String;
 
 begin
   Result:='physicalAddress';
 end;
 
 
-Procedure TphysicalAddress.Setstreet(AIndex: Integer; const AValue: string); 
+Procedure TphysicalAddress.Setstreet(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -3806,7 +3806,7 @@ begin
 end;
 
 
-Procedure TphysicalAddress.Setcity(AIndex: Integer; const AValue: string); 
+Procedure TphysicalAddress.Setcity(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -3816,7 +3816,7 @@ begin
 end;
 
 
-Procedure TphysicalAddress.Setstate(AIndex: Integer; const AValue: string); 
+Procedure TphysicalAddress.Setstate(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -3826,7 +3826,7 @@ begin
 end;
 
 
-Procedure TphysicalAddress.SetcountryOrRegion(AIndex: Integer; const AValue: string); 
+Procedure TphysicalAddress.SetcountryOrRegion(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -3836,7 +3836,7 @@ begin
 end;
 
 
-Procedure TphysicalAddress.SetpostalCode(AIndex: Integer; const AValue: string); 
+Procedure TphysicalAddress.SetpostalCode(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -3851,14 +3851,14 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function TitemBody.ObjectRestKind : String; 
+Class Function TitemBody.ObjectRestKind : String;
 
 begin
   Result:='itemBody';
 end;
 
 
-Procedure TitemBody.SetcontentType(AIndex: Integer; const AValue: TbodyType); 
+Procedure TitemBody.SetcontentType(AIndex: Integer; const AValue: TbodyType);
 
 
 begin
@@ -3868,7 +3868,7 @@ begin
 end;
 
 
-Procedure TitemBody.Setcontent(AIndex: Integer; const AValue: string); 
+Procedure TitemBody.Setcontent(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -3883,14 +3883,14 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function Trecipient.ObjectRestKind : String; 
+Class Function Trecipient.ObjectRestKind : String;
 
 begin
   Result:='recipient';
 end;
 
 
-Procedure Trecipient.SetemailAddress(AIndex: Integer; const AValue: TemailAddress); 
+Procedure Trecipient.SetemailAddress(AIndex: Integer; const AValue: TemailAddress);
 
 
 begin
@@ -3905,14 +3905,14 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function TemailAddress.ObjectRestKind : String; 
+Class Function TemailAddress.ObjectRestKind : String;
 
 begin
   Result:='emailAddress';
 end;
 
 
-Procedure TemailAddress.Setname(AIndex: Integer; const AValue: string); 
+Procedure TemailAddress.Setname(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -3922,7 +3922,7 @@ begin
 end;
 
 
-Procedure TemailAddress.Setaddress(AIndex: Integer; const AValue: string); 
+Procedure TemailAddress.Setaddress(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -3937,14 +3937,14 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function TresponseStatus.ObjectRestKind : String; 
+Class Function TresponseStatus.ObjectRestKind : String;
 
 begin
   Result:='responseStatus';
 end;
 
 
-Procedure TresponseStatus.Setresponse(AIndex: Integer; const AValue: TresponseType); 
+Procedure TresponseStatus.Setresponse(AIndex: Integer; const AValue: TresponseType);
 
 
 begin
@@ -3954,7 +3954,7 @@ begin
 end;
 
 
-Procedure TresponseStatus.Settime(AIndex: Integer; const AValue: TDateTime); 
+Procedure TresponseStatus.Settime(AIndex: Integer; const AValue: TDateTime);
 
 
 begin
@@ -3969,14 +3969,14 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function TpatternedRecurrence.ObjectRestKind : String; 
+Class Function TpatternedRecurrence.ObjectRestKind : String;
 
 begin
   Result:='patternedRecurrence';
 end;
 
 
-Procedure TpatternedRecurrence.Setpattern(AIndex: Integer; const AValue: TrecurrencePattern); 
+Procedure TpatternedRecurrence.Setpattern(AIndex: Integer; const AValue: TrecurrencePattern);
 
 
 begin
@@ -3986,7 +3986,7 @@ begin
 end;
 
 
-Procedure TpatternedRecurrence.Setrange(AIndex: Integer; const AValue: TrecurrenceRange); 
+Procedure TpatternedRecurrence.Setrange(AIndex: Integer; const AValue: TrecurrenceRange);
 
 
 begin
@@ -4001,14 +4001,14 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function TrecurrencePattern.ObjectRestKind : String; 
+Class Function TrecurrencePattern.ObjectRestKind : String;
 
 begin
   Result:='recurrencePattern';
 end;
 
 
-Procedure TrecurrencePattern.Set_type(AIndex: Integer; const AValue: TrecurrencePatternType); 
+Procedure TrecurrencePattern.Set_type(AIndex: Integer; const AValue: TrecurrencePatternType);
 
 
 begin
@@ -4018,7 +4018,7 @@ begin
 end;
 
 
-Procedure TrecurrencePattern.Setinterval(AIndex: Integer; const AValue: TInt32); 
+Procedure TrecurrencePattern.Setinterval(AIndex: Integer; const AValue: TInt32);
 
 
 begin
@@ -4028,7 +4028,7 @@ begin
 end;
 
 
-Procedure TrecurrencePattern.Setmonth(AIndex: Integer; const AValue: TInt32); 
+Procedure TrecurrencePattern.Setmonth(AIndex: Integer; const AValue: TInt32);
 
 
 begin
@@ -4038,7 +4038,7 @@ begin
 end;
 
 
-Procedure TrecurrencePattern.SetdayOfMonth(AIndex: Integer; const AValue: TInt32); 
+Procedure TrecurrencePattern.SetdayOfMonth(AIndex: Integer; const AValue: TInt32);
 
 
 begin
@@ -4048,7 +4048,7 @@ begin
 end;
 
 
-Procedure TrecurrencePattern.SetdaysOfWeek(AIndex: Integer; const AValue: TdayOfWeekArray); 
+Procedure TrecurrencePattern.SetdaysOfWeek(AIndex: Integer; const AValue: TdayOfWeekArray);
 
 
 begin
@@ -4058,7 +4058,7 @@ begin
 end;
 
 
-Procedure TrecurrencePattern.SetfirstDayOfWeek(AIndex: Integer; const AValue: TdayOfWeek); 
+Procedure TrecurrencePattern.SetfirstDayOfWeek(AIndex: Integer; const AValue: TdayOfWeek);
 
 
 begin
@@ -4068,7 +4068,7 @@ begin
 end;
 
 
-Procedure TrecurrencePattern.Setindex(AIndex: Integer; const AValue: TweekIndex); 
+Procedure TrecurrencePattern.Setindex(AIndex: Integer; const AValue: TweekIndex);
 
 
 begin
@@ -4079,7 +4079,7 @@ end;
 
 {$IFDEF VER2_6}
 
-Procedure TrecurrencePattern.SetArrayLength(const AName: String; ALength: Longint); 
+Procedure TrecurrencePattern.SetArrayLength(const AName: String; ALength: Longint);
 
 begin
   Case aName of
@@ -4107,14 +4107,14 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function TrecurrenceRange.ObjectRestKind : String; 
+Class Function TrecurrenceRange.ObjectRestKind : String;
 
 begin
   Result:='recurrenceRange';
 end;
 
 
-Procedure TrecurrenceRange.Set_type(AIndex: Integer; const AValue: TrecurrenceRangeType); 
+Procedure TrecurrenceRange.Set_type(AIndex: Integer; const AValue: TrecurrenceRangeType);
 
 
 begin
@@ -4124,7 +4124,7 @@ begin
 end;
 
 
-Procedure TrecurrenceRange.SetstartDate(AIndex: Integer; const AValue: TDate); 
+Procedure TrecurrenceRange.SetstartDate(AIndex: Integer; const AValue: TDate);
 
 
 begin
@@ -4134,7 +4134,7 @@ begin
 end;
 
 
-Procedure TrecurrenceRange.SetendDate(AIndex: Integer; const AValue: TDate); 
+Procedure TrecurrenceRange.SetendDate(AIndex: Integer; const AValue: TDate);
 
 
 begin
@@ -4144,7 +4144,7 @@ begin
 end;
 
 
-Procedure TrecurrenceRange.SetrecurrenceTimeZone(AIndex: Integer; const AValue: string); 
+Procedure TrecurrenceRange.SetrecurrenceTimeZone(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -4154,7 +4154,7 @@ begin
 end;
 
 
-Procedure TrecurrenceRange.SetnumberOfOccurrences(AIndex: Integer; const AValue: TInt32); 
+Procedure TrecurrenceRange.SetnumberOfOccurrences(AIndex: Integer; const AValue: TInt32);
 
 
 begin
@@ -4180,14 +4180,14 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function Tattendee.ObjectRestKind : String; 
+Class Function Tattendee.ObjectRestKind : String;
 
 begin
   Result:='attendee';
 end;
 
 
-Procedure Tattendee.Setstatus(AIndex: Integer; const AValue: TresponseStatus); 
+Procedure Tattendee.Setstatus(AIndex: Integer; const AValue: TresponseStatus);
 
 
 begin
@@ -4197,7 +4197,7 @@ begin
 end;
 
 
-Procedure Tattendee.Set_type(AIndex: Integer; const AValue: TattendeeType); 
+Procedure Tattendee.Set_type(AIndex: Integer; const AValue: TattendeeType);
 
 
 begin
@@ -4223,14 +4223,14 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function TidentitySet.ObjectRestKind : String; 
+Class Function TidentitySet.ObjectRestKind : String;
 
 begin
   Result:='identitySet';
 end;
 
 
-Procedure TidentitySet.Setapplication(AIndex: Integer; const AValue: Tidentity); 
+Procedure TidentitySet.Setapplication(AIndex: Integer; const AValue: Tidentity);
 
 
 begin
@@ -4240,7 +4240,7 @@ begin
 end;
 
 
-Procedure TidentitySet.Setdevice(AIndex: Integer; const AValue: Tidentity); 
+Procedure TidentitySet.Setdevice(AIndex: Integer; const AValue: Tidentity);
 
 
 begin
@@ -4250,7 +4250,7 @@ begin
 end;
 
 
-Procedure TidentitySet.Setuser(AIndex: Integer; const AValue: Tidentity); 
+Procedure TidentitySet.Setuser(AIndex: Integer; const AValue: Tidentity);
 
 
 begin
@@ -4265,14 +4265,14 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function Tidentity.ObjectRestKind : String; 
+Class Function Tidentity.ObjectRestKind : String;
 
 begin
   Result:='identity';
 end;
 
 
-Procedure Tidentity.SetdisplayName(AIndex: Integer; const AValue: string); 
+Procedure Tidentity.SetdisplayName(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -4282,7 +4282,7 @@ begin
 end;
 
 
-Procedure Tidentity.Setid(AIndex: Integer; const AValue: string); 
+Procedure Tidentity.Setid(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -4297,14 +4297,14 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function Tquota.ObjectRestKind : String; 
+Class Function Tquota.ObjectRestKind : String;
 
 begin
   Result:='quota';
 end;
 
 
-Procedure Tquota.Setdeleted(AIndex: Integer; const AValue: int64); 
+Procedure Tquota.Setdeleted(AIndex: Integer; const AValue: int64);
 
 
 begin
@@ -4314,7 +4314,7 @@ begin
 end;
 
 
-Procedure Tquota.Setremaining(AIndex: Integer; const AValue: int64); 
+Procedure Tquota.Setremaining(AIndex: Integer; const AValue: int64);
 
 
 begin
@@ -4324,7 +4324,7 @@ begin
 end;
 
 
-Procedure Tquota.Setstate(AIndex: Integer; const AValue: string); 
+Procedure Tquota.Setstate(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -4334,7 +4334,7 @@ begin
 end;
 
 
-Procedure Tquota.Settotal(AIndex: Integer; const AValue: int64); 
+Procedure Tquota.Settotal(AIndex: Integer; const AValue: int64);
 
 
 begin
@@ -4344,7 +4344,7 @@ begin
 end;
 
 
-Procedure Tquota.Setused(AIndex: Integer; const AValue: int64); 
+Procedure Tquota.Setused(AIndex: Integer; const AValue: int64);
 
 
 begin
@@ -4359,14 +4359,14 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function TitemReference.ObjectRestKind : String; 
+Class Function TitemReference.ObjectRestKind : String;
 
 begin
   Result:='itemReference';
 end;
 
 
-Procedure TitemReference.SetdriveId(AIndex: Integer; const AValue: string); 
+Procedure TitemReference.SetdriveId(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -4376,7 +4376,7 @@ begin
 end;
 
 
-Procedure TitemReference.Setid(AIndex: Integer; const AValue: string); 
+Procedure TitemReference.Setid(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -4386,7 +4386,7 @@ begin
 end;
 
 
-Procedure TitemReference.Setpath(AIndex: Integer; const AValue: string); 
+Procedure TitemReference.Setpath(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -4401,14 +4401,14 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function Taudio.ObjectRestKind : String; 
+Class Function Taudio.ObjectRestKind : String;
 
 begin
   Result:='audio';
 end;
 
 
-Procedure Taudio.Setalbum(AIndex: Integer; const AValue: string); 
+Procedure Taudio.Setalbum(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -4418,7 +4418,7 @@ begin
 end;
 
 
-Procedure Taudio.SetalbumArtist(AIndex: Integer; const AValue: string); 
+Procedure Taudio.SetalbumArtist(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -4428,7 +4428,7 @@ begin
 end;
 
 
-Procedure Taudio.Setartist(AIndex: Integer; const AValue: string); 
+Procedure Taudio.Setartist(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -4438,7 +4438,7 @@ begin
 end;
 
 
-Procedure Taudio.Setbitrate(AIndex: Integer; const AValue: int64); 
+Procedure Taudio.Setbitrate(AIndex: Integer; const AValue: int64);
 
 
 begin
@@ -4448,7 +4448,7 @@ begin
 end;
 
 
-Procedure Taudio.Setcomposers(AIndex: Integer; const AValue: string); 
+Procedure Taudio.Setcomposers(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -4458,7 +4458,7 @@ begin
 end;
 
 
-Procedure Taudio.Setcopyright(AIndex: Integer; const AValue: string); 
+Procedure Taudio.Setcopyright(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -4468,7 +4468,7 @@ begin
 end;
 
 
-Procedure Taudio.Setdisc(AIndex: Integer; const AValue: TInt16); 
+Procedure Taudio.Setdisc(AIndex: Integer; const AValue: TInt16);
 
 
 begin
@@ -4478,7 +4478,7 @@ begin
 end;
 
 
-Procedure Taudio.SetdiscCount(AIndex: Integer; const AValue: TInt16); 
+Procedure Taudio.SetdiscCount(AIndex: Integer; const AValue: TInt16);
 
 
 begin
@@ -4488,7 +4488,7 @@ begin
 end;
 
 
-Procedure Taudio.Setduration(AIndex: Integer; const AValue: int64); 
+Procedure Taudio.Setduration(AIndex: Integer; const AValue: int64);
 
 
 begin
@@ -4498,7 +4498,7 @@ begin
 end;
 
 
-Procedure Taudio.Setgenre(AIndex: Integer; const AValue: string); 
+Procedure Taudio.Setgenre(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -4508,7 +4508,7 @@ begin
 end;
 
 
-Procedure Taudio.SethasDrm(AIndex: Integer; const AValue: boolean); 
+Procedure Taudio.SethasDrm(AIndex: Integer; const AValue: boolean);
 
 
 begin
@@ -4518,7 +4518,7 @@ begin
 end;
 
 
-Procedure Taudio.SetisVariableBitrate(AIndex: Integer; const AValue: boolean); 
+Procedure Taudio.SetisVariableBitrate(AIndex: Integer; const AValue: boolean);
 
 
 begin
@@ -4528,7 +4528,7 @@ begin
 end;
 
 
-Procedure Taudio.Settitle(AIndex: Integer; const AValue: string); 
+Procedure Taudio.Settitle(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -4538,7 +4538,7 @@ begin
 end;
 
 
-Procedure Taudio.Settrack(AIndex: Integer; const AValue: TInt32); 
+Procedure Taudio.Settrack(AIndex: Integer; const AValue: TInt32);
 
 
 begin
@@ -4548,7 +4548,7 @@ begin
 end;
 
 
-Procedure Taudio.SettrackCount(AIndex: Integer; const AValue: TInt32); 
+Procedure Taudio.SettrackCount(AIndex: Integer; const AValue: TInt32);
 
 
 begin
@@ -4558,7 +4558,7 @@ begin
 end;
 
 
-Procedure Taudio.Setyear(AIndex: Integer; const AValue: TInt32); 
+Procedure Taudio.Setyear(AIndex: Integer; const AValue: TInt32);
 
 
 begin
@@ -4573,14 +4573,14 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function Tdeleted.ObjectRestKind : String; 
+Class Function Tdeleted.ObjectRestKind : String;
 
 begin
   Result:='deleted';
 end;
 
 
-Procedure Tdeleted.Setstate(AIndex: Integer; const AValue: string); 
+Procedure Tdeleted.Setstate(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -4595,14 +4595,14 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function T_file.ObjectRestKind : String; 
+Class Function T_file.ObjectRestKind : String;
 
 begin
   Result:='file';
 end;
 
 
-Procedure T_file.Sethashes(AIndex: Integer; const AValue: Thashes); 
+Procedure T_file.Sethashes(AIndex: Integer; const AValue: Thashes);
 
 
 begin
@@ -4612,7 +4612,7 @@ begin
 end;
 
 
-Procedure T_file.SetmimeType(AIndex: Integer; const AValue: string); 
+Procedure T_file.SetmimeType(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -4627,14 +4627,14 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function Thashes.ObjectRestKind : String; 
+Class Function Thashes.ObjectRestKind : String;
 
 begin
   Result:='hashes';
 end;
 
 
-Procedure Thashes.Setcrc32Hash(AIndex: Integer; const AValue: string); 
+Procedure Thashes.Setcrc32Hash(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -4644,7 +4644,7 @@ begin
 end;
 
 
-Procedure Thashes.Setsha1Hash(AIndex: Integer; const AValue: string); 
+Procedure Thashes.Setsha1Hash(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -4659,14 +4659,14 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function TfileSystemInfo.ObjectRestKind : String; 
+Class Function TfileSystemInfo.ObjectRestKind : String;
 
 begin
   Result:='fileSystemInfo';
 end;
 
 
-Procedure TfileSystemInfo.SetcreatedDateTime(AIndex: Integer; const AValue: TDateTime); 
+Procedure TfileSystemInfo.SetcreatedDateTime(AIndex: Integer; const AValue: TDateTime);
 
 
 begin
@@ -4676,7 +4676,7 @@ begin
 end;
 
 
-Procedure TfileSystemInfo.SetlastModifiedDateTime(AIndex: Integer; const AValue: TDateTime); 
+Procedure TfileSystemInfo.SetlastModifiedDateTime(AIndex: Integer; const AValue: TDateTime);
 
 
 begin
@@ -4691,14 +4691,14 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function Tfolder.ObjectRestKind : String; 
+Class Function Tfolder.ObjectRestKind : String;
 
 begin
   Result:='folder';
 end;
 
 
-Procedure Tfolder.SetchildCount(AIndex: Integer; const AValue: TInt32); 
+Procedure Tfolder.SetchildCount(AIndex: Integer; const AValue: TInt32);
 
 
 begin
@@ -4713,14 +4713,14 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function Timage.ObjectRestKind : String; 
+Class Function Timage.ObjectRestKind : String;
 
 begin
   Result:='image';
 end;
 
 
-Procedure Timage.Setheight(AIndex: Integer; const AValue: TInt32); 
+Procedure Timage.Setheight(AIndex: Integer; const AValue: TInt32);
 
 
 begin
@@ -4730,7 +4730,7 @@ begin
 end;
 
 
-Procedure Timage.Setwidth(AIndex: Integer; const AValue: TInt32); 
+Procedure Timage.Setwidth(AIndex: Integer; const AValue: TInt32);
 
 
 begin
@@ -4745,14 +4745,14 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function TgeoCoordinates.ObjectRestKind : String; 
+Class Function TgeoCoordinates.ObjectRestKind : String;
 
 begin
   Result:='geoCoordinates';
 end;
 
 
-Procedure TgeoCoordinates.Setaltitude(AIndex: Integer; const AValue: Double); 
+Procedure TgeoCoordinates.Setaltitude(AIndex: Integer; const AValue: Double);
 
 
 begin
@@ -4762,7 +4762,7 @@ begin
 end;
 
 
-Procedure TgeoCoordinates.Setlatitude(AIndex: Integer; const AValue: Double); 
+Procedure TgeoCoordinates.Setlatitude(AIndex: Integer; const AValue: Double);
 
 
 begin
@@ -4772,7 +4772,7 @@ begin
 end;
 
 
-Procedure TgeoCoordinates.Setlongitude(AIndex: Integer; const AValue: Double); 
+Procedure TgeoCoordinates.Setlongitude(AIndex: Integer; const AValue: Double);
 
 
 begin
@@ -4787,14 +4787,14 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function Tphoto.ObjectRestKind : String; 
+Class Function Tphoto.ObjectRestKind : String;
 
 begin
   Result:='photo';
 end;
 
 
-Procedure Tphoto.SetcameraMake(AIndex: Integer; const AValue: string); 
+Procedure Tphoto.SetcameraMake(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -4804,7 +4804,7 @@ begin
 end;
 
 
-Procedure Tphoto.SetcameraModel(AIndex: Integer; const AValue: string); 
+Procedure Tphoto.SetcameraModel(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -4814,7 +4814,7 @@ begin
 end;
 
 
-Procedure Tphoto.SetexposureDenominator(AIndex: Integer; const AValue: Double); 
+Procedure Tphoto.SetexposureDenominator(AIndex: Integer; const AValue: Double);
 
 
 begin
@@ -4824,7 +4824,7 @@ begin
 end;
 
 
-Procedure Tphoto.SetexposureNumerator(AIndex: Integer; const AValue: Double); 
+Procedure Tphoto.SetexposureNumerator(AIndex: Integer; const AValue: Double);
 
 
 begin
@@ -4834,7 +4834,7 @@ begin
 end;
 
 
-Procedure Tphoto.SetfocalLength(AIndex: Integer; const AValue: Double); 
+Procedure Tphoto.SetfocalLength(AIndex: Integer; const AValue: Double);
 
 
 begin
@@ -4844,7 +4844,7 @@ begin
 end;
 
 
-Procedure Tphoto.SetfNumber(AIndex: Integer; const AValue: Double); 
+Procedure Tphoto.SetfNumber(AIndex: Integer; const AValue: Double);
 
 
 begin
@@ -4854,7 +4854,7 @@ begin
 end;
 
 
-Procedure Tphoto.SettakenDateTime(AIndex: Integer; const AValue: TDateTime); 
+Procedure Tphoto.SettakenDateTime(AIndex: Integer; const AValue: TDateTime);
 
 
 begin
@@ -4864,7 +4864,7 @@ begin
 end;
 
 
-Procedure Tphoto.Setiso(AIndex: Integer; const AValue: TInt32); 
+Procedure Tphoto.Setiso(AIndex: Integer; const AValue: TInt32);
 
 
 begin
@@ -4879,14 +4879,14 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function TremoteItem.ObjectRestKind : String; 
+Class Function TremoteItem.ObjectRestKind : String;
 
 begin
   Result:='remoteItem';
 end;
 
 
-Procedure TremoteItem.Set_file(AIndex: Integer; const AValue: T_file); 
+Procedure TremoteItem.Set_file(AIndex: Integer; const AValue: T_file);
 
 
 begin
@@ -4896,7 +4896,7 @@ begin
 end;
 
 
-Procedure TremoteItem.SetfileSystemInfo(AIndex: Integer; const AValue: TfileSystemInfo); 
+Procedure TremoteItem.SetfileSystemInfo(AIndex: Integer; const AValue: TfileSystemInfo);
 
 
 begin
@@ -4906,7 +4906,7 @@ begin
 end;
 
 
-Procedure TremoteItem.Setfolder(AIndex: Integer; const AValue: Tfolder); 
+Procedure TremoteItem.Setfolder(AIndex: Integer; const AValue: Tfolder);
 
 
 begin
@@ -4916,7 +4916,7 @@ begin
 end;
 
 
-Procedure TremoteItem.Setid(AIndex: Integer; const AValue: string); 
+Procedure TremoteItem.Setid(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -4926,7 +4926,7 @@ begin
 end;
 
 
-Procedure TremoteItem.Setname(AIndex: Integer; const AValue: string); 
+Procedure TremoteItem.Setname(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -4936,7 +4936,7 @@ begin
 end;
 
 
-Procedure TremoteItem.SetparentReference(AIndex: Integer; const AValue: TitemReference); 
+Procedure TremoteItem.SetparentReference(AIndex: Integer; const AValue: TitemReference);
 
 
 begin
@@ -4946,7 +4946,7 @@ begin
 end;
 
 
-Procedure TremoteItem.Setsize(AIndex: Integer; const AValue: int64); 
+Procedure TremoteItem.Setsize(AIndex: Integer; const AValue: int64);
 
 
 begin
@@ -4972,14 +4972,14 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function TsearchResult.ObjectRestKind : String; 
+Class Function TsearchResult.ObjectRestKind : String;
 
 begin
   Result:='searchResult';
 end;
 
 
-Procedure TsearchResult.SetonClickTelemetryUrl(AIndex: Integer; const AValue: string); 
+Procedure TsearchResult.SetonClickTelemetryUrl(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -4994,14 +4994,14 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function Tshared.ObjectRestKind : String; 
+Class Function Tshared.ObjectRestKind : String;
 
 begin
   Result:='shared';
 end;
 
 
-Procedure Tshared.Setowner(AIndex: Integer; const AValue: TidentitySet); 
+Procedure Tshared.Setowner(AIndex: Integer; const AValue: TidentitySet);
 
 
 begin
@@ -5011,7 +5011,7 @@ begin
 end;
 
 
-Procedure Tshared.Setscope(AIndex: Integer; const AValue: string); 
+Procedure Tshared.Setscope(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -5026,14 +5026,14 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function TspecialFolder.ObjectRestKind : String; 
+Class Function TspecialFolder.ObjectRestKind : String;
 
 begin
   Result:='specialFolder';
 end;
 
 
-Procedure TspecialFolder.Setname(AIndex: Integer; const AValue: string); 
+Procedure TspecialFolder.Setname(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -5048,14 +5048,14 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function Tvideo.ObjectRestKind : String; 
+Class Function Tvideo.ObjectRestKind : String;
 
 begin
   Result:='video';
 end;
 
 
-Procedure Tvideo.Setbitrate(AIndex: Integer; const AValue: TInt32); 
+Procedure Tvideo.Setbitrate(AIndex: Integer; const AValue: TInt32);
 
 
 begin
@@ -5065,7 +5065,7 @@ begin
 end;
 
 
-Procedure Tvideo.Setduration(AIndex: Integer; const AValue: int64); 
+Procedure Tvideo.Setduration(AIndex: Integer; const AValue: int64);
 
 
 begin
@@ -5075,7 +5075,7 @@ begin
 end;
 
 
-Procedure Tvideo.Setheight(AIndex: Integer; const AValue: TInt32); 
+Procedure Tvideo.Setheight(AIndex: Integer; const AValue: TInt32);
 
 
 begin
@@ -5085,7 +5085,7 @@ begin
 end;
 
 
-Procedure Tvideo.Setwidth(AIndex: Integer; const AValue: TInt32); 
+Procedure Tvideo.Setwidth(AIndex: Integer; const AValue: TInt32);
 
 
 begin
@@ -5100,14 +5100,14 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function Tpackage.ObjectRestKind : String; 
+Class Function Tpackage.ObjectRestKind : String;
 
 begin
   Result:='package';
 end;
 
 
-Procedure Tpackage.Set_type(AIndex: Integer; const AValue: string); 
+Procedure Tpackage.Set_type(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -5133,14 +5133,14 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function TsharingInvitation.ObjectRestKind : String; 
+Class Function TsharingInvitation.ObjectRestKind : String;
 
 begin
   Result:='sharingInvitation';
 end;
 
 
-Procedure TsharingInvitation.Setemail(AIndex: Integer; const AValue: string); 
+Procedure TsharingInvitation.Setemail(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -5150,7 +5150,7 @@ begin
 end;
 
 
-Procedure TsharingInvitation.SetinvitedBy(AIndex: Integer; const AValue: TidentitySet); 
+Procedure TsharingInvitation.SetinvitedBy(AIndex: Integer; const AValue: TidentitySet);
 
 
 begin
@@ -5160,7 +5160,7 @@ begin
 end;
 
 
-Procedure TsharingInvitation.SetredeemedBy(AIndex: Integer; const AValue: string); 
+Procedure TsharingInvitation.SetredeemedBy(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -5170,7 +5170,7 @@ begin
 end;
 
 
-Procedure TsharingInvitation.SetsignInRequired(AIndex: Integer; const AValue: boolean); 
+Procedure TsharingInvitation.SetsignInRequired(AIndex: Integer; const AValue: boolean);
 
 
 begin
@@ -5185,14 +5185,14 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function TsharingLink.ObjectRestKind : String; 
+Class Function TsharingLink.ObjectRestKind : String;
 
 begin
   Result:='sharingLink';
 end;
 
 
-Procedure TsharingLink.Setapplication(AIndex: Integer; const AValue: Tidentity); 
+Procedure TsharingLink.Setapplication(AIndex: Integer; const AValue: Tidentity);
 
 
 begin
@@ -5202,7 +5202,7 @@ begin
 end;
 
 
-Procedure TsharingLink.Set_type(AIndex: Integer; const AValue: string); 
+Procedure TsharingLink.Set_type(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -5212,7 +5212,7 @@ begin
 end;
 
 
-Procedure TsharingLink.SetwebUrl(AIndex: Integer; const AValue: string); 
+Procedure TsharingLink.SetwebUrl(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -5238,14 +5238,14 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function Tthumbnail.ObjectRestKind : String; 
+Class Function Tthumbnail.ObjectRestKind : String;
 
 begin
   Result:='thumbnail';
 end;
 
 
-Procedure Tthumbnail.Setcontent(AIndex: Integer; const AValue: TStream); 
+Procedure Tthumbnail.Setcontent(AIndex: Integer; const AValue: TStream);
 
 
 begin
@@ -5255,7 +5255,7 @@ begin
 end;
 
 
-Procedure Tthumbnail.Setheight(AIndex: Integer; const AValue: TInt32); 
+Procedure Tthumbnail.Setheight(AIndex: Integer; const AValue: TInt32);
 
 
 begin
@@ -5265,7 +5265,7 @@ begin
 end;
 
 
-Procedure Tthumbnail.Seturl(AIndex: Integer; const AValue: string); 
+Procedure Tthumbnail.Seturl(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -5275,7 +5275,7 @@ begin
 end;
 
 
-Procedure Tthumbnail.Setwidth(AIndex: Integer; const AValue: TInt32); 
+Procedure Tthumbnail.Setwidth(AIndex: Integer; const AValue: TInt32);
 
 
 begin
@@ -5290,14 +5290,14 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function Tentity.ObjectRestKind : String; 
+Class Function Tentity.ObjectRestKind : String;
 
 begin
   Result:='entity';
 end;
 
 
-Procedure Tentity.Setid(AIndex: Integer; const AValue: string); 
+Procedure Tentity.Setid(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -5319,7 +5319,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Function TdirectoryObject.checkMemberGroups(AService: TODataService; groupIds: TStringArray) : TStringArray; 
+Function TdirectoryObject.checkMemberGroups(AService: TODataService; groupIds: TStringArray) : TStringArray;
 
 Var
   _JSON : TJSONObject;
@@ -5346,7 +5346,7 @@ begin
 end;
 
 
-Function TdirectoryObject.getMemberGroups(AService: TODataService; securityEnabledOnly: boolean) : TStringArray; 
+Function TdirectoryObject.getMemberGroups(AService: TODataService; securityEnabledOnly: boolean) : TStringArray;
 
 Var
   _JSON : TJSONObject;
@@ -5373,7 +5373,7 @@ begin
 end;
 
 
-Function TdirectoryObject.getMemberObjects(AService: TODataService; securityEnabledOnly: boolean) : TStringArray; 
+Function TdirectoryObject.getMemberObjects(AService: TODataService; securityEnabledOnly: boolean) : TStringArray;
 
 Var
   _JSON : TJSONObject;
@@ -5400,7 +5400,7 @@ begin
 end;
 
 
-Class Function TdirectoryObject.ObjectRestKind : String; 
+Class Function TdirectoryObject.ObjectRestKind : String;
 
 begin
   Result:='directoryObject';
@@ -5412,14 +5412,14 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function Tdevice.ObjectRestKind : String; 
+Class Function Tdevice.ObjectRestKind : String;
 
 begin
   Result:='device';
 end;
 
 
-Procedure Tdevice.SetaccountEnabled(AIndex: Integer; const AValue: boolean); 
+Procedure Tdevice.SetaccountEnabled(AIndex: Integer; const AValue: boolean);
 
 
 begin
@@ -5429,7 +5429,7 @@ begin
 end;
 
 
-Procedure Tdevice.SetalternativeSecurityIds(AIndex: Integer; const AValue: TalternativeSecurityIdArray); 
+Procedure Tdevice.SetalternativeSecurityIds(AIndex: Integer; const AValue: TalternativeSecurityIdArray);
 
 
 begin
@@ -5439,7 +5439,7 @@ begin
 end;
 
 
-Procedure Tdevice.SetapproximateLastSignInDateTime(AIndex: Integer; const AValue: TDateTime); 
+Procedure Tdevice.SetapproximateLastSignInDateTime(AIndex: Integer; const AValue: TDateTime);
 
 
 begin
@@ -5449,7 +5449,7 @@ begin
 end;
 
 
-Procedure Tdevice.SetdeviceId(AIndex: Integer; const AValue: string); 
+Procedure Tdevice.SetdeviceId(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -5459,7 +5459,7 @@ begin
 end;
 
 
-Procedure Tdevice.SetdeviceMetadata(AIndex: Integer; const AValue: string); 
+Procedure Tdevice.SetdeviceMetadata(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -5469,7 +5469,7 @@ begin
 end;
 
 
-Procedure Tdevice.SetdeviceVersion(AIndex: Integer; const AValue: TInt32); 
+Procedure Tdevice.SetdeviceVersion(AIndex: Integer; const AValue: TInt32);
 
 
 begin
@@ -5479,7 +5479,7 @@ begin
 end;
 
 
-Procedure Tdevice.SetdisplayName(AIndex: Integer; const AValue: string); 
+Procedure Tdevice.SetdisplayName(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -5489,7 +5489,7 @@ begin
 end;
 
 
-Procedure Tdevice.SetisCompliant(AIndex: Integer; const AValue: boolean); 
+Procedure Tdevice.SetisCompliant(AIndex: Integer; const AValue: boolean);
 
 
 begin
@@ -5499,7 +5499,7 @@ begin
 end;
 
 
-Procedure Tdevice.SetisManaged(AIndex: Integer; const AValue: boolean); 
+Procedure Tdevice.SetisManaged(AIndex: Integer; const AValue: boolean);
 
 
 begin
@@ -5509,7 +5509,7 @@ begin
 end;
 
 
-Procedure Tdevice.SetonPremisesLastSyncDateTime(AIndex: Integer; const AValue: TDateTime); 
+Procedure Tdevice.SetonPremisesLastSyncDateTime(AIndex: Integer; const AValue: TDateTime);
 
 
 begin
@@ -5519,7 +5519,7 @@ begin
 end;
 
 
-Procedure Tdevice.SetonPremisesSyncEnabled(AIndex: Integer; const AValue: boolean); 
+Procedure Tdevice.SetonPremisesSyncEnabled(AIndex: Integer; const AValue: boolean);
 
 
 begin
@@ -5529,7 +5529,7 @@ begin
 end;
 
 
-Procedure Tdevice.SetoperatingSystem(AIndex: Integer; const AValue: string); 
+Procedure Tdevice.SetoperatingSystem(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -5539,7 +5539,7 @@ begin
 end;
 
 
-Procedure Tdevice.SetoperatingSystemVersion(AIndex: Integer; const AValue: string); 
+Procedure Tdevice.SetoperatingSystemVersion(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -5549,7 +5549,7 @@ begin
 end;
 
 
-Procedure Tdevice.SetphysicalIds(AIndex: Integer; const AValue: TStringArray); 
+Procedure Tdevice.SetphysicalIds(AIndex: Integer; const AValue: TStringArray);
 
 
 begin
@@ -5559,7 +5559,7 @@ begin
 end;
 
 
-Procedure Tdevice.SettrustType(AIndex: Integer; const AValue: string); 
+Procedure Tdevice.SettrustType(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -5570,7 +5570,7 @@ end;
 
 {$IFDEF VER2_6}
 
-Procedure Tdevice.SetArrayLength(const AName: String; ALength: Longint); 
+Procedure Tdevice.SetArrayLength(const AName: String; ALength: Longint);
 
 begin
   Case aName of
@@ -5583,7 +5583,7 @@ end;
 {$ENDIF VER2_6}
 
 
-Function Tdevice.registeredOwners(AService: TODataService) : TdirectoryObjectsEntitySet; 
+Function Tdevice.registeredOwners(AService: TODataService) : TdirectoryObjectsEntitySet;
 
 
 begin
@@ -5591,7 +5591,7 @@ begin
 end;
 
 
-Function Tdevice.registeredUsers(AService: TODataService) : TdirectoryObjectsEntitySet; 
+Function Tdevice.registeredUsers(AService: TODataService) : TdirectoryObjectsEntitySet;
 
 
 begin
@@ -5604,14 +5604,14 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function TdirectoryRole.ObjectRestKind : String; 
+Class Function TdirectoryRole.ObjectRestKind : String;
 
 begin
   Result:='directoryRole';
 end;
 
 
-Procedure TdirectoryRole.Setdescription(AIndex: Integer; const AValue: string); 
+Procedure TdirectoryRole.Setdescription(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -5621,7 +5621,7 @@ begin
 end;
 
 
-Procedure TdirectoryRole.SetdisplayName(AIndex: Integer; const AValue: string); 
+Procedure TdirectoryRole.SetdisplayName(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -5631,7 +5631,7 @@ begin
 end;
 
 
-Procedure TdirectoryRole.SetroleTemplateId(AIndex: Integer; const AValue: string); 
+Procedure TdirectoryRole.SetroleTemplateId(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -5641,7 +5641,7 @@ begin
 end;
 
 
-Function TdirectoryRole.members(AService: TODataService) : TdirectoryObjectsEntitySet; 
+Function TdirectoryRole.members(AService: TODataService) : TdirectoryObjectsEntitySet;
 
 
 begin
@@ -5654,14 +5654,14 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function TdirectoryRoleTemplate.ObjectRestKind : String; 
+Class Function TdirectoryRoleTemplate.ObjectRestKind : String;
 
 begin
   Result:='directoryRoleTemplate';
 end;
 
 
-Procedure TdirectoryRoleTemplate.Setdescription(AIndex: Integer; const AValue: string); 
+Procedure TdirectoryRoleTemplate.Setdescription(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -5671,7 +5671,7 @@ begin
 end;
 
 
-Procedure TdirectoryRoleTemplate.SetdisplayName(AIndex: Integer; const AValue: string); 
+Procedure TdirectoryRoleTemplate.SetdisplayName(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -5686,7 +5686,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure Tgroup.subscribeByMail(AService: TODataService); 
+Procedure Tgroup.subscribeByMail(AService: TODataService);
 
 Var
   _data : String;
@@ -5698,7 +5698,7 @@ begin
 end;
 
 
-Procedure Tgroup.unsubscribeByMail(AService: TODataService); 
+Procedure Tgroup.unsubscribeByMail(AService: TODataService);
 
 Var
   _data : String;
@@ -5710,7 +5710,7 @@ begin
 end;
 
 
-Procedure Tgroup.addFavorite(AService: TODataService); 
+Procedure Tgroup.addFavorite(AService: TODataService);
 
 Var
   _data : String;
@@ -5722,7 +5722,7 @@ begin
 end;
 
 
-Procedure Tgroup.removeFavorite(AService: TODataService); 
+Procedure Tgroup.removeFavorite(AService: TODataService);
 
 Var
   _data : String;
@@ -5734,7 +5734,7 @@ begin
 end;
 
 
-Procedure Tgroup.resetUnseenCount(AService: TODataService); 
+Procedure Tgroup.resetUnseenCount(AService: TODataService);
 
 Var
   _data : String;
@@ -5746,14 +5746,14 @@ begin
 end;
 
 
-Class Function Tgroup.ObjectRestKind : String; 
+Class Function Tgroup.ObjectRestKind : String;
 
 begin
   Result:='group';
 end;
 
 
-Procedure Tgroup.Setdescription(AIndex: Integer; const AValue: string); 
+Procedure Tgroup.Setdescription(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -5763,7 +5763,7 @@ begin
 end;
 
 
-Procedure Tgroup.SetdisplayName(AIndex: Integer; const AValue: string); 
+Procedure Tgroup.SetdisplayName(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -5773,7 +5773,7 @@ begin
 end;
 
 
-Procedure Tgroup.SetgroupTypes(AIndex: Integer; const AValue: TStringArray); 
+Procedure Tgroup.SetgroupTypes(AIndex: Integer; const AValue: TStringArray);
 
 
 begin
@@ -5783,7 +5783,7 @@ begin
 end;
 
 
-Procedure Tgroup.Setmail(AIndex: Integer; const AValue: string); 
+Procedure Tgroup.Setmail(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -5793,7 +5793,7 @@ begin
 end;
 
 
-Procedure Tgroup.SetmailEnabled(AIndex: Integer; const AValue: boolean); 
+Procedure Tgroup.SetmailEnabled(AIndex: Integer; const AValue: boolean);
 
 
 begin
@@ -5803,7 +5803,7 @@ begin
 end;
 
 
-Procedure Tgroup.SetmailNickname(AIndex: Integer; const AValue: string); 
+Procedure Tgroup.SetmailNickname(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -5813,7 +5813,7 @@ begin
 end;
 
 
-Procedure Tgroup.SetonPremisesLastSyncDateTime(AIndex: Integer; const AValue: TDateTime); 
+Procedure Tgroup.SetonPremisesLastSyncDateTime(AIndex: Integer; const AValue: TDateTime);
 
 
 begin
@@ -5823,7 +5823,7 @@ begin
 end;
 
 
-Procedure Tgroup.SetonPremisesSecurityIdentifier(AIndex: Integer; const AValue: string); 
+Procedure Tgroup.SetonPremisesSecurityIdentifier(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -5833,7 +5833,7 @@ begin
 end;
 
 
-Procedure Tgroup.SetonPremisesSyncEnabled(AIndex: Integer; const AValue: boolean); 
+Procedure Tgroup.SetonPremisesSyncEnabled(AIndex: Integer; const AValue: boolean);
 
 
 begin
@@ -5843,7 +5843,7 @@ begin
 end;
 
 
-Procedure Tgroup.SetproxyAddresses(AIndex: Integer; const AValue: TStringArray); 
+Procedure Tgroup.SetproxyAddresses(AIndex: Integer; const AValue: TStringArray);
 
 
 begin
@@ -5853,7 +5853,7 @@ begin
 end;
 
 
-Procedure Tgroup.SetsecurityEnabled(AIndex: Integer; const AValue: boolean); 
+Procedure Tgroup.SetsecurityEnabled(AIndex: Integer; const AValue: boolean);
 
 
 begin
@@ -5863,7 +5863,7 @@ begin
 end;
 
 
-Procedure Tgroup.Setvisibility(AIndex: Integer; const AValue: string); 
+Procedure Tgroup.Setvisibility(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -5873,7 +5873,7 @@ begin
 end;
 
 
-Procedure Tgroup.SetallowExternalSenders(AIndex: Integer; const AValue: boolean); 
+Procedure Tgroup.SetallowExternalSenders(AIndex: Integer; const AValue: boolean);
 
 
 begin
@@ -5883,7 +5883,7 @@ begin
 end;
 
 
-Procedure Tgroup.SetautoSubscribeNewMembers(AIndex: Integer; const AValue: boolean); 
+Procedure Tgroup.SetautoSubscribeNewMembers(AIndex: Integer; const AValue: boolean);
 
 
 begin
@@ -5893,7 +5893,7 @@ begin
 end;
 
 
-Procedure Tgroup.SetisSubscribedByMail(AIndex: Integer; const AValue: boolean); 
+Procedure Tgroup.SetisSubscribedByMail(AIndex: Integer; const AValue: boolean);
 
 
 begin
@@ -5903,7 +5903,7 @@ begin
 end;
 
 
-Procedure Tgroup.SetunseenCount(AIndex: Integer; const AValue: TInt32); 
+Procedure Tgroup.SetunseenCount(AIndex: Integer; const AValue: TInt32);
 
 
 begin
@@ -5914,7 +5914,7 @@ end;
 
 {$IFDEF VER2_6}
 
-Procedure Tgroup.SetArrayLength(const AName: String; ALength: Longint); 
+Procedure Tgroup.SetArrayLength(const AName: String; ALength: Longint);
 
 begin
   Case aName of
@@ -5927,7 +5927,7 @@ end;
 {$ENDIF VER2_6}
 
 
-Function Tgroup.members(AService: TODataService) : TdirectoryObjectsEntitySet; 
+Function Tgroup.members(AService: TODataService) : TdirectoryObjectsEntitySet;
 
 
 begin
@@ -5935,7 +5935,7 @@ begin
 end;
 
 
-Function Tgroup.memberOf(AService: TODataService) : TdirectoryObjectsEntitySet; 
+Function Tgroup.memberOf(AService: TODataService) : TdirectoryObjectsEntitySet;
 
 
 begin
@@ -5943,7 +5943,7 @@ begin
 end;
 
 
-Function Tgroup.createdOnBehalfOf(AService: TODataService) : TdirectoryObject; 
+Function Tgroup.createdOnBehalfOf(AService: TODataService) : TdirectoryObject;
 
 
 begin
@@ -5951,7 +5951,7 @@ begin
 end;
 
 
-Function Tgroup.owners(AService: TODataService) : TdirectoryObjectsEntitySet; 
+Function Tgroup.owners(AService: TODataService) : TdirectoryObjectsEntitySet;
 
 
 begin
@@ -5959,7 +5959,7 @@ begin
 end;
 
 
-Function Tgroup.threads(AService: TODataService) : TconversationThreadImplicitEntitySet; 
+Function Tgroup.threads(AService: TODataService) : TconversationThreadImplicitEntitySet;
 
 
 begin
@@ -5967,7 +5967,7 @@ begin
 end;
 
 
-Function Tgroup.calendar(AService: TODataService) : Tcalendar; 
+Function Tgroup.calendar(AService: TODataService) : Tcalendar;
 
 
 begin
@@ -5975,7 +5975,7 @@ begin
 end;
 
 
-Function Tgroup.calendarView(AService: TODataService) : TeventImplicitEntitySet; 
+Function Tgroup.calendarView(AService: TODataService) : TeventImplicitEntitySet;
 
 
 begin
@@ -5983,7 +5983,7 @@ begin
 end;
 
 
-Function Tgroup.events(AService: TODataService) : TeventImplicitEntitySet; 
+Function Tgroup.events(AService: TODataService) : TeventImplicitEntitySet;
 
 
 begin
@@ -5991,7 +5991,7 @@ begin
 end;
 
 
-Function Tgroup.conversations(AService: TODataService) : TconversationImplicitEntitySet; 
+Function Tgroup.conversations(AService: TODataService) : TconversationImplicitEntitySet;
 
 
 begin
@@ -5999,7 +5999,7 @@ begin
 end;
 
 
-Function Tgroup.photo(AService: TODataService) : TprofilePhoto; 
+Function Tgroup.photo(AService: TODataService) : TprofilePhoto;
 
 
 begin
@@ -6007,7 +6007,7 @@ begin
 end;
 
 
-Function Tgroup.acceptedSenders(AService: TODataService) : TdirectoryObjectsEntitySet; 
+Function Tgroup.acceptedSenders(AService: TODataService) : TdirectoryObjectsEntitySet;
 
 
 begin
@@ -6015,7 +6015,7 @@ begin
 end;
 
 
-Function Tgroup.rejectedSenders(AService: TODataService) : TdirectoryObjectsEntitySet; 
+Function Tgroup.rejectedSenders(AService: TODataService) : TdirectoryObjectsEntitySet;
 
 
 begin
@@ -6023,7 +6023,7 @@ begin
 end;
 
 
-Function Tgroup.drive(AService: TODataService) : Tdrive; 
+Function Tgroup.drive(AService: TODataService) : Tdrive;
 
 
 begin
@@ -6036,7 +6036,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TconversationThread.reply(AService: TODataService; _Post: Tpost); 
+Procedure TconversationThread.reply(AService: TODataService; _Post: Tpost);
 
 Var
   _JSON : TJSONObject;
@@ -6055,14 +6055,14 @@ begin
 end;
 
 
-Class Function TconversationThread.ObjectRestKind : String; 
+Class Function TconversationThread.ObjectRestKind : String;
 
 begin
   Result:='conversationThread';
 end;
 
 
-Procedure TconversationThread.SettoRecipients(AIndex: Integer; const AValue: TrecipientArray); 
+Procedure TconversationThread.SettoRecipients(AIndex: Integer; const AValue: TrecipientArray);
 
 
 begin
@@ -6072,7 +6072,7 @@ begin
 end;
 
 
-Procedure TconversationThread.Settopic(AIndex: Integer; const AValue: string); 
+Procedure TconversationThread.Settopic(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -6082,7 +6082,7 @@ begin
 end;
 
 
-Procedure TconversationThread.SethasAttachments(AIndex: Integer; const AValue: boolean); 
+Procedure TconversationThread.SethasAttachments(AIndex: Integer; const AValue: boolean);
 
 
 begin
@@ -6092,7 +6092,7 @@ begin
 end;
 
 
-Procedure TconversationThread.SetlastDeliveredDateTime(AIndex: Integer; const AValue: TDateTime); 
+Procedure TconversationThread.SetlastDeliveredDateTime(AIndex: Integer; const AValue: TDateTime);
 
 
 begin
@@ -6102,7 +6102,7 @@ begin
 end;
 
 
-Procedure TconversationThread.SetuniqueSenders(AIndex: Integer; const AValue: TStringArray); 
+Procedure TconversationThread.SetuniqueSenders(AIndex: Integer; const AValue: TStringArray);
 
 
 begin
@@ -6112,7 +6112,7 @@ begin
 end;
 
 
-Procedure TconversationThread.SetccRecipients(AIndex: Integer; const AValue: TrecipientArray); 
+Procedure TconversationThread.SetccRecipients(AIndex: Integer; const AValue: TrecipientArray);
 
 
 begin
@@ -6122,7 +6122,7 @@ begin
 end;
 
 
-Procedure TconversationThread.Setpreview(AIndex: Integer; const AValue: string); 
+Procedure TconversationThread.Setpreview(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -6132,7 +6132,7 @@ begin
 end;
 
 
-Procedure TconversationThread.SetisLocked(AIndex: Integer; const AValue: boolean); 
+Procedure TconversationThread.SetisLocked(AIndex: Integer; const AValue: boolean);
 
 
 begin
@@ -6143,7 +6143,7 @@ end;
 
 {$IFDEF VER2_6}
 
-Procedure TconversationThread.SetArrayLength(const AName: String; ALength: Longint); 
+Procedure TconversationThread.SetArrayLength(const AName: String; ALength: Longint);
 
 begin
   Case aName of
@@ -6157,7 +6157,7 @@ end;
 {$ENDIF VER2_6}
 
 
-Function TconversationThread.posts(AService: TODataService) : TpostImplicitEntitySet; 
+Function TconversationThread.posts(AService: TODataService) : TpostImplicitEntitySet;
 
 
 begin
@@ -6170,14 +6170,14 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function Tcalendar.ObjectRestKind : String; 
+Class Function Tcalendar.ObjectRestKind : String;
 
 begin
   Result:='calendar';
 end;
 
 
-Procedure Tcalendar.Setname(AIndex: Integer; const AValue: string); 
+Procedure Tcalendar.Setname(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -6187,7 +6187,7 @@ begin
 end;
 
 
-Procedure Tcalendar.Setcolor(AIndex: Integer; const AValue: TcalendarColor); 
+Procedure Tcalendar.Setcolor(AIndex: Integer; const AValue: TcalendarColor);
 
 
 begin
@@ -6197,7 +6197,7 @@ begin
 end;
 
 
-Procedure Tcalendar.SetchangeKey(AIndex: Integer; const AValue: string); 
+Procedure Tcalendar.SetchangeKey(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -6207,7 +6207,7 @@ begin
 end;
 
 
-Function Tcalendar.events(AService: TODataService) : TeventImplicitEntitySet; 
+Function Tcalendar.events(AService: TODataService) : TeventImplicitEntitySet;
 
 
 begin
@@ -6215,7 +6215,7 @@ begin
 end;
 
 
-Function Tcalendar.calendarView(AService: TODataService) : TeventImplicitEntitySet; 
+Function Tcalendar.calendarView(AService: TODataService) : TeventImplicitEntitySet;
 
 
 begin
@@ -6228,14 +6228,14 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function ToutlookItem.ObjectRestKind : String; 
+Class Function ToutlookItem.ObjectRestKind : String;
 
 begin
   Result:='outlookItem';
 end;
 
 
-Procedure ToutlookItem.SetcreatedDateTime(AIndex: Integer; const AValue: TDateTime); 
+Procedure ToutlookItem.SetcreatedDateTime(AIndex: Integer; const AValue: TDateTime);
 
 
 begin
@@ -6245,7 +6245,7 @@ begin
 end;
 
 
-Procedure ToutlookItem.SetlastModifiedDateTime(AIndex: Integer; const AValue: TDateTime); 
+Procedure ToutlookItem.SetlastModifiedDateTime(AIndex: Integer; const AValue: TDateTime);
 
 
 begin
@@ -6255,7 +6255,7 @@ begin
 end;
 
 
-Procedure ToutlookItem.SetchangeKey(AIndex: Integer; const AValue: string); 
+Procedure ToutlookItem.SetchangeKey(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -6265,7 +6265,7 @@ begin
 end;
 
 
-Procedure ToutlookItem.Setcategories(AIndex: Integer; const AValue: TStringArray); 
+Procedure ToutlookItem.Setcategories(AIndex: Integer; const AValue: TStringArray);
 
 
 begin
@@ -6276,7 +6276,7 @@ end;
 
 {$IFDEF VER2_6}
 
-Procedure ToutlookItem.SetArrayLength(const AName: String; ALength: Longint); 
+Procedure ToutlookItem.SetArrayLength(const AName: String; ALength: Longint);
 
 begin
   Case aName of
@@ -6293,7 +6293,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure Tevent.accept(AService: TODataService; Comment: string; SendResponse: boolean); 
+Procedure Tevent.accept(AService: TODataService; Comment: string; SendResponse: boolean);
 
 Var
   _JSON : TJSONObject;
@@ -6313,7 +6313,7 @@ begin
 end;
 
 
-Procedure Tevent.decline(AService: TODataService; Comment: string; SendResponse: boolean); 
+Procedure Tevent.decline(AService: TODataService; Comment: string; SendResponse: boolean);
 
 Var
   _JSON : TJSONObject;
@@ -6333,7 +6333,7 @@ begin
 end;
 
 
-Procedure Tevent.tentativelyAccept(AService: TODataService; Comment: string; SendResponse: boolean); 
+Procedure Tevent.tentativelyAccept(AService: TODataService; Comment: string; SendResponse: boolean);
 
 Var
   _JSON : TJSONObject;
@@ -6353,7 +6353,7 @@ begin
 end;
 
 
-Procedure Tevent.snoozeReminder(AService: TODataService; NewReminderTime: TdateTimeTimeZone); 
+Procedure Tevent.snoozeReminder(AService: TODataService; NewReminderTime: TdateTimeTimeZone);
 
 Var
   _JSON : TJSONObject;
@@ -6372,7 +6372,7 @@ begin
 end;
 
 
-Procedure Tevent.dismissReminder(AService: TODataService); 
+Procedure Tevent.dismissReminder(AService: TODataService);
 
 Var
   _data : String;
@@ -6384,14 +6384,14 @@ begin
 end;
 
 
-Class Function Tevent.ObjectRestKind : String; 
+Class Function Tevent.ObjectRestKind : String;
 
 begin
   Result:='event';
 end;
 
 
-Procedure Tevent.SetoriginalStartTimeZone(AIndex: Integer; const AValue: string); 
+Procedure Tevent.SetoriginalStartTimeZone(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -6401,7 +6401,7 @@ begin
 end;
 
 
-Procedure Tevent.SetoriginalEndTimeZone(AIndex: Integer; const AValue: string); 
+Procedure Tevent.SetoriginalEndTimeZone(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -6411,7 +6411,7 @@ begin
 end;
 
 
-Procedure Tevent.SetresponseStatus(AIndex: Integer; const AValue: TresponseStatus); 
+Procedure Tevent.SetresponseStatus(AIndex: Integer; const AValue: TresponseStatus);
 
 
 begin
@@ -6421,7 +6421,7 @@ begin
 end;
 
 
-Procedure Tevent.SetiCalUId(AIndex: Integer; const AValue: string); 
+Procedure Tevent.SetiCalUId(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -6431,7 +6431,7 @@ begin
 end;
 
 
-Procedure Tevent.SetreminderMinutesBeforeStart(AIndex: Integer; const AValue: TInt32); 
+Procedure Tevent.SetreminderMinutesBeforeStart(AIndex: Integer; const AValue: TInt32);
 
 
 begin
@@ -6441,7 +6441,7 @@ begin
 end;
 
 
-Procedure Tevent.SetisReminderOn(AIndex: Integer; const AValue: boolean); 
+Procedure Tevent.SetisReminderOn(AIndex: Integer; const AValue: boolean);
 
 
 begin
@@ -6451,7 +6451,7 @@ begin
 end;
 
 
-Procedure Tevent.SethasAttachments(AIndex: Integer; const AValue: boolean); 
+Procedure Tevent.SethasAttachments(AIndex: Integer; const AValue: boolean);
 
 
 begin
@@ -6461,7 +6461,7 @@ begin
 end;
 
 
-Procedure Tevent.Setsubject(AIndex: Integer; const AValue: string); 
+Procedure Tevent.Setsubject(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -6471,7 +6471,7 @@ begin
 end;
 
 
-Procedure Tevent.Setbody(AIndex: Integer; const AValue: TitemBody); 
+Procedure Tevent.Setbody(AIndex: Integer; const AValue: TitemBody);
 
 
 begin
@@ -6481,7 +6481,7 @@ begin
 end;
 
 
-Procedure Tevent.SetbodyPreview(AIndex: Integer; const AValue: string); 
+Procedure Tevent.SetbodyPreview(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -6491,7 +6491,7 @@ begin
 end;
 
 
-Procedure Tevent.Setimportance(AIndex: Integer; const AValue: Timportance); 
+Procedure Tevent.Setimportance(AIndex: Integer; const AValue: Timportance);
 
 
 begin
@@ -6501,7 +6501,7 @@ begin
 end;
 
 
-Procedure Tevent.Setsensitivity(AIndex: Integer; const AValue: Tsensitivity); 
+Procedure Tevent.Setsensitivity(AIndex: Integer; const AValue: Tsensitivity);
 
 
 begin
@@ -6511,7 +6511,7 @@ begin
 end;
 
 
-Procedure Tevent.Setstart(AIndex: Integer; const AValue: TdateTimeTimeZone); 
+Procedure Tevent.Setstart(AIndex: Integer; const AValue: TdateTimeTimeZone);
 
 
 begin
@@ -6521,7 +6521,7 @@ begin
 end;
 
 
-Procedure Tevent.SetoriginalStart(AIndex: Integer; const AValue: TDateTime); 
+Procedure Tevent.SetoriginalStart(AIndex: Integer; const AValue: TDateTime);
 
 
 begin
@@ -6531,7 +6531,7 @@ begin
 end;
 
 
-Procedure Tevent.Set_end(AIndex: Integer; const AValue: TdateTimeTimeZone); 
+Procedure Tevent.Set_end(AIndex: Integer; const AValue: TdateTimeTimeZone);
 
 
 begin
@@ -6541,7 +6541,7 @@ begin
 end;
 
 
-Procedure Tevent.Setlocation(AIndex: Integer; const AValue: Tlocation); 
+Procedure Tevent.Setlocation(AIndex: Integer; const AValue: Tlocation);
 
 
 begin
@@ -6551,7 +6551,7 @@ begin
 end;
 
 
-Procedure Tevent.SetisAllDay(AIndex: Integer; const AValue: boolean); 
+Procedure Tevent.SetisAllDay(AIndex: Integer; const AValue: boolean);
 
 
 begin
@@ -6561,7 +6561,7 @@ begin
 end;
 
 
-Procedure Tevent.SetisCancelled(AIndex: Integer; const AValue: boolean); 
+Procedure Tevent.SetisCancelled(AIndex: Integer; const AValue: boolean);
 
 
 begin
@@ -6571,7 +6571,7 @@ begin
 end;
 
 
-Procedure Tevent.SetisOrganizer(AIndex: Integer; const AValue: boolean); 
+Procedure Tevent.SetisOrganizer(AIndex: Integer; const AValue: boolean);
 
 
 begin
@@ -6581,7 +6581,7 @@ begin
 end;
 
 
-Procedure Tevent.Setrecurrence(AIndex: Integer; const AValue: TpatternedRecurrence); 
+Procedure Tevent.Setrecurrence(AIndex: Integer; const AValue: TpatternedRecurrence);
 
 
 begin
@@ -6591,7 +6591,7 @@ begin
 end;
 
 
-Procedure Tevent.SetresponseRequested(AIndex: Integer; const AValue: boolean); 
+Procedure Tevent.SetresponseRequested(AIndex: Integer; const AValue: boolean);
 
 
 begin
@@ -6601,7 +6601,7 @@ begin
 end;
 
 
-Procedure Tevent.SetseriesMasterId(AIndex: Integer; const AValue: string); 
+Procedure Tevent.SetseriesMasterId(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -6611,7 +6611,7 @@ begin
 end;
 
 
-Procedure Tevent.SetshowAs(AIndex: Integer; const AValue: TfreeBusyStatus); 
+Procedure Tevent.SetshowAs(AIndex: Integer; const AValue: TfreeBusyStatus);
 
 
 begin
@@ -6621,7 +6621,7 @@ begin
 end;
 
 
-Procedure Tevent.Set_type(AIndex: Integer; const AValue: TeventType); 
+Procedure Tevent.Set_type(AIndex: Integer; const AValue: TeventType);
 
 
 begin
@@ -6631,7 +6631,7 @@ begin
 end;
 
 
-Procedure Tevent.Setattendees(AIndex: Integer; const AValue: TattendeeArray); 
+Procedure Tevent.Setattendees(AIndex: Integer; const AValue: TattendeeArray);
 
 
 begin
@@ -6641,7 +6641,7 @@ begin
 end;
 
 
-Procedure Tevent.Setorganizer(AIndex: Integer; const AValue: Trecipient); 
+Procedure Tevent.Setorganizer(AIndex: Integer; const AValue: Trecipient);
 
 
 begin
@@ -6651,7 +6651,7 @@ begin
 end;
 
 
-Procedure Tevent.SetwebLink(AIndex: Integer; const AValue: string); 
+Procedure Tevent.SetwebLink(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -6662,7 +6662,7 @@ end;
 
 {$IFDEF VER2_6}
 
-Procedure Tevent.SetArrayLength(const AName: String; ALength: Longint); 
+Procedure Tevent.SetArrayLength(const AName: String; ALength: Longint);
 
 begin
   Case aName of
@@ -6686,7 +6686,7 @@ begin
 end;
 
 
-Function Tevent.calendar(AService: TODataService) : Tcalendar; 
+Function Tevent.calendar(AService: TODataService) : Tcalendar;
 
 
 begin
@@ -6694,7 +6694,7 @@ begin
 end;
 
 
-Function Tevent.instances(AService: TODataService) : TeventImplicitEntitySet; 
+Function Tevent.instances(AService: TODataService) : TeventImplicitEntitySet;
 
 
 begin
@@ -6702,7 +6702,7 @@ begin
 end;
 
 
-Function Tevent.attachments(AService: TODataService) : TattachmentImplicitEntitySet; 
+Function Tevent.attachments(AService: TODataService) : TattachmentImplicitEntitySet;
 
 
 begin
@@ -6715,14 +6715,14 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function Tconversation.ObjectRestKind : String; 
+Class Function Tconversation.ObjectRestKind : String;
 
 begin
   Result:='conversation';
 end;
 
 
-Procedure Tconversation.Settopic(AIndex: Integer; const AValue: string); 
+Procedure Tconversation.Settopic(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -6732,7 +6732,7 @@ begin
 end;
 
 
-Procedure Tconversation.SethasAttachments(AIndex: Integer; const AValue: boolean); 
+Procedure Tconversation.SethasAttachments(AIndex: Integer; const AValue: boolean);
 
 
 begin
@@ -6742,7 +6742,7 @@ begin
 end;
 
 
-Procedure Tconversation.SetlastDeliveredDateTime(AIndex: Integer; const AValue: TDateTime); 
+Procedure Tconversation.SetlastDeliveredDateTime(AIndex: Integer; const AValue: TDateTime);
 
 
 begin
@@ -6752,7 +6752,7 @@ begin
 end;
 
 
-Procedure Tconversation.SetuniqueSenders(AIndex: Integer; const AValue: TStringArray); 
+Procedure Tconversation.SetuniqueSenders(AIndex: Integer; const AValue: TStringArray);
 
 
 begin
@@ -6762,7 +6762,7 @@ begin
 end;
 
 
-Procedure Tconversation.Setpreview(AIndex: Integer; const AValue: string); 
+Procedure Tconversation.Setpreview(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -6773,7 +6773,7 @@ end;
 
 {$IFDEF VER2_6}
 
-Procedure Tconversation.SetArrayLength(const AName: String; ALength: Longint); 
+Procedure Tconversation.SetArrayLength(const AName: String; ALength: Longint);
 
 begin
   Case aName of
@@ -6785,7 +6785,7 @@ end;
 {$ENDIF VER2_6}
 
 
-Function Tconversation.threads(AService: TODataService) : TconversationThreadImplicitEntitySet; 
+Function Tconversation.threads(AService: TODataService) : TconversationThreadImplicitEntitySet;
 
 
 begin
@@ -6798,14 +6798,14 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function TprofilePhoto.ObjectRestKind : String; 
+Class Function TprofilePhoto.ObjectRestKind : String;
 
 begin
   Result:='profilePhoto';
 end;
 
 
-Procedure TprofilePhoto.Setheight(AIndex: Integer; const AValue: TInt32); 
+Procedure TprofilePhoto.Setheight(AIndex: Integer; const AValue: TInt32);
 
 
 begin
@@ -6815,7 +6815,7 @@ begin
 end;
 
 
-Procedure TprofilePhoto.Setwidth(AIndex: Integer; const AValue: TInt32); 
+Procedure TprofilePhoto.Setwidth(AIndex: Integer; const AValue: TInt32);
 
 
 begin
@@ -6825,7 +6825,7 @@ begin
 end;
 
 
-Procedure TprofilePhoto.GetStream(AService: TODataService; AContentType: String; AStream: TStream); 
+Procedure TprofilePhoto.GetStream(AService: TODataService; AContentType: String; AStream: TStream);
 
 
 begin
@@ -6833,7 +6833,7 @@ begin
 end;
 
 
-Procedure TprofilePhoto.SetStream(AService: TODataService; AContentType: String; AStream: TStream); 
+Procedure TprofilePhoto.SetStream(AService: TODataService; AContentType: String; AStream: TStream);
 
 
 begin
@@ -6846,7 +6846,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Function Tdrive.recent(AService: TODataService) : TdriveItemArray; 
+Function Tdrive.recent(AService: TODataService) : TdriveItemArray;
 
 Var
   _Res : String;
@@ -6859,7 +6859,7 @@ begin
 end;
 
 
-Function Tdrive.sharedWithMe(AService: TODataService) : TdriveItemArray; 
+Function Tdrive.sharedWithMe(AService: TODataService) : TdriveItemArray;
 
 Var
   _Res : String;
@@ -6872,14 +6872,14 @@ begin
 end;
 
 
-Class Function Tdrive.ObjectRestKind : String; 
+Class Function Tdrive.ObjectRestKind : String;
 
 begin
   Result:='drive';
 end;
 
 
-Procedure Tdrive.SetdriveType(AIndex: Integer; const AValue: string); 
+Procedure Tdrive.SetdriveType(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -6889,7 +6889,7 @@ begin
 end;
 
 
-Procedure Tdrive.Setowner(AIndex: Integer; const AValue: TidentitySet); 
+Procedure Tdrive.Setowner(AIndex: Integer; const AValue: TidentitySet);
 
 
 begin
@@ -6899,7 +6899,7 @@ begin
 end;
 
 
-Procedure Tdrive.Setquota(AIndex: Integer; const AValue: Tquota); 
+Procedure Tdrive.Setquota(AIndex: Integer; const AValue: Tquota);
 
 
 begin
@@ -6909,7 +6909,7 @@ begin
 end;
 
 
-Function Tdrive.items(AService: TODataService) : TdriveItemImplicitEntitySet; 
+Function Tdrive.items(AService: TODataService) : TdriveItemImplicitEntitySet;
 
 
 begin
@@ -6917,7 +6917,7 @@ begin
 end;
 
 
-Function Tdrive.special(AService: TODataService) : TdriveItemImplicitEntitySet; 
+Function Tdrive.special(AService: TODataService) : TdriveItemImplicitEntitySet;
 
 
 begin
@@ -6925,7 +6925,7 @@ begin
 end;
 
 
-Function Tdrive.root(AService: TODataService) : TdriveItem; 
+Function Tdrive.root(AService: TODataService) : TdriveItem;
 
 
 begin
@@ -6938,14 +6938,14 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function TsubscribedSku.ObjectRestKind : String; 
+Class Function TsubscribedSku.ObjectRestKind : String;
 
 begin
   Result:='subscribedSku';
 end;
 
 
-Procedure TsubscribedSku.SetcapabilityStatus(AIndex: Integer; const AValue: string); 
+Procedure TsubscribedSku.SetcapabilityStatus(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -6955,7 +6955,7 @@ begin
 end;
 
 
-Procedure TsubscribedSku.SetconsumedUnits(AIndex: Integer; const AValue: TInt32); 
+Procedure TsubscribedSku.SetconsumedUnits(AIndex: Integer; const AValue: TInt32);
 
 
 begin
@@ -6965,7 +6965,7 @@ begin
 end;
 
 
-Procedure TsubscribedSku.SetprepaidUnits(AIndex: Integer; const AValue: TlicenseUnitsDetail); 
+Procedure TsubscribedSku.SetprepaidUnits(AIndex: Integer; const AValue: TlicenseUnitsDetail);
 
 
 begin
@@ -6975,7 +6975,7 @@ begin
 end;
 
 
-Procedure TsubscribedSku.SetservicePlans(AIndex: Integer; const AValue: TservicePlanInfoArray); 
+Procedure TsubscribedSku.SetservicePlans(AIndex: Integer; const AValue: TservicePlanInfoArray);
 
 
 begin
@@ -6985,7 +6985,7 @@ begin
 end;
 
 
-Procedure TsubscribedSku.SetskuId(AIndex: Integer; const AValue: TGUIDString); 
+Procedure TsubscribedSku.SetskuId(AIndex: Integer; const AValue: TGUIDString);
 
 
 begin
@@ -6995,7 +6995,7 @@ begin
 end;
 
 
-Procedure TsubscribedSku.SetskuPartNumber(AIndex: Integer; const AValue: string); 
+Procedure TsubscribedSku.SetskuPartNumber(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -7005,7 +7005,7 @@ begin
 end;
 
 
-Procedure TsubscribedSku.SetappliesTo(AIndex: Integer; const AValue: string); 
+Procedure TsubscribedSku.SetappliesTo(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -7016,7 +7016,7 @@ end;
 
 {$IFDEF VER2_6}
 
-Procedure TsubscribedSku.SetArrayLength(const AName: String; ALength: Longint); 
+Procedure TsubscribedSku.SetArrayLength(const AName: String; ALength: Longint);
 
 begin
   Case aName of
@@ -7033,14 +7033,14 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function Torganization.ObjectRestKind : String; 
+Class Function Torganization.ObjectRestKind : String;
 
 begin
   Result:='organization';
 end;
 
 
-Procedure Torganization.SetassignedPlans(AIndex: Integer; const AValue: TassignedPlanArray); 
+Procedure Torganization.SetassignedPlans(AIndex: Integer; const AValue: TassignedPlanArray);
 
 
 begin
@@ -7050,7 +7050,7 @@ begin
 end;
 
 
-Procedure Torganization.SetbusinessPhones(AIndex: Integer; const AValue: TStringArray); 
+Procedure Torganization.SetbusinessPhones(AIndex: Integer; const AValue: TStringArray);
 
 
 begin
@@ -7060,7 +7060,7 @@ begin
 end;
 
 
-Procedure Torganization.Setcity(AIndex: Integer; const AValue: string); 
+Procedure Torganization.Setcity(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -7070,7 +7070,7 @@ begin
 end;
 
 
-Procedure Torganization.Setcountry(AIndex: Integer; const AValue: string); 
+Procedure Torganization.Setcountry(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -7080,7 +7080,7 @@ begin
 end;
 
 
-Procedure Torganization.SetcountryLetterCode(AIndex: Integer; const AValue: string); 
+Procedure Torganization.SetcountryLetterCode(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -7090,7 +7090,7 @@ begin
 end;
 
 
-Procedure Torganization.SetdisplayName(AIndex: Integer; const AValue: string); 
+Procedure Torganization.SetdisplayName(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -7100,7 +7100,7 @@ begin
 end;
 
 
-Procedure Torganization.SetmarketingNotificationEmails(AIndex: Integer; const AValue: TStringArray); 
+Procedure Torganization.SetmarketingNotificationEmails(AIndex: Integer; const AValue: TStringArray);
 
 
 begin
@@ -7110,7 +7110,7 @@ begin
 end;
 
 
-Procedure Torganization.SetonPremisesLastSyncDateTime(AIndex: Integer; const AValue: TDateTime); 
+Procedure Torganization.SetonPremisesLastSyncDateTime(AIndex: Integer; const AValue: TDateTime);
 
 
 begin
@@ -7120,7 +7120,7 @@ begin
 end;
 
 
-Procedure Torganization.SetonPremisesSyncEnabled(AIndex: Integer; const AValue: boolean); 
+Procedure Torganization.SetonPremisesSyncEnabled(AIndex: Integer; const AValue: boolean);
 
 
 begin
@@ -7130,7 +7130,7 @@ begin
 end;
 
 
-Procedure Torganization.SetpostalCode(AIndex: Integer; const AValue: string); 
+Procedure Torganization.SetpostalCode(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -7140,7 +7140,7 @@ begin
 end;
 
 
-Procedure Torganization.SetpreferredLanguage(AIndex: Integer; const AValue: string); 
+Procedure Torganization.SetpreferredLanguage(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -7150,7 +7150,7 @@ begin
 end;
 
 
-Procedure Torganization.SetprovisionedPlans(AIndex: Integer; const AValue: TprovisionedPlanArray); 
+Procedure Torganization.SetprovisionedPlans(AIndex: Integer; const AValue: TprovisionedPlanArray);
 
 
 begin
@@ -7160,7 +7160,7 @@ begin
 end;
 
 
-Procedure Torganization.SetsecurityComplianceNotificationMails(AIndex: Integer; const AValue: TStringArray); 
+Procedure Torganization.SetsecurityComplianceNotificationMails(AIndex: Integer; const AValue: TStringArray);
 
 
 begin
@@ -7170,7 +7170,7 @@ begin
 end;
 
 
-Procedure Torganization.SetsecurityComplianceNotificationPhones(AIndex: Integer; const AValue: TStringArray); 
+Procedure Torganization.SetsecurityComplianceNotificationPhones(AIndex: Integer; const AValue: TStringArray);
 
 
 begin
@@ -7180,7 +7180,7 @@ begin
 end;
 
 
-Procedure Torganization.Setstate(AIndex: Integer; const AValue: string); 
+Procedure Torganization.Setstate(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -7190,7 +7190,7 @@ begin
 end;
 
 
-Procedure Torganization.Setstreet(AIndex: Integer; const AValue: string); 
+Procedure Torganization.Setstreet(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -7200,7 +7200,7 @@ begin
 end;
 
 
-Procedure Torganization.SettechnicalNotificationMails(AIndex: Integer; const AValue: TStringArray); 
+Procedure Torganization.SettechnicalNotificationMails(AIndex: Integer; const AValue: TStringArray);
 
 
 begin
@@ -7210,7 +7210,7 @@ begin
 end;
 
 
-Procedure Torganization.SetverifiedDomains(AIndex: Integer; const AValue: TverifiedDomainArray); 
+Procedure Torganization.SetverifiedDomains(AIndex: Integer; const AValue: TverifiedDomainArray);
 
 
 begin
@@ -7221,7 +7221,7 @@ end;
 
 {$IFDEF VER2_6}
 
-Procedure Torganization.SetArrayLength(const AName: String; ALength: Longint); 
+Procedure Torganization.SetArrayLength(const AName: String; ALength: Longint);
 
 begin
   Case aName of
@@ -7245,7 +7245,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Function Tuser.reminderView(AService: TODataService; StartDateTime: string; EndDateTime: string) : TreminderArray; 
+Function Tuser.reminderView(AService: TODataService; StartDateTime: string; EndDateTime: string) : TreminderArray;
 
 Var
   _Res : String;
@@ -7260,7 +7260,7 @@ begin
 end;
 
 
-Function Tuser.assignLicense(AService: TODataService; addLicenses: TassignedLicenseArray; removeLicenses: TGuidStringArray) : Tuser; 
+Function Tuser.assignLicense(AService: TODataService; addLicenses: TassignedLicenseArray; removeLicenses: TGuidStringArray) : Tuser;
 
 Var
   _JSON : TJSONObject;
@@ -7280,7 +7280,7 @@ begin
 end;
 
 
-Procedure Tuser.changePassword(AService: TODataService; currentPassword: string; newPassword: string); 
+Procedure Tuser.changePassword(AService: TODataService; currentPassword: string; newPassword: string);
 
 Var
   _JSON : TJSONObject;
@@ -7300,7 +7300,7 @@ begin
 end;
 
 
-Procedure Tuser.sendMail(AService: TODataService; Message: Tmessage; SaveToSentItems: boolean); 
+Procedure Tuser.sendMail(AService: TODataService; Message: Tmessage; SaveToSentItems: boolean);
 
 Var
   _JSON : TJSONObject;
@@ -7320,14 +7320,14 @@ begin
 end;
 
 
-Class Function Tuser.ObjectRestKind : String; 
+Class Function Tuser.ObjectRestKind : String;
 
 begin
   Result:='user';
 end;
 
 
-Procedure Tuser.SetaccountEnabled(AIndex: Integer; const AValue: boolean); 
+Procedure Tuser.SetaccountEnabled(AIndex: Integer; const AValue: boolean);
 
 
 begin
@@ -7337,7 +7337,7 @@ begin
 end;
 
 
-Procedure Tuser.SetassignedLicenses(AIndex: Integer; const AValue: TassignedLicenseArray); 
+Procedure Tuser.SetassignedLicenses(AIndex: Integer; const AValue: TassignedLicenseArray);
 
 
 begin
@@ -7347,7 +7347,7 @@ begin
 end;
 
 
-Procedure Tuser.SetassignedPlans(AIndex: Integer; const AValue: TassignedPlanArray); 
+Procedure Tuser.SetassignedPlans(AIndex: Integer; const AValue: TassignedPlanArray);
 
 
 begin
@@ -7357,7 +7357,7 @@ begin
 end;
 
 
-Procedure Tuser.SetbusinessPhones(AIndex: Integer; const AValue: TStringArray); 
+Procedure Tuser.SetbusinessPhones(AIndex: Integer; const AValue: TStringArray);
 
 
 begin
@@ -7367,7 +7367,7 @@ begin
 end;
 
 
-Procedure Tuser.Setcity(AIndex: Integer; const AValue: string); 
+Procedure Tuser.Setcity(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -7377,7 +7377,7 @@ begin
 end;
 
 
-Procedure Tuser.SetcompanyName(AIndex: Integer; const AValue: string); 
+Procedure Tuser.SetcompanyName(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -7387,7 +7387,7 @@ begin
 end;
 
 
-Procedure Tuser.Setcountry(AIndex: Integer; const AValue: string); 
+Procedure Tuser.Setcountry(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -7397,7 +7397,7 @@ begin
 end;
 
 
-Procedure Tuser.Setdepartment(AIndex: Integer; const AValue: string); 
+Procedure Tuser.Setdepartment(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -7407,7 +7407,7 @@ begin
 end;
 
 
-Procedure Tuser.SetdisplayName(AIndex: Integer; const AValue: string); 
+Procedure Tuser.SetdisplayName(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -7417,7 +7417,7 @@ begin
 end;
 
 
-Procedure Tuser.SetgivenName(AIndex: Integer; const AValue: string); 
+Procedure Tuser.SetgivenName(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -7427,7 +7427,7 @@ begin
 end;
 
 
-Procedure Tuser.SetjobTitle(AIndex: Integer; const AValue: string); 
+Procedure Tuser.SetjobTitle(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -7437,7 +7437,7 @@ begin
 end;
 
 
-Procedure Tuser.Setmail(AIndex: Integer; const AValue: string); 
+Procedure Tuser.Setmail(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -7447,7 +7447,7 @@ begin
 end;
 
 
-Procedure Tuser.SetmailNickname(AIndex: Integer; const AValue: string); 
+Procedure Tuser.SetmailNickname(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -7457,7 +7457,7 @@ begin
 end;
 
 
-Procedure Tuser.SetmobilePhone(AIndex: Integer; const AValue: string); 
+Procedure Tuser.SetmobilePhone(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -7467,7 +7467,7 @@ begin
 end;
 
 
-Procedure Tuser.SetonPremisesImmutableId(AIndex: Integer; const AValue: string); 
+Procedure Tuser.SetonPremisesImmutableId(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -7477,7 +7477,7 @@ begin
 end;
 
 
-Procedure Tuser.SetonPremisesLastSyncDateTime(AIndex: Integer; const AValue: TDateTime); 
+Procedure Tuser.SetonPremisesLastSyncDateTime(AIndex: Integer; const AValue: TDateTime);
 
 
 begin
@@ -7487,7 +7487,7 @@ begin
 end;
 
 
-Procedure Tuser.SetonPremisesSecurityIdentifier(AIndex: Integer; const AValue: string); 
+Procedure Tuser.SetonPremisesSecurityIdentifier(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -7497,7 +7497,7 @@ begin
 end;
 
 
-Procedure Tuser.SetonPremisesSyncEnabled(AIndex: Integer; const AValue: boolean); 
+Procedure Tuser.SetonPremisesSyncEnabled(AIndex: Integer; const AValue: boolean);
 
 
 begin
@@ -7507,7 +7507,7 @@ begin
 end;
 
 
-Procedure Tuser.SetpasswordPolicies(AIndex: Integer; const AValue: string); 
+Procedure Tuser.SetpasswordPolicies(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -7517,7 +7517,7 @@ begin
 end;
 
 
-Procedure Tuser.SetpasswordProfile(AIndex: Integer; const AValue: TpasswordProfile); 
+Procedure Tuser.SetpasswordProfile(AIndex: Integer; const AValue: TpasswordProfile);
 
 
 begin
@@ -7527,7 +7527,7 @@ begin
 end;
 
 
-Procedure Tuser.SetofficeLocation(AIndex: Integer; const AValue: string); 
+Procedure Tuser.SetofficeLocation(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -7537,7 +7537,7 @@ begin
 end;
 
 
-Procedure Tuser.SetpostalCode(AIndex: Integer; const AValue: string); 
+Procedure Tuser.SetpostalCode(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -7547,7 +7547,7 @@ begin
 end;
 
 
-Procedure Tuser.SetpreferredLanguage(AIndex: Integer; const AValue: string); 
+Procedure Tuser.SetpreferredLanguage(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -7557,7 +7557,7 @@ begin
 end;
 
 
-Procedure Tuser.SetprovisionedPlans(AIndex: Integer; const AValue: TprovisionedPlanArray); 
+Procedure Tuser.SetprovisionedPlans(AIndex: Integer; const AValue: TprovisionedPlanArray);
 
 
 begin
@@ -7567,7 +7567,7 @@ begin
 end;
 
 
-Procedure Tuser.SetproxyAddresses(AIndex: Integer; const AValue: TStringArray); 
+Procedure Tuser.SetproxyAddresses(AIndex: Integer; const AValue: TStringArray);
 
 
 begin
@@ -7577,7 +7577,7 @@ begin
 end;
 
 
-Procedure Tuser.Setstate(AIndex: Integer; const AValue: string); 
+Procedure Tuser.Setstate(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -7587,7 +7587,7 @@ begin
 end;
 
 
-Procedure Tuser.SetstreetAddress(AIndex: Integer; const AValue: string); 
+Procedure Tuser.SetstreetAddress(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -7597,7 +7597,7 @@ begin
 end;
 
 
-Procedure Tuser.Setsurname(AIndex: Integer; const AValue: string); 
+Procedure Tuser.Setsurname(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -7607,7 +7607,7 @@ begin
 end;
 
 
-Procedure Tuser.SetusageLocation(AIndex: Integer; const AValue: string); 
+Procedure Tuser.SetusageLocation(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -7617,7 +7617,7 @@ begin
 end;
 
 
-Procedure Tuser.SetuserPrincipalName(AIndex: Integer; const AValue: string); 
+Procedure Tuser.SetuserPrincipalName(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -7627,7 +7627,7 @@ begin
 end;
 
 
-Procedure Tuser.SetuserType(AIndex: Integer; const AValue: string); 
+Procedure Tuser.SetuserType(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -7637,7 +7637,7 @@ begin
 end;
 
 
-Procedure Tuser.SetaboutMe(AIndex: Integer; const AValue: string); 
+Procedure Tuser.SetaboutMe(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -7647,7 +7647,7 @@ begin
 end;
 
 
-Procedure Tuser.Setbirthday(AIndex: Integer; const AValue: TDateTime); 
+Procedure Tuser.Setbirthday(AIndex: Integer; const AValue: TDateTime);
 
 
 begin
@@ -7657,7 +7657,7 @@ begin
 end;
 
 
-Procedure Tuser.SethireDate(AIndex: Integer; const AValue: TDateTime); 
+Procedure Tuser.SethireDate(AIndex: Integer; const AValue: TDateTime);
 
 
 begin
@@ -7667,7 +7667,7 @@ begin
 end;
 
 
-Procedure Tuser.Setinterests(AIndex: Integer; const AValue: TStringArray); 
+Procedure Tuser.Setinterests(AIndex: Integer; const AValue: TStringArray);
 
 
 begin
@@ -7677,7 +7677,7 @@ begin
 end;
 
 
-Procedure Tuser.SetmySite(AIndex: Integer; const AValue: string); 
+Procedure Tuser.SetmySite(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -7687,7 +7687,7 @@ begin
 end;
 
 
-Procedure Tuser.SetpastProjects(AIndex: Integer; const AValue: TStringArray); 
+Procedure Tuser.SetpastProjects(AIndex: Integer; const AValue: TStringArray);
 
 
 begin
@@ -7697,7 +7697,7 @@ begin
 end;
 
 
-Procedure Tuser.SetpreferredName(AIndex: Integer; const AValue: string); 
+Procedure Tuser.SetpreferredName(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -7707,7 +7707,7 @@ begin
 end;
 
 
-Procedure Tuser.Setresponsibilities(AIndex: Integer; const AValue: TStringArray); 
+Procedure Tuser.Setresponsibilities(AIndex: Integer; const AValue: TStringArray);
 
 
 begin
@@ -7717,7 +7717,7 @@ begin
 end;
 
 
-Procedure Tuser.Setschools(AIndex: Integer; const AValue: TStringArray); 
+Procedure Tuser.Setschools(AIndex: Integer; const AValue: TStringArray);
 
 
 begin
@@ -7727,7 +7727,7 @@ begin
 end;
 
 
-Procedure Tuser.Setskills(AIndex: Integer; const AValue: TStringArray); 
+Procedure Tuser.Setskills(AIndex: Integer; const AValue: TStringArray);
 
 
 begin
@@ -7738,7 +7738,7 @@ end;
 
 {$IFDEF VER2_6}
 
-Procedure Tuser.SetArrayLength(const AName: String; ALength: Longint); 
+Procedure Tuser.SetArrayLength(const AName: String; ALength: Longint);
 
 begin
   Case aName of
@@ -7759,7 +7759,7 @@ end;
 {$ENDIF VER2_6}
 
 
-Function Tuser.ownedDevices(AService: TODataService) : TdirectoryObjectsEntitySet; 
+Function Tuser.ownedDevices(AService: TODataService) : TdirectoryObjectsEntitySet;
 
 
 begin
@@ -7767,7 +7767,7 @@ begin
 end;
 
 
-Function Tuser.registeredDevices(AService: TODataService) : TdirectoryObjectsEntitySet; 
+Function Tuser.registeredDevices(AService: TODataService) : TdirectoryObjectsEntitySet;
 
 
 begin
@@ -7775,7 +7775,7 @@ begin
 end;
 
 
-Function Tuser.manager(AService: TODataService) : TdirectoryObject; 
+Function Tuser.manager(AService: TODataService) : TdirectoryObject;
 
 
 begin
@@ -7783,7 +7783,7 @@ begin
 end;
 
 
-Function Tuser.directReports(AService: TODataService) : TdirectoryObjectsEntitySet; 
+Function Tuser.directReports(AService: TODataService) : TdirectoryObjectsEntitySet;
 
 
 begin
@@ -7791,7 +7791,7 @@ begin
 end;
 
 
-Function Tuser.memberOf(AService: TODataService) : TdirectoryObjectsEntitySet; 
+Function Tuser.memberOf(AService: TODataService) : TdirectoryObjectsEntitySet;
 
 
 begin
@@ -7799,7 +7799,7 @@ begin
 end;
 
 
-Function Tuser.createdObjects(AService: TODataService) : TdirectoryObjectsEntitySet; 
+Function Tuser.createdObjects(AService: TODataService) : TdirectoryObjectsEntitySet;
 
 
 begin
@@ -7807,7 +7807,7 @@ begin
 end;
 
 
-Function Tuser.ownedObjects(AService: TODataService) : TdirectoryObjectsEntitySet; 
+Function Tuser.ownedObjects(AService: TODataService) : TdirectoryObjectsEntitySet;
 
 
 begin
@@ -7815,7 +7815,7 @@ begin
 end;
 
 
-Function Tuser.messages(AService: TODataService) : TmessageImplicitEntitySet; 
+Function Tuser.messages(AService: TODataService) : TmessageImplicitEntitySet;
 
 
 begin
@@ -7823,7 +7823,7 @@ begin
 end;
 
 
-Function Tuser.mailFolders(AService: TODataService) : TmailFolderImplicitEntitySet; 
+Function Tuser.mailFolders(AService: TODataService) : TmailFolderImplicitEntitySet;
 
 
 begin
@@ -7831,7 +7831,7 @@ begin
 end;
 
 
-Function Tuser.calendar(AService: TODataService) : Tcalendar; 
+Function Tuser.calendar(AService: TODataService) : Tcalendar;
 
 
 begin
@@ -7839,7 +7839,7 @@ begin
 end;
 
 
-Function Tuser.calendars(AService: TODataService) : TcalendarImplicitEntitySet; 
+Function Tuser.calendars(AService: TODataService) : TcalendarImplicitEntitySet;
 
 
 begin
@@ -7847,7 +7847,7 @@ begin
 end;
 
 
-Function Tuser.calendarGroups(AService: TODataService) : TcalendarGroupImplicitEntitySet; 
+Function Tuser.calendarGroups(AService: TODataService) : TcalendarGroupImplicitEntitySet;
 
 
 begin
@@ -7855,7 +7855,7 @@ begin
 end;
 
 
-Function Tuser.calendarView(AService: TODataService) : TeventImplicitEntitySet; 
+Function Tuser.calendarView(AService: TODataService) : TeventImplicitEntitySet;
 
 
 begin
@@ -7863,7 +7863,7 @@ begin
 end;
 
 
-Function Tuser.events(AService: TODataService) : TeventImplicitEntitySet; 
+Function Tuser.events(AService: TODataService) : TeventImplicitEntitySet;
 
 
 begin
@@ -7871,7 +7871,7 @@ begin
 end;
 
 
-Function Tuser.contacts(AService: TODataService) : TcontactImplicitEntitySet; 
+Function Tuser.contacts(AService: TODataService) : TcontactImplicitEntitySet;
 
 
 begin
@@ -7879,7 +7879,7 @@ begin
 end;
 
 
-Function Tuser.contactFolders(AService: TODataService) : TcontactFolderImplicitEntitySet; 
+Function Tuser.contactFolders(AService: TODataService) : TcontactFolderImplicitEntitySet;
 
 
 begin
@@ -7887,7 +7887,7 @@ begin
 end;
 
 
-Function Tuser.photo(AService: TODataService) : TprofilePhoto; 
+Function Tuser.photo(AService: TODataService) : TprofilePhoto;
 
 
 begin
@@ -7895,7 +7895,7 @@ begin
 end;
 
 
-Function Tuser.drive(AService: TODataService) : Tdrive; 
+Function Tuser.drive(AService: TODataService) : Tdrive;
 
 
 begin
@@ -7908,7 +7908,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Function Tmessage.copy(AService: TODataService; DestinationId: string) : Tmessage; 
+Function Tmessage.copy(AService: TODataService; DestinationId: string) : Tmessage;
 
 Var
   _JSON : TJSONObject;
@@ -7927,7 +7927,7 @@ begin
 end;
 
 
-Function Tmessage.move(AService: TODataService; DestinationId: string) : Tmessage; 
+Function Tmessage.move(AService: TODataService; DestinationId: string) : Tmessage;
 
 Var
   _JSON : TJSONObject;
@@ -7946,7 +7946,7 @@ begin
 end;
 
 
-Function Tmessage.createReply(AService: TODataService) : Tmessage; 
+Function Tmessage.createReply(AService: TODataService) : Tmessage;
 
 Var
   _data : String;
@@ -7958,7 +7958,7 @@ begin
 end;
 
 
-Function Tmessage.createReplyAll(AService: TODataService) : Tmessage; 
+Function Tmessage.createReplyAll(AService: TODataService) : Tmessage;
 
 Var
   _data : String;
@@ -7970,7 +7970,7 @@ begin
 end;
 
 
-Function Tmessage.createForward(AService: TODataService) : Tmessage; 
+Function Tmessage.createForward(AService: TODataService) : Tmessage;
 
 Var
   _data : String;
@@ -7982,7 +7982,7 @@ begin
 end;
 
 
-Procedure Tmessage.reply(AService: TODataService; Comment: string); 
+Procedure Tmessage.reply(AService: TODataService; Comment: string);
 
 Var
   _JSON : TJSONObject;
@@ -8001,7 +8001,7 @@ begin
 end;
 
 
-Procedure Tmessage.replyAll(AService: TODataService; Comment: string); 
+Procedure Tmessage.replyAll(AService: TODataService; Comment: string);
 
 Var
   _JSON : TJSONObject;
@@ -8020,7 +8020,7 @@ begin
 end;
 
 
-Procedure Tmessage.forward(AService: TODataService; Comment: string; ToRecipients: TrecipientArray); 
+Procedure Tmessage.forward(AService: TODataService; Comment: string; ToRecipients: TrecipientArray);
 
 Var
   _JSON : TJSONObject;
@@ -8040,7 +8040,7 @@ begin
 end;
 
 
-Procedure Tmessage.send(AService: TODataService); 
+Procedure Tmessage.send(AService: TODataService);
 
 Var
   _data : String;
@@ -8052,14 +8052,14 @@ begin
 end;
 
 
-Class Function Tmessage.ObjectRestKind : String; 
+Class Function Tmessage.ObjectRestKind : String;
 
 begin
   Result:='message';
 end;
 
 
-Procedure Tmessage.SetreceivedDateTime(AIndex: Integer; const AValue: TDateTime); 
+Procedure Tmessage.SetreceivedDateTime(AIndex: Integer; const AValue: TDateTime);
 
 
 begin
@@ -8069,7 +8069,7 @@ begin
 end;
 
 
-Procedure Tmessage.SetsentDateTime(AIndex: Integer; const AValue: TDateTime); 
+Procedure Tmessage.SetsentDateTime(AIndex: Integer; const AValue: TDateTime);
 
 
 begin
@@ -8079,7 +8079,7 @@ begin
 end;
 
 
-Procedure Tmessage.SethasAttachments(AIndex: Integer; const AValue: boolean); 
+Procedure Tmessage.SethasAttachments(AIndex: Integer; const AValue: boolean);
 
 
 begin
@@ -8089,7 +8089,7 @@ begin
 end;
 
 
-Procedure Tmessage.SetinternetMessageId(AIndex: Integer; const AValue: string); 
+Procedure Tmessage.SetinternetMessageId(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -8099,7 +8099,7 @@ begin
 end;
 
 
-Procedure Tmessage.Setsubject(AIndex: Integer; const AValue: string); 
+Procedure Tmessage.Setsubject(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -8109,7 +8109,7 @@ begin
 end;
 
 
-Procedure Tmessage.Setbody(AIndex: Integer; const AValue: TitemBody); 
+Procedure Tmessage.Setbody(AIndex: Integer; const AValue: TitemBody);
 
 
 begin
@@ -8119,7 +8119,7 @@ begin
 end;
 
 
-Procedure Tmessage.SetbodyPreview(AIndex: Integer; const AValue: string); 
+Procedure Tmessage.SetbodyPreview(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -8129,7 +8129,7 @@ begin
 end;
 
 
-Procedure Tmessage.Setimportance(AIndex: Integer; const AValue: Timportance); 
+Procedure Tmessage.Setimportance(AIndex: Integer; const AValue: Timportance);
 
 
 begin
@@ -8139,7 +8139,7 @@ begin
 end;
 
 
-Procedure Tmessage.SetparentFolderId(AIndex: Integer; const AValue: string); 
+Procedure Tmessage.SetparentFolderId(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -8149,7 +8149,7 @@ begin
 end;
 
 
-Procedure Tmessage.Setsender(AIndex: Integer; const AValue: Trecipient); 
+Procedure Tmessage.Setsender(AIndex: Integer; const AValue: Trecipient);
 
 
 begin
@@ -8159,7 +8159,7 @@ begin
 end;
 
 
-Procedure Tmessage.Setfrom(AIndex: Integer; const AValue: Trecipient); 
+Procedure Tmessage.Setfrom(AIndex: Integer; const AValue: Trecipient);
 
 
 begin
@@ -8169,7 +8169,7 @@ begin
 end;
 
 
-Procedure Tmessage.SettoRecipients(AIndex: Integer; const AValue: TrecipientArray); 
+Procedure Tmessage.SettoRecipients(AIndex: Integer; const AValue: TrecipientArray);
 
 
 begin
@@ -8179,7 +8179,7 @@ begin
 end;
 
 
-Procedure Tmessage.SetccRecipients(AIndex: Integer; const AValue: TrecipientArray); 
+Procedure Tmessage.SetccRecipients(AIndex: Integer; const AValue: TrecipientArray);
 
 
 begin
@@ -8189,7 +8189,7 @@ begin
 end;
 
 
-Procedure Tmessage.SetbccRecipients(AIndex: Integer; const AValue: TrecipientArray); 
+Procedure Tmessage.SetbccRecipients(AIndex: Integer; const AValue: TrecipientArray);
 
 
 begin
@@ -8199,7 +8199,7 @@ begin
 end;
 
 
-Procedure Tmessage.SetreplyTo(AIndex: Integer; const AValue: TrecipientArray); 
+Procedure Tmessage.SetreplyTo(AIndex: Integer; const AValue: TrecipientArray);
 
 
 begin
@@ -8209,7 +8209,7 @@ begin
 end;
 
 
-Procedure Tmessage.SetconversationId(AIndex: Integer; const AValue: string); 
+Procedure Tmessage.SetconversationId(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -8219,7 +8219,7 @@ begin
 end;
 
 
-Procedure Tmessage.SetuniqueBody(AIndex: Integer; const AValue: TitemBody); 
+Procedure Tmessage.SetuniqueBody(AIndex: Integer; const AValue: TitemBody);
 
 
 begin
@@ -8229,7 +8229,7 @@ begin
 end;
 
 
-Procedure Tmessage.SetisDeliveryReceiptRequested(AIndex: Integer; const AValue: boolean); 
+Procedure Tmessage.SetisDeliveryReceiptRequested(AIndex: Integer; const AValue: boolean);
 
 
 begin
@@ -8239,7 +8239,7 @@ begin
 end;
 
 
-Procedure Tmessage.SetisReadReceiptRequested(AIndex: Integer; const AValue: boolean); 
+Procedure Tmessage.SetisReadReceiptRequested(AIndex: Integer; const AValue: boolean);
 
 
 begin
@@ -8249,7 +8249,7 @@ begin
 end;
 
 
-Procedure Tmessage.SetisRead(AIndex: Integer; const AValue: boolean); 
+Procedure Tmessage.SetisRead(AIndex: Integer; const AValue: boolean);
 
 
 begin
@@ -8259,7 +8259,7 @@ begin
 end;
 
 
-Procedure Tmessage.SetisDraft(AIndex: Integer; const AValue: boolean); 
+Procedure Tmessage.SetisDraft(AIndex: Integer; const AValue: boolean);
 
 
 begin
@@ -8269,7 +8269,7 @@ begin
 end;
 
 
-Procedure Tmessage.SetwebLink(AIndex: Integer; const AValue: string); 
+Procedure Tmessage.SetwebLink(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -8280,7 +8280,7 @@ end;
 
 {$IFDEF VER2_6}
 
-Procedure Tmessage.SetArrayLength(const AName: String; ALength: Longint); 
+Procedure Tmessage.SetArrayLength(const AName: String; ALength: Longint);
 
 begin
   Case aName of
@@ -8295,7 +8295,7 @@ end;
 {$ENDIF VER2_6}
 
 
-Function Tmessage.attachments(AService: TODataService) : TattachmentImplicitEntitySet; 
+Function Tmessage.attachments(AService: TODataService) : TattachmentImplicitEntitySet;
 
 
 begin
@@ -8308,7 +8308,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Function TmailFolder.copy(AService: TODataService; DestinationId: string) : TmailFolder; 
+Function TmailFolder.copy(AService: TODataService; DestinationId: string) : TmailFolder;
 
 Var
   _JSON : TJSONObject;
@@ -8327,7 +8327,7 @@ begin
 end;
 
 
-Function TmailFolder.move(AService: TODataService; DestinationId: string) : TmailFolder; 
+Function TmailFolder.move(AService: TODataService; DestinationId: string) : TmailFolder;
 
 Var
   _JSON : TJSONObject;
@@ -8346,14 +8346,14 @@ begin
 end;
 
 
-Class Function TmailFolder.ObjectRestKind : String; 
+Class Function TmailFolder.ObjectRestKind : String;
 
 begin
   Result:='mailFolder';
 end;
 
 
-Procedure TmailFolder.SetdisplayName(AIndex: Integer; const AValue: string); 
+Procedure TmailFolder.SetdisplayName(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -8363,7 +8363,7 @@ begin
 end;
 
 
-Procedure TmailFolder.SetparentFolderId(AIndex: Integer; const AValue: string); 
+Procedure TmailFolder.SetparentFolderId(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -8373,7 +8373,7 @@ begin
 end;
 
 
-Procedure TmailFolder.SetchildFolderCount(AIndex: Integer; const AValue: TInt32); 
+Procedure TmailFolder.SetchildFolderCount(AIndex: Integer; const AValue: TInt32);
 
 
 begin
@@ -8383,7 +8383,7 @@ begin
 end;
 
 
-Procedure TmailFolder.SetunreadItemCount(AIndex: Integer; const AValue: TInt32); 
+Procedure TmailFolder.SetunreadItemCount(AIndex: Integer; const AValue: TInt32);
 
 
 begin
@@ -8393,7 +8393,7 @@ begin
 end;
 
 
-Procedure TmailFolder.SettotalItemCount(AIndex: Integer; const AValue: TInt32); 
+Procedure TmailFolder.SettotalItemCount(AIndex: Integer; const AValue: TInt32);
 
 
 begin
@@ -8403,7 +8403,7 @@ begin
 end;
 
 
-Function TmailFolder.messages(AService: TODataService) : TmessageImplicitEntitySet; 
+Function TmailFolder.messages(AService: TODataService) : TmessageImplicitEntitySet;
 
 
 begin
@@ -8411,7 +8411,7 @@ begin
 end;
 
 
-Function TmailFolder.childFolders(AService: TODataService) : TmailFolderImplicitEntitySet; 
+Function TmailFolder.childFolders(AService: TODataService) : TmailFolderImplicitEntitySet;
 
 
 begin
@@ -8424,14 +8424,14 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function TcalendarGroup.ObjectRestKind : String; 
+Class Function TcalendarGroup.ObjectRestKind : String;
 
 begin
   Result:='calendarGroup';
 end;
 
 
-Procedure TcalendarGroup.Setname(AIndex: Integer; const AValue: string); 
+Procedure TcalendarGroup.Setname(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -8441,7 +8441,7 @@ begin
 end;
 
 
-Procedure TcalendarGroup.SetclassId(AIndex: Integer; const AValue: TGUIDString); 
+Procedure TcalendarGroup.SetclassId(AIndex: Integer; const AValue: TGUIDString);
 
 
 begin
@@ -8451,7 +8451,7 @@ begin
 end;
 
 
-Procedure TcalendarGroup.SetchangeKey(AIndex: Integer; const AValue: string); 
+Procedure TcalendarGroup.SetchangeKey(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -8461,7 +8461,7 @@ begin
 end;
 
 
-Function TcalendarGroup.calendars(AService: TODataService) : TcalendarImplicitEntitySet; 
+Function TcalendarGroup.calendars(AService: TODataService) : TcalendarImplicitEntitySet;
 
 
 begin
@@ -8474,14 +8474,14 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function Tcontact.ObjectRestKind : String; 
+Class Function Tcontact.ObjectRestKind : String;
 
 begin
   Result:='contact';
 end;
 
 
-Procedure Tcontact.SetparentFolderId(AIndex: Integer; const AValue: string); 
+Procedure Tcontact.SetparentFolderId(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -8491,7 +8491,7 @@ begin
 end;
 
 
-Procedure Tcontact.Setbirthday(AIndex: Integer; const AValue: TDateTime); 
+Procedure Tcontact.Setbirthday(AIndex: Integer; const AValue: TDateTime);
 
 
 begin
@@ -8501,7 +8501,7 @@ begin
 end;
 
 
-Procedure Tcontact.SetfileAs(AIndex: Integer; const AValue: string); 
+Procedure Tcontact.SetfileAs(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -8511,7 +8511,7 @@ begin
 end;
 
 
-Procedure Tcontact.SetdisplayName(AIndex: Integer; const AValue: string); 
+Procedure Tcontact.SetdisplayName(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -8521,7 +8521,7 @@ begin
 end;
 
 
-Procedure Tcontact.SetgivenName(AIndex: Integer; const AValue: string); 
+Procedure Tcontact.SetgivenName(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -8531,7 +8531,7 @@ begin
 end;
 
 
-Procedure Tcontact.Setinitials(AIndex: Integer; const AValue: string); 
+Procedure Tcontact.Setinitials(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -8541,7 +8541,7 @@ begin
 end;
 
 
-Procedure Tcontact.SetmiddleName(AIndex: Integer; const AValue: string); 
+Procedure Tcontact.SetmiddleName(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -8551,7 +8551,7 @@ begin
 end;
 
 
-Procedure Tcontact.SetnickName(AIndex: Integer; const AValue: string); 
+Procedure Tcontact.SetnickName(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -8561,7 +8561,7 @@ begin
 end;
 
 
-Procedure Tcontact.Setsurname(AIndex: Integer; const AValue: string); 
+Procedure Tcontact.Setsurname(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -8571,7 +8571,7 @@ begin
 end;
 
 
-Procedure Tcontact.Settitle(AIndex: Integer; const AValue: string); 
+Procedure Tcontact.Settitle(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -8581,7 +8581,7 @@ begin
 end;
 
 
-Procedure Tcontact.SetyomiGivenName(AIndex: Integer; const AValue: string); 
+Procedure Tcontact.SetyomiGivenName(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -8591,7 +8591,7 @@ begin
 end;
 
 
-Procedure Tcontact.SetyomiSurname(AIndex: Integer; const AValue: string); 
+Procedure Tcontact.SetyomiSurname(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -8601,7 +8601,7 @@ begin
 end;
 
 
-Procedure Tcontact.SetyomiCompanyName(AIndex: Integer; const AValue: string); 
+Procedure Tcontact.SetyomiCompanyName(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -8611,7 +8611,7 @@ begin
 end;
 
 
-Procedure Tcontact.Setgeneration(AIndex: Integer; const AValue: string); 
+Procedure Tcontact.Setgeneration(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -8621,7 +8621,7 @@ begin
 end;
 
 
-Procedure Tcontact.SetemailAddresses(AIndex: Integer; const AValue: TemailAddressArray); 
+Procedure Tcontact.SetemailAddresses(AIndex: Integer; const AValue: TemailAddressArray);
 
 
 begin
@@ -8631,7 +8631,7 @@ begin
 end;
 
 
-Procedure Tcontact.SetimAddresses(AIndex: Integer; const AValue: TStringArray); 
+Procedure Tcontact.SetimAddresses(AIndex: Integer; const AValue: TStringArray);
 
 
 begin
@@ -8641,7 +8641,7 @@ begin
 end;
 
 
-Procedure Tcontact.SetjobTitle(AIndex: Integer; const AValue: string); 
+Procedure Tcontact.SetjobTitle(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -8651,7 +8651,7 @@ begin
 end;
 
 
-Procedure Tcontact.SetcompanyName(AIndex: Integer; const AValue: string); 
+Procedure Tcontact.SetcompanyName(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -8661,7 +8661,7 @@ begin
 end;
 
 
-Procedure Tcontact.Setdepartment(AIndex: Integer; const AValue: string); 
+Procedure Tcontact.Setdepartment(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -8671,7 +8671,7 @@ begin
 end;
 
 
-Procedure Tcontact.SetofficeLocation(AIndex: Integer; const AValue: string); 
+Procedure Tcontact.SetofficeLocation(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -8681,7 +8681,7 @@ begin
 end;
 
 
-Procedure Tcontact.Setprofession(AIndex: Integer; const AValue: string); 
+Procedure Tcontact.Setprofession(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -8691,7 +8691,7 @@ begin
 end;
 
 
-Procedure Tcontact.SetbusinessHomePage(AIndex: Integer; const AValue: string); 
+Procedure Tcontact.SetbusinessHomePage(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -8701,7 +8701,7 @@ begin
 end;
 
 
-Procedure Tcontact.SetassistantName(AIndex: Integer; const AValue: string); 
+Procedure Tcontact.SetassistantName(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -8711,7 +8711,7 @@ begin
 end;
 
 
-Procedure Tcontact.Setmanager(AIndex: Integer; const AValue: string); 
+Procedure Tcontact.Setmanager(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -8721,7 +8721,7 @@ begin
 end;
 
 
-Procedure Tcontact.SethomePhones(AIndex: Integer; const AValue: TStringArray); 
+Procedure Tcontact.SethomePhones(AIndex: Integer; const AValue: TStringArray);
 
 
 begin
@@ -8731,7 +8731,7 @@ begin
 end;
 
 
-Procedure Tcontact.SetmobilePhone(AIndex: Integer; const AValue: string); 
+Procedure Tcontact.SetmobilePhone(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -8741,7 +8741,7 @@ begin
 end;
 
 
-Procedure Tcontact.SetbusinessPhones(AIndex: Integer; const AValue: TStringArray); 
+Procedure Tcontact.SetbusinessPhones(AIndex: Integer; const AValue: TStringArray);
 
 
 begin
@@ -8751,7 +8751,7 @@ begin
 end;
 
 
-Procedure Tcontact.SethomeAddress(AIndex: Integer; const AValue: TphysicalAddress); 
+Procedure Tcontact.SethomeAddress(AIndex: Integer; const AValue: TphysicalAddress);
 
 
 begin
@@ -8761,7 +8761,7 @@ begin
 end;
 
 
-Procedure Tcontact.SetbusinessAddress(AIndex: Integer; const AValue: TphysicalAddress); 
+Procedure Tcontact.SetbusinessAddress(AIndex: Integer; const AValue: TphysicalAddress);
 
 
 begin
@@ -8771,7 +8771,7 @@ begin
 end;
 
 
-Procedure Tcontact.SetotherAddress(AIndex: Integer; const AValue: TphysicalAddress); 
+Procedure Tcontact.SetotherAddress(AIndex: Integer; const AValue: TphysicalAddress);
 
 
 begin
@@ -8781,7 +8781,7 @@ begin
 end;
 
 
-Procedure Tcontact.SetspouseName(AIndex: Integer; const AValue: string); 
+Procedure Tcontact.SetspouseName(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -8791,7 +8791,7 @@ begin
 end;
 
 
-Procedure Tcontact.SetpersonalNotes(AIndex: Integer; const AValue: string); 
+Procedure Tcontact.SetpersonalNotes(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -8801,7 +8801,7 @@ begin
 end;
 
 
-Procedure Tcontact.Setchildren(AIndex: Integer; const AValue: TStringArray); 
+Procedure Tcontact.Setchildren(AIndex: Integer; const AValue: TStringArray);
 
 
 begin
@@ -8812,7 +8812,7 @@ end;
 
 {$IFDEF VER2_6}
 
-Procedure Tcontact.SetArrayLength(const AName: String; ALength: Longint); 
+Procedure Tcontact.SetArrayLength(const AName: String; ALength: Longint);
 
 begin
   Case aName of
@@ -8828,7 +8828,7 @@ end;
 {$ENDIF VER2_6}
 
 
-Function Tcontact.photo(AService: TODataService) : TprofilePhoto; 
+Function Tcontact.photo(AService: TODataService) : TprofilePhoto;
 
 
 begin
@@ -8841,14 +8841,14 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function TcontactFolder.ObjectRestKind : String; 
+Class Function TcontactFolder.ObjectRestKind : String;
 
 begin
   Result:='contactFolder';
 end;
 
 
-Procedure TcontactFolder.SetparentFolderId(AIndex: Integer; const AValue: string); 
+Procedure TcontactFolder.SetparentFolderId(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -8858,7 +8858,7 @@ begin
 end;
 
 
-Procedure TcontactFolder.SetdisplayName(AIndex: Integer; const AValue: string); 
+Procedure TcontactFolder.SetdisplayName(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -8868,7 +8868,7 @@ begin
 end;
 
 
-Function TcontactFolder.contacts(AService: TODataService) : TcontactImplicitEntitySet; 
+Function TcontactFolder.contacts(AService: TODataService) : TcontactImplicitEntitySet;
 
 
 begin
@@ -8876,7 +8876,7 @@ begin
 end;
 
 
-Function TcontactFolder.childFolders(AService: TODataService) : TcontactFolderImplicitEntitySet; 
+Function TcontactFolder.childFolders(AService: TODataService) : TcontactFolderImplicitEntitySet;
 
 
 begin
@@ -8889,14 +8889,14 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function Tattachment.ObjectRestKind : String; 
+Class Function Tattachment.ObjectRestKind : String;
 
 begin
   Result:='attachment';
 end;
 
 
-Procedure Tattachment.SetlastModifiedDateTime(AIndex: Integer; const AValue: TDateTime); 
+Procedure Tattachment.SetlastModifiedDateTime(AIndex: Integer; const AValue: TDateTime);
 
 
 begin
@@ -8906,7 +8906,7 @@ begin
 end;
 
 
-Procedure Tattachment.Setname(AIndex: Integer; const AValue: string); 
+Procedure Tattachment.Setname(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -8916,7 +8916,7 @@ begin
 end;
 
 
-Procedure Tattachment.SetcontentType(AIndex: Integer; const AValue: string); 
+Procedure Tattachment.SetcontentType(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -8926,7 +8926,7 @@ begin
 end;
 
 
-Procedure Tattachment.Setsize(AIndex: Integer; const AValue: TInt32); 
+Procedure Tattachment.Setsize(AIndex: Integer; const AValue: TInt32);
 
 
 begin
@@ -8936,7 +8936,7 @@ begin
 end;
 
 
-Procedure Tattachment.SetisInline(AIndex: Integer; const AValue: boolean); 
+Procedure Tattachment.SetisInline(AIndex: Integer; const AValue: boolean);
 
 
 begin
@@ -8951,14 +8951,14 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function TfileAttachment.ObjectRestKind : String; 
+Class Function TfileAttachment.ObjectRestKind : String;
 
 begin
   Result:='fileAttachment';
 end;
 
 
-Procedure TfileAttachment.SetcontentId(AIndex: Integer; const AValue: string); 
+Procedure TfileAttachment.SetcontentId(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -8968,7 +8968,7 @@ begin
 end;
 
 
-Procedure TfileAttachment.SetcontentLocation(AIndex: Integer; const AValue: string); 
+Procedure TfileAttachment.SetcontentLocation(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -8978,7 +8978,7 @@ begin
 end;
 
 
-Procedure TfileAttachment.SetcontentBytes(AIndex: Integer; const AValue: TBinary); 
+Procedure TfileAttachment.SetcontentBytes(AIndex: Integer; const AValue: TBinary);
 
 
 begin
@@ -8993,14 +8993,14 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function TitemAttachment.ObjectRestKind : String; 
+Class Function TitemAttachment.ObjectRestKind : String;
 
 begin
   Result:='itemAttachment';
 end;
 
 
-Function TitemAttachment.item(AService: TODataService) : ToutlookItem; 
+Function TitemAttachment.item(AService: TODataService) : ToutlookItem;
 
 
 begin
@@ -9013,14 +9013,14 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function TeventMessage.ObjectRestKind : String; 
+Class Function TeventMessage.ObjectRestKind : String;
 
 begin
   Result:='eventMessage';
 end;
 
 
-Procedure TeventMessage.SetmeetingMessageType(AIndex: Integer; const AValue: TmeetingMessageType); 
+Procedure TeventMessage.SetmeetingMessageType(AIndex: Integer; const AValue: TmeetingMessageType);
 
 
 begin
@@ -9030,7 +9030,7 @@ begin
 end;
 
 
-Function TeventMessage.event(AService: TODataService) : Tevent; 
+Function TeventMessage.event(AService: TODataService) : Tevent;
 
 
 begin
@@ -9043,7 +9043,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function TreferenceAttachment.ObjectRestKind : String; 
+Class Function TreferenceAttachment.ObjectRestKind : String;
 
 begin
   Result:='referenceAttachment';
@@ -9055,7 +9055,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure Tpost.forward(AService: TODataService; Comment: string; ToRecipients: TrecipientArray); 
+Procedure Tpost.forward(AService: TODataService; Comment: string; ToRecipients: TrecipientArray);
 
 Var
   _JSON : TJSONObject;
@@ -9075,7 +9075,7 @@ begin
 end;
 
 
-Procedure Tpost.reply(AService: TODataService; _Post: Tpost); 
+Procedure Tpost.reply(AService: TODataService; _Post: Tpost);
 
 Var
   _JSON : TJSONObject;
@@ -9094,14 +9094,14 @@ begin
 end;
 
 
-Class Function Tpost.ObjectRestKind : String; 
+Class Function Tpost.ObjectRestKind : String;
 
 begin
   Result:='post';
 end;
 
 
-Procedure Tpost.Setbody(AIndex: Integer; const AValue: TitemBody); 
+Procedure Tpost.Setbody(AIndex: Integer; const AValue: TitemBody);
 
 
 begin
@@ -9111,7 +9111,7 @@ begin
 end;
 
 
-Procedure Tpost.SetreceivedDateTime(AIndex: Integer; const AValue: TDateTime); 
+Procedure Tpost.SetreceivedDateTime(AIndex: Integer; const AValue: TDateTime);
 
 
 begin
@@ -9121,7 +9121,7 @@ begin
 end;
 
 
-Procedure Tpost.SethasAttachments(AIndex: Integer; const AValue: boolean); 
+Procedure Tpost.SethasAttachments(AIndex: Integer; const AValue: boolean);
 
 
 begin
@@ -9131,7 +9131,7 @@ begin
 end;
 
 
-Procedure Tpost.Setfrom(AIndex: Integer; const AValue: Trecipient); 
+Procedure Tpost.Setfrom(AIndex: Integer; const AValue: Trecipient);
 
 
 begin
@@ -9141,7 +9141,7 @@ begin
 end;
 
 
-Procedure Tpost.Setsender(AIndex: Integer; const AValue: Trecipient); 
+Procedure Tpost.Setsender(AIndex: Integer; const AValue: Trecipient);
 
 
 begin
@@ -9151,7 +9151,7 @@ begin
 end;
 
 
-Procedure Tpost.SetconversationThreadId(AIndex: Integer; const AValue: string); 
+Procedure Tpost.SetconversationThreadId(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -9161,7 +9161,7 @@ begin
 end;
 
 
-Procedure Tpost.SetnewParticipants(AIndex: Integer; const AValue: TrecipientArray); 
+Procedure Tpost.SetnewParticipants(AIndex: Integer; const AValue: TrecipientArray);
 
 
 begin
@@ -9171,7 +9171,7 @@ begin
 end;
 
 
-Procedure Tpost.SetconversationId(AIndex: Integer; const AValue: string); 
+Procedure Tpost.SetconversationId(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -9182,7 +9182,7 @@ end;
 
 {$IFDEF VER2_6}
 
-Procedure Tpost.SetArrayLength(const AName: String; ALength: Longint); 
+Procedure Tpost.SetArrayLength(const AName: String; ALength: Longint);
 
 begin
   Case aName of
@@ -9194,7 +9194,7 @@ end;
 {$ENDIF VER2_6}
 
 
-Function Tpost.inReplyTo(AService: TODataService) : Tpost; 
+Function Tpost.inReplyTo(AService: TODataService) : Tpost;
 
 
 begin
@@ -9202,7 +9202,7 @@ begin
 end;
 
 
-Function Tpost.attachments(AService: TODataService) : TattachmentImplicitEntitySet; 
+Function Tpost.attachments(AService: TODataService) : TattachmentImplicitEntitySet;
 
 
 begin
@@ -9215,7 +9215,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Function TdriveItem.search(AService: TODataService; q: string) : TdriveItemArray; 
+Function TdriveItem.search(AService: TODataService; q: string) : TdriveItemArray;
 
 Var
   _Res : String;
@@ -9229,7 +9229,7 @@ begin
 end;
 
 
-Function TdriveItem.delta(AService: TODataService; token: string) : TdriveItemArray; 
+Function TdriveItem.delta(AService: TODataService; token: string) : TdriveItemArray;
 
 Var
   _Res : String;
@@ -9243,7 +9243,7 @@ begin
 end;
 
 
-Function TdriveItem.delta(AService: TODataService) : TdriveItemArray; 
+Function TdriveItem.delta(AService: TODataService) : TdriveItemArray;
 
 Var
   _Res : String;
@@ -9256,7 +9256,7 @@ begin
 end;
 
 
-Function TdriveItem.createLink(AService: TODataService; _type: string; scope: string) : Tpermission; 
+Function TdriveItem.createLink(AService: TODataService; _type: string; scope: string) : Tpermission;
 
 Var
   _JSON : TJSONObject;
@@ -9276,7 +9276,7 @@ begin
 end;
 
 
-Function TdriveItem.copy(AService: TODataService; name: string; parentReference: TitemReference) : TdriveItem; 
+Function TdriveItem.copy(AService: TODataService; name: string; parentReference: TitemReference) : TdriveItem;
 
 Var
   _JSON : TJSONObject;
@@ -9296,14 +9296,14 @@ begin
 end;
 
 
-Class Function TdriveItem.ObjectRestKind : String; 
+Class Function TdriveItem.ObjectRestKind : String;
 
 begin
   Result:='driveItem';
 end;
 
 
-Procedure TdriveItem.Setcontent(AIndex: Integer; const AValue: TStream); 
+Procedure TdriveItem.Setcontent(AIndex: Integer; const AValue: TStream);
 
 
 begin
@@ -9313,7 +9313,7 @@ begin
 end;
 
 
-Procedure TdriveItem.SetcreatedBy(AIndex: Integer; const AValue: TidentitySet); 
+Procedure TdriveItem.SetcreatedBy(AIndex: Integer; const AValue: TidentitySet);
 
 
 begin
@@ -9323,7 +9323,7 @@ begin
 end;
 
 
-Procedure TdriveItem.SetcreatedDateTime(AIndex: Integer; const AValue: TDateTime); 
+Procedure TdriveItem.SetcreatedDateTime(AIndex: Integer; const AValue: TDateTime);
 
 
 begin
@@ -9333,7 +9333,7 @@ begin
 end;
 
 
-Procedure TdriveItem.SetcTag(AIndex: Integer; const AValue: string); 
+Procedure TdriveItem.SetcTag(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -9343,7 +9343,7 @@ begin
 end;
 
 
-Procedure TdriveItem.Setdescription(AIndex: Integer; const AValue: string); 
+Procedure TdriveItem.Setdescription(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -9353,7 +9353,7 @@ begin
 end;
 
 
-Procedure TdriveItem.SeteTag(AIndex: Integer; const AValue: string); 
+Procedure TdriveItem.SeteTag(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -9363,7 +9363,7 @@ begin
 end;
 
 
-Procedure TdriveItem.SetlastModifiedBy(AIndex: Integer; const AValue: TidentitySet); 
+Procedure TdriveItem.SetlastModifiedBy(AIndex: Integer; const AValue: TidentitySet);
 
 
 begin
@@ -9373,7 +9373,7 @@ begin
 end;
 
 
-Procedure TdriveItem.SetlastModifiedDateTime(AIndex: Integer; const AValue: TDateTime); 
+Procedure TdriveItem.SetlastModifiedDateTime(AIndex: Integer; const AValue: TDateTime);
 
 
 begin
@@ -9383,7 +9383,7 @@ begin
 end;
 
 
-Procedure TdriveItem.Setname(AIndex: Integer; const AValue: string); 
+Procedure TdriveItem.Setname(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -9393,7 +9393,7 @@ begin
 end;
 
 
-Procedure TdriveItem.SetparentReference(AIndex: Integer; const AValue: TitemReference); 
+Procedure TdriveItem.SetparentReference(AIndex: Integer; const AValue: TitemReference);
 
 
 begin
@@ -9403,7 +9403,7 @@ begin
 end;
 
 
-Procedure TdriveItem.Setsize(AIndex: Integer; const AValue: int64); 
+Procedure TdriveItem.Setsize(AIndex: Integer; const AValue: int64);
 
 
 begin
@@ -9413,7 +9413,7 @@ begin
 end;
 
 
-Procedure TdriveItem.SetwebDavUrl(AIndex: Integer; const AValue: string); 
+Procedure TdriveItem.SetwebDavUrl(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -9423,7 +9423,7 @@ begin
 end;
 
 
-Procedure TdriveItem.SetwebUrl(AIndex: Integer; const AValue: string); 
+Procedure TdriveItem.SetwebUrl(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -9433,7 +9433,7 @@ begin
 end;
 
 
-Procedure TdriveItem.Setaudio(AIndex: Integer; const AValue: Taudio); 
+Procedure TdriveItem.Setaudio(AIndex: Integer; const AValue: Taudio);
 
 
 begin
@@ -9443,7 +9443,7 @@ begin
 end;
 
 
-Procedure TdriveItem.Setdeleted(AIndex: Integer; const AValue: Tdeleted); 
+Procedure TdriveItem.Setdeleted(AIndex: Integer; const AValue: Tdeleted);
 
 
 begin
@@ -9453,7 +9453,7 @@ begin
 end;
 
 
-Procedure TdriveItem.Set_file(AIndex: Integer; const AValue: T_file); 
+Procedure TdriveItem.Set_file(AIndex: Integer; const AValue: T_file);
 
 
 begin
@@ -9463,7 +9463,7 @@ begin
 end;
 
 
-Procedure TdriveItem.SetfileSystemInfo(AIndex: Integer; const AValue: TfileSystemInfo); 
+Procedure TdriveItem.SetfileSystemInfo(AIndex: Integer; const AValue: TfileSystemInfo);
 
 
 begin
@@ -9473,7 +9473,7 @@ begin
 end;
 
 
-Procedure TdriveItem.Setfolder(AIndex: Integer; const AValue: Tfolder); 
+Procedure TdriveItem.Setfolder(AIndex: Integer; const AValue: Tfolder);
 
 
 begin
@@ -9483,7 +9483,7 @@ begin
 end;
 
 
-Procedure TdriveItem.Setimage(AIndex: Integer; const AValue: Timage); 
+Procedure TdriveItem.Setimage(AIndex: Integer; const AValue: Timage);
 
 
 begin
@@ -9493,7 +9493,7 @@ begin
 end;
 
 
-Procedure TdriveItem.Setlocation(AIndex: Integer; const AValue: TgeoCoordinates); 
+Procedure TdriveItem.Setlocation(AIndex: Integer; const AValue: TgeoCoordinates);
 
 
 begin
@@ -9503,7 +9503,7 @@ begin
 end;
 
 
-Procedure TdriveItem.Setphoto(AIndex: Integer; const AValue: Tphoto); 
+Procedure TdriveItem.Setphoto(AIndex: Integer; const AValue: Tphoto);
 
 
 begin
@@ -9513,7 +9513,7 @@ begin
 end;
 
 
-Procedure TdriveItem.SetremoteItem(AIndex: Integer; const AValue: TremoteItem); 
+Procedure TdriveItem.SetremoteItem(AIndex: Integer; const AValue: TremoteItem);
 
 
 begin
@@ -9523,7 +9523,7 @@ begin
 end;
 
 
-Procedure TdriveItem.SetsearchResult(AIndex: Integer; const AValue: TsearchResult); 
+Procedure TdriveItem.SetsearchResult(AIndex: Integer; const AValue: TsearchResult);
 
 
 begin
@@ -9533,7 +9533,7 @@ begin
 end;
 
 
-Procedure TdriveItem.Setshared(AIndex: Integer; const AValue: Tshared); 
+Procedure TdriveItem.Setshared(AIndex: Integer; const AValue: Tshared);
 
 
 begin
@@ -9543,7 +9543,7 @@ begin
 end;
 
 
-Procedure TdriveItem.SetspecialFolder(AIndex: Integer; const AValue: TspecialFolder); 
+Procedure TdriveItem.SetspecialFolder(AIndex: Integer; const AValue: TspecialFolder);
 
 
 begin
@@ -9553,7 +9553,7 @@ begin
 end;
 
 
-Procedure TdriveItem.Setvideo(AIndex: Integer; const AValue: Tvideo); 
+Procedure TdriveItem.Setvideo(AIndex: Integer; const AValue: Tvideo);
 
 
 begin
@@ -9563,7 +9563,7 @@ begin
 end;
 
 
-Procedure TdriveItem.Setpackage(AIndex: Integer; const AValue: Tpackage); 
+Procedure TdriveItem.Setpackage(AIndex: Integer; const AValue: Tpackage);
 
 
 begin
@@ -9584,7 +9584,7 @@ begin
 end;
 
 
-Function TdriveItem.createdByUser(AService: TODataService) : Tuser; 
+Function TdriveItem.createdByUser(AService: TODataService) : Tuser;
 
 
 begin
@@ -9592,7 +9592,7 @@ begin
 end;
 
 
-Function TdriveItem.lastModifiedByUser(AService: TODataService) : Tuser; 
+Function TdriveItem.lastModifiedByUser(AService: TODataService) : Tuser;
 
 
 begin
@@ -9600,7 +9600,7 @@ begin
 end;
 
 
-Function TdriveItem.permissions(AService: TODataService) : TpermissionImplicitEntitySet; 
+Function TdriveItem.permissions(AService: TODataService) : TpermissionImplicitEntitySet;
 
 
 begin
@@ -9608,7 +9608,7 @@ begin
 end;
 
 
-Function TdriveItem.children(AService: TODataService) : TdriveItemImplicitEntitySet; 
+Function TdriveItem.children(AService: TODataService) : TdriveItemImplicitEntitySet;
 
 
 begin
@@ -9616,7 +9616,7 @@ begin
 end;
 
 
-Function TdriveItem.thumbnails(AService: TODataService) : TthumbnailSetImplicitEntitySet; 
+Function TdriveItem.thumbnails(AService: TODataService) : TthumbnailSetImplicitEntitySet;
 
 
 begin
@@ -9629,14 +9629,14 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function Tpermission.ObjectRestKind : String; 
+Class Function Tpermission.ObjectRestKind : String;
 
 begin
   Result:='permission';
 end;
 
 
-Procedure Tpermission.SetgrantedTo(AIndex: Integer; const AValue: TidentitySet); 
+Procedure Tpermission.SetgrantedTo(AIndex: Integer; const AValue: TidentitySet);
 
 
 begin
@@ -9646,7 +9646,7 @@ begin
 end;
 
 
-Procedure Tpermission.Setinvitation(AIndex: Integer; const AValue: TsharingInvitation); 
+Procedure Tpermission.Setinvitation(AIndex: Integer; const AValue: TsharingInvitation);
 
 
 begin
@@ -9656,7 +9656,7 @@ begin
 end;
 
 
-Procedure Tpermission.SetinheritedFrom(AIndex: Integer; const AValue: TitemReference); 
+Procedure Tpermission.SetinheritedFrom(AIndex: Integer; const AValue: TitemReference);
 
 
 begin
@@ -9666,7 +9666,7 @@ begin
 end;
 
 
-Procedure Tpermission.Setlink(AIndex: Integer; const AValue: TsharingLink); 
+Procedure Tpermission.Setlink(AIndex: Integer; const AValue: TsharingLink);
 
 
 begin
@@ -9676,7 +9676,7 @@ begin
 end;
 
 
-Procedure Tpermission.Setroles(AIndex: Integer; const AValue: TStringArray); 
+Procedure Tpermission.Setroles(AIndex: Integer; const AValue: TStringArray);
 
 
 begin
@@ -9686,7 +9686,7 @@ begin
 end;
 
 
-Procedure Tpermission.SetshareId(AIndex: Integer; const AValue: string); 
+Procedure Tpermission.SetshareId(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -9697,7 +9697,7 @@ end;
 
 {$IFDEF VER2_6}
 
-Procedure Tpermission.SetArrayLength(const AName: String; ALength: Longint); 
+Procedure Tpermission.SetArrayLength(const AName: String; ALength: Longint);
 
 begin
   Case aName of
@@ -9714,14 +9714,14 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function TthumbnailSet.ObjectRestKind : String; 
+Class Function TthumbnailSet.ObjectRestKind : String;
 
 begin
   Result:='thumbnailSet';
 end;
 
 
-Procedure TthumbnailSet.Setlarge(AIndex: Integer; const AValue: Tthumbnail); 
+Procedure TthumbnailSet.Setlarge(AIndex: Integer; const AValue: Tthumbnail);
 
 
 begin
@@ -9731,7 +9731,7 @@ begin
 end;
 
 
-Procedure TthumbnailSet.Setmedium(AIndex: Integer; const AValue: Tthumbnail); 
+Procedure TthumbnailSet.Setmedium(AIndex: Integer; const AValue: Tthumbnail);
 
 
 begin
@@ -9741,7 +9741,7 @@ begin
 end;
 
 
-Procedure TthumbnailSet.Setsmall(AIndex: Integer; const AValue: Tthumbnail); 
+Procedure TthumbnailSet.Setsmall(AIndex: Integer; const AValue: Tthumbnail);
 
 
 begin
@@ -9751,7 +9751,7 @@ begin
 end;
 
 
-Procedure TthumbnailSet.Setsource(AIndex: Integer; const AValue: Tthumbnail); 
+Procedure TthumbnailSet.Setsource(AIndex: Integer; const AValue: Tthumbnail);
 
 
 begin
@@ -9766,14 +9766,14 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function Tsubscription.ObjectRestKind : String; 
+Class Function Tsubscription.ObjectRestKind : String;
 
 begin
   Result:='subscription';
 end;
 
 
-Procedure Tsubscription.Setresource(AIndex: Integer; const AValue: string); 
+Procedure Tsubscription.Setresource(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -9783,7 +9783,7 @@ begin
 end;
 
 
-Procedure Tsubscription.SetchangeType(AIndex: Integer; const AValue: string); 
+Procedure Tsubscription.SetchangeType(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -9793,7 +9793,7 @@ begin
 end;
 
 
-Procedure Tsubscription.SetclientState(AIndex: Integer; const AValue: string); 
+Procedure Tsubscription.SetclientState(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -9803,7 +9803,7 @@ begin
 end;
 
 
-Procedure Tsubscription.SetnotificationUrl(AIndex: Integer; const AValue: string); 
+Procedure Tsubscription.SetnotificationUrl(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -9813,7 +9813,7 @@ begin
 end;
 
 
-Procedure Tsubscription.SetexpirationDateTime(AIndex: Integer; const AValue: TDateTime); 
+Procedure Tsubscription.SetexpirationDateTime(AIndex: Integer; const AValue: TDateTime);
 
 
 begin
@@ -9828,20 +9828,20 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function TGraphService.ObjectRestKind : String; 
+Class Function TGraphService.ObjectRestKind : String;
 
 begin
   Result:='GraphService';
 end;
 
-Function TGraphService.CreateNewdirectoryObjects : TdirectoryObjectsEntitySet; 
+Function TGraphService.CreateNewdirectoryObjects : TdirectoryObjectsEntitySet;
 
 begin
   Result:=TdirectoryObjectsEntitySet(CreateEntitySet(TdirectoryObjectsEntitySet));
 end;
 
 
-Function TGraphService.GetdirectoryObjects : TdirectoryObjectsEntitySet; 
+Function TGraphService.GetdirectoryObjects : TdirectoryObjectsEntitySet;
 
 
 begin
@@ -9850,14 +9850,14 @@ begin
   Result:=FdirectoryObjects;
 end;
 
-Function TGraphService.CreateNewdevices : TdevicesEntitySet; 
+Function TGraphService.CreateNewdevices : TdevicesEntitySet;
 
 begin
   Result:=TdevicesEntitySet(CreateEntitySet(TdevicesEntitySet));
 end;
 
 
-Function TGraphService.Getdevices : TdevicesEntitySet; 
+Function TGraphService.Getdevices : TdevicesEntitySet;
 
 
 begin
@@ -9866,14 +9866,14 @@ begin
   Result:=Fdevices;
 end;
 
-Function TGraphService.CreateNewgroups : TgroupsEntitySet; 
+Function TGraphService.CreateNewgroups : TgroupsEntitySet;
 
 begin
   Result:=TgroupsEntitySet(CreateEntitySet(TgroupsEntitySet));
 end;
 
 
-Function TGraphService.Getgroups : TgroupsEntitySet; 
+Function TGraphService.Getgroups : TgroupsEntitySet;
 
 
 begin
@@ -9882,14 +9882,14 @@ begin
   Result:=Fgroups;
 end;
 
-Function TGraphService.CreateNewdirectoryRoles : TdirectoryRolesEntitySet; 
+Function TGraphService.CreateNewdirectoryRoles : TdirectoryRolesEntitySet;
 
 begin
   Result:=TdirectoryRolesEntitySet(CreateEntitySet(TdirectoryRolesEntitySet));
 end;
 
 
-Function TGraphService.GetdirectoryRoles : TdirectoryRolesEntitySet; 
+Function TGraphService.GetdirectoryRoles : TdirectoryRolesEntitySet;
 
 
 begin
@@ -9898,14 +9898,14 @@ begin
   Result:=FdirectoryRoles;
 end;
 
-Function TGraphService.CreateNewdirectoryRoleTemplates : TdirectoryRoleTemplatesEntitySet; 
+Function TGraphService.CreateNewdirectoryRoleTemplates : TdirectoryRoleTemplatesEntitySet;
 
 begin
   Result:=TdirectoryRoleTemplatesEntitySet(CreateEntitySet(TdirectoryRoleTemplatesEntitySet));
 end;
 
 
-Function TGraphService.GetdirectoryRoleTemplates : TdirectoryRoleTemplatesEntitySet; 
+Function TGraphService.GetdirectoryRoleTemplates : TdirectoryRoleTemplatesEntitySet;
 
 
 begin
@@ -9914,14 +9914,14 @@ begin
   Result:=FdirectoryRoleTemplates;
 end;
 
-Function TGraphService.CreateNeworganization : TorganizationEntitySet; 
+Function TGraphService.CreateNeworganization : TorganizationEntitySet;
 
 begin
   Result:=TorganizationEntitySet(CreateEntitySet(TorganizationEntitySet));
 end;
 
 
-Function TGraphService.Getorganization : TorganizationEntitySet; 
+Function TGraphService.Getorganization : TorganizationEntitySet;
 
 
 begin
@@ -9930,14 +9930,14 @@ begin
   Result:=Forganization;
 end;
 
-Function TGraphService.CreateNewsubscribedSkus : TsubscribedSkusEntitySet; 
+Function TGraphService.CreateNewsubscribedSkus : TsubscribedSkusEntitySet;
 
 begin
   Result:=TsubscribedSkusEntitySet(CreateEntitySet(TsubscribedSkusEntitySet));
 end;
 
 
-Function TGraphService.GetsubscribedSkus : TsubscribedSkusEntitySet; 
+Function TGraphService.GetsubscribedSkus : TsubscribedSkusEntitySet;
 
 
 begin
@@ -9946,14 +9946,14 @@ begin
   Result:=FsubscribedSkus;
 end;
 
-Function TGraphService.CreateNewusers : TusersEntitySet; 
+Function TGraphService.CreateNewusers : TusersEntitySet;
 
 begin
   Result:=TusersEntitySet(CreateEntitySet(TusersEntitySet));
 end;
 
 
-Function TGraphService.Getusers : TusersEntitySet; 
+Function TGraphService.Getusers : TusersEntitySet;
 
 
 begin
@@ -9962,14 +9962,14 @@ begin
   Result:=Fusers;
 end;
 
-Function TGraphService.CreateNewdrives : TdrivesEntitySet; 
+Function TGraphService.CreateNewdrives : TdrivesEntitySet;
 
 begin
   Result:=TdrivesEntitySet(CreateEntitySet(TdrivesEntitySet));
 end;
 
 
-Function TGraphService.Getdrives : TdrivesEntitySet; 
+Function TGraphService.Getdrives : TdrivesEntitySet;
 
 
 begin
@@ -9978,14 +9978,14 @@ begin
   Result:=Fdrives;
 end;
 
-Function TGraphService.CreateNewsubscriptions : TsubscriptionsEntitySet; 
+Function TGraphService.CreateNewsubscriptions : TsubscriptionsEntitySet;
 
 begin
   Result:=TsubscriptionsEntitySet(CreateEntitySet(TsubscriptionsEntitySet));
 end;
 
 
-Function TGraphService.Getsubscriptions : TsubscriptionsEntitySet; 
+Function TGraphService.Getsubscriptions : TsubscriptionsEntitySet;
 
 
 begin
@@ -9995,7 +9995,7 @@ begin
 end;
 
 
-Function TGraphService.Fetchme : Tuser; 
+Function TGraphService.Fetchme : Tuser;
 
 begin
   CheckService;
@@ -10004,7 +10004,7 @@ begin
 end;
 
 
-Function TGraphService.Getme : Tuser; 
+Function TGraphService.Getme : Tuser;
 
 
 begin
@@ -10014,7 +10014,7 @@ begin
 end;
 
 
-Function TGraphService.Fetchdrive : Tdrive; 
+Function TGraphService.Fetchdrive : Tdrive;
 
 begin
   CheckService;
@@ -10023,7 +10023,7 @@ begin
 end;
 
 
-Function TGraphService.Getdrive : Tdrive; 
+Function TGraphService.Getdrive : Tdrive;
 
 
 begin
@@ -10038,20 +10038,20 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function TdirectoryObjectsEntitySet.ObjectRestKind : String; 
+Class Function TdirectoryObjectsEntitySet.ObjectRestKind : String;
 
 begin
   Result:='directoryObjects';
 end;
 
-Class Function TdirectoryObjectsEntitySet.EntityClass : TODataEntityClass; 
+Class Function TdirectoryObjectsEntitySet.EntityClass : TODataEntityClass;
 
 begin
   Result:=TdirectoryObject;
 end;
 
 
-Function TdirectoryObjectsEntitySet.Get(const id: string) : TdirectoryObject; 
+Function TdirectoryObjectsEntitySet.Get(const id: string) : TdirectoryObject;
 
 
 begin
@@ -10059,7 +10059,7 @@ begin
 end;
 
 
-Function TdirectoryObjectsEntitySet.List(const AQuery: String; out NextLink: String) : TdirectoryObjectArray; 
+Function TdirectoryObjectsEntitySet.List(const AQuery: String; out NextLink: String) : TdirectoryObjectArray;
 
 
 begin
@@ -10067,7 +10067,7 @@ begin
 end;
 
 
-Function TdirectoryObjectsEntitySet.List(const AQuery: TQueryParams; out NextLink: String) : TdirectoryObjectArray; 
+Function TdirectoryObjectsEntitySet.List(const AQuery: TQueryParams; out NextLink: String) : TdirectoryObjectArray;
 
 
 begin
@@ -10075,7 +10075,7 @@ begin
 end;
 
 
-Function TdirectoryObjectsEntitySet.ListAll(const AQuery: String) : TdirectoryObjectArray; 
+Function TdirectoryObjectsEntitySet.ListAll(const AQuery: String) : TdirectoryObjectArray;
 
 var N : String;
 
@@ -10084,7 +10084,7 @@ begin
 end;
 
 
-Function TdirectoryObjectsEntitySet.ListAll(const AQuery: TQueryParams) : TdirectoryObjectArray; 
+Function TdirectoryObjectsEntitySet.ListAll(const AQuery: TQueryParams) : TdirectoryObjectArray;
 
 var N : String;
 
@@ -10098,20 +10098,20 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function TdevicesEntitySet.ObjectRestKind : String; 
+Class Function TdevicesEntitySet.ObjectRestKind : String;
 
 begin
   Result:='devices';
 end;
 
-Class Function TdevicesEntitySet.EntityClass : TODataEntityClass; 
+Class Function TdevicesEntitySet.EntityClass : TODataEntityClass;
 
 begin
   Result:=Tdevice;
 end;
 
 
-Function TdevicesEntitySet.Get(const id: string) : Tdevice; 
+Function TdevicesEntitySet.Get(const id: string) : Tdevice;
 
 
 begin
@@ -10119,7 +10119,7 @@ begin
 end;
 
 
-Function TdevicesEntitySet.List(const AQuery: String; out NextLink: String) : TdeviceArray; 
+Function TdevicesEntitySet.List(const AQuery: String; out NextLink: String) : TdeviceArray;
 
 
 begin
@@ -10127,7 +10127,7 @@ begin
 end;
 
 
-Function TdevicesEntitySet.List(const AQuery: TQueryParams; out NextLink: String) : TdeviceArray; 
+Function TdevicesEntitySet.List(const AQuery: TQueryParams; out NextLink: String) : TdeviceArray;
 
 
 begin
@@ -10135,7 +10135,7 @@ begin
 end;
 
 
-Function TdevicesEntitySet.ListAll(const AQuery: String) : TdeviceArray; 
+Function TdevicesEntitySet.ListAll(const AQuery: String) : TdeviceArray;
 
 var N : String;
 
@@ -10144,7 +10144,7 @@ begin
 end;
 
 
-Function TdevicesEntitySet.ListAll(const AQuery: TQueryParams) : TdeviceArray; 
+Function TdevicesEntitySet.ListAll(const AQuery: TQueryParams) : TdeviceArray;
 
 var N : String;
 
@@ -10158,20 +10158,20 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function TgroupsEntitySet.ObjectRestKind : String; 
+Class Function TgroupsEntitySet.ObjectRestKind : String;
 
 begin
   Result:='groups';
 end;
 
-Class Function TgroupsEntitySet.EntityClass : TODataEntityClass; 
+Class Function TgroupsEntitySet.EntityClass : TODataEntityClass;
 
 begin
   Result:=Tgroup;
 end;
 
 
-Function TgroupsEntitySet.Get(const id: string) : Tgroup; 
+Function TgroupsEntitySet.Get(const id: string) : Tgroup;
 
 
 begin
@@ -10179,7 +10179,7 @@ begin
 end;
 
 
-Function TgroupsEntitySet.List(const AQuery: String; out NextLink: String) : TgroupArray; 
+Function TgroupsEntitySet.List(const AQuery: String; out NextLink: String) : TgroupArray;
 
 
 begin
@@ -10187,7 +10187,7 @@ begin
 end;
 
 
-Function TgroupsEntitySet.List(const AQuery: TQueryParams; out NextLink: String) : TgroupArray; 
+Function TgroupsEntitySet.List(const AQuery: TQueryParams; out NextLink: String) : TgroupArray;
 
 
 begin
@@ -10195,7 +10195,7 @@ begin
 end;
 
 
-Function TgroupsEntitySet.ListAll(const AQuery: String) : TgroupArray; 
+Function TgroupsEntitySet.ListAll(const AQuery: String) : TgroupArray;
 
 var N : String;
 
@@ -10204,7 +10204,7 @@ begin
 end;
 
 
-Function TgroupsEntitySet.ListAll(const AQuery: TQueryParams) : TgroupArray; 
+Function TgroupsEntitySet.ListAll(const AQuery: TQueryParams) : TgroupArray;
 
 var N : String;
 
@@ -10218,20 +10218,20 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function TdirectoryRolesEntitySet.ObjectRestKind : String; 
+Class Function TdirectoryRolesEntitySet.ObjectRestKind : String;
 
 begin
   Result:='directoryRoles';
 end;
 
-Class Function TdirectoryRolesEntitySet.EntityClass : TODataEntityClass; 
+Class Function TdirectoryRolesEntitySet.EntityClass : TODataEntityClass;
 
 begin
   Result:=TdirectoryRole;
 end;
 
 
-Function TdirectoryRolesEntitySet.Get(const id: string) : TdirectoryRole; 
+Function TdirectoryRolesEntitySet.Get(const id: string) : TdirectoryRole;
 
 
 begin
@@ -10239,7 +10239,7 @@ begin
 end;
 
 
-Function TdirectoryRolesEntitySet.List(const AQuery: String; out NextLink: String) : TdirectoryRoleArray; 
+Function TdirectoryRolesEntitySet.List(const AQuery: String; out NextLink: String) : TdirectoryRoleArray;
 
 
 begin
@@ -10247,7 +10247,7 @@ begin
 end;
 
 
-Function TdirectoryRolesEntitySet.List(const AQuery: TQueryParams; out NextLink: String) : TdirectoryRoleArray; 
+Function TdirectoryRolesEntitySet.List(const AQuery: TQueryParams; out NextLink: String) : TdirectoryRoleArray;
 
 
 begin
@@ -10255,7 +10255,7 @@ begin
 end;
 
 
-Function TdirectoryRolesEntitySet.ListAll(const AQuery: String) : TdirectoryRoleArray; 
+Function TdirectoryRolesEntitySet.ListAll(const AQuery: String) : TdirectoryRoleArray;
 
 var N : String;
 
@@ -10264,7 +10264,7 @@ begin
 end;
 
 
-Function TdirectoryRolesEntitySet.ListAll(const AQuery: TQueryParams) : TdirectoryRoleArray; 
+Function TdirectoryRolesEntitySet.ListAll(const AQuery: TQueryParams) : TdirectoryRoleArray;
 
 var N : String;
 
@@ -10278,20 +10278,20 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function TdirectoryRoleTemplatesEntitySet.ObjectRestKind : String; 
+Class Function TdirectoryRoleTemplatesEntitySet.ObjectRestKind : String;
 
 begin
   Result:='directoryRoleTemplates';
 end;
 
-Class Function TdirectoryRoleTemplatesEntitySet.EntityClass : TODataEntityClass; 
+Class Function TdirectoryRoleTemplatesEntitySet.EntityClass : TODataEntityClass;
 
 begin
   Result:=TdirectoryRoleTemplate;
 end;
 
 
-Function TdirectoryRoleTemplatesEntitySet.Get(const id: string) : TdirectoryRoleTemplate; 
+Function TdirectoryRoleTemplatesEntitySet.Get(const id: string) : TdirectoryRoleTemplate;
 
 
 begin
@@ -10299,7 +10299,7 @@ begin
 end;
 
 
-Function TdirectoryRoleTemplatesEntitySet.List(const AQuery: String; out NextLink: String) : TdirectoryRoleTemplateArray; 
+Function TdirectoryRoleTemplatesEntitySet.List(const AQuery: String; out NextLink: String) : TdirectoryRoleTemplateArray;
 
 
 begin
@@ -10307,7 +10307,7 @@ begin
 end;
 
 
-Function TdirectoryRoleTemplatesEntitySet.List(const AQuery: TQueryParams; out NextLink: String) : TdirectoryRoleTemplateArray; 
+Function TdirectoryRoleTemplatesEntitySet.List(const AQuery: TQueryParams; out NextLink: String) : TdirectoryRoleTemplateArray;
 
 
 begin
@@ -10315,7 +10315,7 @@ begin
 end;
 
 
-Function TdirectoryRoleTemplatesEntitySet.ListAll(const AQuery: String) : TdirectoryRoleTemplateArray; 
+Function TdirectoryRoleTemplatesEntitySet.ListAll(const AQuery: String) : TdirectoryRoleTemplateArray;
 
 var N : String;
 
@@ -10324,7 +10324,7 @@ begin
 end;
 
 
-Function TdirectoryRoleTemplatesEntitySet.ListAll(const AQuery: TQueryParams) : TdirectoryRoleTemplateArray; 
+Function TdirectoryRoleTemplatesEntitySet.ListAll(const AQuery: TQueryParams) : TdirectoryRoleTemplateArray;
 
 var N : String;
 
@@ -10338,20 +10338,20 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function TorganizationEntitySet.ObjectRestKind : String; 
+Class Function TorganizationEntitySet.ObjectRestKind : String;
 
 begin
   Result:='organization';
 end;
 
-Class Function TorganizationEntitySet.EntityClass : TODataEntityClass; 
+Class Function TorganizationEntitySet.EntityClass : TODataEntityClass;
 
 begin
   Result:=Torganization;
 end;
 
 
-Function TorganizationEntitySet.Get(const id: string) : Torganization; 
+Function TorganizationEntitySet.Get(const id: string) : Torganization;
 
 
 begin
@@ -10359,7 +10359,7 @@ begin
 end;
 
 
-Function TorganizationEntitySet.List(const AQuery: String; out NextLink: String) : TorganizationArray; 
+Function TorganizationEntitySet.List(const AQuery: String; out NextLink: String) : TorganizationArray;
 
 
 begin
@@ -10367,7 +10367,7 @@ begin
 end;
 
 
-Function TorganizationEntitySet.List(const AQuery: TQueryParams; out NextLink: String) : TorganizationArray; 
+Function TorganizationEntitySet.List(const AQuery: TQueryParams; out NextLink: String) : TorganizationArray;
 
 
 begin
@@ -10375,7 +10375,7 @@ begin
 end;
 
 
-Function TorganizationEntitySet.ListAll(const AQuery: String) : TorganizationArray; 
+Function TorganizationEntitySet.ListAll(const AQuery: String) : TorganizationArray;
 
 var N : String;
 
@@ -10384,7 +10384,7 @@ begin
 end;
 
 
-Function TorganizationEntitySet.ListAll(const AQuery: TQueryParams) : TorganizationArray; 
+Function TorganizationEntitySet.ListAll(const AQuery: TQueryParams) : TorganizationArray;
 
 var N : String;
 
@@ -10398,20 +10398,20 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function TsubscribedSkusEntitySet.ObjectRestKind : String; 
+Class Function TsubscribedSkusEntitySet.ObjectRestKind : String;
 
 begin
   Result:='subscribedSkus';
 end;
 
-Class Function TsubscribedSkusEntitySet.EntityClass : TODataEntityClass; 
+Class Function TsubscribedSkusEntitySet.EntityClass : TODataEntityClass;
 
 begin
   Result:=TsubscribedSku;
 end;
 
 
-Function TsubscribedSkusEntitySet.Get(const id: string) : TsubscribedSku; 
+Function TsubscribedSkusEntitySet.Get(const id: string) : TsubscribedSku;
 
 
 begin
@@ -10419,7 +10419,7 @@ begin
 end;
 
 
-Function TsubscribedSkusEntitySet.List(const AQuery: String; out NextLink: String) : TsubscribedSkuArray; 
+Function TsubscribedSkusEntitySet.List(const AQuery: String; out NextLink: String) : TsubscribedSkuArray;
 
 
 begin
@@ -10427,7 +10427,7 @@ begin
 end;
 
 
-Function TsubscribedSkusEntitySet.List(const AQuery: TQueryParams; out NextLink: String) : TsubscribedSkuArray; 
+Function TsubscribedSkusEntitySet.List(const AQuery: TQueryParams; out NextLink: String) : TsubscribedSkuArray;
 
 
 begin
@@ -10435,7 +10435,7 @@ begin
 end;
 
 
-Function TsubscribedSkusEntitySet.ListAll(const AQuery: String) : TsubscribedSkuArray; 
+Function TsubscribedSkusEntitySet.ListAll(const AQuery: String) : TsubscribedSkuArray;
 
 var N : String;
 
@@ -10444,7 +10444,7 @@ begin
 end;
 
 
-Function TsubscribedSkusEntitySet.ListAll(const AQuery: TQueryParams) : TsubscribedSkuArray; 
+Function TsubscribedSkusEntitySet.ListAll(const AQuery: TQueryParams) : TsubscribedSkuArray;
 
 var N : String;
 
@@ -10458,20 +10458,20 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function TusersEntitySet.ObjectRestKind : String; 
+Class Function TusersEntitySet.ObjectRestKind : String;
 
 begin
   Result:='users';
 end;
 
-Class Function TusersEntitySet.EntityClass : TODataEntityClass; 
+Class Function TusersEntitySet.EntityClass : TODataEntityClass;
 
 begin
   Result:=Tuser;
 end;
 
 
-Function TusersEntitySet.Get(const id: string) : Tuser; 
+Function TusersEntitySet.Get(const id: string) : Tuser;
 
 
 begin
@@ -10479,7 +10479,7 @@ begin
 end;
 
 
-Function TusersEntitySet.List(const AQuery: String; out NextLink: String) : TuserArray; 
+Function TusersEntitySet.List(const AQuery: String; out NextLink: String) : TuserArray;
 
 
 begin
@@ -10487,7 +10487,7 @@ begin
 end;
 
 
-Function TusersEntitySet.List(const AQuery: TQueryParams; out NextLink: String) : TuserArray; 
+Function TusersEntitySet.List(const AQuery: TQueryParams; out NextLink: String) : TuserArray;
 
 
 begin
@@ -10495,7 +10495,7 @@ begin
 end;
 
 
-Function TusersEntitySet.ListAll(const AQuery: String) : TuserArray; 
+Function TusersEntitySet.ListAll(const AQuery: String) : TuserArray;
 
 var N : String;
 
@@ -10504,7 +10504,7 @@ begin
 end;
 
 
-Function TusersEntitySet.ListAll(const AQuery: TQueryParams) : TuserArray; 
+Function TusersEntitySet.ListAll(const AQuery: TQueryParams) : TuserArray;
 
 var N : String;
 
@@ -10518,20 +10518,20 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function TdrivesEntitySet.ObjectRestKind : String; 
+Class Function TdrivesEntitySet.ObjectRestKind : String;
 
 begin
   Result:='drives';
 end;
 
-Class Function TdrivesEntitySet.EntityClass : TODataEntityClass; 
+Class Function TdrivesEntitySet.EntityClass : TODataEntityClass;
 
 begin
   Result:=Tdrive;
 end;
 
 
-Function TdrivesEntitySet.Get(const id: string) : Tdrive; 
+Function TdrivesEntitySet.Get(const id: string) : Tdrive;
 
 
 begin
@@ -10539,7 +10539,7 @@ begin
 end;
 
 
-Function TdrivesEntitySet.List(const AQuery: String; out NextLink: String) : TdriveArray; 
+Function TdrivesEntitySet.List(const AQuery: String; out NextLink: String) : TdriveArray;
 
 
 begin
@@ -10547,7 +10547,7 @@ begin
 end;
 
 
-Function TdrivesEntitySet.List(const AQuery: TQueryParams; out NextLink: String) : TdriveArray; 
+Function TdrivesEntitySet.List(const AQuery: TQueryParams; out NextLink: String) : TdriveArray;
 
 
 begin
@@ -10555,7 +10555,7 @@ begin
 end;
 
 
-Function TdrivesEntitySet.ListAll(const AQuery: String) : TdriveArray; 
+Function TdrivesEntitySet.ListAll(const AQuery: String) : TdriveArray;
 
 var N : String;
 
@@ -10564,7 +10564,7 @@ begin
 end;
 
 
-Function TdrivesEntitySet.ListAll(const AQuery: TQueryParams) : TdriveArray; 
+Function TdrivesEntitySet.ListAll(const AQuery: TQueryParams) : TdriveArray;
 
 var N : String;
 
@@ -10578,20 +10578,20 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function TsubscriptionsEntitySet.ObjectRestKind : String; 
+Class Function TsubscriptionsEntitySet.ObjectRestKind : String;
 
 begin
   Result:='subscriptions';
 end;
 
-Class Function TsubscriptionsEntitySet.EntityClass : TODataEntityClass; 
+Class Function TsubscriptionsEntitySet.EntityClass : TODataEntityClass;
 
 begin
   Result:=Tsubscription;
 end;
 
 
-Function TsubscriptionsEntitySet.Get(const id: string) : Tsubscription; 
+Function TsubscriptionsEntitySet.Get(const id: string) : Tsubscription;
 
 
 begin
@@ -10599,7 +10599,7 @@ begin
 end;
 
 
-Function TsubscriptionsEntitySet.List(const AQuery: String; out NextLink: String) : TsubscriptionArray; 
+Function TsubscriptionsEntitySet.List(const AQuery: String; out NextLink: String) : TsubscriptionArray;
 
 
 begin
@@ -10607,7 +10607,7 @@ begin
 end;
 
 
-Function TsubscriptionsEntitySet.List(const AQuery: TQueryParams; out NextLink: String) : TsubscriptionArray; 
+Function TsubscriptionsEntitySet.List(const AQuery: TQueryParams; out NextLink: String) : TsubscriptionArray;
 
 
 begin
@@ -10615,7 +10615,7 @@ begin
 end;
 
 
-Function TsubscriptionsEntitySet.ListAll(const AQuery: String) : TsubscriptionArray; 
+Function TsubscriptionsEntitySet.ListAll(const AQuery: String) : TsubscriptionArray;
 
 var N : String;
 
@@ -10624,7 +10624,7 @@ begin
 end;
 
 
-Function TsubscriptionsEntitySet.ListAll(const AQuery: TQueryParams) : TsubscriptionArray; 
+Function TsubscriptionsEntitySet.ListAll(const AQuery: TQueryParams) : TsubscriptionArray;
 
 var N : String;
 
@@ -10638,20 +10638,20 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function TconversationThreadImplicitEntitySet.ObjectRestKind : String; 
+Class Function TconversationThreadImplicitEntitySet.ObjectRestKind : String;
 
 begin
   Result:='conversationThreadImplicitEntitySet';
 end;
 
-Class Function TconversationThreadImplicitEntitySet.EntityClass : TODataEntityClass; 
+Class Function TconversationThreadImplicitEntitySet.EntityClass : TODataEntityClass;
 
 begin
   Result:=TconversationThread;
 end;
 
 
-Function TconversationThreadImplicitEntitySet.Get(const id: string) : TconversationThread; 
+Function TconversationThreadImplicitEntitySet.Get(const id: string) : TconversationThread;
 
 
 begin
@@ -10659,7 +10659,7 @@ begin
 end;
 
 
-Function TconversationThreadImplicitEntitySet.List(const AQuery: String; out NextLink: String) : TconversationThreadArray; 
+Function TconversationThreadImplicitEntitySet.List(const AQuery: String; out NextLink: String) : TconversationThreadArray;
 
 
 begin
@@ -10667,7 +10667,7 @@ begin
 end;
 
 
-Function TconversationThreadImplicitEntitySet.List(const AQuery: TQueryParams; out NextLink: String) : TconversationThreadArray; 
+Function TconversationThreadImplicitEntitySet.List(const AQuery: TQueryParams; out NextLink: String) : TconversationThreadArray;
 
 
 begin
@@ -10675,7 +10675,7 @@ begin
 end;
 
 
-Function TconversationThreadImplicitEntitySet.ListAll(const AQuery: String) : TconversationThreadArray; 
+Function TconversationThreadImplicitEntitySet.ListAll(const AQuery: String) : TconversationThreadArray;
 
 var N : String;
 
@@ -10684,7 +10684,7 @@ begin
 end;
 
 
-Function TconversationThreadImplicitEntitySet.ListAll(const AQuery: TQueryParams) : TconversationThreadArray; 
+Function TconversationThreadImplicitEntitySet.ListAll(const AQuery: TQueryParams) : TconversationThreadArray;
 
 var N : String;
 
@@ -10698,20 +10698,20 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function TcalendarImplicitEntitySet.ObjectRestKind : String; 
+Class Function TcalendarImplicitEntitySet.ObjectRestKind : String;
 
 begin
   Result:='calendarImplicitEntitySet';
 end;
 
-Class Function TcalendarImplicitEntitySet.EntityClass : TODataEntityClass; 
+Class Function TcalendarImplicitEntitySet.EntityClass : TODataEntityClass;
 
 begin
   Result:=Tcalendar;
 end;
 
 
-Function TcalendarImplicitEntitySet.Get(const id: string) : Tcalendar; 
+Function TcalendarImplicitEntitySet.Get(const id: string) : Tcalendar;
 
 
 begin
@@ -10724,20 +10724,20 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function TeventImplicitEntitySet.ObjectRestKind : String; 
+Class Function TeventImplicitEntitySet.ObjectRestKind : String;
 
 begin
   Result:='eventImplicitEntitySet';
 end;
 
-Class Function TeventImplicitEntitySet.EntityClass : TODataEntityClass; 
+Class Function TeventImplicitEntitySet.EntityClass : TODataEntityClass;
 
 begin
   Result:=Tevent;
 end;
 
 
-Function TeventImplicitEntitySet.Get(const id: string) : Tevent; 
+Function TeventImplicitEntitySet.Get(const id: string) : Tevent;
 
 
 begin
@@ -10745,7 +10745,7 @@ begin
 end;
 
 
-Function TeventImplicitEntitySet.List(const AQuery: String; out NextLink: String) : TeventArray; 
+Function TeventImplicitEntitySet.List(const AQuery: String; out NextLink: String) : TeventArray;
 
 
 begin
@@ -10753,7 +10753,7 @@ begin
 end;
 
 
-Function TeventImplicitEntitySet.List(const AQuery: TQueryParams; out NextLink: String) : TeventArray; 
+Function TeventImplicitEntitySet.List(const AQuery: TQueryParams; out NextLink: String) : TeventArray;
 
 
 begin
@@ -10761,7 +10761,7 @@ begin
 end;
 
 
-Function TeventImplicitEntitySet.ListAll(const AQuery: String) : TeventArray; 
+Function TeventImplicitEntitySet.ListAll(const AQuery: String) : TeventArray;
 
 var N : String;
 
@@ -10770,7 +10770,7 @@ begin
 end;
 
 
-Function TeventImplicitEntitySet.ListAll(const AQuery: TQueryParams) : TeventArray; 
+Function TeventImplicitEntitySet.ListAll(const AQuery: TQueryParams) : TeventArray;
 
 var N : String;
 
@@ -10784,20 +10784,20 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function TconversationImplicitEntitySet.ObjectRestKind : String; 
+Class Function TconversationImplicitEntitySet.ObjectRestKind : String;
 
 begin
   Result:='conversationImplicitEntitySet';
 end;
 
-Class Function TconversationImplicitEntitySet.EntityClass : TODataEntityClass; 
+Class Function TconversationImplicitEntitySet.EntityClass : TODataEntityClass;
 
 begin
   Result:=Tconversation;
 end;
 
 
-Function TconversationImplicitEntitySet.Get(const id: string) : Tconversation; 
+Function TconversationImplicitEntitySet.Get(const id: string) : Tconversation;
 
 
 begin
@@ -10805,7 +10805,7 @@ begin
 end;
 
 
-Function TconversationImplicitEntitySet.List(const AQuery: String; out NextLink: String) : TconversationArray; 
+Function TconversationImplicitEntitySet.List(const AQuery: String; out NextLink: String) : TconversationArray;
 
 
 begin
@@ -10813,7 +10813,7 @@ begin
 end;
 
 
-Function TconversationImplicitEntitySet.List(const AQuery: TQueryParams; out NextLink: String) : TconversationArray; 
+Function TconversationImplicitEntitySet.List(const AQuery: TQueryParams; out NextLink: String) : TconversationArray;
 
 
 begin
@@ -10821,7 +10821,7 @@ begin
 end;
 
 
-Function TconversationImplicitEntitySet.ListAll(const AQuery: String) : TconversationArray; 
+Function TconversationImplicitEntitySet.ListAll(const AQuery: String) : TconversationArray;
 
 var N : String;
 
@@ -10830,7 +10830,7 @@ begin
 end;
 
 
-Function TconversationImplicitEntitySet.ListAll(const AQuery: TQueryParams) : TconversationArray; 
+Function TconversationImplicitEntitySet.ListAll(const AQuery: TQueryParams) : TconversationArray;
 
 var N : String;
 
@@ -10844,20 +10844,20 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function TprofilePhotoImplicitEntitySet.ObjectRestKind : String; 
+Class Function TprofilePhotoImplicitEntitySet.ObjectRestKind : String;
 
 begin
   Result:='profilePhotoImplicitEntitySet';
 end;
 
-Class Function TprofilePhotoImplicitEntitySet.EntityClass : TODataEntityClass; 
+Class Function TprofilePhotoImplicitEntitySet.EntityClass : TODataEntityClass;
 
 begin
   Result:=TprofilePhoto;
 end;
 
 
-Function TprofilePhotoImplicitEntitySet.Get(const id: string) : TprofilePhoto; 
+Function TprofilePhotoImplicitEntitySet.Get(const id: string) : TprofilePhoto;
 
 
 begin
@@ -10870,20 +10870,20 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function TpostImplicitEntitySet.ObjectRestKind : String; 
+Class Function TpostImplicitEntitySet.ObjectRestKind : String;
 
 begin
   Result:='postImplicitEntitySet';
 end;
 
-Class Function TpostImplicitEntitySet.EntityClass : TODataEntityClass; 
+Class Function TpostImplicitEntitySet.EntityClass : TODataEntityClass;
 
 begin
   Result:=Tpost;
 end;
 
 
-Function TpostImplicitEntitySet.Get(const id: string) : Tpost; 
+Function TpostImplicitEntitySet.Get(const id: string) : Tpost;
 
 
 begin
@@ -10891,7 +10891,7 @@ begin
 end;
 
 
-Function TpostImplicitEntitySet.List(const AQuery: String; out NextLink: String) : TpostArray; 
+Function TpostImplicitEntitySet.List(const AQuery: String; out NextLink: String) : TpostArray;
 
 
 begin
@@ -10899,7 +10899,7 @@ begin
 end;
 
 
-Function TpostImplicitEntitySet.List(const AQuery: TQueryParams; out NextLink: String) : TpostArray; 
+Function TpostImplicitEntitySet.List(const AQuery: TQueryParams; out NextLink: String) : TpostArray;
 
 
 begin
@@ -10907,7 +10907,7 @@ begin
 end;
 
 
-Function TpostImplicitEntitySet.ListAll(const AQuery: String) : TpostArray; 
+Function TpostImplicitEntitySet.ListAll(const AQuery: String) : TpostArray;
 
 var N : String;
 
@@ -10916,7 +10916,7 @@ begin
 end;
 
 
-Function TpostImplicitEntitySet.ListAll(const AQuery: TQueryParams) : TpostArray; 
+Function TpostImplicitEntitySet.ListAll(const AQuery: TQueryParams) : TpostArray;
 
 var N : String;
 
@@ -10930,20 +10930,20 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function TattachmentImplicitEntitySet.ObjectRestKind : String; 
+Class Function TattachmentImplicitEntitySet.ObjectRestKind : String;
 
 begin
   Result:='attachmentImplicitEntitySet';
 end;
 
-Class Function TattachmentImplicitEntitySet.EntityClass : TODataEntityClass; 
+Class Function TattachmentImplicitEntitySet.EntityClass : TODataEntityClass;
 
 begin
   Result:=Tattachment;
 end;
 
 
-Function TattachmentImplicitEntitySet.Get(const id: string) : Tattachment; 
+Function TattachmentImplicitEntitySet.Get(const id: string) : Tattachment;
 
 
 begin
@@ -10951,7 +10951,7 @@ begin
 end;
 
 
-Function TattachmentImplicitEntitySet.List(const AQuery: String; out NextLink: String) : TattachmentArray; 
+Function TattachmentImplicitEntitySet.List(const AQuery: String; out NextLink: String) : TattachmentArray;
 
 
 begin
@@ -10959,7 +10959,7 @@ begin
 end;
 
 
-Function TattachmentImplicitEntitySet.List(const AQuery: TQueryParams; out NextLink: String) : TattachmentArray; 
+Function TattachmentImplicitEntitySet.List(const AQuery: TQueryParams; out NextLink: String) : TattachmentArray;
 
 
 begin
@@ -10967,7 +10967,7 @@ begin
 end;
 
 
-Function TattachmentImplicitEntitySet.ListAll(const AQuery: String) : TattachmentArray; 
+Function TattachmentImplicitEntitySet.ListAll(const AQuery: String) : TattachmentArray;
 
 var N : String;
 
@@ -10976,7 +10976,7 @@ begin
 end;
 
 
-Function TattachmentImplicitEntitySet.ListAll(const AQuery: TQueryParams) : TattachmentArray; 
+Function TattachmentImplicitEntitySet.ListAll(const AQuery: TQueryParams) : TattachmentArray;
 
 var N : String;
 
@@ -10990,20 +10990,20 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function TdriveItemImplicitEntitySet.ObjectRestKind : String; 
+Class Function TdriveItemImplicitEntitySet.ObjectRestKind : String;
 
 begin
   Result:='driveItemImplicitEntitySet';
 end;
 
-Class Function TdriveItemImplicitEntitySet.EntityClass : TODataEntityClass; 
+Class Function TdriveItemImplicitEntitySet.EntityClass : TODataEntityClass;
 
 begin
   Result:=TdriveItem;
 end;
 
 
-Function TdriveItemImplicitEntitySet.Get(const id: string) : TdriveItem; 
+Function TdriveItemImplicitEntitySet.Get(const id: string) : TdriveItem;
 
 
 begin
@@ -11011,7 +11011,7 @@ begin
 end;
 
 
-Function TdriveItemImplicitEntitySet.List(const AQuery: String; out NextLink: String) : TdriveItemArray; 
+Function TdriveItemImplicitEntitySet.List(const AQuery: String; out NextLink: String) : TdriveItemArray;
 
 
 begin
@@ -11019,7 +11019,7 @@ begin
 end;
 
 
-Function TdriveItemImplicitEntitySet.List(const AQuery: TQueryParams; out NextLink: String) : TdriveItemArray; 
+Function TdriveItemImplicitEntitySet.List(const AQuery: TQueryParams; out NextLink: String) : TdriveItemArray;
 
 
 begin
@@ -11027,7 +11027,7 @@ begin
 end;
 
 
-Function TdriveItemImplicitEntitySet.ListAll(const AQuery: String) : TdriveItemArray; 
+Function TdriveItemImplicitEntitySet.ListAll(const AQuery: String) : TdriveItemArray;
 
 var N : String;
 
@@ -11036,7 +11036,7 @@ begin
 end;
 
 
-Function TdriveItemImplicitEntitySet.ListAll(const AQuery: TQueryParams) : TdriveItemArray; 
+Function TdriveItemImplicitEntitySet.ListAll(const AQuery: TQueryParams) : TdriveItemArray;
 
 var N : String;
 
@@ -11050,20 +11050,20 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function TmessageImplicitEntitySet.ObjectRestKind : String; 
+Class Function TmessageImplicitEntitySet.ObjectRestKind : String;
 
 begin
   Result:='messageImplicitEntitySet';
 end;
 
-Class Function TmessageImplicitEntitySet.EntityClass : TODataEntityClass; 
+Class Function TmessageImplicitEntitySet.EntityClass : TODataEntityClass;
 
 begin
   Result:=Tmessage;
 end;
 
 
-Function TmessageImplicitEntitySet.Get(const id: string) : Tmessage; 
+Function TmessageImplicitEntitySet.Get(const id: string) : Tmessage;
 
 
 begin
@@ -11071,7 +11071,7 @@ begin
 end;
 
 
-Function TmessageImplicitEntitySet.List(const AQuery: String; out NextLink: String) : TmessageArray; 
+Function TmessageImplicitEntitySet.List(const AQuery: String; out NextLink: String) : TmessageArray;
 
 
 begin
@@ -11079,7 +11079,7 @@ begin
 end;
 
 
-Function TmessageImplicitEntitySet.List(const AQuery: TQueryParams; out NextLink: String) : TmessageArray; 
+Function TmessageImplicitEntitySet.List(const AQuery: TQueryParams; out NextLink: String) : TmessageArray;
 
 
 begin
@@ -11087,7 +11087,7 @@ begin
 end;
 
 
-Function TmessageImplicitEntitySet.ListAll(const AQuery: String) : TmessageArray; 
+Function TmessageImplicitEntitySet.ListAll(const AQuery: String) : TmessageArray;
 
 var N : String;
 
@@ -11096,7 +11096,7 @@ begin
 end;
 
 
-Function TmessageImplicitEntitySet.ListAll(const AQuery: TQueryParams) : TmessageArray; 
+Function TmessageImplicitEntitySet.ListAll(const AQuery: TQueryParams) : TmessageArray;
 
 var N : String;
 
@@ -11110,20 +11110,20 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function TmailFolderImplicitEntitySet.ObjectRestKind : String; 
+Class Function TmailFolderImplicitEntitySet.ObjectRestKind : String;
 
 begin
   Result:='mailFolderImplicitEntitySet';
 end;
 
-Class Function TmailFolderImplicitEntitySet.EntityClass : TODataEntityClass; 
+Class Function TmailFolderImplicitEntitySet.EntityClass : TODataEntityClass;
 
 begin
   Result:=TmailFolder;
 end;
 
 
-Function TmailFolderImplicitEntitySet.Get(const id: string) : TmailFolder; 
+Function TmailFolderImplicitEntitySet.Get(const id: string) : TmailFolder;
 
 
 begin
@@ -11131,7 +11131,7 @@ begin
 end;
 
 
-Function TmailFolderImplicitEntitySet.List(const AQuery: String; out NextLink: String) : TmailFolderArray; 
+Function TmailFolderImplicitEntitySet.List(const AQuery: String; out NextLink: String) : TmailFolderArray;
 
 
 begin
@@ -11139,7 +11139,7 @@ begin
 end;
 
 
-Function TmailFolderImplicitEntitySet.List(const AQuery: TQueryParams; out NextLink: String) : TmailFolderArray; 
+Function TmailFolderImplicitEntitySet.List(const AQuery: TQueryParams; out NextLink: String) : TmailFolderArray;
 
 
 begin
@@ -11147,7 +11147,7 @@ begin
 end;
 
 
-Function TmailFolderImplicitEntitySet.ListAll(const AQuery: String) : TmailFolderArray; 
+Function TmailFolderImplicitEntitySet.ListAll(const AQuery: String) : TmailFolderArray;
 
 var N : String;
 
@@ -11156,7 +11156,7 @@ begin
 end;
 
 
-Function TmailFolderImplicitEntitySet.ListAll(const AQuery: TQueryParams) : TmailFolderArray; 
+Function TmailFolderImplicitEntitySet.ListAll(const AQuery: TQueryParams) : TmailFolderArray;
 
 var N : String;
 
@@ -11170,20 +11170,20 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function TcalendarGroupImplicitEntitySet.ObjectRestKind : String; 
+Class Function TcalendarGroupImplicitEntitySet.ObjectRestKind : String;
 
 begin
   Result:='calendarGroupImplicitEntitySet';
 end;
 
-Class Function TcalendarGroupImplicitEntitySet.EntityClass : TODataEntityClass; 
+Class Function TcalendarGroupImplicitEntitySet.EntityClass : TODataEntityClass;
 
 begin
   Result:=TcalendarGroup;
 end;
 
 
-Function TcalendarGroupImplicitEntitySet.Get(const id: string) : TcalendarGroup; 
+Function TcalendarGroupImplicitEntitySet.Get(const id: string) : TcalendarGroup;
 
 
 begin
@@ -11191,7 +11191,7 @@ begin
 end;
 
 
-Function TcalendarGroupImplicitEntitySet.List(const AQuery: String; out NextLink: String) : TcalendarGroupArray; 
+Function TcalendarGroupImplicitEntitySet.List(const AQuery: String; out NextLink: String) : TcalendarGroupArray;
 
 
 begin
@@ -11199,7 +11199,7 @@ begin
 end;
 
 
-Function TcalendarGroupImplicitEntitySet.List(const AQuery: TQueryParams; out NextLink: String) : TcalendarGroupArray; 
+Function TcalendarGroupImplicitEntitySet.List(const AQuery: TQueryParams; out NextLink: String) : TcalendarGroupArray;
 
 
 begin
@@ -11207,7 +11207,7 @@ begin
 end;
 
 
-Function TcalendarGroupImplicitEntitySet.ListAll(const AQuery: String) : TcalendarGroupArray; 
+Function TcalendarGroupImplicitEntitySet.ListAll(const AQuery: String) : TcalendarGroupArray;
 
 var N : String;
 
@@ -11216,7 +11216,7 @@ begin
 end;
 
 
-Function TcalendarGroupImplicitEntitySet.ListAll(const AQuery: TQueryParams) : TcalendarGroupArray; 
+Function TcalendarGroupImplicitEntitySet.ListAll(const AQuery: TQueryParams) : TcalendarGroupArray;
 
 var N : String;
 
@@ -11230,20 +11230,20 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function TcontactImplicitEntitySet.ObjectRestKind : String; 
+Class Function TcontactImplicitEntitySet.ObjectRestKind : String;
 
 begin
   Result:='contactImplicitEntitySet';
 end;
 
-Class Function TcontactImplicitEntitySet.EntityClass : TODataEntityClass; 
+Class Function TcontactImplicitEntitySet.EntityClass : TODataEntityClass;
 
 begin
   Result:=Tcontact;
 end;
 
 
-Function TcontactImplicitEntitySet.Get(const id: string) : Tcontact; 
+Function TcontactImplicitEntitySet.Get(const id: string) : Tcontact;
 
 
 begin
@@ -11251,7 +11251,7 @@ begin
 end;
 
 
-Function TcontactImplicitEntitySet.List(const AQuery: String; out NextLink: String) : TcontactArray; 
+Function TcontactImplicitEntitySet.List(const AQuery: String; out NextLink: String) : TcontactArray;
 
 
 begin
@@ -11259,7 +11259,7 @@ begin
 end;
 
 
-Function TcontactImplicitEntitySet.List(const AQuery: TQueryParams; out NextLink: String) : TcontactArray; 
+Function TcontactImplicitEntitySet.List(const AQuery: TQueryParams; out NextLink: String) : TcontactArray;
 
 
 begin
@@ -11267,7 +11267,7 @@ begin
 end;
 
 
-Function TcontactImplicitEntitySet.ListAll(const AQuery: String) : TcontactArray; 
+Function TcontactImplicitEntitySet.ListAll(const AQuery: String) : TcontactArray;
 
 var N : String;
 
@@ -11276,7 +11276,7 @@ begin
 end;
 
 
-Function TcontactImplicitEntitySet.ListAll(const AQuery: TQueryParams) : TcontactArray; 
+Function TcontactImplicitEntitySet.ListAll(const AQuery: TQueryParams) : TcontactArray;
 
 var N : String;
 
@@ -11290,20 +11290,20 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function TcontactFolderImplicitEntitySet.ObjectRestKind : String; 
+Class Function TcontactFolderImplicitEntitySet.ObjectRestKind : String;
 
 begin
   Result:='contactFolderImplicitEntitySet';
 end;
 
-Class Function TcontactFolderImplicitEntitySet.EntityClass : TODataEntityClass; 
+Class Function TcontactFolderImplicitEntitySet.EntityClass : TODataEntityClass;
 
 begin
   Result:=TcontactFolder;
 end;
 
 
-Function TcontactFolderImplicitEntitySet.Get(const id: string) : TcontactFolder; 
+Function TcontactFolderImplicitEntitySet.Get(const id: string) : TcontactFolder;
 
 
 begin
@@ -11311,7 +11311,7 @@ begin
 end;
 
 
-Function TcontactFolderImplicitEntitySet.List(const AQuery: String; out NextLink: String) : TcontactFolderArray; 
+Function TcontactFolderImplicitEntitySet.List(const AQuery: String; out NextLink: String) : TcontactFolderArray;
 
 
 begin
@@ -11319,7 +11319,7 @@ begin
 end;
 
 
-Function TcontactFolderImplicitEntitySet.List(const AQuery: TQueryParams; out NextLink: String) : TcontactFolderArray; 
+Function TcontactFolderImplicitEntitySet.List(const AQuery: TQueryParams; out NextLink: String) : TcontactFolderArray;
 
 
 begin
@@ -11327,7 +11327,7 @@ begin
 end;
 
 
-Function TcontactFolderImplicitEntitySet.ListAll(const AQuery: String) : TcontactFolderArray; 
+Function TcontactFolderImplicitEntitySet.ListAll(const AQuery: String) : TcontactFolderArray;
 
 var N : String;
 
@@ -11336,7 +11336,7 @@ begin
 end;
 
 
-Function TcontactFolderImplicitEntitySet.ListAll(const AQuery: TQueryParams) : TcontactFolderArray; 
+Function TcontactFolderImplicitEntitySet.ListAll(const AQuery: TQueryParams) : TcontactFolderArray;
 
 var N : String;
 
@@ -11350,20 +11350,20 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function ToutlookItemImplicitEntitySet.ObjectRestKind : String; 
+Class Function ToutlookItemImplicitEntitySet.ObjectRestKind : String;
 
 begin
   Result:='outlookItemImplicitEntitySet';
 end;
 
-Class Function ToutlookItemImplicitEntitySet.EntityClass : TODataEntityClass; 
+Class Function ToutlookItemImplicitEntitySet.EntityClass : TODataEntityClass;
 
 begin
   Result:=ToutlookItem;
 end;
 
 
-Function ToutlookItemImplicitEntitySet.Get(const id: string) : ToutlookItem; 
+Function ToutlookItemImplicitEntitySet.Get(const id: string) : ToutlookItem;
 
 
 begin
@@ -11376,20 +11376,20 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function TpermissionImplicitEntitySet.ObjectRestKind : String; 
+Class Function TpermissionImplicitEntitySet.ObjectRestKind : String;
 
 begin
   Result:='permissionImplicitEntitySet';
 end;
 
-Class Function TpermissionImplicitEntitySet.EntityClass : TODataEntityClass; 
+Class Function TpermissionImplicitEntitySet.EntityClass : TODataEntityClass;
 
 begin
   Result:=Tpermission;
 end;
 
 
-Function TpermissionImplicitEntitySet.Get(const id: string) : Tpermission; 
+Function TpermissionImplicitEntitySet.Get(const id: string) : Tpermission;
 
 
 begin
@@ -11397,7 +11397,7 @@ begin
 end;
 
 
-Function TpermissionImplicitEntitySet.List(const AQuery: String; out NextLink: String) : TpermissionArray; 
+Function TpermissionImplicitEntitySet.List(const AQuery: String; out NextLink: String) : TpermissionArray;
 
 
 begin
@@ -11405,7 +11405,7 @@ begin
 end;
 
 
-Function TpermissionImplicitEntitySet.List(const AQuery: TQueryParams; out NextLink: String) : TpermissionArray; 
+Function TpermissionImplicitEntitySet.List(const AQuery: TQueryParams; out NextLink: String) : TpermissionArray;
 
 
 begin
@@ -11413,7 +11413,7 @@ begin
 end;
 
 
-Function TpermissionImplicitEntitySet.ListAll(const AQuery: String) : TpermissionArray; 
+Function TpermissionImplicitEntitySet.ListAll(const AQuery: String) : TpermissionArray;
 
 var N : String;
 
@@ -11422,7 +11422,7 @@ begin
 end;
 
 
-Function TpermissionImplicitEntitySet.ListAll(const AQuery: TQueryParams) : TpermissionArray; 
+Function TpermissionImplicitEntitySet.ListAll(const AQuery: TQueryParams) : TpermissionArray;
 
 var N : String;
 
@@ -11436,20 +11436,20 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function TthumbnailSetImplicitEntitySet.ObjectRestKind : String; 
+Class Function TthumbnailSetImplicitEntitySet.ObjectRestKind : String;
 
 begin
   Result:='thumbnailSetImplicitEntitySet';
 end;
 
-Class Function TthumbnailSetImplicitEntitySet.EntityClass : TODataEntityClass; 
+Class Function TthumbnailSetImplicitEntitySet.EntityClass : TODataEntityClass;
 
 begin
   Result:=TthumbnailSet;
 end;
 
 
-Function TthumbnailSetImplicitEntitySet.Get(const id: string) : TthumbnailSet; 
+Function TthumbnailSetImplicitEntitySet.Get(const id: string) : TthumbnailSet;
 
 
 begin
@@ -11457,7 +11457,7 @@ begin
 end;
 
 
-Function TthumbnailSetImplicitEntitySet.List(const AQuery: String; out NextLink: String) : TthumbnailSetArray; 
+Function TthumbnailSetImplicitEntitySet.List(const AQuery: String; out NextLink: String) : TthumbnailSetArray;
 
 
 begin
@@ -11465,7 +11465,7 @@ begin
 end;
 
 
-Function TthumbnailSetImplicitEntitySet.List(const AQuery: TQueryParams; out NextLink: String) : TthumbnailSetArray; 
+Function TthumbnailSetImplicitEntitySet.List(const AQuery: TQueryParams; out NextLink: String) : TthumbnailSetArray;
 
 
 begin
@@ -11473,7 +11473,7 @@ begin
 end;
 
 
-Function TthumbnailSetImplicitEntitySet.ListAll(const AQuery: String) : TthumbnailSetArray; 
+Function TthumbnailSetImplicitEntitySet.ListAll(const AQuery: String) : TthumbnailSetArray;
 
 var N : String;
 
@@ -11482,7 +11482,7 @@ begin
 end;
 
 
-Function TthumbnailSetImplicitEntitySet.ListAll(const AQuery: TQueryParams) : TthumbnailSetArray; 
+Function TthumbnailSetImplicitEntitySet.ListAll(const AQuery: TQueryParams) : TthumbnailSetArray;
 
 var N : String;
 
@@ -11496,20 +11496,20 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function TService.ObjectRestKind : String; 
+Class Function TService.ObjectRestKind : String;
 
 begin
   Result:='microsoft.graph';
 end;
 
-Function TService.CreateNewGraphService : TGraphService; 
+Function TService.CreateNewGraphService : TGraphService;
 
 begin
   Result:=TGraphService(CreateEntityContainer(TGraphService));
 end;
 
 
-Function TService.GetGraphService : TGraphService; 
+Function TService.GetGraphService : TGraphService;
 
 
 begin

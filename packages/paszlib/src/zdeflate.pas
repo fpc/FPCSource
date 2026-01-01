@@ -14,7 +14,7 @@ unit ZDeflate;
            deflate.c -- compress data using the deflation algorithm
   Copyright (C) 1995-1996 Jean-loup Gailly.
 
-  Pascal tranlastion
+  Pascal translation
   Copyright (C) 1998 by Jacques Nomssi Nzali
   For conditions of distribution and use, see copyright notice in readme.txt
 }
@@ -1247,18 +1247,18 @@ var
 {$endif}
 var
   MAX_DIST : cardinal;
-  
-{$IFNDEF NOGOTO}  
+
+{$IFNDEF NOGOTO}
 label
   nextstep;
-{$ELSE}  
+{$ELSE}
   Procedure DoNextStep; inline;
-  
+
   begin
     cur_match := prev^[cur_match and wmask];
     dec(chain_length);
   end;
-{$ENDIF}  
+{$ENDIF}
 
 begin
   chain_length := s.max_chain_length; { max hash chain length }
@@ -1337,15 +1337,15 @@ distances are limited to MAX_DIST instead of WSIZE. }
   {$PUSH} {$R-}
         if (match[best_len-1]<>scan_end) or
            (match^ <> scan_start) then
-          {$IFDEF NOGOTO} 
+          {$IFDEF NOGOTO}
           begin
             DoNextStep;
             Continue;
-          end;  
+          end;
           {$ELSE}
           goto nextstep; {continue;}
           {$ENDIF}
-          
+
   {$POP}
 
         { It is not necessary to compare scan[2] and match[2] since they are
@@ -1391,7 +1391,7 @@ distances are limited to MAX_DIST instead of WSIZE. }
         if (Pbytearray(match)^[best_len]   <> scan_end) or
            (Pbytearray(match)^[best_len-1] <> scan_end1) or
            (match^ <> scan^) then
-          {$IFDEF NOGOTO} 
+          {$IFDEF NOGOTO}
           begin
             DoNextStep;
             Continue;
@@ -1402,7 +1402,7 @@ distances are limited to MAX_DIST instead of WSIZE. }
   {$POP}
         inc(match);
         if (match^ <> Pbytearray(scan)^[1]) then
-          {$IFDEF NOGOTO} 
+          {$IFDEF NOGOTO}
           begin
             DoNextStep;
             Continue;
@@ -1463,11 +1463,11 @@ distances are limited to MAX_DIST instead of WSIZE. }
 {$endif}
 {$pop}
         end;
-{$ifndef NOGOTO}        
+{$ifndef NOGOTO}
     nextstep:
       cur_match := prev^[cur_match and wmask];
       dec(chain_length);
-{$ENDIF}      
+{$ENDIF}
     until (cur_match <= limit) or (chain_length = 0);
 
     if (cardinal(best_len) <= s.lookahead) then

@@ -132,7 +132,7 @@ type
 
   TPasMemberVisibilities = set of TPasMemberVisibility;
   TPasMemberHint = (hDeprecated,hLibrary,hPlatform,hExperimental,hUnimplemented);
-  TPasMemberHints = set of TPasMemberHint; 
+  TPasMemberHints = set of TPasMemberHint;
 
   TPasElement = class;
   TPTreeElement = class of TPasElement;
@@ -252,7 +252,7 @@ type
     constructor Create(AParent : TPasElement; AKind: TPasExprKind; const AValue : TPasTreeString); overload;
     function GetDeclaration(full : Boolean) : TPasTreeString; override;
   end;
-  
+
   { TBoolConstExpr }
 
   TBoolConstExpr = class(TPasExpr)
@@ -868,7 +868,7 @@ type
     HelperForType: TPasType;  // any type, except helper
     IsForward: Boolean;
     IsExternal : Boolean;
-    IsShortDefinition: Boolean;//class(anchestor); without end
+    IsShortDefinition: Boolean;//class(ancestor); without end
     GUIDExpr : TPasExpr;
     Modifiers: TStringList;
     Interfaces : TFPList; // list of TPasType
@@ -1151,7 +1151,7 @@ type
     Templates: TFPList; // optional list of TPasGenericTemplateType, can be nil!
   end;
   TProcedureNameParts = TFPList; // list of TProcedureNamePart
-                        
+
   TProcedureBody = class;
 
   { TPasProcedure - named procedure, not anonymous }
@@ -1184,7 +1184,7 @@ type
     AliasName : TPasTreeString;
     ProcType : TPasProcedureType;
     Body : TProcedureBody;
-    NameParts: TProcedureNameParts; // only used for generic aka parametrized functions
+    NameParts: TProcedureNameParts; // only used for generic aka parameterized functions
     Procedure AddModifier(AModifier : TProcedureModifier);
     Function CanParseImplementation : Boolean;
     Function HasNoImplementation : Boolean;
@@ -3818,8 +3818,8 @@ begin
     If Full and (Name<>'') then
       begin
       Result:=SafeName+': '+Result;
-      if Value<>'' then            
-        Result:=Result+'='+Value;  
+      if Value<>'' then
+        Result:=Result+'='+Value;
       end;
     end
   else If Full then
@@ -4912,9 +4912,9 @@ begin
   For I:=0 to Members.Count-1 do
     begin
     Member:=TPasElement(Members[i]);
-    if (Member.Visibility<>visPublic) then 
+    if (Member.Visibility<>visPublic) then
       Exit(True);
-    if (Member.ClassType<>TPasVariable) then 
+    if (Member.ClassType<>TPasVariable) then
       Exit(True);
     end;
 end;
@@ -5106,7 +5106,7 @@ begin
       end;
     If (ImplementsName<>'') then
        Result:=Result+' implements '+EscapeKeyWord(ImplementsName);
-    end;   
+    end;
   If IsDefault then
     Result:=Result+'; default';
   ProcessHints(True, Result);

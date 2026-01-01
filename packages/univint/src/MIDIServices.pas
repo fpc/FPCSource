@@ -291,7 +291,7 @@ uses MacTypes,CFBase,CFData,CFDictionary;
 	@constant		kMIDIWrongEndpointType
 						A source endpoint was passed to a function expecting a destination, or vice versa.
 	@constant		kMIDINoConnection
-						Attempt to close a non-existant connection.
+						Attempt to close a non-existent connection.
 	@constant		kMIDIUnknownEndpoint
 						An invalid MIDIEndpointRef was passed.
 	@constant		kMIDIUnknownProperty
@@ -963,7 +963,7 @@ var kMIDIPropertySingleRealtimeEntity: CFStringRef; external name '_kMIDIPropert
 		10.3, Audio MIDI Setup maintains endpoint-to-external endpoint connections (in 10.2, it
 		connected devices to devices).
 
-		The property is non-existant or 0 if there is no connection.
+		The property is non-existent or 0 if there is no connection.
 
 		Beginning with CoreMIDI 1.3 (Mac OS X 10.2), this property may also be a CFDataRef containing an array of
 		big-endian SInt32's, to allow specifying that a driver object connects to multiple
@@ -1050,7 +1050,7 @@ var kMIDIPropertyUserPatchNameFile: CFStringRef; external name '_kMIDIPropertyUs
 		OS-specific constructs outside of the specification, to fully define the current names
 		for a device.
 
-		The MIDINameConfiguration property is implementated as a CFDictionary:
+		The MIDINameConfiguration property is implemented as a CFDictionary:
 
 		key "master" maps to a CFDataRef containing an AliasHandle referring to the device's
 		master name document.

@@ -9,7 +9,7 @@ procedure add_fcl_fpterm(const ADirectory: string);
 
 Const
 {copied from ../rtl-console/fpmake.pp}
-  // All Unices have full set of KVM+Crt in unix/ except QNX which is not
+  // All Unixes have full set of KVM+Crt in unix/ except QNX which is not
   // in workable state atm.
   UnixLikes = AllUnixOSes -[QNX];
 

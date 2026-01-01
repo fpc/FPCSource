@@ -6376,7 +6376,7 @@ const
 	vdIIDCFeaturePan = FourCharCode('pan '); { Feature's settings handled by VDIIDCFeatureSettings}
 	vdIIDCFeatureTilt = FourCharCode('tilt'); { Feature's settings handled by VDIIDCFeatureSettings}
 	vdIIDCFeatureOpticalFilter = FourCharCode('opft'); { Feature's settings handled by VDIIDCFeatureSettings}
-	vdIIDCFeatureTrigger = FourCharCode('trgr'); { Trigger's setttings handled by VDIIDCTriggerSettings}
+	vdIIDCFeatureTrigger = FourCharCode('trgr'); { Trigger's settings handled by VDIIDCTriggerSettings}
 	vdIIDCFeatureCaptureSize = FourCharCode('cpsz'); { Feature's settings is not defined}
 	vdIIDCFeatureCaptureQuality = FourCharCode('cpql'); { Feature's settings is not defined}
 	vdIIDCFeatureFocusPoint = FourCharCode('fpnt'); { Focus Point's settings handled by VDIIDCFocusPointSettings}
@@ -9807,7 +9807,7 @@ const
 	kQTSGAudioPropertyID_MixerCoefficients = FourCharCode('mixc'); { Data: C-style array of Float32's, R/W/L: Read/Write, Class(es): kQTPropertyClass_SGAudio}
 
   {
-   * kQTSGAudioPropertyID_Settings: This property takes supercedes the
+   * kQTSGAudioPropertyID_Settings: This property takes supersedes the
    * SGGet/SetChannelSettings calls.  SGAudioMediaType channel accepts
    * old-style 'soun' SGChannel settings in a QTSetComponentProperty
    * call, but always produces new-style settings in a

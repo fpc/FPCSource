@@ -35,7 +35,7 @@ const
  * application.
  *
  * "Product tokens should be short and to the point -- use of them for
- * advertizing or other non-essential information is explicitly forbidden."
+ * advertising or other non-essential information is explicitly forbidden."
  *
  * Example: "Apache/1.1.0 MrWidget/0.1-alpha"
  *}

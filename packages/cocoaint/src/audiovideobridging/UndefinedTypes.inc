@@ -3,14 +3,14 @@
 type
 	io_object_t = ^OpaqueRecord; {IOObject}
 	io_connect_t = io_object_t;
-	
+
 // IOTypes.h
 type
 	io_iterator_t = io_object_t;
 	io_service_t = io_object_t;
-	
+
 // IOKitLib.h
-type	
+type
 	IONotificationPortRef = ^OpaqueRecord; {IONotificationPort}
 
 // vmtypes.h

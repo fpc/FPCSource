@@ -109,7 +109,7 @@ function is EnumProjectsEx.
 function EnumProjects(lpEnumProc:PROJECTS_ENUMPROC; dwOid:DWORD; dwFlags:DWORD; lParam:LPARAM):longint; external Note_prjDLL name 'EnumProjects';
 
 {*****************************************************************************
-EnumProjectsFiles	Exported API: Enumaretes all files in a project on the
+EnumProjectsFiles	Exported API: Enumerates all files in a project on the
 					specified file system.
 
 PARAMETERS:
@@ -124,7 +124,7 @@ dwOidFlash	Only used for (dwFlags & PRJ_ENUM_FLASH).  This is the OID of
 			the flash card to look at; the value returned by
 			FindFirstFlashCard or FindNextFlashCard.
 
-dwFlags	
+dwFlags
 			Any combo of the following (specifying the LOCATION to check):
 			PRJ_ENUM_MEMORY - check all main memory projects/folders,
 							  dwOidFlash is not used
@@ -144,7 +144,7 @@ szProj		Only used for when (dwFlags & PRJ_ENUM_ALL_PROJ) is NOT set.  This
 
 szFileName	pointer to name of file to search for. (i.e. '*.wav' or '*.*')
 
-lParam		user defined parameter passed to pfnEnumProc 
+lParam		user defined parameter passed to pfnEnumProc
 
 
 RETURN:
@@ -289,7 +289,7 @@ function EnumProjectsEx(pfnEnumProc:PROJECTS_ENUMPROC_EX;
 
 
 {*****************************************************************************
-EnumProjectsFiles	Exported API: Enumaretes all files in a project on the
+EnumProjectsFiles	Exported API: Enumerates all files in a project on the
 					specified file system.
 
 PARAMETERS:

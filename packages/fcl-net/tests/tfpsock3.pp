@@ -456,7 +456,7 @@ begin
 end;
 
 {$IfDef Unix}
-// Different behavior between winsock and berkley sockets
+// Different behavior between winsock and berkeley sockets
 // Seems like winsock does not provide refused when the server closes while pending
 procedure TestRefusedServer;
 var
@@ -683,7 +683,7 @@ begin
     if Terminated then
       Exit;
     Sleep(100);
-  end; 
+  end;
   if Terminated then
     Exit;
   WriteLn(' Timeout');

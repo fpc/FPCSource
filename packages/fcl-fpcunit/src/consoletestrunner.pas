@@ -163,7 +163,7 @@ end;
 
 destructor TProgressWriter.Destroy;
 begin
-  // on descruction, just write the missing line ending
+  // on destruction, just write the missing line ending
   writeln;
   inherited Destroy;
 end;
@@ -237,7 +237,7 @@ begin
   FLongOpts := TStringList.Create;
   AppendLongOpts;
   StopOnException:=True;
-  NoExitCodeOnError:=false; 
+  NoExitCodeOnError:=false;
 end;
 
 destructor TTestRunner.Destroy;
@@ -435,7 +435,7 @@ begin
   If HasOption('n','no-addresses') then
     FSkipAddressInfo:=True;
   if HasOption('x','no-exitcode') then
-    NoExitCodeOnError:=True;  
+    NoExitCodeOnError:=True;
   If HasOption('u','status') then
     TAssert.StatusEvent:=@DoStatus;
   // Determine runmode
@@ -540,7 +540,7 @@ begin
   ReadDefaults;
   if Not ParseOptions then
     exit;
-  //get a list of all registed tests
+  //get a list of all registered tests
   Case FRunMode of
     rmList: ShowTestList;
     rmSuite: RunSuite;

@@ -12,13 +12,13 @@ interface
 uses
 {$ifdef Unix}
   UnixApi.Types,
-{$endif}  
+{$endif}
   System.CTypes;
 {$ELSE FPC_DOTTEDUNITS}
 uses
 {$ifdef unix}
   unixtype,
-{$endif}  
+{$endif}
   ctypes;
 {$ENDIF FPC_DOTTEDUNITS}
 
@@ -32,27 +32,27 @@ const
   pxlibraryname='pxlib.dll';
 {$else}
   pxlibraryname='libpx.so.0'; { Default name }
-{$endif}  
+{$endif}
 
 const
 
-  px_true = 1;     
-  px_false = 0;     
- 
+  px_true = 1;
+  px_false = 0;
+
   { Error codes  }
- 
-  PX_MemoryError = 1;     
-  PX_IOError = 2;     
-  PX_RuntimeError = 3;     
-  PX_Warning = 100;     
-  
+
+  PX_MemoryError = 1;
+  PX_IOError = 2;
+  PX_RuntimeError = 3;
+  PX_Warning = 100;
+
   { IO Stream types  }
- 
+
   pxfIOFile   = 1;      { pxfIOGsf is defined as 2 in paradox-gsf.h  }
-  pxfIOStream = 3;   
-  
+  pxfIOStream = 3;
+
   { Field types  }
-  
+
   pxfAlpha       = $01;
   pxfDate        = $02;
   pxfShort       = $03;
@@ -62,7 +62,7 @@ const
   pxfLogical     = $09;
   pxfMemoBLOb    = $0C;
   pxfBLOb        = $0D;
-  pxfFmtMemoBLOb = $0E;     
+  pxfFmtMemoBLOb = $0E;
   pxfOLE         = $0F;
   pxfGraphic     = $10;
   pxfTime        = $14;
@@ -71,21 +71,21 @@ const
   pxfBCD         = $17;
   pxfBytes       = $18;
   pxfNumTypes    = $18;
-  
+
   { File types  }
-  pxfFileTypIndexDB = 0;     
-  pxfFileTypPrimIndex = 1;     
-  pxfFileTypNonIndexDB = 2;     
-  pxfFileTypNonIncSecIndex = 3;     
-  pxfFileTypSecIndex = 4;     
-  pxfFileTypIncSecIndex = 5;     
-  pxfFileTypNonIncSecIndexG = 6;     
-  pxfFileTypSecIndexG = 7;     
-  pxfFileTypIncSecIndexG = 8;     
- 
+  pxfFileTypIndexDB = 0;
+  pxfFileTypPrimIndex = 1;
+  pxfFileTypNonIndexDB = 2;
+  pxfFileTypNonIncSecIndex = 3;
+  pxfFileTypSecIndex = 4;
+  pxfFileTypIncSecIndex = 5;
+  pxfFileTypNonIncSecIndexG = 6;
+  pxfFileTypSecIndexG = 7;
+  pxfFileTypIncSecIndexG = 8;
+
   { File modes  }
-  pxfFileRead  = $1;     
-  pxfFileWrite = $2;     
+  pxfFileRead  = $1;
+  pxfFileWrite = $2;
 
 Type
   PLongint  = ^Longint;
@@ -102,20 +102,20 @@ Type
 
   PFILE  = ^FILE;
   iconv_t = pointer;
-  
+
   Ppxstream_t = ^pxstream_t;
   Ppxfield_t = ^pxfield_t;
   ppxval_t = ^pxval_t;
   Ppxhead_t = ^pxhead_t;
   Ppxdoc_t = ^pxdoc_t;
-  ppxblockcache_t = ^pxblockcache_t;     
+  ppxblockcache_t = ^pxblockcache_t;
   ppxmbblockinfo_t = ^pxmbblockinfo_t;
   Ppxblob_t = ^pxblob_t;
   Pmbhead_t = ^mbhead_t;
   Ppxdatablockinfo_t = ^pxdatablockinfo_t;
   PPpxval_t = ^ppxval_t;
   Ppcchar = ^pcchar;
-      
+
   Ppx_field = ^px_field;
   px_field = record
     px_fname : pcchar;
@@ -123,7 +123,7 @@ Type
     px_flen : cint;
     px_fdc : cint;
   end;
-  pxfield_t = px_field;  
+  pxfield_t = px_field;
 
   Ppx_val = ^px_val;
   px_val = record
@@ -139,7 +139,7 @@ Type
             end );
     end;
   end;
-  pxval_t = px_val;  
+  pxval_t = px_val;
 
   Ppx_head = ^px_head;
   px_head = record
@@ -187,7 +187,7 @@ Type
     tell : function (p:Ppxdoc_t; stream:Ppxstream_t):clong; cdecl;
     write : function (p:Ppxdoc_t; stream:Ppxstream_t; numbytes:size_t; buffer:pointer):size_t;cdecl;
   end;
-  pxstream_t = px_stream;  
+  pxstream_t = px_stream;
 
   Ppx_doc = ^px_doc;
   px_doc = record
@@ -205,8 +205,8 @@ Type
     warnings : cint;
     writeproc : function (p:Ppxdoc_t; data:pointer; size:size_t):size_t; cdecl;
     errorhandler : procedure (p:Ppxdoc_t; level:cint; msg:pcchar; data:pointer); cdecl;
-    errorhandler_user_data : pointer; 
-    malloc : function (p:Ppxdoc_t; size:size_t; caller:pcchar):pointer; cdecl; 
+    errorhandler_user_data : pointer;
+    malloc : function (p:Ppxdoc_t; size:size_t; caller:pcchar):pointer; cdecl;
     calloc : function (p:Ppxdoc_t; size:size_t; caller:pcchar):pointer; cdecl;
     realloc : function (p:Ppxdoc_t; mem:pointer; size:size_t; caller:pcchar):pointer; cdecl;
     free : procedure (p:Ppxdoc_t; mem:pointer); cdecl;
@@ -229,7 +229,7 @@ Type
     size : size_t;
     data : pcuchar;
   end;
-  pxblockcache_t = px_blockcache;  
+  pxblockcache_t = px_blockcache;
 
   Ppx_mbblockinfo = ^px_mbblockinfo;
   px_mbblockinfo = record
@@ -259,7 +259,7 @@ Type
     blocklist : Ppxmbblockinfo_t;
     blocklistlen : cint;
   end;
-  pxblob_t = px_blob;  
+  pxblob_t = px_blob;
 
   Pmb_head = ^mb_head;
   mb_head = record
@@ -306,9 +306,9 @@ var
   PX_get_builddate : function:pcchar;cdecl;
   PX_boot : procedure;cdecl;
   PX_shutdown : procedure;cdecl;
-  PX_new3 : function(errorhandler: TPXErrorHandler; 
+  PX_new3 : function(errorhandler: TPXErrorHandler;
                      allocproc: TPXAllocHandler;
-                     reallocproc: TPXReallocHandler; 
+                     reallocproc: TPXReallocHandler;
                      freeproc : TPXFreeHandler;
                      errorhandler_user_data : pointer) : Ppxdoc_t; cdecl;
   PX_new2 : function(errorhandler: TPXErrorHandler;
@@ -367,9 +367,9 @@ var
   PX_get_data_short : function(pxdoc:Ppxdoc_t; data:pcchar; len:cint; value:pcsshort):cint;cdecl;
   PX_get_data_byte : function(pxdoc:Ppxdoc_t; data:pcchar; len:cint; value:pcchar):cint;cdecl;
   PX_get_data_bcd : function(pxdoc:Ppxdoc_t; data:pcuchar; len:cint; value:Ppcchar):cint;cdecl;
-  PX_get_data_blob : function(pxdoc:Ppxdoc_t; data:pcchar; len:cint; _mod:pcint; blobsize:pcint; 
+  PX_get_data_blob : function(pxdoc:Ppxdoc_t; data:pcchar; len:cint; _mod:pcint; blobsize:pcint;
     value:Ppcchar):cint;cdecl;
-  PX_get_data_graphic : function(pxdoc:Ppxdoc_t; data:pcchar; len:cint; _mod:pcint; blobsize:pcint; 
+  PX_get_data_graphic : function(pxdoc:Ppxdoc_t; data:pcchar; len:cint; _mod:pcint; blobsize:pcint;
     value:Ppcchar):cint;cdecl;
   PX_put_data_alpha : procedure(pxdoc:Ppxdoc_t; data:pcchar; len:cint; value:pcchar);cdecl;
   PX_put_data_bytes : procedure(pxdoc:Ppxdoc_t; data:pcchar; len:cint; value:pcchar);cdecl;
@@ -385,7 +385,7 @@ var
   PX_GregorianToSdn : function(year:cint; month:cint; day:cint):clong;cdecl;
   PX_make_time : function(pxdoc:Ppxdoc_t; hour:cint; minute:cint; second:cint):Ppxval_t;cdecl;
   PX_make_date : function(pxdoc:Ppxdoc_t; year:cint; month:cint; day:cint):Ppxval_t;cdecl;
-  PX_make_timestamp : function(pxdoc:Ppxdoc_t; year:cint; month:cint; day:cint; hour:cint; 
+  PX_make_timestamp : function(pxdoc:Ppxdoc_t; year:cint; month:cint; day:cint; hour:cint;
     minute:cint; second:cint):Ppxval_t;cdecl;
   PX_timestamp2string : function(pxdoc:Ppxdoc_t; value:double; format:pcchar):pcchar;cdecl;
   PX_time2string : function(pxdoc:Ppxdoc_t; value:clong; format:pcchar):pcchar;cdecl;
@@ -404,7 +404,7 @@ uses
 uses
   SysUtils, dynlibs;
 {$ENDIF FPC_DOTTEDUNITS}
-  
+
 var
   hlib : tlibhandle;
 
@@ -491,7 +491,7 @@ begin
   PX_put_data_blob:=nil;
 {$ifndef windows}
   PX_SdnToGregorian:=nil;
-{$endif}  
+{$endif}
   PX_GregorianToSdn:=nil;
   PX_make_time:=nil;
   PX_make_date:=nil;
@@ -584,7 +584,7 @@ begin
   pointer(PX_put_data_blob):=GetProcAddress(hlib,'PX_put_data_blob');
 {$ifndef windows}
   pointer(PX_SdnToGregorian):=GetProcAddress(hlib,'PX_SdnToGregorian');
-{$endif windows}  
+{$endif windows}
   pointer(PX_GregorianToSdn):=GetProcAddress(hlib,'PX_GregorianToSdn');
   pointer(PX_make_time):=GetProcAddress(hlib,'PX_make_time');
   pointer(PX_make_date):=GetProcAddress(hlib,'PX_make_date');

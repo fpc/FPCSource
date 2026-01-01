@@ -32,11 +32,11 @@ type
      TPangoRendererClass = record
           parent_class : TGObjectClass;
           draw_glyphs : procedure (renderer:PPangoRenderer; font:PPangoFont; glyphs:PPangoGlyphString; x:longint; y:longint);cdecl;
-          draw_rectangle : procedure (renderer:PPangoRenderer; part:TPangoRenderPart; x:longint; y:longint; width:longint; 
+          draw_rectangle : procedure (renderer:PPangoRenderer; part:TPangoRenderPart; x:longint; y:longint; width:longint;
                         height:longint); cdecl;
           draw_error_underline : procedure (renderer:PPangoRenderer; x:longint; y:longint; width:longint; height:longint); cdecl;
           draw_shape : procedure (renderer:PPangoRenderer; attr:PPangoAttrShape; x:longint; y:longint); cdecl;
-          draw_trapezoid : procedure (renderer:PPangoRenderer; part:TPangoRenderPart; y1_:double; x11:double; x21:double; 
+          draw_trapezoid : procedure (renderer:PPangoRenderer; part:TPangoRenderPart; y1_:double; x11:double; x21:double;
                         y2:double; x12:double; x22:double); cdecl;
           draw_glyph : procedure (renderer:PPangoRenderer; font:PPangoFont; glyph:TPangoGlyph; x:double; y:double); cdecl;
           part_changed : procedure (renderer:PPangoRenderer; part:TPangoRenderPart); cdecl;
@@ -73,10 +73,10 @@ function pango_renderer_get_type: GType; cdecl; external pangolib;
 procedure pango_renderer_draw_layout(renderer:PPangoRenderer; layout:PPangoLayout; x:longint; y:longint);cdecl; external pangolib;
 procedure pango_renderer_draw_layout_line(renderer:PPangoRenderer; line:PPangoLayoutLine; x:longint; y:longint);cdecl; external pangolib;
 procedure pango_renderer_draw_glyphs(renderer:PPangoRenderer; font:PPangoFont; glyphs:PPangoGlyphString; x:longint; y:longint);cdecl; external pangolib;
-procedure pango_renderer_draw_rectangle(renderer:PPangoRenderer; part:TPangoRenderPart; x:longint; y:longint; width:longint; 
+procedure pango_renderer_draw_rectangle(renderer:PPangoRenderer; part:TPangoRenderPart; x:longint; y:longint; width:longint;
             height:longint);cdecl; external pangolib;
 procedure pango_renderer_draw_error_underline(renderer:PPangoRenderer; x:longint; y:longint; width:longint; height:longint);cdecl; external pangolib;
-procedure pango_renderer_draw_trapezoid(renderer:PPangoRenderer; part:TPangoRenderPart; y1_:double; x11:double; x21:double; 
+procedure pango_renderer_draw_trapezoid(renderer:PPangoRenderer; part:TPangoRenderPart; y1_:double; x11:double; x21:double;
             y2:double; x12:double; x22:double);cdecl; external pangolib;
 procedure pango_renderer_draw_glyph(renderer:PPangoRenderer; font:PPangoFont; glyph:TPangoGlyph; x:double; y:double);cdecl; external pangolib;
 procedure pango_renderer_activate(renderer:PPangoRenderer);cdecl; external pangolib;

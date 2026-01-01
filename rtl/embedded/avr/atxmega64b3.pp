@@ -354,7 +354,7 @@ type
     WENbm = $02;
     // Windowed Mode Change Enable
     WCENbm = $01;
-    // Syncronization busy
+    // Synchronization busy
     SYNCBUSYbm = $01;
   end;
 

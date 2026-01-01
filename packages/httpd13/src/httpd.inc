@@ -73,8 +73,8 @@ const
 {
  * --------- You shouldn't have to edit anything below this line ----------
  *
- * Any modifications to any defaults not defined above should be done in the 
- * respective config. file. 
+ * Any modifications to any defaults not defined above should be done in the
+ * respective config. file.
  *
  }
 
@@ -257,7 +257,7 @@ const
  *     A fatal error, resulting in the whole server aborting.
  *     If a child exits with this error, the parent process
  *     considers this a server-wide fatal error and aborts.
- *                 
+ *
  }
   APEXIT_OK	      =	$0;
   APEXIT_INIT	      =	$2;
@@ -293,8 +293,8 @@ const
  * by listen(2).  Under some systems, it should be increased if you
  * are experiencing a heavy TCP SYN flood attack.
  *
- * It defaults to 511 instead of 512 because some systems store it 
- * as an 8-bit datatype; 512 truncated to 8-bits is 0, while 511 is 
+ * It defaults to 511 instead of 512 because some systems store it
+ * as an 8-bit datatype; 512 truncated to 8-bits is 0, while 511 is
  * 255 when truncated.
  }
 
@@ -327,7 +327,7 @@ const
   DEFAULT_LIMIT_REQUEST_FIELDS = 100;
 
 {
- * The default default character set name to add if AddDefaultCharset is 
+ * The default default character set name to add if AddDefaultCharset is
  * enabled.  Overridden with AddDefaultCharsetName.
  }
   DEFAULT_ADD_DEFAULT_CHARSET_NAME = 'iso-8859-1';
@@ -339,10 +339,10 @@ const
  * The tokens are listed in order of their significance for identifying the
  * application.
  *
- * "Product tokens should be short and to the point -- use of them for 
+ * "Product tokens should be short and to the point -- use of them for
  * advertizing or other non-essential information is explicitly forbidden."
  *
- * Example: "Apache/1.1.0 MrWidget/0.1-alpha" 
+ * Example: "Apache/1.1.0 MrWidget/0.1-alpha"
  }
 
   SERVER_BASEVENDOR   = 'Apache Group';
@@ -558,9 +558,9 @@ const
   REQUEST_CHUNKED_ERROR   = 1;
   REQUEST_CHUNKED_DECHUNK = 2;
   REQUEST_CHUNKED_PASS    = 3;
-  
+
   { Things moved up }
-  
+
   DEFAULT_VHOST_ADDR = $ffffffff;
 
 { Things which may vary per file-lookup WITHIN a request ---
@@ -581,7 +581,7 @@ const
  }
 type
   Phtaccess_result = ^htaccess_result;
-  
+
   htaccess_result = record
     dir: PAnsiChar;			{ the directory to which this applies }
     override_: cint;		{ the overrides allowed for the .htaccess file }
@@ -748,12 +748,12 @@ type
     htaccess: Phtaccess_result;
 
     { On systems with case insensitive file systems (Windows, OS/2, etc.),
-     * r->filename is case canonicalized (folded to either lower or upper 
+     * r->filename is case canonicalized (folded to either lower or upper
      * case, depending on the specific system) to accomodate file access
-     * checking. case_preserved_filename is the same as r->filename 
-     * except case is preserved. There is at least one instance where Apache 
-     * needs access to the case preserved filename: Java class files published 
-     * with WebDAV need to preserve filename case to make the Java compiler 
+     * checking. case_preserved_filename is the same as r->filename
+     * except case is preserved. There is at least one instance where Apache
+     * needs access to the case preserved filename: Java class files published
+     * with WebDAV need to preserve filename case to make the Java compiler
      * happy.
      }
     case_preserved_filename: PAnsiChar;
@@ -781,7 +781,7 @@ type
  }
 
   sockaddr_in = record end;
- 
+
   conn_rec = record
 
     pool: Pap_pool;
@@ -835,7 +835,7 @@ type
   { Moved up }
 
   Pserver_addr_rec = ^server_addr_rec;
-  
+
   in_addr = record end;
 
   server_addr_rec = record
@@ -913,9 +913,9 @@ type
   end;
 
   tm = record end;
-  
+
   Ptm = ^tm;
-  
+
 { Prototypes for utilities... util.c.
  }
 
@@ -1029,7 +1029,7 @@ API_EXPORT(int) ap_strcasecmp_match(const AnsiChar *str, const AnsiChar *exp);
 API_EXPORT(AnsiChar *) ap_stripprefix(const AnsiChar *bigstring, const AnsiChar *prefix);
 API_EXPORT(AnsiChar *) ap_strcasestr(const AnsiChar *s1, const AnsiChar *s2);
 API_EXPORT(AnsiChar *) ap_pbase64decode(pool *p, const AnsiChar *bufcoded);
-API_EXPORT(AnsiChar *) ap_pbase64encode(pool *p, AnsiChar *string); 
+API_EXPORT(AnsiChar *) ap_pbase64encode(pool *p, AnsiChar *string);
 API_EXPORT(AnsiChar *) ap_uudecode(pool *p, const AnsiChar *bufcoded);
 API_EXPORT(AnsiChar *) ap_uuencode(pool *p, AnsiChar *string); }
 
@@ -1044,7 +1044,7 @@ void os2pathname(AnsiChar *path);
 
 {API_EXPORT(int)    ap_regexec(const regex_t *preg, const AnsiChar *string,
                               size_t nmatch, regmatch_t pmatch[], int eflags);
-API_EXPORT(size_t) ap_regerror(int errcode, const regex_t *preg, 
+API_EXPORT(size_t) ap_regerror(int errcode, const regex_t *preg,
                                AnsiChar *errbuf, size_t errbuf_size);
 API_EXPORT(AnsiChar *) ap_pregsub(pool *p, const AnsiChar *input, const AnsiChar *source,
                               size_t nmatch, regmatch_t pmatch[]);
@@ -1061,17 +1061,17 @@ API_EXPORT(void) ap_remove_spaces(AnsiChar *dest, AnsiChar *src);}
 type
 
   Pconfigfile_t = ^configfile_t;
-  
+
   getch_t = function (param: Pointer): cint;
-  
+
   getstr_t = function (buf: Pointer; bufsiz: size_t; param: Pointer): Pointer;
-  
+
   close_t = function (param: Pointer): cint;
-  
+
   configfile_t = record
     getch: getch_t;	{ a getc()-like function }
     getstr: getstr_t;   { a fgets()-like function }
-    close: close_t;	{ a close hander function }
+    close: close_t;	{ a close handler function }
     param: Pointer;	{ the argument passed to getch/getstr/close }
     name: PAnsiChar;	{ the filename / description }
     line_number: cuint;	{ current line number, starting at 1 }
@@ -1248,7 +1248,7 @@ type
     sig: cint;
     pid: pid_t;
   end;
-  
+
   Pap_exception_info_t = ^ap_exception_info_t;
 
 { Register a function to be called after a fatal exception (on *X systems, a
@@ -1259,7 +1259,7 @@ type
  * report failure and no such hooks will be called.
  }
  fn_afeh_t = procedure (param: Pap_exception_info_t);
- 
+
 function ap_add_fatal_exception_hook(fn: fn_afeh_t): cint;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 

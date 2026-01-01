@@ -132,7 +132,7 @@ const
   NETSETUP_DEFER_SPN_SET = $00000100; // Specifies that writting SPN and DnsHostName
   {$EXTERNALSYM NETSETUP_DEFER_SPN_SET}
                                                 //  attributes on the computer object should be
-                                                //  defered until rename that will follow join
+                                                //  deferred until rename that will follow join
 
   NETSETUP_INSTALL_INVOCATION = $00040000; // The APIs were invoked during install
   {$EXTERNALSYM NETSETUP_INSTALL_INVOCATION}

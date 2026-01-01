@@ -14,40 +14,40 @@
   {
    * $Header: oci1.h 02-dec-97.19:29:14 skabraha Exp $
     }
-  { Copyright (c) Oracle Corporation 1997, 1998. All Rights Reserved.  }  { NOTE:  See 'header_template.doc' in the 'doc' dve under the 'forms' 
-        directory for the header file template that includes instructions. 
+  { Copyright (c) Oracle Corporation 1997, 1998. All Rights Reserved.  }  { NOTE:  See 'header_template.doc' in the 'doc' dve under the 'forms'
+        directory for the header file template that includes instructions.
    }
-  { 
-     NAME 
+  {
+     NAME
        oci1.h - Cartridge Service definitions
-  
-     DESCRIPTION 
-       <short description of component this file declares/defines> 
-  
-     RELATED DOCUMENTS 
-   
-     INSPECTION STATUS 
-       Inspection date: 
-       Inspection status: 
-       Estimated increasing cost defects per page: 
-       Rule sets: 
-   
-     ACCEPTANCE REVIEW STATUS 
-       Review date: 
-       Review status: 
-       Reviewers: 
-   
-     PUBLIC FUNCTION(S) 
+
+     DESCRIPTION
+       <short description of component this file declares/defines>
+
+     RELATED DOCUMENTS
+
+     INSPECTION STATUS
+       Inspection date:
+       Inspection status:
+       Estimated increasing cost defects per page:
+       Rule sets:
+
+     ACCEPTANCE REVIEW STATUS
+       Review date:
+       Review status:
+       Reviewers:
+
+     PUBLIC FUNCTION(S)
        <list of external functions declared/defined - with one-line descriptions>
-  
+
      PRIVATE FUNCTION(S)
        <list of static functions defined in .c file - with one-line descriptions>
-  
+
      EXAMPLES
-  
+
      NOTES
        <other useful comments, qualifications, etc.>
-  
+
      MODIFIED   (MM/DD/YY)
      nramakri    01/16/98 - remove #ifdef NEVER clause
      ewaugh      12/18/97 - Turn type wrappers into functions.
@@ -58,7 +58,7 @@
      ssamu       12/10/97 - do not include s.h
      nramakri    11/19/97 - add OCIExtract definitions
      ssamu       11/14/97 - creation
-  
+
    }
   {---------------------------------------------------------------------------
                        PUBLIC TYPES AND CONSTANTS
@@ -87,50 +87,50 @@
    }
 
   const
-     OCIFormatDP = 6;     
+     OCIFormatDP = 6;
   {----------------- Public Constants for OCIFile ------------------------- }
   { flags for open. }
   { flags for mode  }
   { open for read only  }
-     OCI_FILE_READ_ONLY = 1;     
+     OCI_FILE_READ_ONLY = 1;
   { open for write only  }
-     OCI_FILE_WRITE_ONLY = 2;     
+     OCI_FILE_WRITE_ONLY = 2;
   { open for read & write  }
-     OCI_FILE_READ_WRITE = 3;     
+     OCI_FILE_READ_WRITE = 3;
   { flags for create  }
   { the file should exist  }
-     OCI_FILE_EXIST = 0;     
+     OCI_FILE_EXIST = 0;
   { create if the file doesn't exist  }
-     OCI_FILE_CREATE = 1;     
+     OCI_FILE_CREATE = 1;
   { the file should not exist  }
-     OCI_FILE_EXCL = 2;     
-  { create if the file doesn't exist, 
+     OCI_FILE_EXCL = 2;
+  { create if the file doesn't exist,
                                             else truncate file the file to 0  }
-     OCI_FILE_TRUNCATE = 4;     
+     OCI_FILE_TRUNCATE = 4;
   { open the file in append mode  }
-     OCI_FILE_APPEND = 8;     
+     OCI_FILE_APPEND = 8;
   { flags for seek  }
   { seek from the beginning of the file  }
-     OCI_FILE_SEEK_BEGINNING = 1;     
+     OCI_FILE_SEEK_BEGINNING = 1;
   { seek from the current position  }
-     OCI_FILE_SEEK_CURRENT = 2;     
+     OCI_FILE_SEEK_CURRENT = 2;
   { seek from the end of the file  }
-     OCI_FILE_SEEK_END = 3;     
+     OCI_FILE_SEEK_END = 3;
   { seek forward		 }
-     OCI_FILE_FORWARD = 1;     
+     OCI_FILE_FORWARD = 1;
   { seek backward		 }
-     OCI_FILE_BACKWARD = 2;     
+     OCI_FILE_BACKWARD = 2;
   { file type  }
   { binary file  }
-     OCI_FILE_BIN = 0;     
+     OCI_FILE_BIN = 0;
   { text file  }
-     OCI_FILE_TEXT = 1;     
+     OCI_FILE_TEXT = 1;
   { standard i/p  }
-     OCI_FILE_STDIN = 2;     
+     OCI_FILE_STDIN = 2;
   { standard o/p  }
-     OCI_FILE_STDOUT = 3;     
+     OCI_FILE_STDOUT = 3;
   { standard error  }
-     OCI_FILE_STDERR = 4;     
+     OCI_FILE_STDERR = 4;
   { Represents an open file  }
   type
     POCIFileObject = pointer;
@@ -149,27 +149,27 @@
   { matching is case sensitive      }
 
   const
-     OCI_EXTRACT_CASE_SENSITIVE = $1;     
+     OCI_EXTRACT_CASE_SENSITIVE = $1;
   { unique abbreviations for keys
                                                 are allowed                     }
-     OCI_EXTRACT_UNIQUE_ABBREVS = $2;     
+     OCI_EXTRACT_UNIQUE_ABBREVS = $2;
   { if multiple values for a key
-                                                exist, this determines if the 
-                                                new value should be appended 
-                                                to (or replace) the current 
+                                                exist, this determines if the
+                                                new value should be appended
+                                                to (or replace) the current
                                                 list of values                  }
-     OCI_EXTRACT_APPEND_VALUES = $4;     
+     OCI_EXTRACT_APPEND_VALUES = $4;
   { Constants passed into OCIExtractSetKey routine  }
   { key can accept multiple values  }
-     OCI_EXTRACT_MULTIPLE = $8;     
+     OCI_EXTRACT_MULTIPLE = $8;
   { key type is boolean             }
-     OCI_EXTRACT_TYPE_BOOLEAN = 1;     
+     OCI_EXTRACT_TYPE_BOOLEAN = 1;
   { key type is string              }
-     OCI_EXTRACT_TYPE_STRING = 2;     
+     OCI_EXTRACT_TYPE_STRING = 2;
   { key type is integer             }
-     OCI_EXTRACT_TYPE_INTEGER = 3;     
+     OCI_EXTRACT_TYPE_INTEGER = 3;
   { key type is ocinum              }
-     OCI_EXTRACT_TYPE_OCINUM = 4;     
+     OCI_EXTRACT_TYPE_OCINUM = 4;
   {---------------------------------------------------------------------------
                        PRIVATE TYPES AND CONSTANTS
     --------------------------------------------------------------------------- }

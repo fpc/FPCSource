@@ -18,10 +18,10 @@
 Type
 	  TVarTypeToElementInfo = Record
  				   Validbase   : Boolean;	// COM basetype?
-				   ValidElement: Boolean;       // allowable in varrarray ?	
+				   ValidElement: Boolean;       // allowable in varrarray ?
 				   Size	       : Longint;	// elementsize
 				   Flags       : Word;		// see below
-				  end;				
+				  end;
 
 { Variant functions }
 function VariantChangeTypeEx(var VargDest: TVarData; const VargSrc: TVarData; LCID: Integer; Flags: Word; VarType: Word): HRESULT; stdcall;
@@ -126,7 +126,7 @@ const
    {varvariant  }     (Validbase :  true     ;ValidElement:  true    ;Size:    16       ;Flags :  ARR_NONE),
    {varunknown  }     (Validbase :  true     ;ValidElement:  true    ;Size:     4       ;Flags :  ARR_VARIANT),
    {vardecimal  }     (Validbase :  false    ;ValidElement:  true    ;Size:    14       ;Flags :  ARR_UNKNOWN),
-   {varunused1}	      (ValidBase :  false    ;ValidElement:  false    ;Size:    4       ;Flags :  ARR_NONE), 	
+   {varunused1}	      (ValidBase :  false    ;ValidElement:  false    ;Size:    4       ;Flags :  ARR_NONE),
    {varshortint }     (Validbase :  true     ;ValidElement:  true    ;Size:     1       ;Flags :  ARR_NONE),
    {varbyte     }     (Validbase :  true     ;ValidElement:  true    ;Size:     1       ;Flags :  ARR_NONE),
    {varword     }     (Validbase :  true     ;ValidElement:  true    ;Size:     2       ;Flags :  ARR_NONE),

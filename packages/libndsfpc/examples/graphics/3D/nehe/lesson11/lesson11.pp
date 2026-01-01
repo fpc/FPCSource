@@ -1,10 +1,10 @@
 program Lesson11;
 {$L build/drunkenlogo.pcx.o}
 
-{$mode objfpc} 
+{$mode objfpc}
 
 uses
-  ctypes, nds9; 
+  ctypes, nds9;
 
 {$include inc/drunkenlogo.pcx.inc}
 
@@ -42,13 +42,13 @@ var
 begin
 
   glColor3b(255,255,255);    // set the vertex color
-  
+
   glLoadIdentity();                 // Reset The View
 
   glTranslatef(0.0,0.0,-12.0);
-    
+
   glRotatef(xrot,1.0,0.0,0.0);
-  glRotatef(yrot,0.0,1.0,0.0);  
+  glRotatef(yrot,0.0,1.0,0.0);
   glRotatef(zrot,0.0,0.0,1.0);
 
   glBindTexture(GL_TEXTURE_2D, texture[0]);
@@ -103,7 +103,7 @@ begin
 end;
 
 
- 
+
 function LoadGLTextures(): boolean;                 // Load PCX files And Convert To Textures
 var
   pcx: sImage;                //////////////(NEW) and different from nehe.
@@ -124,45 +124,45 @@ procedure InitGL();
 var
   x, y:integer;
 begin
-  // Setup the Main screen for 3D 
+  // Setup the Main screen for 3D
   videoSetMode(MODE_0_3D);
   vramSetBankA(VRAM_A_TEXTURE);                        //NEW  must set up some memory for textures
-  
+
   // initialize the geometry engine
   glInit();
-  
+
   // enable textures
   glEnable(GL_TEXTURE_2D);
-  
+
   // Set our viewport to be the same size as the screen
   glViewPort(0,0,255,191);
-  
+
   // enable antialiasing
   glEnable(GL_ANTIALIAS);
-  
+
   // setup the rear plane
   glClearColor(0,0,0,31); // BG must be opaque for AA to work
   glClearPolyID(63); // BG must have a unique polygon ID for AA to work
   glClearDepth($7FFF);
-  
+
   LoadGLTextures();
-  
+
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
   gluPerspective(70, 256.0 / 192.0, 0.1, 100);
-  
+
   //need to set up some material properties since DS does not have them set by default
   glMaterialf(GL_AMBIENT, RGB15(31,31,31));
   glMaterialf(GL_DIFFUSE, RGB15(31,31,31));
   glMaterialf(GL_SPECULAR, BIT(15) or RGB15(16,16,16));
   glMaterialf(GL_EMISSION, RGB15(31,31,31));
-  
+
   //ds uses a table for shinyness..this generates a half-ass one
   glMaterialShinyness();
-  
-  //ds specific, several attributes can be set here 
+
+  //ds specific, several attributes can be set here
   glPolyFmt(POLY_ALPHA(31) or POLY_CULL_NONE );
-  
+
 
   for x:=0 to 31 do
   begin
@@ -178,18 +178,18 @@ end;
 var
   pressed: integer;
 
-begin 
+begin
   InitGL();
-  
+
   glMatrixMode(GL_MODELVIEW);
 
   while true do
-  begin 
+  begin
     DrawGLScene();
-    
-    // flush to screen  
+
+    // flush to screen
     glFlush(0);
-    
+
     // wait for the screen to refresh
     swiWaitForVBlank();
 

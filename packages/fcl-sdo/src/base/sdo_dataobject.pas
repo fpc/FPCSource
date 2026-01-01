@@ -227,7 +227,7 @@ type
 
     procedure setDouble(const APath : string; const AValue : TSDODouble);overload; virtual;
     procedure setDouble(const APropertyIndex : PtrUInt; const AValue : TSDODouble);overload;
-    procedure setDouble(const AProperty : ISDOProperty; const AValue : TSDODouble);overload; 
+    procedure setDouble(const AProperty : ISDOProperty; const AValue : TSDODouble);overload;
 {$ENDIF HAS_SDO_DOUBLE}
 
 {$IFDEF HAS_SDO_FLOAT}
@@ -255,7 +255,7 @@ type
 
     procedure setLong(const APath : string; const AValue : TSDOLong);overload; virtual;
     procedure setLong(const APropertyIndex : PtrUInt; const AValue : TSDOLong);overload;
-    procedure setLong(const AProperty : ISDOProperty; const AValue : TSDOLong);overload; 
+    procedure setLong(const AProperty : ISDOProperty; const AValue : TSDOLong);overload;
 {$ENDIF HAS_SDO_LONG}
 
 {$IFDEF HAS_SDO_SHORT}
@@ -265,7 +265,7 @@ type
 
     procedure setShort(const APath : string; const AValue : TSDOShort);overload; virtual;
     procedure setShort(const APropertyIndex : PtrUInt; const AValue : TSDOShort);overload;
-    procedure setShort(const AProperty : ISDOProperty; const AValue : TSDOShort);overload; 
+    procedure setShort(const AProperty : ISDOProperty; const AValue : TSDOShort);overload;
 {$ENDIF HAS_SDO_SHORT}
 
     function getVariant(const APath : string) : TSDOVariant;overload;
@@ -1331,7 +1331,7 @@ begin
     xckList    : Result := ( locCtx.ListItem.size() > 0 );
     xckValue   : Result := locCtx.ObjectItem.isSet(locCtx.CurrentProperty);
     else
-      Result := False;    
+      Result := False;
   end;
 end;
 

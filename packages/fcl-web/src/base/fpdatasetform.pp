@@ -42,9 +42,9 @@ type
   TProducerSetRecordEvent = procedure (Sender:THTMLDatasetFormProducer) of object;
   THTMLElementEvent = procedure (Sender:THTMLDatasetFormProducer; element : THTMLCustomElement) of object;
   TFieldCheckEvent = procedure (aField:TField; var check:boolean) of object;
-  
+
   TFieldItemEvent = procedure (Sender:TFormFieldItem; var aValue : string) of object;
-  
+
   TFormInputType = (fittext,fitpassword,fitcheckbox,fitradio,fitfile,fithidden,
                     fitproducer,fittextarea,fitrecordselection,fitlabel);
 
@@ -114,7 +114,7 @@ type
       // if not SeparateLabel then place a <BR> between label and edit/value
     property ValuePos : TTablePosition read FValuePos write SetValuePos;
       // place of the value in the table-grid
-    { only when editting: }
+    { only when editing: }
     property InputType : TFormInputType read FInputType write FInputType default fittext;
       // the type of form control to use
     property Producer : THTMLContentProducer read FProducer write FProducer;
@@ -217,7 +217,7 @@ type
     function WriteContent (aWriter : THTMLWriter) : THTMLCustomElement;
     function WriteHeader (aWriter : THTMLWriter) : THTMLCustomElement;
     property FormField : TFormFieldItem read FFormField write FFormField;
-      // field definition that origintated this cell
+      // field definition that originated this cell
     property IsLabel : boolean read FIsLabel write FIsLabel;
       // Label or Value ?
     property Caption : string read FCaption write FCaption;
@@ -390,7 +390,7 @@ type
     property IncludeHeader;
     property AfterSetRecord;
   end;
-  
+
 implementation
 
 { TTableDef }
@@ -1095,7 +1095,7 @@ procedure THTMLDatasetFormShowProducer.ControlToTableDef (aControldef : TFormFie
         end;
       end;
   end;
-  
+
   procedure PlaceLabel;
   begin
     with TableDef.CopyTablePosition(aControlDef.LabelPos) do

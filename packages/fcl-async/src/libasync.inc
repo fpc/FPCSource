@@ -28,7 +28,7 @@ type
   TCallbackTypes = set of (cbRead, cbWrite);
 
 
-{ An implementation unit has to implement the following fordward procedures,
+{ An implementation unit has to implement the following forward procedures,
   and additionally asyncGetTicks }
 
 procedure InternalInit(Handle: TAsyncHandle); forward;

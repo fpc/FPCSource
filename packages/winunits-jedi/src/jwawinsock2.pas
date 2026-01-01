@@ -839,7 +839,7 @@ const
   {$EXTERNALSYM _SS_PAD1SIZE}
   _SS_PAD2SIZE = _SS_MAXSIZE - (SizeOf(short) + _SS_PAD1SIZE + _SS_ALIGNSIZE);
   {$EXTERNALSYM _SS_PAD2SIZE}
-  
+
 type
   sockaddr_storage = record
     ss_family: short;               // Address family.

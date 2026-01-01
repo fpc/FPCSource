@@ -74,7 +74,7 @@ uses
 //
 
 const
-  // Examples for the following formats assume a fictitous company
+  // Examples for the following formats assume a fictitious company
   // which hooks into the global X.500 and DNS name spaces as follows.
   //
   // Enterprise root domain in DNS is

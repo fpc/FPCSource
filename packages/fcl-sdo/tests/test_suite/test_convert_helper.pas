@@ -466,7 +466,7 @@ begin
     CheckEquals(34,d.MinuteOffset,'MinuteOffset');
 
   check_invalid('azerty');
-  check_invalid('123');  
+  check_invalid('123');
 end;
 
 procedure TSDOConvertHelper_Test.StringToInteger();

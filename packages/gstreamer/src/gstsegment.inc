@@ -138,10 +138,10 @@
   function gst_segment_offset_running_time(segment:PGstSegment; format:TGstFormat; offset:Tgint64):Tgboolean;cdecl;external gstreamerlib name 'gst_segment_offset_running_time';
 
 (* Const before type ignored *)
-  function gst_segment_clip(segment:PGstSegment; format:TGstFormat; start:Tguint64; stop:Tguint64; clip_start:Pguint64; 
+  function gst_segment_clip(segment:PGstSegment; format:TGstFormat; start:Tguint64; stop:Tguint64; clip_start:Pguint64;
              clip_stop:Pguint64):Tgboolean;cdecl;external gstreamerlib name 'gst_segment_clip';
 
-  function gst_segment_do_seek(segment:PGstSegment; rate:Tgdouble; format:TGstFormat; flags:TGstSeekFlags; start_type:TGstSeekType; 
+  function gst_segment_do_seek(segment:PGstSegment; rate:Tgdouble; format:TGstFormat; flags:TGstSeekFlags; start_type:TGstSeekType;
              start:Tguint64; stop_type:TGstSeekType; stop:Tguint64; update:Pgboolean):Tgboolean;cdecl;external gstreamerlib name 'gst_segment_do_seek';
 
 (* Const before type ignored *)

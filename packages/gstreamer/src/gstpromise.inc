@@ -71,17 +71,17 @@
   {
   static inline GstPromise *
   gst_promise_ref (GstPromise * promise)
-  
+
     return (GstPromise *) gst_mini_object_ref (((GstMiniObject*)(promise)));
-  
+
   # 121 "gstpromise.h"
-  
+
   static inline void
   gst_promise_unref (GstPromise * promise)
-  
+
     gst_mini_object_unref (((GstMiniObject*)(promise)));
-  
-  
+
+
    }
 
 

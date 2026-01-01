@@ -48,6 +48,6 @@ uses
 {$R *.res}
 
 begin
-  Application.Initialize;  
+  Application.Initialize;
   GUITestRunner.RunRegisteredTests();
 end.

@@ -22,7 +22,7 @@ type
 
   function sendmsg(__fd: cInt; __message: pmsghdr; __flags: cInt): ssize_t; cdecl; external clib name 'sendmsg';
   function recvmsg(__fd: cInt; __message: pmsghdr; __flags: cInt): ssize_t; cdecl; external clib name 'recvmsg';
-  
+
   function CMSG_FIRSTHDR(mhdr: Pmsghdr): Pcmsghdr;
   function CMSG_NXTHDR(mhdr: Pmsghdr; cmsg: Pcmsghdr): Pcmsghdr;
   function CMSG_ALIGN(len: size_t): size_t;

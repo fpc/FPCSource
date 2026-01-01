@@ -19,7 +19,7 @@
 {
  * @file apr_version.h
  * @brief APR Versioning Interface
- * 
+ *
  * APR's Version
  *
  * There are several different mechanisms for accessing the version. There
@@ -37,7 +37,7 @@
  }
 
 { The numeric compile-time version constants. These constants are the
- * authoritative version numbers for APR. 
+ * authoritative version numbers for APR.
  }
 
 { major version
@@ -59,7 +59,7 @@ const
 
 {
  *  This symbol is defined for internal, "development" copies of APR. This
- *  symbol will be #undef'd for releases. 
+ *  symbol will be #undef'd for releases.
  }
 {.$undef APR_IS_DEV_VERSION}
 
@@ -73,8 +73,8 @@ const
 
 
 {
- * The numeric version information is broken out into fields within this 
- * structure. 
+ * The numeric version information is broken out into fields within this
+ * structure.
  }
 type
   apr_version_t = record

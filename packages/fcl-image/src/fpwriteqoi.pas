@@ -122,7 +122,7 @@ begin
     dword(px):=0;
     px.a:=255;
 
-    {initalize previosly seen pixel array}
+    {initialize previously seen pixel array}
     FillQWord(arr,sizeof(arr) div sizeof(QWord),0);
     iA:=QoiPixelIndex(px);
      //for iA:=0 to 63 do

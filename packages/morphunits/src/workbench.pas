@@ -147,7 +147,7 @@ type
     am_UserData: LongWord;  // application specific
     am_ID: LongWord;        // application definable ID
     am_NumArgs: LongInt;    // # of elements in arglist
-    am_ArgList: PWBArgList; // the arguements themselves
+    am_ArgList: PWBArgList; // the arguments themselves
     am_Version: Word;       // will be AM_VERSION
     am_Class: Word;         // message class AMCLASSICON_*
     am_MouseX: SmallInt;    // mouse x position of event

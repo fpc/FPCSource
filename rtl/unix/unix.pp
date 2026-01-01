@@ -54,7 +54,7 @@ Const
   LOCK_UN = 8;
   LOCK_NB = 4;
 
-// The portable MAP_* and PROT_ constants are exported from unit Unix for compability.
+// The portable MAP_* and PROT_ constants are exported from unit Unix for compatibility.
   PROT_READ  = BU.PROT_READ;             { page can be read }
   PROT_WRITE = BU.PROT_WRITE;             { page can be written }
   PROT_EXEC  = BU.PROT_EXEC;             { page can be executed }
@@ -845,7 +845,7 @@ Function AssignPipe(var pipe_in,pipe_out:file):cint;
 {
   Sets up a pair of file variables, which act as a pipe. The first one can
   be read from, the second one can be written to.
-  If the operation was unsuccesful,
+  If the operation was unsuccessful,
 }
 var
   f_in,f_out : cint;
@@ -1390,7 +1390,7 @@ end;
 
 Function FSearch(const path:RawByteString;dirlist:RawByteString;CurrentDirStrategy:TFSearchOption):RawByteString;
 {
-  Searches for a file 'path' in the list of direcories in 'dirlist'.
+  Searches for a file 'path' in the list of directories in 'dirlist'.
   returns an empty string if not found. Wildcards are NOT allowed.
   If dirlist is empty, it is set to '.'
 

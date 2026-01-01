@@ -54,22 +54,22 @@ Uses System.SysUtils,System.Classes;
 Uses Sysutils,Classes;
 {$ENDIF FPC_DOTTEDUNITS}
 
-CONST 
+CONST
   IDEAKEYSIZE   = 16;
   IDEABLOCKSIZE = 8;
   ROUNDS        = 8;
   KEYLEN        = (6*ROUNDS+4);
 
-TYPE 
+TYPE
   TIDEAKey       = ARRAY[0..keylen-1] OF Word;
   TIdeaCryptKey  = ARRAY[0..7] OF Word;
   TIdeaCryptData = ARRAY[0..3] OF Word;
-  
+
   { For backward compatibility }
   IDEAkey = TIDEAkey;
   IdeaCryptKey = TIdeaCryptKey;
   IdeaCryptData = TIdeaCryptData;
-  
+
 PROCEDURE EnKeyIdea(UserKey: TIdeacryptkey; OUT z: TIDEAKey);
 PROCEDURE DeKeyIdea(z: TIDEAKey; OUT dk: TIDEAKey);
 PROCEDURE CipherIdea(Input: TIDEACryptData; OUT outdata: TIDEACryptData; z: TIDEAKey);
@@ -263,7 +263,7 @@ END;
 { ---------------------------------------------------------------------
     TIDEAStream
   ---------------------------------------------------------------------}
-  
+
 
 Constructor TIDEAStream.Create(AKey : TIDEAKey; Dest: TStream);
 

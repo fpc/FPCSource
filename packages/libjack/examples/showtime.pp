@@ -49,7 +49,7 @@ begin
     else
       Write(#9' no video');
   end;
-	
+
   Writeln;
 end;
 

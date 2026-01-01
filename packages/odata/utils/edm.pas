@@ -136,7 +136,7 @@ type
   TFunctionImport_AnnotationArray = class;
   TFunctionImport = class;
 
-  TAbstractType = ( 
+  TAbstractType = (
     TAbstractType_Edm_ComplexType
     ,TAbstractType_Edm_EntityType
     ,TAbstractType_Edm_PrimitiveType
@@ -155,15 +155,15 @@ type
     ,TAbstractType_Collection_Edm_PropertyPath
   );
 
-  TMax = ( 
+  TMax = (
     max
   );
 
-  TVariable = ( 
+  TVariable = (
     variable
   );
 
-  TOnDeleteAction = ( 
+  TOnDeleteAction = (
     Cascade
     ,None
     ,SetDefault

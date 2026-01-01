@@ -458,7 +458,7 @@ Type
   Published
     Sub : TIntegerComponent;
   end;
-  
+
   // Stream 2 sub components
   TStreamedOwnedComponents = Class(TChildrenComponent)
   Public
@@ -1004,7 +1004,7 @@ end;
 Procedure TMethodComponent2.MyMethod2;
 
 begin
- // Do nothng
+ // Do nothing
 end;
 
 

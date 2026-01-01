@@ -1762,7 +1762,7 @@ function PMPrintSettingsCopyKeys( printSettings: PMPrintSettings; var settingsKe
 *
 *  Parameters:
 *		printer:
-*		On return *printer contains the generic priner
+*		On return *printer contains the generic printer
 *
 *  Availability:
 *    Mac OS X:         in version 10.5 and later in ApplicationServices.framework
@@ -2943,14 +2943,14 @@ function PMPaperIsCustom( paper: PMPaper ): Boolean; external name '_PMPaperIsCu
 *    workflowItems:
 *      If this function returns without error then *'workflowItems'
 *      will be filled in with a reference to an array. It is the
-*      caller's responsability to release the array when done with it.
+*      caller's responsibility to release the array when done with it.
 *      Each element in the array describes a PDF Workflow item or a
 *      folder holding workflow items. A dictionary describing a
 *      workflow item has, at least, the following keys and values:
-*      displayName - The user's diaplayable name for the workflow item
+*      displayName - The user's displayable name for the workflow item
 *      itemURL - A CFURLRef pointing to the workflow item. A
 *      dictionary describing a workflow folder has at least the
-*      following keys: displayName - The user's diaplayable name for
+*      following keys: displayName - The user's displayable name for
 *      the workflow item folderURL - A CFURLRef pointing to the
 *      folder. items - A CFArrayRef describing the workflow items in
 *      the folder. If this function returns a non-zero error code then

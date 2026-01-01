@@ -139,7 +139,7 @@ const
    fpc_in_fma_float128     = 136;
 
 { MMX functions }
-{ these contants are used by the mmx unit }
+{ these constants are used by the mmx unit }
 
    { MMX }
    fpc_in_mmx_pcmpeqb      = 200;

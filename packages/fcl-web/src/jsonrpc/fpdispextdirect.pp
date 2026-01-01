@@ -74,7 +74,7 @@ Type
     // "type". By default: 'remoting'
     Property APIType : String Read FAPIType Write FAPIType;
   Public
-    // Override to set additional opions.
+    // Override to set additional options.
     Constructor Create(AOwner : TComponent); override;
     // Return API description object
     Function API: TJSONData;

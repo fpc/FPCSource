@@ -82,7 +82,7 @@ const
   XFT_XLFD	=	'xlfd';
   XFT_MAX_GLYPH_MEMORY ='maxglyphmemory';
   XFT_MAX_UNREF_FONTS =	'maxunreffonts';
-  
+
 type
 // extern FT_Library	_XftFTlibrary;
 
@@ -107,7 +107,7 @@ type
     pixel : culong;
     color : TXRenderColor;
   end;
-              
+
 function  XftDrawCreate(display : PXDisplay; win : TXID; vis : PVisual; colorm : longint) : PXftDraw; cdecl; external libXft;
 procedure XftDrawChange(xftd : PXftDraw; win : TXID); cdecl; external libXft;
 procedure XftDrawDestroy(draw : PXftDraw); cdecl; external libXft;

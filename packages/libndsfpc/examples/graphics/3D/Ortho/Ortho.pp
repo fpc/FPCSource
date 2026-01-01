@@ -167,7 +167,7 @@ begin
 
     // flush to screen
     glFlush(0);
-    
+
     if (held and KEY_START) <> 0 then break;
   end;
 end.

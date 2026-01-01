@@ -31,7 +31,7 @@ uses sysutils, classes, math, {$IFDEF DYNAMIC}freetypehdyn{$ELSE}freetypeh{$ENDI
 
 { TODO : take resolution in account to find the size }
 { TODO : speed optimization: search glyphs with a hash-function/tree/binary search/... }
-{ TODO : memory optimization: TStringBitmaps keeps for each differnet character
+{ TODO : memory optimization: TStringBitmaps keeps for each different character
          only 1 bitmap }
 { TODO : load other files depending on the extension }
 { possible TODO : different sizes/resolutions for x and y }
@@ -764,7 +764,7 @@ Var
   T : Array of Cardinal;
   C,I : Integer;
   U : UnicodeString;
-  
+
 begin
   CurFont := GetFont(FontID);
   InitMakeString (FontID, Size);
@@ -783,7 +783,7 @@ function TFontManager.MakeString (FontId:integer; Text:Unicodestring; Size:real)
 Var
   T : Array of Cardinal;
   C,I : Integer;
-  
+
 begin
   CurFont := GetFont(FontID);
   InitMakeString (FontID, Size);

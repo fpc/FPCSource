@@ -675,7 +675,7 @@ var
 {$IFDEF HAS_SDO_SHORT}
       locFactory.addProperty(locObj,s_short_prop,sdo_namespace,SDOTypeDefaultTypeNames[ShortType], []);
         locFactory.addProperty(locObj,s_short_propList,sdo_namespace,SDOTypeDefaultTypeNames[ShortType],[pfIsMany]);
-{$ENDIF HAS_SDO_SHORT}        
+{$ENDIF HAS_SDO_SHORT}
       locFactory.addProperty(locObj,s_string_prop,sdo_namespace,SDOTypeDefaultTypeNames[StringType], []);
         locFactory.addProperty(locObj,s_string_propList,sdo_namespace,SDOTypeDefaultTypeNames[StringType],[pfIsMany]);
   end;
@@ -1583,7 +1583,7 @@ begin
     CheckEquals( False, localObj.isNull(), 'isNull' );
     CheckEquals( 34, localObj.getIndex(), 'getIndex' );
     CheckEquals( locVal, localObj.getCurrencyValue(), 'getCurrencyValue');
-    CheckEquals( TSDOConvertHelper.CurrencyToString(localObj.getCurrencyValue()), localObj.getStringValue(), 'getStringValue'); 
+    CheckEquals( TSDOConvertHelper.CurrencyToString(localObj.getCurrencyValue()), localObj.getStringValue(), 'getStringValue');
   finally
     FreeAndNil(localObj);
   end;
@@ -1794,7 +1794,7 @@ begin
     CheckEquals( False, localObj.isNull(), 'isNull' );
     CheckEquals( 34, localObj.getIndex(), 'getIndex' );
     CheckEquals( locVal, localObj.getDoubleValue(), 'getDoubleValue');
-    CheckEquals( TSDOConvertHelper.FloatToString(localObj.getDoubleValue()), localObj.getStringValue(), 'getStringValue'); 
+    CheckEquals( TSDOConvertHelper.FloatToString(localObj.getDoubleValue()), localObj.getStringValue(), 'getStringValue');
   finally
     FreeAndNil(localObj);
   end;
@@ -2005,7 +2005,7 @@ begin
     CheckEquals( False, localObj.isNull(), 'isNull' );
     CheckEquals( 34, localObj.getIndex(), 'getIndex' );
     CheckEquals( locVal, localObj.getFloatValue(), 'getFloatValue');
-    CheckEquals( TSDOConvertHelper.FloatToString(localObj.getFloatValue()), localObj.getStringValue(), 'getStringValue'); 
+    CheckEquals( TSDOConvertHelper.FloatToString(localObj.getFloatValue()), localObj.getStringValue(), 'getStringValue');
   finally
     FreeAndNil(localObj);
   end;
@@ -2330,7 +2330,7 @@ begin
 {$IFDEF HAS_SDO_SHORT}
     CheckEquals( localObj.getLongValue(), localObj.getShortValue(), 'getShortValue');
 {$ENDIF HAS_SDO_SHORT}
-    CheckEquals( TSDOConvertHelper.LongToString(localObj.getLongValue()), localObj.getStringValue(), 'getStringValue');  
+    CheckEquals( TSDOConvertHelper.LongToString(localObj.getLongValue()), localObj.getStringValue(), 'getStringValue');
   finally
     FreeAndNil(localObj);
   end;
@@ -2343,7 +2343,7 @@ begin
     CheckEquals( False, localObj.isNull(), 'isNull' );
     CheckEquals( 34, localObj.getIndex(), 'getIndex' );
     CheckEquals( locVal, localObj.getLongValue(), 'getLongValue');
-    CheckEquals( TSDOConvertHelper.LongToString(localObj.getLongValue()), localObj.getStringValue(), 'getStringValue');  
+    CheckEquals( TSDOConvertHelper.LongToString(localObj.getLongValue()), localObj.getStringValue(), 'getStringValue');
   finally
     FreeAndNil(localObj);
   end;
@@ -2356,7 +2356,7 @@ begin
     CheckEquals( False, localObj.isNull(), 'isNull' );
     CheckEquals( 34, localObj.getIndex(), 'getIndex' );
     CheckEquals( locVal, localObj.getLongValue(), 'getLongValue');
-    CheckEquals( TSDOConvertHelper.LongToString(localObj.getLongValue()), localObj.getStringValue(), 'getStringValue');  
+    CheckEquals( TSDOConvertHelper.LongToString(localObj.getLongValue()), localObj.getStringValue(), 'getStringValue');
   finally
     FreeAndNil(localObj);
   end;
@@ -3853,8 +3853,8 @@ var
     for k := 0 to High(v) do
       v[k] := k mod High(TSDOByte);
     VAL_1 := v;
-  end;  
-  
+  end;
+
 var
   locObj : ISDODataObject;
   locProp : ISDOProperty;
@@ -3901,16 +3901,16 @@ var
     for k := 0 to High(v) do
       v[k] := k mod High(TSDOByte);
     VAL_1 := v;
-    v := nil;    
+    v := nil;
 
     VAL_2 := nil;
 
     SetLength(v,20);
     for k := 0 to High(v) do
       v[k] := ( ( 3 * k ) + 1 ) mod High(TSDOByte);
-    VAL_3 := v; 
+    VAL_3 := v;
   end;
-  
+
 var
   locObj : ISDODataObject;
 begin
@@ -4695,7 +4695,7 @@ begin
   CheckEquals(ADataObject.getInteger(locProp), locSetting.getIntegerValue());
 end;
 
-procedure TChangeRecorder_Test.record_list_int(   
+procedure TChangeRecorder_Test.record_list_int(
   const ADataObject: ISDODataObject;
   const APropName: string
 );
@@ -6842,8 +6842,8 @@ var
     for k := 0 to High(v) do
       v[k] := k mod High(TSDOByte);
     VAL_1 := v;
-  end;  
-  
+  end;
+
 var
   locObjA, locObjB : ISDODataObject;
   ls : ISDOSettingList;
@@ -6889,14 +6889,14 @@ var
     for k := 0 to High(v) do
       v[k] := k mod High(TSDOByte);
     VAL_1 := v;
-    v := nil;    
+    v := nil;
 
     SetLength(v,20);
     for k := 0 to High(v) do
       v[k] := ( ( 3 * k ) + 1 ) mod High(TSDOByte);
     VAL_2 := v;
-  end;  
-  
+  end;
+
 var
   locObjA, locObjB : ISDODataObject;
   locProp : ISDOProperty;

@@ -162,7 +162,7 @@ procedure AdsFreeAdsValues(pAdsValues: PADSVALUE; dwNumValues: DWORD); stdcall;
 
 //
 // Helper routines to convert IADsSecurityDescriptor to a binary
-// security descriptor and also to convert a binary SD to 
+// security descriptor and also to convert a binary SD to
 // IADsSecurityDescriptor.
 //
 

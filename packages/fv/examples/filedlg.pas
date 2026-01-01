@@ -1,7 +1,7 @@
 program demofiledialog;
 {$codepage utf8}
 uses
-  {$ifdef UNIX}cwstring,{$endif} 
+  {$ifdef UNIX}cwstring,{$endif}
   //Objects, Drivers, Views, Menus, Dialogs, App, Stddlg, MsgBox, FVCommon; { for legacy uncomment this line and comment next line }
   Objects, uDrivers, uViews, uMenus, uDialogs, uApp, uStddlg, uMsgBox, uFVCommon; { for unicode support uncomment this line and comment previous line }
 

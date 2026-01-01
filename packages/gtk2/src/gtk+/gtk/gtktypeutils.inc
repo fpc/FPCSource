@@ -57,10 +57,10 @@
    TGtkSignalMarshaller = TGSignalCMarshaller;
 { GtkArg, used to hold differently typed values  }
 { this union only defines the required storage types for
-     the possibile values, thus there is no gint enum_data field,
+     the possible values, thus there is no gint enum_data field,
      because that would just be a mere alias for gint int_data.
      use the GTK_VALUE_ () and GTK_RETLOC_ () macros to access
-     the discrete memebers.
+     the discrete members.
     }
 { flat values  }
 { structured values  }

@@ -81,7 +81,7 @@ uses strutils;
 
 Resourcestring
   SErrQueryNotSQLQuery = 'Query object "%s" is not a SQL Query';
-  
+
 { TSQLDBDDEngine }
 
 function TSQLDBDDEngine.HostSupported: Boolean;
@@ -126,7 +126,7 @@ function TSQLDBDDEngine.Connect(const AConnectString: String): Boolean;
 
 Var
   L : TStringList;
-  
+
 begin
   FConn:=CreateConnection(AConnectString);
   FConn.Transaction:=TSQLTransaction.Create(FConn);
@@ -157,7 +157,7 @@ end;
 
 Function TSQLDBDDEngine.GetObjectList(ASchemaType: TSchemaType; AList : TSqlObjectIdentifierList): Integer;
 begin
-  Result := FConn.GetObjectNames(ASchemaType, AList); 
+  Result := FConn.GetObjectNames(ASchemaType, AList);
 end;
 
 
@@ -192,10 +192,10 @@ end;
 
 function TSQLDBDDEngine.ViewTable(const TableName: String;
   DatasetOwner: TComponent): TDataset;
-  
+
 Var
   Q : TSQLQuery;
-  
+
 begin
   Q:=CreateSQLQuery(DatasetOwner);
   Q.SQL.Text:='SELECT * FROM '+TableName;
@@ -254,10 +254,10 @@ end;
 
 function TSQLDBDDEngine.GetTableIndexDefs(ATableName: String; Defs: TDDIndexDefs
   ): integer;
-  
+
 Var
   Q : TSQLQuery;
-  
+
 begin
   Q:=TSQLQuery.Create(Self);
   Try

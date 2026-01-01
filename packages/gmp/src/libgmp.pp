@@ -53,11 +53,11 @@ const
 {$else}
 {$ifdef windows}
   GMPlibraryFileName = GMPExternal_library+'.dll';
-{$else}  
+{$else}
 {$ifdef darwin}
   // macOS
   GMPlibraryFileName = GMPExternal_library+'.dylib';
-{$else}  
+{$else}
   // Generic unix
   GMPlibraryFileName = GMPExternal_library+'.so';
 {$endif}

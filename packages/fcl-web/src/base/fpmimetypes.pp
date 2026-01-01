@@ -171,9 +171,9 @@ Var
   I : integer;
   E : String;
 begin
-  if Length(AExt) = 0 then 
+  if Length(AExt) = 0 then
     Result:=Nil
-  else 
+  else
     begin
     E:=LowerCase(AExt);
     If (E[1]='.') then

@@ -11,7 +11,7 @@ uses
   simpleipc;
 
 Type
-  TApp = Class(TObject)  
+  TApp = Class(TObject)
     Srv : TSimpleIPCServer;
     DoStop : Boolean;
     Procedure MessageQueued(Sender : TObject);
@@ -23,7 +23,7 @@ Procedure TApp.PrintMessage;
 
 Var
   S : String;
- 
+
 begin
   S:=Srv.StringMessage;
   Writeln('Received message : ',S);
@@ -39,7 +39,7 @@ end;
 
 
 Procedure TApp.Run;
-  
+
 Var
   S : String;
   Threaded : Boolean;
@@ -77,6 +77,6 @@ begin
       Run
     finally
       Free;
-    end;    
+    end;
 end.
 

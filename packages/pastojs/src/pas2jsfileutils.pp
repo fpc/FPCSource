@@ -842,12 +842,12 @@ end;
 {$IFDEF HAVE_INITPLATFORM}
 initialization
   InitPlatform;
-{$ENDIF} 
+{$ENDIF}
 
 {$IFDEF HAVE_FINALIZEPLATFORM}
 finalization
   FinalizePlatform;
-{$ENDIF}  
-  
+{$ENDIF}
+
 end.
 

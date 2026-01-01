@@ -36,7 +36,7 @@ type
     { private declarations }
   public
     { public declarations }
-  end; 
+  end;
 
 var
   CombinedModule: TCombinedModule;

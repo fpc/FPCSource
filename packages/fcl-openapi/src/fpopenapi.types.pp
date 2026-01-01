@@ -60,7 +60,7 @@ Type
   // Operation object
   TApiOperationKeyword = (okUnknown, okTags, okSummary, okDescription, okExternalDocs, okOperationId, okParameters, okRequestBody,
                        okResponses, okCallbacks, okDeprecated, okSecurity, okServers);
-  // External documentaton object
+  // External documentation object
   TExternalDocumentationKeyword = (edkUnknown, edkDescription, edkUrl);
 
   // Parameter object

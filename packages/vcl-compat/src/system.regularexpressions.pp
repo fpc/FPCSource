@@ -203,7 +203,7 @@ type
     class function Split(const aInput, aPattern: TREString; aOptions: TRegExOptions): TREStringDynArray; overload; static;
   end;
 
-                                                                     
+
   { TRegExHelper }
 
   TRegExHelper = record helper for TRegEx

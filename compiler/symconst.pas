@@ -939,7 +939,7 @@ inherited_objectoptions : tobjectoptions = [oo_has_virtual,oo_has_private,oo_has
        '$1byte$',
        '$emptyrec',
        '$llvmstruct$',
-       '$vmt_TStringMesssageTable$',
+       '$vmt_TStringMessageTable$',
        '$vmt_msgint_table_entries$',
        '$vmt_tmethod_name_table$',
        '$vmt_intern_msgint_table$',

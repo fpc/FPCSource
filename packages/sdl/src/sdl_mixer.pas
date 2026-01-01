@@ -4,7 +4,7 @@ unit sdl_mixer;
 {******************************************************************************}
 {
   $Id: sdl_mixer.pas,v 1.18 2007/05/29 21:31:44 savage Exp $
-  
+
 }
 {                                                                              }
 {       Borland Delphi SDL_Mixer - Simple DirectMedia Layer Mixer Library      }
@@ -222,7 +222,7 @@ const
   MIX_MAJOR_VERSION = SDL_MIXER_MAJOR_VERSION;
   MIX_MINOR_VERSION = SDL_MIXER_MINOR_VERSION;
   MIX_PATCHLEVEL    = SDL_MIXER_PATCHLEVEL;
-  
+
   // SDL_Mixer.h constants
   { The default mixer has 8 simultaneous mixing channels }
 {$IFNDEF MIX_CHANNELS}
@@ -776,7 +776,7 @@ const
   function Mix_SetPanning( channel : integer; left : Uint8; right : Uint8  ) : integer;
   cdecl; external {$IFDEF __GPC__}name 'Mix_SetPanning'{$ELSE} SDL_MixerLibName{$ENDIF __GPC__};
   {$EXTERNALSYM Mix_SetPanning}
-  
+
   { * set the position ofa channel.( angle ) is an integer from 0 to 360, that
     * specifies the location of the sound in relation to the listener.( angle )
     * will be reduced as neccesary( 540 becomes 180 degrees, -100 becomes 260 ).
@@ -952,7 +952,7 @@ cdecl; external {$IFDEF __GPC__}name 'Mix_PlayChannelTimed'{$ELSE} SDL_MixerLibN
 { Play an audio chunk on a specific channel.
    If the specified channel is -1, play on the first free channel.
    If 'loops' is greater than zero, loop the sound that many times.
-   If 'loops' is -1, loop inifinitely (~65000 times).
+   If 'loops' is -1, loop infinitely (~65000 times).
    Returns which channel was used to play the sound.
 }
 function Mix_PlayChannel( channel : integer; chunk : PMix_Chunk; loops : integer ) : integer;

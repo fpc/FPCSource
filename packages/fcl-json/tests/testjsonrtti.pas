@@ -20,7 +20,7 @@ type
     FCalled : Boolean;
     procedure DoStreamProperty1(Sender: TObject; AObject: TObject; Info: PPropInfo; var Res: TJSONData);
   protected
-    procedure SetUp; override; 
+    procedure SetUp; override;
     procedure TearDown; override;
     Procedure AssertEquals(AMessage : String; Expected,Actual : TJSONType); overload;
     Procedure AssertPropCount(ACount : Integer);

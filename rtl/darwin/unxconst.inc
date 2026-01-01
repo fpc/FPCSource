@@ -71,5 +71,5 @@ Const
   STAT_IWUSR = STAT_IWOTH shl 6;
   STAT_IXUSR = STAT_IXOTH shl 6;
 
-  {Constansts Termios/Ioctl (used in Do_IsDevice) }
+  {Constants Termios/Ioctl (used in Do_IsDevice) }
   IOCtl_TCGETS=$40000000+$2C7400+19; // TCGETS is also in termios.inc (as TIOCGETA), but the sysunix needs only this

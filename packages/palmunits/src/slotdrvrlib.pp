@@ -52,10 +52,10 @@ const
 
 type
   CardMetricsType = record
-    totalSectors: UInt32;     // The total number of sectors accessable via SlotCardSector[Read/Write]
+    totalSectors: UInt32;     // The total number of sectors accessible via SlotCardSector[Read/Write]
                               //    (some media may contain extra sectors in case one goes bad,
                               //     or for storing configuration information, but they are handled
-                              //     internally to the slot driver, and not accessable)
+                              //     internally to the slot driver, and not accessible)
     bytesPerSector: UInt16;   // The number of bytes in one sector.
                               //    currently for Palm, this must be the standard 512
     sectorsPerHead: UInt16;   // The number of Sectors per Head

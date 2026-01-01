@@ -522,7 +522,7 @@ const
 	kATSUCGContextTag = 32767;
 
   {
-   * (Type: Boolean) (Default value: false) For compatability purposes
+   * (Type: Boolean) (Default value: false) For compatibility purposes
    * only. Choosing typographic styles from font families is preferred.
    * Note this tag will produce a synthetic style for fonts that do not
    * have a typographic style. May be set as a style attribute.
@@ -530,7 +530,7 @@ const
 	kATSUQDBoldfaceTag = 256;
 
   {
-   * (Type: Boolean) (Default value: false) For compatability purposes
+   * (Type: Boolean) (Default value: false) For compatibility purposes
    * only. Choosing typographic styles from font families is preferred.
    * Note this tag will produce a synthetic style for fonts that do not
    * have a typographic style. May be set as a style attribute.
@@ -538,19 +538,19 @@ const
 	kATSUQDItalicTag = 257;
 
   {
-   * (Type: Boolean) (Default value: false) For compatability purposes
+   * (Type: Boolean) (Default value: false) For compatibility purposes
    * only. May be set as a style attribute.
    }
 	kATSUQDUnderlineTag = 258;
 
   {
-   * (Type: Boolean) (Default value: false) For compatability purposes
+   * (Type: Boolean) (Default value: false) For compatibility purposes
    * only. May be set as a style attribute.
    }
 	kATSUQDCondensedTag = 259;
 
   {
-   * (Type: Boolean) (Default value: false) For compatability purposes
+   * (Type: Boolean) (Default value: false) For compatibility purposes
    * only. May be set as a style attribute.
    }
 	kATSUQDExtendedTag = 260;
@@ -648,7 +648,7 @@ const
 
   {
    * (Type: Boolean) (Default value: false) When set to true, ligatures
-   * and compound characters will not have divisable components. May be
+   * and compound characters will not have divisible components. May be
    * set as a style attribute.
    }
 	kATSUNoLigatureSplitTag = 276;
@@ -935,7 +935,7 @@ const
  *    The constants kATSUTruncateNone, kATSUTruncateStart,
  *    kATSUTruncateEnd, and kATSUTruncateMiddle represent different
  *    places in the text where glyphs should be replaced with an
- *    elipsis should the text not fit within the width set by the
+ *    ellipsis should the text not fit within the width set by the
  *    kATSULineWidthTag line and layout control. The constant
  *    kATSUTruncFeatNoSquishing is special and can be bitwise OR'd with
  *    any of the other constants. It indicates that ATSUI should not
@@ -1137,7 +1137,7 @@ const
  *    ATSUGlyphSelector can direct ATSUI to use a specific glyph
  *    instead of the one that ATSUI normally derives.  The glyph can be
  *    specified either as a glyphID (specific to the font used) or CID
- *    from a specfic collection defined by the collection entry.
+ *    from a specific collection defined by the collection entry.
  }
 type
 	ATSUGlyphSelector = record
@@ -1389,13 +1389,13 @@ type
  *  Discussion:
  *    There are two methods of highlighting available on Mac OS X:
  *    invert and redraw. For the invert method, no unhighlight method
- *    needs to be specified. ATSUI will simply higlight text by
+ *    needs to be specified. ATSUI will simply highlight text by
  *    performing a color inversion on the area surrounding the test.
- *    However, for best results, the redraw method is perferred. With
+ *    However, for best results, the redraw method is preferred. With
  *    this method, ATSUI will redraw text with a new background when
  *    highlighting, and redraw it again when unhighlighting. When using
  *    the redraw method, ATSUI needs to know how to restore the
- *    backround when unhighlighting text. That is where the unhighlight
+ *    background when unhighlighting text. That is where the unhighlight
  *    data comes in. This struct tells ATSUI how to restore the
  *    background after a highlight. There are two methods for
  *    specifying this information to ATSUI. One is by specifying a

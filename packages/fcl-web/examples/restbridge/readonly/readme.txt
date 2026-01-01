@@ -11,7 +11,7 @@ Setup
 The country table (country.sql) can be used for sample data in the database
 of your choice.
 
-Set up the connection in code (method SetUpConnection), 
+Set up the connection in code (method SetUpConnection),
 or in a connection.ini file with the following format:
 
 [database]

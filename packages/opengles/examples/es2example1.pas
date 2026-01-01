@@ -23,12 +23,12 @@ const VertexArray:array[0..11] of single=(0,-1,0,1,
       ShaderPrecode={$ifdef ogles}''{$else}'#version 120'#10{$endif};
 
       VertexShaderSource:AnsiString=ShaderPrecode+'attribute vec4 position;'#10+
-                                              'varying mediump vec2 pos;'#10+ 
+                                              'varying mediump vec2 pos;'#10+
                                               'void main(){'#10+
                                               ' gl_Position=position;'#10+
                                               ' pos=position.xy;'#10+
                                               '}';
-                                              
+
       FragmentShaderSource:AnsiString=ShaderPrecode+'varying mediump vec2 pos;'#10+
                                                 'uniform mediump float phase;'#10+
                                                 'void main(){'#10+
@@ -50,7 +50,7 @@ begin
  DecodeTime(NowTime,hour,min,sec,msec);
  result:=(((((((((((Year*365)+Month)*31)+Day)*24)+hour)*60)+min)*60)+sec)*1000)+msec;
 end;
-        
+
 procedure PrintShaderInfoLog(Shader:TGLUint;ShaderType:AnsiString);
 var len,Success:TGLint;
     Buffer:PAnsiChar;
@@ -90,11 +90,11 @@ begin
 
  glAttachShader(ShaderProgram,VertexShader);
  glAttachShader(ShaderProgram,FragmentShader);
- 
+
  glLinkProgram(ShaderProgram);
- 
+
  glUseProgram(ShaderProgram);
- 
+
  PhaseLocation:=glGetUniformLocation(ShaderProgram,'phase');
  if PhaseLocation<0 then begin
   writeln('Error: Cannot get phase shader uniform location');
@@ -112,13 +112,13 @@ begin
  glViewPort(0,0,CanvasWidth,CanvasHeight);
  glClearColor(0,1,0,1);
  glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
- 
+
  glUniform1f(PhaseLocation,(GetTime mod 2000)*0.001*pi);
- 
+
  glVertexAttribPointer(0,4,GL_FLOAT,0,0,@VertexArray);
  glEnableVertexAttribArray(0);
  glDrawArrays(GL_TRIANGLE_STRIP,0,3);
- 
+
 end;
 
 const MOUSE_MASK=ButtonPressMask or ButtonReleaseMask or PointerMotionMask or ButtonMotionMask;
@@ -148,7 +148,7 @@ const MOUSE_MASK=ButtonPressMask or ButtonReleaseMask or PointerMotionMask or Bu
 {$endif}
 
      Title:AnsiString='GL test';
-    
+
 var dpy:PXDisplay;
     win,root:TWindow;
     screennum,ScreenWidth,ScreenHeight:integer;
@@ -171,7 +171,7 @@ var dpy:PXDisplay;
     ErrorBase,EventBase:integer;
 {$endif}
     WM_DELETE_WINDOW:TAtom;
-    
+
 procedure DisableComposition;
 {$ifdef ogles}
 const one:integer=1;
@@ -180,16 +180,16 @@ var xclient:TXClientMessageEvent;
     wm_state,fullscreen{$ifdef ogles},non_composited{$endif}:TAtom;
 begin
  wm_state:=XInternAtom(dpy,'_NET_WM_STATE',false);
- fullscreen:=XInternAtom(dpy,'_NET_WN_STATE_FULLSCREEN',false); 
+ fullscreen:=XInternAtom(dpy,'_NET_WN_STATE_FULLSCREEN',false);
  XChangeProperty(dpy,win,wm_state,XA_ATOM,32,PropModeReplace,@fullscreen,1);
  XFlush(dpy);
- 
+
 {$ifdef ogles}
  non_composited:=XInternAtom(dpy,'_HILDON_NON_COMPOSITED_WINDOW',false);
  XChangeProperty(dpy,win,non_composited,XA_INTEGER,32,PropModeReplace,@one,1);
  XFlush(dpy);
 {$endif}
- 
+
  xclient._type:=ClientMessage;
  xclient.window:=win;
  xclient.message_type:=XInternAtom(dpy,'_NET_WM_STATE',false);
@@ -224,13 +224,13 @@ end;
 
 begin
  CurrentTime:=0;
- 
+
  dpy:=XOpenDisplay(nil);
  if not assigned(dpy) then begin
   writeln('Error: Cannot connect to X server');
   halt(1);
  end;
- 
+
  root:=DefaultRootWindow(dpy);
 
  screen:=XDefaultScreenOfDisplay(dpy);
@@ -238,35 +238,35 @@ begin
   writeln('Error: Cannot get default screen');
   halt(1);
  end;
- 
+
  ScreenWidth:=screen^.Width;
  ScreenHeight:=screen^.Height;
 
  screennum:=XDefaultScreen(dpy);
- 
+
  visual:=XDefaultVisualOfScreen(screen);
- 
+
  CanvasWidth:=ScreenWidth;
  CanvasHeight:=ScreenHeight;
 {$ifdef ogles}
- 
+
  swa.event_mask:=X_MASK;
 
  win:=XCreateWindow(dpy,root,0,0,ScreenWidth,ScreenHeight,0,CopyFromParent,InputOutput,Visual,CWEventMask,@swa);
- 
+
  WM_DELETE_WINDOW:=XInternAtom(dpy,'WM_DELETE_WINDOW',FALSE);
  XSetWMProtocols(dpy,win,@WM_DELETE_WINDOW,1);
  XFlush(dpy);
- 
+
  DisableComposition;
- 
+
  XMapWindow(dpy,win);
  XFlush(dpy);
- 
+
  DisableComposition;
 
  XSelectInput(Dpy,Win,FocusChangeMask or KeyPressMask or KeyReleaseMask or PropertyChangeMask or StructureNotifyMask or KeymapStateMask or PointerMotionMask or EnterWindowMask or LeaveWindowMask or ButtonPressMask or ButtonReleaseMask or ExposureMask);
- 
+
  XStoreName(dpy,win,PAnsiChar(Title));
  XFlush(dpy);
 
@@ -276,19 +276,19 @@ begin
  XFlush(dpy);
 
  SetEmptyMouseCursor;
- 
+
  XGrabPointer(dpy,win,true,MOUSE_MASK,GrabModeAsync,GrabModeAsync,win,None,CurrentTime);
  XFlush(dpy);
- 
+
  XGetPointerControl(dpy,@mouse_accel_numerator,@mouse_accel_denominator,@mouse_threshold);
  XFlush(dpy);
- 
+
  XChangePointerControl(dpy,1,1,1,1,0);
  XFlush(dpy);
- 
+
  XGrabKeyboard(dpy,win,false,GrabModeAsync,GrabModeAsync,CurrentTime);
  XFlush(dpy);
- 
+
  edpy:=eglGetDisplay(dpy);
  if edpy=EGL_NO_DISPLAY then begin
   writeln('Error: Got no EGL display');
@@ -309,29 +309,29 @@ begin
   writeln('Error: Didn''t get exactly config but ',num_config);
   halt(1);
  end;
- 
+
  esfc:=eglCreateWindowSurface(edpy,ecfg,win,nil);
  if esfc=EGL_NO_SURFACE then begin
   writeln('Error: Unable to create EGL surface (',eglGetError,')');
   halt(1);
  end;
- 
+
  ectxt:=eglCreateContext(edpy,ecfg,EGL_NO_CONTEXT,@CtxAttr);
  if ectxt=EGL_NO_CONTEXT then begin
   writeln('Error: Unable to create EGL context (',eglGetError,')');
   halt(1);
  end;
- 
+
  eglMakeCurrent(edpy,esfc,esfc,ectxt);
- 
+
 {$else}
  InitGLX;
- 
+
  if not glXQueryExtension(dpy,ErrorBase,EventBase) then begin
   writeln('Error: GLX extension not supported');
   halt(1);
  end;
- 
+
  visualinfo:=glXChooseVisual(dpy,screennum,Attr);
  if not assigned(Visualinfo) THEN BEGIN
   writeln('Error: Could not find visual info');
@@ -339,13 +339,13 @@ begin
  end;
 
  WinAttr.colormap:=XCreateColormap(dpy,root,VisualInfo.Visual,AllocNone);
- WinAttr.border_pixel:=0; 
+ WinAttr.border_pixel:=0;
  WinAttr.background_pixel:=0;
  WinAttr.event_mask:=X_MASK;
  WinAttr.override_redirect:=1;
  WinAttr.backing_store:=NotUseful;
  WinAttr.save_under:=0;
- 
+
  Win:=XCreateWindow(dpy,root,0,0,ScreenWidth,ScreenHeight,0,VisualInfo.Depth,InputOutput,VisualInfo.Visual,CWOverrideRedirect or CWBackPixel or CWColormap or CWBackingStore or CWSaveUnder or CWEventMask,@WinAttr);
 
  XSelectInput(Dpy,Win,FocusChangeMask or KeyPressMask or KeyReleaseMask or PropertyChangeMask or StructureNotifyMask or KeymapStateMask or PointerMotionMask or EnterWindowMask or LeaveWindowMask or ButtonPressMask or ButtonReleaseMask or ExposureMask);
@@ -363,13 +363,13 @@ begin
 
  XMapWindow(Dpy,Win);
  XFlush(dpy);
- 
+
  DisableComposition;
 
  glXMakeCurrent(Dpy,Win,glXCont);
- 
+
  SetEmptyMouseCursor;
- 
+
  XMoveWindow(dpy,win,0,0);
  XRaiseWindow(dpy,win);
  XWarpPointer(dpy,None,win,0,0,0,0,0,0);
@@ -377,26 +377,26 @@ begin
 
  XF86VidmodeSetViewPort(dpy,screennum,0,0);
  XFlush(dpy);
- 
+
  XGrabPointer(dpy,win,true,MOUSE_MASK,GrabModeAsync,GrabModeAsync,win,None,CurrentTime);
  XGrabKeyboard(dpy,win,false,GrabModeAsync,GrabModeAsync,CurrentTime);
  XFlush(dpy);
 
  XAutoRepeatOn(Dpy);
  XFlush(dpy);
- 
+
  WM_DELETE_WINDOW:=XInternAtom(dpy,'WM_DELETE_WINDOW',FALSE);
  XSetWMProtocols(dpy,win,@WM_DELETE_WINDOW,1);
  XFlush(Dpy);
- 
+
  CanvasWidth:=ScreenWidth;
  CanvasHeight:=ScreenHeight;
- 
+
  if assigned(visual) then begin
   // Den Compiler befriedigen, so dass der kein Warning deswegen ausspuckt  :)
  end;
 {$endif}
- 
+
  Running:=true;
  ReturnCode:=0;
 {$ifndef ogles}
@@ -411,10 +411,10 @@ begin
   CurrentTime:=GetTime;
  end;
  while Running do begin
- 
+
   while XPending(Dpy)>0 do begin
    XNextEvent(Dpy,@Event);
-   
+
    case Event._type of
 
     ClientMessage:BEGIN
@@ -422,43 +422,43 @@ begin
       Running:=false;
      end;
     end;
-    
+
     Expose:begin
     end;
-    
+
     ConfigureNotify:begin
     end;
-    
+
     MotionNotify:begin
 //   Running:=false;
     end;
-    
+
     ButtonPress:begin
      Running:=false;
     end;
-    
+
     ButtonRelease:begin
      Running:=false;
     end;
-    
+
     KeyMapNotify:begin
     end;
-    
+
     KeyPress:begin
      Running:=false;
     end;
-    
+
     KeyRelease:begin
      Running:=false;
     end;
-    
+
    end;
-   
+
   end;
-  
+
   CurrentTime:=GetTime;
   Render;
-  
+
 {$ifdef ogles}
   eglSwapBuffers(edpy,esfc);
 {$else}
@@ -466,12 +466,12 @@ begin
 {$endif}
 
   XFlush(dpy);
-  
+
  end;
  if ReturnCode=0 then begin
   Done;
  end;
- 
+
 {$ifdef ogles}
  XChangePointerControl(dpy,1,1,mouse_accel_numerator,mouse_accel_denominator,mouse_threshold);
  XUngrabPointer(dpy,CurrentTime);

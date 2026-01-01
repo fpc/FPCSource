@@ -101,7 +101,7 @@ const
       RIL_E_SIMPUKREQUIRED         = (SEVERITY_ERROR shl 31) or (FACILITY_RIL shl 16) or ((RIL_ERRORCLASS_PASSWORD shl 8) or $0B); // @constdefine SIM PUK is required to perform this operation
       RIL_E_SIMFAILURE             = (SEVERITY_ERROR shl 31) or (FACILITY_RIL shl 16) or ((RIL_ERRORCLASS_SIM shl 8) or $0C); // @constdefine SIM failure was detected
       RIL_E_SIMBUSY                = (SEVERITY_ERROR shl 31) or (FACILITY_RIL shl 16) or ((RIL_ERRORCLASS_SIM shl 8) or $0D); // @constdefine SIM is busy
-      RIL_E_SIMWRONG               = (SEVERITY_ERROR shl 31) or (FACILITY_RIL shl 16) or ((RIL_ERRORCLASS_SIM shl 8) or $0E); // @constdefine Inorrect SIM was inserted
+      RIL_E_SIMWRONG               = (SEVERITY_ERROR shl 31) or (FACILITY_RIL shl 16) or ((RIL_ERRORCLASS_SIM shl 8) or $0E); // @constdefine Incorrect SIM was inserted
       RIL_E_INCORRECTPASSWORD      = (SEVERITY_ERROR shl 31) or (FACILITY_RIL shl 16) or ((RIL_ERRORCLASS_PASSWORD shl 8) or $0F); // @constdefine Incorrect password was supplied
       RIL_E_SIMPIN2REQUIRED        = (SEVERITY_ERROR shl 31) or (FACILITY_RIL shl 16) or ((RIL_ERRORCLASS_PASSWORD shl 8) or $10); // @constdefine SIM PIN2 is required to perform this operation
       RIL_E_SIMPUK2REQUIRED        = (SEVERITY_ERROR shl 31) or (FACILITY_RIL shl 16) or ((RIL_ERRORCLASS_PASSWORD shl 8) or $11); // @constdefine SIM PUK2 is required to perform this operation
@@ -127,7 +127,7 @@ const
       RIL_E_TELEMATICIWUNSUPPORTED = (SEVERITY_ERROR shl 31) or (FACILITY_RIL shl 16) or ((RIL_ERRORCLASS_NETWORKUNSUPPORTED shl 8) or $25);  // @constdefine Telematic interworking isn't supported
       RIL_E_SMTYPE0UNSUPPORTED     = (SEVERITY_ERROR shl 31) or (FACILITY_RIL shl 16) or ((RIL_ERRORCLASS_SMSC shl 8) or $26);  // @constdefine Type 0 messages aren't supported
       RIL_E_CANTREPLACEMSG         = (SEVERITY_ERROR shl 31) or (FACILITY_RIL shl 16) or ((RIL_ERRORCLASS_SMSC shl 8) or $27);  // @constdefine Existing message cannot be replaced
-      RIL_E_PROTOCOLIDERROR        = (SEVERITY_ERROR shl 31) or (FACILITY_RIL shl 16) or ((RIL_ERRORCLASS_SMSC shl 8) or $28);  // @constdefine Uspecified error related to the message Protocol ID
+      RIL_E_PROTOCOLIDERROR        = (SEVERITY_ERROR shl 31) or (FACILITY_RIL shl 16) or ((RIL_ERRORCLASS_SMSC shl 8) or $28);  // @constdefine Unspecified error related to the message Protocol ID
       RIL_E_DCSUNSUPPORTED         = (SEVERITY_ERROR shl 31) or (FACILITY_RIL shl 16) or ((RIL_ERRORCLASS_SMSC shl 8) or $29);  // @constdefine Specified message Data Coding Scheme isn't supported
       RIL_E_MSGCLASSUNSUPPORTED    = (SEVERITY_ERROR shl 31) or (FACILITY_RIL shl 16) or ((RIL_ERRORCLASS_SMSC shl 8) or $2A);  // @constdefine Specified message class isn't supported
       RIL_E_DCSERROR               = (SEVERITY_ERROR shl 31) or (FACILITY_RIL shl 16) or ((RIL_ERRORCLASS_SMSC shl 8) or $2B);  // @constdefine Unspecified error related to the message Data Coding Scheme
@@ -164,13 +164,13 @@ const
       RIL_E_RESOURCESUNAVAILABLE   = (SEVERITY_ERROR shl 31) or (FACILITY_RIL shl 16) or ((RIL_ERRORCLASS_NONE shl 8) or $4A);  // @constdefine Unspecified resources weren't available
       RIL_E_SVCNOTSUBSCRIBED       = (SEVERITY_ERROR shl 31) or (FACILITY_RIL shl 16) or ((RIL_ERRORCLASS_NETWORKUNSUPPORTED shl 8) or $4B);  // @constdefine Sender isn't subscribed for the requested messaging service
       RIL_E_SVCNOTIMPLEMENTED      = (SEVERITY_ERROR shl 31) or (FACILITY_RIL shl 16) or ((RIL_ERRORCLASS_NETWORKUNSUPPORTED shl 8) or $4C);  // @constdefine Requested messaging service isn't implemented on the network
-      RIL_E_INVALIDMSGREFERENCE    = (SEVERITY_ERROR shl 31) or (FACILITY_RIL shl 16) or ((RIL_ERRORCLASS_BADPARAM shl 8) or $4D);  // @constdefine Imvalid message reference value was used
+      RIL_E_INVALIDMSGREFERENCE    = (SEVERITY_ERROR shl 31) or (FACILITY_RIL shl 16) or ((RIL_ERRORCLASS_BADPARAM shl 8) or $4D);  // @constdefine Invalid message reference value was used
       RIL_E_INVALIDMSG             = (SEVERITY_ERROR shl 31) or (FACILITY_RIL shl 16) or ((RIL_ERRORCLASS_BADPARAM shl 8) or $4E);  // @constdefine Message was determined to be invalid for unspecified reasons
       RIL_E_INVALIDMANDATORYINFO   = (SEVERITY_ERROR shl 31) or (FACILITY_RIL shl 16) or ((RIL_ERRORCLASS_BADPARAM shl 8) or $4F);  // @constdefine Mandatory message information is invalid or missing
       RIL_E_MSGTYPEUNSUPPORTED     = (SEVERITY_ERROR shl 31) or (FACILITY_RIL shl 16) or ((RIL_ERRORCLASS_NETWORKUNSUPPORTED shl 8) or $50);  // @constdefine The message type is unsupported
       RIL_E_ICOMPATIBLEMSG         = (SEVERITY_ERROR shl 31) or (FACILITY_RIL shl 16) or ((RIL_ERRORCLASS_NETWORKUNSUPPORTED shl 8) or $51);  // @constdefine Sent message isn't compatible with the network
       RIL_E_INFOELEMENTUNSUPPORTED = (SEVERITY_ERROR shl 31) or (FACILITY_RIL shl 16) or ((RIL_ERRORCLASS_NETWORKUNSUPPORTED shl 8) or $52);  // @constdefine An information element specified in the message isn't supported
-      RIL_E_PROTOCOLERROR          = (SEVERITY_ERROR shl 31) or (FACILITY_RIL shl 16) or ((RIL_ERRORCLASS_NETWORK shl 8) or $53);  // @constdefine Unspefied protocol error
+      RIL_E_PROTOCOLERROR          = (SEVERITY_ERROR shl 31) or (FACILITY_RIL shl 16) or ((RIL_ERRORCLASS_NETWORK shl 8) or $53);  // @constdefine Unspecified protocol error
       RIL_E_NETWORKERROR           = (SEVERITY_ERROR shl 31) or (FACILITY_RIL shl 16) or ((RIL_ERRORCLASS_NETWORK shl 8) or $54);  // @constdefine Unspecified network error
       RIL_E_MESSAGINGERROR         = (SEVERITY_ERROR shl 31) or (FACILITY_RIL shl 16) or ((RIL_ERRORCLASS_NETWORK shl 8) or $55);  // @constdefine Unspecified messaging error
       RIL_E_NOTREADY               = (SEVERITY_ERROR shl 31) or (FACILITY_RIL shl 16) or ((RIL_ERRORCLASS_NONE shl 8) or $56);  // @constdefine RIL isn't yet ready to perform the requested operation
@@ -237,7 +237,7 @@ const
 //
 // -----------------------------------------------------------------------------
 const
-      RIL_RESULT_OK          = $00000001 or RIL_NCLASS_FUNCRESULT;  // @constdefine RIL API call succeded; lpData is NULL
+      RIL_RESULT_OK          = $00000001 or RIL_NCLASS_FUNCRESULT;  // @constdefine RIL API call succeeded; lpData is NULL
       RIL_RESULT_NOCARRIER   = $00000002 or RIL_NCLASS_FUNCRESULT;  // @constdefine RIL API failed because no carrier was detected; lpData is NULL
       RIL_RESULT_ERROR       = $00000003 or RIL_NCLASS_FUNCRESULT;  // @constdefine RIL API failed; lpData points to RIL_E_* constant
       RIL_RESULT_NODIALTONE  = $00000004 or RIL_NCLASS_FUNCRESULT;  // @constdefine RIL API failed because no dialtone was detected; lpData is NULL
@@ -262,9 +262,9 @@ const
       RIL_NOTIFY_DISCONNECT            = $00000003 or RIL_NCLASS_CALLCTRL;  // @constdefine Data/voice connection has been terminated; lpData points to RIL_DISCINIT_* constant
       RIL_NOTIFY_DATASVCNEGOTIATED     = $00000004 or RIL_NCLASS_CALLCTRL;  // @constdefine Data connection service has been negotiated; lpData points to RILSERVICEINFO
       RIL_NOTIFY_CALLSTATECHANGED      = $00000005 or RIL_NCLASS_CALLCTRL;  // @constdefine RIL has performed an operation that may have changed state of existing calls; lpData is NULL
-      RIL_NOTIFY_EMERGENCYMODEENTERED  = $00000006 or RIL_NCLASS_CALLCTRL;  // @constdefine RIL has enetered emergency mode; lpData is NULL
+      RIL_NOTIFY_EMERGENCYMODEENTERED  = $00000006 or RIL_NCLASS_CALLCTRL;  // @constdefine RIL has entered emergency mode; lpData is NULL
       RIL_NOTIFY_EMERGENCYMODEEXITED   = $00000007 or RIL_NCLASS_CALLCTRL;  // @constdefine RIL has exited emergency mode; lpData is NULL
-      RIL_NOTIFY_EMERGENCYHANGUP       = $00000008 or RIL_NCLASS_CALLCTRL;  // @constdefine Existsing calls (if any) were hung up in RIL emergency mode; lpData is NULL
+      RIL_NOTIFY_EMERGENCYHANGUP       = $00000008 or RIL_NCLASS_CALLCTRL;  // @constdefine Existing calls (if any) were hung up in RIL emergency mode; lpData is NULL
       RIL_NOTIFY_HSCSDPARAMSNEGOTIATED = $00000009 or RIL_NCLASS_CALLCTRL;  // @constdefine HSCSD parameters for a call has been negotiated; lpData points to RILCALLHSCSDINFO
       RIL_NOTIFY_DIAL                  = $0000000A or RIL_NCLASS_CALLCTRL;  // @constdefine Outgoing call; lpData points to RILDIALINFO
       RIL_NOTIFY_CALLPROGRESSINFO      = $0000000B or RIL_NCLASS_CALLCTRL;  // @constdefine CPI notification; lpData points to RILCALLINFO
@@ -1854,13 +1854,13 @@ const
 // additional CDMA ADDRTYPE definitions
 // See IS-2000.5-A-1 page 509 table 2.7.1.3.2.4-2
       RIL_ADDRTYPE_IP                             = $00000007;      // @constdefine IP Address (RFC 791)
-      RIL_ADDRTYPE_EMAIL                          = $00000008;      // @constdefine Internet Email addresss (RFC 822)
+      RIL_ADDRTYPE_EMAIL                          = $00000008;      // @constdefine Internet Email address (RFC 822)
 
 // -----------------------------------------------------------------------------
 //
 // @doc EXTERNAL
 //
-// @constants Numbering Plan | Different numbering shcemes
+// @constants Numbering Plan | Different numbering schemes
 //
 // @comm Used for <def RIL_ADDRTYPE_UNKNOWN>, <def RIL_ADDRTYPE_INTERNATIONAL>,
 //       and <def RIL_ADDRTYPE_NATIONAL>
@@ -1964,7 +1964,7 @@ const
 //
 // @doc EXTERNAL
 //
-// @constants ITC | Information trasnfer capability types
+// @constants ITC | Information transfer capability types
 //
 // @comm None
 //
@@ -2424,7 +2424,7 @@ const
 // -----------------------------------------------------------------------------
 const
       RIL_HSCSDTIMESLOTS_DEFAULT                  = $00000000;  // @constdefine Indicates that the radio stack should
-                                                                // calculate apropriate number of timeslots
+                                                                // calculate appropriate number of timeslots
       RIL_HSCSDTIMESLOTSLIMIT_NONE                = $00000000;  // @constdefine Indicates that number of receive numeslots will not
                                                                 //    be altered during the next non-transparent HSCSD call
 
@@ -2439,9 +2439,9 @@ const
 // -----------------------------------------------------------------------------
 const
       RIL_DATACOMPDIR_NONE                        = $00000001;  // @constdefine No data compression
-      RIL_DATACOMPDIR_TRANSMIT                    = $00000002;  // @constdefine Data compession when sending
-      RIL_DATACOMPDIR_RECEIVE                     = $00000004;  // @constdefine Data compession when receiving
-      RIL_DATACOMPDIR_BOTH                        = $00000008;  // @constdefine Bi-directional data compession
+      RIL_DATACOMPDIR_TRANSMIT                    = $00000002;  // @constdefine Data compression when sending
+      RIL_DATACOMPDIR_RECEIVE                     = $00000004;  // @constdefine Data compression when receiving
+      RIL_DATACOMPDIR_BOTH                        = $00000008;  // @constdefine Bi-directional data compression
 
 // -----------------------------------------------------------------------------
 //
@@ -2526,7 +2526,7 @@ const
 const
       RIL_MSGSVCTYPE_UNKNOWN                      = $00000000;  // @constdefine Unknown
       RIL_MSGSVCTYPE_PHASE2                       = $00000001;  // @constdefine GSM 07.05 Phase 2 ver. 4.7.0 messaging service
-      RIL_MSGSVCTYPE_PHASE2PLUS                   = $00000002;  // @constdefine GSM 07.05 Pahse 2+ messaging service
+      RIL_MSGSVCTYPE_PHASE2PLUS                   = $00000002;  // @constdefine GSM 07.05 Phase 2+ messaging service
 
 // -----------------------------------------------------------------------------
 //
@@ -2987,14 +2987,14 @@ const
       RIL_LOCKEDSTATE_PH_FSIM_PUK                 = $00000006;  // @constdefine ME awaiting phone-to-first-sim PUK
       RIL_LOCKEDSTATE_SIM_PIN2                    = $00000007;  // @constdefine ME awaiting PIN2/CHV2
       RIL_LOCKEDSTATE_SIM_PUK2                    = $00000008;  // @constdefine ME awaiting PUK2
-      RIL_LOCKEDSTATE_PH_NET_PIN                  = $00000009;  // @constdefine ME awaiting network personilzation PIN
-      RIL_LOCKEDSTATE_PH_NET_PUK                  = $0000000a;  // @constdefine ME awaiting network personilzation PUK
-      RIL_LOCKEDSTATE_PH_NETSUB_PIN               = $0000000b;  // @constdefine ME awaiting network subset personilzation PIN
-      RIL_LOCKEDSTATE_PH_NETSUB_PUK               = $0000000c;  // @constdefine ME awaiting network subset personilzation PUK
+      RIL_LOCKEDSTATE_PH_NET_PIN                  = $00000009;  // @constdefine ME awaiting network personalization PIN
+      RIL_LOCKEDSTATE_PH_NET_PUK                  = $0000000a;  // @constdefine ME awaiting network personalization PUK
+      RIL_LOCKEDSTATE_PH_NETSUB_PIN               = $0000000b;  // @constdefine ME awaiting network subset personalization PIN
+      RIL_LOCKEDSTATE_PH_NETSUB_PUK               = $0000000c;  // @constdefine ME awaiting network subset personalization PUK
       RIL_LOCKEDSTATE_PH_SP_PIN                   = $0000000d;  // @constdefine ME awaiting service provider PIN
       RIL_LOCKEDSTATE_PH_SP_PUK                   = $0000000e;  // @constdefine ME awaiting service provider PUK
-      RIL_LOCKEDSTATE_PH_CORP_PIN                 = $0000000f;  // @constdefine ME awaiting corporate personilzation PIN
-      RIL_LOCKEDSTATE_PH_CORP_PUK                 = $00000010;  // @constdefine ME awaiting corporate personilzation PUK
+      RIL_LOCKEDSTATE_PH_CORP_PIN                 = $0000000f;  // @constdefine ME awaiting corporate personalization PIN
+      RIL_LOCKEDSTATE_PH_CORP_PUK                 = $00000010;  // @constdefine ME awaiting corporate personalization PUK
 
 // -----------------------------------------------------------------------------
 //
@@ -3113,12 +3113,12 @@ const
 //
 // @constants Driver defined Radio ON vs OFF State | Radio ON/OFF states
 //
-// @comm These values normally depend on the Equiptment state
+// @comm These values normally depend on the Equipment state
 //
 // -----------------------------------------------------------------------------
 const
       RIL_RADIOSUPPORT_UNKNOWN                    = $00000000;  // @constdefine The Radio Functionality is in an intermediate state
-      RIL_RADIOSUPPORT_OFF                        = $00000001;  // @constdefine The Radio Functionality is OFF (DOES NOT Neccessarily mean safe for flight)
+      RIL_RADIOSUPPORT_OFF                        = $00000001;  // @constdefine The Radio Functionality is OFF (DOES NOT Necessarily mean safe for flight)
       RIL_RADIOSUPPORT_ON                         = $00000002;  // @constdefine The Radio Functionality is ON
 
 // -----------------------------------------------------------------------------
@@ -3211,7 +3211,7 @@ const
 // -----------------------------------------------------------------------------
 const
       RIL_SIMRECORDTYPE_UNKNOWN          = $00000000;  // @constdefine An unknown file type
-      RIL_SIMRECORDTYPE_TRANSPARENT      = $00000001;  // @constdefine A single veriable lengthed record
+      RIL_SIMRECORDTYPE_TRANSPARENT      = $00000001;  // @constdefine A single variable lengthed record
       RIL_SIMRECORDTYPE_CYCLIC           = $00000002;  // @constdefine A cyclic set of records, each of the same length
       RIL_SIMRECORDTYPE_LINEAR           = $00000003;  // @constdefine A linear set of records, each of the same length
       RIL_SIMRECORDTYPE_MASTER           = $00000004;  // @constdefine Every SIM has a single master record, effectively the head node
@@ -3338,7 +3338,7 @@ const
       RIL_GPRSPROTOCOL_IHOSP                      = $00000004;  // @constdefine Internet Hosted Octet Stream Protocol
       RIL_GPRSPROTOCOL_PPP                        = $00000008;  // @constdefine Point to Point Protocol
       RIL_GPRSPROTOCOL_ALL                        = $0000000f;
-      
+
 // -----------------------------------------------------------------------------
 //
 // @doc EXTERNAL
@@ -3543,7 +3543,7 @@ const
 //
 // @constants Password type | PIN or PUK password
 //
-// @comm Used to distiguish between a password that is a PIN vs PUK for RIL_ChangeLockingPassword
+// @comm Used to distinguish between a password that is a PIN vs PUK for RIL_ChangeLockingPassword
 //
 // -----------------------------------------------------------------------------
 const
@@ -3892,7 +3892,7 @@ const
 //
 // @doc EXTERNAL
 //
-// @constants Caps Phone Lock | Locking faciliy capabilities
+// @constants Caps Phone Lock | Locking facility capabilities
 //
 // @comm None
 //
@@ -4016,7 +4016,7 @@ const
 //
 // @doc EXTERNAL
 //
-// @constants Caps Signal Implemetation Quality | Signal Quality Implemetation Capabilities
+// @constants Caps Signal Implementation Quality | Signal Quality Implementation Capabilities
 //
 // @comm None
 //
@@ -4029,7 +4029,7 @@ const
 //
 // @doc EXTERNAL
 //
-// @constants Caps Radio Notificaiton Implemetation | Radio Notificaiton Implemetation Capabilities
+// @constants Caps Radio Notificaiton Implementation | Radio Notificaiton Implementation Capabilities
 //
 // @comm None
 //
@@ -4057,7 +4057,7 @@ const
 //
 // @doc EXTERNAL
 //
-// @constants Caps Radio Notificaiton Implemetation Registry Key | Radio Notificaiton Implemetation Capabilities Registry Key
+// @constants Caps Radio Notificaiton Implementation Registry Key | Radio Notificaiton Implementation Capabilities Registry Key
 //
 // @comm None
 //
@@ -4163,7 +4163,7 @@ const
       MAXLENGTH_MMISTRING                         = 256;     // @constdefine 256
 
 //
-// Registry path and variable defintions
+// Registry path and variable definitions
 //
 const
       RIL_REGISTRY_ROOT = HKEY_LOCAL_MACHINE;
@@ -4284,7 +4284,7 @@ type
        szLongName:array[0..MAXLENGTH_OPERATOR_LONG-1] of AnsiChar;   // @field long representation (max 16 characters)
        szShortName:array[0..MAXLENGTH_OPERATOR_SHORT-1] of AnsiChar; // @field short representation (max 8 characters)
        szNumName:array[0..MAXLENGTH_OPERATOR_NUMERIC-1] of AnsiChar; // @field numeric representation (3 digit country code & 2 digit network code)
-       szCountryCode:array[0..MAXLENGTH_OPERATOR_COUNTRY_CODE-1] of AnsiChar; // @field 2 character ISO 3166 country repesentation of the MCC
+       szCountryCode:array[0..MAXLENGTH_OPERATOR_COUNTRY_CODE-1] of AnsiChar; // @field 2 character ISO 3166 country representation of the MCC
      end;
      RILOPERATORNAMES = riloperatornames_tag;
      LPRILOPERATORNAMES = ^riloperatornames_tag;
@@ -4556,7 +4556,7 @@ type
      rildatacompinfo_tag = record
        cbSize:DWORD;                       // @field structure size in bytes
        dwParams:DWORD;                     // @field indicates valid parameters
-       dwDirection:DWORD;                  // @field compression in transmit and/or receive direcitons
+       dwDirection:DWORD;                  // @field compression in transmit and/or receive directions
        dwNegotiation:DWORD;                // @field compression is required or optional
        dwMaxDictEntries:DWORD;             // @field maximum number of dictionary entries
        dwMaxStringLength:DWORD;            // @field maximum string length
@@ -4646,13 +4646,13 @@ type
        dwParams:DWORD;                     // @field indicates valid parameters
        dwService:DWORD;                    // @field supported service types
        dwMsgClasses:DWORD;                 // @field supported message classes
-       dwReadLocation:DWORD;               // @field currect read location
+       dwReadLocation:DWORD;               // @field correct read location
        dwReadUsed:DWORD;                   // @field number of fields used
        dwReadTotal:DWORD;                  // @field total number of fields
-       dwWriteLocation:DWORD;              // @field currect read location
+       dwWriteLocation:DWORD;              // @field correct write location
        dwWriteUsed:DWORD;                  // @field number of fields used
        dwWriteTotal:DWORD;                 // @field total number of fields
-       dwStoreLocation:DWORD;              // @field currect read location
+       dwStoreLocation:DWORD;              // @field correct store location
        dwStoreUsed:DWORD;                  // @field number of fields used
        dwStoreTotal:DWORD;                 // @field total number of fields
      end;
@@ -4764,9 +4764,9 @@ type
 // @field RIL_MSGTYPE_IN_STATUS
      TmsgInStatus = record
        dwTgtMsgReference:DWORD;    // @field target message reference
-       raTgtRecipAddress:RILADDRESS; // @field receipient address
-       stTgtSCReceiveTime:SYSTEMTIME; // @field receipient receive time (UTC)
-       stTgtDischargeTime:SYSTEMTIME; // @field receipient dischage time (UTC)
+       raTgtRecipAddress:RILADDRESS; // @field recipient address
+       stTgtSCReceiveTime:SYSTEMTIME; // @field recipient receive time (UTC)
+       stTgtDischargeTime:SYSTEMTIME; // @field recipient discharge time (UTC)
        dwTgtDlvStatus:DWORD;       // @field delivery status
        dwProtocolID:DWORD;         // @field message protocol
        rmdDataCoding:RILMSGDCS;    // @field data coding scheme
@@ -4862,7 +4862,7 @@ type
        bDeliveryAckRequest:BOOL;        // @field 0 = Not Requested; 1 = Requested ; This is an delivery ack (no user confirmation)
        bUserAckRequest:BOOL;            // @field 0 = Not Requested; 1 = Requested ; This is an ack from the end user
        bBearerReplyRequest:BOOL;        // @field specifies the bearer reply field is set (technically this can be set, but it should not be) ; Boolean (0=not set, 1=set)
-       dwReplySeqNumber:DWORD;           // @field the Seuqence number of the message bing replied to; (typically the MSGID)
+       dwReplySeqNumber:DWORD;           // @field the Sequence number of the message bing replied to; (typically the MSGID)
        dwMsgDisplayMode:DWORD;           // @field RIL_MSGDISPLAYMODE_* constant
 
        raCallBackNumber:RILADDRESS;       // @field (Only paging and Text -s) user can give a callback number in certain messages
@@ -4985,7 +4985,7 @@ type
 // @comm None
 //
 // -----------------------------------------------------------------------------
-type                               
+type
      rilequipmentinfo_tag = record
        cbSize:DWORD;                       // @field structure size in bytes
        dwParams:DWORD;                     // @field indicates valid parameters
@@ -5052,7 +5052,7 @@ type
        dwParams:DWORD;                     // @field indicates valid parameters
        dwIndex:DWORD;                      // @field index of the entry
        raAddress:RILADDRESS;               // @field the stored address
-       wszText:array[0..MAXLENGTH_PHONEBOOKTEXT-1] of WCHAR; // @field assciated text
+       wszText:array[0..MAXLENGTH_PHONEBOOKTEXT-1] of WCHAR; // @field associated text
      end;
      RILPHONEBOOKENTRY = rilphonebookentry_tag;
      LPRILPHONEBOOKENTRY = ^rilphonebookentry_tag;
@@ -5223,7 +5223,7 @@ type
 //
 // @doc EXTERNAL
 //
-// @struct RILSIMRESPONSE | Response to a restrcited SIM command
+// @struct RILSIMRESPONSE | Response to a restricted SIM command
 //
 // @comm None
 //
@@ -5245,7 +5245,7 @@ type
 //
 // @doc EXTERNAL
 //
-// @struct RILSIMRECORDSTATUS | Response to a restrcited SIM command
+// @struct RILSIMRECORDSTATUS | Response to a restricted SIM command
 //
 // @comm None
 //
@@ -5387,7 +5387,7 @@ type
 //
 // @doc EXTERNAL
 //
-// @struct RILINTERMEDIATESSINFO | Intermediate Supplemenary Service Info
+// @struct RILINTERMEDIATESSINFO | Intermediate Supplementary Service Info
 //
 // @comm None
 //
@@ -5406,7 +5406,7 @@ type
 //
 // @doc EXTERNAL
 //
-// @struct RILUNSOLICITEDSSINFO | Unsolicited Supplemenary Service Info
+// @struct RILUNSOLICITEDSSINFO | Unsolicited Supplementary Service Info
 //
 // @comm None
 //
@@ -5765,7 +5765,7 @@ type
        dwDataCompression:DWORD;            // @field valid data compression values
        dwHeaderCompression:DWORD;          // @field valid header compression values
        dwParameterLength:DWORD;           // @field length of parameters list in bytes
-       szParameters:array[0..0] of AnsiChar;               // @field valid string parameters of this prococol type, delimited by \0, with final param terminated by \0\0
+       szParameters:array[0..0] of AnsiChar;               // @field valid string parameters of this protocol type, delimited by \0, with final param terminated by \0\0
      end;
      RILGPRSCONTEXTCAPS = rilgprscontextcaps_tag;
      LPRILGPRSCONTEXTCAPS = ^rilgprscontextcaps_tag;
@@ -5794,7 +5794,7 @@ type
        dwDataCompression:DWORD;             // @field a RIL_GPRSDATACOMP_*
        dwHeaderCompression:DWORD;           // @field a RIL_GPRSHEADERCOMP_*
        dwParameterLength:DWORD;            // @field length of parameters list
-       szParameters:array[0..0] of AnsiChar;              // @field parameters specific to the prococol type
+       szParameters:array[0..0] of AnsiChar;              // @field parameters specific to the protocol type
      end;
      RILGPRSCONTEXT = rilgprscontext_tag;
      LPRILGPRSCONTEXT = ^rilgprscontext_tag;
@@ -6015,7 +6015,7 @@ type
 //
 // @doc EXTERNAL
 //
-// @struct RILNDISBUFFER | Buffer defintion for use in rildndispacket_tag below.
+// @struct RILNDISBUFFER | Buffer definition for use in rildndispacket_tag below.
 //
 // @comm None
 //
@@ -6141,7 +6141,7 @@ const
       NDIS_GPRS_PASSWORD_MAX_LENGTH = 64;
       NDIS_GPRS_USERNAME_MAX_LENGTH = 64;
       NDIS_GRPS_DNS_MAX_LENGTH      = 64;
-      
+
 // -----------------------------------------------------------------------------
 //
 // @doc EXTERNAL
@@ -6236,7 +6236,7 @@ type
      RILSIMSECURITYSTATUS = rilsimsecuritystatus_tag;
      LPRILSIMSECURITYSTATUS = ^rilsimsecuritystatus_tag;
 
-     
+
 //
 // RIL handle type
 //
@@ -6261,7 +6261,7 @@ type
      RILRESULTCALLBACK = procedure(dwCode:DWORD;           // @parm result code
                                    hrCmdID:HRESULT;        // @parm ID returned by the command that originated this response
                                    lpData:pointer;         // @parm data associated with the notification
-                                   cbData:DWORD;           // @parm size of the strcuture pointed to lpData
+                                   cbData:DWORD;           // @parm size of the structure pointed to lpData
                                    dwParam:DWORD           // @parm parameter passed to <f RIL_Initialize>
                                   ); cdecl;
 
@@ -6277,7 +6277,7 @@ type
 type
      RILNOTIFYCALLBACK = procedure(dwCode:DWORD;           // @parm notification code
                                    lpData:pointer;         // @parm data associated with the notification
-                                   cbData:DWORD;           // @parm size of the strcuture pointed to lpData
+                                   cbData:DWORD;           // @parm size of the structure pointed to lpData
                                    dwParam:DWORD           // @parm parameter passed to <f RIL_Initialize>
                                   ); cdecl;
 
@@ -6289,7 +6289,7 @@ type
 //
 // @comm This function is called to determine the call type when the
 //       following is present in the registry:
-//       
+//
 //       [HKEY_LOCAL_MACHINE\Comm\Cellular\RIL\RemoteCalltype]
 //           "CalltypeDLL"="<libraryName>.dll"
 //           "CalltypeFunction"="<functionName>"
@@ -6474,7 +6474,7 @@ function RIL_GetSerialPortStatistics(
 //
 // @doc EXTERNAL
 //
-// @func Restrieves the driver version
+// @func Restrictive the driver version
 //
 // @comm Synchronous
 //
@@ -6488,7 +6488,7 @@ function RIL_GetDriverVersion(
 //
 // @doc EXTERNAL
 //
-// @func Restrieves information about subscriber numbers
+// @func Restrictive information about subscriber numbers
 //
 // @comm Asynchronous.  <p lpData> points to an array of <t RILSUBSCRIBERINFO> structures.
 //
@@ -7023,7 +7023,7 @@ function RIL_StopDTMF(
                       _hRil:HRIL;       // @parm handle to RIL instance returned by <f RIL_Initialize>
                       ch:AnsiChar       // @parm alphanumeric AnsiChar representing DTMF tones to be stopped (0-9, A-D, *, #)
                      ):HRESULT; external RILDLL name 'RIL_StopDTMF';
-                     
+
 // -----------------------------------------------------------------------------
 //
 // @doc EXTERNAL
@@ -7072,7 +7072,7 @@ function RIL_ManageCalls(
 //
 // @doc EXTERNAL
 //
-// @func Transfers incoming allerting call to the specified number
+// @func Transfers incoming alerting call to the specified number
 //
 // @comm Asynchronous.  <p lpData> is <def NULL>.
 //
@@ -7183,7 +7183,7 @@ function RIL_SetAudioMuting(
 //
 // @doc EXTERNAL
 //
-// @func Retrieves High Speeed Circuit Switched Data options
+// @func Retrieves High Speed Circuit Switched Data options
 //
 // @comm Asynchronous.  <p lpData> points to an <t RILHSCSDINFO> structure.
 //
@@ -7196,21 +7196,21 @@ function RIL_GetHSCSDOptions(
 //
 // @doc EXTERNAL
 //
-// @func Sets High Speeed Circuit Switched Data options
+// @func Sets High Speed Circuit Switched Data options
 //
 // @comm Asynchronous.  <p lpData> is <def NULL>.
 //
 // -----------------------------------------------------------------------------
 function RIL_SetHSCSDOptions(
                              _hRil:HRIL;                         // @parm handle to RIL instance returned by <f RIL_Initialize>
-                             lpHscsdInfo:LPRILHSCSDINFO     // @parm High Speeed Circuit Switched Data options to set
+                             lpHscsdInfo:LPRILHSCSDINFO     // @parm High Speed Circuit Switched Data options to set
                             ):HRESULT; external RILDLL name 'RIL_SetHSCSDOptions';
 
 // -----------------------------------------------------------------------------
 //
 // @doc EXTERNAL
 //
-// @func Retrieves High Speeed Circuit Switched Data options
+// @func Retrieves High Speed Circuit Switched Data options
 //
 // @comm Asynchronous.  <p lpData> points to an <t RILCALLHSCSDINFO> structure.
 //
@@ -7446,7 +7446,7 @@ function RIL_DeleteMsg(
 //
 // @func Writes a message to the current storage location
 //
-// @comm Asynchronous.  <p lpData> points to a <t DWORD> conaining the index used.
+// @comm Asynchronous.  <p lpData> points to a <t DWORD> containing the index used.
 //
 // -----------------------------------------------------------------------------
 function RIL_WriteMsg(
@@ -7461,7 +7461,7 @@ function RIL_WriteMsg(
 //
 // @func Sends a message
 //
-// @comm Asynchronous.  <p lpData> points to a <t DWORD> conaining the reference
+// @comm Asynchronous.  <p lpData> points to a <t DWORD> containing the reference
 //       number of the sent message.
 //
 // -----------------------------------------------------------------------------
@@ -7477,7 +7477,7 @@ function RIL_SendMsg(
 //
 // @func Sends a message from the current storage location
 //
-// @comm Asynchronous.  <p lpData> points to a <t DWORD> conaining the reference
+// @comm Asynchronous.  <p lpData> points to a <t DWORD> containing the reference
 //       number of the sent message.  This feature is not used and is untested.
 //
 // -----------------------------------------------------------------------------
@@ -7491,11 +7491,11 @@ function RIL_SendStoredMsg(
 //
 // @doc EXTERNAL
 //
-// @func Sends an message ackknowledgement
+// @func Sends an message acknowledgment
 //
 // @comm Asynchronous.  <p lpData> is <def NULL>.  On Phase 2 mobiles, the radio
 //       automatically sends SMS message ACKs.  But in Phase 2+, the MMI is
-//       responsible for these ACKs, hense this function.
+//       responsible for these ACKs, hence this function.
 //
 // -----------------------------------------------------------------------------
 function RIL_SendMsgAcknowledgement(
@@ -7978,7 +7978,7 @@ function RIL_GetCostInfo(
 function RIL_SetCostInfo(
                          _hRil:HRIL;                         // @parm handle to RIL instance returned by <f RIL_Initialize>
                          lpCostInfo:LPRILCOSTINFO;      // @parm advice-of-charge settings to set
-                         lpszPassword:LPCSTR                 // @parm password requred to set advice-of-charge settings
+                         lpszPassword:LPCSTR                 // @parm password required to set advice-of-charge settings
                         ):HRESULT; external RILDLL name 'RIL_SetCostInfo';
 
 // -----------------------------------------------------------------------------
@@ -8047,7 +8047,7 @@ function RIL_DevSpecific(_hRil:HRIL;                         // @parm handle to 
 //                     <def *_EQUIPMENTSTATES>        points to <t DWORD> containing a combination of <def RIL_CAPS_EQSTATE_> constants<nl>
 //                     <def *_PBSTORELOCATIONS>       points to <t DWORD> containing a combination of <def RIL_CAPS_PBLOC_> constants<nl>
 //                     <def *_PBINDEXRANGE>           points to an <t RILRANGE> structure<nl>
-//                     <def *_PBENTRYLENGTH>          points to an <t RILCAPSPBENTRYLENGTH> strcuture<nl>
+//                     <def *_PBENTRYLENGTH>          points to an <t RILCAPSPBENTRYLENGTH> structure<nl>
 //                     <def *_MSGSERVICETYPES>        points to <t DWORD> containing a combination of <def RIL_CAPS_MSGSVCTYPE_> constants<nl>
 //                     <def *_MSGMEMORYLOCATIONS>     points to an <t RILCAPSMSGMEMORYLOCATIONS> structure<nl>
 //                     <def *_BROADCASTMSGLANGS>      points to <t DWORD> containing a combination of <def RIL_CAPS_DCSLANG_> constants<nl>
@@ -8594,7 +8594,7 @@ function RIL_GetCurrentPrivacyStatus(
 //
 // @doc EXTERNAL
 //
-// @func Sends the User string to the device for Akey verificaiton
+// @func Sends the User string to the device for Akey verification
 //
 // @comm Asynchronous. <p lpData> is <def NULL>. (Either it fails or succeeds)
 // According to TSB-50 (up to 26 digits)
@@ -8610,7 +8610,7 @@ function RIL_SendAKey(
 //
 // @doc EXTERNAL
 //
-// @constants CDMA Location Serivces Status | Location Services
+// @constants CDMA Location Services Status | Location Services
 //
 // @comm None
 //

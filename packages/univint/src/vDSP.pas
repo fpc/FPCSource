@@ -5339,7 +5339,7 @@ procedure vDSP_FFT32_copv( __vDSP_Output: Float32Ptr; {const} __vDSP_Input: Floa
 
 		1**x is e**(2*pi*i*x).
 
-	Or may equal Ir or Ii, and Oi may equal Ii or Ir, but the ararys may not
+	Or may equal Ir or Ii, and Oi may equal Ii or Ir, but the arrays may not
 	otherwise overlap.
 }
 procedure vDSP_FFT16_zopv( __vDSP_Or: Float32Ptr; __vDSP_Oi: Float32Ptr; {const} __vDSP_Ir: Float32Ptr; {const} __vDSP_Ii: Float32Ptr; __vDSP_Direction: FFTDirection ); external name '_vDSP_FFT16_zopv';

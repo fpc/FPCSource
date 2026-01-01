@@ -891,7 +891,7 @@ const
 	kAtomNoFlags = $00000000;
 	kAtomNotInterpolated = $00000001; { atom can never be interpolated}
 	kAtomInterpolateIsOptional = $00000002; { atom can be interpolated, but it is an advanced user operation}
-	kAtomMayBeIndexed = $00000004; { more than one value of atom can exist with accending IDs (ie, lists of colors)}
+	kAtomMayBeIndexed = $00000004; { more than one value of atom can exist with ascending IDs (ie, lists of colors)}
 
 type
 	ParameterAtomTypeAndIDPtr = ^ParameterAtomTypeAndID;
@@ -957,7 +957,7 @@ const
 	kParameterDataRange = FourCharCode('rang');
 
 const
-	kNoMinimumLongFixed = $7FFFFFFF; { ignore minimum/maxiumum values}
+	kNoMinimumLongFixed = $7FFFFFFF; { ignore minimum/maximum values}
 	kNoMaximumLongFixed = $80000000;
 	kNoScaleLongFixed = 0;    { don't perform any scaling of value}
 	kNoPrecision = -1;  { allow as many digits as format}
@@ -975,7 +975,7 @@ type
 	LongRangeRecord = record
 		minValue: SIGNEDLONG;               { no less than this}
 		maxValue: SIGNEDLONG;               { no more than this}
-		scaleValue: SIGNEDLONG;             { muliply content by this going in, divide going out}
+		scaleValue: SIGNEDLONG;             { multiply content by this going in, divide going out}
 		precisionDigits: SIGNEDLONG;        { # digits of precision when editing via typing}
 	end;
 { 'enum'}
@@ -990,7 +990,7 @@ type
 	FixedRangeRecord = record
 		minValue: Fixed;               { no less than this}
 		maxValue: Fixed;               { no more than this}
-		scaleValue: Fixed;             { muliply content by this going in, divide going out}
+		scaleValue: Fixed;             { multiply content by this going in, divide going out}
 		precisionDigits: SIGNEDLONG;        { # digits of precision when editing via typing}
 	end;
 { 'doub'}
@@ -1000,7 +1000,7 @@ type
 {$r-}
 {$q-}
 const
-  kNoMinimumDouble=0.0/0.0;                   { ignore minimum/maxiumum values }
+  kNoMinimumDouble=0.0/0.0;                   { ignore minimum/maximum values }
   kNoMaximumDouble=0.0/0.0;
 {$pop}
 const

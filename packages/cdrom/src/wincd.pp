@@ -145,8 +145,8 @@ begin
     else
       {
         It is better to use SPTI on windows, but the problem with that
-        is that administrative priviledges are needed. A detection
-        algorithm for these priviledges here would be nice.
+        is that administrative privileges are needed. A detection
+        algorithm for these privileges here would be nice.
       }
       CurrentAccessMethod := camSPTI;
     end;

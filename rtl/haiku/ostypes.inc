@@ -300,7 +300,7 @@ const B_SYMBOL_TYPE_DATA = $1;
 const B_SYMBOL_TYPE_TEXT = $2;
 const B_SYMBOL_TYPE_ANY  = $5;
 
-{ Constansts for MMAP }
+{ Constants for MMAP }
 const
 {$ifdef FPC_IS_SYSTEM}
   MAP_PRIVATE   =2;

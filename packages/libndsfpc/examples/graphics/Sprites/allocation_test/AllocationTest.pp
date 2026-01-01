@@ -230,7 +230,7 @@ begin
     scanKeys();
 		keys := keysDown();
 		if (keys and KEY_START) <> 0 then break;
-		//api: updates real oam memory 
+		//api: updates real oam memory
 		oamUpdate(oam^);
 
 		if oom then
@@ -244,4 +244,4 @@ begin
     printf('Lowest Usage at fail %li %li%% '#10, memUsageTemp, 100 * memUsageTemp div (spriteMemSize));
   end;
 end.
-		
+

@@ -109,7 +109,7 @@ function NetServerTransportAdd(servername: LMSTR; level: DWORD; bufptr: LPBYTE):
 
 function NetServerTransportAddEx(servername: LMSTR; level: DWORD; bufptr: LPBYTE): NET_API_STATUS; stdcall;
 {$EXTERNALSYM NetServerTransportAddEx}
-     
+
 function NetServerTransportDel(servername: LMSTR; level: DWORD; bufptr: LPBYTE): NET_API_STATUS; stdcall;
 {$EXTERNALSYM NetServerTransportDel}
 
@@ -2387,7 +2387,7 @@ const
   {$EXTERNALSYM SVI3_NUM_ELEMENTS}
 
 //
-//      Maxmimum length for command string to NetServerAdminCommand.
+//      Maximum length for command string to NetServerAdminCommand.
 //
 
   SV_MAX_CMD_LEN = PATHLEN;

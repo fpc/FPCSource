@@ -310,7 +310,7 @@ var
     {$IFDEF ATT_PROC_ADDRESS}@{$ENDIF}list_extractor_integer , //IntegerType,
 {$IFDEF HAS_SDO_LONG}
     {$IFDEF ATT_PROC_ADDRESS}@{$ENDIF}list_extractor_long, // LongType,
-{$ENDIF HAS_SDO_LONG}    
+{$ENDIF HAS_SDO_LONG}
     {$IFDEF ATT_PROC_ADDRESS}@{$ENDIF}list_extractor_object, // ObjectType,
 {$IFDEF HAS_SDO_SHORT}
     {$IFDEF ATT_PROC_ADDRESS}@{$ENDIF}list_extractor_short, // ShortType,

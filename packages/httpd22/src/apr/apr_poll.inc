@@ -21,9 +21,9 @@
 {#include "apr.h"
 #include "apr_pools.h"
 #include "apr_errno.h"
-#include "apr_inherit.h" 
-#include "apr_file_io.h" 
-#include "apr_network_io.h" 
+#include "apr_inherit.h"
+#include "apr_file_io.h"
+#include "apr_network_io.h"
 
 #if APR_HAVE_NETINET_IN_H
 #include <netinet/in.h>
@@ -31,7 +31,7 @@
 
 {
  * @defgroup apr_poll Poll Routines
- * @ingroup APR 
+ * @ingroup APR
  }
 
 {
@@ -43,7 +43,7 @@ const
   APR_POLLOUT  = $004;     {< Can write without blocking }
   APR_POLLERR  = $010;     {< Pending error }
   APR_POLLHUP  = $020;     {< Hangup occurred }
-  APR_POLLNVAL = $040;     {< Descriptior invalid }
+  APR_POLLNVAL = $040;     {< Descriptor invalid }
 
 {
  * Pollset Flags
@@ -93,7 +93,7 @@ type
 
 {
  * Setup a pollset object
- * @param pollset  The pointer in which to return the newly created object 
+ * @param pollset  The pointer in which to return the newly created object
  * @param size The maximum number of descriptors that this pollset can hold
  * @param p The pool from which to allocate the pollset
  * @param flags Optional flags to modify the operation of the pollset.

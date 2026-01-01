@@ -38,7 +38,7 @@ uses
 type
   EPagedFile = Exception;
 
-  TPagedFileMode = (pfNone, pfMemoryCreate, pfMemoryOpen, pfExclusiveCreate, 
+  TPagedFileMode = (pfNone, pfMemoryCreate, pfMemoryOpen, pfExclusiveCreate,
     pfExclusiveOpen, pfReadWriteCreate, pfReadWriteOpen, pfReadOnly);
 
   // access levels:
@@ -181,8 +181,8 @@ uses
   WinApi.Windows,
 {$else}
 {$ifdef KYLIX}
-  Libc, 
-{$endif}  
+  Libc,
+{$endif}
   System.Types, Data.Dbf.Wtil,
 {$endif}
   Data.Dbf.Str;
@@ -192,8 +192,8 @@ uses
   Windows,
 {$else}
 {$ifdef KYLIX}
-  Libc, 
-{$endif}  
+  Libc,
+{$endif}
   Types, dbf_wtil,
 {$endif}
   dbf_str;
@@ -250,7 +250,7 @@ procedure TPagedFile.OpenFile;
 var
   fileOpenMode: Word;
 begin
-  if FActive then exit;  
+  if FActive then exit;
 
   // store user specified mode
   FUserMode := FMode;

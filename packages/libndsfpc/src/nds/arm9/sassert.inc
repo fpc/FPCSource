@@ -20,8 +20,8 @@ end;
 
 procedure sassert1(e: boolean; msg: PAnsiChar); inline;
 begin
-  if e then 
-    exit 
+  if e then
+    exit
   else
     //__sassert(__FILE__, __LINE__, nil, msg));
     __sassert('file', 0, nil, msg);
@@ -32,8 +32,8 @@ var
   i: integer = 0;
   s: ansistring;
 begin
-  if e then 
-    exit 
+  if e then
+    exit
   else
   begin
     s := {$include %LINE%};

@@ -74,7 +74,7 @@ procedure Exec_Tls_callback(Handle : pointer; reason : Dword; Reserved : pointer
          Solving it properly needs to move this routine
          to sysinit unit or something like that.
          Exec_Tls_Callback is now part of sysinit unit for win32
-         and the EntryInformation is a constant which sholud prevent troubles }
+         and the EntryInformation is a constant which should prevent troubles }
        DLL_PROCESS_ATTACH:
          begin
            {$ifdef FPC_HAS_INDIRECT_ENTRY_INFORMATION}

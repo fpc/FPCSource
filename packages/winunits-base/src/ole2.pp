@@ -2,7 +2,7 @@
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by the Free Pascal development team.
 
-    Implemtents some stuff of OLE2, tries to be Delphi compatible
+    Implements some stuff of OLE2, tries to be Delphi compatible
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.

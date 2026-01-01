@@ -551,7 +551,7 @@ begin
   fHeader.filetype:=MH_OBJECT;
   fHeader.ncmds:=3;
   fHeader.flags:=0;
-  
+
   if fOppositeEndianess then
   begin
     fHeader.magic:=SwapEndian(fHeader.magic);

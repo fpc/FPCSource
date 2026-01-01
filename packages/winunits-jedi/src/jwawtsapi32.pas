@@ -548,7 +548,7 @@ const
 //==============================================================================
 
 type
-  _WTS_VIRTUAL_CLASS = (WTSVirtualClientData, WTSVirtualFileHandle);  
+  _WTS_VIRTUAL_CLASS = (WTSVirtualClientData, WTSVirtualFileHandle);
   {$EXTERNALSYM _WTS_VIRTUAL_CLASS}
   WTS_VIRTUAL_CLASS = _WTS_VIRTUAL_CLASS;
   {$EXTERNALSYM WTS_VIRTUAL_CLASS}

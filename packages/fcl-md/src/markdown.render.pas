@@ -22,7 +22,7 @@ interface
 uses
 {$IFDEF FPC_DOTTEDUNITS}
   System.Classes, System.SysUtils, System.Contnrs,
-{$ELSE}  
+{$ELSE}
   Classes, SysUtils, Contnrs,
 {$ENDIF}
   MarkDown.Elements,

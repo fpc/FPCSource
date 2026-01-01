@@ -22,10 +22,10 @@ end;
 var
   keys: integer;
 
-begin	
-	// Setup the Main screen for 3D 
+begin
+	// Setup the Main screen for 3D
 	videoSetMode(MODE_0_3D);
-	
+
 	// initialize the geometry engine
 	glInit();
 
@@ -39,39 +39,39 @@ begin
 
 	// Set our viewport to be the same size as the screen
 	glViewport(0, 0, 255, 191);
-	
+
 	// setup the view
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	gluPerspective(70, 256.0 / 192.0, 0.1, 100);
 
-	//ds specific, several attributes can be set here	
+	//ds specific, several attributes can be set here
 	glPolyFmt(POLY_ALPHA(31) or POLY_CULL_NONE);
-	
-	
+
+
 	while true do
 	begin
 		// Set the current matrix to be the model matrix
 		glMatrixMode(GL_MODELVIEW);
-		
+
 		glColor3f(1, 1, 1);									// Set the color..not in nehe source...ds gl default will be black
-		
+
 		//Push our original Matrix onto the stack (save state)
-		glPushMatrix();	
+		glPushMatrix();
 
 		DrawGLScene();
-		
+
 		// Pop our Matrix from the stack (restore state)
 		glPopMatrix(1);
 
 		//a handy little built in function to wait for a screen refresh
 		swiWaitForVBlank();
 
-		// flush to screen	
+		// flush to screen
 		glFlush(0);
     scanKeys();
 		keys := keysDown();
 		if (keys and KEY_START) <> 0 then break;
 	end;
-	
+
 end.

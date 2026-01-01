@@ -51,7 +51,7 @@ uses
 //==============================================================================
 const
   SERVERNAME_CURRENT = 0;
-  
+
   // constants used for WinStationGetTermSrvCounters
   TOTAL_SESSIONS_CREATED_COUNTER = 1;
   TOTAL_SESSIONS_DISCONNECTED_COUNTER = 2;
@@ -233,7 +233,7 @@ type
     TZDayLightBias: DWORD;
     Reserved8: DWORD; // Daylight offset?
     TSInstanceID: array[0..33] of WCHAR; // sometimes windows license key(s)
-    Reserved9: DWORD;      // related to license key or instanceid?
+    Reserved9: DWORD;      // related to license key or TSinstanceID?
   end;
   PWINSTATION_CONFIGW = ^_WINSTATION_CONFIGW;
   TWinStationConfigW = _WINSTATION_CONFIGW;
@@ -320,7 +320,7 @@ function DateTimeStringSafe(DateTime: PFILETIME; lpBuffer: PWideChar;
   cchDest: SIZE_T): PWideChar; stdcall;
 
 // This is the Vista version which takes an additional parameter with
-// maximum buffer size (you have to set it) 
+// maximum buffer size (you have to set it)
 function DateTimeStringVista(DateTime: PFILETIME; lpBuffer: PWideChar;
   cchDest: SIZE_T): PWideChar; stdcall;
 
@@ -1195,7 +1195,7 @@ begin
     else begin
       Result := 0;
     end;
-   
+
   end
   else begin
     Result := ElapsedTimeString(DiffTime, bShowSeconds, lpElapsedTime);

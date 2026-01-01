@@ -50,7 +50,7 @@
 
     nexte         : xmlEntityPtr;	(* unused *)
     URI           : xmlCharPtr;	(* the full URI as computed *)
-    owner         : cint;	(* does the entity own the childrens *)
+    owner         : cint;	(* does the entity own the children *)
     checked       : cint;	(* was the entity content checked *)
   end;
 

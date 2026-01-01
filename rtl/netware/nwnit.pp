@@ -2032,7 +2032,7 @@ const
 { other clib header files.                                              }
 {                                                                       }
 { Connection service type  }
-{ NOTE: type 1 is reserved by CLIB for backward compatability  }
+{ NOTE: type 1 is reserved by CLIB for backward compatibility  }
 
    NCP_CONNECTION_TYPE = 2;
    NLM_CONNECTION_TYPE = 3;
@@ -2487,7 +2487,7 @@ type
 
 { In GetNLMInfoStructure:                 }
 { At startOFLStrings there will be three  }
-{ length preceeded strings -- they may be }
+{ length preceded strings -- they may be  }
 { zero bytes long!  The strings are:      }
 { the file name, the NLM name, and the    }
 { copyright.                              }
@@ -2498,7 +2498,7 @@ type
 { byte.  When the length byte is zero, no }
 { data is present for that string.        }
 {                                         }
-{ 3 Len preceeded strings: filename, name, copyright  }
+{ 3 Len preceded strings: filename, name, copyright  }
 
    PGetNLMInfoStructure = ^TGetNLMInfoStructure;
    TGetNLMInfoStructure = record

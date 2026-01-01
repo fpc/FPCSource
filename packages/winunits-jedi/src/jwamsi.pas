@@ -597,7 +597,7 @@ function MsiGetProductInfo(szProduct: LPCTSTR; szAttribute: LPCTSTR;
 {$EXTERNALSYM MsiGetProductInfo}
 
 // Install a new product.
-// Either may be NULL, but the DATABASE property must be specfied
+// Either may be NULL, but the DATABASE property must be specified
 
 function MsiInstallProductA(szPackagePath: LPCSTR; szCommandLine: LPCSTR): UINT; stdcall;
 {$EXTERNALSYM MsiInstallProductA}
@@ -1081,7 +1081,7 @@ function MsiGetFeatureInfo(hProduct: MSIHANDLE; szFeature: LPCTSTR; var lpAttrib
 // --------------------------------------------------------------------------
 
 // Install a component unexpectedly missing, provided only for error recovery
-// This would typically occur due to failue to establish feature availability
+// This would typically occur due to failure to establish feature availability
 // The product feature having the smallest incremental cost is installed
 
 function MsiInstallMissingComponentA(szProduct: LPCSTR; szComponent: LPCSTR;
@@ -1095,7 +1095,7 @@ function MsiInstallMissingComponent(szProduct: LPCTSTR; szComponent: LPCTSTR;
 {$EXTERNALSYM MsiInstallMissingComponent}
 
 // Install a file unexpectedly missing, provided only for error recovery
-// This would typically occur due to failue to establish feature availability
+// This would typically occur due to failure to establish feature availability
 // The missing component is determined from the product's File table, then
 // the product feature having the smallest incremental cost is installed
 

@@ -262,7 +262,7 @@ const
   KEY_EVENT                = $0001; // Event contains key event record
   {$EXTERNALSYM KEY_EVENT}
   MOUSE_EVENT_             = $0002; // Event contains mouse event record
-  
+
   WINDOW_BUFFER_SIZE_EVENT = $0004; // Event contains window change event record
   {$EXTERNALSYM WINDOW_BUFFER_SIZE_EVENT}
   MENU_EVENT               = $0008; // Event contains menu event record
@@ -373,7 +373,7 @@ type
   PCONSOLE_SELECTION_INFO = ^CONSOLE_SELECTION_INFO;
   {$EXTERNALSYM PCONSOLE_SELECTION_INFO}
   TConsoleSelectionInfo = CONSOLE_SELECTION_INFO;
-  PConsoleSelectionInfo = PCONSOLE_SELECTION_INFO;  
+  PConsoleSelectionInfo = PCONSOLE_SELECTION_INFO;
 
 //
 // Selection flags

@@ -44,7 +44,7 @@ type
 {
     UInt16 usable       :1; // Set if part of ui
     UInt16 visible      :1; // Set if drawn, used internally
-    UInt16 hilighted    :1; // Set if region is hilighted
+    UInt16 highlighted  :1; // Set if region is highlighted
     UInt16 shown        :1; // Set if drawn and maxValue > minValue
     UInt16 activeRegion :4; // ScrollBarRegionType
     UInt16 reserved     :8; // Reserved for future use

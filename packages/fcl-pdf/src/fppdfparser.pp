@@ -520,7 +520,7 @@ begin
     UnsupportedToken(aContext+SErrExpectedString,Token);
 end;
 
-// Parse inderect object at specified position in stream
+// Parse indirect object at specified position in stream
 
 function TPDFParser.ParseIndirectObject(aAt : Int64): TPDFIndirect;
 

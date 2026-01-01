@@ -61,7 +61,7 @@ Const
   AF_BLUETOOTH     = 36;	{ Bluetooth sockets }
   AF_IEEE80211     = 37;	{ IEEE 802.11 protocol }
   AF_MAX           = 38;
-  
+
   {
    * Protocol families, same as address families for now.
     }
@@ -241,7 +241,7 @@ Const
 	IPPROTO_IGRP		= 88; 		{ Cisco/GXS IGRP }
 	IPPROTO_OSPFIGP		= 89; 		{ OSPFIGP }
 	IPPROTO_SRPC		= 90; 		{ Strite RPC protocol }
-	IPPROTO_LARP		= 91; 		{ Locus Address Resoloution }
+	IPPROTO_LARP		= 91; 		{ Locus Address Resolution }
 	IPPROTO_MTP		= 92; 		{ Multicast Transport }
 	IPPROTO_AX25		= 93; 		{ AX.25 Frames }
 	IPPROTO_IPEIP		= 94; 		{ IP encapsulated in IP }
@@ -269,7 +269,7 @@ Const
  }
 	IP_OPTIONS		= 1 ;   { buf/ip_opts; set/get IP options }
 	IP_HDRINCL		= 2 ;   { int; header is included with data }
-	IP_TOS			= 3 ;   { int; IP type of service and preced. }
+	IP_TOS			= 3 ;   { int; IP type of service and precede. }
 	IP_TTL			= 4 ;   { int; IP time to live }
 	IP_RECVOPTS		= 5 ;   { bool; receive all IP opts w/dgram }
 	IP_RECVRETOPTS		= 6 ;   { bool; receive IP opts for response }
@@ -286,7 +286,7 @@ Const
 	IP_RSVP_OFF		= 16;   { disable RSVP in kernel }
 	IP_RSVP_VIF_ON		= 17;   { set RSVP per-vif socket }
 	IP_RSVP_VIF_OFF		= 18;   { unset RSVP per-vif socket }
-	IP_PORTRANGE		= 19;   { int; range to choose for unspec port }
+	IP_PORTRANGE		= 19;   { int; range to choose for unspecified port }
 	IP_RECVIF		= 20;   { bool; receive reception if w/dgram }
 
 { for IPSEC }
@@ -294,7 +294,7 @@ Const
 	IP_FAITH		= 22;   { bool; accept FAITH'ed connections }
 
 	IP_ONESBCAST		= 23;   { bool: send all-ones broadcast }
-                                
+
 	IP_FW_TABLE_ADD		= 40;   { add entry }
 	IP_FW_TABLE_DEL		= 41;   { delete entry }
 	IP_FW_TABLE_FLUSH	= 42;   { flush table }
@@ -322,16 +322,16 @@ Const
 	IPV6_MULTICAST_LOOP	= 11; { u_int; setget IP6 multicast loopback }
 	IPV6_JOIN_GROUP		= 12; { ip6_mreq; join a group membership }
 	IPV6_LEAVE_GROUP	= 13; { ip6_mreq; leave a group membership }
-	IPV6_PORTRANGE		= 14; { int; range to choose for unspec port }
+	IPV6_PORTRANGE		= 14; { int; range to choose for unspecified port }
 
-	IPV6_PKTINFO            = 46; { in6_pktinfo; send if, src addr }	
+	IPV6_PKTINFO            = 46; { in6_pktinfo; send if, src addr }
  	IPV6_HOPLIMIT           = 47; { int; send hop limit }
  	IPV6_NEXTHOP            = 48; { sockaddr; next hop addr }
  	IPV6_HOPOPTS            = 49; { ip6_hbh; send hop-by-hop option }
  	IPV6_DSTOPTS            = 50; { ip6_dest; send dst option befor rthdr }
  	IPV6_RTHDR              = 51; { ip6_rthdr; send routing header }
  	IPV6_PKTOPTIONS         = 52; { buf/cmsghdr; set/get IPv6 options }
-  
+
   { Flags for send, recv etc. }
   MSG_OOB       = $0001;              { Process out-of-band data}
   MSG_PEEK      = $0002;              { Peek at incoming messages }
@@ -346,6 +346,6 @@ Const
   MSG_COMPAT    = $8000;
   MSG_SOCALLBCK = $10000;
   MSG_NOSIGNAL  = $20000;              { Do not generate SIGPIPE }
-  
+
   INVALID_SOCKET = -1;
   SOCKET_ERROR = -1;

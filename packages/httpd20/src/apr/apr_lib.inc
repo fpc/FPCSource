@@ -34,7 +34,7 @@
 
 {
  * @defgroup apr_lib General Purpose Library Routines
- * @ingroup APR 
+ * @ingroup APR
  * This is collection of oddballs that didn't fit anywhere else,
  * and might move to more appropriate headers with the release
  * of APR 1.0.
@@ -162,7 +162,7 @@ function apr_filename_of_pathname(const pathname: PAnsiChar): PAnsiChar;
  }
 type
   flush_func_t = function (b: Papr_vformatter_buff_t): Integer;
-  
+
 function apr_vformatter(flush_func: flush_func_t;
  c: Papr_vformatter_buff_t; const fmt: PAnsiChar; ap: va_list): Integer;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}

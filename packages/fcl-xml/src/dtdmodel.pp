@@ -426,7 +426,7 @@ function TAttributeDef.AddEnumToken(Buf: PWideChar; Len: Integer): Boolean;
 var
   I, L: Integer;
 begin
-  // TODO: this implementaion is the slowest possible...
+  // TODO: this implementation is the slowest possible...
   Result := False;
   L := Length(FEnumeration);
   for I := 0 to L-1 do

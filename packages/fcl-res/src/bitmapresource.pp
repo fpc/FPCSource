@@ -72,7 +72,7 @@ type
     Reserved : longword;
     DataOffset : longword;
   end;
-  
+
 const
   hdrsize = sizeof(TBitmapFileHeader);
 

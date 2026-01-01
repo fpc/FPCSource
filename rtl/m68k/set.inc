@@ -15,7 +15,7 @@
 {  Converted by Carl Eric Codere                                          }
 {*************************************************************************}
 {  This inc. implements low-level set operations for the motorola         }
-{  68000 familiy of processors.                                           }
+{  68000 family of processors.                                            }
 {  Based on original code bt Florian Kl„mpfl  for the 80x86.              }
 {*************************************************************************}
 

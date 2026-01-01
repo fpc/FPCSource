@@ -8,7 +8,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
                     FastHTMLParser unit to parse HTML
-                  (disect html into its tags and text.)
+                  (dissect html into its tags and text.)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -54,7 +54,7 @@
      dynamically parse info from websites and display data on your site in real
      time.
     -HTML editor.. WYSIWYG or a partial WYSIWYG editor. Ambitious, but possible.
-    -HTML property editor. Not completely wysiwyg but ability to edit proprties
+    -HTML property editor. Not completely wysiwyg but ability to edit properties
      of tags. Work would need to be done to parse each property in a tag.
 
 
@@ -134,7 +134,7 @@ uses
 {$IFDEF DEBUGLN_ON}
   // dummy, default debugging
   procedure debugproc(s: string);
-  // for custom debugging, assign this in your units 
+  // for custom debugging, assign this in your units
   var debugln: procedure(s: string) = debugproc;
 {$ENDIF}
 
@@ -184,7 +184,7 @@ implementation
 
 // default debugging, do nothing, let user do his own by assigning DebugLn var
 procedure debugproc(s: string);
-begin 
+begin
 end;
 
 { THTMLParser }
@@ -331,11 +331,11 @@ end;
 
 { default dummy "do nothing" events if events are unassigned }
 procedure THTMLParser.NilOnFoundTag(NoCaseTag, ActualTag: string);
-begin 
+begin
 end;
 
 procedure THTMLParser.NilOnFoundText(Text: string);
-begin 
+begin
 end;
 
 function THTMLParser.CurrentPos: Integer;

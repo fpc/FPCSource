@@ -19,8 +19,8 @@ Program server;
 }
 
 {$mode objfpc}{$H+}
-uses 
-  {$IFDEF UNIX}cthreads,{$ENDIF} 
+uses
+  {$IFDEF UNIX}cthreads,{$ENDIF}
   classes, sockets, ssockets;
 
 

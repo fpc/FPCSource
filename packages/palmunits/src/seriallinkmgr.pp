@@ -186,7 +186,7 @@ function SlkOpenSocket(portID: UInt16; var socketP: UInt16; staticSocket: Boolea
 
 //-------------------------------------------------------------------
 // Close up a Serial Link socket.
-//  Warning: This routine is assymetrical with SlkOpenSocket because it
+//  Warning: This routine is asymmetrical with SlkOpenSocket because it
 //   WILL CLOSE the library for the caller (unless the refNum is the
 //   refNum of the debugger comm library).
 //-------------------------------------------------------------------

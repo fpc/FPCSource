@@ -889,7 +889,7 @@ procedure TFPReaderPNG.InternalRead (Str:TStream; Img:TFPCustomImage);
 begin
   {$ifdef FPC_Debug_Image}
   if Str<>TheStream then
-    writeln('WARNING: TFPReaderPNG.InternalRead Str<>TheStream');  
+    writeln('WARNING: TFPReaderPNG.InternalRead Str<>TheStream');
   {$endif}
   with Header do
     Img.SetSize (Width, Height);
@@ -961,7 +961,7 @@ var SigCheck : array[0..7] of byte;
     r : integer;
 begin
   Result:=False;
-  if Str=Nil then 
+  if Str=Nil then
     exit;
   // Check Signature
   if Str.Read(SigCheck, SizeOf(SigCheck)) <> SizeOf(SigCheck) then

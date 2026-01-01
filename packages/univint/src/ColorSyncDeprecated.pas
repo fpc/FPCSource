@@ -261,8 +261,8 @@ const
 
 { speed and quality flag options }
 const
-	cmNormalMode = 0;    { it uses the least significent two bits in the high word of flag }
-	cmDraftMode = 1;    { it should be evaulated like this: right shift 16 bits first, mask off the }
+	cmNormalMode = 0;    { it uses the least significant two bits in the high word of flag }
+	cmDraftMode = 1;    { it should be evaluated like this: right shift 16 bits first, mask off the }
 	cmBestMode = 2;     { high 14 bits, and then compare with the enum to determine the option value }
 
 { black point compensation flag option }
@@ -743,7 +743,7 @@ type
 	CMMultiFunctCLUTTypePtr = ^CMMultiFunctCLUTType;
 	CMMultiFunctCLUTType = record
 		gridPoints: packed array[0..15] of UInt8;         { grigpoints for each input channel dimension (remaining are 0) }
-		entrySize: SInt8;              { bytes per lut enrty (1 or 2) }
+		entrySize: SInt8;              { bytes per lut entry (1 or 2) }
 		reserved: array[0..2] of SInt8;            { fill with 0x00 }
 		data: SInt8;                { variable size, determined by above }
 		pad: SInt8;                                  { pad byte needed for correct record size. Critical to accessing CMMultiFunctLutType's variable sized data field contents. }
@@ -2741,7 +2741,7 @@ var kCMIlluminantD65: IlluminantArray; external name '_kCMIlluminantD65'; (* att
 
 {!
     @function   CMFloatBitmapMakeChunky
-    @abstract   A handy funtion to fill in a CMFloatBitmap.
+    @abstract   A handy function to fill in a CMFloatBitmap.
     @discussion Returns a filled in CMFloatBitmap structure given a single buffer of chunky data with no alpha.
     @param      buffer  (in) address of interleaved data
     @param      height  (in) height of bitmap in pixels
@@ -2757,7 +2757,7 @@ function CMFloatBitmapMakeChunky( var buffer: Float32; height: size_t; width: si
     @function   CMConvertXYZFloatBitmap
     @abstract   Used to convert CMFloatBitmaps between the related colorspaces XYZ, Yxy, Lab, and Luv.
     @discussion The buffer data from the source CMFloatBitmap is converted into the buffer data
-                specified the destination CMFloatBitmap.  Converion "in-place" is allowed.
+                specified the destination CMFloatBitmap.  Convertion "in-place" is allowed.
     @param      src     (in) description of source data buffer to convert from
     @param      srcIlluminantXYZ    (in) required if src->space is XYZ or Yxy
     @param      dst     (in,out) description of destination data buffer to convert to
@@ -2772,7 +2772,7 @@ function CMConvertXYZFloatBitmap( const (*var*) src: CMFloatBitmap; const (*var*
     @function   CMConvertRGBFloatBitmap
     @abstract   Used to convert CMFloatBitmaps between the related colorspaces RGB, HSV, and HLS.
     @discussion The buffer data from the source CMFloatBitmap is converted into the buffer data
-                specified the destination CMFloatBitmap.  Converion "in-place" is allowed.
+                specified the destination CMFloatBitmap.  Convertion "in-place" is allowed.
     @param      src     (in) description of source data buffer to convert from
     @param      dst     (in,out) description of destination data buffer to convert to
 }
@@ -2784,7 +2784,7 @@ function CMConvertRGBFloatBitmap( const (*var*) src: CMFloatBitmap; var dst: CMF
     @function   CMMatchFloatBitmap
     @abstract   Used to convert CMFloatBitmaps using a CMWorldRef.
     @discussion The buffer data from the source CMFloatBitmap is converted into the buffer data
-                specified the destination CMFloatBitmap.  Converion "in-place" is allowed.
+                specified the destination CMFloatBitmap.  Convertion "in-place" is allowed.
     @param      cw      (in) the CMWorldRef to convert with
     @param      src     (in) description of source data buffer to convert from
     @param      dst     (in,out) description of destination data buffer to convert to
@@ -3174,7 +3174,7 @@ function CMRegisterColorDevice( deviceClass: CMDeviceClass; deviceID: CMDeviceID
     @abstract    Unregisters a device with ColorSync
     @discussion  When a device is no longer to be used on a system (as opposed to
                     just being offline), it should be unregistered. If a device is
-                    temporariy shut down or disconnected it need not be unregistered
+                    temporary shut down or disconnected it need not be unregistered
                     unless the device driver knows that it will not be used (e.g. being
                     deinstalled) or cannot access the device profiles without the device.
     @param       deviceClass    (in) Device class to remove
@@ -3189,7 +3189,7 @@ function CMUnregisterColorDevice( deviceClass: CMDeviceClass; deviceID: CMDevice
 
 {!
     @function    CMSetDefaultDevice
-    @abstract    Specifeis the default device of a class
+    @abstract    Specifies the default device of a class
     @param       deviceClass    (in) Device class to modify
     @param       deviceID       (in) Device id to make default
 }
@@ -3230,7 +3230,7 @@ function CMSetDeviceFactoryProfiles( deviceClass: CMDeviceClass; deviceID: CMDev
     @abstract    Returns all the device's factory profiles
     @discussion  This API allows the caller to retrieve the original profiles for a device.
                     These may differ from the profiles currently in use for that device in the
-                    case where factory profiles have been overriden with custom profiles.
+                    case where factory profiles have been overridden with custom profiles.
     @param       deviceClass    (in) Device class to query
     @param       deviceID       (in) Device id to query (can be cmDefaultDeviceID)
     @param       defaultProfID  (out) Returns id of default mode (optional)

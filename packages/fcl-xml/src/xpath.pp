@@ -181,7 +181,7 @@ type
   protected
     FOperand1, FOperand2: TXPathExprNode;
   public
-    destructor Destroy; override;   
+    destructor Destroy; override;
   end;
 
   // Node for (binary) mathematical operation
@@ -611,7 +611,7 @@ begin
         P^ := DstPat[J]
       else
         P^ := S[I];
-      Inc(P);  
+      Inc(P);
     end;
 end;
 
@@ -832,7 +832,7 @@ const
     opLessEqual,    //opGreater
     opLess          //opGreaterEqual
   );
-  
+
 function CmpNumbers(const n1, n2: Extended; op: TXPathCompareOp): Boolean;
 begin
   result := (op = opNotEqual);
@@ -1344,7 +1344,7 @@ begin
         LeftResult.Release;
       end;
     end
-    else  
+    else
       EvaluateStep(AContext.ContextNode);
   except
     ResultNodeSet.Free;
@@ -1502,7 +1502,7 @@ begin
       Result := '-Infinity'   // do not localize
     else
       Result := 'Infinity';   // do not localize
-    Exit;  
+    Exit;
   end
   else if frec.Digits[0] = #0 then
   begin
@@ -2705,7 +2705,7 @@ begin
   begin
     if (p^ = #10) or (p^ = #13) or (p^ = #9) then
       p^ := #32;
-    Inc(p);  
+    Inc(p);
   end;
   NormalizeSpaces(s);
   Result := TXPathStringVariable.Create(s);

@@ -50,7 +50,7 @@ Const
   AF_TIPC       = 30;    { TIPC sockets                 }
   AF_BLUETOOTH  = 31;    { Bluetooth sockets            }
   AF_MAX        = 32;    { For now.. }
-  
+
   SOCK_MAXADDRLEN = 255;             { longest possible addresses }
 
 {
@@ -287,7 +287,7 @@ Const
         IPV6_RTHDR_STRICT     = 1;    { Hop must be a neighbour.  }
 
         IPV6_RTHDR_TYPE_0        = 0;    { IPv6 Routing header type 0.  }
-        
+
   { Flags for send, recv etc. }
   MSG_OOB      = $0001;              { Process out-of-band data}
   MSG_PEEK     = $0002;              { Peek at incoming messages }
@@ -307,7 +307,7 @@ Const
   MSG_NOSIGNAL = $4000;              { Do not generate SIGPIPE }
   MSG_MORE     = $8000;              { Sender will send more }
   MSG_EOF      = MSG_FIN;
-  
+
      TCP_NODELAY = 1;
   { Limit MSS  }
      TCP_MAXSEG = 2;
@@ -335,7 +335,7 @@ Const
      TCP_CONGESTION = 13;
   { TCP MD5 Signature (RFC2385)  }
      TCP_MD5SIG = 14;
-  
+
      UDP_CORK = 1;
   { Set the socket to accept encapsulated packets  }
      UDP_ENCAP = 100;

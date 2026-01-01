@@ -74,7 +74,7 @@ const
 type
   {$IFDEF Pas2JS}
   Ansistring = String;
-  
+
   { TPas2jsStream }
 
   TPas2jsStream = class

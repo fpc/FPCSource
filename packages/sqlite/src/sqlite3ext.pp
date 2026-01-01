@@ -99,9 +99,9 @@ type
       complete16 : function (sql:pointer):cint;cdecl;
       create_collation : function (_para1:Psqlite3; _para2:pcchar; _para3:cint; _para4:pointer; _para5:xCompare):cint;cdecl;
       create_collation16 : function (_para1:Psqlite3; _para2:pointer; _para3:cint; _para4:pointer; _para5:xCompare):cint;cdecl;
-      create_function : function (_para1:Psqlite3; _para2:pcchar; _para3:cint; _para4:cint; _para5:pointer; 
+      create_function : function (_para1:Psqlite3; _para2:pcchar; _para3:cint; _para4:cint; _para5:pointer;
                    xFunc:xFunc; xStep:xStep; xFinal:xFinal):cint;cdecl;
-      create_function16 : function (_para1:Psqlite3; _para2:pointer; _para3:cint; _para4:cint; _para5:pointer; 
+      create_function16 : function (_para1:Psqlite3; _para2:pointer; _para3:cint; _para4:cint; _para5:pointer;
                    xFunc:xFunc; xStep:xStep; xFinal:xFinal):cint;cdecl;
       create_module : function (_para1:Psqlite3; _para2:pcchar; _para3:Psqlite3_module; _para4:pointer):cint;cdecl;
       data_count : function (pStmt:Psqlite3_stmt):cint;cdecl;
@@ -118,7 +118,7 @@ type
       free_table : procedure (result:Ppcchar);cdecl;
       get_autocommit : function (_para1:Psqlite3):cint;cdecl;
       get_auxdata : function (_para1:Psqlite3_context; _para2:cint):pointer;cdecl;
-      get_table : function (_para1:Psqlite3; _para2:pcchar; _para3:PPpcchar; _para4:pcint; _para5:pcint; 
+      get_table : function (_para1:Psqlite3; _para2:pcchar; _para3:PPpcchar; _para4:pcint; _para5:pcint;
                    _para6:Ppcchar):cint;cdecl;
       global_recover : function :cint;cdecl;
       interruptx : procedure (_para1:Psqlite3);cdecl;
@@ -152,7 +152,7 @@ type
       set_auxdata : procedure (_para1:Psqlite3_context; _para2:cint; _para3:pointer; _para4:sqlite3_destructor_type);cdecl;
       xsnprintf : function (_para1:cint; _para2:pcchar; _para3:pcchar; args:array of const):pcchar;cdecl;
       step : function (_para1:Psqlite3_stmt):cint;cdecl;
-      table_column_metadata : function (_para1:Psqlite3; _para2:pcchar; _para3:pcchar; _para4:pcchar; _para5:Ppcchar; 
+      table_column_metadata : function (_para1:Psqlite3; _para2:pcchar; _para3:pcchar; _para4:pcchar; _para5:Ppcchar;
                    _para6:Ppcchar; _para7:pcint; _para8:pcint; _para9:pcint):cint;cdecl;
       thread_cleanup : procedure ;cdecl;
       total_changes : function (_para1:Psqlite3):cint;cdecl;
@@ -181,11 +181,11 @@ type
       bind_zeroblob : function (_para1:Psqlite3_stmt; _para2:cint; _para3:cint):cint;cdecl;
       blob_bytes : function (_para1:Psqlite3_blob):cint;cdecl;
       blob_close : function (_para1:Psqlite3_blob):cint;cdecl;
-      blob_open : function (_para1:Psqlite3; _para2:pcchar; _para3:pcchar; _para4:pcchar; _para5:sqlite3_int64; 
+      blob_open : function (_para1:Psqlite3; _para2:pcchar; _para3:pcchar; _para4:pcchar; _para5:sqlite3_int64;
                    _para6:cint; _para7:PPsqlite3_blob):cint;cdecl;
       blob_read : function (_para1:Psqlite3_blob; _para2:pointer; _para3:cint; _para4:cint):cint;cdecl;
       blob_write : function (_para1:Psqlite3_blob; _para2:pointer; _para3:cint; _para4:cint):cint;cdecl;
-      create_collation_v2 : function (_para1:Psqlite3; _para2:pcchar; _para3:cint; _para4:pointer; _para5:xCompare; 
+      create_collation_v2 : function (_para1:Psqlite3; _para2:pcchar; _para3:cint; _para4:pointer; _para5:xCompare;
                    _para6:sqlite3_destructor_type):cint;cdecl;
       file_control : function (_para1:Psqlite3; _para2:pcchar; _para3:cint; _para4:pointer):cint;cdecl;
       memory_highwater : function (_para1:cint):sqlite3_int64;cdecl;
@@ -222,7 +222,7 @@ type
       backup_step : function (_para1:Psqlite3backup; _para2:cint):cint;cdecl;
       compileoption_get : function (_para1:cint):pcchar;cdecl;
       compileoption_used : function (_para1:pcchar):cint;cdecl;
-      create_function_v2 : function (_para1:Psqlite3; _para2:pcchar; _para3:cint; _para4:cint; _para5:pointer; 
+      create_function_v2 : function (_para1:Psqlite3; _para2:pcchar; _para3:cint; _para4:cint; _para5:pointer;
                    xFunc:xFunc; xStep:xStep; xFinal:xFinal; xDestroy:sqlite3_destructor_type):cint;cdecl;
       db_config : function (_para1:Psqlite3; _para2:cint; args:array of const):cint;cdecl;
       db_mutex : function (_para1:Psqlite3):Psqlite3_mutex;cdecl;
@@ -255,7 +255,7 @@ type
       wal_checkpoint_v2 : function (_para1:Psqlite3; _para2:pcchar; _para3:cint; _para4:pcint; _para5:pcint):cint;cdecl;
       auto_extension : function (_para1:pointer ):cint;cdecl;
       bind_blob64 : function (_para1:Psqlite3_stmt; _para2:cint; _para3:pointer; _para4:sqlite3_uint64; _para5:sqlite3_destructor_type):cint;cdecl;
-      bind_text64 : function (_para1:Psqlite3_stmt; _para2:cint; _para3:pcchar; _para4:sqlite3_uint64; _para5:sqlite3_destructor_type; 
+      bind_text64 : function (_para1:Psqlite3_stmt; _para2:cint; _para3:pcchar; _para4:sqlite3_uint64; _para5:sqlite3_destructor_type;
                    _para6:cuchar):cint;cdecl;
       cancel_auto_extension : function (_para1:pointer ):cint;cdecl;
       load_extension : function (_para1:Psqlite3; _para2:pcchar; _para3:pcchar; _para4:Ppcchar):cint;cdecl;
@@ -279,9 +279,9 @@ type
       trace_v2 : function (_para1:Psqlite3; _para2:cunsigned; _para3:xCallback; _para4:pointer):cint;cdecl;
       expanded_sql : function (_para1:Psqlite3_stmt):pcchar;cdecl;
       set_last_insert_rowid : procedure (_para1:Psqlite3; _para2:sqlite3_int64);cdecl;
-      prepare_v3 : function (_para1:Psqlite3; _para2:pcchar; _para3:cint; _para4:cuint; _para5:PPsqlite3_stmt; 
+      prepare_v3 : function (_para1:Psqlite3; _para2:pcchar; _para3:cint; _para4:cuint; _para5:PPsqlite3_stmt;
                    _para6:Ppcchar):cint;cdecl;
-      prepare16_v3 : function (_para1:Psqlite3; _para2:pointer; _para3:cint; _para4:cuint; _para5:PPsqlite3_stmt; 
+      prepare16_v3 : function (_para1:Psqlite3; _para2:pointer; _para3:cint; _para4:cuint; _para5:PPsqlite3_stmt;
                    _para6:Ppointer):cint;cdecl;
       bind_pointer : function (_para1:Psqlite3_stmt; _para2:cint; _para3:pointer; _para4:pcchar; _para5:sqlite3_destructor_type):cint;cdecl;
       result_pointer : procedure (_para1:Psqlite3_context; _para2:pointer; _para3:pcchar; _para4:sqlite3_destructor_type);cdecl;
@@ -299,7 +299,7 @@ procedure SQLITE_EXTENSION_INIT3;
 
 Var
   sqlite3_api : Psqlite3_api_routines;
-  
+
 procedure SQLITE_EXTENSION_INIT2(v: Psqlite3_api_routines);
 
 implementation

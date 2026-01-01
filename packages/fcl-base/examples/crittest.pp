@@ -1,7 +1,7 @@
 program crittest;
 // originally a test to test .tryenter.
 // A thread holds a lock for 5sec, while the main thread tries to lock
-// it.  
+// it.
 
 {$mode Delphi}
 
@@ -22,7 +22,7 @@ begin
 end;
 
 
-var thr : TTestthread;  
+var thr : TTestthread;
     I : integer;
 
 begin
@@ -32,7 +32,7 @@ begin
  sleep(500);  // give thread time to start.
 
  writeln('tryenter');
- 
+
  i:=0;
  while not(crit.tryenter) do
   begin

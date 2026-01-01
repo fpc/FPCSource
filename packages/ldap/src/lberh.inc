@@ -163,7 +163,7 @@ var
 
 function LBER_OPT_ON: Pointer;
 
-(* Structure for LBER IO operarion descriptor *)
+(* Structure for LBER IO operation descriptor *)
 type
   PBerElement                       = Pointer;
 
@@ -209,7 +209,7 @@ type
     bv_len  : ber_len_t;
     bv_val  : pcchar;
   end;
-  
+
   PBerVarray                        = ^BerVarray;
   BerVarray                         = ^PBerval;  (* To distinguish from a single bv *)
 

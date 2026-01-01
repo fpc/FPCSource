@@ -27,7 +27,7 @@ uses
 uses
   Classes, SysUtils, fpJSON, jsonscanner;
 {$ENDIF FPC_DOTTEDUNITS}
-  
+
 Type
 
   { TBaseJSONReader }
@@ -174,7 +174,7 @@ Type
   end;
 
   EJSONParser = Class(EParserError);
-  
+
 implementation
 
 Resourcestring

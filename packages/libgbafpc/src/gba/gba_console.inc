@@ -22,14 +22,14 @@
 	"http://sourceforge.net/tracker/?group_id=114505&atid=668551".
 
   ------------------------------------------------------------------------------
-    
-    
+
+
   Conversion by Legolas (http://itaprogaming.free.fr) for freepascal compiler
   (http://www.freepascal.org)
-   
+
   Copyright (C) 2006  Francesco Lombardi
   Check http://sourceforge.net/projects/libndsfpc for updates
-   
+
   ------------------------------------------------------------------------------
 
   $Log$

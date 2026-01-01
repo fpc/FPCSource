@@ -17,7 +17,7 @@ zipper.pp/TZipper
 
 Introduction
 ============
-Zipper.pp contains TZipper, an object-oriented wrapper for the paszlib units 
+Zipper.pp contains TZipper, an object-oriented wrapper for the paszlib units
 that allows
 - compressing/adding files/streams
 - decompressing files/streams
@@ -26,8 +26,8 @@ contained in a zip file.
 
 Zip standards compliance
 ========================
-TZipper is meant to help implement the most widely used and useful aspects of 
-the zip format, while following the official specifications 
+TZipper is meant to help implement the most widely used and useful aspects of
+the zip format, while following the official specifications
 http://www.pkware.com/documents/casestudies/APPNOTE.TXT
 (latest version reviewed for this readme: 6.3.3, September 1, 2012)
 as much as possible.
@@ -38,27 +38,27 @@ Please see the fpdoc help and the zipper.pp for details on using the class.
 
 Zip file format
 ===============
-The standard mentioned above documents the zip file format authoratively 
+The standard mentioned above documents the zip file format authoratively
 and in detail. However, a brief summary can be useful:
 A zip file consists of
 
 For each file:
-local file header 
+local file header
 (filename, uncompressed,compressed size etc)
-optional extended file header 
+optional extended file header
 (e.g. zip64 extended info which overrides size above)
 compressed file data
 
 Central directory:
 - for each file:
-central directory header 
+central directory header
 (much the same data as local file header+position of local file header)
-optional extended file header (e.g. zip64 extended info which overrides the 
+optional extended file header (e.g. zip64 extended info which overrides the
 above)
 
 if zip64 is used: one
-zip64 end of central directory record 
-(mainly used to point to beginning of central directory)     
+zip64 end of central directory record
+(mainly used to point to beginning of central directory)
 zip64 end of central directory locator
 (mainly used to point to zip64 end of central directory record)
 
@@ -71,22 +71,22 @@ Zip64 support notes
 The zip64 extensions that allow large files are supported:
 - total zip file size and uncompressed sizes of >4Gb (up to FPC's limit of int64
   size for streams)
-- > 65535 files per zip archive (up to FPC's limit of integer due to 
+- > 65535 files per zip archive (up to FPC's limit of integer due to
   collection.count)
 
 Write support:
-zip64 headers are added after local file headers only if the uncompressed or 
+zip64 headers are added after local file headers only if the uncompressed or
 compressed sizes overflow the local file header space. This avoids wasting space.
 
 Each local zip64 file header variable overrides its corresponding variable in
 the local file header only if it is not 0. If it is, the local version is used.
 
-Each central directory zip64 file header variable overrides its corresponding 
+Each central directory zip64 file header variable overrides its corresponding
 variable in the central directory file header only if it is not 0. If it is, the
 central directory file header version is used.
 
 If zip64 support is needed due to zip64 local/central file headers and/or the
-number of files in the zip file, the zip64 alternatives to the end of central 
+number of files in the zip file, the zip64 alternatives to the end of central
 diretory variables are always written. Although the zip standard doesn't seem to
 require this explicitly, it doesn't forbid it either and other utilities such as
 rar and Windows 7 built in zip support seem to require it.
@@ -100,7 +100,7 @@ PASZLIB 1.0                                                   May 11th, 1998
 
 Based on the zlib 1.1.2, a general purpose data compression library.
 
-Copyright (C) 1998,1999,2000 by NOMSSI NZALI Jacques H. C. 
+Copyright (C) 1998,1999,2000 by NOMSSI NZALI Jacques H. C.
 [kn&n DES]         See "Legal issues" for conditions of distribution and use.
 _____________________________________________________________________________
 
@@ -127,16 +127,16 @@ plus a few kilobytes for small objects.
 Change Log
 ==========
 
-March 24th 2000 - minizip code by Gilles Vollant ported to Pascal. 
+March 24th 2000 - minizip code by Gilles Vollant ported to Pascal.
                   z_stream.msg defined as string[255] to avoid problems
                   with Delphi 2+ dynamic string handling.
                   changes to silence Delphi 5 compiler warning. If you
                   have Delphi 5, defines Delphi5 in zconf.inc
-                              
+
 May 7th 1999    - Some changes for FPC
                   deflateCopy() has new parameters
                   trees.pas - record constant definition
-June 17th 1998  - Applied official 1.1.2 patch. 
+June 17th 1998  - Applied official 1.1.2 patch.
 	          Memcheck turned off by default.
                   zutil.pas patch for Delphi 1 memory allocation corrected.
                   dzlib.txt file added.
@@ -151,7 +151,7 @@ File list
 Here is a road map to the files in the Paszlib distribution.
 
 readme.txt      Introduction, Documentation
-dzlib.txt       Changes to Delphi sources for Paszlib stream classes 
+dzlib.txt       Changes to Delphi sources for Paszlib stream classes
 
 include file
 
@@ -176,10 +176,10 @@ zlib.pas       zlib data structures. read the comments there!
 zuncompr.pas   decompress a memory buffer
 zutil.pas
 
-minizip/ziputils.pas data structure and IO on .zip file 
-minizip/unzip.pas  
+minizip/ziputils.pas data structure and IO on .zip file
+minizip/unzip.pas
 minizip/zip.pas
-      
+
 Test applications
 
 example.pas    usage example of the zlib compression library

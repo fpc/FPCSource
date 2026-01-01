@@ -139,7 +139,7 @@ type
   TVBEMode = class
   private
     FVBEModeID: DWord;
-    
+
     FSupported: Boolean;
     FSupportsTTY: Boolean;
     FIsColor: Boolean;
@@ -152,7 +152,7 @@ type
     FSupportsTripleBuffering: Boolean;
     FSupportsStereoscopicDisplay: Boolean;
     FSupportsDualDisplayStartAddresses: Boolean;
-    
+
     FXResolution: Integer;
     FYResolution: Integer;
     FXCharSize: Integer;
@@ -221,9 +221,9 @@ type
     property MemoryModel: TVBEModeMemoryModel read FMemoryModel;
 
     property BitsPerPixel: Integer read FBitsPerPixel;
-    
+
     property NumberOfPlanes: Integer read FNumberOfPlanes;
-    
+
     property NumberOfBanks: Integer read FNumberOfBanks;
     property BankSize: Integer read FBankSize;
 
@@ -282,7 +282,7 @@ var
   TryDPMI508h: Boolean = TryDPMI508hDefault;
   TryNearPtr: Boolean = TryNearPtrDefault;
   ScanModesManually: Boolean = ScanModesManuallyDefault;
-  
+
   EightBitDACEnabled: Boolean = true;
 
 procedure InitVESA;
@@ -932,7 +932,7 @@ begin
     WriteToVideoMemoryLFB(Src, Dest, Size);
     exit;
   end;
-  
+
   WW := Dest div WindowGranularity;
   Dest := Dest mod WindowGranularity;
 {  Writeln(WindowSize);}
@@ -1220,7 +1220,7 @@ begin
     else
     begin
       Debugln('Using the mode list, returned in the VBEInfoBlock');
-      
+
       for I := Low(VideoModeList) to High(VideoModeList) do
       begin
         ModeNumber := VideoModeList[I];
@@ -1284,7 +1284,7 @@ begin
       if not VBEPresent then
         Debugln('VBEInfoBlock returned no ''VESA'' VBESignature. Assuming VBE is not supported.');
     end;
-    
+
     if VBEPresent then
     begin
       VideoMemory := VBEInfoBlock.TotalMemory * 64;
@@ -1382,7 +1382,7 @@ begin
 
   PaddedSize := Size + PhysicalAddressLeftPadding + PhysicalAddressRightPadding;
   Debugln('PaddedSize = ' + IntToStr(PaddedSize));
-  
+
   LFB0508AllocatedMemoryBlock := GetMem(PaddedSize + DPMIPageSize - 1);
   LFB0508MemoryBlockPadding := (PtrUInt(LFB0508AllocatedMemoryBlock) + ___djgpp_base_address) mod DPMIPageSize;
   if LFB0508MemoryBlockPadding <> 0 then
@@ -1400,7 +1400,7 @@ begin
     exit;
   end;
   Debugln('DPMI function 0508h returned success!');
-  
+
   Debugln('Checking page attributes, to see if it really succeeded. (shitty NTVDM reports success, even though it does not support DPMI 0508h, so we need this extra check)');
   MappedPageAttribute := $FFFF;
   MapSuccess := get_page_attributes(___djgpp_memory_handle_list, PtrUInt(LFB0508AllocatedMemoryBlock) + LFB0508MemoryBlockPadding, 1, @MappedPageAttribute);
@@ -1421,7 +1421,7 @@ begin
     LFB0508AllocatedMemoryBlock := nil;
     exit;
   end;
-  
+
   LFB0508MappedVideoBufferStart := LFB0508AllocatedMemoryBlock + LFB0508MemoryBlockPadding + PhysicalAddressLeftPadding;
   LFBPhysicalAddress := PhysicalAddress;
   LFBBufferSize := Size;
@@ -1442,14 +1442,14 @@ begin
   FillWord(SetPageAttributes^, LFB0508NumberOfPagesMapped, %01001);
   UnMapSuccess := set_page_attributes(___djgpp_memory_handle_list, PtrUInt(LFB0508AllocatedMemoryBlock) + LFB0508MemoryBlockPadding, LFB0508NumberOfPagesMapped, SetPageAttributes);
   FreeMem(SetPageAttributes);
-  
+
   if (not UnMapSuccess) or (int31error <> 0) then
   begin
     Debugln('DPMI error $' + HexStr(int31error, 4));
     Result := false;
     exit;
   end;
-  
+
   Debugln('Mapped memory changed back to committed. Now freeing the allocated memory block from the pascal heap.');
   FreeMem(LFB0508AllocatedMemoryBlock);
   LFB0508Mapped := false;
@@ -1542,7 +1542,7 @@ begin
   Debugln('Current CS limit=$' + HexStr(get_segment_limit(get_cs), 8));
   Debugln('Current DS limit=$' + HexStr(CurrentDSLimit, 8));
   Debugln('__crt0_startup_flags=$' + HexStr(__crt0_startup_flags, 2));
-  
+
   if CurrentDSLimit <> $FFFFFFFF then
   begin
     Debugln('Not $FFFFFFFF...');
@@ -1557,7 +1557,7 @@ begin
 
     exit;
   end;
-  
+
   set_segment_limit(___v2prt0_ds_alias, $FFFFFFFF);
 
   __crt0_startup_flags := __crt0_startup_flags or _CRT0_FLAG_NEARPTR;
@@ -1620,7 +1620,7 @@ end;}
 function CreateLFBSegmentSelector: Boolean;
 var
   Selector: Word;
-  
+
   procedure InternalFreeLFBSegmentSelector;
   begin
     if Selector = 0 then
@@ -1643,7 +1643,7 @@ begin
     exit;
   end;
   Debugln('Got selector ' + IntToStr(Selector));
-  
+
   Debugln('Setting selector base address to ' + HexStr(LFB0800LinearAddress, 8));
   set_segment_base_address(Selector, LFB0800LinearAddress);
   if int31error <> 0 then
@@ -1653,7 +1653,7 @@ begin
     InternalFreeLFBSegmentSelector;
     exit;
   end;
-  
+
   Debugln('Setting segment limit to ' + HexStr((LFBBufferSize - 1) or $FFF, 8));
   set_segment_limit(Selector, (LFBBufferSize - 1) or $FFF);
   if int31error <> 0 then
@@ -1717,7 +1717,7 @@ begin
     lReadWindowAddress := VBEModes[M].ReadWindow.Segment shl 4;
     lWriteWindow := VBEModes[M].WriteWindow.WindowID;
     lWriteWindowAddress := VBEModes[M].WriteWindow.Segment shl 4;
-    
+
     lWindowGranularity := VBEModes[M].WriteWindow.Granularity * 1024;
     lWindowSize := VBEModes[M].WriteWindow.Size * 1024;
     lWindowSizeG := lWindowSize div lWindowGranularity;
@@ -1735,7 +1735,7 @@ begin
       if not DPMI508Success then
         Debugln('DPMI 508h mapping failed, will try other methods to map the lfb...');
     end;
-    
+
     if not DPMI508Success then
     begin
       if not MapLFBToLinearSpace0800(VBEModes[M].PhysBasePtr, VideoMemory * 1024) then
@@ -1743,13 +1743,13 @@ begin
         Result := false;
         exit;
       end;
-      
+
       if TryNearPtr then
       begin
         if not EnableNearPtr then
 	  Debugln('Enabling nearptr (aka "Fat DS") mode failed, will try other methods...');
       end;
-      
+
       if not NearPtrEnabled then
       begin
         Debugln('Falling back to far ptr lfb access...');

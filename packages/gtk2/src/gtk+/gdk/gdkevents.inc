@@ -11,7 +11,7 @@
 { Can be cast to window system specific
                              even type, XEvent on X11, MSG on Win32.
                             }
-{ Event not handled, continue processesing  }
+{ Event not handled, continue processing  }
 { Translated event stored  }
 { Terminate processing, removing event  }
 

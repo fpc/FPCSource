@@ -103,7 +103,7 @@ Resourcestring
   STooManyFields           = 'More fields specified than really exist';
   SErrNoInMemoryRefresh    = 'In-memory table cannot be refreshed.';
 
-  // These are added for Delphi-compatilility, but not used by the fcl:
+  // These are added for Delphi-compatibility, but not used by the fcl:
   SFieldIndexError         = 'Field index out of range';
   SIndexFieldMissing       = 'Cannot access index field ''%s''';
   SNoFieldIndexes          = 'No index currently active';

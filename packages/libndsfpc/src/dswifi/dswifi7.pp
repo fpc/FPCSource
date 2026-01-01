@@ -1,7 +1,7 @@
 {$IFNDEF FPC_DOTTEDUNITS}
 unit dswifi7;
 {$ENDIF FPC_DOTTEDUNITS}
-{$mode objfpc} 
+{$mode objfpc}
 {$apptype arm7}
 {$define arm7}
 

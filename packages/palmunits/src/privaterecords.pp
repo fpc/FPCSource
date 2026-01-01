@@ -10,7 +10,7 @@
  * Release: Palm OS SDK 4.0 (63220)
  *
  * Description:
- *   This header file defines a generic private record maintainance dialogs, etc.
+ *   This header file defines a generic private record maintenance dialogs, etc.
  *
  * History:
  *    6/23/99. Created by Craig Skinner

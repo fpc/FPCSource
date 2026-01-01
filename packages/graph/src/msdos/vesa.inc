@@ -308,7 +308,7 @@ end;
       { align target }
         Begin
           If (offs and 3) <> 0 then
-          { this cannot go past a window boundary bacause the }
+          { this cannot go past a window boundary because the }
           { size of a window is always a multiple of 4        }
             Begin
               {$ifdef logging}
@@ -361,7 +361,7 @@ end;
           For l := 0 to amount - 1 do
             begin
               { this may cross a bank at any time, so adjust          }
-              { because this loop alwys runs for very little pixels,  }
+              { because this loop always runs for very little pixels, }
               { there's little gained by splitting it up              }
               setreadbank(offs shr 16);
               WordArray(Data)[index+l] := mem[WinReadSeg:word(offs)];
@@ -426,7 +426,7 @@ end;
                  { align target }
                    Begin
                      If (offs and 3) <> 0 then
-                     { this cannot go past a window boundary bacause the }
+                     { this cannot go past a window boundary because the }
                      { size of a window is always a multiple of 4        }
                        Begin
                          {$ifdef logging2}
@@ -446,7 +446,7 @@ end;
                         bankrest := HLength
                      else {the rest won't fit anymore in the current window }
                        bankrest := $10000 - (Offs and $ffff);
-                     { it is possible that by aligningm we ended up in a new }
+                     { it is possible that by aligning we ended up in a new  }
                      { bank, so set the correct bank again to make sure      }
                      setwritebank(offs shr 16);
                      setreadbank(offs shr 16);
@@ -470,7 +470,7 @@ end;
                      For l := 0 to HLength - 1 do
                        begin
                          { this may cross a bank at any time, so adjust          }
-                         { becauese this loop alwys runs for very little pixels, }
+                         { because this loop always runs for very little pixels, }
                          { there's little gained by splitting it up              }
                          setreadbank(offs shr 16);
                          setwritebank(offs shr 16);
@@ -497,7 +497,7 @@ end;
                  { align target }
                    Begin
                      If (offs and 3) <> 0 then
-                     { this cannot go past a window boundary bacause the }
+                     { this cannot go past a window boundary because the }
                      { size of a window is always a multiple of 4        }
                        Begin
                          {$ifdef logging2}
@@ -517,7 +517,7 @@ end;
                         bankrest := HLength
                      else {the rest won't fit anymore in the current window }
                        bankrest := $10000 - (Offs and $ffff);
-                     { it is possible that by aligningm we ended up in a new }
+                     { it is possible that by aligning we ended up in a new  }
                      { bank, so set the correct bank again to make sure      }
                      setwritebank(offs shr 16);
                      setreadbank(offs shr 16);
@@ -541,7 +541,7 @@ end;
                      For l := 0 to HLength - 1 do
                        begin
                          { this may cross a bank at any time, so adjust          }
-                         { because this loop alwys runs for very little pixels,  }
+                         { because this loop always runs for very little pixels, }
                          { there's little gained by splitting it up              }
                          setreadbank(offs shr 16);
                          setwritebank(offs shr 16);
@@ -568,7 +568,7 @@ end;
                  { align target }
                    Begin
                      If (offs and 3) <> 0 then
-                     { this cannot go past a window boundary bacause the }
+                     { this cannot go past a window boundary because the }
                      { size of a window is always a multiple of 4        }
                        Begin
                          {$ifdef logging2}
@@ -580,7 +580,7 @@ end;
                          Dec(HLength, l);
                          inc(offs, l);
                        End;
-                     { it is possible that by aligningm we ended up in a new }
+                     { it is possible that by aligning we ended up in a new  }
                      { bank, so set the correct bank again to make sure      }
                      setwritebank(offs shr 16);
                      setreadbank(offs shr 16);
@@ -612,7 +612,7 @@ end;
                      For l := 0 to HLength - 1 do
                        begin
                          { this may cross a bank at any time, so adjust          }
-                         { because this loop alwys runs for very little pixels,  }
+                         { because this loop always runs for very little pixels, }
                          { there's little gained by splitting it up              }
                          setreadbank(offs shr 16);
                          setwritebank(offs shr 16);
@@ -640,7 +640,7 @@ end;
                  { align target }
                    Begin
                      If (offs and 3) <> 0 then
-                     { this cannot go past a window boundary bacause the }
+                     { this cannot go past a window boundary because the }
                      { size of a window is always a multiple of 4        }
                        Begin
                          {$ifdef logging2}
@@ -659,7 +659,7 @@ end;
                         bankrest := HLength
                      else {the rest won't fit anymore in the current window }
                        bankrest := $10000 - (Offs and $ffff);
-                     { it is possible that by aligningm we ended up in a new }
+                     { it is possible that by aligning we ended up in a new  }
                      { bank, so set the correct bank again to make sure      }
                      setwritebank(offs shr 16);
                      {$ifdef logging2}
@@ -681,7 +681,7 @@ end;
                      For l := 0 to HLength - 1 do
                        begin
                          { this may cross a bank at any time, so adjust          }
-                         { because this loop alwys runs for very little pixels,  }
+                         { because this loop always runs for very little pixels, }
                          { there's little gained by splitting it up              }
                          setwritebank(offs shr 16);
                          Mem[WinWriteSeg:word(offs)] := byte(mask);
@@ -915,7 +915,7 @@ end;
          Begin
            { align target }
            If (offs and 7) <> 0 then
-           { this cannot go past a window boundary bacause the }
+           { this cannot go past a window boundary because the }
            { size of a window is always a multiple of 8        }
              Begin
                { position in the pattern where to start }
@@ -939,7 +939,7 @@ end;
               bankrest := amount
            else {the rest won't fit anymore in the current window }
              bankrest := $10000 - (Offs and $ffff);
-           { it is possible that by aligningm we ended up in a new }
+           { it is possible that by aligning we ended up in a new  }
            { bank, so set the correct bank again to make sure      }
            setwritebank(offs shr 16);
            {$ifdef logging2}
@@ -965,7 +965,7 @@ end;
            For l := 0 to amount - 1 do
              begin
                { this may cross a bank at any time, so adjust          }
-               { because this loop alwys runs for very little pixels,  }
+               { because this loop always runs for very little pixels, }
                { there's little gained by splitting it up              }
                setwritebank(offs shr 16);
                Mem[WinWriteSeg:word(offs)] := fill.pat[patternPos and 7];
@@ -1143,7 +1143,7 @@ end;
                         bankrest := HLength
                      else {the rest won't fit anymore in the current window }
                        bankrest := ($10000 - (Offs and $ffff)) shr 1;
-                     { it is possible that by aligningm we ended up in a new }
+                     { it is possible that by aligning we ended up in a new  }
                      { bank, so set the correct bank again to make sure      }
                      setwritebank(offs shr 16);
                      setreadbank(offs shr 16);
@@ -1212,7 +1212,7 @@ end;
                         bankrest := HLength
                      else {the rest won't fit anymore in the current window }
                        bankrest := ($10000 - (Offs and $ffff)) shr 1;
-                     { it is possible that by aligningm we ended up in a new }
+                     { it is possible that by aligning we ended up in a new  }
                      { bank, so set the correct bank again to make sure      }
                      setwritebank(offs shr 16);
                      setreadbank(offs shr 16);
@@ -1281,7 +1281,7 @@ end;
                         bankrest := HLength
                      else {the rest won't fit anymore in the current window }
                        bankrest := ($10000 - (Offs and $ffff)) shr 1;
-                     { it is possible that by aligningm we ended up in a new }
+                     { it is possible that by aligning we ended up in a new  }
                      { bank, so set the correct bank again to make sure      }
                      setwritebank(offs shr 16);
                      setreadbank(offs shr 16);
@@ -1351,7 +1351,7 @@ end;
                         bankrest := HLength
                      else {the rest won't fit anymore in the current window }
                        bankrest := ($10000 - (Offs and $ffff)) shr 1;
-                     { it is possible that by aligningm we ended up in a new }
+                     { it is possible that by aligning we ended up in a new  }
                      { bank, so set the correct bank again to make sure      }
                      setwritebank(offs shr 16);
                      setreadbank(offs shr 16);
@@ -1913,7 +1913,7 @@ end;
 {    nickysn: setting BytesPerLine moved to SetupLinear and SetupWindowed
      BytesPerLine := VESAModeInfo.BytesPerScanLine;}
 
-     { These are the window adresses ... }
+     { These are the window addresses ... }
      WinWriteSeg := 0;  { This is the segment to use for writes }
      WinReadSeg := 0;   { This is the segment to use for reads  }
      ReadWindow := 0;

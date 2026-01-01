@@ -50,7 +50,7 @@ const
 {$IFDEF WINDOWS}
   LibGnuTLSExt = 'dll';
 {$ELSE}
-{$ifDEF DARWIN}   
+{$ifDEF DARWIN}
   LibGnuTLSExt = 'dylib';
 {$ELSE}
   LibGnuTLSExt = 'so';
@@ -62,7 +62,7 @@ const
 { Converted enums}
 Const
   // Tgnutls_cipher_algorithm
-  
+
   GNUTLS_CIPHER_UNKNOWN = 0;
   GNUTLS_CIPHER_NULL = 1;
   GNUTLS_CIPHER_ARCFOUR_128 = 2;

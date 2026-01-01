@@ -99,44 +99,44 @@
   {
   static inline GstQuery *
   gst_query_ref (GstQuery * q)
-  
+
     return ((GstQuery*)(gst_mini_object_ref (((GstMiniObject*)(q)))));
-  
+
   # 253 "gstquery.h"
   static inline void
   gst_query_unref (GstQuery * q)
-  
+
     gst_mini_object_unref (((GstMiniObject*)(q)));
-  
+
   # 272 "gstquery.h"
   static inline void
   gst_clear_query (GstQuery ** query_ptr)
-  
-    do  _Static_assert (sizeof *(((GstMiniObject **) query_ptr)) == sizeof (gpointer), "Expression evaluates to false"); __typeof__((((GstMiniObject **) query_ptr))) _pp = (((GstMiniObject **) query_ptr)); __typeof__(*(((GstMiniObject **) query_ptr))) _ptr = *_pp; *_pp = 
+
+    do  _Static_assert (sizeof *(((GstMiniObject **) query_ptr)) == sizeof (gpointer), "Expression evaluates to false"); __typeof__((((GstMiniObject **) query_ptr))) _pp = (((GstMiniObject **) query_ptr)); __typeof__(*(((GstMiniObject **) query_ptr))) _ptr = *_pp; *_pp =
   # 275 "gstquery.h" 3 4
    ((void *)0)
   # 275 "gstquery.h"
    ; if (_ptr) (gst_mini_object_unref) (_ptr);  while (0) ;
-  
+
   # 289 "gstquery.h"
   static inline GstQuery *
   gst_query_copy (const GstQuery * q)
-  
+
     return ((GstQuery*)(gst_mini_object_copy (((const GstMiniObject*)(q)))));
-  
+
   # 327 "gstquery.h"
   static inline gboolean
   gst_query_replace (GstQuery **old_query, GstQuery *new_query)
-  
+
     return gst_mini_object_replace ((GstMiniObject **) old_query, (GstMiniObject *) new_query);
-  
+
   # 350 "gstquery.h"
   static inline gboolean
   gst_query_take (GstQuery **old_query, GstQuery *new_query)
-  
+
     return gst_mini_object_take ((GstMiniObject **) old_query,
         (GstMiniObject *) new_query);
-  
+
    }
   function gst_query_new_custom(_type:TGstQueryType; structure:PGstStructure):PGstQuery;cdecl;external gstreamerlib name 'gst_query_new_custom';
 
@@ -241,7 +241,7 @@
   procedure gst_query_parse_nth_allocation_pool(query:PGstQuery; index:Tguint; pool: PPGstBufferPool; size:Pguint; min_buffers:Pguint;
               max_buffers:Pguint);cdecl;external gstreamerlib name 'gst_query_parse_nth_allocation_pool';
 
-  procedure gst_query_set_nth_allocation_pool(query:PGstQuery; index:Tguint; pool:PGstBufferPool; size:Tguint; min_buffers:Tguint; 
+  procedure gst_query_set_nth_allocation_pool(query:PGstQuery; index:Tguint; pool:PGstBufferPool; size:Tguint; min_buffers:Tguint;
               max_buffers:Tguint);cdecl;external gstreamerlib name 'gst_query_set_nth_allocation_pool';
 
   procedure gst_query_remove_nth_allocation_pool(query:PGstQuery; index:Tguint);cdecl;external gstreamerlib name 'gst_query_remove_nth_allocation_pool';

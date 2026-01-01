@@ -25,7 +25,7 @@
    PGObjectConstructParam = ^TGObjectConstructParam;
 
 { public overridable methods  }
-{ seldomly overidden  }
+{ seldomly overridden  }
 { signals  }
 { padding  }
    PGObjectClass = ^TGObjectClass;

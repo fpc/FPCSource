@@ -77,7 +77,7 @@ uses
 //        the messages discussed below.
 //     2) If the applet needs to save information in CONTROL.INI minimize
 //        clutter by using the application name [MMCPL.appletname].
-//     2) If the applet is refrenced in CONTROL.INI under [MMCPL] use
+//     2) If the applet is referenced in CONTROL.INI under [MMCPL] use
 //        the following form:
 //             ...
 //             [MMCPL]
@@ -231,7 +231,7 @@ const
 //  This message is sent for information about each applet.
 
 //  A CPL SHOULD HANDLE BOTH THE CPL_INQUIRE AND CPL_NEWINQUIRE MESSAGES.
-//  The developer must not make any assumptions about the order or dependance
+//  The developer must not make any assumptions about the order or dependence
 //  of CPL inquiries.
 
 //  lParam1 is the applet number to register, a value from 0 to
@@ -275,7 +275,7 @@ const
 // Same as CPL_INQUIRE execpt lParam2 is a pointer to a NEWCPLINFO struct.
 
 //  A CPL SHOULD HANDLE BOTH THE CPL_INQUIRE AND CPL_NEWINQUIRE MESSAGES.
-//  The developer must not make any assumptions about the order or dependance
+//  The developer must not make any assumptions about the order or dependence
 //  of CPL inquiries.
 
   CPL_STARTWPARMSA = 9;

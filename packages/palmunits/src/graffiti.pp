@@ -89,7 +89,7 @@ const
  * Use the definitions in ShortcutLib.h instead!
  *-----------------------------------------------------------------------------*)
 
-  // AnsiChar indicating a seqeunce of characters to expand.
+  // AnsiChar indicating a sequence of characters to expand.
   grfExpansionSequence   = '@';
 
   // Chars indicating what to expand into

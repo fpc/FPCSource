@@ -943,7 +943,7 @@ begin
   AssertEquals('Comment contents is returned',' /* some nested comment string */',FScanner.CurTokenString);
 end;
 
-procedure TTestJSScanner.TearDown; 
+procedure TTestJSScanner.TearDown;
 begin
   FreeScanner;
   Inherited;

@@ -38,7 +38,7 @@ Const
   {$else}
   DefaultLibName = 'libfontconfig.so.1';
   {$endif}
-  
+
 {$ifdef MSWINDOWS}
   {$calling stdcall}
 {$else}
@@ -46,120 +46,120 @@ Const
 {$endif}
 
 const
-  FC_MAJOR = 2;    
-  FC_MINOR = 11;    
-  FC_REVISION = 94;    
+  FC_MAJOR = 2;
+  FC_MINOR = 11;
+  FC_REVISION = 94;
   FC_VERSION	= ((FC_MAJOR * 10000) + (FC_MINOR * 100) + (FC_REVISION));
-  FC_CACHE_VERSION_NUMBER = 6; 
-  FC_CACHE_VERSION = '6'; // Stringify of FC_CACHE_VERSION_NUMBER     
+  FC_CACHE_VERSION_NUMBER = 6;
+  FC_CACHE_VERSION = '6'; // Stringify of FC_CACHE_VERSION_NUMBER
 
-  FcTrue = 1;      
-  FcFalse = 0;      
-  FC_FAMILY = 'family';      
-  FC_STYLE = 'style';      
-  FC_SLANT = 'slant';      
-  FC_WEIGHT = 'weight';      
-  FC_SIZE = 'size';      
-  FC_ASPECT = 'aspect';      
-  FC_PIXEL_SIZE = 'pixelsize';      
-  FC_SPACING = 'spacing';      
-  FC_FOUNDRY = 'foundry';      
-  FC_ANTIALIAS = 'antialias';      
-  FC_HINTING = 'hinting';      
-  FC_HINT_STYLE = 'hintstyle';      
-  FC_VERTICAL_LAYOUT = 'verticallayout';      
-  FC_AUTOHINT = 'autohint';      
-  FC_GLOBAL_ADVANCE = 'globaladvance';      
-  FC_WIDTH = 'width';      
-  FC_FILE = 'file';      
-  FC_INDEX = 'index';      
-  FC_FT_FACE = 'ftface';      
-  FC_RASTERIZER = 'rasterizer';      
-  FC_OUTLINE = 'outline';      
-  FC_SCALABLE = 'scalable';      
-  FC_COLOR = 'color';      
-  FC_SCALE = 'scale';      
-  FC_SYMBOL = 'symbol';      
-  FC_DPI = 'dpi';      
-  FC_RGBA = 'rgba';      
-  FC_MINSPACE = 'minspace';      
-  FC_SOURCE = 'source';      
-  FC_CHARSET = 'charset';      
-  FC_LANG = 'lang';      
-  FC_FONTVERSION = 'fontversion';      
-  FC_FULLNAME = 'fullname';      
-  FC_FAMILYLANG = 'familylang';      
-  FC_STYLELANG = 'stylelang';      
-  FC_FULLNAMELANG = 'fullnamelang';      
-  FC_CAPABILITY = 'capability';      
-  FC_FONTFORMAT = 'fontformat';      
-  FC_EMBOLDEN = 'embolden';      
-  FC_EMBEDDED_BITMAP = 'embeddedbitmap';      
-  FC_DECORATIVE = 'decorative';      
-  FC_LCD_FILTER = 'lcdfilter';      
-  FC_FONT_FEATURES = 'fontfeatures';      
-  FC_NAMELANG = 'namelang';      
-  FC_PRGNAME = 'prgname';      
-  FC_HASH = 'hash';      
-  FC_POSTSCRIPT_NAME = 'postscriptname';      
+  FcTrue = 1;
+  FcFalse = 0;
+  FC_FAMILY = 'family';
+  FC_STYLE = 'style';
+  FC_SLANT = 'slant';
+  FC_WEIGHT = 'weight';
+  FC_SIZE = 'size';
+  FC_ASPECT = 'aspect';
+  FC_PIXEL_SIZE = 'pixelsize';
+  FC_SPACING = 'spacing';
+  FC_FOUNDRY = 'foundry';
+  FC_ANTIALIAS = 'antialias';
+  FC_HINTING = 'hinting';
+  FC_HINT_STYLE = 'hintstyle';
+  FC_VERTICAL_LAYOUT = 'verticallayout';
+  FC_AUTOHINT = 'autohint';
+  FC_GLOBAL_ADVANCE = 'globaladvance';
+  FC_WIDTH = 'width';
+  FC_FILE = 'file';
+  FC_INDEX = 'index';
+  FC_FT_FACE = 'ftface';
+  FC_RASTERIZER = 'rasterizer';
+  FC_OUTLINE = 'outline';
+  FC_SCALABLE = 'scalable';
+  FC_COLOR = 'color';
+  FC_SCALE = 'scale';
+  FC_SYMBOL = 'symbol';
+  FC_DPI = 'dpi';
+  FC_RGBA = 'rgba';
+  FC_MINSPACE = 'minspace';
+  FC_SOURCE = 'source';
+  FC_CHARSET = 'charset';
+  FC_LANG = 'lang';
+  FC_FONTVERSION = 'fontversion';
+  FC_FULLNAME = 'fullname';
+  FC_FAMILYLANG = 'familylang';
+  FC_STYLELANG = 'stylelang';
+  FC_FULLNAMELANG = 'fullnamelang';
+  FC_CAPABILITY = 'capability';
+  FC_FONTFORMAT = 'fontformat';
+  FC_EMBOLDEN = 'embolden';
+  FC_EMBEDDED_BITMAP = 'embeddedbitmap';
+  FC_DECORATIVE = 'decorative';
+  FC_LCD_FILTER = 'lcdfilter';
+  FC_FONT_FEATURES = 'fontfeatures';
+  FC_NAMELANG = 'namelang';
+  FC_PRGNAME = 'prgname';
+  FC_HASH = 'hash';
+  FC_POSTSCRIPT_NAME = 'postscriptname';
 
   FC_CACHE_SUFFIX = '.cache-'+ FC_CACHE_VERSION;
   FC_DIR_CACHE_FILE = 'fonts.cache-' + FC_CACHE_VERSION;
   FC_USER_CACHE_FILE= '.fonts.cache-' + FC_CACHE_VERSION;
-  FC_CHAR_WIDTH = 'charwidth';      
-  FC_CHAR_HEIGHT = 'charheight';      
-  FC_MATRIX = 'matrix';      
-  FC_WEIGHT_THIN = 0;      
-  FC_WEIGHT_EXTRALIGHT = 40;      
-  FC_WEIGHT_ULTRALIGHT = FC_WEIGHT_EXTRALIGHT;      
-  FC_WEIGHT_LIGHT = 50;      
-  FC_WEIGHT_DEMILIGHT = 55;      
-  FC_WEIGHT_SEMILIGHT = FC_WEIGHT_DEMILIGHT;      
-  FC_WEIGHT_BOOK = 75;      
-  FC_WEIGHT_REGULAR = 80;      
-  FC_WEIGHT_NORMAL = FC_WEIGHT_REGULAR;      
-  FC_WEIGHT_MEDIUM = 100;      
-  FC_WEIGHT_DEMIBOLD = 180;      
-  FC_WEIGHT_SEMIBOLD = FC_WEIGHT_DEMIBOLD;      
-  FC_WEIGHT_BOLD = 200;      
-  FC_WEIGHT_EXTRABOLD = 205;      
-  FC_WEIGHT_ULTRABOLD = FC_WEIGHT_EXTRABOLD;      
-  FC_WEIGHT_BLACK = 210;      
-  FC_WEIGHT_HEAVY = FC_WEIGHT_BLACK;      
-  FC_WEIGHT_EXTRABLACK = 215;      
-  FC_WEIGHT_ULTRABLACK = FC_WEIGHT_EXTRABLACK;      
-  FC_SLANT_ROMAN = 0;      
-  FC_SLANT_ITALIC = 100;      
-  FC_SLANT_OBLIQUE = 110;      
-  FC_WIDTH_ULTRACONDENSED = 50;      
-  FC_WIDTH_EXTRACONDENSED = 63;      
-  FC_WIDTH_CONDENSED = 75;      
-  FC_WIDTH_SEMICONDENSED = 87;      
-  FC_WIDTH_NORMAL = 100;      
-  FC_WIDTH_SEMIEXPANDED = 113;      
-  FC_WIDTH_EXPANDED = 125;      
-  FC_WIDTH_EXTRAEXPANDED = 150;      
-  FC_WIDTH_ULTRAEXPANDED = 200;      
-  FC_PROPORTIONAL = 0;      
-  FC_DUAL = 90;      
-  FC_MONO = 100;      
-  FC_CHARCELL = 110;      
-  FC_RGBA_UNKNOWN = 0;      
-  FC_RGBA_RGB = 1;      
-  FC_RGBA_BGR = 2;      
-  FC_RGBA_VRGB = 3;      
-  FC_RGBA_VBGR = 4;      
-  FC_RGBA_NONE = 5;      
-  FC_HINT_NONE = 0;      
-  FC_HINT_SLIGHT = 1;      
-  FC_HINT_MEDIUM = 2;      
-  FC_HINT_FULL = 3;      
-  FC_LCD_NONE = 0;      
-  FC_LCD_DEFAULT = 1;      
-  FC_LCD_LIGHT = 2;      
-  FC_LCD_LEGACY = 3;      
+  FC_CHAR_WIDTH = 'charwidth';
+  FC_CHAR_HEIGHT = 'charheight';
+  FC_MATRIX = 'matrix';
+  FC_WEIGHT_THIN = 0;
+  FC_WEIGHT_EXTRALIGHT = 40;
+  FC_WEIGHT_ULTRALIGHT = FC_WEIGHT_EXTRALIGHT;
+  FC_WEIGHT_LIGHT = 50;
+  FC_WEIGHT_DEMILIGHT = 55;
+  FC_WEIGHT_SEMILIGHT = FC_WEIGHT_DEMILIGHT;
+  FC_WEIGHT_BOOK = 75;
+  FC_WEIGHT_REGULAR = 80;
+  FC_WEIGHT_NORMAL = FC_WEIGHT_REGULAR;
+  FC_WEIGHT_MEDIUM = 100;
+  FC_WEIGHT_DEMIBOLD = 180;
+  FC_WEIGHT_SEMIBOLD = FC_WEIGHT_DEMIBOLD;
+  FC_WEIGHT_BOLD = 200;
+  FC_WEIGHT_EXTRABOLD = 205;
+  FC_WEIGHT_ULTRABOLD = FC_WEIGHT_EXTRABOLD;
+  FC_WEIGHT_BLACK = 210;
+  FC_WEIGHT_HEAVY = FC_WEIGHT_BLACK;
+  FC_WEIGHT_EXTRABLACK = 215;
+  FC_WEIGHT_ULTRABLACK = FC_WEIGHT_EXTRABLACK;
+  FC_SLANT_ROMAN = 0;
+  FC_SLANT_ITALIC = 100;
+  FC_SLANT_OBLIQUE = 110;
+  FC_WIDTH_ULTRACONDENSED = 50;
+  FC_WIDTH_EXTRACONDENSED = 63;
+  FC_WIDTH_CONDENSED = 75;
+  FC_WIDTH_SEMICONDENSED = 87;
+  FC_WIDTH_NORMAL = 100;
+  FC_WIDTH_SEMIEXPANDED = 113;
+  FC_WIDTH_EXPANDED = 125;
+  FC_WIDTH_EXTRAEXPANDED = 150;
+  FC_WIDTH_ULTRAEXPANDED = 200;
+  FC_PROPORTIONAL = 0;
+  FC_DUAL = 90;
+  FC_MONO = 100;
+  FC_CHARCELL = 110;
+  FC_RGBA_UNKNOWN = 0;
+  FC_RGBA_RGB = 1;
+  FC_RGBA_BGR = 2;
+  FC_RGBA_VRGB = 3;
+  FC_RGBA_VBGR = 4;
+  FC_RGBA_NONE = 5;
+  FC_HINT_NONE = 0;
+  FC_HINT_SLIGHT = 1;
+  FC_HINT_MEDIUM = 2;
+  FC_HINT_FULL = 3;
+  FC_LCD_NONE = 0;
+  FC_LCD_DEFAULT = 1;
+  FC_LCD_LIGHT = 2;
+  FC_LCD_LEGACY = 3;
 
-  FC_UTF8_MAX_LEN = 6;    
+  FC_UTF8_MAX_LEN = 6;
 
 {
   Automatically converted by H2Pas 1.0.0 from fc.h
@@ -183,7 +183,7 @@ Type
   PWord     = ^Word;
   PDWord    = ^DWord;
   PDouble   = ^Double;
-  
+
   PStat = pointer;
 
 {$IFDEF FPC}
@@ -192,7 +192,7 @@ Type
   PFcAtomic = ^TFcAtomic;
   TFCAtomic = record end;
   PPFcAtomic = ^PFcAtomic;
-  
+
   PFcConfig = ^TFcConfig;
   TFcConfig = record end;
   PPFcConfig = ^PFcConfig;
@@ -208,11 +208,11 @@ Type
   PFcPattern = ^TFcPattern;
   TFcPattern = record end;
   PPFcPattern = ^PFcPattern;
-  
+
   PFcStrList = ^TFcStrList;
   TFcStrList = record end;
   PPFcStrList = ^PFcStrList;
-  
+
   PFcStrSet = ^TFcStrSet;
   TFcStrSet = record end;
   PPFcStrSet = ^PFcStrSet;
@@ -220,7 +220,7 @@ Type
   PFcCharSet = ^TFcCharSet;
   TFcCharSet = record end;
   PPFcCharSet = ^PFcCharSet;
-  
+
   PFcLangSet = ^TFcLangSet;
   TFcLangSet = record end;
   PPFcLangSet = ^PFcLangSet;
@@ -228,7 +228,7 @@ Type
   PFcRange = ^TFcRange;
   TFcRange = record end;
   PPFcRange = ^PFcRange;
-  
+
   PFcCache = ^TFcCache;
   TFcCache = record end;
   PPFcCache = ^PFcCache;
@@ -296,7 +296,7 @@ Type
           end;
     end;
   PPFcValue = ^PFcValue;
-  
+
   PFcFontSet = ^TFcFontSet;
   TFcFontSet = record
       nfont : cint;
@@ -312,7 +312,7 @@ Type
       objects : ^pcchar;
     end;
   PPFcObjectSet = ^PFcObjectSet;
-  
+
   PFcMatchKind = ^TFcMatchKind;
   TFcMatchKind = (FcMatchPattern,FcMatchFont,FcMatchScan);
 
@@ -329,7 +329,7 @@ Type
 
   TFcCharMap = array[0..7] of TFcChar32;
   TUTF8Array = array[0..5] of TFcChar8;
-  
+
 var
   FcBlanksCreate : function:PFcBlanks;
   FcBlanksDestroy : procedure(b:PFcBlanks);
@@ -396,9 +396,9 @@ var
   FcGetDefaultLangs : function:PFcStrSet;
   FcDefaultSubstitute : procedure(pattern:PFcPattern);
   FcFileIsDir : function(afile:PFcChar8):TFcBool;
-  FcFileScan : function(aset:PFcFontSet; dirs:PFcStrSet; cache:PFcFileCache; blanks:PFcBlanks; afile:PFcChar8; 
+  FcFileScan : function(aset:PFcFontSet; dirs:PFcStrSet; cache:PFcFileCache; blanks:PFcBlanks; afile:PFcChar8;
       force:TFcBool):TFcBool;
-  FcDirScan : function(aset:PFcFontSet; dirs:PFcStrSet; cache:PFcFileCache; blanks:PFcBlanks; dir:PFcChar8; 
+  FcDirScan : function(aset:PFcFontSet; dirs:PFcStrSet; cache:PFcFileCache; blanks:PFcBlanks; dir:PFcChar8;
       force:TFcBool):TFcBool;
   FcDirSave : function(aset:PFcFontSet; dirs:PFcStrSet; dir:PFcChar8):TFcBool;
   FcDirCacheLoad : function(dir:PFcChar8; config:PFcConfig; cache_file:PPFcChar8):PFcCache;
@@ -450,7 +450,7 @@ var
   FcFontSetMatch : function(config:PFcConfig; sets:PPFcFontSet; nsets:cint; p:PFcPattern; result:PFcResult):PFcPattern;
   FcFontMatch : function(config:PFcConfig; p:PFcPattern; result:PFcResult):PFcPattern;
   FcFontRenderPrepare : function(config:PFcConfig; pat:PFcPattern; font:PFcPattern):PFcPattern;
-  FcFontSetSort : function(config:PFcConfig; sets:PPFcFontSet; nsets:cint; p:PFcPattern; trim:TFcBool; 
+  FcFontSetSort : function(config:PFcConfig; sets:PPFcFontSet; nsets:cint; p:PFcPattern; trim:TFcBool;
       csp:PPFcCharSet; result:PFcResult):PFcFontSet;
   FcFontSort : function(config:PFcConfig; p:PFcPattern; trim:TFcBool; csp:PPFcCharSet; result:PFcResult):PFcFontSet;
   FcFontSetSortDestroy : procedure(fs:PFcFontSet);
@@ -541,10 +541,10 @@ var
 
 // Macros
 Procedure FcMatrixInit(out m : TFCMatrix);
-function FC_CHARSET_DONE : TFcChar32;      
-function FcIsUpper(c : longint) : Boolean;  
-function FcIsLower(c : longint) : Boolean;  
-function FcToLower(c : longint) : longint;  
+function FC_CHARSET_DONE : TFcChar32;
+function FcIsUpper(c : longint) : Boolean;
+function FcIsLower(c : longint) : Boolean;
+function FcToLower(c : longint) : longint;
 
 Function LoadFontConfigLib(Const ALibName : String; RaiseError : Boolean = True) : Integer;
 Function UnLoadFontConfigLib : Integer;
@@ -586,7 +586,7 @@ function FcToLower(c : longint) : longint;
 
 var
   if_local1 : longint;
-  
+
 begin
   if FcIsUpper(c) then
     if_local1:=c-Ord('A')+Ord('a')
@@ -600,7 +600,7 @@ end;
 var
   hlib : tlibhandle;
   hcount : integer;
-  loadedlib : string; 
+  loadedlib : string;
 
 
 Function FontConfigLibLoaded : Boolean;
@@ -829,7 +829,7 @@ begin
   Freefc;
   hlib:=LoadLibrary(lib);
   Result:=hlib<>NilHandle;
-  If not Result then 
+  If not Result then
     exit;
   if (hlib=NilHandle) then
     raise EInOutError.CreateFmt('Could not load library: "%s"',[lib]);
@@ -1056,10 +1056,10 @@ begin
     begin
     if (FN=LoadedLib) then
       Inc(HCount)
-    else if RaiseError then  
+    else if RaiseError then
       Raise EInoutError.CreateFmt('Cannot load "%s", FontConfig library already loaded as "%s"',[FN,LoadedLib])
-    else 
-      Exit;  
+    else
+      Exit;
     end
   else
     begin
@@ -1071,7 +1071,7 @@ begin
     else if RaiseError then
       raise EInOutError.CreateFmt('Could not load library: "%s"',[FN])
     else
-      Exit;  
+      Exit;
     end;
   Result:=HCount;
 end;

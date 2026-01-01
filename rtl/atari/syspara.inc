@@ -166,7 +166,7 @@ end;
 
 Function FSearch(const path:RawByteString;dirlist:RawByteString):RawByteString;
 {
-  Searches for a file 'path' in the list of direcories in 'dirlist'.
+  Searches for a file 'path' in the list of directories in 'dirlist'.
   returns an empty string if not found. Wildcards are NOT allowed.
   If dirlist is empty, it is set to '.'
 

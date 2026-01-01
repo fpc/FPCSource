@@ -43,7 +43,7 @@
  "single", "extended" and "float128".
 
  For self-sufficiency, inverse conversion is also implemented.
- It uses strightforward approach, with the help of high-precision integer
+ It uses straightforward approach, with the help of high-precision integer
  routines and tables used by Grisu. The main goal was to confirm the "internal
  identity", i.e. conversion path " float -> ASCII -> float " should recover
  the original floating-point representation so long as there are enough

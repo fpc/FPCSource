@@ -678,7 +678,7 @@ var
   ret : longint;
 begin
   {we can't mess with p, because we have to return it if call is
-      unsuccesfully.}
+      unsuccessfully.}
 
   if Length(p)>0 then                   {copy p to array of AnsiChar}
    move(p[1],buffer[0],length(p));
@@ -818,7 +818,7 @@ begin
    p:=GetEnvironmentStrings;
    hp:=p;
 
-   { retrive the string with the given index }
+   { retrieve the string with the given index }
    for i:=2 to index do
      hp:=hp+strlen(hp)+1;
 

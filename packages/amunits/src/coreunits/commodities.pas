@@ -112,7 +112,7 @@ CONST
       CX_TRANSLATE   = 5;     {     translates IE into chain            }
       CX_BROKER      = 6;     {     application representative          }
       CX_DEBUG       = 7;     {     dumps kprintf to serial port        }
-      CX_CUSTOM      = 8;     {     application provids function        }
+      CX_CUSTOM      = 8;     {     application provides function       }
       CX_ZERO        = 9;     {     system terminator node      }
 
 {    ***************}

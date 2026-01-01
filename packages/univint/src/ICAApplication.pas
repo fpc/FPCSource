@@ -898,7 +898,7 @@ type
     kICANotificationDeviceICAObjectKey  CFNumberRef       A device object associated with the notification.
     kICANotificationClassKey            CFStringRef       See below.
     kICANotificationTypeKey             CFStringRef       See below.
-    kICANotificationRawEventKey         CFNumberRef       The unprocesssed event code sent by a device.
+    kICANotificationRawEventKey         CFNumberRef       The unprocessed event code sent by a device.
     kICANotificationDataKey             CFDataRef         Data associated with the event.
     kICANotificationDataSizeKey         CFNumberRef       Size of data associated with the event. This is used if the data is
                                                           not sent with the notification. [Needed for backward compatiblity with pre-Leopard device modules].
@@ -1329,7 +1329,7 @@ const
     @field header
         See description for ICAHeader. <->
     @field object
-        An object whose thumbail is being requested. <--
+        An object whose thumbnail is being requested. <--
     @field thumbnailFormat
         One of the format values defined above. <--
     @field thumbnailData
@@ -1816,7 +1816,7 @@ type
     @abstract
         Use this API to open a session on a camera device. For a scanner device use the ICAScannerOpenSession API.
     @discussion
-        This API gets a session ID for a open session on a camera device. Since access to cameras is generally not be session-based, this API generall will not fail. If the camera has open session, the device module controlling the camera will continue to control it during fast-user-switching.
+        This API gets a session ID for a open session on a camera device. Since access to cameras is generally not be session-based, this API in general will not fail. If the camera has open session, the device module controlling the camera will continue to control it during fast-user-switching.
     @param pb
         A pointer to an <code><b>ICAOpenSessionPB</b></code> parameter block.
     @param completion

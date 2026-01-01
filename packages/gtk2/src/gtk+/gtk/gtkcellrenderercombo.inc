@@ -48,27 +48,27 @@
     begin
       Result:= gtk_cell_renderer_combo_get_type ();
     end;
-    
+
     function GTK_CELL_RENDERER_COMBO(obj: Pointer): PGtkCellRendererCombo;
     begin
       Result:= PGtkCellRendererCombo(GTK_CHECK_CAST(obj, GTK_TYPE_CELL_RENDERER_COMBO));
     end;
-    
+
     function GTK_CELL_RENDERER_COMBO_CLASS(klass: pointer): PGtkCellRendererComboClass;
     begin
       Result:= PGtkCellRendererComboClass(GTK_CHECK_CLASS_CAST(klass, GTK_TYPE_CELL_RENDERER_COMBO));
     end;
-     
+
     function GTK_IS_CELL_RENDERER_COMBO(obj: pointer): boolean;
     begin
       Result:= GTK_CHECK_TYPE(obj, GTK_TYPE_CELL_RENDERER_COMBO);
     end;
-    
+
     function GTK_IS_CELL_RENDERER_COMBO_CLASS(klass: pointer):boolean;
     begin
       Result:= GTK_CHECK_CLASS_TYPE(klass, GTK_TYPE_CELL_RENDERER_COMBO);
     end;
-    
+
     function GTK_CELL_RENDERER_COMBO_GET_CLASS(obj: pointer): PGtkCellRendererComboClass;
     begin
       Result:= PGtkCellRendererComboClass(GTK_CHECK_GET_CLASS(obj, GTK_TYPE_CELL_RENDERER_COMBO));

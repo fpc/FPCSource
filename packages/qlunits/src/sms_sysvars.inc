@@ -49,7 +49,7 @@ Type
     sys_idnt: Longint;  { system variables identifier }
 
 {
-  The following variables are the pointers which define the 
+  The following variables are the pointers which define the
   current state of the memory map.
 }
     sys_chpb: Pointer;  { Common HeaP Base }
@@ -65,7 +65,7 @@ Type
     sys_rtcf: Word;     { Real time fractional, count down [SMS] }
     sys_rand: Word;     { RANDom number }
 
-    sys_pict: Word;     { Polling Interupt CounT }
+    sys_pict: Word;     { Polling Interrupt CounT }
     sys_dtyp: Byte;     { Display TYPe (0=normal, 1=TV 625, 2=TV 525) }
     sys_dfrz: Byte;     { Display FRoZen (T or F) }
     sys_qlmr: Byte;     { QL Master chip Register value (Copy of MC_STAT) }
@@ -88,7 +88,7 @@ Type
 
 {
   The following system variables are pointers to the resource
-  management tables. The slave block tables have 8 byte 
+  management tables. The slave block tables have 8 byte
   entries, whilst the others have 4 byte entries.
 }
 
@@ -120,7 +120,7 @@ Type
     sys_tsdd: Byte;     { Thor flag [THOR] }
     sys_unused_85: array [0..2] of Byte; { Unused, offset = $85, $86 and $87 }
 {
-  The following variables contain information about how to 
+  The following variables contain information about how to
   treat the keyboard, and about other aspects of the
   IPC and serial port communications.
 }
@@ -147,11 +147,11 @@ Type
 
     { Sys_stmv on  QL Only. Redefined by other systems by sys_polf }
     //sys_stmv: Word;   { Value of serial timeout }
-                        {  Formula = (1200/baud+1, i.e. 
-                                     11 = 75   bps, 
-                                      5 = 300  bps, 
-                                      3 = 600  bps, 
-                                      2 = 1200 bps, 
+                        {  Formula = (1200/baud+1, i.e.
+                                     11 = 75   bps,
+                                      5 = 300  bps,
+                                      3 = 600  bps,
+                                      2 = 1200 bps,
                                       1 = 2400 bps+) [QL] }
 
     sys_polf: Word;     { Polling frequency [SMSQ] }
@@ -200,12 +200,12 @@ Type
 
     sys_mstab: Pointer; { Pointer to (SMSQ) message table [SMSQ]. }
                         { This is a pointer to a 256 long word table of
-                          pointers to message groups. All undefined 
+                          pointers to message groups. All undefined
                           message groups have a zero pointer. }
     sys_unused_152: Array [0..1] of Byte; { Unused, Offset = $0152 and $0153 }
 
     { Offset $0154 is a table of 4 long words used by Taskmaster
-      but one which is also used by TURBO. I've used the most 
+      but one which is also used by TURBO. I've used the most
       likely case here, Taskmaster is pretty much defunct.
       (Famous last words?) }
     //sys_taskm: Array [0..3] of Longint; { 4 Long Used by Taskmaster }

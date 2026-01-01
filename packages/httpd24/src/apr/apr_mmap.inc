@@ -39,7 +39,7 @@ type
 
 (**
  * @defgroup apr_mmap MMAP (Memory Map) Routines
- * @ingroup APR 
+ * @ingroup APR
  * @{
  *)
 
@@ -100,7 +100,7 @@ type
 (* fpc -> rest is ignored
 #if APR_HAS_MMAP || defined(DOXYGEN)
 
-/** @def APR_MMAP_THRESHOLD 
+/** @def APR_MMAP_THRESHOLD
  * Files have to be at least this big before they're mmap()d.  This is to deal
  * with systems where the expense of doing an mmap() and an munmap() outweighs
  * the benefit for small files.  It shouldn't be set lower than 1.
@@ -130,7 +130,7 @@ type
 
 /*   Function definitions */
 
-/** 
+/**
  * Create a new mmap'ed file out of an existing APR file.
  * @param newmmap The newly created mmap'ed file.
  * @param file The file turn into an mmap.
@@ -143,17 +143,17 @@ type
  * </PRE>
  * @param cntxt The pool to use when creating the mmap.
  */
-APR_DECLARE(apr_status_t) apr_mmap_create(apr_mmap_t **newmmap, 
+APR_DECLARE(apr_status_t) apr_mmap_create(apr_mmap_t **newmmap,
                                           apr_file_t *file, apr_off_t offset,
                                           apr_size_t size, apr_int32_t flag,
                                           apr_pool_t *cntxt);
 
 /**
  * Duplicate the specified MMAP.
- * @param new_mmap The structure to duplicate into. 
+ * @param new_mmap The structure to duplicate into.
  * @param old_mmap The mmap to duplicate.
  * @param p The pool to use for new_mmap.
- */         
+ */
 APR_DECLARE(apr_status_t) apr_mmap_dup(apr_mmap_t **new_mmap,
                                        apr_mmap_t *old_mmap,
                                        apr_pool_t *p);
@@ -164,13 +164,13 @@ APR_DECLARE(apr_status_t) apr_mmap_dup(apr_mmap_t **new_mmap,
  */
 APR_DECLARE(apr_status_t) apr_mmap_delete(apr_mmap_t *mm);
 
-/** 
+/**
  * Move the pointer into the mmap'ed file to the specified offset.
  * @param addr The pointer to the offset specified.
  * @param mm The mmap'ed file.
  * @param offset The offset to move to.
  */
-APR_DECLARE(apr_status_t) apr_mmap_offset(void **addr, apr_mmap_t *mm, 
+APR_DECLARE(apr_status_t) apr_mmap_offset(void **addr, apr_mmap_t *mm,
                                           apr_off_t offset);
 
 #endif /* APR_HAS_MMAP */

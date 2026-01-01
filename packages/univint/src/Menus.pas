@@ -728,7 +728,7 @@ type
  *  Summary:
  *    This structure contains a single hierarchical menu in the
  *    menubar. It is an element in an array in the HMenuBarHeader data
- *    strucuture.
+ *    structure.
  }
 type
 	HMenuBarMenuPtr = ^HMenuBarMenu;
@@ -5140,7 +5140,7 @@ function SetMenuItemData( inMenu: MenuRef; inItem: MenuItemID; inIsCommandID: Bo
 {        directly in the menu object in the nib, using the Inspector window for the    }
 {        menu. You don't need to add the attribute after creating the menu.            }
 {      - If your application requires Mac OS X 10.2 or CarbonLib 1.6 or later, you     }
-{        can also use a version-one-format 'xmnu' resource, which allows settting      }
+{        can also use a version-one-format 'xmnu' resource, which allows setting       }
 {        the menu item attributes in the 'xmnu'. Using a version one resource, you     }
 {        can include the kMenuItemAttrDynamic attribute in the resource rather than    }
 {        adding it after creating the menu.                                            }
@@ -5818,7 +5818,7 @@ function LMGetTheMenu: MenuID; external name '_LMGetTheMenu';
             Sent when the Menu Manager is displaying a menu and needs to know what item is under
             the mouse. The whichItem parameter is actually a pointer to a MenuTrackingData structure.
             On entry, the menu, virtualMenuTop, and virtualMenuBottom fields of this structure are
-            valid. The menu definition should determine which item containst the given point, if any,
+            valid. The menu definition should determine which item contains the given point, if any,
             and fill in the itemUnderMouse, itemSelected, and itemRect fields. If an item is found,
             the menu definition should always fill in the itemUnderMouse and itemRect fields. The
             menu definition should only fill in the itemSelected field if the item is available for

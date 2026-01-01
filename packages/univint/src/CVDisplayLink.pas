@@ -247,11 +247,11 @@ function CVDisplayLinkGetTypeID: CFTypeID; external name '_CVDisplayLinkGetTypeI
 {!
     @function   CVDisplayLinkCreateWithCGDisplays
     @abstract   General call to create a CVDisplayLink
-    @discussion Use this call to create a CVDisplayLink for a set of displays indentified by the CGDirectDisplayIDs.
+    @discussion Use this call to create a CVDisplayLink for a set of displays identified by the CGDirectDisplayIDs.
     @param      displayArray array of CGDirectDisplayIDs
     @param      count   number of displays in the displayArray
     @param      displayLisk The new display link will be returned here
-    @result	returns kCVReturnSuccesss on success.
+    @result	returns kCVReturnSuccess on success.
 }
 function CVDisplayLinkCreateWithCGDisplays( displayArray: {variable-size-array} CGDirectDisplayIDPtr; count: CFIndex; var displayLinkOut: CVDisplayLinkRef ): CVReturn; external name '_CVDisplayLinkCreateWithCGDisplays';
 (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
@@ -262,7 +262,7 @@ function CVDisplayLinkCreateWithCGDisplays( displayArray: {variable-size-array} 
     @discussion Use this call to create a CVDisplayLink for a CGOpenGLDisplayMask.
     @param      mask CGOpenGLDisplayMask describing the display
     @param      displayLisk The new display link will be returned here
-    @result	returns kCVReturnSuccesss on success.
+    @result	returns kCVReturnSuccess on success.
 }
 function CVDisplayLinkCreateWithOpenGLDisplayMask( mask: CGOpenGLDisplayMask; var displayLinkOut: CVDisplayLinkRef ): CVReturn; external name '_CVDisplayLinkCreateWithOpenGLDisplayMask';
 (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
@@ -273,7 +273,7 @@ function CVDisplayLinkCreateWithOpenGLDisplayMask( mask: CGOpenGLDisplayMask; va
     @discussion Use this call to create a CVDisplayLink for a single CGDirectDisplay.
     @param      displayID CGDirectDisplayID of the target display
     @param      displayLisk The new display link will be returned here
-    @result	returns kCVReturnSuccesss on success.
+    @result	returns kCVReturnSuccess on success.
 }
 function CVDisplayLinkCreateWithCGDisplay( displayID: CGDirectDisplayID; var displayLinkOut: CVDisplayLinkRef ): CVReturn; external name '_CVDisplayLinkCreateWithCGDisplay';
 (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
@@ -294,7 +294,7 @@ function CVDisplayLinkCreateWithActiveCGDisplays( var displayLinkOut: CVDisplayL
                 discontinuity in the video time stamp
     @param      displayLink target CVDisplayLinkRef
     @param      displayID target CGDirectDisplayID
-    @result     CVReturn. kCVReturnSuccesss if successfull.
+    @result     CVReturn. kCVReturnSuccess if successfull.
 }
 function CVDisplayLinkSetCurrentCGDisplay( displayLink: CVDisplayLinkRef; displayID: CGDirectDisplayID ): CVReturn; external name '_CVDisplayLinkSetCurrentCGDisplay';
 (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
@@ -326,7 +326,7 @@ function CVDisplayLinkGetCurrentCGDisplay( displayLink: CVDisplayLinkRef ): CGDi
     @param      displayLink target CVDisplayLinkRef
     @param	callback	CVDisplayLinkOutputCallback function
     @param	userInfo  User data for the callback to identify the context.
-    @result     CVReturn. kCVReturnSuccesss if successfull.
+    @result     CVReturn. kCVReturnSuccess if successfull.
 }
 function CVDisplayLinkSetOutputCallback( displayLink: CVDisplayLinkRef; callback: CVDisplayLinkOutputCallback; userInfo: UnivPtr ): CVReturn; external name '_CVDisplayLinkSetOutputCallback';
 (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
@@ -336,8 +336,8 @@ function CVDisplayLinkSetOutputCallback( displayLink: CVDisplayLinkRef; callback
     @abstract   Start timer for DisplayLink
     @discussion (description)
     @param      displayLink target CVDisplayLinkRef
-    @result     CVReturn. kCVReturnSuccesss if successfull.
-                kCVReturnDisplayLinkCallbacksNotSet The DisplayLink cannot be started untill both callbacks are set.
+    @result     CVReturn. kCVReturnSuccess if successfull.
+                kCVReturnDisplayLinkCallbacksNotSet The DisplayLink cannot be started until both callbacks are set.
 }
 function CVDisplayLinkStart( displayLink: CVDisplayLinkRef ): CVReturn; external name '_CVDisplayLinkStart';
 (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
@@ -347,7 +347,7 @@ function CVDisplayLinkStart( displayLink: CVDisplayLinkRef ): CVReturn; external
     @abstract   Stop timer for DisplayLink
     @discussion (description)
     @param      displayLink target CVDisplayLinkRef
-    @result     CVReturn. kCVReturnSuccesss if successfull.
+    @result     CVReturn. kCVReturnSuccess if successfull.
 }
 function CVDisplayLinkStop( displayLink: CVDisplayLinkRef ): CVReturn; external name '_CVDisplayLinkStop';
 (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
@@ -355,7 +355,7 @@ function CVDisplayLinkStop( displayLink: CVDisplayLinkRef ): CVReturn; external 
 {!
     @function   CVDisplayLinkGetNominalOutputVideoRefreshPeriod
     @abstract   Retrieves the nominal refresh period of a CVDisplayLink.
-    @discussion This call allows one to retrieve the device's "ideal" refresh period.   For example, an NTSC output device might report 1001/60000 to represent the exact NTSC vertial refresh rate.
+    @discussion This call allows one to retrieve the device's "ideal" refresh period.   For example, an NTSC output device might report 1001/60000 to represent the exact NTSC vertical refresh rate.
     @param      displayLink The CVDisplayLink to get the refresh period from.
     @result     A CVTime struct that holds the nominal refresh period.    This value may be indefinite.
 }
@@ -422,7 +422,7 @@ function CVDisplayLinkTranslateTime( displayLink: CVDisplayLinkRef; const (*var*
     @abstract   Retains the CVDisplayLink
     @discussion Use this call to retain a CVDisplayLink.
     @param      displayLink target CVDisplayLinkRef.   NULL safe.
-	@result		If successfull the passed in dislplayLink
+	@result		If successfull the passed in displayLink
 }
 function CVDisplayLinkRetain( displayLink: CVDisplayLinkRef ): CVDisplayLinkRef; external name '_CVDisplayLinkRetain';
 (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)

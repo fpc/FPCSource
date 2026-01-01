@@ -5,7 +5,7 @@ unit wmusers;
 interface
 
 uses
-  Classes, SysUtils, HTTPDefs, websession, fpHTTP, fpWeb, 
+  Classes, SysUtils, HTTPDefs, websession, fpHTTP, fpWeb,
   db, dbf, fpwebdata, extjsjson, extjsxml;
 
 type
@@ -25,10 +25,10 @@ type
     { private declarations }
   public
     { public declarations }
-  end; 
+  end;
 
 var
-  FPWebProviderDataModule2: TFPWebProviderDataModule2; 
+  FPWebProviderDataModule2: TFPWebProviderDataModule2;
 
 implementation
 

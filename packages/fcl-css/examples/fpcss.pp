@@ -34,8 +34,8 @@ Var
   aList : TStrings;
   Utils : TCSSUtils;
 
-begin  
-  S:=Nil;  
+begin
+  S:=Nil;
   aList:=Nil;
   Utils:=TCSSUtils.Create(Nil);
   try
@@ -60,8 +60,8 @@ Var
   Sin,SOut : TStream;
   Utils : TCSSUtils;
 
-begin  
-  Sin:=Nil;  
+begin
+  Sin:=Nil;
   Sout:=Nil;
   Utils:=TCSSUtils.Create(Nil);
   try

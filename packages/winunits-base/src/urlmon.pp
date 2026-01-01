@@ -1,6 +1,6 @@
 {$mode objfpc}
 {$h+}
-{ urlmon.h translation. 
+{ urlmon.h translation.
   Original urlmon.h copyright:
   Microsoft Windows
   Copyright (c) Microsoft Corporation. All rights reserved.
@@ -133,12 +133,12 @@ Const
   BINDF_DIRECT_READ              = $00020000;
   BINDF_FORMS_SUBMIT             = $00040000;
   BINDF_GETFROMCACHE_IF_NET_FAIL = $00080000;
-  
+
   BINDF_DONTUSECACHE             = BINDF_GETNEWESTVERSION;
   BINDF_DONTPUTINCACHE           = BINDF_NOWRITECACHE;
   BINDF_NOCOPYDATA               = BINDF_PULLDATA;
 
-  
+
   BSCF_FIRSTDATANOTIFICATION        = $00000001;
   BSCF_INTERMEDIATEDATANOTIFICATION = $00000002;
   BSCF_LASTDATANOTIFICATION         = $00000004;
@@ -239,7 +239,7 @@ Const
   CIP_UNSAFE_TO_ABORT                      = CIP_EXE_SELF_REGISTERATION_TIMEOUT+1;
   CIP_NEED_REBOOT                          = CIP_UNSAFE_TO_ABORT+1;
 
-  URLOSTRM_USECACHEDCOPY_ONLY = $00000001;   
+  URLOSTRM_USECACHEDCOPY_ONLY = $00000001;
   URLOSTRM_USECACHEDCOPY      = $00000002;
   URLOSTRM_GETNEWESTVERSION   = $00000003;
 
@@ -386,16 +386,16 @@ Const
   URLPOLICY_LOG_ON_DISALLOW      = $80;
 
   URLPOLICY_MASK_PERMISSIONS     = $0f;
-  
-  MAX_SIZE_SECURITY_ID    = 512; 
-  
+
+  MAX_SIZE_SECURITY_ID    = 512;
+
   PUAF_DEFAULT            = $00000000;
   PUAF_NOUI               = $00000001;
   PUAF_ISFILE             = $00000002;
   PUAF_WARN_IF_DENIED     = $00000004;
   PUAF_FORCEUI_FOREGROUND = $00000008;
   PUAF_CHECK_TIFS         = $00000010;
-  
+
   SZM_CREATE              = $00000000;
   SZM_DELETE              = $00000001;
 
@@ -441,29 +441,29 @@ Const
   SOFTDIST_ADSTATE_AVAILABLE        = $00000001;
   SOFTDIST_ADSTATE_DOWNLOADED       = $00000002;
   SOFTDIST_ADSTATE_INSTALLED        = $00000003;
-  
+
 Type
   PHWnd = ^HWND;
   PIunknown = ^IUnknown;
   PIEnumString = ^IENumString;
   PStgMedium = ^TStgMedium;
-  
+
   TUrlZoneReg = Cardinal;
   TParseAction = Cardinal;
   TQueryOption = Cardinal;
   TPSUAction = Cardinal;
-  
+
   PLPCWSTR = ^LPCWSTR;
   PPOLEStr = ^POLEStr;
   PIBindCtx = ^IBindCtx;
   PIEnumFormatEtc = ^IEnumFormatEtc;
   PIstream = ^IStream;
-  
+
   // Forward declarations
   IInternetProtocolSink = Interface;
-  IBinding = interface; 
+  IBinding = interface;
   IInternetProtocol = interface;
-  
+
   TBINDINFO = packed record
     cbSize : ULONG;
     szExtraInfo : LPWSTR;
@@ -490,7 +490,7 @@ Type
   end;
   REMSECURITY_ATTRIBUTES = TREMSECURITY_ATTRIBUTES;
   PREMSECURITY_ATTRIBUTES = ^TREMSECURITY_ATTRIBUTES;
-  
+
   TRemBINDINFO = packed record
     cbSize : ULONG;
     szExtraInfo : LPWSTR;
@@ -508,7 +508,7 @@ Type
   end;
   PRemBINDINFO = ^TRemBINDINFO;
   RemBINDINFO = TRemBINDINFO;
-  
+
   TRemFORMATETC = packed record
     cfFormat : DWORD;
     ptd : DWORD;
@@ -527,7 +527,7 @@ Type
   end;
   PROTOCOLDATA = TPROTOCOLDATA;
   PPROTOCOLDATA = ^PROTOCOLDATA;
-  
+
   TZONEATTRIBUTES = packed record
     cbSize : ULONG;
     szDisplayName : array [0..259] of WideChar;
@@ -569,7 +569,7 @@ Type
   end;
   SOFTDISTINFO = TSOFTDISTINFO;
   PSOFTDISTINFO = ^TSOFTDISTINFO;
-  
+
   TPROTOCOLFILTERDATA = packed record
     cbSize : DWORD;
     ProtocolSink : IInternetProtocolSink;
@@ -579,7 +579,7 @@ Type
   end;
   PROTOCOLFILTERDATA = TPROTOCOLFILTERDATA;
   PPROTOCOLFILTERDATA = ^TPROTOCOLFILTERDATA;
-  
+
   TDATAINFO = packed record
     ulTotalSize : ULONG;
     ulavrPacketSize : ULONG;
@@ -588,7 +588,7 @@ Type
   end;
   DATAINFO = TDATAINFO;
   PDATAINFO = ^TDATAINFO;
-  
+
   THIT_LOGGING_INFO = packed record
     dwStructSize : DWORD;
     lpszLoggedUrlName : LPSTR;
@@ -630,7 +630,7 @@ Type
     Function GetBindResult(clsidProtocol : PCLSID; dwResult : PDWORD; szResult : PPOLEStr; dwReserved : DWORD) : HResult; stdcall;
   end;
   PIBindingRaw = ^IBindingRaw;
-  
+
   IBinding = interface ['{79eac9c0-baf9-11ce-8c82-00aa004ba90b}']
     Function Abort : HResult; stdcall;
     Function Suspend : HResult; stdcall;
@@ -644,12 +644,12 @@ Type
     Function CreateBinding(szUrl : LPCWSTR; pbc : IBindCtx; ppb : PIBindingRaw) : HResult; stdcall;
   end;
   PIBindProtocolRaw = ^IBindProtocolRaw;
-  
+
   IBindProtocol = interface['{79eac9cd-baf9-11ce-8c82-00aa004ba90b}']
     Function CreateBinding(szUrl : LPCWSTR; pbc : IBindCtx; out ppb : IBinding) : HResult; stdcall;
   end;
   PIBindProtocol = ^IBindProtocol;
-  
+
   IBindStatusCallbackRaw = interface['{79eac9c1-baf9-11ce-8c82-00aa004ba90b}']
     Function OnStartBinding(dwReserved : DWORD; pib : IBindingRaw) : HResult; stdcall;
     Function GetPriority(nPriority  : Pointer) : HResult; stdcall;
@@ -716,7 +716,7 @@ Type
     Function QueryOption(dwOption : DWORD; Buffer : Pointer; cbBuf : PDWORD) : HResult; stdcall;
   end;
   PIWinInetInfoRaw = ^IWinInetInfoRaw;
-  
+
   IWinInetInfo = interface['{79eac9d6-bafa-11ce-8c82-00aa004ba90b}']
     Function QueryOption(dwOption : DWORD; Buffer : Pointer; var cbBuf : DWORD) : HResult; stdcall;
   end;
@@ -731,7 +731,7 @@ Type
     Function OnSecurityProblem(dwProblem : DWORD) : HResult; stdcall;
   end;
   PIHttpSecurity = ^IHttpSecurity;
-  
+
   IWinInetHttpInfoRaw = interface(IWinInetInfoRaw)['{79eac9d8-bafa-11ce-8c82-00aa004ba90b}']
     Function QueryInfo(dwOption : DWORD; Buffer : Pointer; cbBuf, dwFlags, dwReserved : PDWORD) : HResult; stdcall;
   end;
@@ -769,11 +769,11 @@ Type
   PIInternetBindInfoRaw = ^IInternetBindInfoRaw;
 
   IInternetBindInfo = interface ['{79eac9e1-baf9-11ce-8c82-00aa004ba90b}']
-    Function GetBindInfo(out grfBINDF : DWORD; var bindinfo : TBindInfo) : HResult; stdcall; 
+    Function GetBindInfo(out grfBINDF : DWORD; var bindinfo : TBindInfo) : HResult; stdcall;
 	Function GetBindString(ulStringType : ULONG; wzStr : POLEStr; cEl : ULONG; var cElFetched : ULONG) : HResult; stdcall;
   end;
   PIInternetBindInfo = ^IInternetBindInfo;
-  
+
   IInternetProtocolRootRaw = interface ['{79eac9e3-baf9-11ce-8c82-00aa004ba90b}']
     Function Start(szUrl : LPCWSTR; OIProtSink : IInternetProtocolSink; OIBindInfo : IInternetBindInfo; grfPI, dwReserved : DWORD) : HResult; stdcall;
     Function Continue(const ProtocolData : TProtocolData) : HResult; stdcall;
@@ -847,13 +847,13 @@ Type
     Function GetPriority(nPriority : PLongint) : HResult; stdcall;
   end;
   PIInternetPriorityRaw = ^IInternetPriorityRaw;
-  
+
   IInternetPriority = interface ['{79eac9eb-baf9-11ce-8c82-00aa004ba90b}']
     Function SetPriority(nPriority : Longint) : HResult; stdcall;
     Function GetPriority(out nPriority : Longint) : HResult; stdcall;
   end;
   PIInternetPriority = ^IInternetPriority;
-  
+
   IInternetProtocolInfoRaw = interface ['{79eac9ec-baf9-11ce-8c82-00aa004ba90b}']
     Function ParseUrl(pwzUrl : LPCWSTR; ParseAction : TParseAction; dwParseFlags : DWORD; pwzResult : LPWSTR; cchResult : DWORD; pcchResult : DWORD; dwReserved : DWORD) : HResult; stdcall;
     Function CombineUrl(pwzBaseUrl, pwzRelativeUrl : LPCWSTR; dwCombineFlags : DWORD; pwzResult : LPWSTR; cchResult : DWORD; pcchResult : PDWORD; dwReserved : DWORD) : HResult; stdcall;
@@ -893,7 +893,7 @@ Type
     Function GetZoneMappings(dwZone : DWORD; enumString : PIEnumString; dwFlags : DWORD) : HResult; stdcall;
   end;
   PIInternetSecurityManagerRaw = ^IInternetSecurityManagerRaw;
-  
+
   IInternetSecurityManager = interface ['{79eac9ee-baf9-11ce-8c82-00aa004ba90b}']
     Function SetSecuritySite(Site : IInternetSecurityMgrSite) : HResult; stdcall;
     Function GetSecuritySite(out Site : IInternetSecurityMgrSite) : HResult; stdcall;
@@ -905,7 +905,7 @@ Type
     Function GetZoneMappings(dwZone : DWORD; out enumString : IEnumString; dwFlags : DWORD) : HResult; stdcall;
   end;
   PIInternetSecurityManager = ^IInternetSecurityManager;
-  
+
   IInternetHostSecurityManagerRaw = interface ['{3af280b6-cb3f-11d0-891e-00c04fb6bfc4}']
     Function GetSecurityId(pbSecurityId : Pointer; cbSecurityId : PDWORD; dwReserved : DWORD) : HResult; stdcall;
     Function ProcessUrlAction(dwAction : DWORD; pPolicy : Pointer; cbPolicy : DWORD; pContext : Pointer; cbContext, dwFlags, dwReserved : DWORD) : HResult; stdcall;
@@ -935,7 +935,7 @@ Type
     Function CopyTemplatePoliciesToZone(dwTemplate, dwZone, dwReserved : DWORD) : HResult; stdcall;
   end;
   PIInternetZoneManagerRaw = ^IInternetZoneManagerRaw;
-    
+
   IInternetZoneManager = interface  ['{79eac9ef-baf9-11ce-8c82-00aa004ba90b}']
     Function GetZoneAttributes(dwZone : DWORD; var ZoneAttributes : TZoneAttributes) : HResult; stdcall;
     Function SetZoneAttributes(dwZone : DWORD; const ZoneAttributes : TZoneAttributes) : HResult; stdcall;
@@ -951,7 +951,7 @@ Type
     Function CopyTemplatePoliciesToZone(dwTemplate, dwZone, dwReserved : DWORD) : HResult; stdcall;
   end;
   PIInternetZoneManager = ^IInternetZoneManager;
-    
+
   ISoftDistExtRaw = interface ['{B15B8DC1-C7E1-11d0-8680-00AA00BDCB71}']
     Function ProcessSoftDist(szCDFURL : LPCWSTR; SoftDistElement : Pointer; lpdsi : PSoftDistInfo) : HResult; stdcall;
     Function GetFirstCodeBase(szCodeBase : PLPWSTR;const dwMaxSize : DWORD) : HResult; stdcall;
@@ -959,7 +959,7 @@ Type
     Function AsyncInstallDistributionUnit(bc : IBindCtx; pvReserved : Pointer; flags : DWORD; const cbh : TCodeBaseHold) : HResult; stdcall;
   end;
   PISoftDistExtRaw = ^ISoftDistExtRaw;
-  
+
   ISoftDistExt = interface ['{B15B8DC1-C7E1-11d0-8680-00AA00BDCB71}']
     Function ProcessSoftDist(szCDFURL : LPCWSTR; SoftDistElement : Pointer; var lpdsi : TSoftDistInfo) : HResult; stdcall;
     Function GetFirstCodeBase(var szCodeBase : LPWSTR;const dwMaxSize : DWORD) : HResult; stdcall;
@@ -987,18 +987,18 @@ Type
     Function GetDefaultFilter(pwzCodeIn, pwzCodeOut : LPCWSTR; info : TDataInfo; DF : PIDataFilterRaw) : HResult; stdcall;
   end;
   PIEncodingFilterFactoryRaw = ^IEncodingFilterFactoryRaw;
-  
+
   IEncodingFilterFactory = interface ['{70bdde00-c18e-11d0-a9ce-006097942311}']
     Function FindBestFilter(pwzCodeIn, pwzCodeOut : LPCWSTR; info : TDataInfo; out DF : IDataFilter) : HResult; stdcall;
     Function GetDefaultFilter(pwzCodeIn, pwzCodeOut : LPCWSTR; info : TDataInfo; out DF : IDataFilter) : HResult; stdcall;
   end;
   PIEncodingFilterFactory = ^IEncodingFilterFactory;
-  
+
 Function CoGetClassObjectFromURL(const rCLASSID : TCLSID; szCODE : LPCWSTR; dwFileVersionMS, dwFileVersionLS : DWORD; szTYPE : LPCWSTR; pBindCtx : IBindCtx; dwClsContext : DWORD;  pvReserved : Pointer; const riid : TGUID; ppv  : pointer) : HResult; stdcall; external liburlmon;
 Function CoGetClassObjectFromURL(const rCLASSID : TCLSID; szCODE : LPCWSTR; dwFileVersionMS, dwFileVersionLS : DWORD; szTYPE : LPCWSTR; pBindCtx : IBindCtx; dwClsContext : DWORD;  pvReserved : Pointer; const riid : TGUID; out ppv) : HResult; stdcall; external liburlmon;
 Function CoInternetCombineUrl(pwzBaseUrl, pwzRelativeUrl : LPCWSTR; dwCombineFlags : DWORD; pszResult : LPWSTR; cchResult : DWORD; pcchResult : PDWORD; dwReserved : DWORD) : HResult ; stdcall; external liburlmon;
 Function CoInternetCombineUrl(pwzBaseUrl, pwzRelativeUrl : LPCWSTR; dwCombineFlags : DWORD; pszResult : LPWSTR; cchResult : DWORD; var pcchResult : DWORD; dwReserved : DWORD) : HResult ; stdcall; external liburlmon;
-Function CoInternetCompareUrl(pwzUrl1, pwzUrl2 : LPCWSTR; dwFlags : DWORD) : HResult; stdcall; external liburlmon; 
+Function CoInternetCompareUrl(pwzUrl1, pwzUrl2 : LPCWSTR; dwFlags : DWORD) : HResult; stdcall; external liburlmon;
 Function CoInternetGetProtocolFlags(pwzUrl : LPCWSTR; dwFlags : PDWORD; dwReserved : DWORD) : HResult; stdcall; external liburlmon;
 Function CoInternetGetProtocolFlags(pwzUrl : LPCWSTR; var dwFlags : DWORD; dwReserved : DWORD) : HResult; stdcall; external liburlmon;
 Function CoInternetCreateSecurityManager(SP : IServiceProvider; SM : PIInternetSecurityManager; dwReserved : DWORD) : HResult; stdcall; external liburlmon;
@@ -1080,7 +1080,7 @@ Function URLOpenStream(p1 : IUnknown; p2 : PAnsiChar; p3 : DWORD; p4 : IBindStat
 Function URLOpenStreamA(p1 : IUnknown; p2 : PAnsiChar; p3 : DWORD; p4 : IBindStatusCallback) : HResult; stdcall; external liburlmon;
 Function URLOpenStreamW(p1 : IUnknown; p2 : PWideChar; p3 : DWORD; p4 : IBindStatusCallback) : HResult; stdcall; external liburlmon;
 Function WriteHitLogging(const Logginginfo : THIT_LOGGING_INFO) : BOOL; stdcall; external liburlmon;
-Procedure ReleaseBindInfo(const bindinfo : TBindInfo); stdcall; external liburlmon; 
+Procedure ReleaseBindInfo(const bindinfo : TBindInfo); stdcall; external liburlmon;
 
 implementation
 

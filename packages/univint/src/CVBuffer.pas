@@ -292,7 +292,7 @@ procedure CVBufferRelease( buffer: CVBufferRef ); external name '_CVBufferReleas
 {!
     @function   CVBufferSetAttachment
     @abstract   Sets or adds a attachment of a CVBuffer object
-    @discussion You can attach any CF object to a CVBuffer object to store additional information. CVBufferGetAttachment stores an attachement identified by a key. If the key doesn't exist, the attachment will be added. If the key does exist, the existing attachment will be replaced. In bouth cases the retain count of the attachment will be incremented. The value can be any CFType but nil has no defined behavior.
+    @discussion You can attach any CF object to a CVBuffer object to store additional information. CVBufferGetAttachment stores an attachment identified by a key. If the key doesn't exist, the attachment will be added. If the key does exist, the existing attachment will be replaced. In bouth cases the retain count of the attachment will be incremented. The value can be any CFType but nil has no defined behavior.
     @param      buffer  Target CVBuffer object.
     @param      key     Key in form of a CFString identifying the desired attachment.
     @param      value	Attachment in form af a CF object.
@@ -306,7 +306,7 @@ procedure CVBufferSetAttachment( buffer: CVBufferRef; key: CFStringRef; value: C
 {!
     @function   CVBufferGetAttachment
     @abstract   Returns a specific attachment of a CVBuffer object
-    @discussion You can attach any CF object to a CVBuffer object to store additional information. CVBufferGetAttachment retrieves an attachement identified by a key.
+    @discussion You can attach any CF object to a CVBuffer object to store additional information. CVBufferGetAttachment retrieves an attachment identified by a key.
     @param      buffer  Target CVBuffer object.
     @param      key	Key in form of a CFString identifying the desired attachment.
     @param      attachmentMode.  Returns the mode of the attachment, if desired.  May be NULL.
@@ -318,7 +318,7 @@ function CVBufferGetAttachment( buffer: CVBufferRef; key: CFStringRef; var attac
 {!
     @function   CVBufferRemoveAttachment
     @abstract   Removes a specific attachment of a CVBuffer object
-    @discussion CVBufferRemoveAttachment removes an attachement identified by a key. If found the attachement is removed and the retain count decremented.
+    @discussion CVBufferRemoveAttachment removes an attachment identified by a key. If found the attachment is removed and the retain count decremented.
     @param      buffer  Target CVBuffer object.
     @param      key	Key in form of a CFString identifying the desired attachment.
 }
@@ -328,7 +328,7 @@ procedure CVBufferRemoveAttachment( buffer: CVBufferRef; key: CFStringRef ); ext
 {!
     @function   CVBufferRemoveAllAttachments
     @abstract   Removes all attachments of a CVBuffer object
-    @discussion While CVBufferRemoveAttachment removes a specific attachement identified by a key CVBufferRemoveAllAttachments removes all attachments of a buffer and decrements their retain counts.
+    @discussion While CVBufferRemoveAttachment removes a specific attachment identified by a key CVBufferRemoveAllAttachments removes all attachments of a buffer and decrements their retain counts.
     @param      buffer  Target CVBuffer object.
 }
 procedure CVBufferRemoveAllAttachments( buffer: CVBufferRef ); external name '_CVBufferRemoveAllAttachments';

@@ -15,7 +15,7 @@ type
   TFPResourceHGLOBAL = PtrUInt;
 {$ifndef Win16}
 {$ifdef FPC_OS_UNICODE}
-  {roozbeh : maybe it shoud be moved after ifndef mswindows,as there is one declared in wince,base.inc}
+  {roozbeh : maybe it should be moved after ifndef mswindows,as there is one declared in wince,base.inc}
   MAKEINTRESOURCE = pwidechar;
 {$else}
   MAKEINTRESOURCE = PAnsiChar;

@@ -28,7 +28,7 @@ uses
 uses
   Classes, SysUtils, sqldb, fpdatadict, fpddsqldb, db;
 {$ENDIF FPC_DOTTEDUNITS}
-  
+
 Type
 
   { TFPDDMSSQLEngine }
@@ -122,8 +122,8 @@ const
      '  t.name=:TableName '+
      'ORDER BY '+
      '  t.name, ind.name, ind.index_id, ic.index_column_id ';
-      
-        
+
+
 Var
   Q : TSQLQuery;
   FIndexName, FFieldName, FUnique, FConstraint : TField;
@@ -148,7 +148,7 @@ Var
     if FUnique.AsInteger<>0 then
       result.Options:=[ixUnique];
   end;
-  
+
 
 Var
   FN,IndName : String;

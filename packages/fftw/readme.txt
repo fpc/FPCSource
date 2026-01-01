@@ -8,9 +8,9 @@ transformation.
 
 The unit is experimental and community involvement is welcome.
 
-At this time we provide a single precision interface only. 
+At this time we provide a single precision interface only.
 Interfaces for the double and extended precision is a simpleprogramming
-exercise, you can simply replace single by double everywhere. 
+exercise, you can simply replace single by double everywhere.
 
 See http://www.fftw.org for extensive documentation.
 
@@ -59,5 +59,5 @@ Differences with C version:
   ** Functions for complex to complex, real to complex, and complex to real are
      all called equally, the compiler will determine which one needs to be
      called. So we have just fftw_plan_dft_1d instead of fftw_plan_dft_1d,
-     fftw_plan_dft_r2c_1d, fftw_plan_dft_c2r_1d, etc. 
+     fftw_plan_dft_r2c_1d, fftw_plan_dft_c2r_1d, etc.
   * fftw_getmem/fftw_freemem instead of fftw_malloc/fftw_free

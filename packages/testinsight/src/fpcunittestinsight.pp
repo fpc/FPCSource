@@ -3,7 +3,7 @@
     Copyright (c) 2023 by Michael Van Canneyt
 
     Test Insight FPCUnit test listener.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -68,7 +68,7 @@ implementation
 uses
 {$IFDEF FPC_DOTTEDUNITS}
   System.DateUtils;
-{$ELSE}  
+{$ELSE}
   DateUtils;
 {$ENDIF}
 

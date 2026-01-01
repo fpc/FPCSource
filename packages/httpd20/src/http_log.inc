@@ -43,15 +43,15 @@ const
   APLOG_NOERRNO	=	(APLOG_LEVELMASK + 1);
 
 { Use APLOG_TOCLIENT on ap_log_rerror() to give content
- * handlers the option of including the error text in the 
+ * handlers the option of including the error text in the
  * ErrorDocument sent back to the client. Setting APLOG_TOCLIENT
- * will cause the error text to be saved in the request_rec->notes 
+ * will cause the error text to be saved in the request_rec->notes
  * table, keyed to the string "error-notes", if and only if:
  * - the severity level of the message is APLOG_WARNING or greater
  * - there are no other "error-notes" set in request_rec->notes
  * Once error-notes is set, it is up to the content handler to
  * determine whether this text should be sent back to the client.
- * Note: Client generated text streams sent back to the client MUST 
+ * Note: Client generated text streams sent back to the client MUST
  * be escaped to prevent CSS attacks.
  }
   APLOG_TOCLIENT =         ((APLOG_LEVELMASK + 1) * 2);
@@ -90,7 +90,7 @@ function ap_replace_stderr_log(p: Papr_pool_t;
  * @param ptemp Pool used for temporary allocations
  * @param s_main The main server
  * @tip ap_open_logs isn't expected to be used by modules, it is
- * an internal core function 
+ * an internal core function
  }
 {int ap_open_logs(apr_pool_t *pconf, apr_pool_t *plog,
                  apr_pool_t *ptemp, server_rec *s_main);}
@@ -111,11 +111,11 @@ function ap_replace_stderr_log(p: Papr_pool_t;
 
 {
  * The primary logging functions, ap_log_error, ap_log_rerror, ap_log_cerror,
- * and ap_log_perror use a printf style format string to build the log message.  
- * It is VERY IMPORTANT that you not include any raw data from the network, 
- * such as the request-URI or request header fields, within the format 
- * string.  Doing so makes the server vulnerable to a denial-of-service 
- * attack and other messy behavior.  Instead, use a simple format string 
+ * and ap_log_perror use a printf style format string to build the log message.
+ * It is VERY IMPORTANT that you not include any raw data from the network,
+ * such as the request-URI or request header fields, within the format
+ * string.  Doing so makes the server vulnerable to a denial-of-service
+ * attack and other messy behavior.  Instead, use a simple format string
  * like "%s", followed by the string containing the untrusted data.
  }
 
@@ -135,13 +135,13 @@ function ap_replace_stderr_log(p: Papr_pool_t;
  * in preference to calling this function.  Otherwise, if a conn_rec is
  * available, use that with ap_log_cerror() in preference to calling
  * this function.
- * @warning It is VERY IMPORTANT that you not include any raw data from 
- * the network, such as the request-URI or request header fields, within 
- * the format string.  Doing so makes the server vulnerable to a 
- * denial-of-service attack and other messy behavior.  Instead, use a 
- * simple format string like "%s", followed by the string containing the 
+ * @warning It is VERY IMPORTANT that you not include any raw data from
+ * the network, such as the request-URI or request header fields, within
+ * the format string.  Doing so makes the server vulnerable to a
+ * denial-of-service attack and other messy behavior.  Instead, use a
+ * simple format string like "%s", followed by the string containing the
  * untrusted data.
- * @deffunc void ap_log_error(const AnsiChar *file, int line, int level, apr_status_t status, const server_rec *s, const AnsiChar *fmt, ...) 
+ * @deffunc void ap_log_error(const AnsiChar *file, int line, int level, apr_status_t status, const server_rec *s, const AnsiChar *fmt, ...)
  }
 procedure ap_log_error(
  const file_: PAnsiChar; line, level: Integer;
@@ -163,13 +163,13 @@ procedure ap_log_error(
  * @param fmt The format string
  * @param ... The arguments to use to fill out fmt.
  * @tip Use APLOG_MARK to fill out file and line
- * @warning It is VERY IMPORTANT that you not include any raw data from 
- * the network, such as the request-URI or request header fields, within 
- * the format string.  Doing so makes the server vulnerable to a 
- * denial-of-service attack and other messy behavior.  Instead, use a 
- * simple format string like "%s", followed by the string containing the 
+ * @warning It is VERY IMPORTANT that you not include any raw data from
+ * the network, such as the request-URI or request header fields, within
+ * the format string.  Doing so makes the server vulnerable to a
+ * denial-of-service attack and other messy behavior.  Instead, use a
+ * simple format string like "%s", followed by the string containing the
  * untrusted data.
- * @deffunc void ap_log_perror(const AnsiChar *file, int line, int level, apr_status_t status, apr_pool_t *p, const AnsiChar *fmt, ...) 
+ * @deffunc void ap_log_perror(const AnsiChar *file, int line, int level, apr_status_t status, apr_pool_t *p, const AnsiChar *fmt, ...)
  }
 procedure ap_log_perror(
  const file_: PAnsiChar; line, level: Integer;
@@ -192,11 +192,11 @@ procedure ap_log_perror(
  * @param fmt The format string
  * @param ... The arguments to use to fill out fmt.
  * @tip Use APLOG_MARK to fill out file and line
- * @warning It is VERY IMPORTANT that you not include any raw data from 
- * the network, such as the request-URI or request header fields, within 
- * the format string.  Doing so makes the server vulnerable to a 
- * denial-of-service attack and other messy behavior.  Instead, use a 
- * simple format string like "%s", followed by the string containing the 
+ * @warning It is VERY IMPORTANT that you not include any raw data from
+ * the network, such as the request-URI or request header fields, within
+ * the format string.  Doing so makes the server vulnerable to a
+ * denial-of-service attack and other messy behavior.  Instead, use a
+ * simple format string like "%s", followed by the string containing the
  * untrusted data.
  * @deffunc void ap_log_rerror(const AnsiChar *file, int line, int level, apr_status_t status, const request_rec *r, const AnsiChar *fmt, ...)
  }
@@ -223,11 +223,11 @@ procedure ap_log_rerror(
  * @tip Use APLOG_MARK to fill out file and line
  * @tip If a request_rec is available, use that with ap_log_rerror()
  * in preference to calling this function.
- * @warning It is VERY IMPORTANT that you not include any raw data from 
- * the network, such as the request-URI or request header fields, within 
- * the format string.  Doing so makes the server vulnerable to a 
- * denial-of-service attack and other messy behavior.  Instead, use a 
- * simple format string like "%s", followed by the string containing the 
+ * @warning It is VERY IMPORTANT that you not include any raw data from
+ * the network, such as the request-URI or request header fields, within
+ * the format string.  Doing so makes the server vulnerable to a
+ * denial-of-service attack and other messy behavior.  Instead, use a
+ * simple format string like "%s", followed by the string containing the
  * untrusted data.
  * @note ap_log_cerror() is available starting with Apache 2.0.55.
  * @deffunc void ap_log_cerror(const AnsiChar *file, int line, int level, apr_status_t status, const conn_rec *c, const AnsiChar *fmt, ...)

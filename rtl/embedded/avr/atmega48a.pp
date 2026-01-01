@@ -115,7 +115,7 @@ var
 const
   // UCSR0A
   RXC0 = 7; // USART Receive Complete
-  TXC0 = 6; // USART Transmitt Complete
+  TXC0 = 6; // USART Transmit Complete
   UDRE0 = 5; // USART Data Register Empty
   FE0 = 4; // Framing Error
   DOR0 = 3; // Data overRun

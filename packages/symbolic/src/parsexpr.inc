@@ -77,7 +77,7 @@ Modifications: (starting to get so big that the original is hardly
                recognisable)
 - OOP. Mainly to allow symbolic TExpression class to have custom parsers.
 - Working with pnode stack instead of reals. Pnodes can be any expression,
-   see inteface unit symbolic. (creating a parsetree)
+   see interface unit symbolic. (creating a parsetree)
 - Support for functions(one or two parameter arguments), which weren't in the
    short Swag version. Most MATH functions are supported.
 - Can make a difference between the minus of (-x) and the one in (x-y).

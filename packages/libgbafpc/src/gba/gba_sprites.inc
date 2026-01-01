@@ -25,14 +25,14 @@
 
 
   ------------------------------------------------------------------------------
-    
-    
+
+
   Conversion by Legolas (http://itaprogaming.free.fr) for freepascal compiler
   (http://www.freepascal.org)
-   
+
   Copyright (C) 2006  Francesco Lombardi
   Check http://sourceforge.net/projects/libndsfpc for updates
-   
+
   ------------------------------------------------------------------------------
 
   $Log$
@@ -49,7 +49,7 @@ type
     attr1: u16;
     attr2: u16;
     dummy: u16;
-  end; 
+  end;
   POBJATTR = ^OBJATTR;
 
   SpriteEntry = record
@@ -80,12 +80,12 @@ const
 type
   SPRITE_SHAPES = integer;
 
-const  
+const
   SQUARE: SPRITE_SHAPES = 0;
-  WIDE: SPRITE_SHAPES = 1; 
+  WIDE: SPRITE_SHAPES = 1;
   TALL: SPRITE_SHAPES = 2;
-  
-  
+
+
 function OBJ_SHAPE(m: integer): integer; inline;
 
 // Sprite Attribute 0
@@ -157,7 +157,7 @@ function ATTR2_PALETTE(n: integer): integer; inline;
 //---------------------------------------------------------------------------------
 type
   SPRITE_SIZECODE = integer;
-const		
+const
   Sprite_8x8  : SPRITE_SIZECODE = 0;
   Sprite_16x16: SPRITE_SIZECODE = 1;
   Sprite_32x32: SPRITE_SIZECODE = 2;
@@ -175,7 +175,7 @@ const
 
 {$ifdef GBA_IMPLEMENTATION}
 function OBJ_SHAPE(m: integer): integer; inline;
-begin		
+begin
   OBJ_SHAPE := ((m) shl 14);
 end;
 
@@ -228,12 +228,12 @@ begin
 end;
 
 function ATTR2_PRIORITY(n: integer): integer; inline;
-begin     
+begin
   ATTR2_PRIORITY := ((n) shl 10);
 end;
 
 function ATTR2_PALETTE(n: integer): integer; inline;
-begin      
+begin
   ATTR2_PALETTE := ((n) shl 12);
 end;
 

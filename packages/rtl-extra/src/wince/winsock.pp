@@ -89,7 +89,7 @@ unit winsock;
        WINSOCK_VERSION = $0101; // hopefully is right for winCE too
 
        {
-         Default maximium number of sockets.
+         Default maximum number of sockets.
          this does not
          mean that the underlying Windows Sockets implementation has to
          support that many!

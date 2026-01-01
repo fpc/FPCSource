@@ -5,7 +5,7 @@
     This is a translation of the VLC library headers.
     The original VLC library license applies if you use the VLC libraries.
     See http://www.videolan.org/ for license details.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -50,7 +50,7 @@ var
   _bool = cint;
    Ppcchar = ^Pcchar;
 
-  // Opaque types.  
+  // Opaque types.
   libvlc_event_manager_t = record end;
   Libvlc_instance_t = record end;
   Libvlc_log_iterator_t = record end;
@@ -61,7 +61,7 @@ var
   Libvlc_media_list_t = record end;
   Libvlc_media_player_t = record end;
   Libvlc_media_t = record end;
-  
+
   Plibvlc_audio_output_t  = ^libvlc_audio_output_t;
   Plibvlc_event_manager_t  = ^libvlc_event_manager_t;
   Plibvlc_event_t  = ^libvlc_event_t;
@@ -79,8 +79,8 @@ var
   Plibvlc_media_track_info_t  = ^libvlc_media_track_info_t;
   Plibvlc_module_description_t  = ^libvlc_module_description_t;
   Plibvlc_track_description_t  = ^libvlc_track_description_t;
-  
-  
+
+
   int8_t = cschar;
   int16_t = csint;
   int32_t = cint;
@@ -580,7 +580,7 @@ Var
     libvlc_video_get_marquee_string : function(p_mi:Plibvlc_media_player_t; option:cunsigned):pcchar; cdecl;
     libvlc_video_set_marquee_int : procedure(p_mi:Plibvlc_media_player_t; option:cunsigned; i_val:cint); cdecl;
     libvlc_video_set_marquee_string : procedure(p_mi:Plibvlc_media_player_t; option:cunsigned; psz_text:pcchar); cdecl;
-    libvlc_audio_set_callbacks : procedure(mp:Plibvlc_media_player_t; play:libvlc_audio_play_cb; pause:libvlc_audio_pause_cb; resume:libvlc_audio_resume_cb; flush:libvlc_audio_flush_cb; 
+    libvlc_audio_set_callbacks : procedure(mp:Plibvlc_media_player_t; play:libvlc_audio_play_cb; pause:libvlc_audio_pause_cb; resume:libvlc_audio_resume_cb; flush:libvlc_audio_flush_cb;
       drain:libvlc_audio_drain_cb; opaque:pointer); cdecl;
     libvlc_audio_set_volume_callback : procedure(mp:Plibvlc_media_player_t; set_volume:libvlc_audio_set_volume_cb); cdecl;
     libvlc_video_set_callbacks : procedure(mp:Plibvlc_media_player_t; lock:libvlc_video_lock_cb; unlock:libvlc_video_unlock_cb; display:libvlc_video_display_cb; opaque:pointer); cdecl;
@@ -601,9 +601,9 @@ Var
     libvlc_media_discoverer_event_manager : function(p_mdis:Plibvlc_media_discoverer_t):plibvlc_event_manager_t; cdecl;
     libvlc_media_discoverer_is_running : function(p_mdis:Plibvlc_media_discoverer_t):cint; cdecl;
     libvlc_vlm_release : procedure(p_instance:Plibvlc_instance_t); cdecl;
-    libvlc_vlm_add_broadcast : function(p_instance:Plibvlc_instance_t; psz_name:pcchar; psz_input:pcchar; psz_output:pcchar; i_options:cint; 
+    libvlc_vlm_add_broadcast : function(p_instance:Plibvlc_instance_t; psz_name:pcchar; psz_input:pcchar; psz_output:pcchar; i_options:cint;
       ppsz_options:Ppcchar; b_enabled:cint; b_loop:cint):cint; cdecl;
-    libvlc_vlm_add_vod : function(p_instance:Plibvlc_instance_t; psz_name:pcchar; psz_input:pcchar; i_options:cint; ppsz_options:Ppcchar; 
+    libvlc_vlm_add_vod : function(p_instance:Plibvlc_instance_t; psz_name:pcchar; psz_input:pcchar; i_options:cint; ppsz_options:Ppcchar;
       b_enabled:cint; psz_mux:pcchar):cint; cdecl;
     libvlc_vlm_del_media : function(p_instance:Plibvlc_instance_t; psz_name:pcchar):cint; cdecl;
     libvlc_vlm_set_enabled : function(p_instance:Plibvlc_instance_t; psz_name:pcchar; b_enabled:cint):cint; cdecl;
@@ -612,7 +612,7 @@ Var
     libvlc_vlm_add_input : function(p_instance:Plibvlc_instance_t; psz_name:pcchar; psz_input:pcchar):cint; cdecl;
     libvlc_vlm_set_loop : function(p_instance:Plibvlc_instance_t; psz_name:pcchar; b_loop:cint):cint; cdecl;
     libvlc_vlm_set_mux : function(p_instance:Plibvlc_instance_t; psz_name:pcchar; psz_mux:pcchar):cint; cdecl;
-    libvlc_vlm_change_media : function(p_instance:Plibvlc_instance_t; psz_name:pcchar; psz_input:pcchar; psz_output:pcchar; i_options:cint; 
+    libvlc_vlm_change_media : function(p_instance:Plibvlc_instance_t; psz_name:pcchar; psz_input:pcchar; psz_output:pcchar; i_options:cint;
       ppsz_options:Ppcchar; b_enabled:cint; b_loop:cint):cint; cdecl;
     libvlc_vlm_play_media : function(p_instance:Plibvlc_instance_t; psz_name:pcchar):cint; cdecl;
     libvlc_vlm_stop_media : function(p_instance:Plibvlc_instance_t; psz_name:pcchar):cint; cdecl;
@@ -636,14 +636,14 @@ implementation
 
 {$IFDEF FPC_DOTTEDUNITS}
 uses
-  System.SysUtils, 
+  System.SysUtils,
  {$IFDEF Windows}
   WinApi.Windows,
  {$ENDIF}
   System.DynLibs;
 {$ELSE FPC_DOTTEDUNITS}
 uses
-  SysUtils, 
+  SysUtils,
  {$IFDEF WINDOWS}
   windows,
  {$ENDIF}
@@ -943,15 +943,15 @@ end;
 Procedure Loadlibvlc(lib : AnsiString; CheckProcNames : Boolean = False);
 
   Function GetProcAddress(h : TLibHandle; Name : AnsiString) : Pointer;
-  
+
   begin
     Result:={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}DynLibs.GetProcAddress(h,Name);
     If (Result=Nil) and CheckProcNames then
       raise Exception.CreateFmt('Could not find procedure address: %s ',[Name]);
   end;
-  
+
   Procedure EM(FN : String);
-  
+
   begin
     {$ifndef VER2_6}
     Raise Exception.CreateFmt('Could not load library "%s": %s',[FN,GetLoadErrorStr]);
@@ -982,10 +982,10 @@ Procedure Loadlibvlc(lib : AnsiString; CheckProcNames : Boolean = False);
   end;
 
 
-{$IFDEF WINDOWS}  
+{$IFDEF WINDOWS}
 Var
   D : String;
-{$endif}  
+{$endif}
 
 begin
   if (hLib<>NilHandle) then
@@ -999,7 +999,7 @@ begin
   if (hlib=NilHandle) then
     begin
     D:=ExtractFilePath(lib);
-    // Try default name in same directiory.
+    // Try default name in same directory.
     hlib:=TryLoadLib(d+libname);
     if (hLib=NilHandle) and (d='') then
       begin
@@ -1008,8 +1008,8 @@ begin
         DefaultLibPath:=GetVLCLibPath;
       if (DefaultLibPath<>'') then
         hLib:=TryLoadLib(IncludeTrailingPathDelimiter(DefaultlibPath)+libname);
-      end;  
-    end;  
+      end;
+    end;
 {$endif}
   if (hLib=NilHandle) then
     EM(Lib);

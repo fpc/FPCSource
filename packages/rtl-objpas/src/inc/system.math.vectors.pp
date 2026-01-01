@@ -63,7 +63,7 @@ type
     function GetPoint(T: Single): TPointF; overload;
   end;
 
-  
+
 
   tagVECTOR = record
     case Integer of
@@ -386,7 +386,7 @@ begin
   EndPoint:=aD;
   // B(t)=(1-t)^3 * P0 + 3*(1-t)^2 * t * P1 + 3*(1-t)*t^2*P2 + t^3 * P3
   //     = P0 + 3 (P1-P0)*T + 3 * (P0 -2*P1 + P2) * T^2 + (-P0 + 3*P1 - 3*P2 + P3) * T^3
-  //     = StartPoint + A[1]'*T + A[2]'*T^2 + A[3]*T^3 
+  //     = StartPoint + A[1]'*T + A[2]'*T^2 + A[3]*T^3
   A[1].X:=(aB.X-aA.X)*3;
   A[1].Y:=(aB.Y-aA.Y)*3;
   A[2].X:=3*(aA.X - 2 * aB.X + aC.X);
@@ -409,7 +409,7 @@ function TCubicBezierCurve.GetPoint(T: Single): TPointF;
 
 var
   X,Y,T2,T3: Single;
-  
+
 begin
   T2:=T*T;
   T3:=T*T2;

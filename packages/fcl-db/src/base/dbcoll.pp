@@ -45,7 +45,7 @@ type
   Public
     Procedure LoadFromDataset(ADataset : TDataset);
   end;
-  
+
   { TDBCollection }
 
   TDBCollection = Class(TCollection)
@@ -123,4 +123,4 @@ begin
 end;
 
 end.
- 
+

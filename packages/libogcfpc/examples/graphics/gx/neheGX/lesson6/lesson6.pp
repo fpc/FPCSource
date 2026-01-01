@@ -12,7 +12,7 @@ uses
 
 { from NeHe.h} const nehe = 0;
 
-const 
+const
   DEFAULT_FIFO_SIZE = (256 * 1024);
 
 var
@@ -65,19 +65,19 @@ begin
   memset(gpfifo, 0, DEFAULT_FIFO_SIZE);
 
   fb := fb xor 1;
-  
+
   // init the flipper
   GX_Init(gpfifo, DEFAULT_FIFO_SIZE);
- 
+
   // clears the bg to color and clears the z buffer
   GX_SetCopyClear(background, $00ffffff);
- 
+
   // other gx setup
   GX_SetViewport(0, 0, rmode^.fbWidth, rmode^.efbHeight, 0, 1);
 
   yscale := GX_GetYScaleFactor(rmode^.efbHeight, rmode^.xfbHeight);
   xfbHeight := GX_SetDispCopyYScale(yscale);
-  
+
   GX_SetScissor(0, 0, rmode^.fbWidth, rmode^.efbHeight);
   GX_SetDispCopySrc(0, 0, rmode^.fbWidth, rmode^.efbHeight);
   GX_SetDispCopyDst(rmode^.fbWidth, xfbHeight);
@@ -130,7 +130,7 @@ begin
   // setup our camera at the origin
   // looking down the -z axis with y up
   guLookAt(view, @cam, @up, @look);
- 
+
   // setup our projection matrix
   // this creates a perspective matrix with a view angle of 90,
   // and aspect ratio based on the display resolution
@@ -157,7 +157,7 @@ begin
     guMtxConcat(view, model, modelview);
     // load the modelview matrix into matrix memory
     GX_LoadPosMtxImm(modelview, GX_PNMTX0);
-    
+
     GX_Begin(GX_QUADS, GX_VTXFMT0, 24);     // Draw a Cube
 
       GX_Position3f32(-1.0, 1.0,-1.0);  // Top Left of the quad (top)
@@ -234,11 +234,11 @@ begin
       GX_Position3f32(-1.0, 1.0, 1.0);  // Bottom Left Of The Quad (Right)
       GX_Color3f32( 1.0, 0.0, 1.0);     // Set The Color To Violet
       GX_TexCoord2f32( 1.0, 1.0);
-      GX_Position3f32( 1.0, 1.0, 1.0);  // Bottom Right Of The Quad (Right)   
+      GX_Position3f32( 1.0, 1.0, 1.0);  // Bottom Right Of The Quad (Right)
       GX_Color3f32( 1.0, 0.0, 1.0);     // Set The Color To Violet
       GX_TexCoord2f32( 0.0, 1.0);
 
-    GX_End();                 // Done Drawing The Quad 
+    GX_End();                 // Done Drawing The Quad
 
     GX_SetZMode(GX_TRUE, GX_LEQUAL, GX_TRUE);
     GX_SetColorUpdate(GX_TRUE);
@@ -259,5 +259,5 @@ begin
     rquad := rquad - 0.15;        // Decrease The Rotation Variable For The Quad     ( NEW )
 
   end;
-  
+
 end.

@@ -2,7 +2,7 @@
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by the Free Pascal development team
 
-    Implements indirect entry point for executables and libaries
+    Implements indirect entry point for executables and libraries
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.

@@ -55,7 +55,7 @@ begin
     ResponseJson.Free;
   end;
 
-  // Usefull for testing of memory-leaks
+  // Useful for testing of memory-leaks
   if ShouldShutdown then
     WebApp.Terminate;
 end;
@@ -163,7 +163,7 @@ begin
     Result := SHA1Print(SHA1File(AFileName));
 end;
 
-Function TMyCGIApp.InitializeWebHandler: TWebHandler; 
+Function TMyCGIApp.InitializeWebHandler: TWebHandler;
 begin
   Result:=TMyCgiHandler.Create(self);
 end;

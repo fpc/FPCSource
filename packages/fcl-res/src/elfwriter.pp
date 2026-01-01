@@ -50,7 +50,7 @@ type
     fOppositeEndianess : boolean;
     procedure SetDefaultTarget;
     procedure SetMachineType(const aMachineType : TElfMachineType);
-    
+
     procedure WriteElfIdent(aStream : TStream);
   protected
     function GetExtensions : string; override;
@@ -121,7 +121,7 @@ type
     property Items[index : integer] : PElf64Symbol read GetItem; default;
     property FirstGlobal : integer read fLocFree;
   end;
-  
+
   { TAbstractElfSubWriter }
 
   TAbstractElfSubWriter = class
@@ -590,7 +590,7 @@ begin
   ident.OsAbi:=ELFOSABI_NONE; // UNIX System V ABI
   ident.AbiVersion:=0;
   FillByte(ident.Padding[9],length(ident.Padding),0);
-  
+
   aStream.WriteBuffer(ident,sizeof(ident));
 end;
 

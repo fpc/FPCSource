@@ -12,7 +12,7 @@ program minigzip;
  real thing. On MSDOS, use only on file names without extension
  or in pipe mode.
 
-  Pascal tranlastion based on code contributed by Francisco Javier Crespo
+  Pascal translation based on code contributed by Francisco Javier Crespo
   Copyright (C) 1998 by Jacques Nomssi Nzali
   For conditions of distribution and use, see copyright notice in readme.txt
 }

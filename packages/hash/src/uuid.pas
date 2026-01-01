@@ -111,7 +111,7 @@ function uuid_compare(const u1, u2: uuid_t): integer;
 
 
 (******************************************************************************
- * auxilary functions
+ * auxiliary functions
  ******************************************************************************)
 
 { read_state -- read UUID generator state from non-volatile store }

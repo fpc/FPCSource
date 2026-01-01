@@ -252,7 +252,7 @@
     catalogs          : pointer;      (* document's own catalog *)
     recovery          : cint;      (* run in recovery mode *)
     progressive       : cint;   (* is this a progressive parsing *)
-    dict              : xmlDictPtr;          (* dictionnary for the parser *)
+    dict              : xmlDictPtr;          (* dictionary for the parser *)
     atts              : xmlCharPtrPtr;          (* array for the attributes callbacks *)
     maxatts           : cint;       (* the size of the array *)
     docdict           : cint;       (* use strings from dict to build tree *)
@@ -770,9 +770,9 @@
   XML_PARSE_PEDANTIC  = (1 shl 7); (* pedantic error reporting *)
   XML_PARSE_NOBLANKS  = (1 shl 8); (* remove blank nodes *)
   XML_PARSE_SAX1  = (1 shl 9); (* use the SAX1 interface internally *)
-  XML_PARSE_XINCLUDE  = (1 shl 10);(* Implement XInclude substitition  *)
+  XML_PARSE_XINCLUDE  = (1 shl 10);(* Implement XInclude substitution  *)
   XML_PARSE_NONET = (1 shl 11);(* Forbid network access *)
-  XML_PARSE_NODICT  = (1 shl 12);(* Do not reuse the context dictionnary *)
+  XML_PARSE_NODICT  = (1 shl 12);(* Do not reuse the context dictionary *)
   XML_PARSE_NSCLEAN = (1 shl 13);(* remove redundant namespaces declarations *)
   XML_PARSE_NOCDATA = (1 shl 14);(* merge CDATA as text nodes *)
   XML_PARSE_NOXINCNODE = (1 shl 15);(* do not generate XINCLUDE START/END nodes *)
@@ -979,7 +979,7 @@ function xmlCtxtReadIO(ctxt: xmlParserCtxtPtr; ioread: xmlInputReadCallback; ioc
 (**
  * xmlFeature:
  *
- * Used to examine the existance of features that can be enabled
+ * Used to examine the existence of features that can be enabled
  * or disabled at compile-time.
  * They used to be called XML_FEATURE_xxx but this clashed with Expat
  *)
@@ -1137,7 +1137,7 @@ function xmlHasFeature(feature: xmlFeature): cint; EXTDECL; external xml2lib;
 (**
  * xmlFeature:
  *
- * Used to examine the existance of features that can be enabled
+ * Used to examine the existence of features that can be enabled
  * or disabled at compile-time.
  * They used to be called XML_FEATURE_xxx but this clashed with Expat
  *)

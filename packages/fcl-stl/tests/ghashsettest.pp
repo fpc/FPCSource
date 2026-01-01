@@ -19,7 +19,7 @@ type TGHashSetTest = class(TTestCase)
     procedure HashSetTest3;
   public
     procedure Setup;override;
-  private 
+  private
     data:THashsetlli;
   end;
 

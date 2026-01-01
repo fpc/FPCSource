@@ -4,7 +4,7 @@ uses exec,easyasl, linklist, strings, amigautils;
 
 {
    How to get more files than one with easyasl.
-   Just remeber that you have to use linklist and
+   Just remember that you have to use linklist and
    not an ordinary list.
 
    24 Jan 2000.

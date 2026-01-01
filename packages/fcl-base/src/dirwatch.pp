@@ -48,7 +48,7 @@ unit dirwatch;
 interface
 
 uses
-{$IFDEF FPC_DOTTEDUNITS}  
+{$IFDEF FPC_DOTTEDUNITS}
   {$IFDEF USEDIRLIST}
   System.Types, System.StrUtils,System.Contnrs,
   {$ENDIF}
@@ -642,7 +642,7 @@ begin
           end
       until FindNext(Info)<>0;
     finally
-    
+
       {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Sysutils.FindClose(Info);
     end;
 end;

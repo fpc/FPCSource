@@ -17,7 +17,7 @@
 
 {
    History:
-   Changed tNewWindow.MaxHeigth and tNewWindow.MaxWidth
+   Changed tNewWindow.MaxHeight and tNewWindow.MaxWidth
    from Word to Integer.
    30 May 2000.
 
@@ -571,8 +571,8 @@ Type
 
     { these are the variables that Intuition sets and maintains }
 
-        CWidth          : Word;        { Container width (with any relativity absoluted) }
-        CHeight         : Word;        { Container height (with any relativity absoluted) }
+        CWidth          : Word;        { Container width (with any relativity obsoleted) }
+        CHeight         : Word;        { Container height (with any relativity obsoleted) }
         HPotRes,
         VPotRes         : Word;        { pot increments }
         LeftBorder      : Word;        { Container borders }
@@ -3046,7 +3046,7 @@ CONST
 
     { (BOOL) When set indicates that the application wants to
      * be notified of mouse movements while the gadget is active.
-     * It is recommmended that GA_Immediate and GA_RelVerify are
+     * It is recommended that GA_Immediate and GA_RelVerify are
      * also used so that the active gadget can be tracked by the
      * application.  Defaults to FALSE. }
     GA_FollowMouse     =  (GA_Dummy + $0017);
@@ -3148,7 +3148,7 @@ CONST
          Defaults to NULL. New for V44.  }
 
      GA_UserInput = GA_Dummy + 46;
-  { (BOOL) Notification tag indicates this notification is from the activite
+  { (BOOL) Notification tag indicates this notification is from the activity
            gadget receiving user input - an attempt to make IDCMPUPDATE more efficient.
          Defaults to FALSE. New for V44.  }
 { PROPGCLASS attributes }
@@ -3403,7 +3403,7 @@ Type
 
 {***************************************************************************}
 
-{ The GM_KEYTEST method is used to determin if a key press matches an
+{ The GM_KEYTEST method is used to determine if a key press matches an
  * object's activation key(s). }
 
 { GM_KEYTEST send this message.
@@ -4706,7 +4706,7 @@ end;
 
 
 
-{ The next functons _BGPEN AND _FGPEN aren't a full replacement of the
+{ The next functions _BGPEN AND _FGPEN aren't a full replacement of the
   C macros because the C preprocessor makes it possible to set the
   A/BPen values of the image class objects as well. This can't work
   in pascal, of course! }

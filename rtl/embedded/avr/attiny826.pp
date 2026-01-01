@@ -8,7 +8,7 @@ type
     Reserved1: byte;
     MUXCTRLA: byte;  //Mux Control A
     Reserved3: byte;
-    DACREF: byte;  //Referance scale control
+    DACREF: byte;  //Reference scale control
     Reserved5: byte;
     INTCTRL: byte;  //Interrupt Control
     STATUS: byte;  //Status
@@ -305,7 +305,7 @@ type
     VLMLVL_5ABOVE = $00;
     VLMLVL_15ABOVE = $01;
     VLMLVL_25ABOVE = $02;
-    // voltage level monitor interrrupt enable
+    // voltage level monitor interrupt enable
     VLMIEbm = $01;
     // BOD_VLMCFG
     VLMCFGmask = $06;
@@ -1851,7 +1851,7 @@ type
     WINDOW_2KCLK = $90;
     WINDOW_4KCLK = $A0;
     WINDOW_8KCLK = $B0;
-    // Syncronization busy
+    // Synchronization busy
     SYNCBUSYbm = $01;
     // Lock enable
     LOCKbm = $80;

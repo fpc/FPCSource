@@ -131,7 +131,7 @@ type
     procedure Service(Req: THttpServletRequest; Resp: THttpServletResponse); virtual;
   end;
 
-  // A simple file retreiving servlet
+  // A simple file retrieving servlet
   TCustomFileServlet = class(THttpServlet)
   private
     FPath: String;
@@ -452,7 +452,7 @@ begin
     if ((s[Length(s)] = '*') and (Copy(s, 1, Length(s) - 1) =
       Copy(URI, 1, Length(s) - 1))) or (s = URI) then
       Servlet:=Server.ServletMappings[i].Servlet;
-    inc(I);   
+    inc(I);
     end;
 
   if RequestHeader.ContentLength = 0 then

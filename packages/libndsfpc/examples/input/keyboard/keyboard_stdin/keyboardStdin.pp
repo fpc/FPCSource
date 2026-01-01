@@ -4,7 +4,7 @@ program keyboardStdin;
 
 uses
   ctypes, nds9;
-  
+
 procedure OnKeyPressed(key: cint);
 begin
   if (key > 0) then
@@ -24,15 +24,15 @@ begin
   while true do
   begin
     iprintf('What is your name?'#10);
-    
+
     scanf('%s', myName);
-    
+
     iprintf(#10'Hello %s', myName);
-    
+
     scanKeys();
-    while (keysDown() = 0)do 
+    while (keysDown() = 0)do
       scanKeys();
-    
+
     swiWaitForVBlank();
     consoleClear();
    end;

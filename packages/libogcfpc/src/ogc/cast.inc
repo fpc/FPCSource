@@ -60,7 +60,7 @@ procedure castf32s16(_in: pf32; out _out: pcint16); inline;
 
 procedure __set_gqr(_reg,_val: cint); inline;
 begin
-  asm 
+  asm
     mtspr r3,r4
   end;
 end;

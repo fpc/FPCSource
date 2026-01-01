@@ -19,7 +19,7 @@
   use in Lazarus: Drop it on a form, set the formats you want to see
   registered, and set active to true. When the form is created a run-time,
   the selected formats will be registered.
-  
+
   The simple call takes an optional single argument, a set which tells
   the call which formats to register. If none is specified, all formats
   are registered.
@@ -41,7 +41,7 @@ uses
 uses
   Classes, SysUtils, fpDBExport;
 {$ENDIF FPC_DOTTEDUNITS}
-  
+
 Type
   TStdExportformat = (sefCSV,sefFixedLength,sefSimpleXMl,sefXMLXSD,sefSimpleJSON,sefSQL,seTeX,seRTF,sefDBF);
   TStdExportformats = Set of TStdExportFormat;
@@ -69,7 +69,7 @@ Type
     Property Active : Boolean Read FActive Write SetActive;
     Property Formats : TStdExportFormats Read FFormats Write FFormats Default AllStdExportFormats;
   end;
-  
+
 Function RegisterStdFormats(Fmts : TStdExportFormats) : TStdExportFormats; overload;
 Function RegisterStdFormats : TStdExportFormats; overload;
 Function UnRegisterStdFormats(Fmts : TStdExportFormats) : TStdExportFormats;

@@ -267,7 +267,7 @@ type
     VLMLVL_5ABOVE = $01;
     VLMLVL_15ABOVE = $02;
     VLMLVL_25ABOVE = $03;
-    // voltage level monitor interrrupt enable
+    // voltage level monitor interrupt enable
     VLMIEbm = $01;
     // BOD_VLMCFG
     VLMCFGmask = $06;
@@ -2032,7 +2032,7 @@ type
     CMPBbm = $02;
     // Compare C value
     CMPCbm = $04;
-    // Compare D vaule
+    // Compare D value
     CMPDbm = $08;
     // Compare A enable
     CMPAENbm = $10;
@@ -2379,7 +2379,7 @@ type
     WINDOW_2KCLK = $90;
     WINDOW_4KCLK = $A0;
     WINDOW_8KCLK = $B0;
-    // Syncronization busy
+    // Synchronization busy
     SYNCBUSYbm = $01;
     // Lock enable
     LOCKbm = $80;

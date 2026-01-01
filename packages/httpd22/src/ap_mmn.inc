@@ -137,7 +137,7 @@ const
  * Useful for testing for features.
  * For example, suppose you wish to use the apr_table_overlap
  *    function.  You can do this:
- * 
+ *
  * #if AP_MODULE_MAGIC_AT_LEAST(19980812,2)
  *     ... use apr_table_overlap()
  * #else

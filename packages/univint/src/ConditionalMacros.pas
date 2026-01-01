@@ -258,7 +258,7 @@ interface
 //   UNIVERSAL_INTERFACES_VERSION = $0400;
 {***************************************************************************************************
 
-    All TARGET_* condtionals are set up by TargetConditionals.h
+    All TARGET_* conditionals are set up by TargetConditionals.h
 
 ***************************************************************************************************}
 

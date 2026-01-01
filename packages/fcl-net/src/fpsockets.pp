@@ -48,7 +48,7 @@ uses
 {$ELSE FPC_DOTTEDUNITS}
 uses
   {$IfDEF WINDOWS}WinSock2, {$ENDIF}
-  {$IFDEF unix}BaseUnix, termio, {$EndIf}  
+  {$IFDEF unix}BaseUnix, termio, {$EndIf}
   ctypes,
   sysutils, sockets, nullable, tuples;
 {$ENDIF FPC_DOTTEDUNITS}
@@ -219,7 +219,7 @@ function BytesAvailable(const ASocket: TFPSocket): SizeInt;
 function StreamClosed(const ASocket: TFPSocket): Boolean; inline;
 
 // For non blocking connections, connect will return a pending connection that needs to be checked
-// Note: csConnected means that connection was establised at least once
+// Note: csConnected means that connection was established at least once
 // If it has been closed by the other side, it is still csConnected, use StreamClosed to figure out
 // if the stream is actually open
 function ConnectionState(const ASocket: TFPSocket): TConnectionState;
@@ -605,12 +605,12 @@ var
   addrPtr : socketsunit.psockaddr;
 
 const
-  {$IFDEF WINDOWS} 
+  {$IFDEF WINDOWS}
   EALREADY = WSAEALREADY;
   EINPROGRESS = WSAEINPROGRESS;
   ECONNREFUSED = WSAECONNREFUSED;
   {$ENDIF}
-  
+
   {$IFDEF UNIX}
   EALREADY = ESysEALREADY;
   EINPROGRESS = ESysEINPROGRESS;
@@ -770,7 +770,7 @@ begin
   UdpMessage := ReceiveFrom(ASocket, @Result.Ptr^.Data[1], MaxLength, AFlags);
   if UdpMessage.DataSize = 0 then
     Exit(null);
-    
+
   SetLength(Result.Ptr^.Data, UdpMessage.DataSize);
   Result.Ptr^.FromAddr := UdpMessage.FromAddr;
   Result.Ptr^.FromPort := UdpMessage.FromPort;
@@ -953,7 +953,7 @@ begin
       end;
     Len += ReadLen;
     MaxCount := BytesAvailable(ASocket) div SizeOfT;
-    
+
   until ((Len<Length(Result)*SizeOf(T)) Or (MaxCount = 0)) And ((Len mod SizeOf(T)) = 0);
   SetLength(Result, Len div SizeOf(T));
 end;
@@ -1153,7 +1153,7 @@ end;
 
 function StreamClosed(const ASocket:TFPSocket):Boolean;
 begin
-  Result := (ASocket.Protocol <> spStream) 
+  Result := (ASocket.Protocol <> spStream)
             {$IFDEF HAVE_SELECT_CALL}
             Or (
               DataAvailable(ASocket, 0) And
@@ -1168,7 +1168,7 @@ const
   {$IFDEF WINDOWS}
   ECONNREFUSED = WSAECONNREFUSED;
   {$ENDIF}
-  
+
   {$IFDEF UNIX}
   ECONNREFUSED = ESysECONNREFUSED;
   {$EndIf}

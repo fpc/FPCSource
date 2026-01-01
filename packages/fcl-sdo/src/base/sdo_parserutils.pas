@@ -49,8 +49,8 @@ type
     constructor Create(AIntf : IInterface);
     destructor Destroy();override;
     property Intf : IInterface read FIntf;
-  end; 
-  
+  end;
+
   { TQualifiedNameObjectFilter }
 
   TQualifiedNameObjectFilter = class(TInterfacedObject,IObjectFilter)
@@ -94,7 +94,7 @@ type
   function AddNameSpace(const AValue: string; ANameSpaceList : TStrings): TStrings;
   procedure BuildNameSpaceList(AAttCursor : IObjectCursor; ANameSpaceList : TStrings);
   procedure ExplodeQName(const AQName : string; out ALocalName, ANameSpace : string) ;
-  
+
   function sdo_findCustomAttribute(
           AWsdlShortNames : TStrings;
           ANode      : TDOMNode;

@@ -53,7 +53,7 @@ function xmlSchematronNewMemParserCtxt(buffer: PAnsiChar; size: cint): xmlSchema
 function xmlSchematronNewDocParserCtxt(doc: xmlDocPtr): xmlSchematronParserCtxtPtr; EXTDECL; external xml2lib;
 procedure xmlSchematronFreeParserCtxt(ctxt: xmlSchematronParserCtxtPtr); EXTDECL; external xml2lib;
 (*****
-external xml2lib void EXTDECL		
+external xml2lib void EXTDECL
 	    xmlSchematronSetParserErrors(xmlSchematronParserCtxtPtr ctxt,
 					 xmlSchematronValidityErrorFunc err,
 					 xmlSchematronValidityWarningFunc warn,
@@ -74,7 +74,7 @@ procedure xmlSchematronFree(schema: xmlSchematronPtr); EXTDECL; external xml2lib
  *)
 procedure xmlSchematronSetValidStructuredErrors(ctxt: xmlSchematronValidCtxtPtr; serror: xmlStructuredErrorFunc; ctx: pointer); EXTDECL; external xml2lib;
 (******
-external xml2lib void EXTDECL		
+external xml2lib void EXTDECL
 	    xmlSchematronSetValidErrors	(xmlSchematronValidCtxtPtr ctxt,
 					 xmlSchematronValidityErrorFunc err,
 					 xmlSchematronValidityWarningFunc warn,

@@ -715,8 +715,8 @@ var
   dataset1: TDataSet;
   i,r: integer;
 begin
-  // TBufDataset should notify TDataset (TDataset.CurrentRecord) when changes internaly current record
-  // TBufDataset.GetRecNo was synchronizing its internal position with TDataset.ActiveRecord, but TDataset.CurrentRecord remains unchaged
+  // TBufDataset should notify TDataset (TDataset.CurrentRecord) when changes internally current record
+  // TBufDataset.GetRecNo was synchronizing its internal position with TDataset.ActiveRecord, but TDataset.CurrentRecord remains unchanged
   // Bug #31532
   dataset1 := DBConnector.GetNDataset(16);
   datasource1 := TDataSource.Create(nil);
@@ -731,7 +731,7 @@ begin
   CheckEquals(5, dataset1.RecNo);
   for i:=13 to 15 do begin
     datalink1.BufferCount := datalink1.BufferCount+1;
-    r := dataset1.RecNo; // syncronizes source dataset to ActiveRecord
+    r := dataset1.RecNo; // synchronizes source dataset to ActiveRecord
     AssertTrue(r>=0);
     datalink1.ActiveRecord := datalink1.BufferCount-1;
     CheckEquals(i, dataset1.FieldByName('ID').AsInteger);
@@ -803,7 +803,7 @@ begin
     BM4:=GetBookmark; // id=14
     next;
     BM5:=GetBookmark; // id=14, EOF
-    
+
     GotoBookmark(BM2);
     CheckEquals(3,FieldByName('id').AsInteger);
 
@@ -830,7 +830,7 @@ begin
 
     GotoBookmark(BM2);
     CheckEquals(3,FieldByName('id').AsInteger,'After #2 deleted');
-    
+
     delete;delete;    // id=3,4
 
     GotoBookmark(BM3);
@@ -847,7 +847,7 @@ begin
     insert;
     fieldbyname('id').AsInteger:=23;
     post;
-    
+
     GotoBookmark(BM3);
     CheckEquals(6,FieldByName('id').AsInteger);
 
@@ -1163,7 +1163,7 @@ begin
       post;
       CheckEquals('ValuesTestName',FieldByName('name').AsString);
       CheckEquals(243,FieldByName('id').AsInteger);
-    
+
       PassException:=false;
       try
         edit;
@@ -1197,7 +1197,7 @@ begin
     AVar:=FieldValues['name;id;'];
     CheckEquals(1,AVar[1]);
     CheckEquals('TestName1',AVar[0]);
-    
+
     PassException:=false;
     try
       AVar:=FieldValues['name;id;fake'];
@@ -1949,7 +1949,7 @@ begin
   ds := DBConnector.GetFieldDataset as TCustomBufDataset;
   with ds do
     begin
-    
+
     if not ActiveDS then
       begin
       AddIndex('testindex','F'+FieldTypeNames[AfieldType],[]);
@@ -2087,7 +2087,7 @@ begin
       end;
     finally
       flist.free;
-    end;  
+    end;
     end;
 end;
 
@@ -2135,7 +2135,7 @@ begin
         end;
     finally
       flist.free;
-    end;  
+    end;
     end;
 end;
 
@@ -2182,7 +2182,7 @@ begin
         end;
     finally
       FList.Free;
-    end;  
+    end;
     end;
 end;
 
@@ -2203,7 +2203,7 @@ begin
     open;
     IndexName:=''; // This should set the default index (default_order)
     first;
-    
+
     i := 0;
 
     while not eof do
@@ -2323,7 +2323,7 @@ begin
     CheckEquals('',IndexFieldNames);
     finally
       flist.free;
-    end;  
+    end;
 
     end;
 end;
@@ -2367,7 +2367,7 @@ begin
 
     CheckEquals(OldID,FieldByName('id').AsInteger);
     CheckEquals(OldStringValue,FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
-    
+
     next;
     CheckEquals(OldID+1,FieldByName('ID').AsInteger);
     prior;
@@ -2477,7 +2477,7 @@ begin
     // append data at end
     for i:=20 downto 0 do
       AppendRecord([i, inttostr(i)]);
-    // insert data at begining
+    // insert data at beginning
     IndexName:='';
     First;
     for i:=21 to 22 do

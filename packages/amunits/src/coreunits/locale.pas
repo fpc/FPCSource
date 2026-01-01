@@ -168,7 +168,7 @@ Type
     { for currency symbols }
     loc_MonCS,                              { currency symbol              }
     loc_MonSmallCS,                         { symbol for small amounts     }
-    loc_MonIntCS        : STRPTR;           { internationl (ISO 4217) code }
+    loc_MonIntCS        : STRPTR;           { international (ISO 4217) code}
 
     { for positive monetary values }
     loc_MonPositiveSign : STRPTR;           { indicate positive money value   }

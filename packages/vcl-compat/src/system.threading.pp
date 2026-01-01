@@ -196,7 +196,7 @@ type
     class var FDefaultPool: TThreadPool;
     const
       RetireDelay  = 5000;      // in milliseconds. Time after which a thread retires
-      SuspendDelay = 5500;      // in milliseconds. Minimum time between 2 thread suspending themselved
+      SuspendDelay = 5500;      // in milliseconds. Minimum time between 2 thread suspending themselves
       SuspendTime  = 6000;      // in milliseconds. Time for which a suspended thread sleeps.
       SuspendTries = 3;         // Number of tries for suspend loop
       MaxCPUUsage  = 95;        // CPU usage % at which we stop threads.
@@ -521,7 +521,7 @@ type
   TAbstractTask = class(TThreadPool.TAbstractWorkerData)
   protected
     type
-    IInternalTask = interface(ITask) ['{4C5EFFA7-FB5F-4C38-3E20-84FF25678812}']  
+    IInternalTask = interface(ITask) ['{4C5EFFA7-FB5F-4C38-3E20-84FF25678812}']
       procedure AddCompleteEvent(const aProc: TITaskProc);
       procedure HandleChildCompletion(const aTask: IInternalTask);
       procedure HandleChildCompletion(const aTask: TTask);
@@ -3068,7 +3068,7 @@ begin
         Run(MakeProc(Self,Proc),FParams.Pool)
       else
         try
-          // Execute immediatly
+          // Execute immediately
           Proc(Self);
         except
           // What to do with an exception ??

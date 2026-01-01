@@ -62,7 +62,7 @@ THtmlCustomElement:
 THTMLDocument:
   TDOMDocument descendent
 THTMLIDElement:
-  element representing <ID> tag 
+  element representing <ID> tag
 
 All tags are in tagsintf.inc.
 

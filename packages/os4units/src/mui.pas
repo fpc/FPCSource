@@ -79,7 +79,7 @@ interface
  !        +--Coloradjust     (several gadgets to adjust a color)
  !        +--Palette         (complete palette gadget)
  !        \--Popstring       (base class for popup objects)
- !           +--Popobject    (popup aynthing in a separate window)
+ !           +--Popobject    (popup anything in a separate window)
  !           !  +--Poplist   (popup a simple listview)
  !           !  \--Popscreen (popup a list of public screens)
  !           \--Popasl       (popup an asl requester)
@@ -87,7 +87,7 @@ interface
     +--Dataspace             (handles general purpose data spaces)
     +--Datamap               (handles general purpose data spaces)
     +--Objectmap             (handles general purpose data spaces)
-    \--Process               (simplify handlig sub-tasks)
+    \--Process               (simplify handling sub-tasks)
 
 ************************************************************************
  General Header File Information
@@ -445,7 +445,7 @@ const
   MPEN_TEXT       = 5;
   MPEN_FILL       = 6;
   MPEN_MARK       = 7;
-  MPEN_COUNT      = 8; // Number of pens, the single definintion is below
+  MPEN_COUNT      = 8; // Number of pens, the single definition is below
 
   MUIPEN_MASK     = $0000ffff;  // Mask for pens from MUI_ObtainPen()
 
@@ -533,13 +533,13 @@ type
 
   // Info about the display environment on which all Area Objects have a reference to it.
   TMUI_RenderInfo = record
-    mri_WindowObject: PObject_; // accessable in-between MUIM_Setup/MUIM_Cleanup
-    mri_Screen: PScreen;        // accessable in-between MUIM_Setup/MUIM_Cleanup
-    mri_DrawInfo: PDrawInfo;    // accessable in-between MUIM_Setup/MUIM_Cleanup
-    mri_Pens: PWord;            // accessable in-between MUIM_Setup/MUIM_Cleanup
-    mri_Window: PWindow;        // accessable in-between MUIM_Show/MUIM_Hide
-    mri_RastPort: PRastPort;    // accessable in-between MUIM_Show/MUIM_Hide
-    mri_Flags: LongWord;        // accessable in-between MUIM_Setup/MUIM_Cleanup
+    mri_WindowObject: PObject_; // accessible in-between MUIM_Setup/MUIM_Cleanup
+    mri_Screen: PScreen;        // accessible in-between MUIM_Setup/MUIM_Cleanup
+    mri_DrawInfo: PDrawInfo;    // accessible in-between MUIM_Setup/MUIM_Cleanup
+    mri_Pens: PWord;            // accessible in-between MUIM_Setup/MUIM_Cleanup
+    mri_Window: PWindow;        // accessible in-between MUIM_Show/MUIM_Hide
+    mri_RastPort: PRastPort;    // accessible in-between MUIM_Show/MUIM_Hide
+    mri_Flags: LongWord;        // accessible in-between MUIM_Setup/MUIM_Cleanup
 
     // the following stuff is private
     mri_Colormap: PColorMap;
@@ -580,7 +580,7 @@ const
   // Flags for mri_Flags
   MUIMRI_RECTFILL    = 1 shl 0; // If mri_Flags and MUIMRI_RECTFILL, RectFill() is quicker than Move()/Draw() for horizontal or vertical lines. on the current display.
   MUIMRI_TRUECOLOR   = 1 shl 1; // If mri_Flags and MUIMRI_TRUECOLOR, display environment is a cybergraphics emulated hicolor or true color display.
-  MUIMRI_THINFRAMES  = 1 shl 2; // If mri_Flags and MUIMRI_THINFRAMES, MUI uses thin frames (1:1) apsect ratio instead of standard 2:1 frames.
+  MUIMRI_THINFRAMES  = 1 shl 2; // If mri_Flags and MUIMRI_THINFRAMES, MUI uses thin frames (1:1) aspect ratio instead of standard 2:1 frames.
   MUIMRI_REFRESHMODE = 1 shl 3; // If mri_Flags and MUIMRI_REFRESHMODE, MUI is currently refreshing a WFLG_SIMPLEREFRESH window and is between a BeginRefresh()/EndRefresh() pair.
 
 type
@@ -3750,7 +3750,7 @@ function MUIPen(Pen: LongInt): LongInt;
 // object-data like rastport, window, etc.
 
 // NOTE: These macros may only be used in custom classes and are
-// only valid if your class is inbetween the specified methods!
+// only valid if your class is in between the specified methods!
 
 function OBJ_App(Obj: APTR): PObject_;        // valid between MUIM_Setup/Cleanup
 function OBJ_Win(Obj: APTR): PObject_;        // valid between MUIM_Setup/Cleanup

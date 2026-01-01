@@ -377,7 +377,7 @@ type
      * Sets the error handler whose <code>error</code> function is called
      * if an error occurs when executing the query.
      * The user keeps the ownership of this object and is required to freeing
-     * the aquired resources.
+     * the acquired resources.
      *)
     set_error_handler: procedure(query: XQC_Query; handler: XQC_ErrorHandler); extdecl;
 
@@ -1164,7 +1164,7 @@ type
      * Creates a Decimal Item see [http://www.w3.org/TR/xmlschema-2/#decimal]
      *
      * \param factory The XQC_ItemFactory that this function pointer is a member of
-     * \param value The value as a doule
+     * \param value The value as a double
      * \param[out] item The item to create. This can either be a wrapper created using
      *                 ::XQC_ItemFactory::create_item or a pointer initialized to 0.
      *
@@ -1835,7 +1835,7 @@ type
 (**
  * Using the XmlDataManager one can manage documents and collections.
  *
- * The XmlDataManager is a singelton instance. The instance can be accessed by calling
+ * The XmlDataManager is a singleton instance. The instance can be accessed by calling
  * XQC_Implementation::data_manager. The XmlDataManager is thread-safe.
  *)
   XQC_DataManager_s = record

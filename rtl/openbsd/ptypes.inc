@@ -55,7 +55,7 @@ type
 {$ifdef CPU64}
     size_t   = cuint64;
 {$else}
-    size_t   = cuint32;         { as definied in the C standard}
+    size_t   = cuint32;         { as defined in the C standard}
 {$endif}
     TSize    = size_t;
     pSize    = ^size_t;

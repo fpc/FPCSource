@@ -195,7 +195,7 @@ function alcCloseDevice(device: PALCdevice): ALCboolean; cdecl; external {$IFDEF
 function alcGetError(device: PALCdevice): ALCenum; cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};
 
 
-(* 
+(*
  * Extension support.
  * Query for the presence of an extension, and obtain any appropriate
  * function pointers and enum values.

@@ -48,12 +48,12 @@ var
   keys: integer;
 
 begin
-  // Setup the Main screen for 3D 
+  // Setup the Main screen for 3D
   videoSetMode(MODE_0_3D);
-  
+
   // initialize the geometry engine
   glInit();
-  
+
   // enable antialiasing
   glEnable(GL_ANTIALIAS);
 
@@ -65,27 +65,27 @@ begin
   // Set our viewport to be the same size as the screen
   glViewPort(0,0,255,191);
 
-  
+
 
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
   gluPerspective(70, 256.0 / 192.0, 0.1, 100);
 
 
-  //ds specific, several attributes can be set here 
+  //ds specific, several attributes can be set here
   glPolyFmt(POLY_ALPHA(31) or POLY_CULL_NONE);
-  
+
   // Set the current matrix to be the model matrix
-  glMatrixMode(GL_MODELVIEW); 
-  
+  glMatrixMode(GL_MODELVIEW);
+
   while true do
   begin
     // draw the scene
     DrawGLScene();
-    
-    // flush to screen  
+
+    // flush to screen
     glFlush(0);
-    
+
     // wait for the screen to refresh
     swiWaitForVBlank();
     scanKeys();

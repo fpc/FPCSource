@@ -41,7 +41,7 @@ uses exec;
 
 Const
 
-{ unit defintions }
+{ unit definitions }
     UNIT_MICROHZ        = 0;
     UNIT_VBLANK         = 1;
     UNIT_ECLOCK         = 2;

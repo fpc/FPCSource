@@ -43,7 +43,7 @@
       );
 
 
-  procedure gst_mini_object_init(mini_object:PGstMiniObject; flags:Tguint; _type:TGType; copy_func:TGstMiniObjectCopyFunction; dispose_func:TGstMiniObjectDisposeFunction; 
+  procedure gst_mini_object_init(mini_object:PGstMiniObject; flags:Tguint; _type:TGType; copy_func:TGstMiniObjectCopyFunction; dispose_func:TGstMiniObjectDisposeFunction;
               free_func:TGstMiniObjectFreeFunction);cdecl;external gstreamerlib name 'gst_mini_object_init';
 
   function gst_mini_object_ref(mini_object:PGstMiniObject):PGstMiniObject;cdecl;external gstreamerlib name 'gst_mini_object_ref';

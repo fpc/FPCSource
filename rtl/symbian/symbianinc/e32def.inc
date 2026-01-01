@@ -176,7 +176,7 @@
 #pragma RTTI off          /* no support for C++ runtime type information */
 #endif
 #if __MWERKS__ >= 0x3200
-#pragma warning off (10480)	/* deleteing void pointer is undefined */
+#pragma warning off (10480)	/* deleting void pointer is undefined */
 #pragma warning off (10350) /* N pad byte(s) inserted after data member */
 #endif
 #endif}

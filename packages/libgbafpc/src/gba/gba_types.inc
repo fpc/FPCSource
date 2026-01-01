@@ -25,14 +25,14 @@
 
 
   ------------------------------------------------------------------------------
-    
-    
+
+
   Conversion by Legolas (http://itaprogaming.free.fr) for freepascal compiler
   (http://www.freepascal.org)
-   
+
   Copyright (C) 2006  Francesco Lombardi
   Check http://sourceforge.net/projects/libndsfpc for updates
-   
+
   ------------------------------------------------------------------------------
 
   $Log$
@@ -52,7 +52,7 @@ type
   pu8 = ^u8;
   pu16 = ^u16;
   pu32 = ^u32;
-  
+
   (* Signed types *)
   s8  = shortint;
   s16 = smallint;

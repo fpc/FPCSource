@@ -602,7 +602,7 @@ function SDLNet_GetError : PAnsiChar;
 (* I'm eventually going to try to disentangle SDL_net from SDL, thus making
    SDL_net an independent X-platform networking toolkit.  Not today though....
 
-proceudre SDLNet_SetError(const AnsiChar *fmt, ...);
+procedure SDLNet_SetError(const AnsiChar *fmt, ...);
 cdecl; external {$IFDEF __GPC__}name 'SDLNet_SetError'{$ELSE} SDLNetLibName {$ENDIF __GPC__};
 {$EXTERNALSYM SDLNet_SetError}
 

@@ -296,7 +296,7 @@ begin
     FMyQ:=Q; // so th event handler can reach it.
     Q.SQL.Text:='select * from FPDEV2';
     Q.Options:=[sqoAutoApplyUpdates];
-    // We must test that in AfterPost, the modification is still there, for backwards compatibilty
+    // We must test that in AfterPost, the modification is still there, for backwards compatibility
     Q.AfterPost:=@DoAfterPost;
     Q.Open;
     AssertEquals('Got all records',2,Q.RecordCount);
@@ -331,7 +331,7 @@ begin
     FMyQ:=Q; // so th event handler can reach it.
     Q.SQL.Text:='select * from FPDEV2';
     Q.Options:=[sqoAutoApplyUpdates];
-    // We must test that in AfterPost, the modification is still there, for backwards compatibilty
+    // We must test that in AfterPost, the modification is still there, for backwards compatibility
     Q.AfterPost:=@DoAfterPost;
     Q.Open;
     AssertEquals('Got all records',2,Q.RecordCount);
@@ -1031,7 +1031,7 @@ begin
     S1.Transaction:=SQLDBConnector.Transaction;
     S1.SQL.Text:='update fpdev set id=id+1 where (id<:MaxID);';
     S1.Prepare;
-    // A prepared and exected statement;
+    // A prepared and executed statement;
     S2:=TSQLStatement.Create(Nil);
     S2.DataBase:=SQLDBConnector.Connection;
     S2.Transaction:=SQLDBConnector.Transaction;

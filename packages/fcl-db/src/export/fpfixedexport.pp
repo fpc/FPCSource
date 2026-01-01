@@ -27,7 +27,7 @@ uses
 uses
   Classes, SysUtils, db, fpDBExport;
 {$ENDIF FPC_DOTTEDUNITS}
-  
+
   { TFixedLengthExportFieldItem }
 
 Type

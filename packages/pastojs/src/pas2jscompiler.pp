@@ -3770,7 +3770,7 @@ begin
   begin
     C:=aValue[P];
     case C of
-    'D': // wite compiler date
+    'D': // write compiler date
       AppendInfo(GetCompiledDate);
     'V': // write short version
       AppendInfo(GetVersion(true));

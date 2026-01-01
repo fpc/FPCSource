@@ -41,9 +41,9 @@ const
 
         HH_DISPLAY_TOPIC         = $0000;
         HH_HELP_FINDER           = $0000;  // WinHelp equivalent
-        HH_DISPLAY_TOC           = $0001;  
-        HH_DISPLAY_INDEX         = $0002;  
-        HH_DISPLAY_SEARCH        = $0003;  
+        HH_DISPLAY_TOC           = $0001;
+        HH_DISPLAY_INDEX         = $0002;
+        HH_DISPLAY_SEARCH        = $0003;
         HH_SET_WIN_TYPE          = $0004;
         HH_GET_WIN_TYPE          = $0005;
         HH_GET_WIN_HANDLE        = $0006;
@@ -143,25 +143,25 @@ const
 
 // Button IDs
 
-        IDTB_EXPAND             = 200; 
-        IDTB_CONTRACT           = 201; 
-        IDTB_STOP               = 202; 
-        IDTB_REFRESH            = 203; 
-        IDTB_BACK               = 204; 
-        IDTB_HOME               = 205; 
-        IDTB_SYNC               = 206; 
-        IDTB_PRINT              = 207; 
-        IDTB_OPTIONS            = 208; 
-        IDTB_FORWARD            = 209; 
+        IDTB_EXPAND             = 200;
+        IDTB_CONTRACT           = 201;
+        IDTB_STOP               = 202;
+        IDTB_REFRESH            = 203;
+        IDTB_BACK               = 204;
+        IDTB_HOME               = 205;
+        IDTB_SYNC               = 206;
+        IDTB_PRINT              = 207;
+        IDTB_OPTIONS            = 208;
+        IDTB_FORWARD            = 209;
         IDTB_NOTES              = 210;  // not implemented
-        IDTB_BROWSE_FWD         = 211; 
-        IDTB_BROWSE_BACK        = 212; 
+        IDTB_BROWSE_FWD         = 211;
+        IDTB_BROWSE_BACK        = 212;
         IDTB_CONTENTS           = 213;  // not implemented
         IDTB_INDEX              = 214;  // not implemented
         IDTB_SEARCH             = 215;  // not implemented
         IDTB_HISTORY            = 216;  // not implemented
         IDTB_FAVORITES          = 217;  // not implemented
-        IDTB_JUMP1              = 218; 
+        IDTB_JUMP1              = 218;
         IDTB_JUMP2              = 219;
         IDTB_CUSTOMIZE          = 221;
         IDTB_ZOOM               = 222;
@@ -291,8 +291,8 @@ Type
           cbStruct : longint;              { size of this structure }
           iType : longint;                 { the type of the information type ie. Inclusive, Exclusive, or Hidden }
           pszCatName : LPCSTR;             { Set to the name of the Category to enumerate the info types in a category; else NULL }
-          pszITName : LPCSTR;              { volitile pointer to the name of the infotype. Allocated by call. Caller responsible for freeing }
-          pszITDescription : LPCSTR;       { volitile pointer to the description of the infotype. }
+          pszITName : LPCSTR;              { volatile pointer to the name of the infotype. Allocated by call. Caller responsible for freeing }
+          pszITDescription : LPCSTR;       { volatile pointer to the description of the infotype. }
        end;
      HH_ENUM_IT = tagHH_ENUM_IT;
      PHH_ENUM_IT = PtagHH_ENUM_IT;
@@ -301,8 +301,8 @@ Type
      PtagHH_ENUM_CAT = ^tagHH_ENUM_CAT;
      tagHH_ENUM_CAT = packed record
           cbStruct : longint;                  { size of this structure }
-          pszCatName : LPCSTR;                 { volitile pointer to the category name }
-          pszCatDescription : LPCSTR;          { volitile pointer to the category description }
+          pszCatName : LPCSTR;                 { volatile pointer to the category name }
+          pszCatDescription : LPCSTR;          { volatile pointer to the category description }
        end;
      HH_ENUM_CAT = tagHH_ENUM_CAT;
      PHH_ENUM_CAT = PtagHH_ENUM_CAT;
@@ -361,7 +361,7 @@ Type
           pszIndex : LPCTSTR;                                        { IN: Location of the index file }
           pszFile : LPCTSTR;                                         { IN: Default location of the html file }
           pszHome : LPCTSTR;                                         { IN/OUT: html file to display when Home button is clicked }
-          fsToolBarFlags : DWORD;                                    { IN: flags controling the appearance of the toolbar }
+          fsToolBarFlags : DWORD;                                    { IN: flags controlling the appearance of the toolbar }
           fNotExpanded : BOOL;                                       { IN: TRUE/FALSE to contract or expand, OUT: current state }
           curNavType : longint;                                      { IN/OUT: UI to display in the navigational pane }
           tabpos : longint;                                          { IN/OUT: HHWIN_NAVTAB_TOP, HHWIN_NAVTAB_LEFT, or HHWIN_NAVTAB_BOTTOM }

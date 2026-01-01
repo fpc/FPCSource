@@ -38,7 +38,7 @@ const
   sDB_ALIAS       = 'DBALIAS';
   sSERVER_ADDRESS = 'SERVER_ADDRESS';
   sSERVER_INFO    = 'SERVER_INFO';
-    
+
 type
 
   EDataAccessException = class(Exception);
@@ -66,7 +66,7 @@ type
     procedure SetTransactionHanlde(const ANewX : TDACTransactionHandle);virtual;abstract;
     procedure RestoreTransactionHanlde();virtual;abstract;
     function IsIntransaction() : Boolean;virtual;abstract;
-    //returns FALSE if there is a already transaction, TRUE otherwhise
+    //returns FALSE if there is a already transaction, TRUE otherwise
     function StartTransaction() : Boolean;virtual;abstract;
     procedure RollbackTransaction(); virtual;abstract;
     procedure CommitTransaction();virtual;abstract;
@@ -140,5 +140,5 @@ initialization
 
 finalization
   FreeAndNil(FFactoryList);
-  
+
 end.

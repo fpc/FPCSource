@@ -3,7 +3,7 @@
   2005 Bart Tierens, BTierens@netscape.net
 
   This program is in the public domain
-  
+
   Warning: This demo works only with FreePascal 2.1 and better, due to changes to the glx header
 }
 program glxTest;
@@ -176,6 +176,6 @@ begin
 
   //Map the window on the display
   XMapWindow(dpy,win);
-  
+
   loop();
 end.

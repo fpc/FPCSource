@@ -130,7 +130,7 @@ const
 
   Fixed os chunks can be converted to variable os chunks and back
   (if not too big). To prevent repeated conversion overhead in case
-  of user freeing/allocing same or a small set of sizes, we only do
+  of user freeing/allocating same or a small set of sizes, we only do
   the conversion to the new fixed os chunk size format after we
   reuse the os chunk for another fixed size, or variable. Note that
   while the fixed size os chunk is on the freelists.oslist, it is also
@@ -578,7 +578,7 @@ procedure append_to_oslist_var(pmc: pmemchunk_var);
 var
   poc: poschunk;
 begin
-  // block eligable for freeing
+  // block eligible for freeing
   poc := pointer(pmc)-varfirstoffset;
   remove_from_list_var(pmc);
   append_to_oslist(poc);
@@ -923,7 +923,7 @@ begin
           if loc_freelists^.locgrowheapsizesmall < maxgrowheapsizesmall then
             inc(loc_freelists^.locgrowheapsizesmall, loc_freelists^.locgrowheapsizesmall);
           { also set to zero in case we did not grow the blocksize to
-            prevent oveflows of this counter in case the rtl is compiled
+            prevent overflows of this counter in case the rtl is compiled
             range/overflow checking }
           loc_freelists^.fixedallocated := 0;
         end;

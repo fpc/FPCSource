@@ -8,7 +8,7 @@
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-   
+
     As a special exception, you can also use these sources under the MPL 1.1,
     this to ensure compatibility with Jedi APILIB
 

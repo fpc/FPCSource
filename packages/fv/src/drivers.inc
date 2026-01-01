@@ -16,7 +16,7 @@
 {                                                          }
 {****************[ THIS CODE IS FREEWARE ]*****************}
 {                                                          }
-{     This sourcecode is released for the purpose to       }
+{     This source code is released for the purpose to      }
 {   promote the pascal language on all platforms. You may  }
 {   redistribute it and/or modify with the following       }
 {   DISCLAIMER.                                            }
@@ -711,8 +711,8 @@ CONST
    RepeatDelay  : Sw_Word = 8;                           { Auto mouse delay }
    SysColorAttr : Sw_Word = $4E4F;                       { System colour attr }
    SysMonoAttr  : Sw_Word = $7070;                       { System mono attr }
-   StartupMode  : Sw_Word = $FFFF;                       { Compatability only }
-   CursorLines  : Sw_Word = $FFFF;                       { Compatability only }
+   StartupMode  : Sw_Word = $FFFF;                       { Compatibility only }
+   CursorLines  : Sw_Word = $FFFF;                       { Compatibility only }
    ScreenBuffer : Pointer = Nil;                      { Compatibility only }
    SaveInt09    : Pointer = Nil;                      { Compatibility only }
    SysErrorFunc : TSysErrorFunc = {$ifdef FPC}@{$endif}SystemError; { System error ptr }
@@ -1741,7 +1741,7 @@ VAR W, ResultLength : SmallInt;
      Repeat
        I := L MOD Radix;                              { Radix mod of value }
        S := HexChars[I] + S;                          { Add AnsiChar to string }
-       L := L DIV Radix;                              { Divid by radix }
+       L := L DIV Radix;                              { Divide by radix }
      Until (L = 0);                                   { Until no remainder }
      LongToStr := Sign + S;                           { Return result }
    end;

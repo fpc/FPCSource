@@ -66,7 +66,7 @@ Type
 
 Procedure RegisterReportQRCode;
 Procedure UnRegisterReportQRCode;
-  
+
 implementation
 
 {$IFDEF FPC_DOTTEDUNITS}
@@ -154,7 +154,7 @@ begin
       Result:=PS2;
     end;
   if Result<1 then
-    Result:=1;  
+    Result:=1;
 end;
 
 procedure TFPReportQRCode.ReadElement(AReader: TFPReportStreamer);
@@ -183,7 +183,7 @@ Var
   D : TImageQRCodeGenerator;
   Q : TFPReportQRCode;
   DD,PX,PY : Integer;
-  
+
 
 begin
   Q:=TFPReportQRCode(aElement);
@@ -205,7 +205,7 @@ begin
      DD:=aImage.Height-(D.PixelSize*D.Size);
      if DD>0 then
        PY:=DD div 2;
-     end; 
+     end;
     D.Draw(aImage, PX, PY);
   finally
     D.Free;
@@ -239,4 +239,4 @@ end;
 
 initialization
   RegisterReportQRcode;
-end.  
+end.

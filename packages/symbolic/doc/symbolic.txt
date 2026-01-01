@@ -38,13 +38,13 @@ General:
       - 32-bit. Probably close to being 64-bit clean. (no integer <->
          pointer casts). D1 status unknown, since I never used it, and can't
          tell easily. Biggest problem for ports is probably that it doesn't
-         account for aligned arrays. It also assumes pointer arithmic.
+         account for aligned arrays. It also assumes pointer arithmetic.
       - OOP interface design, but sometimes uses procedures internally for
          speed.
       - Doesn't use (co)processor dependant features atm. An alternate method
          in TEvaluator will have to take care of that.
       - Optimised (algorithm) with high speed repeated evaluations in mind.
-         Parsing is NOT optimised, but not particulary dumb either.
+         Parsing is NOT optimised, but not particularly dumb either.
          If parsing is a speed problem, one should eliminate the parsetree
          generation and conversion to back VLIWRPN, and generate VLIWRPN
          directly
@@ -63,7 +63,7 @@ General:
    - Precalculate Newton. (almost non-feature :-)
    - Primitives for rearranging
                 - Identifying of terms.
-                - Simple simplying (2*2*x -> 4*x)
+                - Simple simplifying (2*2*x -> 4*x)
                 - (de)factoring (*)
                 - Rearrange so that when converted to RPN, maximal stack depth
                   for evaluation is 4. This also needs a detector routine
@@ -143,7 +143,7 @@ the other infix operators.
     calculated from children. Then another pass for rendering to coordinates,
     followed by the plot. Will have to be parameterized and with callbacks for
     flexibility and system independance)
-- Doesn't check for bounderies. (treats e.g. x/x=1 but if x=0 then officially
+- Doesn't check for boundaries. (treats e.g. x/x=1 but if x=0 then officially
    it isn't defined) I hope to implement a TExpression method for this
    someday. (that checks a function for continuety problem spots)
 
@@ -311,7 +311,7 @@ Glossary
 Some often used abbreviations and terms:
 
 FPC  : Free Pascal Compiler, the one that I use. Has a 32-bit Delphi mode.
-       Misses dynamic arrays, interfaces, and nearly the entire VCL in 
+       Misses dynamic arrays, interfaces, and nearly the entire VCL in
        production version 1.0.x. (Meanwhile, most of the language is
        already in 1.1.x development version)
         http://www.freepascal.org

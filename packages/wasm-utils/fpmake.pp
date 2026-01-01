@@ -29,7 +29,7 @@ begin
     T:=P.Targets.AddUnit('wasm.logger.api.pas');
     // Memutils
     T:=P.Targets.AddUnit('wasm.memutils.pas');
-    
+
     // Timer
     T:=P.Targets.AddUnit('wasm.timer.shared.pas');
     T:=P.Targets.AddUnit('wasm.timer.api.pas');
@@ -38,54 +38,54 @@ begin
     T:=P.Targets.AddUnit('wasm.timer.objects.pas');
       T.Dependencies.AddUnit('wasm.timer.api');
       T.Dependencies.AddUnit('wasm.logger.api');
-      
+
     // HTTP
     T:=P.Targets.AddUnit('wasm.http.shared.pas');
 
     T:=P.Targets.AddUnit('wasm.http.api.pas');
       T.Dependencies.AddUnit('wasm.http.shared');
-      
+
     T:=P.Targets.AddUnit('wasm.http.objects.pas');
       T.Dependencies.AddUnit('wasm.http.api');
       T.Dependencies.AddUnit('wasm.http.shared');
 
-    // Messsage channel
+    // Message channel
     T:=P.Targets.AddUnit('wasm.messagechannel.shared.pas');
 
     T:=P.Targets.AddUnit('wasm.messagechannel.api.pas');
       T.Dependencies.AddUnit('wasm.messagechannel.shared');
-      
+
     T:=P.Targets.AddUnit('wasm.messagechannel.objects.pas');
       T.Dependencies.AddUnit('wasm.messagechannel.api');
       T.Dependencies.AddUnit('wasm.messagechannel.shared');
 
     // Websocket
     T:=P.Targets.AddUnit('wasm.websocket.shared.pas');
-    
+
     T:=P.Targets.AddUnit('wasm.websocket.api.pas');
       T.Dependencies.AddUnit('wasm.websocket.shared');
       T.Dependencies.AddUnit('wasm.timer.api');
-      
+
     T:=P.Targets.AddUnit('wasm.websocket.objects.pas');
       T.Dependencies.AddUnit('wasm.websocket.api');
       T.Dependencies.AddUnit('wasm.websocket.shared');
-    
+
     // Locale
     T:=P.Targets.AddUnit('wasm.locale.shared.pas');
-    
+
     T:=P.Targets.AddUnit('wasm.locale.api.pas');
       T.Dependencies.AddUnit('wasm.locale.shared');
-      
+
     T:=P.Targets.AddUnit('wasm.locale.objects.pas');
       T.Dependencies.AddUnit('wasm.locale.api');
       T.Dependencies.AddUnit('wasm.locale.shared');
-    
-    // Regexp  
+
+    // Regexp
     T:=P.Targets.AddUnit('wasm.regexp.shared.pas');
-    
+
     T:=P.Targets.AddUnit('wasm.regexp.api.pas');
       T.Dependencies.AddUnit('wasm.regexp.shared');
-      
+
     T:=P.Targets.AddUnit('wasm.regexp.objects.pas');
       T.Dependencies.AddUnit('wasm.regexp.api');
       T.Dependencies.AddUnit('wasm.regexp.shared');
@@ -102,7 +102,7 @@ begin
     T:=P.Targets.AddUnit('wasm.storage.objects.pas');
       T.Dependencies.AddUnit('wasm.storage.shared');
       T.Dependencies.AddUnit('wasm.storage.api');
-    
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

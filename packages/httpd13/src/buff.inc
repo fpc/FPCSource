@@ -57,7 +57,7 @@ type
   PPBUFF = ^PBUFF;
 
   error_t = procedure (fb: PBUFF; op: cint; data: Pointer);
-  
+
   filter_callback_t = procedure (param1: PBUFF; const param2: Pointer; param3: cint);
 
   buff_struct = record
@@ -93,7 +93,7 @@ type
 
     callback_data: Pointer;
     filter_callback: filter_callback_t;
-	
+
   end;
 
 {$ifdef B_SFIO}
@@ -187,7 +187,7 @@ type
   child_info = record
 {$ifdef WINDOWS}
     {
-     *  These handles are used by ap_call_exec to call 
+     *  These handles are used by ap_call_exec to call
      *  create process with pipe handles.
      }
     hPipeInputRead: HANDLE;
@@ -204,9 +204,9 @@ type
     dummy: cint;
 {$endif}
   end;
-  
+
   Pchild_info = ^child_info;
-  
+
   func_t = function (param1: Pointer; param2: Pchild_info): cint;
 
 function ap_bspawn_child(p: PPool;

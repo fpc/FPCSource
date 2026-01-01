@@ -21,7 +21,7 @@
      Information for displaying text with this tag.  The information
      belows acts as an override on information specified by lower-priority
      tags.  If no value is specified, then the next-lower-priority tag
-     on the text determins the value.  The text widget itself provides
+     on the text determines the value.  The text widget itself provides
      defaults if no tag specifies an override.
     }
 { Flags for whether a given value is set; if a value is unset, then

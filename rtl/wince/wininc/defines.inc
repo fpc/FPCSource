@@ -909,7 +909,7 @@
      DDD_RAW_TARGET_PATH = 1;
      DDD_REMOVE_DEFINITION = 2;
      DDD_EXACT_MATCH_ON_REMOVE = 4;
-  { DeviceCapbilities  }
+  { DeviceCapabilities  }
      DC_BINNAMES = 12;          //windef
      DC_BINS = 6;               //windef
      DC_COPIES = 18;            //windef
@@ -5543,7 +5543,7 @@ PROCESSOR_ARM_V4TFP_INSTRUCTION        PROCESSOR_ARM_V4TFP_INSTRUCTION
 {$ifdef i386}                              //+winnt
 
   { x86  }
-  { The doc refered me to winnt.h, so I had to look...  }
+  { The doc referred me to winnt.h, so I had to look...  }
 
   const
      SIZE_OF_80387_REGISTERS = 80;         //winnt
@@ -5827,7 +5827,7 @@ const
  *
  * Purpose: Resource manager definitions
  * The resource manager itself is part of the device manager (device.exe)
- * and its affliated entry points are declared in winbase.h.
+ * and its affiliated entry points are declared in winbase.h.
  *
  *}
 // Resource ids less than BASE_OEM are reserved by Microsoft;

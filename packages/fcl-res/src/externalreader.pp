@@ -28,7 +28,7 @@ uses
 uses
   Classes, SysUtils, resource, resourcetree, externaltypes;
 {$ENDIF FPC_DOTTEDUNITS}
-  
+
 type
 
   { TExternalResourceReader }
@@ -82,7 +82,7 @@ begin
   Result:='';
   oldpos:=aStream.Position;
   aStream.Position:=aOfs;
-  
+
   aStream.ReadBuffer(c,1);
   maxleft:=aStream.Size-aStream.Position;
   while (c<>#0) and (maxleft>=0) do
@@ -104,7 +104,7 @@ begin
   except
     on e : EReadError do exit;
   end;
-  
+
   if hdr.magic<>EXTERNAL_RESMAGIC then exit;
   if hdr.version<>EXT_CURRENT_VERSION then exit;
   if hdr.endianess<>fNativeEndianess then

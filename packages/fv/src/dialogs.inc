@@ -10,7 +10,7 @@
 {                                                          }
 {****************[ THIS CODE IS FREEWARE ]*****************}
 {                                                          }
-{     This sourcecode is released for the purpose to       }
+{     This source code is released for the purpose to      }
 {   promote the pascal language on all platforms. You may  }
 {   redistribute it and/or modify with the following       }
 {   DISCLAIMER.                                            }
@@ -616,7 +616,7 @@ TYPE
   {#Z-}
   TCommandSItem = record
     { A TCommandSItem is the data structure used to initialize command
-      clusters with #NewCommandSItem# rather than the standarad #NewSItem#.
+      clusters with #NewCommandSItem# rather than the standard #NewSItem#.
       It is used to associate a command with an individual cluster item. }
     {#X TCommandCheckBoxes TCommandRadioButtons }
     Value : Sw_String;

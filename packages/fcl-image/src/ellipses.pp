@@ -211,7 +211,7 @@ begin
       if infoP^.x <> xtemp then                  // has correct record ?
         begin
         if not GetInfoForX (xtemp, infoP) then  // record exists already ?
-          infoP := NewInfoRec (xtemp);          // create a new recod
+          infoP := NewInfoRec (xtemp);          // create a new record
         end;
       // lower y is top, min is lowest
       with InfoP^ do
@@ -230,7 +230,7 @@ begin
       if infoM^.x <> xtemp then                  // has correct record ?
         begin
         if not GetInfoForX (xtemp, infoM) then  // record exists already ?
-          infoM := NewInfoRec (xtemp);          // create a new recod
+          infoM := NewInfoRec (xtemp);          // create a new record
         end;
       // lower y is top, min is lowest
       with InfoM^ do

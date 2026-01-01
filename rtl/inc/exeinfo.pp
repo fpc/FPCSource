@@ -17,7 +17,7 @@
   dependent on objpas unit.
 }
 
-{ Disable checks of pointers explictly,
+{ Disable checks of pointers explicitly,
   as we are dealing here with special pointer that
   might be seen as invalid by heaptrc unit CheckPointer function }
 

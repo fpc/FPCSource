@@ -104,7 +104,7 @@ begin
   error:=wasmtime_func_call(context, @func, nil, 0, nil, 0, @trap);
   if wasmtime_error_exit_status(error,@status)<>0 then
     Writeln('Wasm program exited with status: ',Status)
-  else 
+  else
     exit_with_error('Error while running default export for module', error, trap);
   // Clean up after ourselves at this point
   Writeln('All finished!\n');

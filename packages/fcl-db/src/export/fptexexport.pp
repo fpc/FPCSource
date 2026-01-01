@@ -33,7 +33,7 @@ Type
   TTeXExportOptions = Set of TTeXExportOption;
   TTexTabularEnvironment = (ttTabular,ttTabularX,ttLongtable,ttSuperTabular);
   TTexUnits = (tuEm,tuMM);
-  
+
   { TTeXExportFormatSettings }
 
   TTeXExportFormatSettings = Class(TExportFormatSettings)
@@ -116,7 +116,7 @@ Procedure UnRegisterTexExportFormat;
 Const
   STeXExport    = 'TeX export';
   STeXExportExt = '.tex';
-  
+
   TabularPackageNames  : Array[TTexTabularEnvironment] of string
                        = ('array','tabularx','longtable','supertabular');
   TabularNames : Array[TTexTabularEnvironment] of string
@@ -202,7 +202,7 @@ Var
   FL : TTexExportFieldItem;
   F : TField;
   W : Integer;
-  
+
 begin
   inherited BuildDefaultFieldMap(AMap);
   For I:=0 to AMap.Count-1 do
@@ -238,7 +238,7 @@ Var
   B1,B2 : Boolean;
   EF : TTeXExportFieldItem;
   UN,S,FTW : String;
-  
+
 begin
   B1:=teUseWidths in FEO;
   B2:=teHeaderRow in FEO;
@@ -346,7 +346,7 @@ procedure TCustomTeXExporter.OpenDocument;
 
 Var
   S : string;
-  
+
 begin
   OutputRow(Format('\documentclass%s{%s}',['','article']));
   S:=TabularPackageNames[FormatSettings.Tabular];
@@ -379,7 +379,7 @@ procedure TCustomTeXExporter.ExportField(EF: TExportFieldItem);
 
 Var
   S : String;
-  
+
 begin
   S:=FormatField(EF.Field);
   If (FCurrentRow<>'') then

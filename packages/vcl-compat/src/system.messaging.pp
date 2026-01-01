@@ -27,7 +27,7 @@ interface
 uses
 {$IFDEF FPC_DOTTEDUNITS}
   System.SysUtils, System.Classes, System.Generics.Collections, System.SyncObjs;
-{$ELSE}  
+{$ELSE}
   SysUtils, Classes, Generics.Collections, syncobjs;
 {$ENDIF}
 
@@ -808,7 +808,7 @@ begin
   ListenerMethod:=aListenerMethod;
 end;
 
-constructor TMessageManager.TListenerWithId.Create(const AId: TMessageSubscriptionId; const AListener: TMessageListener); 
+constructor TMessageManager.TListenerWithId.Create(const AId: TMessageSubscriptionId; const AListener: TMessageListener);
 
 begin
   Id:=aId;

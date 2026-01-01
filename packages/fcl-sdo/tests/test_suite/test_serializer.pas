@@ -50,16 +50,16 @@ type
     procedure save_to_file_without_name();
     procedure save_to_file_null_bool_prop();
     procedure save_to_file_null_byte_prop();
-    procedure save_to_file_null_bytes_prop(); 
+    procedure save_to_file_null_bytes_prop();
     procedure save_to_file_null_char_prop();
     procedure save_to_file_null_currency_prop();
-    procedure save_to_file_null_datetime_prop(); 
-    procedure save_to_file_null_double_prop();  
-    procedure save_to_file_null_float_prop();  
-    procedure save_to_file_null_int_prop();    
-    procedure save_to_file_null_long_prop();    
-    procedure save_to_file_null_object_prop();    
-    procedure save_to_file_null_short_prop();  
+    procedure save_to_file_null_datetime_prop();
+    procedure save_to_file_null_double_prop();
+    procedure save_to_file_null_float_prop();
+    procedure save_to_file_null_int_prop();
+    procedure save_to_file_null_long_prop();
+    procedure save_to_file_null_object_prop();
+    procedure save_to_file_null_short_prop();
     procedure save_to_file_null_string_prop();
 
     procedure load_from_stream_start_with_empty();
@@ -145,7 +145,7 @@ type
     procedure load_from_file_changesummary_object_delete_nested();
     procedure load_from_file_changesummary_object_delete_2_objects_same_type();
     procedure load_from_file_changesummary_object_2_objects_same_type_del_upd();
-    
+
 
     procedure load_from_file_changesummary_prop_list_bool();
     procedure load_from_file_changesummary_prop_list_byte();
@@ -276,23 +276,23 @@ const
   s_sn = 'SN';
   s_age = 'age';
   s_birthDate = 'birthDate';
-  
+
   s_bool_prop               = 'bool_prop';
   s_byte_prop               = 'byte_prop';
   s_bytes_prop              = 'bytes_prop';
   s_char_prop               = 'char_prop';
   s_currency_prop           = 'currency_prop';
   s_datetime_prop           = 'datetime_prop';
-  s_double_prop             = 'double_prop'; 
-  s_float_prop              = 'float_prop';      
-  s_int_prop                = 'int_prop';       
-  s_long_prop               = 'long_prop';   
+  s_double_prop             = 'double_prop';
+  s_float_prop              = 'float_prop';
+  s_int_prop                = 'int_prop';
+  s_long_prop               = 'long_prop';
   s_object_prop             = 'object_prop';
   s_object_type             = 'object_type';
-  s_object_type2            = 'object_type2';      
-  s_short_prop              = 'short_prop';   
+  s_object_type2            = 'object_type2';
+  s_short_prop              = 'short_prop';
   s_string_prop             = 'string_prop';
-  
+
 
 function CompareNodes(const A,B : TDOMNode) : Boolean;overload;
 var
@@ -3185,7 +3185,7 @@ begin
     s.save(s_CompanyType,compObj,strm);
 {$IFDEF TEST_GENERATE_FILE}
     strm.SaveToFile(sdoExpandLocalFileName('company.soap.xml'));
-{$ENDIF TEST_GENERATE_FILE}    
+{$ENDIF TEST_GENERATE_FILE}
 
     strm.Position := 0;
     existDoc := nil;
@@ -3224,7 +3224,7 @@ begin
   depLs := compObj.getList('departments');
   depObj := compObj.createDataObject('departments');
   depLs.append(depObj);
-  depObj.setString('name','RAD Departement');
+  depObj.setString('name','RAD Department');
   depObj.setString('location','Moon');
   depObj.setInteger('number',2);
     empLs := depObj.getList('employees');
@@ -3249,7 +3249,7 @@ begin
 
   depObj := compObj.createDataObject('departments');
   depLs.append(depObj);
-  depObj.setString('name','Sales Departement');
+  depObj.setString('name','Sales Department');
   depObj.setString('location','Mars');
   depObj.setInteger('number',2);
     empLs := depObj.getList('employees');
@@ -3313,7 +3313,7 @@ begin
       CheckEquals(True, CompareNodes(existDoc,serialDoc));
     finally
       ReleaseDomNode(existDoc);
-      ReleaseDomNode(serialDoc);       
+      ReleaseDomNode(serialDoc);
     end;
   finally
     FreeAndNil(strm);
@@ -3381,7 +3381,7 @@ end;
 procedure TSDOSerializer_Test.save_to_file_null_bool_prop();
 const
   TARGET_PROP_NAME = s_bool_prop; TARGET_PROP_TYPE_NAME = 'Boolean';
-  
+
   function CreateFactory() : ISDODataFactory;
   var
     locObj : ISDOType;
@@ -3392,7 +3392,7 @@ const
       Result.addProperty(locObj,s_int_prop,sdo_namespace,'Integer',[]);
       Result.addProperty(locObj,TARGET_PROP_NAME,sdo_namespace,TARGET_PROP_TYPE_NAME,[]);
   end;
-  
+
 var
   locFactory : ISDODataFactory;
   locInstance, locInstanceLoaded : ISDODataObject;
@@ -3409,8 +3409,8 @@ begin
   try
     f := TSDOSerializerStreamXML.Create();
     s := TSDOSerializer.Create(locFactory,f);
-    s.save(locInstance,ms);  
-    
+    s.save(locInstance,ms);
+
     f := TSDOSerializerStreamXML.Create();
     s := TSDOSerializer.Create(locFactory,f);
     ms.Position := 0;
@@ -3419,13 +3419,13 @@ begin
     CheckEquals(locInstance.getInteger(s_int_prop), locInstanceLoaded.getInteger(s_int_prop),s_int_prop);
   finally
     ms.Free();
-  end;              
+  end;
 end;
 
-procedure TSDOSerializer_Test.save_to_file_null_byte_prop(); 
+procedure TSDOSerializer_Test.save_to_file_null_byte_prop();
 const
   TARGET_PROP_NAME = s_byte_prop; TARGET_PROP_TYPE_NAME = 'Byte';
-  
+
   function CreateFactory() : ISDODataFactory;
   var
     locObj : ISDOType;
@@ -3436,7 +3436,7 @@ const
       Result.addProperty(locObj,s_int_prop,sdo_namespace,'Integer',[]);
       Result.addProperty(locObj,TARGET_PROP_NAME,sdo_namespace,TARGET_PROP_TYPE_NAME,[]);
   end;
-  
+
 var
   locFactory : ISDODataFactory;
   locInstance, locInstanceLoaded : ISDODataObject;
@@ -3453,8 +3453,8 @@ begin
   try
     f := TSDOSerializerStreamXML.Create();
     s := TSDOSerializer.Create(locFactory,f);
-    s.save(locInstance,ms);  
-    
+    s.save(locInstance,ms);
+
     f := TSDOSerializerStreamXML.Create();
     s := TSDOSerializer.Create(locFactory,f);
     ms.Position := 0;
@@ -3463,13 +3463,13 @@ begin
     CheckEquals(locInstance.getInteger(s_int_prop), locInstanceLoaded.getInteger(s_int_prop),s_int_prop);
   finally
     ms.Free();
-  end;       
+  end;
 end;
 
-procedure TSDOSerializer_Test.save_to_file_null_bytes_prop(); 
+procedure TSDOSerializer_Test.save_to_file_null_bytes_prop();
 const
   TARGET_PROP_NAME = s_bytes_prop; TARGET_PROP_TYPE_NAME = 'Bytes';
-  
+
   function CreateFactory() : ISDODataFactory;
   var
     locObj : ISDOType;
@@ -3480,7 +3480,7 @@ const
       Result.addProperty(locObj,s_int_prop,sdo_namespace,'Integer',[]);
       Result.addProperty(locObj,TARGET_PROP_NAME,sdo_namespace,TARGET_PROP_TYPE_NAME,[]);
   end;
-  
+
 var
   locFactory : ISDODataFactory;
   locInstance, locInstanceLoaded : ISDODataObject;
@@ -3497,8 +3497,8 @@ begin
   try
     f := TSDOSerializerStreamXML.Create();
     s := TSDOSerializer.Create(locFactory,f);
-    s.save(locInstance,ms);  
-    
+    s.save(locInstance,ms);
+
     f := TSDOSerializerStreamXML.Create();
     s := TSDOSerializer.Create(locFactory,f);
     ms.Position := 0;
@@ -3507,13 +3507,13 @@ begin
     CheckEquals(locInstance.getInteger(s_int_prop), locInstanceLoaded.getInteger(s_int_prop),s_int_prop);
   finally
     ms.Free();
-  end;   
+  end;
 end;
 
-procedure TSDOSerializer_Test.save_to_file_null_char_prop(); 
+procedure TSDOSerializer_Test.save_to_file_null_char_prop();
 const
   TARGET_PROP_NAME = s_char_prop; TARGET_PROP_TYPE_NAME = 'Character';
-  
+
   function CreateFactory() : ISDODataFactory;
   var
     locObj : ISDOType;
@@ -3524,7 +3524,7 @@ const
       Result.addProperty(locObj,s_int_prop,sdo_namespace,'Integer',[]);
       Result.addProperty(locObj,TARGET_PROP_NAME,sdo_namespace,TARGET_PROP_TYPE_NAME,[]);
   end;
-  
+
 var
   locFactory : ISDODataFactory;
   locInstance, locInstanceLoaded : ISDODataObject;
@@ -3541,8 +3541,8 @@ begin
   try
     f := TSDOSerializerStreamXML.Create();
     s := TSDOSerializer.Create(locFactory,f);
-    s.save(locInstance,ms);  
-    
+    s.save(locInstance,ms);
+
     f := TSDOSerializerStreamXML.Create();
     s := TSDOSerializer.Create(locFactory,f);
     ms.Position := 0;
@@ -3551,13 +3551,13 @@ begin
     CheckEquals(locInstance.getInteger(s_int_prop), locInstanceLoaded.getInteger(s_int_prop),s_int_prop);
   finally
     ms.Free();
-  end;          
+  end;
 end;
 
-procedure TSDOSerializer_Test.save_to_file_null_currency_prop();  
+procedure TSDOSerializer_Test.save_to_file_null_currency_prop();
 const
   TARGET_PROP_NAME = s_currency_prop; TARGET_PROP_TYPE_NAME = 'Currency';
-  
+
   function CreateFactory() : ISDODataFactory;
   var
     locObj : ISDOType;
@@ -3568,7 +3568,7 @@ const
       Result.addProperty(locObj,s_int_prop,sdo_namespace,'Integer',[]);
       Result.addProperty(locObj,TARGET_PROP_NAME,sdo_namespace,TARGET_PROP_TYPE_NAME,[]);
   end;
-  
+
 var
   locFactory : ISDODataFactory;
   locInstance, locInstanceLoaded : ISDODataObject;
@@ -3585,8 +3585,8 @@ begin
   try
     f := TSDOSerializerStreamXML.Create();
     s := TSDOSerializer.Create(locFactory,f);
-    s.save(locInstance,ms);  
-    
+    s.save(locInstance,ms);
+
     f := TSDOSerializerStreamXML.Create();
     s := TSDOSerializer.Create(locFactory,f);
     ms.Position := 0;
@@ -3595,13 +3595,13 @@ begin
     CheckEquals(locInstance.getInteger(s_int_prop), locInstanceLoaded.getInteger(s_int_prop),s_int_prop);
   finally
     ms.Free();
-  end; 
+  end;
 end;
 
-procedure TSDOSerializer_Test.save_to_file_null_datetime_prop();   
+procedure TSDOSerializer_Test.save_to_file_null_datetime_prop();
 const
   TARGET_PROP_NAME = s_datetime_prop; TARGET_PROP_TYPE_NAME = 'DateTime';
-  
+
   function CreateFactory() : ISDODataFactory;
   var
     locObj : ISDOType;
@@ -3612,7 +3612,7 @@ const
       Result.addProperty(locObj,s_int_prop,sdo_namespace,'Integer',[]);
       Result.addProperty(locObj,TARGET_PROP_NAME,sdo_namespace,TARGET_PROP_TYPE_NAME,[]);
   end;
-  
+
 var
   locFactory : ISDODataFactory;
   locInstance, locInstanceLoaded : ISDODataObject;
@@ -3629,8 +3629,8 @@ begin
   try
     f := TSDOSerializerStreamXML.Create();
     s := TSDOSerializer.Create(locFactory,f);
-    s.save(locInstance,ms);  
-    
+    s.save(locInstance,ms);
+
     f := TSDOSerializerStreamXML.Create();
     s := TSDOSerializer.Create(locFactory,f);
     ms.Position := 0;
@@ -3639,13 +3639,13 @@ begin
     CheckEquals(locInstance.getInteger(s_int_prop), locInstanceLoaded.getInteger(s_int_prop),s_int_prop);
   finally
     ms.Free();
-  end;         
+  end;
 end;
 
 procedure TSDOSerializer_Test.save_to_file_null_double_prop();
 const
   TARGET_PROP_NAME = s_double_prop; TARGET_PROP_TYPE_NAME = 'Double';
-  
+
   function CreateFactory() : ISDODataFactory;
   var
     locObj : ISDOType;
@@ -3656,7 +3656,7 @@ const
       Result.addProperty(locObj,s_int_prop,sdo_namespace,'Integer',[]);
       Result.addProperty(locObj,TARGET_PROP_NAME,sdo_namespace,TARGET_PROP_TYPE_NAME,[]);
   end;
-  
+
 var
   locFactory : ISDODataFactory;
   locInstance, locInstanceLoaded : ISDODataObject;
@@ -3673,8 +3673,8 @@ begin
   try
     f := TSDOSerializerStreamXML.Create();
     s := TSDOSerializer.Create(locFactory,f);
-    s.save(locInstance,ms);  
-    
+    s.save(locInstance,ms);
+
     f := TSDOSerializerStreamXML.Create();
     s := TSDOSerializer.Create(locFactory,f);
     ms.Position := 0;
@@ -3683,13 +3683,13 @@ begin
     CheckEquals(locInstance.getInteger(s_int_prop), locInstanceLoaded.getInteger(s_int_prop),s_int_prop);
   finally
     ms.Free();
-  end;      
+  end;
 end;
 
 procedure TSDOSerializer_Test.save_to_file_null_float_prop();
 const
   TARGET_PROP_NAME = s_float_prop; TARGET_PROP_TYPE_NAME = 'Float';
-  
+
   function CreateFactory() : ISDODataFactory;
   var
     locObj : ISDOType;
@@ -3700,7 +3700,7 @@ const
       Result.addProperty(locObj,s_int_prop,sdo_namespace,'Integer',[]);
       Result.addProperty(locObj,TARGET_PROP_NAME,sdo_namespace,TARGET_PROP_TYPE_NAME,[]);
   end;
-  
+
 var
   locFactory : ISDODataFactory;
   locInstance, locInstanceLoaded : ISDODataObject;
@@ -3717,8 +3717,8 @@ begin
   try
     f := TSDOSerializerStreamXML.Create();
     s := TSDOSerializer.Create(locFactory,f);
-    s.save(locInstance,ms);  
-    
+    s.save(locInstance,ms);
+
     f := TSDOSerializerStreamXML.Create();
     s := TSDOSerializer.Create(locFactory,f);
     ms.Position := 0;
@@ -3727,13 +3727,13 @@ begin
     CheckEquals(locInstance.getInteger(s_int_prop), locInstanceLoaded.getInteger(s_int_prop),s_int_prop);
   finally
     ms.Free();
-  end;      
+  end;
 end;
 
-procedure TSDOSerializer_Test.save_to_file_null_int_prop();  
+procedure TSDOSerializer_Test.save_to_file_null_int_prop();
 const
   TARGET_PROP_NAME = s_int_prop; TARGET_PROP_TYPE_NAME = 'Integer';
-  
+
   function CreateFactory() : ISDODataFactory;
   var
     locObj : ISDOType;
@@ -3744,7 +3744,7 @@ const
       Result.addProperty(locObj,s_string_prop,sdo_namespace,'String',[]);
       Result.addProperty(locObj,TARGET_PROP_NAME,sdo_namespace,TARGET_PROP_TYPE_NAME,[]);
   end;
-  
+
 var
   locFactory : ISDODataFactory;
   locInstance, locInstanceLoaded : ISDODataObject;
@@ -3761,8 +3761,8 @@ begin
   try
     f := TSDOSerializerStreamXML.Create();
     s := TSDOSerializer.Create(locFactory,f);
-    s.save(locInstance,ms);  
-    
+    s.save(locInstance,ms);
+
     f := TSDOSerializerStreamXML.Create();
     s := TSDOSerializer.Create(locFactory,f);
     ms.Position := 0;
@@ -3771,13 +3771,13 @@ begin
     CheckEquals(locInstance.getString(s_string_prop), locInstanceLoaded.getString(s_string_prop),s_string_prop);
   finally
     ms.Free();
-  end;   
+  end;
 end;
 
-procedure TSDOSerializer_Test.save_to_file_null_long_prop(); 
+procedure TSDOSerializer_Test.save_to_file_null_long_prop();
 const
   TARGET_PROP_NAME = s_long_prop; TARGET_PROP_TYPE_NAME = 'Long';
-  
+
   function CreateFactory() : ISDODataFactory;
   var
     locObj : ISDOType;
@@ -3788,7 +3788,7 @@ const
       Result.addProperty(locObj,s_int_prop,sdo_namespace,'Integer',[]);
       Result.addProperty(locObj,TARGET_PROP_NAME,sdo_namespace,TARGET_PROP_TYPE_NAME,[]);
   end;
-  
+
 var
   locFactory : ISDODataFactory;
   locInstance, locInstanceLoaded : ISDODataObject;
@@ -3805,8 +3805,8 @@ begin
   try
     f := TSDOSerializerStreamXML.Create();
     s := TSDOSerializer.Create(locFactory,f);
-    s.save(locInstance,ms);  
-    
+    s.save(locInstance,ms);
+
     f := TSDOSerializerStreamXML.Create();
     s := TSDOSerializer.Create(locFactory,f);
     ms.Position := 0;
@@ -3815,27 +3815,27 @@ begin
     CheckEquals(locInstance.getInteger(s_int_prop), locInstanceLoaded.getInteger(s_int_prop),s_int_prop);
   finally
     ms.Free();
-  end;  
+  end;
 end;
 
-procedure TSDOSerializer_Test.save_to_file_null_object_prop(); 
+procedure TSDOSerializer_Test.save_to_file_null_object_prop();
 const
   TARGET_PROP_NAME = s_object_prop; TARGET_PROP_TYPE_NAME = s_object_type2;
-  
+
   function CreateFactory() : ISDODataFactory;
   var
     locObj : ISDOType;
   begin
     Result := TSDODataFactory.Create() as ISDODataFactory;
     Result.AddType(s_uri,s_object_type,[]);
-    Result.AddType(s_uri,s_object_type2,[]);           
+    Result.AddType(s_uri,s_object_type2,[]);
     locObj := Result.getType(s_uri,s_object_type);
       Result.addProperty(locObj,s_int_prop,sdo_namespace,'Integer',[]);
       Result.addProperty(locObj,TARGET_PROP_NAME,s_uri,TARGET_PROP_TYPE_NAME,[pfIsContainment]);
     locObj := Result.getType(s_uri,s_object_type2);
       Result.addProperty(locObj,s_string_prop,sdo_namespace,'String',[]);
   end;
-  
+
 var
   locFactory : ISDODataFactory;
   locInstance, locInstanceLoaded : ISDODataObject;
@@ -3852,8 +3852,8 @@ begin
   try
     f := TSDOSerializerStreamXML.Create();
     s := TSDOSerializer.Create(locFactory,f);
-    s.save(locInstance,ms);  
-    
+    s.save(locInstance,ms);
+
     f := TSDOSerializerStreamXML.Create();
     s := TSDOSerializer.Create(locFactory,f);
     ms.Position := 0;
@@ -3862,13 +3862,13 @@ begin
     CheckEquals(locInstance.getInteger(s_int_prop), locInstanceLoaded.getInteger(s_int_prop),s_int_prop);
   finally
     ms.Free();
-  end;  
+  end;
 end;
 
 procedure TSDOSerializer_Test.save_to_file_null_short_prop();
 const
   TARGET_PROP_NAME = s_short_prop; TARGET_PROP_TYPE_NAME = 'Short';
-  
+
   function CreateFactory() : ISDODataFactory;
   var
     locObj : ISDOType;
@@ -3879,7 +3879,7 @@ const
       Result.addProperty(locObj,s_int_prop,sdo_namespace,'Integer',[]);
       Result.addProperty(locObj,TARGET_PROP_NAME,sdo_namespace,TARGET_PROP_TYPE_NAME,[]);
   end;
-  
+
 var
   locFactory : ISDODataFactory;
   locInstance, locInstanceLoaded : ISDODataObject;
@@ -3896,8 +3896,8 @@ begin
   try
     f := TSDOSerializerStreamXML.Create();
     s := TSDOSerializer.Create(locFactory,f);
-    s.save(locInstance,ms);  
-    
+    s.save(locInstance,ms);
+
     f := TSDOSerializerStreamXML.Create();
     s := TSDOSerializer.Create(locFactory,f);
     ms.Position := 0;
@@ -3906,13 +3906,13 @@ begin
     CheckEquals(locInstance.getInteger(s_int_prop), locInstanceLoaded.getInteger(s_int_prop),s_int_prop);
   finally
     ms.Free();
-  end;  
+  end;
 end;
 
-procedure TSDOSerializer_Test.save_to_file_null_string_prop(); 
+procedure TSDOSerializer_Test.save_to_file_null_string_prop();
 const
   TARGET_PROP_NAME = s_string_prop; TARGET_PROP_TYPE_NAME = 'String';
-  
+
   function CreateFactory() : ISDODataFactory;
   var
     locObj : ISDOType;
@@ -3923,7 +3923,7 @@ const
       Result.addProperty(locObj,s_int_prop,sdo_namespace,'Integer',[]);
       Result.addProperty(locObj,TARGET_PROP_NAME,sdo_namespace,TARGET_PROP_TYPE_NAME,[]);
   end;
-  
+
 var
   locFactory : ISDODataFactory;
   locInstance, locInstanceLoaded : ISDODataObject;
@@ -3940,8 +3940,8 @@ begin
   try
     f := TSDOSerializerStreamXML.Create();
     s := TSDOSerializer.Create(locFactory,f);
-    s.save(locInstance,ms);  
-    
+    s.save(locInstance,ms);
+
     f := TSDOSerializerStreamXML.Create();
     s := TSDOSerializer.Create(locFactory,f);
     ms.Position := 0;
@@ -3950,7 +3950,7 @@ begin
     CheckEquals(locInstance.getInteger(s_int_prop), locInstanceLoaded.getInteger(s_int_prop),s_int_prop);
   finally
     ms.Free();
-  end; 
+  end;
 end;
 
 procedure TSDOSerializer_Test.load_from_file_start_with_empty();
@@ -4620,7 +4620,7 @@ begin
     ls.append(789);
 {$IFDEF TEST_GENERATE_FILE}
   (TSDOSerializer.Create(locFac,TSDOSerializerStreamXML.Create())as ISDOSerializer).save(locDep,sdoExpandLocalFileName(FILE_NAME));
-{$ENDIF TEST_GENERATE_FILE}  
+{$ENDIF TEST_GENERATE_FILE}
 
   localFileName := sdoExpandLocalFileName(TestFilesPath + FILE_NAME);
   f := TSDOSerializerStreamXML.Create();
@@ -4681,9 +4681,9 @@ begin
     ls.append(TSDOLong(-9));
 {$IFDEF TEST_GENERATE_FILE}
   (TSDOSerializer.Create(locFac,TSDOSerializerStreamXML.Create())as ISDOSerializer).save(locDep,sdoExpandLocalFileName(FILE_NAME));
-{$ENDIF TEST_GENERATE_FILE}  
-    
-  localFileName := sdoExpandLocalFileName(TestFilesPath + FILE_NAME); 
+{$ENDIF TEST_GENERATE_FILE}
+
+  localFileName := sdoExpandLocalFileName(TestFilesPath + FILE_NAME);
   f := TSDOSerializerStreamXML.Create();
   tmpFactory := TSDOBaseDataFactory.Create();
   s := TSDOSerializer.Create(tmpFactory,f);
@@ -4743,9 +4743,9 @@ begin
     ls.append(TSDOShort(89));
 {$IFDEF TEST_GENERATE_FILE}
   (TSDOSerializer.Create(locFac,TSDOSerializerStreamXML.Create())as ISDOSerializer).save(locDep,sdoExpandLocalFileName(FILE_NAME));
-{$ENDIF TEST_GENERATE_FILE}  
-    
-  localFileName := sdoExpandLocalFileName(TestFilesPath + FILE_NAME); 
+{$ENDIF TEST_GENERATE_FILE}
+
+  localFileName := sdoExpandLocalFileName(TestFilesPath + FILE_NAME);
   f := TSDOSerializerStreamXML.Create();
   tmpFactory := TSDOBaseDataFactory.Create();
   s := TSDOSerializer.Create(tmpFactory,f);
@@ -5951,7 +5951,7 @@ const
   FILE_NAME = 'changesummary_prop_list_bytes.xml';
   LIST_PROP_NAME = s_list_bytes;
   PROP_TYPE = BytesType;
-  
+
 var
   VAL_1, VAL_2, VAL_3, VAL_4, VAL_5 : TSDOBytes;
 
@@ -5964,29 +5964,29 @@ var
     for k := 0 to High(v) do
       v[k] := k mod High(Byte);
     VAL_1 := v;
-    v := nil;    
+    v := nil;
 
     VAL_2 := nil;
 
     SetLength(v,20);
     for k := 0 to High(v) do
       v[k] := ( ( 3 * k ) + 1 ) mod High(Byte);
-    VAL_3 := v; 
-    v := nil;  
+    VAL_3 := v;
+    v := nil;
 
     SetLength(v,30);
     for k := 0 to High(v) do
       v[k] := ( ( 3 * k ) + 1 ) mod High(Byte);
-    VAL_4 := v; 
-    v := nil;   
+    VAL_4 := v;
+    v := nil;
 
     SetLength(v,40);
     for k := 0 to High(v) do
       v[k] := ( ( 3 * k ) + 1 ) mod High(Byte);
-    VAL_5 := v; 
-    v := nil;       
+    VAL_5 := v;
+    v := nil;
   end;
-  
+
 var
   locFac : ISDODataFactory;
   locDep : ISDODataObject;
@@ -6030,8 +6030,8 @@ begin
     ls.appendBytes(VAL_4);
 {$IFDEF TEST_GENERATE_FILE}
     (TSDOSerializer.Create(locFac,TSDOSerializerStreamXML.Create()) as ISDOSerializer).save(locDep,sdoExpandLocalFileName(FILE_NAME));
-{$ENDIF TEST_GENERATE_FILE} 
-    
+{$ENDIF TEST_GENERATE_FILE}
+
   f := TSDOSerializerStreamXML.Create();
   s := TSDOSerializer.Create(locFac,f);
   s.save(s_DepartmentType,locDep,localFileName);
@@ -6065,13 +6065,13 @@ var
     for k := 0 to High(v) do
       v[k] := k mod High(Byte);
     VAL_1 := v;
-    v := nil;    
+    v := nil;
 
     SetLength(v,20);
     for k := 0 to High(v) do
       v[k] := ( ( 3 * k ) + 1 ) mod High(Byte);
     VAL_2 := v;
-  end;  
+  end;
 
 var
   locFac, tmpFactory : ISDODataFactory;
@@ -6097,7 +6097,7 @@ begin
     locEmployee.setBytes(PROP_NAME,VAL_2);
 {$IFDEF TEST_GENERATE_FILE}
     (TSDOSerializer.Create(locFac,TSDOSerializerStreamXML.Create()) as ISDOSerializer).save(locEmployee,sdoExpandLocalFileName(FILE_NAME));
-{$ENDIF TEST_GENERATE_FILE}     
+{$ENDIF TEST_GENERATE_FILE}
 
   f := TSDOSerializerStreamXML.Create();
   tmpFactory := TSDODataFactory.Create();
@@ -6133,27 +6133,27 @@ var
     for k := 0 to High(v) do
       v[k] := k mod High(Byte);
     VAL_1 := v;
-    v := nil;    
+    v := nil;
 
     VAL_2 := nil;
 
     SetLength(v,20);
     for k := 0 to High(v) do
       v[k] := ( ( 3 * k ) + 1 ) mod High(Byte);
-    VAL_3 := v; 
-    v := nil;  
+    VAL_3 := v;
+    v := nil;
 
     SetLength(v,30);
     for k := 0 to High(v) do
       v[k] := ( ( 3 * k ) + 1 ) mod High(Byte);
-    VAL_4 := v; 
-    v := nil;   
+    VAL_4 := v;
+    v := nil;
 
     SetLength(v,40);
     for k := 0 to High(v) do
       v[k] := ( ( 3 * k ) + 1 ) mod High(Byte);
-    VAL_5 := v; 
-    v := nil;       
+    VAL_5 := v;
+    v := nil;
   end;
 
 var
@@ -6197,7 +6197,7 @@ begin
     ls.insertBytes(2, VAL_3);
     ls.appendBytes(VAL_4);
 
-  localFileName := sdoExpandLocalFileName(TestFilesPath + FILE_NAME); 
+  localFileName := sdoExpandLocalFileName(TestFilesPath + FILE_NAME);
   f := TSDOSerializerStreamXML.Create();
   tmpFactory := TSDOBaseDataFactory.Create();
   s := TSDOSerializer.Create(tmpFactory,f);
@@ -6260,7 +6260,7 @@ begin
 {$IFDEF TEST_GENERATE_FILE}
   (TSDOSerializer.Create(locFac,TSDOSerializerStreamXML.Create()) as ISDOSerializer).save(locDep,sdoExpandLocalFileName(FILE_NAME));
 {$ENDIF TEST_GENERATE_FILE}
-  
+
   f := TSDOSerializerStreamXML.Create();
   s := TSDOSerializer.Create(locFac,f);
   s.save(s_DepartmentType,locDep,localFileName);
@@ -6394,7 +6394,7 @@ begin
 {$IFDEF TEST_GENERATE_FILE}
   (TSDOSerializer.Create(locFac,TSDOSerializerStreamXML.Create()) as ISDOSerializer).save(locDep,sdoExpandLocalFileName(FILE_NAME));
 {$ENDIF TEST_GENERATE_FILE}
-  
+
   f := TSDOSerializerStreamXML.Create();
   s := TSDOSerializer.Create(locFac,f);
   s.save(s_DepartmentType,locDep,localFileName);
@@ -6504,11 +6504,11 @@ begin
     locEmployee.setCurrency(PROP_NAME,VAL_1);
     locCS := locEmployee.getChangeSummary();
 
-  locCS.beginLogging();     
+  locCS.beginLogging();
     locEmployee.setCurrency(PROP_NAME,VAL_2);
 {$IFDEF TEST_GENERATE_FILE}
   (TSDOSerializer.Create(locFac,TSDOSerializerStreamXML.Create())as ISDOSerializer).save(locEmployee,sdoExpandLocalFileName(FILE_NAME));
-{$ENDIF TEST_GENERATE_FILE}  
+{$ENDIF TEST_GENERATE_FILE}
 
   f := TSDOSerializerStreamXML.Create();
   tmpFactory := TSDODataFactory.Create();
@@ -6572,9 +6572,9 @@ begin
     ls.appendCurrency(CURRENCY_VALUES_REPEATED_DIGITED[8]);
 {$IFDEF TEST_GENERATE_FILE}
   (TSDOSerializer.Create(locFac,TSDOSerializerStreamXML.Create())as ISDOSerializer).save(locDep,sdoExpandLocalFileName(FILE_NAME));
-{$ENDIF TEST_GENERATE_FILE}  
-    
-  localFileName := sdoExpandLocalFileName(TestFilesPath + FILE_NAME); 
+{$ENDIF TEST_GENERATE_FILE}
+
+  localFileName := sdoExpandLocalFileName(TestFilesPath + FILE_NAME);
   f := TSDOSerializerStreamXML.Create();
   tmpFactory := TSDOBaseDataFactory.Create();
   s := TSDOSerializer.Create(tmpFactory,f);
@@ -6680,11 +6680,11 @@ begin
     locEmployee.setDouble(PROP_NAME,VAL_1);
     locCS := locEmployee.getChangeSummary();
 
-  locCS.beginLogging();     
+  locCS.beginLogging();
     locEmployee.setDouble(PROP_NAME,VAL_2);
 {$IFDEF TEST_GENERATE_FILE}
   (TSDOSerializer.Create(locFac,TSDOSerializerStreamXML.Create())as ISDOSerializer).save(locEmployee,sdoExpandLocalFileName(FILE_NAME));
-{$ENDIF TEST_GENERATE_FILE}  
+{$ENDIF TEST_GENERATE_FILE}
 
   f := TSDOSerializerStreamXML.Create();
   tmpFactory := TSDODataFactory.Create();
@@ -6748,9 +6748,9 @@ begin
     ls.append(DOUBLE_VALUES_REPEATED_DIGITED[8]);
 {$IFDEF TEST_GENERATE_FILE}
   (TSDOSerializer.Create(locFac,TSDOSerializerStreamXML.Create())as ISDOSerializer).save(locDep,sdoExpandLocalFileName(FILE_NAME));
-{$ENDIF TEST_GENERATE_FILE}  
-    
-  localFileName := sdoExpandLocalFileName(TestFilesPath + FILE_NAME); 
+{$ENDIF TEST_GENERATE_FILE}
+
+  localFileName := sdoExpandLocalFileName(TestFilesPath + FILE_NAME);
   f := TSDOSerializerStreamXML.Create();
   tmpFactory := TSDOBaseDataFactory.Create();
   s := TSDOSerializer.Create(tmpFactory,f);
@@ -6856,11 +6856,11 @@ begin
     locEmployee.setFloat(PROP_NAME,VAL_1);
     locCS := locEmployee.getChangeSummary();
 
-  locCS.beginLogging();     
+  locCS.beginLogging();
     locEmployee.setFloat(PROP_NAME,VAL_2);
 {$IFDEF TEST_GENERATE_FILE}
   (TSDOSerializer.Create(locFac,TSDOSerializerStreamXML.Create())as ISDOSerializer).save(locEmployee,sdoExpandLocalFileName(FILE_NAME));
-{$ENDIF TEST_GENERATE_FILE}  
+{$ENDIF TEST_GENERATE_FILE}
 
   f := TSDOSerializerStreamXML.Create();
   tmpFactory := TSDODataFactory.Create();
@@ -6924,9 +6924,9 @@ begin
     ls.append(FLOAT_VALUES_REPEATED_DIGITED[8]);
 {$IFDEF TEST_GENERATE_FILE}
   (TSDOSerializer.Create(locFac,TSDOSerializerStreamXML.Create())as ISDOSerializer).save(locDep,sdoExpandLocalFileName(FILE_NAME));
-{$ENDIF TEST_GENERATE_FILE}  
-    
-  localFileName := sdoExpandLocalFileName(TestFilesPath + FILE_NAME); 
+{$ENDIF TEST_GENERATE_FILE}
+
+  localFileName := sdoExpandLocalFileName(TestFilesPath + FILE_NAME);
   f := TSDOSerializerStreamXML.Create();
   tmpFactory := TSDOBaseDataFactory.Create();
   s := TSDOSerializer.Create(tmpFactory,f);
@@ -7012,11 +7012,11 @@ begin
     locEmployee.setByte(PROP_NAME,VAL_1);
     locCS := locEmployee.getChangeSummary();
 
-  locCS.beginLogging();     
+  locCS.beginLogging();
     locEmployee.setByte(PROP_NAME,VAL_2);
 {$IFDEF TEST_GENERATE_FILE}
   (TSDOSerializer.Create(locFac,TSDOSerializerStreamXML.Create())as ISDOSerializer).save(locEmployee,sdoExpandLocalFileName(FILE_NAME));
-{$ENDIF TEST_GENERATE_FILE}  
+{$ENDIF TEST_GENERATE_FILE}
 
   f := TSDOSerializerStreamXML.Create();
   tmpFactory := TSDODataFactory.Create();
@@ -7062,11 +7062,11 @@ begin
     locEmployee.setCharacter(PROP_NAME,VAL_1);
     locCS := locEmployee.getChangeSummary();
 
-  locCS.beginLogging();     
+  locCS.beginLogging();
     locEmployee.setCharacter(PROP_NAME,VAL_2);
 {$IFDEF TEST_GENERATE_FILE}
   (TSDOSerializer.Create(locFac,TSDOSerializerStreamXML.Create())as ISDOSerializer).save(locEmployee,sdoExpandLocalFileName(FILE_NAME));
-{$ENDIF TEST_GENERATE_FILE}  
+{$ENDIF TEST_GENERATE_FILE}
 
   f := TSDOSerializerStreamXML.Create();
   tmpFactory := TSDODataFactory.Create();
@@ -7204,11 +7204,11 @@ begin
     locEmployee.setLong(PROP_NAME,VAL_1);
     locCS := locEmployee.getChangeSummary();
 
-  locCS.beginLogging();     
+  locCS.beginLogging();
     locEmployee.setLong(PROP_NAME,VAL_2);
 {$IFDEF TEST_GENERATE_FILE}
   (TSDOSerializer.Create(locFac,TSDOSerializerStreamXML.Create())as ISDOSerializer).save(locEmployee,sdoExpandLocalFileName(FILE_NAME));
-{$ENDIF TEST_GENERATE_FILE}  
+{$ENDIF TEST_GENERATE_FILE}
 
   f := TSDOSerializerStreamXML.Create();
   tmpFactory := TSDODataFactory.Create();
@@ -7255,11 +7255,11 @@ begin
     locEmployee.setShort(PROP_NAME,VAL_1);
     locCS := locEmployee.getChangeSummary();
 
-  locCS.beginLogging();     
+  locCS.beginLogging();
     locEmployee.setShort(PROP_NAME,VAL_2);
 {$IFDEF TEST_GENERATE_FILE}
   (TSDOSerializer.Create(locFac,TSDOSerializerStreamXML.Create())as ISDOSerializer).save(locEmployee,sdoExpandLocalFileName(FILE_NAME));
-{$ENDIF TEST_GENERATE_FILE}  
+{$ENDIF TEST_GENERATE_FILE}
 
   f := TSDOSerializerStreamXML.Create();
   tmpFactory := TSDODataFactory.Create();
@@ -7370,9 +7370,9 @@ begin
     ls.append(TSDOByte(89));
 {$IFDEF TEST_GENERATE_FILE}
   (TSDOSerializer.Create(locFac,TSDOSerializerStreamXML.Create())as ISDOSerializer).save(locDep,sdoExpandLocalFileName(FILE_NAME));
-{$ENDIF TEST_GENERATE_FILE}  
-    
-  localFileName := sdoExpandLocalFileName(TestFilesPath + FILE_NAME); 
+{$ENDIF TEST_GENERATE_FILE}
+
+  localFileName := sdoExpandLocalFileName(TestFilesPath + FILE_NAME);
   f := TSDOSerializerStreamXML.Create();
   tmpFactory := TSDOBaseDataFactory.Create();
   s := TSDOSerializer.Create(tmpFactory,f);
@@ -7431,9 +7431,9 @@ begin
     ls.append(TSDOChar('Z'));
 {$IFDEF TEST_GENERATE_FILE}
   (TSDOSerializer.Create(locFac,TSDOSerializerStreamXML.Create())as ISDOSerializer).save(locDep,sdoExpandLocalFileName(FILE_NAME));
-{$ENDIF TEST_GENERATE_FILE}  
-    
-  localFileName := sdoExpandLocalFileName(TestFilesPath + FILE_NAME); 
+{$ENDIF TEST_GENERATE_FILE}
+
+  localFileName := sdoExpandLocalFileName(TestFilesPath + FILE_NAME);
   f := TSDOSerializerStreamXML.Create();
   tmpFactory := TSDOBaseDataFactory.Create();
   s := TSDOSerializer.Create(tmpFactory,f);
@@ -7524,7 +7524,7 @@ begin
     ls.insert(2, VAL_3);
     ls.append(VAL_4);
 
-  localFileName := sdoExpandLocalFileName(TestFilesPath + 'changesummary_prop_list_date.xml'); 
+  localFileName := sdoExpandLocalFileName(TestFilesPath + 'changesummary_prop_list_date.xml');
   f := TSDOSerializerStreamXML.Create();
   tmpFactory := TSDOBaseDataFactory.Create();
   s := TSDOSerializer.Create(tmpFactory,f);

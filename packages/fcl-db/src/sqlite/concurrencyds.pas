@@ -12,7 +12,7 @@ uses
   cmem,
 {$endif}
   sysutils,sqlite3ds, inifiles;
-  
+
 const
   SQLITEDS_TESTS_INI_FILE = 'sqlitedstests.ini';
   DEFAULT_TABLENAME = 'tabletest';
@@ -30,7 +30,7 @@ const
   'Time',
   'LargeInt',
   'AutoInc',
-  'Currency'  
+  'Currency'
   );
 
 var

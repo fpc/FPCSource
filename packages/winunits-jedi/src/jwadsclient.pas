@@ -125,9 +125,9 @@ const
 // CF_DSOBJECTS
 // ------------
 //  This clipboard format defines the seleciton for an DS IShellFolder to the
-//  shell extensions.   All strings are stored as BSTR's, and an offset == 0 
+//  shell extensions.   All strings are stored as BSTR's, and an offset == 0
 //  is used to indicate that the string is not present.
-// 
+//
 
 const
   DSOBJECT_ISCONTAINER   = $00000001; // = 1 => object is a container
@@ -179,11 +179,11 @@ type
 //  When invoking an object referenced by a display specifier (context menu, property
 //  page, etc) we call the IShellExtInit interface passing a IDataObject.  This data
 //  object supports the CF_DSDISPLAYSPECOPTIONS format to give out configuration
-//  informaiton about admin/shell invocation.
+//  information about admin/shell invocation.
 //
 //  When interacting with dsuiext.dll the interfaces uses this clipboard format
 //  to determine which display specifier attributes to address (admin/shell)
-//  and pick up the values accordingly.  If no format is suppoted then
+//  and pick up the values accordingly.  If no format is supported then
 //  dsuiext.dll defaults to shell.
 //
 
@@ -236,7 +236,7 @@ const
 //  Within the display specifier for a property page, the format for a
 //  Win32 extension is "n,{clsid}[,bla...]" we take the "bla" section and
 //  pass it down.
-// 
+//
 
   CFSTR_DSPROPERTYPAGEINFO = 'DsPropPageInfo';
   {$EXTERNALSYM CFSTR_DSPROPERTYPAGEINFO}
@@ -319,7 +319,7 @@ type
   {$EXTERNALSYM DOMAINTREE}
   TDomainTree = DOMAIN_TREE;
   PDomainTree = PDOMAIN_TREE;
-  
+
   IDsBrowseDomainTree = interface (IUnknown)
   ['{7cabcf1e-78f5-11d2-960c-00c04fa31a86}']
     function BrowseTo(hwndParent: HWND; var ppszTargetPath: LPWSTR;
@@ -339,7 +339,7 @@ type
 //
 // IDsDisplaySpecifier
 // ===================
-//  This interface gives client UI access to the display specifiers for 
+//  This interface gives client UI access to the display specifiers for
 //  specific attributes.
 //
 //---------------------------------------------------------------------------//
@@ -377,7 +377,7 @@ const
 // Flags for IDsDisplaySpecifier::IsClassContainer
 //
 
-  DSICCF_IGNORETREATASLEAF = $00000001; // = 1 => igore the "treatAsLeaf" and use only schema information
+  DSICCF_IGNORETREATASLEAF = $00000001; // = 1 => ignore the "treatAsLeaf" and use only schema information
   {$EXTERNALSYM DSICCF_IGNORETREATASLEAF}
 
 //
@@ -391,7 +391,7 @@ type
   LPDSENUMATTRIBUTES = function(lParam: LPARAM; pszAttributeName: LPCWSTR;
     pszDisplayName: LPCWSTR; dwFlags: DWORD): HRESULT; stdcall;
   {$EXTERNALSYM LPDSENUMATTRIBUTES}
-  TDsEnumAttributes = LPDSENUMATTRIBUTES;  
+  TDsEnumAttributes = LPDSENUMATTRIBUTES;
 
 //
 // IDsDisplaySpecifier::GetClassCreationInfo information

@@ -95,7 +95,7 @@ const
   CYBRMATTR_HEIGHT       = $80000006; // returns height in lines
   CYBRMATTR_DEPTH        = $80000007; // returns bits per pixel
   CYBRMATTR_ISCYBERGFX   = $80000008; // returns -1 if supplied bitmap is a cybergfx one
-  CYBRMATTR_ISLINEARMEM  = $80000009; // returns -1 if supplied bitmap is linear accessable
+  CYBRMATTR_ISLINEARMEM  = $80000009; // returns -1 if supplied bitmap is linear accessible
   CYBRMATTR_PIXFMT_ALPHA = $8000000A;
 // Parameters for GetCyberIDAttr()
   CYBRIDATTR_PIXFMT     = $80000001; // the pixel format is returned
@@ -108,10 +108,10 @@ const
   //  FilterTags
   CYBRMREQ_MinDepth    = CYBRMREQ_TB + 0; // Minimum depth for displayed screenmode
   CYBRMREQ_MaxDepth    = CYBRMREQ_TB + 1; // Maximum depth  "       "        "
-  CYBRMREQ_MinWidth    = CYBRMREQ_TB + 2; // Minumum width  "       "        "
+  CYBRMREQ_MinWidth    = CYBRMREQ_TB + 2; // Minimum width  "       "        "
   CYBRMREQ_MaxWidth    = CYBRMREQ_TB + 3; // Maximum width  "       "        "
-  CYBRMREQ_MinHeight   = CYBRMREQ_TB + 4; // Minumum height "       "        "
-  CYBRMREQ_MaxHeight   = CYBRMREQ_TB + 5; // Minumum height "       "        "
+  CYBRMREQ_MinHeight   = CYBRMREQ_TB + 4; // Minimum height "       "        "
+  CYBRMREQ_MaxHeight   = CYBRMREQ_TB + 5; // Minimum height "       "        "
   CYBRMREQ_CModelArray = CYBRMREQ_TB + 6;
   CYBRMREQ_WinTitle    = CYBRMREQ_TB + 20;
   CYBRMREQ_OKText      = CYBRMREQ_TB + 21;

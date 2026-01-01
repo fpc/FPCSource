@@ -128,7 +128,7 @@ const
   PORRSTF = 1 shl 27;
   RMVF = 1 shl 24;
 
-  //Defaults to InitMemAndStart, can be overriden by user
+  //Defaults to InitMemAndStart, can be overridden by user
 procedure ResetISR; external Name 'ResetISR';
 
 procedure HandleArchSpecificReset; noreturn;

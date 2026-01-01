@@ -252,7 +252,7 @@ const
                                         { interested in later resuming the download.}
 	kURLResumeDownloadFlag = 1 shl 13; { The passed in file is partially downloaded, attempt to resume}
                                         { it.  Currently works for HTTP only.  If no FSSpec passed in,}
-                                        { this flag will be ignored. Overriden by kURLReplaceExistingFlag. }
+                                        { this flag will be ignored. Overridden by kURLReplaceExistingFlag. }
 	kURLReservedFlag = $80000000; { reserved for Apple internal use}
 
 type

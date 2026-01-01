@@ -98,7 +98,7 @@ type
 		function accessibilityValue: NSNumber; message 'accessibilityValue';
     function accessibilityFrame: NSRect; message 'accessibilityFrame';
     function accessibilityParent: id; message 'accessibilityParent';
-    
+
   end;
 
 

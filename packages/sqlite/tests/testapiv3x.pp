@@ -13,7 +13,7 @@ var
  db       : Psqlite3;
  sql      : ansistring;
  pzErrMsg : PAnsiChar;
- 
+
 function MyCallback(_para1:pointer; plArgc:longint; argv:PPAnsiChar; argcol:PPAnsiChar):longint; cdecl;
 var i: Integer;
     PVal, PName: ^PAnsiChar;
@@ -46,7 +46,7 @@ begin
    rc:=sqlite3_exec(db, PAnsiChar(sql), @MyCallback, nil, @pzErrMsg);
    if( rc<>SQLITE_OK )
    then writeln(Format('SQL error: %s', [pzErrMsg^]));
-   
+
    sql:='INSERT INTO Test VALUES(1,''hi'', ''by'', -1);';
    rc:=sqlite3_exec(db, PAnsiChar(sql), @MyCallback, nil, @pzErrMsg);
    Writeln('Inserting row');

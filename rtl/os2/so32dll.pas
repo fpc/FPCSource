@@ -30,7 +30,7 @@
 @lastmod(23 Sep 2002)
 @todo(sys/ioctl.h, sys/ioctlos2.h, sys/itypes.h)
 This is functions from SO32DLL.DLL. These functions allows to use
-protocol-independed sockets. Equal to SYS\SOCKET.H, NERRNO.H, SYS\SYSCTL.H.
+protocol-independent sockets. Equal to SYS\SOCKET.H, NERRNO.H, SYS\SYSCTL.H.
 }
 {$IFNDEF FPC_DOTTEDUNITS}
 unit SO32Dll;
@@ -1087,7 +1087,7 @@ const
   SIOCSIFSETSIG = (Ord('i') SHL 8) OR 25;
   SIOCSIFCLRSIG = (Ord('i') SHL 8) OR 26;
   SIOCSIFBRD    = (Ord('i') SHL 8) OR 27; { SINGLE-rt bcst. using old # for bkw cmpt }
-  SIOCSIFALLRTB = (Ord('i') SHL 8) OR 63; { added to configure all-route broadcst }
+  SIOCSIFALLRTB = (Ord('i') SHL 8) OR 63; { added to configure all-route broadcast }
 
   SIOCGIFLOAD     =(Ord('i') SHL 8) OR 27;
   SIOCSIFFILTERSRC=(Ord('i') SHL 8) OR 28;
@@ -1123,7 +1123,7 @@ const
 
 
 {$IFDEF SLBOOTP}
-  SIOCGUNIT     = (Ord('i') SHL 8) OR 70;    { Used to retreive unit number on }
+  SIOCGUNIT     = (Ord('i') SHL 8) OR 70;    { Used to retrieve unit number on }
                                              { serial interface }
 {$ENDIF}
 
@@ -1268,7 +1268,7 @@ function  sendto(sock:Longint; var buf; buf_len,flags:Longint; var s_addr:sockad
 function  readv(sock:Longint; var iov:iovec; iov_count:Longint):LONGINT; cdecl;
 
 { write data from iov_count number of buffers iov.
-  ! return N of writed bytes, or -1 }
+  ! return N of written bytes, or -1 }
 function  writev(sock:Longint; var iov:iovec; iov_count:Longint):LONGINT; cdecl;
 
 { read data + control info from socket
@@ -1276,7 +1276,7 @@ function  writev(sock:Longint; var iov:iovec; iov_count:Longint):LONGINT; cdecl;
 function  recvmsg(sock:Longint; var msgbuf:msghdr; flags:Longint):Longint; cdecl;
 
 { send data + control info to socket
-  ! return N of sended bytes, or -1 }
+  ! return N of sent bytes, or -1 }
 function  sendmsg(sock:Longint; var msgbuf:msghdr; flags:Longint):Longint; cdecl;
 
 (***************************************************************************)
@@ -1446,7 +1446,7 @@ const
   NETDB_INTERNAL  = -1;       // see errno
   NETDB_SUCCESS   =  0;       // no problem
   HOST_NOT_FOUND  =  1;       // Authoritative Answer Host not found
-  TRY_AGAIN       =  2;       // Non-Authoritive Host not found, or SERVERFAIL
+  TRY_AGAIN       =  2;       // Non-Authoritative Host not found, or SERVERFAIL
   NO_RECOVERY     =  3;       // Non recoverable errors, FORMERR, REFUSED, NOTIMP
   NO_DATA         =  4;       // Valid name, no data record of requested type
   NO_ADDRESS      =  NO_DATA; // no address, look for MX record
@@ -1656,7 +1656,7 @@ const
   IP_ADD_MEMBERSHIP     = 5;   // ip_mreq; add an IP group membership
   IP_DROP_MEMBERSHIP    = 6;   // ip_mreq; drop an IP group membership
   IP_HDRINCL            = 7;   // int; header is included with data
-  IP_TOS                = 8;   // int; IP type of service and preced.
+  IP_TOS                = 8;   // int; IP type of service and precede.
   IP_TTL                = 9;   // int; IP time to live
   IP_RECVOPTS           = 10;  // bool; receive all IP opts w/dgram
   IP_RECVRETOPTS        = 11;  // bool; receive IP opts for response

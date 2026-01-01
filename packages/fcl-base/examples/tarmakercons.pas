@@ -18,7 +18,7 @@ Subject : Main Window
 Date        Author Changes
 -----------------------------------------------------------------------------------------------
 2001-06-19  HeySt  Start
-2006-10-20  MvdV   Fork from GUI version to Console app for 
+2006-10-20  MvdV   Fork from GUI version to Console app for
                     easier testing with FPC on various platforms
 *)
 
@@ -31,7 +31,7 @@ Uses SysUtils,LibTar;
 
 var p : string;
     d : TSearchRec;
-    TarWriter : TTarWriter;   
+    TarWriter : TTarWriter;
 begin
   if paramcount<1 then
     begin
@@ -47,5 +47,5 @@ begin
       until findnext(d)<>0;
       Findclose(d);
     end;
- TarWriter.free; 
+ TarWriter.free;
 end.

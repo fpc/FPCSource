@@ -27,7 +27,7 @@ procedure ap_init_vhost_config(p: Papr_pool_t);
  external LibHTTPD name LibNamePrefix + 'ap_init_vhost_config' + LibSuff4;
 
 {
- * called after the config has been read to compile the tables needed to do 
+ * called after the config has been read to compile the tables needed to do
  * the run-time vhost lookups
  * @param p The pool to allocate out of
  * @param main_server The start of the virtual host list
@@ -81,7 +81,7 @@ function ap_vhost_iterate_given_conn(conn: Pconn_rec;
  external LibHTTPD name LibNamePrefix + 'ap_vhost_iterate_given_conn' + LibSuff12;
 
 {
- * given an ip address only, give our best guess as to what vhost it is 
+ * given an ip address only, give our best guess as to what vhost it is
  * @param conn The current connection
  }
 procedure ap_update_vhost_given_ip(conn: Pconn_rec);
@@ -89,7 +89,7 @@ procedure ap_update_vhost_given_ip(conn: Pconn_rec);
  external LibHTTPD name LibNamePrefix + 'ap_update_vhost_given_ip' + LibSuff4;
 
 {
- * ap_update_vhost_given_ip is never enough, and this is always called after 
+ * ap_update_vhost_given_ip is never enough, and this is always called after
  * the headers have been read.  It may change r->server.
  * @param r The current request
  }

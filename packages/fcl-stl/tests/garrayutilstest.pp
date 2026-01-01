@@ -20,7 +20,7 @@ type TGArrayUtilsTest = class(TTestCase)
     procedure NextPermutationTest4;
   public
     procedure Setup;override;
-  private 
+  private
     data:vectorlli;
   end;
 

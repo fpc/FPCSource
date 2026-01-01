@@ -103,7 +103,7 @@ type
 				dtd : byte;							// dither flag (0:off, 1:on)
 				dfe : byte;							// flag to draw on display area (0:off 1:on)
 				isbg : byte;						// enable to auto-clear
-				r0, g0, b0 : byte;					// initital background color
+				r0, g0, b0 : byte;					// initial background color
 				_dr_env : DR_ENV;					// reserved
 			  end;
 	PDRAWENV = ^DRAWENV;
@@ -754,7 +754,7 @@ procedure setUVWH(var p: POLY_GT4; u0, v0, w, h: smallint);
 procedure setUVWH(var p: TMD_PRIM; u0, v0, w, h: smallint);
 	
 
-// Dump Primivie Parameters
+// Dump Primitive Parameters
 procedure dumpRECT(r: RECT);
 
 procedure dumpWH(p: RECT);
@@ -1003,7 +1003,7 @@ procedure dumpClut(clut: longint);
         ((u_long *)p)[2] = _get_tw((RECT *)tw)
 
 	}
-//	Primitive 	Lentgh		Code			
+//	Primitive 	Length		Code			
 //--------------------------------------------------------------------
 //								
 
@@ -3001,7 +3001,7 @@ begin
 	getaddr:= p.addr;
 end;
 
-//	Primitive 	Lentgh		Code			
+//	Primitive 	Length		Code			
 //--------------------------------------------------------------------
 //								
 procedure setPolyF3(var p: POLY_F3);

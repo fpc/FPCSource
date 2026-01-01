@@ -1772,7 +1772,7 @@ LDAP_F( int )
 ldap_parse_passwordpolicy_control LDAP_P((
         LDAP *ld,
         LDAPControl *ctrl,
-        int *expirep,
+        int *expired,
         int *gracep,
         LDAPPasswordPolicyError *errorp ));
 

@@ -1004,7 +1004,7 @@ type
     procedure   AfterPrintWithChilds; virtual;
     property    Font: TFPReportFont read FFont write SetFont;
     property    UseParentFont: boolean read FUseParentFont write SetUseParentFont;
-    { when set to True then band and child bands are keept on the same page (no page break between them) }
+    { when set to True then band and child bands are kept on the same page (no page break between them) }
     property    KeepTogetherWithChildren: Boolean read FKeepTogetherWithChildren write SetKeepTogetherWithChildren default True;
     { band position:
       fpNormal:        after detail or inner group footer
@@ -1639,7 +1639,7 @@ type
     procedure BuiltInGetInIntermediateGroupFooter(var Result: TFPExpressionResult; const Args: TExprParameterArray);
     procedure BuiltinGetIsOverflowed(var Result: TFPExpressionResult; const Args: TExprParameterArray);
     procedure BuiltinGetIsGroupDetailsPrinted(var Result: TFPExpressionResult; const Args: TExprParameterArray);
-    { checks if children are visble, removes children if needed, and recalc Band.Layout bounds }
+    { checks if children are visible, removes children if needed, and recalc Band.Layout bounds }
     procedure EmptyRTObjects;
     procedure ClearDataBandLastTextValues(ABand: TFPReportCustomBandWithData);
     // Init, update and finish aggregates. Called at start, new record, EOF respectively
@@ -2102,7 +2102,7 @@ type
     property    ShapeType;
     property    Orientation;
     property    CornerRadius;
-    property    Color; 
+    property    Color;
     property    StretchMode;
   end;
 
@@ -2118,7 +2118,7 @@ type
     FImageID: integer;
     procedure   SetImage(AValue: TFPCustomImage);
     procedure   SetStretched(AValue: boolean);
-    procedure   SetFieldName(AValue: TFPReportString); 
+    procedure   SetFieldName(AValue: TFPReportString);
     procedure   SetDBImageType(AValue: TFPReportString);
     procedure   LoadDBData(AData: TFPReportData);
     procedure   SetImageID(AValue: integer);
@@ -4861,7 +4861,7 @@ begin
     else if (lBlock.Pos.Top + lBlock.Height + lBlock.Descender) > Layout.Height then // partially out of bounds
     begin
       lRemainingHeight :=  Layout.Height - lBlock.Pos.Top;
-      { calculate % of text [height] that falls inside the bounderies of the Memo. }
+      { calculate % of text [height] that falls inside the boundaries of the Memo. }
       d := (lRemainingHeight / (lBlock.Height + lBlock.Descender)) * 100;
 
       {$IFDEF gDEBUG}
@@ -5470,7 +5470,7 @@ begin
   idx := TFPReportCustomBand(Parent).Page.Report.Images.GetIndexFromID(ImageID);
   AWriter.WriteInteger('ImageIndex', idx);
   AWriter.WriteBoolean('Stretched', Stretched);
-  AWriter.WriteString('FieldName', FieldName);  
+  AWriter.WriteString('FieldName', FieldName);
   AWriter.WriteString('DBImageType', DBImageType);
 end;
 
@@ -5562,7 +5562,7 @@ begin
   { See code comments in DoWriteLocalProperties() }
   ImageID := AReader.ReadInteger('ImageIndex', -1);
   Stretched := AReader.ReadBoolean('Stretched', Stretched);
-  FieldName := AReader.ReadString('FieldName', FieldName);  
+  FieldName := AReader.ReadString('FieldName', FieldName);
   DBImageType := AReader.ReadString('DBImageType', DBImageType);
 end;
 
@@ -6253,7 +6253,7 @@ begin
   else
     FGroupConditionValue := EvaluateExpressionAsText(GroupCondition);
   if FLastGroupConditionValue <> FGroupConditionValue then
-    { repated group header needs previous variables }
+    { repeated group header needs previous variables }
     FNeedsPrevVariables := True;
   if Assigned(FParentGroupHeader) then
     FParentGroupHeader.InternalEvaluateGroupCondition;
@@ -6929,7 +6929,7 @@ var
 
 begin
   Result := Visible;
-  if Result and (FVisibleExpr <> '') then 
+  if Result and (FVisibleExpr <> '') then
   begin
     if EvaluateExpression(FVisibleExpr,res) then
       if (res.ResultType=rtBoolean) then // We may need to change this.
@@ -8324,7 +8324,7 @@ begin
     if P=Nil then
       p:=FindRecursive(CN);
     if not Assigned(p) then
-      Continue; // failded to find the component
+      Continue; // failed to find the component
     c := FindRecursive(FReferenceList.ValueFromIndex[i]);
     P.FixupReference(PN,VN,C);
     end;
@@ -9860,7 +9860,7 @@ begin
       group header if page break occurs due to no space        }
     GroupHeader.FNeedsReprintedHeader := False;
     { the old group is finished so next repeated group header
-      does not need to use previous varaible values            }
+      does not need to use previous variable values            }
     GroupHeader.FNeedsPrevVariables := False;
     { the old group is finished
       so an intermediate group footer is needed  }
@@ -11459,7 +11459,7 @@ var
   i: Integer;
   lFooter: TFPReportCustomBand;
 begin
-  { move all allready layouted group footers (only bpStackAtBottom)
+  { move all already layouted group footers (only bpStackAtBottom)
     up by offset of page footer                                      }
   lOffset := FRTPage.RTLayout.Top + FRTPage.RTLayout.Height - FPageFooterYPos;
   for i:=0 to FRTBottomStackedFooterList.Count-1 do
@@ -12401,7 +12401,7 @@ begin
         also move header to next column/page }
       if CurrentLoop.FGroupHeaderList.Count > 0 then
       begin
-        { when data band overflows use start with lowest gropup header }
+        { when data band overflows use start with lowest group header }
         if (aBand is TFPReportCustomDataBand) and
         not Assigned(TFPReportCustomDataBand(aband).MasterBand) then
           lToMoveGrp := TFPReportCustomGroupHeaderBand(CurrentLoop.FGroupHeaderList[0])

@@ -89,7 +89,7 @@ uses
 Function AddDisk(const path:string) : Byte;
 
 { the following is Kylix compatibility stuff, it should be moved to a
-  special compatibilty unit (FK) }
+  special compatibility unit (FK) }
   const
     RTL_SIGINT     = 0;
     RTL_SIGFPE     = 1;
@@ -892,7 +892,7 @@ Var
                 if (i<=LenPat) then
                   begin
                     repeat
-                      {find a letter (not only first !) which maches pattern[i]}
+                      {find a letter (not only first !) which matches pattern[i]}
                       if UTF8 then
                         begin
                           while (j<=LenName) and

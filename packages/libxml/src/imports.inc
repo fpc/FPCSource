@@ -1,6 +1,6 @@
 (*
  * Summary: interface for the XSLT import support
- * Description: macros and fuctions needed to implement and
+ * Description: macros and functions needed to implement and
  *              access the import tree
  *
  * Copy: See Copyright for the status of this software.
@@ -24,7 +24,7 @@
 /**
  * XSLT_GET_IMPORT_INT:
  *
- * A macro to import intergers from the stylesheet cascading order.
+ * A macro to import integers from the stylesheet cascading order.
  */
 #define XSLT_GET_IMPORT_INT(res, style, name) {			\
     xsltStylesheetPtr st = style;				\

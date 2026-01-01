@@ -2,7 +2,7 @@
 
 
     This file is part of the Free Pascal run time library.
-    Copyrigth (c) 2003 by Yuri Prokushev (prokushev@freemail.ru)
+    Copyright (c) 2003 by Yuri Prokushev (prokushev@freemail.ru)
 
     OS/2 Presentation Manager Workplace functions and types.
 

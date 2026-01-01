@@ -27,7 +27,7 @@ uses
 uses
   Classes, SysUtils, DB, fpDBExport;
 {$ENDIF FPC_DOTTEDUNITS}
-  
+
 Type
   { TSQLExportFieldItem }
 
@@ -107,7 +107,7 @@ Procedure UnRegisterSQLExportFormat;
 Const
   SSQLExport     = 'SQL';
   SSQLExtensions = '.sql';
-  
+
 Resourcestring
   SSQLDescription         = 'SQL INSERT/Update Statements';
   SErrMissingTableName    = 'No tablename set for SQL Export';

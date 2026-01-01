@@ -1,5 +1,5 @@
 {
-  Sample program by Andrew Haines to test echo clients. 
+  Sample program by Andrew Haines to test echo clients.
 }
 program echoclient;
 

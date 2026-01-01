@@ -31,7 +31,7 @@ uses
 Type
   TRTFExportOption = (reHeaderRow,reHeaderLine,reTopLine,reBottomLine);
   TRTFExportOptions = Set of TrtfExportOption;
-  
+
   { TRTFExportFormatSettings }
 
   TRTFExportFormatSettings = Class(TExportFormatSettings)
@@ -111,7 +111,7 @@ Procedure UnRegisterRTFExporter;
 Const
   SRTFExport    = 'RTF export';
   SRTFExportExt = '.rtf';
-  
+
 
 Resourcestring
   SRTFExportDescr = 'Export to RTF table';
@@ -180,7 +180,7 @@ Var
   FL : TRTFExportFieldItem;
   F : TField;
   W : Integer;
-  
+
 begin
   inherited BuildDefaultFieldMap(AMap);
   For I:=0 to AMap.Count-1 do
@@ -212,7 +212,7 @@ Var
   I : Integer;
   B2 : Boolean;
   EF : TRTFExportFieldItem;
-  
+
 begin
   B2:=reHeaderRow in FEO;
   If B2 then
@@ -306,7 +306,7 @@ procedure TCustomRTFExporter.ExportField(EF: TExportFieldItem);
 Var
   S : String;
   RF : TRTFExportFieldItem;
-  
+
 begin
   RF:=EF as TRTFExportFieldItem;
   S:=MakeCell(FormatField(EF.Field),RF.LineBefore,RF.LineAfter);

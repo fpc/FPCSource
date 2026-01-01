@@ -123,7 +123,7 @@ Begin
 
 void        gtk_toolbar_set_tooltips        (GtkToolbar *toolbar,
                                              gboolean enable);
-In Pasal unit this functioni is implemented as
+In Pascal unit this functioni is implemented as
 procedure gtk_toolbar_set_tooltips (toolbar:PGtkToolbar;
                          enable:gint);
                          cdecl;external gtkdll name 'gtk_toolbar_set_tooltips';

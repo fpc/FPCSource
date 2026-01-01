@@ -5,7 +5,7 @@ Important remark:
 As of version 2.5.1 (April 2011) the CommandLine and ApplicationName
 properties are deprecated in favour of properties Executable and Parameters.
 If CommandLine or ApplicationName is set, it will automatically be converted
-to Executable and Parameters. If you wish to use the latter 2 properties, 
+to Executable and Parameters. If you wish to use the latter 2 properties,
 simply clear the CommandLine and ApplicationName properties.
 
 The TProcess object provides an easy way to start and manipulate
@@ -38,7 +38,7 @@ poExecuteOnCreate
   If you include this option, the constructor will immediatly
   call the Execute method, using default settings for all parameters.
   This has the effect that the program is run at once.
-  
+
 poRunSuspended
   If you include this option, the Execute method will start the
   program in a suspended state, and the program will start running
@@ -51,26 +51,26 @@ poUsePipes
   (see Input,OutPut and Error properties)
   It makes little sense to use ths for GUI applications (i.e. non-
   console applications)
-  
+
 poNoConsole
   If you include this option, the application will not display a
   console, untill it explicitly needs one or requests one using the
   AllocConsole method. This is very convenient in combination with the
   poUsePipes option, allowing you to run an application without getting
   the Console window, and being able to read it's output at once.
-  
+
 poStderrToOutPut
   If This option is included, then the error desciptor is redirected to
   the standard output director, i.e. all output goes to the standard
   output.
-  
+
 poWaitOnExit
   If you specify this option, then the Execute method will wait for the
   executed program to finish, before returning.
   This option will be ignored if you also specified ExecuteOnCreate and
   CreateSuspended.
 
-poNewConsole 
+poNewConsole
   If you specify this option, then the Execute method will open a console to
   execute the program in. On windows, the standard console is used.
   On Unix, the console program is detected as follows:
@@ -81,13 +81,13 @@ poNewConsole
   - A set of standard terminals is tested:
     ('x-terminal-emulator','xterm','aterm','wterm','rxvt')
   if none of these can be detected, an exception is raised.
-     
+
 Destructor Destroy; virtual;
 
   Destroys the TProcess Object. Be careful NOT to close a TProcess
   object when you use pipes, and the application is still running.
   you may kill it.
-  
+
 Procedure Execute; virtual;
   This actually runs the application. It will return immediatly, unless
   you specified the poWaitOnExit option when creating the object.
@@ -98,11 +98,11 @@ Function Resume : Integer; virtual;
   suspend count is larger than 0, the application will not run.
   If the suspend count reaches 0, the application will continue
   running.
-  
+
 Function Suspend : Integer; virtual;
   Increases the suspend count of the application, and returns the
   new suspend count of the application.
-  
+
 Function Terminate (AExitCode : Integer): Boolean; virtual;
   Terminate terminates the main thread of the application, giving it
   exitcode 'AExitCode'
@@ -110,12 +110,12 @@ Function Terminate (AExitCode : Integer): Boolean; virtual;
 
 Function WaitOnExit : Boolean;
   This function returns true if the wait for the process exit was succesful,
-  false if some error occurded. It returns immediatly if the application is 
+  false if some error occurded. It returns immediatly if the application is
   not running, and waits for the application to finish if it was still running.
-  
+
 Property ApplicationName : String;
   Sets the name of the application.
-  
+
 Property CommandLine : String; (Deprecated)
   contains the commandline of the application. method of TProcess.
   If Set, it overrides the Executable and Parameters properties
@@ -125,23 +125,23 @@ Property Executable : String;
 
 Property Parameters : TStrings
   The command-line parameters to be passed to Executable. One parameter per
-  line must be specified. If 2 or more words, separated by a space, are detected 
+  line must be specified. If 2 or more words, separated by a space, are detected
   in an argument, they will be treated as 1 argument and quoted if the OS
   requires it.
-  
+
 Property ConsoleTitle : String;
   For console applications only :
   Sets the title that appears in the title bar of the Console window.
-  
+
 Property CreateOptions : TCreateOptions;
   Read-Only
   Contains the options as set by the Create method of TProcess.
-  
+
 Property CreationFlags : Cardinal;
   This contains the creation flags that are passed to the CreateProcess
   call. These flags are modified by the Execute call to reflect any
   settings tat you may have made.
-  
+
 Property CurrentDirectory : String;
   When set, the process wil start in the directory that you have set
   for it.
@@ -150,23 +150,23 @@ Property DeskTop : String;
   NT only:
   Contains the name of the desktop or window station that the process
   will be run on. See STARTUPINFO in the win32 programmers manual.
-  
+
 Property Environment : Pointer;
   A pointer to a null-terminated list of environment variable pointers.
   Each pair is of the form 'Name=Value'.
   If this is nil, the environment of your application is used.
-  
-Property ExitStatus : Integer;  
+
+Property ExitStatus : Integer;
   Read-Only
   This returns the exit status of the application, or STILL_ACTIVE
   (defined in Windows.pas) if the application is still running.
   This is the low-level exit status as reported by the OS.
 
-Property ExitCode : Integer;  
+Property ExitCode : Integer;
   Read-Only
   This returns the exit code as returned by the application, if it exited correcly.
   It returns 0 if the process didn't exit correctly (e.g. a signal).
-  
+
 Property FillAttribute : Integer;
   For console processes only.
   Sets the fill color for the console window.
@@ -176,8 +176,8 @@ Property Handle : THandle;
   Returns the handle of the process, which can be used to pass on to
   calls that require a handle of a process.
   Onl valid if the process is running.
-  
-  
+
+
 Property Input : TOutPutPipeStream;
   Read-Only
   Returns the Input handle of the process.
@@ -185,34 +185,34 @@ Property Input : TOutPutPipeStream;
   input file descriptor.
   Only valid if you used poUsePipes when you created the TProcess
   object.
-  
+
 Property InheritHandles : LongBool;
   If you set this to true, each inheritable handle of your application
   is inherited by the new application.
-  
+
 Property OutPut : TInputPipeStream;
   Read-Only
   Returns the Output handle of the process. Anything the process writes
   to its standard output can be read from this stream.
   Only valid if you used poUsePipes when you created the TProcess
   object.
-  
+
 Property ProcessAttributes : TSecurityAttributes;
-  
+
 Property ProcessInformation : TProcessInformation;
   Read-Only
   Gives access to the ProcessInformation returned by Windows
   upon executing the program. This contains
     hProcess : Process Handle (See Handle property)
     hThread  : Process' main thread handle (See ThreadHandle property)
-    dwProcessId : Process ID. (as seen in the task manager) 
+    dwProcessId : Process ID. (as seen in the task manager)
     dwThreadId : Process' main thread ID
 
 Property Running : Boolean;
   Read-Only
   Retruns True if the application is still running, False otherwise.
   If the application is suspended or not doesn't affect the result.
-  
+
 Property ShowWindow : Word;
   You can set the applications ShowWindow attribute here.
 
@@ -221,7 +221,7 @@ Property StartupInfo : TStartupInfo;
   Gives access to the TStartupInfo that will be passed to the
   application in the CreateProcess Call. You can manipulate its various
   members through the properties of the TProcess object.
-  
+
 Property StdErr : TinputPipeStream;
   Read-Only
   Returns the Output handle of the process. Anything the process writes
@@ -234,11 +234,11 @@ Property StdErr : TinputPipeStream;
 Property ThreadAttributes : TSecurityAttributes;
   Contains the security attributes that will be passed to the process'
   main thread. By default, no security attributes are passed.
-  
+
 Property ThreadHandle : THandle;
   Read-Only
   Returns the Handle of the process' main thread.
-  
+
 Property WindowColumns : Integer;
   For console applications:
   This will set the number of screen columns that the console window
@@ -248,7 +248,7 @@ Property WindowColumns : Integer;
   You can only set this PRIOR to calling the execute method, after
   the application was executed, or while it is running, the setting
   will be ignored until you run it again.
-  
+
 Property WindowHeight : Integer;
   Set the height of the application's main window.
   If you don't specify this, nor WindowWidth, Windows will choose
@@ -265,7 +265,7 @@ Property WindowLeft : Integer;
   You can only set this PRIOR to calling the execute method, after
   the application was executed, or while it is running, the setting
   will be ignored until you run it again.
-  
+
 Property WindowRows : Integer;
   For console applications:
   This will set the number of screen rows (lines) that the console window
@@ -298,5 +298,5 @@ Property WindowRect : Trect;
   It allows to set the WindowTop, WindowLeft, WindowHeight, WindowWidth
   properties in 1 call.
 
- 
+
 

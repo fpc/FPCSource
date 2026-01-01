@@ -66,7 +66,7 @@ begin
        AddInclude('color.inc');
        AddInclude('cond.inc');
        AddInclude('conf.inc');
-       AddInclude('consol.inc'); 
+       AddInclude('consol.inc');
        AddInclude('context.inc');
        AddInclude('disc_io.inc');
        AddInclude('dsp.inc');
@@ -92,7 +92,7 @@ begin
        AddInclude('lwp_sema.inc');
        AddInclude('lwp_stack.inc');
        AddInclude('lwp_states.inc');
-       AddInclude('lwp_threadq.inc'); 
+       AddInclude('lwp_threadq.inc');
        AddInclude('lwp_threads.inc');
        AddInclude('lwp_tqdata.inc');
        AddInclude('lwp_watchdog.inc');
@@ -115,7 +115,7 @@ begin
        AddInclude('video_types.inc');
        AddInclude('wiilaunch.inc');
      end;
-       
+
      T.IncludePath.Add('src/ogc/machine');
      with T.Dependencies do
      begin

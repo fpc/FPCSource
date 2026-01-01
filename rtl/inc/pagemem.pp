@@ -163,7 +163,7 @@ procedure sack_pages(p:pointer;count:cardinal);
 begin
   fpmunmap(p,count shl page_shift);
   if geterrno<>0 then
-    runerror(204); {This one should succees.}
+    runerror(204); {This one should succeed.}
 end;
 
 {****************************************************************************
@@ -821,7 +821,7 @@ begin
       fillchar(Pbyte(pallocmem)^,8,0);
     end
   else
-    {Freshly allocated pages are allways already cleared.}
+    {Freshly allocated pages are always already cleared.}
 {    pgallocmem:=pgallocmem_directpage(size)};
 end;
 

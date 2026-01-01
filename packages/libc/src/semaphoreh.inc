@@ -6,7 +6,7 @@ type
         __sem_value : longint;
         __sem_waiting : _pthread_descr;
      end;
-              
+
 
 Const
   SEM_FAILED    = Psem_t(nil);
@@ -32,7 +32,7 @@ Type
   TSemaphore = sem_t;
   PSemaphore = ^TSemaphore;
 
-   __sem_lock_t = record { Not in header file - anonymous , should equal _pthread_fastlock} 
+   __sem_lock_t = record { Not in header file - anonymous , should equal _pthread_fastlock}
      status: Longint;
      spinlock: Integer;
    end;
@@ -49,4 +49,4 @@ function sem_trywait(var __sem: sem_t):longint;cdecl;external threadslib name 's
 function sem_post(var __sem: sem_t):longint;cdecl;external threadslib name 'sem_post';
 function sem_getvalue(var __sem: sem_t; __sval:Plongint):longint;cdecl;external threadslib name 'sem_getvalue';
 
-      
+

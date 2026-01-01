@@ -1,7 +1,7 @@
 {
  test for graph unit's DrawPoly and FillPoly procedures
  compiles with Turbo Pascal 7 and Free Pascal
- used for TP7 compatibily testing
+ used for TP7 compatibility testing
 }
 
 program PolyTest;

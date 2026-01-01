@@ -40,13 +40,13 @@ const
 function TIMER_FREQ(n: cint): cint; inline;
 function TIMER_FREQ_64(n: cint): cint; inline;
 function TIMER_FREQ_256(n: cint): cint; inline;
-function TIMER_FREQ_1024(n: cint): cint; inline; 
+function TIMER_FREQ_1024(n: cint): cint; inline;
 
 
-procedure timerStart(channel: cint; divider: ClockDivider; ticks: cuint16; callback: fp); cdecl; external; 
+procedure timerStart(channel: cint; divider: ClockDivider; ticks: cuint16; callback: fp); cdecl; external;
 function timerElapsed(channel: cint): cuint16; cdecl; external;
 
-function timerTick(timer: cuint): cuint16; inline; 
+function timerTick(timer: cuint): cuint16; inline;
 function timerPause(timer: cuint): cuint16; cdecl; external;
 procedure timerUnpause(timer: cuint); inline;
 
@@ -73,18 +73,18 @@ function TIMER_FREQ(n: cint): cint; inline;
 begin
   TIMER_FREQ := cint(-BUS_CLOCK div (n));
 end;
-	
+
 function TIMER_FREQ_64(n: cint): cint; inline;
 begin
   TIMER_FREQ_64 := cint(-(BUS_CLOCK shr 6) div (n));
 end;
-	
+
 function TIMER_FREQ_256(n: cint): cint; inline;
 begin
   TIMER_FREQ_256 := cint(-(BUS_CLOCK shr 8) div (n));
 end;
 
-function TIMER_FREQ_1024(n: cint): cint; inline; 
+function TIMER_FREQ_1024(n: cint): cint; inline;
 begin
   TIMER_FREQ_1024 := cint(-(BUS_CLOCK shr 10) div (n));
 end;
@@ -99,7 +99,7 @@ begin
   TIMER_CR := pcuint16($04000102 + (n shl 2));
 end;
 
-function timerTick(timer: cuint): cuint16; inline; 
+function timerTick(timer: cuint): cuint16; inline;
 begin
 	timerTick := TIMER_DATA(timer)^;
 end;

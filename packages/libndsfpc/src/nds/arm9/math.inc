@@ -35,7 +35,7 @@ function inttof32(n: cint): cint32; inline;
 function f32toint(n: cint32): cint; inline;
 function floattof32(n: cfloat): cint32; inline;  //inlining it makes impossible to pass it to another function :/
 function f32tofloat(n: cint32): cfloat; inline;
-  
+
 function divf32(num: cint32; den: cint32): cint32; inline;
 function mulf32(a, b: cint32): cint32; inline;
 function sqrtf32(a: cint32): cint32; inline;
@@ -47,7 +47,7 @@ function sqrt32(a: cint32): cuint32; inline;
 function sqrt64(a: cint64): cuint32; inline;
 procedure crossf32(a: pcint32; b: pcint32; res: pcint32); inline;
 function dotf32(a, b: pcint32): cint32; inline;
-procedure normalizef32(a: pcint32); inline;  
+procedure normalizef32(a: pcint32); inline;
 {$endif NDS_INTERFACE}
 
 {$ifdef NDS_IMPLEMENTATION}

@@ -233,7 +233,7 @@ uses MacTypes,TextEdit,AXUIElement,AEDataModel,CFBase,Events,QuickdrawTypes,Icon
 {     (CDEF 29)                                                                        }
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
 {  This control implements a user interface component for browsing (optionally)        }
-{  hiearchical data structures. The browser supports multiple presentation styles      }
+{  hierarchical data structures. The browser supports multiple presentation styles     }
 {  including, but not limited to:                                                      }
 {      kDataBrowserListView   - items and item properties in                           }
 {                               multi-column (optionally outline) format               }

@@ -360,7 +360,7 @@ const
 	kKLKCHRuchrKind = 0;
 
   {
-   * Only KCHR format is avaiable.
+   * Only KCHR format is available.
    }
 	kKLKCHRKind = 1;
 

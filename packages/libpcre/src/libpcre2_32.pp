@@ -102,20 +102,20 @@ Type
 
   Ppcre2_real_general_context_32 = ^tpcre2_real_general_context_32;
   PTpcre2_general_context_32 = Ppcre2_real_general_context_32;
-  
+
   Tpcre2_real_compile_context_32 = record
   end;
   Tpcre2_compile_context_32 = Tpcre2_real_compile_context_32;
   Tpcre2_compile_context = Tpcre2_compile_context_32;
-  
+
   Ppcre2_real_compile_context_32 = ^Tpcre2_real_compile_context_32;
   PTpcre2_compile_context_32 = Ppcre2_real_compile_context_32;
-  
+
   Tpcre2_real_match_context_32 = record
   end;
   Tpcre2_match_context_32 = Tpcre2_real_match_context_32;
   Tpcre2_match_context = Tpcre2_match_context_32;
-  
+
   Ppcre2_real_match_context_32 = ^Tpcre2_real_match_context_32;
   PTpcre2_match_context_32 = Ppcre2_real_match_context_32;
 
@@ -141,7 +141,7 @@ Type
   end;
   Tpcre2_match_data_32 = Tpcre2_real_match_data_32;
   Tpcre2_match_data = Tpcre2_match_data_32;
-  
+
   Ppcre2_real_match_data_32 = ^Tpcre2_real_match_data_32;
   PTpcre2_match_data_32 = Ppcre2_real_match_data_32;
 
@@ -204,7 +204,7 @@ Type
   tpcre2_set_callout_32_callback = function (_para1:Ppcre2_callout_block_32; _para2:pointer):Tcint; cdecl;
   tpcre2_callout_enumerate_32_callback = function (_para1: PTpcre2_callout_enumerate_block_32; _para2:pointer):Tcint; cdecl;
   tpcre2_set_substitute_callout_32_callback =   function (_para1:Ppcre2_substitute_callout_block_32; _para2:pointer):Tcint; cdecl;
-     
+
 var
   pcre2_config : function(_para1:Tuint32_t; _para2:pointer):Tcint;cdecl;
   pcre2_general_context_copy : function(_para1:PTpcre2_general_context_32): PTpcre2_general_context_32;cdecl;

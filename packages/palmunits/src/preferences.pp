@@ -111,7 +111,7 @@ const
   unitsEnglish = 0;                 // Feet, yards, miles, gallons, pounds, slugs, etc.
   unitsMetric = Succ(unitsEnglish); //  Meters, liters, grams, newtons, etc.
 
-//  These sound levels must corrospond to positions in the popup lists
+//  These sound levels must correspond to positions in the popup lists
 //  used by the preferences app.  These are made obsolete after V20.  The
 // loudness of the sound is now represented as a number from 0 to sndMaxAmp.
 
@@ -133,7 +133,7 @@ const
   afterPresetDelay = Succ(atPresetTime); // Auto lock after x minutes or hours.
 
 // The number format (thousands separator and decimal point).  This defines
-// how numbers are formatted and not neccessarily currency numbers (i.e. Switzerland).
+// how numbers are formatted and not necessarily currency numbers (i.e. Switzerland).
 type
   AnimationLevelType = Enum;
 
@@ -249,7 +249,7 @@ type
   end;
 
 // Any entries added to this structure must be initialized in
-// Prefereces.c:GetPreferenceResource
+// Preferences.c:GetPreferenceResource
 
 // DOLATER CS -   We should move SystemPreferencesType, SystemPreferencesTypeV10,
 //                PrefGetPreferences, and PrefSetPreferences to a private header

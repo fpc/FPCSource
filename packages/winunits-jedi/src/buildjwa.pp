@@ -24,7 +24,7 @@ interface
 
 {$IFDEF FPC_DOTTEDUNITS}
 uses
-    WinApi.Jedi.Wintype, WinApi.Jedi.Winbase, WinApi.Jedi.Winnt, 
+    WinApi.Jedi.Wintype, WinApi.Jedi.Winbase, WinApi.Jedi.Winnt,
     WinApi.Jedi.Lmerr, WinApi.Jedi.Lmmsg, WinApi.Jedi.Aclui, WinApi.Jedi.Adsdb, WinApi.Jedi.Lmerrlog, WinApi.Jedi.Lmjoin, WinApi.Jedi.Authz,
     WinApi.Jedi.Bits, WinApi.Jedi.Lmremutl, WinApi.Jedi.Lmrepl, WinApi.Jedi.Lmserver, WinApi.Jedi.Lmshare, WinApi.Jedi.Lmsname,
     WinApi.Jedi.Lmstats, WinApi.Jedi.Accctrl, WinApi.Jedi.Aclapi, WinApi.Jedi.Cderr, WinApi.Jedi.Cpl, WinApi.Jedi.Activeds, WinApi.Jedi.Dbt, WinApi.Jedi.Dde,
@@ -63,7 +63,7 @@ uses
     WinApi.Jedi.Adstlb, WinApi.Jedi.Native, WinApi.Jedi.Windows, WinApi.Jedi.Carderr,WinApi.Jedi.Winsta, WinApi.Jedi.Vista,WinApi.Jedi.Winternl;
 {$ELSE FPC_DOTTEDUNITS}
 uses
-    jwawintype, jwawinbase, jwawinnt, 
+    jwawintype, jwawinbase, jwawinnt,
     jwalmerr, jwalmmsg, jwaaclui, jwaadsdb, jwalmerrlog, jwalmjoin, jwaauthz,
     jwabits, jwalmremutl, jwalmrepl, jwalmserver, jwalmshare, jwalmsname,
     jwalmstats, jwaaccctrl, jwaaclapi, jwacderr, jwacpl, jwaactiveds, jwadbt, jwadde,

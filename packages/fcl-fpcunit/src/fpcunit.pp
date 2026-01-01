@@ -339,7 +339,7 @@ type
     // Only for backwards compatibility. Use Test and ChildTestCount.
     property Tests: TFPList read FTests; deprecated;
     end;
-  
+
   TProtect = procedure(aTest: TTest; aResult: TTestResult);
 
   { TTestResult }
@@ -395,7 +395,7 @@ type
   // Made public for 3rd party developers extending TTestCase with new AssertXXX methods
   function CallerAddr: Pointer;
 
-  
+
 Resourcestring
 
   SCompare = ' expected: <%s> but was: <%s>';
@@ -410,7 +410,7 @@ Resourcestring
   SNoValidTests = 'No valid tests found in ';
   SNoException = 'no exception';
   SAssertNotCalled = 'Assert not called during test.';
-  
+
 implementation
 
 {$IFDEF FPC_DOTTEDUNITS}
@@ -711,7 +711,7 @@ begin
   Inc(AssertCount);
   if AErrorAddrs = nil then
     raise EAssertionFailedError.CreateFmt(AFmt,Args) at CallerAddr
-  else    
+  else
     raise EAssertionFailedError.CreateFmt(AFmt,Args) at AErrorAddrs;
 end;
 
@@ -729,7 +729,7 @@ class procedure TAssert.AssertTrue(const AMessage: string; ACondition: boolean; 
 begin
   if ACondition then
     begin
-    Inc(AssertCount); // Fail will increae AssertCount
+    Inc(AssertCount); // Fail will increase AssertCount
     exit;
     end;
   if AErrorAddrs=Nil then
@@ -742,7 +742,7 @@ class procedure TAssert.AssertTrue(const AMessage: string; const AFormatArgs: ar
 begin
   if ACondition then
     begin
-    Inc(AssertCount); // Fail will increae AssertCount
+    Inc(AssertCount); // Fail will increase AssertCount
     exit;
     end;
   if AErrorAddrs=Nil then
@@ -762,7 +762,7 @@ class procedure TAssert.AssertFalse(const AMessage: string; ACondition: boolean;
 begin
   if not ACondition then
     begin
-    Inc(AssertCount); // Fail will increae AssertCount
+    Inc(AssertCount); // Fail will increase AssertCount
     exit;
     end;
   if AErrorAddrs=Nil then
@@ -775,7 +775,7 @@ class procedure TAssert.AssertFalse(const AMessage: string; const AFormatArgs: a
 begin
   if not ACondition then
     begin
-    Inc(AssertCount); // Fail will increae AssertCount
+    Inc(AssertCount); // Fail will increase AssertCount
     exit;
     end;
   if AErrorAddrs=Nil then
@@ -1304,7 +1304,7 @@ class procedure TAssert.AssertNotNull(const AMessage: string; const AFormatArgs:
 begin
   if AObject <> nil then
     begin
-    Inc(AssertCount); // Fail will increae AssertCount
+    Inc(AssertCount); // Fail will increase AssertCount
     exit;
     end;
   Fail(Format(AMessage, AFormatArgs), CallerAddr);
@@ -1326,7 +1326,7 @@ class procedure TAssert.AssertNotNullIntf(const AMessage: string;
 begin
   if AInterface <> nil then
     begin
-    Inc(AssertCount); // Fail will increae AssertCount
+    Inc(AssertCount); // Fail will increase AssertCount
     exit;
     end;
   Fail(Format(AMessage, AFormatArgs), CallerAddr);
@@ -1348,7 +1348,7 @@ class procedure TAssert.AssertNotNull(const AMessage: string; const AFormatArgs:
 begin
   if APointer <> nil then
     begin
-    Inc(AssertCount); // Fail will increae AssertCount
+    Inc(AssertCount); // Fail will increase AssertCount
     exit;
     end;
   Fail(Format(AMessage, AFormatArgs), callerAddr);
@@ -1370,7 +1370,7 @@ class procedure TAssert.AssertNull(const AMessage: string; const AFormatArgs: ar
 begin
   if AObject = nil then
     begin
-    Inc(AssertCount); // Fail will increae AssertCount
+    Inc(AssertCount); // Fail will increase AssertCount
     exit;
     end;
   Fail(Format(AMessage, AFormatArgs), CallerAddr);
@@ -1392,7 +1392,7 @@ class procedure TAssert.AssertNullIntf(const AMessage: string; const AFormatArgs
 begin
   if AInterface = nil then
     begin
-    Inc(AssertCount); // Fail will increae AssertCount
+    Inc(AssertCount); // Fail will increase AssertCount
     exit;
     end;
   Fail(Format(AMessage, AFormatArgs), CallerAddr);
@@ -1414,7 +1414,7 @@ class procedure TAssert.AssertNull(const AMessage: string; const AFormatArgs: ar
 begin
   if APointer = nil then
     begin
-    Inc(AssertCount); // Fail will increae AssertCount
+    Inc(AssertCount); // Fail will increase AssertCount
     exit;
     end;
   Fail(Format(AMessage, AFormatArgs), CallerAddr);
@@ -1768,7 +1768,7 @@ begin
       RunMethod;
       if (FExpectedException<>Nil) then
         FailMessage:=Format(SExceptionCompare, [FExpectedException.ClassName, SNoException]);
-      if CheckAssertCalled and (AssertCount=0) then  
+      if CheckAssertCalled and (AssertCount=0) then
         FailMessage:=SAssertNotCalled;
     except
       On E : Exception do
@@ -2049,7 +2049,7 @@ var
 begin
   if FTests.Count > 0 then
     AResult.StartTestSuite(self);
-    
+
   for i := 0 to FTests.Count - 1 do
     begin
     ti:=TTestItem(FTests[i]);

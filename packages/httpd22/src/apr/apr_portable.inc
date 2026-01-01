@@ -15,7 +15,7 @@
  }
 
 { This header file is where you should put ANY platform specific information.
- * This should be the only header file that programs need to include that 
+ * This should be the only header file that programs need to include that
  * actually has platform dependant code which refers to the .
  }
 
@@ -48,7 +48,7 @@
 
 {
  * @defgroup apr_portabile Portability Routines
- * @ingroup APR 
+ * @ingroup APR
  }
 
 
@@ -177,7 +177,7 @@ typedef void*                 apr_os_shm_t;         {< native SHM }
 {$endif}
 
   Papr_os_sock_t = ^apr_os_sock_t;
-  
+
 {
  * @typedef apr_os_sock_info_t
  * @brief alias for local OS socket
@@ -215,7 +215,7 @@ typedef void*                 apr_os_shm_t;         {< native SHM }
     end;
     Papr_os_global_mutex_t = ^apr_os_global_mutex_t;
 
-APR_DECLARE(apr_status_t) apr_os_global_mutex_get(apr_os_global_mutex_t *ospmutex, 
+APR_DECLARE(apr_status_t) apr_os_global_mutex_get(apr_os_global_mutex_t *ospmutex,
                                                 apr_global_mutex_t *pmutex);
 {$endif}
 
@@ -224,7 +224,7 @@ APR_DECLARE(apr_status_t) apr_os_global_mutex_get(apr_os_global_mutex_t *ospmute
  * convert the file from apr type to os specific type.
  * @param thefile The os specific file we are converting to
  * @param file The apr file to convert.
- * @remark On Unix, it is only possible to get a file descriptor from 
+ * @remark On Unix, it is only possible to get a file descriptor from
  *         an apr file type.
  }
 function apr_os_file_get(thefile, file_: Papr_os_file_t): apr_status_t;
@@ -243,7 +243,7 @@ function apr_os_dir_get(thedir: PPapr_os_dir_t; dir: Papr_dir_t): apr_status_t;
 {
  * Convert the socket from an apr type to an OS specific socket
  * @param thesock The socket to convert.
- * @param sock The os specifc equivelant of the apr socket..
+ * @param sock The os specifc equivalent of the apr socket..
  }
 function apr_os_sock_get(thesock, sock: Papr_os_sock_t): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
@@ -483,7 +483,7 @@ function apr_os_shm_put(shm: PPapr_shm_t; osshm: Papr_os_shm_t;
 
 {$if defined(APR_HAS_DSO) or defined(DOXYGEN)}
 {
- * @defgroup apr_os_dso DSO (Dynamic Loading) Portabiliity Routines
+ * @defgroup apr_os_dso DSO (Dynamic Loading) Portability Routines
  }
 {
  * convert the dso handle from os specific to apr
@@ -519,7 +519,7 @@ function apr_os_uuid_get(uuid_data: PAnsiChar): apr_status_t;
 
 
 {
- * Get the name of the system default characer set.
+ * Get the name of the system default character set.
  * @param pool the pool to allocate the name from, if needed
  }
 function apr_os_default_encoding(pool: Papr_pool_t): PAnsiChar;
@@ -530,7 +530,7 @@ function apr_os_default_encoding(pool: Papr_pool_t): PAnsiChar;
  * Get the name of the current locale character set.
  * @param pool the pool to allocate the name from, if needed
  * @remark Defers to apr_os_default_encoding if the current locale's
- * data can't be retreved on this system.
+ * data can't be retrieved on this system.
  }
 function apr_os_locale_encoding(pool: Papr_pool_t): PAnsiChar;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}

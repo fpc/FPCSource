@@ -1,7 +1,7 @@
 {$IFNDEF FPC_DOTTEDUNITS}
 unit mp3player;
 {$ENDIF FPC_DOTTEDUNITS}
-{$mode objfpc} 
+{$mode objfpc}
 {$J+}
 {$INLINE ON}
 {$MACRO ON}
@@ -20,7 +20,7 @@ uses
   ctypes, gctypes, mad;
 {$ENDIF FPC_DOTTEDUNITS}
 
-type 
+type
   pmad_stream=^mad_stream;
   pmad_frame=^mad_frame;
 

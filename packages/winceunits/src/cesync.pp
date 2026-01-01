@@ -36,16 +36,16 @@ type
 
 { max size of the object type name }
 const
-   MAX_OBJTYPE_NAME = 100;   
+   MAX_OBJTYPE_NAME = 100;
 { max. size of a packet in IReplObjHandler::GetPacket & IReplObjHandler::SetPacket (about 254K) }
-   MAX_PACKET_SIZE = 260000;   
+   MAX_PACKET_SIZE = 260000;
    MAX_ACTIVE_VOL = 16;   { up to 16 active volumes (including the default system volume) can be synchronized during each connection }
-   
+
 type
   OBJTYPENAME = array[0..MAX_OBJTYPE_NAME-1] of TCHAR;
   OBJTYPENAMEA = array[0..MAX_OBJTYPE_NAME-1] of AnsiChar;
   OBJTYPENAMEW = array[0..MAX_OBJTYPE_NAME-1] of WCHAR;
-  
+
 { Error/Return code used }
 const
    RERR_SHUT_DOWN = $80140001;   { serious error, asking implementation to shut down immediately }
@@ -73,7 +73,7 @@ const
    RERR_TRY_AGAIN = $80140102;   { this is a bad object because of read error, server should can try to replicate it again later }
    RERR_USER_SKIP = $80140103;   { object skipped by the user }
 { these are warning codes }
-   RWRN_LAST_PACKET = $00140001;   
+   RWRN_LAST_PACKET = $00140001;
 { flags used in RSC_BEGIN_SYNC }
    BSF_AUTO_SYNC = $00000001;   { This flag is being obsoleted in ActiveSync 3.0 }
    BSF_REMOTE_SYNC = $00000002;   { consistent with RSC_REMOTE_SYNC, set if we are sync'ing remotely }
@@ -135,7 +135,7 @@ const
    RSTP_CREATE = $0002;   { New profile }
    RSTP_RENAME = $0003;   { Rename profile }
    RSTP_DELETE = $0004;   { Delete profile }
-   
+
    ISF_SELECTED_DEVICE = $00000001;
    ISF_REMOTE_CONNECTED = $00000002;
 {$endif UNDER_CE}
@@ -165,7 +165,7 @@ type
         cbData : UINT;
      end;
    PPSDREQUEST = ^PSDREQUEST;
-   
+
 {$ifndef UNDER_CE}
    HREPLOBJ = pointer;
    HREPLITEM = pointer;
@@ -173,7 +173,7 @@ type
    PHREPLOBJ = ^HREPLOBJ;
    PHREPLITEM = ^HREPLITEM;
    PHREPLFLD = ^HREPLFLD;
-   
+
    IReplStore = interface;
 {$endif}
    IReplNotify = interface;
@@ -198,7 +198,7 @@ type
    REPLSETUP = _tagReplSetup;
    PREPLSETUP = ^REPLSETUP;
    PPREPLSETUP = ^PREPLSETUP;
-   
+
   IReplNotify = interface(IUnknown)
 {$ifndef UNDER_CE}
     function SetStatusText(lpszText: LPSTR): HRESULT; stdcall; // lpszText can have special syntax, see programmer's guide
@@ -262,13 +262,13 @@ type
    CONFINFO = tagConfInfo;
    PCONFINFO = ^CONFINFO;
    PPCONFINFO = ^PCONFINFO;
-   
+
 {========================= IReplSetup ============================== }
   IReplSetup = interface(IUnknown)
     ['{60178ec0-c670-11d0-837a-0000f80220b9}']
     function Setup(hwndParent: HWND; dwDeviceId: DWORD; wAction: WORD): HRESULT; stdcall;
   end;
-  
+
 //========================= IReplStore ==============================
   IReplStore = interface(IUnknown)
     ['{a417bc0f-7be1-11ce-ad82-00aa006ec559}']
@@ -316,19 +316,19 @@ const
    RSF_NEW_VOLUME = $00000100;   { used by ActiveSync manager only. }
    RSF_AUTO_COMBINE = $00000200;   { the object is being written to the desktop, similar to RSF_COMBINE except there were no items on the desktop to combine with }
    RSF_RESERVED1 = $00100000;   { reserved by ActiveSync manager: DO NOT USE THESE }
-   RSF_RESERVED2 = $00200000;   
-   RSF_RESERVED3 = $00400000;   
-   RSF_RESERVED4 = $00800000;   
-   
+   RSF_RESERVED2 = $00200000;
+   RSF_RESERVED3 = $00400000;
+   RSF_RESERVED4 = $00800000;
+
 {========================= IReplObjHandler ============================== }
 { Specifies the interface for replication object handler }
 { (object serializer/deserializer) }
 
 type
   IReplObjHandler = interface(IUnknown)
-    //  Called everytime when an object is about to be serialized/deserialized
+    //  Called every time when an object is about to be serialized/deserialized
     function Setup(pSetup: PREPLSETUP): HRESULT; stdcall;
-    //  Called everytime when it's the time to clean up the serializer/deserializer for the object
+    //  Called every time when it's the time to clean up the serializer/deserializer for the object
     function Reset(pSetup: PREPLSETUP): HRESULT; stdcall;
     // A request to get a data packet (serialize the object)
     // handler should pass back the buffer along with the size bytes
@@ -354,10 +354,10 @@ type
 
 {$ifdef UNDER_CE}
 const
-   ONF_FILE = $00000001;   
-   ONF_DIRECTORY = $00000002;   
-   ONF_DATABASE = $00000004;   
-   ONF_RECORD = $00000008;   
+   ONF_FILE = $00000001;
+   ONF_DIRECTORY = $00000002;
+   ONF_DATABASE = $00000004;
+   ONF_RECORD = $00000008;
    ONF_CHANGED = $00000010;   { set if the file system object is changed }
    ONF_DELETED = $00000020;   { set if the file system object is deleted }
    ONF_CLEAR_CHANGE = $00000040;   { client should clear the change bit for the object whose object id is pointed at by poid }
@@ -428,15 +428,15 @@ type
 {$endif UNDER_CE}
 
 const
-   SZ_OUTSTORE_PROG_ID = 'MS.WinCE.OutLook';   
-   SZ_SCDSTORE_PROG_ID = 'MS.WinCE.SchedulePlus';   
-   SZ_APPT = 'Appointment';   
-   SZ_CONTACT = 'Contact';   
-   SZ_TASK = 'Task';   
-   SZ_FILE = 'File';   
-   SZ_INBOX = 'Inbox';   
+   SZ_OUTSTORE_PROG_ID = 'MS.WinCE.OutLook';
+   SZ_SCDSTORE_PROG_ID = 'MS.WinCE.SchedulePlus';
+   SZ_APPT = 'Appointment';
+   SZ_CONTACT = 'Contact';
+   SZ_TASK = 'Task';
+   SZ_FILE = 'File';
+   SZ_INBOX = 'Inbox';
    SZ_CHANNELS = 'Channel';
-   
+
 implementation
 
 end.

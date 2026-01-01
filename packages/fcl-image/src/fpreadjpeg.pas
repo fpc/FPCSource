@@ -239,7 +239,7 @@ begin
   jpeg_read_header(@FInfo, TRUE);
 
   FWidth := FInfo.image_width;
-  FHeight := FInfo.image_height;  
+  FHeight := FInfo.image_height;
 
   if FInfo.saw_EXIF_marker and (FInfo.orientation >= Ord(Low(TExifOrientation))) and (FInfo.orientation <= Ord(High(TExifOrientation))) then
     FOrientation := TExifOrientation(FInfo.orientation)
@@ -456,7 +456,7 @@ var
       ASize.Width := ASize.Height;
       ASize.Height := iInt;
     end;
-  end;  
+  end;
 
 begin
   InitReadingPixels;
@@ -468,7 +468,7 @@ begin
   jpeg_start_decompress(@FInfo);
 
   LOutputSize := Size(FInfo.output_width, FInfo.output_height);
-  TranslateSize(LOutputSize);  
+  TranslateSize(LOutputSize);
   FWidth := LOutputSize.Width;
   FHeight := LOutputSize.Height;
   Img.SetSize(FWidth, FHeight);

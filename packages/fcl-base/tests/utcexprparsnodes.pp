@@ -25,7 +25,7 @@ Type
 Var
   FCheckNode : TFPExprNode;
   FDestroyCalled : Integer;
-  
+
 function SuiteSetup: TTestString;
 begin
   Result := '';

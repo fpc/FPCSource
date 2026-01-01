@@ -48,15 +48,15 @@ type
  end;
 
   generic THashSet<T, Thash>=class
-    private 
-    type 
+    private
+    type
       TContainer = specialize TVector<T>;
       TTable = specialize TVector<TContainer>;
-    var 
+    var
       FData:TTable;
-      FDataSize:SizeUInt; 
+      FDataSize:SizeUInt;
       procedure EnlargeTable;
-    public 
+    public
     type
       TIterator = specialize THashSetIterator<T, TTable>;
       constructor create;
@@ -87,9 +87,9 @@ end;
 
 function THashSet.IsEmpty: boolean;
 begin
-  if Size()=0 then 
+  if Size()=0 then
     IsEmpty:=true
-  else 
+  else
     IsEmpty:=false;
 end;
 
@@ -110,7 +110,7 @@ begin
 end;
 
 procedure THashSet.EnlargeTable;
-var i,j,h,oldDataSize:SizeUInt; 
+var i,j,h,oldDataSize:SizeUInt;
     value:T;
 begin
   oldDataSize:=FData.size;

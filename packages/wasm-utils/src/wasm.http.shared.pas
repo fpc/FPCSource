@@ -1,7 +1,7 @@
 {
     This file is part of the Free Component Library
 
-    Webassembly HTTP API - shared constants 
+    Webassembly HTTP API - shared constants
     Copyright (c) 2024 by Michael Van Canneyt michael@freepascal.org
 
     See the file COPYING.FPC, included in this distribution,

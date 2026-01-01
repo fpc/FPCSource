@@ -327,8 +327,8 @@ begin
   try
     n:=SizeOf(hdr);
     Result:=(Stream.Read(hdr, n)=n)
-            and (hdr.FileID in [$0A, $0C]) 
-            and (hdr.ColorPlanes in [1, 3, 4]) 
+            and (hdr.FileID in [$0A, $0C])
+            and (hdr.ColorPlanes in [1, 3, 4])
             and (hdr.Version in [0, 2, 3, 5])
             and (hdr.PaletteType in [1, 2]);
   finally

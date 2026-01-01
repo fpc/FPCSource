@@ -5,5 +5,5 @@ moved in here, and get compiled also for AROS and MorphOS.
 
 This package is not for interface units for 3rd party
 libraries, because those are mostly system specific, or
-contain system specific information (aligment, ABI dependent
+contain system specific information (alignment, ABI dependent
 function call declarations, etc).

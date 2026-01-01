@@ -18,33 +18,33 @@
   See the file COPYING.FPC, included in this distribution,
   for details about the copyright.
 }
-{ modified from jsFastHtmlParser  for use with freepascal 
-  
+{ modified from jsFastHtmlParser  for use with freepascal
+
  Original Author:
   James Azarja
 
  Contributor:
   Lars aka L505
-  http://z505.com 
+  http://z505.com
 
  Note: this isn't perfect, it needs to be improved.. see comments  }
-  
+
 {$IFNDEF FPC_DOTTEDUNITS}
-unit HTMLUtil; 
+unit HTMLUtil;
 {$ENDIF FPC_DOTTEDUNITS}
 
-{$ifdef fpc} 
-{$MODE Delphi} 
+{$ifdef fpc}
+{$MODE Delphi}
 {$H+}
 {$endif}
 
 interface
 
 {$IFDEF FPC_DOTTEDUNITS}
-uses 
+uses
   System.SysUtils, System.StrUtils;
 {$ELSE FPC_DOTTEDUNITS}
-uses 
+uses
   SysUtils, strutils;
 {$ENDIF FPC_DOTTEDUNITS}
 
@@ -82,10 +82,10 @@ var
   S : PAnsiChar;
 begin
   P := PAnsiChar(Tag);
-  while P^ in ['<',' ',#9] do 
+  while P^ in ['<',' ',#9] do
     inc(P);
   S := P;
-  while Not (P^ in [' ','>',#0]) do 
+  while Not (P^ in [' ','>',#0]) do
     inc(P);
   if P > S then
     Result := CopyBuffer( S, P-S)
@@ -100,10 +100,10 @@ var
   S : PAnsiChar;
 begin
   P := PAnsiChar(uppercase(Tag));
-  while P^ in ['<',' ',#9] do 
+  while P^ in ['<',' ',#9] do
     inc(P);
   S := P;
-  while Not (P^ in [' ','>',#0]) do 
+  while Not (P^ in [' ','>',#0]) do
     inc(P);
   if P > S then
     Result := CopyBuffer( S, P-S)
@@ -142,7 +142,7 @@ begin
     // Skip spaces and '='
     while (P^ in ['=', ' ']) do
       inc(P);
-    
+
     while not (P^ in [' ','>',#0]) do
     begin
       if (P^ in ['"','''']) then
@@ -166,7 +166,7 @@ begin
     P:= PAnsiChar(Tag);
     S:= P;
     inc(S, Start);
- 
+
     result:= CopyBuffer(S, L);
   end;
 end;
@@ -184,7 +184,7 @@ begin
   P:= PAnsiChar(namevalpair);
   S:= StrPos(P, '=');
 
-  if S <> nil then     
+  if S <> nil then
   begin
     inc(S); // skip equal
     while S^ = ' ' do inc(S);  // skip any spaces after =
@@ -202,12 +202,12 @@ begin
       inc(P);
 
     if (P <> S) then { Thanks to Dave Keighan (keighand@yahoo.com) }
-      Result:= CopyBuffer(S, P - S); 
+      Result:= CopyBuffer(S, P - S);
   end;
 end;
 
 
-{ return value of an attribute (attribname_ci), case ignored for NAME portion, but return value case is preserved } 
+{ return value of an attribute (attribname_ci), case ignored for NAME portion, but return value case is preserved }
 function GetVal(const tag, attribname_ci: string): string;
 var namevalpair: string;
 begin
@@ -222,7 +222,7 @@ end;
   BELOW FUNCTIONS ARE OBSOLETE OR RARELY NEEDED SINCE THEY EITHER CONTAIN BUGS
   OR THEY ARE TOO CASE SENSITIVE (FOR THE TAG NAME PORTION OF THE ATTRIBUTE  }
 
-{ James old buggy code for testing purposes. 
+{ James old buggy code for testing purposes.
   Bug: when finding 'ID', function finds "width", even though width <> "id" }
 function GetNameValPair_JAMES(tag, attribname_ci: string): string;
 var
@@ -247,9 +247,9 @@ begin
     while not (P^ in ['=',' ','>',#0]) do
       inc(P);
 
-    if (P^ = '=') then 
+    if (P^ = '=') then
        inc(P);
-    
+
     while not (P^ in [' ','>',#0]) do
     begin
 
@@ -303,9 +303,9 @@ begin
     while not (P^ in ['=',' ','>',#0]) do
       inc(P);
 
-    if (P^ = '=') then 
+    if (P^ = '=') then
       inc(P);
-    
+
     while not (P^ in [' ','>',#0]) do
     begin
 
@@ -320,13 +320,13 @@ begin
       while not (P^ in [C, '>', #0]) do
         inc(P);
 
-      if (P^<>'>') then 
+      if (P^<>'>') then
         inc(P); { Skip current character, except '>' }
       break;
     end;
 
     if P > S then
-      Result:= CopyBuffer(S, P - S) 
+      Result:= CopyBuffer(S, P - S)
     else
       Result:= '';
   end;
@@ -344,13 +344,13 @@ end.
 { return value (case preserved) from a name=value pair, ignores case in given NAME= portion }
 function GetValFromNameVal(namevalpair: string): string;
 
-  type 
+  type
     TAttribPos = record
       startpos: longword; // start pos of value
       len: longword;      // length of value
     end;
 
-  { returns case insensitive start position and length of just the value 
+  { returns case insensitive start position and length of just the value
     substring in name=value pair}
   function ReturnPos(attribute: string): TAttribPos;
   var
@@ -363,20 +363,20 @@ function GetValFromNameVal(namevalpair: string): string;
     P:= PAnsiChar(uppercase(Attribute));
     // get substring including and everything after equal
     S:= StrPos(P, '=');
-    result.startpos:= pos('=', P); 
+    result.startpos:= pos('=', P);
 
     if S <> nil then
     begin
-      inc(S);  
+      inc(S);
       // set to character after =
       inc(result.startpos);
-      P:= S; 
+      P:= S;
 
       if (P^ in ['"','''']) then
       begin
         C:= P^;
-        // skip quote 
-        inc(P); 
+        // skip quote
+        inc(P);
         inc(result.startpos);
       end else
         C:= ' ';
@@ -386,7 +386,7 @@ function GetValFromNameVal(namevalpair: string): string;
       while not (P^ in [C, #0]) do
         inc(P);
 
-      if (P <> S) then 
+      if (P <> S) then
       begin
         result.len:= p - s;
       end;
@@ -394,7 +394,7 @@ function GetValFromNameVal(namevalpair: string): string;
 
   end;
 
-var 
+var
   found: TAttribPos;
 begin
   found:= ReturnPos(namevalpair);

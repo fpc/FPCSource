@@ -32,7 +32,7 @@ type
    protected
      // override the protected methods of TTestRunner to customize its behavior
    end;
-      
+
 var
   Application: TMyTestRunner;
 begin
@@ -40,6 +40,6 @@ begin
   DefaultRunAllTests := True;
   Application := TMyTestRunner.Create(nil);
   Application.Initialize;
-  Application.Run;  
+  Application.Run;
   Application.Free;
 end.

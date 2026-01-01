@@ -5,16 +5,16 @@
     may give you hints on using it.
 
     It is done to test the source of these units for usability, completeness and
-    bugs. It is base on the fcl-passrc exampe.
+    bugs. It is base on the fcl-passrc example.
     It workes like a pretty-printer to compare the output of this program with
     the original code, but is not thought to be a real pretty-printer as
-    e.g. the semicolons can sometimes not be set at the place they sould be
-    (this imformation is not available from the parsing-engine, as a parser
+    e.g. the semicolons can sometimes not be set at the place they should be
+    (this information is not available from the parsing-engine, as a parser
     should only give you a positiv result if the source is valid, otherwise
     you get a negative result).
     Also the output is not always in the same order as in input as this
     information is not available easily.
-    
+
     !!!Do not expect this program to produce executeable output!!!
 
     Status: -workes with one Unit or Program
@@ -40,11 +40,11 @@
     Output: is 'pretty-printed' to stdout or unformated
             The unformated output is thought to be diffed with the original
             source to see differences caused by the parser (a tool to unformat
-            a souce file is in progress but not finished jet).
+            a source file is in progress but not finished jet).
 
     Bugs: 1. In case of unimplemented statements (like up to now asm) the parser
-             cause a excemtion to abort the program hard.
-          2. Missing implementaion in this program should not print out anything
+             cause a exception to abort the program hard.
+          2. Missing implementation in this program should not print out anything
              or result in not pascal conform output.
 
     Hit: The parser uses directives given in the source file.
@@ -57,7 +57,7 @@
     for printing the output.
     There is no writer-class used to keep it simple and see what is done.
     All output is produced by direct writing to stdout, this cause problems in
-    furter development; a function result as string may be more usable.
+    further development; a function result as string may be more usable.
 
     The parser was written to be used for unit interface and was expanded to
     work with program and implementation too. It does nearly no seperate
@@ -103,7 +103,7 @@
      |
     TObject
 
-  Dependance Structure :
+  Dependence Structure :
 
     TPasPackage = class(TPasElement)
       |
@@ -184,7 +184,7 @@ var
   cmdl, TargetOS, TargetCPU : string;
   isim, //is Impleamentation, only for GetTPasProcedureBody
   Unformated:boolean; // no Formating in output
-  
+
 
 //# tools
 
@@ -192,7 +192,7 @@ var
    var i:integer;
   begin
    Result:='';
-   if not Unformated then 
+   if not Unformated then
       for i:=1 to indent do Result:=Result+' ';
   end;
 
@@ -207,7 +207,7 @@ var
      begin
       if i > 0 then delete(s,i,2);
       i:=pos(s1,s);
-     end; 
+     end;
     //if i > 0 then delete(s,i,2);
     Result:=s;
    end;
@@ -238,13 +238,13 @@ procedure GetDecls(Decl:TPasDeclarations; indent:integer); forward;
 function ReturnTPasMemberHints(h:TPasMemberHints):String;
  begin
   Result:='';
-  if hDeprecated    in h then Result:=' deprecated'; 
+  if hDeprecated    in h then Result:=' deprecated';
   if hLibrary       in h then Result:=Result+' library';
   if hPlatform      in h then Result:=Result+' platform';
   if hExperimental  in h then Result:=Result+' experimental';
   if hUnimplemented in h then Result:=Result+' unimplemented';
- end;      
-   
+ end;
+
 function GetTPasMemberHints(h:TPasMemberHints):Boolean;
  begin
   Result:=false;
@@ -253,7 +253,7 @@ function GetTPasMemberHints(h:TPasMemberHints):Boolean;
   if hPlatform in h then begin write(' platform'); Result:=true; end;
   if hExperimental in h then begin write(' experimental'); Result:=true; end;
   if hUnimplemented in h then begin write(' unimplemented'); Result:=true; end;
- end;   
+ end;
 
 
 
@@ -345,7 +345,7 @@ procedure GetTPasExpr(lex:TPasExpr);
   end;
 
  begin
-  if lex is TBinaryExpr then //compined constants
+  if lex is TBinaryExpr then //compiled constants
    begin
     sep:=GetExpKind(lex.Kind,lbk,rbk);
     //write('|');
@@ -403,7 +403,7 @@ procedure GetTPasExpr(lex:TPasExpr);
            write(rbk);//write(')');
           end
          else
-          begin //funcion()
+          begin //function()
            sep:=GetExpKind(lpe.Kind,lbk,rbk);
            write(lbk,rbk);
           end;
@@ -699,7 +699,7 @@ begin
        //writeln(' EL ',l);//,' ',le.Name)//,' ',le.ElementTypeName,' ',le.FullName);
       end;
  end;
-     
+
 // indent: indent from page left side
 // DecListBy: dec(elements.count) because of case duplicate else bug
 // LastNoSem: only true on last expr before else in a if clause
@@ -710,7 +710,7 @@ function GetTPasImplBlock(lb:TPasImplBlock; indent,declistby:integer;
    var l,n:integer;
        lbe:TPasImplElement;
        NoSem:boolean;
-       ls:String;     
+       ls:String;
 
 begin
   Result:=false;
@@ -742,7 +742,7 @@ begin
       for l:=0 to n do
        begin
         lbe:=TPasImplElement(lb.Elements[l]);
-        //write(l:2,'/',n:2,' '); //No of curent element, max element
+        //write(l:2,'/',n:2,' '); //No of current element, max element
         if ((l = 0)and NoFirstIndent) then
          begin //index0
           if l=n then GetTPasImplElement(lbe,0,LastNoSem,false)
@@ -764,7 +764,7 @@ begin
           writeln;}
      end;
     if lb is TPasImplBeginBlock then
-      if not NoSem then writeln(ls,'end;')// {Block}') 
+      if not NoSem then writeln(ls,'end;')// {Block}')
         else writeln(ls,'end');// {Block}');
    end
     else
@@ -843,7 +843,7 @@ procedure GetTPasVar(lpv:TPasVariable; lindent:integer; NoLF:boolean);//BUG stri
       write('=');
       GetTPasExpr(lpv.Expr);
      end;
-     
+
    if lpv.Modifiers <>'' then //Modifiers starts with ;
     begin
      write(' ',lpv.Modifiers,';');
@@ -856,7 +856,7 @@ procedure GetTPasVar(lpv:TPasVariable; lindent:integer; NoLF:boolean);//BUG stri
     end;
    if not NoLF then writeln;
   end;
-  
+
 //write out a list of variables only
 //more compact than the output of seperate calls of GetTPasVar
 procedure GetPasVariables(vl:TFPList; lindent:integer; NoLF,NoSEM:boolean);
@@ -864,14 +864,14 @@ procedure GetPasVariables(vl:TFPList; lindent:integer; NoLF,NoSEM:boolean);
        s,s1:string;
        prct:TPasRecordType;
        lpv:TPasVariable;
-       
+
        same:boolean;
        samestr,tmpstr:Ansistring;
        samevar:array of integer;
        svi:integer;
 
   begin
-   if vl.Count <= 0 then exit; 
+   if vl.Count <= 0 then exit;
    s:=GetIndent(lindent);
    //> compare all variable types as string to find the ones with same type
    samestr:='';
@@ -879,8 +879,8 @@ procedure GetPasVariables(vl:TFPList; lindent:integer; NoLF,NoSEM:boolean);
    SetLength(samevar,vl.count);
    for v:=0 to vl.count-1 do
     begin
-     tmpstr:=''; 
-     same:=true;   
+     tmpstr:='';
+     same:=true;
      lpv:=TPasVariable(vl[v]);
      //write(s,lpv.Name);
      if assigned(lpv.VarType) then
@@ -945,7 +945,7 @@ procedure GetPasVariables(vl:TFPList; lindent:integer; NoLF,NoSEM:boolean);
    end;
    //compare <
    //now print them
-   svi:=-1; 
+   svi:=-1;
    for v:=0 to vl.count-1 do
     begin
      lpv:=TPasVariable(vl[v]);
@@ -1019,8 +1019,8 @@ procedure GetPasVariables(vl:TFPList; lindent:integer; NoLF,NoSEM:boolean);
        end;
      end;
     if not NoLF then writeln;
-  end;  
-  
+  end;
+
 function GetTPasArgumentAccess(acc:TArgumentAccess):String;
 
 begin
@@ -1141,7 +1141,7 @@ procedure GetTypes(pe:TPasElement; lindent:integer);
      begin
       GetTPasVar(TPasVariable(prct.Members[i]),1,true);
      end;}
-    if prct.Members.Count > 0 then GetPasVariables(prct.Members,1,true,true);  
+    if prct.Members.Count > 0 then GetPasVariables(prct.Members,1,true,true);
     if assigned(prct.Variants) then
      begin
       Result:=true;
@@ -1275,7 +1275,7 @@ procedure GetTypes(pe:TPasElement; lindent:integer);
   else if pe is tPasUnresolvedTypeRef then writeln(TPasUnresolvedTypeRef(PE).name,';')
   else
    begin
-    
+
     writeln('{ Unknown TYPE(s): ');
     writeln(s,pe.Name,' ',pe.classname);
     writeln('}');
@@ -1309,13 +1309,13 @@ procedure GetTypes(pe:TPasElement; lindent:integer);
    if pmInline in Mfs then WriteFmt(true,'inline;',false);
    if pmAssembler in Mfs then WriteFmt(true,'assembler;',false);
    if pmCompilerProc in Mfs then WriteFmt(true,'compilerproc;',false);
-  end; 
+  end;
 
   procedure GetTPasProcedure(lpp:TPasProcedure; indent:integer);
    var l:integer;
        lppt:TPasProcedureType;
        s:String;
-       
+
 
   begin
    if not Assigned(lpp) then exit;
@@ -1343,7 +1343,7 @@ procedure GetTypes(pe:TPasElement; lindent:integer);
    if lpp.IsOverride then WriteFmt(true,'override;',false);
    if lpp.IsExported then WriteFmt(true,'exported;',false);
    if lpp.IsExternal then WriteFmt(true,'external;',false);
-   //pparser 2360: everyting behind external is ignored !!!
+   //pparser 2360: everything behind external is ignored !!!
    if lpp.IsMessage then
     begin
       write('message ');
@@ -1470,11 +1470,11 @@ procedure GetTypes(pe:TPasElement; lindent:integer);
         begin
         write('(',pc.AncestorType.Name,')');
         end;
-     if pc.IsForward or pc.IsShortDefinition then //pparser.pp: 3417 :class(anchestor); is allowed !
+     if pc.IsForward or pc.IsShortDefinition then //pparser.pp: 3417 :class(ancestor); is allowed !
       begin
        writeln(';');
        exit;
-      end;  
+      end;
     //Members: TFPList;
     //InterfaceGUID: String;
     //ClassVars: TFPList; //is this always empty ?
@@ -1773,7 +1773,7 @@ begin
         GetTypes(TPasElement(Decl.Types[i]),indent+1);
        end;
       if not Unformated then writeln;
-      istype:=true; 
+      istype:=true;
      end;
 
   if assigned(Decl.Classes) then
@@ -1921,7 +1921,7 @@ begin
         if not Unformated then writeln;
         writeln('begin');//writeln('begin {Begin MAIN Program}')
         GetTPasImplBlock(M.InitializationSection as TPasImplBlock,1,0,false,false);
-       end;  
+       end;
     end
    else
     begin
@@ -1952,7 +1952,7 @@ begin
         if not Unformated then writeln;
         GetTPasImplBlock(M.InitializationSection as TPasImplBlock,1,0,false,false);
        end;
-      
+
         if assigned(M.FinalizationSection) then
          begin
           isim:=true;

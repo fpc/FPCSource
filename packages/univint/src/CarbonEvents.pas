@@ -3371,9 +3371,9 @@ const
  *          input method that no text in the active input area is
  *          changing.  It may be that the existing active input area is
  *          being confirmed "as is", or that the input method is
- *          modifying its highlite attributes in some way, due to some
+ *          modifying its highlight attributes in some way, due to some
  *          user action, such as changing the selected clause or
- *          highlited subrange of text in the active input area, or
+ *          highlighted subrange of text in the active input area, or
  *          that the input method is changing the caret position in the
  *          active input area (if it uses the kTSMHiliteCaretPosition
  *          hilite style). Depending on how your text engine draws
@@ -3386,7 +3386,7 @@ const
  *    --> kEventParamTextInputSendHiliteRng (in, typeTextRangeArray)
  *          An array of text-range records (see TextRangeArray) that
  *          specifies how various subranges of the active input area
- *          are to be highlited, and possibly specifies caret position
+ *          are to be highlighted, and possibly specifies caret position
  *          within the active input area. NOTE:  The text offsets used
  *          in the HiliteRng parameter are relative to the beginning of
  *          the active input area AFTER all text has been updated (per
@@ -9732,7 +9732,7 @@ const
  *    This event is only sent to windows that use an HIView-based
  *    window frame. It is not sent to windows that use a WDEF-based
  *    window frame. At the time that the event is sent, the window's
- *    attributes have already been changed, so an event hander for this
+ *    attributes have already been changed, so an event handler for this
  *    event can simply call GetWindowAttributes to get the new
  *    attributes. This event is sent to all handlers registered for it
  *    on the window event target. It does not propagate past the window.

@@ -27,7 +27,7 @@ const
   MySQLConnTypes = [mysql40,mysql41,mysql50,mysql51,mysql55,mysql56,mysql57,mysql80];
   SQLConnTypesNames : Array [TSQLConnType] of String[19] =
         ('MYSQL40','MYSQL41','MYSQL50','MYSQL51','MYSQL55','MYSQL56','MYSQL57','MYSQL80','POSTGRESQL','INTERBASE','ODBC','ORACLE','SQLITE3','MSSQL','SYBASE');
-             
+
   STestNotApplicable = 'This test does not apply to this sqldb connection type';
 
 
@@ -307,7 +307,7 @@ begin
       end;
       FTransaction.Commit;
       end;
-    ssMySQL:   
+    ssMySQL:
       begin
       FieldtypeDefinitions[ftWord] := 'SMALLINT UNSIGNED';
       // MySQL recognizes BOOLEAN, but as synonym for TINYINT, not true sql boolean datatype

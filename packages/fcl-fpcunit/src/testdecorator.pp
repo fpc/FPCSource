@@ -14,7 +14,7 @@
  **********************************************************************}
 
 {$IFNDEF FPC_DOTTEDUNITS}
-unit testdecorator; 
+unit testdecorator;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}
@@ -29,7 +29,7 @@ uses
 uses
   Classes, SysUtils, fpcunit;
 {$ENDIF FPC_DOTTEDUNITS}
-  
+
 type
 
   { TTestDecorator }
@@ -53,7 +53,7 @@ type
     procedure Run(AResult: TTestResult); override;
     property Test: TTest read FTest;
   end;
-  
+
   { TTestSetup }
 
   TTestSetup = class(TTestDecorator)

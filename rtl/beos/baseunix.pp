@@ -106,7 +106,7 @@ Uses Sysctl;
 //  {$i settimeo.inc}
 {$endif}
 {$i settimeo.inc}
-{$i osmacro.inc}        { macro implenenations }
+{$i osmacro.inc}        { macro implementations }
 {$i bunxovl.inc}        { redefs and overloads implementation }
 
 {$ifndef ver1_0}

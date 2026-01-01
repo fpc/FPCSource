@@ -1554,7 +1554,7 @@ end;
 
 procedure DoVarOpInt64to32(var vl : TVarData; const vr : TVarData; const OpCode : TVarOp);
 begin
-  { can't do this well without an efficent way to check for overflows,
+  { can't do this well without an efficient way to check for overflows,
     let the Int64 version handle it and check the Result if we can downgrade it
     to integer }
   DoVarOpInt64(vl, vr, OpCode);

@@ -289,7 +289,7 @@ implementation
     HTTP_VERSION_MINOR := number mod 1000;
   end;
 
-  function ap_is_HTTP_INFO(x : Integer): Boolean;  
+  function ap_is_HTTP_INFO(x : Integer): Boolean;
   begin
     ap_is_HTTP_INFO := ((x>=100) and (x<200));
   end;
@@ -341,7 +341,7 @@ implementation
     end;
   end;
 
-  function ap_escape_uri(ppool: Papr_pool_t; const path: PAnsiChar) : PAnsiChar;  
+  function ap_escape_uri(ppool: Papr_pool_t; const path: PAnsiChar) : PAnsiChar;
   begin
     ap_escape_uri:=ap_os_escape_path(ppool,path,1);
   end;

@@ -183,7 +183,7 @@ const
   ACIS = 0; // Analog Comparator Interrupt Mode Select bits
   // UCSR0A
   RXC0 = 7; // USART Receive Complete
-  TXC0 = 6; // USART Transmitt Complete
+  TXC0 = 6; // USART Transmit Complete
   UDRE0 = 5; // USART Data Register Empty
   FE0 = 4; // Framing Error
   DOR0 = 3; // Data overRun
@@ -208,7 +208,7 @@ const
   UCPOL0 = 0; // Clock Polarity
   // UCSR1A
   RXC1 = 7; // USART Receive Complete
-  TXC1 = 6; // USART Transmitt Complete
+  TXC1 = 6; // USART Transmit Complete
   UDRE1 = 5; // USART Data Register Empty
   FE1 = 4; // Framing Error
   DOR1 = 3; // Data overRun
@@ -289,7 +289,7 @@ const
   // SPMCR
   SPMIE = 7; // SPM Interrupt Enable
   RWWSB = 6; // Read While Write Section Busy
-  RWWSRE = 4; // Read While Write secion read enable
+  RWWSRE = 4; // Read While Write section read enable
   BLBSET = 3; // Boot Lock Bit Set
   PGWRT = 2; // Page Write
   PGERS = 1; // Page Erase

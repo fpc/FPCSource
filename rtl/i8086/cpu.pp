@@ -190,7 +190,7 @@ unit cpu;
 //              _AESSupport:=(_ecx and $2000000)<>0;
 //
 //              _AVXSupport:=
-//                { XGETBV suspport? }
+//                { XGETBV support? }
 //                ((_ecx and $08000000)<>0) and
 //                { xmm and ymm state enabled? }
 //                ((XGETBV(0) and %110)=%110) and

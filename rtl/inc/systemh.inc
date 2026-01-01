@@ -875,7 +875,7 @@ Var
   StdErr      : Text;
 {$else FPC_STDOUT_TRUE_ALIAS}
   { Optionally, make StdOut and StdErr a true alias of Output
-    and ErrOutput. This is benefical on small systems where the
+    and ErrOutput. This is beneficial on small systems where the
     data segment size is limited, as it lessens the RTL's data
     size by a bit more than 1K. }
   StdOut      : Text Absolute Output;

@@ -17,7 +17,7 @@ begin
     P.HomepageURL := 'www.freepascal.org';
     P.Email := '';
     P.Description := 'Transmit-options test-package';
- 
+
     P.SourcePath.Add('src');
     P.TransmitOptions.Add('-dPackageA');
     P.TransmitOptions.Add('-FaPackageAUnitA');

@@ -49,7 +49,7 @@ interface
 
 
 {
-  Excatly one
+  Exactly one
   GDB_VXYZ macro
   where XYZ are three numbers
   needs to defined
@@ -491,7 +491,7 @@ interface
   {$LINKLIB libiberty.a}
   {$LINKLIB libgnu.a} // at least 7.4 generates this.
   {$LINKLIB ncurses}
-  {$LINKLIB z} // linked implictely by something on Linux
+  {$LINKLIB z} // linked implicitly by something on Linux
   {$LINKLIB m}
   {$LINKLIB iberty}
   {$ifndef GDB_DISABLE_INTL}
@@ -1871,7 +1871,7 @@ var
   stop_pc      : CORE_ADDR;cvar;external;
   { Only used from GDB 5.0 but doesn't hurst otherwise }
   { This global variable is declared in defs.h as external
-    and instanciated in main.c since version 5.0. }
+    and instantiated in main.c since version 5.0. }
   interpreter_p : PAnsiChar;cvar;public;
 
 { we need also to declare some vars }
@@ -1914,7 +1914,7 @@ const
   {$define GDB_SET_SAVED_COMMAND_LINE}
 {$else}
  {$ifdef GDB_HAS_SAVED_COMMAND_LINE_SIZE}
-  { In some GDB versions, saved_command_line needs to 
+  { In some GDB versions, saved_command_line needs to
     be explicitly allocated at startup }
 var
   saved_command_line : PAnsiChar;cvar;external; { defined in top.c source }
@@ -1926,7 +1926,7 @@ var
 {$endif GDB_NEEDS_SET_INSTREAM}
 var
   { The four following variables are defined in defs.h
-    and instanciated in main.c since version 5.0 }
+    and instantiated in main.c since version 5.0 }
   gdb_stdout : pui_file;cvar;public;
   gdb_stderr : pui_file;cvar;public;
   gdb_stdlog : pui_file;cvar;public;
@@ -1935,7 +1935,7 @@ var
 {$ifdef GDB_V6}
 (* target IO streams *)
   { The three following variables are declared in defs.h
-    and instanciated in main.c since version 6.0 }
+    and instantiated in main.c since version 6.0 }
   gdb_stdin : pui_file;cvar;public;
   gdb_stdtargin : pui_file;cvar;public;
   gdb_stdtargerr : pui_file;cvar;public;
@@ -3718,25 +3718,25 @@ var
     { used locally only to provide a PAnsiChar pointing to '\0' }
     gdb_sysroot  : PAnsiChar; cvar;public;
     { gdb_sysroot global variable is declared in defs.h and
-      instanciated in main.c since version 6.0 }
+      instantiated in main.c since version 6.0 }
     gdb_datadir  : PAnsiChar; cvar;public;
     { gdb_datadir global variable is declared in defs.h and
-      instanciated in main.c since version 7.0 }
+      instantiated in main.c since version 7.0 }
     python_libdir : PAnsiChar;cvar;public;
-    { python_libdir global variable is declared in defs.h and instanciated
+    { python_libdir global variable is declared in defs.h and instantiated
       in main.c since version 7.2 }
     return_child_result : longbool;cvar;public;
     { return_chlid_result global variable is declared in main.h and
-      instanciated in main.c since version 6.4 }
+      instantiated in main.c since version 6.4 }
     return_child_result_value : longint;cvar;public;
     { return_child_result_value global variable is declared in main.h and
-      instanciated in main.c since version 6.4 with a startup value of -1 }
+      instantiated in main.c since version 6.4 with a startup value of -1 }
     batch_silent : longbool;cvar;public;
     { batch_silent global variable is declared in main.h since 7.0, but
-      instanciated in main.c since version 6.4 }
+      instantiated in main.c since version 6.4 }
     batch_flag : longbool;cvar;public;
     { batch_flag global variable is declared in main.h and
-      instanciated in main.c since version 7.2 }
+      instantiated in main.c since version 7.2 }
 {$endif}
 {$ifdef GDB_HAS_DEBUG_FILE_DIRECTORY}
 var

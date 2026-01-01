@@ -1,4 +1,4 @@
-unit webmodule; 
+unit webmodule;
 
 {$mode objfpc}{$H+}
 
@@ -16,14 +16,14 @@ type
       AResponse: TResponse; var Handled: Boolean);
   private
     { private declarations }
-    procedure func1callReplaceTag(Sender: TObject; const TagString:String; 
+    procedure func1callReplaceTag(Sender: TObject; const TagString:String;
       TagParams: TStringList; Out ReplaceText: String);
   public
     { public declarations }
-  end; 
+  end;
 
 var
-  FPWebModule1: TFPWebModule1; 
+  FPWebModule1: TFPWebModule1;
 
 implementation
 
@@ -35,7 +35,7 @@ procedure TFPWebModule1.func1callRequest(Sender: TObject; ARequest: TRequest;
   AResponse: TResponse; var Handled: Boolean);
 begin
   //ModuleTemplate is a web module global property
-  //To use the Template propery of the current web action (which is visible in
+  //To use the Template property of the current web action (which is visible in
   //the object inspector for every Action), use
   //(Sender as TFPWebAction).Template.FileName := 'mytemplate1.html'; and so on.
   ModuleTemplate.FileName := 'mytemplate3.html';{template file with the template tag -> REPORTRESULT}
@@ -62,7 +62,7 @@ begin//HTML template tag handling for an html template file
   if AnsiCompareText(TagString, 'DATETIME') = 0 then
   begin
     ReplaceText := FormatDateTime(TagParams.Values['FORMAT'], Now);
-  end else 
+  end else
 
   //Replace the REPORTRESULT html tag using it's tag parameters
   if AnsiCompareText(TagString, 'REPORTRESULT') = 0 then
@@ -84,7 +84,7 @@ begin//HTML template tag handling for an html template file
 
     //NoRecordsToShow could be something like SQL1.IsEmpty , etc.
     if NoRecordsToShow then
-    begin  //if there's nothing to list, just replace the whole tag with the 
+    begin  //if there's nothing to list, just replace the whole tag with the
            //"Not Found" message that the template contains
       ReplaceText := TagParams.Values['NOTFOUND'];
       Exit;
@@ -95,11 +95,11 @@ begin//HTML template tag handling for an html template file
     header := StringReplace(header, '~Column1', ColumnHeaders[1], []);
     header := StringReplace(header, '~Column2', ColumnHeaders[2], []);
 
-    ReplaceText := header;//done with the header (could have been looping 
+    ReplaceText := header;//done with the header (could have been looping
 			  //through table field names also)
     //insert the rows
     onerow := TagParams.Values['ONEROW'];//template for 1 row
-    //loop through the rows, it could be someting like "while not SQL1.EOF do"
+    //loop through the rows, it could be something like "while not SQL1.EOF do"
     for I := 1 to 3 do
     begin
       ReplaceText := ReplaceText + StringReplace(StringReplace(onerow
@@ -121,5 +121,5 @@ begin//HTML template tag handling for an html template file
 end;
 
 initialization
-  RegisterHTTPModule('TFPWebModule1', TFPWebModule1); 
+  RegisterHTTPModule('TFPWebModule1', TFPWebModule1);
 end.

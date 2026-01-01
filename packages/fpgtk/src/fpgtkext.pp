@@ -1,7 +1,7 @@
 {
     This file is part of the fpgtk package
     Copyright (c) 1999-2000 by Michael van Canney, Sebastian Guenther
- 
+
     fpgtk application object
 
     See the file COPYING.FPC, included in this distribution,

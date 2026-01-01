@@ -2,7 +2,7 @@
     This file is part of the Free Pascal Run time library.
     Copyright (c) 2000 by the Free Pascal development team
 
-    This file contains the OS indenpendend declartions for multi
+    This file contains the OS independent declarations for multi
     threading support in FPC
 
     See the File COPYING.FPC, included in this distribution,
@@ -134,7 +134,7 @@ function BeginThread(sa : Pointer;stacksize : SizeUInt;
   ThreadFunction : tthreadfunc;p : pointer;creationFlags : dword;
   var ThreadId : TThreadID) : TThreadID;
 
-{ add some simplfied forms which make lifer easier and porting }
+{ add some simplified forms which make lifer easier and porting}
 { to other OSes too ...                                        }
 function BeginThread(ThreadFunction : tthreadfunc) : TThreadID;
 function BeginThread(ThreadFunction : tthreadfunc;p : pointer) : TThreadID;

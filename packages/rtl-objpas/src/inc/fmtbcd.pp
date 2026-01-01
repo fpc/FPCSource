@@ -2582,10 +2582,10 @@ if p > 3 then halt;
 {
 writeln ( 'p=', p, ' dd=', dd, ' lFdig=', lfdig, ' lldig=', lldig );
 }
-                                                                  
+
                                 for i2 := lLdig DOWNTO lFDig do
                                   begin
-                                    // Typecase needed on 64-bit because evaluation happens using qword... 
+                                    // Typecase needed on 64-bit because evaluation happens using qword...
                                     v3 := Longint(Singles[i2]) - Longint(bh2.Singles[i2 - p] * dd) - Longint(ue);
                                     ue := 0;
                                     while v3 < 0 do
@@ -3146,7 +3146,7 @@ writeln ( '> ', i4, ' ', bh.Singles[i4], ' ', Add );
       dec(j);
       end;
 
-    // output remaining chars from begining of Format (f.e. 'abc' if given Format is 'abc0.00')
+    // output remaining chars from beginning of Format (f.e. 'abc' if given Format is 'abc0.00')
     while PFmt >= Section.FmtStart do
       PutFmtDigit(PFmt, i, j, -1);
 
@@ -4519,7 +4519,7 @@ function TFMTBcdFactory.CompareOp(const Left, Right: TVarData; const Operation: 
       RaiseInvalidOp;
     end;
   end;
-  
+
 procedure TFMTBcdFactory.Clear(var V: TVarData);
   begin
     FreeAndNil(tObject(V.VPointer));

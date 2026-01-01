@@ -12,7 +12,7 @@ You can specify the module to load in 1 of 3 ways:
 
   2. from the first part of hash:  #moduleName/
 
-  3. from query varable wasmmodule: ?wasmmodule=x
+  3. from query variable wasmmodule: ?wasmmodule=x
 
 the extension .wasm must be specified.
 

@@ -424,14 +424,14 @@ function MDItemsCopyAttributes( items: CFArrayRef; names: CFArrayRef ): CFArrayR
    This attribute indicates where the item was obtained from.
    Examples:
    - downloaded file may refer to the site they were downloaded from,
-    the refering URL, etc
-  - files reveived by email may indicate who sent the file, the
+    the referring URL, etc
+  - files revived by email may indicate who sent the file, the
     message subject, etc
    Type is a CFArray of CFStrings
 
    @constant kMDItemLastUsedDate
    This is the date that the file was last used, this field is updated
-   by LaunchServices everytime a file is opend by double clicking or
+   by LaunchServices every time a file is opened by double clicking or
    by asking LaunchServices to open a file. Type is a CFDate
 
    @constant kMDItemContentCreationDate
@@ -531,7 +531,7 @@ function MDItemsCopyAttributes( items: CFArrayRef; names: CFArrayRef ): CFArrayR
    Time that the lens was open during exposure
 
    @const kMDItemEXIFVersion
-   The verion of the EXIF header that was used to generate the metadata
+   The version of the EXIF header that was used to generate the metadata
 
    @const kMDItemEXIFGPSVersion
    The version of GPSInfoIFD header that was used to generate the metadata
@@ -558,8 +558,8 @@ function MDItemsCopyAttributes( items: CFArrayRef; names: CFArrayRef ): CFArrayR
    Delivery type Fast start or RTSP
 
    @constant kMDItemAlbum
-   The title for a collection of media. This is analagous to a record album,
-   or photo album whichs are collections of audio or images. Type is a CFString.
+   The title for a collection of media. This is analogous to a record album,
+   or photo album which are collections of audio or images. Type is a CFString.
 
    @constant kMDItemHasAlphaChannel
    Boolean indicating if this image file has an alpha channel. Type is
@@ -1287,7 +1287,7 @@ var kMDItemSupportFileType: CFStringRef; external name '_kMDItemSupportFileType'
         the email address, and not the human readable version)
 
         @const kMDItemRecipientEmailAddresses
-        This attribute indicates the reciepients email addresses. (This is always the email
+        This attribute indicates the recipients email addresses. (This is always the email
         address,  and not the human readable version).
 
         @const kMDItemAuthorAddresses

@@ -106,7 +106,7 @@ type
     ncb_sto: UCHAR;      // send timeout/sys timeout
     ncb_post: TNcbPost;  // POST routine address
     ncb_lana_num: UCHAR; // lana (adapter) number
-    ncb_cmd_cplt: UCHAR; // 0xff => commmand pending
+    ncb_cmd_cplt: UCHAR; // 0xff => command pending
     {$IFDEF WIN64}
     ncb_reserve: array [0..17] of AnsiChar; // reserved, used by BIOS
     {$ELSE}

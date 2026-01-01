@@ -24,7 +24,7 @@ uses
   System.CodePages.UnicodeData, System.SysUtils, System.Classes, System.Contnrs,
 {$ELSE}
   UnicodeData, SysUtils, Classes, Contnrs,
-{$ENDIF}  
+{$ENDIF}
   MarkDown.Elements,
   MarkDown.Utils,
   MarkDown.Scanner,

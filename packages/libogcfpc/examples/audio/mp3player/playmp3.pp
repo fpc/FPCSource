@@ -19,10 +19,10 @@ var
 begin
 	// Initialise the video system
 	VIDEO_Init();
-	
+
 	// Initialise the attached controllers
 	WPAD_Init();
-	
+
 	// Initialise the audio subsystem
 	ASND_Init();
 	MP3Player_Init();
@@ -33,16 +33,16 @@ begin
 
 	// Allocate memory for the display in the uncached region
 	xfb := SYS_AllocateFramebuffer(rmode);
-	
+
 	// Initialise the console, required for printf
 	console_init(xfb,20,20,rmode^.fbWidth,rmode^.xfbHeight,rmode^.fbWidth*VI_DISPLAY_PIX_SZ);
-	
+
 	// Set up the video registers with the chosen mode
 	VIDEO_Configure(rmode);
-	
+
 	// Tell the video hardware where our display memory is
 	VIDEO_SetNextFramebuffer(xfb);
-	
+
 	// Make the display visible
 	VIDEO_SetBlack(FALSE);
 
@@ -59,7 +59,7 @@ begin
 	// we can use variables for this with format codes too
 	// e.g. printf ("\x1b[%d;%dH", row, column );
 	printf(#$1b'[2;0H');
-	
+
 	printf('Playing sample MP3 file...Press HOME to exit.'#10);
 
 	MP3Player_PlayBuffer(@sample_mp3, sample_mp3_size, nil);

@@ -20,8 +20,8 @@ program pdfdump;
 
 uses
 {$ifdef unix}
-  cwString, 
-{$endif}  
+  cwString,
+{$endif}
   sysutils, classes, contnrs, fppdfobjects, fppdfparser, fppdfpredict,
   custapp, fppdfconsts, fppdfcommands;
 

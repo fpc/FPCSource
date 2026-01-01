@@ -146,7 +146,7 @@ Type
     Procedure Execute;
     // JSON Data to generate code from.
     Property JSONData : TJSONData Read FJSONData Write FJSONData;
-    // JSON Data (in stream form) to generate code from. JSONData takes prioroty over this property.
+    // JSON Data (in stream form) to generate code from. JSONData takes priority over this property.
     Property JSONStream : TStream Read FJSONStream Write FJSONStream;
   Published
     // Setting this to true will call execute. Can be used to generate code in the IDE.
@@ -167,7 +167,7 @@ Type
     Property IndentSize : Integer Read FIndentSize Write FIndentSize default 2;
     // These units (comma separated list) will be added to the interface uses clause.
     Property ExtraUnitNames : String Read FExtraUnitNames Write FExtraUnitNames;
-    // This will be suffixed to an object/array type name when the propert map is constructed.
+    // This will be suffixed to an object/array type name when the property map is constructed.
     Property PropertyTypeSuffix : String Read FPropertyTypeSuffix Write FPropertyTypeSuffix;
     // First letter for field name.
     Property FieldPrefix : String Read FFieldPrefix Write FFieldPrefix;

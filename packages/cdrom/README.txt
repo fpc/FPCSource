@@ -13,8 +13,8 @@ The other units are support units, needed by various implementations.
 
 The unit presents 2 calls:
 
-Type 
-  TTocEntry = Record 
+Type
+  TTocEntry = Record
     min, sec, frame : Integer
   end;
   PTocEntry = ^TTocEntry;
@@ -41,7 +41,7 @@ extra entry at the end of the array, describing the lead-out.
 unit discid
 -----------
 
-The DISCID unit calculates a DISC-ID as needed by a freecddb server to 
+The DISCID unit calculates a DISC-ID as needed by a freecddb server to
 query for the contents of a disc.
 
 Function CDDBDiscID(Const CDTOC : Array of TTocEntry; Count : Integer) : integer ;
@@ -53,7 +53,7 @@ function can be used as input for this function.
 Function GetCDDBQueryString(Const Tracks : Array of TTocEntry; Count : Integer) : String;
 
 This function returns a query string as expected by a freecddb server.
-It consists of the disc id, number of tracks, and the frame fields of the 
+It consists of the disc id, number of tracks, and the frame fields of the
 TCDToc records in the tracks array.
 
 unit lincd
@@ -94,7 +94,7 @@ TTOCTrack = packed record
   trackNumber,
   rsvd2 : Byte;
   addr : Array[0..3] of byte;
-end;  
+end;
 
 TTOC = packed Record
   toclen : word;
@@ -106,7 +106,7 @@ end;
 Const
   AccessMethodNames : Array[TCDAccessMethod] of string
                     = ('None','ASPI','SPTI','IOCTL');
-                    
+
 Function  GetCDAccessMethod : TCDAccessMethod;
 
 Returns the current CD-rom detection method.
@@ -169,7 +169,7 @@ Bare translation of the scsidefs.h windows SDK header.
 cdromioctl.pp
 -------------
 
-This unit contains some records and constants defined in window's 
+This unit contains some records and constants defined in window's
 cdromioctl.h
 
 

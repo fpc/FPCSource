@@ -248,9 +248,9 @@ Var
 begin
   if SameText(Defaults.SubTarget,'unicodertl') then
     exit;
-  if Defaults.Namespaces then 
+  if Defaults.Namespaces then
     exit;
-     
+
   With Installer do
     begin
     s := GetCustomFpmakeCommandlineOptionValue('NoIDE');
@@ -337,7 +337,7 @@ begin
         P.Options.Add('-dGDB');
         if CompilerTarget=wasm32 then
           P.Options.Add('-dNOOPT');
-        
+
         CompilerDir:=P.Directory +'../../compiler';
 
         P.Options.Add('-d'+CPUToString(CompilerTarget));
@@ -347,10 +347,10 @@ begin
         P.Options.Add('-Fu'+CompilerDir+'/systems');
         P.Options.Add('-Fi'+CompilerDir+'/'+CPUToString(CompilerTarget));
         P.Options.Add('-Fi'+CompilerDir);
-        
+
         if CompilerTarget in [x86_64, i386, i8086] then
           P.Options.Add('-Fu'+CompilerDir+'/x86');
-        
+
         if CompilerTarget in [powerpc, powerpc64] then
           P.Options.Add('-Fu'+CompilerDir+'/ppcgen');
 
@@ -366,7 +366,7 @@ begin
           begin
               P.Options.Add('-Fu'+CompilerDir+'/riscv');
           end;
-        
+
         if CompilerTarget = mipsel then
           P.Options.Add('-Fu'+CompilerDir+'/mips');
 
@@ -382,12 +382,12 @@ begin
         { powerpc64-aix compiled IDE needs -CTsmalltoc option }
         if (Defaults.OS=aix) and (Defaults.CPU=powerpc64) then
         P.Options.Add('-CTsmalltoc');
-        
+
         { Handle SPECIALLINK environment variable if available }
         s:=GetEnvironmentVariable('SPECIALLINK');
         if s<>'' then
           P.Options.Add(s);
-        
+
         P.Options.Add('-Sg');
         P.IncludePath.Add('compiler');
 

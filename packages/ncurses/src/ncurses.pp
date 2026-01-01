@@ -196,7 +196,7 @@ const
    _SCROLLWIN = $08;  { bottom edge is at screen bottom? }
    _ISPAD     = $10;  { is this window a pad? }
    _HASMOVED  = $20;  { has cursor moved since last refresh? }
-   _WRAPPED   = $40;  { cursor was just wrappped }
+   _WRAPPED   = $40;  { cursor was just wrapped }
    _NOCHANGE  = -(1);
 {
   this value is used in the firstchar and lastchar fields to mark
@@ -584,7 +584,7 @@ function saveterm: Longint; inline;
 function crmode: Longint; inline;
 function nocrmode: Longint; inline;
 
-// formal parameter versions not endiansafe?
+// formal parameter versions not endian safe?
 procedure getyx   (win: PWINDOW; var y,x: Smallint); inline; overload;
 procedure getbegyx(win: PWINDOW; var y,x: Smallint); inline; overload;
 procedure getmaxyx(win: PWINDOW; var y,x: Smallint); inline; overload;

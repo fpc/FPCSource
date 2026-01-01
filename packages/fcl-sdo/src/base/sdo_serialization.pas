@@ -34,7 +34,7 @@ uses
 
 const
   MAX_NESTED_LEVEL = 256;
-    
+
 type
 
   TObjectWriteOption = ( owoWriteChangeSummary, owoWriteReference, owoPostRefProperties );
@@ -391,7 +391,7 @@ begin
   FStreamer := AStreamer;
   FReferenceWriteRecallList := TObjectList.Create(True);
   FReferenceReadRecallList := TObjectList.Create(True);
-  
+
   FProcs[BooleanType].PropType := FDataFactory.getType(sdo_namespace,SDOTypeDefaultTypeNames[BooleanType]);
   FProcs[BooleanType].WriterProc     := {$IFDEF ATT_PROC_ADDRESS}@{$ENDIF}WriteBoolProp;
   FProcs[BooleanType].WriterListProc := {$IFDEF ATT_PROC_ADDRESS}@{$ENDIF}WriteBoolListProp;
@@ -1049,7 +1049,7 @@ procedure TSDOSerializer.WriteByteProp(
 var
   tmpVal : TSDOByte;
 begin
-  if not AObject.isNull(AProp) then begin 
+  if not AObject.isNull(AProp) then begin
     tmpVal := AObject.getByte(AProp);
     FStreamer.Put(AProp.getName(),FProcs[ByteType].PropType,tmpVal);
   end;
@@ -1090,7 +1090,7 @@ procedure TSDOSerializer.WriteDateProp(
 var
   tmpVal : TSDODateTime;
 begin
-  if not AObject.isNull(AProp) then begin 
+  if not AObject.isNull(AProp) then begin
     tmpVal := AObject.getDate(AProp);
     FStreamer.Put(AProp.getName(),FProcs[DateTimeType].PropType,tmpVal);
   end;
@@ -1154,7 +1154,7 @@ procedure TSDOSerializer.WriteBytesProp(
 var
   tmpVal : TSDOBytes;
 begin
-  if not AObject.isNull(AProp) then begin 
+  if not AObject.isNull(AProp) then begin
     tmpVal := AObject.getBytes(AProp);
     FStreamer.Put(AProp.getName(),FProcs[BytesType].PropType,tmpVal);
   end;
@@ -1226,7 +1226,7 @@ begin
   if FStreamer.Get(FProcs[CharacterType].PropType,localName,tmpVal) then
     AObject.setCharacter(localName,tmpVal)
   else if AProp.isNullable() then
-    AObject.setNull(AProp);            
+    AObject.setNull(AProp);
 end;
 
 procedure TSDOSerializer.ReadCharListProp(
@@ -1261,8 +1261,8 @@ procedure TSDOSerializer.WriteCurrencyProp(
 );
 var
   tmpVal : TSDOCurrency;
-begin                   
-  if not AObject.isNull(AProp) then begin 
+begin
+  if not AObject.isNull(AProp) then begin
     tmpVal := AObject.getCurrency(AProp);
     FStreamer.Put(AProp.getName(),FProcs[CurrencyType].PropType,tmpVal);
   end;
@@ -1316,7 +1316,7 @@ procedure TSDOSerializer.WriteDoubleProp(
 var
   tmpVal : TSDODouble;
 begin
-  if not AObject.isNull(AProp) then begin 
+  if not AObject.isNull(AProp) then begin
     tmpVal := AObject.getDouble(AProp);
     FStreamer.Put(AProp.getName(),FProcs[DoubleType].PropType,tmpVal);
   end;
@@ -1370,7 +1370,7 @@ procedure TSDOSerializer.WriteFloatProp(
 var
   tmpVal : TSDOFloat;
 begin
-  if not AObject.isNull(AProp) then begin 
+  if not AObject.isNull(AProp) then begin
     tmpVal := AObject.getFloat(AProp);
     FStreamer.Put(AProp.getName(),FProcs[FloatType].PropType,tmpVal);
   end;
@@ -1424,7 +1424,7 @@ procedure TSDOSerializer.WriteLongProp(
 var
   tmpVal : TSDOLong;
 begin
-  if not AObject.isNull(AProp) then begin 
+  if not AObject.isNull(AProp) then begin
     tmpVal := AObject.getLong(AProp);
     FStreamer.Put(AProp.getName(),FProcs[LongType].PropType,tmpVal);
   end;
@@ -1478,7 +1478,7 @@ procedure TSDOSerializer.WriteShortProp(
 var
   tmpVal : TSDOShort;
 begin
-  if not AObject.isNull(AProp) then begin 
+  if not AObject.isNull(AProp) then begin
     tmpVal := AObject.getShort(AProp);
     FStreamer.Put(AProp.getName(),FProcs[ShortType].PropType,tmpVal);
   end;
@@ -1708,7 +1708,7 @@ var
     k : PtrInt;
     prpProc : TPropReaderProc;
     ls : TStringList;
-    ss : string; 
+    ss : string;
     strBuffer : TSDOString;
     locSerializationStyle : TSerializationStyle;
   begin
@@ -1886,7 +1886,7 @@ var
   var
     locIntType, locStringType : ISDOType;
     itemType : ISDOType;
-    nameBuffer : string; 
+    nameBuffer : string;
     stringBuffer : TSDOString;
     buffer : TValueBuffer;
     pbuffer : Pointer;
@@ -1944,7 +1944,7 @@ var
                 BytesType  : pbuffer := buffer.BytesValue;
 {$ENDIF HAS_SDO_BYTES}
                 StringType : pbuffer := buffer.StringValue;
-                else 
+                else
                   Assert(False, 'NON IMPLEMENTED YET!');
               end;
             end;
@@ -2245,7 +2245,7 @@ var
 
   procedure ReadCreatedObjects();
   var
-    tmpStr : TSDOString; 
+    tmpStr : TSDOString;
     tmpBuffer : string;
     tmpObj : ISDODataObject;
   begin
@@ -2328,7 +2328,7 @@ end;
 
 procedure TSDOSerializer.ReadMetadata();
 var
-  s : string; 
+  s : string;
   locXdsBuffer : TSDOString;
   locXsd : IXSDHelper;
 begin
@@ -2527,7 +2527,7 @@ procedure TSDOSerializer.WriteBoolProp(const AProp : ISDOProperty; const AObject
 var
   tmpVal : TSDOBoolean;
 begin
-  if not AObject.isNull(AProp) then begin 
+  if not AObject.isNull(AProp) then begin
     tmpVal := AObject.getBoolean(AProp);
     FStreamer.Put(AProp.getName(),FProcs[BooleanType].PropType,tmpVal);
   end;
@@ -2792,8 +2792,8 @@ end;
 procedure TSDOSerializer.WriteIntegerProp(const AProp: ISDOProperty; const AObject : ISDODataObject);
 var
   tmpVal : TSDOInteger;
-begin            
-  if not AObject.isNull(AProp) then begin 
+begin
+  if not AObject.isNull(AProp) then begin
     tmpVal := AObject.getInteger(AProp);
     FStreamer.Put(AProp.getName(),FProcs[IntegerType].PropType,tmpVal);
   end;

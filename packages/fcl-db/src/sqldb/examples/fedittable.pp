@@ -17,7 +17,7 @@ uses
   Classes, sysutils,
   sqldb,
   SqldbExampleUnit;
-  
+
 
 begin
   ReadIniFile;
@@ -32,12 +32,12 @@ begin
     begin
 
     SQL.Clear;
-    
+
     SQL.Add('select * from FPDEV');
 
 // With these lines commented out, TSQLQuery creates the update, delete and insert
 // queries itself.
-// For more complex queries, though, it could be nessecary to provide these queries
+// For more complex queries, though, it could be necessary to provide these queries
 // here
 
 //    UpdateSQL.add('update fpdev set name=:name, birthdate=:birthdate where id=:OLD_id');
@@ -50,14 +50,14 @@ begin
     FieldByName('name').AsString := FPdevNames[1];
     FieldByName('birthdate').AsDateTime := FPdevBirthDates[1];
     Post;
-    
+
     Append;
     FieldByName('id').AsInteger := 8;
     FieldByName('name').AsString := FPdevNames[8];
     FieldByName('email').AsString := FPdevEmails[8];
     FieldByName('birthdate').AsDateTime := FPdevBirthDates[8];
     post;
-    
+
     ApplyUpdates;
 
     end;

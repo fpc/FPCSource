@@ -18,7 +18,7 @@ type
     obj: T;
     class operator Initialize(var hdl: TLockGuard);
     class operator Finalize(var hdl: TLockGuard);
-    procedure Init(AObj: T); 
+    procedure Init(AObj: T);
   end;
 
 class operator TLockGuard.Initialize(var hdl: TLockGuard);
@@ -69,11 +69,11 @@ Type
     class var ExecuteLock : TCriticalSection;
   Private
     FNo : Integer;
-  Public  
+  Public
     constructor create(aNo : Integer);
     destructor destroy; override;
     Procedure Execute; override;
-    
+
   end;
 
 { TCalcThread }
@@ -87,7 +87,7 @@ begin
   FreeOnTerminate:=True;
 end;
 
-destructor TCalcThread.destroy; 
+destructor TCalcThread.destroy;
 begin
   InterlockedDecrement(ThreadCount);
   Inherited;
@@ -100,12 +100,12 @@ var
 begin
   lock.Init(ExecuteLock);
   InterlockedIncrement(ExecuteCount);
-  if ExecuteCount<>1 then 
+  if ExecuteCount<>1 then
     Writeln('Error : multiple threads are executing (start)');
   Res:=Fibonacci(FNo,10);
   writeln('Thread['+IntTostr(FNo),'] Fibonacci(10) = '+IntToStr(Res));
   InterlockedDecrement(ExecuteCount);
-  if ExecuteCount<>0 then 
+  if ExecuteCount<>0 then
     Writeln('Error : multiple threads are executing (stop)');
 end;
 
@@ -114,12 +114,12 @@ var
 begin
   TCalcThread.ExecuteLock:=TCriticalSection.Create;
   for I:=1 to 10 do
-    TCalcThread.Create(i); 
+    TCalcThread.Create(i);
   repeat
     sleep(10);
     CheckSynchronize;
   until (ThreadCount=0);
-    
+
 end.
 
 

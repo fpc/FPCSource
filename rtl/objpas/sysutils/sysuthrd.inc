@@ -107,7 +107,7 @@ var
   p: PMREWThreadInfo;
 begin
   { Result indicates whether the protected memory was not modified,
-    that is, it is set to false if another writer could have chagned
+    that is, it is set to false if another writer could have changed
     memory}
   Result:=True;
 

@@ -32,7 +32,7 @@ uses
 Const
   RFC3339DateTimeFormat = 'yyyy"-"mm"-"dd"T"hh":"nn":"ss';
   RFC3339DateTimeFormatMsec = RFC3339DateTimeFormat+'.zzz';
-  
+
 
 Type
 
@@ -53,7 +53,7 @@ Type
                        jsoLegacyDateTime,         // Set this to enable old date/time formatting. Current behaviour is to save date/time as a ISO 9601 value.
                        jsoLowerPropertyNames,     // Set this to force lowercase names when streaming to JSON.
                        jsoStreamTList             // Set this to assume that TList contains a list of TObjects. Use with care!
-                       );  
+                       );
   TJSONStreamOptions = Set of TJSONStreamOption;
 
   TJSONFiler = Class(TComponent)
@@ -187,12 +187,12 @@ Type
     // Called when a object-typed property must be restored, and the property is Nil. Must return an instance for the property.
     // Published Properties of the instance will be further restored with available data.
     Property OngetObject : TJSONGetObjectEvent Read FOnGetObject Write FOnGetObject;
-    // JSON is by definition case sensitive. Should properties be looked up case-insentive ?
+    // JSON is by definition case sensitive. Should properties be looked up case-insensitive ?
     Property CaseInsensitive : Boolean Read GetCaseInsensitive Write SetCaseInsensitive ; deprecated;
     // DateTime format. If not set, RFC3339DateTimeFormat is assumed.
     // If set, it will be used as an argument to ScanDateTime. If that fails, StrToDateTime is used.
     Property DateTimeFormat : String Read FDateTimeFormat Write FDateTimeFormat;
-    // Options overning the behaviour
+    // Options covering the behaviour
     Property Options : TJSONDestreamOptions Read FOptions Write FOptions;
   end;
 
@@ -1236,7 +1236,7 @@ begin
     S:=''
   else if (DateTimeFormat<>'') then
     S:=FormatDateTime(DateTimeFormat,DateTime)
-  else if (jsoLegacyDateTime in options) then  
+  else if (jsoLegacyDateTime in options) then
     begin
     if Frac(DateTime)=0 then
       S:=DateToStr(DateTime)
@@ -1247,7 +1247,7 @@ begin
     end
   else
     S:=FormatDateTime(RFC3339DateTimeFormat,DateTime);
-     
+
   Result:=TJSONString.Create(S);
 end;
 

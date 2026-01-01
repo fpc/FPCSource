@@ -191,7 +191,7 @@ type
   frmGoto = record
     formID: UInt16;
     recordNum: UInt16;     // index of record that contain a match
-    matchPos: UInt16;      // postion in record of the match.
+    matchPos: UInt16;      // position in record of the match.
     matchLen: UInt16;      // length of match.
     matchFieldNum: UInt16; // field number string was found int
     matchCustom: UInt32;   // application specific info

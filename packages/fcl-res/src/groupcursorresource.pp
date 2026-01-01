@@ -28,7 +28,7 @@ uses
 uses
   Classes, SysUtils, resource, groupresource;
 {$ENDIF FPC_DOTTEDUNITS}
-  
+
 type
 
   { TGroupCursorResource }
@@ -62,7 +62,7 @@ uses
 uses
   resfactory, resdatastream, icocurtypes;
 {$ENDIF FPC_DOTTEDUNITS}
-  
+
 type
   TCurInfo = record
     res : TAbstractResource;

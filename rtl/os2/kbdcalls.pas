@@ -1066,11 +1066,11 @@ returned by the keyboard controller)}
   Notice that the space key is defined as a SpecKeyA (type 4) because its
   use, in conjunction with the Alt key, is allowed. In this case, and when
   used with the Ctrl key, it returns the ASCII space character. This works
-  correctly, except in the case of the diaresis accent (double-dot) in code
+  correctly, except in the case of the diaeresis accent (double-dot) in code
   page 437. The space is treated as an invalid character and the beep result
-  occurs, with the diaresis represented by double quotation marks. The
+  occurs, with the diaeresis represented by double quotation marks. The
   characters displayed depend upon the language in effect when the invalid
-  diaresis is encountered. For some languages, the character substituted is
+  diaeresis is encountered. For some languages, the character substituted is
   the double-quotation marks; for others, the character used is the F9h
   character.
 

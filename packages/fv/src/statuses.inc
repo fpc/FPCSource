@@ -361,7 +361,7 @@ type
 
         The size of the dialog is determined by the size of the AStatus.  The
         dialog is anchored at AStatus^.Origin and is of at least
-        AStatus^.Size + 2 in heighth and width.  The exact width and height
+        AStatus^.Size + 2 in height and width.  The exact width and height
         are determined by AOptions.
 
         AFlags contains flags which determine the buttons to be displayed

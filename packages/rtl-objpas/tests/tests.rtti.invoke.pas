@@ -1556,7 +1556,7 @@ var
   Instance: TValue;
   M: TRttiMethod;
   T1,T2,TempV: TValue;
-  
+
 begin
 
   Context := TRttiContext.Create;

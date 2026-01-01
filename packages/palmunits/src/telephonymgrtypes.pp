@@ -536,13 +536,13 @@ type
 
   TelPhbGetEntryCountType = record
     slots: UInt16; // number of entries in the selected phonebook
-    count: UInt16; // number of name/addresse pairs present in the selected phonebook
+    count: UInt16; // number of name/addressee pairs present in the selected phonebook
   end;
 
   TelPhbGetEntriesType = record
     first: UInt16; // first entry physical index, zero based
-    count: UInt16; // number of name/addresse pairs
-    entriesP: ^TelPhbEntryType; // name/addresse pairs array
+    count: UInt16; // number of name/addressee pairs
+    entriesP: ^TelPhbEntryType; // name/addressee pairs array
   end;
 
   TelPhbGetAvailablePhonebooksType = record

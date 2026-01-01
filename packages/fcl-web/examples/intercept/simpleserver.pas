@@ -25,7 +25,7 @@ program simpleserver;
 uses
 {$ifdef unix}
   cthreads,
-{$endif}  
+{$endif}
   sysutils, strutils, custapp, custhttpapp, Classes, httproute, httpdefs, fpmimetypes, fpwebfile, fpwebproxy, webutil, base64;
 
 Type

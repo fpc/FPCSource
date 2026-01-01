@@ -160,8 +160,8 @@ const
   sysFileCNetworkPanel            = Rsc('netw'); // Creator type for Network Panel
   sysFileCWirelessPanel           = Rsc('wclp'); // Creator type for the wireless Panel.
   sysFileCUserDict                = Rsc('udic'); // Creator type for the UserDict panel.
-  sysFileCPADHtal                 = Rsc('hpad'); // Creator type for PAD HTAL lirary
-  sysFileCTCPHtal                 = Rsc('htcp'); // Creator type for TCP HTAL lirary
+  sysFileCPADHtal                 = Rsc('hpad'); // Creator type for PAD HTAL library
+  sysFileCTCPHtal                 = Rsc('htcp'); // Creator type for TCP HTAL library
   sysFileCRELHtal                 = Rsc('hrel'); // Creator type for REL HTAL library
   sysFileCMineHunt                = Rsc('mine'); // Creator type for MineHunt App
   sysFileCPuzzle15                = Rsc('puzl'); // Creator type for Puzzle "15" App
@@ -396,15 +396,15 @@ const
 
   sysMaxUserDomainNameLength      = 64;
 
-// Current clipper feature indeces
+// Current clipper feature indexes
   sysClipperPQACardNoIndex        = 1;
   sysClipperPQADbIDIndex          = 2;
 
 //-----------------------------------------------------------
 // This section is only valid when running the resource compiler
 //
-// Actually, this section is obsolete.  Instear, .r files should
-// inlude SysResTypes.rh to get these definitions.
+// Actually, this section is obsolete.  Instead, .r files should
+// include SysResTypes.rh to get these definitions.
 //
 //-----------------------------------------------------------
 

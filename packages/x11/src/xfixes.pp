@@ -262,7 +262,7 @@ XFixesExpandRegion(dpy: PDisplay; dst: TXserverRegion; src: TXserverRegion;
 //#endif	/* XFIXES_MAJOR >= 3 */
 
 //#if XFIXES_MAJOR >= 4
-{ Version 4.0 externs }
+{ Version 4.0 externals }
 
 procedure
 XFixesHideCursor(dpy: PDisplay; win: TWindow); cdecl; external libXfixes;

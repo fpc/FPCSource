@@ -24,7 +24,7 @@
 @created(22 Jul 2002)
 @lastmod(01 Oct 2002)
 This is functions from FTPAPI.DLL. Goal is ftp manipulation.
-Warning: This code is alfa. Future versions of this unit will propably
+Warning: This code is alfa. Future versions of this unit will probably
 not be compatible.
 @todo(Rework some functions to support strings longer then 255 chars)
 @todo(Finish functions description)

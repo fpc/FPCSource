@@ -1099,7 +1099,7 @@ begin
     {$ENDIF}
     Result:=TPas2jsCachedDirectory.Create(Dir,Self);
     FDirectories.Add(Result);
-    if DoReference then 
+    if DoReference then
       Result.Reference;
     Result.Update;
   end else
@@ -1791,7 +1791,7 @@ begin
         i:=GetLastOSError;
         if i<>0 then
           Log.LogPlain('Note: '+SysErrorMessage(i));
-        {$ENDIF}  
+        {$ENDIF}
         if not DirectoryExists(ChompPathDelim(ExtractFilePath(Filename))) then
           Log.LogPlain('Note: file cache inconsistency: folder does not exist "'+ChompPathDelim(ExtractFilePath(Filename))+'"');
         if FileExists(Filename) and not FileIsWritable(Filename) then

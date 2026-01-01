@@ -62,7 +62,7 @@ uses
 {$ENDIF}
   SysUtils, ctypes;
 {$ENDIF FPC_DOTTEDUNITS}
-  
+
 const
 {$IFDEF WINDOWS}
   LibAPR = 'libapr.dll';
@@ -112,7 +112,7 @@ type
   apr_socklen_t = Integer;
   apr_byte_t = byte;
   papr_byte_t = apr_byte_t;
-  
+
   apr_uint32_tso_handle_t = cuint;
 
 type
@@ -135,12 +135,12 @@ type
   Papr_int16_t = ^SmallInt;
 
   // Network structures
-  
+
   sockaddr = record
     sa_family: cushort;    // address family, AF_xxx
     sa_data: array [1..14] of AnsiChar;  // (NBO) 14 bytes of protocol address
   end;
-  
+
 {$ifndef windows}
 
   va_list = Pointer;
@@ -155,7 +155,7 @@ type
     sin_addr: in_addr;     // see struct in_addr, below
     sin_zero: array [1..8] of AnsiChar;  // zero this if you want to
   end;
-  
+
 {$endif}
 
   in6_addr = record
@@ -177,7 +177,7 @@ type
   end;
 
   // TEMPORARY
-  
+
   Papr_xml_ns_scope = Pointer;
 
   Pap_method_list_t = Pointer;
@@ -193,7 +193,7 @@ type
     /// data to be read/written
     iov_base: PAnsiChar;
   end;
-  
+
   Piovec = ^iovec;
 
 {$include apr_errno.inc}
@@ -247,9 +247,9 @@ var
 begin
   buf[0] := c;
   buf[1] := #0;
-  
+
   buf := StrLower(@buf[0]);
-  
+
   Result := buf[0];
 end;
 

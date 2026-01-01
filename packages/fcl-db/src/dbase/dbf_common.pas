@@ -28,7 +28,7 @@ uses
   , System.Types, Data.Dbf.Wtil
 {$ifdef KYLIX}
   , Libc
-{$endif}  
+{$endif}
 {$endif}
   ;
 {$ELSE FPC_DOTTEDUNITS}
@@ -38,7 +38,7 @@ uses
   , Types, dbf_wtil
 {$ifdef KYLIX}
   , Libc
-{$endif}  
+{$endif}
 {$endif}
   ;
 {$ENDIF FPC_DOTTEDUNITS}
@@ -137,7 +137,7 @@ procedure SwapInt64LE(Value, Result: Pointer); register;
 // Translate string between codepages
 function TranslateString(FromCP, ToCP: Cardinal; Src, Dest: PAnsiChar; Length: Integer): Integer;
 
-// Returns a pointer to the first occurence of Chr in Str within the first Length characters
+// Returns a pointer to the first occurrence of Chr in Str within the first Length characters
 // Does not stop at null (#0) terminator!
 function MemScan(const Buffer: Pointer; Chr: Byte; Length: Integer): Pointer;
 
@@ -350,12 +350,12 @@ end;
 
 procedure SwapInt64BE(Value {EAX}, Result {EDX}: Pointer); register; assembler;
 asm
-  MOV ECX, dword ptr [EAX] 
-  MOV EAX, dword ptr [EAX + 4] 
-  BSWAP ECX 
-  BSWAP EAX 
-  MOV dword ptr [EDX+4], ECX 
-  MOV dword ptr [EDX], EAX 
+  MOV ECX, dword ptr [EAX]
+  MOV EAX, dword ptr [EAX + 4]
+  BSWAP ECX
+  BSWAP EAX
+  MOV dword ptr [EDX+4], ECX
+  MOV dword ptr [EDX], EAX
 end;
 
 {$else}

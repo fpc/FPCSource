@@ -65,7 +65,7 @@ type
     re_pcre: Pointer;
     re_nsub, re_erroffset: size_t;
   end;
-  
+
   Pregex_t = ^regex_t;
 
 { The structure in which a captured offset is returned. }

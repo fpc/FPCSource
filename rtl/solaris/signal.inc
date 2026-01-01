@@ -149,7 +149,7 @@ type
   SigActionHandler = procedure(sig : longint; SigInfo: PSigInfo; SigContext: PSigContext);cdecl;
 
 {$ifdef x86_64}
-  SigActionRec = record  // this needs correct 8-byte alignment for hander
+  SigActionRec = record  // this needs correct 8-byte alignment for handler
     Sa_Flags    : cuint;
     sa_handler  : SigActionHandler;
     Sa_Mask     : SigSet;

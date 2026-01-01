@@ -39,7 +39,7 @@ begin
     P.Email := '';
     P.Description := 'Rtl-unicode, misc Unicode units';
     P.NeedLibC:= false;
-    
+
     P.Dependencies.Add('rtl-objpas');
 
     P.SourcePath.Add('src/inc');
@@ -48,7 +48,7 @@ begin
     P.IncludePath.Add('src/collations');
 
     T:=P.Targets.AddUnit('utf8utils.pp');
-    
+
     T:=P.Targets.AddUnit('unicodeducet.pas',CollationOSes);
     with T.Dependencies do
       begin
@@ -145,7 +145,7 @@ begin
       end;
 
     P.NamespaceMap:='namespaces.lst';
-    
+
   end
 end;
 

@@ -34,7 +34,7 @@ uses
 
 const
   // Maximum size of a device interface name. The choice of value is arbitrary
-  // but necessary for componenents that want to browse available interfaces
+  // but necessary for components that want to browse available interfaces
   // so that they can set up their message queues. This value does not include
   // the (required) terminating zero - that's already counted in DEVDETAIL.
   MAX_DEVCLASS_NAMELEN       = 64;

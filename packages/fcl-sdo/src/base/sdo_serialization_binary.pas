@@ -33,7 +33,7 @@ uses
 {$ENDIF FPC_DOTTEDUNITS}
 
 {$DEFINE sdo_binary_header}
-  
+
 const
   sBINARY_FORMAT_NAME = 'sdo-binary';
   sROOT   = 'ROOT';
@@ -103,7 +103,7 @@ type
       dtDouble   : ( DoubleData : TFloat_Double_8 );
       dtExtended   : ( ExtendedData : TFloat_Extended_10 );
       dtCurrency   : ( CurrencyData : TFloat_Currency_8 );
-      
+
       dtAnsiString : ( AnsiStrData : PAnsiStringBuffer );
       dtWideString : ( WideStrData : PWideStringBuffer );
 {$IFDEF USE_UNICODE}
@@ -723,12 +723,12 @@ Begin
       dtInt32S  : ADest.WriteInt32S(ARoot^.Int32S);
     dtInt64U  : ADest.WriteInt64U(ARoot^.Int64U);
       dtInt64S  : ADest.WriteInt64S(ARoot^.Int64S);
-      
+
     dtSingle  : ADest.WriteSingle(ARoot^.SingleData);
     dtDouble  : ADest.WriteDouble(ARoot^.DoubleData);
     dtExtended  : ADest.WriteExtended(ARoot^.ExtendedData);
     dtCurrency  : ADest.WriteCurrency(ARoot^.CurrencyData);
-    
+
     dtAnsiString  : ADest.WriteAnsiStr(ARoot^.AnsiStrData^.Data);
     dtWideString  : ADest.WriteWideStr(ARoot^.WideStrData^.Data);
 {$IFDEF USE_UNICODE}

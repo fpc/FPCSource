@@ -483,7 +483,7 @@ function AudioHardwareRemoveRunLoopSource( inRunLoopSource: CFRunLoopSourceRef )
                         on exit. This can be NULL if the size information is not being requested.
     @param          outWritable
                         A pointer to a Boolean that receives indication of whether or not the given
-                        property can be set. This can be NULL if the writability is not being
+                        property can be set. This can be NULL if the write ability is not being
                         requested.
     @result         An OSStatus indicating success or failure.
 }
@@ -920,7 +920,7 @@ function AudioDeviceRead( inDevice: AudioDeviceID; const (*var*) inStartTime: Au
                         on exit. This can be NULL if the size information is not being requested.
     @param          outWritable
                         A pointer to a Boolean that receives indication of whether or not the given
-                        property can be set. This can be NULL if the writability is not being
+                        property can be set. This can be NULL if the write ability is not being
                         requested.
     @result         An OSStatus indicating success or failure.
 }
@@ -1138,7 +1138,7 @@ const
                         on exit. This can be NULL if the size information is not being requested.
     @param          outWritable
                         A pointer to a Boolean that receives indication of whether or not the given
-                        property can be set. This can be NULL if the writability is not being
+                        property can be set. This can be NULL if the write ability is not being
                         requested.
     @result         An OSStatus indicating success or failure.
 }

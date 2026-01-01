@@ -125,7 +125,7 @@ function _gtk_get_module_path(_type:Pgchar):PPgchar; cdecl; external gtklib;
 
 {$ifdef HasGTK2_6}
 function gtk_get_option_group(open_default_display:gboolean):PGOptionGroup; cdecl; external gtklib;
-function gtk_init_with_args(argc:PLongint; argv:PPPAnsiChar; parameter_string:PAnsiChar; 
+function gtk_init_with_args(argc:PLongint; argv:PPPAnsiChar; parameter_string:PAnsiChar;
   entries:PGOptionEntry; translation_domain:PAnsiChar; error:PPGError):gboolean; cdecl; external gtklib;
 {$endif}
 

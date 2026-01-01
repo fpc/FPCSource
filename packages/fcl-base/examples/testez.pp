@@ -55,12 +55,12 @@ end;
 // field name of the content being passed in a query string such as
 // "name" found in  //URL/CGI/cgiapp?name=bob
 //
-// Another routine is availble GetValue(Index, defaultValue : string);
+// Another routine is available GetValue(Index, defaultValue : string);
 // This routine does the same as the property Values except it allows
 // you to set a default value to be returned if no variable of type
 // name index is found.
 
-// This data is stored in a TStringList so you can retreive it by index
+// This data is stored in a TStringList so you can retrieve it by index
 // as well if you know the index location of the information.
 //
 // The properties for doing this are Names[index : integer] and

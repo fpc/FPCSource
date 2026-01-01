@@ -73,7 +73,7 @@ type
 
   ELocalNotification = class(Exception);
   ELocalNotificationAccess = class(ELocalNotification);
-  
+
   TNotifications = array of TNotification;
   TAuthorizationStatus = (NotDetermined, Restricted, Denied, Authorized);
   TOnReceiveLocalNotification = procedure (Sender: TObject; aNotification: TNotification) of object;
@@ -198,7 +198,7 @@ Type
   end;
 
   { TNotificationCenter }
-  
+
   { TCustomNotificationCenter }
 
   TCustomNotificationCenter = class(TComponent)

@@ -61,16 +61,16 @@ Type
     property Elements[aIndex: Integer] : T read GetElement Write SetElement; default;
   end;
 
-{ 
+{
   string operations
-  Tab characters are counted as tabstops every 4 characters, 
+  Tab characters are counted as tabstops every 4 characters,
   Note that this is *not* the same as saying that "a tab equals 4 space characters".
   so #32#9 and #32#32#9 are equivalent to 4 spaces, not 5 or 6 respectively...
-}  
+}
 
-// Is aChar a whitespace character ? 
+// Is aChar a whitespace character ?
 function IsWhitespaceChar(aChar: char): boolean;
-// Does S consist of only whitespace characters ? 
+// Does S consist of only whitespace characters ?
 function IsWhitespace(const S: String): boolean;
 // must character aChar be escaped ?
 function MustEscape(C : char) : boolean;
@@ -82,9 +82,9 @@ function CopyUpTo(const S : String; aExclude : TSysCharSet) : String;
 function CopySkipped(const S : String; aSkip : TSysCharSet) : String;
 // Copy from the start of S all characters that match
 function CopyMatching(const S : String; aMatches : TSysCharSet) : String;
-{ 
+{
   allows up to aWSLen whitespace characters before aMatch;
-  Returns true if a match was found. 
+  Returns true if a match was found.
   Additionally returns the number of whitespace characters to remove from the start to get to aMatch.
 }
 
@@ -132,7 +132,7 @@ Function TransformTabs(const aLine : string) : string;
 
 implementation
 
-uses 
+uses
 {$IFDEF FPC_DOTTEDUNITS}
   System.StrUtils, System.CodePages.unicodedata;
 {$ELSE}
@@ -179,7 +179,7 @@ begin
   if not Result then
     Exit;
   Result:=(Ord(aChar)<128) or (Ord(aChar)>=LOW_SURROGATE_BEGIN);
-  if Result then 
+  if Result then
     exit;
   Cat:=GetProps(Ord(aChar))^.Category;
   Result:=(UGC_OtherNumber<Cat);
@@ -204,7 +204,7 @@ function HtmlEscape(const S: String): String;
 
 var
   C : char;
-  
+
 begin
   Result:='';
   for C in S do
@@ -216,7 +216,7 @@ function CopySkipped(const S: String; aSkip: TSysCharSet): String;
 
 var
   lLen,Idx : integer;
-  
+
 begin
   Result:=S;
   lLen:=Length(S);
@@ -266,7 +266,7 @@ function CopyMatching(const S: String; aMatches: TSysCharSet): String;
 
 var
   lLen, Idx : integer;
-  
+
 begin
   Idx:=1;
   lLen:=Length(S);
@@ -296,7 +296,7 @@ begin
       inc(aLength);
     end;
   Result:=S[aLength]=aMatch;
-  if Result then 
+  if Result then
     Dec(aLength);
 end;
 
@@ -337,7 +337,7 @@ begin
       inc(aLength);
     end;
   Result:=Copy(s,aLength,Length(aMatch))=aMatch;
-  if Result then 
+  if Result then
     Dec(aLength);
 end;
 
@@ -422,7 +422,7 @@ begin
         Delta:=1
       else if s[Idx]=#9 then
         Delta:=4 - (lCount mod 4);
-      inc(lCount,Delta);  
+      inc(lCount,Delta);
       end
     else
       break;
@@ -522,13 +522,13 @@ var
   S : String;
   C : UnicodeChar;
   i, Len : integer;
-  
+
 begin
   S:=copy(aEntity,2,length(aEntity)-2); // Strip & and ;
   Result:=aEntities.Items[S];
   if Result<>'' then
     Exit;
-  Len:=Length(S);  
+  Len:=Length(S);
   if (Len>0) and (Len<=9) and (S[1]='#') and TryStrToInt(Copy(S,2,Len-1),i)  then
     begin
     if (I<=0) or (i>65535) then
@@ -545,13 +545,13 @@ var
   Tmp : String;
   C : char;
   p,Len : Integer;
-  
+
 begin
   Result:=0;
   P:=RPos('&',S);
   if P=0 then
     exit;
-  Len:=Length(S);  
+  Len:=Length(S);
   Tmp:=Copy(S,P+1,Len-P-1);
   for C in Tmp do
     if not CharInSet(C, ['a'..'z', 'A'..'Z', '0'..'9']) then
@@ -563,7 +563,7 @@ function IsRegexMatch(const aContent, aRegex: String): boolean;
 
 var
   lRegex : TRegExpr;
-  
+
 begin
   Result:=False;
   if aContent = '' then

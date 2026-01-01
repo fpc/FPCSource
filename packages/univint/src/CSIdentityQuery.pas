@@ -253,7 +253,7 @@ function CSIdentityQueryGetTypeID: CFTypeID; external name '_CSIdentityQueryGetT
  }
 const
 {
-   * After the intial query phase is complete, monitor the result set
+   * After the initial query phase is complete, monitor the result set
    * for live updates
    }
 	kCSIdentityQueryGenerateUpdateEvents = $0001;

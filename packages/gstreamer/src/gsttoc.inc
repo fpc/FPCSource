@@ -154,15 +154,15 @@
   {
   static inline void
   _gst_autoptr_toc_unref (GstToc *toc)
-  
+
     gst_mini_object_unref(((GstMiniObject*)(toc)));
-  
-  
+
+
   static inline void
   _gst_autoptr_toc_entry_unref (GstTocEntry *entry)
-  
+
     gst_mini_object_unref(((GstMiniObject*)(entry)));
-  
+
    }
 
 

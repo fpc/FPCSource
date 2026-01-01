@@ -64,27 +64,27 @@ begin
   for j := 0 to 4 do
   with sprites[j] do
   begin
-    gfx := nil; 
-    size := SpriteSize_16x16; 
+    gfx := nil;
+    size := SpriteSize_16x16;
     format := SpriteColorFormat_256Color;
-    rotationIndex := 0; 
-    paletteAlpha := 0; 
-    x := 20 +(50 * j); 
-    y := 96; 
-    dy := 0; 
+    rotationIndex := 0;
+    paletteAlpha := 0;
+    x := 20 +(50 * j);
+    y := 96;
+    dy := 0;
   end;
-	
+
 	videoSetMode(MODE_0_2D);
 	videoSetModeSub(0);   // not using subscreen
 
 	lcdMainOnBottom();
-	
+
 	//initialize the sprite engine with 1D mapping 128 byte boundary
 	//and no external palette support
 	oamInit(oamMain, SpriteMapping_1D_32, false);
 
 	vramSetBankA(VRAM_A_MAIN_SPRITE);
-	
+
 	for i := 0 to 4 do
 	begin
 		//allocate some space for the sprite graphics
@@ -106,7 +106,7 @@ begin
 
 	// setup maxmod to use the song event handler
 	mmSetEventHandler( mm_callback(@myEventHandler));
-	
+
 	// load song
 	// values for this function are in the solution header
 	mmLoad( MOD_EXAMPLE2 );
@@ -120,36 +120,36 @@ begin
 		begin
 			// constantly increase the sprite's y velocity
 			sprites[i].dy := sprites[i].dy + 1;
-		
+
 			// update the sprite's y position with its y velocity
 			sprites[i].y := sprites[i].y + sprites[i].dy;
-		
+
 			// clamp the sprite's y position
 			if ( sprites[i].y<72 ) then sprites[i].y := 72;
 			if ( sprites[i].y>96 ) then sprites[i].y := 96;
-		
+
 			oamSet(oamMain, 					//main graphics engine context
-					i,           				//oam index (0 to 127)  
+					i,           				//oam index (0 to 127)
 					sprites[i].x,				//x and y pixel location of the sprite
-					sprites[i].y, 			
+					sprites[i].y,
 					0,							//priority, lower renders last (on top)
-					sprites[i].paletteAlpha,	//palette index 
+					sprites[i].paletteAlpha,	//palette index
 					sprites[i].size,
 					sprites[i].format,
 					sprites[i].gfx,				//pointer to the loaded graphics
-					sprites[i].rotationIndex,	//sprite rotation data  
+					sprites[i].rotationIndex,	//sprite rotation data
 					false,						//double the size when rotating?
 					false,			//hide the sprite?
 					false, false, //vflip, hflip
 					false	//apply mosaic
-					);              
+					);
 			end;
 
 		swiWaitForVBlank();
-		
+
 		//send the updates to the hardware
 		oamUpdate(oamMain);
-   
+
  		//-----------------------------------------------------
 		// get new keypad input
 		//-----------------------------------------------------
@@ -159,7 +159,7 @@ begin
 		//-----------------------------------------------------
 		// START: exit
 		//-----------------------------------------------------
-		if (keys and KEY_START) <> 0 then break;   
+		if (keys and KEY_START) <> 0 then break;
 	end;
 
 end.

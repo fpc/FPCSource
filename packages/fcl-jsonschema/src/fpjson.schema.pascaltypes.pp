@@ -278,7 +278,7 @@ Type
     function AddTypeProperty(aType: TPascalTypeData; lProp: TJSONSchema; aName : string = ''; Recurse : Boolean = True): TPascalPropertyData;
     // Add properties to structured pascal type from aSchema. if aSchema = nil then use aType.Schema
     Procedure AddPropertiesToType(aType : TPascalTypeData; aSchema: TJSONSchema = Nil; Recurse : Boolean = True);
-    // For all types, fill the depency list: contains all structured types on which the type depends (recursively).
+    // For all types, fill the dependency list: contains all structured types on which the type depends (recursively).
     procedure CheckDependencies; virtual;
     // Number of types
     Property TypeCount : Integer Read GetSchemaTypeCount;
@@ -325,7 +325,7 @@ function CompareProperties(Item1, Item2: Pointer): Integer;
 var
   lParam1 : TPascalPropertyData absolute Item1;
   lParam2 : TPascalPropertyData absolute Item2;
-  
+
 begin
   Result:=CompareText(lParam1.PascalName,lParam2.PascalName);
 end;

@@ -384,7 +384,7 @@ Type
   TNuiCameraElevationSetAngle = Function (lAngleDegrees : LONGINT) : HRESULT; stdcall;
 
   TTrackingIDsArray = array[0..NUI_SKELETON_MAX_TRACKED_COUNT-1] of DWORD;
-  
+
   TNuiSkeletonTrackingEnable = Function (hNextFrameEvent : THandle;dwFlags : DWORD) : HRESULT; stdcall;
   TNuiSkeletonTrackingDisable = Function : HRESULT; stdcall;
   TNuiSkeletonGetNextFrame = Function (dwMillisecondsToWait : DWORD; pSkeletonFrame : PNUI_SKELETON_FRAME) : HRESULT; stdcall;
@@ -454,10 +454,10 @@ begin
     If (LoadedLib<>FileName) then
       Raise Exception.CreateFmt('NUI Library "%s" is already loaded as "%s"',[FileName,LoadedLib]);
     Inc(ArefCount);
-    Exit;  
+    Exit;
     end;
   HLib:=LoadLibrary(Filename);
-  if HLib=NilHandle then 
+  if HLib=NilHandle then
     Raise Exception.CreateFmt('Failed to load NUI Library "%s"',[FileName]);
   Pointer(NuiCameraElevationGetAngle):=GetProcAddress(HLib, 'NuiCameraElevationGetAngle');
   Pointer(NuiCameraElevationSetAngle):=GetProcAddress(HLib, 'NuiCameraElevationSetAngle');
@@ -488,7 +488,7 @@ end;
 Procedure UnloadNuiLibrary;
 begin
   Dec(ARefcount);
-  If ARefCount>0 then 
+  If ARefCount>0 then
     Exit;
   NuiCameraElevationGetAngle:=nil;
   NuiCameraElevationSetAngle:=nil;
@@ -520,22 +520,22 @@ end;
 Procedure NuiImageResolutionToSize(res : NUI_IMAGE_RESOLUTION; out refWidth, refHeight : DWORD);
 begin
   case res of
-  NUI_IMAGE_RESOLUTION_80x60: 
+  NUI_IMAGE_RESOLUTION_80x60:
     begin
     refWidth := 80;
     refHeight := 60;
     end;
-  NUI_IMAGE_RESOLUTION_320x240: 
+  NUI_IMAGE_RESOLUTION_320x240:
     begin
     refWidth := 320;
     refHeight := 240;
     end;
-  NUI_IMAGE_RESOLUTION_640x480: 
+  NUI_IMAGE_RESOLUTION_640x480:
     begin
     refWidth := 640;
     refHeight := 480;
     end;
-  NUI_IMAGE_RESOLUTION_1280x960: 
+  NUI_IMAGE_RESOLUTION_1280x960:
     begin
     refWidth := 1280;
     refHeight := 960;
@@ -559,7 +559,7 @@ end;
 Function HasSkeletalEngine(pNuiSensor : INuiSensor) : boolean;
 
 begin
-  if Not assigned(pNuiSensor) then 
+  if Not assigned(pNuiSensor) then
     Result:=False
   else
     Result := ((pNuiSensor.NuiInitializationFlags() and NUI_INITIALIZE_FLAG_USES_SKELETON)<>0) or
@@ -570,16 +570,16 @@ Procedure NuiTransformSkeletonToDepthImage(vPoint : TVector4;out lDepthX : Integ
 
 var
   w, h : DWORD;
-  
+
 begin
-  if (vPoint.z>FLT_EPSILON) then 
+  if (vPoint.z>FLT_EPSILON) then
     begin
     NuiImageResolutionToSize(eResolution,w,h);
     lDepthX:=round(w/2+vPoint.x*(w/320.0)*NUI_CAMERA_SKELETON_TO_DEPTH_IMAGE_MULTIPLIER_320x240/vPoint.z+0.5);
     lDepthY:=round(h/2-vPoint.y*(h/240.0)*NUI_CAMERA_SKELETON_TO_DEPTH_IMAGE_MULTIPLIER_320x240/vPoint.z+0.5);
     usDepthValue := round(vPoint.z *1000) shl 3;
-    end 
-  else 
+    end
+  else
     begin
     lDepthX := 0;
     lDepthY := 0;
@@ -596,15 +596,15 @@ Procedure NuiTransformSkeletonToDepthImage(vPoint : TVector4;out fDepthX : singl
 
 var
   w, h : DWORD;
-  
+
 begin
   if (vPoint.z>FLT_EPSILON) then
     begin
     NuiImageResolutionToSize(eResolution,w,h);
     fDepthX:=w/2+vPoint.x*(w/320.0)*NUI_CAMERA_SKELETON_TO_DEPTH_IMAGE_MULTIPLIER_320x240/vPoint.z;
     fDepthY:=h/2-vPoint.y*(h/240.0)*NUI_CAMERA_SKELETON_TO_DEPTH_IMAGE_MULTIPLIER_320x240/vPoint.z;
-    end 
-  else 
+    end
+  else
     begin
     fDepthX:=0.0;
     fDepthY:=0.0;
@@ -621,7 +621,7 @@ Function NuiTransformDepthImageToSkeleton(lDepthX : Integer;lDepthY : Integer; u
 var
   w,h : DWORD;
   Z : single;
-  
+
 begin
   NuiImageResolutionToSize(eResolution,w,h);
   Z:=(usDepthValue shr 3)/1000.0;

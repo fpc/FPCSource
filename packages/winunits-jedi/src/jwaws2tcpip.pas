@@ -156,7 +156,7 @@ const
   {$EXTERNALSYM IP_OPTIONS}
   IP_HDRINCL         = 2;  // header is included with data
   {$EXTERNALSYM IP_HDRINCL}
-  IP_TOS             = 3;  // IP type of service and preced
+  IP_TOS             = 3;  // IP type of service and precede
   {$EXTERNALSYM IP_TOS}
   IP_TTL             = 4;  // IP time to live
   {$EXTERNALSYM IP_TTL}
@@ -354,7 +354,7 @@ type
   end;
   {$EXTERNALSYM sockaddr_gen}
   TSockAddrGen = sockaddr_gen;
-  PSockAddrGen = ^sockaddr_gen;  
+  PSockAddrGen = ^sockaddr_gen;
 
 // Structure to keep interface specific information
 

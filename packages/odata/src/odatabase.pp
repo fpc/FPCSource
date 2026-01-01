@@ -458,7 +458,7 @@ end;
 
 Class Function TODataObject.AllowAdditionalProperties: Boolean;
 begin
-  Result:=True; // So we catch annnotations
+  Result:=True; // So we catch annotations
 end;
 
 end.

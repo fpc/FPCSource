@@ -49,7 +49,7 @@ type
     property Size : longword read GetSize;
     property Used : boolean read fUsed;
   end;
-  
+
   { TObjectStringTable }
 
   TObjectStringTable = class

@@ -165,8 +165,8 @@ Type
                         FIELD_TYPE_STRING:=254);
 
 Const
-FIELD_TYPE_CHAR = FIELD_TYPE_TINY;              { For compability }
-FIELD_TYPE_INTERVAL = FIELD_TYPE_ENUM;          { For compability }
+FIELD_TYPE_CHAR = FIELD_TYPE_TINY;              { For compatibility }
+FIELD_TYPE_INTERVAL = FIELD_TYPE_ENUM;          { For compatibility }
 
 {
 extern unsigned long max_allowed_packet;

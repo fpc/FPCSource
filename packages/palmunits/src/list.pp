@@ -68,7 +68,7 @@ type
     itemsText: ^PAnsiChar;
     numItems: Int16;                        // number of choices in the list
     currentItem: Int16;                     // currently display choice
-    topItem: Int16;                         // top item visible when poped up
+    topItem: Int16;                         // top item visible when popped up
     font: FontID;                           // font used to draw list
     reserved: UInt8;
     popupWin: WinHandle;                    // used only by popup lists

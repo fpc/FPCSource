@@ -8,7 +8,7 @@ uses {$ifdef unix}cthreads,{$endif} fpmkunit;
 procedure add_rtl_console(const ADirectory: string);
 
 Const
-  // All Unices have full set of KVM+Crt in unix/ except QNX which is not
+  // All Unixes have full set of KVM+Crt in unix/ except QNX which is not
   // in workable state atm.
   UnixLikes = AllUnixOSes -[QNX];
 

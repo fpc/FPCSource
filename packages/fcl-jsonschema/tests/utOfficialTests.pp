@@ -24,7 +24,7 @@ uses
   Classes, SysUtils, fpcunit, testregistry, fpjson.schema.testutils;
 
 Type
-  
+
   { TSchemaFileTest }
 
   TSchemaFileTest = class(TAssert)

@@ -2,14 +2,14 @@ unit com_serv_TLB;
 // part of Comtest demo from Anton K. mantis #35013
 
 // ************************************************************************ //
-// WARNING                                                                    
-// -------                                                                    
-// The types declared in this file were generated from data read from a       
-// Type Library. If this type library is explicitly or indirectly (via        
-// another type library referring to this type library) re-imported, or the   
-// 'Refresh' command of the Type Library Editor activated while editing the   
-// Type Library, the contents of this file will be regenerated and all        
-// manual modifications will be lost.                                         
+// WARNING
+// -------
+// The types declared in this file were generated from data read from a
+// Type Library. If this type library is explicitly or indirectly (via
+// another type library referring to this type library) re-imported, or the
+// 'Refresh' command of the Type Library Editor activated while editing the
+// Type Library, the contents of this file will be regenerated and all
+// manual modifications will be lost.
 // ************************************************************************ //
 
 // PASTLWTR : 1.2
@@ -19,12 +19,12 @@ unit com_serv_TLB;
 // Type Lib: com_serv.tlb (1)
 // LIBID: {4657B1E3-77D1-4504-A96C-3E79EF05721C}
 // LCID: 0
-// Helpfile: 
+// Helpfile:
 // HelpString: Project1 Library
-// DepndLst: 
+// DepndLst:
 //   (1) v2.0 stdole, (C:\WINDOWS\system32\stdole2.tlb)
 // ************************************************************************ //
-{$TYPEDADDRESS OFF} // Unit must be compiled without type-checked pointers. 
+{$TYPEDADDRESS OFF} // Unit must be compiled without type-checked pointers.
 {$WARN SYMBOL_PLATFORM OFF}
 {$WRITEABLECONST ON}
 {$VARPROPSETTER ON}
@@ -32,14 +32,14 @@ interface
 {$ifdef fpc}{$mode delphi}{$endif}
 
 uses Windows, ActiveX, Classes, Variants;
-  
+
 
 // *********************************************************************//
-// GUIDS declared in the TypeLibrary. Following prefixes are used:        
-//   Type Libraries     : LIBID_xxxx                                      
-//   CoClasses          : CLASS_xxxx                                      
-//   DISPInterfaces     : DIID_xxxx                                       
-//   Non-DISP interfaces: IID_xxxx                                        
+// GUIDS declared in the TypeLibrary. Following prefixes are used:
+//   Type Libraries     : LIBID_xxxx
+//   CoClasses          : CLASS_xxxx
+//   DISPInterfaces     : DIID_xxxx
+//   Non-DISP interfaces: IID_xxxx
 // *********************************************************************//
 const
   // TypeLibrary Major and minor versions
@@ -53,14 +53,14 @@ const
 type
 
 // *********************************************************************//
-// Forward declaration of types defined in TypeLibrary                    
+// Forward declaration of types defined in TypeLibrary
 // *********************************************************************//
   ITestApp = interface;
   ITestAppDisp = dispinterface;
 
 // *********************************************************************//
-// Declaration of CoClasses defined in Type Library                       
-// (NOTE: Here we map each CoClass to its Default Interface)              
+// Declaration of CoClasses defined in Type Library
+// (NOTE: Here we map each CoClass to its Default Interface)
 // *********************************************************************//
   TestApp = ITestApp;
 
@@ -88,11 +88,11 @@ type
   end;
 
 // *********************************************************************//
-// The Class CoTestApp provides a Create and CreateRemote method to          
-// create instances of the default interface ITestApp exposed by              
-// the CoClass TestApp. The functions are intended to be used by             
-// clients wishing to automate the CoClass objects exposed by the         
-// server of this typelibrary.                                            
+// The Class CoTestApp provides a Create and CreateRemote method to
+// create instances of the default interface ITestApp exposed by
+// the CoClass TestApp. The functions are intended to be used by
+// clients wishing to automate the CoClass objects exposed by the
+// server of this typelibrary.
 // *********************************************************************//
   CoTestApp = class
     class function Create: ITestApp;

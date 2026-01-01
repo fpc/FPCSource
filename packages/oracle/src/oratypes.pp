@@ -27,13 +27,13 @@ interface
 {$PACKRECORDS C}
 
 
-  { $RCSfile: oratypes.h $ $Date: 20-jul-00.13:44:19 
+  { $RCSfile: oratypes.h $ $Date: 20-jul-00.13:44:19
      ----------------------------------------------------------------------
      Copyright (c) 1982, 2003, Oracle.  All rights reserved.
      ----------------------------------------------------------------------  }
 {$define ORATYPES}
-{$define SX_ORACLE}  
-{$define SX3_ORACLE}  
+{$define SX_ORACLE}
+{$define SX3_ORACLE}
 
 {$ifndef ORASTDDEF}
 { $include <stddef.h>}
@@ -48,7 +48,7 @@ interface
 
 // Not needed for pascal
 {  const
-     TRUE = 1;     
+     TRUE = 1;
      FALSE = 0;     }
 
   { --- Signed/Unsigned one-byte scalar (sb1/ub1) ---  }
@@ -222,7 +222,7 @@ interface
 
        Psword = ^sword;
        sword = longint;
-       
+
 
   const
        EWORDMAXVAL:eword = 2147483647;
@@ -257,7 +257,7 @@ interface
        MINSBIG_ORAMAXVAL:sbig_ora = 2147483647;
        MAXSBIG_ORAMINVAL:sbig_ora = -2147483647;
 
-(* error 
+(* error
 #define UBIGORABITS      (UB1BITS * sizeof(ubig_ora))
 in define line 272 *)
 

@@ -33,7 +33,7 @@ Procedure FileWriteFunc(var t:TextRec);
 var
   i : longint;
 Begin
-  { prevent unecessary system call }
+  { prevent unnecessary system call }
   if t.BufPos=0 then
     exit;
   i:=Do_Write(t.Handle,t.Bufptr,t.BufPos);
@@ -666,7 +666,7 @@ begin
   assign(t,paramstr(nr));
 {$else FPC_HAS_FEATURE_COMMANDARGS}
   { primitive workaround for targets supporting no command line arguments,
-    invent some file name, try to avoid complex procedures like concating strings which might
+    invent some file name, try to avoid complex procedures like concatenating strings which might
     pull-in bigger parts of the rtl }
   assign(t,chr((nr mod 16)+65));
 {$endif FPC_HAS_FEATURE_COMMANDARGS}
@@ -682,7 +682,7 @@ begin
     assign(t,paramstr(nr));
 {$else FPC_HAS_FEATURE_COMMANDARGS}
   { primitive workaround for targets supporting no command line arguments,
-    invent some file name, try to avoid complex procedures like concating strings which might
+    invent some file name, try to avoid complex procedures like concatenating strings which might
     pull-in bigger parts of the rtl }
   assign(t,chr((nr mod 16)+65));
 {$endif FPC_HAS_FEATURE_COMMANDARGS}

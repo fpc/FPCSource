@@ -51,7 +51,7 @@ Property AsBoolean : Boolean ;
   The value as a boolean.
 Property IsNull : Boolean ;
   Is the value Null ?
-Property AsJSON : TJSONStringType 
+Property AsJSON : TJSONStringType
   Return the value in JSON notation. For simple and complex values.
 
 The TJSONArray type provides access to the elements in the array in the
@@ -59,11 +59,11 @@ following ways:
 
 Property Types[Index : Integer] : TJSONType;
  Indexed access to the types of the elements in the array.
-Property Nulls[Index : Integer] : Boolean 
+Property Nulls[Index : Integer] : Boolean
  Checks if the Index-the element is NULL.
 Property Integers[Index : Integer] : Integer
   Read/Write element values as integers.
-Property Int64s[Index : Integer] : Int64 
+Property Int64s[Index : Integer] : Int64
   Read/Write element values as 64-bit integers.
 Property Strings[Index : Integer] : TJSONStringType;
   Read/Write element values as strings.
@@ -109,7 +109,7 @@ Property Objects[AName : String] : TJSONObject
 Members can be added with the Add() call, which exists in various overloaded
 forms:
    function Add(const AName: TJSONStringType; Const AValue): Integer;
-Where the type of AVAlue is one of the supported types: 
+Where the type of AVAlue is one of the supported types:
 integer, int64, double, string, TJSONArray or TJSONObject.
 
 The Delete() call deletes an element from an array or object. The element is
@@ -124,23 +124,23 @@ Converting from string/stream to JSONData
 =========================================
 
 The fpjson unit contains a GetJSON() function which accepts a string or a
-stream as a parameter. The function will parse the JSON in the stream and 
+stream as a parameter. The function will parse the JSON in the stream and
 the return value is a TJSONData value corresponding to the JSON.
 The function works with a callback, which is set by the JSONParser unit.
 The JSONParser unit simply needs to be included in the project.
 
 The parsing happens with default settings for the parser class.
-You can override this behaviour by creating your own callback, 
+You can override this behaviour by creating your own callback,
 and creating the parser with different settings.
 
 Enumerator support
 ==================
 
-the TJSONData class offers support for an enumerator, hence the 
+the TJSONData class offers support for an enumerator, hence the
 For e in JSON do
 construct can be used. The enumerator is a TJSONEnum value, which has 3
 members:
-Key : The key of the element 
+Key : The key of the element
      (name in TJSONObject, Index in TJSONArray, empty otherwise)
 KeyNum: The index of the element.
      (Index in TJSONArray/TJSONObject, 0 otherwise)
@@ -154,10 +154,10 @@ the array or object, and the value may not be freed.
 Scanner/Parser
 ==============
 
-The JSONSCanner unit contains a scanner for JSON data: TJSONScanner. 
+The JSONSCanner unit contains a scanner for JSON data: TJSONScanner.
 Currently it does not support full unicode, only UTF-8 is supported.
 
-The JSONParser unit contains the parser for JSON data: TJSONParser. 
+The JSONParser unit contains the parser for JSON data: TJSONParser.
 It uses to scanner to read the tokens. The scanner is created automatically.
 
 
@@ -183,14 +183,14 @@ begin
   end;
 end;
 
-Note that the member names are case sensitive. 
+Note that the member names are case sensitive.
 
 As an alternative, a stream may be passed to the constructor of TJSONParser.
 
-The scanner and parser support the 'Strict' property. 
+The scanner and parser support the 'Strict' property.
 Strict JSON syntax requires the member names of an object to be strings:
 { "top": 10, "left": 20}
-However, due to the sloppy definition of Javascript (and hence JSON), 
+However, due to the sloppy definition of Javascript (and hence JSON),
 the following type of JSON notation is frequently encountered:
 { top: 10, left: 20}
 By default, this sloppy notation is accepted. Setting 'Strict' to true will
@@ -204,7 +204,7 @@ By default, this is accepted. Setting 'Strict' to true will reject this.
 Customizing the classes : Factory support
 =========================================
 
-The various classes created by the methods can be customized. 
+The various classes created by the methods can be customized.
 This can be useful to create customized descendents, for example to attach
 extra data to the various values. All instances of TJSONData are created
 through the CreateJSON() functions, which use a set of customizable classes
@@ -218,7 +218,7 @@ Which classes need to be created for a specific value is enumerated in
 TJSONInstanceType = (jitUnknown, jitNumberInteger,jitNumberInt64,jitNumberFloat,
                        jitString, jitBoolean, jitNull, jitArray, jitObject);
 
-when a Int64 value must be instantiated, the class identified with 
+when a Int64 value must be instantiated, the class identified with
 jitNumberInt64 is instantiated.
 
 To customize the classes, the new class can be set using SetJSONInstanceType:

@@ -167,12 +167,12 @@ type
 
 implementation
 
-procedure TTestGenerateSQL.SetUp; 
+procedure TTestGenerateSQL.SetUp;
 begin
   FToFree:=Nil;
-end; 
+end;
 
-procedure TTestGenerateSQL.TearDown; 
+procedure TTestGenerateSQL.TearDown;
 begin
   FreeAndNil(FToFree);
 end;

@@ -2250,7 +2250,7 @@ var
 { DESCRIPTION:   Enables stereo mode in the registry.  }
 {                Call to this function affects entire system. }
 {                Calls to functions that require stereo enabled with stereo disabled will have no effect, }
-{                and will return apropriate error code. }
+{                and will return appropriate error code. }
 { }
 { RETURN STATUS: }
 {                NVAPI_OK - Stereo is now enabled. }
@@ -2272,7 +2272,7 @@ var
 { DESCRIPTION:   Disables stereo mode in the registry.  }
 {                Call to this function affects entire system. }
 {                Calls to functions that require stereo enabled with stereo disabled will have no effect, }
-{                and will return apropriate error code. }
+{                and will return appropriate error code. }
 { }
 { RETURN STATUS: }
 {                NVAPI_OK - Stereo is now disabled. }
@@ -2295,7 +2295,7 @@ var
 { DESCRIPTION:   Checks if stereo mode is enabled in the registry.  }
 { }
 { RETURN STATUS: }
-{                NVAPI_OK - Check was sucessfully completed and result reflects current state of stereo availability. }
+{                NVAPI_OK - Check was successfully completed and result reflects current state of stereo availability. }
 {                NVAPI_API_NOT_INTIALIZED - NVAPI not initialized. }
 {                NVAPI_STEREO_NOT_INITIALIZED - Stereo part of NVAPI not initialized. }
 {                NVAPI_ERROR - Something is wrong (generic error). }
@@ -2424,7 +2424,7 @@ var
 // HOW TO USE:    After the stereo handle for device interface is created via successfull call to appropriate NvAPI_Stereo_CreateHandleFrom function.
 //
 // RETURN STATUS:
-//                NVAPI_OK - Check was sucessfully completed and result reflects current state of stereo (on/off).
+//                NVAPI_OK - Check was successfully completed and result reflects current state of stereo (on/off).
 //                NVAPI_STEREO_INVALID_DEVICE_INTERFACE - Device interface is not valid. Create again, then attach again.
 //                NVAPI_API_NOT_INTIALIZED - NVAPI not initialized.
 //                NVAPI_STEREO_NOT_INITIALIZED - Stereo part of NVAPI not initialized.
@@ -2434,7 +2434,7 @@ var
 var
   NvAPI_Stereo_IsActivated : function (Handle: StereoHandle; var IsStereoOn: NvU8): NvAPI_Status; cdecl;
 
-  
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 // FUNCTION NAME: NvAPI_Stereo_GetSeparation
@@ -2691,7 +2691,7 @@ var
 // FUNCTION NAME: NvAPI_Stereo_CaptureJpegImage
 //
 // PARAMETERS:    stereoHandle(IN) - Stereo handle correspondent to device interface.
-//                quality(IN)      - Quality of the JPEG image to be captured. Integer value betweeen 0 and 100.
+//                quality(IN)      - Quality of the JPEG image to be captured. Integer value between 0 and 100.
 //
 //  SUPPORTED OS: Windows Vista and higher
 //
@@ -2790,7 +2790,7 @@ var
 //                NvAPI_Stereo_CreateHandleFrom function.
 //
 //                When user changes stereo state Activated or Deactivated, separation or conversion
-//                stereo driver will post defined message with the folloing parameters
+//                stereo driver will post defined message with the following parameters
 //
 //                wParam == MAKEWPARAM(l, h) where l == 0 if stereo is deactivated
 //                                                      1 if stereo is deactivated
@@ -2921,7 +2921,7 @@ const
     (ID: $22ED9516; Func: @@NvAPI_OGL_ExpertModeGet),
     (ID: $B47A657E; Func: @@NvAPI_OGL_ExpertModeDefaultsSet),
     (ID: $AE921F12; Func: @@NvAPI_OGL_ExpertModeDefaultsGet),
-    
+
     (ID: $0957D7B6; Func: @@NvAPI_SetView),
     (ID: $D6B99D89; Func: @@NvAPI_GetView),
     (ID: $06B89E68; Func: @@NvAPI_SetViewEx),
@@ -2954,7 +2954,7 @@ const
     (ID: $8B7E99B5; Func: @@NvAPI_Stereo_CapturePngImage), //99  NvAPI_Stereo_CapturePngImage
     (ID: $3CD58F89; Func: @@NvAPI_Stereo_ReverseStereoBlitControl), //100 NvAPI_Stereo_ReverseStereoBlitControl
     (ID: $6B9B409E; Func: @@NvAPI_Stereo_SetNotificationMessage), //101 NvAPI_Stereo_SetNotificationMessage
-    
+
     (ID: 0; Func: nil) // stop signal
   );
 

@@ -678,7 +678,7 @@ function AudioConverterNew( const (*var*) inSourceFormat: AudioStreamBasicDescri
     @param      inNumberClassDescriptions
                     The number of class descriptions.
     @param      inClassDescriptions
-                    AudioClassDescriptions specifiying the codec to instantiate.
+                    AudioClassDescriptions specifying the codec to instantiate.
     @param      outAudioConverter
                     On successful return, points to a new AudioConverter instance.
     @result     An OSStatus result code.

@@ -549,7 +549,7 @@ uses MacTypes;
 	
 	Writable? No.
 	
-	Required for many user maniipulatable elements. See kAXValueAttribute for more
+	Required for many user manipulable elements. See kAXValueAttribute for more
 	details.
 }
 {$ifc USE_CFSTR_CONSTANT_MACROS}
@@ -569,7 +569,7 @@ uses MacTypes;
 	
 	Writable? No.
 	
-	Required for many user maniipulatable elements. See kAXValueAttribute for more
+	Required for many user manipulable elements. See kAXValueAttribute for more
 	details.
 }
 {$ifc USE_CFSTR_CONSTANT_MACROS}
@@ -722,7 +722,7 @@ uses MacTypes;
 	Value: A CFArrayRef of AXUIElementRefs.
 	
 	Writable? Only if there is no other way to manipulate the set of selected elements via
-	accessibilty attributes or actions. Even if other ways exist, this attribute can be
+	accessibility attributes or actions. Even if other ways exist, this attribute can be
 	writable as a convenience to assistive applications and their users. If
 	kAXSelectedChildrenAttribute is writable, a write request with a value of an empty
 	array should deselect all selected children.

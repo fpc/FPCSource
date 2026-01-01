@@ -9351,7 +9351,7 @@ end;
 {$endif FPC_SOFTFLOAT_FLOAT128}
 
 {$ifdef FPC}
-  { restore context modified at implmentation start
+  { restore context modified at implementation start
     to possibly re-enable range and overflow checking explicitly}
   {$pop}
 {$endif FPC}

@@ -219,7 +219,7 @@ uses MacTypes,MacOSXPosix,CFBase,acl,CFUUID;
 
 
 {
- *	A CFFileSecurity object encapulates a file system object's security information
+ *	A CFFileSecurity object encapsulates a file system object's security information
  *	in a CF object.
  }
 type

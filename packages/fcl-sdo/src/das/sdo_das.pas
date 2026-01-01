@@ -21,11 +21,11 @@ unit sdo_das;
 interface
 {$IFDEF FPC_DOTTEDUNITS}
 uses
-  System.SysUtils, System.Classes, Data.Db, 
+  System.SysUtils, System.Classes, Data.Db,
   Sdo.Base, Sdo.Das.DataAcces.Intf;
 {$ELSE FPC_DOTTEDUNITS}
 uses
-  SysUtils, Classes, DB, 
+  SysUtils, Classes, DB,
   sdo, data_acces_intf;
 {$ENDIF FPC_DOTTEDUNITS}
 
@@ -51,7 +51,7 @@ type
   end;
 
   ISDODAS = interface
-    ['{3EC60A22-2474-49D9-A9AB-DFCBE92E39C7}'] 
+    ['{3EC60A22-2474-49D9-A9AB-DFCBE92E39C7}']
     function ExecuteQuery(
       const ADac : TDataAccessInterface;
       const AQuery : string;
@@ -59,7 +59,7 @@ type
       const ARowType : ISDOType;
       const AResList : ISDODataObjectList;
       const AOptions : TSDODASOptions
-    ) : ISDODataObjectList;overload; 
+    ) : ISDODataObjectList;overload;
     function ExecuteQuery(
       const ADac : TDataAccessInterface;
       const AQuery : string;
@@ -69,9 +69,9 @@ type
     ) : ISDODataObjectList;overload;
     function ExecuteQuery(
       const ADac : TDataAccessInterface;
-      const AQuery : string;     
-      const AQueryParams : array of Variant 
-    ) : ISDODataObject;overload;  
+      const AQuery : string;
+      const AQueryParams : array of Variant
+    ) : ISDODataObject;overload;
     function ExecuteQuery(
       const ADac : TDataAccessInterface;
       const AQuery : string

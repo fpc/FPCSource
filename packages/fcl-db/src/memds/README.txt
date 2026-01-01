@@ -1,6 +1,6 @@
 
 The MemDS unit contains a TMemDataset class. It implements an in-memory
-TDataset class. 
+TDataset class.
 
 - The data can be loaded from/to Stream or file.
   This can be automated by setting the 'FileName' property.

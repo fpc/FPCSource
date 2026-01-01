@@ -68,7 +68,7 @@ uses  palmos, systemmgr;
 *)
 
 (************************************************************
- * Param Block passsed with the sysAppLaunchCmdLookup Command
+ * Param Block passed with the sysAppLaunchCmdLookup Command
  *************************************************************)
 
 //-------------------------------------------------------------------
@@ -175,7 +175,7 @@ type
   AddrLookupParamsPtr = ^AddrLookupParamsType;
 
 (************************************************************
- * Param Block passsed with the sysAppLaunchCmdSetActivePanel Command
+ * Param Block passed with the sysAppLaunchCmdSetActivePanel Command
  *************************************************************)
 
 const
@@ -194,13 +194,13 @@ type
   PrefActivePanelParamsPtr = ^PrefActivePanelParamsType;
 
 (************************************************************
- * Param Block passsed with the sysAppLaunchCmdAddRecord Command
+ * Param Block passed with the sysAppLaunchCmdAddRecord Command
  *************************************************************)
 
 //-------------------------------------------------------------------
 // sysAppLaunchCmdAddRecord parameter block for the Mail application
 //-------------------------------------------------------------------
-// Param Block passsed with the sysAppLaunchCmdAddRecord Command
+// Param Block passed with the sysAppLaunchCmdAddRecord Command
 
 type
   MailMsgPriorityType = Enum;
@@ -220,15 +220,15 @@ type
       // should be attached to the message.
 
     confirmRead: Boolean;
-      // True means that a comfirmation should be sent when the message
+      // True means that a confirmation should be sent when the message
       // is read.
 
     confirmDelivery: Boolean;
-      // True means that a comfirmation should be sent when the message
-      // is deliveried
+      // True means that a confirmation should be sent when the message
+      // is delivered
 
     priority: MailMsgPriorityType;
-      // high, normial, or low.
+      // high, normal, or low.
 
     padding: UInt8;
 
@@ -259,7 +259,7 @@ type
 //-------------------------------------------------------------------
 // sysAppLaunchCmdAddRecord parameter block for the Messaging application
 //-------------------------------------------------------------------
-// Param Block passsed with the sysAppLaunchCmdAddRecord Command
+// Param Block passed with the sysAppLaunchCmdAddRecord Command
 
 //category defines
 const
@@ -272,7 +272,7 @@ const
 type
   MsgAddRecordParamsType = record
     category: UInt16;
-      //is this an outgoing mesage? Or should it be put into a different category
+      //is this an outgoing message? Or should it be put into a different category
 
     edit: Boolean;
       // True means that the message should be opened in the editor,instead of

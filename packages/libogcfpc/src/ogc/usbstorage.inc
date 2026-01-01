@@ -24,19 +24,19 @@ type
 
     ep_in: cuint8;
     ep_out: cuint8;
-    
+
     max_lun: cuint8;
     sector_size: pcuint32;
-    
+
     usb_fd: cint32;
-    
+
     lock: mutex_t;
     alarm: syswd_t;
     retval: cint32;
-    
+
     tag: cuint32;
     suspended: cuint8;
-    
+
     buffer: pcuint8;
   end;
   pusbstorage_handle = ^usbstorage_handle;
@@ -45,7 +45,7 @@ const
   B_RAW_DEVICE_DATA_IN = $01;
   B_RAW_DEVICE_COMMAND = 0;
 
-type 
+type
   raw_device_command = record
     command: array [0..15] of cuint8;
     command_length: cuint8;

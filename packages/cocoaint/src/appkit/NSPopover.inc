@@ -127,7 +127,7 @@ type
     function appearance: NSAppearance; message 'appearance';
     function effectiveAppearance: NSAppearance; message 'effectiveAppearance';
 		{$endif}
-		
+
     procedure setAccessibilityActivationPoint(newValue: NSPoint); message 'setAccessibilityActivationPoint:';
     function accessibilityActivationPoint: NSPoint; message 'accessibilityActivationPoint';
     procedure setAccessibilityAllowedValues(newValue: NSArray); message 'setAccessibilityAllowedValues:';

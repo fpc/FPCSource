@@ -1,16 +1,16 @@
-{ ********************************************************************* 
+{ *********************************************************************
     This file is part of the Free Component Library (FCL)
     Copyright (c) 2016 Michael Van Canneyt.
-       
+
     Javascript parser
-            
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
-                   
+
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-                                
+
   **********************************************************************}
 {$IFNDEF FPC_DOTTEDUNITS}
 unit jsparser;
@@ -714,9 +714,9 @@ Const
    Valididents = [tjsIdentifier,{$IFDEF FPC_DOTTEDUNITS}Js.Token{$ELSE}jsToken{$ENDIF}.tjsString,{$IFDEF FPC_DOTTEDUNITS}Js.Token{$ELSE}jsToken{$ENDIF}.tjsnumber,tjsDelete,
                   tjsWith,tjsThrow,tjsDefault,tjsAwait,tjscase,tjsdebugger,tjsCatch,
                   tjsextends,tjsexport,tjsImport,tjsEnum,tjsClass,tjsFor,tjsReturn,
-                  tjsDo,tjsFinally,tjsWhile,tjsIf,tjsYield,tjsvoid,tjsbreak, 
+                  tjsDo,tjsFinally,tjsWhile,tjsIf,tjsYield,tjsvoid,tjsbreak,
                   tjscontinue, tjsswitch, tjstrue, tjsNull, tjsThis,tjsFalse,
-                  tjsVar,tjsConst, tjsin, tjsInstanceOf, tjsfunction, tjstry, 
+                  tjsVar,tjsConst, tjsin, tjsInstanceOf, tjsfunction, tjstry,
                   tjselse, tjsSuper, tjsLet, tjsTypeOf, tjsNew];
 
 begin
@@ -754,13 +754,13 @@ begin
     While CurrentToken=tjsComma do
        GetNextToken;
     isMinus:=(CurrentToken=tjsMinus);
-    if IsMinus then 
-      GetNextToken;   
+    if IsMinus then
+      GetNextToken;
     isReadOnly:=IsIdentifier('readonly') and not (PeekNextToken in [tjsColon,tjsBraceOpen, tjsConditional]);
     if IsReadonly then
       GetNextToken
     else if IsMinus then
-      Error(SErrExpectedColonBrace,[CurrentTokenString]);  
+      Error(SErrExpectedColonBrace,[CurrentTokenString]);
     If CurrentTokenIsValidIdentifier then
       begin
       aName:=CurrentTokenString;
@@ -1488,7 +1488,7 @@ Var
   D : TJSFuncDef;
   isGenerator : Boolean;
   TP : TJSElementNodes;
-  
+
 begin
   {$ifdef debugparser}  Writeln('>>> Entering ParseFunctionDeclaration');{$endif debugparser}
   TP:=nil;
@@ -1515,7 +1515,7 @@ begin
     TP:=TJSElementNodes.Create(TJSElementNode);
     ParseGenericParamList(TP);
     consume(tjsGT);
-    end;  
+    end;
   Result:=TJSFunctionDeclarationStatement(CreateElement(TJSFunctionDeclarationStatement));
   try
     Result.AFunction:=TJSFuncDef.Create;
@@ -2782,7 +2782,7 @@ begin
             Consume(tjsIdentifier);
             end;
           end;
-        end;  
+        end;
       With aElements.AddAlias do
         begin
         Name:=aName;
@@ -3989,12 +3989,12 @@ Procedure TJSParser.ParseAmbientClassBody(aObj: TJSObjectTypeDef);
     Result:=TJSTypeReference(CreateElement(TJSTypeReference));
     Result.Name:='any';
   end;
-  
+
   Function CheckSpecial(aName : {$IFDEF FPC_DOTTEDUNITS}Js.Base{$ELSE}jsBase{$ENDIF}.TJSstring) : Boolean;
-  
+
   begin
     Result:=IsIdentifier(aName) and Not (PeekNextToken in [tjsConditional,tjsColon]);
-    If Result then 
+    If Result then
       GetNextToken;
   end;
 
@@ -4206,7 +4206,7 @@ begin
     aName:=CurrentTokenString;
     consume(tjsIdentifier);
     end
-  else  
+  else
     begin
     Expect({$IFDEF FPC_DOTTEDUNITS}Js.Token{$ELSE}jsToken{$ENDIF}.tjsString);
     aname:=CurrentTokenString;
@@ -4301,7 +4301,7 @@ function TJSParser.ParseNamespaceDeclaration(IsAmbient : Boolean): TJSNamespaceD
 Var
   aName : {$IFDEF FPC_DOTTEDUNITS}Js.Base{$ELSE}jsBase{$ENDIF}.TJSString;
   IsGlobal : Boolean;
-  
+
 begin
   IsGlobal:=IsIdentifier('global');
   Consume(tjsIdentifier); // namespace

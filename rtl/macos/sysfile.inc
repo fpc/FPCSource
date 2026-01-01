@@ -315,7 +315,7 @@ begin
         begin
           {Change of filetype and creator is always done when a file is opened
           for some kind of writing. This ensures overwritten Darwin files will
-          get apropriate filetype. It must be done after file is opened,
+          get appropriate filetype. It must be done after file is opened,
           in the case the file did not previously exist.}
 
           FSpGetFInfo(spec, finderInfo);

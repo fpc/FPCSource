@@ -537,7 +537,7 @@ function apr_pool_userdata_get(data: PPointer; const key: PAnsiChar;
 type
   plain_cleanup_t = function(param: Pointer): apr_status_t; cdecl;
   child_cleanup_t = function(param: Pointer): apr_status_t; cdecl;
-  
+
 procedure apr_pool_cleanup_register(p: Papr_pool_t;
  const data: Pointer;
  plain_cleanup: plain_cleanup_t;

@@ -27,7 +27,7 @@ begin
     begin
       fseek(handle, 0, SEEK_END);  // Go to end of file
       size := ftell(handle);  // Get current position in file, because it is the end it will be the size
-      fseek(handle, 0, SEEK_SET);  // Go to begining of file
+      fseek(handle, 0, SEEK_SET);  // Go to beginning of file
       fread(@text, size, 1, handle); // Read all of file into memory
       printf(@text);
       fclose(handle); // Close file

@@ -1,5 +1,5 @@
 (*
- * Summary: string dictionnary
+ * Summary: string dictionary
  * Description: dictionary of reusable strings, just used to avoid allocation
  *         and freeing operations.
  *
@@ -9,7 +9,7 @@
  *)
 
 (*
- * The dictionnary
+ * The dictionary
  *)
 {$IFDEF POINTER}
   xmlDictPtr = ^xmlDict;
@@ -36,7 +36,7 @@ function xmlDictReference(dict: xmlDictPtr): cint; EXTDECL; external xml2lib;
 procedure xmlDictFree(dict: xmlDictPtr); EXTDECL; external xml2lib;
 
 (*
- * Lookup of entry in the dictionnary.
+ * Lookup of entry in the dictionary.
  *)
 function xmlDictLookup(dict: xmlDictPtr; name: xmlCharPtr; len: cint): xmlCharPtr; EXTDECL; external xml2lib;
 function xmlDictExists(dict: xmlDictPtr; name: xmlCharPtr; len: cint): xmlCharPtr; EXTDECL; external xml2lib;
@@ -67,7 +67,7 @@ procedure xmlDictCleanup; EXTDECL; external xml2lib;
   xmlDictFree: procedure(dict: xmlDictPtr); EXTDECL;
 
 (*
- * Lookup of entry in the dictionnary.
+ * Lookup of entry in the dictionary.
  *)
   xmlDictLookup: function(dict: xmlDictPtr; name: xmlCharPtr; len: cint): xmlCharPtr; EXTDECL;
   xmlDictExists: function(dict: xmlDictPtr; name: xmlCharPtr; len: cint): xmlCharPtr; EXTDECL;

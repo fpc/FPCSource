@@ -27,7 +27,7 @@
 @created(29 Nov 2002)
 @lastmod(19 Jan 2003)
 This is Video Acceleration Interface.
-Warning: This code is alfa. Future versions of this unit will propably
+Warning: This code is alfa. Future versions of this unit will probably
 not be compatible.
 }
 
@@ -60,7 +60,7 @@ Type
     szlSrcMax: SIZEL;          //maximum source size (pixels)
     rctlDstMargin: RECTL;      //destination rectangle margins
     fccDstColor: Cardinal;     //screen FOURCC
-    ulScanAlign: Cardinal;     //requered scanline aligment-1
+    ulScanAlign: Cardinal;     //required scanline alignment-1
     ulNumColors: Cardinal;     //count of supported source FOURCC
     fccColorType: ^Cardinal;   //array of supported FOURCC
     ulAttrCount: Cardinal;     //count of viewport attributes
@@ -156,7 +156,7 @@ Const
   HWVIDEO_ERROR_USED = 9;
 
 //Init HWVideo subsystem
-//check for presence and avilability of accelerated HW, if present and
+//check for presence and availability of accelerated HW, if present and
 //available - lock it for this process.
 Function HWVIDEOInit: Cardinal; cdecl;
 

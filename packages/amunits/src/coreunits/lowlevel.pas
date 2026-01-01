@@ -18,7 +18,7 @@
     History:
 
     Added functions and procedures with array of const.
-    For use with fpc 1.0.7. Thay are in systemvartags.
+    For use with fpc 1.0.7. They are in systemvartags.
     11 Nov 2002.
 
     Added the defines use_amiga_smartlink and
@@ -134,7 +134,7 @@ Const
  JP_DIRECTION_MASK = JPF_JOY_UP OR JPF_JOY_DOWN OR JPF_JOY_LEFT OR JPF_JOY_RIGHT;
 
 { Mouse position reports, valid for JP_TYPE_MOUSE }
- JP_MHORZ_MASK     = 255;        { horzizontal position }
+ JP_MHORZ_MASK     = 255;        { horizontal position  }
  JP_MVERT_MASK     = 65280;      { vertical position    }
  JP_MOUSE_MASK     = JP_MHORZ_MASK OR JP_MVERT_MASK;
 

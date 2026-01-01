@@ -28,7 +28,7 @@ uses
 uses
   Classes, SysUtils, resource, resourcetree, externaltypes, strtable;
 {$ENDIF FPC_DOTTEDUNITS}
-  
+
 type
   EExternalResourceWriterException = class(EResourceWriterException);
   EExternalResInvalidEndianessException = class(EExternalResourceWriterException);
@@ -117,7 +117,7 @@ begin
     Result:=aNode.SubDirRVA;
     exit;
   end;
-  
+
   if aNode.Desc.DescType=dtName then
     aNode.NameRVA:=fStrTable.Add(aNode.Desc.Name);
 
@@ -188,7 +188,7 @@ begin
     WriteNodeInfo(aStream,aNode.NamedEntries[i]);
   for i:=0 to aNode.IDCount-1 do
     WriteNodeInfo(aStream,aNode.IDEntries[i]);
-    
+
   for i:=0 to aNode.NamedCount-1 do
     WriteSubNodes(aStream,aNode.NamedEntries[i]);
   for i:=0 to aNode.IDCount-1 do

@@ -236,7 +236,7 @@ begin
   fil:=32 or (textattr shl 8);
   if FullWin then
   begin
-    _clrscr;  {seems to swich cursor off}
+    _clrscr;  {seems to switch cursor off}
     _DisplayInputCursor;
   end else
    begin

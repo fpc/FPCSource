@@ -176,7 +176,7 @@ type
     class function ParseJSONValueUTF8(const aData: TByteDynArray; const aOffset: Integer;
                                       const aCount: Integer): TJSONValue; overload; static;
     class function ParseJSONValueUTF8(const aData: TByteDynArray;
-                                      const aOffset: Integer): TJSONValue; overload; static; 
+                                      const aOffset: Integer): TJSONValue; overload; static;
   end;
   TJSONValueClass = Class of TJSONValue;
   TJSONValueList = specialize TList<TJSONValue>;
@@ -348,7 +348,7 @@ type
     function AddPair(const aPair: TJSONPair): TJSONObject; overload;
     function AddPair(const aStr: TJSONString; const aVal: TJSONValue): TJSONObject; overload;
     function AddPair(const aStr: UnicodeString; const aVal: TJSONValue): TJSONObject; overload;
-    function AddPair(const aStr: UnicodeString; const aVal: UnicodeString): TJSONObject; overload;     
+    function AddPair(const aStr: UnicodeString; const aVal: UnicodeString): TJSONObject; overload;
     function AddPair(const aStr: UnicodeString; const aVal: String): TJSONObject; overload;
     function AddPair(const aStr: UnicodeString; const aVal: Int64): TJSONObject; overload;
     function AddPair(const aStr: UnicodeString; const aVal: Integer): TJSONObject; overload;
@@ -365,9 +365,9 @@ type
     property Count: Integer read GetCount;
     property Pairs[const aIndex: Integer]: TJSONPair read GetPair;
     property Values[const aName: UnicodeString]: TJSONValue read GetValue;
-    function Size: Integer; inline; 
-    function Get(const aIndex: Integer): TJSONPair; overload; inline; 
-    function Get(const aName: UnicodeString): TJSONPair; overload; inline; 
+    function Size: Integer; inline;
+    function Get(const aIndex: Integer): TJSONPair; overload; inline;
+    function Get(const aName: UnicodeString): TJSONPair; overload; inline;
   end;
 
   TJSONPairEnumerator = class(TJSONObject.TEnumerator)
@@ -426,7 +426,7 @@ type
     procedure ToChars(aBuilder: TUnicodeStringBuilder; aOptions: TJSONAncestor.TJSONOutputOptions); override;
     function Clone: TJSONAncestor; override;
     function GetEnumerator: TEnumerator; inline;
-    function Size: Integer; inline; 
+    function Size: Integer; inline;
     function Get(const Index: Integer): TJSONValue; inline;
   end;
 

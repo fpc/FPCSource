@@ -726,11 +726,11 @@ procedure fpc_initialize_array_ansistring(arr: TJObjectArray; normalarrdim: long
     -> normalarrdim will be 2
 
   Initialises with nil rather than with empty arrays, because there does not
-  appear to be a generic way to pass an iniitialised (empty) array object and
+  appear to be a generic way to pass an initialized (empty) array object and
   then clone it for every array position, except for slow serialization (array
   instances are clonable in Java, but they don't inherit from a base class other
   than java.lang.Object (in which clone is protected) and they only implement
-  the formal interfaces Clonable and Serializeable (which don't expose any
+  the formal interfaces Clonable and Serializable (which don't expose any
   particular methods). This means that we cannot cast arrays to a generic class
   type that supports cloning (except if we add support for calling methods on
   dynamic array types, and add an extra parameter to determine the first

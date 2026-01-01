@@ -843,7 +843,7 @@ begin
       result := wrAbandoned;
       exit;
     end;
-  { not a regular inc() because it may happen simulatneously with the }
+  { not a regular inc() because it may happen simultaneously with the }
   { interlockeddecrement() at the end                                 }
   interlockedincrement(plocaleventstate(state)^.FWaiters);
 

@@ -62,7 +62,7 @@ begin
     WriteLn('Params: ', Params);
     WriteLn('Bookmark: ', Bookmark);
   end;
-end;  
+end;
 
 type
   urirec = record

@@ -152,7 +152,7 @@ type
 //
 //  Parameters:
 //      pbtfrp
-//          A pointer to a BLUETOOTH_FIND_RADIO_PARAMS structure. The dwSize 
+//          A pointer to a BLUETOOTH_FIND_RADIO_PARAMS structure. The dwSize
 //          member of this structure must match the sizeof the of the structure.
 //
 //      phRadio
@@ -272,7 +272,7 @@ type
 //          et al or SetupDiEnumerateDeviceInterfaces()
 //
 //      pRadioInfo
-//          Radio information to be filled in. The dwSize member must match the 
+//          Radio information to be filled in. The dwSize member must match the
 //          size of the structure.
 //
 //  Return Values:
@@ -293,7 +293,7 @@ function BluetoothGetRadioInfo(hRadio: THandle; var pRadioInfo: BLUETOOTH_RADIO_
 
 // ***************************************************************************
 //
-//  Device Information Stuctures
+//  Device Information Structures
 //
 // ***************************************************************************
 
@@ -387,7 +387,7 @@ type
 //          about the first Bluetooth device found. Note that the dwSize member
 //          of the structure must be the sizeof(BLUETOOTH_DEVICE_INFO) before
 //          calling because the APIs hast to know the size of the buffer being
-//          past in. The dwSize member must also match the exact 
+//          past in. The dwSize member must also match the exact
 //          sizeof(BLUETOOTH_DEVICE_INFO) or the call will fail.
 //
 //  Return Values:
@@ -627,7 +627,7 @@ type
 
     hwndParent: HWND;                         //  IN  parent window - NULL == no parent
 
-    fForceAuthentication: BOOL;               //  IN  If TRUE, authenication will be forced before returning
+    fForceAuthentication: BOOL;               //  IN  If TRUE, authentication will be forced before returning
     fShowAuthenticated: BOOL;                 //  IN  If TRUE, authenticated devices will be shown in the picker
     fShowRemembered: BOOL;                    //  IN  If TRUE, remembered devices will be shown in the picker
     fShowUnknown: BOOL;                       //  IN  If TRUE, unknown devices that are not authenticated or "remember" will be shown.
@@ -660,10 +660,10 @@ type
 //      TRUE
 //          User selected a device. pbtsdp->pDevices points to valid data.
 //          Caller should check the fAuthenticated && fRemembered flags to
-//          determine which devices we successfuly authenticated or valid
+//          determine which devices we successfully authenticated or valid
 //          selections by the user.
 //
-//          Use BluetoothSelectDevicesFree() to free the nessecary data
+//          Use BluetoothSelectDevicesFree() to free the necessary data
 //          such as pDevices only if this function returns TRUE.
 //
 //      FALSE
@@ -741,7 +741,7 @@ function BluetoothDisplayDeviceProperties(hwndParent: HWND; pbtdi: PBLUETOOTH_DE
 
 //
 //  Description:
-//      Sends an authentication request to a remote device. 
+//      Sends an authentication request to a remote device.
 //
 //      There are two modes of operation. "Wizard mode" and "Blind mode."
 //
@@ -750,7 +750,7 @@ function BluetoothDisplayDeviceProperties(hwndParent: HWND; pbtdi: PBLUETOOTH_DE
 //      prompted to enter a passkey during the wizard after which the
 //      authentication request will be sent. The user will see the success
 //      or failure of the authentication attempt. The user will also be
-//      given the oppurtunity to try to fix a failed authentication.
+//      given the opportunity to try to fix a failed authentication.
 //
 //      "Blind mode" is invoked when the pszPasskey is non-NULL. This will
 //      cause the computer to send a authentication request to the remote
@@ -760,7 +760,7 @@ function BluetoothDisplayDeviceProperties(hwndParent: HWND; pbtdi: PBLUETOOTH_DE
 //  Parameters:
 //
 //      hwndParent
-//          The window to parent the authentication wizard. If NULL, the 
+//          The window to parent the authentication wizard. If NULL, the
 //          wizard will be parented off the desktop.
 //
 //      hRadio
@@ -777,7 +777,7 @@ function BluetoothDisplayDeviceProperties(hwndParent: HWND; pbtdi: PBLUETOOTH_DE
 //          If not NULL, no UI is shown.  The passkey is NOT NULL terminated.
 //
 //      ulPasskeyLength
-//          Length of szPassKey in bytes. The length must be less than or 
+//          Length of szPassKey in bytes. The length must be less than or
 //          equal to BLUETOOTH_MAX_PASSKEY_SIZE * sizeof(WCHAR).
 //
 //  Return Values:
@@ -830,7 +830,7 @@ function BluetoothAuthenticateDevice(
 //  Parameters:
 //
 //      hwndParent
-//          The window to parent the authentication wizard. If NULL, the 
+//          The window to parent the authentication wizard. If NULL, the
 //          wizard will be parented off the desktop.
 //
 //      hRadio
@@ -851,7 +851,7 @@ function BluetoothAuthenticateDevice(
 //          Success. Check the fAuthenticate flag on each of the devices.
 //
 //      ERROR_CANCELLED
-//          User aborted the operation. Check the fAuthenticate flags on 
+//          User aborted the operation. Check the fAuthenticate flags on
 //          each device to determine if any of the devices were authenticated
 //          before the user cancelled the operation.
 //
@@ -936,7 +936,7 @@ function BluetoothSetServiceState(
 //
 //  Description:
 //      Enumerates the services guids enabled on a particular device. If hRadio
-//      is NULL, all device will be searched for the device and all the services 
+//      is NULL, all device will be searched for the device and all the services
 //      enabled will be returned.
 //
 //  Parameters:
@@ -981,15 +981,15 @@ function BluetoothEnumerateInstalledServices(
 //      Use BluetoothIsDiscoverable() to determine the radios current state.
 //
 //      The system ensures that a discoverable system is connectable, thus
-//      the radio must allow incoming connections (see 
-//      BluetoothEnableIncomingConnections) prior to making a radio 
+//      the radio must allow incoming connections (see
+//      BluetoothEnableIncomingConnections) prior to making a radio
 //      discoverable. Failure to do so will result in this call failing
 //      (returns FALSE).
 //
 //  Parameters:
 //      hRadio
 //          If not NULL, changes the state of a specific radio.
-//          If NULL, the API will interate through all the radios.
+//          If NULL, the API will iterate through all the radios.
 //
 //      fEnabled
 //          If FALSE, discovery will be disabled.
@@ -1009,8 +1009,8 @@ function BluetoothEnableDiscovery(hRadio: THandle; fEnabled: BOOL): BOOL; stdcal
 
 //
 //  Description:
-//      Determines if the Bluetooth radios are discoverable. If there are 
-//      multiple radios, the first one to say it is discoverable will cause 
+//      Determines if the Bluetooth radios are discoverable. If there are
+//      multiple radios, the first one to say it is discoverable will cause
 //      this function to return TRUE.
 //
 //  Parameters:
@@ -1037,14 +1037,14 @@ function BluetoothIsDiscoverable(hRadio: THandle): BOOL; stdcall;
 //      Use BluetoothIsConnectable() to determine the radios current state.
 //
 //      The system enforces that a radio that is not connectable is not
-//      discoverable too. The radio must be made non-discoverable (see 
-//      BluetoothEnableDiscovery) prior to making a radio non-connectionable. 
+//      discoverable too. The radio must be made non-discoverable (see
+//      BluetoothEnableDiscovery) prior to making a radio non-connectionable.
 //      Failure to do so will result in this call failing (returns FALSE).
 //
 //  Parameters:
 //      hRadio
 //          If not NULL, changes the state of a specific radio.
-//          If NULL, the API will interate through all the radios.
+//          If NULL, the API will iterate through all the radios.
 //
 //      fEnabled
 //          If FALSE, incoming connection will be disabled.
@@ -1064,8 +1064,8 @@ function BluetoothEnableIncomingConnections(hRadio: THandle; fEnabled: BOOL): BO
 
 //
 //  Description:
-//      Determines if the Bluetooth radios are connectable. If there are 
-//      multiple radios, the first one to say it is connectable will cause 
+//      Determines if the Bluetooth radios are connectable. If there are
+//      multiple radios, the first one to say it is connectable will cause
 //      this function to return TRUE.
 //
 //  Parameters:
@@ -1109,7 +1109,7 @@ type
 //          address will be used for comparision.
 //
 //      phRegHandle
-//          A pointer to where the registration HANDLE value will be 
+//          A pointer to where the registration HANDLE value will be
 //          stored. Call BluetoothUnregisterAuthentication() to close
 //          the handle.
 //
@@ -1142,7 +1142,7 @@ function BluetoothRegisterForAuthentication(
 
 //
 //  Description:
-//      Unregisters an authentication callback and closes the handle. See 
+//      Unregisters an authentication callback and closes the handle. See
 //      BluetoothRegisterForAuthentication() for more information about
 //      authentication registration.
 //
@@ -1180,7 +1180,7 @@ function BluetoothUnregisterAuthentication(hRegHandle: HBLUETOOTH_AUTHENTICATION
 //
 //      pbtdi
 //          A pointer to a BLUETOOTH_DEVICE_INFO structure describing the device
-//          being authenticated. This can be the same structure passed to the 
+//          being authenticated. This can be the same structure passed to the
 //          callback function.
 //
 //      pszPasskey
@@ -1192,7 +1192,7 @@ function BluetoothUnregisterAuthentication(hRegHandle: HBLUETOOTH_AUTHENTICATION
 //          The device accepted the passkey response. The device is authenticated.
 //
 //      ERROR_CANCELED
-//          The device denied the passkey reponse. This also will returned if there
+//          The device denied the passkey response. This also will returned if there
 //          is a communications problem with the local radio.
 //
 //      E_FAIL
@@ -1219,7 +1219,7 @@ type
     // BluetoothSdpGetString to convert the value if it is described
     // by the base language attribute ID list
     value: PBYTE;
-    // raw length of the string, may not be NULL terminuated
+    // raw length of the string, may not be NULL terminated
     length: ULONG;
   end;
 
@@ -1304,7 +1304,7 @@ type
   PSDP_ELEMENT_DATA = ^SDP_ELEMENT_DATA;
   {$EXTERNALSYM PSDP_ELEMENT_DATA}
   TSdpElementData = SDP_ELEMENT_DATA;
-  PSdpElementData = PSDP_ELEMENT_DATA;  
+  PSdpElementData = PSDP_ELEMENT_DATA;
 
 //
 // Description:
@@ -1414,7 +1414,7 @@ function BluetoothSdpGetContainerElementData(
 //
 // Parameters:
 //      IN pRecordStream
-//          pointer to a valid SDP stream which is formatted as a singl SDP
+//          pointer to a valid SDP stream which is formatted as a single SDP
 //          record
 //
 //      IN cbRecordlnegh
@@ -1486,7 +1486,7 @@ type
   PSDP_STRING_TYPE_DATA = ^SDP_STRING_TYPE_DATA;
   {$EXTERNALSYM PSDP_STRING_TYPE_DATA}
   TSdpStringTypeData = SDP_STRING_TYPE_DATA;
-  PSdpStringTypeData = PSDP_STRING_TYPE_DATA;  
+  PSdpStringTypeData = PSDP_STRING_TYPE_DATA;
 
 //
 // Description:
@@ -1535,7 +1535,7 @@ type
 //          Could not allocate memory internally to perform the conversion
 //
 //      ERROR_INVALID_PARAMETER
-//          One of the rquired pointers was NULL, pRecordStream was not a valid
+//          One of the required pointers was NULL, pRecordStream was not a valid
 //          SDP stream, pRecordStream was not a properly formatted record, or
 //          the desired attribute + offset was not a string.
 //

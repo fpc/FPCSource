@@ -141,7 +141,7 @@ type
 
 const
   {There is a problem with boolean
-  vaules in taglists, just use this
+  values in taglists, just use this
   for now instead}
   LTrue : LongInt = 1;
   LFalse: LongInt = 0;
@@ -386,7 +386,7 @@ const
 
 // ------ expansion.library
   AN_ExpansionLib     = $0A000000;
-  AN_BadExpansionFree = $0A000001; // freeed free region
+  AN_BadExpansionFree = $0A000001; // freed free region
 
 // ------ diskfont.library
   AN_DiskfontLib = $0B000000;
@@ -1528,7 +1528,7 @@ const
 // Memory Pool
   ASOPOOL_MFlags      = TAG_USER + 10; // Memory flags/requirements for this pool
   ASOPOOL_Puddle      = TAG_USER + 11; // Size of each puddle
-  ASOPOOL_Threshold   = TAG_USER + 12; // Largest alloction size that goes into the puddle
+  ASOPOOL_Threshold   = TAG_USER + 12; // Largest allocation size that goes into the puddle
   ASOPOOL_Protected   = TAG_USER + 13; // Protect pool with a semaphore
   ASOPOOL_Name        = TAG_USER + 14; // Name for the pool (for informational purpose only;
   ASOPOOL_CopyName    = TAG_USER + 15; // Copy the name string
@@ -1626,7 +1626,7 @@ const
   GCIT_TimeBaseSpeed  = TAG_USER + 17;
 
 // Family codes
-//enCPUFamiliy
+//enCPUFamily
   CPUFAMILY_UNKNOWN = 0;
   CPUFAMILY_60X     = 1;
   CPUFAMILY_7X0     = 2;

@@ -6,7 +6,7 @@
 { Portions created by Microsoft are Copyright (C) Microsoft Corporation.       }
 {  All Rights Reserved.                                                        }
 {                                                                              }
-{ The original Pascal code is: JwaVista.pas, released Octobre 2007.            }
+{ The original Pascal code is: JwaVista.pas, released October 2007.            }
 {                                                                              }
 { Portions created by Christian Wimmer are Copyright (C) 2007                  }
 { Christian Wimmer. All Rights Reserved.                                       }
@@ -343,7 +343,7 @@ const
   SECURITY_MANDATORY_UNTRUSTED_RID = $0;
   SECURITY_MANDATORY_LOW_RID = $1000;
   SECURITY_MANDATORY_MEDIUM_RID = $2000;
-  SECURITY_MANDATORY_HIGH_RID = $3000;          
+  SECURITY_MANDATORY_HIGH_RID = $3000;
   SECURITY_MANDATORY_SYSTEM_RID = $4000;
   SECURITY_MANDATORY_PROTECTED_PROCESS_RID = $5000;
 

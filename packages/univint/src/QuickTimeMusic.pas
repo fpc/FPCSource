@@ -778,7 +778,7 @@ const
 
 const
 	kGenericMusicResFirst = 0;
-	kGenericMusicResMiscStringList = 1;   { STR# 1: synth name, 2:about author,3:aboutcopyright,4:aboutother }
+	kGenericMusicResMiscStringList = 1;   { STR# 1: synth name, 2:about author,3:about copyright,4:about other }
 	kGenericMusicResMiscLongList = 2;    { Long various params, see list below }
 	kGenericMusicResInstrumentList = 3;   { NmLs of names and shorts, categories prefixed by 'ее' }
 	kGenericMusicResDrumList = 4;    { NmLs of names and shorts }
@@ -789,7 +789,7 @@ const
 	kGenericMusicResModifiableInstrumentHW = 9; { Shrt same as the hw shorts trailing the instrument names, a shortlist }
 	kGenericMusicResGMTranslation = 10;   { Long 128 long entries, 1 for each gm inst, of local instrument numbers 1-n (not hw numbers) }
 	kGenericMusicResROMInstrumentData = 11; { knob lists for ROM instruments, so the knob values may be known }
-	kGenericMusicResAboutPICT = 12;   { picture for aboutlist. must be present for GetAbout call to work }
+	kGenericMusicResAboutPICT = 12;   { picture for about list. must be present for GetAbout call to work }
 	kGenericMusicResLast = 13;
 
 { elements of the misc long list }
@@ -855,7 +855,7 @@ type
 type
 	InstrumentInfoRecordPtr = ^InstrumentInfoRecord;
 	InstrumentInfoRecord = record
-		instrumentNumber: SIGNEDLONG;       { instrument number (if 0, name is a catagory)}
+		instrumentNumber: SIGNEDLONG;       { instrument number (if 0, name is a category)}
 		flags: SIGNEDLONG;                  { show in picker, etc.}
 		toneNameIndex: SIGNEDLONG;          { index in toneNames (1 based)}
 		itxtNameAtomID: SIGNEDLONG;         { index in itxtNames (itxt/name by index)}
@@ -1604,7 +1604,7 @@ type
 	NoteRequestInfoPtr = ^NoteRequestInfo;
 	NoteRequestInfo = record
 		flags: UInt8;                  { 1: dont accept GM match, 2: dont accept same-synth-type match }
-		midiChannelAssignment: NoteRequestMIDIChannel; { (kNoteRequestSpecifyMIDIChannel | 1->16) as MIDI Channel assignement or zero - see notes above  }
+		midiChannelAssignment: NoteRequestMIDIChannel; { (kNoteRequestSpecifyMIDIChannel | 1->16) as MIDI Channel assignment or zero - see notes above  }
 		polyphony: BigEndianShort;              { Maximum number of voices }
 		typicalPolyphony: BigEndianFixed;       { Hint for level mixing }
 	end;
@@ -2214,7 +2214,7 @@ function TuneGetStatus( tp: TunePlayer; var status: TuneStatus ): ComponentResul
 { Values for stopping. }
 const
 	kTuneStopFade = 1;    { do a quick, synchronous fadeout }
-	kTuneStopSustain = 2;    { don't silece notes }
+	kTuneStopSustain = 2;    { don't silence notes }
 	kTuneStopInstant = 4;    { silence notes fast (else, decay them) }
 	kTuneStopReleaseChannels = 8;     { afterwards, let the channels go }
 

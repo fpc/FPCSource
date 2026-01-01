@@ -4640,7 +4640,7 @@ begin
       pekIdent:
         begin
         Result:=OnEvalIdentifier(Self,TPrimitiveExpr(Expr),Flags);
-        //writeln('TResExprEvaluator.Eval primitiv result=',Result<>nil,' ',dbgs(Result));
+        //writeln('TResExprEvaluator.Eval primitive result=',Result<>nil,' ',dbgs(Result));
         end;
       pekNumber:
         begin

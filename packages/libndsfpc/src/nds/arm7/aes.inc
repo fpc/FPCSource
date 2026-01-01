@@ -4,13 +4,13 @@ type
 	normalkey: array [0..15] of pcuint8;
 	key_x: array [0..15] of pcuint8;
 	key_y: array [0..15] of pcuint8;
-  end; 
+  end;
   aes_keyslot_t = _aes_keyslot;
   Taes_keyslot_t = aes_keyslot_t;
   Paes_keyslot_t = ^Taes_keyslot_t;
 
 
-const 
+const
   REG_AES_CNT: pcuint32  = pointer($04004400);
   AES_WRFIFO_FLUSH = (1 shl 10);
   AES_RDFIFO_FLUSH = (1 shl 11);
@@ -31,7 +31,7 @@ function AES_CNT_MODE(mode: cint): cint; inline;
 const
   AES_CNT_IRQ       = (1 shl 30);
   AES_CNT_ENABLE    = (1 shl 31);
-  
+
   REG_AES_BLKCNT: pcuint32 = pointer($4004404);
 
   REG_AES_WRFIFO: pcuint32 = pointer($4004408);
@@ -48,12 +48,12 @@ const
 {$endif NDS_INTERFACE}
 
 {$ifdef NDS_IMPLEMENTATION}
-function AES_CNT_DMA_WRITE_SIZE(size: cint): cint; inline; 
+function AES_CNT_DMA_WRITE_SIZE(size: cint): cint; inline;
 begin
   AES_CNT_DMA_WRITE_SIZE := ((size and 3) shl 12);
 end;
 
-function AES_CNT_DMA_READ_SIZE(size: cint): cint; inline;  
+function AES_CNT_DMA_READ_SIZE(size: cint): cint; inline;
 begin
   AES_CNT_DMA_READ_SIZE := ((size and 3) shl 14);
 end;
@@ -63,7 +63,7 @@ begin
   AES_CNT_CCM_SIZE := ((size and 3) shl 16);
 end;
 
-function AES_CNT_KEYSLOT(slot: cint): cint; inline; 
+function AES_CNT_KEYSLOT(slot: cint): cint; inline;
 begin
   AES_CNT_KEYSLOT := ((slot and 3) shl 26);
 end;

@@ -12,7 +12,7 @@ uses
 
 const startex = 0;
 
-const 
+const
   DEFAULT_FIFO_SIZE = (256 * 1024);
   NUM_STARS = 50;
 
@@ -46,7 +46,7 @@ var
   frameBuffer: array [0..1] of pcuint32 = (nil, nil);
   rmode: PGXRModeObj = nil;
 
-	yscale: f32 = 0.0; 
+	yscale: f32 = 0.0;
   spin: f32 = 0.0;
 	xfbHeight, i: cuint32;
 	fb: cuint32 = 0;
@@ -61,15 +61,15 @@ var
 	cam: guVector = (x:0.0; y:0.0; z:0.0;);
 	up: guVector = (x:0.0; y:1.0; z:0.0;);
 	look: guVector = (x:0.0; y:0.0; z:-1.0;);
-	
+
 	starAxis1: guVector  = (x:0; y:1; z:0;);
 	starAxis2: guVector  = (x:0; y:0; z:1;);
-	
+
 	starTPL: TPLFile;
   w, h: f32;
-  
+
 	mry, mrz: Mtx;
-  
+
 begin
 	VIDEO_Init();
 	WPAD_Init();
@@ -95,10 +95,10 @@ begin
 
 	// init the flipper
 	GX_Init(gpfifo,DEFAULT_FIFO_SIZE);
- 
+
 	// clears the bg to color and clears the z buffer
 	GX_SetCopyClear(background, $00ffffff);
- 
+
 	// other gx setup
 	GX_SetViewport(0,0,rmode^.fbWidth,rmode^.efbHeight,0,1);
 	yscale := GX_GetYScaleFactor(rmode^.efbHeight,rmode^.xfbHeight);
@@ -111,12 +111,12 @@ begin
     GX_SetFieldMode(rmode^.field_rendering, GX_ENABLE)
   else
     GX_SetFieldMode(rmode^.field_rendering, GX_DISABLE);
- 
+
 	if (rmode^.aa) <> 0 then
         GX_SetPixelFmt(GX_PF_RGB565_Z16, GX_ZC_LINEAR)
   else
         GX_SetPixelFmt(GX_PF_RGB8_Z24, GX_ZC_LINEAR);
- 
+
 	GX_SetCullMode(GX_CULL_NONE);
 	GX_CopyDisp(frameBuffer[fb],GX_TRUE);
 	GX_SetDispCopyGamma(GX_GM_1_0);
@@ -154,7 +154,7 @@ begin
 	// setup our camera at the origin
 	// looking down the -z axis with y up
 	guLookAt(view, @cam, @up, @look);
- 
+
 	// setup our projection matrix
 	// this creates a perspective matrix with a view angle of 90,
 	// and aspect ratio based on the display resolution
@@ -164,7 +164,7 @@ begin
 	GX_LoadProjectionMtx(perspective, GX_PERSPECTIVE);
 
 	randomize();
-	
+
   for i:=0 to NUM_STARS - 1 do
   begin
 		stars[i].ang := 0.0;
@@ -210,7 +210,7 @@ begin
 				GX_Position3f32(-1.0, 1.0, 0.0);				// Bottom Left of the quad (top)
 				GX_Color3u8(stars[i].r,stars[i].g,stars[i].b);	// Set The Color To Green
 				GX_TexCoord2f32(0.0,1.0);
-			GX_End();											// Done Drawing The Quad 
+			GX_End();											// Done Drawing The Quad
 
 			spin := spin + 0.01;
 			stars[i].ang := stars[i].ang + f32(i)/f32(NUM_STARS);

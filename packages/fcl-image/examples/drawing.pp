@@ -1,7 +1,7 @@
 {$mode objfpc}{$h+}
 program Drawing;
 
-uses 
+uses
   {$IFDEF UNIX}cwstring,{$ENDIF} classes, sysutils, FPImage, FPCanvas, FPImgCanv, FPWritePNG, FPReadPNG;
 
 const

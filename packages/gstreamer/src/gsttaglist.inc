@@ -162,13 +162,13 @@ const
 (* Const before type ignored *)
 (* Const before type ignored *)
 (* Const before type ignored *)
-  procedure gst_tag_register(name:Pgchar; flag:TGstTagFlag; _type:TGType; nick:Pgchar; blurb:Pgchar; 
+  procedure gst_tag_register(name:Pgchar; flag:TGstTagFlag; _type:TGType; nick:Pgchar; blurb:Pgchar;
               func:TGstTagMergeFunc);cdecl;external gstreamerlib name 'gst_tag_register';
 
 (* Const before type ignored *)
 (* Const before type ignored *)
 (* Const before type ignored *)
-  procedure gst_tag_register_static(name:Pgchar; flag:TGstTagFlag; _type:TGType; nick:Pgchar; blurb:Pgchar; 
+  procedure gst_tag_register_static(name:Pgchar; flag:TGstTagFlag; _type:TGType; nick:Pgchar; blurb:Pgchar;
               func:TGstTagMergeFunc);cdecl;external gstreamerlib name 'gst_tag_register_static';
 
 (* Const before type ignored *)
@@ -383,52 +383,52 @@ const
   {
   static inline GstTagList *
   gst_tag_list_ref (GstTagList * taglist)
-  
+
     return (GstTagList *) gst_mini_object_ref (((GstMiniObject*)(taglist)));
-  
-  
-  
-  
-  
-  
-  
-  
+
+
+
+
+
+
+
+
   static inline void
   gst_tag_list_unref (GstTagList * taglist)
-  
+
     gst_mini_object_unref (((GstMiniObject*)(taglist)));
-  
+
   # 497 "gsttaglist.h"
   static inline void
   gst_clear_tag_list (GstTagList ** taglist_ptr)
-  
-    do  _Static_assert (sizeof *(((GstMiniObject **) taglist_ptr)) == sizeof (gpointer), "Expression evaluates to false"); __typeof__((((GstMiniObject **) taglist_ptr))) _pp = (((GstMiniObject **) taglist_ptr)); __typeof__(*(((GstMiniObject **) taglist_ptr))) _ptr = *_pp; *_pp = 
+
+    do  _Static_assert (sizeof *(((GstMiniObject **) taglist_ptr)) == sizeof (gpointer), "Expression evaluates to false"); __typeof__((((GstMiniObject **) taglist_ptr))) _pp = (((GstMiniObject **) taglist_ptr)); __typeof__(*(((GstMiniObject **) taglist_ptr))) _ptr = *_pp; *_pp =
   # 500 "gsttaglist.h" 3 4
    ((void *)0)
   # 500 "gsttaglist.h"
    ; if (_ptr) (gst_mini_object_unref) (_ptr);  while (0) ;
-  
+
   # 519 "gsttaglist.h"
   static inline GstTagList *
   gst_tag_list_copy (const GstTagList * taglist)
-  
+
     return ((GstTagList *) (gst_mini_object_copy (((GstMiniObject*)(taglist)))));
-  
+
   # 544 "gsttaglist.h"
   static inline gboolean
   gst_tag_list_replace (GstTagList **old_taglist, GstTagList *new_taglist)
-  
+
       return gst_mini_object_replace ((GstMiniObject **) old_taglist,
           (GstMiniObject *) new_taglist);
-  
+
   # 566 "gsttaglist.h"
   static inline gboolean
   gst_tag_list_take (GstTagList **old_taglist, GstTagList *new_taglist)
-  
+
     return gst_mini_object_take ((GstMiniObject **) old_taglist,
         (GstMiniObject *) new_taglist);
-  
-  
+
+
    }
 
   var

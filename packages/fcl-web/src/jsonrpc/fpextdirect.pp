@@ -31,8 +31,8 @@ uses
 
 Const
   // Redefinition for backwards compatibility
-  
-{$IFDEF FPC_DOTTEDUNITS}  
+
+{$IFDEF FPC_DOTTEDUNITS}
    DefaultExtDirectOptions = FpWeb.JsonRpc.DispExtDirect.DefaultExtDirectOptions;
 {$ELSE}
    DefaultExtDirectOptions = fpdispextdirect.DefaultExtDirectOptions;

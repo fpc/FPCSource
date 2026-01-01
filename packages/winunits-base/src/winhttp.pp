@@ -23,7 +23,7 @@
 
       Contains manifests, macros, types and prototypes for Windows HTTP Services
 
-}	
+}
 {$IFNDEF FPC_DOTTEDUNITS}
 unit WinHTTP;
 {$ENDIF FPC_DOTTEDUNITS}
@@ -57,7 +57,7 @@ const
 type
   PLPVOID = ^LPVOID;
   LPUSHORT = ^USHORT;
-  
+
 
 const
   INTERNET_DEFAULT_PORT = 0;
@@ -506,7 +506,7 @@ type
   HINTERNET = LPVOID;
   LPHINTERNET = ^HINTERNET;
   PHINTERNET = ^HINTERNET;
-   
+
   INTERNET_PORT = WORD;
   LPINTERNET_PORT = ^INTERNET_PORT;
   WINHTTP_ASYNC_RESULT = record
@@ -578,14 +578,14 @@ type
   end;
   WINHTTP_PROXY_RESULT_ENTRY = _WINHTTP_PROXY_RESULT_ENTRY;
   PWINHTTP_PROXY_RESULT_ENTRY = ^WINHTTP_PROXY_RESULT_ENTRY;
-    
+
   _WINHTTP_PROXY_RESULT = record
     cEntries : DWORD;
     pEntries : ^WINHTTP_PROXY_RESULT_ENTRY;
   end;
   WINHTTP_PROXY_RESULT = _WINHTTP_PROXY_RESULT;
   PWINHTTP_PROXY_RESULT = ^WINHTTP_PROXY_RESULT;
-    
+
   _WINHTTP_PROXY_RESULT_EX = record
     cEntries : DWORD;
     pEntries : ^WINHTTP_PROXY_RESULT_ENTRY;
@@ -594,7 +594,7 @@ type
   end;
   WINHTTP_PROXY_RESULT_EX = _WINHTTP_PROXY_RESULT_EX;
   PWINHTTP_PROXY_RESULT_EX = ^WINHTTP_PROXY_RESULT_EX;
-    
+
   _WinHttpProxyNetworkKey = record
     pbBuffer : array[0..(NETWORKING_KEY_BUFSIZE)-1] of byte;
   end;
@@ -633,7 +633,7 @@ type
     dwKeySize : DWORD;
   end;
   PWINHTTP_CERTIFICATE_INFO =  ^WINHTTP_CERTIFICATE_INFO;
-    
+
   tagWINHTTP_CREDS = record
     lpszUserName : LPSTR;
     lpszPassword : LPSTR;
@@ -661,7 +661,7 @@ type
     dwContext: DWORD_PTR; dwInternetStatus: DWORD; lpvStatusInformation: LPVOID;
     dwStatusInformationLength: DWORD); stdcall;
 	LPWINHTTP_STATUS_CALLBACK = ^WINHTTP_STATUS_CALLBACK;
-	
+
   WINHTTP_CURRENT_USER_IE_PROXY_CONFIG = record
     fAutoDetect : BOOL;
     lpszAutoConfigUrl : LPWSTR;
@@ -669,7 +669,7 @@ type
     lpszProxyBypass : LPWSTR;
   end;
   PWINHTTP_CURRENT_USER_IE_PROXY_CONFIG = ^WINHTTP_CURRENT_USER_IE_PROXY_CONFIG;
-     
+
   _WINHTTP_WEB_SOCKET_OPERATION = (
     WINHTTP_WEB_SOCKET_SEND_OPERATION := 0,
     WINHTTP_WEB_SOCKET_RECEIVE_OPERATION := 1,
@@ -687,7 +687,7 @@ type
   );
   WINHTTP_WEB_SOCKET_BUFFER_TYPE = _WINHTTP_WEB_SOCKET_BUFFER_TYPE;
   PWINHTTP_WEB_SOCKET_BUFFER_TYPE = ^WINHTTP_WEB_SOCKET_BUFFER_TYPE;
-    
+
   _WINHTTP_WEB_SOCKET_CLOSE_STATUS = (
     WINHTTP_WEB_SOCKET_SUCCESS_CLOSE_STATUS := 1000,
     WINHTTP_WEB_SOCKET_ENDPOINT_TERMINATED_CLOSE_STATUS := 1001,
@@ -716,7 +716,7 @@ type
   end;
   WINHTTP_WEB_SOCKET_STATUS = _WINHTTP_WEB_SOCKET_STATUS;
 
-  function WINHTTP_INVALID_STATUS_CALLBACK : WINHTTP_STATUS_CALLBACK;    
+  function WINHTTP_INVALID_STATUS_CALLBACK : WINHTTP_STATUS_CALLBACK;
 
   function WinHttpSetStatusCallback(hInternet:HINTERNET; lpfnInternetCallback:WINHTTP_STATUS_CALLBACK; dwNotificationFlags:DWORD; dwReserved:DWORD_PTR):WINHTTP_STATUS_CALLBACK; stdcall; external External_library;
   function WinHttpTimeFromSystemTime(var pst:SYSTEMTIME; pwszTime:LPWSTR):WINBOOL; stdcall; external External_library;
@@ -741,18 +741,18 @@ type
   function WinHttpSetTimeouts(hInternet:HINTERNET; nResolveTime:longint; nConnectTime:longint; nSendTime:longint; nReceiveTime:longint):WINBOOL; stdcall; external External_library;
   function WinHttpIsHostInProxyBypassList(var pProxyInfo:WINHTTP_PROXY_INFO; pwszHost:PCWSTR; tScheme:INTERNET_SCHEME; nPort:INTERNET_PORT; var pfIsInBypassList:BOOL):DWORD; stdcall; overload; external External_library;
   function WinHttpIsHostInProxyBypassList(pProxyInfo:PWINHTTP_PROXY_INFO; pwszHost:PCWSTR; tScheme:INTERNET_SCHEME; nPort:INTERNET_PORT; pfIsInBypassList:PBOOL):DWORD; stdcall; overload; external External_library;
-  function WinHttpOpenRequest(hConnect:HINTERNET; pwszVerb:LPCWSTR; pwszObjectName:LPCWSTR; pwszVersion:LPCWSTR; pwszReferrer:LPCWSTR; 
+  function WinHttpOpenRequest(hConnect:HINTERNET; pwszVerb:LPCWSTR; pwszObjectName:LPCWSTR; pwszVersion:LPCWSTR; pwszReferrer:LPCWSTR;
             ppwszAcceptTypes:LPPCWSTR; dwFlags:DWORD):HINTERNET; stdcall; external External_library;
   function WinHttpAddRequestHeaders(hRequest:HINTERNET; lpszHeaders:LPCWSTR; dwHeadersLength:DWORD; dwModifiers:DWORD):WINBOOL; stdcall; external External_library;
-  function WinHttpSendRequest(hRequest:HINTERNET; lpszHeaders:LPCWSTR; dwHeadersLength:DWORD; lp:LPVOID; dwLength:DWORD; 
+  function WinHttpSendRequest(hRequest:HINTERNET; lpszHeaders:LPCWSTR; dwHeadersLength:DWORD; lp:LPVOID; dwLength:DWORD;
             dwTotalLength:DWORD; dwContext:DWORD_PTR):WINBOOL; stdcall; external External_library;
- function WinHttpSetCredentials(hRequest:HINTERNET; AuthTargets:DWORD; AuthScheme:DWORD; pwszUserName:LPCWSTR; pwszPassword:LPCWSTR; 
+ function WinHttpSetCredentials(hRequest:HINTERNET; AuthTargets:DWORD; AuthScheme:DWORD; pwszUserName:LPCWSTR; pwszPassword:LPCWSTR;
              pAuthParams:LPVOID):WINBOOL; stdcall; external External_library;
   function WinHttpQueryAuthSchemes(hRequest:HINTERNET; lpdwSupportedSchemes:LPDWORD; lpdwFirstScheme:LPDWORD; pdwAuthTarget:LPDWORD):WINBOOL;stdcall;external External_library name 'WinHttpQueryAuthSchemes';
   function WinHttpQueryAuthParams(hRequest:HINTERNET; AuthScheme:DWORD; var pAuthParams:LPVOID):WINBOOL; stdcall; overload; external External_library;
   function WinHttpQueryAuthParams(hRequest:HINTERNET; AuthScheme:DWORD; pAuthParams:PLPVOID):WINBOOL; stdcall; overload; external External_library;
   function WinHttpReceiveResponse(hRequest:HINTERNET; lpReserved:LPVOID):BOOL; stdcall; external External_library;
-  function WinHttpQueryHeaders(hRequest:HINTERNET; dwInfoLevel:DWORD; pwszName:LPCWSTR; lpBuffer:LPVOID; lpdwBufferLength:LPDWORD; 
+  function WinHttpQueryHeaders(hRequest:HINTERNET; dwInfoLevel:DWORD; pwszName:LPCWSTR; lpBuffer:LPVOID; lpdwBufferLength:LPDWORD;
              lpdwIndex:LPDWORD):WINBOOL; stdcall; external External_library;
   function WinHttpDetectAutoProxyConfigUrl(dwAutoDetectFlags:DWORD; var ppwstrAutoConfigUrl:LPWSTR):WINBOOL; stdcall; overload; external External_library;
   function WinHttpDetectAutoProxyConfigUrl(dwAutoDetectFlags:DWORD; ppwstrAutoConfigUrl:PLPWSTR):WINBOOL; stdcall; overload; external External_library;

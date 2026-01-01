@@ -550,7 +550,7 @@ function CGImageMetadataCopyTags( metadata: CGImageMetadataRef ): CFArrayRef; ex
  *    <li>'path' = CFSTR("dc:title")</li>
  *    <li>'path' = CFSTR("dc:subject")</li>
  *    <li>'path' = CFSTR("dc:subject[2]") </li>
- *    <li>'parent' = tag at path CFSTR("dc:subject"), path = CFSTR("[2]") (equivilent to previous)</li>
+ *    <li>'parent' = tag at path CFSTR("dc:subject"), path = CFSTR("[2]") (equivalent to previous)</li>
  *    <li>'path' = CFSTR("dc:description[x-default])"</li>
  *    <li>'path' = CFSTR("dc.description[de])"</li>
  *    <li>'path' = CFSTR("dc.description[fr])"</li>
@@ -630,7 +630,7 @@ function CGImageMetadataRegisterNamespaceForPrefix( metadata: CGMutableImageMeta
  * Note that if a parent tag is provided,
  * the children of that tag reference will be modified, which may be a different
  * reference from the tag stored in the metadata container. Since tags are normally
- * obtained as a copy, it is typically neccesary to use CGImageMetadataSetTagWithPath
+ * obtained as a copy, it is typically necessary to use CGImageMetadataSetTagWithPath
  * to commit the changed parent object back to the metadata container (using
  * the parent's path and NULL for the parent).
  * @param path A string with the path to the desired tag. Please consult
@@ -691,7 +691,7 @@ function CGImageMetadataSetValueWithPath( metadata: CGMutableImageMetadataRef; p
  * path from a mutable metadata container. Note that if a parent tag is provided,
  * the children of that tag reference will be modified, which may be a different
  * reference from the tag stored in the metadata container. Since tags are normally
- * obtained as a copy, it is typically neccesary to use CGImageMetadataSetTagWithPath
+ * obtained as a copy, it is typically necessary to use CGImageMetadataSetTagWithPath
  * to commit the changed parent object back to the metadata container (using
  * the parent's path and NULL for the parent).
  * @param parent A parent tag. If NULL, the path is relative to the root of the

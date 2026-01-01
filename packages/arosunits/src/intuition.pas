@@ -367,8 +367,8 @@ type
     HorizBody: Word;    // horizontal Body
     VertBody: Word;     // vertical Body
     // these are the variables that Intuition sets and maintains
-    CWidth: Word;       // Container width (with any relativity absoluted)
-    CHeight: Word;      // Container height (with any relativity absoluted)
+    CWidth: Word;       // Container width (with any relativity obsoleted)
+    CHeight: Word;      // Container height (with any relativity obsoleted)
     HPotRes,
     VPotRes: Word;      // pot increments
     LeftBorder: Word;   // Container borders
@@ -1867,7 +1867,7 @@ type
     cl_InstSize: Word;
 
     cl_UserData: IPTR;          // per-class data of your choice, application specific
-    cl_SubclassCount: LongWord; // # of direct suclasses
+    cl_SubclassCount: LongWord; // # of direct sub classes
     cl_ObjectCount: LongWord;   // # of objects, made from this class must be 0, if the class is to be deleted
     cl_Flags: LongWord;         // Flags (CLF_INLIST)
     cl_ObjectSize: LongWord;    // cl_InstOffset + cl_InstSize + SizeOf(_Object)
@@ -1945,7 +1945,7 @@ const
 // Gadget activation.
   GA_Selected     = (GA_Dummy + $0013); // [ISG] (LongBool) Indicate whether the gadget is selected or not. Default = False
   GA_EndGadget    = (GA_Dummy + $0014); // [IS.] (LongBool) Only used for requester gadgets. This tells intuition that the requester is to be closed, when the gadget is released. Default = False
-  GA_Immediate    = (GA_Dummy + $0015); // [IS.] (LongBool) If set the gadget responds immediatly, when the gadget is selected. Default = False
+  GA_Immediate    = (GA_Dummy + $0015); // [IS.] (LongBool) If set the gadget responds immediately, when the gadget is selected. Default = False
   GA_RelVerify    = (GA_Dummy + $0016); // [IS.] (LongBool) If set the gadget responds, when it is released from selected state. Default = False
   GA_FollowMouse  = (GA_Dummy + $0017); // [IS.] (LongBool) If this is set, the gadget receives information about the movement of the mouse as long as it is activated. Default = False
   GA_RightBorder  = (GA_Dummy + $0018); // [IS.] (LongBool) Indicate whether the gadget is in the right border or not. Default = False.
@@ -1983,7 +1983,7 @@ const
   GA_ActivateKey = GA_Dummy + 43; // (PAnsiChar) Set/Get the gadgets shortcut/activation key(s) Default = nil
   GA_BackFill = GA_Dummy + 44; // (PHook) Backfill pattern hook. Defaults to nil.
   GA_GadgetHelpText = GA_Dummy + 45; // (PAnsiChar) RESERVERD/PRIVATE DO NOT USE. Default = nil
-  GA_UserInput = GA_Dummy + 46; // (LongBool) Notification tag indicates this notification is from the activite gadget receiving user input - an attempt to make IDCMPUPDATE more efficient.
+  GA_UserInput = GA_Dummy + 46; // (LongBool) Notification tag indicates this notification is from the activity gadget receiving user input - an attempt to make IDCMPUPDATE more efficient.
 // Aros Specifics
   GA_LabelPlace = GA_Dummy + 100; { [I..] (LongInt) Choose the placing of the label. GadgetClass does not support
      this directly. Its subclasses have to take care of that. For possible values see GV_* .}
@@ -2158,7 +2158,7 @@ type
     MethodID: LongWord;         // GM_GOINACTIVE
     gpgi_GInfo: PGadgetInfo;
     gpgi_Abort: LongWord; { Boolean field to indicate, who wanted the gadget to go inactive. If
-         this is 1 this method was sent, because intution wants the gadget to
+         this is 1 this method was sent, because intuition wants the gadget to
          go inactive, if it is 0, it was the gadget itself that wanted it.}
     pad_align: record end; // properly pad previous field if applicable
     {$POP}
@@ -2541,7 +2541,7 @@ type
     nd_Port: PMsgPort;
     nd_cnt: Word;
     nd_Pattern: STRPTR;
-    nd_IntPattern: STRPTR; // Private, transformated Pattern be dos/ParsePattern()
+    nd_IntPattern: STRPTR; // Private, transformed Pattern be dos/ParsePattern()
     nd_Window: PObject_;
     nd_Screen: PObject_;
     nd_Menu: PObject_;
@@ -2578,7 +2578,7 @@ const
   SNA_UserData = TAG_USER + $03; // this tag will be passed to the screennotify message
   SNA_SigTask  = TAG_USER + $04; // if port = nil, a sigbit will be set for this task
   SNA_SigBit   = TAG_USER + $05; // signal bit to set if port = nil
-  SNA_MsgPort  = TAG_USER + $06; // if <> nil post mesage to this port
+  SNA_MsgPort  = TAG_USER + $06; // if <> nil post message to this port
   SNA_Priority = TAG_USER + $07;
   SNA_Hook     = TAG_USER + $08;
 
@@ -3712,7 +3712,7 @@ begin
   FULLMENUNUM := ((Sub and $1f) shl 11) or ((Item and $3f) shl 5) or (Menu and $1f);
 end;
 
-{ The next functons _BGPEN AND _FGPEN aren't a full replacement of the
+{ The next functions _BGPEN AND _FGPEN aren't a full replacement of the
   C macros because the C preprocessor makes it possible to set the
   A/BPen values of the Image class objects as well. This can't work
   in pascal, of course!

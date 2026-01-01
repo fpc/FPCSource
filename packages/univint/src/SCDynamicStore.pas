@@ -240,7 +240,7 @@ uses MacTypes,MacOSXPosix,CFBase,CFArray,CFRunLoop,CFPropertyList,CFDictionary;
 		pairs in the dynamic store of a running system.  The dynamic
 		store contains, among other items, a copy of the configuration
 		settings for the currently active set (which is sometimes
-		refered to as the location) and information about the current
+		referred to as the location) and information about the current
 		network state.
 
 		The functions in the SCDynamicStore API allow you to find

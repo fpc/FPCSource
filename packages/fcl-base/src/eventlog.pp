@@ -148,7 +148,7 @@ implementation
 Resourcestring
   SErrOperationNotAllowed = 'Operation not allowed when eventlog is active.';
 
-Constructor TEventLog.Create(aOwner: TComponent); 
+Constructor TEventLog.Create(aOwner: TComponent);
 
 begin
   Inherited;
@@ -224,9 +224,9 @@ end;
 
 procedure TEventLog.Log(EventType: TEventType; const Msg: String);
 begin
-  If Paused then 
+  If Paused then
     exit;
-  if not (EventType in EventFilter) then 
+  if not (EventType in EventFilter) then
     exit;
   EnsureActive;
   Case FlogType of

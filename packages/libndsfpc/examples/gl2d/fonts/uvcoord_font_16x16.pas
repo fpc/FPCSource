@@ -2,9 +2,9 @@ unit uvcoord_font_16x16;
 
 interface
 
-uses 
+uses
   ctypes;
-  
+
 
 const
   FONT_16X16_BITMAP_WIDTH  = 64;

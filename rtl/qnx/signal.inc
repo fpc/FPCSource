@@ -67,7 +67,7 @@ const
     SIGPOLL    =22;     { System V name for SIGIO            }
     SIGIO      =SIGPOLL;
     SIGVTALRM  =28;     { virtual timer expired              }
-    SIGPROF    =29;     { profileing timer expired           }
+    SIGPROF    =29;     { profiling timer expired            }
     SIGXCPU    =30;     { exceded cpu limit                  }
     SIGXFSZ    =31;     { exceded file size limit            }
 

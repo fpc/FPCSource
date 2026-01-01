@@ -19,12 +19,12 @@ unit wasm.locale.objects;
 
 interface
 
-uses 
+uses
   {$IFDEF FPC_DOTTEDUNITS}
   System.SysUtils,
   {$ELSE}
   sysutils,
-  {$ENDIF} 
+  {$ENDIF}
   wasm.locale.shared, wasm.locale.api;
 
 Type
@@ -181,7 +181,7 @@ var
 begin
 //  buf:='';
 
-  // Currrency
+  // Currency
   InitBuffer;
   res:=__locale_GetCurrencySymbol(@Buf[1],@len);
   if res=ELocale_SUCCESS then

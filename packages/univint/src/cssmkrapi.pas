@@ -344,7 +344,7 @@ type
 	(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
 
-{ Key Recovery Module Mangement Operations }
+{ Key Recovery Module Management Operations }
 
 function CSSM_KR_SetEnterpriseRecoveryPolicy( const (*var*) RecoveryPolicyFileName: CSSM_DATA; const (*var*) OldPassPhrase: CSSM_ACCESS_CREDENTIALS; const (*var*) NewPassPhrase: CSSM_ACCESS_CREDENTIALS ): CSSM_RETURN; external name '_CSSM_KR_SetEnterpriseRecoveryPolicy';
 (* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)

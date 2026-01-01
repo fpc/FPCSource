@@ -11,7 +11,7 @@ uses
 uses
   ctypes;
 {$ENDIF FPC_DOTTEDUNITS}
-  
+
 const
   LITTLE_ENDIAN = 3412;
   BIG_ENDIAN    = 1234;
@@ -38,7 +38,7 @@ type
     tv_nsec: Longint;
   end;
   ptimespec = ^timespec;
-  
+
 var
   __system_argv: pargv; cvar; external;
 

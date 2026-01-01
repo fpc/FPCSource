@@ -13,8 +13,8 @@
 (**
  * xmlParserMaxDepth:
  *
- * arbitrary depth limit for the XML documents that we allow to 
- * process. This is not a limitation of the parser but a safety 
+ * arbitrary depth limit for the XML documents that we allow to
+ * process. This is not a limitation of the parser but a safety
  * boundary feature.
  *)
 {$IFNDEF NO_EXTERNAL_VARS}
@@ -140,7 +140,7 @@ var
  *
  * Always false (all combining chars > 0xff)
  *)
-#define IS_COMBINING_CH(c) 0 
+#define IS_COMBINING_CH(c) 0
 
 (**
  * IS_EXTENDER:
@@ -181,7 +181,7 @@ var
  * Macro to check the following production in the XML spec:
  *
  *
- * [84] Letter ::= BaseChar | Ideographic 
+ * [84] Letter ::= BaseChar | Ideographic
  *)
 #define IS_LETTER(c) (IS_BASECHAR(c) || IS_IDEOGRAPHIC(c))
 
@@ -275,25 +275,25 @@ external xml2lib int EXTDECL                   xmlIsLetter     (int c);
 (**
  * Parser context.
  *)
-external xml2lib xmlParserCtxtPtr EXTDECL	
+external xml2lib xmlParserCtxtPtr EXTDECL
 			xmlCreateFileParserCtxt	(AnsiChar *filename);
-external xml2lib xmlParserCtxtPtr EXTDECL	
+external xml2lib xmlParserCtxtPtr EXTDECL
 			xmlCreateURLParserCtxt	(AnsiChar *filename,
 						 int options);
-external xml2lib xmlParserCtxtPtr EXTDECL	
+external xml2lib xmlParserCtxtPtr EXTDECL
 			xmlCreateMemoryParserCtxt(AnsiChar *buffer,
 						 int size);
-external xml2lib xmlParserCtxtPtr EXTDECL	
+external xml2lib xmlParserCtxtPtr EXTDECL
 			xmlCreateEntityParserCtxt(xmlChar *URL,
 						 xmlChar *ID,
 						 xmlChar *base);
-external xml2lib int EXTDECL			
+external xml2lib int EXTDECL
 			xmlSwitchEncoding	(xmlParserCtxtPtr ctxt,
 						 xmlCharEncoding enc);
-external xml2lib int EXTDECL			
+external xml2lib int EXTDECL
 			xmlSwitchToEncoding	(xmlParserCtxtPtr ctxt,
 					 xmlCharEncodingHandlerPtr handler);
-external xml2lib int EXTDECL			
+external xml2lib int EXTDECL
 			xmlSwitchInputEncoding	(xmlParserCtxtPtr ctxt,
 						 xmlParserInputPtr input,
 					 xmlCharEncodingHandlerPtr handler);
@@ -311,29 +311,29 @@ external xml2lib void EXTDECL
 (**
  * Input Streams.
  *)
-external xml2lib xmlParserInputPtr EXTDECL	
+external xml2lib xmlParserInputPtr EXTDECL
 			xmlNewStringInputStream	(xmlParserCtxtPtr ctxt,
 						 xmlChar *buffer);
-external xml2lib xmlParserInputPtr EXTDECL	
+external xml2lib xmlParserInputPtr EXTDECL
 			xmlNewEntityInputStream	(xmlParserCtxtPtr ctxt,
 						 xmlEntityPtr entity);
-external xml2lib void EXTDECL			
+external xml2lib void EXTDECL
 			xmlPushInput		(xmlParserCtxtPtr ctxt,
 						 xmlParserInputPtr input);
-external xml2lib xmlChar EXTDECL			
+external xml2lib xmlChar EXTDECL
 			xmlPopInput		(xmlParserCtxtPtr ctxt);
-external xml2lib void EXTDECL			
+external xml2lib void EXTDECL
 			xmlFreeInputStream	(xmlParserInputPtr input);
-external xml2lib xmlParserInputPtr EXTDECL	
+external xml2lib xmlParserInputPtr EXTDECL
 			xmlNewInputFromFile	(xmlParserCtxtPtr ctxt,
 						 AnsiChar *filename);
-external xml2lib xmlParserInputPtr EXTDECL	
+external xml2lib xmlParserInputPtr EXTDECL
 			xmlNewInputStream	(xmlParserCtxtPtr ctxt);
 
 (**
  * Namespaces.
  *)
-external xml2lib xmlChar * EXTDECL		
+external xml2lib xmlChar * EXTDECL
 			xmlSplitQName		(xmlParserCtxtPtr ctxt,
 						 xmlChar *name,
 						 xmlChar **prefix);
@@ -341,109 +341,109 @@ external xml2lib xmlChar * EXTDECL
 (**
  * Generic production rules.
  *)
-external xml2lib xmlChar * EXTDECL		
+external xml2lib xmlChar * EXTDECL
 			xmlParseName		(xmlParserCtxtPtr ctxt);
-external xml2lib xmlChar * EXTDECL		
+external xml2lib xmlChar * EXTDECL
 			xmlParseNmtoken		(xmlParserCtxtPtr ctxt);
-external xml2lib xmlChar * EXTDECL		
+external xml2lib xmlChar * EXTDECL
 			xmlParseEntityValue	(xmlParserCtxtPtr ctxt,
 						 xmlChar **orig);
-external xml2lib xmlChar * EXTDECL		
+external xml2lib xmlChar * EXTDECL
 			xmlParseAttValue	(xmlParserCtxtPtr ctxt);
-external xml2lib xmlChar * EXTDECL		
+external xml2lib xmlChar * EXTDECL
 			xmlParseSystemLiteral	(xmlParserCtxtPtr ctxt);
-external xml2lib xmlChar * EXTDECL		
+external xml2lib xmlChar * EXTDECL
 			xmlParsePubidLiteral	(xmlParserCtxtPtr ctxt);
-external xml2lib void EXTDECL			
+external xml2lib void EXTDECL
 			xmlParseCharData	(xmlParserCtxtPtr ctxt,
 						 int cdata);
-external xml2lib xmlChar * EXTDECL		
+external xml2lib xmlChar * EXTDECL
 			xmlParseExternalID	(xmlParserCtxtPtr ctxt,
 						 xmlChar **publicID,
 						 int strict);
-external xml2lib void EXTDECL			
+external xml2lib void EXTDECL
 			xmlParseComment		(xmlParserCtxtPtr ctxt);
-external xml2lib xmlChar * EXTDECL		
+external xml2lib xmlChar * EXTDECL
 			xmlParsePITarget	(xmlParserCtxtPtr ctxt);
-external xml2lib void EXTDECL			
+external xml2lib void EXTDECL
 			xmlParsePI		(xmlParserCtxtPtr ctxt);
-external xml2lib void EXTDECL			
+external xml2lib void EXTDECL
 			xmlParseNotationDecl	(xmlParserCtxtPtr ctxt);
-external xml2lib void EXTDECL			
+external xml2lib void EXTDECL
 			xmlParseEntityDecl	(xmlParserCtxtPtr ctxt);
-external xml2lib int EXTDECL			
+external xml2lib int EXTDECL
 			xmlParseDefaultDecl	(xmlParserCtxtPtr ctxt,
 						 xmlChar **value);
-external xml2lib xmlEnumerationPtr EXTDECL	
+external xml2lib xmlEnumerationPtr EXTDECL
 			xmlParseNotationType	(xmlParserCtxtPtr ctxt);
-external xml2lib xmlEnumerationPtr EXTDECL	
+external xml2lib xmlEnumerationPtr EXTDECL
 			xmlParseEnumerationType	(xmlParserCtxtPtr ctxt);
-external xml2lib int EXTDECL			
+external xml2lib int EXTDECL
 			xmlParseEnumeratedType	(xmlParserCtxtPtr ctxt,
 						 xmlEnumerationPtr *tree);
-external xml2lib int EXTDECL			
+external xml2lib int EXTDECL
 			xmlParseAttributeType	(xmlParserCtxtPtr ctxt,
 						 xmlEnumerationPtr *tree);
-external xml2lib void EXTDECL			
+external xml2lib void EXTDECL
 			xmlParseAttributeListDecl(xmlParserCtxtPtr ctxt);
-external xml2lib xmlElementContentPtr EXTDECL	
+external xml2lib xmlElementContentPtr EXTDECL
 			xmlParseElementMixedContentDecl
 						(xmlParserCtxtPtr ctxt,
 						 int inputchk);
-external xml2lib xmlElementContentPtr EXTDECL	
+external xml2lib xmlElementContentPtr EXTDECL
 			xmlParseElementChildrenContentDecl
 						(xmlParserCtxtPtr ctxt,
 						 int inputchk);
-external xml2lib int EXTDECL			
+external xml2lib int EXTDECL
 			xmlParseElementContentDecl(xmlParserCtxtPtr ctxt,
 						 xmlChar *name,
 						 xmlElementContentPtr *result);
-external xml2lib int EXTDECL			
+external xml2lib int EXTDECL
 			xmlParseElementDecl	(xmlParserCtxtPtr ctxt);
-external xml2lib void EXTDECL			
+external xml2lib void EXTDECL
 			xmlParseMarkupDecl	(xmlParserCtxtPtr ctxt);
-external xml2lib int EXTDECL			
+external xml2lib int EXTDECL
 			xmlParseCharRef		(xmlParserCtxtPtr ctxt);
-external xml2lib xmlEntityPtr EXTDECL		
+external xml2lib xmlEntityPtr EXTDECL
 			xmlParseEntityRef	(xmlParserCtxtPtr ctxt);
-external xml2lib void EXTDECL			
+external xml2lib void EXTDECL
 			xmlParseReference	(xmlParserCtxtPtr ctxt);
-external xml2lib void EXTDECL			
+external xml2lib void EXTDECL
 			xmlParsePEReference	(xmlParserCtxtPtr ctxt);
-external xml2lib void EXTDECL			
+external xml2lib void EXTDECL
 			xmlParseDocTypeDecl	(xmlParserCtxtPtr ctxt);
 {$IFDEF LIBXML_SAX1_ENABLED}
-external xml2lib xmlChar * EXTDECL		
+external xml2lib xmlChar * EXTDECL
 			xmlParseAttribute	(xmlParserCtxtPtr ctxt,
 						 xmlChar **value);
-external xml2lib xmlChar * EXTDECL		
+external xml2lib xmlChar * EXTDECL
 			xmlParseStartTag	(xmlParserCtxtPtr ctxt);
-external xml2lib void EXTDECL			
+external xml2lib void EXTDECL
 			xmlParseEndTag		(xmlParserCtxtPtr ctxt);
 {$ENDIF} (* LIBXML_SAX1_ENABLED *)
-external xml2lib void EXTDECL			
+external xml2lib void EXTDECL
 			xmlParseCDSect		(xmlParserCtxtPtr ctxt);
-external xml2lib void EXTDECL			
+external xml2lib void EXTDECL
 			xmlParseContent		(xmlParserCtxtPtr ctxt);
-external xml2lib void EXTDECL			
+external xml2lib void EXTDECL
 			xmlParseElement		(xmlParserCtxtPtr ctxt);
-external xml2lib xmlChar * EXTDECL		
+external xml2lib xmlChar * EXTDECL
 			xmlParseVersionNum	(xmlParserCtxtPtr ctxt);
-external xml2lib xmlChar * EXTDECL		
+external xml2lib xmlChar * EXTDECL
 			xmlParseVersionInfo	(xmlParserCtxtPtr ctxt);
-external xml2lib xmlChar * EXTDECL		
+external xml2lib xmlChar * EXTDECL
 			xmlParseEncName		(xmlParserCtxtPtr ctxt);
-external xml2lib xmlChar * EXTDECL		
+external xml2lib xmlChar * EXTDECL
 			xmlParseEncodingDecl	(xmlParserCtxtPtr ctxt);
-external xml2lib int EXTDECL			
+external xml2lib int EXTDECL
 			xmlParseSDDecl		(xmlParserCtxtPtr ctxt);
-external xml2lib void EXTDECL			
+external xml2lib void EXTDECL
 			xmlParseXMLDecl		(xmlParserCtxtPtr ctxt);
-external xml2lib void EXTDECL			
+external xml2lib void EXTDECL
 			xmlParseTextDecl	(xmlParserCtxtPtr ctxt);
-external xml2lib void EXTDECL			
+external xml2lib void EXTDECL
 			xmlParseMisc		(xmlParserCtxtPtr ctxt);
-external xml2lib void EXTDECL			
+external xml2lib void EXTDECL
 			xmlParseExternalSubset	(xmlParserCtxtPtr ctxt,
 						 xmlChar *ExternalID,
 						 xmlChar *SystemID);
@@ -558,21 +558,21 @@ external xml2lib htmlParserCtxtPtr EXTDECL	htmlCreateFileParserCtxt(AnsiChar *fi
 typedef	void	(xmlEntityReferenceFunc)	(xmlEntityPtr ent,
 						 xmlNodePtr firstNode,
 						 xmlNodePtr lastNode);
-  
+
 external xml2lib void EXTDECL		xmlSetEntityReferenceFunc	(xmlEntityReferenceFunc func);
 
-external xml2lib xmlChar * EXTDECL		
+external xml2lib xmlChar * EXTDECL
 			xmlParseQuotedString	(xmlParserCtxtPtr ctxt);
 external xml2lib void EXTDECL
                         xmlParseNamespace       (xmlParserCtxtPtr ctxt);
-external xml2lib xmlChar * EXTDECL		
+external xml2lib xmlChar * EXTDECL
 			xmlNamespaceParseNSDef	(xmlParserCtxtPtr ctxt);
-external xml2lib xmlChar * EXTDECL		
+external xml2lib xmlChar * EXTDECL
 			xmlScanName		(xmlParserCtxtPtr ctxt);
-external xml2lib xmlChar * EXTDECL		
+external xml2lib xmlChar * EXTDECL
 			xmlNamespaceParseNCName	(xmlParserCtxtPtr ctxt);
 external xml2lib void EXTDECL	xmlParserHandleReference(xmlParserCtxtPtr ctxt);
-external xml2lib xmlChar * EXTDECL		
+external xml2lib xmlChar * EXTDECL
 			xmlNamespaceParseQName	(xmlParserCtxtPtr ctxt,
 						 xmlChar **prefix);
 
@@ -586,7 +586,7 @@ external xml2lib xmlChar * EXTDECL
 						 xmlChar end,
 						 xmlChar  end2,
 						 xmlChar end3);
-external xml2lib void EXTDECL			
+external xml2lib void EXTDECL
 			xmlHandleEntity		(xmlParserCtxtPtr ctxt,
 						 xmlEntityPtr entity);
 

@@ -53,7 +53,7 @@ function GetLineInfo(addr:ptruint;var func,source:string;var line:longint) : boo
     ioresult;
     mypid:=fpgetpid;
     str(mypid,pidstr);
-    { create temporary file containig gdb command }
+    { create temporary file containing gdb command }
     assign(commfile,'/tmp/fpcbt'+pidstr);
     rewrite(commfile);
     if ioresult<>0 then

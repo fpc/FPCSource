@@ -721,7 +721,7 @@ const
 	smCharVertical = $1000; { vertical character form }
                                         { CharType directions }
 	smCharLeft = $0000;
-	smCharRight = $2000; { CharType case modifers }
+	smCharRight = $2000; { CharType case modifiers }
 	smCharLower = $0000;
 	smCharUpper = $4000; { CharType character size modifiers (1 or multiple bytes). }
 	smChar1byte = $0000;

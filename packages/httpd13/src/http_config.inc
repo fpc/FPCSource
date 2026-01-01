@@ -30,7 +30,7 @@ type
     RAW_ARGS,			{ cmd_func parses command line itself }
     TAKE1,			{ one argument only }
     TAKE2,			{ two arguments only }
-    ITERATE,			{ one argument, occuring multiple times
+    ITERATE,			{ one argument, occurring multiple times
 				 * (e.g., IndexIgnore)
                                  }
     ITERATE2,			{ two arguments, 2nd occurs multiple times
@@ -46,7 +46,7 @@ type
   );
 
   cs_func_t = function (): PAnsiChar;
-  
+
   command_struct = record
     name: PAnsiChar;		{ Name of this command }
     func: cs_func_t;       	{ Function invoked }
@@ -123,7 +123,7 @@ type
     path: PAnsiChar;	        { If configuring for a directory,
 				 * pathname of that directory.
 				 * NOPE!  That's what it meant previous to the
-				 * existance of <Files>, <Location> and regex
+				 * existence of <Files>, <Location> and regex
 				 * matching.  Now the only usefulness that can
 				 * be derived from this field is whether a command
 				 * is being called in a server context (path == NULL)
@@ -140,7 +140,7 @@ type
   handler_t = function (param1: Prequest_rec): Integer; cdecl;
 
   Phandler_rec = ^handler_rec;
-  
+
   handler_rec = record
     content_type: PAnsiChar;	{ MUST be all lower case }
     handler: handler_t;
@@ -153,7 +153,7 @@ type
  }
 
   Pmodule_struct = ^module_struct;
-  
+
 {$ifdef ULTRIX_BRAIN_DEATH}
     init_t = procedure (); cdecl;
     create_dir_config_t = function (): Pointer; cdecl;
@@ -257,7 +257,7 @@ type
 
     post_read_request: hook_t;
   end;
-  
+
   module = module_struct;
 
   Pmodule = ^module;

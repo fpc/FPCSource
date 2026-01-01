@@ -3,7 +3,7 @@
 type
   PXSettingsAction = ^TXSettingsAction;
   TXSettingsAction =  Longint;
-  
+
 Const
   XSETTINGS_ACTION_NEW = 0;
   XSETTINGS_ACTION_CHANGED = 1;

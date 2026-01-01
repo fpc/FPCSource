@@ -2,7 +2,7 @@ program createlzwtest;
 {
   Small program that converts TIFF LZW compressed data to uncompressed data.
   (assumes the fpreadtiff DecodeLZW is correct)
-  
+
 }
 
 {$mode objfpc}

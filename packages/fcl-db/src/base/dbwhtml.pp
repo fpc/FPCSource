@@ -600,7 +600,7 @@ begin
   CreateComboBox;
 end;
 
-{ THTMLProceder }
+{ THTMLProducer }
 
 function THTMLProducer.GetContent: String;
 
