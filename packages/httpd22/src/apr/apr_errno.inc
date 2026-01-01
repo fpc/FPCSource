@@ -197,7 +197,7 @@ const
  * APR_ANONYMOUS      APR is using anonymous shared memory
  * APR_FILEBASED      APR is using a file name as the key to the shared memory
  * APR_KEYBASED       APR is using a shared key as the key to the shared memory
- * APR_EINIT          Ininitalizer value.  If no option has been found, but
+ * APR_EINIT          Initializer value.  If no option has been found, but
  *                    the status variable requires a value, this should be used
  * APR_ENOTIMPL       The APR function has not been implemented on this
  *                    platform, either because nobody has gotten to it yet,
@@ -518,7 +518,7 @@ const
  }
 //#define APR_STATUS_IS_KEYBASED(s)       ((s) == APR_KEYBASED)
 {
- * Ininitalizer value.  If no option has been found, but
+ * Initializer value.  If no option has been found, but
  * the status variable requires a value, this should be used
  * @warning
  * always use this test, as platform-specific variances may meet this

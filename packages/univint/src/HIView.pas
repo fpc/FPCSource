@@ -2697,7 +2697,7 @@ function HIViewGetSubviewHit( inView: HIViewRef; const (*var*) inPoint: HIPoint;
  *      timeout or key modifiers changed event caused this function to
  *      exit, the current mouse position at the time is returned. The
  *      mouse position will be returned in the coordinate space of the
- *      specifed HIView.
+ *      specified HIView.
  *
  *    outModifiers:
  *      On exit, this parameter receives the most recent state of the
@@ -4335,7 +4335,7 @@ const
  *  Parameters:
  *
  *    inView:
- *      The HIView whose layout info is to be retreived.
+ *      The HIView whose layout info is to be retrieved.
  *
  *    outLayoutInfo:
  *      A pointer to an HILayoutInfo record into which to copy the

@@ -261,7 +261,7 @@ uses MacTypes,ATSUnicodeTypes,TextCommon,SFNTLayoutTypes;
  *    characters in an ATSUTextLayout object. You can do this by
  *    calling functions such as ATSUSetRunStyle or
  *    ATSUCreateTextLayoutWithTextPtr. You are responsible for freeing
- *    memory assoicated with an ATSUStyle object by calling
+ *    memory associated with an ATSUStyle object by calling
  *    ATSUDisposeStyle.
  *
  *  Parameters:
@@ -303,7 +303,7 @@ function ATSUCreateStyle( var oStyle: ATSUStyle ): OSStatus; external name '_ATS
  *    All attributes, font features, and font variation settings of the
  *    input ATSUStyle object are copied over to a newly created
  *    ATSUStyle object. Note that reference constants are not copied.
- *    You are responsible for freeing memory assoicated with the
+ *    You are responsible for freeing memory associated with the
  *    returned ATSUStyle object by calling ATSUDisposeStyle.
  *
  *  Parameters:
@@ -469,7 +469,7 @@ function ATSUGetStyleRefCon( iStyle: ATSUStyle; var oRefCon: URefCon ): OSStatus
  *    application-defined style attributes in the comparison. Note that
  *    order is important, as the ATSUStyleComparison constants that can
  *    be returned indicate "contains" vs. "contained by" based on which
- *    style is considered first in the comparsion.
+ *    style is considered first in the comparison.
  *
  *  Parameters:
  *
@@ -838,12 +838,12 @@ function ATSUCalculateBaselineDeltas( iStyle: ATSUStyle; iBaselineClass: BslnBas
  *    iValueSize:
  *      An array of ByteCount values. The number of elements in this
  *      array must not be less than iAttributeCount. Each ByteCount
- *      value corresoponds to the size of an element referred to by a
+ *      value corresponds to the size of an element referred to by a
  *      pointer in the iValue array.
  *
  *    iValue:
  *      An array of pointers of type ATSUAttributeValuePtr. Each
- *      pointer referrs to a value that corresponds to a tag specified
+ *      pointer refers to a value that corresponds to a tag specified
  *      by the iTag array. The size of the data referred to is
  *      determined by a corresponding element in the iValueSize array.
  *      The number of elements in this array must not be less than
@@ -1405,7 +1405,7 @@ function ATSUSetTextLayoutRefCon( iTextLayout: ATSUTextLayout; iRefCon: URefCon 
  *  Parameters:
  *
  *    iTextLayout:
- *      A layout for which you wish to retreive the reference constant.
+ *      A layout for which you wish to retrieve the reference constant.
  *
  *    oRefCon:
  *      On return, the reference constant associated with iTextLayout.
@@ -1893,7 +1893,7 @@ function ATSUSetLayoutControls( iTextLayout: ATSUTextLayout; iAttributeCount: It
  *      oValue parameter.
  *
  *    oValue:
- *      On return, the value assocaited with the layout tag specified
+ *      On return, the value associated with the layout tag specified
  *      by the iTag parameter.
  *
  *    oActualValueSize:
@@ -2008,7 +2008,7 @@ function ATSUGetAllLayoutControls( iTextLayout: ATSUTextLayout; oAttributeInfoAr
  *
  *    iTagCount:
  *      The number of tags you wish to clear. This value should
- *      correspond to the nuumber of elements in the iTag array. Pass
+ *      correspond to the number of elements in the iTag array. Pass
  *      kATSUClearAll for this parameter if you wish to clear all
  *      layout controls.
  *
@@ -2332,7 +2332,7 @@ function ATSUGetAllLineControls( iTextLayout: ATSUTextLayout; iLineStart: UniCha
  *
  *    iTagCount:
  *      The number of tags you wish to clear. This value should
- *      correspond to the nuumber of elements in the iTag array. Pass
+ *      correspond to the number of elements in the iTag array. Pass
  *      kATSUClearAll to clear all line controls.
  *
  *    iTag:
@@ -2572,7 +2572,7 @@ function ATSUGetContinuousAttributes( iTextLayout: ATSUTextLayout; iOffset: UniC
  *
  *    iTabs:
  *      An array of tabstops. See the definition of ATSUTab for more
- *      inforamation about specifying tabs.
+ *      information about specifying tabs.
  *
  *    iTabCount:
  *      The number of tab stops in the iTabs array.
@@ -2665,7 +2665,7 @@ function ATSUGetTabArray( iTextLayout: ATSUTextLayout; iMaxTabCount: ItemCount; 
  *    kATSULineFontFallbacksTag to apply the object to a layout. You
  *    may then either call ATSUMatchFontsToText to manually perform
  *    font substitution, or call ATSUSetTransientFontMatching to
- *    perform automatic font subtitution.
+ *    perform automatic font substitution.
  *
  *  Parameters:
  *

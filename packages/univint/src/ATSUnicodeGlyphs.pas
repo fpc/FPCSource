@@ -311,7 +311,7 @@ function ATSUGlyphGetIdealMetrics( iATSUStyle: ATSUStyle; iNumOfGlyphs: ItemCoun
  *  Deprecated:
  *    Use CTFontGetBoundingBox, CTFontGetUnderlinePosition,
  *    CTFontGetUnderlineThickness, CTFontGetSlantAngle,
- *    CTFontGetCapHeight, or CTFontGetXHeight iinstead.
+ *    CTFontGetCapHeight, or CTFontGetXHeight instead.
  *
  *  Summary:
  *    Obtains device-adjusted font metric information for glyphs

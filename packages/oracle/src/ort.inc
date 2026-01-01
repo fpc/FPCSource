@@ -76,7 +76,7 @@
 
         OCIType - type descriptor in the object cache
         OCITypeElem - type element descriptor in the object cache
-              (used for attributes and paramters)
+              (used for attributes and parameters)
         OCITypeCode  - Open Type System type code.
         OCITypeMethod - method descriptor in the object cache
         OCITypeParamMode - parameter modes (ie. IN, IN-OUT etc)
@@ -85,7 +85,7 @@
 
       ITERATOR (for OCITypeAttrNext and OCITypeMethodNext)
 
-        OCITypeIterNew  - ** OBSOLETE ** Create new instance of an iteraton.
+        OCITypeIterNew  - ** OBSOLETE ** Create new instance of an iterator.
         OCITypeIterSet  - ** OBSOLETE ** Initialize iterator.
         OCITypeIterFree - ** OBSOLETE ** Free instance of iterator.
 
@@ -720,7 +720,7 @@
    *
    * The contents of an 'orti' is private/opaque to clients.  Clients just
    * need to declare and pass 'orti' pointers in to the type manager functions.
-   * The iterator is used to retreive MDO's and ADO's that belong to the TDO
+   * The iterator is used to retrieve MDO's and ADO's that belong to the TDO
    * one at a time. It needs to be allocated by the 'OCITypeIterNew()' function
    * call and deallocated with the 'OCITypeIterFree()' function call.
     }
@@ -933,7 +933,7 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
     DESCRIPTION:
          Get pointers to the existing types associated with the schema/type name
          array. This is similar to OCITypeByName() except that all the TDO's are
-         retreived via a single network roundtrip.
+         retrieved via a single network roundtrip.
     RETURNS:
           OCI_SUCCESS if the function completes successfully.
           OCI_INVALID_HANDLE if 'env' or 'err' is null.
@@ -973,7 +973,7 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
     DESCRIPTION:
          Get pointers to the
          with the schema/type name array. This is similar to OCITypeByName()
-         except that all the TDO's are retreived via a single network roundtrip.
+         except that all the TDO's are retrieved via a single network roundtrip.
     RETURNS:
           OCI_SUCCESS if the function completes successfully.
           OCI_INVALID_HANDLE if 'env' or 'err' is null.
@@ -1018,7 +1018,7 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
     DESCRIPTION:
          Get pointers to the
          with the schema/type name array. This is similar to OCITypeByName()
-         except that all the TDO's are retreived via a single network roundtrip.
+         except that all the TDO's are retrieved via a single network roundtrip.
     RETURNS:
           OCI_SUCCESS if the function completes successfully.
           OCI_INVALID_HANDLE if 'env' or 'err' is null.
@@ -2021,10 +2021,10 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
              any accessor.
           2) All input parameters must not be NULL and must be valid.
      DESCRIPTION:
-          Get the flags (inline, constant, virutal, constructor, destructor) of
+          Get the flags (inline, constant, virtual, constructor, destructor) of
           a method.
      RETURNS:
-          the flags (inline, constant, virutal, constructor, destructor) of
+          the flags (inline, constant, virtual, constructor, destructor) of
           the method
      NOTES:
           The type must be unpinned when the accessed information is no

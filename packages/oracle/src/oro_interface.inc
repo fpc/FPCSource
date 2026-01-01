@@ -585,9 +585,9 @@
      OCI_OBJECTPROP_SCHEMA = 2;
   { table name of table containing object  }
      OCI_OBJECTPROP_TABLE = 3;
-  { pin duartion of object  }
+  { pin duration of object  }
      OCI_OBJECTPROP_PIN_DURATION = 4;
-  { alloc duartion of object  }
+  { alloc duration of object  }
      OCI_OBJECTPROP_ALLOC_DURATION = 5;
   { lock status of object  }
      OCI_OBJECTPROP_LOCK = 6;

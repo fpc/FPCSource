@@ -45,7 +45,7 @@ type
 
 (* ********************************************************************
    "APath" is the path and name of a value: A JSON configuration file
-   is hierachical. "/" is the path delimiter, the part after the last
+   is hierarchical. "/" is the path delimiter, the part after the last
    "/" is the name of the value. The path components will be mapped
    to nested JSON objects, with the name equal to the part. In practice
    this means that "/my/path/value" will be written as:

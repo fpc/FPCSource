@@ -2652,8 +2652,8 @@ const
 
 {!
     @struct     CMFloatBitmap
-    @abstract       A new struture that defines and arbritrary map of float color values.
-    @discussion     The struture defines a pixel array of dimensions [height][width][chans]
+    @abstract       A new structure that defines and arbitrary map of float color values.
+    @discussion     The structure defines a pixel array of dimensions [height][width][chans]
                     where 'chans' is the number of channels in the colorspace plus an optional one for alpha.
                     The actual memory pointed to by the structure can contain a variety of possible arrangements.
                     The actual data values can be chuncky or planar. The channels can by in any order.
@@ -3375,7 +3375,7 @@ function CMGetDeviceInfo( deviceClass: CMDeviceClass; deviceID: CMDeviceID; var 
     @function    CMIterateColorDevices
     @abstract    Returns information about all devices to a callback procedure.
     @discussion  This API allows the caller to get device information about all
-                    registered color devices.  If provided, the supplied proceedure will be
+                    registered color devices.  If provided, the supplied procedure will be
                     called once for each registered device, passing in the device info and
                     the supplied refcon.
                     If the caller passes in a pointer to a seed value that is the same as
@@ -3392,7 +3392,7 @@ function CMIterateColorDevices( proc: CMIterateDeviceInfoProcPtr { can be NULL }
     @function    CMIterateDeviceProfiles
     @abstract    Returns information about profiles of all devices to a callback procedure.
     @discussion  This API allows the caller to get device information about profiles of all
-                    registered color devices.  If provided, the supplied proceedure will be
+                    registered color devices.  If provided, the supplied procedure will be
                     called once for each registered device, passing in the device info, the
                     profile info and the supplied refcon.
                     If the caller passes in a pointer to a seed value that is the same as

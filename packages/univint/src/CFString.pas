@@ -517,7 +517,7 @@ function CFStringGetCharactersPtr( theString: CFStringRef ): UniCharPtr; externa
    Characters that cannot be converted to the specified encoding are represented
        with the byte specified by lossByte; if lossByte is 0, then lossy conversion
        is not allowed and conversion stops, returning partial results.
-   Pass buffer==NULL if you don't care about the converted string (but just the convertability,
+   Pass buffer==NULL if you don't care about the converted string (but just the convertibility,
        or number of bytes required).
    maxBufLength indicates the maximum number of bytes to generate. It is ignored when buffer==NULL.
    Does not zero-terminate. If you want to create Pascal or C string, allow one extra byte at start or end.

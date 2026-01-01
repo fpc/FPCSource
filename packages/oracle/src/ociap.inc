@@ -819,7 +819,7 @@
   OCIBindDynamic() or by setting the pointer to the buffer in the buffer passed
   in by OCIStmtSetPieceInfo() called when OCIStmtExecute() returned
   OCI_NEED_DATA. The memory of these client library- allocated buffers must be
-  freed when not in use anymore by using the OCIObjectFreee() call.
+  freed when not in use anymore by using the OCIObjectFree() call.
   Parameters
   bindp ( IN/OUT) - the bind handle returned by the call to OCIBindByName()
   or OCIBindByPos().
@@ -906,10 +906,10 @@
   to the database are started on calling OCIConnectionPoolCreate.
 
   Parameters:
-  envhp (IN/OUT)  - A pointer to the environment where the Conencton Pool
+  envhp (IN/OUT)  - A pointer to the environment where the Connector Pool
                     is to be created
   errhp (IN/OUT)  - An error handle which can be passed to OCIErrorGet().
-  poolhp (IN/OUT) - An uninitialiazed pool handle.
+  poolhp (IN/OUT) - An uninitialized pool handle.
   poolName (OUT) - The connection pool name.
   poolNameLen (OUT) - The length of the connection pool name
   dblink (IN/OUT) - Specifies the database(server) to connect. This will also
@@ -956,7 +956,7 @@
   are closed and the pool is destroyed.
 
   Parameters:
-  poolhp (IN/OUT) - An initialiazed pool handle.
+  poolhp (IN/OUT) - An initialized pool handle.
   errhp (IN/OUT)  - An error handle which can be passed to OCIErrorGet().
   mode (IN)       - Currently, OCIConnectionPoolDestroy() will support only
                     the OCI_DEFAULT mode.
@@ -1587,7 +1587,7 @@
   OCIRowidToChar
 
   Purpose
-  Converts physical/logical (universal) ROWID to chracter extended (Base 64)
+  Converts physical/logical (universal) ROWID to character extended (Base 64)
   representation into user provided buffer outbfp of length outbflp. After
   execution outbflp contains amount of bytes converted.In case of truncation
   error, outbflp contains required size to make this conversion successful
@@ -1605,7 +1605,7 @@
   desired ROWID.
 
   Parameters
-  rowidDesc (IN)   - rowid DESCriptor which is allocated from OCIDescritorAlloc
+  rowidDesc (IN)   - rowid DESCriptor which is allocated from OCIDescriptorAlloc
                      and populated by a prior SQL statement execution
   outbfp (OUT)     - pointer to the buffer where converted rowid in character
                      representation is stored after successful execution.
@@ -1673,7 +1673,7 @@
                 ub2         *rcodep,
                 ub4         mode );
   Comments
-  This call defines an output buffer which will receive data retreived from
+  This call defines an output buffer which will receive data retrieved from
   Oracle. The define is a local step which is necessary when a SELECT statement
   returns data to your OCI application.
   This call also implicitly allocates the define handle for the select-list item.
@@ -1738,7 +1738,7 @@
   number of bytes specified is insufficient to handle the number of characters
   desired.
   dty (IN) - the data type. Named data type (SQLT_NTY) and REF (SQLT_REF)
-  are valid only if the environment has been intialized with in object mode.
+  are valid only if the environment has been initialized with in object mode.
   indp - pointer to an indicator variable or array. For scalar data types,
   pointer to sb2 or an array of sb2s. Ignored for named data types. For named
   data types, a pointer to a named data type indicator structure or an array of
@@ -1803,7 +1803,7 @@
   octxp (IN) - points to a context for the callback function.
   ocbfp (IN) - points to a callback function. This is invoked at runtime to get
   a pointer to the buffer into which the fetched data or a piece of it will be
-  retreived. The callback also specifies the indicator, the return code and the
+  retrieved. The callback also specifies the indicator, the return code and the
   lengths of the data piece and indicator. The callback has the following
   parameters:
   octxp (IN) - a context pointer passed as an argument to all the callback
@@ -2047,7 +2047,7 @@
   then all libraries that are used by OCI are also initialized in the
   threaded mode.
 
-  This call should be invoked before anny other OCI call and should be used
+  This call should be invoked before any other OCI call and should be used
   instead of the OCIInitialize and OCIEnvInit calls. This is the recommended
   call, although OCIInitialize and OCIEnvInit calls will still be supported
   for backward compatibility.
@@ -2645,7 +2645,7 @@
    OCIFileOpen returns a handle to the open file in filep if the file is
    successfully opened.
    If one wants to use the standard file objects (stdin, stdout & stderr)
-   then OCIFileOpen whould be called with the type filed containing the
+   then OCIFileOpen would be called with the type filed containing the
    appropriate type (see the parameter type). If any of the standard files
    are specified then filename, path, mode and create are ignored.
    The function will return OCI_ERROR if any error is encountered, else
@@ -3418,7 +3418,7 @@
                           size_t str_len, OCIInterval *result);
 
     DESCRIPTION
-      Retuns an OCI_DTYPE_INTERVAL_DS OCIInterval with the region id (if
+      Returns an OCI_DTYPE_INTERVAL_DS OCIInterval with the region id (if
       the region is specified in the input string) set and the current
       absolute offset or an absolute offset with the region id set to 0.
     PARAMETERS
@@ -4096,7 +4096,7 @@
 
   Comments
   Opens a FILE. The FILE can be opened for read-only access only. FILEs may not
-  be written to throough ORACLE.
+  be written to through ORACLE.
 
   Parameters
   svchp (IN) - the service context handle.
@@ -4805,7 +4805,7 @@
   Comments
   With unlimited size LOB support the limit for a LOB is no longer restricted to 4GB.
   This interface should be used to get the actual limit for storing data for a specific
-  LOB locator. Note that if the compatibality is set to 9.2 or older the limit would still
+  LOB locator. Note that if the compatibility is set to 9.2 or older the limit would still
   be 4GB.
 
   Parameters
@@ -5714,7 +5714,7 @@
 
   OCIStmtRelease()
   Name
-  OCI Statement Release. This call is used to relesae the stmt that
+  OCI Statement Release. This call is used to release the stmt that
   was retrieved using OCIStmtPrepare2(). If the stmt is release
   using this call, OCIHandleFree() must not be called on the stmt
   handle.
@@ -6381,7 +6381,7 @@
   OCI_TRANS_NEW is specified, this value is stored and may be used later by
   OCITransDetach().
   flags (IN) - specifies whether a new transaction is being started or an
-  existing transaction is being resumed. Also specifies serializiability or
+  existing transaction is being resumed. Also specifies serializability or
   read-only status. More than a single value can be specified. By default,
   a read/write transaction is started. The flag values are:
   OCI_TRANS_NEW - starts a new transaction branch. By default starts a
@@ -9090,7 +9090,7 @@ var OCIInitialize : function (mode:ub4; ctxp:Pdvoid; malocfp:tmalocfp; ralocfp:t
   {
      NAME
        OCIMultiByteStrnDisplayLength - calculate the display length for a
-                                       multibyt string
+                                       multibyte string
      REMARKS
        This function returns the number of display positions occupied by the
        complete characters within the range of n bytes.
@@ -9589,7 +9589,7 @@ var OCIInitialize : function (mode:ub4; ctxp:Pdvoid; malocfp:tmalocfp; ralocfp:t
         'OCIThreadProcessInit()',  there is no need to have a first call
         that occurs before all the others.
 
-        The first time 'OCIThreadInit()' is called, it initilaizes the OCI
+        The first time 'OCIThreadInit()' is called, it initializes the OCI
         Thread context.  It also saves a pointer to the context in some system
         dependent manner.  Subsequent calls to 'OCIThreadInit()' will return
         the same context.
@@ -10973,7 +10973,7 @@ var OCISubscriptionRegister : function (svchp:POCISvcCtx; var subscrhpp:POCISubs
   {---------------------------------------------------------------------------
                             PRIVATE FUNCTIONS
     --------------------------------------------------------------------------- }
-  { the following functions are depracated and should not be used  }
+  { the following functions are deprecated and should not be used  }
 {$ifdef NEVER}
 
   function OCIStmtBindByPos(stmtp:POCIStmt; bindp:POCIBind; errhp:POCIError; position:ub4; valuep:Pdvoid;

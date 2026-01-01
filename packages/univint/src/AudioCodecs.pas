@@ -626,7 +626,7 @@ const
                         A UInt32 specifying the delay mode. See enum below.
                         Writable if supported.
 	@constant		kAudioCodecPropertyAdjustLocalQuality
-						An SInt32 number in the range [-128, 127] to allow encoding quality adjustements on a packet by packet basis.
+						An SInt32 number in the range [-128, 127] to allow encoding quality adjustments on a packet by packet basis.
 						This property can be set on an initialized encoder object without having to uninitialize and re-initialize it
 						and allows to adjust the encoder quality level for every packet. This is useful for packets streamed over
 						unreliable IP networks where the encoder needs to adapt immediately to network condition changes.
@@ -756,7 +756,7 @@ const
 						Similar to the VBR constrained mode, however the packet size is virtually unconstrained.
 						The coding process targets constant sound quality, and the sound quality level is
 						set by kAudioCodecPropertySoundQualityForVBR.
-						This mode usually provides the best tradeoff between quality and bit rate.
+						This mode usually provides the best trade-off between quality and bit rate.
 }
 const
 	kAudioCodecBitRateControlMode_Constant = 0;

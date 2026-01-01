@@ -78,7 +78,7 @@ by using -f commandline switch, but in this case the resulting Pascal unit will 
 fail to compile.
 
 4) Now, pick up your preferred fpcunit test runner, add the generated units to its
-uses clause, and compile. You may as well add the suppied 'extras.pp' and 'extras2.pp'
+uses clause, and compile. You may as well add the supplied 'extras.pp' and 'extras2.pp'
 units. During compilation, path to 'domunit.pp' should be added to the unit search
 paths.
 

@@ -14,7 +14,7 @@
 
 }
 {  Pascal Translation:  Gale R Paeper, <gpaeper@empirenet.com>, 2006 }
-{  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 (no changs in 10.6) }
+{  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 (no changes in 10.6) }
 {  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
 {
     Modified for use with Free Pascal

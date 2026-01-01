@@ -610,7 +610,7 @@ var kCFFTPResourceModDate: CFStringRef; external name '_kCFFTPResourceModDate'; 
  *
  *  Result:
  *	A pointer to the CF read stream created, or NULL if failed. It is
- *	caller's responsibilty to release the memory allocated for the
+ *	caller's responsibility to release the memory allocated for the
  *	read stream.
  *
  *  Availability:
@@ -651,7 +651,7 @@ function CFReadStreamCreateWithFTPURL( alloc: CFAllocatorRef; ftpURL: CFURLRef )
  *	parsed:
  *	  A pointer to a CFDictionary pointer.  The dictionary holds the
  *	  extracted resource information.  When parsing fails, a NULL
- *	  pointer will be returned.  It is caller's responsibilty to
+ *	  pointer will be returned.  It is caller's responsibility to
  *	  release the memory allocated for the dictionary.
  *
  *  Result:
@@ -694,7 +694,7 @@ function CFFTPCreateParsedResourceListing( alloc: CFAllocatorRef; buffer: UnivPt
  *
  *  Result:
  *	A pointer to the CF write stream created, or NULL if failed. It
- *	is caller's responsibilty to release the memory allocated for the
+ *	is caller's responsibility to release the memory allocated for the
  *	write stream.
  *
  *  Availability:

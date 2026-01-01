@@ -451,7 +451,7 @@ type
  *
  *  Discussion:
  *    The presentation mode of an application determines which
- *    system-provided user interface elements are visible on thes
+ *    system-provided user interface elements are visible on these
  *    screen. When the frontmost application changes its presentation
  *    mode, a kEventAppSystemUIModeChanged Carbon event is sent to all
  *    applications that have registered for the event. This event is
@@ -658,7 +658,7 @@ function OverlayApplicationDockTileImage( inImage: CGImageRef ): OSStatus; exter
  *  RestoreApplicationDockTileImage()
  *
  *  Discussion:
- *    Restores the tile for your appliation in the Dock to its normal
+ *    Restores the tile for your application in the Dock to its normal
  *    image (your application icon). You would use this if some overlay
  *    or change of the application icon needed to be removed.
  *

@@ -1,7 +1,7 @@
 {
      File:       CarbonCore/NumberFormatting.h
 
-     Contains:   Utilites for formatting numbers
+     Contains:   Utilities for formatting numbers
 
      Copyright:  © 1996-2012 by Apple Inc., all rights reserved.
 
@@ -228,7 +228,7 @@ uses MacTypes,ConditionalMacros,IntlResources;
 
     Here are the current System 7 routine names and the translations to the older forms.
     Please use the newer forms in all new code and migrate the older names out of existing
-    code as maintainance permits.
+    code as maintenance permits.
 
     New Name                    Old Name(s)
 

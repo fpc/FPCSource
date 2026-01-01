@@ -484,7 +484,7 @@ var kCFStreamPropertyHTTPRequestBytesWrittenCount: CFStringRef; external name '_
  *
  *  Result:
  *	A pointer to the CF read stream created, or NULL if failed. It is
- *	caller's responsibilty to release the memory allocated for the
+ *	caller's responsibility to release the memory allocated for the
  *	read stream.
  *
  *  Availability:
@@ -532,7 +532,7 @@ function CFReadStreamCreateForHTTPRequest( alloc: CFAllocatorRef; request: CFHTT
  *
  *  Result:
  *	A pointer to the CF read stream created, or NULL if failed. It is
- *	caller's responsibilty to release the memory allocated for the
+ *	caller's responsibility to release the memory allocated for the
  *	read stream.
  *
  *  Availability:

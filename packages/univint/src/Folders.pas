@@ -1600,7 +1600,7 @@ function GetFolderRoutings( requestedRoutingCount: UInt32; var totalRoutingCount
  *  FSpDetermineIfSpecIsEnclosedByFolder()   *** DEPRECATED ***
  *
  *  Deprecated:
- *    Use FSDetemineIfRefIsEnclosedByFolder
+ *    Use FSDetermineIfRefIsEnclosedByFolder
  *
  *  Summary:
  *    Determine whether the given FSSpec is enclosed inside the given

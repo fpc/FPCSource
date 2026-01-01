@@ -1325,7 +1325,7 @@ function NavCreatePutFileDialog( {const} inOptions: NavDialogCreationOptionsPtr 
  *      Indicates the number of documents needing review. This number
  *      appears in the text presented to the user. If for any reason
  *      the total number of unsaved documents is unknown, specify 0,
- *      and an ambiguous message will appear. Do not specifiy 1, since
+ *      and an ambiguous message will appear. Do not specify 1, since
  *      the HI guidelines call for this alert only when there is more
  *      than one document to be reviewed.
  *
@@ -1862,7 +1862,7 @@ function NavDialogGetReply( inDialog: NavDialogRef; var outReply: NavReplyRecord
  *    to obtain the current value of the save file name. This function
  *    is a Unicode-based replacement for the kNavCtlGetEditFileName
  *    NavCustomControl selector. On Mac OS X, the full file name is
- *    returned, including any extenison that may be hidden from the
+ *    returned, including any extension that may be hidden from the
  *    user.
  *
  *  Parameters:
@@ -1928,7 +1928,7 @@ function NavDialogSetSaveFileName( inPutFileDialog: NavDialogRef; inFileName: CF
  *
  *  Discussion:
  *    This function can be called at any time to determine if a PutFile
- *    dialog is hiding the file extesion (if any) of the file to be
+ *    dialog is hiding the file extension (if any) of the file to be
  *    saved.
  *
  *  Parameters:
@@ -1985,7 +1985,7 @@ function NavDialogSetSaveFileExtensionHidden( inPutFileDialog: NavDialogRef; inH
  *  NavDialogSetFilterTypeIdentifiers()
  *
  *  Summary:
- *    Set a list Uniform Type Identifers against which all files will
+ *    Set a list Uniform Type Identifiers against which all files will
  *    be automatically filtered.
  *
  *  Discussion:

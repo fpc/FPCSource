@@ -4330,7 +4330,7 @@ function GetThemeWindowRegionHit( flavor: ThemeWindowType; const (*var*) inContR
  *    In Mac OS X 10.3 and later, use HIThemeDrawScrollBarDelimiters.
  *
  *  Summary:
- *    Draws the scrollbar delimeters in a window frame.
+ *    Draws the scrollbar delimiters in a window frame.
  *
  *  Mac OS X threading:
  *    Not thread safe
@@ -4460,7 +4460,7 @@ function PlayThemeSound( kind: ThemeSoundKind ): OSStatus; external name '_PlayT
  *
  *  Summary:
  *    Begins playing a theme-compliant sound to indicate that a drag is
- *    occuring. Note that this API does not play sound on any version
+ *    occurring. Note that this API does not play sound on any version
  *    of Mac OS X.
  *
  *  Discussion:
@@ -4488,7 +4488,7 @@ function BeginThemeDragSound( kind: ThemeDragSoundKind ): OSStatus; external nam
  *
  *  Summary:
  *    Stops playing a theme-compliant sound to indicate that a drag is
- *    occuring.
+ *    occurring.
  *
  *  Discussion:
  *    This API should only be called after BeginThemeDragSound has been

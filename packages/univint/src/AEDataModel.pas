@@ -953,7 +953,7 @@ function AECoerceDesc( const (*var*) theAEDesc: AEDesc; toType: DescType; var re
  (including disposing) of the descriptors so created.
 *************************************************************************}
 { because AEDescs are opaque under Carbon, this AEInitializeDesc provides a
-   'clean' way of initializating them to be empty. }
+   'clean' way of initializing them to be empty. }
 {
  *  AEInitializeDesc()
  *
@@ -1725,7 +1725,7 @@ function AEDeleteItem( var theAEDescList: AEDescList; index: SIGNEDLONG ): OSErr
  set to true.
 *************************************************************************}
 {************************************************************************
- AERecords can have an abitrary descriptorType.  This allows you to
+ AERecords can have an arbitrary descriptorType.  This allows you to
  check if desc is truly an AERecord
 ***********************************************************************}
 {

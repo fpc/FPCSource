@@ -549,7 +549,7 @@ function ATSUMeasureTextImage( iTextLayout: ATSUTextLayout; iLineOffset: UniChar
  *    typographic bounds of a line of text prior to line layout, call
  *    the function ATSUGetUnjustifiedBounds. To calculate the image
  *    bounding rectangle for a final laid-out line, call the function
- *    ATSUMeasureTextImage. For more infomration about the difference
+ *    ATSUMeasureTextImage. For more information about the difference
  *    between typographic and image bounds, please refer to the ATSUI
  *    documentation.
  *
@@ -737,7 +737,7 @@ function ATSUBatchBreakLines( iTextLayout: ATSUTextLayout; iRangeStart: UniCharA
  *      parameter. If true ,ATSUBreakLine sets the line break and
  *      clears any previously-set soft line breaks that precede the new
  *      break in the line but lie after the offset specified by
- *      iLineStart. You should ususally pass true for this parameter,
+ *      iLineStart. You should usually pass true for this parameter,
  *      unless you plan to use ATSUSetSoftLineBreak to set the soft
  *      break somewhere other than what is suggested by ATSUBreakLine.
  *
@@ -1742,7 +1742,7 @@ function ATSUNextCursorPosition( iTextLayout: ATSUTextLayout; iOldOffset: UniCha
  *    CTLineGetStringIndexForPosition instead.
  *
  *  Summary:
- *    Obtains the memory offset for the insertion point that preceeds
+ *    Obtains the memory offset for the insertion point that precedes
  *    the current insertion point in storage order, as determined by a
  *    move of the specified length and type.
  *

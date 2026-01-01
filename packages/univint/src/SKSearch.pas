@@ -741,7 +741,7 @@ function SKSearchResultsGetCount( inSearchResults: SKSearchResultsRef ): CFIndex
  *      An array of found documents.
  *
  *    outIndexesArray:
- *      An array of indexes in which the found docouments reside. May
+ *      An array of indexes in which the found documents reside. May
  *      be <tt>NULL</tt> provided that the client does not care.
  *
  *    outScoresArray:

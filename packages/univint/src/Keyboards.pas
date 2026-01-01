@@ -488,7 +488,7 @@ function KLGetKeyboardLayoutAtIndex( iIndex: CFIndex; var oKeyboardLayout: Keybo
  *    TISInputSourceRef.
  *
  *  Summary:
- *    Retrives property value for the given keyboard layout and tag.
+ *    Retrieves property value for the given keyboard layout and tag.
  *
  *  Mac OS X threading:
  *    Not thread safe
@@ -604,7 +604,7 @@ function KLGetKeyboardLayoutWithName( iName: CFStringRef; var oKeyboardLayout: K
  *
  *  Discussion:
  *    Retrieves the current keyboard layout for the current keyboard
- *    script.  To retrive the current keyboard script for Roman
+ *    script.  To retrieve the current keyboard script for Roman
  *    keyboard script, you need to call KeyScript( smRoman |
  *    smKeyForceKeyScriptMask ) then call KLGetCurrentKeyboardLayout().
  *

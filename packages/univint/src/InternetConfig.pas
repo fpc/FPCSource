@@ -972,7 +972,7 @@ function ICGetVersion( inst: ICInstance; whichVersion: SIGNEDLONG; var version: 
 
 { [r4] [c3] [b3]
    * Returns the version of Internet Config.  Pass kICComponentVersion
-   * to get the version as previously returned by GetComponenVerson.
+   * to get the version as previously returned by GetComponenVersion.
    * Pass kICNumVersion to get a NumVersion structure.
    }
 {

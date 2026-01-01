@@ -268,7 +268,7 @@ uses MacTypes,CFBase,CFArray,CFDictionary,CFURL;
     describing bytes stream formats. Conformance relationships between
     types are established in type declarations.
 
-    Conformance relationships establish a multiple inheritanace hierarchy
+    Conformance relationships establish a multiple inheritance hierarchy
     between types. Type property values may be inherited at runtime
     according to the conformance relationships for each type. When a type's
     declaration does not include a value for particular type property,
@@ -288,7 +288,7 @@ uses MacTypes,CFBase,CFArray,CFDictionary,CFURL;
     A tag's "class" is the namespace of a tag: filename extension,
     MIME type, OSType, etc. Tag classes are themselves identified by
     uniform type identifiers so that the set of valid tag classes is
-    easily extendend in the future.
+    easily extended in the future.
 
     Other Type Properties
 
@@ -303,7 +303,7 @@ uses MacTypes,CFBase,CFArray,CFDictionary,CFURL;
 
     Type declarations are either exported or imported. An exported
     type declaration means that the type itself is defined or owned
-    by the organization making the declaration. For example, a propietary
+    by the organization making the declaration. For example, a proprietary
     document type declaration should only be exported by the application
     which controls the document format.
 
@@ -355,7 +355,7 @@ uses MacTypes,CFBase,CFArray,CFDictionary,CFURL;
 
     Uniform Type Identification uses dynamic type identifiers to
     represent types for which no identifier has been declared. A
-    dynamic type identifier is syntactially a regular uniform
+    dynamic type identifier is syntactically a regular uniform
     type identifier in the "dyn" domain. However, after the
     initial domain label, a dynamic type identifier is an
     opaque encoding of a tag specification. Dynamic type

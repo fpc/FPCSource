@@ -381,7 +381,7 @@ const
  *
  *  Summary:
  *    DebugAssert is the system routine that the DEBUGASSERTMSG macro
- *    calls (by default) to display assertion messsages. The output
+ *    calls (by default) to display assertion messages. The output
  *    from DebugAssert can be redirected by installing a
  *    DebugAssertOutputHandler with InstallDebugAssertOutputHandler.
  *
@@ -839,7 +839,7 @@ procedure InstallDebugAssertOutputHandler( handler: DebugAssertOutputHandlerUPP 
  *    OSStatus error.  If no string is available for the given
  *    constant, then the empty string "" is returned. Some error values
  *    have multiple meanings; in those cases the multiple meanings are
- *    all returned seperated by '/'es.
+ *    all returned separated by '/'es.
  *
  *  Mac OS X threading:
  *    Thread safe
@@ -880,7 +880,7 @@ function GetMacOSStatusErrorString( err: OSStatus ): CStringPtr; external name '
  *    returned. If no string is available for the given constant, then
  *    the empty string "" is returned.  Some error values have multiple
  *    meanings; in those cases the multiple meanings are all returned
- *    seperated by '/'es.
+ *    separated by '/'es.
  *
  *  Mac OS X threading:
  *    Thread safe

@@ -311,7 +311,7 @@ const
  *
  *  Discussion:
  *    This event is sent by the HISearchField view if the cancel icon
- *    is enabled (attribute of kHISearchFieldAtttributesCancel), and
+ *    is enabled (attribute of kHISearchFieldAttributesCancel), and
  *    the cancel has been clicked.
  *
  *  Mac OS X threading:
@@ -604,7 +604,7 @@ function HISearchFieldSetDescriptiveText( inSearchField: HIViewRef; inDescriptio
  *      description associated with the search field, outDescription
  *      will be set to NULL. If there is a description, a CFStringRef
  *      will be created that contains the contents of the description.
- *      You posess ownership of this string and will need to release it
+ *      You posses ownership of this string and will need to release it
  *      when you no longer need it.
  *
  *  Result:

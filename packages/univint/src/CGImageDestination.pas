@@ -348,7 +348,7 @@ var kCGImageDestinationMetadata: CFStringRef; external name '_kCGImageDestinatio
  * specified in kCGImageDestinationMetadata. If a tag does not exist in the
  * source, it will be added. If the tag exists in the source, it will be
  * updated. A metadata tag can be removed by setting the tag's value to
- * kCFNull. If present, the value of this key is a CFBoooleanRef. The default
+ * kCFNull. If present, the value of this key is a CFBooleanRef. The default
  * is kCFBooleanFalse.
  }
 var kCGImageDestinationMergeMetadata: CFStringRef; external name '_kCGImageDestinationMergeMetadata'; (* attribute const *)

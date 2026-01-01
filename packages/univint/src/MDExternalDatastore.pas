@@ -264,7 +264,7 @@ type
        }
        MDExternalDatastoreFetchAttributesForURLs: function(store: MDExternalDatastoreRef; channel: MDResponseChannelRef; attributes: CFArrayRef; URLs: CFArrayRef): Boolean;
 
-    { OID<=>URL converters.  If the external datastore has reasonably persistant object IDs, it should provide them as part of the query answers.  It will then be expected to implement the following functions concerning OIDs.
+    { OID<=>URL converters.  If the external datastore has reasonably persistent object IDs, it should provide them as part of the query answers.  It will then be expected to implement the following functions concerning OIDs.
 
         Implementing these functions can result in substantial gains in performance for your plugin. }
 

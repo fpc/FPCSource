@@ -457,7 +457,7 @@ function S64Eor( left: SInt64; right: SInt64 ): Boolean; external name '_S64Eor'
  *  S64Not()
  *
  *  Discussion:
- *    Returns one if value is non-zero, otherwisze returns zero.
+ *    Returns one if value is non-zero, otherwise returns zero.
  *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
@@ -777,7 +777,7 @@ function U64Eor( left: UInt64; right: UInt64 ): Boolean; external name '_U64Eor'
  *  U64Not()
  *
  *  Discussion:
- *    Returns one if value is non-zero, otherwisze returns zero.
+ *    Returns one if value is non-zero, otherwise returns zero.
  *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework

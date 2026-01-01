@@ -358,7 +358,7 @@ function IsMetric: Boolean; external name '_IsMetric';
  *  Delay()
  *
  *  Summary:
- *    Delays execture for the specified amount of time.
+ *    Delays execute for the specified amount of time.
  *
  *  Mac OS X threading:
  *    Thread safe

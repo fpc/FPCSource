@@ -1967,7 +1967,7 @@ type
 type
 	VolMountInfoPtr = ^VolMountInfoHeader;
 { The new volume mount info record.  The old one is included for compatibility.
-    the new record allows access by foriegn filesystems writers to the flags
+    the new record allows access by foreign filesystems writers to the flags
     portion of the record. This portion is now public.
 }
 type
@@ -6452,7 +6452,7 @@ function FSPathMoveObjectToTrashSync( sourcePath: ConstCStringPtr; var targetPat
  *  FSFileOperationGetTypeID()
  *
  *  Discussion:
- *    This routine will return the CFTypeID for the FSFileOpeation type.
+ *    This routine will return the CFTypeID for the FSFileOperation type.
  *
  *  Mac OS X threading:
  *    Thread safe since version 10.4
@@ -6503,7 +6503,7 @@ function FSFileOperationCreate( alloc: CFAllocatorRef ): FSFileOperationRef; ext
  *  Discussion:
  *    Schedule the given operation on the specified runloop and mode. A
  *    FSFileOperation can be scheduled on multiple runloop/mode
- *    combinations. An opertion must be scheduled on at least one
+ *    combinations. An operation must be scheduled on at least one
  *    runloop.
  *
  *  Mac OS X threading:
@@ -6684,7 +6684,7 @@ function FSMoveObjectAsync( fileOp: FSFileOperationRef; const (*var*) source: FS
  *    that triggers the delete immediately behavior in the Finder).
  *    Status callbacks will occur on one of the runloop/mode
  *    combinations that the operation was scheduled on (and is
- *    running).   Upon successul complettion of the operation the last
+ *    running).   Upon successful completion of the operation the last
  *    currentItem (from either the last status callback or retrieved by
  *    FSFileOperationCopyStatus) will be object in the trash.
  *

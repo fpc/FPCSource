@@ -705,7 +705,7 @@ type
  *
  *  Summary:
  *    This structure contains a single menu in the menubar. It is an
- *    element in an array in the MenuBarHeader data strucuture.
+ *    element in an array in the MenuBarHeader data structure.
  }
 type
 	MenuBarMenuPtr = ^MenuBarMenu;
@@ -1933,7 +1933,7 @@ function HIMenuGetContentView( inMenu: MenuRef; inMenuType: ThemeMenuType; var o
  *      The menu whose font to set.
  *
  *    inItem:
- *      The item whose font to set, or zero to customze the font for
+ *      The item whose font to set, or zero to customize the font for
  *      the entire menu.
  *
  *    inFont:
@@ -4842,7 +4842,7 @@ function GetMenuCommandMark( inMenu: MenuRef; inCommandID: MenuCommand; var outM
  *  GetMenuCommandProperty()
  *
  *  Summary:
- *    Retrives property data for a menu item with a specified command
+ *    Retrieves property data for a menu item with a specified command
  *    ID.
  *
  *  Mac OS X threading:
@@ -4889,7 +4889,7 @@ function GetMenuCommandProperty( inMenu: MenuRef; inCommandID: MenuCommand; inPr
  *  GetMenuCommandPropertySize()
  *
  *  Summary:
- *    Retrives the size of property data for a menu item with a
+ *    Retrieves the size of property data for a menu item with a
  *    specified command ID.
  *
  *  Mac OS X threading:

@@ -511,7 +511,7 @@ function FSUpdateAlias( {const} fromFile: FSRefPtr { can be NULL }; const (*var*
  *      On input, if target does not exist, a flag to indicate whether
  *      or not the target is a directory.  On output, if the target did
  *      exist, a flag indicating if the target is a directory.  Pass
- *      NULL in the non-existant case if unsure.
+ *      NULL in the non-existent case if unsure.
  *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in CoreServices.framework
@@ -551,7 +551,7 @@ function FSNewAliasUnicode( {const} fromFile: FSRefPtr { can be NULL }; const (*
  *      On input, if target does not exist, a flag to indicate whether
  *      or not the target is a directory.  On output, if the target did
  *      exist, a flag indicating if the target is a directory.  Pass
- *      NULL in the non-existant case if unsure.
+ *      NULL in the non-existent case if unsure.
  *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in CoreServices.framework
@@ -592,7 +592,7 @@ function FSNewAliasMinimalUnicode( const (*var*) targetParentRef: FSRef; targetN
  *      On input, if target does not exist, a flag to indicate whether
  *      or not the target is a directory.  On output, if the target did
  *      exist, a flag indicating if the target is a directory.  Pass
- *      NULL in the non-existant case if unsure.
+ *      NULL in the non-existent case if unsure.
  *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
@@ -779,7 +779,7 @@ function GetAliasSizeFromPtr( const (*var*) alias: AliasRecord ): Size; external
  *  GetAliasUserTypeFromPtr()
  *
  *  Discussion:
- *    This routine will return the usertype associated withthe alias
+ *    This routine will return the usertype associated with the alias
  *    record pointed to by alias.
  *
  *  Mac OS X threading:
@@ -886,7 +886,7 @@ function FSMatchAliasNoUI( {const} fromFile: FSRefPtr { can be NULL }; rulesMask
  *    record handle
  *
  *  Discussion:
- *    Create an alias betwen fromFile and target, and return it in an
+ *    Create an alias between fromFile and target, and return it in an
  *    AliasHandle. This function is deprecated in Mac OS X 10.4;
  *    instead, you should use FSNewAliasUnicode() because NewAlias()
  *    has problems creating aliases to certain files, including those

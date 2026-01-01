@@ -453,14 +453,14 @@ function MusicDeviceSysEx( inUnit: MusicDeviceComponent; const (*var*) inData: U
 					0xFFFFFFFF (any other UInt32 value is valid).
 
 			Not all Music Device audio units implement the semantics of this API (though it is strongly recommended
-					that they do). A host application shoudl query the kMusicDeviceProperty_SupportsStartStopNote to
+					that they do). A host application should query the kMusicDeviceProperty_SupportsStartStopNote to
 					check that this is supported.
 
 	@param			inUnit
 				The audio unit
 	@param			inInstrument
 				The instrumentID is no longer used and the kMusicNoteEvent_Unused constant should be specified (this takes
-					the current patch for the specifed group as the sound to use for the note)
+					the current patch for the specified group as the sound to use for the note)
 	@param			inGroupID
 				The group ID that this note will be attached too. As with MIDI, all notes sounding on a groupID can be
 					controlled through the various parameters (such as pitch bend, etc) that can be specified on the Group

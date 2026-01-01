@@ -76,7 +76,7 @@ Type
     Function SessionExpired(Ini : TMemIniFile) : boolean;
     procedure CheckSessionDir; virtual;
     Function DoCreateSession(ARequest : TRequest) : TCustomSession; override;
-    // Sweep session direcory and delete expired files.
+    // Sweep session directory and delete expired files.
     procedure DoCleanupSessions; override;
     Procedure DoDoneSession(Var ASession : TCustomSession); override;
     Function SessionFilePrefix : String; virtual;

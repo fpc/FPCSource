@@ -514,14 +514,14 @@ type
 	However, this data representation is much larger than the more modern data representations described below.
 
 	kPMDataFormatXMLMinimal is only compatible and usable with Mac OS X version 10.5 and later.
-	Data in this format can be only be reconsistuted into the equivalent printing manager object with
+	Data in this format can be only be reconstituted into the equivalent printing manager object with
 	the appropriate PMXXXCreateWithDataRepresentation function. The data representation produced when
 	using kPMDataFormatXMLMinimal is approximately 3-5 times smaller than kPMDataFormatXMLDefault. This
 	format is a good choice when execution on versions of Mac OS X prior to 10.5 is not necessary and
 	an uncompressed XML representation of the data is needed.
 
 	kPMDataFormatXMLCompressed is only compatible and usable with Mac OS X version 10.5 and later.
-	Data in this format can be only be reconsistuted into the equivalent printing manager object with the
+	Data in this format can be only be reconstituted into the equivalent printing manager object with the
 	appropriate PMXXXCreateWithDataRepresentation function. The data representation produced when
 	using kPMDataFormatXMLCompressed is approximately 20 times smaller than kPMDataFormatXMLDefault.
 	This format is a good choice when execution on versions of Mac OS X prior to 10.5 is not necessary and

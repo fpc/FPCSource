@@ -573,7 +573,7 @@ function ATSFontDeactivate( iContainer: ATSFontContainerRef; iRefCon: UnivPtr; i
  *  Parameters:
  *
  *    iFile:
- *      A pointer to the valid file reference that specificies the
+ *      A pointer to the valid file reference that specifies the
  *      activated font file for which to get the container.
  *
  *    iContext:
@@ -1251,7 +1251,7 @@ function ATSFontNotify( action: ATSFontNotifyAction; info: UnivPtr { can be NULL
  *      behavior of ATS Notifications.
  *
  *    iRefcon:
- *      User data/state which will be passed to the callback funtion
+ *      User data/state which will be passed to the callback function
  *
  *    oNotificationRef:
  *      You may use this reference to un-subscribe to this notification.

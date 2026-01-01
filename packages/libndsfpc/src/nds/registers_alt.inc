@@ -198,7 +198,7 @@ const
 //  REG_RCNT		: pcuint16 = pointer($4000134);
   REG_HS_CTRL		: pcuint16 = pointer($4000140);
 
-  (* Interupt	enable registers *)
+  (* Interrupt enable registers *)
 {$define IE  := REG_IE}
 {$define _IF :=	REG_IF}
 {$define IME	:= REG_IME}

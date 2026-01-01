@@ -228,7 +228,7 @@ uses MacTypes,UTCUtils,CFDate;
 
     Here are the current routine names and the translations to the older forms.
     Please use the newer forms in all new code and migrate the older names out of existing
-    code as maintainance permits.
+    code as maintenance permits.
 
     New Name                    Old Name(s)
 
@@ -699,7 +699,7 @@ procedure LongTimeString( (*const*) var dateTime: LongDateTime; wantSeconds: Boo
  *    No longer needed on MacOS X.
  *
  *  Discussion:
- *    This function is obsolate.
+ *    This function is obsolete.
  *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.3

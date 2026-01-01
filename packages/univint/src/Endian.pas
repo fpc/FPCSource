@@ -1,7 +1,7 @@
 {
      File:       CarbonCore/Endian.h
 
-     Contains:   Endian swapping utilties
+     Contains:   Endian swapping utilities
                  The contents of this header file are deprecated.
                  Use CFByteOrder API instead.
 
@@ -586,7 +586,7 @@ function CoreEndianGetFlipper( dataDomain: OSType; dataType: OSType; var proc: C
  *  Result:
  *    Error code indicating whether the data was flipped.  If
  *    handlerNotFound is returned, then no flipping took place (which
- *    is not necessarily an error condtion)
+ *    is not necessarily an error condition)
  *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in CoreServices.framework

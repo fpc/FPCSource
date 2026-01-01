@@ -1481,7 +1481,7 @@ procedure CFNetServiceBrowserInvalidate( browser: CFNetServiceBrowserRef ); exte
  *	Starts a search for domains.  The browser will either try to find
  *	"Browse" domains or will search for "Registration" domains.  If
  *	there is already an outstanding search, it will return FALSE.  In
- *	syncronous mode, this call blocks until the search is stopped.
+ *	synchronous mode, this call blocks until the search is stopped.
  *	It will return FALSE if there is an error performing the search.
  *	It will return TRUE otherwise.  In asynchronous mode, this call
  *	will return TRUE or FALSE depending if the underlying network
@@ -1524,7 +1524,7 @@ function CFNetServiceBrowserSearchForDomains( browser: CFNetServiceBrowserRef; r
  *  Discussion:
  *	Starts a search for a service type on the given domain.  If there
  *	is already an outstanding search, it will return FALSE.  In
- *	syncronous mode, this call blocks until the search is stopped.
+ *	synchronous mode, this call blocks until the search is stopped.
  *	It will return FALSE if there is an error performing the search
  *	or if there is some other error.  It will return TRUE otherwise.
  *	In asynchronous mode, this call will return TRUE or FALSE

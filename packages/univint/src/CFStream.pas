@@ -451,7 +451,7 @@ type
 	CFStreamErrorPtr = ^CFStreamError;
 
 { 0 is returned if no error has occurred.  errorDomain specifies the domain
-   in which the error code should be interpretted; pass NULL if you are not
+   in which the error code should be interpreted; pass NULL if you are not
    interested. }
 function CFReadStreamGetError( stream: CFReadStreamRef ): CFStreamError; external name '_CFReadStreamGetError';
 function CFWriteStreamGetError( stream: CFWriteStreamRef ): CFStreamError; external name '_CFWriteStreamGetError';

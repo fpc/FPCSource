@@ -287,7 +287,7 @@ uses MacTypes,MacOSXPosix,CFBase,CFArray,CFDate,CFRunLoop,CFUUID;
  *    FSEventStreamStart() without missing any events.
  *
  *    5. FSEventStreamInvalidate() -> Invalidates the stream, like
- *    CFRunLoopSourceInvalidate() does for a CFRunLoopSourcRef.
+ *    CFRunLoopSourceInvalidate() does for a CFRunLoopSourceRef.
  *
  *
  *    6. FSEventStreamRelease() -> Decrements the refcount on the

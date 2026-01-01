@@ -2027,7 +2027,7 @@ function HIWindowChangeAttributes( inWindow: WindowRef; {const} inAttrToSet: SIn
  *      kWindowCloseBoxAttribute.
  *
  *  Result:
- *    True if the attribute is available for windows of the specifed
+ *    True if the attribute is available for windows of the specified
  *    class, or false if not.
  *
  *  Availability:
@@ -5830,7 +5830,7 @@ function EndWindowProxyDrag( window: WindowRef; theDrag: DragRef ): OSStatus; ex
  *  Discussion:
  *    This API is used by applications that need to manage the dragging
  *    of the proxy icon in their windows. Applications that use the
- *    standard window event hander and that do not need to customize
+ *    standard window event handler and that do not need to customize
  *    the proxy icon drag process may rely on the standard handler to
  *    call this API.
  *
@@ -5851,7 +5851,7 @@ function EndWindowProxyDrag( window: WindowRef; theDrag: DragRef ): OSStatus; ex
  *    the kDragRegionAndImage drag image flag.
  *
  *    A proxy icon may only be dragged if the window represented by the
- *    proxy icon is not modifed (as indicated by the IsWindowModified
+ *    proxy icon is not modified (as indicated by the IsWindowModified
  *    API). This restriction is imposed because a proxy icon is a
  *    representation of a physical file system object, and dragging the
  *    proxy icon may result in the Finder making a copy of the file
@@ -5929,7 +5929,7 @@ function HIWindowTrackProxyDrag( inWindow: WindowRef; inEvent: EventRef; inDrag:
  *    the drag reference can simply call TrackWindowProxyDrag.
  *
  *    A proxy icon may only be dragged if the window represented by the
- *    proxy icon is not modifed (as indicated by the IsWindowModified
+ *    proxy icon is not modified (as indicated by the IsWindowModified
  *    API). This restriction is imposed because a proxy icon is a
  *    representation of a physical file system object, and dragging the
  *    proxy icon may result in the Finder making a copy of the file
@@ -5995,7 +5995,7 @@ function TrackWindowProxyFromExistingDrag( window: WindowRef; startPt: Point; dr
  *
  *  Discussion:
  *    A proxy icon may only be dragged if the window represented by the
- *    proxy icon is not modifed (as indicated by the IsWindowModified
+ *    proxy icon is not modified (as indicated by the IsWindowModified
  *    API). This restriction is imposed because a proxy icon is a
  *    representation of a physical file system object, and dragging the
  *    proxy icon may result in the Finder making a copy of the file
@@ -10274,7 +10274,7 @@ function GetWindowKind( window: WindowRef ): SInt16; external name '_GetWindowKi
  *    Indicates whether a window's frame is hilited.
  *
  *  Discussion:
- *    See HiliteWindow for a disucssion on the meaning of a window's
+ *    See HiliteWindow for a discussion on the meaning of a window's
  *    hilited state.
  *
  *  Mac OS X threading:

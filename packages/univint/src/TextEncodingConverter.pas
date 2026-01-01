@@ -299,7 +299,7 @@ const
 	kTECDisableLooseMappingsMask = 1 shl kTECDisableLooseMappingsBit;
 
 
-{ return number of encodings types supported by user's configuraton of the encoding converter }
+{ return number of encodings types supported by user's configuration of the encoding converter }
 {
  *  TECCountAvailableTextEncodings()
  *

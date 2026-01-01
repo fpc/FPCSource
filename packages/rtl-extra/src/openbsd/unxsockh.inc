@@ -328,7 +328,7 @@ Const
  	IPV6_HOPLIMIT           = 47; { int; send hop limit }
  	IPV6_NEXTHOP            = 48; { sockaddr; next hop addr }
  	IPV6_HOPOPTS            = 49; { ip6_hbh; send hop-by-hop option }
- 	IPV6_DSTOPTS            = 50; { ip6_dest; send dst option befor rthdr }
+ 	IPV6_DSTOPTS            = 50; { ip6_dest; send dst option before rthdr }
  	IPV6_RTHDR              = 51; { ip6_rthdr; send routing header }
  	IPV6_PKTOPTIONS         = 52; { buf/cmsghdr; set/get IPv6 options }
 

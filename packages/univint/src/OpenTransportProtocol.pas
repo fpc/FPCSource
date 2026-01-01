@@ -465,8 +465,8 @@ type
 {$ifc OTKERNEL}
 {
    module_info is aligned differently on 68K than
-   on PowerPC.  Yucky.  I can't defined a conditionalised
-   pad field because a) you can't conditionalise specific
+   on PowerPC.  Yucky.  I can't define a conditioned
+   pad field because a) you can't conditionalize specific
    fields in the interface definition language used to
    create Universal Interfaces, and b) lots of code
    assigns C structured constants to global variables

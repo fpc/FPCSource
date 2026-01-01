@@ -219,7 +219,7 @@ uses MacTypes,Multiprocessing;
 
 {********************************************************************************************
 
- The Multiprocessing Utilites are deprecated.  Callers should use blocks, libDispatch, or pthreads.
+ The Multiprocessing Utilities are deprecated.  Callers should use blocks, libDispatch, or pthreads.
 
 ********************************************************************************************}
 {

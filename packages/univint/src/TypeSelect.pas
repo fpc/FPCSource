@@ -1,7 +1,7 @@
 {
      File:       HIToolbox/TypeSelect.h
 
-     Contains:   TypeSelect Utilties
+     Contains:   TypeSelect Utilities
 
      Version:    HIToolbox-624~3
 

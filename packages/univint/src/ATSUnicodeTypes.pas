@@ -889,7 +889,7 @@ type
  *
  *  Discussion:
  *    Used to indicate how much to move the cursor when using the ATSUI
- *    cusor movement routines. Note that kATSUByCharacterCluster is
+ *    cursor movement routines. Note that kATSUByCharacterCluster is
  *    only available in Mac OS X and in CarbonLib versions 1.3 and
  *    later.
  }

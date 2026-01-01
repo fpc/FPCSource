@@ -930,7 +930,7 @@ function GetIconRefFromComponent( inComponent: Component; var outIconRef: IconRe
    Lower-case creators are reserved for the system.
    Consider using RegisterIconRefFromResource() if possible, since the data
    registered using RegisterIconRefFromFamily() cannot be purged.
-   The iconFamily data is copied and the caller is reponsible for disposing of it.
+   The iconFamily data is copied and the caller is responsible for disposing of it.
    This routine increments the reference count of the IconRef. Call ReleaseIconRef()
    when you're done with it.
 }
@@ -953,7 +953,7 @@ function RegisterIconRefFromIconFamily( creator: OSType; iconType: OSType; iconF
 {
    RegisterIconRefFromResource
 
-   Registers an IconRef from a resouce file.
+   Registers an IconRef from a resource file.
    Lower-case creators are reserved for the system.
    The icon data to be fetched is either classic icon data or an icon family.
    The 'icns' icon family is searched for before the classic icon data.
@@ -1213,7 +1213,7 @@ function IsValidIconRef( theIconRef: IconRef ): Boolean; external name '_IsValid
  *    Check if IconRef has specific data.
  *
  *  Discussion:
- *    This routine returns true if inIconKind icon data is availabe or
+ *    This routine returns true if inIconKind icon data is available or
  *    can be created.
  *
  *  Mac OS X threading:

@@ -1010,7 +1010,7 @@ type
 	DoubleRangeRecord = record
 		minValue: QTFloatDouble;           { no less than this }
 		maxValue: QTFloatDouble;           { no more than this }
-		scaleValue: QTFloatDouble;         { muliply content by this going in, divide going out }
+		scaleValue: QTFloatDouble;         { multiply content by this going in, divide going out }
 		precisionDigits: SIGNEDLONG;    { # digits of precision when editing via typing }
 	end;
 

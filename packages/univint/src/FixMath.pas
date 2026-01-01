@@ -516,7 +516,7 @@ function WideAdd( var target: wide; const (*var*) source: wide ): widePtr; exter
  *      a pointer to the value to have source subtracted from
  *
  *    source:
- *      a pointer to the value to be substracted from target
+ *      a pointer to the value to be subtracted from target
  *
  *  Result:
  *    returns the value target
@@ -606,7 +606,7 @@ function WideSquareRoot( const (*var*) source: wide ): UInt32; external name '_W
  *  WideMultiply()
  *
  *  Discussion:
- *    Returns the wide result of multipling two SInt32 values
+ *    Returns the wide result of multiplying two SInt32 values
  *
  *  Parameters:
  *
@@ -650,7 +650,7 @@ function WideMultiply( multiplicand: SInt32; multiplier: SInt32; var target: wid
  *
  *    remainder:
  *      a pointer to where to put the remainder result, between 0 and
- *      divisor, after dividing divident by divisor. If NULL, no
+ *      divisor, after dividing dividend by divisor. If NULL, no
  *      remainder is returned.  If (SInt32*) -1, then any overflow
  *      result will round to negativeInfinity.
  *
@@ -684,7 +684,7 @@ function WideDivide( const (*var*) dividend: wide; divisor: SInt32; var remainde
  *
  *    remainder:
  *      a pointer to where to put the remainder result, between 0 and
- *      divisor, after dividing divident by divisor
+ *      divisor, after dividing dividend by divisor
  *
  *  Result:
  *    the wide result of dividend / divisor

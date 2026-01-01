@@ -229,7 +229,7 @@ uses MacTypes,MacOSXPosix,CSIdentityAuthority,SecBase,CSIdentityBase,Authorizati
 
     A CSIdentity object represents a user or group entity known to the system. An
     identity object has the following required attributes: a class (user
-    or group), a unique identitfier (UUID), a full name, a Posix ID
+    or group), a unique identifier (UUID), a full name, a Posix ID
     (UID or GID), and a Posix name (a.k.a. "short" name). There are also a number
     of optional attributes such as email address, image data, etc.
 
@@ -273,7 +273,7 @@ type
 {$ifc not TARGET_OS_IPHONE and not TARGET_IPHONE_SIMULATOR}
 {
     kCSIdentityGeneratePosixName
-    Passing this constant as the Posix name when creating an indentity
+    Passing this constant as the Posix name when creating an identity
     will generate a unique Posix name, based on the full name. The Posix
     name is generated at commit time.
 }
@@ -391,7 +391,7 @@ function CSIdentityGetTypeID: CFTypeID; external name '_CSIdentityGetTypeID';
  *    posixName:
  *      The POSIX name of the new identity. Specify
  *      kCSIdentityGeneratePosixName to have a name generated
- *      autmatically from the full name.
+ *      automatically from the full name.
  *
  *    flags:
  *      A CSIdentityFlags mask defining attributes of the new identity
@@ -772,7 +772,7 @@ function CSIdentityGetAliases( identity: CSIdentityRef ): CFArrayRef; external n
  *  CSIdentityIsMemberOfGroup()
  *
  *  Summary:
- *    Check if an identity is a memeber of a group
+ *    Check if an identity is a member of a group
  *
  *  Mac OS X threading:
  *    Thread safe since version 10.5
@@ -923,7 +923,7 @@ function CSIdentityIsEnabled( user: CSIdentityRef ): Boolean; external name '_CS
  *      The password to authenticate
  *
  *  Result:
- *    Returns true if the passord is correct for the specified user
+ *    Returns true if the password is correct for the specified user
  *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
@@ -1122,7 +1122,7 @@ procedure CSIdentitySetImageURL( identity: CSIdentityRef; url: CFURLRef { can be
  *      The image data. Pass NULL to remove image data.
  *
  *    imageDataType:
- *      The uniform type identitier (UTI) of the image data. Currently,
+ *      The uniform type identifier (UTI) of the image data. Currently,
  *      kUTTypeJPEG ("public.jpeg") is the only type supported.
  *
  *  Availability:
@@ -1260,7 +1260,7 @@ procedure CSIdentityRemoveMember( group: CSIdentityRef; member: CSIdentityRef );
 {
 
 
-    Methods that modfify user credentials
+    Methods that modify user credentials
 
 
 }
@@ -1420,7 +1420,7 @@ procedure CSIdentityDelete( identity: CSIdentityRef ); external name '_CSIdentit
  *      The authorization object holding credentials necessary to allow
  *      modification to the identity database. As a convenience,
  *      callers may pass NULL for the authorization, and the
- *      implmentation will attempt to acquire the necessary credentials
+ *      implementation will attempt to acquire the necessary credentials
  *      from Authorization Services.
  *
  *    error:
@@ -1512,7 +1512,7 @@ type
  *  CSIdentityCommitAsynchronously()
  *
  *  Summary:
- *    Asychronously commit all pending changes to the identity
+ *    Asynchronously commit all pending changes to the identity
  *    authority's database
  *
  *  Mac OS X threading:
@@ -1537,7 +1537,7 @@ type
  *      The authorization object holding credentials necessary to allow
  *      modification to the identity database. As a convenience,
  *      callers may pass NULL for the authorization, and the
- *      implmentation will attempt to acquire the necessary credentials
+ *      implementation will attempt to acquire the necessary credentials
  *      from Authorization Services. Modifying the local system
  *      identity database requires Admin credentials.
  *

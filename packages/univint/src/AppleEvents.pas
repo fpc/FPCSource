@@ -531,7 +531,7 @@ type
  *  AERemoteProcessResolverRef
  *
  *  Discussion:
- *    An opaque reference to an object that encapsulates the mechnanism
+ *    An opaque reference to an object that encapsulates the mechanism
  *    by which a list of processes running on a remote machine are
  *    obtained.  Created by AECreateRemoteProcessResolver, and must be
  *    disposed of by AEDisposeRemoteProcessResolver. A
@@ -605,7 +605,7 @@ procedure AEDisposeRemoteProcessResolver( ref: AERemoteProcessResolverRef ); ext
  *
  *  Discussion:
  *    Returns a CFArrayRef containing CFDictionary objects containing
- *    information about processses running on a remote machine.  If the
+ *    information about processes running on a remote machine.  If the
  *    result array is NULL, the query failed and the error out
  *    parameter will contain information about the failure.  If the
  *    resolver had not been previously scheduled for execution, this
@@ -677,7 +677,7 @@ type
  *      a CFString specifying the run loop mode
  *
  *    callback:
- *      a callback to be executed when the reolver completes
+ *      a callback to be executed when the resolver completes
  *
  *    ctx:
  *      a AERemoteProcessResolverContext.  If this parameter is not

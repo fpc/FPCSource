@@ -4232,7 +4232,7 @@ const
  *          insertion point should be returned. This parameter is
  *          optional and may not be present in all instances of this
  *          event. This parameter has no default value and no text
- *          should be returned when this parameter is ommited and there
+ *          should be returned when this parameter is omitted and there
  *          is no selected text.
  *
  *    --> kEventParamTextInputSendTextServiceEncoding (in, typeUInt32)
@@ -7789,7 +7789,7 @@ const
  *    if so.
  *
  *    In order to support closing minimized windows from the Dock, your
- *    application must provide an event hander for this event,
+ *    application must provide an event handler for this event,
  *    installed on the window’s event target, even if your application
  *    does not use the standard window handler or otherwise use Carbon
  *    events.
@@ -10482,7 +10482,7 @@ const
  *    menubar when the application is idle after user input has
  *    occurred, to allow the menu titles to be enabled or disabled
  *    appropriately according to the current user focus. You can
- *    distinquish between all these cases by examining the contents of
+ *    distinguish between all these cases by examining the contents of
  *    the kEventParamMenuContext parameter.
  *
  *    If you install an event handler for kEventCommandProcess, you
@@ -15000,7 +15000,7 @@ EventHandlerUPP Get ## x ## UPP()             \
  *
  *  Discussion:
  *    ProcessHICommand is a convenience function for dispatching
- *    kEventCommandProcesss events. Normally these events are created
+ *    kEventCommandProcess events. Normally these events are created
  *    and dispatched automatically by the toolbox when a menu item or
  *    control is selected, but you may need to dispatch an event
  *    yourself at times. This API creates a CommandProcess event, adds

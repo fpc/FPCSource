@@ -2382,7 +2382,7 @@ function InstallEventLoopTimer( inEventLoop: EventLoopRef; inFireDelay: EventTim
  *
  *  Discussion:
  *    Installs a timer onto the event loop specified. Idle timers are
- *    only called when there is no user activity occuring in the
+ *    only called when there is no user activity occurring in the
  *    application. This means that the user is not actively
  *    clicking/typing, and is also not in the middle of tracking a
  *    control, menu, or window. TrackMouseLocation actually disables
@@ -2409,7 +2409,7 @@ function InstallEventLoopTimer( inEventLoop: EventLoopRef; inFireDelay: EventTim
  *      startup and the user hasn't typed/clicked, it would fire in
  *      inDelay seconds. On Mac OS X 10.3 and earlier, the delay must
  *      be greater than zero. On Mac OS X 10.4 and later, the delay
- *      must be greather than or equal to zero. You cannot use
+ *      must be greater than or equal to zero. You cannot use
  *      kEventDurationForever for the delay.
  *
  *    inInterval:

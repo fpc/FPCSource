@@ -270,7 +270,7 @@ The following sections specify the parameter IDs for the audio units included in
 Host applications can use these IDs to directly address these parameters without first discovering
 them through the AUParameterInfo mechanism (see the AudioUnitProperties.h header file)
 
-Each parameter is preceeded by a comment that indicates scope, unit of measurement, minimum
+Each parameter is preceded by a comment that indicates scope, unit of measurement, minimum
 value, maximum value, and default value.
 
 See the AudioUnitProperties.h header file for additional information that a parameter may report
@@ -695,7 +695,7 @@ const
 
  @constant		kAUNBandEQFilterType_Parametric
  Parametric filter based on Butterworth analog prototype. Uses parameterization where
- the bandwidth is specifed as the relationship of the upper bandedge frequency to the
+ the bandwidth is specified as the relationship of the upper bandedge frequency to the
  lower bandedge frequency in octaves, where the upper and lower bandedge frequencies are
  the respective frequencies above and below the center frequency at which the gain is
  equal to half the peak gain.

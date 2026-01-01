@@ -747,7 +747,7 @@ function OSADisplay( scriptingComponent: ComponentInstance; scriptValueID: OSAID
         resulting text. This call differs from OSAGetSource in that (1) it
         always produces at least typeChar, (2) is only works on script values,
         (3) it may display it's output in non-compilable form (e.g. without
-        string quotes, elipses inserted in long and/or circular lists, etc.) and
+        string quotes, ellipsis inserted in long and/or circular lists, etc.) and
         (4) it is required by the basic scripting interface.
 
         Errors:
@@ -1808,7 +1808,7 @@ function OSAExecuteEvent( scriptingComponent: ComponentInstance; const (*var*) t
         defines any event handlers for that event, they are used to process
         the event.  If no event handler can be found in the context
         errAEEventNotHandled is returned.  If an event handler is found and
-        the hander "continues" control onward, the ResumeDispatchProc
+        the handler "continues" control onward, the ResumeDispatchProc
         (registered with OSASetResumeDispatchProc, above) is called given the
         AppleEvent.  The result is returned as a scriptValueID.
 

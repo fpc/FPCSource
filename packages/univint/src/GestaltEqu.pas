@@ -1864,7 +1864,7 @@ const
     it wants to get a useful value for the amount of physical memory on the system.  Code can
     also use the sysctl() and sysctlbyname() BSD calls to get these kinds of values.
 
-    For compatability with code which assumed that the value in returned by the
+    For compatibility with code which assumed that the value in returned by the
     gestaltPhysicalRAMSize selector would be a signed quantity of bytes, this selector will
     now return 2 gigabytes-1 ( INT_MAX ) if the system has 2 gigabytes of physical memory or more.
 }

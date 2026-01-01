@@ -409,7 +409,7 @@ type
  *      ATSUDirectDataSelectors.
  *
  *    oLayoutDataArrayPtr:
- *      Upon sucessful return, this parameter will contain a pointer to
+ *      Upon successful return, this parameter will contain a pointer to
  *      an array of the requested values if the ATSULineRef passed in
  *      iLineRef references those values. If this is not the case, then
  *      NULL will be returned, unless iCreate is set to true and the
@@ -417,7 +417,7 @@ type
  *      if only a count of the entries is needed.
  *
  *    oLayoutDataCount:
- *      Upon sucessful return, this parameter will contain a count of
+ *      Upon successful return, this parameter will contain a count of
  *      the entries in the array returned in oLayoutDataArray.
  *
  *  Availability:
@@ -488,7 +488,7 @@ function ATSUDirectGetLayoutDataArrayPtrFromLineRef( iLineRef: ATSULineRef; iDat
  *      The selector for the data that is being requested.
  *
  *    oLayoutDataArrayPtr:
- *      Upon sucessful return, this parameter will contain a pointer to
+ *      Upon successful return, this parameter will contain a pointer to
  *      an array of the requested values if the ATSUTextLayout passed
  *      in iTextLayout references those values for the line offset
  *      iLineOffset. If this is not the case, then NULL will be
@@ -496,7 +496,7 @@ function ATSUDirectGetLayoutDataArrayPtrFromLineRef( iLineRef: ATSULineRef; iDat
  *      count of the entries is needed.
  *
  *    oLayoutDataCount:
- *      Upon sucessful return, this parameter will contain a count of
+ *      Upon successful return, this parameter will contain a count of
  *      the entries in the array returned in oLayoutDataArray.
  *
  *  Availability:
@@ -589,7 +589,7 @@ function ATSUDirectReleaseLayoutDataArrayPtr( iLineRef: ATSULineRef { can be NUL
  *      at the offset iLineOffset.
  *
  *    oStyleIndex:
- *      Upon sucessful return, this will parameter will be set to the
+ *      Upon successful return, this will parameter will be set to the
  *      index of the ATSUStyleSettingRef passed in iStyleSettingRef for
  *      the line referenced by iLineRef. If the ATSUStyleSettingRef
  *      does not exist, in that context, then it will be added and the

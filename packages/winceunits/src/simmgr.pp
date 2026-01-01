@@ -385,7 +385,7 @@ type
   // Indicates type of notification received
   // Points to data structure specific to the notification
   // Size of data structure in bytes
-  // Parameter passed to simInititialize
+  // Parameter passed to simInitialize
   TSIMCALLBACK = procedure (dwNotifyCode:DWORD; const pData:pointer; dwDataSize:DWORD; dwParam:DWORD);
 
 //*****************************************************************************

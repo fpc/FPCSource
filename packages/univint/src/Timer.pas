@@ -276,7 +276,7 @@ procedure Microseconds( var microTickCount: UnsignedWide ); external name '_Micr
         prime a task, a thread is created which sleeps on a semaphore for the
         amount of time remaining before the next earliest Time Manager task,
         then calls the tmTask function for that task and then calculates the
-        time until the next task, ad nauseum.
+        time until the next task, ad nauseam.
 
     4. If you just want to delay for some period of time, and don't have
         other threads or data which may require synchronization, you can call

@@ -2791,7 +2791,7 @@ function HIThemeGetUIFontType( inFontID: ThemeFontID ): CTFontUIFontType; extern
  *    inGhostRect:
  *      An HIRect describing the location of the ghost indicator to be
  *      drawn. Generally, this should be NULL and the control using
- *      this primitive should support live feeback.
+ *      this primitive should support live feedback.
  *
  *    inContext:
  *      The CG context in which the drawing is to be done.
@@ -3138,7 +3138,7 @@ function HIThemeGetTrackThumbPositionFromOffset( const (*var*) inDrawInfo: HIThe
  *      measured.
  *
  *    inThumbBounds:
- *      The bounds of the thumb from which the postion is to be
+ *      The bounds of the thumb from which the position is to be
  *      calculated.
  *
  *    outRelativePosition:
@@ -3174,7 +3174,7 @@ function HIThemeGetTrackThumbPositionFromBounds( const (*var*) inDrawInfo: HIThe
  *
  *    outValue:
  *      On output, the track value as calculated from the relative
- *      postion of the thumb.
+ *      position of the thumb.
  *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
@@ -4196,7 +4196,7 @@ function HIThemeBrushCreateCGColor( inBrush: ThemeBrush; var outColor: CGColorRe
  *
  *  Discussion:
  *    Creates a ThemeTextColor for use with HIThemeSetTextFill.
- *    ThemeTextColors are currently availabe for these theme brushes:
+ *    ThemeTextColors are currently available for these theme brushes:
  *
  *
  *    kThemeBrushDialogBackgroundActive/Inactive

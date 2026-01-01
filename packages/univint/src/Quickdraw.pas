@@ -5871,7 +5871,7 @@ function QDIsNamedPixMapCursorRegistered( name: ConstCStringPtr ): Boolean; exte
  *      are used as mask.
  *
  *    hotSpot:
- *      The usual cursor hotspot, in coordinates relativ to
+ *      The usual cursor hotspot, in coordinates relative to
  *      (**crsrData).bounds.topLeft.
  *
  *    name:

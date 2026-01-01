@@ -40,10 +40,10 @@ const
 
 (*
 	I'm using the struct of player from the
-	Animate simple man/woman exmple in the
+	Animate simple man/woman example in the
 	"nds/examples" folder
 	You might want to read up on that too to
-	see the differnce in handling sprites via OAM
+	see the difference in handling sprites via OAM
 	and Easy GL2D.
 *)
 
@@ -68,7 +68,7 @@ type
     width: integer;			// dimensions of the map
     height: integer;
 
-    camera_x: integer;		// top-left cooordinates of our virtual camera
+    camera_x: integer;		// top-left coordinates of our virtual camera
     camera_y: integer;		// Works almost the same the 2d BG scroller
 
     tile_x: integer;			// current tile the top-left coordinate of our

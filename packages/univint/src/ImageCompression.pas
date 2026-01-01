@@ -6435,7 +6435,7 @@ const
  *    performed (kQTPropertyClass_Visual /
  *    kQTVisualPropertyID_ApertureMode). When a movie is in clean,
  *    production or encoded pixels aperture mode, each track's
- *    dimensions are overriden by special dimensions for that mode. The
+ *    dimensions are overridden by special dimensions for that mode. The
  *    original track dimensions are preserved and can be restored by
  *    setting the movie into classic aperture mode. Aperture modes are
  *    not saved in movies.
@@ -7917,7 +7917,7 @@ type
  *
  *  Result:
  *    If the callback returns an error, the compressor and ICM will
- *    stop emitting frames so that the error can be propogated back to
+ *    stop emitting frames so that the error can be propagated back to
  *    the caller of ICMCompressionSessionEncodeFrame or
  *    ICMCompressionSessionCompleteFrames.
  }
@@ -11045,7 +11045,7 @@ function QTVisualContextGetAttribute( visualContext: QTVisualContextRef; attribu
  *    new image becomes available.
  *
  *  Discussion:
- *    Due to unpredictible activity, such as user seeks or the arrival
+ *    Due to unpredictable activity, such as user seeks or the arrival
  *    of streaming video packets from a network, new images may become
  *    available for times supposedly occupied by previous images.
  *    Applications using the CoreVideo display link to drive rendering

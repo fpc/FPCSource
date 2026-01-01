@@ -221,7 +221,7 @@ type
     { The function to call before the handlers are invoked. Notice
      * that this function is called only for filters participating in
      * the http protocol. Filters for other protocols are to be
-     * initiliazed by the protocols themselves.
+     * initialized by the protocols themselves.
      }
     filter_init_func: ap_init_filter_func;
 

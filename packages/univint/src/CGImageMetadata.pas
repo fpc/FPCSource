@@ -369,7 +369,7 @@ var kCGImageMetadataPrefixXMPRights: CFStringRef; external name '_kCGImageMetada
  * creating a CGImageMetadataTag, use the type to specify how the tag
  * should be serialized in XMP. String types have CFStringRef values, array
  * types have CFArray values, and structure types have CFDictionary values.
- * @const kCGImageMetadataTypeDefault The type will be interpretted based on the
+ * @const kCGImageMetadataTypeDefault The type will be interpreted based on the
  * CFType of the tag's value. This is only used when creating a new
  * CGImageMetadataTag - no existing tags should have this value. CFString
  * defaults to kCGImageMetadataTypeString, CFArray defaults to
@@ -537,7 +537,7 @@ function CGImageMetadataCopyTags( metadata: CGImageMetadataRef ): CFArrayRef; ex
  *
  * If parent is NULL, a prefix must be specified for the first tag. Prefixes for
  * all subsequent tags are optional. If unspecified, the prefix is
- * inherented from the nearest parent tag with a prefix. Custom prefixes must be
+ * inherited from the nearest parent tag with a prefix. Custom prefixes must be
  * registered using @link CGImageMetadataRegisterNamespaceForPrefix @/link prior to use
  * in any path-based functions.
  *
@@ -545,7 +545,7 @@ function CGImageMetadataCopyTags( metadata: CGImageMetadataRef ): CFArrayRef; ex
  *  <ul>
  *    <li>'path' = CFSTR("xmp:CreateDate")</li>
  *    <li>'path' = CFSTR("exif:Flash.Fired")</li>
- *    <li>'parent' = tag at path CFSTR("exif:Flash"), path = CFSTR("exif:Fired") (equivilent to previous)</li>
+ *    <li>'parent' = tag at path CFSTR("exif:Flash"), path = CFSTR("exif:Fired") (equivalent to previous)</li>
  *    <li>'path' = CFSTR("exif:Flash.RedEyeMode")</li>
  *    <li>'path' = CFSTR("dc:title")</li>
  *    <li>'path' = CFSTR("dc:subject")</li>
@@ -619,7 +619,7 @@ function CGImageMetadataRegisterNamespaceForPrefix( metadata: CGMutableImageMeta
  * Note that if a parent tag is provided,
  * the children of that tag reference will be modified, which may be a different
  * reference from the tag stored in the metadata container. Since tags are normally
- * obtained as a copy, it is typically neccesary to use CGImageMetadataSetTagWithPath
+ * obtained as a copy, it is typically necessary to use CGImageMetadataSetTagWithPath
  * to commit the changed parent object back to the metadata container (using
  * the parent's path and NULL for the parent).
  * @param metadata A mutable collection of metadata tags.
@@ -665,7 +665,7 @@ function CGImageMetadataSetTagWithPath( metadata: CGMutableImageMetadataRef; par
  * Note that if a parent tag is provided,
  * the children of that tag reference will be modified, which may be a different
  * reference from the tag stored in the metadata container. Since tags are normally
- * obtained as a copy, it is typically neccesary to use CGImageMetadataSetTagWithPath
+ * obtained as a copy, it is typically necessary to use CGImageMetadataSetTagWithPath
  * to commit the changed parent object back to the metadata container (using
  * the parent's path and NULL for the parent).
  * @param metadata A mutable collection of metadata tags.

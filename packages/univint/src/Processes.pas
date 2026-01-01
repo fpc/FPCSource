@@ -715,7 +715,7 @@ function GetProcessInformation( const (*var*) PSN: ProcessSerialNumber; var info
  *    as to the flavor of the application. Note that this should only
  *    be used as a hint, since a bundle of a different flavor might be
  *    loaded into an application's address space.  The assigned values
- *    at present are:  Mac OS Classic aplications have the value 0,
+ *    at present are:  Mac OS Classic applications have the value 0,
  *    Carbon applications have the value 2, Cocoa applications have the
  *    value 3. Other undocumented values may also be returned.
  *     "Attributes"                CFNumber, kCFNumberSInt32

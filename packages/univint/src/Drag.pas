@@ -365,7 +365,7 @@ type
  *    of operation while others are flexible suggestions.  These
  *    constants are used in conjunction with the
  *    Get/SetDragAllowableActions() and Get/SetDragDropAction() APIs.
- *    Adopting the Drag Action APIs increases compatability with the
+ *    Adopting the Drag Action APIs increases compatibility with the
  *    Cocoa drag operation model.
  }
 const
@@ -850,7 +850,7 @@ function SetDragItemBounds( theDrag: DragRef; theItemRef: DragItemRef; const (*v
  *  Parameters:
  *
  *    theDrag:
- *      The drag reference from which to retreive the allowable drag
+ *      The drag reference from which to retrieve the allowable drag
  *      actions.
  *
  *    outActions:
@@ -919,7 +919,7 @@ function SetDragAllowableActions( theDrag: DragRef; inActions: DragActions; isLo
  *  Parameters:
  *
  *    theDrag:
- *      The drag reference from which to retreive the performed drop
+ *      The drag reference from which to retrieve the performed drop
  *      action.
  *
  *    outAction:

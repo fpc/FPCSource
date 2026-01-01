@@ -1703,7 +1703,7 @@ function SCAsyncIdle( ci: ComponentInstance ): ComponentResult; external name '_
  *      StandardCompressionSubTypeVideo.
  *
  *    outOptions:
- *      A pointer to ICMCompressionSettionOptionsRef where a reference
+ *      A pointer to ICMCompressionSectionOptionsRef where a reference
  *      to a new instance of ICM Compression Session Options object is
  *      returned.
  *
@@ -2107,7 +2107,7 @@ function TCTimeCodeTimeToString( mh: MediaHandler; const (*var*) tCDef: TimeCode
  *
  *    outTCStr:
  *      Pointer to a CFStringRef that is to receive the converted time
- *      value. Client reponsible for disposing string.
+ *      value. Client responsible for disposing string.
  *
  *  Availability:
  *    Mac OS X:         in version 10.5 (or QuickTime 7.1) and later in QuickTime.framework

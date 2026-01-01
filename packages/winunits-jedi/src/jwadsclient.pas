@@ -124,7 +124,7 @@ const
 //
 // CF_DSOBJECTS
 // ------------
-//  This clipboard format defines the seleciton for an DS IShellFolder to the
+//  This clipboard format defines the selection for an DS IShellFolder to the
 //  shell extensions.   All strings are stored as BSTR's, and an offset == 0
 //  is used to indicate that the string is not present.
 //

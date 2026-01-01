@@ -279,7 +279,7 @@ function WSProtocolHandlerGetTypeID: CFTypeID; external name '_WSProtocolHandler
  *      a CFAllocatorRef used to allocate the protocol handler.
  *
  *    protocol:
- *      a constant string, defiend in WSMethodInvocation.h, that
+ *      a constant string, defined in WSMethodInvocation.h, that
  *      determines the type of implementation to create (XML-RPC vs.
  *      SOAP).
  *
@@ -300,7 +300,7 @@ function WSProtocolHandlerCreate( allocator: CFAllocatorRef; protocol: CFStringR
  *
  *  Discussion:
  *    Parse an incoming XML document for the method name and
- *    parameters.  The results are in a dictionory as kWSMethodName (a
+ *    parameters.  The results are in a dictionary as kWSMethodName (a
  *    CFString), kWSMethodParameters (a CFDict) and
  *    kWSMethodParameterOrder (a CFArray). If there was a parse error,
  *    NULL is returned. Protocol specific additions (eg,
@@ -353,7 +353,7 @@ function WSProtocolHandlerCopyRequestDictionary( ref: WSProtocolHandlerRef; data
  *      the protocol handler to use
  *
  *    methodName:
- *      the method name corrosponding to this result
+ *      the method name corresponding to this result
  *
  *    data:
  *      the XML document to parse
@@ -498,7 +498,7 @@ function WSProtocolHandlerCopyRequestDocument( ref: WSProtocolHandlerRef; method
  *      the implementation
  *
  *    propertyName:
- *      the name of the property to retreive
+ *      the name of the property to retrieve
  *
  *  Result:
  *    the CFTypeRef value of the property, or NULL if the property was
@@ -528,7 +528,7 @@ function WSProtocolHandlerCopyProperty( ref: WSProtocolHandlerRef; propertyName:
  *      the implementation
  *
  *    propertyName:
- *      the name of the property to retreive
+ *      the name of the property to retrieve
  *
  *    propertyValue:
  *      the value to set in the method implementation
@@ -560,7 +560,7 @@ procedure WSProtocolHandlerSetProperty( ref: WSProtocolHandlerRef; propertyName:
  *    by the server as a correct serialization for a given type.  If
  *    the callback returns NULL, the default serializer will be used.
  *    Note for for SOAP serializations, the parameter key (element
- *    name) is not part of the callback; it will be substituded for all
+ *    name) is not part of the callback; it will be substituted for all
  *    occurances of "%@" in the returned string.
  *
  *  Parameters:

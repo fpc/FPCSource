@@ -3183,7 +3183,7 @@ function TXNSetSelection( iTXNObject: TXNObject; iStartOffset: TXNOffset; iEndOf
  *    return examine the flags to see if the attributes specified were
  *    continuous.  If an attribute is continuous then the dataValue
  *    field in the TXNTypeAttributes can be examined to get the
- *    continous value.  Remember that for color you pass a ptr to an
+ *    continuous value.  Remember that for color you pass a ptr to an
  *    RGBColor in attr[0].data.dataPtr.
  *
  *  Discussion:
@@ -3485,7 +3485,7 @@ function TXNEchoMode( iTXNObject: TXNObject; iEchoCharacter: UniChar; iEncoding:
  *  Summary:
  *    Given a range specified by the starting and ending offset return
  *    a count of the runs in that range.  Run in this case means
- *    changes in TextSyles or a graphic or sound.
+ *    changes in TextStyles or a graphic or sound.
  *
  *  Mac OS X threading:
  *    Not thread safe
@@ -3763,7 +3763,7 @@ function TXNReadFromCFURL( iTXNObject: TXNObject; iStartOffset: TXNOffset; iEndO
  *  TXNCopyTypeIdentifiersForRange()
  *
  *  Summary:
- *    Returns an array of univeral type identifiers (UTIs) that can be
+ *    Returns an array of universal type identifiers (UTIs) that can be
  *    used to write out a range of a text object with no information
  *    loss.
  *
@@ -4655,7 +4655,7 @@ procedure TXNGetViewRect( iTXNObject: TXNObject; var oViewRect: Rect ); external
  *
  *  Discussion:
  *    Call this if you called TXNSetRectBounds with the iUpdate
- *    parameter set to false. It will also recalcuate where the
+ *    parameter set to false. It will also recalculate where the
  *    scrollbars, if any, should be placed. Finally an update event
  *    will be generated so that the TXNObject is redrawn.
  *
@@ -5112,7 +5112,7 @@ const
  *
  *  Discussion:
  *    This function enables support for a variety of commands.  It is
- *    important to know that the handlers are installed immediatedly
+ *    important to know that the handlers are installed immediately
  *    when an MLTE object is associated with an HIObject that can serve
  *    as an event target ( via a call to TXNAttachObjectToWindow or
  *    TXNSetEventTarget ). However when the handlers are installed they
@@ -6219,7 +6219,7 @@ function TXNIsObjectAttachedToSpecificWindow( iTXNObject: TXNObject; iWindow: Wi
  *
  *    iDestinationRect:
  *      The new destination rectangle.  Pass NULL if you don't want to
- *      change the destination retangle.
+ *      change the destination rectangle.
  *
  *    iUpdate:
  *      If you would like the the text and where the scrollbars are
@@ -6924,7 +6924,7 @@ function TXNSetFontDefaults( iTXNObject: TXNObject; iCount: ItemCount; {const} i
  *      Count of FontDescriptions in the array.
  *
  *    oFontDefaults:
- *      Array of FontDescriptins to be filled out.
+ *      Array of FontDescriptions to be filled out.
  *
  *  Result:
  *    A result code indicating success or failure.

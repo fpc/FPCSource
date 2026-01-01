@@ -1071,7 +1071,7 @@ function ATSUGetIndFontName( iFontID: ATSUFontID; iFontNameIndex: ItemCount; iMa
  *    platform, script, and language for the font that matches an ATSUI
  *    font ID and name table index, call the function
  *    ATSUGetIndFontName. Although they will each accept NULL on input
- *    individually, you must pass a vaild pointer to at least one of
+ *    individually, you must pass a valid pointer to at least one of
  *    the three parameters oName, oActualNameLength, or oFontNameIndex,
  *    or ATSUFindFontName will return paramErr.
  *
@@ -1173,7 +1173,7 @@ function ATSUFindFontName( iFontID: ATSUFontID; iFontNameCode: FontNameCode; iFo
  *
  *    iFontNameCode:
  *      A constant specifying the type of name to search for (i.e.,
- *      full name, postcript name). See SFNTTypes.h for a list possible
+ *      full name, postscript name). See SFNTTypes.h for a list possible
  *      values to pass for this parameter.
  *
  *    iFontNamePlatform:

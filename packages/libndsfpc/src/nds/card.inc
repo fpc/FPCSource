@@ -53,7 +53,7 @@ function CARD_DELAY1(n: cint): cint; inline;
 const
   // 3 bits in b10..b8 indicate something
   // read bits
-  CARD_BUSY       = (1 shl 31);  // when reading, still expecting incomming data?
+  CARD_BUSY       = (1 shl 31);  // when reading, still expecting incoming data?
   CARD_DATA_READY = (1 shl 23);  // when reading, CARD_DATA_RD or CARD_DATA has another word of data and is good to go
 
   // Card commands

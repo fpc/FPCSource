@@ -321,7 +321,7 @@
       cxcheng    10/20/95 -  add more comments on number versions
       cxcheng    10/13/95 -  add more number functions
       cxcheng    08/29/95 -  Support for segmented varrays
-      cxcheng    08/18/95 -  modifiy orlmls structure
+      cxcheng    08/18/95 -  modify orlmls structure
       skrishna   06/06/95 -  rename orln, orld, orlvs and orlva to orlnum,
                              orldat, orlvstr and orlvary respectively
       skrishna   11/15/94 -  remove orlnget() function
@@ -1371,8 +1371,8 @@ var OCINumberToInt : function (err:POCIError; number:POCINumber; rsl_length:uwor
 {$ENDIF}
 
   {
-     NAME: OCINumberPower - OCINumber takes an arbitary Base to an
-                            arbitary Power
+     NAME: OCINumberPower - OCINumber takes an arbitrary Base to an
+                            arbitrary Power
      PARAMETERS:
           err (IN/OUT) - error handle. If there is an error, it is
                   recorded in 'err' and this function returns OCI_ERROR.
@@ -3891,7 +3891,7 @@ var OCICollSize : function (env:POCIEnv; err:POCIError; coll:POCIColl; size:Psb4
                This is not to be used in Public interfaces , but
                has been provided due to special requirements from
                SQLPLUS development group as they require to call
-               Core funtions directly .
+               Core functions directly.
      }
     type
     { OCI representation of XMLType  }

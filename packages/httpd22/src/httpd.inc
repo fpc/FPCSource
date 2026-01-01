@@ -1696,7 +1696,7 @@ function ap_escape_quotes(p: Papr_pool_t; const instring: PAnsiChar): PAnsiChar;
  * a macro, to avoid unistd.h dependency
  * @param p The pool to allocate memory from
  * @param string The string to append the PID to
- * @param delim The string to use to deliminate the string from the PID
+ * @param delim The string to use to delimitate the string from the PID
  * @return A copy of the string with the PID appended
  }
 function ap_append_pid(p: Papr_pool_t; const string_, delim: PAnsiChar): PAnsiChar;

@@ -616,7 +616,7 @@ function AuthorizationExecuteWithPrivileges( authorization: AuthorizationRef; pa
 	the caller may have obtained through that reference.
 
 	@discussion This function has been deprecated and should no longer be used.
-	Use a launchd-launched helper tool and/or the Service Mangement framework
+	Use a launchd-launched helper tool and/or the Service Management framework
 	for this functionality.
  }
 function AuthorizationCopyPrivilegedReference( var authorization: AuthorizationRef; flags: AuthorizationFlags ): OSStatus; external name '_AuthorizationCopyPrivilegedReference';

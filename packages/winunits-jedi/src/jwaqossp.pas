@@ -529,7 +529,7 @@ type
  * This structure defines the information which is carried in the Rsvp
  * Adspec.  This Rsvp object typically indicates which service types are
  * available ( Controlled Load and/or Guaranteed Service ), if a non-Rsvp
- * hop has been encountered by the Path message, and the minumum MTU along
+ * hop has been encountered by the Path message, and the minimum MTU along
  * the path. The services array indicates which services are supported
  *)
 

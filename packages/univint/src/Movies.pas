@@ -4944,7 +4944,7 @@ procedure MediaTimeToSampleNum( theMedia: Media; time: TimeValue; var sampleNum:
  *
  *  Summary:
  *    Adds sample data and a description to a media. AddMediaSample2
- *    extends and supercedes AddMediaSample.
+ *    extends and supersedes AddMediaSample.
  *
  *  Parameters:
  *
@@ -5062,7 +5062,7 @@ function AddMediaSampleFromEncodedFrame( theMedia: Media; encodedFrame: ICMEncod
  *
  *  Summary:
  *    Adds sample references from a sample table to a media.
- *    AddSampleTableToMedia supercedes AddMediaSampleReferences and
+ *    AddSampleTableToMedia supersedes AddMediaSampleReferences and
  *    AddMediaSampleReferences64.
  *
  *  Parameters:
@@ -5223,7 +5223,7 @@ function ExtendMediaDecodeDurationToDisplayEndTime( theMedia: Media; var mediaCh
  *
  *  Summary:
  *    Retrieves sample data from a media file. GetMediaSample2 extends
- *    and supercedes GetMediaSample.
+ *    and supersedes GetMediaSample.
  *
  *  Discussion:
  *    GetMediaSample2 will only return multiple samples that all have
@@ -5342,7 +5342,7 @@ function GetMediaSample( theMedia: Media; dataOut: Handle; maxSizeToGrow: SIGNED
  *
  *  Summary:
  *    Obtains information about sample references in a media in the
- *    form of a sample table. CopyMediaMutableSampleTable supercedes
+ *    form of a sample table. CopyMediaMutableSampleTable supersedes
  *    GetMediaSampleReferences and GetMediaSampleReferences64.
  *
  *  Discussion:
@@ -7932,7 +7932,7 @@ const
 
 {
    Refcon Properties
-        for MediaRefConGetProerty/MediaRefConSetProperty
+        for MediaRefConGetProperty/MediaRefConSetProperty
 }
 const
 	kRefConPropertyCanHaveFocus = 1;    { Boolean }
@@ -8915,7 +8915,7 @@ type
 
     Since pdActionCustomNewControlControl may be called upon your effect for other items within the
     dialog, it is recommended that your effect have an easy way to determine which controls it implements:
-     a) by having storage be a pointer with an OSType at the begining to mark controls
+     a) by having storage be a pointer with an OSType at the beginning to mark controls
         implemented by your code.
      - or -
      b) keeping track in your component globals those custom controls which you have created.
@@ -9029,7 +9029,7 @@ type
 
     Controls which have no focus would always set focus to be pdActionFocusOff.
 
-    Controls with a single focus would set pdActionFocusFirst when requsted to set either
+    Controls with a single focus would set pdActionFocusFirst when requested to set either
     pdActionFocusFirst or pdActionFocusLast, and would set pdActionFocusOff for either
     pdActionFocusForward or pdActionFocusBackward.
 }
@@ -10617,7 +10617,7 @@ const
    * performed. The values for this property have the prefix
    * kQTApertureMode_ and are in ImageCompression.h.
    * When a movie is in clean, production or encoded pixels aperture
-   * mode, each track's dimensions are overriden by special dimensions
+   * mode, each track's dimensions are overridden by special dimensions
    * for that mode. The original track dimensions are preserved and can
    * be restored by setting the movie into classic aperture mode.
    }

@@ -25,7 +25,7 @@ Which ones are compiled-in depend on some defines in the httpsearcher.pp file
 
 The HTTP server supports 2 kinds of queries:
 [baseURL]/search  : search pages matching the search term.
-[baseURL]/list    : search words matching the search term. Can be used for typeahead funcionnality
+[baseURL]/list    : search words matching the search term. Can be used for typeahead functionality
 [baseURL] is the base URL where the HTTP service is listening...
 
 Responses are in JSON dataset format (see extjsdataset unit)

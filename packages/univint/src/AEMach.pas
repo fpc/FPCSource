@@ -243,7 +243,7 @@ uses MacTypes,MacOSXPosix,AEDataModel;
  * processes' registered port where they are culled from the normal
  * event stream if there is an outstanding AESend + kAEWaitReply.
  * But it may be desirable for a client to specify their own port to
- * receive queud replies.
+ * receive queued replies.
  *
  * In the case of AESendMessage with kAEWaitReply specified, an
  * anonymous port will be used to block until the reply is received.

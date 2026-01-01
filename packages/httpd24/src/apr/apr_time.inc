@@ -269,7 +269,7 @@ function apr_strftime(s: PAnsiChar;
 
 {**
  * Improve the clock resolution for the lifetime of the given pool.
- * Generally this is only desireable on benchmarking and other very
+ * Generally this is only desirable on benchmarking and other very
  * time-sensitive applications, and has no impact on most platforms.
  * @param p The pool to associate the finer clock resolution
  *}

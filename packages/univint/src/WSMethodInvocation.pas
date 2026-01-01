@@ -644,7 +644,7 @@ procedure WSMethodInvocationSetProperty( invocation: WSMethodInvocationRef; prop
  *      the invocation
  *
  *    propertyName:
- *      the name of the property to retreive
+ *      the name of the property to retrieve
  *
  *  Result:
  *    the CFTypeRef value of the property, or NULL if the property was
@@ -719,7 +719,7 @@ function WSMethodInvocationInvoke( invocation: WSMethodInvocationRef ): CFDictio
  *    Prototypes the callback made when an asynchronous invocation
  *    completes.  This callback is passed a reference to the invocation
  *    just completed, a pointer to private data, and a dictionary that
- *    contains the return value or falut for this invocation.  The
+ *    contains the return value or fault for this invocation.  The
  *    callback is responsible for releasing the dictionary when it is
  *    no longer used.
  *

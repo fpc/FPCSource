@@ -279,7 +279,7 @@ type
     There is no function to get/set the low-mem for FindWordHook at 0x07F8.
     This is because it is not a low-mem ProcPtr. That address is the entry
     in the OS TrapTable for trap 0xA0FE.  You can use Get/SetTrapAddress to
-    acccess it.
+    access it.
 }
 
 {

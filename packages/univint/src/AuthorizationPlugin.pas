@@ -408,7 +408,7 @@ const
 
     @field version      Engine callback version.
     @field SetResult    Set a result after a call to AuthorizationSessionInvoke.
-    @field RequestInterrupt Request authorization engine to interrupt all mechamisms invoked after this mechamism has called SessionSetResult and then call AuthorizationSessionInvoke again.
+    @field RequestInterrupt Request authorization engine to interrupt all mechanisms invoked after this mechanism has called SessionSetResult and then call AuthorizationSessionInvoke again.
     @field DidDeactivate    Respond to the Deactivate request.
     @field GetContextValue  Read value from context.  AuthorizationValue does not own data.
     @field SetContextValue  Write value to context.  AuthorizationValue and data are copied.
@@ -426,8 +426,8 @@ type
 {    OSStatus (*SetResult)(AuthorizationEngineRef inEngine, AuthorizationResult inResult); }
 	 SetResult : function (inEngine : AuthorizationEngineRef; inResult : AuthorizationResult) : OSStatus;
 
-    { Request authorization engine to interrupt all mechamisms invoked after
-        this mechamism has called SessionSetResult and then call
+    { Request authorization engine to interrupt all mechanisms invoked after
+        this mechanism has called SessionSetResult and then call
         AuthorizationSessionInvoke again. }
      RequestInterrupt : function (inEngine : AuthorizationEngineRef) : OSStatus;
 
@@ -473,8 +473,8 @@ type
 {    OSStatus (*SetResult)(AuthorizationEngineRef inEngine, AuthorizationResult inResult); }
 	 SetResult : function (inEngine : AuthorizationEngineRef; inResult : AuthorizationResult) : OSStatus;
 
-    { Request authorization engine to interrupt all mechamisms invoked after
-        this mechamism has called SessionSetResult and then call
+    { Request authorization engine to interrupt all mechanisms invoked after
+        this mechanism has called SessionSetResult and then call
         AuthorizationSessionInvoke again. }
      RequestInterrupt : function (inEngine : AuthorizationEngineRef) : OSStatus;
 

@@ -74,7 +74,7 @@ begin
   glClearDepth($7FFF);
 
   // setup the camera
-  gluLookAt( 0.0, 0.0, 1.0,   //camera possition
+  gluLookAt( 0.0, 0.0, 1.0,   //camera position
              0.0, 0.0, 0.0,   //look at
              0.0, 1.0, 0.0);  //up
 

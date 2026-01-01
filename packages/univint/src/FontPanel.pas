@@ -591,7 +591,7 @@ function SetFontInfoForSelection( iStyleType: OSType; iNumStyles: UInt32; iStyle
 
     In 10.3 the ability to create and modify font collections is available.  Font
     collections are files containing font descriptions.  Font descriptions are
-    encapsulated in the opaque object FCFontDescriptorRef. A FCFontDescriptroRef
+    encapsulated in the opaque object FCFontDescriptorRef. A FCFontDescriptorRef
     is a CFType.  To release one call CFRelease.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}
@@ -813,7 +813,7 @@ var kFCFontFaceAttribute: CFStringRef; external name '_kFCFontFaceAttribute'; (*
  *  kFCFontSizeAttribute
  *
  *  Discussion:
- *    The key for a CFNumber containg the font size (e.g. 12).
+ *    The key for a CFNumber containing the font size (e.g. 12).
  *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework

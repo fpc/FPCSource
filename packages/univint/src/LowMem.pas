@@ -696,7 +696,7 @@ procedure LMSetCurPitch( value: SInt16 ); external name '_LMSetCurPitch';
 
 {
     NOTE:   LMGetABusVars and LMSetABusVars have been removed.
-            Their implememtation in InterfaceLib was inconsistent
+            Their implementation in InterfaceLib was inconsistent
             with their prototypes here.  In InterfaceLib LMSetABusVars
             would copy eight bytes and LMGetABusVars would return the
             value 0x02D8 instead of the long at that location.

@@ -47,7 +47,7 @@
 #endif}
 
 {
- * @defgroup apr_portabile Portability Routines
+ * @defgroup apr_portable Portability Routines
  * @ingroup APR
  }
 

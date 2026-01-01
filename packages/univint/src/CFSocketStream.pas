@@ -487,7 +487,7 @@ var kCFStreamNetworkServiceTypeVoice: CFStringRef; external name '_kCFStreamNetw
  *  Discussion:
  *  Stream property value, for both set and copy operations.
  *  The value is a CFBooleanRef which indicates whether the connection
- *  is allowed to use the built-in celluar radios.  A value of kCFBooleanTrue
+ *  is allowed to use the built-in cellular radios.  A value of kCFBooleanTrue
  *  disallows use of cellular interfaces.  kCFBooleanFalse (the default)
  *  allows use of cellular interfaces.
  *
@@ -646,7 +646,7 @@ var kCFStreamPropertySOCKSVersion: CFStringRef; external name '_kCFStreamPropert
  *  kCFStreamSocketSOCKSVersion4
  *
  *  Discussion:
- *	CFDictionary value for SOCKS proxy information.  Indcates that
+ *	CFDictionary value for SOCKS proxy information.  Indicates that
  *	SOCKS will or is using version 4 of the SOCKS protocol.
  *
  *  Availability:
@@ -660,7 +660,7 @@ var kCFStreamSocketSOCKSVersion4: CFStringRef; external name '_kCFStreamSocketSO
  *  kCFStreamSocketSOCKSVersion5
  *
  *  Discussion:
- *	CFDictionary value for SOCKS proxy information.  Indcates that
+ *	CFDictionary value for SOCKS proxy information.  Indicates that
  *	SOCKS will or is using version 5 of the SOCKS protocol.
  *
  *  Availability:

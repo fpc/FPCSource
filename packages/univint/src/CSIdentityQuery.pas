@@ -350,7 +350,7 @@ function CSIdentityQueryCreate( allocator: CFAllocatorRef; identityClass: CSIden
  *      The name criteria for the query.
  *
  *    comparisonMethod:
- *      The comparision function (equal or begins with)
+ *      The comparison function (equal or begins with)
  *
  *    identityClass:
  *      The class of identity to find

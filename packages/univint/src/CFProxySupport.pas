@@ -481,7 +481,7 @@ var kCFProxyAutoConfigurationURLKey: CFStringRef; external name '_kCFProxyAutoCo
  *
  *  Discussion:
  *	Key for the proxy's PAC script
- *	The value is a CFString that contains the full JavaScript soure text for the PAC file.
+ *	The value is a CFString that contains the full JavaScript source text for the PAC file.
  *
  *  Availability:
  *	Mac OS X:		 in version 10.5 and later in CoreServices.framework

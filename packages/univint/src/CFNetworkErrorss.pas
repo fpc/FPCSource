@@ -464,7 +464,7 @@ var kCFSOCKSNegotiationMethodKey: CFStringRef; external name '_kCFSOCKSNegotiati
  *  Discussion:
  *	When an error of kCFNetServicesErrorDNSServiceFailure is
  *	returned, this key's value is set to a CFNumber containing the
- *	value returned from DNS; interret it using the values dns_sd.h
+ *	value returned from DNS; interpret it using the values dns_sd.h
  *
  *  Availability:
  *	Mac OS X:		 in version 10.5 and later in CoreServices.framework

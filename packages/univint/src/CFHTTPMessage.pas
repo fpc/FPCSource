@@ -437,7 +437,7 @@ function CFHTTPMessageGetTypeID: CFTypeID; external name '_CFHTTPMessageGetTypeI
  *
  *  Result:
  *	A pointer to the CFHTTPMessage created, or NULL if failed. It is
- *	caller's responsibilty to release the memory allocated for the
+ *	caller's responsibility to release the memory allocated for the
  *	message.
  *
  *  Availability:
@@ -480,7 +480,7 @@ function CFHTTPMessageCreateRequest( alloc: CFAllocatorRef; requestMethod: CFStr
  *
  *  Result:
  *	A pointer to the CFHTTPMessage created, or NULL if failed. It is
- *	caller's responsibilty to release the memory allocated for the
+ *	caller's responsibility to release the memory allocated for the
  *	message.
  *
  *  Availability:
@@ -516,7 +516,7 @@ function CFHTTPMessageCreateResponse( alloc: CFAllocatorRef; statusCode: CFIndex
  *
  *  Result:
  *	A pointer to the CFHTTPMessage created, or NULL if failed. It is
- *	caller's responsibilty to release the memory allocated for the
+ *	caller's responsibility to release the memory allocated for the
  *	message.
  *
  *  Availability:
@@ -551,7 +551,7 @@ function CFHTTPMessageCreateEmpty( alloc: CFAllocatorRef; isRequest: Boolean ): 
  *
  *  Result:
  *	A pointer to the CFHTTPMessage created, or NULL if failed. It is
- *	caller's responsibilty to release the memory allocated for the
+ *	caller's responsibility to release the memory allocated for the
  *	message.
  *
  *  Availability:
@@ -609,7 +609,7 @@ function CFHTTPMessageIsRequest( message: CFHTTPMessageRef ): Boolean; external 
  *
  *  Result:
  *	A pointer to a CFString, or NULL if failed. It is caller's
- *	responsibilty to release the memory allocated for the string.
+ *	responsibility to release the memory allocated for the string.
  *
  *  Availability:
  *	Mac OS X:		 in version 10.1 and later in CoreServices.framework
@@ -637,7 +637,7 @@ function CFHTTPMessageCopyVersion( message: CFHTTPMessageRef ): CFStringRef; ext
  *
  *  Result:
  *	A pointer to a CFData, or NULL if failed. It is caller's
- *	responsibilty to release the memory allocated for the data.
+ *	responsibility to release the memory allocated for the data.
  *
  *  Availability:
  *	Mac OS X:		 in version 10.1 and later in CoreServices.framework
@@ -697,7 +697,7 @@ procedure CFHTTPMessageSetBody( message: CFHTTPMessageRef; bodyData: CFDataRef )
  *
  *  Result:
  *	A pointer to a CFString, or NULL if failed. It is caller's
- *	responsibilty to release the memory allocated for the string.
+ *	responsibility to release the memory allocated for the string.
  *
  *  Availability:
  *	Mac OS X:		 in version 10.1 and later in CoreServices.framework
@@ -725,7 +725,7 @@ function CFHTTPMessageCopyHeaderFieldValue( message: CFHTTPMessageRef; headerFie
  *
  *  Result:
  *	A pointer to a CFDictionary, or NULL if failed. It is caller's
- *	responsibilty to release the memory allocated for the dictionary.
+ *	responsibility to release the memory allocated for the dictionary.
  *
  *  Availability:
  *	Mac OS X:		 in version 10.1 and later in CoreServices.framework
@@ -837,7 +837,7 @@ function CFHTTPMessageIsHeaderComplete( message: CFHTTPMessageRef ): Boolean; ex
  *
  *  Discussion:
  *	Creates a self-contained copy of a CFHTTPMessage. This would be
- *	suitable for persistant storage or for transmitting over the
+ *	suitable for persistent storage or for transmitting over the
  *	network independently.
  *
  *  Mac OS X threading:
@@ -846,11 +846,11 @@ function CFHTTPMessageIsHeaderComplete( message: CFHTTPMessageRef ): Boolean; ex
  *  Parameters:
  *
  *	request:
- *	  A pointer to the CFHTTPMessage to be seralized.
+ *	  A pointer to the CFHTTPMessage to be serialized.
  *
  *  Result:
  *	A pointer to a CFData, or NULL if failed. It is caller's
- *	responsibilty to release the memory allocated for the data.
+ *	responsibility to release the memory allocated for the data.
  *
  *  Availability:
  *	Mac OS X:		 in version 10.1 and later in CoreServices.framework
@@ -881,7 +881,7 @@ function CFHTTPMessageCopySerializedMessage( request: CFHTTPMessageRef ): CFData
  *
  *  Result:
  *	A pointer to a CFURL, or NULL if failed. It is caller's
- *	responsibilty to release the memory allocated for the url.
+ *	responsibility to release the memory allocated for the url.
  *
  *  Availability:
  *	Mac OS X:		 in version 10.1 and later in CoreServices.framework
@@ -908,7 +908,7 @@ function CFHTTPMessageCopyRequestURL( request: CFHTTPMessageRef ): CFURLRef; ext
  *
  *  Result:
  *	A pointer to a CFString, or NULL if failed. It is caller's
- *	responsibilty to release the memory allocated for the string.
+ *	responsibility to release the memory allocated for the string.
  *
  *  Availability:
  *	Mac OS X:		 in version 10.1 and later in CoreServices.framework
@@ -957,7 +957,7 @@ function CFHTTPMessageCopyRequestMethod( request: CFHTTPMessageRef ): CFStringRe
  *
  *  Result:
  *	A pointer to a CFString, or NULL if failed. It is caller's
- *	responsibilty to release the memory allocated for the string.
+ *	responsibility to release the memory allocated for the string.
  *
  *  Availability:
  *	Mac OS X:		 in version 10.1 and later in CoreServices.framework
@@ -1016,7 +1016,7 @@ function CFHTTPMessageGetResponseStatusCode( response: CFHTTPMessageRef ): CFInd
  *
  *  Result:
  *	A CFString indicating the status code, or NULL if failed. It is
- *	caller's responsibilty to release the memory allocated for the
+ *	caller's responsibility to release the memory allocated for the
  *	string.
  *
  *  Availability:

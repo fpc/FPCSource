@@ -266,7 +266,7 @@ function HRNewReference( var hrRef: HRReference; rendererType: OSType; grafPtr_:
  *  HRNewReferenceInWindow()   *** DEPRECATED ***
  *
  *  Discussion:
- *    Use this API from  a Carbon App. All the contrrols created by the
+ *    Use this API from  a Carbon App. All the controls created by the
  *    HTML renderer will be embedded in the root control of the window
  *    specified by the window ref.
  *
@@ -359,7 +359,7 @@ function HRSetGrafPtr( hrRef: HRReference; grafPtr_: GrafPtr ): OSStatus; extern
  *  HRSetWindowRef()   *** DEPRECATED ***
  *
  *  Discussion:
- *    Use this API from  a Carbon App. All the contrrols created by the
+ *    Use this API from  a Carbon App. All the controls created by the
  *    HTML renderer will be moved in the root control of the window
  *    specified by the window ref. All the drawing will now happen in
  *    the specified window.
@@ -1107,7 +1107,7 @@ function HRUtilGetFSRefFromURL( rootString: CFStringRef; linkString: CFStringRef
  *  Parameters:
  *
  *    fileRef:
- *      Refernce to a file whose URL is desired.
+ *      Reference to a file whose URL is desired.
  *
  *    url:
  *      a fully qualified URL is returned in this parameter. The
@@ -1203,7 +1203,7 @@ procedure HRUnregisterWasCFURLVisitedUPP( hrRef: HRReference ); external name '_
     you might use this include...
 
         (a) maintaining a history of URLs
-        (b) maintainging a list of visited links
+        (b) maintaining a list of visited links
         (c) setting a window title based on the new URL
 }
 type

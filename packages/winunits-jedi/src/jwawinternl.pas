@@ -756,7 +756,7 @@ type
 
 //
 // this function is implemented in winsta.dll (you need to loadlibrary to call this function)
-// this internal function retrives the LogonId (also called SessionId) for the current process
+// this internal function retrieves the LogonId (also called SessionId) for the current process
 // You should avoid using this function as it can change. you can retrieve the same information
 // Using public api WTSQuerySessionInformation. Pass WTSSessionId as the WTSInfoClass parameter
 //

@@ -145,7 +145,7 @@ const libusb1='libusb-1.0.so';
       LIBUSB_API_VERSION = $01000104;
     { The following is kept for compatibility, but will be deprecated in the future  }
       LIBUSBX_API_VERSION = LIBUSB_API_VERSION;
-{ C++ extern C conditionnal removed }
+{ C++ extern C conditional removed }
 {*
  * \ingroup misc
  * Convert a 16-bit value from host-endian to little-endian format. On

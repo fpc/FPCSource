@@ -227,7 +227,7 @@ uses MacTypes,CoreAudioTypes;
     @header AudioHardwareBase
 
     This file defines the HAL's object model including the properties and their needed types and
-    constants that describe the proeprty values.
+    constants that describe the property values.
 }
 
 //==================================================================================================
@@ -579,7 +579,7 @@ const
                         the caller as the property's data. Note that an error is not returned if the
                         UID doesn't refer to any AudioEndpoints. Rather, this property will return
                         kAudioObjectUnknown as the value of the property.
-    @constant       kAudioTransportManagerPorpertyTransportType
+    @constant       kAudioTransportManagerPropertyTransportType
                         A UInt32 whose value indicates how the transport manager's endpoints and
 						endpoint devices are connected to the CPU. Constants for some of the values
 						for this property can be found in the enum in the AudioDevice Constants

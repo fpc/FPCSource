@@ -275,7 +275,7 @@ const
     @constant kICADeviceMemoryAllocationErr
         The device module encountered a memory allocation error.
     @constant kICADeviceInternalErr
-        The device module encountered an unspecifed error.
+        The device module encountered an unspecified error.
     @constant kICADeviceInvalidParamErr
         At least one of the parameters passed to the device module is invalid.
     @constant kICADeviceAlreadyOpenErr
@@ -663,7 +663,7 @@ var kICADeviceTypeScanner: CFStringRef; external name '_kICADeviceTypeScanner'; 
 (* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
 
 {
-    In addition to the above, the following keys may also be present in the object property dictionay:
+    In addition to the above, the following keys may also be present in the object property dictionary:
 
         kICAUSBLocationIDKey
         kICAFireWireGUIDKey
@@ -1210,9 +1210,9 @@ type
 {!
     @function ICAGetDeviceList
     @abstract
-        Fetches the object at the top of the object heirarchy.
+        Fetches the object at the top of the object hierarchy.
     @discussion
-        Image Capture framework presents cameras and scanners, their contents and their capabilities as a heirarchy of objects and their properties. The device list object is at the top of the heirarchy of objects. The <b><code>ICAGetDeviceList</b></code> function fetches this object in the <code><b>object</b></code> field of parameter <code><b>pb</b></code>. Children of the device list object can be accessed by passing the device list object to functions <code><b>ICAGetChildCount()</b></code> and <code>ICAGetNthChild()</code>.
+        Image Capture framework presents cameras and scanners, their contents and their capabilities as a hierarchy of objects and their properties. The device list object is at the top of the hierarchy of objects. The <b><code>ICAGetDeviceList</b></code> function fetches this object in the <code><b>object</b></code> field of parameter <code><b>pb</b></code>. Children of the device list object can be accessed by passing the device list object to functions <code><b>ICAGetChildCount()</b></code> and <code>ICAGetNthChild()</code>.
 
 <pre>
 @textblock
@@ -1349,7 +1349,7 @@ type
     @abstract
         Use this API to get a thumbnail associated with an object.
     @discussion
-        This is the recommended way to get the thumbnail of an object. Getting the thumbnail using ICAGetPropertyData is deprecaed in 10.5.
+        This is the recommended way to get the thumbnail of an object. Getting the thumbnail using ICAGetPropertyData is deprecated in 10.5.
 
 <pre>
 @textblock
@@ -1560,7 +1560,7 @@ const
     @field object
         The file object. <--
     @field dirFSRef
-        FSRef of destination directiory. <--
+        FSRef of destination directory. <--
     @field flags
         Any combination of flag values defined above. <--
     @field fileType
@@ -1568,7 +1568,7 @@ const
     @field fileCreator
         Four-AnsiChar code indicating with the creator of the file. <--
     @field rotationAngle
-        Rotation angle in steps of 90 degress. <--
+        Rotation angle in steps of 90 degrees. <--
     @field fileFSRef
         A pointer to FSRef struct to hold the FSRef of downloaded file. Set this to NULL if the FSRef of downloaded file is not of interest. -->
 }
@@ -1719,7 +1719,7 @@ function ICAUploadFile( var pb: ICAUploadFilePB; completion: ICACompletion ): IC
     Key                             Value                               Comment
 
     kICADeviceModulePathKey         CFStringRef                         Path to the device module bundle that needs to be launched.
-    kICATransportTypeKey            CFStringRef                         Should be one of the six predifined transport types.
+    kICATransportTypeKey            CFStringRef                         Should be one of the six predefined transport types.
     kICABluetoothAddressKey         CFStringRef                         Bluetooth device address string formatted as "00-11-22-33-44-55".
     kICAUSBLocationIDKey            CFNumberRef (kCFNumberLongType)     32 bit USB location ID.
     kICAFireWireGUIDKey             CFNumberRef (kCFNumberLongLongType) 64 bit FireWire GUID.
