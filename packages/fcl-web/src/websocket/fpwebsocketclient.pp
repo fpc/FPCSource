@@ -721,6 +721,7 @@ constructor TWSThreadMessagePump.TMessageDriverThread.Create(aPump: TWSThreadMes
 begin
   FPump:=aPump;
   OnTerminate:=aTerminate;
+  FreeOnTerminate:=True;
   Inherited Create(False);
 end;
 
