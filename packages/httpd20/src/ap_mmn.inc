@@ -42,10 +42,10 @@
  * 20011127 (2.0.29-dev) bump for postconfig hook change, and removal of socket
  *                       from connection record
  * 20011212 (2.0.30-dev) bump for new used_path_info member of request_rec
- * 20011218 (2.0.30-dev) bump for new sbh member of conn_rec, different 
+ * 20011218 (2.0.30-dev) bump for new sbh member of conn_rec, different
  *                       declarations for scoreboard, new parameter to
  *                       create_connection hook
- * 20020102 (2.0.30-dev) bump for changed type of limit_req_body in 
+ * 20020102 (2.0.30-dev) bump for changed type of limit_req_body in
  *                       core_dir_config
  * 20020109 (2.0.31-dev) bump for changed shm and scoreboard declarations
  * 20020111 (2.0.31-dev) bump for ETag fields added at end of cor_dir_config
@@ -99,7 +99,7 @@ const
  * Useful for testing for features.
  * For example, suppose you wish to use the apr_table_overlap
  *    function.  You can do this:
- * 
+ *
  * #if AP_MODULE_MAGIC_AT_LEAST(19980812,2)
  *     ... use apr_table_overlap()
  * #else

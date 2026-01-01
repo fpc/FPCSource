@@ -90,7 +90,7 @@
 
   function gst_date_time_new_from_unix_epoch_utc(secs:Tgint64):PGstDateTime;cdecl;external gstreamerlib name 'gst_date_time_new_from_unix_epoch_utc';
 
-  function gst_date_time_new_local_time(year:Tgint; month:Tgint; day:Tgint; hour:Tgint; minute:Tgint; 
+  function gst_date_time_new_local_time(year:Tgint; month:Tgint; day:Tgint; hour:Tgint; minute:Tgint;
              seconds:Tgdouble):PGstDateTime;cdecl;external gstreamerlib name 'gst_date_time_new_local_time';
 
   function gst_date_time_new_y(year:Tgint):PGstDateTime;cdecl;external gstreamerlib name 'gst_date_time_new_y';
@@ -99,7 +99,7 @@
 
   function gst_date_time_new_ymd(year:Tgint; month:Tgint; day:Tgint):PGstDateTime;cdecl;external gstreamerlib name 'gst_date_time_new_ymd';
 
-  function gst_date_time_new(tzoffset:Tgfloat; year:Tgint; month:Tgint; day:Tgint; hour:Tgint; 
+  function gst_date_time_new(tzoffset:Tgfloat; year:Tgint; month:Tgint; day:Tgint; hour:Tgint;
              minute:Tgint; seconds:Tgdouble):PGstDateTime;cdecl;external gstreamerlib name 'gst_date_time_new';
 
   function gst_date_time_new_now_local_time:PGstDateTime;cdecl;external gstreamerlib name 'gst_date_time_new_now_local_time';

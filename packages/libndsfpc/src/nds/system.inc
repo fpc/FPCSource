@@ -1,7 +1,7 @@
 {$ifdef NDS_INTERFACE}
 const
   REG_DISPSTAT	: pcuint16 = pointer($04000004);
-  
+
 type
   DISP_BITS = cint;
 const
@@ -15,8 +15,8 @@ const
   REG_VCOUNT		: pcuint16 = pointer($04000006);
   HALT_CR       : pcuint16 = pointer($04000300);
   REG_POWERCNT  : pcuint16 = pointer($04000304);
-  
-  REG_SCFG_ROM		: pcuint16 = pointer($04004000);  
+
+  REG_SCFG_ROM		: pcuint16 = pointer($04004000);
 
 {$ifdef ARM7}
   REG_SCFG_A9ROM : pcuint8 = pointer($4004000);
@@ -66,9 +66,9 @@ procedure powerOff(bits: cint); cdecl; external;
 procedure systemMsgHandler(bytes: cint; user_data: pointer); cdecl; external;
 procedure systemValueHandler(value: cuint32; data: pointer); cdecl; external;
 
-procedure lcdSwap(); inline; 
-procedure lcdMainOnTop(); inline; 
-procedure lcdMainOnBottom(); inline; 
+procedure lcdSwap(); inline;
+procedure lcdMainOnTop(); inline;
+procedure lcdMainOnBottom(); inline;
 
 procedure systemShutDown(); inline;
 
@@ -80,7 +80,7 @@ function getBatteryLevel(): cuint32; cdecl; external;
 
 procedure setVectorBase(highVector: cint); cdecl; external;
 
-type 
+type
   sysVectors_t = packed record
     reset: VoidFn;
     undefined: VoidFn;
@@ -88,7 +88,7 @@ type
     prefetch_abort: VoidFn;
     data_abort: VoidFn;
     fiq: VoidFn;
-  end; 
+  end;
   sysVectors = sysVectors_t;
   PsysVectors = ^sysVectors;
 
@@ -140,7 +140,7 @@ procedure systemSleep(); cdecl; external;
 function sleepEnabled(): cint; cdecl; external;
 function writePowerManagement(reg, command: cint): cint; cdecl; external;
 
-function readPowerManagement(reg: cint): cint; inline; 
+function readPowerManagement(reg: cint): cint; inline;
 
 procedure powerOn(bits: cint); inline;
 procedure powerOff(bits: cint); inline;
@@ -155,53 +155,53 @@ const
 	BACKLIGHT_LOW  : BACKLIGHT_LEVELS = 0;
 	BACKLIGHT_MED  : BACKLIGHT_LEVELS = 1;
 	BACKLIGHT_HIGH : BACKLIGHT_LEVELS = 2;
-	BACKLIGHT_MAX  : BACKLIGHT_LEVELS = 3;	
+	BACKLIGHT_MAX  : BACKLIGHT_LEVELS = 3;
 
 type
   tPERSONAL_DATA = bitpacked record
     RESERVED0: array [0..1] of cuint8;
-    
+
     theme: cuint8;
     birthMonth: cuint8;
     birthDay: cuint8;
-    
+
     RESERVED1: array [0..0] of cuint8;
-    
+
     name: array [0..9] of cint16;
     nameLen: cuint16;
-    
+
     message: array [0..25] of cint16;
     messageLen: cuint16;
-    
+
     alarmHour: cuint8;
     alarmMinute: cuint8;
-    
+
     RESERVED2: array [0..3] of cuint8;
-    
+
     calX1: cuint16;
     calY1: cuint16;
     calX1px: cuint8;
     calY1px: cuint8;
-    
+
     calX2: cuint16;
     calY2: cuint16;
     calX2px: cuint8;
     calY2px: cuint8;
-    
-  
+
+
     _user_data: packed record
       language: 0..3;
       gbaScreen: 0..1;
       defaultBrightness: 0..2;
       autoMode: 0..1;
       RESERVED5: 0..2;
-	    settingsLost: 0..1;	
+	    settingsLost: 0..1;
 	    RESERVED6: 0..6;
     end;
     RESERVED3: cuint16;
     rtcOffset: cuint32;
     RESERVED4: cuint32;
-  end; 
+  end;
   PERSONAL_DATA = tPERSONAL_DATA;
   PPERSONAL_DATA = ^tPERSONAL_DATA;
 
@@ -223,16 +223,16 @@ type
 const
   ARGV_MAGIC = $5f617267;
 
-type 
+type
   ppcchar = ^pcchar;
-  __argv = record 
-    argvMagic: cint;		  // argv magic number, set to 0x5f617267 ('_arg') if valid 
+  __argv = record
+    argvMagic: cint;		  // argv magic number, set to 0x5f617267 ('_arg') if valid
     commandLine: pcchar;	// base address of command line, set of null terminated strings
     length: cint;			    // total length of command line
     argc: integer;
-    argv: ppcchar;    
+    argv: ppcchar;
     dummy: cint;          // internal use
-    host: cuint32;        // internal use, host ip for dslink 
+    host: cuint32;        // internal use, host ip for dslink
   end;
   Targv = __argv;
   Pargv = ^Targv;
@@ -278,19 +278,19 @@ begin
 end;
 
 {$ifdef ARM9}
-procedure lcdSwap(); inline; 
+procedure lcdSwap(); inline;
 begin
-  REG_POWERCNT^ := REG_POWERCNT^ xor POWER_SWAP_LCDS; 
+  REG_POWERCNT^ := REG_POWERCNT^ xor POWER_SWAP_LCDS;
 end;
 
-procedure lcdMainOnTop(); inline; 
+procedure lcdMainOnTop(); inline;
 begin
-  REG_POWERCNT^ := REG_POWERCNT^ or cint(POWER_SWAP_LCDS); 
+  REG_POWERCNT^ := REG_POWERCNT^ or cint(POWER_SWAP_LCDS);
 end;
 
-procedure lcdMainOnBottom(); inline; 
+procedure lcdMainOnBottom(); inline;
 begin
-  REG_POWERCNT^ := REG_POWERCNT^ and (not cint(POWER_SWAP_LCDS)); 
+  REG_POWERCNT^ := REG_POWERCNT^ and (not cint(POWER_SWAP_LCDS));
 end;
 
 procedure systemShutDown(); inline;
@@ -307,7 +307,7 @@ begin
   result := (m) shl 4;
 end;
 
-function readPowerManagement(reg: cint): cint; inline; 
+function readPowerManagement(reg: cint): cint; inline;
 begin
 	result := writePowerManagement(reg or PM_READ_REGISTER, 0);
 end;

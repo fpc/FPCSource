@@ -2,11 +2,11 @@
 group and onedrive demo
 -----------------------
 
-These demos demonstrate the new unified Office365 REST API. 
+These demos demonstrate the new unified Office365 REST API.
 
-For the group and onedrive demos to work, you need 
+For the group and onedrive demos to work, you need
 - a Client ID
-- a Secret key  
+- a Secret key
 - a hosted domain
 All on Microsoft Office365 (Azure AD).
 

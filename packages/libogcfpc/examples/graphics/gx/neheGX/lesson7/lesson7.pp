@@ -12,7 +12,7 @@ uses
 
 const crate = 0;
 
-const 
+const
   DEFAULT_FIFO_SIZE = (256 * 1024);
 
 type
@@ -86,10 +86,10 @@ begin
 
 	// init the flipper
 	GX_Init(gpfifo,DEFAULT_FIFO_SIZE);
- 
+
 	// clears the bg to color and clears the z buffer
 	GX_SetCopyClear(background, $00ffffff);
- 
+
 	// other gx setup
 	GX_SetViewport(0,0,rmode^.fbWidth,rmode^.efbHeight,0,1);
 	yscale := GX_GetYScaleFactor(rmode^.efbHeight,rmode^.xfbHeight);
@@ -103,7 +103,7 @@ begin
     GX_SetFieldMode(rmode^.field_rendering, GX_ENABLE)
   else
     GX_SetFieldMode(rmode^.field_rendering, GX_DISABLE);
- 
+
 	if (rmode^.aa) <> 0 then
         GX_SetPixelFmt(GX_PF_RGB565_Z16, GX_ZC_LINEAR)
   else
@@ -136,7 +136,7 @@ begin
 	// setup our camera at the origin
 	// looking down the -z axis with y up
 	guLookAt(view, @cam, @up, @look);
- 
+
 	// setup our projection matrix
 	// this creates a perspective matrix with a view angle of 90,
 	// and aspect ratio based on the display resolution
@@ -151,9 +151,9 @@ begin
 
 		WPAD_ScanPads();
 		if (WPAD_ButtonsDown(0) and WPAD_BUTTON_HOME) <> 0 then exit
-		else 
+		else
     if (WPAD_ButtonsHeld(0) and WPAD_BUTTON_UP) <> 0 then zt := zt - 0.25
-		else 
+		else
     if (WPAD_ButtonsHeld(0) and WPAD_BUTTON_DOWN) <> 0 then zt := zt + 0.25;
 
 		// set number of rasterized color channels
@@ -255,11 +255,11 @@ begin
 			GX_Position3f32( -1.0,1.0, 1.0);	// Bottom Left Of The Quad (Right)
 			GX_Color3f32(1.0,0.0,1.0);			// Set The Color To Violet
 			GX_TexCoord2f32(1.0,1.0);
-			GX_Position3f32( 1.0,1.0,1.0);	// Bottom Right Of The Quad (Right)		
+			GX_Position3f32( 1.0,1.0,1.0);	// Bottom Right Of The Quad (Right)
 			GX_Color3f32(1.0,0.0,1.0);			// Set The Color To Violet
 			GX_TexCoord2f32(0.0,1.0);
 
-		GX_End();									// Done Drawing The Quad 
+		GX_End();									// Done Drawing The Quad
 
 		GX_SetZMode(GX_TRUE, GX_LEQUAL, GX_TRUE);
 		GX_SetColorUpdate(GX_TRUE);
@@ -268,7 +268,7 @@ begin
 		GX_DrawDone();
 
 		VIDEO_SetNextFramebuffer(frameBuffer[fb]);
-		if(first_frame) <> 0 then 
+		if(first_frame) <> 0 then
 		begin
 			first_frame := 0;
 			VIDEO_SetBlack(FALSE);

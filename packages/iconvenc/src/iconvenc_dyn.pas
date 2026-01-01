@@ -3,7 +3,7 @@
     Copyright (c) 2000 by Marco van de Voort(marco@freepascal.org)
     member of the Free Pascal development team
 
-    libiconv header translation + a helper routine  
+    libiconv header translation + a helper routine
     http://wiki.freepascal.org/iconvenc Dynamic version
 
     See the file COPYING.FPC, included in this distribution,
@@ -106,7 +106,7 @@ begin
     {$if defined(haiku)}
         if not TryLoadLib('libtextencoding.so', error) then
       {$ifend}
-      result := false; 
+      result := false;
   iconvlibfound := iconvlibfound or result;
 end;
 

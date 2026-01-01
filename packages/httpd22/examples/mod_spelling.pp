@@ -78,7 +78,7 @@ type
   spconfig = record
     enabled: Integer;
   end;
-  
+
   Pspconfig = ^spconfig;
 
 {
@@ -163,7 +163,7 @@ type
     name: PAnsiChar;
     quality: sp_reason;
   end;
-  
+
   Pmisspelled_file = ^misspelled_file;
 
 {
@@ -186,9 +186,9 @@ type
  }
 {
   Extra notes about how this function works:
-  
+
   * s and t are supposed different
-  
+
   * s
 }
 function spdist(const cs, ct: PAnsiChar): sp_reason;
@@ -218,31 +218,31 @@ begin
       Inc(i);
       j := t;
       Inc(j);
-    
+
       if Integer(i^) and Integer(j^) <> 0 then
        if (apr_tolower(s^) = apr_tolower(j^)) and (apr_tolower(t^) = apr_tolower(i^)) then
        begin
          Inc(i);
          Inc(j);
-        
+
          if stricomp(i, j) = 0 then
          begin
            Result := SP_TRANSPOSITION;        { transposition }
            Exit;
          end;
        end;
-      
+
       Dec(i);
       Dec(j);
-      
+
       if (stricomp(i, j) = 0) then
       begin
         Result := SP_SIMPLETYPO;   { 1 AnsiChar mismatch }
         Exit;
       end;
     end;
-    
-    
+
+
     if (stricomp(i, t) = 0) then
     begin
       Result := SP_EXTRACHAR;        { extra character }
@@ -401,7 +401,7 @@ begin
     else if (spdist(bad, dirent.name) <> SP_VERYDIFFERENT) then
     begin
       q := spdist(bad, dirent.name);
-        
+
       sp_new := Pmisspelled_file(apr_array_push(candidates));
       sp_new^.name := apr_pstrdup(r^.pool, dirent.name);
       sp_new^.quality := q;
@@ -452,7 +452,7 @@ begin
 {$endif}
     end;
   end;
-    
+
   apr_dir_close(dir);
 
   if (candidates^.nelts <> 0) then
@@ -463,7 +463,7 @@ begin
     ref := apr_table_get(r^.headers_in, 'Referer');
 
     List := TList.Create;
-    
+
     try
       for i := 0 to candidates^.nelts - 1 do
       begin
@@ -486,7 +486,7 @@ begin
      }
     nvariant_ := variant_;
     Inc(nvariant_, sizeof(misspelled_file));
-     
+
     if (variant_^.quality <> SP_VERYDIFFERENT) and ( (candidates^.nelts = 1)
      or (Integer(variant_^.quality) <> Integer(nvariant_^.quality))) then
     begin
@@ -531,7 +531,7 @@ begin
         Result := DECLINED;
         Exit;
       end;
-          
+
       t := apr_array_make(sub_pool, candidates^.nelts * 8 + 8, sizeof(PAnsiChar));
       v := apr_array_make(sub_pool, candidates^.nelts * 5, sizeof(PAnsiChar));
 
@@ -554,7 +554,7 @@ begin
                   '?', r^.parsed_uri.query, nil])
                 else vuri := apr_pstrcat(sub_pool, [url, variant_[i].name, r^.path_info,
 		 PAnsiChar(''), PAnsiChar(''), nil]);
-   
+
 		PPAnsiChar(apr_array_push(v))^ := '"';
 		PPAnsiChar(apr_array_push(v))^ := ap_escape_uri(sub_pool, vuri);
 		PPAnsiChar(apr_array_push(v))^ := '";"';
@@ -583,7 +583,7 @@ begin
 		  '</ul>' + LineEnding + 'Furthermore, the following related ' +
                   'documents were found:' + LineEnding + '<ul>' + LineEnding;
             end;
-            
+
 	    PPAnsiChar(apr_array_push(t))^ := '</ul>' + LineEnding;
 
             { If we know there was a referring page, add a note: }
@@ -628,7 +628,7 @@ begin
 
   {* Define the directives specific to this module.  This structure is referenced
    * later by the 'module' structure. }
-   
+
   with speling_cmds do
   begin
     name := 'CheckSpelling';

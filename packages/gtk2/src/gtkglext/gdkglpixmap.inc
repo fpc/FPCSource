@@ -3,7 +3,7 @@
 {$ifdef read_interface_types}
 
   { PGdkGLPixmap already defined in gdkgltypes.inc }
-  
+
   TGdkGLPixmap = record
     parent_instance: TGObject;
     drawable: PGdkDrawable;        {* Associated GdkPixmap *}
@@ -46,7 +46,7 @@ function gdk_gl_pixmap_get_pixmap(glpixmap: PGdkGLPixmap): PGdkPixmap;
 {*
  * OpenGL extension to GdkPixmap
  *}
- 
+
 function gdk_pixmap_set_gl_capability(
   pixmap: PGdkPixmap;
   glconfig: PGdkGLConfig;

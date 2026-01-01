@@ -12,7 +12,7 @@ const
 
 var
   test_module: module;{$ifdef unix} public name MODULE_NAME;{$endif}
-  
+
 exports
   test_module name MODULE_NAME;
 
@@ -23,7 +23,7 @@ function DefaultHandler(r: Prequest_rec): Integer; cdecl;
 var
   RequestedHandler, onerow: ansistring;
 
-  
+
 begin
   RequestedHandler := r^.handler;
 

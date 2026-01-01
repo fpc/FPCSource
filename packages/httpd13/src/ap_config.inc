@@ -74,7 +74,7 @@ type rlim_t = cint;
 {$define HAVE_FLOCK_SERIALIZED_ACCEPT}
 {$define _BSD_SOURCE}
 #define EAGAIN EWOULDBLOCK
-int initgroups (AnsiChar *, int);     
+int initgroups (AnsiChar *, int);
 AnsiChar *crypt (const AnsiChar *pw, const AnsiChar *salt);
 int gethostname (AnsiChar *name, int namelen);
 
@@ -245,7 +245,7 @@ typedef int rlim_t;
 #endif
 #define USE_FCNTL_SERIALIZED_ACCEPT
 #if AIX >= 432
-#define SINGLE_LISTEN_UNSERIALIZED_ACCEPT 
+#define SINGLE_LISTEN_UNSERIALIZED_ACCEPT
 #endif
 #ifdef USEBCOPY
 #define memmove(a,b,c) bcopy(b,a,c)
@@ -686,7 +686,7 @@ extern AnsiChar *crypt();
 #define strftime(buf,bufsize,fmt,tm)    ascftime(buf,fmt,tm)
 #undef HAVE_SYS_RESOURCE_H { exists but does not provide *rlimit funcs }
 #include <sys/types.h>
-#include <sys/time.h>     
+#include <sys/time.h>
 
 {$else}{$if defined(APOLLO)}
 #undef HAVE_GMTOFF
@@ -1086,8 +1086,8 @@ const
 
 {
  * The particular directory style your system supports. If you have dirent.h
- * in /usr/include (POSIX) or /usr/include/sys (SYSV), #include 
- * that file and define DIR_TYPE to be dirent. Otherwise, if you have 
+ * in /usr/include (POSIX) or /usr/include/sys (SYSV), #include
+ * that file and define DIR_TYPE to be dirent. Otherwise, if you have
  * /usr/include/sys/dir.h, define DIR_TYPE to be direct and include that
  * file. If you have neither, I'm confused.
  }
@@ -1423,7 +1423,7 @@ type NET_SIZE_T = cint;
 { Prototypes needed to get a clean compile with gcc -Wall.
  * Believe it or not, these do have to be declared, at least on SunOS,
  * because they aren't mentioned in the relevant system headers.
- * Sun Quality Software.  Gotta love it.  This section is not 
+ * Sun Quality Software.  Gotta love it.  This section is not
  * currently (13Nov97) used.
  }
 

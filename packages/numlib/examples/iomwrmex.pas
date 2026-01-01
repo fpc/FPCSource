@@ -6,11 +6,11 @@ uses
 const
   m = 5;
   n = 13;
-  
+
 var
   i, j: integer;
   a:    array[1..m, 1..n] of ArbFloat;
-  
+
 begin
   Assign(output, ParamStr(1));
   rewrite(output);

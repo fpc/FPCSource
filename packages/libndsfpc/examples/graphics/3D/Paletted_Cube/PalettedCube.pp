@@ -179,19 +179,19 @@ begin
   //You may comment/uncomment what you like, as the integration of nglVideo into libnds works
   // by examining the state of the banks, and deciding where to put textures/texpalettes based on that.
   //There are some exceptions to get certain stuff working though...
-  // At least one main bank (A-D) must be allocated to textures to load/use them obviously, as well as 
+  // At least one main bank (A-D) must be allocated to textures to load/use them obviously, as well as
   //  sub banks (E-G) for texture palettes
   // Compressed textures require bank B allocated, as well as bank A or C (or both) to be loadable/usable
   // 4 color palettes (not 4-bit) require either bank E, or bank F/G as slot0/1
-  
-  
+
+
   //vramSetBankA(VRAM_A_TEXTURE);
   vramSetBankB(VRAM_B_TEXTURE);
   vramSetBankC(VRAM_C_TEXTURE);
   //vramSetBankD(VRAM_D_TEXTURE);
   //vramSetBankE(VRAM_E_TEX_PALETTE);
   vramSetBankF(VRAM_F_TEX_PALETTE_SLOT0);
-  vramSetBankG(VRAM_G_TEX_PALETTE_SLOT5); 
+  vramSetBankG(VRAM_G_TEX_PALETTE_SLOT5);
 
   glGenTextures(11, textureIDS);
 
@@ -206,7 +206,7 @@ begin
   glColorTableEXT(0, 0, 16, 0, 0, pcuint16(@texture1_RGB16_pal_bin));
 
   // Just to show that this works, let's go and delete that very first texture that was loaded
-  glDeleteTextures(1, @textureIDS[0]);  
+  glDeleteTextures(1, @textureIDS[0]);
 
   // Load some more 16 color textures
   glBindTexture(0, textureIDS[2]);
@@ -320,7 +320,7 @@ begin
 
     glFlush(0);
     swiWaitForVBlank();
-    
+
     if (keysPressed and KEY_START) <> 0 then break;
   end;
 

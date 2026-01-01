@@ -32,7 +32,7 @@
 //#ifdef HAVE_SYSLOG
 //#include <syslog.h>
 
-const 
+const
 LOG_PRIMASK	= 7;
 
 APLOG_EMERG	= 0;    //* system is unusable */

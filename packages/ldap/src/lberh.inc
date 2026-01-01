@@ -209,7 +209,7 @@ type
     bv_len  : ber_len_t;
     bv_val  : pcchar;
   end;
-  
+
   PBerVarray                        = ^BerVarray;
   BerVarray                         = ^PBerval;  (* To distinguish from a single bv *)
 

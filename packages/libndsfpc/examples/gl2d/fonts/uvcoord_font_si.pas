@@ -2,9 +2,9 @@ unit uvcoord_font_si;
 
 interface
 
-uses 
+uses
   ctypes;
-  
+
 
 const
   FONT_SI_BITMAP_WIDTH   = 64;

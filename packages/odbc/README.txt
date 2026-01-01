@@ -10,10 +10,10 @@ For windows:
    (At least MS-Access 97 or higher)
 
    Do not enter any username or password.
-   
+
    The DSN should point to the testodbc.mdb database file provided with the
    testodbc.pp program.
-   
+
 3. Run the program.
 
 For Linux:
@@ -37,4 +37,4 @@ Enjoy !
 Michael.
 
 
-   
+

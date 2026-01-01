@@ -230,7 +230,7 @@ end;
 {$ifdef CPU16}
       { TStrokes is too big for small MSDOS Stacks,
         use individual TStroke instead }
-      spo : TStroke; 
+      spo : TStroke;
 {$else}
       po: TStrokes;
 {$endif}

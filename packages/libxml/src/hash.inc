@@ -1,6 +1,6 @@
 (*
  * Summary: Chained hash tables
- * Description: This module implements the hash table support used in 
+ * Description: This module implements the hash table support used in
  * 		various places in the library.
  *
  * Copy: See Copyright for the status of this software.

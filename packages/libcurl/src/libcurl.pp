@@ -13,7 +13,7 @@
  **********************************************************************}
  {
    the curl library is governed by its own copyright, see the curl
-   website for this. 
+   website for this.
  }
 {$mode objfpc}
 {$IFNDEF FPC_DOTTEDUNITS}
@@ -109,7 +109,7 @@ const
    CURLPROTO_GOPHER = (1 shl 25);
    CURLPROTO_SMB    = (1 shl 26);
    CURLPROTO_SMBS   = (1 shl 27);
-   CURLPROTO_ALL    = (not 0); 
+   CURLPROTO_ALL    = (not 0);
 
 
 Type
@@ -180,7 +180,7 @@ Type
                                        field. Used if CURL_HTTPPOST_LARGE is
                                        set. Added in 7.46.0 }
   end;
-  
+
   curlfiletype = (
       CURLFILETYPE_FILE,
       CURLFILETYPE_DIRECTORY,
@@ -225,8 +225,8 @@ Type
   curlsocktype = (
     CURLSOCKTYPE_IPCXN,
     CURLSOCKTYPE_LAST
-  );  
-  
+  );
+
   curl_sockopt_callback = function (clientp:pointer; curlfd:curl_socket_t; purpose:curlsocktype):longint;cdecl;
   curl_sockaddr = record
     family : longint;
@@ -239,7 +239,7 @@ Type
 
   curl_opensocket_callback = function (clientp:pointer; purpose:curlsocktype; address:Pcurl_sockaddr):curl_socket_t;cdecl;
   curl_closesocket_callback = function (clientp:pointer; item:curl_socket_t):longint;cdecl;
-  
+
   curlioerr = (CURLIOE_OK, CURLIOE_UNKNOWNCMD, CURLIOE_FAILRESTART, CURLIOE_LAST);
   curliocmd = (CURLIOCMD_NOP, CURLIOCMD_RESTARTREAD, CURLIOCMD_LAST);
 
@@ -398,17 +398,17 @@ Type
     CURLE_HTTP2_STREAM,            // 92 - stream error in HTTP/2 framing layer
 
     CURL_LAST); // never use!
- 
+
   curl_conv_callback = function (buffer:PAnsiChar; length:size_t):CURLcode;cdecl;
   curl_ssl_ctx_callback = function (curl:PCURL; ssl_ctx:pointer; userptr:pointer):CURLcode;cdecl;
-  
+
   curl_proxytype = (
     CURLPROXY_HTTP := 0,
     CURLPROXY_SOCKS4 := 4,
     CURLPROXY_SOCKS5 := 5,
     CURLPROXY_SOCKS4A := 6,
     CURLPROXY_SOCKS5_HOSTNAME := 7);
-    
+
   curl_khtype = (
     CURLKHTYPE_UNKNOWN,
     CURLKHTYPE_RSA1,
@@ -1138,7 +1138,7 @@ Type
                        CURL_HTTP_VERSION_2TLS,
                        CURL_HTTP_VERSION_2_PRIOR_KNOWLEDGE,
                        CURL_HTTP_VERSION_LAST);
-  
+
   curl_rtspreq = (CURL_RTSPREQ_NONE,CURL_RTSPREQ_OPTIONS,
       CURL_RTSPREQ_DESCRIBE,CURL_RTSPREQ_ANNOUNCE,
       CURL_RTSPREQ_SETUP,CURL_RTSPREQ_PLAY,
@@ -1146,14 +1146,14 @@ Type
       CURL_RTSPREQ_GET_PARAMETER,CURL_RTSPREQ_SET_PARAMETER,
       CURL_RTSPREQ_RECORD,CURL_RTSPREQ_RECEIVE,
       CURL_RTSPREQ_LAST);
-  
+
   CURL_NETRC_OPTION = (CURL_NETRC_IGNORED,CURL_NETRC_OPTIONAL,
                        CURL_NETRC_REQUIRED,CURL_NETRC_LAST);
 
   CURL_SSL_VERSION = (CURL_SSLVERSION_DEFAULT,CURL_SSLVERSION_TLSv1,
                       CURL_SSLVERSION_SSLv2,CURL_SSLVERSION_SSLv3,
                       CURL_SSLVERSION_LAST);
-                      
+
   CURL_TLSAUTH = (CURL_TLSAUTH_NONE,CURL_TLSAUTH_SRP,CURL_TLSAUTH_LAST);
 
   CURL_TIMECOND = (CURL_TIMECOND_NONE,CURL_TIMECOND_IFMODSINCE,
@@ -1255,12 +1255,12 @@ Type
     // Fill in new entries below here!
     CURLINFO_LASTONE:=49
   );
- 
+
   curl_closepolicy = (CURLCLOSEPOLICY_NONE,CURLCLOSEPOLICY_OLDEST,
                       CURLCLOSEPOLICY_LEAST_RECENTLY_USED,
                       CURLCLOSEPOLICY_LEAST_TRAFFIC,CURLCLOSEPOLICY_SLOWEST,
                       CURLCLOSEPOLICY_CALLBACK,CURLCLOSEPOLICY_LAST);
- 
+
   curl_lock_data = (CURL_LOCK_DATA_NONE := 0,
                     CURL_LOCK_DATA_SHARE,
                     CURL_LOCK_DATA_COOKIE,
@@ -1268,17 +1268,17 @@ Type
                     CURL_LOCK_DATA_SSL_SESSION,
                     CURL_LOCK_DATA_CONNECT,
                     CURL_LOCK_DATA_LAST);
-  
+
   curl_lock_access = (CURL_LOCK_ACCESS_NONE := 0,
                       CURL_LOCK_ACCESS_SHARED := 1,
                       CURL_LOCK_ACCESS_SINGLE := 2,
                       CURL_LOCK_ACCESS_LAST);
- 
+
   curl_lock_function = procedure (handle:PCURL; data:curl_lock_data; locktype:curl_lock_access; userptr:pointer);cdecl;
   curl_unlock_function = procedure (handle:PCURL; data:curl_lock_data; userptr:pointer);cdecl;
- 
+
   CURLSH = pointer;
- 
+
   CURLSHcode = (CURLSHE_OK,           // all is fine
                 CURLSHE_BAD_OPTION,   // 1
                 CURLSHE_IN_USE,       // 2
@@ -1286,7 +1286,7 @@ Type
                 CURLSHE_NOMEM,        // 4 out of memory
                 CURLSHE_NOT_BUILT_IN, // 5 feature not present in lib
                 CURLSHE_LAST);        // never use
- 
+
   CURLSHoption = (CURLSHOPT_NONE,
                   CURLSHOPT_SHARE,
                   CURLSHOPT_UNSHARE,
@@ -1322,13 +1322,13 @@ Type
     libssh_version:PAnsiChar;
   end;
   CURLM = pointer;
- 
+
   CURLMcode = (CURLM_CALL_MULTI_PERFORM := -(1),CURLM_OK,
                CURLM_BAD_HANDLE,CURLM_BAD_EASY_HANDLE,
                CURLM_OUT_OF_MEMORY,CURLM_INTERNAL_ERROR,
                CURLM_BAD_SOCKET,CURLM_UNKNOWN_OPTION,
                CURLM_ADDED_ALREADY,CURLM_LAST);
- 
+
   TCURLMSG = (CURLMSG_NONE,CURLMSG_DONE,CURLMSG_LAST);
 
   CURLMsg = record
@@ -1387,14 +1387,14 @@ Const
   CURLAUTH_DIGEST = 1 shl 1;
   CURLAUTH_GSSNEGOTIATE = 1 shl 2;
   CURLAUTH_NONE = 0;
-  CURLAUTH_NTLM = 1 shl 3; 
-  
+  CURLAUTH_NTLM = 1 shl 3;
+
   CURL_CHUNK_BGN_FUNC_OK = 0;
   CURL_CHUNK_BGN_FUNC_FAIL = 1;
   CURL_CHUNK_BGN_FUNC_SKIP = 2;
   CURL_CHUNK_END_FUNC_OK = 0;
-  CURL_CHUNK_END_FUNC_FAIL = 1; 
-  
+  CURL_CHUNK_END_FUNC_FAIL = 1;
+
   CURL_FNMATCHFUNC_MATCH = 0;
   CURL_FNMATCHFUNC_NOMATCH = 1;
   CURL_FNMATCHFUNC_FAIL = 2;
@@ -1407,7 +1407,7 @@ Const
   CURL_SOCKOPT_OK = 0;
   CURL_SOCKOPT_ERROR = 1;
   CURL_SOCKOPT_ALREADY_CONNECTED = 2;
-  
+
   CURLE_ALREADY_COMPLETE = 99999;
   CURLE_FTP_BAD_DOWNLOAD_RESUME = CURLE_BAD_DOWNLOAD_RESUME;
   CURLE_FTP_PARTIAL_FILE = CURLE_PARTIAL_FILE;
@@ -1421,14 +1421,14 @@ Const
   CURLE_TFTP_EXISTS = CURLE_REMOTE_FILE_EXISTS;
   CURLE_HTTP_RANGE_ERROR = CURLE_RANGE_ERROR;
   CURLE_FTP_SSL_FAILED = CURLE_USE_SSL_FAILED;
-  CURLE_FTP_COULDNT_STOR_FILE = CURLE_UPLOAD_FAILED; 
-  
+  CURLE_FTP_COULDNT_STOR_FILE = CURLE_UPLOAD_FAILED;
+
   CURLFTPSSL_NONE = CURLUSESSL_NONE;
   CURLFTPSSL_TRY = CURLUSESSL_TRY;
   CURLFTPSSL_CONTROL = CURLUSESSL_CONTROL;
   CURLFTPSSL_ALL = CURLUSESSL_ALL;
   CURLFTPSSL_LAST = CURLUSESSL_LAST;
-  
+
   CURL_ERROR_SIZE = 256;
   CURL_FORMAT_OFF_T = '%ld';
   CURL_GLOBAL_NOTHING = 0;
@@ -1464,8 +1464,8 @@ Const
   CURL_POLL_OUT = 2;
   CURL_POLL_REMOVE = 4;
 
-  CURLVERSION_NOW = CURLVERSION_FOURTH;  
-  
+  CURLVERSION_NOW = CURLVERSION_FOURTH;
+
   CURL_SOCKET_BAD = -(1);
   CURL_SOCKET_TIMEOUT = CURL_SOCKET_BAD;
   CURL_VERSION_IPV6        =(1 shl 0); // IPv6-enabled
@@ -1491,22 +1491,22 @@ Const
   CURL_VERSION_PSL         =(1 shl 20);// Mozilla's Public Suffix List, used for cookie domain verification
   CURL_VERSION_HTTPS_PROXY =(1 shl 21);// HTTPS-proxy support built-in
 
- _FILE_OFFSET_BITS = 0;     
-  FILESIZEBITS = 0;     
-  FUNCTIONPOINT = CURLOPTTYPE_FUNCTIONPOINT;     
-  HTTPPOST_BUFFER = 1 shl 4;     
-  HTTPPOST_FILENAME = 1 shl 0;     
-  HTTPPOST_PTRBUFFER = 1 shl 5;     
-  HTTPPOST_PTRCONTENTS = 1 shl 3;     
-  HTTPPOST_PTRNAME = 1 shl 2;     
-  HTTPPOST_READFILE = 1 shl 1;     
+ _FILE_OFFSET_BITS = 0;
+  FILESIZEBITS = 0;
+  FUNCTIONPOINT = CURLOPTTYPE_FUNCTIONPOINT;
+  HTTPPOST_BUFFER = 1 shl 4;
+  HTTPPOST_FILENAME = 1 shl 0;
+  HTTPPOST_PTRBUFFER = 1 shl 5;
+  HTTPPOST_PTRCONTENTS = 1 shl 3;
+  HTTPPOST_PTRNAME = 1 shl 2;
+  HTTPPOST_READFILE = 1 shl 1;
   LIBCURL_COPYRIGHT = '1996 - 2011 Daniel Stenberg, <daniel@haxx.se>.';
   LIBCURL_VERSION = '7.55.1';
   LIBCURL_VERSION_MAJOR = 7;
   LIBCURL_VERSION_MINOR = 55;
   LIBCURL_VERSION_NUM = $073701;
   LIBCURL_VERSION_PATCH = 1;
-  LIBCURL_TIMESTAMP = 'Tue Sep 13 16:53:51 UTC 2011'; 
+  LIBCURL_TIMESTAMP = 'Tue Sep 13 16:53:51 UTC 2011';
   CURL_CSELECT_IN = $01;
   CURL_CSELECT_OUT = $02;
   CURL_CSELECT_ERR = $04;

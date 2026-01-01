@@ -20,12 +20,12 @@ const
 
 // --------------------------------------------------------------------
 
-var 
+var
   palette: array [0..6] of cuint16;
-  
+
 // --------------------------------------------------------------------
 
-const 
+const
   message = '                                ' +
             'Hello, this is an example of an oldschool simple tile scroller ' +
             'not unlike how it was done in days of yore.  The ''@'' symbol ' +
@@ -48,7 +48,7 @@ begin
   for i := 0 to 31 do
   begin
     // check for end of message so we can wrap around properly
-    if (message[idx] = #0) then 
+    if (message[idx] = #0) then
       idx := 0;
 
     // write a character - we subtract 32, because the font graphics
@@ -56,7 +56,7 @@ begin
     // in other words, tile 0 is a space in our font, but in ascii a
     // space is 32 so we must account for that difference between the two.
     temppointer^ := Ord(message[idx]) - 32;
-    inc(temppointer); 
+    inc(temppointer);
     inc(idx);
   end;
 end;
@@ -66,9 +66,9 @@ var
   i, scrollx, scrolldelay, textindex: integer;
   temppointer: pcuint16;
 
-begin	
+begin
   MAPADDRESS := MAP_BASE_ADR(31);    // our base map address
-  
+
   palette[0] := RGB8($40,$80,$c0);
   palette[1] := RGB8($FF,$FF,$FF);
   palette[2] := RGB8($F5,$FF,$FF);
@@ -87,7 +87,7 @@ begin
 
   // load the palette for the background, 7 colors
   temppointer := BG_COLORS;
-  
+
   for i := 0 to 6 do
   begin
     temppointer^ := cuint32(palette[i]); // u32 cast avoids u8 memory writing
@@ -104,7 +104,7 @@ begin
   CpuFastSet( MAP_BASE_ADR(31), MAP_BASE_ADR(31), FILL or COPY32 or ($800 div 4));
 
   // set screen H and V scroll positions
-  BG_OFFSET[0].x := 0; 
+  BG_OFFSET[0].x := 0;
   BG_OFFSET[0].y := 0;
 
   // initialize our variables
@@ -126,7 +126,7 @@ begin
   // screen mode & background to display
   SetMode( MODE_0 or BG0_ON );
 
-  while true do 
+  while true do
   begin
     VBlankIntrWait();
 
@@ -144,16 +144,16 @@ begin
 
         // check if we reached the end of our scrolltext
         // and if so we need to restart our index
-        if (message[textindex] = #0) then 
+        if (message[textindex] = #0) then
           textindex := 0
-        else 
+        else
           inc(textindex);
 
         // finally, let's update the scrolltext with the current text index
         updatescrolltext(textindex);
-      end else 
+      end else
         inc(scrollx);
-    end else 
+    end else
       inc(scrolldelay);
 
     // update the hardware horizontal scroll register

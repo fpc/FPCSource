@@ -312,7 +312,7 @@ type
     patch: Integer;              {< patch number }
     add_string: PAnsiChar; {< additional string like "-dev" }
   end;
-  
+
   Pap_version_t = ^ap_version_t;
 
 {
@@ -925,7 +925,7 @@ type
     //ap_conn_keepalive_e keepalive;
     keepalive: ap_conn_keepalive_e;
 
-    {** have we done double-reverse DNS? -1 yes/failure, 0 not yet, 
+    {** have we done double-reverse DNS? -1 yes/failure, 0 not yet,
      *  1 yes/success *}
     //signed int double_reverse:2;
     flags2: Cardinal;
@@ -965,7 +965,7 @@ type
   end;
 
 {
- * Enumeration of connection states 
+ * Enumeration of connection states
  }
   conn_state_e = (
     CONN_STATE_CHECK_REQUEST_LINE_READABLE,
@@ -974,13 +974,13 @@ type
   );
 
 {
- * @brief A structure to contain connection state information 
+ * @brief A structure to contain connection state information
  }
   APR_RING_ENTRY_conn_state_t = record
     next: Pconn_state_t;
     prev: Pconn_state_t;
   end;
- 
+
   conn_state_t = record
     { APR_RING of expiration timeouts }
     timeout_list: APR_RING_ENTRY_conn_state_t;
@@ -1098,7 +1098,7 @@ type
     b: Papr_bucket_brigade;
     tmpbb: Papr_bucket_brigade;
   end; // core_ctx_t
-  
+
   core_ctx_t = core_filter_ctx;
 
   Pcore_ctx_t = ^core_ctx_t;
@@ -1697,7 +1697,7 @@ function ap_escape_quotes(p: Papr_pool_t; const instring: PAnsiChar): PAnsiChar;
  * @param p The pool to allocate memory from
  * @param string The string to append the PID to
  * @param delim The string to use to deliminate the string from the PID
- * @return A copy of the string with the PID appended 
+ * @return A copy of the string with the PID appended
  }
 function ap_append_pid(p: Papr_pool_t; const string_, delim: PAnsiChar): PAnsiChar;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}

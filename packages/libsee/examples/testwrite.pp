@@ -13,7 +13,7 @@ Var
 
 const
    Program_text = 'writeln("Hello, world!");';
-   
+
 begin
   see_init;
   RegisterWriteModule;

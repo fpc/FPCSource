@@ -15,7 +15,7 @@
  }
 
 { This header file is where you should put ANY platform specific information.
- * This should be the only header file that programs need to include that 
+ * This should be the only header file that programs need to include that
  * actually has platform dependant code which refers to the .
  }
 
@@ -48,7 +48,7 @@
 
 {
  * @defgroup apr_portabile Portability Routines
- * @ingroup APR 
+ * @ingroup APR
  }
 
 
@@ -177,7 +177,7 @@ typedef void*                 apr_os_shm_t;         {< native SHM }
 {$endif}
 
   Papr_os_sock_t = ^apr_os_sock_t;
-  
+
 {
  * @typedef apr_os_sock_info_t
  * @brief alias for local OS socket
@@ -217,7 +217,7 @@ typedef void*                 apr_os_shm_t;         {< native SHM }
     end;
     Papr_os_global_mutex_t = ^apr_os_global_mutex_t;
 
-APR_DECLARE(apr_status_t) apr_os_global_mutex_get(apr_os_global_mutex_t *ospmutex, 
+APR_DECLARE(apr_status_t) apr_os_global_mutex_get(apr_os_global_mutex_t *ospmutex,
                                                 apr_global_mutex_t *pmutex);
 {$endif}
 
@@ -226,7 +226,7 @@ APR_DECLARE(apr_status_t) apr_os_global_mutex_get(apr_os_global_mutex_t *ospmute
  * convert the file from apr type to os specific type.
  * @param thefile The os specific file we are converting to
  * @param file The apr file to convert.
- * @remark On Unix, it is only possible to get a file descriptor from 
+ * @remark On Unix, it is only possible to get a file descriptor from
  *         an apr file type.
  }
 function apr_os_file_get(thefile, file_: Papr_os_file_t): apr_status_t;

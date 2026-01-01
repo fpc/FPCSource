@@ -168,11 +168,11 @@ implementation
 ResourceString
   SErrAlreadyLoaded = 'MySQL 4.1 already initialized from library %s';
   SLoadFailed       = 'Can not load MySQL 4.1 library "%s". Please check your installation.';
-  
-var 
+
+var
   RefCount : integer;
   LoadedLibrary : String;
-  
+
 Function InitialiseMysql4 : Integer;
 
 begin
@@ -193,7 +193,7 @@ begin
       RefCount := 0;
       Raise EInOutError.CreateFmt(SLoadFailed,[LibraryName]);
       end;
-    LoadedLibrary:=LibraryName;  
+    LoadedLibrary:=LibraryName;
     pointer(mysql_get_client_info) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_get_client_info');
 
     // To avoid the strangest problems for ppl using other client-libs
@@ -285,7 +285,7 @@ begin
   else
     If (LibraryName<>LoadedLibrary) then
       Raise EInOUtError.CreateFmt(SErrAlreadyLoaded,[LoadedLibrary]);
-  Result:=RefCount;  
+  Result:=RefCount;
 end;
 
 Procedure ReleaseMysql4;
@@ -294,7 +294,7 @@ begin
   if RefCount > 0 then dec(RefCount);
   if RefCount = 0 then
     begin
-    if not UnloadLibrary(Mysql4LibraryHandle) then 
+    if not UnloadLibrary(Mysql4LibraryHandle) then
       inc(RefCount)
     else
       LoadedLibrary:='';

@@ -26,7 +26,7 @@
  * This is the protocol module driver.  This calls all of the
  * pre-connection and connection hooks for all protocol modules.
  * @param c The connection on which the request is read
- * @param csd The mechanism on which this connection is to be read.  
+ * @param csd The mechanism on which this connection is to be read.
  *            Most times this will be a socket, but it is up to the module
  *            that accepts the request to determine the exact type.
  * @deffunc void ap_process_connection(conn_rec *c, void *csd)
@@ -62,9 +62,9 @@ procedure ap_lingering_close(c: Pconn_rec);
 
   { Hooks }
 {
- * create_connection is a RUN_FIRST hook which allows modules to create 
- * connections. In general, you should not install filters with the 
- * create_connection hook. If you require vhost configuration information 
+ * create_connection is a RUN_FIRST hook which allows modules to create
+ * connections. In general, you should not install filters with the
+ * create_connection hook. If you require vhost configuration information
  * to make filter installation decisions, you must use the pre_connection
  * or install_network_transport hook. This hook should close the connection
  * if it encounters a fatal error condition.
@@ -91,7 +91,7 @@ procedure ap_hook_create_connection(pf: ap_HOOK_create_connection_t; const aszPr
  * before calling the protocol handler.  All pre-connection hooks are
  * run until one returns something other than ok or decline
  * @param c The connection on which the request has been received.
- * @param csd The mechanism on which this connection is to be read.  
+ * @param csd The mechanism on which this connection is to be read.
  *            Most times this will be a socket, but it is up to the module
  *            that accepts the request to determine the exact type.
  * @return OK or DECLINED

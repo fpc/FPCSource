@@ -51,7 +51,7 @@ uses ctypes,sockets,unixtype;
    * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
     }
 {$ifndef LIBUSB_H}
-{$define LIBUSB_H}  
+{$define LIBUSB_H}
 {$ifdef MSWINDOWS}
 
 {$ifdef WIN64}
@@ -112,7 +112,7 @@ uses ctypes,sockets,unixtype;
 {$macro on}
 
 {$ifdef MSWINDOWS}
- 
+
 const libusb1='libusb-1.0.dll';
 {$define LIBUSB_CALL := WINAPI }
 {$else}
@@ -142,9 +142,9 @@ const libusb1='libusb-1.0.so';
   }
 
     const
-      LIBUSB_API_VERSION = $01000104;      
+      LIBUSB_API_VERSION = $01000104;
     { The following is kept for compatibility, but will be deprecated in the future  }
-      LIBUSBX_API_VERSION = LIBUSB_API_VERSION;      
+      LIBUSBX_API_VERSION = LIBUSB_API_VERSION;
 { C++ extern C conditionnal removed }
 {*
  * \ingroup misc
@@ -248,20 +248,20 @@ type
     { Descriptor sizes per descriptor type  }
 
     const
-      LIBUSB_DT_DEVICE_SIZE = 18;      
-      LIBUSB_DT_CONFIG_SIZE = 9;      
-      LIBUSB_DT_INTERFACE_SIZE = 9;      
-      LIBUSB_DT_ENDPOINT_SIZE = 7;      
+      LIBUSB_DT_DEVICE_SIZE = 18;
+      LIBUSB_DT_CONFIG_SIZE = 9;
+      LIBUSB_DT_INTERFACE_SIZE = 9;
+      LIBUSB_DT_ENDPOINT_SIZE = 7;
     { Audio extension  }
-      LIBUSB_DT_ENDPOINT_AUDIO_SIZE = 9;      
-      LIBUSB_DT_HUB_NONVAR_SIZE = 7;      
-      LIBUSB_DT_SS_ENDPOINT_COMPANION_SIZE = 6;      
-      LIBUSB_DT_BOS_SIZE = 5;      
-      LIBUSB_DT_DEVICE_CAPABILITY_SIZE = 3;      
+      LIBUSB_DT_ENDPOINT_AUDIO_SIZE = 9;
+      LIBUSB_DT_HUB_NONVAR_SIZE = 7;
+      LIBUSB_DT_SS_ENDPOINT_COMPANION_SIZE = 6;
+      LIBUSB_DT_BOS_SIZE = 5;
+      LIBUSB_DT_DEVICE_CAPABILITY_SIZE = 3;
     { BOS descriptor sizes  }
-      LIBUSB_BT_USB_2_0_EXTENSION_SIZE = 7;      
-      LIBUSB_BT_SS_USB_DEVICE_CAPABILITY_SIZE = 10;      
-      LIBUSB_BT_CONTAINER_ID_SIZE = 20;      
+      LIBUSB_BT_USB_2_0_EXTENSION_SIZE = 7;
+      LIBUSB_BT_SS_USB_DEVICE_CAPABILITY_SIZE = 10;
+      LIBUSB_BT_CONTAINER_ID_SIZE = 20;
     { We unwrap the BOS => define its max size  }
 
     { was #define dname def_expr }

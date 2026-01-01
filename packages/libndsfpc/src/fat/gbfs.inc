@@ -1,37 +1,37 @@
 (*
   $Id: gbfs.inc 25 2007-12-10 21:06:46Z p4p3r0 $
   ------------------------------------------------------------------------------
-    Copyright 
+    Copyright
       2002-2004 Damian Yerrick
       Additional code Dave Murphy
-  	
+
   	This software is provided 'as-is', without any express or implied
   	warranty.  In no event will the authors be held liable for any
   	damages arising from the use of this software.
-  	
+
   	Permission is granted to anyone to use this software for any
   	purpose, including commercial applications, and to alter it and
   	redistribute it freely, subject to the following restrictions:
-  	
+
   	1.	The origin of this software must not be misrepresented; you
   		must not claim that you wrote the original software. If you use
   		this software in a product, an acknowledgment in the product
   		documentation would be appreciated but is not required.
-  	
+
   	2.	Altered source versions must be plainly marked as such, and
   		must not be misrepresented as being the original software.
-  	
+
   	3.	This notice may not be removed or altered from any source
   		distribution.
   ------------------------------------------------------------------------------
-    
-    
+
+
   Conversion by Legolas (http://itaprogaming.free.fr) for freepascal compiler
   (http://www.freepascal.org)
-   
+
   Copyright (C) 2006  Francesco Lombardi
   Check http://sourceforge.net/projects/libndsfpc for updates
-   
+
   ------------------------------------------------------------------------------
 
   $Log$
@@ -46,22 +46,22 @@
 
 type
   GBFS_FILE = record
-    magic: array [0..15] of AnsiChar;   // "PinEightGBFS\r\n\032\n" 
+    magic: array [0..15] of AnsiChar;   // "PinEightGBFS\r\n\032\n"
     total_len: cuint32;              // total length of archive
-    dir_off: cuint16;               // offset in bytes to directory 
-    dir_nmemb: cuint16;             // number of files 
-    reserved: array [0..7] of AnsiChar; // for future use 
+    dir_off: cuint16;               // offset in bytes to directory
+    dir_nmemb: cuint16;             // number of files
+    reserved: array [0..7] of AnsiChar; // for future use
   end;
   PGBFS_FILE = ^GBFS_FILE;
 
   GBFS_ENTRY = record
     name: array [0..23] of AnsiChar;      // filename, nul-padded
-    len: cuint32;                     // length of object in bytes 
+    len: cuint32;                     // length of object in bytes
     data_offset: cuint32;             // in bytes from beginning of file
   end;
   PGBFS_ENTRY = ^GBFS_ENTRY;
 
-procedure gbfs_search_range(gbfs_1st_limit: cuint32; gbfs_2nd_start: cuint32; 
+procedure gbfs_search_range(gbfs_1st_limit: cuint32; gbfs_2nd_start: cuint32;
                             gbfs_2nd_limit: cuint32; gbfs_stride: cuint32); cdecl; external;
 
 function find_first_gbfs_file(const start: pointer): PGBFS_FILE; cdecl; external;

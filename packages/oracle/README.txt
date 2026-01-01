@@ -6,7 +6,7 @@ on Oracle 8.0.1.5 Standard server. One developer license
 of Oracle server is free of charge...
 
 Unit oraclew contains some procedures and functions,
-which makes usage of oraoci not so painfull... But - 
+which makes usage of oraoci not so painfull... But -
 if you wanna to program in RAW OCI, you really can ;)
 
 The oci and ocidyn units are a complete conversion from

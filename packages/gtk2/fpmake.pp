@@ -1236,7 +1236,7 @@ begin
           AddInclude('pango-matrix.inc');
           AddInclude('pango-renderer.inc');
         end;
-    
+
     T:=P.Targets.AddImplicitUnit('src/pangocairo/pangocairo.pas');
       T.IncludePath.Add('src/pangocairo');
 
@@ -1248,8 +1248,8 @@ begin
           AddInclude('gtkstatusicon.inc');
 	  AddInclude('gtkscalebuttonh.inc');
 	  AddInclude('gtkscalebutton.inc');
-	  AddInclude('gtkvolumebuttonh.inc');	  
-	  AddInclude('gtkvolumebutton.inc');	  
+	  AddInclude('gtkvolumebuttonh.inc');
+	  AddInclude('gtkvolumebutton.inc');
 	  AddInclude('gtktextmarkh.inc');
 	  AddInclude('gtktextmark.inc');
 	  AddInclude('gtktextiterh.inc');

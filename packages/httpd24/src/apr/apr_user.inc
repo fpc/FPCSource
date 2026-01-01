@@ -19,7 +19,7 @@
 
 {**
  * @file apr_user.h
- * @brief APR User ID Services 
+ * @brief APR User ID Services
  *}
 
 //#include "apr.h"
@@ -28,7 +28,7 @@
 
 (**
  * @defgroup apr_user User and Group ID Services
- * @ingroup APR 
+ * @ingroup APR
  * @{
  *)
 

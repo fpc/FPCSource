@@ -54,7 +54,7 @@
 
 {
  * @defgroup apr_strings String routines
- * @ingroup APR 
+ * @ingroup APR
  }
 
 {
@@ -70,7 +70,7 @@ function apr_strnatcmp(a, b: PAnsiChar): Integer;
  external LibAPR name LibNamePrefix + 'apr_strnatcmp' + LibSuff8;
 
 {
- * Do a natural order comparison of two strings ignoring the case of the 
+ * Do a natural order comparison of two strings ignoring the case of the
  * strings.
  * @param a The first string to compare
  * @param b The second string to compare
@@ -109,7 +109,7 @@ function apr_pstrmemdup(p: Papr_pool_t; s: PAnsiChar; n: apr_size_t): PAnsiChar;
  external LibAPR name LibNamePrefix + 'apr_pstrmemdup' + LibSuff12;
 
 {
- * duplicate the first n characters of a string into memory allocated 
+ * duplicate the first n characters of a string into memory allocated
  * out of a pool; the new string will be null-terminated
  * @param p The pool to allocate out of
  * @param s The string to duplicate
@@ -155,7 +155,7 @@ function apr_pstrcatv(p: Papr_pool_t; const vec: Piovec;
  external LibAPR name LibNamePrefix + 'apr_pstrcatv' + LibSuff16;
 
 {
- * printf-style style printing routine.  The data is output to a string 
+ * printf-style style printing routine.  The data is output to a string
  * allocated from a pool
  * @param p The pool to allocate out of
  * @param fmt The format of the string
@@ -167,7 +167,7 @@ function apr_pvsprintf(p: Papr_pool_t; const fmt: PAnsiChar; ap: va_list): PAnsi
  external LibAPR name LibNamePrefix + 'apr_pvsprintf' + LibSuff12;
 
 {
- * printf-style style printing routine.  The data is output to a string 
+ * printf-style style printing routine.  The data is output to a string
  * allocated from a pool
  * @param p The pool to allocate out of
  * @param fmt The format of the string
@@ -215,7 +215,7 @@ function apr_collapse_spaces(dst: PAnsiChar; const src: PAnsiChar): PAnsiChar;
  external LibAPR name LibNamePrefix + 'apr_collapse_spaces' + LibSuff8;
 
 {
- * Convert the arguments to a program from one string to an array of 
+ * Convert the arguments to a program from one string to an array of
  * strings terminated by a NULL pointer
  * @param arg_str The arguments to convert
  * @param argv_out Output location.  This is a pointer to an array of strings.
@@ -227,7 +227,7 @@ function apr_tokenize_to_argv(const arg_str: PAnsiChar;
  external LibAPR name LibNamePrefix + 'apr_tokenize_to_argv' + LibSuff12;
 
 {
- * Split a string into separate null-terminated tokens.  The tokens are 
+ * Split a string into separate null-terminated tokens.  The tokens are
  * delimited in the string by one or more characters from the sep
  * argument.
  * @param str The string to separate; this should be specified on the

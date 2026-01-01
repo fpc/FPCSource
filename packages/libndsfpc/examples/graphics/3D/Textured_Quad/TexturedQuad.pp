@@ -110,7 +110,7 @@ begin
     glFlush(0);
 
     swiWaitForVBlank();
-    
+
     if (keys and KEY_START) <> 0 then break;
   end;
 

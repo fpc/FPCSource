@@ -24,14 +24,14 @@
 	"http://sourceforge.net/tracker/?group_id=114505&atid=668551".
 
   ------------------------------------------------------------------------------
-    
-    
+
+
   Conversion by Legolas (http://itaprogaming.free.fr) for freepascal compiler
   (http://www.freepascal.org)
-   
+
   Copyright (C) 2006  Francesco Lombardi
   Check http://sourceforge.net/projects/libndsfpc for updates
-   
+
   ------------------------------------------------------------------------------
 
   $Log$
@@ -66,7 +66,7 @@ type
     fr: u32;
     wp: PWaveData;
     reserved3: array [0..5] of u32;
-  end; 
+  end;
   PSoundChannel = ^SoundChannel;
 
 const
@@ -143,7 +143,7 @@ const
   SOUND3_STEP32		= (0 shl 5);	// Use two banks of 32 steps each
   SOUND3_STEP64		= (1 shl 5);	// Use one bank of 64 steps
 
-  
+
 function SOUND3_SETBANK(n: integer): integer; inline;
 
 const
@@ -151,7 +151,7 @@ const
   SOUND3_STOP			= (0 shl 7);	// Stop sound output
 
 //---------------------------------------------------------------------------------
-// pin8 compatible sound macros 
+// pin8 compatible sound macros
 //---------------------------------------------------------------------------------
 
 (*---------------------------------------------------------------------------------
@@ -167,11 +167,11 @@ fedcba9876543210
 |||+------------- Enable sqr1 on right
 ||+-------------- Enable sqr2 on right
 |+--------------- Enable triangle on right
-+---------------- 
++----------------
 ---------------------------------------------------------------------------------*)
 const
   DMGSNDCTRL         : pu16 = pointer($04000080);
-  
+
 function DMGSNDCTRL_LVOL(x: integer): integer; inline;
 
 function DMGSNDCTRL_RVOL(x: integer): integer; inline;
@@ -215,15 +215,15 @@ const
   DSOUNDCTRL_B100      = $0008;
   DSOUNDCTRL_AR        = $0100;
   DSOUNDCTRL_AL        = $0200;
-  
-function DSOUNDCTRL_ATIMER(x: integer): integer; inline; 
-  
+
+function DSOUNDCTRL_ATIMER(x: integer): integer; inline;
+
 const
   DSOUNDCTRL_ARESET    = $0800;
   DSOUNDCTRL_BR        = $1000;
   DSOUNDCTRL_BL        = $2000;
-  
-function  DSOUNDCTRL_BTIMER(x: integer): integer; inline;  
+
+function  DSOUNDCTRL_BTIMER(x: integer): integer; inline;
 
 const
   DSOUNDCTRL_BRESET    = $8000;
@@ -268,7 +268,7 @@ Do NOT use SNDBIAS directly.  To set the resolution, use
 ---------------------------------------------------------------------------------*)
 const
   SNDBIAS      : pu16 = pointer($04000088);
-  
+
 procedure SETSNDRES(x: integer); inline;
 
 const
@@ -345,7 +345,7 @@ const
   TRICTRL         : pu16 = pointer($04000070);
   TRICTRL_2X32    = $0000;
   TRICTRL_1X64    = $0020;
-  
+
 function TRICTRL_BANK(x: integer): integer; inline;
 
 const
@@ -397,9 +397,9 @@ function SOUND3_SETBANK(n: integer): integer; inline;
 begin
 	SOUND3_SETBANK := (n shl 6);	// Bank to play 0 or 1 (non set bank is written to)
 end;
-  
+
 function DMGSNDCTRL_LVOL(x: integer): integer; inline;
-begin 
+begin
   DMGSNDCTRL_LVOL := (x);
 end;
 
@@ -407,29 +407,29 @@ function DMGSNDCTRL_RVOL(x: integer): integer; inline;
 begin
   DMGSNDCTRL_RVOL := ((x) shl 4);
 end;
-  
-function DSOUNDCTRL_ATIMER(x: integer): integer; inline; 
+
+function DSOUNDCTRL_ATIMER(x: integer): integer; inline;
 begin
   DSOUNDCTRL_ATIMER := ((x) shl 10);
 end;
-  
-function  DSOUNDCTRL_BTIMER(x: integer): integer; inline;  
+
+function  DSOUNDCTRL_BTIMER(x: integer): integer; inline;
 begin
   DSOUNDCTRL_BTIMER := ((x) shl 14);
 end;
 
 procedure SETSNDRES(x: integer); inline;
-begin 
+begin
   SNDBIAS^ := (SNDBIAS^ and $3fff) or (x shl 14);
 end;
 
 function SQR_DUTY(n: integer): integer; inline;
-begin 
+begin
   SQR_DUTY := ((n) shl 6);
 end;
 
 function  SQR_VOL(n: integer): integer; inline;
-begin   
+begin
   SQR_VOL := ((n) shl 12);
 end;
 
@@ -439,32 +439,32 @@ begin
 end;
 
 function TRILENVOL_LEN(x: integer): integer; inline;
-begin 
+begin
   TRILENVOL_LEN := (256 - (x));
 end;
 
 procedure SoundDriverMain(); assembler; inline;
-asm 
-  SWI SC_ARM_28 
+asm
+  SWI SC_ARM_28
 end;
 
 procedure SoundDriverVsync(); assembler; inline;
-asm 
+asm
   SWI SC_ARM_29
 end;
 
 procedure SoundChannelClear(); assembler; inline;
-asm 
+asm
   SWI SC_ARM_30
 end;
 
 procedure SoundDriverVsyncOff(); assembler; inline;
-asm 
+asm
   SWI SC_ARM_40
 end;
 
 procedure SoundDriverVsyncOn(); assembler; inline;
-asm 
+asm
   SWI SC_ARM_41
 end;
 {$endif GBA_IMPLEMENTATION}

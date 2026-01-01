@@ -31,7 +31,7 @@ begin
 
   { paserInternals.inc }
     //__xmlParserMaxDepth := PCardinal(GetProcAddress(libHandle, 'xmlParserMaxDepth'));
-   
+
   {  }
    {xmlStringComment := PAnsiChar(GetProcAddress(libHandle, 'xmlStringComment'));
     xmlStringText := PAnsiChar(GetProcAddress(libHandle, 'xmlStringText'));
@@ -45,19 +45,19 @@ begin
     __xmlIsExtenderGroup := xmlChRangeGroupPtr(GetProcAddress(libHandle, 'xmlIsExtenderGroup'));
     __xmlIsIdeographicGroup := xmlChRangeGroupPtr(GetProcAddress(libHandle, 'xmlIsIdeographicGroup'));
     __xmlIsPubidChar_tab := GetProcAddress(libHandle, 'xmlIsPubidChar_tab');
-    
+
   { globals.inc }
     varxmlMalloc := PxmlMallocFunc(GetProcAddress(libHandle, 'xmlMalloc'));
     varxmlMallocAtomic := PxmlMallocFunc(GetProcAddress(libHandle, 'xmlMallocAtomic'));
     varxmlRealloc := PxmlReallocFunc(GetProcAddress(libHandle, 'xmlRealloc'));
     varxmlFree := PxmlFreeFunc(GetProcAddress(libHandle, 'xmlFree'));
     varxmlMemStrdup := PxmlStrdupFunc(GetProcAddress(libHandle, 'xmlMemStrdup'));
-    
+
   { xpath.inc }
    {__xmlXPathNAN := PDouble(GetProcAddress(libHandle, 'xmlXPathNAN'));
     __xmlXPathNINF := PDouble(GetProcAddress(libHandle, 'xmlXPathNINF'));
     __xmlXPathPINF := PDouble(GetProcAddress(libHandle, 'xmlXPathPINF'));}
-    
+
     FreeLibrary(libHandle);
   end;
 end;

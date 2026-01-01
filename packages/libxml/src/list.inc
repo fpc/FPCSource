@@ -1,6 +1,6 @@
 (*
  * Summary: lists interfaces
- * Description: this module implement the list support used in 
+ * Description: this module implement the list support used in
  * various place in the library.
  *
  * Copy: See Copyright for the status of this software.

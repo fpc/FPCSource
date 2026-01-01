@@ -59,7 +59,7 @@ var
   cuberot: TCubeRot;
 
 procedure ShadowDemo(); forward;
-  
+
 function DrawGLScene(): boolean;
 var
   x_m, y_m, z_m:  cfloat;
@@ -226,12 +226,12 @@ end;
 procedure EmitCube();
 begin
   glPushMatrix();
-  glScalef(0.03, 0.03, 0.03); 
-  
+  glScalef(0.03, 0.03, 0.03);
+
   glRotatef(cubeRot.x, 1.0, 0.0, 0.0);
   glRotatef(cubeRot.y, 0.0, 1.0, 0.0);
   glRotatef(cubeRot.z, 0.0, 0.0, 1.0);
-  
+
   glBegin(GL_QUADS);
     // Front Face
     glTexCoord2f(0.0, 0.0); glVertex3f(-1.0, -1.0,  1.0);
@@ -270,7 +270,7 @@ end;
 procedure ShadowDemo();
 begin
   cubeRot.y := cubeRot.y + 0.8;
-  
+
   //draw the actual cube
   glPushMatrix();
   glTranslatef(0.0, 0.4, -0.4); //draw the cube up in the air
@@ -278,32 +278,32 @@ begin
   glBindTexture(GL_TEXTURE_2D, texture[1]);
   EmitCube();
   glPopMatrix(1);
-  
+
   //draw the shadow:
   begin
     //draw the cube shadow on the ground
     glPushMatrix();
     glTranslatef(0.0, 0.0, -0.4);
     TransformCube();
-    
+
     //use no texture. set shadow color: we'll use green just to show that it is possible
     glBindTexture(0, 0);
     glColor(RGB15(0, 8, 0));
-    
+
     //1st shadow pass
     //be sure to use opaque here
     glPolyFmt(POLY_SHADOW or POLY_CULL_FRONT or POLY_ALPHA(31));
     EmitCube();
-    
+
     //2nd shadow pass
     //be sure to use a different polyID here (shadow with polyID 0 can't be cast on surface with polyID 0)
     //we set the fog bit here because we want the shadow to be fogged later. i think it may be buggy but it looks better.
     glPolyFmt(POLY_SHADOW or POLY_CULL_BACK or POLY_ALPHA(15) or POLY_ID(1) or POLY_FOG);
     EmitCube();
-    
+
     //reset poly attribute
     glPolyFmt(POLY_ALPHA(31) or POLY_CULL_NONE or POLY_FORMAT_LIGHT0 or POLY_FOG);
-    
+
     glPopMatrix(1);
   end;
 end;
@@ -436,7 +436,7 @@ begin
 
     // wait for the screen to refresh
     swiWaitForVBlank();
-    
+
     if (held and KEY_START) <> 0 then break;
   end;
 

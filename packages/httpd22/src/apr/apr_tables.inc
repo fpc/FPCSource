@@ -343,7 +343,7 @@ function apr_table_overlay(t: Papr_table_t;
 type
   apr_table_do_callback_fn_t = function (rec: Pointer;
    const key, value: PAnsiChar): Integer;
-   
+
   Papr_table_do_callback_fn_t = ^apr_table_do_callback_fn_t;
 
 {

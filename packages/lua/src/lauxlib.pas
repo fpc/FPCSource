@@ -155,7 +155,7 @@ procedure luaL_pushresult(B: PluaL_Buffer); cdecl;
 const
   LUA_NOREF  = -2;
   LUA_REFNIL = -1;
-  
+
 procedure lua_unref(L: Plua_State; ref: Integer);
 procedure lua_getref(L: Plua_State; ref: Integer);
 

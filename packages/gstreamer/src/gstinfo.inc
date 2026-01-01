@@ -89,15 +89,15 @@
     TGstDebugMessage = record end;
     T_GstDebugMessage = TGstDebugMessage;
 
-    TGstLogFunction = procedure (category:PGstDebugCategory; level:TGstDebugLevel; afile:Pgchar; _function:Pgchar; line:Tgint; 
+    TGstLogFunction = procedure (category:PGstDebugCategory; level:TGstDebugLevel; afile:Pgchar; _function:Pgchar; line:Tgint;
                   aobject:PGObject; message:PGstDebugMessage; user_data:Tgpointer);cdecl;
 
   TGstDebugFuncPtr = procedure (_para1:pointer);cdecl;
 
-  procedure gst_debug_log(category:PGstDebugCategory; level:TGstDebugLevel; afile:Pgchar; _function:Pgchar; line:Tgint; 
+  procedure gst_debug_log(category:PGstDebugCategory; level:TGstDebugLevel; afile:Pgchar; _function:Pgchar; line:Tgint;
               object_:PGObject; format:Pgchar; args:array of const);cdecl;external gstreamerlib name 'gst_debug_log';
 
-  procedure gst_debug_log(category:PGstDebugCategory; level:TGstDebugLevel; afile:Pgchar; _function:Pgchar; line:Tgint; 
+  procedure gst_debug_log(category:PGstDebugCategory; level:TGstDebugLevel; afile:Pgchar; _function:Pgchar; line:Tgint;
               object_:PGObject; format:Pgchar);cdecl;external gstreamerlib name 'gst_debug_log';
 
   procedure gst_debug_log_valist(category:PGstDebugCategory; level:TGstDebugLevel; afile:Pgchar; _function:Pgchar; line:Tgint;
@@ -122,7 +122,7 @@
 
 (* Const before type ignored *)
 (* Const before type ignored *)
-  procedure gst_debug_log_default(category:PGstDebugCategory; level:TGstDebugLevel; afile:Pgchar; _function:Pgchar; line:Tgint; 
+  procedure gst_debug_log_default(category:PGstDebugCategory; level:TGstDebugLevel; afile:Pgchar; _function:Pgchar; line:Tgint;
               object_:PGObject; message:PGstDebugMessage; user_data:Tgpointer);cdecl;external gstreamerlib name 'gst_debug_log_default';
 
 (* Const before type ignored *)

@@ -15,7 +15,7 @@ const
 	SDMMC_NAND_WRITE_SECTORS  : FifoMessageType = $123D;
 
 type
-{$PACKRECORDS 4} 
+{$PACKRECORDS 4}
   FifoMessage = record
     _type: cuint16;
     case integer of
@@ -73,13 +73,13 @@ type
           buffer: pointer;
           address: cuint32;
           length: cuint32;
-        end;      
-      );  
-        
+        end;
+      );
+
   end;
   TFifoMessage = FifoMessage;
   PFifoMessage = ^FifoMessage;
 
-{$PACKRECORDS C}   
+{$PACKRECORDS C}
 {$endif NDS_INTERFACE}
 

@@ -25,7 +25,7 @@ var
 
 const
   MODULE_NAME = 'mod_hello.so';
-  
+
 exports
  test_module name 'hello_module';
 
@@ -35,7 +35,7 @@ exports
 function DefaultHandler(r: Prequest_rec): Integer; cdecl;
 var
   RequestedHandler: string;
-  
+
 begin
   RequestedHandler := r^.handler;
 
@@ -58,7 +58,7 @@ begin
   {$else}
     ap_set_content_type(r, 'text/html');
   {$endif}
-  
+
   { If the request is for a header only, and not a request for
    the whole content, then return OK now. We don't have to do
    anything else. }

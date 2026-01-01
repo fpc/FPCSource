@@ -7,7 +7,7 @@
 
 {$IFDEF read_interface_types}
    PGOptionContext = ^TGOptionContext;
-   TGOptionContext = record 
+   TGOptionContext = record
    end;
 
    PGOptionGroup = ^TGOptionGroup;
@@ -65,7 +65,7 @@
 
 {$IFDEF read_interface_rest}
 const
-   G_OPTION_REMAINING = '';   
+   G_OPTION_REMAINING = '';
 
 function G_OPTION_ERROR : GType;
 

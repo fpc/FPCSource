@@ -30,7 +30,7 @@ begin
 	dmaCopy(@tilemapTiles, CHAR_BASE_BLOCK(1), tilemapTilesLen);
 	dmaCopy(@tilemapMap, SCREEN_BASE_BLOCK(0), tilemapMapLen);
 	dmaCopy(@tilemapPal, BG_PALETTE, tilemapPalLen);
- 
+
 	// finally, hang around in an infinite loop
 	// using swiWaitForVBlank here puts the DS into a low power loop
 	while true do

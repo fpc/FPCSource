@@ -1,5 +1,5 @@
 {
- Objective-C rtl Test application by dmitry boyarintsev 
+ Objective-C rtl Test application by dmitry boyarintsev
 
  Should compile and run with no problems
  program output should look like:

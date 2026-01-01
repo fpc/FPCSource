@@ -30,7 +30,7 @@ function cdcTouchRead(pos: PtouchPosition): cbool; cdecl; external;
 
 {$ifdef NDS_IMPLEMENTATION}
 
-function cdcIsAvailable(): boolean; inline; 
+function cdcIsAvailable(): boolean; inline;
 begin
 	cdcIsAvailable := isDSiMode() and ((__DSiHeader^.appflags and $01) <> 0);
 end;

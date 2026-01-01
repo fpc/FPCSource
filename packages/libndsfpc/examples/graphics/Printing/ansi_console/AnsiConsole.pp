@@ -6,7 +6,7 @@ uses
   ctypes, nds9;
 var
   keys: integer;
-  
+
 begin
 
   consoleDemoInit();

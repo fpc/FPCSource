@@ -65,7 +65,7 @@
 
 (* Const before type ignored *)
 (* Const before type ignored *)
-  function gst_type_find_register(plugin:PGstPlugin; name:Pgchar; rank:Tguint; func:TGstTypeFindFunction; extensions:Pgchar; 
+  function gst_type_find_register(plugin:PGstPlugin; name:Pgchar; rank:Tguint; func:TGstTypeFindFunction; extensions:Pgchar;
              possible_caps:PGstCaps; data:Tgpointer; data_notify:TGDestroyNotify):Tgboolean;cdecl;external gstreamerlib name 'gst_type_find_register';
 
 

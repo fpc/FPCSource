@@ -3,7 +3,7 @@
  Copyright (c) 2000-2010 by Stefan Heymann
 
  See the file COPYING.FPC, included in this distribution,
- for details about the copyright. 
+ for details about the copyright.
 
  This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -46,7 +46,7 @@ TTarWriter Usage
 - Now your tar file is ready.
 
 
-Source 
+Source
 --------------------------
 The official site to get this code is http://www.destructor.de/
 
@@ -97,14 +97,14 @@ INTERFACE
      {$DEFINE Kylix}
      {$DEFINE LIBCUNIT}
   {$ENDIF}
-{$ENDIF} 
+{$ENDIF}
 
 {$IFDEF FPC_DOTTEDUNITS}
 USES
 {$IFDEF LIBCUNIT}
    Api.Libc,		// MvdV: Nothing is used from this???
 {$ENDIF}
-{$ifdef Unix} 
+{$ifdef Unix}
   UnixApi.Types, UnixApi.Base, UnixApi.Unix,
 {$endif}
 (*$IFDEF MSWINDOWS *)
@@ -116,7 +116,7 @@ USES
 {$IFDEF LIBCUNIT}
    Libc,		// MvdV: Nothing is used from this???
 {$ENDIF}
-{$ifdef Unix} 
+{$ifdef Unix}
   UnixType, BaseUnix, Unix,
 {$endif}
 (*$IFDEF MSWINDOWS *)
@@ -275,7 +275,7 @@ END;
 
 FUNCTION ConvertFilename  (Filename : STRING) : STRING;
 // Converts the filename to Unix conventions
-// could be empty and inlined away for FPC. FPC I/O should be 
+// could be empty and inlined away for FPC. FPC I/O should be
 // forward/backward slash safe.
 BEGIN
   (*$IFDEF Unix *)
@@ -320,7 +320,7 @@ BEGIN
   (*$IFDEF Unix *)
      IF SearchRec.Attr AND faDirectory = 0 THEN BEGIN
        FillChar(TimeVal, SizeOf(TimeVal), #0);
-       FillChar(TimeZone, SizeOf(TimeZone), #0);      
+       FillChar(TimeZone, SizeOf(TimeZone), #0);
        Result := SearchRec.TimeStamp;
        {$IFDEF Kylix}
        GetTimeOfDay (TimeVal, TimeZone);

@@ -125,32 +125,32 @@
 
   function gst_memory_get_type:TGType;cdecl;external gstreamerlib name 'gst_memory_get_type';
 
-  procedure gst_memory_init(mem:PGstMemory; flags:TGstMemoryFlags; allocator:PGstAllocator; parent:PGstMemory; maxsize:Tgsize; 
+  procedure gst_memory_init(mem:PGstMemory; flags:TGstMemoryFlags; allocator:PGstAllocator; parent:PGstMemory; maxsize:Tgsize;
               align:Tgsize; offset:Tgsize; size:Tgsize);cdecl;external gstreamerlib name 'gst_memory_init';
 
 (* Const before type ignored *)
   function gst_memory_is_type(mem:PGstMemory; mem_type:Pgchar):Tgboolean;cdecl;external gstreamerlib name 'gst_memory_is_type';
 
   {
-  
+
   static inline GstMemory *
   gst_memory_ref (GstMemory * memory)
-  
+
     return (GstMemory *) gst_mini_object_ref (((GstMiniObject*)(memory)));
-  
-  
-  
-  
-  
-  
-  
-  
+
+
+
+
+
+
+
+
   static inline void
   gst_memory_unref (GstMemory * memory)
-  
+
     gst_mini_object_unref (((GstMiniObject*)(memory)));
-  
-  
+
+
    }
   function gst_memory_get_sizes(mem:PGstMemory; offset:Pgsize; maxsize:Pgsize):Tgsize;cdecl;external gstreamerlib name 'gst_memory_get_sizes';
 

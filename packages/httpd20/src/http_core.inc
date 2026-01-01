@@ -124,7 +124,7 @@ function ap_default_type(r: Prequest_rec): PAnsiChar;
 {
  * Retrieve the document root for this server
  * @param r The current request
- * @warning Don't use this!  If your request went through a Userdir, or 
+ * @warning Don't use this!  If your request went through a Userdir, or
  * something like that, it'll screw you.  But it's back-compatible...
  * @return The document root
  * @deffunc const AnsiChar *ap_document_root(request_rec *r)
@@ -149,10 +149,10 @@ function ap_document_root(r: Prequest_rec): PAnsiChar;
  *                     never forced.
  *     REMOTE_DOUBLE_REV will always force a DNS lookup, and also force
  *                   a double reverse lookup, regardless of the HostnameLookups
- *                   setting.  The result is the (double reverse checked) 
+ *                   setting.  The result is the (double reverse checked)
  *                   hostname, or NULL if any of the lookups fail.
  * </pre>
- * @param str_is_ip unless NULL is passed, this will be set to non-zero on output when an IP address 
+ * @param str_is_ip unless NULL is passed, this will be set to non-zero on output when an IP address
  *        string is returned
  * @return The remote hostname
  * @deffunc const AnsiChar *ap_get_remote_host(conn_rec *conn, void *dir_config, int type, int *str_is_ip)
@@ -209,7 +209,7 @@ function ap_get_server_port(r: Prequest_rec): apr_port_t;
  external LibHTTPD name LibNamePrefix + 'ap_get_server_port' + LibSuff4;
 
 {
- * Return the limit on bytes in request msg body 
+ * Return the limit on bytes in request msg body
  * @param r The current request
  * @return the maximum number of bytes in the request msg body
  * @deffunc apr_off_t ap_get_limit_req_body(const request_rec *r)
@@ -278,7 +278,7 @@ type
     { The complete string from the command line }
     requirement: PAnsiChar;
   end;
-     
+
 {
  * Return the type of authorization required for this request
  * @param r The current request
@@ -433,7 +433,7 @@ const
   ETAG_ALL   = (ETAG_MTIME or ETAG_INODE or ETAG_SIZE);
 
   { Hostname resolution etc }
-  
+
   HOSTNAME_LOOKUP_OFF = 0;
   HOSTNAME_LOOKUP_ON = 1;
   HOSTNAME_LOOKUP_DOUBLE = 2;
@@ -490,16 +490,16 @@ type
     opts_add: allow_options_t;
     opts_remove: allow_options_t;
     override_: overrides_t;
-    
+
     { MIME typing --- the core doesn't do anything at all with this,
      * but it does know what to slap on a request for a document which
      * goes untyped by other mechanisms before it slips out the door...
      }
-    
+
     ap_default_type: PAnsiChar;
-  
+
     { Authentication stuff.  Groan... }
-    
+
     satisfy: PInteger; { for every method one }
     ap_auth_type: PAnsiChar;
     ap_auth_name: PAnsiChar;
@@ -510,7 +510,7 @@ type
      * if it's not null then it's allocated to sizeof(AnsiChar*)*RESPONSE_CODES.
      * This lets us do quick merges in merge_core_dir_configs().
      }
-  
+
     response_code_strings: PPAnsiChar; { from ErrorDocument, not from
                                    * ap_custom_response() }
 
@@ -553,7 +553,7 @@ type
     server_signature: server_signature_e;
 
     loglevel: Integer;
-    
+
     { Access control }
     sec_file: Papr_array_header_t;
     r: Pregex_t;
@@ -595,7 +595,7 @@ const
 
 type
    core_server_config = record
-  
+
 {$ifdef GPROF}
     gprof_dir: PAnsiChar;
 {$endif}
@@ -605,7 +605,7 @@ type
      * can be tested that way).  But let's keep it to the bare minimum:
      }
     ap_document_root: PAnsiChar;
-  
+
     { Access control }
 
     access_name: PAnsiChar;

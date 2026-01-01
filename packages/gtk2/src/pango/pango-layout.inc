@@ -11,7 +11,7 @@
    TPangoWrapMode = (
      PANGO_WRAP_WORD,
      PANGO_WRAP_CHAR,
-     PANGO_WRAP_WORD_CHAR 
+     PANGO_WRAP_WORD_CHAR
    );
 
    PPangoEllipsizeMode = ^TPangoEllipsizeMode;

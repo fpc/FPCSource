@@ -5,7 +5,7 @@ program FireAndSprites;
 
 uses
   ctypes, nds9;
-  
+
 {$include inc/ball.pcx.inc}
 
 const
@@ -60,10 +60,10 @@ begin
     v := lum * (256 + sat) shr 8
   else
     v := (((lum + sat) shl 8) - lum * sat) shr 8;
-  
+
   if (v <= 0) then
     hsl2rgb := RGB8(0,0,0)
-  else 
+  else
  begin
 
     m := lum + lum - v;
@@ -74,33 +74,33 @@ begin
     mid1 := m + vsf;
     mid2 := v - vsf;
     case sextant of
-      0: hsl2rgb := RGB8(v,mid1,m); 
+      0: hsl2rgb := RGB8(v,mid1,m);
       1: hsl2rgb := RGB8(mid2,v,m);
-      2: hsl2rgb := RGB8(m,v,mid1); 
-      3: hsl2rgb := RGB8(m,mid2,v); 
-      4: hsl2rgb := RGB8(mid1,m,v); 
+      2: hsl2rgb := RGB8(m,v,mid1);
+      3: hsl2rgb := RGB8(m,mid2,v);
+      4: hsl2rgb := RGB8(mid1,m,v);
     else hsl2rgb := RGB8(v,m,mid2);
-    end; 
+    end;
   end;
 end;
 
 const
-  WIDTH = 256;   
+  WIDTH = 256;
   HEIGHT = 196;
 
 var
   fire: array [0..HEIGHT, 0..WIDTH - 1] of cuint8;
 
   x, y: integer;
-  w: integer = WIDTH; 
+  w: integer = WIDTH;
   h: integer = HEIGHT;
   sprites: array [0..NUM_SPRITES - 1] of TSprite;
   i, delta: integer;
   ix, iy: integer;
-  
+
   temp: cint;
   pressed: integer;
-  
+
   map0, map1: pcuint16;
   red: cuint16;
   ball: sImage;
@@ -194,7 +194,7 @@ begin
 
 	// Set up palette for fire effect
 	for x := 0 to 256 do
-  begin 
+  begin
     if x * 2 > 255 then
       BG_PALETTE[x] := hsl2rgb(x div 3,255, 255)
     else
@@ -236,14 +236,14 @@ begin
       MoveSprite(sprites[i]);
     end;
 
- 
+
 
     //do the plasma/fire
 		//randomize the bottom row of the fire buffer
 		for x := 0 to w - 1 do
       //fire[h-1, x] := abs(32768 + random(high(cint))) mod 256;
       fire[h-1, x] := abs(32768 + random(32767)) mod 256;
-    
+
 		//do the fire calculations for every pixel, from top to bottom
 		for y := 0 to h - 2 do
 			for x := 0 to w - 1 do
@@ -252,10 +252,10 @@ begin
 			end;
 
 		dmaCopy(@fire, pointer($06000000), 256 * 192);
-  
+
     swiWaitForVBlank();
 
-   
+
     scanKeys();
 		pressed := keysDown();
 		if (pressed and KEY_START) <> 0 then break;

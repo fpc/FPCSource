@@ -159,7 +159,7 @@ Procedure roof1r(f: rfunc1r; a, b, ae, re: ArbFloat; Var x: ArbFloat;
 
 begin
   roof1rn(@nested_f, a, b, ae, re, x, term);
-end;  
+end;
 
 Procedure roof1rn(f: rfunc1rn; a, b, ae, re: ArbFloat; Var x: ArbFloat;
                  Var term: ArbInt);

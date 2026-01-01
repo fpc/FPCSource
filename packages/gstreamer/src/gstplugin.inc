@@ -107,7 +107,7 @@
 (* Const before type ignored *)
 (* Const before type ignored *)
 (* Const before type ignored *)
-  function gst_plugin_register_static(major_version:Tgint; minor_version:Tgint; name:Pgchar; description:Pgchar; init_func:TGstPluginInitFunc; 
+  function gst_plugin_register_static(major_version:Tgint; minor_version:Tgint; name:Pgchar; description:Pgchar; init_func:TGstPluginInitFunc;
              version:Pgchar; license:Pgchar; source:Pgchar; package:Pgchar; origin:Pgchar):Tgboolean;cdecl;external gstreamerlib name 'gst_plugin_register_static';
 
 (* Const before type ignored *)
@@ -117,8 +117,8 @@
 (* Const before type ignored *)
 (* Const before type ignored *)
 (* Const before type ignored *)
-  function gst_plugin_register_static_full(major_version:Tgint; minor_version:Tgint; name:Pgchar; description:Pgchar; init_full_func:TGstPluginInitFullFunc; 
-             version:Pgchar; license:Pgchar; source:Pgchar; package:Pgchar; origin:Pgchar; 
+  function gst_plugin_register_static_full(major_version:Tgint; minor_version:Tgint; name:Pgchar; description:Pgchar; init_full_func:TGstPluginInitFullFunc;
+             version:Pgchar; license:Pgchar; source:Pgchar; package:Pgchar; origin:Pgchar;
              user_data:Tgpointer):Tgboolean;cdecl;external gstreamerlib name 'gst_plugin_register_static_full';
 
 (* Const before type ignored *)

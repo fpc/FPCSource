@@ -1,7 +1,7 @@
 {
     Copyright (C) 2001 Paul Davis
     Copyright (C) 2003 Jack O'Quin
-    
+
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -18,7 +18,7 @@
 
     * 2002/08/23 - modify for libsndfile 1.0.0 <andy@alsaplayer.org>
     * 2003/05/26 - use ringbuffers - joq
-    
+
 }
 
 program capture_client;
@@ -127,7 +127,7 @@ done:
   FreeMem (framebuf);
   Result := 0;
 end;
-	
+
 function process (nframes: jack_nframes_t; arg: Pointer): cint; cdecl;
 var
   chn: cint;

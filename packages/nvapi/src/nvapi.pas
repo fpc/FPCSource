@@ -2434,7 +2434,7 @@ var
 var
   NvAPI_Stereo_IsActivated : function (Handle: StereoHandle; var IsStereoOn: NvU8): NvAPI_Status; cdecl;
 
-  
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 // FUNCTION NAME: NvAPI_Stereo_GetSeparation
@@ -2921,7 +2921,7 @@ const
     (ID: $22ED9516; Func: @@NvAPI_OGL_ExpertModeGet),
     (ID: $B47A657E; Func: @@NvAPI_OGL_ExpertModeDefaultsSet),
     (ID: $AE921F12; Func: @@NvAPI_OGL_ExpertModeDefaultsGet),
-    
+
     (ID: $0957D7B6; Func: @@NvAPI_SetView),
     (ID: $D6B99D89; Func: @@NvAPI_GetView),
     (ID: $06B89E68; Func: @@NvAPI_SetViewEx),
@@ -2954,7 +2954,7 @@ const
     (ID: $8B7E99B5; Func: @@NvAPI_Stereo_CapturePngImage), //99  NvAPI_Stereo_CapturePngImage
     (ID: $3CD58F89; Func: @@NvAPI_Stereo_ReverseStereoBlitControl), //100 NvAPI_Stereo_ReverseStereoBlitControl
     (ID: $6B9B409E; Func: @@NvAPI_Stereo_SetNotificationMessage), //101 NvAPI_Stereo_SetNotificationMessage
-    
+
     (ID: 0; Func: nil) // stop signal
   );
 

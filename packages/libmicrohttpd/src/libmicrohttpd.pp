@@ -342,7 +342,7 @@ type
   culonglong = {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}CTypes.culonglong;
   socklen_t = {$IFDEF UNIX}{$IFDEF FPC_DOTTEDUNITS}UnixApi.Base{$ELSE}BaseUnix{$ENDIF}.socklen_t{$ELSE}LongInt{$ENDIF};
   size_t = {$IFDEF UNIX}{$IFDEF FPC_DOTTEDUNITS}UnixApi.Base{$ELSE}BaseUnix{$ENDIF}{$ELSE}{$IFDEF FPC_DOTTEDUNITS}System.Net.{$ENDIF}Sockets{$ENDIF}.size_t;
-  Psize_t = 
+  Psize_t =
   {$IFDEF UNIX}
     {$IFDEF FPC_DOTTEDUNITS}UnixApi.Base{$ELSE}BaseUnix{$ENDIF}.pSize_t
   {$ELSE}

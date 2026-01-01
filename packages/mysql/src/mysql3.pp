@@ -12,7 +12,7 @@ unit mysql3;
 
   updated to mysql version 3.23 header files by Bernhard Steffen
   (bernhard.steffen@gmx.net)
-  
+
   split into mysql/mysqldyn libraries by Bram Kuijvenhoven (Hexis BV, The Netherlands)
   }
 {$mode objfpc}{$h+}
@@ -65,7 +65,7 @@ Function mysql_error(mysql : PMYSQL) : PAnsiChar; extdecl; external mysqllib;
 function mysql_init(mysql: PMYSQL) : PMYSQL;extdecl; external mysqllib name 'mysql_init';
 function mysql_connect (mysql : PMYSQL; host,user,passwd: PAnsiChar) : PMYSQL;extdecl; external mysqllib name 'mysql_connect';
 function mysql_real_connect (mysql : PMYSQL; const host,user,passwd : PAnsiChar;
-		                   {$ifndef use_mysql_321} const db : PAnsiChar; {$endif}  // strictly speaking 3.22+ not 3.21+	      		
+		                   {$ifndef use_mysql_321} const db : PAnsiChar; {$endif}  // strictly speaking 3.22+ not 3.21+
                                    port : cardinal;
                                    unix_socket : PAnsiChar;
                                    clientflag : cardinal) : PMYSQL;extdecl; external mysqllib;

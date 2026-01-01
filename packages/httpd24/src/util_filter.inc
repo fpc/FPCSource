@@ -137,7 +137,7 @@ type
   ap_out_filter_func = function (f: Pap_filter_t;
                                  b: Papr_bucket_brigade):apr_status_t; cdecl;
 
-  ap_in_filter_func = function (f: Pap_filter_t; 
+  ap_in_filter_func = function (f: Pap_filter_t;
                                 b: Papr_bucket_brigade;
                                 mode: ap_input_mode_t;
                                 block: apr_read_type_e;
@@ -654,17 +654,17 @@ procedure ap_filter_protocol(f: Pap_filter_t; proto_flags: dword);
 
 const
 {* Filter changes contents (so invalidating checksums/etc)  }
-  AP_FILTER_PROTO_CHANGE = $1;    
+  AP_FILTER_PROTO_CHANGE = $1;
 {* Filter changes length of contents (so invalidating content-length/etc)  }
-  AP_FILTER_PROTO_CHANGE_LENGTH = $2;    
+  AP_FILTER_PROTO_CHANGE_LENGTH = $2;
 {* Filter requires complete input and can't work on byteranges  }
-  AP_FILTER_PROTO_NO_BYTERANGE = $4;    
+  AP_FILTER_PROTO_NO_BYTERANGE = $4;
 {* Filter should not run in a proxy  }
-  AP_FILTER_PROTO_NO_PROXY = $8;    
+  AP_FILTER_PROTO_NO_PROXY = $8;
 {* Filter makes output non-cacheable  }
-  AP_FILTER_PROTO_NO_CACHE = $10;    
+  AP_FILTER_PROTO_NO_CACHE = $10;
 {* Filter is incompatible with "Cache-Control: no-transform"  }
-  AP_FILTER_PROTO_TRANSFORM = $20;    
+  AP_FILTER_PROTO_TRANSFORM = $20;
 {*
  * @
   }

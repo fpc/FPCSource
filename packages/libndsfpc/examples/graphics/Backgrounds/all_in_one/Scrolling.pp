@@ -17,7 +17,7 @@ procedure scroll4wayExRotation();
 
 implementation
 
-//reusable scroll function to allow the user to explore 
+//reusable scroll function to allow the user to explore
 //the maps somewhat
 procedure scroll(id, width, height: cint);
 var
@@ -97,7 +97,7 @@ begin
       swiWaitForVBlank();
 
       //normally would call bgSetScroll(id, sx, sy) here
-      //but to demonstrate the hardware difference between 
+      //but to demonstrate the hardware difference between
       //scrolling rotation and text backgrounds we will use
       //direct register access
 
@@ -150,7 +150,7 @@ begin
       swiWaitForVBlank();
 
       //normally would call bgSetScroll(id, sx, sy) here
-      //but to demonstrate the hardware difference between 
+      //but to demonstrate the hardware difference between
       //scrolling rotation and text backgrounds we will use
       //direct register access
 
@@ -207,7 +207,7 @@ begin
 
          dec(scroll_y);
       end;
-      
+
       if (keys and KEY_DOWN) <> 0 then
       begin
          offset := scroll_y div 8 + 24;
@@ -268,7 +268,7 @@ begin
 
          dec(scroll_x);
       end;
-      
+
       if (keys and KEY_RIGHT) <> 0 then
       begin
          mapOffset := scroll_x div 8 + 32;
@@ -330,7 +330,7 @@ begin
 
          dec(scroll_x);
       end;
-      
+
       if (keys and KEY_RIGHT) <> 0 then
       begin
          offset := scroll_x div 8 + 32;
@@ -404,7 +404,7 @@ begin
 
          if(scroll_x < 0) then
             scroll_x := 0
-         else 
+         else
             movingHorizontal := true;
       end else
       if (keys and KEY_RIGHT) <> 0 then
@@ -414,7 +414,7 @@ begin
 
          if (scroll_x >= (mapWidth - screenWidth) * tileWidth) then
             scroll_x := (mapWidth - screenWidth) * tileWidth - 1
-         else 
+         else
             movingHorizontal := true;
       end;
 
@@ -425,7 +425,7 @@ begin
 
          if(scroll_y < 0) then
             scroll_y := 0
-         else 
+         else
             movingVertical := true;
 
       end else
@@ -436,7 +436,7 @@ begin
 
          if(scroll_y >= (mapHeight - screenHeight) * tileWidth) then
             scroll_y := (mapHeight - screenHeight) * tileWidth - 1
-         else 
+         else
             movingVertical := true;
       end;
 
@@ -451,7 +451,7 @@ begin
             bgTemp[(offset_x and (bgWidth - 1)) + (iy and (bgHeight - 1)) * 32] := Layer1024x1024Map[offset_x + iy * mapWidth];
 
       end;
-      
+
       if (movingVertical) then
       begin
         for ix := scroll_x div 8 - 1 to scroll_x div 8 + screenWidth do
@@ -525,7 +525,7 @@ begin
 
          if(scroll_x < 0) then
             scroll_x := 0
-         else 
+         else
             movingHorizontal := true;
       end else
       if (keys and KEY_RIGHT) <> 0 then
@@ -535,7 +535,7 @@ begin
 
          if (scroll_x >= (mapWidth - screenWidth) * tileWidth) then
             scroll_x := (mapWidth - screenWidth) * tileWidth - 1
-         else 
+         else
             movingHorizontal := true;
       end;
 
@@ -546,7 +546,7 @@ begin
 
          if(scroll_y < 0) then
             scroll_y := 0
-         else 
+         else
             movingVertical := true;
 
       end else
@@ -557,7 +557,7 @@ begin
 
          if(scroll_y >= (mapHeight - screenHeight) * tileWidth) then
             scroll_y := (mapHeight - screenHeight) * tileWidth - 1
-         else 
+         else
             movingVertical := true;
       end;
 

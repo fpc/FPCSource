@@ -12,7 +12,7 @@
 {$PACKRECORDS C}
 
   {
-   * $Header: ocidfn.h 25-nov-2002.11:03:03 srseshad Exp $ 
+   * $Header: ocidfn.h 25-nov-2002.11:03:03 srseshad Exp $
     }
   { Copyright (c) 1991, 2002, Oracle Corporation.  All rights reserved.   }
   { Copyright (c) 1991, 2002, Oracle Corporation.  All rights reserved.   }
@@ -29,9 +29,9 @@
       aahluwal   06/04/02 - bug 2360115
       kmuthukk   05/02/00 - add SQLT_PNTY
       amangal    07/30/99 - Merge into 8.1.6 : Bug 879031
-      tnbui      07/28/99 - Remove SQLT_TIMESTAMP_ITZ                            
-      tnbui      07/21/99 - SQLT_TIMESTAMP_LTZ                                   
-      tnbui      06/16/99 - TIMESTAMP WITH IMPLICIT TIME ZONE                    
+      tnbui      07/28/99 - Remove SQLT_TIMESTAMP_ITZ
+      tnbui      07/21/99 - SQLT_TIMESTAMP_LTZ
+      tnbui      06/16/99 - TIMESTAMP WITH IMPLICIT TIME ZONE
       whe        04/07/99 - bug#810075
       whe        03/19/99 - lrg 32079 etc.: move HDA def from ocidem.h to ocidfn.
       skmishra   05/10/98 -
@@ -67,11 +67,11 @@
       lchidamb   12/06/94 -  merge changes from branch 1.2.720.1
       lchidamb   10/04/94 -  added field chk to cda_head, cda_def
       dchatter   07/05/94 -  SQLT_CUR added
-      rkooi2     11/27/92 -  Changing e* datatypes to s* 
-      rkooi2     10/26/92 -  More portability mods 
-      rkooi2     10/22/92 -  Added #ifndef ORATYPES ... 
-      rkooi2     10/18/92 -  Changes to make it portable. 
-      sjain      03/16/92 -  Creation 
+      rkooi2     11/27/92 -  Changing e* datatypes to s*
+      rkooi2     10/26/92 -  More portability mods
+      rkooi2     10/22/92 -  Added #ifndef ORATYPES ...
+      rkooi2     10/18/92 -  Changes to make it portable.
+      sjain      03/16/92 -  Creation
    }
   {
    *  ocidfn.h
@@ -136,7 +136,7 @@
 { $else}
 
   const
-     CDA_SIZE = 64;     
+     CDA_SIZE = 64;
 { $endif}
   { the real CDA, padded to CDA_SIZE bytes in size  }
   { V2 return code  }
@@ -189,15 +189,15 @@
   { default single-threaded environment  }
 
   const
-     OCI_EV_DEF = 0;     
+     OCI_EV_DEF = 0;
   { thread-safe environment  }
-     OCI_EV_TSF = 1;     
+     OCI_EV_TSF = 1;
   { OCI Logon Modes for olog call  }
   { default login  }
-     OCI_LM_DEF = 0;     
+     OCI_LM_DEF = 0;
   { non-blocking logon  }
-     OCI_LM_NBL = 1;     
-  { 
+     OCI_LM_NBL = 1;
+  {
    * since sqllib uses both ocidef and ocidfn the following defines
    * need to be guarded
     }
@@ -207,130 +207,130 @@
   { there or this is the only piece  }
 
   const
-     OCI_ONE_PIECE = 0;     
+     OCI_ONE_PIECE = 0;
   { the first of many pieces  }
-     OCI_FIRST_PIECE = 1;     
+     OCI_FIRST_PIECE = 1;
   { the next of many pieces  }
-     OCI_NEXT_PIECE = 2;     
+     OCI_NEXT_PIECE = 2;
   { the last piece of this column  }
-     OCI_LAST_PIECE = 3;     
+     OCI_LAST_PIECE = 3;
 
   { input data types  }
   { (ORANET TYPE) character string  }
 
   const
-     SQLT_CHR = 1;     
+     SQLT_CHR = 1;
   { (ORANET TYPE) oracle numeric  }
-     SQLT_NUM = 2;     
+     SQLT_NUM = 2;
   { (ORANET TYPE) integer  }
-     SQLT_INT = 3;     
+     SQLT_INT = 3;
   { (ORANET TYPE) Floating point number  }
-     SQLT_FLT = 4;     
+     SQLT_FLT = 4;
   { zero terminated string  }
-     SQLT_STR = 5;     
+     SQLT_STR = 5;
   { NUM with preceding length byte  }
-     SQLT_VNU = 6;     
+     SQLT_VNU = 6;
   { (ORANET TYPE) Packed Decimal Numeric  }
-     SQLT_PDN = 7;     
+     SQLT_PDN = 7;
   { long  }
-     SQLT_LNG = 8;     
+     SQLT_LNG = 8;
   { Variable character string  }
-     SQLT_VCS = 9;     
+     SQLT_VCS = 9;
   { Null/empty PCC Descriptor entry  }
-     SQLT_NON = 10;     
+     SQLT_NON = 10;
   { rowid  }
-     SQLT_RID = 11;     
+     SQLT_RID = 11;
   { date in oracle format  }
-     SQLT_DAT = 12;     
+     SQLT_DAT = 12;
   { binary in VCS format  }
-     SQLT_VBI = 15;     
+     SQLT_VBI = 15;
   { Native Binary float }
-     SQLT_BFLOAT = 21;     
+     SQLT_BFLOAT = 21;
   { NAtive binary double  }
-     SQLT_BDOUBLE = 22;     
+     SQLT_BDOUBLE = 22;
   { binary data(DTYBIN)  }
-     SQLT_BIN = 23;     
+     SQLT_BIN = 23;
   { long binary  }
-     SQLT_LBI = 24;     
+     SQLT_LBI = 24;
   { unsigned integer  }
-     SQLT_UIN = 68;     
+     SQLT_UIN = 68;
   { Display sign leading separate  }
-     SQLT_SLS = 91;     
+     SQLT_SLS = 91;
   { Longer longs (AnsiChar)  }
-     SQLT_LVC = 94;     
+     SQLT_LVC = 94;
   { Longer long binary  }
-     SQLT_LVB = 95;     
+     SQLT_LVB = 95;
   { Ansi fixed AnsiChar  }
-     SQLT_AFC = 96;     
+     SQLT_AFC = 96;
   { Ansi Var AnsiChar  }
-     SQLT_AVC = 97;     
+     SQLT_AVC = 97;
   { binary float canonical  }
-     SQLT_IBFLOAT = 100;     
+     SQLT_IBFLOAT = 100;
   { binary double canonical  }
-     SQLT_IBDOUBLE = 101;     
+     SQLT_IBDOUBLE = 101;
   { cursor  type  }
-     SQLT_CUR = 102;     
+     SQLT_CUR = 102;
   { rowid descriptor  }
-     SQLT_RDD = 104;     
+     SQLT_RDD = 104;
   { label type  }
-     SQLT_LAB = 105;     
+     SQLT_LAB = 105;
   { oslabel type  }
-     SQLT_OSL = 106;     
+     SQLT_OSL = 106;
   { named object type  }
-     SQLT_NTY = 108;     
+     SQLT_NTY = 108;
   { ref type  }
-     SQLT_REF = 110;     
+     SQLT_REF = 110;
   { character lob  }
-     SQLT_CLOB = 112;     
+     SQLT_CLOB = 112;
   { binary lob  }
-     SQLT_BLOB = 113;     
+     SQLT_BLOB = 113;
   { binary file lob  }
-     SQLT_BFILEE = 114;     
+     SQLT_BFILEE = 114;
   { character file lob  }
-     SQLT_CFILEE = 115;     
+     SQLT_CFILEE = 115;
   { result set type  }
-     SQLT_RSET = 116;     
+     SQLT_RSET = 116;
   { named collection type (varray or nested table)  }
-     SQLT_NCO = 122;     
+     SQLT_NCO = 122;
   { OCIString type  }
-     SQLT_VST = 155;     
+     SQLT_VST = 155;
   { OCIDate type  }
-     SQLT_ODT = 156;     
+     SQLT_ODT = 156;
   { datetimes and intervals  }
   { ANSI Date  }
-     SQLT_DATE = 184;     
+     SQLT_DATE = 184;
   { TIME  }
-     SQLT_TIME = 185;     
+     SQLT_TIME = 185;
   { TIME WITH TIME ZONE  }
-     SQLT_TIME_TZ = 186;     
+     SQLT_TIME_TZ = 186;
   { TIMESTAMP  }
-     SQLT_TIMESTAMP = 187;     
+     SQLT_TIMESTAMP = 187;
   { TIMESTAMP WITH TIME ZONE  }
-     SQLT_TIMESTAMP_TZ = 188;     
+     SQLT_TIMESTAMP_TZ = 188;
   { INTERVAL YEAR TO MONTH  }
-     SQLT_INTERVAL_YM = 189;     
+     SQLT_INTERVAL_YM = 189;
   { INTERVAL DAY TO SECOND  }
-     SQLT_INTERVAL_DS = 190;     
+     SQLT_INTERVAL_DS = 190;
   { TIMESTAMP WITH LOCAL TZ  }
-     SQLT_TIMESTAMP_LTZ = 232;     
+     SQLT_TIMESTAMP_LTZ = 232;
   { pl/sql representation of named types  }
-     SQLT_PNTY = 241;     
+     SQLT_PNTY = 241;
   { cxcheng: this has been added for backward compatibility -
      it needs to be here because ocidfn.h can get included ahead of sqldef.h  }
   { binary file lob  }
-     SQLT_FILE = SQLT_BFILEE;     
-     SQLT_CFILE = SQLT_CFILEE;     
-     SQLT_BFILE = SQLT_BFILEE;     
+     SQLT_FILE = SQLT_BFILEE;
+     SQLT_CFILE = SQLT_CFILEE;
+     SQLT_BFILE = SQLT_BFILEE;
   { AnsiChar/NCHAR/VARCHAR2/NVARCHAR2/CLOB/NCLOB AnsiChar set "form" information  }
   { for AnsiChar, VARCHAR2, CLOB w/o a specified set  }
-     SQLCS_IMPLICIT = 1;     
+     SQLCS_IMPLICIT = 1;
   { for NCHAR, NCHAR VARYING, NCLOB  }
-     SQLCS_NCHAR = 2;     
+     SQLCS_NCHAR = 2;
   { for AnsiChar, etc, with "CHARACTER SET ..." syntax  }
-     SQLCS_EXPLICIT = 3;     
+     SQLCS_EXPLICIT = 3;
   { for PL/SQL "flexible" parameters  }
-     SQLCS_FLEXIBLE = 4;     
+     SQLCS_FLEXIBLE = 4;
   { for typecheck of NULL and empty_clob() lits  }
-     SQLCS_LIT_NULL = 5;     
+     SQLCS_LIT_NULL = 5;
 
 

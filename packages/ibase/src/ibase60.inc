@@ -381,7 +381,7 @@ type
      isc_stmt_handle = FB_API_HANDLE;
      isc_svc_handle  = FB_API_HANDLE;
      isc_tr_handle   = FB_API_HANDLE;
-     isc_win_handle  = pointer;       // can't find in 2.5.1 
+     isc_win_handle  = pointer;       // can't find in 2.5.1
      isc_callback = procedure ;extdecl;
      isc_resv_handle = ISC_LONG;
      tisc_att_handle = isc_att_handle;
@@ -1657,7 +1657,7 @@ type
      SQL_INT64 = 580;
   { Historical alias for pre V6 applications  }
      SQL_DATE = SQL_TIMESTAMP;
-     // Moved here from ibconnection  
+     // Moved here from ibconnection
      SQL_BOOLEAN_INTERBASE = 590;
      SQL_INT128 = 32752;
      SQL_DEC16 = 32760;
@@ -1665,7 +1665,7 @@ type
      SQL_BOOLEAN_FIREBIRD = 32764;
      SQL_NULL = 32767;
      INVALID_DATA = -1;
-       
+
   {                }
   { Blob Subtypes  }
   {                }
@@ -2129,8 +2129,8 @@ type
   // Available in Firebird 2.5+
   function fb_shutdown:int; extdecl; external gdslib;
 
-  // Available in Firebird 2.5+  
-  function fb_sqlstate:ISC_STATUS; extdecl;external gdslib; 
+  // Available in Firebird 2.5+
+  function fb_sqlstate:ISC_STATUS; extdecl;external gdslib;
 
   function isc_attach_database:ISC_STATUS; extdecl; external gdslib;
 
@@ -2381,7 +2381,7 @@ var
   isc_start_transaction : function (_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:smallint; args:array of const):ISC_STATUS; cdecl;
   isc_sqlcode : function (_para1:PISC_STATUS):ISC_LONG; extdecl;
   // Available in Firebird 2.5+
-  fb_sqlstate : function(_para1: PAnsiChar;_para2:PISC_STATUS):ISC_STATUS; extdecl; 
+  fb_sqlstate : function(_para1: PAnsiChar;_para2:PISC_STATUS):ISC_STATUS; extdecl;
   isc_sql_interprete : procedure (_para1:smallint; _para2:PAnsiChar; _para3:smallint); extdecl;
   isc_transaction_info : function (_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:smallint; _para4:PAnsiChar; _para5:smallint;_para6:PAnsiChar):ISC_STATUS; extdecl;
   isc_transact_request : function (_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:word; _para5:PAnsiChar;_para6:word; _para7:PAnsiChar; _para8:word; _para9:PAnsiChar):ISC_STATUS; extdecl;
@@ -2541,12 +2541,12 @@ ResourceString
   SErrDefaultsFailed = 'Can not load default Firebird clients ("%s", "%s", "%s", "%s" or "%s"). Check your installation.';
   SErrLoadFailed     = 'Can not load Firebird client library "%s". Check your installation.';
   SErrAlreadyLoaded  = 'Firebird interface already initialized from library %s.';
-  
-var 
+
+var
   RefCount : integer;
   LoadedLibrary : AnsiString;
   LibHandle : TLibHandle;
-  
+
 Function IBaseLibraryHandle : TLibHandle;
 
 begin
@@ -2554,10 +2554,10 @@ begin
 end;
 
 Function IBaseLoadedLibrary : AnsiString;
-  
+
 begin
   Result:=LoadedLibrary;
-end;  
+end;
 
 Function TryInitialiseIBase60(Const LibraryName : AnsiString) : integer;
 
@@ -2572,7 +2572,7 @@ begin
     LoadedLibrary:=LibraryName;
     // Available in Firebird 2.5+
     pointer(fb_shutdown) := GetProcedureAddress(IBaseLibraryHandle,'fb_shutdown');
-    // Available in Firebird 2.5+    
+    // Available in Firebird 2.5+
     pointer(fb_sqlstate) := GetProcedureAddress(IBaseLibraryHandle,'fb_sqlstate');
     pointer(isc_attach_database) := GetProcedureAddress(IBaseLibraryHandle,'isc_attach_database');
     pointer(isc_array_gen_sdl) := GetProcedureAddress(IBaseLibraryHandle,'isc_array_gen_sdl');
@@ -2770,7 +2770,7 @@ begin
        (TryInitialiseIBase60(libfc)=0) and
        (TryInitialiseIBase60(gdslib)=0) then
         Raise EInOutError.CreateFmt(SErrDefaultsFailed,[fbclib,fbclib2,libfc,gdslib,fbembedlib]);
-    end;    
+    end;
   Result := RefCount;
 end;
 

@@ -370,9 +370,9 @@ function jack_set_thread_init_callback (client: Pjack_client_t;
  * passed to this function will not be called, and the one passed to
  * jack_on_info_shutdown() will.
  *
- * NOTE: application should typically signal another thread to correctly 
- * finish cleanup, that is by calling "jack_client_close" 
- * (since "jack_client_close" cannot be called directly in the context 
+ * NOTE: application should typically signal another thread to correctly
+ * finish cleanup, that is by calling "jack_client_close"
+ * (since "jack_client_close" cannot be called directly in the context
  * of the thread that calls the shutdown callback).
  *)
 procedure jack_on_shutdown (client: Pjack_client_t;
@@ -400,9 +400,9 @@ procedure jack_on_shutdown (client: Pjack_client_t;
  * in case of a client thread shutdown, the callback passed to
  * jack_on_info_shutdown() will be called.
  *
- * NOTE: application should typically signal another thread to correctly 
- * finish cleanup, that is by calling "jack_client_close" 
- * (since "jack_client_close" cannot be called directly in the context 
+ * NOTE: application should typically signal another thread to correctly
+ * finish cleanup, that is by calling "jack_client_close"
+ * (since "jack_client_close" cannot be called directly in the context
  * of the thread that calls the shutdown callback).
  *)
 procedure jack_on_info_shutdown (client: Pjack_client_t;
@@ -1398,14 +1398,14 @@ function jack_last_frame_time (const client: Pjack_client_t): jack_nframes_t; cd
  *                  microseconds.
  *
  * NOTES:
- * 
+ *
  * Because of the types used, all the returned values except period_usecs
  * are unsigned. In computations mapping between frames and microseconds
  * *signed* differences are required. The easiest way is to compute those
  * separately and assign them to the appropriate signed variables,
  * int32_t for frames and int64_t for usecs. See the implementation of
  * jack_frames_to_time() and Jack_time_to_frames() for an example.
- * 
+ *
  * Unless there was an xrun, skipped cycles, or the current cycle is the
  * first after freewheeling or starting Jack, the value of current_usecs
  * will always be the value of next_usecs of the previous cycle.
@@ -1424,7 +1424,7 @@ function jack_get_cycle_times(const client: Pjack_client_t;
                               current_usecs:  Pjack_time_t;
                               next_usecs:     Pjack_time_t;
                               period_usecs:   Pcfloat): cint; cdecl; JACK_OPTIONAL_WEAK_EXPORT;
-                  
+
 (**
  * @return the estimated time in microseconds of the specified frame time
  *)

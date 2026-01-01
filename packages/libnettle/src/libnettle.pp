@@ -279,8 +279,8 @@ Type
   pnettle_hash_init_func = procedure(ctx: pointer); cdecl;
   pnettle_hash_update_func = procedure(ctx: pointer; len: tsize_t; src : pbyte); cdecl;
   pnettle_hash_digest_func = procedure(ctx: pointer; len: tsize_t; dest : pbyte); cdecl;
-  pnettle_armor_length_func = function(len : tsize_t) : tsize_t; cdecl; 
-  pnettle_armor_init_func = procedure(ctx: pointer); cdecl; 
+  pnettle_armor_length_func = function(len : tsize_t) : tsize_t; cdecl;
+  pnettle_armor_init_func = procedure(ctx: pointer); cdecl;
   pnettle_armor_encode_update_func = function(ctx: pointer; dest: pbyte; len: tsize_t; src : pbyte): tsize_t; cdecl;
   pnettle_armor_encode_final_func  = function(ctx: pointer; dest: pbyte) : tsize_t; cdecl;
   pnettle_armor_decode_update_func = function(ctx: pointer; destlen: tsize_t; dest: pbyte; srclen: tsize_t; src : pbyte): cint; cdecl;
@@ -601,7 +601,7 @@ var
   nettle_blowfish128_set_key : function(ctx:Pblowfish_ctx; key:Puint8_t):Tcint;cdecl;
   nettle_blowfish_encrypt : procedure(ctx:Pblowfish_ctx; length:Tsize_t; dst:Puint8_t; src:Puint8_t);cdecl;
   nettle_blowfish_decrypt : procedure(ctx:Pblowfish_ctx; length:Tsize_t; dst:Puint8_t; src:Puint8_t);cdecl;
-    
+
   nettle_realloc : pnettle_realloc_func;cvar;public;
   nettle_xrealloc : pnettle_realloc_func;cvar;public;
 
@@ -791,7 +791,7 @@ type
     end;
 var
   nettle_chacha_poly1305_set_key : procedure(ctx:Pchacha_poly1305_ctx; key:Puint8_t);cdecl;
-  nettle_chacha_poly1305_set_nonce : procedure(ctx:Pchacha_poly1305_ctx; nonce:Puint8_t);cdecl;  
+  nettle_chacha_poly1305_set_nonce : procedure(ctx:Pchacha_poly1305_ctx; nonce:Puint8_t);cdecl;
   nettle_chacha_poly1305_update : procedure(ctx:Pchacha_poly1305_ctx; length:Tsize_t; data:Puint8_t);cdecl;
   nettle_chacha_poly1305_encrypt : procedure(ctx:Pchacha_poly1305_ctx; length:Tsize_t; dst:Puint8_t; src:Puint8_t);cdecl;
   nettle_chacha_poly1305_decrypt : procedure(ctx:Pchacha_poly1305_ctx; length:Tsize_t; dst:Puint8_t; src:Puint8_t);cdecl;
@@ -902,24 +902,24 @@ var
   nettle_dsa_params_clear : procedure(params:Pdsa_params);cdecl;
   nettle_dsa_signature_init : procedure(signature:Pdsa_signature);cdecl;
   nettle_dsa_signature_clear : procedure(signature:Pdsa_signature);cdecl;
-  nettle_dsa_sign : function(params:Pdsa_params; x:Pmpz_t; random_ctx:pointer; random:Pnettle_random_func; digest_size:Tsize_t; 
+  nettle_dsa_sign : function(params:Pdsa_params; x:Pmpz_t; random_ctx:pointer; random:Pnettle_random_func; digest_size:Tsize_t;
     digest:Puint8_t; signature:Pdsa_signature):Tcint;cdecl;
   nettle_dsa_verify : function(params:Pdsa_params; y:Pmpz_t; digest_size:Tsize_t; digest:Puint8_t; signature:Pdsa_signature):Tcint;cdecl;
-  nettle_dsa_generate_params : function(params:Pdsa_params; random_ctx:pointer; random:Pnettle_random_func; progress_ctx:pointer; progress:Pnettle_progress_func; 
+  nettle_dsa_generate_params : function(params:Pdsa_params; random_ctx:pointer; random:Pnettle_random_func; progress_ctx:pointer; progress:Pnettle_progress_func;
     p_bits:Tcunsigned; q_bits:Tcunsigned):Tcint;cdecl;
   nettle_dsa_generate_keypair : procedure(params:Pdsa_params; pub:Pmpz_t; key:Pmpz_t; random_ctx:pointer; random:Pnettle_random_func);cdecl;
   nettle_dsa_keypair_to_sexp : function(buffer:Pnettle_buffer; algorithm_name:pcchar; params:Pdsa_params; pub:Pmpz_t; priv:Pmpz_t):Tcint;cdecl;
   nettle_dsa_signature_from_sexp : function(rs:Pdsa_signature; i:Psexp_iterator; q_bits:Tcunsigned):Tcint;cdecl;
-  nettle_dsa_keypair_from_sexp_alist : function(params:Pdsa_params; pub:Pmpz_t; priv:Pmpz_t; p_max_bits:Tcunsigned; q_bits:Tcunsigned; 
+  nettle_dsa_keypair_from_sexp_alist : function(params:Pdsa_params; pub:Pmpz_t; priv:Pmpz_t; p_max_bits:Tcunsigned; q_bits:Tcunsigned;
     i:Psexp_iterator):Tcint;cdecl;
-  nettle_dsa_sha1_keypair_from_sexp : function(params:Pdsa_params; pub:Pmpz_t; priv:Pmpz_t; p_max_bits:Tcunsigned; length:Tsize_t; 
+  nettle_dsa_sha1_keypair_from_sexp : function(params:Pdsa_params; pub:Pmpz_t; priv:Pmpz_t; p_max_bits:Tcunsigned; length:Tsize_t;
     expr:Puint8_t):Tcint;cdecl;
-  nettle_dsa_sha256_keypair_from_sexp : function(params:Pdsa_params; pub:Pmpz_t; priv:Pmpz_t; p_max_bits:Tcunsigned; length:Tsize_t; 
+  nettle_dsa_sha256_keypair_from_sexp : function(params:Pdsa_params; pub:Pmpz_t; priv:Pmpz_t; p_max_bits:Tcunsigned; length:Tsize_t;
     expr:Puint8_t):Tcint;cdecl;
   nettle_dsa_params_from_der_iterator : function(params:Pdsa_params; max_bits:Tcunsigned; q_bits:Tcunsigned; i:Pasn1_der_iterator):Tcint;cdecl;
   nettle_dsa_public_key_from_der_iterator : function(params:Pdsa_params; pub:Pmpz_t; i:Pasn1_der_iterator):Tcint;cdecl;
   nettle_dsa_openssl_private_key_from_der_iterator : function(params:Pdsa_params; pub:Pmpz_t; priv:Pmpz_t; p_max_bits:Tcunsigned; i:Pasn1_der_iterator):Tcint;cdecl;
-  nettle_openssl_provate_key_from_der : function(params:Pdsa_params; pub:Pmpz_t; priv:Pmpz_t; p_max_bits:Tcunsigned; length:Tsize_t; 
+  nettle_openssl_provate_key_from_der : function(params:Pdsa_params; pub:Pmpz_t; priv:Pmpz_t; p_max_bits:Tcunsigned; length:Tsize_t;
     data:Puint8_t):Tcint;cdecl;
 
 type
@@ -986,19 +986,19 @@ var
   nettle_dsa_public_key_clear : procedure(key:Pdsa_public_key);cdecl;
   nettle_dsa_private_key_init : procedure(key:Pdsa_private_key);cdecl;
   nettle_dsa_private_key_clear : procedure(key:Pdsa_private_key);cdecl;
-  nettle_dsa_sha1_sign : function(pub:Pdsa_public_key; key:Pdsa_private_key; random_ctx:pointer; random:Pnettle_random_func; hash:Psha1_ctx; 
+  nettle_dsa_sha1_sign : function(pub:Pdsa_public_key; key:Pdsa_private_key; random_ctx:pointer; random:Pnettle_random_func; hash:Psha1_ctx;
       signature:Pdsa_signature):Tcint;cdecl;
-  nettle_dsa_sha256_sign : function(pub:Pdsa_public_key; key:Pdsa_private_key; random_ctx:pointer; random:Pnettle_random_func; hash:Psha256_ctx; 
+  nettle_dsa_sha256_sign : function(pub:Pdsa_public_key; key:Pdsa_private_key; random_ctx:pointer; random:Pnettle_random_func; hash:Psha256_ctx;
       signature:Pdsa_signature):Tcint;cdecl;
   nettle_dsa_sha1_verify : function(key:Pdsa_public_key; hash:Psha1_ctx; signature:Pdsa_signature):Tcint;cdecl;
   nettle_dsa_sha256_verify : function(key:Pdsa_public_key; hash:Psha256_ctx; signature:Pdsa_signature):Tcint;cdecl;
-  nettle_dsa_sha1_sign_digest : function(pub:Pdsa_public_key; key:Pdsa_private_key; random_ctx:pointer; random:Pnettle_random_func; digest:Puint8_t; 
+  nettle_dsa_sha1_sign_digest : function(pub:Pdsa_public_key; key:Pdsa_private_key; random_ctx:pointer; random:Pnettle_random_func; digest:Puint8_t;
       signature:Pdsa_signature):Tcint;cdecl;
-  nettle_dsa_sha256_sign_digest : function(pub:Pdsa_public_key; key:Pdsa_private_key; random_ctx:pointer; random:Pnettle_random_func; digest:Puint8_t; 
+  nettle_dsa_sha256_sign_digest : function(pub:Pdsa_public_key; key:Pdsa_private_key; random_ctx:pointer; random:Pnettle_random_func; digest:Puint8_t;
       signature:Pdsa_signature):Tcint;cdecl;
   nettle_dsa_sha1_verify_digest : function(key:Pdsa_public_key; digest:Puint8_t; signature:Pdsa_signature):Tcint;cdecl;
   nettle_dsa_sha256_verify_digest : function(key:Pdsa_public_key; digest:Puint8_t; signature:Pdsa_signature):Tcint;cdecl;
-  nettle_dsa_compat_generate_keypair : function(pub:Pdsa_public_key; key:Pdsa_private_key; random_ctx:pointer; random:Pnettle_random_func; progress_ctx:pointer; 
+  nettle_dsa_compat_generate_keypair : function(pub:Pdsa_public_key; key:Pdsa_private_key; random_ctx:pointer; random:Pnettle_random_func; progress_ctx:pointer;
       progress:Pnettle_progress_func; p_bits:Tcunsigned; q_bits:Tcunsigned):Tcint;cdecl;
 
 type
@@ -1055,7 +1055,7 @@ type
 
 var
   nettle_get_secp_192r1 : function:Pecc_curve;cdecl;
-  nettle_get_secp_224r1 : function:Pecc_curve;cdecl; 
+  nettle_get_secp_224r1 : function:Pecc_curve;cdecl;
   nettle_get_secp_256r1 : function:Pecc_curve;cdecl;
   nettle_get_secp_384r1 : function:Pecc_curve;cdecl;
   nettle_get_secp_521r1 : function:Pecc_curve;cdecl;

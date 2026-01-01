@@ -6,10 +6,10 @@ uses
 const
   m = 3;
   n = 2;
-  
+
 var
   a: array[1..m, 1..n] of ArbFloat;
-  
+
 begin
   Assign(input, ParamStr(1));
   reset(input);

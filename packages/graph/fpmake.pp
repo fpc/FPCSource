@@ -64,7 +64,7 @@ begin
           AddInclude('fills.inc');
           AddInclude('gtext.inc');
         end;
-    // Graph unit, restricted to i8086, i386 and x86_64 CPUs 
+    // Graph unit, restricted to i8086, i386 and x86_64 CPUs
     T:=P.Targets.AddUnit('graph.pp',[i8086,i386,x86_64],[go32v2,freebsd,linux,msdos]);
       with T.Dependencies do
         begin
@@ -81,7 +81,7 @@ begin
           AddInclude('vesah.inc',[go32v2,msdos]);
         end;
 
-    // Graph unit, for win32 and win64 target 
+    // Graph unit, for win32 and win64 target
     T:=P.Targets.AddUnit('graph.pp',[win32,win64]);
       with T.Dependencies do
         begin

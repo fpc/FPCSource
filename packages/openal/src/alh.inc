@@ -109,14 +109,14 @@ const
 
 (**
  * Directional source, inner cone angle, in degrees.
- * Range:    [0-360] 
+ * Range:    [0-360]
  * Default:  360
  *)
   AL_CONE_INNER_ANGLE               = $1001;
 
 (**
  * Directional source, outer cone angle, in degrees.
- * Range:    [0-360] 
+ * Range:    [0-360]
  * Default:  360
  *)
   AL_CONE_OUTER_ANGLE               = $1002;
@@ -128,22 +128,22 @@ const
  * Default: 1.0
  *)
   AL_PITCH                          = $1003;
-  
-(** 
+
+(**
  * Specify the current location in three dimensional space.
  * OpenAL, like OpenGL, uses a right handed coordinate system,
- *  where in a frontal default view X (thumb) points right, 
+ *  where in a frontal default view X (thumb) points right,
  *  Y points up (index finger), and Z points towards the
- *  viewer/camera (middle finger). 
+ *  viewer/camera (middle finger).
  * To switch from a left handed coordinate system, flip the
  *  sign on the Z coordinate.
  * Listener position is always in the world coordinate system.
- *) 
+ *)
   AL_POSITION                       = $1004;
-  
+
 (** Specify the current direction. *)
   AL_DIRECTION                      = $1005;
-  
+
 (** Specify the current velocity in three dimensional space. *)
   AL_VELOCITY                       = $1006;
 
@@ -156,14 +156,14 @@ const
   AL_LOOPING                        = $1007;
 
 (**
- * Indicate the buffer to provide sound samples. 
+ * Indicate the buffer to provide sound samples.
  * Type: ALuint.
  * Range: any valid Buffer id.
  *)
   AL_BUFFER                         = $1009;
-  
+
 (**
- * Indicate the gain (volume amplification) applied. 
+ * Indicate the gain (volume amplification) applied.
  * Type:   ALfloat.
  * Range:  ]0.0-  ]
  * A value of 1.0 means un-attenuated/unchanged.
@@ -196,7 +196,7 @@ const
 (**
  * Indicate listener orientation.
  *
- * at/up 
+ * at/up
  *)
   AL_ORIENTATION                    = $100F;
 
@@ -276,7 +276,7 @@ const
  *)
   AL_MAX_DISTANCE                   = $1023;
 
-(** 
+(**
  * Sound samples: frequency, in units of Hertz [Hz].
  * This is the number of samples per second. Half of the
  *  sample frequency marks the maximum significant
@@ -300,27 +300,27 @@ const
 (** Errors: No Error. *)
   AL_NO_ERROR                       = AL_FALSE;
 
-(** 
+(**
  * Invalid Name paramater passed to AL call.
  *)
   AL_INVALID_NAME                   = $A001;
 
-(** 
+(**
  * Invalid parameter passed to AL call.
  *)
   AL_INVALID_ENUM                   = $A002;
 
-(** 
+(**
  * Invalid enum parameter value.
  *)
   AL_INVALID_VALUE                  = $A003;
 
-(** 
+(**
  * Illegal call.
  *)
   AL_INVALID_OPERATION              = $A004;
 
-  
+
 (**
  * No mojo.
  *)
@@ -404,7 +404,7 @@ function alGetDouble(param: ALenum): ALdouble; cdecl; external {$IFDEF DYNLINK}o
 function alGetError: ALenum; cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};
 
 
-(* 
+(*
  * Extension support.
  * Query for the presence of an extension, and obtain any appropriate
  * function pointers and enum values.
@@ -466,7 +466,7 @@ procedure alGetListeneriv(param: ALenum; values: PALint); cdecl; external {$IFDE
  * Sources take the PCM data provided in the specified Buffer,
  * apply Source-specific modifications, and then
  * submit them to be mixed according to spatial arrangement etc.
- * 
+ *
  * Properties include: -
  *
  * Gain                              AL_GAIN                 ALfloat
@@ -499,7 +499,7 @@ procedure alGenSources(n: ALsizei; sources: PALuint); cdecl; external {$IFDEF DY
 (* Delete Source objects *)
 procedure alDeleteSources(n: ALsizei; const sources: PALuint); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};
 
-(* Verify a handle is a valid Source *) 
+(* Verify a handle is a valid Source *)
 function alIsSource(sid: ALuint): ALboolean; cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};
 
 (*
@@ -566,7 +566,7 @@ procedure alSourceRewind(sid: ALuint); cdecl; external {$IFDEF DYNLINK}openallib
 procedure alSourcePause(sid: ALuint); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};
 
 (*
- * Source Queuing 
+ * Source Queuing
  *)
 procedure alSourceQueueBuffers(sid: ALuint; numEntries: ALsizei; const bids: PALuint); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};
 

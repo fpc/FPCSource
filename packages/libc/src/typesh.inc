@@ -58,7 +58,7 @@ type
   TFdSet = __fd_set;
   PFdSet = ^TFdSet;
 
- 
+
 type
   __key_t = longint;
   __ipc_pid_t = word;
@@ -81,8 +81,8 @@ Const
   stdin   = 0;
   stdout  = 1;
   stderr  = 2;
-           
-  
+
+
 { ---------------------------------------------------------------------
     'h2pas -S -c -D -l libc -i' from sys/types.h
   ---------------------------------------------------------------------}
@@ -220,10 +220,10 @@ Type
 { Macros }
 Function __FDELT(d: longint): Integer;
 Function __FDMASK(d: longint): __fd_mask;
- 
+
 { Borland compatibility }
 Type
 
   TFsID = __fsid_t;
   PFsID = ^TFsID;
- 
+

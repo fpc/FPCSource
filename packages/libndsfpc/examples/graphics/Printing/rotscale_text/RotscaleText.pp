@@ -26,10 +26,10 @@ var
   bg3: cint;
 
 begin
-  videoSetMode(0);  
+  videoSetMode(0);
 
-  videoSetModeSub(MODE_5_2D); 
-  vramSetBankC(VRAM_C_SUB_BG); 
+  videoSetModeSub(MODE_5_2D);
+  vramSetBankC(VRAM_C_SUB_BG);
 
   console := consoleInit(nil, 3, BgType_ExRotation, BgSize_ER_256x256, map_base, tile_base, false, false);
 
@@ -50,7 +50,7 @@ begin
   printf('modified by WinterMute and Dovoto'#10);
   printf('for libnds examples'#10);
 
-  
+
   angle := 0;
   scrollX := 0;
   scrollY := 0;
@@ -62,7 +62,7 @@ begin
     scanKeys();
     keys := keysHeld();
     if (keys and KEY_START) <> 0 then break;
-    
+
     if ( keys and KEY_L ) <> 0 then angle := angle + 64;
     if ( keys and KEY_R )  <> 0 then angle := angle - 64;
 

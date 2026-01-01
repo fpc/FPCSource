@@ -4,34 +4,34 @@
   	Copyright (C) 2005
   		Jason Rogers (dovoto)
   		Dave Murphy (WinterMute)
-  	
+
   	This software is provided 'as-is', without any express or implied
   	warranty.  In no event will the authors be held liable for any
   	damages arising from the use of this software.
-  	
+
   	Permission is granted to anyone to use this software for any
   	purpose, including commercial applications, and to alter it and
   	redistribute it freely, subject to the following restrictions:
-  	
+
   	1.	The origin of this software must not be misrepresented; you
   		must not claim that you wrote the original software. If you use
   		this software in a product, an acknowledgment in the product
   		documentation would be appreciated but is not required.
-  	
+
   	2.	Altered source versions must be plainly marked as such, and
   		must not be misrepresented as being the original software.
-  	
+
   	3.	This notice may not be removed or altered from any source
   		distribution.
   ------------------------------------------------------------------------------
-    
-    
+
+
   Conversion by Legolas (http://itaprogaming.free.fr) for freepascal compiler
   (http://www.freepascal.org)
-   
+
   Copyright (C) 2006  Francesco Lombardi
   Check http://sourceforge.net/projects/libndsfpc for updates
-   
+
   ------------------------------------------------------------------------------
 
   $Log$
@@ -42,29 +42,29 @@
 type
   sTransferSoundData = record
     data: pointer;//pcint;
-    len: cuint32; 
-    rate: cuint32; 
-    vol: cuint8; 
-    pan: cuint8; 
-    format: cuint8; 
-    PADDING: cuint8; 
+    len: cuint32;
+    rate: cuint32;
+    vol: cuint8;
+    pan: cuint8;
+    format: cuint8;
+    PADDING: cuint8;
   end;
-  TransferSoundData = sTransferSoundData; 
+  TransferSoundData = sTransferSoundData;
   TTransferSoundData = TransferSoundData;
-  PTransferSoundData = ^sTransferSoundData; 
+  PTransferSoundData = ^sTransferSoundData;
 
   sTransferRegion = record
   	touchX,   touchY: cint16;
   	touchXpx, touchYpx: cint16;
   	touchZ1,  touchZ2: cint16;
- 
+
   	buttons: cuint16;
 
     unixTime: cint32;
   end;
-  TransferRegion = sTransferRegion; 
+  TransferRegion = sTransferRegion;
   TTransferRegion = TransferRegion;
-  PTransferRegion = ^sTransferRegion; 
+  PTransferRegion = ^sTransferRegion;
 
 
 const
@@ -80,11 +80,11 @@ type
 const
   IPC_SYNC_IRQ_ENABLE: IPC_SYNC_BITS =	(1 shl 14);
   IPC_SYNC_IRQ_REQUEST: IPC_SYNC_BITS	=	(1 shl 13);
-  
-  
+
+
 function getIPC(): PTransferRegion; inline;
 function IPC(): PTransferRegion; inline;
-procedure IPC_SendSync(sync: cuint); inline; 
+procedure IPC_SendSync(sync: cuint); inline;
 function IPC_GetSync(): cint; inline;
 
 const
@@ -117,8 +117,8 @@ function IPC(): PTransferRegion; inline;
 begin
 	IPC := getIPC();
 end;
-  
-procedure IPC_SendSync(sync: cuint); inline; 
+
+procedure IPC_SendSync(sync: cuint); inline;
 begin
 	REG_IPC_SYNC^ := (REG_IPC_SYNC^ and $f0ff) or (((sync) and $0f) shl 8) or IPC_SYNC_IRQ_REQUEST;
 end;

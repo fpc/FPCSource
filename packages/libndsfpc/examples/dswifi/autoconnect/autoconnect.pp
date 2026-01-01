@@ -17,12 +17,12 @@ begin
 
 	if not Wifi_InitDefault(WFC_CONNECT) then
 		iprintf('Failed to connect!')
-	else 
+	else
 	begin
 		iprintf('Connected'#10#10);
 
 		ip := in_addr(Wifi_GetIPInfo(@gateway, @mask, @dns1, @dns2));
-		
+
 		iprintf('ip     : %s'#10, inet_ntoa(ip));
 		iprintf('gateway: %s'#10, inet_ntoa(gateway));
 		iprintf('mask   : %s'#10, inet_ntoa(mask));
@@ -33,7 +33,7 @@ begin
 	while true do
   begin
 		swiWaitForVBlank();
-		if( keys and KEY_START ) <> 0 then 
+		if( keys and KEY_START ) <> 0 then
       break;
   end;
 end.

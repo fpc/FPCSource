@@ -71,13 +71,13 @@ function apr_xlate_open(convset: PPapr_xlate_t;
  }
 //#define APR_DEFAULT_CHARSET (const AnsiChar *)0
 {
- * To indicate charset names of the current locale 
+ * To indicate charset names of the current locale
  }
 //#define APR_LOCALE_CHARSET (const AnsiChar *)1
 
 {
  * Find out whether or not the specified conversion is single-byte-only.
- * @param convset The handle allocated by apr_xlate_open, specifying the 
+ * @param convset The handle allocated by apr_xlate_open, specifying the
  *                parameters of conversion
  * @param onoff Output: whether or not the conversion is single-byte-only
  * @remark
@@ -120,19 +120,19 @@ function apr_xlate_conv_buffer(convset: Papr_xlate_t; const inbuf: PAnsiChar;
 {
  * The purpose of apr_xlate_conv_char is to translate one character
  * at a time.  This needs to be written carefully so that it works
- * with double-byte character sets. 
+ * with double-byte character sets.
  * @param convset The handle allocated by apr_xlate_open, specifying the
  *                parameters of conversion
  * @param inchar The character to convert
  * @param outchar The converted character
  }
-APU_DECLARE(apr_status_t) apr_xlate_conv_char(apr_xlate_t *convset, 
+APU_DECLARE(apr_status_t) apr_xlate_conv_char(apr_xlate_t *convset,
                                               AnsiChar inchar, AnsiChar outchar);
 {$endif}
 
 {
  * Convert a single-byte character from one charset to another.
- * @param convset The handle allocated by apr_xlate_open, specifying the 
+ * @param convset The handle allocated by apr_xlate_open, specifying the
  *                parameters of conversion
  * @param inchar The single-byte character to convert.
  * @warning This only works when converting between single-byte character sets.

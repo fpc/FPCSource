@@ -46,7 +46,7 @@ type
   );
 
   cs_func_t = function (): PAnsiChar;
-  
+
   command_struct = record
     name: PAnsiChar;		{ Name of this command }
     func: cs_func_t;       	{ Function invoked }
@@ -140,7 +140,7 @@ type
   handler_t = function (param1: Prequest_rec): Integer; cdecl;
 
   Phandler_rec = ^handler_rec;
-  
+
   handler_rec = record
     content_type: PAnsiChar;	{ MUST be all lower case }
     handler: handler_t;
@@ -153,7 +153,7 @@ type
  }
 
   Pmodule_struct = ^module_struct;
-  
+
 {$ifdef ULTRIX_BRAIN_DEATH}
     init_t = procedure (); cdecl;
     create_dir_config_t = function (): Pointer; cdecl;
@@ -257,7 +257,7 @@ type
 
     post_read_request: hook_t;
   end;
-  
+
   module = module_struct;
 
   Pmodule = ^module;

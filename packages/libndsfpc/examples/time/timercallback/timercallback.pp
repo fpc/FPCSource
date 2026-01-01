@@ -5,8 +5,8 @@ program timercallback;
 
 uses
   ctypes, nds9;
-  
-  
+
+
 procedure waitfor(keys: cint);
 begin
   scanKeys();

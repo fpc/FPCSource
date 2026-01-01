@@ -15,7 +15,7 @@ type
 const
   MicFormat_12Bit : MicFormat = 0;
   MicFormat_8Bit  : MicFormat = 1;
-  
+
 type
   DutyCycle = integer;
 const
@@ -27,12 +27,12 @@ const
   DutyCycle_75  : DutyCycle = 5;
   DutyCycle_87  : DutyCycle = 6;
   DutyCycle_0   : DutyCycle = 7;
-  
+
 procedure soundEnable(); cdecl; external;
 
 procedure soundDisable(); cdecl; external;
 
-function soundPlaySample(const data: pointer; format: SoundFormat; dataSize: cuint32; freq: cuint16; volume, pan: cuint8; loop: cbool; loopPoint: cuint16): cint; cdecl; external; 
+function soundPlaySample(const data: pointer; format: SoundFormat; dataSize: cuint32; freq: cuint16; volume, pan: cuint8; loop: cbool; loopPoint: cuint16): cint; cdecl; external;
 
 function soundPlayPSG(cycle: DutyCycle; freq: cuint16; volume, pan: cuint8): cint; cdecl; external;
 

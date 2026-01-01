@@ -6,7 +6,7 @@ type
   end;
   TMotionCalibration = MotionCalibration;
   PMotionCalibration = ^MotionCalibration;
-  
+
 function motion_init(): cint; cdecl; external;
 procedure motion_deinit(); cdecl; external;
 function motion_read_x(): csint; cdecl; external;

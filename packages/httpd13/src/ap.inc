@@ -101,9 +101,9 @@ type
     curpos: PAnsiChar;
     endpos: PAnsiChar;
   end;
-  
+
   Pap_vformatter_buff = ^ap_vformatter_buff;
-  
+
   flush_func_t = function (param: Pap_vformatter_buff): cint;
 
 function ap_vformatter(flush_func: flush_func_t;
@@ -136,13 +136,13 @@ function ap_vsnprintf(buf: PAnsiChar; len: size_t; const format: PAnsiChar; ap: 
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
 { Simple BASE64 encode/decode functions.
- * 
+ *
  * As we might encode binary strings, hence we require the length of
  * the incoming plain source. And return the length of what we decoded.
  *
  * The decoding function takes any non valid AnsiChar (i.e. whitespace, \0
  * or anything non A-Z,0-9 etc as terminal.
- * 
+ *
  * plain strings/binary sequences are not assumed '\0' terminated. Encoded
  * strings are neither. But propably should.
  *

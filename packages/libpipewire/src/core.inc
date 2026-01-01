@@ -67,7 +67,7 @@ function pw_core_sync(pw_core: Ppw_core; aID, aSync: cint) : cint;
   __attribute__((format(printf, 5, 0))) int
   pw_core_errorv(struct pw_core *core, uint32_t id, int seq,
     int res, const char *message, va_list args)
-  
+
    char buffer[1024];
    vsnprintf(buffer, sizeof(buffer), message, args);
    buffer[1023] = '\0';
@@ -76,16 +76,16 @@ function pw_core_sync(pw_core: Ppw_core; aID, aSync: cint) : cint;
          95
   # 342 "/usr/include/pipewire-0.3/pipewire/core.h"
          ; ( const struct pw_core_methods *_f = (const struct pw_core_methods *) (&((struct spa_interface*)core)->cb)->funcs; if ((__builtin_expect(!!((((_f) && ((0) == 0 || (_f)->version > (0)-1)) && (_f)->error)),1))) _res = _f->error((&((struct spa_interface*)core)->cb)->data, id, seq, res, buffer); _res; ); _res; );
-  
-  
+
+
   static inline
   __attribute__((format(printf, 5, 6))) int
   pw_core_errorf(struct pw_core *core, uint32_t id, int seq,
     int res, const char *message, ...)
-  
+
           va_list args;
    int r;
-   
+
   # 352 "/usr/include/pipewire-0.3/pipewire/core.h" 3 4
   __builtin_va_start(
   # 352 "/usr/include/pipewire-0.3/pipewire/core.h"
@@ -99,7 +99,7 @@ function pw_core_sync(pw_core: Ppw_core; aID, aSync: cint) : cint;
   # 352 "/usr/include/pipewire-0.3/pipewire/core.h"
                          ;
    r = pw_core_errorv(core, id, seq, res, message, args);
-   
+
   # 354 "/usr/include/pipewire-0.3/pipewire/core.h" 3 4
   __builtin_va_end(
   # 354 "/usr/include/pipewire-0.3/pipewire/core.h"
@@ -109,22 +109,22 @@ function pw_core_sync(pw_core: Ppw_core; aID, aSync: cint) : cint;
   # 354 "/usr/include/pipewire-0.3/pipewire/core.h"
               ;
    return r;
-  
-  
+
+
   static inline struct pw_registry *
   pw_core_get_registry(struct pw_core *core, uint32_t version, size_t user_data_size)
-  
-   struct pw_registry *res = 
+
+   struct pw_registry *res =
   # 361 "/usr/include/pipewire-0.3/pipewire/core.h" 3 4
                             ((void *)0)
   # 361 "/usr/include/pipewire-0.3/pipewire/core.h"
                                 ;
    ( const struct pw_core_methods *_f = (const struct pw_core_methods *) (&((struct spa_interface*)core)->cb)->funcs; if ((__builtin_expect(!!((((_f) && ((0) == 0 || (_f)->version > (0)-1)) && (_f)->get_registry)),1))) res = _f->get_registry((&((struct spa_interface*)core)->cb)->data, version, user_data_size); res; )
-  
+
                                               ;
    return res;
-  
-  
+
+
   static inline void *
   pw_core_create_object(struct pw_core *core,
          const char *factory_name,
@@ -132,40 +132,40 @@ function pw_core_sync(pw_core: Ppw_core; aID, aSync: cint) : cint;
          uint32_t version,
          const struct spa_dict *props,
          size_t user_data_size)
-  
-   void *res = 
+
+   void *res =
   # 376 "/usr/include/pipewire-0.3/pipewire/core.h" 3 4
               ((void *)0)
   # 376 "/usr/include/pipewire-0.3/pipewire/core.h"
                   ;
    ( const struct pw_core_methods *_f = (const struct pw_core_methods *) (&((struct spa_interface*)core)->cb)->funcs; if ((__builtin_expect(!!((((_f) && ((0) == 0 || (_f)->version > (0)-1)) && (_f)->create_object)),1))) res = _f->create_object((&((struct spa_interface*)core)->cb)->data, factory_name, type, version, props, user_data_size); res; )
-  
-  
+
+
                                           ;
    return res;
-  
-  
+
+
    }
   {
   # 511 "/usr/include/pipewire-0.3/pipewire/core.h"
-  
-  
+
+
   static inline void *
   pw_registry_bind(struct pw_registry *registry,
            uint32_t id, const char *type, uint32_t version,
            size_t user_data_size)
-  
-   void *res = 
+
+   void *res =
   # 516 "/usr/include/pipewire-0.3/pipewire/core.h" 3 4
               ((void *)0)
   # 516 "/usr/include/pipewire-0.3/pipewire/core.h"
                   ;
    ( const struct pw_registry_methods *_f = (const struct pw_registry_methods *) (&((struct spa_interface*)registry)->cb)->funcs; if ((__builtin_expect(!!((((_f) && ((0) == 0 || (_f)->version > (0)-1)) && (_f)->bind)),1))) res = _f->bind((&((struct spa_interface*)registry)->cb)->data, id, type, version, user_data_size); res; )
-  
+
                                                 ;
    return res;
-  
-  
+
+
    }
 
 function pw_context_connect(context: Ppw_context; properties: Ppw_properties; user_data_size: Tsize_t) : Ppw_core; cdecl; external libpipewirename Name 'pw_context_connect';

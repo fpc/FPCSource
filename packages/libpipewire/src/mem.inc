@@ -92,10 +92,10 @@ procedure pw_memblock_free(mem: Ppw_memblock); cdecl; external libpipewirename N
 
   {
   static inline void pw_memblock_unref(struct pw_memblock *mem)
-  
+
    if (--mem->ref == 0)
     pw_memblock_free(mem);
-  
+
    }
 function pw_mempool_remove_id(pool: Ppw_mempool; id: Tuint32_t) : longint; cdecl; external libpipewirename Name 'pw_mempool_remove_id';
 
@@ -117,15 +117,15 @@ function pw_memmap_free(map: Ppw_memmap) : longint; cdecl; external libpipewiren
 
 
   {
-  
+
   static inline void pw_map_range_init(struct pw_map_range *range,
            uint32_t offset, uint32_t size,
            uint32_t page_size)
-  
+
    range->offset = ((offset) & ~((page_size) - 1));
    range->start = offset - range->offset;
    range->size = (((range->start + size) + ((page_size) - 1)) & ~((page_size) - 1));
-  
-  
+
+
    }
 

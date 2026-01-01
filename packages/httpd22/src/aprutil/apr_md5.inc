@@ -90,10 +90,10 @@ function apr_md5_init(context: Papr_md5_ctx_t): apr_status_t;
  external LibAPRUtil name LibNamePrefix + 'apr_md5_init' + LibSuff4;
 
 {
- * MD5 translation setup.  Provides the APR translation handle to be used 
+ * MD5 translation setup.  Provides the APR translation handle to be used
  * for translating the content before calculating the digest.
  * @param context The MD5 content to set the translation for.
- * @param xlate The translation handle to use for this MD5 context 
+ * @param xlate The translation handle to use for this MD5 context
  }
 function apr_md5_set_xlate(context: Papr_md5_ctx_t;
  xlate: Papr_xlate_t): apr_status_t;
@@ -101,7 +101,7 @@ function apr_md5_set_xlate(context: Papr_md5_ctx_t;
  external LibAPRUtil name LibNamePrefix + 'apr_md5_set_xlate' + LibSuff8;
 
 {
- * MD5 block update operation.  Continue an MD5 message-digest operation, 
+ * MD5 block update operation.  Continue an MD5 message-digest operation,
  * processing another message block, and updating the context.
  * @param context The MD5 content to update.
  * @param input next message block to update
@@ -113,7 +113,7 @@ function apr_md5_update(context: Papr_md5_ctx_t;
  external LibAPRUtil name LibNamePrefix + 'apr_md5_update' + LibSuff12;
 
 {
- * MD5 finalization.  Ends an MD5 message-digest operation, writing the 
+ * MD5 finalization.  Ends an MD5 message-digest operation, writing the
  * message digest and zeroing the context
  * @param digest The final MD5 digest
  * @param context The MD5 content we are finalizing.

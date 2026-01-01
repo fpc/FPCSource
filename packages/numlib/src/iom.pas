@@ -126,11 +126,11 @@ var
   ci: ArbInt;
 begin
   pa:=@a;
-  
+
   k:=1;
   m:=0;
   n:=0;
-  
+
   //parse the text
   i:= 1;
   while i < Length(inp) do
@@ -164,12 +164,12 @@ begin
       Inc(k);
       if err <> 0 then
         writeln('Val(',s,') failed at position ', err);
-        
+
       Inc(ci);
     end;
 
     k := ((k div c) + 1) * c + 1;
-    
+
     Inc(ni);
     if ni > n then n := ni;
 
@@ -204,7 +204,7 @@ BEGIN
     BEGIN
       str(pa^[kk]:form, s);
       Inc(kk);
-      
+
       if i <> n then
         out := out + s + ' '
       else

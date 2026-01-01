@@ -3,7 +3,7 @@ program sha1test;
 {$mode objfpc}
 {$h+}
 
-uses 
+uses
   {$ifdef unix}
   cwstring,
   {$endif}
@@ -52,5 +52,5 @@ begin
   begin
     writeln('SHA-1 tests failed: ', code);
   end;
-  Halt(code);	
+  Halt(code);
 end.

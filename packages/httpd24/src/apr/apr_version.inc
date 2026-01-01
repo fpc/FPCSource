@@ -20,7 +20,7 @@
 {**
  * @file apr_version.h
  * @brief APR Versioning Interface
- * 
+ *
  * APR's Version
  *
  * There are several different mechanisms for accessing the version. There
@@ -39,11 +39,11 @@
 
 
 {* The numeric compile-time version constants. These constants are the
- * authoritative version numbers for APR. 
+ * authoritative version numbers for APR.
  *}
 
 const
-{** major version 
+{** major version
  * Major API changes that could cause compatibility problems for older
  * programs such as structure size changes.  No binary compatibility is
  * possible across a change in the major version.
@@ -56,13 +56,13 @@ const
  *}
   APR_MINOR_VERSION       = 4;
 
-{** patch level 
+{** patch level
  * The Patch Level never includes API changes, simply bug fixes.
  * Reset to 0 when upgrading APR_MINOR_VERSION
  *}
   APR_PATCH_VERSION       = 6;
 
-{** 
+{**
  * The symbol APR_IS_DEV_VERSION is only defined for internal,
  * "development" copies of APR.  It is undefined for released versions
  * of APR.
@@ -118,17 +118,17 @@ const
 
 #ifndef APR_VERSION_ONLY
 
-/* The C language API to access the version at run time, 
- * as opposed to compile time.  APR_VERSION_ONLY may be defined 
- * externally when preprocessing apr_version.h to obtain strictly 
+/* The C language API to access the version at run time,
+ * as opposed to compile time.  APR_VERSION_ONLY may be defined
+ * externally when preprocessing apr_version.h to obtain strictly
  * the C Preprocessor macro declarations.
  */
 
 //#include "apr.h"
 }
 {**
- * The numeric version information is broken out into fields within this 
- * structure. 
+ * The numeric version information is broken out into fields within this
+ * structure.
  *}
 type
   Papr_version_t = ^apr_version_t;

@@ -56,7 +56,7 @@ begin
         getmaxyx(win, height, width);
 
         box(win, 0, 0);
-        mvwaddch(win, 2, 0, ACS_LTEE); 
+        mvwaddch(win, 2, 0, ACS_LTEE);
         mvwhline(win, 2, 1, ACS_HLINE, width - 2);
         mvwaddch(win, 2, width - 1, ACS_RTEE);
 

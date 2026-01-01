@@ -125,10 +125,10 @@
 
   function gst_message_new_state_dirty(src:PGstObject):PGstMessage;cdecl;external gstreamerlib name 'gst_message_new_state_dirty';
 
-  function gst_message_new_step_done(src:PGstObject; format:TGstFormat; amount:Tguint64; rate:Tgdouble; flush:Tgboolean; 
+  function gst_message_new_step_done(src:PGstObject; format:TGstFormat; amount:Tguint64; rate:Tgdouble; flush:Tgboolean;
              intermediate:Tgboolean; duration:Tguint64; eos:Tgboolean):PGstMessage;cdecl;external gstreamerlib name 'gst_message_new_step_done';
 
-  procedure gst_message_parse_step_done(message:PGstMessage; format:PGstFormat; amount:Pguint64; rate:Pgdouble; flush:Pgboolean; 
+  procedure gst_message_parse_step_done(message:PGstMessage; format:PGstFormat; amount:Pguint64; rate:Pgdouble; flush:Pgboolean;
               intermediate:Pgboolean; duration:Pguint64; eos:Pgboolean);cdecl;external gstreamerlib name 'gst_message_parse_step_done';
 
   function gst_message_new_clock_provide(src:PGstObject; clock:PGstClock; ready:Tgboolean):PGstMessage;cdecl;external gstreamerlib name 'gst_message_new_clock_provide';
@@ -183,20 +183,20 @@
 
   procedure gst_message_parse_request_state(message:PGstMessage; state:PGstState);cdecl;external gstreamerlib name 'gst_message_parse_request_state';
 
-  function gst_message_new_step_start(src:PGstObject; active:Tgboolean; format:TGstFormat; amount:Tguint64; rate:Tgdouble; 
+  function gst_message_new_step_start(src:PGstObject; active:Tgboolean; format:TGstFormat; amount:Tguint64; rate:Tgdouble;
              flush:Tgboolean; intermediate:Tgboolean):PGstMessage;cdecl;external gstreamerlib name 'gst_message_new_step_start';
 
-  procedure gst_message_parse_step_start(message:PGstMessage; active:Pgboolean; format:PGstFormat; amount:Pguint64; rate:Pgdouble; 
+  procedure gst_message_parse_step_start(message:PGstMessage; active:Pgboolean; format:PGstFormat; amount:Pguint64; rate:Pgdouble;
               flush:Pgboolean; intermediate:Pgboolean);cdecl;external gstreamerlib name 'gst_message_parse_step_start';
 
-  function gst_message_new_qos(src:PGstObject; live:Tgboolean; running_time:Tguint64; stream_time:Tguint64; timestamp:Tguint64; 
+  function gst_message_new_qos(src:PGstObject; live:Tgboolean; running_time:Tguint64; stream_time:Tguint64; timestamp:Tguint64;
              duration:Tguint64):PGstMessage;cdecl;external gstreamerlib name 'gst_message_new_qos';
 
   procedure gst_message_set_qos_values(message:PGstMessage; jitter:Tgint64; proportion:Tgdouble; quality:Tgint);cdecl;external gstreamerlib name 'gst_message_set_qos_values';
 
   procedure gst_message_set_qos_stats(message:PGstMessage; format:TGstFormat; processed:Tguint64; dropped:Tguint64);cdecl;external gstreamerlib name 'gst_message_set_qos_stats';
 
-  procedure gst_message_parse_qos(message:PGstMessage; live:Pgboolean; running_time:Pguint64; stream_time:Pguint64; timestamp:Pguint64; 
+  procedure gst_message_parse_qos(message:PGstMessage; live:Pgboolean; running_time:Pguint64; stream_time:Pguint64; timestamp:Pguint64;
               duration:Pguint64);cdecl;external gstreamerlib name 'gst_message_parse_qos';
 
   procedure gst_message_parse_qos_values(message:PGstMessage; jitter:Pgint64; proportion:Pgdouble; quality:Pgint);cdecl;external gstreamerlib name 'gst_message_parse_qos_values';

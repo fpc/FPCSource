@@ -70,7 +70,7 @@ begin
   vramSetBankE(VRAM_E_BG_EXT_PALETTE);     // for main engine
   vramSetBankH(VRAM_H_SUB_BG_EXT_PALETTE); // for sub engine
 
-  while keysDown() = 0  do 
+  while keysDown() = 0  do
   begin
     swiWaitForVBlank();
     inc(frames);

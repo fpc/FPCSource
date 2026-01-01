@@ -26,24 +26,24 @@
 const
   // precalculated mix buffer lengths (in bytes)
   MM_MIXLEN_8KHZ    = 544;    // (8121 hz)
-  MM_MIXLEN_10KHZ   = 704;    // (10512 hz)	
-  MM_MIXLEN_13KHZ   = 896;    // (13379 hz)	
+  MM_MIXLEN_10KHZ   = 704;    // (10512 hz)
+  MM_MIXLEN_13KHZ   = 896;    // (13379 hz)
   MM_MIXLEN_16KHZ   = 1056;   // (15768 hz)
   MM_MIXLEN_18KHZ   = 1216;   // (18157 hz)
   MM_MIXLEN_21KHZ   = 1408;   // (21024 hz)
   MM_MIXLEN_27KHZ   = 1792;   // (26758 hz)
   MM_MIXLEN_31KHZ   = 2112;   // (31536 hz)
-  
+
   // measurements of channel types (bytes)
   MM_SIZEOF_MODCH   = 40;
   MM_SIZEOF_ACTCH   = 28;
   MM_SIZEOF_MIXCH   = 24;
- 
+
 procedure mmInitDefault(soundbank:  mm_addr; number_of_channels: mm_word); cdecl; external;
 procedure mmInit(var setup: mm_gba_system); cdecl; external;
 procedure mmVBlank(); cdecl; external;
 procedure mmSetVBlankHandler(func: pointer); cdecl; external;
-procedure mmSetEventHandler(handler: mm_callback); cdecl; external; 
+procedure mmSetEventHandler(handler: mm_callback); cdecl; external;
 procedure mmFrame(); cdecl; external; //__attribute((long_call)) ???
 procedure mmStart(id: mm_word; mode: mm_pmode); cdecl; external;
 procedure mmPause(); cdecl; external;
@@ -69,7 +69,7 @@ procedure mmEffectRelease(handle: mm_sfxhand); cdecl; external;
 procedure mmSetEffectsVolume(volume: mm_word); cdecl; external;
 procedure mmEffectCancelAll(); cdecl; external;
 
-const 
+const
   MMCB_SONGMESSAGE = $2A;
   MMCB_SONGFINISHED = $2B;
 

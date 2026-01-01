@@ -3,20 +3,20 @@
   ------------------------------------------------------------------------------
   DSWifi Project - Arm9 Library Header File (dswifi9.h)
   (C) 2005-2006 Stephen Stair - sgstair@akkit.org - http://www.akkit.org
-  ****************************************************************************** 
+  ******************************************************************************
   DSWifi Lib and test materials are licenced under the MIT open source licence:
   Copyright (c) 2005-2006 Stephen Stair
-  
+
   Permission is hereby granted, free of charge, to any person obtaining a copy of
   this software and associated documentation files (the "Software"), to deal in
   the Software without restriction, including without limitation the rights to
   use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
   of the Software, and to permit persons to whom the Software is furnished to do
   so, subject to the following conditions:
-  
+
   The above copyright notice and this permission notice shall be included in all
   copies or substantial portions of the Software.
-  
+
   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -26,13 +26,13 @@
   SOFTWARE.
   ------------------------------------------------------------------------------
 
-    
+
   Conversion by Legolas (http://itaprogaming.free.fr) for freepascal compiler
   (http://www.freepascal.org)
-   
+
   Copyright (C) 2006  Francesco Lombardi
   Check http://sourceforge.net/projects/libndsfpc for updates
-   
+
   ------------------------------------------------------------------------------
 
   Comments:
@@ -79,25 +79,25 @@ const
 
 type
   TWIFI_RETURN = (
-    WIFI_RETURN_OK          =	0, 
-    WIFI_RETURN_LOCKFAILED  = 1, 
-    WIFI_RETURN_ERROR       =	2, 
-    WIFI_RETURN_PARAMERROR  = 3  
+    WIFI_RETURN_OK          =	0,
+    WIFI_RETURN_LOCKFAILED  = 1,
+    WIFI_RETURN_ERROR       =	2,
+    WIFI_RETURN_PARAMERROR  = 3
   );
 
   TWIFI_STATS = (
-    WSTAT_RXQUEUEDPACKETS, 
-    WSTAT_TXQUEUEDPACKETS, 
-    WSTAT_RXQUEUEDBYTES, 
-    WSTAT_TXQUEUEDBYTES, 
-    WSTAT_RXQUEUEDLOST, 
-    WSTAT_TXQUEUEDREJECTED, 
+    WSTAT_RXQUEUEDPACKETS,
+    WSTAT_TXQUEUEDPACKETS,
+    WSTAT_RXQUEUEDBYTES,
+    WSTAT_TXQUEUEDBYTES,
+    WSTAT_RXQUEUEDLOST,
+    WSTAT_TXQUEUEDREJECTED,
     WSTAT_RXPACKETS,
     WSTAT_RXBYTES,
     WSTAT_RXDATABYTES,
     WSTAT_TXPACKETS,
     WSTAT_TXBYTES,
-    WSTAT_TXDATABYTES,  
+    WSTAT_TXDATABYTES,
     WSTAT_ARM7_UPDATES,
     WSTAT_DEBUG,
 
@@ -106,7 +106,7 @@ type
     WSTAT_HW_1C0,WSTAT_HW_1C1,WSTAT_HW_1C4,WSTAT_HW_1C5,
     WSTAT_HW_1D0,WSTAT_HW_1D1,WSTAT_HW_1D2,WSTAT_HW_1D3,WSTAT_HW_1D4,WSTAT_HW_1D5,WSTAT_HW_1D6,WSTAT_HW_1D7,
     WSTAT_HW_1D8,WSTAT_HW_1D9,WSTAT_HW_1DA,WSTAT_HW_1DB,WSTAT_HW_1DC,WSTAT_HW_1DD,WSTAT_HW_1DE,WSTAT_HW_1DF,
-    
+
     NUM_WIFI_STATS
   );
 
@@ -128,8 +128,8 @@ type
   );
 
   TWIFIGETDATA = (
-    WIFIGETDATA_MACADDRESS,			
-    WIFIGETDATA_NUMWFCAPS,			
+    WIFIGETDATA_MACADDRESS,
+    WIFIGETDATA_NUMWFCAPS,
     MAX_WIFIGETDATA
   );
 
@@ -139,16 +139,16 @@ type
     WEPMODE_40BIT   = 1,
     WEPMODE_128BIT  = 2
   );
-  
+
 
   TWIFI_ASSOCSTATUS = (
-    ASSOCSTATUS_DISCONNECTED, 
-    ASSOCSTATUS_SEARCHING, 
-    ASSOCSTATUS_AUTHENTICATING, 
-    ASSOCSTATUS_ASSOCIATING, 
-    ASSOCSTATUS_ACQUIRINGDHCP, 
-    ASSOCSTATUS_ASSOCIATED,	
-    ASSOCSTATUS_CANNOTCONNECT 
+    ASSOCSTATUS_DISCONNECTED,
+    ASSOCSTATUS_SEARCHING,
+    ASSOCSTATUS_AUTHENTICATING,
+    ASSOCSTATUS_ASSOCIATING,
+    ASSOCSTATUS_ACQUIRINGDHCP,
+    ASSOCSTATUS_ASSOCIATED,
+    ASSOCSTATUS_CANNOTCONNECT
   );
 
 var
@@ -192,18 +192,18 @@ type
   PWIFI_RXHEADER = ^WIFI_RXHEADER;
 
   WIFI_ACCESSPOINT = packed record
-    ssid: array [0..32] of cchar; 
-    ssid_len: cchar; 
-    bssid: array [0..5] of cuint8; 
-    macaddr: array [0..5] of cuint8; 
-    maxrate: cuint16; 
-    timectr: cuint32; 
-    rssi: cuint16; 
-    flags: cuint16; 
-    spinlock: cuint32; 
-    channel: cuint8; 
-    rssi_past: array [0..7] of cuint8; 
-    base_rates: array [0..15] of cuint8; 
+    ssid: array [0..32] of cchar;
+    ssid_len: cchar;
+    bssid: array [0..5] of cuint8;
+    macaddr: array [0..5] of cuint8;
+    maxrate: cuint16;
+    timectr: cuint32;
+    rssi: cuint16;
+    flags: cuint16;
+    spinlock: cuint32;
+    channel: cuint8;
+    rssi_past: array [0..7] of cuint8;
+    base_rates: array [0..15] of cuint8;
   end;
   TWIFI_ACCESSPOINT = WIFI_ACCESSPOINT;
   PWIFI_ACCESSPOINT = ^WIFI_ACCESSPOINT;

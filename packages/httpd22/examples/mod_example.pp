@@ -415,7 +415,7 @@ begin
                         nil]);
 
     if (trace_copy = nil) then sofar := '' else sofar := trace_copy;
-    
+
     trace_copy := apr_pstrcat(p, [sofar, addon, nil]);
     if (r <> nil) then apr_table_set(r^.notes, TRACE_NOTE, trace_copy)
     else trace := trace_copy;
@@ -809,7 +809,7 @@ begin
     if s1conf^.cmode = s2conf^.cmode then
      merged_config^.cmode := s1conf^.cmode
     else merged_config^.cmode := CONFIG_MODE_COMBO;
-    
+
     merged_config^.local := s2conf^.local;
     merged_config^.congenital := (s1conf^.congenital or s1conf^.local);
     merged_config^.loc := apr_pstrdup(p, s2conf^.loc);
@@ -985,11 +985,11 @@ var
   cfg: Px_cfg;
 begin
   cfg := our_dconfig(r);
-  
+
   { Log the call and exit. }
-  
+
   trace_add(r^.server, nil, cfg, 'x_post_config()');
-    
+
   Result := DECLINED;
 end;
 
@@ -1073,7 +1073,7 @@ begin
    * called.
    }
   trace_add(r^.server, r, cfg, 'x_translate_handler()');
-    
+
   Result := DECLINED;
 end;
 
@@ -1099,7 +1099,7 @@ begin
    * called.
    }
   trace_add(r^.server, r, cfg, 'header_parser_handler()');
-  
+
   Result := DECLINED;
 end;
 
@@ -1120,7 +1120,7 @@ begin
   cfg := our_dconfig(r);
 
   { Don't do anything except log the call. }
-  
+
   trace_add(r^.server, r, cfg, 'x_check_user_id()');
 
   Result := DECLINED;
@@ -1141,12 +1141,12 @@ var
   cfg: Px_cfg;
 begin
   cfg := our_dconfig(r);
-    
+
   { * Log the call and return OK, or access will be denied (even though we
     * didn't actually do anything). }
-      
+
   trace_add(r^.server, r, cfg, 'x_auth_checker()');
-  
+
   Result := DECLINED;
 end;
 
@@ -1165,7 +1165,7 @@ var
 begin
   cfg := our_dconfig(r);
   trace_add(r^.server, r, cfg, 'x_access_checker()');
-    
+
   Result := DECLINED;
 end;
 
@@ -1185,9 +1185,9 @@ begin
 
   {  * Log the call, but don't do anything else - and report truthfully that
      * we didn't do anything. }
-     
+
   trace_add(r^.server, r, cfg, 'x_type_checker()');
-    
+
   Result := DECLINED;
 end;
 
@@ -1208,7 +1208,7 @@ begin
   { Log the call and exit. }
 
   trace_add(r^.server, r, cfg, 'x_fixer_upper()');
-    
+
   Result := OK;
 end;
 
@@ -1313,11 +1313,11 @@ var
 begin
   default_module_ptr := @example_module;
   FillChar(default_module_ptr^, SizeOf(default_module_ptr^), 0);
-  
+
   STANDARD20_MODULE_STUFF(default_module_ptr^);
-  
+
   { List of directives specific to our module. }
-  
+
   with x_cmds do
   begin
     name := 'Example';

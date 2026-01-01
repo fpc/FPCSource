@@ -20,14 +20,14 @@ const
 type
 
 
-  TAccess = ( 
+  TAccess = (
     TAccess_Public
     ,Internal
     ,TAccess_Protected
     ,TAccess_Private
   );
 
-  TPublicOrInternalAccess = ( 
+  TPublicOrInternalAccess = (
     TPublicOrInternalAccess_Public
     ,TPublicOrInternalAccess_Internal
   );

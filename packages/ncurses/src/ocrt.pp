@@ -844,7 +844,7 @@ End;
 Procedure tnWindow.SetColor(att : integer);
 Begin
    wbkgd(wn,COLOR_PAIR(nSetColorPair(att)));
-   If nisbold(att) then 
+   If nisbold(att) then
      wattr_set(wn,A_BOLD,0,Nil);
    wincolor := att;
    If visible Then wrefresh(wn);
@@ -875,7 +875,7 @@ Var
    mx,my,
    atts : longint;
    junk : smallint;
-   
+
 Begin
    wbkgd(win,COLOR_PAIR(nSetColorPair(att)));
    wattr_get(win,@atts,@junk,nil);

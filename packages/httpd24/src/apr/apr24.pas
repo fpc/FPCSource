@@ -19,7 +19,7 @@ unit apr24;
 {$ifdef fpc}
   {$mode delphi}
   {$H-}
-  
+
 {$endif}
 {$ifdef Unix}
   {$PACKRECORDS C}
@@ -47,7 +47,7 @@ uses
 {$ENDIF}
   SysUtils, ctypes;
 {$ENDIF FPC_DOTTEDUNITS}
-  
+
 const
 {$IFDEF WINDOWS}
   LibAPR = 'libapr-1.dll';

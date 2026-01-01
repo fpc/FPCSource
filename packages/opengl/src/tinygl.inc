@@ -45,16 +45,16 @@ syscall sysvbase TinyGLBase 76;
 procedure _GlVertex3fv(gcl: pointer; const v: PGLfloat);
 syscall sysvbase TinyGLBase 88;
 
-procedure _GLColor3f(gcl: pointer; red, green, blue: GLfloat); 
+procedure _GLColor3f(gcl: pointer; red, green, blue: GLfloat);
 syscall sysvbase TinyGLBase 100;
 
-procedure _GLColor4f(gcl: pointer; red, green, blue, alpha: GLfloat); 
+procedure _GLColor4f(gcl: pointer; red, green, blue, alpha: GLfloat);
 syscall sysvbase TinyGLBase 106;
 
 procedure _GLNormal3f(gcl: pointer; nx, ny, nz: GLfloat);
 syscall sysvbase TinyGLBase 148;
 
-procedure _GLTexCoord2f(gcl: pointer; s, t: GLfloat); 
+procedure _GLTexCoord2f(gcl: pointer; s, t: GLfloat);
 syscall sysvbase TinyGLBase 160;
 
 procedure _GLMatrixMode(gcl: pointer; mode: GLenum);
@@ -69,19 +69,19 @@ syscall sysvbase TinyGLBase 214;
 procedure _GLPopMatrix(gcl: pointer);
 syscall sysvbase TinyGLBase 220;
 
-procedure _GLRotatef(gcl: pointer; angle, x, y, z: GLfloat); 
+procedure _GLRotatef(gcl: pointer; angle, x, y, z: GLfloat);
 syscall sysvbase TinyGLBase 226;
 
-procedure _GLTranslatef(gcl: pointer; x, y, z: GLfloat); 
+procedure _GLTranslatef(gcl: pointer; x, y, z: GLfloat);
 syscall sysvbase TinyGLBase 232;
 
-procedure _GLScalef(gcl: pointer; x, y, z: GLfloat); 
+procedure _GLScalef(gcl: pointer; x, y, z: GLfloat);
 syscall sysvbase TinyGLBase 238;
 
 procedure _GLViewPort(gcl: pointer; x, y: GLint; width, height: GLsizei);
 syscall sysvbase TinyGLBase 244;
 
-procedure _GLFrustum(gcl: pointer; left, right, bottom, top, zNear, zFar: GLdouble); 
+procedure _GLFrustum(gcl: pointer; left, right, bottom, top, zNear, zFar: GLdouble);
 syscall sysvbase TinyGLBase 250;
 {$ENDIF GL_UNIT}
 
@@ -214,7 +214,7 @@ syscall sysvbase TinyGLBase 604;
 procedure _GLDepthFunc(gcl: pointer; func: GLenum);
 syscall sysvbase TinyGLBase 628;
 
-function _GLInit: Pointer; 
+function _GLInit: Pointer;
 syscall sysvbase TinyGLBase 640;
 
 procedure _GLClose(gcl: pointer);
@@ -264,7 +264,7 @@ procedure _GLUTReshapeFunc(gcl: pointer; f: TGlut2IntCallback);
 syscall sysvbase TinyGLBase 736;
 
 procedure _GLUTIdleFunc(gcl: pointer; f: TGlutVoidCallback);
-syscall sysvbase TinyGLBase 742; 
+syscall sysvbase TinyGLBase 742;
 
 procedure _GLUTKeyboardFunc(gcl: pointer; f: TGlut1Char2IntCallback);
 syscall sysvbase TinyGLBase 748;
@@ -318,7 +318,7 @@ syscall sysvbase TinyGLBase 1114;
 procedure _GLFogf(gcl: pointer; pname: GLenum; param: GLfloat);
 syscall sysvbase TinyGLBase 1120;
 
-procedure _GLFogfv(gcl: pointer; pname: GLenum; const params: PGLfloat); 
+procedure _GLFogfv(gcl: pointer; pname: GLenum; const params: PGLfloat);
 syscall sysvbase TinyGLBase 1126;
 
 procedure _GLReadPixels(gcl: pointer; x, y: GLint; width, height: GLsizei; format, atype: GLenum; pixels: Pointer);
@@ -461,7 +461,7 @@ end;
 procedure glIndexi(c: GLint); inline;
 begin
 {$WARNING glIndexi is dummy.}
-  // DUMMY, FIX ME!!! 
+  // DUMMY, FIX ME!!!
 end;
 
 procedure glLightModelfv(pname: GLenum; const params: PGLfloat); inline;
@@ -487,7 +487,7 @@ end;
 procedure glVertex3f(x, y, z: GLfloat); inline;
 begin
   _GLVertex3f(tglContext, x, y ,z);
-end; 
+end;
 
 procedure glVertex3fv(const v: PGLfloat); inline;
 begin
@@ -526,7 +526,7 @@ end;
 
 procedure glMateriali(face, pname: GLenum; param: GLint); inline;
 begin
-  // WTF?! 
+  // WTF?!
   _GLMaterialf(tglContext, face, pname, param);
 end;
 
@@ -539,7 +539,7 @@ end;
 procedure glMatrixMode(mode: GLenum); inline;
 begin
   _GLMatrixMode(tglContext, mode);
-end; 
+end;
 
 procedure glNormalPointer(atype: GLenum; stride: GLsizei; const pointer: Pointer); inline;
 begin
@@ -595,32 +595,32 @@ end;
 procedure glFrustum(left, right, bottom, top, zNear, zFar: GLdouble); inline;
 begin
   _GLFrustum(tglContext, left, right, bottom, top, zNear, zFar);
-end; 
+end;
 
 procedure glTranslatef(x, y, z: GLfloat); inline;
 begin
   _GLTranslatef(tglContext, x, y, z);
-end; 
+end;
 
 procedure glScalef(x, y, z: GLfloat); inline;
 begin
   _GLScalef(tglContext, x, y, z);
-end; 
+end;
 
 procedure glRotatef(angle, x, y, z: GLfloat); inline;
 begin
   _GLRotatef(tglContext, angle, x, y, z);
-end; 
+end;
 
 procedure glColor3f(red, green, blue: GLfloat); inline;
 begin
   _GLColor3f(tglContext, red, green, blue);
-end; 
+end;
 
 procedure glColor4f(red, green, blue, alpha: GLfloat); inline;
 begin
   _GLColor4f(tglContext, red, green, blue, alpha);
-end; 
+end;
 
 procedure glNormal3f(nx, ny, nz: GLfloat); inline;
 begin
@@ -910,6 +910,6 @@ end;
 procedure GLUTSetColor(cell: Integer; red, green, blue: GLfloat); inline;
 begin
 {$WARNING GLUTSetColor is dummy.}
-  // DUMMY, FIX ME!!! 
+  // DUMMY, FIX ME!!!
 end;
 {$ENDIF GLUT_UNIT}

@@ -25,18 +25,18 @@ extern "C" {
 (*
  * The standard Dump routines.
  *)
-external xml2lib void EXTDECL	
+external xml2lib void EXTDECL
 	xmlDebugDumpString	(FILE *output,
 				 xmlChar *str);
-external xml2lib void EXTDECL	
+external xml2lib void EXTDECL
 	xmlDebugDumpAttr	(FILE *output,
 				 xmlAttrPtr attr,
 				 int depth);
-external xml2lib void EXTDECL	
+external xml2lib void EXTDECL
 	xmlDebugDumpAttrList	(FILE *output,
 				 xmlAttrPtr attr,
 				 int depth);
-external xml2lib void EXTDECL	
+external xml2lib void EXTDECL
 	xmlDebugDumpOneNode	(FILE *output,
 				 xmlNodePtr node,
 				 int depth);
@@ -54,10 +54,10 @@ external xml2lib void EXTDECL
 external xml2lib void EXTDECL
 	xmlDebugDumpDocument	(FILE *output,
 				 xmlDocPtr doc);
-external xml2lib void EXTDECL	
+external xml2lib void EXTDECL
 	xmlDebugDumpDTD		(FILE *output,
 				 xmlDtdPtr dtd);
-external xml2lib void EXTDECL	
+external xml2lib void EXTDECL
 	xmlDebugDumpEntities	(FILE *output,
 				 xmlDocPtr doc);
 
@@ -77,12 +77,12 @@ external xml2lib int EXTDECL
  *								*
  ****************************************************************)
 
-external xml2lib void EXTDECL	
+external xml2lib void EXTDECL
 	xmlLsOneNode		(FILE *output, xmlNodePtr node);
-external xml2lib int EXTDECL	
+external xml2lib int EXTDECL
 	xmlLsCountNode		(xmlNodePtr node);
 
-external xml2lib AnsiChar * EXTDECL 
+external xml2lib AnsiChar * EXTDECL
 	xmlBoolToText		(int boolval);
 
 (****************************************************************
@@ -136,63 +136,63 @@ typedef int (* xmlShellCmd) (xmlShellCtxtPtr ctxt,
 			     xmlNodePtr node,
 			     xmlNodePtr node2);
 
-external xml2lib void EXTDECL	
+external xml2lib void EXTDECL
 	xmlShellPrintXPathError	(int errorType,
 				 AnsiChar *arg);
-external xml2lib void EXTDECL	
+external xml2lib void EXTDECL
 	xmlShellPrintXPathResult(xmlXPathObjectPtr list);
-external xml2lib int EXTDECL	
+external xml2lib int EXTDECL
 	xmlShellList		(xmlShellCtxtPtr ctxt,
 				 AnsiChar *arg,
 				 xmlNodePtr node,
 				 xmlNodePtr node2);
-external xml2lib int EXTDECL	
+external xml2lib int EXTDECL
 	xmlShellBase		(xmlShellCtxtPtr ctxt,
 				 AnsiChar *arg,
 				 xmlNodePtr node,
 				 xmlNodePtr node2);
-external xml2lib int EXTDECL	
+external xml2lib int EXTDECL
 	xmlShellDir		(xmlShellCtxtPtr ctxt,
 				 AnsiChar *arg,
 				 xmlNodePtr node,
 				 xmlNodePtr node2);
-external xml2lib int EXTDECL	
+external xml2lib int EXTDECL
 	xmlShellLoad		(xmlShellCtxtPtr ctxt,
 				 AnsiChar *filename,
 				 xmlNodePtr node,
 				 xmlNodePtr node2);
 { LIBXML_OUTPUT_ENABLED
-external xml2lib void EXTDECL	
+external xml2lib void EXTDECL
 	xmlShellPrintNode	(xmlNodePtr node);
-external xml2lib int EXTDECL	
+external xml2lib int EXTDECL
 	xmlShellCat		(xmlShellCtxtPtr ctxt,
 				 AnsiChar *arg,
 				 xmlNodePtr node,
 				 xmlNodePtr node2);
-external xml2lib int EXTDECL	
+external xml2lib int EXTDECL
 	xmlShellWrite		(xmlShellCtxtPtr ctxt,
 				 AnsiChar *filename,
 				 xmlNodePtr node,
 				 xmlNodePtr node2);
-external xml2lib int EXTDECL	
+external xml2lib int EXTDECL
 	xmlShellSave		(xmlShellCtxtPtr ctxt,
 				 AnsiChar *filename,
 				 xmlNodePtr node,
 				 xmlNodePtr node2);
 #endif (* LIBXML_OUTPUT_ENABLED *)
 { LIBXML_VALID_ENABLED
-external xml2lib int EXTDECL	
+external xml2lib int EXTDECL
 	xmlShellValidate	(xmlShellCtxtPtr ctxt,
 				 AnsiChar *dtd,
 				 xmlNodePtr node,
 				 xmlNodePtr node2);
 #endif (* LIBXML_VALID_ENABLED *)
-external xml2lib int EXTDECL	
+external xml2lib int EXTDECL
 	xmlShellDu		(xmlShellCtxtPtr ctxt,
 				 AnsiChar *arg,
 				 xmlNodePtr tree,
 				 xmlNodePtr node2);
-external xml2lib int EXTDECL	
+external xml2lib int EXTDECL
 	xmlShellPwd		(xmlShellCtxtPtr ctxt,
 				 AnsiChar *buffer,
 				 xmlNodePtr node,
@@ -201,12 +201,12 @@ external xml2lib int EXTDECL
 (*
  * The Shell interface.
  *)
-external xml2lib void EXTDECL	
+external xml2lib void EXTDECL
 	xmlShell		(xmlDocPtr doc,
 				 AnsiChar *filename,
 				 xmlShellReadlineFunc input,
 				 FILE *output);
-			 
+
 #endif (* LIBXML_XPATH_ENABLED *)
 
 { __cplusplus

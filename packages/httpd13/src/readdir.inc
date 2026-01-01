@@ -34,7 +34,7 @@
 
 const
   _MAX_FNAME = 256;
-  
+
 type
   dirent = record
     d_ino: clong;                         { inode (always 1 in WIN32) }
@@ -55,7 +55,7 @@ type
   end;
 
   PDIR = ^DIR;
-  
+
 { Function prototypes }
 {API_EXPORT(DIR *) opendir(const AnsiChar *);
 API_EXPORT(struct dirent *) readdir(DIR *);

@@ -79,7 +79,7 @@ type
         num_obscuring : gint;
         grabbed : gint;
      end;
-     
+
 { Global data  }
 // Private function GDK_IS_CORE(d : pointer) : boolean;
 
@@ -123,7 +123,7 @@ function gdk_input_common_init(display:PGdkDisplay; include_core:gint):gint;cdec
 
 function gdk_input_find_device(display:PGdkDisplay; id:guint32):PGdkDevicePrivate;cdecl;external;
 
-procedure gdk_input_get_root_relative_geometry(display:PDisplay; w:TWindow; x_ret:Plongint; y_ret:Plongint; width_ret:Plongint; 
+procedure gdk_input_get_root_relative_geometry(display:PDisplay; w:TWindow; x_ret:Plongint; y_ret:Plongint; width_ret:Plongint;
             height_ret:Plongint);cdecl;external;
 
 procedure gdk_input_common_find_events(window:PGdkWindow; gdkdev:PGdkDevicePrivate; mask:gint; classes:Pointer {PXEventClass}; num_classes:Plongint);cdecl;external;

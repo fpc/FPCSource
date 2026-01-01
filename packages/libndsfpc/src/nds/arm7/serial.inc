@@ -77,6 +77,6 @@ procedure readFirmware(address: cuint32; destination: pointer; size: cuint32); c
 {$ifdef NDS_IMPLEMENTATION}
 procedure SerialWaitBusy(); inline;
 begin
-  while (REG_SPICNT^ and SPI_BUSY) <> 0 do; 
+  while (REG_SPICNT^ and SPI_BUSY) <> 0 do;
 end;
 {$endif NDS_IMPLEMENTATION}

@@ -51,7 +51,7 @@ type
   TExtendedKeyMapNode = record
     ekn_Node: TNode;
     ekn_KeyMap: TKeyMap;
-    pad1: Word; 
+    pad1: Word;
     ekn_Seglist: BPTR;
     ekn_Resident: PResident;
     ekn_Future0: APTR;        // keep 0 for now

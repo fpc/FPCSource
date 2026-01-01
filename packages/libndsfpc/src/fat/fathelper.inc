@@ -84,7 +84,7 @@ const
   S_IWRITE      = $80;
   S_IEXEC       = $40;
   NAME_MAX = 767;
-  
+
 type
   dirent = record
     d_ino: cint;

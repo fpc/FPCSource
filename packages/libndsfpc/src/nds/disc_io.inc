@@ -30,13 +30,13 @@ type
   DISC_INTERFACE = DISC_INTERFACE_STRUCT;
   TDISC_INTERFACE = DISC_INTERFACE_STRUCT;
   PDISC_INTERFACE = ^DISC_INTERFACE_STRUCT;
-  
+
 
 (*
   PARTITION_INTERFACE = (
     PI_DEFAULT = 0,
-    PI_SLOT_1, 
-    PI_SLOT_2, 
+    PI_SLOT_1,
+    PI_SLOT_2,
     PI_CUSTOM
   );
 *)
@@ -46,7 +46,7 @@ function get_io_dsisd(): PDISC_INTERFACE; cdecl; external;
 
 {$ifdef NDS_IMPLEMENTATION}
 
-function DEVICE_TYPE_DSI_SD(): cuint32; inline; 
+function DEVICE_TYPE_DSI_SD(): cuint32; inline;
 begin
   DEVICE_TYPE_DSI_SD := ord('_') or (ord('S') shl 8) or (ord('D') shl 16) or (ord('_') shl 24);
 end;

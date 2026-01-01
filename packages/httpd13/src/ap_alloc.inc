@@ -31,8 +31,8 @@
  }
 
 { Arenas for configuration info and transaction info
- * --- actual layout of the pool structure is private to 
- * alloc.c.  
+ * --- actual layout of the pool structure is private to
+ * alloc.c.
  }
 
  { Need declaration of DIR on Win32 }
@@ -186,7 +186,7 @@ function ap_array_pstrcat(p: PPool; const arr: Parray_header; const sep: AnsiCha
 
 type
   table = record end;
-  
+
   Ptable = ^table;
 
   table_entry = record
@@ -279,7 +279,7 @@ procedure ap_overlap_tables(a: Ptable; const b: Ptable; flags: cuint);
  * to keep CGI scripts and the like from inheriting access to things
  * they shouldn't be able to touch, and one for actually cleaning up,
  * when the actual server process wants to get rid of the thing,
- * whatever it is.  
+ * whatever it is.
  *
  * kill_cleanup disarms a cleanup, presumably because the resource in
  * question has been closed, freed, or whatever, and it's scarce
@@ -331,7 +331,7 @@ procedure ap_unblock_alarms;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
 { Common cases which want utility support..
- * the note_cleanups_for_foo routines are for 
+ * the note_cleanups_for_foo routines are for
  }
 
 {API_EXPORT(FILE *) ap_pfopen(struct pool *, const AnsiChar *name, const AnsiChar *fmode);

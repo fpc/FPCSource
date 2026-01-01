@@ -115,71 +115,71 @@
   end;
   TGstEvent = T_GstEvent;
   {
-  
+
   static inline gboolean
   gst_event_replace (GstEvent **old_event, GstEvent *new_event)
-  
+
     return gst_mini_object_replace ((GstMiniObject **) old_event, (GstMiniObject *) new_event);
-  
+
   # 347 "gstevent.h"
   static inline GstEvent *
   gst_event_steal (GstEvent **old_event)
-  
+
     return ((GstEvent *)(gst_mini_object_steal ((GstMiniObject **) old_event)));
-  
+
   # 368 "gstevent.h"
   static inline gboolean
   gst_event_take (GstEvent **old_event, GstEvent *new_event)
-  
+
     return gst_mini_object_take ((GstMiniObject **) old_event, (GstMiniObject *) new_event);
-  
+
   # 389 "gstevent.h"
   # 405 "gstevent.h"
 
   extern
   const gchar* gst_event_type_get_name (GstEventType type);
-  
+
   extern
   GQuark gst_event_type_to_quark (GstEventType type);
-  
+
   extern
   GstEventTypeFlags
                   gst_event_type_get_flags (GstEventType type);
   # 435 "gstevent.h"
   static inline GstEvent *
   gst_event_ref (GstEvent * event)
-  
+
     return (GstEvent *) gst_mini_object_ref (((GstMiniObject*)(event)));
-  
-  
-  
-  
-  
-  
-  
-  
+
+
+
+
+
+
+
+
   static inline void
   gst_event_unref (GstEvent * event)
-  
+
     gst_mini_object_unref (((GstMiniObject*)(event)));
-  
+
   # 466 "gstevent.h"
   static inline void
   gst_clear_event (GstEvent ** event_ptr)
-  
-    do  _Static_assert (sizeof *(((GstMiniObject **) event_ptr)) == sizeof (gpointer), "Expression evaluates to false"); __typeof__((((GstMiniObject **) event_ptr))) _pp = (((GstMiniObject **) event_ptr)); __typeof__(*(((GstMiniObject **) event_ptr))) _ptr = *_pp; *_pp = 
+
+    do  _Static_assert (sizeof *(((GstMiniObject **) event_ptr)) == sizeof (gpointer), "Expression evaluates to false"); __typeof__((((GstMiniObject **) event_ptr))) _pp = (((GstMiniObject **) event_ptr)); __typeof__(*(((GstMiniObject **) event_ptr))) _ptr = *_pp; *_pp =
   # 469 "gstevent.h" 3 4
    ((void *)0)
   # 469 "gstevent.h"
    ; if (_ptr) (gst_mini_object_unref) (_ptr);  while (0) ;
-  
+
   # 481 "gstevent.h"
   static inline GstEvent *
   gst_event_copy (const GstEvent * event)
-  
+
     return ((GstEvent *)(gst_mini_object_copy (((const GstMiniObject*)(event)))));
-  
-  
+
+
    }
 
   function gst_event_get_type:TGType;cdecl;external gstreamerlib name 'gst_event_get_type';
@@ -285,10 +285,10 @@
 
   procedure gst_event_parse_qos(event:PGstEvent; _type:PGstQOSType; proportion:Pgdouble; diff:PGstClockTimeDiff; timestamp:PGstClockTime);cdecl;external gstreamerlib name 'gst_event_parse_qos';
 
-  function gst_event_new_seek(rate:Tgdouble; format:TGstFormat; flags:TGstSeekFlags; start_type:TGstSeekType; start:Tgint64; 
+  function gst_event_new_seek(rate:Tgdouble; format:TGstFormat; flags:TGstSeekFlags; start_type:TGstSeekType; start:Tgint64;
              stop_type:TGstSeekType; stop:Tgint64):PGstEvent;cdecl;external gstreamerlib name 'gst_event_new_seek';
 
-  procedure gst_event_parse_seek(event:PGstEvent; rate:Pgdouble; format:PGstFormat; flags:PGstSeekFlags; start_type:PGstSeekType; 
+  procedure gst_event_parse_seek(event:PGstEvent; rate:Pgdouble; format:PGstFormat; flags:PGstSeekFlags; start_type:PGstSeekType;
               start:Pgint64; stop_type:PGstSeekType; stop:Pgint64);cdecl;external gstreamerlib name 'gst_event_parse_seek';
 
   procedure gst_event_set_seek_trickmode_interval(event:PGstEvent; interval:TGstClockTime);cdecl;external gstreamerlib name 'gst_event_set_seek_trickmode_interval';
@@ -303,7 +303,7 @@
 
   function gst_event_new_step(format:TGstFormat; amount:Tguint64; rate:Tgdouble; flush:Tgboolean; intermediate:Tgboolean):PGstEvent;cdecl;external gstreamerlib name 'gst_event_new_step';
 
-  procedure gst_event_parse_step(event:PGstEvent; format:PGstFormat; amount:Pguint64; rate:Pgdouble; flush:Pgboolean; 
+  procedure gst_event_parse_step(event:PGstEvent; format:PGstFormat; amount:Pguint64; rate:Pgdouble; flush:Pgboolean;
               intermediate:Pgboolean);cdecl;external gstreamerlib name 'gst_event_parse_step';
 
   function gst_event_new_reconfigure:PGstEvent;cdecl;external gstreamerlib name 'gst_event_new_reconfigure';

@@ -37,7 +37,7 @@ uses glib2;
 {$ENDIF FPC_DOTTEDUNITS}
 
 const
-  { Setup as you need } 
+  { Setup as you need }
 
 {$ifdef Windows}
   gstreamerlib = 'gstreamer-1.0-0.dll';
@@ -202,5 +202,5 @@ implementation
 {$i gstbin_impl.inc}
 {$i gstmessage_impl.inc}
 
-end. 
+end.
 

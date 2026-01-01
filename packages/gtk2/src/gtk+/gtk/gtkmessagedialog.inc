@@ -72,7 +72,7 @@ function gtk_message_dialog_new(parent:PGtkWindow; flags:TGtkDialogFlags;
 
 {$ifdef HasGTK2_4}
 function gtk_message_dialog_new_with_markup(parent: PGtkWindow; flags: TGtkDialogFlags;
-  _type: TGtkMessageType; buttons: TGtkButtonsType; 
+  _type: TGtkMessageType; buttons: TGtkButtonsType;
   message_format: Pgchar): PGtkWidget; varargs; cdecl; external gtklib;
 procedure gtk_message_dialog_set_markup(message_dialog: PGtkMessageDialog; str:Pgchar); cdecl; external gtklib;
 {$endif}

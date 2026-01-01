@@ -29,12 +29,12 @@ Mac OS X v10.6 or later
   To use the GPU as a compute device, use one of the following devices:
   - MacBook Pro w/NVidia GeForce 8600M
   - Mac Pro w/NVidia GeForce 8800GT
-  
-  If you don't have powerful GPU you can try to use CPU instead: 
-  by changing  
-    gpu := CL_DEVICE_TYPE_GPU; 
+
+  If you don't have powerful GPU you can try to use CPU instead:
+  by changing
+    gpu := CL_DEVICE_TYPE_GPU;
     to
-    gpu := CL_DEVICE_TYPE_CPU; 
+    gpu := CL_DEVICE_TYPE_CPU;
 
 Windows with NVidia OpenCL SDK Installed and libOpenCLXX.dll available
 
@@ -57,7 +57,7 @@ const
 
 // Simple compute kernel which computes the square of an input array
 const
-  KernelSource : PAnsiChar = 
+  KernelSource : PAnsiChar =
   '__kernel void square(                   '#10+
   '   __global float* input,               '#10+
   '   __global float* output,              '#10+
@@ -94,7 +94,7 @@ var
   tmpd  : single;
   platformids : Pcl_platform_id;
   num_platforms : cl_uint;
-  
+
 begin
   // Fill our data set with random float values
   count := DATA_SIZE;
@@ -169,15 +169,15 @@ begin
     writeln('Error: Failed to create compute kernel!');
     Halt(1);
   end;
-  
+
   err := clGetKernelWorkGroupInfo(kernel, device_id,  CL_KERNEL_WORK_GROUP_SIZE, sizeof(local), @local, nil);
   writeln('clGetKernelWorkGroupInfo ', err);
   if (err<>CL_SUCCESS) then begin
     writeln('Error: Failed to retrieve kernel work group info!');
     Halt(1);
   end;
-  
-  
+
+
   // Create the input and output arrays in device memory for our calculation
   input := clCreateBuffer(context,  CL_MEM_READ_ONLY,  sizeof(single) * count, nil, err);
   writeln('clCreateBuffer ', err);
@@ -216,7 +216,7 @@ begin
     writeln('Error: Failed to retrieve kernel work group info!');
     Halt(1);
   end;
-  
+
   // Execute the kernel over the entire range of our 1d input data set
   // using the maximum number of work group items for this device
   global := count;

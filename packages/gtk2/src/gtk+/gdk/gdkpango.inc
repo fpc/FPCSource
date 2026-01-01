@@ -22,14 +22,14 @@
      // private
      parent_class: TPangoRendererClass;
    end;
-   
+
    TGdkPangoRendererPrivate = record
      screen: PGdkScreen;
 
      // GdkPangoRenderer specific state
      override_color: array[TPangoRenderPart] of TPangoColor;
      override_color_set: array[TPangoRenderPart] of gboolean;
-     
+
      stipple: array[TPangoRenderPart] of PGdkBitmap;
      emboss_color: TPangoColor;
      embossed: gboolean;

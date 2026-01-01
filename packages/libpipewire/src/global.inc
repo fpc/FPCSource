@@ -39,7 +39,7 @@
       end;
 
 
-  function pw_global_new(context:Ppw_context; _type:Pchar; version:Tuint32_t; properties:Ppw_properties; func:Tpw_global_bind_func_t; 
+  function pw_global_new(context:Ppw_context; _type:Pchar; version:Tuint32_t; properties:Ppw_properties; func:Tpw_global_bind_func_t;
              object:pointer):Ppw_global;cdecl;external libpipewire name 'pw_global_new';
 
   function pw_global_register(global:Ppw_global):longint;cdecl;external libpipewire name 'pw_global_register';

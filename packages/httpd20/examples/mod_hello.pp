@@ -25,7 +25,7 @@ var
 
 const
   MODULE_NAME = 'mod_hello.so';
-  
+
 {*******************************************************************
 *  Free Pascal only supports exporting variables on Windows
 *******************************************************************}
@@ -40,7 +40,7 @@ exports
 function DefaultHandler(r: Prequest_rec): Integer; cdecl;
 var
   RequestedHandler: ;
-  
+
 begin
   RequestedHandler := r^.handler;
 
@@ -63,7 +63,7 @@ begin
   {$else}
     ap_set_content_type(r, 'text/html');
   {$endif}
-  
+
   { If the request is for a header only, and not a request for
    the whole content, then return OK now. We don't have to do
    anything else. }

@@ -32,17 +32,17 @@ var
 //mic stream handler
 procedure micHandler(data: pointer; length: cint);
 begin
-	if (sound_buffer = nil) or (data_length > sound_buffer_size) then 
+	if (sound_buffer = nil) or (data_length > sound_buffer_size) then
     exit;
-	
+
 	DC_InvalidateRange(data, length);
 
 	dmaCopy(data, pcuint8(sound_buffer) + data_length, length);
-	
+
 	data_length := data_length + length;
 
 	iprintf('.');
-	
+
 end;
 
 procedure rec();
@@ -71,19 +71,19 @@ begin
 
 	iprintf('Press A to record / play'#10);
 
-	while true do 
+	while true do
 	begin
 		scanKeys();
 		key := keysDown();
 
 		if(key and KEY_A )<> 0 then
 		begin
-			if recording then 
+			if recording then
 			begin
         play();
 			 iprintf('playing');
       end else
-      begin 
+      begin
         rec();
         iprintf('recording');
 			end;
@@ -93,7 +93,7 @@ begin
 		// START: exit
 		//-----------------------------------------------------
 		if (keys and KEY_START) <> 0 then break;
-      
+
 		swiWaitForVBlank();
 
 	end;

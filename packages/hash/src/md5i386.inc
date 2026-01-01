@@ -1415,7 +1415,7 @@ asm
   ADD ECX, EAX
   ROL ECX, 21
   ADD ECX, ESI
-  
+
   POP EAX // EAX = Context
 
   ADD TMDContext.State[EAX + 4*0], EBX //  Context.State[0 .. 3] += A, B, C, D

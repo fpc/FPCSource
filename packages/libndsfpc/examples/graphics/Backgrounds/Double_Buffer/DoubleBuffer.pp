@@ -14,12 +14,12 @@ var
 begin
   randomize;
 	//set the mode for 2 text layers and two extended background layers
-	videoSetMode(MODE_5_2D); 
+	videoSetMode(MODE_5_2D);
 
 	//set the first two banks as background memory and the third as sub background memory
 	//D is not used..if you need a bigger background then you will need to map
 	//more vram banks consecutivly (VRAM A-D are all 0x20000 bytes in size)
-	vramSetPrimaryBanks(VRAM_A_MAIN_BG_0x06000000, VRAM_B_MAIN_BG_0x06020000, 
+	vramSetPrimaryBanks(VRAM_A_MAIN_BG_0x06000000, VRAM_B_MAIN_BG_0x06020000,
 		VRAM_C_SUB_BG, VRAM_D_LCD);
 
 	consoleDemoInit();
@@ -44,7 +44,7 @@ begin
 
 		swiWaitForVBlank();
 		scanKeys();
-		if (keysDown() and KEY_START) <> 0 then 
+		if (keysDown() and KEY_START) <> 0 then
       exit;
 		//swap the back buffer to the current buffer
 		backBuffer := pcuint16(bgGetGfxPtr(bg));

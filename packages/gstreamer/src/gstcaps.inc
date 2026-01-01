@@ -56,29 +56,29 @@
   TGstCaps_queueautoptr = PGQueue;
 
   {
-  
+
   static inline GstCaps *
   gst_caps_ref (GstCaps * caps)
-  
+
     return (GstCaps *) gst_mini_object_ref (((GstMiniObject*)(caps)));
-  
+
   # 220 "gstcaps.h"
-  
+
   static inline void
   gst_caps_unref (GstCaps * caps)
-  
+
     gst_mini_object_unref (((GstMiniObject*)(caps)));
-  
+
   # 239 "gstcaps.h"
   static inline void
   gst_clear_caps (GstCaps ** caps_ptr)
-  
-    do  _Static_assert (sizeof *(((GstMiniObject **) caps_ptr)) == sizeof (gpointer), "Expression evaluates to false"); __typeof__((((GstMiniObject **) caps_ptr))) _pp = (((GstMiniObject **) caps_ptr)); __typeof__(*(((GstMiniObject **) caps_ptr))) _ptr = *_pp; *_pp = 
+
+    do  _Static_assert (sizeof *(((GstMiniObject **) caps_ptr)) == sizeof (gpointer), "Expression evaluates to false"); __typeof__((((GstMiniObject **) caps_ptr))) _pp = (((GstMiniObject **) caps_ptr)); __typeof__(*(((GstMiniObject **) caps_ptr))) _ptr = *_pp; *_pp =
   # 242 "gstcaps.h" 3 4
    ((void *)0)
   # 242 "gstcaps.h"
    ; if (_ptr) (gst_mini_object_unref) (_ptr);  while (0) ;
-  
+
    }
 (* Const before type ignored *)
 
@@ -87,16 +87,16 @@
   {
   static inline gboolean
   gst_caps_replace (GstCaps **old_caps, GstCaps *new_caps)
-  
+
       return gst_mini_object_replace ((GstMiniObject **) old_caps, (GstMiniObject *) new_caps);
-  
+
   # 316 "gstcaps.h"
   static inline gboolean
   gst_caps_take (GstCaps **old_caps, GstCaps *new_caps)
-  
+
       return gst_mini_object_take ((GstMiniObject **) old_caps, (GstMiniObject *) new_caps);
-  
-  
+
+
    }
 
 

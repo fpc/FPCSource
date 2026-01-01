@@ -46,7 +46,7 @@ type
   v16 = cshort;//cuint16?       // vertex 4.12 fixed format
 
 function inttov16(n: cint): cint{v16}; inline;
-function f32tov16(n: cint32): v16; inline; 
+function f32tov16(n: cint32): v16; inline;
 function v16toint(n: v16): cint; inline;
 function floattov16(n: cfloat): v16; inline;
 function VERTEX_PACK(x,y: cint): cuint32; inline;
@@ -70,7 +70,7 @@ type
 
   m4x4 = record
     m: array [0..15] of cint32;
-  end; 
+  end;
   pm4x4 = ^m4x4;
 
   m4x3 = record
@@ -149,7 +149,7 @@ const
 ////////////////////////////////////////////////////////////
 // glTexImage2d constants
 ////////////////////////////////////////////////////////////
-type 
+type
   GL_TEXTURE_SIZE_ENUM = cint32;
 const
 	TEXTURE_SIZE_8    : GL_TEXTURE_SIZE_ENUM = 0;
@@ -179,7 +179,7 @@ const
 type
   GL_TEXTURE_TYPE_ENUM = cint32;
 const
-  GL_NOTEXTURE  : GL_TEXTURE_TYPE_ENUM = 0; 
+  GL_NOTEXTURE  : GL_TEXTURE_TYPE_ENUM = 0;
 	GL_RGB32_A3   : GL_TEXTURE_TYPE_ENUM = 1;
 	GL_RGB4       : GL_TEXTURE_TYPE_ENUM = 2;
 	GL_RGB16      : GL_TEXTURE_TYPE_ENUM = 3;
@@ -226,17 +226,17 @@ type
 	GLFLUSH_ENUM = cint32;
 const
 	GL_TRANS_MANUALSORT: GLFLUSH_ENUM = (1 shl 0);
-	GL_WBUFFERING      : GLFLUSH_ENUM = (1 shl 1); 
+	GL_WBUFFERING      : GLFLUSH_ENUM = (1 shl 1);
 
 
 (*-----------------------------------------
-Structures specific to allocating and 
+Structures specific to allocating and
 deallocating video RAM in videoGL
 -----------------------------------------*)
 
 
-type 
-  ps_SingleBlock = ^s_SingleBlock; 
+type
+  ps_SingleBlock = ^s_SingleBlock;
   s_SingleBlock = packed record
     indexOut: cuint32;
     AddrSet: pcuint8;
@@ -250,30 +250,30 @@ type
     firstBlock: ps_SingleBlock;
     firstEmpty: ps_SingleBlock;
     firstAlloc: ps_SingleBlock;
-    
+
     lastExamined: ps_SingleBlock;
     lastExaminedAddr: pcuint8;
     lastExaminedSize: cuint32;
-    
+
     blockPtrs: DynamicArray;
     deallocBlocks: DynamicArray;
-    
+
     blockCount: cuint32;
     deallocCount: cuint32;
   end;
   ps_vramBlock = ^s_vramBlock;
-  
+
 
   gl_texture_data = packed record
     vramAddr: pointer;			// Address to the texture loaded into VRAM
     texIndex: cuint32;		// The index in the Memory Block
     texIndexExt: cuint32;		// The secondary index in the Memory block (only for GL_COMPRESSED textures)
-    palIndex: cint;			// The palette index 
+    palIndex: cint;			// The palette index
     texFormat: cuint32;		// Specifications of how the texture is displayed
     texSize: cuint32;			// The size (in blocks) of the texture
   end;
   pgl_texture_data = ^gl_texture_data;
-  
+
   gl_palette_data = packed record
     vramAddr: pointer;			// Address to the palette loaded into VRAM
     palIndex: cuint32;		// The index in the Memory Block
@@ -292,16 +292,16 @@ type
 
     vramBlocks: array [0..1] of ps_vramBlock;		// Two classe instances, one for textures, and one for palettes
     vramLock: array [0..1] of cint;				// Holds the current lock state of the VRAM banks
-    
+
     // texture globals
     texturePtrs: DynamicArray;		// Pointers to each individual texture
     palettePtrs: DynamicArray;		// Pointers to each individual palette
-    
+
     deallocTex: DynamicArray;		// Preserves deleted texture names for later use with glGenTextures
     deallocPal: DynamicArray;		// Preserves deleted palette names
     deallocTexSize: cuint32;			// Preserved number of deleted texture names
     deallocPalSize: cuint32;			// Preserved number of deleted palette names
-    
+
     activeTexture: cint;				// The current active texture name
     activePalette: cint;				// The current active palette name
     texCount: cint;
@@ -319,7 +319,7 @@ var
   // Pointer to global data for videoGL
   glGlob: PGLHiddenGlobals = @glGlobalData;
 
-type 
+type
   TArr4ofInt = array [0..3] of cint32;
 
 function FIFO_COMMAND_PACK(c1,c2,c3,c4: cint): cint; inline;
@@ -378,7 +378,7 @@ procedure glInit_C(); cdecl; external;
 function glGetGlobals(): PGLHiddenGlobals; cdecl; external;
 
 function POLY_ALPHA(n: cuint32): cuint32; inline;
-function POLY_ID(n: cuint32): cuint32; inline;	
+function POLY_ID(n: cuint32): cuint32; inline;
 procedure glBegin(mode: GL_GLBEGIN_ENUM); inline;
 procedure glEnd(); inline;
 procedure glClearDepth(depth: fixed12d3); inline;
@@ -407,7 +407,7 @@ procedure glPolyFmt(params: cuint32); inline;
 procedure glEnable(bits: cint); inline;
 procedure glDisable(bits: cint); inline;
 procedure glFogShift(shift: cint); inline;
-procedure glFogOffset(offset: cint); inline; 
+procedure glFogOffset(offset: cint); inline;
 procedure glFogColor(red, green, blue, alpha: cuint8); inline;
 procedure glFogDensity(index, density: cint); inline;
 procedure glLoadMatrix4x4(const m: pm4x4); inline;
@@ -532,7 +532,7 @@ end;
 
 function floattov10(n: cfloat): v10; inline;
 begin
-  if n > 0.998 then 
+  if n > 0.998 then
 	  floattov10 := v10($1FF)
 	else
 	  floattov10 := trunc(n * (1 shl 9));
@@ -583,17 +583,17 @@ end;
 
 function FIFO_VERTEX_XY(): cuint8; inline;
 begin
-  FIFO_VERTEX_XY := REG2ID(GFX_VERTEX_XY); 
+  FIFO_VERTEX_XY := REG2ID(GFX_VERTEX_XY);
 end;
 
 function FIFO_VERTEX_XZ(): cuint8; inline;
 begin
-  FIFO_VERTEX_XZ := REG2ID(GFX_VERTEX_XZ); 
+  FIFO_VERTEX_XZ := REG2ID(GFX_VERTEX_XZ);
 end;
 
 function FIFO_VERTEX_YZ(): cuint8; inline;
 begin
-  FIFO_VERTEX_YZ := REG2ID(GFX_VERTEX_YZ); 
+  FIFO_VERTEX_YZ := REG2ID(GFX_VERTEX_YZ);
 end;
 
 function FIFO_TEX_COORD(): cuint8; inline;
@@ -700,7 +700,7 @@ end;
 
 { $define FIFO_BEGIN             := REG2ID(GFX_BEGIN)}
 { $define FIFO_END               := REG2ID(GFX_END)}
-{ $define FIFO_FLUSH             := REG2ID(GFX_FLUSH)} 
+{ $define FIFO_FLUSH             := REG2ID(GFX_FLUSH)}
 { $define FIFO_VIEWPORT          := REG2ID(GFX_VIEWPORT)}
 
 
@@ -728,7 +728,7 @@ begin
   POLY_ALPHA := cuint32((n) shl 16);
 end;
 
-function POLY_ID(n: cuint32): cuint32; inline;	
+function POLY_ID(n: cuint32): cuint32; inline;
 begin
   POLY_ID := cuint32((n) shl 24);
 end;
@@ -739,7 +739,7 @@ begin
 end;
 
 procedure glEnd(); inline;
-begin 
+begin
   GFX_END^ := 0;
 end;
 
@@ -764,12 +764,12 @@ begin
 	GFX_VERTEX16^ := z;
 end;
 
-procedure glTexCoord2t16(u, v: t16); inline; 
+procedure glTexCoord2t16(u, v: t16); inline;
 begin
   GFX_TEX_COORD^ := TEXTURE_PACK(u, v);
 end;
 
-procedure glPushMatrix(); inline; 
+procedure glPushMatrix(); inline;
 begin
   MATRIX_PUSH^ := 0;
 end;
@@ -883,9 +883,9 @@ begin
 	sassert(count <> 0, 'glCallList received a display list of size 0');
   inc(list);
   DC_FlushRange(list, count*4);
-  while ( ((DMA_CR(0)^ and DMA_BUSY) <> 0) or 
-          ((DMA_CR(1)^ and DMA_BUSY) <> 0) or 
-          ((DMA_CR(2)^ and DMA_BUSY) <> 0) or 
+  while ( ((DMA_CR(0)^ and DMA_BUSY) <> 0) or
+          ((DMA_CR(1)^ and DMA_BUSY) <> 0) or
+          ((DMA_CR(2)^ and DMA_BUSY) <> 0) or
           ((DMA_CR(3)^ and DMA_BUSY) <> 0)) do;
 
   DMA_SRC(0)^ := cuint32(list);
@@ -917,7 +917,7 @@ begin
   GFX_CONTROL^ := (GFX_CONTROL^ and $F0FF) or (shift shl 8);
 end;
 
-procedure glFogOffset(offset: cint); inline; 
+procedure glFogOffset(offset: cint); inline;
 begin
   sassert((offset >= 0) and (offset < $8000), 'glFogOffset is out of range');
   GFX_FOG_OFFSET^ := offset;
@@ -929,14 +929,14 @@ begin
   sassert(green < 32, 'glFogColor green is out of range');
   sassert(blue < 32, 'glFogColor blue is out of range');
   sassert(alpha < 32, 'glFogColor alpha is out of range');
-  GFX_FOG_COLOR^ := RGB15(red, green, blue) or (alpha shl 16);  
+  GFX_FOG_COLOR^ := RGB15(red, green, blue) or (alpha shl 16);
 end;
 
 procedure glFogDensity(index, density: cint); inline;
 begin
   sassert((index >= 0) and (index < 32), 'glFogDensity index is out of range');
   sassert((index >= 0) and (density < 128), 'glFogDensity density is out of range');
-  GFX_FOG_TABLE[index] := density;  
+  GFX_FOG_TABLE[index] := density;
 end;
 
 procedure glLoadMatrix4x4(const m: pm4x4); inline;
@@ -1262,7 +1262,7 @@ begin
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
   glMatrixMode(GL_TEXTURE);
-  glLoadIdentity();	
+  glLoadIdentity();
 end;
 
 procedure glSetOutlineColor(id: cint; color: rgb); inline;
@@ -1290,17 +1290,17 @@ procedure glGetFixed(const param: GL_GET_ENUM; f: pcint32); inline;
 var
   i: integer;
 begin
-  case param of 
+  case param of
     GL_GET_MATRIX_VECTOR:
       begin
         while (GFX_BUSY) do; // wait until the graphics engine has stopped to read matrixes
-        for i := 0 to 8 do 
+        for i := 0 to 8 do
           f[i] := MATRIX_READ_VECTOR[i];
       end;
     GL_GET_MATRIX_CLIP:
       begin
         while (GFX_BUSY) do; // wait until the graphics engine has stopped to read matrixes
-        for i := 0 to 15 do 
+        for i := 0 to 15 do
           f[i] := MATRIX_READ_CLIP[i];
       end;
     GL_GET_MATRIX_PROJECTION:
@@ -1350,12 +1350,12 @@ end;
 procedure glClearPolyID(ID: cuint8); inline;
 begin
   glGlob^.clearColor  := ( glGlob^.clearColor and $C0FFFFFF) or (( ID and $3F ) shl 24 );
-  GFX_CLEAR_COLOR^ := glGlob^.clearColor; 
+  GFX_CLEAR_COLOR^ := glGlob^.clearColor;
 end;
 
 procedure glGetInt(param: GL_GET_ENUM; var i: cint); inline;
 var
-  tex: pgl_texture_data; 
+  tex: pgl_texture_data;
 begin
   case param of
     GL_GET_POLYGON_RAM_COUNT:
@@ -1363,17 +1363,17 @@ begin
     GL_GET_VERTEX_RAM_COUNT:
       i := GFX_VERTEX_RAM_USAGE^;
     GL_GET_TEXTURE_WIDTH:
-      begin 
+      begin
         tex := pgl_texture_data(DynamicArrayGet(@(glGlob^.texturePtrs), glGlob^.activeTexture));
         if tex <> nil then
-          i := 8 shl ((tex^.texFormat shr 20) and 7);			
+          i := 8 shl ((tex^.texFormat shr 20) and 7);
       end;
     GL_GET_TEXTURE_HEIGHT:
       begin
         tex := pgl_texture_data(DynamicArrayGet(@(glGlob^.texturePtrs), glGlob^.activeTexture));
         if tex <> nil then
           i := 8 shl ((tex^.texFormat shr 23 ) and 7);
-      end;      
+      end;
   end;
 end;
 

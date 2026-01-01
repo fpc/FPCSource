@@ -18,7 +18,7 @@ end;
 function getTimer(timer: integer): cuint16; inline;
 begin
   getTimer := TIMER_DATA(timer)^;
-end; 
+end;
 
 //---------------------------------------------------------------------------------
 //draws a box...same signature as boxTest
@@ -39,36 +39,36 @@ begin
   glVertex3f(x , y + height, z + depth);
   glVertex3f(x + width, y + height, z + depth);
   glVertex3f(x + width, y , z + depth);
-  
-  
+
+
   //x  face
   glColor3f(1,1,0);
   glVertex3f(x , y , z );
   glVertex3f(x , y + height, z );
   glVertex3f(x , y + height, z + depth);
   glVertex3f(x , y , z + depth);
-  
+
   //x + width face
   glColor3f(1,1,1);
   glVertex3f(x + width, y , z );
   glVertex3f(x + width, y , z + depth);
   glVertex3f(x + width, y + height, z + depth);
   glVertex3f(x + width, y + height, z );
-  
+
   //y  face
   glColor3f(0,1,0);
   glVertex3f(x , y , z );
   glVertex3f(x , y , z + depth);
   glVertex3f(x + width, y , z + depth);
   glVertex3f(x + width, y , z );
-  
+
   //y  + height face
   glColor3f(0,1,1);
   glVertex3f(x , y + height, z );
   glVertex3f(x + width, y + height, z );
   glVertex3f(x + width, y + height, z + depth);
   glVertex3f(x , y + height, z + depth);
-  
+
   glEnd();
 
 end;
@@ -79,14 +79,14 @@ var
   rotX: cfloat = 0;
   rotY: cfloat = 0;
   translate: cfloat = -5;
-  
+
   //some profiling code
   time: cuint16;
-  
+
   //keep track of vertex ram usage
   polygon_count, vertex_count: cint;
-  
-  //object 
+
+  //object
   rx: integer = 50;
   ry: integer = 15;
   oldx: integer = 0;
@@ -94,33 +94,33 @@ var
 
   held, pressed: integer;
   hit: integer;
-  
+
   i: integer;
-  
+
 begin
   //put 3D on top
   lcdMainOnTop();
-  
+
   //setup the sub screen for basic printing
   consoleDemoInit();
-  
-  // Setup the Main screen for 3D 
+
+  // Setup the Main screen for 3D
   videoSetMode(MODE_0_3D);
-  
+
   // initialize gl
   glInit();
-  
+
   // enable antialiasing
   glEnable(GL_ANTIALIAS);
-  
+
   // setup the rear plane
   glClearColor(0,0,0,31); // BG must be opaque for AA to work
   glClearPolyID(63); // BG must have a unique polygon ID for AA to work
   glClearDepth($7FFF);
-  
+
   // Set our view port to be the same size as the screen
   glViewport(0,0,255,191);
-  
+
   printf(#$1b'[10;0HPress A to change culling');
   printf(#10#10'Press B to change Ortho vs Persp');
   printf(#10'Left/Right/Up/Down to rotate');
@@ -130,16 +130,16 @@ begin
   //main loop
   while true do
   begin
-    
+
     //process input
     scanKeys();
-    
+
     touchRead(touchXY);
 
-    
+
     held := keysHeld();
     pressed := keysDown();
-    
+
     if( held and KEY_LEFT) <> 0 then rotY := rotY + 1;
     if( held and KEY_RIGHT) <> 0 then rotY := rotY - 1;
     if( held and KEY_UP) <> 0 then rotX := rotX + 1;
@@ -157,21 +157,21 @@ begin
     //if user drags then grab the delta
     if (held and KEY_TOUCH) <> 0 then
     begin
-      rx := rx + (touchXY.px - oldx); 
+      rx := rx + (touchXY.px - oldx);
       ry := ry + (touchXY.py - oldy);
       oldx := touchXY.px;
       oldy := touchXY.py;
     end;
 
-    
+
     //change ortho vs perspective
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     if (keysHeld() and KEY_B) <> 0 then
-      glOrtho(-4,4,-3,3,0.1,10) 
-    else 
+      glOrtho(-4,4,-3,3,0.1,10)
+    else
       gluPerspective(70, 256.0 / 192.0, 0.1, 10);
-  
+
     //change cull mode
     if (held and KEY_A) <> 0 then
       glPolyFmt(POLY_ALPHA(31) or POLY_CULL_NONE )
@@ -210,7 +210,7 @@ begin
 
     printf(#10'64 tests avg. (fixed): %i', (getTimer(0) - time) / 32);
     if hit <> 0 then
-      printf(#10'Box Test result: hit') 
+      printf(#10'Box Test result: hit')
     else
       printf(#10'Box Test result: miss');
 
@@ -219,11 +219,11 @@ begin
     glGetInt(GL_GET_VERTEX_RAM_COUNT, vertex_count);
     glGetInt(GL_GET_POLYGON_RAM_COUNT, polygon_count);
 
-    if (held and KEY_A)<> 0 then 
+    if (held and KEY_A)<> 0 then
       printf(#10#10'Ram usage: Culling none')
-    else 
+    else
     printf(#10#10'Ram usage: Culling back faces');
-    
+
     printf(#10'Vertex ram: %i', vertex_count);
     printf(#10'Polygon ram: %i', polygon_count);
 

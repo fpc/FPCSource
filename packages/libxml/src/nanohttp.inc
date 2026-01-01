@@ -7,7 +7,7 @@
  *
  * Author: Daniel Veillard
  *)
- 
+
 {$IFDEF LIBXML_HTTP_ENABLED}
 
 {$IFDEF FUNCTION}

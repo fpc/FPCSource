@@ -130,7 +130,7 @@ type
     default_frequency: mm_hword;
     {$ifdef _____badbear_____}
       data: array [0..0] of mm_byte;
-    {$endif}    
+    {$endif}
     // ::8-bit sample data
   end;
   mm_mas_gba_sample = tmm_mas_gba_sample;
@@ -143,7 +143,7 @@ type
     default_frequency: mm_hword;
     {$ifdef _____badbear_____}
       data: array [0..0] of mm_byte;
-    {$endif}    
+    {$endif}
   	// ::sample data
     case integer of
       0: (loop_length: mm_word;);

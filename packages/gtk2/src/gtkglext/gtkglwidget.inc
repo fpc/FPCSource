@@ -37,7 +37,7 @@ function gtk_widget_get_gl_drawable(widget: PGtkWidget): PGdkGLDrawable;
 
 function gtk_widget_get_gl_drawable(widget: PGtkWidget): PGdkGLDrawable;
 begin
- gtk_widget_get_gl_drawable := 
+ gtk_widget_get_gl_drawable :=
    GDK_GL_DRAWABLE (gtk_widget_get_gl_window (widget));
 end;
 

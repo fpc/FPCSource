@@ -4333,7 +4333,7 @@ var
   glUniformMatrix4x2dv: procedure(location: GLint; count: GLsizei; transpose: GLboolean; const value: PGLdouble); extdecl;
   glUniformMatrix4x3dv: procedure(location: GLint; count: GLsizei; transpose: GLboolean; const value: PGLdouble); extdecl;
   glGetUniformdv: procedure(_program: GLuint; location: GLint; params: PGLdouble); extdecl;
-  
+
   { All of the following ProgramUniform* functions are supported if and only
     if EXT_direct_state_access is supported.
     (See http://www.opengl.org/registry/specs/ARB/gpu_shader_fp64.txt)
@@ -4341,8 +4341,8 @@ var
     Load_GL_ARB_gpu_shader_fp64 will try to load them, but their presence/absence
     will have no effect on the result of Load_GL_ARB_gpu_shader_fp64 and
     Load_GL_VERSION_4_0 functions. (Because they are not mandatory parts of
-    the extension or OpenGL 4.0 core spec.) }   
-  
+    the extension or OpenGL 4.0 core spec.) }
+
   glProgramUniform1dEXT: procedure(_program: GLuint; location: GLint; x: GLdouble); extdecl;
   glProgramUniform2dEXT: procedure(_program: GLuint; location: GLint; x: GLdouble; y: GLdouble); extdecl;
   glProgramUniform3dEXT: procedure(_program: GLuint; location: GLint; x: GLdouble; y: GLdouble; z: GLdouble); extdecl;
@@ -10363,13 +10363,13 @@ begin
     if not Assigned(glUniformMatrix4x3dv) then Exit;
     glGetUniformdv := wglGetProcAddress('glGetUniformdv');
     if not Assigned(glGetUniformdv) then Exit;
-    
+
     { Ignore presence/absence of functions below.
-      See their special definition in 
+      See their special definition in
       http://www.opengl.org/registry/specs/ARB/gpu_shader_fp64.txt:
       "All of the following ProgramUniform* functions are supported if and only
       if EXT_direct_state_access is supported." }
-    
+
     glProgramUniform1dEXT := wglGetProcAddress('glProgramUniform1dEXT');
 //    if not Assigned(glProgramUniform1dEXT) then Exit;
     glProgramUniform2dEXT := wglGetProcAddress('glProgramUniform2dEXT');

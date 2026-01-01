@@ -9,8 +9,8 @@ type
 
  //holds a basic image type for loading image files
  sImage = record
-    height: cshort; 
-    width: cshort; 
+    height: cshort;
+    width: cshort;
     bpp: cint;
     palette: pcushort;
     image: record
@@ -20,7 +20,7 @@ type
         2: (data32: pcuint);
     end;
   end;
-  TsImage = sImage; 
+  TsImage = sImage;
   PsImage = ^sImage;
 
 

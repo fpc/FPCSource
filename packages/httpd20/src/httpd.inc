@@ -314,7 +314,7 @@ type
     patch: Integer;              {< patch number }
     add_string: PAnsiChar; {< additional string like "-dev" }
   end;
-  
+
   Pap_version_t = ^ap_version_t;
 
 {
@@ -898,7 +898,7 @@ type
     flags: Cardinal;
 
     (* Useless bitset variables to make the code obscure
-    
+
      Are we still talking?
     unsigned aborted:1;
 
@@ -1034,7 +1034,7 @@ type
     b: Papr_bucket_brigade;
     tmpbb: Papr_bucket_brigade;
   end; // core_ctx_t
-  
+
   core_ctx_t = core_filter_ctx;
 
   Pcore_ctx_t = ^core_ctx_t;

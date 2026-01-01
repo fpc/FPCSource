@@ -1,6 +1,6 @@
 
 {$ifdef NDS_INTERFACE}
- 
+
 type
   FifoChannels = integer;
 const
@@ -14,14 +14,14 @@ const
   FIFO_RSVD_01 : FifoChannels = 7;
   FIFO_USER_01 : FifoChannels = 8;
   FIFO_USER_02 : FifoChannels = 9;
-  FIFO_USER_03 : FifoChannels = 10;	    
-  FIFO_USER_04 : FifoChannels = 11;	    
-  FIFO_USER_05 : FifoChannels = 12;	    
-  FIFO_USER_06 : FifoChannels = 13;	    
-  FIFO_USER_07 : FifoChannels = 14;	    
+  FIFO_USER_03 : FifoChannels = 10;
+  FIFO_USER_04 : FifoChannels = 11;
+  FIFO_USER_05 : FifoChannels = 12;
+  FIFO_USER_06 : FifoChannels = 13;
+  FIFO_USER_07 : FifoChannels = 14;
   FIFO_USER_08 : FifoChannels = 15;
-  
-  
+
+
 type
   FifoSoundCommand = integer;
 const
@@ -45,8 +45,8 @@ const
   SYS_REQ_TIME       : FifoSystemCommands = 2;
   SYS_SET_TIME       : FifoSystemCommands = 3;
   SDMMC_INSERT       : FifoSystemCommands = 4;
-  SDMMC_REMOVE       : FifoSystemCommands = 5;  
-  
+  SDMMC_REMOVE       : FifoSystemCommands = 5;
+
 type
  FifoSdmmcCommands = integer;
 const
@@ -75,7 +75,7 @@ const
   PM_REQ_BATTERY        : FifoPMCommands = (7 shl 16);
   PM_REQ_SLOT1_DISABLE  : FifoPMCommands = (8 shl 16);
   PM_REQ_SLOT1_ENABLE   : FifoPMCommands = (9 shl 16);
-	
+
 type
   FifoWifiCommands = integer;
 const
@@ -126,7 +126,7 @@ function fifoGetValue32(channel: integer): cuint32; cdecl; external;
 
 function fifoGetDatamsg(channel, buffersize: cint; destbuffer: pcuint8): cint; cdecl; external;
 
-procedure fifoWaitValue32(channel: cint); inline; 
+procedure fifoWaitValue32(channel: cint); inline;
 
 {$endif NDS_INTERFACE}
 
@@ -134,7 +134,7 @@ procedure fifoWaitValue32(channel: cint); inline;
 
 {$ifdef NDS_IMPLEMENTATION}
 
-procedure fifoWaitValue32(channel: cint); inline; 
+procedure fifoWaitValue32(channel: cint); inline;
 begin
 
 	while (not fifoCheckValue32(channel)) do

@@ -1,6 +1,6 @@
 (*
   Easy GL2D
-  Relminator 2011 
+  Relminator 2011
   Richard Eric M. Lope BSN RN
   Http://Rel.Phatcode.Net
   A very small, simple, yet very fast DS 2D rendering lib using the DS' 3D core.
@@ -60,7 +60,7 @@ procedure glBoxFilled(x1, y1, x2, y2, color: cint);
 procedure glBoxFilledGradient(x1, y1, x2, y2, color1, color2, color3, color4: cint);
 procedure glTriangle(x1, y1, x2, y2, x3, y3, color: cint);
 procedure glTriangleFilled(x1, y1, x2, y2, x3, y3, color: cint);
-procedure glTriangleFilledGradient(x1, y1, x2, y2, x3, y3, color1, color2, color3: cint);      
+procedure glTriangleFilledGradient(x1, y1, x2, y2, x3, y3, color1, color2, color3: cint);
 procedure glSprite(x, y, flipmode: cint; const spr: PglImage);
 procedure glSpriteScale(x, y: cint; scale: cint32; flipmode: cint; const spr: PglImage);
 procedure glSpriteScaleXY(x, y: cint; scaleX, scaleY: cint32; flipmode: cint; const spr: PglImage);
@@ -75,7 +75,7 @@ function glLoadSpriteSet(sprite: PGLImage; const numframes: cuint;
   palette_width: cint; const palette: pcuint16;
   const texture: pcuint8): cint;
 function glLoadTileSet(sprite: PGLImage; tile_wid, tile_hei, bmp_wid, bmp_hei: cint;
-  type_: GL_TEXTURE_TYPE_ENUM; sizeX, sizeY, param: cint; 
+  type_: GL_TEXTURE_TYPE_ENUM; sizeX, sizeY, param: cint;
   palette_width: cint; const palette: pcuint16;
   const texture: pcuint8): cint;
 
@@ -406,22 +406,22 @@ begin
   y1 := y;
   x2 := x + spr^.Width;
   y2 := y + spr^.Height;
-  
+
   if (flipmode and GL_FLIP_H) <> 0 then
     u1 := spr^.u_off + spr^.Width - 1
   else
     u1 := spr^.u_off;
-    
+
   if (flipmode and GL_FLIP_H) <> 0 then
     u2 := spr^.u_off
   else
     u2 := spr^.u_off + spr^.Width;
-  
+
   if (flipmode and GL_FLIP_V) <> 0 then
     v1 := spr^.v_off + spr^.Height - 1
   else
     v1 := spr^.v_off;
-  
+
   if (flipmode and GL_FLIP_V) <> 0 then
     v2 := spr^.v_off
   else
@@ -457,22 +457,22 @@ begin
   y1 := 0;
   x2 := spr^.Width;
   y2 := spr^.Height;
-                        
+
   if (flipmode and GL_FLIP_H) <> 0 then
     u1 := spr^.u_off + spr^.Width - 1
   else
     u1 := spr^.u_off;
-    
+
   if (flipmode and GL_FLIP_H) <> 0 then
     u2 := spr^.u_off
   else
     u2 := spr^.u_off + spr^.Width - 1;
-  
+
   if (flipmode and GL_FLIP_V) <> 0 then
     v1 := spr^.v_off + spr^.Height - 1
   else
     v1 := spr^.v_off;
-  
+
   if (flipmode and GL_FLIP_V) <> 0 then
     v2 := spr^.v_off
   else
@@ -521,17 +521,17 @@ begin
     u1 := spr^.u_off + spr^.Width - 1
   else
     u1 := spr^.u_off;
-    
+
   if (flipmode and GL_FLIP_H) <> 0 then
     u2 := spr^.u_off
   else
     u2 := spr^.u_off + spr^.Width - 1;
-  
+
   if (flipmode and GL_FLIP_V) <> 0 then
     v1 := spr^.v_off + spr^.Height - 1
   else
     v1 := spr^.v_off;
-  
+
   if (flipmode and GL_FLIP_V) <> 0 then
     v2 := spr^.v_off
   else
@@ -924,7 +924,7 @@ end;
 
 
 function glLoadTileSet(sprite: PGLImage; tile_wid, tile_hei, bmp_wid, bmp_hei: cint;
-  type_: GL_TEXTURE_TYPE_ENUM; sizeX, sizeY, param: cint; 
+  type_: GL_TEXTURE_TYPE_ENUM; sizeX, sizeY, param: cint;
   palette_width: cint; const palette: pcuint16;
   const texture: pcuint8): cint;
 var

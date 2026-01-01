@@ -102,7 +102,7 @@ begin
 
 
   //===========================================================================
-  
+
   //- Shutdown/Clean up the playback stuff
   pPlaybackContext:=alcGetCurrentContext();
   pPlaybackDevice:=alcGetContextsDevice(pPlaybackContext);

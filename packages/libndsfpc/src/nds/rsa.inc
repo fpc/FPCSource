@@ -1,6 +1,6 @@
 {$ifdef NDS_INTERFACE}
 type
-  swiRSAHeapContext = packed record 
+  swiRSAHeapContext = packed record
     heapStart: pointer;
 	heapEnd: pointer;
 	heapSize: size_t;
@@ -25,7 +25,7 @@ function swiRSADecrypt(ctx: PswiRSAHeapContext; dst: pointer; const sig: pointer
 function swiRSADecryptPGP(ctx: PswiRSAHeapContext; dst: pointer; const sig: pointer; const key: pointer): cint; cdecl; external;
 {$endif NDS_INTERFACE}
 
-{$ifdef NDS_IMPLEMENTATION} 
+{$ifdef NDS_IMPLEMENTATION}
 
 
 {$endif NDS_IMPLEMENTATION}

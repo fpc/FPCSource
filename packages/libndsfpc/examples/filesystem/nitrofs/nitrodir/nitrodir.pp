@@ -9,8 +9,8 @@ procedure dirlist(path: PAnsiChar);
 var
   MyDir: PDIR;
   dnbuf: PAnsiChar;
-  pent: pdirent;  
-  statbuf: PStat;        
+  pent: pdirent;
+  statbuf: PStat;
 begin
   GetMem(MyDir, sizeof(PDIR));
   GetMem(pent, sizeof(dirent));
@@ -22,23 +22,23 @@ begin
     while true do
     begin
       pent := readdir(MyDir);
-      if pent = nil then 
+      if pent = nil then
         exit;
-  
+
       if (strcmp('.', pent^.d_name) <> 0) and (strcmp('..', pent^.d_name) <> 0) then
       begin
         dnbuf := malloc(strlen(pent^.d_name) + strlen(path) + 2);
-        if (strcmp('/',path) = 0) then 
+        if (strcmp('/',path) = 0) then
           sprintf(dnbuf, '%s/%s', '', pent^.d_name)
         else
           sprintf(dnbuf, '%s/%s', path, pent^.d_name);
         _stat(dnbuf, statbuf^);
-      
+
         if (S_ISDIR(statbuf^.st_mode)) then
         begin
           printf('%s <DIR>'#10, dnbuf);
           dirlist(dnbuf);
-        end else 
+        end else
         begin
           printf('%s (%d)'#10, dnbuf, statbuf^.st_size);
         end;
@@ -48,7 +48,7 @@ begin
     end;
 
     closedir(MyDir);
-  end else 
+  end else
   begin
     printf('opendir() failure.'#10);
   end;
@@ -59,10 +59,10 @@ var
   inf: P_File;
   len: cint;
   entireFile: pcchar;
-begin	
+begin
   // Initialise the console, required for printf
   consoleDemoInit();
-   
+
   if nitroFSInit(nil) then
   begin
     dirlist('/');
@@ -92,7 +92,7 @@ begin
 
 		iprintf('here is the dirlist once more:'#10);
     dirlist('/');
-  end else 
+  end else
     iprintf('nitroFSInit failure: terminating'#10);
 
   while true do

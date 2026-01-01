@@ -1,5 +1,5 @@
 {$ifdef NDS_INTERFACE}
-  
+
 procedure scanKeys(); cdecl; external;
 
 function keysCurrent(): cuint32; cdecl; external;

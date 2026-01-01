@@ -6,8 +6,8 @@ uses
   ctypes;
 //======================================================================
 //
-//	Layer128x128r, 128x128@8, 
-//	+ affine map, not compressed, 16x16 
+//	Layer128x128r, 128x128@8,
+//	+ affine map, not compressed, 16x16
 //	External tile file: (null).
 //	Total size: 256 = 256
 //
@@ -23,8 +23,8 @@ var
 
 //======================================================================
 //
-//	Layer256x256r, 256x256@8, 
-//	+ affine map, not compressed, 32x32 
+//	Layer256x256r, 256x256@8,
+//	+ affine map, not compressed, 32x32
 //	External tile file: (null).
 //	Total size: 1024 = 1024
 //
@@ -40,8 +40,8 @@ var
 
 //======================================================================
 //
-//	Layer512x512r, 512x512@8, 
-//	+ affine map, not compressed, 64x64 
+//	Layer512x512r, 512x512@8,
+//	+ affine map, not compressed, 64x64
 //	External tile file: (null).
 //	Total size: 4096 = 4096
 //
@@ -57,8 +57,8 @@ var
 
 //======================================================================
 //
-//	Layer1024x1024r, 1024x1024@8, 
-//	+ affine map, not compressed, 128x128 
+//	Layer1024x1024r, 1024x1024@8,
+//	+ affine map, not compressed, 128x128
 //	External tile file: (null).
 //	Total size: 16384 = 16384
 //
@@ -74,7 +74,7 @@ var
 
 //======================================================================
 //
-//	RotBackgrounds, 8x872@8, 
+//	RotBackgrounds, 8x872@8,
 //	+ palette 256 entries, not compressed
 //	+ 109 tiles not compressed
 //	Total size: 512 + 6976 = 7488

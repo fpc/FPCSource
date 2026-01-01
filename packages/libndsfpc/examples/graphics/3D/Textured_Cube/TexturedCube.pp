@@ -85,19 +85,19 @@ var
 begin
   dispcnt := REG_DISPCNT^;
   //set main display to display from VRAM
-  dispcnt := dispcnt and ($00030000 xor $FFFFFFFF); 
+  dispcnt := dispcnt and ($00030000 xor $FFFFFFFF);
   dispcnt := dispcnt or (2 shl 16); //choose to display screen from VRAM
-  dispcnt := dispcnt and ($000C0000 xor $FFFFFFFF); 
+  dispcnt := dispcnt and ($000C0000 xor $FFFFFFFF);
   dispcnt := dispcnt or (1 shl 18); //choose to display screen from VRAM_B
   REG_DISPCNT^ := dispcnt;
 end;
- 
+
 procedure DisplayEnableNormal();
-var         
+var
   dispcnt: cuint32;
 begin
   dispcnt := REG_DISPCNT^;
-  dispcnt := dispcnt and ($00030000 xor $FFFFFFFF); 
+  dispcnt := dispcnt and ($00030000 xor $FFFFFFFF);
   dispcnt := dispcnt or (1 shl 16); //choose to display screen from normal layer composition
   REG_DISPCNT^ := dispcnt;
 end;
@@ -148,11 +148,11 @@ begin
   //and we're not putting a lot of dampening on the effect.
   //a more realistic value might be 8 and 8, but perhaps in a more complex 3d scene the garbage isn't such a bad thing
   //since the scene is changing constantly
- 
+
   DisplayEnableMotionBlur();
   displayBlurred := true;
- 
- 
+
+
 
   vramSetBankA(VRAM_A_TEXTURE);
 
@@ -233,10 +233,10 @@ begin
     glFlush(0);
 
     swiWaitForVBlank();
-    
+
     if (keys and KEY_START) <> 0 then break;
-    
+
     //the display capture enable bit must be set again each frame if you want to continue capturing.
-    REG_DISPCAPCNT^ := REG_DISPCAPCNT^ or DCAP_ENABLE;    
+    REG_DISPCAPCNT^ := REG_DISPCAPCNT^ or DCAP_ENABLE;
   end;
 end.

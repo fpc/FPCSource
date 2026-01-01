@@ -25,14 +25,14 @@
 
 
   ------------------------------------------------------------------------------
-    
-    
+
+
   Conversion by Legolas (http://itaprogaming.free.fr) for freepascal compiler
   (http://www.freepascal.org)
-   
+
   Copyright (C) 2006  Francesco Lombardi
   Check http://sourceforge.net/projects/libndsfpc for updates
-   
+
   ------------------------------------------------------------------------------
 
   $Log$
@@ -100,7 +100,7 @@ procedure CpuFastSet(const source: pointer; dest: pointer; mode: u32); cdecl; ex
 
 procedure IntrWait(ReturnFlag, IntFlag: u32); cdecl; external;
 
-procedure VBlankIntrWait(); assembler; inline; 
+procedure VBlankIntrWait(); assembler; inline;
 {$endif GBA_INTERFACE}
 
 
@@ -110,12 +110,12 @@ procedure VBlankIntrWait(); assembler; inline;
 //---------------------------------------------------------------------------------
 
 procedure Halt(); assembler; inline;
-asm 
+asm
   SWI SC_ARM_2
 end;
 
 procedure Stop(); assembler; inline;
-asm 
+asm
   SWI SC_ARM_3
 end;
 
@@ -126,9 +126,9 @@ asm
   mov r0,#0
 end;
 
-procedure VBlankIntrWait(); assembler; inline; 
-asm 
+procedure VBlankIntrWait(); assembler; inline;
+asm
   SWI SC_ARM_5
-end;	
+end;
 {$endif GBA_IMPLEMENTATION}
 

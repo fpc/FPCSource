@@ -25,7 +25,7 @@
 
 {
  * @defgroup apr_dso Dynamic Object Handling
- * @ingroup APR 
+ * @ingroup APR
  }
 
 {$define APR_HAS_DSO}

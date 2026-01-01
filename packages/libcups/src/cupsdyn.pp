@@ -12,17 +12,17 @@
     This code provide an interface with Common UNIX Printing System (CUPS).
     it is based on cups.h version 1.47
     This code is tested with the 1.1.19 of CUPS
-    
+
   link:
     http://www.cups.org
     http://localhost:631/spm.html (for documentation)
-    
+
   See : /usr/share/doc/cups/licence.txt
-  
+
   Required
     CUPS 1.1.19 or more
     libCUPS
-    
+
   History
    sept 14 2003 - Create
    nov  04 2003 - First release
@@ -1176,7 +1176,7 @@ var
   cupsSetServer:procedure (server:PAnsiChar);cdecl;
   cupsSetUser:procedure (user:PAnsiChar);cdecl;
   cupsUser:function :PAnsiChar;cdecl;
-  
+
 function cupsDoRequest(ahttp :Phttp_t; aRequest :Pipp_t; aResource :PAnsiChar) : Pipp_t;
 function cupsLangDefault : Pcups_lang_t;
 
@@ -1187,7 +1187,7 @@ function CUPSLibInstalled : Boolean;
 
 var
   CupsLibHandle: TLibHandle;
-  
+
 implementation
 
 var RefCount : integer;
@@ -1204,7 +1204,7 @@ begin
       if CupsLibHandle <> nilhandle then
         Break;
     end;
-    
+
     if CupsLibHandle = nilhandle then
     begin
       //debugln('InitializeCups load cups lib failed');
@@ -1212,9 +1212,9 @@ begin
       raise EInOutError.Create('Can not load cups library');
     end;
   end;
-  
+
   //WriteLn('CupsLibHandle=', CupsLibHandle);
-  
+
   //
   //cups_language.pp
   //
@@ -1288,7 +1288,7 @@ begin
   pointer(ppdFindAttr) := GetProcedureAddress(CupsLibHandle, 'ppdFindAttr');
   pointer(ppdFindNextAttr) := GetProcedureAddress(CupsLibHandle, 'ppdFindNextAttr');
   pointer(ppdLastError) := GetProcedureAddress(CupsLibHandle, 'ppdLastError');
-  
+
   //
   // cups_ipp
   //
@@ -1354,7 +1354,7 @@ begin
   pointer(cupsSetServer) := GetProcedureAddress(CupsLibHandle, 'cupsSetServer');
   pointer(cupsSetUser) := GetProcedureAddress(CupsLibHandle, 'cupsSetUser');
   pointer(cupsUser) := GetProcedureAddress(CupsLibHandle, 'cupsUser');
-  
+
 end;
 
 //Return true if CUPS lib can be loaded and
@@ -1399,6 +1399,6 @@ end;
 
 INITIALIZATION
   CupsLibHandle:= NilHandle;
-  
+
 end.
 

@@ -1,13 +1,13 @@
 {$ifdef NDS_INTERFACE}
-const  
+const
   // Card bus
-  REG_CARD_DATA_RD   : pcuint32 = pointer($04100010);  
+  REG_CARD_DATA_RD   : pcuint32 = pointer($04100010);
   REG_AUXSPICNT      : pcuint16 = pointer($040001A0);
   REG_AUXSPICNTH     : pcuint8  = pointer($040001A1);
   REG_AUXSPIDATA     : pcuint8  = pointer($040001A2);
   REG_ROMCTRL        : pcuint32 = pointer($040001A4);
   REG_CARD_COMMAND   : pcuint8  = pointer($040001A8);
-  
+
   CARD_1B0       : pcuint32 = pointer($040001B0);
   CARD_1B4       : pcuint32 = pointer($040001B4);
   CARD_1B8       : pcuint16 = pointer($040001B8);
@@ -50,7 +50,7 @@ function CARD_DELAY1(n: cint): cint; inline;
 
 
 
-const  
+const
   // 3 bits in b10..b8 indicate something
   // read bits
   CARD_BUSY       = (1 shl 31);  // when reading, still expecting incomming data?
@@ -84,7 +84,7 @@ procedure enableSlot1(); cdecl; external;
 procedure disableSlot1(); cdecl; external;
 
 procedure cardWriteCommand(const command: pcuint8); cdecl; external;
-procedure cardPolledTransfer(flags: cuint32;  destination: pcuint32;  length: cuint32; const command: pcuint8); cdecl; external; 
+procedure cardPolledTransfer(flags: cuint32;  destination: pcuint32;  length: cuint32; const command: pcuint8); cdecl; external;
 procedure cardStartTransfer(const command: pcuint8;  destination: pcuint32;  channel: cint;  flags: cuint32); cdecl; external;
 function cardWriteAndRead(const command: pcuint8;  flags: cuint32): cuint32; cdecl; external;
 procedure cardParamCommand(command: cuint8; parameter, flags: cuint32; destination: pcuint32; length: cuint32); cdecl; external;
@@ -95,8 +95,8 @@ procedure cardReset(); cdecl; external;
 
 procedure eepromWaitBusy(); inline;
 
-procedure cardReadEeprom(address: cuint32;  data: pcuint8;  length: cuint32;  addrtype: cuint32); cdecl; external; 
-procedure cardWriteEeprom(address: cuint32;  data: pcuint8;  length: cuint32;  addrtype: cuint32); cdecl; external; 
+procedure cardReadEeprom(address: cuint32;  data: pcuint8;  length: cuint32;  addrtype: cuint32); cdecl; external;
+procedure cardWriteEeprom(address: cuint32;  data: pcuint8;  length: cuint32;  addrtype: cuint32); cdecl; external;
 
 function cardEepromReadID(): cuint32; cdecl; external;
 

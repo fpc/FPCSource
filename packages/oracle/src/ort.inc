@@ -10,20 +10,20 @@
 
   { @(#)ort.h    1.44 95/07/07  }
   { Copyright (c) 1994, 2003, Oracle Corporation.  All rights reserved.   }
-  { 
+  {
     NAME
-  
+
       ORT - ORacle's external open Type interface to the open type manager (OTM)
-  
+
     DESCRIPTION
-  
+
       The open type manager interface includes dynamic type operations to
       create, delete, update, and access types.  See the "Functional
       Specification for Oracle Object Call Interface (Objects Project),
       Version 1.0" for a user level description of the OTM.  For a more
       detailed description, see the "Component Document for the Open Type
       Manager, Version 1.0".
-  
+
       NOTE: MOST Of the functions in this header file are being desupported.
             Please use the OCIDescribeAny interface as described in oci.h
             instead.
@@ -31,82 +31,82 @@
             to be supported. The only two functions that remain to be documented
             are OCITypeArrayByName and OCITypeArrayByRef.
             All obsolete types/functions are marked accordingly below.
-  
+
     RELATED DOCUMENTS
-  
-      For the functional specification for the OTM, see: 
+
+      For the functional specification for the OTM, see:
           [1] Kotsovolos, Susan, "Functional Specification for Oracle Object
               Call Interface (Objects Project), Version 1.0", Oracle
               Corporation, February 1995.
       For the internal design of the OTM, see the following:
           [2] Kotsovolos, Susan, "Component Document for the Open Type Manager",
-              Oracle Corporation, November 1994. 
-          [3] Kotsovolos, Susan, "Design for The Open Type Manager, Oracle 
-              Object Management Subsystem Version 1.0", Oracle Corporation, 
+              Oracle Corporation, November 1994.
+          [3] Kotsovolos, Susan, "Design for The Open Type Manager, Oracle
+              Object Management Subsystem Version 1.0", Oracle Corporation,
               March 1994.
           [4] Kotsovolos, Susan and Tin A. Nguyen, "The Open Type Manager",
               Oracle Corporation, March 1994.
           [5] Kotsovolos, Susan and Tin A. Nguyen, "Schema Evolution",
               Oracle Corporation, March 1994.
       For a description of the types the OTM must support, see:
-          [6] Nguyen, Tin A., "The Open Type System", Oracle Corporation, 
-              February 1994. 
-  
-    INSPECTION STATUS 
-  
-      Inspection date:    
-      Inspection status: 
+          [6] Nguyen, Tin A., "The Open Type System", Oracle Corporation,
+              February 1994.
+
+    INSPECTION STATUS
+
+      Inspection date:
+      Inspection status:
       Estimated increasing cost defects per page:
-      Rule sets:        
-  
-    ACCEPTANCE REVIEW STATUS 
-  
-      Review date:    
+      Rule sets:
+
+    ACCEPTANCE REVIEW STATUS
+
+      Review date:
       Review status:
-      Reviewers:  
-  
-  
+      Reviewers:
+
+
     **** ALL OBSOLETE FUNCTIONS/TYPES ARE MARKED ACCORDINGLY ***
-  
+
     EXPORT FUNCTIONS
-  
+
       None
-  
+
     PUBLIC DATA STRUCTURES
-  
+
         OCIType - type descriptor in the object cache
         OCITypeElem - type element descriptor in the object cache
               (used for attributes and paramters)
         OCITypeCode  - Open Type System type code.
         OCITypeMethod - method descriptor in the object cache
         OCITypeParamMode - parameter modes (ie. IN, IN-OUT etc)
-  
+
     PUBLIC FUNCTIONS
-  
+
       ITERATOR (for OCITypeAttrNext and OCITypeMethodNext)
-  
+
         OCITypeIterNew  - ** OBSOLETE ** Create new instance of an iteraton.
         OCITypeIterSet  - ** OBSOLETE ** Initialize iterator.
         OCITypeIterFree - ** OBSOLETE ** Free instance of iterator.
-  
+
       TYPE GET
-  
+
         OCITypeByName      - ** OBSOLETE ** Get a type by name.
         OCITypeArrayByName - Get an array of types by their names.
         OCITypeByRef       - ** OBSOLETE ** Get a type by its CREF.
         OCITypeArrayByRef  - Get an array of types by their CREFs.
-  
+
       TYPE ACCESSORS
-  
+
         OCITypeName     - ** OBSOLETE ** OCI Get a type's name.
         OCITypeSchema   - ** OBSOLETE ** OCI Get a type's schema name.
         OCITypeTypeCode - ** OBSOLETE ** OCI Get a type's type code.
         OCITypeVersion  - ** OBSOLETE ** OCI Get a Type's user-readable Version.
         OCITypeAttrs    - ** OBSOLETE ** OCI Get a Type's Number of Attributes.
         OCITypeMethods  - ** OBSOLETE ** OCI Get a Type's Number of Methods.
-  
+
       TYPE ELEMENT ACCESSORS (they represent attributes/parameters/results)
-  
+
         OCITypeElemName      - ** OBSOLETE ** Get a type element's (only for
                                   attributes) name.
         OCITypeElemType      - ** OBSOLETE ** Get a type element's type
@@ -128,22 +128,22 @@
         OCITypeElemParamMode - ** OBSOLETE ** Get element's parameter's mode
                                               (only valid for parameter).
         OCITypeElemDefaultValue - ** OBSOLETE ** Get element's Default Value.
-  
+
       ATTRIBUTE ACCESSORS
-  
+
         OCITypeAttrByName - ** OBSOLETE ** Get an Attribute by Name.
         OCITypeAttrNext   - ** OBSOLETE ** Get an Attribute by Iteration.
-  
+
       COLLECTION ACCESSORS
-  
+
         OCITypeCollTypeCode - ** OBSOLETE ** Get a named collection's typecode.
         OCITypeCollElem     - ** OBSOLETE ** Get a named collection's element's
                                  type element information.
         OCITypeCollSize     - ** OBSOLETE ** Get a named collection's size in
                                  number of elements.
-  
+
       METHOD ACCESSORS
-  
+
         OCITypeMethodOverload - ** OBSOLETE ** Get number of overloaded methods
                                                with the given method name.
                                                (no direct equivalent for
@@ -152,56 +152,56 @@
         OCITypeMethodNext     - ** OBSOLETE ** Iterate to the next method to
                                                retrieve.
         OCITypeMethodName     - ** OBSOLETE ** Get method's name.
-        OCITypeMethodEncap    - ** OBSOLETE ** Get method's encapsulation level. 
+        OCITypeMethodEncap    - ** OBSOLETE ** Get method's encapsulation level.
         OCITypeMethodFlags    - ** OBSOLETE ** et method's flags.
         OCITypeMethodMap      - ** OBSOLETE ** Get type's map function.
         OCITypeMethodOrder    - ** OBSOLETE ** Get type's order function.
         OCITypeMethodParams   - ** OBSOLETE ** Get a method's number of
                                                parameters.
-  
+
       RESULT ACCESSORS
-  
+
         OCITypeResult - ** OBSOLETE ** OCI Get a method's Result.
-  
+
         See also ATTRIBUTE/PARAMETER/RESULT TYPE ACCESSORS.
-  
+
       PARAMETER ACCESSORS
-  
+
         OCITypeParamByPos  - ** OBSOLETE ** Get a Parameter in a method By
                                             Position.
         OCITypeParamByName - ** OBSOLETE ** Get a Parameter in a method By Name.
         OCITypeParamPos    - ** OBSOLETE ** Get a Parameter's PoSition in a
                                             method.
-  
+
     CALL GRAPHS:
-  
+
     Only type accessors are supported for 8.0.
     ** OBSOLETE ** please use OCIDescribe interface
-  
+
     TYPE ACCESSOR EXAMPLE
-  
+
         CREATE TYPE CAR
         (
           name   vstring,
           age    number,
             number   car_age;                           /o Oracle number o/
             weight   car_weight;                        /o abstract type o/
-  
-          PUBLIC: 
-  
+
+          PUBLIC:
+
             /o methods o/
             car(orlvs a_name, number an_age, WEIGHT a_weight);
             ~car();
             inline number get_age() const;
-            
+
             /o relative ordering (map) functions o/
             number car_map
         );
-  
+
         /o the following code accesses the type created above o/
-  
+
         ub1      meth_flags;
-        ub4      i, j; 
+        ub4      i, j;
         ub4      text_len, position;
         ub4      count;
         ub4      length;
@@ -216,74 +216,74 @@
         ub4     *positions;
         oratext    *name;
         oratext     name_buffer[M_IDEN];
-  
+
         /o initialize the references o/
         DISCARD orlrini(env, err, (dvoid *)&attr_ref);
         DISCARD orlrini(env, err, (dvoid *)&param_ref);
-  
+
         /o ----------------- GET INFORMATION ABOUT A TYPE ----------------- o/
-  
+
         /o start a transaction o/
-        
-        /o Pin the type until the end of the transaction.  Pinning the type is 
-         o required before using any type accessors. 
+
+        /o Pin the type until the end of the transaction.  Pinning the type is
+         o required before using any type accessors.
          o/
-        if (OCITypeByName(env, err, svc, (oratext *)0, 0, "CAR", strlen("CAR"), 
+        if (OCITypeByName(env, err, svc, (oratext *)0, 0, "CAR", strlen("CAR"),
                     OCI_DURATION_TRANS, &car_ref, &car_tdo) != OCI_SUCCESS)
           /o error o/ ;
-  
+
         /o get the type's name o/
         if (!memcmp(OCITypeName(env, err, car_tdo, &text_len), "person",
                                 text_len))
           /o do something o/ ;
-  
+
         /o get the type's schema name o/
         if (!memcmp(OCITypeSchema(env, err, car_tdo, &text_len), "john",
                     text_len))
           /o do something o/ ;
-  
+
         /o get the type code of the type o/
         if (OCITypeTypeCode(env, err, car_tdo) == OCI_TYPECODE_ADT)
-          /o do something o/ ; 
-  
+          /o do something o/ ;
+
         /o get the type version o/
         if (!memcmp(OCITypeVersion(env, err, car_tdo, &text_len), "1", text_len))
            /o do something o/  ;
-  
+
         /o ------- GET FLATTENED POSITION OF AN ATTRIBUTES IN A TYPE ------- o/
-  
+
         names = malloc(sizeof(oratext *) * 2);
         names[0] = malloc(strlen("car_weight"));
         names[1] = malloc(strlen("ounces"));
         memcpy(names[0], "car_weight", strlen("car_weight"));
         memcpy(names[1], "ounces", strlen("ounces"));
-  
+
         lengths = malloc(sizeof(ub4) * 2);
         lengths[0] = strlen("car_weight");
         lengths[1] = strlen("ounces");
-  
+
         /o ---------- GET IMMEDIATE ATTRIBUTES IN A TYPE ---------- o/
-  
+
         /o loop through all attributes in the type with iterator o/
         if (OCITypeIterNew(env, err, car_tdo, &iterator_ort) != OCI_SUCCESS)
           /o do something o/
-  
+
         while (OCITypeAttrNext(env, err, iterator_ort, &ado) != OCI_NO_DATA)
-        
+
           /o get the attribute's name o/
           if (!memcmp(OCITypeElemName(env, err, ado, &text_len),
                                       "tiger", text_len))
             /o do something o/  ;
-  
+
           /o get the attribute's type descriptor o/
           if (OCITypeElemType(env, err, ado, &tdo) != OCI_SUCCESS)
             /o error o/ ;
-  
+
           /o get the attribute's type code o/
           typecode = OCITypeElemTypeCode(env, err, ado);
-  
+
           switch (typecode)
-          
+
           /o scalar types o/
           case OCI_TYPECODE_DATE:                                     /o date o/
           case OCI_TYPECODE_SIGNED8:                                  /o byte o/
@@ -296,195 +296,195 @@
           case OCI_TYPECODE_BLOB:                               /o binary lob o/
           case OCI_TYPECODE_CFILE:                   /o character file object o/
           case OCI_TYPECODE_BFILE:                      /o binary file object o/
-  
+
             /o do something o/
             break;
-  
+
           /o number types o/
           case OCI_TYPECODE_NUMBER:                          /o oracle number o/
           case OCI_TYPECODE_DECIMAL:                               /o decimal o/
-            
+
               /o get the scale of the number o/
               if (OCITypeElemNumScale(env, err, ado) == 3)
                 /o do something o/ ;
-            
+
             /o fall through to get the precision o/
-  
+
           case OCI_TYPECODE_FLOAT:                                   /o float o/
           case OCI_TYPECODE_SIGNED32:                                 /o long o/
           case OCI_TYPECODE_UNSIGNED32:                      /o unsigned long o/
           case OCI_TYPECODE_REAL:                                     /o real o/
           case OCI_TYPECODE_DOUBLE:                                 /o double o/
-            
+
               /o get the precision of the number o/
               if (OCITypeElemNumPrec(env, err, ado) == 2)
                 /o do something o/ ;
-            
+
             break;
-  
+
           /o string types o/
           case OCI_TYPECODE_CHAR:                      /o fixed length string o/
           case OCI_TYPECODE_VARCHAR2:               /o variable length string o/
           case OCI_TYPECODE_RAW:                                       /o raw o/
-            
+
               /o get the length of the fixed or variable length string o/
               if (OCITypeElemLength(env, err, ado) < 100)
                 /o do something o/
-            
+
             break;
-  
+
           /o parameterized types o/
           case OCI_TYPECODE_REF:                          /o reference o/
           case OCI_TYPECODE_PTR:                            /o pointer o/
-            
+
               /o get the type stored in the parameterized type o/
               if (OCITypeElemParameterizedType(env, err, ado, &tdo)
                    != OCI_SUCCESS)
                 /o error o/ ;
-  
+
               /o do something o/
               if (OCI_TYPEELEM_IS_REF(OCITypeElemFlags(env, err, ado)))...
-            
+
             break;
-  
+
           /o domain type o/
           case OCI_TYPECODE_NAMEDCOLLECTION:
             switch (OCITypeCollTypeCode(env, err, tdo))
-            
+
             case OCI_TYPECODE_VARRAY:                   /o variable array o/
               ub4   num_elems;
               OCIType *element_type;
-  
+
               /o get the number of elements in the farray or the maximum number
                o of elements in the varray.
                o/
               OCITypeCollSize(env, err, tdo, &num_elems);
-  
+
               /o get the type of the array o/
               OCITypeElemType(env, err, tdo, &element_type);
-            
+
             break;
-  
+
             case OCI_TYPECODE_TABLE:                         /o multiset o/
-            
+
               OCIType *table_type;
-  
+
               /o get the type of the multiset o/
               OCITypeElemType(env, err, tdo, &table_type);
-  
+
               /o do something o/
-            
-          
-  
+
+
+
           /o abstract type o/
           case OCI_TYPECODE_ADT:                 /o abstract data type o/
-            
+
               /o get the adt information o/
               if (OCITypeElemType(env, err, ado, &tdo) != OCI_SUCCESS)
                 /o error o/ ;
-  
+
               /o do something o/
-            
+
             break;
-  
+
           default:
             DISCARD printf("Error:  invalid type code\n");
-  
+
            /o end of typecode switch o/
-  
+
          /o end of loop through all attributes in a type o/
-  
-  
+
+
         /o ------------ GET THE IMMEDIATE METHODS OF A TYPE ------------ o/
-  
+
         /o loop through all methods in the type by reusing iterator o/
         if (OCITypeIterSet(env, err, car_tdo, iterator_ort) != OCI_SUCCESS)
           /o do something o/
-  
+
         while (OCITypeMethodNext(env, err, iterator_ort) != OCI_NO_DATA)
-        
+
           /o get the method's name o/
           if (!memcmp(OCITypeMethodName(env, err, mdo, &text_len), "car",
                       text_len))
             /o do something o/  ;
-  
+
           /o get the method's encapsulation o/
           if (OCITypeMethodEncap(env, err, mdo) == OCI_TYPEENCAP_PUBLIC)
             /o do something o/  ;
-  
+
           /o get the method's flags o/
           meth_flags = OCITypeMethodFlags(env, err, mdo);
-          if (meth_flags & OCI_TYPEMETHOD_VIRTUAL)  
+          if (meth_flags & OCI_TYPEMETHOD_VIRTUAL)
             /o do something o/  ;
-  
-  
+
+
           /o ------------ GET THE PARAMETERS IN A METHOD ------------ o/
-  
+
           /o loop through all parameters in the method o/
           count = OCITypeMethodParams(env, err, mdo);
           for (j = 1; j <= count; j++)
-          
+
             /o get the parameter information by position o/
             if (OCITypeParamByPos(env, err, mdo, i, &elem) != OCI_SUCCESS)
               /o error o/ ;
-  
+
             /o get the parameter's name o/
             if (!memcmp(OCITypeElemName(env, err, elem, &text_len), "an_age",
                         text_len))
               /o do something o/ ;
-  
+
             /o get the parameter's mode o/
             if (OCITypeElemMode(env, err, elem) == OCI_PARAM_OUT)
               /o do something o/ ;
-     
+
             /o get the parameter's required flag o/
             if (ortgprq(env, err, elem))
               /o do something o/ ;
-          
-        
-  
+
+
+
         /o get a method by name o/
-        if (OCITypeMethodByName(env, err, car_tdo, "car_constructor", 
-                                strlen("car_constructor"), NULLP(OCIRef), &mdo) 
+        if (OCITypeMethodByName(env, err, car_tdo, "car_constructor",
+                                strlen("car_constructor"), NULLP(OCIRef), &mdo)
                                 != OCI_SUCCESS)
           /o error o/ ;
-  
+
         /o get a parameter in a method by name o/
-        if (OCITypeParamByName(env, err, mdo, "an_age", strlen("an_age"), &elem) 
+        if (OCITypeParamByName(env, err, mdo, "an_age", strlen("an_age"), &elem)
                     != OCI_SUCCESS)
           /o error o/ ;
-  
+
         /o get a parameter's typecode o/
         typecode = OCITypeElemTypeCode(env, err, elem);
-     
+
         /o get a parameter's type object o/
         if (OCITypeElemType(env, err, elem, &tdo)) != OCI_SUCCESS)
           /o error o/ ;
-  
+
         /o get a parameter's position in a method o/
-        if (ortgpps(env, err, mdo, "an_age", strlen("an_age"), 
+        if (ortgpps(env, err, mdo, "an_age", strlen("an_age"),
                     &position, NULLP(OCIRef), NULLP(OCITypeElem)) != OCI_SUCCESS)
           /o error o/ ;
-  
+
         /o ------------ GET THE METHOD's RESULT ------------ o/
-       
+
         /o get a method by name o/
         if (OCITypeMethodByName(env, err, car_tdo, "get_age", strlen("get_age"),
                     &mdo) != OCI_SUCCESS)
           /o error o/ ;
-  
+
         /o get the typecode of the method's result o/
         typecode = OCITypeElemTypeCode(env, err, mdo);
-  
-  
+
+
         /o ----------------- END ---------------- o/
-  
+
         /o free the references implicitly allocated o/
         DISCARD orlrfre(env, err, (dvoid *)&attr_ref);
         DISCARD orlrfre(env, err, (dvoid *)&param_ref);
-  
+
     NOTES
-  
+
     MODIFIED
       srseshad   03/12/03  - convert oci public api to ansi
       aahluwal   06/03/02  - bug 2360115
@@ -567,45 +567,45 @@
       cxcheng    10/05/95 -  add null support, change prototypes to calls
       cxcheng    10/03/95 -  add OCITypeMethodOrder() to get ORDER method
       cxcheng    09/28/95 -  add OCITypeElemm() for collection types support
-      skotsovo   06/05/95 -  add adt_type parameter to ortsab() 
-      skotsovo   05/10/95 -  ifdef'd out ortgafp() 
+      skotsovo   06/05/95 -  add adt_type parameter to ortsab()
+      skotsovo   05/10/95 -  ifdef'd out ortgafp()
       skotsovo   03/07/95 -  update interface to only include release 1
-      skotsovo   02/22/95 -  add multiset accessors 
-      skotsovo   02/09/95 -  update according to new ots doc 
-      skotsovo   01/31/95 -  add rest of release 1 types 
-      skotsovo   01/24/95 -  categorize sint32, double, and real as number types 
+      skotsovo   02/22/95 -  add multiset accessors
+      skotsovo   02/09/95 -  update according to new ots doc
+      skotsovo   01/31/95 -  add rest of release 1 types
+      skotsovo   01/24/95 -  categorize sint32, double, and real as number types
                              (with precision and scale) instead of scalar types.
-      skotsovo   01/12/95 -  remove dependency from ortdty interface 
-      skotsovo   01/03/95 -  remove orotyp accessors 
-      skotsovo   12/12/94 -  update comments 
-      skotsovo   12/05/94 -  change OCITypeElemParameterizedTyper interface 
-      skotsovo   10/26/94 -  add type version table 
-      skotsovo   10/17/94 -  fix ortgafp() comments 
-      skotsovo   10/14/94 -  modify ortgafp() parameters 
-      skotsovo   10/14/94 -  add examples 
-      skotsovo   10/13/94 -  add a few new routines 
-      jwijaya    10/07/94 -  add namespace to pin by name 
-      jwijaya    10/02/94 -  connection handle -> connection number 
-      skotsovo   09/13/94 -  modify example to use updated oririni interface 
-      skotsovo   08/25/94 -  change scale to sb1 from sb2 
-      skotsovo   07/28/94 -  add ortbeg() and ortend() 
+      skotsovo   01/12/95 -  remove dependency from ortdty interface
+      skotsovo   01/03/95 -  remove orotyp accessors
+      skotsovo   12/12/94 -  update comments
+      skotsovo   12/05/94 -  change OCITypeElemParameterizedTyper interface
+      skotsovo   10/26/94 -  add type version table
+      skotsovo   10/17/94 -  fix ortgafp() comments
+      skotsovo   10/14/94 -  modify ortgafp() parameters
+      skotsovo   10/14/94 -  add examples
+      skotsovo   10/13/94 -  add a few new routines
+      jwijaya    10/07/94 -  add namespace to pin by name
+      jwijaya    10/02/94 -  connection handle -> connection number
+      skotsovo   09/13/94 -  modify example to use updated oririni interface
+      skotsovo   08/25/94 -  change scale to sb1 from sb2
+      skotsovo   07/28/94 -  add ortbeg() and ortend()
       skotsovo   07/14/94 -  add decimal type & call graph
-      skotsovo   06/28/94 -  subset by removing miscellaneous functions 
-      skotsovo   06/28/94 -  consistently put comments before typedefs 
+      skotsovo   06/28/94 -  subset by removing miscellaneous functions
+      skotsovo   06/28/94 -  consistently put comments before typedefs
       skotsovo   06/27/94 -  modify according to new header file template, add
                              more examples, and change ortcty() to return a
                              reference to the type
-      skotsovo   06/24/94 -  add functions to get type information from orotyp 
-      skotsovo   06/20/94 -  finish modifying according to header template 
-      skotsovo   06/09/94 -  modify according to header file template 
-      skotsovo   06/08/94 -  replace s.h with oratypes.h 
+      skotsovo   06/24/94 -  add functions to get type information from orotyp
+      skotsovo   06/20/94 -  finish modifying according to header template
+      skotsovo   06/09/94 -  modify according to header file template
+      skotsovo   06/08/94 -  replace s.h with oratypes.h
       skotsovo   05/24/94 -  modify comments & update example
-      skotsovo   05/23/94 -  modify fnt names for create, alter and drop type 
-      skotsovo   05/18/94 -  remove ortdme() -- delete a method 
-      skotsovo   05/17/94 -  add tdo parameter to all type modifiers 
-      skotsovo   05/11/94 -  return text* instead of including it in arglist 
+      skotsovo   05/23/94 -  modify fnt names for create, alter and drop type
+      skotsovo   05/18/94 -  remove ortdme() -- delete a method
+      skotsovo   05/17/94 -  add tdo parameter to all type modifiers
+      skotsovo   05/11/94 -  return text* instead of including it in arglist
       skotsovo   11/16/93 -  creation
-  
+
    }
 {$ifndef ORO_ORACLE}
 { $include <oro.h>}
@@ -620,61 +620,61 @@
      the short names here  }
 
   const
-     OCITypeArrayByName = ortgatyp;     
-     OCITypeAttrByName = ortgabn;     
-     OCITypeAttrNext = ortgabi;     
-     OCITypeAttrs = ortgtna;     
-     OCITypeByRef = ortgtbrf;     
-     OCITypeCollElem = ortgcel;     
-     OCITypeCollExtTypeCode = ortgcsqt;     
-     OCITypeCollSize = ortgcne;     
-     OCITypeCollTypeCode = ortgdttc;     
-     OCITypeElem = ortado;     
-     OCITypeElemCharSetForm = ortgscform;     
-     OCITypeElemCharSetID = ortgscid;     
-     OCITypeElemDefaultValue = ortgpdv;     
-     OCITypeElemExtTypeCode = ortgasqt;     
-     OCITypeElemLength = ortgsl;     
-     OCITypeElemName = ortganm;     
-     OCITypeElemNumPrec = ortgnp;     
-     OCITypeElemNumScale = ortgns;     
-     OCITypeElemParamMode = ortgpmo;     
-     OCITypeElemParameterizedType = ortgpa;     
-     OCITypeElemType = ortgaty;     
-     OCITypeElemTypeCode = ortgatc;     
-     OCITypeIter = ortitr;     
-     OCITypeIterFree = ortifre;     
-     OCITypeIterNew = ortinew;     
-     OCITypeIterSet = ortiset;     
-     OCITypeMethod = ortmdo;     
-     OCITypeMethodByName = ortgmbn;     
-     OCITypeMethodEncap = ortgmen;     
-     OCITypeMethodFlags = ortgmfl;     
-     OCITypeMethodMap = ortgmmap;     
-     OCITypeMethodName = ortgmnm;     
-     OCITypeMethodNext = ortgmbi;     
-     OCITypeMethodOrder = ortgmor;     
-     OCITypeMethodOverload = ortgmno;     
-     OCITypeMethodParams = ortgmnp;     
-     OCITypeMethods = ortgtnm;     
-     OCITypeName = ortgtme;     
-     OCITypeParamByName = ortgpbn;     
-     OCITypeParamPos = ortgpps;     
-     OCITypeSchema = ortgtsch;     
-     OCITypeTypeCode = ortgttc;     
-     OCITypeVTInit = ortvini;     
-     OCITypeVTInsert = ortvins;     
-     OCITypeVTSelect = ortvsel;     
-     OCITypeVersion = ortgtvn;     
+     OCITypeArrayByName = ortgatyp;
+     OCITypeAttrByName = ortgabn;
+     OCITypeAttrNext = ortgabi;
+     OCITypeAttrs = ortgtna;
+     OCITypeByRef = ortgtbrf;
+     OCITypeCollElem = ortgcel;
+     OCITypeCollExtTypeCode = ortgcsqt;
+     OCITypeCollSize = ortgcne;
+     OCITypeCollTypeCode = ortgdttc;
+     OCITypeElem = ortado;
+     OCITypeElemCharSetForm = ortgscform;
+     OCITypeElemCharSetID = ortgscid;
+     OCITypeElemDefaultValue = ortgpdv;
+     OCITypeElemExtTypeCode = ortgasqt;
+     OCITypeElemLength = ortgsl;
+     OCITypeElemName = ortganm;
+     OCITypeElemNumPrec = ortgnp;
+     OCITypeElemNumScale = ortgns;
+     OCITypeElemParamMode = ortgpmo;
+     OCITypeElemParameterizedType = ortgpa;
+     OCITypeElemType = ortgaty;
+     OCITypeElemTypeCode = ortgatc;
+     OCITypeIter = ortitr;
+     OCITypeIterFree = ortifre;
+     OCITypeIterNew = ortinew;
+     OCITypeIterSet = ortiset;
+     OCITypeMethod = ortmdo;
+     OCITypeMethodByName = ortgmbn;
+     OCITypeMethodEncap = ortgmen;
+     OCITypeMethodFlags = ortgmfl;
+     OCITypeMethodMap = ortgmmap;
+     OCITypeMethodName = ortgmnm;
+     OCITypeMethodNext = ortgmbi;
+     OCITypeMethodOrder = ortgmor;
+     OCITypeMethodOverload = ortgmno;
+     OCITypeMethodParams = ortgmnp;
+     OCITypeMethods = ortgtnm;
+     OCITypeName = ortgtme;
+     OCITypeParamByName = ortgpbn;
+     OCITypeParamPos = ortgpps;
+     OCITypeSchema = ortgtsch;
+     OCITypeTypeCode = ortgttc;
+     OCITypeVTInit = ortvini;
+     OCITypeVTInsert = ortvins;
+     OCITypeVTSelect = ortvsel;
+     OCITypeVersion = ortgtvn;
 {$endif}
   { SLSHORTNAME  }
   {============================ }  { PUBLIC TYPES AND CONSTANTS  }
   {============================ }
   {----------------------------- TYPE DESCRIPTION ---------------------------- }
   {
-   * OCIType - OCI Type Description Object 
+   * OCIType - OCI Type Description Object
    *
-   * The contents of an 'OCIType' is private/opaque to clients.  Clients just 
+   * The contents of an 'OCIType' is private/opaque to clients.  Clients just
    * need to declare and pass 'OCIType' pointers in to the type manage
    * functions.
    * The pointer points to the type in the object cache.  Thus, clients don't
@@ -688,8 +688,8 @@
   {
    * OCITypeElem - OCI Type Element object
    *
-   * The contents of an 'OCITypeElem' is private/opaque to clients. Clients just 
-   * need to declare and pass 'OCITypeElem' pointers in to the type manager 
+   * The contents of an 'OCITypeElem' is private/opaque to clients. Clients just
+   * need to declare and pass 'OCITypeElem' pointers in to the type manager
    * functions.
    *
    * 'OCITypeElem' objects contains type element information such as the numeric
@@ -703,13 +703,13 @@
 
   {--------------------------- METHOD DESCRIPTION --------------------------- }
   {
-   * OCITypeMethod - OCI Method Description object 
+   * OCITypeMethod - OCI Method Description object
    *
    * The contents of an 'OCITypeMethod' is private/opaque to clients.  Clients
    * just need to declare and pass 'OCITypeMethod' pointers in to the type
    * manager functions.
    * The pointer points to the method in the object cache.  Thus, clients don't
-   * need to allocate space for this type and must NEVER free the pointer to 
+   * need to allocate space for this type and must NEVER free the pointer to
    * the 'OCITypeMethod'.
     }
     POCITypeMethod = pointer;
@@ -718,7 +718,7 @@
   {
    * OCITypeIter- OCI Type Iterator
    *
-   * The contents of an 'orti' is private/opaque to clients.  Clients just 
+   * The contents of an 'orti' is private/opaque to clients.  Clients just
    * need to declare and pass 'orti' pointers in to the type manager functions.
    * The iterator is used to retreive MDO's and ADO's that belong to the TDO
    * one at a time. It needs to be allocated by the 'OCITypeIterNew()' function
@@ -757,7 +757,7 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
          it's values.
     RETURNS:
           OCI_SUCCESS if the function completes successfully.
-          OCI_INVALID_HANDLE if 'env' or 'err' is null. 
+          OCI_INVALID_HANDLE if 'env' or 'err' is null.
           OCI_ERROR if
              1) any of the required parameters is null.
              2) error while allocating space for the iterator.
@@ -786,7 +786,7 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
          iterator.
     RETURNS:
           OCI_SUCCESS if the function completes successfully.
-          OCI_INVALID_HANDLE if 'env' or 'err' is null. 
+          OCI_INVALID_HANDLE if 'env' or 'err' is null.
           OCI_ERROR if
              1) any of the required parameters is null.
    }
@@ -811,7 +811,7 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
          Free space allocated for the iterator.
     RETURNS:
           OCI_SUCCESS if the function completes successfully.
-          OCI_INVALID_HANDLE if 'env' or 'err' is null. 
+          OCI_INVALID_HANDLE if 'env' or 'err' is null.
           OCI_ERROR if
              1) any of the required parameters is null.
              2) error while freeing the iterator, probably bad iterator pointer.
@@ -840,7 +840,7 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
                   The error recorded in 'err' can be retrieved by calling
                   OCIErrorGet().
          svc (IN) - OCI service handle
-         schema_name (IN, optional) - name of schema associated with the 
+         schema_name (IN, optional) - name of schema associated with the
                     type.  By default, the user's schema name is used.
          s_length (IN) - length of the 'schema_name' parameter
          type_name (IN) - name of the type to get
@@ -863,7 +863,7 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
          with schema/type name.
     RETURNS:
           OCI_SUCCESS if the function completes successfully.
-          OCI_INVALID_HANDLE if 'env' or 'err' is null. 
+          OCI_INVALID_HANDLE if 'env' or 'err' is null.
           OCI_ERROR if
              1) any of the required parameters is null.
              2) the adt type associated with schema/type name does not exist.
@@ -936,7 +936,7 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
          retreived via a single network roundtrip.
     RETURNS:
           OCI_SUCCESS if the function completes successfully.
-          OCI_INVALID_HANDLE if 'env' or 'err' is null. 
+          OCI_INVALID_HANDLE if 'env' or 'err' is null.
           OCI_ERROR if
              1) any of the required parameters is null.
              2) one or more adt types associated with a schema/type name entry
@@ -971,12 +971,12 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
                       loaded.
          tdo (OUT) - pointer to the pinned type in the object cache
     DESCRIPTION:
-         Get pointers to the 
+         Get pointers to the
          with the schema/type name array. This is similar to OCITypeByName()
          except that all the TDO's are retreived via a single network roundtrip.
     RETURNS:
           OCI_SUCCESS if the function completes successfully.
-          OCI_INVALID_HANDLE if 'env' or 'err' is null. 
+          OCI_INVALID_HANDLE if 'env' or 'err' is null.
           OCI_ERROR if
              1) any of the required parameters is null.
              2) one or more adt types associated with a schema/type name entry
@@ -1016,12 +1016,12 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
                     Use OCIObjectGetObjectRef() to obtain the CREF to each
                     pinned type descriptor.
     DESCRIPTION:
-         Get pointers to the 
+         Get pointers to the
          with the schema/type name array. This is similar to OCITypeByName()
          except that all the TDO's are retreived via a single network roundtrip.
     RETURNS:
           OCI_SUCCESS if the function completes successfully.
-          OCI_INVALID_HANDLE if 'env' or 'err' is null. 
+          OCI_INVALID_HANDLE if 'env' or 'err' is null.
           OCI_ERROR if
              1) any of the required parameters is null.
              2) one or more adt types associated with a schema/type name entry
@@ -1060,7 +1060,7 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
      RETURNS:
           the name of the type
      NOTES:
-          The type descriptor, 'tdo', must be unpinned when the accessed 
+          The type descriptor, 'tdo', must be unpinned when the accessed
           information is no longer needed.
     }
   {------------------------ OCITypeSchema --------------------------------- }
@@ -1085,7 +1085,7 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
                  routine.
      REQUIRES:
           1) All type accessors require that the type be pinned before calling
-             any accessor. 
+             any accessor.
           2) All input parameters must not be NULL and must be valid.
           3) 'n_length' must point to an allocated ub4.
      DESCRIPTION:
@@ -1093,7 +1093,7 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
      RETURNS:
           the schema name of the type
      NOTES:
-          The type descriptor, 'tdo', must be unpinned when the accessed 
+          The type descriptor, 'tdo', must be unpinned when the accessed
           information is no longer needed.
     }
   {------------------------ OCITypeTypeCode --------------------------------- }
@@ -1106,7 +1106,7 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
 
   {
      NAME: OCITypeTypeCode - OCI Get a Type's Type Code.
-     PARAMETERS: 
+     PARAMETERS:
           env (IN/OUT) - OCI environment handle initialized in object mode
           err (IN/OUT) - error handle. If there is an error, it is
                   recorded in 'err' and this function returns OCI_ERROR.
@@ -1114,15 +1114,15 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
                   OCIErrorGet().
           tdo (IN) - pointer to to the type descriptor in the object cache
      REQUIRES:
-          1) All type accessors require that the type be pinned before calling 
-             any accessor. 
+          1) All type accessors require that the type be pinned before calling
+             any accessor.
           2) All input parameters must not be NULL and must be valid.
      DESCRIPTION:
           Get the type code of the type.
      RETURNS:
           The type code of the type.
      NOTES:
-          The type descriptor, 'tdo', must be unpinned when the accessed 
+          The type descriptor, 'tdo', must be unpinned when the accessed
           information is no longer needed.
     }
   {----------------------- OCITypeCollTypeCode ------------------------------- }
@@ -1135,7 +1135,7 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
 
   {
      NAME: OCITypeCollTypeCode - OCI Get a Domain Type's Type Code.
-     PARAMETERS: 
+     PARAMETERS:
           env (IN/OUT) - OCI environment handle initialized in object mode
           err (IN/OUT) - error handle. If there is an error, it is
                   recorded in 'err' and this function returns OCI_ERROR.
@@ -1143,8 +1143,8 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
                   OCIErrorGet().
           tdo (IN) - pointer to to the type descriptor in the object cache
      REQUIRES:
-          1) All type accessors require that the type be pinned before calling 
-             any accessor. 
+          1) All type accessors require that the type be pinned before calling
+             any accessor.
           2) All input parameters must not be NULL and must be valid.
           3) 'tdo' MUST point to a named collection type.
      DESCRIPTION:
@@ -1154,7 +1154,7 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
           OCI_TYPECODE_VARRAY for variable length array, and
           OCI_TYPECODE_TABLE for nested tables.
      NOTES:
-          The type descriptor, 'tdo', should be unpinned when the accessed 
+          The type descriptor, 'tdo', should be unpinned when the accessed
           information is no longer needed.
     }
   {------------------------- OCITypeVersion --------------------------------- }
@@ -1166,20 +1166,20 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
 {$ENDIF}
 
   {
-     NAME: OCITypeVersion - OCI Get a Type's user-readable VersioN. 
-     PARAMETERS: 
+     NAME: OCITypeVersion - OCI Get a Type's user-readable VersioN.
+     PARAMETERS:
           env (IN/OUT) - OCI environment handle initialized in object mode
           err (IN/OUT) - error handle. If there is an error, it is
                   recorded in 'err' and this function returns OCI_ERROR.
                   The error recorded in 'err' can be retrieved by calling
                   OCIErrorGet().
           tdo (IN) - pointer to to the type descriptor in the object cache
-          v_length (OUT) - length (in bytes) of the returned user-readable 
-                 version.  The caller must allocate space for the ub4 before 
+          v_length (OUT) - length (in bytes) of the returned user-readable
+                 version.  The caller must allocate space for the ub4 before
                  calling this routine.
      REQUIRES:
-          1) All type accessors require that the type be pinned before calling 
-             any accessor. 
+          1) All type accessors require that the type be pinned before calling
+             any accessor.
           2) All input parameters must not be NULL and must be valid.
           3) 'v_length' must point to an allocated ub4.
      DESCRIPTION:
@@ -1187,7 +1187,7 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
      RETURNS:
           The user-readable version of the type
      NOTES:
-          The type descriptor, 'tdo', must be unpinned when the accessed 
+          The type descriptor, 'tdo', must be unpinned when the accessed
           information is no longer needed.
     }
   {--------------------------- OCITypeAttrs --------------------------------- }
@@ -1199,8 +1199,8 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
 {$ENDIF}
 
   {
-     NAME: OCITypeAttrs - OCI Get a Type's Number of Attributes. 
-     PARAMETERS: 
+     NAME: OCITypeAttrs - OCI Get a Type's Number of Attributes.
+     PARAMETERS:
           env (IN/OUT) - OCI environment handle initialized in object mode
           err (IN/OUT) - error handle. If there is an error, it is
                   recorded in 'err' and this function returns OCI_ERROR.
@@ -1208,15 +1208,15 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
                   OCIErrorGet().
           tdo (IN) - pointer to to the type descriptor in the object cache
      REQUIRES:
-          1) All type accessors require that the type be pinned before calling 
-             any accessor. 
+          1) All type accessors require that the type be pinned before calling
+             any accessor.
           2) All input parameters must not be NULL and must be valid.
      DESCRIPTION:
           Get the number of attributes in the type.
      RETURNS:
           The number of attributes in the type. 0 for ALL non-ADTs.
      NOTES:
-          The type descriptor, 'tdo', must be unpinned when the accessed 
+          The type descriptor, 'tdo', must be unpinned when the accessed
           information is no longer needed.
     }
   {------------------------- OCITypeMethods --------------------------------- }
@@ -1228,8 +1228,8 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
 {$ENDIF}
 
   {
-     NAME: OCITypeMethods - OCI Get a Type's Number of Methods. 
-     PARAMETERS: 
+     NAME: OCITypeMethods - OCI Get a Type's Number of Methods.
+     PARAMETERS:
           env (IN/OUT) - OCI environment handle initialized in object mode
           err (IN/OUT) - error handle. If there is an error, it is
                   recorded in 'err' and this function returns OCI_ERROR.
@@ -1237,15 +1237,15 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
                   OCIErrorGet().
           tdo (IN) - pointer to to the type descriptor in the object cache
      REQUIRES:
-          1) All type accessors require that the type be pinned before calling 
-             any accessor. 
+          1) All type accessors require that the type be pinned before calling
+             any accessor.
           2) All input parameters must not be NULL and must be valid.
      DESCRIPTION:
           Get the number of methods in a type.
      RETURNS:
           The number of methods in the type
      NOTES:
-          The type descriptor, 'tdo', must be unpinned when the accessed 
+          The type descriptor, 'tdo', must be unpinned when the accessed
           information is no longer needed.
     }
   {-------------------------------------------------------------------------- }
@@ -1260,20 +1260,20 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
 {$ENDIF}
 
   {
-     NAME: OCITypeElemName - OCI Get an Attribute's NaMe. 
-     PARAMETERS: 
+     NAME: OCITypeElemName - OCI Get an Attribute's NaMe.
+     PARAMETERS:
           env (IN/OUT) - OCI environment handle initialized in object mode
           err (IN/OUT) - error handle. If there is an error, it is
                   recorded in 'err' and this function returns OCI_ERROR.
                   The error recorded in 'err' can be retrieved by calling
                   OCIErrorGet().
           elem (IN) - pointer to the type element descriptor in the object cache
-          n_length (OUT) - length (in bytes) of the returned attribute name.  
-                 The caller must allocate space for the ub4 before calling this 
+          n_length (OUT) - length (in bytes) of the returned attribute name.
+                 The caller must allocate space for the ub4 before calling this
                  routine.
      REQUIRES:
-          1) All type accessors require that the type be pinned before calling 
-             any accessor. 
+          1) All type accessors require that the type be pinned before calling
+             any accessor.
           2) All input parameters must not be NULL and must be valid.
           3) 'n_length' must point to an allocated ub4.
      DESCRIPTION:
@@ -1281,7 +1281,7 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
      RETURNS:
           the name of the attribute and the length in n_length
      NOTES:
-          The type must be unpinned when the accessed information is no 
+          The type must be unpinned when the accessed information is no
           longer needed.
     }
   {------------------------ OCITypeElemTypeCode ------------------------------ }
@@ -1293,8 +1293,8 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
 {$ENDIF}
 
   {
-     NAME: OCITypeElemTypeCode - OCI Get an Attribute's TypeCode. 
-     PARAMETERS: 
+     NAME: OCITypeElemTypeCode - OCI Get an Attribute's TypeCode.
+     PARAMETERS:
           env (IN/OUT) - OCI environment handle initialized in object mode
           err (IN/OUT) - error handle. If there is an error, it is
                   recorded in 'err' and this function returns OCI_ERROR.
@@ -1302,14 +1302,14 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
                   OCIErrorGet().
           elem (IN) - pointer to the type element descriptor in the object cache
      REQUIRES:
-          1) All type accessors require that the type be pinned before calling 
-             any accessor. 
+          1) All type accessors require that the type be pinned before calling
+             any accessor.
           2) All input parameters must not be NULL and must be valid.
      DESCRIPTION:
           Get the typecode of an attribute's type.
      RETURNS:
-          the typecode of the attribute's type.  If this is a scalar type, the 
-          typecode sufficiently describes the scalar type and no further calls 
+          the typecode of the attribute's type.  If this is a scalar type, the
+          typecode sufficiently describes the scalar type and no further calls
           need to be made.  Valid scalar types include: OCI_TYPECODE_SIGNED8,
           OCI_TYPECODE_UNSIGNED8, OCI_TYPECODE_SIGNED16, OCI_TYPECODE_UNSIGNED16,
           OCI_TYPECODE_SIGNED32, OCI_TYPECODE_UNSIGNED32, OCI_TYPECODE_REAL,
@@ -1318,7 +1318,7 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
           This function converts the CREF (stored in the attribute) into a
           typecode.
      NOTES:
-         The type must be unpinned when the accessed information is no 
+         The type must be unpinned when the accessed information is no
          longer needed.
     }
   {------------------------ OCITypeElemType --------------------------------- }
@@ -1340,21 +1340,21 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
        elem_tdo (OUT) - If the function completes successfully, 'elem_tdo'
               points to the type descriptor (in the object cache) of the type of
               the element.
-  
+
     REQUIRES
        1) All type accessors require that the type be pinned before calling
           any accessor.  This can be done by calling 'OCITypeByName()'.
        2) if 'elem' is not null, it must point to a valid type element descriptor
           in the object cache.
-  
+
     DESCRIPTION
        Get the type tdo of the type of this element.
     RETURNS
        OCI_SUCCESS if the function completes successfully.
-       OCI_INVALID_HANDLE if 'env' or 'err' is null. 
+       OCI_INVALID_HANDLE if 'env' or 'err' is null.
        OCI_ERROR if
            1) any of the parameters is null.
-  
+
     NOTES
        The type must be unpinned when the accessed information is no
        longer needed.  This can be done by calling 'OCIObjectUnpin()'.
@@ -1370,8 +1370,8 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
   {
      NAME: OCITypeElemFlags - OCI Get a Elem's FLags
                                 (inline, constant, virtual, constructor,
-                                destructor). 
-     PARAMETERS: 
+                                destructor).
+     PARAMETERS:
           env (IN/OUT) - OCI environment handle initialized in object mode
           err (IN/OUT) - error handle. If there is an error, it is
                   recorded in 'err' and this function returns OCI_ERROR.
@@ -1379,8 +1379,8 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
                   OCIErrorGet().
           elem (IN) - pointer to the type element descriptor in the object cache
      REQUIRES:
-          1) All type accessors require that the type be pinned before calling 
-             any accessor. 
+          1) All type accessors require that the type be pinned before calling
+             any accessor.
           2) All input parameters must not be NULL and must be valid.
      DESCRIPTION:
           Get the flags of a type element (attribute, parameter).
@@ -1403,7 +1403,7 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
   {
      NAME: OCITypeElemNumPrec - Get a Number's Precision.  This includes float,
                                 decimal, real, double, and oracle number.
-     PARAMETERS: 
+     PARAMETERS:
           env (IN/OUT) - OCI environment handle initialized in object mode
           err (IN/OUT) - error handle. If there is an error, it is
                   recorded in 'err' and this function returns OCI_ERROR.
@@ -1413,11 +1413,11 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
      REQUIRES:
           All input parameters must not be NULL and must be valid.
      DESCRIPTION:
-          Get the precision of a float, decimal, long, unsigned long, real, 
-          double, or Oracle number type. 
+          Get the precision of a float, decimal, long, unsigned long, real,
+          double, or Oracle number type.
      RETURNS:
           the precision of the float, decimal, long, unsigned long, real, double,
-          or Oracle number 
+          or Oracle number
     }
   {------------------------- OCITypeElemNumScale ----------------------------- }
   { ** OBSOLETE **  }
@@ -1428,8 +1428,8 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
 {$ENDIF}
 
   {
-     NAME: OCITypeElemNumScale - Get a decimal or oracle Number's Scale 
-     PARAMETERS: 
+     NAME: OCITypeElemNumScale - Get a decimal or oracle Number's Scale
+     PARAMETERS:
           env (IN/OUT) - OCI environment handle initialized in object mode
           err (IN/OUT) - error handle. If there is an error, it is
                   recorded in 'err' and this function returns OCI_ERROR.
@@ -1439,9 +1439,9 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
      REQUIRES:
           All input parameters must not be NULL and must be valid.
      DESCRIPTION:
-          Get the scale of a decimal, or Oracle number type. 
+          Get the scale of a decimal, or Oracle number type.
      RETURNS:
-          the scale of the decimal, or Oracle number 
+          the scale of the decimal, or Oracle number
     }
   {------------------------ OCITypeElemLength ------------------------------- }
   { ** OBSOLETE **  }
@@ -1454,7 +1454,7 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
   {
      NAME: OCITypeElemLength - Get a raw, fixed or variable length String's
                                length in bytes.
-     PARAMETERS: 
+     PARAMETERS:
           env (IN/OUT) - OCI environment handle initialized in object mode
           err (IN/OUT) - error handle. If there is an error, it is
                   recorded in 'err' and this function returns OCI_ERROR.
@@ -1464,7 +1464,7 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
      REQUIRES:
           All input parameters must not be NULL and must be valid.
      DESCRIPTION:
-          Get the length of a raw, fixed or variable length string type. 
+          Get the length of a raw, fixed or variable length string type.
      RETURNS:
           length of the raw, fixed or variable length string
     }
@@ -1479,7 +1479,7 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
   {
      NAME: OCITypeElemCharSetID - Get a fixed or variable length String's
                                   character set ID
-     PARAMETERS: 
+     PARAMETERS:
           env (IN/OUT) - OCI environment handle initialized in object mode
           err (IN/OUT) - error handle. If there is an error, it is
                   recorded in 'err' and this function returns OCI_ERROR.
@@ -1489,7 +1489,7 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
      REQUIRES:
           All input parameters must not be NULL and must be valid.
      DESCRIPTION:
-          Get the character set ID of a fixed or variable length string type. 
+          Get the character set ID of a fixed or variable length string type.
      RETURNS:
           character set ID of the fixed or variable length string
     }
@@ -1504,7 +1504,7 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
   {
      NAME: OCITypeElemCharSetForm - Get a fixed or variable length String's
                                     character set specification form.
-     PARAMETERS: 
+     PARAMETERS:
           env (IN/OUT) - OCI environment handle initialized in object mode
           err (IN/OUT) - error handle. If there is an error, it is
                   recorded in 'err' and this function returns OCI_ERROR.
@@ -1533,19 +1533,19 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
 {$ENDIF}
 
   {
-     NAME: OCITypeElemParameterizedType 
-     PARAMETERS: 
+     NAME: OCITypeElemParameterizedType
+     PARAMETERS:
           env (IN/OUT) - OCI environment handle initialized in object mode
           err (IN/OUT) - error handle. If there is an error, it is
                   recorded in 'err' and this function returns OCI_ERROR.
                   The error recorded in 'err' can be retrieved by calling
                   OCIErrorGet().
           elem (IN) - pointer to the type element descriptor in the object cache
-          type_stored (OUT) - If the function completes successfully, 
+          type_stored (OUT) - If the function completes successfully,
                  and the parameterized type is complex, 'type_stored' is NULL.
-                 Otherwise, 'type_stored' points to the type descriptor (in the 
-                 object cache) of the type that is stored in the parameterized 
-                 type.  The caller must allocate space for the OCIType* 
+                 Otherwise, 'type_stored' points to the type descriptor (in the
+                 object cache) of the type that is stored in the parameterized
+                 type.  The caller must allocate space for the OCIType*
                  before calling this routine and must not write into the space.
      REQUIRES:
           All input parameters must be valid.
@@ -1559,16 +1559,16 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
           For example, it is set for REF T or VARRAY(n) OF REF T.
      RETURNS:
           OCI_SUCCESS if the function completes successfully.
-          OCI_INVALID_HANDLE if 'env' or 'err' is null. 
+          OCI_INVALID_HANDLE if 'env' or 'err' is null.
           OCI_ERROR if
               1) any of the parameters is null.
               2) 'type_stored' is not NULL but points to NULL data.
      NOTES:
-          Complex parameterized types will be in a future release (once 
-          typedefs are supported.  When setting the parameterized type 
+          Complex parameterized types will be in a future release (once
+          typedefs are supported.  When setting the parameterized type
           information, the user must typedef the contents if it's a
           complex parameterized type.  Ex. for varray<varray<car>>, use
-          'typedef varray<car> varcar' and then use varray<varcar>. 
+          'typedef varray<car> varcar' and then use varray<varcar>.
     }
   {----------------------- OCITypeElemExtTypeCode ---------------------------- }
   { ** OBSOLETE **  }
@@ -1615,35 +1615,35 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
 {$ENDIF}
 
   {
-     NAME: OCITypeAttrByName - OCI Get an Attribute By Name. 
-     PARAMETERS: 
+     NAME: OCITypeAttrByName - OCI Get an Attribute By Name.
+     PARAMETERS:
           env (IN/OUT) - OCI environment handle initialized in object mode
           err (IN/OUT) - error handle. If there is an error, it is
                   recorded in 'err' and this function returns OCI_ERROR.
                   The error recorded in 'err' can be retrieved by calling
                   OCIErrorGet().
           tdo (IN) - pointer to to the type descriptor in the object cache
-          name (IN) - the attribute's name 
+          name (IN) - the attribute's name
           n_length (IN) - length (in bytes) of the 'name' parameter
-          elem (OUT) - If this function completes successfully, 'elem' points to 
+          elem (OUT) - If this function completes successfully, 'elem' points to
                  the selected type element descriptor pertaining to the
                  attributein the object cache.
      REQUIRES:
-          1) All type accessors require that the type be pinned before calling 
-             any accessor. 
-          2) if 'tdo' is not null, it must point to a valid type descriptor 
+          1) All type accessors require that the type be pinned before calling
+             any accessor.
+          2) if 'tdo' is not null, it must point to a valid type descriptor
              in the object cache.
      DESCRIPTION:
-          Get an attribute given its name.  
+          Get an attribute given its name.
      RETURNS:
           OCI_SUCCESS if the function completes successfully.
-          OCI_INVALID_HANDLE if 'env' or 'err' is null. 
+          OCI_INVALID_HANDLE if 'env' or 'err' is null.
           OCI_ERROR if
               1) any of the required parameters is null.
-              2) the type does not contain an attribute with the input 'name'. 
+              2) the type does not contain an attribute with the input 'name'.
               3) 'name' is NULL.
      NOTES:
-          The type descriptor, 'tdo', must be unpinned when the accessed 
+          The type descriptor, 'tdo', must be unpinned when the accessed
           information is no longer needed.
           Schema and type names are CASE-SENSITIVE. If they have been created
           via SQL, you need to use uppercase names.
@@ -1658,7 +1658,7 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
 
   {
      NAME: OCITypeAttrNext - OCI Get an Attribute By Iteration.
-     PARAMETERS: 
+     PARAMETERS:
           env (IN/OUT) - OCI environment handle initialized in object mode
           err (IN/OUT) - error handle. If there is an error, it is
                   recorded in 'err' and this function returns OCI_ERROR.
@@ -1666,13 +1666,13 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
                   OCIErrorGet().
           iterator_ort (IN/OUT) - iterator for retrieving the next attribute;
                  see OCITypeIterNew() to initialize iterator.
-          elem (OUT) - If this function completes successfully, 'elem' points to 
+          elem (OUT) - If this function completes successfully, 'elem' points to
                  the selected type element descriptor pertaining to the
                  attributein the object cache.
      REQUIRES:
-          1) All type accessors require that the type be pinned before calling 
-              any accessor. 
-          2) if 'tdo' is not null, it must point to a valid type descriptor 
+          1) All type accessors require that the type be pinned before calling
+              any accessor.
+          2) if 'tdo' is not null, it must point to a valid type descriptor
              in the object cache.
      DESCRIPTION:
           Iterate to the next attribute to retrieve.
@@ -1680,11 +1680,11 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
           OCI_SUCCESS if the function completes successfully.
           OCI_NO_DATA if there are no more attributes to iterate on; use
               OCITypeIterSet() to reset the iterator if necessary.
-          OCI_INVALID_HANDLE if 'env' or 'err' is null. 
+          OCI_INVALID_HANDLE if 'env' or 'err' is null.
           OCI_ERROR if
               1) any of the required parameters is null.
      NOTES:
-          The type must be unpinned when the accessed information is no 
+          The type must be unpinned when the accessed information is no
           longer needed.
     }
   {-------------------------------------------------------------------------- }
@@ -1700,7 +1700,7 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
 
   {
      NAME: OCITypeCollElem
-     PARAMETERS: 
+     PARAMETERS:
           env (IN/OUT) - OCI environment handle initialized in object mode
           err (IN/OUT) - error handle. If there is an error, it is
                   recorded in 'err' and this function returns OCI_ERROR.
@@ -1726,16 +1726,16 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
           array or the rowtype of a nested table.
      RETURNS:
           OCI_SUCCESS if the function completes successfully.
-          OCI_INVALID_HANDLE if 'env' or 'err' is null. 
+          OCI_INVALID_HANDLE if 'env' or 'err' is null.
           OCI_ERROR if
               1) any of the parameters is null.
               2) the type TDO does not point to a valid collection's type.
      NOTES:
-          Complex parameterized types will be in a future release (once 
-          typedefs are supported.  When setting the parameterized type 
+          Complex parameterized types will be in a future release (once
+          typedefs are supported.  When setting the parameterized type
           information, the user must typedef the contents if it's a
           complex parameterized type.  Ex. for varray<varray<car>>, use
-          'typedef varray<car> varcar' and then use varray<varcar>. 
+          'typedef varray<car> varcar' and then use varray<varcar>.
     }
   {------------------------ OCITypeCollSize --------------------------------- }
   { ** OBSOLETE **  }
@@ -1747,7 +1747,7 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
 
   {
      NAME: OCITypeCollSize - OCI Get a Collection's Number of Elements.
-     PARAMETERS: 
+     PARAMETERS:
           env (IN/OUT) - OCI environment handle initialized in object mode
           err (IN/OUT) - error handle. If there is an error, it is
                   recorded in 'err' and this function returns OCI_ERROR.
@@ -1759,20 +1759,20 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
           All input parameters must be valid. tdo points to an array type
           defined as a domain.
      DESCRIPTION:
-          Get the number of elements stored in a fixed array or the maximum 
+          Get the number of elements stored in a fixed array or the maximum
           number of elements in a variable array.
      RETURNS:
           OCI_SUCCESS if the function completes successfully.
-          OCI_INVALID_HANDLE if 'env' or 'err' is null. 
+          OCI_INVALID_HANDLE if 'env' or 'err' is null.
           OCI_ERROR if
               1) any of the parameters is null.
               2) 'tdo' does not point to a domain with a collection type.
      NOTES:
-          Complex parameterized types will be in a future release (once 
-          typedefs are supported.  When setting the parameterized type 
+          Complex parameterized types will be in a future release (once
+          typedefs are supported.  When setting the parameterized type
           information, the user must typedef the contents if it's a
           complex parameterized type.  Ex. for varray<varray<car>>, use
-          'typedef varray<car> varcar' and then use varray<varcar>. 
+          'typedef varray<car> varcar' and then use varray<varcar>.
     }
   {------------------------ OCITypeCollExtTypeCode --------------------------- }
   { ** OBSOLETE **  }
@@ -1859,15 +1859,15 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
 {$ENDIF}
 
   {
-     NAME: OCITypeMethodByName - OCI Get one or more Methods with Name. 
-     PARAMETERS: 
+     NAME: OCITypeMethodByName - OCI Get one or more Methods with Name.
+     PARAMETERS:
           env (IN/OUT) - OCI environment handle initialized in object mode
           err (IN/OUT) - error handle. If there is an error, it is
                   recorded in 'err' and this function returns OCI_ERROR.
                   The error recorded in 'err' can be retrieved by calling
                   OCIErrorGet().
           tdo (IN) - pointer to to the type descriptor in the object cache
-          method_name (IN) - the methods' name  
+          method_name (IN) - the methods' name
           m_length (IN) - length (in bytes) of the 'name' parameter
           mdos (OUT) - If this function completes successfully, 'mdos' points to
                   the selected methods in the object cache.  The caller must
@@ -1876,21 +1876,21 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
                   The number of OCITypeMethod pointers that will be returned can
                   be obtained by calling 'OCITypeMethodOverload()'.
      REQUIRES:
-          1) All type accessors require that the type be pinned before calling 
-             any accessor. 
-          2) if 'tdo' is not null, it must point to a valid type descriptor 
+          1) All type accessors require that the type be pinned before calling
+             any accessor.
+          2) if 'tdo' is not null, it must point to a valid type descriptor
              in the object cache.
      DESCRIPTION:
-          Get one or more methods given the name.  
+          Get one or more methods given the name.
      RETURNS:
           OCI_SUCCESS if the function completes successfully.
-          OCI_INVALID_HANDLE if 'env' or 'err' is null. 
+          OCI_INVALID_HANDLE if 'env' or 'err' is null.
           OCI_ERROR if
               1) any of the required parameters is null.
               2) No methods in type has name 'name'.
               3) 'mdos' is not NULL but points to NULL data.
      NOTES:
-          The type must be unpinned when the accessed information is no 
+          The type must be unpinned when the accessed information is no
           longer needed.
           Schema and type names are CASE-SENSITIVE. If they have been created
           via SQL, you need to use uppercase names.
@@ -1905,7 +1905,7 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
 
   {
      NAME: OCITypeMethodNext - OCI Get a Method By Iteration.
-     PARAMETERS: 
+     PARAMETERS:
           env (IN/OUT) - OCI environment handle initialized in object mode
           err (IN/OUT) - error handle. If there is an error, it is
                   recorded in 'err' and this function returns OCI_ERROR.
@@ -1913,15 +1913,15 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
                   OCIErrorGet().
           iterator_ort (IN/OUT) - iterator for retrieving the next method;
                  see OCITypeIterNew() to set iterator.
-          mdo (OUT) - If this function completes successfully, 'mdo' points to 
-                 the selected method descriptor in the object cache.  Positions 
+          mdo (OUT) - If this function completes successfully, 'mdo' points to
+                 the selected method descriptor in the object cache.  Positions
                  start at 1.  The caller must allocate space for the
-                 OCITypeMethod* before calling this routine and must not write 
-                 nto the space. 
+                 OCITypeMethod* before calling this routine and must not write
+                 nto the space.
      REQUIRES:
-           1) All type accessors require that the type be pinned before calling 
-              any accessor. 
-          2) if 'tdo' is not null, it must point to a valid type descriptor 
+           1) All type accessors require that the type be pinned before calling
+              any accessor.
+          2) if 'tdo' is not null, it must point to a valid type descriptor
              in the object cache.
      DESCRIPTION:
           Iterate to the next method to retrieve.
@@ -1929,12 +1929,12 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
           OCI_SUCCESS if the function completes successfully.
           OCI_NO_DATA if there are no more attributes to iterate on; use
               OCITypeIterSet() to reset the iterator if necessary.
-          OCI_INVALID_HANDLE if 'env' or 'err' is null. 
+          OCI_INVALID_HANDLE if 'env' or 'err' is null.
           OCI_ERROR if
               1) any of the required parameters is null.
               2) 'mdo' is not NULL but points to NULL data.
      NOTES:
-          The type must be unpinned when the accessed information is no 
+          The type must be unpinned when the accessed information is no
           longer needed.
     }
   {------------------------ OCITypeMethodName -------------------------------- }
@@ -1946,8 +1946,8 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
 {$ENDIF}
 
   {
-     NAME: OCITypeMethodName - OCI Get a Method's NaMe. 
-     PARAMETERS: 
+     NAME: OCITypeMethodName - OCI Get a Method's NaMe.
+     PARAMETERS:
           env (IN/OUT) - OCI environment handle initialized in object mode
           err (IN/OUT) - error handle. If there is an error, it is
                   recorded in 'err' and this function returns OCI_ERROR.
@@ -1957,15 +1957,15 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
           n_length (OUT) - length (in bytes) of the 'name' parameter.  The caller
                  must allocate space for the ub4 before calling this routine.
      REQUIRES:
-          1) All type accessors require that the type be pinned before calling 
-             any accessor. 
+          1) All type accessors require that the type be pinned before calling
+             any accessor.
           2) All input parameters must not be NULL and must be valid.
      DESCRIPTION:
           Get the (non-unique) real name of the method.
      RETURNS:
           the non-unique name of the method or NULL if there is an error.
      NOTES:
-          The type must be unpinned when the accessed information is no 
+          The type must be unpinned when the accessed information is no
           longer needed.
     }
   {------------------------ OCITypeMethodEncap ------------------------------- }
@@ -1977,8 +1977,8 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
 {$ENDIF}
 
   {
-     NAME: OCITypeMethodEncap - Get a Method's ENcapsulation (private/public). 
-     PARAMETERS: 
+     NAME: OCITypeMethodEncap - Get a Method's ENcapsulation (private/public).
+     PARAMETERS:
           env (IN/OUT) - OCI environment handle initialized in object mode
           err (IN/OUT) - error handle. If there is an error, it is
                   recorded in 'err' and this function returns OCI_ERROR.
@@ -1986,15 +1986,15 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
                   OCIErrorGet().
           mdo (IN) - pointer to the method descriptor in the object cache
      REQUIRES:
-          1) All type accessors require that the type be pinned before calling 
-             any accessor. 
+          1) All type accessors require that the type be pinned before calling
+             any accessor.
           2) All input parameters must not be NULL and must be valid.
      DESCRIPTION:
           Get the encapsulation (private, or public) of a method.
      RETURNS:
           the encapsulation (private, or public) of the method
      NOTES:
-          The type must be unpinned when the accessed information is no 
+          The type must be unpinned when the accessed information is no
           longer needed.
     }
   {------------------------ OCITypeMethodFlags ------------------------------- }
@@ -2008,8 +2008,8 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
   {
      NAME: OCITypeMethodFlags - OCI Get a Method's FLags
                                 (inline, constant, virtual, constructor,
-                                destructor). 
-     PARAMETERS: 
+                                destructor).
+     PARAMETERS:
           env (IN/OUT) - OCI environment handle initialized in object mode
           err (IN/OUT) - error handle. If there is an error, it is
                   recorded in 'err' and this function returns OCI_ERROR.
@@ -2017,8 +2017,8 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
                   OCIErrorGet().
           mdo (IN) - pointer to the method descriptor in the object cache
      REQUIRES:
-          1) All type accessors require that the type be pinned before calling 
-             any accessor. 
+          1) All type accessors require that the type be pinned before calling
+             any accessor.
           2) All input parameters must not be NULL and must be valid.
      DESCRIPTION:
           Get the flags (inline, constant, virutal, constructor, destructor) of
@@ -2027,7 +2027,7 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
           the flags (inline, constant, virutal, constructor, destructor) of
           the method
      NOTES:
-          The type must be unpinned when the accessed information is no 
+          The type must be unpinned when the accessed information is no
           longer needed.
     }
   {------------------------ OCITypeMethodMap --------------------------------- }
@@ -2040,19 +2040,19 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
 
   {
      NAME: OCITypeMethodMap - OCI Get the Method's MAP function.
-     PARAMETERS: 
+     PARAMETERS:
           env (IN/OUT) - OCI environment handle initialized in object mode
           err (IN/OUT) - error handle. If there is an error, it is
                   recorded in 'err' and this function returns OCI_ERROR.
                   The error recorded in 'err' can be retrieved by calling
                   OCIErrorGet().
           tdo (IN) - pointer to to the type descriptor in the object cache
-          mdo (OUT) - If this function completes successfully, and there is a 
-                 map function for this type, 'mdo' points to the selected method 
+          mdo (OUT) - If this function completes successfully, and there is a
+                 map function for this type, 'mdo' points to the selected method
                  descriptor in the object cache.  Otherwise, 'mdo' is null.
      REQUIRES:
-          1) All type accessors require that the type be pinned before calling 
-             any accessor. 
+          1) All type accessors require that the type be pinned before calling
+             any accessor.
           2) All required input parameters must not be NULL and must be valid.
      DESCRIPTION:
           A type may have only one map function.  'OCITypeMethodMap()' finds
@@ -2062,11 +2062,11 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
           to null and an error is returned.
      RETURNS:
           OCI_SUCCESS if the function completes successfully.
-          OCI_INVALID_HANDLE if 'env' or 'err' is null. 
+          OCI_INVALID_HANDLE if 'env' or 'err' is null.
           OCI_ERROR if
               the type does not contain a map function.
      NOTES:
-          The type must be unpinned when the accessed information is no 
+          The type must be unpinned when the accessed information is no
           longer needed.
     }
   {------------------------ OCITypeMethodOrder ------------------------------- }
@@ -2079,19 +2079,19 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
 
   {
      NAME: OCITypeMethodOrder - OCI Get the Method's ORder function.
-     PARAMETERS: 
+     PARAMETERS:
           env (IN/OUT) - OCI environment handle initialized in object mode
           err (IN/OUT) - error handle. If there is an error, it is
                   recorded in 'err' and this function returns OCI_ERROR.
                   The error recorded in 'err' can be retrieved by calling
                   OCIErrorGet().
           tdo (IN) - pointer to to the type descriptor in the object cache
-          mdo (OUT) - If this function completes successfully, and there is a 
-                 map function for this type, 'mdo' points to the selected method 
+          mdo (OUT) - If this function completes successfully, and there is a
+                 map function for this type, 'mdo' points to the selected method
                  descriptor in the object cache.  Otherwise, 'mdo' is null.
      REQUIRES:
-          1) All type accessors require that the type be pinned before calling 
-             any accessor. 
+          1) All type accessors require that the type be pinned before calling
+             any accessor.
           2) All required input parameters must not be NULL and must be valid.
      DESCRIPTION:
           A type may have only one ORder or MAP function. 'OCITypeMethodOrder()'
@@ -2101,11 +2101,11 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
           set to null and an error is returned.
      RETURNS:
           OCI_SUCCESS if the function completes successfully.
-          OCI_INVALID_HANDLE if 'env' or 'err' is null. 
+          OCI_INVALID_HANDLE if 'env' or 'err' is null.
           OCI_ERROR if
               the type does not contain a map function.
      NOTES:
-          The type must be unpinned when the accessed information is no 
+          The type must be unpinned when the accessed information is no
           longer needed.
     }
   {------------------------ OCITypeMethodParams ------------------------------ }
@@ -2117,8 +2117,8 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
 {$ENDIF}
 
   {
-     NAME: OCITypeMethodParams - OCI Get a Method's Number of Parameters. 
-     PARAMETERS: 
+     NAME: OCITypeMethodParams - OCI Get a Method's Number of Parameters.
+     PARAMETERS:
           env (IN/OUT) - OCI environment handle initialized in object mode
           err (IN/OUT) - error handle. If there is an error, it is
                   recorded in 'err' and this function returns OCI_ERROR.
@@ -2126,15 +2126,15 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
                   OCIErrorGet().
           mdo (IN) - pointer to the method descriptor in the object cache
      REQUIRES:
-          1) All type accessors require that the type be pinned before calling 
-             any accessor. 
+          1) All type accessors require that the type be pinned before calling
+             any accessor.
           2) All input parameters must not be NULL and must be valid.
      DESCRIPTION:
           Get the number of parameters in a method.
      RETURNS:
           the number of parameters in the method
      NOTES:
-          The type must be unpinned when the accessed information is no 
+          The type must be unpinned when the accessed information is no
           longer needed.
     }
   {-------------------------------------------------------------------------- }
@@ -2150,29 +2150,29 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
 
   {
      NAME: OCITypeResult - OCI Get a method's result type descriptor.
-     PARAMETERS: 
+     PARAMETERS:
           env (IN/OUT) - OCI environment handle initialized in object mode
           err (IN/OUT) - error handle. If there is an error, it is
                   recorded in 'err' and this function returns OCI_ERROR.
                   The error recorded in 'err' can be retrieved by calling
                   OCIErrorGet().
           mdo (IN) - pointer to the method descriptor in the object cache
-          elem (OUT) - If this function completes successfully, 'rdo' points to 
+          elem (OUT) - If this function completes successfully, 'rdo' points to
                  the selected result (parameter) descriptor in the object cache.
      REQUIRES:
-          1) All type accessors require that the type be pinned before calling 
+          1) All type accessors require that the type be pinned before calling
              any accessor.
           2) 'elem' MUST be the address of an OCITypeElem pointer.
      DESCRIPTION:
           Get the result of a method.
      RETURNS:
           OCI_SUCCESS if the function completes successfully.
-          OCI_INVALID_HANDLE if 'env' or 'err' is null. 
+          OCI_INVALID_HANDLE if 'env' or 'err' is null.
           OCI_ERROR if
               1) any of the required parameters is null.
               2) method returns no results.
      NOTES:
-          The method must be unpinned when the accessed information is no 
+          The method must be unpinned when the accessed information is no
           longer needed.
     }
   {-------------------------------------------------------------------------- }
@@ -2187,8 +2187,8 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
 {$ENDIF}
 
   {
-     NAME: OCITypeParamByPos - OCI Get a Parameter in a method By Position. 
-     PARAMETERS: 
+     NAME: OCITypeParamByPos - OCI Get a Parameter in a method By Position.
+     PARAMETERS:
           env (IN/OUT) - OCI environment handle initialized in object mode
           err (IN/OUT) - error handle. If there is an error, it is
                   recorded in 'err' and this function returns OCI_ERROR.
@@ -2196,23 +2196,23 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
                   OCIErrorGet().
           mdo (IN) - pointer to the method descriptor in the object cache
           position (IN) - the parameter's position.  Positions start at 1.
-          elem (OUT) - If this function completes successfully, 'elem' points to 
+          elem (OUT) - If this function completes successfully, 'elem' points to
                  the selected parameter descriptor in the object cache.
      REQUIRES:
-          1) All type accessors require that the type be pinned before calling 
-             any accessor. 
+          1) All type accessors require that the type be pinned before calling
+             any accessor.
      DESCRIPTION:
-          Get a parameter given its position in the method.  Positions start 
-          at 1.  
+          Get a parameter given its position in the method.  Positions start
+          at 1.
      RETURNS:
           OCI_SUCCESS if the function completes successfully.
-          OCI_INVALID_HANDLE if 'env' or 'err' is null. 
+          OCI_INVALID_HANDLE if 'env' or 'err' is null.
           OCI_ERROR if
               1) any of the required parameters is null.
               2) 'position' is not >= 1 and <= the number of parameters in the
                  method.
      NOTES:
-          The type must be unpinned when the accessed information is no 
+          The type must be unpinned when the accessed information is no
           longer needed.
     }
   {------------------------ OCITypeParamByName ------------------------------- }
@@ -2226,8 +2226,8 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
 {$ENDIF}
 
   {
-     NAME: OCITypeParamByName - OCI Get a Parameter in a method By Name. 
-     PARAMETERS: 
+     NAME: OCITypeParamByName - OCI Get a Parameter in a method By Name.
+     PARAMETERS:
           env (IN/OUT) - OCI environment handle initialized in object mode
           err (IN/OUT) - error handle. If there is an error, it is
                   recorded in 'err' and this function returns OCI_ERROR.
@@ -2236,23 +2236,23 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
           mdo (IN) - pointer to the method descriptor in the object cache
           name (IN) - the parameter's name
           n_length (IN) - length (in bytes) of the 'name' parameter
-          elem (OUT) - If this function completes successfully, 'elem' points to 
+          elem (OUT) - If this function completes successfully, 'elem' points to
                  the selected parameter descriptor in the object cache.
      REQUIRES:
-          1) All type accessors require that the type be pinned before calling 
-             any accessor. 
-          2) if 'mdo' is not null, it must point to a valid method descriptor 
+          1) All type accessors require that the type be pinned before calling
+             any accessor.
+          2) if 'mdo' is not null, it must point to a valid method descriptor
              in the object cache.
      DESCRIPTION:
-          Get a parameter given its name.  
+          Get a parameter given its name.
      RETURNS:
           OCI_SUCCESS if the function completes successfully.
-          OCI_INVALID_HANDLE if 'env' or 'err' is null. 
+          OCI_INVALID_HANDLE if 'env' or 'err' is null.
           OCI_ERROR if
               1) any of the required parameters is null.
-              2) the method does not contain a parameter with the input 'name'. 
+              2) the method does not contain a parameter with the input 'name'.
      NOTES:
-          The type must be unpinned when the accessed information is no 
+          The type must be unpinned when the accessed information is no
           longer needed.
     }
   {------------------------ OCITypeParamPos --------------------------------- }
@@ -2267,7 +2267,7 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
 
   {
      NAME: OCITypeParamPos - OCI Get a parameter's position in a method
-     PARAMETERS: 
+     PARAMETERS:
           env (IN/OUT) - OCI environment handle initialized in object mode
           err (IN/OUT) - error handle. If there is an error, it is
                   recorded in 'err' and this function returns OCI_ERROR.
@@ -2276,27 +2276,27 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
           mdo (IN) - pointer to the method descriptor in the object cache
           name (IN) - the parameter's name
           n_length (IN) - length (in bytes) of the 'name' parameter
-          position (OUT) - If this function completes successfully, 'position' 
-                 points to the position of the parameter in the method starting 
+          position (OUT) - If this function completes successfully, 'position'
+                 points to the position of the parameter in the method starting
                  at position 1. position MUST point to space for a ub4.
-          elem (OUT) - If this function completes successfully, and 
-                 the input 'elem' is not NULL, 'elem' points to the selected 
+          elem (OUT) - If this function completes successfully, and
+                 the input 'elem' is not NULL, 'elem' points to the selected
                  parameter descriptor in the object cache.
      REQUIRES:
-          1) All type accessors require that the type be pinned before calling 
-             any accessor. 
-          2) if 'mdo' is not null, it must point to a valid method descriptor 
+          1) All type accessors require that the type be pinned before calling
+             any accessor.
+          2) if 'mdo' is not null, it must point to a valid method descriptor
              in the object cache.
      DESCRIPTION:
           Get the position of a parameter in a method.  Positions start at 1.
      RETURNS:
           OCI_SUCCESS if the function completes successfully.
-          OCI_INVALID_HANDLE if 'env' or 'err' is null. 
+          OCI_INVALID_HANDLE if 'env' or 'err' is null.
           OCI_ERROR if
               1) any of the parameters is null.
-              2) the method does not contain a parameter with the input 'name'. 
+              2) the method does not contain a parameter with the input 'name'.
      NOTES:
-          The type must be unpinned when the accessed information is no 
+          The type must be unpinned when the accessed information is no
           longer needed.
     }
   {------------------------ OCITypeParamElemMode ----------------------------- }
@@ -2309,7 +2309,7 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
 
   {
      NAME: OCITypeElemParamMode - OCI Get a parameter's mode
-     PARAMETERS: 
+     PARAMETERS:
           env (IN/OUT) - OCI environment handle initialized in object mode
           err (IN/OUT) - error handle. If there is an error, it is
                   recorded in 'err' and this function returns OCI_ERROR.
@@ -2318,15 +2318,15 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
           elem (IN) - pointer to the parameter descriptor in the object cache
                   (represented by an OCITypeElem)
      REQUIRES:
-          1) All type accessors require that the type be pinned before calling 
-             any accessor. 
+          1) All type accessors require that the type be pinned before calling
+             any accessor.
           2) All input parameters must not be NULL and must be valid.
      DESCRIPTION:
           Get the mode (in, out, or in/out) of the parameter.
      RETURNS:
           the mode (in, out, or in/out) of the parameter
      NOTES:
-          The type must be unpinned when the accessed information is no 
+          The type must be unpinned when the accessed information is no
           longer needed.
     }
   {------------------------- OCITypeElemDefaultValue ------------------------- }
@@ -2338,8 +2338,8 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
 {$ENDIF}
 
   {
-     NAME: OCITypeElemDefaultValue - OCI Get the element's Default Value. 
-     PARAMETERS: 
+     NAME: OCITypeElemDefaultValue - OCI Get the element's Default Value.
+     PARAMETERS:
           env (IN/OUT) - OCI environment handle initialized in object mode
           err (IN/OUT) - error handle. If there is an error, it is
                   recorded in 'err' and this function returns OCI_ERROR.
@@ -2348,11 +2348,11 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
           elem (IN) - pointer to the parameter descriptor in the object cache
                   (represented by an OCITypeElem)
           d_v_length (OUT) - length (in bytes) of the returned default value.
-                 The caller must allocate space for the ub4 before calling this 
+                 The caller must allocate space for the ub4 before calling this
                  routine.
      REQUIRES:
-          1) All type accessors require that the type be pinned before calling 
-             any accessor. 
+          1) All type accessors require that the type be pinned before calling
+             any accessor.
           2) All input parameters must not be NULL and must be valid.
      DESCRIPTION:
           Get the default value in text form (PL/SQL) of an element. For V8.0,
@@ -2360,7 +2360,7 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
      RETURNS:
           The default value (text) of the parameter.
      NOTES:
-          The type must be unpinned when the accessed information is no 
+          The type must be unpinned when the accessed information is no
           longer needed.
     }
   {-------------------------------------------------------------------------- }
@@ -2413,7 +2413,7 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
                   recorded in 'err' and this function returns OCI_ERROR.
                   The error recorded in 'err' can be retrieved by calling
                   OCIErrorGet().
-          schema_name (IN, optional) - name of schema associated with the 
+          schema_name (IN, optional) - name of schema associated with the
                     type.  By default, the user's schema name is used.
           s_n_length (IN) - length of the 'schema_name' parameter
           type_name (IN) - type name to insert
@@ -2454,7 +2454,7 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
                   recorded in 'err' and this function returns OCI_ERROR.
                   The error recorded in 'err' can be retrieved by calling
                   OCIErrorGet().
-          schema_name (IN, optional) - name of schema associated with the 
+          schema_name (IN, optional) - name of schema associated with the
                     type.  By default, the user's schema name is used.
           s_n_length (IN) - length of the 'schema_name' parameter
           type_name (IN) - type name to select
@@ -2475,7 +2475,7 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
               1) any of the parameters is invalid.
               2) an entry with 'type_name' does not exist.
     }
-  { Compatibility function - following function prototype retained for 
+  { Compatibility function - following function prototype retained for
      compatibility only  }
 {$IFNDEF LinkDynamically}
   function ortgcty(env:POCIEnv; err:POCIError; coll_tdo:POCIType; var collelem_tdo:POCIType):sword;cdecl;external ocilib name 'ortgcty';
@@ -2507,7 +2507,7 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
                             calling OCIErrorGet().
          tc               - The TypeCode for the type. The Typecode could
                             correspond to a User Defined Type or a Built-in type.
-                            Currently, the permissible values for User Defined 
+                            Currently, the permissible values for User Defined
                             Types are OCI_TYPECODE_OBJECT for an Object Type
                             (structured), OCI_TYPECODE_VARRAY for a VARRAY
                             collection type or OCI_TYPECODE_TABLE for a nested
@@ -2515,7 +2515,7 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
                             OCITypeAddAttr() needs to be called to add each of
                             the attribute types. For Collection types,
                             OCITypeSetCollection() needs to be called.
-                            Subsequently, OCITypeEndCreate() needs to be called 
+                            Subsequently, OCITypeEndCreate() needs to be called
                             to finish the creation process.
                             The permissible values for Built-in type codes are
                             specified in the user manual. Additional information
@@ -2545,7 +2545,7 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
          OCIType has been constructed with a collection typecode.
      PARAMETERS:
          svchp (IN)      -  The OCI Service Context.
-         errhp (IN/OUT)  -  The OCI error handle. If there is an error, it is 
+         errhp (IN/OUT)  -  The OCI error handle. If there is an error, it is
                             recorded in errhp and this function returns
                             OCI_ERROR. Diagnostic information can be obtained by
                             calling OCIErrorGet().
@@ -2575,7 +2575,7 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
          (OCI_TYPECODE_NUMBER etc.).
      PARAMETERS:
          svchp (IN)       - The OCI Service Context.
-         errhp (IN/OUT)   - The OCI error handle. If there is an error, it is 
+         errhp (IN/OUT)   - The OCI error handle. If there is an error, it is
                             recorded in errhp and this function returns
                             OCI_ERROR. Diagnostic information can be obtained by
                             calling OCIErrorGet().
@@ -2651,9 +2651,9 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
   { element is a REF  }
 
   const
-     OCI_TYPEELEM_REF = $8000;     
+     OCI_TYPEELEM_REF = $8000;
   { parameter is required  }
-     OCI_TYPEPARAM_REQUIRED = $0800;     
+     OCI_TYPEPARAM_REQUIRED = $0800;
   { macros to test flags  }
 
 //  function OCI_TYPEELEM_IS_REF(elem_flag : longint) : longint;

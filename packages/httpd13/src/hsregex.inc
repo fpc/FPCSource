@@ -26,9 +26,9 @@ type
 {$endif}
 
   Pregex_t = ^regex_t;
-  
+
   Pre_guts = Pointer;
-  
+
   regex_t = record
     re_magic: cint;
     re_nsub: size_t;		{ number of parenthesized subexpressions }

@@ -113,7 +113,7 @@
 
   function gst_buffer_new_allocate(allocator:PGstAllocator; size:Tgsize; params:PGstAllocationParams):PGstBuffer;cdecl;external gstreamerlib name 'gst_buffer_new_allocate';
 
-  function gst_buffer_new_wrapped_full(flags:TGstMemoryFlags; data:Tgpointer; maxsize:Tgsize; offset:Tgsize; size:Tgsize; 
+  function gst_buffer_new_wrapped_full(flags:TGstMemoryFlags; data:Tgpointer; maxsize:Tgsize; offset:Tgsize; size:Tgsize;
              user_data:Tgpointer; notify:TGDestroyNotify):PGstBuffer;cdecl;external gstreamerlib name 'gst_buffer_new_wrapped_full';
 
   function gst_buffer_new_wrapped(data:Tgpointer; size:Tgsize):PGstBuffer;cdecl;external gstreamerlib name 'gst_buffer_new_wrapped';
@@ -148,7 +148,7 @@
 
   procedure gst_buffer_remove_all_memory(buffer:PGstBuffer);cdecl;external gstreamerlib name 'gst_buffer_remove_all_memory';
 
-  function gst_buffer_find_memory(buffer:PGstBuffer; offset:Tgsize; size:Tgsize; idx:Pguint; length:Pguint; 
+  function gst_buffer_find_memory(buffer:PGstBuffer; offset:Tgsize; size:Tgsize; idx:Pguint; length:Pguint;
              skip:Pgsize):Tgboolean;cdecl;external gstreamerlib name 'gst_buffer_find_memory';
 
   function gst_buffer_is_memory_range_writable(buffer:PGstBuffer; idx:Tguint; length:Tgint):Tgboolean;cdecl;external gstreamerlib name 'gst_buffer_is_memory_range_writable';
@@ -192,35 +192,35 @@
   function gst_buffer_unset_flags(buffer:PGstBuffer; flags:TGstBufferFlags):Tgboolean;cdecl;external gstreamerlib name 'gst_buffer_unset_flags';
 
   {
-  
+
   static inline GstBuffer *
   gst_buffer_ref (GstBuffer * buf)
-  
+
     return (GstBuffer *) gst_mini_object_ref (((GstMiniObject*)(buf)));
-  
+
   # 441 "gstbuffer.h"
   static inline void
   gst_buffer_unref (GstBuffer * buf)
-  
+
     gst_mini_object_unref (((GstMiniObject*)(buf)));
-  
+
   # 460 "gstbuffer.h"
   static inline void
   gst_clear_buffer (GstBuffer ** buf_ptr)
-  
-    do  _Static_assert (sizeof *(((GstMiniObject **) buf_ptr)) == sizeof (gpointer), "Expression evaluates to false"); __typeof__((((GstMiniObject **) buf_ptr))) _pp = (((GstMiniObject **) buf_ptr)); __typeof__(*(((GstMiniObject **) buf_ptr))) _ptr = *_pp; *_pp = 
+
+    do  _Static_assert (sizeof *(((GstMiniObject **) buf_ptr)) == sizeof (gpointer), "Expression evaluates to false"); __typeof__((((GstMiniObject **) buf_ptr))) _pp = (((GstMiniObject **) buf_ptr)); __typeof__(*(((GstMiniObject **) buf_ptr))) _ptr = *_pp; *_pp =
   # 463 "gstbuffer.h" 3 4
    ((void *)0)
   # 463 "gstbuffer.h"
    ; if (_ptr) (gst_mini_object_unref) (_ptr);  while (0) ;
-  
+
   # 479 "gstbuffer.h"
   static inline GstBuffer *
   gst_buffer_copy (const GstBuffer * buf)
-  
+
     return (((GstBuffer *)(gst_mini_object_copy (((const GstMiniObject*)(buf))))));
-  
-  
+
+
    }
 (* Const before type ignored *)
   function gst_buffer_copy_deep(buf:PGstBuffer):PGstBuffer;cdecl;external gstreamerlib name 'gst_buffer_copy_deep';
@@ -232,10 +232,10 @@
   {
   static inline gboolean
   gst_buffer_replace (GstBuffer **obuf, GstBuffer *nbuf)
-  
+
     return gst_mini_object_replace ((GstMiniObject **) obuf, (GstMiniObject *) nbuf);
-  
-  
+
+
    }
   function gst_buffer_copy_region(parent:PGstBuffer; flags:TGstBufferCopyFlags; offset:Tgsize; size:Tgsize):PGstBuffer;cdecl;external gstreamerlib name 'gst_buffer_copy_region';
 

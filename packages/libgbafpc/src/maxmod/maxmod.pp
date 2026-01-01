@@ -25,7 +25,7 @@
 unit maxmod;
 {$ENDIF FPC_DOTTEDUNITS}
 
-{$mode objfpc} 
+{$mode objfpc}
 
 {$J+}
 {$INLINE ON}
@@ -36,10 +36,10 @@ interface
 
 {$IFDEF FPC_DOTTEDUNITS}
 uses
-  System.CTypes, GBAApi.Gba; 
+  System.CTypes, GBAApi.Gba;
 {$ELSE FPC_DOTTEDUNITS}
 uses
-  ctypes, gba; 
+  ctypes, gba;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {$linklib gba}

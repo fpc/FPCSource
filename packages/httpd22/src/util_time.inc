@@ -61,7 +61,7 @@ function ap_explode_recent_gmt(tm: Papr_time_exp_t; t: apr_time_t): apr_status_t
 {
  * format a recent timestamp in the ctime() format.
  * @param date_str String to write to.
- * @param t the time to convert 
+ * @param t the time to convert
  }
 function ap_recent_ctime(date_str: PAnsiChar; t: apr_time_t): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
@@ -70,7 +70,7 @@ function ap_recent_ctime(date_str: PAnsiChar; t: apr_time_t): apr_status_t;
 {
  * format a recent timestamp in the RFC822 format
  * @param date_str String to write to (must have length >= APR_RFC822_DATE_LEN)
- * @param t the time to convert 
+ * @param t the time to convert
  }
 function ap_recent_rfc822_date(date_str: PAnsiChar; t: apr_time_t): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}

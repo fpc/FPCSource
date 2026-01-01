@@ -32,7 +32,7 @@
 
 {
  * @defgroup apr_file_info File Information
- * @ingroup APR 
+ * @ingroup APR
  }
 
 { Many applications use the type member to determine the
@@ -43,8 +43,8 @@
 { apr_filetype_e values for the filetype member of the
  * apr_file_info_t structure
  * @warning: Not all of the filetypes below can be determined.
- * For example, a given platform might not correctly report 
- * a socket descriptor as APR_SOCK if that type isn't 
+ * For example, a given platform might not correctly report
+ * a socket descriptor as APR_SOCK if that type isn't
  * well-identified on that platform.  In such cases where
  * a filetype exists but cannot be described by the recognized
  * flags below, the filetype will be APR_UNKFILE.  If the
@@ -65,7 +65,7 @@ type
   );
 
 {
- * @defgroup apr_file_permissions File Permissions flags 
+ * @defgroup apr_file_permissions File Permissions flags
  * @
  }
 
@@ -97,7 +97,7 @@ type
   apr_dir_t = record end;
   Papr_dir_t = ^apr_dir_t;
   PPapr_dir_t = ^Papr_dir_t;
-  
+
 {
  * Structure for determining file permissions.
  }
@@ -197,18 +197,18 @@ type
     { The file's handle, if accessed (can be submitted to apr_duphandle) }
     filehand: Papr_file_t;
   end;
-  
+
   Papr_finfo_t = ^apr_finfo_t;
 
 {
- * get the specified file's stats.  The file is specified by filename, 
+ * get the specified file's stats.  The file is specified by filename,
  * instead of using a pre-opened file.
  * @param finfo Where to store the information about the file, which is
  * never touched if the call fails.
  * @param fname The name of the file to stat.
  * @param wanted The desired apr_finfo_t fields, as a bit flag of APR_FINFO_
-                 values 
- * @param cont the pool to use to allocate the new file. 
+                 values
+ * @param cont the pool to use to allocate the new file.
  *
  * @note If @c APR_INCOMPLETE is returned all the fields in @a finfo may
  *       not be filled in, and you need to check the @c finfo->valid bitmask
@@ -220,15 +220,15 @@ function apr_stat(finfo: Papr_finfo_t; const fname: PAnsiChar;
  external LibAPR name LibNamePrefix + 'apr_stat' + LibSuff16;
 
 {
- * get the specified file's stats.  The file is specified by filename, 
+ * get the specified file's stats.  The file is specified by filename,
  * instead of using a pre-opened file.  If the file is a symlink, this function
  * will get the stats for the symlink not the file the symlink refers to.
  * @param finfo Where to store the information about the file, which is
  * never touched if the call fails.
  * @param fname The name of the file to stat.
- * @param wanted The desired apr_finfo_t fields, as a bit flag of APR_FINFO_ values 
- * @param cont the pool to use to allocate the new file. 
- * @deprecated This function is deprecated, it's equivalent to calling apr_stat with 
+ * @param wanted The desired apr_finfo_t fields, as a bit flag of APR_FINFO_ values
+ * @param cont the pool to use to allocate the new file.
+ * @deprecated This function is deprecated, it's equivalent to calling apr_stat with
  * the wanted flag value APR_FINFO_LINK
  }
 function apr_lstat(finfo: Papr_finfo_t; const fname: PAnsiChar;
@@ -252,7 +252,7 @@ function apr_dir_open(new_dir: PPapr_dir_t; const dirname: PAnsiChar;
  external LibAPR name LibNamePrefix + 'apr_dir_open' + LibSuff12;
 
 {
- * close the specified directory. 
+ * close the specified directory.
  * @param thedir the directory descriptor to close.
  }
 function apr_dir_close(thedir: Papr_dir_t): apr_status_t;
@@ -260,10 +260,10 @@ function apr_dir_close(thedir: Papr_dir_t): apr_status_t;
  external LibAPR name LibNamePrefix + 'apr_dir_close' + LibSuff4;
 
 {
- * Read the next entry from the specified directory. 
+ * Read the next entry from the specified directory.
  * @param finfo the file info structure and filled in by apr_dir_read
  * @param wanted The desired apr_finfo_t fields, as a bit flag of APR_FINFO_
-                 values 
+                 values
  * @param thedir the directory descriptor returned from apr_dir_open
  * @remark No ordering is guaranteed for the entries read.
  *
@@ -311,7 +311,7 @@ const
   APR_FILEPATH_NATIVE =        $10;
 
 { Resolve the true case of existing directories and file elements
- * of addpath, (resolving any aliases on Win32) and append a proper 
+ * of addpath, (resolving any aliases on Win32) and append a proper
  * trailing slash if a directory
  }
   APR_FILEPATH_TRUENAME =      $20;
@@ -327,12 +327,12 @@ const
  * </PRE>
  * @param p the pool to allocate the new path string from
  * @remark on return, filepath points to the first non-root character in the
- * given filepath.  In the simplest example, given a filepath of "/foo", 
- * returns the rootpath of "/" and filepath points at "foo".  This is far 
+ * given filepath.  In the simplest example, given a filepath of "/foo",
+ * returns the rootpath of "/" and filepath points at "foo".  This is far
  * more complex on other platforms, which will canonicalize the root form
  * to a consistant format, given the APR_FILEPATH_TRUENAME flag, and also
- * test for the validity of that root (e.g., that a drive d:/ or network 
- * share //machine/foovol/). 
+ * test for the validity of that root (e.g., that a drive d:/ or network
+ * share //machine/foovol/).
  * The function returns APR_ERELATIVE if filepath isn't rooted (an
  * error), APR_EINCOMPLETE if the root path is ambigious (but potentially
  * legitimate, e.g. "/" on Windows is incomplete because it doesn't specify
@@ -351,9 +351,9 @@ function apr_filepath_root(const rootpath, filepath: PPAnsiChar;
  * @param addpath the path to add to the root path
  * @param flags the desired APR_FILEPATH_ rules to apply when merging
  * @param p the pool to allocate the new path string from
- * @remark if the flag APR_FILEPATH_TRUENAME is given, and the addpath 
- * contains wildcard characters ('*', '?') on platforms that don't support 
- * such characters within filenames, the paths will be merged, but the 
+ * @remark if the flag APR_FILEPATH_TRUENAME is given, and the addpath
+ * contains wildcard characters ('*', '?') on platforms that don't support
+ * such characters within filenames, the paths will be merged, but the
  * result code will be APR_EPATHWILD, and all further segments will not
  * reflect the true filenames including the wildcard and following segments.
  }

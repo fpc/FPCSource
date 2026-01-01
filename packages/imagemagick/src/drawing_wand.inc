@@ -1,12 +1,12 @@
 {
   Copyright 1999-2005 ImageMagick Studio LLC, a non-profit organization
   dedicated to making software imaging solutions freely available.
-  
+
   You may not use this file except in compliance with the License.
   obtain a copy of the License at
-  
+
     http://www.imagemagick.org/script/license.php
-  
+
   Unless required by applicable law or agreed to in writing, software
   distributed under the License is distributed on an "AS IS" BASIS,
   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -47,22 +47,22 @@ type
     name: array[0..MaxTextExtent] of AnsiChar;
 
     { Support structures }
-  
+
     image: PImage;
 
     exception: ExceptionInfo;
 
     { MVG output string and housekeeping }
-  
+
     mvg: PAnsiChar;               // MVG data
 
     mvg_alloc,                // total allocated memory
 //    mvg_length: size_t;       // total MVG length
 
-    mvg_width: culong;      // current line width 
+    mvg_width: culong;      // current line width
 
     { Pattern support }
-    
+
     pattern_id: PAnsiChar;
 
     pattern_bounds: RectangleInfo;
@@ -70,7 +70,7 @@ type
 //    pattern_offset: size_t;
 
     { Graphic wand }
-    
+
     index: culong;          // array index
 
     graphic_context: PPDrawInfo;
@@ -78,11 +78,11 @@ type
     filter_off: MagickBooleanType;    // true if not filtering attributes
 
     { Pretty-printing depth }
-  
-    indent_depth: culong;       // number of left-hand pad characters 
+
+    indent_depth: culong;       // number of left-hand pad characters
 
     { Path operation support }
-  
+
     path_operation: PathOperation;
 
     path_mode: PathMode;
@@ -92,7 +92,7 @@ type
 
     signature: culong;
   end;
- 
+
   PDrawingWand = ^DrawingWand;
 
 const x = 9;

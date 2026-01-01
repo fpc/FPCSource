@@ -4,7 +4,7 @@ interface
 
 uses
   ctypes, nds9, scrolling;
-  
+
 
 procedure HandMadeTiles();
 
@@ -29,7 +29,7 @@ var
 	1,1,1,1,1,1,1,1,
 	1,1,1,1,1,1,1,1,
 	1,1,1,1,1,1,1,1,
-//Tile 2: solid tile using color index 2	
+//Tile 2: solid tile using color index 2
 	2,2,2,2,2,2,2,2,
 	2,2,2,2,2,2,2,2,
 	2,2,2,2,2,2,2,2,
@@ -38,7 +38,7 @@ var
 	2,2,2,2,2,2,2,2,
 	2,2,2,2,2,2,2,2,
 	2,2,2,2,2,2,2,2,
-//Tile 3: smily face tile	
+//Tile 3: smily face tile
 	0,0,1,1,1,1,0,0,
 	0,1,1,1,1,1,1,0,
 	1,1,2,1,1,2,1,1,
@@ -101,13 +101,13 @@ var
 begin
 	videoSetMode(MODE_0_2D);
 	vramSetBankA(VRAM_A_MAIN_BG);
-	
+
 	bg := bgInit(0, BgType_Text8bpp, BgSize_T_256x256, 0,1);
-	
+
 	dmaCopy(@tiles, bgGetGfxPtr(bg), sizeof(tiles));
 	dmaCopy(@map32x32, bgGetMapPtr(bg),  sizeof(map32x32));
 	dmaCopy(@palette, BG_PALETTE, sizeof(palette));
-	
+
 	scroll(bg, 256, 256);
 end;
 

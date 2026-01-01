@@ -44,7 +44,7 @@ begin
     T:=P.Targets.AddUnit('src/hmac.pp');
     T:=P.Targets.AddUnit('src/fnvhash.pp');
     T:=P.Targets.AddUnit('src/unixcrypt.pas');
-    
+
     T.OSes:=[Linux];
     T:=P.Targets.AddExampleunit('examples/mdtest.pas');
     T:=P.Targets.AddExampleunit('examples/hmd5.pp');

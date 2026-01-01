@@ -18,5 +18,5 @@
 
 
   const
-    impl_h = 1;    
+    impl_h = 1;
 

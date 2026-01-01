@@ -86,7 +86,7 @@ type
 
 {
   Main httpd header files
-  
+
   Note: There are more include files other then these, because some include files
  include more files.
 }

@@ -248,11 +248,11 @@
  *
  * Expression evaluation occurs with respect to a context.
  * he context consists of:
- *    - a node (the context node) 
- *    - a node list (the context node list) 
- *    - a set of variable bindings 
- *    - a function library 
- *    - the set of namespace declarations in scope for the expression 
+ *    - a node (the context node)
+ *    - a node list (the context node list)
+ *    - a set of variable bindings
+ *    - a function library
+ *    - the set of namespace declarations in scope for the expression
  * Following the switch to hash tables, this need to be trimmed up at
  * the next binary incompatible release.
  * The node may be modified when the context is passed to libxml2

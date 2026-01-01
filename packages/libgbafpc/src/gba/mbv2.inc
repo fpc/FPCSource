@@ -24,14 +24,14 @@
 	"http://sourceforge.net/tracker/?group_id=114505&atid=668551".
 
   ------------------------------------------------------------------------------
-    
-    
+
+
   Conversion by Legolas (http://itaprogaming.free.fr) for freepascal compiler
   (http://www.freepascal.org)
-   
+
   Copyright (C) 2006  Francesco Lombardi
   Check http://sourceforge.net/projects/libndsfpc for updates
-   
+
   ------------------------------------------------------------------------------
 
   $Log$
@@ -99,12 +99,12 @@ function __dputchar (c: integer): integer; cdecl; external;
 //---------------------------------------------------------------------------------
 procedure dprintf(str: PAnsiChar; args: array of const); inline;
 begin
-  mbv2_dprintf(str, args); 
+  mbv2_dprintf(str, args);
 end;
 
 procedure dfprintf(fp: integer; str: PAnsiChar; args: array of const); inline;
 begin
-  mbv2_dfprintf(fp, str, args); 
+  mbv2_dfprintf(fp, str, args);
 end;
 
 function dputchar(c: integer): integer; inline;
@@ -140,7 +140,7 @@ end;
 
 function dfputc(ch, fp: integer): integer; inline;
 begin
-  dfputc := mbv2_dfputc(ch, fp); 
+  dfputc := mbv2_dfputc(ch, fp);
 end;
 
 procedure drewind(fp: integer); inline;

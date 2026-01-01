@@ -57,7 +57,7 @@
 
 (**
  * @defgroup apr_strings String routines
- * @ingroup APR 
+ * @ingroup APR
  * @{
  *)
 
@@ -75,7 +75,7 @@ function apr_strnatcmp(a, b: PAnsiChar): Integer;
   external LibAPR name LibNamePrefix + 'apr_strnatcmp' + LibSuff8;
 
 {**
- * Do a natural order comparison of two strings ignoring the case of the 
+ * Do a natural order comparison of two strings ignoring the case of the
  * strings.
  * @param a The first string to compare
  * @param b The second string to compare
@@ -117,7 +117,7 @@ function apr_pstrmemdup(p: Papr_pool_t; s: PAnsiChar; n: apr_size_t): PAnsiChar;
   external LibAPR name LibNamePrefix + 'apr_pstrmemdup' + LibSuff12;
 
 {**
- * Duplicate at most n characters of a string into memory allocated 
+ * Duplicate at most n characters of a string into memory allocated
  * out of a pool; the new string will be NUL-terminated
  * @param p The pool to allocate out of
  * @param s The string to duplicate
@@ -174,7 +174,7 @@ function apr_pstrcat(p: Papr_pool_t; params: array of const): PAnsiChar; cdecl;
 //  external LibAPR name LibNamePrefix + 'apr_pstrcatv' + LibSuff16;
 
 {**
- * printf-style style printing routine.  The data is output to a string 
+ * printf-style style printing routine.  The data is output to a string
  * allocated from a pool
  * @param p The pool to allocate out of
  * @param fmt The format of the string
@@ -187,7 +187,7 @@ function apr_pvsprintf(p: Papr_pool_t; const fmt: PAnsiChar; ap: va_list): PAnsi
   external LibAPR name LibNamePrefix + 'apr_pvsprintf' + LibSuff12;
 
 {**
- * printf-style style printing routine.  The data is output to a string 
+ * printf-style style printing routine.  The data is output to a string
  * allocated from a pool
  * @param p The pool to allocate out of
  * @param fmt The format of the string
@@ -214,10 +214,10 @@ function apr_psprintf(p: Papr_pool_t; const fmt: PAnsiChar; fmt_args: array of c
  * <PRE>
  * Note the differences between this function and strncpy():
  *  1) strncpy() doesn't always NUL terminate; apr_cpystrn() does.
- *  2) strncpy() pads the destination string with NULs, which is often 
+ *  2) strncpy() pads the destination string with NULs, which is often
  *     unnecessary; apr_cpystrn() does not.
  *  3) strncpy() returns a pointer to the beginning of the dst string;
- *     apr_cpystrn() returns a pointer to the NUL terminator of dst, 
+ *     apr_cpystrn() returns a pointer to the NUL terminator of dst,
  *     to allow a check for truncation.
  * </PRE>
  *}
@@ -241,7 +241,7 @@ function apr_collapse_spaces(dest: PAnsiChar; const src: PAnsiChar): PAnsiChar;
   external LibAPR name LibNamePrefix + 'apr_collapse_spaces' + LibSuff8;
 
 {**
- * Convert the arguments to a program from one string to an array of 
+ * Convert the arguments to a program from one string to an array of
  * strings terminated by a NULL pointer
  * @param arg_str The arguments to convert
  * @param argv_out Output location.  This is a pointer to an array of strings.
@@ -257,7 +257,7 @@ function apr_tokenize_to_argv(const arg_str: PAnsiChar;
   external LibAPR name LibNamePrefix + 'apr_tokenize_to_argv' + LibSuff12;
 
 {**
- * Split a string into separate null-terminated tokens.  The tokens are 
+ * Split a string into separate null-terminated tokens.  The tokens are
  * delimited in the string by one or more characters from the sep
  * argument.
  * @param str The string to separate; this should be specified on the

@@ -25,14 +25,14 @@
 
 
   ------------------------------------------------------------------------------
-    
-    
+
+
   Conversion by Legolas (http://itaprogaming.free.fr) for freepascal compiler
   (http://www.freepascal.org)
-   
+
   Copyright (C) 2006  Francesco Lombardi
   Check http://sourceforge.net/projects/libndsfpc for updates
-   
+
   ------------------------------------------------------------------------------
 
   $Log$
@@ -84,7 +84,7 @@ const
 
   DMA_IRQ         = (1 shl 30);
   DMA_ENABLE      = (1 shl 31);
-  
+
 procedure DMA0COPY(source: pu16; dest: pu16; mode: u32); inline;
 procedure DMA1COPY(source: pu16; dest: pu16; mode: u32); inline;
 procedure DMA2COPY(source: pu16; dest: pu16; mode: u32); inline;
@@ -101,38 +101,38 @@ begin
   REG_DMA0SAD^ := u32(source);
   REG_DMA0DAD^ := u32(dest);
   REG_DMA0CNT^ := DMA_ENABLE or mode;
-end; 
+end;
 
 procedure DMA1COPY(source: pu16; dest: pu16; mode: u32); inline;
 begin
   REG_DMA1SAD^ := u32(source);
   REG_DMA1DAD^ := u32(dest);
   REG_DMA1CNT^ := DMA_ENABLE or mode;
-end; 
+end;
 
 procedure DMA2COPY(source: pu16; dest: pu16; mode: u32); inline;
 begin
   REG_DMA2SAD^ := u32(source);
   REG_DMA2DAD^ := u32(dest);
   REG_DMA2CNT^ := DMA_ENABLE or mode;
-end; 
+end;
 
 procedure DMA3COPY(source: pu16; dest: pu16; mode: u32); inline;
 begin
   REG_DMA3SAD^ := u32(source);
   REG_DMA3DAD^ := u32(dest);
   REG_DMA3CNT^ := DMA_ENABLE or mode;
-end; 
+end;
 
 
 
 procedure DMA_Copy(channel: byte; source, dest: pu16; mode: u32); inline;
 begin
   case channel of
-    0: DMA0COPY(source, dest, mode); 
-    1: DMA1COPY(source, dest, mode); 
-    2: DMA2COPY(source, dest, mode); 
-    3: DMA3COPY(source, dest, mode); 
+    0: DMA0COPY(source, dest, mode);
+    1: DMA1COPY(source, dest, mode);
+    2: DMA2COPY(source, dest, mode);
+    3: DMA3COPY(source, dest, mode);
   end;
 end;
 

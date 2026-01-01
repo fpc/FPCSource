@@ -1,12 +1,12 @@
 {
   Copyright 1999-2005 ImageMagick Studio LLC, a non-profit organization
   dedicated to making software imaging solutions freely available.
-  
+
   You may not use this file except in compliance with the License.
   obtain a copy of the License at
-  
+
     http://www.imagemagick.org/script/license.php
-  
+
   Unless required by applicable law or agreed to in writing, software
   distributed under the License is distributed on an "AS IS" BASIS,
   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -76,7 +76,7 @@ const
   BlackChannel = $0020;
   IndexChannel = $0020;
   AllChannels = $ff;
-  
+
 type
   ChannelType = Byte;
 
@@ -204,7 +204,7 @@ type
   );
 
   PCompressionType = ^CompressionType;
-  
+
 const
   UnrecognizedDispose = 0;
   UndefinedDispose = 0;
@@ -216,7 +216,7 @@ type
   DisposeType = Byte;
 
   PDisposeType = ^DisposeType;
-  
+
 type
  EndianType = (
   UndefinedEndian,
@@ -288,10 +288,10 @@ const
   MonitorFatalError = 785;
   RegistryFatalError = 790;
   ConfigureFatalError = 795;
-  
+
 type
   ExceptionType = Word;
-  
+
   PExceptionType = ^ExceptionType;
 
 type
@@ -442,7 +442,7 @@ type
   AffineMatrix = record
     sx, rx, ry, sy, tx, ty: double;
   end;
-  
+
   PAffineMatrix = ^AffineMatrix;
 
 type
@@ -456,7 +456,7 @@ type
    blue, green, red, opacity: Quantum;
 {$endif}
   end;
-  
+
   PPixelPacket = ^PixelPacket;
 
 type
@@ -465,7 +465,7 @@ type
    index: IndexPacket;
    count: culong;
   end;
-  
+
   PColorPacket = ^ColorPacket;
 
 type
@@ -478,17 +478,17 @@ type
    x, y, z: double;
   end;
 
-type 
+type
   ProfileInfo = record
    name: PAnsiChar;
    length: cint;
    info: PAnsiChar;
    signature: culong;
   end;
-  
+
   PProfileInfo = ^ProfileInfo;
 
-type 
+type
   RectangleInfo = record
    width, height: culong;
    x, y: culong;
@@ -503,7 +503,7 @@ type
   Timer = record
    start, stop, total: double;
   end;
-  
+
   PTimer = ^Timer;
 
 type
@@ -512,7 +512,7 @@ type
    state: TimerState;
    signature: culong;
   end;
-  
+
   PTimerInfo = ^TimerInfo;
 
 type
@@ -532,7 +532,7 @@ type
    semaphore: Pointer; //PSemaphoreInfo;
    signature: culong;
   end;
-  
+
   PExceptionInfo = ^ExceptionInfo;
 
 //typedef struct _Ascii85Info _Ascii85Info_;
@@ -597,7 +597,7 @@ type
     *list,
     *next;}
  end;
- 
+
  PImage = ^Image;
 
 //type

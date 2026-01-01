@@ -4,11 +4,11 @@ interface
 
 uses
   ctypes;
-  
+
 //======================================================================
 //
-//	Layer_1, 256x256@8, 
-//	+ regular map (flat), not compressed, 32x32 
+//	Layer_1, 256x256@8,
+//	+ regular map (flat), not compressed, 32x32
 //	Total size: 2048 = 2048
 //
 //	Time-stamp: 2007-12-07, 18:17:34
@@ -23,8 +23,8 @@ var
 
 //======================================================================
 //
-//	Layer_2, 256x256@8, 
-//	+ regular map (flat), not compressed, 32x32 
+//	Layer_2, 256x256@8,
+//	+ regular map (flat), not compressed, 32x32
 //	Total size: 2048 = 2048
 //
 //	Time-stamp: 2007-12-07, 18:17:34
@@ -39,8 +39,8 @@ var
 
 //======================================================================
 //
-//	Layer_3, 256x256@8, 
-//	+ regular map (flat), not compressed, 32x32 
+//	Layer_3, 256x256@8,
+//	+ regular map (flat), not compressed, 32x32
 //	Total size: 2048 = 2048
 //
 //	Time-stamp: 2007-12-07, 18:17:34
@@ -55,7 +55,7 @@ var
 
 //======================================================================
 //
-//	Multilayer, 8x2504@8, 
+//	Multilayer, 8x2504@8,
 //	+ palette 256 entries, not compressed
 //	+ 313 tiles not compressed
 //	Total size: 512 + 20032 = 20544

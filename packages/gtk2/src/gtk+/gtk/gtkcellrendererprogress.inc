@@ -49,27 +49,27 @@
     begin
       Result:= gtk_cell_renderer_progress_get_type ();
     end;
-    
+
     function GTK_CELL_RENDERER_PROGRESS(obj: Pointer): PGtkCellRendererProgress;
     begin
       Result:= PGtkCellRendererProgress(GTK_CHECK_CAST(obj, GTK_TYPE_CELL_RENDERER_PROGRESS));
     end;
-    
+
     function GTK_CELL_RENDERER_PROGRESS_CLASS(klass: pointer): PGtkCellRendererProgressClass;
     begin
       Result:= PGtkCellRendererProgressClass(GTK_CHECK_CLASS_CAST(klass, GTK_TYPE_CELL_RENDERER_PROGRESS));
     end;
-     
+
     function GTK_IS_CELL_RENDERER_PROGRESS(obj: pointer): boolean;
     begin
       Result:= GTK_CHECK_TYPE(obj, GTK_TYPE_CELL_RENDERER_PROGRESS);
     end;
-    
+
     function GTK_IS_CELL_RENDERER_PROGRESS_CLASS(klass: pointer):boolean;
     begin
       Result:= GTK_CHECK_CLASS_TYPE(klass, GTK_TYPE_CELL_RENDERER_PROGRESS);
     end;
-    
+
     function GTK_CELL_RENDERER_PROGRESS_GET_CLASS(obj: pointer): PGtkCellRendererProgressClass;
     begin
       Result:= PGtkCellRendererProgressClass(GTK_CHECK_GET_CLASS(obj, GTK_TYPE_CELL_RENDERER_PROGRESS));

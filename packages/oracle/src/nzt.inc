@@ -23,15 +23,15 @@ type
   { Copyright (c) 1996, 2004, Oracle. All rights reserved.   }
   { Copyright (c) 1996, 2004, Oracle. All rights reserved.   }
   {
-   * $Header: nzt.h 10-aug-2004.11:55:06 rchahal Exp $ 
+   * $Header: nzt.h 10-aug-2004.11:55:06 rchahal Exp $
     }
-  { 
+  {
    * NAME
    *    nzt.h
-   * 
+   *
    * DESCRIPTION
    *    Toolkit public declarations.
-   *    
+   *
    * PUBLIC FUNCTIONS
    *    nztwOpenWallet           - Open a wallet based on a WRL and pwd.
    *    nztwCloseWallet          - Close a wallet.
@@ -59,31 +59,31 @@ type
    *    nztidFreeIdentityDesc    - Frees memory for Identity Desc object.
    *    nztSign                  - Generate an attached signature.
    * +  nztxSignExpansion        - Determine size of signature.
-   *    nztVerify                - Verify an attached signature.               
-   *    nztValidate              - Validate an identity.                       
+   *    nztVerify                - Verify an attached signature.
+   *    nztValidate              - Validate an identity.
    *    nztsd_SignDetached       - Generate a detached signature.
    * +  nztxsd_SignDetachedExpansion - Determine size of detached signature.
-   *    nztved_VerifyDetached    - Verify a detached signature.                 
-   * +  nztEncrypt               - Symmetric key encryption.   
+   *    nztved_VerifyDetached    - Verify a detached signature.
+   * +  nztEncrypt               - Symmetric key encryption.
    * +  nztxEncryptExpansion     - Determine the tdu length for encryption.
-   * +  nztDecrypt               - Symmetric key decryption.                   
-   * +  nztEnvelope              - Sign then encrypt data for recipient(s).    
-   * +  nztDeEnvelope            - Reverse nztEnvelope.                        
-   * +  nztKeyedHash             - Generate keyed hash.                        
+   * +  nztDecrypt               - Symmetric key decryption.
+   * +  nztEnvelope              - Sign then encrypt data for recipient(s).
+   * +  nztDeEnvelope            - Reverse nztEnvelope.
+   * +  nztKeyedHash             - Generate keyed hash.
    * +  nztxKeyedHashExpansion   - Determine size of TDU for keyed hash.
-   *    nztHash                  - Generate hash.   
+   *    nztHash                  - Generate hash.
    * +  nztxHashExpansion        - Determine the size of the TDU for a hash.
    *    nztSeedRandom            - See the random number generator.
-   *    nztrb_RandomBytes        - Generate a series of random bytes.          
-   *    nztrn_RandomNumber       - Generate a random number.                   
-   *    nztbbInitBlock           - Initialize a buffer block.                  
-   *    nztbbReuseBlock          - Reuse a buffer block.           
+   *    nztrb_RandomBytes        - Generate a series of random bytes.
+   *    nztrn_RandomNumber       - Generate a random number.
+   *    nztbbInitBlock           - Initialize a buffer block.
+   *    nztbbReuseBlock          - Reuse a buffer block.
    *    nztbbSizeBlock           - Find the size of the buffer block.
    *    nztbbGrowBlock           - Grow initialized buffer block by 'inc' bytes.
    *    nztbbPurgeBlock          - Purge the memory used within a buffer block.
    *    nztbbSetBlock            - Set block to known state.
    *    nztkec_PKEncrypt         - Encrypt data then encrypt key for recipient.
-   *    nztkdc_PKDecrypt         - Decrypt PKEncrypt'ed data.                  
+   *    nztkdc_PKDecrypt         - Decrypt PKEncrypt'ed data.
    *    nztific_FreeIdentityContent - Free the contents of an identity.
    *    nztifdn                  - Create an identity from a distinguished name
    *    nztcts_CipherSpecToStr   - Converts the Cipher Spec Code To String
@@ -96,13 +96,13 @@ type
    *    nztwGetCertInfo          - Get peer certificate info
    *
    * NOTE: the '+' indicates that these functions are UNSUPPORTED at this time.
-   * 
+   *
    * NOTES
-   *    
+   *
    * MODIFIED
-   *    rchahal    07/27/04 - add keyusage 
-   *    srtata     11/10/03 - fix nztSetAppDefaultLocation header 
-   *    rchahal    10/15/03 - bug 2513821 
+   *    rchahal    07/27/04 - add keyusage
+   *    srtata     11/10/03 - fix nztSetAppDefaultLocation header
+   *    rchahal    10/15/03 - bug 2513821
    *    rchahal    11/11/02 - pkcs11 support
    *    akoyfman   07/05/02 - adding secret store to persona
    *    supriya    10/11/01 - Fix for bug # 2015732
@@ -157,8 +157,8 @@ type
   { NZERROR_ORACLE  }
 
   const
-     NZT_MAX_SHA1 = 20;     
-     NZT_MAX_MD5 = 16;     
+     NZT_MAX_SHA1 = 20;
+     NZT_MAX_MD5 = 16;
   {************************************* }
   { PUBLIC CONSTANTS, MACROS, AND TYPES  }
   {************************************* }
@@ -168,20 +168,20 @@ type
    * WRL TYPE        PARAMETERS      BEHAVIOR
    * ========        ==========      =====================================
    * default:          <none>        Uses directory defined by the parameter
-   *                                 SNZD_DEFAULT_FILE_DIRECTORY which in 
+   *                                 SNZD_DEFAULT_FILE_DIRECTORY which in
    *                                 unix is "$HOME/oracle/oss"
-   * 
+   *
    * file:            file path      Find the Oracle wallet in this directory.
    *                                 example: file:<dir-path>
-   * 
-   * sqlnet:           <none>        In this case, the directory path will be 
+   *
+   * sqlnet:           <none>        In this case, the directory path will be
    *                                 retrieved from the sqlnet.ora file under
    *                                 the oss.source.my_wallet parameter.
    *
    * mcs:              <none>        Microsoft WRL.
    *
-   * entr:             dir path      Entrust WRL. eg: ENTR:<dir-path>   
-   * 
+   * entr:             dir path      Entrust WRL. eg: ENTR:<dir-path>
+   *
     }
   { Note that there is no NZT_NULL_WRL.  Instead look in snzd.h for DEFAULT_WRP
    * which is used in our new defaulting mechanism.  The NZT_DEFAULT_WRL
@@ -289,7 +289,7 @@ type
      PnzttState = ^nzttState;
   {
    * Cert-version types
-   * 
+   *
    * This is used to quickly look-up the cert-type
     }
   { X.509v1  }
@@ -438,7 +438,7 @@ type
    *
    * The flags_nzttBufferBlock member tells the function whether the
    * buffer can be grown or not.  If flags_nzttBufferBlock is 0, then
-   * the buffer will be realloc'ed automatically.  
+   * the buffer will be realloc'ed automatically.
    *
    * The buflen_nzttBufferBLock member is set to the length of the
    * buffer before the function is called and will be the length of the
@@ -662,15 +662,15 @@ type
   {
    * NAME
    *    nztwOpenWallet - Open a wallet based on a wallet Resource Locator (WRL).
-   * 
+   *
    * PARAMETERS
-   *    osscntxt IN     OSS context. 
+   *    osscntxt IN     OSS context.
    *    wrllen   IN     Length of WRL.
    *    wrl      IN     WRL.
    *    pwdlen   IN     Length of password.
    *    pwd      IN     Password.
-   *    wallet   IN/OUT Initialized wallet structure.   
-   * 
+   *    wallet   IN/OUT Initialized wallet structure.
+   *
    * NOTES
    *    The syntax for a WRL is <Wallet Type>:<Wallet Type Parameters>.
    *
@@ -692,7 +692,7 @@ type
    *    it and comparing against the password hash stored with the
    *    wallet.  The list of personas (and their associated identities)
    *    is built and stored into the wallet structure.
-   *    
+   *
    * RETURNS
    *    NZERROR_OK           Success.
    *    NZERROR_RIO_OPEN     RIO could not open wallet (see network trace file).
@@ -713,11 +713,11 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
   {
    * NAME
    *    nztwCloseWallet - Close a wallet
-   * 
+   *
    * PARAMETERS
    *    osscntxt IN     OSS context.
    *    wallet   IN/OUT Wallet.
-   * 
+   *
    * NOTES
    *    Closing a wallet also closes all personas associated with that
    *    wallet.  It does not cause a persona to automatically be saved
@@ -740,13 +740,13 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
   {_ nzctx *nz_context,
                               nzosContext *nzosCtx,
                               nzttWallet *walletRef,
-                              void *peerCert _ }(* error 
+                              void *peerCert _ }(* error
                             void *peerCert _*/);
  in declarator_list *)
   {------------------------ nztwConstructWallet ----------------------- }
   {
-   * 
-   * nzerror nztwConstructWallet( nzctx *oss_context,    
+   *
+   * nzerror nztwConstructWallet( nzctx *oss_context,
    *              nzttPolicy openPolicy,
    *              nzttPolicy securePolicy,
    *              ub1 *ldapName,
@@ -759,17 +759,17 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
   {
    * NAME
    *    nztwRetrievePersonaCopy - Retrieves a persona based from wallet
-   * 
+   *
    * PARAMETERS
-   *    osscntxt IN     OSS context. 
+   *    osscntxt IN     OSS context.
    *    wallet   IN     Wallet.
    *    index    IN     Which wallet index to remove (first persona is zero).
    *    persona  OUT    Persona found.
-   * 
+   *
    * NOTES
    *    Retrieves a persona from the wallet based on the index number passed
    *    in.  This persona is a COPY of the one stored in the wallet, therefore
-   *    it is perfectly fine for the wallet to be closed after this call is 
+   *    it is perfectly fine for the wallet to be closed after this call is
    *    made.
    *
    *    The caller is responsible for disposing of the persona when completed.
@@ -792,11 +792,11 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
    * PARAMETERS
    *    osscntxt IN     OSS context.
    *    wallet   IN     Wallet.
-   *    name    IN     Name of the persona 
+   *    name    IN     Name of the persona
    *    persona  OUT    Persona found.
    *
    * NOTES
-   *    Retrieves a persona from the wallet based on the name of the persona. 
+   *    Retrieves a persona from the wallet based on the name of the persona.
    *    This persona is a COPY of the one stored in the wallet, therefore
    *    it is perfectly fine for the wallet to be closed after this call is
    *    made.
@@ -817,13 +817,13 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
   {
    * NAME
    *    nzteOpenPersona - Open a persona.
-   * 
+   *
    * PARAMETERS
-   *    osscntxt IN     OSS context. 
+   *    osscntxt IN     OSS context.
    *    persona  IN/OUT Persona.
-   * 
+   *
    * NOTES
-   *    
+   *
    * RETURNS
    *    NZERROR_OK           Success.
    *    NZERROR_TK_PASSWORD  Password failed to decrypt persona.
@@ -841,15 +841,15 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
   {
    * NAME
    *    nzteClosePersona - Close a persona.
-   * 
+   *
    * PARAMETERS
    *    osscntxt IN     OSS context.
    *    persona  IN/OUT Persona.
-   * 
+   *
    * NOTES
    *    Closing a persona does not store the persona, it simply releases
    *    the memory associated with the crypto engine.
-   *    
+   *
    * RETURNS
    *    NZERROR_OK        Success.
     }
@@ -864,15 +864,15 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
   {
    * NAME
    *    nzteDestroyPersona - Destroy a persona.
-   * 
+   *
    * PARAMETERS
    *    osscntxt IN        OSS context.
    *    persona  IN/OUT    Persona.
-   * 
+   *
    * NOTES
    *    The persona is destroyd in the open state, but it will
    *    not be associated with a wallet.
-   *    
+   *
    *    The persona parameter is doubly indirect so that at the
    *    conclusion of the function, the pointer can be set to NULL.
    *
@@ -893,20 +893,20 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
   {
    * NAME
    *    nzteRetrieveTrustedIdentCopy - Retrieves a trusted identity from persona
-   * 
+   *
    * PARAMETERS
-   *    osscntxt IN     OSS context. 
+   *    osscntxt IN     OSS context.
    *    persona  IN     Persona.
    *    index    IN     Which wallet index to remove (first element is zero).
    *    identity OUT    Trusted Identity from this persona.
-   * 
+   *
    * NOTES
-   *    Retrieves a trusted identity from the persona based on the index 
-   *    number passed in.  This identity is a COPY of the one stored in 
+   *    Retrieves a trusted identity from the persona based on the index
+   *    number passed in.  This identity is a COPY of the one stored in
    *    the persona, therefore it is perfectly fine to close the persona
    *    after this call is made.
    *
-   *    The caller is responsible for freeing the memory of this object 
+   *    The caller is responsible for freeing the memory of this object
    *    by calling nztiAbortIdentity it is no longer needed
    *
    * RETURNS
@@ -923,17 +923,17 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
   {
    * NAME
    *    nztePriKey - Get the decrypted Private Key for the Persona
-   * 
+   *
    * PARAMETERS
    *    osscntxt IN     OSS context.
    *    persona  IN     Persona.
    *    vkey     OUT    Private Key [B_KEY_OBJ]
    *    vkey_len OUT    Private Key Length
-   * 
+   *
    * NOTES
    *    This funiction will only work for X.509 based persona which contain
-   *    a private key.  
-   *    A copy of the private key is returned to the caller so that they do not 
+   *    a private key.
+   *    A copy of the private key is returned to the caller so that they do not
    *    have to worry about the key changeing "underneath them".
    *    Memory will be allocated for the vkey and therefore, the CALLER
    *    will be responsible for freeing this memory.
@@ -954,17 +954,17 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
   {
    * NAME
    *    nzteMyCert - Get the X.509 Certificate for a persona
-   * 
+   *
    * PARAMETERS
    *    osscntxt IN     OSS context.
    *    persona  IN     Persona.
    *    cert     OUT    X.509 Certificate [BER encoded]
    *    cert_len OUT    Certificate length
-   * 
+   *
    * NOTES
    *    This funiction will only work for X.509 based persona which contain
-   *    a certificate for the self identity. 
-   *    A copy of the certificate is returned to the caller so that they do not 
+   *    a certificate for the self identity.
+   *    A copy of the certificate is returned to the caller so that they do not
    *    have to worry about the certificate changeing "underneath them".
    *    Memory will be allocated for the cert and therefore, the CALLER
    *    will be responsible for freeing this memory.
@@ -984,13 +984,13 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
   {
    * NAME
    *    nzteX509CreatePersona - Given a BER X.509 cert, create a persona
-   * 
+   *
    * PARAMETERS
    *    osscntxt IN     OSS context.
    *    cert     IN     X.509 Certificate [BER encoded]
    *    cert_len IN     Certificate length
    *    persona  OUT    Persona.
-   * 
+   *
    * NOTES
    *    Memory will be allocated for the persona and therefore, the CALLER
    *    will be responsible for freeing this memory.
@@ -1010,20 +1010,20 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
   {
    * NAME
    *    nztiCreateIdentity - Create an identity.
-   * 
+   *
    * PARAMETERS
    *    osscntxt IN     OSS context.
    *    itype    IN     Identity type.
    *    desc     IN     Description of identity.
    *    identity IN/OUT Identity.
-   * 
+   *
    * NOTES
    *    Memory is only allocated for the identity structure.  The elements in
    *    the description struct are not copied.  Rather their pointers are copied
    *    into the identity structure.  Therefore, the caller should not free
    *    the elements referenced by the desc.  These elements will be freed
    *    when the nztiDestroyIdentity is called.
-   *    
+   *
    * RETURNS
    *    NZERROR_OK        Success.
    *    NZERROR_PARMS     Error in description.
@@ -1040,16 +1040,16 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
   {
    * NAME
    *    nztiDuplicateIdentity - Duplicate an identity.
-   * 
+   *
    * PARAMETERS
    *    osscntxt     IN     OSS context.
    *    identity     IN     Target Identity.
    *    new_identity IN     New Identity.
-   * 
+   *
    * NOTES
    *    Memory for the identity is allocated inside the function, and all
    *    internal identity elements as well.
-   *    
+   *
    * RETURNS
    *    NZERROR_OK        Success.
    *    NZERROR_TK_NOTFOUND  Identity not found.
@@ -1068,17 +1068,17 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
   {
    * NAME
    *    nztiAbortIdentity - Abort an unassociated identity.
-   * 
+   *
    * PARAMETERS
    *    osscntxt IN     OSS context.
    *    identity IN/OUT Identity.
-   * 
+   *
    * NOTES
    *    It is an error to try to abort an identity that can be
    *    referenced through a persona.
-   *    
+   *
    *    The identity pointer is set to NULL at the conclusion.
-   * 
+   *
    * RETURNS
    *    NZERROR_OK           Success.
    *    NZERROR_CANTABORT    Identity is associated with persona.
@@ -1095,15 +1095,15 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
   {
    * NAME
    *    nztidGetIdentityDesc - Gets an Identity Description from the identity
-   * 
+   *
    * PARAMETERS
    *    osscntxt    IN     Success.
    *    identity    IN     Identity.
    *    description IN/OUT Identity Description.
-   * 
+   *
    * NOTES
    *    Memory is allocated for the Identity Description. It
-   *    is the callers responsibility to free this memory by calling 
+   *    is the callers responsibility to free this memory by calling
    *    nztiFreeIdentityDesc.
    *
    * RETURNS
@@ -1120,13 +1120,13 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
   {
    * NAME
    *    nztidFreeIdentityDesc - Frees memory for Identity Desc object.
-   * 
+   *
    * PARAMETERS
    *    osscntxt    IN     oss context.
    *    description IN/OUT Identity Description.
-   * 
+   *
    * NOTES
-   *    Memory is freed for all Identity description elements.  Pointer is 
+   *    Memory is freed for all Identity description elements.  Pointer is
    *    then set to null.
    *
    * RETURNS
@@ -1145,11 +1145,11 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
   {
    * NAME
    *     nztific_FreeIdentityContent - free the contents of an identity.
-   * 
+   *
    * PARAMETERS
    *    osscntxt         IN     OSS context.
    *    identity         IN/OUT freed identity
-   * 
+   *
    * NOTES
    *    Free a created identity.
    *
@@ -1170,7 +1170,7 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
   {
    * NAME
    *    nztSign - Create an attached signature.
-   * 
+   *
    * PARAMETERS
    *    osscntxt IN     OSS context.
    *    persona  IN     Open persona acting as signer.
@@ -1178,9 +1178,9 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
    *    inlen    IN     Length of this input part.
    *    in       IN     This input part.
    *    tdubuf   IN/OUT TDU buffer.
-   * 
+   *
    * NOTES
-   *    
+   *
    * RETURNS
    *    NZERROR_OK           Success.
    *    NZERROR_TK_CANTGROW  Needed to grow output buffer but could not.
@@ -1200,7 +1200,7 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
   {
    * NAME
    *    nztVerify - Verify an attached signature.
-   * 
+   *
    * PARAMETERS
    *    osscntxt IN     OSS context.
    *    persona  IN     Persona.
@@ -1211,9 +1211,9 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
    *    verified OUT    TRUE if signature verified.
    *    validatedOUT    TRUE if signing identity validated.
    *    identity OUT Identity of signing party.
-   * 
+   *
    * NOTES
-   *    
+   *
    * RETURNS
    *    NZERROR_OK           Success.
    *    NZERROR_TK_CANTGROW  Needed to grow outptu buffer but could not.
@@ -1233,15 +1233,15 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
   {
    * NAME
    *    nztValidate - Validate an identity.
-   * 
+   *
    * PARAMETERS
    *    osscntxt IN  OSS context.
    *    persona  IN  Persona.
    *    identity IN  Identity.
-   *    validatedOUT TRUE if identity was validated.  
-   * 
+   *    validatedOUT TRUE if identity was validated.
+   *
    * NOTES
-   *    
+   *
    * RETURNS
    *    NZERROR_OK           Success.
    *    NZERROR_TK_NOTOPEN   Persona is not open.
@@ -1258,7 +1258,7 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
   {
    * NAME
    *    nztsd_SignDetached - Generate a detached signature.
-   * 
+   *
    * PARAMETERS
    *    osscntxt IN     OSS context.
    *    persona  IN     Persona.
@@ -1266,9 +1266,9 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
    *    inlen    IN     Length of this input part.
    *    in       IN     This input part.
    *    tdubuf   IN/OUT TDU buffer.
-   * 
+   *
    * NOTES
-   *    
+   *
    * RETURNS
    *    NZERROR_OK           Success.
    *    NZERROR_TK_CANTGROW  Needed to grow output buffer but could not.
@@ -1288,7 +1288,7 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
   {
    * NAME
    *    nztved_VerifyDetached - Verify a detached signature.
-   * 
+   *
    * PARAMETERS
    *    osscntxt IN     OSS context.
    *    persona  IN     Persona.
@@ -1300,9 +1300,9 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
    *    verified OUT    TRUE if signature verified.
    *    validatedOUT    TRUE if signing identity validated.
    *    identity OUT Identity of signing party.
-   * 
+   *
    * NOTES
-   *    
+   *
    * RETURNS
    *    NZERROR_OK           Success.
    *    NZERROR_TK_NOTOPEN   Persona is not open.
@@ -1321,7 +1321,7 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
   {
    * NAME
    *    nztkec_PKEncrypt - Encrypt data symmetrically, encrypt key asymmetrically
-   * 
+   *
    * PARAMETERS
    *    osscntxt    IN     OSS context.
    *    persona     IN     Persona.
@@ -1331,11 +1331,11 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
    *    inlen       IN     Length of this input part.
    *    in          IN     This input part.
    *    tdubuf      IN/OUT TDU buffer.
-   * 
+   *
    * NOTES
    *    There is a limitation of 1 recipient (nrecipients = 1) at this
    *    time.
-   *    
+   *
    * RETURNS
    *    NZERROR_OK           Success.
    *    NZERROR_TK_CANTGROW  Needed to grow output buffer but could not.
@@ -1355,16 +1355,16 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
   {
    * NAME
    *    nztxkec_PKEncryptExpansion - Determine the buffer needed for PKEncrypt
-   * 
+   *
    * PARAMETERS
-   *    osscntxt    IN     OSS context. 
+   *    osscntxt    IN     OSS context.
    *    persona     IN     Persona.
    *    nrecipients IN     Number of recipients.
    *    inlen       IN     Length of input.
    *    tdulen      out    Length of buffer need.
-   * 
+   *
    * NOTES
-   *    
+   *
    * RETURNS
    *    NZERROR_OK           Success.
    *    NZERROR_TK_NOTOPEN   Persona is not open.
@@ -1381,7 +1381,7 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
   {
    * NAME
    *    nztkdc_PKDecrypt - Decrypt a PKEncrypted message.
-   * 
+   *
    * PARAMETERS
    *    osscntxt    IN     OSS context.
    *    persona     IN     Persona.
@@ -1389,9 +1389,9 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
    *    inlen       IN     Length of this input part.
    *    in          IN     This input part.
    *    tdubuf      IN/OUT TDU buffer.
-   * 
+   *
    * NOTES
-   *    
+   *
    * RETURNS
    *    NZERROR_OK           Success.
    *    NZERROR_TK_CANTGROW  Needed to grow output buffer but could not.
@@ -1411,7 +1411,7 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
   {
    * NAME
    *    nztHash - Generate a hash.
-   * 
+   *
    * PARAMETERS
    *    osscntxt IN     OSS context.
    *    persona  IN     Persona.
@@ -1419,9 +1419,9 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
    *    inlen    IN     Length of this input.
    *    in       IN     This input.
    *    tdu      IN/OUT Output tdu.
-   * 
+   *
    * NOTES
-   *    
+   *
    * RETURNS
    *    NZERROR_OK           Success.
    *    NZERROR_TK_CANTGROW  Needed to grow TDU buffer but could not.
@@ -1441,15 +1441,15 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
   {
    * NAME
    *    nztSeedRandom - Seed the random function
-   * 
+   *
    * PARAMETERS
    *    osscntxt IN  OSS context.
    *    persona  IN  Persona.
    *    seedlen  IN  Length of seed.
    *    seed     IN  Seed.
-   * 
+   *
    * NOTES
-   *    
+   *
    * RETURNS
    *    NZERROR_OK           Success.
    *    NZERROR_TK_NOTOPEN   Persona is not open.
@@ -1466,15 +1466,15 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
   {
    * NAME
    *    nztrb_RandomBytes - Generate a buffer random bytes.
-   * 
+   *
    * PARAMETERS
    *    osscntxt IN     OSS context.
    *    persona  IN     Persona.
    *    nbytes   IN     Number of bytes desired.
    *    out      IN/OUT Buffer block for bytes.
-   * 
+   *
    * NOTES
-   *    
+   *
    * RETURNS
    *    NZERROR_OK           Success.
    *    NZERROR_TK_CANTGROW  Needed to grow TDU buffer but could not.
@@ -1492,14 +1492,14 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
   {
    * NAME
    *    nztrn_RandomNumber - Generate a random number
-   * 
+   *
    * PARAMETERS
    *    osscntxt IN     OSS context.
    *    persona  IN     Persona.
    *    num      OUT    Number.
-   * 
+   *
    * NOTES
-   *    
+   *
    * RETURNS
    *    NZERROR_OK           Success.
    *    NZERROR_TK_NOTOPEN   Persona is not open.
@@ -1516,15 +1516,15 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
   {
    * NAME
    *    nztbbInitBlock - Initialize a buffer block.
-   * 
+   *
    * PARAMETERS
    *    osscntxt IN     OSS context.
    *    block    IN/OUT Buffer block.
-   * 
+   *
    * NOTES
    *    The buffer block is initialized to be empty (all members are set
    *    to 0/NULL).  Such a block will be allocated memory as needed.
-   *    
+   *
    * RETURNS
    *    NZERROR_OK        Success.
     }
@@ -1539,16 +1539,16 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
   {
    * NAME
    *    nztbbReuseBlock - Reuse an already initialized and possibly used block.
-   * 
+   *
    * PARAMETERS
    *    osscntxt IN     OSS context.
    *    block    IN/OUT Buffer block.
-   * 
+   *
    * NOTES
    *    This function simply sets the used length member of the buffer
    *    block to 0.  If the block already has memory allocated to it,
    *    this will cause it to be reused.
-   *    
+   *
    * RETURNS
    *    NZERROR_OK        Success.
     }
@@ -1563,14 +1563,14 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
   {
    * NAME
    *    nztbbSizeBlock - Size an initialized block to a particular size.
-   * 
+   *
    * PARAMETERS
    *    osscntxt IN     OSS context.
    *    len      IN     Minimum number of unused bytes desired.
    *    block    IN/OUT Buffer block.
    *
    * NOTES
-   *    
+   *
    * RETURNS
    *    NZERROR_OK        Success.
     }
@@ -1585,14 +1585,14 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
   {
    * NAME
    *    nzbbGrowBlock - Increase the size of the buffer block.
-   * 
+   *
    * PARAMETERS
    *    osscntxt IN     OSS context.
    *    inc      IN     Number of bytes to increase.
    *    block    IN/OUT Buffer block.
    *
    * NOTES
-   *    
+   *
    * RETURNS
    *    NZERROR_OK        Success.
     }
@@ -1607,15 +1607,15 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
   {
    * NAME
    *    nztbbPurgeBlock - Purge a buffer block of its memory.
-   * 
+   *
    * PARAMETERS
    *    osscntxt IN     OSS context.
    *    block    IN/OUT Buffer block.
-   * 
+   *
    * NOTES
    *    The memory used by the buffer block as the buffer is released.
    *    The buffer block itself is not affected.
-   *    
+   *
    * RETURNS
    *    NZERROR_OK        Success.
     }
@@ -1630,7 +1630,7 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
   {
    * NAME
    *    nztbbSetBlock - Set a buffer block to a known state.
-   * 
+   *
    * PARAMETERS
    *    osscntxt IN     OSS context.
    *    flags    IN     Flags to set.
@@ -1638,14 +1638,14 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
    *    usedlen  IN     Used length.
    *    buffer   IN     Buffer.
    *    block    IN/OUT Buffer block
-   * 
+   *
    * NOTES
    *    If buflen > 0, objlen == 0, and obj == NULL, then buflen bytes
    *    of memory is allocated and a pointer is stored in the buffer
    *    block.
    *
    *    The buffer parameter remains unchanged.
-   *    
+   *
    * RETURNS
    *    NZERROR_OK        Success.
     }
@@ -1662,13 +1662,13 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
   {
    * NAME
    *    nztiGetSecInfo - Get some security information for SSL
-   * 
+   *
    * PARAMETERS
    *    Name   IN/OUT   Description
    *       osscntxt IN        OSS context.
    *       persona  IN      persona
    *       dname    OUT       distinguished name of the certificate
-   *       dnamelen OUT       length of the distinguished name 
+   *       dnamelen OUT       length of the distinguished name
    *       issuername OUT     issuer name of the certificate
    *       certhash OUT      SHA1 hash of the certificate
    *   certhashlenOUT   length of the hash
@@ -1676,7 +1676,7 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
    *    This function allocate memories for issuername, certhash, and dname.
    *   To deallocate memory for those params, you should call nztdbuf_DestroyBuf.
    * RETURNS
-   *    
+   *
     }
 
 {$IFNDEF LinkDynamically}
@@ -1691,7 +1691,7 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
   {
    * NAME
    *    nztiGetDName - Get the distinguished name for the given identity
-   * 
+   *
    * PARAMETERS
    *    Name   IN/OUT   Description
    *       osscntxt IN        OSS context.
@@ -1700,9 +1700,9 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
    *   dnlen   OUT      length of the dname
    *
    * NOTES
-   *    
+   *
    * RETURNS
-   *    
+   *
     }
 
 {$IFNDEF LinkDynamically}
@@ -1714,19 +1714,19 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
   {------------------- nztiGetIssuerName ------------------- }
   {
    * NAME
-   *    nztiGetIssuerName -  Get IssuerName for the given identity 
-   * 
+   *    nztiGetIssuerName -  Get IssuerName for the given identity
+   *
    * PARAMETERS
    *    Name   IN/OUT   Description
    *       osscntxt IN        OSS context.
    *   identity IN      identity need to get issuername from
    *   issuername OUT          issuer's name
    *   issuernamelen OUT   length of the issuer's name
-   * 
+   *
    * NOTES
-   *    
+   *
    * RETURNS
-   *    
+   *
     }
 
 {$IFNDEF LinkDynamically}
@@ -1738,19 +1738,19 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
   {-------------------- nztgch_GetCertHash -------------------- }
   {
    * NAME
-   *    nztgch_GetCertHash -  Get SHA1 hash for the certificate of the identity 
-   * 
+   *    nztgch_GetCertHash -  Get SHA1 hash for the certificate of the identity
+   *
    * PARAMETERS
    *    Name   IN/OUT   Description
    *       osscntxt IN        OSS context.
    *   identity IN      identity need to get issuername from
-   *   certHash OUT          certHash buffer 
-   *   hashLen OUT      length of the certHash 
-   * 
+   *   certHash OUT          certHash buffer
+   *   hashLen OUT      length of the certHash
+   *
    * NOTES
-   *    Need to call nztdbuf_DestroyBuf to deallocate memory for certHash.   
+   *    Need to call nztdbuf_DestroyBuf to deallocate memory for certHash.
    * RETURNS
-   *    
+   *
     }
 
 {$IFNDEF LinkDynamically}
@@ -1762,17 +1762,17 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
   {-------------------- nztdbuf_DestroyBuf -------------------- }
   {
    * NAME
-   *    nztdbuf_DestroyBuf - Deallocation funtions for ub1 and text buffer 
-   * 
+   *    nztdbuf_DestroyBuf - Deallocation funtions for ub1 and text buffer
+   *
    * PARAMETERS
    *    Name   IN/OUT   Description
    *       osscntxt IN        OSS context.
    *   buf      IN      Allocated buffer to be destroyed.
-   * 
+   *
    * NOTES
-   *    
+   *
    * RETURNS
-   *    
+   *
     }
 
 {$IFNDEF LinkDynamically}
@@ -1784,16 +1784,16 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
   {----------------------- nztGetCertChain ----------------------- }
   {
    * NAME
-   *    nztGetCertChain - 
-   * 
+   *    nztGetCertChain -
+   *
    * PARAMETERS
    *    Name   IN/OUT   Description
    *       osscntxt IN        OSS context.
-   * 
+   *
    * NOTES
-   *    
+   *
    * RETURNS
-   *    
+   *
     }
 
 {$IFNDEF LinkDynamically}
@@ -1805,20 +1805,20 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
   {----------------------- nztCompareDN ----------------------- }
   {
    * NAME
-   *    nztCompareDN - 
-   * 
+   *    nztCompareDN -
+   *
    * PARAMETERS
    *    Name   IN/OUT   Description
    *       osscntxt IN        OSS context.
    *   dn1   IN      distinguished name 1
    *   dn2     IN      distinguished name 2
-   * 
+   *
    * NOTES
-   *    
+   *
    * RETURNS
    *    NZERROR_OK       succeeded
    *   others         failed
-   *    
+   *
     }
 
 {$IFNDEF LinkDynamically}
@@ -1834,18 +1834,18 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
   {
    * NAME
    *    nztIdentityAlloc - Allocate memory for nzttIdentity context
-   * 
+   *
    * PARAMETERS
    *    Name   IN/OUT   Description
    *       osscntxt IN        OSS context.
    *   identity OUT      nzttIdentity context
-   * 
+   *
    * NOTES
-   *    
+   *
    * RETURNS
    *    NZERROR_OK       succeeded
    *   others         failed
-   *    
+   *
     }
 
 {$IFNDEF LinkDynamically}
@@ -1858,18 +1858,18 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
   {
    * NAME
    *    nztIPrivateAlloc - Allocate memory for nzttIdentityPrivate
-   * 
+   *
    * PARAMETERS
    *    Name   IN/OUT   Description
-   * 
+   *
    *       osscntxt IN        OSS context.
    *   ipriv   OUT      identityPrivate structure
    * NOTES
-   *    
+   *
    * RETURNS
    *    NZERROR_OK       succeeded
    *   others         failed
-   *    
+   *
     }
 
 {$IFNDEF LinkDynamically}
@@ -1881,19 +1881,19 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
   {---------------------- nztIDupContent ---------------------- }
   {
    * NAME
-   *    nztIDupContent - 
-   * 
+   *    nztIDupContent -
+   *
    * PARAMETERS
    *    Name   IN/OUT   Description
    *       osscntxt IN        OSS context.
    *    targetIdentityOUT   target identity
    *   sourceIdentity IN   source identity
    * NOTES
-   *    
+   *
    * RETURNS
    *    NZERROR_OK       succeeded
    *   others         failed
-   *    
+   *
     }
 
 {$IFNDEF LinkDynamically}
@@ -1905,20 +1905,20 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
   {---------------------- nztIPDuplicate ---------------------- }
   {
    * NAME
-   *    nztIPDuplicate - 
-   * 
+   *    nztIPDuplicate -
+   *
    * PARAMETERS
    *    Name   IN/OUT   Description
    *       osscntxt IN        OSS context.
    *   target_ipriv OUT   target identityPrivate
    *   source_ipriv IN   source identityPrivate
-   * 
+   *
    * NOTES
-   *    
+   *
    * RETURNS
    *    NZERROR_OK       succeeded
    *   others         failed
-   *    
+   *
     }
 
 {$IFNDEF LinkDynamically}
@@ -1930,21 +1930,21 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
   {--------------------- nztiDupIdentList --------------------- }
   {
    * NAME
-   *    nztiDupIdentList - 
-   * 
+   *    nztiDupIdentList -
+   *
    * PARAMETERS
    *    Name   IN/OUT   Description
    *       osscntxt IN        OSS context.
    *   source_identities IN   source identity list
    *   numIdent OUT      number of identity in the list
-   *   ppidentity OUT   Target of identity   
-   *   
+   *   ppidentity OUT   Target of identity
+   *
    * NOTES
-   *    
+   *
    * RETURNS
    *    NZERROR_OK       succeeded
    *   others         failed
-   *    
+   *
     }
 
 {$IFNDEF LinkDynamically}
@@ -1957,18 +1957,18 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
   {
    * NAME
    *    nztFreeIdentList - Free memory for a list of Identities
-   * 
+   *
    * PARAMETERS
    *    Name   IN/OUT   Description
    *       osscntxt IN        OSS context.
    *   identity IN      identity context
    *
    * NOTES
-   *    
+   *
    * RETURNS
    *    NZERROR_OK       succeeded
    *   others         failed
-   *    
+   *
     }
 
 {$IFNDEF LinkDynamically}
@@ -1983,19 +1983,19 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
   {
    * NAME
    *    nztCheckVaLidity -  Check the validity of certificate
-   * 
+   *
    * PARAMETERS
    *    Name   IN/OUT   Description
    *       osscntxt IN        OSS context.
    *   start_time      Start time of the certificate
    *   end_time      End time of the certificate
-   * 
+   *
    * NOTES
-   *    
+   *
    * RETURNS
    *    NZERROR_OK       succeeded
    *   others         failed
-   *    
+   *
     }
 
 {$IFNDEF LinkDynamically}
@@ -2008,15 +2008,15 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
   {
    * NAME
    *    nztwCreateWallet - Create a new wallet.
-   * 
+   *
    * PARAMETERS
    *    osscntxt IN     OSS context.
    *    wrllen   IN     Length of wallet resource locator.
    *    wrl      IN     WRL.
    *    pwdlen   IN     Length of password (see notes below).
    *    pwd      IN     Password.
-   *    wallet   IN/OUT Wallet. 
-   * 
+   *    wallet   IN/OUT Wallet.
+   *
    * NOTES
    *    It is an error to try to create a wallet that already exists.
    *    The previously existing wallet must be destroyed first.
@@ -2027,7 +2027,7 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
    *
    *    Upon success, an empty open wallet is stored in the wallet
    *    parameter.
-   *    
+   *
    * RETURNS
    *    NZERROR_OK                 Sucess.
    *    NZERROR_TK_WALLET_EXISTS   Wallet already exists.
@@ -2046,7 +2046,7 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
   {
    * NAME
    *    nztwDestroyWallet - Destroy an existing wallet.
-   * 
+   *
    * PARAMETERS
    *    osscntxt IN     OSS context.
    *    wrllen   IN     Length of wallet resource locator.
@@ -2054,7 +2054,7 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
    *    pwdlen   IN     Length of password.
    *    pwd      IN     Password.
    * NOTES
-   *    
+   *
    * RETURNS
    *    NZERROR_OK           Success.
    *    NZERROR_TK_PASSWORD  Password verification failed.
@@ -2072,12 +2072,12 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
   {
    * NAME
    *    nzteStorePersona - Store an open persona in a wallet.
-   * 
+   *
    * PARAMETERS
-   *    osscntxt IN     OSS context. 
+   *    osscntxt IN     OSS context.
    *    persona  IN/OUT Persona.
    *    wallet   IN/OUT Wallet.
-   * 
+   *
    * NOTES
    *    If the open persona is not associated with any wallet (it was
    *    created via the nzteClosePersona function), then storing the
@@ -2119,17 +2119,17 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
   {
    * NAME
    *    nzteRemovePersona - Remove a persona from the wallet.
-   * 
+   *
    * PARAMETERS
    *    osscntxt IN     OSS context.
    *    persona  IN/OUT Persona.
-   * 
+   *
    * NOTES
    *    The password is verified before trying to remove the persona.
-   *    
+   *
    *    If the persona is open, it is closed.  The persona is removed
    *    from the wallet list and the persona pointer is set to NULL.
-   *    
+   *
    *    A double indirect pointer to the persona is required so that the
    *    persona pointer can be set to NULL upon completion.
    *
@@ -2149,18 +2149,18 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
   {
    * NAME
    *    nzteCreatePersona - Create a persona.
-   * 
+   *
    * PARAMETERS
    *    osscntxt IN     OSS context.
    *    itype    IN     Identity type.
    *    ctype    IN     Cipher type.
    *    desc     IN     Persona description.
    *    persona  OUT    Persona.
-   * 
+   *
    * NOTES
    *    The resulting persona is created in the open state, but it will
    *    not be associated with a wallet.
-   *    
+   *
    *    The memory for the persona is allocated by the function.
    *
    * RETURNS
@@ -2179,16 +2179,16 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
   {
    * NAME
    *    nztiStoreTrustedIdentity - Store an identity into a persona.
-   * 
+   *
    * PARAMETERS
    *    osscntxt IN     Success.
    *    identity IN/OUT Trusted Identity.
-   *    persona  IN/OUT Persona.    
-   * 
+   *    persona  IN/OUT Persona.
+   *
    * NOTES
    *    The identity is not saved with the persona in the wallet until
    *    the persona is stored.
-   *    
+   *
    *    The identity parameter is double indirect so that it can point
    *    into the persona at the conclusion of the call.
    *
@@ -2206,16 +2206,16 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
   {
    * NAME
    *    nzteSetProtection - Set the protection type for a CE function.
-   * 
+   *
    * PARAMETERS
    *    osscntxt IN     OSS context.
    *    persona  IN/OUT Persona.
    *    func     IN     CE function.
    *    tdufmt   IN     TDU Format.
    *    protinfo IN     Protection information specific to this format.
-   * 
+   *
    * NOTES
-   *    
+   *
    * RETURNS
    *    NZERROR_OK              Success.
    *    NZERROR_TK_PROTECTION   Unsupported protection.
@@ -2232,16 +2232,16 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
   {
    * NAME
    *    nzteGetProtection - Get the protection type for a CE function.
-   * 
+   *
    * PARAMETERS
    *    osscntxt IN     OSS context.
    *    persona  IN     Persona.
    *    func     IN     CE function.
    *    tdufmt   OUT    TDU format.
    *    protinfo OUT    Protection information.
-   * 
+   *
    * NOTES
-   *    
+   *
    * RETURNS
    *    NZERROR_OK        Success.
     }
@@ -2256,15 +2256,15 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
   {
    * NAME
    *    nztiRemoveIdentity - Remove an identity from an open persona.
-   * 
+   *
    * PARAMETERS
-   *    osscntxt IN     OSS context. 
+   *    osscntxt IN     OSS context.
    *    identity IN/OUT     Identity.
-   * 
+   *
    * NOTES
    *    If the persona is not stored, this identity will still be in the
    *    persona stored in the wallet.
-   *    
+   *
    *    The identity parameter is doubly indirect so that at the
    *    conclusion of the function, the pointer can be set to NULL.
    *
@@ -2284,13 +2284,13 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
   {
    * NAME
    *    nztifdn - create an Identity From a Distinguished Name
-   * 
+   *
    * PARAMETERS
    *    osscntxt           IN  OSS context.
    *    length             IN  Length of the distinguished name
    *    distinguished_name IN  distinguished name string
    *    ppidentity         OUT created identity
-   * 
+   *
    * NOTES
    *    Given a distinguished name, return the identity that corresponds to it.
    *
@@ -2308,7 +2308,7 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
   {
    * NAME
    *    nztxSignExpansion - Determine the size of the attached signature buffer.
-   * 
+   *
    * PARAMETERS
    *    osscntxt IN  OSS context.
    *    persona  IN  Persona.
@@ -2316,7 +2316,7 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
    *    tdulen   OUT Buffer needed for signature.
    *
    * NOTES
-   *    
+   *
    * RETURNS
    *    NZERROR_OK           Success.
    *    NZERROR_TK_NOTOPEN   Persona is not open.
@@ -2333,15 +2333,15 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
   {
    * NAME
    *    nztxsd_SignDetachedExpansion - Determine the size of buffer needed.
-   * 
+   *
    * PARAMETERS
    *    osscntxt IN  OSS context.
    *    persona  IN  Persona.
    *    inlen    IN  Length of input.
    *    tdulen   OUT Buffer needed for signature.
-   * 
+   *
    * NOTES
-   *    
+   *
    * RETURNS
    *    NZERROR_OK           Success.
    *    NZERROR_TK_NOTOPEN   Persona is not open.
@@ -2358,16 +2358,16 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
   {
    * NAME
    *    nztEncrypt - Symmetrically encrypt
-   * 
+   *
    * PARAMETERS
    *    osscntxt    IN     OSS context.
    *    persona     IN     Persona.
    *    inlen       IN     Length of this input part.
    *    in          IN     This input part.
    *    tdubuf      IN/OUT TDU buffer.
-   * 
+   *
    * NOTES
-   *    
+   *
    * RETURNS
    *    NZERROR_OK           Success.
    *    NZERROR_TK_CANTGROW  Needed to grow TDU buffer but could not.
@@ -2387,15 +2387,15 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
   {
    * NAME
    *    nztxEncryptExpansion - Determine the size of the TDU to encrypt.
-   * 
+   *
    * PARAMETERS
    *    osscntxt    IN  OSS context.
    *    persona     IN  Persona.
    *    inlen       IN  Length of this input part.
    *    tdulen      OUT Length of TDU.
-   * 
+   *
    * NOTES
-   *    
+   *
    * RETURNS
    *    NZERROR_OK           Success.
    *    NZERROR_TK_NOTOPEN   Persona is not open.
@@ -2412,7 +2412,7 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
   {
    * NAME
    *    nztDecrypt - Decrypt an Encrypted message.
-   * 
+   *
    * PARAMETERS
    *    osscntxt IN     OSS context.
    *    persona  IN     Persona.
@@ -2420,9 +2420,9 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
    *    inlen    IN     Length of this input part.
    *    in       IN     This input part.
    *    out      IN/OUT Cleartext message.
-   * 
+   *
    * NOTES
-   *    
+   *
    * RETURNS
    *    NZERROR_OK           Success.
    *    NZERROR_TK_CANTGROW  Needed to grow TDU buffer but could not.
@@ -2442,7 +2442,7 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
   {
    * NAME
    *    nztEnvelope - Sign and PKEncrypt a message.
-   * 
+   *
    * PARAMETERS
    *    osscntxt    IN     OSS context.
    *    persona     IN     Persona.
@@ -2454,7 +2454,7 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
    *    tdubuf      IN/OUT TDU buffer.
    *
    * NOTES
-   *    
+   *
    * RETURNS
    *    NZERROR_OK           Success.
    *    NZERROR_TK_CANTGROW  Needed to grow output buffer but could not.
@@ -2474,7 +2474,7 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
   {
    * NAME
    *    nztDeEnvelope - PKDecrypt and verify a message.
-   * 
+   *
    * PARAMETERS
    *    osscntxt    IN     OSS context.
    *    persona     IN     Persona.
@@ -2487,7 +2487,7 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
    *    sender      OUT    Identity of sender.
    *
    * NOTES
-   *    
+   *
    * RETURNS
    *    NZERROR_OK           Success.
    *    NZERROR_TK_CANTGROW  Needed to grow TDU buffer but could not.
@@ -2507,7 +2507,7 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
   {
    * NAME
    *    nztKeyedHash - Generate a keyed hash.
-   * 
+   *
    * PARAMETERS
    *    osscntxt IN     OSS context.
    *    persona  IN     Persona.
@@ -2515,9 +2515,9 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
    *    inlen    IN     Length of this input.
    *    in       IN     This input.
    *    tdu      IN/OUT Output tdu.
-   * 
+   *
    * NOTES
-   *    
+   *
    * RETURNS
    *    NZERROR_OK           Success.
    *    NZERROR_TK_CANTGROW  Needed to grow TDU buffer but could not.
@@ -2537,15 +2537,15 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
   {
    * NAME
    *    nztxKeyedHashExpansion - Determine the space needed for a keyed hash.
-   * 
+   *
    * PARAMETERS
    *    osscntxt IN  OSS context.
    *    persona  IN  Persona.
    *    inlen    IN  Length of this input.
    *    tdulen   OUT TDU length.
-   * 
+   *
    * NOTES
-   *    
+   *
    * RETURNS
    *    NZERROR_OK           Success.
    *    NZERROR_TK_NOTOPEN   Persona is not open.
@@ -2562,15 +2562,15 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
   {
    * NAME
    *    nztxHashExpansion - Determine the size of the TDU for a hash.
-   * 
+   *
    * PARAMETERS
    *    osscntxt IN  OSS context.
    *    persona  IN  Persona.
    *    inlen    IN  Length of this input.
    *    tdulen   OUT TDU length.
-   * 
+   *
    * NOTES
-   *    
+   *
    * RETURNS
    *    NZERROR_OK           Success.
    *    NZERROR_TK_NOTOPEN   Persona is not open.
@@ -2588,14 +2588,14 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
    * NAME
    *    nztiae_IsAuthEnabled -  Checks to see if Authentication is Enabled
    *                               in the current Cipher Spec.
-   * 
+   *
    * PARAMETERS
    *    ctx   IN   Oracle SSL Context
    *      ncipher IN    CipherSuite
    *      authEnabled OUT Boolean for is Auth Enabled?
-   * 
+   *
    * NOTES
-   *    
+   *
    * RETURNS
    *      NZERROR_OK on success.
    *      NZERROR_TK_INV_CIPHR_TYPE if Cipher Spec is not Recognized.
@@ -2612,14 +2612,14 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
    * NAME
    *    nztiee_IsEncrEnabled -  Checks to see if Encryption is Enabled
    *                               in the current Cipher Spec.
-   * 
+   *
    * PARAMETERS
    *    ctx   IN   Oracle SSL Context
    *      ncipher IN    CipherSuite
    *      EncrEnabled OUT Boolean for is Auth Enabled?
-   * 
+   *
    * NOTES
-   *    
+   *
    * RETURNS
    *      NZERROR_OK on success.
    *      NZERROR_TK_INV_CIPHR_TYPE if Cipher Spec is not Recognized.
@@ -2636,14 +2636,14 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
    * NAME
    *    nztihe_IsHashEnabled -  Checks to see if HAshing is Enabled
    *                               in the current Cipher Spec.
-   * 
+   *
    * PARAMETERS
    *    ctx   IN   Oracle SSL Context
    *      ncipher IN    CipherSuite
    *      hashEnabled OUT Boolean for is Auth Enabled?
-   * 
+   *
    * NOTES
-   *    
+   *
    * RETURNS
    *      NZERROR_OK on success.
    *      NZERROR_TK_INV_CIPHR_TYPE if Cipher Spec is not Recognized.

@@ -813,7 +813,7 @@ type
     type_ : cuint8;  (*!< \ref vtxattrin for this element.  *)
   end;
   PGXVtxDesc = ^GXVtxDesc;
-  
+
   GXVtxAttrFmt = record
     vtxattr : cuint32;  (*!< \ref vtxattr for this element.  *)
     comptype : cuint32;  (*!< \ref comptype for this element.  *)
@@ -3053,7 +3053,7 @@ end;
 procedure GX_Position1x8(index: cuint8); inline;
 begin
 	wgPipe^.U8 := index;
-end;    
+end;
 
 procedure GX_Position1x16(index: cuint16); inline;
 begin

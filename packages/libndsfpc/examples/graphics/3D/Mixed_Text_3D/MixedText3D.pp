@@ -52,42 +52,42 @@ var
 
 begin
 	// initialize the geometry engine
-	glInit();	
+	glInit();
 
-	// Setup the Main screen for 3D 
+	// Setup the Main screen for 3D
 	videoSetMode(MODE_0_3D);
-	
+
 	//map some vram to background for printing
 	vramSetBankC(VRAM_C_MAIN_BG_0x06000000);
- 
+
 	consoleInit(nil, 1, BgType_Text4bpp, BgSize_T_256x256, 31,0, true, true);
 
 	//put bg 0 at a lower priority than the text background
 	bgSetPriority(0, 1);
-  
 
- 
+
+
 	// enable antialiasing
 	glEnable(GL_ANTIALIAS);
- 
+
 	// setup the rear plane
 	glClearColor(0,0,0,31); // BG must be opaque for AA to work
 	glClearPolyID(63); // BG must have a unique polygon ID for AA to work
 	glClearDepth($7FFF);
- 
+
 	// Set our viewport to be the same size as the screen
 	glViewport(0,0,255,191);
- 
+
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	gluPerspective(70, 256.0 / 192.0, 0.1, 100);
- 
-	//ds specific, several attributes can be set here	
+
+	//ds specific, several attributes can be set here
 	glPolyFmt(POLY_ALPHA(31) or POLY_CULL_NONE);
- 
+
 	// Set the current matrix to be the model matrix
 	glMatrixMode(GL_MODELVIEW);
- 
+
 	iprintf('      Hello DS World'#10);
 	iprintf('     www.devkitpro.org'#10);
 	iprintf('   www.drunkencoders.com'#10);
@@ -95,13 +95,13 @@ begin
 	while true do
 	begin
 		DrawGLScene();
- 
-		// flush to screen	
+
+		// flush to screen
 		glFlush(0);
- 
+
 		// wait for the screen to refresh
 		swiWaitForVBlank();
-   
+
     scanKeys();
 		keys := keysDown();
 		if (keys and KEY_START) <> 0 then break;
@@ -115,5 +115,5 @@ begin
 		rquad := fmodf( rquad, 360 );
 
 	end;
- 
+
 end.

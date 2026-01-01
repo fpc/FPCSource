@@ -271,7 +271,7 @@ function new_field(_pa1,_pa2,_pa3,_pa4,_pa5,_pa6:Longint):PFIELD; cdecl;external
 function dup_field(_para1:PFIELD; _para2:Longint; _para3:Longint):PFIELD; cdecl;external libform;
 function link_field(_para1:PFIELD; _para2:Longint; _para3:Longint):PFIELD; cdecl;external libform;
 function free_field(_para1:PFIELD):Longint; cdecl;external libform;
-function field_info(_para1:PFIELD; _para2:Pcint; _para3:Pcint; _para4:Pcint; _para5:Pcint; 
+function field_info(_para1:PFIELD; _para2:Pcint; _para3:Pcint; _para4:Pcint; _para5:Pcint;
            _para6:Pcint; _para7:Pcint):Longint; cdecl;external libform;
 function dynamic_field_info(_para1:PFIELD; _para2:Pcint; _para3:Pcint; _para4:Pcint):Longint; cdecl;external libform;
 function set_max_field(_para1:PFIELD; _para2:Longint):Longint; cdecl;external libform;

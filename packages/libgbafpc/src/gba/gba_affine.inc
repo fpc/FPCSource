@@ -24,13 +24,13 @@
 	"http://sourceforge.net/tracker/?group_id=114505&atid=668551".
 
   ------------------------------------------------------------------------------
-    
+
   Conversion by Legolas (http://itaprogaming.free.fr) for freepascal compiler
   (http://www.freepascal.org)
-   
+
   Copyright (C) 2006  Francesco Lombardi
   Check http://sourceforge.net/projects/libndsfpc for updates
-   
+
   ------------------------------------------------------------------------------
 
   $Log$
@@ -41,15 +41,15 @@
 {$ifdef GBA_INTERFACE}
 //---------------------------------------------------------------------------------
 type
-  t_BGAffineSource = record 
-    x: s32;				
+  t_BGAffineSource = record
+    x: s32;
     y: s32;
     tX: s16;
     tY: s16;
     sX: s16;
     sY: s16;
     theta: u16;
-  end; 
+  end;
   BGAffineSource = t_BGAffineSource;
   PBGAffineSource = ^BGAffineSource;
 
@@ -58,8 +58,8 @@ type
     pb: s16;
     pc: s16;
     pd: s16;
-    x: s32;	
-    y: s32;	
+    x: s32;
+    y: s32;
   end;
   BGAffineDest = t_BGAffineDest;
   PBGAffineDest = ^BGAffineDest;

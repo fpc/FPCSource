@@ -21,7 +21,7 @@ begin
   consoleInit(@bottomScreen, 3,BgType_Text4bpp, BgSize_T_256x256, 31, 0, false, true);
 
   consoleSelect(@topScreen);
-  
+
   iprintf(#10#10#9'Hello DS dev''rs'#10);
   iprintf(#9'www.drunkencoders.com'#10);
   iprintf(#9'www.devkitpro.org');

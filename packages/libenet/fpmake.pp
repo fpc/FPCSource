@@ -27,7 +27,7 @@ begin
       P.OSes := P.OSes - [java,android];
 
     P.Dependencies.Add('rtl-extra'); // winsock2
-    
+
     T:=P.Targets.AddUnit('enet.pp');
     T:=P.Targets.AddUnit('uenetclass.pp');
     with T.Dependencies do

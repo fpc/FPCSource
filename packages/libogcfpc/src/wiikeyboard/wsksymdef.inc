@@ -53,7 +53,7 @@ VAR
   KS_J: byte = $4a; public name 'KS_J';
   KS_K: byte = $4b; public name 'KS_K';
   KS_L: byte = $4c; public name 'KS_L';
-  KS_M: byte = $4d; public name 'KS_M';                  
+  KS_M: byte = $4d; public name 'KS_M';
   KS_N: byte = $4e; public name 'KS_N';
   KS_O: byte = $4f; public name 'KS_O';
   KS_P: byte = $50; public name 'KS_P';
@@ -92,10 +92,10 @@ VAR
   KS_o_: byte = $6f; public name 'KS_o';
   KS_p_: byte = $70; public name 'KS_p';
   KS_q_: byte = $71; public name 'KS_q';
-  KS_r_: byte = $72; public name 'KS_r';                  
+  KS_r_: byte = $72; public name 'KS_r';
   KS_s_: byte = $73; public name 'KS_s';
   KS_t_: byte = $74; public name 'KS_t';
-  KS_u_: byte = $75; public name 'KS_u';                   
+  KS_u_: byte = $75; public name 'KS_u';
   KS_v_: byte = $76; public name 'KS_v';
   KS_w_: byte = $77; public name 'KS_w';
   KS_x_: byte = $78; public name 'KS_x';
@@ -147,7 +147,7 @@ VAR
   KS_Aring: byte = $c5; public name 'KS_Aring';
   KS_AE: byte = $c6; public name 'KS_AE';
   KS_Ccedilla: byte = $c7; public name 'KS_Ccedilla';
-  KS_Egrave: byte = $c8; public name 'KS_Egrave'; 
+  KS_Egrave: byte = $c8; public name 'KS_Egrave';
   KS_Eacute: byte = $c9; public name 'KS_Eacute';
   KS_Ecircumflex: byte = $ca; public name 'KS_Ecircumflex';
   KS_Ediaeresis: byte = $cb; public name 'KS_Ediaeresis';
@@ -233,7 +233,7 @@ VAR
   KS_Cyrillic_YO: byte = $b3; public name 'KS_Cyrillic_YO';
   KS_Cyrillic_ZHE: byte = $f6; public name 'KS_Cyrillic_ZHE';
   KS_Cyrillic_ZE: byte = $fa; public name 'KS_Cyrillic_ZE';
-  KS_Cyrillic_I: byte = $e9; public name 'KS_Cyrillic_I';                
+  KS_Cyrillic_I: byte = $e9; public name 'KS_Cyrillic_I';
   KS_Cyrillic_ISHORT: byte = $ea; public name 'KS_Cyrillic_ISHORT';
   KS_Cyrillic_IUKR: byte = $b6; public name 'KS_Cyrillic_IUKR';
   KS_Cyrillic_YI: byte = $b7; public name 'KS_Cyrillic_YI';
@@ -248,7 +248,7 @@ VAR
   KS_Cyrillic_TE: byte = $f4; public name 'KS_Cyrillic_TE';
   KS_Cyrillic_U: byte = $f5; public name 'KS_Cyrillic_U';
   KS_Cyrillic_EF: byte = $e6; public name 'KS_Cyrillic_EF';
-  KS_Cyrillic_HA: byte = $e8; public name 'KS_Cyrillic_HA';               
+  KS_Cyrillic_HA: byte = $e8; public name 'KS_Cyrillic_HA';
   KS_Cyrillic_TSE: byte = $e3; public name 'KS_Cyrillic_TSE';
   KS_Cyrillic_CHE: byte = $fe; public name 'KS_Cyrillic_CHE';
   KS_Cyrillic_SHA: byte = $fb; public name 'KS_Cyrillic_SHA';
@@ -268,7 +268,7 @@ VAR
   KS_Cyrillic_yo_: byte = $a3; public name 'KS_Cyrillic_yo';
   KS_Cyrillic_zhe_: byte = $d6; public name 'KS_Cyrillic_zhe';
   KS_Cyrillic_ze_: byte = $da; public name 'KS_Cyrillic_ze';
-  KS_Cyrillic_i_: byte = $c9; public name 'KS_Cyrillic_i';                
+  KS_Cyrillic_i_: byte = $c9; public name 'KS_Cyrillic_i';
   KS_Cyrillic_ishort_: byte = $ca; public name 'KS_Cyrillic_ishort';
   KS_Cyrillic_iukr_: byte = $a6; public name 'KS_Cyrillic_iukr';
   KS_Cyrillic_yi_: byte = $a7; public name 'KS_Cyrillic_yi';
@@ -345,12 +345,12 @@ VAR
   KS_L2_Tcedilla: byte = $de;
   KS_L2_racute_: byte = $e0; public name 'KS_L2_racute';
   KS_L2_abreve_: byte = $e3; public name 'KS_L2_abreve';
-  KS_L2_lacute_: byte = $e5; public name 'KS_L2_lacute';               
+  KS_L2_lacute_: byte = $e5; public name 'KS_L2_lacute';
   KS_L2_cacute_: byte = $e6; public name 'KS_L2_cacute';
   KS_L2_ccaron_: byte = $e8; public name 'KS_L2_ccaron';
   KS_L2_eogonek_: byte = $ea; public name 'KS_L2_eogonek';
   KS_L2_ecaron_: byte = $ec; public name 'KS_L2_ecaron';
-  KS_L2_dcaron_: byte = $ef; public name 'KS_L2_dcaron';                
+  KS_L2_dcaron_: byte = $ef; public name 'KS_L2_dcaron';
   KS_L2_dstroke_: byte = $f0; public name 'KS_L2_dstroke';
   KS_L2_nacute_: byte = $f1; public name 'KS_L2_nacute';
   KS_L2_odoubleacute_: byte = $f5; public name 'KS_L2_odoubleacute';
@@ -510,7 +510,7 @@ var
   KS_f3_: word = $f302; public name 'KS_f3';
   KS_f4_: word = $f303; public name 'KS_f4';
   KS_f5_: word = $f304; public name 'KS_f5';
-  KS_f6_: word = $f305; public name 'KS_f6';               
+  KS_f6_: word = $f305; public name 'KS_f6';
   KS_f7_: word = $f306; public name 'KS_f7';
   KS_f8_: word = $f307; public name 'KS_f8';
   KS_f9_: word = $f308; public name 'KS_f9';
@@ -520,7 +520,7 @@ var
   KS_f13_: word = $f30c; public name 'KS_f13';
   KS_f14_: word = $f30d; public name 'KS_f14';
   KS_f15_: word = $f30e; public name 'KS_f15';
-  KS_f16_: word = $f30f; public name 'KS_f16';               
+  KS_f16_: word = $f30f; public name 'KS_f16';
   KS_f17_: word = $f310; public name 'KS_f17';
   KS_f18_: word = $f311; public name 'KS_f18';
   KS_f19_: word = $f312; public name 'KS_f19';
@@ -528,7 +528,7 @@ var
   KS_F1: word = $f340; public name 'KS_F1';
   KS_F2: word = $f341; public name 'KS_F2';
   KS_F3: word = $f342; public name 'KS_F3';
-  KS_F4: word = $f343; public name 'KS_F4';               
+  KS_F4: word = $f343; public name 'KS_F4';
   KS_F5: word = $f344; public name 'KS_F5';
   KS_F6: word = $f345; public name 'KS_F6';
   KS_F7: word = $f346; public name 'KS_F7';

@@ -57,7 +57,7 @@
  * xlinkNodeDetectFunc:
  * @ctx:  user data pointer
  * @node:  the node to check
- * 
+ *
  * This is the prototype for the link detection routine.
  * It calls the default link detection callbacks upon link detection.
  *)
@@ -133,7 +133,7 @@
 {$IFDEF FUNCTION}
 (*
  * The default detection routine, can be overridden, they call the default
- * detection callbacks. 
+ * detection callbacks.
  *)
 function xlinkGetDefaultDetect: xlinkNodeDetectFunc; EXTDECL; external xml2lib;
 procedure xlinkSetDefaultDetect(func: xlinkNodeDetectFunc); EXTDECL; external xml2lib;

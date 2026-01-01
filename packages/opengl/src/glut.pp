@@ -618,7 +618,7 @@ begin
   @glutEnterGameMode := nil;
   @glutLeaveGameMode := nil;
   @glutGameModeGet := nil;
-  
+
   UnloadFreeGlut;
 {$ENDIF MORPHOS}
 end;

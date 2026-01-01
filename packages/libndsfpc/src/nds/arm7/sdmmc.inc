@@ -13,7 +13,7 @@ const
   REG_SDSTOP      = $08;
   REG_SDRESP      = $0c;
   REG_SDBLKCOUNT  = $0a;
-  
+
   REG_SDRESP0     = $0c;
   REG_SDRESP1     = $0e;
   REG_SDRESP2     = $10;
@@ -29,7 +29,7 @@ const
   REG_SDIRMASK0   = $20;
   REG_SDIRMASK1   = $22;
   REG_SDCLKCTL    = $24;
-  
+
   REG_SDBLKLEN    = $26;
   REG_SDOPT       = $28;
   REG_SDFIFO      = $30;
@@ -45,7 +45,7 @@ const
 
   REG_CLK_AND_WAIT_CTL = $138;
   REG_RESET_SDIO       = $1e0;
-  
+
   TMIO_STAT0_CMDRESPEND    = $0001;
   TMIO_STAT0_DATAEND       = $0004;
   TMIO_STAT0_CARD_REMOVE   = $0008;
@@ -68,7 +68,7 @@ const
   TMIO_STAT1_ILL_FUNC      = $2000;
   TMIO_STAT1_CMD_BUSY      = $4000;
   TMIO_STAT1_ILL_ACCESS    = $8000;
-  
+
 //Comes from TWLSDK mongoose.tef DWARF info
   SDMC_NORMAL              = $00000000;
   SDMC_ERR_COMMAND         = $00000001;
@@ -95,14 +95,14 @@ const
 
   TMIO_MASK_ALL            = $837f031d;
 
-  TMIO_MASK_GW      = (TMIO_STAT1_ILL_ACCESS or TMIO_STAT1_CMDTIMEOUT or 
-	                     TMIO_STAT1_TXUNDERRUN or TMIO_STAT1_RXOVERFLOW or 
-											 TMIO_STAT1_DATATIMEOUT or TMIO_STAT1_STOPBIT_ERR or 
+  TMIO_MASK_GW      = (TMIO_STAT1_ILL_ACCESS or TMIO_STAT1_CMDTIMEOUT or
+	                     TMIO_STAT1_TXUNDERRUN or TMIO_STAT1_RXOVERFLOW or
+											 TMIO_STAT1_DATATIMEOUT or TMIO_STAT1_STOPBIT_ERR or
 											 TMIO_STAT1_CRCFAIL or TMIO_STAT1_CMD_IDX_ERR);
 
   TMIO_MASK_READOP  = (TMIO_STAT1_RXRDY or TMIO_STAT0_DATAEND); // TMIO_STAT1_DATAEND ???
   TMIO_MASK_WRITEOP = (TMIO_STAT1_TXRQ or TMIO_STAT0_DATAEND);  // TMIO_STAT1_DATAEND ???
-  
+
 type
 	TMMCDevice = packed record
     data: pcuint8;
@@ -119,11 +119,11 @@ type
     total_size: cuint32;
     res: cuint32;
   end;
-  mmcdevice = TMMCDevice;  
+  mmcdevice = TMMCDevice;
 
 const
   MMC_DEVICE_SDCARD = 0;
-  MMC_DEVICE_NAND = 1;  
+  MMC_DEVICE_NAND = 1;
 
 procedure sdmmc_controller_init(force_init: cbool); cdecl; external;
 procedure sdmmc_initirq(); cdecl; external;
@@ -134,8 +134,8 @@ function sdmmc_sdcard_init(): cint; cdecl; external;
 function sdmmc_nand_init(): cint; cdecl; external;
 procedure sdmmc_get_cid(devicenumber: cint; cid: pcuint32); cdecl; external;
 
-procedure sdmmc_nand_cid(cid: pcuint32); inline; 
-procedure sdmmc_sdcard_cid(cid: pcuint32); inline; 
+procedure sdmmc_nand_cid(cid: pcuint32); inline;
+procedure sdmmc_sdcard_cid(cid: pcuint32); inline;
 
 function sdmmc_sdcard_readsectors(sector_no: cuint32; numsectors: cuint32; _out: pointer): cint; cdecl; external;
 function sdmmc_sdcard_writesectors(sector_no: cuint32; numsectors: cuint32; _in: pointer): cint; cdecl; external;
@@ -143,7 +143,7 @@ function sdmmc_nand_readsectors(sector_no: cuint32; numsectors: cuint32; _out: p
 function sdmmc_nand_writesectors(sector_no: cuint32; numsectors: cuint32; _in: pointer): cint; cdecl; external;
 
 
-var                 
+var
   sdmmc_curdevice: cint; cvar; external;
   sdmmc_cid: pcuint32; cvar; external;
 
@@ -195,12 +195,12 @@ begin
   sdmmc_mask16(REG_SDCLKCTL, $0, $100);
 end;
 
-procedure sdmmc_nand_cid(cid: pcuint32); inline; 
+procedure sdmmc_nand_cid(cid: pcuint32); inline;
 begin
     sdmmc_get_cid(MMC_DEVICE_NAND,cid);
 end;
 
-procedure sdmmc_sdcard_cid(cid: pcuint32); inline; 
+procedure sdmmc_sdcard_cid(cid: pcuint32); inline;
 begin
     sdmmc_get_cid(MMC_DEVICE_SDCARD,cid);
 end;

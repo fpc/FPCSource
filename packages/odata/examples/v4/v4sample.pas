@@ -7,7 +7,7 @@ interface
 uses sysutils, classes, fpjson, restbase, odatabase, odataservice;
 
 (*
-  Options used to generate: 
+  Options used to generate:
   OData version : ODataV4
   BasecomplexType : TODataObject
   BaseEntityType : TODataEntity
@@ -17,7 +17,7 @@ uses sysutils, classes, fpjson, restbase, odatabase, odataservice;
   Aliases[0] : Microsoft.OData.SampleService.Models.TripPin=
   SchemaAncestor : TObject
   FieldPrefix : F
-  ServiceSuffix : 
+  ServiceSuffix :
   EnumerationMode : emScoped
 *)
 type
@@ -68,17 +68,17 @@ type
   TService = class;
   TServiceArray = Array of TService;
   //
-  
+
   // Enumerations
-  
+
   {$SCOPEDENUMS ON}
   TPersonGender = (Male,Female,Unknown);
   TPersonGenderArray = Array of TPersonGender;
-  
+
   { --------------------------------------------------------------------
     Microsoft.OData.SampleService.Models.TripPin: City
     --------------------------------------------------------------------}
-  
+
   TCity = Class(TODataEntity)
   private
     FCountryRegion : string;
@@ -94,12 +94,12 @@ type
     Property Name : string index 8 read FName write SetName;
     Property Region : string index 16 read FRegion write SetRegion;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     Microsoft.OData.SampleService.Models.TripPin: Location
     --------------------------------------------------------------------}
-  
+
   TLocation = Class(TODataEntity)
   private
     FAddress : string;
@@ -112,12 +112,12 @@ type
     Property Address : string index 0 read FAddress write SetAddress;
     Property City : TCity index 8 read FCity write SetCity;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     Microsoft.OData.SampleService.Models.TripPin: EventLocation
     --------------------------------------------------------------------}
-  
+
   TEventLocation = Class(TLocation)
   private
     FBuildingInfo : string;
@@ -127,12 +127,12 @@ type
   published
     Property BuildingInfo : string index 16 read FBuildingInfo write SetBuildingInfo;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     Microsoft.OData.SampleService.Models.TripPin: AirportLocation
     --------------------------------------------------------------------}
-  
+
   TAirportLocation = Class(TLocation)
   private
     FLoc : TGeographyPoint;
@@ -142,12 +142,12 @@ type
   published
     Property Loc : TGeographyPoint index 16 read FLoc write SetLoc;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     Microsoft.OData.SampleService.Models.TripPin: Photo
     --------------------------------------------------------------------}
-  
+
   TPhoto = Class(TODataEntity)
   private
     FId : int64;
@@ -157,20 +157,20 @@ type
   public
     class function ObjectRestKind : String;  Override;
     function KeyAsURLPart : String;  Override;
-    procedure GetStream(AService: TODataService; AContentType: String; 
+    procedure GetStream(AService: TODataService; AContentType: String;
                    AStream: TStream);
-    procedure SetStream(AService: TODataService; AContentType: String; 
+    procedure SetStream(AService: TODataService; AContentType: String;
                    AStream: TStream);
   published
     Property Id : int64 index 0 read FId write SetId;
     Property Name : string index 8 read FName write SetName;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     Microsoft.OData.SampleService.Models.TripPin: Person
     --------------------------------------------------------------------}
-  
+
   TPerson = Class(TODataEntity)
   private
     FUserName : string;
@@ -196,7 +196,7 @@ type
     function GetFavoriteAirline(AService: TODataService) : TAirline;
     function GetFriendsTrips(AService: TODataService; userName: string)
                          : TTripArray;
-    procedure ShareTrip(AService: TODataService; userName: string; 
+    procedure ShareTrip(AService: TODataService; userName: string;
                    tripId: TInt32);
     class function ObjectRestKind : String;  Override;
     function KeyAsURLPart : String;  Override;
@@ -212,12 +212,12 @@ type
     Property Gender : TPersonGender index 40 read FGender write SetGender;
     Property Concurrency : int64 index 48 read FConcurrency write SetConcurrency;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     Microsoft.OData.SampleService.Models.TripPin: Airline
     --------------------------------------------------------------------}
-  
+
   TAirline = Class(TODataEntity)
   private
     FAirlineCode : string;
@@ -231,12 +231,12 @@ type
     Property AirlineCode : string index 0 read FAirlineCode write SetAirlineCode;
     Property Name : string index 8 read FName write SetName;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     Microsoft.OData.SampleService.Models.TripPin: Airport
     --------------------------------------------------------------------}
-  
+
   TAirport = Class(TODataEntity)
   private
     FIcaoCode : string;
@@ -256,12 +256,12 @@ type
     Property IataCode : string index 16 read FIataCode write SetIataCode;
     Property Location : TAirportLocation index 24 read FLocation write SetLocation;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     Microsoft.OData.SampleService.Models.TripPin: PlanItem
     --------------------------------------------------------------------}
-  
+
   TPlanItem = Class(TODataEntity)
   private
     FPlanItemId : TInt32;
@@ -284,12 +284,12 @@ type
     Property EndsAt : TDateTime index 24 read FEndsAt write SetEndsAt;
     Property Duration : TDuration index 32 read FDuration write SetDuration;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     Microsoft.OData.SampleService.Models.TripPin: PublicTransportation
     --------------------------------------------------------------------}
-  
+
   TPublicTransportation = Class(TPlanItem)
   private
     FSeatNumber : string;
@@ -299,12 +299,12 @@ type
   published
     Property SeatNumber : string index 40 read FSeatNumber write SetSeatNumber;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     Microsoft.OData.SampleService.Models.TripPin: Flight
     --------------------------------------------------------------------}
-  
+
   TFlight = Class(TPublicTransportation)
   private
     FFlightNumber : string;
@@ -317,12 +317,12 @@ type
   published
     Property FlightNumber : string index 48 read FFlightNumber write SetFlightNumber;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     Microsoft.OData.SampleService.Models.TripPin: Event
     --------------------------------------------------------------------}
-  
+
   TEvent = Class(TPlanItem)
   private
     FDescription : string;
@@ -335,12 +335,12 @@ type
     Property Description : string index 40 read FDescription write SetDescription;
     Property OccursAt : TEventLocation index 48 read FOccursAt write SetOccursAt;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     Microsoft.OData.SampleService.Models.TripPin: Trip
     --------------------------------------------------------------------}
-  
+
   TTrip = Class(TODataEntity)
   private
     FTripId : TInt32;
@@ -380,12 +380,12 @@ type
     Property EndsAt : TDateTime index 48 read FEndsAt write SetEndsAt;
     Property Tags : TStringArray index 56 read FTags write SetTags;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     Microsoft.OData.SampleService.Models.TripPin: DefaultContainer
     --------------------------------------------------------------------}
-  
+
   TDefaultContainer = Class(TODataEntityContainer)
   private
     FPhotos : TPhotosEntitySet;
@@ -414,12 +414,12 @@ type
     Property Airports : TAirportsEntitySet read GetAirports;
     Property Me : TPerson read GetMe;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     Microsoft.OData.SampleService.Models.TripPin: Photos
     --------------------------------------------------------------------}
-  
+
   TPhotosEntitySet = Class(TODataEntitySet)
   public
     class function ObjectRestKind : String;  Override;
@@ -431,12 +431,12 @@ type
     function ListAll(const AQuery: String) : TPhotoArray;
     function ListAll(const AQuery: TQueryParams) : TPhotoArray;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     Microsoft.OData.SampleService.Models.TripPin: People
     --------------------------------------------------------------------}
-  
+
   TPeopleEntitySet = Class(TODataEntitySet)
   public
     class function ObjectRestKind : String;  Override;
@@ -448,12 +448,12 @@ type
     function ListAll(const AQuery: String) : TPersonArray;
     function ListAll(const AQuery: TQueryParams) : TPersonArray;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     Microsoft.OData.SampleService.Models.TripPin: Airlines
     --------------------------------------------------------------------}
-  
+
   TAirlinesEntitySet = Class(TODataEntitySet)
   public
     class function ObjectRestKind : String;  Override;
@@ -466,12 +466,12 @@ type
     function ListAll(const AQuery: String) : TAirlineArray;
     function ListAll(const AQuery: TQueryParams) : TAirlineArray;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     Microsoft.OData.SampleService.Models.TripPin: Airports
     --------------------------------------------------------------------}
-  
+
   TAirportsEntitySet = Class(TODataEntitySet)
   public
     class function ObjectRestKind : String;  Override;
@@ -484,12 +484,12 @@ type
     function ListAll(const AQuery: String) : TAirportArray;
     function ListAll(const AQuery: TQueryParams) : TAirportArray;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     Microsoft.OData.SampleService.Models.TripPin: TripImplicitEntitySet
     --------------------------------------------------------------------}
-  
+
   TTripImplicitEntitySet = Class(TODataEntitySet)
   public
     class function ObjectRestKind : String;  Override;
@@ -501,12 +501,12 @@ type
     function ListAll(const AQuery: String) : TTripArray;
     function ListAll(const AQuery: TQueryParams) : TTripArray;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     Microsoft.OData.SampleService.Models.TripPin: PlanItemImplicitEntitySet
     --------------------------------------------------------------------}
-  
+
   TPlanItemImplicitEntitySet = Class(TODataEntitySet)
   public
     class function ObjectRestKind : String;  Override;
@@ -519,12 +519,12 @@ type
     function ListAll(const AQuery: String) : TPlanItemArray;
     function ListAll(const AQuery: TQueryParams) : TPlanItemArray;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     Microsoft.OData.SampleService.Models.TripPin: Microsoft.OData.SampleService.Models.TripPin
     --------------------------------------------------------------------}
-  
+
   TService = Class(TODataService)
   private
     FDefaultContainer : TDefaultContainer;
@@ -535,7 +535,7 @@ type
   published
     Property DefaultContainer : TDefaultContainer read GetDefaultContainer;
   end;
-  
+
 
 implementation
 
@@ -545,14 +545,14 @@ implementation
   --------------------------------------------------------------------}
 
 
-Class Function TCity.ObjectRestKind : String; 
+Class Function TCity.ObjectRestKind : String;
 
 begin
   Result:='City';
 end;
 
 
-Procedure TCity.SetCountryRegion(AIndex: Integer; const AValue: string); 
+Procedure TCity.SetCountryRegion(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -562,7 +562,7 @@ begin
 end;
 
 
-Procedure TCity.SetName(AIndex: Integer; const AValue: string); 
+Procedure TCity.SetName(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -572,7 +572,7 @@ begin
 end;
 
 
-Procedure TCity.SetRegion(AIndex: Integer; const AValue: string); 
+Procedure TCity.SetRegion(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -587,14 +587,14 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function TLocation.ObjectRestKind : String; 
+Class Function TLocation.ObjectRestKind : String;
 
 begin
   Result:='Location';
 end;
 
 
-Procedure TLocation.SetAddress(AIndex: Integer; const AValue: string); 
+Procedure TLocation.SetAddress(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -604,7 +604,7 @@ begin
 end;
 
 
-Procedure TLocation.SetCity(AIndex: Integer; const AValue: TCity); 
+Procedure TLocation.SetCity(AIndex: Integer; const AValue: TCity);
 
 
 begin
@@ -619,14 +619,14 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function TEventLocation.ObjectRestKind : String; 
+Class Function TEventLocation.ObjectRestKind : String;
 
 begin
   Result:='EventLocation';
 end;
 
 
-Procedure TEventLocation.SetBuildingInfo(AIndex: Integer; const AValue: string); 
+Procedure TEventLocation.SetBuildingInfo(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -641,14 +641,14 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function TAirportLocation.ObjectRestKind : String; 
+Class Function TAirportLocation.ObjectRestKind : String;
 
 begin
   Result:='AirportLocation';
 end;
 
 
-Procedure TAirportLocation.SetLoc(AIndex: Integer; const AValue: TGeographyPoint); 
+Procedure TAirportLocation.SetLoc(AIndex: Integer; const AValue: TGeographyPoint);
 
 
 begin
@@ -663,14 +663,14 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function TPhoto.ObjectRestKind : String; 
+Class Function TPhoto.ObjectRestKind : String;
 
 begin
   Result:='Photo';
 end;
 
 
-Procedure TPhoto.SetId(AIndex: Integer; const AValue: int64); 
+Procedure TPhoto.SetId(AIndex: Integer; const AValue: int64);
 
 
 begin
@@ -680,7 +680,7 @@ begin
 end;
 
 
-Procedure TPhoto.SetName(AIndex: Integer; const AValue: string); 
+Procedure TPhoto.SetName(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -697,7 +697,7 @@ begin
 end;
 
 
-Procedure TPhoto.GetStream(AService: TODataService; AContentType: String; AStream: TStream); 
+Procedure TPhoto.GetStream(AService: TODataService; AContentType: String; AStream: TStream);
 
 
 begin
@@ -705,7 +705,7 @@ begin
 end;
 
 
-Procedure TPhoto.SetStream(AService: TODataService; AContentType: String; AStream: TStream); 
+Procedure TPhoto.SetStream(AService: TODataService; AContentType: String; AStream: TStream);
 
 
 begin
@@ -718,7 +718,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Function TPerson.GetFavoriteAirline(AService: TODataService) : TAirline; 
+Function TPerson.GetFavoriteAirline(AService: TODataService) : TAirline;
 
 Var
   _Res : String;
@@ -731,7 +731,7 @@ begin
 end;
 
 
-Function TPerson.GetFriendsTrips(AService: TODataService; userName: string) : TTripArray; 
+Function TPerson.GetFriendsTrips(AService: TODataService; userName: string) : TTripArray;
 
 Var
   _Res : String;
@@ -745,7 +745,7 @@ begin
 end;
 
 
-Procedure TPerson.ShareTrip(AService: TODataService; userName: string; tripId: TInt32); 
+Procedure TPerson.ShareTrip(AService: TODataService; userName: string; tripId: TInt32);
 
 Var
   _JSON : TJSONObject;
@@ -765,14 +765,14 @@ begin
 end;
 
 
-Class Function TPerson.ObjectRestKind : String; 
+Class Function TPerson.ObjectRestKind : String;
 
 begin
   Result:='Person';
 end;
 
 
-Procedure TPerson.SetUserName(AIndex: Integer; const AValue: string); 
+Procedure TPerson.SetUserName(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -782,7 +782,7 @@ begin
 end;
 
 
-Procedure TPerson.SetFirstName(AIndex: Integer; const AValue: string); 
+Procedure TPerson.SetFirstName(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -792,7 +792,7 @@ begin
 end;
 
 
-Procedure TPerson.SetLastName(AIndex: Integer; const AValue: string); 
+Procedure TPerson.SetLastName(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -802,7 +802,7 @@ begin
 end;
 
 
-Procedure TPerson.SetEmails(AIndex: Integer; const AValue: TStringArray); 
+Procedure TPerson.SetEmails(AIndex: Integer; const AValue: TStringArray);
 
 
 begin
@@ -812,7 +812,7 @@ begin
 end;
 
 
-Procedure TPerson.SetAddressInfo(AIndex: Integer; const AValue: TLocationArray); 
+Procedure TPerson.SetAddressInfo(AIndex: Integer; const AValue: TLocationArray);
 
 
 begin
@@ -822,7 +822,7 @@ begin
 end;
 
 
-Procedure TPerson.SetGender(AIndex: Integer; const AValue: TPersonGender); 
+Procedure TPerson.SetGender(AIndex: Integer; const AValue: TPersonGender);
 
 
 begin
@@ -832,7 +832,7 @@ begin
 end;
 
 
-Procedure TPerson.SetConcurrency(AIndex: Integer; const AValue: int64); 
+Procedure TPerson.SetConcurrency(AIndex: Integer; const AValue: int64);
 
 
 begin
@@ -843,7 +843,7 @@ end;
 
 {$IFDEF VER2_6}
 
-Procedure TPerson.SetArrayLength(const AName: String; ALength: Longint); 
+Procedure TPerson.SetArrayLength(const AName: String; ALength: Longint);
 
 begin
   Case aName of
@@ -863,7 +863,7 @@ begin
 end;
 
 
-Function TPerson.Friends(AService: TODataService) : TPeopleEntitySet; 
+Function TPerson.Friends(AService: TODataService) : TPeopleEntitySet;
 
 
 begin
@@ -871,7 +871,7 @@ begin
 end;
 
 
-Function TPerson.Trips(AService: TODataService) : TTripImplicitEntitySet; 
+Function TPerson.Trips(AService: TODataService) : TTripImplicitEntitySet;
 
 
 begin
@@ -879,7 +879,7 @@ begin
 end;
 
 
-Function TPerson.Photo(AService: TODataService) : TPhoto; 
+Function TPerson.Photo(AService: TODataService) : TPhoto;
 
 
 begin
@@ -892,14 +892,14 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function TAirline.ObjectRestKind : String; 
+Class Function TAirline.ObjectRestKind : String;
 
 begin
   Result:='Airline';
 end;
 
 
-Procedure TAirline.SetAirlineCode(AIndex: Integer; const AValue: string); 
+Procedure TAirline.SetAirlineCode(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -909,7 +909,7 @@ begin
 end;
 
 
-Procedure TAirline.SetName(AIndex: Integer; const AValue: string); 
+Procedure TAirline.SetName(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -931,14 +931,14 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function TAirport.ObjectRestKind : String; 
+Class Function TAirport.ObjectRestKind : String;
 
 begin
   Result:='Airport';
 end;
 
 
-Procedure TAirport.SetIcaoCode(AIndex: Integer; const AValue: string); 
+Procedure TAirport.SetIcaoCode(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -948,7 +948,7 @@ begin
 end;
 
 
-Procedure TAirport.SetName(AIndex: Integer; const AValue: string); 
+Procedure TAirport.SetName(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -958,7 +958,7 @@ begin
 end;
 
 
-Procedure TAirport.SetIataCode(AIndex: Integer; const AValue: string); 
+Procedure TAirport.SetIataCode(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -968,7 +968,7 @@ begin
 end;
 
 
-Procedure TAirport.SetLocation(AIndex: Integer; const AValue: TAirportLocation); 
+Procedure TAirport.SetLocation(AIndex: Integer; const AValue: TAirportLocation);
 
 
 begin
@@ -990,14 +990,14 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function TPlanItem.ObjectRestKind : String; 
+Class Function TPlanItem.ObjectRestKind : String;
 
 begin
   Result:='PlanItem';
 end;
 
 
-Procedure TPlanItem.SetPlanItemId(AIndex: Integer; const AValue: TInt32); 
+Procedure TPlanItem.SetPlanItemId(AIndex: Integer; const AValue: TInt32);
 
 
 begin
@@ -1007,7 +1007,7 @@ begin
 end;
 
 
-Procedure TPlanItem.SetConfirmationCode(AIndex: Integer; const AValue: string); 
+Procedure TPlanItem.SetConfirmationCode(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -1017,7 +1017,7 @@ begin
 end;
 
 
-Procedure TPlanItem.SetStartsAt(AIndex: Integer; const AValue: TDateTime); 
+Procedure TPlanItem.SetStartsAt(AIndex: Integer; const AValue: TDateTime);
 
 
 begin
@@ -1027,7 +1027,7 @@ begin
 end;
 
 
-Procedure TPlanItem.SetEndsAt(AIndex: Integer; const AValue: TDateTime); 
+Procedure TPlanItem.SetEndsAt(AIndex: Integer; const AValue: TDateTime);
 
 
 begin
@@ -1037,7 +1037,7 @@ begin
 end;
 
 
-Procedure TPlanItem.SetDuration(AIndex: Integer; const AValue: TDuration); 
+Procedure TPlanItem.SetDuration(AIndex: Integer; const AValue: TDuration);
 
 
 begin
@@ -1059,14 +1059,14 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function TPublicTransportation.ObjectRestKind : String; 
+Class Function TPublicTransportation.ObjectRestKind : String;
 
 begin
   Result:='PublicTransportation';
 end;
 
 
-Procedure TPublicTransportation.SetSeatNumber(AIndex: Integer; const AValue: string); 
+Procedure TPublicTransportation.SetSeatNumber(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -1081,14 +1081,14 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function TFlight.ObjectRestKind : String; 
+Class Function TFlight.ObjectRestKind : String;
 
 begin
   Result:='Flight';
 end;
 
 
-Procedure TFlight.SetFlightNumber(AIndex: Integer; const AValue: string); 
+Procedure TFlight.SetFlightNumber(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -1098,7 +1098,7 @@ begin
 end;
 
 
-Function TFlight.From(AService: TODataService) : TAirport; 
+Function TFlight.From(AService: TODataService) : TAirport;
 
 
 begin
@@ -1106,7 +1106,7 @@ begin
 end;
 
 
-Function TFlight._To(AService: TODataService) : TAirport; 
+Function TFlight._To(AService: TODataService) : TAirport;
 
 
 begin
@@ -1114,7 +1114,7 @@ begin
 end;
 
 
-Function TFlight.Airline(AService: TODataService) : TAirline; 
+Function TFlight.Airline(AService: TODataService) : TAirline;
 
 
 begin
@@ -1127,14 +1127,14 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function TEvent.ObjectRestKind : String; 
+Class Function TEvent.ObjectRestKind : String;
 
 begin
   Result:='Event';
 end;
 
 
-Procedure TEvent.SetDescription(AIndex: Integer; const AValue: string); 
+Procedure TEvent.SetDescription(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -1144,7 +1144,7 @@ begin
 end;
 
 
-Procedure TEvent.SetOccursAt(AIndex: Integer; const AValue: TEventLocation); 
+Procedure TEvent.SetOccursAt(AIndex: Integer; const AValue: TEventLocation);
 
 
 begin
@@ -1159,7 +1159,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Function TTrip.GetInvolvedPeople(AService: TODataService) : TPersonArray; 
+Function TTrip.GetInvolvedPeople(AService: TODataService) : TPersonArray;
 
 Var
   _Res : String;
@@ -1172,14 +1172,14 @@ begin
 end;
 
 
-Class Function TTrip.ObjectRestKind : String; 
+Class Function TTrip.ObjectRestKind : String;
 
 begin
   Result:='Trip';
 end;
 
 
-Procedure TTrip.SetTripId(AIndex: Integer; const AValue: TInt32); 
+Procedure TTrip.SetTripId(AIndex: Integer; const AValue: TInt32);
 
 
 begin
@@ -1189,7 +1189,7 @@ begin
 end;
 
 
-Procedure TTrip.SetShareId(AIndex: Integer; const AValue: TGUIDString); 
+Procedure TTrip.SetShareId(AIndex: Integer; const AValue: TGUIDString);
 
 
 begin
@@ -1199,7 +1199,7 @@ begin
 end;
 
 
-Procedure TTrip.SetDescription(AIndex: Integer; const AValue: string); 
+Procedure TTrip.SetDescription(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -1209,7 +1209,7 @@ begin
 end;
 
 
-Procedure TTrip.SetName(AIndex: Integer; const AValue: string); 
+Procedure TTrip.SetName(AIndex: Integer; const AValue: string);
 
 
 begin
@@ -1219,7 +1219,7 @@ begin
 end;
 
 
-Procedure TTrip.SetBudget(AIndex: Integer; const AValue: Single); 
+Procedure TTrip.SetBudget(AIndex: Integer; const AValue: Single);
 
 
 begin
@@ -1229,7 +1229,7 @@ begin
 end;
 
 
-Procedure TTrip.SetStartsAt(AIndex: Integer; const AValue: TDateTime); 
+Procedure TTrip.SetStartsAt(AIndex: Integer; const AValue: TDateTime);
 
 
 begin
@@ -1239,7 +1239,7 @@ begin
 end;
 
 
-Procedure TTrip.SetEndsAt(AIndex: Integer; const AValue: TDateTime); 
+Procedure TTrip.SetEndsAt(AIndex: Integer; const AValue: TDateTime);
 
 
 begin
@@ -1249,7 +1249,7 @@ begin
 end;
 
 
-Procedure TTrip.SetTags(AIndex: Integer; const AValue: TStringArray); 
+Procedure TTrip.SetTags(AIndex: Integer; const AValue: TStringArray);
 
 
 begin
@@ -1260,7 +1260,7 @@ end;
 
 {$IFDEF VER2_6}
 
-Procedure TTrip.SetArrayLength(const AName: String; ALength: Longint); 
+Procedure TTrip.SetArrayLength(const AName: String; ALength: Longint);
 
 begin
   Case aName of
@@ -1279,7 +1279,7 @@ begin
 end;
 
 
-Function TTrip.Photos(AService: TODataService) : TPhotosEntitySet; 
+Function TTrip.Photos(AService: TODataService) : TPhotosEntitySet;
 
 
 begin
@@ -1287,7 +1287,7 @@ begin
 end;
 
 
-Function TTrip.PlanItems(AService: TODataService) : TPlanItemImplicitEntitySet; 
+Function TTrip.PlanItems(AService: TODataService) : TPlanItemImplicitEntitySet;
 
 
 begin
@@ -1300,20 +1300,20 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function TDefaultContainer.ObjectRestKind : String; 
+Class Function TDefaultContainer.ObjectRestKind : String;
 
 begin
   Result:='DefaultContainer';
 end;
 
-Function TDefaultContainer.CreateNewPhotos : TPhotosEntitySet; 
+Function TDefaultContainer.CreateNewPhotos : TPhotosEntitySet;
 
 begin
   Result:=TPhotosEntitySet(CreateEntitySet(TPhotosEntitySet));
 end;
 
 
-Function TDefaultContainer.GetPhotos : TPhotosEntitySet; 
+Function TDefaultContainer.GetPhotos : TPhotosEntitySet;
 
 
 begin
@@ -1322,14 +1322,14 @@ begin
   Result:=FPhotos;
 end;
 
-Function TDefaultContainer.CreateNewPeople : TPeopleEntitySet; 
+Function TDefaultContainer.CreateNewPeople : TPeopleEntitySet;
 
 begin
   Result:=TPeopleEntitySet(CreateEntitySet(TPeopleEntitySet));
 end;
 
 
-Function TDefaultContainer.GetPeople : TPeopleEntitySet; 
+Function TDefaultContainer.GetPeople : TPeopleEntitySet;
 
 
 begin
@@ -1338,14 +1338,14 @@ begin
   Result:=FPeople;
 end;
 
-Function TDefaultContainer.CreateNewAirlines : TAirlinesEntitySet; 
+Function TDefaultContainer.CreateNewAirlines : TAirlinesEntitySet;
 
 begin
   Result:=TAirlinesEntitySet(CreateEntitySet(TAirlinesEntitySet));
 end;
 
 
-Function TDefaultContainer.GetAirlines : TAirlinesEntitySet; 
+Function TDefaultContainer.GetAirlines : TAirlinesEntitySet;
 
 
 begin
@@ -1354,14 +1354,14 @@ begin
   Result:=FAirlines;
 end;
 
-Function TDefaultContainer.CreateNewAirports : TAirportsEntitySet; 
+Function TDefaultContainer.CreateNewAirports : TAirportsEntitySet;
 
 begin
   Result:=TAirportsEntitySet(CreateEntitySet(TAirportsEntitySet));
 end;
 
 
-Function TDefaultContainer.GetAirports : TAirportsEntitySet; 
+Function TDefaultContainer.GetAirports : TAirportsEntitySet;
 
 
 begin
@@ -1371,7 +1371,7 @@ begin
 end;
 
 
-Function TDefaultContainer.FetchMe : TPerson; 
+Function TDefaultContainer.FetchMe : TPerson;
 
 begin
   CheckService;
@@ -1380,7 +1380,7 @@ begin
 end;
 
 
-Function TDefaultContainer.GetMe : TPerson; 
+Function TDefaultContainer.GetMe : TPerson;
 
 
 begin
@@ -1390,7 +1390,7 @@ begin
 end;
 
 
-Procedure TDefaultContainer.ResetDataSource; 
+Procedure TDefaultContainer.ResetDataSource;
 
 Var
   _data : String;
@@ -1403,7 +1403,7 @@ begin
 end;
 
 
-Function TDefaultContainer.GetNearestAirport(lat: Double; lon: Double) : TAirport; 
+Function TDefaultContainer.GetNearestAirport(lat: Double; lon: Double) : TAirport;
 
 Var
   _Res : String;
@@ -1423,20 +1423,20 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function TPhotosEntitySet.ObjectRestKind : String; 
+Class Function TPhotosEntitySet.ObjectRestKind : String;
 
 begin
   Result:='Photos';
 end;
 
-Class Function TPhotosEntitySet.EntityClass : TODataEntityClass; 
+Class Function TPhotosEntitySet.EntityClass : TODataEntityClass;
 
 begin
   Result:=TPhoto;
 end;
 
 
-Function TPhotosEntitySet.Get(const Id: int64) : TPhoto; 
+Function TPhotosEntitySet.Get(const Id: int64) : TPhoto;
 
 
 begin
@@ -1444,7 +1444,7 @@ begin
 end;
 
 
-Function TPhotosEntitySet.List(const AQuery: String; out NextLink: String) : TPhotoArray; 
+Function TPhotosEntitySet.List(const AQuery: String; out NextLink: String) : TPhotoArray;
 
 
 begin
@@ -1452,7 +1452,7 @@ begin
 end;
 
 
-Function TPhotosEntitySet.List(const AQuery: TQueryParams; out NextLink: String) : TPhotoArray; 
+Function TPhotosEntitySet.List(const AQuery: TQueryParams; out NextLink: String) : TPhotoArray;
 
 
 begin
@@ -1460,7 +1460,7 @@ begin
 end;
 
 
-Function TPhotosEntitySet.ListAll(const AQuery: String) : TPhotoArray; 
+Function TPhotosEntitySet.ListAll(const AQuery: String) : TPhotoArray;
 
 var N : String;
 
@@ -1469,7 +1469,7 @@ begin
 end;
 
 
-Function TPhotosEntitySet.ListAll(const AQuery: TQueryParams) : TPhotoArray; 
+Function TPhotosEntitySet.ListAll(const AQuery: TQueryParams) : TPhotoArray;
 
 var N : String;
 
@@ -1483,20 +1483,20 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function TPeopleEntitySet.ObjectRestKind : String; 
+Class Function TPeopleEntitySet.ObjectRestKind : String;
 
 begin
   Result:='People';
 end;
 
-Class Function TPeopleEntitySet.EntityClass : TODataEntityClass; 
+Class Function TPeopleEntitySet.EntityClass : TODataEntityClass;
 
 begin
   Result:=TPerson;
 end;
 
 
-Function TPeopleEntitySet.Get(const UserName: string) : TPerson; 
+Function TPeopleEntitySet.Get(const UserName: string) : TPerson;
 
 
 begin
@@ -1504,7 +1504,7 @@ begin
 end;
 
 
-Function TPeopleEntitySet.List(const AQuery: String; out NextLink: String) : TPersonArray; 
+Function TPeopleEntitySet.List(const AQuery: String; out NextLink: String) : TPersonArray;
 
 
 begin
@@ -1512,7 +1512,7 @@ begin
 end;
 
 
-Function TPeopleEntitySet.List(const AQuery: TQueryParams; out NextLink: String) : TPersonArray; 
+Function TPeopleEntitySet.List(const AQuery: TQueryParams; out NextLink: String) : TPersonArray;
 
 
 begin
@@ -1520,7 +1520,7 @@ begin
 end;
 
 
-Function TPeopleEntitySet.ListAll(const AQuery: String) : TPersonArray; 
+Function TPeopleEntitySet.ListAll(const AQuery: String) : TPersonArray;
 
 var N : String;
 
@@ -1529,7 +1529,7 @@ begin
 end;
 
 
-Function TPeopleEntitySet.ListAll(const AQuery: TQueryParams) : TPersonArray; 
+Function TPeopleEntitySet.ListAll(const AQuery: TQueryParams) : TPersonArray;
 
 var N : String;
 
@@ -1543,20 +1543,20 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function TAirlinesEntitySet.ObjectRestKind : String; 
+Class Function TAirlinesEntitySet.ObjectRestKind : String;
 
 begin
   Result:='Airlines';
 end;
 
-Class Function TAirlinesEntitySet.EntityClass : TODataEntityClass; 
+Class Function TAirlinesEntitySet.EntityClass : TODataEntityClass;
 
 begin
   Result:=TAirline;
 end;
 
 
-Function TAirlinesEntitySet.Get(const AirlineCode: string) : TAirline; 
+Function TAirlinesEntitySet.Get(const AirlineCode: string) : TAirline;
 
 
 begin
@@ -1564,7 +1564,7 @@ begin
 end;
 
 
-Function TAirlinesEntitySet.List(const AQuery: String; out NextLink: String) : TAirlineArray; 
+Function TAirlinesEntitySet.List(const AQuery: String; out NextLink: String) : TAirlineArray;
 
 
 begin
@@ -1572,7 +1572,7 @@ begin
 end;
 
 
-Function TAirlinesEntitySet.List(const AQuery: TQueryParams; out NextLink: String) : TAirlineArray; 
+Function TAirlinesEntitySet.List(const AQuery: TQueryParams; out NextLink: String) : TAirlineArray;
 
 
 begin
@@ -1580,7 +1580,7 @@ begin
 end;
 
 
-Function TAirlinesEntitySet.ListAll(const AQuery: String) : TAirlineArray; 
+Function TAirlinesEntitySet.ListAll(const AQuery: String) : TAirlineArray;
 
 var N : String;
 
@@ -1589,7 +1589,7 @@ begin
 end;
 
 
-Function TAirlinesEntitySet.ListAll(const AQuery: TQueryParams) : TAirlineArray; 
+Function TAirlinesEntitySet.ListAll(const AQuery: TQueryParams) : TAirlineArray;
 
 var N : String;
 
@@ -1603,20 +1603,20 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function TAirportsEntitySet.ObjectRestKind : String; 
+Class Function TAirportsEntitySet.ObjectRestKind : String;
 
 begin
   Result:='Airports';
 end;
 
-Class Function TAirportsEntitySet.EntityClass : TODataEntityClass; 
+Class Function TAirportsEntitySet.EntityClass : TODataEntityClass;
 
 begin
   Result:=TAirport;
 end;
 
 
-Function TAirportsEntitySet.Get(const IcaoCode: string) : TAirport; 
+Function TAirportsEntitySet.Get(const IcaoCode: string) : TAirport;
 
 
 begin
@@ -1624,7 +1624,7 @@ begin
 end;
 
 
-Function TAirportsEntitySet.List(const AQuery: String; out NextLink: String) : TAirportArray; 
+Function TAirportsEntitySet.List(const AQuery: String; out NextLink: String) : TAirportArray;
 
 
 begin
@@ -1632,7 +1632,7 @@ begin
 end;
 
 
-Function TAirportsEntitySet.List(const AQuery: TQueryParams; out NextLink: String) : TAirportArray; 
+Function TAirportsEntitySet.List(const AQuery: TQueryParams; out NextLink: String) : TAirportArray;
 
 
 begin
@@ -1640,7 +1640,7 @@ begin
 end;
 
 
-Function TAirportsEntitySet.ListAll(const AQuery: String) : TAirportArray; 
+Function TAirportsEntitySet.ListAll(const AQuery: String) : TAirportArray;
 
 var N : String;
 
@@ -1649,7 +1649,7 @@ begin
 end;
 
 
-Function TAirportsEntitySet.ListAll(const AQuery: TQueryParams) : TAirportArray; 
+Function TAirportsEntitySet.ListAll(const AQuery: TQueryParams) : TAirportArray;
 
 var N : String;
 
@@ -1663,20 +1663,20 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function TTripImplicitEntitySet.ObjectRestKind : String; 
+Class Function TTripImplicitEntitySet.ObjectRestKind : String;
 
 begin
   Result:='TripImplicitEntitySet';
 end;
 
-Class Function TTripImplicitEntitySet.EntityClass : TODataEntityClass; 
+Class Function TTripImplicitEntitySet.EntityClass : TODataEntityClass;
 
 begin
   Result:=TTrip;
 end;
 
 
-Function TTripImplicitEntitySet.Get(const TripId: TInt32) : TTrip; 
+Function TTripImplicitEntitySet.Get(const TripId: TInt32) : TTrip;
 
 
 begin
@@ -1684,7 +1684,7 @@ begin
 end;
 
 
-Function TTripImplicitEntitySet.List(const AQuery: String; out NextLink: String) : TTripArray; 
+Function TTripImplicitEntitySet.List(const AQuery: String; out NextLink: String) : TTripArray;
 
 
 begin
@@ -1692,7 +1692,7 @@ begin
 end;
 
 
-Function TTripImplicitEntitySet.List(const AQuery: TQueryParams; out NextLink: String) : TTripArray; 
+Function TTripImplicitEntitySet.List(const AQuery: TQueryParams; out NextLink: String) : TTripArray;
 
 
 begin
@@ -1700,7 +1700,7 @@ begin
 end;
 
 
-Function TTripImplicitEntitySet.ListAll(const AQuery: String) : TTripArray; 
+Function TTripImplicitEntitySet.ListAll(const AQuery: String) : TTripArray;
 
 var N : String;
 
@@ -1709,7 +1709,7 @@ begin
 end;
 
 
-Function TTripImplicitEntitySet.ListAll(const AQuery: TQueryParams) : TTripArray; 
+Function TTripImplicitEntitySet.ListAll(const AQuery: TQueryParams) : TTripArray;
 
 var N : String;
 
@@ -1723,20 +1723,20 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function TPlanItemImplicitEntitySet.ObjectRestKind : String; 
+Class Function TPlanItemImplicitEntitySet.ObjectRestKind : String;
 
 begin
   Result:='PlanItemImplicitEntitySet';
 end;
 
-Class Function TPlanItemImplicitEntitySet.EntityClass : TODataEntityClass; 
+Class Function TPlanItemImplicitEntitySet.EntityClass : TODataEntityClass;
 
 begin
   Result:=TPlanItem;
 end;
 
 
-Function TPlanItemImplicitEntitySet.Get(const PlanItemId: TInt32) : TPlanItem; 
+Function TPlanItemImplicitEntitySet.Get(const PlanItemId: TInt32) : TPlanItem;
 
 
 begin
@@ -1744,7 +1744,7 @@ begin
 end;
 
 
-Function TPlanItemImplicitEntitySet.List(const AQuery: String; out NextLink: String) : TPlanItemArray; 
+Function TPlanItemImplicitEntitySet.List(const AQuery: String; out NextLink: String) : TPlanItemArray;
 
 
 begin
@@ -1752,7 +1752,7 @@ begin
 end;
 
 
-Function TPlanItemImplicitEntitySet.List(const AQuery: TQueryParams; out NextLink: String) : TPlanItemArray; 
+Function TPlanItemImplicitEntitySet.List(const AQuery: TQueryParams; out NextLink: String) : TPlanItemArray;
 
 
 begin
@@ -1760,7 +1760,7 @@ begin
 end;
 
 
-Function TPlanItemImplicitEntitySet.ListAll(const AQuery: String) : TPlanItemArray; 
+Function TPlanItemImplicitEntitySet.ListAll(const AQuery: String) : TPlanItemArray;
 
 var N : String;
 
@@ -1769,7 +1769,7 @@ begin
 end;
 
 
-Function TPlanItemImplicitEntitySet.ListAll(const AQuery: TQueryParams) : TPlanItemArray; 
+Function TPlanItemImplicitEntitySet.ListAll(const AQuery: TQueryParams) : TPlanItemArray;
 
 var N : String;
 
@@ -1783,20 +1783,20 @@ end;
   --------------------------------------------------------------------}
 
 
-Class Function TService.ObjectRestKind : String; 
+Class Function TService.ObjectRestKind : String;
 
 begin
   Result:='Microsoft.OData.SampleService.Models.TripPin';
 end;
 
-Function TService.CreateNewDefaultContainer : TDefaultContainer; 
+Function TService.CreateNewDefaultContainer : TDefaultContainer;
 
 begin
   Result:=TDefaultContainer(CreateEntityContainer(TDefaultContainer));
 end;
 
 
-Function TService.GetDefaultContainer : TDefaultContainer; 
+Function TService.GetDefaultContainer : TDefaultContainer;
 
 
 begin

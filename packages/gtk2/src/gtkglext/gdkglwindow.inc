@@ -3,7 +3,7 @@
 {$ifdef read_interface_types}
 
   { PGdkGLWindow already defined in gdkgltypes.inc }
-  
+
   TGdkGLWindow = record
     parent_instance: TGObject;
     drawable: PGdkDrawable;        {* Associated GdkWindow *}
@@ -103,7 +103,7 @@ end;
 
 function gdk_window_get_gl_drawable(window: PGdkWindow): PGdkGLDrawable;
 begin
- gdk_window_get_gl_drawable := 
+ gdk_window_get_gl_drawable :=
    GDK_GL_DRAWABLE (gdk_window_get_gl_window (window));
 end;
 

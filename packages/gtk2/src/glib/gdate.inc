@@ -47,12 +47,12 @@
 {$ENDIF read_interface_types}
 
 {$IFDEF read_interface_rest}
-const 
+const
   G_DATE_DAY = 0;
   G_DATE_MONTH = 1;
   G_DATE_YEAR = 2;
 
-const 
+const
   G_DATE_BAD_WEEKDAY = 0;
   G_DATE_MONDAY = 1;
   G_DATE_TUESDAY = 2;

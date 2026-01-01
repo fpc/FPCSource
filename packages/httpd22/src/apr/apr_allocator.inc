@@ -26,7 +26,7 @@
 
 {
  * @defgroup apr_allocator Internal Memory Allocation
- * @ingroup APR 
+ * @ingroup APR
  }
 
 type

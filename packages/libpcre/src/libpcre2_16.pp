@@ -174,7 +174,7 @@ Type
   end;
   Tpcre2_jit_stack_16 = Tpcre2_real_jit_stack_16;
   Tpcre2_jit_stack = Tpcre2_jit_stack_16;
-  
+
   Ppcre2_real_jit_stack_16 = ^Tpcre2_real_jit_stack_16;
   PTpcre2_jit_stack_16 = Ppcre2_real_jit_stack_16;
 
@@ -230,7 +230,7 @@ Type
   tpcre2_set_callout_16_callback = function (_para1:Ppcre2_callout_block_16; _para2:pointer):Tcint; cdecl;
   tpcre2_callout_enumerate_16_callback = function (_para1: PTpcre2_callout_enumerate_block_16; _para2:pointer):Tcint; cdecl;
   tpcre2_set_substitute_callout_16_callback =   function (_para1:Ppcre2_substitute_callout_block_16; _para2:pointer):Tcint; cdecl;
-     
+
 var
   pcre2_config : function(_para1:Tuint32_t; _para2:pointer):Tcint;cdecl;
   pcre2_general_context_copy : function(_para1:PTpcre2_general_context_16): PTpcre2_general_context_16;cdecl;

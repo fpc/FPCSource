@@ -153,7 +153,7 @@ type
   EntityContainer_TypeAnnotationArray = class;
   EntityContainer = class;
 
-  EDMSimpleType = ( 
+  EDMSimpleType = (
     Binary
     ,EDMSimpleType_Boolean
     ,EDMSimpleType_Byte
@@ -188,32 +188,32 @@ type
     ,Stream
   );
 
-  TMax = ( 
+  TMax = (
     Max
   );
 
-  TVariable = ( 
+  TVariable = (
     Variable
   );
 
-  TParameterMode = ( 
+  TParameterMode = (
     TParameterMode_In
     ,TParameterMode_Out
     ,InOut
   );
 
-  TAction = ( 
+  TAction = (
     Cascade
     ,None
   );
 
-  TMultiplicity = ( 
+  TMultiplicity = (
     TMultiplicity__0_1
     ,TMultiplicity__1
     ,TMultiplicity__
   );
 
-  TConcurrencyMode = ( 
+  TConcurrencyMode = (
     TConcurrencyMode_None
     ,Fixed
   );
