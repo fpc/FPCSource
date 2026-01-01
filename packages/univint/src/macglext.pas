@@ -408,7 +408,7 @@ uses MacTypes, macgl;
 type
 	GLcharARB = AnsiChar;
 	PGLcharARB = ^GLcharARB;
-	
+
 	GLhandleARB = UnivPtr;
 	PGLhandleARB = ^GLhandleARB;
 {$endc}
@@ -417,17 +417,17 @@ type
 type
 	GLintptrARB = SIGNEDLONG;
 	PGLintptrARB = ^GLintptrARB;
-	
+
 	GLsizeiptrARB = SIGNEDLONG;
 	PGLsizeiptrARB = ^GLsizeiptrARB;
-	
+
 {$endc}
 
 {$ifc not undefined GL_ARB_half_float_pixel and GL_ARB_half_float_pixel}
 type
 	GLhalfARB = UInt16;
 	PGLhalfARB = ^GLhalfARB;
-	
+
 {$endc}
 
 {$ifc not undefined GL_ARB_half_float_vertex and GL_ARB_half_float_vertex}
@@ -1959,7 +1959,7 @@ const GL_YCBCR_422_APPLE                 = $85B9;
 {$ifc not undefined GL_APPLE_rgb_422 and GL_APPLE_rgb_422}
 const GL_RGB_422_APPLE                   = $8A1F;
 {$endc}
-	
+
 {$ifc not undefined GL_APPLE_ycbcr_422 and GL_APPLE_ycbcr_422 or defined GL_APPLE_rgb_422 and GL_APPLE_rgb_422}
 const GL_UNSIGNED_SHORT_8_8_APPLE        = $85BA;
 const GL_UNSIGNED_SHORT_8_8_REV_APPLE    = $85BB;
@@ -2042,7 +2042,7 @@ const GL_POINT_SIZE_ARRAY_STRIDE_APPLE         = $898B;
 const GL_POINT_SIZE_ARRAY_POINTER_APPLE        = $898C;
 const GL_POINT_SIZE_ARRAY_BUFFER_BINDING_APPLE = $8B9F;
 {$endc}
-	
+
 {$ifc not undefined GL_ATI_blend_weighted_minmax and GL_ATI_blend_weighted_minmax}
 const GL_MIN_WEIGHTED_ATI               = $877D;
 const GL_MAX_WEIGHTED_ATI               = $877E;
@@ -3470,7 +3470,7 @@ type
 	glDetachObjectARBProcPtr = procedure( containerObj: GLhandleARB; attachedObj: GLhandleARB );
 	glCreateShaderObjectARBProcPtr = function( shaderType: GLenum ): GLhandleARB;
 
-{GPC-ONLY-START}	
+{GPC-ONLY-START}
 	glShaderSourceARBProcPtr = procedure( shaderObj: GLhandleARB; count: GLsizei; {const} strng: CStringPtrPtr; const length: PGLint );
 {GPC-ONLY-FINISH}
 	glShaderSourceARBProcPtr = procedure( shaderObj: GLhandleARB; count: GLsizei; {const} strng: PPAnsiChar; const length: PGLint );
@@ -4657,7 +4657,7 @@ procedure glMultiModeDrawArraysIBM( param1 : GLenum; const param2 : PGLint; cons
 procedure glMultiModeDrawElementsIBM( const param1 : PGLenum; const param2 : PGLsizei; param3 : GLenum; const param4 : UnivPtrPtr; param5 : GLsizei; param6 : GLint ); external name '_glMultiModeDrawElementsIBM';
 {$endc} { GL_GLEXT_FUNCTION_POINTERS }
 {$endc}
-	
+
 {$ifc not undefined GL_IBM_vertex_array_lists and GL_IBM_vertex_array_lists}
 type
 	PGLbooleanPtr = ^PGLboolean;

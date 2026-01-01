@@ -236,7 +236,7 @@ uses MacTypes;
 	attributes' meanings and values are generally obvious. In order to save space, the
 	following attributes are not listed in the role documentation unless the role
 	handles them in a special fashion:
-	
+
 		AXRole
 		AXRoleDescription
 		AXDescription
@@ -248,7 +248,7 @@ uses MacTypes;
 		AXEnabled
 		AXSize
 		AXPosition
-	
+
 	Every attribute supported by a given role may have one or more symbols after its
 	name:
 		w means the attribute is writable.
@@ -318,7 +318,7 @@ uses MacTypes;
 
 {
 	kAXOutlineRole
-	
+
 	An element that contains row-based data. It may use disclosure triangles to manage the
 	display of hierarchies within the data. It may arrange each row's data into columns and
 	offer a header button above each column. The best example is the list view in a Finder
@@ -330,7 +330,7 @@ uses MacTypes;
 	columns, the data should be accessible via either rows or columns. Thus, the data in a
 	given cell will be represented as two different elements. Here's a hierarchy for a
 	typical outline:
-	
+
 		AXScrollArea (parent of the outline)
 			AXScrollBar (if necessary, horizontal)
 			AXScrollBar (if necessary, vertical)
@@ -354,7 +354,7 @@ uses MacTypes;
 					AXButton
 					...
 				...
-				
+
     Attributes:
         AXFocused (w)
         AXRows - Array of subset of AXChildren that are rows.
@@ -372,18 +372,18 @@ uses MacTypes;
 
 {
 	kAXBrowserRole
-	
+
 	An element that contains columns of hierarchical data. Examples include the column view
 	in Finder windows and Open/Save dialogs. Carbon's Data Browser in column view mode
 	represents itself as an AXBrowser. Cocoa's NSBrowser represents itself as an AXBrowser.
-	
+
 	Browser elements are expected to have a particular hierarchy of sub-elements within it.
 	In particular, the child of an AXBrowser must be an AXScrollArea that manages the
 	horizontal scrolling. The horizontal AXScrollArea must include a child for each column
 	the interface displays. Columns can be any role that makes sense. Typically, columns
 	are vertical AXScrollAreas with AXList children. Here's a hierarchy for a typical
 	browser:
-	
+
 		AXBrowser
 			AXScrollArea (manages the horizontal scrolling)
 				AXScrollBar (horizontal scroll bar)
@@ -399,7 +399,7 @@ uses MacTypes;
 					...
 				AXGroup (preview column)
 					...
-	
+
 	Attributes:
 		AXFocused (w)
 		AXColumns - Array of the grandchild column elements, which are typically

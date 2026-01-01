@@ -1,17 +1,17 @@
 {
      File:       AE/AppleEvents.h
- 
+
      Contains:   AppleEvent Package Interfaces.
- 
-    
- 
+
+
+
      Copyright:  © 1989-2008 by Apple Computer, Inc., all rights reserved
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, September 2012 }
@@ -227,7 +227,7 @@ uses MacTypes,MixedMode,AEDataModel,AEInteraction, CFArray, CFBase, CFRunLoop, C
 {$ifc TARGET_OS_MAC}
 
 {
-    Note:   The functions and types for the building and parsing AppleEvent  
+    Note:   The functions and types for the building and parsing AppleEvent
             messages has moved to AEDataModel.h
 }
 
@@ -286,23 +286,23 @@ const
 	kAELocalProcess = 3;
 	kAERemoteProcess = 4;
 
-	
+
 { if __MAC_OS_X_VERSION_MIN_REQUIRED >= 1080 }
 const
 	errAETargetAddressNotPermitted = -1742;	{ Mac OS X 10.8 and later, the target of an AppleEvent is not accessible to this process, perhaps due to sandboxing }
 	errAEEventNotPermitted = -1743;			{ Mac OS X 10.8 and later, the target of the AppleEvent does not allow this sender to execute this event }
 { endif }
-	
-	
+
+
 {*************************************************************************
   These calls are used to set up and modify the event dispatch table.
 *************************************************************************}
 {
  *  AEInstallEventHandler()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -314,10 +314,10 @@ function AEInstallEventHandler( theAEEventClass: AEEventClass; theAEEventID: AEE
 
 {
  *  AERemoveEventHandler()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -329,10 +329,10 @@ function AERemoveEventHandler( theAEEventClass: AEEventClass; theAEEventID: AEEv
 
 {
  *  AEGetEventHandler()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -348,10 +348,10 @@ function AEGetEventHandler( theAEEventClass: AEEventClass; theAEEventID: AEEvent
 *************************************************************************}
 {
  *  AEInstallSpecialHandler()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -363,10 +363,10 @@ function AEInstallSpecialHandler( functionClass: AEKeyword; handler: AEEventHand
 
 {
  *  AERemoveSpecialHandler()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -378,10 +378,10 @@ function AERemoveSpecialHandler( functionClass: AEKeyword; handler: AEEventHandl
 
 {
  *  AEGetSpecialHandler()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -399,10 +399,10 @@ function AEGetSpecialHandler( functionClass: AEKeyword; var handler: AEEventHand
 *************************************************************************}
 {
  *  AEManagerInfo()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -414,21 +414,21 @@ function AEManagerInfo( keyWord: AEKeyword; var result: SIGNEDLONG ): OSErr; ext
 
 {
   AERemoteProcessResolver:
-  
+
   These calls subsume the functionality of using the PPCToolbox on Mac
   OS 9 to locate processes on remote computers.  (PPCToolbox is not
   part of Carbon.)  These calls are supported on Mac OS X 10.3 or
   later.
-  
+
   The model is to create a resolver for a particular URL and schedule
   it on a CFRunLoop to retrieve the results asynchronously.  If
   synchronous behavior is desired, just call
   AERemoteProcessResolverGetProcesses to get the array; the call will
   block until the request is completed.
-  
+
   A resolver can only be used once; once it has fetched the data or
   gotten an error it can no longer be scheduled.
-  
+
   The data obtained from the resolver is a CFArrayRef of
   CFDictionaryRef objects.  Each dictionary contains the URL of the
   remote application and its human readable name.
@@ -436,10 +436,10 @@ function AEManagerInfo( keyWord: AEKeyword; var result: SIGNEDLONG ): OSErr; ext
 
 {
  *  kAERemoteProcessURLKey
- *  
+ *
  *  Discussion:
  *    the full URL to this application, a CFURLRef.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in ApplicationServices.framework
  *    CarbonLib:        not available
@@ -449,11 +449,11 @@ var kAERemoteProcessURLKey: CFStringRef; external name '_kAERemoteProcessURLKey'
 (* __OSX_AVAILABLE_STARTING( __MAC_10_3, __IPHONE_NA ) *)
 {
  *  kAERemoteProcessNameKey
- *  
+ *
  *  Discussion:
  *    the visible name to this application, in the localization
  *    supplied by the server, a CFStringRef.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in ApplicationServices.framework
  *    CarbonLib:        not available
@@ -463,11 +463,11 @@ var kAERemoteProcessNameKey: CFStringRef; external name '_kAERemoteProcessNameKe
 (* __OSX_AVAILABLE_STARTING( __MAC_10_3, __IPHONE_NA ) *)
 {
  *  kAERemoteProcessUserIDKey
- *  
+ *
  *  Discussion:
  *    the userid of this application, if available.  If present, a
  *    CFNumberRef.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in ApplicationServices.framework
  *    CarbonLib:        not available
@@ -477,11 +477,11 @@ var kAERemoteProcessUserIDKey: CFStringRef; external name '_kAERemoteProcessUser
 (* __OSX_AVAILABLE_STARTING( __MAC_10_3, __IPHONE_NA ) *)
 {
  *  kAERemoteProcessProcessIDKey
- *  
+ *
  *  Discussion:
  *    the process id of this application, if available.  If present, a
  *    CFNumberRef.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in ApplicationServices.framework
  *    CarbonLib:        not available
@@ -492,7 +492,7 @@ var kAERemoteProcessProcessIDKey: CFStringRef; external name '_kAERemoteProcessP
 
 {
  *  AERemoteProcessResolverContext
- *  
+ *
  *  Discussion:
  *    An optional context parameter for asynchronous resolution.  The
  *    context is copied and the info pointer retained.  When the
@@ -529,7 +529,7 @@ type
 
 {
  *  AERemoteProcessResolverRef
- *  
+ *
  *  Discussion:
  *    An opaque reference to an object that encapsulates the mechnanism
  *    by which a list of processes running on a remote machine are
@@ -541,7 +541,7 @@ type
 	AERemoteProcessResolverRef = ^SInt32; { an opaque type }
 {
  *  AECreateRemoteProcessResolver()
- *  
+ *
  *  Discussion:
  *    Create a Remote Process List Resolver object.  The allocator is
  *    used for any CoreFoundation types created or returned by this
@@ -550,22 +550,22 @@ type
  *    from the server, or got an error doing so, it will not re-fetch
  *    the data.  To retrieve a new list of processes, create a new
  *    instance of this object.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    allocator:
  *      a CFAllocatorRef to use when creating CFTypes
- *    
+ *
  *    url:
  *      a CFURL identifying the remote host and port.
- *  
+ *
  *  Result:
  *    a AECreateRemoteProcessResolverRef, which must be disposed of
  *    with AEDisposeRemoteProcessResolver.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in ApplicationServices.framework
  *    CarbonLib:        not available
@@ -577,20 +577,20 @@ function AECreateRemoteProcessResolver( allocator: CFAllocatorRef; url: CFURLRef
 
 {
  *  AEDisposeRemoteProcessResolver()
- *  
+ *
  *  Discussion:
  *    Disposes of a AERemoteProcessResolverRef.  If this resolver is
  *    currently scheduled on a run loop, it is unscheduled.  In this
  *    case, the asynchronous callback will not be executed.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    ref:
  *      The AERemoteProcessResolverRef to dispose
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in ApplicationServices.framework
  *    CarbonLib:        not available
@@ -602,7 +602,7 @@ procedure AEDisposeRemoteProcessResolver( ref: AERemoteProcessResolverRef ); ext
 
 {
  *  AERemoteProcessResolverGetProcesses()
- *  
+ *
  *  Discussion:
  *    Returns a CFArrayRef containing CFDictionary objects containing
  *    information about processses running on a remote machine.  If the
@@ -615,23 +615,23 @@ procedure AEDisposeRemoteProcessResolver( ref: AERemoteProcessResolverRef ); ext
  *    resolver does complete.  The array returned is owned by the
  *    resolver, so callers must retain it before disposing of the
  *    resolver object itself.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    ref:
  *      The AERemoteProcessResolverRef to query
- *    
+ *
  *    outError:
  *      If the result is NULL, outError will contain a CFStreamError
  *      with information about the type of failure
- *  
+ *
  *  Result:
  *    a CFArray of CFDictionary objects containing information about
  *    the remote applications.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in ApplicationServices.framework
  *    CarbonLib:        not available
@@ -643,7 +643,7 @@ function AERemoteProcessResolverGetProcesses( ref: AERemoteProcessResolverRef; v
 
 {
  *  AERemoteProcessResolverCallback
- *  
+ *
  *  Discussion:
  *    A callback made when the asynchronous execution of a resolver
  *    completes, either due to success or failure. The data itself
@@ -653,7 +653,7 @@ type
 	AERemoteProcessResolverCallback = procedure( ref: AERemoteProcessResolverRef; info: UnivPtr );
 {
  *  AERemoteProcessResolverScheduleWithRunLoop()
- *  
+ *
  *  Discussion:
  *    Schedules a resolver for execution on a given runloop in a given
  *    mode.   The resolver will move through various internal states as
@@ -661,30 +661,30 @@ type
  *    completes, either with success or an error condition, the
  *    callback is executed.  There is no explicit unschedule of the
  *    resolver; you must dispose of it to remove it from the run loop.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    ref:
  *      The AERemoteProcessResolverRef to scheduile
- *    
+ *
  *    runLoop:
  *      a CFRunLoop
- *    
+ *
  *    runLoopMode:
  *      a CFString specifying the run loop mode
- *    
+ *
  *    callback:
  *      a callback to be executed when the reolver completes
- *    
+ *
  *    ctx:
  *      a AERemoteProcessResolverContext.  If this parameter is not
  *      NULL, the info field of this structure will be passed to the
  *      callback (otherwise, the callback info parameter will
  *      explicitly be NULL.)
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in ApplicationServices.framework
  *    CarbonLib:        not available

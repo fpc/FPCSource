@@ -1,17 +1,17 @@
 {
      File:       HIToolbox/HIArchive.h
- 
+
      Contains:   HIArchive Interfaces.
- 
+
      Version:    HIToolbox-624~3
- 
+
      Copyright:  © 2004-2008 by Apple Inc., all rights reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {       Pascal Translation:  Peter N Lewis, <peter@stairways.com.au>, August 2005 }
 {       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
@@ -232,7 +232,7 @@ uses MacTypes,CFBase,CFData,CFNumber,HIObject;
 
 {
  *  HIArchive
- *  
+ *
  *  Discussion:
  *    HIArchive provides a standard, extensible mechanism to flatten
  *    objects for storage in memory or on disk for later retrieval or
@@ -240,8 +240,8 @@ uses MacTypes,CFBase,CFData,CFNumber,HIObject;
  *    binary property list format. The binary plist can be converted to
  *    text XML with /usr/bin/plutil for development purposes. Details
  *    on how to create an object that supports the HIArchive protocol
- *    are provided in HIToolbox/HIObject.h. 
- *    
+ *    are provided in HIToolbox/HIObject.h.
+ *
  *    When writing data out to an archive, the client must first use
  *    HIArchiveCreateForEncoding to generate the archive into which the
  *    data will be encoded. From there, data may be added to the
@@ -267,8 +267,8 @@ uses MacTypes,CFBase,CFData,CFNumber,HIObject;
  *    another application or written out to disk for later retrieval.
  *    Once the encoded data is compressed, no more data may be added to
  *    the archive. At this point, the HIArchiveRef must be released via
- *    CFRelease. 
- *    
+ *    CFRelease.
+ *
  *    When retrieving data from an archive, the client must first use
  *    HIArchiveCreateForDecoding to create an archive reference capable
  *    of decoding the data from the provided CFDataRef. Given the
@@ -283,8 +283,8 @@ uses MacTypes,CFBase,CFData,CFNumber,HIObject;
  *    in any order regardless of how they were written. This also means
  *    new keyed values can be added without breaking existing decoding
  *    routines. Once all data has been read from the archive, it may
- *    simply be released via CFRelease. 
- *    
+ *    simply be released via CFRelease.
+ *
  *    For those clients who wish to provide HIArchive editing features
  *    there are a few tricks necessary to achieve the desired behavior.
  *    A generic HIArchive editor will likely be used by clients to edit
@@ -295,8 +295,8 @@ uses MacTypes,CFBase,CFData,CFNumber,HIObject;
  *    case, it is necessary to instantiate the superclass
  *    ("com.apple.hiview") of the custom view object because the custom
  *    view class itself hasn't been registered within the editor.
- *    
- *    
+ *
+ *
  *    After the user has completed editing the object and desires to
  *    write out the archive, the editor must set the custom archive
  *    data to the object with HIObjectSetCustomArchiveData as a
@@ -307,13 +307,13 @@ uses MacTypes,CFBase,CFData,CFNumber,HIObject;
  *    HIArchive uses these values to instantiate the proper object when
  *    loading the archive within the client's application. The
  *    parameter types, names and values are then automatically passed
- *    to the client object through its initialization event. 
- *    
+ *    to the client object through its initialization event.
+ *
  *    At this point, the object can simply be written into the archive
  *    with HIArchiveCreateForEncoding and HIArchiveEncodeCFType.
  *    HIArchive will handle writing the appropriate classID based on
- *    the custom data that was assigned earlier. 
- *    
+ *    the custom data that was assigned earlier.
+ *
  *    Generic HIArchive editing applications will also need to handle
  *    loading client archives. In this case, the archive is decoded in
  *    editing mode by passing the
@@ -394,16 +394,16 @@ const
 {$ifc not TARGET_CPU_64}
 {
  *  HIArchiveGetTypeID()
- *  
+ *
  *  Summary:
  *    Returns the CFType identifier for an HIArchive object.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Result:
  *    A CFTypeID unique to HIArchive instances.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.4 and later
@@ -415,26 +415,26 @@ function HIArchiveGetTypeID: CFTypeID; external name '_HIArchiveGetTypeID';
 
 {
  *  HIArchiveCreateForEncoding()
- *  
+ *
  *  Summary:
  *    Creates an HIArchive for use in encoding object information.
- *  
+ *
  *  Discussion:
  *    The created HIArchiveRef is a CFType and must be released via
  *    CFRelease.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    outEncoder:
  *      An HIArchive reference which receives the created HIArchive on
  *      return.
- *  
+ *
  *  Result:
  *    An operating system result code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.4 and later
@@ -446,28 +446,28 @@ function HIArchiveCreateForEncoding( var outEncoder: HIArchiveRef ): OSStatus; e
 
 {
  *  HIArchiveEncodeBoolean()
- *  
+ *
  *  Summary:
  *    Adds a keyed boolean value to the provided archive.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inEncoder:
  *      An HIArchiveRef to which the boolean value is added.
- *    
+ *
  *    inKey:
  *      The key associated with the boolean value used for later
  *      decoding.
- *    
+ *
  *    inBoolean:
  *      The boolean value to be encoded.
- *  
+ *
  *  Result:
  *    An operating system result code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.4 and later
@@ -479,32 +479,32 @@ function HIArchiveEncodeBoolean( inEncoder: HIArchiveRef; inKey: CFStringRef; in
 
 {
  *  HIArchiveEncodeNumber()
- *  
+ *
  *  Summary:
  *    Adds a keyed number value to the provided archive.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inEncoder:
  *      An HIArchiveRef to which the number value is added.
- *    
+ *
  *    inKey:
  *      The key associated with the number value used for later
  *      decoding.
- *    
+ *
  *    inNumberType:
  *      A CFNumberType describing the type of number value being
  *      encoded.
- *    
+ *
  *    inNumberValue:
  *      The number value to be encoded.
- *  
+ *
  *  Result:
  *    An operating system result code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.4 and later
@@ -516,10 +516,10 @@ function HIArchiveEncodeNumber( inEncoder: HIArchiveRef; inKey: CFStringRef; inN
 
 {
  *  HIArchiveEncodeCFType()
- *  
+ *
  *  Summary:
  *    Adds a keyed CFType to the provided archive.
- *  
+ *
  *  Discussion:
  *    Encodes basic and property list based CFTypes including HIObjects
  *    supporting the archiving protocol. If the HIObject supports the
@@ -527,24 +527,24 @@ function HIArchiveEncodeNumber( inEncoder: HIArchiveRef; inKey: CFStringRef; inN
  *    event during which it should encode all relevant state
  *    information. The kEventParamHIArchive parameter contains the
  *    archive into which data should be added.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inEncoder:
  *      An HIArchiveRef to which the CFType is added.
- *    
+ *
  *    inKey:
  *      The key associated with the CFType used for later decoding.
- *    
+ *
  *    inCFType:
  *      The CFType to be encoded.
- *  
+ *
  *  Result:
  *    An operating system result code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.4 and later
@@ -556,31 +556,31 @@ function HIArchiveEncodeCFType( inEncoder: HIArchiveRef; inKey: CFStringRef; inC
 
 {
  *  HIArchiveCopyEncodedData()
- *  
+ *
  *  Summary:
  *    Returns the encoded archive as a CFDataRef.
- *  
+ *
  *  Discussion:
  *    Compresses the archived data for storage and returns it as a
  *    CFDataRef. After the archived data is compressed, no further
  *    information may be encoded. Do not call this routine until the
  *    encoding process is complete.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inEncoder:
  *      An HIArchiveRef into which the archived data was compiled.
- *    
+ *
  *    outData:
  *      A CFData reference which receives the compressed archive data
  *      on return.
- *  
+ *
  *  Result:
  *    An operating system result code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.4 and later
@@ -592,35 +592,35 @@ function HIArchiveCopyEncodedData( inEncoder: HIArchiveRef; var outData: CFDataR
 
 {
  *  HIArchiveCreateForDecoding()
- *  
+ *
  *  Summary:
  *    Creates an HIArchive for use in decoding the object information
  *    contained in the provided CFData reference.
- *  
+ *
  *  Discussion:
  *    The created HIArchiveRef is a CFType and must be released via
  *    CFRelease.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inData:
  *      A CFDataRef containing a previously encoded archive.
- *    
+ *
  *    inOptions:
  *      The only option supported by this routine at present is
  *      kHIArchiveDecodeSuperclassForUnregisteredObjects. You may also
  *      pass zero for this parameter to get the default behavior.
- *    
+ *
  *    outDecoder:
  *      An HIArchive reference which receives the created HIArchive on
  *      return.
- *  
+ *
  *  Result:
  *    An operating system result code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.4 and later
@@ -632,27 +632,27 @@ function HIArchiveCreateForDecoding( inData: CFDataRef; inOptions: OptionBits; v
 
 {
  *  HIArchiveDecodeBoolean()
- *  
+ *
  *  Summary:
  *    Pulls a keyed boolean value from the provided archive.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inDecoder:
  *      An HIArchiveRef from which the boolean value is pulled.
- *    
+ *
  *    inKey:
  *      The key associated with the boolean value used while encoding.
- *    
+ *
  *    outBoolean:
  *      The boolean value to be decoded.
- *  
+ *
  *  Result:
  *    An operating system result code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.4 and later
@@ -664,31 +664,31 @@ function HIArchiveDecodeBoolean( inDecoder: HIArchiveRef; inKey: CFStringRef; va
 
 {
  *  HIArchiveDecodeNumber()
- *  
+ *
  *  Summary:
  *    Pulls a keyed number value from the provided archive.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inDecoder:
  *      An HIArchiveRef from which the number value is pulled.
- *    
+ *
  *    inKey:
  *      The key associated with the number value used while encoding.
- *    
+ *
  *    inNumberType:
  *      A CFNumberType describing the type of number value being
  *      encoded.
- *    
+ *
  *    outNumberValue:
  *      The number value to be decoded.
- *  
+ *
  *  Result:
  *    An operating system result code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.4 and later
@@ -700,34 +700,34 @@ function HIArchiveDecodeNumber( inDecoder: HIArchiveRef; inKey: CFStringRef; inN
 
 {
  *  HIArchiveCopyDecodedCFType()
- *  
+ *
  *  Summary:
  *    Pulls a keyed CFType from the provided archive.
- *  
+ *
  *  Discussion:
  *    Decodes basic and property list based CFTypes and HIObjects. If
  *    the CFType is an HIObject, it will be constructed and receive the
  *    kEventHIObjectInitialize event. The kEventParamHIArchive
  *    parameter contains the archive from which data should be
  *    retrieved.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inDecoder:
  *      An HIArchiveRef from which the CFType value is pulled.
- *    
+ *
  *    inKey:
  *      The key associated with the CFType used while encoding.
- *    
+ *
  *    outCFType:
  *      The CFType to be decoded.
- *  
+ *
  *  Result:
  *    An operating system result code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.4 and later

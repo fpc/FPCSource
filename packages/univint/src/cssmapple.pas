@@ -939,19 +939,19 @@ const
 
 	{
 	 * Prompt string for CSSM_ALGID_SECURE_PASSPHRASE key acquisition.
-	 * Data is a UTF8-encoded external representation of a CFString. 
+	 * Data is a UTF8-encoded external representation of a CFString.
 	 }
 	CSSM_ATTRIBUTE_PROMPT = (CSSM_ATTRIBUTE_DATA_CSSM_DATA or (CSSM_ATTRIBUTE_VENDOR_DEFINED + 6));
 
 	{
 	 * Alert panel title for CSSM_ALGID_SECURE_PASSPHRASE key acquisition.
-	 * Data is a UTF8-encoded external representation of a CFString. 
+	 * Data is a UTF8-encoded external representation of a CFString.
 	 }
 	CSSM_ATTRIBUTE_ALERT_TITLE = (CSSM_ATTRIBUTE_DATA_CSSM_DATA or (CSSM_ATTRIBUTE_VENDOR_DEFINED + 7));
 
 	{
-	 * Boolean to specify whether secure passphrase is being used to encrypt or to 
-	 * recover data. In the former case the user will be prompted to enter the 
+	 * Boolean to specify whether secure passphrase is being used to encrypt or to
+	 * recover data. In the former case the user will be prompted to enter the
 	 * passphrase twice. Value is integer, nonzero (verify passphrase) or zero.
 	 }
 	CSSM_ATTRIBUTE_VERIFY_PASSPHRASE = (CSSM_ATTRIBUTE_DATA_UINT32 or (CSSM_ATTRIBUTE_VENDOR_DEFINED + 8));

@@ -1,13 +1,13 @@
 {
      File:       CoreMIDI/MIDIDriver.h
- 
+
      Contains:   MIDI Services driver interfaces
- 
+
  	Copyright:  (c) 2000-2008 by Apple Inc., all rights reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
 }
 {  Pascal Translation:  Gorazd Krosl <gorazd_1957@yahoo.ca>, October 2009 }
@@ -229,21 +229,21 @@ uses MacTypes,CFBase,CFPlugIn,CFPlugInCOM,CFRunLoop,CFUUID,MIDIServices,MIDISetu
 
 {!
 	@header MIDIDriver.h
-	
+
 	This is the header file for Mac OS X's MIDI driver interface.
-	
+
 	<h2>About MIDI drivers</h2>
 	MIDI drivers are CFPlugIns, installed into the following places:
 <pre>
     /System/Library/Extensions      -- not recommended for non-Apple drivers, but
                                     necessary for compatibility with CoreMIDI 1.0
-    
+
     /Library/Audio/MIDI Drivers     -- starting with CoreMIDI 1.1
-    
+
     ~/Library/Audio/MIDI Drivers    -- starting with CoreMIDI 1.1
 </pre>
 	Refer to the CFPlugIn documentation for more information about plug-ins.
-	
+
 	<h2>Driver bundle/plug-in properties</h2>
 	A driver's bundle settings should include settings resembling the following:
 <pre>
@@ -260,12 +260,12 @@ uses MacTypes,CFBase,CFPlugIn,CFPlugInCOM,CFRunLoop,CFUUID,MIDIServices,MIDISetu
     Build settings:
         WRAPPER_EXTENSION               plugin
 </pre>
-	
+
 	<h2>Driver access to the CoreMIDI API</h2>
 	Drivers have access to most of the CoreMIDI API.  Starting in Mac OS X 10.6,
 	drivers should link with CoreMIDI.framework. In previous versions of Mac OS X,
 	drivers should link with CoreMIDIServer.framework, <b>not</b> CoreMIDI.framework.
-	
+
 	On Mac OS X versions prior to 10.6, MIDI driver plugins linked against the
 	CoreMIDIServer framework in order to access the CoreMIDI API. Drivers which
 	are to run on earlier OS versions should be built 32-bit fat (ppc and i386)
@@ -276,12 +276,12 @@ uses MacTypes,CFBase,CFPlugIn,CFPlugInCOM,CFRunLoop,CFUUID,MIDIServices,MIDISetu
 	linking against CoreMIDIServer, and the x86_64 slice linking against
 	CoreMIDI.
 
-	Unlike applications, drivers communicate with the server directly, not 
-	through Mach messaging.  This necessitates some limitations on the contexts from 
+	Unlike applications, drivers communicate with the server directly, not
+	through Mach messaging.  This necessitates some limitations on the contexts from
 	which a driver may call the server.
-	
+
 	The MIDI I/O functions MIDISend and MIDIReceived may be called from any thread.
-	
+
 	All other CoreMIDI functions must only be called from the server's main thread, which is the
 	thread on which the driver is created and from which all calls to the driver other than
 	Send() are made.
@@ -290,7 +290,7 @@ uses MacTypes,CFBase,CFPlugIn,CFPlugInCOM,CFRunLoop,CFUUID,MIDIServices,MIDISetu
 
 {!
 	@typedef		MIDIDriverRef
-	
+
 	@discussion		Points to a pointer to a MIDIDriverInterface, a CFPlugIn
 					structure (defined in MIDIDriver.h) containing function
 					pointers for the driver's methods.  Only the MIDIServer
@@ -302,7 +302,7 @@ type
 
 {!
 	@typedef		MIDIDeviceListRef
-	
+
 	@discussion		A MIDIDeviceListRef is a list of MIDIDeviceRef's.  The devices are
 					not owned by the list (i.e., disposing the list does not dispose
 					the devices it references).
@@ -317,9 +317,9 @@ type
 
 {!
 	@interface		MIDIDriverInterface
-	
+
 	@abstract		The COM-style interface to a MIDI driver.
-	
+
 	@discussion
 		This is the function table interface to a MIDI driver.  Both version 1 and 2 drivers use
 		this same table of function pointers (except as noted).
@@ -344,10 +344,10 @@ type
 			MIDIDeviceListAddDevice.
 
 			The driver should not retain any references to the created devices and entities.
-	}	
+	}
 {	OSStatus	(*FindDevices)(MIDIDriverRef self, MIDIDeviceListRef devList); }
 		FindDevices : function(_self : MIDIDriverRef; devList : MIDIDeviceListRef) : OSStatus;
-		
+
 	{!
 		@function Start
 		@discussion
@@ -378,10 +378,10 @@ type
 			The provided device list remains owned by the system and can be assumed to contain
 			only devices owned by this driver.  The driver may retain references to the devices
 			in this list and any it creates while running.
-	}					
+	}
 {	OSStatus	(*Start)(MIDIDriverRef self, MIDIDeviceListRef devList); }
 		Start : function(_self : MIDIDriverRef; devList : MIDIDeviceListRef) : OSStatus;
-		
+
 	{!
 		@function Stop
 		@discussion
@@ -391,7 +391,7 @@ type
 	}
 {	OSStatus	(*Stop)(MIDIDriverRef self); }
 		Stop : function(_self : MIDIDriverRef) : OSStatus;
-	
+
 	{!
 		@function Configure
 		@discussion
@@ -399,7 +399,7 @@ type
 	}
 {	OSStatus	(*Configure)(MIDIDriverRef self, MIDIDeviceRef device); }
 		Configure : function(_self : MIDIDriverRef; device : MIDIDeviceRef) : OSStatus;
-		
+
 	{!
 		@function Send
 		@discussion
@@ -408,7 +408,7 @@ type
 	}
 {	OSStatus	(*Send)(MIDIDriverRef self, const MIDIPacketList *pktlist, void *destRefCon1, void *destRefCon2); }
 		Send : function(_self : MIDIDriverRef; pktList : MIDIPacketListPtr; destRefCon : UnivPtr; destRefCon2 : UnivPtr) : OSStatus;
-		
+
 	{!
 		@function EnableSource
 		@discussion
@@ -420,7 +420,7 @@ type
 	}
 {	OSStatus	(*EnableSource)(MIDIDriverRef self, MIDIEndpointRef src, Boolean enabled); }
 		EnableSource : function(_self : MIDIDriverRef; src : MIDIEndpointRef; enabled : Boolean) : OSStatus;
-		
+
 	{!
 		@function Flush
 		@discussion
@@ -432,10 +432,10 @@ type
 	}
 {	OSStatus	(*Flush)(MIDIDriverRef self, MIDIEndpointRef dest, void *destRefCon1, void *destRefCon2); }
 		flush : function(_self : MIDIDriverRef; dest : MIDIEndpointRef; destRefCon1 : UnivPtr; destRefCon2 : UnivPtr) : OSStatus;
-		
+
 
 	{!
-		@function Monitor		
+		@function Monitor
 		@discussion
 			Only for version 2 drivers (new for CoreMIDI 1.1).
 
@@ -454,12 +454,12 @@ type
 //  -----------------------------------------------------------------------------
 {!
 	@define			kMIDIDriverTypeID
-	
+
 	@abstract		The UUID for MIDI driver plugins.
-	
+
 	@discussion		kMIDIDriverTypeID should be entered into your driver's bundle settings
 					as follows:
-					
+
 <pre>
 CFPlugInTypes                   Dictionary      1 key/value pair
 	ECDE9574-0FE4-11D4-BB1A-0050E4CEA526        Array       1 object
@@ -477,9 +477,9 @@ function kMIDIDriverTypeID : CFUUIDRef; inline;
 
 {!
 	@define			kMIDIDriverInterfaceID
-	
+
 	@abstract		The UUID for version 1 of the MIDI driver interface.
-	
+
 	@discussion		See the description of the MIDIDriverInterface structure for
 					information about different versions of the MIDI driver interface.
 }
@@ -492,12 +492,12 @@ function kMIDIDriverInterfaceID : CFUUIDRef; inline;
 
 {!
 	@define			kMIDIDriverInterface2ID
-	
+
 	@abstract		The UUID for version 2 of the MIDI driver interface.
-	
+
 	@discussion		See the description of the MIDIDriverInterface structure for
 					information about different versions of the MIDI driver interface.
-					
+
 					The version 2 driver interface is available beginning with CoreMIDI 1.1.
 }
 {
@@ -509,15 +509,15 @@ function kMIDIDriverInterface2ID : CFUUIDRef; inline;
 
 {!
 	@constant		kMIDIDriverPropertyUsesSerial
-	
-	@discussion		This constant, "MIDIDriverUsesSerial", when defined to "YES" in a driver's 
+
+	@discussion		This constant, "MIDIDriverUsesSerial", when defined to "YES" in a driver's
 					bundle, tells MIDIServer that the driver uses serial ports and is eligible to
 					have serial ports assigned to it.
-					
+
 					When a serial driver's Start() method is called, it should use
 					MIDIGetSerialPortOwner to discover which serial ports it has
 					been assigned to use, and only use those ports.
-					
+
 					New for CoreMIDI 1.1.
 }
 var kMIDIDriverPropertyUsesSerial: CFStringRef; external name '_kMIDIDriverPropertyUsesSerial'; (* attribute const *)
@@ -533,10 +533,10 @@ var kMIDIDriverPropertyUsesSerial: CFStringRef; external name '_kMIDIDriverPrope
 
 	@discussion		Drivers call this function to create new MIDIDevice objects
 					corresponding to the hardware that is present.
-					
+
 					Non-drivers may call this function as of CoreMIDI 1.1, to
 					create external devices.
-	
+
 	@param			owner
 						The driver creating the device.  NULL if a non-driver.
 	@param			name
@@ -561,10 +561,10 @@ function MIDIDeviceCreate( owner: MIDIDriverRef; name: CFStringRef; manufacturer
 					Once a device has been added to the system with MIDISetupAddDevice,
 					the driver must not use this call to destroy it; it must
 					use MIDISetupRemoveDevice to do so.
-					
+
 					Non-drivers do not have access to this function; they must call
 					MIDISetupAddDevice and MIDISetupRemoveDevice.
-	
+
 	@param			device
 						The device to be disposed.
 	@result			An OSStatus result code.
@@ -581,7 +581,7 @@ function MIDIDeviceDispose( device: MIDIDeviceRef ): OSStatus; external name '_M
 	@function		MIDIDeviceListGetNumberOfDevices
 
 	@discussion		Returns the number of devices in a device list.
-	
+
 	@param			devList
 						The device list.
 	@result			The number of devices in the list, or 0 if an error occurred.
@@ -594,7 +594,7 @@ function MIDIDeviceListGetNumberOfDevices( devList: MIDIDeviceListRef ): ItemCou
 	@function		MIDIDeviceListGetDevice
 
 	@discussion		Return one of the devices in a device list.
-	
+
 	@param			devList
 						The device list.
 	@param			deviceIndex0
@@ -610,7 +610,7 @@ function MIDIDeviceListGetDevice( devList: MIDIDeviceListRef; index0: ItemCount 
 	@function		MIDIDeviceListAddDevice
 
 	@discussion		Add a device to a device list.
-	
+
 	@param			devList
 						The device list.
 	@param			dev
@@ -625,7 +625,7 @@ function MIDIDeviceListAddDevice( devList: MIDIDeviceListRef; dev: MIDIDeviceRef
 	@function		MIDIDeviceListDispose
 
 	@discussion		Dispose a device list, but not the contained devices.
-	
+
 	@param			devList
 						The device list to be disposed.
 	@result			An OSStatus result code.
@@ -646,16 +646,16 @@ function MIDIDeviceListDispose( devList: MIDIDeviceListRef ): OSStatus; external
 					destination) to their own internal data structures corresponding to
 					that endpoint.  This function provides a way for the driver to
 					assign its own refCons to endpoints.
-					
+
 					These refCons are passed back to the driver in its Send() and Flush()
 					methods.
-					
-					RefCons are not persistent (i.e. they are not saved as part of a 
+
+					RefCons are not persistent (i.e. they are not saved as part of a
 					MIDISetup).  They need to be re-initialized in each call to Start().
-					
+
 					A typical use is to use one refCon to refer to a device, and a second
 					to refer to a port on the device.
-	
+
 	@param			endpt
 						The endpoint whose refCons are to be set
 	@param			ref1
@@ -671,8 +671,8 @@ function MIDIEndpointSetRefCons( endpt: MIDIEndpointRef; ref1: UnivPtr; ref2: Un
 {!
 	@function		MIDIEndpointGetRefCons
 
-	@discussion		Obtain the refCons assigned to the endpoints 
-	
+	@discussion		Obtain the refCons assigned to the endpoints
+
 	@param			endpt
 						The endpoint whose refCons are to be return
 	@param			ref1
@@ -691,17 +691,17 @@ function MIDIEndpointGetRefCons( endpt: MIDIEndpointRef; ref1: UnivPtrPtr; ref2:
 	@function		MIDIGetDriverIORunLoop
 
 	@discussion		Drivers typically need to receive asynchronous I/O completion callbacks
-					on a high-priority thread.  To save drivers from the trouble of 
+					on a high-priority thread.  To save drivers from the trouble of
 					creating their own threads for this purpose, and to make efficient
 					use of system resources, the MIDIServer provides a thread which
 					drivers may use.
-					
+
 					Drivers should do as little work as possible in this thread; typically,
 					just dequeueing and encoding output packets, and decoding input packets
 					into MIDIPacketLists to be passed to MIDIReceived.
-	
-					This is a realtime-priority thread and shouldn't be used for anything other 
-					than I/O.  For lower-priority tasks, drivers can use the runloop which 
+
+					This is a realtime-priority thread and shouldn't be used for anything other
+					than I/O.  For lower-priority tasks, drivers can use the runloop which
 					was current when they were constructed.
 
 	@result			The CFRunLoopRef of the server's driver I/O thread.
@@ -715,10 +715,10 @@ function MIDIGetDriverIORunLoop: CFRunLoopRef; external name '_MIDIGetDriverIORu
 
 	@discussion		Returns the list of devices which are in the current MIDISetup
 					and which were created/owned by the specified driver.
-	
+
 					The returned device list should be disposed (using MIDIDeviceListDispose)
 					by the caller.
-					
+
 	@param			driver
 						The driver whose devices are to be returned.
 
@@ -734,7 +734,7 @@ function MIDIGetDriverDeviceList( driver: MIDIDriverRef ): MIDIDeviceListRef; ex
 	@discussion		A driver may make this call to have MIDIServer pass it every outgoing MIDI
 					packet, to all destinations in the system (not just those controlled by
 					itself).
-					
+
 	@param			driver
 						The driver whose Monitor function is to be enabled.
 	@param			enabled

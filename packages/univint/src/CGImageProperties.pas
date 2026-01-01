@@ -218,8 +218,8 @@ uses MacTypes,CFBase,CGBase;
 {$ALIGN POWER}
 
 
-{ Properties that, if returned by CGImageSourceCopyProperties or 
- * CGImageSourceCopyPropertiesAtIndex, contain a dictionary of file-format 
+{ Properties that, if returned by CGImageSourceCopyProperties or
+ * CGImageSourceCopyPropertiesAtIndex, contain a dictionary of file-format
  * or metadata-format specific key-values. }
 
 var kCGImagePropertyTIFFDictionary: CFStringRef; external name '_kCGImagePropertyTIFFDictionary'; (* attribute const *)
@@ -274,7 +274,7 @@ var kCGImagePropertyFileSize: CFStringRef; external name '_kCGImagePropertyFileS
 {* Properties which may be returned by "CGImageSourceCopyPropertiesAtIndex".
  ** The values apply to a single image of an image source file. *}
 
-{ The number of pixels in the x- and y-dimensions. The value of these keys 
+{ The number of pixels in the x- and y-dimensions. The value of these keys
  * is a CFNumberRef. }
 
 var kCGImagePropertyPixelHeight: CFStringRef; external name '_kCGImagePropertyPixelHeight'; (* attribute const *)
@@ -290,53 +290,53 @@ var kCGImagePropertyDPIHeight: CFStringRef; external name '_kCGImagePropertyDPIH
 var kCGImagePropertyDPIWidth: CFStringRef; external name '_kCGImagePropertyDPIWidth'; (* attribute const *)
 (* IMAGEIO_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
-{ The number of bits in each color sample of each pixel. The value of this 
+{ The number of bits in each color sample of each pixel. The value of this
  * key is a CFNumberRef. }
 
 var kCGImagePropertyDepth: CFStringRef; external name '_kCGImagePropertyDepth'; (* attribute const *)
 (* IMAGEIO_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
-{ The intended display orientation of the image. If present, the value 
- * of this key is a CFNumberRef with the same value as defined by the 
+{ The intended display orientation of the image. If present, the value
+ * of this key is a CFNumberRef with the same value as defined by the
  * TIFF and Exif specifications.  That is:
- *   1  =  0th row is at the top, and 0th column is on the left.  
- *   2  =  0th row is at the top, and 0th column is on the right.  
- *   3  =  0th row is at the bottom, and 0th column is on the right.  
- *   4  =  0th row is at the bottom, and 0th column is on the left.  
- *   5  =  0th row is on the left, and 0th column is the top.  
- *   6  =  0th row is on the right, and 0th column is the top.  
- *   7  =  0th row is on the right, and 0th column is the bottom.  
- *   8  =  0th row is on the left, and 0th column is the bottom.  
- * If not present, a value of 1 is assumed. } 
- 
+ *   1  =  0th row is at the top, and 0th column is on the left.
+ *   2  =  0th row is at the top, and 0th column is on the right.
+ *   3  =  0th row is at the bottom, and 0th column is on the right.
+ *   4  =  0th row is at the bottom, and 0th column is on the left.
+ *   5  =  0th row is on the left, and 0th column is the top.
+ *   6  =  0th row is on the right, and 0th column is the top.
+ *   7  =  0th row is on the right, and 0th column is the bottom.
+ *   8  =  0th row is on the left, and 0th column is the bottom.
+ * If not present, a value of 1 is assumed. }
+
 var kCGImagePropertyOrientation: CFStringRef; external name '_kCGImagePropertyOrientation'; (* attribute const *)
 (* IMAGEIO_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
-{ The value of this key is kCFBooleanTrue if the image contains floating- 
- * point pixel samples } 
- 
+{ The value of this key is kCFBooleanTrue if the image contains floating-
+ * point pixel samples }
+
 var kCGImagePropertyIsFloat: CFStringRef; external name '_kCGImagePropertyIsFloat'; (* attribute const *)
 (* IMAGEIO_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
-{ The value of this key is kCFBooleanTrue if the image contains indexed 
- * (a.k.a. paletted) pixel samples } 
- 
+{ The value of this key is kCFBooleanTrue if the image contains indexed
+ * (a.k.a. paletted) pixel samples }
+
 var kCGImagePropertyIsIndexed: CFStringRef; external name '_kCGImagePropertyIsIndexed'; (* attribute const *)
 (* IMAGEIO_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
-{ The value of this key is kCFBooleanTrue if the image contains an alpha 
- * (a.k.a. coverage) channel } 
- 
+{ The value of this key is kCFBooleanTrue if the image contains an alpha
+ * (a.k.a. coverage) channel }
+
 var kCGImagePropertyHasAlpha: CFStringRef; external name '_kCGImagePropertyHasAlpha'; (* attribute const *)
 (* IMAGEIO_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 { The color model of the image such as "RGB", "CMYK", "Gray", or "Lab".
- * The value of this key is CFStringRef. } 
+ * The value of this key is CFStringRef. }
 
 var kCGImagePropertyColorModel: CFStringRef; external name '_kCGImagePropertyColorModel'; (* attribute const *)
 (* IMAGEIO_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
-{ The name of the optional ICC profile embedded in the image, if known.  
+{ The name of the optional ICC profile embedded in the image, if known.
  * If present, the value of this key is a CFStringRef. }
 
 var kCGImagePropertyProfileName: CFStringRef; external name '_kCGImagePropertyProfileName'; (* attribute const *)

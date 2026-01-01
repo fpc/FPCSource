@@ -1,9 +1,9 @@
 {
      File:       CarbonCore/PEFBinaryFormat.h
- 
+
      Contains:   PEF Types and Macros
                  The contents of this header file are deprecated.
- 
+
      Copyright:  © 1993-2011 by Apple Inc. All rights reserved.
 }
 {

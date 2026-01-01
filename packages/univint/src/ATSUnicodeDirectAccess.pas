@@ -1,17 +1,17 @@
 {
      File:       QD/ATSUnicodeDirectAccess.h
- 
+
      Contains:   Public Interfaces/Types for Low Level ATSUI
- 
+
      Version:    Quickdraw-285~150
- 
+
      Copyright:  © 2002-2008 by Apple Inc. all rights reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {  Pascal Translation:  Peter N Lewis, <peter@stairways.com.au>, 2004 }
 {  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
@@ -237,7 +237,7 @@ uses MacTypes,ATSLayoutTypes,ATSUnicodeTypes,TextCommon;
 
 {
  *  ATSUDirectDataSelector
- *  
+ *
  *  Summary:
  *    These are the data selectors used in the
  *    ATSUDirectGetLayoutDataArrayPtr function to get the needed layout
@@ -342,7 +342,7 @@ const
 
 {
  *  ATSUStyleSettingRef
- *  
+ *
  *  Summary:
  *    A reference to a style setting object that represents an
  *    ATSUStyle plus any cached/set information about that style.
@@ -355,14 +355,14 @@ type
 { ---------------------------------------------------------------------------- }
 {
  *  ATSUDirectGetLayoutDataArrayPtrFromLineRef()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTRunGetGlyphsPtr or CTRunGetPositionsPtr instead.
- *  
+ *
  *  Summary:
  *    Returns the data pointer specified by iDataSelector and
  *    referenced by iLineRef.
- *  
+ *
  *  Discussion:
  *    This function simply returns the data pointer specified by
  *    iDataSelector and referenced by iLineRef. This data pointer
@@ -389,17 +389,17 @@ type
  *    pointer returned by this function is only valid within the
  *    context of the callback. Do not attempt to retain it for later
  *    use.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iLineRef:
  *      The ATSULineRef which was passed into a
  *      ATSUDirectLayoutOperationOverrideUPP callback function as a
  *      parameter.
- *    
+ *
  *    iDataSelector:
  *      The selector for the data that is being requested.
- *    
+ *
  *    iCreate:
  *      If the ATSULineRef passed in iLineRef does not reference the
  *      requested array, then a zero-filled one will be created and
@@ -407,7 +407,7 @@ type
  *      ATSUDirectDataSelectors, these cannot be simply created. Thus,
  *      this flag will have no affect on these few
  *      ATSUDirectDataSelectors.
- *    
+ *
  *    oLayoutDataArrayPtr:
  *      Upon sucessful return, this parameter will contain a pointer to
  *      an array of the requested values if the ATSULineRef passed in
@@ -415,11 +415,11 @@ type
  *      NULL will be returned, unless iCreate is set to true and the
  *      array can be created. This parameter itself may be set to NULL
  *      if only a count of the entries is needed.
- *    
+ *
  *    oLayoutDataCount:
  *      Upon sucessful return, this parameter will contain a count of
  *      the entries in the array returned in oLayoutDataArray.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework but deprecated in 10.6
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -433,14 +433,14 @@ function ATSUDirectGetLayoutDataArrayPtrFromLineRef( iLineRef: ATSULineRef; iDat
 {$ifc not TARGET_CPU_64}
 {
  *  ATSUDirectGetLayoutDataArrayPtrFromTextLayout()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTRunGetGlyphs or CTRunGetPositions instead.
- *  
+ *
  *  Summary:
  *    Returns the data pointer specified by iDataSelector and
  *    referenced by iTextLayout for the line starting at iLineOffset.
- *  
+ *
  *  Discussion:
  *    This function simply returns the data pointer specified by
  *    iDataSelector and referenced by iTextLayout for the line starting
@@ -461,7 +461,7 @@ function ATSUDirectGetLayoutDataArrayPtrFromLineRef( iLineRef: ATSULineRef; iDat
  *    return in order-n time. Second of all, this means that the
  *    developer cannot change any of the data. Any changes the
  *    developer makes to the arrays returned by this API will have no
- *    effect on the layout. Using the 
+ *    effect on the layout. Using the
  *    kATSULayoutOperationPostLayoutAdjustment operation selector
  *    override and the ATSUDirectGetLayoutDataArrayPtrFromLineRef is a
  *    great alternative to using this API. Many of the requested arrays
@@ -470,23 +470,23 @@ function ATSUDirectGetLayoutDataArrayPtrFromLineRef( iLineRef: ATSULineRef; iDat
  *    In this case, if there's no error returned, the array simply
  *    doesn't exist and the caller should treat all of the entries in
  *    the array that they would have recieved as being 0.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iTextLayout:
  *      The ATSUTextLayout object from which the requested data will
  *      come from.
- *    
+ *
  *    iLineOffset:
  *      The edge offset that corresponds to the beginning of the range
  *      of text of the line of the requested data. If the text has
  *      multiple lines, then ATSUDirectGetLayoutDataArrayPtrFromLineRef
  *      will need to be called for each of the lines in which the
  *      requested data is needed.
- *    
+ *
  *    iDataSelector:
  *      The selector for the data that is being requested.
- *    
+ *
  *    oLayoutDataArrayPtr:
  *      Upon sucessful return, this parameter will contain a pointer to
  *      an array of the requested values if the ATSUTextLayout passed
@@ -494,11 +494,11 @@ function ATSUDirectGetLayoutDataArrayPtrFromLineRef( iLineRef: ATSULineRef; iDat
  *      iLineOffset. If this is not the case, then NULL will be
  *      returned. This parameter itself may be set to NULL if only a
  *      count of the entries is needed.
- *    
+ *
  *    oLayoutDataCount:
  *      Upon sucessful return, this parameter will contain a count of
  *      the entries in the array returned in oLayoutDataArray.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -513,15 +513,15 @@ function ATSUDirectGetLayoutDataArrayPtrFromTextLayout( iTextLayout: ATSUTextLay
 
 {
  *  ATSUDirectReleaseLayoutDataArrayPtr()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CoreText API instead.
- *  
+ *
  *  Summary:
  *    Properly releases of an array pointer returned by
  *    ATSUDirectGetLayoutDataArrayPtrFromLineRef() or
  *    ATSUDirectGetLayoutDataArrayPtrFromTextLayout.
- *  
+ *
  *  Discussion:
  *    This function is needed to let ATSUI know that the caller is
  *    finished with the pointer that was previously requested by
@@ -529,20 +529,20 @@ function ATSUDirectGetLayoutDataArrayPtrFromTextLayout( iTextLayout: ATSUTextLay
  *    ATSUDirectGetLayoutDataArrayPtrFromTextLayout(). This is needed
  *    in case ATSUI needs to make any internal adjustments to it's
  *    internal structures.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iLineRef:
  *      The lineRef from which the layout data array pointer came from.
  *      If the layout data array pointer did not come from a lineRef,
  *      then set this to NULL.
- *    
+ *
  *    iDataSelector:
  *      The selector for which iLayoutDataArrayPtr was obtained.
- *    
+ *
  *    iLayoutDataArrayPtr:
  *      A pointer to the layout data array which is to be disposed of.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework but deprecated in 10.6
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -556,14 +556,14 @@ function ATSUDirectReleaseLayoutDataArrayPtr( iLineRef: ATSULineRef { can be NUL
 {$ifc not TARGET_CPU_64}
 {
  *  ATSUDirectAddStyleSettingRef()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTRunGetGlyphsPtr or CTRunGetGlyphs instead.
- *  
+ *
  *  Summary:
  *    This function will fetch a style index for the
  *    ATSUStyleSettingRef passed in.
- *  
+ *
  *  Discussion:
  *    This function allows for glyph replacement or substitution from
  *    one layout or line to another layout or line. Not only will it
@@ -575,26 +575,26 @@ function ATSUDirectReleaseLayoutDataArrayPtr( iLineRef: ATSULineRef { can be NUL
  *    pointer obtained for this may no longer be valid after this
  *    function has been called. These pointers should be freed before
  *    calling this function and re-obtained afterwards.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iLineRef:
  *      An ATSULineRef which was passed into a
  *      ATSUDirectLayoutOperationOverrideUPP callback function as a
  *      parameter.
- *    
+ *
  *    iStyleSettingRef:
  *      The ATSUStyleSettingRef to be looked up or added to the
  *      ATSUTextLayout referenced by iTextLayout for the line starting
  *      at the offset iLineOffset.
- *    
+ *
  *    oStyleIndex:
  *      Upon sucessful return, this will parameter will be set to the
  *      index of the ATSUStyleSettingRef passed in iStyleSettingRef for
  *      the line referenced by iLineRef. If the ATSUStyleSettingRef
  *      does not exist, in that context, then it will be added and the
  *      new index will be returned here.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later

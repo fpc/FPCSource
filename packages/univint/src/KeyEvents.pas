@@ -161,17 +161,17 @@ interface
 
 {$ifc TARGET_OS_MAC and TARGET_CPU_64}
 
-{ 
+{
     QuickTime 3.0 supports GetKeys() on unix and win32
 }
 type
     KeyMap = packed array [0..127] of boolean;
 {
  *  GetKeys()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later

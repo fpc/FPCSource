@@ -1,17 +1,17 @@
 {
      File:       NavigationServices/Navigation.h
- 
+
      Contains:   Navigation Services Interfaces
- 
+
      Version:    NavigationServices-200~178
- 
+
      Copyright:  © 1996-2008 by Apple Computer, Inc., all rights reserved
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
@@ -231,7 +231,7 @@ uses MacTypes,AEDataModel,CFBase,QuickdrawTypes,Finder,Events,AppleEvents,Transl
 
 {
  *  Navigation Services
- *  
+ *
  *  Discussion:
  *    In Mac OS X 10.5, Navigation Services has been reimplemented atop
  *    Cocoa's NSSavePanel. A NavDialogRef may be cast to an
@@ -347,10 +347,10 @@ type
 
 {
  *  NavDialogRef
- *  
+ *
  *  Summary:
  *    Opaque Navigation Services dialog identifier
- *  
+ *
  *  Discussion:
  *    A NavDialogRef is an opaque reference to an instance of a
  *    Navigation Services dialog. A new NavDialogRef is returned from
@@ -374,10 +374,10 @@ type
 
 {
  *  NavUserAction
- *  
+ *
  *  Summary:
  *    Indicates an action taken by the user
- *  
+ *
  *  Discussion:
  *    When the user clicks a button at the bottom of a Nav Services
  *    dialog (or makes an equivalent mouse or key gesture), a
@@ -461,10 +461,10 @@ const
 
 {
  *  NavCBRec
- *  
+ *
  *  Summary:
  *    A structure passed to event and preview callbacks
- *  
+ *
  *  Discussion:
  *    The NavCBRec structure is passed to the client's event proc or
  *    custom preview proc. It provides information that is specific to
@@ -517,7 +517,7 @@ type
 
 {
  *  NavEventCallbackMessage
- *  
+ *
  *  Summary:
  *    Identifies the message type being sent to the client's event proc
  }
@@ -641,7 +641,7 @@ type
 	NavObjectFilterUPP = NavObjectFilterProcPtr;
 {
  *  NewNavEventUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -652,7 +652,7 @@ function NewNavEventUPP( userRoutine: NavEventProcPtr ): NavEventUPP; external n
 
 {
  *  NewNavPreviewUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -663,7 +663,7 @@ function NewNavPreviewUPP( userRoutine: NavPreviewProcPtr ): NavPreviewUPP; exte
 
 {
  *  NewNavObjectFilterUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -674,7 +674,7 @@ function NewNavObjectFilterUPP( userRoutine: NavObjectFilterProcPtr ): NavObject
 
 {
  *  DisposeNavEventUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -685,7 +685,7 @@ procedure DisposeNavEventUPP( userUPP: NavEventUPP ); external name '_DisposeNav
 
 {
  *  DisposeNavPreviewUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -696,7 +696,7 @@ procedure DisposeNavPreviewUPP( userUPP: NavPreviewUPP ); external name '_Dispos
 
 {
  *  DisposeNavObjectFilterUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -707,7 +707,7 @@ procedure DisposeNavObjectFilterUPP( userUPP: NavObjectFilterUPP ); external nam
 
 {
  *  InvokeNavEventUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -718,7 +718,7 @@ procedure InvokeNavEventUPP( callBackSelector: NavEventCallbackMessage; callBack
 
 {
  *  InvokeNavPreviewUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -729,7 +729,7 @@ function InvokeNavPreviewUPP( callBackParms: NavCBRecPtr; callBackUD: UnivPtr; u
 
 {
  *  InvokeNavObjectFilterUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -872,10 +872,10 @@ const
 
 {
  *  NavReplyRecord
- *  
+ *
  *  Summary:
  *    A structure describing the results of a Nav Services dialog
- *  
+ *
  *  Discussion:
  *    A reply record is the result of a Nav Services file dialog. Using
  *    the older API, which is always modal, the client passes the
@@ -991,7 +991,7 @@ type
 {$ifc not TARGET_CPU_64}
 {
  *  NavCompleteSave()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1003,7 +1003,7 @@ function NavCompleteSave( const (*var*) reply: NavReplyRecord; howToTranslate: N
 
 {
  *  NavCustomControl()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1015,7 +1015,7 @@ function NavCustomControl( dialog: NavDialogRef; selector: NavCustomControlMessa
 
 {
  *  NavCreatePreview()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1027,7 +1027,7 @@ function NavCreatePreview( var theObject: AEDesc; previewDataType: OSType; previ
 
 {
  *  NavDisposeReply()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1048,11 +1048,11 @@ const
 
 {
  *  NavDialogCreationOptions
- *  
+ *
  *  Summary:
  *    Options used to control the appearance and operation of a Nav
  *    Services dialog
- *  
+ *
  *  Discussion:
  *    NavDialogCreationOptions is a preferred replacement for
  *    NavDialogOptions. The new structure uses CFStrings in place of
@@ -1165,23 +1165,23 @@ type
 {$ifc not TARGET_CPU_64}
 {
  *  NavGetDefaultDialogCreationOptions()
- *  
+ *
  *  Summary:
  *    Initialize the input structure to default values
- *  
+ *
  *  Discussion:
  *    Provided as a convenience to obtain the preferred default options
  *    for use in creating any Nav Services dialog.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    outOptions:
  *      A pointer to the client-allocated options structure to
  *      initialize
- *  
+ *
  *  Result:
  *    A status code
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1193,10 +1193,10 @@ function NavGetDefaultDialogCreationOptions( var outOptions: NavDialogCreationOp
 
 {
  *  NavCreateGetFileDialog()
- *  
+ *
  *  Summary:
  *    Create a GetFile dialog
- *  
+ *
  *  Discussion:
  *    Use this function to create a dialog designed for opening
  *    document files. This function replaces NavGetFile, allowing new
@@ -1204,37 +1204,37 @@ function NavGetDefaultDialogCreationOptions( var outOptions: NavDialogCreationOp
  *    creation, the dialog is not visible. Present and run the dialog
  *    with NavDialogRun. After the dialog is complete, dispose of it
  *    with NavDialogDispose.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inOptions:
  *      Options controlling the appearance and behavior of the dialog
- *    
+ *
  *    inTypeList:
  *      A creator signature and list of file types to show in the
  *      dialog file browser. If NULL, show all files.
- *    
+ *
  *    inEventProc:
  *      The UPP for the client's event callack, or NULL for no event
  *      callback
- *    
+ *
  *    inPreviewProc:
  *      The UPP for the client's custom file preview callback, or NULL
  *      for standard previews
- *    
+ *
  *    inFilterProc:
  *      The UPP for the client's custom filter callback, or NULL for no
  *      custom file filtering
- *    
+ *
  *    inClientData:
  *      A client-defined context value passed to all callback functions
- *    
+ *
  *    outDialog:
  *      Upon successful completion, a reference to the created dialog
- *  
+ *
  *  Result:
  *    A status code
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1246,10 +1246,10 @@ function NavCreateGetFileDialog( {const} inOptions: NavDialogCreationOptionsPtr 
 
 {
  *  NavCreatePutFileDialog()
- *  
+ *
  *  Summary:
  *    Create a PutFile dialog
- *  
+ *
  *  Discussion:
  *    Use this function to create a dialog designed for setting the
  *    name and location of a document file prior to saving. This
@@ -1257,35 +1257,35 @@ function NavCreateGetFileDialog( {const} inOptions: NavDialogCreationOptionsPtr 
  *    adding Unicode support. Upon successful creation, the dialog is
  *    not visible. Present and run the dialog with NavDialogRun. After
  *    the dialog is complete, dispose of it with NavDialogDispose.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inOptions:
  *      Options controlling the appearance and behavior of the dialog
- *    
+ *
  *    inFileType:
  *      The type of the file to be saved. This parameter is used in
  *      conjunction with the inFileCreator parameter to look up the
  *      kind string for the Format popup menu, and to drive the
  *      identification of translation options.
- *    
+ *
  *    inFileCreator:
  *      The creator signature of the file to be saved (see inFileType
  *      parameter)
- *    
+ *
  *    inEventProc:
  *      The UPP for the client's event callack, or NULL for no event
  *      callback
- *    
+ *
  *    inClientData:
  *      A client-defined context value passed to all callback functions
- *    
+ *
  *    outDialog:
  *      Upon successful completion, a reference to the created dialog
- *  
+ *
  *  Result:
  *    A status code
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1297,10 +1297,10 @@ function NavCreatePutFileDialog( {const} inOptions: NavDialogCreationOptionsPtr 
 
 {
  *  NavCreateAskReviewDocumentsDialog()
- *  
+ *
  *  Summary:
  *    Create an AskReviewDocumentsDialog dialog
- *  
+ *
  *  Discussion:
  *    Use this function to create a dialog which tells the user how
  *    many unsaved documents there are, and asks the user to start
@@ -1315,12 +1315,12 @@ function NavCreatePutFileDialog( {const} inOptions: NavDialogCreationOptionsPtr 
  *    the dialog, this dialog's user action will be set to one of the
  *    following: kNavUserActionReviewDocuments,
  *    kNavUserActionDiscardDocuments, or kNavUserActionCancel.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inOptions:
  *      Options controlling the appearance and behavior of the dialog
- *    
+ *
  *    inDocumentCount:
  *      Indicates the number of documents needing review. This number
  *      appears in the text presented to the user. If for any reason
@@ -1328,20 +1328,20 @@ function NavCreatePutFileDialog( {const} inOptions: NavDialogCreationOptionsPtr 
  *      and an ambiguous message will appear. Do not specifiy 1, since
  *      the HI guidelines call for this alert only when there is more
  *      than one document to be reviewed.
- *    
+ *
  *    inEventProc:
  *      The UPP for the client's event callack, or NULL for no event
  *      callback
- *    
+ *
  *    inClientData:
  *      A client-defined context value passed to all callback functions
- *    
+ *
  *    outDialog:
  *      Upon successful completion, a reference to the created dialog
- *  
+ *
  *  Result:
  *    A status code
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.1 and later
@@ -1353,10 +1353,10 @@ function NavCreateAskReviewDocumentsDialog( const (*var*) inOptions: NavDialogCr
 
 {
  *  NavCreateAskSaveChangesDialog()
- *  
+ *
  *  Summary:
  *    Create an AskSaveChanges dialog
- *  
+ *
  *  Discussion:
  *    Use this function to create a dialog which asks the user to save,
  *    don't save or cancel closing a document with unsaved changes.
@@ -1367,30 +1367,30 @@ function NavCreateAskReviewDocumentsDialog( const (*var*) inOptions: NavDialogCr
  *    the dialog is complete, dispose of it with NavDialogDispose. To
  *    provide a customized message for the alert, specify an non-NULL
  *    message value in the options structure.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inOptions:
  *      Options controlling the appearance and behavior of the dialog
- *    
+ *
  *    inAction:
  *      Indicates this usage context for this dialog: closing a
  *      document or quitting an application. This setting affects the
  *      message text displayed to the user.
- *    
+ *
  *    inEventProc:
  *      The UPP for the client's event callack, or NULL for no event
  *      callback
- *    
+ *
  *    inClientData:
  *      A client-defined context value passed to all callback functions
- *    
+ *
  *    outDialog:
  *      Upon successful completion, a reference to the created dialog
- *  
+ *
  *  Result:
  *    A status code
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1402,10 +1402,10 @@ function NavCreateAskSaveChangesDialog( const (*var*) inOptions: NavDialogCreati
 
 {
  *  NavCreateAskDiscardChangesDialog()
- *  
+ *
  *  Summary:
  *    Create an AskDiscardChanges dialog
- *  
+ *
  *  Discussion:
  *    Use this function to create a dialog which asks the user to
  *    discard changes to a document or cancel. This is most often use
@@ -1415,25 +1415,25 @@ function NavCreateAskSaveChangesDialog( const (*var*) inOptions: NavDialogCreati
  *    successful creation, the dialog is not visible. Present and run
  *    the dialog with NavDialogRun. After the dialog is complete,
  *    dispose of it with NavDialogDispose.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inOptions:
  *      Options controlling the appearance and behavior of the dialog
- *    
+ *
  *    inEventProc:
  *      The UPP for the client's event callack, or NULL for no event
  *      callback
- *    
+ *
  *    inClientData:
  *      A client-defined context value passed to all callback functions
- *    
+ *
  *    outDialog:
  *      Upon successful completion, a reference to the created dialog
- *  
+ *
  *  Result:
  *    A status code
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1445,10 +1445,10 @@ function NavCreateAskDiscardChangesDialog( const (*var*) inOptions: NavDialogCre
 
 {
  *  NavCreateChooseFileDialog()
- *  
+ *
  *  Summary:
  *    Create a ChooseFile dialog
- *  
+ *
  *  Discussion:
  *    Use this function to create a dialog designed for selecting one
  *    file as the target of an operation. A ChooseFile dialog is a
@@ -1457,37 +1457,37 @@ function NavCreateAskDiscardChangesDialog( const (*var*) inOptions: NavDialogCre
  *    support. Upon successful creation, the dialog is not visible.
  *    Present and run the dialog with NavDialogRun. After the dialog is
  *    complete, dispose of it with NavDialogDispose.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inOptions:
  *      Options controlling the appearance and behavior of the dialog
- *    
+ *
  *    inTypeList:
  *      A creator signature and list of file types to show in the
  *      dialog file browser. If NULL, show all files.
- *    
+ *
  *    inEventProc:
  *      The UPP for the client's event callack, or NULL for no event
  *      callback
- *    
+ *
  *    inPreviewProc:
  *      The UPP for the client's custom file preview callback, or NULL
  *      for standard previews
- *    
+ *
  *    inFilterProc:
  *      The UPP for the client's custom filter callback, or NULL for no
  *      custom file filtering
- *    
+ *
  *    inClientData:
  *      A client-defined context value passed to all callback functions
- *    
+ *
  *    outDialog:
  *      Upon successful completion, a reference to the created dialog
- *  
+ *
  *  Result:
  *    A status code
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1499,10 +1499,10 @@ function NavCreateChooseFileDialog( {const} inOptions: NavDialogCreationOptionsP
 
 {
  *  NavCreateChooseFolderDialog()
- *  
+ *
  *  Summary:
  *    Create a ChooseFolder dialog
- *  
+ *
  *  Discussion:
  *    Use this function to create a dialog designed for selecting a
  *    folder as the target of an operation. This function replaces
@@ -1510,29 +1510,29 @@ function NavCreateChooseFileDialog( {const} inOptions: NavDialogCreationOptionsP
  *    Unicode support. Upon successful creation, the dialog is not
  *    visible. Present and run the dialog with NavDialogRun. After the
  *    dialog is complete, dispose of it with NavDialogDispose.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inOptions:
  *      Options controlling the appearance and behavior of the dialog
- *    
+ *
  *    inEventProc:
  *      The UPP for the client's event callack, or NULL for no event
  *      callback
- *    
+ *
  *    inFilterProc:
  *      The UPP for the client's custom filter callback, or NULL for no
  *      custom file filtering
- *    
+ *
  *    inClientData:
  *      A client-defined context value passed to all callback functions
- *    
+ *
  *    outDialog:
  *      Upon successful completion, a reference to the created dialog
- *  
+ *
  *  Result:
  *    A status code
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1544,10 +1544,10 @@ function NavCreateChooseFolderDialog( {const} inOptions: NavDialogCreationOption
 
 {
  *  NavCreateChooseVolumeDialog()
- *  
+ *
  *  Summary:
  *    Create a ChooseVolume dialog
- *  
+ *
  *  Discussion:
  *    Use this function to create a dialog designed for selecting a
  *    volume as the target of an operation. This function replaces
@@ -1555,29 +1555,29 @@ function NavCreateChooseFolderDialog( {const} inOptions: NavDialogCreationOption
  *    Unicode support. Upon successful creation, the dialog is not
  *    visible. Present and run the dialog with NavDialogRun. After the
  *    dialog is complete, dispose of it with NavDialogDispose.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inOptions:
  *      Options controlling the appearance and behavior of the dialog
- *    
+ *
  *    inEventProc:
  *      The UPP for the client's event callack, or NULL for no event
  *      callback
- *    
+ *
  *    inFilterProc:
  *      The UPP for the client's custom filter callback, or NULL for no
  *      custom file filtering
- *    
+ *
  *    inClientData:
  *      A client-defined context value passed to all callback functions
- *    
+ *
  *    outDialog:
  *      Upon successful completion, a reference to the created dialog
- *  
+ *
  *  Result:
  *    A status code
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1589,10 +1589,10 @@ function NavCreateChooseVolumeDialog( {const} inOptions: NavDialogCreationOption
 
 {
  *  NavCreateChooseObjectDialog()
- *  
+ *
  *  Summary:
  *    Create a ChooseObject dialog
- *  
+ *
  *  Discussion:
  *    Use this function to create a dialog designed for selecting a
  *    file, folder, or volume as the target of an operation. This
@@ -1601,33 +1601,33 @@ function NavCreateChooseVolumeDialog( {const} inOptions: NavDialogCreationOption
  *    the dialog is not visible. Present and run the dialog with
  *    NavDialogRun. After the dialog is complete, dispose of it with
  *    NavDialogDispose.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inOptions:
  *      Options controlling the appearance and behavior of the dialog
- *    
+ *
  *    inEventProc:
  *      The UPP for the client's event callack, or NULL for no event
  *      callback
- *    
+ *
  *    inPreviewProc:
  *      The UPP for the client's custom file preview callback, or NULL
  *      for standard previews
- *    
+ *
  *    inFilterProc:
  *      The UPP for the client's custom filter callback, or NULL for no
  *      custom file filtering
- *    
+ *
  *    inClientData:
  *      A client-defined context value passed to all callback functions
- *    
+ *
  *    outDialog:
  *      Upon successful completion, a reference to the created dialog
- *  
+ *
  *  Result:
  *    A status code
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1639,10 +1639,10 @@ function NavCreateChooseObjectDialog( {const} inOptions: NavDialogCreationOption
 
 {
  *  NavCreateNewFolderDialog()
- *  
+ *
  *  Summary:
  *    Create a NewFolder dialog
- *  
+ *
  *  Discussion:
  *    Use this function to create a dialog designed for creating a new
  *    folder. Nav Services creates the folder as specified by the user
@@ -1652,25 +1652,25 @@ function NavCreateChooseObjectDialog( {const} inOptions: NavDialogCreationOption
  *    successful creation, the dialog is not visible. Present and run
  *    the dialog with NavDialogRun. After the dialog is complete,
  *    dispose of it with NavDialogDispose.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inOptions:
  *      Options controlling the appearance and behavior of the dialog
- *    
+ *
  *    inEventProc:
  *      The UPP for the client's event callack, or NULL for no event
  *      callback
- *    
+ *
  *    inClientData:
  *      A client-defined context value passed to all callback functions
- *    
+ *
  *    outDialog:
  *      Upon successful completion, a reference to the created dialog
- *  
+ *
  *  Result:
  *    A status code
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1682,10 +1682,10 @@ function NavCreateNewFolderDialog( {const} inOptions: NavDialogCreationOptionsPt
 
 {
  *  NavDialogRun()
- *  
+ *
  *  Summary:
  *    Show and run a Nav Services dialog
- *  
+ *
  *  Discussion:
  *    After a dialog is created with a NavCreate*Dialog function, the
  *    client can modify the dialog target folder or save file name
@@ -1704,15 +1704,15 @@ function NavCreateNewFolderDialog( {const} inOptions: NavDialogCreationOptionsPt
  *    possible to use a single programming model on OS 9 and OS X
  *    provided the client assumes NavDialogRun returns immediately
  *    after showing the dialog.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inDialog:
  *      The dialog to run
- *  
+ *
  *  Result:
  *    A status code
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1724,22 +1724,22 @@ function NavDialogRun( inDialog: NavDialogRef ): OSStatus; external name '_NavDi
 
 {
  *  NavDialogDispose()
- *  
+ *
  *  Summary:
  *    Dispose of a Nav Services dialog
- *  
+ *
  *  Discussion:
  *    Call this function when completely finished with a Nav Services
  *    dialog. After calling NavDialogDispose, the dialog reference is
  *    no longer valid. NavDialogDispose is safe to call from within a
  *    callback to the client's Nav Services event proc. On Mac OS X
  *    10.5 and later, -release and CFRelease may be used instead.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inDialog:
  *      The dialog to dispose
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1751,23 +1751,23 @@ procedure NavDialogDispose( inDialog: NavDialogRef ); external name '_NavDialogD
 
 {
  *  NavDialogGetWindow()
- *  
+ *
  *  Summary:
  *    Return the window in which a Nav Services dialog appears
- *  
+ *
  *  Discussion:
  *    Note that a valid NavDialogRef may not have a window until
  *    NavDialogRun has been called. If no window exists for the dialog,
  *    NavDialogGetWindow returns NULL.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inDialog:
  *      Which dialog
- *  
+ *
  *  Result:
  *    The window reference
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1779,10 +1779,10 @@ function NavDialogGetWindow( inDialog: NavDialogRef ): WindowRef; external name 
 
 {
  *  NavDialogGetUserAction()
- *  
+ *
  *  Summary:
  *    Return the current user action taken by the user
- *  
+ *
  *  Discussion:
  *    A user action occurs when the user dismisses the dialog or
  *    otherwise does something generating a reply record that the
@@ -1797,15 +1797,15 @@ function NavDialogGetWindow( inDialog: NavDialogRef ): WindowRef; external name 
  *    this function is provided as a convenience for clients of modal
  *    dialogs who may find it easier to get the user action immediately
  *    after NavDialogRun returns.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inDialog:
  *      Which dialog
- *  
+ *
  *  Result:
  *    The user action
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1817,30 +1817,30 @@ function NavDialogGetUserAction( inDialog: NavDialogRef ): NavUserAction; extern
 
 {
  *  NavDialogGetReply()
- *  
+ *
  *  Summary:
  *    Fill in the provided reply record with the results of a user
  *    action such as kNavUserActionOpen, kNavUserActionSaveAs, or
  *    kNavUserActionChoose.
- *  
+ *
  *  Discussion:
  *    Call this function when a file dialog receives a user action
  *    other that implies an item or items to open, save, etc. Upon
  *    successful completion, the reply record describes the item(s)
  *    that the client needs to act upon. The reply record should later
  *    be disposed of with NavDisposeReply.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inDialog:
  *      Which dialog
- *    
+ *
  *    outReply:
  *      A pointer to the client-allocated reply record to be filled in
- *  
+ *
  *  Result:
  *    A status code
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1852,11 +1852,11 @@ function NavDialogGetReply( inDialog: NavDialogRef; var outReply: NavReplyRecord
 
 {
  *  NavDialogGetSaveFileName()
- *  
+ *
  *  Summary:
  *    Return the current value of the file name to be saved in a
  *    PutFile dialog
- *  
+ *
  *  Discussion:
  *    This function can be called at any time on a valid PutFile dialog
  *    to obtain the current value of the save file name. This function
@@ -1864,18 +1864,18 @@ function NavDialogGetReply( inDialog: NavDialogRef; var outReply: NavReplyRecord
  *    NavCustomControl selector. On Mac OS X, the full file name is
  *    returned, including any extenison that may be hidden from the
  *    user.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inPutFileDialog:
  *      Which dialog
- *  
+ *
  *  Result:
  *    The save file name as a CFStringRef. The string is immutable. The
  *    client should retain the string if the reference is to be held
  *    beyond the life of the dialog (standard CF retain/release
  *    semantics).
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1887,30 +1887,30 @@ function NavDialogGetSaveFileName( inPutFileDialog: NavDialogRef ): CFStringRef;
 
 {
  *  NavDialogSetSaveFileName()
- *  
+ *
  *  Summary:
  *    Set the current value of the file name to be saved in a PutFile
  *    dialog
- *  
+ *
  *  Discussion:
  *    This function can be called at any time to set the current save
  *    file name. Use it to set an initial name before calling
  *    NavDialogRun or to change the file name dynamically while a
  *    dialog is running. This function is a Unicode-based replacement
  *    for the kNavCtlSetEditFileName NavCustomControl selector.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inPutFileDialog:
  *      Which PutFile dialog
- *    
+ *
  *    inFileName:
  *      The file name to use. A copy of the provided string is made for
  *      use by Navigation Services.
- *  
+ *
  *  Result:
  *    A status code
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1922,24 +1922,24 @@ function NavDialogSetSaveFileName( inPutFileDialog: NavDialogRef; inFileName: CF
 
 {
  *  NavDialogGetSaveFileExtensionHidden()
- *  
+ *
  *  Summary:
  *    Get the current state of the extension hiding in a PutFile dialog
- *  
+ *
  *  Discussion:
  *    This function can be called at any time to determine if a PutFile
  *    dialog is hiding the file extesion (if any) of the file to be
  *    saved.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inPutFileDialog:
  *      Which PutFile dialog
- *  
+ *
  *  Result:
  *    True if the extension is hidden, false if the extension is
  *    visible or there is no extension.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.1 and later
@@ -1951,27 +1951,27 @@ function NavDialogGetSaveFileExtensionHidden( inPutFileDialog: NavDialogRef ): B
 
 {
  *  NavDialogSetSaveFileExtensionHidden()
- *  
+ *
  *  Summary:
  *    Set the current state of the extension hiding in a PutFile dialog
- *  
+ *
  *  Discussion:
  *    This function can be called at any time to hide or show the
  *    extension of the file to be saved in a PutFile dialog. If the
  *    current file name has no extension, then hiding the extension has
  *    no effect.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inPutFileDialog:
  *      Which PutFile dialog
- *    
+ *
  *    inHidden:
  *      The new value for the hidden extension state
- *  
+ *
  *  Result:
  *    A status code
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.1 and later
@@ -1983,31 +1983,31 @@ function NavDialogSetSaveFileExtensionHidden( inPutFileDialog: NavDialogRef; inH
 
 {
  *  NavDialogSetFilterTypeIdentifiers()
- *  
+ *
  *  Summary:
  *    Set a list Uniform Type Identifers against which all files will
  *    be automatically filtered.
- *  
+ *
  *  Discussion:
  *    This function can be called at any time to filter files shown in
  *    the dialog based on the list of type identifiers provided. This
  *    function is only applicable for GetFile and ChooseFile dialogs.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inGetFileDialog:
  *      Which GetFile or ChooseFile dialog.
- *    
+ *
  *    inTypeIdentifiers:
  *      The list of Uniform Type Identifiers describing the file types
  *      to be shown in the dialog file browser.  If an empty array is
  *      passed, all files will be filtered out. If NULL, no files are
  *      filtered. The "Enable" popup view will be automatically shown
  *      and hidden as necessary.
- *  
+ *
  *  Result:
  *    A status code
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.4 and later
@@ -2048,10 +2048,10 @@ type
 {$ifc not TARGET_CPU_64}
 {
  *  NavLoad()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Not available in Mac OS X.
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2062,10 +2062,10 @@ function NavLoad: OSErr; external name '_NavLoad';
 
 {
  *  NavUnload()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Not available in Mac OS X.
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2076,10 +2076,10 @@ function NavUnload: OSErr; external name '_NavUnload';
 
 {
  *  NavLibraryVersion()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Test against the system version instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2091,10 +2091,10 @@ function NavLibraryVersion: UInt32; external name '_NavLibraryVersion';
 
 {
  *  NavGetDefaultDialogOptions()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use NavGetDefaultDialogCreationOptions instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2106,10 +2106,10 @@ function NavGetDefaultDialogOptions( var dialogOptions: NavDialogOptions ): OSEr
 
 {
  *  NavGetFile()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use NavCreateGetFileDialog instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2121,10 +2121,10 @@ function NavGetFile( defaultLocation: AEDescPtr { can be NULL }; var reply: NavR
 
 {
  *  NavPutFile()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use NavCreatePutFileDialog instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2136,10 +2136,10 @@ function NavPutFile( defaultLocation: AEDescPtr { can be NULL }; var reply: NavR
 
 {
  *  NavAskSaveChanges()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use NavCreateAskSaveChangesDialog instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2151,10 +2151,10 @@ function NavAskSaveChanges( var dialogOptions: NavDialogOptions; action: NavAskS
 
 {
  *  NavCustomAskSaveChanges()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use NavCreateAskSaveChangesDialog instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2166,10 +2166,10 @@ function NavCustomAskSaveChanges( var dialogOptions: NavDialogOptions; var reply
 
 {
  *  NavAskDiscardChanges()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use NavCreateAskDiscardChangesDialog instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2181,10 +2181,10 @@ function NavAskDiscardChanges( var dialogOptions: NavDialogOptions; var reply: N
 
 {
  *  NavChooseFile()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use NavCreateChooseFileDialog instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2196,10 +2196,10 @@ function NavChooseFile( defaultLocation: AEDescPtr { can be NULL }; var reply: N
 
 {
  *  NavChooseFolder()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use NavCreateChooseFolderDialog instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2211,10 +2211,10 @@ function NavChooseFolder( defaultLocation: AEDescPtr { can be NULL }; var reply:
 
 {
  *  NavChooseVolume()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use NavCreateChooseVolumeDialog instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2226,10 +2226,10 @@ function NavChooseVolume( defaultSelection: AEDescPtr { can be NULL }; var reply
 
 {
  *  NavChooseObject()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use NavCreateChooseObjectDialog instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2241,10 +2241,10 @@ function NavChooseObject( defaultLocation: AEDescPtr { can be NULL }; var reply:
 
 {
  *  NavNewFolder()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use NavCreateNewFolderDialog instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2256,11 +2256,11 @@ function NavNewFolder( defaultLocation: AEDescPtr { can be NULL }; var reply: Na
 
 {
  *  NavTranslateFile()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Navigation Services does not include Translation Manager support
  *    on Mac OS X.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2272,10 +2272,10 @@ function NavTranslateFile( const (*var*) reply: NavReplyRecord; howToTranslate: 
 
 {
  *  NavServicesCanRun()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Navigation Services can always run on Mac OS X.
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2308,7 +2308,7 @@ function NavServicesCanRun: Boolean; external name '_NavServicesCanRun';
 { NavServicesAvailable() is implemented in Navigation.o for classic 68K clients}
 {
  *  NavServicesAvailable()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available

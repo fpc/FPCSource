@@ -219,7 +219,7 @@ const
 	kCFURLHFSPathStyle = 1; { The use of kCFURLHFSPathStyle is deprecated. The Carbon File Manager, which uses HFS style paths, is deprecated. HFS style paths are unreliable because they can arbitrarily refer to multiple volumes if those volumes have identical volume names. You should instead use kCFURLPOSIXPathStyle wherever possible. }
 	kCFURLWindowsPathStyle = 2;
 
-{ CFURLRef moved to CFBase to avoid circular dependency with Files unit }    
+{ CFURLRef moved to CFBase to avoid circular dependency with Files unit }
 
 { CFURLs are composed of two fundamental pieces - their string, and a }
 { (possibly NULL) base URL.  A relative URL is one in which the string }
@@ -296,7 +296,7 @@ function CFURLCreateFromFileSystemRepresentation( allocator: CFAllocatorRef; buf
 function CFURLCreateWithFileSystemPathRelativeToBase( allocator: CFAllocatorRef; filePath: CFStringRef; pathStyle: CFURLPathStyle; isDirectory: Boolean; baseURL: CFURLRef ): CFURLRef; external name '_CFURLCreateWithFileSystemPathRelativeToBase';
 
 function CFURLCreateFromFileSystemRepresentationRelativeToBase( allocator: CFAllocatorRef; buffer: CStringPtr; bufLen: CFIndex; isDirectory: Boolean; baseURL: CFURLRef ): CFURLRef; external name '_CFURLCreateFromFileSystemRepresentationRelativeToBase';
-                                                                         
+
 { Fills buffer with the file system's native representation of }
 { url's path. No more than maxBufLen bytes are written to buffer. }
 { The buffer should be at least the maximum path length for }
@@ -375,14 +375,14 @@ to request that none be.
 }
 
 { Returns true if anURL conforms to RFC 1808 }
-function CFURLCanBeDecomposed( anURL: CFURLRef ): Boolean; external name '_CFURLCanBeDecomposed'; 
+function CFURLCanBeDecomposed( anURL: CFURLRef ): Boolean; external name '_CFURLCanBeDecomposed';
 
 { The next several methods leave any percent escape sequences intact }
 
 function CFURLCopyScheme( anURL: CFURLRef ): CFStringRef; external name '_CFURLCopyScheme';
 
 { NULL if CFURLCanBeDecomposed(anURL) is false }
-function CFURLCopyNetLocation( anURL: CFURLRef ): CFStringRef; external name '_CFURLCopyNetLocation'; 
+function CFURLCopyNetLocation( anURL: CFURLRef ): CFStringRef; external name '_CFURLCopyNetLocation';
 
 { NULL if CFURLCanBeDecomposed(anURL) is false; also does not resolve the URL }
 { against its base.  See also CFURLCopyAbsoluteURL().  Note that, strictly }
@@ -407,7 +407,7 @@ function CFURLHasDirectoryPath( anURL: CFURLRef ): Boolean; external name '_CFUR
 
 { Any additional resource specifiers after the path.  For URLs }
 { that cannot be decomposed, this is everything except the scheme itself. }
-function CFURLCopyResourceSpecifier( anURL: CFURLRef ): CFStringRef; external name '_CFURLCopyResourceSpecifier'; 
+function CFURLCopyResourceSpecifier( anURL: CFURLRef ): CFStringRef; external name '_CFURLCopyResourceSpecifier';
 
 function CFURLCopyHostName( anURL: CFURLRef ): CFStringRef; external name '_CFURLCopyHostName';
 
@@ -448,7 +448,7 @@ function CFURLCreateCopyDeletingPathExtension( allocator: CFAllocatorRef; url: C
 { Fills buffer with the bytes for url, returning the number of bytes }
 { filled.  If buffer is of insufficient size, returns -1 and no bytes }
 { are placed in buffer.  If buffer is NULL, the needed length is }
-{ computed and returned.  The returned bytes are the original bytes } 
+{ computed and returned.  The returned bytes are the original bytes }
 { from which the URL was created; if the URL was created from a }
 { string, the bytes will be the bytes of the string encoded via UTF-8  }
 function CFURLGetBytes( url: CFURLRef; buffer: CStringPtr; bufferLength: CFIndex ): CFIndex; external name '_CFURLGetBytes';
@@ -469,8 +469,8 @@ const
 	kCFURLComponentParameterString = 10;
 	kCFURLComponentQuery = 11;
 	kCFURLComponentFragment = 12;
- 
-{ 
+
+{
 Gets the  range of the requested component in the bytes of url, as
 returned by CFURLGetBytes().  This range is only good for use in the
 bytes returned by CFURLGetBytes!
@@ -488,7 +488,7 @@ For the URL http://www.apple.com/hotnews/
 Component           returned range      rangeIncludingSeparators
 scheme              (0, 4)              (0, 7)
 net location        (7, 13)             (4, 16)
-path                (20, 9)             (20, 9)    
+path                (20, 9)             (20, 9)
 resource specifier  (kCFNotFound, 0)    (29, 0)
 user                (kCFNotFound, 0)    (7, 0)
 password            (kCFNotFound, 0)    (7, 0)
@@ -522,7 +522,7 @@ For the URL scheme://user:pass@host:1/path/path2/file.html;params?query#fragment
 Component           returned range      rangeIncludingSeparators
 scheme              (0, 6)              (0, 9)
 net location        (9, 16)             (6, 19)
-path                (25, 21)            (25, 22) 
+path                (25, 21)            (25, 22)
 resource specifier  (47, 21)            (46, 22)
 user                (9, 4)              (6, 8)
 password            (14, 4)             (13, 6)
@@ -585,7 +585,7 @@ function CFURLIsFileReferenceURL( url: CFURLRef ): Boolean; external name '_CFUR
 
 {
     CFURLCreateFileReferenceURL
-    
+
     Returns a new file reference URL that refers to the same resource as a specified URL.
 
     Parameters
@@ -609,7 +609,7 @@ function CFURLCreateFileReferenceURL( allocator: CFAllocatorRef; url: CFURLRef; 
 
 {
     CFURLCreateFilePathURL
-    
+
     Returns a new file path URL that refers to the same resource as a specified URL.
 
     Parameters
@@ -658,7 +658,7 @@ function CFURLGetFSRef( url: CFURLRef; var fsRef_: FSRef ): Boolean; external na
 
 {
     CFURLCopyResourcePropertyForKey
-    
+
     Returns the resource value identified by a given resource key.
 
     Parameters
@@ -684,7 +684,7 @@ function CFURLCopyResourcePropertyForKey( url: CFURLRef; key: CFStringRef; prope
 
 {
     CFURLCopyResourcePropertiesForKeys
-    
+
     Returns the resource values identified by specified array of resource keys.
 
     Parameters
@@ -708,7 +708,7 @@ function CFURLCopyResourcePropertiesForKeys( url: CFURLRef; keys: CFArrayRef; er
 
 {
     CFURLSetResourcePropertyForKey
-    
+
     Sets the resource value identified by a given resource key.
 
     Parameters
@@ -734,7 +734,7 @@ function CFURLSetResourcePropertyForKey( url: CFURLRef; key: CFStringRef; proper
 
 {
     CFURLSetResourcePropertiesForKeys
-    
+
     Sets any number of resource values of a URL's resource.
 
     Parameters
@@ -763,7 +763,7 @@ var kCFURLKeysOfUnsetValuesKey: CFStringRef; external name '_kCFURLKeysOfUnsetVa
 
 {
     CFURLClearResourcePropertyCacheForKey
-    
+
     Discards a cached resource value of a URL.
 
     Parameters
@@ -782,7 +782,7 @@ procedure CFURLClearResourcePropertyCacheForKey( url: CFURLRef; key: CFStringRef
 
 {
     CFURLClearResourcePropertyCache
-    
+
     Discards all cached resource values of a URL.
 
     Parameters
@@ -799,7 +799,7 @@ procedure CFURLClearResourcePropertyCache( url: CFURLRef ); external name '_CFUR
 
 {
     CFURLSetTemporaryResourcePropertyForKey
-    
+
     Sets a temporary resource value on the URL object.
 
     Parameters
@@ -820,7 +820,7 @@ procedure CFURLSetTemporaryResourcePropertyForKey( url: CFURLRef; key: CFStringR
 
 {
     CFURLResourceIsReachable
-    
+
     Returns whether the URL's resource exists and is reachable.
 
     Parameters
@@ -833,7 +833,7 @@ procedure CFURLSetTemporaryResourcePropertyForKey( url: CFURLRef; key: CFStringR
         true if the resource is reachable; otherwise, false.
 
     Discussion
-        CFURLResourceIsReachable synchronously checks if the resource's backing store is reachable. Checking reachability is appropriate when making decisions that do not require other immediate operations on the resource, e.g. periodic maintenance of UI state that depends on the existence of a specific document. When performing operations such as opening a file or copying resource properties, it is more efficient to simply try the operation and handle failures. This function is currently applicable only to URLs for file system resources. If this function returns false, the optional error is populated. For other URL types, false is returned. 
+        CFURLResourceIsReachable synchronously checks if the resource's backing store is reachable. Checking reachability is appropriate when making decisions that do not require other immediate operations on the resource, e.g. periodic maintenance of UI state that depends on the existence of a specific document. When performing operations such as opening a file or copying resource properties, it is more efficient to simply try the operation and handle failures. This function is currently applicable only to URLs for file system resources. If this function returns false, the optional error is populated. For other URL types, false is returned.
         Symbol is present in iOS 4, but performs no operation.
  }
 function CFURLResourceIsReachable( url: CFURLRef; error: CFErrorRefPtr ): Boolean; external name '_CFURLResourceIsReachable';
@@ -979,7 +979,7 @@ var kCFURLIsExcludedFromBackupKey: CFStringRef; external name '_kCFURLIsExcluded
 var kCFURLTagNamesKey: CFStringRef; external name '_kCFURLTagNamesKey'; (* attribute const *)
 (* CF_AVAILABLE_STARTING(10_9, NA) *)
     { The array of Tag names (Read-write, value type CFArray of CFString) }
-    
+
 var kCFURLPathKey: CFStringRef; external name '_kCFURLPathKey'; (* attribute const *)
 (* CF_AVAILABLE_STARTING(10_8, 6_0) *)
     { the URL's path as a file system path (Read-only, value type CFString) }
@@ -1228,7 +1228,7 @@ const
     kCFURLBookmarkCreationPreferFileIDResolutionMask = 1 shl 8;  { At resolution time, this alias will prefer resolving by the embedded fileID to the path }
     kCFURLBookmarkCreationMinimalBookmarkMask = 1 shl 9; { Creates a bookmark with "less" information, which may be smaller but still be able to resolve in certain ways }
     kCFURLBookmarkCreationSuitableForBookmarkFile = 1 shl 10; { includes in the created bookmark those properties which are needed for a bookmark/alias file }
-{$ifc TARGET_OS_MAC}    
+{$ifc TARGET_OS_MAC}
     kCFURLBookmarkCreationWithSecurityScope = 1 shl 11; (* CF_AVAILABLE_STARTING(10_7,NA) *) { Mac OS X 10.7.3 and later, include information in the bookmark data which allows the same  sandboxed process to access the resource after being relaunched }
     kCFURLBookmarkCreationSecurityScopeAllowOnlyReadAccess = 1 shl 12; (* CF_AVAILABLE_STARTING(10_7,NA) *) { Mac OS X 10.7.3 and later, if used with kCFURLBookmarkCreationWithSecurityScope, at resolution time only read access to the resource will be granted }
 {$endc}
@@ -1330,7 +1330,7 @@ function CFURLCreateBookmarkDataFromFile( allocator: CFAllocatorRef; fileURL: CF
 			The bookmark data must have been created with the kCFURLBookmarkCreationSuitableForBookmarkFile option and an error will be returned if not.
 	@param	allocator	 the CFAllocator to use to create this object
 	@param	 bookmark a CFDataRef containing a bookmark data, created with CFURLCreateBookmarkData
-	@param	options	options flags 
+	@param	options	options flags
 	@param	errorRef    if non-NULL, on exit will be filled in with a CFErrorRef representing any error which occurred during the creation of the alias file
  }
 function CFURLWriteBookmarkDataToFile( bookmarkRef: CFDataRef; fileURL: CFURLRef; options: CFURLBookmarkFileCreationOptions; errorRef: CFErrorRefPtr ): Boolean; external name '_CFURLWriteBookmarkDataToFile';

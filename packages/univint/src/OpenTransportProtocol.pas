@@ -1,15 +1,15 @@
 {
      File:       OSServices/OpenTransportProtocol.h
- 
+
      Contains:   *** DEPRECATED *** Definitions likely to be used by low-level protocol stack implementation.
- 
+
      Copyright:  (c) 1993-2011 Apple Inc. and Mentat Inc. All rights reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {      Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, November 2005 }
 {      Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
@@ -258,7 +258,7 @@ uses MacTypes,ConditionalMacros,Files,CodeFragments,OpenTransport;
 }
 {
  *  OTAllocSharedClientMem()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -268,7 +268,7 @@ uses MacTypes,ConditionalMacros,Files,CodeFragments,OpenTransport;
 
 {
  *  OTFreeSharedClientMem()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -468,11 +468,11 @@ type
    on PowerPC.  Yucky.  I can't defined a conditionalised
    pad field because a) you can't conditionalise specific
    fields in the interface definition language used to
-   create Universal Interfaces, and b) lots of code 
+   create Universal Interfaces, and b) lots of code
    assigns C structured constants to global variables
    of this type, and these assignments break if you
    add an extra field to the type.  Instead, I
-   set the alignment appropriately before defining the 
+   set the alignment appropriately before defining the
    structure.  The problem with doing that is that
    the interface definition language doesn't allow
    my to set the alignment in the middle of a file,
@@ -1897,7 +1897,7 @@ const
 }
 {
    Throughput
-   
+
    This parameter is specified for both directions.
 }
 
@@ -1908,7 +1908,7 @@ type
 	end;
 {
    transit delay specification
-   
+
    This parameter is specified for both directions.
    expressed in milliseconds assuming a DLSDU size of 128 octets.
    The scaling of the value to the current DLSDU size is provider dependent.
@@ -1956,7 +1956,7 @@ type
 {
     QOS type definition to be used for negotiation with the
     remote end of a connection, or a connectionless unitdata request.
-    There are two type definitions to handle the negotiation 
+    There are two type definitions to handle the negotiation
     process at connection establishment. The typedef dl_qos_range_t
     is used to present a range for parameters. This is used
     in the DL_CONNECT_REQ and DL_CONNECT_IND messages. The typedef
@@ -1971,7 +1971,7 @@ type
 
     NOTE
     A QOS parameter value of DL_QOS_DONT_CARE informs the DLS
-    provider the user requesting this value doesn't care 
+    provider the user requesting this value doesn't care
     what the QOS parameter is set to. This value becomes the
     least possible value in the range of QOS parameters.
     The order of the QOS parameter range is then:
@@ -3244,7 +3244,7 @@ type
 { Opening and closing raw streams}
 {
  *  OTStreamOpen()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -3254,7 +3254,7 @@ type
 
 {
  *  OTAsyncStreamOpen()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -3264,7 +3264,7 @@ type
 
 {
  *  OTCreateStream()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -3274,7 +3274,7 @@ type
 
 {
  *  OTAsyncCreateStream()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -3284,7 +3284,7 @@ type
 
 {
  *  OTStreamClose()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -3296,7 +3296,7 @@ type
 
 {
  *  OTStreamPoll()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -3306,7 +3306,7 @@ type
 
 {
  *  OTAsyncStreamPoll()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -3318,7 +3318,7 @@ type
 
 {
  *  OTStreamRead()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -3328,7 +3328,7 @@ type
 
 {
  *  OTStreamWrite()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -3338,7 +3338,7 @@ type
 
 {
  *  OTStreamIoctl()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -3348,7 +3348,7 @@ type
 
 {
  *  OTStreamPipe()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -3360,7 +3360,7 @@ type
 { Notifiers and modes of operation}
 {
  *  OTStreamInstallNotifier()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -3370,7 +3370,7 @@ type
 
 {
  *  OTStreamRemoveNotifier()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -3380,7 +3380,7 @@ type
 
 {
  *  OTStreamUseSyncIdleEvents()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -3390,7 +3390,7 @@ type
 
 {
  *  OTStreamSetBlocking()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -3400,7 +3400,7 @@ type
 
 {
  *  OTStreamSetNonBlocking()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -3410,7 +3410,7 @@ type
 
 {
  *  OTStreamIsBlocking()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -3420,7 +3420,7 @@ type
 
 {
  *  OTStreamSetSynchronous()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -3430,7 +3430,7 @@ type
 
 {
  *  OTStreamSetAsynchronous()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -3440,7 +3440,7 @@ type
 
 {
  *  OTStreamIsSynchronous()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -3452,7 +3452,7 @@ type
 
 {
  *  OTStreamGetMessage()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -3462,7 +3462,7 @@ type
 
 {
  *  OTStreamGetPriorityMessage()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -3472,7 +3472,7 @@ type
 
 {
  *  OTStreamPutMessage()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -3482,7 +3482,7 @@ type
 
 {
  *  OTStreamPutPriorityMessage()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -3494,7 +3494,7 @@ type
 
 {
  *  OTStreamSetControlMask()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -3510,7 +3510,7 @@ type
 
 {
  *  OTOpenProviderOnStream()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -3520,7 +3520,7 @@ type
 
 {
  *  OTOpenEndpointOnStream()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -3530,14 +3530,14 @@ type
 
 {
    To quote an earlier version of this header file:
-   
+
         Some functions that should only be used if
         you really know what you're doing.
 }
 
 {
  *  OTRemoveStreamFromProvider()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -3547,7 +3547,7 @@ type
 
 {
  *  OTPeekMessage()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -3557,7 +3557,7 @@ type
 
 {
  *  OTReadMessage()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -3567,7 +3567,7 @@ type
 
 {
  *  OTPutBackBuffer()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -3577,7 +3577,7 @@ type
 
 {
  *  OTPutBackPartialBuffer()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -3622,7 +3622,7 @@ type
 }
 {
  *  OTYieldPortRequest()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -3633,7 +3633,7 @@ type
 { Send a notification to all Open Transport registered clients}
 {
  *  OTNotifyAllClients()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -3644,7 +3644,7 @@ type
 { Determine if "child" is a child port of "parent"}
 {
  *  OTIsDependentPort()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -3672,7 +3672,7 @@ type
 {$ifc not TARGET_CPU_64}
 {
  *  OTCreateTimerTaskInContext()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3686,7 +3686,7 @@ function OTCreateTimerTaskInContext( upp: OTProcessUPP; arg: UnivPtr; clientCont
 
 {
  *  OTCreateTimerTask()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -3697,7 +3697,7 @@ function OTCreateTimerTaskInContext( upp: OTProcessUPP; arg: UnivPtr; clientCont
 {$ifc not TARGET_CPU_64}
 {
  *  OTCancelTimerTask()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3709,7 +3709,7 @@ function OTCancelTimerTask( timerTask: OTTimerTask ): Boolean; external name '_O
 
 {
  *  OTDestroyTimerTask()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3721,7 +3721,7 @@ procedure OTDestroyTimerTask( timerTask: OTTimerTask ); external name '_OTDestro
 
 {
  *  OTScheduleTimerTask()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3750,7 +3750,7 @@ function OTScheduleTimerTask( timerTask: OTTimerTask; milliSeconds: OTTimeout ):
 {$ifc not TARGET_CPU_64}
 {
  *  OTBufferDataSize()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3762,7 +3762,7 @@ function OTBufferDataSize( var buffer: OTBuffer ): OTByteCount; external name '_
 
 {
  *  OTReadBuffer()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3774,7 +3774,7 @@ function OTReadBuffer( var buffer: OTBufferInfo; dest: UnivPtr; var len: OTByteC
 
 {
  *  OTReleaseBuffer()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3786,7 +3786,7 @@ procedure OTReleaseBuffer( var buffer: OTBuffer ); external name '_OTReleaseBuff
 
 {
  *  StoreIntoNetbuf()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -3796,7 +3796,7 @@ procedure OTReleaseBuffer( var buffer: OTBuffer ); external name '_OTReleaseBuff
 
 {
  *  StoreMsgIntoNetbuf()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -3817,7 +3817,7 @@ procedure OTReleaseBuffer( var buffer: OTBuffer ); external name '_OTReleaseBuff
 
 {
  *  OTCfigNewConfiguration()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -3827,7 +3827,7 @@ procedure OTReleaseBuffer( var buffer: OTBuffer ); external name '_OTReleaseBuff
 
 {
  *  OTCfigDeleteConfiguration()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -3837,7 +3837,7 @@ procedure OTReleaseBuffer( var buffer: OTBuffer ); external name '_OTReleaseBuff
 
 {
  *  OTCfigCloneConfiguration()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -3847,7 +3847,7 @@ procedure OTReleaseBuffer( var buffer: OTBuffer ); external name '_OTReleaseBuff
 
 {
  *  OTCfigPushNewSingleChild()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -3857,7 +3857,7 @@ procedure OTReleaseBuffer( var buffer: OTBuffer ); external name '_OTReleaseBuff
 
 {
  *  OTCfigPushParent()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -3867,7 +3867,7 @@ procedure OTReleaseBuffer( var buffer: OTBuffer ); external name '_OTReleaseBuff
 
 {
  *  OTCfigPushChild()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -3877,7 +3877,7 @@ procedure OTReleaseBuffer( var buffer: OTBuffer ); external name '_OTReleaseBuff
 
 {
  *  OTCfigPopChild()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -3887,7 +3887,7 @@ procedure OTReleaseBuffer( var buffer: OTBuffer ); external name '_OTReleaseBuff
 
 {
  *  OTCfigGetChild()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -3897,7 +3897,7 @@ procedure OTReleaseBuffer( var buffer: OTBuffer ); external name '_OTReleaseBuff
 
 {
  *  OTCfigSetPath()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -3907,7 +3907,7 @@ procedure OTReleaseBuffer( var buffer: OTBuffer ); external name '_OTReleaseBuff
 
 {
  *  OTCfigNewChild()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -3917,7 +3917,7 @@ procedure OTReleaseBuffer( var buffer: OTBuffer ); external name '_OTReleaseBuff
 
 {
  *  OTCfigAddChild()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -3927,7 +3927,7 @@ procedure OTReleaseBuffer( var buffer: OTBuffer ); external name '_OTReleaseBuff
 
 {
  *  OTCfigRemoveChild()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -3937,7 +3937,7 @@ procedure OTReleaseBuffer( var buffer: OTBuffer ); external name '_OTReleaseBuff
 
 {
  *  OTCfigSetPortRef()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -3947,7 +3947,7 @@ procedure OTReleaseBuffer( var buffer: OTBuffer ); external name '_OTReleaseBuff
 
 {
  *  OTCfigChangeProviderName()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -3959,7 +3959,7 @@ procedure OTReleaseBuffer( var buffer: OTBuffer ); external name '_OTReleaseBuff
 
 {
  *  OTCfigNumberOfChildren()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -3969,7 +3969,7 @@ procedure OTReleaseBuffer( var buffer: OTBuffer ); external name '_OTReleaseBuff
 
 {
  *  OTCfigGetParent()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -3979,7 +3979,7 @@ procedure OTReleaseBuffer( var buffer: OTBuffer ); external name '_OTReleaseBuff
 
 {
  *  OTCfigGetOptionNetbuf()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -3989,7 +3989,7 @@ procedure OTReleaseBuffer( var buffer: OTBuffer ); external name '_OTReleaseBuff
 
 {
  *  OTCfigGetPortRef()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -3999,7 +3999,7 @@ procedure OTReleaseBuffer( var buffer: OTBuffer ); external name '_OTReleaseBuff
 
 {
  *  OTCfigGetInstallFlags()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -4009,7 +4009,7 @@ procedure OTReleaseBuffer( var buffer: OTBuffer ); external name '_OTReleaseBuff
 
 {
  *  OTCfigGetProviderName()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -4019,7 +4019,7 @@ procedure OTReleaseBuffer( var buffer: OTBuffer ); external name '_OTReleaseBuff
 
 {
  *  OTCfigIsPort()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -4086,7 +4086,7 @@ type
 }
 {
  *  OTIsMasterConfigurator()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -4097,7 +4097,7 @@ type
 { Get back the userData you passed in to OTNewConfigurator}
 {
  *  OTGetConfiguratorUserData()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -4108,7 +4108,7 @@ type
 { Create a configurator object for use by Open Transport}
 {
  *  OTNewConfigurator()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -4119,7 +4119,7 @@ type
 { Delete a configurator object created by OTNewConfigurator}
 {
  *  OTDeleteConfigurator()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -4133,7 +4133,7 @@ type
 }
 {
  *  OTNotifyUser()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -4144,7 +4144,7 @@ type
 { Call when the configurator unloads from memory}
 {
  *  OTConfiguratorUnloaded()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -4159,7 +4159,7 @@ type
 }
 {
  *  OTCreateControlStream()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -4173,7 +4173,7 @@ type
 }
 {
  *  OTConfigureChildren()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -4184,7 +4184,7 @@ type
 { Allocate a bit in the system-wide control mask for streams.}
 {
  *  OTNewControlMask()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -4195,7 +4195,7 @@ type
 { Warning: These 2 APIs is going away}
 {
  *  OTCloseProvidersByUseCount()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -4205,7 +4205,7 @@ type
 
 {
  *  OTCloseProvidersByPortRef()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -4216,7 +4216,7 @@ type
 { These are the "real" APIs}
 {
  *  OTCloseProviderByStream()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -4226,7 +4226,7 @@ type
 
 {
  *  OTCloseMatchingProviders()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -4281,8 +4281,8 @@ const
 { ***** OTStateMachine *****}
 {$ifc CALL_NOT_IN_CARBON}
 {
-   This utility set allows you to write an asynchronous chain of code that looks 
-   somewhat like it is synchronous.  This is primarily used for plumbing 
+   This utility set allows you to write an asynchronous chain of code that looks
+   somewhat like it is synchronous.  This is primarily used for plumbing
    streams asynchronously, especially in configurators
 }
 {$ifc NOT OTKERNEL}
@@ -4338,7 +4338,7 @@ type
 }
 {
  *  OTCreateStateMachine()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -4348,7 +4348,7 @@ type
 
 {
  *  OTDestroyStateMachine()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -4368,7 +4368,7 @@ type
 
 {
  *  OTSMCallStateProc()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -4378,7 +4378,7 @@ type
 
 {
  *  OTSMGetState()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -4388,7 +4388,7 @@ type
 
 {
  *  OTSMSetState()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -4399,7 +4399,7 @@ type
 { Fill out the fCookie, fCode, and fResult fields before calling!}
 {
  *  OTSMComplete()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -4409,7 +4409,7 @@ type
 
 {
  *  OTSMPopCallback()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -4419,7 +4419,7 @@ type
 
 {
  *  OTSMWaitForComplete()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -4429,7 +4429,7 @@ type
 
 {
  *  OTSMCreateStream()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -4439,7 +4439,7 @@ type
 
 {
  *  OTSMOpenStream()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -4449,7 +4449,7 @@ type
 
 {
  *  OTSMIoctl()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -4459,7 +4459,7 @@ type
 
 {
  *  OTSMPutMessage()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -4469,7 +4469,7 @@ type
 
 {
  *  OTSMGetMessage()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -4479,7 +4479,7 @@ type
 
 {
  *  OTSMReturnToCaller()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -4489,7 +4489,7 @@ type
 
 {
  *  OTSMGetClientData()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -4499,7 +4499,7 @@ type
 
 {
  *  OTSMInstallCompletionProc()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -4509,7 +4509,7 @@ type
 
 {
  *  OTSMCreateControlStream()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -4522,7 +4522,7 @@ type
 { ***** Autopush Definitions *****}
 {
    The autopush functionality for Open Transport is based on the names of
-   devices and modules, rather than on the major number information like 
+   devices and modules, rather than on the major number information like
    SVR4.  This is so that autopush information can be set up for modules
    that are not yet loaded.
 }
@@ -4623,7 +4623,7 @@ type
 {  Returns a user friendly name for a port.}
 {
  *  OTGetUserPortNameFromPortRef()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -4637,7 +4637,7 @@ type
 }
 {
  *  OTGetPortIconFromPortRef()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -4651,7 +4651,7 @@ type
 }
 {
  *  OTGetDefaultPort()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -4662,7 +4662,7 @@ type
 { Returns true if the port can be used with the specified protocol.}
 {
  *  OTIsPortCompatibleWith()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -4693,7 +4693,7 @@ type
 }
 {
  *  OTSetFirstClearBit()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4706,7 +4706,7 @@ function OTSetFirstClearBit( bitMap: UInt8Ptr; startBit: OTByteCount; numBits: O
 { Standard clear, set and test bit functions}
 {
  *  OTClearBit()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4718,7 +4718,7 @@ function OTClearBit( bitMap: UInt8Ptr; bitNo: OTByteCount ): Boolean; external n
 
 {
  *  OTSetBit()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4730,7 +4730,7 @@ function OTSetBit( bitMap: UInt8Ptr; bitNo: OTByteCount ): Boolean; external nam
 
 {
  *  OTTestBit()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4764,7 +4764,7 @@ type
 }
 {
  *  OTCalculateHashListMemoryNeeds()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -4778,7 +4778,7 @@ type
 }
 {
  *  OTInitHashList()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -4788,7 +4788,7 @@ type
 
 {
  *  OTAddToHashList()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -4798,7 +4798,7 @@ type
 
 {
  *  OTRemoveLinkFromHashList()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -4808,7 +4808,7 @@ type
 
 {
  *  OTIsInHashList()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -4818,7 +4818,7 @@ type
 
 {
  *  OTFindInHashList()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -4828,7 +4828,7 @@ type
 
 {
  *  OTRemoveFromHashList()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -4845,7 +4845,7 @@ type
 
 {
  *  OTGetRandomSeed()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -4855,7 +4855,7 @@ type
 
 {
  *  OTGetRandomNumber()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -4885,7 +4885,7 @@ type
 	end;
 {
  *  OTInitGate()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -4895,7 +4895,7 @@ type
 
 {
  *  OTEnterGate()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -4905,7 +4905,7 @@ type
 
 {
  *  OTLeaveGate()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -4947,7 +4947,7 @@ const
 {
    A list of CFMLibraryInfo structures is returned by the OTFindCFMLibraries routine.
    The list is created out of the data that is passed to the function.
-   
+
    IMPORTANT:
    Only the first 3 fields are valid when using OT 1.2 and older.
 }
@@ -4971,7 +4971,7 @@ type
 { Find CFM libraries of the specified kind and type}
 {
  *  OTFindCFMLibraries()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -4984,7 +4984,7 @@ type
 { Load a CFM library by name}
 {
  *  OTLoadCFMLibrary()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -4995,7 +4995,7 @@ type
 { Load a CFM library and get a named pointer from it}
 {
  *  OTGetCFMPointer()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -5006,7 +5006,7 @@ type
 { Get a named pointer from a CFM library that's already loaded}
 {
  *  OTGetCFMSymbol()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -5017,7 +5017,7 @@ type
 { Release a connection to a CFM library}
 {
  *  OTReleaseCFMConnection()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -5035,7 +5035,7 @@ type
 }
 {
  *  OTHoldThisCFMLibrary()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -5049,7 +5049,7 @@ type
 }
 {
  *  OTUnholdThisCFMLibrary()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -5061,7 +5061,7 @@ type
 { Load an ASLM library}
 {
  *  OTLoadASLMLibrary()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -5072,7 +5072,7 @@ type
 { Unload an ASLM library}
 {
  *  OTUnloadASLMLibrary()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -5088,7 +5088,7 @@ type
 
 {
  *  UnloadUnusedLibraries()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available

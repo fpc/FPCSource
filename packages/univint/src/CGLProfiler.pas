@@ -226,17 +226,17 @@ const
         { Inserts a context-specific comment into the function trace stream. }
 	{ Availability: set only, get is ignored. }
 	kCGLCPComment = 1232;
-	
+
 { #define kCGLCPDumpState ((CGLContextParameter)1233) }
         { param ignored.  Dumps all the gl state. }
 	{ Availability: set only, get is ignored. }
 	kCGLCPDumpState = 1233;
-	
+
 { #define kCGLCPEnableForceFlush ((CGLContextParameter)1234) }
         { param is GL_TRUE to enable "force flush" mode or GL_FALSE to disable. }
 	{ Availability: set and get. }
 	kCGLCPEnableForceFlush = 1234;
-	
+
 { Profiler extensions for CGLGlobalOption }
 
 { Use these as the parameter name for CGLSetOption to control global profiling
@@ -251,13 +251,13 @@ const
 	{ Inserts a comment in the trace steam that applies to all contexts. }
 	{ Availability: set only, get is ignored. }
 	kCGLGOComment = 1506;
-	
+
 { 	kCGLGOEnableFunctionTrace  = 1507; }
         { param is GL_TRUE or GL_FALSE }
         { Turns GL function call tracing on and off }
 	{ Availability: set and get }
 	kCGLGOEnableFunctionTrace = 1507;
-	
+
 { 	kCGLGOEnableFunctionStatistics  = 1508; }
         { param is GL_TRUE or GL_FALSE }
         { Turns GL function counter on and off }
@@ -281,14 +281,14 @@ const
         { Erases current function statistics, resets all counters to 0 and starts a new set }
 	{ Availability: set only, get is ignored. }
 	kCGLGOResetFunctionStatistics = 1511;
-	
+
 { 	kCGLGOEnableDebugAttach  = 1512; }
         { param is GL_TRUE or GL_FALSE }
         { Turns profiler attach feature on and off.  Off by default, you can
 	   override this with the environment variable GL_ENABLE_DEBUG_ATTACH }
 	{ Availability: set only, get is ignored. }
 	kCGLGOEnableDebugAttach = 1512;
-	
+
 { 	kCGLGOHideObjects  = 1513; }
         { param is GL_TRUE to hide all resources from Profiler or GL_FALSE to expose resources to
 		   Profiler.  Default is GL_FALSE (expose resources to Profiler). }

@@ -1,17 +1,17 @@
 {
      File:       QuickTime/QuickTimeMusic.h
- 
+
      Contains:   QuickTime Interfaces.
- 
+
      Version:    QuickTime 7.7.1
- 
+
      Copyright:  © 1990-2012 by Apple Inc., all rights reserved
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
@@ -347,15 +347,15 @@ const
 {
     The sampleBankFile field of this structure can be used to pass in a pointer to an FSSpec
     that represents a SoundFont 2 or DLS file (otherwise set it to NULL ).
-    
+
     You then pass in a structure with this field set (all other fields should be zero) to
     NARegisterMusicDevice:
-        - with synthType as kSoftSynthComponentSubType 
-        - with name being used to return to the application the "name" of the synth 
+        - with synthType as kSoftSynthComponentSubType
+        - with name being used to return to the application the "name" of the synth
         that should be used in the synthesiserName field of the ToneDescription structure
         and is also used to retrieve a particular MusicComponent with the
         NAGetRegisteredMusicDevice call
-    
+
     This call will create a MusicComponent of kSoftSynthComponentSubType, with the specified
     sound bank as the sample data source.
 
@@ -389,7 +389,7 @@ type
 	QTMIDIPortListHandle = ^QTMIDIPortListPtr;
 {
  *  QTMIDIGetMIDIPorts()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -402,7 +402,7 @@ function QTMIDIGetMIDIPorts( ci: QTMIDIComponent; var inputPorts: QTMIDIPortList
 
 {
  *  QTMIDIUseSendPort()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -415,7 +415,7 @@ function QTMIDIUseSendPort( ci: QTMIDIComponent; portIndex: SIGNEDLONG; inUse: S
 
 {
  *  QTMIDISendMIDI()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -872,7 +872,7 @@ type
 	InstrumentInfoListHandle = ^InstrumentInfoListPtr;
 {
  *  MusicGetDescription()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -885,7 +885,7 @@ function MusicGetDescription( mc: MusicComponent; var sd: SynthesizerDescription
 
 {
  *  MusicGetPart()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -898,7 +898,7 @@ function MusicGetPart( mc: MusicComponent; part: SIGNEDLONG; var midiChannel: SI
 
 {
  *  MusicSetPart()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -911,7 +911,7 @@ function MusicSetPart( mc: MusicComponent; part: SIGNEDLONG; midiChannel: SIGNED
 
 {
  *  MusicSetPartInstrumentNumber()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -924,7 +924,7 @@ function MusicSetPartInstrumentNumber( mc: MusicComponent; part: SIGNEDLONG; ins
 
 {
  *  MusicGetPartInstrumentNumber()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -937,7 +937,7 @@ function MusicGetPartInstrumentNumber( mc: MusicComponent; part: SIGNEDLONG ): C
 
 {
  *  MusicStorePartInstrument()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -950,7 +950,7 @@ function MusicStorePartInstrument( mc: MusicComponent; part: SIGNEDLONG; instrum
 
 {
  *  MusicGetPartAtomicInstrument()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -963,7 +963,7 @@ function MusicGetPartAtomicInstrument( mc: MusicComponent; part: SIGNEDLONG; var
 
 {
  *  MusicSetPartAtomicInstrument()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -976,7 +976,7 @@ function MusicSetPartAtomicInstrument( mc: MusicComponent; part: SIGNEDLONG; aiP
 
 {
  *  MusicGetPartKnob()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -989,7 +989,7 @@ function MusicGetPartKnob( mc: MusicComponent; part: SIGNEDLONG; knobID: SIGNEDL
 
 {
  *  MusicSetPartKnob()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1002,7 +1002,7 @@ function MusicSetPartKnob( mc: MusicComponent; part: SIGNEDLONG; knobID: SIGNEDL
 
 {
  *  MusicGetKnob()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1015,7 +1015,7 @@ function MusicGetKnob( mc: MusicComponent; knobID: SIGNEDLONG ): ComponentResult
 
 {
  *  MusicSetKnob()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1028,7 +1028,7 @@ function MusicSetKnob( mc: MusicComponent; knobID: SIGNEDLONG; knobValue: SIGNED
 
 {
  *  MusicGetPartName()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1041,7 +1041,7 @@ function MusicGetPartName( mc: MusicComponent; part: SIGNEDLONG; name: StringPtr
 
 {
  *  MusicSetPartName()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1054,7 +1054,7 @@ function MusicSetPartName( mc: MusicComponent; part: SIGNEDLONG; name: StringPtr
 
 {
  *  MusicFindTone()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1067,7 +1067,7 @@ function MusicFindTone( mc: MusicComponent; var td: ToneDescription; var library
 
 {
  *  MusicPlayNote()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1080,7 +1080,7 @@ function MusicPlayNote( mc: MusicComponent; part: SIGNEDLONG; pitch: SIGNEDLONG;
 
 {
  *  MusicResetPart()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1093,7 +1093,7 @@ function MusicResetPart( mc: MusicComponent; part: SIGNEDLONG ): ComponentResult
 
 {
  *  MusicSetPartController()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1106,7 +1106,7 @@ function MusicSetPartController( mc: MusicComponent; part: SIGNEDLONG; controlle
 
 {
  *  MusicGetPartController()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1119,7 +1119,7 @@ function MusicGetPartController( mc: MusicComponent; part: SIGNEDLONG; controlle
 
 {
  *  MusicGetMIDIProc()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1132,7 +1132,7 @@ function MusicGetMIDIProc( mc: MusicComponent; var midiSendProc: MusicMIDISendUP
 
 {
  *  MusicSetMIDIProc()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1145,7 +1145,7 @@ function MusicSetMIDIProc( mc: MusicComponent; midiSendProc: MusicMIDISendUPP; r
 
 {
  *  MusicGetInstrumentNames()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1158,7 +1158,7 @@ function MusicGetInstrumentNames( mc: MusicComponent; modifiableInstruments: SIG
 
 {
  *  MusicGetDrumNames()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1171,7 +1171,7 @@ function MusicGetDrumNames( mc: MusicComponent; modifiableInstruments: SIGNEDLON
 
 {
  *  MusicGetMasterTune()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1184,7 +1184,7 @@ function MusicGetMasterTune( mc: MusicComponent ): ComponentResult; external nam
 
 {
  *  MusicSetMasterTune()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1197,7 +1197,7 @@ function MusicSetMasterTune( mc: MusicComponent; masterTune: SIGNEDLONG ): Compo
 
 {
  *  MusicGetInstrumentAboutInfo()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1210,7 +1210,7 @@ function MusicGetInstrumentAboutInfo( mc: MusicComponent; part: SIGNEDLONG; var 
 
 {
  *  MusicGetDeviceConnection()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1223,7 +1223,7 @@ function MusicGetDeviceConnection( mc: MusicComponent; index: SIGNEDLONG; var id
 
 {
  *  MusicUseDeviceConnection()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1236,7 +1236,7 @@ function MusicUseDeviceConnection( mc: MusicComponent; id1: SIGNEDLONG; id2: SIG
 
 {
  *  MusicGetKnobSettingStrings()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1249,7 +1249,7 @@ function MusicGetKnobSettingStrings( mc: MusicComponent; knobIndex: SIGNEDLONG; 
 
 {
  *  MusicGetMIDIPorts()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1262,7 +1262,7 @@ function MusicGetMIDIPorts( mc: MusicComponent; var inputPortCount: SIGNEDLONG; 
 
 {
  *  MusicSendMIDI()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1275,7 +1275,7 @@ function MusicSendMIDI( mc: MusicComponent; portIndex: SIGNEDLONG; var mp: Music
 
 {
  *  MusicStartOffline()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1288,7 +1288,7 @@ function MusicStartOffline( mc: MusicComponent; numChannels: UNSIGNEDLONGPtr; va
 
 {
  *  MusicSetOfflineTimeTo()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1301,7 +1301,7 @@ function MusicSetOfflineTimeTo( mc: MusicComponent; newTimeStamp: SIGNEDLONG ): 
 
 {
  *  MusicGetInstrumentKnobDescription()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1314,7 +1314,7 @@ function MusicGetInstrumentKnobDescription( mc: MusicComponent; knobIndex: SIGNE
 
 {
  *  MusicGetDrumKnobDescription()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1327,7 +1327,7 @@ function MusicGetDrumKnobDescription( mc: MusicComponent; knobIndex: SIGNEDLONG;
 
 {
  *  MusicGetKnobDescription()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1340,7 +1340,7 @@ function MusicGetKnobDescription( mc: MusicComponent; knobIndex: SIGNEDLONG; var
 
 {
  *  MusicGetInfoText()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1358,7 +1358,7 @@ const
 
 {
  *  MusicGetInstrumentInfo()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1371,7 +1371,7 @@ function MusicGetInstrumentInfo( mc: MusicComponent; getInstrumentInfoFlags: SIG
 
 {
  *  MusicTask()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1384,7 +1384,7 @@ function MusicTask( mc: MusicComponent ): ComponentResult; external name '_Music
 
 {
  *  MusicSetPartInstrumentNumberInterruptSafe()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1397,7 +1397,7 @@ function MusicSetPartInstrumentNumberInterruptSafe( mc: MusicComponent; part: SI
 
 {
  *  MusicSetPartSoundLocalization()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1410,7 +1410,7 @@ function MusicSetPartSoundLocalization( mc: MusicComponent; part: SIGNEDLONG; da
 
 {
  *  MusicGenericConfigure()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1423,7 +1423,7 @@ function MusicGenericConfigure( mc: MusicComponent; mode: SIGNEDLONG; flags: SIG
 
 {
  *  MusicGenericGetPart()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1436,7 +1436,7 @@ function MusicGenericGetPart( mc: MusicComponent; partNumber: SIGNEDLONG; var pa
 
 {
  *  MusicGenericGetKnobList()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1449,7 +1449,7 @@ function MusicGenericGetKnobList( mc: MusicComponent; knobType: SIGNEDLONG; var 
 
 {
  *  MusicGenericSetResourceNumbers()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1462,7 +1462,7 @@ function MusicGenericSetResourceNumbers( mc: MusicComponent; resourceIDH: Handle
 
 {
  *  MusicDerivedMIDISend()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1475,7 +1475,7 @@ function MusicDerivedMIDISend( mc: MusicComponent; var packet: MusicMIDIPacket )
 
 {
  *  MusicDerivedSetKnob()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1488,7 +1488,7 @@ function MusicDerivedSetKnob( mc: MusicComponent; knobType: SIGNEDLONG; knobNumb
 
 {
  *  MusicDerivedSetPart()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1501,7 +1501,7 @@ function MusicDerivedSetPart( mc: MusicComponent; partNumber: SIGNEDLONG; var p:
 
 {
  *  MusicDerivedSetInstrument()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1514,7 +1514,7 @@ function MusicDerivedSetInstrument( mc: MusicComponent; partNumber: SIGNEDLONG; 
 
 {
  *  MusicDerivedSetPartInstrumentNumber()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1527,7 +1527,7 @@ function MusicDerivedSetPartInstrumentNumber( mc: MusicComponent; partNumber: SI
 
 {
  *  MusicDerivedSetMIDI()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1540,7 +1540,7 @@ function MusicDerivedSetMIDI( mc: MusicComponent; midiProc: MusicMIDISendUPP; re
 
 {
  *  MusicDerivedStorePartInstrument()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1553,7 +1553,7 @@ function MusicDerivedStorePartInstrument( mc: MusicComponent; partNumber: SIGNED
 
 {
  *  MusicDerivedOpenResFile()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1566,7 +1566,7 @@ function MusicDerivedOpenResFile( mc: MusicComponent ): ComponentResult; externa
 
 {
  *  MusicDerivedCloseResFile()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1592,7 +1592,7 @@ const
 type
 	NoteAllocator = ComponentInstance;
 {
-    The midiChannelAssignment field of this structure is used to assign a MIDI channel 
+    The midiChannelAssignment field of this structure is used to assign a MIDI channel
     when a NoteChannel is created from a NoteRequest.
     A value of 0 indicates a MIDI channel has *not* been assigned
     A value of (kNoteRequestSpecifyMIDIChannel | 1->16) is a MIDI channel assignment
@@ -1637,7 +1637,7 @@ const
 --------------------------------}
 {
  *  NARegisterMusicDevice()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1650,7 +1650,7 @@ function NARegisterMusicDevice( na: NoteAllocator; synthType: OSType; var name: 
 
 {
  *  NAUnregisterMusicDevice()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1663,7 +1663,7 @@ function NAUnregisterMusicDevice( na: NoteAllocator; index: SIGNEDLONG ): Compon
 
 {
  *  NAGetRegisteredMusicDevice()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1676,7 +1676,7 @@ function NAGetRegisteredMusicDevice( na: NoteAllocator; index: SIGNEDLONG; var s
 
 {
  *  NASaveMusicConfiguration()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1689,7 +1689,7 @@ function NASaveMusicConfiguration( na: NoteAllocator ): ComponentResult; externa
 
 {
  *  NANewNoteChannel()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1702,7 +1702,7 @@ function NANewNoteChannel( na: NoteAllocator; var noteRequest_: NoteRequest; var
 
 {
  *  NADisposeNoteChannel()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1715,7 +1715,7 @@ function NADisposeNoteChannel( na: NoteAllocator; noteChannel_: NoteChannel ): C
 
 {
  *  NAGetNoteChannelInfo()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1728,7 +1728,7 @@ function NAGetNoteChannelInfo( na: NoteAllocator; noteChannel_: NoteChannel; var
 
 {
  *  NAPrerollNoteChannel()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1741,7 +1741,7 @@ function NAPrerollNoteChannel( na: NoteAllocator; noteChannel_: NoteChannel ): C
 
 {
  *  NAUnrollNoteChannel()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1754,7 +1754,7 @@ function NAUnrollNoteChannel( na: NoteAllocator; noteChannel_: NoteChannel ): Co
 
 {
  *  NASetNoteChannelVolume()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1767,7 +1767,7 @@ function NASetNoteChannelVolume( na: NoteAllocator; noteChannel_: NoteChannel; v
 
 {
  *  NAResetNoteChannel()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1780,7 +1780,7 @@ function NAResetNoteChannel( na: NoteAllocator; noteChannel_: NoteChannel ): Com
 
 {
  *  NAPlayNote()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1793,7 +1793,7 @@ function NAPlayNote( na: NoteAllocator; noteChannel_: NoteChannel; pitch: SIGNED
 
 {
  *  NASetController()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1806,7 +1806,7 @@ function NASetController( na: NoteAllocator; noteChannel_: NoteChannel; controll
 
 {
  *  NASetKnob()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1819,7 +1819,7 @@ function NASetKnob( na: NoteAllocator; noteChannel_: NoteChannel; knobNumber: SI
 
 {
  *  NAFindNoteChannelTone()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1832,7 +1832,7 @@ function NAFindNoteChannelTone( na: NoteAllocator; noteChannel_: NoteChannel; va
 
 {
  *  NASetInstrumentNumber()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1845,7 +1845,7 @@ function NASetInstrumentNumber( na: NoteAllocator; noteChannel_: NoteChannel; in
 
 {
  *  NAPickInstrument()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1858,7 +1858,7 @@ function NAPickInstrument( na: NoteAllocator; filterProc: ModalFilterUPP; prompt
 
 {
  *  NAPickArrangement()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1871,7 +1871,7 @@ function NAPickArrangement( na: NoteAllocator; filterProc: ModalFilterUPP; promp
 
 {
  *  NAStuffToneDescription()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1884,7 +1884,7 @@ function NAStuffToneDescription( na: NoteAllocator; gmNumber: SIGNEDLONG; var td
 
 {
  *  NACopyrightDialog()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1902,7 +1902,7 @@ function NACopyrightDialog( na: NoteAllocator; p: PicHandle; author: StringPtr; 
 
 {
  *  NAGetIndNoteChannel()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1915,7 +1915,7 @@ function NAGetIndNoteChannel( na: NoteAllocator; index: SIGNEDLONG; var nc: Note
 
 {
  *  NAGetMIDIPorts()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1928,7 +1928,7 @@ function NAGetMIDIPorts( na: NoteAllocator; var inputPorts: QTMIDIPortListHandle
 
 {
  *  NAGetNoteRequest()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1941,7 +1941,7 @@ function NAGetNoteRequest( na: NoteAllocator; noteChannel_: NoteChannel; var nrO
 
 {
  *  NASendMIDI()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1954,7 +1954,7 @@ function NASendMIDI( na: NoteAllocator; noteChannel_: NoteChannel; var mp: Music
 
 {
  *  NAPickEditInstrument()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1967,7 +1967,7 @@ function NAPickEditInstrument( na: NoteAllocator; filterProc: ModalFilterUPP; pr
 
 {
  *  NANewNoteChannelFromAtomicInstrument()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1980,7 +1980,7 @@ function NANewNoteChannelFromAtomicInstrument( na: NoteAllocator; instrument: At
 
 {
  *  NASetAtomicInstrument()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1993,7 +1993,7 @@ function NASetAtomicInstrument( na: NoteAllocator; noteChannel_: NoteChannel; in
 
 {
  *  NAGetKnob()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2006,7 +2006,7 @@ function NAGetKnob( na: NoteAllocator; noteChannel_: NoteChannel; knobNumber: SI
 
 {
  *  NATask()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2019,7 +2019,7 @@ function NATask( na: NoteAllocator ): ComponentResult; external name '_NATask';
 
 {
  *  NASetNoteChannelBalance()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2032,7 +2032,7 @@ function NASetNoteChannelBalance( na: NoteAllocator; noteChannel_: NoteChannel; 
 
 {
  *  NASetInstrumentNumberInterruptSafe()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2045,7 +2045,7 @@ function NASetInstrumentNumberInterruptSafe( na: NoteAllocator; noteChannel_: No
 
 {
  *  NASetNoteChannelSoundLocalization()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2058,7 +2058,7 @@ function NASetNoteChannelSoundLocalization( na: NoteAllocator; noteChannel_: Not
 
 {
  *  NAGetController()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2098,7 +2098,7 @@ const
 
 {
  *  TuneSetHeader()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2111,7 +2111,7 @@ function TuneSetHeader( tp: TunePlayer; var header: UNSIGNEDLONG ): ComponentRes
 
 {
  *  TuneGetTimeBase()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2124,7 +2124,7 @@ function TuneGetTimeBase( tp: TunePlayer; var tb: TimeBase ): ComponentResult; e
 
 {
  *  TuneSetTimeScale()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2137,7 +2137,7 @@ function TuneSetTimeScale( tp: TunePlayer; scale: TimeScale ): ComponentResult; 
 
 {
  *  TuneGetTimeScale()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2150,7 +2150,7 @@ function TuneGetTimeScale( tp: TunePlayer; var scale: TimeScale ): ComponentResu
 
 {
  *  TuneGetIndexedNoteChannel()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2174,7 +2174,7 @@ const
 
 {
  *  TuneQueue()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2187,7 +2187,7 @@ function TuneQueue( tp: TunePlayer; var tune: UNSIGNEDLONG; tuneRate: Fixed; tun
 
 {
  *  TuneInstant()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2200,7 +2200,7 @@ function TuneInstant( tp: TunePlayer; var tune: UNSIGNEDLONG; tunePosition: UNSI
 
 {
  *  TuneGetStatus()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2220,7 +2220,7 @@ const
 
 {
  *  TuneStop()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2233,7 +2233,7 @@ function TuneStop( tp: TunePlayer; stopFlags: SIGNEDLONG ): ComponentResult; ext
 
 {
  *  TuneSetVolume()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2246,7 +2246,7 @@ function TuneSetVolume( tp: TunePlayer; volume: Fixed ): ComponentResult; extern
 
 {
  *  TuneGetVolume()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2259,7 +2259,7 @@ function TuneGetVolume( tp: TunePlayer ): ComponentResult; external name '_TuneG
 
 {
  *  TunePreroll()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2272,7 +2272,7 @@ function TunePreroll( tp: TunePlayer ): ComponentResult; external name '_TunePre
 
 {
  *  TuneUnroll()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2285,7 +2285,7 @@ function TuneUnroll( tp: TunePlayer ): ComponentResult; external name '_TuneUnro
 
 {
  *  TuneSetNoteChannels()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2298,7 +2298,7 @@ function TuneSetNoteChannels( tp: TunePlayer; count: UNSIGNEDLONG; var noteChann
 
 {
  *  TuneSetPartTranspose()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2311,7 +2311,7 @@ function TuneSetPartTranspose( tp: TunePlayer; part: UNSIGNEDLONG; transpose: SI
 
 {
  *  TuneGetNoteAllocator()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2324,7 +2324,7 @@ function TuneGetNoteAllocator( tp: TunePlayer ): NoteAllocator; external name '_
 
 {
  *  TuneSetSofter()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2337,7 +2337,7 @@ function TuneSetSofter( tp: TunePlayer; softer: SIGNEDLONG ): ComponentResult; e
 
 {
  *  TuneTask()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2350,7 +2350,7 @@ function TuneTask( tp: TunePlayer ): ComponentResult; external name '_TuneTask';
 
 {
  *  TuneSetBalance()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2363,7 +2363,7 @@ function TuneSetBalance( tp: TunePlayer; balance: SIGNEDLONG ): ComponentResult;
 
 {
  *  TuneSetSoundLocalization()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2376,7 +2376,7 @@ function TuneSetSoundLocalization( tp: TunePlayer; data: Handle ): ComponentResu
 
 {
  *  TuneSetHeaderWithSize()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2395,7 +2395,7 @@ const
 
 {
  *  TuneSetPartMix()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2408,7 +2408,7 @@ function TuneSetPartMix( tp: TunePlayer; partNumber: UNSIGNEDLONG; volume: SIGNE
 
 {
  *  TuneGetPartMix()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2425,68 +2425,68 @@ type
 {    QuickTime Music Track Event Formats:
 
     At this time, QuickTime music tracks support 5 different event types -- REST events,
-    short NOTE events, short CONTROL events, short GENERAL events, Long NOTE events, 
+    short NOTE events, short CONTROL events, short GENERAL events, Long NOTE events,
     long CONTROL events, and variable GENERAL events.
- 
+
         ¥ REST Event (4 bytes/event):
-    
+
             (0 0 0) (5-bit UNUSED) (24-bit Rest Duration)
-        
+
         ¥ÊShort NOTE Events (4 bytes/event):
-    
+
             (0 0 1) (5-bit Part) (6-bit Pitch) (7-bit Volume) (11-bit Duration)
-        
+
             where:  Pitch is offset by 32 (Actual pitch = pitch field + 32)
 
         ¥ÊShort CONTROL Events (4 bytes/event):
-    
+
             (0 1 0) (5-bit Part) (8-bit Controller) (1-bit UNUSED) (1-bit Sign) (7-bit MSB) (7-bit LSB)
                                                                          ( or 15-bit Signed Value)
         ¥ Short GENERAL Event (4 bytes/event):
-    
+
             (0 1 1) (1-bit UNUSED) (12-bit Sub-Type) (16-bit Value)
-    
+
         ¥ Long NOTE Events (8 bytes/event):
-    
+
             (1 0 0 1) (12-bit Part) (1-bit UNUSED) (7-bit Pitch) (1-bit UNUSED) (7-bit Volume)
             (1 0) (8-bit UNUSED) (22-bit Duration)
-        
+
         ¥ÊLong CONTROL Event (8 bytes/event):
-        
-            (1 0 1 0) (12-bit Part) (16-bit Value MSB) 
+
+            (1 0 1 0) (12-bit Part) (16-bit Value MSB)
             (1 0) (14-bit Controller) (16-bit Value LSB)
-    
+
         ¥ÊLong KNOB Event (8 bytes/event):
-    
+
             (1 0 1 1) (12-bit Sub-Type) (16-bit Value MSB)
             (1 0) (14-bit KNOB) (16-bit Value LSB)
-    
+
         ¥ÊVariable GENERAL Length Events (N bytes/event):
-    
+
             (1 1 1 1) (12-bit Sub-Type) (16-bit Length)
                 :
             (32-bit Data values)
                 :
             (1 1) (14-bit UNUSED) (16-bit Length)
-    
+
             where:  Length field is the number of LONG words in the record.
                     Lengths include the first and last long words (Minimum length = 2)
-                
-    The following event type values have not been used yet and are reserved for 
+
+    The following event type values have not been used yet and are reserved for
     future expansion:
-        
+
         ¥ (1 0 0 0)     (8 bytes/event)
         ¥ (1 1 0 0)     (N bytes/event)
         ¥ (1 1 0 1)     (N bytes/event)
         ¥ (1 1 1 0)     (N bytes/event)
-        
+
     For all events, the following generalizations apply:
-    
+
         -   All duration values are specified in Millisecond units.
         -   Pitch values are intended to map directly to the MIDI key numbers.
         -   Controllers from 0 to 127 correspond to the standard MIDI controllers.
-            Controllers greater than 127 correspond to other controls (i.e., Pitch Bend, 
-            Key Pressure, and Channel Pressure).    
+            Controllers greater than 127 correspond to other controls (i.e., Pitch Bend,
+            Key Pressure, and Channel Pressure).
 }
 
 { Defines for the implemented music event data fields}
@@ -2607,7 +2607,7 @@ const
 { UPP call backs }
 {
  *  NewMusicMIDISendUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2618,7 +2618,7 @@ function NewMusicMIDISendUPP( userRoutine: MusicMIDISendProcPtr ): MusicMIDISend
 
 {
  *  NewMusicOfflineDataUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2629,7 +2629,7 @@ function NewMusicOfflineDataUPP( userRoutine: MusicOfflineDataProcPtr ): MusicOf
 
 {
  *  NewTuneCallBackUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2640,7 +2640,7 @@ function NewTuneCallBackUPP( userRoutine: TuneCallBackProcPtr ): TuneCallBackUPP
 
 {
  *  NewTunePlayCallBackUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2651,7 +2651,7 @@ function NewTunePlayCallBackUPP( userRoutine: TunePlayCallBackProcPtr ): TunePla
 
 {
  *  DisposeMusicMIDISendUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2662,7 +2662,7 @@ procedure DisposeMusicMIDISendUPP( userUPP: MusicMIDISendUPP ); external name '_
 
 {
  *  DisposeMusicOfflineDataUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2673,7 +2673,7 @@ procedure DisposeMusicOfflineDataUPP( userUPP: MusicOfflineDataUPP ); external n
 
 {
  *  DisposeTuneCallBackUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2684,7 +2684,7 @@ procedure DisposeTuneCallBackUPP( userUPP: TuneCallBackUPP ); external name '_Di
 
 {
  *  DisposeTunePlayCallBackUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2695,7 +2695,7 @@ procedure DisposeTunePlayCallBackUPP( userUPP: TunePlayCallBackUPP ); external n
 
 {
  *  InvokeMusicMIDISendUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2706,7 +2706,7 @@ function InvokeMusicMIDISendUPP( self: ComponentInstance; refCon: SIGNEDLONG; va
 
 {
  *  InvokeMusicOfflineDataUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2717,7 +2717,7 @@ function InvokeMusicOfflineDataUPP( SoundData: Ptr; numBytes: SIGNEDLONG; myRefC
 
 {
  *  InvokeTuneCallBackUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2728,7 +2728,7 @@ procedure InvokeTuneCallBackUPP( const (*var*) status: TuneStatus; refCon: SIGNE
 
 {
  *  InvokeTunePlayCallBackUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later

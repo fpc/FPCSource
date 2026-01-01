@@ -1,17 +1,17 @@
 {
      File:       HIToolbox/Menus.h
- 
+
      Contains:   Menu Manager Interfaces.
- 
+
      Version:    HIToolbox-624~3
- 
+
      Copyright:  © 1985-2008 by Apple Computer, Inc., all rights reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {       Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, August 2005 }
 {       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
@@ -352,7 +352,7 @@ const
 
 {
  *  MenuAttributes
- *  
+ *
  *  Summary:
  *    Menu attributes control behavior of the entire menu. They are
  *    used with the Get/ChangeMenuAttributes APIs.
@@ -429,7 +429,7 @@ const
 
 {
  *  MenuItemAttributes
- *  
+ *
  *  Summary:
  *    Menu item attributes control behavior of individual menu items.
  *    They are used with the Get/ChangeMenuItemAttributes APIs.
@@ -559,7 +559,7 @@ const
 
 {
  *  MenuTrackingMode
- *  
+ *
  *  Summary:
  *    A menu tracking mode constant is part of the
  *    kEventMenuBeginTracking and kEventMenuChangeTrackingMode Carbon
@@ -582,7 +582,7 @@ const
 
 {
  *  MenuEventOptions
- *  
+ *
  *  Summary:
  *    Menu event options control how the menus are searched for an item
  *    matching a particular keyboard event. They are used with the
@@ -634,12 +634,12 @@ type
 
 {
  *  MenuBarHeader
- *  
+ *
  *  Summary:
  *    This structure is contained in a MenuBarHandle. It contains a
  *    list of the non-hierarchical menus that have been inserted into
  *    the menubar.
- *  
+ *
  *  Discussion:
  *    The MenuBarHandle is a dynamically sized object which cannot be
  *    directly expressed as a C or Pascal structure. First is the
@@ -672,12 +672,12 @@ type
 
 {
  *  HMenuBarHeader
- *  
+ *
  *  Summary:
  *    This structure is contained in a MenuBarHandle. It contains a
  *    list of the hierarchical menus that have been inserted into the
  *    menubar with InsertMenu( menu, -1 ).
- *  
+ *
  *  Discussion:
  *    The hierarchical portion of the menubar follows the
  *    non-hierarchical portion in a menubar handle. The hierarchical
@@ -702,7 +702,7 @@ type
 
 {
  *  MenuBarMenu
- *  
+ *
  *  Summary:
  *    This structure contains a single menu in the menubar. It is an
  *    element in an array in the MenuBarHeader data strucuture.
@@ -724,7 +724,7 @@ type
 
 {
  *  HMenuBarMenu
- *  
+ *
  *  Summary:
  *    This structure contains a single hierarchical menu in the
  *    menubar. It is an element in an array in the HMenuBarHeader data
@@ -745,7 +745,7 @@ type
 	end;
 {
  *  MenuTrackingData
- *  
+ *
  *  Summary:
  *    The MenuTrackingData structure contains information about a menu
  *    currently being displayed. It is used with the
@@ -781,8 +781,8 @@ const
    * will determine whether the menu text was most recently set using a
    * Str255 or CFString, and return only that text format; the flags
    * value for the other format will be cleared. Valid for both menu
-   * items and the menu title (if item number is 0). 
-   * 
+   * items and the menu title (if item number is 0).
+   *
    * Note that this option is not supported in the 64-bit HIToolbox API.
    }
 	kMenuItemDataText = 1 shl 0;
@@ -832,8 +832,8 @@ const
 
   {
    * Set or return the icon resource ID of a menu item using the
-   * MenuItemDataRec.iconID field. Valid only for menu items. 
-   * 
+   * MenuItemDataRec.iconID field. Valid only for menu items.
+   *
    * Note that this option is not supported in the 64-bit HIToolbox API.
    }
 	kMenuItemDataIconID = 1 shl 8;
@@ -864,8 +864,8 @@ const
   {
    * Set or return the text encoding of a menu item using the
    * MenuItemDataRec.encoding field. Valid only for menu items.
-   * 
-   * 
+   *
+   *
    * Note that this option is not supported in the 64-bit HIToolbox API.
    }
 	kMenuItemDataTextEncoding = 1 shl 11;
@@ -988,11 +988,11 @@ type
 
 {
  *  MenuItemDataRec
- *  
+ *
  *  Summary:
  *    The MenuItemDataRec structure is used to get and change aspects
  *    of a menu item. It is used with the Copy/SetMenuItemData APIs.
- *  
+ *
  *  Discussion:
  *    When using this structure with Copy/SetMenuItemData, the caller
  *    must first set the whichData field to a combination of
@@ -1042,7 +1042,7 @@ type
 
 {
  *  MenuDefType
- *  
+ *
  *  Summary:
  *    Types of custom menu definitions.
  }
@@ -1069,7 +1069,7 @@ type
 
 {
  *  MenuDefProcPtr
- *  
+ *
  *  Summary:
  *    Callback function for a custom menu definition.
  }
@@ -1078,7 +1078,7 @@ type
 	MenuDefUPP = MenuDefProcPtr;
 {
  *  NewMenuDefUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1089,7 +1089,7 @@ function NewMenuDefUPP( userRoutine: MenuDefProcPtr ): MenuDefUPP; external name
 
 {
  *  DisposeMenuDefUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1100,7 +1100,7 @@ procedure DisposeMenuDefUPP( userUPP: MenuDefUPP ); external name '_DisposeMenuD
 
 {
  *  InvokeMenuDefUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1114,7 +1114,7 @@ procedure InvokeMenuDefUPP( message: SInt16; theMenu: MenuRef; var menuRect: Rec
 
 {
  *  MenuDefSpec
- *  
+ *
  *  Summary:
  *    Specifies a custom menu definition.
  }
@@ -1142,32 +1142,32 @@ type
 {$ifc not TARGET_CPU_64}
 {
  *  [Mac]GetMenu()
- *  
+ *
  *  Summary:
  *    Creates a menu using the contents of a 'MENU' resource.
- *  
+ *
  *  Discussion:
  *    Apple recommends that you use Interface Builder to design your
  *    menus and other user interface components. Interface Builder
  *    stores its output in nib files rather then Resource Manager
  *    resources. Use the CreateMenuFromNib API to load a menu from a
  *    nib file.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    resourceID:
  *      The resource ID of the 'MENU' resource.
- *  
+ *
  *  Result:
  *    The newly created MenuRef. In CarbonLib and Mac OS X, a new menu
  *    will be created by each call to the GetMenu API; this is a change
  *    from the classic Mac OS API, in which GetMenu would return an
  *    existing menu if the menu had previously been created from the
  *    same resource.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1183,10 +1183,10 @@ function GetMenu( resourceID: SInt16 ): MenuRef; external name '_GetMenu';
 
 {
  *  DisposeMenu()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1198,10 +1198,10 @@ procedure DisposeMenu( theMenu: MenuRef ); external name '_DisposeMenu';
 
 {
  *  GetMenuID()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1213,10 +1213,10 @@ function GetMenuID( menu: MenuRef ): MenuID; external name '_GetMenuID';
 
 {
  *  GetMenuWidth()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1228,10 +1228,10 @@ function GetMenuWidth( menu: MenuRef ): SInt16; external name '_GetMenuWidth';
 
 {
  *  GetMenuHeight()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1243,10 +1243,10 @@ function GetMenuHeight( menu: MenuRef ): SInt16; external name '_GetMenuHeight';
 
 {
  *  GetMenuDefinition()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1258,10 +1258,10 @@ function GetMenuDefinition( menu: MenuRef; outDefSpec: MenuDefSpecPtr ): OSStatu
 
 {
  *  SetMenuID()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1273,10 +1273,10 @@ procedure SetMenuID( menu: MenuRef; menuID_: MenuID ); external name '_SetMenuID
 
 {
  *  SetMenuWidth()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1288,10 +1288,10 @@ procedure SetMenuWidth( menu: MenuRef; width: SInt16 ); external name '_SetMenuW
 
 {
  *  SetMenuHeight()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1303,10 +1303,10 @@ procedure SetMenuHeight( menu: MenuRef; height: SInt16 ); external name '_SetMen
 
 {
  *  SetMenuDefinition()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1318,10 +1318,10 @@ function SetMenuDefinition( menu: MenuRef; const (*var*) defSpec: MenuDefSpec ):
 
 {
  *  CalcMenuSize()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1333,10 +1333,10 @@ procedure CalcMenuSize( theMenu: MenuRef ); external name '_CalcMenuSize';
 
 {
  *  CountMenuItems()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1350,31 +1350,31 @@ function CountMenuItems( theMenu: MenuRef ): UInt16; external name '_CountMenuIt
 
 {
  *  GetMenuFont()
- *  
+ *
  *  Summary:
  *    Retrieves the QuickDraw font ID and size used to draw the items
  *    in a menu.
- *  
+ *
  *  Discussion:
  *    This API will be deprecated in the next major release of Mac OS
  *    X. Use HIMenuCopyFont instead of GetMenuFont.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    menu:
  *      The menu whose font to retrieve.
- *    
+ *
  *    outFontID:
  *      On exit, contains the menu's default font, or zero if the font
  *      has not been customized.
- *    
+ *
  *    outFontSize:
  *      On exit, contains the menu's default font size, or zero if the
  *      font size has not been customized.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1386,31 +1386,31 @@ function GetMenuFont( menu: MenuRef; var outFontID: SInt16; var outFontSize: UIn
 
 {
  *  SetMenuFont()
- *  
+ *
  *  Summary:
  *    Sets the QuickDraw font ID and size used to draw the items in a
  *    menu.
- *  
+ *
  *  Discussion:
  *    This API will be deprecated in the next major release of Mac OS
  *    X. Use HIMenuSetFont instead of SetMenuFont.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    menu:
  *      The menu whose font to set.
- *    
+ *
  *    inFontID:
  *      The menu's default font, or zero to use the standard font for
  *      menu items.
- *    
+ *
  *    inFontSize:
  *      The menu's default font size, or zero to use the standard font
  *      size for menu items.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1422,28 +1422,28 @@ function SetMenuFont( menu: MenuRef; inFontID: SInt16; inFontSize: UInt16 ): OSS
 
 {
  *  GetMenuExcludesMarkColumn()
- *  
+ *
  *  Summary:
  *    Returns whether the layout of a menu includes or excludes space
  *    for menu item marks.
- *  
+ *
  *  Discussion:
  *    Apple recommends that you use the GetMenuAttributes API and check
  *    for the kMenuAttrExcludesMarkColumn attribute instead of using
  *    this API.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    menu:
  *      The menu to examine.
- *  
+ *
  *  Result:
  *    True if the menu layout does not include space for menu item
  *    marks, or false if it does include space for marks.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1455,28 +1455,28 @@ function GetMenuExcludesMarkColumn( menu: MenuRef ): Boolean; external name '_Ge
 
 {
  *  SetMenuExcludesMarkColumn()
- *  
+ *
  *  Summary:
  *    Sets whether the layout of a menu includes or excludes space for
  *    menu item marks.
- *  
+ *
  *  Discussion:
  *    Apple recommends that you use the ChangeMenuAttributes API with
  *    the kMenuAttrExcludesMarkColumn attribute instead of using this
  *    API.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    menu:
  *      The menu to modify.
- *    
+ *
  *    excludesMark:
  *      True if the menu layout should not include space for menu item
  *      marks, or false if it should include space for marks.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1488,11 +1488,11 @@ function SetMenuExcludesMarkColumn( menu: MenuRef; excludesMark: Boolean ): OSSt
 
 {
  *  RegisterMenuDefinition()
- *  
+ *
  *  Summary:
  *    Registers or unregisters a binding between a resource ID and a
  *    menu definition function.
- *  
+ *
  *  Discussion:
  *    In the classic Mac OS Menu Manager, a 'MENU' resource can contain
  *    an embedded MDEF procID that is used by the Menu Manager as the
@@ -1503,21 +1503,21 @@ function SetMenuExcludesMarkColumn( menu: MenuRef; excludesMark: Boolean ): OSSt
  *    to an MDEF resource. However, using RegisterMenuDefinition you
  *    can instead specify a UniversalProcPtr pointing to code in your
  *    application code fragment.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inResID:
  *      An MDEF proc ID, as used in a 'MENU' resource.
- *    
+ *
  *    inDefSpec:
  *      Specifies the MenuDefUPP that should be used for menus with the
  *      given MDEF proc ID. Passing NULL allows you to unregister the
  *      menu definition that had been associated with the given MDEF
  *      proc ID.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1529,31 +1529,31 @@ function RegisterMenuDefinition( inResID: SInt16; inDefSpec: MenuDefSpecPtr ): O
 
 {
  *  CreateNewMenu()
- *  
+ *
  *  Summary:
  *    Creates a new, untitled, empty menu.
- *  
+ *
  *  Discussion:
  *    CreateNewMenu is preferred over NewMenu because it allows you to
  *    specify the menu's attributes and it does not require you to
  *    specify a Str255-based menu title. To set the menu title, you can
  *    use either SetMenuTitle or SetMenuTitleWithCFString.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inMenuID:
  *      The menu ID to use for the new menu. Zero is a valid menu ID in
  *      Carbon.
- *    
+ *
  *    inMenuAttributes:
  *      The menu attributes to use for the new menu.
- *    
+ *
  *    outMenuRef:
  *      On exit, contains the new menu.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1565,34 +1565,34 @@ function CreateNewMenu( inMenuID: MenuID; inMenuAttributes: MenuAttributes; var 
 
 {
  *  CreateCustomMenu()
- *  
+ *
  *  Summary:
  *    Creates a new, untitled, empty menu using a custom menu
  *    definition function.
- *  
+ *
  *  Discussion:
  *    Similar to CreateNewMenu, but also allows you to specify a custom
  *    menu definition function.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inDefSpec:
  *      Specifies a custom menu definition function. defSpec->defType
  *      must be kMenuDefProcPtr or, on Mac OS X 10.3 and later,
  *      kMenuDefClassID.
- *    
+ *
  *    inMenuID:
  *      The menu ID to use for the new menu.
- *    
+ *
  *    inMenuAttributes:
  *      The menu attributes to use for the new menu.
- *    
+ *
  *    outMenuRef:
  *      On exit, contains the new menu.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1604,21 +1604,21 @@ function CreateCustomMenu( const (*var*) inDefSpec: MenuDefSpec; inMenuID: MenuI
 
 {
  *  IsValidMenu()
- *  
+ *
  *  Summary:
  *    Determines if a menu is valid.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inMenu:
  *      The menu to check for validity.
- *  
+ *
  *  Result:
  *    Indicates whether the menu is valid.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1630,27 +1630,27 @@ function IsValidMenu( inMenu: MenuRef ): Boolean; external name '_IsValidMenu';
 
 {
  *  DuplicateMenu()
- *  
+ *
  *  Summary:
  *    Creates a new menu that is a copy of another menu.
- *  
+ *
  *  Discussion:
  *    Unlike RetainMenu, DuplicateMenu creates an entirely new menu
  *    that is an exact copy of the original menu. The MDEF for the new
  *    menu will receive an init message after the menu has been fully
  *    created.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inSourceMenu:
  *      The menu to duplicate.
- *    
+ *
  *    outMenu:
  *      On exit, a copy of the source menu.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1662,22 +1662,22 @@ function DuplicateMenu( inSourceMenu: MenuRef; var outMenu: MenuRef ): OSStatus;
 
 {
  *  CopyMenuTitleAsCFString()
- *  
+ *
  *  Summary:
  *    Returns a CFString containing the title of a menu.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inMenu:
  *      The menu whose title to return.
- *    
+ *
  *    outString:
  *      On exit, a CFString containing the menu's title. This string
  *      must be released by the caller.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1689,10 +1689,10 @@ function CopyMenuTitleAsCFString( inMenu: MenuRef; var outString: CFStringRef ):
 
 {
  *  SetMenuTitleWithCFString()
- *  
+ *
  *  Summary:
  *    Sets the title of a menu to the text contained in a CFString.
- *  
+ *
  *  Discussion:
  *    The Menu Manager will either make its own copy or just increment
  *    the refcount of the CFString before returning from
@@ -1701,18 +1701,18 @@ function CopyMenuTitleAsCFString( inMenu: MenuRef; var outString: CFStringRef ):
  *    string after calling SetMenuTitleWithCFString will have no effect
  *    on the menu's actual title. The caller may release the string
  *    after calling SetMenuTitleWithCFString.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inMenu:
  *      The menu whose title to set.
- *    
+ *
  *    inString:
  *      The string containing the new menu title text.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1724,10 +1724,10 @@ function SetMenuTitleWithCFString( inMenu: MenuRef; inString: CFStringRef ): OSS
 
 {
  *  SetMenuTitleIcon()
- *  
+ *
  *  Summary:
  *    Sets the title of a menu to be an icon.
- *  
+ *
  *  Discussion:
  *    The Menu Manager takes ownership of the supplied icon after this
  *    call. When a menu with an title icon is disposed, the Menu
@@ -1738,27 +1738,27 @@ function SetMenuTitleWithCFString( inMenu: MenuRef; inString: CFStringRef ): OSS
  *    release your reference to the icon or image without invalidating
  *    the Menu Manager's copy. The menubar will be invalidated by this
  *    call, and redrawn at the next opportunity.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inMenu:
  *      The menu whose title to set.
- *    
+ *
  *    inType:
  *      The type of icon being used to specify the icon title; use
  *      kMenuNoIcon to remove the icon from the menu title. In Mac OS X
  *      10.2 and earlier, the supported types are kMenuIconSuiteType
  *      and kMenuIconRefType; Mac OS X 10.3 also supports
  *      kMenuCGImageRefType.
- *    
+ *
  *    inIcon:
  *      The icon; must be NULL if inType is kMenuNoIcon. The supported
  *      icon formats are IconSuiteRef, IconRef, and in Mac OS X 10.3
  *      and later, CGImageRef.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1770,32 +1770,32 @@ function SetMenuTitleIcon( inMenu: MenuRef; inType: UInt32; inIcon: UnivPtr ): O
 
 {
  *  GetMenuTitleIcon()
- *  
+ *
  *  Summary:
  *    Retrieves the icon, if any, being used as the title of a menu.
- *  
+ *
  *  Discussion:
  *    This API does not increment a refcount on the returned icon. The
  *    caller should not release the icon.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inMenu:
  *      The menu whose icon title to retrieve.
- *    
+ *
  *    outType:
  *      On exit, contains the type of icon being used as the title of
  *      the menu. Contains kMenuNoIcon if the menu does not have an
  *      icon title.
- *    
+ *
  *    outIcon:
  *      On exit, contains the IconSuiteRef, IconRef, or CGImageRef
  *      being used as the title of the menu, or NULL if the menu does
  *      not have an icon title. May be NULL.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1807,26 +1807,26 @@ function GetMenuTitleIcon( inMenu: MenuRef; outType: UInt32Ptr { can be NULL }; 
 
 {
  *  InvalidateMenuSize()
- *  
+ *
  *  Summary:
  *    Invalidates the menu size so that it will be recalculated when
  *    next displayed.
- *  
+ *
  *  Discussion:
  *    The pre-Carbon technique for invalidating the menu size was to
  *    set the width and height to -1. Although this technique still
  *    works, for best compatibility it's preferable to use the
  *    InvalidateMenuSize API so that the Menu Manager has explicit
  *    notification that the menu is invalid.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inMenu:
  *      The menu whose size to invalidate.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1838,25 +1838,25 @@ function InvalidateMenuSize( inMenu: MenuRef ): OSStatus; external name '_Invali
 
 {
  *  IsMenuSizeInvalid()
- *  
+ *
  *  Summary:
  *    Determines if a menu's size is invalid and should be recalculated.
- *  
+ *
  *  Discussion:
  *    The pre-Carbon technique for determining if a menu's size is
  *    invalid was to check if the width or height was -1. This
  *    technique is not always reliable on Carbon due to implementation
  *    changes in the Menu Manager. You should now use IsMenuSizeInvalid
  *    instead.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inMenu:
  *      The menu whose size to examine.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1868,11 +1868,11 @@ function IsMenuSizeInvalid( inMenu: MenuRef ): Boolean; external name '_IsMenuSi
 
 {
  *  HIMenuGetContentView()
- *  
+ *
  *  Summary:
  *    Returns the HIViewRef that will be used to draw menu content for
  *    this menu, if any.
- *  
+ *
  *  Discussion:
  *    If the content view has not yet been created, the Menu Manager
  *    will create the content view using the view class ID and
@@ -1881,25 +1881,25 @@ function IsMenuSizeInvalid( inMenu: MenuRef ): Boolean; external name '_IsMenuSi
  *    content view is embedded inside the window content view. If the
  *    menu uses an MDEF instead of an HIView to draw its content, noErr
  *    is returned but the output HIViewRef is set to NULL.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inMenu:
  *      The menu.
- *    
+ *
  *    inMenuType:
  *      The type of menu for which the menu content view should be
  *      returned. The same MenuRef may have multiple content views,
  *      depending on the menu type being displayed.
- *    
+ *
  *    outView:
  *      On exit, contains the view. May be set to NULL if the menu does
  *      not use an HIView to draw its content. The caller should not
  *      release this view.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -1911,10 +1911,10 @@ function HIMenuGetContentView( inMenu: MenuRef; inMenuType: ThemeMenuType; var o
 
 {
  *  HIMenuSetFont()
- *  
+ *
  *  Summary:
  *    Sets the font to be used to draw a menu or a menu item.
- *  
+ *
  *  Discussion:
  *    Pass zero for the inItem parameter to set the default font for
  *    all of the items in a menu. Pass a non-zero value for the inItem
@@ -1923,26 +1923,26 @@ function HIMenuGetContentView( inMenu: MenuRef; inMenuType: ThemeMenuType; var o
  *    it will also apply to all submenus of the menu. Setting a font
  *    for a specific item does not cause that font to apply to the
  *    item's submenu.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inMenu:
  *      The menu whose font to set.
- *    
+ *
  *    inItem:
  *      The item whose font to set, or zero to customze the font for
  *      the entire menu.
- *    
+ *
  *    inFont:
  *      The font to use for the specified menu or item. May be NULL to
  *      remove the menu or item's current custom font. The font will be
  *      retained by the Menu Manager and released when the menu or item
  *      is destroyed, or when the font for the menu or item is changed
  *      to a different value.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available
@@ -1954,29 +1954,29 @@ function HIMenuSetFont( inMenu: MenuRef; inItem: MenuItemIndex; inFont: CTFontRe
 
 {
  *  HIMenuCopyFont()
- *  
+ *
  *  Summary:
  *    Retrieves the custom font that is used to draw a menu or a menu
  *    item.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inMenu:
  *      The menu whose font to retrieve.
- *    
+ *
  *    inItem:
  *      The item whose font to retrieve, or zero to retrieve the font
  *      for the entire menu.
- *    
+ *
  *    outFont:
  *      On exit, contains the font used for the specified menu or item.
  *      If the menu or item does not have a custom font, the resulting
  *      CTFontRef is set to NULL. The caller must release the
  *      CTFontRef, if it is non-NULL.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available
@@ -1991,10 +1991,10 @@ function HIMenuCopyFont( inMenu: MenuRef; inItem: MenuItemIndex; var outFont: CT
 {——————————————————————————————————————————————————————————————————————————————————————}
 {
  *  DeleteMenuItem()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2006,33 +2006,33 @@ procedure DeleteMenuItem( theMenu: MenuRef; item: MenuItemIndex ); external name
 
 {
  *  CopyMenuItems()
- *  
+ *
  *  Summary:
  *    Copies menu items from one menu to another.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inSourceMenu:
  *      The menu from which to copy items.
- *    
+ *
  *    inFirstItem:
  *      The first item to copy.
- *    
+ *
  *    inNumItems:
  *      The number of items to copy.
- *    
+ *
  *    inDestMenu:
  *      The menu to which to copy items.
- *    
+ *
  *    inInsertAfter:
  *      The menu item in the destination menu after which to insert the
  *      copied items. Pass 0 to insert the items at the beginning of
  *      the menu. This value of this parameter must not exceed the
  *      number of items in the destination menu.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2044,28 +2044,28 @@ function CopyMenuItems( inSourceMenu: MenuRef; inFirstItem: MenuItemIndex; inNum
 
 {
  *  DeleteMenuItems()
- *  
+ *
  *  Summary:
  *    Deletes multiple menu items.
- *  
+ *
  *  Discussion:
  *    This API is more efficient than calling DeleteMenuItem multiple
  *    times.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inMenu:
  *      The menu from which to delete items.
- *    
+ *
  *    inFirstItem:
  *      The first item to delete.
- *    
+ *
  *    inNumItems:
  *      The number of items to delete.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2077,10 +2077,10 @@ function DeleteMenuItems( inMenu: MenuRef; inFirstItem: MenuItemIndex; inNumItem
 
 {
  *  AppendMenuItemTextWithCFString()
- *  
+ *
  *  Summary:
  *    Appends a new menu item with text from a CFString.
- *  
+ *
  *  Discussion:
  *    The Menu Manager will either make its own copy or just increment
  *    the refcount of the CFString before returning from
@@ -2089,28 +2089,28 @@ function DeleteMenuItems( inMenu: MenuRef; inFirstItem: MenuItemIndex; inNumItem
  *    string after calling AppendMenuItemTextWithCFString will have no
  *    effect on the menu item's actual text. The caller may release the
  *    string after calling AppendMenuItemTextWithCFString.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inMenu:
  *      The menu to which to append the new item.
- *    
+ *
  *    inString:
  *      The text of the new item.
- *    
+ *
  *    inAttributes:
  *      The attributes of the new item.
- *    
+ *
  *    inCommandID:
  *      The command ID of the new item.
- *    
+ *
  *    outNewItem:
  *      On exit, the index of the new item. May be NULL if the caller
  *      does not need this information.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2122,10 +2122,10 @@ function AppendMenuItemTextWithCFString( inMenu: MenuRef; inString: CFStringRef;
 
 {
  *  InsertMenuItemTextWithCFString()
- *  
+ *
  *  Summary:
  *    Inserts a new menu item with text from a CFString.
- *  
+ *
  *  Discussion:
  *    The Menu Manager will either make its own copy or just increment
  *    the refcount of the CFString before returning from
@@ -2134,30 +2134,30 @@ function AppendMenuItemTextWithCFString( inMenu: MenuRef; inString: CFStringRef;
  *    string after calling InsertMenuItemWithCFString will have no
  *    effect on the menu item's actual text. The caller may release the
  *    string after calling InsertMenuItemWithCFString.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inMenu:
  *      The menu in which to insert the new item.
- *    
+ *
  *    inString:
  *      The text of the new item.
- *    
+ *
  *    inAfterItem:
  *      The item after which to insert the new item. Pass 0 to insert
  *      the item at the beginning of the menu. If inAfterItem is
  *      greater than the number of items in the menu, the item is
  *      inserted at the end of the menu.
- *    
+ *
  *    inAttributes:
  *      The attributes of the new item.
- *    
+ *
  *    inCommandID:
  *      The command ID of the new item.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2172,10 +2172,10 @@ function InsertMenuItemTextWithCFString( inMenu: MenuRef; inString: CFStringRef;
 {——————————————————————————————————————————————————————————————————————————————————————}
 {
  *  HIMenuSetSelection()
- *  
+ *
  *  Summary:
  *    Sets the selected item in a menu.
- *  
+ *
  *  Discussion:
  *    The HIMenuSetSelection API may be called either before opening a
  *    menu, or while a menu is open. If called before opening a menu,
@@ -2189,23 +2189,23 @@ function InsertMenuItemTextWithCFString( inMenu: MenuRef; inString: CFStringRef;
  *    state of hierarchical submenus of the previously selected or
  *    newly selected item, so Apple recommends that you do not change
  *    the selected state of an item with a hierarchical submenu.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inMenu:
  *      The menu whose selected item to set.
- *    
+ *
  *    inMenuType:
  *      The type of menu for which to set the selected item. Ignored
  *      unless the menu is already open; use GetMenuType to determine
  *      the menu's current type.
- *    
+ *
  *    inItem:
  *      The menu item that should be selected.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available
@@ -2217,10 +2217,10 @@ function HIMenuSetSelection( inMenu: MenuRef; inMenuType: ThemeMenuType; inItem:
 
 {
  *  MenuSelect()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2232,43 +2232,43 @@ function MenuSelect( startPt: Point ): SInt32; external name '_MenuSelect';
 
 {
  *  PopUpMenuSelect()
- *  
+ *
  *  Summary:
  *    Displays a pop-up menu at a specified location.
- *  
+ *
  *  Discussion:
  *    In Mac OS 9 and earlier, PopUpMenuSelect requires that the menu
  *    be inserted into the menubar using InsertMenu( menuRef,
  *    kInsertHierarchicalMenu ). CarbonLib 1.1 and later, and Mac OS X,
  *    do not have this requirement; a menu can be displayed by
  *    PopUpMenuSelect even if it is not inserted in the menubar.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    menu:
  *      The menu to display.
- *    
+ *
  *    top:
  *      The vertical position, in global coordinates, of the top left
  *      corner of the selected item when the menu is opened.
- *    
+ *
  *    left:
  *      The horizontal position, in global coordinates, of the top left
  *      corner of the selected item when the menu is opened.
- *    
+ *
  *    popUpItem:
  *      The item that should be positioned at the global point
  *      specified by the top and left parameters. May be zero, in which
  *      case item one is positioned at the specified global point.
- *  
+ *
  *  Result:
  *    A 32-bit value whose high 16-bit word is the menu ID and whose
  *    low 16-bit word is the index of the menu item that was selected,
  *    or zero if no item was selected.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2280,10 +2280,10 @@ function PopUpMenuSelect( menu: MenuRef; top: SInt16; left: SInt16; popUpItem: M
 
 {
  *  MenuChoice()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2295,30 +2295,30 @@ function MenuChoice: SInt32; external name '_MenuChoice';
 
 {
  *  MenuEvent()
- *  
+ *
  *  Summary:
  *    Determines whether an event should result in the selection of a
  *    menu item.
- *  
+ *
  *  Discussion:
  *    Apple recommends that you use the IsMenuKeyEvent API rather than
  *    this API.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inEvent:
  *      The event to examine. Typically, this is a keyboard event.
- *  
+ *
  *  Result:
  *    If the keyboard event corresponds to a menu item's keyboard
  *    equivalent, then the result is a 32-bit value whose high 16-bit
  *    word is the menu ID and whose low 16-bit word is the index of the
  *    menu item that was found. Zero is returned if no item matched the
  *    event.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2330,38 +2330,38 @@ function MenuEvent( const (*var*) inEvent: EventRecord ): UInt32; external name 
 
 {
  *  IsMenuKeyEvent()
- *  
+ *
  *  Summary:
  *    Determines if an event corresponds to a menu command key.
- *  
+ *
  *  Discussion:
  *    By default, IsMenuKeyEvent searches the menus in the current menu
  *    bar and hilites the menu title of the menu containing the
  *    selected item.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inStartMenu:
  *      IsMenuKeyEvent searches for matching menu items in this menu
  *      and all of its submenus. May be NULL to search the current menu
  *      bar contents.
- *    
+ *
  *    inEvent:
  *      The event to match against. Non-keyboard events are ignored.
- *    
+ *
  *    inOptions:
  *      Options controlling how to search. Pass kNilOptions for the
  *      default behavior.
- *    
+ *
  *    outMenu:
  *      On exit, the menu containing the matching item. May be NULL.
- *    
+ *
  *    outMenuItem:
  *      On exit, the menu item that matched. May be NULL.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2373,11 +2373,11 @@ function IsMenuKeyEvent( inStartMenu: MenuRef; inEvent: EventRef; inOptions: Men
 
 {
  *  InvalidateMenuEnabling()
- *  
+ *
  *  Summary:
  *    Causes the menu enable state to be recalculated at the next
  *    convenient opportunity.
- *  
+ *
  *  Discussion:
  *    It is common for state changes in an application (for example,
  *    selection of text) to cause a change in the enabling of items in
@@ -2392,16 +2392,16 @@ function IsMenuKeyEvent( inStartMenu: MenuRef; inEvent: EventRef; inOptions: Men
  *    top-level menus when a user event is dispatched, the user focus
  *    changes, or the active window changes, so in many cases you will
  *    not need to explicitly invalidate the menu enabling state.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inMenu:
  *      A menu to re-enable, or NULL if all menus in the root menu
  *      should be re-enabled.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -2475,31 +2475,31 @@ const
 {$ifc not TARGET_CPU_64}
 {
  *  CancelMenuTracking()
- *  
+ *
  *  Summary:
  *    Cancels a menu tracking session.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inRootMenu:
  *      The root menu of the menu tracking session that should be
  *      dismissed. For menubar tracking, use the result of AcquireRoot
  *      menu; for popup menu tracking, use the menu that was passed to
  *      PopUpMenuSelect.
- *    
+ *
  *    inImmediate:
  *      Whether the open menus should disappear immediately or fade out.
- *    
+ *
  *    inDismissalReason:
  *      Why the menu is being dismissed; this value will be added to
  *      the kEventMenuEndTracking event. On Mac OS X 10.5 and later,
  *      you may pass zero to indicate that
  *      kHIMenuDismissedByCancelMenuTracking should be passed to the
  *      EndTracking event.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -2514,10 +2514,10 @@ function CancelMenuTracking( inRootMenu: MenuRef; inImmediate: Boolean; inDismis
 {——————————————————————————————————————————————————————————————————————————————————————}
 {
  *  GetMBarHeight()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2529,10 +2529,10 @@ function GetMBarHeight: SInt16; external name '_GetMBarHeight';
 
 {
  *  [Mac]DrawMenuBar()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2546,10 +2546,10 @@ procedure MacDrawMenuBar; external name '_DrawMenuBar';
 
 {
  *  InvalMenuBar()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2561,19 +2561,19 @@ procedure InvalMenuBar; external name '_InvalMenuBar';
 
 {
  *  IsMenuBarInvalid()
- *  
+ *
  *  Summary:
  *    Determines if the menubar is invalid and should be redrawn.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    rootMenu:
  *      The root menu for the menubar to be examined. Pass NULL to
  *      check the state of the current menubar.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2585,10 +2585,10 @@ function IsMenuBarInvalid( rootMenu: MenuRef ): Boolean; external name '_IsMenuB
 
 {
  *  HiliteMenu()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2600,30 +2600,30 @@ procedure HiliteMenu( menuID_: MenuID ); external name '_HiliteMenu';
 
 {
  *  GetNewMBar()
- *  
+ *
  *  Summary:
  *    Creates multiple menus using the contents of a 'MBAR' resource.
- *  
+ *
  *  Discussion:
  *    Apple recommends that you use Interface Builder to design your
  *    menus and other user interface components. Interface Builder
  *    stores its output in nib files rather then Resource Manager
  *    resources. Use the CreateMenuBarFromNib API to load a menu from a
  *    nib file.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    menuBarID:
  *      The resource ID of the 'MBAR' resource.
- *  
+ *
  *  Result:
  *    The newly created menubar handle. Use SetMenuBar to place the
  *    contents of the menubar handle into the menubar. You must release
  *    the menubar handle with DisposeMenuBar when you are done with it.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2635,10 +2635,10 @@ function GetNewMBar( menuBarID: SInt16 ): MenuBarHandle; external name '_GetNewM
 
 {
  *  GetMenuBar()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2650,10 +2650,10 @@ function GetMenuBar: MenuBarHandle; external name '_GetMenuBar';
 
 {
  *  SetMenuBar()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2665,10 +2665,10 @@ procedure SetMenuBar( mbar: MenuBarHandle ); external name '_SetMenuBar';
 
 {
  *  DuplicateMenuBar()
- *  
+ *
  *  Summary:
  *    Duplicates a menubar handle.
- *  
+ *
  *  Discussion:
  *    This API should be used in Carbon applications when duplicating a
  *    handle returned from GetMenuBar or GetNewMBar. You should not use
@@ -2676,18 +2676,18 @@ procedure SetMenuBar( mbar: MenuBarHandle ); external name '_SetMenuBar';
  *    such a handle. This is necessary in Carbon so that the refcounts
  *    of the menus in the menubar handle can be incremented when the
  *    handle is duplicated.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inMbar:
  *      The menubar handle to duplicate.
- *    
+ *
  *    outMbar:
  *      On exit, contains the new menubar handle.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -2699,25 +2699,25 @@ function DuplicateMenuBar( inMbar: MenuBarHandle; var outMbar: MenuBarHandle ): 
 
 {
  *  DisposeMenuBar()
- *  
+ *
  *  Summary:
  *    Releases a menubar handle.
- *  
+ *
  *  Discussion:
  *    This API should be used in Carbon applications when releasing a
  *    handle returned from GetMenuBar or GetNewMBar. You should not use
  *    DisposeHandle to release such a handle. This is necessary in
  *    Carbon so that the refcounts of the menus in the menubar handle
  *    can be decremented when the handle is released.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inMbar:
  *      The menubar handle to release.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -2729,10 +2729,10 @@ function DisposeMenuBar( inMbar: MenuBarHandle ): OSStatus; external name '_Disp
 
 {
  *  GetMenuHandle()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2746,10 +2746,10 @@ function GetMenuRef( menuID_: MenuID ): MenuRef; external name '_GetMenuHandle';
 
 {
  *  [Mac]InsertMenu()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2763,10 +2763,10 @@ procedure MacInsertMenu( theMenu: MenuRef; beforeID: MenuID ); external name '_I
 
 {
  *  [Mac]DeleteMenu()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2780,10 +2780,10 @@ procedure MacDeleteMenu( menuID_: MenuID ); external name '_DeleteMenu';
 
 {
  *  ClearMenuBar()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2795,10 +2795,10 @@ procedure ClearMenuBar; external name '_ClearMenuBar';
 
 {
  *  FlashMenuBar()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2810,10 +2810,10 @@ procedure FlashMenuBar( menuID_: MenuID ); external name '_FlashMenuBar';
 
 {
  *  IsMenuBarVisible()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2825,10 +2825,10 @@ function IsMenuBarVisible: Boolean; external name '_IsMenuBarVisible';
 
 {
  *  ShowMenuBar()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2840,10 +2840,10 @@ procedure ShowMenuBar; external name '_ShowMenuBar';
 
 {
  *  HideMenuBar()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2855,18 +2855,18 @@ procedure HideMenuBar; external name '_HideMenuBar';
 
 {
  *  AcquireRootMenu()
- *  
+ *
  *  Summary:
  *    Get the menu whose contents are displayed in the menubar.
- *  
+ *
  *  Discussion:
  *    The refcount of the root menu is incremented by this API. The
  *    caller should release a refcount with ReleaseMenu when it’s done
  *    with the menu.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2878,19 +2878,19 @@ function AcquireRootMenu: MenuRef; external name '_AcquireRootMenu';
 
 {
  *  SetRootMenu()
- *  
+ *
  *  Summary:
  *    Sets the menu whose contents are displayed in the menubar.
- *  
+ *
  *  Discussion:
  *    The refcount of the root menu is incremented by this API. The
  *    caller may release the menu after calling SetRootMenu.
- *    
+ *
  *    A root menu should contain one menu item for each top-level menu
  *    that should be displayed in the menubar. Each menu item should
  *    have a submenu that was installed with
  *    SetMenuItemHierarchicalMenu.
- *    
+ *
  *    SetRootMenu also sets the contents of the hierarchical portion of
  *    the menulist (the set of menus that were inserted with
  *    InsertMenu( menu, kInsertHierarchicalMenu). If a menu that was
@@ -2899,15 +2899,15 @@ function AcquireRootMenu: MenuRef; external name '_AcquireRootMenu';
  *    in the hierarchical menulist when AcquireRootMenu was called. If
  *    a newly created menu is passed to SetRootMenu, the hierarchical
  *    menulist is cleared and has no menus in it.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inMenu:
  *      The new root menu.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2922,10 +2922,10 @@ function SetRootMenu( inMenu: MenuRef ): OSStatus; external name '_SetRootMenu';
 {——————————————————————————————————————————————————————————————————————————————————————}
 {
  *  [Mac]CheckMenuItem()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2939,10 +2939,10 @@ procedure MacCheckMenuItem( theMenu: MenuRef; item: MenuItemIndex; checked: Bool
 
 {
  *  SetItemMark()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2954,10 +2954,10 @@ procedure SetItemMark( theMenu: MenuRef; item: MenuItemIndex; markChar: CharPara
 
 {
  *  GetItemMark()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2976,30 +2976,30 @@ procedure GetItemMark( theMenu: MenuRef; item: MenuItemIndex; var markChar: Char
 
 {
  *  SetItemCmd()
- *  
+ *
  *  Summary:
  *    Sets a menu item's keyboard equivalent to a specified character
  *    in the application's text encoding.
- *  
+ *
  *  Discussion:
  *    Apple recommends that you use the SetMenuItemCommandKey API
  *    instead of this API.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    theMenu:
  *      The menu whose item to modify.
- *    
+ *
  *    item:
  *      The item whose keyboard equivalent to set.
- *    
+ *
  *    cmdChar:
  *      A character in the application's text encoding, or zero to
  *      remove the item's keyboard equivalent.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3011,30 +3011,30 @@ procedure SetItemCmd( theMenu: MenuRef; item: MenuItemIndex; cmdChar: CharParame
 
 {
  *  GetItemCmd()
- *  
+ *
  *  Summary:
  *    Returns a menu item's keyboard equivalent in the application's
  *    text encoding.
- *  
+ *
  *  Discussion:
  *    Apple recommends that you use the GetMenuItemCommandKey API
  *    instead of this API.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    theMenu:
  *      The menu whose item to query.
- *    
+ *
  *    item:
  *      The item whose keyboard equivalent to return.
- *    
+ *
  *    cmdChar:
  *      On exit, contains the menu item's keyboard equivalent, or zero
  *      if the item has no keyboard equivalent.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3052,10 +3052,10 @@ procedure GetItemCmd( theMenu: MenuRef; item: MenuItemIndex; var cmdChar: CharPa
 
 {
  *  SetItemStyle()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3067,10 +3067,10 @@ procedure SetItemStyle( theMenu: MenuRef; item: MenuItemIndex; chStyle: StylePar
 
 {
  *  GetItemStyle()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3082,10 +3082,10 @@ procedure GetItemStyle( theMenu: MenuRef; item: MenuItemIndex; var chStyle: Styl
 
 {
  *  SetMenuItemCommandID()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3097,10 +3097,10 @@ function SetMenuItemCommandID( inMenu: MenuRef; inItem: MenuItemIndex; inCommand
 
 {
  *  GetMenuItemCommandID()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3112,10 +3112,10 @@ function GetMenuItemCommandID( inMenu: MenuRef; inItem: MenuItemIndex; var outCo
 
 {
  *  SetMenuItemModifiers()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3127,10 +3127,10 @@ function SetMenuItemModifiers( inMenu: MenuRef; inItem: MenuItemIndex; inModifie
 
 {
  *  GetMenuItemModifiers()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3142,10 +3142,10 @@ function GetMenuItemModifiers( inMenu: MenuRef; inItem: MenuItemIndex; var outMo
 
 {
  *  SetMenuItemIconHandle()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3157,10 +3157,10 @@ function SetMenuItemIconHandle( inMenu: MenuRef; inItem: MenuItemIndex; inIconTy
 
 {
  *  GetMenuItemIconHandle()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3173,32 +3173,32 @@ function GetMenuItemIconHandle( inMenu: MenuRef; inItem: MenuItemIndex; var outI
 
 {
  *  SetMenuItemFontID()
- *  
+ *
  *  Summary:
  *    Sets the QuickDraw font ID used to draw a menu item.
- *  
+ *
  *  Discussion:
  *    The font ID specified with this API overrides the font ID
- *    specified with the SetMenuFont API. 
- *    
+ *    specified with the SetMenuFont API.
+ *
  *    This API will be deprecated in the next major release of Mac OS
  *    X. Use HIMenuSetFont instead of SetMenuItemFontID.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inMenu:
  *      The menu containing the item whose font to set.
- *    
+ *
  *    inItem:
  *      The menu item whose font to set.
- *    
+ *
  *    inFontID:
  *      The menu item's font, or zero to use the standard font for menu
  *      items.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3210,29 +3210,29 @@ function SetMenuItemFontID( inMenu: MenuRef; inItem: MenuItemIndex; inFontID: SI
 
 {
  *  GetMenuItemFontID()
- *  
+ *
  *  Summary:
  *    Retrieves the QuickDraw font ID used to draw a menu item.
- *  
+ *
  *  Discussion:
  *    This API will be deprecated in the next major release of Mac OS
  *    X. Use HIMenuCopyFont instead of GetMenuItemFontID.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inMenu:
  *      The menu containing the item whose font to retrieve.
- *    
+ *
  *    inItem:
  *      The menu item whose font to retrieve.
- *    
+ *
  *    outFontID:
  *      On exit, contains the menu item's font, or zero if the font has
  *      not been customized.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3244,10 +3244,10 @@ function GetMenuItemFontID( inMenu: MenuRef; inItem: MenuItemIndex; var outFontI
 
 {
  *  SetMenuItemRefCon()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3259,10 +3259,10 @@ function SetMenuItemRefCon( inMenu: MenuRef; inItem: MenuItemIndex; inRefCon: UR
 
 {
  *  GetMenuItemRefCon()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3274,10 +3274,10 @@ function GetMenuItemRefCon( inMenu: MenuRef; inItem: MenuItemIndex; var outRefCo
 
 {
  *  SetMenuItemKeyGlyph()
- *  
+ *
  *  Summary:
  *    Sets the command key glyph code for a menu item.
- *  
+ *
  *  Discussion:
  *    A menu item's command key may be customized using a key glyph
  *    code; these codes are the kMenu*Glyph constants documented in
@@ -3285,29 +3285,29 @@ function GetMenuItemRefCon( inMenu: MenuRef; inItem: MenuItemIndex; var outRefCo
  *    display; it does not affect command key matching. In Carbon, a
  *    menu item's glyph code is used for command key matching if the
  *    menu item does not have a command key character or virtual
- *    keycode assigned to it. 
- *    
+ *    keycode assigned to it.
+ *
  *    In CarbonLib 1.2 and Mac OS X 10.0 and later, the Menu Manager
  *    will automatically draw the appropriate glyph for a menu item
  *    that has a virtual keycode command key assigned to it; it is not
  *    necessary to set both the virtual keycode and the glyph for an
  *    item.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inMenu:
  *      The menu to change.
- *    
+ *
  *    inItem:
  *      The menu item to change.
- *    
+ *
  *    inGlyph:
  *      The new glyph code for the item, or zero to remove the item's
  *      glyph code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3319,10 +3319,10 @@ function SetMenuItemKeyGlyph( inMenu: MenuRef; inItem: MenuItemIndex; inGlyph: S
 
 {
  *  GetMenuItemKeyGlyph()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3336,10 +3336,10 @@ function GetMenuItemKeyGlyph( inMenu: MenuRef; inItem: MenuItemIndex; var outGly
 
 {
  *  [Mac]EnableMenuItem()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3353,10 +3353,10 @@ procedure MacEnableMenuItem( theMenu: MenuRef; item: MenuItemIndex ); external n
 
 {
  *  DisableMenuItem()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3368,10 +3368,10 @@ procedure DisableMenuItem( theMenu: MenuRef; item: MenuItemIndex ); external nam
 
 {
  *  IsMenuItemEnabled()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3383,10 +3383,10 @@ function IsMenuItemEnabled( menu: MenuRef; item: MenuItemIndex ): Boolean; exter
 
 {
  *  EnableMenuItemIcon()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3398,10 +3398,10 @@ procedure EnableMenuItemIcon( theMenu: MenuRef; item: MenuItemIndex ); external 
 
 {
  *  DisableMenuItemIcon()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3413,10 +3413,10 @@ procedure DisableMenuItemIcon( theMenu: MenuRef; item: MenuItemIndex ); external
 
 {
  *  IsMenuItemIconEnabled()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3428,10 +3428,10 @@ function IsMenuItemIconEnabled( menu: MenuRef; item: MenuItemIndex ): Boolean; e
 
 {
  *  SetMenuItemHierarchicalMenu()
- *  
+ *
  *  Summary:
  *    Attaches a submenu to a menu item.
- *  
+ *
  *  Discussion:
  *    Using SetMenuItemHierarchicalMenu, it is possible to directly
  *    specify the submenu for a menu item without specifying its menu
@@ -3443,21 +3443,21 @@ function IsMenuItemIconEnabled( menu: MenuRef; item: MenuItemIndex ): Boolean; e
  *    refcount of the submenu that you specify, and the submenu's
  *    refcount will be decremented automatically when the parent menu
  *    item is deleted or the parent menu is disposed.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inMenu:
  *      The parent menu.
- *    
+ *
  *    inItem:
  *      The parent item.
- *    
+ *
  *    inHierMenu:
  *      The submenu. You may pass NULL to remove any existing submenu.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -3469,10 +3469,10 @@ function SetMenuItemHierarchicalMenu( inMenu: MenuRef; inItem: MenuItemIndex; in
 
 {
  *  GetMenuItemHierarchicalMenu()
- *  
+ *
  *  Summary:
  *    Returns the submenu attached to a menu item.
- *  
+ *
  *  Discussion:
  *    GetMenuItemHierarchicalMenu will return the submenu attached to a
  *    menu item regardless of how the submenu was specified. If the
@@ -3482,21 +3482,21 @@ function SetMenuItemHierarchicalMenu( inMenu: MenuRef; inItem: MenuItemIndex; in
  *    only case where GetMenuItemHierarchicalMenu will fail to return
  *    the item's submenu is when the submenu is specified by menu ID,
  *    but the submenu is not currently inserted in the menu bar.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inMenu:
  *      The parent menu.
- *    
+ *
  *    inItem:
  *      The parent item.
- *    
+ *
  *    outHierMenu:
  *      On exit, the item's submenu, or NULL if it does not have one.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -3508,10 +3508,10 @@ function GetMenuItemHierarchicalMenu( inMenu: MenuRef; inItem: MenuItemIndex; va
 
 {
  *  HIMenuCopyParents()
- *  
+ *
  *  Summary:
  *    Returns the parent menus of a menu.
- *  
+ *
  *  Discussion:
  *    A menu may be a submenu of one or more other menus; for example,
  *    a Spelling menu might be a submenu of both an Edit menu contained
@@ -3520,21 +3520,21 @@ function GetMenuItemHierarchicalMenu( inMenu: MenuRef; inItem: MenuItemIndex; va
  *    MenuRefs that are the parent menus of the specified menu. If the
  *    menu has only a single parent, the array will have only that
  *    single parent menu in it.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inMenu:
  *      The menu whose parent menus to return.
- *    
+ *
  *    outParents:
  *      On exit, contains an array of MenuRefs that are parents of the
  *      specified menu. If the menu does not have any parents, the
  *      array on exit will be NULL. If not NULL, the caller is
  *      responsible for releasing the array.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available
@@ -3546,25 +3546,25 @@ function HIMenuCopyParents( inMenu: MenuRef; var outParents: CFArrayRef ): OSSta
 
 {
  *  CopyMenuItemTextAsCFString()
- *  
+ *
  *  Summary:
  *    Returns a CFString containing the text of a menu item.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inMenu:
  *      The menu containing the item.
- *    
+ *
  *    inItem:
  *      The item whose text to return.
- *    
+ *
  *    outString:
  *      On exit, a CFString containing the item's text. This string
  *      must be released by the caller.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -3576,10 +3576,10 @@ function CopyMenuItemTextAsCFString( inMenu: MenuRef; inItem: MenuItemIndex; var
 
 {
  *  SetMenuItemTextWithCFString()
- *  
+ *
  *  Summary:
  *    Sets the text of a menu item to the text contained in a CFString.
- *  
+ *
  *  Discussion:
  *    The Menu Manager will either make its own copy or just increment
  *    the refcount of the CFString before returning from
@@ -3588,21 +3588,21 @@ function CopyMenuItemTextAsCFString( inMenu: MenuRef; inItem: MenuItemIndex; var
  *    string after calling SetMenuItemTextWithCFString will have no
  *    effect on the menu item's actual text. The caller may release the
  *    string after calling SetMenuItemTextWithCFString.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inMenu:
  *      The menu containing the item.
- *    
+ *
  *    inItem:
  *      The item whose text to set.
- *    
+ *
  *    inString:
  *      The string containing the new menu item text.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -3614,10 +3614,10 @@ function SetMenuItemTextWithCFString( inMenu: MenuRef; inItem: MenuItemIndex; in
 
 {
  *  HIMenuSetAttributedItemText()
- *  
+ *
  *  Summary:
  *    Sets the attributed text of a menu item.
- *  
+ *
  *  Discussion:
  *    A menu item may have two strings attached to it: a regular
  *    CFString and an attributed CFString. The regular string is
@@ -3628,22 +3628,22 @@ function SetMenuItemTextWithCFString( inMenu: MenuRef; inItem: MenuItemIndex; in
  *    used for type-selection; this allows the attributed string to
  *    contain extra characters that should be ignored during
  *    type-selection.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inMenu:
  *      The menu containing the specified item.
- *    
+ *
  *    inItem:
  *      The menu item whose attributed text to set.
- *    
+ *
  *    inText:
  *      The new attributed text for the menu item. May be NULL if the
  *      item no longer need attributed text.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available
@@ -3655,25 +3655,25 @@ function HIMenuSetAttributedItemText( inMenu: MenuRef; inItem: MenuItemIndex; in
 
 {
  *  HIMenuCopyAttributedItemText()
- *  
+ *
  *  Summary:
  *    Retrieves the attributed text of a menu item.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inMenu:
  *      The menu containing the specified item.
- *    
+ *
  *    inItem:
  *      The menu item whose attributed text to retrieve.
- *    
+ *
  *    outText:
  *      On exit, contains the item's attributed text, or NULL if the
  *      item has no attributed text.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available
@@ -3685,31 +3685,31 @@ function HIMenuCopyAttributedItemText( inMenu: MenuRef; inItem: MenuItemIndex; v
 
 {
  *  GetMenuItemIndent()
- *  
+ *
  *  Summary:
  *    Gets the indent level of a menu item.
- *  
+ *
  *  Discussion:
  *    The indent level of an item is an amount of extra space added to
  *    the left of the item's icon or checkmark. The level is simply a
  *    number, starting at zero, which the Menu Manager multiplies by a
  *    constant to get the indent in pixels. The default indent level is
  *    zero.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inMenu:
  *      The menu containing the item.
- *    
+ *
  *    inItem:
  *      The item whose indent to retrieve.
- *    
+ *
  *    outIndent:
  *      On exit, the indent level of the item.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -3721,31 +3721,31 @@ function GetMenuItemIndent( inMenu: MenuRef; inItem: MenuItemIndex; var outInden
 
 {
  *  SetMenuItemIndent()
- *  
+ *
  *  Summary:
  *    Sets the indent level of a menu item.
- *  
+ *
  *  Discussion:
  *    The indent level of an item is an amount of extra space added to
  *    the left of the item's icon or checkmark. The level is simply a
  *    number, starting at zero, which the Menu Manager multiplies by a
  *    constant to get the indent in pixels. The default indent level is
  *    zero.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inMenu:
  *      The menu containing the item.
- *    
+ *
  *    inItem:
  *      The item whose indent to set.
- *    
+ *
  *    inIndent:
  *      The new indent level of the item.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -3757,10 +3757,10 @@ function SetMenuItemIndent( inMenu: MenuRef; inItem: MenuItemIndex; inIndent: UI
 
 {
  *  GetMenuItemCommandKey()
- *  
+ *
  *  Summary:
  *    Gets the keyboard equivalent of a menu item.
- *  
+ *
  *  Discussion:
  *    A menu item's keyboard equivalent may be either a character code
  *    or a virtual keycode. An item's character code and virtual
@@ -3774,25 +3774,25 @@ function SetMenuItemIndent( inMenu: MenuRef; inItem: MenuItemIndex; inIndent: UI
  *    you cannot test the returned keycode against zero to determine if
  *    the item is using a virtual keycode equivalent. You must test the
  *    kMenuItemAttrUseVirtualKey attribute.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inMenu:
  *      The menu containing the item.
- *    
+ *
  *    inItem:
  *      The item whose keyboard equivalent to retrieve.
- *    
+ *
  *    inGetVirtualKey:
  *      Indicates whether to retrieve the item's character code or
  *      virtual keycode equivalent.
- *    
+ *
  *    outKey:
  *      On exit, the keyboard equivalent of the item.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -3804,10 +3804,10 @@ function GetMenuItemCommandKey( inMenu: MenuRef; inItem: MenuItemIndex; inGetVir
 
 {
  *  SetMenuItemCommandKey()
- *  
+ *
  *  Summary:
  *    Sets the keyboard equivalent of a menu item.
- *  
+ *
  *  Discussion:
  *    A menu item's keyboard equivalent may be either a character code
  *    or a virtual keycode. The character code is always used to draw
@@ -3821,23 +3821,23 @@ function GetMenuItemCommandKey( inMenu: MenuRef; inItem: MenuItemIndex; inGetVir
  *    stop using the virtual keycode equivalent and use the character
  *    code equivalent instead, use ChangeMenuItemAttributes to clear
  *    the kMenuItemAttrUseVirtualKey item attribute.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inMenu:
  *      The menu containing the item.
- *    
+ *
  *    inItem:
  *      The item whose keyboard equivalent to set.
- *    
+ *
  *    inSetVirtualKey:
  *      Indicates whether to set the item's character code or virtual
  *      keycode equivalent. If setting a character code, the character
  *      is assumed to be in the application's text encoding.
- *    
+ *
  *    inKey:
  *      The item's new character code or virtual keycode equivalent.
  *      Note that the character code is not a Unicode value; rather,
@@ -3847,46 +3847,46 @@ function GetMenuItemCommandKey( inMenu: MenuRef; inItem: MenuItemIndex; inGetVir
  *      inSetVirtualKey is false. When receiving one of these values,
  *      the Menu Manager automatically sets the item's keyboard
  *      equivalent glyph code to an appropriate value using
- *      SetMenuItemKeyGlyph. 
- *      
- *      NSF1FunctionKey..NSF15FunctionKey 
- *      NSHomeFunctionKey 
- *      kEnterCharCode 
- *      kEndCharCode 
- *      NSEndFunctionKey 
- *      kHelpCharCode 
- *      NSHelpFunctionKey 
- *      kBackspaceCharCode 
- *      kTabCharCode 
- *      kLineFeedCharCode 
- *      kReturnCharCode 
- *      kPageUpCharCode 
- *      NSPageUpFunctionKey 
- *      kPageDownCharCode 
- *      NSPageDownFunctionKey 
- *      NSBackTabCharacter 
- *      kEscapeCharCode 
- *      NSClearDisplayFunctionKey 
- *      kLeftArrowCharCode 
- *      NSLeftArrowFunctionKey 
- *      kRightArrowCharCode 
- *      NSRightArrowFunctionKey 
- *      kUpArrowCharCode 
- *      NSUpArrowFunctionKey 
- *      kDownArrowCharCode 
- *      NSDownArrowFunctionKey 
- *      kDeleteCharCode 
- *      
+ *      SetMenuItemKeyGlyph.
+ *
+ *      NSF1FunctionKey..NSF15FunctionKey
+ *      NSHomeFunctionKey
+ *      kEnterCharCode
+ *      kEndCharCode
+ *      NSEndFunctionKey
+ *      kHelpCharCode
+ *      NSHelpFunctionKey
+ *      kBackspaceCharCode
+ *      kTabCharCode
+ *      kLineFeedCharCode
+ *      kReturnCharCode
+ *      kPageUpCharCode
+ *      NSPageUpFunctionKey
+ *      kPageDownCharCode
+ *      NSPageDownFunctionKey
+ *      NSBackTabCharacter
+ *      kEscapeCharCode
+ *      NSClearDisplayFunctionKey
+ *      kLeftArrowCharCode
+ *      NSLeftArrowFunctionKey
+ *      kRightArrowCharCode
+ *      NSRightArrowFunctionKey
+ *      kUpArrowCharCode
+ *      NSUpArrowFunctionKey
+ *      kDownArrowCharCode
+ *      NSDownArrowFunctionKey
+ *      kDeleteCharCode
+ *
  *      In Mac OS X 10.4 and later, the Menu Manager also supports
- *      these values: 
- *      
+ *      these values:
+ *
  *      0x2190..0x2193 (left, up, right, and down-arrow)
- *       kSpaceCharCode 
- *      
+ *       kSpaceCharCode
+ *
  *      In Mac OS X 10.6 and later, the Menu Manager also supports
- *      these values: 
+ *      these values:
  *      NSF16FunctionKey..NSF19FunctionKey, NSDeleteFunctionKey
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -3901,11 +3901,11 @@ function SetMenuItemCommandKey( inMenu: MenuRef; inItem: MenuItemIndex; inSetVir
 {——————————————————————————————————————————————————————————————————————————————————————}
 {
  *  HIMenuSetItemViewClass()
- *  
+ *
  *  Summary:
  *    Sets the HIObject class ID and initialization event that will be
  *    used to create a custom HIView for a menu item.
- *  
+ *
  *  Discussion:
  *    When a menu item has a custom HIObject class ID associated with
  *    it, the standard menu view automatically creates an HIView using
@@ -3914,8 +3914,8 @@ function SetMenuItemCommandKey( inMenu: MenuRef; inItem: MenuItemIndex; inSetVir
  *    kEventControlGetOptimalBounds event to request that it calculate
  *    its size, and if this size is larger than the size that the item
  *    would normally have, it is used instead. The view's frame is
- *    automatically positioned to match the frame of the item. 
- *    
+ *    automatically positioned to match the frame of the item.
+ *
  *    An item view should be an ordinary subclass of HIView. The item
  *    view is responsible for entirely replacing the standard menu item
  *    content; the standard content will not be drawn. When created, an
@@ -3926,34 +3926,34 @@ function SetMenuItemCommandKey( inMenu: MenuRef; inItem: MenuItemIndex; inSetVir
  *    index can change over time if menu items are inserted or deleted;
  *    instead, a view can determine its current menu item index at any
  *    time (except during Construct or Init handlers) by calling
- *    HIMenuItemViewGetEnclosingMenuItem. 
- *    
+ *    HIMenuItemViewGetEnclosingMenuItem.
+ *
  *    This API may only be called on menus that are implemented using
  *    an HIView. paramErr will be returned if an MDEF-based menu is
  *    provided.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inMenu:
  *      The menu for which to set the item view class.
- *    
+ *
  *    inItem:
  *      The menu item for which to set the item view class.
- *    
+ *
  *    inClassID:
  *      The class ID of the menu item's custom view. May be NULL to
  *      clear the item's custom view class ID; however, any item view
  *      that had already been created for the item will remain embedded
  *      in the menu content view and will be used to measure and draw
  *      the item.
- *    
+ *
  *    inInitEvent:
  *      The initialization event of the menu item's custom view. May be
  *      NULL.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available
@@ -3965,30 +3965,30 @@ function HIMenuSetItemViewClass( inMenu: MenuRef; inItem: MenuItemIndex; inClass
 
 {
  *  HIMenuCopyItemViewClass()
- *  
+ *
  *  Summary:
  *    Returns the HIObject class ID and initialization event that are
  *    used to create a custom HIView for a menu item.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inMenu:
  *      The menu for which to retrieve the item view class.
- *    
+ *
  *    inItem:
  *      The menu item for which to retrieve the item view class.
- *    
+ *
  *    outClassID:
  *      On exit, contains the item's custom view class ID, or NULL if
  *      none. The caller should release this string.
- *    
+ *
  *    outInitEvent:
  *      On exit, contains the item's custom view initialization event,
  *      or NULL if none. The caller should release this event.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available
@@ -4000,40 +4000,40 @@ function HIMenuCopyItemViewClass( inMenu: MenuRef; inItem: MenuItemIndex; var ou
 
 {
  *  HIMenuGetItemView()
- *  
+ *
  *  Summary:
  *    Returns the HIViewRef that will be used to draw a menu item, if
  *    any.
- *  
+ *
  *  Discussion:
  *    If the item view has not yet been created, the Menu Manager will
  *    create the item view using the view class ID and initialization
  *    event specified by the HIMenuSetItemViewClass API. If the menu
  *    item does not have a custom view associated with it, noErr is
- *    returned but outView is set to NULL. 
- *    
+ *    returned but outView is set to NULL.
+ *
  *    This API may only be called on menus that are implemented using
  *    an HIView. paramErr will be returned if an MDEF-based menu is
  *    provided.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inMenu:
  *      The menu.
- *    
+ *
  *    inItem:
  *      The menu item.
- *    
+ *
  *    inMenuType:
- *    
+ *
  *    outView:
  *      On exit, contains the view. May be set to NULL if the item does
  *      not have a custom item view. The caller should not release this
  *      view.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available
@@ -4045,11 +4045,11 @@ function HIMenuGetItemView( inMenu: MenuRef; inItem: MenuItemIndex; inMenuType: 
 
 {
  *  HIMenuItemViewGetEnclosingMenuItem()
- *  
+ *
  *  Summary:
  *    Locates the menu item that contains a menu item view or one of
  *    its subviews.
- *  
+ *
  *  Discussion:
  *    A custom HIView may behave differently depending on whether it's
  *    embedded in a menu or a regular window. This API will tell the
@@ -4061,24 +4061,24 @@ function HIMenuGetItemView( inMenu: MenuRef; inItem: MenuItemIndex; inMenuType: 
  *    binding between the view and the item. A view can check for
  *    kEventParamMenuRef and kEventParamMenuItemIndex parameters in its
  *    kEventHIObjectInitialize handler to determine at Init time
- *    whether the view is being placed into a menu. 
- *    
+ *    whether the view is being placed into a menu.
+ *
  *    This API may be passed a menu item view or any subview of the
  *    item view. If passed a subview, it will search upwards through
  *    the view hierarchy to look for an item view.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inItemView:
  *      The item view.
- *    
+ *
  *    outMenu:
  *      On exit, contains the menu in which the view is embedded. May
  *      be NULL if you don't need the menu.
- *    
+ *
  *    outItem:
  *      On exit, contains the menu item that the view is implementing.
  *      May be NULL if you don't need the item. Note that the item
@@ -4086,10 +4086,10 @@ function HIMenuGetItemView( inMenu: MenuRef; inItem: MenuItemIndex; inMenuType: 
  *      inserted or deleted; generally, a view should not cache the
  *      item index, but should call this API each time that it needs to
  *      know its current item.
- *  
+ *
  *  Result:
  *    true if the view is embedded in a menu, or false if not.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available
@@ -4101,34 +4101,34 @@ function HIMenuItemViewGetEnclosingMenuItem( inItemView: HIViewRef; outMenu: Men
 
 {
  *  HIMenuItemViewCancelMenuTracking()
- *  
+ *
  *  Summary:
  *    Cancels menu tracking for the menu containing an item view.
- *  
+ *
  *  Discussion:
  *    In order to call the CancelMenuTracking API, you must know the
  *    menu that is the root for the menu tracking session. This root
  *    menu is often not available to a custom menu item view. This API
  *    allows a menu item view to cancel tracking without knowing the
  *    root menu.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inItemView:
  *      The item view.
- *    
+ *
  *    inImmediate:
  *      Whether the open menus should disappear immediately or fade out.
- *    
+ *
  *    inDismissalReason:
  *      Why the menu is being dismissed; this value will be added to
  *      the kEventMenuEndTracking event. If zero,
  *      kHIMenuDismissedByCancelMenuTracking is added to the
  *      EndTracking event.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available
@@ -4152,10 +4152,10 @@ const
 {$ifc not TARGET_CPU_64}
 {
  *  GetMenuItemProperty()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4167,10 +4167,10 @@ function GetMenuItemProperty( menu: MenuRef; item: MenuItemIndex; propertyCreato
 
 {
  *  GetMenuItemPropertySize()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4182,10 +4182,10 @@ function GetMenuItemPropertySize( menu: MenuRef; item: MenuItemIndex; propertyCr
 
 {
  *  SetMenuItemProperty()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4197,10 +4197,10 @@ function SetMenuItemProperty( menu: MenuRef; item: MenuItemIndex; propertyCreato
 
 {
  *  RemoveMenuItemProperty()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4212,30 +4212,30 @@ function RemoveMenuItemProperty( menu: MenuRef; item: MenuItemIndex; propertyCre
 
 {
  *  GetMenuItemPropertyAttributes()
- *  
+ *
  *  Summary:
  *    Gets the attributes of a menu item property.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    menu:
  *      The menu.
- *    
+ *
  *    item:
  *      The menu item.
- *    
+ *
  *    propertyCreator:
  *      The creator code of the property.
- *    
+ *
  *    propertyTag:
  *      The property tag.
- *    
+ *
  *    attributes:
  *      On exit, contains the attributes of the property.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4247,33 +4247,33 @@ function GetMenuItemPropertyAttributes( menu: MenuRef; item: MenuItemIndex; prop
 
 {
  *  ChangeMenuItemPropertyAttributes()
- *  
+ *
  *  Summary:
  *    Changes the attributes of a menu item property.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    menu:
  *      The menu.
- *    
+ *
  *    item:
  *      The menu item.
- *    
+ *
  *    propertyCreator:
  *      The creator code of the property.
- *    
+ *
  *    propertyTag:
  *      The property tag.
- *    
+ *
  *    attributesToSet:
  *      The attributes to add to the menu item property.
- *    
+ *
  *    attributesToClear:
  *      The attributes to remove from the menu item property.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4289,21 +4289,21 @@ function ChangeMenuItemPropertyAttributes( menu: MenuRef; item: MenuItemIndex; p
 {——————————————————————————————————————————————————————————————————————————————————————}
 {
  *  GetMenuAttributes()
- *  
+ *
  *  Summary:
  *    Gets the attributes of a menu.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    menu:
  *      The menu.
- *    
+ *
  *    outAttributes:
  *      On exit, contains the attributes of the menu.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4315,24 +4315,24 @@ function GetMenuAttributes( menu: MenuRef; var outAttributes: MenuAttributes ): 
 
 {
  *  ChangeMenuAttributes()
- *  
+ *
  *  Summary:
  *    Changes the attributes of a menu.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    menu:
  *      The menu.
- *    
+ *
  *    setTheseAttributes:
  *      The attributes to add to the menu.
- *    
+ *
  *    clearTheseAttributes:
  *      The attributes to remove from the menu.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4344,24 +4344,24 @@ function ChangeMenuAttributes( menu: MenuRef; setTheseAttributes: MenuAttributes
 
 {
  *  GetMenuItemAttributes()
- *  
+ *
  *  Summary:
  *    Gets the attributes of a menu item.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    menu:
  *      The menu.
- *    
+ *
  *    item:
  *      The menu item.
- *    
+ *
  *    outAttributes:
  *      On exit, contains the attributes of the menu item.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4373,27 +4373,27 @@ function GetMenuItemAttributes( menu: MenuRef; item: MenuItemIndex; var outAttri
 
 {
  *  ChangeMenuItemAttributes()
- *  
+ *
  *  Summary:
  *    Changes the attributes of a menu item.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    menu:
  *      The menu.
- *    
+ *
  *    item:
  *      The menu item.
- *    
+ *
  *    setTheseAttributes:
  *      The attributes to add to the menu item.
- *    
+ *
  *    clearTheseAttributes:
  *      The attributes to remove from the menu item.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4409,24 +4409,24 @@ function ChangeMenuItemAttributes( menu: MenuRef; item: MenuItemIndex; setTheseA
 {——————————————————————————————————————————————————————————————————————————————————————}
 {
  *  DisableAllMenuItems()
- *  
+ *
  *  Summary:
  *    Disables all items in a menu.
- *  
+ *
  *  Discussion:
  *    This API is equivalent to pre-Carbon code that masked the
  *    enableFlags field of the MenuInfo with 0x01. It disables all
  *    items (including items past item 31) but does not affect the
  *    state of the menu title.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    theMenu:
  *      The menu whose items to disable.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4438,24 +4438,24 @@ procedure DisableAllMenuItems( theMenu: MenuRef ); external name '_DisableAllMen
 
 {
  *  EnableAllMenuItems()
- *  
+ *
  *  Summary:
  *    Enables all items in a menu.
- *  
+ *
  *  Discussion:
  *    This API is equivalent to pre-Carbon code that or'd the
  *    enableFlags field of the MenuInfo with 0xFFFFFFFE. It enables all
  *    items (including items past item 31) but does not affect the
  *    state of the menu title.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    theMenu:
  *      The menu whose items to enable.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4467,25 +4467,25 @@ procedure EnableAllMenuItems( theMenu: MenuRef ); external name '_EnableAllMenuI
 
 {
  *  MenuHasEnabledItems()
- *  
+ *
  *  Summary:
  *    Determines if any items in a menu are enabled.
- *  
+ *
  *  Discussion:
  *    This API is equivalent to pre-Carbon code that compared the
  *    enableFlags field of the MenuInfo with 0. It checks the enable
  *    state of all items to see if any are enabled, but ignores the
  *    state of the menu title. It will return true even if the menu
  *    title is disabled.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    theMenu:
  *      The menu whose items to examine.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4504,32 +4504,32 @@ function MenuHasEnabledItems( theMenu: MenuRef ): Boolean; external name '_MenuH
 
 {
  *  GetMenuTrackingData()
- *  
+ *
  *  Summary:
  *    Gets information about the menu currently selected by the user.
- *  
+ *
  *  Discussion:
  *    This API replaces direct access to the low-memory globals
  *    TopMenuItem, AtMenuBottom, MenuDisable, and mbSaveLoc. It is only
  *    valid to call this API while menu tracking is occurring. This API
  *    will most commonly be used by custom MDEFs.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    theMenu:
  *      The menu about which to get tracking information. May be NULL
  *      to get information about the menu that the user is currently
  *      selecting. If the menu is not currently open, menuNotFoundErr
  *      is returned.
- *    
+ *
  *    outData:
  *      On exit, contains tracking data about the menu. On CarbonLib,
  *      the itemRect field is not supported and is always set to an
  *      empty rect.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4542,32 +4542,32 @@ function GetMenuTrackingData( theMenu: MenuRef; var outData: MenuTrackingData ):
 {$ifc not TARGET_CPU_64}
 {
  *  GetMenuType()
- *  
+ *
  *  Summary:
  *    Gets the display type (pulldown, hierarchical, or popup) of a
  *    menu.
- *  
+ *
  *  Discussion:
  *    This API may only be called when the menu is displayed. If the
  *    menu is not currently open, an error is returned. The display
  *    type of a menu may vary from one menu tracking session to
  *    another; for example, the same menu might be displayed as a
  *    pulldown menu and as a popup menu.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    theMenu:
  *      The menu whose type to get.
- *    
+ *
  *    outType:
  *      On exit, the type of the menu. The returned value will be one
  *      of the ThemeMenuType constants: kThemeMenuTypePullDown, PopUp,
  *      or Hierarchical. The kThemeMenuTypeInactive bit will never be
  *      set.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -4584,10 +4584,10 @@ function GetMenuType( theMenu: MenuRef; var outType: UInt16 ): OSStatus; externa
 {——————————————————————————————————————————————————————————————————————————————————————}
 {
  *  CountMenuItemsWithCommandID()
- *  
+ *
  *  Summary:
  *    Counts the menu items with a specified command ID.
- *  
+ *
  *  Discussion:
  *    In CarbonLib 1.0.x and 1.1, this API always returns zero or one;
  *    it stops after finding the first menu item with the specified
@@ -4600,21 +4600,21 @@ function GetMenuType( theMenu: MenuRef; var outType: UInt16 ): OSStatus; externa
  *    (for example, it does not search menus that are inserted for use
  *    in a popup menu control). In Mac OS X 10.1 and CarbonLib 1.5 and
  *    later, this API also searches inserted hierarchical menus.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inMenu:
  *      The menu in which to begin searching for items with the
  *      specified command ID. Pass NULL to hegin searching with the
  *      root menu. The search will descend into all submenus of this
  *      menu.
- *    
+ *
  *    inCommandID:
  *      The command ID for which to search.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4626,10 +4626,10 @@ function CountMenuItemsWithCommandID( inMenu: MenuRef; inCommandID: MenuCommand 
 
 {
  *  GetIndMenuItemWithCommandID()
- *  
+ *
  *  Summary:
  *    Finds a menu item with a specified command ID.
- *  
+ *
  *  Discussion:
  *    This API searches the specified menu and its submenus for the
  *    n'th menu item with the specified command ID. In CarbonLib 1.0.x
@@ -4643,35 +4643,35 @@ function CountMenuItemsWithCommandID( inMenu: MenuRef; inCommandID: MenuCommand 
  *    it does not search menus that are inserted for use in a popup
  *    menu control). In Mac OS X 10.1 and CarbonLib 1.5 and later, this
  *    API also searches inserted hierarchical menus.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inMenu:
  *      The menu in which to begin searching for items with the
  *      specified command ID. Pass NULL to hegin searching with the
  *      root menu. The search will descend into all submenus of this
  *      menu.
- *    
+ *
  *    inCommandID:
  *      The command ID for which to search.
- *    
+ *
  *    inItemIndex:
  *      The 1-based index of the menu item to retrieve. In CarbonLib
  *      1.0.x and 1.1, this parameter must be 1. In CarbonLib 1.2 and
  *      Mac OS X 10.0, this parameter may vary from 1 to the number of
  *      menu items with the specified command ID.
- *    
+ *
  *    outMenu:
  *      On exit, the menu containing the menu item with the specified
  *      command ID.
- *    
+ *
  *    outIndex:
  *      On exit, the item index of the menu item with the specified
  *      command ID.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4683,24 +4683,24 @@ function GetIndMenuItemWithCommandID( inMenu: MenuRef; inCommandID: MenuCommand;
 
 {
  *  EnableMenuCommand()
- *  
+ *
  *  Summary:
  *    Enables the menu item with a specified command ID.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inMenu:
  *      The menu in which to begin searching for the item. Pass NULL to
  *      begin searching with the root menu. The search will descend
  *      into all submenus of this menu.
- *    
+ *
  *    inCommandID:
  *      The command ID of the menu item to be enabled. If more than one
  *      item has this command ID, only the first will be enabled.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4712,24 +4712,24 @@ procedure EnableMenuCommand( inMenu: MenuRef; inCommandID: MenuCommand ); extern
 
 {
  *  DisableMenuCommand()
- *  
+ *
  *  Summary:
  *    Disables the menu item with a specified command ID.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inMenu:
  *      The menu in which to begin searching for the item. Pass NULL to
  *      begin searching with the root menu. The search will descend
  *      into all submenus of this menu.
- *    
+ *
  *    inCommandID:
  *      The command ID of the menu item to be disabled. If more than
  *      one item has this command ID, only the first will be disabled.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4741,25 +4741,25 @@ procedure DisableMenuCommand( inMenu: MenuRef; inCommandID: MenuCommand ); exter
 
 {
  *  IsMenuCommandEnabled()
- *  
+ *
  *  Summary:
  *    Determines if the menu item with a specified command ID is
  *    enabled.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inMenu:
  *      The menu in which to begin searching for the item. Pass NULL to
  *      begin searching with the root menu. The search will descend
  *      into all submenus of this menu.
- *    
+ *
  *    inCommandID:
  *      The command ID of the menu item to examine. If more than one
  *      item has this command ID, only the first will be examined.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4771,31 +4771,31 @@ function IsMenuCommandEnabled( inMenu: MenuRef; inCommandID: MenuCommand ): Bool
 
 {
  *  SetMenuCommandMark()
- *  
+ *
  *  Summary:
  *    Locates the menu item with a specified command ID and sets its
  *    mark character.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inMenu:
  *      The menu in which to begin searching for the item. Pass NULL to
  *      begin searching with the root menu. The search will descend
  *      into all submenus of this menu.
- *    
+ *
  *    inCommandID:
  *      The command ID of the menu item to be modified. If more than
  *      one item has this command ID, only the first will be modified.
- *    
+ *
  *    inMark:
  *      The new mark character. Although the type of this parameter is
  *      UniChar, currently only the low byte of this character will be
  *      used as the mark character, and it is interpreted using the
  *      application’s text encoding.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -4807,28 +4807,28 @@ function SetMenuCommandMark( inMenu: MenuRef; inCommandID: MenuCommand; inMark: 
 
 {
  *  GetMenuCommandMark()
- *  
+ *
  *  Summary:
  *    Locates the menu item with a specified command ID and returns its
  *    mark character.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inMenu:
  *      The menu in which to begin searching for the item. Pass NULL to
  *      begin searching with the root menu. The search will descend
  *      into all submenus of this menu.
- *    
+ *
  *    inCommandID:
  *      The command ID of the menu item to be examined. If more than
  *      one item has this command ID, only the first will be examined.
- *    
+ *
  *    outMark:
  *      On exit, the menu item's mark character.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -4840,42 +4840,42 @@ function GetMenuCommandMark( inMenu: MenuRef; inCommandID: MenuCommand; var outM
 
 {
  *  GetMenuCommandProperty()
- *  
+ *
  *  Summary:
  *    Retrives property data for a menu item with a specified command
  *    ID.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inMenu:
  *      The menu in which to begin searching for the item. Pass NULL to
  *      begin searching with the root menu. The search will descend
  *      into all submenus of this menu.
- *    
+ *
  *    inCommandID:
  *      The command ID of the menu item containing the property. If
  *      more than one item has this command ID, only the first will be
  *      used.
- *    
+ *
  *    inPropertyCreator:
  *      The property creator.
- *    
+ *
  *    inPropertyTag:
  *      The property tag.
- *    
+ *
  *    inBufferSize:
  *      The size of the output buffer, in bytes.
- *    
+ *
  *    outActualSize:
  *      On exit, contains the actual size of the property data. May be
  *      NULL if you do not need this information.
- *    
+ *
  *    inPropertyBuffer:
  *      The address of a buffer in which to place the property data.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4887,35 +4887,35 @@ function GetMenuCommandProperty( inMenu: MenuRef; inCommandID: MenuCommand; inPr
 
 {
  *  GetMenuCommandPropertySize()
- *  
+ *
  *  Summary:
  *    Retrives the size of property data for a menu item with a
  *    specified command ID.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inMenu:
  *      The menu in which to begin searching for the item. Pass NULL to
  *      begin searching with the root menu. The search will descend
  *      into all submenus of this menu.
- *    
+ *
  *    inCommandID:
  *      The command ID of the menu item containing the property. If
  *      more than one item has this command ID, only the first will be
  *      used.
- *    
+ *
  *    inPropertyCreator:
  *      The property creator.
- *    
+ *
  *    inPropertyTag:
  *      The property tag.
- *    
+ *
  *    outSize:
  *      On exit, contains the size of the property data.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4927,37 +4927,37 @@ function GetMenuCommandPropertySize( inMenu: MenuRef; inCommandID: MenuCommand; 
 
 {
  *  SetMenuCommandProperty()
- *  
+ *
  *  Summary:
  *    Sets property data for a menu item with a specified command ID.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inMenu:
  *      The menu in which to begin searching for the item. Pass NULL to
  *      begin searching with the root menu. The search will descend
  *      into all submenus of this menu.
- *    
+ *
  *    inCommandID:
  *      The command ID of the menu item that will receive the property.
  *      If more than one item has this command ID, only the first will
  *      be modified.
- *    
+ *
  *    inPropertyCreator:
  *      The property creator.
- *    
+ *
  *    inPropertyTag:
  *      The property tag.
- *    
+ *
  *    inPropertySize:
  *      The size of the property data, in bytes.
- *    
+ *
  *    inPropertyData:
  *      The address of the property data.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4969,31 +4969,31 @@ function SetMenuCommandProperty( inMenu: MenuRef; inCommandID: MenuCommand; inPr
 
 {
  *  RemoveMenuCommandProperty()
- *  
+ *
  *  Summary:
  *    Removes a property from a menu item with a specified command ID.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inMenu:
  *      The menu in which to begin searching for the item. Pass NULL to
  *      begin searching with the root menu. The search will descend
  *      into all submenus of this menu.
- *    
+ *
  *    inCommandID:
  *      The command ID of the menu item from which the property will be
  *      removed. If more than one item has this command ID, only the
  *      first will be modified.
- *    
+ *
  *    inPropertyCreator:
  *      The property creator.
- *    
+ *
  *    inPropertyTag:
  *      The property tag.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5005,10 +5005,10 @@ function RemoveMenuCommandProperty( inMenu: MenuRef; inCommandID: MenuCommand; i
 
 {
  *  CopyMenuItemData()
- *  
+ *
  *  Summary:
  *    Returns multiple attributes of a menu item at once.
- *  
+ *
  *  Discussion:
  *    This function is used to retrieve many attributes of a menu item
  *    simultaneously; for example, it might be used by a menu
@@ -5018,21 +5018,21 @@ function RemoveMenuCommandProperty( inMenu: MenuRef; inCommandID: MenuCommand; i
  *    This function returns a copy of the data in the menu, so any data
  *    in the MenuItemDataRec that is dynamically allocated (for
  *    example, the CFString item text) should be released by the caller.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inMenu:
  *      The menu from which to copy data. If inIsCommandID is true, you
  *      may pass NULL for this parameter to search for an item in the
  *      root menu; if inIsCommandID is false, this parameter must be a
  *      valid MenuRef.
- *    
+ *
  *    inItem:
  *      The item or command ID from which to copy data.
- *    
+ *
  *    inIsCommandID:
  *      Indicates whether inItem is a MenuItemIndex or MenuCommand. If
  *      inIsCommandID is true, the inItem parameter is interpreted as a
@@ -5040,7 +5040,7 @@ function RemoveMenuCommandProperty( inMenu: MenuRef; inCommandID: MenuCommand; i
  *      menu with that command ID. If inIsCommandID is false, the
  *      inItem parameter is interpreted as a menu item index, and data
  *      is copied for that item in the specified menu.
- *    
+ *
  *    ioData:
  *      Data is copied from the item and placed here. On entry, the
  *      whichData field of this structure should be initialized to
@@ -5048,7 +5048,7 @@ function RemoveMenuCommandProperty( inMenu: MenuRef; inCommandID: MenuCommand; i
  *      fields of the MenuItemDataRec structure may require
  *      pre-initialization also; see the individual MenuItemDataFlags
  *      documentation for details.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -5060,27 +5060,27 @@ function CopyMenuItemData( inMenu: MenuRef { can be NULL }; inItem: MenuItemID; 
 
 {
  *  SetMenuItemData()
- *  
+ *
  *  Summary:
  *    Sets multiple attributes of a menu item at once.
- *  
+ *
  *  Discussion:
  *    This function is used to set many attributes of a menu item
  *    simultaneously. It is more efficient to use this function than to
  *    use the accessor functions for the individual attributes of the
  *    menu.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inMenu:
  *      The menu to modify.
- *    
+ *
  *    inItem:
  *      The item or command ID to modify.
- *    
+ *
  *    inIsCommandID:
  *      Indicates whether inItem is a MenuItemIndex or MenuCommand. If
  *      inIsCommandID is true, the inItem parameter is interpreted as a
@@ -5088,13 +5088,13 @@ function CopyMenuItemData( inMenu: MenuRef { can be NULL }; inItem: MenuItemID; 
  *      command ID. is modified. If inIsCommandID is false, the inItem
  *      parameter is interpreted as a menu item index, and the item
  *      with that index in the specified menu is modified.
- *    
+ *
  *    inData:
  *      The data to set. The caller should set the whichData field of
  *      this structure to indicate which data should be set. Only the
  *      fields of the structure corresponding to the non-zero whichData
  *      flags must be initialized; other fields are ignored.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -5161,21 +5161,21 @@ function SetMenuItemData( inMenu: MenuRef; inItem: MenuItemID; inIsCommandID: Bo
 {——————————————————————————————————————————————————————————————————————————————————————}
 {
  *  IsMenuItemInvalid()
- *  
+ *
  *  Summary:
  *    Determines if a menu item is invalid and should be redrawn.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inMenu:
  *      The menu whose item to examine.
- *    
+ *
  *    inItem:
  *      The item to examine.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -5187,31 +5187,31 @@ function IsMenuItemInvalid( inMenu: MenuRef; inItem: MenuItemIndex ): Boolean; e
 
 {
  *  InvalidateMenuItems()
- *  
+ *
  *  Summary:
  *    Invalidates a group of menu items so that they will be redrawn
  *    when UpdateInvalidMenuItems is next called.
- *  
+ *
  *  Discussion:
  *    Menu items are automatically invalidated when their contents are
  *    changed using Menu Manager APIs while the menu is open. However,
  *    you might need to use this API if you have a custom MDEF that
  *    draws using state not contained in the menu.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inMenu:
  *      The menu whose items to invalidate.
- *    
+ *
  *    inFirstItem:
  *      The first item to invalidate.
- *    
+ *
  *    inNumItems:
  *      The number of items to invalidate.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -5223,10 +5223,10 @@ function InvalidateMenuItems( inMenu: MenuRef; inFirstItem: MenuItemIndex; inNum
 
 {
  *  UpdateInvalidMenuItems()
- *  
+ *
  *  Summary:
  *    Redraws the invalid items of an open menu.
- *  
+ *
  *  Discussion:
  *    It is not necessary to use UpdateInvalidMenuItems if you are
  *    using Carbon's built-in support for dynamic items based on
@@ -5235,15 +5235,15 @@ function InvalidateMenuItems( inMenu: MenuRef; inFirstItem: MenuItemIndex; inNum
  *    UpdateInvalidMenuItems after completing your modifications for a
  *    single menu. It will redraw any items that have been marked as
  *    invalid, and clear the invalid flag for those items.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inMenu:
  *      The menu to update.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -5265,10 +5265,10 @@ const
 {$ifc not TARGET_CPU_64}
 {
  *  CreateStandardFontMenu()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5280,10 +5280,10 @@ function CreateStandardFontMenu( menu: MenuRef; afterItem: MenuItemIndex; firstH
 
 {
  *  UpdateStandardFontMenu()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5295,10 +5295,10 @@ function UpdateStandardFontMenu( menu: MenuRef; outHierMenuCount: ItemCountPtr {
 
 {
  *  GetFontFamilyFromMenuSelection()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5444,38 +5444,38 @@ const
 {$ifc not TARGET_CPU_64}
 {
  *  IsShowContextualMenuClick()
- *  
+ *
  *  Summary:
  *    Determines whether a particular EventRecord could invoke a
  *    contextual menu.
- *  
+ *
  *  Discussion:
  *    Applications should call IsShowContextualMenuClick when they
  *    receive non-null events. If IsShowContextualMenuClick returns
  *    true, your application should generate its own menu and Apple
  *    Event descriptor (AEDesc), and then call ContextualMenuSelect to
  *    display and track the contextual menu, and then handle the user's
- *    choice. 
- *    
+ *    choice.
+ *
  *    Apple recommends that you use the IsShowContextualMenuEvent API
  *    instead of this API. If you use the standard window Carbon event
  *    handler on your windows, you can also use a
  *    kEventControlContextualMenuClick event handler to be notified
  *    when a contextual menu click has occurred; in this case, you do
  *    not need to call this API.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inEvent:
  *      The event to examine.
- *  
+ *
  *  Result:
  *    Returns true if the application should display a contextual menu,
  *    false if not.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5487,41 +5487,41 @@ function IsShowContextualMenuClick( const (*var*) inEvent: EventRecord ): Boolea
 
 {
  *  IsShowContextualMenuEvent()
- *  
+ *
  *  Summary:
  *    Determines whether a particular EventRef could invoke a
  *    contextual menu.
- *  
+ *
  *  Discussion:
  *    This API is similar to IsShowContextualMenuClick, but takes a
  *    Carbon EventRef as its parameter instead of an EventRecord.
- *    
- *    
+ *
+ *
  *    In Mac OS X 10.3 and earlier, this API always returned false if
  *    the event kind was not kEventMouseDown,
  *    kEventWindowClickContentRgn, kEventWindowClickStructureRgn, or
  *    kEventWindowHandleContentClick. In Mac OS X 10.4 and later, this
  *    API no longer requires a specific event kind; it only requires
  *    that the event contain kEventParamMouseButton and
- *    kEventParamKeyModifiers parameters. 
- *    
+ *    kEventParamKeyModifiers parameters.
+ *
  *    If you use the standard window Carbon event handler on your
  *    windows, you can also use a kEventControlContextualMenuClick
  *    event handler to be notified when a contextual menu click has
  *    occurred; in this case, you do not need to call this API.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inEvent:
  *      The event to examine.
- *  
+ *
  *  Result:
  *    Returns true if the application should display a contextual menu,
  *    false if not.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -5533,42 +5533,42 @@ function IsShowContextualMenuEvent( inEvent: EventRef ): Boolean; external name 
 
 {
  *  ContextualMenuSelect()
- *  
+ *
  *  Summary:
  *    Displays a contextual menu.
- *  
+ *
  *  Discussion:
  *    If IsShowContextualMenuClick returns true, you should call the
  *    ContextualMenuSelect API after generating your own menu and
  *    preparing an Apple Event descriptor (AEDesc) that describes the
  *    item for which your application is displaying a contextual menu.
  *    This descriptor may contain an object specifier or raw data and
- *    will be passed to all contextual menu plug-ins. 
- *    
+ *    will be passed to all contextual menu plug-ins.
+ *
  *    The system will add other items before displaying the contextual
  *    menu, and it will remove those items before returning, leaving
- *    the menu in its original state. 
- *    
+ *    the menu in its original state.
+ *
  *    After all the system commands are added, the contextual menu is
  *    displayed and tracked. If the user selects one of the system
  *    items, it is handled by the system and the call returns as though
  *    the user didn't select anything from the menu. If the user
  *    selects any other item (or no item at all), the Menu Manager
  *    passes back appropriate values in the parameters
- *    outUserSelectionType, outMenuID, and outMenuItem. 
- *    
+ *    outUserSelectionType, outMenuID, and outMenuItem.
+ *
  *    Your application should provide visual feedback indicating the
  *    item that was clicked upon. For example, a click on an icon
  *    should highlight the icon, while a click on editable text should
- *    not eliminate the current selection. 
- *    
+ *    not eliminate the current selection.
+ *
  *    If the outUserSelectionType parameter contains
  *    kCMMenuItemSelected, you should look at the outMenuID and
  *    outMenuItem parameters to determine what menu item the user chose
  *    and handle it appropriately. If the user selected
  *    kCMHelpItemSelected, you should open the proper Apple Guide
- *    sequence or other form of custom help. 
- *    
+ *    sequence or other form of custom help.
+ *
  *    There is a bug in ContextualMenuSelect in versions of Mac OS X
  *    prior to Mac OS X 10.4 that causes the value returned in the
  *    outUserSelectionType parameter to be set to kCMShowHelpSelected
@@ -5577,12 +5577,12 @@ function IsShowContextualMenuEvent( inEvent: EventRef ): Boolean; external name 
  *    of Mac OS X, simply use a non-zero menu ID. Note that when a new
  *    menu is created in InterfaceBuilder, its ID is automatically set
  *    to zero.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inMenu:
  *      A menu containing application commands to display. The caller
  *      creates this menu based on the current context, the mouse
@@ -5590,50 +5590,50 @@ function IsShowContextualMenuEvent( inEvent: EventRef ): Boolean; external name 
  *      the mouse). If you pass nil, only system commands will be
  *      displayed. The menu should be added to the menu list as a
  *      pop-up menu (using the InsertMenu function).
- *    
+ *
  *    inGlobalLocation:
  *      The location (in global coordinates) of the mouse near which
  *      the menu is to be displayed.
- *    
+ *
  *    inReserved:
  *      Reserved for future use. Pass false for this parameter.
- *    
+ *
  *    inHelpType:
  *      An identifier specifying the type of help to be provided by the
  *      application; see kCMHelpItem constants.
- *    
+ *
  *    inHelpItemString:
  *      A string containing the text to be displayed for the help menu
  *      item. This string is unused unless you also pass the constant
  *      kCMHelpItemOtherHelp in the inHelpType parameter.
- *    
+ *
  *    inSelection:
  *      An object specifier for the current selection. This allows he
  *      system to examine the selection and add special system commands
  *      accordingly. Passing a value of nil indicates that no selection
  *      should be examined, and most likely, no special system actions
  *      will be included.
- *    
+ *
  *    outUserSelectionType:
  *      On exit, the value indicates what the user selected from the
  *      contextual menu; see kCMNothingSelected, kCMMenuItemSelected,
  *      and kCMShowHelpSelected.
- *    
+ *
  *    outMenuID:
  *      On exit, if outUserSelectionType is set to kCMMenuItemSelected,
  *      the value is set to the menu ID of the chosen item.
- *    
+ *
  *    outMenuItem:
  *      On exit, if outUserSelectionType is set to kCMMenuItemSelected,
  *      the value is set to the menu item chosen.
- *  
+ *
  *  Result:
  *    An OSStatus result code. ContextualMenuSelect returns the result
  *    code userCanceledErr and sets outUserSelectionType to
  *    kCMNothingSelected to indicate that the user did not select
  *    anything from the contextual menu and no further processing is
  *    needed.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5693,7 +5693,7 @@ CM_IUNKNOWN_C_GUTS;
 *)
 {
  *  CMPluginExamineContext()
- *  
+ *
  *  Availability:
  *    Implemented by client
  }
@@ -5702,7 +5702,7 @@ function CMPluginExamineContext( thisInstance: UnivPtr; const (*var*) inContext:
 
 {
  *  CMPluginHandleSelection()
- *  
+ *
  *  Availability:
  *    Implemented by client
  }
@@ -5711,7 +5711,7 @@ function CMPluginHandleSelection( thisInstance: UnivPtr; var inContext: AEDesc; 
 
 {
  *  CMPluginPostMenuCleanup()
- *  
+ *
  *  Availability:
  *    Implemented by client
  }
@@ -5722,10 +5722,10 @@ procedure CMPluginPostMenuCleanup( thisInstance: UnivPtr ); external name '_CMPl
 {$ifc not TARGET_CPU_64}
 {
  *  LMGetTheMenu()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5743,11 +5743,11 @@ function LMGetTheMenu: MenuID; external name '_LMGetTheMenu';
 {--------------------------------------------------------------------------------------}
 {
     A Short Course on Menu Definition Functions
-    
+
     A menu definition function is used to implement a custom visual appearance for a menu.
     Menu definition functions are still supported in Carbon, but the messages sent to a
     menu definition function in Carbon are different than for a non-Carbon application.
-    
+
     In general, Apple recommends using the system menu definition whenever possible.
     Menu definition functions will continue to be supported, but it is not easy to write
     a correct menu definition, especially one that attempts to imitate the standard system
@@ -5756,9 +5756,9 @@ function LMGetTheMenu: MenuID; external name '_LMGetTheMenu';
     we would much rather enhance the system menu definition than have you write a custom one.
     The use of menu definition functions is deprecated in Mac OS X; in Mac OS X 10.3 and
     later, Apple recommends that you use a custom HIView to draw menu content.
-    
+
     Menu definition functions before Carbon used the following messages:
-    
+
         kMenuDrawMsg
         kMenuChooseMsg
         kMenuSizeMsg
@@ -5766,11 +5766,11 @@ function LMGetTheMenu: MenuID; external name '_LMGetTheMenu';
         kMenuDrawItemMsg
         kMenuCalcItemMsg
         kMenuThemeSavvyMsg
-        
+
     kMenuChooseMsg and kMenuDrawItemMsg are not supported in Carbon and are not sent to
     Carbon menu definitions. In Carbon, kMenuChooseMsg is replaced by kMenuFindItemMsg and
     kMenuHiliteItemMsg. Menu definition functions in Carbon use the following messages:
-    
+
         kMenuInitMsg
         kMenuDisposeMsg
         kMenuFindItemMsg
@@ -5781,40 +5781,40 @@ function LMGetTheMenu: MenuID; external name '_LMGetTheMenu';
         kMenuPopUpMsg
         kMenuCalcItemMsg
         kMenuThemeSavvyMsg
-        
+
     The rest of this documentation will focus on Carbon menu definitions only.
-    
+
     Menu Definition Messages
-    
+
         Carbon menu definition functions should support the following messages:
-        
+
         kMenuInitMsg
-            
+
             menuRect        unused
             hitPt           unused
             whichItem       OSErr*
-        
+
             Sent when a menu is created. This message gives the menu definition an opportunity
             to initialize its own state. If the menu definition encounters an error while
             initializing, it should set *whichItem to a non-zero error code; this will cause the
             Menu Manager to destroy the menu and return an error back from the API that was used
             to create the menu.
-        
+
         kMenuDisposeMsg
-            
+
             menuRect        unused
             hitPt           unused
             whichItem       unused
-            
+
             Sent when a menu is destroyed. This message gives the menu definition an opportunity
             to destroy its own data.
-            
+
         kMenuFindItemMsg
-            
+
             menuRect        menu bounds
             hitPt           point to hit-test
             whichItem       MDEFFindItemData*
-            
+
             Sent when the Menu Manager is displaying a menu and needs to know what item is under
             the mouse. The whichItem parameter is actually a pointer to a MenuTrackingData structure.
             On entry, the menu, virtualMenuTop, and virtualMenuBottom fields of this structure are
@@ -5824,152 +5824,152 @@ function LMGetTheMenu: MenuID; external name '_LMGetTheMenu';
             menu definition should only fill in the itemSelected field if the item is available for
             selection; if it is unavailable (because it is disabled, or for some other reason), the
             menu definition should set the itemSelected field to zero.
-            
+
             The values placed in the itemUnderMouse and itemSelected fields should be less than or
             equal to the number of items returned by CountMenuItems on this menu. The values placed
             in these two fields should be identical if both are non-zero. itemUnderMouse should always
             be non-zero if the mouse is actually over an item.
-            
-            The menu definition should not hilite the found item during this message. The Menu 
+
+            The menu definition should not hilite the found item during this message. The Menu
             Manager will send a separate kMenuHiliteItemMsg to request hiliting of the item.
-            
+
             If the menu definition supports scrolling, it should scroll the menu during this message,
             and update the virtualMenuTop and virtualMenuBottom fields of the MenuTrackingData to
             indicate the menu's new scrolled position.
-            
+
             If the menu definition uses QuickDraw to draw while scrolling, it should draw into the
             current port.
-    
+
             If the menu definition uses CoreGraphics to draw while scrolling, it should use the
             CGContextRef passed in the context field of the MDEFHiliteItemData structure.
-            
+
             Menu definitions must use the ScrollMenuImage API, if available, to scroll the menu contents.
             This API is available in CarbonLib 1.5 and later, and in Mac OS X 10.1 and later. ScrollMenuImage
             properly supports scrolling the alpha channel in the menu's image data. Use of QuickDraw's
             ScrollRect API to scroll the menu contents will result in the alpha channel being set to 0xFF
             (opaque) and the menu will no longer be transparent.
-            
+
             The menu definition should not modify the menu field of the MenuTrackingData.
-            
+
         kMenuHiliteItemMsg
-        
+
             menuRect        menu bounds
             hitPt           unused
             whichItem       MDEFHiliteItemData*
-            
+
             Sent when the Menu Manager is displaying a menu and needs to hilite a newly selected
             item. The whichItem parameter is actually a pointer to a MDEFHiliteItemData structure.
             The menu definition should unhilite the item in the previousItem field, if non-zero,
             and hilite the item in the newItem field.
-            
+
             Menu definitions should use the EraseMenuBackground API to erase the old menu contents
             before unhiliting a menu item, if the menu definition is using the Appearance Manager's
             menu drawing APIs. This is necessary because the background of a menu is transparent on
             Aqua, and if the old hilite is not erased first, it will show through the new unhilited
             menu background.
-            
+
             If the menu definition uses QuickDraw to draw, it should draw into the current port.
-    
+
             If the menu definition uses CoreGraphics to draw, it should use the CGContextRef passed
             in the context field of the MDEFHiliteItemData structure.
-            
+
         kMenuDrawItemsMsg
-        
+
             menuRect        menu bounds
             hitPt           unused
             whichItem       MDEFDrawItemsData*
-            
+
             Sent when the Menu Manager is displaying a menu and needs to redraw a portion of the
             menu. This message is used by the dynamic menu item support code in the Menu Manager;
             for example, if items five and six in a menu are a dynamic group, the Menu Manager will
             send a DrawItems message when the group's modifier key is pressed or released to redraw
             the appropriate item, but no other items in the menu.
-            
+
             The whichItem parameter for this message is actually a pointer to a MDEFDrawItemsData
             structure. The menu definition should redraw the items starting with firstItem and
             ending with lastItem, inclusive.
-            
+
             If the menu definition uses QuickDraw to draw, it should draw into the current port.
-    
+
             If the menu definition uses CoreGraphics to draw, it should use the CGContextRef passed
             in the context field of the MDEFDrawItemsData structure.
-            
+
         kMenuDrawMsg
-            
+
             menuRect        menu bounds
             hitPt           unused
             whichItem       MDEFDrawData*
-            
+
             Sent when the Menu Manager is displaying a menu and needs to redraw the entire menu.
             The whichItem parameter is actually a pointer to a MenuTrackingData structure. On entry,
             the menu field of this structure is valid. The menu definition should draw the menu and,
             if it supports scrolling, should also fill in the virtualMenuTop and virtualMenuBottom
-            fields of the structure to indicate the menu's initial unscrolled position; typically, 
+            fields of the structure to indicate the menu's initial unscrolled position; typically,
             virtualMenuTop would be set to the same value as the top coordinate of the menu rect,
             and virtualMenuBottom would be set to virtualMenuTop plus the virtual height of the menu.
-            
+
             If the menu definition uses QuickDraw to draw, it should draw into the current port.
-    
+
             If the menu definition uses CoreGraphics to draw, it should use the CGContextRef passed
             in the context field of the MDEFDrawData structure.
-            
+
         kMenuSizeMsg
-        
+
             menuRect        unused
             hitPt           maximum width and height of the menu
             whichItem       unused
-            
+
             Sent when the Menu Manager needs to determine the size of a menu. The menu definition
             should calculate the width and height of the menu and store the sizes into the menu with
             SetMenuWidth and SetMenuHeight.
-            
+
             If the gestaltMenuMgrSendsMenuBoundsToDefProc bit is set in the Menu Manager's Gestalt
             value, then the hitPt parameter to this message is the maximum width (hitPt.h) and height
             (hitPt.v) of the menu. The menu definition should ensure that the width and height that it
             places in the menu do not exceed these values. If the gestalt bit is not set, the menu
             definition should just use the main GDevice's width and height as constraints on the menu's
             width and height.
-            
+
         kMenuPopUpMsg
-        
+
             menuRect        on entry, constraints on the menu's position; on exit, menu bounds
             hitPt           requested menu location, with swapped coordinates
             whichItem       on entry, requested initial selection; on exit, virtual menu top
-            
+
             Sent when the Menu Manager is about to display a popup menu. The menu definition should
             calculate the appropriate menu bounds to contain the menu based on the requested menu
             location and selected item. It should write the menuBounds into the rect given by the
             menuRect parameter.
-            
+
             If the gestaltMenuMgrSendsMenuBoundsToDefProc bit is set in the Menu Manager's Gestalt
             value, then the menuRect parameter on entry to this message contains a constraint rect,
             in global coordinates, outside of which the popup menu should not be positioned. The menu
             definition should take this constraint rect into account as it calculates the menu bounds.
             If the gestalt bit is not set, the menu definition should use the bounds of the GDevice
             containing the menu's top left corner as a constraint on the menu's position.
-            
+
             The hitPt parameter is a requested location for the top left corner of the menu. The
             coordinates of this parameter are swapped from their normal order; the h field of the
             hitPt parameter contains the vertical coordinate, and the v field of hitPt contains
             the horizontal coordinate.
-            
+
             On entry, the whichItem parameter points at a menu item index which is requested to be
             the initial selection when the menu is displayed. After calculating the menu's bounds,
             the menu definition should write the menu's virtual top coordinate into the location
             pointed at by the whichItem parameter. If displaying the menu at the requested location
             does not require scrolling, the virtual top will be the same as the menu bounds top;
             if the menu must scroll to fit in the requested location, the virtual top may be different.
-            
+
         kMenuCalcItemMsg
-        
+
             menuRect        on exit, item bounds
             hitPt           unused
             whichItem       the item whose rect to calculate
-            
+
             Sent when the Menu Manager needs to know the bounds of a menu item. The menu definition
-            should calculate the size of the item specified by the whichItem parameter, and store 
+            should calculate the size of the item specified by the whichItem parameter, and store
             the bounds in the rect specified by the menuRect parameter.
-            
+
             Some sample menu definition code provided by Apple has previously shown an implementation
             of this message that always sets the top left corner of the item bounds to (0,0), regardless
             of the item's actual position in the menu. For best future compatibility, menu definitions
@@ -5979,38 +5979,38 @@ function LMGetTheMenu: MenuID; external name '_LMGetTheMenu';
             an item bounds for the second item that starts at (0,40), and so on. The menu definition
             should call GetMenuTrackingData to get the menu's current virtual position, and use zero
             for the menu top if GetMenuTrackingData returns an error.
-            
+
         kMenuThemeSavvyMsg
-        
+
             menuRect        unused
             hitPt           unused
             whichItem       on exit, indicates theme-savvyness of the menu definition
-            
-            Sent by the Menu Manager to determine whether the MDEF uses the Appearance Manager 
+
+            Sent by the Menu Manager to determine whether the MDEF uses the Appearance Manager
             menu-drawing functions to draw its menu. If it does, the menu definition should return
             kThemeSavvyMenuResponse in the location pointed to by whichItem. If the menu definition
             draws its own custom content without using the Appearance Manager menu-drawing functions,
             it should ignore this message.
-    
+
     Low-memory Global Replacements
-    
+
         Pre-Carbon menu definitions needed to use several low-memory globals to communicate with the
         Menu Manager. These globals have all been replaced or made obsolete in Carbon, as follows:
-        
+
         MenuDisable
-            
+
             MenuDisable is now set automatically by the Menu Manager using the value returned in the
             itemUnderMouse field of the MenuTrackingData structure passed to kMenuFindItemMsg.
-            
+
         TopMenuItem
         AtMenuBottom
-        
+
             TopMenuItem and AtMenuBottom are now set automatically by the Menu Manager using the
             values returned in the virtualMenuTop and virtualMenuBottom fields of the MenuTrackingData
             structure passed to kMenuDrawMsg and kMenuFindItemMsg.
-            
+
         mbSaveLoc
-    
+
             This undocumented low-memory global was used by pre-Carbon menu definitions to store
             the bounding rect of the currently selected item and to avoid drawing glitches while
             the menu definition was scrolling the contents of a menu that had submenus. The Menu
@@ -6020,14 +6020,14 @@ function LMGetTheMenu: MenuID; external name '_LMGetTheMenu';
             verify, before scrolling the menu contents, that no submenus of the scrolling menu are
             currently visible. A menu definition can use GetMenuTrackingData to verify this condition,
             as follows:
-            
+
                 Boolean SafeToScroll( MenuRef menuBeingScrolled )
                 (
                     MenuTrackingData lastMenuData;
                     return GetMenuTrackingData( NULL, &lastMenuData ) == noErr
                            && lastMenuData.menu == menuBeingScrolled;
                 )
-            
+
             If SafeToScroll returns false, the menu definition should not scroll the menu.
 }
 {$endc} {not TARGET_CPU_64}
@@ -6056,7 +6056,7 @@ const
 
 {
  *  MDEFHiliteItemData
- *  
+ *
  *  Summary:
  *    The MDEFHiliteItemData structure contains information about which
  *    menu items should be hilited and unhilited as the user moves
@@ -6091,7 +6091,7 @@ type
 
 {
  *  MDEFDrawData
- *  
+ *
  *  Summary:
  *    The MDEFDrawData structure contains information needed to draw a
  *    menu. It is used by menu definition functions, which receive a
@@ -6117,7 +6117,7 @@ type
 
 {
  *  MDEFFindItemData
- *  
+ *
  *  Summary:
  *    The MDEFFindItemData structure contains information needed to
  *    determine which item is currently selected by the user. It is
@@ -6145,7 +6145,7 @@ type
 
 {
  *  MDEFDrawItemsData
- *  
+ *
  *  Summary:
  *    The MDEFDrawItemsData structure contains information about which
  *    menu items to redraw. It is used by menu definition functions,
@@ -6235,16 +6235,16 @@ const
 {$ifc not TARGET_CPU_64}
 {
  *  NewMenu()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CreateNewMenu instead of NewMenu.
- *  
+ *
  *  Summary:
  *    Creates a new menu.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -6256,16 +6256,16 @@ function NewMenu( menuID_: MenuID; const (*var*) menuTitle: Str255 ): MenuRef; e
 
 {
  *  GetMenuTitle()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CopyMenuTitleAsCFString instead of GetMenuTitle.
- *  
+ *
  *  Summary:
  *    Retrieves the title of a menu as a Pascal string.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -6277,16 +6277,16 @@ function GetMenuTitle( menu: MenuRef; var title: Str255 ): StringPtr; external n
 
 {
  *  SetMenuTitle()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use SetMenuTitleWithCFString instead of SetMenuTitle.
- *  
+ *
  *  Summary:
  *    Sets the title of a menu to a Pascal string.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -6298,19 +6298,19 @@ function SetMenuTitle( menu: MenuRef; const (*var*) title: Str255 ): OSStatus; e
 
 {
  *  [Mac]AppendMenu()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use AppendMenuItemTextWithCFString instead of AppendMenu. Note
  *    that unlike AppendMenu, AppendMenuItemTextWithCFString does not
  *    interpret metacharacters in the text.
- *  
+ *
  *  Summary:
  *    Appends a new menu item to a menu, using a Pascal string for the
  *    item's text.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -6323,35 +6323,35 @@ procedure MacAppendMenu( menu: MenuRef; const (*var*) data: Str255 ); external n
 
 {
  *  [Mac]InsertMenuItem()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use InsertMenuItemTextWithCFString instead of InsertMenuItem.
  *    Note that unlike InsertMenuItem InsertMenuItemTextWithCFString
  *    does not interpret metacharacters in the text.
- *  
+ *
  *  Summary:
  *    Inserts a new menu item into a menu, using a Pascal string for
  *    the item text.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    theMenu:
  *      The menu into which to insert the item.
- *    
+ *
  *    itemString:
  *      The text of the new item. This string is parsed for the
  *      meta-characters documented in the Menu Manager chapter of
  *      Inside Macintosh.
- *    
+ *
  *    afterItem:
  *      The menu item after which to insert the item. Pass 0 to insert
  *      the item at the beginning of the menu. If afterItem is greater
  *      than the number of items in the menu, the item is inserted at
  *      the end of the menu.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -6365,17 +6365,17 @@ procedure MacInsertMenuItem( theMenu: MenuRef; const (*var*) itemString: Str255;
 
 {
  *  AppendMenuItemText()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use AppendMenuItemTextWithCFString instead of AppendMenuItemText.
- *  
+ *
  *  Summary:
  *    Appends a menu item using a Pascal string for the item's text,
  *    without interpreting metacharacters in the text.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -6387,34 +6387,34 @@ function AppendMenuItemText( menu: MenuRef; const (*var*) inString: Str255 ): OS
 
 {
  *  InsertMenuItemText()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use InsertMenuItemTextWithCFString instead of InsertMenuItemText.
- *  
+ *
  *  Summary:
  *    Inserts a new menu item into a menu, using a Str255 for the item
  *    text.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    menu:
  *      The menu into which to insert the item.
- *    
+ *
  *    inString:
  *      The text of the new item. This string is not parsed for the
  *      meta-characters documented in the Menu Manager chapter of
  *      Inside Macintosh; the new item's text becomes exactly the
  *      specified text.
- *    
+ *
  *    afterItem:
  *      The menu item after which to insert the item. Pass 0 to insert
  *      the item at the beginning of the menu. If afterItem is greater
  *      than the number of items in the menu, the item is inserted at
  *      the end of the menu.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -6426,16 +6426,16 @@ function InsertMenuItemText( menu: MenuRef; const (*var*) inString: Str255; afte
 
 {
  *  SetMenuItemText()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use SetMenuItemTextWithCFString instead of SetMenuItemText.
- *  
+ *
  *  Summary:
  *    Sets the text of a menu item using a Pascal string.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -6447,16 +6447,16 @@ procedure SetMenuItemText( theMenu: MenuRef; item: MenuItemIndex; const (*var*) 
 
 {
  *  GetMenuItemText()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CopyMenuItemTextAsCFString instead of GetMenuItemText.
- *  
+ *
  *  Summary:
  *    Retrieves the text of a menu item as a Pascal string.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -6468,18 +6468,18 @@ procedure GetMenuItemText( theMenu: MenuRef; item: MenuItemIndex; var itemString
 
 {
  *  SetMenuItemTextEncoding()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use SetMenuItemTextWithCFString instead of setting an item's text
  *    as a Str255.
- *  
+ *
  *  Summary:
  *    Sets the text encoding that should be used to interpret a menu
  *    item's Pascal string-based text.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -6491,18 +6491,18 @@ function SetMenuItemTextEncoding( inMenu: MenuRef; inItem: MenuItemIndex; inScri
 
 {
  *  GetMenuItemTextEncoding()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CopyMenuItemTextAsCFString instead of retrieving a menu
  *    item's text as a Str255.
- *  
+ *
  *  Summary:
  *    Retrieves the text encoding that should be used to interpret a
  *    menu item's Pascal string-based text.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -6514,17 +6514,17 @@ function GetMenuItemTextEncoding( inMenu: MenuRef; inItem: MenuItemIndex; var ou
 
 {
  *  SetItemIcon()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use SetMenuItemIconHandle instead of SetItemIcon.
- *  
+ *
  *  Summary:
  *    Sets the resource ID of an icon resource to be displayed in a
  *    menu item.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -6536,17 +6536,17 @@ procedure SetItemIcon( theMenu: MenuRef; item: MenuItemIndex; iconIndex: SInt16 
 
 {
  *  GetItemIcon()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use GetMenuItemIconHandle instead of GetItemIcon.
- *  
+ *
  *  Summary:
  *    Retrieves the resource ID of an icon resource to be displayed in
  *    a menu item.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -6558,17 +6558,17 @@ procedure GetItemIcon( theMenu: MenuRef; item: MenuItemIndex; var iconIndex: SIn
 
 {
  *  SetMenuItemHierarchicalID()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use SetMenuItemHierarchicalMenu instead of
  *    SetMenuItemHierarchicalID.
- *  
+ *
  *  Summary:
  *    Sets the menu ID of the submenu of a menu item.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -6580,17 +6580,17 @@ function SetMenuItemHierarchicalID( inMenu: MenuRef; inItem: MenuItemIndex; inHi
 
 {
  *  GetMenuItemHierarchicalID()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use GetMenuItemHierarchicalMenu instead of
  *    GetMenuItemHierarchicalID.
- *  
+ *
  *  Summary:
  *    Retrieves the menu ID of the submenu of a menu item.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -6602,22 +6602,22 @@ function GetMenuItemHierarchicalID( inMenu: MenuRef; inItem: MenuItemIndex; var 
 
 {
  *  GetMenuRetainCount()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    In Mac OS X 10.2 and later, use CFGetRetainCount instead of
  *    GetMenuRetainCount.
- *  
+ *
  *  Summary:
  *    Returns the retain count of a menu.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inMenu:
  *      The menu whose retain count to return.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -6629,21 +6629,21 @@ function GetMenuRetainCount( inMenu: MenuRef ): ItemCount; external name '_GetMe
 
 {
  *  RetainMenu()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    In Mac OS X 10.2 and later, use CFRetain instead of RetainMenu.
- *  
+ *
  *  Summary:
  *    Increments the retain count of a menu.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inMenu:
  *      The menu whose retain count to increment.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -6655,22 +6655,22 @@ function RetainMenu( inMenu: MenuRef ): OSStatus; external name '_RetainMenu';
 
 {
  *  ReleaseMenu()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    In Mac OS X 10.2 and later, use CFRelease instead of ReleaseMenu.
- *  
+ *
  *  Summary:
  *    Decrements the retain count of a menu.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inMenu:
  *      The menu whose retain count to decrement. If the retain count
  *      falls to zero, the menu is destroyed.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -6682,20 +6682,20 @@ function ReleaseMenu( inMenu: MenuRef ): OSStatus; external name '_ReleaseMenu';
 
 {
  *  InsertResMenu()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    The most comment use for this API has been to create a font menu
  *    containing the names of 'FOND' resources. For this purpose, use
  *    CreateStandardFontMenu, or use a font panel window instead of a
  *    menu.
- *  
+ *
  *  Summary:
  *    Inserts menu items containing the names of resources of a
  *    specified resource type.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -6707,20 +6707,20 @@ procedure InsertResMenu( theMenu: MenuRef; theType: ResType; afterItem: MenuItem
 
 {
  *  AppendResMenu()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    The most comment use for this API has been to create a font menu
  *    containing the names of 'FOND' resources. For this purpose, use
  *    CreateStandardFontMenu, or use a font panel window instead of a
  *    menu.
- *  
+ *
  *  Summary:
  *    Appends menu items containing the names of resources of a
  *    specified resource type.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -6732,17 +6732,17 @@ procedure AppendResMenu( theMenu: MenuRef; theType: ResType ); external name '_A
 
 {
  *  InsertFontResMenu()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CreateStandardFontMenu or a font panel window instead of
  *    InsertFontResMenu.
- *  
+ *
  *  Summary:
  *    Inserts menu items containing the names of font resources.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -6754,20 +6754,20 @@ procedure InsertFontResMenu( theMenu: MenuRef; afterItem: MenuItemIndex; scriptF
 
 {
  *  InsertIntlResMenu()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    The most comment use for this API has been to create a font menu
  *    containing the names of 'FOND' resources. For this purpose, use
  *    CreateStandardFontMenu, or use a font panel window instead of a
  *    menu.
- *  
+ *
  *  Summary:
  *    Inserts menu items containing the names of resources of a
  *    specified resource type.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -6779,17 +6779,17 @@ procedure InsertIntlResMenu( theMenu: MenuRef; theType: ResType; afterItem: Menu
 
 {
  *  MenuKey()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use MenuEvent, IsMenuKeyEvent, or a kEventCommandProcess Carbon
  *    event handler instead of MenuKey.
- *  
+ *
  *  Summary:
  *    Determines if a character matches a menu item command key.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -6801,16 +6801,16 @@ function MenuKey( ch: CharParameter ): SInt32; external name '_MenuKey';
 
 {
  *  SetMenuFlashCount()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    This function has no effect on Mac OS X.
- *  
+ *
  *  Summary:
  *    Sets the number of times that a selected menu item will blink.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -6822,14 +6822,14 @@ procedure SetMenuFlashCount( count: SInt16 ); external name '_SetMenuFlashCount'
 
 {
  *  InitContextualMenus()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    On Mac OS X, it is not necessary to call InitContextualMenus.
- *  
+ *
  *  Summary:
  *    Adds the current process to the system registry of contextual
  *    menu clients.
- *  
+ *
  *  Discussion:
  *    On Mac OS 8.x and 9.x, your program should call the
  *    InitContextualMenus function early in your startup code to
@@ -6838,10 +6838,10 @@ procedure SetMenuFlashCount( count: SInt16 ); external name '_SetMenuFlashCount'
  *    respond as though your program does not use contextual menus. Not
  *    registering your program may also cause
  *    ProcessIsContextualMenuClient to return an incorrect value.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -6853,33 +6853,33 @@ function InitContextualMenus: OSStatus; external name '_InitContextualMenus';
 
 {
  *  ProcessIsContextualMenuClient()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    There is no reason for an application to call this API.
- *  
+ *
  *  Summary:
  *    Determines whether the specified process is a contextual menu
  *    client.
- *  
+ *
  *  Discussion:
  *    On Mac OS 9, this API consults a global table of all processes
  *    that have registered with the Contextual Menu Manager by calling
  *    InitContextualMenus. On Mac OS X, this API ignores the inPSN
  *    parameter and always returns whether the current process is
  *    registered with the Contextual Menu Manager.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inPSN:
  *      The process to examine.
- *  
+ *
  *  Result:
  *    Whether the specified process (or, on Mac OS X, the current
  *    process) is registered with the Contextual Menu Manager.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -6896,17 +6896,17 @@ function ProcessIsContextualMenuClient( var inPSN: ProcessSerialNumber ): Boolea
 {——————————————————————————————————————————————————————————————————————————————————————}
 {
  *  DeleteMCEntries()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Mac OS X does not support menu color tables; this API has no
  *    effect.
- *  
+ *
  *  Summary:
  *    Removes color table entries for a menu.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -6918,17 +6918,17 @@ procedure DeleteMCEntries( menuID_: MenuID; menuItem: SInt16 ); external name '_
 
 {
  *  GetMCInfo()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Mac OS X does not support menu color tables; this API has no
  *    effect.
- *  
+ *
  *  Summary:
  *    Retrieves color table entries for the current process.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -6940,17 +6940,17 @@ function GetMCInfo: MCTableHandle; external name '_GetMCInfo';
 
 {
  *  SetMCInfo()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Mac OS X does not support menu color tables; this API has no
  *    effect.
- *  
+ *
  *  Summary:
  *    Sets color table info for the current process.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -6962,17 +6962,17 @@ procedure SetMCInfo( menuCTbl: MCTableHandle ); external name '_SetMCInfo';
 
 {
  *  DisposeMCInfo()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Mac OS X does not support menu color tables; this API has no
  *    effect.
- *  
+ *
  *  Summary:
  *    Releases the memory used by a menu color table.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -6984,17 +6984,17 @@ procedure DisposeMCInfo( menuCTbl: MCTableHandle ); external name '_DisposeMCInf
 
 {
  *  GetMCEntry()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Mac OS X does not support menu color tables; this API has no
  *    effect.
- *  
+ *
  *  Summary:
  *    Returns a pointer to the menu color table entry for a menu item.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -7006,17 +7006,17 @@ function GetMCEntry( menuID_: MenuID; menuItem: SInt16 ): MCEntryPtr; external n
 
 {
  *  SetMCEntries()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Mac OS X does not support menu color tables; this API has no
  *    effect.
- *  
+ *
  *  Summary:
  *    Sets entries in the menu color table for the current process.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -7031,38 +7031,38 @@ procedure SetMCEntries( numEntries: SInt16; menuCEntries: MCTablePtr ); external
 {——————————————————————————————————————————————————————————————————————————————————————}
 {
  *  EraseMenuBackground()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    In Mac OS X 10.3 and later, use a custom HIView instead of a menu
  *    definition function to customize the appearance of a menu.
- *  
+ *
  *  Summary:
  *    Erases a portion of a menu background in preparation for further
  *    drawing.
- *  
+ *
  *  Discussion:
  *    It is necessary to erase the menu background before calling
  *    DrawThemeMenuBackground because some themes (such as Aqua on Mac
  *    OS X) draw the menu background using the alpha channel, and if
  *    the area underneath the menu background is not erased, portions
  *    of the old image will show through the menu background.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inMenu:
  *      The menu whose background to erase.
- *    
+ *
  *    inEraseRect:
  *      The bounds of the area to erase, in local coordinates to the
  *      current port.
- *    
+ *
  *    inContext:
  *      The CG context to erase. If NULL, EraseMenuBackground will
  *      create a context based on the current port.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.5 and later
@@ -7074,14 +7074,14 @@ function EraseMenuBackground( inMenu: MenuRef; const (*var*) inEraseRect: Rect; 
 
 {
  *  ScrollMenuImage()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    In Mac OS X 10.3 and later, use a custom HIView instead of a menu
  *    definition function to customize the appearance of a menu.
- *  
+ *
  *  Summary:
  *    Scrolls a portion of the menu image.
- *  
+ *
  *  Discussion:
  *    Menus on Mac OS X use an alpha channel, and QuickDraw does not
  *    support alpha channels. Therefore, scrolling a menu image with
@@ -7089,28 +7089,28 @@ function EraseMenuBackground( inMenu: MenuRef; const (*var*) inEraseRect: Rect; 
  *    results in the destruction of the alpha channel data. The
  *    ScrollMenuImage API uses CoreGraphics to move the menu image,
  *    preserving the alpha channel.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inMenu:
  *      The menu whose image to scroll.
- *    
+ *
  *    inScrollRect:
  *      The bounds of the rect to scroll.
- *    
+ *
  *    inHScroll:
  *      The distance to scroll horizontally.
- *    
+ *
  *    inVScroll:
  *      The distance to scroll vertically.
- *    
+ *
  *    inContext:
  *      The CG context to erase. If NULL, ScrollMenuImage will create a
  *      context based on the current port.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.5 and later
@@ -7131,7 +7131,7 @@ type
 	MBarHookUPP = MBarHookProcPtr;
 {
  *  NewMenuBarDefUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -7140,7 +7140,7 @@ type
 
 {
  *  NewMenuHookUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -7149,7 +7149,7 @@ type
 
 {
  *  NewMBarHookUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -7158,7 +7158,7 @@ type
 
 {
  *  DisposeMenuBarDefUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -7167,7 +7167,7 @@ type
 
 {
  *  DisposeMenuHookUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -7176,7 +7176,7 @@ type
 
 {
  *  DisposeMBarHookUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -7185,7 +7185,7 @@ type
 
 {
  *  InvokeMenuBarDefUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -7194,7 +7194,7 @@ type
 
 {
  *  InvokeMenuHookUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -7203,7 +7203,7 @@ type
 
 {
  *  InvokeMBarHookUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available

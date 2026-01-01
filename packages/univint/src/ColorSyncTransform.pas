@@ -232,16 +232,16 @@ function ColorSyncTransformCreate( profileSequence: CFArrayRef; options: CFDicti
    {
     *   profileSequence  - array of dictionaries, each one containing a profile object and the
     *                      information on the usage of the profile in the transform.
-    *               
+    *
     *               Required keys:
     *               ==============
     *                      kColorSyncProfile           : ColorSyncProfileRef
     *                      kColorSyncRenderingIntent   : CFStringRef defining rendering intent
-    *                      kColorSyncTransformTag      : CFStringRef defining which tags to use 
+    *                      kColorSyncTransformTag      : CFStringRef defining which tags to use
     *               Optional key:
     *               =============
     *                      kColorSyncBlackPointCompensation : CFBooleanRef to enable/disable BPC
-    *   
+    *
     *   options      - dictionary with additional public global options (e.g. preferred CMM, quality,
     *                       etc... It can also contain custom options that are CMM specific.
     *
@@ -312,7 +312,7 @@ function ColorSyncTransformConvert( transform: ColorSyncTransformRef; width: siz
     *   srcFormat         - describes the format and byte packing of the source pixels
     *   srcBytesPerRow    - number of bytes in the row of data
     *
-    *   returns true if conversion was successful or false otherwise 
+    *   returns true if conversion was successful or false otherwise
     }
 
 
@@ -369,14 +369,14 @@ var kColorSyncTransformDstSpace: CFStringRef; external name '_kColorSyncTransfor
  * i.e. tone rendering curves (TRCs), 3x4 matrices (3x3 + 3x1), multi-dimensional
  * interpolation tables and Black Point Compensation.
  * The parameters are wrapped in CFArray or CFData objects specific to the
- * component type and placed in a CFDictionary under a key that identifies the 
+ * component type and placed in a CFDictionary under a key that identifies the
  * type of the component. The complete code fragment is a CFArray of component
  * dictionaries that are placed in the in the order they have to be executed.
- * 
- * A code fragment is created by calling ColorSyncTransformCopyProperty with the key 
+ *
+ * A code fragment is created by calling ColorSyncTransformCopyProperty with the key
  * specifying the type of the code fragment to be created. NULL pointer will be
  * returnde if the requested code fragment cannot be created. The code fragment
- * will be stored in the ColorSyncTransform list of properties and can be removed by 
+ * will be stored in the ColorSyncTransform list of properties and can be removed by
  * by calling ColorSyncTransformSetProperty with NULL value.
  }
 
@@ -392,7 +392,7 @@ var kColorSyncTransformDstSpace: CFStringRef; external name '_kColorSyncTransfor
  * 3. Simplified:      Full conversion is collapsed to N input TRCs one
  *                     multi-dimensional table and M output TRCs.
  }
- 
+
 var kColorSyncTransformFullConversionData: CFStringRef; external name '_kColorSyncTransformFullConversionData'; (* attribute const *)         { CFSTR("com.apple.cmm.FullConversion") }
 var kColorSyncTransformSimplifiedConversionData: CFStringRef; external name '_kColorSyncTransformSimplifiedConversionData'; (* attribute const *)   { CFSTR("com.apple.cmm.SimplifiedConversion") }
 var kColorSyncTransformParametricConversionData: CFStringRef; external name '_kColorSyncTransformParametricConversionData'; (* attribute const *)   { CFSTR("com.apple.cmm.ParametricConversion") }
@@ -418,7 +418,7 @@ var kColorSyncConversionMatrix: CFStringRef; external name '_kColorSyncConversio
  * 2. 1-dimensional lookup with interpolation:
  *                  represented as CFData containing a Float32 table[gridPoints]
  }
- 
+
 var kColorSyncConversionParamCurve0: CFStringRef; external name '_kColorSyncConversionParamCurve0'; (* attribute const *)   { CFSTR("com.apple.cmm.ParamCurve0") }
 var kColorSyncConversionParamCurve1: CFStringRef; external name '_kColorSyncConversionParamCurve1'; (* attribute const *)   { CFSTR("com.apple.cmm.ParamCurve1") }
 var kColorSyncConversionParamCurve2: CFStringRef; external name '_kColorSyncConversionParamCurve2'; (* attribute const *)   { CFSTR("com.apple.cmm.ParamCurve2") }
@@ -431,13 +431,13 @@ var kColorSyncConversionChannelID: CFStringRef; external name '_kColorSyncConver
 {
  * Multi-dimensional lookup with interpolation:
  *
- *       represented as CFData containing a Float32 table for N inputs, M outputs 
+ *       represented as CFData containing a Float32 table for N inputs, M outputs
  *       and P gridPoints in each direction. The dimensioncorresponding to the
  *       first input channel varies least rapidly, and the dimension corresponding
  *       to the last input channel varies most rapidly. Each grid point value contains
  *       M Float32 numbers, one for each of output channels (M is the number of outputs).
  }
- 
+
 
 var kColorSyncConversion3DLut: CFStringRef; external name '_kColorSyncConversion3DLut'; (* attribute const *)      { CFSTR("com.apple.cmm.3D-LUT") }
 var kColorSyncConversionInpChan: CFStringRef; external name '_kColorSyncConversionInpChan'; (* attribute const *)    { CFSTR("com.apple.cmm.InputChannels") }
@@ -449,7 +449,7 @@ var kColorSyncConversionOutChan: CFStringRef; external name '_kColorSyncConversi
  * 1. Scaling in Luminance: CFArray containing two numbers.
  * 2. Scaling in XYZ: CFArray containing six numbers.
  }
- 
+
 var kColorSyncConversionBPC: CFStringRef; external name '_kColorSyncConversionBPC'; (* attribute const *)   { CFSTR("com.apple.cmm.BPC") }
 
 {$endc} {TARGET_OS_MAC}

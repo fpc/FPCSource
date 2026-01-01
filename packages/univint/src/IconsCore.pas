@@ -1,13 +1,13 @@
 {
      File:       IconsCore.h
- 
+
      Contains:   Icon Utilities and Icon Services Interfaces.
- 
+
      Copyright:  (c) 2003-2012 by Apple Inc. All rights reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
 }
 {
@@ -319,20 +319,20 @@ type
 	IconRef_fix = IconRef;	{ used as a type identifiers in records containing iconRef field }
 	IconRefPtr = ^IconRef;
 {
-   IconServices is an efficient mechanism to share icon data amongst multiple 
-   clients. It avoids duplication of data; it provides efficient caching, 
+   IconServices is an efficient mechanism to share icon data amongst multiple
+   clients. It avoids duplication of data; it provides efficient caching,
    releasing memory when the icon data is no longer needed; it can provide
-   the appropriate icon for any filesystem object; it can provide commonly 
+   the appropriate icon for any filesystem object; it can provide commonly
    used icons (caution, note, help...); it is Appearance-savvy: the icons
    are switched when appropriate.
    IconServices refer to cached icon data using IconRef, a 32-bit opaque
-   value. IconRefs are reference counted. When there are no more "owners" 
+   value. IconRefs are reference counted. When there are no more "owners"
    of an IconRef, the memory used by the icon bitmap is disposed of.
    Two files of same type and creator with no custom icon will have the same IconRef.
    Files with custom icons will have their own IconRef.
 }
 {
-   Use the special creator kSystemIconsCreator to get "standard" icons 
+   Use the special creator kSystemIconsCreator to get "standard" icons
    that are not associated with a file, such as the help icon.
    Note that all lowercase creators are reserved by Apple.
 }
@@ -588,18 +588,18 @@ const
 
 {
    GetIconRefOwners
-   
+
    This routine returns the reference count for the IconRef, or number of owners.
-   
+
    A valid IconRef always has at least one owner.
 }
 
 {
  *  GetIconRefOwners()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -616,10 +616,10 @@ function GetIconRefOwners( theIconRef: IconRef; var owners: UInt16 ): OSErr; ext
 
 {
  *  AcquireIconRef()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -631,19 +631,19 @@ function AcquireIconRef( theIconRef: IconRef ): OSErr; external name '_AcquireIc
 
 {
    ReleaseIconRef
-   
+
    This routine decrements the reference count for the IconRef.
-   
+
    When the reference count reaches 0, all memory allocated for the icon
    is disposed. Any subsequent use of the IconRef is invalid.
 }
 
 {
  *  ReleaseIconRef()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -662,17 +662,17 @@ function ReleaseIconRef( theIconRef: IconRef ): OSErr; external name '_ReleaseIc
 
 {
    GetIconRefFromFile
-   
+
    This routine returns an icon ref for the specified file, folder or volume.
-   The label information is provided separately, since two files with the same icon 
-   but a different label would share the same iconRef. The label can be used in 
+   The label information is provided separately, since two files with the same icon
+   but a different label would share the same iconRef. The label can be used in
    PlotIconRef() for example.
-   
-   Use this routine if you have no information about the file system object. If 
-   you have already done a GetCatInfo on the file and want to save some I/O, 
-   call GetIconRefFromFolder() if you know it's a folder with no custom icon or 
+
+   Use this routine if you have no information about the file system object. If
+   you have already done a GetCatInfo on the file and want to save some I/O,
+   call GetIconRefFromFolder() if you know it's a folder with no custom icon or
    call GetIconRef() if it's a file with no custom icon.
-   This routine increments the reference count of the returned IconRef. Call 
+   This routine increments the reference count of the returned IconRef. Call
    ReleaseIconRef() when you're done with it.
    This call is deprecated. Please use GetIconRefFromFileInfo() instead.
 }
@@ -680,10 +680,10 @@ function ReleaseIconRef( theIconRef: IconRef ): OSErr; external name '_ReleaseIc
 {$ifc not TARGET_CPU_64}
 {
  *  GetIconRefFromFile()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -696,23 +696,23 @@ function GetIconRefFromFile( const (*var*) theFile: FSSpec; var theIconRef: Icon
 
 {
    GetIconRef
-   
+
    This routine returns an icon ref for an icon in the desktop database or
    for a registered icon.
-   The system registers a set of icon such as the help icon with the creator 
+   The system registers a set of icon such as the help icon with the creator
    code kSystemIconsCreator. See above for a list of the registered system types.
-   The vRefNum is used as a hint on where to look for the icon first. Use 
+   The vRefNum is used as a hint on where to look for the icon first. Use
    kOnSystemDisk if you don't know what to pass.
-   This routine increments the reference count of the returned IconRef. Call 
+   This routine increments the reference count of the returned IconRef. Call
    ReleaseIconRef() when you're done with it.
 }
 
 {
  *  GetIconRef()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -724,22 +724,22 @@ function GetIconRef( vRefNum: SInt16; creator: OSType; iconType: OSType; var the
 
 {
    GetIconRefFromFolder
-   
+
    This routine returns an icon ref for a folder with no custom icon.
    Use the more generic, but slightly slower, GetIconRefFromFile() if
    you don't already have the necessary info about the file.
    Attributes should be CInfoPBRec.dirInfo.ioFlAttrib for this folder.
    Access privileges should be CInfoPBRec.dirInfo.ioACUser for this folder.
-   This routine increments the reference count of the IconRef. Call ReleaseIconRef() 
+   This routine increments the reference count of the IconRef. Call ReleaseIconRef()
    when you're done with it.
 }
 
 {
  *  GetIconRefFromFolder()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -752,10 +752,10 @@ function GetIconRefFromFolder( vRefNum: SInt16; parentFolderID: SInt32; folderID
 { GetIconRefFromFileInfo}
 {
  *  GetIconRefFromFileInfo()
- *  
+ *
  *  Summary:
  *    This routine returns an IconRef for a file with minimal file I/O.
- *  
+ *
  *  Discussion:
  *    To minimize file operations, FSGetCatalogInfo should be called
  *    prior to calling this routine. The FSCatalogInfo should
@@ -763,37 +763,37 @@ function GetIconRefFromFolder( vRefNum: SInt16; parentFolderID: SInt32; folderID
  *    fetched and passed in. If either the name or the correct catalog
  *    info is not passed in, this routine will do file operations for
  *    this information instead.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inRef:
  *      An FSRef for the target file
- *    
+ *
  *    inFileNameLength:
  *      The length of the name of the target file
- *    
+ *
  *    inFileName:
  *      The name of the target file
- *    
+ *
  *    inWhichInfo:
  *      The mask of file info already acquired.
- *    
+ *
  *    inCatalogInfo:
  *      The catalog info already acquired.
- *    
+ *
  *    inUsageFlags:
  *      The usage flags for this call (use
  *      kIconServicesNormalUsageFlag).
- *    
+ *
  *    outIconRef:
  *      The output IconRef for the routine.
- *    
+ *
  *    outLabel:
  *      The output label for the icon/file.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.1 and later
@@ -806,10 +806,10 @@ function GetIconRefFromFileInfo( const (*var*) inRef: FSRef; inFileNameLength: U
 { GetIconRefFromTypeInfo}
 {
  *  GetIconRefFromTypeInfo()
- *  
+ *
  *  Summary:
  *    Create an IconRef for a type information.
- *  
+ *
  *  Discussion:
  *    Creates IconRef based on provided type info. Any of the input
  *    parameters can be zero (meaning it is unknown). Returns generic
@@ -817,31 +817,31 @@ function GetIconRefFromFileInfo( const (*var*) inRef: FSRef; inFileNameLength: U
  *    routine with non zero inCreator and inType and zero inExtension
  *    and inMIMEType is equivalent to GetIconRef(kOnSystemDisk,
  *    inCreator, inType).
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inCreator:
  *      The creator.
- *    
+ *
  *    inType:
  *      The type.
- *    
+ *
  *    inExtension:
  *      The extension.
- *    
+ *
  *    inMIMEType:
  *      The MIME type.
- *    
+ *
  *    inUsageFlags:
  *      The usage flags for this call (use
  *      kIconServicesNormalUsageFlag).
- *    
+ *
  *    outIconRef:
  *      The output IconRef for the routine.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -854,27 +854,27 @@ function GetIconRefFromTypeInfo( inCreator: OSType; inType: OSType; inExtension:
 { GetIconRefFromIconFamilyPtr}
 {
  *  GetIconRefFromIconFamilyPtr()
- *  
+ *
  *  Summary:
  *    Create an IconRef for the IconFamilyPtr.
- *  
+ *
  *  Discussion:
  *    This routine creates IconRef for the IconFamilyPtr.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inIconFamilyPtr:
  *      The icon data
- *    
+ *
  *    inSize:
  *      The icon data size
- *    
+ *
  *    outIconRef:
  *      The output IconRef for the routine.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -887,26 +887,26 @@ function GetIconRefFromIconFamilyPtr( const (*var*) inIconFamilyPtr: IconFamilyR
 { GetIconRefFromComponent}
 {
  *  GetIconRefFromComponent()
- *  
+ *
  *  Summary:
  *    Create an IconRef for the component.
- *  
+ *
  *  Discussion:
  *    Creates IconRef based on componentIconFamily field of component's
  *    'thng' resource.. This routine increments the reference count of
  *    the IconRef. Call ReleaseIconRef() when you're done with it.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.5
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inComponent:
  *      A component identifier.
- *    
+ *
  *    outIconRef:
  *      The output IconRef for the routine.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.5 and later
@@ -925,22 +925,22 @@ function GetIconRefFromComponent( inComponent: Component; var outIconRef: IconRe
 
 {
    RegisterIconRefFromIconFamily
-   This routine adds a new entry to the IconRef registry. Other clients will be 
+   This routine adds a new entry to the IconRef registry. Other clients will be
    able to access it using the (creator, iconType) pair specified here.
    Lower-case creators are reserved for the system.
-   Consider using RegisterIconRefFromResource() if possible, since the data 
+   Consider using RegisterIconRefFromResource() if possible, since the data
    registered using RegisterIconRefFromFamily() cannot be purged.
    The iconFamily data is copied and the caller is reponsible for disposing of it.
-   This routine increments the reference count of the IconRef. Call ReleaseIconRef() 
+   This routine increments the reference count of the IconRef. Call ReleaseIconRef()
    when you're done with it.
 }
 
 {
  *  RegisterIconRefFromIconFamily()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -952,22 +952,22 @@ function RegisterIconRefFromIconFamily( creator: OSType; iconType: OSType; iconF
 
 {
    RegisterIconRefFromResource
-   
-   Registers an IconRef from a resouce file.  
+
+   Registers an IconRef from a resouce file.
    Lower-case creators are reserved for the system.
-   The icon data to be fetched is either classic icon data or an icon family.  
+   The icon data to be fetched is either classic icon data or an icon family.
    The 'icns' icon family is searched for before the classic icon data.
-   This routine increments the reference count of the IconRef. Call ReleaseIconRef() 
+   This routine increments the reference count of the IconRef. Call ReleaseIconRef()
    when you're done with it.
 }
 
 {$ifc not TARGET_CPU_64}
 {
  *  RegisterIconRefFromResource()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -982,28 +982,28 @@ function RegisterIconRefFromResource( creator: OSType; iconType: OSType; const (
 
 {
  *  RegisterIconRefFromFSRef()
- *  
+ *
  *  Discussion:
  *    This routine registers an IconRef from a ".icns" file and
  *    associates it with a creator/type pair.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Parameters:
- *    
+ *
  *    creator:
  *      The creator code for the icns file.
- *    
+ *
  *    iconType:
  *      The type code for the icns file
- *    
+ *
  *    iconFile:
  *      The FSRef of the icns file.
- *    
+ *
  *    theIconRef:
  *      The output IconRef for the routine.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.1 and later
@@ -1015,18 +1015,18 @@ function RegisterIconRefFromFSRef( creator: OSType; iconType: OSType; const (*va
 
 {
    UnregisterIconRef
-   
-   Removes the specified icon from the icon cache (if there are no users of it).  
-   If some clients are using this iconRef, then the IconRef will be removed when the 
+
+   Removes the specified icon from the icon cache (if there are no users of it).
+   If some clients are using this iconRef, then the IconRef will be removed when the
    last user calls ReleaseIconRef.
 }
 
 {
  *  UnregisterIconRef()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1038,22 +1038,22 @@ function UnregisterIconRef( creator: OSType; iconType: OSType ): OSErr; external
 
 {
    UpdateIconRef
-   
+
    Call this routine to force an update of the data for iconRef.
-   
-   For example after changing an icon in the desktop database or changing the custom 
-   icon of a file. Note that after _adding_ a custom icon to file or folder, you 
-   need to call GetIconRefFromFile() to get a new IconRef specific to this file. 
-   
+
+   For example after changing an icon in the desktop database or changing the custom
+   icon of a file. Note that after _adding_ a custom icon to file or folder, you
+   need to call GetIconRefFromFile() to get a new IconRef specific to this file.
+
    This routine does nothing if the IconRef is a registered icon.
 }
 
 {
  *  UpdateIconRef()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1065,7 +1065,7 @@ function UpdateIconRef( theIconRef: IconRef ): OSErr; external name '_UpdateIcon
 
 {
    OverrideIconRefFromResource
-   
+
    This routines replaces the bitmaps of the specified IconRef with the ones
    in the specified resource file.
 }
@@ -1073,10 +1073,10 @@ function UpdateIconRef( theIconRef: IconRef ): OSErr; external name '_UpdateIcon
 {$ifc not TARGET_CPU_64}
 {
  *  OverrideIconRefFromResource()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1089,17 +1089,17 @@ function OverrideIconRefFromResource( theIconRef: IconRef; const (*var*) resourc
 
 {
    OverrideIconRef
-   
+
    This routines replaces the bitmaps of the specified IconRef with the ones
    from the new IconRef.
 }
 
 {
  *  OverrideIconRef()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1111,16 +1111,16 @@ function OverrideIconRef( oldIconRef: IconRef; newIconRef: IconRef ): OSErr; ext
 
 {
    RemoveIconRefOverride
-   This routine remove an override if one was applied to the icon and 
+   This routine remove an override if one was applied to the icon and
    reverts back to the original bitmap data.
 }
 
 {
  *  RemoveIconRefOverride()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1139,16 +1139,16 @@ function RemoveIconRefOverride( theIconRef: IconRef ): OSErr; external name '_Re
 
 {
    CompositeIconRef
-   
+
    Superimposes an IconRef on top of another one
 }
 
 {
  *  CompositeIconRef()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1166,10 +1166,10 @@ function CompositeIconRef( backgroundIconRef: IconRef; foregroundIconRef: IconRe
 
 {
  *  IsIconRefComposite()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1192,10 +1192,10 @@ function IsIconRefComposite( compositeIconRef: IconRef; var backgroundIconRef: I
 
 {
  *  IsValidIconRef()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1208,25 +1208,25 @@ function IsValidIconRef( theIconRef: IconRef ): Boolean; external name '_IsValid
 { IsDataAvailableInIconRef}
 {
  *  IsDataAvailableInIconRef()
- *  
+ *
  *  Summary:
  *    Check if IconRef has specific data.
- *  
+ *
  *  Discussion:
  *    This routine returns true if inIconKind icon data is availabe or
  *    can be created.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.4
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inIconKind:
  *      The icon data kind
- *    
+ *
  *    inIconRef:
  *      The IconRef to test.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -1245,8 +1245,8 @@ function IsDataAvailableInIconRef( inIconKind: OSType; inIconRef: IconRef ): Boo
 
 {
    FlushIconRefs
-   
-   Making this call will dispose of all the data for the specified icons if 
+
+   Making this call will dispose of all the data for the specified icons if
    the data can be reacquired, for example if the data is provided from a resource.
    '****' is a wildcard for all types or all creators.
 }
@@ -1254,10 +1254,10 @@ function IsDataAvailableInIconRef( inIconKind: OSType; inIconRef: IconRef ): Boo
 {$ifc not TARGET_CPU_64}
 {
  *  FlushIconRefs()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.3
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1269,18 +1269,18 @@ function FlushIconRefs( creator: OSType; iconType: OSType ): OSErr; external nam
 
 {
    FlushIconRefsByVolume
-   
+
    This routine disposes of the data for the icons related to the indicated volume
-   if this data can be reacquired, for example if the data is provided from a 
+   if this data can be reacquired, for example if the data is provided from a
    resource.
 }
 
 {
  *  FlushIconRefsByVolume()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.3
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1300,17 +1300,17 @@ function FlushIconRefsByVolume( vRefNum: SInt16 ): OSErr; external name '_FlushI
 
 {
    SetCustomIconsEnabled
-   
+
    Enable or disable custom icons on the specified volume.
 }
 
 
 {
  *  SetCustomIconsEnabled()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1322,16 +1322,16 @@ function SetCustomIconsEnabled( vRefNum: SInt16; enableCustomIcons: Boolean ): O
 
 {
    GetCustomIconsEnabled
-   
+
    Return true if custom icons are enabled on the specified volume, false otherwise.
 }
 
 {
  *  GetCustomIconsEnabled()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1350,23 +1350,23 @@ function GetCustomIconsEnabled( vRefNum: SInt16; var customIconsEnabled: Boolean
 
 {
    RegisterIconRefFromIconFile
-   This routine adds a new entry to the IconRef registry. Other clients will be 
+   This routine adds a new entry to the IconRef registry. Other clients will be
    able to access it using the (creator, iconType) pair specified here.
    Lower-case creators are reserved for the system.
    If the creator is kSystemIconsCreator and the iconType is 0, a new IconRef
    is always returned. Otherwise, if the creator and type have already been
    registered, the previously registered IconRef is returned.
-   This routine increments the reference count of the IconRef. Call ReleaseIconRef() 
+   This routine increments the reference count of the IconRef. Call ReleaseIconRef()
    when you're done with it.
 }
 
 {$ifc not TARGET_CPU_64}
 {
  *  RegisterIconRefFromIconFile()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version Jagua
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1384,10 +1384,10 @@ function RegisterIconRefFromIconFile( creator: OSType; iconType: OSType; const (
 
 {
  *  ReadIconFile()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1404,10 +1404,10 @@ function ReadIconFile( const (*var*) iconFile: FSSpec; var iconFamily: IconFamil
 
 {
  *  WriteIconFile()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1422,21 +1422,21 @@ function WriteIconFile( iconFamily: IconFamilyHandle; const (*var*) iconFile: FS
 
 {
  *  ReadIconFromFSRef()
- *  
+ *
  *  Discussion:
  *    This routine reads an icon (icns) file into memory.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    ref:
  *      The FSRef for the icon file.
- *    
+ *
  *    iconFamily:
  *      The handle for the icon family.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.1 and later

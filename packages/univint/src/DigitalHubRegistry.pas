@@ -1,17 +1,17 @@
 {
      File:       OpenScripting/DigitalHubRegistry.h
- 
+
      Contains:   Digital Hub AppleEvents
- 
+
      Version:    OSA-148~28
- 
+
      Copyright:  © 2002-2008 by Apple Computer, Inc.  All rights reserved
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 
 {  Pascal Translation: Gorazd Krosl <gorazd_1957@yahoo.ca>, October 2009 }
@@ -245,7 +245,7 @@ const
 
 {
     Parameters for Digital Hub AppleEvents:
-                    
+
         kDigiHubMusicCD
         Required parameters:
         -->     keyDirectObject         typeFSRef
@@ -253,11 +253,11 @@ const
         kDigiHubPictureCD
         Required parameters:
         -->     keyDirectObject         typeFSRef
-                
+
         kDigiHubVideoDVD
         Required parameters:
         -->     keyDirectObject         typeFSRef
-                
+
         kDigiHubBlankCD
         Required parameters:
         -->     keyDirectObject         typeUTF8Text

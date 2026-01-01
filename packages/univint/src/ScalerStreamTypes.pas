@@ -1,13 +1,13 @@
 {
      File:       ATS/ScalerStreamTypes.h
- 
+
      Contains:   Scaler streaming data structures and constants for OFA 1.x
- 
+
      Copyright:  © 1994-2008 by Apple Inc., all rights reserved.
- 
+
      Warning:    *** APPLE INTERNAL USE ONLY ***
                  This file may contain unreleased API's
- 
+
      BuildInfo:  Built by:            root
                  On:                  Fri Jul 24 22:21:51 2009
                  With Interfacer:     3.0d46   (Mac OS X for PowerPC)
@@ -16,10 +16,10 @@
                      Dated:           2007/01/15 23:28:27
                      Last change by:  kurita
                      Last comment:    <rdar://problem/4916090> updated copyright.
- 
+
      Bugs:       Report bugs to Radar component "System Interfaces", "Latest"
                  List the version information (from above) in the Problem Description.
- 
+
 }
 
 { Pascal Translation: Gorazd Krosl <gorazd_1957@yahoo.ca>, October 2009 }

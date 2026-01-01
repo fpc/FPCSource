@@ -878,20 +878,20 @@ type
 		get_buffer_pointerv : procedure( ctx: GLIContext; target: GLenum; pname: GLenum; params: UnivPtrPtr );
 		depth_bounds_EXT : procedure( ctx: GLIContext; zmin: GLclampd; zmax: GLclampd );
 		draw_buffers_ARB : procedure( ctx: GLIContext; n: GLsizei; const bufs: PGLenum );
-	
+
 		is_shader : function( ctx: GLIContext; shader: GLuint ): GLboolean;
 		is_program : function( ctx: GLIContext; program_: GLuint ): GLboolean;
 		get_shaderiv : procedure( ctx: GLIContext; shader: GLuint; pname: GLenum; params: PGLint );
 		get_programiv : procedure( ctx: GLIContext; program_: GLuint; pname: GLenum; params: PGLint );
 		get_shader_info_log : procedure( ctx: GLIContext; shader: GLuint; bufSize: GLsizei; length: PGLsizei; infoLog: PAnsiChar );
 		get_program_info_log : procedure( ctx: GLIContext; program_: GLuint; bufSize: GLsizei; length: PGLsizei; infoLog: PAnsiChar );
-	
+
 		stencil_func_separate : procedure( ctx: GLIContext; face: GLenum; func: GLenum; ref: GLint; mask: GLuint );
 		stencil_mask_separate : procedure( ctx: GLIContext; face: GLenum; mask: GLuint );
-		
+
 		multi_draw_element_array_APPLE : procedure( ctx: GLIContext; mode: GLenum; const first: PGLint; const count: PGLsizei; primcount: GLsizei );
 		multi_draw_range_element_array_APPLE : procedure( ctx: GLIContext; mode: GLenum; start: GLuint; finish: GLuint; const first: PGLint; const count: PGLsizei; primcount: GLsizei );
-	
+
 		{ frame buffer object }
 		is_renderbuffer_EXT : function( ctx: GLIContext; renderbuffer: GLuint ): GLboolean;
 		bind_renderbuffer_EXT : procedure( ctx: GLIContext; target: GLenum; renderbuffer: GLuint );
@@ -910,23 +910,23 @@ type
 		framebuffer_renderbuffer_EXT : procedure( ctx: GLIContext; target: GLenum; attachment: GLenum; renderbuffertarget: GLenum; renderbuffer: GLuint );
 		get_framebuffer_attachment_parameteriv_EXT : procedure( ctx: GLIContext; target: GLenum; attachment: GLenum; pname: GLenum; params: PGLint );
 		generate_mipmap_EXT : procedure( ctx: GLIContext; target: GLenum );
-	
+
 		buffer_parameteri_APPLE : procedure( ctx: GLIContext; target: GLenum; pname: GLenum; param: GLint );
 		flush_mapped_buffer_range_APPLE : procedure( ctx: GLIContext; target: GLenum; offset: GLintptrARB; size: GLsizeiptrARB );
-		
+
 		program_env_parameters4fv_EXT : procedure( ctx: GLIContext; target: GLenum; index: GLuint; count: GLsizei; const params: PGLfloat );
 		program_local_parameters4fv_EXT : procedure( ctx: GLIContext; target: GLenum; index: GLuint; count: GLsizei; const params: PGLfloat );
-	
+
 		object_purgeable_APPLE : function( ctx: GLIContext; objectType: GLenum; name: GLuint; option: GLenum ): GLenum;
 		object_unpurgeable_APPLE : function( ctx: GLIContext; objectType: GLenum; name: GLuint; option: GLenum ): GLenum;
 		get_object_parameteriv_APPLE : procedure( ctx: GLIContext; objectType: GLenum; name: GLuint; pname: GLenum; params: PGLint );
-	
+
 		{ geometry shader4 }
 		program_parameteri_EXT : procedure( ctx: GLIContext; program_name: GLuint; pname: GLenum; value: GLint );
 		framebuffer_texture_EXT : procedure( ctx: GLIContext; target: GLenum; attachment: GLenum; texture: GLuint; level: GLint );
 		framebuffer_texture_layer_EXT : procedure( ctx: GLIContext; target: GLenum; attachment: GLenum; texture: GLuint; level: GLint; layer: GLint );
 		framebuffer_texture_face_EXT : procedure( ctx: GLIContext; target: GLenum; attachment: GLenum; texture: GLuint; level: GLint; face: GLenum );
-		
+
 		{ transform feedback }
 		bind_buffer_range_EXT : procedure( ctx: GLIContext; target: GLenum; index: GLuint; buffer: GLuint; offset: GLintptr; size: GLsizeiptr );
 		bind_buffer_offset_EXT : procedure( ctx: GLIContext; target: GLenum; index: GLuint; buffer: GLuint; offset: GLintptr );
@@ -935,14 +935,14 @@ type
 		end_transform_feedback_EXT : procedure( ctx: GLIContext );
 		transform_feedback_varyings_EXT : procedure( ctx: GLIContext; program_: GLuint; count: GLsizei; {const} varyings: PPAnsiChar; bufferMode: GLenum );
 		get_transform_feedback_varying_EXT : procedure( ctx: GLIContext; program_: GLuint; index: GLuint; bufSize: GLsizei; length: PGLsizei; size: PGLsizei; typ: PGLenum; name: PAnsiChar );
-		get_integer_indexedv_EXT : procedure( ctx: GLIContext; param: GLenum; index: GLuint; values: PGLint ); 
+		get_integer_indexedv_EXT : procedure( ctx: GLIContext; param: GLenum; index: GLuint; values: PGLint );
 		get_boolean_indexedv_EXT : procedure( ctx: GLIContext; param: GLenum; index: GLuint; values: PGLboolean );
-	
+
 		{ bindable uniform }
 		uniform_buffer_EXT : procedure( ctx: GLIContext; program_: GLuint; location: GLint; buffer: GLuint );
 		get_uniform_buffer_size_EXT : function( ctx: GLIContext; program_: GLuint; location: GLint ): GLint;
 		get_uniform_buffer_offset_EXT : function( ctx: GLIContext; program_: GLuint; location: GLint ): GLintptr;
-	
+
 		{ texture integer }
 		clear_colorIi_EXT : procedure( ctx: GLIContext; r: GLint; g: GLint; b: GLint; a: GLint );
 		clear_colorIui_EXT : procedure( ctx: GLIContext; r: GLuint; g: GLuint; b: GLuint; a: GLuint );
@@ -950,7 +950,7 @@ type
 		tex_parameterIuiv_EXT : procedure( ctx: GLIContext; target: GLenum; pname: GLenum; params: PGLuint );
 		get_tex_parameterIiv_EXT : procedure( ctx: GLIContext; target: GLenum; pname: GLenum; params: PGLint );
 		get_tex_parameterIuiv_EXT : procedure( ctx: GLIContext; target: GLenum; pname: GLenum; params: PGLuint );
-	
+
 		{ gpu_shader4 }
 		vertex_attribI1i_EXT : procedure( ctx: GLIContext; index: GLuint; x: GLint );
 		vertex_attribI2i_EXT : procedure( ctx: GLIContext; index: GLuint; x: GLint; y: GLint );
@@ -986,13 +986,13 @@ type
 		get_uniformuiv_EXT : procedure( ctx: GLIContext; program_: GLuint; location: GLint; params: PGLuint );
 		bind_frag_data_location_EXT : procedure( ctx: GLIContext; program_: GLuint; colorNumber: GLuint; const name: PAnsiChar );
 		get_frag_data_location_EXT : function( ctx: GLIContext; program_: GLuint; const name: PAnsiChar ): GLint;
-	
+
 		{ EXT_draw_buffers2 }
 		color_mask_indexed_EXT : procedure( ctx: GLIContext; index: GLuint; r: GLboolean; g: GLboolean; b: GLboolean; a: GLboolean );
 		enable_indexed_EXT : procedure( ctx: GLIContext; target: GLenum; index: GLuint );
 		disable_indexed_EXT : procedure( ctx: GLIContext; target: GLenum; index: GLuint );
 		is_enabled_indexed_EXT : function( ctx: GLIContext; target: GLenum; index: GLuint ): GLboolean;
-	
+
 		{ OpenGL 2.1 }
 		uniform_matrix2x3fv : procedure( ctx: GLIContext; location: GLint; count: GLsizei; transpose: GLboolean; const value: PGLfloat );
 		uniform_matrix3x2fv : procedure( ctx: GLIContext; location: GLint; count: GLsizei; transpose: GLboolean; const value: PGLfloat );
@@ -1000,15 +1000,15 @@ type
 		uniform_matrix4x2fv : procedure( ctx: GLIContext; location: GLint; count: GLsizei; transpose: GLboolean; const value: PGLfloat );
 		uniform_matrix3x4fv : procedure( ctx: GLIContext; location: GLint; count: GLsizei; transpose: GLboolean; const value: PGLfloat );
 		uniform_matrix4x3fv : procedure( ctx: GLIContext; location: GLint; count: GLsizei; transpose: GLboolean; const value: PGLfloat );
-	
+
 		{ EXT_framebuffer_blit and EXT_framebuffer_multisample }
 		blit_framebuffer_EXT : procedure( ctx: GLIContext; srcX0: GLint; srcY0: GLint; srcX1: GLint; srcY1: GLint; dstX0: GLint; dstY0: GLint; dstX1: GLint; dstY1: GLint; mask: GLbitfield; filter: GLenum );
 		renderbuffer_storage_multisample_EXT : procedure( ctx: GLIContext; target: GLenum; samples: GLsizei; internalformat: GLenum; width: GLsizei; height: GLsizei );
-	
+
 		{ NV_conditional_render }
 		begin_conditional_render_NV : procedure( ctx: GLIContext; id: GLuint; mode: GLenum );
 		end_conditional_render_NV : procedure( ctx: GLIContext );
-	
+
 		get_attached_shaders : procedure( ctx: GLIContext; program_: GLuint; maxCount: GLsizei; count: PGLsizei; shaders: PGLuint );
 	end;
 

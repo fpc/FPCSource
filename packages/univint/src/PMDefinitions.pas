@@ -1,15 +1,15 @@
 {
      File:       PrintCore/PMDefinitions.h
- 
+
      Contains:   Carbon Printing Manager Interfaces.
- 
+
      Copyright (c) 1998-2006,2008 by Apple Inc. All Rights Reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
@@ -283,7 +283,7 @@ const
 	kPMDestinationProcessPDF = 5;
 
 	kPMDestinationTypeDefault	= kPMDestinationPrinter;
-	
+
 type
 	PMOrientation = UInt16;
 const
@@ -308,9 +308,9 @@ const
 	kPMRGBColorSpaceModel = 2;
 	kPMCMYKColorSpaceModel = 3;
 	kPMDevNColorSpaceModel = 4;
-	
+
 	kPMColorSpaceModelCount = 4; { total number of color space models supported }
-	
+
 { Print quality modes "standard options" }
 type
 	PMQualityMode = UInt32;
@@ -380,7 +380,7 @@ const
 	kPMBorderSingleThickline = 3;
 	kPMBorderDoubleThickline = 4;
 
-{ 
+{
  Options for which items to show inline in the print dialog
  This is only meant to be used in Carbon environment
  }
@@ -506,22 +506,22 @@ type
 	PMPaperMargins = PMRect;
 
 {
-	PMDataFormat is used with PMPrintSettingsCreateWithDataRepresentation and 
+	PMDataFormat is used with PMPrintSettingsCreateWithDataRepresentation and
 	PMPageFormatCreateDataRepresentation to specify the format of the data representation created.
-		
+
 	kPMDataFormatXMLDefault specifies a data format that is compatible with all Mac OS X versions. Data in
 	this format can be used with the PMUnflattenXXX routines present in all versions of Mac OS X prior to 10.5.
 	However, this data representation is much larger than the more modern data representations described below.
-	
-	kPMDataFormatXMLMinimal is only compatible and usable with Mac OS X version 10.5 and later. 
-	Data in this format can be only be reconsistuted into the equivalent printing manager object with 
+
+	kPMDataFormatXMLMinimal is only compatible and usable with Mac OS X version 10.5 and later.
+	Data in this format can be only be reconsistuted into the equivalent printing manager object with
 	the appropriate PMXXXCreateWithDataRepresentation function. The data representation produced when
 	using kPMDataFormatXMLMinimal is approximately 3-5 times smaller than kPMDataFormatXMLDefault. This
 	format is a good choice when execution on versions of Mac OS X prior to 10.5 is not necessary and
-	an uncompressed XML representation of the data is needed. 
-	
-	kPMDataFormatXMLCompressed is only compatible and usable with Mac OS X version 10.5 and later. 
-	Data in this format can be only be reconsistuted into the equivalent printing manager object with the 
+	an uncompressed XML representation of the data is needed.
+
+	kPMDataFormatXMLCompressed is only compatible and usable with Mac OS X version 10.5 and later.
+	Data in this format can be only be reconsistuted into the equivalent printing manager object with the
 	appropriate PMXXXCreateWithDataRepresentation function. The data representation produced when
 	using kPMDataFormatXMLCompressed is approximately 20 times smaller than kPMDataFormatXMLDefault.
 	This format is a good choice when execution on versions of Mac OS X prior to 10.5 is not necessary and

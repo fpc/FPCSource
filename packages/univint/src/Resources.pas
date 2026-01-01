@@ -1,10 +1,10 @@
 {
      File:       CarbonCore/Resources.h
- 
+
      Contains:   Resource Manager Interfaces.
                  The contents of this header file are deprecated.
-                 Use Foundation or CoreFoundation bundles instead. 
- 
+                 Use Foundation or CoreFoundation bundles instead.
+
      Copyright:  © 1985-2011 by Apple Inc. All rights reserved.
 }
 {
@@ -273,7 +273,7 @@ type
 	ResErrUPP = ResErrProcPtr;
 {
  *  NewResErrUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -284,7 +284,7 @@ function NewResErrUPP( userRoutine: ResErrProcPtr ): ResErrUPP; external name '_
 
 {
  *  DisposeResErrUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -295,7 +295,7 @@ procedure DisposeResErrUPP( userUPP: ResErrUPP ); external name '_DisposeResErrU
 
 {
  *  InvokeResErrUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -309,10 +309,10 @@ type
 	ResourceEndianFilterPtr = function( theResource: Handle; currentlyNativeEndian: Boolean ): OSErr;
 {
  *  CloseResFile()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -324,10 +324,10 @@ procedure CloseResFile( refNum: ResFileRefNum ); external name '_CloseResFile';
 
 {
  *  ResError()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -339,10 +339,10 @@ function ResError: OSErr; external name '_ResError';
 
 {
  *  CurResFile()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -354,10 +354,10 @@ function CurResFile: ResFileRefNum; external name '_CurResFile';
 
 {
  *  HomeResFile()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -369,10 +369,10 @@ function HomeResFile( theResource: Handle ): ResFileRefNum; external name '_Home
 
 {
  *  UseResFile()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -384,10 +384,10 @@ procedure UseResFile( refNum: ResFileRefNum ); external name '_UseResFile';
 
 {
  *  CountTypes()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -399,10 +399,10 @@ function CountTypes: ResourceCount; external name '_CountTypes';
 
 {
  *  Count1Types()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -414,10 +414,10 @@ function Count1Types: ResourceCount; external name '_Count1Types';
 
 {
  *  GetIndType()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -429,10 +429,10 @@ procedure GetIndType( var theType: ResType; itemIndex: ResourceIndex ); external
 
 {
  *  Get1IndType()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -444,10 +444,10 @@ procedure Get1IndType( var theType: ResType; itemIndex: ResourceIndex ); externa
 
 {
  *  SetResLoad()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -459,10 +459,10 @@ procedure SetResLoad( load: Boolean ); external name '_SetResLoad';
 
 {
  *  CountResources()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -474,10 +474,10 @@ function CountResources( theType: ResType ): ResourceCount; external name '_Coun
 
 {
  *  Count1Resources()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -489,10 +489,10 @@ function Count1Resources( theType: ResType ): ResourceCount; external name '_Cou
 
 {
  *  GetIndResource()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -504,10 +504,10 @@ function GetIndResource( theType: ResType; itemIndex: ResourceIndex ): Handle; e
 
 {
  *  Get1IndResource()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -519,10 +519,10 @@ function Get1IndResource( theType: ResType; itemIndex: ResourceIndex ): Handle; 
 
 {
  *  GetResource()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -534,10 +534,10 @@ function GetResource( theType: ResType; theID: ResID ): Handle; external name '_
 
 {
  *  Get1Resource()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -549,10 +549,10 @@ function Get1Resource( theType: ResType; theID: ResID ): Handle; external name '
 
 {
  *  GetNamedResource()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -564,10 +564,10 @@ function GetNamedResource( theType: ResType; const (*var*) name: Str255 ): Handl
 
 {
  *  Get1NamedResource()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -579,10 +579,10 @@ function Get1NamedResource( theType: ResType; const (*var*) name: Str255 ): Hand
 
 {
  *  [Mac]LoadResource()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -594,10 +594,10 @@ procedure MacLoadResource( theResource: Handle ); external name '_MacLoadResourc
 
 {
  *  ReleaseResource()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -609,10 +609,10 @@ procedure ReleaseResource( theResource: Handle ); external name '_ReleaseResourc
 
 {
  *  DetachResource()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -624,10 +624,10 @@ procedure DetachResource( theResource: Handle ); external name '_DetachResource'
 
 {
  *  UniqueID()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -639,10 +639,10 @@ function UniqueID( theType: ResType ): ResID; external name '_UniqueID';
 
 {
  *  Unique1ID()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -654,10 +654,10 @@ function Unique1ID( theType: ResType ): ResID; external name '_Unique1ID';
 
 {
  *  GetResAttrs()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -669,10 +669,10 @@ function GetResAttrs( theResource: Handle ): ResAttributes; external name '_GetR
 
 {
  *  GetResInfo()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -684,10 +684,10 @@ procedure GetResInfo( theResource: Handle; var theID: ResID; var theType: ResTyp
 
 {
  *  SetResInfo()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -699,10 +699,10 @@ procedure SetResInfo( theResource: Handle; theID: ResID; const (*var*) name: Str
 
 {
  *  AddResource()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -714,10 +714,10 @@ procedure AddResource( theData: Handle; theType: ResType; theID: ResID; const (*
 
 {
  *  GetResourceSizeOnDisk()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -729,10 +729,10 @@ function GetResourceSizeOnDisk( theResource: Handle ): SIGNEDLONG; external name
 
 {
  *  GetMaxResourceSize()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -744,10 +744,10 @@ function GetMaxResourceSize( theResource: Handle ): SIGNEDLONG; external name '_
 
 {
  *  SetResAttrs()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -759,10 +759,10 @@ procedure SetResAttrs( theResource: Handle; attrs: ResAttributes ); external nam
 
 {
  *  ChangedResource()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -774,10 +774,10 @@ procedure ChangedResource( theResource: Handle ); external name '_ChangedResourc
 
 {
  *  RemoveResource()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -789,10 +789,10 @@ procedure RemoveResource( theResource: Handle ); external name '_RemoveResource'
 
 {
  *  UpdateResFile()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -804,10 +804,10 @@ procedure UpdateResFile( refNum: ResFileRefNum ); external name '_UpdateResFile'
 
 {
  *  WriteResource()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -819,10 +819,10 @@ procedure WriteResource( theResource: Handle ); external name '_WriteResource';
 
 {
  *  SetResPurge()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -834,10 +834,10 @@ procedure SetResPurge( install: Boolean ); external name '_SetResPurge';
 
 {
  *  GetResFileAttrs()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -849,10 +849,10 @@ function GetResFileAttrs( refNum: ResFileRefNum ): ResFileAttributes; external n
 
 {
  *  SetResFileAttrs()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -864,10 +864,10 @@ procedure SetResFileAttrs( refNum: ResFileRefNum; attrs: ResFileAttributes ); ex
 
 {
  *  ReadPartialResource()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -879,10 +879,10 @@ procedure ReadPartialResource( theResource: Handle; offset: SIGNEDLONG; buffer: 
 
 {
  *  WritePartialResource()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -894,10 +894,10 @@ procedure WritePartialResource( theResource: Handle; offset: SIGNEDLONG; buffer:
 
 {
  *  SetResourceSize()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -909,10 +909,10 @@ procedure SetResourceSize( theResource: Handle; newSize: SIGNEDLONG ); external 
 
 {
  *  GetNextFOND()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -925,7 +925,7 @@ function GetNextFOND( fondHandle: Handle ): Handle; external name '_GetNextFOND'
 { QuickTime 3.0}
 {
  *  RegisterResourceEndianFilter()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -935,7 +935,7 @@ function GetNextFOND( fondHandle: Handle ): Handle; external name '_GetNextFOND'
 
 {
   _________________________________________________________________________________________________________
-      
+
    ¥ RESOURCE CHAIN LOCATION - for use with the Resource Manager chain manipulation routines under Carbon.
   _________________________________________________________________________________________________________
 }
@@ -955,10 +955,10 @@ const
 }
 {
  *  InsertResourceFile()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -974,10 +974,10 @@ function InsertResourceFile( refNum: ResFileRefNum; where: RsrcChainLocation ): 
 }
 {
  *  DetachResourceFile()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -993,10 +993,10 @@ function DetachResourceFile( refNum: ResFileRefNum ): OSErr; external name '_Det
 }
 {
  *  GetTopResourceFile()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -1008,16 +1008,16 @@ function GetTopResourceFile( var refNum: ResFileRefNum ): OSErr; external name '
 
 {
    GetNextResourceFile can be used to iterate over resource files in the resource chain. By passing a
-   valid refNum in curRefNum it will return in nextRefNum the refNum of the next file in 
+   valid refNum in curRefNum it will return in nextRefNum the refNum of the next file in
    the chain. If curRefNum is not found in the resource chain, GetNextResourceFile returns resFNotFound.
    When the end of the chain is reached GetNextResourceFile will return noErr and nextRefNum will be NIL.
 }
 {
  *  GetNextResourceFile()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -1029,10 +1029,10 @@ function GetNextResourceFile( curRefNum: ResFileRefNum; var nextRefNum: ResFileR
 
 {
  *  FSOpenResFile()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1044,10 +1044,10 @@ function FSOpenResFile( const (*var*) ref: FSRef; permission: SInt8 ): ResFileRe
 
 {
  *  FSCreateResFile()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1059,17 +1059,17 @@ procedure FSCreateResFile( const (*var*) parentRef: FSRef; nameLength: UniCharCo
 
 {
    Returns true if the resource file is already open and known by the Resource Manager (i.e., it is
-   either in the current resource chain or it's a detached resource file.)  If it's in the resource 
+   either in the current resource chain or it's a detached resource file.)  If it's in the resource
    chain, the inChain Boolean is set to true on exit and true is returned.  If it's an open file, but
    the file is currently detached, inChain is set to false and true is returned.  If the file is open,
    the refNum to the file is returned.
 }
 {
  *  FSResourceFileAlreadyOpen()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1082,7 +1082,7 @@ function FSResourceFileAlreadyOpen( const (*var*) resourceFileRef: FSRef; var in
 {
    FSOpenOrphanResFile should be used to open a resource file that is persistent across all contexts,
    because using OpenResFile normally loads a map and all preloaded resources into the application
-   context.  FSOpenOrphanResFile loads everything into the system context and detaches the file 
+   context.  FSOpenOrphanResFile loads everything into the system context and detaches the file
    from the context in which it was opened.  If the file is already in the resource chain and a new
    instance is not opened, FSOpenOrphanResFile will return a paramErr.
    Use with care, as can and will fail if the map is very large or a lot of preload
@@ -1090,10 +1090,10 @@ function FSResourceFileAlreadyOpen( const (*var*) resourceFileRef: FSRef; var in
 }
 {
  *  FSOpenOrphanResFile()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.5 and later
@@ -1105,50 +1105,50 @@ function FSOpenOrphanResFile( const (*var*) ref: FSRef; permission: SignedByte; 
 
 {
  *  FSCreateResourceFile()
- *  
+ *
  *  Summary:
  *    Creates a new resource file.
- *  
+ *
  *  Discussion:
  *    This function creates a new file and initializes the specified
  *    named fork as an empty resource fork.  This function allows for
  *    the creation of data fork only files which can be used for
  *    storing resources.  Passing in a null name defaults to using the
  *    data fork.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    parentRef:
  *      The directory where the file is to be created
- *    
+ *
  *    nameLength:
  *      Number of Unicode characters in the file's name
- *    
+ *
  *    name:
  *      A pointer to the Unicode name
- *    
+ *
  *    whichInfo:
  *      Which catalog info fields to set
- *    
+ *
  *    catalogInfo:
  *      The values for catalog info fields to set; may be NULL
- *    
+ *
  *    forkNameLength:
  *      The length of the fork name (in Unicode characters)
- *    
+ *
  *    forkName:
  *      The name of the fork to initialize (in Unicode); may be NULL
- *    
+ *
  *    newRef:
  *      A pointer to the FSRef for the new file; may be NULL
- *    
+ *
  *    newSpec:
- *      A pointer to the FSSpec for the new directory; may be NULL. 
+ *      A pointer to the FSSpec for the new directory; may be NULL.
  *      Ignored on 64 bit.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -1160,34 +1160,34 @@ function FSCreateResourceFile( const (*var*) parentRef: FSRef; nameLength: UniCh
 
 {
  *  FSCreateResourceFork()
- *  
+ *
  *  Summary:
  *    Creates the named forked and initializes it as an empty resource
  *    fork.
- *  
+ *
  *  Discussion:
  *    This function allows a resource fork to be added to an existing
  *    file.  Passing in a null forkname will result in the data fork
  *    being used.  If the named fork already exists this function does
  *    nothing and returns errFSForkExists.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    ref:
  *      The file to add the fork to
- *    
+ *
  *    forkNameLength:
  *      The length of the fork name (in Unicode characters)
- *    
+ *
  *    forkName:
  *      The name of the fork to open (in Unicode); may be NULL
- *    
+ *
  *    flags:
  *      Pass in zero
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -1199,35 +1199,35 @@ function FSCreateResourceFork( const (*var*) ref: FSRef; forkNameLength: UniChar
 
 {
  *  FSOpenResourceFile()
- *  
+ *
  *  Summary:
  *    Opens the specified named fork as a resource fork.
- *  
+ *
  *  Discussion:
  *    This function allows any named fork of a file to be used for
  *    storing resources.  Passing in a null forkname will result in the
  *    data fork being used.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    ref:
  *      The file containing the fork to open
- *    
+ *
  *    forkNameLength:
  *      The length of the fork name (in Unicode characters)
- *    
+ *
  *    forkName:
  *      The name of the fork to open (in Unicode); may be NULL
- *    
+ *
  *    permissions:
  *      The access (read and/or write) you want
- *    
+ *
  *    refNum:
  *      On exit the reference number for accessing the open fork
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -1243,10 +1243,10 @@ function FSOpenResourceFile( const (*var*) ref: FSRef; forkNameLength: UniCharCo
 {$ifc not TARGET_CPU_64}
 {
  *  OpenRFPerm()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1259,10 +1259,10 @@ function OpenRFPerm( const (*var*) fileName: Str255; vRefNum: FSVolumeRefNum; pe
 { use FSOpenResourceFile instead}
 {
  *  HOpenResFile()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1275,10 +1275,10 @@ function HOpenResFile( vRefNum: FSVolumeRefNum; dirID: SIGNEDLONG; const (*var*)
 { use FSCreateResourceFile instead}
 {
  *  HCreateResFile()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1291,10 +1291,10 @@ procedure HCreateResFile( vRefNum: FSVolumeRefNum; dirID: SIGNEDLONG; const (*va
 { use FSOpenResourceFile instead}
 {
  *  FSpOpenResFile()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1307,10 +1307,10 @@ function FSpOpenResFile( const (*var*) spec: FSSpec; permission: SignedByte ): R
 { use FSCreateResourceFile instead}
 {
  *  FSpCreateResFile()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1323,10 +1323,10 @@ procedure FSpCreateResFile( const (*var*) spec: FSSpec; creator: OSType; fileTyp
 { use FSResourceFileAlreadyOpen instead}
 {
  *  FSpResourceFileAlreadyOpen()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1339,10 +1339,10 @@ function FSpResourceFileAlreadyOpen( const (*var*) resourceFile: FSSpec; var inC
 { use FSOpenOrphanResFile instead}
 {
  *  FSpOpenOrphanResFile()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later

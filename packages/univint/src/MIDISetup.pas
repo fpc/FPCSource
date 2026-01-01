@@ -1,15 +1,15 @@
 {
  	File:   	CoreMIDI/MIDISetup.h
- 
+
  	Contains:   Specialized configuration-editing routines for CoreMIDI.
- 
+
  	Copyright:  (c) 2000-2008 by Apple Inc., all rights reserved.
- 
+
  	Bugs?:  	For bug reports, consult the following page on
  				the World Wide Web:
- 
+
  					http://bugs.freepascal.org
- 
+
 }
 {  Pascal Translation:  Gorazd Krosl <gorazd_1957@yahoo.ca>, October 2009 }
 {  Pascal Translation Update: Jonas Maebe <jonas@freepascal.org>, October 2012 }
@@ -233,23 +233,23 @@ uses MacTypes,CFBase,CFData,CFArray,MIDIServices;
 	@header MIDISetup.h
 
 	This header defines functions that manipulate and customize the global
-	state of the MIDI system.  These functions are generally only needed by 
+	state of the MIDI system.  These functions are generally only needed by
 	applications which wish to allow the user some flexibility in how
 	the MIDI system's state is presented, and by MIDI drivers, which may
-	dynamically modify the system state as hardware is connected and 
+	dynamically modify the system state as hardware is connected and
 	disconnected.
 }
 
 //  -----------------------------------------------------------------------------
 {!
 	@typedef		MIDISetupRef
-	
+
 	@discussion		Derives from MIDIObjectRef, does not have an owner object.
 
 					This represents the global state of the MIDI system,
 					containing lists of the MIDI devices and serial port
 					owners.
-					
+
 					Generally, only MIDI drivers and specialized configuration
 					editors will need to manipulate MIDISetup objects, not the
 					average MIDI client application.  As of CoreMIDI 1.1, the
@@ -276,7 +276,7 @@ type
 	@function		MIDISetupCreate
 
 	@abstract 		Interrogates drivers, to discover what hardware is present.
-	
+
 					As of CoreMIDI 1.1, it is usually not necessary to call
 					this function, as CoreMIDI manages a single persistent
 					MIDISetup itself.
@@ -301,7 +301,7 @@ function MIDISetupCreate( var outSetup: MIDISetupRef ): OSStatus; external name 
 					As of CoreMIDI 1.1, it is usually not necessary to call
 					this function, as CoreMIDI manages a single persistent
 					MIDISetup itself.
-	
+
 	@param			setup
 						The MIDISetup to be disposed.
 	@result			An OSStatus result code.
@@ -339,11 +339,11 @@ function MIDISetupInstall( setup: MIDISetupRef ): OSStatus; external name '_MIDI
 	@function		MIDISetupGetCurrent
 
 	@abstract 		Return the system's current MIDISetup.
-	
+
 					As of CoreMIDI 1.1, it is usually not necessary to call
 					this function, as CoreMIDI manages a single persistent
 					MIDISetup itself.
-	
+
 	@param			outSetup
 						On successful return, points to the system's most
 						recently installed MIDISetup.  The system retains
@@ -360,11 +360,11 @@ function MIDISetupGetCurrent( var outSetup: MIDISetupRef ): OSStatus; external n
 	@function		MIDISetupToData
 
 	@abstract 		Create an XML representation of a MIDISetup object.
-	
+
 					As of CoreMIDI 1.1, it is usually not necessary to call
 					this function, as CoreMIDI manages a single persistent
 					MIDISetup itself.
-	
+
 	@param			setup
 						The MIDISetup object whose XML representation is to be
 						returned.
@@ -382,11 +382,11 @@ function MIDISetupToData( setup: MIDISetupRef; var outData: CFDataRef ): OSStatu
 	@function		MIDISetupFromData
 
 	@abstract 		Create a MIDISetup object from an XML stream.
-	
+
 					As of CoreMIDI 1.1, it is usually not necessary to call
 					this function, as CoreMIDI manages a single persistent
 					MIDISetup itself.
-	
+
 	@param			data
 						The XML text from which a MIDISetup object is to be built.
 	@param			outSetup
@@ -403,12 +403,12 @@ function MIDISetupFromData( data: CFDataRef; var outSetup: MIDISetupRef ): OSSta
 {!
 	@function		MIDIDeviceAddEntity
 
-	@discussion		Drivers call this function to specify one of the entities that 
+	@discussion		Drivers call this function to specify one of the entities that
 					comprise a device.
-					
+
 					Non-drivers may call this function as of CoreMIDI 1.1, to
 					add entities to external devices.
-	
+
 	@param			device
 						The device to which an entity is to be added.
 	@param			name
@@ -434,9 +434,9 @@ function MIDIDeviceAddEntity( device: MIDIDeviceRef; name: CFStringRef; embedded
 
 	@discussion		Drivers may call this function to remove one of a device's
 					entities.
-					
+
 					New for CoreMIDI 1.1.
-	
+
 	@param			device
 						The device from which an entity is to be removed.
 	@param			entity
@@ -450,11 +450,11 @@ function MIDIDeviceRemoveEntity( device: MIDIDeviceRef; entity: MIDIEntityRef ):
 {!
 	@function		MIDIEntityAddOrRemoveEndpoints
 
-	@discussion		Drivers and configuration editors may call this function to add to 
+	@discussion		Drivers and configuration editors may call this function to add to
 					or remove an entity's endpoints.
-					
+
 					New for CoreMIDI 1.3.
-	
+
 	@param			entity
 						The entity whose endpoints are to be manipulated.
 	@param			numSourceEndpoints
@@ -471,12 +471,12 @@ function MIDIEntityAddOrRemoveEndpoints( entity: MIDIEntityRef; numSourceEndpoin
 	@function		MIDISetupAddDevice
 
 	@abstract 		Adds a driver-owner MIDI device to the current MIDISetup
-	
+
 	@discussion		Only MIDI drivers may make this call; it is in this header
 					file only for consistency with MIDISetupRemoveDevice.
-	
+
 					New for CoreMIDI 1.1.
-	
+
 	@param			device
 						The device to be added.
 }
@@ -488,17 +488,17 @@ function MIDISetupAddDevice( device: MIDIDeviceRef ): OSStatus; external name '_
 	@function		MIDISetupRemoveDevice
 
 	@abstract 		Removes a driver-owned MIDI device from the current MIDISetup
-	
+
 	@discussion		Generally this should only be called from a studio configuration
 					editor, to remove a device which is offline and which the user
 					has specified as being permanently missing.
-					
+
 					Instead of removing devices from the setup, drivers should
 					set the device's kMIDIPropertyOffline to 1 so that if the
 					device reappears later, none of its properties are lost.
-	
+
 					New for CoreMIDI 1.1.
-	
+
 	@param			device
 						The device to be added.
 }
@@ -510,9 +510,9 @@ function MIDISetupRemoveDevice( device: MIDIDeviceRef ): OSStatus; external name
 	@function		MIDISetupAddExternalDevice
 
 	@abstract 		Adds an external MIDI device to the current MIDISetup
-	
+
 	@discussion		Useful for a studio configuration editor.  New for CoreMIDI 1.1.
-	
+
 	@param			device
 						The device to be added.
 }
@@ -524,9 +524,9 @@ function MIDISetupAddExternalDevice( device: MIDIDeviceRef ): OSStatus; external
 	@function		MIDISetupRemoveExternalDevice
 
 	@abstract 		Removes an external MIDI device from the current MIDISetup
-	
+
 	@discussion		Useful for a studio configuration editor.  New for CoreMIDI 1.1.
-	
+
 	@param			device
 						The device to be removed.
 }
@@ -538,26 +538,26 @@ function MIDISetupRemoveExternalDevice( device: MIDIDeviceRef ): OSStatus; exter
 	@function		MIDIGetSerialPortOwner
 
 	@abstract 		Returns the MIDI driver that owns a serial port.
-	
+
 	@discussion		The current MIDISetup tracks ownership of serial ports
 					to one of the MIDI drivers installed in the system.
-	
+
 					Serial ports can be enumerated using IOServiceMatching(
 					kIOSerialBSDServiceValue).  The port's unique name is
-					the IOService's kIOTTYDeviceKey property. 
+					the IOService's kIOTTYDeviceKey property.
 
 					New for CoreMIDI 1.1.
-					
+
 					A previous version of this documentation specified an incorrect
 					key for obtaining the port's unique name (IOTTYBaseName).
-	
+
 	@param			portName
 						The name of a serial port.
 	@param			outDriverName
 						On exit, the name of the driver owning the port,
 						or NULL if no driver owns it.
 
-	@result			An OSStatus result code.	
+	@result			An OSStatus result code.
 }
 function MIDIGetSerialPortOwner( portName: CFStringRef; var outDriverName: CFStringRef ): OSStatus; external name '_MIDIGetSerialPortOwner';
 (* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_1, __MAC_10_6, __IPHONE_NA, __IPHONE_NA) *)
@@ -567,19 +567,19 @@ function MIDIGetSerialPortOwner( portName: CFStringRef; var outDriverName: CFStr
 	@function		MIDISetSerialPortOwner
 
 	@abstract 		Specifies the MIDI driver that owns a serial port.
-	
+
 	@discussion		Use this to assign ownership of a serial port
 					to one of the MIDI drivers installed in the system.
-	
+
 					New for CoreMIDI 1.1.
-	
+
 	@param			portName
 						The name of a serial port.
 	@param			driverName
 						The name of the driver that owns the serial port,
 						or NULL to specify that no driver owns it.
 
-	@result			An OSStatus result code.	
+	@result			An OSStatus result code.
 }
 function MIDISetSerialPortOwner( portName: CFStringRef; driverName: CFStringRef ): OSStatus; external name '_MIDISetSerialPortOwner';
 (* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_1, __MAC_10_6, __IPHONE_NA, __IPHONE_NA) *)
@@ -590,18 +590,18 @@ function MIDISetSerialPortOwner( portName: CFStringRef; driverName: CFStringRef 
 
 	@abstract 		Returns a list of installed MIDI drivers for serial port
 					MIDI devices.
-	
+
 	@discussion		Use this to determine which of the installed MIDI drivers
 					are for devices which may attach to serial ports.
-	
+
 					New for CoreMIDI 1.1.
-	
+
 	@param			outDriverNames
 						On exit, a CFArrayRef containing a list of CFStringRef's
 						which are the names of the serial port MIDI drivers.
 						The array should be released by the caller.
 
-	@result			An OSStatus result code.	
+	@result			An OSStatus result code.
 }
 function MIDIGetSerialPortDrivers( var outDriverNames: CFArrayRef ): OSStatus; external name '_MIDIGetSerialPortDrivers';
 (* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_1, __MAC_10_6, __IPHONE_NA, __IPHONE_NA) *)
@@ -617,7 +617,7 @@ function MIDIGetSerialPortDrivers( var outDriverNames: CFArrayRef ): OSStatus; e
 
 					The new device is not added to the current MIDISetupRef;
 					to do this, use MIDISetupAddExternalDevice.
-	
+
 	@param			name
 						The name of the new device.
 	@param			manufacturer

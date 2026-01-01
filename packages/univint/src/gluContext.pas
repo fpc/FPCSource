@@ -233,7 +233,7 @@ function gluNewTessCTX( ctx: CGLContextObj ): PGLUtesselator; external name '_gl
 procedure gluOrtho2DCTX( ctx: CGLContextObj; left: GLdouble; right: GLdouble; bottom: GLdouble; top: GLdouble ); external name '_gluOrtho2DCTX';
 procedure gluPerspectiveCTX( ctx: CGLContextObj; fovy: GLdouble; aspect: GLdouble; zNear: GLdouble; zFar: GLdouble ); external name '_gluPerspectiveCTX';
 procedure gluPickMatrixCTX( ctx: CGLContextObj; x: GLdouble; y: GLdouble; delX: GLdouble; delY: GLdouble; var viewport: GLint ); external name '_gluPickMatrixCTX';
-function gluScaleImageCTX( ctx: CGLContextObj; format: GLenum; wIn: GLsizei; hIn: GLsizei; typeIn: GLenum; dataIn: {const} UnivPtr; wOut: GLsizei; hOut: GLsizei; typeOut: GLenum; dataOut: UnivPtr ): GLint; external name '_gluScaleImageCTX';      
+function gluScaleImageCTX( ctx: CGLContextObj; format: GLenum; wIn: GLsizei; hIn: GLsizei; typeIn: GLenum; dataIn: {const} UnivPtr; wOut: GLsizei; hOut: GLsizei; typeOut: GLenum; dataOut: UnivPtr ): GLint; external name '_gluScaleImageCTX';
 
 {$endc} {TARGET_OS_MAC}
 {$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}

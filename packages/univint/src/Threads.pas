@@ -1,9 +1,9 @@
 {
      File:       CarbonCore/Threads.h
- 
+
      Contains:   Thread Manager Interfaces.
                  The contents of this header file are deprecated.
- 
+
      Copyright:  © 1991-2011 by Apple Inc. All rights reserved.
 }
 {
@@ -220,13 +220,13 @@ uses MacTypes;
 {$ALIGN MAC68K}
 
 {********************************************************************************************
- 
+
  The Thread Manager is deprecated.  Callers should use blocks, libDispatch, or pthreads.
- 
+
  No exact replacement exists for the 'cooperative' threads model, but converting all of the
  former work done in cooperative threads into blocks and scheduling them on the same serial
  dispatch queue ( or the main queue ) is essentially the same.
- 
+
 ********************************************************************************************}
 
 { Thread states}
@@ -315,7 +315,7 @@ type
 	DebuggerThreadSchedulerUPP = DebuggerThreadSchedulerProcPtr;
 {
  *  NewThreadEntryUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -326,7 +326,7 @@ function NewThreadEntryUPP( userRoutine: ThreadEntryProcPtr ): ThreadEntryUPP; e
 
 {
  *  NewThreadSchedulerUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -337,7 +337,7 @@ function NewThreadSchedulerUPP( userRoutine: ThreadSchedulerProcPtr ): ThreadSch
 
 {
  *  NewThreadSwitchUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -348,7 +348,7 @@ function NewThreadSwitchUPP( userRoutine: ThreadSwitchProcPtr ): ThreadSwitchUPP
 
 {
  *  NewThreadTerminationUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -359,7 +359,7 @@ function NewThreadTerminationUPP( userRoutine: ThreadTerminationProcPtr ): Threa
 
 {
  *  NewDebuggerNewThreadUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -370,7 +370,7 @@ function NewDebuggerNewThreadUPP( userRoutine: DebuggerNewThreadProcPtr ): Debug
 
 {
  *  NewDebuggerDisposeThreadUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -381,7 +381,7 @@ function NewDebuggerDisposeThreadUPP( userRoutine: DebuggerDisposeThreadProcPtr 
 
 {
  *  NewDebuggerThreadSchedulerUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -392,7 +392,7 @@ function NewDebuggerThreadSchedulerUPP( userRoutine: DebuggerThreadSchedulerProc
 
 {
  *  DisposeThreadEntryUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -403,7 +403,7 @@ procedure DisposeThreadEntryUPP( userUPP: ThreadEntryUPP ); external name '_Disp
 
 {
  *  DisposeThreadSchedulerUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -414,7 +414,7 @@ procedure DisposeThreadSchedulerUPP( userUPP: ThreadSchedulerUPP ); external nam
 
 {
  *  DisposeThreadSwitchUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -425,7 +425,7 @@ procedure DisposeThreadSwitchUPP( userUPP: ThreadSwitchUPP ); external name '_Di
 
 {
  *  DisposeThreadTerminationUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -436,7 +436,7 @@ procedure DisposeThreadTerminationUPP( userUPP: ThreadTerminationUPP ); external
 
 {
  *  DisposeDebuggerNewThreadUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -447,7 +447,7 @@ procedure DisposeDebuggerNewThreadUPP( userUPP: DebuggerNewThreadUPP ); external
 
 {
  *  DisposeDebuggerDisposeThreadUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -458,7 +458,7 @@ procedure DisposeDebuggerDisposeThreadUPP( userUPP: DebuggerDisposeThreadUPP ); 
 
 {
  *  DisposeDebuggerThreadSchedulerUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -469,7 +469,7 @@ procedure DisposeDebuggerThreadSchedulerUPP( userUPP: DebuggerThreadSchedulerUPP
 
 {
  *  InvokeThreadEntryUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -480,7 +480,7 @@ function InvokeThreadEntryUPP( threadParam: UnivPtr; userUPP: ThreadEntryUPP ): 
 
 {
  *  InvokeThreadSchedulerUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -491,7 +491,7 @@ function InvokeThreadSchedulerUPP( schedulerInfo: SchedulerInfoRecPtr; userUPP: 
 
 {
  *  InvokeThreadSwitchUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -502,7 +502,7 @@ procedure InvokeThreadSwitchUPP( threadBeingSwitched: ThreadID; switchProcParam:
 
 {
  *  InvokeThreadTerminationUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -513,7 +513,7 @@ procedure InvokeThreadTerminationUPP( threadTerminated: ThreadID; terminationPro
 
 {
  *  InvokeDebuggerNewThreadUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -524,7 +524,7 @@ procedure InvokeDebuggerNewThreadUPP( threadCreated: ThreadID; userUPP: Debugger
 
 {
  *  InvokeDebuggerDisposeThreadUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -535,7 +535,7 @@ procedure InvokeDebuggerDisposeThreadUPP( threadDeleted: ThreadID; userUPP: Debu
 
 {
  *  InvokeDebuggerThreadSchedulerUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -564,7 +564,7 @@ type
 	DebuggerThreadSchedulerTPP = DebuggerThreadSchedulerUPP;
 {
  *  NewThread()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -576,7 +576,7 @@ function NewThread( threadStyle_: ThreadStyle; threadEntry: ThreadEntryTPP; thre
 
 {
  *  SetThreadScheduler()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -588,7 +588,7 @@ function SetThreadScheduler( threadScheduler: ThreadSchedulerTPP ): OSErr; exter
 
 {
  *  SetThreadSwitcher()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -600,7 +600,7 @@ function SetThreadSwitcher( thread: ThreadID; threadSwitcher: ThreadSwitchTPP; s
 
 {
  *  SetThreadTerminator()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -612,7 +612,7 @@ function SetThreadTerminator( thread: ThreadID; threadTerminator: ThreadTerminat
 
 {
  *  SetDebuggerNotificationProcs()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -624,7 +624,7 @@ function SetDebuggerNotificationProcs( notifyNewThread: DebuggerNewThreadTPP; no
 
 {
  *  CreateThreadPool()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -636,7 +636,7 @@ function CreateThreadPool( threadStyle_: ThreadStyle; numToCreate: SInt16; stack
 
 {
  *  GetDefaultThreadStackSize()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -648,7 +648,7 @@ function GetDefaultThreadStackSize( threadStyle_: ThreadStyle; var stackSize: Si
 
 {
  *  ThreadCurrentStackSpace()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -660,7 +660,7 @@ function ThreadCurrentStackSpace( thread: ThreadID; var freeStack: ByteCount ): 
 
 {
  *  DisposeThread()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -672,7 +672,7 @@ function DisposeThread( threadToDump: ThreadID; threadResult: UnivPtr; recycleTh
 
 {
  *  YieldToThread()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -684,7 +684,7 @@ function YieldToThread( suggestedThread: ThreadID ): OSErr; external name '_Yiel
 
 {
  *  YieldToAnyThread()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -696,7 +696,7 @@ function YieldToAnyThread: OSErr; external name '_YieldToAnyThread';
 
 {
  *  [Mac]GetCurrentThread()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -710,7 +710,7 @@ function MacGetCurrentThread( var currentThreadID: ThreadID ): OSErr; external n
 
 {
  *  GetThreadState()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -722,7 +722,7 @@ function GetThreadState( threadToGet: ThreadID; var threadState_: ThreadState ):
 
 {
  *  SetThreadState()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -734,7 +734,7 @@ function SetThreadState( threadToSet: ThreadID; newState: ThreadState; suggested
 
 {
  *  SetThreadStateEndCritical()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -746,7 +746,7 @@ function SetThreadStateEndCritical( threadToSet: ThreadID; newState: ThreadState
 
 {
  *  ThreadBeginCritical()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -758,7 +758,7 @@ function ThreadBeginCritical: OSErr; external name '_ThreadBeginCritical';
 
 {
  *  ThreadEndCritical()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -770,7 +770,7 @@ function ThreadEndCritical: OSErr; external name '_ThreadEndCritical';
 
 {
  *  GetThreadCurrentTaskRef()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -782,7 +782,7 @@ function GetThreadCurrentTaskRef( var threadTRef: ThreadTaskRef ): OSErr; extern
 
 {
  *  GetThreadStateGivenTaskRef()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -794,7 +794,7 @@ function GetThreadStateGivenTaskRef( threadTRef: ThreadTaskRef; threadToGet: Thr
 
 {
  *  SetThreadReadyGivenTaskRef()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -808,7 +808,7 @@ function SetThreadReadyGivenTaskRef( threadTRef: ThreadTaskRef; threadToSet: Thr
 { This routine was never implemented on Mac OS X.}
 {
  *  GetFreeThreadCount()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.3
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -821,7 +821,7 @@ function GetFreeThreadCount( threadStyle_: ThreadStyle; var freeCount: SInt16 ):
 { This routine was never implemented on Mac OS X.}
 {
  *  GetSpecificFreeThreadCount()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.3
  *    CarbonLib:        in CarbonLib 1.0 and later

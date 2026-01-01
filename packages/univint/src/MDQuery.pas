@@ -735,9 +735,9 @@ procedure MDQuerySetCreateValueFunction( query: MDQueryRef; func: MDQueryCreateV
 {!
 	@function MDQuerySetDispatchQueue
 	Set the dispatch queue on which query results will be delivered
-				by MDQueryExecute. It is not advisable to change set 
+				by MDQueryExecute. It is not advisable to change set
 				dispatch queue after MDQueryExecute() has been called with
-				the query. Setting the dispatch queue for a synchronous 
+				the query. Setting the dispatch queue for a synchronous
 				query (kMDQuerySynchronous) has no effect.
 	@param query The query for which the dispatch queue should be set.
 	@param queue The dispatch queue on which results should be delivered.
@@ -817,7 +817,7 @@ procedure MDQueryStop( query: MDQueryRef ); external name '_MDQueryStop';
                 disabled state is a counter, and disabling can be done
                 recursively and from different threads.
         @param query The query for which updates are to be disabled.
-		@result The generation number of the query. This changes each time the query's 
+		@result The generation number of the query. This changes each time the query's
 				result set has changed.
 }
 procedure MDQueryDisableUpdates( query: MDQueryRef ); external name '_MDQueryDisableUpdates';
@@ -895,7 +895,7 @@ function MDQueryGetResultAtIndex( query: MDQueryRef; idx: CFIndex ): UnivPtr; ex
                 must be a valid MDItemRef.
         @result The index of the given result, or kCFNotFound if the
                 value is not one of the query's existing results. If
-                you provided a custom result creation function, 
+                you provided a custom result creation function,
                 as well as a custom object comparator function,
                 result will be objects created by that function.
 }
@@ -961,17 +961,17 @@ function MDQueryGetCountOfResultsWithAttributeValue( query: MDQueryRef; name: CF
  @function MDQuerySetSortOrder
  Sets the sort order for a query.
  @param query The query for which the sort order is to be set.
- @param sortingAttrs An array of attribute names, as in MDQueryCreate. 
+ @param sortingAttrs An array of attribute names, as in MDQueryCreate.
   The query's result set will be sorted according to the order of
   these attributes. All names in the array have to have been passed
-  as sortingAttrs when the query was created. The attribute names 
+  as sortingAttrs when the query was created. The attribute names
   are CFStrings
  @result A boolean, true on success, false on failure.
  }
 function MDQuerySetSortOrder( query: MDQueryRef; sortingAttrs: CFArrayRef ): Boolean; external name '_MDQuerySetSortOrder';
 (* AVAILABLE_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
-{!   
+{!
  @enum MDQuerySortOptionFlags
  @constant kMDQueryReverseSortOrderFlag Sort the attribute in reverse order.
  }
@@ -986,7 +986,7 @@ type
  @function MDQuerySetSortOptionFlagsForAttribute
  Sets the sort flags for a query.
  @param query The query for which the sort flags is to be set.
- @param fieldName The attribute name for which sort option flags are to be set.  
+ @param fieldName The attribute name for which sort option flags are to be set.
   The attribute name must have been part of the sortingFlags when the query was created.
  @param flags A uint32_t containing MDQuerySortOptionFlags to be applied to the attibute
  @result A boolean, true on success, false on failure.
@@ -998,7 +998,7 @@ function MDQuerySetSortOptionFlagsForAttribute( query: MDQueryRef; fieldName: CF
  @function MDQueryGetSortOptionFlagsForAttribute
  Gets the sort option flags for a sorting attribute.
  @param query The query for which fetch sort option flags.
- @param fieldName The attribute name for which sort option flags are to be fetched.  
+ @param fieldName The attribute name for which sort option flags are to be fetched.
  @result A uint32_t, with MDQuerySortOptionFlags set for the attribute.
  }
 function MDQueryGetSortOptionFlagsForAttribute( query: MDQueryRef; fieldName: CFStringRef ): UInt32; external name '_MDQueryGetSortOptionFlagsForAttribute';
@@ -1085,10 +1085,10 @@ procedure MDQuerySetSortComparator( query: MDQueryRef; comparator: MDQuerySortCo
                 compared by using memcmp() of the data pointers.
         @param query The query to whose result sort block is to be set.
         @param comparator The callback block the MDQuery will use to
-                sort its results. The comparator may be called on multiple threads in 
-                parallel, and must be reentrant. To take advantage of parallel 
-                sorting, it is best to avoid any locking in the comparator. 
-                The block may be NULL to cancel any custom comparator. 
+                sort its results. The comparator may be called on multiple threads in
+                parallel, and must be reentrant. To take advantage of parallel
+                sorting, it is best to avoid any locking in the comparator.
+                The block may be NULL to cancel any custom comparator.
 }
 
 

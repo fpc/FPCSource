@@ -359,13 +359,13 @@ function CFSetGetTypeID: CFTypeID; external name '_CFSetGetTypeID';
 		CFAllocator is used. If this reference is not a valid
 		CFAllocator, the behavior is undefined.
 	@param values A C array of the pointer-sized values to be in the
-		set.  This C array is not changed or freed by this function. 
+		set.  This C array is not changed or freed by this function.
                 If this parameter is not a valid pointer to a C array of at
                 least numValues pointers, the behavior is undefined.
 	@param numValues The number of values to copy from the values C
 		array into the CFSet. This number will be the count of the
-		set.  If this parameter is zero, negative, or greater than 
-                the number of values actually in the values C array, the 
+		set.  If this parameter is zero, negative, or greater than
+                the number of values actually in the values C array, the
                 behavior is undefined.
 	@param callBacks A C pointer to a CFSetCallBacks structure
 		initialized with the callbacks for the set to use on each
@@ -438,8 +438,8 @@ function CFSetCreateCopy( allocator: CFAllocatorRef; theSet: CFSetRef ): CFSetRe
   @param capacity A hint about the number of values that will be held
     by the CFSet. Pass 0 for no hint. The implementation may
     ignore this hint, or may use it to optimize various
-    operations. A set's actual capacity is only limited by 
-    address space and available memory constraints). If this 
+    operations. A set's actual capacity is only limited by
+    address space and available memory constraints). If this
     parameter is negative, the behavior is undefined.
 #endif
 	@param callBacks A C pointer to a CFSetCallBacks structure
@@ -485,9 +485,9 @@ function CFSetCreateMutable( allocator: CFAllocatorRef; capacity: CFIndex; {cons
 	@param capacity The maximum number of values that can be contained
 		by the CFSet. The set starts with the same values as the
     set to be copied, and can grow to this number of values.
-    If this parameter is 0, the set's maximum capacity is 
-    unlimited (or rather, only limited by address space and 
-    available memory constraints). This parameter must be 
+    If this parameter is 0, the set's maximum capacity is
+    unlimited (or rather, only limited by address space and
+    available memory constraints). This parameter must be
     greater than or equal to the count of the set which is to
     be copied, or the behavior is undefined.
 #else
@@ -495,7 +495,7 @@ function CFSetCreateMutable( allocator: CFAllocatorRef; capacity: CFIndex; {cons
     by the CFSet. Pass 0 for no hint. The implementation may
     ignore this hint, or may use it to optimize various
     operations. A set's actual capacity is only limited by
-    address space and available memory constraints). 
+    address space and available memory constraints).
     This parameter must be greater than or equal
     to the count of the set which is to be copied, or the
     behavior is undefined. If this parameter is negative, the
@@ -524,7 +524,7 @@ function CFSetGetCount( theSet: CFSetRef ): CFIndex; external name '_CFSetGetCou
 
 {!
 	@function CFSetGetCountOfValue
-	Counts the number of times the given value occurs in the set. Since 
+	Counts the number of times the given value occurs in the set. Since
         sets by definition contain only one instance of a value, this function
         is synonymous to CFSetContainsValue.
 	@param theSet The set to be searched. If this parameter is not a
@@ -614,7 +614,7 @@ procedure CFSetGetValues( theSet: CFSetRef; {const} values: UnivPtrPtr ); extern
 		pointer to a function of the correct prototype, the behavior
 		is undefined. If there are values in the set which the
 		applier function does not expect or cannot properly apply
-		to, the behavior is undefined. 
+		to, the behavior is undefined.
 	@param context A pointer-sized user-defined value, which is passed
 		as the second parameter to the applier function, but is
 		otherwise unused by this function. If the context is not
@@ -636,7 +636,7 @@ procedure CFSetApplyFunction( theSet: CFSetRef; applier: CFSetApplierFunction; c
 	@param value The value to add to the set. The value is retained by
 		the set using the retain callback provided when the set
 		was created. If the value is not of the sort expected by the
-		retain callback, the behavior is undefined. The count of the 
+		retain callback, the behavior is undefined. The count of the
                 set is increased by one.
 }
 procedure CFSetAddValue( theSet: CFMutableSetRef; value: {const} UnivPtr ); external name '_CFSetAddValue';
@@ -654,14 +654,14 @@ procedure CFSetAddValue( theSet: CFMutableSetRef; value: {const} UnivPtr ); exte
                 callback, the behavior is undefined. The value is retained by
 		the set using the retain callback provided when the set
 		was created. If the value is not of the sort expected by the
-		retain callback, the behavior is undefined. The count of the 
+		retain callback, the behavior is undefined. The count of the
                 set is increased by one.
 }
 procedure CFSetReplaceValue( theSet: CFMutableSetRef; value: {const} UnivPtr ); external name '_CFSetReplaceValue';
 
 {!
 	@function CFSetSetValue
-	Replaces the value in the set if it is present, or adds the value to 
+	Replaces the value in the set if it is present, or adds the value to
         the set if it is absent.
 	@param theSet The set to which the value is to be replaced. If this
 		parameter is not a valid mutable CFSet, the behavior is
@@ -673,7 +673,7 @@ procedure CFSetReplaceValue( theSet: CFMutableSetRef; value: {const} UnivPtr ); 
                 callback, the behavior is undefined. The value is retained by
 		the set using the retain callback provided when the set
 		was created. If the value is not of the sort expected by the
-		retain callback, the behavior is undefined. The count of the 
+		retain callback, the behavior is undefined. The count of the
                 set is increased by one.
 }
 procedure CFSetSetValue( theSet: CFMutableSetRef; value: {const} UnivPtr ); external name '_CFSetSetValue';

@@ -342,7 +342,7 @@ function CTTextTabGetLocation( tab: CTTextTabRef ): Float64; external name '_CTT
 
 {!
 	@function	CTTextTabGetOptions
-	@abstract	Returns the dictionary of attributes associated with the tab. 
+	@abstract	Returns the dictionary of attributes associated with the tab.
 
 	@param		tab
 				The tab whose attributes you wish to access.

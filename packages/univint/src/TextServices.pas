@@ -1,17 +1,17 @@
 {
      File:       HIToolbox/TextServices.h
- 
+
      Contains:   Text Services Manager Interfaces.
- 
+
      Version:    HIToolbox-624~3
- 
+
      Copyright:  © 1991-2008 by Apple Computer, Inc., all rights reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {       Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, August 2005 }
 {       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
@@ -236,7 +236,7 @@ const
 {
  *  Summary:
  *    TSM Version Gestalt values
- *  
+ *
  *  Discussion:
  *    Gestalt values for gestaltTSMgrVersion selector (Gestalt.h)
  }
@@ -260,7 +260,7 @@ type
  *  Summary:
  *    InterfaceTypeList - array of OSTypes passed to NewTSMDocument to
  *    specify capabilities of the new TSMDocument.
- *  
+ *
  *  Discussion:
  *    TSM's Interface types, as of 10.3, are also stored as TSMDocument
  *    properties, so once a TSMDocument is created, you can easily find
@@ -271,7 +271,7 @@ const
    * This is the traditional TSMDocument type.  It does not support
    * Unicode. TSM will convert all Unicode produced by input methods to
    * the Mac encoding represented by the current keyboard script (or
-   * the Mac encoding specified by the input method producing text.) 
+   * the Mac encoding specified by the input method producing text.)
    * Full Unicode input sources may not be selectable when this
    * TSMDocument is active.
    }
@@ -305,17 +305,17 @@ type
 {
  *  Summary:
  *    TextService classes
- *  
+ *
  *  Discussion:
  *    Text Service classes fall into three categories or behaviors.
- *    
+ *
  *    (1) KeyboardInputMethodClass text services are exclusive of one
  *    another in terms of being the default for a given Mac script
  *    code, and at most one of these - regardless of script - can be
- *    currently selected. 
+ *    currently selected.
  *    (2) Only zero or one InkInputMethodClass text services can be
  *    selected; this is independent of what other input sources are
- *    selected. 
+ *    selected.
  *    (3) Zero or more input methods of other classes can be selected,
  *    regardless of what other input sources are selected (they are
  *    additive in nature, regardless of the current keyboard script).
@@ -341,8 +341,8 @@ const
    * still profess to produce only those Unicodes that are encoded in
    * the mac encoding specified in their component description record
    * or their implementation of the GetScriptLanguageSupport component
-   * call. 
-   * 
+   * call.
+   *
    * Mac OS X only provides System UI for enabling Apple's Ink input
    * method, not for other Ink input methods.
    }
@@ -359,15 +359,15 @@ const
    * produce only those Unicodes that are encoded in the mac encoding
    * specified in their component description record or their
    * implementation of the GetScriptLanguageSupport component call.
-   * 
-   * 
+   *
+   *
    * Unlike input methods in the keyboard class, multiple such text
    * services can be activated in parallel, and unlike input methods in
    * the Ink class, Mac OS X provides System UI to allow the user to
    * both enable and select multiple such input methods. Use the
    * kComponentBundleInvisibleInSystemUIKey plist key to make Character
-   * Palette input methods invisible to the System UI. 
-   * 
+   * Palette input methods invisible to the System UI.
+   *
    * (Dictionary Service input methods are visible in the system UI by
    * default.  Use the kComponentBundleInvisibleInSystemUIKey plist key
    * to make them invisible if a developer-provided UI is to be used
@@ -377,8 +377,8 @@ const
 
   {
    * Text Service class for Speech input methods.  Behavior is
-   * Additive. 
-   * 
+   * Additive.
+   *
    * Similar to Character palette class.  System UI for these has not
    * yet been determined.
    }
@@ -386,8 +386,8 @@ const
 
   {
    * Text Service class for Optical Character Recognition input
-   * methods.  Behavior is Additive. 
-   * 
+   * methods.  Behavior is Additive.
+   *
    * Similar to Character palette class.  System UI for these has not
    * yet been determined.
    }
@@ -410,11 +410,11 @@ type
 {
  *  Summary:
  *    TSMDocument Property Tags
- *  
+ *
  *  Discussion:
  *    With the following property APIs, you can attach any piece of
  *    data you'd like to a TSMDocument.  The property tags pre-defined
- *    below by TSM fall in several categories. Read-only properties: 
+ *    below by TSM fall in several categories. Read-only properties:
  *    these property tags are actually the interface type used to
  *    create a TSMDocument, such as kUnicodeDocumentInterfaceType.
  *    These properties are all property value-independent... see below.
@@ -427,7 +427,7 @@ type
  *    and a NULL propertyBuffer to check if the property exists (i.e.
  *    to obtain the size.) Value-dependent properties:  these are
  *    properties for which the value is meaningful.  Examples of this
- *    are the Refcon ProtocolVersion properties. NOTE: 
+ *    are the Refcon ProtocolVersion properties. NOTE:
  *    Value-independent properties can read by other clients, in
  *    particular input methods.  For example, input methods may want to
  *    query the current TSMDocument to see if supports unrestricted
@@ -443,7 +443,7 @@ const
 
   {
    * Property is read-only, value-independent.  The value is identical
-   * to the TextServiceDocument interface type, but is not needed. 
+   * to the TextServiceDocument interface type, but is not needed.
    * Simply test for existence of the property. Property available in
    * TSM 2.2 and later
    }
@@ -487,7 +487,7 @@ const
    * window to handle input from input methods.  This form of input
    * does not support Unicode input by default, unless the
    * UnicodeInputWindow property is set. By convention, this value can
-   * be a UInt32 with a value of 0, but this is really arbitrary. 
+   * be a UInt32 with a value of 0, but this is really arbitrary.
    * Simply test for existence of the property. Property available in
    * TSM 2.2 and later
    }
@@ -513,7 +513,7 @@ const
    * kEventTextInputUpdateActiveInputArea event supports the
    * 'replaceRange' parameter and that the handler is a Carbon event
    * handler, not an AppleEvent handler. By convention, this value can
-   * be a UInt32 with a value of 0, but this is really arbitrary. 
+   * be a UInt32 with a value of 0, but this is really arbitrary.
    * Simply test for existence of the property. Property available in
    * TSM 2.2 and later
    }
@@ -606,10 +606,10 @@ const
 
 {
  *  TSMSetDocumentProperty()
- *  
+ *
  *  Summary:
  *    Set a TSMDocument property
- *  
+ *
  *  Discussion:
  *    With the following property APIs, you can attach any piece of
  *    data you'd like to a TSMDocument.  Other uses include setting a
@@ -620,12 +620,12 @@ const
  *    used in practice. Note that the semantics for refcounted objects
  *    is ambiguous, so retain/release model is discussed for each
  *    TSM-defined property individually.  (See notes for
- *    TSMDocumentPropertyTag) Error Codes (MacErrors.h): 
+ *    TSMDocumentPropertyTag) Error Codes (MacErrors.h):
  *    tsmComponentPropertyUnsupportedErr tsmInputModeChangeFailedErr
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -637,10 +637,10 @@ function TSMSetDocumentProperty( docID: TSMDocumentID; propertyTag: TSMDocumentP
 
 {
  *  TSMGetDocumentProperty()
- *  
+ *
  *  Summary:
  *    Get a TSMDocument property
- *  
+ *
  *  Discussion:
  *    With the following property APIs, you can attach any piece of
  *    data you'd like to a TSMDocument.  Other uses include setting a
@@ -654,10 +654,10 @@ function TSMSetDocumentProperty( docID: TSMDocumentID; propertyTag: TSMDocumentP
  *    TSMDocumentPropertyTag) Error Codes (MacErrors.h)
  *    tsmDocPropertyNotFoundErr tsmDocPropertyBufferTooSmallErr
  *    tsmComponentPropertyNotFoundErr tsmComponentPropertyUnsupportedErr
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -669,10 +669,10 @@ function TSMGetDocumentProperty( docID: TSMDocumentID; propertyTag: TSMDocumentP
 
 {
  *  TSMRemoveDocumentProperty()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -768,10 +768,10 @@ type
 {$ifc not TARGET_CPU_64}
 {
  *  NewTSMDocument()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -786,10 +786,10 @@ function NewTSMDocument( numOfInterface: SInt16; supportedInterfaceTypes: {varia
 {$ifc not TARGET_CPU_64}
 {
  *  DeleteTSMDocument()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -801,10 +801,10 @@ function DeleteTSMDocument( idocID: TSMDocumentID ): OSErr; external name '_Dele
 
 {
  *  ActivateTSMDocument()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -816,10 +816,10 @@ function ActivateTSMDocument( idocID: TSMDocumentID ): OSErr; external name '_Ac
 
 {
  *  DeactivateTSMDocument()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -831,10 +831,10 @@ function DeactivateTSMDocument( idocID: TSMDocumentID ): OSErr; external name '_
 
 {
  *  FixTSMDocument()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -846,7 +846,7 @@ function FixTSMDocument( idocID: TSMDocumentID ): OSErr; external name '_FixTSMD
 
 {
  *  GetServiceList()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use TISCreateInputSourceList API instead:
  *     kTISPropertyInputSourceType =
@@ -854,19 +854,19 @@ function FixTSMDocument( idocID: TSMDocumentID ): OSErr; external name '_FixTSMD
  *    kTISTypeKeyboardInputMethodModeEnabled
  *    kTISPropertyBundleID = <input method bundle identifier of
  *    interest>
- *  
+ *
  *  Summary:
  *    Used to get a list of installed input method Components
- *  
+ *
  *  Discussion:
  *    This API was typically used to track down the Component ID for a
  *    specific input method from the Component Manager's list of
  *    installed Components, usually by componentType, componentSubType,
  *    and/or componentManufacturer.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -878,10 +878,10 @@ function GetServiceList( numOfInterface: SInt16; {const} supportedInterfaceTypes
 
 {
  *  OpenTextService()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -893,10 +893,10 @@ function OpenTextService( idocID: TSMDocumentID; aComponent: Component; var aCom
 
 {
  *  CloseTextService()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -908,10 +908,10 @@ function CloseTextService( idocID: TSMDocumentID; aComponentInstance: ComponentI
 
 {
  *  SendAEFromTSMComponent()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -923,16 +923,16 @@ function SendAEFromTSMComponent( const (*var*) theAppleEvent: AppleEvent; var re
 
 {
  *  SendTextInputEvent()
- *  
+ *
  *  Discussion:
  *    This API replaces SendAEFromTSMComponent on Mac OS X only. Input
  *    Methods on Mac OS X are Carbon Event based instead of AppleEvent
  *    based.  The Carbon TextInput events which they generate are
  *    provided to TSM for dispatching via this API.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib N.e.v.e.r and later
@@ -944,20 +944,20 @@ function SendTextInputEvent( inEvent: EventRef ): OSStatus; external name '_Send
 
 {
  *  SetDefaultInputMethod()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use TISSelectInputSource API
- *  
+ *
  *  Summary:
  *    Set the input method Component ID to be used for the specified
  *    script/language.
- *  
+ *
  *  Discussion:
  *    This API also switches to the specified script/language.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -969,20 +969,20 @@ function SetDefaultInputMethod( ts: Component; var slRecordPtr: ScriptLanguageRe
 
 {
  *  GetDefaultInputMethod()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use TISCopyCurrentKeyboardInputSource API and query its
  *    properties.  If the current input source does not support the
  *    specified script/language, use TISCopyInputSourceForLanguage to
  *    find one that does.
- *  
+ *
  *  Summary:
  *    Get the default (last used) input method Component ID for the
  *    specified script/language.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -994,17 +994,17 @@ function GetDefaultInputMethod( var ts: Component; var slRecordPtr: ScriptLangua
 
 {
  *  SetTextServiceLanguage()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use TISSelectInputSource API
- *  
+ *
  *  Summary:
  *    Switch to the last used input method (if any) for the specified
  *    script/language.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1016,17 +1016,17 @@ function SetTextServiceLanguage( var slRecordPtr: ScriptLanguageRecord ): OSErr;
 
 {
  *  GetTextServiceLanguage()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use TISCopyCurrentKeyboardInputSource API and query its
  *    properties, such as kTISPropertyInputSourceLanguages.
- *  
+ *
  *  Summary:
  *    Get the current script/language.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1038,10 +1038,10 @@ function GetTextServiceLanguage( var slRecordPtr: ScriptLanguageRecord ): OSErr;
 
 {
  *  UseInputWindow()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1053,15 +1053,15 @@ function UseInputWindow( idocID: TSMDocumentID; useWindow: Boolean ): OSErr; ext
 
 {
  *  TSMSetInlineInputRegion()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Implement kEventTextInputIsMouseEventInInlineInputArea TSM Carbon
  *    event.
- *  
+ *
  *  Summary:
  *    Tell TSM what region and which window make up the inline input
  *    session.
- *  
+ *
  *  Discussion:
  *    Tell TSM about the region occupied by an inline input session. If
  *    the location of certain mouse events (clicks, mouse moved) occur
@@ -1071,19 +1071,19 @@ function UseInputWindow( idocID: TSMDocumentID; useWindow: Boolean ): OSErr; ext
  *    need to intercept mouse events in the entire content region as
  *    the default, when an input method is active, in order to ensure
  *    that input methods can manage user interaction properly.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inTSMDocument:
  *      The document.
- *    
+ *
  *    inWindow:
  *      The window that contains the inline input session. You can pass
  *      NULL for this parameter to indicate the user focus window.
- *    
+ *
  *    inRegion:
  *      The region occupied by the current inline input region. This
  *      should be in the coordinates of the port associated with the
@@ -1094,7 +1094,7 @@ function UseInputWindow( idocID: TSMDocumentID; useWindow: Boolean ): OSErr; ext
  *      scrolling, etc. If you pass a NULL region for this parameter,
  *      TSM will default to intercept mouse events in the focus
  *      window's content region.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1107,10 +1107,10 @@ function TSMSetInlineInputRegion( inTSMDocument: TSMDocumentID; inWindow: Window
 { Component Manager Interfaces to Input Methods }
 {
  *  GetScriptLanguageSupport()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1122,10 +1122,10 @@ function GetScriptLanguageSupport( ts: ComponentInstance; var scriptHdl: ScriptL
 
 {
  *  InitiateTextService()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1137,10 +1137,10 @@ function InitiateTextService( ts: ComponentInstance ): ComponentResult; external
 
 {
  *  TerminateTextService()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1152,10 +1152,10 @@ function TerminateTextService( ts: ComponentInstance ): ComponentResult; externa
 
 {
  *  ActivateTextService()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1167,10 +1167,10 @@ function ActivateTextService( ts: ComponentInstance ): ComponentResult; external
 
 {
  *  DeactivateTextService()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1182,10 +1182,10 @@ function DeactivateTextService( ts: ComponentInstance ): ComponentResult; extern
 
 {
  *  GetTextServiceMenu()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1199,10 +1199,10 @@ function GetTextServiceMenu( ts: ComponentInstance; var serviceMenu: MenuRef ): 
 { Note: Only Raw Key and Mouse-flavored events are passed to Text Services on MacOS X. }
 {
  *  TextServiceEventRef()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1214,10 +1214,10 @@ function TextServiceEventRef( ts: ComponentInstance; event: EventRef ): Componen
 
 {
  *  FixTextService()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1229,10 +1229,10 @@ function FixTextService( ts: ComponentInstance ): ComponentResult; external name
 
 {
  *  HidePaletteWindows()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1255,15 +1255,15 @@ type
 {
  *  Summary:
  *    TextService Properties
- *  
+ *
  *  Discussion:
  *    Text Service properties are passed directly to a text service
  *    component via Component Mgr glue provided by TSM.  Applications
  *    that have special knowledge of specific input methods can
  *    communicate private properties between each other. The 2
  *    following errors have been introduced (as of Mac OS X 10.3) to
- *    better support these API: tsmComponentPropertyUnsupportedErr  // 
- *    SetTextServiceProperty failed tsmComponentPropertyNotFoundErr    
+ *    better support these API: tsmComponentPropertyUnsupportedErr  //
+ *    SetTextServiceProperty failed tsmComponentPropertyNotFoundErr
  *    //  GetTextServiceProperty failed
  }
 const
@@ -1298,7 +1298,7 @@ const
    * obtain the current input mode, then SetTextServiceProperty to
    * switch to the generic mode, and when done restore the original
    * input mode. Input Methods themselves make known what input modes
-   * they support via the CopyTextServiceInputModeList component call. 
+   * they support via the CopyTextServiceInputModeList component call.
    * If the input method does not support a specified inputMode,
    * GetTextServiceProperty and SetTextServiceProperty will return
    * tsmComponentPropertyUnsupportedErr.  GetTextServiceProperty will
@@ -1403,10 +1403,10 @@ type
 {$ifc not TARGET_CPU_64}
 {
  *  GetTextServiceProperty()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1418,10 +1418,10 @@ function GetTextServiceProperty( ts: ComponentInstance; inPropertyTag: TextServi
 
 {
  *  SetTextServiceProperty()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1433,11 +1433,11 @@ function SetTextServiceProperty( ts: ComponentInstance; inPropertyTag: TextServi
 
 {
  *  CopyTextServiceInputModeList()
- *  
+ *
  *  Summary:
  *    Obtain a copy of the set of input modes supported by a
  *    keyboard-class input method.
- *  
+ *
  *  Discussion:
  *    This Component call is only intended to be supported by input
  *    methods that adopt the Input Mode protocol. If this component
@@ -1486,14 +1486,14 @@ function SetTextServiceProperty( ts: ComponentInstance; inPropertyTag: TextServi
  *    input method is first activated in a login session, the settings
  *    of the individual input modes (names or key-equivalents) differ
  *    from the default settings as found in the component bundle's
- *    Info.plist, the System will need to be notified of the change. 
+ *    Info.plist, the System will need to be notified of the change.
  *    The input method does this by sending out a
  *    kEventTextInputInputMenuChanged Carbon event, just as it is when
  *    the change originally took place.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -1591,17 +1591,17 @@ function CopyTextServiceInputModeList( ts: ComponentInstance; var outInputModes:
 {$ifc not TARGET_CPU_64}
 {
  *  TSMCopyInputMethodEnabledInputModes()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use TISCreateInputSourceList API with:
  *     kTISPropertyInputSourceType = kTISTypeKeyboardInputMode
  *     kTISPropertyBundleID = <your input method bundle identifier>
  *    <BR> kTISPropertyInputSourceIsEnabled = true
- *  
+ *
  *  Summary:
  *    Obtain the array of a component's enabled (and visible) input
  *    modes.
- *  
+ *
  *  Discussion:
  *    The intended use of this API is to allow an input method to query
  *    the System for the subset of its own input modes that are
@@ -1616,10 +1616,10 @@ function CopyTextServiceInputModeList( ts: ComponentInstance; var outInputModes:
  *    caller to release the returned array. <array> <value>
  *    modeSignature : (internal ascii name) </value> </array> Available
  *    in TSM 2.2 and later
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -1631,25 +1631,25 @@ function TSMCopyInputMethodEnabledInputModes( inComponent: Component; var outInp
 
 {
  *  TSMSelectInputMode()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use TISSelectInputSource API passing your input mode's
  *    TISInputSourceRef
- *  
+ *
  *  Summary:
  *    Make the specified input method input mode the current input
  *    source.
- *  
+ *
  *  Discussion:
  *    The intended use of this API is to allow an input method to
  *    select one of its own input modes as the current input source and
  *    update the TextInput menu icon in the menubar. This API is only
  *    meaningful for input methods that adopt TSM's Input Mode
  *    protocol. Available in TSM 2.2 and later
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -1666,10 +1666,10 @@ function TSMSelectInputMode( inComponent: Component; inInputMode: CFStringRef ):
 
 {
  *  TSMGetActiveDocument()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -1682,20 +1682,20 @@ function TSMGetActiveDocument: TSMDocumentID; external name '_TSMGetActiveDocume
 {$ifc not TARGET_CPU_64}
 {
  *  GetDefaultInputMethodOfClass()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    See GetDefaultInputMethod.
- *  
+ *
  *  Summary:
  *    Get the default (last used) input method Component ID for the
  *    specified script/language.
- *  
+ *
  *  Discussion:
  *    Only kKeyboardInputMethodClass is supported.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -1707,21 +1707,21 @@ function GetDefaultInputMethodOfClass( var aComp: Component; var slRecPtr: Scrip
 
 {
  *  SetDefaultInputMethodOfClass()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    See SetDefaultInputMethod.
- *  
+ *
  *  Summary:
  *    Set the input method Component ID to be used for the specified
  *    script/language.
- *  
+ *
  *  Discussion:
  *    Only kKeyboardInputMethodClass is supported.
  *    This API also switches to the specified script/language.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -1733,13 +1733,13 @@ function SetDefaultInputMethodOfClass( aComp: Component; var slRecPtr: ScriptLan
 
 {
  *  SelectTextService()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use TISSelectInputSource API.
- *  
+ *
  *  Summary:
  *    Select a text service component
- *  
+ *
  *  Discussion:
  *    This API is currently only intended for use by input methods in
  *    text service classes which are "additive" in nature, that is
@@ -1748,10 +1748,10 @@ function SetDefaultInputMethodOfClass( aComp: Component; var slRecPtr: ScriptLan
  *    classes.  An example of such a class is the Character Palette
  *    class.  It is not for use by traditional input methods, such as
  *    those that belong to the keyboard input method class.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -1763,19 +1763,19 @@ function SelectTextService( aComp: Component ): OSStatus; external name '_Select
 
 {
  *  DeselectTextService()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use TISDeselectInputSource API.
- *  
+ *
  *  Summary:
  *    Deselect a text service component
- *  
+ *
  *  Discussion:
  *    See SelectTextService.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -1787,20 +1787,20 @@ function DeselectTextService( aComp: Component ): OSStatus; external name '_Dese
 
 {
  *  IsTextServiceSelected()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use TISGetInputSourceProperty API with
  *    kTISPropertyInputSourceIsSelected property.
- *  
+ *
  *  Summary:
  *    Checks if a text service component is selected
- *  
+ *
  *  Discussion:
  *    See SelectTextService.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -1819,25 +1819,25 @@ function IsTextServiceSelected( aComp: Component ): Boolean; external name '_IsT
 {$ifc not TARGET_CPU_64}
 {
  *  TSMInputModePaletteLoadButtons()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Not used anymore.
- *  
+ *
  *  Discussion:
  *    Notifies the Input Mode Palette of changes in an input method's
  *    controls.  Replaces the current controls with the new control
  *    array.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    paletteButtonsArray:
  *      CFArray containing descriptions of the controls.  Each control
  *      is described using a CFDictionary, using the keys described
  *      below.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.4 and later
@@ -1849,25 +1849,25 @@ procedure TSMInputModePaletteLoadButtons( paletteButtonsArray: CFArrayRef ); ext
 
 {
  *  TSMInputModePaletteUpdateButtons()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Not used anymore.
- *  
+ *
  *  Discussion:
  *    Notifies the Input Mode Palette of updates in an input method's
- *    controls.  Will update controls based on the control tag ID. 
+ *    controls.  Will update controls based on the control tag ID.
  *    Does not replace/remove existing controls.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    paletteButtonsArray:
  *      CFArray containing descriptions of the controls.  Each control
  *      is described using a CFDictionary, using the keys described
  *      below.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.4 and later
@@ -1894,14 +1894,14 @@ Example of palette controls CFArray passed to TSMInputModePaletteLoadButtons():
         - ID
         - enabled
         - state
-        
+
     Pulldown menus consist of a CFDictionary containing:
         - itemType
         - icon
         - alternate icon
         - ID
 
-    <array>    
+    <array>
         <dict>
         <!-- item 1 - a push button -->
             <key>tsInputModePaletteItemTypeKey</key>
@@ -1928,7 +1928,7 @@ Example of palette controls CFArray passed to TSMInputModePaletteLoadButtons():
             <key>tsInputModePaletteItemIDKey</key>
             <integer>2</integer>
         </dict>
-    </array>         
+    </array>
 
 ******************************************************}
 
@@ -1969,31 +1969,31 @@ Example of palette controls CFArray passed to TSMInputModePaletteLoadButtons():
 {$ifc not TARGET_CPU_64}
 {
  *  InputModePaletteItemHit()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    No longer called.
- *  
+ *
  *  Discussion:
  *    Component Manager call to tell an Input Method that a function
  *    button on the Input Mode Palette was pressed.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inInstance:
  *      The component instance.
- *    
+ *
  *    inItemID:
  *      The item ID of the function button pressed on the palette.
- *    
+ *
  *    inItemState:
  *      The new state of the button.
- *  
+ *
  *  Result:
  *    Return non-null on successful handling of call.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.4 and later
@@ -2005,31 +2005,31 @@ function InputModePaletteItemHit( inInstance: ComponentInstance; inItemID: UInt3
 
 {
  *  GetInputModePaletteMenu()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    No longer called.
- *  
+ *
  *  Discussion:
  *    Component Manager call to ask an Input Method for the menu to
  *    display for a pull-down menu on the Input Mode Palette.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inInstance:
  *      The component instance.
- *    
+ *
  *    inItemID:
  *      The item ID of the pull-down menu button.
- *    
+ *
  *    outMenuItemsArray:
  *      The menu array to return to the Input Mode Palette.
- *  
+ *
  *  Result:
  *    Return non-null on successful handling of call.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.4 and later
@@ -2055,7 +2055,7 @@ Example of menu CFArray returned to GetInputModePaletteMenu():
         - key equivalent (optional)
         - key equivalent modifiers (optional)
 
-    <array>    
+    <array>
         <dict>
         <!-- menu item w/ modifiers -->
             <key>tsInputModePaletteItemTitleKey</key>
@@ -2086,7 +2086,7 @@ Example of menu CFArray returned to GetInputModePaletteMenu():
             <key>tsInputModePaletteItemStateKey</key>
             <integer>0</integer>
         </dict>
-    </array>         
+    </array>
 
 ******************************************************}
 {$endc} {not TARGET_CPU_64}

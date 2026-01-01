@@ -1,17 +1,17 @@
 {
      File:       QuickTime/MoviesFormat.h
- 
+
      Contains:   QuickTime Interfaces.
- 
+
      Version:    QuickTime 7.7.1
- 
+
      Copyright:  © 1990-2012 by Apple Inc., all rights reserved
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
@@ -377,7 +377,7 @@ type
 		sampleDependencyTable: array [0..0] of UInt8;
 	end;
 {
-NOTE: The values for these flags that shipped with QuickTime 7.0 were incorrect. 
+NOTE: The values for these flags that shipped with QuickTime 7.0 were incorrect.
 They matched neither the specification nor the implementation -- the "Yes" and "No" bits
 were reversed.  The flags have been corrected but renamed to ensure that code using
 the incorrect flags is reviewed by developers.

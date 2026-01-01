@@ -6,9 +6,9 @@
  *  Copyright 2006 Apple. All rights reserved.
  *
  }
- 
+
  { Pascal Translation: Gorazd Krosl <gorazd_1957@yahoo.ca>, October 2009 }
- 
+
 {
     Modified for use with Free Pascal
     Version 308
@@ -247,40 +247,40 @@ type
 		IUNKNOWN_C_GUTS	: IUnknownVTbl;
 		{ Initialize a store structure for a token, and return it.  In the static store case, token will be NULL.}
 		MDExternalDatastoreCreate : function(token: CFTypeRef): MDExternalDatastoreRef;
-		
+
 		{ Dealloc a given store }
 		MDExternalDatastoreDealloc : procedure(store: MDExternalDatastoreRef);
-		
-    { execute the query, and send the attribute dicitonaries of each URL through the channel 
-        - query will be explained more later, but will include the query tree, and maybe grouping and sorting params, maybe original text? 
-        - channel expects CFDictionaries, with at a minimum a kMDItemURL set.  
+
+    { execute the query, and send the attribute dicitonaries of each URL through the channel
+        - query will be explained more later, but will include the query tree, and maybe grouping and sorting params, maybe original text?
+        - channel expects CFDictionaries, with at a minimum a kMDItemURL set.
         - If the store wants to talk in terms of OIDs, it should send along an OID in the dictionary too.
         }
         MDExternalDatastoreExecuteQuery: function(store: MDExternalDatastoreRef; channel: MDResponseChannelRef; query: MDExternalDatastoreQueryRef): Boolean;
 
 	{ send the attribute dictionaries of each URL through the channel
         - urls is a CFArrayRef of CFURLRefs
-        - attributes is a CFArrayRef of CFStringRefs 
+        - attributes is a CFArrayRef of CFStringRefs
        }
        MDExternalDatastoreFetchAttributesForURLs: function(store: MDExternalDatastoreRef; channel: MDResponseChannelRef; attributes: CFArrayRef; URLs: CFArrayRef): Boolean;
-       
-    { OID<=>URL converters.  If the external datastore has reasonably persistant object IDs, it should provide them as part of the query answers.  It will then be expected to implement the following functions concerning OIDs.  
-        
+
+    { OID<=>URL converters.  If the external datastore has reasonably persistant object IDs, it should provide them as part of the query answers.  It will then be expected to implement the following functions concerning OIDs.
+
         Implementing these functions can result in substantial gains in performance for your plugin. }
-       
+
        {  send an OID in response to a URL=>OID conversion.  Use MDResponseChannelSendOID, it will return true if the store should keep processing the URLs, false otherwise  }
        MDExternalDatastoreFetchOIDsForURLs: function(store: MDExternalDatastoreRef; channel: MDResponseChannelRef; URLs: CFArrayRef): Boolean;
-       
+
        { send attribute dictionaries for the given OIDs.  Use MDResponseChannelSendObject on each dictionary, it will return true if the store should keep processing the OIDs, false otherwise  }
        MDExternalDatastoreFetchAttributesForOIDs: function(store: MDExternalDatastoreRef; channel: MDResponseChannelRef; attributes: CFArrayRef; OIDs: MDOIDEnumerationRef): Boolean;
-       
+
        { send URLs in response to OID=>URL conversions.  Use MDResponseChannelSendObject, it will return true if the store should keep processing the OIDs, false otherwise  }
        MDExternalDatastoreFetchURLsForOIDs: function(store: MDExternalDatastoreRef; channel: MDResponseChannelRef; OIDs: MDOIDEnumerationRef): Boolean;
 	end;
 
 	MDExternalDatastoreStoreInterfaceStructPtr = ^MDExternalDatastoreStoreInterfaceStruct;
 {$endc} {TARGET_OS_MAC}
-	
+
 {$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 implementation
 

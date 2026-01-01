@@ -353,10 +353,10 @@ function MDItemCopyAttributeNames( item: MDItemRef ): CFArrayRef; external name 
  @function MDItemsCopyAttributes
  Returns metadata for the given items.
  @param items A CFArray of MDItemRefs to items for which to fetch data
- @param names A CFArray of attribute names for which to fetch data. 
+ @param names A CFArray of attribute names for which to fetch data.
 				The attribute names are CFStrings
- @result A CFArrayRef, or NULL on failure. Each entry in the array is either kCFNull, 
-  if the item is not accessible, or a CFArray of attribute values. 
+ @result A CFArrayRef, or NULL on failure. Each entry in the array is either kCFNull,
+  if the item is not accessible, or a CFArray of attribute values.
   If an attribute is not available, there will be a kCFNull in its slot in the nested array.
  }
 function MDItemsCopyAttributes( items: CFArrayRef; names: CFArrayRef ): CFArrayRef; external name '_MDItemsCopyAttributes';
@@ -391,14 +391,14 @@ function MDItemsCopyAttributes( items: CFArrayRef; names: CFArrayRef ): CFArrayR
    authors in the array is preserved, but is not intended to represent
    the main author or relative importance of the authors. Type is a
    CFArray of CFStrings.
- 
+
    @constant kMDItemEditors
    The list of editor/editors that has worked on this file. There
    could be 0 or more editors of a particular file. The order of the
    editors in the array is preserved, but is not intended to represent
    the main editor or relative importance of the editors. Type is a
    CFArray of CFStrings.
- 
+
    @constant kMDItemParticipants
    The list of people who are visible in an image or movie or
    written about in a document. Type is CFArray of CFStrings.
@@ -416,7 +416,7 @@ function MDItemsCopyAttributes( items: CFArrayRef; names: CFArrayRef ): CFArrayR
 
    @constant kMDItemCopyright
    This is the copyright of the content. Type is a CFString
-   
+
    @constant kMDItemDownloadedDate
    This is the date that the file was last downloaded / received.
 
@@ -447,7 +447,7 @@ function MDItemsCopyAttributes( items: CFArrayRef; names: CFArrayRef ): CFArrayR
    date, but can be independent of that. This allows tracking of the
    last time the content was modified irrespective of the last time the
    file was modified. Type is a CFDate.
-   
+
    @constant kMDItemDateAdded
    This is the date that the file was moved into the current location.
    Not all files will have this attribute.  Not all file systems support
@@ -535,7 +535,7 @@ function MDItemsCopyAttributes( items: CFArrayRef; names: CFArrayRef ): CFArrayR
 
    @const kMDItemEXIFGPSVersion
    The version of GPSInfoIFD header that was used to generate the metadata
- 
+
    @const kMDItemCodecs
    The codecs used to encode/decode the media
 
@@ -609,35 +609,35 @@ function MDItemsCopyAttributes( items: CFArrayRef; names: CFArrayRef ): CFArrayR
    Provides full, publishable, name of the country/primary location
    where the intellectual property of the objectdata was created,
    according to guidelines of the provider.
- 
+
  @const kMDItemEXIFGPSVersion
  The version of GPSInfoIFD in EXIF used to generate the metadata.
- 
+
  @const kMDItemAltitude
- The altitude of the item in meters above sea level, expressed 
+ The altitude of the item in meters above sea level, expressed
  using the WGS84 datum.  Negative values lie below sea level.
- 
+
  @const kMDItemLatitude
  The latitude of the item in degrees north of the equator, expressed
  using the WGS84 datum.  Negative values lie south of the equator.
- 
+
  @const kMDItemLongitude
  The longitude of the item in degrees east of the prime meridian,
  expressed using the WGS84 datum.  Negative values lie west of the prime meridian.
- 
+
  @const kMDItemTimestamp
  The timestamp on the item.  This generally is used to indicate the time at
  which the event captured by the item took place.
- 
+
  @const kMDItemSpeed
  The speed of the item, in kilometers per hour.
- 
+
  @const kMDItemGPSTrack
  The direction of travel of the item, in degrees from true north.
- 
+
  @const kMDItemImageDirection
  The direction of the item's image, in degrees from true north.
- 
+
  @const kMDItemNamedLocation
  The name of the location or point of interest associated with the item.
  The name may be user provided.
@@ -827,7 +827,7 @@ var kMDItemCountry: CFStringRef; external name '_kMDItemCountry'; (* attribute c
    @constant kMDItemDisplayName
    This is the localized version of the LaunchServices call
    LSCopyDisplayNameForURL()/LSCopyDisplayNameForRef().
- 
+
    @constant kMDItemFSName
    This is the file name of the MDItemRef. Type is a CFString
 
@@ -1055,7 +1055,7 @@ var kMDItemRecordingYear: CFStringRef; external name '_kMDItemRecordingYear'; (*
 
         @const kMDItemTheme
         Theme of the this item. Type is a CFString.
- 
+
         @const kMDItemDescription
         An account of the content of the resource. Description may include
         but is not limited to: an abstract, table of contents, reference
@@ -1292,19 +1292,19 @@ var kMDItemSupportFileType: CFStringRef; external name '_kMDItemSupportFileType'
 
         @const kMDItemAuthorAddresses
         This attribute indicates the author addresses of the document.
- 
+
         @const kMDItemRecipientAddresses
-        This attribute indicates the recipient addresses of the document. 
- 
+        This attribute indicates the recipient addresses of the document.
+
         @const kMDItemURL
         Url of the item
-        
+
         @const kMDItemIsLikelyJunk
         This attribute indicates if the document is likely to be considered junk.
-        
+
         @const kMDItemExecutableArchitectures
         Array of executables architectures the item contains.
- 
+
         @const kMDItemExecutablePlatform
         Indicates platform required to execute this application.
 

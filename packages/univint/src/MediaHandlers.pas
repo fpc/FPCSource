@@ -1,17 +1,17 @@
 {
      File:       QuickTime/MediaHandlers.h
- 
+
      Contains:   QuickTime Interfaces.
- 
+
      Version:    QuickTime 7.7.1
- 
+
      Copyright:  © 1990-2012 by Apple Inc., all rights reserved
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
@@ -361,7 +361,7 @@ type
 	MediaEQSpectrumBandsRecordPtr = ^MediaEQSpectrumBandsRecord;
 {
  *  CallComponentExecuteWiredAction()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -383,7 +383,7 @@ const
 
 {
  *  MediaSetChunkManagementFlags()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.6 and later
@@ -396,7 +396,7 @@ function MediaSetChunkManagementFlags( mh: MediaHandler; flags: UInt32; flagsMas
 
 {
  *  MediaGetChunkManagementFlags()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.6 and later
@@ -409,7 +409,7 @@ function MediaGetChunkManagementFlags( mh: MediaHandler; var flags: UInt32 ): Co
 
 {
  *  MediaSetPurgeableChunkMemoryAllowance()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.6 and later
@@ -422,7 +422,7 @@ function MediaSetPurgeableChunkMemoryAllowance( mh: MediaHandler; allowance: Siz
 
 {
  *  MediaGetPurgeableChunkMemoryAllowance()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.6 and later
@@ -435,7 +435,7 @@ function MediaGetPurgeableChunkMemoryAllowance( mh: MediaHandler; var allowance:
 
 {
  *  MediaEmptyAllPurgeableChunks()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.6 and later
@@ -449,7 +449,7 @@ function MediaEmptyAllPurgeableChunks( mh: MediaHandler ): ComponentResult; exte
 {**** These are the calls for dealing with the Generic media handler ****}
 {
  *  MediaInitialize()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -462,7 +462,7 @@ function MediaInitialize( mh: MediaHandler; var gmc: GetMovieCompleteParams ): C
 
 {
  *  MediaSetHandlerCapabilities()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -475,7 +475,7 @@ function MediaSetHandlerCapabilities( mh: MediaHandler; flags: SIGNEDLONG; flags
 
 {
  *  MediaIdle()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -488,7 +488,7 @@ function MediaIdle( mh: MediaHandler; atMediaTime: TimeValue; flagsIn: SIGNEDLON
 
 {
  *  MediaGetMediaInfo()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -501,7 +501,7 @@ function MediaGetMediaInfo( mh: MediaHandler; h: Handle ): ComponentResult; exte
 
 {
  *  MediaPutMediaInfo()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -514,7 +514,7 @@ function MediaPutMediaInfo( mh: MediaHandler; h: Handle ): ComponentResult; exte
 
 {
  *  MediaSetActive()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -527,7 +527,7 @@ function MediaSetActive( mh: MediaHandler; enableMedia: Boolean ): ComponentResu
 
 {
  *  MediaSetRate()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -540,7 +540,7 @@ function MediaSetRate( mh: MediaHandler; rate: Fixed ): ComponentResult; externa
 
 {
  *  MediaGGetStatus()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -553,7 +553,7 @@ function MediaGGetStatus( mh: MediaHandler; var statusErr: ComponentResult ): Co
 
 {
  *  MediaTrackEdited()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -566,7 +566,7 @@ function MediaTrackEdited( mh: MediaHandler ): ComponentResult; external name '_
 
 {
  *  MediaSetMediaTimeScale()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -579,7 +579,7 @@ function MediaSetMediaTimeScale( mh: MediaHandler; newTimeScale: TimeScale ): Co
 
 {
  *  MediaSetMovieTimeScale()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -592,7 +592,7 @@ function MediaSetMovieTimeScale( mh: MediaHandler; newTimeScale: TimeScale ): Co
 
 {
  *  MediaSetGWorld()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -605,7 +605,7 @@ function MediaSetGWorld( mh: MediaHandler; aPort: CGrafPtr; aGD: GDHandle ): Com
 
 {
  *  MediaSetDimensions()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -618,7 +618,7 @@ function MediaSetDimensions( mh: MediaHandler; width: Fixed; height: Fixed ): Co
 
 {
  *  MediaSetClip()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -631,7 +631,7 @@ function MediaSetClip( mh: MediaHandler; theClip: RgnHandle ): ComponentResult; 
 
 {
  *  MediaSetMatrix()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -644,7 +644,7 @@ function MediaSetMatrix( mh: MediaHandler; var trackMovieMatrix: MatrixRecord ):
 
 {
  *  MediaGetTrackOpaque()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -657,7 +657,7 @@ function MediaGetTrackOpaque( mh: MediaHandler; var trackIsOpaque: Boolean ): Co
 
 {
  *  MediaSetGraphicsMode()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -670,7 +670,7 @@ function MediaSetGraphicsMode( mh: MediaHandler; mode: SIGNEDLONG; const (*var*)
 
 {
  *  MediaGetGraphicsMode()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -683,7 +683,7 @@ function MediaGetGraphicsMode( mh: MediaHandler; var mode: SIGNEDLONG; var opCol
 
 {
  *  MediaGSetVolume()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -696,7 +696,7 @@ function MediaGSetVolume( mh: MediaHandler; volume: SInt16 ): ComponentResult; e
 
 {
  *  MediaSetSoundBalance()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -709,7 +709,7 @@ function MediaSetSoundBalance( mh: MediaHandler; balance: SInt16 ): ComponentRes
 
 {
  *  MediaGetSoundBalance()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -722,7 +722,7 @@ function MediaGetSoundBalance( mh: MediaHandler; var balance: SInt16 ): Componen
 
 {
  *  MediaGetNextBoundsChange()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -735,7 +735,7 @@ function MediaGetNextBoundsChange( mh: MediaHandler; var when: TimeValue ): Comp
 
 {
  *  MediaGetSrcRgn()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -748,7 +748,7 @@ function MediaGetSrcRgn( mh: MediaHandler; rgn: RgnHandle; atMediaTime: TimeValu
 
 {
  *  MediaPreroll()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -761,7 +761,7 @@ function MediaPreroll( mh: MediaHandler; time: TimeValue; rate: Fixed ): Compone
 
 {
  *  MediaSampleDescriptionChanged()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -774,7 +774,7 @@ function MediaSampleDescriptionChanged( mh: MediaHandler; index: SIGNEDLONG ): C
 
 {
  *  MediaHasCharacteristic()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -787,7 +787,7 @@ function MediaHasCharacteristic( mh: MediaHandler; characteristic: OSType; var h
 
 {
  *  MediaGetOffscreenBufferSize()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -800,7 +800,7 @@ function MediaGetOffscreenBufferSize( mh: MediaHandler; var bounds: Rect; depth:
 
 {
  *  MediaSetHints()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -813,7 +813,7 @@ function MediaSetHints( mh: MediaHandler; hints: SIGNEDLONG ): ComponentResult; 
 
 {
  *  MediaGetName()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -826,7 +826,7 @@ function MediaGetName( mh: MediaHandler; var name: Str255; requestedLanguage: SI
 
 {
  *  MediaForceUpdate()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -839,7 +839,7 @@ function MediaForceUpdate( mh: MediaHandler; forceUpdateFlags: SIGNEDLONG ): Com
 
 {
  *  MediaGetDrawingRgn()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -852,7 +852,7 @@ function MediaGetDrawingRgn( mh: MediaHandler; var partialRgn: RgnHandle ): Comp
 
 {
  *  MediaGSetActiveSegment()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -865,7 +865,7 @@ function MediaGSetActiveSegment( mh: MediaHandler; activeStart: TimeValue; activ
 
 {
  *  MediaInvalidateRegion()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -878,7 +878,7 @@ function MediaInvalidateRegion( mh: MediaHandler; invalRgn: RgnHandle ): Compone
 
 {
  *  MediaGetNextStepTime()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -891,7 +891,7 @@ function MediaGetNextStepTime( mh: MediaHandler; flags: SInt16; mediaTimeIn: Tim
 
 {
  *  MediaSetNonPrimarySourceData()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -904,7 +904,7 @@ function MediaSetNonPrimarySourceData( mh: MediaHandler; inputIndex: SIGNEDLONG;
 
 {
  *  MediaChangedNonPrimarySource()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -917,7 +917,7 @@ function MediaChangedNonPrimarySource( mh: MediaHandler; inputIndex: SIGNEDLONG 
 
 {
  *  MediaTrackReferencesChanged()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -930,7 +930,7 @@ function MediaTrackReferencesChanged( mh: MediaHandler ): ComponentResult; exter
 
 {
  *  MediaGetSampleDataPointer()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -943,7 +943,7 @@ function MediaGetSampleDataPointer( mh: MediaHandler; sampleNum: SIGNEDLONG; var
 
 {
  *  MediaReleaseSampleDataPointer()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -956,7 +956,7 @@ function MediaReleaseSampleDataPointer( mh: MediaHandler; sampleNum: SIGNEDLONG 
 
 {
  *  MediaTrackPropertyAtomChanged()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -969,7 +969,7 @@ function MediaTrackPropertyAtomChanged( mh: MediaHandler ): ComponentResult; ext
 
 {
  *  MediaSetTrackInputMapReference()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -982,7 +982,7 @@ function MediaSetTrackInputMapReference( mh: MediaHandler; inputMap: QTAtomConta
 
 {
  *  MediaSetVideoParam()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -995,7 +995,7 @@ function MediaSetVideoParam( mh: MediaHandler; whichParam: SIGNEDLONG; var value
 
 {
  *  MediaGetVideoParam()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1008,7 +1008,7 @@ function MediaGetVideoParam( mh: MediaHandler; whichParam: SIGNEDLONG; var value
 
 {
  *  MediaCompare()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1021,7 +1021,7 @@ function MediaCompare( mh: MediaHandler; var isOK: Boolean; srcMedia: Media; src
 
 {
  *  MediaGetClock()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1034,7 +1034,7 @@ function MediaGetClock( mh: MediaHandler; var clock: ComponentInstance ): Compon
 
 {
  *  MediaSetSoundOutputComponent()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1047,7 +1047,7 @@ function MediaSetSoundOutputComponent( mh: MediaHandler; outputComponent: Compon
 
 {
  *  MediaGetSoundOutputComponent()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1060,7 +1060,7 @@ function MediaGetSoundOutputComponent( mh: MediaHandler; var outputComponent: Co
 
 {
  *  MediaSetSoundLocalizationData()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1073,7 +1073,7 @@ function MediaSetSoundLocalizationData( mh: MediaHandler; data: Handle ): Compon
 
 {
  *  MediaGetInvalidRegion()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1086,7 +1086,7 @@ function MediaGetInvalidRegion( mh: MediaHandler; rgn: RgnHandle ): ComponentRes
 
 {
  *  MediaSampleDescriptionB2N()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1099,7 +1099,7 @@ function MediaSampleDescriptionB2N( mh: MediaHandler; sampleDescriptionH: Sample
 
 {
  *  MediaSampleDescriptionN2B()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1112,7 +1112,7 @@ function MediaSampleDescriptionN2B( mh: MediaHandler; sampleDescriptionH: Sample
 
 {
  *  MediaQueueNonPrimarySourceData()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1125,7 +1125,7 @@ function MediaQueueNonPrimarySourceData( mh: MediaHandler; inputIndex: SIGNEDLON
 
 {
  *  MediaFlushNonPrimarySourceData()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1138,7 +1138,7 @@ function MediaFlushNonPrimarySourceData( mh: MediaHandler; inputIndex: SIGNEDLON
 
 {
  *  MediaGetURLLink()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1151,7 +1151,7 @@ function MediaGetURLLink( mh: MediaHandler; displayWhere: Point; var urlLink: Ha
 
 {
  *  MediaMakeMediaTimeTable()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1164,7 +1164,7 @@ function MediaMakeMediaTimeTable( mh: MediaHandler; var offsets: SIGNEDLONGPtr; 
 
 {
  *  MediaHitTestForTargetRefCon()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1177,7 +1177,7 @@ function MediaHitTestForTargetRefCon( mh: MediaHandler; flags: SIGNEDLONG; loc: 
 
 {
  *  MediaHitTestTargetRefCon()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1190,7 +1190,7 @@ function MediaHitTestTargetRefCon( mh: MediaHandler; targetRefCon: SIGNEDLONG; f
 
 {
  *  MediaGetActionsForQTEvent()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1203,7 +1203,7 @@ function MediaGetActionsForQTEvent( mh: MediaHandler; event: QTEventRecordPtr; t
 
 {
  *  MediaDisposeTargetRefCon()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1216,7 +1216,7 @@ function MediaDisposeTargetRefCon( mh: MediaHandler; targetRefCon: SIGNEDLONG ):
 
 {
  *  MediaTargetRefConsEqual()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1229,7 +1229,7 @@ function MediaTargetRefConsEqual( mh: MediaHandler; firstRefCon: SIGNEDLONG; sec
 
 {
  *  MediaSetActionsCallback()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1242,7 +1242,7 @@ function MediaSetActionsCallback( mh: MediaHandler; actionsCallbackProc: Actions
 
 {
  *  MediaPrePrerollBegin()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1255,7 +1255,7 @@ function MediaPrePrerollBegin( mh: MediaHandler; time: TimeValue; rate: Fixed; c
 
 {
  *  MediaPrePrerollCancel()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1268,7 +1268,7 @@ function MediaPrePrerollCancel( mh: MediaHandler; refcon: UnivPtr ): ComponentRe
 
 {
  *  MediaEnterEmptyEdit()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1281,7 +1281,7 @@ function MediaEnterEmptyEdit( mh: MediaHandler ): ComponentResult; external name
 
 {
  *  MediaCurrentMediaQueuedData()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -1294,7 +1294,7 @@ function MediaCurrentMediaQueuedData( mh: MediaHandler; var milliSecs: SIGNEDLON
 
 {
  *  MediaGetEffectiveVolume()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -1307,7 +1307,7 @@ function MediaGetEffectiveVolume( mh: MediaHandler; var volume: SInt16 ): Compon
 
 {
  *  MediaResolveTargetRefCon()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -1320,7 +1320,7 @@ function MediaResolveTargetRefCon( mh: MediaHandler; container: QTAtomContainer;
 
 {
  *  MediaGetSoundLevelMeteringEnabled()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -1333,7 +1333,7 @@ function MediaGetSoundLevelMeteringEnabled( mh: MediaHandler; var enabled: Boole
 
 {
  *  MediaSetSoundLevelMeteringEnabled()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -1346,7 +1346,7 @@ function MediaSetSoundLevelMeteringEnabled( mh: MediaHandler; enable: Boolean ):
 
 {
  *  MediaGetSoundLevelMeterInfo()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -1359,7 +1359,7 @@ function MediaGetSoundLevelMeterInfo( mh: MediaHandler; levelInfo: LevelMeterInf
 
 {
  *  MediaGetEffectiveSoundBalance()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -1372,7 +1372,7 @@ function MediaGetEffectiveSoundBalance( mh: MediaHandler; var balance: SInt16 ):
 
 {
  *  MediaSetScreenLock()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -1385,7 +1385,7 @@ function MediaSetScreenLock( mh: MediaHandler; lockIt: Boolean ): ComponentResul
 
 {
  *  MediaSetDoMCActionCallback()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -1398,7 +1398,7 @@ function MediaSetDoMCActionCallback( mh: MediaHandler; doMCActionCallbackProc: D
 
 {
  *  MediaGetErrorString()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -1411,7 +1411,7 @@ function MediaGetErrorString( mh: MediaHandler; theError: ComponentResult; var e
 
 {
  *  MediaGetSoundEqualizerBands()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -1424,7 +1424,7 @@ function MediaGetSoundEqualizerBands( mh: MediaHandler; spectrumInfo: MediaEQSpe
 
 {
  *  MediaSetSoundEqualizerBands()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -1437,7 +1437,7 @@ function MediaSetSoundEqualizerBands( mh: MediaHandler; spectrumInfo: MediaEQSpe
 
 {
  *  MediaGetSoundEqualizerBandLevels()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -1450,7 +1450,7 @@ function MediaGetSoundEqualizerBandLevels( mh: MediaHandler; var bandLevels: UIn
 
 {
  *  MediaDoIdleActions()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -1463,7 +1463,7 @@ function MediaDoIdleActions( mh: MediaHandler ): ComponentResult; external name 
 
 {
  *  MediaSetSoundBassAndTreble()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -1476,7 +1476,7 @@ function MediaSetSoundBassAndTreble( mh: MediaHandler; bass: SInt16; treble: SIn
 
 {
  *  MediaGetSoundBassAndTreble()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -1489,7 +1489,7 @@ function MediaGetSoundBassAndTreble( mh: MediaHandler; var bass: SInt16; var tre
 
 {
  *  MediaTimeBaseChanged()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -1502,7 +1502,7 @@ function MediaTimeBaseChanged( mh: MediaHandler ): ComponentResult; external nam
 
 {
  *  MediaMCIsPlayerEvent()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1515,7 +1515,7 @@ function MediaMCIsPlayerEvent( mh: MediaHandler; const (*var*) e: EventRecord; v
 
 {
  *  MediaGetMediaLoadState()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1528,7 +1528,7 @@ function MediaGetMediaLoadState( mh: MediaHandler; var mediaLoadState: SIGNEDLON
 
 {
  *  MediaVideoOutputChanged()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -1541,7 +1541,7 @@ function MediaVideoOutputChanged( mh: MediaHandler; vout: ComponentInstance ): C
 
 {
  *  MediaEmptySampleCache()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -1554,7 +1554,7 @@ function MediaEmptySampleCache( mh: MediaHandler; sampleNum: SIGNEDLONG; sampleC
 
 {
  *  MediaGetPublicInfo()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -1567,7 +1567,7 @@ function MediaGetPublicInfo( mh: MediaHandler; infoSelector: OSType; infoDataPtr
 
 {
  *  MediaSetPublicInfo()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -1580,7 +1580,7 @@ function MediaSetPublicInfo( mh: MediaHandler; infoSelector: OSType; infoDataPtr
 
 {
  *  MediaGetUserPreferredCodecs()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -1593,7 +1593,7 @@ function MediaGetUserPreferredCodecs( mh: MediaHandler; var userPreferredCodecs:
 
 {
  *  MediaSetUserPreferredCodecs()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -1608,7 +1608,7 @@ function MediaSetUserPreferredCodecs( mh: MediaHandler; userPreferredCodecs: Cod
 
 {
  *  MediaRefConSetProperty()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.6 and later
@@ -1621,7 +1621,7 @@ function MediaRefConSetProperty( mh: MediaHandler; refCon: SIGNEDLONG; propertyT
 
 {
  *  MediaRefConGetProperty()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.6 and later
@@ -1634,7 +1634,7 @@ function MediaRefConGetProperty( mh: MediaHandler; refCon: SIGNEDLONG; propertyT
 
 {
  *  MediaNavigateTargetRefCon()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.6 and later
@@ -1647,7 +1647,7 @@ function MediaNavigateTargetRefCon( mh: MediaHandler; navigation: SIGNEDLONG; va
 
 {
  *  MediaGGetIdleManager()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.6 and later
@@ -1660,7 +1660,7 @@ function MediaGGetIdleManager( mh: MediaHandler; var pim: IdleManager ): Compone
 
 {
  *  MediaGSetIdleManager()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.6 and later
@@ -1673,7 +1673,7 @@ function MediaGSetIdleManager( mh: MediaHandler; im: IdleManager ): ComponentRes
 
 {
  *  MediaGGetLatency()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 (or QuickTime 6.4) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -1688,19 +1688,19 @@ function MediaGGetLatency( mh: MediaHandler; var latency: TimeRecord ): Componen
 
 {
  *  MediaSetTrackApertureModeDimensionsUsingSampleDescription()
- *  
+ *
  *  Summary:
  *    Sets the three aperture mode dimension properties on the track,
  *    calculating the values using the provided sample description.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    mh:
  *      [in] The media handler.
- *    
+ *
  *    sampleDesc:
  *      [in] The sample description handle.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 (or QuickTime 7.1) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -1712,30 +1712,30 @@ function MediaSetTrackApertureModeDimensionsUsingSampleDescription( mh: MediaHan
 
 {
  *  MediaGetApertureModeClipRectForSampleDescriptionIndex()
- *  
+ *
  *  Summary:
  *    Calculates a source clip rectangle appropriate for the current
  *    aperture mode and the given sample description.
- *  
+ *
  *  Discussion:
  *    If the track's aperture mode is kQTApertureMode_CleanAperture,
  *    the rectangle should be the clean aperture as described by the
  *    sample description (see
  *    kICMImageDescriptionPropertyID_CleanApertureClipRect); otherwise
  *    it should be the full dimensions of the sample description.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    mh:
  *      [in] The media handler.
- *    
+ *
  *    sampleDescIndex:
  *      [in] Indicates the sample description index of sample
  *      description in the media
- *    
+ *
  *    clipFixedRectOut:
  *      [out] Points to a variable to receive the clip rectangle.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 (or QuickTime 7.1) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -1747,11 +1747,11 @@ function MediaGetApertureModeClipRectForSampleDescriptionIndex( mh: MediaHandler
 
 {
  *  MediaGetApertureModeMatrixForSampleDescriptionIndex()
- *  
+ *
  *  Summary:
  *    Calculates a matrix appropriate for the current aperture mode and
  *    the given sample description.
- *  
+ *
  *  Discussion:
  *    If the track's aperture mode is kQTApertureMode_CleanAperture or
  *    kQTApertureMode_ProductionAperture, the matrix should scale
@@ -1761,19 +1761,19 @@ function MediaGetApertureModeClipRectForSampleDescriptionIndex( mh: MediaHandler
  *    top-left point of the clean aperture to the origin. (See
  *    kICMImageDescriptionPropertyID_CleanApertureMatrix and
  *    kICMImageDescriptionPropertyID_ProductionApertureMatrix.)
- *  
+ *
  *  Parameters:
- *    
+ *
  *    mh:
  *      [in] The media handler.
- *    
+ *
  *    sampleDescIndex:
  *      [in] Indicates the sample description index of sample
  *      description in the media
- *    
+ *
  *    matrixOut:
  *      [out] Points to a variable to receive the matrix.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 (or QuickTime 7.1) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -1785,10 +1785,10 @@ function MediaGetApertureModeMatrixForSampleDescriptionIndex( mh: MediaHandler; 
 
 {
  *  MediaGenerateApertureModeDimensions()
- *  
+ *
  *  Summary:
  *    Examines a movie and sets up track aperture mode dimensions.
- *  
+ *
  *  Discussion:
  *    If the sample descriptions tracks lack tags describing clean
  *    aperture and pixel aspect ratio information, the media data may
@@ -1796,12 +1796,12 @@ function MediaGetApertureModeMatrixForSampleDescriptionIndex( mh: MediaHandler; 
  *    attached. Then the aperture mode dimensions should be calculated
  *    and set, as by
  *    MediaSetTrackApertureModeDimensionsUsingSampleDescription.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    mh:
  *      [in] The media handler.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 (or QuickTime 7.1) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -1920,7 +1920,7 @@ const
 	kMediaGenerateApertureModeDimensionsSelect = $057C;
 {
  *  NewPrePrerollCompleteUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -1931,7 +1931,7 @@ function NewPrePrerollCompleteUPP( userRoutine: PrePrerollCompleteProcPtr ): Pre
 
 {
  *  DisposePrePrerollCompleteUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -1942,7 +1942,7 @@ procedure DisposePrePrerollCompleteUPP( userUPP: PrePrerollCompleteUPP ); extern
 
 {
  *  InvokePrePrerollCompleteUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later

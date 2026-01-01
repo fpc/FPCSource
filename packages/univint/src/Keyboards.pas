@@ -1,17 +1,17 @@
 {
      File:       HIToolbox/Keyboards.h
- 
+
      Contains:   Keyboard API.
- 
+
      Version:    HIToolbox-624~3
- 
+
      Copyright:  © 1997-2008 by Apple Computer, Inc., all rights reserved
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {       Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, August 2005 }
 {       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
@@ -236,7 +236,7 @@ uses MacTypes, CFBase;
 
 {
  *  PhysicalKeyboardLayoutType
- *  
+ *
  *  Summary:
  *    Physical keyboard layout types indicate the physical keyboard
  *    layout. They are returned by the KBGetLayoutType API.
@@ -270,11 +270,11 @@ const
 
 {
  *  KeyboardLayoutRef
- *  
+ *
  *  Summary:
  *    The opaque keyboard layout contains information about a keyboard
  *    layout. It is used with the keyboard layout APIs.
- *  
+ *
  *  Discussion:
  *    KeyboardLayoutRef APIs follow CoreFoundation function naming
  *    convention. You mustn't release any references you get from APIs
@@ -286,7 +286,7 @@ type
 
 {
  *  KeyboardLayoutPropertyTag
- *  
+ *
  *  Summary:
  *    Keyboard layout property tags specify the value you want to
  *    retrieve. They are used with the KLGetKeyboardLayoutProperty API.
@@ -347,7 +347,7 @@ const
 
 {
  *  KeyboardLayoutKind
- *  
+ *
  *  Summary:
  *    Keyboard layout kinds indicate available keyboard layout formats.
  }
@@ -372,7 +372,7 @@ const
 
 {
  *  KeyboardLayoutIdentifier
- *  
+ *
  *  Summary:
  *    Keyboard layout identifiers specify particular keyboard layouts.
  }
@@ -386,18 +386,18 @@ const
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
 {
  *  KBGetLayoutType()
- *  
+ *
  *  Summary:
  *    Returns the physical keyboard layout type.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iKeyboardType:
  *      The keyboard type ID.  LMGetKbdType().
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
@@ -412,22 +412,22 @@ function KBGetLayoutType( iKeyboardType: SInt16 ): PhysicalKeyboardLayoutType; e
 {$ifc not TARGET_CPU_64}
 {
  *  KLGetKeyboardLayoutCount()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use TISCreateInputSourceList API to create a list of input
  *    sources that match specified properties.
- *  
+ *
  *  Summary:
  *    Returns the number of keyboard layouts.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    oCount:
  *      On exit, the number of keyboard layouts
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -439,28 +439,28 @@ function KLGetKeyboardLayoutCount( var oCount: CFIndex ): OSStatus; external nam
 
 {
  *  KLGetKeyboardLayoutAtIndex()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use TISCreateInputSourceList API to create a list of input
  *    sources that match specified properties.
- *  
+ *
  *  Summary:
  *    Retrieves the keyboard layout at the given index.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iIndex:
  *      The index of the keyboard layout to retrieve. If the index is
  *      outside the index space of the keyboard layouts (0 to N-1
  *      inclusive, where N is the count of the keyboard layouts), the
  *      behavior is undefined.
- *    
+ *
  *    oKeyboardLayout:
  *      On exit, the keyboard layout with the given index.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -482,30 +482,30 @@ function KLGetKeyboardLayoutAtIndex( iIndex: CFIndex; var oKeyboardLayout: Keybo
 
 {
  *  KLGetKeyboardLayoutProperty()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use TISGetInputSourceProperty API to query properties of a
  *    TISInputSourceRef.
- *  
+ *
  *  Summary:
  *    Retrives property value for the given keyboard layout and tag.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iKeyboardLayout:
  *      The keyboard layout to be queried. If this parameter is not a
  *      valid KeyboardLayoutRef, the behavior is undefined.
- *    
+ *
  *    iPropertyTag:
  *      The property tag.
- *    
+ *
  *    oValue:
  *      On exit, the property value for the given keyboard layout and
  *      tag.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -519,33 +519,33 @@ function KLGetKeyboardLayoutProperty( iKeyboardLayout: KeyboardLayoutRef; iPrope
 
 {
  *  KLGetKeyboardLayoutWithIdentifier()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use TISCreateInputSourceList API to create a list of input
  *    sources that match specified properties, such as the
  *    kTISPropertyInputSourceID property.
- *  
+ *
  *  Summary:
  *    Retrieves the keyboard layout with the given identifier.
- *  
+ *
  *  Discussion:
  *    For now, the identifier is in the range of SInt16 which is
  *    compatible with the Resource Manager resource ID. However, it
  *    will become an arbitrary SInt32 value at some point, so do not
  *    assume it is in SInt16 range or falls into the "script range" of
  *    the resource IDs.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iIdentifier:
  *      The keyboard layout identifier.
- *    
+ *
  *    oKeyboardLayout:
  *      On exit, the keyboard layout with the given identifier.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -557,26 +557,26 @@ function KLGetKeyboardLayoutWithIdentifier( iIdentifier: KeyboardLayoutIdentifie
 
 {
  *  KLGetKeyboardLayoutWithName()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use TISCreateInputSourceList API to create a list of input
  *    sources that match specified properties, such as the
  *    kTISPropertyInputSourceID property.
- *  
+ *
  *  Summary:
  *    Retrieves the keyboard layout with the given name.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iName:
  *      The keyboard layout name.
- *    
+ *
  *    oKeyboardLayout:
  *      On exit, the keyboard layout with the given name.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -590,7 +590,7 @@ function KLGetKeyboardLayoutWithName( iName: CFStringRef; var oKeyboardLayout: K
 
 {
  *  KLGetCurrentKeyboardLayout()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use TISCopyCurrentKeyboardLayoutInputSource.
  *     TISCopyCurrentKeyboardLayoutInputSource will return the current
@@ -598,24 +598,24 @@ function KLGetKeyboardLayoutWithName( iName: CFStringRef; var oKeyboardLayout: K
  *    source is an input method or one of its input modes, the TIS API
  *    will also return any keyboard override specified via
  *    TISSetInputMethodKeyboardLayoutOverride.
- *  
+ *
  *  Summary:
  *    Retrieves the current keyboard layout.
- *  
+ *
  *  Discussion:
  *    Retrieves the current keyboard layout for the current keyboard
  *    script.  To retrive the current keyboard script for Roman
  *    keyboard script, you need to call KeyScript( smRoman |
  *    smKeyForceKeyScriptMask ) then call KLGetCurrentKeyboardLayout().
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    oKeyboardLayout:
  *      On exit, the current keyboard layout.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -627,11 +627,11 @@ function KLGetCurrentKeyboardLayout( var oKeyboardLayout: KeyboardLayoutRef ): O
 
 {
  *  KLSetCurrentKeyboardLayout()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    To make a keyboard layout become the current input source, use
  *    TISSelectInputSource API.
- *    
+ *
  *    Input methods have used this API to override the keyboard layout
  *    used when the input method or one of its input modes is selected.
  *     TISSetInputMethodKeyboardLayoutOverride should be used for this
@@ -642,10 +642,10 @@ function KLGetCurrentKeyboardLayout( var oKeyboardLayout: KeyboardLayoutRef ): O
  *    will be visible to users of the Keyboard Viewer and allow them to
  *    see the underlying keyboard used for event delivery to your input
  *    method.
- *  
+ *
  *  Summary:
  *    Sets the current keyboard layout.
- *  
+ *
  *  Discussion:
  *    Sets the current keyboard layout for the current keyboard script.
  *     Returns "paramErr" when the current keyboard layout is not
@@ -654,15 +654,15 @@ function KLGetCurrentKeyboardLayout( var oKeyboardLayout: KeyboardLayoutRef ): O
  *    "U.S." for example, you need to call KeyScript( smRoman |
  *    smKeyForceKeyScriptMask ) then call KLSetCurrentKeyboardLayout(
  *    theUSKeyboardLayoutRef ).
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iKeyboardLayout:
  *      The keyboard layout.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later

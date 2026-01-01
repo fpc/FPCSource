@@ -651,16 +651,16 @@ type
 const
     kCTFontDescriptorMatchingDidBegin = 0;              // called once at the beginning.
     kCTFontDescriptorMatchingDidFinish = 1;             // called once at the end.
-    
+
     kCTFontDescriptorMatchingWillBeginQuerying = 2;     // called once before talking to the server.  Skipped if not necessary.
     kCTFontDescriptorMatchingStalled = 3;               // called when stalled. (e.g. while waiting for server response.)
-    
+
     // Downloading and activating are repeated for each descriptor.
     kCTFontDescriptorMatchingWillBeginDownloading = 4;  // Downloading part may be skipped if all the assets are already downloaded
     kCTFontDescriptorMatchingDownloading = 5;
     kCTFontDescriptorMatchingDidFinishDownloading = 6;
     kCTFontDescriptorMatchingDidMatch = 7;              // called when font descriptor is matched.
-    
+
     kCTFontDescriptorMatchingDidFailWithError = 8;       // called when an error occurred.  (may be called multiple times.)
 
 {!

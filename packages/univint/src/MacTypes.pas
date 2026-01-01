@@ -1,15 +1,15 @@
 {
      File:       CarbonCore/MacTypes.h
- 
+
      Contains:   Basic Macintosh data types.
- 
+
      Version:    CarbonCore-769~1
-  
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {       Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, August 2005 }
 {       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
@@ -231,15 +231,15 @@ uses ConditionalMacros;
 {*******************************************************************************
 
     Base integer types for all target OS's and CPU's
-    
-        UInt8            8-bit unsigned integer 
+
+        UInt8            8-bit unsigned integer
         SInt8            8-bit signed integer
-        UInt16          16-bit unsigned integer 
-        SInt16          16-bit signed integer           
-        UInt32          32-bit unsigned integer 
-        SInt32          32-bit signed integer   
-        UInt64          64-bit unsigned integer 
-        SInt64          64-bit signed integer   
+        UInt16          16-bit unsigned integer
+        SInt16          16-bit signed integer
+        UInt32          32-bit unsigned integer
+        SInt32          32-bit signed integer
+        UInt64          64-bit unsigned integer
+        SInt64          64-bit signed integer
 
 ********************************************************************************}
 type
@@ -332,17 +332,17 @@ type
     UNSIGNEDLONGPtr = ^UNSIGNEDLONG;
 
 	{	*******************************************************************************
-	
+
 	    Special types for pascal
-	    
+
 	        ByteParameter       UInt8 passed as an 8-bit parameter
-	        
+
 	    Note:   The conventions for Pascal on 68K require that a UInt8 when
-	            passed as a parameter occupy 16-bits on the stack, whereas 
+	            passed as a parameter occupy 16-bits on the stack, whereas
 	            an SInt8 would only occupy 8-bits.  To make C and Pascal
 	            compatable, in pascal all function parameters of type UInt8
 	            or equivalent are changed to ByteParameter.
-	
+
 	********************************************************************************	}
 	ByteParameter = SInt8;
 
@@ -355,13 +355,13 @@ type
 
 {*******************************************************************************
 
-    Base fixed point types 
-    
+    Base fixed point types
+
         Fixed           16-bit signed integer plus 16-bit fraction
         UnsignedFixed   16-bit unsigned integer plus 16-bit fraction
         Fract           2-bit signed integer plus 30-bit fraction
         ShortFixed      8-bit signed integer plus 8-bit fraction
-        
+
 ********************************************************************************}
 type
 	Fixed = SInt32;
@@ -376,15 +376,15 @@ type
 
 {*******************************************************************************
 
-    Base floating point types 
-    
+    Base floating point types
+
         Float32         32 bit IEEE float:  1 sign bit, 8 exponent bits, 23 fraction bits
-        Float64         64 bit IEEE float:  1 sign bit, 11 exponent bits, 52 fraction bits  
+        Float64         64 bit IEEE float:  1 sign bit, 11 exponent bits, 52 fraction bits
         Float80         80 bit MacOS float: 1 sign bit, 15 exponent bits, 1 integer bit, 63 fraction bits
         Float96         96 bit 68881 float: 1 sign bit, 15 exponent bits, 16 pad bits, 1 integer bit, 63 fraction bits
-        
+
     Note: These are fixed size floating point types, useful when writing a floating
-          point value to disk.  If your compiler does not support a particular size 
+          point value to disk.  If your compiler does not support a particular size
           float, a struct is used instead.
           Use of of the NCEG types (e.g. double_t) or an ANSI C type (e.g. double) if
           you want a floating point representation that is natural for any given
@@ -421,9 +421,9 @@ type
 	end;
 {GK: Need in AudioUnitCarbonViews.pas }
 	Float32PointPtr = ^Float32Point;
-	
+
 {*******************************************************************************
-	Unix compatibility types        
+	Unix compatibility types
 ********************************************************************************}
 type
 	size_t = UNSIGNEDLONG;
@@ -434,15 +434,15 @@ type
 {*******************************************************************************
 
     MacOS Memory Manager types
-    
+
         Ptr             Pointer to a non-relocatable block
         Handle          Pointer to a master pointer to a relocatable block
         Size            The number of bytes in a block (signed for historical reasons)
-        
+
 ********************************************************************************}
 type
 	Ptr = ^SInt8;
-	PtrPtr = ^Ptr;       
+	PtrPtr = ^Ptr;
 	Handle = ^Ptr;
 	Handle_fix = Handle; { used as field type when a record declaration contains a Handle field identifier }
 	Size = SIGNEDLONG;
@@ -454,7 +454,7 @@ type
 {*******************************************************************************
 
     Higher level basic types
-    
+
         OSErr                   16-bit result error code
         OSStatus                32-bit result error code
         LogicalAddress          Address in the clients virtual address space
@@ -475,7 +475,7 @@ type
         FourCharCode            A 32-bit value made by packing four 1 byte characters together
         OSType                  A FourCharCode used in the OS and file system (e.g. creator)
         ResType                 A FourCharCode used to tag resources (e.g. 'DLOG')
-        
+
 ********************************************************************************}
 type
 	OSErr = SInt16;
@@ -512,12 +512,12 @@ type
 {*******************************************************************************
 
     Boolean types and values
-    
+
         Boolean         Mac OS historic type, sizeof(Boolean)==1
         bool            Defined in stdbool.h, ISO C/C++ standard type
         false           Now defined in stdbool.h
         true            Now defined in stdbool.h
-        
+
 ********************************************************************************}
 type
 { "Boolean", "true", and "false" are built into the Pascal language }
@@ -526,14 +526,14 @@ type
 {*******************************************************************************
 
     Function Pointer Types
-    
+
         ProcPtr                 Generic pointer to a function
         Register68kProcPtr      Pointer to a 68K function that expects parameters in registers
         UniversalProcPtr        Pointer to classic 68K code or a RoutineDescriptor
-        
+
         ProcHandle              Pointer to a ProcPtr
         UniversalProcHandle     Pointer to a UniversalProcPtr
-        
+
 ********************************************************************************}
 type
 	ProcPtr = Ptr;
@@ -548,16 +548,16 @@ type
 {*******************************************************************************
 
     RefCon Types
-    
+
         For access to private data in callbacks, etc.; refcons are generally
         used as a pointer to something, but in the 32-bit world refcons in
         different APIs have had various types: pointer, unsigned scalar, and
         signed scalar. The RefCon types defined here support the current 32-bit
         usage but provide normalization to pointer types for 64-bit.
-        
+
         PRefCon is preferred for new APIs; URefCon and SRefCon are primarily
         for compatibility with existing APIs.
-        
+
 ********************************************************************************}
 type
 	PRefCon = UnivPtr;
@@ -579,16 +579,16 @@ type
 {*******************************************************************************
 
     Common Constants
-    
+
         noErr                   OSErr: function performed properly - no error
         kNilOptions             OptionBits: all flags false
         kInvalidID              KernelID: NULL is for pointers as kInvalidID is for ID's
         kVariableLengthArray    array bounds: variable length array
 
     Note: kVariableLengthArray was used in array bounds to specify a variable length array,
-          usually the last field in a struct.  Now that the C language supports 
-		  the concept of flexible array members, you can instead use: 
-		
+          usually the last field in a struct.  Now that the C language supports
+		  the concept of flexible array members, you can instead use:
+
 		struct BarList
 		(
 			short	listLength;
@@ -600,7 +600,7 @@ type
 		the count elements
 
 		struct BarList* l = (struct BarList*) malloc( sizeof(BarList) + count * sizeof(Bar) );
-        
+
 ********************************************************************************}
 const
 	noErr = 0;
@@ -620,7 +620,7 @@ const
 {*******************************************************************************
 
     String Types and Unicode Types
-    
+
         UnicodeScalarValue,     A complete Unicode character in UTF-32 format, with
         UTF32Char               values from 0 through 0x10FFFF (excluding the surrogate
                                 range 0xD800-0xDFFF and certain disallowed values).
@@ -652,20 +652,20 @@ const
         StringHandle            Pointer to a StringPtr
         ConstStringPtr          Pointer to a read-only pascal string
         ConstStrNNNParam        For function parameters only - means string is const
-        
+
         CStringPtr              Pointer to a C string           (in C:  AnsiChar*)
         ConstCStringPtr         Pointer to a read-only C string (in C:  const AnsiChar*)
-        
+
     Note: The length of a pascal string is stored as the first byte.
           A pascal string does not have a termination byte.
           A pascal string can hold at most 255 bytes of data.
-          The first character in a pascal string is offset one byte from the start of the string. 
-          
-          A C string is terminated with a byte of value zero.  
+          The first character in a pascal string is offset one byte from the start of the string.
+
+          A C string is terminated with a byte of value zero.
           A C string has no length limitation.
-          The first character in a C string is the zeroth byte of the string. 
-          
-        
+          The first character in a C string is the zeroth byte of the string.
+
+
 ********************************************************************************}
 type
 	UnicodeScalarValue = UInt32;
@@ -685,7 +685,7 @@ type
 	Str36 = STRING[36];
 	Str63 = STRING[63];
 	Str255 = STRING[255];
-	{	
+	{
 	    The type Str32 is used in many AppleTalk based data structures.
 	    It holds up to 32 one byte chars.  The problem is that with the
 	    length byte it is 33 bytes long.  This can cause weird alignment
@@ -694,9 +694,9 @@ type
 	    it is 34 bytes long so that there are no alignment problems.
 		}
     Str32Field = Str32;
-	{	
+	{
 	    QuickTime 3.0:
-	    The type StrFileName is used to make MacOS structs work 
+	    The type StrFileName is used to make MacOS structs work
 	    cross-platform.  For example FSSpec or SFReply previously
 	    contained a Str63 field.  They now contain a StrFileName
 	    field which is the same when targeting the MacOS but is
@@ -736,18 +736,18 @@ type
 {*******************************************************************************
 
     Quickdraw Types
-    
+
         Point               2D Quickdraw coordinate, range: -32K to +32K
         Rect                Rectangular Quickdraw area
         Style               Quickdraw font rendering styles
         StyleParameter      Style when used as a parameter (historical 68K convention)
         StyleField          Style when used as a field (historical 68K convention)
         CharParameter       AnsiChar when used as a parameter (historical 68K convention)
-        
-    Note:   The original Macintosh toolbox in 68K Pascal defined Style as a SET.  
-            Both Style and AnsiChar occupy 8-bits in packed records or 16-bits when 
-            used as fields in non-packed records or as parameters. 
-        
+
+    Note:   The original Macintosh toolbox in 68K Pascal defined Style as a SET.
+            Both Style and AnsiChar occupy 8-bits in packed records or 16-bits when
+            used as fields in non-packed records or as parameters.
+
 ********************************************************************************}
 type
 	Point = record
@@ -813,14 +813,14 @@ type
 {*******************************************************************************
 
     QuickTime TimeBase types (previously in Movies.h)
-    
+
         TimeValue           Count of units
         TimeScale           Units per second
-        CompTimeValue       64-bit count of units (always a struct) 
-        TimeValue64         64-bit count of units (long long or struct) 
+        CompTimeValue       64-bit count of units (always a struct)
+        TimeValue64         64-bit count of units (long long or struct)
         TimeBase            An opaque reference to a time base
         TimeRecord          Package of TimeBase, duration, and scale
-        
+
 ********************************************************************************}
 type
 	TimeValue = SInt32;
@@ -844,16 +844,16 @@ type
 {*******************************************************************************
 
     MacOS versioning structures
-    
+
         VersRec                 Contents of a 'vers' resource
         VersRecPtr              Pointer to a VersRecPtr
         VersRecHndl             Resource Handle containing a VersRec
         NumVersion              Packed BCD version representation (e.g. "4.2.1a3" is 0x04214003)
         UniversalProcPtr        Pointer to classic 68K code or a RoutineDescriptor
-        
+
         ProcHandle              Pointer to a ProcPtr
         UniversalProcHandle     Pointer to a UniversalProcPtr
-        
+
 ********************************************************************************}
 {$ifc TARGET_RT_BIG_ENDIAN}
 type
@@ -909,7 +909,7 @@ type
 {********************************************************************************
 
     Old names for types
-        
+
 ********************************************************************************}
 type
 	extended80 = Float80;
@@ -920,13 +920,13 @@ type
 {********************************************************************************
 
     Debugger functions
-    
+
 ********************************************************************************}
 
 {$ifc TARGET_OS_MAC}
 {
  *  Debugger()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -938,7 +938,7 @@ procedure Debugger; external name '_Debugger';
 
 {
  *  DebugStr()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -950,7 +950,7 @@ procedure DebugStr( const (*var*) debuggerMsg: Str255 ); external name '_DebugSt
 
 {
  *  debugstr()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -962,7 +962,7 @@ procedure DebugStr( const (*var*) debuggerMsg: Str255 ); external name '_DebugSt
 { Only for Mac OS native drivers }
 {
  *  SysDebug()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -972,7 +972,7 @@ procedure DebugStr( const (*var*) debuggerMsg: Str255 ); external name '_DebugSt
 
 {
  *  SysDebugStr()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -986,7 +986,7 @@ procedure DebugStr( const (*var*) debuggerMsg: Str255 ); external name '_DebugSt
 { SADE break points }
 {
  *  SysBreak()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -998,7 +998,7 @@ procedure SysBreak; external name '_SysBreak';
 
 {
  *  SysBreakStr()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1010,7 +1010,7 @@ procedure SysBreakStr( const (*var*) debuggerMsg: Str255 ); external name '_SysB
 
 {
  *  SysBreakFunc()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later

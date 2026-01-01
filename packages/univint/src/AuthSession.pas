@@ -1,15 +1,15 @@
 {
  * Copyright (c) 2000-2003 Apple Computer, Inc. All Rights Reserved.
- * 
+ *
  * @APPLE_LICENSE_HEADER_START@
- * 
+ *
  * This file contains Original Code and/or Modifications of Original Code
  * as defined in and that are subject to the Apple Public Source License
  * Version 2.0 (the 'License'). You may not use this file except in
  * compliance with the License. Please obtain a copy of the License at
  * http://www.opensource.apple.com/apsl/ and read it before using this
  * file.
- * 
+ *
  * The Original Code and all software distributed under the License are
  * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
  * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
@@ -17,7 +17,7 @@
  * FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
  * Please see the License for the specific language governing rights and
  * limitations under the License.
- * 
+ *
  * @APPLE_LICENSE_HEADER_END@
  }
 {  Pascal Translation:  Peter N Lewis, <peter@stairways.com.au>, 2004 }
@@ -249,17 +249,17 @@ uses MacTypes,Authorization;
 
 	The Session API provides specialized applications access to Session management and inquiry
     functions. This is a specialized API that should not be of interest to most people.
-	
+
 	The Security subsystem separates all processes into Security "sessions". Each process is in
 	exactly one session, and session membership inherits across fork/exec. Sessions form boundaries
 	for security-related state such as authorizations, keychain lock status, and the like.
 	Typically, each successful login (whether graphical or through ssh & friends) creates
 	a separate session. System daemons (started at system startup) belong to the "root session"
 	which has no user nor graphics access.
-    
+
 	Sessions are identified with SecuritySessionIds. A session has a set of attributes
 	that are set on creation and can be retrieved with SessionGetInfo().
-	
+
 	There are similar session concepts in the system, related but not necessarily
 	completely congruous. In particular, graphics sessions track security sessions
 	(but only for graphic logins).
@@ -284,8 +284,8 @@ type
     Here are some special values for SecuritySessionId. You may specify those
         on input to SessionAPI functions. They will never be returned from such
         functions.
-    
-    Note: -2 is reserved (see 4487137).  
+
+    Note: -2 is reserved (see 4487137).
 }
 const
 	noSecuritySession = 0;     { definitely not a valid SecuritySessionId }
@@ -300,7 +300,7 @@ const
 type
 	SessionAttributeBits = UInt32;
 	SessionAttributeBitsPtr = ^SessionAttributeBits;
- 
+
 const
     sessionIsRoot                          = $0001; { is the root session (startup/system programs) }
     sessionHasGraphicAccess                = $0010; { graphic subsystem (CoreGraphics et al) available }
@@ -319,11 +319,11 @@ const
 type
 	SessionCreationFlags = UInt32;
 	SessionCreationFlagsPtr = ^SessionCreationFlags;
- 
+
 const
     sessionKeepCurrentBootstrap             = $8000; { caller has allocated sub-bootstrap (expert use only) }
- 
- 
+
+
 {!
 	@enum SessionStatus
 	Error codes returned by AuthSession API.
@@ -348,19 +348,19 @@ const
 
     @param session (input) The Session you are asking about. Can be one of the
         special constants defined above.
-	
+
 	@param sessionId (output/optional) The actual SecuritySessionId for the session you asked about.
         Will never be one of those constants.
-        
+
     @param attributes (output/optional) Receives the attribute bits for the session.
 
     @result An OSStatus indicating success (errSecSuccess) or an error cause.
-    
+
     errSessionInvalidId -60500 Invalid session id specified
 
 }
 function SessionGetInfo( session: SecuritySessionId; sessionId: SecuritySessionIdPtr; attributes: SessionAttributeBitsPtr ): OSStatus; external name '_SessionGetInfo';
-    
+
 
 {!
     @function SessionCreate
@@ -381,18 +381,18 @@ function SessionGetInfo( session: SecuritySessionId; sessionId: SecuritySessionI
 	making any other security-related calls that establish rights of any kind, to the
 	extent this is practical. Also, we strongly recommend that you do not perform
 	security-related calls in any other threads while calling SessionCreate.
-    
+
     @param flags Flags controlling how the session is created.
-    
+
     @param attributes The set of attribute bits to set for the new session.
         Not all bits can be set this way.
-    
+
     @result An OSStatus indicating success (errSecSuccess) or an error cause.
-    
-    errSessionInvalidAttributes -60501 Attempt to set invalid attribute bits	
+
+    errSessionInvalidAttributes -60501 Attempt to set invalid attribute bits
     errSessionAuthorizationDenied -60502 Attempt to re-initialize a session
     errSessionInvalidFlags -60011 Attempt to specify unsupported flag bits
-    
+
 }
 function SessionCreate( flags: SessionCreationFlags; attributes: SessionAttributeBits ): OSStatus; external name '_SessionCreate';
 

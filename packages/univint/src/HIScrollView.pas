@@ -1,17 +1,17 @@
 {
      File:       HIToolbox/HIScrollView.h
- 
+
      Contains:   Definition of the scrollbar and scroll views provided by HIToolbox.
- 
+
      Version:    HIToolbox-624~3
- 
+
      Copyright:  © 2006-2008 by Apple Computer, Inc., all rights reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {       Initial Pascal Translation:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
@@ -231,7 +231,7 @@ uses MacTypes,Appearance,CarbonEvents,Controls,QuickdrawTypes,HIObject,HIView;
 
 {
  *  HIScrollView.h
- *  
+ *
  *  Discussion:
  *    API definitions for the scrollbar and scroll views.
  }
@@ -274,37 +274,37 @@ const
 {$ifc not TARGET_CPU_64}
 {
  *  CreateScrollBarControl()
- *  
+ *
  *  Summary:
  *    Creates a scroll bar control.
- *  
+ *
  *  Discussion:
  *    This creation API is available in Carbon only.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    window:
  *      The window that should contain the control. May be NULL on 10.3
  *      and later.
- *    
+ *
  *    boundsRect:
  *      The bounding box of the control.
- *    
+ *
  *    value:
  *      The initial value of the control.
- *    
+ *
  *    minimum:
  *      The minimum value of the control.
- *    
+ *
  *    maximum:
  *      The maximum value of the control.
- *    
+ *
  *    viewSize:
  *      The size of the visible area of the scroll bar content.
- *    
+ *
  *    liveTracking:
  *      A Boolean indicating whether or not live tracking is enabled
  *      for this scroll bar. If set to true and a valid
@@ -312,15 +312,15 @@ const
  *      repeatedly as the thumb is moved during tracking.  If set to
  *      false, a semi-transparent thumb called a "ghost thumb" will
  *      draw and no live tracking will occur.
- *    
+ *
  *    liveTrackingProc:
  *      If liveTracking is on, a ControlActionUPP callback to be called
  *      as the control live tracks.  This callback is called repeatedly
  *      as the scroll thumb is moved during tracking.
- *    
+ *
  *    outControl:
  *      On exit, contains the new control.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -368,7 +368,7 @@ const
 
 {
     kEventClassScrollable quick reference:
-    
+
     kEventScrollableGetInfo         = 1,
     kEventScrollableInfoChanged     = 2,
     kEventScrollableScrollTo        = 10
@@ -421,37 +421,37 @@ const
 
 {
  *  kEventClassScrollable / kEventScrollableGetInfo
- *  
+ *
  *  Summary:
  *    Requests information from an HIScrollView’s scrollable view about
  *    its size and origin.
- *  
+ *
  *  Discussion:
  *    This event is sent by an HIScrollView to its scrollable view to
  *    determine the current size and origin of the scrollable view. A
  *    scrollable view must implement this event in order to scroll
  *    properly inside an HIScrollView. This event is sent only to the
  *    view, and is not propagated past it.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    <-- kEventParamImageSize (out, typeHISize)
  *          On exit, contains the size of the entire scrollable view.
- *    
+ *
  *    <-- kEventParamViewSize (out, typeHISize)
  *          On exit, contains the amount of the scrollable view that is
  *          visible.
- *    
+ *
  *    <-- kEventParamLineSize (out, typeHISize)
  *          On exit, contains the amount that should be scrolled in
  *          response to a single click on a scrollbar arrow.
- *    
+ *
  *    <-- kEventParamOrigin (out, typeHIPoint)
  *          On exit, contains the scrollable view’s current origin.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -461,11 +461,11 @@ const
 
 {
  *  kEventClassScrollable / kEventScrollableInfoChanged
- *  
+ *
  *  Summary:
  *    Notification that the size or origin of an HIScrollView’s
  *    scrollable view has changed.
- *  
+ *
  *  Discussion:
  *    This event is not sent by HIScrollView itself; rather, it may be
  *    sent to an instance of HIScrollView to notify the scroll view
@@ -476,10 +476,10 @@ const
  *    scrollable view. It does NOT move the origin of the scrollable
  *    view at all. It is just a notification to allow the scroll view
  *    to sync up with its scrollable view.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -489,11 +489,11 @@ const
 
 {
  *  kEventClassScrollable / kEventScrollableScrollTo
- *  
+ *
  *  Summary:
  *    Requests that an HIScrollView’s scrollable view should scroll to
  *    a particular origin.
- *  
+ *
  *  Discussion:
  *    This event is sent by an HIScrollView to its scrollable view to
  *    request that the scrollable view update its current origin and
@@ -510,17 +510,17 @@ const
  *    HIViewSetNeedsDisplay to cause itself to redraw using the new
  *    origin point. A scrollable view must implement this event in
  *    order to scroll properly inside an HIScrollView.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    --> kEventParamOrigin (in, typeHIPoint)
  *          The new origin for the scrollable view. The origin
  *          coordinates will vary from (0,0) to the scrollable view’s
  *          image size minus its view size.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -574,7 +574,7 @@ const
 
 {
  *  HIScrollViewAction
- *  
+ *
  *  Summary:
  *    HIScrollView navigation actions. See HIScrollViewNavigate for
  *    more information.
@@ -625,7 +625,7 @@ const
 {$ifc not TARGET_CPU_64}
 {
  *  HIScrollViewCreate()
- *  
+ *
  *  Discussion:
  *    Creates a scroll view. This view has 3 parts, essentially. It can
  *    have one or two scroll bars (horizontal/vertical), and a view to
@@ -635,23 +635,23 @@ const
  *    automatically hide the scroll bars if the content fits within the
  *    scrollable view. Use the HIScrollViewSetScrollBarAutoHide API to
  *    enable that feature.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inOptions:
  *      Options for our scroll view. You must specify either a
  *      horizontal or a vertical scroll bar. If neither is passed, an
  *      error is returned.
- *    
+ *
  *    outView:
  *      The new scroll view.
- *  
+ *
  *  Result:
  *    An operating system result code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -663,27 +663,27 @@ function HIScrollViewCreate( inOptions: OptionBits; var outView: HIViewRef ): OS
 
 {
  *  HIScrollViewSetScrollBarAutoHide()
- *  
+ *
  *  Discussion:
  *    Sets a scroll view's scroll bars to auto-hide when the entire
  *    scrollable view it is managing can be fully displayed in its
  *    bounds. This is similar to the behavior you see in the Preview
  *    application.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inView:
  *      The view to affect.
- *    
+ *
  *    inAutoHide:
  *      The new auto-hide setting (true == auto-hide).
- *  
+ *
  *  Result:
  *    An operating system result code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -695,21 +695,21 @@ function HIScrollViewSetScrollBarAutoHide( inView: HIViewRef; inAutoHide: Boolea
 
 {
  *  HIScrollViewGetScrollBarAutoHide()
- *  
+ *
  *  Discussion:
  *    Gets a scroll view's current scroll bar auto-hide setting.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inView:
  *      The view to examine.
- *  
+ *
  *  Result:
  *    A boolean result.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -721,7 +721,7 @@ function HIScrollViewGetScrollBarAutoHide( inView: HIViewRef ): Boolean; externa
 
 {
  *  HIScrollViewNavigate()
- *  
+ *
  *  Discussion:
  *    Allows you to programmatically change what portion of a scroll
  *    view's target you are seeing. For example, you can move to the
@@ -733,21 +733,21 @@ function HIScrollViewGetScrollBarAutoHide( inView: HIViewRef ): Boolean; externa
  *    kEventScrollableInfoChanged carbon event. This routine merely is
  *    a programmatic way to scroll as one would by hand using the
  *    scroll bars.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inView:
  *      The scroll view to affect.
- *    
+ *
  *    inAction:
  *      The action to take.
- *  
+ *
  *  Result:
  *    A operating system status code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -759,7 +759,7 @@ function HIScrollViewNavigate( inView: HIViewRef; inAction: HIScrollViewAction )
 
 {
  *  HIScrollViewCanNavigate()
- *  
+ *
  *  Discussion:
  *    Allows you to tell whether it is currently possible to navigate
  *    somehow in a scroll view. For example, if a scroll view is
@@ -767,21 +767,21 @@ function HIScrollViewNavigate( inView: HIViewRef; inAction: HIScrollViewAction )
  *    to navigate upward, so home and page up actions would not be
  *    possible. You might use this function to help you update the
  *    state of menu items or the like.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inView:
  *      The view to examine.
- *    
+ *
  *    inAction:
  *      The action to test.
- *  
+ *
  *  Result:
  *    A boolean result.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later

@@ -1,9 +1,9 @@
 {
      File:       CarbonCore/Timer.h
- 
+
      Contains:   Time Manager interfaces.
                  The contents of this header file are deprecated.
- 
+
      Copyright:  © 1985-2011 by Apple Inc. All rights reserved.
 }
 {
@@ -222,26 +222,26 @@ uses MacTypes,ConditionalMacros,OSUtils;
 
 {
  *  Microseconds()
- *  
+ *
  *  Summary:
  *    Determines the number of microseconds that have elapsed since
  *    system startup time.
- *  
+ *
  *  Discussion:
  *    Return a value representing the number of microseconds since some
  *    point in time, usually since the system was booted.  One
  *    microsecond is 1 * 10^-6 seconds, and so there are one million (
  *    1,000,000 ) microseconds per second.  For reference, in one
  *    microsecond light can travel about 850 feet in a vacuum.
- *    
+ *
  *    Microseconds() doesn't necessarily advance while the computer is
  *    asleep, so it should not be used for long duration timings.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    microTickCount:
  *      The number of microseconds elapsed since system startup.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -258,7 +258,7 @@ procedure Microseconds( var microTickCount: UnsignedWide ); external name '_Micr
     fewer system resources which are recommended.  The Time Manager on
     Mac OS X does not have exactly the same behavior as it did on Mac OS 9
     and earlier, especially in a multithreaded process.
-    
+
     Instead of using the Time Manager functions, you should consider
     the following:
 
@@ -267,7 +267,7 @@ procedure Microseconds( var microTickCount: UnsignedWide ); external name '_Micr
 
     2.  In a Cocoa application, you can use the NSTimer object to get
         both absolute and interval-based periodic callbacks.
-    
+
     3.  If you need something to happen periodically, and don't have a
         CFRunLoop in your application, you can create a thread which sleeps
         for whatever interval you want, then does something and sleeps again
@@ -277,13 +277,13 @@ procedure Microseconds( var microTickCount: UnsignedWide ); external name '_Micr
         amount of time remaining before the next earliest Time Manager task,
         then calls the tmTask function for that task and then calculates the
         time until the next task, ad nauseum.
-        
+
     4. If you just want to delay for some period of time, and don't have
         other threads or data which may require synchronization, you can call
         Delay(), sleep(), usleep(), or nanosleep().
-        
-    5. 
-    - 
+
+    5.
+    -
  ***************************************************************************}
 const
 { high bit of qType is set if task is active }
@@ -304,10 +304,10 @@ type
 
 {
  *  InsTime()   *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    Use InstallTimeTask() instead of this function.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -319,10 +319,10 @@ procedure InsTime( tmTaskPtr: QElemPtr ); external name '_InsTime';
 
 {
  *  InsXTime()   *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    Use InstallXTimeTask() instead of this function.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -334,10 +334,10 @@ procedure InsXTime( tmTaskPtr: QElemPtr ); external name '_InsXTime';
 
 {
  *  PrimeTime()   *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    Use PrimeTimeTask() instead of this function.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -349,10 +349,10 @@ procedure PrimeTime( tmTaskPtr: QElemPtr; count: SIGNEDLONG ); external name '_P
 
 {
  *  RmvTime()   *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    Use RemoveTimeTask() instead of this function.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -364,11 +364,11 @@ procedure RmvTime( tmTaskPtr: QElemPtr ); external name '_RmvTime';
 
 {
  *  InstallTimeTask()   *** DEPRECATED ***
- *  
+ *
  *  Summary:
  *    Installs a task, taking advantage of the drift-free,
  *    fixed-frequency timing services of the extended Time Manager.
- *  
+ *
  *  Discussion:
  *    The InstallXTimeTask function adds the Time Manager task
  *    structure specified by tmTaskPtr to the Time Manager queue. Use
@@ -385,13 +385,13 @@ procedure RmvTime( tmTaskPtr: QElemPtr ); external name '_RmvTime';
  *    field to 0.
  *    The InstallXTimeTask function, which returns a value of type
  *    OSErr, takes the place of InsXTime.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    tmTaskPtr:
  *      A pointer to an extended task structure to be installed in the
  *      queue.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -403,11 +403,11 @@ function InstallTimeTask( tmTaskPtr: QElemPtr ): OSErr; external name '_InstallT
 
 {
  *  InstallXTimeTask()   *** DEPRECATED ***
- *  
+ *
  *  Summary:
  *    Installs a task, taking advantage of the drift-free,
  *    fixed-frequency timing services of the extended Time Manager.
- *  
+ *
  *  Discussion:
  *    The InstallXTimeTask function adds the Time Manager task
  *    structure specified by tmTaskPtr to the Time Manager queue. Use
@@ -424,24 +424,24 @@ function InstallTimeTask( tmTaskPtr: QElemPtr ): OSErr; external name '_InstallT
  *    field to 0.
  *    The InstallXTimeTask function, which returns a value of type
  *    OSErr, takes the place of InsXTime.
- *    
- *    
- *    
- *    
- *    
- *    
+ *
+ *
+ *
+ *
+ *
+ *
  *    *************************************************************
  *     See the discussion at the top of this file for information about
  *    why this call is deprecated on Mac OS X, and what other system
  *    facilities you can use in your code instead of the Time Manager.
  *    *****************************************************************
- *  
+ *
  *  Parameters:
- *    
+ *
  *    tmTaskPtr:
  *      A pointer to an extended task structure to be installed in the
  *      queue.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -453,21 +453,21 @@ function InstallXTimeTask( tmTaskPtr: QElemPtr ): OSErr; external name '_Install
 
 {
  *  PrimeTimeTask()   *** DEPRECATED ***
- *  
+ *
  *  Summary:
  *    Activates a task in the Time Manager queue.
- *  
+ *
  *  Discussion:
  *    The PrimeTimeTask function schedules the task specified by the
  *    tmAddr field of the structure pointed to by the tmTaskPtr
  *    parameter for execution after the delay specified by the count
  *    parameter has elapsed.
- *    
+ *
  *    If the count parameter is a positive value, it is interpreted as
  *    milliseconds. If count is a negative value, it is interpreted in
  *    negated microseconds. Microsecond delays are allowable only in
  *    the revised and extended Time Managers.
- *    
+ *
  *    The task record specified by the tmTaskPtr parameter must already
  *    be installed in the queue (by a previous call to the functions
  *    InstallTimeTask or InstallXTimeTask) before your application
@@ -476,7 +476,7 @@ function InstallXTimeTask( tmTaskPtr: QElemPtr ): OSErr; external name '_Install
  *    specified delay has elapsed. If you call the PrimeTimeTask
  *    function with a time delay of 0, the task runs as soon as
  *    interrupts are enabled.
- *    
+ *
  *    In the revised and extended Time Managers, the PrimeTimeTask
  *    function sets the high-order bit of the qType field to 1. In
  *    addition, any value of the count parameter that exceeds the
@@ -485,26 +485,26 @@ function InstallXTimeTask( tmTaskPtr: QElemPtr ): OSErr; external name '_Install
  *    then reinstall it (by calling the InstallXTimeTask function), you
  *    can continue the previous delay by calling the PrimeTimeTask
  *    function with the count parameter set to 0.
- *    
- *    
- *    
- *    
- *    
- *    
+ *
+ *
+ *
+ *
+ *
+ *
  *    *************************************************************
  *     See the discussion at the top of this file for information about
  *    why this call is deprecated on Mac OS X, and what other system
  *    facilities you can use in your code instead of the Time Manager.
  *    *****************************************************************
- *  
+ *
  *  Parameters:
- *    
+ *
  *    tmTaskPtr:
  *      A pointer to a task structure already installed in the queue.
- *    
+ *
  *    count:
  *      The desired delay before execution of the task.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -516,10 +516,10 @@ function PrimeTimeTask( tmTaskPtr: QElemPtr; count: SIGNEDLONG ): OSErr; externa
 
 {
  *  RemoveTimeTask()   *** DEPRECATED ***
- *  
+ *
  *  Summary:
  *    Removes a task from the Time Manager queue.
- *  
+ *
  *  Discussion:
  *    The RemoveTimeTask function removes the Time Manager task
  *    structure specified by the tmTaskPtr parameter from the Time
@@ -533,26 +533,26 @@ function PrimeTimeTask( tmTaskPtr: QElemPtr; count: SIGNEDLONG ): OSErr; externa
  *    specified in milliseconds); otherwise, the unused time is
  *    reported in positive milliseconds. If the time has already
  *    expired, the tmCount field contains 0.
- *    
+ *
  *    In the revised and extended Time Managers, the RemoveTimeTask
  *    function sets the high-order bit of the qType field to 0.
- *     
- *    
- *    
- *    
- *    
- *    
+ *
+ *
+ *
+ *
+ *
+ *
  *    *************************************************************
  *     See the discussion at the top of this file for information about
  *    why this call is deprecated on Mac OS X, and what other system
  *    facilities you can use in your code instead of the Time Manager.
  *    *****************************************************************
- *  
+ *
  *  Parameters:
- *    
+ *
  *    tmTaskPtr:
  *      A pointer to a task structure to be removed from the queue.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -564,7 +564,7 @@ function RemoveTimeTask( tmTaskPtr: QElemPtr ): OSErr; external name '_RemoveTim
 
 {
  *  NewTimerUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -575,7 +575,7 @@ function NewTimerUPP( userRoutine: TimerProcPtr ): TimerUPP; external name '_New
 
 {
  *  DisposeTimerUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -586,7 +586,7 @@ procedure DisposeTimerUPP( userUPP: TimerUPP ); external name '_DisposeTimerUPP'
 
 {
  *  InvokeTimerUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later

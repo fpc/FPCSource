@@ -1,15 +1,15 @@
 {
      File:       OSServices/OpenTransportProviders.h
- 
+
      Contains:   *** DEPRECATED *** This file contains provider-specific definitions for various built-in providers.
- 
+
      Copyright:  (c) 1993-2011 Apple Inc. and Mentat Inc. All rights reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {      Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, November 2005 }
 {      Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
@@ -445,12 +445,12 @@ type
 { DNSAddress}
 {
    The DNSAddress format is optional and may be used in connects,
-   datagram sends, and resolve address calls.   The name takes the 
+   datagram sends, and resolve address calls.   The name takes the
    format "somewhere.com" or "somewhere.com:portnumber" where
    the ":portnumber" is optional.   The length of this structure
    is arbitrarily limited to the overall max length of a domain
    name (255 chars), although a longer one can be use successfully
-   if you use this as a template for doing so.   However, the domain name 
+   if you use this as a template for doing so.   However, the domain name
    is still limited to 255 characters.
 }
 
@@ -503,7 +503,7 @@ type
 {$ifc not TARGET_CPU_64}
 {
  *  OTInitInetAddress()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -515,7 +515,7 @@ procedure OTInitInetAddress( var addr: InetAddress; port: InetPort; host: InetHo
 
 {
  *  OTInitDNSAddress()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -527,7 +527,7 @@ function OTInitDNSAddress( var addr: DNSAddress; str: CStringPtr ): OTByteCount;
 
 {
  *  OTInetStringToHost()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -539,7 +539,7 @@ function OTInetStringToHost( str: ConstCStringPtr; var host: InetHost ): OSStatu
 
 {
  *  OTInetHostToString()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -551,7 +551,7 @@ procedure OTInetHostToString( host: InetHost; str: CStringPtr ); external name '
 
 {
  *  OTInetGetInterfaceInfo()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -563,7 +563,7 @@ function OTInetGetInterfaceInfo( var info: InetInterfaceInfo; val: SInt32 ): OSS
 
 {
  *  OTInetGetSecondaryAddresses()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -577,7 +577,7 @@ function OTInetGetSecondaryAddresses( var addr: InetHost; var count: UInt32; val
 
 {
  *  OTInetGetDHCPConfigInfo()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -596,7 +596,7 @@ function OTInetGetSecondaryAddresses( var addr: InetHost; var count: UInt32; val
 {$ifc not TARGET_CPU_64}
 {
  *  OTOpenInternetServicesInContext()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -608,7 +608,7 @@ function OTOpenInternetServicesInContext( cfig: OTConfigurationRef; oflag: OTOpe
 
 {
  *  OTAsyncOpenInternetServicesInContext()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -622,7 +622,7 @@ function OTAsyncOpenInternetServicesInContext( cfig: OTConfigurationRef; oflag: 
 
 {
  *  OTOpenInternetServices()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -632,7 +632,7 @@ function OTAsyncOpenInternetServicesInContext( cfig: OTConfigurationRef; oflag: 
 
 {
  *  OTAsyncOpenInternetServices()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -647,7 +647,7 @@ function OTAsyncOpenInternetServicesInContext( cfig: OTConfigurationRef; oflag: 
 {$ifc not TARGET_CPU_64}
 {
  *  OTInetStringToAddress()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -659,7 +659,7 @@ function OTInetStringToAddress( ref: InetSvcRef; name: CStringPtr; var hinfo: In
 
 {
  *  OTInetAddressToName()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -671,7 +671,7 @@ function OTInetAddressToName( ref: InetSvcRef; addr: InetHost; var name: InetDom
 
 {
  *  OTInetSysInfo()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -683,7 +683,7 @@ function OTInetSysInfo( ref: InetSvcRef; name: CStringPtr; var sysinfo: InetSysI
 
 {
  *  OTInetMailExchange()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -695,7 +695,7 @@ function OTInetMailExchange( ref: InetSvcRef; name: CStringPtr; var num: UInt16;
 
 {
  *  OTInetQuery()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -885,7 +885,7 @@ const
 {$ifc not TARGET_CPU_64}
 {
  *  OTAsyncOpenAppleTalkServicesInContext()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -897,7 +897,7 @@ function OTAsyncOpenAppleTalkServicesInContext( cfig: OTConfigurationRef; flags:
 
 {
  *  OTOpenAppleTalkServicesInContext()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -911,7 +911,7 @@ function OTOpenAppleTalkServicesInContext( cfig: OTConfigurationRef; flags: OTOp
 
 {
  *  OTAsyncOpenAppleTalkServices()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -921,7 +921,7 @@ function OTOpenAppleTalkServicesInContext( cfig: OTConfigurationRef; flags: OTOp
 
 {
  *  OTOpenAppleTalkServices()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -937,7 +937,7 @@ function OTOpenAppleTalkServicesInContext( cfig: OTConfigurationRef; flags: OTOp
 {$ifc not TARGET_CPU_64}
 {
  *  OTATalkGetMyZone()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -953,7 +953,7 @@ function OTATalkGetMyZone( ref: ATSvcRef; var zone: TNetbuf ): OSStatus; externa
 }
 {
  *  OTATalkGetLocalZones()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -966,7 +966,7 @@ function OTATalkGetLocalZones( ref: ATSvcRef; var zones: TNetbuf ): OSStatus; ex
 { Get the list of all zones on the internet specified by the ATSvcRef}
 {
  *  OTATalkGetZoneList()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -979,7 +979,7 @@ function OTATalkGetZoneList( ref: ATSvcRef; var zones: TNetbuf ): OSStatus; exte
 { Stores an AppleTalkInfo structure into the TNetbuf (see later in this file)}
 {
  *  OTATalkGetInfo()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -997,8 +997,8 @@ function OTATalkGetInfo( ref: ATSvcRef; var info: TNetbuf ): OSStatus; external 
 {
    The NBPEntity structure is used to manipulate NBP names without regard
    to issues of what kind of "special" characters are in the name.
-   
-   When stored as an address in an NBPAddress or DDPNBPAddress, they are 
+
+   When stored as an address in an NBPAddress or DDPNBPAddress, they are
    stored as a character string, which is currently just ASCII, but in the
    future may be UniChar, or some other internationalizable scripting set.
    The string following an NBPAddress or DDPNBPAddress is intended to be
@@ -1053,7 +1053,7 @@ type
 {$ifc not TARGET_CPU_64}
 {
  *  OTInitDDPAddress()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1065,7 +1065,7 @@ procedure OTInitDDPAddress( var addr: DDPAddress; net: UInt16; node: ByteParamet
 
 {
  *  OTInitNBPAddress()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1077,7 +1077,7 @@ function OTInitNBPAddress( var addr: NBPAddress; name: ConstCStringPtr ): OTByte
 
 {
  *  OTInitDDPNBPAddress()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1090,7 +1090,7 @@ function OTInitDDPNBPAddress( var addr: DDPNBPAddress; name: ConstCStringPtr; ne
 { Compare 2 DDP addresses for equality}
 {
  *  OTCompareDDPAddresses()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1103,7 +1103,7 @@ function OTCompareDDPAddresses( const (*var*) addr1: DDPAddress; const (*var*) a
 { Init an NBPEntity to a NULL name}
 {
  *  OTInitNBPEntity()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1116,7 +1116,7 @@ procedure OTInitNBPEntity( var entity: NBPEntity ); external name '_OTInitNBPEnt
 { Get the length an NBPEntity would have when stored as an address}
 {
  *  OTGetNBPEntityLengthAsAddress()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1129,7 +1129,7 @@ function OTGetNBPEntityLengthAsAddress( const (*var*) entity: NBPEntity ): OTByt
 { Store an NBPEntity into an address buffer}
 {
  *  OTSetAddressFromNBPEntity()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1142,7 +1142,7 @@ function OTSetAddressFromNBPEntity( nameBuf: UInt8Ptr; const (*var*) entity: NBP
 { Create an address buffer from a string (use -1 for len to use strlen)}
 {
  *  OTSetAddressFromNBPString()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1158,7 +1158,7 @@ function OTSetAddressFromNBPString( addrBuf: UInt8Ptr; name: ConstCStringPtr; le
 }
 {
  *  OTSetNBPEntityFromAddress()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1171,7 +1171,7 @@ function OTSetNBPEntityFromAddress( var entity: NBPEntity; addrBuf: UInt8Ptr; le
 { Routines to set a piece of an NBP entity from a character string}
 {
  *  OTSetNBPName()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1183,7 +1183,7 @@ function OTSetNBPName( var entity: NBPEntity; name: ConstCStringPtr ): Boolean; 
 
 {
  *  OTSetNBPType()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1195,7 +1195,7 @@ function OTSetNBPType( var entity: NBPEntity; typeVal: ConstCStringPtr ): Boolea
 
 {
  *  OTSetNBPZone()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1208,7 +1208,7 @@ function OTSetNBPZone( var entity: NBPEntity; zone: ConstCStringPtr ): Boolean; 
 { Routines to extract pieces of an NBP entity}
 {
  *  OTExtractNBPName()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1220,7 +1220,7 @@ procedure OTExtractNBPName( const (*var*) entity: NBPEntity; name: CStringPtr );
 
 {
  *  OTExtractNBPType()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1232,7 +1232,7 @@ procedure OTExtractNBPType( const (*var*) entity: NBPEntity; typeVal: CStringPtr
 
 {
  *  OTExtractNBPZone()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1394,31 +1394,31 @@ const
 // #define OTCompare48BitAddresses(p1, p2)                                                        \
 //   (*(const UInt32*)((const UInt8*)(p1)) == *(const UInt32*)((const UInt8*)(p2)) &&        \
 //    *(const UInt16*)(((const UInt8*)(p1))+4) == *(const UInt16*)(((const UInt8*)(p2))+4) )
-// 
+//
 // #define OTCopy48BitAddress(p1, p2)                                             \
 //   (*(UInt32*)((UInt8*)(p2)) = *(const UInt32*)((const UInt8*)(p1)),           \
 //    *(UInt16*)(((UInt8*)(p2))+4) = *(const UInt16*)(((const UInt8*)(p1))+4) )
-// 
+//
 // #define OTClear48BitAddress(p1)                                                 \
 //   (*(UInt32*)((UInt8*)(p1)) = 0,                                              \
 //    *(UInt16*)(((UInt8*)(p1))+4) = 0 )
-// 
+//
 // #define OTCompare8022SNAP(p1, p2)                                                      \
 //   (*(const UInt32*)((const UInt8*)(p1)) == *(const UInt32*)((const UInt8*)(p2)) &&    \
 //    *(((const UInt8*)(p1))+4) == *(((const UInt8*)(p2))+4) )
-// 
+//
 // #define OTCopy8022SNAP(p1, p2)                                               \
 //   (*(UInt32*)((UInt8*)(p2)) = *(const UInt32*)((const UInt8*)(p1)),       \
 //    *(((UInt8*)(p2))+4) = *(((const UInt8*)(p1))+4) )
-// 
+//
 // #define OTIs48BitBroadcastAddress(p1)                   \
 //   (*(UInt32*)((UInt8*)(p1)) == 0xffffffff &&          \
 //    *(UInt16*)(((UInt8*)(p1))+4) == 0xffff )
-// 
+//
 // #define OTSet48BitBroadcastAddress(p1)                   \
 //   (*(UInt32*)((UInt8*)(p1)) = 0xffffffff,             \
 //    *(UInt16*)(((UInt8*)(p1))+4) = 0xffff )
-// 
+//
 // #define OTIs48BitZeroAddress(p1)              \
 //   (*(UInt32*)((UInt8*)(p1)) == 0 &&           \
 //    *(UInt16*)(((UInt8*)(p1))+4) == 0 )
@@ -1624,10 +1624,10 @@ const
 
 // #define OTSerialHandshakeData(type, onChar, offChar)    \
 //       ((((UInt32)type) << 16) | (((UInt32)onChar) << 8) | offChar)
-// 
+//
 // #define OTSerialSetErrorCharacter(rep) \
 //   ((rep) & 0xff)
-// 
+//
 // #define OTSerialSetErrorCharacterWithAlternate(rep, alternate)  \
 //   ((((rep) & 0xff) | (((alternate) & 0xff) << 8)) | 0x80000000L)
 

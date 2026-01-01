@@ -225,7 +225,7 @@ uses MacTypes,AEDataModel,Files,CFBase,CFArray,CFData,CFDictionary;
     @header
         ICAApplication.h
     @discussion
-      ICAApplication.h defines structures and functions that are used by clients of Image Capture framework. 
+      ICAApplication.h defines structures and functions that are used by clients of Image Capture framework.
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -278,7 +278,7 @@ const
         The device module encountered an unspecifed error.
     @constant kICADeviceInvalidParamErr
         At least one of the parameters passed to the device module is invalid.
-    @constant kICADeviceAlreadyOpenErr  
+    @constant kICADeviceAlreadyOpenErr
         The specified device is already open.
     @constant kICADeviceLocationIDNotFoundErr
         The specified USB Location ID is not found.
@@ -378,7 +378,7 @@ const
     @constant kICAProperty
         Generic property type; for images, refer to 'Digital Still Camera Image File Format Standard' Exif Version 2.1 section 2.6.4. and 2.6.5.
     @constant kICAPropertyImageWidth
-        Image width. 
+        Image width.
     @constant kICAPropertyImageHeight
         Image height.
     @constant kICAPropertyImageBitDepth
@@ -404,14 +404,14 @@ const
     @constant kICAPropertyImageFilename
         Filename of an image.
     @constant kICAPropertyImageSize
-        Size of an image in bytes. 
+        Size of an image in bytes.
     @constant kICAPropertyImageData
         Data of an image.
     @constant kICAPropertyImageThumbnail
         Thumbnail of an image.
     @constant kICAPropertyColorSyncProfile
         ColorSync profile associated with an image.
-}  
+}
 const
 	kICAProperty = FourCharCode('prop');
 	kICAPropertyImageWidth = FourCharCode('0100');
@@ -664,7 +664,7 @@ var kICADeviceTypeScanner: CFStringRef; external name '_kICADeviceTypeScanner'; 
 
 {
     In addition to the above, the following keys may also be present in the object property dictionay:
-    
+
         kICAUSBLocationIDKey
         kICAFireWireGUIDKey
 }
@@ -714,7 +714,7 @@ var kICATWAINDSPathKey: CFStringRef; external name '_kICATWAINDSPathKey'; (* att
 {!
     @const
         kICAUserAssignedDeviceNameKey
-    @abstract 
+    @abstract
         This key may be present in the property dictionary of a device if the device has a user-assigned name.
     @discussion
         Value is of type CFStringRef.
@@ -828,7 +828,7 @@ type
 <pre>
 @textblock
         Example:
-        
+
         void ImportImage()
         (
             OSErr             err;
@@ -839,7 +839,7 @@ type
             pb.flags              = 0;
             pb.supportedFileTypes = (CFArrayRef)[NSArray arrayWithObjects: @"tif", @"tiff", @"jpg", NULL];
             pb.importedImages     = &imagesArray;
-            
+
             err = ICAImportImage(&pb, NULL);
 
             if ( noErr != err )
@@ -858,7 +858,7 @@ type
     @param pb
         A pointer to an <code><b>ICAImportImagePB</b></code> parameter block.
     @param completion
-        A pointer to a completion routine that will be invoked at the completion of <code><b>ICAImportImage</b></code> function. Set this parameter to <code><b>NULL</b></code> to invoke this API synchronously. 
+        A pointer to a completion routine that will be invoked at the completion of <code><b>ICAImportImage</b></code> function. Set this parameter to <code><b>NULL</b></code> to invoke this API synchronously.
     @result
         Returns an error code defined in ICAApplication.h
 }
@@ -891,9 +891,9 @@ type
 
 { The Image Capture notification callabck function will be called with a notificationDictionary that may
    contain one or more key-value pairs as defined below:
-   
+
     Key                                 Value Type        Comments
-    
+
     kICANotificationICAObjectKey        CFNumberRef       An object associated with the notification.
     kICANotificationDeviceICAObjectKey  CFNumberRef       A device object associated with the notification.
     kICANotificationClassKey            CFStringRef       See below.
@@ -904,10 +904,10 @@ type
                                                           not sent with the notification. [Needed for backward compatiblity with pre-Leopard device modules].
     kICANotificationDataCookieKey       CFNumberRef       A token identifying the data associated with this event.
                                                           This data can be retrieved by calling ICAObjectSendMessage with messageType set to kICAMessageGetEventData, dataType set to value of kICANotificationDataCookieKeyand dataSize set to value of kICANotificationDataSizeKey.
-                                          
+
     The following keys are present if the value of kICANotificationDataKey represents image data. The values of these
     keys are CFNumbers representing the width, height, bytes per row, start row, and number of rows of the image:
-    
+
     kICANotificationImageKey              CFDictionaryRef A dictionary that describes an Image associated
                                                           with the notification.
     kICANotificationImageDataKey          CFDataRef       Image data
@@ -1166,7 +1166,7 @@ type
         A pointer to ICARegisterForEventNotificationPB struct <--
     @param completionProc
         A pointer to a completion routine that will be invoked at the completion of
-        this function. Set this parameter to NULL to invoke this API synchronously. 
+        this function. Set this parameter to NULL to invoke this API synchronously.
     @result
         Returns an error code defined in ICAApplication.h
 }
@@ -1213,24 +1213,24 @@ type
         Fetches the object at the top of the object heirarchy.
     @discussion
         Image Capture framework presents cameras and scanners, their contents and their capabilities as a heirarchy of objects and their properties. The device list object is at the top of the heirarchy of objects. The <b><code>ICAGetDeviceList</b></code> function fetches this object in the <code><b>object</b></code> field of parameter <code><b>pb</b></code>. Children of the device list object can be accessed by passing the device list object to functions <code><b>ICAGetChildCount()</b></code> and <code>ICAGetNthChild()</code>.
-        
+
 <pre>
 @textblock
         Example:
-        
+
         ICAObject GetDeviceList()
         (
             ICAGetDeviceListPB getDeviceListPB  = ();
             ICAObject          deviceList       = 0;
             OSErr              err;
-            
+
             err = ICAGetDeviceList( &getDeviceListPB, nil );
-            
+
             if ( noErr == err )
             (
                 deviceList = getDeviceListPB.object;
             )
-            
+
             return deviceList;
         )
 @/textblock
@@ -1239,7 +1239,7 @@ type
     @param pb
         A pointer to an <code><b>ICAGetDeviceListPB</b></code> parameter block.
     @param completion
-        A pointer to a completion routine that will be invoked at the completion of <code><b>ICAGetDeviceList</b></code> function. Set this parameter to <code><b>NULL</b></code> to invoke this API synchronously. 
+        A pointer to a completion routine that will be invoked at the completion of <code><b>ICAGetDeviceList</b></code> function. Set this parameter to <code><b>NULL</b></code> to invoke this API synchronously.
     @result
         Returns an error code defined in ICAApplication.h
 }
@@ -1270,11 +1270,11 @@ type
         Use this API to get a CFDictionaryRef containing all the properties for an object specified in the object field of the ICACopyObjectPropertyDictionaryPB struct.
     @discussion
         This API is the preferred way to get to any ICAObject related property data.
-        
+
 <pre>
 @textblock
         Example:
-        
+
         void  CopyObjectPropertyDictionary()
         (
             OSErr                             err;
@@ -1293,14 +1293,14 @@ type
                 // pb.theDict   // CFDictionaryRef *
             )
         )
-        
+
 @/textblock
 </pre>
 
     @param pb
         A pointer to an <code><b>ICACopyObjectPropertyDictionaryPB</b></code> parameter block.
     @param completion
-        A pointer to a completion routine that will be invoked at the completion of <code><b>ICACopyObjectPropertyDictionary</b></code> function. Set this parameter to <code><b>NULL</b></code> to invoke this API synchronously. 
+        A pointer to a completion routine that will be invoked at the completion of <code><b>ICACopyObjectPropertyDictionary</b></code> function. Set this parameter to <code><b>NULL</b></code> to invoke this API synchronously.
     @result
         Returns an error code defined in ICAApplication.h
 }
@@ -1350,11 +1350,11 @@ type
         Use this API to get a thumbnail associated with an object.
     @discussion
         This is the recommended way to get the thumbnail of an object. Getting the thumbnail using ICAGetPropertyData is deprecaed in 10.5.
-        
+
 <pre>
 @textblock
         Example:
-        
+
         void CopyObjectThumbnail()
         (
             OSErr                     err;
@@ -1362,7 +1362,7 @@ type
 
             pb.object          = <#ICAObject object#>;
             pb.thumbnailFormat = <#OSType thumbnailFormat#>;
-            
+
             err = ICACopyObjectThumbnail( &pb, NULL );
 
             if ( noErr != err )
@@ -1381,7 +1381,7 @@ type
     @param pb
         A pointer to an <code><b>ICACopyObjectThumbnailPB</b></code> parameter block.
     @param completion
-        A pointer to a completion routine that will be invoked at the completion of <code><b>ICACopyObjectThumbnail</b></code> function. Set this parameter to <code><b>NULL</b></code> to invoke this API synchronously. 
+        A pointer to a completion routine that will be invoked at the completion of <code><b>ICACopyObjectThumbnail</b></code> function. Set this parameter to <code><b>NULL</b></code> to invoke this API synchronously.
     @result
         Returns an error code defined in ICAApplication.h
 }
@@ -1401,7 +1401,7 @@ function ICACopyObjectThumbnail( var pb: ICACopyObjectThumbnailPB; completion: I
         Requested data size in bytes. <--
     @field data
         A pointer to CFDataRef in which the data will be returned. -->
-        It is the responsibility fo the caller to release this object. 
+        It is the responsibility fo the caller to release this object.
 }
 type
 	ICACopyObjectDataPBPtr = ^ICACopyObjectDataPB;
@@ -1423,7 +1423,7 @@ type
         A pointer to ICACopyObjectDataPB struct <--
     @param completionProc
         A pointer to a completion routine that will be invoked at the completion of
-        this function. Set this parameter to NULL to invoke this API synchronously. 
+        this function. Set this parameter to NULL to invoke this API synchronously.
     @result
         Returns an error code defined in ICAApplication.h
 }
@@ -1516,7 +1516,7 @@ type
     @param pb
         A pointer to an <code><b>ICAObjectSendMessagePB</b></code> parameter block.
     @param completion
-        A pointer to a completion routine that will be invoked at the completion of <code><b>ICAObjectSendMessage</b></code> function. Set this parameter to <code><b>NULL</b></code> to invoke this API synchronously. 
+        A pointer to a completion routine that will be invoked at the completion of <code><b>ICAObjectSendMessage</b></code> function. Set this parameter to <code><b>NULL</b></code> to invoke this API synchronously.
     @result
         Returns an error code defined in ICAApplication.h
 }
@@ -1551,7 +1551,7 @@ const
 	kSetFileTypeAndCreator = $00000010;
     //kEmbedColorSyncProfile              = 0x00000020,
 	kRotateImage = $00000040;
-	kDontEmbedColorSyncProfile = $00000080;  
+	kDontEmbedColorSyncProfile = $00000080;
 
 {!
     @struct ICADownloadFilePB
@@ -1561,7 +1561,7 @@ const
         The file object. <--
     @field dirFSRef
         FSRef of destination directiory. <--
-    @field flags 
+    @field flags
         Any combination of flag values defined above. <--
     @field fileType
         Four-AnsiChar code indicating the type of file. <--
@@ -1570,7 +1570,7 @@ const
     @field rotationAngle
         Rotation angle in steps of 90 degress. <--
     @field fileFSRef
-        A pointer to FSRef struct to hold the FSRef of downloaded file. Set this to NULL if the FSRef of downloaded file is not of interest. --> 
+        A pointer to FSRef struct to hold the FSRef of downloaded file. Set this to NULL if the FSRef of downloaded file is not of interest. -->
 }
 type
 	ICADownloadFilePBPtr = ^ICADownloadFilePB;
@@ -1588,14 +1588,14 @@ type
 {!
     @function ICADownloadFile
     @abstract
-        Use this API to download a file to disk. 
+        Use this API to download a file to disk.
     @discussion
       This API is a convenient way to download a file to disk. To receive the image data in memory use ICACopyObjectData. Using ICAGetPropertyData is not recommend for this purpose since ICAGetPropertyData is Deprecated in 10.5.
 
 <pre>
 @textblock
         Example:
-        
+
         void DownloadFile()
         (
             OSErr             err;
@@ -1607,7 +1607,7 @@ type
             pb.fileCreator   = <#OSType fileCreator#>;
             pb.dirFSRef      = <#FSRef * dirFSRef#>;
             pb.fileType      = <#OSType fileType#>;
-            
+
             err = ICADownloadFile( &pb, NULL );
 
             if ( noErr != err )
@@ -1625,7 +1625,7 @@ type
     @param pb
         A pointer to an <code><b>ICADownloadFilePB</b></code> parameter block.
     @param completion
-        A pointer to a completion routine that will be invoked at the completion of <code><b>ICADownloadFile</b></code> function. Set this parameter to <code><b>NULL</b></code> to invoke this API synchronously. 
+        A pointer to a completion routine that will be invoked at the completion of <code><b>ICADownloadFile</b></code> function. Set this parameter to <code><b>NULL</b></code> to invoke this API synchronously.
     @result
         Returns an error code defined in ICAApplication.h
 }
@@ -1644,7 +1644,7 @@ function ICADownloadFile( var pb: ICADownloadFilePB; completion: ICACompletion )
 }
 const
 	kICAUploadFileAsIs = $00000000;
-	kICAUploadFileScaleToFit = $00000001;  
+	kICAUploadFileScaleToFit = $00000001;
 
 {!
     @struct ICAUploadFilePB
@@ -1672,11 +1672,11 @@ type
         Use this API to upload a file to a device that supports this capability.
     @discussion
         The device choses an appropriate destination location for the uploaded image and sends a kICANotificationTypeObjectAdded notification.
-        
+
 <pre>
 @textblock
         Example:
-        
+
         void  UploadFile()
         (
             OSErr           err;
@@ -1685,7 +1685,7 @@ type
             pb.fileFSRef    = <#FSRef * fileFSRef#>;
             pb.flags        = <#UInt32 flags#>;
             pb.parentObject = <#ICAObject parentObject#>;
-            
+
             err = ICAUploadFile( &pb, NULL );
 
             if ( noErr != err )
@@ -1703,7 +1703,7 @@ type
     @param pb
         A pointer to an <code><b>ICAUploadFilePB</b></code> parameter block.
     @param completion
-        A pointer to a completion routine that will be invoked at the completion of <code><b>ICAUploadFile</b></code> function. Set this parameter to <code><b>NULL</b></code> to invoke this API synchronously. 
+        A pointer to a completion routine that will be invoked at the completion of <code><b>ICAUploadFile</b></code> function. Set this parameter to <code><b>NULL</b></code> to invoke this API synchronously.
     @result
         Returns an error code defined in ICAApplication.h
 }
@@ -1715,14 +1715,14 @@ function ICAUploadFile( var pb: ICAUploadFilePB; completion: ICACompletion ): IC
 //---------------------------------------------------------------------------------------------------------- ICALoadDeviceModule
 { struct ICALoadDeviceModulePB
     Legal Key-Value pairs for populating paramDictionary:
-            
+
     Key                             Value                               Comment
-    
+
     kICADeviceModulePathKey         CFStringRef                         Path to the device module bundle that needs to be launched.
     kICATransportTypeKey            CFStringRef                         Should be one of the six predifined transport types.
-    kICABluetoothAddressKey         CFStringRef                         Bluetooth device address string formatted as "00-11-22-33-44-55". 
+    kICABluetoothAddressKey         CFStringRef                         Bluetooth device address string formatted as "00-11-22-33-44-55".
     kICAUSBLocationIDKey            CFNumberRef (kCFNumberLongType)     32 bit USB location ID.
-    kICAFireWireGUIDKey             CFNumberRef (kCFNumberLongLongType) 64 bit FireWire GUID.                                                               
+    kICAFireWireGUIDKey             CFNumberRef (kCFNumberLongLongType) 64 bit FireWire GUID.
     kICAIOServicePathKey            CFStringRef                         IO service path to the device obtained from the IO registry.
     kICAIPAddressKey                CFStringRef                         IP address of the device. This can be a host address ("camera.apple.com"),
                                                                         ipv4 address ('192.168.123.10") or ipv6 address ("3ff3:0000:0000:0000:0123:4567:89ab:cdef")
@@ -1755,7 +1755,7 @@ type
     @param pb
         A pointer to an <code><b>ICALoadDeviceModulePB</b></code> parameter block.
     @param completion
-        A pointer to a completion routine that will be invoked at the completion of <code><b>ICALoadDeviceModule</b></code> function. Set this parameter to <code><b>NULL</b></code> to invoke this API synchronously. 
+        A pointer to a completion routine that will be invoked at the completion of <code><b>ICALoadDeviceModule</b></code> function. Set this parameter to <code><b>NULL</b></code> to invoke this API synchronously.
     @result
         Returns an error code defined in ICAApplication.h
 }
@@ -1786,7 +1786,7 @@ type
     @param pb
         A pointer to an <code><b>ICAUnloadDeviceModulePB</b></code> parameter block.
     @param completion
-        A pointer to a completion routine that will be invoked at the completion of <code><b>ICAUnloadDeviceModule</b></code> function. Set this parameter to <code><b>NULL</b></code> to invoke this API synchronously. 
+        A pointer to a completion routine that will be invoked at the completion of <code><b>ICAUnloadDeviceModule</b></code> function. Set this parameter to <code><b>NULL</b></code> to invoke this API synchronously.
     @result
         Returns an error code defined in ICAApplication.h
 }
@@ -1820,7 +1820,7 @@ type
     @param pb
         A pointer to an <code><b>ICAOpenSessionPB</b></code> parameter block.
     @param completion
-        A pointer to a completion routine that will be invoked at the completion of <code><b>ICAOpenSession</b></code> function. Set this parameter to <code><b>NULL</b></code> to invoke this API synchronously. 
+        A pointer to a completion routine that will be invoked at the completion of <code><b>ICAOpenSession</b></code> function. Set this parameter to <code><b>NULL</b></code> to invoke this API synchronously.
     @result
         Returns an error code defined in ICAApplication.h
 }
@@ -1851,7 +1851,7 @@ type
     @param pb
         A pointer to an <code><b>ICACloseSessionPB</b></code> parameter block.
     @param completion
-        A pointer to a completion routine that will be invoked at the completion of <code><b>ICACloseSession</b></code> function. Set this parameter to <code><b>NULL</b></code> to invoke this API synchronously. 
+        A pointer to a completion routine that will be invoked at the completion of <code><b>ICACloseSession</b></code> function. Set this parameter to <code><b>NULL</b></code> to invoke this API synchronously.
     @result
         Returns an error code defined in ICAApplication.h
 }
@@ -1885,7 +1885,7 @@ type
     @param pb
         A pointer to an <code><b>ICAScannerOpenSessionPB</b></code> parameter block.
     @param completion
-        A pointer to a completion routine that will be invoked at the completion of <code><b>ICAScannerOpenSession</b></code> function. Set this parameter to <code><b>NULL</b></code> to invoke this API synchronously. 
+        A pointer to a completion routine that will be invoked at the completion of <code><b>ICAScannerOpenSession</b></code> function. Set this parameter to <code><b>NULL</b></code> to invoke this API synchronously.
     @result
         Returns an error code defined in ICAApplication.h
 }
@@ -1916,7 +1916,7 @@ type
     @param pb
         A pointer to an <code><b>ICAScannerCloseSessionPB</b></code> parameter block.
     @param completion
-        A pointer to a completion routine that will be invoked at the completion of <code><b>ICAScannerCloseSession</b></code> function. Set this parameter to <code><b>NULL</b></code> to invoke this API synchronously. 
+        A pointer to a completion routine that will be invoked at the completion of <code><b>ICAScannerCloseSession</b></code> function. Set this parameter to <code><b>NULL</b></code> to invoke this API synchronously.
     @result
         Returns an error code defined in ICAApplication.h
 }
@@ -1947,7 +1947,7 @@ type
     @param pb
         A pointer to an <code><b>ICAScannerInitializePB</b></code> parameter block.
     @param completion
-        A pointer to a completion routine that will be invoked at the completion of <code><b>ICAScannerInitialize</b></code> function. Set this parameter to <code><b>NULL</b></code> to invoke this API synchronously. 
+        A pointer to a completion routine that will be invoked at the completion of <code><b>ICAScannerInitialize</b></code> function. Set this parameter to <code><b>NULL</b></code> to invoke this API synchronously.
     @result
         Returns an error code defined in ICAApplication.h
 }
@@ -1981,7 +1981,7 @@ type
     @param pb
         A pointer to an <code><b>ICAScannerGetParametersPB</b></code> parameter block.
     @param completion
-        A pointer to a completion routine that will be invoked at the completion of <code><b>ICAScannerGetParameters</b></code> function. Set this parameter to <code><b>NULL</b></code> to invoke this API synchronously. 
+        A pointer to a completion routine that will be invoked at the completion of <code><b>ICAScannerGetParameters</b></code> function. Set this parameter to <code><b>NULL</b></code> to invoke this API synchronously.
     @result
         Returns an error code defined in ICAApplication.h
 }
@@ -2015,7 +2015,7 @@ type
     @param pb
         A pointer to an <code><b>ICAScannerSetParametersPB</b></code> parameter block.
     @param completion
-        A pointer to a completion routine that will be invoked at the completion of <code><b>ICAScannerSetParameters</b></code> function. Set this parameter to <code><b>NULL</b></code> to invoke this API synchronously. 
+        A pointer to a completion routine that will be invoked at the completion of <code><b>ICAScannerSetParameters</b></code> function. Set this parameter to <code><b>NULL</b></code> to invoke this API synchronously.
     @result
         Returns an error code defined in ICAApplication.h
 }
@@ -2049,7 +2049,7 @@ type
     @param pb
         A pointer to an <code><b>ICAScannerStatusPB</b></code> parameter block.
     @param completion
-        A pointer to a completion routine that will be invoked at the completion of <code><b>ICAScannerStatus</b></code> function. Set this parameter to <code><b>NULL</b></code> to invoke this API synchronously. 
+        A pointer to a completion routine that will be invoked at the completion of <code><b>ICAScannerStatus</b></code> function. Set this parameter to <code><b>NULL</b></code> to invoke this API synchronously.
     @result
         Returns an error code defined in ICAApplication.h
 }
@@ -2080,7 +2080,7 @@ type
     @param pb
         A pointer to an <code><b>ICAScannerStartPB</b></code> parameter block.
     @param completion
-        A pointer to a completion routine that will be invoked at the completion of <code><b>ICAScannerStart</b></code> function. Set this parameter to <code><b>NULL</b></code> to invoke this API synchronously. 
+        A pointer to a completion routine that will be invoked at the completion of <code><b>ICAScannerStart</b></code> function. Set this parameter to <code><b>NULL</b></code> to invoke this API synchronously.
     @result
         Returns an error code defined in ICAApplication.h
 }

@@ -1,17 +1,17 @@
 {
      File:       HIToolbox/IBCarbonRuntime.h
- 
+
      Contains:   Nib support for Carbon
- 
+
      Version:    HIToolbox-624~3
- 
+
      Copyright:  © 2000-2008 by Apple Computer, Inc., all rights reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {       Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, August 2005 }
 {       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
@@ -243,10 +243,10 @@ type
 {$ifc not TARGET_CPU_64}
 {
  *  CreateNibReference()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -258,10 +258,10 @@ function CreateNibReference( inNibName: CFStringRef; var outNibRef: IBNibRef ): 
 
 {
  *  CreateNibReferenceWithCFBundle()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -273,10 +273,10 @@ function CreateNibReferenceWithCFBundle( inBundle: CFBundleRef; inNibName: CFStr
 
 {
  *  DisposeNibReference()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -289,26 +289,26 @@ procedure DisposeNibReference( inNibRef: IBNibRef ); external name '_DisposeNibR
 { ----- Window ------ }
 {
  *  CreateWindowFromNib()
- *  
+ *
  *  Summary:
  *    Creates a window from a description stored in a nib file.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inNibRef:
  *      The identifier for the nib file containing the window
  *      description.
- *    
+ *
  *    inName:
  *      The name of the window description.
- *    
+ *
  *    outWindow:
  *      On exit, contains the window, if creation of the window was
  *      successful.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -322,10 +322,10 @@ function CreateWindowFromNib( inNibRef: IBNibRef; inName: CFStringRef; var outWi
 
 {
  *  CreateMenuFromNib()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -339,10 +339,10 @@ function CreateMenuFromNib( inNibRef: IBNibRef; inName: CFStringRef; var outMenu
 
 {
  *  CreateMenuBarFromNib()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -354,10 +354,10 @@ function CreateMenuBarFromNib( inNibRef: IBNibRef; inName: CFStringRef; var outM
 
 {
  *  SetMenuBarFromNib()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later

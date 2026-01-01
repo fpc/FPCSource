@@ -225,7 +225,7 @@ const
 	CFNotificationSuspensionBehaviorDrop = 1;
         // The server will not queue any notifications with this name and object while the process/app is in the background.
 	CFNotificationSuspensionBehaviorCoalesce = 2;
-        // The server will only queue the last notification of the specified name and object; earlier notifications are dropped. 
+        // The server will only queue the last notification of the specified name and object; earlier notifications are dropped.
 	CFNotificationSuspensionBehaviorHold = 3;
         // The server will hold all matching notifications until the queue has been filled (queue size determined by the server) at which point the server may flush queued notifications.
 	CFNotificationSuspensionBehaviorDeliverImmediately = 4;

@@ -1,10 +1,10 @@
 {
      File:       CarbonCore/Collections.h
- 
+
      Contains:   Collection Manager Interfaces
                  The contents of this header file are deprecated.
                  Use Foundation or CoreFoundation collection objects instead.
- 
+
      Copyright:  © 1989-2011 by Apple Inc. All rights reserved.
 }
 {
@@ -242,7 +242,7 @@ const
 	kCollectionDefaultAttributes = $40000000; { default attributes - unlocked, persistent }
 
 
-{ 
+{
     Attribute bits 0 through 15 (entire low word) are reserved for use by the application.
     Attribute bits 16 through 31 (entire high word) are reserved for use by the Collection Manager.
     Only bits 31 (kCollectionLockBit) and 30 (kCollectionPersistenceBit) currently have meaning.
@@ -334,7 +334,7 @@ type
 	CollectionExceptionUPP = CollectionExceptionProcPtr;
 {
  *  NewCollectionFlattenUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -345,7 +345,7 @@ function NewCollectionFlattenUPP( userRoutine: CollectionFlattenProcPtr ): Colle
 
 {
  *  NewCollectionExceptionUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -356,7 +356,7 @@ function NewCollectionExceptionUPP( userRoutine: CollectionExceptionProcPtr ): C
 
 {
  *  DisposeCollectionFlattenUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -367,7 +367,7 @@ procedure DisposeCollectionFlattenUPP( userUPP: CollectionFlattenUPP ); external
 
 {
  *  DisposeCollectionExceptionUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -378,7 +378,7 @@ procedure DisposeCollectionExceptionUPP( userUPP: CollectionExceptionUPP ); exte
 
 {
  *  InvokeCollectionFlattenUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -389,7 +389,7 @@ function InvokeCollectionFlattenUPP( size: SInt32; data: UnivPtr; refCon: UnivPt
 
 {
  *  InvokeCollectionExceptionUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -403,7 +403,7 @@ function InvokeCollectionExceptionUPP( c: Collection; status: OSErr; userUPP: Co
 {*******************************************}
 {
  *  NewCollection()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -415,7 +415,7 @@ function NewCollection: Collection; external name '_NewCollection';
 
 {
  *  DisposeCollection()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -427,7 +427,7 @@ procedure DisposeCollection( c: Collection ); external name '_DisposeCollection'
 
 {
  *  CloneCollection()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -439,7 +439,7 @@ function CloneCollection( c: Collection ): Collection; external name '_CloneColl
 
 {
  *  CountCollectionOwners()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -451,7 +451,7 @@ function CountCollectionOwners( c: Collection ): SInt32; external name '_CountCo
 
 {
  *  RetainCollection()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -463,7 +463,7 @@ function RetainCollection( c: Collection ): OSStatus; external name '_RetainColl
 
 {
  *  ReleaseCollection()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -475,7 +475,7 @@ function ReleaseCollection( c: Collection ): OSStatus; external name '_ReleaseCo
 
 {
  *  GetCollectionRetainCount()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -487,7 +487,7 @@ function GetCollectionRetainCount( c: Collection ): ItemCount; external name '_G
 
 {
  *  CopyCollection()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -499,7 +499,7 @@ function CopyCollection( srcCollection: Collection; dstCollection: Collection ):
 
 {
  *  GetCollectionDefaultAttributes()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -511,7 +511,7 @@ function GetCollectionDefaultAttributes( c: Collection ): SInt32; external name 
 
 {
  *  SetCollectionDefaultAttributes()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -523,7 +523,7 @@ procedure SetCollectionDefaultAttributes( c: Collection; whichAttributes: SInt32
 
 {
  *  CountCollectionItems()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -535,7 +535,7 @@ function CountCollectionItems( c: Collection ): SInt32; external name '_CountCol
 
 {
  *  AddCollectionItem()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -547,7 +547,7 @@ function AddCollectionItem( c: Collection; tag: CollectionTag; id: SInt32; itemS
 
 {
  *  GetCollectionItem()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -559,7 +559,7 @@ function GetCollectionItem( c: Collection; tag: CollectionTag; id: SInt32; var i
 
 {
  *  RemoveCollectionItem()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -571,7 +571,7 @@ function RemoveCollectionItem( c: Collection; tag: CollectionTag; id: SInt32 ): 
 
 {
  *  SetCollectionItemInfo()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -583,7 +583,7 @@ function SetCollectionItemInfo( c: Collection; tag: CollectionTag; id: SInt32; w
 
 {
  *  GetCollectionItemInfo()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -595,7 +595,7 @@ function GetCollectionItemInfo( c: Collection; tag: CollectionTag; id: SInt32; v
 
 {
  *  ReplaceIndexedCollectionItem()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -607,7 +607,7 @@ function ReplaceIndexedCollectionItem( c: Collection; itemIndex: SInt32; itemSiz
 
 {
  *  GetIndexedCollectionItem()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -619,7 +619,7 @@ function GetIndexedCollectionItem( c: Collection; itemIndex: SInt32; var itemSiz
 
 {
  *  RemoveIndexedCollectionItem()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -631,7 +631,7 @@ function RemoveIndexedCollectionItem( c: Collection; itemIndex: SInt32 ): OSErr;
 
 {
  *  SetIndexedCollectionItemInfo()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -643,7 +643,7 @@ function SetIndexedCollectionItemInfo( c: Collection; itemIndex: SInt32; whichAt
 
 {
  *  GetIndexedCollectionItemInfo()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -655,7 +655,7 @@ function GetIndexedCollectionItemInfo( c: Collection; itemIndex: SInt32; var tag
 
 {
  *  CollectionTagExists()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -667,7 +667,7 @@ function CollectionTagExists( c: Collection; tag: CollectionTag ): Boolean; exte
 
 {
  *  CountCollectionTags()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -679,7 +679,7 @@ function CountCollectionTags( c: Collection ): SInt32; external name '_CountColl
 
 {
  *  GetIndexedCollectionTag()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -691,7 +691,7 @@ function GetIndexedCollectionTag( c: Collection; tagIndex: SInt32; var tag: Coll
 
 {
  *  CountTaggedCollectionItems()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -703,7 +703,7 @@ function CountTaggedCollectionItems( c: Collection; tag: CollectionTag ): SInt32
 
 {
  *  GetTaggedCollectionItem()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -715,7 +715,7 @@ function GetTaggedCollectionItem( c: Collection; tag: CollectionTag; whichItem: 
 
 {
  *  GetTaggedCollectionItemInfo()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -727,7 +727,7 @@ function GetTaggedCollectionItemInfo( c: Collection; tag: CollectionTag; whichIt
 
 {
  *  PurgeCollection()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -739,7 +739,7 @@ procedure PurgeCollection( c: Collection; whichAttributes: SInt32; matchingAttri
 
 {
  *  PurgeCollectionTag()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -751,7 +751,7 @@ procedure PurgeCollectionTag( c: Collection; tag: CollectionTag ); external name
 
 {
  *  EmptyCollection()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -763,7 +763,7 @@ procedure EmptyCollection( c: Collection ); external name '_EmptyCollection';
 
 {
  *  FlattenCollection()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -775,7 +775,7 @@ function FlattenCollection( c: Collection; flattenProc: CollectionFlattenUPP; re
 
 {
  *  FlattenPartialCollection()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -787,7 +787,7 @@ function FlattenPartialCollection( c: Collection; flattenProc: CollectionFlatten
 
 {
  *  UnflattenCollection()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -799,7 +799,7 @@ function UnflattenCollection( c: Collection; flattenProc: CollectionFlattenUPP; 
 
 {
  *  GetCollectionExceptionProc()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -811,7 +811,7 @@ function GetCollectionExceptionProc( c: Collection ): CollectionExceptionUPP; ex
 
 {
  *  SetCollectionExceptionProc()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -823,7 +823,7 @@ procedure SetCollectionExceptionProc( c: Collection; exceptionProc: CollectionEx
 
 {
  *  GetNewCollection()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -838,7 +838,7 @@ function GetNewCollection( collectionID: SInt16 ): Collection; external name '_G
 {********************************************************************}
 {
  *  AddCollectionItemHdl()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -850,7 +850,7 @@ function AddCollectionItemHdl( aCollection: Collection; tag: CollectionTag; id: 
 
 {
  *  GetCollectionItemHdl()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -862,7 +862,7 @@ function GetCollectionItemHdl( aCollection: Collection; tag: CollectionTag; id: 
 
 {
  *  ReplaceIndexedCollectionItemHdl()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -874,7 +874,7 @@ function ReplaceIndexedCollectionItemHdl( aCollection: Collection; itemIndex: SI
 
 {
  *  GetIndexedCollectionItemHdl()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -886,7 +886,7 @@ function GetIndexedCollectionItemHdl( aCollection: Collection; itemIndex: SInt32
 
 {
  *  FlattenCollectionToHdl()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -898,7 +898,7 @@ function FlattenCollectionToHdl( aCollection: Collection; flattened: Handle ): O
 
 {
  *  UnflattenCollectionFromHdl()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later

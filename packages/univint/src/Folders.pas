@@ -1,10 +1,10 @@
 {
      File:       CarbonCore/Folders.h
- 
+
      Contains:   Folder Manager Interfaces.
                  The contents of this header file are deprecated.
                  Use NSFileManager instead.
- 
+
      Copyright:  © 1995-2011 by Apple Inc. All rights reserved.
 }
 {     Pascal Translation Updated:  Gale R Paeper, <gpaeper@empirenet.com>, June 2018 }
@@ -256,7 +256,7 @@ const
 	kFolderManagerLastDomain = -32760;
 
 {
-   The ID of the last domain in the above list, used by the Folder Manager to determine if a given 
+   The ID of the last domain in the above list, used by the Folder Manager to determine if a given
    parameter should be treated as a domain or a volume...
 }
 const
@@ -268,29 +268,29 @@ const
 
 {
  *  FindFolder()
- *  
+ *
  *  Summary:
  *    Obtains location information for system-related directories.
- *  
+ *
  *  Discussion:
  *    For the folder type on the particular volume (specified,
  *    respectively, in the folderType and vRefNum parameters), the
  *    FindFolder function returns the directory's volume reference
  *    number in the foundVRefNum parameter and its directory ID in the
  *    foundDirID parameter.
- *    
+ *
  *    The specified folder used for a given volume might be located on
  *    a different volume in future versions of system software;
  *    therefore, do not assume the volume that you specify in vRefNum
  *    and the volume returned in foundVRefNum will be the same.
- *     
+ *
  *    Specify a volume reference number (or the constant kOnSystemDisk
  *    for the startup disk) or one of the domain constants ( on Mac OS
  *    X ) in the vRefNum parameter.
- *    
+ *
  *    Specify a four-character folder type--or the constant that
  *    represents it--in the folderType parameter.
- *    
+ *
  *    Use the constant kCreateFolder in the createFolder parameter to
  *    tell FindFolder to create a directory if it does not already
  *    exist; otherwise, use the constant kDontCreateFolder. Directories
@@ -298,16 +298,16 @@ const
  *    directory exists. The FindFolder function will not create a
  *    System Folder directory even if you specify the kCreateFolder
  *    constant in the createFolder parameter.
- *    
+ *
  *    The FindFolder function returns a nonzero result code if the
  *    folder isn't found, and it can also return other file system
  *    errors reported by the File Manager or Memory Manager.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    vRefNum:
  *      Pass the volume reference number of the volume on which you
  *      want to locate a directory, or a constant specifying a disk or
@@ -324,25 +324,25 @@ const
  *      are you requesting the folder /System/Library/Fonts,
  *      /Library/Fonts, or ~/Fonts? On Mac OS X you should pass a disk
  *      or domain constant in this parameter.
- *    
+ *
  *    folderType:
  *      A four-character folder type, or a constant that represents the
  *      type, for the directory you want to find.
- *    
+ *
  *    createFolder:
  *      Pass the constant kCreateFolder in this parameter to create a
  *      directory if it does not already exist; otherwise, pass the
  *      constant kDontCreateFolder.
- *    
+ *
  *    foundVRefNum:
  *      The volume reference number, returned by FindFolder , for the
  *      volume containing the directory you specify in the folderType
  *      parameter.
- *    
+ *
  *    foundDirID:
  *      The directory ID number, returned by FindFolder , for the
  *      directory you specify in the folderType parameter.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -354,32 +354,32 @@ function FindFolder( vRefNum: FSVolumeRefNum; folderType: OSType; createFolder: 
 
 {
  *  ReleaseFolder()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    This call is not needed on Mac OS X and later.
- *  
+ *
  *  Summary:
  *    On Mac OS 9.x and earlier, release any hold the system may have
  *    on a given folder on a volume so that the volume may be unmounted.
- *  
+ *
  *  Discussion:
  *    On Mac OS 9.x, the system sometimes has files open on volumes
  *    which need to be closed in order for the volume to be
  *    successfully unmounted.  This call releases any hold the Folder
  *    Manager may have for the given volume.
  *    <br> This call is unnecessary on Mac OS X and later.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    vRefNum:
  *      The vRefNum to release.
- *    
+ *
  *    folderType:
  *      The folder type to release.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.3
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -391,28 +391,28 @@ function ReleaseFolder( vRefNum: FSVolumeRefNum; folderType: OSType ): OSErr; ex
 
 {
  *  FSFindFolder()
- *  
+ *
  *  Summary:
  *    FSFindFolder returns an FSRef for certain system-related
  *    directories.
- *  
+ *
  *  Discussion:
  *    For the folder type on the particular volume (specified,
  *    respectively, in the folderType and vRefNum parameters), the
- *    FindFolder function returns the FSRef of that directory. 
- *     
+ *    FindFolder function returns the FSRef of that directory.
+ *
  *    The specified folder used for a given volume might be located on
  *    a different volume in future versions of system software;
  *    therefore, do not assume the volume that you specify in vRefNum
  *    and the volume returned in the FSRef will be the same.
- *    
+ *
  *    Specify a volume reference number (or the constant kOnSystemDisk
  *    for the startup disk) or one of the domain constants ( on Mac OS
  *    X ) in the vRefNum parameter.
- *    
+ *
  *    Specify a four-character folder type--or the constant that
  *    represents it--in the folderType parameter.
- *    
+ *
  *    Use the constant kCreateFolder in the createFolder parameter to
  *    tell FindFolder to create a directory if it does not already
  *    exist; otherwise, use the constant kDontCreateFolder. Directories
@@ -420,35 +420,35 @@ function ReleaseFolder( vRefNum: FSVolumeRefNum; folderType: OSType ): OSErr; ex
  *    directory exists. The FindFolder function will not create a
  *    System Folder directory even if you specify the kCreateFolder
  *    constant in the createFolder parameter.
- *    
+ *
  *    The FindFolder function returns a nonzero result code if the
  *    folder isn't found, and it can also return other file system
  *    errors reported by the File Manager or Memory Manager.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    vRefNum:
  *      The volume reference number (or the constant kOnSystemDisk for
  *      the startup disk) or one of the domain constants ( like
  *      kUserDomain ) of the volume or domain in which you want to
  *      locate a directory.
- *    
+ *
  *    folderType:
  *      A four-character folder type, or a constant that represents the
  *      type, for the directory you want to find.
- *    
+ *
  *    createFolder:
  *      Pass the constant kCreateFolder in this parameter to create a
  *      directory if it does not already exist; otherwise, pass the
  *      constant kDontCreateFolder.
- *    
+ *
  *    foundRef:
  *      The FSRef for the directory you specify on the volume or domain
  *      and folderType given.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -462,7 +462,7 @@ function FSFindFolder( vRefNum: FSVolumeRefNum; folderType: OSType; createFolder
 
 {
  *  Folder types
- *  
+ *
  }
 const
 	kDesktopFolderType = FourCharCode('desk'); { the desktop folder; objects in this folder show on the desktop. }
@@ -674,7 +674,7 @@ const
 	kCurrentUserRemoteFolderType = FourCharCode('rusr'); { The remote folder location for the currently logged on user }
 
 {
-   These folder types are deprecated in 10.5. The location of developer tools is no longer hard coded to "/Developer/" and 
+   These folder types are deprecated in 10.5. The location of developer tools is no longer hard coded to "/Developer/" and
    so these folder types work only when developer tools are installed at the default location.
 }
 const
@@ -774,7 +774,7 @@ type
 
 {
  *  AddFolderDescriptor()
- *  
+ *
  *  Summary:
  *    Copies the supplied information into a new folder descriptor
  *    entry in the system folder list. @discussion The
@@ -785,42 +785,42 @@ type
  *    example, a child folder located in a parent folder needs to have
  *    a descriptor created both for it and its parent folder, so that
  *    the child can be found. This function is supported under Mac OS 8
- *    and later. 
+ *    and later.
  *    On Mac OS X, folder descriptors added in one process are not
  *    visible in other processes.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    foldType:
  *      Pass a constant identifying the type of the folder you wish the
  *      Folder Manager to be able to find. See “Folder Type Constants”.
- *    
+ *
  *    flags:
  *      Set these flags to indicate whether a folder is created during
  *      startup, if the folder name is locked, and if the folder is
  *      created invisible; see “Folder Descriptor Flags”.
- *    
+ *
  *    foldClass:
  *      Pass the class of the folder which you wish the Folder Manager
  *      to be able to find. The folder class determines how the
  *      foldLocation parameter is interpreted. See "Folder Descriptor
  *      Classes" for a discussion of relative and special folder
  *      classes.
- *    
+ *
  *    foldLocation:
  *      For a relative folder, specify the folder type of the parent
  *      folder of the target. For a special folder, specify the
  *      location of the folder; see “Folder Descriptor Locations”.
- *    
+ *
  *    badgeSignature:
  *      Reserved. Pass 0.
- *    
+ *
  *    badgeType:
  *      Reserved. Pass 0.
- *    
+ *
  *    name:
  *      A string specifying the name of the desired folder. For
  *      relative folders, this is the exact name of the desired folder.
@@ -828,14 +828,14 @@ type
  *      different name than the name specified in the folder
  *      descriptor. For example, the System Folder is often given a
  *      different name, but it can still be located with FindFolder.
- *    
+ *
  *    replaceFlag:
  *      Pass a Boolean value indicating whether you wish to replace a
  *      folder descriptor that already exists for the specified folder
  *      type. If true , it replaces the folder descriptor for the
  *      specified folder type. If false , it does not replace the
  *      folder descriptor for the specified folder type.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -847,20 +847,20 @@ function AddFolderDescriptor( foldType: FolderType; flags: FolderDescFlags; fold
 
 {
  *  GetFolderTypes()
- *  
+ *
  *  Summary:
  *    Obtains the folder types contained in the global descriptor list.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    requestedTypeCount:
  *      Pass the number of FolderType values that can fit in the buffer
  *      pointed to by the theTypes parameter; see “Folder Type
  *      Constants”.
- *    
+ *
  *    totalTypeCount:
  *      Pass a pointer to an unsigned 32-bit integer value. On return,
  *      the value is set to the total number of FolderType values in
@@ -870,7 +870,7 @@ function AddFolderDescriptor( foldType: FolderType; flags: FolderDescFlags; fold
  *      value passed in for requestedTypeCount and the value produced
  *      by the theTypes parameter is non-null, then all folder types
  *      were returned to the caller.
- *    
+ *
  *    theTypes:
  *      Pass a pointer to an array of FolderType values; see "Folder
  *      Type Constants". On return, the array contains the folder types
@@ -879,7 +879,7 @@ function AddFolderDescriptor( foldType: FolderType; flags: FolderDescFlags; fold
  *      you only want to know the number of descriptors installed in
  *      the system’s global list, rather than the actual folder types
  *      of those descriptors.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -891,20 +891,20 @@ function GetFolderTypes( requestedTypeCount: UInt32; var totalTypeCount: UInt32;
 
 {
  *  RemoveFolderDescriptor()
- *  
+ *
  *  Summary:
  *    Deletes the specified folder descriptor entry from the system
  *    folder list.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    foldType:
  *      Pass a constant identifying the type of the folder for which
  *      you wish to remove a descriptor.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -916,40 +916,40 @@ function RemoveFolderDescriptor( foldType: FolderType ): OSErr; external name '_
 
 {
  *  GetFolderNameUnicode()
- *  
+ *
  *  Summary:
  *    Obtains the name of the specified folder.
- *  
+ *
  *  Discussion:
  *    The GetFolderName function obtains the name of the folder in the
  *    folder descriptor, not the name of the folder on the disk. The
  *    names may differ for a few special folders such as the System
  *    Folder. For relative folders, however, the actual name is always
  *    returned. You typically do not need to call this function.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.5
- *  
+ *
  *  Parameters:
- *    
+ *
  *    vRefNum:
  *      Pass the volume reference number (or the constant kOnSystemDisk
  *      for the startup disk) of the volume containing the folder for
  *      which you wish the name to be identified.
- *    
+ *
  *    foldType:
  *      Pass a constant identifying the type of the folder for which
  *      you wish the name to be identified. See "Folder Type Constants".
- *    
+ *
  *    foundVRefNum:
  *      On return, a pointer to the volume reference number for the
  *      volume containing the folder specified in the foldType
  *      parameter.
- *    
+ *
  *    name:
  *      A pointer to an HFSUniStr255 which will contain the unicode
  *      name on return.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -961,10 +961,10 @@ function GetFolderNameUnicode( vRefNum: FSVolumeRefNum; foldType: OSType; var fo
 
 {
  *  InvalidateFolderDescriptorCache()
- *  
+ *
  *  Summary:
  *    Invalidates any prior FindFolder results for the specified folder.
- *  
+ *
  *  Discussion:
  *    The InvalidateFolderDescriptorCache function searches to see if
  *    there is currently a cache of results from FindFolder calls on
@@ -972,27 +972,27 @@ function GetFolderNameUnicode( vRefNum: FSVolumeRefNum; foldType: OSType; var fo
  *    previous calls to the FindFolder function in order to force the
  *    Folder Manager to reexamine the disk when FindFolder is called
  *    again on the specified directory ID or volume reference number.
- *    
- *    
+ *
+ *
  *    You should not normally need to call
  *    InvalidateFolderDescriptorCache.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    vRefNum:
  *      Pass the volume reference number (or the constant kOnSystemDisk
  *      for the startup disk) of the volume containing the folder for
  *      which you wish the descriptor cache to be invalidated. Pass 0
  *      to completely invalidate all folder cache information.
- *    
+ *
  *    dirID:
  *      Pass the directory ID number for the folder for which you wish
  *      the descriptor cache to be invalidated. Pass 0 to invalidate
  *      the cache for all folders on the specified disk.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1004,10 +1004,10 @@ function InvalidateFolderDescriptorCache( vRefNum: FSVolumeRefNum; dirID: SInt32
 
 {
  *  IdentifyFolder()
- *  
+ *
  *  Summary:
  *    Obtains the folder type for the specified folder.
- *  
+ *
  *  Discussion:
  *    The folder type is identified for the folder specified by the
  *    vRefNum and dirID parameters, if such a folder exists. Note that
@@ -1015,27 +1015,27 @@ function InvalidateFolderDescriptorCache( vRefNum: FSVolumeRefNum; dirID: SInt32
  *    that if there are multiple folder descriptors that map to an
  *    individual folder, IdentifyFolder returns the folder type of only
  *    the first matching descriptor that it finds.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    vRefNum:
  *      Pass the volume reference number (or the constant kOnSystemDisk
  *      for the startup disk) of the volume containing the folder whose
  *      type you wish to identify.
- *    
+ *
  *    dirID:
  *      Pass the directory ID number for the folder whose type you wish
  *      to identify.
- *    
+ *
  *    foldType:
  *      Pass a pointer to a value of type FolderType. On return, the
  *      value is set to the folder type of the folder with the
  *      specified vRefNum and dirID parameters; see "Folder Type
  *      Constants" for descriptions of possible values.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
@@ -1047,11 +1047,11 @@ function IdentifyFolder( vRefNum: FSVolumeRefNum; dirID: SInt32; var foldType: F
 
 {
  *  FSDetermineIfRefIsEnclosedByFolder()
- *  
+ *
  *  Summary:
  *    Determine whether the given FSRef is enclosed inside the given
  *    special folder type for the given domain.
- *  
+ *
  *  Discussion:
  *    This is a fairly fast call which can determine whether a given
  *    FSRef on disk is 'inside' the given special folder type for the
@@ -1060,34 +1060,34 @@ function IdentifyFolder( vRefNum: FSVolumeRefNum; dirID: SInt32; var foldType: F
  *    each parent with IdentifyFolder() to see if it matches. One use
  *    for this call is to determine if a given file or folder is inside
  *    the trash on a volume, with something like
- *    
+ *
  *    err = FSDetermineIfRefIsEnclosedByFolder( kOnAppropriateDisk,
  *    kTrashFolderType, & ref, & result );
  *    if ( err == noErr && result ) (
  *    //  FSRef is inside trash on the volume.<br> )
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.4
- *  
+ *
  *  Parameters:
- *    
+ *
  *    domainOrVRefNum:
  *      The domain or vRefNum to check.  You can also pass
  *      kOnAppropriateDisk to check whatever vRefNum is appropriate for
  *      the given FSRef, or the value 0 to check all vRefNums and
  *      domains.
- *    
+ *
  *    folderType:
  *      The folder type to check
- *    
+ *
  *    inRef:
  *      The FSRef to look for.
- *    
+ *
  *    outResult:
  *      If non-NULL, this will be filled in with true if the given
  *      FSRef is enclosed inside the special folder type for the given
  *      domain, or false otherwise.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.4 and later
@@ -1099,11 +1099,11 @@ function FSDetermineIfRefIsEnclosedByFolder( domainOrVRefNum: FSVolumeRefNum; fo
 
 {
  *  DetermineIfPathIsEnclosedByFolder()
- *  
+ *
  *  Summary:
  *    Determine whether a file path is enclosed inside the given
  *    special folder type for the given domain.
- *  
+ *
  *  Discussion:
  *    This is a fairly fast call which can determine whether a given
  *    path on disk is 'inside' the given special folder type for the
@@ -1112,40 +1112,40 @@ function FSDetermineIfRefIsEnclosedByFolder( domainOrVRefNum: FSVolumeRefNum; fo
  *    each parent with IdentifyFolder() to see if it matches. One use
  *    for this call is to determine if a given file or folder is inside
  *    the trash on a volume, with something like
- *    
+ *
  *    err = DetermineIfPathIsEnclosedByFolder( kOnAppropriateDisk,
  *    kTrashFolderType, path, false, & result );
  *    if ( err == noErr && result ) (
  *    //  path is inside trash on the volume.<br> )
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.4
- *  
+ *
  *  Parameters:
- *    
+ *
  *    domainOrVRefNum:
  *      The domain or vRefNum to check.  You can also pass
  *      kOnAppropriateDisk to check whatever vRefNum is appropriate for
  *      the given path, or the value 0 to check all vRefNums and
  *      domains.
- *    
+ *
  *    folderType:
  *      The folder type to check
- *    
+ *
  *    utf8Path:
  *      A UTF-8 encoded path name for the file.
- *    
+ *
  *    pathIsRealPath:
  *      Pass true if utf8Path is guaranteed to be a real pathname, with
  *      no symlinks or relative pathname items. Pass false if the
  *      utf8Path may contain relative pathnames, or symlinks, or
  *      aliases, etc.
- *    
+ *
  *    outResult:
  *      If non-NULL, this will be filled in with true if the given path
  *      is enclosed inside the special folder type for the given
  *      domain, or false otherwise.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1158,32 +1158,32 @@ function DetermineIfPathIsEnclosedByFolder( domainOrVRefNum: FSVolumeRefNum; fol
 {$ifc not TARGET_CPU_64}
 {
  *  FindFolderExtended()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use FindFolder instead wherever possible.
- *  
+ *
  *  Summary:
  *    Obtains location information for system-related directories.
- *  
+ *
  *  Discussion:
  *    For the folder type on the particular volume (specified,
  *    respectively, in the folderType and vRefNum parameters), the
  *    FindFolder function returns the directory's volume reference
  *    number in the foundVRefNum parameter and its directory ID in the
  *    foundDirID parameter.
- *    
+ *
  *    The specified folder used for a given volume might be located on
  *    a different volume in future versions of system software;
  *    therefore, do not assume the volume that you specify in vRefNum
  *    and the volume returned in foundVRefNum will be the same.
- *     
+ *
  *    Specify a volume reference number (or the constant kOnSystemDisk
  *    for the startup disk) or one of the domain constants ( on Mac OS
  *    X ) in the vRefNum parameter.
- *    
+ *
  *    Specify a four-character folder type--or the constant that
  *    represents it--in the folderType parameter.
- *    
+ *
  *    Use the constant kCreateFolder in the createFolder parameter to
  *    tell FindFolder to create a directory if it does not already
  *    exist; otherwise, use the constant kDontCreateFolder. Directories
@@ -1191,48 +1191,48 @@ function DetermineIfPathIsEnclosedByFolder( domainOrVRefNum: FSVolumeRefNum; fol
  *    directory exists. The FindFolder function will not create a
  *    System Folder directory even if you specify the kCreateFolder
  *    constant in the createFolder parameter.
- *    
+ *
  *    The FindFolder function returns a nonzero result code if the
  *    folder isn't found, and it can also return other file system
  *    errors reported by the File Manager or Memory Manager.
  *     FindFolderExtended() is equivalent to FindFolder() on Mac OS X.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    vRefNum:
  *      The volume reference number (or the constant kOnSystemDisk for
  *      the startup disk) or one of the domain constants ( like
  *      kUserDomain ) of the volume or domain in which you want to
  *      locate a directory.
- *    
+ *
  *    folderType:
  *      A four-character folder type, or a constant that represents the
  *      type, for the directory you want to find.
- *    
+ *
  *    createFolder:
  *      Pass the constant kCreateFolder in this parameter to create a
  *      directory if it does not already exist; otherwise, pass the
  *      constant kDontCreateFolder.
- *    
+ *
  *    foundVRefNum:
  *      The volume reference number, returned by FindFolder , for the
  *      volume containing the directory you specify in the folderType
  *      parameter.
- *    
+ *
  *    flags:
  *      The flags passed in which control extended behaviour
- *    
+ *
  *    data:
  *      Unique data which is interpreted differently depending on the
  *      passed in flags.
- *    
+ *
  *    foundDirID:
  *      The directory ID number, returned by FindFolder , for the
  *      directory you specify in the folderType parameter.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.3
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1244,28 +1244,28 @@ function FindFolderExtended( vRefNum: FSVolumeRefNum; folderType: OSType; create
 
 {
  *  FSFindFolderExtended()   *** DEPRECATED ***
- *  
+ *
  *  Summary:
  *    FSFindFolderExtended returns an FSRef for certain system-related
  *    directories.
- *  
+ *
  *  Discussion:
  *    For the folder type on the particular volume (specified,
  *    respectively, in the folderType and vRefNum parameters), the
- *    FindFolder function returns the FSRef of that directory. 
- *     
+ *    FindFolder function returns the FSRef of that directory.
+ *
  *    The specified folder used for a given volume might be located on
  *    a different volume in future versions of system software;
  *    therefore, do not assume the volume that you specify in vRefNum
  *    and the volume returned in the FSRef will be the same.
- *    
+ *
  *    Specify a volume reference number (or the constant kOnSystemDisk
  *    for the startup disk) or one of the domain constants ( on Mac OS
  *    X ) in the vRefNum parameter.
- *    
+ *
  *    Specify a four-character folder type--or the constant that
  *    represents it--in the folderType parameter.
- *    
+ *
  *    Use the constant kCreateFolder in the createFolder parameter to
  *    tell FindFolder to create a directory if it does not already
  *    exist; otherwise, use the constant kDontCreateFolder. Directories
@@ -1273,42 +1273,42 @@ function FindFolderExtended( vRefNum: FSVolumeRefNum; folderType: OSType; create
  *    directory exists. The FindFolder function will not create a
  *    System Folder directory even if you specify the kCreateFolder
  *    constant in the createFolder parameter.
- *    
+ *
  *    The FindFolder function returns a nonzero result code if the
  *    folder isn't found, and it can also return other file system
  *    errors reported by the File Manager or Memory Manager.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    vRefNum:
  *      The volume reference number (or the constant kOnSystemDisk for
  *      the startup disk) or one of the domain constants ( like
  *      kUserDomain ) of the volume or domain in which you want to
  *      locate a directory.
- *    
+ *
  *    folderType:
  *      A four-character folder type, or a constant that represents the
  *      type, for the directory you want to find.
- *    
+ *
  *    createFolder:
  *      Pass the constant kCreateFolder in this parameter to create a
  *      directory if it does not already exist; otherwise, pass the
  *      constant kDontCreateFolder.
- *    
+ *
  *    flags:
  *      The flags passed in which control extended behaviour
- *    
+ *
  *    data:
  *      Unique data which is interpreted differently depending on the
  *      passed in flags.
- *    
+ *
  *    foundRef:
  *      The FSRef for the directory you specify on the volume or domain
  *      and folderType given.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.3
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1320,35 +1320,35 @@ function FSFindFolderExtended( vRefNum: FSVolumeRefNum; folderType: OSType; crea
 
 {
  *  GetFolderDescriptor()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    GetFolderDescriptor is deprecated on Mac OS X.
- *  
+ *
  *  Summary:
  *    Obtains the folder descriptor information for the specified
  *    folder type from the global descriptor list.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    foldType:
  *      Pass a constant identifying the type of the folder for which
  *      you wish to get descriptor information. See "Folder Type
  *      Constants".
- *    
+ *
  *    descSize:
  *      Pass the size (in bytes) of the folder descriptor structure for
  *      which a pointer is passed in the foldDesc parameter. This value
  *      is needed in order to determine the version of the structure
  *      being used.
- *    
+ *
  *    foldDesc:
  *      Pass a pointer to a folder descriptor structure. On return, the
  *      folder descriptor structure contains information from the
  *      global descriptor list for the specified folder type.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.3
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1360,43 +1360,43 @@ function GetFolderDescriptor( foldType: FolderType; descSize: Size; var foldDesc
 
 {
  *  GetFolderName()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use GetFolderNameUnicode.
- *  
+ *
  *  Summary:
  *    Obtains the name of the specified folder.
- *  
+ *
  *  Discussion:
  *    The GetFolderName function obtains the name of the folder in the
  *    folder descriptor, not the name of the folder on the disk. The
  *    names may differ for a few special folders such as the System
  *    Folder. For relative folders, however, the actual name is always
  *    returned. You typically do not need to call this function.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    vRefNum:
  *      Pass the volume reference number (or the constant kOnSystemDisk
  *      for the startup disk) of the volume containing the folder for
  *      which you wish the name to be identified.
- *    
+ *
  *    foldType:
  *      Pass a constant identifying the type of the folder for which
  *      you wish the name to be identified. See "Folder Type Constants".
- *    
+ *
  *    foundVRefNum:
  *      On return, a pointer to the volume reference number for the
  *      volume containing the folder specified in the foldType
  *      parameter.
- *    
+ *
  *    name:
  *      On return, a string containing the title of the folder
  *      specified in the foldType and vRefNum parameters.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1408,47 +1408,47 @@ function GetFolderName( vRefNum: FSVolumeRefNum; foldType: OSType; var foundVRef
 
 {
  *  AddFolderRouting()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Folder Manager routing is deprecated on Mac OS X.  Do not rely on
  *    this feature in your application, because support for it will be
  *    removed in a future version of the OS.
- *  
+ *
  *  Summary:
  *    Adds a folder routing structure to the global routing list.
- *  
+ *
  *  Discussion:
  *    Your application can use the AddFolderRouting function to specify
- *    how the Finder routes a given file type. 
+ *    how the Finder routes a given file type.
  *    Folder Routing is deprecated on Mac OS X at this time.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    fileType:
  *      Pass the OSType of the file to be routed.
- *    
+ *
  *    routeFromFolder:
  *      Pass the folder type of the "from" folder see "Folder Type
  *      Constants" for descriptions of possible values. An item dropped
  *      on the folder specified in this parameter will be routed to the
  *      folder specified in the routeToFolder parameter.
- *    
+ *
  *    routeToFolder:
  *      The folder type of the "to" folder see "Folder Type Constants"
  *      for descriptions of possible values.
- *    
+ *
  *    flags:
  *      Reserved for future use; pass 0.
- *    
+ *
  *    replaceFlag:
  *      Pass a Boolean value indicating whether you wish to replace a
  *      folder routing that already exists. If true , it replaces the
  *      folder to which the item is being routed. If false , it leaves
  *      the folder to which the item is being routed.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1460,33 +1460,33 @@ function AddFolderRouting( fileType: OSType; routeFromFolder: FolderType; routeT
 
 {
  *  RemoveFolderRouting()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Folder Manager routing is deprecated on Mac OS X.  Do not rely on
  *    this feature in your application, because support for it will be
  *    removed in a future version of the OS.
- *  
+ *
  *  Summary:
  *    Deletes a folder routing structure from the global routing list.
- *  
+ *
  *  Discussion:
  *    Both the file type and the folder type specified must match those
  *    of an existing folder routing structure in the global routing
  *    list for the RemoveFolderRouting function to succeed.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    fileType:
  *      Pass the file type value contained in the folder routing
  *      structure to be removed.
- *    
+ *
  *    routeFromFolder:
  *      Pass the folder type of the "from" folder see "Folder Type
  *      Constants" for descriptions of possible values.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1498,45 +1498,45 @@ function RemoveFolderRouting( fileType: OSType; routeFromFolder: FolderType ): O
 
 {
  *  FindFolderRouting()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Folder Manager routing is deprecated on Mac OS X.  Do not rely on
  *    this feature in your application, because support for it will be
  *    removed in a future version of the OS.
- *  
+ *
  *  Summary:
  *    Finds the destination folder from a matching folder routing
  *    structure for the specified file.
- *  
+ *
  *  Discussion:
  *    Both the file type and the folder type specified must match those
  *    of a folder routing structure in the global routing list for the
  *    FindFolderRouting function to succeed.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    fileType:
  *      Pass the file type specified in the appropriate folder routing
  *      structure for the file for which you wish to find a destination
  *      folder.
- *    
+ *
  *    routeFromFolder:
  *      Pass the folder type of the "from" folder for which you wish to
  *      find a "to" folder see "Folder Type Constants" for descriptions
  *      of possible values. An item dropped on the folder specified in
  *      this parameter will be routed to the folder specified in the
  *      routeToFolder parameter.
- *    
+ *
  *    routeToFolder:
  *      A pointer to a value of type FolderType. On return, the value
  *      is set to the folder type of the destination folder.
- *    
+ *
  *    flags:
  *      Reserved; pass 0.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1548,45 +1548,45 @@ function FindFolderRouting( fileType: OSType; routeFromFolder: FolderType; var r
 
 {
  *  GetFolderRoutings()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Folder Manager routing is deprecated on Mac OS X.  Do not rely on
  *    this feature in your application, because support for it will be
  *    removed in a future version of the OS.
- *  
+ *
  *  Summary:
  *    Obtains folder routing information from the global routing list.
- *  
+ *
  *  Discussion:
  *    The folder routing information in the global routing list
  *    determines how the Finder routes files.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    requestedRoutingCount:
  *      An unsigned 32-bit value. Pass the number of folder routing
  *      structures that can fit in the buffer pointed to by the
  *      theRoutings parameter.
- *    
+ *
  *    totalRoutingCount:
  *      A pointer to an unsigned 32-bit value. On return, the value is
  *      set to the number of folder routing structures in the global
  *      list. If this value is less than or equal to
  *      requestedRoutingCount , all folder routing structures were
  *      returned to the caller.
- *    
+ *
  *    routingSize:
  *      Pass the size (in bytes) of the FolderRouting structure.
- *    
+ *
  *    theRoutings:
  *      Pass a pointer to an array of FolderRouting structures. On
  *      return the structure(s) contain the requested routing
  *      information. You may pass null if you do not wish this
  *      information.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1598,14 +1598,14 @@ function GetFolderRoutings( requestedRoutingCount: UInt32; var totalRoutingCount
 
 {
  *  FSpDetermineIfSpecIsEnclosedByFolder()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use FSDetemineIfRefIsEnclosedByFolder
- *  
+ *
  *  Summary:
  *    Determine whether the given FSSpec is enclosed inside the given
  *    special folder type for the given domain.
- *  
+ *
  *  Discussion:
  *    This is a fairly fast call which can determine whether a given
  *    FSSpec on disk is 'inside' the given special folder type for the
@@ -1614,34 +1614,34 @@ function GetFolderRoutings( requestedRoutingCount: UInt32; var totalRoutingCount
  *    each parent with IdentifyFolder() to see if it matches. One use
  *    for this call is to determine if a given file or folder is inside
  *    the trash on a volume, with something like
- *    
+ *
  *    err = FSpDetermineIfRefIsEnclosedByFolder( kOnAppropriateDisk,
  *    kTrashFolderType, & spec, & result );
  *    if ( err == noErr && result ) (
  *    //  FSSpec is inside trash on the volume.<br> )
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.4
- *  
+ *
  *  Parameters:
- *    
+ *
  *    domainOrVRefNum:
  *      The domain or vRefNum to check.  You can also pass
  *      kOnAppropriateDisk to check whatever vRefNum is appropriate for
  *      the given FSSpec, or the value 0 to check all vRefNums and
  *      domains.
- *    
+ *
  *    folderType:
  *      The folder type to check
- *    
+ *
  *    inSpec:
  *      The FSSpec to look for.
- *    
+ *
  *    outResult:
  *      If non-NULL, this will be filled in with true if the given
  *      FSSpec is enclosed inside the special folder type for the given
  *      domain, or false otherwise.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.4 and later
@@ -1658,7 +1658,7 @@ type
 	FolderManagerNotificationUPP = FolderManagerNotificationProcPtr;
 {
  *  NewFolderManagerNotificationUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -1669,7 +1669,7 @@ function NewFolderManagerNotificationUPP( userRoutine: FolderManagerNotification
 
 {
  *  DisposeFolderManagerNotificationUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -1680,7 +1680,7 @@ procedure DisposeFolderManagerNotificationUPP( userUPP: FolderManagerNotificatio
 
 {
  *  InvokeFolderManagerNotificationUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -1692,24 +1692,24 @@ function InvokeFolderManagerNotificationUPP( message: OSType; arg: UnivPtr; user
 {$ifc not TARGET_CPU_64}
 {
  *  FolderManagerRegisterNotificationProc()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    This function is deprecated on Mac OS X.
- *  
+ *
  *  Summary:
  *    Register a function to be called at certain times
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    notificationProc:
- *    
+ *
  *    refCon:
- *    
+ *
  *    options:
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.3
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1721,22 +1721,22 @@ function FolderManagerRegisterNotificationProc( notificationProc: FolderManagerN
 
 {
  *  FolderManagerUnregisterNotificationProc()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    This function is deprecated on Mac OS X.
- *  
+ *
  *  Summary:
  *    Unregister a function to be called at certain times
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    notificationProc:
- *    
+ *
  *    refCon:
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.3
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1748,24 +1748,24 @@ function FolderManagerUnregisterNotificationProc( notificationProc: FolderManage
 
 {
  *  FolderManagerRegisterCallNotificationProcs()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    This function is deprecated on Mac OS X.
- *  
+ *
  *  Summary:
  *    Call the registered Folder Manager notification procs.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    message:
- *    
+ *
  *    arg:
- *    
+ *
  *    options:
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.3
  *    CarbonLib:        in CarbonLib 1.0 and later

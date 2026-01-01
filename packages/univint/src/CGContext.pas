@@ -1030,7 +1030,7 @@ procedure CGContextSetShouldSmoothFonts( context: CGContextRef; shouldSmoothFont
    parameter is not part of the graphics state. Fonts will be smoothed if
    they are antialiased when drawn and if both `allowsFontSmoothing' and the
    graphics state parameter `shouldSmoothFonts' are true. }
- 
+
 procedure CGContextSetAllowsFontSmoothing( context: CGContextRef; allowsFontSmoothing: CBool ); external name '_CGContextSetAllowsFontSmoothing';
 (* CG_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_2_0) *)
 

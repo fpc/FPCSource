@@ -1,16 +1,16 @@
 {
      File:       PMPrintAETypes.h
- 
+
      Contains:   Mac OS X Printing Manager AE definitions.
- 
+
      Version:    Technology: Mac OS X
                  Release:    1.0
- 
+
      Copyright (c) 2003,2008 by Apple Inc. All Rights Reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
 }
 {    Pascal Translation:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }

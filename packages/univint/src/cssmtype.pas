@@ -1,15 +1,15 @@
 {
  * Copyright (c) 1999-2002,2004 Apple Computer, Inc. All Rights Reserved.
- * 
+ *
  * @APPLE_LICENSE_HEADER_START@
- * 
+ *
  * This file contains Original Code and/or Modifications of Original Code
  * as defined in and that are subject to the Apple Public Source License
  * Version 2.0 (the 'License'). You may not use this file except in
  * compliance with the License. Please obtain a copy of the License at
  * http://www.opensource.apple.com/apsl/ and read it before using this
  * file.
- * 
+ *
  * The Original Code and all software distributed under the License are
  * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
  * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
@@ -17,7 +17,7 @@
  * FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
  * Please see the License for the specific language governing rights and
  * limitations under the License.
- * 
+ *
  * @APPLE_LICENSE_HEADER_END@
  *
  * cssmtype.h -- Common Security Services Manager Common Data Types
@@ -239,7 +239,7 @@ uses MacTypes,cssmconfig;
 {$packrecords c}
 
 { Handle types. }
-	
+
 type
 	CSSM_HANDLE = CSSM_INTPTR;
 	CSSM_HANDLE_PTR = ^CSSM_INTPTR;
@@ -1499,7 +1499,7 @@ type
 		  10: (DLDBHandle: CSSM_DL_DB_HANDLE_PTR);
   		11: (KRProfile: UnivPtr {cssm_kr_profile_ptr});
   end;
-  
+
   CSSM_CONTEXT_ATTRIBUTE_PTR = ^cssm_context_attribute;
   CSSM_CONTEXT_ATTRIBUTEPtr = ^cssm_context_attribute;
 	cssm_context_attribute = record
@@ -2380,7 +2380,7 @@ type
       1: (AttributeOID: CSSM_OID);		{ e.g., CSSMOID_RECORDLABEL }
       2: (AttributeID: UInt32);			{ e.g., FourCharCode('recl') }
   end;
- 
+
   CSSM_DB_ATTRIBUTE_INFO_PTR = ^cssm_db_attribute_info;
   CSSM_DB_ATTRIBUTE_INFOPtr = ^cssm_db_attribute_info;
 	cssm_db_attribute_info = record

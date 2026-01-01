@@ -1,17 +1,17 @@
 {
      File:       QD/QDPictToCGContext.h
- 
+
      Contains:   API to draw Quickdraw PICTs into CoreGraphics context
- 
+
      Version:    Quickdraw-262~1
- 
+
      Copyright:  © 2001-2008 by Apple Computer, Inc., all rights reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {	  Pascal Translation:  Peter N Lewis, <peter@stairways.com.au>, 2004 }
 {   Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
@@ -237,10 +237,10 @@ type
     the picture header data. For this reason, the routines that create a QDPictRef
     attempt to find the picture header data beginning at either the first byte
     of the data provided or at byte 513 of the data provided.
-    
+
     Additionally the Picture Bounds must not be an empty rect.
 }
-{ Create a QDPict reference, using `provider' to obtain the QDPict's data. 
+{ Create a QDPict reference, using `provider' to obtain the QDPict's data.
  * It is assumed that either the first byte or the 513th byte of data
  * in the file referenced by the URL is the first byte of the
  * picture header. If the URL does not begin PICT data at one
@@ -249,7 +249,7 @@ type
 {$ifc not TARGET_CPU_64}
 {
  *  QDPictCreateWithProvider()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in ApplicationServices.framework [32-bit only]
  *    CarbonLib:        not available
@@ -259,7 +259,7 @@ function QDPictCreateWithProvider( provider: CGDataProviderRef ): QDPictRef; ext
 (* AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER *)
 
 
-{ Create a QDPict reference from `url'. 
+{ Create a QDPict reference from `url'.
  * It is assumed that either the first byte or the 513th byte of data
  * in the file referenced by the URL is the first byte of the
  * picture header. If the URL does not begin PICT data at one
@@ -267,7 +267,7 @@ function QDPictCreateWithProvider( provider: CGDataProviderRef ): QDPictRef; ext
 }
 {
  *  QDPictCreateWithURL()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in ApplicationServices.framework [32-bit only]
  *    CarbonLib:        not available
@@ -277,11 +277,11 @@ function QDPictCreateWithURL( url: CFURLRef ): QDPictRef; external name '_QDPict
 (* AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER *)
 
 
-{ Increment the retain count of `pictRef' and return it.  All 
+{ Increment the retain count of `pictRef' and return it.  All
  * pictRefs are created with an initial retain count of 1. }
 {
  *  QDPictRetain()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in ApplicationServices.framework [32-bit only]
  *    CarbonLib:        not available
@@ -295,7 +295,7 @@ function QDPictRetain( pictRef: QDPictRef ): QDPictRef; external name '_QDPictRe
  * then free it and any associated resources. }
 {
  *  QDPictRelease()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in ApplicationServices.framework [32-bit only]
  *    CarbonLib:        not available
@@ -310,7 +310,7 @@ procedure QDPictRelease( pictRef: QDPictRef ); external name '_QDPictRelease';
 }
 {
  *  QDPictGetBounds()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in ApplicationServices.framework [32-bit only]
  *    CarbonLib:        not available
@@ -327,7 +327,7 @@ function QDPictGetBounds( pictRef: QDPictRef ): CGRect; external name '_QDPictGe
 }
 {
  *  QDPictGetResolution()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in ApplicationServices.framework [32-bit only]
  *    CarbonLib:        not available
@@ -344,7 +344,7 @@ procedure QDPictGetResolution( pictRef: QDPictRef; var xRes: Float32; var yRes: 
 }
 {
  *  QDPictDrawToCGContext()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in ApplicationServices.framework [32-bit only]
  *    CarbonLib:        not available

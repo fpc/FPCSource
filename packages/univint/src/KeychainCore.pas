@@ -1,15 +1,15 @@
 {
      File:       OSServices/KeychainCore.h
- 
+
      Contains:   *** DEPRECATED *** Keychain low-level Interfaces
- 
+
      Copyright:  (c) 2000-2011 Apple Inc. All rights reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {
     Modified for use with Free Pascal
@@ -471,10 +471,10 @@ const
 { Opening and getting information about the Keychain Manager }
 {
  *  KCGetKeychainManagerVersion()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use SecKeychainGetVersion
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -486,15 +486,15 @@ function KCGetKeychainManagerVersion( var returnVers: UInt32 ): OSStatus; extern
 
 {$ifc TARGET_RT_MAC_CFM}
 {
-        KeychainManagerAvailable() is a macro/inline available only in C/C++.  
+        KeychainManagerAvailable() is a macro/inline available only in C/C++.
         To get the same functionality from pascal or assembly, you need
         to test if KCGetKeychainManagerVersion function is not NULL.  For instance:
-        
+
             gKeychainManagerAvailable = FALSE;
             IF @KCGetKeychainManagerVersion <> kUnresolvedCFragSymbolAddress THEN
                 gKeychainManagerAvailable = TRUE;
             end
-    
+
     }
 {$elsec}
   {$ifc TARGET_RT_MAC_MACHO}
@@ -506,10 +506,10 @@ function KCGetKeychainManagerVersion( var returnVers: UInt32 ): OSStatus; extern
 { Managing the Human Interface }
 {
  *  KCSetInteractionAllowed()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use SecKeychainSetUserInteractionAllowed
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -521,10 +521,10 @@ function KCSetInteractionAllowed( state: Boolean ): OSStatus; external name '_KC
 
 {
  *  KCIsInteractionAllowed()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use SecKeychainGetUserInteractionAllowed
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -538,10 +538,10 @@ function KCIsInteractionAllowed: Boolean; external name '_KCIsInteractionAllowed
 {$ifc not TARGET_CPU_64}
 {
  *  KCMakeKCRefFromFSSpec()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use SecKeychainOpen
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -555,10 +555,10 @@ function KCMakeKCRefFromFSSpec( var keychainFSSpec: FSSpec; var keychain: KCRef 
 
 {
  *  KCMakeKCRefFromFSRef()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use SecKeychainOpen
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -570,10 +570,10 @@ function KCMakeKCRefFromFSRef( var keychainFSRef: FSRef; var keychain: KCRef ): 
 
 {
  *  KCMakeKCRefFromAlias()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use SecKeychainOpen
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -585,10 +585,10 @@ function KCMakeKCRefFromAlias( keychainAlias: AliasHandle; var keychain: KCRef )
 
 {
  *  KCMakeAliasFromKCRef()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use SecKeychainOpen
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -600,10 +600,10 @@ function KCMakeAliasFromKCRef( keychain: KCRef; var keychainAlias: AliasHandle )
 
 {
  *  KCReleaseKeychain()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CFRelease when releasing SecKeychainRef objects
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -616,10 +616,10 @@ function KCReleaseKeychain( var keychain: KCRef ): OSStatus; external name '_KCR
 { Specifying the default keychain }
 {
  *  KCGetDefaultKeychain()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use SecKeychainCopyDefault
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -631,10 +631,10 @@ function KCGetDefaultKeychain( var keychain: KCRef ): OSStatus; external name '_
 
 {
  *  KCSetDefaultKeychain()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use SecKeychainSetDefault
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -647,10 +647,10 @@ function KCSetDefaultKeychain( keychain: KCRef ): OSStatus; external name '_KCSe
 { Getting information about a keychain }
 {
  *  KCGetStatus()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use SecKeychainGetStatus
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -662,10 +662,10 @@ function KCGetStatus( keychain: KCRef { can be NULL }; var keychainStatus: UInt3
 
 {
  *  KCGetKeychain()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use SecKeychainItemCopyKeychain
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -677,10 +677,10 @@ function KCGetKeychain( item: KCItemRef; var keychain: KCRef ): OSStatus; extern
 
 {
  *  KCGetKeychainName()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use SecKeychainGetPath
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -693,10 +693,10 @@ function KCGetKeychainName( keychain: KCRef; keychainName: StringPtr ): OSStatus
 { Enumerating available keychains }
 {
  *  KCCountKeychains()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use SecKeychainCopySearchList
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -708,10 +708,10 @@ function KCCountKeychains: UInt16; external name '_KCCountKeychains';
 
 {
  *  KCGetIndKeychain()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use SecKeychainCopySearchList
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -726,7 +726,7 @@ type
 	KCCallbackUPP = KCCallbackProcPtr;
 {
  *  NewKCCallbackUPP()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -737,7 +737,7 @@ function NewKCCallbackUPP( userRoutine: KCCallbackProcPtr ): KCCallbackUPP; exte
 
 {
  *  DisposeKCCallbackUPP()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -748,7 +748,7 @@ procedure DisposeKCCallbackUPP( userUPP: KCCallbackUPP ); external name '_Dispos
 
 {
  *  InvokeKCCallbackUPP()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -760,10 +760,10 @@ function InvokeKCCallbackUPP( keychainEvent: KCEvent; var info: KCCallbackInfo; 
 { High-level interface for retrieving passwords }
 {
  *  KCFindAppleSharePassword()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use SecKeychainFindInternetPassword
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -775,10 +775,10 @@ function KCFindAppleSharePassword( serverSignature: AFPServerSignaturePtr { can 
 
 {
  *  KCFindInternetPassword()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use SecKeychainFindInternetPassword
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -790,10 +790,10 @@ function KCFindInternetPassword( serverName: ConstStringPtr { can be NULL }; sec
 
 {
  *  KCFindInternetPasswordWithPath()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use SecKeychainFindInternetPassword
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -805,10 +805,10 @@ function KCFindInternetPasswordWithPath( serverName: ConstStringPtr { can be NUL
 
 {
  *  KCFindGenericPassword()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use SecKeychainFindGenericPassword
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -821,10 +821,10 @@ function KCFindGenericPassword( serviceName: ConstStringPtr { can be NULL }; acc
 { Keychain Manager callbacks }
 {
  *  KCAddCallback()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use SecKeychainAddCallback
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -836,10 +836,10 @@ function KCAddCallback( callbackProc: KCCallbackUPP; eventMask: KCEventMask; use
 
 {
  *  KCRemoveCallback()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use SecKeychainRemoveCallback
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -852,10 +852,10 @@ function KCRemoveCallback( callbackProc: KCCallbackUPP ): OSStatus; external nam
 { Creating and editing a keychain item }
 {
  *  KCNewItem()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use SecKeychainItemCreateFromContent
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -867,10 +867,10 @@ function KCNewItem( itemClass: KCItemClass; itemCreator: OSType; length: UInt32;
 
 {
  *  KCSetAttribute()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use SecKeychainItemModifyAttributesAndData
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -882,10 +882,10 @@ function KCSetAttribute( item: KCItemRef; var attr: KCAttribute ): OSStatus; ext
 
 {
  *  KCGetAttribute()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use SecKeychainItemCopyAttributesAndData
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -897,10 +897,10 @@ function KCGetAttribute( item: KCItemRef; var attr: KCAttribute; var actualLengt
 
 {
  *  KCSetData()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use SecKeychainItemModifyAttributesAndData
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -913,10 +913,10 @@ function KCSetData( item: KCItemRef; length: UInt32; data: {const} UnivPtr ): OS
 { Managing keychain items }
 {
  *  KCUpdateItem()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use SecKeychainItemModifyAttributesAndData
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -928,10 +928,10 @@ function KCUpdateItem( item: KCItemRef ): OSStatus; external name '_KCUpdateItem
 
 {
  *  KCReleaseItem()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CFRelease when releasing SecKeychainItemRef objects
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -943,10 +943,10 @@ function KCReleaseItem( var item: KCItemRef ): OSStatus; external name '_KCRelea
 
 {
  *  KCCopyItem()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use SecKeychainItemCreateCopy
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -959,11 +959,11 @@ function KCCopyItem( item: KCItemRef; destKeychain: KCRef; var copy: KCItemRef )
 { Searching and enumerating keychain items }
 {
  *  KCFindFirstItem()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use SecKeychainSearchCreateFromAttributes /
  *    SecKeychainSearchCopyNext
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -975,10 +975,10 @@ function KCFindFirstItem( keychain: KCRef { can be NULL }; {const} attrList: KCA
 
 {
  *  KCFindNextItem()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use SecKeychainSearchCopyNext
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -990,10 +990,10 @@ function KCFindNextItem( search: KCSearchRef; var item: KCItemRef ): OSStatus; e
 
 {
  *  KCReleaseSearch()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CFRelease when releasing SecKeychainSearchRef objects
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1006,10 +1006,10 @@ function KCReleaseSearch( var search: KCSearchRef ): OSStatus; external name '_K
 { Managing keychain items }
 {
  *  KCDeleteItem()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use SecKeychainItemDelete
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1021,10 +1021,10 @@ function KCDeleteItem( item: KCItemRef ): OSStatus; external name '_KCDeleteItem
 
 {
  *  KCGetData()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use SecKeychainItemCopyAttributesAndData
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1037,10 +1037,10 @@ function KCGetData( item: KCItemRef; maxLength: UInt32; data: UnivPtr; var actua
 { Locking a keychain }
 {
  *  KCLock()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use SecKeychainLock
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.1 and later

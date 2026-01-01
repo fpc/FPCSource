@@ -1,17 +1,17 @@
 {
      File:       QuickTime/QTML.h
- 
+
      Contains:   QuickTime Cross-platform specific interfaces
- 
+
      Version:    QuickTime 7.7.1
- 
+
      Copyright:  © 1997-2012 by Apple Inc., all rights reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
@@ -231,7 +231,7 @@ uses MacTypes;
 {$ifc not TARGET_CPU_64}
 {
  *  QTMLYieldCPU()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 3.0 and later
@@ -248,7 +248,7 @@ const
 
 {
  *  QTMLYieldCPUTime()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 3.0 and later
@@ -277,7 +277,7 @@ const
 
 {
  *  InitializeQTML()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -288,7 +288,7 @@ const
 
 {
  *  TerminateQTML()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -306,7 +306,7 @@ const
 	kQTMLIsDoubleBuffered = 'UsesDoubleBuffer';
 {
  *  CreatePortAssociation()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -317,7 +317,7 @@ const
 
 {
  *  DestroyPortAssociation()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -328,7 +328,7 @@ const
 
 {
  *  QTMLGrabMutex()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 3.0 and later
@@ -341,7 +341,7 @@ procedure QTMLGrabMutex( mu: QTMLMutex ); external name '_QTMLGrabMutex';
 
 {
  *  QTMLTryGrabMutex()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 4.1 and later
@@ -354,7 +354,7 @@ function QTMLTryGrabMutex( mu: QTMLMutex ): Boolean; external name '_QTMLTryGrab
 
 {
  *  QTMLReturnMutex()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 3.0 and later
@@ -367,7 +367,7 @@ procedure QTMLReturnMutex( mu: QTMLMutex ); external name '_QTMLReturnMutex';
 
 {
  *  QTMLCreateMutex()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 3.0 and later
@@ -380,7 +380,7 @@ function QTMLCreateMutex: QTMLMutex; external name '_QTMLCreateMutex';
 
 {
  *  QTMLDestroyMutex()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 3.0 and later
@@ -393,7 +393,7 @@ procedure QTMLDestroyMutex( mu: QTMLMutex ); external name '_QTMLDestroyMutex';
 
 {
  *  QTMLCreateSyncVar()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -404,7 +404,7 @@ procedure QTMLDestroyMutex( mu: QTMLMutex ); external name '_QTMLDestroyMutex';
 
 {
  *  QTMLDestroySyncVar()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -415,7 +415,7 @@ procedure QTMLDestroyMutex( mu: QTMLMutex ); external name '_QTMLDestroyMutex';
 
 {
  *  QTMLTestAndSetSyncVar()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -426,7 +426,7 @@ procedure QTMLDestroyMutex( mu: QTMLMutex ); external name '_QTMLDestroyMutex';
 
 {
  *  QTMLWaitAndSetSyncVar()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -437,7 +437,7 @@ procedure QTMLDestroyMutex( mu: QTMLMutex ); external name '_QTMLDestroyMutex';
 
 {
  *  QTMLResetSyncVar()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -448,7 +448,7 @@ procedure QTMLDestroyMutex( mu: QTMLMutex ); external name '_QTMLDestroyMutex';
 
 {
  *  InitializeQHdr()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -459,7 +459,7 @@ procedure QTMLDestroyMutex( mu: QTMLMutex ); external name '_QTMLDestroyMutex';
 
 {
  *  TerminateQHdr()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -470,7 +470,7 @@ procedure QTMLDestroyMutex( mu: QTMLMutex ); external name '_QTMLDestroyMutex';
 
 {
  *  QTMLAcquireWindowList()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -481,7 +481,7 @@ procedure QTMLDestroyMutex( mu: QTMLMutex ); external name '_QTMLDestroyMutex';
 
 {
  *  QTMLReleaseWindowList()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -497,7 +497,7 @@ procedure QTMLDestroyMutex( mu: QTMLMutex ); external name '_QTMLDestroyMutex';
 
 {
  *  QTMLRegisterInterruptSafeThread()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -508,7 +508,7 @@ procedure QTMLDestroyMutex( mu: QTMLMutex ); external name '_QTMLDestroyMutex';
 
 {
  *  QTMLUnregisterInterruptSafeThread()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -519,7 +519,7 @@ procedure QTMLDestroyMutex( mu: QTMLMutex ); external name '_QTMLDestroyMutex';
 
 {
  *  NativeEventToMacEvent()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -531,7 +531,7 @@ procedure QTMLDestroyMutex( mu: QTMLMutex ); external name '_QTMLDestroyMutex';
 {$ifc TARGET_OS_WIN32}
 {
  *  WinEventToMacEvent()
- *  
+ *
  *  Availability:
  *    Non-Carbon CFM:   not available
  *    CarbonLib:        not available
@@ -542,7 +542,7 @@ function WinEventToMacEvent(winMsg: UnivPtr; var macEvent: EventRecord): SInt32;
 
 {
  *  IsTaskBarVisible()
- *  
+ *
  *  Availability:
  *    Non-Carbon CFM:   not available
  *    CarbonLib:        not available
@@ -553,7 +553,7 @@ function WinEventToMacEvent(winMsg: UnivPtr; var macEvent: EventRecord): SInt32;
 
 {
  *  ShowHideTaskBar()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -568,7 +568,7 @@ const
 
 {
  *  QTGetDDObject()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -579,7 +579,7 @@ const
 
 {
  *  QTSetDDObject()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -590,7 +590,7 @@ const
 
 {
  *  QTSetDDPrimarySurface()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -601,7 +601,7 @@ const
 
 {
  *  QTMLGetVolumeRootPath()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -612,7 +612,7 @@ const
 
 {
  *  QTMLSetWindowWndProc()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -623,7 +623,7 @@ const
 
 {
  *  QTMLGetWindowWndProc()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -636,7 +636,7 @@ const
 
 {
  *  QTMLGetCanonicalPathName()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -655,7 +655,7 @@ const
 
 {
  *  FSSpecToNativePathName()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -669,7 +669,7 @@ const
 
 {
  *  NativePathNameToFSSpec()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -680,7 +680,7 @@ const
 
 {
  *  QTGetAliasInfo()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available

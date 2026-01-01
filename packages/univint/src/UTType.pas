@@ -1,13 +1,13 @@
 {
      File:       UTType.h
- 
+
      Contains:   Public interfaces for uniform type identifiers
- 
+
      Copyright:  (c) 2003-2012 by Apple Inc. All rights reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
 }
 
@@ -235,8 +235,8 @@ uses MacTypes,CFBase,CFArray,CFDictionary,CFURL;
     other sorts of entities, such as directories, volumes, or packages.
 
     The syntax of a uniform type identifier looks like a bundle identifier.
-    It has the form of a reversed DNS name, although some special top-level 
-    UTI domains are reserved by Apple and are outside the current IANA 
+    It has the form of a reversed DNS name, although some special top-level
+    UTI domains are reserved by Apple and are outside the current IANA
     top-level Internet domain name space.
 
     Examples:
@@ -245,11 +245,11 @@ uses MacTypes,CFBase,CFArray,CFDictionary,CFURL;
         public.utf16-plain-text
         com.apple.xml-property-list
 
-    Types which are standard or not controlled by any one organization 
-    are declared in the "public" domain. Currently, public types may  
+    Types which are standard or not controlled by any one organization
+    are declared in the "public" domain. Currently, public types may
     be declared only by Apple.
 
-    Types specific to Mac OS are declared with identifiers in the 
+    Types specific to Mac OS are declared with identifiers in the
     com.apple.macos domain.
 
     Third parties should declare their own uniform type identifiers
@@ -262,47 +262,47 @@ uses MacTypes,CFBase,CFArray,CFDictionary,CFURL;
 
     A type may "conform" to one or more other types. For example, the
     type com.apple.xml-property-list conforms to both the
-    com.apple.property-list and public.xml types. The public.xml 
-    type in turn conforms to type public.text. Finally, type public.text  
-    conforms to public.data, which is the base type for all types 
-    describing bytes stream formats. Conformance relationships between 
+    com.apple.property-list and public.xml types. The public.xml
+    type in turn conforms to type public.text. Finally, type public.text
+    conforms to public.data, which is the base type for all types
+    describing bytes stream formats. Conformance relationships between
     types are established in type declarations.
 
     Conformance relationships establish a multiple inheritanace hierarchy
     between types. Type property values may be inherited at runtime
-    according to the conformance relationships for each type. When a type's 
-    declaration does not include a value for particular type property, 
-    then the type's supertypes are searched for a value. Supertypes are 
-    searched depth-first, in the order given in the type declaration. 
-    This is the only way in which the declared order of the conforms-to 
+    according to the conformance relationships for each type. When a type's
+    declaration does not include a value for particular type property,
+    then the type's supertypes are searched for a value. Supertypes are
+    searched depth-first, in the order given in the type declaration.
+    This is the only way in which the declared order of the conforms-to
     supertypes is significant.
 
     Tags
 
-    A "tag" is a string which indicates a type in some other type 
+    A "tag" is a string which indicates a type in some other type
     identification space, such as a filename extension, MIME Type,
-    or NSPboardType. Each type declaration may include a 
-    "tag specification", which is a dictionary listing all of the 
+    or NSPboardType. Each type declaration may include a
+    "tag specification", which is a dictionary listing all of the
     tags associated with the type.
 
-    A tag's "class" is the namespace of a tag: filename extension, 
-    MIME type, OSType, etc. Tag classes are themselves identified by 
-    uniform type identifiers so that the set of valid tag classes is 
+    A tag's "class" is the namespace of a tag: filename extension,
+    MIME type, OSType, etc. Tag classes are themselves identified by
+    uniform type identifiers so that the set of valid tag classes is
     easily extendend in the future.
 
     Other Type Properties
 
     Type declarations may include several other properties: a localizable
     user description of the type, the name of an icon resource in
-    the declaring bundle, a reference URL identifying technical 
-    documentation about the type itself, and finally a version number, 
+    the declaring bundle, a reference URL identifying technical
+    documentation about the type itself, and finally a version number,
     which can be incremented as a type evolves. All of these properties
     are optional.
 
     Exported vs. Imported Type Declarations
 
     Type declarations are either exported or imported. An exported
-    type declaration means that the type itself is defined or owned 
+    type declaration means that the type itself is defined or owned
     by the organization making the declaration. For example, a propietary
     document type declaration should only be exported by the application
     which controls the document format.
@@ -319,9 +319,9 @@ uses MacTypes,CFBase,CFArray,CFDictionary,CFURL;
 
     Example XML Type Declaration
 
-    Appearing below is an XML excerpt from a bundle Info.plist file which 
+    Appearing below is an XML excerpt from a bundle Info.plist file which
     declares the public type "public.jpeg":
-    
+
         <key>UTExportedTypeDeclarations</key>
         <array>
             <dict>
@@ -357,10 +357,10 @@ uses MacTypes,CFBase,CFArray,CFDictionary,CFURL;
     represent types for which no identifier has been declared. A
     dynamic type identifier is syntactially a regular uniform
     type identifier in the "dyn" domain. However, after the
-    initial domain label, a dynamic type identifier is an 
-    opaque encoding of a tag specification. Dynamic type 
+    initial domain label, a dynamic type identifier is an
+    opaque encoding of a tag specification. Dynamic type
     identifiers cannot be declared. They are generated on-demand
-    with whatever type information is available at the time, often 
+    with whatever type information is available at the time, often
     a single (otherwise unknown) type tag.
 
     A dynamic identifier therefore carries within it a minimal
@@ -374,16 +374,16 @@ uses MacTypes,CFBase,CFArray,CFDictionary,CFURL;
     tags, the two are considered equal.
 
     Dynamic type identifiers do not express the full richness
-    of type information associated with a declared type 
+    of type information associated with a declared type
     identifier, but dynamic type identifiers allow the behavior
-    to degrade gracefully in the presence of incomplete 
+    to degrade gracefully in the presence of incomplete
     declared type information.
 
     A dynamic type identifier may be transmitted across processes
     on a given system, but it should never be stored persistently
     or transmitted over the wire to another system. In particular,
     dynamic identifiers should not appear in bundle info property
-    lists, and they will generally be ignored when they do. Apple 
+    lists, and they will generally be ignored when they do. Apple
     reserves the right to change the opaque format of dynamic
     identifiers in future versions of Mac OS X.
 }
@@ -443,7 +443,7 @@ var kUTTypeVersionKey: CFStringRef; external name '_kUTTypeVersionKey'; (* attri
 {
     Type Tag Classes
 
-    The following constant strings identify tag classes for use 
+    The following constant strings identify tag classes for use
     when converting uniform type identifiers to and from
     equivalent tags.
 }
@@ -470,7 +470,7 @@ var kUTTagClassOSType: CFStringRef; external name '_kUTTagClassOSType'; (* attri
 
 {
  *  UTTypeCreatePreferredIdentifierForTag()
- *  
+ *
  *  Discussion:
  *    Creates a uniform type identifier for the type indicated by the
  *    specified tag. This is the primary function to use for going from
@@ -493,21 +493,21 @@ var kUTTagClassOSType: CFStringRef; external name '_kUTTagClassOSType'; (* attri
  *    UTTypeCreateAllIdentifiersForTag. If no declared type is
  *    indicated, a dynamic type identifier is generated which satisfies
  *    the parameters.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inTagClass:
  *      the class identifier of the tag argument
- *    
+ *
  *    inTag:
  *      the tag string
- *    
+ *
  *    inConformingToUTI:
  *      the identifier of a type to which the result must conform
- *  
+ *
  *  Result:
  *    a new CFStringRef containing the type identifier, or NULL if
  *    inTagClass is not a known tag class
@@ -518,7 +518,7 @@ function UTTypeCreatePreferredIdentifierForTag( inTagClass: CFStringRef; inTag: 
 
 {
  *  UTTypeCreateAllIdentifiersForTag()
- *  
+ *
  *  Discussion:
  *    Creates an array of all uniform type identifiers indicated by the
  *    specified tag. An overloaded tag (e.g., an extension used by
@@ -535,21 +535,21 @@ function UTTypeCreatePreferredIdentifierForTag( inTagClass: CFStringRef; inTag: 
  *    for the conforming-to argument. This will allow the
  *    implementation to ignore all types associated with byte data
  *    formats (public.data base type).
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inTagClass:
  *      the class identifier of the tag argument
- *    
+ *
  *    inTag:
  *      the tag string
- *    
+ *
  *    inConformingToUTI:
  *      the identifier of a type to which the results must conform
- *  
+ *
  *  Result:
  *    An array of uniform type identifiers, or NULL if inTagClass is
  *    not a known tag class
@@ -560,25 +560,25 @@ function UTTypeCreateAllIdentifiersForTag( inTagClass: CFStringRef; inTag: CFStr
 
 {
  *  UTTypeCopyPreferredTagWithClass()
- *  
+ *
  *  Discussion:
  *    Returns the identified type's preferred tag with the specified
  *    tag class as a CFString. This is the primary function to use for
  *    going from uniform type identifier to tag. If the type
  *    declaration included more than one tag with the specified class,
  *    the first tag in the declared tag array is the preferred tag.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inUTI:
  *      the uniform type identifier
- *    
+ *
  *    inTagClass:
  *      the class of tags to return
- *  
+ *
  *  Result:
  *    the tag string, or NULL if there is no tag of the specified class.
  }
@@ -588,7 +588,7 @@ function UTTypeCopyPreferredTagWithClass( inUTI: CFStringRef; inTagClass: CFStri
 
 {
  *  UTTypeEqual()
- *  
+ *
  *  Discussion:
  *    Compares two identified types for equality. Types are equal if
  *    their identifier strings are equal using a case-insensitive
@@ -596,15 +596,15 @@ function UTTypeCopyPreferredTagWithClass( inUTI: CFStringRef; inTagClass: CFStri
  *    dynamic identifier, then the types are equal if either
  *    identifier's tag specification is a subset of the other
  *    identifier's tag specification.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inUTI1:
  *      a uniform type identifier
- *    
+ *
  *    inUTI2:
  *      another uniform type identifier
  }
@@ -614,20 +614,20 @@ function UTTypeEqual( inUTI1: CFStringRef; inUTI2: CFStringRef ): Boolean; exter
 
 {
  *  UTTypeConformsTo()
- *  
+ *
  *  Discussion:
  *    Tests for a conformance relationship between the two identified
  *    types. Returns true if the types are equal, or if the first type
  *    conforms, directly or indirectly, to the second type.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inUTI:
  *      the uniform type identifier to test
- *    
+ *
  *    inConformsToUTI:
  *      the uniform type identifier against which to test conformance.
  }
@@ -637,18 +637,18 @@ function UTTypeConformsTo( inUTI: CFStringRef; inConformsToUTI: CFStringRef ): B
 
 {
  *  UTTypeCopyDescription()
- *  
+ *
  *  Discussion:
  *    Returns the localized, user-readable type description string
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inUTI:
  *      the uniform type identifier
- *  
+ *
  *  Result:
  *    a localized string, or NULL of no type description is available
  }
@@ -658,21 +658,21 @@ function UTTypeCopyDescription( inUTI: CFStringRef ): CFStringRef; external name
 
 {
  *  UTTypeCopyDeclaration()
- *  
+ *
  *  Discussion:
  *    Returns the identified type's declaration dictionary, as it
  *    appears in the declaring bundle's info property list. This the
  *    access path to other type properties for which direct access is
  *    rarely needed.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inUTI:
  *      the uniform type identifier
- *  
+ *
  *  Result:
  *    a tag declaration dictionary, or NULL if the type is not declared
  }
@@ -682,19 +682,19 @@ function UTTypeCopyDeclaration( inUTI: CFStringRef ): CFDictionaryRef; external 
 
 {
  *  UTTypeCopyDeclaringBundleURL()
- *  
+ *
  *  Discussion:
  *    Returns the URL of the bundle containing the type declaration of
  *    the identified type.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inUTI:
  *      the uniform type identifier
- *  
+ *
  *  Result:
  *    a URL, or NULL if the bundle cannot be located.
  }
@@ -704,19 +704,19 @@ function UTTypeCopyDeclaringBundleURL( inUTI: CFStringRef ): CFURLRef; external 
 
 {
  *  UTCreateStringForOSType()
- *  
+ *
  *  Discussion:
  *    A helper function to canonically encode an OSType as a CFString
  *    suitable for use as a tag argument.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inOSType:
  *      the OSType value to encode
- *  
+ *
  *  Result:
  *    a new CFString representing the OSType
  }
@@ -726,19 +726,19 @@ function UTCreateStringForOSType( inOSType: OSType ): CFStringRef; external name
 
 {
  *  UTGetOSTypeFromString()
- *  
+ *
  *  Discussion:
  *    A helper function to canonically decode a string-encoded OSType
  *    back to the original OSType value.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inString:
  *      the string to decode
- *  
+ *
  *  Result:
  *    the OSType value encoded in the string, or 0 if the string is not
  *    a valid encoding of an OSType

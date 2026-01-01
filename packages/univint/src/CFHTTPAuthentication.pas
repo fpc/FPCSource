@@ -1,15 +1,15 @@
 {
 	 File:	   CFNetwork/CFHTTPAuthentication.h
- 
+
 	 Contains:   CoreFoundation Network HTTP authentication header
- 
+
 	 Copyright:  Copyright (c) 2001-2008, Apple Inc. All rights reserved.
- 
+
 	 Bugs?:	  For bug reports, consult the following page on
 				 the World Wide Web:
- 
+
 					 http://bugs.freepascal.org
- 
+
 }
 {       Pascal Translation:  Gale R Paeper, <gpaeper@empirenet.com>, 2008 }
 {       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
@@ -228,7 +228,7 @@ uses MacTypes, CFArray, CFBase, CFDictionary, CFHTTPMessage, CFStream;
 
 {
  *  CFHTTPAuthenticationRef
- *  
+ *
  *  Discussion:
  *	This is the type of a reference to HTTP authentication
  *	information.
@@ -239,7 +239,7 @@ type
 
 {
  *  CFStreamErrorHTTPAuthentication
- *  
+ *
  *  Discussion:
  *	Authentication errors which may be returned as a result of trying
  *	to apply authentication to a request.  These errors are in the
@@ -269,12 +269,12 @@ const
 
 {
  *  kCFHTTPAuthenticationUsername
- *  
+ *
  *  Discussion:
  *	CFDictionary key, for CFHTTPMessageApplyCredentialDictionary. The
  *	username for authentication as a CFString.  Needs to be added if
  *	CFHTTPAuthenticationRequiresUserNameAndPassword returns TRUE.
- *  
+ *
  *  Availability:
  *	Mac OS X:		 in version 10.4 and later in CoreServices.framework
  *	CarbonLib:		not available
@@ -285,12 +285,12 @@ var kCFHTTPAuthenticationUsername: CFStringRef; external name '_kCFHTTPAuthentic
 
 {
  *  kCFHTTPAuthenticationPassword
- *  
+ *
  *  Discussion:
  *	CFDictionary key, for CFHTTPMessageApplyCredentialDictionary. The
  *	password for authentication as a CFString.  Needs to be added if
  *	CFHTTPAuthenticationRequiresUserNameAndPassword returns TRUE.
- *  
+ *
  *  Availability:
  *	Mac OS X:		 in version 10.4 and later in CoreServices.framework
  *	CarbonLib:		not available
@@ -301,12 +301,12 @@ var kCFHTTPAuthenticationPassword: CFStringRef; external name '_kCFHTTPAuthentic
 
 {
  *  kCFHTTPAuthenticationAccountDomain
- *  
+ *
  *  Discussion:
  *	CFDictionary key, for CFHTTPMessageApplyCredentialDictionary. The
  *	domain for authentication as a CFString.  Needs to be added if
  *	CFHTTPAuthenticationRequiresAccountDomain returns TRUE.
- *  
+ *
  *  Availability:
  *	Mac OS X:		 in version 10.4 and later in CoreServices.framework
  *	CarbonLib:		not available
@@ -317,13 +317,13 @@ var kCFHTTPAuthenticationAccountDomain: CFStringRef; external name '_kCFHTTPAuth
 
 {
  *  CFHTTPAuthenticationGetTypeID()
- *  
+ *
  *  Discussion:
  *	Returns the type identifier of all CFHTTPAuthentication instances.
- *  
+ *
  *  Mac OS X threading:
  *	Thread safe
- *  
+ *
  *  Availability:
  *	Mac OS X:		 in version 10.2 and later in CoreServices.framework
  *	CarbonLib:		not available
@@ -335,30 +335,30 @@ function CFHTTPAuthenticationGetTypeID: CFTypeID; external name '_CFHTTPAuthenti
 
 {
  *  CFHTTPAuthenticationCreateFromResponse()
- *  
+ *
  *  Discussion:
  *	Based on a response of 401 or 407, this function will create a
  *	new authentication object which can be used for adding
  *	credentials to future requests.
- *  
+ *
  *  Mac OS X threading:
  *	Thread safe
  *	The API's to CFHTTPAuthenticationRef are thread-safe so long as
  *	multiple threads are not altering the same
  *	CFHTTPAuthenticationRef at the same time.
- *  
+ *
  *  Parameters:
- *	
+ *
  *	alloc:
  *	  Allocator to use for creating authentication object
- *	
+ *
  *	response:
  *	  Failed response.
- *  
+ *
  *  Result:
  *	A freshly created authentication object useful for applying
  *	authentication credentials to new requests.
- *  
+ *
  *  Availability:
  *	Mac OS X:		 in version 10.2 and later in CoreServices.framework
  *	CarbonLib:		not available
@@ -370,7 +370,7 @@ function CFHTTPAuthenticationCreateFromResponse( alloc: CFAllocatorRef; response
 
 {
  *  CFHTTPAuthenticationIsValid()
- *  
+ *
  *  Discussion:
  *	Returns TRUE if the given authentication information was
  *	instantiated correctly and contains enough information in order
@@ -378,18 +378,18 @@ function CFHTTPAuthenticationCreateFromResponse( alloc: CFAllocatorRef; response
  *	still contain information which is useful to the user, e.g.
  *	unsupported method name.  An invalid object may be queried for
  *	information but may not be applied to a request.
- *  
+ *
  *  Mac OS X threading:
  *	Thread safe
  *	The API's to CFHTTPAuthenticationRef are thread-safe so long as
  *	multiple threads are not altering the same
  *	CFHTTPAuthenticationRef at the same time.
- *  
+ *
  *  Parameters:
- *	
+ *
  *	auth:
  *	  The authentication information being queried.
- *	
+ *
  *	error:
  *	  Reference to a CFStreamError which will be populated in the
  *	  case of an error in creation.  Pass NULL if not interested in
@@ -397,11 +397,11 @@ function CFHTTPAuthenticationCreateFromResponse( alloc: CFAllocatorRef; response
  *	  kCFStreamErrorDomainHTTP, and the error code will be one of
  *	  those defined in CFHTTPStream.h or one of those listed as
  *	  CFStreamErrorHTTPAuthentication.
- *  
+ *
  *  Result:
  *	TRUE or FALSE depending on whether the authentication object is
  *	good for applying credentials to further requests.
- *  
+ *
  *  Availability:
  *	Mac OS X:		 in version 10.2 and later in CoreServices.framework
  *	CarbonLib:		not available
@@ -413,29 +413,29 @@ function CFHTTPAuthenticationIsValid( auth: CFHTTPAuthenticationRef; error: CFSt
 
 {
  *  CFHTTPAuthenticationAppliesToRequest()
- *  
+ *
  *  Discussion:
  *	Returns TRUE if the given request requires credentials based upon
  *	the given authentication information.
- *  
+ *
  *  Mac OS X threading:
  *	Thread safe
  *	The API's to CFHTTPAuthenticationRef are thread-safe so long as
  *	multiple threads are not altering the same
  *	CFHTTPAuthenticationRef at the same time.
- *  
+ *
  *  Parameters:
- *	
+ *
  *	auth:
  *	  The authentication information being queried.
- *	
+ *
  *	request:
  *	  The request which is believed to need the given authentication.
- *  
+ *
  *  Result:
  *	TRUE if the given authentication information should be applied to
  *	the request, otherwise FALSE is returned.
- *  
+ *
  *  Availability:
  *	Mac OS X:		 in version 10.2 and later in CoreServices.framework
  *	CarbonLib:		not available
@@ -447,27 +447,27 @@ function CFHTTPAuthenticationAppliesToRequest( auth: CFHTTPAuthenticationRef; re
 
 {
  *  CFHTTPAuthenticationRequiresOrderedRequests()
- *  
+ *
  *  Discussion:
  *	Some authentication methods require that future requests must be
  *	performed in an ordered manner, so that information from a
  *	response can be added to a following request.
- *  
+ *
  *  Mac OS X threading:
  *	Thread safe
  *	The API's to CFHTTPAuthenticationRef are thread-safe so long as
  *	multiple threads are not altering the same
  *	CFHTTPAuthenticationRef at the same time.
- *  
+ *
  *  Parameters:
- *	
+ *
  *	auth:
  *	  The authentication information being queried.
- *  
+ *
  *  Result:
  *	Returns TRUE if the given authentication method requires ordered
  *	requests.
- *  
+ *
  *  Availability:
  *	Mac OS X:		 in version 10.2 and later in CoreServices.framework
  *	CarbonLib:		not available
@@ -479,31 +479,31 @@ function CFHTTPAuthenticationRequiresOrderedRequests( auth: CFHTTPAuthentication
 
 {
  *  CFHTTPMessageApplyCredentials()
- *  
+ *
  *  Discussion:
  *	Perform the authentication method required on the request using
  *	the given username and password.
- *  
+ *
  *  Mac OS X threading:
  *	Thread safe
  *	The API's to CFHTTPAuthenticationRef are thread-safe so long as
  *	multiple threads are not altering the same
  *	CFHTTPAuthenticationRef at the same time.
- *  
+ *
  *  Parameters:
- *	
+ *
  *	request:
  *	  The request which is to receive the credentials.
- *	
+ *
  *	auth:
  *	  The authentication information for the given request.
- *	
+ *
  *	username:
  *	  The username to use for performing the authentication.
- *	
+ *
  *	password:
  *	  The password to use for performing the authentication.
- *	
+ *
  *	error:
  *	  Reference to a CFStreamError which will be populated with the
  *	  error information should one occur during the application of
@@ -511,11 +511,11 @@ function CFHTTPAuthenticationRequiresOrderedRequests( auth: CFHTTPAuthentication
  *	  reason.  The error domain will be kCFStreamErrorDomainHTTP, and
  *	  the error code will be one of those define in CFHTTPStream.h or
  *	  one of those listed as CFStreamErrorHTTPAuthentication.
- *  
+ *
  *  Result:
  *	TRUE will be returned if the application of the credentials to
  *	the request was successful, otherwise FALSE is returned.
- *  
+ *
  *  Availability:
  *	Mac OS X:		 in version 10.2 and later in CoreServices.framework
  *	CarbonLib:		not available
@@ -527,29 +527,29 @@ function CFHTTPMessageApplyCredentials( request: CFHTTPMessageRef; auth: CFHTTPA
 
 {
  *  CFHTTPMessageApplyCredentialDictionary()
- *  
+ *
  *  Discussion:
  *	Perform the authentication method required on the request using
  *	the given credential information.
- *  
+ *
  *  Mac OS X threading:
  *	Thread safe
  *	The API's to CFHTTPAuthenticationRef are thread-safe so long as
  *	multiple threads are not altering the same
  *	CFHTTPAuthenticationRef at the same time.
- *  
+ *
  *  Parameters:
- *	
+ *
  *	request:
  *	  The request which is to receive the credentials.
- *	
+ *
  *	auth:
  *	  The authentication information for the given request.
- *	
+ *
  *	dict:
  *	  A dictionary containing credentials to be applied to the
  *	  request.  Valid keys are declared above.
- *	
+ *
  *	error:
  *	  Reference to a CFStreamError which will be populated with the
  *	  error information should one occur during the application of
@@ -557,11 +557,11 @@ function CFHTTPMessageApplyCredentials( request: CFHTTPMessageRef; auth: CFHTTPA
  *	  reason.  The error domain will be kCFStreamErrorDomainHTTP, and
  *	  the error code will be one of those define in CFHTTPStream.h or
  *	  one of those listed as CFStreamErrorHTTPAuthentication.
- *  
+ *
  *  Result:
  *	TRUE will be returned if the application of the credentials to
  *	the request was successful, otherwise FALSE is returned.
- *  
+ *
  *  Availability:
  *	Mac OS X:		 in version 10.4 and later in CoreServices.framework
  *	CarbonLib:		not available
@@ -573,29 +573,29 @@ function CFHTTPMessageApplyCredentialDictionary( request: CFHTTPMessageRef; auth
 
 {
  *  CFHTTPAuthenticationCopyRealm()
- *  
+ *
  *  Discussion:
  *	Some authentication techniques provide for namespaces on top of
  *	domains. This call will return the authentication information's
  *	namespace if there is one, otherwise it will return NULL.  This
  *	namespace is usually used for prompting the application user for
  *	a name and password.
- *  
+ *
  *  Mac OS X threading:
  *	Thread safe
  *	The API's to CFHTTPAuthenticationRef are thread-safe so long as
  *	multiple threads are not altering the same
  *	CFHTTPAuthenticationRef at the same time.
- *  
+ *
  *  Parameters:
- *	
+ *
  *	auth:
  *	  The authentication information being queried.
- *  
+ *
  *  Result:
  *	This call will return the authentication information's namespace
  *	if there is one, otherwise it will return NULL.
- *  
+ *
  *  Availability:
  *	Mac OS X:		 in version 10.2 and later in CoreServices.framework
  *	CarbonLib:		not available
@@ -607,29 +607,29 @@ function CFHTTPAuthenticationCopyRealm( auth: CFHTTPAuthenticationRef ): CFStrin
 
 {
  *  CFHTTPAuthenticationCopyDomains()
- *  
+ *
  *  Discussion:
  *	Returns a list of domain URL's on which the given authentication
  *	should be applied. This function is provided mostly for
  *	informational purposes. CFHTTPAuthenticationAppliesToRequest
  *	should be used in order to check whether a request requires the
  *	authentication.
- *  
+ *
  *  Mac OS X threading:
  *	Thread safe
  *	The API's to CFHTTPAuthenticationRef are thread-safe so long as
  *	multiple threads are not altering the same
  *	CFHTTPAuthenticationRef at the same time.
- *  
+ *
  *  Parameters:
- *	
+ *
  *	auth:
  *	  The authentication information being queried.
- *  
+ *
  *  Result:
  *	Returns a list of domain URL's on which the given authentication
  *	should be applied.
- *  
+ *
  *  Availability:
  *	Mac OS X:		 in version 10.2 and later in CoreServices.framework
  *	CarbonLib:		not available
@@ -641,27 +641,27 @@ function CFHTTPAuthenticationCopyDomains( auth: CFHTTPAuthenticationRef ): CFArr
 
 {
  *  CFHTTPAuthenticationCopyMethod()
- *  
+ *
  *  Discussion:
  *	Returns the method of authentication which will be performed when
  *	applying credentials.  The strongest method of authentication
  *	will be chosen in the case of multiple choices.
- *  
+ *
  *  Mac OS X threading:
  *	Thread safe
  *	The API's to CFHTTPAuthenticationRef are thread-safe so long as
  *	multiple threads are not altering the same
  *	CFHTTPAuthenticationRef at the same time.
- *  
+ *
  *  Parameters:
- *	
+ *
  *	auth:
  *	  The authentication information being queried.
- *  
+ *
  *  Result:
  *	Returns the method of authentication which will be performed when
  *	applying credentials.
- *  
+ *
  *  Availability:
  *	Mac OS X:		 in version 10.2 and later in CoreServices.framework
  *	CarbonLib:		not available
@@ -673,26 +673,26 @@ function CFHTTPAuthenticationCopyMethod( auth: CFHTTPAuthenticationRef ): CFStri
 
 {
  *  CFHTTPAuthenticationRequiresUserNameAndPassword()
- *  
+ *
  *  Discussion:
  *	Returns TRUE if the chosen authentication scheme requires a
  *	username and password.
- *  
+ *
  *  Mac OS X threading:
  *	Thread safe
  *	The API's to CFHTTPAuthenticationRef are thread-safe so long as
  *	multiple threads are not altering the same
  *	CFHTTPAuthenticationRef at the same time.
- *  
+ *
  *  Parameters:
- *	
+ *
  *	auth:
  *	  The authentication information being queried.
- *  
+ *
  *  Result:
  *	Returns TRUE if the chosen authentication scheme requires a
  *	username and password.
- *  
+ *
  *  Availability:
  *	Mac OS X:		 in version 10.3 and later in CoreServices.framework
  *	CarbonLib:		not available
@@ -704,27 +704,27 @@ function CFHTTPAuthenticationRequiresUserNameAndPassword( auth: CFHTTPAuthentica
 
 {
  *  CFHTTPAuthenticationRequiresAccountDomain()
- *  
+ *
  *  Discussion:
  *	Returns TRUE if the chosen authentication scheme requires a
  *	domain for authentication.  Currently, this will return TRUE for
  *	"NTLM" and FALSE for the other methods.
- *  
+ *
  *  Mac OS X threading:
  *	Thread safe
  *	The API's to CFHTTPAuthenticationRef are thread-safe so long as
  *	multiple threads are not altering the same
  *	CFHTTPAuthenticationRef at the same time.
- *  
+ *
  *  Parameters:
- *	
+ *
  *	auth:
  *	  The authentication information being queried.
- *  
+ *
  *  Result:
  *	Returns TRUE if the chosen authentication scheme requires a
  *	domain for authentication.
- *  
+ *
  *  Availability:
  *	Mac OS X:		 in version 10.4 and later in CoreServices.framework
  *	CarbonLib:		not available

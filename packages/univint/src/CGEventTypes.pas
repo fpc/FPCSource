@@ -456,14 +456,14 @@ const
 
   { This field is not used. }
 	kCGScrollWheelEventPointDeltaAxis3 = 98;
-    
+
   {  }
 	kCGScrollWheelEventScrollPhase = 99;
-    
+
   { rdar://11259169 }
 	kCGScrollWheelEventScrollCount = 100;
 	kCGScrollWheelEventMomentumPhase = 123;
-    
+
   { Key to access an integer field that indicates whether the event should
      be ignored by the Inkwell subsystem. If the value is non-zero, the
      event should be ignored. }
@@ -589,13 +589,13 @@ const
   { Key to access a field that contains the event source state ID used to
      create this event. }
 	kCGEventSourceStateID = 45;
-    
+
   { Key to access an integer field that indicates whether a scrolling event
      contains continuous, pixel-based scrolling data. The value is non-zero
      when the scrolling data is pixel-based and zero when the scrolling data
      is line-based. }
 	kCGScrollWheelEventIsContinuous = 88;
-  
+
   { Added in 10.5; made public in 10.7 }
 	kCGMouseEventWindowUnderMousePointer = 91;
 	kCGMouseEventWindowUnderMousePointerThatCanHandleThisEvent = 92;

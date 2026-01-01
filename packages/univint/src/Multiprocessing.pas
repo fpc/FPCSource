@@ -1,9 +1,9 @@
 {
      File:       CarbonCore/Multiprocessing.h
- 
+
      Contains:   Multiprocessing interfaces
                  The contents of this header file are deprecated.
- 
+
      Copyright:  © 1995-2011 DayStar Digital, Inc.
 }
 {
@@ -218,9 +218,9 @@ uses MacTypes;
 {$ifc TARGET_OS_MAC}
 
 {********************************************************************************************
- 
+
  The Multiprocessing Utilities are deprecated.  Callers should use blocks, libDispatch, or pthreads.
-  
+
 ********************************************************************************************}
 {
    ===========================================================================================
@@ -499,10 +499,10 @@ const
 
 {
  *  MPProcessors()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -516,10 +516,10 @@ function MPProcessors: ItemCount; external name '_MPProcessors';
 
 {
  *  MPProcessorsScheduled()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -555,10 +555,10 @@ type
 
 {
  *  MPCreateTask()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -570,10 +570,10 @@ function MPCreateTask( entryPoint: TaskProc; parameter: UnivPtr; stackSize: Byte
 
 {
  *  MPTerminateTask()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -585,10 +585,10 @@ function MPTerminateTask( task: MPTaskID; terminationStatus: OSStatus ): OSStatu
 
 {
  *  MPSetTaskWeight()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -600,10 +600,10 @@ function MPSetTaskWeight( task: MPTaskID; weight: MPTaskWeight ): OSStatus; exte
 
 {
  *  MPTaskIsPreemptive()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -617,10 +617,10 @@ function MPTaskIsPreemptive( taskID: MPTaskID ): Boolean; external name '_MPTask
 
 {
  *  MPExit()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -632,10 +632,10 @@ procedure MPExit( status: OSStatus ); external name '_MPExit';
 
 {
  *  MPYield()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -647,10 +647,10 @@ procedure MPYield; external name '_MPYield';
 
 {
  *  MPCurrentTaskID()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -662,10 +662,10 @@ function MPCurrentTaskID: MPTaskID; external name '_MPCurrentTaskID';
 
 {
  *  MPSetTaskType()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -686,10 +686,10 @@ function MPSetTaskType( task: MPTaskID; taskType: OSType ): OSStatus; external n
 
 {
  *  MPAllocateTaskStorageIndex()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -701,10 +701,10 @@ function MPAllocateTaskStorageIndex( var taskIndex: TaskStorageIndex ): OSStatus
 
 {
  *  MPDeallocateTaskStorageIndex()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -716,10 +716,10 @@ function MPDeallocateTaskStorageIndex( taskIndex: TaskStorageIndex ): OSStatus; 
 
 {
  *  MPSetTaskStorageValue()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -731,10 +731,10 @@ function MPSetTaskStorageValue( taskIndex: TaskStorageIndex; value: TaskStorageV
 
 {
  *  MPGetTaskStorageValue()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -754,10 +754,10 @@ function MPGetTaskStorageValue( taskIndex: TaskStorageIndex ): TaskStorageValue;
 
 {
  *  MPCreateQueue()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -769,10 +769,10 @@ function MPCreateQueue( var queue: MPQueueID ): OSStatus; external name '_MPCrea
 
 {
  *  MPDeleteQueue()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -784,10 +784,10 @@ function MPDeleteQueue( queue: MPQueueID ): OSStatus; external name '_MPDeleteQu
 
 {
  *  MPNotifyQueue()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -799,10 +799,10 @@ function MPNotifyQueue( queue: MPQueueID; param1: UnivPtr; param2: UnivPtr; para
 
 {
  *  MPWaitOnQueue()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -814,10 +814,10 @@ function MPWaitOnQueue( queue: MPQueueID; var param1: UnivPtr; var param2: UnivP
 
 {
  *  MPSetQueueReserve()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -832,10 +832,10 @@ function MPSetQueueReserve( queue: MPQueueID; count: ItemCount ): OSStatus; exte
 
 {
  *  MPCreateSemaphore()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -847,10 +847,10 @@ function MPCreateSemaphore( maximumValue: MPSemaphoreCount; initialValue: MPSema
 
 {
  *  MPDeleteSemaphore()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -862,10 +862,10 @@ function MPDeleteSemaphore( semaphore: MPSemaphoreID ): OSStatus; external name 
 
 {
  *  MPSignalSemaphore()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -877,10 +877,10 @@ function MPSignalSemaphore( semaphore: MPSemaphoreID ): OSStatus; external name 
 
 {
  *  MPWaitOnSemaphore()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -896,10 +896,10 @@ function MPWaitOnSemaphore( semaphore: MPSemaphoreID; timeout: Duration ): OSSta
 
 {
  *  MPCreateCriticalRegion()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -911,10 +911,10 @@ function MPCreateCriticalRegion( var criticalRegion: MPCriticalRegionID ): OSSta
 
 {
  *  MPDeleteCriticalRegion()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -926,10 +926,10 @@ function MPDeleteCriticalRegion( criticalRegion: MPCriticalRegionID ): OSStatus;
 
 {
  *  MPEnterCriticalRegion()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -941,10 +941,10 @@ function MPEnterCriticalRegion( criticalRegion: MPCriticalRegionID; timeout: Dur
 
 {
  *  MPExitCriticalRegion()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -959,10 +959,10 @@ function MPExitCriticalRegion( criticalRegion: MPCriticalRegionID ): OSStatus; e
 
 {
  *  MPCreateEvent()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -974,10 +974,10 @@ function MPCreateEvent( var event: MPEventID ): OSStatus; external name '_MPCrea
 
 {
  *  MPDeleteEvent()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -989,10 +989,10 @@ function MPDeleteEvent( event: MPEventID ): OSStatus; external name '_MPDeleteEv
 
 {
  *  MPSetEvent()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1004,10 +1004,10 @@ function MPSetEvent( event: MPEventID; flags: MPEventFlags ): OSStatus; external
 
 {
  *  MPWaitForEvent()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1027,10 +1027,10 @@ function MPWaitForEvent( event: MPEventID; flags: MPEventFlagsPtr; timeout: Dura
 
 {
  *  MPCreateNotification()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1042,10 +1042,10 @@ function MPCreateNotification( var notificationID: MPNotificationID ): OSStatus;
 
 {
  *  MPDeleteNotification()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1057,10 +1057,10 @@ function MPDeleteNotification( notificationID: MPNotificationID ): OSStatus; ext
 
 {
  *  MPModifyNotification()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1072,10 +1072,10 @@ function MPModifyNotification( notificationID: MPNotificationID; anID: MPOpaqueI
 
 {
  *  MPModifyNotificationParameters()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1087,10 +1087,10 @@ function MPModifyNotificationParameters( notificationID: MPNotificationID; kind:
 
 {
  *  MPCauseNotification()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1123,10 +1123,10 @@ const
 
 {
  *  MPDelayUntil()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1138,7 +1138,7 @@ function MPDelayUntil( var expirationTime: AbsoluteTime ): OSStatus; external na
 
 {
  *  MPDelayUntilSys()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -1148,10 +1148,10 @@ function MPDelayUntil( var expirationTime: AbsoluteTime ): OSStatus; external na
 
 {
  *  MPCreateTimer()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1163,10 +1163,10 @@ function MPCreateTimer( var timerID: MPTimerID ): OSStatus; external name '_MPCr
 
 {
  *  MPDeleteTimer()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1178,10 +1178,10 @@ function MPDeleteTimer( timerID: MPTimerID ): OSStatus; external name '_MPDelete
 
 {
  *  MPSetTimerNotify()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1193,10 +1193,10 @@ function MPSetTimerNotify( timerID: MPTimerID; anID: MPOpaqueID; notifyParam1: U
 
 {
  *  MPArmTimer()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1208,10 +1208,10 @@ function MPArmTimer( timerID: MPTimerID; var expirationTime: AbsoluteTime; optio
 
 {
  *  MPCancelTimer()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1262,10 +1262,10 @@ const
 
 {
  *  MPAllocateAligned()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1279,10 +1279,10 @@ function MPAllocateAligned( size: ByteCount; alignment: UInt8; options: OptionBi
 
 {
  *  MPAllocate()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1296,10 +1296,10 @@ function MPAllocate( size: ByteCount ): LogicalAddress; external name '_MPAlloca
 
 {
  *  MPFree()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1311,10 +1311,10 @@ procedure MPFree( objct: LogicalAddress ); external name '_MPFree';
 
 {
  *  MPGetAllocatedBlockSize()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1329,10 +1329,10 @@ function MPGetAllocatedBlockSize( objct: LogicalAddress ): ByteCount; external n
 
 {
  *  MPBlockCopy()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1344,10 +1344,10 @@ procedure MPBlockCopy( source: LogicalAddress; destination: LogicalAddress; size
 
 {
  *  MPBlockClear()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1360,10 +1360,10 @@ procedure MPBlockClear( address: LogicalAddress; size: ByteCount ); external nam
 {$ifc not TARGET_CPU_64}
 {
  *  MPDataToCode()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1388,24 +1388,24 @@ procedure MPDataToCode( address: LogicalAddress; size: ByteCount ); external nam
    -------------------------------------------------------------------------------------------
    *** Important Note ***
    ----------------------
-   
+
    The functions MPExtractTaskState and MPSetTaskState infer the size of the "info" buffer
    from the "kind" parameter.  A given value for MPTaskStateKind will always refer to a
    single specific physical buffer layout.  Should new register sets be added, or the size
    or number of any registers change, new values of MPTaskStateKind will be introduced to
    refer to the new buffer layouts.
-   
+
    The following types for the buffers are in MachineExceptions. The correspondence between
    MPTaskStateKind values and MachineExceptions types is:
-   
+
         kMPTaskStateRegisters               -> RegisterInformation
         kMPTaskStateFPU                     -> FPUInformation
         kMPTaskStateVectors                 -> VectorInformation
         kMPTaskStateMachine                 -> MachineInformation
         kMPTaskState32BitMemoryException    -> ExceptionInfo for old-style 32-bit memory exceptions
-   
+
     For reference, on PowerPC the MachineExceptions types contain:
-   
+
         RegisterInformation -> The GPRs, 32 values of 64 bits each.
         FPUInformation      -> The FPRs plus FPSCR, 32 values of 64 bits each, one value of
                                 32 bits.
@@ -1510,8 +1510,8 @@ type
 	end;
 {
     Upon a task exception, the following message is sent to the designated queue:
-      1. The MPTaskID, 
-      2. The exception kind. These are enumerated in the interfaces header MachineExceptions.h 
+      1. The MPTaskID,
+      2. The exception kind. These are enumerated in the interfaces header MachineExceptions.h
       3. N/A
 }
 
@@ -1521,10 +1521,10 @@ type
 
 {
  *  MPSetExceptionHandler()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1536,10 +1536,10 @@ function MPSetExceptionHandler( task: MPTaskID; exceptionQ: MPQueueID ): OSStatu
 
 {
  *  MPDisposeTaskException()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1551,10 +1551,10 @@ function MPDisposeTaskException( task: MPTaskID; action: OptionBits ): OSStatus;
 
 {
  *  MPExtractTaskState()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1566,10 +1566,10 @@ function MPExtractTaskState( task: MPTaskID; kind: MPTaskStateKind; info: UnivPt
 
 {
  *  MPSetTaskState()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1581,10 +1581,10 @@ function MPSetTaskState( task: MPTaskID; kind: MPTaskStateKind; info: UnivPtr ):
 
 {
  *  MPThrowException()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1607,10 +1607,10 @@ const
 
 {
  *  MPRegisterDebugger()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1622,10 +1622,10 @@ function MPRegisterDebugger( queue: MPQueueID; level: MPDebuggerLevel ): OSStatu
 
 {
  *  MPUnregisterDebugger()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1657,10 +1657,10 @@ const
 
 {
  *  MPRemoteCall()   *** DEPRECATED ***
- *  
+ *
  *  Summary:
  *    Calls a nonreentrant function and blocks the current task.
- *  
+ *
  *  Discussion:
  *    You use this function primarily to indirectly execute Mac OS
  *    system software functions. The task making the remote call is
@@ -1687,29 +1687,29 @@ const
  *    system software functions from a preemptive task, you must do so
  *    using the MPRemoteCall function. %%     @deprecated Use blocks to
  *    make a call on anothed dispatch queue() and block on the result.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    remoteProc:
  *      A pointer of type MPRemoteProcedure that references the
  *      application-defined function you want to call. See
  *      MyRemoteProcedure for more information about the form of this
  *      function.
- *    
+ *
  *    parameter:
  *      A pointer to a parameter to pass to the application-defined
  *      function. For example, this value could point to a data
  *      structure or a memory location.
- *    
+ *
  *    context:
  *      A value of type MPRemoteContext that specifies which contexts
  *      (that is processes) are allowed to execute the function. See
  *      “Remote Call Context Option Constants” for a list of possible
  *      values.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1721,14 +1721,14 @@ function MPRemoteCall( remoteProc: MPRemoteProcedure; parameter: UnivPtr; contex
 
 {
  *  MPRemoteCallCFM()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    No longer applicable now that the Multiprocessing Utilities have
  *    been deprecated.
- *  
+ *
  *  Summary:
  *    Calls a nonreentrant function and blocks the current task.
- *  
+ *
  *  Discussion:
  *    You use this function primarily to indirectly execute Mac OS
  *    system software functions. The task making the remote call is
@@ -1748,29 +1748,29 @@ function MPRemoteCall( remoteProc: MPRemoteProcedure; parameter: UnivPtr; contex
  *    stated otherwise there is no guarantee that subsequent versions
  *    of the same function will continue to work in future versions of
  *    system software.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    remoteProc:
  *      A pointer of type MPRemoteProcedure to a CFM function that
  *      references the application-defined function you want to call.
  *      See MyRemoteProcedure for more information about the form of
  *      this function.
- *    
+ *
  *    parameter:
  *      A pointer to a parameter to pass to the application-defined
  *      function. For example, this value could point to a data
  *      structure or a memory location.
- *    
+ *
  *    context:
  *      A value of type MPRemoteContext that specifies which contexts
  *      (that is processes) are allowed to execute the function. See
  *      “Remote Call Context Option Constants” for a list of possible
  *      values.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        not available
@@ -1792,64 +1792,64 @@ function MPRemoteCallCFM( remoteProc: MPRemoteProcedure; parameter: UnivPtr; con
    ===========================================================================================
    *** WARNING: You must properly check the availability of MP services before calling them!
    ===========================================================================================
-   
+
    Checking for the availability of the MP API is rather ugly.  This is a historical problem,
    caused by the original implementation letting itself get prepared when it really wasn't
    usable and complicated by some important clients then depending on weak linking to "work".
    (And further complicated by CFM not supporting "deferred" imports, which is how many
    programmers think weak imports work.)
-   
+
    The end result is that the MP API library may get prepared by CFM but be totally unusable.
    This means that if you import from the MP API library, you cannot simply check for a
    resolved import to decide if MP services are available.  Worse, if you explicitly prepare
    the MP API library you cannot assume that a noErr result from GetSharedLibrary means that
    MP services are available.
-   
+
    • If you import from the MP API library you MUST:
-   
+
         Use the MPLibraryIsLoaded macro (or equivalent code in languages other than C) to tell
         if the MP API services are available.  It is not sufficient to simply check that an
         imported symbol is resolved as is commonly done for other libraries.  The macro expands
         to the expression:
-   
+
             ( ( (UInt32)_MPIsFullyInitialized != (UInt32)kUnresolvedCFragSymbolAddress ) &&
               ( _MPIsFullyInitialized () ) )
-   
+
         This checks if the imported symbol _MPIsFullyInitialized is resolved and if resolved
         calls it.  Both parts must succeed for the MP API services to be available.
-   
+
    • If you explicitly prepare the MP API library you MUST:
-   
+
         Use code similar to the following example to tell if the MP API services are available.
         It is not sufficient to depend on just a noErr result from GetSharedLibrary.
-   
+
             OSErr                       err;
             Boolean                     mpIsAvailable           = false;
             CFragConnectionID           connID                  = kInvalidID;
             MPIsFullyInitializedProc    mpIsFullyInitialized    = NULL;
-   
+
             err = GetSharedLibrary  ( "\pMPLibrary", kCompiledCFragArch, kReferenceCFrag,
                                       &connID, NULL, NULL );
-   
+
             if ( err == noErr ) (
                 err = FindSymbol    ( connID, "\p_MPIsFullyInitialized",
                                       (Ptr *) &mpIsFullyInitialized, NULL );
             )
-   
+
             if ( err == noErr ) (
                 mpIsAvailable = (* mpIsFullyInitialized) ();
             )
-   
+
    ===========================================================================================
 }
 
 
 {
  *  _MPIsFullyInitialized()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1874,7 +1874,7 @@ const
 
 {
  *  _MPLibraryVersion()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1905,7 +1905,7 @@ procedure _MPLibraryVersion( versionCString: ConstCStringPtrPtr; major: UInt32Pt
 {$ifc CALL_NOT_IN_CARBON}
 {
  *  _MPAllocateSys()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -1916,7 +1916,7 @@ procedure _MPLibraryVersion( versionCString: ConstCStringPtrPtr; major: UInt32Pt
 { Use MPAllocateAligned instead.}
 {
  *  _MPRPC()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -1927,7 +1927,7 @@ procedure _MPLibraryVersion( versionCString: ConstCStringPtrPtr; major: UInt32Pt
 { Use _MPRemoteCall instead.}
 {
  *  _MPTaskIsToolboxSafe()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -1939,7 +1939,7 @@ procedure _MPLibraryVersion( versionCString: ConstCStringPtrPtr; major: UInt32Pt
 
 {
  *  _MPLibraryIsCompatible()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1962,7 +1962,7 @@ function _MPLibraryIsCompatible( versionCString: ConstCStringPtr; major: UInt32;
 {$ifc MPIncludeDefunctServices}
 {
  *  _MPDebugStr()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -1972,7 +1972,7 @@ function _MPLibraryIsCompatible( versionCString: ConstCStringPtr; major: UInt32;
 
 {
  *  _MPStatusPString()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -1982,7 +1982,7 @@ function _MPLibraryIsCompatible( versionCString: ConstCStringPtr; major: UInt32;
 
 {
  *  _MPStatusCString()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -1994,7 +1994,7 @@ type
 	MPPrintfHandler = procedure( taskID: MPTaskID; format: ConstCStringPtr; args: va_list );
 {
  *  _MPInitializePrintf()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -2004,7 +2004,7 @@ type
 
 {
  *  _MPPrintf()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available

@@ -1,10 +1,10 @@
 {
      File:       CarbonCore/DriverServices.h
- 
+
      Contains:   Driver Services Interfaces.
                  The contents of this header file are deprecated.
                  Use CFAbsoluteTime or mach time routines instead.
- 
+
      Copyright:  © 1985-2011 by Apple Inc. All rights reserved.
 }
 {
@@ -236,7 +236,7 @@ type
 	Nanoseconds = UnsignedWide;
 {
  *  UpTime()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -248,7 +248,7 @@ function UpTime: AbsoluteTime; external name '_UpTime';
 
 {
  *  GetTimeBaseInfo()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -258,7 +258,7 @@ function UpTime: AbsoluteTime; external name '_UpTime';
 
 {
  *  AbsoluteToNanoseconds()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -270,7 +270,7 @@ function AbsoluteToNanoseconds( absoluteTime_: AbsoluteTime ): Nanoseconds; exte
 
 {
  *  AbsoluteToDuration()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -282,7 +282,7 @@ function AbsoluteToDuration( absoluteTime_: AbsoluteTime ): Duration; external n
 
 {
  *  NanosecondsToAbsolute()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -294,7 +294,7 @@ function NanosecondsToAbsolute( nanoseconds_: Nanoseconds ): AbsoluteTime; exter
 
 {
  *  DurationToAbsolute()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -306,7 +306,7 @@ function DurationToAbsolute( duration_: Duration ): AbsoluteTime; external name 
 
 {
  *  AddAbsoluteToAbsolute()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -318,7 +318,7 @@ function AddAbsoluteToAbsolute( absoluteTime1: AbsoluteTime; absoluteTime2: Abso
 
 {
  *  SubAbsoluteFromAbsolute()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -330,7 +330,7 @@ function SubAbsoluteFromAbsolute( leftAbsoluteTime: AbsoluteTime; rightAbsoluteT
 
 {
  *  AddNanosecondsToAbsolute()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -342,7 +342,7 @@ function AddNanosecondsToAbsolute( nanoseconds_: Nanoseconds; absoluteTime_: Abs
 
 {
  *  AddDurationToAbsolute()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -354,7 +354,7 @@ function AddDurationToAbsolute( duration_: Duration; absoluteTime_: AbsoluteTime
 
 {
  *  SubNanosecondsFromAbsolute()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -366,7 +366,7 @@ function SubNanosecondsFromAbsolute( nanoseconds_: Nanoseconds; absoluteTime_: A
 
 {
  *  SubDurationFromAbsolute()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -378,7 +378,7 @@ function SubDurationFromAbsolute( duration_: Duration; absoluteTime_: AbsoluteTi
 
 {
  *  AbsoluteDeltaToNanoseconds()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -390,7 +390,7 @@ function AbsoluteDeltaToNanoseconds( leftAbsoluteTime: AbsoluteTime; rightAbsolu
 
 {
  *  AbsoluteDeltaToDuration()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -402,7 +402,7 @@ function AbsoluteDeltaToDuration( leftAbsoluteTime: AbsoluteTime; rightAbsoluteT
 
 {
  *  DurationToNanoseconds()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -414,7 +414,7 @@ function DurationToNanoseconds( theDuration: Duration ): Nanoseconds; external n
 
 {
  *  NanosecondsToDuration()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later

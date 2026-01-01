@@ -1,17 +1,17 @@
 {
      File:       QD/ATSUnicodeDrawing.h
- 
+
      Contains:   ATSUI drawing, measuring, and highlighting functions.
- 
+
      Version:    Quickdraw-285~150
- 
+
      Copyright:  © 2003-2008 by Apple Inc. all rights reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {  Pascal Translation:  Peter N Lewis, <peter@stairways.com.au>, 2004 }
 {  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
@@ -237,14 +237,14 @@ uses MacTypes,TextCommon,QuickdrawTypes,ATSLayoutTypes,ATSUnicodeTypes;
 
 {
  *  ATSUDrawText()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTFrameDraw, CTLiineDraw, or CTRunDraw instead.
- *  
+ *
  *  Summary:
  *    Draws a specified range of text in a QuickDraw graphics port or
  *    Quartz graphics context.
- *  
+ *
  *  Discussion:
  *    Before calling ATSUDrawText, you will most likely want to call
  *    ATSUSetLayoutControls to set a value for the kATSUCGContextTag
@@ -276,22 +276,22 @@ uses MacTypes,TextCommon,QuickdrawTypes,ATSLayoutTypes,ATSUnicodeTypes;
  *    proper way to achieve Quartz text rendering from ATSUI is to use
  *    the kATSUCGContextTag attribute to specify a CGContextRef in each
  *    ATSUTextLayout before calling ATSUDrawText.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iTextLayout:
  *      A layout containing text to draw.
- *    
+ *
  *    iLineOffset:
  *      The starting offset of the range of text to draw. To specify
  *      the beginning of the text buffer, pass kATSUFromTextBeginning
  *      for this parameter.
- *    
+ *
  *    iLineLength:
  *      The length of the range of text to draw. To specify a range
  *      that continues to the end of the text buffer, pass
  *      kATSUToTextEnd for this parameter.
- *    
+ *
  *    iLocationX:
  *      The x-coordinate of the origin (in either the current graphics
  *      port or Quartz graphics context) of the line containing the
@@ -301,7 +301,7 @@ uses MacTypes,TextCommon,QuickdrawTypes,ATSLayoutTypes,ATSUnicodeTypes;
  *      to this function (see FixMath.h for conversion functions). Pass
  *      the constant kATSUUseGrafPortPenLoc to draw relative to the
  *      current pen location in the current graphics port.
- *    
+ *
  *    iLocationY:
  *      The y-coordinate of the origin (in either the current graphics
  *      port or Quartz graphics context) of the line containing the
@@ -311,11 +311,11 @@ uses MacTypes,TextCommon,QuickdrawTypes,ATSLayoutTypes,ATSUnicodeTypes;
  *      to this function (see FixMath.h for conversion functions). Pass
  *      the constant kATSUUseGrafPortPenLoc to draw relative to the
  *      current pen location in the current graphics port.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -328,15 +328,15 @@ function ATSUDrawText( iTextLayout: ATSUTextLayout; iLineOffset: UniCharArrayOff
 {$ifc not TARGET_CPU_64}
 {
  *  ATSUGetUnjustifiedBounds()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTLineGetTypographicBounds or
  *    CTLineGetTrailingWhitespaceWidth instead.
- *  
+ *
  *  Summary:
  *    Obtains the typographic bounding rectangle for a line of text
  *    prior to final layout.
- *  
+ *
  *  Discussion:
  *    This function calculates the typographic bounds (in coordinates
  *    independent of the rendering device) for a line of text. Note
@@ -355,24 +355,24 @@ function ATSUDrawText( iTextLayout: ATSUTextLayout; iLineOffset: UniCharArrayOff
  *    measuring purposes. If the range of text extends beyond a line,
  *    ATSUGetUnjustifiedBounds ignores soft line breaks, again,
  *    treating the text as a single line.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iTextLayout:
  *      The text layout object to obtain bounds information for.
- *    
+ *
  *    iLineStart:
  *      The start of the line of text to obtain bounds information for.
  *      To indicate that the line starts at the beginning of the text
  *      buffer, you can pass the constant kATSUFromTextBeginning . To
  *      specify the entire text buffer, pass kATSUFromTextBeginning in
  *      this parameter and kATSUToTextEnd in the iLineLength parameter.
- *    
+ *
  *    iLineLength:
  *      The length of the line to obtain bounds information for. If you
  *      want the line to extend to the end of the text buffer, you can
  *      pass the constant kATSUToTextEnd .
- *    
+ *
  *    oTextBefore:
  *      On return, the value specifies the starting point of the
  *      typographic bounds for the line, relative to the origin (0,0)
@@ -382,29 +382,29 @@ function ATSUDrawText( iTextLayout: ATSUTextLayout; iLineOffset: UniCharArrayOff
  *      the initial character of the line is allowed to hang into the
  *      margin. For horizontal text, this value corresponds to the left
  *      side of the bounding rectangle.
- *    
+ *
  *    oTextAfter:
  *      On return, the end point of the typographic bounds for the
  *      line, relative to the origin (0,0) of the line and taking into
  *      account cross-stream shifting. For horizontal text, this value
  *      corresponds to the right side of the bounding rectangle.
- *    
+ *
  *    oAscent:
  *      On return, the typographic bounds for the line, relative to the
  *      origin (0,0) of the line and taking into account cross-stream
  *      shifting. For horizontal text, this value corresponds to the
  *      top side of the bounding rectangle.
- *    
+ *
  *    oDescent:
  *      On return, the typographic bounds for the line, relative to the
  *      origin (0,0) of the line and taking into account cross-stream
  *      shifting. For horizontal text, this value corresponds to the
  *      bottom side of the bounding rectangle.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -416,14 +416,14 @@ function ATSUGetUnjustifiedBounds( iTextLayout: ATSUTextLayout; iLineStart: UniC
 
 {
  *  ATSUMeasureTextImage()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTLineGetImageBounds or CTRunGetImageBounds instead.
- *  
+ *
  *  Summary:
  *    Obtains the image bounding rectangle for a line of text after
  *    final layout.
- *  
+ *
  *  Discussion:
  *    This function obtains the image bounds of a laid-out line of
  *    text. These bounds are described by the smallest rectangle that
@@ -440,25 +440,25 @@ function ATSUGetUnjustifiedBounds( iTextLayout: ATSUTextLayout; iLineStart: UniC
  *    actual device metrics, ATSUMeasureTextImage ignores any
  *    previously set line ascent and descent values for the line it is
  *    measuring.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iTextLayout:
  *      The text layout for which to obtain image bounds.
- *    
+ *
  *    iLineOffset:
  *      The first character of the line to examine. To indicate that
  *      the specified line starts at the beginning of the text buffer,
  *      you can pass the constant kATSUFromTextBeginning . To specify
  *      the entire text buffer, pass kATSUFromTextBeginning in this
  *      parameter and kATSUToTextEnd in the iLineLength parameter.
- *    
+ *
  *    iLineLength:
  *      The length of the text range. If you want the range of text to
  *      extend to the end of the text buffer, you can pass the constant
  *      kATSUToTextEnd . However, the image bounds is restricted to the
  *      line in which iLineOffset resides.
- *    
+ *
  *    iLocationX:
  *      The x-coordinate of the line's origin in the current graphics
  *      port or Quartz graphics context. Pass the constant
@@ -467,7 +467,7 @@ function ATSUGetUnjustifiedBounds( iTextLayout: ATSUTextLayout; iLineStart: UniC
  *      port or graphics context. You can pass 0to obtain only the
  *      dimensions of the bounding rectangle relative to one another,
  *      not their actual onscreen position.
- *    
+ *
  *    iLocationY:
  *      The y-coordinate of the line's origin in the current graphics
  *      port or Quartz graphics context. Pass the constant
@@ -476,17 +476,17 @@ function ATSUGetUnjustifiedBounds( iTextLayout: ATSUTextLayout; iLineStart: UniC
  *      port or graphics context. You can pass 0to obtain only the
  *      dimensions of the bounding rectangle relative to one another,
  *      not their actual onscreen position.
- *    
+ *
  *    oTextImageRect:
  *      On return, the dimensions of the image bounding rectangle for
  *      the text, offset by the values specified in the iLocationX and
  *      iLocationY parameters. If the line is rotated, the sides of the
  *      rectangle are parallel to the coordinate axis.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -500,16 +500,16 @@ function ATSUMeasureTextImage( iTextLayout: ATSUTextLayout; iLineOffset: UniChar
 
 {
  *  ATSUGetGlyphBounds()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTRunGetTypographicBounds, CTLineGetTypographicBounds,
  *    CTFontGetAscent, CTFontGetDescent, CTFontGetLeading, or
  *    CTFontGetUnitsPerEm instead.
- *  
+ *
  *  Summary:
  *    Obtains the typographic bounds of a line of glyphs after final
  *    layout.
- *  
+ *
  *  Discussion:
  *    This function produces the enclosing trapezoid(s) that represent
  *    the typographic bounds for glyphs in a final, laid-out range of
@@ -552,13 +552,13 @@ function ATSUMeasureTextImage( iTextLayout: ATSUTextLayout; iLineOffset: UniChar
  *    ATSUMeasureTextImage. For more infomration about the difference
  *    between typographic and image bounds, please refer to the ATSUI
  *    documentation.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iTextLayout:
  *      The text layout object for which glyph bounds are to be
  *      obtained.
- *    
+ *
  *    iTextBasePointX:
  *      The x-coordinate of the origin of the line containing the
  *      glyphs in the current graphics port or Quartz graphics context.
@@ -567,7 +567,7 @@ function ATSUMeasureTextImage( iTextLayout: ATSUTextLayout; iLineOffset: UniChar
  *      graphics port or graphics context. You may pass 0 to obtain
  *      only the dimensions of the bounds relative to one another, not
  *      their actual onscreen position.
- *    
+ *
  *    iTextBasePointY:
  *      The y-coordinate of the origin of the line containing the
  *      glyphs in the current graphics port or Quartz graphics context.
@@ -576,27 +576,27 @@ function ATSUMeasureTextImage( iTextLayout: ATSUTextLayout; iLineOffset: UniChar
  *      graphics port or graphics context. You may pass 0 to obtain
  *      only the dimensions of the bounds relative to one another, not
  *      their actual onscreen position.
- *    
+ *
  *    iBoundsCharStart:
  *      The offset from the beginning of the text buffer to the
  *      character corresponding to the first glyph to measure. To
  *      indicate that the text range starts at the beginning of the
  *      text buffer, you can pass the constant kATSUFromTextBeginning.
- *    
+ *
  *    iBoundsCharLength:
  *      The length of text range to measure. If you want the range to
  *      extend to the end of the text buffer, you can pass the constant
  *      kATSUToTextEnd.
- *    
+ *
  *    iTypeOfBounds:
  *      The type of bounds you wish to obtain. See ATSLayoutTypes.h for
  *      a list of possible values to pass in here.
- *    
+ *
  *    iMaxNumberOfBounds:
  *      The maximum number of bounding trapezoids to obtain. Typically,
  *      this is equivalent to the number of bounds in the oGlyphBounds
  *      array. To determine this value, see the Discussion.
- *    
+ *
  *    oGlyphBounds:
  *      A pointer to memory you have allocated for an array of
  *      ATSTrapezoid values. On return, the array contains a trapezoid
@@ -609,17 +609,17 @@ function ATSUMeasureTextImage( iTextLayout: ATSUTextLayout; iLineOffset: UniChar
  *      covers an entire line, ATSUGetGlyphBounds always returns only 1
  *      trapezoid. If you are uncertain of how much memory to allocate
  *      for this array, see the Discussion.
- *    
+ *
  *    oActualNumberOfBounds:
  *      On return, the value specifies the actual number of enclosing
  *      trapezoids bounding the specified characters. This may be
  *      greater than the value you provide in the iMaxNumberOfBounds
  *      parameter.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -635,15 +635,15 @@ function ATSUGetGlyphBounds( iTextLayout: ATSUTextLayout; iTextBasePointX: ATSUT
 {$ifc not TARGET_CPU_64}
 {
  *  ATSUBatchBreakLines()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTTypesetterSuggestLineBreak,
  *    CTTypesetterSuggestClusterBreak, or CTTypesetterCreateLine
  *    instead.
- *  
+ *
  *  Summary:
  *    Soft wraps a range of text in a layout to a constant line width.
- *  
+ *
  *  Discussion:
  *    Equivalent to repeatedly calling the ATSUBreakLine function with
  *    the parameter iUseAsSoftLineBreak set to true. Use this function
@@ -654,33 +654,33 @@ function ATSUGetGlyphBounds( iTextLayout: ATSUTextLayout; iTextBasePointX: ATSUT
  *    manipulate the soft breaks that are currently set within a layout
  *    using the functions ATSUGetSoftLineBreaks, ATSUSetSoftLineBreak,
  *    and ATSUClearSoftLineBreaks.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iTextLayout:
  *      The layout containing text to be soft wrapped.
- *    
+ *
  *    iRangeStart:
  *      Beginning offset for the rage of text to be soft wrapped.
- *    
+ *
  *    iRangeLength:
  *      The length of the range of text to be soft wrapped.
- *    
+ *
  *    iLineWidth:
  *      The line width at which to force soft wrapping of text. Note
  *      that this parameter is of type ATSUTextMeasurement, which is
  *      defined as Fixed. See FixMath.h for conversion routines for
  *      fixed point values.
- *    
+ *
  *    oBreakCount:
  *      On return, the number of soft breaks that were set in the
  *      layout. Use this to determine how much memory to allocate when
  *      calling ATSUGetSoftLineBreaks.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -692,15 +692,15 @@ function ATSUBatchBreakLines( iTextLayout: ATSUTextLayout; iRangeStart: UniCharA
 
 {
  *  ATSUBreakLine()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTTypesetterSuggestLineBreak,
  *    CTTypesetterSuggestClusterBreak, or CTTypesetterCreateLine
  *    instead.
- *  
+ *
  *  Summary:
  *    Soft wraps a single line of text within a layout.
- *  
+ *
  *  Discussion:
  *    This function will automatically determine the optimal place to
  *    set a soft break in a given range of text. It suggests a soft
@@ -714,23 +714,23 @@ function ATSUBatchBreakLines( iTextLayout: ATSUTextLayout; iRangeStart: UniCharA
  *    has been soft wrapped. However, for maximum efficiency, you
  *    should use ATSUBatchBreakLines. ATSUBreakLine should only be used
  *    if you have special needs, such as a non-constant line width.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iTextLayout:
  *      The layout containing text to be soft wrapped.
- *    
+ *
  *    iLineStart:
  *      The beginning of the line you wish to soft wrap. To specify the
  *      beginning of the text buffer, pass the constant
  *      kATSUFromTextBeginning.
- *    
+ *
  *    iLineWidth:
  *      The line width at which to force soft wrapping of text. Note
  *      that this parameter is of type ATSUTextMeasurement, which is
  *      defined as Fixed. See FixMath.h for conversion routines for
  *      fixed point values.
- *    
+ *
  *    iUseAsSoftLineBreak:
  *      A Boolean value indicating whether ATSUBreakLine should
  *      automatically set the line break produced in the oLineBreak
@@ -740,7 +740,7 @@ function ATSUBatchBreakLines( iTextLayout: ATSUTextLayout; iRangeStart: UniCharA
  *      iLineStart. You should ususally pass true for this parameter,
  *      unless you plan to use ATSUSetSoftLineBreak to set the soft
  *      break somewhere other than what is suggested by ATSUBreakLine.
- *    
+ *
  *    oLineBreak:
  *      On return, the value specifies the soft line break as
  *      determined by ATSUBreakLine. If the value returned is the same
@@ -749,7 +749,7 @@ function ATSUBatchBreakLines( iTextLayout: ATSUTextLayout; iRangeStart: UniCharA
  *      width specified in iLineWidth is big enough for ATSUBreakLine
  *      to perform line breaking. ATSUBreakLine does not return an
  *      error in this case.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. TSUI usually calculates a soft
  *    line break to be at the beginning of the first word that does ont
@@ -758,7 +758,7 @@ function ATSUBatchBreakLines( iTextLayout: ATSUTextLayout; iRangeStart: UniCharA
  *    code kATSULineBreakInWord. Note that ATSUI produces a line break
  *    in the middle of a word only as a last resort. See MacErrors.h
  *    for other possible error codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -770,15 +770,15 @@ function ATSUBreakLine( iTextLayout: ATSUTextLayout; iLineStart: UniCharArrayOff
 
 {
  *  ATSUSetSoftLineBreak()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTTypesetterSuggestLineBreak,
  *    CTTypesetterSuggestClusterBreak, or CTTypesetterCreateLine
  *    instead.
- *  
+ *
  *  Summary:
  *    Sets a soft line break at the specified point in a text layout.
- *  
+ *
  *  Discussion:
  *    You should typically only call ATSUSetSoftLineBreak to set line
  *    breaks when you are using your own line-breaking algorithm to
@@ -788,20 +788,20 @@ function ATSUBreakLine( iTextLayout: ATSUTextLayout; iLineStart: UniCharArrayOff
  *    the function ATSUGetUnjustifiedBounds to determine whether the
  *    characters still fit within the line, which is necessary due to
  *    end-of-line effects such as swashes.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iTextLayout:
  *      The layout in which to set the soft break.
- *    
+ *
  *    iLineBreak:
  *      An offset into the text buffer specifying the location to set
  *      the soft break at.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -813,16 +813,16 @@ function ATSUSetSoftLineBreak( iTextLayout: ATSUTextLayout; iLineBreak: UniCharA
 
 {
  *  ATSUGetSoftLineBreaks()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTTypesetterSuggestLineBreak,
  *    CTTypesetterSuggestClusterBreak, or CTTypesetterCreateLine
  *    instead.
- *  
+ *
  *  Summary:
  *    Obtains the soft line breaks that are currently set in a given
  *    text range.
- *  
+ *
  *  Discussion:
  *    Typically you use the function ATSUGetSoftLineBreaks by calling
  *    it twice, as follows: (1) Pass valid values for the iTextLayout,
@@ -836,12 +836,12 @@ function ATSUSetSoftLineBreak( iTextLayout: ATSUTextLayout; iLineBreak: UniCharA
  *    have just called ATSUBatchBreakLines, the oBreakCount parameter
  *    will give you the value you would normally obtain from step 1,
  *    allowing you to skip this step in such cases.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iTextLayout:
  *      A text layout to obtain a list of soft breaks from.
- *    
+ *
  *    iRangeStart:
  *      The beginning of the range of text for which to obtain a list
  *      of softbreaks. To indicate that the specified text range starts
@@ -849,33 +849,33 @@ function ATSUSetSoftLineBreak( iTextLayout: ATSUTextLayout; iLineBreak: UniCharA
  *      kATSUFromTextBeginning, To specify the entire text buffer, pass
  *      kATSUFromTextBeginning in this parameter and kATSUToTextEnd in
  *      the iRangeLength parameter.
- *    
+ *
  *    iRangeLength:
  *      The end of the range of text for which to obtain a list of
  *      softbreaks. If you want the range of text to extend to the end
  *      of the text buffer, you can pass the constant kATSUToTextEnd.
- *    
+ *
  *    iMaximumBreaks:
  *      The maximum number of soft line breaks to obtain. Typically,
  *      this is equivalent to the number of UniCharArrayOffset values
  *      for which you have allocated memory in the oBreaks array. To
  *      determine this value, see the Discussion.
- *    
+ *
  *    oBreaks:
  *      On return, the array contains offsets from the beginning of the
  *      text buffer to each of the soft line breaks in the text range.
  *      If you are uncertain of how much memory to allocate for this
  *      array, see the Discussion.
- *    
+ *
  *    oBreakCount:
  *      On return, the number of soft breaks set in iTextLayout. Note
  *      that this value may be greater than what you pass in for
  *      iMaximumBreaks.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -887,25 +887,25 @@ function ATSUGetSoftLineBreaks( iTextLayout: ATSUTextLayout; iRangeStart: UniCha
 
 {
  *  ATSUClearSoftLineBreaks()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTTypesetterSuggestLineBreak,
  *    CTTypesetterSuggestClusterBreak, or CTTypesetterCreateLine
  *    instead.
- *  
+ *
  *  Summary:
  *    Unsets any currently set soft breaks in a range of text.
- *  
+ *
  *  Discussion:
  *    This function clears all previously set soft line breaks for the
  *    specified text range and clears any associated layout caches as
  *    well.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iTextLayout:
  *      The text layout object for which to remove line breaks.
- *    
+ *
  *    iRangeStart:
  *      The beginning of the text range over which to clear soft line
  *      breaks. To indicate that the specified text range starts at the
@@ -913,16 +913,16 @@ function ATSUGetSoftLineBreaks( iTextLayout: ATSUTextLayout; iRangeStart: UniCha
  *      kATSUFromTextBeginning . To specify the entire text buffer,
  *      pass kATSUFromTextBeginning in this parameter and
  *      kATSUToTextEnd in the iRangeLength parameter.
- *    
+ *
  *    iRangeLength:
  *      The length of the text range over which to clear soft line
  *      breaks. If you want the range of text to extend to the end of
  *      the text buffer, you can pass the constant kATSUToTextEnd.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -937,15 +937,15 @@ function ATSUClearSoftLineBreaks( iTextLayout: ATSUTextLayout; iRangeStart: UniC
 { ---------------------------------------------------------------------------- }
 {
  *  ATSUSetHighlightingMethod()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTLineGetOffsetForStringIndex,
  *    CTLineGetStringIndexForPosition instead.
- *  
+ *
  *  Summary:
  *    Specifies the methods ATSUI will use for highlighting and
  *    unhighlighting text in a given layout.
- *  
+ *
  *  Discussion:
  *    By default, ATSUI highlights text by "inverting" the region
  *    containing the text, that is, its background color. Although
@@ -988,28 +988,28 @@ function ATSUClearSoftLineBreaks( iTextLayout: ATSUTextLayout; iRangeStart: UniC
  *    should return false as a function result. If your callback
  *    returns true ATSUI redraws any text that needs to be redrawn. See
  *    RedrawBackgroundProcPtr for additional information.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iTextLayout:
  *      The layout to which this highlight method should be applied.
- *    
+ *
  *    iMethod:
  *      The type of highlighting to use; inversion
  *      (kInvertHighlighting) or redrawing (kRedrawHighlighting). The
  *      default is inversion. If you are happy with that technique
  *      there is no reason to call this function.
- *    
+ *
  *    iUnhighlightData:
  *      Data needed to redraw the background or NULL if inversion is
  *      being chosen. See the definition of ATSUUnhighlightData for
  *      more information about the possible contents of this structure.
  *      Also see the Discussion for this function.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
@@ -1021,15 +1021,15 @@ function ATSUSetHighlightingMethod( iTextLayout: ATSUTextLayout; iMethod: ATSUHi
 
 {
  *  ATSUHighlightText()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTLineGetOffsetForStringIndex,
  *    CTLineGetStringIndexForPosition instead.
- *  
+ *
  *  Summary:
  *    Renders a highlighted range of text at a specified location in a
  *    QuickDraw graphics port or Quartz graphics context.
- *  
+ *
  *  Discussion:
  *    When the user selects a series of glyphs, the characters in
  *    memory corresponding to the glyphs make up the selection range
@@ -1045,26 +1045,26 @@ function ATSUSetHighlightingMethod( iTextLayout: ATSUTextLayout; iMethod: ATSUHi
  *    automatically produces discontinuous highlighting, if needed. You
  *    typically call the ATSUHighlightText function every time you need
  *    to draw or redraw highlighted text.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iTextLayout:
  *      A layout containing text to be highlighted.
- *    
+ *
  *    iTextBasePointX:
  *      The x-coordinate of the origin (in either the current graphics
  *      port or in a Quartz graphics context) of the line containing
  *      the text range. Pass the constant kATSUUseGrafPortPenLoc to
  *      draw relative to the current pen location in the current
  *      graphics port.
- *    
+ *
  *    iTextBasePointY:
  *      The y-coordinate of the origin (in either the current graphics
  *      port or in a Quartz graphics context) of the line containing
  *      the text range. Pass the constant kATSUUseGrafPortPenLoc to
  *      draw relative to the current pen location in the current
  *      graphics port.
- *    
+ *
  *    iHighlightStart:
  *      The first character of the text range to be highlighted. If the
  *      text range spans multiple lines, you should call
@@ -1075,16 +1075,16 @@ function ATSUSetHighlightingMethod( iTextLayout: ATSUTextLayout; iMethod: ATSUHi
  *      kATSUFromTextBeginning. To specify the entire text buffer, pass
  *      kATSUFromTextBeginning in this parameter and kATSUToTextEnd in
  *      the iHighlightLength parameter.
- *    
+ *
  *    iHighlightLength:
  *      The length of the text range to be highlighted. To indicate
  *      that the text range extends to the end of the text buffer, pass
  *      the constant kATSUToTextEnd.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1096,15 +1096,15 @@ function ATSUHighlightText( iTextLayout: ATSUTextLayout; iTextBasePointX: ATSUTe
 
 {
  *  ATSUUnhighlightText()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTLineGetOffsetForStringIndex,
  *    CTLineGetStringIndexForPosition instead.
- *  
+ *
  *  Summary:
  *    Renders a previously highlighted range of text in an
  *    unhighlighted state.
- *  
+ *
  *  Discussion:
  *    This function renders a previously highlighted range of text in
  *    an unhighlighted state. You should always call
@@ -1119,26 +1119,26 @@ function ATSUHighlightText( iTextLayout: ATSUTextLayout; iTextBasePointX: ATSUTe
  *    filling in a solid color, or repainting the background using a
  *    callback. See the function ATSUSetHighlightingMethod and the
  *    definition ATSUUnhighlightData for more information.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iTextLayout:
  *      A layout containing text to be unhighlighted.
- *    
+ *
  *    iTextBasePointX:
  *      The x-coordinate of the origin (in either the current graphics
  *      port or in a Quartz graphics context) of the line containing
  *      the text range. Pass the constant kATSUUseGrafPortPenLoc to
  *      draw relative to the current pen location in the current
  *      graphics port.
- *    
+ *
  *    iTextBasePointY:
  *      The y-coordinate of the origin (in either the current graphics
  *      port or in a Quartz graphics context) of the line containing
  *      the text range. Pass the constant kATSUUseGrafPortPenLoc to
  *      draw relative to the current pen location in the current
  *      graphics port.
- *    
+ *
  *    iHighlightStart:
  *      The first character of the text range to be unhighlighted. If
  *      the text range spans multiple lines, you should call
@@ -1149,16 +1149,16 @@ function ATSUHighlightText( iTextLayout: ATSUTextLayout; iTextBasePointX: ATSUTe
  *      kATSUFromTextBeginning. To specify the entire text buffer, pass
  *      kATSUFromTextBeginning in this parameter and kATSUToTextEnd in
  *      the iHighlightLength parameter.
- *    
+ *
  *    iHighlightLength:
  *      The length of the text range to be unhighlighted. To indicate
  *      that the text range extends to the end of the text buffer, pass
  *      the constant kATSUToTextEnd.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1170,39 +1170,39 @@ function ATSUUnhighlightText( iTextLayout: ATSUTextLayout; iTextBasePointX: ATSU
 
 {
  *  ATSUGetTextHighlight()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTLineGetOffsetForStringIndex,
  *    CTLineGetStringIndexForPosition instead.
- *  
+ *
  *  Summary:
  *    Obtains the highlight region for a range of text.
- *  
+ *
  *  Discussion:
  *    Use this function to obtain the screen region that ATSUI would
  *    normally highlight automatically when ATSUHighlightText is
  *    called. This is useful if you wish to perform your own
  *    highlighting.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iTextLayout:
  *      A layout containing text to be highlighted.
- *    
+ *
  *    iTextBasePointX:
  *      The x-coordinate of the origin (in either the current graphics
  *      port or in a Quartz graphics context) of the line containing
  *      the text range. Pass the constant kATSUUseGrafPortPenLoc to
  *      draw relative to the current pen location in the current
  *      graphics port.
- *    
+ *
  *    iTextBasePointY:
  *      The y-coordinate of the origin (in either the current graphics
  *      port or in a Quartz graphics context) of the line containing
  *      the text range. Pass the constant kATSUUseGrafPortPenLoc to
  *      draw relative to the current pen location in the current
  *      graphics port.
- *    
+ *
  *    iHighlightStart:
  *      The first character of the text range to be highlighted. If the
  *      text range spans multiple lines, you should call
@@ -1213,12 +1213,12 @@ function ATSUUnhighlightText( iTextLayout: ATSUTextLayout; iTextBasePointX: ATSU
  *      kATSUFromTextBeginning. To specify the entire text buffer, pass
  *      kATSUFromTextBeginning in this parameter and kATSUToTextEnd in
  *      the iHighlightLength parameter.
- *    
+ *
  *    iHighlightLength:
  *      The length of the text range to be highlighted. To indicate
  *      that the text range extends to the end of the text buffer, pass
  *      the constant kATSUToTextEnd.
- *    
+ *
  *    oHighlightRegion:
  *      On return, ATSUGetTextHighlight produces a MacRegion structure
  *      containing the highlight region for the specified range of
@@ -1226,11 +1226,11 @@ function ATSUUnhighlightText( iTextLayout: ATSUTextLayout; iTextBasePointX: ATSU
  *      consists of multiple components, with MacRegion.rgnBBox
  *      specifying the bounding box around the entire area of
  *      discontinuous highlighting.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1242,40 +1242,40 @@ function ATSUGetTextHighlight( iTextLayout: ATSUTextLayout; iTextBasePointX: ATS
 
 {
  *  ATSUHighlightInactiveText()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTLineGetOffsetForStringIndex,
  *    CTLineGetStringIndexForPosition  instead.
- *  
+ *
  *  Summary:
  *    Highlights text using the standard Mac OS X UI convention for an
  *    inactive window or UI pane.
- *  
+ *
  *  Discussion:
  *    Use this function to redraw text when a window or UI pane
  *    containing highlighted text becomes inactive. Once the window or
  *    UI pane becomes active again, call ATSUHighlightText to
  *    rehighlight the text in active mode.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iTextLayout:
  *      A layout containing text to be highlighted.
- *    
+ *
  *    iTextBasePointX:
  *      The x-coordinate of the origin (in either the current graphics
  *      port or in a Quartz graphics context) of the line containing
  *      the text range. Pass the constant kATSUUseGrafPortPenLoc to
  *      draw relative to the current pen location in the current
  *      graphics port.
- *    
+ *
  *    iTextBasePointY:
  *      The y-coordinate of the origin (in either the current graphics
  *      port or in a Quartz graphics context) of the line containing
  *      the text range. Pass the constant kATSUUseGrafPortPenLoc to
  *      draw relative to the current pen location in the current
  *      graphics port.
- *    
+ *
  *    iHighlightStart:
  *      The first character of the text range to be highlighted. If the
  *      text range spans multiple lines, you should call
@@ -1286,16 +1286,16 @@ function ATSUGetTextHighlight( iTextLayout: ATSUTextLayout; iTextBasePointX: ATS
  *      kATSUFromTextBeginning. To specify the entire text buffer, pass
  *      kATSUFromTextBeginning in this parameter and kATSUToTextEnd in
  *      the iHighlightLength parameter.
- *    
+ *
  *    iHighlightLength:
  *      The length of the text range to be highlighted. To indicate
  *      that the text range extends to the end of the text buffer, pass
  *      the constant kATSUToTextEnd.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -1312,14 +1312,14 @@ function ATSUHighlightInactiveText( iTextLayout: ATSUTextLayout; iTextBasePointX
 
 {
  *  ATSUPositionToOffset()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTLineGetStringIndexForPosition instead.
- *  
+ *
  *  Summary:
  *    Obtains the memory offset for the glyph edge nearest a mouse-down
  *    event.
- *  
+ *
  *  Discussion:
  *    The process of hit-testing text obtains the location of a
  *    mouse-down event relative both to the position of onscreen glyphs
@@ -1363,12 +1363,12 @@ function ATSUHighlightInactiveText( iTextLayout: ATSUTextLayout; iTextBasePointX
  *    directionality of the closest glyph and the side of the line to
  *    which the input location is closest. In this case, the secondary
  *    offset is equal to the primary offset, since no glyph was hit.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iTextLayout:
  *      The layout object in which the mouse-down event occurred.
- *    
+ *
  *    iLocationX:
  *      The x-coordinate of the event, in local coordinates, relative
  *      to the origin of the line where the event occurred. That is, to
@@ -1378,7 +1378,7 @@ function ATSUHighlightInactiveText( iTextLayout: ATSUTextLayout; iTextBasePointX
  *      kATSUUseGrafPortPenLoc for the location of the mouse-down event
  *      relative to the current pen location in the current graphics
  *      port.
- *    
+ *
  *    iLocationY:
  *      The y-coordinate of the event, in local coordinates, relative
  *      to the origin of the line where the event occurred. That is, to
@@ -1388,7 +1388,7 @@ function ATSUHighlightInactiveText( iTextLayout: ATSUTextLayout; iTextBasePointX
  *      kATSUUseGrafPortPenLoc for the location of the mouse-down event
  *      relative to the current pen location in the current graphics
  *      port.
- *    
+ *
  *    ioPrimaryOffset:
  *      On input, a pointer to a UniCharArrayOffset value specifying
  *      the offset corresponding to the beginning of the line where the
@@ -1397,7 +1397,7 @@ function ATSUHighlightInactiveText( iTextLayout: ATSUTextLayout; iTextBasePointX
  *      event. To determine whether this offset indicates the leading
  *      or trailing edge of the glyph, you can examine the value
  *      produced in the oIsLeading parameter.
- *    
+ *
  *    oIsLeading:
  *      On return, the value indicates whether the offset produced in
  *      the ioPrimaryOffset parameter is leading or trailing. The
@@ -1406,7 +1406,7 @@ function ATSUHighlightInactiveText( iTextLayout: ATSUTextLayout; iTextBasePointX
  *      subsequent character in memory). It produces a value of false
  *      if the offset is trailing (that is, more closely associated
  *      with the preceding character in memory).
- *    
+ *
  *    oSecondaryOffset:
  *      On return, the value typically specifies the same offset as
  *      that produced in the ioPrimaryOffset parameter, unless the
@@ -1414,11 +1414,11 @@ function ATSUHighlightInactiveText( iTextLayout: ATSUTextLayout; iTextBasePointX
  *      boundary. If so, the value specifies a secondary offset. The
  *      secondary offset is associated with the glyph that has a
  *      different direction from the primary line direction.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1431,13 +1431,13 @@ function ATSUPositionToOffset( iTextLayout: ATSUTextLayout; iLocationX: ATSUText
 {$ifc not TARGET_CPU_64}
 {
  *  ATSUOffsetToPosition()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTLineGetStringIndexForPosition instead.
- *  
+ *
  *  Summary:
  *    Obtains the caret position(s) corresponding to a memory offset.
- *  
+ *
  *  Discussion:
  *    This function produces two structures of type ATSUCaret. These
  *    structures contain the pen positioning information needed to draw
@@ -1469,49 +1469,49 @@ function ATSUPositionToOffset( iTextLayout: ATSUTextLayout; iLocationX: ATSUText
  *    context. If the position of the line origin was at (50,50), then
  *    the starting and ending pen locations of the caret would be
  *    (75,50), (75,75).
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iTextLayout:
  *      The layout containing the offset.
- *    
+ *
  *    iOffset:
  *      The offset into the text buffer for which you wish to obtain a
  *      caret position. To respond to a mouse-down event, pass the
  *      offset returned in the ioPrimaryOffset parameter from the
  *      function ATSUPositionToOffset. That is, the offset
  *      corresponding to the glyph edge closest to the event.
- *    
+ *
  *    iIsLeading:
  *      A Boolean value indicating whether the offset corresponds to
  *      the leading or trailing edge of the glyph. You can obtain this
  *      information from the function ATSUPositionToOffset. This value
  *      is relevant if the offset occurs at a line direction boundary
  *      or within a glyph cluster.
- *    
+ *
  *    oMainCaret:
  *      On return, contains the starting and ending pen locations of
  *      the high caret if the value produced in oCaretIsSplit is true.
  *      If the value is false, the structure contains the starting and
  *      ending pen locations of the main caret.
- *    
+ *
  *    oSecondCaret:
  *      On return, contains the starting and ending pen locations of
  *      the low caret if the value passed back in the oCaretIsSplit
  *      parameter is true. If the value is false, the structure
  *      contains the starting and ending pen locations of the main
  *      caret (that is, the same values as the oMainCaret parameter).
- *    
+ *
  *    oCaretIsSplit:
  *      On return, indicates whether the offset specified in the
  *      iOffset parameter occurs at a line direction boundary. If true,
  *      the offset occurs at a line direction boundary; otherwise,
  *      false.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1523,25 +1523,25 @@ function ATSUOffsetToPosition( iTextLayout: ATSUTextLayout; iOffset: UniCharArra
 
 {
  *  ATSUPositionToCursorOffset()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTLineGetOffsetForStringIndex instead.
- *  
+ *
  *  Summary:
  *    Obtains the memory offset for the glyph edge nearest a mouse-down
  *    event, after a move of the specified length.
- *  
+ *
  *  Discussion:
  *    This function produces the memory offset for the glyph edge
  *    nearest a mouse-down event, after a move of the specified length.
  *    This offset corresponds to where an insertion point would be
  *    placed after the move.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iTextLayout:
  *      The layout in which the mouse down event occurred.
- *    
+ *
  *    iLocationX:
  *      The x-coordinate of the event, in local coordinates, relative
  *      to the origin of the line where the event occurred. That is, to
@@ -1551,7 +1551,7 @@ function ATSUOffsetToPosition( iTextLayout: ATSUTextLayout; iOffset: UniCharArra
  *      kATSUUseGrafPortPenLoc for the location of the mouse-down event
  *      relative to the current pen location in the current graphics
  *      port.
- *    
+ *
  *    iLocationY:
  *      The y-coordinate of the event, in local coordinates, relative
  *      to the origin of the line where the event occurred. That is, to
@@ -1561,12 +1561,12 @@ function ATSUOffsetToPosition( iTextLayout: ATSUTextLayout; iOffset: UniCharArra
  *      kATSUUseGrafPortPenLoc for the location of the mouse-down event
  *      relative to the current pen location in the current graphics
  *      port.
- *    
+ *
  *    iMovementType:
  *      A constant specifying the type of cursor movement to use. See
  *      the definition of ATSUCursorMovementType for possible values to
  *      pass for this parameter.
- *    
+ *
  *    ioPrimaryOffset:
  *      On input, the offset corresponding to the beginning of the line
  *      where the event occurred. On return, the offset corresponding
@@ -1575,7 +1575,7 @@ function ATSUOffsetToPosition( iTextLayout: ATSUTextLayout; iOffset: UniCharArra
  *      point would be placed after the move. To determine whether this
  *      offset indicates the leading or trailing edge of the glyph, you
  *      can examine the value produced in the oIsLeading parameter.
- *    
+ *
  *    oIsLeading:
  *      On return, the value indicates whether the offset produced in
  *      the ioPrimaryOffset parameter is leading or trailing. The
@@ -1584,18 +1584,18 @@ function ATSUOffsetToPosition( iTextLayout: ATSUTextLayout; iOffset: UniCharArra
  *      subsequent character in memory). It produces a value of false
  *      if the offset is trailing (that is, more closely associated
  *      with the preceding character in memory).
- *    
+ *
  *    oSecondaryOffset:
  *      On return, the value typically specifies the same offset as
  *      that produced in the ioPrimaryOffset parameter, unless the
  *      event occurred within a glyph cluster or at a line direction
  *      boundary. If so, the value specifies the secondary offset, for
  *      the glyph edge furthest from the event.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.5 and later
@@ -1607,15 +1607,15 @@ function ATSUPositionToCursorOffset( iTextLayout: ATSUTextLayout; iLocationX: AT
 
 {
  *  ATSUOffsetToCursorPosition()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTLineGetOffsetForStringIndex,
  *    CTLineGetStringIndexForPosition instead.
- *  
+ *
  *  Summary:
  *    Obtains the caret position(s) corresponding to a memory offset,
  *    after a move of the specified length.
- *  
+ *
  *  Discussion:
  *    Use this function in conjunction with ATSUPositionToCursorOffset
  *    to determine where to draw the caret after a mouse-down event.
@@ -1623,18 +1623,18 @@ function ATSUPositionToCursorOffset( iTextLayout: ATSUTextLayout; iLocationX: AT
  *    to different parts of the text depending on the type of movement
  *    selected (i.e., words or characters). See the definition of
  *    ATSUCursorMovementType for more information on possible values.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iTextLayout:
  *      The text layout object in which the mouse-down event occurred.
- *    
+ *
  *    iOffset:
  *      The offset corresponding to the glyph edge nearest the event,
  *      after a movement of the specified type. You can obtain this
  *      value by examining the offset produced in the ioPrimaryOffset
  *      parameter of the function ATSUPositionToCursorOffset.
- *    
+ *
  *    iIsLeading:
  *      A Boolean value indicating whether the specified offset
  *      corresponds to the leading or trailing edge of the glyph. You
@@ -1642,19 +1642,19 @@ function ATSUPositionToCursorOffset( iTextLayout: ATSUTextLayout; iLocationX: AT
  *      ATSUPositionToCursorOffset . This value is relevant if the
  *      offset occurs at a line direction boundary or within a glyph
  *      cluster.
- *    
+ *
  *    iMovementType:
  *      A constant specifying the unit of cursor movement. See the
  *      definition of ATSUCursorMovementType for possible values to
  *      pass for this parameter.
- *    
+ *
  *    oMainCaret:
  *      On return, the structure contains the starting and ending pen
  *      locations of the high caret if the value produced in the
  *      oCaretIsSplit parameter is true. If the value is false, the
  *      structure contains the starting and ending pen locations of the
  *      main caret.
- *    
+ *
  *    oSecondCaret:
  *      On return, the structure contains the starting and ending pen
  *      locations of the low caret if the value passed back in the
@@ -1662,17 +1662,17 @@ function ATSUPositionToCursorOffset( iTextLayout: ATSUTextLayout; iLocationX: AT
  *      structure contains the starting and ending pen locations of the
  *      main caret (that is, the same values as the oMainCaret
  *      parameter).
- *    
+ *
  *    oCaretIsSplit:
  *      On return, the value indicates whether the offset specified in
  *      the iOffset parameter occurs at a line direction boundary. If
  *      true, the offset occurs at a line direction boundary;
  *      otherwise, false.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.5 and later
@@ -1687,16 +1687,16 @@ function ATSUOffsetToCursorPosition( iTextLayout: ATSUTextLayout; iOffset: UniCh
 { ---------------------------------------------------------------------------- }
 {
  *  ATSUNextCursorPosition()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTLineGetOffsetForStringIndex,
  *    CTLineGetStringIndexForPosition instead.
- *  
+ *
  *  Summary:
  *    Obtains the memory offset for the insertion point that follows
  *    the current insertion point in storage order, as determined by a
  *    move of the specified length and type.
- *  
+ *
  *  Discussion:
  *    Together with ATSUPreviousCursorPosition, this function allows an
  *    application to "walk" the text buffer in storage order, moving
@@ -1704,27 +1704,27 @@ function ATSUOffsetToCursorPosition( iTextLayout: ATSUTextLayout; iOffset: UniCh
  *    To move through the text buffer in screen order, use the
  *    functions ATSURightwardCursorPosition and
  *    ATSULeftwardCursorPosition.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iTextLayout:
  *      The layout in which to perform the cursor movement.
- *    
+ *
  *    iOldOffset:
  *      The previous cursor position.
- *    
+ *
  *    iMovementType:
  *      A constant specifying the unit of cursor movement. See the
  *      definition of ATSUCursorMovementType for possible values to
  *      pass for this parameter.
- *    
+ *
  *    oNewOffset:
  *      On return, the new cursor position.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1736,16 +1736,16 @@ function ATSUNextCursorPosition( iTextLayout: ATSUTextLayout; iOldOffset: UniCha
 
 {
  *  ATSUPreviousCursorPosition()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTLineGetOffsetForStringIndex,
  *    CTLineGetStringIndexForPosition instead.
- *  
+ *
  *  Summary:
  *    Obtains the memory offset for the insertion point that preceeds
  *    the current insertion point in storage order, as determined by a
  *    move of the specified length and type.
- *  
+ *
  *  Discussion:
  *    Together with ATSUNextCursorPosition, this function allows an
  *    application to "walk" the text buffer in storage order, moving
@@ -1753,27 +1753,27 @@ function ATSUNextCursorPosition( iTextLayout: ATSUTextLayout; iOldOffset: UniCha
  *    To move through the text buffer in screen order, use the
  *    functions ATSURightwardCursorPosition and
  *    ATSULeftwardCursorPosition.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iTextLayout:
  *      The layout in which to perform the cursor movement.
- *    
+ *
  *    iOldOffset:
  *      The previous cursor position.
- *    
+ *
  *    iMovementType:
  *      A constant specifying the unit of cursor movement. See the
  *      definition of ATSUCursorMovementType for possible values to
  *      pass for this parameter.
- *    
+ *
  *    oNewOffset:
  *      On return, the new cursor position.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1785,16 +1785,16 @@ function ATSUPreviousCursorPosition( iTextLayout: ATSUTextLayout; iOldOffset: Un
 
 {
  *  ATSURightwardCursorPosition()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTLineGetOffsetForStringIndex,
  *    CTLineGetStringIndexForPosition instead.
- *  
+ *
  *  Summary:
  *    Obtains the memory offset for the insertion point that is to the
  *    right of the current insertion point, as determined by a move of
  *    the specified length and type.
- *  
+ *
  *  Discussion:
  *    Together with ATSULeftwardCursorPosition, this function allows an
  *    application to "walk" the text buffer in screen order, moving the
@@ -1809,27 +1809,27 @@ function ATSUPreviousCursorPosition( iTextLayout: ATSUTextLayout; iOldOffset: Un
  *    When performing leftward and rightward cursor movement, always
  *    use the caret closest to the previous caret. This maintains
  *    visual order when moving the cursor on screen.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iTextLayout:
  *      The layout in which to perform the cursor movement.
- *    
+ *
  *    iOldOffset:
  *      The previous cursor position.
- *    
+ *
  *    iMovementType:
  *      A constant specifying the unit of cursor movement. See the
  *      definition of ATSUCursorMovementType for possible values to
  *      pass for this parameter.
- *    
+ *
  *    oNewOffset:
  *      On return, the new cursor position.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1841,16 +1841,16 @@ function ATSURightwardCursorPosition( iTextLayout: ATSUTextLayout; iOldOffset: U
 
 {
  *  ATSULeftwardCursorPosition()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTLineGetOffsetForStringIndex,
  *    CTLineGetStringIndexForPosition instead.
- *  
+ *
  *  Summary:
  *    Obtains the memory offset for the insertion point that is to the
  *    left of the current insertion point, as determined by a move of
  *    the specified length and type.
- *  
+ *
  *  Discussion:
  *    Together with ATSURightwardCursorPosition, this function allows
  *    an application to "walk" the text buffer in screen order, moving
@@ -1865,27 +1865,27 @@ function ATSURightwardCursorPosition( iTextLayout: ATSUTextLayout; iOldOffset: U
  *    of a split caret. When performing leftward and rightward cursor
  *    movement, always use the caret closest to the previous caret.
  *    This maintains visual order when moving the cursor on screen.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iTextLayout:
  *      The layout in which to perform the cursor movement.
- *    
+ *
  *    iOldOffset:
  *      The previous cursor position.
- *    
+ *
  *    iMovementType:
  *      A constant specifying the unit of cursor movement. See the
  *      definition of ATSUCursorMovementType for possible values to
  *      pass for this parameter.
- *    
+ *
  *    oNewOffset:
  *      On return, the new cursor position.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1899,14 +1899,14 @@ function ATSULeftwardCursorPosition( iTextLayout: ATSUTextLayout; iOldOffset: Un
 
 {
  *  ATSUMeasureText()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use ATSUGetUnjustifiedBounds instead.
- *  
+ *
  *  Discussion:
  *    This function is no longer recommended. Please use
  *    ATSUGetUnjustifiedBounds instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.3
  *    CarbonLib:        in CarbonLib 1.0 and later

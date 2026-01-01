@@ -220,7 +220,7 @@ type
 	CGLShareGroupRec = record end;
 	CGLShareGroup = ^CGLShareGroupRec;
 	CGLShareGroupObj = ^CGLShareGroupRec;
-	
+
 function CGLGetShareGroup( ctx: CGLContextObj ): CGLShareGroupObj; external name '_CGLGetShareGroup';
 
 {$endc} {TARGET_OS_MAC}

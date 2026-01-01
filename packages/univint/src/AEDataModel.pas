@@ -1,17 +1,17 @@
 {
      File:       AE/AEDataModel.h
- 
+
      Contains:   AppleEvent Data Model Interfaces.
- 
-    
- 
+
+
+
      Copyright:  © 1996-2008 by Apple Computer, Inc., all rights reserved
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {     Pascal Translation Updated:  Gale R Paeper, <gpaeper@empirenet.com>, July 2018 }
 
@@ -358,10 +358,10 @@ const
 	typeKernelProcessID = FourCharCode('kpid');
 	typeMachPort = FourCharCode('port');
 
-	
+
 const
 	typeAuditToken = FourCharCode('tokn');	{ Mac OS X 10.8, returned as keyAuditTokenAttr and is a typedef audit_token_t }
-										 
+
 { Targeting applications by bundle ID is only available in Mac OS X 10.3 or later. }
 const
 	typeApplicationBundleID = FourCharCode('bund');
@@ -445,7 +445,7 @@ const
 	keySOAPMethodNameSpaceURI = FourCharCode('mspu'); { Required namespace URI }
 	keySOAPSchemaVersion = FourCharCode('ssch'); { Optional XML Schema version, defaults to kSOAP1999Schama }
 
-{ 
+{
    When serializing AERecords as SOAP structures, it is possible
    to specify the namespace and type of the structure.  To do this,
    add a keySOAPStructureMetaData record to the top level of the
@@ -466,7 +466,7 @@ const
 	keySOAPSMDNamespaceURI = FourCharCode('ssnu'); { "http://myUri.org/xsd"}
 	keySOAPSMDType = FourCharCode('sstp'); { "MyStructType"}
 
-{ 
+{
  * Web Services Proxy support.  Available only on Mac OS X 10.2 or later.
  * These constants should be added as attributes on the event that is
  * being sent (not part of the direct object.)
@@ -638,7 +638,7 @@ type
 	AECoercePtrUPP = UniversalProcPtr;
 {
  *  NewAECoerceDescUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -649,7 +649,7 @@ function NewAECoerceDescUPP( userRoutine: AECoerceDescProcPtr ): AECoerceDescUPP
 
 {
  *  NewAECoercePtrUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -660,7 +660,7 @@ function NewAECoercePtrUPP( userRoutine: AECoercePtrProcPtr ): AECoercePtrUPP; e
 
 {
  *  DisposeAECoerceDescUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -671,7 +671,7 @@ procedure DisposeAECoerceDescUPP( userUPP: AECoerceDescUPP ); external name '_Di
 
 {
  *  DisposeAECoercePtrUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -682,7 +682,7 @@ procedure DisposeAECoercePtrUPP( userUPP: AECoercePtrUPP ); external name '_Disp
 
 {
  *  InvokeAECoerceDescUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -693,7 +693,7 @@ function InvokeAECoerceDescUPP( const (*var*) fromDesc: AEDesc; toType: DescType
 
 {
  *  InvokeAECoercePtrUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -702,24 +702,24 @@ function InvokeAECoerceDescUPP( const (*var*) fromDesc: AEDesc; toType: DescType
 function InvokeAECoercePtrUPP( typeCode: DescType; dataPtr: {const} UnivPtr; dataSize: Size; toType: DescType; handlerRefcon: SRefCon; var result: AEDesc; userUPP: AECoercePtrUPP ): OSErr; external name '_InvokeAECoercePtrUPP';
 (* __OSX_AVAILABLE_STARTING( __MAC_10_0, __IPHONE_NA ) *)
 
-{ a AECoercionHandlerUPP is by default a AECoerceDescUPP.  If you are registering a 
-    Ptr based coercion handler you will have to add a cast to AECoerceDescUPP from 
+{ a AECoercionHandlerUPP is by default a AECoerceDescUPP.  If you are registering a
+    Ptr based coercion handler you will have to add a cast to AECoerceDescUPP from
     your AECoercePtrUPP type.  A future release of the interfaces will fix this by
     introducing seperate Desc and Ptr coercion handler installation/remove/query routines. }
 type
 	AECoercionHandlerUPP = AECoerceDescUPP;
 {
  *  AEInstallCoercionHandler()
- *  
+ *
  *  Summary:
  *    Installs a coercion handler in either the application or system
  *    coercion handler dispatch table.
- *  
+ *
  *  Discussion:
  *    Before using AEInstallCoercionHandler to install a handler for a
  *    particular descriptor type, you can use the AEGetCoercionHandler
  *    function to determine whether the table already contains a
- *    coercion handler for that type. 
+ *    coercion handler for that type.
  *    Version Notes
  *    See the Version Notes section for the AECoercePtr function for
  *    information on when to use descriptor-based versus pointer-based
@@ -730,30 +730,30 @@ type
  *    - this won't work in Mac OS X. For more information, see "Writing
  *    and Installing Coercion Handlers" in Apple Events Programming
  *    Guide.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Parameters:
- *    
+ *
  *    fromType:
  *      The descriptor type of the data coerced by the handler.
- *    
+ *
  *    toType:
  *      The descriptor type of the resulting data.
  *      If there was already an entry in the specified coercion handler
  *      table for the same source descriptor type and result descriptor
  *      type, the existing entry is replaced.
- *    
+ *
  *    handler:
  *      A universal procedure pointer to the coercion handler function
  *      to install.
- *    
+ *
  *    handlerRefcon:
  *      A reference constant. The Apple Event Manager passes this value
  *      to the handler each time it calls it. If your handler doesn't
  *      require a reference constant, pass 0 for this parameter.
- *    
+ *
  *    fromTypeIsDesc:
  *      Specifies the form of the data to coerce. Pass TRUE if the
  *      coercion handler expects the data as a descriptor or FALSE if
@@ -761,13 +761,13 @@ type
  *      Event Manager can provide a pointer to data more efficiently
  *      than it can provide a descriptor, so all coercion functions
  *      should accept a pointer to data if possible.
- *    
+ *
  *    isSysHandler:
  *      Specifies the coercion table to add the handler to. Pass TRUE
  *      to add the handler to the system coercion table or FALSE to add
  *      the handler to your application's coercion table. Use of the
  *      system coercion table is not recommended.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -779,21 +779,21 @@ function AEInstallCoercionHandler( fromType: DescType; toType: DescType; handler
 
 {
  *  AERemoveCoercionHandler()
- *  
+ *
  *  Discussion:
  *    Removes a coercion handler from a coercion handler dispatch table.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Parameters:
- *    
+ *
  *    fromType:
  *      The descriptor type of the data coerced by the handler.
- *    
+ *
  *    toType:
  *      The descriptor type of the resulting data.
- *    
+ *
  *    handler:
  *      A universal procedure pointer to the coercion handler to
  *      remove. Although the parameters fromType and toType are
@@ -801,13 +801,13 @@ function AEInstallCoercionHandler( fromType: DescType; toType: DescType; handler
  *      handler explicitly as a safeguard. If you pass NULL for this
  *      parameter, the Apple Event Manager relies solely on the event
  *      class and event ID to identify the handler.
- *    
+ *
  *    isSysHandler:
  *      Specifies the coercion table to remove the handler from. Pass
  *      TRUE to remove the handler from the system coercion table or
  *      FALSE to remove the handler from your application's coercion
  *      table. Use of the system coercion table is not recommended.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -819,46 +819,46 @@ function AERemoveCoercionHandler( fromType: DescType; toType: DescType; handler:
 
 {
  *  AEGetCoercionHandler()
- *  
+ *
  *  Discussion:
  *    Gets the coercion handler for a specified descriptor type.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Parameters:
- *    
+ *
  *    fromType:
  *      The descriptor type of the data coerced by the handler.
- *    
+ *
  *    toType:
  *      The descriptor type of the resulting data.
- *    
+ *
  *    handler:
  *      A universal procedure pointer. On return, a pointer to the
  *      specified handler, if a coercion table entry exists that
  *      exactly matches the values supplied in the parameters fromType
  *      and toType. See AECoercionHandlerUPP.
- *    
+ *
  *    handlerRefcon:
  *      A pointer to a reference constant. On return, the reference
  *      constant from the coercion table entry for the specified
  *      coercion handler. The Apple Event Manager passes this reference
  *      constant to the handler each time it calls the handler. The
  *      reference constant may have a value of 0.
- *    
+ *
  *    fromTypeIsDesc:
  *      A pointer to a Boolean value. The AEGetCoercionHandler function
  *      returns a value of TRUE in this parameter if the coercion
  *      handler expects the data as a descriptor or FALSE, if the
  *      coercion handler expects a pointer to the data.
- *    
+ *
  *    isSysHandler:
  *      Specifies the coercion table to get the handler from. Pass TRUE
  *      to get the handler from the system coercion table or FALSE to
  *      get the handler from your application's coercion table. Use of
  *      the system coercion table is not recommended.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -873,28 +873,28 @@ function AEGetCoercionHandler( fromType: DescType; toType: DescType; var handler
 *************************************************************************}
 {
  *  AECoercePtr()
- *  
+ *
  *  Discussion:
  *    Coerces data to a desired descriptor type and creates a
  *    descriptor containing the newly coerced data.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Parameters:
- *    
+ *
  *    typeCode:
  *      The descriptor type of the source data.
- *    
+ *
  *    dataPtr:
  *      A pointer to the data to coerce.
- *    
+ *
  *    dataSize:
  *      The length, in bytes, of the data to coerce.
- *    
+ *
  *    toType:
  *      The desired descriptor type of the resulting descriptor.
- *    
+ *
  *    result:
  *      A pointer to a descriptor. On successful return, a descriptor
  *      containing the coerced data and matching the descriptor type
@@ -902,7 +902,7 @@ function AEGetCoercionHandler( fromType: DescType; toType: DescType; var handler
  *      function returns successfully, your application should call the
  *      AEDisposeDesc function to dispose of the resulting descriptor
  *      after it has finished using it. See AEDesc.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -914,22 +914,22 @@ function AECoercePtr( typeCode: DescType; dataPtr: {const} UnivPtr; dataSize: Si
 
 {
  *  AECoerceDesc()
- *  
+ *
  *  Discussion:
  *    Coerces the data in a descriptor to another descriptor type and
  *    creates a descriptor containing the newly coerced data.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Parameters:
- *    
+ *
  *    theAEDesc:
  *      A pointer to the descriptor containing the data to coerce.
- *    
+ *
  *    toType:
  *      The desired descriptor type of the resulting descriptor.
- *    
+ *
  *    result:
  *      A pointer to a descriptor. On successful return, a descriptor
  *      containing the coerced data and matching the descriptor type
@@ -937,7 +937,7 @@ function AECoercePtr( typeCode: DescType; dataPtr: {const} UnivPtr; dataSize: Si
  *      function returns successfully, your application should call the
  *      AEDisposeDesc function to dispose of the resulting descriptor
  *      after it has finished using it.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -950,27 +950,27 @@ function AECoerceDesc( const (*var*) theAEDesc: AEDesc; toType: DescType; var re
 {*************************************************************************
  The following calls apply to any AEDesc. Every 'result' descriptor is
  created for you, so you will be responsible for memory management
- (including disposing) of the descriptors so created.  
+ (including disposing) of the descriptors so created.
 *************************************************************************}
 { because AEDescs are opaque under Carbon, this AEInitializeDesc provides a
    'clean' way of initializating them to be empty. }
 {
  *  AEInitializeDesc()
- *  
+ *
  *  Discussion:
  *    The function sets the type of the descriptor to typeNull and sets
  *    the data handle to NULL. If you need to initialize a descriptor
  *    that already has some data in it, use AEDisposeDesc to deallocate
  *    the memory and initialize the descriptor.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Parameters:
- *    
+ *
  *    desc:
  *      A pointer to a new descriptor.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.4 and later
@@ -981,10 +981,10 @@ procedure AEInitializeDesc( var desc: AEDesc ); external name '_AEInitializeDesc
 
 {
  *  AECreateDesc()
- *  
+ *
  *  Summary:
  *    Creates a new descriptor that incorporates the specified data.
- *  
+ *
  *  Discussion:
  *    While it is possible to create an Apple event descriptor or a
  *    descriptor list or a descriptor with the AECreateDesc function
@@ -992,24 +992,24 @@ procedure AEInitializeDesc( var desc: AEDesc ); external name '_AEInitializeDesc
  *    list, or descriptor), you typically create these structured
  *    objects with their specific creation routines -
  *    AECreateAppleEvent, AECreateList, or AECreateDesc.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Parameters:
- *    
+ *
  *    typeCode:
  *      The descriptor type for the new descriptor.
- *    
+ *
  *    dataPtr:
  *      A pointer to the data for the new descriptor. This data is
  *      copied into a newly-allocated block of memory for the
  *      descriptor that is created. To minimize copying overhead,
  *      consider using AECreateDescFromExternalPtr.
- *    
+ *
  *    dataSize:
  *      The length, in bytes, of the data for the new descriptor.
- *    
+ *
  *    result:
  *      A pointer to a descriptor. On successful return, a descriptor
  *      that incorporates the data specified by the dataPtr parameter.
@@ -1017,7 +1017,7 @@ procedure AEInitializeDesc( var desc: AEDesc ); external name '_AEInitializeDesc
  *      successfully, your application should call the AEDisposeDesc
  *      function to dispose of the resulting descriptor after it has
  *      finished using it.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1029,10 +1029,10 @@ function AECreateDesc( typeCode: DescType; dataPtr: {const} UnivPtr; dataSize: S
 
 {
  *  AEDisposeDesc()
- *  
+ *
  *  Summary:
  *    Deallocates the memory used by a descriptor.
- *  
+ *
  *  Discussion:
  *    The AEDisposeDesc function deallocates the memory used by a
  *    descriptor. After calling this method, the descriptor becomes an
@@ -1045,17 +1045,17 @@ function AECreateDesc( typeCode: DescType; dataPtr: {const} UnivPtr; dataSize: S
  *    Special Considerations
  *    If the AEDesc might contain an OSL token, dispose of it with
  *    AEDisposeToken.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Parameters:
- *    
+ *
  *    theAEDesc:
  *      A pointer to the descriptor to deallocate. On return, a null
  *      descriptor. If you pass a null descriptor in this parameter,
  *      AEDisposeDesc returns noErr.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1067,10 +1067,10 @@ function AEDisposeDesc( var theAEDesc: AEDesc ): OSErr; external name '_AEDispos
 
 {
  *  AEDuplicateDesc()
- *  
+ *
  *  Summary:
  *    Creates a copy of a descriptor.
- *  
+ *
  *  Discussion:
  *    It is common for applications to send Apple events that have one
  *    or more attributes or parameters in common. For example, if you
@@ -1084,22 +1084,22 @@ function AEDisposeDesc( var theAEDesc: AEDesc ): OSErr; external name '_AEDispos
  *    result code, dispose of the copy by calling AEDisposeDesc. You
  *    can use this approach to prepare structures of type AEDesc,
  *    AEDescList, AERecord, and AppleEvent.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Parameters:
- *    
+ *
  *    theAEDesc:
  *      A pointer to the descriptor to duplicate. See AEDesc.
- *    
+ *
  *    result:
  *      A pointer to a descriptor. On return, the descriptor contains a
  *      copy of the descriptor specified by the theAEDesc parameter. If
  *      the function returns successfully, your application should call
  *      the AEDisposeDesc function to dispose of the resulting
  *      descriptor after it has finished using it.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1124,11 +1124,11 @@ type
 	AEDisposeExternalUPP = AEDisposeExternalProcPtr;
 {
  *  AECreateDescFromExternalPtr()
- *  
+ *
  *  Summary:
  *    Creates a new descriptor that uses a memory buffer supplied by
  *    the caller.
- *  
+ *
  *  Discussion:
  *    This function is different than AECreateDesc, in that it creates
  *    a descriptor that uses the data block provided by the caller "in
@@ -1141,15 +1141,15 @@ type
  *    pass a large image in an Apple event.
  *    You can use the AEGetDescDataRange function to access a specific
  *    section of a large block of data.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Parameters:
- *    
+ *
  *    descriptorType:
  *      The descriptor type for the new descriptor.
- *    
+ *
  *    dataPtr:
  *      A pointer to the data for the new descriptor. The memory that
  *      is pointed to cannot be a Handle (which may move in memory),
@@ -1164,23 +1164,23 @@ type
  *      page boundary. You can get the current page size (4096 on all
  *      current Mac OS X systems) with the getpagesize(3) call. (Type
  *      man 3 getpagesize in a Terminal window for documentation.)
- *    
+ *
  *    dataLength:
  *      The length, in bytes, of the data for the new descriptor.
- *    
+ *
  *    disposeCallback:
  *      A universal procedure pointer to a dispose callback function of
  *      type AEDisposeExternalProcPtr. Your callback function will be
  *      called when the block of memory provided by dataPtr is no
  *      longer needed by the Apple Event Manager. The function can be
  *      called at any time, including during creation of the descriptor.
- *    
+ *
  *    disposeRefcon:
  *      A reference constant the Apple Event Manager passes to the
  *      disposeCallback function whenever it calls the function. If
  *      your dispose function doesn't require a reference constant,
  *      pass 0 for this parameter.
- *    
+ *
  *    theDesc:
  *      A pointer to a descriptor. On successful return, a descriptor
  *      that incorporates the data specified by the dataPtr parameter.
@@ -1188,7 +1188,7 @@ type
  *      successfully, your application should call the AEDisposeDesc
  *      function to dispose of the resulting descriptor after it has
  *      finished using it.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -1197,21 +1197,21 @@ type
 function AECreateDescFromExternalPtr( descriptorType: OSType; dataPtr: {const} UnivPtr; dataLength: Size; disposeCallback: AEDisposeExternalUPP; disposeRefcon: SRefCon; var theDesc: AEDesc ): OSStatus; external name '_AECreateDescFromExternalPtr';
 (* __OSX_AVAILABLE_STARTING( __MAC_10_2, __IPHONE_NA ) *)
 
-	
 
-	
+
+
 	{
 	 *  AECompareDesc()
-	 *  
+	 *
 	 *  Discussion:
 	 *    Compare two AEDesc descriptors and return whether they are
 	 *	  identical or not.
-	 *  
+	 *
 	 *  Mac OS X threading:
 	 *    Thread safe since version 10.8
-	 *  
+	 *
 	 *  Parameters:
-	 *    
+	 *
 	 *    desc1, desc2:
 	 *      A pointer to an AEDesc to be compared.
 	 *
@@ -1227,7 +1227,7 @@ function AECreateDescFromExternalPtr( descriptorType: OSType; dataPtr: {const} U
 	 *  and values and each key/value must match between the two.
 	 *  typeAppleEvents match like typeAERecord and also require that
 	 *	most attributes of the two events are identical.
-	 *  
+	 *
 	 *  Availability:
 	 *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
 	 *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1245,38 +1245,38 @@ function AECompareDesc( const (*var*) desc1: AEDesc; const (*var*) desc2: AEDesc
 *************************************************************************}
 {
  *  AECreateList()
- *  
+ *
  *  Discussion:
  *    Creates an empty descriptor list or Apple event record.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Parameters:
- *    
+ *
  *    factoringPtr:
  *      A pointer to the data at the beginning of each descriptor that
  *      is the same for all descriptors in the list. If there is no
  *      common data, or if you decide not to isolate the common data,
  *      pass NULL as the value of this parameter.
- *    
+ *
  *    factoredSize:
  *      The size of the common data. If there is no common data, or if
  *      you decide not to isolate the common data, pass 0 as the value
  *      of this parameter. (See the Discussion section for more
  *      information.)
- *    
+ *
  *    isRecord:
  *      A Boolean value that specifies the kind of list to create. Pass
  *      a value of TRUE to create an Apple event record (a data
  *      structure of type AERecord) or FALSE to create a descriptor
  *      list.
- *    
+ *
  *    resultList:
  *      A pointer to a descriptor list variable. On successful return,
  *      the descriptor list or Apple event record that the AECreateList
  *      function creates. On error, a null descriptor. See AEDescList.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1288,23 +1288,23 @@ function AECreateList( factoringPtr: {const} UnivPtr; factoredSize: Size; isReco
 
 {
  *  AECountItems()
- *  
+ *
  *  Discussion:
  *    Counts the number of descriptors in a descriptor list.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Parameters:
- *    
+ *
  *    theAEDescList:
  *      A pointer to the descriptor list to count
- *    
+ *
  *    theCount:
  *      A pointer to a count variable. On return, the number of
  *      descriptors in the specified descriptor list.  Currently an
  *      AEDescList is limited to 2^31 items.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1316,20 +1316,20 @@ function AECountItems( const (*var*) theAEDescList: AEDescList; var theCount: SI
 
 {
  *  AEPutPtr()
- *  
+ *
  *  Discussion:
  *    Puts data specified in a buffer to a descriptor list as a
  *    descriptor, possibly replacing an existing descriptor in the list.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Parameters:
- *    
+ *
  *    theAEDescList:
  *      A pointer to the descriptor list to add a descriptor to. See
  *      AEDescList.
- *    
+ *
  *    index:
  *      A one-based positive integer indicating the position to insert
  *      the descriptor at. If there is already a descriptor in the
@@ -1338,16 +1338,16 @@ function AECountItems( const (*var*) theAEDescList: AEDescList; var theCount: SI
  *      AEPutPtr returns an error (AEIllegalIndex) if you pass a
  *      negative number or a value that is out of range. Currently the
  *      upper limit on index is 2^31 items.
- *    
+ *
  *    typeCode:
  *      The descriptor type for the descriptor to be put into the list.
- *    
+ *
  *    dataPtr:
  *      A pointer to the data for the descriptor to add.
- *    
+ *
  *    dataSize:
  *      The length, in bytes, of the data for the descriptor to add.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1359,20 +1359,20 @@ function AEPutPtr( var theAEDescList: AEDescList; index: SIGNEDLONG; typeCode: D
 
 {
  *  AEPutDesc()
- *  
+ *
  *  Discussion:
  *    Adds a descriptor to any descriptor list, possibly replacing an
  *    existing descriptor in the list.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Parameters:
- *    
+ *
  *    theAEDescList:
  *      A pointer to the descriptor list to add a descriptor to. See
  *      AEDescList.
- *    
+ *
  *    index:
  *      A one-based positive integer indicating the position to insert
  *      the descriptor at. If there is already a descriptor in the
@@ -1381,10 +1381,10 @@ function AEPutPtr( var theAEDescList: AEDescList; index: SIGNEDLONG; typeCode: D
  *      AEPutPtr returns an error (AEIllegalIndex) if you pass a
  *      negative number or a value that is out of range. Currently the
  *      upper limit on index is 2^31 items.
- *    
+ *
  *    theAEDesc:
  *      A pointer to the descriptor to add to the list.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1396,28 +1396,28 @@ function AEPutDesc( var theAEDescList: AEDescList; index: SIGNEDLONG; const (*va
 
 {
  *  AEGetNthPtr()
- *  
+ *
  *  Discussion:
  *    Gets a copy of the data from a descriptor at a specified position
  *    in a descriptor list; typically used when your application needs
  *    to work with the extracted data directly.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Parameters:
- *    
+ *
  *    theAEDescList:
  *      A pointer to the descriptor list to add a descriptor to. See
  *      AEDescList.
- *    
+ *
  *    index:
  *      A one-based positive integer indicating the position in the
  *      descriptor list of the descriptor to get the data from.
  *      AEGetNthPtr returns an error if you pass zero, a negative
  *      number, or a value that is out of range. Currently the upper
  *      limit on index is 2^31 items.
- *    
+ *
  *    desiredType:
  *      The desired descriptor type for the copied data. For a list of
  *      AppleScript's predefined descriptor types. If the descriptor
@@ -1426,17 +1426,17 @@ function AEPutDesc( var theAEDescList: AEDescList; index: SIGNEDLONG; const (*va
  *      pass a value of typeWildCard, no coercion is performed, and the
  *      descriptor type of the copied data is the same as the
  *      descriptor type of the original descriptor.
- *    
+ *
  *    theAEKeyword:
  *      A pointer to a keyword or NULL. On return, the keyword for the
  *      specified descriptor, if you are getting data from a list of
  *      keyword-specified descriptors; otherwise, AEGetNthPtr returns
  *      the value typeWildCard.
- *    
+ *
  *    typeCode:
  *      A pointer to a descriptor type or NULL. On return, specifies
  *      the descriptor type of the data pointed to by dataPtr.
- *    
+ *
  *    dataPtr:
  *      A pointer to a buffer, local variable, or other storage
  *      location created and disposed of by your application. The size
@@ -1444,12 +1444,12 @@ function AEPutDesc( var theAEDescList: AEDescList; index: SIGNEDLONG; const (*va
  *      maximumSize parameter. On return, contains the data from the
  *      descriptor at the position in the descriptor list specified by
  *      the index parameter.
- *    
+ *
  *    maximumSize:
  *      The maximum length, in bytes, of the expected data. The
  *      AEGetNthPtr function will not return more data than you specify
  *      in this parameter.
- *    
+ *
  *    actualSize:
  *      A pointer to a size variable or NULL. On return, the length, in
  *      bytes, of the data for the specified descriptor. If this value
@@ -1458,7 +1458,7 @@ function AEPutDesc( var theAEDescList: AEDescList; index: SIGNEDLONG; const (*va
  *      all of the data for the descriptor, though AEGetNthPtr does not
  *      write beyond the end of the buffer. If the buffer was too
  *      small, you can resize it and call AEGetNthPtr again.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1470,29 +1470,29 @@ function AEGetNthPtr( const (*var*) theAEDescList: AEDescList; index: SIGNEDLONG
 
 {
  *  AEGetNthDesc()
- *  
+ *
  *  Discussion:
  *    Copies a descriptor from a specified position in a descriptor
  *    list into a specified descriptor; typically used when your
  *    application needs to pass the extracted data to another function
  *    as a descriptor.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Parameters:
- *    
+ *
  *    theAEDescList:
  *      A pointer to the descriptor list to add a descriptor to. See
  *      AEDescList.
- *    
+ *
  *    index:
  *      A one-based positive integer indicating the position in the
  *      descriptor list of the descriptor to get the data from.
  *      AEGetNthDesc returns an error if you pass zero, a negative
  *      number, or a value that is out of range. Currently the upper
  *      limit on index is 2^31 items.
- *    
+ *
  *    desiredType:
  *      The desired descriptor type for the copied data. For a list of
  *      AppleScript's predefined descriptor types.  If the descriptor
@@ -1501,13 +1501,13 @@ function AEGetNthPtr( const (*var*) theAEDescList: AEDescList; index: SIGNEDLONG
  *      pass a value of typeWildCard, no coercion is performed, and the
  *      descriptor type of the copied data is the same as the
  *      descriptor type of the original descriptor.
- *    
+ *
  *    theAEKeyword:
  *      A pointer to a keyword or NULL. On return, the keyword for the
  *      specified descriptor, if you are getting data from a list of
  *      keyword-specified descriptors; otherwise, AEGetNthDesc returns
  *      the value typeWildCard.
- *    
+ *
  *    result:
  *      A pointer to a descriptor. On successful return, a copy of the
  *      descriptor specified by the index parameter, coerced, if
@@ -1516,7 +1516,7 @@ function AEGetNthPtr( const (*var*) theAEDescList: AEDescList; index: SIGNEDLONG
  *      successfully, your application should call the AEDisposeDesc
  *      function to dispose of the resulting descriptor after it has
  *      finished using it.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1528,35 +1528,35 @@ function AEGetNthDesc( const (*var*) theAEDescList: AEDescList; index: SIGNEDLON
 
 {
  *  AESizeOfNthItem()
- *  
+ *
  *  Discussion:
  *    Gets the data size and descriptor type of the descriptor at a
  *    specified position in a descriptor list.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Parameters:
- *    
+ *
  *    theAEDescList:
  *      A pointer to the descriptor list to add a descriptor to. See
  *      AEDescList.
- *    
+ *
  *    index:
  *      A one-based positive integer indicating the position in the
  *      descriptor list of the descriptor to get the data from.
  *      AESizeOfNthItem returns an error if you pass zero, a negative
  *      number, or a value that is out of range. Currently the upper
  *      limit on index is 2^31 items.
- *    
+ *
  *    typeCode:
  *      A pointer to a descriptor type or NULL. On return, specifies
  *      the descriptor type of the descriptor.
- *    
+ *
  *    dataSize:
  *      A pointer to a size variable or NULL. On return, the length (in
  *      bytes) of the data in the descriptor.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1568,38 +1568,38 @@ function AESizeOfNthItem( const (*var*) theAEDescList: AEDescList; index: SIGNED
 
 {
  *  AEGetArray()
- *  
+ *
  *  Discussion:
  *    Extracts data from an Apple event array created with the
  *    AEPutArray function and stores it as a standard array of fixed
  *    size items in the specified buffer.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Parameters:
- *    
+ *
  *    theAEDescList:
  *      A pointer to the descriptor list to add a descriptor to. See
  *      AEDescList.
- *    
+ *
  *    arrayType:
  *      The Apple event array type to convert. Pass one of the
  *      constants:  kAEDataArray, kAEPackedArray, kAEDescArray,
  *      kAEKeyDescArray
- *    
+ *
  *    arrayPtr:
  *      A pointer to a buffer, allocated and disposed of by your
  *      application, for storing the array. The size in bytes must be
  *      at least as large as the value you pass in the maximumSize
  *      parameter. On return, the buffer contains the array of
  *      fixed-size items.
- *    
+ *
  *    maximumSize:
  *      The maximum length, in bytes, of the expected data. The
  *      AEGetArray function will not return more data than you specify
  *      in this parameter.
- *    
+ *
  *    itemType:
  *      A pointer to a descriptor type. On return, for arrays of type
  *      kAEDataArray, kAEPackedArray, or kAEHandleArray, the descriptor
@@ -1607,7 +1607,7 @@ function AESizeOfNthItem( const (*var*) theAEDescList: AEDescList; index: SIGNED
  *      function doesn't supply a value in itemType for arrays of type
  *      kAEDescArray and kAEKeyDescArray because they may contain
  *      descriptors of different types.
- *    
+ *
  *    itemSize:
  *      A pointer to a size variable. On return, for arrays of type
  *      kAEDataArray or kAEPackedArray, the size (in bytes) of each
@@ -1615,12 +1615,12 @@ function AESizeOfNthItem( const (*var*) theAEDescList: AEDescList; index: SIGNED
  *      arrays of type kAEDescArray, kAEKeyDescArray, or kAEHandleArray
  *      because descriptors and handles (though not the data they point
  *      to) have a known size.
- *    
+ *
  *    itemCount:
  *      A pointer to a size variable. On return, the number of items in
  *      the returned array.  Currently the upper limit on the size of
  *      an array is 2^31 items.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1632,31 +1632,31 @@ function AEGetArray( const (*var*) theAEDescList: AEDescList; arrayType: AEArray
 
 {
  *  AEPutArray()
- *  
+ *
  *  Discussion:
  *    Extracts data from an Apple event array created with the
  *    AEPutArray function and stores it as a standard array of fixed
  *    size items in the specified buffer.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Parameters:
- *    
+ *
  *    theAEDescList:
  *      A pointer to the descriptor list to add a descriptor to. See
  *      AEDescList.
- *    
+ *
  *    arrayType:
  *      The Apple event array type to convert. Pass one of the
  *      constants:  kAEDataArray, kAEPackedArray, kAEDescArray,
  *      kAEKeyDescArray
- *    
+ *
  *    arrayPtr:
  *      A pointer to a buffer, local variable, or other storage
  *      location, created and disposed of by your application, that
  *      contains the array to put into the descriptor list.
- *    
+ *
  *    itemType:
  *      For arrays of type kAEDataArray, kAEPackedArray, or
  *      kAEHandleArray, the descriptor type of the array items to
@@ -1664,19 +1664,19 @@ function AEGetArray( const (*var*) theAEDescList: AEDescList; arrayType: AEArray
  *      don't need to specify an item type for arrays of type
  *      kAEDescArray or kAEKeyDescArray because the data is already
  *      stored in descriptors which contain a descriptor type.
- *    
+ *
  *    itemSize:
  *      For arrays of type kAEDataArray or kAEPackedArray, the size (in
  *      bytes) of the array items to create. You don't need to specify
  *      an item size for arrays of type kAEDescArray, kAEKeyDescArray,
  *      or kAEHandleArray because their descriptors (though not the
  *      data they point to) have a known size.
- *    
+ *
  *    itemCount:
  *      A pointer to a size variable. On return, the number of items in
  *      the returned array.  Currently the upper limit on the size of
  *      an array is 2^31 items.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1688,27 +1688,27 @@ function AEPutArray( var theAEDescList: AEDescList; arrayType: AEArrayType; cons
 
 {
  *  AEDeleteItem()
- *  
+ *
  *  Discussion:
  *    Deletes a descriptor from a descriptor list, causing all
  *    subsequent descriptors to move up one place.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Parameters:
- *    
+ *
  *    theAEDescList:
  *      A pointer to the descriptor list to add a descriptor to. See
  *      AEDescList.
- *    
+ *
  *    index:
  *      A one-based positive integer indicating the position in the
  *      descriptor list of the descriptor to delete. AEDeleteItem
  *      returns an error if you pass zero, a negative number, or a
  *      value that is out of range. Currently the upper limit on index
  *      is 2^31 items.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1722,7 +1722,7 @@ function AEDeleteItem( var theAEDescList: AEDescList; index: SIGNEDLONG ): OSErr
  The following calls apply to AERecord. Since AERecord is a subtype of
  AEDescList, the calls in the previous sections can also be used for
  AERecord an AERecord can be created by using AECreateList with isRecord
- set to true. 
+ set to true.
 *************************************************************************}
 {************************************************************************
  AERecords can have an abitrary descriptorType.  This allows you to
@@ -1730,10 +1730,10 @@ function AEDeleteItem( var theAEDescList: AEDescList; index: SIGNEDLONG ): OSErr
 ***********************************************************************}
 {
  *  AECheckIsRecord()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.4 and later
@@ -1747,40 +1747,40 @@ function AECheckIsRecord( const (*var*) theDesc: AEDesc ): Boolean; external nam
 *************************************************************************}
 {
  *  AECreateAppleEvent()
- *  
+ *
  *  Summary:
  *    Creates an Apple event with several important attributes but no
  *    parameters.
- *  
+ *
  *  Discussion:
  *    The AECreateAppleEvent function creates an empty Apple event. You
  *    can add parameters to the Apple event after you create it with
  *    the functions described in "Adding Parameters and Attributes to
  *    an Apple Event".
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Parameters:
- *    
+ *
  *    theAEEventClass:
  *      The event class of the Apple event to create. This parameter
  *      becomes accessible through the keyEventClassAttr attribute of
  *      the Apple event. Some event classes are described in "Event
  *      Class Constants".
- *    
+ *
  *    theAEEventID:
  *      The event ID of the Apple event to create. This parameter
  *      becomes accessible through the keyEventIDAttr attribute of the
  *      Apple event.
- *    
+ *
  *    target:
  *      A pointer to an address descriptor. Before calling
  *      AECreateAppleEvent, you set the descriptor to identify the
  *      target (or server) application for the Apple event. This
  *      parameter becomes accessible through the keyAddressAttr
  *      attribute of the Apple event.
- *    
+ *
  *    returnID:
  *      The return ID for the created Apple event. If you pass a value
  *      of kAutoGenerateReturnID, the Apple Event Manager assigns the
@@ -1790,7 +1790,7 @@ function AECheckIsRecord( const (*var*) theDesc: AEDesc ): Boolean; external nam
  *      accessible through the keyReturnIDAttr attribute of the Apple
  *      event. The return ID constant is described in "ID Constants for
  *      the AECreateAppleEvent Function".
- *    
+ *
  *    transactionID:
  *      The transaction ID for this Apple event. A transaction is a
  *      sequence of Apple events that are sent back and forth between
@@ -1801,7 +1801,7 @@ function AECheckIsRecord( const (*var*) theDesc: AEDesc ): Boolean; external nam
  *      not one of a series of interdependent Apple events. This
  *      parameter becomes accessible through the keyTransactionIDAttr
  *      attribute of the Apple event.
- *    
+ *
  *    result:
  *      A pointer to an Apple event. On successful return, the new
  *      Apple event. On error, a null descriptor (one with descriptor
@@ -1809,7 +1809,7 @@ function AECheckIsRecord( const (*var*) theDesc: AEDesc ): Boolean; external nam
  *      application should call the AEDisposeDesc function to dispose
  *      of the resulting Apple event after it has finished using it.
  *      See the AppleEvent data type.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1828,34 +1828,34 @@ function AECreateAppleEvent( theAEEventClass: AEEventClass; theAEEventID: AEEven
 *************************************************************************}
 {
  *  AEPutParamPtr()
- *  
+ *
  *  Discussion:
  *    Puts a pointer to data, a descriptor type, and a keyword into an
  *    Apple event or Apple event record as an Apple event parameter.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Parameters:
- *    
+ *
  *    theAppleEvent:
  *      A pointer to the Apple event to add a parameter to. See the
  *      AppleEvent data type.
- *    
+ *
  *    theAEKeyword:
  *      The keyword for the parameter to add. If the Apple event
  *      already includes an parameter with this keyword, the parameter
  *      is replaced.
- *    
+ *
  *    typeCode:
  *      The descriptor type for the parameter to add.
- *    
+ *
  *    dataPtr:
  *      A pointer to the data for the parameter to add.
- *    
+ *
  *    dataSize:
  *      The length, in bytes, of the data for the parameter to add.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1867,28 +1867,28 @@ function AEPutParamPtr( var theAppleEvent: AppleEvent; theAEKeyword: AEKeyword; 
 
 {
  *  AEPutParamDesc()
- *  
+ *
  *  Discussion:
  *    Puts a descriptor and a keyword into an Apple event or Apple
  *    event record as an Apple event parameter.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Parameters:
- *    
+ *
  *    theAppleEvent:
  *      A pointer to the Apple event to add a parameter to.
- *    
+ *
  *    theAEKeyword:
  *      The keyword specifying the parameter to add. If the Apple event
  *      already has a parameter with this keyword, the parameter is
  *      replaced.
- *    
+ *
  *    theAEDesc:
  *      A pointer to the descriptor for the parameter to add. See
  *      AEDesc.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1900,13 +1900,13 @@ function AEPutParamDesc( var theAppleEvent: AppleEvent; theAEKeyword: AEKeyword;
 
 {
  *  AEGetParamPtr()
- *  
+ *
  *  Summary:
  *    Gets a copy of the data for a specified Apple event parameter
  *    from an Apple event or an Apple event record (type AERecord);
  *    typically used when your application needs to work with the
  *    extracted data directly.
- *  
+ *
  *  Discussion:
  *    You should use this function only to extract data from value
  *    descriptors such as typeUTF8Text.
@@ -1929,19 +1929,19 @@ function AEPutParamDesc( var theAppleEvent: AppleEvent; theAEKeyword: AEKeyword;
  *    In some cases, you may get improved efficiency extracting
  *    information from an Apple event with the AEGetDescDataRange
  *    function.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Parameters:
- *    
+ *
  *    theAppleEvent:
  *      A pointer to the Apple event to get the parameter data from.
  *      See AppleEvent.
- *    
+ *
  *    theAEKeyword:
  *      The keyword that specifies the desired Apple event parameter.
- *    
+ *
  *    desiredType:
  *      The desired descriptor type for the copied data. If the
  *      descriptor specified by the theAEKeyword parameter is not of
@@ -1949,7 +1949,7 @@ function AEPutParamDesc( var theAppleEvent: AppleEvent; theAEKeyword: AEKeyword;
  *      this type. However, if the desired type is typeWildCard, no
  *      coercion is performed. On return, you can determine the actual
  *      descriptor type by examining the typeCode parameter.
- *    
+ *
  *    actualType:
  *      A pointer to a descriptor type. On return, specifies the
  *      descriptor type of the data pointed to by dataPtr. The returned
@@ -1957,19 +1957,19 @@ function AEPutParamDesc( var theAppleEvent: AppleEvent; theAEKeyword: AEKeyword;
  *      desiredType parameter or, if the desired type was typeWildcard,
  *      the true type of the descriptor. Specify NULL if you do not
  *      care about this return value.
- *    
+ *
  *    dataPtr:
  *      A pointer to a buffer, local variable, or other storage
  *      location created and disposed of by your application. The size
  *      in bytes must be at least as large as the value you pass in the
  *      maximumSize parameter. On return, contains the parameter data.
  *      Specify NULL if you do not care about this return value.
- *    
+ *
  *    maximumSize:
  *      The maximum length, in bytes, of the expected Apple event
  *      parameter data. The AEGetParamPtr function will not return more
  *      data than you specify in this parameter.
- *    
+ *
  *    actualSize:
  *      A pointer to a variable of type Size. On return, the length, in
  *      bytes, of the data for the specified Apple event parameter. If
@@ -1980,7 +1980,7 @@ function AEPutParamDesc( var theAppleEvent: AppleEvent; theAEKeyword: AEKeyword;
  *      buffer. If the buffer was too small, you can resize it and call
  *      AEGetParamPtr again. Specify NULL if you do not care about this
  *      return value.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1992,13 +1992,13 @@ function AEGetParamPtr( const (*var*) theAppleEvent: AppleEvent; theAEKeyword: A
 
 {
  *  AEGetParamDesc()
- *  
+ *
  *  Summary:
  *    Gets a copy of the descriptor for a keyword-specified Apple event
  *    parameter from an Apple event or an Apple event record (type
  *    AERecord); typically used when your application needs to pass the
  *    extracted data to another function as a descriptor.
- *  
+ *
  *  Discussion:
  *    To get Apple event parameter data for your application to use
  *    directly, call AEGetParamPtr. To get a descriptor for an Apple
@@ -2008,19 +2008,19 @@ function AEGetParamPtr( const (*var*) theAppleEvent: AppleEvent; theAEKeyword: A
  *    record, AEGetParamDesc will only allow you to request it as a
  *    typeAERecord, typeAEList, or typeWildcard. For any other type, it
  *    will return errAECoercionFail.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Parameters:
- *    
+ *
  *    theAppleEvent:
  *      A pointer to the Apple event to get the parameter descriptor
  *      from.
- *    
+ *
  *    theAEKeyword:
  *      A keyword that specifies the desired Apple event parameter.
- *    
+ *
  *    desiredType:
  *      The descriptor type for the desired Apple event parameter. If
  *      the requested Apple event parameter is not of the desired type,
@@ -2029,7 +2029,7 @@ function AEGetParamPtr( const (*var*) theAppleEvent: AppleEvent; theAEKeyword: A
  *      is performed, and the descriptor type of the returned
  *      descriptor is the same as the descriptor type of the Apple
  *      event parameter.
- *    
+ *
  *    result:
  *      A pointer to a descriptor. On successful return, a copy of the
  *      descriptor for the specified Apple event parameter, coerced, if
@@ -2038,7 +2038,7 @@ function AEGetParamPtr( const (*var*) theAppleEvent: AppleEvent; theAEKeyword: A
  *      successfully, your application should call the AEDisposeDesc
  *      function to dispose of the resulting descriptor after it has
  *      finished using it. See AEDesc.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2050,31 +2050,31 @@ function AEGetParamDesc( const (*var*) theAppleEvent: AppleEvent; theAEKeyword: 
 
 {
  *  AESizeOfParam()
- *  
+ *
  *  Discussion:
  *    Gets the size and descriptor type of an Apple event parameter
  *    from a descriptor of type AERecord or AppleEvent.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Parameters:
- *    
+ *
  *    theAppleEvent:
  *      A pointer to the Apple event to get the parameter data from.
  *      See AppleEvent.
- *    
+ *
  *    theAEKeyword:
  *      The keyword that specifies the desired parameter.
- *    
+ *
  *    typeCode:
  *      A pointer to a descriptor type. On return, specifies the
  *      descriptor type of the Apple event parameter.
- *    
+ *
  *    dataSize:
  *      A pointer to a size variable. On return, the length, in bytes,
  *      of the data in the Apple event parameter.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2086,23 +2086,23 @@ function AESizeOfParam( const (*var*) theAppleEvent: AppleEvent; theAEKeyword: A
 
 {
  *  AEDeleteParam()
- *  
+ *
  *  Discussion:
  *    Deletes a keyword-specified parameter from an Apple event or
  *    Apple event record.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Parameters:
- *    
+ *
  *    theAppleEvent:
  *      A pointer to the Apple event or Apple event record to delete
  *      the parameter from.
- *    
+ *
  *    theAEKeyword:
  *      The keyword that specifies the parameter to delete.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2116,17 +2116,17 @@ function AEDeleteParam( var theAppleEvent: AppleEvent; theAEKeyword: AEKeyword )
  The following calls also apply to type AppleEvent. Message attributes are
  far more restricted, and can only be accessed through the following 5
  calls. The various list and record routines cannot be used to access the
- attributes of an event. 
+ attributes of an event.
 *************************************************************************}
 
 {
  *  AEGetAttributePtr()
- *  
+ *
  *  Summary:
  *    Gets a copy of the data for a specified Apple event attribute
  *    from an Apple event; typically used when your application needs
  *    to work with the data directly.
- *  
+ *
  *  Discussion:
  *    To get Apple event attribute data for your application to use
  *    directly, call AEGetAttributePtr. To get a descriptor for an
@@ -2137,18 +2137,18 @@ function AEDeleteParam( var theAppleEvent: AppleEvent; theAEKeyword: AEKeyword )
  *    buffer. However, unless you specify typeWildCard for the
  *    desiredType parameter, AEGetAttributePtr may coerce the data,
  *    which may cause the size of the data to change.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Parameters:
- *    
+ *
  *    theAppleEvent:
  *      A pointer to the Apple event to get the attribute data from.
- *    
+ *
  *    theAEKeyword:
  *      The keyword that specifies the desired attribute.
- *    
+ *
  *    desiredType:
  *      The desired descriptor type for the copied data. If the
  *      descriptor specified by the theAEKeyword parameter is not of
@@ -2158,7 +2158,7 @@ function AEDeleteParam( var theAppleEvent: AppleEvent; theAEKeyword: AEKeyword )
  *      data is the same as the descriptor type of the Apple event
  *      attribute. On return, you can determine the actual descriptor
  *      type by examining the typeCode parameter.
- *    
+ *
  *    typeCode:
  *      A pointer to a descriptor type. On return, specifies the
  *      descriptor type of the attribute data pointed to by dataPtr.
@@ -2167,18 +2167,18 @@ function AEDeleteParam( var theAppleEvent: AppleEvent; theAEKeyword: AEKeyword )
  *      wildcard, the true type of the descriptor. For a list of
  *      AppleScript's predefined descriptor types, see "Descriptor Type
  *      Constants". See DescType.
- *    
+ *
  *    dataPtr:
  *      A pointer to a buffer, local variable, or other storage
  *      location, created and disposed of by your application. The size
  *      in bytes must be at least as large as the value you pass in the
  *      maximumSize parameter. On return, contains the attribute data.
- *    
+ *
  *    maximumSize:
  *      The maximum length, in bytes, of the expected attribute data.
  *      The AEGetAttributePtr function will not return more data than
  *      you specify in this parameter.
- *    
+ *
  *    actualSize:
  *      A pointer to a size variable. On return, the length, in bytes,
  *      of the data for the specified Apple event attribute. If this
@@ -2188,7 +2188,7 @@ function AEDeleteParam( var theAppleEvent: AppleEvent; theAEKeyword: AEKeyword )
  *      AEGetAttributePtr does not write beyond the end of the buffer.
  *      If the buffer was too small, you can resize it and call
  *      AEGetAttributePtr again.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2200,30 +2200,30 @@ function AEGetAttributePtr( const (*var*) theAppleEvent: AppleEvent; theAEKeywor
 
 {
  *  AEGetAttributeDesc()
- *  
+ *
  *  Summary:
  *    Gets a copy of the descriptor for a specified Apple event
  *    attribute from an Apple event; typically used when your
  *    application needs to pass the descriptor on to another function.
- *  
+ *
  *  Discussion:
  *    To get Apple event attribute data for your application to use
  *    directly, call AEGetAttributePtr. To get a descriptor for an
  *    Apple event attribute to pass on to another Apple Event Manager
  *    routine, call AEGetAttributeDesc.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Parameters:
- *    
+ *
  *    theAppleEvent:
  *      A pointer to the Apple event to get the attribute descriptor
  *      from. See AppleEvent.
- *    
+ *
  *    theAEKeyword:
  *      The keyword that specifies the desired attribute.
- *    
+ *
  *    desiredType:
  *      The desired descriptor type for the copied data. If the
  *      descriptor specified by the theAEKeyword parameter is not of
@@ -2233,7 +2233,7 @@ function AEGetAttributePtr( const (*var*) theAppleEvent: AppleEvent; theAEKeywor
  *      data is the same as the descriptor type of the Apple event
  *      attribute. On return, you can determine the actual descriptor
  *      type by examining the typeCode parameter.
- *    
+ *
  *    result:
  *      A pointer to a descriptor. On successful return, a copy of the
  *      specified Apple event attribute, coerced, if necessary, to the
@@ -2242,7 +2242,7 @@ function AEGetAttributePtr( const (*var*) theAppleEvent: AppleEvent; theAEKeywor
  *      application should call the AEDisposeDesc function to dispose
  *      of the resulting descriptor after it has finished using it. See
  *      AEDesc.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2254,30 +2254,30 @@ function AEGetAttributeDesc( const (*var*) theAppleEvent: AppleEvent; theAEKeywo
 
 {
  *  AESizeOfAttribute()
- *  
+ *
  *  Discussion:
  *    Gets the size and descriptor type of an Apple event attribute
  *    from a descriptor of type AppleEvent.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Parameters:
- *    
+ *
  *    theAppleEvent:
  *      A pointer to the Apple event to get the attribute data from.
- *    
+ *
  *    theAEKeyword:
  *      The keyword that specifies the attribute.
- *    
+ *
  *    typeCode:
  *      A pointer to a descriptor type. On return, specifies the
  *      descriptor type of the attribute. Can be NULL.
- *    
+ *
  *    dataSize:
  *      A pointer to a size variable. On return, the length, in bytes,
  *      of the data in the attribute. Can be NULL.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2289,34 +2289,34 @@ function AESizeOfAttribute( const (*var*) theAppleEvent: AppleEvent; theAEKeywor
 
 {
  *  AEPutAttributePtr()
- *  
+ *
  *  Discussion:
  *    Adds a pointer to data, a descriptor type, and a keyword to an
  *    Apple event as an attribute.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Parameters:
- *    
+ *
  *    theAppleEvent:
  *      A pointer to the Apple event to add an attribute to. See the
  *      AppleEvent data type.
- *    
+ *
  *    theAEKeyword:
  *      The keyword for the attribute to add. If the Apple event
  *      already includes an attribute with this keyword, the attribute
  *      is replaced.
- *    
+ *
  *    typeCode:
  *      The descriptor type for the attribute to add.
- *    
+ *
  *    dataPtr:
  *      A pointer to the data for the attribute to add.
- *    
+ *
  *    dataSize:
  *      The length, in bytes, of the data for the attribute to add.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2328,10 +2328,10 @@ function AEPutAttributePtr( var theAppleEvent: AppleEvent; theAEKeyword: AEKeywo
 
 {
  *  AEPutAttributeDesc()
- *  
+ *
  *  Summary:
  *    Adds a descriptor and a keyword to an Apple event as an attribute.
- *  
+ *
  *  Discussion:
  *    The AEPutAttributeDesc function takes a descriptor and a keyword
  *    and adds them to an Apple event as an attribute. If the
@@ -2341,26 +2341,26 @@ function AEPutAttributePtr( var theAppleEvent: AppleEvent; theAEKeyword: AEKeywo
  *    one exception: the Apple Event Manager does not attempt to coerce
  *    the data for an address attribute, thereby allowing applications
  *    to use their own address types.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Parameters:
- *    
+ *
  *    theAppleEvent:
  *      A pointer to the Apple event to add an attribute to. See the
  *      AppleEvent data type.
- *    
+ *
  *    theAEKeyword:
  *      The keyword for the attribute to add. If the Apple event
  *      already includes an attribute with this keyword, the attribute
  *      is replaced.
- *    
+ *
  *    theAEDesc:
  *      A pointer to the descriptor to assign to the attribute. The
  *      descriptor type of the specified descriptor should match the
  *      defined descriptor type for that attribute.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2374,29 +2374,29 @@ function AEPutAttributeDesc( var theAppleEvent: AppleEvent; theAEKeyword: AEKeyw
  AppleEvent Serialization Support
 
     AESizeOfFlattenedDesc, AEFlattenDesc, AEUnflattenDesc
-    
+
     These calls will work for all AppleEvent data types and between different
     versions of the OS (including between Mac OS 9 and X)
-    
+
     Basic types, AEDesc, AEList and AERecord are OK, but AppleEvent records
     themselves may not be reliably flattened for storage.
 *************************************************************************}
 {
  *  AESizeOfFlattenedDesc()
- *  
+ *
  *  Discussion:
  *    Returns the amount of buffer space needed to flatten the AEDesc.
  *    Call this before AEFlattenDesc to make sure your buffer has
  *    enough room for the operation.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Parameters:
- *    
+ *
  *    theAEDesc:
  *      A pointer to the descriptor to be flattened.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.4 and later
@@ -2408,29 +2408,29 @@ function AESizeOfFlattenedDesc( const (*var*) theAEDesc: AEDesc ): Size; externa
 
 {
  *  AEFlattenDesc()
- *  
+ *
  *  Discussion:
  *    Fills a buffer with a flattened representation of the AEDesc and
  *    returns the amount of buffer used in actualSize. If bufferSize
  *    was too small it returns errAEBufferTooSmall (-1741) and does not
  *    fill in any of the buffer. The resulting buffer is only useful
- *    with an AEUnflattenDesc call. 
+ *    with an AEUnflattenDesc call.
  *    Note: if you pass a NULL buffer pointer it returns noErr but
  *    fills in the actualSize field anyway.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Parameters:
- *    
+ *
  *    theAEDesc:
  *      A pointer to the descriptor to be flattened.
- *    
+ *
  *    buffer:
  *      A pointer to memory, allocated by the application, where the
  *      flattened data will be stored. See the bufferSize parameter for
  *      information on how large a buffer you should allocate.
- *    
+ *
  *    bufferSize:
  *      The size of the buffer pointed to by buffer. Prior to calling
  *      AEFlattenDesc, you call the AESizeOfFlattenedDesc function to
@@ -2438,12 +2438,12 @@ function AESizeOfFlattenedDesc( const (*var*) theAEDesc: AEDesc ): Size; externa
  *      operation.
  *      If bufferSize is too small, AEFlattenDesc returns
  *      errAEBufferTooSmall and doesn't store any data in the buffer.
- *    
+ *
  *    actualSize:
  *      A pointer to a size variable. On return, the variable contains
  *      the actual size of the flattened data. You can specify NULL for
  *      this parameter if you do not care about the returned size.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.4 and later
@@ -2455,28 +2455,28 @@ function AEFlattenDesc( const (*var*) theAEDesc: AEDesc; buffer: Ptr; bufferSize
 
 {
  *  AEUnflattenDesc()
- *  
+ *
  *  Discussion:
  *    Allocates an AEDesc (given a Null Desc) given a flattened data
  *    buffer. It assumes it was given a good buffer filled in by
  *    AEFlattenDesc. It returns paramErr if it discovers something
  *    fishy about the buffer.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Parameters:
- *    
+ *
  *    buffer:
  *      A pointer to memory, allocated by the application, that
  *      contains flattened data produced by a previous call to
  *      AEFlattenDesc.
- *    
+ *
  *    result:
  *      A null descriptor. On successful completion, points to a
  *      descriptor created from the flattened data. The caller is
  *      responsible for disposing of the descriptor.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.4 and later
@@ -2497,33 +2497,33 @@ function AEUnflattenDesc( buffer: {const} UnivPtr; var result: AEDesc ): OSStatu
     }
 {
  *  AEGetDescData()
- *  
+ *
  *  Discussion:
  *    Gets the data from the specified descriptor.  AEGetDescData no
  *    longer supports automatic coercion. If you'd like to coerce the
  *    descriptor use AECoerceDesc.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Parameters:
- *    
+ *
  *    theAEDesc:
  *      A pointer to the descriptor to get the data from.
- *    
+ *
  *    dataPtr:
  *      A pointer to a buffer, local variable, or other storage
  *      location created and disposed of by your application. The size
  *      in bytes should be the same as the value you pass in the
  *      maximumSize parameter. On return, contains the data from the
  *      descriptor.
- *    
+ *
  *    maximumSize:
  *      The length, in bytes, of the expected descriptor data. The
  *      AEGetDescData function will not return more data than you
  *      specify in this parameter. You typically determine the maximum
  *      size by calling AEGetDescDataSize.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2535,19 +2535,19 @@ function AEGetDescData( const (*var*) theAEDesc: AEDesc; dataPtr: UnivPtr; maxim
 
 {
  *  AEGetDescDataSize()
- *  
+ *
  *  Discussion:
  *    Gets the size, in bytes, of the data in the specified descriptor.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Parameters:
- *    
+ *
  *    theAEDesc:
  *      A pointer to the descriptor to obtain the data size for. See
  *      AEDesc.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2559,29 +2559,29 @@ function AEGetDescDataSize( const (*var*) theAEDesc: AEDesc ): Size; external na
 
 {
  *  AEReplaceDescData()
- *  
+ *
  *  Discussion:
  *    Copies the specified data into the specified descriptor,
  *    replacing any previous data.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Parameters:
- *    
+ *
  *    typeCode:
  *      Specifies the descriptor type of the data pointed to by dataPtr.
- *    
+ *
  *    dataPtr:
  *      A pointer to the data to store in the specified descriptor.
- *    
+ *
  *    dataSize:
  *      The size, in bytes, of the data pointed to by the dataSize
  *      parameter.
- *    
+ *
  *    theAEDesc:
  *      A pointer to a descriptor. On return, contains the copied data.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2593,36 +2593,36 @@ function AEReplaceDescData( typeCode: DescType; dataPtr: {const} UnivPtr; dataSi
 
 {
  *  AEGetDescDataRange()
- *  
+ *
  *  Discussion:
  *    Retrieve a range of bytes from an AEDesc.  This obviates the need
  *    to retrieve the entire data from the event using AEGetDescData.
  *    This is only valid for data type AEDescs.  If the requested
  *    length and offset are such that they do not fit entirely with the
  *    data of the desc, errAEBufferTooSmall is returned.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Parameters:
- *    
+ *
  *    dataDesc:
  *      A pointer to the descriptor to get the data from.
- *    
+ *
  *    buffer:
  *      A pointer to a buffer, local variable, or other storage
  *      location created and disposed of by your application. The size
  *      in bytes should be at least as large as the value you pass in
  *      the length parameter. On return, contains the specified data
  *      from the descriptor.
- *    
+ *
  *    offset:
  *      The zero-based offset to the data to be retrieved from the
  *      descriptor.
- *    
+ *
  *    length:
  *      The number of bytes of contiguous data to retrieve.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -2633,14 +2633,14 @@ function AEGetDescDataRange( const (*var*) dataDesc: AEDesc; buffer: UnivPtr; of
 
 
 {*************************************************************************
-  A AEEventHandler is installed to process an AppleEvent 
+  A AEEventHandler is installed to process an AppleEvent
 *************************************************************************}
 type
 	AEEventHandlerProcPtr = function( const (*var*) theAppleEvent: AppleEvent; var reply: AppleEvent; handlerRefcon: SRefCon ): OSErr;
 	AEEventHandlerUPP = AEEventHandlerProcPtr;
 {
  *  NewAEDisposeExternalUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -2651,7 +2651,7 @@ function NewAEDisposeExternalUPP( userRoutine: AEDisposeExternalProcPtr ): AEDis
 
 {
  *  NewAEEventHandlerUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2662,7 +2662,7 @@ function NewAEEventHandlerUPP( userRoutine: AEEventHandlerProcPtr ): AEEventHand
 
 {
  *  DisposeAEDisposeExternalUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -2673,7 +2673,7 @@ procedure DisposeAEDisposeExternalUPP( userUPP: AEDisposeExternalUPP ); external
 
 {
  *  DisposeAEEventHandlerUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2684,7 +2684,7 @@ procedure DisposeAEEventHandlerUPP( userUPP: AEEventHandlerUPP ); external name 
 
 {
  *  InvokeAEDisposeExternalUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -2695,7 +2695,7 @@ procedure InvokeAEDisposeExternalUPP( dataPtr: {const} UnivPtr; dataLength: Size
 
 {
  *  InvokeAEEventHandlerUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later

@@ -1,15 +1,15 @@
 {
      File:       OSServices/WSTypes.h
- 
+
      Contains:   *** DEPRECATED *** WebServicesCore Method Invocation API
- 
+
      Copyright:  (c) 2002-2011 Apple Inc. All rights reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {
     Modified for use with Free Pascal
@@ -243,7 +243,7 @@ const
 
 {
  *  WSTypeID
- *  
+ *
  *  Discussion:
  *    Internally, WebServicesCore uses the following enumeration when
  *    serializing between CoreFoundation and XML types. Because CFTypes
@@ -312,7 +312,7 @@ type
 
 {
  *  WSClientContext
- *  
+ *
  *  Discussion:
  *    Several calls in WebServicesCore take a callback with an optional
  *    context pointer.  The context is copied and the info pointer
@@ -367,24 +367,24 @@ var kWSSOAP2001Protocol: CFStringRef; external name '_kWSSOAP2001Protocol'; (* a
 
 {
  *  WSGetWSTypeIDFromCFType()   *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    Returns the WSTypeID associated with CFTypeRef.  There is not a
  *    one to one mapping between CFTypeID and WSTypesID therefore an
  *    actual instance of a CFType must be passed.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    ref:
  *      a CFTypeRef object
- *  
+ *
  *  Result:
  *    the WSTypeID used in serializing the object.  If no WSTypeID
  *    matches, eWSUnknownType is returned.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later but deprecated in 10.8
  *    CarbonLib:        not available
@@ -396,23 +396,23 @@ function WSGetWSTypeIDFromCFType( ref: CFTypeRef ): WSTypeID; external name '_WS
 
 {
  *  WSGetCFTypeIDFromWSTypeID()   *** DEPRECATED ***
- *  
+ *
  *  Discussion:
- *    Returns the CFTypeID that is associated with a given WSTypeID. 
+ *    Returns the CFTypeID that is associated with a given WSTypeID.
  *    CFTypeIDs are only valid during a particular instance of a
  *    process and should not be used as static values.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    typeID:
  *      a WSTypeID constant
- *  
+ *
  *  Result:
  *    a CFTypeID, or 0 if not found
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later but deprecated in 10.8
  *    CarbonLib:        not available

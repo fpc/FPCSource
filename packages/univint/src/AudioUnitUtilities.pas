@@ -15,7 +15,7 @@
 	during the render process.
 
 	The AUEventListener API's extend the AUParameterListener API's by supporting event types
-	other than parameter changes. Events, including parameter changes are delivered serially to the 
+	other than parameter changes. Events, including parameter changes are delivered serially to the
 	listener, preserving the time order of the events and parameter changes.
 
 	There are also some utilities for converting between non-linear and linear value ranges. These
@@ -242,20 +242,20 @@ uses MacTypes,CFBase,CFRunLoop,AUComponent;
 { ============================================================================= }
 
 {!
-    @enum       
+    @enum
     @constant   kAUParameterListener_AnyParameter
                     A wildcard value for an AudioUnitParameterID. Note that this is
                     only valid when sending a notification (with AUParameterListenerNotify),
                     not when registering to receive one.
 }
 const
-	kAUParameterListener_AnyParameter = $FFFFFFFF; 
+	kAUParameterListener_AnyParameter = $FFFFFFFF;
 
 {!
     @enum       AudioUnitEventType
-    
+
     @abstract   Types of Audio Unit Events.
-    
+
     @constant   kAudioUnitEvent_ParameterValueChange
                     The event is a change to a parameter value
     @constant   kAudioUnitEvent_BeginParameterChangeGesture
@@ -274,7 +274,7 @@ const
 	kAudioUnitEvent_ParameterValueChange = 0;
 	kAudioUnitEvent_BeginParameterChangeGesture = 1;
 	kAudioUnitEvent_EndParameterChangeGesture = 2;
-	kAudioUnitEvent_PropertyChange = 3; 
+	kAudioUnitEvent_PropertyChange = 3;
 
 { ============================================================================= }
 
@@ -306,7 +306,7 @@ type
         The type of event.
     @field      mArgument
         Specifies the parameter or property which has changed.
-}  
+}
 type
 	AudioUnitEvent = record
 		mEventType: AudioUnitEventType;
@@ -381,7 +381,7 @@ type
                     immediately, on the thread on which the parameter was changed.
     @param      outListener
                     On successful return, an AUParameterListenerRef.
-    @discussion 
+    @discussion
         Note that only parameter changes issued through AUParameterSet will generate
         notifications to listeners; thus, in most cases, AudioUnit clients should use
         AUParameterSet in preference to AudioUnitSetParameter.
@@ -394,7 +394,7 @@ function AUListenerCreate( inProc: AUParameterListenerProc; inUserData: UnivPtr;
     @abstract   Dispose a parameter listener object.
     @param      inListener
                     The parameter listener to dispose.
-    @discussion 
+    @discussion
 }
 function AUListenerDispose( inListener: AUParameterListenerRef ): OSStatus; external name '_AUListenerDispose';
 (* API_AVAILABLE(macos(10.2), ios(6.0), watchos(2.0), tvos(9.0)) *)
@@ -410,7 +410,7 @@ function AUListenerDispose( inListener: AUParameterListenerRef ): OSStatus; exte
                     parameter changes.
     @param      inParameter
                     The parameter whose value changes are to generate callbacks.
-    @discussion 
+    @discussion
         Associates an arbitrary object (often a user interface widget) with an
         AudioUnitParameter, and delivers notifications to the specified listener, telling it
         that the object needs to be informed of the parameter's value change.
@@ -427,7 +427,7 @@ function AUListenerAddParameter( inListener: AUParameterListenerRef; inObject: U
                     The object which is no longer interested in the value of the parameter.
     @param      inParameter
                     The parameter whose value changes are to stop generating callbacks.
-    @discussion 
+    @discussion
 }
 function AUListenerRemoveParameter( inListener: AUParameterListenerRef; inObject: UnivPtr {__nullable}; const (*var*) inParameter: AudioUnitParameter ): OSStatus; external name '_AUListenerRemoveParameter';
 (* API_AVAILABLE(macos(10.2), ios(6.0), watchos(2.0), tvos(9.0)) *)
@@ -451,7 +451,7 @@ function AUListenerRemoveParameter( inListener: AUParameterListenerRef; inObject
 	@param		inBufferOffsetInFrames
 					The offset into the next rendered buffer at which the parameter change will take
 					effect.
-    @discussion 
+    @discussion
         Calls AudioUnitSetParameter, and performs/schedules notification callbacks to all
         parameter listeners, for that parameter -- except that no callback will be generated to
         the inListener/inObject pair.
@@ -472,10 +472,10 @@ function AUParameterSet( inSendingListener: AUParameterListenerRef {__nullable};
                     receive notifications.
     @param      inParameter
                     The parameter which was changed.
-    @discussion 
+    @discussion
         Performs and schedules the notification callbacks of AUParameterSet, without
         actually setting an AudioUnit parameter value.
-        
+
         Clients scheduling ramped parameter changes to AudioUnits must make this call
         dynamically during playback in order for AudioUnitViews to be updated.  When the view's
         listener receives a notification, it will be passed the current value of the parameter.
@@ -517,7 +517,7 @@ function AUParameterListenerNotify( inSendingListener: AUParameterListenerRef {_
                     parameter change.
     @param      outListener
                     On successful return, an AUEventListenerRef.
-    
+
     @discussion
         See the discussion of AUEventListenerCreateWithDispatchQueue.
 }
@@ -539,7 +539,7 @@ function AUEventListenerCreate( inProc: AUEventListenerProc; inUserData: UnivPtr
 }
 function AUEventListenerAddEventType( inListener: AUEventListenerRef; inObject: UnivPtr {__nullable}; const (*var*) inEvent: AudioUnitEvent ): OSStatus; external name '_AUEventListenerAddEventType';
 (* API_AVAILABLE(macos(10.3), ios(6.0), watchos(2.0), tvos(9.0)) *)
-    
+
 {!
     @function   AUEventListenerRemoveEventType
     @abstract   Stop delivering a particular type of events to a listener.
@@ -552,13 +552,13 @@ function AUEventListenerAddEventType( inListener: AUEventListenerRef; inObject: 
     @result     An OSStatus error code.
 }
 function AUEventListenerRemoveEventType( inListener: AUEventListenerRef; inObject: UnivPtr {__nullable}; const (*var*) inEvent: AudioUnitEvent ): OSStatus; external name '_AUEventListenerRemoveEventType';
-(* API_AVAILABLE(macos(10.3), ios(6.0), watchos(2.0), tvos(9.0)) *)           
+(* API_AVAILABLE(macos(10.3), ios(6.0), watchos(2.0), tvos(9.0)) *)
 
 {!
     @function   AUEventListenerNotify
     @abstract   Deliver an AudioUnitEvent to all listeners registered to receive it.
     @discussion This is only to be used for notifications about parameter changes (and gestures).
-                It can not be used for notifying changes to property values as these are 
+                It can not be used for notifying changes to property values as these are
                 internal to an audio unit and should not be issued outside of the audio unit itself.
     @param      inSendingListener
                     A parameter listener generating the change and which does not want to
@@ -574,7 +574,7 @@ function AUEventListenerRemoveEventType( inListener: AUEventListenerRef; inObjec
 }
 function AUEventListenerNotify( inSendingListener: AUEventListenerRef {__nullable}; inSendingObject: UnivPtr {__nullable}; const (*var*) inEvent: AudioUnitEvent ): OSStatus; external name '_AUEventListenerNotify';
 (* API_AVAILABLE(macos(10.3), ios(6.0), watchos(2.0), tvos(9.0)) *)
-                                    
+
 { ============================================================================= }
 
 {!
@@ -585,7 +585,7 @@ function AUEventListenerNotify( inSendingListener: AUEventListenerRef {__nullabl
 {!
     @function   AUParameterValueFromLinear
     @abstract   Converts a linear value to a parameter value according to the parameter's units.
-    
+
     @param      inLinearValue
                     The linear value (0.0-1.0) to convert.
     @param      inParameter
@@ -593,7 +593,7 @@ function AUEventListenerNotify( inSendingListener: AUEventListenerRef {__nullabl
                     the supplied linear value to a value that is natural to that parameter.
     @result
                 The converted parameter value, in the parameter's natural units.
-    @discussion 
+    @discussion
 }
 function AUParameterValueFromLinear( inLinearValue: Float32 { // 0-1 }; const (*var*) inParameter: AudioUnitParameter ): AudioUnitParameterValue; external name '_AUParameterValueFromLinear';
 (* API_AVAILABLE(macos(10.2), ios(6.0), watchos(2.0), tvos(9.0)) *)
@@ -601,16 +601,16 @@ function AUParameterValueFromLinear( inLinearValue: Float32 { // 0-1 }; const (*
 {!
     @function   AUParameterValueToLinear
     @abstract   Converts a parameter value to a linear value according to the parameter's units.
-    
+
     @param      inParameterValue
                     The value in the natural units of the specified parameter.
-        
+
     @param      inParameter
                     The parameter, including its Audio Unit, that will define the conversion of
                     the supplied parameter value to a corresponding linear value.
     @result
                 A number 0.0-1.0.
-    @discussion 
+    @discussion
 }
 function AUParameterValueToLinear( inParameterValue: AudioUnitParameterValue; const (*var*) inParameter: AudioUnitParameter ): Float32; external name '_AUParameterValueToLinear';
 (* API_AVAILABLE(macos(10.2), ios(6.0), watchos(2.0), tvos(9.0)) *)
@@ -630,7 +630,7 @@ function AUParameterValueToLinear( inParameterValue: AudioUnitParameterValue; co
                     The resolution of the string (see example above).
     @result
                 <tt>inTextBuffer</tt>
-    @discussion 
+    @discussion
         Formats a floating point value into a string.  Computes a power of 10 to which the value
         will be rounded and displayed as follows:  if the the parameter is logarithmic (Hertz),
         the number of significant digits is inDigits - pow10(inParameterValue) + 1.  Otherwise,
@@ -646,7 +646,7 @@ function AUParameterValueToLinear( inParameterValue: AudioUnitParameterValue; co
         2       100-999         0
         3       1000-9990       -1
         4       10000-99900     -2</pre>
-}                              
+}
 function AUParameterFormatValue( inParameterValue: Float64; const (*var*) inParameter: AudioUnitParameter; var inTextBuffer: AnsiChar; inDigits: UInt32 ): CStringPtr; external name '_AUParameterFormatValue';
 (* API_AVAILABLE(macos(10.2), ios(6.0), watchos(2.0), tvos(9.0)) *)
 

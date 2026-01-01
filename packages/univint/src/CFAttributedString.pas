@@ -213,7 +213,7 @@ uses MacTypes,CFBase,CFString,CFDictionary;
 
 
 {! @header CFAttributedString
-Instances of CFAttributedString manage character strings and associated sets of attributes (for example, font and kerning) that apply to individual characters or ranges of characters in the string. CFAttributedString as defined in CoreFoundation provides the basic container functionality, while higher levels provide definitions for standard attributes, their values, and additional behaviors involving these. 
+Instances of CFAttributedString manage character strings and associated sets of attributes (for example, font and kerning) that apply to individual characters or ranges of characters in the string. CFAttributedString as defined in CoreFoundation provides the basic container functionality, while higher levels provide definitions for standard attributes, their values, and additional behaviors involving these.
 
 CFAttributedString is not a "subclass" of CFString; that is, it does not respond to CFString function calls. CFAttributedString conceptually contains a CFString to which it applies attributes. This protects users of attributed strings from ambiguities caused by the semantic differences between simple and attributed strings.
 
@@ -310,7 +310,7 @@ function CFAttributedStringCreateMutable( alloc: CFAllocatorRef; maxLength: CFIn
 (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
 
 {! @function CFAttributedStringReplaceString
-Modifies the string for the attributed string, much like CFStringReplace().  It's an error for range to specify characters outside the bounds of aStr. 
+Modifies the string for the attributed string, much like CFStringReplace().  It's an error for range to specify characters outside the bounds of aStr.
 
 (Note: This function is a convenience on CFAttributedStringGetMutableString(); however, until CFAttributedStringGetMutableString() is implemented, it remains the only way to edit the string of the attributed string.)
 }
@@ -332,7 +332,7 @@ procedure CFAttributedStringSetAttributes( aStr: CFMutableAttributedStringRef; r
 (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
 
 {! @function CFAttributedStringSetAttribute
-Sets the value of a single attribute over the specified range, which should be valid. value should not be NULL. 
+Sets the value of a single attribute over the specified range, which should be valid. value should not be NULL.
 }
 procedure CFAttributedStringSetAttribute( aStr: CFMutableAttributedStringRef; range: CFRange; attrName: CFStringRef; value: CFTypeRef ); external name '_CFAttributedStringSetAttribute';
 (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
@@ -344,19 +344,19 @@ procedure CFAttributedStringRemoveAttribute( aStr: CFMutableAttributedStringRef;
 (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
 
 {! @function CFAttributedStringReplaceAttributedString
-Replaces the attributed substring over the specified range with the attributed string specified in replacement. range should be valid. To delete a range of the attributed string, call CFAttributedStringReplaceString() with empty string and specified range. 
+Replaces the attributed substring over the specified range with the attributed string specified in replacement. range should be valid. To delete a range of the attributed string, call CFAttributedStringReplaceString() with empty string and specified range.
 }
 procedure CFAttributedStringReplaceAttributedString( aStr: CFMutableAttributedStringRef; range: CFRange; replacement: CFAttributedStringRef ); external name '_CFAttributedStringReplaceAttributedString';
 (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
 
 {! @function CFAttributedStringBeginEditing
-In cases where attributed string might do a bunch of work to assure self-consistency, CFAttributedStringBeginEditing/CFAttributedStringEndEditing allow disabling that to allow deferring and coalescing any work. It's a good idea to call these around a set of related mutation calls which don't require the string to be in consistent state in between. These calls can be nested. 
+In cases where attributed string might do a bunch of work to assure self-consistency, CFAttributedStringBeginEditing/CFAttributedStringEndEditing allow disabling that to allow deferring and coalescing any work. It's a good idea to call these around a set of related mutation calls which don't require the string to be in consistent state in between. These calls can be nested.
 }
 procedure CFAttributedStringBeginEditing( aStr: CFMutableAttributedStringRef ); external name '_CFAttributedStringBeginEditing';
 (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
 
 {! @function CFAttributedStringEndEditing
-In cases where attributed string might do a bunch of work to assure self-consistency, CFAttributedStringBeginEditing/CFAttributedStringEndEditing allow disabling that to allow deferring and coalescing any work. It's a good idea to call these around a set of related mutation calls which don't require the string to be in consistent state in between. These calls can be nested. 
+In cases where attributed string might do a bunch of work to assure self-consistency, CFAttributedStringBeginEditing/CFAttributedStringEndEditing allow disabling that to allow deferring and coalescing any work. It's a good idea to call these around a set of related mutation calls which don't require the string to be in consistent state in between. These calls can be nested.
 }
 procedure CFAttributedStringEndEditing( aStr: CFMutableAttributedStringRef ); external name '_CFAttributedStringEndEditing';
 (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)

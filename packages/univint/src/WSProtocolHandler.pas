@@ -1,15 +1,15 @@
 {
      File:       OSServices/WSProtocolHandler.h
- 
+
      Contains:   *** DEPRECATED *** WebServicesCore Method implementation API
- 
+
      Copyright:  (c) 2002-2011 Apple Inc. All rights reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {
     Modified for use with Free Pascal
@@ -232,7 +232,7 @@ uses MacTypes,CFBase,CFArray,CFData,CFDictionary,CFRunLoop,CFXMLNode,WSTypes;
 
 {
  *  WSProtocolHandlerRef
- *  
+ *
  *  Discussion:
  *    a WSProtocolHandlerRef represents an object that translates
  *    dictionaries into web services requests.  Typically, it is used
@@ -250,10 +250,10 @@ type
 
 {
  *  WSProtocolHandlerGetTypeID()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later but deprecated in 10.8
  *    CarbonLib:        not available
@@ -265,27 +265,27 @@ function WSProtocolHandlerGetTypeID: CFTypeID; external name '_WSProtocolHandler
 
 {
  *  WSProtocolHandlerCreate()   *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    Creates a WSProtocolHandlerRef for use in translating an XML
  *    document.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    allocator:
  *      a CFAllocatorRef used to allocate the protocol handler.
- *    
+ *
  *    protocol:
  *      a constant string, defiend in WSMethodInvocation.h, that
  *      determines the type of implementation to create (XML-RPC vs.
  *      SOAP).
- *  
+ *
  *  Result:
  *    a WSProtocolHandlerRef, NULL if a parse error occurred.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later but deprecated in 10.8
  *    CarbonLib:        not available
@@ -297,33 +297,33 @@ function WSProtocolHandlerCreate( allocator: CFAllocatorRef; protocol: CFStringR
 
 {
  *  WSProtocolHandlerCopyRequestDictionary()   *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    Parse an incoming XML document for the method name and
  *    parameters.  The results are in a dictionory as kWSMethodName (a
  *    CFString), kWSMethodParameters (a CFDict) and
  *    kWSMethodParameterOrder (a CFArray). If there was a parse error,
  *    NULL is returned. Protocol specific additions (eg,
- *    kWSSOAPMessageHeaders) may also be present in the dictionary. 
+ *    kWSSOAPMessageHeaders) may also be present in the dictionary.
  *    The dictionary returned also represents the context with which
  *    XML reply documents are created (see
  *    WSProtocolHandlerCreateReply).  The caller must release the
  *    resulting dictionary.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    ref:
  *      the protocol handler to use
- *    
+ *
  *    data:
  *      the XML document to parse
- *  
+ *
  *  Result:
  *    a CFDictionary
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later but deprecated in 10.8
  *    CarbonLib:        not available
@@ -335,32 +335,32 @@ function WSProtocolHandlerCopyRequestDictionary( ref: WSProtocolHandlerRef; data
 
 {
  *  WSProtocolHandlerCopyReplyDictionary()   *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    Parse an incoming XML document as if it were the reply of a
  *    method.  The results are the same as the WSMethodInvocationInvoke
  *    response; that is, the reply could be a fault.  If there was a
  *    parse error, NULL is returned.  Protocol specific additions (eg,
- *    kWSSOAPMessageHeaders) may also be present in the dictionary. 
+ *    kWSSOAPMessageHeaders) may also be present in the dictionary.
  *    The caller must release the resulting dictionary.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    ref:
  *      the protocol handler to use
- *    
+ *
  *    methodName:
  *      the method name corrosponding to this result
- *    
+ *
  *    data:
  *      the XML document to parse
- *  
+ *
  *  Result:
  *    a CFDictionary
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later but deprecated in 10.8
  *    CarbonLib:        not available
@@ -372,30 +372,30 @@ function WSProtocolHandlerCopyReplyDictionary( ref: WSProtocolHandlerRef; method
 
 {
  *  WSProtocolHandlerCopyReplyDocument()   *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    Creates a Reply XML document for a given WSProtocolHandler and
  *    context dictionary.  Protocol specific addtions (eg,
  *    kWSSOAPMessageHeaders) may also be present in the dictionary.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    ref:
  *      the WSProtocolHandler to respond
- *    
+ *
  *    methodContext:
  *      the CFDictionary containing the context for this method call,
  *      as returned by WSProtocolHandlerParseRequest
- *    
+ *
  *    resultValue:
  *      a CFTypeRef representing the reply data to be serialized
- *  
+ *
  *  Result:
  *    a CFDataRef containing the XML response
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later but deprecated in 10.8
  *    CarbonLib:        not available
@@ -407,30 +407,30 @@ function WSProtocolHandlerCopyReplyDocument( ref: WSProtocolHandlerRef; methodCo
 
 {
  *  WSProtocolHandlerCopyFaultDocument()   *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    Creates a Fault XML response for a given WSProtocolHandler and
  *    fault details dictionary
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    ref:
  *      the WSProtocolHandler
- *    
+ *
  *    methodContext:
  *      the CFDictionary containing the context for this method call,
  *      as returned by WSProtocolHandlerParseRequest
- *    
+ *
  *    faultDict:
  *      a CFDictionary containing the fault information.  See
  *      WSMethodInvocation.h for valid keys.
- *  
+ *
  *  Result:
  *    a CFDataRef containing the XML fault
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later but deprecated in 10.8
  *    CarbonLib:        not available
@@ -442,36 +442,36 @@ function WSProtocolHandlerCopyFaultDocument( ref: WSProtocolHandlerRef; methodCo
 
 {
  *  WSProtocolHandlerCopyRequestDocument()   *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    Creates an XML request for a given WSProtocolHandler and
  *    parameter list.  This is the request sent to a server.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    ref:
  *      the WSProtocolHandler
- *    
+ *
  *    methodName:
  *      a CFString of the method name to call
- *    
+ *
  *    methodParams:
  *      a CFDictionary containing the parameters to send
- *    
+ *
  *    methodParamOrder:
  *      a CFArray, which, if not NULL, specifies the order of the
  *      parameters in the CFDictionary
- *    
+ *
  *    methodExtras:
  *      a CFDictionary, which, if not NULL, contains additional
  *      information for the protocol (eg, kWSSoapMessageHeaders)
- *  
+ *
  *  Result:
  *    a CFDataRef
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later but deprecated in 10.8
  *    CarbonLib:        not available
@@ -483,27 +483,27 @@ function WSProtocolHandlerCopyRequestDocument( ref: WSProtocolHandlerRef; method
 
 {
  *  WSProtocolHandlerCopyProperty()   *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    returns a property from a protocol handler.  If the result is
  *    NULL, the property doesn't exist.  Being a "Copy" call, you must
  *    release the result.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    ref:
  *      the implementation
- *    
+ *
  *    propertyName:
  *      the name of the property to retreive
- *  
+ *
  *  Result:
  *    the CFTypeRef value of the property, or NULL if the property was
  *    not specified.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later but deprecated in 10.8
  *    CarbonLib:        not available
@@ -515,24 +515,24 @@ function WSProtocolHandlerCopyProperty( ref: WSProtocolHandlerRef; propertyName:
 
 {
  *  WSProtocolHandlerSetProperty()   *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    Sets a property to a method implementation.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    ref:
  *      the implementation
- *    
+ *
  *    propertyName:
  *      the name of the property to retreive
- *    
+ *
  *    propertyValue:
  *      the value to set in the method implementation
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later but deprecated in 10.8
  *    CarbonLib:        not available
@@ -544,36 +544,36 @@ procedure WSProtocolHandlerSetProperty( ref: WSProtocolHandlerRef; propertyName:
 
 {
     Serialization / Deserialization override support.
-    
+
     You can add serialization and deserialization callbacks for custom
-    types, or types not otherwise handled by the framework. 
+    types, or types not otherwise handled by the framework.
  }
 
 
 {
  *  WSProtocolHandlerSerializationProcPtr
- *  
+ *
  *  Discussion:
  *    Prototypes the callback function for a custom serialization proc.
- *     This callback is called whenever a type has the given CFTypeID. 
+ *     This callback is called whenever a type has the given CFTypeID.
  *    The callback should return an XML snippet that will be understood
  *    by the server as a correct serialization for a given type.  If
  *    the callback returns NULL, the default serializer will be used.
  *    Note for for SOAP serializations, the parameter key (element
  *    name) is not part of the callback; it will be substituded for all
  *    occurances of "%@" in the returned string.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    protocol:
  *      the protocol currently being serialized
- *    
+ *
  *    obj:
  *      the CFTypeRef to be serialized
- *    
+ *
  *    info:
  *      private callback data
- *  
+ *
  *  Result:
  *    a CFStringRef containing valid XML.  The caller of this callback
  *    will release the string.
@@ -581,35 +581,35 @@ procedure WSProtocolHandlerSetProperty( ref: WSProtocolHandlerRef; propertyName:
 type
 	WSProtocolHandlerSerializationProcPtr = function( protocol: WSProtocolHandlerRef; obj: CFTypeRef; info: UnivPtr ): CFStringRef;
 
-	
-	
+
+
 {
  *  WSProtocolHandlerSetSerializationOverride()   *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    Specifies a callback which will be called to produce the XML that
  *    represents the serialization of a given type ref.  See
  *    WSDescription.h for a list of CFTypes for which there currently
  *    exist serializers.  If your callback returns NULL, the default
  *    serializer will be used.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    protocol:
  *      the protocol
- *    
+ *
  *    objType:
  *      the CFTypeID of the object
- *    
+ *
  *    serializationProc:
  *      the callback called
- *    
+ *
  *    context:
  *      a pointer to a WSClientContext.  The structure will be copied.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later but deprecated in 10.8
  *    CarbonLib:        not available
@@ -621,7 +621,7 @@ procedure WSProtocolHandlerSetSerializationOverride( protocol: WSProtocolHandler
 
 {
  *  WSProtocolHandlerDeserializationProcPtr
- *  
+ *
  *  Discussion:
  *    Prototypes the callback function for a custom deserializer.  This
  *    callback is passed a reference to the protocol element currently
@@ -630,21 +630,21 @@ procedure WSProtocolHandlerSetSerializationOverride( protocol: WSProtocolHandler
  *    return result should be a valid CFTypeRef object (which will be
  *    released by the caller) or NULL to allow the default deserializer
  *    to act.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    protocol:
  *      the protocol executing
- *    
+ *
  *    msgRoot:
  *      the root tree element
- *    
+ *
  *    deserializeRoot:
  *      the tree element that needs to be deserialied
- *    
+ *
  *    info:
  *      private callback data
- *  
+ *
  *  Result:
  *    a CFTypeRef representing the deserialized data, or NULL to allow
  *    the default deserializers to act.
@@ -652,39 +652,39 @@ procedure WSProtocolHandlerSetSerializationOverride( protocol: WSProtocolHandler
 type
 	WSProtocolHandlerDeserializationProcPtr = function( protocol: WSProtocolHandlerRef; msgRoot: CFXMLTreeRef; deserializeRoot: CFXMLTreeRef; info: UnivPtr ): CFTypeRef;
 
-	
-	
+
+
 {
  *  WSProtocolHandlerSetDeserializationOverride()   *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    Specifies a callback to be made when parsing an XML method
  *    response.  The callback should return a CFTypeRef containing the
  *    deserialized object value.  If the callback returns NULL, the
  *    default deserializer will be used.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    protocol:
  *      the protocol
- *    
+ *
  *    typeNamespace:
  *      the fully resolved namespace for a specific type.  If NULL, the
  *      default namespace will be used.  For example, this field could
  *      be: CFSTR("http://www.w3.org/2001/XMLSchema-instance").
- *    
+ *
  *    typeName:
  *      the non-qualified type name.  This parameter must not be NULL.
- *    
+ *
  *    deserializationProc:
  *      a ProcPtr to be called to perform the deserialization
- *    
+ *
  *    context:
  *      a pointer to a WSClientContext.  The structure will be copied.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later but deprecated in 10.8
  *    CarbonLib:        not available

@@ -261,7 +261,7 @@ type
                 If this parameter is not a pointer to a function of the correct
                 prototype, the behavior is undefined.  The value may be NULL.
         @field release The calllback used to remove a retain previously added
-                for the info field.  If this parameter is not a pointer to a 
+                for the info field.  If this parameter is not a pointer to a
                 function of the correct prototype, the behavior is undefined.
                 The value may be NULL.
         @field copyDescription The callback used to provide a description of
@@ -272,7 +272,7 @@ type
 		version: CFIndex;
 		info: UnivPtr;
 		retain: CFTreeRetainCallBack;
-		release: CFTreeReleaseCallBack;	
+		release: CFTreeReleaseCallBack;
 		copyDescription: CFTreeCopyDescriptionCallBack;
 	end;
 	CFTreeContextPtr = ^CFTreeContext;
@@ -311,11 +311,11 @@ function CFTreeGetTypeID: CFTypeID; external name '_CFTreeGetTypeID';
                 parameter may be NULL in which case the current default
                 CFAllocator is used.  If this reference is not a valid
                 CFAllocator, the behavior is undefined.
-        @param context A C pointer to a CFTreeContext structure to be copied 
+        @param context A C pointer to a CFTreeContext structure to be copied
                 and used as the context of the new tree.  The info parameter
                 will be retained by the tree if a retain function is provided.
-                If this value is not a valid C pointer to a CFTreeContext 
-                structure-sized block of storage, the result is undefined. 
+                If this value is not a valid C pointer to a CFTreeContext
+                structure-sized block of storage, the result is undefined.
                 If the version number of the storage is not a valid CFTreeContext
                 version number, the result is undefined.
         @result A reference to the new CFTree.
@@ -389,7 +389,7 @@ function CFTreeGetChildAtIndex( tree: CFTreeRef; idx: CFIndex ): CFTreeRef; exte
         @param tree The tree to be queried.  If this parameter is not a valid
                 CFTree, the behavior is undefined.
 	@param children A C array of pointer-sized values to be filled with
-		children from the tree.  If this parameter is not a valid pointer to a 
+		children from the tree.  If this parameter is not a valid pointer to a
                 C array of at least CFTreeGetChildCount() pointers, the behavior is undefined.
         @result A reference to the specified child tree.
 }
@@ -403,7 +403,7 @@ procedure CFTreeGetChildren( tree: CFTreeRef; var children: CFTreeRef ); externa
         @param heap The tree to be operated upon.  If this parameter is not a
 		valid CFTree, the behavior is undefined.
 	@param applier The callback function to call once for each child of
-		the given tree.  If this parameter is not a pointer to a 
+		the given tree.  If this parameter is not a pointer to a
                 function of the correct prototype, the behavior is undefined.
                 If there are values in the tree which the applier function does
                 not expect or cannot properly apply to, the behavior is undefined.
@@ -430,11 +430,11 @@ function CFTreeFindRoot( tree: CFTreeRef ): CFTreeRef; external name '_CFTreeFin
         info of the previous context, and retains the info of the new context.
         @param tree The tree to be operated on.  If this parameter is not a valid
                 CFTree, the behavior is undefined.
-        @param context A C pointer to a CFTreeContext structure to be copied 
+        @param context A C pointer to a CFTreeContext structure to be copied
                 and used as the context of the new tree.  The info parameter
                 will be retained by the tree if a retain function is provided.
-                If this value is not a valid C pointer to a CFTreeContext 
-                structure-sized block of storage, the result is undefined. 
+                If this value is not a valid C pointer to a CFTreeContext
+                structure-sized block of storage, the result is undefined.
                 If the version number of the storage is not a valid CFTreeContext
                 version number, the result is undefined.
 }
@@ -474,7 +474,7 @@ procedure CFTreeAppendChild( tree: CFTreeRef; newChild: CFTreeRef ); external na
         @param newSibling The sibling to be added.
                 If this parameter is not a valid CFTree, the behavior is undefined.
                 If this parameter is a tree which is already a child of any tree,
-                the behavior is undefined.  
+                the behavior is undefined.
 }
 procedure CFTreeInsertSibling( tree: CFTreeRef; newSibling: CFTreeRef ); external name '_CFTreeInsertSibling';
 
@@ -503,7 +503,7 @@ procedure CFTreeRemoveAllChildren( tree: CFTreeRef ); external name '_CFTreeRemo
 		signature which is used in the sort operation to compare
 		children of the tree with the given value. If this parameter
 		is not a pointer to a function of the correct prototype, the
-		the behavior is undefined. The children of the tree are sorted 
+		the behavior is undefined. The children of the tree are sorted
                 from least to greatest according to this function.
 	@param context A pointer-sized user-defined value, which is passed
 		as the third parameter to the comparator function, but is

@@ -274,7 +274,7 @@ function CGEventCreateMouseEvent( source: CGEventSourceRef; mouseType: CGEventTy
 
 function CGEventCreateKeyboardEvent( source: CGEventSourceRef; virtualKey: CGKeyCode; keyDown: CBool ): CGEventRef; external name '_CGEventCreateKeyboardEvent';
 (* CG_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_NA) *)
-                                                 
+
 { Return a new scrollwheel event.
 
    The event source may be taken from another event, or may be NULL. The
@@ -290,7 +290,7 @@ function CGEventCreateKeyboardEvent( source: CGEventSourceRef; virtualKey: CGKey
    line. The scale between the two is about 10 pixels per line by default.
    The scale can be altered by setting a custom value for the event source,
    using `CGEventSourceSetPixelsPerLine'. }
- 
+
 function CGEventCreateScrollWheelEvent( source: CGEventSourceRef; units: CGScrollEventUnit; wheelCount: UInt32; wheel1: SInt32; ... ): CGEventRef; external name '_CGEventCreateScrollWheelEvent';
 (* CG_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 
@@ -298,7 +298,7 @@ function CGEventCreateScrollWheelEvent( source: CGEventSourceRef; units: CGScrol
 
 function CGEventCreateCopy( event: CGEventRef ): CGEventRef; external name '_CGEventCreateCopy';
 (* CG_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_NA) *)
-{ 
+{
  * CFRetain() and CFRelease() may be used to retain and release CGEventRefs.
  }
 

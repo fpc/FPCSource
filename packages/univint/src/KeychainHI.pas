@@ -1,17 +1,17 @@
 {
      File:       SecurityHI/KeychainHI.h
- 
+
      Contains:   Keychain API's with Human Interfaces
- 
+
      Version:    SecurityHI-55002~751
- 
+
      Copyright:  © 2000-2008 by Apple Inc., all rights reserved
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
@@ -229,10 +229,10 @@ uses MacTypes,CFBase,KeychainCore,CFString,CFArray,CFDate;
 { High-level interface for storing passwords }
 {
  *  KCAddAppleSharePassword()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use SecKeychainAddInternetPassword
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -245,10 +245,10 @@ uses MacTypes,CFBase,KeychainCore,CFString,CFArray,CFDate;
 
 {
  *  KCAddInternetPassword()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use SecKeychainAddInternetPassword
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -261,10 +261,10 @@ uses MacTypes,CFBase,KeychainCore,CFString,CFArray,CFDate;
 
 {
  *  KCAddInternetPasswordWithPath()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use SecKeychainAddInternetPassword
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -277,10 +277,10 @@ uses MacTypes,CFBase,KeychainCore,CFString,CFArray,CFDate;
 
 {
  *  KCAddGenericPassword()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use SecKeychainAddGenericPassword
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -294,10 +294,10 @@ uses MacTypes,CFBase,KeychainCore,CFString,CFArray,CFDate;
 { Low-level interface for storing keychain items }
 {
  *  KCAddItem()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use SecKeychainItemCreateFromContent
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -310,10 +310,10 @@ function KCAddItem( item: KCItemRef ): OSStatus; external name '_KCAddItem';
 { Managing keychains }
 {
  *  KCUnlock()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use SecKeychainUnlock
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -326,10 +326,10 @@ function KCAddItem( item: KCItemRef ): OSStatus; external name '_KCAddItem';
 
 {
  *  KCCreateKeychain()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use SecKeychainCreate
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -342,10 +342,10 @@ function KCAddItem( item: KCItemRef ): OSStatus; external name '_KCAddItem';
 
 {
  *  KCChangeSettings()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use SecKeychainSetSettings
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -357,10 +357,10 @@ function KCChangeSettings( keychain: KCRef ): OSStatus; external name '_KCChange
 
 {
  *  kcunlock()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use SecKeychainUnlock
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -372,10 +372,10 @@ function kcunlock( keychain: KCRef { can be NULL }; password: ConstCStringPtr { 
 
 {
  *  kccreatekeychain()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use SecKeychainCreate
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -387,10 +387,10 @@ function kccreatekeychain( password: ConstCStringPtr { can be NULL }; keychain: 
 
 {
  *  kcaddapplesharepassword()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use SecKeychainAddInternetPassword
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -402,10 +402,10 @@ function kcaddapplesharepassword( var serverSignature: AFPServerSignature; serve
 
 {
  *  kcaddinternetpassword()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use SecKeychainAddInternetPassword
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -417,10 +417,10 @@ function kcaddinternetpassword( serverName: ConstCStringPtr; securityDomain: Con
 
 {
  *  kcaddinternetpasswordwithpath()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use SecKeychainAddInternetPassword
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -432,10 +432,10 @@ function kcaddinternetpasswordwithpath( serverName: ConstCStringPtr; securityDom
 
 {
  *  kcaddgenericpassword()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use SecKeychainAddGenericPassword
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -448,7 +448,7 @@ function kcaddgenericpassword( serviceName: ConstCStringPtr; accountName: ConstC
 { Working with certificates }
 {
  *  KCFindX509Certificates()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -458,7 +458,7 @@ function kcaddgenericpassword( serviceName: ConstCStringPtr; accountName: ConstC
 
 {
  *  KCChooseCertificate()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available

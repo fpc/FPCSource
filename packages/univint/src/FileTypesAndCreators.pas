@@ -1,18 +1,18 @@
 {
      File:       FileTypesAndCreators.p
- 
+
      Contains:   Symbolic constants for FileTypes and signatures of popular documents.
- 
+
      Version:    Technology: Macintosh Easy Open 1.1
                  Release:    Universal Interfaces 3.4.2
- 
+
      Copyright:  © 1992-2002 by Apple Computer, Inc., all rights reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 
 

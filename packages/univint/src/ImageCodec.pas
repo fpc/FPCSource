@@ -1,17 +1,17 @@
 {
      File:       QuickTime/ImageCodec.h
- 
+
      Contains:   QuickTime Interfaces.
- 
+
      Version:    QuickTime 7.7.1
- 
+
      Copyright:  © 1990-2012 by Apple Inc., all rights reserved
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
@@ -234,7 +234,7 @@ uses MacTypes,Components,Dialogs,Events,ImageCompression,Movies,OSUtils,Quickdra
 
 {
    The following GX types were previously in GXTypes.h, but that header
-   is not available in any Mac OS X framework. 
+   is not available in any Mac OS X framework.
 }
 type
 	gxPoint = record
@@ -563,7 +563,7 @@ type
 	ImageCodecDrawBandCompleteUPP = ImageCodecDrawBandCompleteProcPtr;
 {
  *  NewImageCodecTimeTriggerUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -574,7 +574,7 @@ function NewImageCodecTimeTriggerUPP( userRoutine: ImageCodecTimeTriggerProcPtr 
 
 {
  *  NewImageCodecDrawBandCompleteUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -585,7 +585,7 @@ function NewImageCodecDrawBandCompleteUPP( userRoutine: ImageCodecDrawBandComple
 
 {
  *  DisposeImageCodecTimeTriggerUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -596,7 +596,7 @@ procedure DisposeImageCodecTimeTriggerUPP( userUPP: ImageCodecTimeTriggerUPP ); 
 
 {
  *  DisposeImageCodecDrawBandCompleteUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -607,7 +607,7 @@ procedure DisposeImageCodecDrawBandCompleteUPP( userUPP: ImageCodecDrawBandCompl
 
 {
  *  InvokeImageCodecTimeTriggerUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -618,7 +618,7 @@ procedure InvokeImageCodecTimeTriggerUPP( refcon: UnivPtr; userUPP: ImageCodecTi
 
 {
  *  InvokeImageCodecDrawBandCompleteUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -691,12 +691,12 @@ type
 		reserved3: SIGNEDLONG;
 	end;
 {
-  These data structures are used by code that wants to pass planar pixmap 
+  These data structures are used by code that wants to pass planar pixmap
    information around.
   The structure below gives the basic idea of what is being done.
-  Normal instances of code will use a fixed number of planes (eg YUV420 uses 
+  Normal instances of code will use a fixed number of planes (eg YUV420 uses
    three planes, Y, U and V). Each such code instance will define its own
-   version of the PlanarPixMapInfo struct counting the number of planes it 
+   version of the PlanarPixMapInfo struct counting the number of planes it
    needs along with defining constants that specify the meanings of each
    plane.
 }
@@ -770,7 +770,7 @@ const
    parties.  Major classes are used for filtering of the effect list by
    applications, but do not define what UI sub-group may or may not be
    presented to the user.  For example, the major class may be a transition,
-   but the minor class may be a wipe.  
+   but the minor class may be a wipe.
 }
 
 {
@@ -805,7 +805,7 @@ const
 }
 
 {
-   Effects that fail to supply a kEffectMinorClassType will be 
+   Effects that fail to supply a kEffectMinorClassType will be
    classified as kMiscMinorClass.
 }
 const
@@ -930,7 +930,7 @@ type
 		dataType: OSType;               { type of data this item is stored as}
 	end;
 {
-   alternate (optional) data type -- main data type always required.  
+   alternate (optional) data type -- main data type always required.
    Must be modified or deleted when modifying main data type.
    Main data type must be modified when alternate is modified.
 }
@@ -1013,7 +1013,7 @@ type
 		scaleValue: QTFloatDouble;         { muliply content by this going in, divide going out }
 		precisionDigits: SIGNEDLONG;    { # digits of precision when editing via typing }
 	end;
-    
+
 { 'bool'   }
 type
 	BooleanRangeRecordPtr = ^BooleanRangeRecord;
@@ -1072,7 +1072,7 @@ type
         imageRange: ImageRangeRecord;
         );
 	end;
-  
+
 { UI behavior of a parameter}
 const
 	kParameterDataBehavior = FourCharCode('ditl');
@@ -1288,7 +1288,7 @@ type
 	ImageCodecMPDrawBandUPP = ImageCodecMPDrawBandProcPtr;
 {
  *  NewImageCodecMPDrawBandUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1299,7 +1299,7 @@ function NewImageCodecMPDrawBandUPP( userRoutine: ImageCodecMPDrawBandProcPtr ):
 
 {
  *  DisposeImageCodecMPDrawBandUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1310,7 +1310,7 @@ procedure DisposeImageCodecMPDrawBandUPP( userUPP: ImageCodecMPDrawBandUPP ); ex
 
 {
  *  InvokeImageCodecMPDrawBandUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1328,7 +1328,7 @@ function InvokeImageCodecMPDrawBandUPP( refcon: UnivPtr; var drp: ImageSubCodecD
 {  negative selectors are reserved by the Component Manager }
 {
  *  ImageCodecGetCodecInfo()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1341,7 +1341,7 @@ function ImageCodecGetCodecInfo( ci: ComponentInstance; var info: CodecInfo ): C
 
 {
  *  ImageCodecGetCompressionTime()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1354,7 +1354,7 @@ function ImageCodecGetCompressionTime( ci: ComponentInstance; src: PixMapHandle;
 
 {
  *  ImageCodecGetMaxCompressionSize()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1367,7 +1367,7 @@ function ImageCodecGetMaxCompressionSize( ci: ComponentInstance; src: PixMapHand
 
 {
  *  ImageCodecPreCompress()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1380,7 +1380,7 @@ function ImageCodecPreCompress( ci: ComponentInstance; var params: CodecCompress
 
 {
  *  ImageCodecBandCompress()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1393,7 +1393,7 @@ function ImageCodecBandCompress( ci: ComponentInstance; var params: CodecCompres
 
 {
  *  ImageCodecPreDecompress()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1406,7 +1406,7 @@ function ImageCodecPreDecompress( ci: ComponentInstance; var params: CodecDecomp
 
 {
  *  ImageCodecBandDecompress()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1419,7 +1419,7 @@ function ImageCodecBandDecompress( ci: ComponentInstance; var params: CodecDecom
 
 {
  *  ImageCodecBusy()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1432,7 +1432,7 @@ function ImageCodecBusy( ci: ComponentInstance; seq: ImageSequence ): ComponentR
 
 {
  *  ImageCodecGetCompressedImageSize()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1445,7 +1445,7 @@ function ImageCodecGetCompressedImageSize( ci: ComponentInstance; desc: ImageDes
 
 {
  *  ImageCodecGetSimilarity()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1458,7 +1458,7 @@ function ImageCodecGetSimilarity( ci: ComponentInstance; src: PixMapHandle; cons
 
 {
  *  ImageCodecTrimImage()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1471,7 +1471,7 @@ function ImageCodecTrimImage( ci: ComponentInstance; Desc: ImageDescriptionHandl
 
 {
  *  ImageCodecRequestSettings()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1484,7 +1484,7 @@ function ImageCodecRequestSettings( ci: ComponentInstance; settings: Handle; var
 
 {
  *  ImageCodecGetSettings()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1497,7 +1497,7 @@ function ImageCodecGetSettings( ci: ComponentInstance; settings: Handle ): Compo
 
 {
  *  ImageCodecSetSettings()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1510,7 +1510,7 @@ function ImageCodecSetSettings( ci: ComponentInstance; settings: Handle ): Compo
 
 {
  *  ImageCodecFlush()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1523,7 +1523,7 @@ function ImageCodecFlush( ci: ComponentInstance ): ComponentResult; external nam
 
 {
  *  ImageCodecSetTimeCode()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1536,7 +1536,7 @@ function ImageCodecSetTimeCode( ci: ComponentInstance; timeCodeFormat: UnivPtr; 
 
 {
  *  ImageCodecIsImageDescriptionEquivalent()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1549,7 +1549,7 @@ function ImageCodecIsImageDescriptionEquivalent( ci: ComponentInstance; newDesc:
 
 {
  *  ImageCodecNewMemory()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1562,7 +1562,7 @@ function ImageCodecNewMemory( ci: ComponentInstance; var data: Ptr; dataSize: Si
 
 {
  *  ImageCodecDisposeMemory()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1575,7 +1575,7 @@ function ImageCodecDisposeMemory( ci: ComponentInstance; data: Ptr ): ComponentR
 
 {
  *  ImageCodecHitTestData()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1588,7 +1588,7 @@ function ImageCodecHitTestData( ci: ComponentInstance; desc: ImageDescriptionHan
 
 {
  *  ImageCodecNewImageBufferMemory()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1601,7 +1601,7 @@ function ImageCodecNewImageBufferMemory( ci: ComponentInstance; var params: Code
 
 {
  *  ImageCodecExtractAndCombineFields()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1614,7 +1614,7 @@ function ImageCodecExtractAndCombineFields( ci: ComponentInstance; fieldFlags: S
 
 {
  *  ImageCodecGetMaxCompressionSizeWithSources()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1627,7 +1627,7 @@ function ImageCodecGetMaxCompressionSizeWithSources( ci: ComponentInstance; src:
 
 {
  *  ImageCodecSetTimeBase()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1640,7 +1640,7 @@ function ImageCodecSetTimeBase( ci: ComponentInstance; base: UnivPtr ): Componen
 
 {
  *  ImageCodecSourceChanged()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1653,7 +1653,7 @@ function ImageCodecSourceChanged( ci: ComponentInstance; majorSourceChangeSeed: 
 
 {
  *  ImageCodecFlushFrame()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1666,7 +1666,7 @@ function ImageCodecFlushFrame( ci: ComponentInstance; flags: UInt32 ): Component
 
 {
  *  ImageCodecGetSettingsAsText()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1679,7 +1679,7 @@ function ImageCodecGetSettingsAsText( ci: ComponentInstance; var text: Handle ):
 
 {
  *  ImageCodecGetParameterListHandle()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1692,7 +1692,7 @@ function ImageCodecGetParameterListHandle( ci: ComponentInstance; var parameterD
 
 {
  *  ImageCodecGetParameterList()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1705,7 +1705,7 @@ function ImageCodecGetParameterList( ci: ComponentInstance; var parameterDescrip
 
 {
  *  ImageCodecCreateStandardParameterDialog()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1718,7 +1718,7 @@ function ImageCodecCreateStandardParameterDialog( ci: ComponentInstance; paramet
 
 {
  *  ImageCodecIsStandardParameterDialogEvent()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1731,7 +1731,7 @@ function ImageCodecIsStandardParameterDialogEvent( ci: ComponentInstance; var pE
 
 {
  *  ImageCodecDismissStandardParameterDialog()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1744,7 +1744,7 @@ function ImageCodecDismissStandardParameterDialog( ci: ComponentInstance; create
 
 {
  *  ImageCodecStandardParameterDialogDoAction()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1757,7 +1757,7 @@ function ImageCodecStandardParameterDialogDoAction( ci: ComponentInstance; creat
 
 {
  *  ImageCodecNewImageGWorld()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1770,7 +1770,7 @@ function ImageCodecNewImageGWorld( ci: ComponentInstance; var params: CodecDecom
 
 {
  *  ImageCodecDisposeImageGWorld()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1783,7 +1783,7 @@ function ImageCodecDisposeImageGWorld( ci: ComponentInstance; theGW: GWorldPtr )
 
 {
  *  ImageCodecHitTestDataWithFlags()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1796,7 +1796,7 @@ function ImageCodecHitTestDataWithFlags( ci: ComponentInstance; desc: ImageDescr
 
 {
  *  ImageCodecValidateParameters()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1809,7 +1809,7 @@ function ImageCodecValidateParameters( ci: ComponentInstance; parameters: QTAtom
 
 {
  *  ImageCodecGetBaseMPWorkFunction()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1821,7 +1821,7 @@ function ImageCodecGetBaseMPWorkFunction( ci: ComponentInstance; var workFunctio
 
 {
  *  ImageCodecLockBits()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 (or QuickTime 6.4) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -1834,7 +1834,7 @@ function ImageCodecLockBits( ci: ComponentInstance; port: CGrafPtr ): ComponentR
 
 {
  *  ImageCodecUnlockBits()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 (or QuickTime 6.4) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -1847,7 +1847,7 @@ function ImageCodecUnlockBits( ci: ComponentInstance; port: CGrafPtr ): Componen
 
 {
  *  ImageCodecRequestGammaLevel()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -1860,7 +1860,7 @@ function ImageCodecRequestGammaLevel( ci: ComponentInstance; srcGammaLevel: Fixe
 
 {
  *  ImageCodecGetSourceDataGammaLevel()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -1874,7 +1874,7 @@ function ImageCodecGetSourceDataGammaLevel( ci: ComponentInstance; var sourceDat
 { (Selector 42 skipped) }
 {
  *  ImageCodecGetDecompressLatency()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -1887,7 +1887,7 @@ function ImageCodecGetDecompressLatency( ci: ComponentInstance; var latency: Tim
 
 {
  *  ImageCodecMergeFloatingImageOntoWindow()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.6 and later
@@ -1900,7 +1900,7 @@ function ImageCodecMergeFloatingImageOntoWindow( ci: ComponentInstance; flags: U
 
 {
  *  ImageCodecRemoveFloatingImage()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.6 and later
@@ -1913,7 +1913,7 @@ function ImageCodecRemoveFloatingImage( ci: ComponentInstance; flags: UInt32 ): 
 
 {
  *  ImageCodecGetDITLForSize()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.6 and later
@@ -1926,7 +1926,7 @@ function ImageCodecGetDITLForSize( ci: ComponentInstance; var ditl: Handle; var 
 
 {
  *  ImageCodecDITLInstall()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.6 and later
@@ -1939,7 +1939,7 @@ function ImageCodecDITLInstall( ci: ComponentInstance; d: DialogRef; itemOffset:
 
 {
  *  ImageCodecDITLEvent()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.6 and later
@@ -1952,7 +1952,7 @@ function ImageCodecDITLEvent( ci: ComponentInstance; d: DialogRef; itemOffset: S
 
 {
  *  ImageCodecDITLItem()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.6 and later
@@ -1965,7 +1965,7 @@ function ImageCodecDITLItem( ci: ComponentInstance; d: DialogRef; itemOffset: SI
 
 {
  *  ImageCodecDITLRemove()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.6 and later
@@ -1978,7 +1978,7 @@ function ImageCodecDITLRemove( ci: ComponentInstance; d: DialogRef; itemOffset: 
 
 {
  *  ImageCodecDITLValidateInput()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.6 and later
@@ -1993,47 +1993,47 @@ function ImageCodecDITLValidateInput( ci: ComponentInstance; var ok: Boolean ): 
 { (Selector 53 skipped) }
 {
  *  ImageCodecGetPreferredChunkSizeAndAlignment()
- *  
+ *
  *  Summary:
  *    Returns the preferences of an image decompressor for the chunking
  *    of image data within a container, e.g. a movie file.
- *  
+ *
  *  Discussion:
  *    If you are writing image data to a container, you can optimize
  *    the subsequent loading of the image data for playback and other
  *    operations by chunking multiple samples of image data together.
  *    This function can be called to determine whether an image
  *    decompressor has special chunking preferences.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    ci:
  *      Component instance / instance globals.
- *    
+ *
  *    desc:
  *      The image description for the image data to be chunked.
- *    
+ *
  *    frameRate:
  *      Mean frame rate in frames per second as in SCTemporalSettings;
  *      0 if not known or not applicable.
- *    
+ *
  *    dataRate:
  *      Mean data rate in bytes per second as in SCDataRateSettings; 0
  *      if not known.
- *    
+ *
  *    bytesPerChunk:
  *      Points to a variable to receive the preferred maximum size in
  *      bytes of each chunk of image data. It is not safe to pass NULL
  *      for this parameter. The codec may indicate that it has no
  *      preference regarding chunk sizing by setting the variable to 0.
- *    
+ *
  *    alignment:
  *      Points to a variable to receive the preferred boundary for
  *      chunk alignment in bytes, e.g. 512. It is not safe to pass NULL
  *      for this parameter. The codec may indicate that it has no
  *      preference regarding chunk alignment by setting the variable to
  *      0.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -2046,46 +2046,46 @@ function ImageCodecGetPreferredChunkSizeAndAlignment( ci: ComponentInstance; des
 { B-Frame Capable Image Compressor Component API }
 {
  *  ImageCodecPrepareToCompressFrames()
- *  
+ *
  *  Summary:
  *    Prepares the compressor to receive frames.
- *  
+ *
  *  Discussion:
  *    The compressor should record session and retain
- *    compressionSessionOptions for use in later calls. 
- *    The compressor may modify imageDescription at this point. 
+ *    compressionSessionOptions for use in later calls.
+ *    The compressor may modify imageDescription at this point.
  *     The compressor should create and return pixel buffer attributes,
- *    which the ICM will release. 
+ *    which the ICM will release.
  *    (Note: this replaces ImageCodecPreCompress.)
- *  
+ *
  *  Parameters:
- *    
+ *
  *    ci:
  *      Component instance / instance globals.
- *    
+ *
  *    session:
  *      The compressor session reference. The compressor should store
  *      this in its globals; it will need it when calling the ICM back
  *      (eg, to call ICMEncodedFrameCreateMutable and
- *      ICMCompressorSessionEmitEncodedFrame). 
+ *      ICMCompressorSessionEmitEncodedFrame).
  *      This is not a CF type. Do not call CFRetain or CFRelease on it.
- *    
+ *
  *    compressionSessionOptions:
  *      The session options from the client. The compressor should
  *      retain this and use the settings to guide compression.
- *    
+ *
  *    imageDescription:
  *      The image description. The compressor may add image description
  *      extensions.
- *    
+ *
  *    reserved:
  *      Reserved for future use.  Ignore this parameter.
- *    
+ *
  *    compressorPixelBufferAttributesOut:
  *      The compressor should create a pixel buffer attributes
- *      dictionary and set compressorPixelBufferAttributesOut to it. 
+ *      dictionary and set compressorPixelBufferAttributesOut to it.
  *      The ICM will release it.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -2097,34 +2097,34 @@ function ImageCodecPrepareToCompressFrames( ci: ComponentInstance; session: ICMC
 
 {
  *  ImageCodecEncodeFrame()
- *  
+ *
  *  Summary:
  *    Presents the compressor with a frame to encode.
- *  
+ *
  *  Discussion:
  *    The compressor may encode the frame immediately or queue it for
  *    later encoding. If the compressor queues the frame for later
  *    decode, it must retain it (by calling
  *    ICMCompressorSourceFrameRetain) and release it when it is done
- *    with it (by calling ICMCompressorSourceFrameRelease). 
+ *    with it (by calling ICMCompressorSourceFrameRelease).
  *    Pixel buffers are guaranteed to conform to the pixel buffer
- *    attributes returned by ImageCodecPrepareToCompressFrames. 
+ *    attributes returned by ImageCodecPrepareToCompressFrames.
  *     During multipass encoding, if the compressor requested the
  *    kICMCompressionPassMode_NoSourceFrames flag, the source frame
- *    pixel buffers may be NULL. 
+ *    pixel buffers may be NULL.
  *    (Note: this replaces ImageCodecBandCompress.)
- *  
+ *
  *  Parameters:
- *    
+ *
  *    ci:
  *      Component instance / instance globals.
- *    
+ *
  *    sourceFrame:
  *      The source frame to encode.
- *    
+ *
  *    flags:
  *      Reserved; ignore.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -2136,34 +2136,34 @@ function ImageCodecEncodeFrame( ci: ComponentInstance; sourceFrame: ICMCompresso
 
 {
  *  ImageCodecCompleteFrame()
- *  
+ *
  *  Summary:
  *    Directs the compressor to finish with a queued source frame,
  *    either emitting or dropping it.
- *  
+ *
  *  Discussion:
  *    This frame does not necessarily need to be the first or only
  *    source frame emitted or dropped during this call, but the
  *    compressor must call either ICMCompressorSessionDropFrame or
  *    ICMCompressorSessionEmitEncodedFrame with this frame before
- *    returning. 
+ *    returning.
  *    The ICM will call this function to force frames to be encoded for
  *    the following reasons: (a) the maximum frame delay count or
  *    maximum frame delay time in the compressionSessionOptions does
  *    not permit frames to be queued; (b) the client has called
  *    ICMCompressionSessionCompleteFrames.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    ci:
  *      Component instance / instance globals.
- *    
+ *
  *    sourceFrame:
  *      The source frame that must be completed.
- *    
+ *
  *    flags:
  *      Reserved; ignore.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -2175,37 +2175,37 @@ function ImageCodecCompleteFrame( ci: ComponentInstance; sourceFrame: ICMCompres
 
 {
  *  ImageCodecBeginPass()
- *  
+ *
  *  Summary:
  *    Notifies the compressor that it should operate in multipass mode
  *    and use the given multipass storage.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    ci:
  *      Component instance / instance globals.
- *    
+ *
  *    passModeFlags:
- *      Indicates how the compressor should operate in this pass. 
+ *      Indicates how the compressor should operate in this pass.
  *       If the kICMCompressionPassMode_WriteToMultiPassStorage flag is
  *      set, the compressor may gather information of interest and
- *      store it in multiPassStorage. 
+ *      store it in multiPassStorage.
  *      If the kICMCompressionPassMode_ReadFromMultiPassStorage flag is
  *      set, the compressor may retrieve information from
- *      multiPassStorage. 
+ *      multiPassStorage.
  *      If the kICMCompressionPassMode_OutputEncodedFrames flag is set,
  *      the compressor must encode or drop every frame by calling
  *      ICMCompressorSessionDropFrame or
  *      ICMCompressorSessionEmitEncodedFrame. If that flag is not set,
  *      the compressor should not call these routines.
- *    
+ *
  *    flags:
  *      Reserved.  Ignore this parameter.
- *    
+ *
  *    multiPassStorage:
  *      The multipass storage object that the compressor should use to
  *      store and retrieve information between passes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -2217,15 +2217,15 @@ function ImageCodecBeginPass( ci: ComponentInstance; passModeFlags: ICMCompressi
 
 {
  *  ImageCodecEndPass()
- *  
+ *
  *  Summary:
  *    Notifies the compressor that a pass is over.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    ci:
  *      Component instance / instance globals.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -2237,45 +2237,45 @@ function ImageCodecEndPass( ci: ComponentInstance ): ComponentResult; external n
 
 {
  *  ImageCodecProcessBetweenPasses()
- *  
+ *
  *  Summary:
  *    Gives the compressor an opportunity to perform processing between
  *    passes.
- *  
+ *
  *  Discussion:
  *    This function will be called repeatedly until it returns true in
- *    *interpassProcessingDoneOut. 
- *    The compressor may read and write to multiPassStorage. 
+ *    *interpassProcessingDoneOut.
+ *    The compressor may read and write to multiPassStorage.
  *    The compressor should indicate which type of pass it would prefer
  *    to perform next by setting *requestedNextPassTypeOut.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    ci:
  *      Component instance / instance globals.
- *    
+ *
  *    multiPassStorage:
  *      The multipass storage object that the compressor should use to
  *      store and retrieve information between passes.
- *    
+ *
  *    interpassProcessingDoneOut:
  *      Points to a Boolean. Set this to false if you want your
  *      ImageCodecProcessBetweenPasses function to be called again to
  *      perform more processing, true if not.
- *    
+ *
  *    requestedNextPassModeFlagsOut:
  *      Set *requestedNextPassModeFlagsOut to indicate the type of pass
- *      that should be performed next: 
+ *      that should be performed next:
  *      To recommend a repeated analysis pass, set it to
  *      kICMCompressionPassMode_ReadFromMultiPassStorage |
- *      kICMCompressionPassMode_WriteToMultiPassStorage. 
+ *      kICMCompressionPassMode_WriteToMultiPassStorage.
  *      To recommend a final encoding pass, set it to
  *      kICMCompressionPassMode_ReadFromMultiPassStorage |
- *      kICMCompressionPassMode_OutputEncodedFrames. 
+ *      kICMCompressionPassMode_OutputEncodedFrames.
  *      If source frame buffers are not necessary for the recommended
  *      pass (eg, because all the required data has been copied into
  *      multipass storage), set kICMCompressionPassMode_NoSourceFrames.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -2293,7 +2293,7 @@ function ImageCodecProcessBetweenPasses( ci: ComponentInstance; multiPassStorage
 { (Selector 66 skipped) }
 {
  *  ImageCodecPreflight()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2306,7 +2306,7 @@ function ImageCodecPreflight( ci: ComponentInstance; var params: CodecDecompress
 
 {
  *  ImageCodecInitialize()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2319,7 +2319,7 @@ function ImageCodecInitialize( ci: ComponentInstance; var cap: ImageSubCodecDeco
 
 {
  *  ImageCodecBeginBand()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2332,7 +2332,7 @@ function ImageCodecBeginBand( ci: ComponentInstance; var params: CodecDecompress
 
 {
  *  ImageCodecDrawBand()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2345,7 +2345,7 @@ function ImageCodecDrawBand( ci: ComponentInstance; var drp: ImageSubCodecDecomp
 
 {
  *  ImageCodecEndBand()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2358,7 +2358,7 @@ function ImageCodecEndBand( ci: ComponentInstance; var drp: ImageSubCodecDecompr
 
 {
  *  ImageCodecQueueStarting()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2371,7 +2371,7 @@ function ImageCodecQueueStarting( ci: ComponentInstance ): ComponentResult; exte
 
 {
  *  ImageCodecQueueStopping()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2384,7 +2384,7 @@ function ImageCodecQueueStopping( ci: ComponentInstance ): ComponentResult; exte
 
 {
  *  ImageCodecDroppingFrame()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2397,7 +2397,7 @@ function ImageCodecDroppingFrame( ci: ComponentInstance; const (*var*) drp: Imag
 
 {
  *  ImageCodecScheduleFrame()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -2410,7 +2410,7 @@ function ImageCodecScheduleFrame( ci: ComponentInstance; const (*var*) drp: Imag
 
 {
  *  ImageCodecCancelTrigger()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -2423,7 +2423,7 @@ function ImageCodecCancelTrigger( ci: ComponentInstance ): ComponentResult; exte
 
 {
  *  ImageCodecDecodeBand()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -2543,7 +2543,7 @@ type
 
 {
  *  QTPhotoSetSampling()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2556,7 +2556,7 @@ function QTPhotoSetSampling( codec: ComponentInstance; yH: SInt16; yV: SInt16; c
 
 {
  *  QTPhotoSetRestartInterval()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2569,7 +2569,7 @@ function QTPhotoSetRestartInterval( codec: ComponentInstance; restartInterval: U
 
 {
  *  QTPhotoDefineHuffmanTable()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2582,7 +2582,7 @@ function QTPhotoDefineHuffmanTable( codec: ComponentInstance; componentNumber: S
 
 {
  *  QTPhotoDefineQuantizationTable()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2614,17 +2614,17 @@ const
 {
  *  Summary:
  *    Enforced properties for image compressor components
- *  
+ *
  *  Discussion:
  *    Image compressors that sometimes or always restrict image
  *    dimensions, clean aperture and/or pixel aspect ratio should
- *    support these properties. 
+ *    support these properties.
  *    If these properties can change dynamically for a compressor (eg,
  *    in response to user interaction) then the properties should be
  *    listenable, and the compressor should call the listeners whenever
  *    the properties change. (In this case, the component's
  *    GetComponentPropertyInfo function should set the
- *    kComponentPropertyFlagWillNotifyListeners flag.) 
+ *    kComponentPropertyFlagWillNotifyListeners flag.)
  *    If a compressor has a mode in which these properties are
  *    flexible, then when the component is in that mode, (a) the
  *    component's GetComponentProperty function should return
@@ -2757,7 +2757,7 @@ type
 
 {
  *  ImageCodecEffectSetup()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2770,7 +2770,7 @@ function ImageCodecEffectSetup( effect: ComponentInstance; var p: CodecDecompres
 
 {
  *  ImageCodecEffectBegin()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2783,7 +2783,7 @@ function ImageCodecEffectBegin( effect: ComponentInstance; var p: CodecDecompres
 
 {
  *  ImageCodecEffectRenderFrame()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2796,7 +2796,7 @@ function ImageCodecEffectRenderFrame( effect: ComponentInstance; p: EffectsFrame
 
 {
  *  ImageCodecEffectConvertEffectSourceToFormat()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2809,7 +2809,7 @@ function ImageCodecEffectConvertEffectSourceToFormat( effect: ComponentInstance;
 
 {
  *  ImageCodecEffectCancel()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2822,7 +2822,7 @@ function ImageCodecEffectCancel( effect: ComponentInstance; p: EffectsFrameParam
 
 {
  *  ImageCodecEffectGetSpeed()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2991,7 +2991,7 @@ type
 	SMPTEWipeType = UNSIGNEDLONG;
 {
  *  ImageCodecEffectPrepareSMPTEFrame()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -3004,7 +3004,7 @@ function ImageCodecEffectPrepareSMPTEFrame( effect: ComponentInstance; destPixMa
 
 {
  *  ImageCodecEffectDisposeSMPTEFrame()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -3017,7 +3017,7 @@ function ImageCodecEffectDisposeSMPTEFrame( effect: ComponentInstance; frameRef:
 
 {
  *  ImageCodecEffectRenderSMPTEFrame()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -3093,7 +3093,7 @@ type
 	GradientType = SIGNEDLONG;
 {
  *  CurveGetLength()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3106,7 +3106,7 @@ function CurveGetLength( effect: ComponentInstance; var target: gxPaths; index: 
 
 {
  *  CurveLengthToPoint()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3119,7 +3119,7 @@ function CurveLengthToPoint( effect: ComponentInstance; var target: gxPaths; ind
 
 {
  *  CurveNewPath()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3132,7 +3132,7 @@ function CurveNewPath( effect: ComponentInstance; var pPath: Handle ): Component
 
 {
  *  CurveCountPointsInPath()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3145,7 +3145,7 @@ function CurveCountPointsInPath( effect: ComponentInstance; var aPath: gxPaths; 
 
 {
  *  CurveGetPathPoint()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3158,7 +3158,7 @@ function CurveGetPathPoint( effect: ComponentInstance; var aPath: gxPaths; conto
 
 {
  *  CurveInsertPointIntoPath()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3171,7 +3171,7 @@ function CurveInsertPointIntoPath( effect: ComponentInstance; var aPoint: gxPoin
 
 {
  *  CurveSetPathPoint()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3184,7 +3184,7 @@ function CurveSetPathPoint( effect: ComponentInstance; var aPath: gxPaths; conto
 
 {
  *  CurveGetNearestPathPoint()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3197,7 +3197,7 @@ function CurveGetNearestPathPoint( effect: ComponentInstance; var aPath: gxPaths
 
 {
  *  CurvePathPointToLength()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3210,7 +3210,7 @@ function CurvePathPointToLength( ci: ComponentInstance; var aPath: gxPaths; star
 
 {
  *  CurveCreateVectorStream()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3223,7 +3223,7 @@ function CurveCreateVectorStream( effect: ComponentInstance; var pStream: Handle
 
 {
  *  CurveAddAtomToVectorStream()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3236,7 +3236,7 @@ function CurveAddAtomToVectorStream( effect: ComponentInstance; atomType: OSType
 
 {
  *  CurveAddPathAtomToVectorStream()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3249,7 +3249,7 @@ function CurveAddPathAtomToVectorStream( effect: ComponentInstance; pathData: Ha
 
 {
  *  CurveAddZeroAtomToVectorStream()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3262,7 +3262,7 @@ function CurveAddZeroAtomToVectorStream( effect: ComponentInstance; vectorStream
 
 {
  *  CurveGetAtomDataFromVectorStream()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later

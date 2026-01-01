@@ -232,7 +232,7 @@ uses MacTypes, CFRunLoop, CoreAudioTypes, AudioHardwareBase;
     The audio HAL provides an abstraction through which applications can access audio hardware. To
     do this, the HAL provides a small set of AudioObjects that provide access to the various pieces
     of the system.
-    
+
     AudioObjects all have a set of properties that describe and manipulate their state. A property
     is accessed via an ordered triple. The first ordinate is the selector which describes the
     property. The other two ordinates are the scope and element that identify the particular part of
@@ -242,36 +242,36 @@ uses MacTypes, CFRunLoop, CoreAudioTypes, AudioHardwareBase;
     qualifier when querying. The qualifier allows for additional information to be provided to be
     used in the manipulation of the property. Changing the value of a property is always considered
     asynchronous.
-    
+
     Applications use the routines AudioObjectHasProperty(), AudioObjectIsPropertySettable() and
     AudioObjectGetPropertyDataSize() to find useful meta-information about the property. Apps use
     AudioObjectGetPropertyData() and AudioObjectSetPropertyData() to manipulate the value of the
     property. Apps use AudioObjectAddPropertyListener() and AudioObjectRemovePropertyListener() to
     register/unregister a function that is to be called when a given property's value changes.
-    
+
     The class of an AudioObject determines the basic functionality of the object in terms of what
     functions will operate on it as well as the set of properties that can be expected to be
     implemented by the object. The set of available classes for objects is limited to those defined
     here. There are no other classes. The set of classes is arranged in a hierarchy such that one
     class inherits the properties/routines of it's super class.
-    
-    The base class for all AudioObjects is the class AudioObject. As such, each AudioObject will 
+
+    The base class for all AudioObjects is the class AudioObject. As such, each AudioObject will
     provide basic properties such as it's class, it's human readable name, and the other
     AudioObjects it contains. Other important classes include AudioSystemObject, AudioDevice, and
     AudioStream.
-    
+
     The AudioObjects in the HAL are arranged in a containment hierarchy. The root of the hierarchy
     is the one and only instance of the AudioSystemObject class. The properties of the
     AudioSystemObject describe the process global settings such as the various default devices and
     the notification run loop. The AudioSystemObject also contains all the AudioDevices that are
     available.
-    
+
     Instances of the AudioDevice class encapsulate individual audio devices. An AudioDevice serves
     as the basic unit of IO. It provides a single IO cycle, a timing source based on it, and all the
     buffers synchronized to it. The IO cycle presents all the synchronized buffers to the client in
     the same call out along with time stamps that specify the current time, when the input data was
     acquired and when the output data will be presented.
-    
+
     AudioDevices contain instances of the AudioStream class. An AudioStream represents a single
     buffer of data for transferring across the user/kernel boundary. As such, AudioStreams are the
     gatekeepers of format information. Each has it's own format and list of available formats.
@@ -279,7 +279,7 @@ uses MacTypes, CFRunLoop, CoreAudioTypes, AudioHardwareBase;
     the format is a linear PCM format, the data will always be presented as 32 bit, native endian
     floating point. All conversions to and from the true physical format of the hardware is handled
     by the device's driver.
-    
+
     Both AudioDevices and AudioStreams can contain instances of the AudioControl class or it's many
     subclasses. An AudioControl provides properties that describe/manipulate a particular aspect of
     the object such as gain, mute, data source selection, etc. Many common controls are also
@@ -301,7 +301,7 @@ uses MacTypes, CFRunLoop, CoreAudioTypes, AudioHardwareBase;
 //#pragma mark Basic Constants
 
 {!
-    @enum           Predefined AudioObjectID values 
+    @enum           Predefined AudioObjectID values
     @abstract       ObjectIDs that are always the same
     @constant       kAudioObjectSystemObject
                         The AudioObjectID that always refers to the one and only instance of the
@@ -1453,7 +1453,7 @@ const
  }
 const
 	kAudioAggregateDeviceIsStackedKey = 'stacked';
-    
+
 //==================================================================================================
 //#pragma mark    AudioAggregateDevice Properties
 

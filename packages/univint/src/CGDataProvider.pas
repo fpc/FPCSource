@@ -421,7 +421,7 @@ type
      `offset' from the provider's data to `buffer'. It should return the
      number of bytes copied, or 0 if there's no more data.
    `releaseProvider', if non-NULL, is called when the provider is freed.
-  
+
    At least one of `getBytePointer' or `getBytes' must be non-NULL. }
 
 type

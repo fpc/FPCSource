@@ -1,17 +1,17 @@
 {
      File:       HIToolbox/HIWindowViews.h
- 
+
      Contains:   Definition of the window-related views provided by HIToolbox.
- 
+
      Version:    HIToolbox-624~3
- 
+
      Copyright:  © 2006-2008 by Apple Computer, Inc., all rights reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {       Initial Pascal Translation:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
@@ -231,7 +231,7 @@ uses MacTypes,Appearance,CarbonEvents,Controls,HIObject,HIView;
 
 {
  *  HIWindowViews.h
- *  
+ *
  *  Discussion:
  *    API definitions for the window-related views.
  }
@@ -240,7 +240,7 @@ uses MacTypes,Appearance,CarbonEvents,Controls,HIObject,HIView;
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
 {
  *  kHIViewWindowContentID
- *  
+ *
  *  Discussion:
  *    The standard view ID for the content view of a window. Note that
  *    a window's content view should not be moved from its original
@@ -249,10 +249,10 @@ uses MacTypes,Appearance,CarbonEvents,Controls,HIObject,HIView;
  *    the views from one window into another, embed a user pane into
  *    the content view and them embed all other views into the user
  *    pane, and move the user pane from one window to another.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -262,7 +262,7 @@ var kHIViewWindowContentID: HIViewID; external name '_kHIViewWindowContentID'; (
 (* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
 {
  *  kHIViewWindowCloseBoxID
- *  
+ *
  *  Discussion:
  *    The standard view ID for the close box view of a window. Not all
  *    windows have close boxes, so be aware that you might not find
@@ -271,10 +271,10 @@ var kHIViewWindowContentID: HIViewID; external name '_kHIViewWindowContentID'; (
  *    on Mac OS X 10.2 and later. If you need to access the view on an
  *    earlier version of Mac OS X, you can safely initialize your own
  *    view ID with the same contents as this constant.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available
@@ -284,7 +284,7 @@ var kHIViewWindowCloseBoxID: HIViewID; external name '_kHIViewWindowCloseBoxID';
 (* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
 {
  *  kHIViewWindowCollapseBoxID
- *  
+ *
  *  Discussion:
  *    The standard view ID for the collapse box view of a window. Not
  *    all windows have collapse boxes, so be aware that you might not
@@ -293,10 +293,10 @@ var kHIViewWindowCloseBoxID: HIViewID; external name '_kHIViewWindowCloseBoxID';
  *    view ID on Mac OS X 10.2 and later. If you need to access the
  *    view on an earlier version of Mac OS X, you can safely initialize
  *    your own view ID with the same contents as this constant.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available
@@ -306,7 +306,7 @@ var kHIViewWindowCollapseBoxID: HIViewID; external name '_kHIViewWindowCollapseB
 (* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
 {
  *  kHIViewWindowZoomBoxID
- *  
+ *
  *  Discussion:
  *    The standard view ID for the zoom box view of a window. Not all
  *    windows have zoom boxes, so be aware that you might not find this
@@ -315,10 +315,10 @@ var kHIViewWindowCollapseBoxID: HIViewID; external name '_kHIViewWindowCollapseB
  *    OS X 10.2 and later. If you need to access the view on an earlier
  *    version of Mac OS X, you can safely initialize your own view ID
  *    with the same contents as this constant.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available
@@ -328,7 +328,7 @@ var kHIViewWindowZoomBoxID: HIViewID; external name '_kHIViewWindowZoomBoxID'; (
 (* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
 {
  *  kHIViewWindowToolbarButtonID
- *  
+ *
  *  Discussion:
  *    The standard view ID for the toolbar button view of a window. Not
  *    all windows have toolbar buttons, so be aware that you might not
@@ -337,10 +337,10 @@ var kHIViewWindowZoomBoxID: HIViewID; external name '_kHIViewWindowZoomBoxID'; (
  *    view ID on Mac OS X 10.2 and later. If you need to access the
  *    view on an earlier version of Mac OS X, you can safely initialize
  *    your own view ID with the same contents as this constant.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available
@@ -350,7 +350,7 @@ var kHIViewWindowToolbarButtonID: HIViewID; external name '_kHIViewWindowToolbar
 (* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
 {
  *  kHIViewWindowTitleID
- *  
+ *
  *  Discussion:
  *    The standard view ID for the title view of a window. Not all
  *    windows have titles, so be aware that you might not find this
@@ -359,10 +359,10 @@ var kHIViewWindowToolbarButtonID: HIViewID; external name '_kHIViewWindowToolbar
  *    X 10.2 and later. If you need to access the view on an earlier
  *    version of Mac OS X, you can safely initialize your own view ID
  *    with the same contents as this constant.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available
@@ -372,7 +372,7 @@ var kHIViewWindowTitleID: HIViewID; external name '_kHIViewWindowTitleID'; (* at
 (* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
 {
  *  kHIViewWindowToolbarID
- *  
+ *
  *  Discussion:
  *    The standard view ID for the toolbar view of a window. Not all
  *    windows have toolbars, so be aware that you might not find this
@@ -381,10 +381,10 @@ var kHIViewWindowTitleID: HIViewID; external name '_kHIViewWindowTitleID'; (* at
  *    OS X 10.2 and later. If you need to access the view on an earlier
  *    version of Mac OS X, you can safely initialize your own view ID
  *    with the same contents as this constant.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available
@@ -394,15 +394,15 @@ var kHIViewWindowToolbarID: HIViewID; external name '_kHIViewWindowToolbarID'; (
 (* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
 {
  *  kHIViewWindowGrowBoxID
- *  
+ *
  *  Discussion:
  *    The standard view ID for the grow box view of a window. Not all
  *    windows have grow boxes, so be aware that you might not find this
  *    view if you look for it.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -417,7 +417,7 @@ var kHIViewWindowGrowBoxID: HIViewID; external name '_kHIViewWindowGrowBoxID'; (
 {
  *  Summary:
  *    HIView part codes used by window frame views.
- *  
+ *
  *  Discussion:
  *    These part codes are used by an HIView that implements the frame
  *    of a window. They may be used with the standard document windows
@@ -471,27 +471,27 @@ const
 {$ifc not TARGET_CPU_64}
 {
  *  HIGrowBoxViewSetTransparent()
- *  
+ *
  *  Discussion:
  *    Sets a grow box view as transparent, meaning it will draw the
  *    grow box lines over any content below it. When not transparent,
  *    it's an opaque white square with the grow lines.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inGrowBoxView:
  *      The grow box view reference.
- *    
+ *
  *    inTransparent:
  *      Pass true to make the grow view use its transparent look, false
  *      to give it the opaque look.
- *  
+ *
  *  Result:
  *    An operating system result code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -503,21 +503,21 @@ function HIGrowBoxViewSetTransparent( inGrowBoxView: HIViewRef; inTransparent: B
 
 {
  *  HIGrowBoxViewIsTransparent()
- *  
+ *
  *  Discussion:
  *    Returns true if a grow box view is set to be transparent.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inGrowBoxView:
  *      The grow box view reference.
- *  
+ *
  *  Result:
  *    A boolean result.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later

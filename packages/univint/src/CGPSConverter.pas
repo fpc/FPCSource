@@ -220,7 +220,7 @@ uses MacTypes,CFBase,CFDictionary,CGBase,CGDataConsumer,CGDataProvider;
 
 
 { CGPSConverter callbacks.
- 
+
    `version' is the version number of the structure passed in as a parameter
    to the converter creation functions. The structure defined below is
    version 0.

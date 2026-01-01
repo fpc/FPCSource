@@ -222,14 +222,14 @@ uses MacTypes, CFBase;
 
 {$ALIGN POWER}
 
- 
+
  {! @header CVBase.h
 	@copyright 2004 Apple Computer, Inc. All rights reserved.
 	@availability Mac OS X 10.4 or later
     @discussion Here you can find the type declarations for CoreVideo. CoreVideo uses a CVTimeStamp structure to store video display time stamps.
 }
 
- 
+
 {
 #ifndef AVAILABLE_MAC_OS_X_VERSION_10_6_AND_LATER
 #define AVAILABLE_MAC_OS_X_VERSION_10_6_AND_LATER       WEAK_IMPORT_ATTRIBUTE
@@ -255,7 +255,7 @@ uses MacTypes, CFBase;
 #define COREVIDEO_SUPPORTS_DISPLAYLINK 	(TARGET_OS_MAC && ! TARGET_OS_IPHONE)
 #define COREVIDEO_SUPPORTS_IOSURFACE	(TARGET_OS_IPHONE ? TARGET_OS_EMBEDDED : (TARGET_OS_MAC && ((MAC_OS_X_VERSION_MAX_ALLOWED >= 1060))))
 
-#define extern extern 
+#define extern extern
 #define CV_INLINE CF_INLINE
 }
 {!
@@ -357,15 +357,15 @@ type
 {!
     @struct CVTimeStamp
     @abstract CoreVideo uses a CVTimeStamp structure to store video display time stamps.
-    @discussion This structure is purposely very similar to AudioTimeStamp defined in the CoreAudio framework. 
+    @discussion This structure is purposely very similar to AudioTimeStamp defined in the CoreAudio framework.
 		Most of the CVTimeStamp struct should be fairly self-explanatory. However, it is probably worth pointing out that unlike the audio time stamps, floats are not used to represent the video equivalent of sample times. This was done partly to avoid precision issues, and partly because QuickTime still uses integers for time values and time scales. In the actual implementation it has turned out to be very convenient to use integers, and we can represent framerates like NTSC (30000/1001 fps) exactly. The mHostTime structure field uses the same Mach absolute time base that is used in CoreAudio, so that clients of the CoreVideo API can synchronize between the two subsystems.
     @field videoTimeScale The scale (in units per second) of the videoTime and videoPeriod values
     @field videoTime This represents the start of a frame (or field for interlaced)
     @field hostTime Host root timebase time
     @field rateScalar This is the current rate of the device as measured by the timestamps, divided by the nominal rate
     @field videoPeriod This is the nominal update period of the current output device
-    @field smpteTime SMPTE time representation of the time stamp. 
-    @field flags Possible values are:		
+    @field smpteTime SMPTE time representation of the time stamp.
+    @field flags Possible values are:
 		kCVTimeStampVideoTimeValid
 		kCVTimeStampHostTimeValid
 		kCVTimeStampSMPTETimeValid
@@ -393,7 +393,7 @@ type
 		smpteTime:          CVSMPTETime;
 		flags:              UInt64;
 		reserved:           UInt64;
-	end; 
+	end;
 
 // Flags for the CVTimeStamp structure
 const
@@ -402,7 +402,7 @@ const
 	kCVTimeStampSMPTETimeValid          = 1 shl 2;
 	kCVTimeStampVideoRefreshPeriodValid = 1 shl 3;
 	kCVTimeStampRateScalarValid         = 1 shl 4;
-    
+
     // There are flags for each field to make it easier to detect interlaced vs progressive output
 	kCVTimeStampTopField    = 1 shl 16;
 	kCVTimeStampBottomField = 1 shl 17;

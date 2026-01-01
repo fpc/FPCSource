@@ -1,15 +1,15 @@
 {
      File:       OSServices/SystemSound.h
- 
+
      Contains:   *** DEPRECATED *** SystemSound include file
- 
+
      Copyright:  (c) 2000-2011 Apple Inc. All rights reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {
     Modified for use with Free Pascal
@@ -243,7 +243,7 @@ type
 	SystemSoundCompletionUPP = SystemSoundCompletionProcPtr;
 {
  *  NewSystemSoundCompletionUPP()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -254,7 +254,7 @@ function NewSystemSoundCompletionUPP( userRoutine: SystemSoundCompletionProcPtr 
 
 {
  *  DisposeSystemSoundCompletionUPP()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -265,7 +265,7 @@ procedure DisposeSystemSoundCompletionUPP( userUPP: SystemSoundCompletionUPP ); 
 
 {
  *  InvokeSystemSoundCompletionUPP()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -279,18 +279,18 @@ function InvokeSystemSoundCompletionUPP( actionID: SystemSoundActionID; userData
 { ================================================================================ }
 {
  *  AlertSoundPlay()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use AudioServicesPlayAlertSound(). Found in
  *    <AudioToolbox/AudioServices.h>
- *  
+ *
  *  Summary:
  *    Play an Alert Sound
- *  
+ *
  *  Discussion:
  *    Play the user's current alert sound, interrupting any previously
  *    playing alert sound.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in CoreServices.framework but deprecated in 10.5
  *    CarbonLib:        not available in CarbonLib 1.x
@@ -302,24 +302,24 @@ procedure AlertSoundPlay; external name '_AlertSoundPlay';
 
 {
  *  AlertSoundPlayCustomSound()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use AudioServicesPlayAlertSound(). Found in
  *    <AudioToolbox/AudioServices.h>
- *  
+ *
  *  Summary:
  *    Play a User designated Alert Sound
- *  
+ *
  *  Discussion:
  *    Play a sound, designated by a SystemSoundActionID, with the
  *    behavior of AlertSoundPlay().
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inAction:
  *      A SystemSoundActionID indicating the desired Sound to be played
  *      with AlertSound behavior.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in CoreServices.framework but deprecated in 10.5
  *    CarbonLib:        not available in CarbonLib 1.x
@@ -331,25 +331,25 @@ procedure AlertSoundPlayCustomSound( inAction: SystemSoundActionID ); external n
 
 {
  *  SystemSoundPlay()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use AudioServicesPlaySystemSound(). Found in
  *    <AudioToolbox/AudioServices.h>
- *  
+ *
  *  Summary:
  *    Play a System Sound
- *  
+ *
  *  Discussion:
  *    Immediately play the sound designated by actionID. Use for one
  *    time actions that do not require a duration or modification
  *    during playback. Sustain loops in the sound will be ignored.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inAction:
  *      A SystemSoundActionID indicating the desired System Sound to be
  *      played.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in CoreServices.framework but deprecated in 10.5
  *    CarbonLib:        not available in CarbonLib 1.x
@@ -361,14 +361,14 @@ procedure SystemSoundPlay( inAction: SystemSoundActionID ); external name '_Syst
 
 {
  *  SystemSoundGetActionID()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use AudioServicesCreateSystemSoundID(). Found in
  *    <AudioToolbox/AudioServices.h>
- *  
+ *
  *  Summary:
  *    Create a 'custom' System Sound by providing an audio file.
- *  
+ *
  *  Discussion:
  *    If the user wants to add a sound that can be played via
  *    SystemSoundPlay(), an FSRef for an audio file can be passed and a
@@ -378,18 +378,18 @@ procedure SystemSoundPlay( inAction: SystemSoundActionID ); external name '_Syst
  *    longer needed by the client application so the System Sound
  *    Server can release any resources dedicated to the returned action
  *    id.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    userFile:
  *      An const FSRef * for the audio file to be used as a System
  *      Sound. Any audio file supported by the AudioFile APIs in the
  *      AudioToolbox framework may be used.
- *    
+ *
  *    outAction:
  *      If successful, a SystemSoundActionID will be returned, which in
  *      turn can be passed to SystemSoundPlay().
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in CoreServices.framework but deprecated in 10.5
  *    CarbonLib:        not available in CarbonLib 1.x
@@ -401,26 +401,26 @@ function SystemSoundGetActionID( const (*var*) userFile: FSRef; var outAction: S
 
 {
  *  SystemSoundRemoveActionID()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use AudioServicesDisposeSystemSoundID(). Found in
  *    <AudioToolbox/AudioServices.h>
- *  
+ *
  *  Summary:
  *    Remove a 'custom' System Sound.
- *  
+ *
  *  Discussion:
  *    If the user no longer needs to use the custom system sound that
  *    was created via SystemSoundGetActionID, this function should be
  *    called so the SystemSoundServer can release resources that are no
  *    longer needed.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inAction:
  *      A SystemSoundActionID indicating the desired System Sound to be
  *      removed.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in CoreServices.framework but deprecated in 10.5
  *    CarbonLib:        not available in CarbonLib 1.x
@@ -432,43 +432,43 @@ function SystemSoundRemoveActionID( inAction: SystemSoundActionID ): OSStatus; e
 
 {
  *  SystemSoundSetCompletionRoutine()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use AudioServicesAddSystemSoundCompletion(). Found in
  *    <AudioToolbox/AudioServices.h>
- *  
+ *
  *  Summary:
  *    Call the provided Completion Routine when the provided
  *    SystemSoundActionID finishes playing in the server.
- *  
+ *
  *  Discussion:
  *    Once set, the System Sound Server will send a message to the
  *    System Sound Client indicating which SystemSoundActionID has
  *    finished playing.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inAction:
  *      The SystemSoundActionID that the completion routine will be
  *      associated with.
- *    
+ *
  *    inRunLoop:
  *      A CFRunLoopRef indicating the desired run loop the completion
  *      routine should be run on. Pass NULL for the main run loop.
- *    
+ *
  *    inRunLoopMode:
  *      A CFStringRef indicating the run loop mode for the runloop mode
  *      for the runloop where the completion routine will be executed.
  *      Pass NULL to use kCFRunLoopDefaultMode.
- *    
+ *
  *    inCompletionRoutine:
  *      A SystemSoundCompletionProc for the completion routine proc to
  *      be called when the provided SystemSoundActionID has completed
  *      playing in the server.
- *    
+ *
  *    inUserData:
  *      A void * to pass user data to the completion routine.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in CoreServices.framework but deprecated in 10.5
  *    CarbonLib:        not available in CarbonLib 1.x
@@ -480,26 +480,26 @@ function SystemSoundSetCompletionRoutine( inAction: SystemSoundActionID; inRunLo
 
 {
  *  SystemSoundRemoveCompletionRoutine()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use AudioServicesRemoveSystemSoundCompletion(). Found in
  *    <AudioToolbox/AudioServices.h>
- *  
+ *
  *  Summary:
  *    Remove the Completion Routine being used for the provided
  *    SystemSoundActionID.
- *  
+ *
  *  Discussion:
  *    To be called when it is no longer desired for the Completion
  *    Routine to be called when a System Sound action has finished
  *    playing.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inAction:
  *      A SystemSoundActionID that currently has an associated
  *      completion routine.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in CoreServices.framework but deprecated in 10.5
  *    CarbonLib:        not available in CarbonLib 1.x

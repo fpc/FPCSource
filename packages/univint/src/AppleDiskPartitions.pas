@@ -1,17 +1,17 @@
 {
      File:       OSServices/AppleDiskPartitions.h
- 
+
      Contains:   The Apple disk partition scheme as defined in Inside Macintosh: Volume V.
- 
+
      Version:    OSServices-352~2
- 
+
      Copyright:  © 2000-2008 by Apple Computer, Inc., all rights reserved
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {       Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 (only changes in C header were layout, so not updated since deprecated) }
 {

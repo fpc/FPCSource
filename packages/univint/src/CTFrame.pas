@@ -219,7 +219,7 @@ uses MacTypes,CFArray,CFDictionary,CFBase,CFNumber,CFString,CGContext,CGGeometry
 
 {$ALIGN POWER}
 
- 
+
 {!
     @header
 
@@ -282,7 +282,7 @@ type
 {!
 	@const		kCTFrameProgressionAttributeName
 	@abstract	Specifies progression for a frame.
-	
+
 	@discussion Value must be a CFNumberRef containing a CTFrameProgression.
 				Default is kCTFrameProgressionTopToBottom. This value determines
 				the line stacking behavior for a frame and does not affect the
@@ -297,17 +297,17 @@ var kCTFrameProgressionAttributeName: CFStringRef; external name '_kCTFrameProgr
 {!
 	@enum		CTFramePathFillRule
 	@abstract	These constants specify fill rule used by the frame.
- 
-	@discussion When a path intersects with itself, the client should specify which rule to use for deciding the 
+
+	@discussion When a path intersects with itself, the client should specify which rule to use for deciding the
 				area of the path.
- 
+
 	@constant	kCTFramePathFillEvenOdd
 				Text is filled in the area that would be painted if the path were given to CGContextEOFillPath.
 
 	@constant	kCTFramePathFillWindingNumber
 				Text is fill in the area that would be painted if the path were given to CGContextFillPath.
- 
- 
+
+
  }
 
 const
@@ -321,7 +321,7 @@ type
 	@const		kCTFramePathFillRuleAttributeName
 	@abstract	Specifies fill rule for a frame if this attribute is used at top level of frameAttributes dictionary, or specify
 				fill rule for a clipping path if used in a dictionary contained in an array specified by kCTFrameClippingPathsAttributeName.
-				
+
 	@discussion Value must be a CFNumberRef containing kCTFramePathFillEvenOdd or kCTFramePathFillWindingNumber.
 				Default is kCTFramePathFillEvenOdd.
 
@@ -345,13 +345,13 @@ var kCTFramePathFillRuleAttributeName: CFStringRef; external name '_kCTFramePath
 var kCTFramePathWidthAttributeName: CFStringRef; external name '_kCTFramePathWidthAttributeName'; (* attribute const *)
 (* CT_AVAILABLE_STARTING( __MAC_10_7, __IPHONE_4_2) *)
 
-	
+
 {!
 	@const		kCTFrameClippingPathsAttributeName
 	@abstract	Specifies array of paths to clip frame.
-	
+
 	@discussion Value must be a CFArrayRef containing CFDictionaryRefs or CGPathRef.  (CGPathRef is allowed on 10.8 or later.)
-				Each dictionary should have a kCTFramePathClippingPathAttributeName key-value pair, and can have a kCTFramePathFillRuleAttributeName key-value pair 
+				Each dictionary should have a kCTFramePathClippingPathAttributeName key-value pair, and can have a kCTFramePathFillRuleAttributeName key-value pair
 				and kCTFramePathFillRuleAttributeName key-value pair as optional parameters.  In case of CGPathRef, default fill rule (kCTFramePathFillEvenOdd) and width (0.0) are used.
 
 	@seealso	CTFramesetterCreateFrame

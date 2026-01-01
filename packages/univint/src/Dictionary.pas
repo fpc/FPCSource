@@ -1,17 +1,17 @@
 {
      File:       LangAnalysis/Dictionary.h
- 
+
      Contains:   Dictionary Manager Interfaces
- 
+
      Version:    LanguageAnalysis-242~23
- 
+
      Copyright:  © 1992-2008 by Apple Inc., all rights reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
@@ -384,7 +384,7 @@ type
 	DCMProgressFilterUPP = DCMProgressFilterProcPtr;
 {
  *  NewDCMProgressFilterUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -393,7 +393,7 @@ type
 
 {
  *  DisposeDCMProgressFilterUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -402,7 +402,7 @@ type
 
 {
  *  InvokeDCMProgressFilterUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -416,10 +416,10 @@ type
 {$ifc not TARGET_CPU_64}
 {
  *  DCMLibraryVersion()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    The Dictionary Manager is deprecated.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -434,10 +434,10 @@ function DCMLibraryVersion: UInt32; external name '_DCMLibraryVersion';
 }
 {
  *  DCMNewDictionary()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    The Dictionary Manager is deprecated.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -449,10 +449,10 @@ function DCMNewDictionary( accessMethodID: DCMAccessMethodID; const (*var*) newD
 
 {
  *  DCMDeriveNewDictionary()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    The Dictionary Manager is deprecated.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -464,10 +464,10 @@ function DCMDeriveNewDictionary( srcDictionary: DCMDictionaryID; const (*var*) n
 
 {
  *  DCMDeleteDictionary()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    The Dictionary Manager is deprecated.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -482,10 +482,10 @@ function DCMDeleteDictionary( dictionaryID: DCMDictionaryID ): OSStatus; externa
 }
 {
  *  DCMRegisterDictionaryFile()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    The Dictionary Manager is deprecated.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -497,10 +497,10 @@ function DCMRegisterDictionaryFile( const (*var*) dictionaryFile: FSSpec; var di
 
 {
  *  DCMUnregisterDictionary()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    The Dictionary Manager is deprecated.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -515,10 +515,10 @@ function DCMUnregisterDictionary( dictionaryID: DCMDictionaryID ): OSStatus; ext
 }
 {
  *  DCMOpenDictionary()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    The Dictionary Manager is deprecated.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -530,10 +530,10 @@ function DCMOpenDictionary( dictionaryID: DCMDictionaryID; protectKeySize: ByteC
 
 {
  *  DCMCloseDictionary()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    The Dictionary Manager is deprecated.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -548,10 +548,10 @@ function DCMCloseDictionary( dictionaryRef: DCMDictionaryRef ): OSStatus; extern
 }
 {
  *  DCMGetDictionaryWriteAccess()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    The Dictionary Manager is deprecated.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -563,10 +563,10 @@ function DCMGetDictionaryWriteAccess( dictionaryRef: DCMDictionaryRef; timeOutDu
 
 {
  *  DCMReleaseDictionaryWriteAccess()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    The Dictionary Manager is deprecated.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -581,10 +581,10 @@ function DCMReleaseDictionaryWriteAccess( dictionaryRef: DCMDictionaryRef; commi
 }
 {
  *  DCMFindRecords()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    The Dictionary Manager is deprecated.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -596,10 +596,10 @@ function DCMFindRecords( dictionaryRef: DCMDictionaryRef; keyFieldTag: DCMFieldT
 
 {
  *  DCMCountRecordIterator()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    The Dictionary Manager is deprecated.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -611,10 +611,10 @@ function DCMCountRecordIterator( recordIterator: DCMFoundRecordIterator ): ItemC
 
 {
  *  DCMIterateFoundRecord()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    The Dictionary Manager is deprecated.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -626,10 +626,10 @@ function DCMIterateFoundRecord( recordIterator: DCMFoundRecordIterator; maxKeySi
 
 {
  *  DCMDisposeRecordIterator()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    The Dictionary Manager is deprecated.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -644,10 +644,10 @@ function DCMDisposeRecordIterator( recordIterator: DCMFoundRecordIterator ): OSS
 }
 {
  *  DCMCountRecord()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    The Dictionary Manager is deprecated.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -659,10 +659,10 @@ function DCMCountRecord( dictionaryID: DCMDictionaryID; var count: ItemCount ): 
 
 {
  *  DCMGetRecordSequenceNumber()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    The Dictionary Manager is deprecated.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -674,10 +674,10 @@ function DCMGetRecordSequenceNumber( dictionaryRef: DCMDictionaryRef; keyFieldTa
 
 {
  *  DCMGetNthRecord()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    The Dictionary Manager is deprecated.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -689,10 +689,10 @@ function DCMGetNthRecord( dictionaryRef: DCMDictionaryRef; keyFieldTag: DCMField
 
 {
  *  DCMGetNextRecord()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    The Dictionary Manager is deprecated.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -704,10 +704,10 @@ function DCMGetNextRecord( dictionaryRef: DCMDictionaryRef; keyFieldTag: DCMFiel
 
 {
  *  DCMGetPrevRecord()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    The Dictionary Manager is deprecated.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -722,10 +722,10 @@ function DCMGetPrevRecord( dictionaryRef: DCMDictionaryRef; keyFieldTag: DCMFiel
 }
 {
  *  DCMGetFieldData()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    The Dictionary Manager is deprecated.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -737,10 +737,10 @@ function DCMGetFieldData( dictionaryRef: DCMDictionaryRef; keyFieldTag: DCMField
 
 {
  *  DCMSetFieldData()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    The Dictionary Manager is deprecated.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -755,10 +755,10 @@ function DCMSetFieldData( dictionaryRef: DCMDictionaryRef; keyFieldTag: DCMField
 }
 {
  *  DCMAddRecord()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    The Dictionary Manager is deprecated.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -770,10 +770,10 @@ function DCMAddRecord( dictionaryRef: DCMDictionaryRef; keyFieldTag: DCMFieldTag
 
 {
  *  DCMDeleteRecord()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    The Dictionary Manager is deprecated.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -788,10 +788,10 @@ function DCMDeleteRecord( dictionaryRef: DCMDictionaryRef; keyFieldTag: DCMField
 }
 {
  *  DCMReorganizeDictionary()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    The Dictionary Manager is deprecated.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -803,10 +803,10 @@ function DCMReorganizeDictionary( dictionaryID: DCMDictionaryID; extraCapacity: 
 
 {
  *  DCMCompactDictionary()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    The Dictionary Manager is deprecated.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -821,10 +821,10 @@ function DCMCompactDictionary( dictionaryID: DCMDictionaryID; progressProc: DCMP
 }
 {
  *  DCMGetFileFromDictionaryID()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    The Dictionary Manager is deprecated.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -836,10 +836,10 @@ function DCMGetFileFromDictionaryID( dictionaryID: DCMDictionaryID; var fileRef:
 
 {
  *  DCMGetDictionaryIDFromFile()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    The Dictionary Manager is deprecated.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -851,10 +851,10 @@ function DCMGetDictionaryIDFromFile( const (*var*) fileRef: FSSpec; var dictiona
 
 {
  *  DCMGetDictionaryIDFromRef()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    The Dictionary Manager is deprecated.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -869,10 +869,10 @@ function DCMGetDictionaryIDFromRef( dictionaryRef: DCMDictionaryRef ): DCMDictio
 }
 {
  *  DCMGetDictionaryFieldInfo()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    The Dictionary Manager is deprecated.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -887,10 +887,10 @@ function DCMGetDictionaryFieldInfo( dictionaryID: DCMDictionaryID; fieldTag: DCM
 }
 {
  *  DCMGetDictionaryProperty()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    The Dictionary Manager is deprecated.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -902,10 +902,10 @@ function DCMGetDictionaryProperty( dictionaryID: DCMDictionaryID; propertyTag: D
 
 {
  *  DCMSetDictionaryProperty()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    The Dictionary Manager is deprecated.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -917,10 +917,10 @@ function DCMSetDictionaryProperty( dictionaryID: DCMDictionaryID; propertyTag: D
 
 {
  *  DCMGetDictionaryPropertyList()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    The Dictionary Manager is deprecated.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -935,10 +935,10 @@ function DCMGetDictionaryPropertyList( dictionaryID: DCMDictionaryID; maxPropert
 }
 {
  *  DCMCreateDictionaryIterator()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    The Dictionary Manager is deprecated.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -953,10 +953,10 @@ function DCMCreateDictionaryIterator( var dictionaryIterator: DCMDictionaryItera
 }
 {
  *  DCMCreateAccessMethodIterator()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    The Dictionary Manager is deprecated.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -971,10 +971,10 @@ function DCMCreateAccessMethodIterator( var accessMethodIterator: DCMAccessMetho
 }
 {
  *  DCMCountObjectIterator()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    The Dictionary Manager is deprecated.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -986,10 +986,10 @@ function DCMCountObjectIterator( iterator: DCMObjectIterator ): ItemCount; exter
 
 {
  *  DCMIterateObject()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    The Dictionary Manager is deprecated.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1001,10 +1001,10 @@ function DCMIterateObject( iterator: DCMObjectIterator; var objectID: DCMObjectI
 
 {
  *  DCMResetObjectIterator()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    The Dictionary Manager is deprecated.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1016,10 +1016,10 @@ function DCMResetObjectIterator( iterator: DCMObjectIterator ): OSStatus; extern
 
 {
  *  DCMDisposeObjectIterator()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    The Dictionary Manager is deprecated.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1034,10 +1034,10 @@ function DCMDisposeObjectIterator( iterator: DCMObjectIterator ): OSStatus; exte
 }
 {
  *  DCMGetAccessMethodIDFromName()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    The Dictionary Manager is deprecated.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1052,10 +1052,10 @@ function DCMGetAccessMethodIDFromName( const (*var*) accessMethodName: Str63; va
 }
 {
  *  DCMCreateFieldInfoRecord()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    The Dictionary Manager is deprecated.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1067,10 +1067,10 @@ function DCMCreateFieldInfoRecord( fieldTag: DescType; fieldType: DescType; maxR
 
 {
  *  DCMGetFieldTagAndType()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    The Dictionary Manager is deprecated.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1082,10 +1082,10 @@ function DCMGetFieldTagAndType( const (*var*) fieldInfoRecord: AEDesc; var field
 
 {
  *  DCMGetFieldMaxRecordSize()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    The Dictionary Manager is deprecated.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1097,10 +1097,10 @@ function DCMGetFieldMaxRecordSize( const (*var*) fieldInfoRecord: AEDesc; var ma
 
 {
  *  DCMGetFieldAttributes()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    The Dictionary Manager is deprecated.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1112,10 +1112,10 @@ function DCMGetFieldAttributes( const (*var*) fieldInfoRecord: AEDesc; var attri
 
 {
  *  DCMGetFieldDefaultData()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    The Dictionary Manager is deprecated.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1127,10 +1127,10 @@ function DCMGetFieldDefaultData( const (*var*) fieldInfoRecord: AEDesc; desiredT
 
 {
  *  DCMGetFieldFindMethods()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    The Dictionary Manager is deprecated.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1149,17 +1149,17 @@ function DCMGetFieldFindMethods( const (*var*) fieldInfoRecord: AEDesc; findMeth
 }
 {$ifc TARGET_RT_MAC_CFM}
 {
-        DCMDictionaryManagerAvailable() is a macro available only in C/C++.  
+        DCMDictionaryManagerAvailable() is a macro available only in C/C++.
         To get the same functionality from pascal or assembly, you need
         to test if Dictionary Manager functions are not NULL.
         For instance:
-        
+
             IF @DCMLibraryVersion <> kUnresolvedCFragSymbolAddress THEN
                 gDictionaryManagerAvailable = TRUE;
             ELSE
                 gDictionaryManagerAvailable = FALSE;
             end
-    
+
 }
 {$elsec}
   {$ifc TARGET_RT_MAC_MACHO}

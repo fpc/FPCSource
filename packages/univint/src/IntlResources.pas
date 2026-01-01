@@ -1,15 +1,15 @@
 {
      File:       CarbonCore/IntlResources.h
- 
+
      Contains:   International Resource definitions.
- 
+
      Copyright:  © 1983-2011 by Apple Inc. All rights reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {
     Modified for use with Free Pascal

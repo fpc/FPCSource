@@ -543,8 +543,8 @@ function CFDictionaryCreateCopy( allocator: CFAllocatorRef; theDict: CFDictionar
   @param capacity A hint about the number of values that will be held
     by the CFDictionary. Pass 0 for no hint. The implementation may
     ignore this hint, or may use it to optimize various
-    operations. A dictionary's actual capacity is only limited by 
-    address space and available memory constraints). If this 
+    operations. A dictionary's actual capacity is only limited by
+    address space and available memory constraints). If this
     parameter is negative, the behavior is undefined.
 #endif
 	@param keyCallBacks A pointer to a CFDictionaryKeyCallBacks structure
@@ -628,7 +628,7 @@ function CFDictionaryCreateMutable( allocator: CFAllocatorRef; capacity: CFIndex
     by the CFDictionary. Pass 0 for no hint. The implementation may
     ignore this hint, or may use it to optimize various
     operations. A dictionary's actual capacity is only limited by
-    address space and available memory constraints). 
+    address space and available memory constraints).
     This parameter must be greater than or equal
     to the count of the dictionary which is to be copied, or the
     behavior is undefined. If this parameter is negative, the
@@ -799,7 +799,7 @@ procedure CFDictionaryGetKeysAndValues( theDict: CFDictionaryRef; {const} keys: 
 		pointer to a function of the correct prototype, the behavior
 		is undefined. If there are keys or values which the
 		applier function does not expect or cannot properly apply
-		to, the behavior is undefined. 
+		to, the behavior is undefined.
 	@param context A pointer-sized user-defined value, which is passed
 		as the third parameter to the applier function, but is
 		otherwise unused by this function. If the context is not
@@ -842,7 +842,7 @@ procedure CFDictionaryAddValue( theDict: CFMutableDictionaryRef; key: {const} Un
 		it is full before this operation, and the key does not exist in
 		the dictionary, the behavior is undefined.
 #endif
-	@param key The key of the value to set into the dictionary. If a key 
+	@param key The key of the value to set into the dictionary. If a key
 		which matches this key is already present in the dictionary, only
 		the value is changed ("add if absent, replace if present"). If
 		no key matches the given key, the key-value pair is added to the
@@ -864,7 +864,7 @@ procedure CFDictionarySetValue( theDict: CFMutableDictionaryRef; key: {const} Un
 	@param theDict The dictionary to which the value is to be replaced. If this
 		parameter is not a valid mutable CFDictionary, the behavior is
 		undefined.
-	@param key The key of the value to replace in the dictionary. If a key 
+	@param key The key of the value to replace in the dictionary. If a key
 		which matches this key is present in the dictionary, the value
 		is changed to the given value, otherwise this function does
 		nothing ("replace if present").
@@ -882,7 +882,7 @@ procedure CFDictionaryReplaceValue( theDict: CFMutableDictionaryRef; key: {const
 	@param theDict The dictionary from which the value is to be removed. If this
 		parameter is not a valid mutable CFDictionary, the behavior is
 		undefined.
-	@param key The key of the value to remove from the dictionary. If a key 
+	@param key The key of the value to remove from the dictionary. If a key
 		which matches this key is present in the dictionary, the key-value
 		pair is removed from the dictionary, otherwise this function does
 		nothing ("remove if present").

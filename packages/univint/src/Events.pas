@@ -1,17 +1,17 @@
 {
      File:       HIToolbox/Events.h
- 
+
      Contains:   Event Manager Interfaces.
- 
+
      Version:    HIToolbox-624~3
- 
+
      Copyright:  © 1985-2008 by Apple Computer, Inc., all rights reserved
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {       Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, August 2005 }
 {       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
@@ -276,10 +276,10 @@ const
 
 {
     CARBON ALERT! BATTLESTATIONS!
-    
+
     The EventModifiers bits defined here are also used in the newer Carbon Event
     key modifiers parameters. There are two main differences:
-    
+
     1)  The Carbon key modifiers parameter is a UInt32, not a UInt16. Never try to
         extract the key modifiers parameter from a Carbon Event into an EventModifiers
         type. You will probably get your stack trashed.
@@ -362,7 +362,7 @@ const
 {
  *  Summary:
  *    Virtual keycodes
- *  
+ *
  *  Discussion:
  *    These constants are the virtual keycodes defined originally in
  *    Inside Mac Volume V, pg. V-191. They identify physical keys on a
@@ -517,7 +517,7 @@ type
 	FKEYUPP = FKEYProcPtr;
 {
  *  NewFKEYUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -526,7 +526,7 @@ type
 
 {
  *  DisposeFKEYUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -535,7 +535,7 @@ type
 
 {
  *  InvokeFKEYUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -545,13 +545,13 @@ type
 {$ifc not TARGET_CPU_64}
 {
  *  GetMouse()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use HIGetMousePosition instead.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -565,13 +565,13 @@ procedure GetMouse( var mouseLoc: Point ); external name '_GetMouse';
 
 {
  *  Button()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use GetCurrentButtonState or GetCurrentEventButtonState instead.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -584,10 +584,10 @@ function Button: Boolean; external name '_Button';
 {$ifc not TARGET_CPU_64}
 {
  *  StillDown()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -599,10 +599,10 @@ function StillDown: Boolean; external name '_StillDown';
 
 {
  *  WaitMouseUp()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -614,13 +614,13 @@ function WaitMouseUp: Boolean; external name '_WaitMouseUp';
 
 {
  *  KeyTranslate()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use UCKeyTranslate instead.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -632,10 +632,10 @@ function KeyTranslate( transData: {const} UnivPtr; keycode: UInt16; var state: U
 
 {
  *  GetCaretTime()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -647,17 +647,17 @@ function GetCaretTime: UInt32; external name '_GetCaretTime';
 
 {$endc} {not TARGET_CPU_64}
 
-{ 
+{
     QuickTime 3.0 supports GetKeys() on unix and win32
 }
 type
     KeyMap = packed array [0..127] of boolean;
 {
  *  GetKeys()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -703,7 +703,7 @@ type
 	GetNextEventFilterUPP = GetNextEventFilterProcPtr;
 {
  *  NewGetNextEventFilterUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -712,7 +712,7 @@ type
 
 {
  *  DisposeGetNextEventFilterUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -721,7 +721,7 @@ type
 
 {
  *  InvokeGetNextEventFilterUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -733,24 +733,24 @@ type
 {$ifc not TARGET_CPU_64}
 {
  *  GetDblTime()
- *  
+ *
  *  Summary:
  *    Returns the maximum time (in units of 1/60th of a second) allowed
  *    between two consecutive mouse-down events in order for the second
  *    click to be considered a double-click.
- *  
+ *
  *  Discussion:
  *    In 64-bit applications, you may replace calls to this API with
  *    calls to NXClickTime (declared in
  *    <IOKit/hidsystem/event_status_driver.h>) or with +[NSEvent
  *    doubleClickInterval] (available in Mac OS X 10.6 and later).
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Result:
  *    The maximum time between mouse-downs allowed for a double-click.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -762,10 +762,10 @@ function GetDblTime: UInt32; external name '_GetDblTime';
 
 {
  *  SetEventMask()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -777,13 +777,13 @@ procedure SetEventMask( value: EventMask ); external name '_SetEventMask';
 
 {
  *  GetNextEvent()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use ReceiveNextEvent instead.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -795,13 +795,13 @@ function GetNextEvent( eventMask_: EventMask; var theEvent: EventRecord ): Boole
 
 {
  *  WaitNextEvent()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use ReceiveNextEvent instead.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -813,13 +813,13 @@ function WaitNextEvent( eventMask_: EventMask; var theEvent: EventRecord; sleep:
 
 {
  *  EventAvail()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use FindSpecificEventInQueue instead.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -831,13 +831,13 @@ function EventAvail( eventMask_: EventMask; var theEvent: EventRecord ): Boolean
 
 {
  *  PostEvent()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use PostEventToQueue or CGEventPost instead.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -851,14 +851,14 @@ function PostEvent( eventNum: EventKind; eventMsg: UInt32 ): OSErr; external nam
 
 {
  *  FlushEvents()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use FlushEventsMatchingListFromQueue,
  *    FlushSpecificEventsFromQueue, or FlushEventQueue instead.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -878,19 +878,19 @@ procedure FlushEvents( whichMask: EventMask; stopMask: EventMask ); external nam
 {$ifc not TARGET_CPU_64}
 {
  *  KeyScript()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use TISSelectInputSource API for positive verbs (ScriptCode).
  *     Use TSMDocument properties to restrict input sources:
  *     kTSMDocumentEnabledInputSourcesPropertyTag
  *     kTSMDocumentInputSourceOverridePropertyTag
- *  
+ *
  *  Summary:
  *    Switch to the specified script's default (last used) input source.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -904,13 +904,13 @@ procedure KeyScript( code: SInt16 ); external name '_KeyScript';
 
 {
  *  IsCmdChar()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use IsUserCancelEventRef or CheckEventQueueForUserCancel instead.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -920,15 +920,15 @@ function IsCmdChar( const (*var*) event: EventRecord; test: SInt16 ): Boolean; e
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_6 *)
 
 
-{ 
+{
     LowMem accessor functions previously in LowMem.h
 }
 {
  *  LMGetKeyThresh()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -941,10 +941,10 @@ function LMGetKeyThresh: SInt16; external name '_LMGetKeyThresh';
 {$ifc not TARGET_CPU_64}
 {
  *  LMSetKeyThresh()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -958,10 +958,10 @@ procedure LMSetKeyThresh( value: SInt16 ); external name '_LMSetKeyThresh';
 
 {
  *  LMGetKeyRepThresh()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -974,10 +974,10 @@ function LMGetKeyRepThresh: SInt16; external name '_LMGetKeyRepThresh';
 {$ifc not TARGET_CPU_64}
 {
  *  LMSetKeyRepThresh()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -991,10 +991,10 @@ procedure LMSetKeyRepThresh( value: SInt16 ); external name '_LMSetKeyRepThresh'
 
 {
  *  LMGetKbdLast()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1007,10 +1007,10 @@ function LMGetKbdLast: UInt8; external name '_LMGetKbdLast';
 {$ifc not TARGET_CPU_64}
 {
  *  LMSetKbdLast()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1024,10 +1024,10 @@ procedure LMSetKbdLast( value: UInt8 ); external name '_LMSetKbdLast';
 
 {
  *  LMGetKbdType()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1040,10 +1040,10 @@ function LMGetKbdType: UInt8; external name '_LMGetKbdType';
 {$ifc not TARGET_CPU_64}
 {
  *  LMSetKbdType()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later

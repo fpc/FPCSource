@@ -1,17 +1,17 @@
 {
      File:       AE/AEUserTermTypes.h
- 
+
      Contains:   AppleEvents AEUT resource format Interfaces.
- 
-    
- 
+
+
+
      Copyright:  © 1991-2008 by Apple Computer, Inc., all rights reserved
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {
     Modified for use with Free Pascal

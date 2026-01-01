@@ -1,15 +1,15 @@
 {
      File:       CarbonCore/TextEncodingConverter.h
- 
+
      Contains:   Text Encoding Conversion Interfaces.
- 
+
      Copyright:  © 1994-2011 Apple Inc. All rights reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {
     Modified for use with Free Pascal
@@ -254,7 +254,7 @@ type
 
 {
  *  TECInternetNameUsageMask
- *  
+ *
  *  Discussion:
  *    Mask values that control the mapping between TextEncoding and
  *    IANA charset name or MIB enum.
@@ -302,7 +302,7 @@ const
 { return number of encodings types supported by user's configuraton of the encoding converter }
 {
  *  TECCountAvailableTextEncodings()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -315,7 +315,7 @@ function TECCountAvailableTextEncodings( var numberEncodings: ItemCount ): OSSta
 { fill in an array of type TextEncoding passed in by the user with types of encodings the current configuration of the encoder can handle. }
 {
  *  TECGetAvailableTextEncodings()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -328,7 +328,7 @@ function TECGetAvailableTextEncodings( availableEncodings: {variable-size-array}
 { return number of from-to encoding conversion pairs supported  }
 {
  *  TECCountDirectTextEncodingConversions()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -341,7 +341,7 @@ function TECCountDirectTextEncodingConversions( var numberOfEncodings: ItemCount
 { fill in an array of type TextEncodingPair passed in by the user with types of encoding pairs the current configuration of the encoder can handle. }
 {
  *  TECGetDirectTextEncodingConversions()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -354,7 +354,7 @@ function TECGetDirectTextEncodingConversions( availableConversions: {variable-si
 { return number of encodings a given encoding can be converter into }
 {
  *  TECCountDestinationTextEncodings()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -367,7 +367,7 @@ function TECCountDestinationTextEncodings( inputEncoding: TextEncoding; var numb
 { fill in an array of type TextEncodingPair passed in by the user with types of encodings pairs the current configuration of the encoder can handle. }
 {
  *  TECGetDestinationTextEncodings()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -380,7 +380,7 @@ function TECGetDestinationTextEncodings( inputEncoding: TextEncoding; destinatio
 { get info about a text encoding }
 {
  *  TECGetTextEncodingInternetName()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -392,7 +392,7 @@ function TECGetTextEncodingInternetName( textEncoding_: TextEncoding; var encodi
 
 {
  *  TECGetTextEncodingFromInternetName()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -405,7 +405,7 @@ function TECGetTextEncodingFromInternetName( var textEncoding_: TextEncoding; co
 { create/dispose converters }
 {
  *  TECCreateConverter()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -417,7 +417,7 @@ function TECCreateConverter( var newEncodingConverter: TECObjectRef; inputEncodi
 
 {
  *  TECCreateConverterFromPath()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -429,7 +429,7 @@ function TECCreateConverterFromPath( var newEncodingConverter: TECObjectRef; {co
 
 {
  *  TECDisposeConverter()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -442,7 +442,7 @@ function TECDisposeConverter( newEncodingConverter: TECObjectRef ): OSStatus; ex
 { convert text encodings }
 {
  *  TECClearConverterContextInfo()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -454,7 +454,7 @@ function TECClearConverterContextInfo( encodingConverter: TECObjectRef ): OSStat
 
 {
  *  TECConvertText()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -466,7 +466,7 @@ function TECConvertText( encodingConverter: TECObjectRef; inputBuffer: ConstText
 
 {
  *  TECFlushText()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -479,7 +479,7 @@ function TECFlushText( encodingConverter: TECObjectRef; outputBuffer: TextPtr; o
 { one-to-many routines }
 {
  *  TECCountSubTextEncodings()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -491,7 +491,7 @@ function TECCountSubTextEncodings( inputEncoding: TextEncoding; var numberOfEnco
 
 {
  *  TECGetSubTextEncodings()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -503,20 +503,20 @@ function TECGetSubTextEncodings( inputEncoding: TextEncoding; subEncodings: {var
 
 {
  *  TECGetEncodingList()
- *  
+ *
  *  Parameters:
- *    
+ *
  *    encodingConverter:
  *      The encodingConverter to return the encoding list for
- *    
+ *
  *    numEncodings:
  *      On exit, the number of encodings in encodingList
- *    
+ *
  *    encodingList:
  *      On exit, a handle containing numEncodings values of type
  *      TextEncoding, for each known encoding.  Do not dispose of this
  *      handle.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -528,7 +528,7 @@ function TECGetEncodingList( encodingConverter: TECObjectRef; var numEncodings: 
 
 {
  *  TECCreateOneToManyConverter()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -540,7 +540,7 @@ function TECCreateOneToManyConverter( var newEncodingConverter: TECObjectRef; in
 
 {
  *  TECConvertTextToMultipleEncodings()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -552,7 +552,7 @@ function TECConvertTextToMultipleEncodings( encodingConverter: TECObjectRef; inp
 
 {
  *  TECFlushMultipleEncodings()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -565,7 +565,7 @@ function TECFlushMultipleEncodings( encodingConverter: TECObjectRef; outputBuffe
 { international internet info }
 {
  *  TECCountWebTextEncodings()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -577,7 +577,7 @@ function TECCountWebTextEncodings( locale: RegionCode; var numberEncodings: Item
 
 {
  *  TECGetWebTextEncodings()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -589,7 +589,7 @@ function TECGetWebTextEncodings( locale: RegionCode; availableEncodings: {variab
 
 {
  *  TECCountMailTextEncodings()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -601,7 +601,7 @@ function TECCountMailTextEncodings( locale: RegionCode; var numberEncodings: Ite
 
 {
  *  TECGetMailTextEncodings()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -614,7 +614,7 @@ function TECGetMailTextEncodings( locale: RegionCode; availableEncodings: {varia
 { examine text encodings }
 {
  *  TECCountAvailableSniffers()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -626,7 +626,7 @@ function TECCountAvailableSniffers( var numberOfEncodings: ItemCount ): OSStatus
 
 {
  *  TECGetAvailableSniffers()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -638,7 +638,7 @@ function TECGetAvailableSniffers( availableSniffers: {variable-size-array} TextE
 
 {
  *  TECCreateSniffer()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -650,7 +650,7 @@ function TECCreateSniffer( var encodingSniffer: TECSnifferObjectRef; {const} tes
 
 {
  *  TECSniffTextEncoding()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -662,7 +662,7 @@ function TECSniffTextEncoding( encodingSniffer: TECSnifferObjectRef; inputBuffer
 
 {
  *  TECDisposeSniffer()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -674,7 +674,7 @@ function TECDisposeSniffer( encodingSniffer: TECSnifferObjectRef ): OSStatus; ex
 
 {
  *  TECClearSnifferContextInfo()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -686,28 +686,28 @@ function TECClearSnifferContextInfo( encodingSniffer: TECSnifferObjectRef ): OSS
 
 {
  *  TECSetBasicOptions()
- *  
+ *
  *  Summary:
  *    Sets encodingConverter options affecting
  *    TECConvertText[ToMultipleEncodings].
- *  
+ *
  *  Parameters:
- *    
+ *
  *    encodingConverter:
  *      The high-level encoding converter object created by
  *      TECCreateConverter or TECCreateOneToManyConverter whose
  *      behavior is to be modified by the options specified in
  *      controlFlags.
- *    
+ *
  *    controlFlags:
  *      A bit mask specifying the desired options. The following mask
  *      constants are valid for this parameter; multiple mask constants
  *      may be ORed together to set multiple options; passing 0 for
- *      this parameter clears all options: 
- *      
+ *      this parameter clears all options:
+ *
  *      kUnicodeForceASCIIRangeMask, kUnicodeNoHalfwidthCharsMask
- *      (defined in UnicodeConverter.h) 
- *      
+ *      (defined in UnicodeConverter.h)
+ *
  *      kTECDisableFallbacksMask, kTECDisableLooseMappingsMask (defined
  *      above) - loose and fallback mappings are both enabled by
  *      default for the TextEncodingConverter.h conversion APIs
@@ -715,12 +715,12 @@ function TECClearSnifferContextInfo( encodingSniffer: TECSnifferObjectRef ): OSS
  *      behavior of the conversion APIs in UnicodeConverter.h. These
  *      options may be used to disable loose and/or fallback mappings
  *      for the TextEncodingConverter.h conversion APIs.
- *  
+ *
  *  Result:
  *    The function returns paramErr for invalid masks,
  *    kTECCorruptConverterErr for an invalid encodingConverter, noErr
  *    otherwise.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -733,43 +733,43 @@ function TECSetBasicOptions( encodingConverter: TECObjectRef; controlFlags: Opti
 { Map TextEncoding values to/from IANA charset names and/or MIB enums, with usage control }
 {
  *  TECCopyTextEncodingInternetNameAndMIB()
- *  
+ *
  *  Summary:
  *    Converts a TextEncoding value to an IANA charset name and/or a
  *    MIB enum value
- *  
+ *
  *  Discussion:
  *    Given a TextEncoding value, this function maps it to an IANA
  *    charset name (if encodingNamePtr is non-NULL) and/or a MIB enum
  *    value (if mibEnumPtr is non-NULL), as specified by the usage
  *    parameter.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    textEncoding:
  *      A TextEncoding value to map to a charset name and/or MIB enum.
- *    
+ *
  *    usage:
  *      Specifies the type of mapping desired (see
  *      TECInternetNameUsageMask above).
- *    
+ *
  *    encodingNamePtr:
  *      If non-NULL, is a pointer to a CStringRef for an immutable
  *      CFString created by this function; when the caller is finished
  *      with it, the caller must dispose of it by calling CFRelease.
- *    
+ *
  *    mibEnumPtr:
  *      If non-NULL, is a pointer to an SInt32 that will be set to the
  *      appropriate MIB enum value, or to 0 (or kTEC_MIBEnumDontCare)
  *      if there is no appropriate MIB enum value (valid MIB enums
  *      begin at 3).
- *  
+ *
  *  Result:
  *    The function returns paramErr if encodingNamePtr and mibEnumPtr
  *    are both NULL. It returns kTextUnsupportedEncodingErr if it has
  *    no data for the supplied textEncoding. It returns noErr if it
  *    found useful data.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -781,11 +781,11 @@ function TECCopyTextEncodingInternetNameAndMIB( textEncoding_: TextEncoding; usa
 
 {
  *  TECGetTextEncodingFromInternetNameOrMIB()
- *  
+ *
  *  Summary:
  *    Converts an IANA charset name or a MIB enum value to a
  *    TextEncoding value
- *  
+ *
  *  Discussion:
  *    If encodingName is non-NULL, this function treats it as an IANA
  *    charset name and maps it to a TextEncoding value; in this case
@@ -793,13 +793,13 @@ function TECCopyTextEncodingInternetNameAndMIB( textEncoding_: TextEncoding; usa
  *    Otherwise, this function maps the mibEnum to a TextEncoding
  *    value. In either case, the mapping is controlled by the usage
  *    parameter. The textEncodingPtr parameter must be non-NULL.
- *  
+ *
  *  Result:
  *    The function returns paramErr if textEncodingPtr is NULL. It
  *    returns kTextUnsupportedEncodingErr if it has no data for the
  *    supplied encodingName or mibEnum. It returns noErr if it found
  *    useful data.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in CoreServices.framework
  *    CarbonLib:        not available

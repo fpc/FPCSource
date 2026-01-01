@@ -509,8 +509,8 @@ type
                 Type: CGFloat
                 Default: some large number.
                 Application: CTFramesetter
- 
- 
+
+
     @constant   kCTParagraphStyleSpecifierMinimumLineSpacing
                 The minimum space in points between lines within the paragraph
                 (commonly known as leading). This value is always
@@ -519,11 +519,11 @@ type
                 Type: CGFloat
                 Default: 0.0
                 Application: CTFramesetter
- 
- 
+
+
     @constant   kCTParagraphStyleSpecifierLineSpacingAdjustment
                 The space in points added between lines within the paragraph
-                (commonly known as leading). 
+                (commonly known as leading).
 
                 Type: CGFloat
                 Default: 0.0

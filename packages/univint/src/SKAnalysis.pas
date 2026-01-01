@@ -1,17 +1,17 @@
 {
      File:       SearchKit/SKAnalysis.h
- 
+
      Contains:   SearchKit Interfaces.
- 
+
      Version:    SearchKit-407~38
- 
+
      Copyright:  © 2003-2008 by Apple Computer, Inc., all rights reserved
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://developer.apple.com/bugreporter/
- 
+
 }
 {
     Modified for use with Free Pascal
@@ -225,7 +225,7 @@ uses MacTypes,CFBase,CFString;
 
 {$ifc TARGET_OS_MAC}
 
-{ 
+{
     The possible text analysis properties of an index, used by
     SKIndexCreateWithURL or SKIndexCreateWithMutableData.
  }
@@ -233,17 +233,17 @@ uses MacTypes,CFBase,CFString;
 
 {
  *  kSKMinTermLength
- *  
+ *
  *  Summary:
  *    The minimum term length to index.
- *  
+ *
  *  Discussion:
  *    The kSKMinTermLength constant is an optional key in the text
  *    analysis properties dictionary whose corresponding value is a
  *    CFNumber object containing the minimum term length to index. If
  *    this key is not present, SearchKit indexing defaults to a minimum
  *    term length of 1.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -253,15 +253,15 @@ var kSKMinTermLength: CFStringRef; external name '_kSKMinTermLength'; (* attribu
 (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
 {
  *  kSKSubstitutions
- *  
+ *
  *  Summary:
  *    A dictionary of term substitutions.
- *  
+ *
  *  Discussion:
  *    The kSKSubstitutions constant is an optional key in the text
  *    analysis properties dictionary whose corresponding value is a
  *    CFDictionary object containing term substitutions.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -271,15 +271,15 @@ var kSKSubstitutions: CFStringRef; external name '_kSKSubstitutions'; (* attribu
 (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
 {
  *  kSKStopWords
- *  
+ *
  *  Summary:
  *    A set of stop words--words not to index.
- *  
+ *
  *  Discussion:
  *    The kSKStopWords constant is an optional key in the text analysis
  *    properties dictionary whose corresponding value is a CFSet object
  *    containing words not to index.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -289,17 +289,17 @@ var kSKStopWords: CFStringRef; external name '_kSKStopWords'; (* attribute const
 (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
 {
  *  kSKProximityIndexing
- *  
+ *
  *  Summary:
  *    The proximity indexing option.
- *  
+ *
  *  Discussion:
  *    The kSKProximityIndexing constant is an optional key in the text
  *    analysis properties dictionary whose corresponding value is a
  *    CFBoolean object containing the proximity indexing option. If
  *    this key is not present, SearchKit indexing defaults to not doing
  *    proximity indexing.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -309,10 +309,10 @@ var kSKProximityIndexing: CFStringRef; external name '_kSKProximityIndexing'; (*
 (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
 {
  *  kSKMaximumTerms
- *  
+ *
  *  Summary:
  *    The maximum unique terms per document to index.
- *  
+ *
  *  Discussion:
  *    The kSKMaximumTerms constant is an optional key in the text
  *    analysis properties dictionary whose corresponding value is a
@@ -320,7 +320,7 @@ var kSKProximityIndexing: CFStringRef; external name '_kSKProximityIndexing'; (*
  *    to index. If this key is not present, SearchKit indexing defaults
  *    to 2000. If the value of this key is zero, there is no limit of
  *    the maximum unique terms per document to index.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -330,17 +330,17 @@ var kSKMaximumTerms: CFStringRef; external name '_kSKMaximumTerms'; (* attribute
 (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
 {
  *  kSKTermChars
- *  
+ *
  *  Summary:
  *    The extra valid characters for indexing.
- *  
+ *
  *  Discussion:
  *    The kSKTermCharSet constant is an optional key in the text
  *    analysis properties dictionary whose corresponding value is a
  *    CFString object containing the extra valid characters that a
  *    valid term (word) can contain. Used for indexing and query
  *    processing.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -350,17 +350,17 @@ var kSKTermChars: CFStringRef; external name '_kSKTermChars'; (* attribute const
 (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
 {
  *  kSKStartTermChars
- *  
+ *
  *  Summary:
  *    The extra valid characters for indexing.
- *  
+ *
  *  Discussion:
  *    The kSKStartTermChars constant is an optional key in the text
  *    analysis properties dictionary whose corresponding value is a
  *    CFString object containing the extra valid characters that can
  *    occur as the first character of a term. Overrides the
  *    kSKTermChars for the first character of a term.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -370,17 +370,17 @@ var kSKStartTermChars: CFStringRef; external name '_kSKStartTermChars'; (* attri
 (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
 {
  *  kSKEndTermChars
- *  
+ *
  *  Summary:
  *    The extra valid characters for indexing.
- *  
+ *
  *  Discussion:
  *    The kSKEndTermChars constant is an optional key in the text
  *    analysis properties dictionary whose corresponding value is a
  *    CFString object containing the extra valid characters that can
  *    occur as the last character of a term. Overrides the kSKTermChars
  *    for the last character of a term.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -390,11 +390,11 @@ var kSKEndTermChars: CFStringRef; external name '_kSKEndTermChars'; (* attribute
 (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
 {
  *  kSKLanguageTypes   *** DEPRECATED ***
- *  
+ *
  *  Summary:
  *    An array of string objects that specify the languages to use for
  *    indexing.
- *  
+ *
  *  Discussion:
  *    The kSKLanguageTypes constant is an optional key in the text
  *    analysis properties dictionary whose corresponding value is an
@@ -404,7 +404,7 @@ var kSKEndTermChars: CFStringRef; external name '_kSKEndTermChars'; (* attribute
  *    'ja' for Japanese, and so on. If this key is not present,
  *    SearchKit uses the Mac OS X preferences system to determine the
  *    primary language from the user's locale.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in CoreServices.framework but deprecated in 10.4
  *    CarbonLib:        not available

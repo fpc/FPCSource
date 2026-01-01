@@ -1,17 +1,17 @@
 {
      File:       QD/Fonts.h
- 
+
      Contains:   Public interface to the Font Manager.
- 
+
      Version:    Quickdraw-285~150
- 
+
      Copyright:  © 1985-2008 by Apple Inc. all rights reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
@@ -231,20 +231,20 @@ uses MacTypes,QuickdrawText,ATSTypes,Files,MacErrors,QuickdrawTypes,TextCommon,C
 {$ifc not TARGET_CPU_64}
 {
  *  FMGetATSFontRefFromFont()
- *  
+ *
  *  Summary:
  *    Obtains the ATS font reference associated with a QuickDraw font
  *    reference.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iFont:
  *      A QuickDraw font reference.
- *    
+ *
  *    Result:
  *      The ATS font reference associated with the specified QuickDraw
  *      font reference.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in ApplicationServices.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.1 and later
@@ -256,20 +256,20 @@ function FMGetATSFontRefFromFont( iFont: FMFont ): ATSFontRef; external name '_F
 
 {
  *  FMGetFontFromATSFontRef()
- *  
+ *
  *  Summary:
  *    Obtains the QuickDraw font reference associated with an ATS font
  *    reference.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iFont:
  *      An ATS font reference.
- *    
+ *
  *    Result:
  *      The QuickDraw font reference associated with the specified ATS
  *      font reference.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in ApplicationServices.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.1 and later
@@ -281,34 +281,34 @@ function FMGetFontFromATSFontRef( iFont: ATSFontRef ): FMFont; external name '_F
 
 {
  *  FMFontGetCGFontRefFromFontFamilyInstance()
- *  
+ *
  *  Summary:
  *    Obtains the Quartz font reference associated with a typeface from
  *    a QuickDraw font family reference.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iFontFamily:
  *      A QuickDraw font family reference.
- *    
+ *
  *    iStyle:
  *      A QuickDraw font style.
- *    
+ *
  *    oFont:
  *      A pointer to a Quartz font reference. On output, points to the
  *      font reference for the specified font family and style. You are
  *      responsible for allocating the memory for the font reference.
- *    
+ *
  *    oStyle:
  *      On output, a pointer to an intrinsic font style. If a font
  *      reference isn’t found that matches the font family reference
  *      and font style you specify, the function returns the QuickDraw
  *      style that matches most closely.
- *    
+ *
  *    Result:
  *      A result code. If a font reference and intrinsic style are not
  *      found, the function returns a value of kFMInvalidFontErr.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in ApplicationServices.framework [32-bit only]
  *    CarbonLib:        not available
@@ -322,7 +322,7 @@ function FMFontGetCGFontRefFromFontFamilyInstance( iFontFamily: FMFontFamily; iS
  *  The remaining functions in this file have all been deprecated on Mac OS X 10.4. There are other
  *  solutions that are recommended that provide better compatibility with the rest of the operating
  *  system.
- *  
+ *
  *  Instead of using the QuickDraw functions, you should consider the following:
  *
  *  1.  For drawing and measuring text, you can use the Appearance Manager API in HITheme.h or the
@@ -331,7 +331,7 @@ function FMFontGetCGFontRefFromFontFamilyInstance( iFontFamily: FMFontFamily; iS
  *
  *  2.  For accessing information on fonts tracked by the operating system, please refer to the
  *      functions described in ATSFont.h. Alternatively use CoreText on Mac OS X 10.5 or later.
- *  
+ *
  *  3.  For accessing and modifying information on fonts in a Quartz graphics context, please refer
  *      to the functions described in CoreGraphics.h.
  }
@@ -502,7 +502,7 @@ type
 {$ifc not TARGET_CPU_64}
 {
  *  InitFonts()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available [32-bit only]
  *    CarbonLib:        not available
@@ -512,7 +512,7 @@ type
 
 {
  *  GetFontName()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -524,7 +524,7 @@ procedure GetFontName( familyID: SInt16; var name: Str255 ); external name '_Get
 
 {
  *  GetFNum()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -536,7 +536,7 @@ procedure GetFNum( const (*var*) name: Str255; var familyID: SInt16 ); external 
 
 {
  *  RealFont()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -548,7 +548,7 @@ function RealFont( fontNum: SInt16; size: SInt16 ): Boolean; external name '_Rea
 
 {
  *  SetFontLock()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available [32-bit only]
  *    CarbonLib:        not available
@@ -558,7 +558,7 @@ function RealFont( fontNum: SInt16; size: SInt16 ): Boolean; external name '_Rea
 
 {
  *  FMSwapFont()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -570,7 +570,7 @@ function FMSwapFont( const (*var*) inRec: FMInput ): FMOutPtr; external name '_F
 
 {
  *  SetFScaleDisable()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -582,7 +582,7 @@ procedure SetFScaleDisable( fscaleDisable: Boolean ); external name '_SetFScaleD
 
 {
  *  FontMetrics()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -594,7 +594,7 @@ procedure FontMetrics( theMetrics: FMetricRecPtr ); external name '_FontMetrics'
 
 {
  *  SetFractEnable()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -606,7 +606,7 @@ procedure SetFractEnable( fractEnable: Boolean ); external name '_SetFractEnable
 
 {
  *  GetDefFontSize()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -618,7 +618,7 @@ function GetDefFontSize: SInt16; external name '_GetDefFontSize';
 
 {
  *  IsOutline()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -630,7 +630,7 @@ function IsOutline( numer: Point; denom: Point ): Boolean; external name '_IsOut
 
 {
  *  SetOutlinePreferred()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -642,7 +642,7 @@ procedure SetOutlinePreferred( outlinePreferred: Boolean ); external name '_SetO
 
 {
  *  GetOutlinePreferred()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -654,7 +654,7 @@ function GetOutlinePreferred: Boolean; external name '_GetOutlinePreferred';
 
 {
  *  OutlineMetrics()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -666,7 +666,7 @@ function OutlineMetrics( byteCount: SInt16; textPtr: {const} UnivPtr; numer: Poi
 
 {
  *  SetPreserveGlyph()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -678,7 +678,7 @@ procedure SetPreserveGlyph( preserveGlyph: Boolean ); external name '_SetPreserv
 
 {
  *  GetPreserveGlyph()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -692,7 +692,7 @@ function GetPreserveGlyph: Boolean; external name '_GetPreserveGlyph';
 
 {
  *  FlushFonts()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -703,7 +703,7 @@ function GetPreserveGlyph: Boolean; external name '_GetPreserveGlyph';
 {$ifc not TARGET_CPU_64}
 {
  *  getfnum()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available [32-bit only]
  *    CarbonLib:        not available
@@ -713,7 +713,7 @@ function GetPreserveGlyph: Boolean; external name '_GetPreserveGlyph';
 
 {
  *  getfontname()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available [32-bit only]
  *    CarbonLib:        not available
@@ -726,7 +726,7 @@ function GetPreserveGlyph: Boolean; external name '_GetPreserveGlyph';
 {$ifc not TARGET_CPU_64}
 {
  *  GetSysFont()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -738,7 +738,7 @@ function GetSysFont: SInt16; external name '_GetSysFont';
 
 {
  *  GetAppFont()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -751,7 +751,7 @@ function GetAppFont: SInt16; external name '_GetAppFont';
 { Extended font data functions (available only with Mac OS 8.5 or later). }
 {
  *  SetAntiAliasedTextEnabled()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -763,7 +763,7 @@ function SetAntiAliasedTextEnabled( iEnable: Boolean; iMinFontSize: SInt16 ): OS
 
 {
  *  IsAntiAliasedTextEnabled()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -775,7 +775,7 @@ function IsAntiAliasedTextEnabled( var oMinFontSize: SInt16 ): Boolean; external
 
 {
  *  QDTextBounds()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -787,7 +787,7 @@ procedure QDTextBounds( byteCount: SInt16; textAddr: {const} UnivPtr; var bounds
 
 {
  *  FetchFontInfo()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -800,12 +800,12 @@ function FetchFontInfo( fontID: SInt16; fontSize: SInt16; fontStyle: SInt16; var
 { Font access and data management functions (available only with Mac OS 9.0 or later). }
 {
  *  FMCreateFontFamilyIterator()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    This function is deprecated in Mac OS X 10.4 and not available in
  *    64-bit. Please see ATSFont.h for alternatives. Suggested
  *    replacement is ATSFontFamilyIteratorCreate.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -817,12 +817,12 @@ function FMCreateFontFamilyIterator( {const} iFilter: FMFilterPtr { can be NULL 
 
 {
  *  FMDisposeFontFamilyIterator()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    This function is deprecated in Mac OS X 10.4 and not available in
  *    64-bit. Please see ATSFont.h for alternatives. Suggested
  *    replacement is ATSFontFamilyIteratorRelease.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -834,12 +834,12 @@ function FMDisposeFontFamilyIterator( var ioIterator: FMFontFamilyIterator ): OS
 
 {
  *  FMResetFontFamilyIterator()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    This function is deprecated in Mac OS X 10.4 and not available in
  *    64-bit. Please see ATSFont.h for alternatives. Suggested
  *    replacement is ATSFontFamilyIteratorReset.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -851,12 +851,12 @@ function FMResetFontFamilyIterator( {const} iFilter: FMFilterPtr { can be NULL }
 
 {
  *  FMGetNextFontFamily()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    This function is deprecated in Mac OS X 10.4 and not available in
  *    64-bit. Please see ATSFont.h for alternatives. Suggested
  *    replacement is ATSFontFamilyIteratorNext.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -868,12 +868,12 @@ function FMGetNextFontFamily( var ioIterator: FMFontFamilyIterator; var oFontFam
 
 {
  *  FMCreateFontIterator()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    This function is deprecated in Mac OS X 10.4 and not available in
  *    64-bit. Please see ATSFont.h for alternatives. Suggested
  *    replacement is ATSFontIteratorCreate.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -885,12 +885,12 @@ function FMCreateFontIterator( {const} iFilter: FMFilterPtr { can be NULL }; iRe
 
 {
  *  FMDisposeFontIterator()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    This function is deprecated in Mac OS X 10.4 and not available in
  *    64-bit. Please see ATSFont.h for alternatives. Suggested
  *    replacement is ATSFontIteratorRelease.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -902,12 +902,12 @@ function FMDisposeFontIterator( var ioIterator: FMFontIterator ): OSStatus; exte
 
 {
  *  FMResetFontIterator()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    This function is deprecated in Mac OS X 10.4 and not available in
  *    64-bit. Please see ATSFont.h for alternatives. Suggested
  *    replacement is ATSFontIteratorReset.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -919,12 +919,12 @@ function FMResetFontIterator( {const} iFilter: FMFilterPtr { can be NULL }; iRef
 
 {
  *  FMGetNextFont()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    This function is deprecated in Mac OS X 10.4 and not available in
  *    64-bit. Please see ATSFont.h for alternatives. Suggested
  *    replacement is ATSFontIteratorNext.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -936,11 +936,11 @@ function FMGetNextFont( var ioIterator: FMFontIterator; var oFont: FMFont ): OSS
 
 {
  *  FMCreateFontFamilyInstanceIterator()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    This function is deprecated in Mac OS X 10.4 and not available in
  *    64-bit. Please see ATSFont.h for alternatives.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -952,11 +952,11 @@ function FMCreateFontFamilyInstanceIterator( iFontFamily: FMFontFamily; var ioIt
 
 {
  *  FMDisposeFontFamilyInstanceIterator()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    This function is deprecated in Mac OS X 10.4 and not available in
  *    64-bit. Please see ATSFont.h for alternatives.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -968,11 +968,11 @@ function FMDisposeFontFamilyInstanceIterator( var ioIterator: FMFontFamilyInstan
 
 {
  *  FMResetFontFamilyInstanceIterator()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    This function is deprecated in Mac OS X 10.4 and not available in
  *    64-bit. Please see ATSFont.h for alternatives.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -984,11 +984,11 @@ function FMResetFontFamilyInstanceIterator( iFontFamily: FMFontFamily; var ioIte
 
 {
  *  FMGetNextFontFamilyInstance()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    This function is deprecated in Mac OS X 10.4 and not available in
  *    64-bit. Please see ATSFont.h for alternatives.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1000,12 +1000,12 @@ function FMGetNextFontFamilyInstance( var ioIterator: FMFontFamilyInstanceIterat
 
 {
  *  FMGetFontFamilyFromName()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    This function is deprecated in Mac OS X 10.4 and not available in
  *    64-bit. Please see ATSFont.h for alternatives. Suggested
  *    replacement is ATSFontFamilyFindFromName.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1017,12 +1017,12 @@ function FMGetFontFamilyFromName( const (*var*) iName: Str255 ): FMFontFamily; e
 
 {
  *  FMGetFontFamilyName()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    This function is deprecated in Mac OS X 10.4 and not available in
  *    64-bit. Please see ATSFont.h for alternatives. Suggested
  *    replacement is ATSFontFamilyGetName.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1034,12 +1034,12 @@ function FMGetFontFamilyName( iFontFamily: FMFontFamily; var oName: Str255 ): OS
 
 {
  *  FMGetFontFamilyTextEncoding()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    This function is deprecated in Mac OS X 10.4 and not available in
  *    64-bit. Please see ATSFont.h for alternatives. Suggested
  *    replacement is ATSFontFamilyGetEncoding.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1051,12 +1051,12 @@ function FMGetFontFamilyTextEncoding( iFontFamily: FMFontFamily; var oTextEncodi
 
 {
  *  FMGetFontFamilyGeneration()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    This function is deprecated in Mac OS X 10.4 and not available in
  *    64-bit. Please see ATSFont.h for alternatives. Suggested
  *    replacement is ATSFontFamilyGetGeneration.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1068,11 +1068,11 @@ function FMGetFontFamilyGeneration( iFontFamily: FMFontFamily; var oGeneration: 
 
 {
  *  FMGetFontFormat()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    This function is deprecated in Mac OS X 10.4 and not available in
  *    64-bit. Please see ATSFont.h for alternatives.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1084,7 +1084,7 @@ function FMGetFontFormat( iFont: FMFont; var oFormat: FourCharCode ): OSStatus; 
 
 {
  *  FMGetFontTableDirectory()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1096,13 +1096,13 @@ function FMGetFontTableDirectory( iFont: FMFont; iLength: ByteCount; iBuffer: Un
 
 {
  *  FMGetFontTable()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    This function is deprecated in Mac OS X 10.4 and not available in
  *    64-bit. Please see ATSFont.h for alternatives. Suggested
  *    replacement is ATSFontGetTable or CTFontCopyTable from
  *    CoreText/CTFont.h.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1114,12 +1114,12 @@ function FMGetFontTable( iFont: FMFont; iTag: FourCharCode; iOffset: ByteOffset;
 
 {
  *  FMGetFontGeneration()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    This function is deprecated in Mac OS X 10.4 and not available in
  *    64-bit. Please see ATSFont.h for alternatives. Suggested
  *    replacement is ATSFontGetGeneration.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1131,12 +1131,12 @@ function FMGetFontGeneration( iFont: FMFont; var oGeneration: FMGeneration ): OS
 
 {
  *  FMGetFontContainer()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    This function is deprecated in Mac OS X 10.4 and not available in
  *    64-bit. Please see ATSFont.h for alternatives. Suggested
  *    replacement is ATSFontGetContainer.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1148,13 +1148,13 @@ function FMGetFontContainer( iFont: FMFont; var oFontContainer: FSSpec ): OSStat
 
 {
  *  FMGetFontFromFontFamilyInstance()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    This function is deprecated in Mac OS X 10.4 and not available in
  *    64-bit. Please see ATSFont.h for alternatives. Suggested
  *    replacement is CTFontCreateFromQuickdrawInstance in
  *    CoreText/CTFont.h.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1166,11 +1166,11 @@ function FMGetFontFromFontFamilyInstance( iFontFamily: FMFontFamily; iStyle: FMF
 
 {
  *  FMGetFontFamilyInstanceFromFont()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    This function is deprecated in Mac OS X 10.4 and not available in
  *    64-bit. Please see ATSFont.h for alternatives.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1182,11 +1182,11 @@ function FMGetFontFamilyInstanceFromFont( iFont: FMFont; var oFontFamily: FMFont
 
 {
  *  FMGetATSFontFamilyRefFromFontFamily()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    This function is deprecated in Mac OS X 10.4 and not available in
  *    64-bit. Please see ATSFont.h for alternatives.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.1 and later
@@ -1198,11 +1198,11 @@ function FMGetATSFontFamilyRefFromFontFamily( iFamily: FMFontFamily ): ATSFontFa
 
 {
  *  FMGetFontFamilyFromATSFontFamilyRef()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    This function is deprecated in Mac OS X 10.4 and not available in
  *    64-bit. Please see ATSFont.h for alternatives.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.1 and later
@@ -1214,12 +1214,12 @@ function FMGetFontFamilyFromATSFontFamilyRef( iFamily: ATSFontFamilyRef ): FMFon
 
 {
  *  FMActivateFonts()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    This function is deprecated in Mac OS X 10.4 and not available in
  *    64-bit. Please see ATSFont.h for alternatives. Suggested
  *    replacement is ATSFontActivateFromFileReference.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1231,12 +1231,12 @@ function FMActivateFonts( const (*var*) iFontContainer: FSSpec; {const} iFilter:
 
 {
  *  FMDeactivateFonts()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    This function is deprecated in Mac OS X 10.4 and not available in
  *    64-bit. Please see ATSFont.h for alternatives. Suggested
  *    replacement is ATSFontDeactivate.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1249,12 +1249,12 @@ function FMDeactivateFonts( const (*var*) iFontContainer: FSSpec; {const} iFilte
 { Use ATSGetGeneration instead of FMGetGeneration }
 {
  *  FMGetGeneration()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    This function is deprecated in Mac OS X 10.4 and not available in
  *    64-bit. Please see ATSFont.h for alternatives. Suggested
  *    replacement is ATSGetGeneration.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1266,12 +1266,12 @@ function FMGetGeneration: FMGeneration; external name '_FMGetGeneration';
 
 {
  *  FMGetFontContainerFromFontFamilyInstance()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    This function is deprecated in Mac OS X 10.4 and not available in
  *    64-bit. Please see ATSFont.h for alternatives. Suggested
  *    replacement is ATSFontGetContainer.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.1 and later
@@ -1283,12 +1283,12 @@ function FMGetFontContainerFromFontFamilyInstance( iFontFamily: FMFontFamily; iS
 
 {
  *  FMGetFontFamilyResource()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    This function is deprecated in Mac OS X 10.4 and not available in
  *    64-bit. Please see ATSFont.h for alternatives. Suggested
  *    replacement is ATSFontGetFontFamilyResource.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.1 and later

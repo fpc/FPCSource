@@ -242,7 +242,7 @@ raw UUID.  A CFUUIDRef can provide such a struct from the
 CFUUIDGetUUIDBytes() function.  This struct is suitable for
 passing to APIs that expect a raw UUID.
 }
-        
+
 function CFUUIDGetTypeID: CFTypeID; external name '_CFUUIDGetTypeID';
 
 function CFUUIDCreate( alloc: CFAllocatorRef ): CFUUIDRef; external name '_CFUUIDCreate';

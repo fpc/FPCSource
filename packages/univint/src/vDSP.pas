@@ -1,17 +1,17 @@
 {
      File:       vecLib/vDSP.h
- 
+
      Contains:   AltiVec DSP Interfaces
- 
+
      Version:    vecLib-380.6
- 
+
      Copyright:  © 2000-2012 by Apple Computer, Inc., all rights reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
@@ -312,7 +312,7 @@ const
 }
 {
  *  vDSP_create_fftsetup()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in vecLib.framework
  *    CarbonLib:        not in Carbon, but vecLib is compatible with CarbonLib
@@ -324,7 +324,7 @@ function vDSP_create_fftsetup( __vDSP_log2n: vDSP_Length; __vDSP_radix: FFTRadix
 
 {
  *  vDSP_destroy_fftsetup()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in vecLib.framework
  *    CarbonLib:        not in Carbon, but vecLib is compatible with CarbonLib
@@ -336,7 +336,7 @@ procedure vDSP_destroy_fftsetup( __vDSP_setup: FFTSetup ); external name '_vDSP_
 
 {
  *  vDSP_create_fftsetupD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -348,7 +348,7 @@ function vDSP_create_fftsetupD( __vDSP_log2n: vDSP_Length; __vDSP_radix: FFTRadi
 
 {
  *  vDSP_destroy_fftsetupD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -363,7 +363,7 @@ procedure vDSP_destroy_fftsetupD( __vDSP_setup: FFTSetupD ); external name '_vDS
 }
 {
  *  vDSP_ctoz()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in vecLib.framework
  *    CarbonLib:        not in Carbon, but vecLib is compatible with CarbonLib
@@ -375,7 +375,7 @@ procedure vDSP_ctoz( {const} __vDSP_C: {variable-size-array} DSPComplexPtr; __vD
 
 {
  *  vDSP_ztoc()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in vecLib.framework
  *    CarbonLib:        not in Carbon, but vecLib is compatible with CarbonLib
@@ -387,7 +387,7 @@ procedure vDSP_ztoc( const __vDSP_Z: DSPSplitComplexPtr; __vDSP_strideZ: vDSP_St
 
 {
  *  vDSP_ctozD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -399,7 +399,7 @@ procedure vDSP_ctozD( {const} __vDSP_C: {variable-size-array} DSPDoubleComplexPt
 
 {
  *  vDSP_ztocD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -418,7 +418,7 @@ procedure vDSP_ztocD( const __vDSP_Z: DSPDoubleSplitComplexPtr; __vDSP_strideZ: 
 }
 {
  *  vDSP_fft_zip()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in vecLib.framework
  *    CarbonLib:        not in Carbon, but vecLib is compatible with CarbonLib
@@ -430,7 +430,7 @@ procedure vDSP_fft_zip( __vDSP_setup: FFTSetup; __vDSP_ioData: DSPSplitComplexPt
 
 {
  *  vDSP_fft_zipt()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in vecLib.framework
  *    CarbonLib:        not in Carbon, but vecLib is compatible with CarbonLib
@@ -442,7 +442,7 @@ procedure vDSP_fft_zipt( __vDSP_setup: FFTSetup; __vDSP_ioData: DSPSplitComplexP
 
 {
  *  vDSP_fft_zipD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -454,7 +454,7 @@ procedure vDSP_fft_zipD( __vDSP_setup: FFTSetupD; __vDSP_ioData: DSPDoubleSplitC
 
 {
  *  vDSP_fft_ziptD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -473,7 +473,7 @@ procedure vDSP_fft_ziptD( __vDSP_setup: FFTSetupD; __vDSP_ioData: DSPDoubleSplit
 }
 {
  *  vDSP_fft_zop()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in vecLib.framework
  *    CarbonLib:        not in Carbon, but vecLib is compatible with CarbonLib
@@ -485,7 +485,7 @@ procedure vDSP_fft_zop( __vDSP_setup: FFTSetup; __vDSP_signal: DSPSplitComplexPt
 
 {
  *  vDSP_fft_zopt()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in vecLib.framework
  *    CarbonLib:        not in Carbon, but vecLib is compatible with CarbonLib
@@ -497,7 +497,7 @@ procedure vDSP_fft_zopt( __vDSP_setup: FFTSetup; __vDSP_signal: DSPSplitComplexP
 
 {
  *  vDSP_fft_zopD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -509,7 +509,7 @@ procedure vDSP_fft_zopD( __vDSP_setup: FFTSetupD; __vDSP_signal: DSPDoubleSplitC
 
 {
  *  vDSP_fft_zoptD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -528,7 +528,7 @@ procedure vDSP_fft_zoptD( __vDSP_setup: FFTSetupD; __vDSP_signal: DSPDoubleSplit
 }
 {
  *  vDSP_fft_zrip()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in vecLib.framework
  *    CarbonLib:        not in Carbon, but vecLib is compatible with CarbonLib
@@ -540,7 +540,7 @@ procedure vDSP_fft_zrip( __vDSP_setup: FFTSetup; __vDSP_ioData: DSPSplitComplexP
 
 {
  *  vDSP_fft_zript()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in vecLib.framework
  *    CarbonLib:        not in Carbon, but vecLib is compatible with CarbonLib
@@ -552,7 +552,7 @@ procedure vDSP_fft_zript( __vDSP_setup: FFTSetup; __vDSP_ioData: DSPSplitComplex
 
 {
  *  vDSP_fft_zripD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -564,7 +564,7 @@ procedure vDSP_fft_zripD( __vDSP_setup: FFTSetupD; __vDSP_ioData: DSPDoubleSplit
 
 {
  *  vDSP_fft_zriptD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -583,7 +583,7 @@ procedure vDSP_fft_zriptD( __vDSP_setup: FFTSetupD; __vDSP_ioData: DSPDoubleSpli
 }
 {
  *  vDSP_fft_zrop()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in vecLib.framework
  *    CarbonLib:        not in Carbon, but vecLib is compatible with CarbonLib
@@ -595,7 +595,7 @@ procedure vDSP_fft_zrop( __vDSP_setup: FFTSetup; __vDSP_signal: DSPSplitComplexP
 
 {
  *  vDSP_fft_zropt()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in vecLib.framework
  *    CarbonLib:        not in Carbon, but vecLib is compatible with CarbonLib
@@ -607,7 +607,7 @@ procedure vDSP_fft_zropt( __vDSP_setup: FFTSetup; __vDSP_signal: DSPSplitComplex
 
 {
  *  vDSP_fft_zropD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -619,7 +619,7 @@ procedure vDSP_fft_zropD( __vDSP_setup: FFTSetupD; __vDSP_signal: DSPDoubleSplit
 
 {
  *  vDSP_fft_zroptD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -638,7 +638,7 @@ procedure vDSP_fft_zroptD( __vDSP_setup: FFTSetupD; __vDSP_signal: DSPDoubleSpli
 }
 {
  *  vDSP_fft2d_zip()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in vecLib.framework
  *    CarbonLib:        not in Carbon, but vecLib is compatible with CarbonLib
@@ -650,7 +650,7 @@ procedure vDSP_fft2d_zip( __vDSP_setup: FFTSetup; __vDSP_ioData: DSPSplitComplex
 
 {
  *  vDSP_fft2d_zipt()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in vecLib.framework
  *    CarbonLib:        not in Carbon, but vecLib is compatible with CarbonLib
@@ -662,7 +662,7 @@ procedure vDSP_fft2d_zipt( __vDSP_setup: FFTSetup; __vDSP_ioData: DSPSplitComple
 
 {
  *  vDSP_fft2d_zipD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -674,7 +674,7 @@ procedure vDSP_fft2d_zipD( __vDSP_setup: FFTSetupD; __vDSP_ioData: DSPDoubleSpli
 
 {
  *  vDSP_fft2d_ziptD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -693,7 +693,7 @@ procedure vDSP_fft2d_ziptD( __vDSP_setup: FFTSetupD; __vDSP_ioData: DSPDoubleSpl
 }
 {
  *  vDSP_fft2d_zop()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in vecLib.framework
  *    CarbonLib:        not in Carbon, but vecLib is compatible with CarbonLib
@@ -705,7 +705,7 @@ procedure vDSP_fft2d_zop( __vDSP_setup: FFTSetup; __vDSP_signal: DSPSplitComplex
 
 {
  *  vDSP_fft2d_zopt()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in vecLib.framework
  *    CarbonLib:        not in Carbon, but vecLib is compatible with CarbonLib
@@ -717,7 +717,7 @@ procedure vDSP_fft2d_zopt( __vDSP_setup: FFTSetup; __vDSP_signal: DSPSplitComple
 
 {
  *  vDSP_fft2d_zopD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -729,7 +729,7 @@ procedure vDSP_fft2d_zopD( __vDSP_setup: FFTSetupD; __vDSP_signal: DSPDoubleSpli
 
 {
  *  vDSP_fft2d_zoptD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -749,7 +749,7 @@ procedure vDSP_fft2d_zoptD( __vDSP_setup: FFTSetupD; __vDSP_signal: DSPDoubleSpl
 }
 {
  *  vDSP_fft2d_zrip()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in vecLib.framework
  *    CarbonLib:        not in Carbon, but vecLib is compatible with CarbonLib
@@ -761,7 +761,7 @@ procedure vDSP_fft2d_zrip( __vDSP_setup: FFTSetup; __vDSP_ioData: DSPSplitComple
 
 {
  *  vDSP_fft2d_zript()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in vecLib.framework
  *    CarbonLib:        not in Carbon, but vecLib is compatible with CarbonLib
@@ -773,7 +773,7 @@ procedure vDSP_fft2d_zript( __vDSP_setup: FFTSetup; __vDSP_ioData: DSPSplitCompl
 
 {
  *  vDSP_fft2d_zripD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -785,7 +785,7 @@ procedure vDSP_fft2d_zripD( __vDSP_setup: FFTSetupD; __vDSP_signal: DSPDoubleSpl
 
 {
  *  vDSP_fft2d_zriptD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -805,7 +805,7 @@ procedure vDSP_fft2d_zriptD( __vDSP_setup: FFTSetupD; __vDSP_signal: DSPDoubleSp
 }
 {
  *  vDSP_fft2d_zrop()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in vecLib.framework
  *    CarbonLib:        not in Carbon, but vecLib is compatible with CarbonLib
@@ -817,7 +817,7 @@ procedure vDSP_fft2d_zrop( __vDSP_setup: FFTSetup; __vDSP_signal: DSPSplitComple
 
 {
  *  vDSP_fft2d_zropt()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in vecLib.framework
  *    CarbonLib:        not in Carbon, but vecLib is compatible with CarbonLib
@@ -829,7 +829,7 @@ procedure vDSP_fft2d_zropt( __vDSP_setup: FFTSetup; __vDSP_signal: DSPSplitCompl
 
 {
  *  vDSP_fft2d_zropD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -841,7 +841,7 @@ procedure vDSP_fft2d_zropD( __vDSP_setup: FFTSetupD; __vDSP_ioData: DSPDoubleSpl
 
 {
  *  vDSP_fft2d_zroptD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -860,7 +860,7 @@ procedure vDSP_fft2d_zroptD( __vDSP_setup: FFTSetupD; __vDSP_ioData: DSPDoubleSp
 }
 {
  *  vDSP_fftm_zip()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -872,7 +872,7 @@ procedure vDSP_fftm_zip( __vDSP_setup: FFTSetup; __vDSP_signal: DSPSplitComplexP
 
 {
  *  vDSP_fftm_zipt()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -884,7 +884,7 @@ procedure vDSP_fftm_zipt( __vDSP_setup: FFTSetup; __vDSP_signal: DSPSplitComplex
 
 {
  *  vDSP_fftm_zipD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -896,7 +896,7 @@ procedure vDSP_fftm_zipD( __vDSP_setup: FFTSetupD; __vDSP_signal: DSPDoubleSplit
 
 {
  *  vDSP_fftm_ziptD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -915,7 +915,7 @@ procedure vDSP_fftm_ziptD( __vDSP_setup: FFTSetupD; __vDSP_signal: DSPDoubleSpli
 }
 {
  *  vDSP_fftm_zop()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -927,7 +927,7 @@ procedure vDSP_fftm_zop( __vDSP_setup: FFTSetup; __vDSP_signal: DSPSplitComplexP
 
 {
  *  vDSP_fftm_zopt()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -939,7 +939,7 @@ procedure vDSP_fftm_zopt( __vDSP_setup: FFTSetup; __vDSP_signal: DSPSplitComplex
 
 {
  *  vDSP_fftm_zopD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -951,7 +951,7 @@ procedure vDSP_fftm_zopD( __vDSP_setup: FFTSetupD; __vDSP_signal: DSPDoubleSplit
 
 {
  *  vDSP_fftm_zoptD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -970,7 +970,7 @@ procedure vDSP_fftm_zoptD( __vDSP_setup: FFTSetupD; __vDSP_signal: DSPDoubleSpli
 }
 {
  *  vDSP_fftm_zrip()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -982,7 +982,7 @@ procedure vDSP_fftm_zrip( __vDSP_setup: FFTSetup; __vDSP_signal: DSPSplitComplex
 
 {
  *  vDSP_fftm_zript()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -994,7 +994,7 @@ procedure vDSP_fftm_zript( __vDSP_setup: FFTSetup; __vDSP_signal: DSPSplitComple
 
 {
  *  vDSP_fftm_zripD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -1006,7 +1006,7 @@ procedure vDSP_fftm_zripD( __vDSP_setup: FFTSetupD; __vDSP_signal: DSPDoubleSpli
 
 {
  *  vDSP_fftm_zriptD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -1025,7 +1025,7 @@ procedure vDSP_fftm_zriptD( __vDSP_setup: FFTSetupD; __vDSP_signal: DSPDoubleSpl
 }
 {
  *  vDSP_fftm_zrop()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -1037,7 +1037,7 @@ procedure vDSP_fftm_zrop( __vDSP_setup: FFTSetup; __vDSP_signal: DSPSplitComplex
 
 {
  *  vDSP_fftm_zropt()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -1049,7 +1049,7 @@ procedure vDSP_fftm_zropt( __vDSP_setup: FFTSetup; __vDSP_signal: DSPSplitComple
 
 {
  *  vDSP_fftm_zropD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -1061,7 +1061,7 @@ procedure vDSP_fftm_zropD( __vDSP_setup: FFTSetupD; __vDSP_signal: DSPDoubleSpli
 
 {
  *  vDSP_fftm_zroptD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -1080,7 +1080,7 @@ procedure vDSP_fftm_zroptD( __vDSP_setup: FFTSetupD; __vDSP_signal: DSPDoubleSpl
 }
 {
  *  vDSP_fft3_zop()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -1092,7 +1092,7 @@ procedure vDSP_fft3_zop( __vDSP_setup: FFTSetup; __vDSP_signal: DSPSplitComplexP
 
 {
  *  vDSP_fft5_zop()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -1104,7 +1104,7 @@ procedure vDSP_fft5_zop( __vDSP_setup: FFTSetup; __vDSP_signal: DSPSplitComplexP
 
 {
  *  vDSP_fft3_zopD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -1116,7 +1116,7 @@ procedure vDSP_fft3_zopD( __vDSP_setup: FFTSetupD; __vDSP_ioData: DSPDoubleSplit
 
 {
  *  vDSP_fft5_zopD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -1129,7 +1129,7 @@ procedure vDSP_fft5_zopD( __vDSP_setup: FFTSetupD; __vDSP_ioData: DSPDoubleSplit
 { Convolution (or correlation), single-precision.}
 {
  *  vDSP_conv()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in vecLib.framework
  *    CarbonLib:        not in Carbon, but vecLib is compatible with CarbonLib
@@ -1142,7 +1142,7 @@ procedure vDSP_conv( {const} __vDSP_signal: {variable-size-array} Float32Ptr; __
 { Convolution (or correlation), double-precision.}
 {
  *  vDSP_convD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -1155,7 +1155,7 @@ procedure vDSP_convD( {const} __vDSP_signal: {variable-size-array} Float64Ptr; _
 { 3*3 filter convolution, single-precision.}
 {
  *  vDSP_f3x3()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -1168,7 +1168,7 @@ procedure vDSP_f3x3( __vDSP_signal: Float32Ptr; __vDSP_rows: vDSP_Length; __vDSP
 { 3*3 filter convolution, double-precision.}
 {
  *  vDSP_f3x3D()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -1181,7 +1181,7 @@ procedure vDSP_f3x3D( __vDSP_signal: Float64Ptr; __vDSP_rows: vDSP_Length; __vDS
 { 5*5 filter convolution, single-precision.}
 {
  *  vDSP_f5x5()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -1194,7 +1194,7 @@ procedure vDSP_f5x5( __vDSP_signal: Float32Ptr; __vDSP_rows: vDSP_Length; __vDSP
 { 5*5 filter convolution, double-precision.}
 {
  *  vDSP_f5x5D()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -1207,7 +1207,7 @@ procedure vDSP_f5x5D( __vDSP_signal: Float64Ptr; __vDSP_rows: vDSP_Length; __vDS
 { General two-dimensional (image) convolution, single-precision.}
 {
  *  vDSP_imgfir()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -1220,7 +1220,7 @@ procedure vDSP_imgfir( __vDSP_signal: Float32Ptr; __vDSP_numRow: vDSP_Length; __
 { General two-dimensional (image) convolution, double-precision.}
 {
  *  vDSP_imgfirD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -1233,7 +1233,7 @@ procedure vDSP_imgfirD( __vDSP_signal: Float64Ptr; __vDSP_numRow: vDSP_Length; _
 { Matrix transpose, single-precision.}
 {
  *  vDSP_mtrans()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -1246,7 +1246,7 @@ procedure vDSP_mtrans( __vDSP_a: Float32Ptr; __vDSP_aStride: vDSP_Stride; __vDSP
 { Matrix transpose, double-precision.}
 {
  *  vDSP_mtransD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -1259,7 +1259,7 @@ procedure vDSP_mtransD( __vDSP_a: Float64Ptr; __vDSP_aStride: vDSP_Stride; __vDS
 { Matrix multiply, single-precision.}
 {
  *  vDSP_mmul()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -1272,7 +1272,7 @@ procedure vDSP_mmul( __vDSP_a: Float32Ptr; __vDSP_aStride: vDSP_Stride; __vDSP_b
 { Matrix multiply, double-precision.}
 {
  *  vDSP_mmulD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -1285,7 +1285,7 @@ procedure vDSP_mmulD( __vDSP_a: Float64Ptr; __vDSP_aStride: vDSP_Stride; __vDSP_
 { Complex-split matrix multiply and add, single-precision.}
 {
  *  vDSP_zmma()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -1298,7 +1298,7 @@ procedure vDSP_zmma( __vDSP_a: DSPSplitComplexPtr; __vDSP_i: vDSP_Stride; __vDSP
 { Complex-split matrix multiply and add, double-precision.}
 {
  *  vDSP_zmmaD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -1311,7 +1311,7 @@ procedure vDSP_zmmaD( __vDSP_a: DSPDoubleSplitComplexPtr; __vDSP_i: vDSP_Stride;
 { Complex-split matrix multiply and subtract, single-precision.}
 {
  *  vDSP_zmms()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -1324,7 +1324,7 @@ procedure vDSP_zmms( __vDSP_a: DSPSplitComplexPtr; __vDSP_i: vDSP_Stride; __vDSP
 { Complex-split matrix multiply and subtract, double-precision.}
 {
  *  vDSP_zmmsD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -1337,7 +1337,7 @@ procedure vDSP_zmmsD( __vDSP_a: DSPDoubleSplitComplexPtr; __vDSP_i: vDSP_Stride;
 { Complex-split matrix subtract and multiply, single-precision.}
 {
  *  vDSP_zmsm()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -1350,7 +1350,7 @@ procedure vDSP_zmsm( __vDSP_a: DSPSplitComplexPtr; __vDSP_i: vDSP_Stride; __vDSP
 { Complex-split matrix subtract and multiply, double-precision.}
 {
  *  vDSP_zmsmD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -1363,7 +1363,7 @@ procedure vDSP_zmsmD( __vDSP_a: DSPDoubleSplitComplexPtr; __vDSP_i: vDSP_Stride;
 { Complex-split matrix multiply, single-precision.}
 {
  *  vDSP_zmmul()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -1376,7 +1376,7 @@ procedure vDSP_zmmul( __vDSP_a: DSPSplitComplexPtr; __vDSP_i: vDSP_Stride; __vDS
 { Complex-split matrix multiply, double-precision.}
 {
  *  vDSP_zmmulD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -1389,7 +1389,7 @@ procedure vDSP_zmmulD( __vDSP_a: DSPDoubleSplitComplexPtr; __vDSP_i: vDSP_Stride
 { Vector add, single-precision.}
 {
  *  vDSP_vadd()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in vecLib.framework
  *    CarbonLib:        not in Carbon, but vecLib is compatible with CarbonLib
@@ -1402,7 +1402,7 @@ procedure vDSP_vadd( {const} __vDSP_input1: {variable-size-array} Float32Ptr; __
 { Vector add, double-precision.}
 {
  *  vDSP_vaddD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -1415,7 +1415,7 @@ procedure vDSP_vaddD( {const} __vDSP_input1: {variable-size-array} Float64Ptr; _
 { Vector subtract, single-precision.}
 {
  *  vDSP_vsub()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in vecLib.framework
  *    CarbonLib:        not in Carbon, but vecLib is compatible with CarbonLib
@@ -1428,7 +1428,7 @@ procedure vDSP_vsub( {const} __vDSP_input1: {variable-size-array} Float32Ptr; __
 { Vector subtract, double-precision.}
 {
  *  vDSP_vsubD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -1441,7 +1441,7 @@ procedure vDSP_vsubD( {const} __vDSP_input1: {variable-size-array} Float64Ptr; _
 { Vector multiply, single-precision.}
 {
  *  vDSP_vmul()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in vecLib.framework
  *    CarbonLib:        not in Carbon, but vecLib is compatible with CarbonLib
@@ -1454,7 +1454,7 @@ procedure vDSP_vmul( {const} __vDSP_input1: {variable-size-array} Float32Ptr; __
 { Vector multiply, double-precision.}
 {
  *  vDSP_vmulD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -1467,7 +1467,7 @@ procedure vDSP_vmulD( {const} __vDSP_input1: {variable-size-array} Float64Ptr; _
 { Vector-scalar multiply, single-precision.}
 {
  *  vDSP_vsmul()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in vecLib.framework
  *    CarbonLib:        not in Carbon, but vecLib is compatible with CarbonLib
@@ -1480,7 +1480,7 @@ procedure vDSP_vsmul( {const} __vDSP_input1: {variable-size-array} Float32Ptr; _
 { Vector-scalar multiply, double-precision.}
 {
  *  vDSP_vsmulD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -1493,7 +1493,7 @@ procedure vDSP_vsmulD( {const} __vDSP_input1: {variable-size-array} Float64Ptr; 
 { Vector square, single-precision.}
 {
  *  vDSP_vsq()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in vecLib.framework
  *    CarbonLib:        not in Carbon, but vecLib is compatible with CarbonLib
@@ -1506,7 +1506,7 @@ procedure vDSP_vsq( {const} __vDSP_input: {variable-size-array} Float32Ptr; __vD
 { Vector square, double-precision.}
 {
  *  vDSP_vsqD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -1519,7 +1519,7 @@ procedure vDSP_vsqD( {const} __vDSP_input: {variable-size-array} Float64Ptr; __v
 { Vector signed square, single-precision.}
 {
  *  vDSP_vssq()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in vecLib.framework
  *    CarbonLib:        not in Carbon, but vecLib is compatible with CarbonLib
@@ -1532,7 +1532,7 @@ procedure vDSP_vssq( {const} __vDSP_input: {variable-size-array} Float32Ptr; __v
 { Vector signed square, double-precision.}
 {
  *  vDSP_vssqD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -1544,7 +1544,7 @@ procedure vDSP_vssqD( {const} __vDSP_input: {variable-size-array} Float64Ptr; __
 { Euclidean distance square, single-precision.}
 {
  *  vDSP_distancesq()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in vecLib.framework
  *    CarbonLib:        not in Carbon, but vecLib is compatible with CarbonLib
@@ -1556,7 +1556,7 @@ procedure vDSP_distancesq( {const} __vDSP_input1: {variable-size-array} Float32P
 { Dot product, single-precision.}
 {
  *  vDSP_dotpr()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in vecLib.framework
  *    CarbonLib:        not in Carbon, but vecLib is compatible with CarbonLib
@@ -1569,7 +1569,7 @@ procedure vDSP_dotpr( {const} __vDSP_input1: {variable-size-array} Float32Ptr; _
 { Dot product, double-precision.}
 {
  *  vDSP_dotprD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -1582,7 +1582,7 @@ procedure vDSP_dotprD( {const} __vDSP_input1: {variable-size-array} Float64Ptr; 
 { Vector add and multiply, single-precision.}
 {
  *  vDSP_vam()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in vecLib.framework
  *    CarbonLib:        not in Carbon, but vecLib is compatible with CarbonLib
@@ -1595,7 +1595,7 @@ procedure vDSP_vam( {const} __vDSP_input1: {variable-size-array} Float32Ptr; __v
 { Vector add and multiply, double-precision.}
 {
  *  vDSP_vamD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -1608,7 +1608,7 @@ procedure vDSP_vamD( {const} __vDSP_input1: {variable-size-array} Float64Ptr; __
 { Complex-split convolution, single-precision.}
 {
  *  vDSP_zconv()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in vecLib.framework
  *    CarbonLib:        not in Carbon, but vecLib is compatible with CarbonLib
@@ -1621,7 +1621,7 @@ procedure vDSP_zconv( __vDSP_signal: DSPSplitComplexPtr; __vDSP_signalStride: vD
 { Complex-split convolution, double-precision.}
 {
  *  vDSP_zconvD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -1634,7 +1634,7 @@ procedure vDSP_zconvD( __vDSP_signal: DSPDoubleSplitComplexPtr; __vDSP_signalStr
 { Complex-split vector add, single-precision.}
 {
  *  vDSP_zvadd()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in vecLib.framework
  *    CarbonLib:        not in Carbon, but vecLib is compatible with CarbonLib
@@ -1647,7 +1647,7 @@ procedure vDSP_zvadd( __vDSP_input1: DSPSplitComplexPtr; __vDSP_stride1: vDSP_St
 { Complex-split vector add, double-precision.}
 {
  *  vDSP_zvaddD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -1660,7 +1660,7 @@ procedure vDSP_zvaddD( __vDSP_input1: DSPDoubleSplitComplexPtr; __vDSP_stride1: 
 { Complex-split vector subtract, single-precision.}
 {
  *  vDSP_zvsub()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in vecLib.framework
  *    CarbonLib:        not in Carbon, but vecLib is compatible with CarbonLib
@@ -1673,7 +1673,7 @@ procedure vDSP_zvsub( __vDSP_input1: DSPSplitComplexPtr; __vDSP_stride1: vDSP_St
 { Complex-split vector subtract, double-precision.}
 {
  *  vDSP_zvsubD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -1686,7 +1686,7 @@ procedure vDSP_zvsubD( __vDSP_input1: DSPDoubleSplitComplexPtr; __vDSP_stride1: 
 { Complex-split vector multiply, single-precision.}
 {
  *  vDSP_zvmul()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in vecLib.framework
  *    CarbonLib:        not in Carbon, but vecLib is compatible with CarbonLib
@@ -1699,7 +1699,7 @@ procedure vDSP_zvmul( const __vDSP_input1: DSPSplitComplexPtr; __vDSP_stride1: v
 { Complex-split vector multiply, double-precision.}
 {
  *  vDSP_zvmulD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -1712,7 +1712,7 @@ procedure vDSP_zvmulD( __vDSP_input1: DSPDoubleSplitComplexPtr; __vDSP_stride1: 
 { Complex-split dot product, single-precision.}
 {
  *  vDSP_zdotpr()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in vecLib.framework
  *    CarbonLib:        not in Carbon, but vecLib is compatible with CarbonLib
@@ -1725,7 +1725,7 @@ procedure vDSP_zdotpr( __vDSP_input1: DSPSplitComplexPtr; __vDSP_stride1: vDSP_S
 { Complex-split dot product, double-precision.}
 {
  *  vDSP_zdotprD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -1738,7 +1738,7 @@ procedure vDSP_zdotprD( __vDSP_input1: DSPDoubleSplitComplexPtr; __vDSP_stride1:
 { Complex-split inner (conjugate) dot product, single-precision.}
 {
  *  vDSP_zidotpr()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in vecLib.framework
  *    CarbonLib:        not in Carbon, but vecLib is compatible with CarbonLib
@@ -1751,7 +1751,7 @@ procedure vDSP_zidotpr( __vDSP_input1: DSPSplitComplexPtr; __vDSP_stride1: vDSP_
 { Complex-split inner (conjugate) dot product, double-precision.}
 {
  *  vDSP_zidotprD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -1764,7 +1764,7 @@ procedure vDSP_zidotprD( __vDSP_input1: DSPDoubleSplitComplexPtr; __vDSP_stride1
 { Dot product of complex-split with real, single-precision.}
 {
  *  vDSP_zrdotpr()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in vecLib.framework
  *    CarbonLib:        not in Carbon, but vecLib is compatible with CarbonLib
@@ -1777,7 +1777,7 @@ procedure vDSP_zrdotpr( __vDSP_input1: DSPSplitComplexPtr; __vDSP_stride1: vDSP_
 { Dot product of complex-split with real, double-precision.}
 {
  *  vDSP_zrdotprD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -1790,7 +1790,7 @@ procedure vDSP_zrdotprD( __vDSP_input1: DSPDoubleSplitComplexPtr; __vDSP_stride1
 { Complex-split conjugate multiply and add, single-precision.}
 {
  *  vDSP_zvcma()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in vecLib.framework
  *    CarbonLib:        not in Carbon, but vecLib is compatible with CarbonLib
@@ -1803,7 +1803,7 @@ procedure vDSP_zvcma( const __vDSP_input1: DSPSplitComplexPtr; __vDSP_stride1: v
 { Complex-split conjugate multiply and add, double-precision.}
 {
  *  vDSP_zvcmaD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -1816,7 +1816,7 @@ procedure vDSP_zvcmaD( __vDSP_input1: DSPDoubleSplitComplexPtr; __vDSP_stride1: 
 { Add complex-split and real, single-precision.}
 {
  *  vDSP_zrvadd()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in vecLib.framework
  *    CarbonLib:        not in Carbon, but vecLib is compatible with CarbonLib
@@ -1829,7 +1829,7 @@ procedure vDSP_zrvadd( __vDSP_input1: DSPSplitComplexPtr; __vDSP_stride1: vDSP_S
 { Add complex-split and real, double-precision.}
 {
  *  vDSP_zrvaddD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -1842,7 +1842,7 @@ procedure vDSP_zrvaddD( __vDSP_input1: DSPDoubleSplitComplexPtr; __vDSP_stride1:
 { Subtract real from complex-split, single-precision.}
 {
  *  vDSP_zrvsub()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in vecLib.framework
  *    CarbonLib:        not in Carbon, but vecLib is compatible with CarbonLib
@@ -1855,7 +1855,7 @@ procedure vDSP_zrvsub( __vDSP_input1: DSPSplitComplexPtr; __vDSP_stride1: vDSP_S
 { Subtract real from complex-split, double-precision.}
 {
  *  vDSP_zrvsubD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -1868,7 +1868,7 @@ procedure vDSP_zrvsubD( __vDSP_input1: DSPDoubleSplitComplexPtr; __vDSP_stride1:
 { Multiply complex-split and real, single-precision.}
 {
  *  vDSP_zrvmul()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in vecLib.framework
  *    CarbonLib:        not in Carbon, but vecLib is compatible with CarbonLib
@@ -1881,7 +1881,7 @@ procedure vDSP_zrvmul( __vDSP_input1: DSPSplitComplexPtr; __vDSP_stride1: vDSP_S
 { Multiply complex-split and real, double-precision.}
 {
  *  vDSP_zrvmulD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -1894,7 +1894,7 @@ procedure vDSP_zrvmulD( __vDSP_input1: DSPDoubleSplitComplexPtr; __vDSP_stride1:
 { Vector convert double-precision to single-precision.}
 {
  *  vDSP_vdpsp()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -1907,7 +1907,7 @@ procedure vDSP_vdpsp( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Flo
 { Vector convert single-precision to double-precision.}
 {
  *  vDSP_vspdp()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -1920,7 +1920,7 @@ procedure vDSP_vspdp( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Flo
 { Vector absolute value, integer.}
 {
  *  vDSP_vabsi()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -1933,7 +1933,7 @@ procedure vDSP_vabsi( __vDSP_A: SInt32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: SInt
 { Vector (bit-wise) equivalence (not (A xor B)), integer.}
 {
  *  vDSP_veqvi()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -1946,7 +1946,7 @@ procedure vDSP_veqvi( __vDSP_A: SInt32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: SInt
 { Vector divide, integer.}
 {
  *  vDSP_vdivi()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -1959,7 +1959,7 @@ procedure vDSP_vdivi( __vDSP_A: SInt32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: SInt
 { Vector fill, integer.}
 {
  *  vDSP_vfilli()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -1972,7 +1972,7 @@ procedure vDSP_vfilli( __vDSP_A: SInt32Ptr; __vDSP_C: SInt32Ptr; __vDSP_K: vDSP_
 { Vector-scalar add, integer.}
 {
  *  vDSP_vsaddi()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -1985,7 +1985,7 @@ procedure vDSP_vsaddi( __vDSP_A: SInt32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: SIn
 { Vector-scalar divide, integer.}
 {
  *  vDSP_vsdivi()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -1998,7 +1998,7 @@ procedure vDSP_vsdivi( __vDSP_A: SInt32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: SIn
 { Complex-split accumulating autospectrum, single-precision.}
 {
  *  vDSP_zaspec()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -2011,7 +2011,7 @@ procedure vDSP_zaspec( __vDSP_A: DSPSplitComplexPtr; __vDSP_C: Float32Ptr; __vDS
 { Complex-split accumulating autospectrum, double-precision.}
 {
  *  vDSP_zaspecD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -2024,7 +2024,7 @@ procedure vDSP_zaspecD( var A: DSPDoubleSplitComplex; __vDSP_C: Float64Ptr; __vD
 { Create Blackman window, single-precision.}
 {
  *  vDSP_blkman_window()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -2037,7 +2037,7 @@ procedure vDSP_blkman_window( __vDSP_C: Float32Ptr; __vDSP_N: vDSP_Length; __vDS
 { Create Blackman window, double-precision.}
 {
  *  vDSP_blkman_windowD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -2050,7 +2050,7 @@ procedure vDSP_blkman_windowD( __vDSP_C: Float64Ptr; __vDSP_N: vDSP_Length; __vD
 { Complex-split coherence function, single-precision.}
 {
  *  vDSP_zcoher()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -2063,7 +2063,7 @@ procedure vDSP_zcoher( __vDSP_A: Float32Ptr; __vDSP_B: Float32Ptr; __vDSP_C: DSP
 { Complex-split coherence function, double-precision.}
 {
  *  vDSP_zcoherD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -2076,7 +2076,7 @@ procedure vDSP_zcoherD( __vDSP_A: Float64Ptr; __vDSP_B: Float64Ptr; __vDSP_C: DS
 { Complex-split anti-aliasing down-sample with real filter, single-precision.}
 {
  *  vDSP_zrdesamp()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -2089,7 +2089,7 @@ procedure vDSP_zrdesamp( __vDSP_A: DSPSplitComplexPtr; __vDSP_I: vDSP_Stride; __
 { Complex-split anti-aliasing down-sample with real filter, double-precision.}
 {
  *  vDSP_zrdesampD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -2102,7 +2102,7 @@ procedure vDSP_zrdesampD( var A: DSPDoubleSplitComplex; __vDSP_I: vDSP_Stride; _
 { Vector complex-split divide by real, single-precision.}
 {
  *  vDSP_zrvdiv()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -2115,7 +2115,7 @@ procedure vDSP_zrvdiv( __vDSP_A: DSPSplitComplexPtr; __vDSP_I: vDSP_Stride; __vD
 { Vector complex-split divide by real, double-precision.}
 {
  *  vDSP_zrvdivD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -2128,7 +2128,7 @@ procedure vDSP_zrvdivD( var A: DSPDoubleSplitComplex; __vDSP_I: vDSP_Stride; __v
 { Transfer function (B/A), single-precision.}
 {
  *  vDSP_ztrans()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -2141,7 +2141,7 @@ procedure vDSP_ztrans( __vDSP_A: Float32Ptr; __vDSP_B: DSPSplitComplexPtr; __vDS
 { Transfer function (B/A), double-precision.}
 {
  *  vDSP_ztransD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -2154,7 +2154,7 @@ procedure vDSP_ztransD( __vDSP_A: Float64Ptr; __vDSP_B: DSPDoubleSplitComplexPtr
 { Complex-split vector divide, single-precision.}
 {
  *  vDSP_zvdiv()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -2167,7 +2167,7 @@ procedure vDSP_zvdiv( __vDSP_A: DSPSplitComplexPtr; __vDSP_I: vDSP_Stride; __vDS
 { Complex-split vector divide, double-precision.}
 {
  *  vDSP_zvdivD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -2180,7 +2180,7 @@ procedure vDSP_zvdivD( var A: DSPDoubleSplitComplex; __vDSP_I: vDSP_Stride; __vD
 { Complex-split accumulating cross-spectrum, single-precision.}
 {
  *  vDSP_zcspec()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -2193,7 +2193,7 @@ procedure vDSP_zcspec( __vDSP_A: DSPSplitComplexPtr; __vDSP_B: DSPSplitComplexPt
 { Complex-split accumulating cross-spectrum, double-precision.}
 {
  *  vDSP_zcspecD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -2206,7 +2206,7 @@ procedure vDSP_zcspecD( var A: DSPDoubleSplitComplex; __vDSP_B: DSPDoubleSplitCo
 { Complex-split vector absolute value, single-precision.}
 {
  *  vDSP_zvabs()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -2219,7 +2219,7 @@ procedure vDSP_zvabs( __vDSP_A: DSPSplitComplexPtr; __vDSP_I: vDSP_Stride; __vDS
 { Complex-split vector absolute value, double-precision.}
 {
  *  vDSP_zvabsD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -2232,7 +2232,7 @@ procedure vDSP_zvabsD( __vDSP_A: DSPDoubleSplitComplexPtr; __vDSP_I: vDSP_Stride
 { Complex-split vector conjugate and multiply, single-precision.}
 {
  *  vDSP_zvcmul()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -2245,7 +2245,7 @@ procedure vDSP_zvcmul( __vDSP_A: DSPSplitComplexPtr; __vDSP_I: vDSP_Stride; __vD
 { Complex-split vector conjugate and multiply, double-precision.}
 {
  *  vDSP_zvcmulD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -2258,7 +2258,7 @@ procedure vDSP_zvcmulD( __vDSP_A: DSPDoubleSplitComplexPtr; __vDSP_I: vDSP_Strid
 { Complex-split vector conjugate, single-precision.}
 {
  *  vDSP_zvconj()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -2271,7 +2271,7 @@ procedure vDSP_zvconj( __vDSP_A: DSPSplitComplexPtr; __vDSP_I: vDSP_Stride; __vD
 { Complex-split vector conjugate, double-precision.}
 {
  *  vDSP_zvconjD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -2284,7 +2284,7 @@ procedure vDSP_zvconjD( __vDSP_A: DSPDoubleSplitComplexPtr; __vDSP_I: vDSP_Strid
 { Complex-split vector multiply with scalar, single-precision.}
 {
  *  vDSP_zvzsml()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -2297,7 +2297,7 @@ procedure vDSP_zvzsml( __vDSP_A: DSPSplitComplexPtr; __vDSP_I: vDSP_Stride; __vD
 { Complex-split vector multiply with scalar, double-precision.}
 {
  *  vDSP_zvzsmlD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -2310,7 +2310,7 @@ procedure vDSP_zvzsmlD( __vDSP_A: DSPDoubleSplitComplexPtr; __vDSP_I: vDSP_Strid
 { Complex-split vector fill, single-precision.}
 {
  *  vDSP_zvfill()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -2323,7 +2323,7 @@ procedure vDSP_zvfill( __vDSP_A: DSPSplitComplexPtr; __vDSP_C: DSPSplitComplexPt
 { Complex-split vector fill, double-precision.}
 {
  *  vDSP_zvfillD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -2336,7 +2336,7 @@ procedure vDSP_zvfillD( __vDSP_A: DSPDoubleSplitComplexPtr; __vDSP_C: DSPDoubleS
 { Complex-split vector magnitudes squared, single-precision.}
 {
  *  vDSP_zvmags()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -2349,7 +2349,7 @@ procedure vDSP_zvmags( __vDSP_A: DSPSplitComplexPtr; __vDSP_I: vDSP_Stride; __vD
 { Complex-split vector magnitudes squared, double-precision.}
 {
  *  vDSP_zvmagsD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -2362,7 +2362,7 @@ procedure vDSP_zvmagsD( __vDSP_A: DSPDoubleSplitComplexPtr; __vDSP_I: vDSP_Strid
 { Complex-split vector magnitudes square and add, single-precision.}
 {
  *  vDSP_zvmgsa()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -2375,7 +2375,7 @@ procedure vDSP_zvmgsa( __vDSP_A: DSPSplitComplexPtr; __vDSP_I: vDSP_Stride; __vD
 { Complex-split vector magnitudes square and add, double-precision.}
 {
  *  vDSP_zvmgsaD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -2388,7 +2388,7 @@ procedure vDSP_zvmgsaD( __vDSP_A: DSPDoubleSplitComplexPtr; __vDSP_I: vDSP_Strid
 { Complex-split vector move, single-precision.}
 {
  *  vDSP_zvmov()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -2401,7 +2401,7 @@ procedure vDSP_zvmov( __vDSP_A: DSPSplitComplexPtr; __vDSP_I: vDSP_Stride; __vDS
 { Complex-split vector move, double-precision.}
 {
  *  vDSP_zvmovD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -2414,7 +2414,7 @@ procedure vDSP_zvmovD( __vDSP_A: DSPDoubleSplitComplexPtr; __vDSP_I: vDSP_Stride
 { Complex-split vector negate, single-precision.}
 {
  *  vDSP_zvneg()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -2427,7 +2427,7 @@ procedure vDSP_zvneg( __vDSP_A: DSPSplitComplexPtr; __vDSP_I: vDSP_Stride; __vDS
 { Complex-split vector negate, double-precision.}
 {
  *  vDSP_zvnegD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -2440,7 +2440,7 @@ procedure vDSP_zvnegD( __vDSP_A: DSPDoubleSplitComplexPtr; __vDSP_I: vDSP_Stride
 { Complex-split vector phase, single-precision.}
 {
  *  vDSP_zvphas()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -2453,7 +2453,7 @@ procedure vDSP_zvphas( __vDSP_A: DSPSplitComplexPtr; __vDSP_I: vDSP_Stride; __vD
 { Complex-split vector phase, double-precision.}
 {
  *  vDSP_zvphasD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -2466,7 +2466,7 @@ procedure vDSP_zvphasD( __vDSP_A: DSPDoubleSplitComplexPtr; __vDSP_I: vDSP_Strid
 { Complex-split vector multiply by scalar and add, single-precision.}
 {
  *  vDSP_zvsma()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -2479,7 +2479,7 @@ procedure vDSP_zvsma( __vDSP_A: DSPSplitComplexPtr; __vDSP_I: vDSP_Stride; __vDS
 { Complex-split vector multiply by scalar and add, double-precision.}
 {
  *  vDSP_zvsmaD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -2492,7 +2492,7 @@ procedure vDSP_zvsmaD( __vDSP_A: DSPDoubleSplitComplexPtr; __vDSP_I: vDSP_Stride
 { Difference equation, 2 poles, 2 zeros, single-precision.}
 {
  *  vDSP_deq22()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -2505,7 +2505,7 @@ procedure vDSP_deq22( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Flo
 { Difference equation, 2 poles, 2 zeros, double-precision.}
 {
  *  vDSP_deq22D()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -2518,7 +2518,7 @@ procedure vDSP_deq22D( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Fl
 { Convolution with decimation (desampling), single-precision.}
 {
  *  vDSP_desamp()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -2531,7 +2531,7 @@ procedure vDSP_desamp( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Fl
 { Convolution with decimation (desampling), double-precision.}
 {
  *  vDSP_desampD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -2544,7 +2544,7 @@ procedure vDSP_desampD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: F
 { Create Hamming window, single-precision.}
 {
  *  vDSP_hamm_window()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -2557,7 +2557,7 @@ procedure vDSP_hamm_window( __vDSP_C: Float32Ptr; __vDSP_N: vDSP_Length; __vDSP_
 { Create Hamming window, double-precision.}
 {
  *  vDSP_hamm_windowD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -2570,7 +2570,7 @@ procedure vDSP_hamm_windowD( __vDSP_C: Float64Ptr; __vDSP_N: vDSP_Length; __vDSP
 { Create Hanning window, single-precision.}
 {
  *  vDSP_hann_window()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -2583,7 +2583,7 @@ procedure vDSP_hann_window( __vDSP_C: Float32Ptr; __vDSP_N: vDSP_Length; __vDSP_
 { Create Hanning window, double-precision.}
 {
  *  vDSP_hann_windowD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -2596,7 +2596,7 @@ procedure vDSP_hann_windowD( __vDSP_C: Float64Ptr; __vDSP_N: vDSP_Length; __vDSP
 { Maximum magnitude of vector, single-precision.}
 {
  *  vDSP_maxmgv()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -2609,7 +2609,7 @@ procedure vDSP_maxmgv( const __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP
 { Maximum magnitude of vector, double-precision.}
 {
  *  vDSP_maxmgvD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -2622,7 +2622,7 @@ procedure vDSP_maxmgvD( const __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDS
 { Maximum magnitude of vector, with index, single-precision.}
 {
  *  vDSP_maxmgvi()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -2635,7 +2635,7 @@ procedure vDSP_maxmgvi( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: F
 { Maximum magnitude of vector, with index, double-precision.}
 {
  *  vDSP_maxmgviD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -2648,7 +2648,7 @@ procedure vDSP_maxmgviD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: 
 { Maximum value of vector, single-precision.}
 {
  *  vDSP_maxv()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -2661,7 +2661,7 @@ procedure vDSP_maxv( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Floa
 { Maximum value of vector, double-precision.}
 {
  *  vDSP_maxvD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -2674,7 +2674,7 @@ procedure vDSP_maxvD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Flo
 { Maximum value of vector, with index, single-precision.}
 {
  *  vDSP_maxvi()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -2687,7 +2687,7 @@ procedure vDSP_maxvi( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Flo
 { Maximum value of vector, with index, double-precision.}
 {
  *  vDSP_maxviD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -2700,7 +2700,7 @@ procedure vDSP_maxviD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Fl
 { Mean magnitude of vector, single-precision.}
 {
  *  vDSP_meamgv()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -2713,7 +2713,7 @@ procedure vDSP_meamgv( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Fl
 { Mean magnitude of vector, double-precision.}
 {
  *  vDSP_meamgvD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -2726,7 +2726,7 @@ procedure vDSP_meamgvD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: F
 { Mean of vector, single-precision.}
 {
  *  vDSP_meanv()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -2739,7 +2739,7 @@ procedure vDSP_meanv( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Flo
 { Mean of vector, double-precision.}
 {
  *  vDSP_meanvD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -2752,7 +2752,7 @@ procedure vDSP_meanvD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Fl
 { Mean square of vector, single-precision.}
 {
  *  vDSP_measqv()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -2765,7 +2765,7 @@ procedure vDSP_measqv( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Fl
 { Mean square of vector, double-precision.}
 {
  *  vDSP_measqvD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -2778,7 +2778,7 @@ procedure vDSP_measqvD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: F
 { Minimum magnitude of vector, single-precision.}
 {
  *  vDSP_minmgv()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -2791,7 +2791,7 @@ procedure vDSP_minmgv( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Fl
 { Minimum magnitude of vector, double-precision.}
 {
  *  vDSP_minmgvD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -2804,7 +2804,7 @@ procedure vDSP_minmgvD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: F
 { Minimum magnitude of vector, with index, single-precision.}
 {
  *  vDSP_minmgvi()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -2817,7 +2817,7 @@ procedure vDSP_minmgvi( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: F
 { Minimum magnitude of vector, with index, double-precision.}
 {
  *  vDSP_minmgviD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -2830,7 +2830,7 @@ procedure vDSP_minmgviD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: 
 { Minimum value of vector, single-precision.}
 {
  *  vDSP_minv()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -2843,7 +2843,7 @@ procedure vDSP_minv( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Floa
 { Minimum value of vector, double-precision.}
 {
  *  vDSP_minvD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -2856,7 +2856,7 @@ procedure vDSP_minvD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Flo
 { Minimum value of vector, with index, single-precision.}
 {
  *  vDSP_minvi()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -2869,7 +2869,7 @@ procedure vDSP_minvi( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Flo
 { Minimum value of vector, with index, double-precision.}
 {
  *  vDSP_minviD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -2882,7 +2882,7 @@ procedure vDSP_minviD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Fl
 { Matrix move, single-precision.}
 {
  *  vDSP_mmov()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -2895,7 +2895,7 @@ procedure vDSP_mmov( __vDSP_A: Float32Ptr; __vDSP_C: Float32Ptr; __vDSP_NC: vDSP
 { Matrix move, double-precision.}
 {
  *  vDSP_mmovD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -2908,7 +2908,7 @@ procedure vDSP_mmovD( __vDSP_A: Float64Ptr; __vDSP_C: Float64Ptr; __vDSP_NC: vDS
 { Mean of signed squares of vector, single-precision.}
 {
  *  vDSP_mvessq()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -2921,7 +2921,7 @@ procedure vDSP_mvessq( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Fl
 { Mean of signed squares of vector, double-precision.}
 {
  *  vDSP_mvessqD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -2934,7 +2934,7 @@ procedure vDSP_mvessqD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: F
 { Find zero crossing, single-precision.}
 {
  *  vDSP_nzcros()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -2947,7 +2947,7 @@ procedure vDSP_nzcros( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: vD
 { Find zero crossing, double-precision.}
 {
  *  vDSP_nzcrosD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -2960,7 +2960,7 @@ procedure vDSP_nzcrosD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: v
 { Convert rectangular to polar, single-precision.}
 {
  *  vDSP_polar()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -2973,7 +2973,7 @@ procedure vDSP_polar( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Flo
 { Convert rectangular to polar, double-precision.}
 {
  *  vDSP_polarD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -2986,7 +2986,7 @@ procedure vDSP_polarD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Fl
 { Convert polar to rectangular, single-precision.}
 {
  *  vDSP_rect()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -2999,7 +2999,7 @@ procedure vDSP_rect( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Floa
 { Convert polar to rectangular, double-precision.}
 {
  *  vDSP_rectD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -3012,7 +3012,7 @@ procedure vDSP_rectD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Flo
 { Root-mean-square of vector, single-precision.}
 {
  *  vDSP_rmsqv()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -3025,7 +3025,7 @@ procedure vDSP_rmsqv( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Flo
 { Root-mean-square of vector, double-precision.}
 {
  *  vDSP_rmsqvD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -3038,7 +3038,7 @@ procedure vDSP_rmsqvD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Fl
 { Scalar-vector divide, single-precision.}
 {
  *  vDSP_svdiv()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -3051,7 +3051,7 @@ procedure vDSP_svdiv( __vDSP_A: Float32Ptr; __vDSP_B: Float32Ptr; __vDSP_J: vDSP
 { Scalar-vector divide, double-precision.}
 {
  *  vDSP_svdivD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -3064,7 +3064,7 @@ procedure vDSP_svdivD( __vDSP_A: Float64Ptr; __vDSP_B: Float64Ptr; __vDSP_J: vDS
 { Sum of vector elements, single-precision.}
 {
  *  vDSP_sve()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -3077,7 +3077,7 @@ procedure vDSP_sve( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Float
 { Sum of vector elements, double-precision.}
 {
  *  vDSP_sveD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -3090,7 +3090,7 @@ procedure vDSP_sveD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Floa
 { Sum of vector elements magnitudes, single-precision.}
 {
  *  vDSP_svemg()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -3103,7 +3103,7 @@ procedure vDSP_svemg( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Flo
 { Sum of vector elements' magnitudes, double-precision.}
 {
  *  vDSP_svemgD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -3116,7 +3116,7 @@ procedure vDSP_svemgD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Fl
 { Sum of vector elements' squares, single-precision.}
 {
  *  vDSP_svesq()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -3129,7 +3129,7 @@ procedure vDSP_svesq( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Flo
 { Sum of vector elements' squares, double-precision.}
 {
  *  vDSP_svesqD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -3178,7 +3178,7 @@ procedure vDSP_normalizeD( {const} __vDSP_A: Float64Ptr; __vDSP_IA: vDSP_Stride;
 { Sum of vector elements' signed squares, single-precision.}
 {
  *  vDSP_svs()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -3191,7 +3191,7 @@ procedure vDSP_svs( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Float
 { Sum of vector elements' signed squares, double-precision.}
 {
  *  vDSP_svsD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -3204,7 +3204,7 @@ procedure vDSP_svsD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Floa
 { Vector add, add, and multiply, single-precision.}
 {
  *  vDSP_vaam()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -3217,7 +3217,7 @@ procedure vDSP_vaam( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Floa
 { Vector add, add, and multiply, double-precision.}
 {
  *  vDSP_vaamD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -3230,7 +3230,7 @@ procedure vDSP_vaamD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Flo
 { Vector absolute value, single-precision.}
 {
  *  vDSP_vabs()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -3243,7 +3243,7 @@ procedure vDSP_vabs( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Floa
 { Vector absolute value, double-precision.}
 {
  *  vDSP_vabsD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -3256,7 +3256,7 @@ procedure vDSP_vabsD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Flo
 { Vector add, subtract, and multiply, single-precision.}
 {
  *  vDSP_vasbm()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -3269,7 +3269,7 @@ procedure vDSP_vasbm( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Flo
 { Vector add, subtract, and multiply, double-precision.}
 {
  *  vDSP_vasbmD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -3282,7 +3282,7 @@ procedure vDSP_vasbmD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Fl
 { Vector add and scalar multiply, single-precision.}
 {
  *  vDSP_vasm()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -3295,7 +3295,7 @@ procedure vDSP_vasm( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Floa
 { Vector add and scalar multiply, double-precision.}
 {
  *  vDSP_vasmD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -3308,7 +3308,7 @@ procedure vDSP_vasmD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Flo
 { Vector linear average, single-precision.}
 {
  *  vDSP_vavlin()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -3321,7 +3321,7 @@ procedure vDSP_vavlin( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Fl
 { Vector linear average, double-precision.}
 {
  *  vDSP_vavlinD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -3334,7 +3334,7 @@ procedure vDSP_vavlinD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: F
 { Vector clip, single-precision.}
 {
  *  vDSP_vclip()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -3347,7 +3347,7 @@ procedure vDSP_vclip( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Flo
 { Vector clip, double-precision.}
 {
  *  vDSP_vclipD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -3360,7 +3360,7 @@ procedure vDSP_vclipD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Fl
 { Vector clip and count, single-precision.}
 {
  *  vDSP_vclipc()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -3373,7 +3373,7 @@ procedure vDSP_vclipc( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Fl
 { Vector clip and count, double-precision.}
 {
  *  vDSP_vclipcD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -3386,7 +3386,7 @@ procedure vDSP_vclipcD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: F
 { Vector clear, single-precision.}
 {
  *  vDSP_vclr()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -3399,7 +3399,7 @@ procedure vDSP_vclr( __vDSP_C: Float32Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP
 { Vector clear, double-precision.}
 {
  *  vDSP_vclrD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -3412,7 +3412,7 @@ procedure vDSP_vclrD( __vDSP_C: Float64Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDS
 { Vector compress, single-precision.}
 {
  *  vDSP_vcmprs()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -3425,7 +3425,7 @@ procedure vDSP_vcmprs( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Fl
 { Vector compress, double-precision.}
 {
  *  vDSP_vcmprsD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -3438,7 +3438,7 @@ procedure vDSP_vcmprsD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: F
 { Vector convert to decibels, power, or amplitude, single-precision.}
 {
  *  vDSP_vdbcon()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -3451,7 +3451,7 @@ procedure vDSP_vdbcon( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Fl
 { Vector convert to decibels, power, or amplitude, double-precision.}
 {
  *  vDSP_vdbconD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -3464,7 +3464,7 @@ procedure vDSP_vdbconD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: F
 { Vector distance, single-precision.}
 {
  *  vDSP_vdist()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -3477,7 +3477,7 @@ procedure vDSP_vdist( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Flo
 { Vector distance, double-precision.}
 {
  *  vDSP_vdistD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -3490,7 +3490,7 @@ procedure vDSP_vdistD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Fl
 { Vector divide, single-precision.}
 {
  *  vDSP_vdiv()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -3503,7 +3503,7 @@ procedure vDSP_vdiv( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Floa
 { Vector divide, double-precision.}
 {
  *  vDSP_vdivD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -3516,7 +3516,7 @@ procedure vDSP_vdivD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Flo
 { Vector envelope, single-precision.}
 {
  *  vDSP_venvlp()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -3529,7 +3529,7 @@ procedure vDSP_venvlp( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Fl
 { Vector envelope, double-precision.}
 {
  *  vDSP_venvlpD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -3542,7 +3542,7 @@ procedure vDSP_venvlpD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: F
 { Vector fill, single-precision.}
 {
  *  vDSP_vfill()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -3555,7 +3555,7 @@ procedure vDSP_vfill( __vDSP_A: Float32Ptr; __vDSP_C: Float32Ptr; __vDSP_K: vDSP
 { Vector fill, double-precision.}
 {
  *  vDSP_vfillD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -3568,7 +3568,7 @@ procedure vDSP_vfillD( __vDSP_A: Float64Ptr; __vDSP_C: Float64Ptr; __vDSP_K: vDS
 { Vector convert to 8-bit integer, round toward zero, single-precision.}
 {
  *  vDSP_vfix8()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -3581,7 +3581,7 @@ procedure vDSP_vfix8( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: SIn
 { Vector convert to 8-bit integer, round toward zero, double-precision.}
 {
  *  vDSP_vfix8D()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -3594,7 +3594,7 @@ procedure vDSP_vfix8D( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: SI
 { Vector convert to 16-bit integer, round toward zero, single-precision.}
 {
  *  vDSP_vfix16()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -3607,7 +3607,7 @@ procedure vDSP_vfix16( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: SI
 { Vector convert to 16-bit integer, round toward zero, double-precision.}
 {
  *  vDSP_vfix16D()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -3620,7 +3620,7 @@ procedure vDSP_vfix16D( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: S
 { Vector convert to 32-bit integer, round toward zero, single-precision.}
 {
  *  vDSP_vfix32()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -3633,7 +3633,7 @@ procedure vDSP_vfix32( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: SI
 { Vector convert to 32-bit integer, round toward zero, double-precision.}
 {
  *  vDSP_vfix32D()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -3646,7 +3646,7 @@ procedure vDSP_vfix32D( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: S
 { Vector convert to 8-bit integer, round to nearest, single-precision.}
 {
  *  vDSP_vfixr8()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -3659,7 +3659,7 @@ procedure vDSP_vfixr8( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: SI
 { Vector convert to 8-bit integer, round to nearest, double-precision.}
 {
  *  vDSP_vfixr8D()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -3672,7 +3672,7 @@ procedure vDSP_vfixr8D( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: S
 { Vector convert to 16-bit integer, round to nearest, single-precision.}
 {
  *  vDSP_vfixr16()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -3685,7 +3685,7 @@ procedure vDSP_vfixr16( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: S
 { Vector convert to 16-bit integer, round to nearest, double-precision.}
 {
  *  vDSP_vfixr16D()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -3698,7 +3698,7 @@ procedure vDSP_vfixr16D( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: 
 { Vector convert to 32-bit integer, round to nearest, single-precision.}
 {
  *  vDSP_vfixr32()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -3711,7 +3711,7 @@ procedure vDSP_vfixr32( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: S
 { Vector convert to 32-bit integer, round to nearest, double-precision.}
 {
  *  vDSP_vfixr32D()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -3724,7 +3724,7 @@ procedure vDSP_vfixr32D( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: 
 { Vector convert to unsigned 8-bit integer, toward zero, single-precision.}
 {
  *  vDSP_vfixu8()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -3737,7 +3737,7 @@ procedure vDSP_vfixu8( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: UI
 { Vector convert to unsigned 8-bit integer, toward zero, double-precision.}
 {
  *  vDSP_vfixu8D()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -3750,7 +3750,7 @@ procedure vDSP_vfixu8D( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: U
 { Vector convert to unsigned 16-bit integer, toward zero, single-precision.}
 {
  *  vDSP_vfixu16()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -3763,7 +3763,7 @@ procedure vDSP_vfixu16( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: U
 { Vector convert to unsigned 16-bit integer, toward zero, double-precision.}
 {
  *  vDSP_vfixu16D()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -3776,7 +3776,7 @@ procedure vDSP_vfixu16D( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: 
 { Vector convert to unsigned 32-bit integer, toward zero, single-precision.}
 {
  *  vDSP_vfixu32()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -3789,7 +3789,7 @@ procedure vDSP_vfixu32( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: U
 { Vector convert to unsigned 32-bit integer, toward zero, double-precision.}
 {
  *  vDSP_vfixu32D()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -3802,7 +3802,7 @@ procedure vDSP_vfixu32D( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: 
 { Vector convert to unsigned 8-bit integer, to nearest, single-precision.}
 {
  *  vDSP_vfixru8()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -3815,7 +3815,7 @@ procedure vDSP_vfixru8( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: U
 { Vector convert to unsigned 8-bit integer, to nearest, double-precision.}
 {
  *  vDSP_vfixru8D()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -3828,7 +3828,7 @@ procedure vDSP_vfixru8D( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: 
 { Vector convert to unsigned 16-bit integer, to nearest, single-precision.}
 {
  *  vDSP_vfixru16()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -3841,7 +3841,7 @@ procedure vDSP_vfixru16( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: 
 { Vector convert to unsigned 16-bit integer, to nearest, double-precision.}
 {
  *  vDSP_vfixru16D()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -3854,7 +3854,7 @@ procedure vDSP_vfixru16D( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C:
 { Vector convert to unsigned 32-bit integer, to nearest, single-precision.}
 {
  *  vDSP_vfixru32()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -3867,7 +3867,7 @@ procedure vDSP_vfixru32( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: 
 { Vector convert to unsigned 32-bit integer, to nearest, double-precision.}
 {
  *  vDSP_vfixru32D()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -3880,7 +3880,7 @@ procedure vDSP_vfixru32D( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C:
 { Vector convert from 8-bit integer, single-precision.}
 {
  *  vDSP_vflt8()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -3893,7 +3893,7 @@ procedure vDSP_vflt8( var A: AnsiChar; __vDSP_I: vDSP_Stride; __vDSP_C: Float32P
 { Vector convert from 8-bit integer, double-precision.}
 {
  *  vDSP_vflt8D()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -3906,7 +3906,7 @@ procedure vDSP_vflt8D( var A: AnsiChar; __vDSP_I: vDSP_Stride; __vDSP_C: Float64
 { Vector convert from 16-bit integer, single-precision.}
 {
  *  vDSP_vflt16()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -3919,7 +3919,7 @@ procedure vDSP_vflt16( var A: SInt16; __vDSP_I: vDSP_Stride; __vDSP_C: Float32Pt
 { Vector convert from 16-bit integer, double-precision.}
 {
  *  vDSP_vflt16D()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -3932,7 +3932,7 @@ procedure vDSP_vflt16D( var A: SInt16; __vDSP_I: vDSP_Stride; __vDSP_C: Float64P
 { Vector convert from 32-bit integer, single-precision.}
 {
  *  vDSP_vflt32()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -3945,7 +3945,7 @@ procedure vDSP_vflt32( __vDSP_A: SInt32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Flo
 { Vector convert from 32-bit integer, double-precision.}
 {
  *  vDSP_vflt32D()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -3958,7 +3958,7 @@ procedure vDSP_vflt32D( __vDSP_A: SInt32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Fl
 { Vector convert from 8-bit integer, single-precision.}
 {
  *  vDSP_vfltu8()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -3971,7 +3971,7 @@ procedure vDSP_vfltu8( A: UInt8Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Float32Ptr;
 { Vector convert from 8-bit integer, double-precision.}
 {
  *  vDSP_vfltu8D()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -3984,7 +3984,7 @@ procedure vDSP_vfltu8D( A: UInt8Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Float64Ptr
 { Vector convert from 16-bit integer, single-precision.}
 {
  *  vDSP_vfltu16()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -3997,7 +3997,7 @@ procedure vDSP_vfltu16( A: UInt16Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Float32Pt
 { Vector convert from 16-bit integer, double-precision.}
 {
  *  vDSP_vfltu16D()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -4010,7 +4010,7 @@ procedure vDSP_vfltu16D( A: UInt16Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Float64P
 { Vector convert from 32-bit integer, single-precision.}
 {
  *  vDSP_vfltu32()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -4023,7 +4023,7 @@ procedure vDSP_vfltu32( __vDSP_A: UInt32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Fl
 { Vector convert from 32-bit integer, double-precision.}
 {
  *  vDSP_vfltu32D()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -4036,7 +4036,7 @@ procedure vDSP_vfltu32D( __vDSP_A: UInt32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: F
 { Vector fraction part (subtract integer toward zero), single-precision.}
 {
  *  vDSP_vfrac()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -4049,7 +4049,7 @@ procedure vDSP_vfrac( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Flo
 { Vector fraction part (subtract integer toward zero), double-precision.}
 {
  *  vDSP_vfracD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -4062,7 +4062,7 @@ procedure vDSP_vfracD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Fl
 { Vector gather, single-precision.}
 {
  *  vDSP_vgathr()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -4075,7 +4075,7 @@ procedure vDSP_vgathr( __vDSP_A: Float32Ptr; var __vDSP_B: vDSP_Length; __vDSP_J
 { Vector gather, double-precision.}
 {
  *  vDSP_vgathrD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -4088,7 +4088,7 @@ procedure vDSP_vgathrD( __vDSP_A: Float64Ptr; var __vDSP_B: vDSP_Length; __vDSP_
 { Vector gather, absolute pointers, single-precision.}
 {
  *  vDSP_vgathra()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -4101,7 +4101,7 @@ procedure vDSP_vgathra( var A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Floa
 { Vector gather, absolute pointers, double-precision.}
 {
  *  vDSP_vgathraD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -4114,7 +4114,7 @@ procedure vDSP_vgathraD( var A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Flo
 { Vector generate tapered ramp, single-precision.}
 {
  *  vDSP_vgen()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -4127,7 +4127,7 @@ procedure vDSP_vgen( __vDSP_A: Float32Ptr; __vDSP_B: Float32Ptr; __vDSP_C: Float
 { Vector generate tapered ramp, double-precision.}
 {
  *  vDSP_vgenD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -4140,7 +4140,7 @@ procedure vDSP_vgenD( __vDSP_A: Float64Ptr; __vDSP_B: Float64Ptr; __vDSP_C: Floa
 { Vector generate by extrapolation and interpolation, single-precision.}
 {
  *  vDSP_vgenp()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -4153,7 +4153,7 @@ procedure vDSP_vgenp( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Flo
 { Vector generate by extrapolation and interpolation, double-precision.}
 {
  *  vDSP_vgenpD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -4166,7 +4166,7 @@ procedure vDSP_vgenpD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Fl
 { Vector inverted clip, single-precision.}
 {
  *  vDSP_viclip()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -4179,7 +4179,7 @@ procedure vDSP_viclip( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Fl
 { Vector inverted clip, double-precision.}
 {
  *  vDSP_viclipD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -4192,7 +4192,7 @@ procedure vDSP_viclipD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: F
 { Vector index (C[i] = A[truncate[B[i]]), single-precision.}
 {
  *  vDSP_vindex()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -4205,7 +4205,7 @@ procedure vDSP_vindex( __vDSP_A: Float32Ptr; __vDSP_B: Float32Ptr; __vDSP_J: vDS
 { Vector index (C[i] = A[truncate[B[i]]), double-precision.}
 {
  *  vDSP_vindexD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -4218,7 +4218,7 @@ procedure vDSP_vindexD( __vDSP_A: Float64Ptr; __vDSP_B: Float64Ptr; __vDSP_J: vD
 { Vector interpolation between vectors, single-precision.}
 {
  *  vDSP_vintb()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -4231,7 +4231,7 @@ procedure vDSP_vintb( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Flo
 { Vector interpolation between vectors, double-precision.}
 {
  *  vDSP_vintbD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -4244,7 +4244,7 @@ procedure vDSP_vintbD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Fl
 { Vector test limit, single-precision.}
 {
  *  vDSP_vlim()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -4257,7 +4257,7 @@ procedure vDSP_vlim( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Floa
 { Vector test limit, double-precision.}
 {
  *  vDSP_vlimD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -4270,7 +4270,7 @@ procedure vDSP_vlimD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Flo
 { Vector linear interpolation, single-precision.}
 {
  *  vDSP_vlint()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -4283,7 +4283,7 @@ procedure vDSP_vlint( __vDSP_A: Float32Ptr; __vDSP_B: Float32Ptr; __vDSP_J: vDSP
 { Vector linear interpolation, double-precision.}
 {
  *  vDSP_vlintD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -4296,7 +4296,7 @@ procedure vDSP_vlintD( __vDSP_A: Float64Ptr; __vDSP_B: Float64Ptr; __vDSP_J: vDS
 { Vector multiply and add, single-precision.}
 {
  *  vDSP_vma()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -4309,7 +4309,7 @@ procedure vDSP_vma( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Float
 { Vector multiply and add, double-precision.}
 {
  *  vDSP_vmaD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -4322,7 +4322,7 @@ procedure vDSP_vmaD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Floa
 { Vector maxima, single-precision.}
 {
  *  vDSP_vmax()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -4335,7 +4335,7 @@ procedure vDSP_vmax( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Floa
 { Vector maxima, double-precision.}
 {
  *  vDSP_vmaxD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -4348,7 +4348,7 @@ procedure vDSP_vmaxD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Flo
 { Vector maximum magnitude, single-precision.}
 {
  *  vDSP_vmaxmg()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -4361,7 +4361,7 @@ procedure vDSP_vmaxmg( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Fl
 { Vector maximum magnitude, double-precision.}
 {
  *  vDSP_vmaxmgD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -4374,7 +4374,7 @@ procedure vDSP_vmaxmgD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: F
 { Vector minima, single-precision.}
 {
  *  vDSP_vmin()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -4387,7 +4387,7 @@ procedure vDSP_vmin( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Floa
 { Vector minima, double-precision.}
 {
  *  vDSP_vminD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -4400,7 +4400,7 @@ procedure vDSP_vminD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Flo
 { Vector minimum magnitude, single-precision.}
 {
  *  vDSP_vminmg()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -4413,7 +4413,7 @@ procedure vDSP_vminmg( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Fl
 { Vector minimum magnitude, double-precision.}
 {
  *  vDSP_vminmgD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -4426,7 +4426,7 @@ procedure vDSP_vminmgD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: F
 { Vector multiply, multiply, and add, single-precision.}
 {
  *  vDSP_vmma()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -4439,7 +4439,7 @@ procedure vDSP_vmma( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Floa
 { Vector multiply, multiply, and add, double-precision.}
 {
  *  vDSP_vmmaD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -4452,7 +4452,7 @@ procedure vDSP_vmmaD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Flo
 { Vector multiply, multiply, and subtract, single-precision.}
 {
  *  vDSP_vmmsb()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -4465,7 +4465,7 @@ procedure vDSP_vmmsb( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Flo
 { Vector multiply, multiply, and subtract, double-precision.}
 {
  *  vDSP_vmmsbD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -4478,7 +4478,7 @@ procedure vDSP_vmmsbD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Fl
 { Vector multiply and scalar add, single-precision.}
 {
  *  vDSP_vmsa()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -4491,7 +4491,7 @@ procedure vDSP_vmsa( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Floa
 { Vector multiply and scalar add, double-precision.}
 {
  *  vDSP_vmsaD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -4504,7 +4504,7 @@ procedure vDSP_vmsaD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Flo
 { Vector multiply and subtract, single-precision.}
 {
  *  vDSP_vmsb()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -4517,7 +4517,7 @@ procedure vDSP_vmsb( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Floa
 { Vector multiply and subtract, double-precision.}
 {
  *  vDSP_vmsbD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -4530,7 +4530,7 @@ procedure vDSP_vmsbD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Flo
 { Vector negative absolute value, single-precision.}
 {
  *  vDSP_vnabs()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -4543,7 +4543,7 @@ procedure vDSP_vnabs( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Flo
 { Vector negative absolute value, double-precision.}
 {
  *  vDSP_vnabsD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -4556,7 +4556,7 @@ procedure vDSP_vnabsD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Fl
 { Vector negate, single-precision.}
 {
  *  vDSP_vneg()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -4569,7 +4569,7 @@ procedure vDSP_vneg( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Floa
 { Vector negate, double-precision.}
 {
  *  vDSP_vnegD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -4582,7 +4582,7 @@ procedure vDSP_vnegD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Flo
 { Vector polynomial, single-precision.}
 {
  *  vDSP_vpoly()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -4595,7 +4595,7 @@ procedure vDSP_vpoly( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Flo
 { Vector polynomial, single-precision.}
 {
  *  vDSP_vpolyD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -4608,7 +4608,7 @@ procedure vDSP_vpolyD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Fl
 { Vector Pythagoras, single-precision.}
 {
  *  vDSP_vpythg()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -4621,7 +4621,7 @@ procedure vDSP_vpythg( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Fl
 { Vector Pythagoras, double-precision.}
 {
  *  vDSP_vpythgD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -4634,7 +4634,7 @@ procedure vDSP_vpythgD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: F
 { Vector quadratic interpolation, single-precision.}
 {
  *  vDSP_vqint()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -4647,7 +4647,7 @@ procedure vDSP_vqint( __vDSP_A: Float32Ptr; __vDSP_B: Float32Ptr; __vDSP_J: vDSP
 { Vector quadratic interpolation, double-precision.}
 {
  *  vDSP_vqintD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -4660,7 +4660,7 @@ procedure vDSP_vqintD( __vDSP_A: Float64Ptr; __vDSP_B: Float64Ptr; __vDSP_J: vDS
 { Vector build ramp, single-precision.}
 {
  *  vDSP_vramp()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -4673,7 +4673,7 @@ procedure vDSP_vramp( __vDSP_A: Float32Ptr; __vDSP_B: Float32Ptr; __vDSP_C: Floa
 { Vector build ramp, double-precision.}
 {
  *  vDSP_vrampD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -4686,7 +4686,7 @@ procedure vDSP_vrampD( __vDSP_A: Float64Ptr; __vDSP_B: Float64Ptr; __vDSP_C: Flo
 { Vector running sum integration, single-precision.}
 {
  *  vDSP_vrsum()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -4699,7 +4699,7 @@ procedure vDSP_vrsum( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_S: Flo
 { Vector running sum integration, double-precision.}
 {
  *  vDSP_vrsumD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -4712,7 +4712,7 @@ procedure vDSP_vrsumD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_S: Fl
 { Vector reverse order, in-place, single-precision.}
 {
  *  vDSP_vrvrs()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -4725,7 +4725,7 @@ procedure vDSP_vrvrs( __vDSP_C: Float32Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDS
 { Vector reverse order, in-place, double-precision.}
 {
  *  vDSP_vrvrsD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -4738,7 +4738,7 @@ procedure vDSP_vrvrsD( __vDSP_C: Float64Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vD
 { Vector-scalar add, single-precision.}
 {
  *  vDSP_vsadd()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -4751,7 +4751,7 @@ procedure vDSP_vsadd( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Flo
 { Vector-scalar add, double-precision.}
 {
  *  vDSP_vsaddD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -4764,7 +4764,7 @@ procedure vDSP_vsaddD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Fl
 { Vector subtract and multiply, single-precision.}
 {
  *  vDSP_vsbm()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -4777,7 +4777,7 @@ procedure vDSP_vsbm( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Floa
 { Vector subtract and multiply, double-precision.}
 {
  *  vDSP_vsbmD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -4790,7 +4790,7 @@ procedure vDSP_vsbmD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Flo
 { Vector subtract, subtract, and multiply, single-precision.}
 {
  *  vDSP_vsbsbm()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -4803,7 +4803,7 @@ procedure vDSP_vsbsbm( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Fl
 { Vector subtract, subtract, and multiply, double-precision.}
 {
  *  vDSP_vsbsbmD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -4816,7 +4816,7 @@ procedure vDSP_vsbsbmD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: F
 { Vector subtract and scalar multiply, single-precision.}
 {
  *  vDSP_vsbsm()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -4829,7 +4829,7 @@ procedure vDSP_vsbsm( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Flo
 { Vector subtract and scalar multiply, double-precision.}
 {
  *  vDSP_vsbsmD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -4842,7 +4842,7 @@ procedure vDSP_vsbsmD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Fl
 { Vector-scalar divide, single-precision.}
 {
  *  vDSP_vsdiv()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -4855,7 +4855,7 @@ procedure vDSP_vsdiv( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Flo
 { Vector-scalar divide, double-precision.}
 {
  *  vDSP_vsdivD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -4868,7 +4868,7 @@ procedure vDSP_vsdivD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Fl
 { Vector Simpson integration, single-precision.}
 {
  *  vDSP_vsimps()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -4881,7 +4881,7 @@ procedure vDSP_vsimps( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Fl
 { Vector Simpson integration, double-precision.}
 {
  *  vDSP_vsimpsD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -4894,7 +4894,7 @@ procedure vDSP_vsimpsD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: F
 { Vector-scalar multiply and vector add, single-precision.}
 {
  *  vDSP_vsma()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -4907,7 +4907,7 @@ procedure vDSP_vsma( const __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; const __
 { Vector-scalar multiply and vector add, double-precision.}
 {
  *  vDSP_vsmaD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -4920,7 +4920,7 @@ procedure vDSP_vsmaD( const __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; const _
 { Vector-scalar multiply and scalar add, single-precision.}
 {
  *  vDSP_vsmsa()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -4933,7 +4933,7 @@ procedure vDSP_vsmsa( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Flo
 { Vector-scalar multiply and scalar add, double-precision.}
 {
  *  vDSP_vsmsaD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -4946,7 +4946,7 @@ procedure vDSP_vsmsaD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Fl
 { Vector scalar multiply and vector subtract, single-precision.}
 {
  *  vDSP_vsmsb()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -4959,7 +4959,7 @@ procedure vDSP_vsmsb( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Flo
 { Vector scalar multiply and vector subtract, double-precision.}
 {
  *  vDSP_vsmsbD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -4972,7 +4972,7 @@ procedure vDSP_vsmsbD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Fl
 { Vector sort, in-place, single-precision.}
 {
  *  vDSP_vsort()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -4985,7 +4985,7 @@ procedure vDSP_vsort( __vDSP_C: Float32Ptr; __vDSP_N: vDSP_Length; __vDSP_OFLAG:
 { Vector sort, in-place, double-precision.}
 {
  *  vDSP_vsortD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -4998,7 +4998,7 @@ procedure vDSP_vsortD( __vDSP_C: Float64Ptr; __vDSP_N: vDSP_Length; __vDSP_OFLAG
 { Vector sort, in-place, integer, single-precision.}
 {
  *  vDSP_vsorti()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -5011,7 +5011,7 @@ procedure vDSP_vsorti( __vDSP_C: Float32Ptr; var __vDSP_IC: vDSP_Length; var __v
 { Vector sort, in-place, integer, double-precision.}
 {
  *  vDSP_vsortiD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -5024,7 +5024,7 @@ procedure vDSP_vsortiD( __vDSP_C: Float64Ptr; var __vDSP_IC: vDSP_Length; var __
 { Vector swap, single-precision.}
 {
  *  vDSP_vswap()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -5037,7 +5037,7 @@ procedure vDSP_vswap( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Flo
 { Vector swap, double-precision.}
 {
  *  vDSP_vswapD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -5050,7 +5050,7 @@ procedure vDSP_vswapD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Fl
 { Vector sliding window sum, single-precision.}
 {
  *  vDSP_vswsum()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -5063,7 +5063,7 @@ procedure vDSP_vswsum( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: Fl
 { Vector sliding window sum, double-precision.}
 {
  *  vDSP_vswsumD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -5076,7 +5076,7 @@ procedure vDSP_vswsumD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C: F
 { Vector table lookup and interpolation, single-precision.}
 {
  *  vDSP_vtabi()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -5089,7 +5089,7 @@ procedure vDSP_vtabi( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_S1: Fl
 { Vector table lookup and interpolation, double-precision.}
 {
  *  vDSP_vtabiD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -5102,7 +5102,7 @@ procedure vDSP_vtabiD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_S1: F
 { Vector threshold, single-precision.}
 {
  *  vDSP_vthr()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -5115,7 +5115,7 @@ procedure vDSP_vthr( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Floa
 { Vector threshold, double-precision.}
 {
  *  vDSP_vthrD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -5128,7 +5128,7 @@ procedure vDSP_vthrD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Flo
 { Vector threshold with zero fill, single-precision.}
 {
  *  vDSP_vthres()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -5141,7 +5141,7 @@ procedure vDSP_vthres( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Fl
 { Vector threshold with zero fill, double-precision.}
 {
  *  vDSP_vthresD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -5154,7 +5154,7 @@ procedure vDSP_vthresD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: F
 { Vector threshold with signed constant, single-precision.}
 {
  *  vDSP_vthrsc()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -5167,7 +5167,7 @@ procedure vDSP_vthrsc( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Fl
 { Vector threshold with signed constant, double-precision.}
 {
  *  vDSP_vthrscD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -5180,7 +5180,7 @@ procedure vDSP_vthrscD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: F
 { Vector tapered merge, single-precision.}
 {
  *  vDSP_vtmerg()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -5193,7 +5193,7 @@ procedure vDSP_vtmerg( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Fl
 { Vector tapered merge, double-precision.}
 {
  *  vDSP_vtmergD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -5206,7 +5206,7 @@ procedure vDSP_vtmergD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: F
 { Vector trapezoidal integration, single-precision.}
 {
  *  vDSP_vtrapz()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -5219,7 +5219,7 @@ procedure vDSP_vtrapz( __vDSP_A: Float32Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: Fl
 { Vector trapezoidal integration, double-precision.}
 {
  *  vDSP_vtrapzD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -5232,7 +5232,7 @@ procedure vDSP_vtrapzD( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_B: F
 { Wiener Levinson, single-precision.}
 {
  *  vDSP_wiener()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -5245,7 +5245,7 @@ procedure vDSP_wiener( __vDSP_L: vDSP_Length; __vDSP_A: Float32Ptr; __vDSP_C: Fl
 { Wiener Levinson, double-precision.}
 {
  *  vDSP_wienerD()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in vecLib.framework
  *    CarbonLib:        not available
@@ -5381,7 +5381,7 @@ procedure vDSP_FFT32_zopv( __vDSP_Or: Float32Ptr; __vDSP_Oi: Float32Ptr; {const}
 			vDSP_DFT_zop_CreateSetup, vDSP_DFT_Execute, vDSP_DFT_DestroySetup;
 
 			vDSP_DFT_zrop_CreateSetup, vDSP_DFT_Execute, vDSP_DFT_DestroySetup;
-		
+
 			vDSP_DFT_CreateSetup, vDSP_DFT_zop, vDSP_DFT_DestroySetup.
 
 		Sharing DFT setups:

@@ -1,17 +1,17 @@
 {
      File:       ATS/ATSLayoutTypes.h
- 
+
      Contains:   Apple Type Services layout public structures and constants.
- 
+
      Version:    ATS
- 
+
      Copyright:  © 1994-2012 by Apple Inc., all rights reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 
 { Pascal Translation Updated: Gorazd Krosl <gorazd_1957@yahoo.ca>, October 2009 }
@@ -281,7 +281,7 @@ const
 
 {
  *  ATSULayoutOperationSelector
- *  
+ *
  *  Summary:
  *    This is used to select which operations to override, or which
  *    operation is currently being run.
@@ -330,7 +330,7 @@ const
 
 {
  *  ATSULayoutOperationCallbackStatus
- *  
+ *
  *  Summary:
  *    One of these must be returned by a
  *    ATSUDLayoutOperationOverrideUPP callback function in order to
@@ -357,7 +357,7 @@ const
 
 {
  *  ATSLineLayoutOptions
- *  
+ *
  *  Summary:
  *    ATSLineLayoutOptions are normally set in an ATSUTextLayout object
  *    via the kATSULineLayoutOptionsTag layout control attribute. They
@@ -518,7 +518,7 @@ const
 
 {
  *  ATSStyleRenderingOptions
- *  
+ *
  *  Summary:
  *    ATSStyleRenderingOptions are set in the ATSUStyle object via the
  *    attribute tag kATSUStyleRenderingOptions. They provide finer
@@ -570,7 +570,7 @@ const
 
 {
  *  ATSGlyphInfoFlags
- *  
+ *
  *  Summary:
  *    ATSGlyphInfoFlags are set in the individual ATSLayoutRecord
  *    structures and apply only to the ATSGlyphRef in that structure.
@@ -631,7 +631,7 @@ const
 
 {
  *  ATSLayoutRecord
- *  
+ *
  *  Summary:
  *    The ATSLayoutRecord structure defines all the needed info for a
  *    single glyph during the layout process.  This struct must be
@@ -661,12 +661,12 @@ type
 		realPos: Fixed;
 	end;
 	ATSLayoutRecordPtr = ^ATSLayoutRecord;
-	
+
 { --------------------------------------------------------------------------- }
 
 {
  *  ATSTrapezoid
- *  
+ *
  *  Summary:
  *    The ATSTrapezoid structure supplies a convenient container for
  *    glyph bounds in trapezoidal form.
@@ -679,12 +679,12 @@ type
 		lowerLeft: FixedPoint;
 	end;
 	ATSTrapezoidPtr = ^ATSTrapezoid;
-	
+
 { --------------------------------------------------------------------------- }
 
 {
  *  ATSJustWidthDeltaEntryOverride
- *  
+ *
  *  Summary:
  *    The JustWidthDeltaEntryOverride structure specifies values for
  *    the grow and shrink case during justification, both on the left
@@ -726,15 +726,15 @@ type
 		shrinkFlags: JustificationFlags;
 	end;
 	ATSJustWidthDeltaEntryOverridePtr = ^ATSJustWidthDeltaEntryOverride;
-	
+
 { The JustPriorityOverrides type is an array of 4 width delta records, one per priority level override. }
 	ATSJustPriorityWidthDeltaOverrides = array[0..3] of ATSJustWidthDeltaEntryOverride;
-	
+
 { ---------------------------------------------------------------------------- }
 
 {
  *  ATSULineRef
- *  
+ *
  *  Summary:
  *    A reference to a line that is being laid out. This is passed into
  *    the ATSUDirectLayoutOperationOverrideUPP callback function to be
@@ -751,10 +751,10 @@ type
 
 {
  *  ATSUDirectLayoutOperationOverrideProcPtr
- *  
+ *
  *  Summary:
  *    Callback definition for a low-level adjustment routine hook.
- *  
+ *
  *  Discussion:
  *    This callback can be set in an ATSUTextLayout object by setting
  *    the attribute tag kATSULayoutOperationOverrideTag and passing in
@@ -789,7 +789,7 @@ type
 
 {
  *  NewATSUDirectLayoutOperationOverrideUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -800,7 +800,7 @@ function NewATSUDirectLayoutOperationOverrideUPP( userRoutine: ATSUDirectLayoutO
 
 {
  *  DisposeATSUDirectLayoutOperationOverrideUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -811,7 +811,7 @@ procedure DisposeATSUDirectLayoutOperationOverrideUPP( userUPP: ATSUDirectLayout
 
 {
  *  InvokeATSUDirectLayoutOperationOverrideUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -832,7 +832,7 @@ function InvokeATSUDirectLayoutOperationOverrideUPP( iCurrentOperation: ATSULayo
 
 {
  *  ATSULayoutOperationOverrideSpecifier
- *  
+ *
  *  Summary:
  *    This structure is used to install a callback for one or more
  *    ATSUI operations. To do this, simply passed one of these
@@ -849,7 +849,7 @@ type
 		overrideUPP: ATSUDirectLayoutOperationOverrideUPP;
 	end;
 	ATSULayoutOperationOverrideSpecifierPtr = ^ATSULayoutOperationOverrideSpecifier;
-	
+
 //#pragma pack(pop)
 
 {$endc} {TARGET_OS_MAC}

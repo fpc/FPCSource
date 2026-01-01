@@ -1,15 +1,15 @@
 {
      File:       PrintCore/PMDefinitionsDeprecated.h
- 
+
      Contains:   Deprecated Carbon Printing Manager Interfaces.
- 
+
      Copyright (c) 1998-2006,2008 Apple Inc. All Rights Reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }

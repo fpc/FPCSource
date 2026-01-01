@@ -599,7 +599,7 @@ function CGDisplayCopyColorSpace( display: CGDirectDisplayID ): CGColorSpaceRef;
  *
  * When changing display modes of displays in a mirroring set, other displays in
  * the mirroring set whose mode is not explicitly changed will be set to a display
- * mode capable of mirroring the bounds of the largest display being explicitly set. 
+ * mode capable of mirroring the bounds of the largest display being explicitly set.
  }
 
 function CGConfigureDisplayMode( config: CGDisplayConfigRef; display: CGDirectDisplayID; mode: CFDictionaryRef ): CGError; external name '_CGConfigureDisplayMode';

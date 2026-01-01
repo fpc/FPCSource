@@ -407,7 +407,7 @@ const
 const
 	GLU_MAP1_TRIM_3 = 100211;
 
-{ QuadricDrawStyle } 
+{ QuadricDrawStyle }
 const
 	GLU_POINT = 100010;
 const
@@ -416,7 +416,7 @@ const
 	GLU_FILL = 100012;
 const
 	GLU_SILHOUETTE = 100013;
-  
+
 { QuadricCallback }
 {      GLU_ERROR }
 
@@ -427,7 +427,7 @@ const
 	GLU_FLAT = 100001;
 const
 	GLU_NONE = 100002;
- 
+
 { QuadricOrientation }
 const
 	GLU_OUTSIDE = 100020;
@@ -537,22 +537,22 @@ const
 type
   GLUnurbs = record end;
   PGLUnurbs = ^GLUnurbs;
-  
+
   GLUquadric = record end;
   PGLUquadric = ^GLUquadric;
-  
+
   GLUtesselator = record end;
   PGLUtesselator = ^GLUtesselator;
 
   GLUnurbsObj = GLUnurbs;
   PGLUnurbsObj = PGLUnurbs;
-  
+
   GLUquadricObj = GLUquadric;
   PGLUquadricObj = PGLUquadric;
-  
+
   GLUtesselatorObj = GLUtesselator;
   PGLUtesselatorObj = PGLUtesselator;
-  
+
   GLUtriangulatorObj = GLUtesselator;
   PGLUtriangulatorObj = PGLUtesselator;
 
@@ -591,7 +591,7 @@ procedure gluNextContour( tess: PGLUtesselator; typ: GLenum ); external name '_g
 
 type
 	GLUCallBackFunc = procedure;
-	
+
 procedure gluNurbsCallback(nurb : PGLUnurbs; which : GLenum; CallBackFunc : GLUCallBackFunc); external name '_gluNurbsCallback';
 procedure gluNurbsCallbackData( nurb: PGLUnurbs; userData: UnivPtr ); external name '_gluNurbsCallbackData';
 procedure gluNurbsCallbackDataEXT( nurb: PGLUnurbs; userData: UnivPtr ); external name '_gluNurbsCallbackDataEXT';

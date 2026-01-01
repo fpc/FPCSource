@@ -19,7 +19,7 @@
 	retried before any other requests are satisfied, otherwise the streamed data might be lost
 	forever in the past. So the parser must be able to suspend work at any point and resume parsing
 	where it left off.
-	
+
 	The client provides data to the parser using AudioFileStreamParseBytes and the parser calls back
 	to the client with properties or packets using the AudioFileStream_PropertyListenerProc and
 	AudioFileStream_PacketsProc function pointers.
@@ -251,13 +251,13 @@ uses MacTypes,CoreAudioTypes,AudioFile;
 
 {!
     @enum AudioFileStreamPropertyFlags
-    @constant   kAudioFileStreamPropertyFlag_PropertyIsCached 
+    @constant   kAudioFileStreamPropertyFlag_PropertyIsCached
 		This flag is set in a call to AudioFileStream_PropertyListenerProc when the value of the property
-		can be obtained at any later time. If this flag is not set, then you should either get the value of 
+		can be obtained at any later time. If this flag is not set, then you should either get the value of
 		the property from within this callback or set the flag kAudioFileStreamPropertyFlag_CacheProperty in order to signal
 		to the parser to begin caching the property data. Otherwise the value may not be available in the future.
-		
-    @constant   kAudioFileStreamPropertyFlag_CacheProperty 
+
+    @constant   kAudioFileStreamPropertyFlag_CacheProperty
 		This flag can be set by a property listener in order to signal to the parser that the client is
 		interested in the value of the property and that it should be cached until the full value of the property is available.
 }
@@ -266,10 +266,10 @@ type
 	AudioFileStreamPropertyFlagsPtr = ^AudioFileStreamPropertyFlags;
 const
 	kAudioFileStreamPropertyFlag_PropertyIsCached = 1;
-	kAudioFileStreamPropertyFlag_CacheProperty = 2; 
+	kAudioFileStreamPropertyFlag_CacheProperty = 2;
 
 {!	@enum	AudioFileStreamParseFlags
-    @constant   kAudioFileStreamParseFlag_Discontinuity 
+    @constant   kAudioFileStreamParseFlag_Discontinuity
 		This flag is passed in to AudioFileStreamParseBytes to signal a discontinuity. Any partial packet straddling a buffer
 		boundary will be discarded. This is necessary to avoid being called with a corrupt packet. After a discontinuity occurs
 		seeking may be approximate in some data formats.
@@ -278,17 +278,17 @@ type
 	AudioFileStreamParseFlags = UInt32;
 	AudioFileStreamParseFlagsPtr = ^AudioFileStreamParseFlags;
 const
-	kAudioFileStreamParseFlag_Discontinuity = 1; 
+	kAudioFileStreamParseFlag_Discontinuity = 1;
 
 {!	@enum	AudioFileStreamParseFlags
-    @constant   kAudioFileStreamSeekFlag_OffsetIsEstimated 
+    @constant   kAudioFileStreamSeekFlag_OffsetIsEstimated
 		This flag may be returned from AudioFileStreamSeek if the byte offset is only an estimate, not exact.
 }
 type
 	AudioFileStreamSeekFlags = UInt32;
 	AudioFileStreamSeekFlagsPtr = ^AudioFileStreamSeekFlags;
 const
-	kAudioFileStreamSeekFlag_OffsetIsEstimated = 1; 
+	kAudioFileStreamSeekFlag_OffsetIsEstimated = 1;
 
 //=============================================================================
 //	AudioFileStream Types
@@ -317,32 +317,32 @@ type
 
     @abstract   These are the error codes returned from the AudioFile API.
 
-    @constant   kAudioFileStreamError_UnsupportedFileType 
+    @constant   kAudioFileStreamError_UnsupportedFileType
 		The file type is not supported.
-    @constant   kAudioFileStreamError_UnsupportedDataFormat 
+    @constant   kAudioFileStreamError_UnsupportedDataFormat
 		The data format is not supported by this file type.
-    @constant   kAudioFileStreamError_UnsupportedProperty 
+    @constant   kAudioFileStreamError_UnsupportedProperty
 		The property is not supported.
-    @constant   kAudioFileStreamError_BadPropertySize 
+    @constant   kAudioFileStreamError_BadPropertySize
 		The size of the property data was not correct.
-    @constant   kAudioFileStreamError_NotOptimized 
-		It is not possible to produce output packets because the file's packet table or other defining 
+    @constant   kAudioFileStreamError_NotOptimized
+		It is not possible to produce output packets because the file's packet table or other defining
 		info is either not present or is after the audio data.
-    @constant   kAudioFileStreamError_InvalidPacketOffset 
+    @constant   kAudioFileStreamError_InvalidPacketOffset
 		A packet offset was less than zero, or past the end of the file,
-		or a corrupt packet size was read when building the packet table. 
-    @constant   kAudioFileStreamError_InvalidFile 
-		The file is malformed, or otherwise not a valid instance of an audio file of its type, or 
-		is not recognized as an audio file. 
-    @constant   kAudioFileStreamError_ValueUnknown 
+		or a corrupt packet size was read when building the packet table.
+    @constant   kAudioFileStreamError_InvalidFile
+		The file is malformed, or otherwise not a valid instance of an audio file of its type, or
+		is not recognized as an audio file.
+    @constant   kAudioFileStreamError_ValueUnknown
 		The property value is not present in this file before the audio data.
 	@constant	kAudioFileStreamError_DataUnavailable
 		The amount of data provided to the parser was insufficient to produce any result.
 	@constant	kAudioFileStreamError_IllegalOperation
 		An illegal operation was attempted.
-    @constant   kAudioFileStreamError_UnspecifiedError 
+    @constant   kAudioFileStreamError_UnspecifiedError
 		An unspecified error has occurred.
-		
+
 }
 const
 	kAudioFileStreamError_UnsupportedFileType = FourCharCode('typ?');
@@ -356,7 +356,7 @@ const
 	kAudioFileStreamError_DataUnavailable = FourCharCode('more');
 	kAudioFileStreamError_IllegalOperation = FourCharCode('nope');
 	kAudioFileStreamError_UnspecifiedError = FourCharCode('wht?');
-	kAudioFileStreamError_DiscontinuityCantRecover = FourCharCode('dsc!'); 
+	kAudioFileStreamError_DiscontinuityCantRecover = FourCharCode('dsc!');
 
 //=============================================================================
 //	AudioFileStream Properties
@@ -365,61 +365,61 @@ const
 
 {!
     @enum		AudioFileStream Properties
-	
+
     @abstract   constants for AudioFileStream get property calls
     @discussion		There are currently no settable properties.
 
-					
+
     @constant   kAudioFileStreamProperty_ReadyToProducePackets
-					An UInt32 which is zero until the parser has parsed up to the beginning of the audio data. 
-					Once it has reached the audio data, the value of this property becomes one. 
+					An UInt32 which is zero until the parser has parsed up to the beginning of the audio data.
+					Once it has reached the audio data, the value of this property becomes one.
 					When this value has become one, all properties that can be known about the stream are known.
-					
-    @constant   kAudioFileStreamProperty_FileFormat 
+
+    @constant   kAudioFileStreamProperty_FileFormat
 					An UInt32 four AnsiChar code that identifies the format of the file
-    @constant   kAudioFileStreamProperty_DataFormat 
+    @constant   kAudioFileStreamProperty_DataFormat
 					An AudioStreamBasicDescription describing the format of the audio data
-    @constant   kAudioFileStreamProperty_FormatList 
-					In order to support formats such as AAC SBR where an encoded data stream can be decoded to 
-					multiple destination formats, this property returns an array of AudioFormatListItems 
+    @constant   kAudioFileStreamProperty_FormatList
+					In order to support formats such as AAC SBR where an encoded data stream can be decoded to
+					multiple destination formats, this property returns an array of AudioFormatListItems
 					(see AudioFormat.h) of those formats.
-					The default behavior is to return the an AudioFormatListItem that has the same 
+					The default behavior is to return the an AudioFormatListItem that has the same
 					AudioStreamBasicDescription that kAudioFileStreamProperty_DataFormat returns.
-    @constant   kAudioFileStreamProperty_MagicCookieData 
+    @constant   kAudioFileStreamProperty_MagicCookieData
 					A void * pointing to memory set up by the caller.
 					Some file types require that a magic cookie be provided before packets can be written
-					to the file, so this property should be set before calling 
+					to the file, so this property should be set before calling
 					AudioFileWriteBytes()/AudioFileWritePackets() if a magic cookie exists.
-    @constant   kAudioFileStreamProperty_AudioDataByteCount 
+    @constant   kAudioFileStreamProperty_AudioDataByteCount
 					a UInt64 that indicates the number of bytes of audio data contained in the file
-    @constant   kAudioFileStreamProperty_AudioDataPacketCount 
+    @constant   kAudioFileStreamProperty_AudioDataPacketCount
 					a UInt64 that indicates the number of packets of audio data contained in the file
-    @constant   kAudioFileStreamProperty_MaximumPacketSize 
+    @constant   kAudioFileStreamProperty_MaximumPacketSize
 					a UInt32 that indicates the maximum size of a packet for the data contained in the file
-    @constant   kAudioFileStreamProperty_DataOffset 
+    @constant   kAudioFileStreamProperty_DataOffset
 					a SInt64 that indicates the byte offset in the file of the audio data.
-    @constant   kAudioFileStreamProperty_ChannelLayout 
+    @constant   kAudioFileStreamProperty_ChannelLayout
 					An AudioChannelLayout struct.
-    @constant   kAudioFileStreamProperty_PacketToFrame 
-					pass a AudioFramePacketTranslation with mPacket filled out and get mFrame back. 
+    @constant   kAudioFileStreamProperty_PacketToFrame
+					pass a AudioFramePacketTranslation with mPacket filled out and get mFrame back.
 					mFrameOffsetInPacket is ignored.
-    @constant   kAudioFileStreamProperty_FrameToPacket 
-					pass a AudioFramePacketTranslation with mFrame filled out and get mPacket and 
+    @constant   kAudioFileStreamProperty_FrameToPacket
+					pass a AudioFramePacketTranslation with mFrame filled out and get mPacket and
 					mFrameOffsetInPacket back.
 	@constant	kAudioFileStreamProperty_PacketToByte
 					pass an AudioBytePacketTranslation struct with mPacket filled out and get mByte back.
-					mByteOffsetInPacket is ignored. If the mByte value is an estimate then 
+					mByteOffsetInPacket is ignored. If the mByte value is an estimate then
 					kBytePacketTranslationFlag_IsEstimate will be set in the mFlags field.
 	@constant	kAudioFileStreamProperty_ByteToPacket
 					pass an AudioBytePacketTranslation struct with mByte filled out and get mPacket and
-					mByteOffsetInPacket back. If the mPacket value is an estimate then 
+					mByteOffsetInPacket back. If the mPacket value is an estimate then
 					kBytePacketTranslationFlag_IsEstimate will be set in the mFlags field.
-    @constant   kAudioFileStreamProperty_PacketTableInfo 
+    @constant   kAudioFileStreamProperty_PacketTableInfo
 					Gets the AudioFilePacketTableInfo struct for the file types that support it.
 	@constant	kAudioFileStreamProperty_PacketSizeUpperBound
 					a UInt32 for the theoretical maximum packet size in the file.
 	@constant	kAudioFileStreamProperty_AverageBytesPerPacket
-					a Float64 of giving the average bytes per packet seen. 
+					a Float64 of giving the average bytes per packet seen.
 					For CBR and files with packet tables, this number will be exact. Otherwise, it is a
 					running average of packets parsed.
 	@constant	kAudioFileStreamProperty_BitRate
@@ -447,7 +447,7 @@ const
 	kAudioFileStreamProperty_PacketSizeUpperBound = FourCharCode('pkub');
 	kAudioFileStreamProperty_AverageBytesPerPacket = FourCharCode('abpp');
 	kAudioFileStreamProperty_BitRate = FourCharCode('brat');
-	kAudioFileStreamProperty_InfoDictionary = FourCharCode('info'); 
+	kAudioFileStreamProperty_InfoDictionary = FourCharCode('info');
 
 //=============================================================================
 //	AudioFileStream Functions
@@ -460,31 +460,31 @@ const
 
 	@discussion		Create a new audio file stream parser.
 					The client provides the parser with data and the parser calls
-					callbacks when interesting things are found in the data, such as properties and 
+					callbacks when interesting things are found in the data, such as properties and
 					audio packets.
 
-    @param			inClientData					
+    @param			inClientData
 						a constant that will be passed to your callbacks.
 	@param			inPropertyListenerProc
 						Whenever the value of a property is parsed in the data, this function will be called.
-						You can then get the value of the property from in the callback. In some cases, due to 
+						You can then get the value of the property from in the callback. In some cases, due to
 						boundaries in the input data, the property may return kAudioFileStreamError_DataUnavailable.
-						When unavailable data is requested from within the property listener, the parser will begin 
+						When unavailable data is requested from within the property listener, the parser will begin
 						caching the property value and will call the property listener again when the property is
-						available. For property values for which kAudioFileStreamPropertyFlag_PropertyIsCached is unset, this 
-						will be the only opportunity to get the value of the property, since the data will be 
-						disposed upon return of the property listener callback. 
+						available. For property values for which kAudioFileStreamPropertyFlag_PropertyIsCached is unset, this
+						will be the only opportunity to get the value of the property, since the data will be
+						disposed upon return of the property listener callback.
 	@param			inPacketsProc
-						Whenever packets are parsed in the data, a pointer to the packets is passed to the client 
-						using this callback. At times only a single packet may be passed due to boundaries in the 
+						Whenever packets are parsed in the data, a pointer to the packets is passed to the client
+						using this callback. At times only a single packet may be passed due to boundaries in the
 						input data.
-    @param 			inFileTypeHint	
-						For files whose type cannot be easily or uniquely determined from the data (ADTS,AC3), 
-						this hint can be used to indicate the file type. 
-						Otherwise if you do not know the file type, you can pass zero. 
-	@param			outAudioFileStream 
+    @param 			inFileTypeHint
+						For files whose type cannot be easily or uniquely determined from the data (ADTS,AC3),
+						this hint can be used to indicate the file type.
+						Otherwise if you do not know the file type, you can pass zero.
+	@param			outAudioFileStream
 						A new file stream ID for use in other AudioFileStream API calls.
-} 
+}
 function AudioFileStreamOpen( inClientData: UnivPtr {__nullable}; inPropertyListenerProc: AudioFileStream_PropertyListenerProc; inPacketsProc: AudioFileStream_PacketsProc; inFileTypeHint: AudioFileTypeID; var outAudioFileStream: AudioFileStreamID {__nullable * __nonnull} ): OSStatus; external name '_AudioFileStreamOpen';
 (* API_AVAILABLE(macos(10.5), ios(2.0), watchos(2.0), tvos(9.0)) *)
 
@@ -492,20 +492,20 @@ function AudioFileStreamOpen( inClientData: UnivPtr {__nullable}; inPropertyList
 {!
 	@function		AudioFileStreamParseBytes
 
-	@discussion		This call is the means for streams to supply data to the parser. 
+	@discussion		This call is the means for streams to supply data to the parser.
 					Data is expected to be passed in sequentially from the beginning of the file, without gaps.
 					In the course of parsing, the client's property and/or packets callbacks may be called.
 					At the end of the stream, this function must be called once with null data pointer and zero
 					data byte size to flush any remaining packets out of the parser.
 
-	@param			inAudioFileStream 
+	@param			inAudioFileStream
 						The file stream ID
-	@param			inDataByteSize 
+	@param			inDataByteSize
 						The number of bytes passed in for parsing. Must be zero when flushing the parser.
-	@param			inData 
+	@param			inData
 						The data passed in to be parsed. Must be null when flushing the parser.
-	@param			inFlags 
-						If there is a data discontinuity, then kAudioFileStreamParseFlag_Discontinuity should be set true. 
+	@param			inFlags
+						If there is a data discontinuity, then kAudioFileStreamParseFlag_Discontinuity should be set true.
 }
 function AudioFileStreamParseBytes( inAudioFileStream: AudioFileStreamID; inDataByteSize: UInt32; {const} inData: UnivPtr {__nullable}; inFlags: AudioFileStreamParseFlags ): OSStatus; external name '_AudioFileStreamParseBytes';
 (* API_AVAILABLE(macos(10.5), ios(2.0), watchos(2.0), tvos(9.0)) *)
@@ -513,19 +513,19 @@ function AudioFileStreamParseBytes( inAudioFileStream: AudioFileStreamID; inData
 {!
 	@function		AudioFileStreamSeek
 
-	@discussion		This call is used to seek in the data stream. The client passes in a packet 
+	@discussion		This call is used to seek in the data stream. The client passes in a packet
 					offset to seek to and the parser passes back a byte offset from which to
-					get the data to satisfy that request. The data passed to the next call to 
+					get the data to satisfy that request. The data passed to the next call to
 					AudioFileParseBytes will be assumed to be from that byte offset.
-					For file formats which do not contain packet tables the byte offset may 
+					For file formats which do not contain packet tables the byte offset may
 					be an estimate. If so, the flag kAudioFileStreamSeekFlag_OffsetIsEstimated will be true.
 
-	@param			inAudioFileStream 
+	@param			inAudioFileStream
 						The file stream ID
-	@param			inPacketOffset 
+	@param			inPacketOffset
 						The offset from the beginning of the file of the packet to which to seek.
-	@param			outDataByteOffset 
-						The byte offset of the data from the file's data offset returned. 
+	@param			outDataByteOffset
+						The byte offset of the data from the file's data offset returned.
 						You need to add the value of kAudioFileStreamProperty_DataOffset to get an absolute byte offset in the file.
 	@param			ioFlags
 						If outDataByteOffset is an estimate, then kAudioFileStreamSeekFlag_OffsetIsEstimated will be set on output.
@@ -536,11 +536,11 @@ function AudioFileStreamSeek( inAudioFileStream: AudioFileStreamID; inPacketOffs
 
 {!
 	@function		AudioFileStreamGetPropertyInfo
- 
+
 	@discussion		Retrieve the info about the given property. The outSize argument
 					will return the size in bytes of the current value of the property.
- 
-	@param			inAudioFileStream 
+
+	@param			inAudioFileStream
 						The file stream ID
 	@param			inPropertyID
 						Property ID whose value should be read
@@ -548,7 +548,7 @@ function AudioFileStreamSeek( inAudioFileStream: AudioFileStreamID; inPacketOffs
 						Size in bytes of the property
 	@param			outWritable
 						whether the property is writable
- 
+
 	@result			an OSStatus return code
 }
 function AudioFileStreamGetPropertyInfo( inAudioFileStream: AudioFileStreamID; inPropertyID: AudioFileStreamPropertyID; outPropertyDataSize: UInt32Ptr {__nullable}; outWritable: BooleanPtr {__nullable} ): OSStatus; external name '_AudioFileStreamGetPropertyInfo';
@@ -557,15 +557,15 @@ function AudioFileStreamGetPropertyInfo( inAudioFileStream: AudioFileStreamID; i
 
 {!
 	@function		AudioFileStreamGetProperty
- 
-	@discussion		Retrieve the indicated property data. 
- 
-	@param			inAudioFileStream 
+
+	@discussion		Retrieve the indicated property data.
+
+	@param			inAudioFileStream
 						The file stream ID
 	@param			inPropertyID
 						Property ID whose value should be read
 	@param			ioPropertyDataSize
-						On input, the size of the buffer pointed to by outPropertyData. On output, 
+						On input, the size of the buffer pointed to by outPropertyData. On output,
 						the number of bytes written.
 	@param			outPropertyData
 						Pointer to the property data buffer
@@ -577,10 +577,10 @@ function AudioFileStreamGetProperty( inAudioFileStream: AudioFileStreamID; inPro
 
 {!
 	@function		AudioFileStreamSetProperty
- 
+
 	@discussion		Set the value of the property. There are currently no settable properties.
- 
-	@param			inAudioFileStream 
+
+	@param			inAudioFileStream
 						The file stream ID
 	@param			inPropertyID
 						Property ID whose value should be set
@@ -596,10 +596,10 @@ function AudioFileStreamSetProperty( inAudioFileStream: AudioFileStreamID; inPro
 
 {!
 	@function		AudioFileStreamClose
- 
+
 	@discussion		Close and deallocate the file stream object.
 
-	@param			inAudioFileStream 
+	@param			inAudioFileStream
 						The file stream ID
 }
 function AudioFileStreamClose( inAudioFileStream: AudioFileStreamID ): OSStatus; external name '_AudioFileStreamClose';

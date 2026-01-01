@@ -1,9 +1,9 @@
 {
      File:       CarbonCore/CodeFragments.h
- 
+
      Contains:   Public Code Fragment Manager Interfaces.
                  The contents of this header file are deprecated.
- 
+
      Copyright:  © 1992-2011 by Apple Inc. All rights reserved.
 }
 {
@@ -467,15 +467,15 @@ const
 {$ifc not TARGET_CPU_64}
 {
  *  GetSharedLibrary()   *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    The connID, mainAddr, and errMessage parameters may be NULL with
  *    MacOS 8.5 and later. Passing NULL as those parameters when
  *    running Mac OS 8.1 and earlier systems will corrupt low-memory.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.4
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -487,10 +487,10 @@ function GetSharedLibrary( libName: ConstStr63Param; archType: CFragArchitecture
 
 {
  *  GetDiskFragment()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.4
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -502,10 +502,10 @@ function GetDiskFragment( const (*var*) fileSpec: FSSpec; offset: UInt32; length
 
 {
  *  GetMemFragment()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.4
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -517,10 +517,10 @@ function GetMemFragment( memAddr: UnivPtr; length: UInt32; fragName: ConstString
 
 {
  *  CloseConnection()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.4
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -532,10 +532,10 @@ function CloseConnection( var connID: CFragConnectionID ): OSErr; external name 
 
 {
  *  FindSymbol()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.4
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -547,10 +547,10 @@ function FindSymbol( connID: CFragConnectionID; const (*var*) symName: Str255; s
 
 {
  *  CountSymbols()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.4
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -562,10 +562,10 @@ function CountSymbols( connID: CFragConnectionID; var symCount: SIGNEDLONG ): OS
 
 {
  *  GetIndSymbol()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.4
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -691,7 +691,7 @@ type
 {$ifc not TARGET_CPU_64}
 {
  *  ConvertBundlePreLocator()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.1 and later

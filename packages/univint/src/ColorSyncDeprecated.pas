@@ -580,7 +580,7 @@ type
 
 {
  *  CMProfileMD5AreEqual()
- *  
+ *
  *  Availability:       available as macro/inline
  }
 //  #define CMProfileMD5AreEqual(a, b) (\
@@ -739,7 +739,7 @@ type
 	CMMultiFunctLutA2BTypePtr = ^CMMultiFunctLutA2BType;
 	CMMultiFunctLutB2AType = CMMultiFunctLutType;
 	CMMultiFunctLutB2ATypePtr = ^CMMultiFunctLutB2AType;
-	
+
 	CMMultiFunctCLUTTypePtr = ^CMMultiFunctCLUTType;
 	CMMultiFunctCLUTType = record
 		gridPoints: packed array[0..15] of UInt8;         { grigpoints for each input channel dimension (remaining are 0) }
@@ -1175,7 +1175,7 @@ type
 	OpaqueCMProfileRef = record end;
 	CMProfileRef = ^OpaqueCMProfileRef; { an opaque type }
 	CMProfileRefPtr = ^CMProfileRef;  { when a var xx:CMProfileRef parameter can be nil, it is changed to xx: CMProfileRefPtr }
-	
+
 {$ifc not TARGET_CPU_64}
 { Abstract data type for Profile search result }
 	OpaqueCMProfileSearchRef = record end;
@@ -1223,7 +1223,7 @@ type
 
 {
  *  NewCMFlattenUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1234,7 +1234,7 @@ function NewCMFlattenUPP(userRoutine: CMFlattenProcPtr): CMFlattenUPP; external 
 
 {
  *  NewCMConcatCallBackUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1245,7 +1245,7 @@ function NewCMConcatCallBackUPP(userRoutine: CMConcatCallBackProcPtr): CMConcatC
 
 {
  *  NewCMProfileFilterUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1256,7 +1256,7 @@ function NewCMProfileFilterUPP(userRoutine: CMProfileFilterProcPtr): CMProfileFi
 
 {
  *  NewCMProfileAccessUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1267,7 +1267,7 @@ function NewCMProfileAccessUPP(userRoutine: CMProfileAccessProcPtr): CMProfileAc
 
 {
  *  DisposeCMFlattenUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1278,7 +1278,7 @@ procedure DisposeCMFlattenUPP(userUPP: CMFlattenUPP); external name '_DisposeCMF
 
 {
  *  DisposeCMConcatCallBackUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1289,7 +1289,7 @@ procedure DisposeCMConcatCallBackUPP(userUPP: CMConcatCallBackUPP); external nam
 
 {
  *  DisposeCMProfileFilterUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1300,7 +1300,7 @@ procedure DisposeCMProfileFilterUPP(userUPP: CMProfileFilterUPP); external name 
 
 {
  *  DisposeCMProfileAccessUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1311,7 +1311,7 @@ procedure DisposeCMProfileAccessUPP(userUPP: CMProfileAccessUPP); external name 
 
 {
  *  InvokeCMFlattenUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1322,7 +1322,7 @@ function InvokeCMFlattenUPP(command: SInt32; var size: SIGNEDLONG; data: UnivPtr
 
 {
  *  InvokeCMConcatCallBackUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1333,7 +1333,7 @@ function InvokeCMConcatCallBackUPP(progress: SInt32; refCon: UnivPtr; userRoutin
 
 {
  *  InvokeCMProfileFilterUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1344,7 +1344,7 @@ function InvokeCMProfileFilterUPP(prof: CMProfileRef; refCon: UnivPtr; userRouti
 
 {
  *  InvokeCMProfileAccessUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2072,8 +2072,8 @@ function NCWNewLinkProfile( var prof: CMProfileRef; const (*var*) targetLocation
     @abstract    Make a display or abstract profile.
     @discussion  Adds appropriate tags to a profile to make display or abstract
                  profile based on an specification dictionary.
-	One key in the specification dictionary must be "profileType" 
-	which must have a CFString value of "abstractLab", "displayRGB" 
+	One key in the specification dictionary must be "profileType"
+	which must have a CFString value of "abstractLab", "displayRGB"
 	or "displayID".  It can also contain the keys/values:
 	  <PRE>
 	  "description"    CFString (optional)
@@ -2084,7 +2084,7 @@ function NCWNewLinkProfile( var prof: CMProfileRef; const (*var*) targetLocation
 	  <PRE>
 	  "gridPoints"     CFNumber(SInt32) (should be odd)
 	  "proc"           CFNumber(SInt64) (coerced from a LabToLabProcPtr)
-	  "refcon"         CFNumber(SInt64) (coerced from a void*) (optional) 
+	  "refcon"         CFNumber(SInt64) (coerced from a void*) (optional)
 	  </PRE>
 	For profileType of "displayRGB", the dictionary
 	should also contain the keys/values:
@@ -2098,7 +2098,7 @@ function NCWNewLinkProfile( var prof: CMProfileRef; const (*var*) targetLocation
 	  "tableEntries"   CFNumber(SInt32) (e.g 16 or 255) (optional)
 	  "tableEntrySize" CFNumber(SInt32) (1 or 2) (optional)
 	  "tableData"      CFData (lut in RRRGGGBBB order) (optional)
-	  
+
 	  either
 	  "phosphorRx"     CFNumber(Float)
 	  "phosphorRy"     CFNumber(Float)
@@ -2107,7 +2107,7 @@ function NCWNewLinkProfile( var prof: CMProfileRef; const (*var*) targetLocation
 	  "phosphorBx"     CFNumber(Float)
 	  "phosphorBy"     CFNumber(Float)
 	  or
-	  "phosphorSet"    CFString ("WideRGB", "700/525/450nm", "P22-EBU", "HDTV", 
+	  "phosphorSet"    CFString ("WideRGB", "700/525/450nm", "P22-EBU", "HDTV",
 	                             "CCIR709", "sRGB", "AdobeRGB98" or "Trinitron")
 	  either
 	  "whitePointx"    CFNumber(Float)
@@ -2124,7 +2124,7 @@ function NCWNewLinkProfile( var prof: CMProfileRef; const (*var*) targetLocation
 	  Optionally, the keys/values for "displayRGB" can be
 	  provided to override the values from the display.
 	  </PRE>
-    
+
     @param       prof       (in) the profile to modify
     @param       spec       (in) specification dictionary
 }
@@ -2375,7 +2375,7 @@ const
 {!
     @function    CWFillLookupTexture
     @abstract    Fills a 3d lookup texture from a colorworld.
-    @discussion  The resulting table is suitable for use in OpenGL to 
+    @discussion  The resulting table is suitable for use in OpenGL to
                  accelerate color management in hardware.
     @param       cw             (in) the colorworld to use
     @param       gridPoints     (in) number of grid points per channel in the texture
@@ -2653,9 +2653,9 @@ const
 {!
     @struct     CMFloatBitmap
     @abstract       A new struture that defines and arbritrary map of float color values.
-    @discussion     The struture defines a pixel array of dimensions [height][width][chans] 
+    @discussion     The struture defines a pixel array of dimensions [height][width][chans]
                     where 'chans' is the number of channels in the colorspace plus an optional one for alpha.
-                    The actual memory pointed to by the structure can contain a variety of possible arrangements. 
+                    The actual memory pointed to by the structure can contain a variety of possible arrangements.
                     The actual data values can be chuncky or planar. The channels can by in any order.
 <PRE>
 
@@ -2685,16 +2685,16 @@ c) float* p contains a 640w by 480h bitmap of planar CMYK data
                 cmCMYKData,
                 kCMFloatBitmapFlagsNone);
 </PRE>
-        
+
     @field      version     The version number of this structure to allow for future expansion.
                             Should contain 0 for now.
-    
+
     @field      buffers     The base address for each channel in canonical order.
                             The canonical order for RGB is R,G,B. CMYK is C,M,Y,K etc.
                             A maximum of sixteen channels is supported.
-                            Another way to think of this is 
+                            Another way to think of this is
                                 buffers[c] = &(pixelArray[0][0][c])
-                                
+
     @field      height      The height (in pixels) of the bitmap.
 
     @field      width       The width (in pixels) of the bitmap.
@@ -2725,19 +2725,19 @@ type
 		space: OSType;
 		flags: CMFloatBitmapFlags;
 	end;
- 
+
 type
 	IlluminantArray = array [0..2] of Float32;
- 
+
 { D50 illuminant (0.9642, 1.0000, 0.8249) }
 var kCMIlluminantD50: IlluminantArray; external name '_kCMIlluminantD50'; (* attribute const *)                                  (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_6 *)
- 
- 
+
+
 { D65 illuminant (0.9504, 1.0000, 1.0889)}
 var kCMIlluminantD65: IlluminantArray; external name '_kCMIlluminantD65'; (* attribute const *)
 (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_6 *)
- 
- 
+
+
 
 {!
     @function   CMFloatBitmapMakeChunky
@@ -2930,7 +2930,7 @@ const
 	cmCurrentProfileInfoVersion = cmDeviceProfileInfoVersion1;
 
 {
-    Certain APIs require a device ID or profile ID.  
+    Certain APIs require a device ID or profile ID.
     In some cases, a "default ID" can be used.
 }
 const
@@ -2952,30 +2952,30 @@ const
 {
     Possible values for flags passed to the
     CMIterateDeviceProfiles() API.
-    
+
     "Factory" profiles are registered via the
     CMSetDeviceFactoryProfiles() API.
-    
+
     "Custom" profiles are those which are meant to take
     the place of the factory profiles, as a result of
     customization or calibration.  These profiles are
     registered via the CMSetDeviceProfiles() API.
-    
+
     To retrieve all of the the former for all devices,
     use cmIterateFactoryDeviceProfiles as the flags
     value when calling CMIterateDeviceProfiles().
-    
+
     To retrieve only the latter for all devices, use
     the cmIterateCustomDeviceProfiles, as the flags
     value when calling CMIterateDeviceProfiles().
-    
+
     To get the profiles in use for all devices, use
     cmIterateCurrentDeviceProfiles as the flags value.
     This will replace the factory profiles with any
     overrides, yielding the currently used set.
-    
+
     To get all profiles, without replacement, use
-    cmIterateAllDeviceProfiles. 
+    cmIterateAllDeviceProfiles.
 }
 const
 	cmIterateFactoryDeviceProfiles = $00000001;
@@ -3000,7 +3000,7 @@ const
    Clients can register for notifications of device changes:
       Notification         Description                           Sent by API
     ----------------      -----------                           -----------
-      DeviceRegistered      a device was registered               CMRegisterColorDevice()  
+      DeviceRegistered      a device was registered               CMRegisterColorDevice()
       DeviceUnregistered    a device was unregistered             CMUnregisterColorDevice()
       DeviceOnline          a device's state changed to Online    CMSetDeviceState()
       DeviceOffline         a device's state changed to Offline   CMSetDeviceState()
@@ -3156,7 +3156,7 @@ type
 {!
     @function    CMRegisterColorDevice
     @abstract    Registers a device with ColorSync
-    @discussion  For a device to be recognized by ColorSync it needs to register itself 
+    @discussion  For a device to be recognized by ColorSync it needs to register itself
                     via this API.  After calling this API, the CMSetDeviceFactoryProfiles
                     API should be called to specify the initial modes and profiles for the
                     device. Registration need only happen once, when the device is installed.
@@ -3214,7 +3214,7 @@ function CMGetDefaultDevice( deviceClass: CMDeviceClass; var deviceID: CMDeviceI
 {!
     @function    CMSetDeviceFactoryProfiles
     @abstract    Registers a device's factory profiles with ColorSync
-    @discussion  This API establishes the profiles used by a particular device for 
+    @discussion  This API establishes the profiles used by a particular device for
                     it's various modes. It is meant to be called once, right after
                     device registration to notify ColorSync of the device's profiles.
     @param       deviceClass    (in) Device class to modify
@@ -3244,8 +3244,8 @@ function CMGetDeviceFactoryProfiles( deviceClass: CMDeviceClass; deviceID: CMDev
     @function    CMSetDeviceProfiles
     @abstract    Specifies custom overide profiles for a device
     @discussion  This API provides a way to overide the factory profiles of a device for
-                    a particular mode or modes. To set custom profiles, the profileScope and 
-                    deviceProfiles params must be valid. To remove all custom profiles of a 
+                    a particular mode or modes. To set custom profiles, the profileScope and
+                    deviceProfiles params must be valid. To remove all custom profiles of a
                     device, pass in nil for the profileScope and deviceProfiles parameters.
     @param       deviceClass    (in) Device class to change
     @param       deviceID       (in) Device id to change (can be cmDefaultDeviceID)
@@ -3277,10 +3277,10 @@ function CMGetDeviceProfiles( deviceClass: CMDeviceClass; deviceID: CMDeviceID; 
     @function    CMSetDeviceDefaultProfileID
     @abstract    Specifies a device's default profile mode
     @discussion  This API allows the caller to change the default profile ID for a device.
-                    The initial default is established when CMSetDeviceFactoryProfiles is called. 
+                    The initial default is established when CMSetDeviceFactoryProfiles is called.
     @param       deviceClass    (in) Device class to modify
     @param       deviceID       (in) Device id to modify (can be cmDefaultDeviceID)
-    @param       defaultProfID  (in) New device default 
+    @param       defaultProfID  (in) New device default
 }
 function CMSetDeviceDefaultProfileID( deviceClass: CMDeviceClass; deviceID: CMDeviceID; defaultProfID: CMDeviceProfileID ): CMError; external name '_CMSetDeviceDefaultProfileID';
 (* AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_6 *)
@@ -3298,7 +3298,7 @@ function CMGetDeviceDefaultProfileID( deviceClass: CMDeviceClass; deviceID: CMDe
 {!
     @function    CMSetDeviceProfile
     @abstract    Specifies a custom overide profile for a device
-    @discussion  This API provides a way to change one of the profiles used by a 
+    @discussion  This API provides a way to change one of the profiles used by a
                     device for a particular mode. It can be called after
                     device registration by calibration applications to reset a device's
                     profile from its factory default to a custom calibrated profile.
@@ -3306,14 +3306,14 @@ function CMGetDeviceDefaultProfileID( deviceClass: CMDeviceClass; deviceID: CMDe
     @param       deviceID       (in) Device id to modify (can be cmDefaultDeviceID)
     @param       profileScope   (in) Scope where information should be stored
     @param       profileID      (in) Profile id to modify (can be cmDefaultProfileID)
-    @param       profileLoc     (in) New profile location 
+    @param       profileLoc     (in) New profile location
 }
 function CMSetDeviceProfile( deviceClass: CMDeviceClass; deviceID: CMDeviceID; const (*var*) profileScope: CMDeviceProfileScope; profileID: CMDeviceProfileID; const (*var*) profileLoc: CMProfileLocation ): CMError; external name '_CMSetDeviceProfile';
 (* AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_6 *)
 
 {!
     @function    CMGetDeviceProfile
-    @abstract    Returns the location of the current profile for a 
+    @abstract    Returns the location of the current profile for a
                     given device class, device ID, and profile ID
     @param       deviceClass    (in) Device class to query
     @param       deviceID       (in) Device id to query (can be cmDefaultDeviceID)
@@ -3336,14 +3336,14 @@ function CMGetDeviceProfile( deviceClass: CMDeviceClass; deviceID: CMDeviceID; p
                     replaces the old state data with the new value.
     @param       deviceClass    (in) Device class to modify
     @param       deviceID       (in) Device id to modify (can be cmDefaultDeviceID)
-    @param       deviceState    (in) New device state 
+    @param       deviceState    (in) New device state
 }
 function CMSetDeviceState( deviceClass: CMDeviceClass; deviceID: CMDeviceID; deviceState: CMDeviceState ): CMError; external name '_CMSetDeviceState';
 (* AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_6 *)
 
 {!
     @function    CMGetDeviceState
-    @abstract    Returns the state of a device. 
+    @abstract    Returns the state of a device.
     @param       deviceClass    (in) Device class to query
     @param       deviceID       (in) Device id to query (can be cmDefaultDeviceID)
     @param       deviceState    (out) Returns device state
@@ -3353,12 +3353,12 @@ function CMGetDeviceState( deviceClass: CMDeviceClass; deviceID: CMDeviceID; var
 
 {!
     @function    CMGetDeviceInfo
-    @abstract    Returns information about a device. 
+    @abstract    Returns information about a device.
     @discussion  This API returns information about a registered device.
                     If, on input, deviceInfo->deviceName is nil then the name is not returned.
                     If the caller wants the device name dictionary returned, then the caller
-                    should provide in deviceInfo->deviceName the address where this API should 
-                    store the CFDictionaryRef. The caller is responsible for disposing of the 
+                    should provide in deviceInfo->deviceName the address where this API should
+                    store the CFDictionaryRef. The caller is responsible for disposing of the
                     name dictionary.
     @param       deviceClass    (in) Device class to query
     @param       deviceID       (in) Device id to query (can be cmDefaultDeviceID)
@@ -3373,10 +3373,10 @@ function CMGetDeviceInfo( deviceClass: CMDeviceClass; deviceID: CMDeviceID; var 
 
 {!
     @function    CMIterateColorDevices
-    @abstract    Returns information about all devices to a callback procedure. 
-    @discussion  This API allows the caller to get device information about all 
+    @abstract    Returns information about all devices to a callback procedure.
+    @discussion  This API allows the caller to get device information about all
                     registered color devices.  If provided, the supplied proceedure will be
-                    called once for each registered device, passing in the device info and 
+                    called once for each registered device, passing in the device info and
                     the supplied refcon.
                     If the caller passes in a pointer to a seed value that is the same as
                     the current seed value, then the callback proc is not called.
@@ -3390,10 +3390,10 @@ function CMIterateColorDevices( proc: CMIterateDeviceInfoProcPtr { can be NULL }
 
 {!
     @function    CMIterateDeviceProfiles
-    @abstract    Returns information about profiles of all devices to a callback procedure. 
-    @discussion  This API allows the caller to get device information about profiles of all 
+    @abstract    Returns information about profiles of all devices to a callback procedure.
+    @discussion  This API allows the caller to get device information about profiles of all
                     registered color devices.  If provided, the supplied proceedure will be
-                    called once for each registered device, passing in the device info, the 
+                    called once for each registered device, passing in the device info, the
                     profile info and the supplied refcon.
                     If the caller passes in a pointer to a seed value that is the same as
                     the current seed value, then the callback proc is not called.
@@ -3402,7 +3402,7 @@ function CMIterateColorDevices( proc: CMIterateDeviceInfoProcPtr { can be NULL }
     @param       count          (out) Returns count of devices (optional)
     @param       flags          (in) Options for which set of profiles are to be iterated.
                                         It can have the following possible values:
-                                        cmIterateFactoryDeviceProfiles, cmIterateCustomDeviceProfiles, 
+                                        cmIterateFactoryDeviceProfiles, cmIterateCustomDeviceProfiles,
                                         cmIterateCurrentDeviceProfiles, cmIterateAllDeviceProfiles or 0.
                                         The flag value 0 behaves like cmIterateCurrentDeviceProfiles.
     @param       refCon         (in) Passed to callback proc (optional)

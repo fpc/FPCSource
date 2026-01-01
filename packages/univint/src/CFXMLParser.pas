@@ -304,7 +304,7 @@ addChild -
 endXMLStructure -
   called once a structure (and all its children) are completely parsed.  As elements are encountered,
   createXMLStructure is called for them first, then addChild to add the new structure to its parent,
-  then addChild (potentially several times) to add the new structure's children to it, then finally 
+  then addChild (potentially several times) to add the new structure's children to it, then finally
   endXMLStructure to show that the structure has been fully parsed.
 
 createXMLStructure, addChild, and endXMLStructure are all REQUIRED TO BE NON-NULL.
@@ -313,7 +313,7 @@ resolveExternalEntity -
   called when external entities are referenced (NOT when they are simply defined).  If the function
   pointer is NULL, the parser uses its internal routines to try and resolve the entity.  If the
   function pointer is set, and the function returns NULL, a place holder for the external entity
-  is inserted into the tree.  In this manner, the parser's client can prevent any external network 
+  is inserted into the tree.  In this manner, the parser's client can prevent any external network
   or file accesses.
 
 handleError - called as errors/warnings are encountered in the data stream.  At some point, we will
@@ -356,7 +356,7 @@ type
 function CFXMLParserGetTypeID: CFTypeID; external name '_CFXMLParserGetTypeID';
 (* CF_DEPRECATED(10_0, 10_8, 2_0, 6_0) *)
 
-{ Creates a parser which will parse the given data with the given options.  xmlData may not be NULL. 
+{ Creates a parser which will parse the given data with the given options.  xmlData may not be NULL.
    dataSource should be the URL from which the data came, and may be NULL; it is used to resolve any
    relative references found in xmlData. versionOfNodes determines which version CFXMLNodes are produced
    by the parser; see CFXMLNode.h for more details.  callBacks are the callbacks called by the parser as
@@ -366,7 +366,7 @@ function CFXMLParserGetTypeID: CFTypeID; external name '_CFXMLParserGetTypeID';
 function CFXMLParserCreate( allocator: CFAllocatorRef; xmlData: CFDataRef; dataSource: CFURLRef; parseOptions: CFOptionFlags; versionOfNodes: CFIndex; var callBacks: CFXMLParserCallBacks; var context: CFXMLParserContext ): CFXMLParserRef; external name '_CFXMLParserCreate';
 (* CF_DEPRECATED(10_0, 10_8, 2_0, 6_0) *)
 
-{ Arguments as above, except that the data to be parsed is loaded directly 
+{ Arguments as above, except that the data to be parsed is loaded directly
    from dataSource.  dataSource may not be NULL.  }
 function CFXMLParserCreateWithDataFromURL( allocator: CFAllocatorRef; dataSource: CFURLRef; parseOptions: CFOptionFlags; versionOfNodes: CFIndex; var callBacks: CFXMLParserCallBacks; var context: CFXMLParserContext ): CFXMLParserRef; external name '_CFXMLParserCreateWithDataFromURL';
 (* CF_DEPRECATED(10_0, 10_8, 2_0, 6_0) *)

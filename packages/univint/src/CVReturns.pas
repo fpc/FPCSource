@@ -220,12 +220,12 @@ uses MacTypes;
 
 {$ALIGN POWER}
 
- 
+
  {! @header CVReturn.h
 	@copyright 2004 Apple Computer, Inc. All rights reserved.
 	@availability Mac OS X 10.4 or later
-    @discussion Here you can find all the CoreVideo specific error codes. 
-		   
+    @discussion Here you can find all the CoreVideo specific error codes.
+
 }
 
 
@@ -236,7 +236,7 @@ uses MacTypes;
     @constant   kCVReturnSuccess Function executed successfully without errors.
     @constant   kCVReturnFirst Placeholder to mark the beginning of the range of CVReturn codes.
     @constant   kCVReturnLast Placeholder to mark the end of the range of CVReturn codes.
- 
+
     @constant   kCVReturnInvalidArgument At least one of the arguments passed in is not valid. Either out of range or the wrong type.
     @constant   kCVReturnAllocationFailed The allocation for a buffer or buffer pool failed. Most likely because of lack of resources.
 
@@ -263,19 +263,19 @@ const
 	kCVReturnError            = kCVReturnFirst;
 	kCVReturnInvalidArgument  = -6661;
 	kCVReturnAllocationFailed = -6662;
-    
+
     // DisplayLink related errors
 	kCVReturnInvalidDisplay             = -6670;
 	kCVReturnDisplayLinkAlreadyRunning  = -6671;
 	kCVReturnDisplayLinkNotRunning      = -6672;
 	kCVReturnDisplayLinkCallbacksNotSet = -6673;
-    
+
     // Buffer related errors
 	kCVReturnInvalidPixelFormat             = -6680;
 	kCVReturnInvalidSize                    = -6681;
 	kCVReturnInvalidPixelBufferAttributes   = -6682;
 	kCVReturnPixelBufferNotOpenGLCompatible = -6683;
-    
+
     // Buffer Pool related errors
 	kCVReturnWouldExceedAllocationThreshold = -6689;
 	kCVReturnPoolAllocationFailed  = -6690;

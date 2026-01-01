@@ -1,9 +1,9 @@
 {
      File:       CarbonCore/OSUtils.h
- 
+
      Contains:   OS Utilities Interfaces.
                  The contents of this header file are deprecated.
- 
+
      Copyright:  © 1985-2011 by Apple Inc. All rights reserved.
 }
 {
@@ -259,32 +259,32 @@ type
 		qTail: {volatile} QElemPtr;
 	end;
 	QHdrPtr = ^QHdr;
-{ 
-    In order for MachineLocation to be endian-safe, a new member 
-    has been added to the 'u' union in the structure. You are 
+{
+    In order for MachineLocation to be endian-safe, a new member
+    has been added to the 'u' union in the structure. You are
     encouraged to use the new member instead of the old one.
-    
+
     If your code looked like this:
-    
+
         MachineLocation.u.dlsDelta = isDLS? 0x80: 0x00;
-    
+
     you should change it to this:
-    
+
         MachineLocation.u.dls.Delta = isDLS? 0x80: 0x00;
-    
+
     to be endian safe. The gmtDelta remains the same; the low 24-bits
     are used. Remember that order of assignment DOES matter:
-    
+
     This will overwrite results:
-    
+
         MachineLocation.u.dls.Delta = 0xAA;         // u = 0xAAGGGGGG; G=Garbage
         MachineLocation.u.gmtDelta = 0xBBBBBB;      // u = 0x00BBBBBB;
-    
+
     when in fact reversing the assignment would have preserved the values:
 
-        MachineLocation.u.gmtDelta = 0xBBBBBB;      // u = 0x00BBBBBB;  
+        MachineLocation.u.gmtDelta = 0xBBBBBB;      // u = 0x00BBBBBB;
         MachineLocation.u.dls.Delta = 0xAA;         // u = 0xAABBBBBB;
-        
+
     NOTE:   The information regarding dlsDelta in Inside Mac is INCORRECT.
             It's always 0x80 for daylight-saving time or 0x00 for standard time.
 }
@@ -311,15 +311,15 @@ type
 	end;
 {
  *  IsMetric()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CFLocaleGetValue() and the property kCFLocaleUsesMetricSystem
  *    to determine this value.
- *  
+ *
  *  Summary:
  *    Verifies whether the current script system is using the metric
  *    system or the English system of measurement.
- *  
+ *
  *  Discussion:
  *    The IsMetric function examines the metricSys field of the
  *    numeric-format resource (resource type 'itl0') to determine if
@@ -337,14 +337,14 @@ type
  *    resource.
  *    The IsMetric function is the same as the IUMetric function, which
  *    was previously available with the International Utilities Package.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Result:
  *    TRUE if the metric system is being used; FALSE if the English
  *    system is being used.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -356,22 +356,22 @@ function IsMetric: Boolean; external name '_IsMetric';
 
 {
  *  Delay()
- *  
+ *
  *  Summary:
  *    Delays execture for the specified amount of time.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    numTicks:
  *      the number of ticks to delay  for
- *    
+ *
  *    finalTicks:
  *      on return, if not NULL, will contain the value of TickCount()
  *      at the end of the delay period
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -383,28 +383,28 @@ procedure Delay( numTicks: UNSIGNEDLONG; var finalTicks: UNSIGNEDLONG ); externa
 
 {
  *  Enqueue()
- *  
+ *
  *  Summary:
  *    Atomically adds a queue element to the given queue
- *  
+ *
  *  Discussion:
  *    A queue ( represented by a QHdrPtr ) is a singly linked list of
  *    elements.  Enqueue inserts the given element into the queue in a
  *    multi-thread safe way.  If the element is already in the queue,
  *    or in some other queue, the data structures will be corrupted and
  *    will likely cause a crash or infinite loop.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    qElement:
  *      a pointer to the element to be inserted
- *    
+ *
  *    qHeader:
  *      a pointer to the queue header.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -416,27 +416,27 @@ procedure Enqueue( qElement: QElemPtr; qHeader: QHdrPtr ); external name '_Enque
 
 {
  *  Dequeue()
- *  
+ *
  *  Summary:
  *    Atomically removes a queue element from the given queue
- *  
+ *
  *  Discussion:
  *    A queue ( represented by a QHdrPtr ) is a singly linked list of
  *    elements.  Dequeue removes the given element from the queue in a
  *    multi-thread safe way.  If the element is not in the queue, qErr
  *    is returned.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    qElement:
  *      a pointer to the element to be removed
- *    
+ *
  *    qHeader:
  *      a pointer to the queue header.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -449,11 +449,11 @@ function Dequeue( qElement: QElemPtr; qHeader: QHdrPtr ): OSErr; external name '
 {$ifc not TARGET_CPU_64}
 {
  *  MakeDataExecutable()
- *  
+ *
  *  Summary:
  *    Notifies the system that the specified data is subject to
  *    execution.
- *  
+ *
  *  Discussion:
  *    On some computer architectures it is necessary to tell the
  *    processor that an area of memory should be made executable.  This
@@ -461,18 +461,18 @@ function Dequeue( qElement: QElemPtr; qHeader: QHdrPtr ): OSErr; external name '
  *    possible to execute code in the given address range.
  *    MakeDataExecutable is not supported for 64-bit applications. Use
  *    sys_icache_invalidate(3) and/or mprotect(2) as appropriate.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    baseAddress:
  *      the starting address to be made executable
- *    
+ *
  *    length:
  *      the length of the data pointed to by the baseAddress parameter.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -486,10 +486,10 @@ procedure MakeDataExecutable( baseAddress: UnivPtr; length: UNSIGNEDLONG ); exte
 
 {
  *  ReadLocation()
- *  
+ *
  *  Summary:
  *    Obtains information about a geographic location or time zone.
- *  
+ *
  *  Discussion:
  *    The latitude and longitude are stored as Fract values, giving
  *    accuracy to within one foot. For example, a Fract value of 1.0
@@ -509,12 +509,12 @@ procedure MakeDataExecutable( baseAddress: UnivPtr; length: UNSIGNEDLONG ); exte
  *    For more information on the Fract data type and the conversion
  *    routines Long2Fix, Fix2Fract, Fract2Fix, and Fix2Long, see
  *    Mathematical and Logical Utilities.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    loc:
  *      On return, the fields of the geographic location structure
  *      containing the geographic location and the time-zone
@@ -523,7 +523,7 @@ procedure MakeDataExecutable( baseAddress: UnivPtr; length: UNSIGNEDLONG ); exte
  *      savings time (DST), or Greenwich mean time (GMT). If the
  *      geographic location record has never been set, all fields
  *      contain 0.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -535,11 +535,11 @@ procedure ReadLocation( var loc: MachineLocation ); external name '_ReadLocation
 
 {
  *  TickCount()
- *  
+ *
  *  Summary:
  *    Obtains the current number of ticks (a tick is approximately 1/60
  *    of a second) approximately since the system last started up.
- *  
+ *
  *  Discussion:
  *    The TickCount function returns an unsigned 32-bit integer that
  *    indicates the current number of ticks since the system last
@@ -553,13 +553,13 @@ procedure ReadLocation( var loc: MachineLocation ); external name '_ReadLocation
  *    exceed ( or even approach ) this interval.
  *    Do not rely on the tick count being exact; it is usually accurate
  *    to within one tick, but this level of accuracy is not guaranteed.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Result:
  *    the tick count
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -571,23 +571,23 @@ function TickCount: UInt32; external name '_TickCount';
 
 {
  *  CSCopyUserName()
- *  
+ *
  *  Summary:
  *    Returns a reference to the CFString that represents the user name.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    useShortName:
  *      A Boolean value that specifies whether to return the short name
  *      or full name of the user.
- *  
+ *
  *  Result:
  *    the requested name in a CFStringRef.  You should release this
  *    when you are done with it.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.5 and later
@@ -599,18 +599,18 @@ function CSCopyUserName( useShortName: Boolean ): CFStringRef; external name '_C
 
 {
  *  CSCopyMachineName()
- *  
+ *
  *  Summary:
  *    Returns a reference to the CFString that represents the computer
  *    name.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Result:
  *    the name of this machine in a CFStringRef.  You should release
  *    this when you are done with it.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.5 and later
@@ -640,10 +640,10 @@ procedure SwapMMUMode( var mode: SInt8 ); inline;
 {$ifc not TARGET_CPU_64}
 {
  *  GetSysPPtr()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Don't use this function; it always returns NULL on Mac OS X.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -654,7 +654,7 @@ function GetSysPPtr: SysPPtr; external name '_GetSysPPtr';
 
 
 {
-    NOTE: SysBeep() has been moved to Sound.h.  
+    NOTE: SysBeep() has been moved to Sound.h.
  We could not automatically #include Sound.h in this file
  because Sound.h indirectly #include's OSUtils.h which
  would make a circular include.
@@ -666,7 +666,7 @@ type
 	DeferredTaskUPP = DeferredTaskProcPtr;
 {
  *  NewDeferredTaskUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -677,7 +677,7 @@ function NewDeferredTaskUPP( userRoutine: DeferredTaskProcPtr ): DeferredTaskUPP
 
 {
  *  DisposeDeferredTaskUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -688,7 +688,7 @@ procedure DisposeDeferredTaskUPP( userUPP: DeferredTaskUPP ); external name '_Di
 
 {
  *  InvokeDeferredTaskUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -710,18 +710,18 @@ type
 {$ifc not TARGET_CPU_64}
 {
  *  DTInstall()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    The Deferred Task Manager is deprecated.  Look into restructuring
  *    your code to use threads, or MPTasks, or some other threading
  *    solution.
- *  
+ *
  *  Summary:
  *    Adds the specified task record to the deferred-task queue.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -733,18 +733,18 @@ function DTInstall( dtTaskPtr: DeferredTaskPtr ): OSErr; external name '_DTInsta
 
 {
  *  DTUninstall()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    The Deferred Task Manager is deprecated.  Look into restructuring
  *    your code to use threads, or MPTasks, or some other threading
  *    solution.
- *  
+ *
  *  Summary:
  *    Adds the specified task record to the deferred-task queue.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        not available
@@ -756,13 +756,13 @@ function DTUninstall( dtTaskPtr: DeferredTaskPtr ): OSErr; external name '_DTUni
 
 {
  *  SetCurrentA5()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    You no longer need to use SetCurrentA5() on Mac OS X.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -774,13 +774,13 @@ function SetCurrentA5: SIGNEDLONG; external name '_SetCurrentA5';
 
 {
  *  SetA5()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    You no longer need to use SetA5() on Mac OS X.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -792,14 +792,14 @@ function SetA5( newA5: SIGNEDLONG ): SIGNEDLONG; external name '_SetA5';
 
 {
  *  InitUtil()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    It is not necessary to call InitUtil on Mac OS X.  You should
  *    remove all calls to this from your code.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.3
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -811,14 +811,14 @@ function InitUtil: OSErr; external name '_InitUtil';
 
 {
  *  WriteParam()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    This function no longer does anything on Mac OS X; you should
  *    remove all calls to it from your code.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -830,15 +830,15 @@ function WriteParam: OSErr; external name '_WriteParam';
 
 {
  *  WriteLocation()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    WriteLocation can not be used to set the geographic information
  *    on Mac OS X.  You should remove all calls to this function from
  *    your code.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.0
  *    CarbonLib:        in CarbonLib 1.0 and later

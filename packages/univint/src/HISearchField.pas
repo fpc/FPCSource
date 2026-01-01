@@ -1,17 +1,17 @@
 {
      File:       HIToolbox/HISearchField.h
- 
+
      Contains:   Definition of the search field view provided by HIToolbox.
- 
+
      Version:    HIToolbox-624~3
- 
+
      Copyright:  © 2006-2008 by Apple Computer, Inc., all rights reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
@@ -231,7 +231,7 @@ uses MacTypes,Appearance,CarbonEvents,Controls,Menus,HIGeometry,HIObject,HIView,
 
 {
  *  HISearchField.h
- *  
+ *
  *  Discussion:
  *    API definitions for the search field view.
  }
@@ -263,7 +263,7 @@ const
 {
     The SearchField view supports those tags previously defined for the EditUnicodeText view.
     These tags are available through Get/SetControlData with ControlPartCode of kControlEditTextPart:
-        
+
         kControlFontStyleTag
         kControlEditTextFixedTextTag
         kControlEditTextTextTag
@@ -305,23 +305,23 @@ const
 
 {
  *  kEventClassSearchField / kEventSearchFieldCancelClicked
- *  
+ *
  *  Summary:
  *    Notification that the cancel icon has been depressed.
- *  
+ *
  *  Discussion:
  *    This event is sent by the HISearchField view if the cancel icon
  *    is enabled (attribute of kHISearchFieldAtttributesCancel), and
  *    the cancel has been clicked.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    --> kEventParamDirectObject (in, typeControlRef)
  *          The HISearchField that has sent the notification.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -331,10 +331,10 @@ const
 
 {
  *  kEventClassSearchField / kEventSearchFieldSearchClicked
- *  
+ *
  *  Summary:
  *    Notification that the search icon has been depressed.
- *  
+ *
  *  Discussion:
  *    This event is sent by the HISearchField view if the search icon
  *    is enabled (attribute of kHISearchFieldAttributesSearchIcon or a
@@ -343,15 +343,15 @@ const
  *    the search field will handle the display and tracking of the menu
  *    by default. This event is sent to the search field only, it will
  *    not propagate.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    --> kEventParamDirectObject (in, typeControlRef)
  *          The HISearchField that has sent the notification.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -362,23 +362,23 @@ const
 {$ifc not TARGET_CPU_64}
 {
  *  HISearchFieldCreate()
- *  
+ *
  *  Summary:
  *    Creates a search field view. The new view is initially invisible.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inBounds:
  *      The initial bounds of the view. If this parameter is NULL, the
  *      view defaults to have empty bounds ( 0, 0, 0, 0 ).
- *    
+ *
  *    inAttributes:
  *      The initial attributes of the search field. Indicates whether
  *      the field should contain the cancel icon.
- *    
+ *
  *    inSearchMenu:
  *      The menu to be associated with this search field. If
  *      inSearchMenu is non-NULL, it will be retained by the search
@@ -392,7 +392,7 @@ const
  *      action should be performed by associating HICommands with each
  *      menu item and installing a handler for the (
  *      kEventClassCommand, kEventCommandProcess ) Carbon Event.
- *    
+ *
  *    inDescriptiveText:
  *      The text to be displayed in the text field when the field does
  *      not have focus and contains no user entered text. This is meant
@@ -401,13 +401,13 @@ const
  *      will cover the "Subject" or "Contents" of a selected range of
  *      items. If inDescriptiveText is non-NULL it will be retained by
  *      the search field.
- *    
+ *
  *    outRef:
  *      On exit, contains the new view.
- *  
+ *
  *  Result:
  *    An operating system status code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -419,18 +419,18 @@ function HISearchFieldCreate( {const} inBounds: HIRectPtr { can be NULL }; inAtt
 
 {
  *  HISearchFieldSetSearchMenu()
- *  
+ *
  *  Summary:
  *    Set the search menu associated with the view.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inSearchField:
  *      The search field to associate the search menu with.
- *    
+ *
  *    inSearchMenu:
  *      The menu to associate with the search field. If there is
  *      already a menu associated with the search field, that menu will
@@ -446,10 +446,10 @@ function HISearchFieldCreate( {const} inBounds: HIRectPtr { can be NULL }; inAtt
  *      inSearchMenu is NULL, the search icon will be removed from the
  *      left side of the text field and no menu will be associated with
  *      this field.
- *  
+ *
  *  Result:
  *    An operating system status code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -461,26 +461,26 @@ function HISearchFieldSetSearchMenu( inSearchField: HIViewRef; inSearchMenu: Men
 
 {
  *  HISearchFieldGetSearchMenu()
- *  
+ *
  *  Summary:
  *    Get the menu that is associated with the search field
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inSearchField:
  *      The search field you wish to retrieve the search menu from.
- *    
+ *
  *    outSearchMenu:
  *      On exit, will contain the menu that is associated with search
  *      field. The menu will _not_ be retained on output and this
  *      parameter cannot be NULL.
- *  
+ *
  *  Result:
  *    An operating system status code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -492,27 +492,27 @@ function HISearchFieldGetSearchMenu( inSearchField: HIViewRef; var outSearchMenu
 
 {
  *  HISearchFieldChangeAttributes()
- *  
+ *
  *  Summary:
  *    Set the attributes for the given search field.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inSearchField:
  *      The search field to change the attributes of.
- *    
+ *
  *    inAttributesToSet:
  *      The attributes to set.
- *    
+ *
  *    inAttributesToClear:
  *      The attributes to clear.
- *  
+ *
  *  Result:
  *    An operating system status code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -524,25 +524,25 @@ function HISearchFieldChangeAttributes( inSearchField: HIViewRef; inAttributesTo
 
 {
  *  HISearchFieldGetAttributes()
- *  
+ *
  *  Summary:
  *    Returns the attributes of the search field.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inSearchField:
  *      The search field to get the attributes of.
- *    
+ *
  *    outAttributes:
  *      On exit, will contain the attributes of the search field. This
  *      parameter cannot be NULL.
- *  
+ *
  *  Result:
  *    An operating system status code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -554,27 +554,27 @@ function HISearchFieldGetAttributes( inSearchField: HIViewRef; var outAttributes
 
 {
  *  HISearchFieldSetDescriptiveText()
- *  
+ *
  *  Summary:
  *    Set the description of the search action of the search field.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inSearchField:
  *      The search field to change the description of.
- *    
+ *
  *    inDescription:
  *      The new description for the search field. If the search field
  *      contains a description, it will be released. If inDescription
  *      is non-NULL, it will be retained by the search field. If it is
  *      NULL, no description will be associated with the search field.
- *  
+ *
  *  Result:
  *    An operating system status code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -586,18 +586,18 @@ function HISearchFieldSetDescriptiveText( inSearchField: HIViewRef; inDescriptio
 
 {
  *  HISearchFieldCopyDescriptiveText()
- *  
+ *
  *  Summary:
  *    Get the description that is associated with the search field.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inSearchField:
  *      The search field you wish to retrieve the description from.
- *    
+ *
  *    outDescription:
  *      On exit, will contain the description that is associated with
  *      the search field. This parameter cannot be NULL. If there is no
@@ -606,10 +606,10 @@ function HISearchFieldSetDescriptiveText( inSearchField: HIViewRef; inDescriptio
  *      will be created that contains the contents of the description.
  *      You posess ownership of this string and will need to release it
  *      when you no longer need it.
- *  
+ *
  *  Result:
  *    An operating system status code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later

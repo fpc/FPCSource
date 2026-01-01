@@ -1,17 +1,17 @@
 {
      File:       HIToolbox/HIPopupButton.h
- 
+
      Contains:   Definitions of the popup button and popup arrow views provided by HIToolbox.
- 
+
      Version:    HIToolbox-624~3
- 
+
      Copyright:  © 2006-2008 by Apple Computer, Inc., all rights reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {       Initial Pascal Translation:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
@@ -231,7 +231,7 @@ uses MacTypes,Appearance,CarbonEvents,Controls,Menus,QuickdrawTypes,CFBase,HIObj
 
 {
  *  HIPopupButton.h
- *  
+ *
  *  Discussion:
  *    API definitions for the popup button and popup arrow views.
  }
@@ -265,25 +265,25 @@ const
 {$ifc not TARGET_CPU_64}
 {
  *  CreatePopupButtonControl()
- *  
+ *
  *  Summary:
  *    Creates a popup button control.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    window:
  *      The window that should contain the control. May be NULL on 10.3
  *      and later.
- *    
+ *
  *    boundsRect:
  *      The bounding box of the control.
- *    
+ *
  *    title:
  *      The title of the control.
- *    
+ *
  *    menuID:
  *      The ID of a menu that should be used by the control. A menu
  *      with this ID should be inserted into the menubar with
@@ -292,25 +292,25 @@ const
  *      this case, you can build the menu and later provide it to the
  *      control with SetControlData and kControlPopupButtonMenuRefTag
  *      or kControlPopupButtonOwnedMenuRefTag.
- *    
+ *
  *    variableWidth:
  *      Whether the width of the control is allowed to vary according
  *      to the width of the selected menu item text, or should remain
  *      fixed to the original control bounds width.
- *    
+ *
  *    titleWidth:
  *      The width of the title.
- *    
+ *
  *    titleJustification:
  *      The justification of the title.
- *    
+ *
  *    titleStyle:
  *      A QuickDraw style bitfield indicating the font style of the
  *      title.
- *    
+ *
  *    outControl:
  *      On exit, contains the new control.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -383,31 +383,31 @@ const
 
 {
  *  CreatePopupArrowControl()
- *  
+ *
  *  Summary:
  *    Creates a popup arrow control.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    window:
  *      The window that should contain the control. May be NULL on 10.3
  *      and later.
- *    
+ *
  *    boundsRect:
  *      The bounding box of the control.
- *    
+ *
  *    orientation:
  *      The orientation of the control.
- *    
+ *
  *    size:
  *      The size of the control.
- *    
+ *
  *    outControl:
  *      On exit, contains the new control.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later

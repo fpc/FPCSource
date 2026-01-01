@@ -1,17 +1,17 @@
 {
      File:       ATS/SFNTTypes.h
- 
+
      Contains:   Font file structures.
- 
+
      Version:    ATS
- 
+
      Copyright:  © 1994-2012 by Apple Inc., all rights reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 
 {  Pascal Translation Updated: Gorazd Krosl <gorazd_1957@yahoo.ca>, October 2009 }
@@ -654,7 +654,7 @@ const
 	nonGlyphID = 65535;
 
 
-{   Deprecated "don't care" values - use kFontNoPlatformCode, kFontNoScriptCode, 
+{   Deprecated "don't care" values - use kFontNoPlatformCode, kFontNoScriptCode,
      kFontNoLanguageCode, kFontNoName instead
 }
 
@@ -674,10 +674,10 @@ type
 { Data types for encoding components as used in interfaces }
 	FontPlatformCode = UInt32;
 	FontPlatformCodePtr = ^FontPlatformCode;
-	
+
 	FontScriptCode = UInt32;
 	FontScriptCodePtr = ^FontScriptCode;
-	
+
 	FontLanguageCode = UInt32;
 	FontLanguageCodePtr = ^FontLanguageCode;
 {

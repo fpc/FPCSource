@@ -1,15 +1,15 @@
 {
      File:       CarbonCore/MacLocales.h
- 
+
      Contains:   Types & prototypes for locale functions
- 
+
      Copyright:  © 1998-2012 by Apple Inc. All rights reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {
     Modified for use with Free Pascal
@@ -274,7 +274,7 @@ const
 
 {
  *  LocaleRefFromLangOrRegionCode()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -286,7 +286,7 @@ function LocaleRefFromLangOrRegionCode( lang: LangCode; region: RegionCode; var 
 
 {
  *  LocaleRefFromLocaleString()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -298,7 +298,7 @@ function LocaleRefFromLocaleString( localeString: ConstCStringPtr; var locale: L
 
 {
  *  LocaleRefGetPartString()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -310,34 +310,34 @@ function LocaleRefGetPartString( locale: LocaleRef; partMask: LocalePartMask; ma
 
 {
  *  LocaleStringToLangAndRegionCodes()
- *  
+ *
  *  Summary:
  *    Map a CFLocale-style locale string to old Script Manager LangCode
  *    and RegionCode values.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    localeString:
  *      A null-terminated C-string version of a CFLocale-style locale
  *      identifier of the sort that could be passed to
  *      CFLocaleCreateCanonicalLocaleIdentifierFromString, based on BCP
  *      47 language tags: <http://www.rfc-editor.org/rfc/bcp/bcp47.txt>.
- *    
+ *
  *    lang:
  *      A pointer to a LangCode to be set from the locale identifier;
  *      will be set to langUnspecified or -1 if no language code can be
  *      derived from the identifier. May be NULL if region is not also
  *      NULL.
- *    
+ *
  *    region:
  *      A pointer to a RegionCode to be set from the locale identifier;
  *      will be set to -1 if no language code can be derived from the
  *      identifier. May be NULL if lang is not also NULL.
- *  
+ *
  *  Result:
  *    OSStatus, noErr if operation successful, otherwise paramErr or
  *    possibly other errors.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -351,14 +351,14 @@ function LocaleStringToLangAndRegionCodes( localeString: ConstCStringPtr; var la
 
 {
  *  LocaleOperationCountLocales()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    use CFLocaleCopyAvailableLocaleIdentifiers instead.
- *  
+ *
  *  Discussion:
  *    This function is no longer recommended. Please use
  *    CFLocaleCopyAvailableLocaleIdentifiers instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.8
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -370,14 +370,14 @@ function LocaleOperationCountLocales( opClass: LocaleOperationClass; var localeC
 
 {
  *  LocaleOperationGetLocales()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    use CFXxxxx instead.
- *  
+ *
  *  Discussion:
  *    This function is no longer recommended. Please use
  *    CFLocaleCopyAvailableLocaleIdentifiers instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.8
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -391,14 +391,14 @@ function LocaleOperationGetLocales( opClass: LocaleOperationClass; maxLocaleCoun
 
 {
  *  LocaleGetName()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    use CFLocaleCopyDisplayNameForPropertyValue instead.
- *  
+ *
  *  Discussion:
  *    This function is no longer recommended. Please use
  *    CFLocaleCopyDisplayNameForPropertyValue instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.8
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -410,14 +410,14 @@ function LocaleGetName( locale: LocaleRef; opVariant: LocaleOperationVariant; na
 
 {
  *  LocaleCountNames()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    use CFLocaleCopyAvailableLocaleIdentifiers instead.
- *  
+ *
  *  Discussion:
  *    This function is no longer recommended. Please use
  *    CFLocaleCopyAvailableLocaleIdentifiers instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.8
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -429,16 +429,16 @@ function LocaleCountNames( locale: LocaleRef; opVariant: LocaleOperationVariant;
 
 {
  *  LocaleGetIndName()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    use CFLocaleCopyAvailableLocaleIdentifiers and
  *    CFLocaleCopyDisplayNameForPropertyValue instead.
- *  
+ *
  *  Discussion:
  *    This function is no longer recommended. Please use
  *    CFLocaleCopyAvailableLocaleIdentifiers and
  *    CFLocaleCopyDisplayNameForPropertyValue instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.8
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -451,16 +451,16 @@ function LocaleGetIndName( locale: LocaleRef; opVariant: LocaleOperationVariant;
 {$ifc TARGET_CPU_64}
 {
  *  LocaleGetRegionLanguageName()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    use CFLocaleCreateCanonicalLocaleIdentifierFromScriptManagerCodes
  *    and CFLocaleCopyDisplayNameForPropertyValue instead.
- *  
+ *
  *  Discussion:
  *    This function is no longer recommended. Please use
  *    CFLocaleCreateCanonicalLocaleIdentifierFromScriptManagerCodes and
  *    CFLocaleCopyDisplayNameForPropertyValue instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -476,7 +476,7 @@ function LocaleGetRegionLanguageName( region: RegionCode; var languageName: Str2
 
 {
  *  LocaleOperationGetName()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -488,7 +488,7 @@ function LocaleOperationGetName( opClass: LocaleOperationClass; displayLocale: L
 
 {
  *  LocaleOperationCountNames()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -500,7 +500,7 @@ function LocaleOperationCountNames( opClass: LocaleOperationClass; var nameCount
 
 {
  *  LocaleOperationGetIndName()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later

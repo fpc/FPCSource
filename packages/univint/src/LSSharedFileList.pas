@@ -1,13 +1,13 @@
 {
      File:       LSSharedFileList.h
- 
+
      Contains:   Services to load and share file lists.
- 
+
      Copyright:  Copyright 2003-2009 by Apple Inc., all rights reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
 }
 {	 Pascal Translation: Gorazd Krosl <gorazd_1957@yahoo.ca>, October 2009 }
@@ -244,7 +244,7 @@ type
 
 {
  *  kLSSharedFileListFavoriteVolumes
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -256,7 +256,7 @@ var kLSSharedFileListFavoriteVolumes: CFStringRef; external name '_kLSSharedFile
 
 {
  *  kLSSharedFileListFavoriteItems
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -268,7 +268,7 @@ var kLSSharedFileListFavoriteItems: CFStringRef; external name '_kLSSharedFileLi
 
 {
  *  kLSSharedFileListRecentApplicationItems
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -280,7 +280,7 @@ var kLSSharedFileListRecentApplicationItems: CFStringRef; external name '_kLSSha
 
 {
  *  kLSSharedFileListRecentDocumentItems
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -292,7 +292,7 @@ var kLSSharedFileListRecentDocumentItems: CFStringRef; external name '_kLSShared
 
 {
  *  kLSSharedFileListRecentServerItems
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -304,7 +304,7 @@ var kLSSharedFileListRecentServerItems: CFStringRef; external name '_kLSSharedFi
 
 {
  *  kLSSharedFileListSessionLoginItems
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -334,11 +334,11 @@ var kLSSharedFileListGlobalLoginItems: CFStringRef; external name '_kLSSharedFil
 
 {
  *  kLSSharedFileListRecentItemsMaxAmount
- *  
+ *
  *  Discussion:
  *    maximum amount of items in the list.  Associated property is
  *    CFNumber
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -349,11 +349,11 @@ var kLSSharedFileListRecentItemsMaxAmount: CFStringRef; external name '_kLSShare
 
 {
  *  kLSSharedFileListVolumesComputerVisible
- *  
+ *
  *  Discussion:
  *    is Computer item visible in favorite volumes list. Associated
  *    property is CFBoolean.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -364,11 +364,11 @@ var kLSSharedFileListVolumesComputerVisible: CFStringRef; external name '_kLSSha
 
 {
  *  kLSSharedFileListVolumesIDiskVisible
- *  
+ *
  *  Discussion:
  *    is iDisk item visible in favorite volumes list. Associated
  *    property is CFBoolean.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -379,11 +379,11 @@ var kLSSharedFileListVolumesIDiskVisible: CFStringRef; external name '_kLSShared
 
 {
  *  kLSSharedFileListVolumesNetworkVisible
- *  
+ *
  *  Discussion:
  *    is Network item visible in favorite volumes list. Associated
  *    property is CFBoolean.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -397,11 +397,11 @@ var kLSSharedFileListVolumesNetworkVisible: CFStringRef; external name '_kLSShar
 
 {
  *  kLSSharedFileListItemBeforeFirst
- *  
+ *
  *  Discussion:
  *    A virtual item reference for inserting new item at beginning of
  *    the list.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -412,11 +412,11 @@ var kLSSharedFileListItemBeforeFirst: LSSharedFileListItemRef; external name '_k
 
 {
  *  kLSSharedFileListItemLast
- *  
+ *
  *  Discussion:
  *    A virtual item reference for inserting new item at end of the
  *    list.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -431,10 +431,10 @@ var kLSSharedFileListItemLast: LSSharedFileListItemRef; external name '_kLSShare
 
 {
  *  kLSSharedFileListItemHidden
- *  
+ *
  *  Discussion:
  *    Is item hidden in UI? Associated property is CFBoolean.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -444,11 +444,11 @@ var kLSSharedFileListItemHidden: CFStringRef; external name '_kLSSharedFileListI
 (* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 {
  *  kLSSharedFileListLoginItemHidden
- *  
+ *
  *  Discussion:
  *    Should UI hide login item's window? Associated property is
  *    CFBoolean.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.6 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -465,7 +465,7 @@ const
 
 {
  *  LSSharedFileListChangedProcPtr
- *  
+ *
  *  Discussion:
  *    callback to use with LSSharedFileListAddObserver and
  *    LSSharedFileListRemoveObserver.
@@ -475,17 +475,17 @@ type
 
 {
  *  LSSharedFileListGetTypeID()
- *  
+ *
  *  Discussion:
  *    This routine will return the CFTypeID for the LSSharedFileListRef
  *    type.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.5
- *  
+ *
  *  Result:
  *    CFTypeID for the LSSharedFileListRef type.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -497,17 +497,17 @@ function LSSharedFileListGetTypeID: CFTypeID; external name '_LSSharedFileListGe
 
 {
  *  LSSharedFileListItemGetTypeID()
- *  
+ *
  *  Discussion:
  *    This routine will return the CFTypeID for the
  *    LSSharedFileListItemRef type.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.5
- *  
+ *
  *  Result:
  *    CFTypeID for the LSSharedFileListItemRef type.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -519,36 +519,36 @@ function LSSharedFileListItemGetTypeID: CFTypeID; external name '_LSSharedFileLi
 
 {
  *  LSSharedFileListCreate()
- *  
+ *
  *  Summary:
  *    Create shared file list reference.
- *  
+ *
  *  Discussion:
  *    Creates shared file list reference to be used for changing list
  *    and reading its various properties.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.5
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inAllocator:
  *      CFAllocatorRef used to allocate the LSSharedFileListRef object.
  *      As usual, NULL means default allocator.
- *    
+ *
  *    inListType:
  *      A constant indicating list type to create (for example
  *      kLSSharedFileListSessionLoginItems).
- *    
+ *
  *    listOptions:
  *      Additional parameters for the list type (as applicable). NULL
  *      means no options.
- *  
+ *
  *  Result:
  *    A reference to created shared file list object or NULL if
  *    creation failed. Has to be released with CFRelease when list
  *    object is not needed anymore.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -560,28 +560,28 @@ function LSSharedFileListCreate( inAllocator: CFAllocatorRef; inListType: CFStri
 
 {
  *  LSSharedFileListSetAuthorization()
- *  
+ *
  *  Summary:
  *    Set authorization reference for the shared list.
- *  
+ *
  *  Discussion:
  *    Sets authorization reference for the shared list. Before
  *    attempting to perform a privileged operation on the shared list
  *    caller must authorize appropriate rights. For example, modifying
  *    kLSSharedFileListGlobalLoginItems list requires
  *    "system.global-login-items." right authorized.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.5
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inList:
  *      Shared list reference.
- *    
+ *
  *    inAuthorization:
  *      Authorization reference.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -593,35 +593,35 @@ function LSSharedFileListSetAuthorization( inList: LSSharedFileListRef; inAuthor
 
 {
  *  LSSharedFileListAddObserver()
- *  
+ *
  *  Summary:
  *    Add observer of shared list changes.
- *  
+ *
  *  Discussion:
  *    Adds observer of shared list changes. The provided function will
  *    be called when the list has changed (or any item property has
  *    changed).
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.5
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inList:
  *      Shared list reference.
- *    
+ *
  *    inRunloop:
  *      Runloop to run on.
- *    
+ *
  *    inRunloopMode:
  *      Mode for runloop.
- *    
+ *
  *    callback:
  *      Function to call when list has changed.
- *    
+ *
  *    context:
  *      Context pointer defined by client.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -633,33 +633,33 @@ procedure LSSharedFileListAddObserver( inList: LSSharedFileListRef; inRunloop: C
 
 {
  *  LSSharedFileListRemoveObserver()
- *  
+ *
  *  Summary:
  *    Remove observer of shared list changes.
- *  
+ *
  *  Discussion:
  *    Removes observer of shared list changes.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.5
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inList:
  *      Shared list reference.
- *    
+ *
  *    inRunloop:
  *      Runloop to run on.
- *    
+ *
  *    inRunloopMode:
  *      Mode for runloop.
- *    
+ *
  *    callback:
  *      Function to call when list has changed.
- *    
+ *
  *    context:
  *      Context pointer defined by client.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -671,21 +671,21 @@ procedure LSSharedFileListRemoveObserver( inList: LSSharedFileListRef; inRunloop
 
 {
  *  LSSharedFileListGetSeedValue()
- *  
+ *
  *  Summary:
  *    Return current seed value.
- *  
+ *
  *  Discussion:
  *    Returns seed value of the shared list.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.5
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inList:
  *      Shared list reference.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -697,29 +697,29 @@ function LSSharedFileListGetSeedValue( inList: LSSharedFileListRef ): UInt32; ex
 
 {
  *  LSSharedFileListCopyProperty()
- *  
+ *
  *  Summary:
  *    Return property by its name.
- *  
+ *
  *  Discussion:
  *    Returns lists named property as CFTypeRef object.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.5
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inList:
  *      Shared list reference.
- *    
+ *
  *    inPropertyName:
  *      Name of the property to return.
- *  
+ *
  *  Result:
  *    CFTypeRef containing requested property. NULL means list has no
  *    property with this name. Has to be released with CFRelease when
  *    property object is not needed anymore.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -731,27 +731,27 @@ function LSSharedFileListCopyProperty( inList: LSSharedFileListRef; inPropertyNa
 
 {
  *  LSSharedFileListSetProperty()
- *  
+ *
  *  Summary:
  *    Set property by its name.
- *  
+ *
  *  Discussion:
  *    Set lists named property as CFTypeRef object.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.5
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inList:
  *      Shared list reference.
- *    
+ *
  *    inPropertyName:
  *      Name of the property to return.
- *    
+ *
  *    inPropertyData:
  *      Property data to set. Pass NULL to remove existing property.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -763,29 +763,29 @@ function LSSharedFileListSetProperty( inList: LSSharedFileListRef; inPropertyNam
 
 {
  *  LSSharedFileListCopySnapshot()
- *  
+ *
  *  Summary:
  *    Create snapshot array.
- *  
+ *
  *  Discussion:
  *    Creates snapshot array, which is list of all items at the moment
  *    LSSharedFileListCopySnapshot was called.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.5
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inList:
  *      Shared list reference.
- *    
+ *
  *    outSnapshotSeed:
  *      Returned seed value at which snapshot was taken.
- *  
+ *
  *  Result:
  *    Immutable CFArray of LSSharedFileListItemRef values. Has to be
  *    released with CFRelease when snapshot array is not needed anymore.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -797,50 +797,50 @@ function LSSharedFileListCopySnapshot( inList: LSSharedFileListRef; var outSnaps
 
 {
  *  LSSharedFileListInsertItemURL()
- *  
+ *
  *  Summary:
  *    Insert item into shared list.
- *  
+ *
  *  Discussion:
  *    Inserts item into shared list at specified location. If the item
  *    already exists in the list it will be moved and its icon, display
  *    name and properties will be updated.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.5
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inList:
  *      Shared list reference.
- *    
+ *
  *    insertAfterThisItem:
  *      Item after which new item has to be inserted. To insert at the
  *      beginning of the list use kLSSharedFileListItemBeforeFirst or
  *      to insert at the end of the list use kLSSharedFileListItemLast.
- *    
+ *
  *    inDisplayName:
  *      Display name of the new item. Can be NULL.
- *    
+ *
  *    inIconRef:
  *      Icon of the new item. Can be NULL.
- *    
+ *
  *    inURL:
  *      URL of the new item.
- *    
+ *
  *    inPropertiesToSet:
  *      CFDictionary of properties to set. Keys are property names and
  *      values are property values. The property values are retained
  *      and copied by the API. Can be NULL.
- *    
+ *
  *    inPropertiesToClear:
  *      CFArray of property names to clear if item already exists. Can
  *      be NULL.
- *  
+ *
  *  Result:
  *    Reference to new item. Has to be released with CFRelease when the
  *    item is not needed anymore.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -852,50 +852,50 @@ function LSSharedFileListInsertItemURL( inList: LSSharedFileListRef; insertAfter
 
 {
  *  LSSharedFileListInsertItemFSRef()
- *  
+ *
  *  Summary:
  *    Insert item into shared list.
- *  
+ *
  *  Discussion:
  *    Inserts item into shared list at specified location. If the item
  *    already exists in the list it will be moved and its icon, display
  *    name and properties will be updated.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.5
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inList:
  *      Shared list reference.
- *    
+ *
  *    insertAfterThisItem:
  *      Item after which new item has to be inserted. To insert at the
  *      beginning of the list use kLSSharedFileListItemBeforeFirst or
  *      to insert at the end of the list use kLSSharedFileListItemLast.
- *    
+ *
  *    inDisplayName:
  *      Display name of the new item. Can be NULL.
- *    
+ *
  *    inIconRef:
  *      Icon of the new item. Can be NULL.
- *    
+ *
  *    inFSRef:
  *      FSRef of the new item.
- *    
+ *
  *    inPropertiesToSet:
  *      CFDictionary of properties to set. Keys are property names and
  *      values are property values. The property values are retained
  *      and copied by the API. Can be NULL.
- *    
+ *
  *    inPropertiesToClear:
  *      CFArray of property names to clear if item already exists. Can
  *      be NULL.
- *  
+ *
  *  Result:
  *    Reference to new item. Has to be released with CFRelease when the
  *    item is not needed anymore.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -907,29 +907,29 @@ function LSSharedFileListInsertItemFSRef( inList: LSSharedFileListRef; insertAft
 
 {
  *  LSSharedFileListItemMove()
- *  
+ *
  *  Summary:
  *    Move item.
- *  
+ *
  *  Discussion:
  *    Moves item at specified location.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.5
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inList:
  *      Shared list reference.
- *    
+ *
  *    inItem:
  *      Item to move.
- *    
+ *
  *    inMoveAfterItem:
  *      New icon of the new item. Use kLSSharedFileListItemBeforeFirst
  *      and kLSSharedFileListItemLast to move at the beginning or the
  *      end of the shared list.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -941,24 +941,24 @@ function LSSharedFileListItemMove( inList: LSSharedFileListRef; inItem: LSShared
 
 {
  *  LSSharedFileListItemRemove()
- *  
+ *
  *  Summary:
  *    Remove item from shared list.
- *  
+ *
  *  Discussion:
  *    Removes item from shared list.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.5
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inList:
  *      Shared list reference.
- *    
+ *
  *    inItem:
  *      Item to remove.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -970,21 +970,21 @@ function LSSharedFileListItemRemove( inList: LSSharedFileListRef; inItem: LSShar
 
 {
  *  LSSharedFileListRemoveAllItems()
- *  
+ *
  *  Summary:
  *    Remove all items from shared list.
- *  
+ *
  *  Discussion:
  *    Removes all items from shared list.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.5
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inList:
  *      Shared list to clear.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -996,16 +996,16 @@ function LSSharedFileListRemoveAllItems( inList: LSSharedFileListRef ): OSStatus
 
 {
  *  LSSharedFileListItemGetID()
- *  
+ *
  *  Summary:
  *    Obtain unique item id.
- *  
+ *
  *  Discussion:
  *    Returns unique item id.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.5
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -1017,20 +1017,20 @@ function LSSharedFileListItemGetID( inItem: LSSharedFileListItemRef ): UInt32; e
 
 {
  *  LSSharedFileListItemCopyIconRef()
- *  
+ *
  *  Summary:
  *    Obtain item's icon.
- *  
+ *
  *  Discussion:
  *    Returns icon ref for the item.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.5
- *  
+ *
  *  Result:
  *    IconRef to the item. Caller is responsible to releasing it by
  *    calling ReleaseIconRef().
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -1042,17 +1042,17 @@ function LSSharedFileListItemCopyIconRef( inItem: LSSharedFileListItemRef ): Ico
 
 {
  *  LSSharedFileListItemCopyDisplayName()
- *  
+ *
  *  Summary:
  *    Obtain item's display name.
- *  
+ *
  *  Discussion:
  *    Returns display name of the item. Caller is responsible to
  *    releasing it by calling CFRelease().
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.5
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -1064,31 +1064,31 @@ function LSSharedFileListItemCopyDisplayName( inItem: LSSharedFileListItemRef ):
 
 {
  *  LSSharedFileListItemResolve()
- *  
+ *
  *  Summary:
  *    Resolve LSSharedFileListItemRef's item and return its FSRef.
- *  
+ *
  *  Discussion:
  *    Resolves LSSharedFileListItemRef's item and returns its FSRef.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.5
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inItem:
  *      Item to resolve.
- *    
+ *
  *    inFlags:
  *      Resolution flags. Pass zero for default resolution flags.
- *    
+ *
  *    outURL:
  *      CFURL of original item. Can be NULL. Returned valus has to be
  *      released with CFRelease().
- *    
+ *
  *    outRef:
  *      FSRef of original item. Can be NULL.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -1100,17 +1100,17 @@ function LSSharedFileListItemResolve( inItem: LSSharedFileListItemRef; inFlags: 
 
 {
  *  LSSharedFileListItemCopyProperty()
- *  
+ *
  *  Summary:
  *    Obtain item's property by its name.
- *  
+ *
  *  Discussion:
  *    Returns persistent item's property as CF object. Caller is
  *    responsible to releasing it by calling CFRelease().
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.5
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -1122,16 +1122,16 @@ function LSSharedFileListItemCopyProperty( inItem: LSSharedFileListItemRef; inPr
 
 {
  *  LSSharedFileListItemSetProperty()
- *  
+ *
  *  Summary:
  *    Set item property by its name.
- *  
+ *
  *  Discussion:
  *    Sets persistent item property by its name.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.5
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available

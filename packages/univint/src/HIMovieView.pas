@@ -1,17 +1,17 @@
 {
      File:       QuickTime/HIMovieView.h
- 
+
      Contains:   HIView-based movie playback
- 
+
      Version:    QuickTime 7.7.1
- 
+
      Copyright:  © 2004-2012 by Apple Inc., all rights reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {  Pascal Translation:  Gale R Paeper, <gpaeper@empirenet.com>, 2006 }
 {  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
@@ -237,7 +237,7 @@ uses MacTypes,HIGeometry,HIObject,HIView,Movies;
 
 {
  *  kHIMovieViewClassID
- *  
+ *
  *  Summary:
  *    Class ID for HIMovieView
  }
@@ -258,18 +258,18 @@ const
 
 {
  *  kEventClassMovieView / kEventMovieViewOptimalBoundsChanged
- *  
+ *
  *  Summary:
  *    Sent when the movie size changes.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    --> kEventParamDirectObject (in, typeControlRef)
  *          The movie view whose size is changing.
- *    
+ *
  *    --> kEventParamControlOptimalBounds (in, typeHIRect)
  *          The new optimal bounds.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -322,24 +322,24 @@ const
 
 {
  *  HIMovieViewCreate()
- *  
+ *
  *  Summary:
  *    Creates an HIMovieView object
- *  
+ *
  *  Discussion:
  *    If successful, the created view will have a single retain count.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inMovie:
  *      [in]  Initial movie to view, may be NULL
- *    
+ *
  *    inAttributes:
  *      [in]  Initial HIMovieView attributes
- *    
+ *
  *    outMovieView:
  *      [out] Points to variable to receive new HIMovieView
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -351,15 +351,15 @@ function HIMovieViewCreate( inMovie: Movie; inAttributes: OptionBits; var outMov
 
 {
  *  HIMovieViewGetMovie()
- *  
+ *
  *  Summary:
  *    Returns the view's current movie.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inView:
  *      [in]  The HIMovieView
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -371,18 +371,18 @@ function HIMovieViewGetMovie( inView: HIViewRef ): Movie; external name '_HIMovi
 
 {
  *  HIMovieViewSetMovie()
- *  
+ *
  *  Summary:
  *    Sets the view's current movie.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inView:
  *      [in]  The HIMovieView
- *    
+ *
  *    inMovie:
  *      [in]  The new movie to display
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -394,15 +394,15 @@ function HIMovieViewSetMovie( inView: HIViewRef; inMovie: Movie ): OSStatus; ext
 
 {
  *  HIMovieViewGetAttributes()
- *  
+ *
  *  Summary:
  *    Returns the view's current attributes.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inView:
  *      [in]  The HIMovieView
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -414,24 +414,24 @@ function HIMovieViewGetAttributes( inView: HIViewRef ): OptionBits; external nam
 
 {
  *  HIMovieViewChangeAttributes()
- *  
+ *
  *  Summary:
  *    Changes the views attributes.
- *  
+ *
  *  Discussion:
  *    Setting an attribute takes precedence over clearing the attribute.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inView:
  *      [in]  The HIMovieView
- *    
+ *
  *    inAttributesToSet:
  *      [in]  Attributes to set
- *    
+ *
  *    inAttributesToClear:
  *      [in]  Attributes to clear
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -443,15 +443,15 @@ function HIMovieViewChangeAttributes( inView: HIViewRef; inAttributesToSet: Opti
 
 {
  *  HIMovieViewGetMovieController()
- *  
+ *
  *  Summary:
  *    Returns the view's current movie controller.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inView:
  *      [in]  The HIMovieView
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -463,15 +463,15 @@ function HIMovieViewGetMovieController( inView: HIViewRef ): MovieController; ex
 
 {
  *  HIMovieViewGetControllerBarSize()
- *  
+ *
  *  Summary:
  *    Returns the size of the visible movie controller bar.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inView:
  *      [in]  The HIMovieView
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -483,18 +483,18 @@ function HIMovieViewGetControllerBarSize( inView: HIViewRef ): HISize; external 
 
 {
  *  HIMovieViewPlay()
- *  
+ *
  *  Summary:
  *    Convenience routine to play the view's current movie.
- *  
+ *
  *  Discussion:
  *    If the movie is already playing, this function does nothing.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    movieView:
  *      [in]  The movie view.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -506,18 +506,18 @@ function HIMovieViewPlay( movieView: HIViewRef ): OSStatus; external name '_HIMo
 
 {
  *  HIMovieViewPause()
- *  
+ *
  *  Summary:
  *    Convenience routine to pause the view's current movie.
- *  
+ *
  *  Discussion:
  *    If the movie is already paused, this function does nothing.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    movieView:
  *      [in]  The movie view.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available

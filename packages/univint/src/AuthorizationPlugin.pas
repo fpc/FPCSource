@@ -1,15 +1,15 @@
 {
  * Copyright (c) 2001-2002,2004 Apple Computer, Inc. All Rights Reserved.
- * 
+ *
  * @APPLE_LICENSE_HEADER_START@
- * 
+ *
  * This file contains Original Code and/or Modifications of Original Code
  * as defined in and that are subject to the Apple Public Source License
  * Version 2.0 (the 'License'). You may not use this file except in
  * compliance with the License. Please obtain a copy of the License at
  * http://www.opensource.apple.com/apsl/ and read it before using this
  * file.
- * 
+ *
  * The Original Code and all software distributed under the License are
  * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
  * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
@@ -17,7 +17,7 @@
  * FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
  * Please see the License for the specific language governing rights and
  * limitations under the License.
- * 
+ *
  * @APPLE_LICENSE_HEADER_END@
  }
 {  Pascal Translation:  Gorazd Krosl <gorazd_1957@yahoo.ca>, October 2009 }
@@ -246,10 +246,10 @@ uses MacTypes,Authorization;
 
 {!
 	@header AuthorizationPlugin
-	
+
 	The AuthorizationPlugin API allows the creation of plugins that can participate
 	in authorization decisions.  Using the AuthorizationDB API the system can be configured
-	to use these plugins.  Plugins are loaded into a separate process, the pluginhost, to 
+	to use these plugins.  Plugins are loaded into a separate process, the pluginhost, to
 	isolate the process of authorization from the client.  There are two types of pluginhosts.
 	One runs as an anonymous user and can be used to communicate with the user, for example
 	to ask for a password.  Another one runs with root privileges to perform privileged
@@ -257,23 +257,23 @@ uses MacTypes,Authorization;
 
     A typical use is to implement additional policies that cannot be expressed in the
     authorization configuration.
-    
+
     Plugins implement a handshake function called AuthorizationPluginCreate with which
     their interface (AuthorizationPluginInterface) and the engine's interface
-    (AuthorizationCallbacks) are exchanged.  Plugins are asked to create 
-    Mechanisms, which are the basic element as authorizations are performed.  
-    
-    Mechanisms are invoked when it is time for them to make a decision.  A decision is 
-    made by setting a single result (AuthorizationResult).  Mechanisms in the 
-    authorization can communicate auxiliary information by setting and/or getting hints 
+    (AuthorizationCallbacks) are exchanged.  Plugins are asked to create
+    Mechanisms, which are the basic element as authorizations are performed.
+
+    Mechanisms are invoked when it is time for them to make a decision.  A decision is
+    made by setting a single result (AuthorizationResult).  Mechanisms in the
+    authorization can communicate auxiliary information by setting and/or getting hints
     and setting and/or getting context data.  Hints are advisory and don't need to be
     looked at, nor are they preserved as part of the authorization result. Context data
     becomes part of the result of the authorization.
-    
+
     Context data is tagged with a flag that describes whether the information is returned
     to the authorization client upon request (AuthorizationCopyInfo() in Authorization.h)
     or whether it's private to the mechanisms making a decision.
-    
+
 }
 
 
@@ -287,10 +287,10 @@ type
 		data: UnivPtr;
 	end;
 	AuthorizationValuePtr = ^AuthorizationValue;
-	
+
 {!
     @typedef AuthorizationValueVector
-    A vector of AuthorizationValues.  Used to communicate arguments passed from the 
+    A vector of AuthorizationValues.  Used to communicate arguments passed from the
     configuration file <code>authorization(5)</code>.
 }
 type
@@ -299,10 +299,10 @@ type
 		values: AuthorizationValuePtr;
 	end;
 	AuthorizationValueVectorPtr = ^AuthorizationValueVector;
-	
+
 {!
     @typedef
-    Data produced as context during the authorization evaluation is tagged.  
+    Data produced as context during the authorization evaluation is tagged.
     If data is set to be extractable (kAuthorizationContextFlagExtractable), it will be possible for the client of authorization to obtain the value of this attribute using AuthorizationCopyInfo().
     If data is marked as volatile (kAuthorizationContextFlagVolatile), this value will not be remembered in the AuthorizationRef.
     Sticky data (kAuthorizationContextFlagSticky) persists through a failed or interrupted evaluation. It can be used to propagate an error condition from a downstream plugin to an upstream one. It is not remembered in the AuthorizationRef.
@@ -369,7 +369,7 @@ type
 {!
     @enum AuthorizationResultConstants
 	Possible values for SetResult() in AuthorizationCallbacks.
-    
+
     @constant kAuthorizationResultAllow the operation succeeded and authorization should be granted as far as this mechanism is concerned.
     @constant kAuthorizationResultDeny the operation succeeded but authorization should be denied as far as this mechanism is concerned.
     @constant kAuthorizationResultUndefined the operation failed for some reason and should not be retried for this session.
@@ -404,8 +404,8 @@ const
 
 {!
     @struct
-    Callback API provided by the AuthorizationEngine. 
-    
+    Callback API provided by the AuthorizationEngine.
+
     @field version      Engine callback version.
     @field SetResult    Set a result after a call to AuthorizationSessionInvoke.
     @field RequestInterrupt Request authorization engine to interrupt all mechamisms invoked after this mechamism has called SessionSetResult and then call AuthorizationSessionInvoke again.
@@ -426,11 +426,11 @@ type
 {    OSStatus (*SetResult)(AuthorizationEngineRef inEngine, AuthorizationResult inResult); }
 	 SetResult : function (inEngine : AuthorizationEngineRef; inResult : AuthorizationResult) : OSStatus;
 
-    { Request authorization engine to interrupt all mechamisms invoked after 
-        this mechamism has called SessionSetResult and then call 
+    { Request authorization engine to interrupt all mechamisms invoked after
+        this mechamism has called SessionSetResult and then call
         AuthorizationSessionInvoke again. }
      RequestInterrupt : function (inEngine : AuthorizationEngineRef) : OSStatus;
-     
+
     { Respond to the Deactivate request. }
 	 DidDeactivate : function (inEngine : AuthorizationEngineRef) : OSStatus;
 
@@ -450,16 +450,16 @@ type
 	GetHintValue : function (inEngine		: AuthorizationEngineRef;
 							 inKey			: AuthorizationString;
 							 var outValue	: AuthorizationValuePtr) : OSStatus;
-							 
+
     { Write value to hints.  AuthorizationValue and data are copied. }
 	SetHintValue : function (inEngine	: AuthorizationEngineRef;
 							 inKey		: AuthorizationString;
 							 inValue	: AuthorizationValuePtr) : OSStatus;
-							 
+
     { Read arguments passed.  AuthorizationValueVector does not own data. }
 	GetArguments : function (inEngine	 		: AuthorizationEngineRef;
 							 var outArguments	: AuthorizationValueVectorPtr) : OSStatus;
-							 
+
     { Read SessionId. }
       GetSessionId : function (inEngine			: AuthorizationEngineRef;
       						   var outSessionId : AuthorizationSessionId) : OSStatus;
@@ -473,11 +473,11 @@ type
 {    OSStatus (*SetResult)(AuthorizationEngineRef inEngine, AuthorizationResult inResult); }
 	 SetResult : function (inEngine : AuthorizationEngineRef; inResult : AuthorizationResult) : OSStatus;
 
-    { Request authorization engine to interrupt all mechamisms invoked after 
-        this mechamism has called SessionSetResult and then call 
+    { Request authorization engine to interrupt all mechamisms invoked after
+        this mechamism has called SessionSetResult and then call
         AuthorizationSessionInvoke again. }
      RequestInterrupt : function (inEngine : AuthorizationEngineRef) : OSStatus;
-     
+
     { Respond to the Deactivate request. }
 	 DidDeactivate : function (inEngine : AuthorizationEngineRef) : OSStatus;
 
@@ -497,16 +497,16 @@ type
 	GetHintValue : function (inEngine		: AuthorizationEngineRef;
 							 inKey			: AuthorizationString;
 							 var outValue	: AuthorizationValuePtr) : OSStatus;
-							 
+
     { Write value to hints.  AuthorizationValue and data are copied. }
 	SetHintValue : function (inEngine	: AuthorizationEngineRef;
 							 inKey		: AuthorizationString;
 							 inValue	: AuthorizationValuePtr) : OSStatus;
-							 
+
     { Read arguments passed.  AuthorizationValueVector does not own data. }
 	GetArguments : function (inEngine	 		: AuthorizationEngineRef;
 							 var outArguments	: AuthorizationValueVectorPtr) : OSStatus;
-							 
+
     { Read SessionId. }
       GetSessionId : function (inEngine			: AuthorizationEngineRef;
       						   var outSessionId : AuthorizationSessionId) : OSStatus;
@@ -514,23 +514,23 @@ type
     { Read value from hints. AuthorizationValue does not own data. }
   GetImmutableHintValue: function (inEngine: AuthorizationEngineRef;
                      inKey: AuthorizationString;
-                     var outValue: AuthorizationValuePtr): OSStatus; 
+                     var outValue: AuthorizationValuePtr): OSStatus;
 
 	end;
-	
+
 	{ support both interface version 0 and 1 }
 	AuthorizationCallbacks = record
 	  case byte of
 	    0: (version0: AuthorizationCallbacks0);
 	    1: (version1: AuthorizationCallbacks1);
 	end;
-	
+
 	AuthorizationCallbacksPtr = ^AuthorizationCallbacks;
 
 {!
     @struct
-    Interface that must be implemented by each plugin. 
-    
+    Interface that must be implemented by each plugin.
+
     @field version  Must be set to kAuthorizationPluginInterfaceVersion
     @field PluginDestroy    Plugin should clean up and release any resources it is holding.
     @field MechanismCreate  The plugin should create a mechanism named mechanismId.  The mechanism needs to use the AuthorizationEngineRef for the callbacks and pass back a   AuthorizationMechanismRef for itself.  MechanismDestroy will be called when it is no longer needed.
@@ -545,7 +545,7 @@ type
 
     { Notify a plugin that it is about to be unloaded so it get a chance to clean up and release any resources it is holding.  }
 	PluginDestroy : function (inPlugin : AuthorizationPluginRef) : OSStatus;
-	
+
     { The plugin should create a mechanism named mechanismId.  The mechanism needs to use the
         AuthorizationEngineRef for the callbacks and pass back an AuthorizationMechanismRef for
         itself.  MechanismDestroy will be called when it is no longer needed. }
@@ -553,13 +553,13 @@ type
 								inEngine 			: AuthorizationEngineRef;
 								mechanismId			: AuthorizationMechanismId;
 								var outMechanism	: AuthorizationMechanismRef) : OSStatus;
-								
+
     { Invoke an instance of a mechanism.  It should call SetResult during or after returning from this function.  }
 	MechanismInvoke : function (inMechanism : AuthorizationMechanismRef) : OSStatus;
-	
+
     { Mechanism should respond with a DidDeactivate as soon as possible. }
 	MechanismDeactivate : function (inMechanism : AuthorizationMechanismRef) : OSStatus;
-	
+
     { Mechanism should clean up and release any resources it is holding. }
     MechanismDestroy : function (inMechanism : AuthorizationMechanismRef) : OSStatus;
 	end;
@@ -569,7 +569,7 @@ type
 {!
     @function AuthorizationPluginCreate
 
-    Initialize a plugin after it gets loaded.  This is the main entry point to a plugin.  This function will only be called once.  
+    Initialize a plugin after it gets loaded.  This is the main entry point to a plugin.  This function will only be called once.
     After all Mechanism instances have been destroyed outPluginInterface->PluginDestroy will be called.
 
     @param callbacks (input) A pointer to an AuthorizationCallbacks which contains the callbacks implemented by the AuthorizationEngine.

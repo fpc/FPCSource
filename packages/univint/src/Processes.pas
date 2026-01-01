@@ -1,17 +1,17 @@
 {
      File:       HIServices/Processes.h
- 
+
      Contains:   Process Manager Interfaces.
- 
+
      Version:    HIServices-416~44
- 
+
      Copyright:  © 1989-2008 by Apple Computer, Inc., all rights reserved
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {  Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, August 2005 }
 {  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
@@ -339,15 +339,15 @@ const
     Note:  The processName field may not be what you expect, especially if
     an application has a localized name. The .processName field, if not NULL,
     on return will contain the filename part of the executable file of the
-    application. If you want the localized, user-displayable name for an 
+    application. If you want the localized, user-displayable name for an
     application, call CopyProcessName().
     On Mac OS X, some flags in processMode will not be set as they were on
     Mac OS 9, even for Classic applications.  Mac OS X doesn't support
-    applications which can't be sent into the background, so 
+    applications which can't be sent into the background, so
     modeCanBackground will always be set.  Similarly, Mac OS X applications
     will always have mode32BitCompatible and modeHighLevelEventAware
     set.
-    
+
 }
 {$ifc TARGET_CPU_64}
 type
@@ -398,15 +398,15 @@ type
     Note:  The processName field may not be what you expect, especially if
     an application has a localized name. The .processName field, if not NULL,
     on return will contain the filename part of the executable file of the
-    application. If you want the localized, user-displayable name for an 
+    application. If you want the localized, user-displayable name for an
     application, call CopyProcessName().
     On Mac OS X, some flags in processMode will not be set as they were on
     Mac OS 9, even for Classic applications.  Mac OS X doesn't support
-    applications which can't be sent into the background, so 
+    applications which can't be sent into the background, so
     modeCanBackground will always be set.  Similarly, Mac OS X applications
     will always have mode32BitCompatible and modeHighLevelEventAware
     set.
-    
+
 }
 {$ifc TARGET_CPU_64}
 type
@@ -492,10 +492,10 @@ const
 
 {
  *  LaunchApplication()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -508,7 +508,7 @@ function LaunchApplication( LaunchParams: LaunchPBPtr ): OSErr; external name '_
 {$ifc not TARGET_CPU_64}
 {
  *  LaunchDeskAccessory()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available [32-bit only]
  *    CarbonLib:        not available
@@ -520,17 +520,17 @@ function LaunchApplication( LaunchParams: LaunchPBPtr ): OSErr; external name '_
 
 {
  *  [Mac]GetCurrentProcess()
- *  
+ *
  *  Discussion:
  *    Return the canonical process serial number to the caller.
- *    
+ *
  *    All applications ( things which can appear in the Dock or which
  *    are not documents and are launched by the Finder or Dock ) on Mac
  *    OS 10 have a unique process serial number. This number is created
  *    when the application launches, and remains until the application
  *    quits. Other system services, like AppleEvents, use the
  *    ProcessSerialNumber to specify an application.
- *    
+ *
  *    During launch, every application 'checks in' with the Process
  *    Manager. Before this checkin, the application can not receive
  *    events or draw to the screen. Prior to Mac OS 10.2, this 'check
@@ -543,46 +543,46 @@ function LaunchApplication( LaunchParams: LaunchPBPtr ): OSErr; external name '_
  *    toolbox frameworks, but may cause a problem if the application
  *    expects to be able to retrieve events or use CoreGraphics
  *    services before this checkin has occurred.
- *    
+ *
  *    An application can force the connection to the Process Manager to
  *    be set up by calling any Process Manager routine, but the
  *    recommended way to do this is to call GetCurrentProcess() to ask
  *    for the current application's PSN. This will initialize the
  *    connection to the Process Manager if it has not already been set
  *    up and 'check in' the application with the system.
- *    
+ *
  *    This function is named MacGetCurrentProcess() on non Macintosh
  *    platforms and GetCurrentProcess on the Macintosh. However, even
  *    Macintosh code can use the MacGetCurrentProcess() name since
  *    there is a macro which maps back to GetCurrentProcess().
- *    
+ *
  *    Lastly, it is usually not necessary to call GetCurrentProcess()
  *    to get the 'current' process psn merely to pass it to another
  *    Process Manager routine. Instead, just construct a
  *    ProcessSerialNumber with 0 in highLongOfPSN and kCurrentProcess
  *    in lowLongOfPSN and pass that. For example, to make the current
  *    process the frontmost process, use ( C code follows )
- *    
- *    ProcessSerialNumber psn = ( 0, kCurrentProcess ); 
- *    
+ *
+ *    ProcessSerialNumber psn = ( 0, kCurrentProcess );
+ *
  *    OSErr err = SetFrontProcess( & psn );
- *    
+ *
  *    If you need to pass a ProcessSerialNumber to another application
  *    or use it in an AppleEvent, you do need to get the canonical PSN
  *    with this routine.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    PSN:
  *      Pass in where the current application process serial number
  *      should be returned.
- *  
+ *
  *  Result:
  *    An operating system status code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -597,10 +597,10 @@ function GetCurrentProcess( var PSN: ProcessSerialNumber ): OSErr; external name
 
 {
  *  GetFrontProcess()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -612,10 +612,10 @@ function GetFrontProcess( var PSN: ProcessSerialNumber ): OSErr; external name '
 
 {
  *  GetNextProcess()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -627,53 +627,53 @@ function GetNextProcess( var PSN: ProcessSerialNumber ): OSErr; external name '_
 
 {
  *  GetProcessInformation()
- *  
+ *
  *  Discussion:
  *    Fill in the provided record with information about the process
  *    with the provided process serial number.
- *    
+ *
  *    The caller must fill in the .processInfoLength field with the
  *    value sizeof ( ProcessInformationRecord ) before making this
  *    call. Also, the .processName field must point to either NULL or
  *    to a Str31 structure in the caller's memory space, and the
  *    .processAppSpec field must point to a FSSpec in the caller's
  *    memory space.
- *    
+ *
  *    If the caller does not care about the process name or the process
  *    application spec values, then setting those fields in the
  *    structure to NULL before this call means less work must be done
  *    to construct these values and so the call is more
  *    efficient.
- *    
+ *
  *    The processName field may not be what you expect, especially if
  *    an application has a localized name. The .processName field, if
  *    not NULL, on return will contain the filename part of the
  *    executable file of the application. If you want the localized,
  *    user-displayable name for an application, call
  *    CopyProcessName().
- *    
+ *
  *    On Mac OS X, the processSize and processFreeMem fields are
  *    returned with the value 0.
- *    
+ *
  *    On Mac OS X 10.6 and later, the processLaunchDate field is an
  *    integer value with the same scale as CFAbsoluteTime.  Prior
  *    releases used a value in 60th of a second with a random zero
  *    time, making it difficult to use. Since most applications just
  *    look at the comparison from this field to other launch dates this
  *    change should not affect many applications.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    PSN:
  *      Pass in the process serial number of the process to return
  *      information for.
- *    
+ *
  *    info:
  *      Pass in a structure where the information will be returned.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -685,32 +685,32 @@ function GetProcessInformation( const (*var*) PSN: ProcessSerialNumber; var info
 
 {
  *  ProcessInformationCopyDictionary()
- *  
+ *
  *  Discussion:
  *    Return a CFDictionary containing information about the given
  *    process. This is intended to return a superset of the information
  *    returned by GetProcessInformation(), in more modern datatypes.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    PSN:
  *      Pass in the process serial number of the process to return
  *      information for.
- *    
+ *
  *    infoToReturn:
  *      Pass in the value kProcessDictionaryIncludeAllInformationMask.
- *  
+ *
  *  Result:
  *    An immutable CFDictionaryRef containing these keys and their
  *    values. Keys marked with a '*' are optional. Over time more keys
  *    may be added.
- *    
- *    Key Name                    Type 
- *    --------                    ---- 
- *    "PSN"                       CFNumber, kCFNumberLongLongType 
+ *
+ *    Key Name                    Type
+ *    --------                    ----
+ *    "PSN"                       CFNumber, kCFNumberLongLongType
  *     "Flavor"                    CFNumber, kCFNumberSInt32.  A hint
  *    as to the flavor of the application. Note that this should only
  *    be used as a hint, since a bundle of a different flavor might be
@@ -718,23 +718,23 @@ function GetProcessInformation( const (*var*) PSN: ProcessSerialNumber; var info
  *    at present are:  Mac OS Classic aplications have the value 0,
  *    Carbon applications have the value 2, Cocoa applications have the
  *    value 3. Other undocumented values may also be returned.
- *     "Attributes"                CFNumber, kCFNumberSInt32 
- *     "ParentPSN" *               CFNumber, kCFNumberLongLong 
- *     "FileType" *                CFString, file type 
- *     "FileCreator" *             CFString, file creator 
- *    "pid" *                     CFNumber, kCFNumberLongType 
- *     "LSBackgroundOnly"          CFBoolean 
- *    "LSUIElement"               CFBoolean 
- *    "IsHiddenAttr"              CFBoolean 
- *    "IsCheckedInAttr"           CFBoolean 
- *    "RequiresCarbon"            CFBoolean 
- *    "LSUserQuitOnly" *          CFBoolean 
- *    "LSUIPresentationMode"      CFNumber, kCFNumberShortType 
- *     "BundlePath" *              CFString 
- *    kCFBundleExecutableKey *    CFString 
- *    kCFBundleNameKey *          CFString 
+ *     "Attributes"                CFNumber, kCFNumberSInt32
+ *     "ParentPSN" *               CFNumber, kCFNumberLongLong
+ *     "FileType" *                CFString, file type
+ *     "FileCreator" *             CFString, file creator
+ *    "pid" *                     CFNumber, kCFNumberLongType
+ *     "LSBackgroundOnly"          CFBoolean
+ *    "LSUIElement"               CFBoolean
+ *    "IsHiddenAttr"              CFBoolean
+ *    "IsCheckedInAttr"           CFBoolean
+ *    "RequiresCarbon"            CFBoolean
+ *    "LSUserQuitOnly" *          CFBoolean
+ *    "LSUIPresentationMode"      CFNumber, kCFNumberShortType
+ *     "BundlePath" *              CFString
+ *    kCFBundleExecutableKey *    CFString
+ *    kCFBundleNameKey *          CFString
  *    kCFBundleIdentifierKey *    CFString
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x
@@ -746,10 +746,10 @@ function ProcessInformationCopyDictionary( const (*var*) PSN: ProcessSerialNumbe
 
 {
  *  SetFrontProcess()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -775,7 +775,7 @@ const
 
 {
  *  SetFrontProcessWithOptions()
- *  
+ *
  *  Discussion:
  *    Brings a process to the front of the process list and activates
  *    it. This is much like the SetFrontProcess API, though we allow
@@ -784,21 +784,21 @@ const
  *    kSetFrontProcessFrontWindowOnly, which will activate a process
  *    without bringing all of the process's windows forward (just the
  *    front window of the process will come forward).
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inProcess:
  *      The process to make frontmost.
- *    
+ *
  *    inOptions:
  *      Any options you wish to specify.
- *  
+ *
  *  Result:
  *    An operating system status code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -810,10 +810,10 @@ function SetFrontProcessWithOptions( const (*var*) inProcess: ProcessSerialNumbe
 
 {
  *  WakeUpProcess()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -825,10 +825,10 @@ function WakeUpProcess( const (*var*) PSN: ProcessSerialNumber ): OSErr; externa
 
 {
  *  SameProcess()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -841,7 +841,7 @@ function SameProcess( const (*var*) PSN1: ProcessSerialNumber; const (*var*) PSN
 {  ExitToShell was previously in SegLoad.h}
 {
  *  ExitToShell()
- *  
+ *
  *  Discussion:
  *    In general, you need to call ExitToShell only if you want your
  *    application to terminate without reaching the end of its main
@@ -852,7 +852,7 @@ function SameProcess( const (*var*) PSN1: ProcessSerialNumber; const (*var*) PSN
  *    processes and performs any other necessary cleanup operations. If
  *    necessary, the Application Died Apple event is sent to the
  *    process that launched your application.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -864,7 +864,7 @@ procedure ExitToShell; external name '_ExitToShell';
 
 {
  *  KillProcess()
- *  
+ *
  *  Discussion:
  *    Kills the process with the given process serial number, without
  *    sending it a 'quit' AppleEvent or otherwise allowing it to save
@@ -873,18 +873,18 @@ procedure ExitToShell; external name '_ExitToShell';
  *    failed. It is not guaranteed that this will succeed and that the
  *    target application will be killed, even if this function returns
  *    noErr and seems to work.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inProcess:
  *      The process to kill.
- *  
+ *
  *  Result:
  *    An operating system status code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x
@@ -901,7 +901,7 @@ function KillProcess( const (*var*) inProcess: ProcessSerialNumber ): OSErr; ext
 {$ifc not TARGET_CPU_64}
 {
  *  LaunchControlPanel()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available [32-bit only]
  *    CarbonLib:        not available
@@ -913,28 +913,28 @@ function KillProcess( const (*var*) inProcess: ProcessSerialNumber ): OSErr; ext
 
 {
  *  GetProcessBundleLocation()
- *  
+ *
  *  Summary:
  *    Retrieve the filesystem location of the process bundle, or
  *    executable if unbundled.
- *  
+ *
  *  Discussion:
  *    Retrieves a reference to the filesystem location of the specified
  *    application. For an application that is packaged as an app
  *    bundle, this will be the app bundle directory; otherwise it will
  *    be the location of the executable itself.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    psn:
  *      Serial number of the target process
- *    
+ *
  *    location:
  *      Location of the bundle or executable, as an FSRef
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.5 and later
@@ -946,10 +946,10 @@ function GetProcessBundleLocation( const (*var*) psn: ProcessSerialNumber; var l
 
 {
  *  CopyProcessName()
- *  
+ *
  *  Summary:
  *    Get a copy of the name of a process.
- *  
+ *
  *  Discussion:
  *    Use this call to get the name of a process as a CFString. The
  *    name returned is a copy, so the caller must CFRelease the name
@@ -958,19 +958,19 @@ function GetProcessBundleLocation( const (*var*) psn: ProcessSerialNumber; var l
  *    name here is a CFString, and thus is capable of representing a
  *    multi-lingual name, whereas previously only a mac-encoded string
  *    was possible.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    psn:
  *      Serial number of the target process
- *    
+ *
  *    name:
  *      CFString representing the name of the process (must be released
  *      by caller with CFRelease)
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.5 and later
@@ -982,27 +982,27 @@ function CopyProcessName( const (*var*) psn: ProcessSerialNumber; var name: CFSt
 
 {
  *  GetProcessPID()
- *  
+ *
  *  Summary:
  *    Get the UNIX process ID corresponding to a process.
- *  
+ *
  *  Discussion:
  *    Given a Process serial number, this call will get the UNIX
  *    process ID for that process. Note that this call does not make
  *    sense for Classic apps, since they all share a single UNIX
  *    process ID.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    psn:
  *      Serial number of the target process
- *    
+ *
  *    pid:
  *      UNIX process ID of the process
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
@@ -1014,27 +1014,27 @@ function GetProcessPID( const (*var*) psn: ProcessSerialNumber; var pid: pid_t )
 
 {
  *  GetProcessForPID()
- *  
+ *
  *  Summary:
  *    Get the process serial number corresponding to a UNIX process ID.
- *  
+ *
  *  Discussion:
  *    Given a UNIX process ID, this call will get the process serial
  *    number for that process, if appropriate. Note that this call does
  *    not make sense for Classic apps, since they all share a single
  *    UNIX process ID.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    psn:
  *      Serial number of the process
- *    
+ *
  *    pid:
  *      UNIX process ID of the target process
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
@@ -1049,22 +1049,22 @@ function GetProcessForPID( pid: pid_t; var psn: ProcessSerialNumber ): OSStatus;
  ************************************************************************}
 {
  *  IsProcessVisible()
- *  
+ *
  *  Summary:
  *    Determines whether a particular process is visible or not.
- *  
+ *
  *  Discussion:
  *    Given a psn, this call will return true or false depending on
  *    whether or not the process is currently visible.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    psn:
  *      Serial number of the process
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.5 and later
@@ -1076,27 +1076,27 @@ function IsProcessVisible( const (*var*) psn: ProcessSerialNumber ): Boolean; ex
 
 {
  *  ShowHideProcess()
- *  
+ *
  *  Summary:
  *    Hides or shows a given process.
- *  
+ *
  *  Discussion:
  *    Given a psn, this call will hide or show the process specified in
  *    the psn parameter. You determine whether you would like to show
  *    or hide the process with the visible parameter. True passed into
  *    visible indicates you wish for the process to become visible.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    psn:
  *      Serial number of the process
- *    
+ *
  *    visible:
  *      true = show process; false = hide process
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.5 and later
@@ -1108,11 +1108,11 @@ function ShowHideProcess( const (*var*) psn: ProcessSerialNumber; visible: Boole
 
 {
  *  TransformProcessType()
- *  
+ *
  *  Summary:
  *    Changes the 'type' of the process specified in the psn parameter.
  *     The type is specified in the transformState parameter.
- *  
+ *
  *  Discussion:
  *    Given a psn for an application, this call transforms that
  *    application into the given type.  Foreground applications have a
@@ -1132,18 +1132,18 @@ function ShowHideProcess( const (*var*) psn: ProcessSerialNumber; visible: Boole
  *    the application after it is transformed into a foreground
  *    application. Applications can only transform themselves; this
  *    call cannot change the type of another application.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    psn:
  *      Serial number of the process
- *    
+ *
  *    transformState:
  *      state to tranform the application to.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x

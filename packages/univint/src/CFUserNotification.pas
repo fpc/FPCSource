@@ -216,7 +216,7 @@ type
 	CFUserNotificationRef = ^__CFUserNotification; { an opaque type }
 	__CFUserNotification = record end;
 
-{ A CFUserNotification is a notification intended to be presented to a 
+{ A CFUserNotification is a notification intended to be presented to a
 user at the console (if one is present).  This is for the use of processes
 that do not otherwise have user interfaces, but may need occasional
 interaction with a user.  There is a parallel API for this functionality
@@ -236,7 +236,7 @@ value should be a number between 0 and 1, for a "definite" progress indicator,
 or a boolean, for an "indefinite" progress indicator).  Additionally, URLs can
 optionally be supplied for an icon, a sound, and a bundle whose Localizable.strings
 files will be used to localize strings.
-    
+
 Certain request flags are specified when a notification is created.
 These specify an alert level for the notification, determine whether
 radio buttons or check boxes are to be used, specify which if any of these
@@ -244,7 +244,7 @@ are checked by default, specify whether any of the textfields are to
 be secure textfields, and determine which popup item should be selected
 by default.  A timeout is also specified, which determines how long the
 notification should be supplied to the user (if zero, it will not timeout).
-    
+
 A CFUserNotification is dispatched for presentation when it is created.
 If any reply is required, it may be awaited in one of two ways:  either
 synchronously, using CFUserNotificationReceiveResponse, or asynchronously,
@@ -253,13 +253,13 @@ parameter that determines how long it will block (zero meaning indefinitely)
 and it may be called as many times as necessary until a response arrives.
 If a notification has not yet received a response, it may be updated with
 new information, or it may be cancelled.  Notifications may not be reused.
-    
+
 When a response arrives, it carries with it response flags that describe
 which button was used to dismiss the notification, which checkboxes or
 radio buttons were checked, and what the selection of the popup was.
 It also carries a response dictionary, which describes the contents
 of the textfields.  }
-    
+
 type
 	CFUserNotificationCallBack = procedure( userNotification: CFUserNotificationRef; responseFlags: CFOptionFlags );
 
@@ -279,9 +279,9 @@ function CFUserNotificationCancel( userNotification: CFUserNotificationRef ): SI
 
 function CFUserNotificationCreateRunLoopSource( allocator: CFAllocatorRef; userNotification: CFUserNotificationRef; callout: CFUserNotificationCallBack; order: CFIndex ): CFRunLoopSourceRef; external name '_CFUserNotificationCreateRunLoopSource';
 
-{ Convenience functions for handling the simplest and most common cases:  
+{ Convenience functions for handling the simplest and most common cases:
 a one-way notification, and a notification with up to three buttons. }
-    
+
 function CFUserNotificationDisplayNotice( timeout: CFTimeInterval; flags: CFOptionFlags; iconURL: CFURLRef; soundURL: CFURLRef; localizationURL: CFURLRef; alertHeader: CFStringRef; alertMessage: CFStringRef; defaultButtonTitle: CFStringRef ): SInt32; external name '_CFUserNotificationDisplayNotice';
 
 function CFUserNotificationDisplayAlert( timeout: CFTimeInterval; flags: CFOptionFlags; iconURL: CFURLRef; soundURL: CFURLRef; localizationURL: CFURLRef; alertHeader: CFStringRef; alertMessage: CFStringRef; defaultButtonTitle: CFStringRef; alternateButtonTitle: CFStringRef; otherButtonTitle: CFStringRef; var responseFlags: CFOptionFlags ): SInt32; external name '_CFUserNotificationDisplayAlert';
@@ -345,7 +345,7 @@ var kCFUserNotificationPopUpSelectionKey: CFStringRef; external name '_kCFUserNo
 
 {$ifc TARGET_OS_IPHONE}
 var kCFUserNotificationAlertTopMostKey: CFStringRef; external name '_kCFUserNotificationAlertTopMostKey'; (* attribute const *)
-        
+
 var kCFUserNotificationKeyboardTypesKey: CFStringRef; external name '_kCFUserNotificationKeyboardTypesKey'; (* attribute const *)
 {$endc}
 

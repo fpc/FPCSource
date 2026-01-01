@@ -1,9 +1,9 @@
 {
      File:       CarbonCore/HFSVolumes.h
- 
+
      Contains:   On-disk data structures for HFS and HFS Plus volumes.
                  The contents of this header file are deprecated.
- 
+
      Copyright:  © 1984-2011 by Apple Inc. All rights reserved.
 }
 {

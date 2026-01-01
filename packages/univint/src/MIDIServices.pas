@@ -1,15 +1,15 @@
 {
  	File:   	CoreMIDI/MIDIServices.h
- 
+
  	Contains:   API for communicating with MIDI hardware
- 
+
  	Copyright:  (c) 2000-2008 by Apple Inc., all rights reserved.
- 
+
  	Bugs?:  	For bug reports, consult the following page on
  				the World Wide Web:
- 
+
  					http://bugs.freepascal.org
- 
+
 }
 {  Pascal Translation:  Gorazd Krosl <gorazd_1957@yahoo.ca>, October 2009 }
 {  Pascal Translation Update: Jonas Maebe <jonas@freepascal.org>, October 2012 }
@@ -238,7 +238,7 @@ uses MacTypes,CFBase,CFData,CFDictionary;
 	Devices may have multiple logically distinct sub-components, e.g. a MIDI synthesizer and a
 	pair of MIDI ports, both addressable via a USB port. These are called Entities.
 
-	Entities have any number of Endpoints, sources and destinations of 16-channel MIDI streams. 
+	Entities have any number of Endpoints, sources and destinations of 16-channel MIDI streams.
 	By grouping a device's endpoints into entities, the system has enough information for an
 	application to make reasonable default assumptions about how to communicate in a
 	bi-directional manner with each entity, as is necessary in MIDI librarian applications.
@@ -283,7 +283,7 @@ uses MacTypes,CFBase,CFData,CFDictionary;
     @abstract       The error constants unique to Core MIDI.
     @discussion     These are the error constants that are unique to Core MIDI. Note that Core MIDI
                     functions may return other codes that are not listed here.
-	
+
 	@constant		kMIDIInvalidClient
 						An invalid MIDIClientRef was passed.
 	@constant		kMIDIInvalidPort
@@ -444,7 +444,7 @@ type
 
 		Since MIDI applications will tend to do a fair amount of math with the times of events,
 		it's more convenient to use a UInt64 than an AbsoluteTime.
-		
+
 		See CoreAudio/HostTime.h.
 }
 type
@@ -500,7 +500,7 @@ type
 		This callback function is called when some aspect of the current MIDI setup changes. It
 		is called on the runloop (thread) on which MIDIClientCreate was first called.
 
-	@param			message	
+	@param			message
 						A structure containing information about what changed.
 	@param			refCon
 						The client's refCon passed to MIDIClientCreate.
@@ -523,7 +523,7 @@ type
 
 	@param			pktlist
 						The incoming MIDI message(s).
-	@param			readProcRefCon	
+	@param			readProcRefCon
 						The refCon you passed to MIDIInputPortCreate or
 						MIDIDestinationCreate
 	@param			srcConnRefCon
@@ -538,7 +538,7 @@ type
 	@abstract		A function called when a system-exclusive event has been completely sent.
 	@discussion
 		Callback function to notify the client of the completion of a call to MIDISendSysex.
-	
+
 	@param			request
 						The MIDISysexSendRequest which has completed, or been
 						aborted.
@@ -553,13 +553,13 @@ type
 {!
 	@struct			MIDIPacket
 	@abstract		A collection of simultaneous MIDI events.
-	
+
 	@field			timeStamp
 						The time at which the events occurred, if receiving MIDI,
 						or, if sending MIDI, the time at which the events are to
 						be played.  Zero means "now."  The time stamp applies
 						to the first MIDI byte in the packet.
-	@field			length		
+	@field			length
 						The number of valid MIDI bytes which follow, in data. (It
 						may be larger than 256 bytes if the packet is dynamically
 						allocated.)
@@ -568,7 +568,7 @@ type
 						is not allowed.  In the case of system-exclusive
 						messages, a packet may only contain a single message, or
 						portion of one, with no other MIDI events.
-						
+
 						The MIDI messages in the packet must always be complete,
 						except for system-exclusive.
 
@@ -593,7 +593,7 @@ type
 					one endpoint.
 	@discussion
 					The timestamps in the packet list must be in ascending order.
-					
+
 					Note that the packets in the list, while defined as an array, may not be
 					accessed as an array, since they are variable-length.  To iterate through
 					the packets in a packet list, use a loop such as:
@@ -606,11 +606,11 @@ type
   )
 @/textblock
 </pre>
-	
+
 					The MIDIPacketNext macro is especially important when considering that
 					the alignment requirements of MIDIPacket may differ between CPU architectures.
-					On Intel and PowerPC, MIDIPacket is unaligned. 
-					
+					On Intel and PowerPC, MIDIPacket is unaligned.
+
 	@field			numPackets
 						The number of MIDIPackets in the list.
 	@field			packet
@@ -620,7 +620,7 @@ type
 {$push}
 {$packrecords 4}
 	MIDIPacketList = record
-		numPackets: UInt32;	
+		numPackets: UInt32;
 		packet: array [0..0] of MIDIPacket;
 	end;
 {$pop}
@@ -630,7 +630,7 @@ type
 {!
 	@struct			MIDISysexSendRequest
 	@abstract		A request to transmit a system-exclusive event.
-	
+
 	@field			destination
 						The endpoint to which the event is to be sent.
 	@field			data
@@ -674,7 +674,7 @@ type
 	@discussion
 		A MIDINotification is a structure passed to a MIDINotifyProc, when CoreMIDI wishes to
 		inform a client of a change in the state of the system.
-	
+
 	@field			messageID
 						type of message
 	@field			messageSize
@@ -724,7 +724,7 @@ const
 {!
 	@struct			MIDIObjectAddRemoveNotification
 	@abstract		A message describing the addition or removal of an object.
-	
+
 	@field			messageID
 						type of message
 	@field			messageSize
@@ -751,7 +751,7 @@ type
 {!
 	@struct			MIDIObjectPropertyChangeNotification
 	@abstract		A message describing the addition or removal of an object.
-	
+
 	@field			messageID
 						type of message
 	@field			messageSize
@@ -788,7 +788,7 @@ type
 	@constant		kMIDIPropertyName
 	@discussion
 		device/entity/endpoint property, string
-	
+
 		Devices, entities, and endpoints may all have names.  The recommended way to display an
 		endpoint's name is to ask for the endpoint name, and display only that name if it is
 		unique.  If it is non-unique, prepend the device name.
@@ -796,7 +796,7 @@ type
 		A setup editor may allow the user to set the names of both driver-owned and external
 		devices.
 }
-var kMIDIPropertyName: CFStringRef; external name '_kMIDIPropertyName'; (* attribute const *)		
+var kMIDIPropertyName: CFStringRef; external name '_kMIDIPropertyName'; (* attribute const *)
 (* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_NA) *)
 
 {!
@@ -1335,19 +1335,19 @@ var kMIDIPropertyDisplayName: CFStringRef; external name '_kMIDIPropertyDisplayN
 
 	@param			name
 						The client's name.
-	@param			notifyProc	
+	@param			notifyProc
 						An optional (may be NULL) callback function through which the client
 						will receive notifications of changes to the system.
-	@param			notifyRefCon 
+	@param			notifyRefCon
 						A refCon passed back to notifyRefCon
-	@param			outClient	
+	@param			outClient
 						On successful return, points to the newly-created MIDIClientRef.
 	@result			An OSStatus result code.
-	
+
 	@discussion
 		Note that notifyProc will always be called on the run loop which was current when
 		MIDIClientCreate was first called.
-	
+
 }
 function MIDIClientCreate( name: CFStringRef; notifyProc: MIDINotifyProc; notifyRefCon: UnivPtr; var outClient: MIDIClientRef ): OSStatus; external name '_MIDIClientCreate';
 (* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_NA) *)
@@ -1357,7 +1357,7 @@ function MIDIClientCreate( name: CFStringRef; notifyProc: MIDINotifyProc; notify
 	@function   	MIDIClientDispose
 
 	@abstract   	Disposes a MIDIClient object.
-	
+
 	@param  		client
 						The client to dispose.
 	@result			An OSStatus result code.
@@ -1398,7 +1398,7 @@ function MIDIClientDispose( client: MIDIClientRef ): OSStatus; external name '_M
 	@discussion
 		After creating a port, use MIDIPortConnectSource to establish an input connection from
 		any number of sources to your port.
-		
+
 		readProc will be called on a separate high-priority thread owned by CoreMIDI.
 }
 function MIDIInputPortCreate( client: MIDIClientRef; portName: CFStringRef; readProc: MIDIReadProc; refCon: UnivPtr; var outPort: MIDIPortRef ): OSStatus; external name '_MIDIInputPortCreate';
@@ -1458,7 +1458,7 @@ function MIDIPortDispose( port: MIDIPortRef ): OSStatus; external name '_MIDIPor
 						readProc is called with incoming MIDI from the source.
 	@param			source
 						The source from which to create the connection.
-	@param			connRefCon	
+	@param			connRefCon
 						This refCon is passed to the MIDIReadProc, as a way to
 						identify the source.
 	@result			An OSStatus result code.
@@ -1471,8 +1471,8 @@ function MIDIPortConnectSource( port: MIDIPortRef; source: MIDIEndpointRef; conn
 
 {!
 	@function		MIDIPortDisconnectSource
-	
-	@abstract 		Closes a previously-established source-to-input port 
+
+	@abstract 		Closes a previously-established source-to-input port
 					connection.
 
 	@param			port
@@ -1499,7 +1499,7 @@ function MIDIPortDisconnectSource( port: MIDIPortRef; source: MIDIEndpointRef ):
 
 	@abstract 		Returns the number of devices in the system.
 
-	@result			The number of devices in the system, or 0 if an error 
+	@result			The number of devices in the system, or 0 if an error
 					occurred.
 }
 function MIDIGetNumberOfDevices: ItemCount; external name '_MIDIGetNumberOfDevices';
@@ -1539,7 +1539,7 @@ function MIDIGetDevice( deviceIndex0: ItemCount ): MIDIDeviceRef; external name 
 	@function		MIDIDeviceGetNumberOfEntities
 
 	@abstract 		Returns the number of entities in a given device.
-	
+
 	@param			device
 						The device being queried.
 
@@ -1553,7 +1553,7 @@ function MIDIDeviceGetNumberOfEntities( device: MIDIDeviceRef ): ItemCount; exte
 	@function		MIDIDeviceGetEntity
 
 	@abstract 		Returns one of a given device's entities.
-	
+
 	@param			device
 						The device being queried.
 	@param			entityIndex0
@@ -1573,9 +1573,9 @@ function MIDIDeviceGetEntity( device: MIDIDeviceRef; entityIndex0: ItemCount ): 
 
 {!
 	@function		MIDIEntityGetNumberOfSources
-	
+
 	@abstract 		Returns the number of sources in a given entity.
-	
+
 	@param			entity
 						The entity being queried
 
@@ -1589,7 +1589,7 @@ function MIDIEntityGetNumberOfSources( entity: MIDIEntityRef ): ItemCount; exter
 	@function		MIDIEntityGetSource
 
 	@abstract 		Returns one of a given entity's sources.
-	
+
 	@param			entity
 						The entity being queried.
 	@param			sourceIndex0
@@ -1605,7 +1605,7 @@ function MIDIEntityGetSource( entity: MIDIEntityRef; sourceIndex0: ItemCount ): 
 	@function		MIDIEntityGetNumberOfDestinations
 
 	@abstract 		Returns the number of destinations in a given entity.
-	
+
 	@param			entity
 						The entity being queried
 
@@ -1619,7 +1619,7 @@ function MIDIEntityGetNumberOfDestinations( entity: MIDIEntityRef ): ItemCount; 
 	@function		MIDIEntityGetDestination
 
 	@abstract 		Returns one of a given entity's destinations.
-	
+
 	@param			entity
 						The entity being queried.
 	@param			destIndex0
@@ -1635,7 +1635,7 @@ function MIDIEntityGetDestination( entity: MIDIEntityRef; destIndex0: ItemCount 
 	@function		MIDIEntityGetDevice
 
 	@abstract 		Returns an entity's device.
-	
+
 	@param			inEntity
 						The entity being queried.
 	@param			outDevice
@@ -1667,7 +1667,7 @@ function MIDIGetNumberOfSources: ItemCount; external name '_MIDIGetNumberOfSourc
 
 	@abstract 		Returns one of the sources in the system.
 
-	@param			sourceIndex0	
+	@param			sourceIndex0
 						The index (0...MIDIGetNumberOfSources()-1) of the source
 						to return
 	@result			A reference to a source, or NULL if an error occurred.
@@ -1681,7 +1681,7 @@ function MIDIGetSource( sourceIndex0: ItemCount ): MIDIEndpointRef; external nam
 
 	@abstract 		Returns the number of destinations in the system.
 
-	@result			The number of destinations in the system, or 0 if an error 
+	@result			The number of destinations in the system, or 0 if an error
 					occurred.
 }
 function MIDIGetNumberOfDestinations: ItemCount; external name '_MIDIGetNumberOfDestinations';
@@ -1693,7 +1693,7 @@ function MIDIGetNumberOfDestinations: ItemCount; external name '_MIDIGetNumberOf
 
 	@abstract 		Returns one of the destinations in the system.
 
-	@param			destIndex0	
+	@param			destIndex0
 						The index (0...MIDIGetNumberOfDestinations()-1) of the
 						destination to return
 	@result			A reference to a destination, or NULL if an error occurred.
@@ -1705,12 +1705,12 @@ function MIDIGetDestination( destIndex0: ItemCount ): MIDIEndpointRef; external 
 	@function		MIDIEndpointGetEntity
 
 	@abstract 		Returns an endpoint's entity.
-	
+
 	@param			inEndpoint
 						The endpoint being queried.
 	@param			outEntity
 						On exit, the endpoint's owning entity, or NULL if none.
-	
+
 	@discussion
 		Virtual sources and destinations don't have entities.
 }
@@ -1741,12 +1741,12 @@ function MIDIEndpointGetEntity( inEndpoint: MIDIEndpointRef; var outEntity: MIDI
 
 		Drivers need not call this; when they create devices and entities, sources and
 		destinations are created at that time.
-		
+
 		After creating a virtual destination, it's a good idea to assign it the same unique ID
 		it had the last time your application created it. (Although you should be prepared for
 		this to fail in the unlikely event of a collision.) This will permit other clients
 		to retain persistent references to your virtual destination more easily.
-		
+
 		See the discussion of kMIDIPropertyAdvanceScheduleTimeMuSec for notes about the
 		relationship between when a sender sends MIDI to the destination and when it is
 		received.
@@ -1808,8 +1808,8 @@ function MIDIEndpointDispose( endpt: MIDIEndpointRef ): OSStatus; external name 
 	@function		MIDIGetNumberOfExternalDevices
 
 	@abstract 		Returns the number of external MIDI devices in the system.
-					
-	@result			The number of external devices in the system, or 0 if an error 
+
+	@result			The number of external devices in the system, or 0 if an error
 					occurred.
 
 	@discussion
@@ -1846,7 +1846,7 @@ function MIDIGetExternalDevice( deviceIndex0: ItemCount ): MIDIDeviceRef; extern
 	@function		MIDIObjectGetIntegerProperty
 
 	@abstract 		Gets an object's integer-type property.
-	
+
 	@param			obj
 						The object whose property is to be returned.
 	@param			propertyID
@@ -1865,7 +1865,7 @@ function MIDIObjectGetIntegerProperty( obj: MIDIObjectRef; propertyID: CFStringR
 	@function		MIDIObjectSetIntegerProperty
 
 	@abstract 		Sets an object's integer-type property.
-	
+
 	@param			obj
 						The object whose property is to be altered.
 	@param			propertyID
@@ -1903,7 +1903,7 @@ function MIDIObjectGetStringProperty( obj: MIDIObjectRef; propertyID: CFStringRe
 	@function		MIDIObjectSetStringProperty
 
 	@abstract 		Sets an object's string-type property.
-	
+
 	@param			obj
 						The object whose property is to be altered.
 	@param			propertyID
@@ -1926,7 +1926,7 @@ function MIDIObjectSetStringProperty( obj: MIDIObjectRef; propertyID: CFStringRe
 	@discussion
 (See the MIDIObjectRef documentation for information
 					about properties.)
-		
+
 	@param			obj
 						The object whose property is to be returned.
 	@param			propertyID
@@ -1942,7 +1942,7 @@ function MIDIObjectGetDataProperty( obj: MIDIObjectRef; propertyID: CFStringRef;
 	@function		MIDIObjectSetDataProperty
 
 	@abstract 		Sets an object's data-type property.
-	
+
 	@param			obj
 						The object whose property is to be altered.
 	@param			propertyID
@@ -1980,7 +1980,7 @@ function MIDIObjectGetDictionaryProperty( obj: MIDIObjectRef; propertyID: CFStri
 	@function		MIDIObjectSetDictionaryProperty
 
 	@abstract 		Sets an object's dictionary-type property.
-	
+
 	@param			obj
 						The object whose property is to be altered.
 	@param			propertyID
@@ -1997,7 +1997,7 @@ function MIDIObjectSetDictionaryProperty( obj: MIDIObjectRef; propertyID: CFStri
 
 {!
 	@function		MIDIObjectGetProperties
-	
+
 	@abstract		Gets all of an object's properties.
 
 	@param			obj
@@ -2021,7 +2021,7 @@ function MIDIObjectGetProperties( obj: MIDIObjectRef; var outProperties: CFPrope
 
 {!
 	@function		MIDIObjectRemoveProperty
-	
+
 	@abstract		Removes an object's property.
 
 	@param			obj
@@ -2085,13 +2085,13 @@ function MIDIObjectFindByUniqueID( inUniqueID: MIDIUniqueID; var outObject: MIDI
 }
 function MIDISend( port: MIDIPortRef; dest: MIDIEndpointRef; const (*var*) pktlist: MIDIPacketList ): OSStatus; external name '_MIDISend';
 (* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_NA) *)
-				
+
 {!
 	@function		MIDISendSysex
 
 	@abstract 		Sends a single system-exclusive event, asynchronously.
 
-	@param			request	
+	@param			request
 						Contains the destination, and a pointer to the MIDI data to be sent.
 	@result			An OSStatus result code.
 
@@ -2118,7 +2118,7 @@ function MIDISendSysex( var request: MIDISysexSendRequest ): OSStatus; external 
 
 		Clients which have created virtual sources, using MIDISourceCreate, should call this
 		function when the source is generating MIDI.
-		
+
 		Unlike MIDISend(), a timestamp of 0 is not equivalent to "now"; the driver or virtual
 		source is responsible for putting proper timestamps in the packets.
 }
@@ -2127,9 +2127,9 @@ function MIDIReceived( src: MIDIEndpointRef; const (*var*) pktlist: MIDIPacketLi
 
 {!
 	@function		MIDIFlushOutput
-	
+
 	@abstract		Unschedules previously-sent packets.
-					
+
 	@param			dest
 						All pending events scheduled to be sent to this destination
 						are unscheduled.  If NULL, the operation applies to
@@ -2146,10 +2146,10 @@ function MIDIFlushOutput( dest: MIDIEndpointRef ): OSStatus; external name '_MID
 	@function		MIDIRestart
 
 	@abstract 		Stops and restarts MIDI I/O.
-	
+
 	@discussion
 		This is useful for forcing CoreMIDI to ask its drivers to rescan for hardware.
-	
+
 	@result			An OSStatus result code.
 }
 function MIDIRestart: OSStatus; external name '_MIDIRestart';
@@ -2166,7 +2166,7 @@ function MIDIRestart: OSStatus; external name '_MIDIRestart';
 {*!
 	@function		MIDIPacketNext
 
-	@abstract 		Advances a MIDIPacket pointer to the MIDIPacket which immediately follows it 
+	@abstract 		Advances a MIDIPacket pointer to the MIDIPacket which immediately follows it
 					in memory if it is part of a MIDIPacketList.
 
 	@param			pkt
@@ -2185,7 +2185,7 @@ function MIDIPacketNext(pkt : MIDIPacketPtr) : MIDIPacketPtr; inline;
 	@function		MIDIPacketListInit
 
 	@abstract 		Prepares a MIDIPacketList to be built up dynamically.
-	
+
 	@param			pktlist
 						The packet list to be initialized.
 
@@ -2199,7 +2199,7 @@ function MIDIPacketListInit( var pktlist: MIDIPacketList ): MIDIPacketPtr; exter
 	@function		MIDIPacketListAdd
 
 	@abstract 		Adds a MIDI event to a MIDIPacketList.
-	
+
 	@param			pktlist
 						The packet list to which the event is to be added.
 	@param			listSize

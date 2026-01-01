@@ -29,20 +29,20 @@
 {version 1.3 (this version modified by Ingemar Ragnemalm)}
 
 {The original source on which this file is based: }
-{  
+{
      File:       HIServices/Pasteboard.h
- 
+
      Contains:   Pasteboard Manager Interfaces.
- 
+
      Version:    HIServices-416~44
- 
+
      Copyright:  © 2003-2008 by Apple Computer, Inc., all rights reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
@@ -262,7 +262,7 @@ uses MacTypes,CFBase,CFArray,CFData,CFURL;
 
 {
  *  Pasteboard Manager
- *  
+ *
  *  Discussion:
  *    Pasteboard Manager is the replacement of the Scrap and Drag
  *    flavor APIs. Like the Scrap Manager, it is a cross process data
@@ -271,8 +271,8 @@ uses MacTypes,CFBase,CFArray,CFData,CFURL;
  *    data transport. This allows the Pasteboard Manager to be used as
  *    the data transport mechanism for copy and paste, drag and drop,
  *    services, as well as generic cross process communication.
- *    
- *    
+ *
+ *
  *    Like scraps, pasteboards are local references to global, cross
  *    process, resources. Although, where scraps exist forever,
  *    pasteboard are CFTypes and should be released at the end of their
@@ -289,8 +289,8 @@ uses MacTypes,CFBase,CFArray,CFData,CFURL;
  *    local pasteboard references in various components of the
  *    application can add data, make promises, keep those promises, and
  *    release their local pasteboard reference independently of the
- *    other components. 
- *    
+ *    other components.
+ *
  *    For long lived pasteboards, like the clipboard or find
  *    pasteboards, the suggested usage model is for a component to
  *    create a local reference to a pasteboard at the beginning of its
@@ -305,8 +305,8 @@ uses MacTypes,CFBase,CFArray,CFData,CFURL;
  *    case, be sure to call PasteboardResolvePromises() to make sure
  *    any promises are called in. This is not necessary for the
  *    clipboard and find pasteboards as they are retained by the system
- *    and never released. 
- *    
+ *    and never released.
+ *
  *    Like the Drag Manager, the Pasteboard Manager allows the use of
  *    multiple items each with its own set of flavors. When using the
  *    clipboard or find pasteboards, it's traditionally been common to
@@ -337,7 +337,7 @@ const
 
 {
  *  PasteboardSyncFlags
- *  
+ *
  *  Summary:
  *    The following constants are used by the PasteboardSynchronize()
  *    routine to indicate the status of the local pasteboard reference
@@ -367,7 +367,7 @@ const
 
 {
  *  Pasteboard File Promising
- *  
+ *
  *  Summary:
  *    With the FSSpec type being deprecated and removed for 64 bit it is necessary
  *    to introduce a replacement for kDragFlavorTypePromiseHFS. The replacement comes
@@ -375,15 +375,15 @@ const
  *    pasteboard and promised files. Like the old HFS promise mechanism, the new UTI
  *    based method still requires a multistage handshake between sender and receiver
  *    but the process is somewhat simplified.
- *    
+ *
  *    Order of operations on copy or drag
- *    
+ *
  *    1) The sender promises kPasteboardTypeFileURLPromise for a file yet to be created.
  *    2) The sender adds kPasteboardTypeFilePromiseContent containing the UTI describing
  *          the file's content.
- *    
+ *
  *    Order of operations on paste or drop
- *    
+ *
  *    3) The receiver asks for kPasteboardTypeFilePromiseContent to decide if it wants the file.
  *    4) The receiver sets the paste location with PasteboardSetPasteLocation.
  *    5) The receiver asks for kPasteboardTypeFileURLPromise.
@@ -399,7 +399,7 @@ const
 
 {
  *  kPasteboardTypeFileURLPromise
- *  
+ *
  *  Discussion:
  *    A UTF-8 encoded promised file url on the pasteboard to a file
  *    which does not yet exist.
@@ -410,7 +410,7 @@ const
 
 {
  *  kPasteboardTypeFilePromiseContent
- *  
+ *
  *  Discussion:
  *    A UTF-8 encoded UTI describing the type of data to be contained
  *    within the promised file.
@@ -421,10 +421,10 @@ const
 
 {
  *  PasteboardFlavorFlags
- *  
+ *
  *  Summary:
  *    Pasteboard Flavor Flags
- *  
+ *
  *  Discussion:
  *    The following constants are used to tag pasteboard item flavors
  *    with bits of useful information. The first five are settable by
@@ -496,10 +496,10 @@ const
 
 {
  *  PasteboardStandardLocation
- *  
+ *
  *  Summary:
  *    Pasteboard Standard Drop Locations
- *  
+ *
  *  Discussion:
  *    The following constants define common "meta" paste locations.
  }
@@ -521,16 +521,16 @@ const
 
 {
  *  PasteboardGetTypeID()
- *  
+ *
  *  Summary:
  *    Returns the CFType identifier for a pasteboard object.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Result:
  *    A CFTypeID unique to pasteboard instances.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -552,11 +552,11 @@ const
 
 {
  *  PasteboardCreate()
- *  
+ *
  *  Summary:
  *    Creates a local pasteboard reference to the global pasteboard
  *    resource of the same name.
- *  
+ *
  *  Discussion:
  *    If the the global pasteboard resource doesn't yet exist,
  *    PasteboardCreate creates a new one with the provided name.
@@ -570,25 +570,25 @@ const
  *    CFRelease(). CFRelease() automatically resolves all promises made
  *    to the global pasteboard resource through the reference being
  *    released.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inName:
  *      The name of the pasteboard to reference or create. Passing
  *      kPasteboardUniqueName, or NULL, will guarantee that a new
  *      global pasteboard resource is created. kPasteboardClipboard is
  *      the traditional copy and paste pasteboard. kPasteboardFind is
  *      compatible with Cocoa's global find pasteboard.
- *    
+ *
  *    outPasteboard:
  *      The created pasteboard reference.
- *  
+ *
  *  Result:
  *    An operating system result code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -600,7 +600,7 @@ function PasteboardCreate( inName: CFStringRef { can be NULL }; var outPasteboar
 
 {
  *  PasteboardSynchronize()
- *  
+ *
  *  Summary:
  *    Compares a local pasteboard reference with the global pasteboard
  *    resource to which it refers, determining whether the global
@@ -608,18 +608,18 @@ function PasteboardCreate( inName: CFStringRef { can be NULL }; var outPasteboar
  *    local pasteboard reference to reflect the change. The pasteboard
  *    reference provided is always brought up to date. This routine is
  *    lightweight whether a synchronization is required or not.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inPasteboard:
  *      A local pasteboard reference.
- *  
+ *
  *  Result:
  *    A set of pasteboard synchronization flags.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -631,7 +631,7 @@ function PasteboardSynchronize( inPasteboard: PasteboardRef ): PasteboardSyncFla
 
 {
  *  PasteboardClear()
- *  
+ *
  *  Summary:
  *    Clears all data from the global pasteboard resource associated
  *    with the pasteboard reference provided. The application now owns
@@ -639,18 +639,18 @@ function PasteboardSynchronize( inPasteboard: PasteboardRef ): PasteboardSyncFla
  *    resource from all local pasteboards in the client application
  *    which reference it. PasteboardClear must be called before the
  *    pasteboard can be modified.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inPasteboard:
  *      A local pasteboard reference.
- *  
+ *
  *  Result:
  *    An operating system result code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -662,27 +662,27 @@ function PasteboardClear( inPasteboard: PasteboardRef ): OSStatus; external name
 
 {
  *  PasteboardCopyName()
- *  
+ *
  *  Summary:
  *    Copies the name of the given pasteboard. Useful for discovering
  *    the name of a uniquely named pasteboard so other processes may
  *    access it.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inPasteboard:
  *      A local pasteboard reference.
- *    
+ *
  *    outName:
  *      On return, a CFString reference to the pasteboard's name. This
  *      string must be released by the client.
- *  
+ *
  *  Result:
  *    An operating system result code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.4 and later
@@ -694,25 +694,25 @@ function PasteboardCopyName( inPasteboard: PasteboardRef; var outName: CFStringR
 
 {
  *  PasteboardGetItemCount()
- *  
+ *
  *  Summary:
  *    Returns the number of items on the pasteboard.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inPasteboard:
  *      A local pasteboard reference.
- *    
+ *
  *    outItemCount:
  *      An ItemCount reference which receives number of pasteboard
  *      items.
- *  
+ *
  *  Result:
  *    An operating system result code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -724,28 +724,28 @@ function PasteboardGetItemCount( inPasteboard: PasteboardRef; var outItemCount: 
 
 {
  *  PasteboardGetItemIdentifier()
- *  
+ *
  *  Summary:
  *    Returns the item identifier for the nth pasteboard item.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inPasteboard:
  *      A local pasteboard reference.
- *    
+ *
  *    inIndex:
  *      A 1-based CFIndex requesting the nth pasteboard item reference.
- *    
+ *
  *    outItem:
  *      A PasteboardItemID which receives the nth pasteboard item
  *      reference.
- *  
+ *
  *  Result:
  *    An operating system result code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -757,30 +757,30 @@ function PasteboardGetItemIdentifier( inPasteboard: PasteboardRef; inIndex: CFIn
 
 {
  *  PasteboardCopyItemFlavors()
- *  
+ *
  *  Summary:
  *    Returns the array of flavors for the provided pasteboard
  *    reference.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inPasteboard:
  *      A local pasteboard reference.
- *    
+ *
  *    inItem:
  *      A pasteboard item identifier containing the flavors of interest.
- *    
+ *
  *    outFlavorTypes:
  *      A CFArrayRef reference which receives the array of Uniform Type
  *      Identifier based flavor types.  It is the client's
  *      responsibility to release the flavor array via CFRelease().
- *  
+ *
  *  Result:
  *    An operating system result code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -792,33 +792,33 @@ function PasteboardCopyItemFlavors( inPasteboard: PasteboardRef; inItem: Pastebo
 
 {
  *  PasteboardGetItemFlavorFlags()
- *  
+ *
  *  Summary:
  *    Returns the array of flags for the provided flavor, including
  *    implicit translations included by the system automatically.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inPasteboard:
  *      A local pasteboard reference.
- *    
+ *
  *    inItem:
  *      A pasteboard item identifier containing the flavor of interest.
- *    
+ *
  *    inFlavorType:
  *      A Uniform Type Identifier based flavor type whose flags are
  *      being interrogated.
- *    
+ *
  *    outFlags:
  *      A PasteboardFlavorFlags reference which receives the flavor
  *      flags.
- *  
+ *
  *  Result:
  *    An operating system result code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -830,32 +830,32 @@ function PasteboardGetItemFlavorFlags( inPasteboard: PasteboardRef; inItem: Past
 
 {
  *  PasteboardCopyItemFlavorData()
- *  
+ *
  *  Summary:
  *    Returns the data for the provided flavor.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inPasteboard:
  *      A local pasteboard reference.
- *    
+ *
  *    inItem:
  *      A pasteboard item identifier containing the flavor of interest.
- *    
+ *
  *    inFlavorType:
  *      A Uniform Type Identifier-based flavor type whose data is being
  *      retrieved.
- *    
+ *
  *    outData:
  *      A CFDataRef reference which receives the flavor data. It is the
  *      client's responsibility to release the data via CFRelease().
- *  
+ *
  *  Result:
  *    An operating system result code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -867,21 +867,21 @@ function PasteboardCopyItemFlavorData( inPasteboard: PasteboardRef; inItem: Past
 
 const
     kPasteboardPromisedData = NIL;
-	
+
 {
  *  PasteboardPutItemFlavor()
- *  
+ *
  *  Summary:
  *    Adds flavor data or a promise to the global pasteboard resource.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inPasteboard:
  *      A local pasteboard reference.
- *    
+ *
  *    inItem:
  *      A pasteboard item identifier in which to add the data or
  *      promise. Pasteboard item identifiers are unique values created
@@ -893,27 +893,27 @@ const
  *      item being added has a unique item reference number).
  *      Pasteboard item identifiers should only be interpreted by the
  *      owning application.
- *    
+ *
  *    inFlavorType:
  *      A Uniform Type Identifier based flavor type associated with the
  *      data. If multiple flavors are to be added to an item, the
  *      owning application should add them in order of preference or
  *      richness as determined by the owing application.  The ordering
  *      will be retained when viewed by the receiving application.
- *    
+ *
  *    inData:
  *      A CFDataRef reference which receives the flavor data. Passing
  *      kPasteboardPromisedData, or NULL, indicates the data is
  *      promised. This is useful if the data is expensive to generate.
  *      Making promises requires the sender to also implement a promise
  *      keeper which must be set before the promise is made.
- *    
+ *
  *    inFlags:
  *      A PasteboardFlavorFlags set of flags to attach to the data.
- *  
+ *
  *  Result:
  *    An operating system result code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -925,26 +925,26 @@ function PasteboardPutItemFlavor( inPasteboard: PasteboardRef; inItem: Pasteboar
 
 {
  *  PasteboardCopyPasteLocation()
- *  
+ *
  *  Summary:
  *    Called by the owner of a pasteboard while providing promised data
  *    to determine the paste location set by the pasteboard receiver.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inPasteboard:
  *      A local pasteboard reference.
- *    
+ *
  *    outPasteLocation:
  *      A CFURL reference describing the paste location. It is the
  *      client's responsibility to release the data via CFRelease().
- *  
+ *
  *  Result:
  *    An operating system result code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -956,28 +956,28 @@ function PasteboardCopyPasteLocation( inPasteboard: PasteboardRef; var outPasteL
 
 {
  *  PasteboardSetPasteLocation()
- *  
+ *
  *  Summary:
  *    Called by the receiver of a pasteboard before requesting any item
  *    flavor data via PasteboardCopyItemFlavorData.  When a sending
  *    application's pasteboard promise keeper is called to provide data
  *    to the receiver, PasteboardGetDropLocation can be called to
  *    determine the paste location while providing data.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inPasteboard:
  *      A local pasteboard reference.
- *    
+ *
  *    inPasteLocation:
  *      A CFURL describing the paste location.
- *  
+ *
  *  Result:
  *    An operating system result code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -989,25 +989,25 @@ function PasteboardSetPasteLocation( inPasteboard: PasteboardRef; inPasteLocatio
 
 {
  *  PasteboardPromiseKeeperProcPtr
- *  
+ *
  *  Summary:
  *    Callback for providing data previously promised on the pasteboard.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    pasteboard:
  *      The local pasteboard reference on which the promise was made.
- *    
+ *
  *    item:
  *      The pasteboard item identifier containing the promised flavor.
- *    
+ *
  *    flavorType:
  *      The Uniform Type Identifier based flavor type for which the
  *      promised data is being requested.
- *    
+ *
  *    context:
  *      The value passed as the context in PasteboardSetPromiseKeeper().
- *  
+ *
  *  Result:
  *    An operating system result code.
  }
@@ -1015,30 +1015,30 @@ type
 	PasteboardPromiseKeeperProcPtr = function( pasteboard: PasteboardRef; item: PasteboardItemID; flavorType: CFStringRef; context: UnivPtr ): OSStatus;
 {
  *  PasteboardSetPromiseKeeper()
- *  
+ *
  *  Summary:
  *    Associates a promise keeper callback with a local pasteboard
  *    reference. The promise keeper must be set before a promise is
  *    made.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inPasteboard:
  *      The local pasteboard reference on which promises will be made.
- *    
+ *
  *    inPromiseKeeper:
  *      A PasteboardPromiseKeeperProcPtr promise keeper proc.
- *    
+ *
  *    inContext:
  *      The value passed in this parameter is passed on to your promise
  *      keeper proc when it is called.
- *  
+ *
  *  Result:
  *    An operating system result code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -1050,30 +1050,30 @@ function PasteboardSetPromiseKeeper( inPasteboard: PasteboardRef; inPromiseKeepe
 
 const
     kPasteboardResolveAllPromises = NIL;
-	
+
 {
  *  PasteboardResolvePromises()
- *  
+ *
  *  Summary:
  *    Resolves promises on the provided local pasteboard reference. If
  *    multiple local pasteboard references to the same global
  *    pasteboard resource exist, only those promises made through the
  *    provided reference are resolved.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inPasteboard:
  *      The local pasteboard reference for which promises will be
  *      resolved. Passing kPasteboardResolveAllPromises, or NULL, will
  *      cause all promises on all global pasteboard resources currently
  *      owned by this application to be resolved.
- *  
+ *
  *  Result:
  *    An operating system result code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later

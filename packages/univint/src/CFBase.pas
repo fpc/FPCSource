@@ -403,7 +403,7 @@ type
 { Base "type" of all "CF objects", and polymorphic functions on them }
 type
 	CFTypeRef = UnivPtr; { an opaque type }
-	
+
 { GK: We need it for passing open arrays of CFTypes in MDQuery.pas }
 	CFTypeRefPtr = ^CFTypeRef;
 type
@@ -501,13 +501,13 @@ var kCFAllocatorMallocZone: CFAllocatorRef; external name '_kCFAllocatorMallocZo
 
 { Null allocator which does nothing and allocates no memory. This allocator
    is useful as the "bytesDeallocator" in CFData or "contentsDeallocator"
-   in CFString where the memory should not be freed. 
+   in CFString where the memory should not be freed.
 }
 var kCFAllocatorNull: CFAllocatorRef; external name '_kCFAllocatorNull'; (* attribute const *)
 
 { Special allocator argument to CFAllocatorCreate() which means
    "use the functions given in the context to allocate the allocator
-   itself as well". 
+   itself as well".
 }
 var kCFAllocatorUseContext: CFAllocatorRef; external name '_kCFAllocatorUseContext'; (* attribute const *)
 
@@ -524,7 +524,7 @@ type
 		version: CFIndex;
 		info: UnivPtr;
 		retain: CFAllocatorRetainCallBack;
-		release: CFAllocatorReleaseCallBack;        
+		release: CFAllocatorReleaseCallBack;
 		copyDescription: CFAllocatorCopyDescriptionCallBack;
 		allocate: CFAllocatorAllocateCallBack;
 		reallocate: CFAllocatorReallocateCallBack;
@@ -600,7 +600,7 @@ function CFGetAllocator( cf: CFTypeRef ): CFAllocatorRef; external name '_CFGetA
 // This function is unavailable in ARC mode. Use CFBridgingRelease instead.
 { CF_AUTOMATED_REFCOUNT_UNAVAILABLE }
 function CFMakeCollectable( cf: CFTypeRef ): CFTypeRef; external name '_CFMakeCollectable';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *) 
+(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
 
 {$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 
