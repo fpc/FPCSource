@@ -206,7 +206,7 @@ function PhoneAddSpeedDial(dwFlags:DWORD;
                            piKey:LPDWORD;
                            pszDisplayName:PTCHAR;
                            pszTelNumber:PTCHAR):HRESULT; external PhoneDLL name 'PhoneAddSpeedDial';
-                           
+
 //
 // End PhoneAddSpeedDial
 //
@@ -223,7 +223,7 @@ function PhoneAddSpeedDial(dwFlags:DWORD;
 //  current phone call.
 //
 //  Parameters:
-//    chDTMF - DTMF character to send. Must be '0'-'9', 
+//    chDTMF - DTMF character to send. Must be '0'-'9',
 //             'A'-'D', '*', or '#'.
 //
 //  Return Value:
@@ -233,28 +233,28 @@ function PhoneAddSpeedDial(dwFlags:DWORD;
 //    S_OK                         The operation completed successfully.
 //    E_FAIL                       An unknown error occurred.
 //    E_INVALIDARG                 chDTMF is invalid.
-//    E_NOTIMPL                    No phone is present on the device, the 
-//                                 phone service is not running, or no 
+//    E_NOTIMPL                    No phone is present on the device, the
+//                                 phone service is not running, or no
 //                                 calls are currently active.
-//    
+//
 //    Other custom failure codes where the facility code is
 //    FACILITY_WINDOWS_CE may be retrieved using the HRESULT_CODE
 //    macro:
 //    -----------------------------------------------------------
 //    Error Code                   Description
 //    ------------------------------------------------------------
-//    ERROR_DEVICE_NOT_CONNECTED   No phone is present on the device, 
-//                                 the phone service is not running, or 
+//    ERROR_DEVICE_NOT_CONNECTED   No phone is present on the device,
+//                                 the phone service is not running, or
 //                                 no calls are currently active.
 //
 //  Remarks:
 //    Caller must call PhoneSendDTMFStop to stop the DTMF tone.
 //
-//    This function will fail if no phone is present on the 
-//    device, the phone service is not running, or no calls are  
-//    currently active. If a subsequent call to this API is made 
-//    by the caller or any other application before the DTMF tone  
-//    is finished the original DTMF tone will cease and the new 
+//    This function will fail if no phone is present on the
+//    device, the phone service is not running, or no calls are
+//    currently active. If a subsequent call to this API is made
+//    by the caller or any other application before the DTMF tone
+//    is finished the original DTMF tone will cease and the new
 //    DTMF will be sent.
 //
 
@@ -294,25 +294,25 @@ procedure PhoneSendDTMFStop; external PhoneDLL name 'PhoneSendDTMFStop';
 //
 //  Parameters:
 //    fTailMatchOnly
-//        [in] If this argument is set to TRUE, the function only 
-//        attempts to match emergency numbers at the end of 
-//        pszNumber. If this value is FALSE, the function attempts 
-//        to match the emergency string with the full pszNumber 
+//        [in] If this argument is set to TRUE, the function only
+//        attempts to match emergency numbers at the end of
+//        pszNumber. If this value is FALSE, the function attempts
+//        to match the emergency string with the full pszNumber
 ///       argument exactly.
 //    pszNumber
-//        [in] String to match. If this pointer is NULL or points 
+//        [in] String to match. If this pointer is NULL or points
 //        to an empty string, the function returns FALSE.
 //    ppszEmergencyNumber
-//        [out] On success, constant pointer to the emergency phone 
-//        number matched in pszNumber. Caller must not free. On 
+//        [out] On success, constant pointer to the emergency phone
+//        number matched in pszNumber. Caller must not free. On
 //        failure, this pointer is undefined. Optional, may be NULL.
 //
 //  Return Value:
 //    TRUE if pszNumber contains an emergency number; otherwise FALSE.
 //
 //  Remarks:
-//    The system merges the list of emergency phone numbers from 
-//    the registry and the SIM, if available. The list of emergency 
+//    The system merges the list of emergency phone numbers from
+//    the registry and the SIM, if available. The list of emergency
 //    numbers can vary by device.
 //
 

@@ -46,10 +46,10 @@ type
    PXPointer = ^TXPointer;
    TXPointer = ^AnsiChar;
    PBool = ^TBool;
-   { We cannot use TBool = LongBool, because Longbool(True)=-1, 
-     and that is not handled well by X. So we leave TBool=cint; 
-     and make overloaded calls with a boolean parameter. 
-     For function results, longbool is OK, since everything <>0 
+   { We cannot use TBool = LongBool, because Longbool(True)=-1,
+     and that is not handled well by X. So we leave TBool=cint;
+     and make overloaded calls with a boolean parameter.
+     For function results, longbool is OK, since everything <>0
      is interpreted as true, so we introduce TBoolResult. }
    TBool = cint;
    PBoolResult = ^TBoolResult;

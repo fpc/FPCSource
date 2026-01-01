@@ -181,7 +181,7 @@ type
   PPOLICY_AUDIT_EVENT_TYPE = ^POLICY_AUDIT_EVENT_TYPE;
   {$EXTERNALSYM PPOLICY_AUDIT_EVENT_TYPE}
   TPolicyAuditEventType = POLICY_AUDIT_EVENT_TYPE;
-  PPolicyAuditEventType = PPOLICY_AUDIT_EVENT_TYPE;  
+  PPolicyAuditEventType = PPOLICY_AUDIT_EVENT_TYPE;
 
 //
 // The following defines describe the auditing options for each
@@ -472,7 +472,7 @@ type
   PLSA_TRANSLATED_SID2 = ^LSA_TRANSLATED_SID2;
   {$EXTERNALSYM PLSA_TRANSLATED_SID2}
   TLsaTranslatedSid2 = LSA_TRANSLATED_SID2;
-  PLsaTranslatedSid2 = PLSA_TRANSLATED_SID2;  
+  PLsaTranslatedSid2 = PLSA_TRANSLATED_SID2;
 
 // where members have the following usage:
 //
@@ -1044,7 +1044,7 @@ type
   PPOLICY_NOTIFICATION_INFORMATION_CLASS = ^POLICY_NOTIFICATION_INFORMATION_CLASS;
   {$EXTERNALSYM PPOLICY_NOTIFICATION_INFORMATION_CLASS}
   TPolicyNotificationInformationClass = POLICY_NOTIFICATION_INFORMATION_CLASS;
-  PPolicyNotificationInformationClass = PPOLICY_NOTIFICATION_INFORMATION_CLASS;  
+  PPolicyNotificationInformationClass = PPOLICY_NOTIFICATION_INFORMATION_CLASS;
 
 //
 // LSA RPC Context Handle (Opaque form).  Note that a Context Handle is
@@ -1086,7 +1086,7 @@ type
   PTRUSTED_INFORMATION_CLASS = ^TRUSTED_INFORMATION_CLASS;
   {$EXTERNALSYM PTRUSTED_INFORMATION_CLASS}
   TTrustedInfomationClass = TRUSTED_INFORMATION_CLASS;
-  PTrustedInfomationClass = PTRUSTED_INFORMATION_CLASS;  
+  PTrustedInfomationClass = PTRUSTED_INFORMATION_CLASS;
 
 //
 // The following data type corresponds to the TrustedDomainNameInformation
@@ -1792,7 +1792,7 @@ type
     MessageType: ULONG;
     PrefixCount: ULONG;
     Offset: ULONG; // Offset to array of _PREFIX above
-    Pad: ULONG;    // Align structure for 64-bit    
+    Pad: ULONG;    // Align structure for 64-bit
   end;
   {$EXTERNALSYM _NEGOTIATE_PACKAGE_PREFIXES}
   NEGOTIATE_PACKAGE_PREFIXES = _NEGOTIATE_PACKAGE_PREFIXES;
@@ -1966,7 +1966,7 @@ type
   PMSV1_0_PROFILE_BUFFER_TYPE = ^MSV1_0_PROFILE_BUFFER_TYPE;
   {$EXTERNALSYM PMSV1_0_PROFILE_BUFFER_TYPE}
   TMsv1_0ProfileBufferType = MSV1_0_PROFILE_BUFFER_TYPE;
-  PMsv1_0ProfileBufferType = PMSV1_0_PROFILE_BUFFER_TYPE;  
+  PMsv1_0ProfileBufferType = PMSV1_0_PROFILE_BUFFER_TYPE;
 
 //
 // MsV1_0InteractiveLogon
@@ -2450,7 +2450,7 @@ type
   PMSV1_0_PASSTHROUGH_REQUEST = ^MSV1_0_PASSTHROUGH_REQUEST;
   {$EXTERNALSYM PMSV1_0_PASSTHROUGH_REQUEST}
   TMsv10PassThroughRequest = MSV1_0_PASSTHROUGH_REQUEST;
-  PMsv10PassThroughRequest = PMSV1_0_PASSTHROUGH_REQUEST;  
+  PMsv10PassThroughRequest = PMSV1_0_PASSTHROUGH_REQUEST;
 
   _MSV1_0_PASSTHROUGH_RESPONSE = record
     MessageType: MSV1_0_PROTOCOL_MESSAGE_TYPE;
@@ -2667,7 +2667,7 @@ const
   KERB_CHECKSUM_KRB_DES_MAC = 4;
   {$EXTERNALSYM KERB_CHECKSUM_KRB_DES_MAC}
   KERB_CHECKSUM_KRB_DES_MAC_K = 5;
-  {$EXTERNALSYM KERB_CHECKSUM_KRB_DES_MAC_K}  
+  {$EXTERNALSYM KERB_CHECKSUM_KRB_DES_MAC_K}
   KERB_CHECKSUM_MD5         = 7;
   {$EXTERNALSYM KERB_CHECKSUM_MD5}
   KERB_CHECKSUM_MD5_DES     = 8;
@@ -2838,7 +2838,7 @@ const
   KerbProxyLogon = 9;
   KerbTicketLogon = 10;
   KerbTicketUnlockLogon = 11;
-  KerbS4ULogon = 12; 
+  KerbS4ULogon = 12;
 
 type
   KERB_LOGON_SUBMIT_TYPE = DWORD;
@@ -2956,7 +2956,7 @@ type
   PKERB_S4U_LOGON = ^KERB_S4U_LOGON;
   {$EXTERNALSYM PKERB_S4U_LOGON}
   TKerbS4ULogon = KERB_S4U_LOGON;
-  PKerbS4ULogon = PKERB_S4U_LOGON;  
+  PKerbS4ULogon = PKERB_S4U_LOGON;
 
 //
 // Use the same profile structure as MSV1_0
@@ -3075,7 +3075,7 @@ type
   PKERB_PROTOCOL_MESSAGE_TYPE = ^KERB_PROTOCOL_MESSAGE_TYPE;
   {$EXTERNALSYM PKERB_PROTOCOL_MESSAGE_TYPE}
   TKerbProtocolMessageType = KERB_PROTOCOL_MESSAGE_TYPE;
-  PKerbProtocolMessageType = PKERB_PROTOCOL_MESSAGE_TYPE;  
+  PKerbProtocolMessageType = PKERB_PROTOCOL_MESSAGE_TYPE;
 
 //
 // Used both for retrieving tickets and for querying ticket cache
@@ -3127,7 +3127,7 @@ type
   PKERB_TICKET_CACHE_INFO_EX = ^KERB_TICKET_CACHE_INFO_EX;
   {$EXTERNALSYM PKERB_TICKET_CACHE_INFO_EX}
   TKerbTicketCacheInfoEx = KERB_TICKET_CACHE_INFO_EX;
-  PKerbTicketCacheInfoEx = PKERB_TICKET_CACHE_INFO_EX;  
+  PKerbTicketCacheInfoEx = PKERB_TICKET_CACHE_INFO_EX;
 
   PKERB_QUERY_TKT_CACHE_RESPONSE = ^KERB_QUERY_TKT_CACHE_RESPONSE;
   {$EXTERNALSYM PKERB_QUERY_TKT_CACHE_RESPONSE}
@@ -3153,7 +3153,7 @@ type
   PKERB_QUERY_TKT_CACHE_EX_RESPONSE = ^KERB_QUERY_TKT_CACHE_EX_RESPONSE;
   {$EXTERNALSYM PKERB_QUERY_TKT_CACHE_EX_RESPONSE}
   TKerbQueryTktCacheExResponse = KERB_QUERY_TKT_CACHE_EX_RESPONSE;
-  PKerbQueryTktCacheExResponse = PKERB_QUERY_TKT_CACHE_EX_RESPONSE;  
+  PKerbQueryTktCacheExResponse = PKERB_QUERY_TKT_CACHE_EX_RESPONSE;
 
 //
 // Types for retrieving encoded ticket from the cache
@@ -3232,7 +3232,7 @@ type
   PKERB_NET_ADDRESSES = ^KERB_NET_ADDRESSES;
   {$EXTERNALSYM PKERB_NET_ADDRESSES}
   TKerbNetAddresses = KERB_NET_ADDRESSES;
-  PKerbNetAddresses = PKERB_NET_ADDRESSES;  
+  PKerbNetAddresses = PKERB_NET_ADDRESSES;
 
 //
 // Types for the information about a ticket
@@ -3416,7 +3416,7 @@ type
   PKERB_SETPASSWORD_EX_REQUEST = ^KERB_SETPASSWORD_EX_REQUEST;
   {$EXTERNALSYM PKERB_SETPASSWORD_EX_REQUEST}
   TKerbSetPasswordExRequest = KERB_SETPASSWORD_EX_REQUEST;
-  PKerbSetPasswordExRequest = PKERB_SETPASSWORD_EX_REQUEST;  
+  PKerbSetPasswordExRequest = PKERB_SETPASSWORD_EX_REQUEST;
 
 const
   DS_UNKNOWN_ADDRESS_TYPE     = 0; // anything *but* IP
@@ -3487,7 +3487,7 @@ type
   PKerbAddBindingCacheEntryRequest = PKERB_ADD_BINDING_CACHE_ENTRY_REQUEST;
 
 //
-// Request structure for reacquiring smartcard credentials for a 
+// Request structure for reacquiring smartcard credentials for a
 // given LUID.
 // Requires TCB.
 //
@@ -3504,7 +3504,7 @@ type
   PKERB_REFRESH_SCCRED_REQUEST = ^KERB_REFRESH_SCCRED_REQUEST;
   {$EXTERNALSYM PKERB_REFRESH_SCCRED_REQUEST}
   TKerbRefreshScCredRequest = KERB_REFRESH_SCCRED_REQUEST;
-  PKerbRefreshScCredRequest = PKERB_REFRESH_SCCRED_REQUEST;  
+  PKerbRefreshScCredRequest = PKERB_REFRESH_SCCRED_REQUEST;
 
 //
 // Flags for KERB_REFRESH_SCCRED_REQUEST
@@ -3513,7 +3513,7 @@ type
 //      Release the smartcard handle for LUID
 //
 //      KERB_REFRESH_SCCRED_GETTGT
-//      Use the certificate hash in the blob to get a TGT for the logon 
+//      Use the certificate hash in the blob to get a TGT for the logon
 //      session.
 //
 

@@ -73,7 +73,7 @@ uses
 type
   FLOAT = Single;
   {$NODEFINE FLOAT}
-{$ENDIF JWA_INCLUDEMODE}  
+{$ENDIF JWA_INCLUDEMODE}
 
 (****************************************************************************
 
@@ -211,7 +211,7 @@ type
   end;
   {$EXTERNALSYM RSVP_SESSION}
   TRsvpSession = RSVP_SESSION;
-  PRsvpSession = ^RSVP_SESSION;  
+  PRsvpSession = ^RSVP_SESSION;
 
 // Useful defines to access components of SESSION obect
 
@@ -333,7 +333,7 @@ type
   end;
   {$EXTERNALSYM FILTER_SPEC}
   TFilterSpec = FILTER_SPEC;
-  PFilterSpec = ^FILTER_SPEC;  
+  PFilterSpec = ^FILTER_SPEC;
 
 //#define FilterSrcaddr   filt_u.filt_ipv4.filt_ipaddr
 //#define FilterSrcport   filt_u.filt_ipv4.filt_port
@@ -894,7 +894,7 @@ type
 (*
  *  General Path Characterization Parameters
  *)
- 
+
   GenAdspecParams = record
     gen_parm_hdr: IntServServiceHdr;           // GENERAL_INFO, len
     gen_parm_hopcnt_hdr: IntServParmHdr;    // (IS_WKP_HOP_CNT
@@ -924,7 +924,7 @@ type
   end;
   {$EXTERNALSYM IS_ADSPEC_BODY}
   TIsAdSpecBody = IS_ADSPEC_BODY;
-  PIsAdSpecBody = ^IS_ADSPEC_BODY;  
+  PIsAdSpecBody = ^IS_ADSPEC_BODY;
 
 //const TODO Unknown Object_Header
 //  GEN_ADSPEC_LEN = SizeOf(Object_header) + SizeOf(IS_adsbody_t);
@@ -1298,7 +1298,7 @@ type
   {$EXTERNALSYM RSVP_MSG_OBJS}
   TRsvpMsgObjs = RSVP_MSG_OBJS;
   PRsvpMsgObjs = ^RSVP_MSG_OBJS;
-  
+
   PALLOCMEM = function(Size: DWORD): Pointer; stdcall;
   {$EXTERNALSYM PALLOCMEM}
   TAllocMem = PALLOCMEM;
@@ -1355,7 +1355,7 @@ type
   LPM_INIT_INFO = lpminitinfo;
   {$EXTERNALSYM LPM_INIT_INFO}
   TLpmInitInfo = LPM_INIT_INFO;
-  PLpmInitInfo = ^LPM_INIT_INFO;  
+  PLpmInitInfo = ^LPM_INIT_INFO;
 
 // Valid PE types
 // XXX ISSUE - Is 0xFFFF a better choice?

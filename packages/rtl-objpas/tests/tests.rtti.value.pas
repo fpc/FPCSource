@@ -16,7 +16,7 @@ Type
     procedure TestReferenceRawData;
     procedure TestReferenceRawDataEmpty;
     procedure TestIsManaged;
-    procedure TestCasts; 
+    procedure TestCasts;
     procedure TestAssignPointer;
     procedure TestAssignDateTime;
     procedure TestAssignDate;

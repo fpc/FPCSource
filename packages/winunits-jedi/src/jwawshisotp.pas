@@ -161,7 +161,7 @@ type
   LPSOCKADDR_TP = ^SOCKADDR_TP;
   {$EXTERNALSYM LPSOCKADDR_TP}
   TSockAddrTP = SOCKADDR_TP;
-  PSockAddrTP = LPSOCKADDR_TP;  
+  PSockAddrTP = LPSOCKADDR_TP;
 
 //procedure ISO_SET_TP_ADDR(var sa_tp: TSockAddrTP; port: PAnsiChar; portlen: u_short; node: PAnsiChar; nodelen: u_short);
 //{$EXTERNALSYM ISO_SET_TP_ADDR}

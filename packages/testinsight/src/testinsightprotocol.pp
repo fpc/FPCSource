@@ -3,7 +3,7 @@
     Copyright (c) 2023 by Michael Van Canneyt
 
     Test Insight protocol description.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -12,7 +12,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-{$IFNDEF FPC_DOTTEDUNITS} 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit testinsightprotocol;
 {$ENDIF}
 
@@ -21,7 +21,7 @@ unit testinsightprotocol;
 interface
 
 uses
-{$IFDEF FPC_DOTTEDUNITS} 
+{$IFDEF FPC_DOTTEDUNITS}
   System.Classes, System.SysUtils, FpJson.Data;
 {$ELSE}
   Classes, SysUtils, fpJSON;

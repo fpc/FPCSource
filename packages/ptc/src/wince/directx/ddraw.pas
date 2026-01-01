@@ -395,7 +395,7 @@ type
 
 
     (*
-     * These elements can be used to identify particular chipsets. Use with extreme caution. 
+     * These elements can be used to identify particular chipsets. Use with extreme caution.
      *   dwVendorId     Identifies the manufacturer. May be zero if unknown.
      *   dwDeviceId     Identifies the type of chipset. May be zero if unknown.
      *   dwSubSysId     Identifies the subsystem, typically this means the particular board. May be zero if unknown.

@@ -118,7 +118,7 @@ Const
         ABMON_10        = 29;
         ABMON_11        = 30;
         ABMON_12        = 31;
-                        
+
         ERA             = 56;      { era description segments }
         ERA_D_FMT       = 57;      { era date format string }
         ERA_D_T_FMT     = 58;      { era date and time format string }

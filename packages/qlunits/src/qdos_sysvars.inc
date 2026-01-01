@@ -34,7 +34,7 @@ Type
     sv_ident: Longint;  { $00 - system variables identifier }
 
 {
-  The following variables are the pointers which define the 
+  The following variables are the pointers which define the
   current state of the memory map.
 }
     sv_cheap: Pointer;  { $04 - Start of Common Heap area }
@@ -100,18 +100,18 @@ Type
     sv_csub: Pointer;  { $A2 - Subroutine to jump to on Caps Lock }
     sv_timo: Word;     { $A6 - Counter for timing serial output }
     sv_timov: Word;    { $A8 - Initial value of sv_timo }
-                        {  Formula = (1200/baud+1, i.e. 
-                                     11 = 75   bps, 
-                                      5 = 300  bps, 
-                                      3 = 600  bps, 
-                                      2 = 1200 bps, 
+                        {  Formula = (1200/baud+1, i.e.
+                                     11 = 75   bps,
+                                      5 = 300  bps,
+                                      3 = 600  bps,
+                                      2 = 1200 bps,
                                       1 = 2400 bps+) [QL] }
     sv_fstat: Word;    { $AA - Cursor flash counter }
 
-{ 
+{
   The original QL had 66 unused bytes between $AC and $ED inclusive. Over time
   these have been used by Toolkit 2, for example, for default devices etc. These
-  are defined with the SMS names as QDOS didn't have them. 
+  are defined with the SMS names as QDOS didn't have them.
 }
 
     sv_prgd: Pointer;  { $AC - Pointer to Program Default device }
@@ -133,9 +133,9 @@ Type
 
 {
   Offset $0154 is a table of 4 long words used by Taskmaster
-  but one which is also used by TURBO. I've used the most 
+  but one which is also used by TURBO. I've used the most
   likely case here, Taskmaster is pretty much defunct.
-  (Famous last words?) 
+  (Famous last words?)
 }
 
     //sv_taskm: Array [0..3] of Longint; {$154 - 4 Long Used by Taskmaster }

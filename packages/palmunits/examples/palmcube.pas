@@ -248,7 +248,7 @@ begin
   offScreen:=CreateOffscreenWin(offScrWin,scrWin,r);
   repeat
     EvtGetEvent(event, evtWaitForever);
-    if not SysHandleEvent(event) and 
+    if not SysHandleEvent(event) and
        ((event.screenX<>prevX) or (event.screenY<>prevY)) then
       begin
         prevX:=event.screenX;

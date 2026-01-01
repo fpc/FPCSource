@@ -14,49 +14,49 @@
 }
 
 const
-   EDB_MOUNT_FLAG = $80000000;   
+   EDB_MOUNT_FLAG = $80000000;
 
 //-------------------------------------------------------------------------
 // Property Flags
 //
 
 const
-   DB_PROP_NOTNULL = $00000001;   
-   DB_PROP_COMPRESSED = $00000002;   
+   DB_PROP_NOTNULL = $00000001;
+   DB_PROP_COMPRESSED = $00000002;
 //--------------------------------------------------------------------------
 // Option Ids
 //
-   DBOPT_SESSION_MAX_CHANGES = $01;   
-   DBOPT_SESSION_LOCK_TIMEOUT = $02;   
+   DBOPT_SESSION_MAX_CHANGES = $01;
+   DBOPT_SESSION_LOCK_TIMEOUT = $02;
 
 //--------------------------------------------------------------------------
 // New Tracking Types
 //
-   DB_TRACK_INSERT = $00000001;   
-   DB_TRACK_UPDATE = $00000002;   
-   DB_TRACK_DELETE = $00000003;   
+   DB_TRACK_INSERT = $00000001;
+   DB_TRACK_UPDATE = $00000002;
+   DB_TRACK_DELETE = $00000003;
 
 // Tracking Modes
 //
    DB_TRACK_LEVEL = $0000007C; // 1111100
-   DB_TRACK_LEVEL_RECORD = $00000004;   
-   DB_TRACK_LEVEL_PROPINCLUSIVE = $00000008;   
-   DB_TRACK_LEVEL_PROPEXCLUSIVE = $00000010;   
-   DB_TRACK_LEVEL_PROPVALCHANGE = $00000020;   
+   DB_TRACK_LEVEL_RECORD = $00000004;
+   DB_TRACK_LEVEL_PROPINCLUSIVE = $00000008;
+   DB_TRACK_LEVEL_PROPEXCLUSIVE = $00000010;
+   DB_TRACK_LEVEL_PROPVALCHANGE = $00000020;
 
 // Row Identifier for Tracking
 //
    DB_TRACK_ROWIDENTITY = $00000003; // 000011
-   DB_TRACK_ROWIDENTITY_PK = $00000001;   
+   DB_TRACK_ROWIDENTITY_PK = $00000001;
 
 // Sync Session Flags
 //
-   DB_SYNCSESSION_COMPLETE = $00000000;   
-   DB_SYNCSESSION_PARTIAL = $00000001;   
-   DB_SYNCSESSION_FAILED = $00000002;   
-   DB_SYNCSESSION_TRACKSERVER = $00000000;   
-   DB_SYNCSESSION_NOTRACK = $00000001;   
-   DB_SYNCSESSION_OVERRRIDELOCALCHANGES = $00000002;   
+   DB_SYNCSESSION_COMPLETE = $00000000;
+   DB_SYNCSESSION_PARTIAL = $00000001;
+   DB_SYNCSESSION_FAILED = $00000002;
+   DB_SYNCSESSION_TRACKSERVER = $00000000;
+   DB_SYNCSESSION_NOTRACK = $00000001;
+   DB_SYNCSESSION_OVERRRIDELOCALCHANGES = $00000002;
 
 //--------------------------------------------------------------------------
 // Tracking generations: CEDBGEN
@@ -68,7 +68,7 @@ type
 // Default generation values
 //
 const
-   CEDBGEN_DEFAULT = $FFFFFFFFFFFFFFFF;   
+   CEDBGEN_DEFAULT = $FFFFFFFFFFFFFFFF;
 
 //--------------------------------------------------------------------------
 // CECHANGEINFO
@@ -88,30 +88,30 @@ type
    CEDBISOLATIONLEVEL = longint;
 
 const
-   CEDB_ISOLEVEL_DEFAULT = 1;   
-   CEDB_ISOLEVEL_READCOMMITTED = 1;   
-   CEDB_ISOLEVEL_REPEATABLEREAD = 2;   
-   CEDB_ISOLEVEL_SERIALIZABLE = 3;   
-   CEDB_ISOLEVEL_LAST = CEDB_ISOLEVEL_SERIALIZABLE;   
+   CEDB_ISOLEVEL_DEFAULT = 1;
+   CEDB_ISOLEVEL_READCOMMITTED = 1;
+   CEDB_ISOLEVEL_REPEATABLEREAD = 2;
+   CEDB_ISOLEVEL_SERIALIZABLE = 3;
+   CEDB_ISOLEVEL_LAST = CEDB_ISOLEVEL_SERIALIZABLE;
 
 //--------------------------------------------------------------------------
 // Limits - apply to various volume options
 //
-   CEDB_CB_MIN_BUFFER_POOL = $00040000;   
-   CEDB_CB_MAX_BUFFER_POOL = $10000000;   
-   CEDB_AUTO_SHRINK_OFF = $0;   
-   CEDB_AUTO_SHRINK_THRESHOLD_MAX = 100;   
-   CEDB_FLUSH_INTERVAL_MIN = 1;   
-   CEDB_FLUSH_INTERVAL_MAX = 1000;   
-   CEDB_C_MIN_MAX_NOTIFY_CHANGES = 0;   
-   CEDB_C_MAX_MAX_NOTIFY_CHANGES = $FFFFFFFF;   
+   CEDB_CB_MIN_BUFFER_POOL = $00040000;
+   CEDB_CB_MAX_BUFFER_POOL = $10000000;
+   CEDB_AUTO_SHRINK_OFF = $0;
+   CEDB_AUTO_SHRINK_THRESHOLD_MAX = 100;
+   CEDB_FLUSH_INTERVAL_MIN = 1;
+   CEDB_FLUSH_INTERVAL_MAX = 1000;
+   CEDB_C_MIN_MAX_NOTIFY_CHANGES = 0;
+   CEDB_C_MAX_MAX_NOTIFY_CHANGES = $FFFFFFFF;
 
 //--------------------------------------------------------------------------
 // CCH_MAX_PASSWORD
 //
   ///{$IFNDEF CCH_MAX_PASSWORD}
 const
-   CCH_MAX_PASSWORD = 40;   
+   CCH_MAX_PASSWORD = 40;
   ///{$DEFINE CCH_MAX_PASSWORD}
   ///{$ENDIF}
 
@@ -131,7 +131,7 @@ const
 //
 
 const
-   CEVOLUMEOPTIONS_VERSION = 1;   
+   CEVOLUMEOPTIONS_VERSION = 1;
 type
 
    _CEVOLUMEOPTIONS = record
@@ -153,28 +153,28 @@ type
 // Used to overwrite the default buffer pool size
 //
 const
-   CEDB_BUFFERPOOL = $00000001;   
+   CEDB_BUFFERPOOL = $00000001;
 
 // Used to overwrite the default auto shrink percent.
 //
-   CEDB_AUTOSHRINKPERCENT = $00000002;   
+   CEDB_AUTOSHRINKPERCENT = $00000002;
 
 // Used to overwrite the default flush interval.
 //
-   CEDB_FLUSHINTERVAL = $00000004;   
+   CEDB_FLUSHINTERVAL = $00000004;
 
 // Used to overwrite the default maximum number of
 // individual notifications changes to track.
 //
-   CEDB_MAXNOTIFYCHANGES = $00000008;   
+   CEDB_MAXNOTIFYCHANGES = $00000008;
 
 // Used to overwrite the default lock time out.
 //
-   CEDB_DEFAULTTIMEOUT = $00000010;   
+   CEDB_DEFAULTTIMEOUT = $00000010;
 
 // Used to indicate that the password field contains a password
 //
-   CEDB_PASSWORD = $00000020;   
+   CEDB_PASSWORD = $00000020;
 
 //-------------------------------------------------------------------------
 // CEPROPSPEC
@@ -189,7 +189,7 @@ const
 // cchPropName  - The user will fill this field with the number of
 //              wide characters available in pwszPropName.
 //
-   CEPROPSPEC_VERSION = 1;   
+   CEPROPSPEC_VERSION = 1;
 type
 
    _CEPROPSPEC = record

@@ -414,7 +414,7 @@ typedef struct _AUTHZ_SOURCE_SCHEMA_REGISTRATION
 #define AUTHZ_FLAG_ALLOW_MULTIPLE_SOURCE_INSTANCES 0x1
 
 AUTHZAPI
-BOOL 
+BOOL
 WINAPI
 AuthzInstallSecurityEventSource(
     IN DWORD                             dwFlags,
@@ -438,7 +438,7 @@ AuthzEnumerateSecurityEventSources(
     OUT    PDWORD                            pdwCount,
     IN OUT PDWORD                            pdwLength
     );
-    
+
 AUTHZAPI
 BOOL
 WINAPI
@@ -447,7 +447,7 @@ AuthzRegisterSecurityEventSource(
     IN  PCWSTR                                szEventSourceName,
     OUT PAUTHZ_SECURITY_EVENT_PROVIDER_HANDLE phEventProvider
     );
-    
+
 AUTHZAPI
 BOOL
 WINAPI
@@ -465,7 +465,7 @@ AuthzReportSecurityEvent(
     IN     DWORD                                dwAuditId,
     IN     PSID                                 pUserSid        OPTIONAL,
     IN     DWORD                                dwCount,
-    ...    
+    ...
     );
 
 AUTHZAPI

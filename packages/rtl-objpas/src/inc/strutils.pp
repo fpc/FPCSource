@@ -116,7 +116,7 @@ Function MidStr(const AText: WideString; const AStart, ACount: SizeInt): WideStr
 const
   { Default word delimiters are any character except the core alphanumerics. }
   WordDelimiters: set of AnsiChar = [#0..#255] - ['a'..'z','A'..'Z','1'..'9','0'];
-  
+
 resourcestring
   SErrAmountStrings        = 'Amount of search and replace strings don''t match';
 
@@ -283,10 +283,10 @@ function TrimSet(const S: String;const CSet:TSysCharSet): String;
 type
   SizeIntArray = array of SizeInt;
 
-Function FindMatchesBoyerMooreCaseSensitive(const S,OldPattern: PAnsiChar; const SSize, OldPatternSize: SizeInt; out aMatches: SizeIntArray; const aMatchAll: Boolean) : Boolean; 
-Function FindMatchesBoyerMooreCaseSensitive(const S,OldPattern: String; out aMatches: SizeIntArray; const aMatchAll: Boolean) : Boolean; 
+Function FindMatchesBoyerMooreCaseSensitive(const S,OldPattern: PAnsiChar; const SSize, OldPatternSize: SizeInt; out aMatches: SizeIntArray; const aMatchAll: Boolean) : Boolean;
+Function FindMatchesBoyerMooreCaseSensitive(const S,OldPattern: String; out aMatches: SizeIntArray; const aMatchAll: Boolean) : Boolean;
 
-Function FindMatchesBoyerMooreCaseInSensitive(const S, OldPattern: PAnsiChar; const SSize, OldPatternSize: SizeInt; out aMatches: SizeIntArray; const aMatchAll: Boolean) : Boolean; 
+Function FindMatchesBoyerMooreCaseInSensitive(const S, OldPattern: PAnsiChar; const SSize, OldPatternSize: SizeInt; out aMatches: SizeIntArray; const aMatchAll: Boolean) : Boolean;
 Function FindMatchesBoyerMooreCaseInSensitive(const S, OldPattern: String; out aMatches: SizeIntArray; const aMatchAll: Boolean) : Boolean;
 
 Type
@@ -837,11 +837,11 @@ end;
 
 
 {
-  We turn off implicit exceptions, since these routines are tested, and it 
-  saves 20% codesize (and some speed) and don't throw exceptions, except maybe 
+  We turn off implicit exceptions, since these routines are tested, and it
+  saves 20% codesize (and some speed) and don't throw exceptions, except maybe
   heap related. If they don't, that is consider a bug.
 
-  In the future, be wary with routines that use strtoint, floating point 
+  In the future, be wary with routines that use strtoint, floating point
   and/or format() derivatives. And check every divisor for 0.
 }
 
@@ -1057,7 +1057,7 @@ end;
 
 operator in(const AText: AnsiString; const AValues: array of AnsiString): Boolean;
 begin
-  Result := AnsiIndexStr(AText,AValues) <>-1;   
+  Result := AnsiIndexStr(AText,AValues) <>-1;
 end;
 
 
@@ -1125,7 +1125,7 @@ var i,j,k : SizeUInt;
 begin
   j:=length(ASubText);
   i:=length(AText);
-  if AStart>i then 
+  if AStart>i then
     aStart:=i+1;
   k:=i+1-AStart;
   if ALength> k then
@@ -1304,7 +1304,7 @@ function SplitString(const S, Delimiters: string): TRTLStringDynArray;
 Var
   a : Array of Char;
   I : Integer;
-  
+
 begin
   SetLength(A,Length(Delimiters));
   For I:=1 to Length(Delimiters) do
@@ -1542,7 +1542,7 @@ end;
 function PosEx(c: AnsiChar; const S: Ansistring; Offset: SizeInt): SizeInt;
 begin
   Result := Pos(c, S, Offset);
-end; 
+end;
 
 function PosEx(const SubStr, S: Ansistring): SizeInt;
 begin
@@ -1945,7 +1945,7 @@ function DelChars(const S: string; Chars: TSysCharSet): string;
 var
   Ss, Sp, Se, Rp: PChar;
   aDelta : SizeInt;
-  
+
 begin
   Ss := PChar(Pointer(S));
   Sp := Ss;
@@ -2112,9 +2112,9 @@ begin
       s:='';
     end
   else
-    begin	
+    begin
       Result:=Copy(S,1,p-1);
-      delete(s,1,p);		
+      delete(s,1,p);
     end;
 end;
 
@@ -2762,7 +2762,7 @@ begin
        end;
       p^:=chr(48+(cardinal(value) and 1));
       value:=cardinal(value) shr 1;
-      dec(p); 
+      dec(p);
       dec(k);
    end;
 end;
@@ -2776,11 +2776,11 @@ begin
   p:=PChar(pointer(@result[digits]));
   p2:=PChar(pointer(@result[1]));
   // typecasts because we want to keep intto* delphi compat and take an integer
-  while (p>=p2) and (cardinal(value)>0) do     
+  while (p>=p2) and (cardinal(value)>0) do
     begin
        p^:=chr(48+(cardinal(value) and 1));
        value:=cardinal(value) shr 1;
-       dec(p); 
+       dec(p);
     end;
   digits:=p-p2+1;
   if digits>0 then
@@ -2797,11 +2797,11 @@ begin
   p2:=PChar(pointer(@result[1]));
   // typecasts because we want to keep intto* delphi compat and take a signed val
   // and avoid warnings
-  while (p>=p2) and (qword(value)>0) do     
+  while (p>=p2) and (qword(value)>0) do
     begin
        p^:=chr(48+(cardinal(value) and 1));
        value:=qword(value) shr 1;
-       dec(p); 
+       dec(p);
     end;
   digits:=p-p2+1;
   if digits>0 then
@@ -3098,7 +3098,7 @@ procedure BinToHex(const BinValue; HexValue: PAnsiChar; BinBufSize: Integer);
 begin
   BinToHex(PAnsiChar(BinValue), HexValue, BinBufSize);
  end;
- 
+
 procedure BinToHex(const BinValue; HexValue: PWideChar; BinBufSize: Integer);
 begin
   BinToHex(PAnsiChar(BinValue), HexValue, BinBufSize);
@@ -3292,7 +3292,7 @@ procedure Removeleadingchars(VAR S: AnsiString; const CSet: TSysCharset);
 VAR I,J : Longint;
 
 Begin
- I:=Length(S); 
+ I:=Length(S);
  J:=1;
  While (J<=I) And (S[J] IN CSet) DO
   INC(J);
@@ -3320,7 +3320,7 @@ function TrimLeftSet(const S: String;const CSet:TSysCharSet): String;
 
 begin
   result:=s;
-  removeleadingchars(result,cset); 
+  removeleadingchars(result,cset);
 end;
 
 procedure RemoveTrailingChars(VAR S: AnsiString; const CSet: TSysCharset);
@@ -3352,7 +3352,7 @@ function TrimRightSet(const S: String; const CSet: TSysCharSet): String;
 
 begin
   result:=s;
-  RemoveTrailingchars(result,cset); 
+  RemoveTrailingchars(result,cset);
 end;
 
 procedure RemovePadChars(VAR S: AnsiString; const CSet: TSysCharset);
@@ -3390,7 +3390,7 @@ function TrimSet(const S: String;const CSet:TSysCharSet): String;
 
 begin
   result:=s;
-  RemovePadChars(result,cset); 
+  RemovePadChars(result,cset);
 end;
 
 

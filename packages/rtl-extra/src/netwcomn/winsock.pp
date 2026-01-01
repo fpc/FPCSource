@@ -27,7 +27,7 @@ unit winsock;
 {$mode objfpc}
 
   interface
-  
+
   {$ifdef netwlibc}
     {$define netware}
   {$endif}

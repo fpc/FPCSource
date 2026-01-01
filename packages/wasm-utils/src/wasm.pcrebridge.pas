@@ -22,7 +22,7 @@ uses
 {$IFDEF FPC_DOTTEDUNITS}
   System.CTypes, System.SysUtils,
 {$ELSE}
-  ctypes, sysutils, 
+  ctypes, sysutils,
 {$ENDIF}
   wasm.regexp.objects;
 

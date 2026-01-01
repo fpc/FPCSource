@@ -521,7 +521,7 @@ type
   TAbstractTask = class(TThreadPool.TAbstractWorkerData)
   protected
     type
-    IInternalTask = interface(ITask) ['{4C5EFFA7-FB5F-4C38-3E20-84FF25678812}']  
+    IInternalTask = interface(ITask) ['{4C5EFFA7-FB5F-4C38-3E20-84FF25678812}']
       procedure AddCompleteEvent(const aProc: TITaskProc);
       procedure HandleChildCompletion(const aTask: IInternalTask);
       procedure HandleChildCompletion(const aTask: TTask);

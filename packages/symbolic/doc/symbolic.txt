@@ -311,7 +311,7 @@ Glossary
 Some often used abbreviations and terms:
 
 FPC  : Free Pascal Compiler, the one that I use. Has a 32-bit Delphi mode.
-       Misses dynamic arrays, interfaces, and nearly the entire VCL in 
+       Misses dynamic arrays, interfaces, and nearly the entire VCL in
        production version 1.0.x. (Meanwhile, most of the language is
        already in 1.1.x development version)
         http://www.freepascal.org

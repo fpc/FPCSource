@@ -1,27 +1,27 @@
-    {   Unicode implementation tables. 
- 
-        Copyright (c) 2013 - 2017 by Inoussa OUEDRAOGO 
- 
-        Permission is hereby granted, free of charge, to any person 
-        obtaining a copy of the Unicode data files and any associated 
-        documentation (the "Data Files") or Unicode software and any 
-        associated documentation (the "Software") to deal in the Data 
-        Files or Software without restriction, including without 
-        limitation the rights to use, copy, modify, merge, publish, 
-        distribute, and/or sell copies of the Data Files or Software, 
-        and to permit persons to whom the Data Files or Software are 
-        furnished to do so, provided that (a) the above copyright 
-        notice(s) and this permission notice appear with all copies 
-        of the Data Files or Software, (b) both the above copyright 
-        notice(s) and this permission notice appear in associated 
-        documentation, and (c) there is clear notice in each modified 
-        Data File or in the Software as well as in the documentation 
-        associated with the Data File(s) or Software that the data or 
-        software has been modified. 
- 
- 
-        This program is distributed in the hope that it will be useful, 
-        but WITHOUT ANY WARRANTY; without even the implied warranty of 
+    {   Unicode implementation tables.
+
+        Copyright (c) 2013 - 2017 by Inoussa OUEDRAOGO
+
+        Permission is hereby granted, free of charge, to any person
+        obtaining a copy of the Unicode data files and any associated
+        documentation (the "Data Files") or Unicode software and any
+        associated documentation (the "Software") to deal in the Data
+        Files or Software without restriction, including without
+        limitation the rights to use, copy, modify, merge, publish,
+        distribute, and/or sell copies of the Data Files or Software,
+        and to permit persons to whom the Data Files or Software are
+        furnished to do so, provided that (a) the above copyright
+        notice(s) and this permission notice appear with all copies
+        of the Data Files or Software, (b) both the above copyright
+        notice(s) and this permission notice appear in associated
+        documentation, and (c) there is clear notice in each modified
+        Data File or in the Software as well as in the documentation
+        associated with the Data File(s) or Software that the data or
+        software has been modified.
+
+
+        This program is distributed in the hope that it will be useful,
+        but WITHOUT ANY WARRANTY; without even the implied warranty of
         MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. }
 
 {$IFDEF FPC}
@@ -158,7 +158,7 @@ const
 var
   CLDR_Collation : TUCA_DataBook = (
     Base               : nil;
-    Version            : 
+    Version            :
       (
         Ord('$'),Ord('R'),Ord('e'),Ord('v'),Ord('i'),Ord('s'),Ord('i'),Ord('o'),
         Ord('n'),Ord('$'),
@@ -167,7 +167,7 @@ var
         0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
         0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
       );
-    CollationName      : 
+    CollationName      :
       (
         Ord('z'),Ord('h'),
         0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,

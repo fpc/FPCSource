@@ -183,7 +183,7 @@ type
   private
     FPosition: Integer;
     FList: TContainedActionList;
-  Protected  
+  Protected
     function GetCurrent: TContainedAction; inline;
   public
     constructor Create(AList: TContainedActionList);
@@ -232,7 +232,7 @@ type
     function GetEnumerator: TActionListEnumerator;
     function UpdateAction(Action: TBasicAction): Boolean; override;
     function EnumByCategory(Proc: TEnumActionListEvent; const Category: string; const IncludeSubCategory: Boolean = True): boolean;
-    function EnumByCategory(Proc: TEnumActionListRef; const Category: string;  const IncludeSubCategory: Boolean = True): boolean; 
+    function EnumByCategory(Proc: TEnumActionListRef; const Category: string;  const IncludeSubCategory: Boolean = True): boolean;
     property Actions[Index: Integer]: TContainedAction read GetAction write SetAction; default;
     property ActionCount: Integer read GetActionCount;
     property State: TActionListState read FState write SetState default asNormal;
@@ -253,7 +253,7 @@ Type
   TUnRegisterActionsProc = procedure(const AClasses: array of TBasicActionClass);
   TEnumRegisteredActionsProc = procedure(Proc: TEnumActionProc; aInfo: Pointer; const aFrameworkType: string);
   TCreateActionProc = function(AOwner: TComponent; aActionClass: TBasicActionClass; const aFrameworkType: string): TBasicAction;
-                             
+
 var
   vDesignAction: boolean;
   RegisterActionsProc: TRegisterActionsProc = nil;
@@ -305,10 +305,10 @@ function CreateAction(AOwner: TComponent; ActionClass: TBasicActionClass; Framew
 
 var
   Old: boolean;
-  
+
 begin
   if not Assigned(CreateActionProc) then
-    raise EActionError.Create(SErrNoCreateActionsProc);  
+    raise EActionError.Create(SErrNoCreateActionsProc);
   Old:=vDesignAction;
   try
     vDesignAction:=True;
@@ -319,7 +319,7 @@ begin
 end;
 
 { ---------------------------------------------------------------------
-  TCustomShortCutList 
+  TCustomShortCutList
   ---------------------------------------------------------------------}
 
 function TCustomShortCutList.GetShortCut(Index: Integer): TShortCut;
@@ -346,7 +346,7 @@ function TCustomShortCutList.IndexOfShortCut(const ShortCut: string): Integer;
   begin
     Result:=UpperCase(StringReplace(S, ' ', '', [rfReplaceAll]));
   end;
-  
+
 var
   S: string;
   I: Integer;

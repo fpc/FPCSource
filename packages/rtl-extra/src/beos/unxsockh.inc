@@ -61,7 +61,7 @@ Const
   AF_BLUETOOTH     = 36;	{ Bluetooth sockets }
   AF_IEEE80211     = 37;	{ IEEE 802.11 protocol }
   AF_MAX           = 38;
-  
+
   {
    * Protocol families, same as address families for now.
     }
@@ -294,7 +294,7 @@ Const
 	IP_FAITH		= 22;   { bool; accept FAITH'ed connections }
 
 	IP_ONESBCAST		= 23;   { bool: send all-ones broadcast }
-                                
+
 	IP_FW_TABLE_ADD		= 40;   { add entry }
 	IP_FW_TABLE_DEL		= 41;   { delete entry }
 	IP_FW_TABLE_FLUSH	= 42;   { flush table }
@@ -324,14 +324,14 @@ Const
 	IPV6_LEAVE_GROUP	= 13; { ip6_mreq; leave a group membership }
 	IPV6_PORTRANGE		= 14; { int; range to choose for unspecified port }
 
-	IPV6_PKTINFO            = 46; { in6_pktinfo; send if, src addr }	
+	IPV6_PKTINFO            = 46; { in6_pktinfo; send if, src addr }
  	IPV6_HOPLIMIT           = 47; { int; send hop limit }
  	IPV6_NEXTHOP            = 48; { sockaddr; next hop addr }
  	IPV6_HOPOPTS            = 49; { ip6_hbh; send hop-by-hop option }
  	IPV6_DSTOPTS            = 50; { ip6_dest; send dst option befor rthdr }
  	IPV6_RTHDR              = 51; { ip6_rthdr; send routing header }
  	IPV6_PKTOPTIONS         = 52; { buf/cmsghdr; set/get IPv6 options }
-  
+
   { Flags for send, recv etc. }
   MSG_OOB       = $0001;              { Process out-of-band data}
   MSG_PEEK      = $0002;              { Peek at incoming messages }
@@ -346,6 +346,6 @@ Const
   MSG_COMPAT    = $8000;
   MSG_SOCALLBCK = $10000;
   MSG_NOSIGNAL  = $20000;              { Do not generate SIGPIPE }
-  
+
   INVALID_SOCKET = -1;
   SOCKET_ERROR = -1;

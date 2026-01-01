@@ -75,7 +75,7 @@ uses
 **      UINT WINAPI UiCreatePatchPackage ( LPTSTR szPcpPath,
 **              LPTSTR szPatchPath, LPTSTR szLogPath, HWND hwndStatus,
 **              LPTSTR szTempFolder, BOOL fRemoveTempFolderIfPresent );
-**      
+**
 **      Arguments:
 **        szPcpPath - full absolute path to Windows Installer database
 **              (PCP file) that contains appropriate tables of input-data for

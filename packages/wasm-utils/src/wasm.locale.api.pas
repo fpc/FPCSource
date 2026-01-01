@@ -30,16 +30,16 @@ function __locale_SetWasmLocale(aName: PAnsiChar; aNameLen: Longint): TLocaleErr
                                    external modHostLocale name HostLocale_FNSetWasmLocale;
 
 
-function __locale_GetNameOfDay(aDay: Integer; 
-                               aLong: Integer; 
-                               aName: PAnsiChar; 
-                               aNameLen: PLongint): TLocaleError; 
+function __locale_GetNameOfDay(aDay: Integer;
+                               aLong: Integer;
+                               aName: PAnsiChar;
+                               aNameLen: PLongint): TLocaleError;
                                  external modHostLocale name HostLocale_FNGetNameOfDay;
-                                 
-function __locale_GetNameOfMonth(aMonth: Integer; 
-                                 aLong: Integer; 
-                                 aName: PAnsiChar; 
-                                 aNameLen: PLongint): TLocaleError; 
+
+function __locale_GetNameOfMonth(aMonth: Integer;
+                                 aLong: Integer;
+                                 aName: PAnsiChar;
+                                 aNameLen: PLongint): TLocaleError;
                                    external modHostLocale name HostLocale_FNGetNameOfMonth;
 
 function __locale_GetDateSeparator(aSeparator: PAnsiChar;
@@ -51,19 +51,19 @@ function __locale_GetTimeSeparator(aSeparator: PAnsiChar;
                                         external modHostLocale name HostLocale_FNGetTimeSeparator;
 
 
-function __locale_GetDecimalSeparator(aSeparator: PAnsiChar; 
-                                      aSeparatorLen: PLongint): TLocaleError; 
+function __locale_GetDecimalSeparator(aSeparator: PAnsiChar;
+                                      aSeparatorLen: PLongint): TLocaleError;
                                         external modHostLocale name HostLocale_FNGetDecimalSeparator;
-                                        
-function __locale_GetThousandSeparator(aSeparator: PAnsiChar; 
-                                       aSeparatorLen: PLongint): TLocaleError; 
+
+function __locale_GetThousandSeparator(aSeparator: PAnsiChar;
+                                       aSeparatorLen: PLongint): TLocaleError;
                                          external modHostLocale name HostLocale_FNGetThousandsSeparator;
-                                         
-function __locale_GetCurrencySymbol(aSymbol: PAnsiChar; 
-                                    aSymbolLen: PLongint): TLocaleError; 
+
+function __locale_GetCurrencySymbol(aSymbol: PAnsiChar;
+                                    aSymbolLen: PLongint): TLocaleError;
                                       external modHostLocale name HostLocale_FNGetCurrencyChar;
-                                      
-function __locale_GetTimeZoneOffset : Integer; 
+
+function __locale_GetTimeZoneOffset : Integer;
                            external modHostLocale name HostLocale_FNGetTimezoneOffset;
 
 implementation

@@ -44,10 +44,10 @@ end;
 constructor TVESAConsole.Create;
 begin
   inherited Create;
-  
+
   FTryLFB := true;
   FTryWindowed := true;
-  
+
   vesa.LogProcedure := @VESALogProcedure;
 
   FOpen := False;
@@ -75,7 +75,7 @@ end;
 destructor TVESAConsole.Destroy;
 begin
   Close;
-  
+
   FKeyboard.Free;
   FMouse.Free;
   FEventQueue.Free;
@@ -138,7 +138,7 @@ begin
             FModesN[J].Index := I;
             FModesN[J].SupportsWindowed := true;
           end;
-	  
+
 	  if FTryLFB and SupportsLFB then
 	  begin
 	    if (FTryWindowed and SupportsWindowed) and
@@ -185,7 +185,7 @@ begin
             FModesN[J].SupportsWindowed := FTryWindowed and SupportsWindowed;
             FModesN[J].SupportsLFB := FTryLFB and SupportsLFB;
             Inc(J);
-			
+
             {RGB 332}
             SetLength(FModes, J + 1);
             SetLength(FModesN, J + 1);
@@ -279,7 +279,7 @@ begin
     Result := true;
     exit;
   end;
-  
+
   if AOption = 'enable windowed framebuffer' then
   begin
     EnableWindowed;
@@ -298,7 +298,7 @@ begin
     Result := true;
     exit;
   end;
-  
+
   if AOption = 'enable dpmi508h' then
   begin
     VESA.TryDPMI508h := true;
@@ -317,7 +317,7 @@ begin
     Result := true;
     exit;
   end;
-  
+
   if AOption = 'enable nearptr' then
   begin
     VESA.TryNearPtr := true;
@@ -336,14 +336,14 @@ begin
     Result := true;
     exit;
   end;
-  
+
   if AOption = 'no8bitdac' then
   begin
     VESA.EightBitDACEnabled := false;
     Result := true;
     exit;
   end;
-  
+
   if AOption = 'enable logging' then
   begin
     LOG_enabled := true;
@@ -547,7 +547,7 @@ begin
     if not SetVESAMode(FModesN[ModeFound].Index, false) then
       raise TPTCError.Create('error setting VBE mode');
   end;
-  
+
   FVESACurrentMode := FModesN[ModeFound].Index;
 
   with FModes[FCurrentMode].Format do

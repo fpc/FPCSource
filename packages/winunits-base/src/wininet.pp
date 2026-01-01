@@ -49,7 +49,7 @@ Type
 	 PINTERNET_PORT = ^INTERNET_PORT;
 	 PGROUPID = ^GROUPID;
      GROUPID = LONGLONG;
-	
+
 Const
   WININETLIBNAME = 'wininet.dll';
 { wininenti constants}
@@ -175,11 +175,11 @@ Const
 
 //
 // flags for FTP
-//	
+//
 	 FTP_TRANSFER_TYPE_UNKNOWN   = $00000000;
      FTP_TRANSFER_TYPE_ASCII     = $00000001;
      FTP_TRANSFER_TYPE_BINARY    = $00000002;
-	
+
      INTERNET_FLAG_TRANSFER_ASCII    = FTP_TRANSFER_TYPE_ASCII;     // = $00000001
      INTERNET_FLAG_TRANSFER_BINARY   = FTP_TRANSFER_TYPE_BINARY;    // = $00000002
 
@@ -202,8 +202,8 @@ Const
                                  SECURITY_FLAG_IGNORE_CERT_CN_INVALID or
                                  SECURITY_FLAG_IGNORE_CERT_DATE_INVALID or
                                  SECURITY_FLAG_IGNORE_WRONG_USAGE);
-	
-	
+
+
 //
 // flags field masks
 //
@@ -294,7 +294,7 @@ Type
     INTERNET_SCHEME_JAVASCRIPT,
     INTERNET_SCHEME_VBSCRIPT,
     INTERNET_SCHEME_RES
-	);	
+	);
   LPINTERNET_SCHEME =  ^INTERNET_SCHEME;
 
 Const
@@ -1402,9 +1402,9 @@ Const
 
      PRIVACY_TYPE_FIRST_PARTY        = 0;
      PRIVACY_TYPE_THIRD_PARTY        = 1;
-	
-Type	
-	
+
+Type
+
      INTERNET_ASYNC_RESULT = record
           dwResult : DWORD_PTR;
           dwError : DWORD;
@@ -1414,7 +1414,7 @@ Type
      PINTERNET_ASYNC_RESULT = LPINTERNET_ASYNC_RESULT;
      TINTERNETASYNCRESULT = TINTERNET_ASYNC_RESULT;
      LPINTERNETASYNCRESULT =LPINTERNET_ASYNC_RESULT;
-     PINTERNETASYNCRESULT = PINTERNET_ASYNC_RESULT;	
+     PINTERNETASYNCRESULT = PINTERNET_ASYNC_RESULT;
 
   { INTERNET_DIAGNOSTIC_SOCKET_INFO - info about the socket in use }
      INTERNET_DIAGNOSTIC_SOCKET_INFO = record
@@ -1425,18 +1425,18 @@ Type
        end;
 	 TINTERNET_DIAGNOSTIC_SOCKET_INFO = INTERNET_DIAGNOSTIC_SOCKET_INFO;
      LPINTERNET_DIAGNOSTIC_SOCKET_INFO = ^INTERNET_DIAGNOSTIC_SOCKET_INFO;
-     PINTERNET_DIAGNOSTIC_SOCKET_INFO = LPINTERNET_DIAGNOSTIC_SOCKET_INFO;	
+     PINTERNET_DIAGNOSTIC_SOCKET_INFO = LPINTERNET_DIAGNOSTIC_SOCKET_INFO;
 
     INTERNET_PREFETCH_STATUS = record
     			dwStatus,
 			dwSize : DWord;
                         end;
-    TINTERNET_PREFETCH_STATUS= INTERNET_PREFETCH_STATUS; 
-    LPINTERNET_PREFETCH_STATUS= ^INTERNET_PREFETCH_STATUS; 
-    PINTERNET_PREFETCH_STATUS= LPINTERNET_PREFETCH_STATUS; 
-    TINTERNETPREFETCHSTATUS= TINTERNET_PREFETCH_STATUS; 
-    PINTERNETPREFETCHSTATUS= PINTERNET_PREFETCH_STATUS; 
-    LPINTERNETPREFETCHSTATUS= PINTERNET_PREFETCH_STATUS; 
+    TINTERNET_PREFETCH_STATUS= INTERNET_PREFETCH_STATUS;
+    LPINTERNET_PREFETCH_STATUS= ^INTERNET_PREFETCH_STATUS;
+    PINTERNET_PREFETCH_STATUS= LPINTERNET_PREFETCH_STATUS;
+    TINTERNETPREFETCHSTATUS= TINTERNET_PREFETCH_STATUS;
+    PINTERNETPREFETCHSTATUS= PINTERNET_PREFETCH_STATUS;
+    LPINTERNETPREFETCHSTATUS= PINTERNET_PREFETCH_STATUS;
 
      INTERNET_PROXY_INFO =  record
           dwAccessType : DWORD;
@@ -1461,7 +1461,7 @@ Type
        end;
 	 TINTERNET_PER_CONN_OPTIONA   = INTERNET_PER_CONN_OPTIONA;
      LPINTERNET_PER_CONN_OPTIONA = ^INTERNET_PER_CONN_OPTIONA;
-     PINTERNET_PER_CONN_OPTIONA = LPINTERNET_PER_CONN_OPTIONA;	
+     PINTERNET_PER_CONN_OPTIONA = LPINTERNET_PER_CONN_OPTIONA;
      INTERNET_PER_CONN_OPTIONW = record
           dwOption : DWORD;
           Value : record
@@ -1472,9 +1472,9 @@ Type
               end;
        end;
 	 TINTERNET_PER_CONN_OPTIONW = INTERNET_PER_CONN_OPTIONW;
-     LPINTERNET_PER_CONN_OPTIONW = ^INTERNET_PER_CONN_OPTIONW;	
+     LPINTERNET_PER_CONN_OPTIONW = ^INTERNET_PER_CONN_OPTIONW;
      PINTERNET_PER_CONN_OPTIONW = LPINTERNET_PER_CONN_OPTIONW;
-	
+
 {$ifdef UNICODE}
      INTERNET_PER_CONN_OPTION = INTERNET_PER_CONN_OPTIONW;
      LPINTERNET_PER_CONN_OPTION = LPINTERNET_PER_CONN_OPTIONW;
@@ -1484,7 +1484,7 @@ Type
      INTERNET_PER_CONN_OPTION = INTERNET_PER_CONN_OPTIONA;
      LPINTERNET_PER_CONN_OPTION = LPINTERNET_PER_CONN_OPTIONA;
      TINTERNET_PER_CONN_OPTION = INTERNET_PER_CONN_OPTIONA;
-     PINTERNET_PER_CONN_OPTION = LPINTERNET_PER_CONN_OPTIONA;	
+     PINTERNET_PER_CONN_OPTION = LPINTERNET_PER_CONN_OPTIONA;
 {$endif}
 
      INTERNET_PER_CONN_OPTION_LISTA = record
@@ -1496,7 +1496,7 @@ Type
        end;
 	 TINTERNET_PER_CONN_OPTION_LISTA  = INTERNET_PER_CONN_OPTION_LISTA ;
      LPINTERNET_PER_CONN_OPTION_LISTA = ^INTERNET_PER_CONN_OPTION_LISTA;
-     PINTERNET_PER_CONN_OPTION_LISTA  = LPINTERNET_PER_CONN_OPTION_LISTA;	
+     PINTERNET_PER_CONN_OPTION_LISTA  = LPINTERNET_PER_CONN_OPTION_LISTA;
 
      INTERNET_PER_CONN_OPTION_LISTW = record
           dwSize : DWORD;
@@ -1512,7 +1512,7 @@ Type
      INTERNET_PER_CONN_OPTION_LIST = INTERNET_PER_CONN_OPTION_LISTW;
      LPINTERNET_PER_CONN_OPTION_LIST = LPINTERNET_PER_CONN_OPTION_LISTW;
      TINTERNET_PER_CONN_OPTION_LIST = INTERNET_PER_CONN_OPTION_LISTW;
-     PINTERNET_PER_CONN_OPTION_LIST = LPINTERNET_PER_CONN_OPTION_LISTW;	
+     PINTERNET_PER_CONN_OPTION_LIST = LPINTERNET_PER_CONN_OPTION_LISTW;
 {$else}
      INTERNET_PER_CONN_OPTION_LIST = INTERNET_PER_CONN_OPTION_LISTA;
      LPINTERNET_PER_CONN_OPTION_LIST = LPINTERNET_PER_CONN_OPTION_LISTA;
@@ -1525,7 +1525,7 @@ Type
           dwMinorVersion : DWORD;
        end;
      LPINTERNET_VERSION_INFO = ^INTERNET_VERSION_INFO;
-     PINTERNET_VERSION_INFO = LPINTERNET_VERSION_INFO;	
+     PINTERNET_VERSION_INFO = LPINTERNET_VERSION_INFO;
      TINTERNET_VERSION_INFO = INTERNET_VERSION_INFO;
      LPINTERNETVERSIONINFO = LPINTERNET_VERSION_INFO;
      PINTERNETVERSIONINFO =  PINTERNET_VERSION_INFO;
@@ -1537,7 +1537,7 @@ Type
        end;
      THTTP_VERSION_INFO = HTTP_VERSION_INFO;
      LPHTTP_VERSION_INFO = ^HTTP_VERSION_INFO;
-     PHTTP_VERSION_INFO = LPHTTP_VERSION_INFO;	
+     PHTTP_VERSION_INFO = LPHTTP_VERSION_INFO;
      LPHTTPVERSIONINFO = LPHTTP_VERSION_INFO;
      PHTTPVERSIONINFO =  PHTTP_VERSION_INFO;
      THTTPVERSIONINFO =  THTTP_VERSION_INFO;
@@ -1571,7 +1571,7 @@ Type
           dwExtraInfoLength : DWORD;
        end;
      LPURL_COMPONENTSA = ^URL_COMPONENTSA;
-     PURL_COMPONENTSA = LPURL_COMPONENTSA;	
+     PURL_COMPONENTSA = LPURL_COMPONENTSA;
      TURL_COMPONENTSA = URL_COMPONENTSA;
 
      URL_COMPONENTSW = record
@@ -1593,8 +1593,8 @@ Type
        end;
 	 TURL_COMPONENTSW = URL_COMPONENTSW;
      LPURL_COMPONENTSW = ^URL_COMPONENTSW;
-     PURL_COMPONENTSW = LPURL_COMPONENTSW;	
-	
+     PURL_COMPONENTSW = LPURL_COMPONENTSW;
+
 {$ifdef UNICODE}
      URL_COMPONENTS = URL_COMPONENTSW;
      LPURL_COMPONENTS = LPURL_COMPONENTSW;
@@ -1609,7 +1609,7 @@ Type
      TURLComponents  = TURL_COMPONENTS;
      LPURLCOMPONENTS = LPURL_COMPONENTS;
      PURLCOMPONENTS =  PURL_COMPONENTS;
-     
+
      INTERNET_CERTIFICATE_INFO = record
           ftExpiry : FILETIME;
           ftStart : FILETIME;
@@ -1645,7 +1645,7 @@ Type
      TINTERNET_BUFFERSA = _INTERNET_BUFFERSA;
      PINTERNET_BUFFERSA = LPINTERNET_BUFFERSA;
      TINTERNETBUFFERSA = TINTERNET_BUFFERSA;
-     PINTERNETBUFFERSA = PINTERNET_BUFFERSA; 
+     PINTERNETBUFFERSA = PINTERNET_BUFFERSA;
 
      LPINTERNET_BUFFERSW = ^_INTERNET_BUFFERSW;
      _INTERNET_BUFFERSW = record
@@ -1670,7 +1670,7 @@ Type
      INTERNET_BUFFERS = INTERNET_BUFFERSW;
      LPINTERNET_BUFFERS = LPINTERNET_BUFFERSW;
      TINTERNET_BUFFERS = INTERNET_BUFFERSW;
-     PINTERNET_BUFFERS = LPINTERNET_BUFFERSW;	
+     PINTERNET_BUFFERS = LPINTERNET_BUFFERSW;
 {$else}
      INTERNET_BUFFERS = INTERNET_BUFFERSA;
      LPINTERNET_BUFFERS = LPINTERNET_BUFFERSA;
@@ -1678,7 +1678,7 @@ Type
      PINTERNET_BUFFERS = LPINTERNET_BUFFERSA;
 {$endif}
      TINTERNETBUFFERS = TINTERNET_BUFFERS;
-     PINTERNETBUFFERS = PINTERNET_BUFFERS;    
+     PINTERNETBUFFERS = PINTERNET_BUFFERS;
 
      IncomingCookieState = record
           cSession : longint;
@@ -1692,7 +1692,7 @@ Type
      TIncomingCookieState = IncomingCookieState;
 	 PIncomingCookieState = ^IncomingCookieState;
 	 LPIncomingCookieState = PIncomingCookieState;
-	
+
      OutgoingCookieState = record
           cSent : longint;
           cSuppressed : longint;
@@ -1701,7 +1701,7 @@ Type
      ToutgoingCookieState = outgoingCookieState;
 	 PoutgoingCookieState = ^outgoingCookieState;
 	 LPoutgoingCookieState = PoutgoingCookieState;
-	
+
      InternetCookieHistory = record
           fAccepted : BOOL;
           fLeashed : BOOL;
@@ -1711,7 +1711,7 @@ Type
      TInternetCookieHistory = InternetCookieHistory;
 	 PInternetCookieHistory = ^InternetCookieHistory;
 	 LPInternetCookieHistory = PInternetCookieHistory;
-	
+
      CookieDecision = record
           dwCookieState : DWORD;
           fAllowSession : BOOL;
@@ -1994,7 +1994,7 @@ Type
      TINTERNET_AUTH_NOTIFY_DATA = INTERNET_AUTH_NOTIFY_DATA;
 	 PINTERNET_AUTH_NOTIFY_DATA = ^INTERNET_AUTH_NOTIFY_DATA;
 	 LPINTERNET_AUTH_NOTIFY_DATA = PINTERNET_AUTH_NOTIFY_DATA;
-	
+
        _INTERNET_CACHE_TIMESTAMPS = record
             ftExpires : FILETIME;
             ftLastModified : FILETIME;
@@ -2095,7 +2095,7 @@ Type
   function InternetCombineUrlA(lpszBaseUrl:LPCSTR; lpszRelativeUrl:LPCSTR; lpszBuffer:LPSTR; lpdwBufferLength:LPDWORD; dwFlags:DWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetCombineUrlA';
   function InternetCombineUrlW(lpszBaseUrl:LPCWSTR; lpszRelativeUrl:LPCWSTR; lpszBuffer:LPWSTR; lpdwBufferLength:LPDWORD; dwFlags:DWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetCombineUrlW';
   function InternetOpenA(lpszAgent:LPCSTR; dwAccessType:DWORD; lpszProxy:LPCSTR; lpszProxyBypass:LPCSTR; dwFlags:DWORD):HINTERNET;stdcall;external WININETLIBNAME name 'InternetOpenA';
-  function InternetOpenW(lpszAgent:LPCWSTR; dwAccessType:DWORD; lpszProxy:LPCWSTR; lpszProxyBypass:LPCWSTR; dwFlags:DWORD):HINTERNET;stdcall;external WININETLIBNAME name 'InternetOpenW';	
+  function InternetOpenW(lpszAgent:LPCWSTR; dwAccessType:DWORD; lpszProxy:LPCWSTR; lpszProxyBypass:LPCWSTR; dwFlags:DWORD):HINTERNET;stdcall;external WININETLIBNAME name 'InternetOpenW';
   function InternetCloseHandle(hInternet:HINTERNET):BOOL;stdcall;external WININETLIBNAME name 'InternetCloseHandle';
   function InternetConnectA(hInternet:HINTERNET; lpszServerName:LPCSTR; nServerPort:INTERNET_PORT; lpszUserName:LPCSTR; lpszPassword:LPCSTR;
              dwService:DWORD; dwFlags:DWORD; dwContext:DWORD_PTR):HINTERNET;stdcall;external WININETLIBNAME name 'InternetConnectA';
@@ -2398,7 +2398,7 @@ Type
   function InternetOpen(lpszAgent:LPCSTR; dwAccessType:DWORD; lpszProxy:LPCSTR; lpszProxyBypass:LPCSTR; dwFlags:DWORD):HINTERNET;stdcall;external WININETLIBNAME name 'InternetOpenA';
   function InternetConnect(hInternet:HINTERNET; lpszServerName:LPCSTR; nServerPort:INTERNET_PORT; lpszUserName:LPCSTR; lpszPassword:LPCSTR;
              dwService:DWORD; dwFlags:DWORD; dwContext:DWORD_PTR):HINTERNET;stdcall;external WININETLIBNAME name 'InternetConnectA';
-  function InternetReadFileEx(hFile:HINTERNET; lpBuffersOut:LPINTERNET_BUFFERSA; dwFlags:DWORD; dwContext:DWORD_PTR):BOOL;stdcall;external WININETLIBNAME name 'InternetReadFileExA';			
+  function InternetReadFileEx(hFile:HINTERNET; lpBuffersOut:LPINTERNET_BUFFERSA; dwFlags:DWORD; dwContext:DWORD_PTR):BOOL;stdcall;external WININETLIBNAME name 'InternetReadFileExA';
   function InternetOpenUrl(hInternet:HINTERNET; lpszUrl:LPCSTR; lpszHeaders:LPCSTR; dwHeadersLength:DWORD; dwFlags:DWORD;
              dwContext:DWORD_PTR):HINTERNET;stdcall;external WININETLIBNAME name 'InternetOpenUrlA';
   function InternetFindNextFile(hFind:HINTERNET; lpvFindData:LPVOID):BOOL;stdcall;external WININETLIBNAME name 'InternetFindNextFileA';
@@ -2424,7 +2424,7 @@ Type
              lpszLocator:LPSTR; lpdwBufferLength:LPDWORD):BOOL;stdcall;external WININETLIBNAME name 'GopherCreateLocatorA';
   function GopherGetLocatorType(lpszLocator:LPCSTR; lpdwGopherType:LPDWORD):BOOL;stdcall;external WININETLIBNAME name 'GopherGetLocatorTypeA';
   function GopherFindFirstFile(hConnect:HINTERNET; lpszLocator:LPCSTR; lpszSearchString:LPCSTR; lpFindData:LPGOPHER_FIND_DATAA; dwFlags:DWORD;
-             dwContext:DWORD_PTR):HINTERNET;stdcall;external WININETLIBNAME name 'GopherFindFirstFileA';	
+             dwContext:DWORD_PTR):HINTERNET;stdcall;external WININETLIBNAME name 'GopherFindFirstFileA';
   function GopherOpenFile(hConnect:HINTERNET; lpszLocator:LPCSTR; lpszView:LPCSTR; dwFlags:DWORD; dwContext:DWORD_PTR):HINTERNET;stdcall;external WININETLIBNAME name 'GopherOpenFileA';
   function GopherGetAttribute(hConnect:HINTERNET; lpszLocator:LPCSTR; lpszAttributeName:LPCSTR; lpBuffer:LPBYTE; dwBufferLength:DWORD;
              lpdwCharactersReturned:LPDWORD; lpfnEnumerator:GOPHER_ATTRIBUTE_ENUMERATOR; dwContext:DWORD_PTR):BOOL;stdcall;external WININETLIBNAME name 'GopherGetAttributeA';
@@ -2528,11 +2528,11 @@ Type
   function InternetCreateUrl(lpUrlComponents:LPURL_COMPONENTSW; dwFlags:DWORD; lpszUrl:LPWSTR; lpdwUrlLength:LPDWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetCreateUrlW';
   function InternetCanonicalizeUrl(lpszUrl:LPCWSTR; lpszBuffer:LPWSTR; lpdwBufferLength:LPDWORD; dwFlags:DWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetCanonicalizeUrlW';
   function InternetCombineUrl(lpszBaseUrl:LPCWSTR; lpszRelativeUrl:LPCWSTR; lpszBuffer:LPWSTR; lpdwBufferLength:LPDWORD; dwFlags:DWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetCombineUrlW';
-  function InternetOpen(lpszAgent:LPCWSTR; dwAccessType:DWORD; lpszProxy:LPCWSTR; lpszProxyBypass:LPCWSTR; dwFlags:DWORD):HINTERNET;stdcall;external WININETLIBNAME name 'InternetOpenW';	
+  function InternetOpen(lpszAgent:LPCWSTR; dwAccessType:DWORD; lpszProxy:LPCWSTR; lpszProxyBypass:LPCWSTR; dwFlags:DWORD):HINTERNET;stdcall;external WININETLIBNAME name 'InternetOpenW';
   function InternetConnect(hInternet:HINTERNET; lpszServerName:LPCWSTR; nServerPort:INTERNET_PORT; lpszUserName:LPCWSTR; lpszPassword:LPCWSTR;
              dwService:DWORD; dwFlags:DWORD; dwContext:DWORD_PTR):HINTERNET;stdcall;external WININETLIBNAME name 'InternetConnectW';
   function InternetOpenUrl(hInternet:HINTERNET; lpszUrl:LPCWSTR; lpszHeaders:LPCWSTR; dwHeadersLength:DWORD; dwFlags:DWORD;
-             dwContext:DWORD_PTR):HINTERNET;stdcall;external WININETLIBNAME name 'InternetOpenUrlW';			
+             dwContext:DWORD_PTR):HINTERNET;stdcall;external WININETLIBNAME name 'InternetOpenUrlW';
   function InternetReadFileEx(hFile:HINTERNET; lpBuffersOut:LPINTERNET_BUFFERSW; dwFlags:DWORD; dwContext:DWORD_PTR):BOOL;stdcall;external WININETLIBNAME name 'InternetReadFileExW';
     function InternetFindNextFile(hFind:HINTERNET; lpvFindData:LPVOID):BOOL;stdcall;external WININETLIBNAME name 'InternetFindNextFileW';
   function InternetQueryOption(hInternet:HINTERNET; dwOption:DWORD; lpBuffer:LPVOID; lpdwBufferLength:LPDWORD):BOOL;stdcall;external WININETLIBNAME name 'InternetQueryOptionW';
@@ -2557,7 +2557,7 @@ Type
              lpszLocator:LPWSTR; lpdwBufferLength:LPDWORD):BOOL;stdcall;external WININETLIBNAME name 'GopherCreateLocatorW';
   function GopherGetLocatorType(lpszLocator:LPCWSTR; lpdwGopherType:LPDWORD):BOOL;stdcall;external WININETLIBNAME name 'GopherGetLocatorTypeW';
   function GopherFindFirstFile(hConnect:HINTERNET; lpszLocator:LPCWSTR; lpszSearchString:LPCWSTR; lpFindData:LPGOPHER_FIND_DATAW; dwFlags:DWORD;
-             dwContext:DWORD_PTR):HINTERNET;stdcall;external WININETLIBNAME name 'GopherFindFirstFileW';		
+             dwContext:DWORD_PTR):HINTERNET;stdcall;external WININETLIBNAME name 'GopherFindFirstFileW';
   function GopherOpenFile(hConnect:HINTERNET; lpszLocator:LPCWSTR; lpszView:LPCWSTR; dwFlags:DWORD; dwContext:DWORD_PTR):HINTERNET;stdcall;external WININETLIBNAME name 'GopherOpenFileW';
   function GopherGetAttribute(hConnect:HINTERNET; lpszLocator:LPCWSTR; lpszAttributeName:LPCWSTR; lpBuffer:LPBYTE; dwBufferLength:DWORD;
              lpdwCharactersReturned:LPDWORD; lpfnEnumerator:GOPHER_ATTRIBUTE_ENUMERATOR; dwContext:DWORD_PTR):BOOL;stdcall;external WININETLIBNAME name 'GopherGetAttributeW';
@@ -2664,130 +2664,130 @@ Type
 
 
 {$endif}
-    
 
- function IS_GOPHER_TEXT_FILE(gtype:DWORD):BOOL; inline;           
- function IS_GOPHER_DIRECTORY(gtype:DWORD):BOOL; inline;       
+
+ function IS_GOPHER_TEXT_FILE(gtype:DWORD):BOOL; inline;
+ function IS_GOPHER_DIRECTORY(gtype:DWORD):BOOL; inline;
  function IS_GOPHER_CSO(gtype:DWORD):BOOL; inline;
- function IS_GOPHER_ERROR(gtype:DWORD):BOOL; inline;           
- function IS_GOPHER_MAC_BINHEX(gtype:DWORD):BOOL; inline;      
- function IS_GOPHER_DOS_ARCHIVE(gtype:DWORD):BOOL; inline;     
- function IS_GOPHER_UNIX_UUENCODED(gtype:DWORD):BOOL; inline;  
- function IS_GOPHER_INDEX_SERVER(gtype:DWORD):BOOL; inline;    
- function IS_GOPHER_TELNET(gtype:DWORD):BOOL; inline;          
- function IS_GOPHER_BINARY(gtype:DWORD):BOOL; inline;          
- function IS_GOPHER_REDUNDANT(gtype:DWORD):BOOL; inline;       
- function IS_GOPHER_TN3270(gtype:DWORD):BOOL; inline;          
- function IS_GOPHER_GIF(gtype:DWORD):BOOL; inline;             
- function IS_GOPHER_IMAGE(gtype:DWORD):BOOL; inline;           
- function IS_GOPHER_BITMAP(gtype:DWORD):BOOL; inline;          
- function IS_GOPHER_MOVIE(gtype:DWORD):BOOL; inline;           
- function IS_GOPHER_SOUND(gtype:DWORD):BOOL; inline;           
- function IS_GOPHER_HTML(gtype:DWORD):BOOL; inline;            
- function IS_GOPHER_PDF(gtype:DWORD):BOOL; inline;             
- function IS_GOPHER_CALENDAR(gtype:DWORD):BOOL; inline;        
- function IS_GOPHER_INLINE(gtype:DWORD):BOOL; inline;          
- function IS_GOPHER_UNKNOWN(gtype:DWORD):BOOL; inline;         
- function IS_GOPHER_ASK(gtype:DWORD):BOOL; inline;             
+ function IS_GOPHER_ERROR(gtype:DWORD):BOOL; inline;
+ function IS_GOPHER_MAC_BINHEX(gtype:DWORD):BOOL; inline;
+ function IS_GOPHER_DOS_ARCHIVE(gtype:DWORD):BOOL; inline;
+ function IS_GOPHER_UNIX_UUENCODED(gtype:DWORD):BOOL; inline;
+ function IS_GOPHER_INDEX_SERVER(gtype:DWORD):BOOL; inline;
+ function IS_GOPHER_TELNET(gtype:DWORD):BOOL; inline;
+ function IS_GOPHER_BINARY(gtype:DWORD):BOOL; inline;
+ function IS_GOPHER_REDUNDANT(gtype:DWORD):BOOL; inline;
+ function IS_GOPHER_TN3270(gtype:DWORD):BOOL; inline;
+ function IS_GOPHER_GIF(gtype:DWORD):BOOL; inline;
+ function IS_GOPHER_IMAGE(gtype:DWORD):BOOL; inline;
+ function IS_GOPHER_BITMAP(gtype:DWORD):BOOL; inline;
+ function IS_GOPHER_MOVIE(gtype:DWORD):BOOL; inline;
+ function IS_GOPHER_SOUND(gtype:DWORD):BOOL; inline;
+ function IS_GOPHER_HTML(gtype:DWORD):BOOL; inline;
+ function IS_GOPHER_PDF(gtype:DWORD):BOOL; inline;
+ function IS_GOPHER_CALENDAR(gtype:DWORD):BOOL; inline;
+ function IS_GOPHER_INLINE(gtype:DWORD):BOOL; inline;
+ function IS_GOPHER_UNKNOWN(gtype:DWORD):BOOL; inline;
+ function IS_GOPHER_ASK(gtype:DWORD):BOOL; inline;
  function IS_GOPHER_GOPHER_PLUS(gtype:DWORD):BOOL; inline;
 
 implementation
 
- function IS_GOPHER_TEXT_FILE(gtype:DWORD):BOOL;            
+ function IS_GOPHER_TEXT_FILE(gtype:DWORD):BOOL;
     begin
       result:=(gtype and GOPHER_TYPE_TEXT_FILE)=0;
     end;
- function IS_GOPHER_DIRECTORY(gtype:DWORD):BOOL;        
+ function IS_GOPHER_DIRECTORY(gtype:DWORD):BOOL;
     begin
       result:=(gtype and GOPHER_TYPE_DIRECTORY)=0;
     end;
- function IS_GOPHER_CSO(gtype:DWORD):BOOL; 
+ function IS_GOPHER_CSO(gtype:DWORD):BOOL;
     begin
       result:=(gtype and GOPHER_TYPE_CSO)=0;
     end;
- function IS_GOPHER_ERROR(gtype:DWORD):BOOL;            
+ function IS_GOPHER_ERROR(gtype:DWORD):BOOL;
     begin
       result:=(gtype and GOPHER_TYPE_ERROR)=0;
     end;
- function IS_GOPHER_MAC_BINHEX(gtype:DWORD):BOOL;       
+ function IS_GOPHER_MAC_BINHEX(gtype:DWORD):BOOL;
     begin
       result:=(gtype and GOPHER_TYPE_MAC_BINHEX)=0;
     end;
- function IS_GOPHER_DOS_ARCHIVE(gtype:DWORD):BOOL;      
+ function IS_GOPHER_DOS_ARCHIVE(gtype:DWORD):BOOL;
     begin
       result:=(gtype and GOPHER_TYPE_DOS_ARCHIVE)=0;
     end;
- function IS_GOPHER_UNIX_UUENCODED(gtype:DWORD):BOOL;   
+ function IS_GOPHER_UNIX_UUENCODED(gtype:DWORD):BOOL;
     begin
       result:=(gtype and GOPHER_TYPE_UNIX_UUENCODED)=0;
     end;
- function IS_GOPHER_INDEX_SERVER(gtype:DWORD):BOOL;     
+ function IS_GOPHER_INDEX_SERVER(gtype:DWORD):BOOL;
     begin
       result:=(gtype and GOPHER_TYPE_INDEX_SERVER)=0;
     end;
- function IS_GOPHER_TELNET(gtype:DWORD):BOOL;           
+ function IS_GOPHER_TELNET(gtype:DWORD):BOOL;
     begin
       result:=(gtype and GOPHER_TYPE_TELNET)=0;
     end;
- function IS_GOPHER_BINARY(gtype:DWORD):BOOL;           
+ function IS_GOPHER_BINARY(gtype:DWORD):BOOL;
     begin
       result:=(gtype and GOPHER_TYPE_BINARY)=0;
     end;
- function IS_GOPHER_REDUNDANT(gtype:DWORD):BOOL;        
+ function IS_GOPHER_REDUNDANT(gtype:DWORD):BOOL;
     begin
       result:=(gtype and GOPHER_TYPE_REDUNDANT)=0;
     end;
- function IS_GOPHER_TN3270(gtype:DWORD):BOOL;           
+ function IS_GOPHER_TN3270(gtype:DWORD):BOOL;
     begin
       result:=(gtype and GOPHER_TYPE_TN3270)=0;
     end;
- function IS_GOPHER_GIF(gtype:DWORD):BOOL;              
+ function IS_GOPHER_GIF(gtype:DWORD):BOOL;
     begin
       result:=(gtype and GOPHER_TYPE_GIF)=0;
     end;
- function IS_GOPHER_IMAGE(gtype:DWORD):BOOL;            
+ function IS_GOPHER_IMAGE(gtype:DWORD):BOOL;
     begin
       result:=(gtype and GOPHER_TYPE_IMAGE)=0;
     end;
- function IS_GOPHER_BITMAP(gtype:DWORD):BOOL;           
+ function IS_GOPHER_BITMAP(gtype:DWORD):BOOL;
     begin
       result:=(gtype and GOPHER_TYPE_BITMAP)=0;
     end;
- function IS_GOPHER_MOVIE(gtype:DWORD):BOOL;            
+ function IS_GOPHER_MOVIE(gtype:DWORD):BOOL;
     begin
       result:=(gtype and GOPHER_TYPE_MOVIE)=0;
     end;
- function IS_GOPHER_SOUND(gtype:DWORD):BOOL;            
+ function IS_GOPHER_SOUND(gtype:DWORD):BOOL;
     begin
       result:=(gtype and GOPHER_TYPE_SOUND)=0;
     end;
- function IS_GOPHER_HTML(gtype:DWORD):BOOL;             
+ function IS_GOPHER_HTML(gtype:DWORD):BOOL;
     begin
       result:=(gtype and GOPHER_TYPE_HTML)=0;
     end;
- function IS_GOPHER_PDF(gtype:DWORD):BOOL;              
+ function IS_GOPHER_PDF(gtype:DWORD):BOOL;
     begin
       result:=(gtype and GOPHER_TYPE_PDF)=0;
-    end;  
- function IS_GOPHER_CALENDAR(gtype:DWORD):BOOL;         
+    end;
+ function IS_GOPHER_CALENDAR(gtype:DWORD):BOOL;
     begin
       result:=(gtype and GOPHER_TYPE_CALENDAR)=0;
-    end;  
- function IS_GOPHER_INLINE(gtype:DWORD):BOOL;           
+    end;
+ function IS_GOPHER_INLINE(gtype:DWORD):BOOL;
     begin
       result:=(gtype and GOPHER_TYPE_INLINE)=0;
-    end;     
- function IS_GOPHER_UNKNOWN(gtype:DWORD):BOOL;          
+    end;
+ function IS_GOPHER_UNKNOWN(gtype:DWORD):BOOL;
     begin
       result:=(gtype and GOPHER_TYPE_UNKNOWN)=0;
-    end;  
- function IS_GOPHER_ASK(gtype:DWORD):BOOL;              
+    end;
+ function IS_GOPHER_ASK(gtype:DWORD):BOOL;
     begin
       result:=(gtype and GOPHER_TYPE_ASK)=0;
-    end;  
- function IS_GOPHER_GOPHER_PLUS(gtype:DWORD):BOOL; 
+    end;
+ function IS_GOPHER_GOPHER_PLUS(gtype:DWORD):BOOL;
     begin
       result:=(gtype and GOPHER_TYPE_GOPHER_PLUS)=0;
-    end;  
+    end;
 
 end.

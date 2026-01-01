@@ -66,7 +66,7 @@ const
 // via IOCTLs or streaming interface is not supported in this configuration.
       SERVICE_INIT_STANDALONE = $00000002;
 
-// 
+//
 // Service may need to know whether it was called from device.exe or services.exe or elsewhere.
 //
 const
@@ -89,7 +89,7 @@ type
 
 
 // Called from service on initialization to determine where it's running from
-procedure SERVICE_FIND_CALLER(var callerProc:DWORD); 
+procedure SERVICE_FIND_CALLER(var callerProc:DWORD);
 
 //
 //  Service is interfaced via series of IOCTL calls that define service life cycle.

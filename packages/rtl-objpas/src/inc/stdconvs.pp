@@ -3,7 +3,7 @@
    Copyright (c) 2004 by Marco van de Voort
    member of the Free Pascal development team.
 
-   An implementation for unit stdconv, 
+   An implementation for unit stdconv,
 
    Based on list of function of delphibasics.co.uk and #7482.
 

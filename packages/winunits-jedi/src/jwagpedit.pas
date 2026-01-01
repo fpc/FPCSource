@@ -666,7 +666,7 @@ type
     //
 
     function GetPropertySheetPages(var hPages: PHPROPSHEETPAGE; var uPageCount: UINT): HRESULT; stdcall;
-    
+
   end;
   {$EXTERNALSYM IGroupPolicyObject}
 

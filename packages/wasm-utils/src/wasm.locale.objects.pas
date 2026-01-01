@@ -19,12 +19,12 @@ unit wasm.locale.objects;
 
 interface
 
-uses 
+uses
   {$IFDEF FPC_DOTTEDUNITS}
   System.SysUtils,
   {$ELSE}
   sysutils,
-  {$ENDIF} 
+  {$ENDIF}
   wasm.locale.shared, wasm.locale.api;
 
 Type

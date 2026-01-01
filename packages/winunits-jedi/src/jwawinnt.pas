@@ -965,7 +965,7 @@ type
   PACCESS_MASK = ^ACCESS_MASK;
   {$EXTERNALSYM PACCESS_MASK}
   TAccessMask = ACCESS_MASK;
-  PAccessMask = PACCESS_MASK;  
+  PAccessMask = PACCESS_MASK;
 
 ////////////////////////////////////////////////////////////////////////
 //                                                                    //
@@ -1929,7 +1929,7 @@ type
   PACCESS_ALLOWED_CALLBACK_ACE = ^ACCESS_ALLOWED_CALLBACK_ACE;
   {$EXTERNALSYM PACCESS_ALLOWED_CALLBACK_ACE}
   TAccessAllowedCallBackAce = ACCESS_ALLOWED_CALLBACK_ACE;
-  PAccessAllowedCallBackAce = PACCESS_ALLOWED_CALLBACK_ACE;  
+  PAccessAllowedCallBackAce = PACCESS_ALLOWED_CALLBACK_ACE;
 
   _ACCESS_DENIED_CALLBACK_ACE = record
     Header: ACE_HEADER;
@@ -2828,7 +2828,7 @@ type
   PTOKEN_ORIGIN = ^TOKEN_ORIGIN;
   {$EXTERNALSYM PTOKEN_ORIGIN}
   TTokenOrigin = TOKEN_ORIGIN;
-  PTokenOrigin = PTOKEN_ORIGIN;  
+  PTokenOrigin = PTOKEN_ORIGIN;
 
 //
 // Security Tracking Mode
@@ -2894,7 +2894,7 @@ type
   PSECURITY_INFORMATION = ^SECURITY_INFORMATION;
   {$EXTERNALSYM PSECURITY_INFORMATION}
   TSecurityInformation = SECURITY_INFORMATION;
-  PSecurityInformation = PSECURITY_INFORMATION;  
+  PSecurityInformation = PSECURITY_INFORMATION;
 
 const
   OWNER_SECURITY_INFORMATION = $00000001;
@@ -3198,7 +3198,7 @@ type
   PQUOTA_LIMITS_EX = ^QUOTA_LIMITS_EX;
   {$EXTERNALSYM PQUOTA_LIMITS_EX}
   TQuotaLimitsEx = QUOTA_LIMITS_EX;
-  PQuotaLimitsEx = PQUOTA_LIMITS_EX;  
+  PQuotaLimitsEx = PQUOTA_LIMITS_EX;
 
   PIO_COUNTERS = ^IO_COUNTERS;
   {$EXTERNALSYM PIO_COUNTERS}
@@ -3352,7 +3352,7 @@ type
   PJOBOBJECT_JOBSET_INFORMATION = ^JOBOBJECT_JOBSET_INFORMATION;
   {$EXTERNALSYM PJOBOBJECT_JOBSET_INFORMATION}
   TJobObjectSetInformation = JOBOBJECT_JOBSET_INFORMATION;
-  PJobObjectSetInformation = PJOBOBJECT_JOBSET_INFORMATION;  
+  PJobObjectSetInformation = PJOBOBJECT_JOBSET_INFORMATION;
 
 const
   JOB_OBJECT_TERMINATE_AT_END_OF_JOB = 0;
@@ -3564,7 +3564,7 @@ type
   {$EXTERNALSYM SYSTEM_LOGICAL_PROCESSOR_INFORMATION}
   PSYSTEM_LOGICAL_PROCESSOR_INFORMATION = ^SYSTEM_LOGICAL_PROCESSOR_INFORMATION;
   TSystemLogicalProcessorInformation = SYSTEM_LOGICAL_PROCESSOR_INFORMATION;
-  PSystemLogicalProcessorInformation = PSYSTEM_LOGICAL_PROCESSOR_INFORMATION;  
+  PSystemLogicalProcessorInformation = PSYSTEM_LOGICAL_PROCESSOR_INFORMATION;
 
 const
   PROCESSOR_INTEL_386     = 386;
@@ -5174,7 +5174,7 @@ type
 
 function IMAGE_FIRST_SECTION(NtHeader: PImageNtHeaders): PImageSectionHeader;
 {$EXTERNALSYM IMAGE_FIRST_SECTION}
-  
+
 const
   IMAGE_SIZEOF_SECTION_HEADER = 40;
   {$EXTERNALSYM IMAGE_SIZEOF_SECTION_HEADER}
@@ -7184,7 +7184,7 @@ type
   PSLIST_ENTRY = PSINGLE_LIST_ENTRY;
   {$EXTERNALSYM PSLIST_ENTRY}
   TSListEntry = SLIST_ENTRY;
-  PSListEntry = PSLIST_ENTRY;  
+  PSListEntry = PSLIST_ENTRY;
 
 type
   _SLIST_HEADER = record
@@ -7202,7 +7202,7 @@ type
   PSLIST_HEADER = ^SLIST_HEADER;
   {$EXTERNALSYM PSLIST_HEADER}
   TSListHeader = SLIST_HEADER;
-  PSListHeader = PSLIST_HEADER;  
+  PSListHeader = PSLIST_HEADER;
 
 procedure RtlInitializeSListHead(ListHead: PSLIST_HEADER); stdcall;
 function RtlFirstEntrySList(ListHead: PSLIST_HEADER): PSLIST_ENTRY; stdcall;
@@ -7665,8 +7665,8 @@ type
 
     //
     // Filled by verifier provider DLL
-    // 
-    
+    //
+
     ProviderNtdllHeapFreeCallback: RTL_VERIFIER_NTDLLHEAPFREE_CALLBACK;
   end;
   {$EXTERNALSYM _RTL_VERIFIER_PROVIDER_DESCRIPTOR}
@@ -9024,7 +9024,7 @@ end;
 function NtCurrentTeb: PNT_TIB;
 asm
 {$ifdef cpu386}
-        MOV     EAX, FS:[024]   // was zero        
+        MOV     EAX, FS:[024]   // was zero
 {$endif cpu386}
 {$ifdef cpux86_64}
         mov     RAX, GS:[48]

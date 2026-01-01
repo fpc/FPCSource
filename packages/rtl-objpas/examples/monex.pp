@@ -1,15 +1,15 @@
 program TMonitorTest;
- 
+
 {$APPTYPE CONSOLE}
-{$mode objfpc} 
+{$mode objfpc}
 {$h+}
 uses
 {$ifdef unix}
   cthreads,
-{$endif}  
- 
+{$endif}
+
   SysUtils, Classes, fpMonitor;
- 
+
 type
   Drop = class(TObject)
   private
@@ -23,7 +23,7 @@ type
     function Take: string;
     procedure Put(AMessage: string);
   end;
- 
+
   Producer = class(TThread)
   private
     FDrop: Drop;
@@ -31,7 +31,7 @@ type
     constructor Create(ADrop: Drop);
     procedure Execute; override;
   end;
- 
+
   Consumer = class(TThread)
   private
     FDrop: Drop;
@@ -39,14 +39,14 @@ type
     constructor Create(ADrop: Drop);
     procedure Execute; override;
   end;
- 
+
 { Drop }
- 
+
 constructor Drop.Create;
 begin
   Empty := True;
 end;
- 
+
 function Drop.Take: string;
 begin
   TMonitor.Enter(Self);
@@ -65,7 +65,7 @@ begin
      TMonitor.Exit(Self);
   end;
 end;
- 
+
 procedure Drop.Put(AMessage: string);
 begin
   TMonitor.Enter(Self);
@@ -85,15 +85,15 @@ begin
     TMonitor.Exit(Self);
   end;
 end;
- 
+
 { Producer }
- 
+
 constructor Producer.Create(ADrop: Drop);
 begin
   FDrop := ADrop;
   inherited Create(False);
 end;
- 
+
 procedure Producer.Execute;
 var
   Msgs: array of string;
@@ -111,15 +111,15 @@ begin
   end;
   FDrop.Put('DONE');
 end;
- 
+
 { Consumer }
- 
+
 constructor Consumer.Create(ADrop: Drop);
 begin
   FDrop := ADrop;
   inherited Create(False);
 end;
- 
+
 procedure Consumer.Execute;
 var
   Msg: string;
@@ -130,16 +130,16 @@ begin
     Sleep(Random(50{00}));
   until Msg = 'DONE';
 end;
- 
+
 var
   ADrop: Drop;
- 
+
 begin
   Randomize;
   ADrop := Drop.Create;
   Producer.Create(ADrop);
   Consumer.Create(ADrop).WaitFor;
-{$IFDEF WINDOWS}  
+{$IFDEF WINDOWS}
   ReadLn;
 {$ENDIF}
 end.

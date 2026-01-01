@@ -253,7 +253,7 @@ begin
             Tracevv('inflate:         * literal '+AnsiChar(t^.base))
           else
             Tracevv('inflate:         * literal '+IntToStr(t^.base));
-          {$ENDIF}            
+          {$ENDIF}
           q^ := Byte(t^.base);
           inc(q);
           dec(m);

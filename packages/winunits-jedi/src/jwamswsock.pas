@@ -307,7 +307,7 @@ const
 
   DE_REUSE_SOCKET = TF_REUSE_SOCKET;
   {$EXTERNALSYM DE_REUSE_SOCKET}
-  
+
 //
 // Network-location awareness -- Name registration values for use
 // with WSASetService and other structures.
@@ -368,7 +368,7 @@ type
   PNLA_INTERNET = ^NLA_INTERNET;
   {$EXTERNALSYM PNLA_INTERNET}
   TNlaInternet = NLA_INTERNET;
-  PNlaInternet = PNLA_INTERNET;  
+  PNlaInternet = PNLA_INTERNET;
 
   _NLA_BLOB = record
     header: record
@@ -410,7 +410,7 @@ type
   LPNLA_BLOB = ^NLA_BLOB;
   {$EXTERNALSYM LPNLA_BLOB}
   TNlaBlob = NLA_BLOB;
-  PNlaBlob = PNLA_BLOB;  
+  PNlaBlob = PNLA_BLOB;
 
   _WSAMSG = record
     name: LPSOCKADDR;          // Remote address

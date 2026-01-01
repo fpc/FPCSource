@@ -105,7 +105,7 @@ begin
     if (ZorbaLibraryHandle=nilhandle) then
       Exit;
     inc(RefCount);
-    LoadedLibrary:=LibraryName;    
+    LoadedLibrary:=LibraryName;
     pointer(create_simple_store)   :=GetProcedureAddress(ZorbaLibraryHandle,'create_simple_store');
     pointer(shutdown_simple_store) :=GetProcedureAddress(ZorbaLibraryHandle,'shutdown_simple_store');
     pointer(zorba_implementation)  :=GetProcedureAddress(ZorbaLibraryHandle,'zorba_implementation');

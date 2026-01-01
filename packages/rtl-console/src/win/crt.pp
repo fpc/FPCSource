@@ -53,7 +53,7 @@ var
                                   will only be set on Initialization and
                                   Finalization *)
     OriginalConsoleOutputCP : Word;
- 
+
 
 {****************************************************************************
                            Low level Routines
@@ -936,7 +936,7 @@ begin
 
   if SafeCPSwitching and UseACP then    //Restore codepage on every Read if set previously
     SetConsoleOutputCP(OldConsoleOutputCP);
-	
+
   f.bufpos:=0;
   SetScreenCursor(CurrX, CurrY);
 End;

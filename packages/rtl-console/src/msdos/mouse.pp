@@ -351,7 +351,7 @@ begin
           begin
              oldmousex:=getmousex-1;
              oldmousey:=getmousey-1;
-             
+
              mem[videoseg:(((screenwidth*oldmousey)+oldmousex)*2)+1]:=
                mem[videoseg:(((screenwidth*oldmousey)+oldmousex)*2)+1] xor $7f;
              CustomMouse_MouseIsVisible:=true;

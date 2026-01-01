@@ -83,9 +83,9 @@ const
 //
 // GPS_DATA_FLAGS_XXX bit flags set in GPS_POSITION dwFlags field
 // provide additional information about the state of the query.
-// 
+//
 
-// Set when GPS hardware is not connected to GPSID and we 
+// Set when GPS hardware is not connected to GPSID and we
 // are returning cached data.
 const
       GPS_DATA_FLAGS_HARDWARE_OFF = $00000001;
@@ -147,7 +147,7 @@ type
 // GPS_DEVICE contains information about the device driver and the
 // service itself and is returned on a call to GPSGetDeviceState().
 // States are indicated with SERVICE_STATE_XXX flags defined in service.h
-// 
+//
 type
      _GPS_DEVICE = record
        dwVersion:DWORD;                                 // Current version of GPSID client is using.

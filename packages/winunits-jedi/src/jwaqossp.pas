@@ -298,7 +298,7 @@ const
   {$EXTERNALSYM RSVP_POLICY_HDR_LEN}
 
 (*
- * RSVP_POLICY_INFO contains undefined policy element(s) retrieved from RSVP.  
+ * RSVP_POLICY_INFO contains undefined policy element(s) retrieved from RSVP.
  *)
 
 type
@@ -441,8 +441,8 @@ const
   {$EXTERNALSYM INDETERMINATE_LATENCY}
 
 (*
- * This Flag is used to indicate the existence of a network element not 
- * supporting  QoS control services somewhere in the data path. If this bit 
+ * This Flag is used to indicate the existence of a network element not
+ * supporting  QoS control services somewhere in the data path. If this bit
  * is set in the specific service override then it indicates that that
  * service was not supported at at least one hop.
  *)
@@ -472,7 +472,7 @@ type
 (*
  * this structure describes the format of the parameter buffer that can be
  * included in the Service_Type structure below.  This structure allows an
- * application to include any valid Int Serv service parameter in the Buffer 
+ * application to include any valid Int Serv service parameter in the Buffer
  * value, after providing the Int Serv parameter id in the ParameterId field.
  *)
 
@@ -526,10 +526,10 @@ type
   PControlService = LPCONTROL_SERVICE;
 
 (*
- * This structure defines the information which is carried in the Rsvp 
- * Adspec.  This Rsvp object typically indicates which service types are 
+ * This structure defines the information which is carried in the Rsvp
+ * Adspec.  This Rsvp object typically indicates which service types are
  * available ( Controlled Load and/or Guaranteed Service ), if a non-Rsvp
- * hop has been encountered by the Path message, and the minumum MTU along 
+ * hop has been encountered by the Path message, and the minumum MTU along
  * the path. The services array indicates which services are supported
  *)
 
@@ -561,7 +561,7 @@ type
 //         mIOC_VENDOR = 0x04000000
 //         mCOMPANY    = 0x18000000
 //         ioctl_code  = 0x00000001
-//         
+//
 // See WSAIoctl man page for details.
 //
 
@@ -581,8 +581,8 @@ const
   {$EXTERNALSYM SIO_CHK_QOS}
 
 //
-// The following may be specified in the input buffer 
-// of the SIO_CHK_IOCTL ioctl call 
+// The following may be specified in the input buffer
+// of the SIO_CHK_IOCTL ioctl call
 //
 
   QOSSPBASE = 50000;
@@ -595,7 +595,7 @@ const
                                                 //      SBM/BEST_EFFORT bandwidth parameters in
                                                 //      the system
                                                 //   -- result is a YES(1) or NO(0) answer
-                                                //      in the output buffer 
+                                                //      in the output buffer
 
   ABLE_TO_RECV_RSVP = QOSSPBASE + 2; // query the SBM/BEST_EFFORT limit
   {$EXTERNALSYM ABLE_TO_RECV_RSVP}
@@ -604,7 +604,7 @@ const
                                                 //      SBM/BEST_EFFORT bandwidth parameters in
                                                 //      the system
                                                 //   -- result is a YES(1) or NO(0) answer
-                                                //      in the output buffer 
+                                                //      in the output buffer
 
   LINE_RATE = QOSSPBASE + 3; // query the interface capacity
   {$EXTERNALSYM LINE_RATE}

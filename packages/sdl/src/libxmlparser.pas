@@ -2008,7 +2008,7 @@ BEGIN
     IF CompareText (Str [PosAmp+2], 'x') = 0          // !!! Can't use "CHR" for Unicode characters > 255
       THEN Str [PosAmp] := CHR (StrToIntDef ('$'+Copy (Str, PosAmp+3, Len-4), 0))
       ELSE Str [PosAmp] := CHR (StrToIntDef (Copy (Str, PosAmp+2, Len-3), 32));
-    Delete (Str, PosAmp+1, Len-1);  
+    Delete (Str, PosAmp+1, Len-1);
     Start := PosAmp + 1;
   UNTIL FALSE;
 END;
@@ -2042,7 +2042,7 @@ PROCEDURE TXmlParser.ReplaceParameterEntities (VAR Str : AnsiString);
         END
       ELSE
         Repl := Copy (Str, PosAmp, Len);
-      Delete (Str, PosAmp, Len);  
+      Delete (Str, PosAmp, Len);
       Insert (Repl, Str, PosAmp);
       Start := PosAmp + Length (Repl);
     UNTIL FALSE;
@@ -2096,7 +2096,7 @@ PROCEDURE TXmlParser.ReplaceGeneralEntities (VAR Str : AnsiString);
         ELSE
           Repl := Copy (Str, PosAmp, Len);
         END;
-      Delete (Str, PosAmp, Len);  
+      Delete (Str, PosAmp, Len);
       Insert (Repl, Str, PosAmp);
       Start := PosAmp + Length (Repl);
     UNTIL FALSE;

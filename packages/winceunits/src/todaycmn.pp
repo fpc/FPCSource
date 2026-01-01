@@ -110,7 +110,7 @@ const
       TODAYM_RESERVEDSTART      = WM_USER + 300;
       TODAYM_RESERVEDEND        = WM_USER + 399;
 
-      
+
 // maximum number of today items
 const
       k_cTodayItemsMax          = 30;

@@ -68,7 +68,7 @@ type
     MinKey, MaxKey, Decimal
   );
 
-  
+
   TJsonContainerType          = (None, &Object, &Array, &Constructor);
   TJsonDateFormatHandling     = (Iso, Unix, FormatSettings);
   TJsonDateParseHandling      = (None, DateTime);
@@ -90,13 +90,13 @@ const
     TJsonToken.Oid, TJsonToken.RegEx, TJsonToken.DBRef, TJsonToken.CodeWScope,
     TJsonToken.MinKey, TJsonToken.MaxKey
     ];
-    
+
   JSONStartTokens =  [TJsonToken.StartObject,TJsonToken.StartArray,TJsonToken.StartConstructor];
   JSONEndTokens = [TJsonToken.EndObject, TJsonToken.EndArray, TJsonToken.EndConstructor];
 
 
 Type
-  
+
   TJsonLineInfo = class
   public
     function GetLineNumber: Integer; virtual;
@@ -105,20 +105,20 @@ Type
     property LineNumber: Integer read GetLineNumber;
     property LinePosition: Integer read GetLinePosition;
   end;
-  
+
   TJsonExtendedJsonMode = (None, StrictMode, MongoShell);
-  
+
   TJsonBinaryType = (
-    Generic = $00, 
-    &Function = $01, 
-    BinaryOld = $02,  
-    UUIDOld = $03, 
-    UUID = $04, 
-    MD5 = $05, 
+    Generic = $00,
+    &Function = $01,
+    BinaryOld = $02,
+    UUIDOld = $03,
+    UUID = $04,
+    MD5 = $05,
     UserDefined = $80
   );
 
- 
+
   TJsonPosition = record
   Public
     ContainerType: TJsonContainerType;
@@ -138,10 +138,10 @@ Type
   TJsonPositionHelper = record helper for TJsonPosition
     class function BuildPath(const aPositions: TEnumerablePositions; aFromIndex: Integer = 0): string; static;
   end;
-  
+
   TJsonFiler = class(TJsonLineInfo)
   private
-    function GetPath : String; 
+    function GetPath : String;
   protected
     FStack: specialize TList<TJsonPosition>;
     FCurrentPosition: TJsonPosition;
@@ -197,7 +197,7 @@ Type
     Scope: array of TScopeItem;
     constructor Create(const aCode: String; aScope: TStrings);
   end;
-  
+
   TJsonDBRef = record
   private
     function GetAsString: String;
@@ -417,7 +417,7 @@ function TJsonDecimal128.GetAsString: String;
 begin
   if Assigned(FDecOidBytesCount8ToString) then
     Result:=FDecOidBytesCount8ToString(Self)
-  else  
+  else
     raise EJsonException.Create(SErrDecimalNotAvailable);
 end;
 
@@ -611,21 +611,21 @@ end;
 function TJsonLineInfo.GetLineNumber: Integer;
 
 begin
-  Result:=0; 
+  Result:=0;
 end;
 
 
 function TJsonLineInfo.GetLinePosition: Integer;
 
 begin
-  Result:=0; 
+  Result:=0;
 end;
 
 
 function TJsonLineInfo.HasLineInfo: Boolean;
 
 begin
-  Result:=False; 
+  Result:=False;
 end;
 
 

@@ -277,7 +277,7 @@ type
 
 (*******************************************************************
  *
- * DeviceStateNotify events are generated on EnterWindow and FocusIn 
+ * DeviceStateNotify events are generated on EnterWindow and FocusIn
  * for those clients who have selected DeviceState.
  *
  *)
@@ -350,7 +350,7 @@ type
 
 (*******************************************************************
  *
- * ChangeDeviceNotify event.  This event is sent when an 
+ * ChangeDeviceNotify event.  This event is sent when an
  * XChangeKeyboard or XChangePointer request is made.
  *
  *)
@@ -414,7 +414,7 @@ type
 (*******************************************************************
  *
  * Control structures for input devices that support input class
- * Feedback.  These are used by the XGetFeedbackControl and 
+ * Feedback.  These are used by the XGetFeedbackControl and
  * XChangeFeedbackControl functions.
  *
  *)
@@ -644,10 +644,10 @@ type
 
 (*******************************************************************
  *
- * An array of XDeviceList structures is returned by the 
+ * An array of XDeviceList structures is returned by the
  * XListInputDevices function.  Each entry contains information
- * about one input device.  Among that information is an array of 
- * pointers to structures that describe the characteristics of 
+ * about one input device.  Among that information is an array of
+ * pointers to structures that describe the characteristics of
  * the input device.
  *
  *)
@@ -709,7 +709,7 @@ type
 
 (*******************************************************************
  *
- * An XDevice structure is returned by the XOpenDevice function.  
+ * An XDevice structure is returned by the XOpenDevice function.
  * It contains an array of pointers to XInputClassInfo structures.
  * Each contains information about a class of input supported by the
  * device, including a pointer to an array of data for each type of event
@@ -734,7 +734,7 @@ type
 
 (*******************************************************************
  *
- * The following structure is used to return information for the 
+ * The following structure is used to return information for the
  * XGetSelectedExtensionEvents function.
  *
  *)
@@ -747,7 +747,7 @@ type
 
 (*******************************************************************
  *
- * The following structure is used to return motion history data from 
+ * The following structure is used to return motion history data from
  * an input device that supports the input class Valuators.
  * This information is returned by the XGetDeviceMotionEvents function.
  *

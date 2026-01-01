@@ -577,7 +577,7 @@ type
   PWLX_CLIENT_CREDENTIALS_INFO_V2_0 = ^WLX_CLIENT_CREDENTIALS_INFO_V2_0;
   {$EXTERNALSYM PWLX_CLIENT_CREDENTIALS_INFO_V2_0}
   TWlxClientCredentialsInfoV2_0 = WLX_CLIENT_CREDENTIALS_INFO_V2_0;
-  PWlxClientCredentialsInfoV2_0 = PWLX_CLIENT_CREDENTIALS_INFO_V2_0;  
+  PWlxClientCredentialsInfoV2_0 = PWLX_CLIENT_CREDENTIALS_INFO_V2_0;
 
 /////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////
@@ -652,7 +652,7 @@ type
   PWLX_CONSOLESWITCH_CREDENTIALS_INFO_V1_0 = ^WLX_CONSOLESWITCH_CREDENTIALS_INFO_V1_0;
   {$EXTERNALSYM PWLX_CONSOLESWITCH_CREDENTIALS_INFO_V1_0}
   TWlxConsoleSwitchCredentialsInfoV1_0 = WLX_CONSOLESWITCH_CREDENTIALS_INFO_V1_0;
-  PWlxConsoleSwitchCredentialsInfoV1_0 = PWLX_CONSOLESWITCH_CREDENTIALS_INFO_V1_0;  
+  PWlxConsoleSwitchCredentialsInfoV1_0 = PWLX_CONSOLESWITCH_CREDENTIALS_INFO_V1_0;
 
 ////////////////////////////////////////////////////////////////////////
 //                                                                    //

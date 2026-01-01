@@ -130,9 +130,9 @@ cdecl; external {$IFDEF __GPC__}name 'SDL_framerateDelay'{$ELSE} SDLgfxLibName{$
 
 }
 
-// Note: all ___Color routines expect the color to be in format 0xRRGGBBAA 
+// Note: all ___Color routines expect the color to be in format 0xRRGGBBAA
 
-// Pixel 
+// Pixel
 
 function pixelColor( dst : PSDL_Surface; x : Sint16; y : Sint16; color : Uint32 ) : integer;
 cdecl; external {$IFDEF __GPC__}name 'pixelColor'{$ELSE} SDLgfxLibName{$ENDIF __GPC__};
@@ -142,7 +142,7 @@ function pixelRGBA( dst : PSDL_Surface; x : Sint16; y : Sint16; r : Uint8; g : U
 cdecl; external {$IFDEF __GPC__}name 'pixelRGBA'{$ELSE} SDLgfxLibName{$ENDIF __GPC__};
 {$EXTERNALSYM pixelRGBA}
 
-// Horizontal line 
+// Horizontal line
 
 function hlineColor( dst : PSDL_Surface; x1: Sint16; x2 : Sint16; y : Sint16; color : Uint32 ) : integer;
 cdecl; external {$IFDEF __GPC__}name 'hlineColor'{$ELSE} SDLgfxLibName{$ENDIF __GPC__};
@@ -152,7 +152,7 @@ function hlineRGBA( dst : PSDL_Surface; x1: Sint16; x2 : Sint16; y : Sint16; r :
 cdecl; external {$IFDEF __GPC__}name 'hlineRGBA'{$ELSE} SDLgfxLibName{$ENDIF __GPC__};
 {$EXTERNALSYM hlineRGBA}
 
-// Vertical line 
+// Vertical line
 
 function vlineColor( dst : PSDL_Surface; x : Sint16; y1 : Sint16; y2 : Sint16; color : Uint32 ) : integer;
 cdecl; external {$IFDEF __GPC__}name 'vlineColor'{$ELSE} SDLgfxLibName{$ENDIF __GPC__};
@@ -162,7 +162,7 @@ function vlineRGBA( dst : PSDL_Surface; x : Sint16; y1 : Sint16; y2 : Sint16; r 
 cdecl; external {$IFDEF __GPC__}name 'vlineRGBA'{$ELSE} SDLgfxLibName{$ENDIF __GPC__};
 {$EXTERNALSYM vlineRGBA}
 
-// Rectangle 
+// Rectangle
 
 function rectangleColor( dst : PSDL_Surface; x1 : Sint16; y1 : Sint16; x2 : Sint16; y2 : Sint16; color : Uint32 ) : integer;
 cdecl; external {$IFDEF __GPC__}name 'rectangleColor'{$ELSE} SDLgfxLibName{$ENDIF __GPC__};
@@ -173,7 +173,7 @@ function rectangleRGBA( dst : PSDL_Surface; x1 : Sint16; y1 : Sint16;
 cdecl; external {$IFDEF __GPC__}name 'rectangleRGBA'{$ELSE} SDLgfxLibName{$ENDIF __GPC__};
 {$EXTERNALSYM rectangleRGBA}
 
-// Filled rectangle (Box) 
+// Filled rectangle (Box)
 
 function boxColor( dst : PSDL_Surface; x1 : Sint16; y1 : Sint16; x2 : Sint16; y2 : Sint16; color : Uint32 ) : integer;
 cdecl; external {$IFDEF __GPC__}name 'boxColor'{$ELSE} SDLgfxLibName{$ENDIF __GPC__};
@@ -184,7 +184,7 @@ function boxRGBA( dst : PSDL_Surface; x1 : Sint16; y1 : Sint16; x2 : Sint16;
 cdecl; external {$IFDEF __GPC__}name 'boxRGBA'{$ELSE} SDLgfxLibName{$ENDIF __GPC__};
 {$EXTERNALSYM boxRGBA}
 
-// Line 
+// Line
 
 function lineColor( dst : PSDL_Surface; x1 : Sint16; y1 : Sint16; x2 : Sint16; y2 : Sint16; color : Uint32 ) : integer;
 cdecl; external {$IFDEF __GPC__}name 'lineColor'{$ELSE} SDLgfxLibName{$ENDIF __GPC__};
@@ -195,7 +195,7 @@ function lineRGBA( dst : PSDL_Surface; x1 : Sint16; y1 : Sint16;
 cdecl; external {$IFDEF __GPC__}name 'lineRGBA'{$ELSE} SDLgfxLibName{$ENDIF __GPC__};
 {$EXTERNALSYM lineRGBA}
 
-// AA Line 
+// AA Line
 function aalineColor( dst : PSDL_Surface; x1 : Sint16; y1 : Sint16; x2 : Sint16; y2 : Sint16; color : Uint32 ) : integer;
 cdecl; external {$IFDEF __GPC__}name 'aalineColor'{$ELSE} SDLgfxLibName{$ENDIF __GPC__};
 {$EXTERNALSYM aalineColor}
@@ -205,7 +205,7 @@ function aalineRGBA( dst : PSDL_Surface; x1 : Sint16; y1 : Sint16;
 cdecl; external {$IFDEF __GPC__}name 'aalineRGBA'{$ELSE} SDLgfxLibName{$ENDIF __GPC__};
 {$EXTERNALSYM aalineRGBA}
 
-// Circle 
+// Circle
 
 function circleColor( dst : PSDL_Surface; x : Sint16; y : Sint16; r : Sint16; color : Uint32 ) : integer;
 cdecl; external {$IFDEF __GPC__}name 'circleColor'{$ELSE} SDLgfxLibName{$ENDIF __GPC__};
@@ -215,7 +215,7 @@ function circleRGBA( dst : PSDL_Surface; x : Sint16; y : Sint16; rad : Sint16; r
 cdecl; external {$IFDEF __GPC__}name 'circleRGBA'{$ELSE} SDLgfxLibName{$ENDIF __GPC__};
 {$EXTERNALSYM circleRGBA}
 
-// AA Circle 
+// AA Circle
 
 function aacircleColor( dst : PSDL_Surface; x : Sint16; y : Sint16; r : Sint16; color : Uint32 ) : integer;
 cdecl; external {$IFDEF __GPC__}name 'aacircleColor'{$ELSE} SDLgfxLibName{$ENDIF __GPC__};
@@ -226,7 +226,7 @@ function aacircleRGBA( dst : PSDL_Surface; x : Sint16; y : Sint16;
 cdecl; external {$IFDEF __GPC__}name 'aacircleRGBA'{$ELSE} SDLgfxLibName{$ENDIF __GPC__};
 {$EXTERNALSYM aacircleRGBA}
 
-// Filled Circle 
+// Filled Circle
 
 function filledCircleColor( dst : PSDL_Surface; x : Sint16; y : Sint16; r : Sint16; color : Uint32 ) : integer;
 cdecl; external {$IFDEF __GPC__}name 'filledCircleColor'{$ELSE} SDLgfxLibName{$ENDIF __GPC__};
@@ -237,7 +237,7 @@ function filledCircleRGBA( dst : PSDL_Surface; x : Sint16; y : Sint16;
 cdecl; external {$IFDEF __GPC__}name 'filledCircleRGBA'{$ELSE} SDLgfxLibName{$ENDIF __GPC__};
 {$EXTERNALSYM filledCircleRGBA}
 
-// Ellipse 
+// Ellipse
 
 function ellipseColor( dst : PSDL_Surface; x : Sint16; y : Sint16; rx : Sint16; ry : Sint16; color : Uint32 ) : integer;
 cdecl; external {$IFDEF __GPC__}name 'ellipseColor'{$ELSE} SDLgfxLibName{$ENDIF __GPC__};
@@ -248,7 +248,7 @@ function ellipseRGBA( dst : PSDL_Surface; x : Sint16; y : Sint16;
 cdecl; external {$IFDEF __GPC__}name 'ellipseRGBA'{$ELSE} SDLgfxLibName{$ENDIF __GPC__};
 {$EXTERNALSYM ellipseRGBA}
 
-// AA Ellipse 
+// AA Ellipse
 
 function aaellipseColor( dst : PSDL_Surface; xc : Sint16; yc : Sint16; rx : Sint16; ry : Sint16; color : Uint32 ) : integer;
 cdecl; external {$IFDEF __GPC__}name 'aaellipseColor'{$ELSE} SDLgfxLibName{$ENDIF __GPC__};
@@ -259,7 +259,7 @@ function aaellipseRGBA( dst : PSDL_Surface; x : Sint16; y : Sint16;
 cdecl; external {$IFDEF __GPC__}name 'aaellipseRGBA'{$ELSE} SDLgfxLibName{$ENDIF __GPC__};
 {$EXTERNALSYM aaellipseRGBA}
 
-// Filled Ellipse 
+// Filled Ellipse
 
 function filledEllipseColor( dst : PSDL_Surface; x : Sint16; y : Sint16; rx : Sint16; ry : Sint16; color : Uint32 ) : integer;
 cdecl; external {$IFDEF __GPC__}name 'filledEllipseColor'{$ELSE} SDLgfxLibName{$ENDIF __GPC__};
@@ -654,8 +654,8 @@ cdecl; external {$IFDEF __GPC__}name 'SDL_imageFilterRestoreStack'{$ELSE} SDLgfx
 
 }
 
-{ 
- 
+{
+
  rotozoomSurface()
 
  Rotates and zoomes a 32bit or 8bit 'src' surface to newly created 'dst' surface.

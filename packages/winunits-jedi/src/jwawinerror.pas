@@ -9309,7 +9309,7 @@ const
 // MessageText:
 //
 //  There is a mismatch between the tag specified in the request and the tag present in the reparse point.
-//  
+//
 //
   ERROR_REPARSE_TAG_MISMATCH = DWORD(4394);
   {$EXTERNALSYM ERROR_REPARSE_TAG_MISMATCH}
@@ -14910,7 +14910,7 @@ const
 //
 // MessageText:
 //
-//  The FSMO role ownership could not be verified because its directory partition has not replicated successfully with atleast one replication partner. 
+//  The FSMO role ownership could not be verified because its directory partition has not replicated successfully with atleast one replication partner.
 //
   ERROR_DS_ROLE_NOT_VERIFIED = DWORD(8610);
   {$EXTERNALSYM ERROR_DS_ROLE_NOT_VERIFIED}
@@ -20477,7 +20477,7 @@ const
 // MessageText:
 //
 //  There was an error in a Windows GDI call while converting the DIB to a bitmap.
-//  
+//
 //
   CONVERT10_E_STG_DIB_TO_BITMAP = HRESULT($800401C6);
   {$EXTERNALSYM CONVERT10_E_STG_DIB_TO_BITMAP}
@@ -25111,7 +25111,7 @@ const
 // MessageText:
 //
 //  The specified data could not be decrypted.
-//  
+//
 //
   SEC_E_DECRYPT_FAILURE = HRESULT($80090330);
   {$EXTERNALSYM SEC_E_DECRYPT_FAILURE}
@@ -25241,7 +25241,7 @@ const
 //
 // MessageText:
 //
-//  The client certificate does not contain a valid UPN, or does not match the client name 
+//  The client certificate does not contain a valid UPN, or does not match the client name
 //  in the logon request.  Please contact your administrator.
 //
   SEC_E_PKINIT_NAME_MISMATCH = HRESULT($8009033D);
@@ -25429,7 +25429,7 @@ const
 //
 // MessageText:
 //
-//  The Kerberos subsystem encountered an error.  A service for user protocol request was made 
+//  The Kerberos subsystem encountered an error.  A service for user protocol request was made
 //  against a domain controller which does not support service for user.
 //
   SEC_E_NO_S4U_PROT_SUPPORT = HRESULT($80090356);
@@ -26018,7 +26018,7 @@ const
 // MessageText:
 //
 //  OSS Certificate encode/decode error code base
-//  
+//
 //  See asn1code.h for a definition of the OSS runtime errors. The OSS
 //  error values are offset by CRYPT_E_OSS_ERROR.
 //
@@ -26491,7 +26491,7 @@ const
 // MessageText:
 //
 //  ASN1 Certificate encode/decode error code base.
-//  
+//
 //  The ASN1 error values are offset by CRYPT_E_ASN1_ERROR.
 //
   CRYPT_E_ASN1_ERROR = HRESULT($80093100);

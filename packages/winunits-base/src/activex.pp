@@ -65,7 +65,7 @@ type
    DATE	               = DOUBLE;
    BSTR	               = POLESTR;
    TOleDate	       = DATE;
-   POleDate	       = ^TOleDate;	
+   POleDate	       = ^TOleDate;
    TOleBool	       = wordbool;
    OLE_HANDLE	       = UINT;
    OLE_XSIZE_HIMETRIC = LONG;
@@ -2070,7 +2070,7 @@ TYPE
                   ulKind : ULONG ;
                   case boolean of
                     false : ( propid:propid);
-                    true  :  (lpwstr: LPOLEStr);	
+                    true  :  (lpwstr: LPOLEStr);
                     end;
 
   PROPSPEC= tagPROPSPEC;
@@ -4061,7 +4061,7 @@ type
        function GetPageInfo(out pnFirstPage:Integer;out pcPages:Integer):HRESULT;stdcall;
        function RemotePrint(grfFlags:LongWord;var pptd:PtagDVTARGETDEVICE;var pppageset:PtagPAGESET;var pstgmOptions:tagRemSTGMEDIUM;pcallback:IContinueCallback;nFirstPage:Integer;out pcPagesPrinted:Integer;out pnLastPage:Integer):HRESULT;stdcall;
       end;
-  
+
     IOleCommandTarget = interface(IUnknown)
        ['{B722BCCB-4E68-101B-A2BC-00AA00404770}']
        function QueryStatus(var pguidCmdGroup:GUID;cCmds:LongWord;var prgCmds:_tagOLECMD;var pCmdText:_tagOLECMDTEXT):HRESULT;stdcall;
@@ -4628,7 +4628,7 @@ type
 	const
 	  ACTIVEOBJECT_STRONG = 0;
 	  ACTIVEOBJECT_WEAK = 1;
-	
+
 	function RegisterActiveObject(unk: IUnknown; const clsid: TCLSID; dwFlags: DWORD; out dwRegister: culong): HResult; stdcall; external oleaut32dll name 'RegisterActiveObject';
 	function RevokeActiveObject(dwRegister: culong; pvReserved: Pointer) : HResult; stdcall; external oleaut32dll name 'RevokeActiveObject';
 	function GetActiveObject(const clsid: TCLSID; pvReserved: Pointer; out unk: IUnknown) : HResult; stdcall; external oleaut32dll name 'GetActiveObject';
@@ -4952,7 +4952,7 @@ function SafeArrayCopy(psa: PSafeArray; out psaOut: PSafeArray): HResult; stdcal
   external oleaut32dll name 'SafeArrayCopy';
 function SafeArrayPtrOfIndex(psa: PSafeArray; rgIndices: PLongint; out pvData: Pointer): HResult; stdcall;
   external oleaut32dll name 'SafeArrayPtrOfIndex';
-  
+
 implementation
 
 function Succeeded(Res: HResult) : Boolean;inline;

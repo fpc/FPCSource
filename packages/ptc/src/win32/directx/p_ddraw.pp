@@ -195,7 +195,7 @@ type
     #endif}
 //    typedef BOOL (FAR PASCAL * LPDDENUMCALLBACKEXA)(GUID FAR *, LPSTR, LPSTR, LPVOID, HMONITOR);
     LPDDENUMCALLBACKEXA = function(lpGUID: PGUID; lpDriverDescription: LPSTR; lpDriverName: LPSTR; lpContext: LPVOID; hm: HMONITOR): BOOL; stdcall;
-  
+
 //    typedef BOOL (FAR PASCAL * LPDDENUMCALLBACKEXW)(GUID FAR *, LPWSTR, LPWSTR, LPVOID, HMONITOR);
     LPDDENUMCALLBACKEXW = function(lpGUID: PGUID; lpDriverDescription: LPWSTR; lpDriverName: LPWSTR; lpContext: LPVOID; hm: HMONITOR): BOOL; stdcall;
 

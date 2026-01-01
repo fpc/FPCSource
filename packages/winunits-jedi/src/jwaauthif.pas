@@ -431,7 +431,7 @@ type
     pOutAttrs: PRADIUS_ATTRIBUTE; pfAction: PRADIUS_ACTION): DWORD; stdcall;
   {$EXTERNALSYM PRADIUS_EXTENSION_PROCESS_EX}
   PRadiusExtensionProcessEx = PRADIUS_EXTENSION_PROCESS_EX;
-  
+
 //
 // RadiusExtensionFreeAttributes must be defined if RadiusExtensionProcessEx
 // is defined. It is used to free the attributes returned by
@@ -565,7 +565,7 @@ type
   RADIUS_ATTRIBUTE_ARRAY = _RADIUS_ATTRIBUTE_ARRAY;
   {$EXTERNALSYM RADIUS_ATTRIBUTE_ARRAY}
   TRadiusAttributeArray = RADIUS_ATTRIBUTE_ARRAY;
-  PRadiusAttributeArray = PRADIUS_ATTRIBUTE_ARRAY;  
+  PRadiusAttributeArray = PRADIUS_ATTRIBUTE_ARRAY;
 
 //
 // Struct used to exchange information with the extension during request

@@ -933,7 +933,7 @@ const
 //
 //  While canceling job "%2", BITS was not able to remove the temporary files listed below.
 //  If you can delete them, then you will regain some disk space.  The job ID was %1.%\
-//  
+//
 //  %3
 //
   MC_FILE_DELETION_FAILED = DWORD($80194001);
@@ -946,7 +946,7 @@ const
 //
 //  While canceling job "%2", BITS was not able to remove the temporary files listed below.
 //  If you can delete them, then you will regain some disk space.  The job ID was %1. %\
-//  
+//
 //  %3
 //  %\
 //  Due to space limitations, not all files are listed here.  Check for additional files of the form BITxxx.TMP in the same directory.

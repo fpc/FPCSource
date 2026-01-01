@@ -3338,7 +3338,7 @@ const
       RIL_GPRSPROTOCOL_IHOSP                      = $00000004;  // @constdefine Internet Hosted Octet Stream Protocol
       RIL_GPRSPROTOCOL_PPP                        = $00000008;  // @constdefine Point to Point Protocol
       RIL_GPRSPROTOCOL_ALL                        = $0000000f;
-      
+
 // -----------------------------------------------------------------------------
 //
 // @doc EXTERNAL
@@ -4985,7 +4985,7 @@ type
 // @comm None
 //
 // -----------------------------------------------------------------------------
-type                               
+type
      rilequipmentinfo_tag = record
        cbSize:DWORD;                       // @field structure size in bytes
        dwParams:DWORD;                     // @field indicates valid parameters
@@ -6141,7 +6141,7 @@ const
       NDIS_GPRS_PASSWORD_MAX_LENGTH = 64;
       NDIS_GPRS_USERNAME_MAX_LENGTH = 64;
       NDIS_GRPS_DNS_MAX_LENGTH      = 64;
-      
+
 // -----------------------------------------------------------------------------
 //
 // @doc EXTERNAL
@@ -6236,7 +6236,7 @@ type
      RILSIMSECURITYSTATUS = rilsimsecuritystatus_tag;
      LPRILSIMSECURITYSTATUS = ^rilsimsecuritystatus_tag;
 
-     
+
 //
 // RIL handle type
 //
@@ -6289,7 +6289,7 @@ type
 //
 // @comm This function is called to determine the call type when the
 //       following is present in the registry:
-//       
+//
 //       [HKEY_LOCAL_MACHINE\Comm\Cellular\RIL\RemoteCalltype]
 //           "CalltypeDLL"="<libraryName>.dll"
 //           "CalltypeFunction"="<functionName>"
@@ -7023,7 +7023,7 @@ function RIL_StopDTMF(
                       _hRil:HRIL;       // @parm handle to RIL instance returned by <f RIL_Initialize>
                       ch:AnsiChar       // @parm alphanumeric AnsiChar representing DTMF tones to be stopped (0-9, A-D, *, #)
                      ):HRESULT; external RILDLL name 'RIL_StopDTMF';
-                     
+
 // -----------------------------------------------------------------------------
 //
 // @doc EXTERNAL

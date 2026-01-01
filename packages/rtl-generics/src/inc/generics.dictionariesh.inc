@@ -184,7 +184,7 @@ type
     TPointersCollection = TOpenAddressingPointersCollection<TPointersEnumerator, TItem, PDictionaryPair>;
   public type
     PPointersCollection = ^TPointersCollection;
-  private var // FItems must be declared as first field 
+  private var // FItems must be declared as first field
     FItems: TItemsArray;
     FItemsThreshold: SizeInt;
 

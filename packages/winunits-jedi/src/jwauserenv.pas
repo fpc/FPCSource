@@ -819,7 +819,7 @@ function GetAppliedGPOList(dwFlags: DWORD; pMachineName: LPCTSTR; pSidUser: PSID
 //     NoUserPolicy                 REG_DWORD    True, if extension does not have to be called when
 //                                                 user policies are being processed.
 //     NoSlowLink                   REG_DWORD    True, if extension does not have to be called on a slow link
-//     NoBackgroundPolicy           REG_DWORD    True, if extension does not have to be called 
+//     NoBackgroundPolicy           REG_DWORD    True, if extension does not have to be called
 //                                                 for background policy processing.
 //     NoGPOListChanges             REG_DWORD    True, if extension does not have to be called when
 //                                                 there are no changes between cached and current GPO lists.
@@ -944,7 +944,7 @@ type
   PRSOP_TARGET = ^RSOP_TARGET;
   {$EXTERNALSYM PRSOP_TARGET}
   TRsopTarget = RSOP_TARGET;
-  PRsopTarget = PRSOP_TARGET;  
+  PRsopTarget = PRSOP_TARGET;
 
   PFNGENERATEGROUPPOLICY = function(
     dwFlags: DWORD;                              // GPO_INFO_FLAGS

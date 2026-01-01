@@ -105,7 +105,7 @@ const
   SOMAXCONN     = 1024;
 
    SOL_SOCKET = $FFFF;
-	
+
    { turn on debugging info recording  }
      SO_DEBUG = $0001;
    { socket has had listen()  }
@@ -197,7 +197,7 @@ const
 { 4.3-format sockaddr  }
   MSG_COMPAT = $8000;
   MSG_MAXIOVLEN    =    16;
- 
+
      TCP_NODELAY = $01;
   { set maximum segment size  }
      TCP_MAXSEG = $02;
@@ -275,7 +275,7 @@ const
     IPPROTO_RAW = 255;
     IPPROTO_MAX = 256;
 
-    
+
   { buf/ip_opts; set/get IP per-packet options  }
     IP_OPTIONS = 1;
   { int; header is included with data (raw)  }

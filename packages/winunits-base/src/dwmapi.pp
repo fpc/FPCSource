@@ -85,7 +85,7 @@ const
   DWMWA_TEXT_COLOR                      = 36; // [set] COLORREF, The color of the caption text
   DWMWA_VISIBLE_FRAME_BORDER_THICKNESS  = 37; // [get] UINT, width of the visible border around a thick frame window
   DWMWA_LAST                            = 38;
- 
+
 // Apply rounded corners in desktop apps for Windows 11
 // DWM_WINDOW_CORNER_PREFERENCE
 

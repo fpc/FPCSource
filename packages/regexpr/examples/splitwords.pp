@@ -5,7 +5,7 @@ uses cwstring, sysutils, classes, uregexpr;
 Var
   Split : TStringList;
   S : String;
-  R : TRegexpr;  
+  R : TRegexpr;
   E : TEncoding;
 
 begin
@@ -20,10 +20,10 @@ begin
     r.LineSeparators:=#10;
     r.Expression :='(\b[^\d\s]+\b)';
     if R.Exec(S) then
-      repeat 
+      repeat
         Writeln('Found (pos: ',R.MatchPos[0],'): ',System.Copy (S, R.MatchPos [0], R.MatchLen[0]));
       until not R.ExecNext;
-  finally 
+  finally
     r.Free;
     split.free;
   end;

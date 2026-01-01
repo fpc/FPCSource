@@ -1,9 +1,9 @@
 {
   $XFree86: xc/lib/Xrandr/Xrandr.h,v 1.9 2002/09/29 23:39:44 keithp Exp $
- 
+
   Copyright (C) 2000 Compaq Computer Corporation, Inc.
   Copyright (C) 2002 Hewlett-Packard Company, Inc.
- 
+
   Permission to use, copy, modify, distribute, and sell this software and its
   documentation for any purpose is hereby granted without fee, provided that
   the above copyright notice appear in all copies and that both that
@@ -13,14 +13,14 @@
   written prior permission.  HP makes no representations about the
   suitability of this software for any purpose.  It is provided "as is"
   without express or implied warranty.
- 
+
   HP DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE, INCLUDING ALL
   IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO EVENT SHALL COMPAQ
   BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
   WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION
-  OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN 
+  OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
   CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
- 
+
   Author:  Jim Gettys, HP Labs, HP.
 }
 
@@ -170,8 +170,8 @@ procedure XRRSelectInput(
   mask : cint); cdecl; external libXrandr;
 
 {
-  the following are always safe to call, even if RandR is not implemented 
-  on a screen 
+  the following are always safe to call, even if RandR is not implemented
+  on a screen
 }
 
 
@@ -195,7 +195,7 @@ function XRRTimes(
 
 
 {
-  intended to take RRScreenChangeNotify,  or 
+  intended to take RRScreenChangeNotify,  or
   ConfigureNotify (on the root window)
   returns 1 if it is an event type it understands, 0 if not
 }

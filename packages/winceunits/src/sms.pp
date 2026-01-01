@@ -38,7 +38,7 @@ uses Windows;
 const
       FACILITY_SMS                           = $0200;
 
-// MAKE_HRESULT rules OK!      
+// MAKE_HRESULT rules OK!
 // Specific registration errors (for SmsSetMessageNotification, SmsClearMessageNotification)
 const
       SMS_E_INVALIDPROTOCOL                  = (SEVERITY_ERROR shl 31) or (FACILITY_SMS shl 16) or $0001;
@@ -299,7 +299,7 @@ type
      end;
      SMS_RANGE = sms_range_tag;
      LPSMS_RANGE = ^sms_range_tag;
-     
+
 // SMS broadcast message ranges information
 // Use #pragma to avoid "warning C4200: nonstandard extension used : zero-sized array in struct/union
 type
@@ -313,7 +313,7 @@ type
      end;
      SMS_BROADCAST_RANGES = sms_broadcast_ranges_tag;
      LPSMS_BROADCAST_RANGES = ^sms_broadcast_ranges_tag;
-     
+
 //
 // SMS message types (for use with SmsOpen)
 //
@@ -321,7 +321,7 @@ type
 // Text message type
 const
       SMS_MSGTYPE_TEXT = 'Microsoft Text SMS Protocol';
-      
+
 // Provider-specific data for use with SmsSendMessage and SmsReadMessage
 
 // Bitfield values for the extended parameters of the text provider structure.
@@ -434,7 +434,7 @@ type
 // WCMP message type
 const
       SMS_MSGTYPE_WCMP = 'Microsoft WCMP SMS Protocol';
-      
+
 // Provider-specific data for use with SmsSendMessage and SmsReadMessage
 type
      WCMP_PROVIDER_SPECIFIC_MESSAGE_TYPE = (WCMPPSMT_UNSUPPORTED := 0,
@@ -488,7 +488,7 @@ type
 // Raw message type
 const
       SMS_MSGTYPE_RAW = 'Microsoft Raw SMS Protocol (Receive Only)';
-      
+
 // Provider-specific data for use with SmsReadMessage
 type
      raw_provider_specific_data_tag  = record

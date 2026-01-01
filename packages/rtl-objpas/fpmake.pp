@@ -7,7 +7,7 @@ uses {$ifdef unix}cthreads,{$endif} fpmkunit;
 
 procedure add_rtl_objpas(const ADirectory: string);
 
-Const 
+Const
   // All Unices have full set of KVM+Crt in unix/ except QNX which is not
   // in workable state atm.
   UnixLikes = AllUnixOSes -[QNX]; // qnx never was active in 2.x afaik
@@ -66,7 +66,7 @@ begin
     T:=P.Targets.AddUnit('system.uiconsts.pp',uitypesOses);
       T.Dependencies.AddUnit('system.uitypes');
     T:=P.Targets.AddUnit('system.timespan.pp',uitypesOses);
-    
+
     T:=P.Targets.AddUnit('system.actions.pp',UItypesOSes);
       T.Dependencies.AddUnit('system.uitypes');
     T:=P.Targets.AddUnit('system.math.vectors.pp',UItypesOSes);
@@ -93,7 +93,7 @@ begin
      begin
        AddInclude('convutil.inc');
      end;
- 
+
     // normal
     T:=P.Targets.AddUnit('convutils.pp',ConvutilsOSes);
     with T.Dependencies do
@@ -107,7 +107,7 @@ begin
      begin
        AddInclude('dateutil.inc');
      end;
- 
+
     // normal
     T:=P.Targets.AddUnit('dateutils.pp',dateutilsOSes);
     with T.Dependencies do
@@ -128,7 +128,7 @@ begin
       AddUnit('variants');
 
     T:=P.Targets.AddUnit('variants.pp',VariantsOSes);
-    T.ResourceStrings:=true; 
+    T.ResourceStrings:=true;
     with T.Dependencies do
      begin
        AddUnit('varutils');
@@ -148,10 +148,10 @@ begin
       T.Dependencies.AddUnit('fpmonitor');
 
     P.NamespaceMap:='namespaces.lst';
-    
+
   end
 end;
- 
+
 {$ifndef ALLPACKAGES}
 begin
   add_rtl_objpas('');

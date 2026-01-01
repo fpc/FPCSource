@@ -44,7 +44,7 @@ uses
    System.Jpeg.Jmemnobs;
   {$DEFINE NO_GETENV}
 {$ENDIF}
-   
+
 {$ELSE FPC_DOTTEDUNITS}
 
 uses

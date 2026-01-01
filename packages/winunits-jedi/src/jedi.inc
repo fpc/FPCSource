@@ -135,7 +135,7 @@
   DELPHI2005          Defined when compiling with Delphi 2005
   DELPHI9             Alias for DELPHI2005
   DELPHI10            Defined when compiling with Delphi Personality of BDS 4.0
-  DELPHI11            Defined when compiling with Delphi for Win32 2007 
+  DELPHI11            Defined when compiling with Delphi for Win32 2007
   DELPHI1_UP          Defined when compiling with Delphi 1 or higher
   DELPHI2_UP          Defined when compiling with Delphi 2 or higher
   DELPHI3_UP          Defined when compiling with Delphi 3 or higher

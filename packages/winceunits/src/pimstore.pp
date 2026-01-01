@@ -52,7 +52,7 @@ type
 
 const
       LIBID_PocketOutlook:TIID = '{4E130E40-7DBE-11D2-8F23-0000F87A4335}';
-      
+
 // Interfaces IDs.
 const
       IID_IException:TIID              = '{B47398D0-3B73-11d2-8F1B-0000F87A4335}';
@@ -584,7 +584,7 @@ type
  * at Mon Dec 07 11:02:04 1998
  * using MIDL 3.02.88
  ****************************************}
-// [dual][full][helpstring][uuid][object] 
+// [dual][full][helpstring][uuid][object]
 
      IPOutlookApp = interface(IDispatch)
       ['{05058F22-20BE-11d2-8F18-0000F87A4335}']
@@ -817,7 +817,7 @@ const
 // Returns the index of the item in the collection for the given oidPIM
 function GetItemIndexFromOid(pItems:IPOutlookItemCollection; oidPIM:CEOID; pdwIndex:LPDWORD):HRESULT; cdecl; external PIMStoreDLL name 'GetItemIndexFromOid';
 
-// end of Additional Prototypes 
+// end of Additional Prototypes
 
 // Macro function.
 function PIM_PROP_TAG(ulPropType:ULONG; ulPropID:ULONG):ULONG;

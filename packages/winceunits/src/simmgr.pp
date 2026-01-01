@@ -101,7 +101,7 @@ const
   SIM_E_RADIOOFF          = MSE_ERRERRORCLASS_NONE or $6B; // The Radio is off
 
   // Callback | Various notifications that are passed to the callback
-  
+
   SIM_NOTIFY_CARD_REMOVED = $100; // SIM card was removed; lpData is NULL
   SIM_NOTIFY_FILE_REFRESH = $101; // Files on the SIM were refreshed; lpData points to a SIMFILEREFRESH structure
   SIM_NOTIFY_MSG_STORED   = $102; // A message was stored to the SIM; lpData points to a SIMMESSAGECHANGE structure
@@ -232,7 +232,7 @@ const
   SIM_LOCKEDSTATE_PH_CORP_PUK   = $00000010; // Awaiting the Corporate Personalization PUK
 
   // Phonebook Misc | Special phonebook constants }
-  
+
   SIM_PBINDEX_FIRSTAVAILABLE = $ffffffff; //  Use first phonebook storage entry available
 
   // Phone Locking | Indicates the phone's locking behavior }
@@ -294,7 +294,7 @@ type
     end;
   TSIMPHONEBOOKENTRY = simphonebookentry_tag;
   LPSIMPHONEBOOKENTRY = ^simphonebookentry_tag;
-  
+
   // SIMMESSAGE | A SIM message entry
 
   simmessage_tag = record
@@ -387,7 +387,7 @@ type
   // Size of data structure in bytes
   // Parameter passed to simInititialize
   TSIMCALLBACK = procedure (dwNotifyCode:DWORD; const pData:pointer; dwDataSize:DWORD; dwParam:DWORD);
-  
+
 //*****************************************************************************
 // functions
 //*****************************************************************************

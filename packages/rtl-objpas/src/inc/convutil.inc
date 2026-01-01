@@ -30,7 +30,7 @@ interface
 {$IFDEF FPC_DOTTEDUNITS}
 uses
   System.SysUtils, System.Math, System.SysConst;
-{$ELSE FPC_DOTTEDUNITS}  
+{$ELSE FPC_DOTTEDUNITS}
 uses
   sysutils, math, SysConst;
 {$ENDIF FPC_DOTTEDUNITS}

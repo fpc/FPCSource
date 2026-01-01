@@ -198,7 +198,7 @@ begin
           Tracevv('inflate:         literal '+AnsiChar(t^.base))
         else
           Tracevv('inflate:         literal $'+IntToHex(t^.base, 2));
-        {$ENDIF}          
+        {$ENDIF}
         c^.mode := LIT;
         continue;  { break switch statement }
       end;
@@ -219,7 +219,7 @@ begin
       begin
         {$IFDEF ZLIB_DEBUG}
         Tracevv('inflate:         end of block');
-        {$ENDIF}        
+        {$ENDIF}
         c^.mode := WASH;
         continue;         { break C-switch statement }
       end;
@@ -592,7 +592,7 @@ procedure inflate_codes_free(var c : pInflate_codes_state;
 begin
   dispose(c);
   c := nil;
-  {$IFDEF ZLIB_DEBUG}  
+  {$IFDEF ZLIB_DEBUG}
   Tracev('inflate:       codes free');
   {$ENDIF}
 end;

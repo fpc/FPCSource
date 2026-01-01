@@ -67,7 +67,7 @@ begin
 {Reopen StdOut/StdErr/StdIn}
     OrigCP := GetACP;
     with SecAttr do
-     begin 
+     begin
       nLength := SizeOf (TSecurityAttributes);
       SecAttr.bInheritHandle := true;
       SecAttr.lpSecurityDescriptor := nil;
@@ -469,7 +469,7 @@ begin
     begin
 { StdOut may be redirected, let's try to access the console using a new handle }
      with SecAttr do
-      begin 
+      begin
        nLength := SizeOf (TSecurityAttributes);
        SecAttr.bInheritHandle := true;
        SecAttr.lpSecurityDescriptor := nil;

@@ -86,7 +86,7 @@ Type
   Byte_T    = byte;
   Float32_t = Single;
   FLoat64_t = Double;
-  Size_t    = Int64; 
+  Size_t    = Int64;
   Uint32_t  = Cardinal;
   Uint64_t  = QWord;
   Uint8_t   = Byte;
@@ -195,7 +195,7 @@ Type
   Pwasmtime_valunion_t  = ^Twasmtime_valunion_t;
   PPwasm_trap_t= ^Pwasm_trap_t;
   PPwasmtime_module_t = ^Pwasmtime_module_t;
-  
+
   Tcint = cint;
   Tbyte_t = byte;
   Tfloat32_t = single;
@@ -210,13 +210,13 @@ Type
 {
 static inline void wasm_name_new_from_string(
   wasm_name_t* out, const AnsiChar* s
-) 
+)
   wasm_byte_vec_new(out, strlen(s), s);
 
 
 static inline void wasm_name_new_from_string_nt(
   wasm_name_t* out, const AnsiChar* s
-) 
+)
   wasm_byte_vec_new(out, strlen(s) + 1, s);
 
 
@@ -227,7 +227,7 @@ static inline void wasm_name_new_from_string_nt(
   TSize_t = size_t;
   Tint32_t = longint;
   Tint64_t = int64;
-  
+
   // Opaque record defs
   Twasmtime_moduletype_t = record
   end;
@@ -240,57 +240,57 @@ static inline void wasm_name_new_from_string_nt(
   Twasmtime_interrupt_handle_t = record
   end;
   Twasmtime_instancetype_t = record
-  end;  
+  end;
   Twasmtime_linker_t = record
-  end;  
+  end;
   Twasmtime_caller_t = record
-  end;  
+  end;
   Twasmtime_externref_t = record
   end;
   Twasi_config_t = record
-  end;   
+  end;
   Twasm_config_t = record
-  end;   
+  end;
   Twasm_engine_t = record
-  end;   
+  end;
   Twasm_exportype_t = record
-  end;   
+  end;
   Twasm_extern_t = record
-  end;   
+  end;
   Twasm_externtype_t = record
-  end;   
+  end;
   Twasm_foreign_t = record
-  end;   
+  end;
   Twasm_frame_t = record
-  end;   
+  end;
   Twasm_func_t = record
-  end;   
+  end;
   Twasm_functype_t = record
-  end;   
+  end;
   Twasm_global_t = record
-  end;   
+  end;
   Twasm_globaltype_t = record
-  end;   
+  end;
   Twasm_instance_t = record
-  end;   
+  end;
   Twasm_memory_t = record
-  end;   
+  end;
   Twasm_memorytype_t = record
-  end;   
+  end;
   Twasm_module_t = record
-  end;   
+  end;
   Twasm_sharedmodule_t = record
-  end;   
+  end;
   Twasm_store_t = record
-  end;   
+  end;
   Twasm_table_t = record
-  end;   
+  end;
   Twasm_tabletype_t = record
-  end;   
+  end;
   Twasm_trap_t = record
-  end;   
+  end;
   Twasm_valtime_t = record
-  end;   
+  end;
   Twasm_exporttype_t = record
   end;
   Twasm_importtype_t = record
@@ -306,7 +306,7 @@ static inline void wasm_name_new_from_string_nt(
 
   Twasmtime_opt_level_enum = (WASMTIME_OPT_LEVEL_NONE,WASMTIME_OPT_LEVEL_SPEED,
       WASMTIME_OPT_LEVEL_SPEED_AND_SIZE);
-      
+
   Twasm_limits_t = record
       min : Tuint32_t;
       max : Tuint32_t;
@@ -380,7 +380,7 @@ static const uint32_t wasm_limits_max_default = 0xffffffff;
     end;
   Twasm_message_t = Twasm_name_t;
   Twasm_func_callback_t = function (args:Pwasm_val_vec_t; results:Pwasm_val_vec_t):Pwasm_trap_t;cdecl;
-  
+
   Twasm_func_callback_with_env_t = function (env:pointer; args:Pwasm_val_vec_t; results:Pwasm_val_vec_t):Pwasm_trap_t;cdecl;
   Twasm_table_size_t = Tuint32_t;
   Twasm_memory_pages_t = Tuint32_t;
@@ -496,7 +496,7 @@ static  MEMORY_PAGE_SIZE = 0x10000;
   Twasmtime_val_t = Twasmtime_val;
   Twasmtime_caller = Twasmtime_caller_t;
 
-  Twasmtime_func_callback_t = function (env:pointer; caller:Pwasmtime_caller_t; args:Pwasmtime_val_t; nargs:Tsize_t; results:Pwasmtime_val_t; 
+  Twasmtime_func_callback_t = function (env:pointer; caller:Pwasmtime_caller_t; args:Pwasmtime_val_t; nargs:Tsize_t; results:Pwasmtime_val_t;
                nresults:Tsize_t):Pwasm_trap_t;cdecl;
   Twasmtime_func_unchecked_callback_t = function (env:pointer; caller:Pwasmtime_caller_t; args_and_results:Pwasmtime_val_raw_t):Pwasm_trap_t;cdecl;
   Twasmtime_instancetype = Twasmtime_instancetype_t;
@@ -510,7 +510,7 @@ static  MEMORY_PAGE_SIZE = 0x10000;
     WASMTIME_TRAP_CODE_BAD_CONVERSION_TO_INTEGER,
     WASMTIME_TRAP_CODE_UNREACHABLE_CODE_REACHED,
     WASMTIME_TRAP_CODE_INTERRUPT);
-    
+
   TFinalizer = procedure (_para1:pointer); cdecl;
 
 var
@@ -867,12 +867,12 @@ var
   wasmtime_externref_to_raw : function(context:Pwasmtime_context_t; ref:Pwasmtime_externref_t):Tsize_t; cdecl;
   wasmtime_val_delete : procedure(val:Pwasmtime_val_t); cdecl;
   wasmtime_val_copy : procedure(dst:Pwasmtime_val_t; src:Pwasmtime_val_t); cdecl;
-  wasmtime_func_new : procedure(store:Pwasmtime_context_t; _type:Pwasm_functype_t; callback:Twasmtime_func_callback_t; env:pointer; finalizer:TFinalizer; 
+  wasmtime_func_new : procedure(store:Pwasmtime_context_t; _type:Pwasm_functype_t; callback:Twasmtime_func_callback_t; env:pointer; finalizer:TFinalizer;
       ret:Pwasmtime_func_t); cdecl;
-  wasmtime_func_new_unchecked : procedure(store:Pwasmtime_context_t; _type:Pwasm_functype_t; callback:Twasmtime_func_unchecked_callback_t; env:pointer; finalizer: TFinalizer; 
+  wasmtime_func_new_unchecked : procedure(store:Pwasmtime_context_t; _type:Pwasm_functype_t; callback:Twasmtime_func_unchecked_callback_t; env:pointer; finalizer: TFinalizer;
       ret:Pwasmtime_func_t); cdecl;
   wasmtime_func_type : function(store:Pwasmtime_context_t; func:Pwasmtime_func_t):Pwasm_functype_t; cdecl;
-  wasmtime_func_call : function(store:Pwasmtime_context_t; func:Pwasmtime_func_t; args:Pwasmtime_val_t; nargs:Tsize_t; results:Pwasmtime_val_t; 
+  wasmtime_func_call : function(store:Pwasmtime_context_t; func:Pwasmtime_func_t; args:Pwasmtime_val_t; nargs:Tsize_t; results:Pwasmtime_val_t;
       nresults:Tsize_t; trap:PPwasm_trap_t):Pwasmtime_error_t; cdecl;
   wasmtime_func_call_unchecked : function(store:Pwasmtime_context_t; func:Pwasmtime_func_t; args_and_results:Pwasmtime_val_raw_t):Pwasm_trap_t; cdecl;
   wasmtime_caller_export_get : function(caller:Pwasmtime_caller_t; name:PAnsiChar; name_len:Tsize_t; item:Pwasmtime_extern_t):T_Bool;
@@ -887,27 +887,27 @@ var
   wasmtime_instancetype_exports : procedure(_para1:Pwasmtime_instancetype_t; out_:Pwasm_exporttype_vec_t); cdecl;
   wasmtime_instancetype_as_externtype : function(_para1:Pwasmtime_instancetype_t):Pwasm_externtype_t; cdecl;
   wasmtime_externtype_as_instancetype : function(_para1:Pwasm_externtype_t):Pwasmtime_instancetype_t; cdecl;
-  wasmtime_instance_new : function(store:Pwasmtime_context_t; module:Pwasmtime_module_t; imports:Pwasmtime_extern_t; nimports:Tsize_t; instance:Pwasmtime_instance_t; 
+  wasmtime_instance_new : function(store:Pwasmtime_context_t; module:Pwasmtime_module_t; imports:Pwasmtime_extern_t; nimports:Tsize_t; instance:Pwasmtime_instance_t;
       trap:PPwasm_trap_t):Pwasmtime_error_t; cdecl;
   wasmtime_instance_type : function(store:Pwasmtime_context_t; instance:Pwasmtime_instance_t):Pwasmtime_instancetype_t; cdecl;
   wasmtime_instance_export_get : function(store:Pwasmtime_context_t; instance:Pwasmtime_instance_t; name:PAnsiChar; name_len:Tsize_t; item:Pwasmtime_extern_t):T_Bool;
-  wasmtime_instance_export_nth : function(store:Pwasmtime_context_t; instance:Pwasmtime_instance_t; index:Tsize_t; name:PPAnsiChar; name_len:Psize_t; 
+  wasmtime_instance_export_nth : function(store:Pwasmtime_context_t; instance:Pwasmtime_instance_t; index:Tsize_t; name:PPAnsiChar; name_len:Psize_t;
       item:Pwasmtime_extern_t):T_Bool;
   wasmtime_linker_new : function(engine:Pwasm_engine_t):Pwasmtime_linker_t; cdecl;
   wasmtime_linker_delete : procedure(linker:Pwasmtime_linker_t); cdecl;
   wasmtime_linker_allow_shadowing : procedure(linker:Pwasmtime_linker_t; allow_shadowing:T_Bool); cdecl;
-  wasmtime_linker_define : function(linker:Pwasmtime_linker_t; module:PAnsiChar; module_len:Tsize_t; name:PAnsiChar; name_len:Tsize_t; 
+  wasmtime_linker_define : function(linker:Pwasmtime_linker_t; module:PAnsiChar; module_len:Tsize_t; name:PAnsiChar; name_len:Tsize_t;
       item:Pwasmtime_extern_t):Pwasmtime_error_t; cdecl;
-  wasmtime_linker_define_func : function(linker:Pwasmtime_linker_t; module:PAnsiChar; module_len:Tsize_t; name:PAnsiChar; name_len:Tsize_t; 
+  wasmtime_linker_define_func : function(linker:Pwasmtime_linker_t; module:PAnsiChar; module_len:Tsize_t; name:PAnsiChar; name_len:Tsize_t;
       ty:Pwasm_functype_t; cb:Twasmtime_func_callback_t; data:pointer; finalizer: TFInalizer):Pwasmtime_error_t; cdecl;
-  wasmtime_linker_define_func_unchecked : function(linker:Pwasmtime_linker_t; module:PAnsiChar; module_len:Tsize_t; name:PAnsiChar; name_len:Tsize_t; 
+  wasmtime_linker_define_func_unchecked : function(linker:Pwasmtime_linker_t; module:PAnsiChar; module_len:Tsize_t; name:PAnsiChar; name_len:Tsize_t;
       ty:Pwasm_functype_t; cb:Twasmtime_func_unchecked_callback_t; data:pointer; finalizer: TFInalizer):Pwasmtime_error_t; cdecl;
   wasmtime_linker_define_wasi : function(linker:Pwasmtime_linker_t):Pwasmtime_error_t; cdecl;
   wasmtime_linker_define_instance : function(linker:Pwasmtime_linker_t; store:Pwasmtime_context_t; name:PAnsiChar; name_len:Tsize_t; instance:Pwasmtime_instance_t):Pwasmtime_error_t; cdecl;
   wasmtime_linker_instantiate : function(linker:Pwasmtime_linker_t; store:Pwasmtime_context_t; module:Pwasmtime_module_t; instance:Pwasmtime_instance_t; trap:PPwasm_trap_t):Pwasmtime_error_t; cdecl;
   wasmtime_linker_module : function(linker:Pwasmtime_linker_t; store:Pwasmtime_context_t; name:PAnsiChar; name_len:Tsize_t; module:Pwasmtime_module_t):Pwasmtime_error_t; cdecl;
   wasmtime_linker_get_default : function(linker:Pwasmtime_linker_t; store:Pwasmtime_context_t; name:PAnsiChar; name_len:Tsize_t; func:Pwasmtime_func_t):Pwasmtime_error_t; cdecl;
-  wasmtime_linker_get : function(linker:Pwasmtime_linker_t; store:Pwasmtime_context_t; module:PAnsiChar; module_len:Tsize_t; name:PAnsiChar; 
+  wasmtime_linker_get : function(linker:Pwasmtime_linker_t; store:Pwasmtime_context_t; module:PAnsiChar; module_len:Tsize_t; name:PAnsiChar;
       name_len:Tsize_t; item:Pwasmtime_extern_t):T_Bool;
   wasmtime_memorytype_new : function(min:Tuint64_t; max_present:T_Bool; max:Tuint64_t; is_64:T_Bool):Pwasm_memorytype_t; cdecl;
   wasmtime_memorytype_minimum : function(ty:Pwasm_memorytype_t):Tuint64_t; cdecl;
@@ -935,8 +935,8 @@ var
 
 // Converted Inline functions
 
-function wasm_valkind_is_num(k: twasm_valkind_t) : boolean; 
-function wasm_valkind_is_ref(k: twasm_valkind_t) : boolean; 
+function wasm_valkind_is_num(k: twasm_valkind_t) : boolean;
+function wasm_valkind_is_ref(k: twasm_valkind_t) : boolean;
 function wasm_valtype_is_num(t: Pwasm_valtype_t) : Boolean;
 function wasm_valtype_is_ref(t: Pwasm_valtype_t) : Boolean;
 
@@ -979,13 +979,13 @@ uses
 
 { Converted static functions }
 
-function wasm_valkind_is_num(k: twasm_valkind_t) : boolean; 
+function wasm_valkind_is_num(k: twasm_valkind_t) : boolean;
 
 begin
   result:= k < ord(WASM_ANYREF);
 end;
 
-function wasm_valkind_is_ref(k: twasm_valkind_t) : boolean; 
+function wasm_valkind_is_ref(k: twasm_valkind_t) : boolean;
 begin
   Result:= k >= ord(WASM_ANYREF);
 end;
@@ -993,11 +993,11 @@ end;
 function wasm_valtype_is_num(t: Pwasm_valtype_t) : Boolean;
 
 begin
-  Result:=wasm_valkind_is_num(wasm_valtype_kind(t)); 
+  Result:=wasm_valkind_is_num(wasm_valtype_kind(t));
 end;
 
 function wasm_valtype_is_ref(t: Pwasm_valtype_t) : Boolean;
- 
+
 begin
   Result:=wasm_valkind_is_ref(wasm_valtype_kind(t));
 end;

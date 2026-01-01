@@ -575,7 +575,7 @@ const
   SETCHARSET             = 772;
   {$EXTERNALSYM SETCHARSET}
 
-  STRETCHBLT_ESCAPE       = 2048; // suffix _ESCAPE by translator because of 
+  STRETCHBLT_ESCAPE       = 2048; // suffix _ESCAPE by translator because of
                                   // name-clash with StretchBlt function
   {$EXTERNALSYM STRETCHBLT}
   METAFILE_DRIVER         = 2049;
@@ -7838,7 +7838,7 @@ end;
 function MAKEPOINTS(l: DWORD): POINTS;
 begin
   Result.x := LOWORD(l);
-  Result.y := HIWORD(l);  
+  Result.y := HIWORD(l);
 end;
 
 function RGB(r, g, b: BYTE): COLORREF;

@@ -304,9 +304,9 @@ const
         SO_PROTOCOL_INFO = SO_PROTOCOL_INFOA;
 {$ENDIF}
         PVD_CONFIG = $3001; // configuration info for service provider
-        SO_CONDITIONAL_ACCEPT = $3002;   { enable true conditional accept: 
-                                           connection is not ack-ed to the 
-                                           other side until conditional 
+        SO_CONDITIONAL_ACCEPT = $3002;   { enable true conditional accept:
+                                           connection is not ack-ed to the
+                                           other side until conditional
                                            function returns CF_ACCEPT }
 
 { Address families. }
@@ -387,7 +387,7 @@ const
   PF_IRDA         = AF_IRDA;
   PF_NETDES       = AF_NETDES;
   PF_TCNPROCESS   = AF_TCNPROCESS;
-  PF_TCNMESSAGE   = AF_TCNMESSAGE; 
+  PF_TCNMESSAGE   = AF_TCNMESSAGE;
   PF_ICLFXBM      = AF_ICLFXBM;
 
   PF_MAX          = AF_MAX;
@@ -746,7 +746,7 @@ type
         end {TQualityOfService};
         PQOS = ^TQualityOfService;
         LPQOS = PQOS;
-        
+
 Const
         SERVICETYPE_NOTRAFFIC             =  $00000000;  // No data in this direction
         SERVICETYPE_BESTEFFORT            =  $00000001;  // Best Effort

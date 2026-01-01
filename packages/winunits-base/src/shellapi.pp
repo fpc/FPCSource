@@ -61,7 +61,7 @@ Uses Windows, ActiveX;
 const
    shell32 =  'shell32.dll';
 
-Const 
+Const
     SHGDN_NORMAL             = $0000;  // default (display purpose)
     SHGDN_INFOLDER           = $0001;  // displayed under a folder (relative)
     SHGDN_FOREDITING         = $1000;  // for in-place editing
@@ -113,7 +113,7 @@ Const
     SFGAO_STREAM            = $00400000;     // supports BindToObject(IID_IStream)
     SFGAO_STORAGEANCESTOR   = $00800000;     // may contain children with SFGAO_STORAGE or SFGAO_STREAM
     SFGAO_STORAGECAPMASK    = $70C50008;     // for determining storage capabilities, ie for open/save semantics
-    
+
     SHCOLSTATE_TYPE_STR	        =  $1;
     SHCOLSTATE_TYPE_INT	        =  $2;
     SHCOLSTATE_TYPE_DATE	=  $3;
@@ -527,10 +527,10 @@ Const
     COMP_ELEM_RESTORED_CSI  = $00002000;
     COMP_ELEM_CURITEMSTATE  = $00004000;
 
-    COMP_ELEM_ALL  =   (COMP_ELEM_TYPE or COMP_ELEM_CHECKED or COMP_ELEM_DIRTY or                     
-                         COMP_ELEM_NOSCROLL or COMP_ELEM_POS_LEFT or COMP_ELEM_SIZE_WIDTH  or          
-                         COMP_ELEM_SIZE_HEIGHT or COMP_ELEM_POS_ZINDEX or COMP_ELEM_SOURCE or          
-                         COMP_ELEM_FRIENDLYNAME or COMP_ELEM_POS_TOP or COMP_ELEM_SUBSCRIBEDURL or     
+    COMP_ELEM_ALL  =   (COMP_ELEM_TYPE or COMP_ELEM_CHECKED or COMP_ELEM_DIRTY or
+                         COMP_ELEM_NOSCROLL or COMP_ELEM_POS_LEFT or COMP_ELEM_SIZE_WIDTH  or
+                         COMP_ELEM_SIZE_HEIGHT or COMP_ELEM_POS_ZINDEX or COMP_ELEM_SOURCE or
+                         COMP_ELEM_FRIENDLYNAME or COMP_ELEM_POS_TOP or COMP_ELEM_SUBSCRIBEDURL or
                          COMP_ELEM_ORIGINAL_CSI or COMP_ELEM_RESTORED_CSI or COMP_ELEM_CURITEMSTATE);
 
 
@@ -881,9 +881,9 @@ Const
     REST_NOINTERNETOPENWITH         = $40000095;   // dont allow looking on the internet for file associations
     REST_ALLOWLEGACYLMZBEHAVIOR     = $4000009A;   // allowable LMZ behavior for ActiveX objects changed in XPSP2, this policy gets the pre-XPSP2 behavior
     REST_DONTRETRYBADNETNAME        = $4000009B;   // In Network Places: if provider returns ERROR_BAD_NET_NAME, give up
-    REST_ALLOWFILECLSIDJUNCTIONS    = $4000009C;   // re-enable legacy support for file.{guid} junctions in FileSystem Folder 
+    REST_ALLOWFILECLSIDJUNCTIONS    = $4000009C;   // re-enable legacy support for file.{guid} junctions in FileSystem Folder
     REST_NOUPNPINSTALL              = $4000009D;   // disable "install UPnP" task in My Net Places
-    
+
     REST_NODISCONNECT               = $41000001;   // No Disconnect option in Start menu
     REST_NOSECURITY                 = $41000002;   // No Security option in start menu
     REST_NOFILEASSOCIATE            = $41000003;   // Do not allow user to change file association
@@ -906,8 +906,8 @@ Const
     OPENPROPS_INHIBITPIF            = $8000;
     GETPROPS_NONE                   = $0000;
     SETPROPS_NONE                   = $0000;
-    CLOSEPROPS_NONE                 = $0000;		
-    CLOSEPROPS_DISCARD              = $0001;		
+    CLOSEPROPS_NONE                 = $0000;
+    CLOSEPROPS_DISCARD              = $0001;
 
     PIFNAMESIZE                     =  30;
     PIFSTARTLOCSIZE                 =  63;
@@ -1043,7 +1043,7 @@ Const
     SHPPFW_NOWRITECHECK     = $00000008;              // Caller only needs to read from the drive, so don't check if it's READ ONLY.
     SHPPFW_MEDIACHECKONLY   = $00000010;              // do the retrys on the media (or net path), return errors if the file can't be found
 
-Type                            
+Type
      HDROP    = THandle;
      PHIcon   = ^HIcon;
 

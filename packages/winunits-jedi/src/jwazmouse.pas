@@ -128,12 +128,12 @@ const
   MSH_WHEELMODULE_TITLE = MOUSEZ_TITLE;
   {$EXTERNALSYM MSH_WHEELMODULE_TITLE}
 
-// Apps need to call RegisterWindowMessage using the #defines 
+// Apps need to call RegisterWindowMessage using the #defines
 // below to get the message numbers for:
 // 1) the message that can be sent to the MSWHEEL window to
 //    query if wheel support is active (MSH_WHEELSUPPORT)>
-// 2) the message to query for the number of scroll lines 
-//    (MSH_SCROLL_LINES)  
+// 2) the message to query for the number of scroll lines
+//    (MSH_SCROLL_LINES)
 //
 // To send a message to MSWheel window, use FindWindow with the #defines
 // for CLASS and TITLE above.  If FindWindow fails to find the MSWHEEL

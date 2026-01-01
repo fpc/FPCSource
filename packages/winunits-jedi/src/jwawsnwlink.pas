@@ -194,7 +194,7 @@ type
   PIPX_ADDRESS_DATA = ^IPX_ADDRESS_DATA;
   {$EXTERNALSYM PIPX_ADDRESS_DATA}
   TIpxAddressData = IPX_ADDRESS_DATA;
-  PIpxAddressData = PIPX_ADDRESS_DATA;  
+  PIpxAddressData = PIPX_ADDRESS_DATA;
 
 //
 //   Query information about a specific IPX network number.  If the
@@ -275,7 +275,7 @@ type
   PIPX_SPXCONNSTATUS_DATA = ^IPX_SPXCONNSTATUS_DATA;
   {$EXTERNALSYM PIPX_SPXCONNSTATUS_DATA}
   TIpxSpcConnStatusData = IPX_SPXCONNSTATUS_DATA;
-  PIpxSpcConnStatusData = PIPX_SPXCONNSTATUS_DATA;  
+  PIpxSpcConnStatusData = PIPX_SPXCONNSTATUS_DATA;
 
 //
 //   Get notification when the status of an adapter that IPX is

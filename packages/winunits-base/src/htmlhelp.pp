@@ -41,9 +41,9 @@ const
 
         HH_DISPLAY_TOPIC         = $0000;
         HH_HELP_FINDER           = $0000;  // WinHelp equivalent
-        HH_DISPLAY_TOC           = $0001;  
-        HH_DISPLAY_INDEX         = $0002;  
-        HH_DISPLAY_SEARCH        = $0003;  
+        HH_DISPLAY_TOC           = $0001;
+        HH_DISPLAY_INDEX         = $0002;
+        HH_DISPLAY_SEARCH        = $0003;
         HH_SET_WIN_TYPE          = $0004;
         HH_GET_WIN_TYPE          = $0005;
         HH_GET_WIN_HANDLE        = $0006;
@@ -143,25 +143,25 @@ const
 
 // Button IDs
 
-        IDTB_EXPAND             = 200; 
-        IDTB_CONTRACT           = 201; 
-        IDTB_STOP               = 202; 
-        IDTB_REFRESH            = 203; 
-        IDTB_BACK               = 204; 
-        IDTB_HOME               = 205; 
-        IDTB_SYNC               = 206; 
-        IDTB_PRINT              = 207; 
-        IDTB_OPTIONS            = 208; 
-        IDTB_FORWARD            = 209; 
+        IDTB_EXPAND             = 200;
+        IDTB_CONTRACT           = 201;
+        IDTB_STOP               = 202;
+        IDTB_REFRESH            = 203;
+        IDTB_BACK               = 204;
+        IDTB_HOME               = 205;
+        IDTB_SYNC               = 206;
+        IDTB_PRINT              = 207;
+        IDTB_OPTIONS            = 208;
+        IDTB_FORWARD            = 209;
         IDTB_NOTES              = 210;  // not implemented
-        IDTB_BROWSE_FWD         = 211; 
-        IDTB_BROWSE_BACK        = 212; 
+        IDTB_BROWSE_FWD         = 211;
+        IDTB_BROWSE_BACK        = 212;
         IDTB_CONTENTS           = 213;  // not implemented
         IDTB_INDEX              = 214;  // not implemented
         IDTB_SEARCH             = 215;  // not implemented
         IDTB_HISTORY            = 216;  // not implemented
         IDTB_FAVORITES          = 217;  // not implemented
-        IDTB_JUMP1              = 218; 
+        IDTB_JUMP1              = 218;
         IDTB_JUMP2              = 219;
         IDTB_CUSTOMIZE          = 221;
         IDTB_ZOOM               = 222;

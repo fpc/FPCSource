@@ -846,7 +846,7 @@ begin
                 end;
               end;
             tmp:='   procedure Set_%s(%s %s:%s); %s;'#13#10;
-            if not bParamByRef then 
+            if not bParamByRef then
               Modifier:='const'
             else
               Modifier:='var';

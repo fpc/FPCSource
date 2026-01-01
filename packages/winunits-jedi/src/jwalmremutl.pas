@@ -131,7 +131,7 @@ type
   LPTIME_OF_DAY_INFO = ^TIME_OF_DAY_INFO;
   {$EXTERNALSYM LPTIME_OF_DAY_INFO}
   TTimeOfDayInfo = TIME_OF_DAY_INFO;
-  PTimeOfDayInfo = PTIME_OF_DAY_INFO;  
+  PTimeOfDayInfo = PTIME_OF_DAY_INFO;
 
 //
 // Special Values and Constants

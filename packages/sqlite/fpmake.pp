@@ -49,7 +49,7 @@ begin
     T:=P.Targets.AddUnit('sqlite.pp');
     T:=P.Targets.AddUnit('sqlite3ext.pp');
       T.Dependencies.AddUnit('sqlite');
- 
+
     P.ExamplePath.Add('tests/');
     P.Targets.AddExampleProgram('testapiv3x.pp');
     P.Targets.AddExampleProgram('test.pas');

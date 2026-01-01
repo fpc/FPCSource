@@ -71,7 +71,7 @@ type
     function GetTrackingEnabled: Boolean;
     function GetClientCount : Integer;
     function GetClient(aIndex : Integer) : IApplicationActivityListener;
-  Protected  
+  Protected
     Property Clients[aIndex : Integer] : IApplicationActivityListener Read GetClient;
     Property ClientCount : Integer Read GetClientCount;
   public
@@ -102,7 +102,7 @@ begin
   if not assigned(FClients) then
     Result:=0
   else
-    Result:=FClients.Count;    
+    Result:=FClients.Count;
 end;
 
 function TAnalyticsManager.GetClient(aIndex : Integer) : IApplicationActivityListener;
@@ -134,9 +134,9 @@ var
   I  : Integer;
   TS : TDateTime;
   A  : IApplicationActivityListener;
-  
+
 begin
-  if ClientCount=0 then 
+  if ClientCount=0 then
     exit;
   TS:=Now;
   for I:=0 to ClientCount-1 do

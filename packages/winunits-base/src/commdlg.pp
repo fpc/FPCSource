@@ -59,7 +59,7 @@ Type
      LPOPENFILENAMEA_NT4 = ^OPENFILENAMEA_NT4;
      TOPENFILENAMEA_NT4 = OPENFILENAMEA_NT4;
      POPENFILENAMEA_NT4 = ^OPENFILENAMEA_NT4;
-	 
+
      OPENFILENAMEW_NT4 = record
           lStructSize : DWORD;
           hwndOwner : HWND;
@@ -85,18 +85,18 @@ Type
      LPOPENFILENAMEW_NT4 = ^OPENFILENAMEW_NT4;
      TOPENFILENAMEW_NT4 = OPENFILENAMEW_NT4;
      POPENFILENAMEW_NT4 = ^OPENFILENAMEW_NT4;
-	 {$IFDEF UNICODE}  
+	 {$IFDEF UNICODE}
 	  LPOPENFILENAME_NT4 = ^OPENFILENAMEW_NT4;
       TOPENFILENAME_NT4 = OPENFILENAMEW_NT4;
-      POPENFILENAME_NT4 = ^OPENFILENAMEW_NT4;	  
-      OPENFILENAME_NT4 = OPENFILENAMEW_NT4;	  
+      POPENFILENAME_NT4 = ^OPENFILENAMEW_NT4;
+      OPENFILENAME_NT4 = OPENFILENAMEW_NT4;
 	 {$else}
 	  LPOPENFILENAME_NT4 = ^OPENFILENAMEA_NT4;
       TOPENFILENAME_NT4 = OPENFILENAMEA_NT4;
       POPENFILENAME_NT4 = ^OPENFILENAMEA_NT4;
-      OPENFILENAME_NT4 = OPENFILENAMEA_NT4;	  
+      OPENFILENAME_NT4 = OPENFILENAMEA_NT4;
 	 {$endif}
-     
+
 	 OPENFILENAMEA = record
           lStructSize : DWORD;
           hwndOwner : HWND;
@@ -120,7 +120,7 @@ Type
           lpTemplateName : LPCTSTR;
           pvReserved : pointer;
           dwreserved : dword;
-          FlagsEx    : dword; 
+          FlagsEx    : dword;
        end;
      LPOPENFILENAMEA = ^OPENFILENAMEA;
      TOPENFILENAMEA = OPENFILENAMEA;
@@ -149,12 +149,12 @@ Type
           lpTemplateName : LPWSTR;
           pvReserved : pointer;
           dwreserved : dword;
-          FlagsEx    : dword; 
+          FlagsEx    : dword;
        end;
      LPOPENFILENAMEW = ^OPENFILENAMEW;
      TOPENFILENAMEW = OPENFILENAMEW;
-     POPENFILENAMEW = ^OPENFILENAMEW;	 
-	 
+     POPENFILENAMEW = ^OPENFILENAMEW;
+
      OFNOTIFYA = record
           hdr : NMHDR;
           lpOFN : LPOPENFILENAME;
@@ -179,13 +179,13 @@ Type
        _OFNOTIFY = OFNOTIFYW;
        TOFNOTIFY = OFNOTIFYW;
        POFNOTIFY = ^OFNOTIFYW;
-      LPOFNOTIFY = POFNOTIFYW;	   
+      LPOFNOTIFY = POFNOTIFYW;
      {$else}
        OFNOTIFY = OFNOTIFYA;
        _OFNOTIFY = OFNOTIFYA;
        TOFNOTIFY = OFNOTIFYA;
        POFNOTIFY = ^OFNOTIFYA;
-	   LPOFNOTIFY = POFNOTIFYA;	   
+	   LPOFNOTIFY = POFNOTIFYA;
      {$endif}
 
      OFNOTIFYEXA = record
@@ -231,12 +231,12 @@ Type
           Flags : DWORD;
           lCustData : LPARAM;
           lpfnHook : LPCCHOOKPROC;
-          lpTemplateName : LPCTSTR;		  
+          lpTemplateName : LPCTSTR;
        end;
    LPCHOOSECOLORA = ^TCHOOSECOLORA;
    PCHOOSECOLORA  = ^TCHOOSECOLORA;
    _CHOOSECOLORA   = TCHOOSECOLORA;
-   
+
    TCHOOSECOLORW  = record
           lStructSize : DWORD;
           hwndOwner : HWND;
@@ -251,18 +251,18 @@ Type
      LPCHOOSECOLORW = ^TCHOOSECOLORW;
      PCHOOSECOLORW  = ^TCHOOSECOLORW;
 	 _CHOOSECOLORW   = TCHOOSECOLORW;
-    {$ifdef unicode}       
+    {$ifdef unicode}
        _CHOOSECOLOR = TCHOOSECOLORW;
        TCHOOSECOLOR = TCHOOSECOLORW;
        PCHOOSECOLOR = ^TCHOOSECOLORW;
-       LPCHOOSECOLOR = PCHOOSECOLORW;	   
-     {$else}       
+       LPCHOOSECOLOR = PCHOOSECOLORW;
+     {$else}
        _CHOOSECOLOR = TCHOOSECOLORA;
        TCHOOSECOLOR = TCHOOSECOLORA;
        PCHOOSECOLOR = ^TCHOOSECOLORA;
-       LPCHOOSECOLOR = PCHOOSECOLORA;	   	   
+       LPCHOOSECOLOR = PCHOOSECOLORA;
      {$endif}
-  
+
     FINDREPLACEA = record
           lStructSize : DWORD;
           hwndOwner : HWND;
@@ -295,18 +295,18 @@ Type
      LPFINDREPLACEW = ^FINDREPLACEW;
      TFINDREPLACEW = FINDREPLACEW;
      PFINDREPLACEW = ^FINDREPLACEW;
-     {$ifdef unicode}       
+     {$ifdef unicode}
        _FINDREPLACE = FINDREPLACEW;
        TFINDREPLACE = FINDREPLACEW;
        PFINDREPLACE = ^FINDREPLACEW;
-       LPFINDREPLACE = PFINDREPLACEW;	   
-     {$else}       
+       LPFINDREPLACE = PFINDREPLACEW;
+     {$else}
        _FINDREPLACE = FINDREPLACEA;
        TFINDREPLACE = FINDREPLACEA;
        PFINDREPLACE = ^FINDREPLACEA;
-       LPFINDREPLACE = PFINDREPLACEA;	   	   
+       LPFINDREPLACE = PFINDREPLACEA;
      {$endif}
-	
+
      LOGFONTA = record
           lfHeight : LONG;
           lfWidth : LONG;
@@ -323,7 +323,7 @@ Type
           lfPitchAndFamily : BYTE;
           lfFaceName : array[0..(LF_FACESIZE)-1] of TCHAR;
        end;
-     
+
      TLOGFONTA = LOGFONTA;
      PLOGFONTA = ^LOGFONTA;
      LPLOGFONTA = PLOGFONTA;
@@ -353,15 +353,15 @@ Type
        _LOGFONT = LOGFONTW;
        TLOGFONT = LOGFONTW;
        PLOGFONT = ^LOGFONTW;
-       LPLOGFONT = PLOGFONTW;	   
+       LPLOGFONT = PLOGFONTW;
      {$else}
        LOGFONT = LOGFONTA;
        _LOGFONT = LOGFONTA;
        TLOGFONT = LOGFONTA;
        PLOGFONT = ^LOGFONTA;
-       LPLOGFONT = PLOGFONTA;	   	   
+       LPLOGFONT = PLOGFONTA;
      {$endif}
- 
+
 	 _CHOOSEFONTA = record
           lStructSize : DWORD;
           hwndOwner : HWND;
@@ -382,7 +382,7 @@ Type
        end;
      LPCHOOSEFONTA = ^TCHOOSEFONTA;
      PCHOOSEFONTA = ^TCHOOSEFONTA;
-     TCHOOSEFONTA = _CHOOSEFONTA;	 
+     TCHOOSEFONTA = _CHOOSEFONTA;
 	 _CHOOSEFONTW = record
           lStructSize : DWORD;
           hwndOwner : HWND;
@@ -403,18 +403,18 @@ Type
        end;
      LPCHOOSEFONTW = ^TCHOOSEFONTW;
      PCHOOSEFONTW = ^TCHOOSEFONTW;
-	 TCHOOSEFONTW = _CHOOSEFONTW;	 
-    {$ifdef unicode}     
+	 TCHOOSEFONTW = _CHOOSEFONTW;
+    {$ifdef unicode}
        _choosefont = TchoosefontW;
        Tchoosefont = TchoosefontW;
        Pchoosefont = ^_choosefontW;
-       LPchoosefont = PchoosefontW;	   
+       LPchoosefont = PchoosefontW;
      {$else}
-     
+
        _choosefont = TchoosefontA;
        Tchoosefont = TchoosefontA;
        Pchoosefont = ^_choosefontA;
-       LPchoosefont = PchoosefontA;	   	   
+       LPchoosefont = PchoosefontA;
      {$endif}
 	 DEVNAMES = record
           wDriverOffset : WORD;
@@ -426,7 +426,7 @@ Type
      tagDEVNAMES = DEVNAMES;
      TDEVNAMES = DEVNAMES;
      PDEVNAMES = ^DEVNAMES;
-    
+
 	TPRINTDLGA = record
           lStructSize : DWORD;
           hwndOwner : HWND;
@@ -450,11 +450,11 @@ Type
        end;
      LPPRINTDLGA = ^TPRINTDLGA;
      PPRINTDLGA = ^TPRINTDLGA;
-     _PRINTDLGA = TPRINTDLGA; 
+     _PRINTDLGA = TPRINTDLGA;
      tagPDA = TPRINTDLGA;
      TPDA = TPRINTDLGA;
      PPDA = ^TPRINTDLGA;
-	 	 
+
      TPRINTDLGW = record
           lStructSize : DWORD;
           hwndOwner : HWND;
@@ -478,26 +478,26 @@ Type
        end;
      LPPRINTDLGW = ^TPRINTDLGW;
      PPRINTDLGW = ^TPRINTDLGW;
-     _PRINTDLGW = TPRINTDLGW; 
+     _PRINTDLGW = TPRINTDLGW;
      tagPDW = TPRINTDLGW;
      TPDW = TPRINTDLGW;
      PPDW = ^TPRINTDLGW;
      {$ifndef unicode}
 	  LPPRINTDLG = ^TPRINTDLGA;
       PPRINTDLG = ^TPRINTDLGA;
-      _PRINTDLG = TPRINTDLGA; 
+      _PRINTDLG = TPRINTDLGA;
       tagPD = TPRINTDLGA;
       TPD = TPRINTDLGA;
       PPD = ^TPRINTDLGA;
 	 {$else}
 	  LPPRINTDLG = ^TPRINTDLGW;
       PPRINTDLG = ^TPRINTDLGW;
-      _PRINTDLG = TPRINTDLGW; 
+      _PRINTDLG = TPRINTDLGW;
       tagPD = TPRINTDLGW;
       TPD = TPRINTDLGW;
       PPD = ^TPRINTDLGW;
 	 {$endif}
-	 
+
 	TPAGESETUPDLGA = record
           lStructSize : DWORD;
           hwndOwner : HWND;
@@ -520,7 +520,7 @@ Type
      tagPSDA = TPAGESETUPDLGA;
      TPSDA = TPAGESETUPDLGA;
      PPSDA = ^TPAGESETUPDLGA;
-	 
+
 	 TPAGESETUPDLGW = record
           lStructSize : DWORD;
           hwndOwner : HWND;
@@ -545,32 +545,32 @@ Type
      PPSDW = ^TPAGESETUPDLGW;
 
     {$ifdef unicode}
-       
+
        _PAGESETUPDLG = TPAGESETUPDLGW;
        TPAGESETUPDLG = TPAGESETUPDLGW;
        PPAGESETUPDLG = ^TPAGESETUPDLGW;
-       LPPAGESETUPDLG = PPAGESETUPDLGW;	   
+       LPPAGESETUPDLG = PPAGESETUPDLGW;
      {$else}
-       
+
        _PAGESETUPDLG = TPAGESETUPDLGA;
        TPAGESETUPDLG = TPAGESETUPDLGA;
        PPAGESETUPDLG = ^TPAGESETUPDLGA;
-       LPPAGESETUPDLG = PPAGESETUPDLGA;	   	   
+       LPPAGESETUPDLG = PPAGESETUPDLGA;
      {$endif}
-	 	 
-// todo  tagpdexa, psdax 	
-	
+
+// todo  tagpdexa, psdax
+
     IPrintDialogCallback= interface(IUnknown)
 	    ['{5852A2C3-6530-11D1-B6A3-0000F8757BF9}']
          function InitDone:HResult;Stdcall;
-         function SelectionDone:HResult;Stdcall;		 
+         function SelectionDone:HResult;Stdcall;
          function handleMessage(hdlg:HWND;uMsg:UINT;wparm:WPARAM;Lparm:LPARAM;pres :PLRESULT):HRESULT;StdCall;
         end;
-	IPrintDialogServices= interface (IUnknown) 
+	IPrintDialogServices= interface (IUnknown)
 	    ['{509AAEDA-5639-11D1-B6A1-0000F8757BF9}']
 		 function GetCurrentDevMode(pDevMode: LPDEVMODE;pcbSize:PUINT):HResult;Stdcall;
          function GetCurrentPrinterName(pPrinterName:LPWSTR;pcchSize:PUINT):HREsult;Stdcall;
-         function GetCurrentPortName(PortName:LPWSTR;pcchSize:PUINT):HREsult;Stdcall;		 
+         function GetCurrentPortName(PortName:LPWSTR;pcchSize:PUINT):HREsult;Stdcall;
 		end;
 Const
   comctl32 = 'comctl32.dll';

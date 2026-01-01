@@ -37,5 +37,5 @@ end;
 begin
   TestGZip;
   TestGUnZip;
-end. 
+end.
 

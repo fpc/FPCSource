@@ -309,7 +309,7 @@ uses
   UnixApi.Pthreads,
   UnixApi.Types,
   UnixApi.Base,
-  {$IFNDEF GP2X}    
+  {$IFNDEF GP2X}
   UnixApi.Unix,
   {$ELSE}
   UnixApi.Unix;
@@ -359,7 +359,7 @@ uses
   pthreads,
   unixtype,
   baseunix,
-  {$IFNDEF GP2X}    
+  {$IFNDEF GP2X}
   unix,
   {$ELSE}
   unix;
@@ -1560,7 +1560,7 @@ type
   {$ELSE}
   TSDL_NewTimerCallback = function( interval: UInt32; param: Pointer ): UInt32;
   {$ENDIF}
-  
+
   // Definition of the timer ID type
   PSDL_TimerID = ^TSDL_TimerID;
   TSDL_TimerID = record
@@ -1914,7 +1914,7 @@ type
     wmwindow : TWindow ;	// The X11 managed input window */
   end;
   {$ENDIF}
-  
+
   PSDL_SysWMinfo = ^TSDL_SysWMinfo;
   TSDL_SysWMinfo = record
      version : TSDL_version ;
@@ -2222,7 +2222,7 @@ PSDL_semaphore = ^TSDL_semaphore;
   end;
 {$ELSE}
   {$IFDEF FPC}
-  // This should be semaphore.h 
+  // This should be semaphore.h
   __sem_lock_t = {packed} record { Not in header file - anonymous }
     status: Longint;
     spinlock: Integer;
@@ -2234,7 +2234,7 @@ PSDL_semaphore = ^TSDL_semaphore;
     __sem_waiting: longint ; {_pthread_queue;}
   end;
   {$ENDIF}
-  
+
   TSDL_semaphore = record
     sem: Pointer; //PSem_t;
   {$IFNDEF USE_NAMED_SEMAPHORES}
@@ -3414,12 +3414,12 @@ cdecl; external {$IFNDEF NDS}{$IFDEF __GPC__}name 'SDL_ConvertSurface'{$ELSE} SD
   surface (src or dst) is copied.  The final blit rectangles are saved
   in 'srcrect' and 'dstrect' after all clipping is performed.
   If the blit is successful, it returns 0, otherwise it returns -1.
- 
+
   The blit function should not be called on a locked surface.
- 
+
   The blit semantics for surfaces with and without alpha and colorkey
   are defined as follows:
- 
+
   RGBA->RGB:
       SDL_SRCALPHA set:
    alpha-blend (using alpha-channel).
@@ -3429,7 +3429,7 @@ cdecl; external {$IFNDEF NDS}{$IFDEF __GPC__}name 'SDL_ConvertSurface'{$ELSE} SD
    if SDL_SRCCOLORKEY set, only copy the pixels matching the
    RGB values of the source colour key, ignoring alpha in the
    comparison.
- 
+
   RGB->RGBA:
       SDL_SRCALPHA set:
    alpha-blend (using the source per-surface alpha value);
@@ -3439,7 +3439,7 @@ cdecl; external {$IFNDEF NDS}{$IFDEF __GPC__}name 'SDL_ConvertSurface'{$ELSE} SD
       both:
    if SDL_SRCCOLORKEY set, only copy the pixels matching the
    source colour key.
- 
+
   RGBA->RGBA:
       SDL_SRCALPHA set:
    alpha-blend (using the source alpha channel) the RGB values;
@@ -3450,7 +3450,7 @@ cdecl; external {$IFNDEF NDS}{$IFDEF __GPC__}name 'SDL_ConvertSurface'{$ELSE} SD
    if SDL_SRCCOLORKEY set, only copy the pixels matching the
    RGB values of the source colour key, ignoring alpha in the
    comparison.
- 
+
   RGB->RGB:
       SDL_SRCALPHA set:
    alpha-blend (using the source per-surface alpha value).
@@ -3459,7 +3459,7 @@ cdecl; external {$IFNDEF NDS}{$IFDEF __GPC__}name 'SDL_ConvertSurface'{$ELSE} SD
       both:
    if SDL_SRCCOLORKEY set, only copy the pixels matching the
    source colour key.
- 
+
   If either of the surfaces were in video memory, and the blit returns -2,
   the video memory was lost, so it should be reloaded with artwork and
   re-blitted:
@@ -4268,7 +4268,7 @@ begin
   {$IFDEF FPC}
   Result := fpgetenv(name);
   {$ELSE}
-  Result := libc.getenv(name);  
+  Result := libc.getenv(name);
   {$ENDIF}
 
   {$ELSE UNIX}

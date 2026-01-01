@@ -211,7 +211,7 @@ uses
        addresses : PPcap_Addr;
        flags : DWord;
      end;
-     
+
   { obfuscated C types }
      PPcap = ^TPcap;
      TPcap = record end;

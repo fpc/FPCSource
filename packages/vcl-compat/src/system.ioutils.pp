@@ -2006,11 +2006,11 @@ class function TFile.OpenText(const aPath: string): TStreamReader;
 
 var
   F : TFileStream;
-  
+
 begin
   Result:=Nil;
   F:=TFilestream.Create(aPath,fmOpenRead or fmShareDenyWrite);
-  try  
+  try
     Result := TStreamReader.Create(F,BUFFER_SIZE,True);
   except
     F.Free;

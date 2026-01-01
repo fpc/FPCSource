@@ -1511,7 +1511,7 @@ type
                           num_overlays : Word;
                           sz_rows      : Word;
                           sz_doodads   : Word;
-                          sz_overlays  : Word;                          
+                          sz_overlays  : Word;
                           rows         : PXkbRowPtr;
                           doodads      : PXkbDoodadPtr;
                           bounds       : TXkbBoundsRec;

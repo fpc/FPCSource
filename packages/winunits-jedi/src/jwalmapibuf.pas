@@ -177,7 +177,7 @@ function NetapipBufferAllocate; external netapi32 name 'NetapipBufferAllocate';
 {$ENDIF DYNAMIC_LINK}
 
 {$ENDIF JWA_INTERFACESECTION}
-                             
+
 {$IFNDEF JWA_OMIT_SECTIONS_LM}
 end.
 {$ENDIF JWA_OMIT_SECTIONS_LM}

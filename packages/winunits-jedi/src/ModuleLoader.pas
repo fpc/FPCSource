@@ -65,7 +65,7 @@ type
   // Handle to a loaded DLL
   TModuleHandle = HINST;
 {$ENDIF MSWINDOWS}
-{$IFDEF UNIX} 
+{$IFDEF UNIX}
 type
   // Handle to a loaded .so
   TModuleHandle = Pointer;

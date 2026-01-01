@@ -39,7 +39,7 @@ uses
 {$ENDIF FPC_DOTTEDUNITS}
 
 Type
-  
+
   { TPas2JSFileConfigSupport }
 
   TPas2JSFileConfigSupport = Class(TPas2JSConfigSupport)

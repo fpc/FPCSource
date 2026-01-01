@@ -125,9 +125,9 @@ const
 // CF_DSOBJECTS
 // ------------
 //  This clipboard format defines the seleciton for an DS IShellFolder to the
-//  shell extensions.   All strings are stored as BSTR's, and an offset == 0 
+//  shell extensions.   All strings are stored as BSTR's, and an offset == 0
 //  is used to indicate that the string is not present.
-// 
+//
 
 const
   DSOBJECT_ISCONTAINER   = $00000001; // = 1 => object is a container
@@ -236,7 +236,7 @@ const
 //  Within the display specifier for a property page, the format for a
 //  Win32 extension is "n,{clsid}[,bla...]" we take the "bla" section and
 //  pass it down.
-// 
+//
 
   CFSTR_DSPROPERTYPAGEINFO = 'DsPropPageInfo';
   {$EXTERNALSYM CFSTR_DSPROPERTYPAGEINFO}
@@ -319,7 +319,7 @@ type
   {$EXTERNALSYM DOMAINTREE}
   TDomainTree = DOMAIN_TREE;
   PDomainTree = PDOMAIN_TREE;
-  
+
   IDsBrowseDomainTree = interface (IUnknown)
   ['{7cabcf1e-78f5-11d2-960c-00c04fa31a86}']
     function BrowseTo(hwndParent: HWND; var ppszTargetPath: LPWSTR;
@@ -339,7 +339,7 @@ type
 //
 // IDsDisplaySpecifier
 // ===================
-//  This interface gives client UI access to the display specifiers for 
+//  This interface gives client UI access to the display specifiers for
 //  specific attributes.
 //
 //---------------------------------------------------------------------------//
@@ -391,7 +391,7 @@ type
   LPDSENUMATTRIBUTES = function(lParam: LPARAM; pszAttributeName: LPCWSTR;
     pszDisplayName: LPCWSTR; dwFlags: DWORD): HRESULT; stdcall;
   {$EXTERNALSYM LPDSENUMATTRIBUTES}
-  TDsEnumAttributes = LPDSENUMATTRIBUTES;  
+  TDsEnumAttributes = LPDSENUMATTRIBUTES;
 
 //
 // IDsDisplaySpecifier::GetClassCreationInfo information

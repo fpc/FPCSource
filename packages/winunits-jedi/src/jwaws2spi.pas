@@ -432,7 +432,7 @@ type
   LPWSPUPCALLTABLE = ^WSPUPCALLTABLE;
   {$EXTERNALSYM LPWSPUPCALLTABLE}
   TWspUpCallTable = WSPUPCALLTABLE;
-  PWspUpCallTable = LPWSPUPCALLTABLE;  
+  PWspUpCallTable = LPWSPUPCALLTABLE;
 
 (*
  *  WinSock 2 SPI socket function prototypes

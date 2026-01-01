@@ -547,9 +547,9 @@ const
     'Far',
     'Final',
     'DiscardResult',
-    'NoStackFrame', 
-    'section', 
-    'RtlProc', 
+    'NoStackFrame',
+    'section',
+    'RtlProc',
     'InternProc',
     'WeakExternal'
     );

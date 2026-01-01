@@ -8,7 +8,7 @@ uses
   Classes, SysUtils, fpcunit, testutils, testregistry, system.imagelist;
 
 type
-  
+
   { TMyImageList }
 
   TMyImageList = class(TBaseImageList)

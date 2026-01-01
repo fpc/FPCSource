@@ -1683,13 +1683,13 @@ const
   OP_ANYLINEBREAK = TReOp(27); // \R
   OP_BSUBEXP = TREOp(28); // Match previously matched subexpression #Idx (stored as REChar)
   OP_BSUBEXP_CI = TREOp(29); // -"- in case-insensitive mode
-  
+
   // Non-greedy ops
   OP_STAR_NG = TREOp(30); // Same as OP_START but in non-greedy mode
   OP_PLUS_NG = TREOp(31); // Same as OP_PLUS but in non-greedy mode
   OP_BRACES_NG = TREOp(32); // Same as OP_BRACES but in non-greedy mode
   OP_LOOP_NG = TREOp(33); // Same as OP_LOOP but in non-greedy mode
-  
+
   // Multiline mode \m
   OP_BOL_ML = TREOp(34); // Match "" at beginning of line
   OP_EOL_ML = TREOp(35); // Match "" at end of line
@@ -3370,7 +3370,7 @@ begin
     if BeginGroupOp <> OP_NONE then
       ret := EmitNode(BeginGroupOp);
   end;
-  
+
   // Pick up the branches, linking them together.
   br := ParseBranch(FlagTemp);
   brStart := br;
@@ -4383,7 +4383,7 @@ begin
                   'H':
                     EmitC(REChar(CheckerIndex_NotHorzSep));
                   'R':
-                    EmitC(REChar(CheckerIndex_AnyLineBreak));                    
+                    EmitC(REChar(CheckerIndex_AnyLineBreak));
                   else
                     Error(reeBadOpcodeInCharClass);
                 end;
@@ -4488,7 +4488,7 @@ begin
                         GrpIndex := GrpNames.MatchIndexFromName(GrpName);
                         if GrpIndex < 1 then
                           Error(reeNamedGroupBadRef);
-                      end;    
+                      end;
                     end;
                   else
                     Error(reeNamedGroupBad);
@@ -4598,7 +4598,7 @@ begin
                   GrpIndex := GrpNames.MatchIndexFromName(GrpName);
                   if GrpIndex < 1 then
                     Error(reeNamedGroupBadRef);
-                end;    
+                end;
               end;
             else
               Error(reeIncorrectSpecialBrackets);
@@ -4629,7 +4629,7 @@ begin
                   GrpIndexes[ParsedGrpCount] := regNumBrackets;
                 end
                 else
-                if (GrpName <> '') then                  
+                if (GrpName <> '') then
                 begin
                   // first pass
                   if GrpNames.MatchIndexFromName(GrpName) >= 0 then
@@ -4649,7 +4649,7 @@ begin
               end;
               FlagParse := FlagParse or FlagTemp and (FLAG_HASWIDTH or FLAG_SPECSTART or FLAG_LOOP or FLAG_GREEDY);
             end;
-            
+
           gkLookahead,
           gkLookaheadNeg:
             begin
@@ -4678,7 +4678,7 @@ begin
                 Inc(regCode, ReOpLookBehindOptionsSz)
               else
                 Inc(regCodeSize, ReOpLookBehindOptionsSz);
-                
+
               RegGrpCountBefore := ParsedGrpCount;
               Result := DoParseReg(True, False, FlagTemp, OP_NONE, OP_LOOKBEHIND_END);
               if Result = nil then
@@ -4728,7 +4728,7 @@ begin
                 fCompModifiers := SavedModifiers;
                 if ret = nil then
                 begin
-                 Result := nil;                
+                 Result := nil;
                  Exit;
                 end;
                 FlagParse := FlagParse or FlagTemp and (FLAG_HASWIDTH or FLAG_SPECSTART or FLAG_LOOP or FLAG_GREEDY);
@@ -5443,7 +5443,7 @@ begin
       end;
       {$ENDIF}
     {$ENDIF}
-    
+
     OP_ANYLINEBREAK:
       while (Result < TheMax) and IsAnyLineBreak(scan^) do
       begin
@@ -6522,10 +6522,10 @@ begin
             Local.savedCurrentSubCalled := CurrentSubCalled;
             CurrentSubCalled := no;
             Inc(regRecursion);
-            FillChar(GrpBounds[regRecursion].GrpStart[0], SizeOf(GrpBounds[regRecursion].GrpStart[0])*regNumBrackets, 0);            
+            FillChar(GrpBounds[regRecursion].GrpStart[0], SizeOf(GrpBounds[regRecursion].GrpStart[0])*regNumBrackets, 0);
             bound1 := MatchPrim(save);
             Dec(regRecursion);
-            CurrentSubCalled := Local.savedCurrentSubCalled;            
+            CurrentSubCalled := Local.savedCurrentSubCalled;
           end
           else
             bound1 := False;
@@ -6544,8 +6544,8 @@ begin
     {$IFDEF WITH_REGEX_ASSERT}
     else
       Error(reeMatchPrimMemoryCorruption);
-      Exit;      
-    {$ENDIF}      
+      Exit;
+    {$ENDIF}
     end; { of case scan^ }
     scan := next;
   end; { of while scan <> nil }
@@ -6648,13 +6648,13 @@ begin
 
   SetLength(GrpIndexes, GroupDataArraySize(regNumBrackets, Length(GrpIndexes)));
   for i := 1 to regNumBrackets - 1 do
-    GrpIndexes[i] := -1;  
+    GrpIndexes[i] := -1;
   GrpIndexes[0] := 0;
 
   SetLength(GrpOpCodes, GroupDataArraySize(regNumBrackets, Length(GrpOpCodes)));
   SetLength(GrpBacktrackingAsAtom, GroupDataArraySize(regNumBrackets, Length(GrpBacktrackingAsAtom)));
 
-  GrpOpCodes[0] := nil;  
+  GrpOpCodes[0] := nil;
 end;
 
 function TRegExpr.ExecPrim(AOffset: Integer; ASlowChecks, ABackward: Boolean;
@@ -7031,7 +7031,7 @@ begin
         p0 := GrpBounds[0].GrpStart[n];
         if p0 = nil then
           p1 := nil
-        else        
+        else
           p1 := GrpBounds[0].GrpEnd[n];
       end
       else
@@ -7500,8 +7500,8 @@ begin
       OP_SUBCALL:
         begin
           // we cannot optimize // TODO: lookup the called group
-          FirstCharSet := RegExprAllSet; 
-          Exit;        
+          FirstCharSet := RegExprAllSet;
+          Exit;
         end;
 
       OP_ANYLINEBREAK:
@@ -7512,7 +7512,7 @@ begin
           Include(FirstCharSet, Byte($0C));
           Include(FirstCharSet, Byte($85));
         end;
-        
+
       else
           fLastErrorOpcode := Oper;
           Error(reeUnknownOpcodeInFillFirst);

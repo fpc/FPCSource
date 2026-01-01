@@ -10,7 +10,7 @@ procedure add_testinsight(const aDirectory: string);
 
 Const
   // All oses that have TFPHTTPClient
-  
+
   WebOses = [aix,beos,haiku,linux,freebsd,darwin,iphonesim,ios,netbsd,openbsd,solaris,win32,win64,wince,android,dragonfly];
 
 Var
@@ -23,7 +23,7 @@ begin
     P.ShortName:='tinsight';
     P.Directory:=aDirectory;
     P.Version:='3.3.1';
-    
+
     P.OSes := WebOSes;
     if Defaults.CPU=jvm then
       P.OSes := P.OSes - [java,android];
@@ -40,19 +40,19 @@ begin
     P.SourcePath.Add('src');
 
     T:=P.Targets.AddUnit('testinsightprotocol.pp');
-    
+
     T:=P.Targets.AddUnit('testinsightclient.pp');
     T.Dependencies.AddUnit('testinsightprotocol');
-    
+
     T:=P.Targets.AddUnit('fpcunittestinsight.pp');
     T.Dependencies.AddUnit('testinsightclient');
     T.Dependencies.AddUnit('testinsightprotocol');
-    
+
     P.NamespaceMap:='namespaces.lst';
     end;
-      
+
 end;
-    
+
 {$ifndef ALLPACKAGES}
 begin
   add_testinsight('');

@@ -213,7 +213,7 @@ ber_printf() interprets and formats its arguments according to the for-
 mat string fmt.  ber_printf() returns -1 if there is an error during
 encoding and a non-negative number if successful.  As with sprintf(),
 each character in fmt refers to an argument to ber_printf().
- 
+
 The format string can contain the following format characters:
 
 't'     Tag.  The next argument is a ber_tag_t specifying the tag to
@@ -242,7 +242,7 @@ The format string can contain the following format characters:
 'n'     Null.  No argument is needed.  An ASN.1 NULL element is output.
         If this format character is not preceded by the 't' format
         modifier, the tag 0x05U is used for the element.
-        
+
 'o'     Octet string.  The next two arguments are a AnsiChar *, followed by
         a ber_len_t with the length of the string.  The string MAY con-
         tain null bytes and are do not have to be zero-terminated.   An

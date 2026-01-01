@@ -1,4 +1,4 @@
-{ 
+{
   Should be aliases but I copy pasted them from winsock2 for now...
 }
 
@@ -201,7 +201,7 @@ const
 
   { options for socket level  }
   SOL_SOCKET = $ffff;
-  
+
   INVALID_SOCKET = {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Winsock2.INVALID_SOCKET;
   SOCKET_ERROR = {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Winsock2.SOCKET_ERROR;
 

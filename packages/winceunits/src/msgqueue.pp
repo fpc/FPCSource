@@ -37,7 +37,7 @@ uses Windows;
 const
       MSGQUEUE_NOPRECOMMIT            = $00000001;
       MSGQUEUE_ALLOW_BROKEN           = $00000002;
-      
+
       MSGQUEUE_MSGALERT               = $00000001;
 
 
@@ -67,7 +67,7 @@ type
      PMSGQUEUEINFO = ^MSGQUEUEINFO;
      LPMSGQUEUEINFO = ^MSGQUEUEINFO;
 
-     
+
 function CreateMsgQueue(lpName:LPCWSTR; lpOptions:LPMSGQUEUEOPTIONS):HANDLE; external KernelDLL name 'CreateMsgQueue'; // index 111
 function OpenMsgQueue(hSrcProc:HANDLE; hMsgQ:HANDLE; lpOptions:LPMSGQUEUEOPTIONS):HANDLE; external KernelDLL name 'OpenMsgQueue'; // index 116
 function ReadMsgQueue(hMsgQ:HANDLE;

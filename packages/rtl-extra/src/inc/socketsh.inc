@@ -151,7 +151,7 @@ type
 
   Tsocket=longint;   {To easy porting code from Kylix libc unit to sockets unit.}
 
-function socketerror : cint; 
+function socketerror : cint;
 
 function  fpsocket      (domain:cint; xtype:cint; protocol: cint):cint;
 function  fprecv        (s:cint; buf: pointer; len: size_t; flags: cint):ssize_t;

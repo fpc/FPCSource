@@ -8,7 +8,7 @@
  *
  *  The Contents of this file are made available subject to the terms of
  *  the BSD license.
- *  
+ *
  *  Copyright (c) 2003 by Sun Microsystems, Inc.
  *  All rights reserved.
  *
@@ -35,12 +35,12 @@
  *  ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
  *  TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  *  USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *     
+ *
  *************************************************************************}
 {$mode objfpc}
 uses
   OOHelper;
-  
+
 var
   Sample : TSampleCode;
 
@@ -49,8 +49,8 @@ procedure error(const s : string = 'Error');
     writeln(s);
     halt(1);
   end;
-  
-  
+
+
 begin
   write('Connection to StarOffice ... ');
   Sample := TSampleCode.Create();
@@ -63,7 +63,7 @@ begin
     writeln('done.')
   else
     error;
-{  
+{
   try
     writeln('Inserting Table ...');
     Sample.InsertTable(Edit2.Text, Edit1.Text);
@@ -71,7 +71,7 @@ begin
   except
     Error;
   end;
-}   
+}
   write('Disconnection from StarOffice ... ');
   Sample.Disconnect();
   writeln('done.');

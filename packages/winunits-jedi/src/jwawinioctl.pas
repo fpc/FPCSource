@@ -562,7 +562,7 @@ type
   PSTORAGE_BREAK_RESERVATION_REQUEST = ^STORAGE_BREAK_RESERVATION_REQUEST;
   {$EXTERNALSYM PSTORAGE_BREAK_RESERVATION_REQUEST}
   TStorageBreakReservationRequest = STORAGE_BREAK_RESERVATION_REQUEST;
-  PStorageBreakReservationRequest = PSTORAGE_BREAK_RESERVATION_REQUEST;  
+  PStorageBreakReservationRequest = PSTORAGE_BREAK_RESERVATION_REQUEST;
 
 //
 // IOCTL_STORAGE_MEDIA_REMOVAL disables the mechanism
@@ -687,7 +687,7 @@ const
   // F3_128Mb_512,           // 3.5" MO 128Mb   512 bytes/sector
   // F3_230Mb_512,           // 3.5" MO 230Mb   512 bytes/sector
   // F8_256_128,             // 8",     256KB,  128 bytes/sector
-  // F3_200Mb_512,           // 3.5",   200M Floppy (HiFD)  
+  // F3_200Mb_512,           // 3.5",   200M Floppy (HiFD)
   //
 
   DDS_4mm            = $20;  // Tape - DAT DDS1,2,... (all vendors)
@@ -3611,7 +3611,7 @@ const
 
   FSCTL_FIND_FILES_BY_SID = (
     (FILE_DEVICE_FILE_SYSTEM shl 16) or (FILE_ANY_ACCESS shl 14) or
-    (35 shl 2) or METHOD_NEITHER);  
+    (35 shl 2) or METHOD_NEITHER);
   {$EXTERNALSYM FSCTL_FIND_FILES_BY_SID}
 
 // decommissioned fsctl value                                             36
@@ -4000,7 +4000,7 @@ type
   {$EXTERNALSYM PMOVE_FILE_DATA32}
   TMoveFileData32 = MOVE_FILE_DATA32;
   PMoveFileData32 = PMOVE_FILE_DATA32;
-  
+
 {$ENDIF WIN64}
 
 //
@@ -4026,7 +4026,7 @@ type
   {$EXTERNALSYM FIND_BY_SID_OUTPUT}
   PFIND_BY_SID_OUTPUT = ^FIND_BY_SID_OUTPUT;
   TFindBySidOutput = FIND_BY_SID_OUTPUT;
-  PFindBySidOutput = PFIND_BY_SID_OUTPUT;  
+  PFindBySidOutput = PFIND_BY_SID_OUTPUT;
 
 //
 //  The following structures apply to Usn operations.
@@ -4322,7 +4322,7 @@ type
   PFILE_PREFETCH = ^FILE_PREFETCH;
   {$EXTERNALSYM PFILE_PREFETCH}
   TFilePrefetch = FILE_PREFETCH;
-  PFilePrefetch = PFILE_PREFETCH;  
+  PFilePrefetch = PFILE_PREFETCH;
 
 const
   FILE_PREFETCH_TYPE_FOR_CREATE = $1;
@@ -4862,7 +4862,7 @@ type
   PPLEX_READ_DATA_REQUEST = ^PLEX_READ_DATA_REQUEST;
   {$EXTERNALSYM PPLEX_READ_DATA_REQUEST}
   TPlexReadDataRequest = PLEX_READ_DATA_REQUEST;
-  PPlexReadDataRequest = PPLEX_READ_DATA_REQUEST;  
+  PPlexReadDataRequest = PPLEX_READ_DATA_REQUEST;
 
 //
 // FSCTL_SIS_COPYFILE support

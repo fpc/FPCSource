@@ -29,15 +29,15 @@ Uses baseunix,UnixType;
 
 {$i osdefs.inc}       { Compile time defines }
 
-{$if 
-     defined(FreeBSD) or 
-     defined(Darwin) or 
+{$if
+     defined(FreeBSD) or
+     defined(Darwin) or
      defined(Haiku)
 }
 {$DEFINE SOCK_HAS_SINLEN}               // BSD definition of socketaddr
 {$endif}
 
-Type 
+Type
  TSockLen = {$IFDEF FPC_DOTTEDUNITS}UnixApi.Base{$ELSE}BaseUnix{$ENDIF}.TSocklen;
 
 {$i unxsockh.inc}
@@ -53,7 +53,7 @@ type
                   end;
 
 const
-  EsockEINTR            = EsysEINTR;   
+  EsockEINTR            = EsysEINTR;
   EsockEBADF            = EsysEBADF;
   EsockEFAULT           = EsysEFAULT;
   EsockEINVAL           = EsysEINVAL;
@@ -64,7 +64,7 @@ const
 {$endif beos}
   EsockENOBUFS          = ESysENoBufs;
   EsockENOTCONN         = ESysENotConn;
-{$ifndef beos}  
+{$ifndef beos}
   EsockENOTSOCK         = ESysENotSock;
 {$endif beos}
   EsockEPROTONOSUPPORT  = ESysEProtoNoSupport;
@@ -86,10 +86,10 @@ Function Accept(Sock:longint;var addr:ansistring;var SockIn,SockOut:File):Boolea
 Implementation
 
 {$IFDEF FPC_DOTTEDUNITS}
-Uses 
+Uses
   {$ifndef FPC_USE_LIBC}UnixApi.SysCall{$else}System.InitC{$endif};
 {$ELSE}
-Uses 
+Uses
   {$ifndef FPC_USE_LIBC}SysCall{$else}initc{$endif};
 {$ENDIF}
 threadvar internal_socketerror : cint;

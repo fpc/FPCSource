@@ -163,7 +163,7 @@ begin
     T:=P.Targets.AddUnit('sortalgs.pp',AllCPUs, AllTargetsextra);
 
     P.NamespaceMap:='namespaces.lst';
-    
+
   end;
 end;
 

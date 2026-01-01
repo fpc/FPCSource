@@ -79,7 +79,7 @@ const
                            reuses AF_INET address family}
   AF_XDP        = 44;    { XDP sockets                  }
   AF_MAX        = 45;    { For now..                    }
-  
+
   SOCK_MAXADDRLEN = 255;             { longest possible addresses }
 
 {
@@ -374,7 +374,7 @@ const
         IPV6_RTHDR_STRICT      = 1;    { Hop must be a neighbour.  }
 
         IPV6_RTHDR_TYPE_0      = 0;    { IPv6 Routing header type 0.  }
-        
+
   { Flags for send, recv etc. }
   MSG_OOB                = $00000001;              { Process out-of-band data}
   MSG_PEEK               = $00000002;              { Peek at incoming messages }
@@ -408,7 +408,7 @@ const
                                                      descriptor received through SCM_RIGHTS }
   MSG_CMSG_COMPAT        = $0; {$80000000}         { This message would need 32 bit fixups, so use 0 instead }
 
-  
+
      TCP_NODELAY = 1;
   { Limit MSS  }
      TCP_MAXSEG = 2;
@@ -436,7 +436,7 @@ const
      TCP_CONGESTION = 13;
   { TCP MD5 Signature (RFC2385)  }
      TCP_MD5SIG = 14;
-  
+
      UDP_CORK = 1;
   { Set the socket to accept encapsulated packets  }
      UDP_ENCAP = 100;

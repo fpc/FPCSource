@@ -611,8 +611,8 @@ Const
   OPENPROPS_INHIBITPIF        = $8000;
   GETPROPS_NONE               = $0000;
   SETPROPS_NONE               = $0000;
-  CLOSEPROPS_NONE             = $0000;	
-  CLOSEPROPS_DISCARD          = $0001;		
+  CLOSEPROPS_NONE             = $0000;
+  CLOSEPROPS_DISCARD          = $0001;
   TBIF_DEFAULT                = $00000000;
   TBIF_INTERNETBAR  	        = $00010000;
   TBIF_STANDARDTOOLBAR        = $00020000;
@@ -1958,7 +1958,7 @@ Type
    TCOMDLG_FILTERSPEC = _COMDLG_FILTERSPEC;
    PCOMDLG_FILTERSPEC = ^_COMDLG_FILTERSPEC;
 
-	
+
    IPersistFolder = Interface(IPersist)
         ['{000214EA-0000-0000-C000-000000000046}']
         function Initialize (pild : LPCITEMIDLIST): HResult; StdCall;
@@ -2420,12 +2420,12 @@ type
 	             ['{b4db1657-70d7-485e-8e3e-6fcb5a5c1802}']
 				   function Show(hwndparent:HWND):HResult;StdCall;
 				   end;
-				
+
     IShellItemFilter = Interface(IUnknown)
 	              ['{2659B475-EEB8-48b7-8F07-B378810F48CF}']
                     function IncludeItem(psi:IShellItem):HResult;StdCall;
                     function GetEnumFlagsForItem(psi:IShellItem;pgrfflags :PSHCONTF):HRESULT;Stdcall;
-                   end;					
+                   end;
 
     IFileDialog = Interface;
     IFileDialogEvents = Interface(IUnknown)

@@ -60,8 +60,8 @@ Notes:
 Change log
 ==========
 
-1. bugs fixed: 
-   * in procedure read_gif_map(), unit RDCOLMAP.PAS (used by DJPEG sample 
+1. bugs fixed:
+   * in procedure read_gif_map(), unit RDCOLMAP.PAS (used by DJPEG sample
      application). Davie Lee Reed <smatters@iquest.net>
    * -dct int and -dct fast now bytewise equal to the IJG output.
    * -dct float produced large files
@@ -71,10 +71,10 @@ Change log
 3. BASM version of JIDCTINT.PAS for Delphi 2 and 3.
 
 4. images with integral sampling ratios were not decoded correctly.
-   Create a jpeg file with cjpeg and the option "-sample 4x1" and try to decode 
+   Create a jpeg file with cjpeg and the option "-sample 4x1" and try to decode
    it with any software that uses PasJpeg. Thanks to Jannie Gerber for reporting
-   this with a fix: In JDSAMPLE.PAS, procedure int_upsample(), 
-         
+   this with a fix: In JDSAMPLE.PAS, procedure int_upsample(),
+
     for h := pred(h_expand) downto 0 do
     begin
       outptr^ := invalue;

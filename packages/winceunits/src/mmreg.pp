@@ -63,293 +63,293 @@ type
      FOURCC = DWORD;         //* a four character code */
 
 {$IFNDEF NOMMIDS}
-// manufacturer IDs  
+// manufacturer IDs
 const
      MM_MICROSOFT = 1; //  Microsoft Corporation
 
      MM_CREATIVE = 2; // Creative Labs, Inc
   {  Media Vision, Inc.  }
-     MM_MEDIAVISION = 3;     
+     MM_MEDIAVISION = 3;
   {  Fujitsu Corp.  }
-     MM_FUJITSU = 4;     
+     MM_FUJITSU = 4;
   {  Artisoft, Inc.  }
-     MM_ARTISOFT = 20;     
+     MM_ARTISOFT = 20;
   {  Turtle Beach, Inc.  }
-     MM_TURTLE_BEACH = 21;     
+     MM_TURTLE_BEACH = 21;
   {  IBM Corporation  }
-     MM_IBM = 22;     
+     MM_IBM = 22;
   {  Vocaltec LTD.  }
-     MM_VOCALTEC = 23;     
+     MM_VOCALTEC = 23;
   {  Roland  }
-     MM_ROLAND = 24;     
+     MM_ROLAND = 24;
   {  DSP Solutions, Inc.  }
-     MM_DSP_SOLUTIONS = 25;     
+     MM_DSP_SOLUTIONS = 25;
   {  NEC  }
-     MM_NEC = 26;     
+     MM_NEC = 26;
   {  ATI  }
-     MM_ATI = 27;     
+     MM_ATI = 27;
   {  Wang Laboratories, Inc  }
-     MM_WANGLABS = 28;     
+     MM_WANGLABS = 28;
   {  Tandy Corporation  }
-     MM_TANDY = 29;     
+     MM_TANDY = 29;
   {  Voyetra  }
-     MM_VOYETRA = 30;     
+     MM_VOYETRA = 30;
   {  Antex Electronics Corporation  }
-     MM_ANTEX = 31;     
+     MM_ANTEX = 31;
   {  ICL Personal Systems  }
-     MM_ICL_PS = 32;     
+     MM_ICL_PS = 32;
   {  Intel Corporation  }
-     MM_INTEL = 33;     
+     MM_INTEL = 33;
   {  Advanced Gravis  }
-     MM_GRAVIS = 34;     
+     MM_GRAVIS = 34;
   {  Video Associates Labs, Inc.  }
-     MM_VAL = 35;     
+     MM_VAL = 35;
   {  InterActive Inc  }
-     MM_INTERACTIVE = 36;     
+     MM_INTERACTIVE = 36;
   {  Yamaha Corporation of America  }
-     MM_YAMAHA = 37;     
+     MM_YAMAHA = 37;
   {  Everex Systems, Inc  }
-     MM_EVEREX = 38;     
+     MM_EVEREX = 38;
   {  Echo Speech Corporation  }
-     MM_ECHO = 39;     
+     MM_ECHO = 39;
   {  Sierra Semiconductor Corp  }
-     MM_SIERRA = 40;     
+     MM_SIERRA = 40;
   {  Computer Aided Technologies  }
-     MM_CAT = 41;     
+     MM_CAT = 41;
   {  APPS Software International  }
-     MM_APPS = 42;     
+     MM_APPS = 42;
   {  DSP Group, Inc  }
-     MM_DSP_GROUP = 43;     
+     MM_DSP_GROUP = 43;
   {  microEngineering Labs  }
-     MM_MELABS = 44;     
+     MM_MELABS = 44;
   {  Computer Friends, Inc.  }
-     MM_COMPUTER_FRIENDS = 45;     
+     MM_COMPUTER_FRIENDS = 45;
   {  ESS Technology  }
-     MM_ESS = 46;     
+     MM_ESS = 46;
   {  Audio, Inc.  }
-     MM_AUDIOFILE = 47;     
+     MM_AUDIOFILE = 47;
   {  Motorola, Inc.  }
-     MM_MOTOROLA = 48;     
+     MM_MOTOROLA = 48;
   {  Canopus, co., Ltd.  }
-     MM_CANOPUS = 49;     
+     MM_CANOPUS = 49;
   {  Seiko Epson Corporation  }
-     MM_EPSON = 50;     
+     MM_EPSON = 50;
   {  Truevision  }
-     MM_TRUEVISION = 51;     
+     MM_TRUEVISION = 51;
   {  Aztech Labs, Inc.  }
-     MM_AZTECH = 52;     
+     MM_AZTECH = 52;
   {  Videologic  }
-     MM_VIDEOLOGIC = 53;     
+     MM_VIDEOLOGIC = 53;
   {  SCALACS  }
-     MM_SCALACS = 54;     
+     MM_SCALACS = 54;
   {  Korg Inc.  }
-     MM_KORG = 55;     
+     MM_KORG = 55;
   {  Audio Processing Technology  }
-     MM_APT = 56;     
+     MM_APT = 56;
   {  Integrated Circuit Systems, Inc.  }
-     MM_ICS = 57;     
+     MM_ICS = 57;
   {  Iterated Systems, Inc.  }
-     MM_ITERATEDSYS = 58;     
+     MM_ITERATEDSYS = 58;
   {  Metheus  }
-     MM_METHEUS = 59;     
+     MM_METHEUS = 59;
   {  Logitech, Inc.  }
-     MM_LOGITECH = 60;     
+     MM_LOGITECH = 60;
   {  Winnov, Inc.  }
-     MM_WINNOV = 61;     
+     MM_WINNOV = 61;
   {  NCR Corporation  }
-     MM_NCR = 62;     
+     MM_NCR = 62;
   {  EXAN  }
-     MM_EXAN = 63;     
+     MM_EXAN = 63;
   {  AST Research Inc.  }
-     MM_AST = 64;     
+     MM_AST = 64;
   {  Willow Pond Corporation  }
-     MM_WILLOWPOND = 65;     
+     MM_WILLOWPOND = 65;
   {  Sonic Foundry  }
-     MM_SONICFOUNDRY = 66;     
+     MM_SONICFOUNDRY = 66;
   {  Vitec Multimedia  }
-     MM_VITEC = 67;     
+     MM_VITEC = 67;
   {  MOSCOM Corporation  }
-     MM_MOSCOM = 68;     
+     MM_MOSCOM = 68;
   {  Silicon Soft, Inc.  }
-     MM_SILICONSOFT = 69;     
+     MM_SILICONSOFT = 69;
   {  Supermac  }
-     MM_SUPERMAC = 73;     
+     MM_SUPERMAC = 73;
   {  Audio Processing Technology  }
-     MM_AUDIOPT = 74;     
+     MM_AUDIOPT = 74;
   {  Speech Compression  }
-     MM_SPEECHCOMP = 76;     
+     MM_SPEECHCOMP = 76;
   {  Ahead, Inc.  }
-     MM_AHEAD = 77;     
+     MM_AHEAD = 77;
   {  Dolby Laboratories  }
-     MM_DOLBY = 78;     
+     MM_DOLBY = 78;
   {  OKI  }
-     MM_OKI = 79;     
+     MM_OKI = 79;
   {  AuraVision Corporation  }
-     MM_AURAVISION = 80;     
+     MM_AURAVISION = 80;
   {  Ing C. Olivetti & C., S.p.A.  }
-     MM_OLIVETTI = 81;     
+     MM_OLIVETTI = 81;
   {  I/O Magic Corporation  }
-     MM_IOMAGIC = 82;     
+     MM_IOMAGIC = 82;
   {  Matsushita Electric Industrial Co., LTD.  }
-     MM_MATSUSHITA = 83;     
+     MM_MATSUSHITA = 83;
   {  Control Resources Limited  }
-     MM_CONTROLRES = 84;     
+     MM_CONTROLRES = 84;
   {  Xebec Multimedia Solutions Limited  }
-     MM_XEBEC = 85;     
+     MM_XEBEC = 85;
   {  New Media Corporation  }
-     MM_NEWMEDIA = 86;     
+     MM_NEWMEDIA = 86;
   {  Natural MicroSystems  }
-     MM_NMS = 87;     
+     MM_NMS = 87;
   {  Lyrrus Inc.  }
-     MM_LYRRUS = 88;     
+     MM_LYRRUS = 88;
   {  Compusic  }
-     MM_COMPUSIC = 89;     
+     MM_COMPUSIC = 89;
   {  OPTi Computers Inc.  }
-     MM_OPTI = 90;     
+     MM_OPTI = 90;
   {  Adlib Accessories Inc.  }
-     MM_ADLACC = 91;     
+     MM_ADLACC = 91;
   {  Compaq Computer Corp.  }
-     MM_COMPAQ = 92;     
+     MM_COMPAQ = 92;
   {  Dialogic Corporation  }
-     MM_DIALOGIC = 93;     
+     MM_DIALOGIC = 93;
   {  InSoft, Inc.  }
-     MM_INSOFT = 94;     
+     MM_INSOFT = 94;
   {  M.P. Technologies, Inc.  }
-     MM_MPTUS = 95;     
+     MM_MPTUS = 95;
   {  Weitek  }
-     MM_WEITEK = 96;     
+     MM_WEITEK = 96;
   {  Lernout & Hauspie  }
-     MM_LERNOUT_AND_HAUSPIE = 97;     
+     MM_LERNOUT_AND_HAUSPIE = 97;
   {  Quanta Computer Inc.  }
-     MM_QCIAR = 98;     
+     MM_QCIAR = 98;
   {  Apple Computer, Inc.  }
-     MM_APPLE = 99;     
+     MM_APPLE = 99;
   {  Digital Equipment Corporation  }
-     MM_DIGITAL = 100;     
+     MM_DIGITAL = 100;
   {  Mark of the Unicorn  }
-     MM_MOTU = 101;     
+     MM_MOTU = 101;
   {  Workbit Corporation  }
-     MM_WORKBIT = 102;     
+     MM_WORKBIT = 102;
   {  Ositech Communications Inc.  }
-     MM_OSITECH = 103;     
+     MM_OSITECH = 103;
   {  miro Computer Products AG  }
-     MM_MIRO = 104;     
+     MM_MIRO = 104;
   {  Cirrus Logic  }
-     MM_CIRRUSLOGIC = 105;     
+     MM_CIRRUSLOGIC = 105;
   {  ISOLUTION  B.V.  }
-     MM_ISOLUTION = 106;     
+     MM_ISOLUTION = 106;
   {  Horizons Technology, Inc  }
-     MM_HORIZONS = 107;     
+     MM_HORIZONS = 107;
   {  Computer Concepts Ltd  }
-     MM_CONCEPTS = 108;     
+     MM_CONCEPTS = 108;
   {  Voice Technologies Group, Inc.  }
-     MM_VTG = 109;     
+     MM_VTG = 109;
   {  Radius  }
-     MM_RADIUS = 110;     
+     MM_RADIUS = 110;
   {  Rockwell International  }
-     MM_ROCKWELL = 111;     
+     MM_ROCKWELL = 111;
   {  Co. XYZ for testing  }
-     MM_XYz = 112;     
+     MM_XYz = 112;
   {  Opcode Systems  }
-     MM_OPCODE = 113;     
+     MM_OPCODE = 113;
   {  Voxware Inc  }
-     MM_VOXWARE = 114;     
+     MM_VOXWARE = 114;
   {  Northern Telecom Limited  }
-     MM_NORTHERN_TELECOM = 115;     
+     MM_NORTHERN_TELECOM = 115;
   {  APICOM  }
-     MM_APICOM = 116;     
+     MM_APICOM = 116;
   {  Grande Software  }
-     MM_GRANDE = 117;     
+     MM_GRANDE = 117;
   {  ADDX  }
-     MM_ADDX = 118;     
+     MM_ADDX = 118;
   {  Wildcat Canyon Software  }
-     MM_WILDCAT = 119;     
+     MM_WILDCAT = 119;
   {  Rhetorex Inc  }
-     MM_RHETOREX = 120;     
+     MM_RHETOREX = 120;
   {  Brooktree Corporation  }
-     MM_BROOKTREE = 121;     
+     MM_BROOKTREE = 121;
   {  ENSONIQ Corporation  }
-     MM_ENSONIQ = 125;     
+     MM_ENSONIQ = 125;
   {  ///FAST Multimedia AG  }
-     MM_FAST = 126;     
+     MM_FAST = 126;
   {  NVidia Corporation  }
-     MM_NVIDIA = 127;     
+     MM_NVIDIA = 127;
   {  OKSORI Co., Ltd.  }
-     MM_OKSORI = 128;     
+     MM_OKSORI = 128;
   {  DiAcoustics, Inc.  }
-     MM_DIACOUSTICS = 129;     
+     MM_DIACOUSTICS = 129;
   {  Gulbransen, Inc.  }
-     MM_GULBRANSEN = 130;     
+     MM_GULBRANSEN = 130;
   {  Kay Elemetrics, Inc.  }
-     MM_KAY_ELEMETRICS = 131;     
+     MM_KAY_ELEMETRICS = 131;
   {  Crystal Semiconductor Corporation  }
-     MM_CRYSTAL = 132;     
+     MM_CRYSTAL = 132;
   {  Splash Studios  }
-     MM_SPLASH_STUDIOS = 133;     
+     MM_SPLASH_STUDIOS = 133;
   {  Quarterdeck Corporation  }
-     MM_QUARTERDECK = 134;     
+     MM_QUARTERDECK = 134;
   {  TDK Corporation  }
-     MM_TDK = 135;     
+     MM_TDK = 135;
   {  Digital Audio Labs, Inc.  }
-     MM_DIGITAL_AUDIO_LABS = 136;     
+     MM_DIGITAL_AUDIO_LABS = 136;
   {  Seer Systems, Inc.  }
-     MM_SEERSYS = 137;     
+     MM_SEERSYS = 137;
   {  PictureTel Corporation  }
-     MM_PICTURETEL = 138;     
+     MM_PICTURETEL = 138;
   {  AT&T Microelectronics  }
-     MM_ATT_MICROELECTRONICS = 139;     
+     MM_ATT_MICROELECTRONICS = 139;
   {  Osprey Technologies, Inc.  }
-     MM_OSPREY = 140;     
+     MM_OSPREY = 140;
   {  Mediatrix Peripherals  }
-     MM_MEDIATRIX = 141;     
+     MM_MEDIATRIX = 141;
   {  SounDesignS M.C.S. Ltd.  }
-     MM_SOUNDESIGNS = 142;     
+     MM_SOUNDESIGNS = 142;
   {  A.L. Digital Ltd.  }
-     MM_ALDIGITAL = 143;     
+     MM_ALDIGITAL = 143;
   {  Spectrum Signal Processing, Inc.  }
-     MM_SPECTRUM_SIGNAL_PROCESSING = 144;     
+     MM_SPECTRUM_SIGNAL_PROCESSING = 144;
   {  Electronic Courseware Systems, Inc.  }
-     MM_ECS = 145;     
+     MM_ECS = 145;
   {  AMD  }
-     MM_AMD = 146;     
+     MM_AMD = 146;
   {  Core Dynamics  }
-     MM_COREDYNAMICS = 147;     
+     MM_COREDYNAMICS = 147;
   {  CANAM Computers  }
-     MM_CANAM = 148;     
+     MM_CANAM = 148;
   {  Softsound, Ltd.  }
-     MM_SOFTSOUND = 149;     
+     MM_SOFTSOUND = 149;
   {  Norris Communications, Inc.  }
-     MM_NORRIS = 150;     
+     MM_NORRIS = 150;
   {  Danka Data Devices  }
-     MM_DDD = 151;     
+     MM_DDD = 151;
   {  EuPhonics  }
-     MM_EUPHONICS = 152;     
+     MM_EUPHONICS = 152;
   {  Precept Software, Inc.  }
-     MM_PRECEPT = 153;     
+     MM_PRECEPT = 153;
   {  Crystal Net Corporation  }
-     MM_CRYSTAL_NET = 154;     
+     MM_CRYSTAL_NET = 154;
   {  Chromatic Research, Inc  }
-     MM_CHROMATIC = 155;     
+     MM_CHROMATIC = 155;
   {  Voice Information Systems, Inc  }
-     MM_VOICEINFO = 156;     
+     MM_VOICEINFO = 156;
   {  Vienna Systems  }
-     MM_VIENNASYS = 157;     
+     MM_VIENNASYS = 157;
   {  Connectix Corporation  }
-     MM_CONNECTIX = 158;     
+     MM_CONNECTIX = 158;
   {  Gadget Labs LLC  }
-     MM_GADGETLABS = 159;     
+     MM_GADGETLABS = 159;
   {  Frontier Design Group LLC  }
-     MM_FRONTIER = 160;     
+     MM_FRONTIER = 160;
   {  Viona Development GmbH  }
-     MM_VIONA = 161;     
+     MM_VIONA = 161;
   {  Casio Computer Co., LTD  }
-     MM_CASIO = 162;     
+     MM_CASIO = 162;
   {  Diamond Multimedia  }
-     MM_DIAMONDMM = 163;     
+     MM_DIAMONDMM = 163;
   {  S3  }
-     MM_S3 = 164;     
+     MM_S3 = 164;
   {  Fraunhofer  }
-     MM_FRAUNHOFER_IIS = 172;     
+     MM_FRAUNHOFER_IIS = 172;
 
 
 { MM_MICROSOFT product IDs  }
@@ -379,204 +379,204 @@ const
 {$ENDIF MM_MIDI_MAPPER}
 
   const
-     MM_PCSPEAKER_WAVEOUT = 13;  {  PC speaker waveform output   }     
+     MM_PCSPEAKER_WAVEOUT = 13;  {  PC speaker waveform output   }
   {  MS Audio Board waveform input   }
-     MM_MSFT_WSS_WAVEIN = 14;     
+     MM_MSFT_WSS_WAVEIN = 14;
   {  MS Audio Board waveform output   }
-     MM_MSFT_WSS_WAVEOUT = 15;     
+     MM_MSFT_WSS_WAVEOUT = 15;
   {  MS Audio Board  Stereo FM synth   }
-     MM_MSFT_WSS_FMSYNTH_STEREO = 16;     
+     MM_MSFT_WSS_FMSYNTH_STEREO = 16;
   {  MS Audio Board Mixer Driver   }
-     MM_MSFT_WSS_MIXER = 17;     
+     MM_MSFT_WSS_MIXER = 17;
   {  MS OEM Audio Board waveform input   }
-     MM_MSFT_WSS_OEM_WAVEIN = 18;     
+     MM_MSFT_WSS_OEM_WAVEIN = 18;
   {  MS OEM Audio Board waveform output   }
-     MM_MSFT_WSS_OEM_WAVEOUT = 19;     
+     MM_MSFT_WSS_OEM_WAVEOUT = 19;
   {  MS OEM Audio Board Stereo FM Synth   }
-     MM_MSFT_WSS_OEM_FMSYNTH_STEREO = 20;     
+     MM_MSFT_WSS_OEM_FMSYNTH_STEREO = 20;
   {  MS Audio Board Aux. Port   }
-     MM_MSFT_WSS_AUX = 21;     
+     MM_MSFT_WSS_AUX = 21;
   {  MS OEM Audio Aux Port   }
-     MM_MSFT_WSS_OEM_AUX = 22;     
+     MM_MSFT_WSS_OEM_AUX = 22;
   {  MS Vanilla driver waveform input   }
-     MM_MSFT_GENERIC_WAVEIN = 23;     
+     MM_MSFT_GENERIC_WAVEIN = 23;
   {  MS Vanilla driver wavefrom output   }
-     MM_MSFT_GENERIC_WAVEOUT = 24;     
+     MM_MSFT_GENERIC_WAVEOUT = 24;
   {  MS Vanilla driver MIDI in   }
-     MM_MSFT_GENERIC_MIDIIN = 25;     
+     MM_MSFT_GENERIC_MIDIIN = 25;
   {  MS Vanilla driver MIDI  external out   }
-     MM_MSFT_GENERIC_MIDIOUT = 26;     
+     MM_MSFT_GENERIC_MIDIOUT = 26;
   {  MS Vanilla driver MIDI synthesizer   }
-     MM_MSFT_GENERIC_MIDISYNTH = 27;     
+     MM_MSFT_GENERIC_MIDISYNTH = 27;
   {  MS Vanilla driver aux (line in)   }
-     MM_MSFT_GENERIC_AUX_LINE = 28;     
+     MM_MSFT_GENERIC_AUX_LINE = 28;
   {  MS Vanilla driver aux (mic)   }
-     MM_MSFT_GENERIC_AUX_MIC = 29;     
+     MM_MSFT_GENERIC_AUX_MIC = 29;
   {  MS Vanilla driver aux (CD)   }
-     MM_MSFT_GENERIC_AUX_CD = 30;     
+     MM_MSFT_GENERIC_AUX_CD = 30;
   {  MS OEM Audio Board Mixer Driver   }
-     MM_MSFT_WSS_OEM_MIXER = 31;     
+     MM_MSFT_WSS_OEM_MIXER = 31;
   {  MS Audio Compression Manager   }
-     MM_MSFT_MSACM = 32;     
+     MM_MSFT_MSACM = 32;
   {  MS ADPCM Codec   }
-     MM_MSFT_ACM_MSADPCM = 33;     
+     MM_MSFT_ACM_MSADPCM = 33;
   {  IMA ADPCM Codec   }
-     MM_MSFT_ACM_IMAADPCM = 34;     
+     MM_MSFT_ACM_IMAADPCM = 34;
   {  MS Filter   }
-     MM_MSFT_ACM_MSFILTER = 35;     
+     MM_MSFT_ACM_MSFILTER = 35;
   {  GSM 610 codec   }
-     MM_MSFT_ACM_GSM610 = 36;     
+     MM_MSFT_ACM_GSM610 = 36;
   {  G.711 codec   }
-     MM_MSFT_ACM_G711 = 37;     
+     MM_MSFT_ACM_G711 = 37;
   {  PCM converter   }
      MM_MSFT_ACM_PCM = 38;
 
-     
+
   { Microsoft Windows Sound System drivers }
   {  Sound Blaster 16 waveform input   }
-     MM_WSS_SB16_WAVEIN = 39;     
+     MM_WSS_SB16_WAVEIN = 39;
   {  Sound Blaster 16  waveform output   }
-     MM_WSS_SB16_WAVEOUT = 40;     
+     MM_WSS_SB16_WAVEOUT = 40;
   {  Sound Blaster 16 midi-in   }
-     MM_WSS_SB16_MIDIIN = 41;     
+     MM_WSS_SB16_MIDIIN = 41;
   {  Sound Blaster 16 midi out   }
-     MM_WSS_SB16_MIDIOUT = 42;     
+     MM_WSS_SB16_MIDIOUT = 42;
   {  Sound Blaster 16 FM Synthesis   }
-     MM_WSS_SB16_SYNTH = 43;     
+     MM_WSS_SB16_SYNTH = 43;
   {  Sound Blaster 16 aux (line in)   }
-     MM_WSS_SB16_AUX_LINE = 44;     
+     MM_WSS_SB16_AUX_LINE = 44;
   {  Sound Blaster 16 aux (CD)   }
-     MM_WSS_SB16_AUX_CD = 45;     
+     MM_WSS_SB16_AUX_CD = 45;
   {  Sound Blaster 16 mixer device   }
-     MM_WSS_SB16_MIXER = 46;     
+     MM_WSS_SB16_MIXER = 46;
   {  Sound Blaster Pro waveform input   }
-     MM_WSS_SBPRO_WAVEIN = 47;     
+     MM_WSS_SBPRO_WAVEIN = 47;
   {  Sound Blaster Pro waveform output   }
-     MM_WSS_SBPRO_WAVEOUT = 48;     
+     MM_WSS_SBPRO_WAVEOUT = 48;
   {  Sound Blaster Pro midi in   }
-     MM_WSS_SBPRO_MIDIIN = 49;     
+     MM_WSS_SBPRO_MIDIIN = 49;
   {  Sound Blaster Pro midi out   }
-     MM_WSS_SBPRO_MIDIOUT = 50;     
+     MM_WSS_SBPRO_MIDIOUT = 50;
   {  Sound Blaster Pro FM synthesis   }
-     MM_WSS_SBPRO_SYNTH = 51;     
+     MM_WSS_SBPRO_SYNTH = 51;
   {  Sound Blaster Pro aux (line in )   }
-     MM_WSS_SBPRO_AUX_LINE = 52;     
+     MM_WSS_SBPRO_AUX_LINE = 52;
   {  Sound Blaster Pro aux (CD)   }
-     MM_WSS_SBPRO_AUX_CD = 53;     
+     MM_WSS_SBPRO_AUX_CD = 53;
   {  Sound Blaster Pro mixer   }
-     MM_WSS_SBPRO_MIXER = 54;     
+     MM_WSS_SBPRO_MIXER = 54;
   {  WSS NT wave in   }
-     MM_MSFT_WSS_NT_WAVEIN = 55;     
+     MM_MSFT_WSS_NT_WAVEIN = 55;
   {  WSS NT wave out   }
-     MM_MSFT_WSS_NT_WAVEOUT = 56;     
+     MM_MSFT_WSS_NT_WAVEOUT = 56;
   {  WSS NT FM synth   }
-     MM_MSFT_WSS_NT_FMSYNTH_STEREO = 57;     
+     MM_MSFT_WSS_NT_FMSYNTH_STEREO = 57;
   {  WSS NT mixer   }
-     MM_MSFT_WSS_NT_MIXER = 58;     
+     MM_MSFT_WSS_NT_MIXER = 58;
   {  WSS NT aux   }
-     MM_MSFT_WSS_NT_AUX = 59;     
+     MM_MSFT_WSS_NT_AUX = 59;
   {  Sound Blaster 16 waveform input   }
-     MM_MSFT_SB16_WAVEIN = 60;     
+     MM_MSFT_SB16_WAVEIN = 60;
   {  Sound Blaster 16  waveform output   }
-     MM_MSFT_SB16_WAVEOUT = 61;     
+     MM_MSFT_SB16_WAVEOUT = 61;
   {  Sound Blaster 16 midi-in   }
-     MM_MSFT_SB16_MIDIIN = 62;     
+     MM_MSFT_SB16_MIDIIN = 62;
   {  Sound Blaster 16 midi out   }
-     MM_MSFT_SB16_MIDIOUT = 63;     
+     MM_MSFT_SB16_MIDIOUT = 63;
   {  Sound Blaster 16 FM Synthesis   }
-     MM_MSFT_SB16_SYNTH = 64;     
+     MM_MSFT_SB16_SYNTH = 64;
   {  Sound Blaster 16 aux (line in)   }
-     MM_MSFT_SB16_AUX_LINE = 65;     
+     MM_MSFT_SB16_AUX_LINE = 65;
   {  Sound Blaster 16 aux (CD)   }
-     MM_MSFT_SB16_AUX_CD = 66;     
+     MM_MSFT_SB16_AUX_CD = 66;
   {  Sound Blaster 16 mixer device   }
-     MM_MSFT_SB16_MIXER = 67;     
+     MM_MSFT_SB16_MIXER = 67;
   {  Sound Blaster Pro waveform input   }
-     MM_MSFT_SBPRO_WAVEIN = 68;     
+     MM_MSFT_SBPRO_WAVEIN = 68;
   {  Sound Blaster Pro waveform output   }
-     MM_MSFT_SBPRO_WAVEOUT = 69;     
+     MM_MSFT_SBPRO_WAVEOUT = 69;
   {  Sound Blaster Pro midi in   }
-     MM_MSFT_SBPRO_MIDIIN = 70;     
+     MM_MSFT_SBPRO_MIDIIN = 70;
   {  Sound Blaster Pro midi out   }
-     MM_MSFT_SBPRO_MIDIOUT = 71;     
+     MM_MSFT_SBPRO_MIDIOUT = 71;
   {  Sound Blaster Pro FM synthesis   }
-     MM_MSFT_SBPRO_SYNTH = 72;     
+     MM_MSFT_SBPRO_SYNTH = 72;
   {  Sound Blaster Pro aux (line in )   }
-     MM_MSFT_SBPRO_AUX_LINE = 73;     
+     MM_MSFT_SBPRO_AUX_LINE = 73;
   {  Sound Blaster Pro aux (CD)   }
-     MM_MSFT_SBPRO_AUX_CD = 74;     
+     MM_MSFT_SBPRO_AUX_CD = 74;
   {  Sound Blaster Pro mixer   }
-     MM_MSFT_SBPRO_MIXER = 75;     
+     MM_MSFT_SBPRO_MIXER = 75;
   { Yamaha OPL2/OPL3 compatible FM synthesis  }
-     MM_MSFT_MSOPL_SYNTH = 76;     
+     MM_MSFT_MSOPL_SYNTH = 76;
   { Voice Modem Serial Line Wave Input  }
-     MM_MSFT_VMDMS_LINE_WAVEIN = 80;     
+     MM_MSFT_VMDMS_LINE_WAVEIN = 80;
   { Voice Modem Serial Line Wave Output  }
-     MM_MSFT_VMDMS_LINE_WAVEOUT = 81;     
+     MM_MSFT_VMDMS_LINE_WAVEOUT = 81;
   { Voice Modem Serial Handset Wave Input  }
-     MM_MSFT_VMDMS_HANDSET_WAVEIN = 82;     
+     MM_MSFT_VMDMS_HANDSET_WAVEIN = 82;
   { Voice Modem Serial Handset Wave Output  }
-     MM_MSFT_VMDMS_HANDSET_WAVEOUT = 83;     
+     MM_MSFT_VMDMS_HANDSET_WAVEOUT = 83;
   { Voice Modem Wrapper Line Wave Input  }
-     MM_MSFT_VMDMW_LINE_WAVEIN = 84;     
+     MM_MSFT_VMDMW_LINE_WAVEIN = 84;
   { Voice Modem Wrapper Line Wave Output  }
-     MM_MSFT_VMDMW_LINE_WAVEOUT = 85;     
+     MM_MSFT_VMDMW_LINE_WAVEOUT = 85;
   { Voice Modem Wrapper Handset Wave Input  }
-     MM_MSFT_VMDMW_HANDSET_WAVEIN = 86;     
+     MM_MSFT_VMDMW_HANDSET_WAVEIN = 86;
   { Voice Modem Wrapper Handset Wave Output  }
-     MM_MSFT_VMDMW_HANDSET_WAVEOUT = 87;     
+     MM_MSFT_VMDMW_HANDSET_WAVEOUT = 87;
   { Voice Modem Wrapper Mixer  }
-     MM_MSFT_VMDMW_MIXER = 88;     
+     MM_MSFT_VMDMW_MIXER = 88;
   { Voice Modem Game Compatible Wave Device  }
-     MM_MSFT_VMDM_GAME_WAVEOUT = 89;     
+     MM_MSFT_VMDM_GAME_WAVEOUT = 89;
   { Voice Modem Game Compatible Wave Device  }
-     MM_MSFT_VMDM_GAME_WAVEIN = 90;     
+     MM_MSFT_VMDM_GAME_WAVEIN = 90;
   {  }
-     MM_MSFT_ACM_MSNAUDIO = 91;     
+     MM_MSFT_ACM_MSNAUDIO = 91;
   {  }
-     MM_MSFT_ACM_MSG723 = 92;     
+     MM_MSFT_ACM_MSG723 = 92;
   { Generic id for WDM Audio drivers  }
-     MM_MSFT_WDMAUDIO_WAVEOUT = 100;     
+     MM_MSFT_WDMAUDIO_WAVEOUT = 100;
   { Generic id for WDM Audio drivers  }
-     MM_MSFT_WDMAUDIO_WAVEIN = 101;     
+     MM_MSFT_WDMAUDIO_WAVEIN = 101;
   { Generic id for WDM Audio drivers  }
-     MM_MSFT_WDMAUDIO_MIDIOUT = 102;     
+     MM_MSFT_WDMAUDIO_MIDIOUT = 102;
   { Generic id for WDM Audio drivers  }
-     MM_MSFT_WDMAUDIO_MIDIIN = 103;     
+     MM_MSFT_WDMAUDIO_MIDIIN = 103;
   { Generic id for WDM Audio drivers  }
      MM_MSFT_WDMAUDIO_MIXER = 104;
 
   { MM_CREATIVE product IDs  }
      MM_CREATIVE_SB15_WAVEIN = 1;  {  SB (r) 1.5 waveform input   }
      MM_CREATIVE_SB20_WAVEIN = 2;
-     MM_CREATIVE_SBPRO_WAVEIN = 3;     
-     MM_CREATIVE_SBP16_WAVEIN = 4;     
-     MM_CREATIVE_PHNBLST_WAVEIN = 5;     
-     MM_CREATIVE_SB15_WAVEOUT = 101;     
-     MM_CREATIVE_SB20_WAVEOUT = 102;     
-     MM_CREATIVE_SBPRO_WAVEOUT = 103;     
-     MM_CREATIVE_SBP16_WAVEOUT = 104;     
-     MM_CREATIVE_PHNBLST_WAVEOUT = 105;     
+     MM_CREATIVE_SBPRO_WAVEIN = 3;
+     MM_CREATIVE_SBP16_WAVEIN = 4;
+     MM_CREATIVE_PHNBLST_WAVEIN = 5;
+     MM_CREATIVE_SB15_WAVEOUT = 101;
+     MM_CREATIVE_SB20_WAVEOUT = 102;
+     MM_CREATIVE_SBPRO_WAVEOUT = 103;
+     MM_CREATIVE_SBP16_WAVEOUT = 104;
+     MM_CREATIVE_PHNBLST_WAVEOUT = 105;
   {  SB (r)   }
-     MM_CREATIVE_MIDIOUT = 201;     
+     MM_CREATIVE_MIDIOUT = 201;
   {  SB (r)   }
-     MM_CREATIVE_MIDIIN = 202;     
+     MM_CREATIVE_MIDIIN = 202;
   {  SB (r)   }
-     MM_CREATIVE_FMSYNTH_MONO = 301;     
+     MM_CREATIVE_FMSYNTH_MONO = 301;
   {  SB Pro (r) stereo synthesizer   }
-     MM_CREATIVE_FMSYNTH_STEREO = 302;     
-     MM_CREATIVE_MIDI_AWE32 = 303;     
+     MM_CREATIVE_FMSYNTH_STEREO = 302;
+     MM_CREATIVE_MIDI_AWE32 = 303;
   {  SB Pro (r) aux (CD)   }
-     MM_CREATIVE_AUX_CD = 401;     
+     MM_CREATIVE_AUX_CD = 401;
   {  SB Pro (r) aux (Line in )   }
-     MM_CREATIVE_AUX_LINE = 402;     
+     MM_CREATIVE_AUX_LINE = 402;
   {  SB Pro (r) aux (mic)   }
-     MM_CREATIVE_AUX_MIC = 403;     
-     MM_CREATIVE_AUX_MASTER = 404;     
-     MM_CREATIVE_AUX_PCSPK = 405;     
-     MM_CREATIVE_AUX_WAVE = 406;     
-     MM_CREATIVE_AUX_MIDI = 407;     
-     MM_CREATIVE_SBPRO_MIXER = 408;     
+     MM_CREATIVE_AUX_MIC = 403;
+     MM_CREATIVE_AUX_MASTER = 404;
+     MM_CREATIVE_AUX_PCSPK = 405;
+     MM_CREATIVE_AUX_WAVE = 406;
+     MM_CREATIVE_AUX_MIDI = 407;
+     MM_CREATIVE_SBPRO_MIXER = 408;
      MM_CREATIVE_SB16_MIXER = 409;
 
   { MM_MEDIAVISION product IDs  }
@@ -612,15 +612,15 @@ const
      MM_PROAUD_PLUS_WAVEIN = MM_MEDIAVISION_PROAUDIO_PLUS+5;
      MM_PROAUD_PLUS_MIXER = MM_MEDIAVISION_PROAUDIO_PLUS+6;
      MM_PROAUD_PLUS_AUX = MM_MEDIAVISION_PROAUDIO_PLUS+7;
-          
+
   { Pro Audio Spectrum 16 }
-     MM_MEDIAVISION_PROAUDIO_16 = $60;     
-     MM_PROAUD_16_MIDIOUT = MM_MEDIAVISION_PROAUDIO_16+1;     
-     MM_PROAUD_16_MIDIIN = MM_MEDIAVISION_PROAUDIO_16+2;     
-     MM_PROAUD_16_SYNTH = MM_MEDIAVISION_PROAUDIO_16+3;     
-     MM_PROAUD_16_WAVEOUT = MM_MEDIAVISION_PROAUDIO_16+4;     
-     MM_PROAUD_16_WAVEIN = MM_MEDIAVISION_PROAUDIO_16+5;     
-     MM_PROAUD_16_MIXER = MM_MEDIAVISION_PROAUDIO_16+6;     
+     MM_MEDIAVISION_PROAUDIO_16 = $60;
+     MM_PROAUD_16_MIDIOUT = MM_MEDIAVISION_PROAUDIO_16+1;
+     MM_PROAUD_16_MIDIIN = MM_MEDIAVISION_PROAUDIO_16+2;
+     MM_PROAUD_16_SYNTH = MM_MEDIAVISION_PROAUDIO_16+3;
+     MM_PROAUD_16_WAVEOUT = MM_MEDIAVISION_PROAUDIO_16+4;
+     MM_PROAUD_16_WAVEIN = MM_MEDIAVISION_PROAUDIO_16+5;
+     MM_PROAUD_16_MIXER = MM_MEDIAVISION_PROAUDIO_16+6;
      MM_PROAUD_16_AUX = MM_MEDIAVISION_PROAUDIO_16+7;
 
   { Pro Audio Studio 16 }
@@ -642,15 +642,15 @@ const
      MM_CDPC_WAVEIN = MM_MEDIAVISION_CDPC+5;
      MM_CDPC_MIXER = MM_MEDIAVISION_CDPC+6;
      MM_CDPC_AUX = MM_MEDIAVISION_CDPC+7;
-     
+
   { Opus MV 1208 Chipsent }
-     MM_MEDIAVISION_OPUS1208 = $80;     
-     MM_OPUS401_MIDIOUT = MM_MEDIAVISION_OPUS1208+1;     
-     MM_OPUS401_MIDIIN = MM_MEDIAVISION_OPUS1208+2;     
-     MM_OPUS1208_SYNTH = MM_MEDIAVISION_OPUS1208+3;     
-     MM_OPUS1208_WAVEOUT = MM_MEDIAVISION_OPUS1208+4;     
-     MM_OPUS1208_WAVEIN = MM_MEDIAVISION_OPUS1208+5;     
-     MM_OPUS1208_MIXER = MM_MEDIAVISION_OPUS1208+6;     
+     MM_MEDIAVISION_OPUS1208 = $80;
+     MM_OPUS401_MIDIOUT = MM_MEDIAVISION_OPUS1208+1;
+     MM_OPUS401_MIDIIN = MM_MEDIAVISION_OPUS1208+2;
+     MM_OPUS1208_SYNTH = MM_MEDIAVISION_OPUS1208+3;
+     MM_OPUS1208_WAVEOUT = MM_MEDIAVISION_OPUS1208+4;
+     MM_OPUS1208_WAVEIN = MM_MEDIAVISION_OPUS1208+5;
+     MM_OPUS1208_MIXER = MM_MEDIAVISION_OPUS1208+6;
      MM_OPUS1208_AUX = MM_MEDIAVISION_OPUS1208+7;
 
   { Opus MV 1216 chipset }
@@ -681,22 +681,22 @@ const
   {  IBM Waveform output   }
      MM_IBM_PCMCIA_WAVEOUT = 12;
   {  IBM Midi Synthesis   }
-     MM_IBM_PCMCIA_SYNTH = 13;     
+     MM_IBM_PCMCIA_SYNTH = 13;
   {  IBM external MIDI in   }
-     MM_IBM_PCMCIA_MIDIIN = 14;     
+     MM_IBM_PCMCIA_MIDIIN = 14;
   {  IBM external MIDI out   }
-     MM_IBM_PCMCIA_MIDIOUT = 15;     
+     MM_IBM_PCMCIA_MIDIOUT = 15;
   {  IBM auxiliary control   }
-     MM_IBM_PCMCIA_AUX = 16;     
-     MM_IBM_THINKPAD200 = 17;     
-     MM_IBM_MWAVE_WAVEIN = 18;     
-     MM_IBM_MWAVE_WAVEOUT = 19;     
-     MM_IBM_MWAVE_MIXER = 20;     
-     MM_IBM_MWAVE_MIDIIN = 21;     
-     MM_IBM_MWAVE_MIDIOUT = 22;     
-     MM_IBM_MWAVE_AUX = 23;     
-     MM_IBM_WC_MIDIOUT = 30;     
-     MM_IBM_WC_WAVEOUT = 31;     
+     MM_IBM_PCMCIA_AUX = 16;
+     MM_IBM_THINKPAD200 = 17;
+     MM_IBM_MWAVE_WAVEIN = 18;
+     MM_IBM_MWAVE_WAVEOUT = 19;
+     MM_IBM_MWAVE_MIXER = 20;
+     MM_IBM_MWAVE_MIDIIN = 21;
+     MM_IBM_MWAVE_MIDIOUT = 22;
+     MM_IBM_MWAVE_AUX = 23;
+     MM_IBM_WC_MIDIOUT = 30;
+     MM_IBM_WC_WAVEOUT = 31;
      MM_IBM_WC_MIXEROUT = 33;
 
   { MM_VOCALTEC product IDs  }
@@ -711,23 +711,23 @@ const
   { MM_ROLAND_RAP10  }
      MM_ROLAND_RAP10_SYNTH = 12;
   { MM_ROLAND_RAP10  }
-     MM_ROLAND_RAP10_WAVEOUT = 13;     
+     MM_ROLAND_RAP10_WAVEOUT = 13;
   { MM_ROLAND_RAP10  }
-     MM_ROLAND_RAP10_WAVEIN = 14;     
-     MM_ROLAND_MPU401_MIDIOUT = 15;     
-     MM_ROLAND_MPU401_MIDIIN = 16;     
-     MM_ROLAND_SMPU_MIDIOUTA = 17;     
-     MM_ROLAND_SMPU_MIDIOUTB = 18;     
-     MM_ROLAND_SMPU_MIDIINA = 19;     
-     MM_ROLAND_SMPU_MIDIINB = 20;     
-     MM_ROLAND_SC7_MIDIOUT = 21;     
-     MM_ROLAND_SC7_MIDIIN = 22;     
-     MM_ROLAND_SERIAL_MIDIOUT = 23;     
-     MM_ROLAND_SERIAL_MIDIIN = 24;     
-     MM_ROLAND_SCP_MIDIOUT = 38;     
-     MM_ROLAND_SCP_MIDIIN = 39;     
-     MM_ROLAND_SCP_WAVEOUT = 40;     
-     MM_ROLAND_SCP_WAVEIN = 41;     
+     MM_ROLAND_RAP10_WAVEIN = 14;
+     MM_ROLAND_MPU401_MIDIOUT = 15;
+     MM_ROLAND_MPU401_MIDIIN = 16;
+     MM_ROLAND_SMPU_MIDIOUTA = 17;
+     MM_ROLAND_SMPU_MIDIOUTB = 18;
+     MM_ROLAND_SMPU_MIDIINA = 19;
+     MM_ROLAND_SMPU_MIDIINB = 20;
+     MM_ROLAND_SC7_MIDIOUT = 21;
+     MM_ROLAND_SC7_MIDIIN = 22;
+     MM_ROLAND_SERIAL_MIDIOUT = 23;
+     MM_ROLAND_SERIAL_MIDIIN = 24;
+     MM_ROLAND_SCP_MIDIOUT = 38;
+     MM_ROLAND_SCP_MIDIIN = 39;
+     MM_ROLAND_SCP_WAVEOUT = 40;
+     MM_ROLAND_SCP_WAVEIN = 41;
      MM_ROLAND_SCP_MIXER = 42;
      MM_ROLAND_SCP_AUX = 48;
 
@@ -741,26 +741,26 @@ const
   {  Input audio wave on CPU board models: Exec 4010, 4030, 3450; PC 251/25c, pc 461/25s , pc 461/33c   }
      MM_WANGLABS_WAVEIN1 = 1;
      MM_WANGLABS_WAVEOUT1 = 2;
-          
+
   { MM_TANDY product IDs  }
-     MM_TANDY_VISWAVEIN = 1;     
-     MM_TANDY_VISWAVEOUT = 2;     
-     MM_TANDY_VISBIOSSYNTH = 3;     
-     MM_TANDY_SENS_MMAWAVEIN = 4;     
-     MM_TANDY_SENS_MMAWAVEOUT = 5;     
-     MM_TANDY_SENS_MMAMIDIIN = 6;     
-     MM_TANDY_SENS_MMAMIDIOUT = 7;     
-     MM_TANDY_SENS_VISWAVEOUT = 8;     
-     MM_TANDY_PSSJWAVEIN = 9;     
+     MM_TANDY_VISWAVEIN = 1;
+     MM_TANDY_VISWAVEOUT = 2;
+     MM_TANDY_VISBIOSSYNTH = 3;
+     MM_TANDY_SENS_MMAWAVEIN = 4;
+     MM_TANDY_SENS_MMAWAVEOUT = 5;
+     MM_TANDY_SENS_MMAMIDIIN = 6;
+     MM_TANDY_SENS_MMAMIDIOUT = 7;
+     MM_TANDY_SENS_VISWAVEOUT = 8;
+     MM_TANDY_PSSJWAVEIN = 9;
      MM_TANDY_PSSJWAVEOUT = 10;
-         
+
   { product IDs  }
   {  HID2 WaveAudio Driver   }
-     MM_INTELOPD_WAVEIN = 1;     
+     MM_INTELOPD_WAVEIN = 1;
   {  HID2   }
-     MM_INTELOPD_WAVEOUT = 101;     
+     MM_INTELOPD_WAVEOUT = 101;
   {  HID2 for mixing   }
-     MM_INTELOPD_AUX = 401;     
+     MM_INTELOPD_AUX = 401;
      MM_INTEL_NSPMODEMLINE = 501;
 
   { MM_INTERACTIVE product IDs  }
@@ -768,20 +768,20 @@ const
      MM_INTERACTIVE_WAVEOUT = $45;
 
   { MM_YAMAHA product IDs  }
-     MM_YAMAHA_GSS_SYNTH = $01;     
-     MM_YAMAHA_GSS_WAVEOUT = $02;     
-     MM_YAMAHA_GSS_WAVEIN = $03;     
-     MM_YAMAHA_GSS_MIDIOUT = $04;     
-     MM_YAMAHA_GSS_MIDIIN = $05;     
-     MM_YAMAHA_GSS_AUX = $06;     
-     MM_YAMAHA_SERIAL_MIDIOUT = $07;     
-     MM_YAMAHA_SERIAL_MIDIIN = $08;     
-     MM_YAMAHA_OPL3SA_WAVEOUT = $10;     
-     MM_YAMAHA_OPL3SA_WAVEIN = $11;     
-     MM_YAMAHA_OPL3SA_FMSYNTH = $12;     
-     MM_YAMAHA_OPL3SA_YSYNTH = $13;     
-     MM_YAMAHA_OPL3SA_MIDIOUT = $14;     
-     MM_YAMAHA_OPL3SA_MIDIIN = $15;     
+     MM_YAMAHA_GSS_SYNTH = $01;
+     MM_YAMAHA_GSS_WAVEOUT = $02;
+     MM_YAMAHA_GSS_WAVEIN = $03;
+     MM_YAMAHA_GSS_MIDIOUT = $04;
+     MM_YAMAHA_GSS_MIDIIN = $05;
+     MM_YAMAHA_GSS_AUX = $06;
+     MM_YAMAHA_SERIAL_MIDIOUT = $07;
+     MM_YAMAHA_SERIAL_MIDIIN = $08;
+     MM_YAMAHA_OPL3SA_WAVEOUT = $10;
+     MM_YAMAHA_OPL3SA_WAVEIN = $11;
+     MM_YAMAHA_OPL3SA_FMSYNTH = $12;
+     MM_YAMAHA_OPL3SA_YSYNTH = $13;
+     MM_YAMAHA_OPL3SA_MIDIOUT = $14;
+     MM_YAMAHA_OPL3SA_MIDIIN = $15;
      MM_YAMAHA_OPL3SA_MIXER = $17;
      MM_YAMAHA_OPL3SA_JOYSTICK = $18;
 
@@ -830,33 +830,33 @@ const
      MM_ESS_AMSYNTH = $04;
      MM_ESS_AMMIDIOUT = $05;
      MM_ESS_AMMIDIIN = $06;
-     MM_ESS_MIXER = $07;     
-     MM_ESS_AUX_CD = $08;     
-     MM_ESS_MPU401_MIDIOUT = $09;     
-     MM_ESS_MPU401_MIDIIN = $0A;     
-     MM_ESS_ES488_WAVEOUT = $10;     
-     MM_ESS_ES488_WAVEIN = $11;     
-     MM_ESS_ES488_MIXER = $12;     
-     MM_ESS_ES688_WAVEOUT = $13;     
-     MM_ESS_ES688_WAVEIN = $14;     
-     MM_ESS_ES688_MIXER = $15;     
-     MM_ESS_ES1488_WAVEOUT = $16;     
-     MM_ESS_ES1488_WAVEIN = $17;     
-     MM_ESS_ES1488_MIXER = $18;     
-     MM_ESS_ES1688_WAVEOUT = $19;     
-     MM_ESS_ES1688_WAVEIN = $1A;     
-     MM_ESS_ES1688_MIXER = $1B;     
-     MM_ESS_ES1788_WAVEOUT = $1C;     
-     MM_ESS_ES1788_WAVEIN = $1D;     
-     MM_ESS_ES1788_MIXER = $1E;     
-     MM_ESS_ES1888_WAVEOUT = $1F;     
-     MM_ESS_ES1888_WAVEIN = $20;     
-     MM_ESS_ES1888_MIXER = $21;     
-     MM_ESS_ES1868_WAVEOUT = $22;     
-     MM_ESS_ES1868_WAVEIN = $23;     
-     MM_ESS_ES1868_MIXER = $24;     
-     MM_ESS_ES1878_WAVEOUT = $25;     
-     MM_ESS_ES1878_WAVEIN = $26;     
+     MM_ESS_MIXER = $07;
+     MM_ESS_AUX_CD = $08;
+     MM_ESS_MPU401_MIDIOUT = $09;
+     MM_ESS_MPU401_MIDIIN = $0A;
+     MM_ESS_ES488_WAVEOUT = $10;
+     MM_ESS_ES488_WAVEIN = $11;
+     MM_ESS_ES488_MIXER = $12;
+     MM_ESS_ES688_WAVEOUT = $13;
+     MM_ESS_ES688_WAVEIN = $14;
+     MM_ESS_ES688_MIXER = $15;
+     MM_ESS_ES1488_WAVEOUT = $16;
+     MM_ESS_ES1488_WAVEIN = $17;
+     MM_ESS_ES1488_MIXER = $18;
+     MM_ESS_ES1688_WAVEOUT = $19;
+     MM_ESS_ES1688_WAVEIN = $1A;
+     MM_ESS_ES1688_MIXER = $1B;
+     MM_ESS_ES1788_WAVEOUT = $1C;
+     MM_ESS_ES1788_WAVEIN = $1D;
+     MM_ESS_ES1788_MIXER = $1E;
+     MM_ESS_ES1888_WAVEOUT = $1F;
+     MM_ESS_ES1888_WAVEIN = $20;
+     MM_ESS_ES1888_MIXER = $21;
+     MM_ESS_ES1868_WAVEOUT = $22;
+     MM_ESS_ES1868_WAVEIN = $23;
+     MM_ESS_ES1868_MIXER = $24;
+     MM_ESS_ES1878_WAVEOUT = $25;
+     MM_ESS_ES1878_WAVEIN = $26;
      MM_ESS_ES1878_MIXER = $27;
 
   { product IDs  }
@@ -865,30 +865,30 @@ const
   { MM_TRUEVISION product IDs  }
      MM_TRUEVISION_WAVEIN1 = 1;
      MM_TRUEVISION_WAVEOUT1 = 2;
-          
+
   { MM_AZTECH product IDs  }
-     MM_AZTECH_MIDIOUT = 3;     
-     MM_AZTECH_MIDIIN = 4;     
-     MM_AZTECH_WAVEIN = 17;     
-     MM_AZTECH_WAVEOUT = 18;     
-     MM_AZTECH_FMSYNTH = 20;     
-     MM_AZTECH_MIXER = 21;     
-     MM_AZTECH_PRO16_WAVEIN = 33;     
-     MM_AZTECH_PRO16_WAVEOUT = 34;     
-     MM_AZTECH_PRO16_FMSYNTH = 38;     
-     MM_AZTECH_DSP16_WAVEIN = 65;     
-     MM_AZTECH_DSP16_WAVEOUT = 66;     
-     MM_AZTECH_DSP16_FMSYNTH = 68;     
-     MM_AZTECH_DSP16_WAVESYNTH = 70;     
-     MM_AZTECH_NOVA16_WAVEIN = 71;     
-     MM_AZTECH_NOVA16_WAVEOUT = 72;     
-     MM_AZTECH_NOVA16_MIXER = 73;     
-     MM_AZTECH_WASH16_WAVEIN = 74;     
-     MM_AZTECH_WASH16_WAVEOUT = 75;     
-     MM_AZTECH_WASH16_MIXER = 76;     
-     MM_AZTECH_AUX_CD = 401;     
-     MM_AZTECH_AUX_LINE = 402;     
-     MM_AZTECH_AUX_MIC = 403;     
+     MM_AZTECH_MIDIOUT = 3;
+     MM_AZTECH_MIDIIN = 4;
+     MM_AZTECH_WAVEIN = 17;
+     MM_AZTECH_WAVEOUT = 18;
+     MM_AZTECH_FMSYNTH = 20;
+     MM_AZTECH_MIXER = 21;
+     MM_AZTECH_PRO16_WAVEIN = 33;
+     MM_AZTECH_PRO16_WAVEOUT = 34;
+     MM_AZTECH_PRO16_FMSYNTH = 38;
+     MM_AZTECH_DSP16_WAVEIN = 65;
+     MM_AZTECH_DSP16_WAVEOUT = 66;
+     MM_AZTECH_DSP16_FMSYNTH = 68;
+     MM_AZTECH_DSP16_WAVESYNTH = 70;
+     MM_AZTECH_NOVA16_WAVEIN = 71;
+     MM_AZTECH_NOVA16_WAVEOUT = 72;
+     MM_AZTECH_NOVA16_MIXER = 73;
+     MM_AZTECH_WASH16_WAVEIN = 74;
+     MM_AZTECH_WASH16_WAVEOUT = 75;
+     MM_AZTECH_WASH16_MIXER = 76;
+     MM_AZTECH_AUX_CD = 401;
+     MM_AZTECH_AUX_LINE = 402;
+     MM_AZTECH_AUX_MIC = 403;
      MM_AZTECH_AUX = 404;
 
   { MM_VIDEOLOGIC product IDs  }
@@ -904,19 +904,19 @@ const
 
   { MM_ICS product IDs  }
   {  MS WSS compatible card and driver   }
-     MM_ICS_WAVEDECK_WAVEOUT = 1;     
-     MM_ICS_WAVEDECK_WAVEIN = 2;     
-     MM_ICS_WAVEDECK_MIXER = 3;     
-     MM_ICS_WAVEDECK_AUX = 4;     
-     MM_ICS_WAVEDECK_SYNTH = 5;     
-     MM_ICS_WAVEDEC_SB_WAVEOUT = 6;     
-     MM_ICS_WAVEDEC_SB_WAVEIN = 7;     
-     MM_ICS_WAVEDEC_SB_FM_MIDIOUT = 8;     
-     MM_ICS_WAVEDEC_SB_MPU401_MIDIOUT = 9;     
-     MM_ICS_WAVEDEC_SB_MPU401_MIDIIN = 10;     
-     MM_ICS_WAVEDEC_SB_MIXER = 11;     
-     MM_ICS_WAVEDEC_SB_AUX = 12;     
-     MM_ICS_2115_LITE_MIDIOUT = 13;     
+     MM_ICS_WAVEDECK_WAVEOUT = 1;
+     MM_ICS_WAVEDECK_WAVEIN = 2;
+     MM_ICS_WAVEDECK_MIXER = 3;
+     MM_ICS_WAVEDECK_AUX = 4;
+     MM_ICS_WAVEDECK_SYNTH = 5;
+     MM_ICS_WAVEDEC_SB_WAVEOUT = 6;
+     MM_ICS_WAVEDEC_SB_WAVEIN = 7;
+     MM_ICS_WAVEDEC_SB_FM_MIDIOUT = 8;
+     MM_ICS_WAVEDEC_SB_MPU401_MIDIOUT = 9;
+     MM_ICS_WAVEDEC_SB_MPU401_MIDIIN = 10;
+     MM_ICS_WAVEDEC_SB_MIXER = 11;
+     MM_ICS_WAVEDEC_SB_AUX = 12;
+     MM_ICS_2115_LITE_MIDIOUT = 13;
      MM_ICS_2120_LITE_MIDIOUT = 14;
 
   { MM_ITERATEDSYS product IDs  }
@@ -930,7 +930,7 @@ const
      MM_WINNOV_CAVIAR_WAVEOUT = 2;
      MM_WINNOV_CAVIAR_VIDC = 3;
   {  Fourcc is CHAM   }
-     MM_WINNOV_CAVIAR_CHAMPAGNE = 4;     
+     MM_WINNOV_CAVIAR_CHAMPAGNE = 4;
   {  Fourcc is YUV8   }
      MM_WINNOV_CAVIAR_YUV8 = 5;
 
@@ -947,7 +947,7 @@ const
 
   { MM_MOSCOM product IDs  }
   {  Four Port Voice Processing / Voice Recognition Board   }
-     MM_MOSCOM_VPC2400_IN = 1;     
+     MM_MOSCOM_VPC2400_IN = 1;
   {  VPC2400  }
      MM_MOSCOM_VPC2400_OUT = 2;
 
@@ -970,18 +970,18 @@ const
      MM_SILICONSOFT_SOUNDJR3_WAVEOUT = 8;
 
   { MM_OLIVETTI product IDs  }
-     MM_OLIVETTI_WAVEIN = 1;     
-     MM_OLIVETTI_WAVEOUT = 2;     
-     MM_OLIVETTI_MIXER = 3;     
-     MM_OLIVETTI_AUX = 4;     
-     MM_OLIVETTI_MIDIIN = 5;     
-     MM_OLIVETTI_MIDIOUT = 6;     
-     MM_OLIVETTI_SYNTH = 7;     
-     MM_OLIVETTI_JOYSTICK = 8;     
-     MM_OLIVETTI_ACM_GSM = 9;     
-     MM_OLIVETTI_ACM_ADPCM = 10;     
-     MM_OLIVETTI_ACM_CELP = 11;     
-     MM_OLIVETTI_ACM_SBC = 12;     
+     MM_OLIVETTI_WAVEIN = 1;
+     MM_OLIVETTI_WAVEOUT = 2;
+     MM_OLIVETTI_MIXER = 3;
+     MM_OLIVETTI_AUX = 4;
+     MM_OLIVETTI_MIDIIN = 5;
+     MM_OLIVETTI_MIDIOUT = 6;
+     MM_OLIVETTI_SYNTH = 7;
+     MM_OLIVETTI_JOYSTICK = 8;
+     MM_OLIVETTI_ACM_GSM = 9;
+     MM_OLIVETTI_ACM_ADPCM = 10;
+     MM_OLIVETTI_ACM_CELP = 11;
+     MM_OLIVETTI_ACM_SBC = 12;
      MM_OLIVETTI_ACM_OPR = 13;
 
   { MM_IOMAGIC product IDs  }
@@ -1058,28 +1058,28 @@ const
      MM_AHEAD_GENERIC = 4;
 
   {  Product IDs for     MM_AMD    -  AMD     }
-     MM_AMD_INTERWAVE_WAVEIN = 1;     
-     MM_AMD_INTERWAVE_WAVEOUT = 2;     
-     MM_AMD_INTERWAVE_SYNTH = 3;     
-     MM_AMD_INTERWAVE_MIXER1 = 4;     
-     MM_AMD_INTERWAVE_MIXER2 = 5;     
-     MM_AMD_INTERWAVE_JOYSTICK = 6;     
-     MM_AMD_INTERWAVE_EX_CD = 7;     
-     MM_AMD_INTERWAVE_MIDIIN = 8;     
-     MM_AMD_INTERWAVE_MIDIOUT = 9;     
-     MM_AMD_INTERWAVE_AUX1 = 10;     
-     MM_AMD_INTERWAVE_AUX2 = 11;     
-     MM_AMD_INTERWAVE_AUX_MIC = 12;     
-     MM_AMD_INTERWAVE_AUX_CD = 13;     
-     MM_AMD_INTERWAVE_MONO_IN = 14;     
-     MM_AMD_INTERWAVE_MONO_OUT = 15;     
-     MM_AMD_INTERWAVE_EX_TELEPHONY = 16;     
-     MM_AMD_INTERWAVE_WAVEOUT_BASE = 17;     
-     MM_AMD_INTERWAVE_WAVEOUT_TREBLE = 18;     
+     MM_AMD_INTERWAVE_WAVEIN = 1;
+     MM_AMD_INTERWAVE_WAVEOUT = 2;
+     MM_AMD_INTERWAVE_SYNTH = 3;
+     MM_AMD_INTERWAVE_MIXER1 = 4;
+     MM_AMD_INTERWAVE_MIXER2 = 5;
+     MM_AMD_INTERWAVE_JOYSTICK = 6;
+     MM_AMD_INTERWAVE_EX_CD = 7;
+     MM_AMD_INTERWAVE_MIDIIN = 8;
+     MM_AMD_INTERWAVE_MIDIOUT = 9;
+     MM_AMD_INTERWAVE_AUX1 = 10;
+     MM_AMD_INTERWAVE_AUX2 = 11;
+     MM_AMD_INTERWAVE_AUX_MIC = 12;
+     MM_AMD_INTERWAVE_AUX_CD = 13;
+     MM_AMD_INTERWAVE_MONO_IN = 14;
+     MM_AMD_INTERWAVE_MONO_OUT = 15;
+     MM_AMD_INTERWAVE_EX_TELEPHONY = 16;
+     MM_AMD_INTERWAVE_WAVEOUT_BASE = 17;
+     MM_AMD_INTERWAVE_WAVEOUT_TREBLE = 18;
      MM_AMD_INTERWAVE_STEREO_ENHANCED = 19;
-     
+
   {  Product IDs for     MM_AST    -  AST Research Inc.     }
-     MM_AST_MODEMWAVE_WAVEIN = 13;     
+     MM_AST_MODEMWAVE_WAVEIN = 13;
      MM_AST_MODEMWAVE_WAVEOUT = 14;
 
   {  Product IDs for     MM_BROOKTREE    -  Brooktree Corporation     }
@@ -1134,8 +1134,8 @@ const
      MM_COREDYNAMICS_DYNASONIX_AUDIO_IN = 7;
      MM_COREDYNAMICS_DYNASONIX_AUDIO_OUT = 8;
   { DynaGrfx  }
-     MM_COREDYNAMICS_DYNAGRAFX_VGA = 9;     
-     MM_COREDYNAMICS_DYNAGRAFX_WAVE_IN = 10;     
+     MM_COREDYNAMICS_DYNAGRAFX_VGA = 9;
+     MM_COREDYNAMICS_DYNAGRAFX_WAVE_IN = 10;
      MM_COREDYNAMICS_DYNAGRAFX_WAVE_OUT = 11;
 
   {  Product IDs for     MM_CRYSTAL    -  Crystal Semiconductor Corporation     }
@@ -1159,19 +1159,19 @@ const
   {  Product IDs for     MM_DIACOUSTICS    -  DiAcoustics, Inc.     }
   { Drum Action  }
      MM_DIACOUSTICS_DRUM_ACTION = 1;
-          
+
   {  Product IDs for     MM_DIAMONDMM    -  Diamond Multimedia     }
   { Freedom Audio  }
-     MM_DIMD_PLATFORM = 0;     
-     MM_DIMD_DIRSOUND = 1;     
-     MM_DIMD_VIRTMPU = 2;     
-     MM_DIMD_VIRTSB = 3;     
-     MM_DIMD_VIRTJOY = 4;     
-     MM_DIMD_WAVEIN = 5;     
-     MM_DIMD_WAVEOUT = 6;     
-     MM_DIMD_MIDIIN = 7;     
-     MM_DIMD_MIDIOUT = 8;     
-     MM_DIMD_AUX_LINE = 9;     
+     MM_DIMD_PLATFORM = 0;
+     MM_DIMD_DIRSOUND = 1;
+     MM_DIMD_VIRTMPU = 2;
+     MM_DIMD_VIRTSB = 3;
+     MM_DIMD_VIRTJOY = 4;
+     MM_DIMD_WAVEIN = 5;
+     MM_DIMD_WAVEOUT = 6;
+     MM_DIMD_MIDIIN = 7;
+     MM_DIMD_MIDIOUT = 8;
+     MM_DIMD_AUX_LINE = 9;
      MM_DIMD_MIXER = 10;
 
   {  Product IDs for     MM_DIGITAL_AUDIO_LABS    -  Digital Audio Labs, Inc.     }
@@ -1183,10 +1183,10 @@ const
      MM_DIGITAL_AV320_WAVEIN = 1;
   { Digital Audio Video Compression Board  }
      MM_DIGITAL_AV320_WAVEOUT = 2;
-          
+
   {  Product IDs for     MM_ECS    -  Electronic Courseware Systems, Inc.     }
-     MM_ECS_AADF_MIDI_IN = 10;     
-     MM_ECS_AADF_MIDI_OUT = 11;     
+     MM_ECS_AADF_MIDI_IN = 10;
+     MM_ECS_AADF_MIDI_OUT = 11;
      MM_ECS_AADF_WAVE2MIDI_IN = 12;
 
   {  Product IDs for     MM_ENSONIQ    -  ENSONIQ Corporation     }
@@ -1203,9 +1203,9 @@ const
 
     {  Product IDs for     MM_FRONTIER    -  Frontier Design Group LLC     }
     { WaveCenter  }
-       MM_FRONTIER_WAVECENTER_MIDIIN = 1;       
-       MM_FRONTIER_WAVECENTER_MIDIOUT = 2;       
-       MM_FRONTIER_WAVECENTER_WAVEIN = 3;       
+       MM_FRONTIER_WAVECENTER_MIDIIN = 1;
+       MM_FRONTIER_WAVECENTER_MIDIOUT = 2;
+       MM_FRONTIER_WAVECENTER_WAVEIN = 3;
        MM_FRONTIER_WAVECENTER_WAVEOUT = 4;
 
     {  Product IDs for     MM_GADGETLABS    -  Gadget Labs LLC     }
@@ -1236,138 +1236,138 @@ const
        MM_MOTU_MTP_MIDIOUT_2 = 102;
        MM_MOTU_MTP_MIDIIN_3 = 103;
        MM_MOTU_MTP_MIDIOUT_3 = 103;
-       MM_MOTU_MTP_MIDIIN_4 = 104;       
-       MM_MOTU_MTP_MIDIOUT_4 = 104;       
-       MM_MOTU_MTP_MIDIIN_5 = 105;       
-       MM_MOTU_MTP_MIDIOUT_5 = 105;       
-       MM_MOTU_MTP_MIDIIN_6 = 106;       
-       MM_MOTU_MTP_MIDIOUT_6 = 106;       
-       MM_MOTU_MTP_MIDIIN_7 = 107;       
-       MM_MOTU_MTP_MIDIOUT_7 = 107;       
-       MM_MOTU_MTP_MIDIIN_8 = 108;       
-       MM_MOTU_MTP_MIDIOUT_8 = 108;       
-       MM_MOTU_MTPII_MIDIOUT_ALL = 200;       
-       MM_MOTU_MTPII_MIDIIN_SYNC = 200;       
-       MM_MOTU_MTPII_MIDIIN_1 = 201;       
-       MM_MOTU_MTPII_MIDIOUT_1 = 201;       
-       MM_MOTU_MTPII_MIDIIN_2 = 202;       
-       MM_MOTU_MTPII_MIDIOUT_2 = 202;       
-       MM_MOTU_MTPII_MIDIIN_3 = 203;       
-       MM_MOTU_MTPII_MIDIOUT_3 = 203;       
-       MM_MOTU_MTPII_MIDIIN_4 = 204;       
-       MM_MOTU_MTPII_MIDIOUT_4 = 204;       
-       MM_MOTU_MTPII_MIDIIN_5 = 205;       
-       MM_MOTU_MTPII_MIDIOUT_5 = 205;       
-       MM_MOTU_MTPII_MIDIIN_6 = 206;       
-       MM_MOTU_MTPII_MIDIOUT_6 = 206;       
-       MM_MOTU_MTPII_MIDIIN_7 = 207;       
-       MM_MOTU_MTPII_MIDIOUT_7 = 207;       
-       MM_MOTU_MTPII_MIDIIN_8 = 208;       
-       MM_MOTU_MTPII_MIDIOUT_8 = 208;       
-       MM_MOTU_MTPII_NET_MIDIIN_1 = 209;       
-       MM_MOTU_MTPII_NET_MIDIOUT_1 = 209;       
-       MM_MOTU_MTPII_NET_MIDIIN_2 = 210;       
-       MM_MOTU_MTPII_NET_MIDIOUT_2 = 210;       
-       MM_MOTU_MTPII_NET_MIDIIN_3 = 211;       
-       MM_MOTU_MTPII_NET_MIDIOUT_3 = 211;       
-       MM_MOTU_MTPII_NET_MIDIIN_4 = 212;       
-       MM_MOTU_MTPII_NET_MIDIOUT_4 = 212;       
-       MM_MOTU_MTPII_NET_MIDIIN_5 = 213;       
-       MM_MOTU_MTPII_NET_MIDIOUT_5 = 213;       
-       MM_MOTU_MTPII_NET_MIDIIN_6 = 214;       
-       MM_MOTU_MTPII_NET_MIDIOUT_6 = 214;       
-       MM_MOTU_MTPII_NET_MIDIIN_7 = 215;       
-       MM_MOTU_MTPII_NET_MIDIOUT_7 = 215;       
-       MM_MOTU_MTPII_NET_MIDIIN_8 = 216;       
-       MM_MOTU_MTPII_NET_MIDIOUT_8 = 216;       
-       MM_MOTU_MXP_MIDIIN_MIDIOUT_ALL = 300;       
-       MM_MOTU_MXP_MIDIIN_SYNC = 300;       
-       MM_MOTU_MXP_MIDIIN_MIDIIN_1 = 301;       
-       MM_MOTU_MXP_MIDIIN_MIDIOUT_1 = 301;       
-       MM_MOTU_MXP_MIDIIN_MIDIIN_2 = 302;       
-       MM_MOTU_MXP_MIDIIN_MIDIOUT_2 = 302;       
-       MM_MOTU_MXP_MIDIIN_MIDIIN_3 = 303;       
-       MM_MOTU_MXP_MIDIIN_MIDIOUT_3 = 303;       
-       MM_MOTU_MXP_MIDIIN_MIDIIN_4 = 304;       
-       MM_MOTU_MXP_MIDIIN_MIDIOUT_4 = 304;       
-       MM_MOTU_MXP_MIDIIN_MIDIIN_5 = 305;       
-       MM_MOTU_MXP_MIDIIN_MIDIOUT_5 = 305;       
-       MM_MOTU_MXP_MIDIIN_MIDIIN_6 = 306;       
-       MM_MOTU_MXP_MIDIIN_MIDIOUT_6 = 306;       
-       MM_MOTU_MXPMPU_MIDIOUT_ALL = 400;       
-       MM_MOTU_MXPMPU_MIDIIN_SYNC = 400;       
-       MM_MOTU_MXPMPU_MIDIIN_1 = 401;       
-       MM_MOTU_MXPMPU_MIDIOUT_1 = 401;       
-       MM_MOTU_MXPMPU_MIDIIN_2 = 402;       
-       MM_MOTU_MXPMPU_MIDIOUT_2 = 402;       
-       MM_MOTU_MXPMPU_MIDIIN_3 = 403;       
-       MM_MOTU_MXPMPU_MIDIOUT_3 = 403;       
-       MM_MOTU_MXPMPU_MIDIIN_4 = 404;       
-       MM_MOTU_MXPMPU_MIDIOUT_4 = 404;       
-       MM_MOTU_MXPMPU_MIDIIN_5 = 405;       
-       MM_MOTU_MXPMPU_MIDIOUT_5 = 405;       
-       MM_MOTU_MXPMPU_MIDIIN_6 = 406;       
-       MM_MOTU_MXPMPU_MIDIOUT_6 = 406;       
-       MM_MOTU_MXN_MIDIOUT_ALL = 500;       
-       MM_MOTU_MXN_MIDIIN_SYNC = 500;       
-       MM_MOTU_MXN_MIDIIN_1 = 501;       
-       MM_MOTU_MXN_MIDIOUT_1 = 501;       
-       MM_MOTU_MXN_MIDIIN_2 = 502;       
-       MM_MOTU_MXN_MIDIOUT_2 = 502;       
-       MM_MOTU_MXN_MIDIIN_3 = 503;       
-       MM_MOTU_MXN_MIDIOUT_3 = 503;       
-       MM_MOTU_MXN_MIDIIN_4 = 504;       
-       MM_MOTU_MXN_MIDIOUT_4 = 504;       
-       MM_MOTU_FLYER_MIDI_IN_SYNC = 600;       
-       MM_MOTU_FLYER_MIDI_IN_A = 601;       
-       MM_MOTU_FLYER_MIDI_OUT_A = 601;       
-       MM_MOTU_FLYER_MIDI_IN_B = 602;       
-       MM_MOTU_FLYER_MIDI_OUT_B = 602;       
-       MM_MOTU_PKX_MIDI_IN_SYNC = 700;       
-       MM_MOTU_PKX_MIDI_IN_A = 701;       
-       MM_MOTU_PKX_MIDI_OUT_A = 701;       
-       MM_MOTU_PKX_MIDI_IN_B = 702;       
-       MM_MOTU_PKX_MIDI_OUT_B = 702;       
-       MM_MOTU_DTX_MIDI_IN_SYNC = 800;       
-       MM_MOTU_DTX_MIDI_IN_A = 801;       
-       MM_MOTU_DTX_MIDI_OUT_A = 801;       
-       MM_MOTU_DTX_MIDI_IN_B = 802;       
-       MM_MOTU_DTX_MIDI_OUT_B = 802;       
-       MM_MOTU_MTPAV_MIDIOUT_ALL = 900;       
-       MM_MOTU_MTPAV_MIDIIN_SYNC = 900;       
-       MM_MOTU_MTPAV_MIDIIN_1 = 901;       
-       MM_MOTU_MTPAV_MIDIOUT_1 = 901;       
-       MM_MOTU_MTPAV_MIDIIN_2 = 902;       
-       MM_MOTU_MTPAV_MIDIOUT_2 = 902;       
-       MM_MOTU_MTPAV_MIDIIN_3 = 903;       
-       MM_MOTU_MTPAV_MIDIOUT_3 = 903;       
-       MM_MOTU_MTPAV_MIDIIN_4 = 904;       
-       MM_MOTU_MTPAV_MIDIOUT_4 = 904;       
-       MM_MOTU_MTPAV_MIDIIN_5 = 905;       
-       MM_MOTU_MTPAV_MIDIOUT_5 = 905;       
-       MM_MOTU_MTPAV_MIDIIN_6 = 906;       
-       MM_MOTU_MTPAV_MIDIOUT_6 = 906;       
-       MM_MOTU_MTPAV_MIDIIN_7 = 907;       
-       MM_MOTU_MTPAV_MIDIOUT_7 = 907;       
-       MM_MOTU_MTPAV_MIDIIN_8 = 908;       
-       MM_MOTU_MTPAV_MIDIOUT_8 = 908;       
-       MM_MOTU_MTPAV_NET_MIDIIN_1 = 909;       
-       MM_MOTU_MTPAV_NET_MIDIOUT_1 = 909;       
-       MM_MOTU_MTPAV_NET_MIDIIN_2 = 910;       
-       MM_MOTU_MTPAV_NET_MIDIOUT_2 = 910;       
-       MM_MOTU_MTPAV_NET_MIDIIN_3 = 911;       
-       MM_MOTU_MTPAV_NET_MIDIOUT_3 = 911;       
-       MM_MOTU_MTPAV_NET_MIDIIN_4 = 912;       
-       MM_MOTU_MTPAV_NET_MIDIOUT_4 = 912;       
-       MM_MOTU_MTPAV_NET_MIDIIN_5 = 913;       
-       MM_MOTU_MTPAV_NET_MIDIOUT_5 = 913;       
-       MM_MOTU_MTPAV_NET_MIDIIN_6 = 914;       
-       MM_MOTU_MTPAV_NET_MIDIOUT_6 = 914;       
-       MM_MOTU_MTPAV_NET_MIDIIN_7 = 915;       
-       MM_MOTU_MTPAV_NET_MIDIOUT_7 = 915;       
-       MM_MOTU_MTPAV_NET_MIDIIN_8 = 916;       
-       MM_MOTU_MTPAV_NET_MIDIOUT_8 = 916;       
-       MM_MOTU_MTPAV_MIDIIN_ADAT = 917;       
+       MM_MOTU_MTP_MIDIIN_4 = 104;
+       MM_MOTU_MTP_MIDIOUT_4 = 104;
+       MM_MOTU_MTP_MIDIIN_5 = 105;
+       MM_MOTU_MTP_MIDIOUT_5 = 105;
+       MM_MOTU_MTP_MIDIIN_6 = 106;
+       MM_MOTU_MTP_MIDIOUT_6 = 106;
+       MM_MOTU_MTP_MIDIIN_7 = 107;
+       MM_MOTU_MTP_MIDIOUT_7 = 107;
+       MM_MOTU_MTP_MIDIIN_8 = 108;
+       MM_MOTU_MTP_MIDIOUT_8 = 108;
+       MM_MOTU_MTPII_MIDIOUT_ALL = 200;
+       MM_MOTU_MTPII_MIDIIN_SYNC = 200;
+       MM_MOTU_MTPII_MIDIIN_1 = 201;
+       MM_MOTU_MTPII_MIDIOUT_1 = 201;
+       MM_MOTU_MTPII_MIDIIN_2 = 202;
+       MM_MOTU_MTPII_MIDIOUT_2 = 202;
+       MM_MOTU_MTPII_MIDIIN_3 = 203;
+       MM_MOTU_MTPII_MIDIOUT_3 = 203;
+       MM_MOTU_MTPII_MIDIIN_4 = 204;
+       MM_MOTU_MTPII_MIDIOUT_4 = 204;
+       MM_MOTU_MTPII_MIDIIN_5 = 205;
+       MM_MOTU_MTPII_MIDIOUT_5 = 205;
+       MM_MOTU_MTPII_MIDIIN_6 = 206;
+       MM_MOTU_MTPII_MIDIOUT_6 = 206;
+       MM_MOTU_MTPII_MIDIIN_7 = 207;
+       MM_MOTU_MTPII_MIDIOUT_7 = 207;
+       MM_MOTU_MTPII_MIDIIN_8 = 208;
+       MM_MOTU_MTPII_MIDIOUT_8 = 208;
+       MM_MOTU_MTPII_NET_MIDIIN_1 = 209;
+       MM_MOTU_MTPII_NET_MIDIOUT_1 = 209;
+       MM_MOTU_MTPII_NET_MIDIIN_2 = 210;
+       MM_MOTU_MTPII_NET_MIDIOUT_2 = 210;
+       MM_MOTU_MTPII_NET_MIDIIN_3 = 211;
+       MM_MOTU_MTPII_NET_MIDIOUT_3 = 211;
+       MM_MOTU_MTPII_NET_MIDIIN_4 = 212;
+       MM_MOTU_MTPII_NET_MIDIOUT_4 = 212;
+       MM_MOTU_MTPII_NET_MIDIIN_5 = 213;
+       MM_MOTU_MTPII_NET_MIDIOUT_5 = 213;
+       MM_MOTU_MTPII_NET_MIDIIN_6 = 214;
+       MM_MOTU_MTPII_NET_MIDIOUT_6 = 214;
+       MM_MOTU_MTPII_NET_MIDIIN_7 = 215;
+       MM_MOTU_MTPII_NET_MIDIOUT_7 = 215;
+       MM_MOTU_MTPII_NET_MIDIIN_8 = 216;
+       MM_MOTU_MTPII_NET_MIDIOUT_8 = 216;
+       MM_MOTU_MXP_MIDIIN_MIDIOUT_ALL = 300;
+       MM_MOTU_MXP_MIDIIN_SYNC = 300;
+       MM_MOTU_MXP_MIDIIN_MIDIIN_1 = 301;
+       MM_MOTU_MXP_MIDIIN_MIDIOUT_1 = 301;
+       MM_MOTU_MXP_MIDIIN_MIDIIN_2 = 302;
+       MM_MOTU_MXP_MIDIIN_MIDIOUT_2 = 302;
+       MM_MOTU_MXP_MIDIIN_MIDIIN_3 = 303;
+       MM_MOTU_MXP_MIDIIN_MIDIOUT_3 = 303;
+       MM_MOTU_MXP_MIDIIN_MIDIIN_4 = 304;
+       MM_MOTU_MXP_MIDIIN_MIDIOUT_4 = 304;
+       MM_MOTU_MXP_MIDIIN_MIDIIN_5 = 305;
+       MM_MOTU_MXP_MIDIIN_MIDIOUT_5 = 305;
+       MM_MOTU_MXP_MIDIIN_MIDIIN_6 = 306;
+       MM_MOTU_MXP_MIDIIN_MIDIOUT_6 = 306;
+       MM_MOTU_MXPMPU_MIDIOUT_ALL = 400;
+       MM_MOTU_MXPMPU_MIDIIN_SYNC = 400;
+       MM_MOTU_MXPMPU_MIDIIN_1 = 401;
+       MM_MOTU_MXPMPU_MIDIOUT_1 = 401;
+       MM_MOTU_MXPMPU_MIDIIN_2 = 402;
+       MM_MOTU_MXPMPU_MIDIOUT_2 = 402;
+       MM_MOTU_MXPMPU_MIDIIN_3 = 403;
+       MM_MOTU_MXPMPU_MIDIOUT_3 = 403;
+       MM_MOTU_MXPMPU_MIDIIN_4 = 404;
+       MM_MOTU_MXPMPU_MIDIOUT_4 = 404;
+       MM_MOTU_MXPMPU_MIDIIN_5 = 405;
+       MM_MOTU_MXPMPU_MIDIOUT_5 = 405;
+       MM_MOTU_MXPMPU_MIDIIN_6 = 406;
+       MM_MOTU_MXPMPU_MIDIOUT_6 = 406;
+       MM_MOTU_MXN_MIDIOUT_ALL = 500;
+       MM_MOTU_MXN_MIDIIN_SYNC = 500;
+       MM_MOTU_MXN_MIDIIN_1 = 501;
+       MM_MOTU_MXN_MIDIOUT_1 = 501;
+       MM_MOTU_MXN_MIDIIN_2 = 502;
+       MM_MOTU_MXN_MIDIOUT_2 = 502;
+       MM_MOTU_MXN_MIDIIN_3 = 503;
+       MM_MOTU_MXN_MIDIOUT_3 = 503;
+       MM_MOTU_MXN_MIDIIN_4 = 504;
+       MM_MOTU_MXN_MIDIOUT_4 = 504;
+       MM_MOTU_FLYER_MIDI_IN_SYNC = 600;
+       MM_MOTU_FLYER_MIDI_IN_A = 601;
+       MM_MOTU_FLYER_MIDI_OUT_A = 601;
+       MM_MOTU_FLYER_MIDI_IN_B = 602;
+       MM_MOTU_FLYER_MIDI_OUT_B = 602;
+       MM_MOTU_PKX_MIDI_IN_SYNC = 700;
+       MM_MOTU_PKX_MIDI_IN_A = 701;
+       MM_MOTU_PKX_MIDI_OUT_A = 701;
+       MM_MOTU_PKX_MIDI_IN_B = 702;
+       MM_MOTU_PKX_MIDI_OUT_B = 702;
+       MM_MOTU_DTX_MIDI_IN_SYNC = 800;
+       MM_MOTU_DTX_MIDI_IN_A = 801;
+       MM_MOTU_DTX_MIDI_OUT_A = 801;
+       MM_MOTU_DTX_MIDI_IN_B = 802;
+       MM_MOTU_DTX_MIDI_OUT_B = 802;
+       MM_MOTU_MTPAV_MIDIOUT_ALL = 900;
+       MM_MOTU_MTPAV_MIDIIN_SYNC = 900;
+       MM_MOTU_MTPAV_MIDIIN_1 = 901;
+       MM_MOTU_MTPAV_MIDIOUT_1 = 901;
+       MM_MOTU_MTPAV_MIDIIN_2 = 902;
+       MM_MOTU_MTPAV_MIDIOUT_2 = 902;
+       MM_MOTU_MTPAV_MIDIIN_3 = 903;
+       MM_MOTU_MTPAV_MIDIOUT_3 = 903;
+       MM_MOTU_MTPAV_MIDIIN_4 = 904;
+       MM_MOTU_MTPAV_MIDIOUT_4 = 904;
+       MM_MOTU_MTPAV_MIDIIN_5 = 905;
+       MM_MOTU_MTPAV_MIDIOUT_5 = 905;
+       MM_MOTU_MTPAV_MIDIIN_6 = 906;
+       MM_MOTU_MTPAV_MIDIOUT_6 = 906;
+       MM_MOTU_MTPAV_MIDIIN_7 = 907;
+       MM_MOTU_MTPAV_MIDIOUT_7 = 907;
+       MM_MOTU_MTPAV_MIDIIN_8 = 908;
+       MM_MOTU_MTPAV_MIDIOUT_8 = 908;
+       MM_MOTU_MTPAV_NET_MIDIIN_1 = 909;
+       MM_MOTU_MTPAV_NET_MIDIOUT_1 = 909;
+       MM_MOTU_MTPAV_NET_MIDIIN_2 = 910;
+       MM_MOTU_MTPAV_NET_MIDIOUT_2 = 910;
+       MM_MOTU_MTPAV_NET_MIDIIN_3 = 911;
+       MM_MOTU_MTPAV_NET_MIDIOUT_3 = 911;
+       MM_MOTU_MTPAV_NET_MIDIIN_4 = 912;
+       MM_MOTU_MTPAV_NET_MIDIOUT_4 = 912;
+       MM_MOTU_MTPAV_NET_MIDIIN_5 = 913;
+       MM_MOTU_MTPAV_NET_MIDIOUT_5 = 913;
+       MM_MOTU_MTPAV_NET_MIDIIN_6 = 914;
+       MM_MOTU_MTPAV_NET_MIDIOUT_6 = 914;
+       MM_MOTU_MTPAV_NET_MIDIIN_7 = 915;
+       MM_MOTU_MTPAV_NET_MIDIOUT_7 = 915;
+       MM_MOTU_MTPAV_NET_MIDIIN_8 = 916;
+       MM_MOTU_MTPAV_NET_MIDIOUT_8 = 916;
+       MM_MOTU_MTPAV_MIDIIN_ADAT = 917;
        MM_MOTU_MTPAV_MIDIOUT_ADAT = 917;
 
     {  Product IDs for     MM_MIRO    -  miro Computer Products AG     }
@@ -1466,14 +1466,14 @@ const
        ROCKWELL_WA2_MIXER = 203;
        ROCKWELL_WA2_MPU401_IN = 204;
        ROCKWELL_WA2_MPU401_OUT = 205;
-              
+
     {  Product IDs for     MM_S3    -  S3     }
-       MM_S3_WAVEOUT = $1;       
-       MM_S3_WAVEIN = $2;       
-       MM_S3_MIDIOUT = $3;       
-       MM_S3_MIDIIN = $4;       
-       MM_S3_FMSYNTH = $5;       
-       MM_S3_MIXER = $6;       
+       MM_S3_WAVEOUT = $1;
+       MM_S3_WAVEIN = $2;
+       MM_S3_MIDIOUT = $3;
+       MM_S3_MIDIIN = $4;
+       MM_S3_FMSYNTH = $5;
+       MM_S3_MIXER = $6;
        MM_S3_AUX = $7;
 
     {  Product IDs for     MM_SEERSYS    -  Seer Systems, Inc.     }
@@ -1505,22 +1505,22 @@ const
        MM_SSP_SNDFESAUX = 7;
 
     {  Product IDs for     MM_TDK    -  TDK Corporation     }
-       MM_TDK_MW_MIDI_SYNTH = 1;       
-       MM_TDK_MW_MIDI_IN = 2;       
-       MM_TDK_MW_MIDI_OUT = 3;       
-       MM_TDK_MW_WAVE_IN = 4;       
-       MM_TDK_MW_WAVE_OUT = 5;       
-       MM_TDK_MW_AUX = 6;       
-       MM_TDK_MW_MIXER = 10;       
-       MM_TDK_MW_AUX_MASTER = 100;       
-       MM_TDK_MW_AUX_BASS = 101;       
-       MM_TDK_MW_AUX_TREBLE = 102;       
-       MM_TDK_MW_AUX_MIDI_VOL = 103;       
-       MM_TDK_MW_AUX_WAVE_VOL = 104;       
-       MM_TDK_MW_AUX_WAVE_RVB = 105;       
-       MM_TDK_MW_AUX_WAVE_CHR = 106;       
-       MM_TDK_MW_AUX_VOL = 107;       
-       MM_TDK_MW_AUX_RVB = 108;       
+       MM_TDK_MW_MIDI_SYNTH = 1;
+       MM_TDK_MW_MIDI_IN = 2;
+       MM_TDK_MW_MIDI_OUT = 3;
+       MM_TDK_MW_WAVE_IN = 4;
+       MM_TDK_MW_WAVE_OUT = 5;
+       MM_TDK_MW_AUX = 6;
+       MM_TDK_MW_MIXER = 10;
+       MM_TDK_MW_AUX_MASTER = 100;
+       MM_TDK_MW_AUX_BASS = 101;
+       MM_TDK_MW_AUX_TREBLE = 102;
+       MM_TDK_MW_AUX_MIDI_VOL = 103;
+       MM_TDK_MW_AUX_WAVE_VOL = 104;
+       MM_TDK_MW_AUX_WAVE_RVB = 105;
+       MM_TDK_MW_AUX_WAVE_CHR = 106;
+       MM_TDK_MW_AUX_VOL = 107;
+       MM_TDK_MW_AUX_RVB = 108;
        MM_TDK_MW_AUX_CHR = 109;
 
     {  Product IDs for     MM_TURTLE_BEACH    -  Turtle Beach, Inc.     }
@@ -1529,14 +1529,14 @@ const
        MM_TBS_TROPEZ_AUX1 = 39;
        MM_TBS_TROPEZ_AUX2 = 40;
        MM_TBS_TROPEZ_LINE = 41;
-              
+
     {  Product IDs for     MM_VIENNASYS    -  Vienna Systems     }
        MM_VIENNASYS_TSP_WAVE_DRIVER = 1;
-              
+
     {  Product IDs for     MM_VIONA    -  Viona Development GmbH     }
     { Q-Motion PCI II/Bravado 2000  }
-       MM_VIONA_QVINPCI_MIXER = 1;       
-       MM_VIONA_QVINPCI_WAVEIN = 2;       
+       MM_VIONA_QVINPCI_MIXER = 1;
+       MM_VIONA_QVINPCI_WAVEIN = 2;
        MM_VIONAQVINPCI_WAVEOUT = 3;
     { Buster  }
        MM_VIONA_BUSTER_MIXER = 4;
@@ -1767,140 +1767,140 @@ const
     {  Microsoft Corporation   }
        WAVE_FORMAT_ADPCM = $0002;
     {  Microsoft Corporation   }
-       WAVE_FORMAT_IEEE_FLOAT = $0003;       
+       WAVE_FORMAT_IEEE_FLOAT = $0003;
     {  IEEE754: range (+1, -1]   }
     {  32-bit/64-bit format as defined by  }
     {  MSVC++ float/double type  }
     {  IBM Corporation   }
-       WAVE_FORMAT_IBM_CVSD = $0005;       
+       WAVE_FORMAT_IBM_CVSD = $0005;
     {  Microsoft Corporation   }
-       WAVE_FORMAT_ALAW = $0006;       
+       WAVE_FORMAT_ALAW = $0006;
     {  Microsoft Corporation   }
-       WAVE_FORMAT_MULAW = $0007;       
+       WAVE_FORMAT_MULAW = $0007;
     {  Microsoft Corporation   }
-       WAVE_FORMAT_WMAVOICE9 = $000a;       
+       WAVE_FORMAT_WMAVOICE9 = $000a;
     {  OKI   }
-       WAVE_FORMAT_OKI_ADPCM = $0010;       
+       WAVE_FORMAT_OKI_ADPCM = $0010;
     {  Intel Corporation   }
-       WAVE_FORMAT_DVI_ADPCM = $0011;       
+       WAVE_FORMAT_DVI_ADPCM = $0011;
     {  Intel Corporation   }
-       WAVE_FORMAT_IMA_ADPCM = WAVE_FORMAT_DVI_ADPCM;       
+       WAVE_FORMAT_IMA_ADPCM = WAVE_FORMAT_DVI_ADPCM;
     {  Videologic   }
-       WAVE_FORMAT_MEDIASPACE_ADPCM = $0012;       
+       WAVE_FORMAT_MEDIASPACE_ADPCM = $0012;
     {  Sierra Semiconductor Corp   }
-       WAVE_FORMAT_SIERRA_ADPCM = $0013;       
+       WAVE_FORMAT_SIERRA_ADPCM = $0013;
     {  Antex Electronics Corporation   }
-       WAVE_FORMAT_G723_ADPCM = $0014;       
+       WAVE_FORMAT_G723_ADPCM = $0014;
     {  DSP Solutions, Inc.   }
-       WAVE_FORMAT_DIGISTD = $0015;       
+       WAVE_FORMAT_DIGISTD = $0015;
     {  DSP Solutions, Inc.   }
-       WAVE_FORMAT_DIGIFIX = $0016;       
+       WAVE_FORMAT_DIGIFIX = $0016;
     {  Dialogic Corporation   }
-       WAVE_FORMAT_DIALOGIC_OKI_ADPCM = $0017;       
+       WAVE_FORMAT_DIALOGIC_OKI_ADPCM = $0017;
     {  Media Vision, Inc.  }
-       WAVE_FORMAT_MEDIAVISION_ADPCM = $0018;       
+       WAVE_FORMAT_MEDIAVISION_ADPCM = $0018;
     {  Yamaha Corporation of America   }
-       WAVE_FORMAT_YAMAHA_ADPCM = $0020;       
+       WAVE_FORMAT_YAMAHA_ADPCM = $0020;
     {  Speech Compression   }
-       WAVE_FORMAT_SONARC = $0021;       
+       WAVE_FORMAT_SONARC = $0021;
     {  DSP Group, Inc   }
-       WAVE_FORMAT_DSPGROUP_TRUESPEECH = $0022;       
+       WAVE_FORMAT_DSPGROUP_TRUESPEECH = $0022;
     {  Echo Speech Corporation   }
-       WAVE_FORMAT_ECHOSC1 = $0023;       
+       WAVE_FORMAT_ECHOSC1 = $0023;
     {     }
-       WAVE_FORMAT_AUDIOFILE_AF36 = $0024;       
+       WAVE_FORMAT_AUDIOFILE_AF36 = $0024;
     {  Audio Processing Technology   }
-       WAVE_FORMAT_APTX = $0025;       
+       WAVE_FORMAT_APTX = $0025;
     {     }
-       WAVE_FORMAT_AUDIOFILE_AF10 = $0026;       
+       WAVE_FORMAT_AUDIOFILE_AF10 = $0026;
     {  Dolby Laboratories   }
-       WAVE_FORMAT_DOLBY_AC2 = $0030;       
+       WAVE_FORMAT_DOLBY_AC2 = $0030;
     {  Microsoft Corporation   }
-       WAVE_FORMAT_GSM610 = $0031;       
+       WAVE_FORMAT_GSM610 = $0031;
     {  Microsoft Corporation   }
-       WAVE_FORMAT_MSNAUDIO = $0032;       
+       WAVE_FORMAT_MSNAUDIO = $0032;
     {  Antex Electronics Corporation   }
-       WAVE_FORMAT_ANTEX_ADPCME = $0033;       
+       WAVE_FORMAT_ANTEX_ADPCME = $0033;
     {  Control Resources Limited   }
-       WAVE_FORMAT_CONTROL_RES_VQLPC = $0034;       
+       WAVE_FORMAT_CONTROL_RES_VQLPC = $0034;
     {  DSP Solutions, Inc.   }
-       WAVE_FORMAT_DIGIREAL = $0035;       
+       WAVE_FORMAT_DIGIREAL = $0035;
     {  DSP Solutions, Inc.   }
-       WAVE_FORMAT_DIGIADPCM = $0036;       
+       WAVE_FORMAT_DIGIADPCM = $0036;
     {  Control Resources Limited   }
-       WAVE_FORMAT_CONTROL_RES_CR10 = $0037;       
+       WAVE_FORMAT_CONTROL_RES_CR10 = $0037;
     {  Natural MicroSystems   }
-       WAVE_FORMAT_NMS_VBXADPCM = $0038;       
+       WAVE_FORMAT_NMS_VBXADPCM = $0038;
     { Crystal Semiconductor IMA ADPCM  }
-       WAVE_FORMAT_CS_IMAADPCM = $0039;       
+       WAVE_FORMAT_CS_IMAADPCM = $0039;
     { Echo Speech Corporation  }
-       WAVE_FORMAT_ECHOSC3 = $003A;       
+       WAVE_FORMAT_ECHOSC3 = $003A;
     { Rockwell International  }
-       WAVE_FORMAT_ROCKWELL_ADPCM = $003B;       
+       WAVE_FORMAT_ROCKWELL_ADPCM = $003B;
     { Rockwell International  }
-       WAVE_FORMAT_ROCKWELL_DIGITALK = $003C;       
+       WAVE_FORMAT_ROCKWELL_DIGITALK = $003C;
     { Xebec Multimedia Solutions Limited  }
-       WAVE_FORMAT_XEBEC = $003D;       
+       WAVE_FORMAT_XEBEC = $003D;
     {  Antex Electronics Corporation   }
-       WAVE_FORMAT_G721_ADPCM = $0040;       
+       WAVE_FORMAT_G721_ADPCM = $0040;
     {  Antex Electronics Corporation   }
-       WAVE_FORMAT_G728_CELP = $0041;       
+       WAVE_FORMAT_G728_CELP = $0041;
     {  Microsoft Corporation   }
-       WAVE_FORMAT_MPEG = $0050;       
+       WAVE_FORMAT_MPEG = $0050;
     {  ISO/MPEG Layer3 Format Tag  }
-       WAVE_FORMAT_MPEGLAYER3 = $0055;       
+       WAVE_FORMAT_MPEGLAYER3 = $0055;
     {  Cirrus Logic   }
-       WAVE_FORMAT_CIRRUS = $0060;       
+       WAVE_FORMAT_CIRRUS = $0060;
     {  ESS Technology   }
-       WAVE_FORMAT_ESPCM = $0061;       
+       WAVE_FORMAT_ESPCM = $0061;
     {  Voxware Inc   }
-       WAVE_FORMAT_VOXWARE = $0062;       
+       WAVE_FORMAT_VOXWARE = $0062;
     {  Canopus, co., Ltd.   }
-       WAVEFORMAT_CANOPUS_ATRAC = $0063;       
+       WAVEFORMAT_CANOPUS_ATRAC = $0063;
     {  APICOM   }
-       WAVE_FORMAT_G726_ADPCM = $0064;       
+       WAVE_FORMAT_G726_ADPCM = $0064;
     {  APICOM       }
-       WAVE_FORMAT_G722_ADPCM = $0065;       
+       WAVE_FORMAT_G722_ADPCM = $0065;
     {  Microsoft Corporation   }
-       WAVE_FORMAT_DSAT = $0066;       
+       WAVE_FORMAT_DSAT = $0066;
     {  Microsoft Corporation   }
-       WAVE_FORMAT_DSAT_DISPLAY = $0067;       
+       WAVE_FORMAT_DSAT_DISPLAY = $0067;
     {  Softsound, Ltd.       }
-       WAVE_FORMAT_SOFTSOUND = $0080;       
+       WAVE_FORMAT_SOFTSOUND = $0080;
     {  Rhetorex Inc   }
-       WAVE_FORMAT_RHETOREX_ADPCM = $0100;       
+       WAVE_FORMAT_RHETOREX_ADPCM = $0100;
     {  Microsoft Corporation   }
-       WAVE_FORMAT_MSAUDIO1 = $0160;       
+       WAVE_FORMAT_MSAUDIO1 = $0160;
     {  Microsoft Corporation   }
-       WAVE_FORMAT_WMAUDIO2 = $0161;       
+       WAVE_FORMAT_WMAUDIO2 = $0161;
     {  Microsoft Corporation   }
-       WAVE_FORMAT_WMAUDIO3 = $0162;       
+       WAVE_FORMAT_WMAUDIO3 = $0162;
     {  Microsoft Corporation   }
-       WAVE_FORMAT_WMAUDIO_LOSSLESS = $0163;       
+       WAVE_FORMAT_WMAUDIO_LOSSLESS = $0163;
     {  Creative Labs, Inc   }
-       WAVE_FORMAT_CREATIVE_ADPCM = $0200;       
+       WAVE_FORMAT_CREATIVE_ADPCM = $0200;
     {  Creative Labs, Inc   }
-       WAVE_FORMAT_CREATIVE_FASTSPEECH8 = $0202;       
+       WAVE_FORMAT_CREATIVE_FASTSPEECH8 = $0202;
     {  Creative Labs, Inc   }
-       WAVE_FORMAT_CREATIVE_FASTSPEECH10 = $0203;       
+       WAVE_FORMAT_CREATIVE_FASTSPEECH10 = $0203;
     {  Quarterdeck Corporation   }
-       WAVE_FORMAT_QUARTERDECK = $0220;       
+       WAVE_FORMAT_QUARTERDECK = $0220;
     {  Fujitsu Corp.   }
-       WAVE_FORMAT_FM_TOWNS_SND = $0300;       
+       WAVE_FORMAT_FM_TOWNS_SND = $0300;
     {  Brooktree Corporation   }
-       WAVE_FORMAT_BTV_DIGITAL = $0400;       
+       WAVE_FORMAT_BTV_DIGITAL = $0400;
     {  Ing C. Olivetti & C., S.p.A.   }
-       WAVE_FORMAT_OLIGSM = $1000;       
+       WAVE_FORMAT_OLIGSM = $1000;
     {  Ing C. Olivetti & C., S.p.A.   }
-       WAVE_FORMAT_OLIADPCM = $1001;       
+       WAVE_FORMAT_OLIADPCM = $1001;
     {  Ing C. Olivetti & C., S.p.A.   }
-       WAVE_FORMAT_OLICELP = $1002;       
+       WAVE_FORMAT_OLICELP = $1002;
     {  Ing C. Olivetti & C., S.p.A.   }
-       WAVE_FORMAT_OLISBC = $1003;       
+       WAVE_FORMAT_OLISBC = $1003;
     {  Ing C. Olivetti & C., S.p.A.   }
-       WAVE_FORMAT_OLIOPR = $1004;       
+       WAVE_FORMAT_OLIOPR = $1004;
     {  Lernout & Hauspie   }
-       WAVE_FORMAT_LH_CODEC = $1100;       
+       WAVE_FORMAT_LH_CODEC = $1100;
     {  Norris Communications, Inc.   }
        WAVE_FORMAT_NORRIS = $1400;
 
@@ -2006,26 +2006,26 @@ type
 
 { Speaker Positions for dwChannelMask in WAVEFORMATEXTENSIBLE: }
 const
-       SPEAKER_FRONT_LEFT = $1;       
-       SPEAKER_FRONT_RIGHT = $2;       
-       SPEAKER_FRONT_CENTER = $4;       
-       SPEAKER_LOW_FREQUENCY = $8;       
-       SPEAKER_BACK_LEFT = $10;       
-       SPEAKER_BACK_RIGHT = $20;       
-       SPEAKER_FRONT_LEFT_OF_CENTER = $40;       
-       SPEAKER_FRONT_RIGHT_OF_CENTER = $80;       
-       SPEAKER_BACK_CENTER = $100;       
-       SPEAKER_SIDE_LEFT = $200;       
-       SPEAKER_SIDE_RIGHT = $400;       
-       SPEAKER_TOP_CENTER = $800;       
-       SPEAKER_TOP_FRONT_LEFT = $1000;       
-       SPEAKER_TOP_FRONT_CENTER = $2000;       
-       SPEAKER_TOP_FRONT_RIGHT = $4000;       
-       SPEAKER_TOP_BACK_LEFT = $8000;       
-       SPEAKER_TOP_BACK_CENTER = $10000;       
-       SPEAKER_TOP_BACK_RIGHT = $20000;       
+       SPEAKER_FRONT_LEFT = $1;
+       SPEAKER_FRONT_RIGHT = $2;
+       SPEAKER_FRONT_CENTER = $4;
+       SPEAKER_LOW_FREQUENCY = $8;
+       SPEAKER_BACK_LEFT = $10;
+       SPEAKER_BACK_RIGHT = $20;
+       SPEAKER_FRONT_LEFT_OF_CENTER = $40;
+       SPEAKER_FRONT_RIGHT_OF_CENTER = $80;
+       SPEAKER_BACK_CENTER = $100;
+       SPEAKER_SIDE_LEFT = $200;
+       SPEAKER_SIDE_RIGHT = $400;
+       SPEAKER_TOP_CENTER = $800;
+       SPEAKER_TOP_FRONT_LEFT = $1000;
+       SPEAKER_TOP_FRONT_CENTER = $2000;
+       SPEAKER_TOP_FRONT_RIGHT = $4000;
+       SPEAKER_TOP_BACK_LEFT = $8000;
+       SPEAKER_TOP_BACK_CENTER = $10000;
+       SPEAKER_TOP_BACK_RIGHT = $20000;
     { Bit mask locations reserved for future use }
-       SPEAKER_RESERVED = $7FFC0000;       
+       SPEAKER_RESERVED = $7FFC0000;
     { Used to specify that any possible permutation of speaker configurations }
        SPEAKER_ALL = $80000000;
 
@@ -2053,7 +2053,7 @@ type
      PADPCMWAVEFORMAT = ^ADPCMWAVEFORMAT;
      NPADPCMWAVEFORMAT = ^ADPCMWAVEFORMAT;
      LPADPCMWAVEFORMAT = ^ADPCMWAVEFORMAT;
-     
+
 {  Intel's DVI ADPCM structure definitions }
 { }
 {      for WAVE_FORMAT_DVI_ADPCM   (0x0011) }
@@ -2113,7 +2113,7 @@ type
      PSIERRAADPCMWAVEFORMAT = ^SIERRAADPCMWAVEFORMAT;
      NPSIERRAADPCMWAVEFORMAT = ^SIERRAADPCMWAVEFORMAT;
      LPSIERRAADPCMWAVEFORMAT = ^SIERRAADPCMWAVEFORMAT;
-     
+
     {  Antex Electronics  structure definitions }
     { }
     {      for WAVE_FORMAT_G723_ADPCM   (0x0014) }
@@ -2247,7 +2247,7 @@ type
      PAUDIOFILE_AF36WAVEFORMAT = ^AUDIOFILE_AF36WAVEFORMAT;
      NPAUDIOFILE_AF36WAVEFORMAT = ^AUDIOFILE_AF36WAVEFORMAT;
      LPAUDIOFILE_AF36WAVEFORMAT = ^AUDIOFILE_AF36WAVEFORMAT;
-     
+
     { }
     {  Audio Processing Technology structure definitions }
     { }
@@ -2437,18 +2437,18 @@ type
      LPMPEG1WAVEFORMAT = ^MPEG1WAVEFORMAT;
 
 const
-       ACM_MPEG_LAYER1 = $0001;       
-       ACM_MPEG_LAYER2 = $0002;       
-       ACM_MPEG_LAYER3 = $0004;       
-       ACM_MPEG_STEREO = $0001;       
-       ACM_MPEG_JOINTSTEREO = $0002;       
-       ACM_MPEG_DUALCHANNEL = $0004;       
+       ACM_MPEG_LAYER1 = $0001;
+       ACM_MPEG_LAYER2 = $0002;
+       ACM_MPEG_LAYER3 = $0004;
+       ACM_MPEG_STEREO = $0001;
+       ACM_MPEG_JOINTSTEREO = $0002;
+       ACM_MPEG_DUALCHANNEL = $0004;
        ACM_MPEG_SINGLECHANNEL = $0008;
-       ACM_MPEG_PRIVATEBIT = $0001;       
-       ACM_MPEG_COPYRIGHT = $0002;       
-       ACM_MPEG_ORIGINALHOME = $0004;       
-       ACM_MPEG_PROTECTIONBIT = $0008;       
-       ACM_MPEG_ID_MPEG1 = $0010;       
+       ACM_MPEG_PRIVATEBIT = $0001;
+       ACM_MPEG_COPYRIGHT = $0002;
+       ACM_MPEG_ORIGINALHOME = $0004;
+       ACM_MPEG_PROTECTIONBIT = $0008;
+       ACM_MPEG_ID_MPEG1 = $0010;
 
     { MPEG Layer3 WAVEFORMATEX structure }
     { for WAVE_FORMAT_MPEGLAYER3 (0x0055) }
@@ -2475,7 +2475,7 @@ const
        MPEGLAYER3_ID_UNKNOWN = 0;
        MPEGLAYER3_ID_MPEG = 1;
        MPEGLAYER3_ID_CONSTANTFRAMESIZE = 2;
-       
+
        MPEGLAYER3_FLAG_PADDING_ISO = $00000000;
        MPEGLAYER3_FLAG_PADDING_ON = $00000001;
        MPEGLAYER3_FLAG_PADDING_OFF = $00000002;
@@ -2493,7 +2493,7 @@ type
      PCREATIVEADPCMWAVEFORMAT = ^CREATIVEADPCMWAVEFORMAT;
      NPCREATIVEADPCMWAVEFORMAT = ^CREATIVEADPCMWAVEFORMAT;
      LPCREATIVEADPCMWAVEFORMAT = ^CREATIVEADPCMWAVEFORMAT;
-     
+
     { }
     {    Creative FASTSPEECH }
     { WAVEFORMAT_CREATIVE_FASTSPEECH8   (0x0202) }
@@ -2568,7 +2568,7 @@ type
     (* far ignored *)
 
        LPOLIGSMWAVEFORMAT = ^OLIGSMWAVEFORMAT;
-       
+
     { }
     {  Olivetti structure }
     { }
@@ -2693,7 +2693,7 @@ type
      PVOLUMEWAVEFILTER = ^VOLUMEWAVEFILTER;
      NPVOLUMEWAVEFILTER = ^VOLUMEWAVEFILTER;
      LPVOLUMEWAVEFILTER = ^VOLUMEWAVEFILTER;
-     
+
 const
        WAVE_FILTER_ECHO = $0002;
 
@@ -2910,134 +2910,134 @@ const
        JPEG_PROCESS_BASELINE = 0;    { Baseline DCT  }
     { AVI File format extensions  }
        AVIIF_CONTROLFRAME = $00000200;     { This is a control frame  }
-             
+
     { JIF Marker byte pairs in JPEG Interchange Format sequence  }
     { SOF Huff  - Baseline DCT }
-       JIFMK_SOF0 = $FFC0;       
+       JIFMK_SOF0 = $FFC0;
     { SOF Huff  - Extended sequential DCT }
-       JIFMK_SOF1 = $FFC1;       
+       JIFMK_SOF1 = $FFC1;
     { SOF Huff  - Progressive DCT }
-       JIFMK_SOF2 = $FFC2;       
+       JIFMK_SOF2 = $FFC2;
     { SOF Huff  - Spatial (sequential) lossless }
-       JIFMK_SOF3 = $FFC3;       
+       JIFMK_SOF3 = $FFC3;
     { SOF Huff  - Differential sequential DCT }
-       JIFMK_SOF5 = $FFC5;       
+       JIFMK_SOF5 = $FFC5;
     { SOF Huff  - Differential progressive DCT }
-       JIFMK_SOF6 = $FFC6;       
+       JIFMK_SOF6 = $FFC6;
     { SOF Huff  - Differential spatial }
-       JIFMK_SOF7 = $FFC7;       
+       JIFMK_SOF7 = $FFC7;
     { SOF Arith - Reserved for JPEG extensions }
-       JIFMK_JPG = $FFC8;       
+       JIFMK_JPG = $FFC8;
     { SOF Arith - Extended sequential DCT }
-       JIFMK_SOF9 = $FFC9;       
+       JIFMK_SOF9 = $FFC9;
     { SOF Arith - Progressive DCT }
-       JIFMK_SOF10 = $FFCA;       
+       JIFMK_SOF10 = $FFCA;
     { SOF Arith - Spatial (sequential) lossless }
-       JIFMK_SOF11 = $FFCB;       
+       JIFMK_SOF11 = $FFCB;
     { SOF Arith - Differential sequential DCT }
-       JIFMK_SOF13 = $FFCD;       
+       JIFMK_SOF13 = $FFCD;
     { SOF Arith - Differential progressive DCT }
-       JIFMK_SOF14 = $FFCE;       
+       JIFMK_SOF14 = $FFCE;
     { SOF Arith - Differential spatial }
-       JIFMK_SOF15 = $FFCF;       
+       JIFMK_SOF15 = $FFCF;
     { Define Huffman Table(s)  }
-       JIFMK_DHT = $FFC4;       
+       JIFMK_DHT = $FFC4;
     { Define Arithmetic coding conditioning(s)  }
-       JIFMK_DAC = $FFCC;       
+       JIFMK_DAC = $FFCC;
     { Restart with modulo 8 count 0  }
-       JIFMK_RST0 = $FFD0;       
+       JIFMK_RST0 = $FFD0;
     { Restart with modulo 8 count 1  }
-       JIFMK_RST1 = $FFD1;       
+       JIFMK_RST1 = $FFD1;
     { Restart with modulo 8 count 2  }
-       JIFMK_RST2 = $FFD2;       
+       JIFMK_RST2 = $FFD2;
     { Restart with modulo 8 count 3  }
        JIFMK_RST3 = $FFD3;
     { Restart with modulo 8 count 4  }
-       JIFMK_RST4 = $FFD4;       
+       JIFMK_RST4 = $FFD4;
     { Restart with modulo 8 count 5  }
-       JIFMK_RST5 = $FFD5;       
+       JIFMK_RST5 = $FFD5;
     { Restart with modulo 8 count 6  }
-       JIFMK_RST6 = $FFD6;       
+       JIFMK_RST6 = $FFD6;
     { Restart with modulo 8 count 7  }
-       JIFMK_RST7 = $FFD7;       
+       JIFMK_RST7 = $FFD7;
     { Start of Image  }
-       JIFMK_SOI = $FFD8;       
+       JIFMK_SOI = $FFD8;
     { End of Image  }
-       JIFMK_EOI = $FFD9;       
+       JIFMK_EOI = $FFD9;
     { Start of Scan  }
-       JIFMK_SOS = $FFDA;       
+       JIFMK_SOS = $FFDA;
     { Define quantization Table(s)  }
-       JIFMK_DQT = $FFDB;       
+       JIFMK_DQT = $FFDB;
     { Define Number of Lines  }
-       JIFMK_DNL = $FFDC;       
+       JIFMK_DNL = $FFDC;
     { Define Restart Interval  }
-       JIFMK_DRI = $FFDD;       
+       JIFMK_DRI = $FFDD;
     { Define Hierarchical progression  }
-       JIFMK_DHP = $FFDE;       
+       JIFMK_DHP = $FFDE;
     { Expand Reference Component(s)  }
-       JIFMK_EXP = $FFDF;       
+       JIFMK_EXP = $FFDF;
     { Application Field 0 }
-       JIFMK_APP0 = $FFE0;       
+       JIFMK_APP0 = $FFE0;
     { Application Field 1 }
-       JIFMK_APP1 = $FFE1;       
+       JIFMK_APP1 = $FFE1;
     { Application Field 2 }
-       JIFMK_APP2 = $FFE2;       
+       JIFMK_APP2 = $FFE2;
     { Application Field 3 }
-       JIFMK_APP3 = $FFE3;       
+       JIFMK_APP3 = $FFE3;
     { Application Field 4 }
-       JIFMK_APP4 = $FFE4;       
+       JIFMK_APP4 = $FFE4;
     { Application Field 5 }
-       JIFMK_APP5 = $FFE5;       
+       JIFMK_APP5 = $FFE5;
     { Application Field 6 }
-       JIFMK_APP6 = $FFE6;       
+       JIFMK_APP6 = $FFE6;
     { Application Field 7 }
-       JIFMK_APP7 = $FFE7;       
+       JIFMK_APP7 = $FFE7;
     { Reserved for JPEG extensions  }
-       JIFMK_JPG0 = $FFF0;       
+       JIFMK_JPG0 = $FFF0;
     { Reserved for JPEG extensions  }
-       JIFMK_JPG1 = $FFF1;       
+       JIFMK_JPG1 = $FFF1;
     { Reserved for JPEG extensions  }
-       JIFMK_JPG2 = $FFF2;       
+       JIFMK_JPG2 = $FFF2;
     { Reserved for JPEG extensions  }
-       JIFMK_JPG3 = $FFF3;       
+       JIFMK_JPG3 = $FFF3;
     { Reserved for JPEG extensions  }
-       JIFMK_JPG4 = $FFF4;       
+       JIFMK_JPG4 = $FFF4;
     { Reserved for JPEG extensions  }
-       JIFMK_JPG5 = $FFF5;       
+       JIFMK_JPG5 = $FFF5;
     { Reserved for JPEG extensions  }
        JIFMK_JPG6 = $FFF6;
     { Reserved for JPEG extensions  }
-       JIFMK_JPG7 = $FFF7;       
+       JIFMK_JPG7 = $FFF7;
     { Reserved for JPEG extensions  }
-       JIFMK_JPG8 = $FFF8;       
+       JIFMK_JPG8 = $FFF8;
     { Reserved for JPEG extensions  }
-       JIFMK_JPG9 = $FFF9;       
+       JIFMK_JPG9 = $FFF9;
     { Reserved for JPEG extensions  }
-       JIFMK_JPG10 = $FFFA;       
+       JIFMK_JPG10 = $FFFA;
     { Reserved for JPEG extensions  }
-       JIFMK_JPG11 = $FFFB;       
+       JIFMK_JPG11 = $FFFB;
     { Reserved for JPEG extensions  }
-       JIFMK_JPG12 = $FFFC;       
+       JIFMK_JPG12 = $FFFC;
     { Reserved for JPEG extensions  }
-       JIFMK_JPG13 = $FFFD;       
+       JIFMK_JPG13 = $FFFD;
     { Comment  }
-       JIFMK_COM = $FFFE;       
+       JIFMK_COM = $FFFE;
     { for temp private use arith code  }
-       JIFMK_TEM = $FF01;       
+       JIFMK_TEM = $FF01;
     { Reserved  }
        JIFMK_RES = $FF02;
     { Zero stuffed byte - entropy data  }
-       JIFMK_00 = $FF00;       
+       JIFMK_00 = $FF00;
     { Fill byte  }
        JIFMK_FF = $FFFF;
-       
+
     { JPEGColorSpaceID Definitions  }
     { Y only component of YCbCr  }
-       JPEG_Y = 1;       
+       JPEG_Y = 1;
     { YCbCr as define by CCIR 601  }
-       JPEG_YCbCr = 2;       
+       JPEG_YCbCr = 2;
     { 3 component RGB  }
-       JPEG_RGB = 3;       
+       JPEG_RGB = 3;
     { Structure definitions  }
     { compression-specific fields  }
     { these fields are defined for 'JPEG' and 'MJPG'  }
@@ -3050,7 +3050,7 @@ type
        JPEGSize:DWORD;
        JPEGProcess:DWORD;
 
-      // Process specific fields  
+      // Process specific fields
        JPEGColorSpaceID:DWORD;
        JPEGBitsPerSample:DWORD;
        JPEGHSubSampling:DWORD;

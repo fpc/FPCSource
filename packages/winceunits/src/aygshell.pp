@@ -17,7 +17,7 @@
 
 {exported functions list = to do,
  * please remove functions done *
- 
+
      Exports
 
        ordinal    name
@@ -446,7 +446,7 @@ type
   end;
   TSIPINFO=SIPINFO;
   PSIPINFO=^SIPINFO;
-  
+
   SIPSTATE= (SIP_UP= 0,SIP_DOWN,SIP_FORCEDOWN,SIP_UNCHANGED,SIP_INPUTDIALOG);
 
   CAMERACAPTURE_STILLQUALITY= (CAMERACAPTURE_STILLQUALITY_DEFAULT=0, CAMERACAPTURE_STILLQUALITY_LOW, CAMERACAPTURE_STILLQUALITY_NORMAL,
@@ -554,7 +554,7 @@ type
      SHCHANGENOTIFYENTRY = tagSHCHANGENOTIFYENTRY;
      LPSHCHANGENOTIFYENTRY = ^tagSHCHANGENOTIFYENTRY;
 
-     
+
 //////////////////////////////////////////////////////////////////////////////
 //
 // Input Context API
@@ -636,7 +636,7 @@ function SHGetAutoRunPath( pAutoRunPath : LPTSTR ): WINBOOL; external UserDLLAyg
 
 //  SHGetEmergencyCallList
 //       Gets a list of emergency calls
-function SHGetEmergencyCallList(pwszBuffer:PTCHAR; uLenBuf:UINT):HRESULT; external UserDLLAyg name 'SHGetEmergencyCallList'; // index 128    
+function SHGetEmergencyCallList(pwszBuffer:PTCHAR; uLenBuf:UINT):HRESULT; external UserDLLAyg name 'SHGetEmergencyCallList'; // index 128
 
 function SHHandleWMActivate(hwnd:HWND; wParam:WPARAM; lParam:LPARAM; psai: PSHACTIVATEINFO; dwFlags:DWORD  ): WINBOOL; external UserDLLAyg index 84;
 function SHHandleWMSettingChange(hwnd:HWND; wParam:WPARAM; lParam:LPARAM; psai: PSHACTIVATEINFO): WINBOOL; external UserDLLAyg index 83;
@@ -883,7 +883,7 @@ type
      LPNMSHN = ^_NMSHN;
 
 //#define SHN_FIRST               (0U-1000U)       // Shell reserved
-const    
+const
       SHNN_FIRST              = UINT(0)-UINT(1000);        // Shell Notifications
       SHNN_LAST               = UINT(0)-UINT(1020);        // Shell Notifications
 //#define SHN_LAST                (0U-11000U)
@@ -958,7 +958,7 @@ const
 //   dwID       -- the identifier of the notification
 //   fTimeout   -- the notification timed out (SHNP_INFORM only)
 //   lParam     -- the lParam of the notification
-//   
+//
 //===========================================================================
 
 const
@@ -1040,7 +1040,7 @@ function SHNotificationGetData(pclsid:LPCLSID; dwID:DWORD; pndBuffer:LPSHNOTIFIC
 
 // This function is not implemented.
 // It is provided as a stub in the operating system (OS) for application compatibility.
-procedure SHSetBack(eOp:longint; _hwnd:HWND); external UserDLLAyg name 'SHSetBack'; // index 184    
+procedure SHSetBack(eOp:longint; _hwnd:HWND); external UserDLLAyg name 'SHSetBack'; // index 184
 
 implementation
 

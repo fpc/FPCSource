@@ -17,7 +17,7 @@
 
 {exported functions list = to do,
  * please remove functions done *
- 
+
      Exports
 
        ordinal    name
@@ -209,7 +209,7 @@ const
   FOF_FILESONLY              = $0080;  // on *.*, do only files
   FOF_SIMPLEPROGRESS         = $0100;  // means don't show names of files
   FOF_NOCONFIRMMKDIR         = $0200;  // don't confirm making any needed dirs
-  
+
 //*****************************************************************************
 // types
 //*****************************************************************************

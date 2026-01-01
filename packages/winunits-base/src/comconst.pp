@@ -28,7 +28,7 @@ unit ComConst;
       SNoCloseActiveServer1 = 'NoCloseActiveServer1';
       SNoCloseActiveServer2 = 'NoCloseActiveServer2';
       SAutomationWarning = 'COM Automation Warning';
-      
+
   implementation
 
 end.

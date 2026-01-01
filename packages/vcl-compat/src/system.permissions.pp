@@ -31,27 +31,27 @@ uses
 type
   EPermissionException = class(Exception);
   TProc = reference to procedure;
-    
+
   TPermissionStatus = (Granted, Denied, PermanentlyDenied);
   TPermissionStatusDynArray = array of TPermissionStatus;
   TClassicPermissionStatusDynArray = TPermissionStatusDynArray;
-  
-  
-  TRequestPermissionsResultEvent = 
-      procedure(Sender: TObject; 
+
+
+  TRequestPermissionsResultEvent =
+      procedure(Sender: TObject;
                 const aPermissions: TStringDynArray;
                 const aGrantResults: TPermissionStatusDynArray) of object;
-                                             
-  TRequestPermissionsResultProc = 
+
+  TRequestPermissionsResultProc =
     reference to procedure(const aPermissions: TStringDynArray;
                            const aGrantResults: TPermissionStatusDynArray);
 
-  TDisplayRationaleEvent = 
-     procedure(Sender: TObject; 
-               const aPermissions: TStringDynArray; 
+  TDisplayRationaleEvent =
+     procedure(Sender: TObject;
+               const aPermissions: TStringDynArray;
                const aPostRationaleProc: TProc) of object;
-  TDisplayRationaleProc = 
-     reference to procedure(const aPermissions: TStringDynArray; 
+  TDisplayRationaleProc =
+     reference to procedure(const aPermissions: TStringDynArray;
                             const aPostRationaleProc: TProc);
 
   TPermissionsService = class abstract
@@ -65,10 +65,10 @@ type
     function IsPermissionGranted(const aPermission: string): Boolean; virtual;
     function IsEveryPermissionGranted(const aPermissions: TStringDynArray): Boolean; virtual;
     procedure RequestPermissions(const aPermissions: TStringDynArray;
-                                 const aOnRequestPermissionsResult: TRequestPermissionsResultEvent; 
+                                 const aOnRequestPermissionsResult: TRequestPermissionsResultEvent;
                                  aOnDisplayRationale: TDisplayRationaleEvent = nil); overload; virtual;
     procedure RequestPermissions(const aPermissions: TStringDynArray;
-                                 const aOnRequestPermissionsResult: TRequestPermissionsResultProc; 
+                                 const aOnRequestPermissionsResult: TRequestPermissionsResultProc;
                                  aOnDisplayRationale: TDisplayRationaleProc = nil); overload; virtual;
     class property DefaultService: TPermissionsService read GetDefaultService;
   end;
@@ -89,7 +89,7 @@ begin
 end;
 
 { ---------------------------------------------------------------------
-  TPermissionsService 
+  TPermissionsService
   ---------------------------------------------------------------------}
 
 class function TPermissionsService.GetDefaultService: TPermissionsService;
@@ -131,25 +131,25 @@ begin
 end;
 
 procedure TPermissionsService.RequestPermissions(const aPermissions: TStringDynArray;
-                                                 const aOnRequestPermissionsResult: TRequestPermissionsResultEvent; 
+                                                 const aOnRequestPermissionsResult: TRequestPermissionsResultEvent;
                                                  aOnDisplayRationale: TDisplayRationaleEvent);
-                                                 
+
 var
   Res: TPermissionStatusDynArray;
   I: Integer;
-  
+
 begin
   Res:=InitResults(Length(aPermissions));
   AOnRequestPermissionsResult(Self,aPermissions,Res)
 end;
 
 procedure TPermissionsService.RequestPermissions(const aPermissions: TStringDynArray;
-                                                 const aOnRequestPermissionsResult: TRequestPermissionsResultProc; 
+                                                 const aOnRequestPermissionsResult: TRequestPermissionsResultProc;
                                                  aOnDisplayRationale: TDisplayRationaleProc);
 var
   Res: TPermissionStatusDynArray;
   I: Integer;
-  
+
 begin
   Res:=InitResults(Length(aPermissions));
   AOnRequestPermissionsResult(aPermissions,TPermissionStatusDynArray(res))

@@ -472,7 +472,7 @@ function DhcpGetSubnetInfo(ServerIpAddress: PWideChar; SubnetAddress: DHCP_IP_AD
 function DhcpGetOptionValue(ServerIpAddress: PWideChar; OptionID: DHCP_OPTION_ID; const ScopeInfo: DHCP_OPTION_SCOPE_INFO; out OptionValue: LPDHCP_OPTION_VALUE): DWORD; stdcall;
 {$EXTERNALSYM DhcpGetOptionValue}
 procedure DhcpRpcFreeMemory(BufferPointer: PVOID); stdcall;
-{$EXTERNALSYM DhcpRpcFreeMemory}     
+{$EXTERNALSYM DhcpRpcFreeMemory}
 
 {$ENDIF JWA_IMPLEMENTATIONSECTION}
 
@@ -645,7 +645,7 @@ begin
         POP     EBP
         JMP     [_DhcpRpcFreeMemory]
   end;
-end;     
+end;
 
 {$ELSE}
 

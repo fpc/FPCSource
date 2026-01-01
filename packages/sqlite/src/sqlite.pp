@@ -25,9 +25,9 @@ interface
 
 const
   External_library='sqlite';
- 
+
   SQLITE_ISO8859 = 1;//?
-  
+
   //sqlite_exec and sqlite_step return values
   SQLITE_OK         = 0;
   SQLITE_ERROR      = 1;
@@ -83,7 +83,7 @@ const
   SQLITE_SELECT              = 21;
   SQLITE_TRANSACTION         = 22;
   SQLITE_UPDATE              =  23;
-  
+
   //Return values of the authorizer function
   SQLITE_DENY                = 1;
   SQLITE_IGNORE              = 2;
@@ -153,11 +153,11 @@ Type
   function sqlite_compile(db:Psqlite; zSql:PAnsiChar; pzTail:PPAnsiChar; ppVm:PPsqlite_vm; pzErrmsg:PPAnsiChar):longint;cdecl;external External_library name 'sqlite_compile';
   function sqlite_step(pVm:Psqlite_vm; pN:Plongint; pazValue:PPPAnsiChar; pazColName:PPPAnsiChar):longint;cdecl;external External_library name 'sqlite_step';
   function sqlite_finalize(_para1:Psqlite_vm; pzErrMsg:PPAnsiChar):longint;cdecl;external External_library name 'sqlite_finalize';
-  
+
   //Use functions instead of external variables to retrieve version and encoding info
   function sqlite_version: PAnsiChar external External_library name 'sqlite_libversion';
   function sqlite_encoding: PAnsiChar external External_library name 'sqlite_libencoding';
-  
+
 implementation
 
 end.

@@ -573,10 +573,10 @@ type
   public
     class function Cast(const Intf: IJSObject): IJSString; overload;
   end;
-  
+
   IJSIterator = interface (IJSObject) ['{21E331BA-7B57-42DD-8DCE-B26FEA85C639}']
   end;
-  
+
   TJSIterator = class(TJSObject,IJSIterator)
   end;
 
@@ -1475,7 +1475,7 @@ function __job_create_object_at(
 
 
 procedure __job_set_mem_from_array (
-  aObjectID : integer; 
+  aObjectID : integer;
   aPointer : PByte;
   aMaxLen : cardinal
   ); external JOBExportName name JOBFn_SetMemFromArray;

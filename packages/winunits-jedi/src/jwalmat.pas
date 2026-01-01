@@ -155,7 +155,7 @@ type
   LPAT_ENUM = ^AT_ENUM;
   {$EXTERNALSYM LPAT_ENUM}
   TAtEnum = AT_ENUM;
-  PAtEnum = PAT_ENUM;  
+  PAtEnum = PAT_ENUM;
 
 function NetScheduleJobAdd(Servername: LPCWSTR; Buffer: LPBYTE; JobId: LPDWORD): NET_API_STATUS; stdcall;
 {$EXTERNALSYM NetScheduleJobAdd}

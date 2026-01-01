@@ -1,6 +1,6 @@
 This package contains 2 units
 
-uuid: 
+uuid:
 
 creates a GUID based on the MAC address and Time on a linux machine.
 The implementation is 100% native object pascal code.

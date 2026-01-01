@@ -737,7 +737,7 @@ function RasEnumEntriesW(Reserved:LPWSTR;
 
 function RasGetEntryDialParams(lpszPhoneBook:LPWSTR;
 			                            lpRasDialParams:LPRASDIALPARAMS;
-			                            lpfPassword:LPBOOL):DWORD; external KernelDLL name 'RasGetEntryDialParams'; // index 1F7 
+			                            lpfPassword:LPBOOL):DWORD; external KernelDLL name 'RasGetEntryDialParams'; // index 1F7
 function RasGetEntryDialParamsW(lpszPhoneBook:LPWSTR;
 			                             lpRasDialParams:LPRASDIALPARAMS;
 			                             lpfPassword:LPBOOL):DWORD; external KernelDLL name 'RasGetEntryDialParams'; // index 1F7

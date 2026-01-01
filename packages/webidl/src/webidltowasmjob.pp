@@ -140,9 +140,9 @@ type
     function GetPascalTypeName(const aTypeName: String; ForTypeDef: Boolean=False): String; override;
     function GetPasIntfName(Intf: TIDLDefinition): TIDLString;
     function GetResolvedType(aDef: TIDLTypeDefDefinition; Out PascalNativeType : TPascalNativeType; out aTypeName, aResolvedTypename: String): TIDLTypeDefinition; overload; override;
-{$IF SIZEOF(CHAR)=1}      
+{$IF SIZEOF(CHAR)=1}
     function GetResolvedType(aDef: TIDLTypeDefDefinition; Out PascalNativeType : TPascalNativeType; out aTypeName, aResolvedTypename: TIDLString): TIDLDefinition; overload;
-{$ENDIF}      
+{$ENDIF}
     function GetInterfaceDefHead(Intf: TIDLInterfaceDefinition): String; override;
     function GetNamespaceDefHead(aNamespace: TIDLNamespaceDefinition): String; override;
     function GetDictionaryDefHead(const CurClassName: String; Dict: TIDLDictionaryDefinition): String; override;
@@ -423,7 +423,7 @@ function TWebIDLToPasWasmJob.GetResolvedType(aDef: TIDLTypeDefDefinition; out Pa
 
 Var
   TN,RTN : String;
-  
+
 begin
   Result:=GetResolvedType(aDef,PascalNativeType,TN,RTN);
   aTypeName:=TN;

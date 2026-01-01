@@ -43,7 +43,7 @@ Begin
      {$ifdef BSD}
       printpchar('pw_expire',inttostr(p^.pw_expire));
       {$ifdef FreeBSD}
-        printpchar('pw_fields',inttostr(p^.pw_fields)); 
+        printpchar('pw_fields',inttostr(p^.pw_fields));
       {$endif}
      {$endif}
     End;

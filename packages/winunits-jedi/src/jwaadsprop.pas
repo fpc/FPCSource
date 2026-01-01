@@ -95,7 +95,7 @@ const
   {$ENDIF JWA_INCLUDEMODE}
   WM_ADSPROP_NOTIFY_ERROR      = WM_USER + 1110; // used to send the notification object an error message
   {$EXTERNALSYM WM_ADSPROP_NOTIFY_ERROR}
-  
+
 //+----------------------------------------------------------------------------
 //
 //  Structure:  ADSPROPINITPARAMS
@@ -144,7 +144,7 @@ type
     hwndPage: HWND;         // The HWND of the page that had the error
     pszPageTitle: PWSTR;    // The title of the page that had the error
     pszObjPath: PWSTR;      // Path to the object that the error occurred on
-    pszObjClass: PWSTR;     // Class of the object that the error occurred on    
+    pszObjClass: PWSTR;     // Class of the object that the error occurred on
     hr: HRESULT;            // If this is non-zero, then the others
                             // pszError will be ignored
     pszError: PWSTR;        // An error message.  Used only if hr is zero

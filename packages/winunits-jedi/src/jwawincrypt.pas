@@ -1289,7 +1289,7 @@ type
   TCryptAttrBlob = CRYPT_ATTR_BLOB;
   PCRYPT_ATTR_BLOB = ^_CRYPTOAPI_BLOB;
   {$EXTERNALSYM PCRYPT_ATTR_BLOB}
-  PCryptAttrBlob = PCRYPT_ATTR_BLOB;  
+  PCryptAttrBlob = PCRYPT_ATTR_BLOB;
 
 // structure for use with CryptSetKeyParam for CMS keys
 
@@ -5878,7 +5878,7 @@ type
 //  private key is used. The hCryptProv and dwKeySpec specify the private key.
 //  The pSenderId identifies the certificate containing the sender's public key.
 //
-//  Currently, pvKeyEncryptionAuxInfo isn't used and must be set to NULL. 
+//  Currently, pvKeyEncryptionAuxInfo isn't used and must be set to NULL.
 //
 //  If KeyEncryptionAlgorithm.Parameters.cbData == 0, then, its Parameters
 //  are updated with the encoded KeyWrapAlgorithm.
@@ -8116,7 +8116,7 @@ type
   {$EXTERNALSYM PCCTL_CONTEXT}
   PPCCTL_CONTEXT = ^PCCTL_CONTEXT;
   {$EXTERNALSYM PPCCTL_CONTEXT}
-  
+
 //+-------------------------------------------------------------------------
 //  Certificate, CRL and CTL property IDs
 //
@@ -10300,7 +10300,7 @@ const
 //+-------------------------------------------------------------------------
 //  CRL_FIND_ISSUED_BY
 //
-//  Find CRL matching the specified issuer. 
+//  Find CRL matching the specified issuer.
 //
 //  pvFindPara is the PCCERT_CONTEXT of the CRL issuer.
 //
@@ -14292,7 +14292,7 @@ type
   CRYPT_BLOB_ARRAY = _CRYPT_BLOB_ARRAY;
   {$EXTERNALSYM CRYPT_BLOB_ARRAY}
   TCryptBlobArray = CRYPT_BLOB_ARRAY;
-  PCryptBlobArray = PCRYPT_BLOB_ARRAY;  
+  PCryptBlobArray = PCRYPT_BLOB_ARRAY;
 
   PCRYPT_CREDENTIALS = ^CRYPT_CREDENTIALS;
   {$EXTERNALSYM PCRYPT_CREDENTIALS}
@@ -14491,11 +14491,11 @@ function CryptRetrieveObjectByUrl(pszUrl: LPCTSTR; pszObjectOid: LPCSTR;
 //
 // Call back function to cancel object retrieval
 //
-// The function can be installed on a per thread basis.  
+// The function can be installed on a per thread basis.
 // If CryptInstallCancelRetrieval is called for multiple times, only the most recent
 // installation will be kept.
 //
-// This is only effective for http, https, gopher, and ftp protocol.  
+// This is only effective for http, https, gopher, and ftp protocol.
 // It is ignored by the rest of the protocols.
 
 type
@@ -16106,7 +16106,7 @@ const
   {$IFDEF UNICODE}
   AWSuffix = 'W';
   {$ELSE}
-  AWSuffix = 'A';   
+  AWSuffix = 'A';
   {$ENDIF UNICODE}
 {$ENDIF JWA_INCLUDEMODE}
 
@@ -19342,7 +19342,7 @@ end;
 var
   _CryptProtectData: Pointer;
 
-function CryptProtectData;              
+function CryptProtectData;
 begin
   GetProcedureAddress(_CryptProtectData, crypt32, 'CryptProtectData');
   asm

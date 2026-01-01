@@ -28,9 +28,9 @@ uses types, sysUtils, contnrs;
 {$SCOPEDENUMS ON}
 
 const
-  sDevAttrDisplayName = 'DisplayName'; 
-  sDevAttrOPDefine    = 'OPDefine'; 
-  sDevAttrCPPDefine   = 'CPPDefine'; 
+  sDevAttrDisplayName = 'DisplayName';
+  sDevAttrOPDefine    = 'OPDefine';
+  sDevAttrCPPDefine   = 'CPPDefine';
   sDevAttrPlatforms   = 'Platforms';
 
 Type
@@ -52,7 +52,7 @@ Type
   { TBaseDeviceInfo }
 
   TBaseDeviceInfo = class
-  public 
+  public
     type
       TDeviceClass = (Unknown, Desktop, Phone, MediaPlayer, Tablet, Automotive, Industrial, Embedded, Watch, Glasses, Elf, Dwarf, Wizard);
   private

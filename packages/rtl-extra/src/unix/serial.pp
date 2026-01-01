@@ -98,7 +98,7 @@ function SerGetRI(Handle: TSerialHandle): Boolean;
   NOTE THAT on Linux, the only reliable mSec parameter is zero which results in
   a break of around 250 mSec. Might be completely ineffective on Solaris.
  }
-procedure SerBreak(Handle: TSerialHandle; mSec: LongInt=0; sync: boolean= true); 
+procedure SerBreak(Handle: TSerialHandle; mSec: LongInt=0; sync: boolean= true);
 
 type    TSerialIdle= procedure(h: TSerialHandle);
 
@@ -337,7 +337,7 @@ begin
     tcsendbreak(Handle, Trunc(mSec / 250));
   if sync then
     tcdrain(Handle)
-end; 
+end;
 
 function SerReadTimeout(Handle: TSerialHandle; var Buffer; mSec: LongInt): LongInt;
 

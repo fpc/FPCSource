@@ -3,7 +3,7 @@ unit sdl_image;
 {$ENDIF FPC_DOTTEDUNITS}
 {
   $Id: sdl_image.pas,v 1.14 2007/05/29 21:31:13 savage Exp $
-  
+
 }
 {******************************************************************************}
 {                                                                              }
@@ -128,7 +128,7 @@ unit sdl_image;
   version 1 of sdl_image, sdl_mixer and smpeg.
 
 
-}  
+}
 {******************************************************************************}
 
 {$I jedi-sdl.inc}

@@ -19,7 +19,7 @@ Uses Symbolic,Classes,sysutils;
 var s : AnsiString;
     a : extended;
     b : integer;
-    
+
 begin
   // quickevaluate('expression',[],[]); evaluates a constant expression to an
   //  extended result

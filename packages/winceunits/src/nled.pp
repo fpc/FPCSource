@@ -113,19 +113,19 @@ Info about what a notification LED supports.
 
 		@COMM
 
-Caller should first get the number of notification LED's on the system.  
-This is usually one but may be 0 and could be greater than 1.  Caller 
-should fill in the LedNum and then call <f NLedDriverGetDeviceInfo>.  Led 
+Caller should first get the number of notification LED's on the system.
+This is usually one but may be 0 and could be greater than 1.  Caller
+should fill in the LedNum and then call <f NLedDriverGetDeviceInfo>.  Led
 numbering starts at 0.
 
-The lCycleAdjust field is the granularity to which cycle time adjustments 
-can be made.  E.g., if the granularity is 1/16 second, lCycleAdjust = 
-62500 microseconds.  If the LED does not support blinking, this value 
+The lCycleAdjust field is the granularity to which cycle time adjustments
+can be made.  E.g., if the granularity is 1/16 second, lCycleAdjust =
+62500 microseconds.  If the LED does not support blinking, this value
 should be 0.
 
-Values are given in microseconds only to deal with computations involving 
-fractional milliseconds.  Usually only settings in the milliseconds range 
-are meaningful.  
+Values are given in microseconds only to deal with computations involving
+fractional milliseconds.  Usually only settings in the milliseconds range
+are meaningful.
 
 Usually a device will report that it supports up to two of:
 

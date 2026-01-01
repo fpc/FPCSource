@@ -3,7 +3,7 @@
     Copyright (c) 2023 by Michael Van Canneyt
 
     Test Insight client component.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -12,7 +12,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-{$IFNDEF FPC_DOTTEDUNITS} 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit testinsightclient;
 {$ENDIF}
 
@@ -21,7 +21,7 @@ unit testinsightclient;
 interface
 
 uses
-{$IFDEF FPC_DOTTEDUNITS} 
+{$IFDEF FPC_DOTTEDUNITS}
   System.Classes, System.SysUtils, System.Types, TestInsight.Protocol, FpWeb.Http.Client, FpJson.Data, System.Contnrs, System.IniFiles;
 {$ELSE}
   Classes, SysUtils, types, testinsightprotocol, fphttpclient, fpjson, contnrs, inifiles;

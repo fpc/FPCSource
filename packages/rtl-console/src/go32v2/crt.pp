@@ -759,5 +759,5 @@ begin
   initdelay;
 { Enable ctrl-c input (JM) }
   __djgpp_set_ctrl_c(0);
-  
+
 end.

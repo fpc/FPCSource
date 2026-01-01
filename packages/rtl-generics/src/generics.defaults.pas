@@ -82,7 +82,7 @@ type
     function Compare(const ALeft, ARight: T): Integer; override;
     constructor Create(AComparison: TComparisonFunc<T>);
   end;
-  
+
   TDelegatedComparer<T> = class(TComparer<T>)
   private
     FCompareFunc: TComparison<T>;
@@ -1094,7 +1094,7 @@ Type
   TCollectionItemComparer = IComparer<TCollectionItem>;
   TCollectionHelper = Class helper for TCollection
     Procedure sort(const AComparer: TCollectionItemComparer); overload;
-  end;  
+  end;
 
 implementation
 
@@ -3494,7 +3494,7 @@ end;
 Function GenericCollSort(Item1,Item2 : TCollectionItem; aContext : Pointer) : Integer;
 
 begin
-  Result:=TCollectionItemComparer(aContext).Compare(Item1,Item2);   
+  Result:=TCollectionItemComparer(aContext).Compare(Item1,Item2);
 end;
 
 Procedure TCollectionHelper.sort(const AComparer: TCollectionItemComparer);
@@ -3505,8 +3505,8 @@ begin
     Sort(GenericCollSort,Pointer(aComparer));
   finally
     aComparer._Release;
-  end;  
-end;  
+  end;
+end;
 
 end.
 

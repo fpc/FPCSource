@@ -30,8 +30,8 @@ begin
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('fcl-xml');
     P.Dependencies.Add('fcl-web');
-    P.Dependencies.Add('rtl-extra'); 
-    P.Dependencies.Add('rtl-objpas'); 
+    P.Dependencies.Add('rtl-extra');
+    P.Dependencies.Add('rtl-objpas');
     P.Dependencies.Add('rtl-generics');
     P.Dependencies.Add('fcl-json');
     P.Dependencies.Add('fcl-hash');

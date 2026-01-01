@@ -22,7 +22,7 @@ uses
   MemCheck,
   {$ENDIF}
   Classes, consoletestrunner, tcconverter, TCModules, TCSrcMap,
-  TCFiler, TCUnitSearch, TCOptimizations, TCGenerics, TCPrecompile, 
+  TCFiler, TCUnitSearch, TCOptimizations, TCGenerics, TCPrecompile,
   TCPas2JSAnalyzer;
 
 type

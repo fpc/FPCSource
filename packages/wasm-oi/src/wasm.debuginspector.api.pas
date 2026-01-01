@@ -2,7 +2,7 @@
     This file is part of the Free Pascal Run Time Library (rtl)
     Copyright (c) 2024 by the Free Pascal development team
 
-    This file provides the import statements of 
+    This file provides the import statements of
     the Javascript webassembly object inspector API.
 
     See the file COPYING.FPC, included in this distribution,

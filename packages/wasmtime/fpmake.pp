@@ -28,7 +28,7 @@ begin
     P.Targets.AddExampleProgram('gcd.pp');
     P.Targets.AddExampleProgram('memory.pp');
     P.Targets.AddExampleProgram('wasi.pp');
-    
+
 
     P.NamespaceMap:='namespaces.lst';
 

@@ -5,15 +5,15 @@ unit wasm.storage.objects;
 
 interface
 
-uses 
+uses
   {$IFDEF FPC_DOTTEDUNITS}
   System.SysUtils,
   {$ELSE}
   SysUtils,
   {$ENDIF}
-  wasm.storage.shared, 
+  wasm.storage.shared,
   wasm.storage.api;
-  
+
 Type
   EWasmStorage = class(Exception);
 
@@ -29,25 +29,25 @@ Type
     function GetKey(aKey : Integer) : UTF8String;
     function GetItem(const aKey : UTF8String) : UTF8String;
     procedure SetItem(const aKey : UTF8String; const aValue : UTF8String);
-  Public  
+  Public
     function Count : Integer;
     procedure Remove(const aKey : UTF8String);
     procedure Clear;
     property Items[aKey : UTF8String] : UTF8String read GetItem write SetItem;
     property Keys[aKey : Integer] : UTF8String Read GetKey;
     property UseExceptions : Boolean Read FUseExceptions Write FUseExceptions;
-  end;  
-  
+  end;
+
   TWasmLocalStorage = class(TWasmStorage)
   protected
     class function kind : integer; override;
-  end;  
+  end;
 
   TWasmSessionStorage = class(TWasmStorage)
   protected
     class function kind : integer; override;
-  end;  
-  
+  end;
+
 implementation
 
 function TWasmStorage.CheckRes(aRes : integer; const aOperation : String) : boolean;
@@ -141,15 +141,15 @@ begin
   CheckRes(lRes,'Remove');
 end;
 
-class function TWasmLocalStorage.kind : integer; 
+class function TWasmLocalStorage.kind : integer;
 begin
   Result:=STORAGE_LOCAL;
 end;
 
-class function TWasmSessionStorage.kind : integer; 
+class function TWasmSessionStorage.kind : integer;
 begin
   Result:=STORAGE_SESSION;
 end;
 
 end.
-  
+

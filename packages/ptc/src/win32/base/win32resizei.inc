@@ -40,7 +40,7 @@ var
   Width, Height: Integer;
 begin
   Result := 0;
-  
+
   if message = WM_SIZE then
   begin
     Width := lParam and $FFFF;

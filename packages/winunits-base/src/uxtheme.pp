@@ -67,7 +67,7 @@ function UseThemes: Boolean;
 
 const
   WM_THEMECHANGED = $031A;
-  
+
 type
   HTHEME = THANDLE;     // handle to a section of theme data for class
   {$EXTERNALSYM HTHEME}

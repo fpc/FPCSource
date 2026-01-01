@@ -244,8 +244,8 @@ procedure NotifyWinEvent(event: DWORD; hwnd: HWND; idObject, idChild: LONG); std
 //
 // hwnd + idObject can be used with OLEACC.DLL's OleGetObjectFromWindow()
 // to get an interface pointer to the container.  indexChild is the item
-// within the container in question.  Setup a VARIANT with vt VT_I4 and 
-// lVal the indexChild and pass that in to all methods.  Then you 
+// within the container in question.  Setup a VARIANT with vt VT_I4 and
+// lVal the indexChild and pass that in to all methods.  Then you
 // are raring to go.
 //
 
@@ -520,14 +520,14 @@ const
 //
 // Object events
 //
-// The system AND apps generate these.  The system generates these for 
+// The system AND apps generate these.  The system generates these for
 // real windows.  Apps generate these for objects within their window which
 // act like a separate control, e.g. an item in a list view.
 //
 // For all events, if you want detailed accessibility information, callers
 // should
 //      * Call AccessibleObjectFromWindow() with the hwnd, idObject parameters
-//          of the event, and IID_IAccessible as the REFIID, to get back an 
+//          of the event, and IID_IAccessible as the REFIID, to get back an
 //          IAccessible* to talk to
 //      * Initialize and fill in a VARIANT as VT_I4 with lVal the idChild
 //          parameter of the event.
@@ -541,7 +541,7 @@ const
 //          of the child identified by the VARIANT.  In other words, the
 //          child in this case is accessible but not a full-blown object.
 //          Like a button on a titlebar which is 'small' and has no children.
-//          
+//
 
 //
 
@@ -558,10 +558,10 @@ const
 
 //
 // NOTE:
-// Minimize the number of notifications!  
+// Minimize the number of notifications!
 //
-// When you are hiding a parent object, obviously all child objects are no 
-// longer visible on screen.  They still have the same "visible" status, 
+// When you are hiding a parent object, obviously all child objects are no
+// longer visible on screen.  They still have the same "visible" status,
 // but are not truly visible.  Hence do not send HIDE notifications for the
 // children also.  One implies all.  The same goes for SHOW.
 //
@@ -580,8 +580,8 @@ const
 //
 // NOTES:
 // There is only one "focused" child item in a parent.  This is the place
-// keystrokes are going at a given moment.  Hence only send a notification 
-// about where the NEW focus is going.  A NEW item getting the focus already 
+// keystrokes are going at a given moment.  Hence only send a notification
+// about where the NEW focus is going.  A NEW item getting the focus already
 // implies that the OLD item is losing it.
 //
 // SELECTION however can be multiple.  Hence the different SELECTION
@@ -593,7 +593,7 @@ const
 //     is the container control, idChildItem is the new child with the
 //     selection.
 //
-// (2) Send a SELECTIONADD notification when a new item has simply been added 
+// (2) Send a SELECTIONADD notification when a new item has simply been added
 //     to the selection within a container.  This is appropriate when the
 //     number of newly selected items is very small.  hwnd + ID is the
 //     container control, idChildItem is the new child added to the selection.

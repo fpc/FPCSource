@@ -9,7 +9,7 @@ Var
   T : TTarget;
 
 begin
-  With Installer do 
+  With Installer do
     begin
 {$endif ALLPACKAGES}
 

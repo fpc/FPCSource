@@ -404,7 +404,7 @@ http://sourceforge.net/tracker/index.php?func=detail&aid=1846980&group_id=121894
 
 {$IFNDEF WINVISTA_UP}
 //These functions are no longer available in Windows Vista and newer
-                    
+
 function WNetRestoreConnectionW(hwndParent: HWND; lpDevice: LPCWSTR): DWORD; stdcall;
 {$EXTERNALSYM WNetRestoreConnectionW}
 function WNetRestoreConnection(hwndParent: HWND; lpDevice: LPCTSTR): DWORD; stdcall;

@@ -51,7 +51,7 @@ uses
 //==============================================================================
 const
   SERVERNAME_CURRENT = 0;
-  
+
   // constants used for WinStationGetTermSrvCounters
   TOTAL_SESSIONS_CREATED_COUNTER = 1;
   TOTAL_SESSIONS_DISCONNECTED_COUNTER = 2;
@@ -320,7 +320,7 @@ function DateTimeStringSafe(DateTime: PFILETIME; lpBuffer: PWideChar;
   cchDest: SIZE_T): PWideChar; stdcall;
 
 // This is the Vista version which takes an additional parameter with
-// maximum buffer size (you have to set it) 
+// maximum buffer size (you have to set it)
 function DateTimeStringVista(DateTime: PFILETIME; lpBuffer: PWideChar;
   cchDest: SIZE_T): PWideChar; stdcall;
 
@@ -1195,7 +1195,7 @@ begin
     else begin
       Result := 0;
     end;
-   
+
   end
   else begin
     Result := ElapsedTimeString(DiffTime, bShowSeconds, lpElapsedTime);

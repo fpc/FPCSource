@@ -289,7 +289,7 @@ type
 type
   PGRECT = ^TGRECT;
   TGRECT = record
-    case integer of 
+    case integer of
      0: (x: smallint;     {* X-coordinate *}
          y: smallint;     {* Y-coordinate *}
          w: smallint;     {* Width        *}

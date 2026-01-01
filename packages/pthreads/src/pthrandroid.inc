@@ -5,7 +5,7 @@
 
    Small modifications for Android, Copyright (c) 2017 by
    Benjamin Rosseaux
- 
+
    See the file COPYING.FPC, included in this distribution,
    for details about the copyright.
 

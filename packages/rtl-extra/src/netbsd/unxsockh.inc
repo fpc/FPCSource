@@ -346,7 +346,7 @@ Const
 	IPV6_LEAVE_GROUP	= 13; { ip6_mreq; leave a group membership }
 	IPV6_PORTRANGE		= 14; { int; range to choose for unspecified port }
 
-	IPV6_PKTINFO            = 46; { in6_pktinfo; send if, src addr }	
+	IPV6_PKTINFO            = 46; { in6_pktinfo; send if, src addr }
  	IPV6_HOPLIMIT           = 47; { int; send hop limit }
  	IPV6_NEXTHOP            = 48; { sockaddr; next hop addr }
  	IPV6_HOPOPTS            = 49; { ip6_hbh; send hop-by-hop option }
@@ -368,7 +368,7 @@ Const
   MSG_COMPAT    = $8000;
   MSG_SOCALLBCK = $10000;
   MSG_NOSIGNAL  = $20000;              { Do not generate SIGPIPE }
-  
+
      TCP_NODELAY = 1;
   { set maximum segment size  }
      TCP_MAXSEG = 2;

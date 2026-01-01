@@ -138,7 +138,7 @@ type
   LPDNNADDR = ^DNNADDR;
   {$EXTERNALSYM LPDNNADDR}
   TDNNAddr = DNNADDR;
-  PDNNAddr = LPDNNADDR;  
+  PDNNAddr = LPDNNADDR;
 
 //
 //  DECnet socket address structure
@@ -238,7 +238,7 @@ type
   LPACCESSDATADN = ^ACCESSDATADN;
   {$EXTERNALSYM LPACCESSDATADN}
   TAccessDataDN = ACCESSDATADN;
-  PAccessDataDN = LPACCESSDATADN;  
+  PAccessDataDN = LPACCESSDATADN;
 
 //
 //  DECnet call data structure (concatenated access and optional data)
@@ -254,7 +254,7 @@ type
   LPCALLDATADN = ^CALLDATADN;
   {$EXTERNALSYM LPCALLDATADN}
   TCallDataDN = CALLDATADN;
-  PCallDataDN = LPCALLDATADN;  
+  PCallDataDN = LPCALLDATADN;
 
 //
 //  DECnet incoming access control structure
@@ -272,7 +272,7 @@ type
   LPDNETACCENT = ^DNETACCENT;
   {$EXTERNALSYM LPDNETACCENT}
   TDNetAccent = DNETACCENT;
-  PDNetAccent = LPDNETACCENT;  
+  PDNetAccent = LPDNETACCENT;
 
 const
   DN_NONE = $00;

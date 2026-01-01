@@ -34,58 +34,58 @@ uses windows;
 {$calling cdecl}
 
 const
-   NOTIFICATION_EVENT_NONE = 0;   
-   NOTIFICATION_EVENT_TIME_CHANGE = 1;   
-   NOTIFICATION_EVENT_SYNC_END = 2;   
-   NOTIFICATION_EVENT_ON_AC_POWER = 3;   
-   NOTIFICATION_EVENT_OFF_AC_POWER = 4;   
-   NOTIFICATION_EVENT_NET_CONNECT = 5;   
-   NOTIFICATION_EVENT_NET_DISCONNECT = 6;   
-   NOTIFICATION_EVENT_DEVICE_CHANGE = 7;   
-   NOTIFICATION_EVENT_IR_DISCOVERED = 8;   
-   NOTIFICATION_EVENT_RS232_DETECTED = 9;   
-   NOTIFICATION_EVENT_RESTORE_END = 10;   
-   NOTIFICATION_EVENT_WAKEUP = 11;   
-   NOTIFICATION_EVENT_TZ_CHANGE = 12;   
-   NOTIFICATION_EVENT_MACHINE_NAME_CHANGE = 13;   
-   NOTIFICATION_EVENT_LAST = NOTIFICATION_EVENT_MACHINE_NAME_CHANGE;   
+   NOTIFICATION_EVENT_NONE = 0;
+   NOTIFICATION_EVENT_TIME_CHANGE = 1;
+   NOTIFICATION_EVENT_SYNC_END = 2;
+   NOTIFICATION_EVENT_ON_AC_POWER = 3;
+   NOTIFICATION_EVENT_OFF_AC_POWER = 4;
+   NOTIFICATION_EVENT_NET_CONNECT = 5;
+   NOTIFICATION_EVENT_NET_DISCONNECT = 6;
+   NOTIFICATION_EVENT_DEVICE_CHANGE = 7;
+   NOTIFICATION_EVENT_IR_DISCOVERED = 8;
+   NOTIFICATION_EVENT_RS232_DETECTED = 9;
+   NOTIFICATION_EVENT_RESTORE_END = 10;
+   NOTIFICATION_EVENT_WAKEUP = 11;
+   NOTIFICATION_EVENT_TZ_CHANGE = 12;
+   NOTIFICATION_EVENT_MACHINE_NAME_CHANGE = 13;
+   NOTIFICATION_EVENT_LAST = NOTIFICATION_EVENT_MACHINE_NAME_CHANGE;
 {
  * String passed on the command line when an app is run as the result
  * of a call to CeRunAppAtTime().
   }
-   APP_RUN_AT_TIME = 'AppRunAtTime';   
+   APP_RUN_AT_TIME = 'AppRunAtTime';
 {
  * Prefix of the command line when the user requests to run the application
  * that "owns" a notification.  It is followed by a space, and the
  * stringized version of the notification handle.
   }
-   APP_RUN_TO_HANDLE_NOTIFICATION = 'AppRunToHandleNotification';   
+   APP_RUN_TO_HANDLE_NOTIFICATION = 'AppRunToHandleNotification';
 {
  * Strings passed on the command line when an event occurs that the
  * app has requested via CeRunAppAtEvent.  Note that some of these
  * strings will be used as the command line *prefix*, since the rest
  * of the command line will be used as a parameter.
   }
-   APP_RUN_AFTER_TIME_CHANGE = 'AppRunAfterTimeChange';   
-   APP_RUN_AFTER_SYNC = 'AppRunAfterSync';   
-   APP_RUN_AT_AC_POWER_ON = 'AppRunAtAcPowerOn';   
-   APP_RUN_AT_AC_POWER_OFF = 'AppRunAtAcPowerOff';   
-   APP_RUN_AT_NET_CONNECT = 'AppRunAtNetConnect';   
-   APP_RUN_AT_NET_DISCONNECT = 'AppRunAtNetDisconnect';   
-   APP_RUN_AT_DEVICE_CHANGE = 'AppRunDeviceChange';   
-   APP_RUN_AT_IR_DISCOVERY = 'AppRunAtIrDiscovery';   
-   APP_RUN_AT_RS232_DETECT = 'AppRunAtRs232Detect';   
-   APP_RUN_AFTER_RESTORE = 'AppRunAfterRestore';   
-   APP_RUN_AFTER_WAKEUP = 'AppRunAfterWakeup';   
-   APP_RUN_AFTER_TZ_CHANGE = 'AppRunAfterTzChange';   
-   APP_RUN_AFTER_EXTENDED_EVENT = 'AppRunAfterExtendedEvent';   
+   APP_RUN_AFTER_TIME_CHANGE = 'AppRunAfterTimeChange';
+   APP_RUN_AFTER_SYNC = 'AppRunAfterSync';
+   APP_RUN_AT_AC_POWER_ON = 'AppRunAtAcPowerOn';
+   APP_RUN_AT_AC_POWER_OFF = 'AppRunAtAcPowerOff';
+   APP_RUN_AT_NET_CONNECT = 'AppRunAtNetConnect';
+   APP_RUN_AT_NET_DISCONNECT = 'AppRunAtNetDisconnect';
+   APP_RUN_AT_DEVICE_CHANGE = 'AppRunDeviceChange';
+   APP_RUN_AT_IR_DISCOVERY = 'AppRunAtIrDiscovery';
+   APP_RUN_AT_RS232_DETECT = 'AppRunAtRs232Detect';
+   APP_RUN_AFTER_RESTORE = 'AppRunAfterRestore';
+   APP_RUN_AFTER_WAKEUP = 'AppRunAfterWakeup';
+   APP_RUN_AFTER_TZ_CHANGE = 'AppRunAfterTzChange';
+   APP_RUN_AFTER_EXTENDED_EVENT = 'AppRunAfterExtendedEvent';
 {
  * Strings passed on the end of the command line for the event,
  * NOTIFICATION_EVENT_DEVICE_CHANGE.  The general form will be
  * "/op devicename" for instance "/ADD COM2:"
   }
-   NOTIFY_DEVICE_ADD = '/ADD';   
-   NOTIFY_DEVICE_REMOVE = '/REMOVE';   
+   NOTIFY_DEVICE_ADD = '/ADD';
+   NOTIFY_DEVICE_REMOVE = '/REMOVE';
 {
  * @struct CE_USER_NOTIFICATION | User Notification Structure
  *
@@ -96,7 +96,7 @@ const
  * current device will be ignored.
  *
  * It is also used when calling <f CeSetUserNotification>, to describe
- * what should happen when the notification time is reached.  
+ * what should happen when the notification time is reached.
   }
 { PUN_* flags.  Flags not valid on a given }
 { hardware platform will be ignored. }

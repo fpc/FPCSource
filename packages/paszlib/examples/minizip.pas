@@ -27,7 +27,7 @@ const
     stime: TSystemTime;
   begin
     if not FileExists(f) then exit;
-    
+
     dtrec := FileDateToDateTime(FileAge(f));
     DateTimeToSystemTime(dtrec, stime);
     tmzip.tm_sec  := stime.second;
