@@ -130,7 +130,7 @@ type
     property MsgCallback:TSyncIPCCallback read rMsgCallback write rMsgCallback;
   end;
 
-//Read/Write IntegerSize(1 byte) followed by the AInteger(IntegerSize bytes) so we are platform indipendent
+//Read/Write IntegerSize(1 byte) followed by the AInteger(IntegerSize bytes) so we are platform independent
 function ReadInt(AStream:TStream; var IntegerSize:Byte):Integer;
 procedure WriteInt(AStream:TStream; AInteger:Integer; IntegerSize:Byte=sizeof(Integer));
 
@@ -140,7 +140,7 @@ implementation
 
 function ReadInt(AStream: TStream; var IntegerSize:Byte): Integer;
 begin
-  //Read Sizeof Integer so we are platform indipendent
+  //Read Sizeof Integer so we are platform independent
   AStream.Read(IntegerSize, 1);
   AStream.Read(Result, IntegerSize);
 end;
@@ -149,7 +149,7 @@ procedure WriteInt(AStream: TStream; AInteger:Integer; IntegerSize: Byte);
 begin
   if (IntegerSize=0) then IntegerSize:=Sizeof(Integer);
 
-  //Write Sizeof Integer so we are platform indipendent
+  //Write Sizeof Integer so we are platform independent
   AStream.Write(IntegerSize, 1);
   AStream.Write(AInteger, IntegerSize);
 end;

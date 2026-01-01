@@ -1529,7 +1529,7 @@ end;
 constructor TWebController.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  { TODO : Do this prperly using a notification. And make the WebController property readonly }
+  { TODO : Do this properly using a notification. And make the WebController property readonly }
   if owner is TWebPage then TWebPage(Owner).WebController := self;
   FScriptStack := TFPObjectList.Create(true);
 end;

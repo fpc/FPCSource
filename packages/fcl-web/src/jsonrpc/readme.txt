@@ -176,7 +176,7 @@ There are 4 ways to handle JSON-RPC in fcl-web:
    A. Drop one or more TJSONRPCHandler on a TJSONRPCModule.
    B. Implement the OnExecute handlers of the TJSONRPCHandler components.
 
-For large applicaions, TJSONRPCHandler instances can be dropped on
+For large applications, TJSONRPCHandler instances can be dropped on
 datamodules or TJSONRPCModules, and the datamodule and/or TJSONRPCModules
 must be registered using
   JSONRpcHandlerManager.RegisterModule(TMyModule,'myclassname');

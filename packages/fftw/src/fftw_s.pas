@@ -10,7 +10,7 @@ unit fftw_s;
    See the file COPYING.FPC, included in this distribution,
    for details about the copyright.
 
-   This file carries, as a independend work calling a well
+   This file carries, as a independent work calling a well
    documented binary interface, the Free Pascal LGPL license
    with static linking exception.
 

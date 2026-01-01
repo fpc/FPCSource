@@ -1505,7 +1505,7 @@ var
   //Contains xs:annotation for a table, which contains appinfo node with primary key info etc.
   XSDTableAppinfoNode: TDOMNode; //Contains xs:appinfo node for a table
   XSDTableDataColumnParent: TDOMNode;
-  //xs:sequenc node; contains all columns for a table.
+  //xs:sequence node; contains all columns for a table.
   XSDTableNode: TDOMNode;
   //Contains xs:Element for table, inside: primary key info etc, table data types
   XSDTableDataTypesNode: TDOMNode;
@@ -2036,7 +2036,7 @@ var
 
         FNode := FOutputDoc.CreateElement('xs:maxLength');
         { In Access, the WIDTH denotes the number of characters, not the byte count.
-        Therfore we use .Size, not .DataSize}
+        Therefore we use .Size, not .DataSize}
         TDOMElement(FNode).SetAttribute('value',
           IntToStr(ExportFields.Fields[ItemCounter].Field.Size));
         RestrictionNode.AppendChild(FNode);
@@ -2916,7 +2916,7 @@ begin
     'xmlns', 'urn:schemas-microsoft-com:office:spreadsheet');
   TDOMElement(FRootNode).SetAttribute(
     'xmlns:ss', 'urn:schemas-microsoft-com:office:spreadsheet');
-  // Add some style info for date/time fields that will be referered to by
+  // Add some style info for date/time fields that will be referred to by
   // the data cells
 
   ExcelStyles := FOutputDoc.CreateElement('Styles');

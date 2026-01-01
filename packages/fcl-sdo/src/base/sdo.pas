@@ -651,7 +651,7 @@ type
 		{
 		 *  DataFactory::addType adds a type definition.
 		 *
-		 * Add a type defintion to the factory. (Properties may be added later).
+		 * Add a type definition to the factory. (Properties may be added later).
 		 * The type is defined by its uri and name.
 		 * -# The type may be sequenced - and therefore work with a sequence API.
 		 * -# The type may be open, indicating that it may have extra properties
@@ -1150,7 +1150,7 @@ type
      * The summary is not necessarily attached to the data object, it may be
      * the summary for a parent data object. No object with a summary attached
      * may be a child of another object with a summary attached.
-     * See the ChangeSummary API for details of using the change sumamry.
+     * See the ChangeSummary API for details of using the change summary.
      }
     function getChangeSummary() : ISDOChangeSummary;overload;
     {function getChangeSummary(const APath : string) : ISDOChangeSummary;overload;

@@ -28,7 +28,7 @@
     17 Aug 2000.
 
     Added functions and procedures with array of const.
-    For use with fpc 1.0.7. Thay are in systemvartags.
+    For use with fpc 1.0.7. They are in systemvartags.
     05 Nov 2002.
 
     Removed amigaoverlays, use smartlink instead.
@@ -238,7 +238,7 @@ Type
     am_UserData      : ULONG;            {    application specific }
     am_ID            : ULONG;            {    application definable ID }
     am_NumArgs       : ULONG;            {    # of elements in arglist }
-    am_ArgList       : pWBArgList;       {    the arguements themselves }
+    am_ArgList       : pWBArgList;       {    the arguments themselves }
     am_Version       : Word;              {    will be AM_VERSION }
     am_Class         : Word;              {    message class }
     am_MouseX        : smallint;              {    mouse x position of event }

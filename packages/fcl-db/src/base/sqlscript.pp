@@ -79,7 +79,7 @@ type
   protected
     procedure InternalStatement (Statement: TStrings; var StopExecution: Boolean); virtual;
     procedure InternalDirective (Directive, Argument: String; var StopExecution: Boolean); virtual;
-    // Runs commit. If ComitRetaining, use CommitRetraining if possible, else stop/starttransaction
+    // Runs commit. If CommitRetaining, use CommitRetraining if possible, else stop/starttransaction
     procedure InternalCommit(CommitRetaining: boolean=true); virtual;
     Function ProcessConditional(const Directive : String; const Param : String) : Boolean; virtual;
     procedure ProcessStatement; virtual;

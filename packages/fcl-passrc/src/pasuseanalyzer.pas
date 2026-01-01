@@ -209,7 +209,7 @@ type
 
   TPasAnalyzerOption = (
     paoOnlyExports, // default: use all class members accessible from outside (protected, but not private)
-    paoImplReferences, // collect references of top lvl proc implementations, initializationa and finalization sections
+    paoImplReferences, // collect references of top lvl proc implementations, initialization and finalization sections
     paoSkipGenericProc // ignore generic procedure body
     );
   TPasAnalyzerOptions = set of TPasAnalyzerOption;

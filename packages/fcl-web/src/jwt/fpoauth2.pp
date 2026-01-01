@@ -243,7 +243,7 @@ Type
     Property WebClient : TAbstractWebClient Read FWebClient Write FWebClient;
     // Event handler to get user consent if no access token or refresh token is available
     Property OnUserConsent : TUserConsentHandler Read FOnUserConsent Write FOnUserConsent;
-    // Called when the auth config informaion changes
+    // Called when the auth config information changes
     Property OnAuthConfigChange : TOnAuthConfigChangeHandler Read FOnAuthConfigChange Write FOnAuthConfigChange;
     // Called when the auth sesson information changes
     Property OnAuthSessionChange : TOnAuthSessionChangeHandler Read FOnAuthSessionChange Write FOnAuthSessionChange;
@@ -278,7 +278,7 @@ Resourcestring
 { TOAuth2Handler }
 
 { Several possibilities:
-  1. Acess token is available.
+  1. Access token is available.
      A) Access token is not yet expired
         -> All is well, continue.
      B) Access token is available, but is expired.

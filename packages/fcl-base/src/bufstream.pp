@@ -409,7 +409,7 @@ begin
   // Are we already in a emergency write dirty pages ??
   if FEmergencyFlag then exit;
   FEmergencyFlag:=true;
-  // This procedure tries to save all dirty pages inconditional
+  // This procedure tries to save all dirty pages unconditional
   // because a write fail happens, so everything in cache will
   // be dumped to stream if possible, trying to save as much
   // information as possible.

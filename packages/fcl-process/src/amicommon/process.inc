@@ -202,7 +202,7 @@ begin
     else
     {$endif}
     begin
-      // if no streams needed we still use the old sychronous way
+      // if no streams needed we still use the old synchronous way
       FProcessID := 0;
       cos := BPTR(0);
       repeat

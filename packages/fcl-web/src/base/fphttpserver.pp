@@ -473,7 +473,7 @@ Type
     // If >0, when no new connection appeared after timeout, OnAcceptIdle is called.
     Property AcceptIdleTimeout : Cardinal Read FAcceptIdleTimeout Write SetAcceptIdleTimeout;
   published
-    //aditional server information
+    //additional server information
     property AdminMail: string read FAdminMail write FAdminMail;
     property AdminName: string read FAdminName write FAdminName;
     property ServerBanner: string read FServerBanner write FServerBanner;

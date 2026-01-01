@@ -5,11 +5,11 @@
     may give you hints on using it.
 
     It is done to test the source of these units for usability, completeness and
-    bugs. It is base on the fcl-passrc exampe.
+    bugs. It is base on the fcl-passrc example.
     It workes like a pretty-printer to compare the output of this program with
     the original code, but is not thought to be a real pretty-printer as
-    e.g. the semicolons can sometimes not be set at the place they sould be
-    (this imformation is not available from the parsing-engine, as a parser
+    e.g. the semicolons can sometimes not be set at the place they should be
+    (this information is not available from the parsing-engine, as a parser
     should only give you a positiv result if the source is valid, otherwise
     you get a negative result).
     Also the output is not always in the same order as in input as this
@@ -40,11 +40,11 @@
     Output: is 'pretty-printed' to stdout or unformated
             The unformated output is thought to be diffed with the original
             source to see differences caused by the parser (a tool to unformat
-            a souce file is in progress but not finished jet).
+            a source file is in progress but not finished jet).
 
     Bugs: 1. In case of unimplemented statements (like up to now asm) the parser
-             cause a excemtion to abort the program hard.
-          2. Missing implementaion in this program should not print out anything
+             cause a exception to abort the program hard.
+          2. Missing implementation in this program should not print out anything
              or result in not pascal conform output.
 
     Hit: The parser uses directives given in the source file.
@@ -57,7 +57,7 @@
     for printing the output.
     There is no writer-class used to keep it simple and see what is done.
     All output is produced by direct writing to stdout, this cause problems in
-    furter development; a function result as string may be more usable.
+    further development; a function result as string may be more usable.
 
     The parser was written to be used for unit interface and was expanded to
     work with program and implementation too. It does nearly no seperate
@@ -103,7 +103,7 @@
      |
     TObject
 
-  Dependance Structure :
+  Dependence Structure :
 
     TPasPackage = class(TPasElement)
       |
@@ -345,7 +345,7 @@ procedure GetTPasExpr(lex:TPasExpr);
   end;
 
  begin
-  if lex is TBinaryExpr then //compined constants
+  if lex is TBinaryExpr then //compiled constants
    begin
     sep:=GetExpKind(lex.Kind,lbk,rbk);
     //write('|');
@@ -403,7 +403,7 @@ procedure GetTPasExpr(lex:TPasExpr);
            write(rbk);//write(')');
           end
          else
-          begin //funcion()
+          begin //function()
            sep:=GetExpKind(lpe.Kind,lbk,rbk);
            write(lbk,rbk);
           end;
@@ -742,7 +742,7 @@ begin
       for l:=0 to n do
        begin
         lbe:=TPasImplElement(lb.Elements[l]);
-        //write(l:2,'/',n:2,' '); //No of curent element, max element
+        //write(l:2,'/',n:2,' '); //No of current element, max element
         if ((l = 0)and NoFirstIndent) then
          begin //index0
           if l=n then GetTPasImplElement(lbe,0,LastNoSem,false)
@@ -1343,7 +1343,7 @@ procedure GetTypes(pe:TPasElement; lindent:integer);
    if lpp.IsOverride then WriteFmt(true,'override;',false);
    if lpp.IsExported then WriteFmt(true,'exported;',false);
    if lpp.IsExternal then WriteFmt(true,'external;',false);
-   //pparser 2360: everyting behind external is ignored !!!
+   //pparser 2360: everything behind external is ignored !!!
    if lpp.IsMessage then
     begin
       write('message ');
@@ -1470,7 +1470,7 @@ procedure GetTypes(pe:TPasElement; lindent:integer);
         begin
         write('(',pc.AncestorType.Name,')');
         end;
-     if pc.IsForward or pc.IsShortDefinition then //pparser.pp: 3417 :class(anchestor); is allowed !
+     if pc.IsForward or pc.IsShortDefinition then //pparser.pp: 3417 :class(ancestor); is allowed !
       begin
        writeln(';');
        exit;

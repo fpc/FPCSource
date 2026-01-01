@@ -309,7 +309,7 @@ begin
     begin
     // skip the name
     hp:=GetTypeData(Typeinfo);
-    // the class info rtti the property rtti follows immediatly
+    // the class info rtti the property rtti follows immediately
     pd:=aligntoptr(pointer(pointer(@hp^.UnitName)+Length(hp^.UnitName)+1));
     Result:=Result+Pd^.PropCount;
     if Recurse then

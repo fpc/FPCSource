@@ -1,6 +1,6 @@
 These tests are to thest the fppkg system.
 
-The tests have the structure of unit-tests, but are not real unit-tests, altough
+The tests have the structure of unit-tests, but are not real unit-tests, although
 some tests may test the TpkgFPpkg-class in a unit-test way.
 
 To be able to test fppkg, fpc-installations are made in in the templates-

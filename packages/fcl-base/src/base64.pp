@@ -360,7 +360,7 @@ begin
   ipos := Source.Position; // save position in input stream
   case Mode of
     bdmMIME:  begin
-      // read until end of input stream or first occurence of a '='
+      // read until end of input stream or first occurrence of a '='
       Result := ReadBase64ByteCount; // keep number of valid base64 bytes since last Reset in Result
       repeat
         count := Source.Read(scanBuf, SizeOf(scanBuf));

@@ -170,7 +170,7 @@ const
  * such software which wants to use execute-in-place software stored
  * on a credit-card, such as a ROM card).
  *
- * See documentatin for IfAmigaXIP().
+ * See documentation for IfAmigaXIP().
  *}
 const
   CISTPL_AMIGAXIP = $91;

@@ -826,7 +826,7 @@ begin
         Continue;
     end;
 
-    // jtUnkown accepts all data types
+    // jtUnknown accepts all data types
     if (def.DataType<>jtUnknown) and not (Param.JSONType=def.DataType) then
       JSONRPCParamError(SErrParamsDataTypeMismatch,[def.Name,JSONTypeName(def.DataType),JSONTypeName(Param.JSONType)]);
   end;

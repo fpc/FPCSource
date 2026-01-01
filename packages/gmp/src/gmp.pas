@@ -1244,7 +1244,7 @@ procedure z_urandomm(var rop: MPInteger; var state: MPRandState; var n: MPIntege
 function z_urandomm(var state: MPRandState; var n: MPInteger): MPInteger;
 { Set rop to op1 bitwise exclusive-or op2 }
 procedure z_xor(var rop, op1, op2: MPInteger);
-{ Retuen op1 bitwise exclusive-or op2 }
+{ Return op1 bitwise exclusive-or op2 }
 function z_xor(var op1, op2: MPInteger): MPInteger;
 
 // ---- Rational Number Functions ----
@@ -1582,7 +1582,7 @@ operator > (op1: MPRational; op2: MPRational): boolean; inline;
 operator >= (op1: MPFloat; op2: MPFloat): boolean; inline;
 operator >= (op1: MPInteger; op2: MPInteger): boolean; inline;
 operator >= (op1: MPRational; op2: MPRational): boolean; inline;
-// compiler doesn't like theese
+// compiler doesn't like these
 // operator = (op1: MPFloat; op2: MPFloat): boolean; inline;
 // operator = (op1: MPInteger; op2: MPInteger): boolean; inline;
 // operator = (op1: MPRational; op2: MPRational): boolean; inline;

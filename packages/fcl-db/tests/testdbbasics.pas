@@ -715,8 +715,8 @@ var
   dataset1: TDataSet;
   i,r: integer;
 begin
-  // TBufDataset should notify TDataset (TDataset.CurrentRecord) when changes internaly current record
-  // TBufDataset.GetRecNo was synchronizing its internal position with TDataset.ActiveRecord, but TDataset.CurrentRecord remains unchaged
+  // TBufDataset should notify TDataset (TDataset.CurrentRecord) when changes internally current record
+  // TBufDataset.GetRecNo was synchronizing its internal position with TDataset.ActiveRecord, but TDataset.CurrentRecord remains unchanged
   // Bug #31532
   dataset1 := DBConnector.GetNDataset(16);
   datasource1 := TDataSource.Create(nil);
@@ -731,7 +731,7 @@ begin
   CheckEquals(5, dataset1.RecNo);
   for i:=13 to 15 do begin
     datalink1.BufferCount := datalink1.BufferCount+1;
-    r := dataset1.RecNo; // syncronizes source dataset to ActiveRecord
+    r := dataset1.RecNo; // synchronizes source dataset to ActiveRecord
     AssertTrue(r>=0);
     datalink1.ActiveRecord := datalink1.BufferCount-1;
     CheckEquals(i, dataset1.FieldByName('ID').AsInteger);
@@ -2477,7 +2477,7 @@ begin
     // append data at end
     for i:=20 downto 0 do
       AppendRecord([i, inttostr(i)]);
-    // insert data at begining
+    // insert data at beginning
     IndexName:='';
     First;
     for i:=21 to 22 do

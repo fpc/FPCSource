@@ -24,7 +24,7 @@ uses
    Sqlite3DSToolsUnit,
    TestSpecificTSqlite3Dataset,
  {$ENDIF}
-// Units wich contain the tests
+// Units which contain the tests
   tcsdfdata,
   TestBasics,
   TestDBBasics,

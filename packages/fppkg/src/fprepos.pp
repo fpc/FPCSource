@@ -98,7 +98,7 @@ type
     Property RequireChecksum : Cardinal Read FRequireChecksum Write FRequireChecksum;
   end;
 
-  { TFPDepencencies }
+  { TFPDependencies }
 
   TFPDependencies = Class(TStreamCollection)
   private

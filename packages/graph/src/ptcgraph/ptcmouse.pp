@@ -67,11 +67,11 @@ function GetLastButtonPress(button: LongInt; var x, y: LongInt): LongInt;
 }
 function GetLastButtonRelease(button: LongInt; var x, y: LongInt): LongInt;
 
-{ sets mouse's x range, with Min and Max resp. the higest and the lowest
+{ sets mouse's x range, with Min and Max resp. the highest and the lowest
   column (in pixels) in between which the mouse cursor can move }
 procedure SetMouseXRange(Min, Max: LongInt);
 
-{ sets mouse's y range, with Min and Max resp. the higest and the lowest
+{ sets mouse's y range, with Min and Max resp. the highest and the lowest
   row (in pixels) in between which the mouse cursor can move}
 procedure SetMouseYRange(Min, Max: LongInt);
 

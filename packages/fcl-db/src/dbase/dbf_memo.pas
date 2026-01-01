@@ -220,7 +220,7 @@ procedure TMemoFile.Open;
 begin
   if not FOpened then
   begin
-    // memo pages count start from begining of file!
+    // memo pages count start from beginning of file!
     PageOffsetByHeader := false;
 
     // open physical file

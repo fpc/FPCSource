@@ -279,7 +279,7 @@ type
     procedure TerminatedSet; override;
 
     // the DoOn* methods do the actual work and can be synchronised by their ExecOn* counterparts
-    // DoOnInit - executed when the request aquired a TFPHTTPClient to setup its extra properties
+    // DoOnInit - executed when the request acquired a TFPHTTPClient to setup its extra properties
     //  should not be synchronized with Synchronize() - it slows down the execution. Better to use CriticalSections
     procedure DoOnInit; virtual;
     // DoOnProgress - show progress during upload&download

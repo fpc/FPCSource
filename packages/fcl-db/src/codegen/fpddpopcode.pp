@@ -59,7 +59,7 @@ Type
     procedure AddLine(ALine: String; Lines: TStrings); virtual;
     Function EscapeString(Const S : String) : string;
     procedure CreateClassDecl(Lines: TStrings); virtual;
-    // Data dictionare specific
+    // Data dictionary specific
     procedure CheckDatadict;
     procedure CreateFooter(Lines: TStrings);
     procedure CreateHeader(Lines: TStrings);

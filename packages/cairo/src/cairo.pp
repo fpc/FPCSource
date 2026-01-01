@@ -43,7 +43,7 @@ unit Cairo;
  *  by Jeffrey Pohlmeyer <yetanothergeek@yahoo.com>
  *
  * - Updated to cairo version 1.4
- * - Grouped OS specific fuctions in separated units
+ * - Grouped OS specific functions in separated units
  * - Organized the functions by group and ordered exactly as the c header
  * - Cleared parameter list syntax according to pascal standard
  *

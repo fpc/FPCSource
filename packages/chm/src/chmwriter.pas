@@ -1730,7 +1730,7 @@ function TChmWriter.AddTopicindex(ATitle, AnUrl: AnsiString; code: integer
 begin
    ATitle :=StringReplace(Atitle, '&x27;', '', [rfReplaceAll]);
 
-  // adhoc subsitutions. Replace with real code if exact behaviour is known.
+  // adhoc substitutions. Replace with real code if exact behaviour is known.
 {  Atitle:=StringReplace(atitle, '&x27;', '''', [rfReplaceAll]);
   if length(atitle)>0 then
     atitle[1]:=uppercase(atitle[1])[1];}
@@ -2060,7 +2060,7 @@ begin
   BlockInd:=0;
   if Indexblocknr>=length(blockn) then
     begin
-      setlength(blockn,length(blockn)+1);  // larger increments also possible. #blocks is kept independantly.
+      setlength(blockn,length(blockn)+1);  // larger increments also possible. #blocks is kept independently.
       fillchar(blockn[0][0],sizeof(blockn[0]),#0);
     end;
   p:=@Blockn[IndexBlockNr];
@@ -2455,7 +2455,7 @@ begin
 
   if totalentries<>0 then
      begin
-       // If there are no links of this type in the CHM then this will be a zero DWORD. Othewise it contains the following DWORDs: 0, 0, 0, 0xC, 1, 1, 0, 0. AFAICS this file is pretty much useless.
+       // If there are no links of this type in the CHM then this will be a zero DWORD. Otherwise it contains the following DWORDs: 0, 0, 0, 0xC, 1, 1, 0, 0. AFAICS this file is pretty much useless.
        // we already have written the first 0 dword
        propertystream.write(NToLE(0),sizeof(longint));
        propertystream.write(NToLE(0),sizeof(longint));

@@ -67,7 +67,7 @@ const
 // Buffering types for SetVBuf().
   BUF_LINE    = 0; // Flush at the end of lines '\n'.
   BUF_FULL    = 1; // Flush only when buffer is full.
-  BUF_NONE    = 2; // Do not buffer, read and write immediatly.
+  BUF_NONE    = 2; // Do not buffer, read and write immediately.
 
 type
   PDateStamp = ^TDateStamp;
@@ -190,7 +190,7 @@ const
   ID_SFS_BE_DISK         = $53465300; // 'SFS#0'
   ID_SFS_LE_DISK         = $73667300; // 'sfs#0'
 { These are the return codes used by convention by AmigaDOS commands
-  See FAILAT and IF for relvance to EXECUTE files}
+  See FAILAT and IF for relevance to EXECUTE files}
     // No Problem, success
   RETURN_OK              =  0;
   { Program succeeded, but there was something not quite right.
@@ -219,7 +219,7 @@ const
 //Errors concerning ReadArgs().
   ERROR_BAD_TEMPLATE             = 114; // Supplied template is broken
   ERROR_BAD_NUMBER               = 115; { A supplied argument that was expected to be numeric, was not numeric.
-                                          This is also returned by some functions to expresss that a supplied
+                                          This is also returned by some functions to express that a supplied
                                           number is out of range (ie to express application internal errors).}
   ERROR_REQUIRED_ARG_MISSING     = 116; // An argument that has to be supplied (ie signed with the '/A' flag) was not supplied.
   ERROR_KEY_NEEDS_ARG            = 117; // Keyword was specified, but not its contents.
@@ -319,7 +319,7 @@ const
   LINK_SOFT =   1;
 
 { Relative position to Seek() }
-  OFFSET_BEGINNING = -1; // relative to Begining Of File
+  OFFSET_BEGINNING = -1; // relative to Beginning Of File
   OFFSET_CURRENT   =  0; // relative to Current file position
   OFFSET_END       =  1; // relative to End Of File
 
@@ -411,7 +411,7 @@ type
     an_Child,           // The next anchor
     an_Parent: PAChain; // The last anchor
     an_Lock: BPTR;      // Lock of this anchor
-    an_Info: TFileInfoBlock; // fib Discribing this anchor
+    an_Info: TFileInfoBlock; // fib Describing this anchor
     an_Flags: ShortInt;      // se below
     an_String: array[0..0] of AnsiChar;
   end;
@@ -532,9 +532,9 @@ const
   EXT_RELREF16   = 131;
   EXT_REF8       = 132; // 8bit relative reference to symbol
   EXT_RELREF8    = 132;
-  EXT_DEXT32     = 133; // 32 bit data releative reference
-  EXT_DEXT16     = 134; // 16 bit data releative reference
-  EXT_DEXT8      = 135; // 8 bit data releative reference
+  EXT_DEXT32     = 133; // 32 bit data relative reference
+  EXT_DEXT16     = 134; // 16 bit data relative reference
+  EXT_DEXT8      = 135; // 8 bit data relative reference
   EXT_RELREF32   = 136; // 32bit relative reference to symbol
   EXT_RELCOMMON  = 137; // 32bit relative reference to common block
   EXT_ABSREF16   = 138;
@@ -597,7 +597,7 @@ type
     pr_CES: BPTR;                // Error stream - IF NULL, use pr_COS
   end;
 
-{ Flags for pr_Flags. (all PRIVATE) They mainly descibe what happens if the process
+{ Flags for pr_Flags. (all PRIVATE) They mainly describe what happens if the process
   exits, i.e. which resources the process should clean itself. The flags
   are self-explaining.}
 const
@@ -1052,7 +1052,7 @@ type
   PExAllControl = ^TExAllControl;
   TExAllControl = record
     eac_Entries: ULONG;     // number of entries returned in buffer
-    eac_LastKey: IPTR;      // Don't touch inbetween linked ExAll calls!
+    eac_LastKey: IPTR;      // Don't touch in between linked ExAll calls!
     eac_MatchString: PAnsiChar; // wildcard string for pattern match OR nil
     eac_MatchFunc: PHook;   // optional private wildcard FUNCTION
   end;
@@ -1462,7 +1462,7 @@ type
     rn_RestartSeg: APTR;         // SegList for the disk validator process
     rn_Info: BPTR;               // Pointer ot the Info structure
     rn_FileHandlerSegment: BPTR; // segment for a file handler
-    rn_CliList: TMinList;        // List of all CLI processe (CliProcList)
+    rn_CliList: TMinList;        // List of all CLI processes (CliProcList)
     rn_BootProc: PMsgPort;       // private ptr to msgport of boot fs
     rn_ShellSegment: BPTR;       // seglist for Shell (for NewShell)
     rn_Flags: LongInt;           // dos flags
@@ -1588,7 +1588,7 @@ type
   TIFS_EXAMINE_NEXT = record
     io_fib: PFileInfoBlock; // FileInfoBlock structure buffer to be used and filled by the filehandler.
   end;
-{ Works exactly like FSA_EXAMINE with the exeption that multiple files may be
+{ Works exactly like FSA_EXAMINE with the exception that multiple files may be
    examined, i.e. the filehandle must be a directory.}
   PIFS_EXAMINE_ALL = ^TIFS_EXAMINE_ALL;
   TIFS_EXAMINE_ALL = record
@@ -1904,7 +1904,7 @@ const
 type
   //*
   //* Define one of ELF_64BIT or ELF_32BIT in your code if you want to enforce specific
-  //* version of ELF structures. Otherwize it fails back to your native machine's size.
+  //* version of ELF structures. Otherwise it fails back to your native machine's size.
   //*
   {$IFDEF ELF_64BIT}
   {$define elf_ptr_t}

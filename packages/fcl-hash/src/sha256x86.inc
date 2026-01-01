@@ -29,7 +29,7 @@ asm
    movdqu sav11,xmm11
    movdqu sav12,xmm12
 {$endif}
-   {initalize}
+   {initialize}
    movdqu xmm2,oword ptr[Ctx]
    pshufd xmm0,xmm2,$B1
    movdqu xmm2,oword ptr[Ctx+$10]

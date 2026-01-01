@@ -457,7 +457,7 @@ begin
     Exit;
   end;
   if Name = '/' then
-    Exit; // wierd bug where written size and offset contain random data
+    Exit; // weird bug where written size and offset contain random data
   Entry := fCachedEntry;
 
 

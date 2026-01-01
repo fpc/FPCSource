@@ -194,7 +194,7 @@ type
     property ErrorCode:longint read FErrorCode;
     //Errormsg returned in status vector or by TFBAdmin
     property ErrorMsg:string read FErrorMsg;
-    //Raise exceptions when error encounterd. Default: false
+    //Raise exceptions when error encountered. Default: false
     property UseExceptions:boolean read FUseExceptions write FUseExceptions;
     //Service output messages
     //Result from Backup and Restore operations and GetLog

@@ -255,7 +255,7 @@ begin
     begin
       Sender.wrtStr(']]]]><![CDATA[>');
       Inc(idx, 2);
-      // TODO: emit warning 'cdata-section-splitted'
+      // TODO: emit warning 'cdata-section-split'
     end
     else
       Sender.wrtChr(']');
@@ -706,7 +706,7 @@ begin
   else
   begin
     // TODO: presence of zero-length textnodes triggers the indenting logic,
-    // while they should be ignored altogeter.
+    // while they should be ignored altogether.
     SavedInsideTextNode := FInsideTextNode;
     wrtChr('>');
     FInsideTextNode := FCanonical or (Child.NodeType in [TEXT_NODE, CDATA_SECTION_NODE]);

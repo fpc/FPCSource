@@ -2136,8 +2136,8 @@ begin
           ldd := GetIntFromStrLength(PAnsiChar(Src) + 6, 2, 1);
           //if (ly<1900) or (ly>2100) then ly := 1900;
           //Year from 0001 to 9999 is possible
-          //everyting else is an error, an empty string too
-          //Do DateCorrection with Delphis possibillities for one or two digits
+          //everything else is an error, an empty string too
+          //Do DateCorrection with Delphis possibilities for one or two digits
           if (ldy < 100) and (PAnsiChar(Src)[0] = #32) and (PAnsiChar(Src)[1] = #32) then
             CorrectYear(ldy);
           try

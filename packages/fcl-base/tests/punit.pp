@@ -241,7 +241,7 @@ Function GetSuite(Const AName : TTestString; AParent : PSuite = Nil) : PSuite;ov
 // It is allowed to register the same function with different names
 Function AddTest(Const ATestName : TTestString; ARun : TTestRun; Const ASuiteName : TTestString = '') : PTest;
 Function AddTest(Const ATestName : TTestString; ARun : TTestRunProc; Const ASuiteName : TTestString = '') : PTest;
-// Same as above, only the suite is explitly given. It may not be nil.
+// Same as above, only the suite is explicitly given. It may not be nil.
 Function AddTest(Const ATestName : TTestString; ARUn : TTestRun; Const ASuite : PSuite) : PTest;
 Function AddTest(Const ATestName : TTestString; ARUn : TTestRunProc; Const ASuite : PSuite) : PTest;
 // Return the 0-Based index of ATestName in suite ASuitename. Returns -1 on error or if nor found.
@@ -1341,7 +1341,7 @@ begin
   Prev:=AResult.TestResult;
   AResult.TestResult:=AResultType;
   AResult.TestMessage:=AMessage;
-  // Only increas in case of switch from non-error -> error
+  // Only increase in case of switch from non-error -> error
   if (Prev In [trEmpty,trOK]) and not (AResult.TestResult In [trEmpty,trOK])  And (AResult.Test<>Nil) then
     if AResult.TestResult=trTestIgnore then
       Inc(CurrentRun.TestsIgnored)

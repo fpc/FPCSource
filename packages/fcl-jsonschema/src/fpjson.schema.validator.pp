@@ -1081,7 +1081,7 @@ var
 
 begin
   Result:=True;
-  // Exit if no conditon
+  // Exit if no condition
   if not Assigned(aSchema.IfSchema) then
     exit;
   // Exit if no conditions

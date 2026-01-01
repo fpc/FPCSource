@@ -161,7 +161,7 @@ const
 
   SCSI_GETDBSTAT  = $34; // Get Data Buffer Status (O)
   SCSI_GETWINDOW  = $25; // Get Window (O)
-  SCSI_OBJECTPOS  = $31; // Object Postion (O)
+  SCSI_OBJECTPOS  = $31; // Object Position (O)
   SCSI_SCAN       = $1B; // Scan (O)
   SCSI_SETWINDOW  = $24; // Set Window (MANDATORY)
 

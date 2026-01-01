@@ -226,7 +226,7 @@ begin
     AssertTrue(THackDataset(ds).InternalCalcFields);
     // If there are InternalCalcFields (InternalCalcFields=True) and the fieldkind
     // of the field from the deFieldChange event is fkData, then
-    // RefreshIntenralCalcFields is called
+    // RefreshInternalCalcFields is called
     AFld := FieldByName('id');
     DataEvents := '';
     THackDataset(ds).DataEvent(deFieldChange,PtrInt(AFld));
@@ -238,7 +238,7 @@ begin
     THackDataset(ds).DataEvent(deFieldChange,PtrInt(AFld));
     AssertEquals('deFieldChange:NAME;',DataEvents);
 
-    // If the TDataset.State is dsSetKey then IntenralCalcFields shoudn't get called
+    // If the TDataset.State is dsSetKey then InternalCalcFields shouldn't get called
     THackDataset(ds).SetState(dsSetKey);
     AFld := FieldByName('id');
     DataEvents := '';
@@ -322,7 +322,7 @@ begin
     THackDataset(ds).DataEvent(deFieldChange,PtrInt(AFld));
     AssertEquals('deFieldChange:CALCFLD;',DataEvents);
 
-    // If the TDataset.State is dsSetKey then CalculateFields shoudn't get called
+    // If the TDataset.State is dsSetKey then CalculateFields shouldn't get called
     THackDataset(ds).SetState(dsSetKey);
     AFld := FieldByName('id');
     DataEvents := '';
@@ -377,7 +377,7 @@ begin
     THackDataset(ds).DataEvent(deFieldChange,PtrInt(AFld));
     AssertEquals('deFieldChange:NAME;',DataEvents);
 
-    // If the TDataset.State is dsSetKey then InternalCalcFields shoudn't get called
+    // If the TDataset.State is dsSetKey then InternalCalcFields shouldn't get called
     THackDataset(ds).SetState(dsSetKey);
     AFld := FieldByName('id');
     DataEvents := '';
@@ -536,7 +536,7 @@ begin
       LookupResultField:='ID';
       RefreshLookupList;
       KeyFields:='name';
-      // Everything is filled in, this should run wihout any problems:
+      // Everything is filled in, this should run without any problems:
       RefreshLookupList;
       // The lookupdataset was closed, and should be closed again:
       AssertFalse(lkpDs.Active);

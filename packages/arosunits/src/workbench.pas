@@ -2,7 +2,7 @@
     This file is part of the Free Pascal run time library.
     Copyright (c) 2014 by Free Pascal development team
 
-    workbnech.library functions
+    workbench.library functions
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -164,7 +164,7 @@ type
     am_UserData: IPTR;               // Application specific.
     am_ID: IPTR;               // Application definable ID.
     am_NumArgs: LongInt;               // # of elements in arglist.
-    am_ArgList: PWBArgList;           // The arguements themselves.
+    am_ArgList: PWBArgList;           // The arguments themselves.
     am_Version: Word;              // Will be AM_VERSION.
     am_Class: Word;              // Message class.
     am_MouseX: SmallInt;               // Mouse x position of event.

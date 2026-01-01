@@ -10,7 +10,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
                     FastHTMLParser unit to parse HTML
-                  (disect html into its tags and text.)
+                  (dissect html into its tags and text.)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -53,7 +53,7 @@
      dynamically parse info from websites and display data on your site in real
      time.
     -HTML editor.. WYSIWYG or a partial WYSIWYG editor. Ambitious, but possible.
-    -HTML property editor. Not completely wysiwyg but ability to edit proprties
+    -HTML property editor. Not completely wysiwyg but ability to edit properties
      of tags. Work would need to be done to parse each property in a tag.
 
 

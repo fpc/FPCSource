@@ -1470,7 +1470,7 @@ begin
           ok := True;
         end;
       end;
-      Check(ok, 'Succefully create a object who''s type tree contains circular dependency.');
+      Check(ok, 'Successfully create a object who''s type tree contains circular dependency.');
       locTypeX := locFac.getType(s_uri,'B') as ISDOObjectType;
       locTypeX.DropProperty(locTypeX.getProperty('p_BB'));
       locFac := nil;}

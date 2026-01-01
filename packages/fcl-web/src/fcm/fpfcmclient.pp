@@ -132,7 +132,7 @@ type
     Property WebClient : TAbstractWebClient Read GetWebClient Write SetWebClient;
     // Serialize and send.
     function Send(aMsg : TNotificationMessage; aRecipient : UTF8String) : Boolean;
-    // Serialize and send to multiple recipeints
+    // Serialize and send to multiple recipients
     function Send(aMsg : TNotificationMessage; aRecipients : Array of UTF8String) : Boolean;
     // Current bearer token. You can set this if you stored it somewhere
     property BearerToken: TBearerToken read FBearerToken write SetBearerToken;

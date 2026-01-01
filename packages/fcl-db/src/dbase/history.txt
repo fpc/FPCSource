@@ -608,7 +608,7 @@ V6.1.4
 ------------------------
 V6.1.3
 
-- chnge: same functionality, clearer implementation of autocreate in
+- change: same functionality, clearer implementation of autocreate in
     TDbf.InternalOpen
 - fixed: automagic creation of MDX indexes in TDbf.Indexes property if not exist
 - added: on creation of MDX indexes now automagically tries exclusive mode
@@ -709,7 +709,7 @@ V6.0.1
 - fixed: index bug using dbase III files
 - fixed: re-indexing existing (NDX) file fails
 - fixed: index bug (NDX) concerning expression index
-- chnge: TPagedFile.GetRecordCount now only retrieves file size if not in
+- change: TPagedFile.GetRecordCount now only retrieves file size if not in
     multi-user share mode, to speed up things a little bit
 - fixed: index bug splitting pages
 - fixed: page file set record count, now using pageoffset next page

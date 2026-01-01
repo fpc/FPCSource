@@ -64,7 +64,7 @@ Updated since last version:
 
     This can be used as a template for embedded processor
     development, you just need to replace all sysatari
-    routines by emtpy ones (for example), most other routines
+    routines by empty ones (for example), most other routines
     in the include file should be kept (some of them are internal)
 
    PC/Linux version
@@ -86,7 +86,7 @@ Updated since last version:
 3) General information and porting tips
 ---------------------------------------
 
-  - Alignment output is supposedely correct even though i can't
+  - Alignment output is supposedly correct even though i can't
     personally test this. (Someone else tested for me)
   - Some tips to port some general code from i386 FPC to m68k FPC,
     you should limit your local variables and pushed variables
@@ -145,7 +145,7 @@ Developer mailing list:
 You can contact me at:
  codc01@gel.usherb.ca
  http://www-edu.gel.usherb.ca/codc01
-Amiga inlucdes/units and Amiga specific stuff:
+Amiga includes/units and Amiga specific stuff:
  nils.sjoholm@mailbox.swipnet.se
 
 Thanks:

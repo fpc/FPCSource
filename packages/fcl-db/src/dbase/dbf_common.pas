@@ -137,7 +137,7 @@ procedure SwapInt64LE(Value, Result: Pointer); register;
 // Translate string between codepages
 function TranslateString(FromCP, ToCP: Cardinal; Src, Dest: PAnsiChar; Length: Integer): Integer;
 
-// Returns a pointer to the first occurence of Chr in Str within the first Length characters
+// Returns a pointer to the first occurrence of Chr in Str within the first Length characters
 // Does not stop at null (#0) terminator!
 function MemScan(const Buffer: Pointer; Chr: Byte; Length: Integer): Pointer;
 

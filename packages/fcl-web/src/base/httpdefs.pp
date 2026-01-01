@@ -2135,7 +2135,7 @@ end;
 function TMimeItem.CreateUploadedFileStreaming(Files: TUploadedFiles): TUploadedFile;
 begin
   if FLocalFilename='' then
-    // Even though this class supports streaming procesing of data, does not
+    // Even though this class supports streaming processing of data, does not
     // mean it is being used that way. In those cases the non-streaming file-
     // creation has to take place: (For example, CGI does not use the
     // streaming capabilities (may 2021))

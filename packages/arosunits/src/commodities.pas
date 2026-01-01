@@ -2,7 +2,7 @@
     This file is part of the Free Pascal run time library.
     Copyright (c) 2016 by Free Pascal development team
 
-    comodities.library functions
+    commodities.library functions
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -94,7 +94,7 @@ const
   CX_TRANSLATE  = 5; // translates IE into chain
   CX_BROKER     = 6; // application representative
   CX_DEBUG      = 7; // dumps kprintf to serial port
-  CX_CUSTOM     = 8; // application provids function
+  CX_CUSTOM     = 8; // application provides function
   CX_ZERO       = 9; // system terminator node
 
 type

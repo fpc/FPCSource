@@ -74,7 +74,7 @@ Const
 
 { Relative position to Seek() }
 
-    OFFSET_BEGINNING    = -1;           { relative to Begining Of File }
+    OFFSET_BEGINNING    = -1;           { relative to Beginning Of File }
     OFFSET_CURRENT      = 0;            { relative to Current file position }
     OFFSET_END          = 1;            { relative to End Of File }
 
@@ -278,7 +278,7 @@ CONST
 { error codes 303-305 are defined in dosasl.h }
 
 { These are the return codes used by convention by AmigaDOS commands }
-{ See FAILAT and IF for relvance to EXECUTE files                    }
+{ See FAILAT and IF for relevance to EXECUTE files                   }
  RETURN_OK                        =   0;  { No problems, success }
  RETURN_WARN                      =   5;  { A warning only }
  RETURN_ERROR                     =  10;  { Something wrong }
@@ -532,9 +532,9 @@ CONST
      EXT_COMMON     = 130;     {   32 bit reference to COMMON block }
      EXT_REF16      = 131;     {   16 bit reference to symbol }
      EXT_REF8       = 132;     {    8 bit reference to symbol }
-     EXT_DEXT32     = 133;     {   32 bit data releative reference }
-     EXT_DEXT16     = 134;     {   16 bit data releative reference }
-     EXT_DEXT8      = 135;     {    8 bit data releative reference }
+     EXT_DEXT32     = 133;     {   32 bit data relative reference  }
+     EXT_DEXT16     = 134;     {   16 bit data relative reference  }
+     EXT_DEXT8      = 135;     {    8 bit data relative reference  }
 
 
 Type
@@ -1091,7 +1091,7 @@ Type
 
 {
  *   Control structure passed to ExAll.  Unused fields MUST be initialized to
- *   0, expecially eac_LastKey.
+ *   0, especially eac_LastKey.
  *
  *   eac_MatchFunc is a hook (see utility.library documentation for usage)
  *   It should return true if the entry is to returned, false if it is to be
@@ -1103,7 +1103,7 @@ Type
        pExAllControl = ^tExAllControl;
        tExAllControl = record
         eac_Entries,                 {   number of entries returned in buffer      }
-        eac_LastKey     : ULONG;     {   Don't touch inbetween linked ExAll calls! }
+        eac_LastKey     : ULONG;     {   Don't touch in between linked ExAll calls!}
         eac_MatchString : STRPTR;    {   wildcard string for pattern match OR NULL }
         eac_MatchFunc   : pHook;     {   optional private wildcard FUNCTION     }
        END;

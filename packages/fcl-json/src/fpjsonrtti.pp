@@ -187,12 +187,12 @@ Type
     // Called when a object-typed property must be restored, and the property is Nil. Must return an instance for the property.
     // Published Properties of the instance will be further restored with available data.
     Property OngetObject : TJSONGetObjectEvent Read FOnGetObject Write FOnGetObject;
-    // JSON is by definition case sensitive. Should properties be looked up case-insentive ?
+    // JSON is by definition case sensitive. Should properties be looked up case-insensitive ?
     Property CaseInsensitive : Boolean Read GetCaseInsensitive Write SetCaseInsensitive ; deprecated;
     // DateTime format. If not set, RFC3339DateTimeFormat is assumed.
     // If set, it will be used as an argument to ScanDateTime. If that fails, StrToDateTime is used.
     Property DateTimeFormat : String Read FDateTimeFormat Write FDateTimeFormat;
-    // Options overning the behaviour
+    // Options covering the behaviour
     Property Options : TJSONDestreamOptions Read FOptions Write FOptions;
   end;
 

@@ -705,7 +705,7 @@ Type
     Function FindPage(aIndex : Integer) : TPDFPageObject;
     // Page count in this node
     Property PageCount : Integer Read GetPageCount;
-    // Number of direct childen
+    // Number of direct children
     Property ChildCount : Integer Read GetChildCount;
     // Reference to child aIndex, 0-Based.
     Property ChildRef[aIndex : integer] : TPDFRefData Read GetChildRef;

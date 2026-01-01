@@ -23,7 +23,7 @@ const
   NETDB_INTERNAL= -1;       { see errno }
   NETDB_SUCCESS = 0;        { no problem }
   HOST_NOT_FOUND= 1;        { Authoritative Answer Host not found }
-  TRY_AGAIN     = 2;        { Non-Authoritive Host not found, or SERVERFAIL }
+  TRY_AGAIN     = 2;        { Non-Authoritative Host not found, or SERVERFAIL }
   NO_RECOVERY   = 3;        { Non recoverable errors, FORMERR, REFUSED, NOTIMP }
   NO_DATA       = 4;        { Valid name, no data record of requested type }
   NO_ADDRESS    = NO_DATA;  { no address, look for MX record }
@@ -37,14 +37,14 @@ Type
     H_Aliases  : PPAnsiChar;  { Null-terminated list of aliases}
     H_Addrtype : longint;   { Host address type }
     H_length  : longint;   { Length of address }
-    H_Addr : PPAnsiChar;    { null-terminated list of adresses }
+    H_Addr : PPAnsiChar;    { null-terminated list of addresses }
   end;
   PHostEntry = ^THostEnt;
 
   { TNetEnt object }
   TNetEnt = record
     N_Name     : PAnsiChar;   { Official name }
-    N_Aliases  : PPAnsiChar;  { Nill-terminated alias list }
+    N_Aliases  : PPAnsiChar;  { Nil-terminated alias list }
     N_AddrType : longint; { Net address type }
     N_net      : Cardinal; { Network number }
   end;

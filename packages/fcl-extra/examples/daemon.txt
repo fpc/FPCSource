@@ -70,7 +70,7 @@ TDaemonMapper
 
   for example: the daemonmapper can be used to create 2 http server daemons,
   each which listens on a separate port. TDaemon has a property Definition,
-  which is the definiton that was used to create the instance.
+  which is the definition that was used to create the instance.
 
 Schematically one could draw it like this:
 

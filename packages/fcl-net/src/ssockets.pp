@@ -94,9 +94,9 @@ type
     Procedure CheckSocket;
   Public
     constructor Create; virtual;
-    // Called after the connect call succeded. Returns True to continue, false to close connection.
+    // Called after the connect call succeeded. Returns True to continue, false to close connection.
     function Connect: boolean; virtual;
-    // Called after the accept call succeded on the NEW client socket
+    // Called after the accept call succeeded on the NEW client socket
     function Accept : Boolean; virtual;
     Function Close : Boolean; virtual;
     function Shutdown(BiDirectional : Boolean): boolean; virtual;
@@ -248,7 +248,7 @@ type
     Procedure SetNonBlocking;
     Procedure Foreach(aHandler : TForeachHandler);
     Property Bound : Boolean Read FBound;
-    // Maximium number of connections in total. *Not* the simultaneous connection count. -1 keeps accepting.
+    // Maximum number of connections in total. *Not* the simultaneous connection count. -1 keeps accepting.
     Property MaxConnections : longint Read FMaxConnections Write FMaxConnections;
     Property MaxSimultaneousConnections : longint Read FMaxSimultaneousConnections Write FMaxSimultaneousConnections;
 

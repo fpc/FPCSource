@@ -55,7 +55,7 @@ begin
     ResponseJson.Free;
   end;
 
-  // Usefull for testing of memory-leaks
+  // Useful for testing of memory-leaks
   if ShouldShutdown then
     WebApp.Terminate;
 end;

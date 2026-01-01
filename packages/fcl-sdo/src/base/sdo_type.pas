@@ -350,7 +350,7 @@ type
     procedure setAlias(const AAlias : string);
     function getBufferOffset() : PtrUInt;
     function setBufferOffset(const AStartingAddress : PtrUInt) : PtrUInt;
-    // do not use this : it is only for houskeeping
+    // do not use this : it is only for housekeeping
     procedure ClearType();
   end;
 

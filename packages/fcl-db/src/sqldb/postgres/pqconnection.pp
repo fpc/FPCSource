@@ -1570,7 +1570,7 @@ begin
     // Joost, 5 jan 2006: I disabled the following, since it's useful for
     // debugging, but it also slows things down. In principle things can only go
     // wrong when FieldDefs is changed while the dataset is opened. A user just
-    // shoudn't do that. ;) (The same is done in IBConnection)
+    // shouldn't do that. ;) (The same is done in IBConnection)
     //if PQfname(Res, x) <> FieldDef.Name then
     //  DatabaseErrorFmt(SFieldNotFound,[FieldDef.Name],self);
 

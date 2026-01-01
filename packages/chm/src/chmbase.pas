@@ -99,7 +99,7 @@ type
 
   PPMGListChunkEntry = ^TPMGListChunkEntry;
   TPMGListChunkEntry = record
-    //NameLength: LongInt; we don't need this permanantly so I've moved it to a temp var
+    //NameLength: LongInt; we don't need this permanently so I've moved it to a temp var
     Name: String;
     ContentSection: LongWord;//QWord;
     ContentOffset: QWord;

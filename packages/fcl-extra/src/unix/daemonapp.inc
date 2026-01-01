@@ -35,7 +35,7 @@ begin
     end
   else
     begin
-    // Here we are in the daemonized proces
+    // Here we are in the daemonized process
     sid := FpSetsid;
     if sid < 0 then
       raise Exception.Create(SErrFailedToFork);

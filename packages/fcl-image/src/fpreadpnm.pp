@@ -106,7 +106,7 @@ begin
     begin
     repeat
       Result:=ReadChar(Stream);
-{If we encounter comment then eate line}
+{If we encounter comment then eat line}
       if DropWhiteSpaces='#' then
       repeat
         Result:=ReadChar(Stream);

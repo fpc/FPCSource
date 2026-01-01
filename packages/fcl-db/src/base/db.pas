@@ -2919,7 +2919,7 @@ function TLookupList.ValueOfKey(const AKey: Variant): Variant;
 
   Function VarArraySameValues(VarArray1,VarArray2 : Variant) : Boolean;
   // This only works for one-dimensional vararrays with a lower bound of 0
-  // and equal higher bounds wich only contains variants.
+  // and equal higher bounds which only contains variants.
   // The vararrays returned by GetFieldValues do apply.
   var i : integer;
   begin

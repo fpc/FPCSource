@@ -868,7 +868,7 @@ type
     HelperForType: TPasType;  // any type, except helper
     IsForward: Boolean;
     IsExternal : Boolean;
-    IsShortDefinition: Boolean;//class(anchestor); without end
+    IsShortDefinition: Boolean;//class(ancestor); without end
     GUIDExpr : TPasExpr;
     Modifiers: TStringList;
     Interfaces : TFPList; // list of TPasType
@@ -1184,7 +1184,7 @@ type
     AliasName : TPasTreeString;
     ProcType : TPasProcedureType;
     Body : TProcedureBody;
-    NameParts: TProcedureNameParts; // only used for generic aka parametrized functions
+    NameParts: TProcedureNameParts; // only used for generic aka parameterized functions
     Procedure AddModifier(AModifier : TProcedureModifier);
     Function CanParseImplementation : Boolean;
     Function HasNoImplementation : Boolean;

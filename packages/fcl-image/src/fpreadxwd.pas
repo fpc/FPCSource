@@ -222,7 +222,7 @@ begin
   Color.alpha := 0;
 
   {****************************************************************************
-    The file is on big-endian format, so it needs to be swaped on little-endian CPUs
+    The file is on big-endian format, so it needs to be swapped on little-endian CPUs
    ****************************************************************************}
   Stream.Position := 0; //* Causes error if removed, but should be
 

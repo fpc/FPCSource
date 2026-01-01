@@ -544,7 +544,7 @@ begin
     begin
     try
       // Cannot wait on thread in case
-      // 1.  this is called in a Synchonize method and the FThread is
+      // 1.  this is called in a Synchronize method and the FThread is
       //     about to run a synchronize method. In these cases we would have a deadlock
       // 2.  In a DLL and this is called as part of DLLMain, which never
       //     returns endthread (hence WaitFor) until DLLMain is exited

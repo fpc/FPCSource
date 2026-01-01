@@ -418,7 +418,7 @@ begin
 //  bladen.Scrollable := false;
   b.PackStart (bladen, true, true, 0);
 
-  // defintion
+  // definition
   //writeln ('------->> Property Definition');
     t := TFPgtkTable.Create (2, 4);
     t.attach (TRightLabel.Create(sName), 0,1, 0,1, gtk_noExp, gtk_fill, 3,0);
@@ -1406,7 +1406,7 @@ const
   keySaveOnExit = 'SaveOnExit';
   keyFileFormat = 'TextFormat';
   keyMRUCount = 'MRUCount';
-  keyExtension = 'Extention'; //keep wrong spelling so cmpatibility kept with existing settings
+  keyExtension = 'Extention'; //keep wrong spelling so compatibility kept with existing settings
   keyProgressWindow = 'ShowProgress';
   secMRU = 'Last open files';
   keyFile = 'File';

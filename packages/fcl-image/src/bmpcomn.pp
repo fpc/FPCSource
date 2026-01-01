@@ -48,7 +48,7 @@ type
    PBitMapFileHeader = ^TBitMapFileHeader;
 
    TBitMapInfoHeader = packed record
-{14+04 : Size of the bitmap info header : sould be 40=$28}
+{14+04 : Size of the bitmap info header : should be 40=$28}
       Size:longint;
 {18+04 : Image width in pixels}
       Width:longint;
@@ -68,7 +68,7 @@ type
       YPelsPerMeter:Longint;
 {46+04 : Number of colors used}
       ClrUsed:longint;
-{50+04 : Number of imprtant colors used : useful for displaying on VGA256}
+{50+04 : Number of important colors used : useful for displaying on VGA256}
       ClrImportant:longint;
    end;
    PBitMapInfoHeader = ^TBitMapInfoHeader;

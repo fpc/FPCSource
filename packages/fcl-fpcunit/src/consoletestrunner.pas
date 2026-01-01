@@ -163,7 +163,7 @@ end;
 
 destructor TProgressWriter.Destroy;
 begin
-  // on descruction, just write the missing line ending
+  // on destruction, just write the missing line ending
   writeln;
   inherited Destroy;
 end;
@@ -540,7 +540,7 @@ begin
   ReadDefaults;
   if Not ParseOptions then
     exit;
-  //get a list of all registed tests
+  //get a list of all registered tests
   Case FRunMode of
     rmList: ShowTestList;
     rmSuite: RunSuite;

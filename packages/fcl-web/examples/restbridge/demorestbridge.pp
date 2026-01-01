@@ -2,7 +2,7 @@
     This file is part of the Free Pascal run time library.
     Copyright (c) 2019 by the Free Pascal development team
 
-    SQLDB REST rest bridge demo applocation.
+    SQLDB REST rest bridge demo application.
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.

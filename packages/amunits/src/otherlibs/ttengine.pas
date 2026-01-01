@@ -189,7 +189,7 @@ const
      TTRQ_InitialLeftEdge = $6EDA2007;
   { WORD,             centered on screen  }
      TTRQ_InitialTopEdge = $6EDA2008;
-  { WORD,             max(200, 25% of sceeen width)  }
+  { WORD,             max(200, 25% of screen width)  }
      TTRQ_InitialWidth = $6EDA2009;
   { WORD,             max(200, 50% of screen height)  }
      TTRQ_InitialHeight = $6EDA200A;

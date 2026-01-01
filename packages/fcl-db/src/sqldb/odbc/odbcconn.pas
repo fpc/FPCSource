@@ -256,7 +256,7 @@ begin
         NativeError1 := NativeError;
         SQLState1 := SqlState;
       end;
-      // incement counter
+      // increment counter
       Inc(RecNumber);
     until false;
   except

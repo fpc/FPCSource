@@ -2494,7 +2494,7 @@ begin
         FParsers[found + moveItems] := tempParser;
         FRoots[found + moveItems] := tempRoot;
         FLeaves[found + moveItems] := tempLeaf;
-        FIndexHeaderModified[found + moveItems] := false;    // non-existant header
+        FIndexHeaderModified[found + moveItems] := false;    // non-existent header
       end;
       // one entry less left
       IncWordLE(PMdxHdr(Header)^.TagsUsed, -1);

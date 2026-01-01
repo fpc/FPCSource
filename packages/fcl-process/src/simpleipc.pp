@@ -55,7 +55,7 @@ type
   private type
     TStreamClass = class of TStream;
   private const
-    // TMemoryStream uses an effecient grow algorithm.
+    // TMemoryStream uses an efficient grow algorithm.
     DefaultStreamClass: TStreamClass = TMemoryStream;
   strict private
     FStream: TStream;

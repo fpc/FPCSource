@@ -48,7 +48,7 @@ Type
     procedure DoUpgrade(aConnection: TFPHTTPConnection; aRequest: TFPHTTPConnectionRequest); virtual;
     // Webserver that we must register with
     Property WebServer : TFPCustomHttpServer Read FWebServer Write SetWebServer;
-    // If set, only this resource will be acceped for upgrade.
+    // If set, only this resource will be accepted for upgrade.
     Property Host : String Read FHost Write SetHost;
     // Name to use when registering upgrade mechanism. Defaults to Name.
     Property UpgradeName : String Read GetUpgradeName Write SetUpgradeName;

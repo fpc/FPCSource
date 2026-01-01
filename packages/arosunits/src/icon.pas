@@ -41,7 +41,7 @@ const
   { Icon color remapping precision; defaults to PRECISION_ICON (LongInt)  }
   ICONCTRLA_SetGlobalPrecision = ICONA_Dummy + 4;
   ICONCTRLA_GetGlobalPrecision = ICONA_Dummy + 5;
-  { Icon frame size dimensions (PRectange)  }
+  { Icon frame size dimensions (PRectangle)  }
   ICONCTRLA_SetGlobalEmbossRect = ICONA_Dummy + 6;
   ICONCTRLA_GetGlobalEmbossRect = ICONA_Dummy + 7;
   { Render image without frame (BOOL)  }

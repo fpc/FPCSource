@@ -219,7 +219,7 @@ function BytesAvailable(const ASocket: TFPSocket): SizeInt;
 function StreamClosed(const ASocket: TFPSocket): Boolean; inline;
 
 // For non blocking connections, connect will return a pending connection that needs to be checked
-// Note: csConnected means that connection was establised at least once
+// Note: csConnected means that connection was established at least once
 // If it has been closed by the other side, it is still csConnected, use StreamClosed to figure out
 // if the stream is actually open
 function ConnectionState(const ASocket: TFPSocket): TConnectionState;

@@ -59,7 +59,7 @@ dts_state_t * dts_init (uint32_t mm_accel);
 Initializes the DTS library. Takes as a parameter the acceptable
 optimizations which may be used, such as MMX. These are found in the
 included header file 'mm_accel', along with an autodetection function
-(mm_accel()). Currently, there is no accelleration implemented.
+(mm_accel()). Currently, there is no acceleration implemented.
 
 The return value is a pointer to a dts state object.
 
@@ -71,7 +71,7 @@ int dts_syncinfo (uint8_t * buf, int * flags,
                   int * sample_rate, int * bit_rate, int * frame_length);
 
 The DTS bitstream is composed of several dts frames concatenated one
-after each other. A dts frame is the smallest independantly decodable
+after each other. A dts frame is the smallest independently decodable
 unit in the stream.
 
 buf must contain at least 14 bytes from the input stream. If these look

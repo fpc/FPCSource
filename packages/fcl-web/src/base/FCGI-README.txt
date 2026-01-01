@@ -405,7 +405,7 @@ If there is any problem, you can try and check the Apache error.log for clues.
 
 3. NGINX Configuration
 
-Full configuraion of FastCGI is discussed at:
+Full configuration of FastCGI is discussed at:
 
 http://wiki.nginx.org/HttpFastcgiModule
 

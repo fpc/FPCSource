@@ -94,7 +94,7 @@ type
     FStatus                : TStatusVector;
     FDatabaseInfo          : TDatabaseInfo;
     FDialect               : integer;
-    FBlobSegmentSize       : word; //required for backward compatibilty; not used
+    FBlobSegmentSize       : word; //required for backward compatibility; not used
     FUseConnectionCharSetIfNone: Boolean;
     FWireCompression       : Boolean;
     FCursorCount : Integer;
@@ -1327,7 +1327,7 @@ begin
     // Joost, 5 jan 2006: I disabled the following, since it's useful for
     // debugging, but it also slows things down. In principle things can only go
     // wrong when FieldDefs is changed while the dataset is opened. A user just
-    // shoudn't do that. ;) (The same is done in PQConnection)
+    // shouldn't do that. ;) (The same is done in PQConnection)
 
     // if VSQLVar^.AliasName <> FieldDef.Name then
     // DatabaseErrorFmt(SFieldNotFound,[FieldDef.Name],self);

@@ -640,7 +640,7 @@ type
     function IsReadFromPacket : Boolean;
     function getnextpacket : integer;
     function GetPacketReader(const Format: TDataPacketFormat; const AStream: TStream): TDataPacketReader; virtual;
-    // abstracts, must be overidden by descendents
+    // abstracts, must be overridden by descendents
     function Fetch : boolean; virtual;
     function LoadField(FieldDef : TFieldDef;buffer : pointer; out CreateBlob : boolean) : boolean; virtual;
     procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField); virtual; abstract;
@@ -1433,7 +1433,7 @@ begin
       // Issue 40450: At design time, create a dataset, set to active.
       // At runtime, open is called, but fields are not bound (this happens in createdataset)
       // So we check for unbound fields and bind them if needed.
-      // Do not call bindfields unconditonally, because descendants may have called it.
+      // Do not call bindfields unconditionally, because descendants may have called it.
       I:=0;
       DoBind:=False;
       While (Not DoBind) and (I<Fields.Count) do
@@ -2248,7 +2248,7 @@ procedure TCustomBufDataset.InitDefaultIndexes;
 {
   This procedure makes sure there are 2 default indexes:
   DEFAULT_ORDER, which is simply the order in which the server records arrived.
-  CUSTOM_ORDER, which is an internal index to accomodate the 'IndexFieldNames' property.
+  CUSTOM_ORDER, which is an internal index to accommodate the 'IndexFieldNames' property.
 }
 
 Var

@@ -293,7 +293,7 @@ type
   TWSOption = (woPongExplicit,      // Send Pong explicitly, not implicitly.
                woCloseExplicit,     // SeDo Close explicitly, not implicitly.
                woIndividualFrames,  // Send frames one by one, do not concatenate.
-               woSkipUpgradeCheck,  // Skip handshake "Upgrade:" HTTP header cheack.
+               woSkipUpgradeCheck,  // Skip handshake "Upgrade:" HTTP header check.
                woSkipVersionCheck,  // Skip handshake "Sec-WebSocket-Version' HTTP header check.
                woSendErrClosesConn  // Don't raise an exception when writing to a broken connection
               );

@@ -518,7 +518,7 @@ end;
 procedure TField.FreeBuffers;
 
 begin
-  // Empty. Provided for backward compatibiliy;
+  // Empty. Provided for backward compatibility;
   // TDataset manages the buffers.
 end;
 

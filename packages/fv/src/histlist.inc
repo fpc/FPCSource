@@ -10,7 +10,7 @@
 {                                                          }
 {****************[ THIS CODE IS FREEWARE ]*****************}
 {                                                          }
-{     This sourcecode is released for the purpose to       }
+{     This source code is released for the purpose to      }
 {   promote the pascal language on all platforms. You may  }
 {   redistribute it and/or modify with the following       }
 {   DISCLAIMER.                                            }
@@ -470,7 +470,7 @@ VAR Count: Word;
 BEGIN
    StartId(Id);                                       { Set to first record }
    Count := 0;                                        { Clear count }
-   If (HistoryBlock <> Nil) Then Begin                { History initalized }
+   If (HistoryBlock <> Nil) Then Begin                { History initialized }
      AdvanceStringPtr;                                { Move to first string }
      While (CurString <> Nil) Do Begin
        Inc(Count);                                    { Add one to count }
@@ -491,7 +491,7 @@ VAR I: Sw_Integer;
 {$endif FV_UNICODE}
 BEGIN
    StartId(Id);                                       { Set to first record }
-   If (HistoryBlock <> Nil) Then Begin                { History initalized }
+   If (HistoryBlock <> Nil) Then Begin                { History initialized }
      For I := 0 To Index Do AdvanceStringPtr;         { Find indexed string }
      If (CurString <> Nil) Then Begin
 {$ifdef FV_UNICODE}

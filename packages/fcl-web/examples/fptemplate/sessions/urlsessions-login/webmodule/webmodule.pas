@@ -219,7 +219,7 @@ begin
     Exit;
   end;
 
-  //succesful login
+  //successful login
   LoggedInLoginName := loginname;
 
   //session starting, need to store it somewhere next to the name of the logged in person

@@ -80,7 +80,7 @@ type
   TMaskUtils = class(TObject)
   private
     FRealMask: String;
-    FMask: String;  // internal representatio of the mask
+    FMask: String;  // internal representation of the mask
     FValue: String;
     FMaskLength: Integer;
     FMaskSave: Boolean;
@@ -172,7 +172,7 @@ begin
   if (Length(AEditMask) >= 4) and (AEditMask[Length(AEditMask)-1] = MaskFieldSeparator) and
      (AEditMask[Length(AEditMask)-3] = MaskFieldSeparator) and
      (AEditMask[Length(AEditMask)-2] <> cMask_SpecialChar) and
-     //Length = 4 is OK (AEditMask = ";1;_" for example), but if Length > 4 there must be no escape charater in front
+     //Length = 4 is OK (AEditMask = ";1;_" for example), but if Length > 4 there must be no escape character in front
      ((Length(AEditMask) = 4) or ((Length(AEditMask) > 4) and (AEditMask[Length(AEditMask)-4] <> cMask_SpecialChar))) then
   begin
     ASpaceChar := AEditMask[Length(AEditMask)];
@@ -181,7 +181,7 @@ begin
   end
   //If not both FMaskSave and FSPaceChar are specified, then see if only FMaskSave is specified
   else if (Length(AEditMask) >= 2) and (AEditMask[Length(AEditMask)-1] = MaskFieldSeparator) and
-          //Length = 2 is OK, but if Length > 2 there must be no escape charater in front
+          //Length = 2 is OK, but if Length > 2 there must be no escape character in front
           ((Length(AEditMask) = 2) or ((Length(AEditMask) > 2) and (AEditMask[Length(AEditMask)-2] <> cMask_SpecialChar))) then
   begin
     AMaskSave := (AEditMask[Length(AEditMask)] <> MaskNoSave);
@@ -314,7 +314,7 @@ end;
 // Clear (virtually) a single char in position Position
 function TMaskUtils.ClearChar(Position: Integer): Char;
 begin
-  //For Delphi compatibilty, only literals remain, all others will be blanked
+  //For Delphi compatibility, only literals remain, all others will be blanked
   case CharToMask(FMask[Position]) Of
     Char_Number,
     Char_NumberFixed,
@@ -644,7 +644,7 @@ function TMaskUtils.ApplyMaskToText(AValue: String): String;
                     12@3              12-__@__
     cc-cc@cc        123-456@789       12-45@78
     !cc-cc@cc       123-456@789       23-56@89
-    This feauture seems to be invented for easy use of dates:
+    This feature seems to be invented for easy use of dates:
 
     99/99/00        23/1/2009         23/1_/20  <- if your locale DateSeparator = '/'
     !99/99/00       23/1/2009         23/_1/09  <- if your locale DateSeparator = '/'

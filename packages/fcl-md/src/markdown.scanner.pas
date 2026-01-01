@@ -74,9 +74,9 @@ type
     function NextChars(aCount : integer) : String;
     // Check that the text has S starting at the next character position
     function Has(S : string) : boolean;
-    // Check if there is a second occurence after an occurence of string S at current position.
+    // Check if there is a second occurrence after an occurrence of string S at current position.
     function FindMatchingOccurrence(const S : String) : boolean;
-    // Check if there is a second occurence after an occurence of string S at current position, second occurrence may not be preceded by ExcludeBefore.
+    // Check if there is a second occurrence after an occurrence of string S at current position, second occurrence may not be preceded by ExcludeBefore.
     function FindMatchingOccurrence(const S : String; ExcludeBefore : char) : boolean;
     // Skip all whitespace, advance cursor position
     procedure SkipWhitespace;

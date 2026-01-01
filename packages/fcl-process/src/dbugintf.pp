@@ -82,7 +82,7 @@ ResourceString
 
 Var
   DebugServerExe            : String = ''; { We can override this global var. in our compiled IPC client, with DefaultDebugServer a.k.a. dbugmsg.DebugServerID, or something else  }
-  DefaultDebugServer        : String = DebugServerID ; { A "last ressort" simplier compiled IPC server's name, called in command line by your client a.k.a. the compiler's target file "-o" }
+  DefaultDebugServer        : String = DebugServerID ; { A "last resort" simpler compiled IPC server's name, called in command line by your client a.k.a. the compiler's target file "-o" }
   //Last error message of a Send... function. Not cleared on a new call!
   SendError                 : String = '';
   //Raise an exception if a Send... function fails.

@@ -61,7 +61,7 @@ const
   PSD_PS2_COLOR_TAB = $03eb;    { Obsolete - ps 2.0 indexed color table  }
   PSD_RESN_INFO = $03ed;        { ResolutionInfo structure  }
   PSD_ALPHA_NAMES = $03ee;      { Alpha channel names  }
-  PSD_DISPLAY_INFO = $03ef;     { Superceded by PSD_DISPLAY_INFO_NEW for ps CS3 and higher - DisplayInfo structure  }
+  PSD_DISPLAY_INFO = $03ef;     { Superseded by PSD_DISPLAY_INFO_NEW for ps CS3 and higher - DisplayInfo structure  }
   PSD_CAPTION = $03f0;          { Optional - Caption string  }
   PSD_BORDER_INFO = $03f1;      { Border info  }
   PSD_BACKGROUND_COL = $03f2;   { Background color  }
@@ -90,8 +90,8 @@ const
   PSD_COPYRIGHT_FLG = $040a;    { Copyright flag  }
   PSD_URL = $040b;              { URL string  }
   PSD_THUMB_RES2 = $040c;       { Thumbnail resource  }
-  PSD_GLOBAL_ANGLE = $040d;     { Superceded by PSD_NEW_COLOR_SAMPLER for ps CS3 and higher - Global angle  }
-  PSD_COLOR_SAMPLER = $040e;    { Superceded by PSD_NEW_COLOR_SAMPLER for ps CS3 and higher - Color samplers resource  }
+  PSD_GLOBAL_ANGLE = $040d;     { Superseded by PSD_NEW_COLOR_SAMPLER for ps CS3 and higher - Global angle  }
+  PSD_COLOR_SAMPLER = $040e;    { Superseded by PSD_NEW_COLOR_SAMPLER for ps CS3 and higher - Color samplers resource  }
   PSD_ICC_PROFILE = $040f;      { ICC Profile  }
   PSD_WATERMARK = $0410;        { Watermark  }
   PSD_ICC_UNTAGGED = $0411;     { Do not use ICC profile flag  }

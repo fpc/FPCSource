@@ -74,10 +74,10 @@ Type
     dth_Name: STRPTR;       // Descriptive name of the data type
     dth_BaseName: STRPTR;   // Base name of the data type
     dth_Pattern: STRPTR;    // Match pattern for file name.
-    dth_Mask: PSmallInt;    // Comparision mask
+    dth_Mask: PSmallInt;    // Comparison mask
     dth_GroupID: LongWord;  // Group that the DataType is in
     dth_ID: LongWord;       // ID for DataType (same as IFF FORM type)
-    dth_MaskLen: SmallInt;  // Length of comparision mask
+    dth_MaskLen: SmallInt;  // Length of comparison mask
     dth_Pad: SmallInt;      // Unused at present (must be 0)
     dth_Flags: Word;        // Flags
     dth_Priority: Word;     // Priority
@@ -134,7 +134,7 @@ const
   // A code chunk contains an embedded executable that can be loaded with InternalLoadSeg.
   ID_CODE = Ord('D') shl 24 + Ord('T')  shl 16 + Ord('C') shl 8 + Ord('D'); // DTCD
 
-// DataTypes comparision hook context (Read-Only).  This is the argument that is passed to a custom comparision routine.
+// DataTypes comparison hook context (Read-Only).  This is the argument that is passed to a custom comparison routine.
 type
   PTHookContext = ^TDTHookContext;
   TDTHookContext = record
@@ -236,7 +236,7 @@ const
   DTA_VertUnit       = DTA_Dummy + 14; // (LongInt) Number of pixels per vertical unit
   DTA_TopHoriz       = DTA_Dummy + 15; // (LongInt) Top horizontal unit
   DTA_VisibleHoriz   = DTA_Dummy + 16; // (LongInt) Number of visible horizontal units
-  DTA_TotalHoriz     = DTA_Dummy + 17; // (LongInt) Total number of horiziontal units
+  DTA_TotalHoriz     = DTA_Dummy + 17; // (LongInt) Total number of horizontal units
   DTA_HorizUnit      = DTA_Dummy + 18; // (LongInt) Number of pixels per horizontal unit
   DTA_NodeName       = DTA_Dummy + 19; // (PByte) Name of the current element within the object
   DTA_Title          = DTA_Dummy + 20; // (STRPTR) Object's title
@@ -779,7 +779,7 @@ type
     ah_Width: Word;    // (XOR mode only - width and height of the area represented
     ah_Height: Word;     //   by the BODY to eliminate unnecessary un-changed data)
     ah_Left: SmallInt;  // (XOR mode only - position of rectangular
-    ah_Top: SmallInt;   // area representd by the BODY)
+    ah_Top: SmallInt;   // area represented by the BODY)
     ah_AbsTime: LongWord;  // Timing for a frame relative to the time the first frame was displayed, in jiffies (1/60 sec)
     ah_RelTime: LongWord;  // Timing for frame relative to time previous frame was displayed - in jiffies (1/60 sec)
     ah_Interleave: Byte;   { Indicates how may frames back this data is to modify.  0 defaults to indicate two frames back

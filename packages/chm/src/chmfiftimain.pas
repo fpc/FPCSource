@@ -649,7 +649,7 @@ var
   i,
   j: Integer;
   Doc: TIndexDocument;
-//  proced
+//  proceed
 begin
   StartPos := FWriteStream.Position;
   LastDocIndex := 0;

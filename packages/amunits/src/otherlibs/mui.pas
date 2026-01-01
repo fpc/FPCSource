@@ -107,7 +107,7 @@ interface
      !        +--Coloradjust     (several gadgets to adjust a color)
      !        +--Palette         (complete palette gadget)
      !        +--Popstring       (base class for popup objects)
-     !           +--Popobject    (popup aynthing in a separate window)
+     !           +--Popobject    (popup anything in a separate window)
      !           !  +--Poplist   (popup a simple listview)
      !           !  \--Popscreen (popup a list of public screens)
      !           \--Popasl       (popup an asl requester)
@@ -3381,7 +3381,7 @@ uses exec, intuition,utility,agraphics,iffparse;
        MUIMRI_TRUECOLOR = 1 shl 1;
     {
        If mri_Flags & MUIMRI_THINFRAMES, MUI uses thin frames
-       (1:1) apsect ratio instead of standard 2:1 frames.
+       (1:1) aspect ratio instead of standard 2:1 frames.
      }
        MUIMRI_THINFRAMES = 1 shl 2;
     {
@@ -3517,7 +3517,7 @@ function MUIPen(pen : longint): longint;
 ** object-data like rastport, window, etc.
 **
 ** NOTE: These macros may only be used in custom classes and are
-** only valid if your class is inbetween the specified methods!
+** only valid if your class is in between the specified methods!
 *)
 
 function OBJ_App(obj : APTR) : pObject_;       (* valid between MUIM_Setup/Cleanup *)

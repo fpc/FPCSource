@@ -729,7 +729,7 @@ class procedure TAssert.AssertTrue(const AMessage: string; ACondition: boolean; 
 begin
   if ACondition then
     begin
-    Inc(AssertCount); // Fail will increae AssertCount
+    Inc(AssertCount); // Fail will increase AssertCount
     exit;
     end;
   if AErrorAddrs=Nil then
@@ -742,7 +742,7 @@ class procedure TAssert.AssertTrue(const AMessage: string; const AFormatArgs: ar
 begin
   if ACondition then
     begin
-    Inc(AssertCount); // Fail will increae AssertCount
+    Inc(AssertCount); // Fail will increase AssertCount
     exit;
     end;
   if AErrorAddrs=Nil then
@@ -762,7 +762,7 @@ class procedure TAssert.AssertFalse(const AMessage: string; ACondition: boolean;
 begin
   if not ACondition then
     begin
-    Inc(AssertCount); // Fail will increae AssertCount
+    Inc(AssertCount); // Fail will increase AssertCount
     exit;
     end;
   if AErrorAddrs=Nil then
@@ -775,7 +775,7 @@ class procedure TAssert.AssertFalse(const AMessage: string; const AFormatArgs: a
 begin
   if not ACondition then
     begin
-    Inc(AssertCount); // Fail will increae AssertCount
+    Inc(AssertCount); // Fail will increase AssertCount
     exit;
     end;
   if AErrorAddrs=Nil then
@@ -1304,7 +1304,7 @@ class procedure TAssert.AssertNotNull(const AMessage: string; const AFormatArgs:
 begin
   if AObject <> nil then
     begin
-    Inc(AssertCount); // Fail will increae AssertCount
+    Inc(AssertCount); // Fail will increase AssertCount
     exit;
     end;
   Fail(Format(AMessage, AFormatArgs), CallerAddr);
@@ -1326,7 +1326,7 @@ class procedure TAssert.AssertNotNullIntf(const AMessage: string;
 begin
   if AInterface <> nil then
     begin
-    Inc(AssertCount); // Fail will increae AssertCount
+    Inc(AssertCount); // Fail will increase AssertCount
     exit;
     end;
   Fail(Format(AMessage, AFormatArgs), CallerAddr);
@@ -1348,7 +1348,7 @@ class procedure TAssert.AssertNotNull(const AMessage: string; const AFormatArgs:
 begin
   if APointer <> nil then
     begin
-    Inc(AssertCount); // Fail will increae AssertCount
+    Inc(AssertCount); // Fail will increase AssertCount
     exit;
     end;
   Fail(Format(AMessage, AFormatArgs), callerAddr);
@@ -1370,7 +1370,7 @@ class procedure TAssert.AssertNull(const AMessage: string; const AFormatArgs: ar
 begin
   if AObject = nil then
     begin
-    Inc(AssertCount); // Fail will increae AssertCount
+    Inc(AssertCount); // Fail will increase AssertCount
     exit;
     end;
   Fail(Format(AMessage, AFormatArgs), CallerAddr);
@@ -1392,7 +1392,7 @@ class procedure TAssert.AssertNullIntf(const AMessage: string; const AFormatArgs
 begin
   if AInterface = nil then
     begin
-    Inc(AssertCount); // Fail will increae AssertCount
+    Inc(AssertCount); // Fail will increase AssertCount
     exit;
     end;
   Fail(Format(AMessage, AFormatArgs), CallerAddr);
@@ -1414,7 +1414,7 @@ class procedure TAssert.AssertNull(const AMessage: string; const AFormatArgs: ar
 begin
   if APointer = nil then
     begin
-    Inc(AssertCount); // Fail will increae AssertCount
+    Inc(AssertCount); // Fail will increase AssertCount
     exit;
     end;
   Fail(Format(AMessage, AFormatArgs), CallerAddr);

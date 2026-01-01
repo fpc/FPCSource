@@ -114,7 +114,7 @@ type
       // if not SeparateLabel then place a <BR> between label and edit/value
     property ValuePos : TTablePosition read FValuePos write SetValuePos;
       // place of the value in the table-grid
-    { only when editting: }
+    { only when editing: }
     property InputType : TFormInputType read FInputType write FInputType default fittext;
       // the type of form control to use
     property Producer : THTMLContentProducer read FProducer write FProducer;
@@ -217,7 +217,7 @@ type
     function WriteContent (aWriter : THTMLWriter) : THTMLCustomElement;
     function WriteHeader (aWriter : THTMLWriter) : THTMLCustomElement;
     property FormField : TFormFieldItem read FFormField write FFormField;
-      // field definition that origintated this cell
+      // field definition that originated this cell
     property IsLabel : boolean read FIsLabel write FIsLabel;
       // Label or Value ?
     property Caption : string read FCaption write FCaption;

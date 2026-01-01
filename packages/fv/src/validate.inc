@@ -9,7 +9,7 @@
 {                                                          }
 {****************[ THIS CODE IS FREEWARE ]*****************}
 {                                                          }
-{     This sourcecode is released for the purpose to       }
+{     This source code is released for the purpose to      }
 {   promote the pascal language on all platforms. You may  }
 {   redistribute it and/or modify with the following       }
 {   DISCLAIMER.                                            }

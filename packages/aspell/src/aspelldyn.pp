@@ -260,7 +260,7 @@ var
        * The speller class is expected to last until
        * this class is destroyed.
        * If config is given it will be used to override
-       * any relevent options set by this speller class.
+       * any relevant options set by this speller class.
   is: function done.cdecl;
        * If filter is given then it will take ownership of
        * the filter class and use it to do the filtering.

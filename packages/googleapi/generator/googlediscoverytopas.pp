@@ -1429,7 +1429,7 @@ begin
       Add('UpdateAction');
       Add('ExecuteAction');
       end;
-    // Actual paramters
+    // Actual parameters
     For P in M.parameters do
       begin
       N:=P.Name;

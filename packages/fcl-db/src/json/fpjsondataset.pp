@@ -897,7 +897,7 @@ end;
 
 procedure TBaseJSONDataSet.InternalClose;
 begin
-  // disconnet and destroy field objects
+  // disconnect and destroy field objects
   BindFields (False);
   if DefaultFields then
     DestroyFields;

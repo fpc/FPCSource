@@ -44,7 +44,7 @@ type
     ['{2B7756B1-E239-4B6F-A7A3-4B57B98FAD4F}']
     procedure Reset();
     function MoveNext() : Boolean;
-    //It is just the cursor that is cloned, the underliying datas are shared
+    //It is just the cursor that is cloned, the underlying datas are shared
     function Clone():ICursor;
     function GetCount() : PtrInt;
   end;

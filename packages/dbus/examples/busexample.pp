@@ -105,7 +105,7 @@ begin
   end;
   WriteLn('Match rule sent');
 
-  // loop listening for signals being emmitted
+  // loop listening for signals being emitted
   while (true) do
   begin
 

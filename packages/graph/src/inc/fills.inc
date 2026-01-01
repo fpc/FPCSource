@@ -268,7 +268,7 @@ begin
 end;
 
 
-{ maximum supported Y resultion }
+{ maximum supported Y resolution }
 const
   MaxYRes = 2048;
   { changing this to 1 or 2 doesn't improve performance noticably }

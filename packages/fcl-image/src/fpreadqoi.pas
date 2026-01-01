@@ -126,7 +126,7 @@ begin
      dword(px):=0;
      px.a:=255;
 
-     {initalize previosly seen pixel array}
+     {initialize previously seen pixel array}
      FillQWord(arr,sizeof(arr) div sizeof(QWord),0);
      iA:=QoiPixelIndex(px);
      //for iA:=0 to 63 do
@@ -144,7 +144,7 @@ begin
           inc(ip);
 
           case (b shr 6) of
-             0: begin  { pixel from previos pixel array}
+             0: begin  { pixel from previous pixel array}
 
                      if b = p^ then {deal with end of encoding}
                      begin
@@ -264,7 +264,7 @@ begin
                                 arr[iA]:=px;
 
                           end;
-                       otherwise { run - repeat previos pixel}
+                       otherwise { run - repeat previous pixel}
                             repeat
                                 img.Colors[Col,Row] := RGBAToFPColor( px );
                                 inc(q);

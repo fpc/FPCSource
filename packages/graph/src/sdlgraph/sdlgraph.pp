@@ -18,7 +18,7 @@
 
 {Important TODO list
 
-TODO: color conversion. from pascal color constant to color (pixel) from SDL_putpixel. At this moment you may gent another colors than you're waiting for. The worsest thing is it may be black on the black
+TODO: color conversion. from pascal color constant to color (pixel) from SDL_putpixel. At this moment you may gent another colors than you're waiting for. The worst thing is it may be black on the black
 
 TODO: check all mode.HardwarePages and find true value for each mode!
 
@@ -60,8 +60,8 @@ interface
 const
 
 {==================================================================================================================================================
-Graphics Drivers Constants. Needed to support turbo pascale code  TODO: is it needed???
-It's highly recommended to use Detect (0 constant) for grDriver and grmode: initGraph(0,0,' ') to allow SDL to configure app for the best perfomance
+Graphics Drivers Constants. Needed to support turbo pascal code  TODO: is it needed???
+It's highly recommended to use Detect (0 constant) for grDriver and grmode: initGraph(0,0,' ') to allow SDL to configure app for the best performance
 ====================================================================================================================================================
 }
 
@@ -160,7 +160,7 @@ const
 {$i graph.inc}
 
 var
-screen: PSDL_Surface; //Global becouse its value is needed by some functions
+screen: PSDL_Surface; //Global because its value is needed by some functions
 
 
 
@@ -173,7 +173,7 @@ begin
  end;
    isgraphmode := false;
    SDL_Quit();
- //Halt(0);   TODO: check, if it close application wich calls sdlgraph
+ //Halt(0);   TODO: check, if it close application which calls sdlgraph
 end;
 
 
@@ -417,7 +417,7 @@ begin
 
   if (SDL_VideoModeOK(Width,Height,BPP,videoFlags) = 0) then
      begin
-     //TODO: create 1 string from parametres!
+     //TODO: create 1 string from parameters!
      //Log.LogError('InitSDLgraph: ',Width,'x',Height,'x',BPP,' - no such mode (also you may check videoflags in the sdlgraph unit (procedure InitSDLgraph)');
      exit;
      end;

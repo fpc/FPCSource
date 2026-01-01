@@ -1265,7 +1265,7 @@ begin
   FMaxErrorCount:=1;
   FFailOnModuleErors:=True;
   FImplicitUses := TStringList.Create;
-  FImplicitUses.Add('System'); // system always implicitely first.
+  FImplicitUses.Add('System'); // system always implicitly first.
 end;
 
 destructor TPasParser.Destroy;

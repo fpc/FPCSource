@@ -72,8 +72,8 @@ Type
     // absolute lengths
     cu_px,   // pixels
     cu_cm,   // centimeters
-    cu_mm,   // milimeters
-    cu_Q,    // quarter-milimeters
+    cu_mm,   // millimeters
+    cu_Q,    // quarter-millimeters
     cu_in,   // inches
     cu_pt,   // points (1pt = 1/72 of 1in)
     cu_pc,   // picas (1pc = 12 pt)
@@ -154,8 +154,8 @@ const
     // absolute lengths
     'px',   // pixels
     'cm',   // centimeters
-    'mm',   // milimeters
-    'Q',    // quarter-milimeters, Big Q!
+    'mm',   // millimeters
+    'Q',    // quarter-millimeters, Big Q!
     'in',   // inches
     'pt',   // points
     'pc',   // picas

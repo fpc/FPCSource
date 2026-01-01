@@ -67,10 +67,10 @@ const
 //Coff header characteristics
 const
   IMAGE_FILE_RELOCS_STRIPPED         = $0001;  // Relocation info stripped from file.
-  IMAGE_FILE_EXECUTABLE_IMAGE        = $0002;  // File is executable  (i.e. no unresolved externel references).
+  IMAGE_FILE_EXECUTABLE_IMAGE        = $0002;  // File is executable  (i.e. no unresolved external references).
   IMAGE_FILE_LINE_NUMS_STRIPPED      = $0004;  // Line nunbers stripped from file.
   IMAGE_FILE_LOCAL_SYMS_STRIPPED     = $0008;  // Local symbols stripped from file.
-  IMAGE_FILE_AGGRESIVE_WS_TRIM       = $0010;  // Agressively trim working set
+  IMAGE_FILE_AGGRESIVE_WS_TRIM       = $0010;  // Aggressively trim working set
   IMAGE_FILE_LARGE_ADDRESS_AWARE     = $0020;  // App can handle >2gb addresses
   IMAGE_FILE_BYTES_REVERSED_LO       = $0080;  // Bytes of machine word are reversed.
   IMAGE_FILE_32BIT_MACHINE           = $0100;  // 32 bit word machine.

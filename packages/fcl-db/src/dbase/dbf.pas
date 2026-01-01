@@ -307,7 +307,7 @@ type
     function  GetRecordCount: Integer; override; {virtual}
     function  GetRecNo: Integer; override; {virtual}
     function  GetCanModify: Boolean; override; {virtual}
-    procedure SetRecNo(Value: Integer); override; {virual}
+    procedure SetRecNo(Value: Integer); override; {virtual}
     procedure SetFiltered(Value: Boolean); override; {virtual;}
     procedure SetFilterText(const Value: String); override; {virtual;}
 {$ifdef SUPPORT_DEFCHANGED}
@@ -1746,7 +1746,7 @@ begin
     if not DataSet.Active then
       DataSet.Open;
     DataSet.FieldDefs.Update;
-    // first get a list of physical field defintions
+    // first get a list of physical field definitions
     // we need it for numeric precision in case source is tdbf
     if DataSet is TDbf then
     begin
@@ -2856,7 +2856,7 @@ begin
 
   // disable current range if any
   FIndexFile.CancelRange;
-  // reretrieve previous and next records
+  // re-retrieve previous and next records
   Refresh;
 end;
 

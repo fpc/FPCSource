@@ -227,7 +227,7 @@ begin
       ST:=WinServiceTypes[ServiceType];
     if (doInteractive in DD.Options) and (ServiceType=stWin32)  then
       ST:=ST or SERVICE_INTERACTIVE_PROCESS;
-    // Actually, we should check count of enabled definitons only :/
+    // Actually, we should check count of enabled definitions only :/
     if (ServiceType=stWin32) and (FMapper.DaemonDefs.Count>1) then
       ST:=(ST xor SERVICE_WIN32_OWN_PROCESS) or SERVICE_WIN32_SHARE_PROCESS;
     // StartType STT

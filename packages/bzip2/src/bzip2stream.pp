@@ -15,7 +15,7 @@ inpired by Julian R. Seward's libbzip2 library and therefore you should
 send credits to him and bug reports to me :)
 
 This code is licensed under the same terms as the original libbz2 library,
-which is decsribed in the file LICENSE. If you don't have this file, look
+which is described in the file LICENSE. If you don't have this file, look
 at http://www.freepascal.org for this bzip2 unit, the LICENSE file will
 be included. In case of problems, contact the author.
 

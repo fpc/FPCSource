@@ -31,7 +31,7 @@ uses sysutils, classes, math, {$IFDEF DYNAMIC}freetypehdyn{$ELSE}freetypeh{$ENDI
 
 { TODO : take resolution in account to find the size }
 { TODO : speed optimization: search glyphs with a hash-function/tree/binary search/... }
-{ TODO : memory optimization: TStringBitmaps keeps for each differnet character
+{ TODO : memory optimization: TStringBitmaps keeps for each different character
          only 1 bitmap }
 { TODO : load other files depending on the extension }
 { possible TODO : different sizes/resolutions for x and y }

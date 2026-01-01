@@ -71,7 +71,7 @@ The new routing is more flexible in 3 ways.
   All routes are registered using the HTTPRouter.RegisterRoute method.
   it is overloaded to accept any of the above parameters.
 
-- The router can now match more complex, parametrized routes.
+- The router can now match more complex, parameterized routes.
 
   A route is the path part of an URL; query parameters are not examined.
 

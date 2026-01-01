@@ -1512,7 +1512,7 @@ begin
   if not AField.IsNull then
   begin
     case AField.DataType of
-      //todo: handle " caracter properly
+      //todo: handle " character properly
       ftString, ftMemo:
         Result := '"' + AField.AsString + '"';
       ftDateTime, ftDate, ftTime:

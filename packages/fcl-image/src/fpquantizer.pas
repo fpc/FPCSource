@@ -367,10 +367,10 @@ begin
   { ************************************************************** }
   { set up some values useful when calling OnProgress event        }
   { number of operations is:                                       }
-  {    width*heigth for population                                 }
+  {    width*height for population                                 }
   {    initial palette count - final palette count for reduction   }
   {    final palette count for building the palette                }
-  { total: width*heigth+initial palette count.                     }
+  { total: width*height+initial palette count.                     }
   { if source image doesn't have a palette assume palette count as }
   { width*height (worst scenario) if it is < 2^24, or 2^24 else    }
   percentinterval:=0;

@@ -25,7 +25,7 @@ Testsuite errata
 --------------------------------------------
 The following issues were encountered while testing the parser. Fortunately, none
 of these change the category of any test, but in some cases cause incorrect error
-message and/or postion to be reported.
+message and/or position to be reported.
 
 1) xmltest/not-wf/sa/081.xml
    xmltest/not-wf/sa/082.xml

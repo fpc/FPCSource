@@ -167,7 +167,7 @@ type
   PTOCEntryPageBookInfo = ^TTOCEntryPageBookInfo;
   TTOCEntryPageBookInfo = record
     Unknown1: Word; //  = 0
-    EntryIndex: Word; // multiple entry info's can have this value but the TTocEntry it points to points back to the first item with this number. Wierd.
+    EntryIndex: Word; // multiple entry info's can have this value but the TTocEntry it points to points back to the first item with this number. Weird.
     Props: DWord; // BitField. See TOC_ENTRY_*
     TopicsIndexOrStringsOffset: DWord; // if TOC_ENTRY_HAS_LOCAL is in props it's the Topics Index
                                        // else it's the Offset In Strings of the Item Text

@@ -610,9 +610,9 @@ type
     Property Prepared : boolean read IsPrepared;
     Property SQLConnection : TSQLConnection Read GetSQLConnection Write SetSQLConnection;
     Property SQLTransaction: TSQLTransaction Read GetSQLTransaction Write SetSQLTransaction;
-    // overriden TBufDataSet methods
+    // overridden TBufDataSet methods
     Procedure ApplyUpdates(MaxErrors: Integer); override; overload;
-    // overriden TDataSet methods
+    // overridden TDataSet methods
     Procedure Post; override;
     Procedure Delete; override;
   protected
@@ -1645,7 +1645,7 @@ end;
 function TSQLConnection.GetConnectionCharSet: string;
 begin
   // default implementation returns user supplied FCharSet
-  // (can be overriden by descendants, which are able retrieve current connection charset using client API)
+  // (can be overridden by descendants, which are able retrieve current connection charset using client API)
   Result := LowerCase(FCharSet);
 end;
 

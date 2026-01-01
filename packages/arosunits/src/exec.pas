@@ -83,7 +83,7 @@ const
 // END of part from utility move
 
 const
-// There is a problem with Boolean vaules in taglists, just use this for now instead
+// There is a problem with Boolean values in taglists, just use this for now instead
   LTrue : LongInt = 1;
   LFalse: LongInt = 0;
 
@@ -395,7 +395,7 @@ const
 
 // expansion.library
   AN_ExpansionLib     = $0A000000;
-  AN_BadExpansionFree = $0A000001; // freeed free region
+  AN_BadExpansionFree = $0A000001; // freed free region
 
 // ramlib.library
   AN_RAMLib       = $08000000;
@@ -682,7 +682,7 @@ type
 { definition for entry Magic in Messages
   Magic is introduced to prevent Multiple Ports, for example if you´r using
   ScreenNotifications and DecorNotifications you must have two Ports as long
-  as you cannot figure out which Messsage ist posted. With Magic this is no
+  as you cannot figure out which Message ist posted. With Magic this is no
   problem.}
 const
   MAGIC_DECORATOR    = $8000001;
@@ -1089,7 +1089,7 @@ type
 //***** Dynamic System Variables **********************************
     ThisTask: PTask;        // pointer to current task (readable)
     IdleCount,              // idle counter
-    DispCount: ULONG;       // dispatch coutner
+    DispCount: ULONG;       // dispatch counter
     Quantum,                // time slice quantum
     Elapsed,                // current quantum ticks
     SysFlags: Word;         // misc internal system flags

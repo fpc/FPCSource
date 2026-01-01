@@ -46,7 +46,7 @@
         scan_flag:  byte;     { TRUE if AnsiChar is scanable              }
         org_to_cap: shortint;     { Height from origin to top of capitol  }
         org_to_base:shortint;     { Height from origin to baseline        }
-        org_to_dec: shortint;     { Height from origin to bot of decender }
+        org_to_dec: shortint;     { Height from origin to bot of descender}
         _reserved: array[1..4] of AnsiChar;
         Unused: byte;
       end;
@@ -121,7 +121,7 @@ procedure swap_header(var h: theader);
         scan_flag:  byte;     { TRUE if AnsiChar is scanable              }
         org_to_cap: shortint;     { Height from origin to top of capitol  }
         org_to_base:shortint;     { Height from origin to baseline        }
-        org_to_dec: shortint;     { Height from origin to bot of decender }
+        org_to_dec: shortint;     { Height from origin to bot of descender}
         _reserved: array[1..4] of AnsiChar;
         Unused: byte;
       end;
@@ -195,7 +195,7 @@ end;
 
 
     function Decode(byte1,byte2: AnsiChar; var x,y: smallint): smallint;
-    { This routines decoes a signle word in a font opcode section  }
+    { This routines decodes a signle word in a font opcode section }
     { to a stroke record.                                          }
       var
        b1,b2: shortint;

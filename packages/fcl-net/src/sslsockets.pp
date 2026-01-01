@@ -57,7 +57,7 @@ Type
     Class Var FDefaultHandlerClass : TSSLSocketHandlerClass;
   protected
     Procedure SetSSLActive(aValue : Boolean);
-    function DoVerifyCert: boolean; virtual;  // if event define's change not accceptable, suggest to set virtual
+    function DoVerifyCert: boolean; virtual;  // if event define's change not acceptable, suggest to set virtual
     Function GetLastSSLErrorString : String; virtual; abstract;
     Function GetLastSSLErrorCode : Integer; virtual; abstract;
   public

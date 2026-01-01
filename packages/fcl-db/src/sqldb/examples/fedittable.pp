@@ -37,7 +37,7 @@ begin
 
 // With these lines commented out, TSQLQuery creates the update, delete and insert
 // queries itself.
-// For more complex queries, though, it could be nessecary to provide these queries
+// For more complex queries, though, it could be necessary to provide these queries
 // here
 
 //    UpdateSQL.add('update fpdev set name=:name, birthdate=:birthdate where id=:OLD_id');

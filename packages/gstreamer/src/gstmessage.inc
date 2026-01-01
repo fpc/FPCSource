@@ -298,7 +298,7 @@ function GST_MESSAGE_GET_COND(message : PGstmessage): PGCond;
 procedure GST_MESSAGE_WAIT(message : PGstMessage);
 procedure GST_MESSAGE_SIGNAL(message : PGSTMessage);
 
-// Inlinc
+// Inline
 function gst_message_ref (msg : PGstMessage) : PGstmessage;
 procedure gst_message_unref (msg : PGstMessage);
 function gst_message_copy (msg : PGstMessage) : PGstMessage;

@@ -372,7 +372,7 @@ end;
 { THandleObject }
 
 constructor THandleObject.Create(UseComWait : Boolean=false);
-// cmompatibility shortcut constructor, Com waiting not implemented yet
+// compatibility shortcut constructor, Com waiting not implemented yet
 begin
   FHandle := BasicEventCreate(nil, True,False,'');
   if (FHandle=Nil) then

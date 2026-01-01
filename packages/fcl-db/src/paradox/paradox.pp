@@ -13,7 +13,7 @@
 {$mode objfpc}
 {$H+}
 {
-  TParadox : Dataset wich can handle paradox files, based on PXLib.
+  TParadox : Dataset which can handle paradox files, based on PXLib.
   pxlib is an open source C library for handling paradox files. It
   is available from sourceforge:
   http://pxlib.sourceforge.net/

@@ -466,7 +466,7 @@ const
 
      PxadSpecialAmigaAddress = ^txadSpecialAmigaAddress;
      txadSpecialAmigaAddress = record
-          xfis_JumpAddress : ULONG;      { code executaion start address  }
+          xfis_JumpAddress : ULONG;      { code execution start address  }
           xfis_DecrunchAddress : ULONG;  { decrunch start of code  }
        end;
 
@@ -706,7 +706,7 @@ const
      XADCBM8BITTYPE_BASIC = $01;
   { Tape - Data block (SEQ file)  }
      XADCBM8BITTYPE_DATA = $02;
-  { Tape - Fixed addres program file  }
+  { Tape - Fixed address program file  }
      XADCBM8BITTYPE_FIXED = $03;
   { Tape - Sequential data file  }
      XADCBM8BITTYPE_SEQDATA = $04;

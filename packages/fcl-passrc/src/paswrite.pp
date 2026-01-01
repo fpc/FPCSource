@@ -46,7 +46,7 @@ type
                       woSkipPrivateExternals,  // Skip generation of external procedure declaration in implementation section
                       woAlwaysRecordHelper,     // Force use of record helper for type helper
                       woSkipHints,          // Do not add identifier hints
-                      woSparse,             // Generate sparse code, used to generate declarations suitable for documenation
+                      woSparse,             // Generate sparse code, used to generate declarations suitable for documentation
                       woDocHints            // When generating sparse code, additionally add documentation hints. (rw for properties etc.)
                       );
   TElementFlag = (efSkipSection,efMember,efForceBody,efParent);

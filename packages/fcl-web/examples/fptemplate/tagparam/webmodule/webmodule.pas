@@ -35,7 +35,7 @@ procedure TFPWebModule1.func1callRequest(Sender: TObject; ARequest: TRequest;
   AResponse: TResponse; var Handled: Boolean);
 begin
   //ModuleTemplate is a web module global property
-  //To use the Template propery of the current web action (which is visible in
+  //To use the Template property of the current web action (which is visible in
   //the object inspector for every Action), use
   //(Sender as TFPWebAction).Template.FileName := 'mytemplate1.html'; and so on.
   ModuleTemplate.FileName := 'mytemplate2.html';

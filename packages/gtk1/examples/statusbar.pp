@@ -37,7 +37,7 @@ Procedure push_item( widget : PGtkWidget;
       gtk_statusbar_push(GTK_STATUSBAR(status_bar), data^, Ptr_buff);
     End;
 Procedure pop_item( widget : PGtkWidget;
-               data : PGint); cdecl; //i used pointer to gint , not gpointer becouse we can
+               data : PGint); cdecl; //i used pointer to gint , not gpointer because we can
                                      // read value directly from an adress specified in data
 Begin
   gtk_statusbar_pop( GTK_STATUSBAR(status_bar), data^);

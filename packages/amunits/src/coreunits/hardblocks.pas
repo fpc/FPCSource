@@ -46,7 +46,7 @@ uses exec;
 {--------------------------------------------------------------------
  *
  *      This file describes blocks of data that exist on a hard disk
- *      to describe that disk.  They are not generically accessable to
+ *      to describe that disk.  They are not generically accessible to
  *      the user as they do not appear on any DOS drive.  The blocks
  *      are tagged with a unique identifier, checksummed, and linked
  *      together.  The root of these blocks is the RigidDiskBlock.

@@ -95,7 +95,7 @@ type
 
 implementation
 const
-  MAXEVENTSPEREPB=15;      //isc_event_block limitated to 15 events.
+  MAXEVENTSPEREPB=15;      //isc_event_block limited to 15 events.
 type
   TEPBpair=record
     EventBuf:PAnsiChar;        //isc_event_block event block

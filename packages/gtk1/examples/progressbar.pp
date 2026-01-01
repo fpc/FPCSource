@@ -129,7 +129,7 @@ begin
     align := gtk_alignment_new (0.5, 0.5, 0, 0);
     gtk_box_pack_start (GTK_BOX (vbox), align, FALSE, FALSE, 5);
 
-    (* Create a GtkAdjusment object to hold the range of the
+    (* Create a GtkAdjustment object to hold the range of the
      * progress bar *)
     adj := PGtkAdjustment( gtk_adjustment_new (0, 1, 150, 0, 0, 0));
 

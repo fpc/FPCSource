@@ -36,15 +36,15 @@ Modifications
       Locate was changed to improve speed and some bug fixing too. Thanks for
          asking and testing Marcelo Castro
 16/Dec/01  Version 2.03 (Orlando Arrocha)
-           Fixed some bugs and added some recomentdations. Here is a list:
+           Fixed some bugs and added some recommendations. Here is a list:
       Quotations on the last field was not removed properly. Special thanks to
          Daniel Nakasone for helping with the solution.
       Appending first record to empty files was failing. Thanks again Daniel
          Nakasone for the report
       GetFieldData now trims the trailing spaces of the field, so users doesn't
-         needs to do it by themselves anymore. Thanks for the recomendation
+         needs to do it by themselves anymore. Thanks for the recommendation
          Juergen Gehrke.
-      FieldDefs is now available from the designer. Recomended by Leslie Drewery.
+      FieldDefs is now available from the designer. Recommended by Leslie Drewery.
                 ****** THANKS TO ALL & KEEP SENDING RECOMENDATIONS *****
 05/Oct/01  Version 2.02 (Ben Hay)
       Locate function : implement the virtual tdataset method "Locate".
@@ -67,7 +67,7 @@ Modifications
       Delimiter property added to TSdfDataSet. No more dependency on CommaText
          methodology -- choose your own delimiter.
       BufToStore/StoreToBuf methods lets you translate data records to and from
-         your propietary storage format.
+         your proprietary storage format.
       TTextDataSet removed dependencies.
       TBaseTextDataSet class removed. // TBaseTextDataSet = TFixedFormatDataSet;
                 ****** THANKS JOHN ******   ***** THANKS DIMMY *****
@@ -125,7 +125,7 @@ How to Install
     or a sub-folder.
  2. Install the TSdfDataSet and TFixedFormatDataSet components by choosing the
     Component | Install Component menu option.
- 3. Select the "Into exisiting package" page of the Install Components dialogue.
+ 3. Select the "Into existing package" page of the Install Components dialogue.
  4. Browse to the folder where you saved this file and select it.
  5. Ensure that the "Package file name" edit box contains $(DELPHI)\DCLUSR??.DPK
     or the one you prefer for DB related objects.

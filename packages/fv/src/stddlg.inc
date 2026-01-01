@@ -479,7 +479,7 @@ function SelectDir (var ADir : DirStr; HistoryID : Byte) : Boolean;
 
 function ShrinkPath (AFile : FNameStr; MaxLen : Byte) : FNameStr;
   { ShrinkPath returns a file name with a maximum length of MaxLen.
-    Internal directories are removed and replaced with elipses as needed to
+    Internal directories are removed and replaced with ellipsis as needed to
     make the file name fit in MaxLen.
 
     AFile must be a valid path name. }
