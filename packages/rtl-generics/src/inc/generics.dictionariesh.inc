@@ -246,7 +246,7 @@ type
     procedure UpdateItemsThreshold(ASize: SizeInt); override;
 
     procedure SetCapacity(ACapacity: SizeInt); override;
-    // bug #24283 - can't decadent from TEnumerable
+    // bug #24283 - can't descend from TEnumerable
     function DoGetEnumerator: TEnumerator<TDictionaryPair>; override;
     procedure SetMaxLoadFactor(AValue: single); override;
     function GetLoadFactor: single; override;

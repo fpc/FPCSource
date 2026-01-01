@@ -233,7 +233,7 @@ type
     TZDayLightBias: DWORD;
     Reserved8: DWORD; // Daylight offset?
     TSInstanceID: array[0..33] of WCHAR; // sometimes windows license key(s)
-    Reserved9: DWORD;      // related to license key or instantiated?
+    Reserved9: DWORD;      // related to license key or TSinstanceID?
   end;
   PWINSTATION_CONFIGW = ^_WINSTATION_CONFIGW;
   TWinStationConfigW = _WINSTATION_CONFIGW;

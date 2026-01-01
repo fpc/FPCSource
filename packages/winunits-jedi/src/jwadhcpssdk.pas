@@ -182,7 +182,7 @@ const
   {$EXTERNALSYM DHCP_PROB_DECLINE}
   DHCP_PROB_RELEASE        = $20000003; // an addr got released
   {$EXTERNALSYM DHCP_PROB_RELEASE}
-  DHCP_PROB_NACKED         = $20000004; // a client is being naked.
+  DHCP_PROB_NACKED         = $20000004; // a client is being nacked.
   {$EXTERNALSYM DHCP_PROB_NACKED}
   DHCP_GIVE_ADDRESS_NEW    = $30000001; // give client a "new" address
   {$EXTERNALSYM DHCP_GIVE_ADDRESS_NEW}

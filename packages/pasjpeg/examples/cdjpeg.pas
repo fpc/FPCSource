@@ -1,6 +1,6 @@
 Unit CdJpeg;
 
-{ OriginL : cdjpeg.h+cdjpeg.c ;  Copyright (C) 1994-1996, Thomas G. Lane.
+{ Original : cdjpeg.h+cdjpeg.c ;  Copyright (C) 1994-1996, Thomas G. Lane.
 
   This file contains common support routines used by the IJG application
   programs (cjpeg, djpeg, jpegtran).

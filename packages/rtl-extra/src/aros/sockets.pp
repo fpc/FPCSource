@@ -140,7 +140,7 @@ const
   EsockENOBUFS          = 55; //ESysENoBufs;
   EsockENOTCONN         = 57; //ESysENotConn;
   EsockEPROTONOSUPPORT  = 43; //ESysEProtoNoSupport;
-  EsockEWOULDBLOCK      = 35; //ESysEWouldBlock; // same as again on morphos
+  EsockEWOULDBLOCK      = 35; //ESysEWouldBlock; // same as eagain on morphos
   ESockEALREADY         = 37;
   EsockEINPROGRESS      = 36;
   EsockECONNREFUSED     = 61;
