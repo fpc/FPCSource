@@ -405,8 +405,8 @@ type
 					next : PDIRENTRY; 						// Pointer to next file entry (for user)
 					system : array [0..7] of char; 			// Reserved by system
 	end;
-	
-	
+
+
 
 // abs.h
 function abs(num: longint): longint; stdcall; external;
@@ -476,7 +476,7 @@ function strdup(p: pchar): pchar;
 
 
 // rand.h
-const 
+const
 	RAND_MAX = 32767;
 
 function rand: longint; stdcall; external;

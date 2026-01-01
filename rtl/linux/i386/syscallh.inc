@@ -3,7 +3,7 @@
     Copyright (c) 2002 Marco van de Voort
     member of the Free Pascal development team.
 
-    i386 syscall headers for Linux 
+    i386 syscall headers for Linux
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -25,7 +25,7 @@ Type
 // 64-bit machines don't have only 64-bit params.
 
   TSysParam  = Longint;
-  
+
 function Do_SysCall(sysnr:TSysParam):TSysResult; register; external name 'FPC_SYSCALL0';
 function Do_SysCall(sysnr,param1:TSysParam):TSysResult; register; external name 'FPC_SYSCALL1';
 function Do_SysCall(sysnr,param1,param2:TSysParam):TSysResult; register; external name 'FPC_SYSCALL2';

@@ -10,7 +10,7 @@ unit buildrtl;
       WinApi.Windows,  initc,  System.CMem, System.DynLibs, WinApi.Signals,
       TP.DOS, WinApi.Messages,
       System.RtlConsts, System.SysConst, System.SysUtils, System.Math, System.Types,
-      System.TypInfo, System.FGL, System.Classes,    
+      System.TypInfo, System.FGL, System.Classes,
       System.CPU, System.CPU.MMX, System.Intrinsics,
       System.CharSet, System.Character, System.GetOpts,
       System.FPWideString,

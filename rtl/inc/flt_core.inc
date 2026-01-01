@@ -450,11 +450,11 @@ const
     );
     factor_plus: array [ 0 .. 1 ] of TDIY_FP_Power_of_10 = (
         ( c: ( f: qword($F6C69A72A3989F5C); e:   534 ); e10:  180 ),
-        ( c: ( f: qword($EDE24AE798EC8284); e:  1132 ); e10:  360 ) 
+        ( c: ( f: qword($EDE24AE798EC8284); e:  1132 ); e10:  360 )
     );
     factor_minus: array [ 0 .. 1 ] of TDIY_FP_Power_of_10 = (
         ( c: ( f: qword($84C8D4DFD2C63F3B); e:  -661 ); e10: -180 ),
-        ( c: ( f: qword($89BF722840327F82); e: -1259 ); e10: -360 ) 
+        ( c: ( f: qword($89BF722840327F82); e: -1259 ); e10: -360 )
     );
     corrector: array [ 0 .. C_PWR10_COUNT - 1 ] of shortint = (
     // extra mantissa correction [ulp; signed]
@@ -1745,11 +1745,11 @@ begin
   {$ifdef VALREAL_32}
     n_digits_have := gen_digits_32( buf, 0, D.f shr ( - D.e ) );
   {$endif VALREAL_32}
-  
+
   {$ifdef VALREAL_64}
     n_digits_have := gen_digits_64( buf, 0, D.f shr ( - D.e ) );
   {$endif VALREAL_64}
-  
+
   {$ifdef VALREAL_80}
     fl := D.f;
     fh := D.fh;

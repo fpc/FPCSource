@@ -60,7 +60,7 @@ End;
 // !! the old code  is _still needed_ since the syscall sometimes doesn't work
 // !! on special filesystems like NFS etc.
 // !! In the libc versions, the alt code is already integrated in the libc code.
-// !! Also significantly boosted buffersize. This will make failure of the 
+// !! Also significantly boosted buffersize. This will make failure of the
 // !! dos legacy api's better visibile due to cut-off path, instead of "empty"
 
 
@@ -86,7 +86,7 @@ begin
      setcodepage(dir,DefaultFileSystemCodePage,false);
    end
 {$ifndef FPC_USE_LIBC}
- else 
+ else
   begin
   dummy:='';
 

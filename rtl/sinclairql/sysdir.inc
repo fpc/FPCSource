@@ -29,7 +29,7 @@ begin
   chanId := io_open(PAnsiChar(s), Q_OPEN_OVER);
   if chanId < 0 then
     begin
-      Error2InOutRes(chanId); 
+      Error2InOutRes(chanId);
       exit;
     end;
 

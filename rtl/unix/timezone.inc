@@ -290,10 +290,10 @@ var
   end;
 
   Procedure checkbufptr(asize : integer);
-  
+
   var
     a : tssize;
-    
+
   begin
     a:=bufptr-@buf+asize;
     if (a>bufbytes) then

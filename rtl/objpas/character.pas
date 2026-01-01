@@ -45,15 +45,15 @@ type
     ucTitlecaseLetter,             // Lt = Letter, titlecase
     ucModifierLetter,              // Lm = Letter, modifier
     ucOtherLetter,                 // Lo = Letter, other
-    
+
     ucNonSpacingMark,              // Mn = Mark, nonspacing
     ucCombiningMark,               // Mc = Mark, spacing combining
     ucEnclosingMark,               // Me = Mark, enclosing
-    
+
     ucDecimalNumber,               // Nd = Number, decimal digit
     ucLetterNumber,                // Nl = Number, letter
     ucOtherNumber,                 // No = Number, other
-    
+
     ucConnectPunctuation,          // Pc = Punctuation, connector
     ucDashPunctuation,             // Pd = Punctuation, dash
     ucOpenPunctuation,             // Ps = Punctuation, open
@@ -61,21 +61,21 @@ type
     ucInitialPunctuation,          // Pi = Punctuation, initial quote (may behave like Ps or Pe depending on usage)
     ucFinalPunctuation,            // Pf = Punctuation, final quote (may behave like Ps or Pe depending on usage)
     ucOtherPunctuation,            // Po = Punctuation, other
-    
+
     ucMathSymbol,                  // Sm = Symbol, math
     ucCurrencySymbol,              // Sc = Symbol, currency
     ucModifierSymbol,              // Sk = Symbol, modifier
     ucOtherSymbol,                 // So = Symbol, other
-    
+
     ucSpaceSeparator,              // Zs = Separator, space
     ucLineSeparator,               // Zl = Separator, line
     ucParagraphSeparator,          // Zp = Separator, paragraph
-    
+
     ucControl,                     // Cc = Other, control
     ucFormat,                      // Cf = Other, format
     ucSurrogate,                   // Cs = Other, surrogate
     ucPrivateUse,                  // Co = Other, private use
-    ucUnassigned                   // Cn = Other, not assigned (including noncharacters)  
+    ucUnassigned                   // Cn = Other, not assigned (including noncharacters)
   );
   TUnicodeCategorySet = set of TUnicodeCategory;
 
@@ -88,7 +88,7 @@ type
   private
     class function TestCategory(const AString : UnicodeString; AIndex : Integer; ACategory : TUnicodeCategory) : Boolean; overload; static;
     class function TestCategory(const AString : UnicodeString; AIndex : Integer; ACategory : TUnicodeCategorySet) : Boolean; overload; static;
-  public  
+  public
     const
       MaxHighSurrogate       = UnicodeChar(HIGH_SURROGATE_END);
       MaxLowSurrogate        = UnicodeChar(LOW_SURROGATE_END);
@@ -104,7 +104,7 @@ type
     class function ConvertToUtf32(const AString : UnicodeString; AIndex : Integer) : UCS4Char; overload; static;
     class function ConvertToUtf32(const AString : UnicodeString; AIndex : Integer; out ACharLength : Integer) : UCS4Char; overload; static;
     class function ConvertToUtf32(const AHighSurrogate, ALowSurrogate : UnicodeChar) : UCS4Char; overload; static;
-    
+
     class function GetNumericValue(AChar : UnicodeChar) : Double; static; overload;
     class function GetNumericValue(const AString : UnicodeString; AIndex : Integer) : Double; overload; static;
     class function GetNumericValue(aChar: UCS4Char): Double; overload; inline; static;
@@ -143,7 +143,7 @@ type
 
     class function IsLetterOrDigit(AChar : UnicodeChar) : Boolean; overload; static; inline;
     class function IsLetterOrDigit(const AString : UnicodeString; AIndex : Integer) : Boolean; overload; static; inline;
-    
+
     class function IsLower(AChar : UnicodeChar) : Boolean; overload; static; inline;
     class function IsLower(const AString : UnicodeString; AIndex : Integer) : Boolean; overload; static; inline;
     class function IsLower(aChar: UCS4Char): Boolean; overload; inline; static;
@@ -851,7 +851,7 @@ begin
 end;
 
 class function TCharacter.GetNumericValue(
-  const AString : UnicodeString;  
+  const AString : UnicodeString;
         AIndex  : Integer
 ) : Double;
 var
@@ -876,17 +876,17 @@ end;
 
 
 class function TCharacter.GetUnicodeCategory(AChar : UnicodeChar) : TUnicodeCategory;
-begin   
+begin
   Result := TUnicodeCategory(GetProps(Word(AChar))^.Category);
 end;
 
 class function TCharacter.GetUnicodeCategory(
-  const AString : UnicodeString;  
+  const AString : UnicodeString;
         AIndex  : Integer
 ) : TUnicodeCategory;
 var
   pu : PUC_Prop;
-begin   
+begin
   if (AIndex < 1) or (AIndex > Length(AString)) then
     raise EArgumentOutOfRangeException.CreateFmt(SStringIndexOutOfRange, [AIndex, Length(AString)]);
   pu := GetProps(Word(AString[AIndex]));
@@ -914,12 +914,12 @@ begin
 end;
 
 class function TCharacter.IsControl(AChar : UnicodeChar) : Boolean;
-begin  
+begin
   Result := (TUnicodeCategory(GetProps(Word(AChar))^.Category) = TUnicodeCategory.ucControl);
 end;
 
 class function TCharacter.IsControl(
-  const AString : UnicodeString;  
+  const AString : UnicodeString;
         AIndex  : Integer
 ) : Boolean;
 begin
@@ -932,12 +932,12 @@ begin
 end;
 
 class function TCharacter.IsDigit(AChar : UnicodeChar) : Boolean;
-begin 
+begin
   Result := (TUnicodeCategory(GetProps(Word(AChar))^.Category) = TUnicodeCategory.ucDecimalNumber);
 end;
 
 class function TCharacter.IsDigit(
-  const AString : UnicodeString;  
+  const AString : UnicodeString;
         AIndex  : Integer
 ) : Boolean;
 begin
@@ -950,15 +950,15 @@ begin
 end;
 
 class function TCharacter.IsSurrogate(AChar : UnicodeChar) : Boolean;
-begin   
+begin
   Result := (TUnicodeCategory(GetProps(Word(AChar))^.Category) = TUnicodeCategory.ucSurrogate);
 end;
 
 class function TCharacter.IsSurrogate(
-  const AString : UnicodeString;  
+  const AString : UnicodeString;
         AIndex  : Integer
 ) : Boolean;
-begin        
+begin
   if (AIndex < 1) or (AIndex > Length(AString)) then
     raise EArgumentOutOfRangeException.CreateFmt(SStringIndexOutOfRange, [AIndex, Length(AString)]);
   Result := IsSurrogate(AString[AIndex]);
@@ -971,17 +971,17 @@ end;
 
 
 class function TCharacter.IsHighSurrogate(AChar : UnicodeChar) : Boolean;
-begin 
+begin
   Result := (TUnicodeCategory(GetProps(Word(AChar))^.Category) = TUnicodeCategory.ucSurrogate) and
-            (Word(AChar) >= HIGH_SURROGATE_BEGIN) and 
+            (Word(AChar) >= HIGH_SURROGATE_BEGIN) and
             (Word(AChar) <= HIGH_SURROGATE_END);
 end;
 
 class function TCharacter.IsHighSurrogate(
-  const AString : UnicodeString;  
+  const AString : UnicodeString;
         AIndex  : Integer
 ) : Boolean;
-begin        
+begin
   if (AIndex < 1) or (AIndex > Length(AString)) then
     raise EArgumentOutOfRangeException.CreateFmt(SStringIndexOutOfRange, [AIndex, Length(AString)]);
   Result := IsHighSurrogate(AString[AIndex]);
@@ -993,17 +993,17 @@ begin
 end;
 
 class function TCharacter.IsLowSurrogate(AChar : UnicodeChar) : Boolean;
-begin   
+begin
   Result := (TUnicodeCategory(GetProps(Word(AChar))^.Category) = TUnicodeCategory.ucSurrogate) and
-            (Word(AChar) >= LOW_SURROGATE_BEGIN) and 
-            (Word(AChar) <= LOW_SURROGATE_END); 
+            (Word(AChar) >= LOW_SURROGATE_BEGIN) and
+            (Word(AChar) <= LOW_SURROGATE_END);
 end;
 
 class function TCharacter.IsLowSurrogate(
-  const AString : UnicodeString;  
+  const AString : UnicodeString;
         AIndex  : Integer
 ) : Boolean;
-begin        
+begin
   if (AIndex < 1) or (AIndex > Length(AString)) then
     raise EArgumentOutOfRangeException.CreateFmt(SStringIndexOutOfRange, [AIndex, Length(AString)]);
   Result := IsLowSurrogate(AString[AIndex]);
@@ -1040,12 +1040,12 @@ begin
 end;
 
 class function TCharacter.IsLetter(AChar : UnicodeChar) : Boolean;
-begin 
+begin
   Result := (TUnicodeCategory(GetProps(Word(AChar))^.Category) in LETTER_CATEGORIES);
 end;
 
 class function TCharacter.IsLetter(
-  const AString : UnicodeString;  
+  const AString : UnicodeString;
         AIndex  : Integer
 ) : Boolean;
 begin
@@ -1059,12 +1059,12 @@ end;
 
 
 class function TCharacter.IsLetterOrDigit(AChar : UnicodeChar) : Boolean;
-begin 
+begin
   Result := (TUnicodeCategory(GetProps(Word(AChar))^.Category) in LETTER_OR_DIGIT_CATEGORIES);
 end;
 
 class function TCharacter.IsLetterOrDigit(
-  const AString : UnicodeString;  
+  const AString : UnicodeString;
         AIndex  : Integer
 ) : Boolean;
 begin
@@ -1077,12 +1077,12 @@ begin
 end;
 
 class function TCharacter.IsLower(AChar : UnicodeChar) : Boolean;
-begin        
+begin
   Result := (TUnicodeCategory(GetProps(Word(AChar))^.Category) = TUnicodeCategory.ucLowercaseLetter);
 end;
 
 class function TCharacter.IsLower(
-  const AString : UnicodeString;  
+  const AString : UnicodeString;
         AIndex  : Integer
 ) : Boolean;
 begin

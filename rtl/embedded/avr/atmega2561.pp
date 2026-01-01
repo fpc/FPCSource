@@ -188,13 +188,13 @@ var
   PCICR : byte absolute $00+$68; // Pin Change Interrupt Control Register
   // CPU
   SREG : byte absolute $00+$5F; // Status Register
-  SP : word absolute $00+$5D; // Stack Pointer 
-  SPL : byte absolute $00+$5D; // Stack Pointer 
-  SPH : byte absolute $00+$5D+1; // Stack Pointer 
+  SP : word absolute $00+$5D; // Stack Pointer
+  SPL : byte absolute $00+$5D; // Stack Pointer
+  SPH : byte absolute $00+$5D+1; // Stack Pointer
   XMCRA : byte absolute $00+$74; // External Memory Control Register A
   XMCRB : byte absolute $00+$75; // External Memory Control Register B
   OSCCAL : byte absolute $00+$66; // Oscillator Calibration Value
-  CLKPR : byte absolute $00+$61; // 
+  CLKPR : byte absolute $00+$61; //
   SMCR : byte absolute $00+$53; // Sleep Mode Control Register
   EIND : byte absolute $00+$5C; // Extended Indirect Register
   RAMPZ : byte absolute $00+$5B; // RAM Page Z Select Register
@@ -253,7 +253,7 @@ const
   UCSZ0 = 1; // Character Size
   UCPOL0 = 0; // Clock Polarity
   // TWAMR
-  TWAM = 1; // 
+  TWAM = 1; //
   // TWCR
   TWINT = 7; // TWI Interrupt Flag
   TWEA = 6; // TWI Enable Acknowledge Bit
@@ -283,7 +283,7 @@ const
   // TCCR0B
   FOC0A = 7; // Force Output Compare A
   FOC0B = 6; // Force Output Compare B
-  WGM02 = 3; // 
+  WGM02 = 3; //
   CS0 = 0; // Clock Select
   // TCCR0A
   COM0A = 6; // Compare Output Mode, Phase Correct PWM Mode
@@ -512,8 +512,8 @@ const
   XMBK = 7; // External Memory Bus Keeper Enable
   XMM = 0; // External Memory High Mask
   // CLKPR
-  CLKPCE = 7; // 
-  CLKPS = 0; // 
+  CLKPCE = 7; //
+  CLKPS = 0; //
   // SMCR
   SM = 1; // Sleep Mode Select bits
   SE = 0; // Sleep Enable
@@ -557,23 +557,23 @@ const
   MUX5 = 3; // Analog Channel and Gain Selection Bits
   ADTS = 0; // ADC Auto Trigger Source bits
   // DIDR2
-  ADC15D = 7; // 
-  ADC14D = 6; // 
-  ADC13D = 5; // 
-  ADC12D = 4; // 
-  ADC11D = 3; // 
-  ADC10D = 2; // 
-  ADC9D = 1; // 
-  ADC8D = 0; // 
+  ADC15D = 7; //
+  ADC14D = 6; //
+  ADC13D = 5; //
+  ADC12D = 4; //
+  ADC11D = 3; //
+  ADC10D = 2; //
+  ADC9D = 1; //
+  ADC8D = 0; //
   // DIDR0
-  ADC7D = 7; // 
-  ADC6D = 6; // 
-  ADC5D = 5; // 
-  ADC4D = 4; // 
-  ADC3D = 3; // 
-  ADC2D = 2; // 
-  ADC1D = 1; // 
-  ADC0D = 0; // 
+  ADC7D = 7; //
+  ADC6D = 6; //
+  ADC5D = 5; //
+  ADC4D = 4; //
+  ADC3D = 3; //
+  ADC2D = 2; //
+  ADC1D = 1; //
+  ADC0D = 0; //
   // SPMCSR
   SPMIE = 7; // SPM Interrupt Enable
   RWWSB = 6; // Read While Write Section Busy

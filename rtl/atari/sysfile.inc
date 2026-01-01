@@ -71,7 +71,7 @@ var
   dosResult: longint;
 begin
   do_write:=0;
-  if (len<=0) or (h=-1) then 
+  if (len<=0) or (h=-1) then
     exit;
 
   dosResult:=gemdos_fwrite(h, len, addr);
@@ -92,10 +92,10 @@ begin
   if (len<=0) or (h=-1) then exit;
 
   dosResult:=gemdos_fread(h, len, addr);
-  if dosResult<0 then 
+  if dosResult<0 then
     begin
       Error2InOutRes(dosResult);
-    end 
+    end
   else
     do_read:=dosResult;
 end;

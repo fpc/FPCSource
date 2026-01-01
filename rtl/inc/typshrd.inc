@@ -3,8 +3,8 @@
     Copyright (c) 2015 by Marco van de Voort
     member of the Free Pascal development team.
 
-    Types that are in unit types on all platforms but also in 
-    unit Windows on win<x> 
+    Types that are in unit types on all platforms but also in
+    unit Windows on win<x>
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.

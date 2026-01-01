@@ -5,7 +5,7 @@
 
     Sysutils unit for Nintendo Wii.
     This unit is based on the MorphOS one and is adapted for Nintendo Wii
-    simply by stripping out all stuff inside funcs and procs. 
+    simply by stripping out all stuff inside funcs and procs.
     Copyright (c) 2011 by Francesco Lombardi
 
     Based on Amiga version by Carl Eric Codere, and other
@@ -50,10 +50,10 @@ interface
 implementation
 
 {$IFDEF FPC_DOTTEDUNITS}
-uses 
+uses
   TP.DOS, System.SysConst;
 {$ELSE FPC_DOTTEDUNITS}
-uses 
+uses
   dos, sysconst;
 {$ENDIF FPC_DOTTEDUNITS}
 
@@ -240,7 +240,7 @@ var
 begin
 { $warning no idea if this calibration value is correct (FK) }
 { I estimated it roughly on the CPU clock of 16 MHz and 1+3 clock cycles for the loop }
-{ 
+{
   calib:=4000000;
   for i:=1 to Milliseconds do
     asm

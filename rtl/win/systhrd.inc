@@ -364,7 +364,7 @@ function WinTryEnterCriticalSection(var cs : TRTLCriticalSection):longint;
             if Assigned(SetThreadStackGuarantee) then
 {$endif win32}
               SetThreadStackGuaranteeTo(StackMargin);
-{$endif wince}            
+{$endif wince}
           end;
 
         dispose(pthreadinfo(param));
@@ -681,7 +681,7 @@ begin
        RPC_S_CALLPENDING: Result := wrTimeout;
        else Result := wrError;
      end
-   else 
+   else
      case WaitForSingleObject(THandle(state), Timeout) of
        WAIT_OBJECT_0: Result := wrSignaled;
        WAIT_TIMEOUT: Result := wrTimeout;

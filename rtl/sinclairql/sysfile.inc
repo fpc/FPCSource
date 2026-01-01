@@ -38,7 +38,7 @@ var
   res: longint;
 begin
   { To rename a QL file, it must exist and be opened. For WIN/FLP this
-    means open mode 0 (Q_OPEN) but for RAM this can be any of Q_OPEN, 
+    means open mode 0 (Q_OPEN) but for RAM this can be any of Q_OPEN,
     Q_OPEN_NEW or Q_OPEN_OVER. }
 
   { Does the file exist? }

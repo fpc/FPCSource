@@ -62,7 +62,7 @@ asm
   fldcw   Default8087CW
 
   { Initialize gs for thread local storage }
-  // movw    %ds,%ax 
+  // movw    %ds,%ax
   // movw    %ax,%gs
 
   { Save initial stackpointer }
@@ -81,14 +81,14 @@ asm
   call    *%eax
 .Lnodlexitproc:
   movl    syscall_nr_exit_group,%eax
-{$if sizeof(ExitCode)=2}  
+{$if sizeof(ExitCode)=2}
   movzwl  ExitCode,%ebx
 {$else}
   mov     ExitCode,%ebx
 {$endif}
   int     $0x80
   movl    syscall_nr_exit,%eax
-{$if sizeof(ExitCode)=2}  
+{$if sizeof(ExitCode)=2}
   movzwl  ExitCode,%ebx
 {$else}
   mov     ExitCode,%ebx

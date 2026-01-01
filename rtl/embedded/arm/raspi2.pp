@@ -59,7 +59,7 @@ begin
             nop
         end;
     end;
-end; 
+end;
 
 procedure PUT32(Address: DWord; Value: DWord); inline;
 VAR
@@ -142,7 +142,7 @@ begin
     PUT32(AUX_MU_IER_REG, 0);
     PUT32(AUX_MU_IIR_REG, $C6);
     PUT32(AUX_MU_BAUD_REG, 270);
-    
+
     ra := GET32(GPFSEL1);
     ra := ra AND (not (7 shl 12)); // gpio14
     ra := ra OR (2 shl 12);  // alt5
@@ -151,7 +151,7 @@ begin
 
     PUT32(GPFSEL1, ra);
     PUT32(GPPUD, 0);
-    
+
     Dummy(500);
 
     PUT32(GPPUDCLK0, ((1 shl 14) OR (1 shl 15)));

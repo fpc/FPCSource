@@ -90,7 +90,7 @@ uses
   strings{$ifdef windows},windows{$endif windows};
 {$ENDIF FPC_DOTTEDUNITS}
 
-function ReadDebugLink(var e:TExeFile;var dbgfn:shortstring):boolean; 
+function ReadDebugLink(var e:TExeFile;var dbgfn:shortstring):boolean;
 
 var
   fn : ansistring;
@@ -1722,7 +1722,7 @@ begin
               begin
 {$IFDEF DEBUG_LINEINFO}
                 writeln(stderr,'OpenExeFile for ',e.filename+'.dSYM/Contents/Resources/DWARF/'+copy(e.filename,filenamestartpos,length(e.filename)),' did not succeed.');
-{$endif DEBUG_LINEINFO}                
+{$endif DEBUG_LINEINFO}
                 UnmapMachO(mappedexe, mappedexesize);
                 exit;
               end;

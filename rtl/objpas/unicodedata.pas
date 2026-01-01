@@ -182,7 +182,7 @@ const
     UGC_Surrogate               = 27;
     UGC_PrivateUse              = 28;
     UGC_Unassigned              = 29;
-    
+
 // Names
 
   UnicodeCategoryNames: array[0..29] of string[2] = (
@@ -297,7 +297,7 @@ type
     procedure SetWhiteSpace(AValue : Boolean);
     function GetHangulSyllable : Boolean;inline;
     procedure SetHangulSyllable(AValue : Boolean);
-    function GetNumericValue: Double;inline; 
+    function GetNumericValue: Double;inline;
     function GetUnifiedIdeograph : Boolean;inline;
   public //Shortned names
     C  : Byte;      //CategoryData
@@ -315,7 +315,7 @@ type
   public
     property Category : Byte read GetCategory write SetCategory;
     property WhiteSpace : Boolean read GetWhiteSpace write SetWhiteSpace;
-    property HangulSyllable : Boolean read GetHangulSyllable write SetHangulSyllable; 
+    property HangulSyllable : Boolean read GetHangulSyllable write SetHangulSyllable;
     property UnifiedIdeograph : Boolean read GetUnifiedIdeograph;
     property NumericValue : Double read GetNumericValue;
   end;

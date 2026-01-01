@@ -16,110 +16,110 @@ type
     CLIC_PMOVI_IRQn     = 18,    // Performance Monitor
 
     // interruput numbers
-    WWDGT_IRQn          = 19,    // window watchDog timer interrupt 
-    LVD_IRQn            = 20,    // LVD through EXTI line detect interrupt 
-    TAMPER_IRQn         = 21,    // tamper through EXTI line detect 
-    RTC_IRQn            = 22,    // RTC alarm interrupt 
-    FMC_IRQn            = 23,    // FMC interrupt 
-    RCU_CTC_IRQn        = 24,    // RCU and CTC interrupt 
-    EXTI0_IRQn          = 25,    // EXTI line 0 interrupts 
-    EXTI1_IRQn          = 26,    // EXTI line 1 interrupts 
-    EXTI2_IRQn          = 27,    // EXTI line 2 interrupts 
-    EXTI3_IRQn          = 28,    // EXTI line 3 interrupts 
-    EXTI4_IRQn          = 29,    // EXTI line 4 interrupts 
-    DMA0_Channel0_IRQn  = 30,    // DMA0 channel0 interrupt 
-    DMA0_Channel1_IRQn  = 31,    // DMA0 channel1 interrupt 
-    DMA0_Channel2_IRQn  = 32,    // DMA0 channel2 interrupt 
-    DMA0_Channel3_IRQn  = 33,    // DMA0 channel3 interrupt 
-    DMA0_Channel4_IRQn  = 34,    // DMA0 channel4 interrupt 
-    DMA0_Channel5_IRQn  = 35,    // DMA0 channel5 interrupt 
-    DMA0_Channel6_IRQn  = 36,    // DMA0 channel6 interrupt 
-    ADC0_1_IRQn         = 37,    // ADC0 and ADC1 interrupt 
-    CAN0_TX_IRQn        = 38,    // CAN0 TX interrupts 
-    CAN0_RX0_IRQn       = 39,    // CAN0 RX0 interrupts 
-    CAN0_RX1_IRQn       = 40,    // CAN0 RX1 interrupts 
-    CAN0_EWMC_IRQn      = 41,    // CAN0 EWMC interrupts 
-    EXTI5_9_IRQn        = 42,    // EXTI[9:5] interrupts 
-    TIMER0_BRK_IRQn     = 43,    // TIMER0 break interrupts 
-    TIMER0_UP_IRQn      = 44,    // TIMER0 update interrupts 
-    TIMER0_TRG_CMT_IRQn = 45,    // TIMER0 trigger and commutation interrupts 
-    TIMER0_Channel_IRQn = 46,    // TIMER0 channel capture compare interrupts 
-    TIMER1_IRQn         = 47,    // TIMER1 interrupt 
-    TIMER2_IRQn         = 48,    // TIMER2 interrupt 
-    TIMER3_IRQn         = 49,    // TIMER3 interrupts 
-    I2C0_EV_IRQn        = 50,    // I2C0 event interrupt 
-    I2C0_ER_IRQn        = 51,    // I2C0 error interrupt 
-    I2C1_EV_IRQn        = 52,    // I2C1 event interrupt 
-    I2C1_ER_IRQn        = 53,    // I2C1 error interrupt 
-    SPI0_IRQn           = 54,    // SPI0 interrupt 
-    SPI1_IRQn           = 55,    // SPI1 interrupt 
-    USART0_IRQn         = 56,    // USART0 interrupt 
-    USART1_IRQn         = 57,    // USART1 interrupt 
-    USART2_IRQn         = 58,    // USART2 interrupt 
-    EXTI10_15_IRQn      = 59,    // EXTI[15:10] interrupts 
-    RTC_ALARM_IRQn      = 60,    // RTC alarm interrupt EXTI 
-    USBFS_WKUP_IRQn     = 61,    // USBFS wakeup interrupt 
+    WWDGT_IRQn          = 19,    // window watchDog timer interrupt
+    LVD_IRQn            = 20,    // LVD through EXTI line detect interrupt
+    TAMPER_IRQn         = 21,    // tamper through EXTI line detect
+    RTC_IRQn            = 22,    // RTC alarm interrupt
+    FMC_IRQn            = 23,    // FMC interrupt
+    RCU_CTC_IRQn        = 24,    // RCU and CTC interrupt
+    EXTI0_IRQn          = 25,    // EXTI line 0 interrupts
+    EXTI1_IRQn          = 26,    // EXTI line 1 interrupts
+    EXTI2_IRQn          = 27,    // EXTI line 2 interrupts
+    EXTI3_IRQn          = 28,    // EXTI line 3 interrupts
+    EXTI4_IRQn          = 29,    // EXTI line 4 interrupts
+    DMA0_Channel0_IRQn  = 30,    // DMA0 channel0 interrupt
+    DMA0_Channel1_IRQn  = 31,    // DMA0 channel1 interrupt
+    DMA0_Channel2_IRQn  = 32,    // DMA0 channel2 interrupt
+    DMA0_Channel3_IRQn  = 33,    // DMA0 channel3 interrupt
+    DMA0_Channel4_IRQn  = 34,    // DMA0 channel4 interrupt
+    DMA0_Channel5_IRQn  = 35,    // DMA0 channel5 interrupt
+    DMA0_Channel6_IRQn  = 36,    // DMA0 channel6 interrupt
+    ADC0_1_IRQn         = 37,    // ADC0 and ADC1 interrupt
+    CAN0_TX_IRQn        = 38,    // CAN0 TX interrupts
+    CAN0_RX0_IRQn       = 39,    // CAN0 RX0 interrupts
+    CAN0_RX1_IRQn       = 40,    // CAN0 RX1 interrupts
+    CAN0_EWMC_IRQn      = 41,    // CAN0 EWMC interrupts
+    EXTI5_9_IRQn        = 42,    // EXTI[9:5] interrupts
+    TIMER0_BRK_IRQn     = 43,    // TIMER0 break interrupts
+    TIMER0_UP_IRQn      = 44,    // TIMER0 update interrupts
+    TIMER0_TRG_CMT_IRQn = 45,    // TIMER0 trigger and commutation interrupts
+    TIMER0_Channel_IRQn = 46,    // TIMER0 channel capture compare interrupts
+    TIMER1_IRQn         = 47,    // TIMER1 interrupt
+    TIMER2_IRQn         = 48,    // TIMER2 interrupt
+    TIMER3_IRQn         = 49,    // TIMER3 interrupts
+    I2C0_EV_IRQn        = 50,    // I2C0 event interrupt
+    I2C0_ER_IRQn        = 51,    // I2C0 error interrupt
+    I2C1_EV_IRQn        = 52,    // I2C1 event interrupt
+    I2C1_ER_IRQn        = 53,    // I2C1 error interrupt
+    SPI0_IRQn           = 54,    // SPI0 interrupt
+    SPI1_IRQn           = 55,    // SPI1 interrupt
+    USART0_IRQn         = 56,    // USART0 interrupt
+    USART1_IRQn         = 57,    // USART1 interrupt
+    USART2_IRQn         = 58,    // USART2 interrupt
+    EXTI10_15_IRQn      = 59,    // EXTI[15:10] interrupts
+    RTC_ALARM_IRQn      = 60,    // RTC alarm interrupt EXTI
+    USBFS_WKUP_IRQn     = 61,    // USBFS wakeup interrupt
 
-    EXMC_IRQn           = 67,    // EXMC global interrupt 
+    EXMC_IRQn           = 67,    // EXMC global interrupt
 
-    TIMER4_IRQn         = 69,    // TIMER4 global interrupt 
-    SPI2_IRQn           = 70,    // SPI2 global interrupt 
-    UART3_IRQn          = 71,    // UART3 global interrupt 
-    UART4_IRQn          = 72,    // UART4 global interrupt 
-    TIMER5_IRQn         = 73,    // TIMER5 global interrupt 
-    TIMER6_IRQn         = 74,    // TIMER6 global interrupt 
-    DMA1_Channel0_IRQn  = 75,    // DMA1 channel0 global interrupt 
-    DMA1_Channel1_IRQn  = 76,    // DMA1 channel1 global interrupt 
-    DMA1_Channel2_IRQn  = 77,    // DMA1 channel2 global interrupt 
-    DMA1_Channel3_IRQn  = 78,    // DMA1 channel3 global interrupt 
-    DMA1_Channel4_IRQn  = 79,    // DMA1 channel3 global interrupt 
+    TIMER4_IRQn         = 69,    // TIMER4 global interrupt
+    SPI2_IRQn           = 70,    // SPI2 global interrupt
+    UART3_IRQn          = 71,    // UART3 global interrupt
+    UART4_IRQn          = 72,    // UART4 global interrupt
+    TIMER5_IRQn         = 73,    // TIMER5 global interrupt
+    TIMER6_IRQn         = 74,    // TIMER6 global interrupt
+    DMA1_Channel0_IRQn  = 75,    // DMA1 channel0 global interrupt
+    DMA1_Channel1_IRQn  = 76,    // DMA1 channel1 global interrupt
+    DMA1_Channel2_IRQn  = 77,    // DMA1 channel2 global interrupt
+    DMA1_Channel3_IRQn  = 78,    // DMA1 channel3 global interrupt
+    DMA1_Channel4_IRQn  = 79,    // DMA1 channel3 global interrupt
 
-    CAN1_TX_IRQn        = 82,    // CAN1 TX interrupt 
-    CAN1_RX0_IRQn       = 83,    // CAN1 RX0 interrupt 
-    CAN1_RX1_IRQn       = 84,    // CAN1 RX1 interrupt 
-    CAN1_EWMC_IRQn      = 85,    // CAN1 EWMC interrupt 
-    USBFS_IRQn          = 86     // USBFS global interrupt 
+    CAN1_TX_IRQn        = 82,    // CAN1 TX interrupt
+    CAN1_RX0_IRQn       = 83,    // CAN1 RX0 interrupt
+    CAN1_RX1_IRQn       = 84,    // CAN1 RX1 interrupt
+    CAN1_EWMC_IRQn      = 85,    // CAN1 EWMC interrupt
+    USBFS_IRQn          = 86     // USBFS global interrupt
   );
 
 //Analog to Digital Converter
 
   TADC_Registers = record
-    STAT      : longword;        // ADC status register 
-    CTL0      : longword;        // ADC control register 0 
-    CTL1      : longword;        // ADC control register 1 
-    SAMPT0    : longword;        // ADC sampling time register 0 
-    SAMPT1    : longword;        // ADC sampling time register 1 
-    IOFF0     : longword;        // ADC inserted channel data offset register 0 
-    IOFF1     : longword;        // ADC inserted channel data offset register 1 
-    IOFF2     : longword;        // ADC inserted channel data offset register 2 
-    IOFF3     : longword;        // ADC inserted channel data offset register 3 
-    WDHT      : longword;        // ADC watchdog high threshold register 
-    WDLT      : longword;        // ADC watchdog low threshold register 
-    RSQ0      : longword;        // ADC regular sequence register 0 
-    RSQ1      : longword;        // ADC regular sequence register 1 
-    RSQ2      : longword;        // ADC regular sequence register 2 
-    ISQ       : longword;        // ADC inserted sequence register 
-    IDATA0    : longword;        // ADC inserted data register 0 
-    IDATA1    : longword;        // ADC inserted data register 1 
-    IDATA2    : longword;        // ADC inserted data register 2 
-    IDATA3    : longword;        // ADC inserted data register 3 
-    RDATA     : longword;        // ADC regular data register 
+    STAT      : longword;        // ADC status register
+    CTL0      : longword;        // ADC control register 0
+    CTL1      : longword;        // ADC control register 1
+    SAMPT0    : longword;        // ADC sampling time register 0
+    SAMPT1    : longword;        // ADC sampling time register 1
+    IOFF0     : longword;        // ADC inserted channel data offset register 0
+    IOFF1     : longword;        // ADC inserted channel data offset register 1
+    IOFF2     : longword;        // ADC inserted channel data offset register 2
+    IOFF3     : longword;        // ADC inserted channel data offset register 3
+    WDHT      : longword;        // ADC watchdog high threshold register
+    WDLT      : longword;        // ADC watchdog low threshold register
+    RSQ0      : longword;        // ADC regular sequence register 0
+    RSQ1      : longword;        // ADC regular sequence register 1
+    RSQ2      : longword;        // ADC regular sequence register 2
+    ISQ       : longword;        // ADC inserted sequence register
+    IDATA0    : longword;        // ADC inserted data register 0
+    IDATA1    : longword;        // ADC inserted data register 1
+    IDATA2    : longword;        // ADC inserted data register 2
+    IDATA3    : longword;        // ADC inserted data register 3
+    RDATA     : longword;        // ADC regular data register
     RESERVED0 : array[1..12] of longword;
-    OVSCR     : longword;        // ADC oversample control register 
+    OVSCR     : longword;        // ADC oversample control register
   end;
 
   TCAN_MAILBOX_Registers = record
-    TMI       : longword;        // CAN transmit mailbox0 identifier register 
-    TMP       : longword;        // CAN transmit mailbox0 property register 
-    TMDATA0   : longword;        // CAN transmit mailbox0 data0 register 
-    TMDATA1   : longword;        // CAN transmit mailbox0 data1 register 
+    TMI       : longword;        // CAN transmit mailbox0 identifier register
+    TMP       : longword;        // CAN transmit mailbox0 property register
+    TMDATA0   : longword;        // CAN transmit mailbox0 data0 register
+    TMDATA1   : longword;        // CAN transmit mailbox0 data1 register
   end;
 
   TCAN_FIFO_Registers = record
-    RFIFOMI   : longword;        // CAN receive FIFO0 mailbox identifier register 
-    RFIFOMP0  : longword;        // CAN receive FIFO0 mailbox property register 
-    RFIFOMDATA0 : longword;      // CAN receive FIFO0 mailbox data0 register 
-    RFIFOMDATA1 : longword;      // CAN receive FIFO0 mailbox data1 register 
+    RFIFOMI   : longword;        // CAN receive FIFO0 mailbox identifier register
+    RFIFOMP0  : longword;        // CAN receive FIFO0 mailbox property register
+    RFIFOMDATA0 : longword;      // CAN receive FIFO0 mailbox data0 register
+    RFIFOMDATA1 : longword;      // CAN receive FIFO0 mailbox data1 register
   end;
 
   TCAN_FILTER_Registers = record
@@ -129,267 +129,267 @@ type
 
 (*
   TCAN_Registers = record
-    CTL       : longword;        // CAN control register 
-    STAT      : longword;        // CAN status register 
-    TSTAT     : longword;        // CAN transmit status register 
-    RFIFO0    : longword;        // CAN receive FIFO0 register 
-    RFIFO1    : longword;        // CAN receive FIFO1 register 
-    INTEN     : longword;        // CAN interrupt enable register 
-    ERR       : longword;        // CAN error register 
-    BT        : longword;        // CAN bit timing register 
+    CTL       : longword;        // CAN control register
+    STAT      : longword;        // CAN status register
+    TSTAT     : longword;        // CAN transmit status register
+    RFIFO0    : longword;        // CAN receive FIFO0 register
+    RFIFO1    : longword;        // CAN receive FIFO1 register
+    INTEN     : longword;        // CAN interrupt enable register
+    ERR       : longword;        // CAN error register
+    BT        : longword;        // CAN bit timing register
     RESERVED0 : array[1..12] of longword;
-    TXMAILBOX : array[0..2] of TCAN_MAILBOX_Registers 
-    RXFIFO    : array[0..1] of TCAN_FIFO_Registers 
+    TXMAILBOX : array[0..2] of TCAN_MAILBOX_Registers
+    RXFIFO    : array[0..1] of TCAN_FIFO_Registers
 
-    1CC        // CAN receive FIFO1 mailbox data1 register 
-    RESERVED0 : array[] of longword; 
+    1CC        // CAN receive FIFO1 mailbox data1 register
+    RESERVED0 : array[] of longword;
 
-    FCTL      : longword;        // CAN filter control register 
-    FMCFG     : longword;        // CAN filter mode register 
+    FCTL      : longword;        // CAN filter control register
+    FMCFG     : longword;        // CAN filter mode register
     RESERVED1 : longword;
-    FSCFG     : longword;        // CAN filter scale register 
+    FSCFG     : longword;        // CAN filter scale register
     RESERVED2 : longword;
-    FAFIFO    : longword;        // CAN filter associated FIFO register 
+    FAFIFO    : longword;        // CAN filter associated FIFO register
     RESERVED3 : longword;
-    FW        : longword;    21C // CAN filter working register 
+    FW        : longword;    21C // CAN filter working register
 
     F : array[0..27] of TCAN_FILTER_Registers;
 
-/* CAN transmit mailbox bank 
-    TMI(canx, bank)                REG32((canx) + 0x180U + ((bank) * 0x10U))               // CAN transmit mailbox identifier register 
-    TMP(canx, bank)                REG32((canx) + 0x184U + ((bank) * 0x10U))               // CAN transmit mailbox property register 
-    TMDATA0(canx, bank)            REG32((canx) + 0x188U + ((bank) * 0x10U))               // CAN transmit mailbox data0 register 
-    TMDATA1(canx, bank)            REG32((canx) + 0x18CU + ((bank) * 0x10U))               // CAN transmit mailbox data1 register 
+/* CAN transmit mailbox bank
+    TMI(canx, bank)                REG32((canx) + 0x180U + ((bank) * 0x10U))               // CAN transmit mailbox identifier register
+    TMP(canx, bank)                REG32((canx) + 0x184U + ((bank) * 0x10U))               // CAN transmit mailbox property register
+    TMDATA0(canx, bank)            REG32((canx) + 0x188U + ((bank) * 0x10U))               // CAN transmit mailbox data0 register
+    TMDATA1(canx, bank)            REG32((canx) + 0x18CU + ((bank) * 0x10U))               // CAN transmit mailbox data1 register
 
-/* CAN filter bank 
-    FDATA0 : longword;        // CAN filter data 0 register 
-    FDATA1 : longword;        // CAN filter data 1 register 
+/* CAN filter bank
+    FDATA0 : longword;        // CAN filter data 0 register
+    FDATA1 : longword;        // CAN filter data 1 register
 
-/* CAN receive fifo mailbox bank 
-    RFIFOMI(canx, bank)            REG32((canx) + 0x1B0U + ((bank) * 0x10U))               // CAN receive FIFO mailbox identifier register 
-    RFIFOMP(canx, bank)            REG32((canx) + 0x1B4U + ((bank) * 0x10U))               // CAN receive FIFO mailbox property register 
-    RFIFOMDATA0(canx, bank)        REG32((canx) + 0x1B8U + ((bank) * 0x10U))               // CAN receive FIFO mailbox data0 register 
-    RFIFOMDATA1(canx, bank)        REG32((canx) + 0x1BCU + ((bank) * 0x10U))               // CAN receive FIFO mailbox data1 register 
+/* CAN receive fifo mailbox bank
+    RFIFOMI(canx, bank)            REG32((canx) + 0x1B0U + ((bank) * 0x10U))               // CAN receive FIFO mailbox identifier register
+    RFIFOMP(canx, bank)            REG32((canx) + 0x1B4U + ((bank) * 0x10U))               // CAN receive FIFO mailbox property register
+    RFIFOMDATA0(canx, bank)        REG32((canx) + 0x1B8U + ((bank) * 0x10U))               // CAN receive FIFO mailbox data0 register
+    RFIFOMDATA1(canx, bank)        REG32((canx) + 0x1BCU + ((bank) * 0x10U))               // CAN receive FIFO mailbox data1 register
   end;
 
 *)
 
   TCRC_Registers = record
-    DATA      : longword;        // CRC data register 
-    FDATA     : longword;        // CRC free data register 
-    CTL       : longword;        // CRC control register 
+    DATA      : longword;        // CRC data register
+    FDATA     : longword;        // CRC free data register
+    CTL       : longword;        // CRC control register
   end;
 
   TDAC_Registers = record
-    CTL       : longword;        // DAC control register 
-    SWT       : longword;        // DAC software trigger register 
-    DAC0_R12DH: longword;        // DAC0 12-bit right-aligned data holding register 
-    DAC0_L12DH: longword;        // DAC0 12-bit left-aligned data holding register 
-    DAC0_R8DH : longword;        // DAC0 8-bit right-aligned data holding register 
-    DAC1_R12DH: longword;        // DAC1 12-bit right-aligned data holding register 
-    DAC1_L12DH: longword;        // DAC1 12-bit left-aligned data holding register 
-    DAC1_R8DH : longword;        // DAC1 8-bit right-aligned data holding register 
-    DACC_R12DH: longword;        // DAC concurrent mode 12-bit right-aligned data holding register 
-    DACC_L12DH: longword;        // DAC concurrent mode 12-bit left-aligned data holding register 
-    DACC_R8DH : longword;        // DAC concurrent mode 8-bit right-aligned data holding register 
-    DAC0_DO   : longword;        // DAC0 data output register 
-    DAC1_DO   : longword;        // DAC1 data output register   
+    CTL       : longword;        // DAC control register
+    SWT       : longword;        // DAC software trigger register
+    DAC0_R12DH: longword;        // DAC0 12-bit right-aligned data holding register
+    DAC0_L12DH: longword;        // DAC0 12-bit left-aligned data holding register
+    DAC0_R8DH : longword;        // DAC0 8-bit right-aligned data holding register
+    DAC1_R12DH: longword;        // DAC1 12-bit right-aligned data holding register
+    DAC1_L12DH: longword;        // DAC1 12-bit left-aligned data holding register
+    DAC1_R8DH : longword;        // DAC1 8-bit right-aligned data holding register
+    DACC_R12DH: longword;        // DAC concurrent mode 12-bit right-aligned data holding register
+    DACC_L12DH: longword;        // DAC concurrent mode 12-bit left-aligned data holding register
+    DACC_R8DH : longword;        // DAC concurrent mode 8-bit right-aligned data holding register
+    DAC0_DO   : longword;        // DAC0 data output register
+    DAC1_DO   : longword;        // DAC1 data output register
   end;
 
 //DMA Controller
 
   TDMA_Channel_Registers = record
-    CTL       : longword;        // DMA channel 0 control register 
-    CNT       : longword;        // DMA channel 0 counter register 
-    PADDR     : longword;        // DMA channel 0 peripheral base address register 
-    MADDR     : longword;        // DMA channel 0 memory base address register 
+    CTL       : longword;        // DMA channel 0 control register
+    CNT       : longword;        // DMA channel 0 counter register
+    PADDR     : longword;        // DMA channel 0 peripheral base address register
+    MADDR     : longword;        // DMA channel 0 memory base address register
     RESERVED0 : longword;
   end;
 
   TDMA_Registers = record
-    INTF      : longword;        // DMA interrupt flag register 
-    INTC      : longword;        // DMA interrupt flag clear register 
+    INTF      : longword;        // DMA interrupt flag register
+    INTC      : longword;        // DMA interrupt flag clear register
     CHANNEL   : array[1..6] of TDMA_Channel_Registers;
   end;
 
 //External Interrupt/Event Controller
 
   TEXMC_Registers = record
-    SNCTL0    : longword;        // EXMC SRAM/NOR flash control register 0 
-    SNTCFG0   : longword;        // EXMC SRAM/NOR flash timing configuration register 0 
+    SNCTL0    : longword;        // EXMC SRAM/NOR flash control register 0
+    SNTCFG0   : longword;        // EXMC SRAM/NOR flash timing configuration register 0
     RESERVED0 : array[0..$3f0] of longword;
-    SNWTCFG0  : longword;        // EXMC SRAM/NOR flash write timing configuration register 0 
+    SNWTCFG0  : longword;        // EXMC SRAM/NOR flash write timing configuration register 0
   end;
 
   TEXTI_Registers = record
-    INTEN     : longword;        // interrupt enable register 
-    EVEN      : longword;        // event enable register 
-    RTEN      : longword;        // rising edge trigger enable register 
-    FTEN      : longword;        // falling trigger enable register 
-    SWIEV     : longword;        // software interrupt event register 
-    PD        : longword;        // pending register 
+    INTEN     : longword;        // interrupt enable register
+    EVEN      : longword;        // event enable register
+    RTEN      : longword;        // rising edge trigger enable register
+    FTEN      : longword;        // falling trigger enable register
+    SWIEV     : longword;        // software interrupt event register
+    PD        : longword;        // pending register
   end;
 
   TFMC_Registers = record
-    WS        : longword;        // FMC wait state register 
-    KEY       : longword;        // FMC unlock key register 
-    OBKEY     : longword;        // FMC option bytes unlock key register 
-    STAT      : longword;        // FMC status register 
-    CTL       : longword;        // FMC control register 
-    ADDR      : longword;        // FMC address register 
+    WS        : longword;        // FMC wait state register
+    KEY       : longword;        // FMC unlock key register
+    OBKEY     : longword;        // FMC option bytes unlock key register
+    STAT      : longword;        // FMC status register
+    CTL       : longword;        // FMC control register
+    ADDR      : longword;        // FMC address register
     RESERVED0 : longword;
-    OBSTAT    : longword;        // FMC option bytes status register 
-    WP        : longword;        // FMC erase/program protection register 
+    OBSTAT    : longword;        // FMC option bytes status register
+    WP        : longword;        // FMC erase/program protection register
     RESERVED1 : array[0..$df] of longword;
-    PID       : longword;        // FMC product ID register 
+    PID       : longword;        // FMC product ID register
   end;
 
   TOB_Registers = record
-    SPC       : word;            // option byte security protection value 
-    USER      : word;            // option byte user value 
+    SPC       : word;            // option byte security protection value
+    USER      : word;            // option byte user value
     RESERVED0 : word;
     RESERVED1 : word;
-    WP0       : word;            // option byte write protection 0 
-    WP1       : word;            // option byte write protection 1 
-    WP2       : word;            // option byte write protection 2 
-    WP3       : word;            // option byte write protection 3 
+    WP0       : word;            // option byte write protection 0
+    WP1       : word;            // option byte write protection 1
+    WP2       : word;            // option byte write protection 2
+    WP3       : word;            // option byte write protection 3
   end;
 
   TFWDGT_Registers = record
-    CTL       : longword;        // FWDGT control register 
-    PSC       : longword;        // FWDGT prescaler register 
-    RLD       : longword;        // FWDGT reload register 
-    STAT      : longword;        // FWDGT status register 
+    CTL       : longword;        // FWDGT control register
+    PSC       : longword;        // FWDGT prescaler register
+    RLD       : longword;        // FWDGT reload register
+    STAT      : longword;        // FWDGT status register
   end;
 
   TGPIO_Registers = record
-    CTL0      : longword;        // GPIO port control register 0 
-    CTL1      : longword;        // GPIO port control register 1 
-    ISTAT     : longword;        // GPIO port input status register 
-    OCTL      : longword;        // GPIO port output control register 
-    BOP       : longword;        // GPIO port bit operation register 
-    BC        : longword;        // GPIO bit clear register 
-    LOCK      : longword;        // GPIO port configuration lock register 
+    CTL0      : longword;        // GPIO port control register 0
+    CTL1      : longword;        // GPIO port control register 1
+    ISTAT     : longword;        // GPIO port input status register
+    OCTL      : longword;        // GPIO port output control register
+    BOP       : longword;        // GPIO port bit operation register
+    BC        : longword;        // GPIO bit clear register
+    LOCK      : longword;        // GPIO port configuration lock register
   end;
 
   TAFIO_Registers = record
-    EC        : longword;        // AFIO event control register 
-    PCF0      : longword;        // AFIO port configuration register 0 
-    EXTISS0   : longword;        // AFIO port EXTI sources selection register 0 
-    EXTISS1   : longword;        // AFIO port EXTI sources selection register 1 
-    EXTISS2   : longword;        // AFIO port EXTI sources selection register 2 
-    EXTISS3   : longword;        // AFIO port EXTI sources selection register 3 
-    PCF1      : longword;        // AFIO port configuration register 1 
+    EC        : longword;        // AFIO event control register
+    PCF0      : longword;        // AFIO port configuration register 0
+    EXTISS0   : longword;        // AFIO port EXTI sources selection register 0
+    EXTISS1   : longword;        // AFIO port EXTI sources selection register 1
+    EXTISS2   : longword;        // AFIO port EXTI sources selection register 2
+    EXTISS3   : longword;        // AFIO port EXTI sources selection register 3
+    PCF1      : longword;        // AFIO port configuration register 1
   end;
 
   TI2C_Registers = record
-    CTL0      : longword;        // I2C control register 0 
-    CTL1      : longword;        // I2C control register 1 
-    SADDR0    : longword;        // I2C slave address register 0 
-    SADDR1    : longword;        // I2C slave address register 
-    DATA      : longword;        // I2C transfer buffer register 
-    STAT0     : longword;        // I2C transfer status register 0 
-    STAT1     : longword;        // I2C transfer status register 
-    CKCFG     : longword;        // I2C clock configure register 
-    RT        : longword;        // I2C rise time register 
+    CTL0      : longword;        // I2C control register 0
+    CTL1      : longword;        // I2C control register 1
+    SADDR0    : longword;        // I2C slave address register 0
+    SADDR1    : longword;        // I2C slave address register
+    DATA      : longword;        // I2C transfer buffer register
+    STAT0     : longword;        // I2C transfer status register 0
+    STAT1     : longword;        // I2C transfer status register
+    CKCFG     : longword;        // I2C clock configure register
+    RT        : longword;        // I2C rise time register
     RESERVED0 : array[0..$6f] of longword;
-    FMPCFG    : longword;        // I2C fast-mode-plus configure register 
+    FMPCFG    : longword;        // I2C fast-mode-plus configure register
   end;
 
   TPMU_Registers = record
-    CTL       : longword;        // PMU control register 
-    CS        : longword;        // PMU control and status register 
+    CTL       : longword;        // PMU control register
+    CS        : longword;        // PMU control and status register
   end;
 
   TRCU_Registers = record
-    CTL       : longword;        // control register 
-    CFG0      : longword;        // clock configuration register 0 
-    INT       : longword;        // clock interrupt register 
-    APB2RST   : longword;        // APB2 reset register 
-    APB1RST   : longword;        // APB1 reset register 
-    AHBEN     : longword;        // AHB1 enable register 
-    APB2EN    : longword;        // APB2 enable register 
-    APB1EN    : longword;        // APB1 enable register 
-    BDCTL     : longword;        // backup domain control register 
-    RSTSCK    : longword;        // reset source / clock register 
-    AHBRST    : longword;        // AHB reset register 
-    CFG1      : longword;        // clock configuration register 1 
+    CTL       : longword;        // control register
+    CFG0      : longword;        // clock configuration register 0
+    INT       : longword;        // clock interrupt register
+    APB2RST   : longword;        // APB2 reset register
+    APB1RST   : longword;        // APB1 reset register
+    AHBEN     : longword;        // AHB1 enable register
+    APB2EN    : longword;        // APB2 enable register
+    APB1EN    : longword;        // APB1 enable register
+    BDCTL     : longword;        // backup domain control register
+    RSTSCK    : longword;        // reset source / clock register
+    AHBRST    : longword;        // AHB reset register
+    CFG1      : longword;        // clock configuration register 1
     RESERVED0 : longword;
-    DSV       : longword;        // deep-sleep mode voltage register 
+    DSV       : longword;        // deep-sleep mode voltage register
  end;
 
 //Real-Time Clock
 
   TRTC_Registers = record
-    INTEN     : longword;        // interrupt enable register 
-    CTL       : longword;        // control register 
-    PSCH      : longword;        // prescaler high register 
-    PSCL      : longword;        // prescaler low register 
-    DIVH      : longword;        // divider high register 
-    DIVL      : longword;        // divider low register 
-    CNTH      : longword;        // counter high register 
-    CNTL      : longword;        // counter low register 
-    ALRMH     : longword;        // alarm high register 
-    ALRML     : longword;        // alarm low register 
+    INTEN     : longword;        // interrupt enable register
+    CTL       : longword;        // control register
+    PSCH      : longword;        // prescaler high register
+    PSCL      : longword;        // prescaler low register
+    DIVH      : longword;        // divider high register
+    DIVL      : longword;        // divider low register
+    CNTH      : longword;        // counter high register
+    CNTL      : longword;        // counter low register
+    ALRMH     : longword;        // alarm high register
+    ALRML     : longword;        // alarm low register
   end;
 
 //Serial Peripheral Interface
 
   TSPI_Registers = record
-    CTL0      : longword;        // SPI control register 0 
-    CTL1      : longword;        // SPI control register 1 
-    STAT      : longword;        // SPI status register 
-    DATA      : longword;        // SPI data register 
-    CRCPOLY   : longword;        // SPI CRC polynomial register 
-    RCRC      : longword;        // SPI receive CRC register 
-    TCRC      : longword;        // SPI transmit CRC register 
-    I2SCTL    : longword;        // SPI I2S control register 
-    I2SPSC    : longword;        // SPI I2S clock prescaler register 
+    CTL0      : longword;        // SPI control register 0
+    CTL1      : longword;        // SPI control register 1
+    STAT      : longword;        // SPI status register
+    DATA      : longword;        // SPI data register
+    CRCPOLY   : longword;        // SPI CRC polynomial register
+    RCRC      : longword;        // SPI receive CRC register
+    TCRC      : longword;        // SPI transmit CRC register
+    I2SCTL    : longword;        // SPI I2S control register
+    I2SPSC    : longword;        // SPI I2S clock prescaler register
   end;
 
 //TIM
 
   TTIMER_Registers = record
-    CTL0      : longword;        // TIMER control register 0 
-    CTL1      : longword;        // TIMER control register 1 
-    SMCFG     : longword;        // TIMER slave mode configuration register 
-    DMAINTEN  : longword;        // TIMER DMA and interrupt enable register 
-    INTF      : longword;        // TIMER interrupt flag register 
-    SWEVG     : longword;        // TIMER software event generation register 
-    CHCTL0    : longword;        // TIMER channel control register 0 
-    CHCTL1    : longword;        // TIMER channel control register 1 
-    CHCTL2    : longword;        // TIMER channel control register 2 
-    CNT       : longword;        // TIMER counter register 
-    PSC       : longword;        // TIMER prescaler register 
-    CAR       : longword;        // TIMER counter auto reload register 
-    CREP      : longword;        // TIMER counter repetition register 
-    CH0CV     : longword;        // TIMER channel 0 capture/compare value register 
-    CH1CV     : longword;        // TIMER channel 1 capture/compare value register 
-    CH2CV     : longword;        // TIMER channel 2 capture/compare value register 
-    CH3CV     : longword;        // TIMER channel 3 capture/compare value register 
-    CCHP      : longword;        // TIMER channel complementary protection register 
-    DMACFG    : longword;        // TIMER DMA configuration register 
-    DMATB     : longword;        // TIMER DMA transfer buffer register 
+    CTL0      : longword;        // TIMER control register 0
+    CTL1      : longword;        // TIMER control register 1
+    SMCFG     : longword;        // TIMER slave mode configuration register
+    DMAINTEN  : longword;        // TIMER DMA and interrupt enable register
+    INTF      : longword;        // TIMER interrupt flag register
+    SWEVG     : longword;        // TIMER software event generation register
+    CHCTL0    : longword;        // TIMER channel control register 0
+    CHCTL1    : longword;        // TIMER channel control register 1
+    CHCTL2    : longword;        // TIMER channel control register 2
+    CNT       : longword;        // TIMER counter register
+    PSC       : longword;        // TIMER prescaler register
+    CAR       : longword;        // TIMER counter auto reload register
+    CREP      : longword;        // TIMER counter repetition register
+    CH0CV     : longword;        // TIMER channel 0 capture/compare value register
+    CH1CV     : longword;        // TIMER channel 1 capture/compare value register
+    CH2CV     : longword;        // TIMER channel 2 capture/compare value register
+    CH3CV     : longword;        // TIMER channel 3 capture/compare value register
+    CCHP      : longword;        // TIMER channel complementary protection register
+    DMACFG    : longword;        // TIMER DMA configuration register
+    DMATB     : longword;        // TIMER DMA transfer buffer register
   end;
 
 //Universal Synchronous Asynchronous Receiver Transmitter
 
   TUSART_Registers = record
-    STAT      : longword;        // USART status register 
-    DATA      : longword;        // USART data register 
-    BAUD      : longword;        // USART baud rate register 
-    CTL0      : longword;        // USART control register 0 
-    CTL1      : longword;        // USART control register 1 
-    CTL2      : longword;        // USART control register 2 
-    GP        : longword;        // USART guard time and prescaler register 
+    STAT      : longword;        // USART status register
+    DATA      : longword;        // USART data register
+    BAUD      : longword;        // USART baud rate register
+    CTL0      : longword;        // USART control register 0
+    CTL1      : longword;        // USART control register 1
+    CTL2      : longword;        // USART control register 2
+    GP        : longword;        // USART guard time and prescaler register
   end;
 
 //Window WATCHDOG
 
   TWWDGT_Registers = record
-    CTL       : longword;        // WWDGT control register 
-    CFG       : longword;        // WWDGT configuration register 
-    STAT      : longword;        // WWDGT status register 
+    CTL       : longword;        // WWDGT control register
+    CFG       : longword;        // WWDGT configuration register
+    STAT      : longword;        // WWDGT status register
   end;
 
 const
@@ -425,11 +425,11 @@ const
   SPI2_BASE   = SPI_BASE + $00000400;      // SPI base address
 
   USART_BASE  = APB1_BUS_BASE + $00004400; // USART base address
-  USART0_BASE = USART_BASE+$0000F400;      // USART0 base address 
-  USART1_BASE = USART_BASE;                // USART1 base address 
-  USART2_BASE = USART_BASE+$00000400;      // USART2 base address 
-  UART3_BASE  = USART_BASE+$00000800;      // UART3 base address 
-  UART4_BASE  = USART_BASE+$00000C00;      // UART4 base address 
+  USART0_BASE = USART_BASE+$0000F400;      // USART0 base address
+  USART1_BASE = USART_BASE;                // USART1 base address
+  USART2_BASE = USART_BASE+$00000400;      // USART2 base address
+  UART3_BASE  = USART_BASE+$00000800;      // UART3 base address
+  UART4_BASE  = USART_BASE+$00000C00;      // UART4 base address
 
   I2C_BASE    = APB1_BUS_BASE + $00005400; // I2C base address
   I2C0_BASE   = I2C_BASE;                  // I2C0 base address

@@ -1,6 +1,6 @@
     { source: http://download.java.net/jdk8/docs/technotes/guides/intl/encoding.doc.html
     }
-    
+
  type
    twin2javacs = record
      cp: word;
@@ -10,7 +10,7 @@
   * Code Page Identifiers
   * http://msdn.microsoft.com/en-us/library/dd317756.aspx
   *)
-  const 
+  const
     win2javacs_arr: array[0..154] of twin2javacs =
        (* (cp:; name:'x-MacDingbat'), not supported ? *)
        (* (cp:; name:'x-MacSymbol'), not supported ? *)
@@ -202,8 +202,8 @@
         { or better raise an error? }
         result:='<unsupported>';
     end;
-    
-    
+
+
   function javacs2win(cpname: unicodestring): word;
     var
       i: longint;
@@ -219,4 +219,4 @@
       { rawbytestring (or better raise an error?) }
       result:=65535;
     end;
-    
+

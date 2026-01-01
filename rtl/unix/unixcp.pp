@@ -636,7 +636,7 @@ const
    (cp:65001; name:'UTF-8'),
    (cp:65001; name:'CP65001'),
    (cp:65001; name:'UTF8'));
-   
+
 { returns index in UnixCpMap with first code page name with matching
 cp number (so that multiple names can be tried if necessary) }
 function GetCodepageData(cp: TSystemCodePage): longint;

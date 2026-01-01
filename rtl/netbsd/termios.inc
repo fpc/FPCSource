@@ -364,8 +364,8 @@ struct winsize {
 
 
 // from /usr/include/sys/iocomm.h
-  { parameter length, at most 13 bits } 
-  IOCPARM_MASK = $1fff; 
+  { parameter length, at most 13 bits }
+  IOCPARM_MASK = $1fff;
 
   {  max size of ioctl args  }
   IOCPARM_MAX = IOCPARM_MASK + 1;

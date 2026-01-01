@@ -158,8 +158,8 @@
         mullw   r4,r4,r6    // lsw of product of lsw's
         mr      r3,r8       // get msw of product in correct register
       end;
-	
-	
+
+
     function fpc_mul_qword_checkoverflow(f1,f2 : qword) : qword;[public,alias: 'FPC_MUL_QWORD_CHECKOVERFLOW']; compilerproc;
       assembler; nostackframe;
       asm

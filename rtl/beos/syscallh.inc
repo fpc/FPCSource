@@ -24,7 +24,7 @@ Type
 // 64-bit machines don't have only 64-bit params.
 
   TSysParam  = longint;
-  
+
 type
      SysCallArgs = packed record
        param: array[1..8] of longint; // cint but not defined in unix.pp
@@ -33,7 +33,7 @@ type
 {$IFDEF FPC_USE_LIBC}
 //var
 //  Errno : cint;
-  
+
 {$else}
 //var
 //  Errno : cint;
@@ -43,6 +43,6 @@ procedure sys_call; external name 'sys_call'; // BeOS
 //begin
 //end;
 
-  
+
 //function Do_SysCall( callnr : longint; var regs : SysCallArgs ): longint; external name 'FPC_SYSCALL';//forward;
 //Function SysCall( callnr:longint;var args : SysCallArgs ):longint; external name 'sys_call';//forward;

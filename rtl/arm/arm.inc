@@ -1346,7 +1346,7 @@ end;
 procedure barrier; assembler; nostackframe;
 asm
   // manually encode the instructions to avoid bootstrap and -march external
-  // assembler settings 
+  // assembler settings
 {$ifdef CPUARM_HAS_DMB}
   .long 0xf57ff05f  // dmb sy
 {$else CPUARM_HAS_DMB}
@@ -1398,7 +1398,7 @@ asm
 {$else CPUARM_HAS_DMB}
 {$ifdef CPUARMV6}
   mov r0, #0
-  .long 0xee070fba  // mcr 15, 0, r0, cr7, cr10, {5} 
+  .long 0xee070fba  // mcr 15, 0, r0, cr7, cr10, {5}
 {$else CPUARMV6}
 {$ifdef SYSTEM_HAS_KUSER_MEMORY_BARRIER}
   stmfd r13!, {lr}

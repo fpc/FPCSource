@@ -25,9 +25,9 @@ var
   TWSAM : byte absolute $00+$29; // TWI Slave Address Mask Register
   // CPU
   CCP : byte absolute $00+$3C; // Configuration Change Protection
-  SP : word absolute $00+$3D; // Stack Pointer 
-  SPL : byte absolute $00+$3D; // Stack Pointer 
-  SPH : byte absolute $00+$3D+1; // Stack Pointer 
+  SP : word absolute $00+$3D; // Stack Pointer
+  SPL : byte absolute $00+$3D; // Stack Pointer
+  SPH : byte absolute $00+$3D+1; // Stack Pointer
   SREG : byte absolute $00+$3F; // Status Register
   CLKMSR : byte absolute $00+$37; // Clock Main Settings Register
   CLKPSR : byte absolute $00+$36; // Clock Prescale Register
@@ -96,7 +96,7 @@ const
   ADIE = 3; // ADC Interrupt Enable
   ADPS = 0; // ADC Prescaler Select Bits
   // ADCSRB
-  ADLAR = 3; // 
+  ADLAR = 3; //
   ADTS = 0; // ADC Auto Trigger Sources
   // DIDR0
   ADC7D = 7; // ADC6 Digital input Disable
@@ -129,7 +129,7 @@ const
   TWSME = 0; // TWI Smart Mode Enable
   // TWSCRB
   TWAA = 2; // TWI Acknowledge Action
-  TWCMD = 0; // 
+  TWCMD = 0; //
   // TWSA
   // TWSD
   // SREG
@@ -162,10 +162,10 @@ const
   // PCMSK1
   // PCMSK0
   // PORTCR
-  ADC11D = 7; // 
-  ADC10D = 6; // 
-  ADC9D = 5; // 
-  ADC8D = 4; // 
+  ADC11D = 7; //
+  ADC10D = 6; //
+  ADC9D = 5; //
+  ADC8D = 4; //
   BBMC = 2; // Break-Before-Make Mode Enable
   BBMB = 1; // Break-Before-Make Mode Enable
   BBMA = 0; // Break-Before-Make Mode Enable

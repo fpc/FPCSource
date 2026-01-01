@@ -28,7 +28,7 @@
     _PTHREAD_MUTEX_NORMAL        = 0;
     _PTHREAD_MUTEX_ERRORCHECK    = 2;
     _PTHREAD_MUTEX_RECURSIVE     = 4;
-    
+
   type
     sched_param = record
       __sched_priority: cint;

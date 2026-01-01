@@ -70,7 +70,7 @@ unit iso7185;
 
 
 {$i isotmp.inc}
- 
+
 {$i-}
     procedure DoAssign(var t : Text);
 {$ifndef FPC_HAS_FEATURE_RANDOM}

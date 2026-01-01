@@ -13,7 +13,7 @@
 
  **********************************************************************}
 
-{ Basic system-specific debug facility. Logs to the primary log source, which is 
+{ Basic system-specific debug facility. Logs to the primary log source, which is
   usually the serial port or where the serial log is redirected to (eg. RamDebug
   on MorphOS) We could also use some barely-documented RawDoFmt() blackmagic here
   specifying "1" as PutChProc pointer, but it doesn't really matter, because

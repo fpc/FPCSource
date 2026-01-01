@@ -40,13 +40,13 @@ Type
     CodePage    : TSystemCodePage;
     ElementSize : Word;
 {$if not defined(VER3_2)}
-  {$ifdef CPU64}	
+  {$ifdef CPU64}
     Ref         : Longint;
   {$else}
     Ref         : SizeInt;
   {$endif}
 {$else}
-  {$ifdef CPU64}	
+  {$ifdef CPU64}
     { align fields  }
 	Dummy       : DWord;
   {$endif CPU64}
@@ -997,13 +997,13 @@ begin
   Len:=Length(temp);
   // Only move when we have room.
   if (UnicodeStrLen>0) then
-    begin  
+    begin
     if UnicodeStrLen<=Len then
       Len:=UnicodeStrLen-1;
     move(temp[1],UnicodeStr^,Len*SizeOf(WideChar));
     UnicodeStr[Len]:=#0;
     end;
-  // Return length  
+  // Return length
   result:=len;
 end;
 {$endif ndef FPC_HAS_UNICODEFROMLOCALECHARS}
@@ -2291,16 +2291,16 @@ begin
   Result:=(localename='UTF-8') or (localename='UTF8');
   if Result then
     CodePage:=CP_UTF8
-  else 
+  else
     begin
     Result:=(localename='UTF-7') or (localename='UTF7');
-    if Result then  
+    if Result then
       CodePage:=CP_UTF7
-    else 
+    else
       begin
       Result:=Assigned(LocaleNameToCodePageCallBack);
       If Result then
         LocaleNameToCodePageCallBack(LocaleName,CodePage,Result);
       end;
-    end;  
+    end;
 end;

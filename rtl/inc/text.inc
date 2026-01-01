@@ -817,7 +817,7 @@ procedure Write_Str(Len : Longint;var f : Text;const s : shortString); iocheck; 
 
 { provide local access to write_str_iso }
 procedure Write_Str_Iso(Len : Longint;var f : Text;const s : shortString); iocheck; [external name 'FPC_WRITE_TEXT_SHORTSTR_ISO'];
- 
+
 Procedure fpc_Write_Text_Pchar_as_Array(Len : Longint;var f : Text;const s : array of ansichar; zerobased: boolean = true); iocheck; compilerproc;
 var
   ArrayLen : longint;

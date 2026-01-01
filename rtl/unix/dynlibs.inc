@@ -64,7 +64,7 @@ Function SysGetLoadErrorStr: ansistring;
 begin
 {$IFDEF FPC_DOTTEDUNITS}
   Result:=UnixApi.Dl.dlerror;
-{$ELSE}  
+{$ELSE}
   Result:=dl.dlerror;
 {$ENDIF}
 end;

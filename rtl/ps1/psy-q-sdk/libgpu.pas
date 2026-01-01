@@ -15,8 +15,8 @@
  *      POLY_G4  | 9	|Gouraud|   4   |OFF    | Gouraud Quadrangle
  *      POLY_GT4 |13	|Gouraud|   4   |ON     | Gouraud Textured Quadrangle
  *      ---------+------+-------+-------+-------+------------------------
- *      LINE_F2  | 4	|Flat   |   2   | -     | unconnected Flat Line 
- *      LINE_G2  | 5	|Gouraud|   2   | -     | unconnected Gouraud Line 
+ *      LINE_F2  | 4	|Flat   |   2   | -     | unconnected Flat Line
+ *      LINE_G2  | 5	|Gouraud|   2   | -     | unconnected Gouraud Line
  *      LINE_F3  | 6	|Flat	|   3	| -     | 3-connected Flat Line
  *      LINE_G3  | 8	|Gouraud|   3	| -     | 3-connected Gouraud Line
  *      LINE_F4  | 7	|Flat	|   4	| -    	| 4-connected Flat Line
@@ -51,12 +51,12 @@
  *		Back	0.5	1.0	1.0	 1.0
  *
  *	tp: texture mode
- *		 tp	0	1	2	
+ *		 tp	0	1	2
  *		 -----------------------------
  *		 depth	4bit	8bit	16bit
  *		 color	CLUT	CLUT	DIRECT
 }
-unit libgpu; 
+unit libgpu;
 interface
 uses libgte;
 
@@ -86,7 +86,7 @@ type
 		 end;
 
 
-// Environment 
+// Environment
 
 	DR_ENV = packed record			// Packed Drawing Environment
 			tag : dword;
@@ -94,7 +94,7 @@ type
 		 end;
 	PDR_ENV = ^DR_ENV;
 
-	       
+
 	DRAWENV = packed record
 				clip : RECT;						// clip area
 				ofs : array [0..1] of smallint;		// drawing offset
@@ -107,7 +107,7 @@ type
 				_dr_env : DR_ENV;					// reserved
 			  end;
 	PDRAWENV = ^DRAWENV;
-	       
+
 	DISPENV = packed record
 				disp : RECT;						// display area
 				screen : RECT;						// display start point
@@ -123,11 +123,11 @@ type
         		len: 0..255;       						// 8-bit length (8 bits can represent numbers from 0 to 255)
         		r0, g0, b0, code: Byte;
           	end;
-	
+
 	P_CODE = packed record
 				r0, g0, b0, code : byte;
 			 end;
-	
+
 	POLY_F3 = packed record							// Flat Triangle
 			tag : dword;
 			r0, g0, b0, code : byte;
@@ -168,7 +168,7 @@ type
 			tag : dword;
 			r0, g0, b0, code : byte;
 			x0, y0 : smallint;
-			u0, v0 : byte;	
+			u0, v0 : byte;
 			clut : word;
 			x1,	y1 : smallint;
 			u1, v1 : byte;
@@ -214,11 +214,11 @@ type
 			clut : word;
 			r1, g1, b1, p1 : byte;
 			x1,	y1 : smallint;
-			u1, v1 : byte;	
+			u1, v1 : byte;
 			tpage : word;
 			r2, g2, b2, p2 : byte;
 			x2,	y2 : smallint;
-			u2, v2 : byte;	
+			u2, v2 : byte;
 			pad2 : word;
 		  end;
 	PPOLY_GT3 = ^POLY_GT3;
@@ -231,15 +231,15 @@ type
 			clut : word;
 			r1, g1, b1, p1 : byte;
 			x1, y1 : smallint;
-			u1, v1 : byte;	
+			u1, v1 : byte;
 			tpage : word;
 			r2, g2, b2, p2 : byte;
 			x2, y2 : smallint;
-			u2, v2 : byte;	
+			u2, v2 : byte;
 			pad2 : word;
 			r3, g3, b3, p3 : byte;
 			x3, y3 : smallint;
-			u3, v3 : byte;	
+			u3, v3 : byte;
 			pad3 : word;
 		 end;
 	PPOLY_GT4 = ^POLY_GT4;
@@ -317,7 +317,7 @@ type
 			tag : dword;
 			r0, g0, b0, code : byte;
 			x0, y0 : smallint;
-			u0, v0 : byte;	
+			u0, v0 : byte;
 			clut : word;
 			w, h : smallint;
 	      end;
@@ -332,16 +332,16 @@ type
 		  end;
 	PSPRT_16 = ^SPRT_16;
 
-	       
+
  	SPRT_8 = packed record							// 8x8 Sprite
 			tag : dword;
 			r0, g0, b0, code : byte;
 			x0,	y0 : smallint;
-			u0, v0 : byte;	
+			u0, v0 : byte;
 			clut : word;
 		  end;
 	PSPRT_8 = ^SPRT_8;
-	       
+
 // Tile Primitive Definitions
 	TILE = packed record							// free size Tile
 			tag : dword;
@@ -394,14 +394,14 @@ type
 		  end;
 	PDR_AREA = ^DR_AREA;
 
-	       
+
 	DR_OFFSET = packed record						// Drawing Offset
 			tag : dword;
 			code : array [0..1] of dword;
 	 	    end;
 	PDR_OFFSET = ^DR_OFFSET;
 
-	       
+
  	DR_MOVE = packed record							// MoveImage
 			tag : dword;
 			code : array [0..4] of dword;
@@ -430,7 +430,7 @@ type
 
 
 //	Font Stream Parameters
-const 
+const
 	FNT_MAX_ID = 8;									// max number of stream ID
 	FNT_MAX_SPRT = 1024;							// max number of sprites in all streams
 
@@ -438,7 +438,7 @@ const
 //	Multi-purpose Sony-TMD primitive
 type
 	TMD_PRIM = packed record
-				id : dword;	
+				id : dword;
 				r0, g0, b0, p0 : byte;				// Color of vertex 0
 				r1, g1, b1, p1 : byte;				// Color of vertex 1
 				r2, g2, b2, p2 : byte;				// Color of vertex 2
@@ -446,22 +446,22 @@ type
 				tpage, clut : word;					// texture page ID, clut ID
 				u0, v0, u1, v1 : byte;				// texture corner point
 				u2, v2, u3, v3 : byte;
-				
+
 				// independent vertex model
 				x0, x1, x2, x3 : SVECTOR;			// 3D corner point
 				n0, n1, n2, n3 : SVECTOR;			// 3D corner normal vector
-				
+
 				// Common vertex model
 				v_ofs : PSVECTOR;					// offset to vertex database
 				n_ofs : PSVECTOR;					// offset to normal database
-				
+
 				vert0, vert1 : word; 				// index of vertex
-				vert2, vert3 : word;		
+				vert2, vert3 : word;
 				norm0, norm1 : word; 				// index of normal
 				norm2, norm3 : word;
 		   end;
 	PTMD_PRIM = ^TMD_PRIM;
-	
+
 
 
 // Multi-purpose TIM image
@@ -478,7 +478,7 @@ function FntPrint(Args: pchar): longint; varargs; stdcall; external;
 function KanjiFntPrint(Args: pchar): longint; varargs; stdcall; external;
 function FntPrint: longint; stdcall; external;
 function KanjiFntPrint: longint; stdcall; external;
-	
+
 function GetDispEnv(env: PDISPENV): PDISPENV; stdcall; external;
 function PutDispEnv(env: PDISPENV): PDISPENV; stdcall; external;
 function SetDefDispEnv(env: PDISPENV; x, y, w, h: longint): PDISPENV; stdcall; external;
@@ -590,7 +590,7 @@ procedure setVector(var v: DVECTOR; const x, y, z: smallint);
 
 {
 #define applyVector(v, _x, _y, _z, op) \
-	(v)->vx op _x, (v)->vy op _y, (v)->vz op _z	
+	(v)->vx op _x, (v)->vy op _y, (v)->vz op _z
 }
 
 procedure copyVector(var v0: VECTOR; const v1: VECTOR);
@@ -631,7 +631,7 @@ procedure setClut(var p: TMD_PRIM; x, y: longint);
 (*
 #define setClut(p,x,y) \
 	((p)->clut = getClut(x,y))
-*)					   
+*)
 
 // Set Primitive Colors
 procedure setRGB0(var p: POLY_F3; const r, g, b: byte);
@@ -738,7 +738,7 @@ procedure setUV0(var p: SPRT; u0, v0: byte);
 procedure setUV0(var p: SPRT_16; u0, v0: byte);
 procedure setUV0(var p: SPRT_8; u0, v0: byte);
 procedure setUV0(var p: TMD_PRIM; u0, v0: byte);
-	
+
 procedure setUV3(var p: POLY_FT3; u0, v0, u1, v1, u2, v2: smallint);
 procedure setUV3(var p: POLY_FT4; u0, v0, u1, v1, u2, v2: smallint);
 procedure setUV3(var p: POLY_GT3; u0, v0, u1, v1, u2, v2: smallint);
@@ -752,7 +752,7 @@ procedure setUV4(var p: TMD_PRIM; u0, v0, u1, v1, u2, v2, u3, v3: byte);
 procedure setUVWH(var p: POLY_FT4; u0, v0, w, h: smallint);
 procedure setUVWH(var p: POLY_GT4; u0, v0, w, h: smallint);
 procedure setUVWH(var p: TMD_PRIM; u0, v0, w, h: smallint);
-	
+
 
 // Dump Primitive Parameters
 procedure dumpRECT(r: RECT);
@@ -855,7 +855,7 @@ procedure dumpRGB0(p: POLY_G4);
 procedure dumpRGB0(p: POLY_GT3);
 procedure dumpRGB0(p: POLY_GT4);
 procedure dumpRGB0(p: DRAWENV);
-		   
+
 procedure dumpRGB1(p:POLY_G3);
 procedure dumpRGB1(p:POLY_G4);
 procedure dumpRGB1(p:POLY_GT3);
@@ -1003,9 +1003,9 @@ procedure dumpClut(clut: longint);
         ((u_long *)p)[2] = _get_tw((RECT *)tw)
 
 	}
-//	Primitive 	Length		Code			
+//	Primitive 	Length		Code
 //--------------------------------------------------------------------
-//								
+//
 
 procedure setPolyF3(var p: POLY_F3);
 procedure setPolyFT3(var p: POLY_FT3);
@@ -1727,7 +1727,7 @@ begin
 	p.x0:= x0;
 	p.y0:= y0;
 	p.x1:= x0 + w;
-	p.y1:= y0;	
+	p.y1:= y0;
 	p.x2:= x0;
 	p.y2:= y0 + h;
 	p.x3:= x0 + w;
@@ -1753,7 +1753,7 @@ begin
 	p.x0:= x0;
 	p.y0:= y0;
 	p.x1:= x0 + w;
-	p.y1:= y0;	
+	p.y1:= y0;
 	p.x2:= x0;
 	p.y2:= y0 + h;
 	p.x3:= x0 + w;
@@ -2534,7 +2534,7 @@ begin
 end;
 
 
-procedure dumpRGB3(p: POLY_GT4);	
+procedure dumpRGB3(p: POLY_GT4);
 begin
 	GPU_printf('(%3d,%3d,%3d)\n', p.r3, p.g3, p.b3);
 end;
@@ -3001,9 +3001,9 @@ begin
 	getaddr:= p.addr;
 end;
 
-//	Primitive 	Length		Code			
+//	Primitive 	Length		Code
 //--------------------------------------------------------------------
-//								
+//
 procedure setPolyF3(var p: POLY_F3);
 begin
 	setlen(p, 4);
@@ -3125,7 +3125,7 @@ end;
 
 procedure setLineF3(var p: LINE_F3);
 begin
-	setlen(p, 5);  
+	setlen(p, 5);
 	setcode(p, $48);
 	p.pad:= $55555555;
 end;

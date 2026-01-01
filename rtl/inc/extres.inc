@@ -16,7 +16,7 @@
   This file implements two kinds of external resource support:
    - one for systems that support the mmap call (usually unix-like oses)
    - one fallback implementation based on pascal files and GetMem/FreeMem
-   
+
   Be sure to define EXTRES_MMAP or EXTRES_GENERIC before including this file!
 }
 {$IF defined(EXTRES_MMAP) and defined(EXTRES_GENERIC)}

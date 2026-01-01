@@ -11,7 +11,7 @@
     This unit is based on the MorphOS one and is adapted for Gameboy Advance
     simply by stripping out all stuff inside funcs and procs.
     Copyright (c) 2006 by Francesco Lombardi
-    
+
     Adapted to FPC FreeRTOS by Florian Klämpfl
 
     See the file COPYING.FPC, included in this distribution,

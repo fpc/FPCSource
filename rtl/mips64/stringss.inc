@@ -1,6 +1,6 @@
 {
    This file is part of the Free Pascal run time library.
-   
+
     Copyright (c) 1999-2000 by Jonas Maebe, member of the
     Free Pascal development team
 

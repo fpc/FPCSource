@@ -5,7 +5,7 @@
     Low level directory functions
     GBA does not have any drive, so no directory handling is needed.
     Copyright (c) 2006 by Francesco Lombardi
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 

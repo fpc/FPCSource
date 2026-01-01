@@ -59,9 +59,9 @@ var
   UBRR1H : byte absolute $00+$CC+1; // USART Baud Rate Register t Bytes
   // CPU
   SREG : byte absolute $00+$5F; // Status Register
-  SP : word absolute $00+$5D; // Stack Pointer 
-  SPL : byte absolute $00+$5D; // Stack Pointer 
-  SPH : byte absolute $00+$5D+1; // Stack Pointer 
+  SP : word absolute $00+$5D; // Stack Pointer
+  SPL : byte absolute $00+$5D; // Stack Pointer
+  SPH : byte absolute $00+$5D+1; // Stack Pointer
   XMCRA : byte absolute $00+$74; // External Memory Control Register A
   XMCRB : byte absolute $00+$75; // External Memory Control Register B
   OSCCAL : byte absolute $00+$66; // Oscillator Calibration Value
@@ -156,7 +156,7 @@ var
   DIDR0 : byte absolute $00+$7E; // Digital Input Disable Register 1
   // ANALOG_COMPARATOR
   ACSR : byte absolute $00+$50; // Analog Comparator Control And Status Register
-  DIDR1 : byte absolute $00+$7F; // 
+  DIDR1 : byte absolute $00+$7F; //
   // CAN
   CANGCON : byte absolute $00+$D8; // CAN General Control Register
   CANGSTA : byte absolute $00+$D9; // CAN General Status Register
@@ -300,8 +300,8 @@ const
   XMBK = 7; // External Memory Bus Keeper Enable
   XMM = 0; // External Memory High Mask
   // CLKPR
-  CLKPCE = 7; // 
-  CLKPS = 0; // 
+  CLKPCE = 7; //
+  CLKPS = 0; //
   // SMCR
   SM = 1; // Sleep Mode Select bits
   SE = 0; // Sleep Enable

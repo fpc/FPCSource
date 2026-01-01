@@ -22,53 +22,53 @@ const
   // Analog Comparator Control And Status Register
   ACIS0 = $00;  // Analog Comparator Interrupt Mode Select bits
   ACIS1 = $01;  // Analog Comparator Interrupt Mode Select bits
-  ACIE = $03;  
-  ACI = $04;  
-  ACO = $05;  
-  ACD = $07;  
+  ACIE = $03;
+  ACI = $04;
+  ACO = $05;
+  ACD = $07;
   // Data Register, Port B
-  PB0 = $00;  
-  PB1 = $01;  
-  PB2 = $02;  
-  PB3 = $03;  
-  PB4 = $04;  
+  PB0 = $00;
+  PB1 = $01;
+  PB2 = $02;
+  PB3 = $03;
+  PB4 = $04;
   // Watchdog Timer Control Register
   WDP0 = $00;  // Watch Dog Timer Prescaler bits
   WDP1 = $01;  // Watch Dog Timer Prescaler bits
   WDP2 = $02;  // Watch Dog Timer Prescaler bits
-  WDE = $03;  
-  WDTOE = $04;  
+  WDE = $03;
+  WDTOE = $04;
   // Timer/Counter0 Control Register
-  CS00 = $00;  
-  CS01 = $01;  
-  CS02 = $02;  
+  CS00 = $00;
+  CS01 = $01;
+  CS02 = $02;
   // MCU Status register
-  PORF = $00;  
-  EXTRF = $01;  
+  PORF = $00;
+  EXTRF = $01;
   // MCU Control Register
   ISC00 = $00;  // Interrupt Sense Control 0 bits
   ISC01 = $01;  // Interrupt Sense Control 0 bits
-  SM = $04;  
-  SE = $05;  
+  SM = $04;
+  SE = $05;
   // Timer/Counter Interrupt Flag register
-  TOV0 = $01;  
+  TOV0 = $01;
   // Timer/Counter Interrupt Mask Register
-  TOIE0 = $01;  
+  TOIE0 = $01;
   // General Interrupt Flag register
-  PCIF = $05;  
-  INTF0 = $06;  
+  PCIF = $05;
+  INTF0 = $06;
   // General Interrupt Mask Register
-  PCIE = $05;  
-  INT0 = $06;  
+  PCIE = $05;
+  INT0 = $06;
   // Status Register
-  C = $00;  
-  Z = $01;  
-  N = $02;  
-  V = $03;  
-  S = $04;  
-  H = $05;  
-  T = $06;  
-  I = $07;  
+  C = $00;
+  Z = $01;
+  N = $02;
+  V = $03;
+  S = $04;
+  H = $05;
+  T = $06;
+  I = $07;
 
 
 implementation

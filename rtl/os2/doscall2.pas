@@ -240,12 +240,12 @@ function DosCancelLockRequestL (Handle: THandle;
                                         var Lock: TFileLockL): cardinal; cdecl;
 
 (*
-DosProtectSetFileLocksL locks and unlocks a range of an open file. 
+DosProtectSetFileLocksL locks and unlocks a range of an open file.
 
 Parameters:
  Handle = file handle
  Unlock = record containing the offset and length of a range to be unlocked
- Lock = record containing the offset and length of a range to be locked 
+ Lock = record containing the offset and length of a range to be locked
  Timeout = the maximum time that the process is to wait for the requested locks
            (in milliseconds)
  Flags = bit mask specifying action to be taken.
@@ -268,14 +268,14 @@ Parameters:
  FileHandleLockID = filehandle lockid returned by a previous DosProtectOpenL.
 
 Possible return codes:
-0 NO_ERROR 
-6 ERROR_INVALID_HANDLE 
-33 ERROR_LOCK_VIOLATION 
-36 ERROR_SHARING_BUFFER_EXCEEDED 
-87 ERROR_INVALID_PARAMETER 
-95 ERROR_INTERRUPT 
-174 ERROR_ATOMIC_LOCK_NOT_SUPPORTED 
-175 ERROR_READ_LOCKS_NOT_SUPPORTED 
+0 NO_ERROR
+6 ERROR_INVALID_HANDLE
+33 ERROR_LOCK_VIOLATION
+36 ERROR_SHARING_BUFFER_EXCEEDED
+87 ERROR_INVALID_PARAMETER
+95 ERROR_INTERRUPT
+174 ERROR_ATOMIC_LOCK_NOT_SUPPORTED
+175 ERROR_READ_LOCKS_NOT_SUPPORTED
 
 Remarks:
 DosProtectSetFileLocksL allows a process to lock and unlock a range in a file.
@@ -370,7 +370,7 @@ function DosProtectSetFileLocksL (Handle: THandle; var Unlock: TFileLockL;
                                   FileHandleLockID: cardinal): cardinal; cdecl;
 
 (*
-DosSetFileLocksL locks and unlocks a range of an open file. 
+DosSetFileLocksL locks and unlocks a range of an open file.
 
 Parameters:
  Handle = file handle
@@ -396,15 +396,15 @@ Parameters:
         any other file range with exclusive access.
 
 Possible return codes:
-  0 NO_ERROR 
-  1 ERROR_INVALID_FUNCTION 
-  6 ERROR_INVALID_HANDLE 
- 33 ERROR_LOCK_VIOLATION 
- 36 ERROR_SHARING_BUFFER_EXCEEDED 
- 87 ERROR_INVALID_PARAMETER 
- 95 ERROR_INTERRUPT 
-174 ERROR_ATOMIC_LOCK_NOT_SUPPORTED 
-175 ERROR_READ_LOCKS_NOT_SUPPORTED 
+  0 NO_ERROR
+  1 ERROR_INVALID_FUNCTION
+  6 ERROR_INVALID_HANDLE
+ 33 ERROR_LOCK_VIOLATION
+ 36 ERROR_SHARING_BUFFER_EXCEEDED
+ 87 ERROR_INVALID_PARAMETER
+ 95 ERROR_INTERRUPT
+174 ERROR_ATOMIC_LOCK_NOT_SUPPORTED
+175 ERROR_READ_LOCKS_NOT_SUPPORTED
 
 Remarks:
 DosSetFileLocksL allows a process to lock and unlock a range in a file. The
@@ -516,7 +516,7 @@ Parameters:
             or replace a file with a nonzero length if the OpenMode
             Access-Mode flag is set to read-only.
  Attrib = file attributes; this parameter contains the following bit fields:
-      Bits Description 
+      Bits Description
 
      31..6 - reserved, must be 0.
          5 FILE_ARCHIVED (0x00000020) - file has been archived.
@@ -535,25 +535,25 @@ individually or in combination. For example, an attribute value of 0x00000021
 
  OpenFlags = the action to be taken depending on whether the file exists or
              does not exist. This parameter contains the following bit fields:
-     Bits Description 
+     Bits Description
     31..8 - reserved, must be 0.
      7..4 - the following flags apply if the file does not exist:
-        0000 OPEN_ACTION_FAIL_IF_NEW 
-             Open an existing file; fail if the file does not exist. 
-        0001 OPEN_ACTION_CREATE_IF_NEW 
-             Create the file if the file does not exist. 
+        0000 OPEN_ACTION_FAIL_IF_NEW
+             Open an existing file; fail if the file does not exist.
+        0001 OPEN_ACTION_CREATE_IF_NEW
+             Create the file if the file does not exist.
      3..0 The following flags apply if the file does not exist:
-        0000 OPEN_ACTION_FAIL_IF_EXISTS 
-             Open the file; fail if the file already exists. 
-        0001 OPEN_ACTION_OPEN_IF_EXISTS 
-             Open the file if it already exists. 
-        0010 OPEN_ACTION_REPLACE_IF_EXISTS 
-             Replace the file if it already exists. 
+        0000 OPEN_ACTION_FAIL_IF_EXISTS
+             Open the file; fail if the file already exists.
+        0001 OPEN_ACTION_OPEN_IF_EXISTS
+             Open the file if it already exists.
+        0010 OPEN_ACTION_REPLACE_IF_EXISTS
+             Replace the file if it already exists.
 
  OpenMode = the mode of the open function. This parameter contains the
             following bit fields:
-      Bits Description 
-        31 - reserved, must be zero. 
+      Bits Description
+        31 - reserved, must be zero.
         30 OPEN_FLAGS_PROTECTED_HANDLE (0x40000000) - protected file handle flag.
              0 - unprotected Handle
              1 - protected Handle
@@ -575,10 +575,10 @@ individually or in combination. For example, an attribute value of 0x00000021
     28..16 - reserved, must be zero.
         15 OPEN_FLAGS_DASD (0x00008000)
            Direct Open flag:
-             0 - FileName represents a file to be opened normally. 
+             0 - FileName represents a file to be opened normally.
              1 - FileName is drive (such as C or A), and represents a mounted
                  disk or diskette volume to be opened for direct access.
-        14 OPEN_FLAGS_WRITE_THROUGH (0x00004000) 
+        14 OPEN_FLAGS_WRITE_THROUGH (0x00004000)
            Write-Through flag:
              0 - writes to the file may go through the file-system driver's
                  cache; the file-system driver writes the sectors when the
@@ -590,8 +590,8 @@ individually or in combination. For example, an attribute value of 0x00000021
                  file. For synchronous files, this bit must be set, because the
                  data must be written to the medium for synchronous write
                  operations.
-  This bit flag is not inherited by child processes. 
-       13 OPEN_FLAGS_FAIL_ON_ERROR (0x00002000) 
+  This bit flag is not inherited by child processes.
+       13 OPEN_FLAGS_FAIL_ON_ERROR (0x00002000)
           Fail-Errors flag. Media I/O errors are handled as follows:
             0 - reported through the system critical-error handler.
             1 - reported directly to the caller by way of a return code.
@@ -600,9 +600,9 @@ individually or in combination. For example, an attribute value of 0x00000021
   The Fail-Errors function applies only to non-IOCtl handle-based file I/O
   calls.
 
-  This flag bit is not inherited by child processes. 
+  This flag bit is not inherited by child processes.
 
-       12 OPEN_FLAGS_NO_CACHE (0x00001000) 
+       12 OPEN_FLAGS_NO_CACHE (0x00001000)
           No-Cache/Cache flag:
             0 - the file-system driver should place data from I/O operations
                 into its cache.
@@ -610,7 +610,7 @@ individually or in combination. For example, an attribute value of 0x00000021
                 file-system driver's cache.
   The setting of this bit determines whether file-system drivers should place
   data into the cache. Like the write-through bit, this is a per-handle bit,
-  and is not inherited by child processes. 
+  and is not inherited by child processes.
        11 - reserved; must be 0.
     10..8 - the locality of reference flags contain information about how the
             application is to get access to the file. The values are as
@@ -628,7 +628,7 @@ individually or in combination. For example, an attribute value of 0x00000021
             0 - file handle is inherited by a process created from a call to
                 DosExecPgm.
             1 - file handle is private to the current process.
-  This bit is not inherited by child processes. 
+  This bit is not inherited by child processes.
     6..4 Sharing Mode flags; this field defines any restrictions to file
          access placed by the caller on other processes. The values are as
          follows:
@@ -640,8 +640,8 @@ individually or in combination. For example, an attribute value of 0x00000021
              Deny read access.
          100 OPEN_SHARE_DENYNONE (0x00000040)
              Deny neither read nor write access (deny none).
-         Any other value is invalid. 
-       3 Reserved; must be 0. 
+         Any other value is invalid.
+       3 Reserved; must be 0.
     2..0 Access-Mode flags. This field defines the file access required by the
          caller. The values are as follows:
          000 OPEN_ACCESS_READONLY (0x00000000)
@@ -650,7 +650,7 @@ individually or in combination. For example, an attribute value of 0x00000021
          Write-only access
          010 OPEN_ACCESS_READWRITE (0x00000002)
          Read/write access.
-         Any other value is invalid, as are any other combinations.   
+         Any other value is invalid, as are any other combinations.
 
 File sharing requires the cooperation of sharing processes. This cooperation is
 communicated through sharing and access modes. Any sharing restrictions placed
@@ -781,14 +781,14 @@ Parameters:
  Method = The method of moving - location in the file at which the read/write
           pointer starts before adding the Pos offset. The values and their
           meanings are as shown in the following list:
-    0 FILE_BEGIN - move the pointer from the beginning of the file. 
+    0 FILE_BEGIN - move the pointer from the beginning of the file.
     1 FILE_CURRENT - move the pointer from the current location of the
                      read/write pointer.
     2 FILE_END - move the pointer from the end of the file; use this method
                  to determine a file's size.
  PosActual = address of the new pointer location.
  FileHandleLockID = The filehandle lockid returned by a previous
-                    DosProtectOpenL. 
+                    DosProtectOpenL.
 
 Possible return codes:
   0 NO_ERROR
@@ -808,7 +808,7 @@ the file.
 DosProtectSetFilePtrL cannot be used for a character device or pipe.
 *)
 function DosProtectSetFilePtrL (Handle: THandle; Pos: int64;
-                              Method: cardinal; var PosActual: int64; 
+                              Method: cardinal; var PosActual: int64;
                                   FileHandleLockID: cardinal): cardinal; cdecl;
 (*
 DosProtectSetFileSizeL changes the size of a file.
@@ -830,7 +830,7 @@ Possible return codes:
 Remarks:
 
 When DosProtectSetFileSizeL is issued, the file must be open in a mode that
-allows write access. 
+allows write access.
 
 The size of the open file can be truncated or extended. If the file size is
 being extended, the file system tries to allocate additional bytes in
@@ -848,8 +848,8 @@ Parameters:
 ProcID = Procesor ID numbered 1 through n, where there are n processors in
          total.
 Status = Returned processor status defined as follows:
-  PROC_OFFLINE 0x00000000 Processor is offline 
-  PROC_ONLINE 0x00000001 Processor is online 
+  PROC_OFFLINE 0x00000000 Processor is offline
+  PROC_ONLINE 0x00000001 Processor is online
 
 Possible return codes:
  0 NO_ERROR
@@ -870,11 +870,11 @@ Parameters:
 ProcID = Processor ID numbered from 1 through n, where there are n processors
          in total.
 Status = Requested processor status defined as follows:
-  PROC_OFFLINE 0x00000000 Processor is offline. 
-  PROC_ONLINE 0x00000001 Processor is online. 
+  PROC_OFFLINE 0x00000000 Processor is offline.
+  PROC_ONLINE 0x00000001 Processor is online.
 
 Possible return codes:
- 0 NO_ERROR 
+ 0 NO_ERROR
 87 ERROR_INVALID_PARAMETER
 *)
 function DosSetProcessorStatus (ProcID: cardinal;
@@ -886,13 +886,13 @@ processor affinity mask and the system's capable processor affinity mask.
 
 Parameters:
 Scope = Scope of the query defined by one of the following values:
-  AFNTY_THREAD Return the current threads processor affinity mask. 
-  AFNTY_SYSTEM Return the system's current capable processor affinity mask. 
+  AFNTY_THREAD Return the current threads processor affinity mask.
+  AFNTY_SYSTEM Return the system's current capable processor affinity mask.
 AffinityMask = Affinity mask is returned here; processors 0..31 are in Mask [0]
                and processors 32..63 are in Mask [1].
 
 Possible return codes:
-13 ERROR_INVALID_DATA 
+13 ERROR_INVALID_DATA
 87 ERROR_INVALID_PARAMETER
 *)
 function DosQueryThreadAffinity (Scope: cardinal;
@@ -916,8 +916,8 @@ Flags - flag indicating when the new path is searched - possible values:
   END_LIBPATH - The new path is searched after the LIBPATH.
 
 Possible return codes:
-  0 NO_ERROR 
- 87 ERROR_INVALID_PARAMETER 
+  0 NO_ERROR
+ 87 ERROR_INVALID_PARAMETER
 122 ERROR_INSUFFICIENT_BUFER
 *)
 function DosQueryExtLibPath (ExtLibPath: PAnsiChar; Flags: cardinal): cardinal;
@@ -985,10 +985,10 @@ Both BeginLIBPATH and EndLIBPATH can be set from the command line using the SET
 command.
 
 Possible return codes:
-0 NO_ERROR 
-8 ERROR_NOT_ENOUGH_MEMORY 
-87 ERROR_INVALID_PARAMETER 
-161 ERROR_BAD_PATHNAME 
+0 NO_ERROR
+8 ERROR_NOT_ENOUGH_MEMORY
+87 ERROR_INVALID_PARAMETER
+161 ERROR_BAD_PATHNAME
 *)
 function DosSetExtLibPath (ExtLibPath: PAnsiChar; Flags: cardinal): cardinal;
                                                                          cdecl;
@@ -1009,8 +1009,8 @@ Offset = Address where the offset to the object corresponding to the Address is
 Address = Input address to be queried.
 
 Possible return codes:
-  0 NO_ERROR 
- 87 ERROR_INVALID_PARAMETER 
+  0 NO_ERROR
+ 87 ERROR_INVALID_PARAMETER
 487 ERROR_INVALID_ADDRESS
 *)
 function DosQueryModFromEIP (var HMod: THandle; var ObjNum: cardinal;
@@ -1019,7 +1019,7 @@ function DosQueryModFromEIP (var HMod: THandle; var ObjNum: cardinal;
 
 
 (*
-DosDumpProcess initiates a process dump from a specified process. This may be used as part of an error handling routine to gather information about an error that may be analyzed later using the OS/2 System Dump Formatter. Configuration of Process Dump may be done using the PDUMPSYS, PDUMPUSR, and PROCDUMP commands. 
+DosDumpProcess initiates a process dump from a specified process. This may be used as part of an error handling routine to gather information about an error that may be analyzed later using the OS/2 System Dump Formatter. Configuration of Process Dump may be done using the PDUMPSYS, PDUMPUSR, and PROCDUMP commands.
 
 Parameters:
 Flag = Function to be performed (one of DDP_* constants).
@@ -1128,7 +1128,7 @@ Parm3 (HookData) = Command-specific. In case of CMD_KI_RdCnt, it must be 0. In
                    structure (see example code).
 
 Possible return codes:
-0 NO_ERROR 
+0 NO_ERROR
 1 ERROR_INVALID_FUNCTION
 
 Remarks:
@@ -1154,7 +1154,7 @@ Example code (C):
      strcpy((PSZ  HookBuffer[12], "Test of 3 ULONG values and a string.")
      HookData.ulLength = 12 + strlen((PSZ HookBuffer[12]) + 1;
 
-     ulMajor = 0x00b8 
+     ulMajor = 0x00b8
      ulMinor = 0x0001
 
      rc = DosPerfSystCall(CMD_SOFTTRACE_LOG, ulMajor, ulMinor, (ULONG)  HookData);
@@ -1302,7 +1302,7 @@ end;
 
 
 function DummyDosProtectSetFilePtrL (Handle: THandle; Pos: int64;
-                              Method: cardinal; var PosActual: int64; 
+                              Method: cardinal; var PosActual: int64;
                                   FileHandleLockID: cardinal): cardinal; cdecl;
 var
   PosActual0: cardinal;
@@ -1965,7 +1965,7 @@ end;
 
 
 function DosProtectSetFilePtrL (Handle: THandle; Pos: int64;
-                              Method: cardinal; var PosActual: int64; 
+                              Method: cardinal; var PosActual: int64;
                           FileHandleLockID: cardinal): cardinal; cdecl; inline;
 begin
   DosProtectSetFilePtrL := Sys_DosProtectSetFilePtrL (Handle, Pos, Method,

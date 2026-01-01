@@ -89,7 +89,7 @@ TYPE
    TFlock   = flock;
    pFlock   = ^flock;
 
-   TFDSetEl = culong; 
+   TFDSetEl = culong;
    TFDSet    = array[0..wordsinfdset-1] of TFDSetEl;
    pFDSet    = ^TFDSet;
 
@@ -131,7 +131,7 @@ TYPE
        2 : (
             dummy    : cuint64;
             d_fileno : ino64_t;
-           ); 
+           );
    end;
 
 
@@ -245,7 +245,7 @@ type
 	    iov_len  : size_t;
 	   end;
   tiovec=iovec;
-  piovec=^tiovec;		
+  piovec=^tiovec;
 
  tms = packed record
          tms_utime  : clock_t;  { User CPU time }

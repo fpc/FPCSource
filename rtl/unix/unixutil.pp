@@ -8,8 +8,8 @@
     Background: This unit contains leftovers from the unix restructure that
     shouldn't be in the interface of unit baseunix/unix, but are needed
     in these units. (at the time routines were still being moved
-    from baseunix to unix, and unit baseunix couldn't depend on unix) 
-    
+    from baseunix to unix, and unit baseunix couldn't depend on unix)
+
     The routines are fairly OS independent but can't move to
     OS independent because the lowlevel units baseunix/unix depend
     on them. If they need to be generally accessable, copy these

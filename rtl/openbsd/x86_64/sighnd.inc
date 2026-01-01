@@ -27,7 +27,7 @@ end;
 function getaltfpustate(sigcontext:psigcontextrec):longint; {inline;}
 begin
   if assigned(sigcontext) then
-    getaltfpustate:=sigcontext^.sc_fpstate^.fx_fsw 
+    getaltfpustate:=sigcontext^.sc_fpstate^.fx_fsw
   else
     getaltfpustate:=0;
 end;

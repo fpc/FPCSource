@@ -4,15 +4,15 @@ Var
   C : String;
 
   Procedure AddLoader (Loader : String);
-  
+
   Const
     asbin = 'as';
     asopt = '-o $(OUTPUTDIR)/$(DEST) $(SOURCE)';
-    
+
   begin
     With Installer.DefaultPackage.Commands do
       AddCommand(asbin,asopt,loader+'.o',c+loader+'.as');
-  end;  
+  end;
 
 begin
   ApplyUnixTargets(Installer);
@@ -29,7 +29,7 @@ begin
     AddLoader('dllprt0');
     AddLoader('gprt0');
     end
-  else  
+  else
     AddLoader('prt1');
   If (Defaults.CPU=i386) Then
     begin

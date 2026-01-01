@@ -38,7 +38,7 @@ end;
 (*
 var
   heap_start: longint; external name '_end';
-  
+
 function SysOSAlloc(size: ptruint): pointer;
 begin
   result := @heap_start;
@@ -48,6 +48,6 @@ end;
 
 procedure SysOSFree(p: pointer; size: ptruint);
 begin
-  
+
 end;
 *)

@@ -1,7 +1,7 @@
 {
     This file is part of the Free Pascal run time library.
 
-    
+
     Taken from QNX RTP Include files
 
     See the file COPYING.FPC, included in this distribution,
@@ -14,11 +14,11 @@
  **********************************************************************}
 
   const
-     Sys_EOK = 0;   
-     Sys_EPERM = 1; 
+     Sys_EOK = 0;
+     Sys_EPERM = 1;
      Sys_ENOENT = 2;
-     Sys_ESRCH = 3; 
-     Sys_EINTR = 4; 
+     Sys_ESRCH = 3;
+     Sys_EINTR = 4;
      Sys_EIO = 5;
      Sys_ENXIO = 6;
      Sys_E2BIG = 7;
@@ -142,7 +142,7 @@
      Sys_EPROGMISMATCH = 275;
      Sys_EPROCUNAVAIL = 276;
      { --- QNX specific ---  }
-  
+
      Sys_ENOREMOTE = 300;{ Must be done on local machine            }
      Sys_ENONDP    = 301;   { Need an NDP (8087...) to run             }
      Sys_EBADFSYS  = 302;   { Corrupted file system detected           }

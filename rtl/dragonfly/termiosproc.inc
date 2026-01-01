@@ -31,7 +31,7 @@ begin
   case OptAct of
   {the three constants TIOCSETA, TIOCSETAW and TIOCSETAF are
    unsigned values above $80000000, so that they give range check errors
-   on 32-bit systems 
+   on 32-bit systems
    Solved by using TIoCtlRequest type for FpIOCtl second parameter }
    TCSANOW   : nr:=TIOCSETA;
    TCSADRAIN : nr:=TIOCSETAW;
@@ -107,7 +107,7 @@ begin
   TCDrain:=fpIOCtl(fd,TIOCDRAIN,nil); {Should set timeout to 1 first?}
 end;
 
-const 
+const
    _POSIX_VDISABLE = $ff;
 
 Function TCFlow(fd,act:cint):cint; {$ifdef VER2_0}inline;{$endif}
@@ -123,12 +123,12 @@ begin
      TCIOFF :  begin
 	         if tcgetattr(fd, term) = -1 then
                         exit(-1);
-                 if act=TCIOFF then  
+                 if act=TCIOFF then
                    tmp:=VSTOP
                  else
                    tmp:=VSTART;
                  c:=term.c_cc[tmp];
-                 if (c <> _POSIX_VDISABLE) and 
+                 if (c <> _POSIX_VDISABLE) and
 			(fpwrite(fd, c, sizeof(c)) = -1) then
                    exit (-1);
                 TCFlow:=0;

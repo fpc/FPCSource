@@ -14,7 +14,7 @@
 
 {$ifndef FPC_USE_LIBC} // kernel record
 
-  Stat = packed record  
+  Stat = packed record
         st_dev   : qword;
         __pad0_   : array[0..3] of byte;
         __st_ino_,
@@ -47,7 +47,7 @@
          st_dev: cuLong;
          st_ino: cuLong;
          st_mode: cuShort;
-         st_nlink: cuShort; 
+         st_nlink: cuShort;
          st_uid: cuShort;
          st_gid: cuShort;
          st_rdev: cuLong;

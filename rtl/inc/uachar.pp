@@ -15,7 +15,7 @@
 
 unit uachar;
 
-{$h-} 
+{$h-}
 
 interface
 

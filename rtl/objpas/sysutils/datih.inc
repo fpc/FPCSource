@@ -21,7 +21,7 @@ type
   TDayTable = array[1..12] of Word;
   TFormatDateTimeOption = (fdoInterval);
   TFormatDateTimeOptions =  set of TFormatDateTimeOption;
-  
+
 const
    HoursPerDay = 24;
    MinsPerHour = 60;
@@ -79,7 +79,7 @@ var
       s      : second
       ss     : second (leading zero)
       [s]    : seconds (including the seconds of the full minutes, hours and days.
-               also: [ss]. 
+               also: [ss].
                Only available if fdoInterval is specified in options argument to FormatDateTime.
       t      : shorttimeformat
       tt     : longtimeformat

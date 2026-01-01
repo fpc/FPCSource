@@ -4,7 +4,7 @@
 
     This file implements all the types/constants which are
     for the QNX RTP platform.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -39,7 +39,7 @@ type
     time_t = cardinal;    { used for returning the time  }
     blksize_t = cardinal;
     blkcnt_t = cardinal;
-    
+
 
 {***********************************************************************}
 {                         POSIX STRUCTURES                              }
@@ -70,7 +70,7 @@ TYPE
     st_ino : ino_t;
     st_size_hi : off_t;
     st_size : off_t;
-{$ENDIF}   
+{$ENDIF}
      st_dev : dev_t;            (* ID of device containing file.        *)
      st_rdev : dev_t;           (* Device ID, for inode that is device  *)
      st_uid : uid_t;
@@ -85,28 +85,28 @@ TYPE
      st_blksize : blksize_t;    (* Prefered I/O block size for object   *)
 {$IFDEF ENDIAN_LITTLE}
     st_blocks : blkcnt_t;       (* Number of 512 byte blocks            *)
-    st_blocks_hi : blkcnt_t; 
+    st_blocks_hi : blkcnt_t;
 {$ELSE}
     st_blocks_hi : blkcnt_t;
     st_blocks : blkcnt_t;
-{$ENDIF}    
+{$ENDIF}
    end;
-   
+
 
   { directory services }
    pdirent = ^dirent;
    dirent = packed record    { directory entry record - verify alignment }
-{$ifdef ENDIAN_LITTLE}   
+{$ifdef ENDIAN_LITTLE}
     d_ino : ino_t;           (* File serial number *)
     d_ino_hi : ino_t;
     d_offset : off_t;
     d_offset_hi : off_t;
-{$else}    
+{$else}
     d_ino_hi : ino_t;
     d_ino : ino_t;
     d_offset_hi : off_t;
     d_offset : off_t;
-{$endif} 
+{$endif}
     d_reclen : smallint;
     d_namelen : smallint;
     d_name : array[0..255] of AnsiChar;
@@ -168,6 +168,6 @@ CONST
     {***********************************************************************}
     {                            signal handling                            }
     {***********************************************************************}
-    
+
     {$i signal.inc}
 

@@ -181,7 +181,7 @@ Type
 
   mbstate_t = pointer;
   pmbstate_t = ^mbstate_t;
-  
+
 
 //  clock32_t = int32_t;
   timeval32 = record

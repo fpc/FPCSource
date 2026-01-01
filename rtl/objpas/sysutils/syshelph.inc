@@ -38,7 +38,7 @@ Type
   TNativeIntBitIndex = TInt64BitIndex;
 {$ENDIF}
 
-  
+
 Const
   CPUEndian = {$IFDEF FPC_LITTLE_ENDIAN}TEndian.Little{$ELSE}TEndian.Big{$ENDIF};
 
@@ -205,8 +205,8 @@ Type
     property Chars[AIndex: SizeInt]: AnsiChar read GetChar;
     property Length: SizeInt read GetLength;
   end;
-  
-  
+
+
 
   TCurrencyHelper = type helper for Currency
   private
@@ -662,7 +662,7 @@ Type
   end;
 {$ELSE}
   TStringHelper = Type helper(TAnsiStringHelper) for ansistring
-  end;  
+  end;
 {$ENDIF}
 
 {$IFDEF FPC_HAS_TYPE_SINGLE}
@@ -865,7 +865,7 @@ Type
     1: (AsNibble: bitpacked array[TByteNibbleIndex] of nibble);
     2: (AsByte:   byte);
   end;
-  
+
   TByteHelper = Type Helper for Byte
   const
     MaxValue  = High(byte);
@@ -962,7 +962,7 @@ Type
     // recursive overlay:
     4: (AsByteOverlay:      array[TWordByteIndex]   of TByteOverlay);
   end;
-  
+
   TWordHelper = Type Helper for Word
   const
     MaxValue  = High(word);
@@ -997,7 +997,7 @@ Type
     Function SetBit(const Index: TWordBitIndex) : Word; inline;
     Function ClearBit(const Index: TWordBitIndex) : Word; inline;
     Function ToggleBit(const Index: TWordBitIndex) : Word; inline;
-    Function TestBit(const Index:TWordBitIndex):Boolean; inline;   
+    Function TestBit(const Index:TWordBitIndex):Boolean; inline;
     procedure Clear; inline;
     function  HighestSetBitPos: int8; inline;
     function  LowestSetBitPos: int8; inline;
@@ -1012,7 +1012,7 @@ Type
   TSmallIntNibbleIndex = TWordNibbleIndex;
 
   TSmallIntOverlay = TWordOverlay;
-  
+
   TSmallIntHelper = Type Helper for SmallInt
   const
     MaxValue  = High(SmallInt);
@@ -1047,7 +1047,7 @@ Type
     Function SetBit(const Index: TSmallIntBitIndex) : Smallint; inline;
     Function ClearBit(const Index: TSmallIntBitIndex) : Smallint; inline;
     Function ToggleBit(const Index: TSmallIntBitIndex) : Smallint; inline;
-    Function TestBit(const Index:TSmallIntBitIndex):Boolean;    
+    Function TestBit(const Index:TSmallIntBitIndex):Boolean;
     procedure Clear; inline;
     function  HighestSetBitPos: int8; inline;
     function  LowestSetBitPos: int8; inline;
@@ -1056,7 +1056,7 @@ Type
     property  Nibbles [aIndex: TSmallIntNibbleIndex]: nibble read GetNibble write PutNibble;
     property  Bytes [aIndex: TSmallIntByteIndex]: byte     read GetByte write PutByte;
   end;
-  
+
   TDwordBitIndex    = TCardinalBitIndex;
   TDwordNibbleIndex = 0..7;
   TDwordByteIndex   = 0..3;
@@ -1079,7 +1079,7 @@ Type
   TCardinalWordIndex   = TDwordWordIndex;
 
   TCardinalOverlay = TDwordOverlay;
-  
+
   TCardinalHelper = Type Helper for Cardinal { for LongWord Type too }
   const
     MaxValue  = High(Cardinal);
@@ -1118,7 +1118,7 @@ Type
     Function SetBit(const Index: TCardinalBitIndex) : Cardinal; inline;
     Function ClearBit(const Index: TCardinalBitIndex) : Cardinal; inline;
     Function ToggleBit(const Index: TCardinalBitIndex) : Cardinal; inline;
-    Function TestBit(const Index:TCardinalBitIndex):Boolean; inline;   
+    Function TestBit(const Index:TCardinalBitIndex):Boolean; inline;
     procedure Clear; inline;
     function  HighestSetBitPos: int8; inline;
     function  LowestSetBitPos: int8; inline;
@@ -1187,7 +1187,7 @@ Type
     Function SetBit(const Index: TIntegerBitIndex) : Integer; inline;
     Function ClearBit(const Index: TIntegerBitIndex) : Integer; inline;
     Function ToggleBit(const Index: TIntegerBitIndex) : Integer; inline;
-    Function TestBit(const Index:TIntegerBitIndex):Boolean; inline;   
+    Function TestBit(const Index:TIntegerBitIndex):Boolean; inline;
     procedure Clear; inline;
     function  HighestSetBitPos: int8; inline;
     function  LowestSetBitPos: int8; inline;
@@ -1245,7 +1245,7 @@ Type
     Function SetBit(const Index: TLongIntBitIndex) : LongInt; inline;
     Function ClearBit(const Index: TLongIntBitIndex) : LongInt; inline;
     Function ToggleBit(const Index: TLongIntBitIndex) : LongInt; inline;
-    Function TestBit(const Index:TLongIntBitIndex):Boolean; inline;   
+    Function TestBit(const Index:TLongIntBitIndex):Boolean; inline;
     procedure Clear; inline;
     function  HighestSetBitPos: int8; inline;
     function  LowestSetBitPos: int8; inline;
@@ -1463,7 +1463,7 @@ Type
     Function SetBit(const Index: TNativeIntBitIndex) : NativeInt; inline;
     Function ClearBit(const Index: TNativeIntBitIndex) : NativeInt; inline;
     Function ToggleBit(const Index: TNativeIntBitIndex) : NativeInt; inline;
-    Function TestBit(const Index:TNativeIntBitIndex):Boolean; inline; 
+    Function TestBit(const Index:TNativeIntBitIndex):Boolean; inline;
     procedure Clear; inline;
     function  HighestSetBitPos: int8; inline;
     function  LowestSetBitPos: int8; inline;

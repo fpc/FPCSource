@@ -185,10 +185,10 @@ type sigset_t = array [0..0] of cuint32 {array[0..3] of cardinal};
       case integer of
        0 : (X87State : TFpuX87State);
        1 : (XMMState : TFpuXMMState);
-    end; 
+    end;
 {$endif def cpui386}
 
-(*  From /usr/include/amd64/fpu.h header 
+(*  From /usr/include/amd64/fpu.h header
 /*
  * amd64 only uses the extended save/restore format used
  * by fxsave/fsrestore, to always deal with the SSE registers,
@@ -233,7 +233,7 @@ struct savefpu {
     end;
 {$endif def cpux86_64}
 
-(* From /usr/include/amd64/signal.h 
+(* From /usr/include/amd64/signal.h
   struct sigcontext {
 	/* plain match trapframe */
    Sig64Context  = Record

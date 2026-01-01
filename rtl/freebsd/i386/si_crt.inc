@@ -119,7 +119,7 @@ asm
         call main
         pushl %eax
         jmp   _haltproc
-.LTLS:  
+.LTLS:
 	call _init_tls
 	jmp .L9
 get_rtld_cleanup:
@@ -136,7 +136,7 @@ end;
 
 procedure _FPC_libc_haltproc; assembler; nostackframe; public name '_haltproc';
 asm
-           mov $1,%eax  
+           mov $1,%eax
            movzwl operatingsystem_result,%ebx
            pushl %ebx
            call .Lactualsyscall

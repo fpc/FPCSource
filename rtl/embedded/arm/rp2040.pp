@@ -8,11 +8,11 @@ interface
 
 type
   TIRQn_Enum = (
-    NonMaskableInt_IRQn = -14,        
-    HardFault_IRQn = -13,             
-    SVC_IRQn    = -5,                 
-    PendSV_IRQn = -2,                 
-    SysTick_IRQn = -1,                
+    NonMaskableInt_IRQn = -14,
+    HardFault_IRQn = -13,
+    SVC_IRQn    = -5,
+    PendSV_IRQn = -2,
+    SysTick_IRQn = -1,
     TIMER_IRQ_0 = 0,
     TIMER_IRQ_1 = 1,
     TIMER_IRQ_2 = 2,

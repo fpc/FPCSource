@@ -27,12 +27,12 @@ end;
 function getaltfpustate(sigcontext:psigcontextrec):longint; {inline;}
 begin
   if assigned(sigcontext) then
-    getaltfpustate:=sigcontext^.sc_fpustate^.en_sw 
+    getaltfpustate:=sigcontext^.sc_fpustate^.en_sw
   else
     getaltfpustate:=0;
 end;
 {$endif}
-  procedure signal_trampoline; cdecl; 
+  procedure signal_trampoline; cdecl;
   begin
     asm
       mov    %r15,%rdi

@@ -16,7 +16,7 @@
 Const   { For sending a signal }
 
   SA_NOCLDSTOP = 1;
-  
+
   // does not exist under BeOS i think !
   SA_ONSTACK   = $001; { take signal on signal stack }
   SA_RESTART   = $002; { restart system call on signal return }
@@ -32,10 +32,10 @@ Const   { For sending a signal }
 
 {BeOS Checked}
 {
-   The numbering of signals for BeOS attempts to maintain 
-   some consistency with UN*X conventions so that things 
+   The numbering of signals for BeOS attempts to maintain
+   some consistency with UN*X conventions so that things
    like "kill -9" do what you expect.
-}   
+}
 
   SIG_DFL = 0 ;
   SIG_IGN = 1 ;
@@ -64,7 +64,7 @@ Const   { For sending a signal }
   SIGKILLTHR = 21;
   SIGTRAP    = 22;
   SIGBUS     = SIGSEGV;
-  
+
 {
    Signal numbers 23-32 are currently free but may be used in future
    releases.  Use them at your own peril (if you do use them, at least
@@ -80,7 +80,7 @@ const
  * those in mcontext_t.
  }
 
-type 
+type
   packed_fp_stack = packed record
     st0 : array[0..9] of byte;
     st1 : array[0..9] of byte;
@@ -88,10 +88,10 @@ type
     st3 : array[0..9] of byte;
     st4 : array[0..9] of byte;
     st5 : array[0..9] of byte;
-    st6 : array[0..9] of byte;    
-    st7 : array[0..9] of byte;    
+    st6 : array[0..9] of byte;
+    st7 : array[0..9] of byte;
   end;
-  
+
   packed_mmx_regs = packed record
     mm0 : array[0..9] of byte;
     mm1 : array[0..9] of byte;
@@ -99,10 +99,10 @@ type
     mm3 : array[0..9] of byte;
     mm4 : array[0..9] of byte;
     mm5 : array[0..9] of byte;
-    mm6 : array[0..9] of byte;    
-    mm7 : array[0..9] of byte;    
+    mm6 : array[0..9] of byte;
+    mm7 : array[0..9] of byte;
   end;
-  
+
   old_extended_regs = packed record
     fp_control 	: word;
     _reserved1 	: word;
@@ -122,7 +122,7 @@ type
         1 : (mmx	: packed_mmx_regs);
     end;
   end;
-  
+
   fp_stack = record
     st0 : array[0..9] of byte;
     _reserved_42_47 : array[0..5] of byte;
@@ -136,12 +136,12 @@ type
     _reserved_106_111 : array[0..5] of byte;
     st5 : array[0..9] of byte;
     _reserved_122_127 : array[0..5] of byte;
-    st6 : array[0..9] of byte;    
+    st6 : array[0..9] of byte;
     _reserved_138_143 : array[0..5] of byte;
-    st7 : array[0..9] of byte;        
+    st7 : array[0..9] of byte;
     _reserved_154_159 : array[0..5] of byte;
   end;
-  
+
   mmx_regs = record
     mm0 : array[0..9] of byte;
     _reserved_42_47 : array[0..5] of byte;
@@ -155,12 +155,12 @@ type
     _reserved_106_111 : array[0..5] of byte;
     mm5 : array[0..9] of byte;
     _reserved_122_127 : array[0..5] of byte;
-    mm6 : array[0..9] of byte;    
+    mm6 : array[0..9] of byte;
     _reserved_138_143 : array[0..5] of byte;
-    mm7 : array[0..9] of byte;    
+    mm7 : array[0..9] of byte;
     _reserved_154_159 : array[0..5] of byte;
   end;
-  
+
   xmmx_regs = record
     xmm0 : array [0..15] of byte;
     xmm1 : array [0..15] of byte;
@@ -171,7 +171,7 @@ type
     xmm6 : array [0..15] of byte;
     xmm7 : array [0..15] of byte;
   end;
-  
+
   new_extended_regs = record
     fp_control 	: word;
     fp_status 	: word;
@@ -193,16 +193,16 @@ type
     xmmx : xmmx_regs;
     _reserved_288_511 : array[0..223] of byte;
   end;
-  
+
   extended_regs = record
     state : record
       case byte of
   	    0 : (old_format : old_extended_regs);
-  	    1 : (new_format : new_extended_regs);  	  
+  	    1 : (new_format : new_extended_regs);
   	end;
   	format	: Cardinal;
   end;
-  
+
   vregs = record
     eip 	: Cardinal;
     eflags 	: cardinal;
@@ -215,7 +215,7 @@ type
     xregs	: extended_regs;
     _reserved_2 : array[0..2] of Cardinal;
   end;
-  
+
   Pvregs = ^vregs;
 
   sigset_t = array[0..3] of Longint;
@@ -261,7 +261,7 @@ type
        fpr_ex_sw    : cardinal;
        fpr_pad      : array[0..63] of AnsiChar;
        end;
-       
+
   SignalHandler   = Procedure(Sig : Longint);cdecl;
   PSignalHandler  = ^SignalHandler;
   SignalRestorer  = Procedure;cdecl;

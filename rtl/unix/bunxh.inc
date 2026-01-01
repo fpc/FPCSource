@@ -16,7 +16,7 @@
 Type TGrpArr = Array [0..0] of TGid;            { C style array workarounds}
      pGrpArr = ^TGrpArr;
      TFilDes = Array [0..1] of cInt;
-     pFilDes = ^TFilDes;    
+     pFilDes = ^TFilDes;
 
 // if you are looking for macro definitions or non C template overloaded versions, they are moved to bunxovlh.inc
 

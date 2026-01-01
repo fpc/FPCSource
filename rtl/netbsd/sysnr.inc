@@ -417,7 +417,7 @@ const
      syscall_nr_mlockall = syscall_nr_base + 242;
   { syscall: "munlockall" ret: "int" args:  }
      syscall_nr_munlockall = syscall_nr_base + 243;
-  { syscall: "__sigtimedwait" ret:"int" args: "const sigset_t *" "siginfo_t *" 
+  { syscall: "__sigtimedwait" ret:"int" args: "const sigset_t *" "siginfo_t *"
              "struct timespec *" }
      syscall_nr_sigtimedwait = syscall_nr_base + 244;
   { syscall: "__posix_rename" ret: "int" args: "const char  " "const char  "  }

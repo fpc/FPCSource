@@ -64,7 +64,7 @@
     { UNICODE  }
 
     const
-    
+
        WM_USER = 1024;  //keep it first
        WM_APP  = $8000;
 
@@ -253,7 +253,7 @@
      EN_SAVECLIPBOARD = 1800;
      EN_SELCHANGE = 1794;
      EN_STOPNOUNDO = 1798;
-     
+
      { Header control  }
      HDM_DELETEITEM = 4610;
      HDM_GETITEMW = 4619;

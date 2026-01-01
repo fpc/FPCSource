@@ -19,7 +19,7 @@
 type
   { fd are int in C also for 64bit targets (x86_64) }
   THandle = Longint;
-  
+
   { pthread_t is defined as an "unsigned long" }
   TThreadID = PtrUInt;
 

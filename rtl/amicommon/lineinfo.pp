@@ -119,7 +119,7 @@ type
 
 { We use static variable so almost no stack is required, and is thus
   more safe when an error has occurred in the program }
-{$WARNING This code is not thread-safe, and needs improvement }  
+{$WARNING This code is not thread-safe, and needs improvement }
 var
   e          : TExeFile;
   stabcnt,              { amount of stabs }
@@ -360,7 +360,7 @@ begin
 
   if not OpenStabs(pointer(addr)) then
     exit;
-  
+
   { correct the value to the correct address in the file }
   { processaddress is set in OpenStabs                   }
   addr := dword(addr - e.processaddress);
@@ -374,7 +374,7 @@ begin
 {$ifdef DEBUG_LINEINFO}
   writeln(stderr,'Addr: ',hexstr(addr,sizeof(addr)*2));
 {$endif DEBUG_LINEINFO}
- 
+
   fillchar(funcstab,sizeof(tstab),0);
   fillchar(filestab,sizeof(tstab),0);
   fillchar(dirstab,sizeof(tstab),0);

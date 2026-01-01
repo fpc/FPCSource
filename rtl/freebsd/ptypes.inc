@@ -22,7 +22,7 @@
 {$I ctypes.inc}
 {$packrecords c}
 
-const 
+const
     SEM_SAFE=255;
 type
 
@@ -133,7 +133,7 @@ type
    pthread_key_t        = cint;
    pthread_rwlock_t     = ^pthread_rwlock_t_rec;
    pthread_rwlockattr_t = ^pthread_rwlockattr_t_rec;
-  
+
    psem_t = ^sem_t;
    ppsem_t= ^psem_t;
    semid_t= pointer;
@@ -181,10 +181,10 @@ type
 
 Const
      MNAMELEN   = 1024;
-     MFSNamELen = 16;	
+     MFSNamELen = 16;
      STATFS_VERSION = $20030518;
      OMNAMLEN   = 88-2*sizeof(clong); // slightly machine specific.
-     OMFSNamLen = 16;	
+     OMFSNamLen = 16;
 
 // fieldnames start with f_ in headers. Probably 1.0.x simplification that somehow
 // managed to escape the unix rewrite. Make an union+ deprecate after newstatfs is stable.
@@ -240,7 +240,7 @@ Type TStatFS =  {?} Record
         f_mntonname   : array[0..MNAMELEN-1]   of ansichar; { directory on which mounted }
           );
 	end;
- 
+
      PStatFS=^TStatFS;
 
 
@@ -268,7 +268,7 @@ Type TStatFS =  {?} Record
     fspares2       : cshort;
     fspare3        : array[0..1] of clong;
   end;
- 
+
   PStatFS4=^TStatFs4;
 
   mbstate_t = record

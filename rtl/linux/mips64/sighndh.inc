@@ -25,7 +25,7 @@ type
     ins    : array[0..7] of longint;
   end;
 
-(* MIPS OABI32 structure 
+(* MIPS OABI32 structure
 struct sigcontext {
   unsigned int sc_regmask;
   unsigned int sc_status;
@@ -65,11 +65,11 @@ typedef struct ucontext
 
   PSigContext = ^TSigContext;
   TSigContext = record
-    sigc_regmask,                   
-    sigc_status: cuint; 
-    sigc_pc : culonglong;    
+    sigc_regmask,
+    sigc_status: cuint;
+    sigc_pc : culonglong;
     sigc_regs : array[0..31] of culonglong;
-    sigc_fpregs : array[0..31] of fpreg; 
+    sigc_fpregs : array[0..31] of fpreg;
     sigc_fpc_csr, sigc_fpc_eir : cuint;
     sigc_used_math : cuint;
     sigc_dsp : cuint;

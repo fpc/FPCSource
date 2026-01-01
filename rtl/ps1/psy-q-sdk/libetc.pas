@@ -1,7 +1,7 @@
 //  (C) Copyright 1993/1994 Sony Corporation,Tokyo,Japan. All Rights Reserved
 // 			libetc.h: Pad Interface
 unit libetc;
-interface 
+interface
 
 var
  	PadIdentifier: longint; external;
@@ -29,7 +29,7 @@ const
 	PADR2      = PADm;
 	PADstart   = PADh;
 	PADselect  = PADk;
-			    
+
 	MOUSEleft  = 1 shl 3;
 	MOUSEright = 1 shl 2;
 

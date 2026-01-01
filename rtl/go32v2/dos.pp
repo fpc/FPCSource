@@ -380,7 +380,7 @@ var
 
 begin
 { create command line }
-  c:=comline; 
+  c:=comline;
   use_proxy:=false;
   if force_go32v2_proxy then
     Use_proxy:=true

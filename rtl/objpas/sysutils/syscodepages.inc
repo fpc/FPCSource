@@ -19,9 +19,9 @@ type
     name: PAnsiChar;
   end;
 const
-  { this array contains many labels for the same codepage. 
-    all labels are stored in lowercase and each record has a 
-    hash value for the fast search. hash value was get using 
+  { this array contains many labels for the same codepage.
+    all labels are stored in lowercase and each record has a
+    hash value for the fast search. hash value was get using
     SysUtils.HashName() function }
   CodePageHashes: array[0..421] of TCodePageHashEntry = (
     (hash: $000004F1; cp: 28591; name: 'l1'),
@@ -454,7 +454,7 @@ type
     name: PAnsiChar;
   end;
 const
-  { this array contains only one name for one codepage. 
+  { this array contains only one name for one codepage.
     it is stored in codepage order and is used to search
     a codepage name by codepage number }
   CodePageNames: array[0..155] of TCodePageEntry = (

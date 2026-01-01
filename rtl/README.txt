@@ -9,9 +9,9 @@ makefile.fpc to guess reasonable defaults for everything it needs.
 (these files can be found in base.zip on the FTP site)
 
 The only variable that you may want to set are
-FPC             - What compiler to use. Use an absolute path. 
+FPC             - What compiler to use. Use an absolute path.
                   (default is ppc386)
-INSTALL_UNITDIR - Where to install the RTL units 
+INSTALL_UNITDIR - Where to install the RTL units
 OPT             - any special options you want to set for the compiler.
 
 In principle, you can also descend into the subdirectory of your OS, and
@@ -19,7 +19,7 @@ type 'make' there, that should also compile everything.
 
 The tree contains subdirectories for all the supported operating systems,
 as well as all processor architectures. The processor directories contain
-low-level routines which are required for the system unit (if they are not 
+low-level routines which are required for the system unit (if they are not
 available in high-level language form), as well as optimized versions of
 the pascal generic routines (the generic routine source code is localed in
 the inc subdirectory).

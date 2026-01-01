@@ -70,7 +70,7 @@ begin
       if (newdrive <> curdrive) then
         begin
           { verify if the drive we have to set actually exist.
-            not doing so may corrupt TOS internal structures, 
+            not doing so may corrupt TOS internal structures,
             according to docs. (KB) }
           drives:=gemdos_dsetdrv(curdrive);
           if (drives and (1 shl newdrive)) = 0 then

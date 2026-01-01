@@ -71,11 +71,11 @@ type
     size_t   = cuint32;         { as defined in the C standard}
     TSize    = size_t;
     pSize    = ^size_t;
-    psize_t   = pSize;		
+    psize_t   = pSize;
 
     ssize_t  = cint32;          { used by function for returning number of bytes }
     TsSize   = ssize_t;
-    psSize   = ^ssize_t;		
+    psSize   = ^ssize_t;
 
     uid_t    = cuint32;         { used for user ID type        }
     TUid     = Uid_t;
@@ -90,7 +90,7 @@ type
     // TTime    = time_t;    // Not allowed in system unit, -> unixtype
     pTime    = ^time_t;
     ptime_t =  ^time_t;
-    
+
     wchar_t   = cint32;
     pwchar_t  = ^wchar_t;
 
@@ -110,9 +110,9 @@ type
   end;
   ptimespec= ^timespec;
   Ttimespec= timespec;
-  
+
   pthread_t = culong;
-  
+
   sched_param = record
     __sched_priority: cint;
   end;
@@ -152,7 +152,7 @@ type
     __padding: array[0..48-1-sizeof(_pthread_fastlock)-sizeof(pointer)-sizeof(clonglong)] of byte;
     __align: clonglong;
   end;
-    
+
   pthread_condattr_t = record
     __dummy: cint;
   end;
@@ -172,7 +172,7 @@ type
     __lockkind: cint;
     __pshared: cint;
   end;
-  
+
   sem_t = record
      __sem_lock: _pthread_fastlock;
      __sem_value: cint;
@@ -188,7 +188,7 @@ CONST
     _PTHREAD_MUTEX_RECURSIVE_NP  = 1;
     _PTHREAD_MUTEX_ERRORCHECK_NP = 2;
     _PTHREAD_MUTEX_ADAPTIVE_NP   = 3;
-  
+
     _PTHREAD_MUTEX_NORMAL     = _PTHREAD_MUTEX_TIMED_NP;
     _PTHREAD_MUTEX_RECURSIVE  = _PTHREAD_MUTEX_RECURSIVE_NP;
     _PTHREAD_MUTEX_ERRORCHECK = _PTHREAD_MUTEX_ERRORCHECK_NP;
@@ -205,8 +205,8 @@ CONST
     PATH_MAX = 1024;    {255}   { Maximum number of bytes in pathname }
 
     SYS_NMLN = 32;              {BSD utsname struct limit}
-    
-    SIG_MAXSIG = 32; //128;	// highest signal version  // BeOS  
+
+    SIG_MAXSIG = 32; //128;	// highest signal version  // BeOS
 
 const
   { For getting/setting priority }

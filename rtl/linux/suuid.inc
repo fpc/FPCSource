@@ -16,7 +16,7 @@
  **********************************************************************}
 
 
-Const 
+Const
   KernelUUID       = '/proc/sys/kernel/random/uuid';
 
 
@@ -25,7 +25,7 @@ Procedure GetURandomBytes(Var Buf; NBytes : Integer);
 Var
   fd,I : Integer;
   P : PByte;
-  
+
 begin
   P:=@Buf;
   fd:=FileOpen('/dev/urandom',fmOpenRead or fmShareDenyNone);
@@ -39,7 +39,7 @@ begin
           Inc(P,I);
           Dec(NBytes,I);
           end;
-        end;  
+        end;
     Finally
       FileClose(Fd);
     end
@@ -56,7 +56,7 @@ Const
 Var
   fd: Longint;
   S : AnsiString;
-  
+
 begin
   fd:=FileOpen(KernelUUID,fmOpenRead or fmShareDenyNone);
   Result:=(Fd>=0);
@@ -68,7 +68,7 @@ begin
       If Result then
         GUID:=StringToGUID('{'+S+'}');
     finally
-      FileClose(FD);  
+      FileClose(FD);
     end;
 end;
 
@@ -76,7 +76,7 @@ Function SysCreateGUID(out GUID : TGUID) : Integer;
 
 begin
   if not CreateKernelGUID(Guid) then
-    GetURandomBytes(GUID,SizeOf(Guid));  
-  Result:=0;    
+    GetURandomBytes(GUID,SizeOf(Guid));
+  Result:=0;
 end;
 

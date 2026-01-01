@@ -32,22 +32,22 @@ const
 type
   fsblkcnt_t = int64;
   fsfilcnt_t = int64;
-  
+
   statvfs_t = packed record
     f_bsize : cardinal;                {* fundamental file system block size *}
     f_frsize : cardinal;               {* fragment size *}
-    f_blocks : fsblkcnt_t;             {* total blocks of f_frsize on fs *} 
-    f_bfree : fsblkcnt_t;              {* total free blocks of f_frsize *}   
+    f_blocks : fsblkcnt_t;             {* total blocks of f_frsize on fs *}
+    f_bfree : fsblkcnt_t;              {* total free blocks of f_frsize *}
     f_bavail : fsblkcnt_t;             {* free blocks avail to non-superuser *}
     f_files : fsfilcnt_t;              {* total file nodes (inodes) *}
     f_free : fsfilcnt_t;               {* total free file nodes *}
     f_favail : fsfilcnt_t;             {* free nodes avail to non-superuser *}
     f_fsid :  cardinal;                {* file system id (dev for now) *}
     f_basetype : array[0.._FSTYPSZ-1] of AnsiChar; {* target fs type name null terminated *}
-    f_flag : cardinal;                 {* bit-mask of flags *} 
+    f_flag : cardinal;                 {* bit-mask of flags *}
     f_namemax : cardinal;              {* maximum file name length *}
-    f_filler : array[1..21] of cardinal; {* reserved for future expansion *} 
-  end;  
-  
-function sys_statvfs(const path: PAnsiChar; var buf : statvfs_t): cint; cdecl; external name 'statvfs';  
+    f_filler : array[1..21] of cardinal; {* reserved for future expansion *}
+  end;
+
+function sys_statvfs(const path: PAnsiChar; var buf : statvfs_t): cint; cdecl; external name 'statvfs';
 

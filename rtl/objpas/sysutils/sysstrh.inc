@@ -136,7 +136,7 @@ function StrToInt(const s: string): Longint;
 function StrToDWord(const s: string): DWord;
 function StrToUInt(const s: string): Cardinal;
 function StrToInt64(const s: string): int64;
-function StrToQWord(const s: string): QWord; 
+function StrToQWord(const s: string): QWord;
 function StrToUInt64(const s: string): UInt64; inline;
 function TryStrToInt(const s: string; Out i : Longint) : boolean;
 function TryStrToDWord(const s: string; Out D : DWord) : boolean;

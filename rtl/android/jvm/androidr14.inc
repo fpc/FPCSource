@@ -2199,11 +2199,11 @@
     procedure removeOnAccountsUpdatedListener(para1: AAOnAccountsUpdateListener); overload; virtual;
   end;
 
-  AAAccountManagerCallback = interface external 'android.accounts' name 'AccountManagerCallback' 
+  AAAccountManagerCallback = interface external 'android.accounts' name 'AccountManagerCallback'
     procedure run(para1: AAAccountManagerFuture); overload;
   end;
 
-  AAAccountManagerFuture = interface external 'android.accounts' name 'AccountManagerFuture' 
+  AAAccountManagerFuture = interface external 'android.accounts' name 'AccountManagerFuture'
     function cancel(para1: jboolean): jboolean; overload;
     function isCancelled(): jboolean; overload;
     function isDone(): jboolean; overload;
@@ -2211,7 +2211,7 @@
     function getResult(para1: jlong; para2: JUCTimeUnit): JLObject; overload;  // throws android.accounts.OperationCanceledException, java.io.IOException, android.accounts.AuthenticatorException
   end;
 
-  AAOnAccountsUpdateListener = interface external 'android.accounts' name 'OnAccountsUpdateListener' 
+  AAOnAccountsUpdateListener = interface external 'android.accounts' name 'OnAccountsUpdateListener'
     procedure onAccountsUpdated(para1: Arr1AAAccount); overload;
     procedure onAccountsUpdated(var para1: array of AAAccount); overload;
   end;
@@ -2229,7 +2229,7 @@
       Arr1InnerTransitionListener = array of InnerTransitionListener;
       Arr2InnerTransitionListener = array of Arr1InnerTransitionListener;
       Arr3InnerTransitionListener = array of Arr2InnerTransitionListener;
-      InnerTransitionListener = interface external 'android.animation' name 'TransitionListener' 
+      InnerTransitionListener = interface external 'android.animation' name 'TransitionListener'
         procedure startTransition(para1: AALayoutTransition; para2: AVViewGroup; para3: AVView; para4: jint); overload;
         procedure endTransition(para1: AALayoutTransition; para2: AVViewGroup; para3: AVView; para4: jint); overload;
       end;
@@ -2265,11 +2265,11 @@
     function getTransitionListeners(): JUList; overload; virtual;
   end;
 
-  AATimeInterpolator = interface external 'android.animation' name 'TimeInterpolator' 
+  AATimeInterpolator = interface external 'android.animation' name 'TimeInterpolator'
     function getInterpolation(para1: jfloat): jfloat; overload;
   end;
 
-  AATypeEvaluator = interface external 'android.animation' name 'TypeEvaluator' 
+  AATypeEvaluator = interface external 'android.animation' name 'TypeEvaluator'
     function evaluate(para1: jfloat; para2: JLObject; para3: JLObject): JLObject; overload;
   end;
 
@@ -2536,11 +2536,11 @@
       Arr1InnerKeyguardLock = array of InnerKeyguardLock;
       Arr2InnerKeyguardLock = array of Arr1InnerKeyguardLock;
       Arr3InnerKeyguardLock = array of Arr2InnerKeyguardLock;
-      InnerOnKeyguardExitResult = interface external 'android.app' name 'OnKeyguardExitResult' 
+      InnerOnKeyguardExitResult = interface external 'android.app' name 'OnKeyguardExitResult'
         procedure onKeyguardExitResult(para1: jboolean); overload;
       end;
 
-      InnerKeyguardLock = class external 'android.app' name 'KeyguardLock' 
+      InnerKeyguardLock = class external 'android.app' name 'KeyguardLock'
       end;
 
   public
@@ -2556,7 +2556,7 @@
       Arr1InnerLoaderCallbacks = array of InnerLoaderCallbacks;
       Arr2InnerLoaderCallbacks = array of Arr1InnerLoaderCallbacks;
       Arr3InnerLoaderCallbacks = array of Arr2InnerLoaderCallbacks;
-      InnerLoaderCallbacks = interface external 'android.app' name 'LoaderCallbacks' 
+      InnerLoaderCallbacks = interface external 'android.app' name 'LoaderCallbacks'
         function onCreateLoader(para1: jint; para2: AOBundle): ACLoader; overload;
         procedure onLoadFinished(para1: ACLoader; para2: JLObject); overload;
         procedure onLoaderReset(para1: ACLoader); overload;
@@ -2731,7 +2731,7 @@
     function writeEntityData(var para1: array of jbyte; para2: jint): jint; overload; virtual;  // throws java.io.IOException
   end;
 
-  AABBackupHelper = interface external 'android.app.backup' name 'BackupHelper' 
+  AABBackupHelper = interface external 'android.app.backup' name 'BackupHelper'
     procedure performBackup(para1: AOParcelFileDescriptor; para2: AABBackupDataOutput; para3: AOParcelFileDescriptor); overload;
     procedure restoreEntity(para1: AABBackupDataInputStream); overload;
     procedure writeNewStateDescription(para1: AOParcelFileDescriptor); overload;
@@ -2921,13 +2921,13 @@
     procedure onHealthChannelStateChange(para1: ABBluetoothHealthAppConfiguration; para2: ABBluetoothDevice; para3: jint; para4: jint; para5: AOParcelFileDescriptor; para6: jint); overload; virtual;
   end;
 
-  ABBluetoothProfile = interface external 'android.bluetooth' name 'BluetoothProfile' 
+  ABBluetoothProfile = interface external 'android.bluetooth' name 'BluetoothProfile'
     type
       InnerServiceListener = interface;
       Arr1InnerServiceListener = array of InnerServiceListener;
       Arr2InnerServiceListener = array of Arr1InnerServiceListener;
       Arr3InnerServiceListener = array of Arr2InnerServiceListener;
-      InnerServiceListener = interface external 'android.bluetooth' name 'ServiceListener' 
+      InnerServiceListener = interface external 'android.bluetooth' name 'ServiceListener'
         procedure onServiceConnected(para1: jint; para2: ABBluetoothProfile); overload;
         procedure onServiceDisconnected(para1: jint); overload;
       end;
@@ -3006,7 +3006,7 @@
     function getDebugUnregister(): jboolean; overload; virtual; final;
   end;
 
-  ACComponentCallbacks = interface external 'android.content' name 'ComponentCallbacks' 
+  ACComponentCallbacks = interface external 'android.content' name 'ComponentCallbacks'
     procedure onConfigurationChanged(para1: ACRConfiguration); overload;
     procedure onLowMemory(); overload;
   end;
@@ -3104,7 +3104,7 @@
     class procedure removeStatusChangeListener(para1: JLObject); static; overload;
   end;
 
-  ACDialogInterface = interface external 'android.content' name 'DialogInterface' 
+  ACDialogInterface = interface external 'android.content' name 'DialogInterface'
     type
       InnerOnKeyListener = interface;
       Arr1InnerOnKeyListener = array of InnerOnKeyListener;
@@ -3130,27 +3130,27 @@
       Arr1InnerOnCancelListener = array of InnerOnCancelListener;
       Arr2InnerOnCancelListener = array of Arr1InnerOnCancelListener;
       Arr3InnerOnCancelListener = array of Arr2InnerOnCancelListener;
-      InnerOnKeyListener = interface external 'android.content' name 'OnKeyListener' 
+      InnerOnKeyListener = interface external 'android.content' name 'OnKeyListener'
         function onKey(para1: ACDialogInterface; para2: jint; para3: AVKeyEvent): jboolean; overload;
       end;
 
-      InnerOnMultiChoiceClickListener = interface external 'android.content' name 'OnMultiChoiceClickListener' 
+      InnerOnMultiChoiceClickListener = interface external 'android.content' name 'OnMultiChoiceClickListener'
         procedure onClick(para1: ACDialogInterface; para2: jint; para3: jboolean); overload;
       end;
 
-      InnerOnClickListener = interface external 'android.content' name 'OnClickListener' 
+      InnerOnClickListener = interface external 'android.content' name 'OnClickListener'
         procedure onClick(para1: ACDialogInterface; para2: jint); overload;
       end;
 
-      InnerOnShowListener = interface external 'android.content' name 'OnShowListener' 
+      InnerOnShowListener = interface external 'android.content' name 'OnShowListener'
         procedure onShow(para1: ACDialogInterface); overload;
       end;
 
-      InnerOnDismissListener = interface external 'android.content' name 'OnDismissListener' 
+      InnerOnDismissListener = interface external 'android.content' name 'OnDismissListener'
         procedure onDismiss(para1: ACDialogInterface); overload;
       end;
 
-      InnerOnCancelListener = interface external 'android.content' name 'OnCancelListener' 
+      InnerOnCancelListener = interface external 'android.content' name 'OnCancelListener'
         procedure onCancel(para1: ACDialogInterface); overload;
       end;
 
@@ -3200,11 +3200,11 @@
       Arr1InnerForceLoadContentObserver = array of InnerForceLoadContentObserver;
       Arr2InnerForceLoadContentObserver = array of Arr1InnerForceLoadContentObserver;
       Arr3InnerForceLoadContentObserver = array of Arr2InnerForceLoadContentObserver;
-      InnerOnLoadCompleteListener = interface external 'android.content' name 'OnLoadCompleteListener' 
+      InnerOnLoadCompleteListener = interface external 'android.content' name 'OnLoadCompleteListener'
         procedure onLoadComplete(para1: ACLoader; para2: JLObject); overload;
       end;
 
-      InnerForceLoadContentObserver = class sealed external 'android.content' name 'ForceLoadContentObserver' 
+      InnerForceLoadContentObserver = class sealed external 'android.content' name 'ForceLoadContentObserver'
       end;
 
   public
@@ -3245,12 +3245,12 @@
     procedure dump(para1: JLString; para2: JIFileDescriptor; para3: JIPrintWriter; var para4: array of JLString); overload; virtual;
   end;
 
-  ACServiceConnection = interface external 'android.content' name 'ServiceConnection' 
+  ACServiceConnection = interface external 'android.content' name 'ServiceConnection'
     procedure onServiceConnected(para1: ACComponentName; para2: AOIBinder); overload;
     procedure onServiceDisconnected(para1: ACComponentName); overload;
   end;
 
-  ACSharedPreferences = interface external 'android.content' name 'SharedPreferences' 
+  ACSharedPreferences = interface external 'android.content' name 'SharedPreferences'
     type
       InnerEditor = interface;
       Arr1InnerEditor = array of InnerEditor;
@@ -3260,7 +3260,7 @@
       Arr1InnerOnSharedPreferenceChangeListener = array of InnerOnSharedPreferenceChangeListener;
       Arr2InnerOnSharedPreferenceChangeListener = array of Arr1InnerOnSharedPreferenceChangeListener;
       Arr3InnerOnSharedPreferenceChangeListener = array of Arr2InnerOnSharedPreferenceChangeListener;
-      InnerEditor = interface external 'android.content' name 'Editor' 
+      InnerEditor = interface external 'android.content' name 'Editor'
         function putString(para1: JLString; para2: JLString): ACSharedPreferences.InnerEditor; overload;
         function putStringSet(para1: JLString; para2: JUSet): ACSharedPreferences.InnerEditor; overload;
         function putInt(para1: JLString; para2: jint): ACSharedPreferences.InnerEditor; overload;
@@ -3273,7 +3273,7 @@
         procedure apply(); overload;
       end;
 
-      InnerOnSharedPreferenceChangeListener = interface external 'android.content' name 'OnSharedPreferenceChangeListener' 
+      InnerOnSharedPreferenceChangeListener = interface external 'android.content' name 'OnSharedPreferenceChangeListener'
         procedure onSharedPreferenceChanged(para1: ACSharedPreferences; para2: JLString); overload;
       end;
 
@@ -3296,7 +3296,7 @@
     function getSyncContextBinder(): AOIBinder; overload; virtual;
   end;
 
-  ACSyncStatusObserver = interface external 'android.content' name 'SyncStatusObserver' 
+  ACSyncStatusObserver = interface external 'android.content' name 'SyncStatusObserver'
     procedure onStatusChanged(para1: jint); overload;
   end;
 
@@ -3317,7 +3317,7 @@
       Arr1InnerAssetInputStream = array of InnerAssetInputStream;
       Arr2InnerAssetInputStream = array of Arr1InnerAssetInputStream;
       Arr3InnerAssetInputStream = array of Arr2InnerAssetInputStream;
-      InnerAssetInputStream = class sealed external 'android.content.res' name 'AssetInputStream' 
+      InnerAssetInputStream = class sealed external 'android.content.res' name 'AssetInputStream'
       end;
 
   public
@@ -3398,7 +3398,7 @@
     procedure dispatchChange(para1: jboolean); overload; virtual; final;
   end;
 
-  ADCursor = interface external 'android.database' name 'Cursor' 
+  ADCursor = interface external 'android.database' name 'Cursor'
     const
       FIELD_TYPE_NULL = 0;
       FIELD_TYPE_INTEGER = 1;
@@ -3453,7 +3453,7 @@
     procedure onInvalidated(); overload; virtual;
   end;
 
-  ADDatabaseErrorHandler = interface external 'android.database' name 'DatabaseErrorHandler' 
+  ADDatabaseErrorHandler = interface external 'android.database' name 'DatabaseErrorHandler'
     procedure onCorruption(para1: ADSSQLiteDatabase); overload;
   end;
 
@@ -3582,7 +3582,7 @@
     procedure releaseReferenceFromContainer(); overload; virtual;
   end;
 
-  ADSSQLiteTransactionListener = interface external 'android.database.sqlite' name 'SQLiteTransactionListener' 
+  ADSSQLiteTransactionListener = interface external 'android.database.sqlite' name 'SQLiteTransactionListener'
     procedure onBegin(); overload;
     procedure onCommit(); overload;
     procedure onRollback(); overload;
@@ -3684,15 +3684,15 @@
       Arr1InnerOnInfoListener = array of InnerOnInfoListener;
       Arr2InnerOnInfoListener = array of Arr1InnerOnInfoListener;
       Arr3InnerOnInfoListener = array of Arr2InnerOnInfoListener;
-      InnerOnErrorListener = interface external 'android.drm' name 'OnErrorListener' 
+      InnerOnErrorListener = interface external 'android.drm' name 'OnErrorListener'
         procedure onError(para1: ADDrmManagerClient; para2: ADDrmErrorEvent); overload;
       end;
 
-      InnerOnEventListener = interface external 'android.drm' name 'OnEventListener' 
+      InnerOnEventListener = interface external 'android.drm' name 'OnEventListener'
         procedure onEvent(para1: ADDrmManagerClient; para2: ADDrmEvent); overload;
       end;
 
-      InnerOnInfoListener = interface external 'android.drm' name 'OnInfoListener' 
+      InnerOnInfoListener = interface external 'android.drm' name 'OnInfoListener'
         procedure onInfo(para1: ADDrmManagerClient; para2: ADDrmInfoEvent); overload;
       end;
 
@@ -3820,7 +3820,7 @@
         constructor create(); overload;
       end;
 
-      InnerConstraintsColumns = interface external 'android.drm' name 'ConstraintsColumns' 
+      InnerConstraintsColumns = interface external 'android.drm' name 'ConstraintsColumns'
         const
           MAX_REPEAT_COUNT = 'max_repeat_count';
           REMAINING_REPEAT_COUNT = 'remaining_repeat_count';
@@ -4266,7 +4266,7 @@
     function getHeight(): jint; overload; virtual;
   end;
 
-  AGDAnimatable = interface external 'android.graphics.drawable' name 'Animatable' 
+  AGDAnimatable = interface external 'android.graphics.drawable' name 'Animatable'
     procedure start(); overload;
     procedure stop(); overload;
     function isRunning(): jboolean; overload;
@@ -4333,10 +4333,10 @@
         function equals(para1: JLObject): jboolean; overload; virtual;
       end;
 
-      InnerSize = class external 'android.hardware' name 'Size' 
+      InnerSize = class external 'android.hardware' name 'Size'
       end;
 
-      InnerErrorCallback = interface external 'android.hardware' name 'ErrorCallback' 
+      InnerErrorCallback = interface external 'android.hardware' name 'ErrorCallback'
         procedure onError(para1: jint; para2: AHCamera); overload;
       end;
 
@@ -4353,24 +4353,24 @@
         constructor create(); overload;
       end;
 
-      InnerOnZoomChangeListener = interface external 'android.hardware' name 'OnZoomChangeListener' 
+      InnerOnZoomChangeListener = interface external 'android.hardware' name 'OnZoomChangeListener'
         procedure onZoomChange(para1: jint; para2: jboolean; para3: AHCamera); overload;
       end;
 
-      InnerPictureCallback = interface external 'android.hardware' name 'PictureCallback' 
+      InnerPictureCallback = interface external 'android.hardware' name 'PictureCallback'
         procedure onPictureTaken(para1: Arr1jbyte; para2: AHCamera); overload;
         procedure onPictureTaken(var para1: array of jbyte; para2: AHCamera); overload;
       end;
 
-      InnerShutterCallback = interface external 'android.hardware' name 'ShutterCallback' 
+      InnerShutterCallback = interface external 'android.hardware' name 'ShutterCallback'
         procedure onShutter(); overload;
       end;
 
-      InnerAutoFocusCallback = interface external 'android.hardware' name 'AutoFocusCallback' 
+      InnerAutoFocusCallback = interface external 'android.hardware' name 'AutoFocusCallback'
         procedure onAutoFocus(para1: jboolean; para2: AHCamera); overload;
       end;
 
-      InnerPreviewCallback = interface external 'android.hardware' name 'PreviewCallback' 
+      InnerPreviewCallback = interface external 'android.hardware' name 'PreviewCallback'
         procedure onPreviewFrame(para1: Arr1jbyte; para2: AHCamera); overload;
         procedure onPreviewFrame(var para1: array of jbyte; para2: AHCamera); overload;
       end;
@@ -4388,10 +4388,10 @@
         constructor create(); overload;
       end;
 
-      InnerParameters = class external 'android.hardware' name 'Parameters' 
+      InnerParameters = class external 'android.hardware' name 'Parameters'
       end;
 
-      InnerFaceDetectionListener = interface external 'android.hardware' name 'FaceDetectionListener' 
+      InnerFaceDetectionListener = interface external 'android.hardware' name 'FaceDetectionListener'
         procedure onFaceDetection(para1: AHCamera.Arr1InnerFace; para2: AHCamera); overload;
         procedure onFaceDetection(var para1: array of AHCamera.InnerFace; para2: AHCamera); overload;
       end;
@@ -4490,12 +4490,12 @@
       ftimestamp: jlong; external name 'timestamp';
   end;
 
-  AHSensorEventListener = interface external 'android.hardware' name 'SensorEventListener' 
+  AHSensorEventListener = interface external 'android.hardware' name 'SensorEventListener'
     procedure onSensorChanged(para1: AHSensorEvent); overload;
     procedure onAccuracyChanged(para1: AHSensor; para2: jint); overload;
   end;
 
-  AHSensorListener = interface external 'android.hardware' name 'SensorListener' 
+  AHSensorListener = interface external 'android.hardware' name 'SensorListener'
     procedure onSensorChanged(para1: jint; para2: Arr1jfloat); overload;
     procedure onSensorChanged(para1: jint; var para2: array of jfloat); overload;
     procedure onAccuracyChanged(para1: jint; para2: jint); overload;
@@ -4809,11 +4809,11 @@
       Arr1InnerListener = array of InnerListener;
       Arr2InnerListener = array of Arr1InnerListener;
       Arr3InnerListener = array of Arr2InnerListener;
-      InnerNmeaListener = interface external 'android.location' name 'NmeaListener' 
+      InnerNmeaListener = interface external 'android.location' name 'NmeaListener'
         procedure onNmeaReceived(para1: jlong; para2: JLString); overload;
       end;
 
-      InnerListener = interface external 'android.location' name 'Listener' 
+      InnerListener = interface external 'android.location' name 'Listener'
         procedure onGpsStatusChanged(para1: jint); overload;
       end;
 
@@ -4829,7 +4829,7 @@
     function getMaxSatellites(): jint; overload; virtual;
   end;
 
-  ALLocationListener = interface external 'android.location' name 'LocationListener' 
+  ALLocationListener = interface external 'android.location' name 'LocationListener'
     procedure onLocationChanged(para1: ALLocation); overload;
     procedure onStatusChanged(para1: JLString; para2: jint; para3: AOBundle); overload;
     procedure onProviderEnabled(para1: JLString); overload;
@@ -4919,7 +4919,7 @@
       Arr1InnerOnAudioFocusChangeListener = array of InnerOnAudioFocusChangeListener;
       Arr2InnerOnAudioFocusChangeListener = array of Arr1InnerOnAudioFocusChangeListener;
       Arr3InnerOnAudioFocusChangeListener = array of Arr2InnerOnAudioFocusChangeListener;
-      InnerOnAudioFocusChangeListener = interface external 'android.media' name 'OnAudioFocusChangeListener' 
+      InnerOnAudioFocusChangeListener = interface external 'android.media' name 'OnAudioFocusChangeListener'
         procedure onAudioFocusChange(para1: jint); overload;
       end;
 
@@ -5047,7 +5047,7 @@
       Arr1InnerOnRecordPositionUpdateListener = array of InnerOnRecordPositionUpdateListener;
       Arr2InnerOnRecordPositionUpdateListener = array of Arr1InnerOnRecordPositionUpdateListener;
       Arr3InnerOnRecordPositionUpdateListener = array of Arr2InnerOnRecordPositionUpdateListener;
-      InnerOnRecordPositionUpdateListener = interface external 'android.media' name 'OnRecordPositionUpdateListener' 
+      InnerOnRecordPositionUpdateListener = interface external 'android.media' name 'OnRecordPositionUpdateListener'
         procedure onMarkerReached(para1: AMAudioRecord); overload;
         procedure onPeriodicNotification(para1: AMAudioRecord); overload;
       end;
@@ -5098,7 +5098,7 @@
       Arr1InnerOnPlaybackPositionUpdateListener = array of InnerOnPlaybackPositionUpdateListener;
       Arr2InnerOnPlaybackPositionUpdateListener = array of Arr1InnerOnPlaybackPositionUpdateListener;
       Arr3InnerOnPlaybackPositionUpdateListener = array of Arr2InnerOnPlaybackPositionUpdateListener;
-      InnerOnPlaybackPositionUpdateListener = interface external 'android.media' name 'OnPlaybackPositionUpdateListener' 
+      InnerOnPlaybackPositionUpdateListener = interface external 'android.media' name 'OnPlaybackPositionUpdateListener'
         procedure onMarkerReached(para1: AMAudioTrack); overload;
         procedure onPeriodicNotification(para1: AMAudioTrack); overload;
       end;
@@ -5273,7 +5273,7 @@
       Arr1InnerFace = array of InnerFace;
       Arr2InnerFace = array of Arr1InnerFace;
       Arr3InnerFace = array of Arr2InnerFace;
-      InnerFace = class external 'android.media' name 'Face' 
+      InnerFace = class external 'android.media' name 'Face'
       end;
 
   public
@@ -5291,7 +5291,7 @@
       Arr1InnerOnJetEventListener = array of InnerOnJetEventListener;
       Arr2InnerOnJetEventListener = array of Arr1InnerOnJetEventListener;
       Arr3InnerOnJetEventListener = array of Arr2InnerOnJetEventListener;
-      InnerOnJetEventListener = interface external 'android.media' name 'OnJetEventListener' 
+      InnerOnJetEventListener = interface external 'android.media' name 'OnJetEventListener'
         procedure onJetEvent(para1: AMJetPlayer; para2: jshort; para3: jbyte; para4: jbyte; para5: jbyte; para6: jbyte); overload;
         procedure onJetUserIdUpdate(para1: AMJetPlayer; para2: jint; para3: jint); overload;
         procedure onJetNumQueuedSegmentUpdate(para1: AMJetPlayer; para2: jint); overload;
@@ -5400,31 +5400,31 @@
       Arr1InnerOnPreparedListener = array of InnerOnPreparedListener;
       Arr2InnerOnPreparedListener = array of Arr1InnerOnPreparedListener;
       Arr3InnerOnPreparedListener = array of Arr2InnerOnPreparedListener;
-      InnerOnInfoListener = interface external 'android.media' name 'OnInfoListener' 
+      InnerOnInfoListener = interface external 'android.media' name 'OnInfoListener'
         function onInfo(para1: AMMediaPlayer; para2: jint; para3: jint): jboolean; overload;
       end;
 
-      InnerOnErrorListener = interface external 'android.media' name 'OnErrorListener' 
+      InnerOnErrorListener = interface external 'android.media' name 'OnErrorListener'
         function onError(para1: AMMediaPlayer; para2: jint; para3: jint): jboolean; overload;
       end;
 
-      InnerOnVideoSizeChangedListener = interface external 'android.media' name 'OnVideoSizeChangedListener' 
+      InnerOnVideoSizeChangedListener = interface external 'android.media' name 'OnVideoSizeChangedListener'
         procedure onVideoSizeChanged(para1: AMMediaPlayer; para2: jint; para3: jint); overload;
       end;
 
-      InnerOnSeekCompleteListener = interface external 'android.media' name 'OnSeekCompleteListener' 
+      InnerOnSeekCompleteListener = interface external 'android.media' name 'OnSeekCompleteListener'
         procedure onSeekComplete(para1: AMMediaPlayer); overload;
       end;
 
-      InnerOnBufferingUpdateListener = interface external 'android.media' name 'OnBufferingUpdateListener' 
+      InnerOnBufferingUpdateListener = interface external 'android.media' name 'OnBufferingUpdateListener'
         procedure onBufferingUpdate(para1: AMMediaPlayer; para2: jint); overload;
       end;
 
-      InnerOnCompletionListener = interface external 'android.media' name 'OnCompletionListener' 
+      InnerOnCompletionListener = interface external 'android.media' name 'OnCompletionListener'
         procedure onCompletion(para1: AMMediaPlayer); overload;
       end;
 
-      InnerOnPreparedListener = interface external 'android.media' name 'OnPreparedListener' 
+      InnerOnPreparedListener = interface external 'android.media' name 'OnPreparedListener'
         procedure onPrepared(para1: AMMediaPlayer); overload;
       end;
 
@@ -5518,27 +5518,27 @@
       Arr1InnerAudioSource = array of InnerAudioSource;
       Arr2InnerAudioSource = array of Arr1InnerAudioSource;
       Arr3InnerAudioSource = array of Arr2InnerAudioSource;
-      InnerOnInfoListener = interface external 'android.media' name 'OnInfoListener' 
+      InnerOnInfoListener = interface external 'android.media' name 'OnInfoListener'
         procedure onInfo(para1: AMMediaRecorder; para2: jint; para3: jint); overload;
       end;
 
-      InnerOnErrorListener = interface external 'android.media' name 'OnErrorListener' 
+      InnerOnErrorListener = interface external 'android.media' name 'OnErrorListener'
         procedure onError(para1: AMMediaRecorder; para2: jint; para3: jint); overload;
       end;
 
-      InnerVideoEncoder = class sealed external 'android.media' name 'VideoEncoder' 
+      InnerVideoEncoder = class sealed external 'android.media' name 'VideoEncoder'
       end;
 
-      InnerAudioEncoder = class sealed external 'android.media' name 'AudioEncoder' 
+      InnerAudioEncoder = class sealed external 'android.media' name 'AudioEncoder'
       end;
 
-      InnerOutputFormat = class sealed external 'android.media' name 'OutputFormat' 
+      InnerOutputFormat = class sealed external 'android.media' name 'OutputFormat'
       end;
 
-      InnerVideoSource = class sealed external 'android.media' name 'VideoSource' 
+      InnerVideoSource = class sealed external 'android.media' name 'VideoSource'
       end;
 
-      InnerAudioSource = class sealed external 'android.media' name 'AudioSource' 
+      InnerAudioSource = class sealed external 'android.media' name 'AudioSource'
       end;
 
   public
@@ -5592,7 +5592,7 @@
       Arr1InnerMetadataEditor = array of InnerMetadataEditor;
       Arr2InnerMetadataEditor = array of Arr1InnerMetadataEditor;
       Arr3InnerMetadataEditor = array of Arr2InnerMetadataEditor;
-      InnerMetadataEditor = class external 'android.media' name 'MetadataEditor' 
+      InnerMetadataEditor = class external 'android.media' name 'MetadataEditor'
       end;
 
   public
@@ -5681,7 +5681,7 @@
       Arr1InnerOnLoadCompleteListener = array of InnerOnLoadCompleteListener;
       Arr2InnerOnLoadCompleteListener = array of Arr1InnerOnLoadCompleteListener;
       Arr3InnerOnLoadCompleteListener = array of Arr2InnerOnLoadCompleteListener;
-      InnerOnLoadCompleteListener = interface external 'android.media' name 'OnLoadCompleteListener' 
+      InnerOnLoadCompleteListener = interface external 'android.media' name 'OnLoadCompleteListener'
         procedure onLoadComplete(para1: AMSoundPool; para2: jint; para3: jint); overload;
       end;
 
@@ -5848,11 +5848,11 @@
       Arr1InnerDescriptor = array of InnerDescriptor;
       Arr2InnerDescriptor = array of Arr1InnerDescriptor;
       Arr3InnerDescriptor = array of Arr2InnerDescriptor;
-      InnerOnControlStatusChangeListener = interface external 'android.media.audiofx' name 'OnControlStatusChangeListener' 
+      InnerOnControlStatusChangeListener = interface external 'android.media.audiofx' name 'OnControlStatusChangeListener'
         procedure onControlStatusChange(para1: AMAAudioEffect; para2: jboolean); overload;
       end;
 
-      InnerOnEnableStatusChangeListener = interface external 'android.media.audiofx' name 'OnEnableStatusChangeListener' 
+      InnerOnEnableStatusChangeListener = interface external 'android.media.audiofx' name 'OnEnableStatusChangeListener'
         procedure onEnableStatusChange(para1: AMAAudioEffect; para2: jboolean); overload;
       end;
 
@@ -5913,7 +5913,7 @@
       Arr1InnerOnDataCaptureListener = array of InnerOnDataCaptureListener;
       Arr2InnerOnDataCaptureListener = array of Arr1InnerOnDataCaptureListener;
       Arr3InnerOnDataCaptureListener = array of Arr2InnerOnDataCaptureListener;
-      InnerOnDataCaptureListener = interface external 'android.media.audiofx' name 'OnDataCaptureListener' 
+      InnerOnDataCaptureListener = interface external 'android.media.audiofx' name 'OnDataCaptureListener'
         procedure onWaveFormDataCapture(para1: AMAVisualizer; para2: Arr1jbyte; para3: jint); overload;
         procedure onWaveFormDataCapture(para1: AMAVisualizer; var para2: array of jbyte; para3: jint); overload;
         procedure onFftDataCapture(para1: AMAVisualizer; para2: Arr1jbyte; para3: jint); overload;
@@ -6005,7 +6005,7 @@
     class function isEffectSupported(para1: JLString): jboolean; static; overload;
   end;
 
-  AMEEffectUpdateListener = interface external 'android.media.effect' name 'EffectUpdateListener' 
+  AMEEffectUpdateListener = interface external 'android.media.effect' name 'EffectUpdateListener'
     procedure onEffectUpdated(para1: AMEEffect; para2: JLObject); overload;
   end;
 
@@ -6311,11 +6311,11 @@
       Arr1InnerIllegalCharacterValueSanitizer = array of InnerIllegalCharacterValueSanitizer;
       Arr2InnerIllegalCharacterValueSanitizer = array of Arr1InnerIllegalCharacterValueSanitizer;
       Arr3InnerIllegalCharacterValueSanitizer = array of Arr2InnerIllegalCharacterValueSanitizer;
-      InnerValueSanitizer = interface external 'android.net' name 'ValueSanitizer' 
+      InnerValueSanitizer = interface external 'android.net' name 'ValueSanitizer'
         function sanitize(para1: JLString): JLString; overload;
       end;
 
-      InnerParameterValuePair = class external 'android.net' name 'ParameterValuePair' 
+      InnerParameterValuePair = class external 'android.net' name 'ParameterValuePair'
       end;
 
       InnerIllegalCharacterValueSanitizer = class external 'android.net' name 'IllegalCharacterValueSanitizer' (JLObject, ANUrlQuerySanitizer.InnerValueSanitizer)
@@ -6395,7 +6395,7 @@
       Arr1InnerDName = array of InnerDName;
       Arr2InnerDName = array of Arr1InnerDName;
       Arr3InnerDName = array of Arr2InnerDName;
-      InnerDName = class external 'android.net.http' name 'DName' 
+      InnerDName = class external 'android.net.http' name 'DName'
       end;
 
   public
@@ -6558,7 +6558,7 @@
     class function toString(para1: jint): JLString; static; overload;
   end;
 
-  ANSSipRegistrationListener = interface external 'android.net.sip' name 'SipRegistrationListener' 
+  ANSSipRegistrationListener = interface external 'android.net.sip' name 'SipRegistrationListener'
     procedure onRegistering(para1: JLString); overload;
     procedure onRegistrationDone(para1: JLString; para2: jlong); overload;
     procedure onRegistrationFailed(para1: JLString; para2: jint; para3: JLString); overload;
@@ -6637,10 +6637,10 @@
       Arr1InnerWifiLock = array of InnerWifiLock;
       Arr2InnerWifiLock = array of Arr1InnerWifiLock;
       Arr3InnerWifiLock = array of Arr2InnerWifiLock;
-      InnerMulticastLock = class external 'android.net.wifi' name 'MulticastLock' 
+      InnerMulticastLock = class external 'android.net.wifi' name 'MulticastLock'
       end;
 
-      InnerWifiLock = class external 'android.net.wifi' name 'WifiLock' 
+      InnerWifiLock = class external 'android.net.wifi' name 'WifiLock'
       end;
 
   public
@@ -6727,24 +6727,24 @@
       InnerChannel = class external 'android.net.wifi.p2p' name 'Channel' (JLObject)
       end;
 
-      InnerGroupInfoListener = interface external 'android.net.wifi.p2p' name 'GroupInfoListener' 
+      InnerGroupInfoListener = interface external 'android.net.wifi.p2p' name 'GroupInfoListener'
         procedure onGroupInfoAvailable(para1: ANWPWifiP2pGroup); overload;
       end;
 
-      InnerConnectionInfoListener = interface external 'android.net.wifi.p2p' name 'ConnectionInfoListener' 
+      InnerConnectionInfoListener = interface external 'android.net.wifi.p2p' name 'ConnectionInfoListener'
         procedure onConnectionInfoAvailable(para1: ANWPWifiP2pInfo); overload;
       end;
 
-      InnerPeerListListener = interface external 'android.net.wifi.p2p' name 'PeerListListener' 
+      InnerPeerListListener = interface external 'android.net.wifi.p2p' name 'PeerListListener'
         procedure onPeersAvailable(para1: ANWPWifiP2pDeviceList); overload;
       end;
 
-      InnerActionListener = interface external 'android.net.wifi.p2p' name 'ActionListener' 
+      InnerActionListener = interface external 'android.net.wifi.p2p' name 'ActionListener'
         procedure onSuccess(); overload;
         procedure onFailure(para1: jint); overload;
       end;
 
-      InnerChannelListener = interface external 'android.net.wifi.p2p' name 'ChannelListener' 
+      InnerChannelListener = interface external 'android.net.wifi.p2p' name 'ChannelListener'
         procedure onChannelDisconnected(); overload;
       end;
 
@@ -6786,11 +6786,11 @@
       Arr1InnerOnNdefPushCompleteCallback = array of InnerOnNdefPushCompleteCallback;
       Arr2InnerOnNdefPushCompleteCallback = array of Arr1InnerOnNdefPushCompleteCallback;
       Arr3InnerOnNdefPushCompleteCallback = array of Arr2InnerOnNdefPushCompleteCallback;
-      InnerCreateNdefMessageCallback = interface external 'android.nfc' name 'CreateNdefMessageCallback' 
+      InnerCreateNdefMessageCallback = interface external 'android.nfc' name 'CreateNdefMessageCallback'
         function createNdefMessage(para1: ANNfcEvent): ANNdefMessage; overload;
       end;
 
-      InnerOnNdefPushCompleteCallback = interface external 'android.nfc' name 'OnNdefPushCompleteCallback' 
+      InnerOnNdefPushCompleteCallback = interface external 'android.nfc' name 'OnNdefPushCompleteCallback'
         procedure onNdefPushComplete(para1: ANNfcEvent); overload;
       end;
 
@@ -8356,7 +8356,7 @@
       Arr1InnerCallback = array of InnerCallback;
       Arr2InnerCallback = array of Arr1InnerCallback;
       Arr3InnerCallback = array of Arr2InnerCallback;
-      InnerCallback = interface external 'android.os' name 'Callback' 
+      InnerCallback = interface external 'android.os' name 'Callback'
         function handleMessage(para1: AOMessage): jboolean; overload;
       end;
 
@@ -8397,13 +8397,13 @@
     function toString(): JLString; overload; virtual;
   end;
 
-  AOIBinder = interface external 'android.os' name 'IBinder' 
+  AOIBinder = interface external 'android.os' name 'IBinder'
     type
       InnerDeathRecipient = interface;
       Arr1InnerDeathRecipient = array of InnerDeathRecipient;
       Arr2InnerDeathRecipient = array of Arr1InnerDeathRecipient;
       Arr3InnerDeathRecipient = array of Arr2InnerDeathRecipient;
-      InnerDeathRecipient = interface external 'android.os' name 'DeathRecipient' 
+      InnerDeathRecipient = interface external 'android.os' name 'DeathRecipient'
         procedure binderDied(); overload;
       end;
 
@@ -8428,7 +8428,7 @@
     function unlinkToDeath(para1: AOIBinder.InnerDeathRecipient; para2: jint): jboolean; overload;
   end;
 
-  AOIInterface = interface external 'android.os' name 'IInterface' 
+  AOIInterface = interface external 'android.os' name 'IInterface'
     function asBinder(): AOIBinder; overload;
   end;
 
@@ -8472,7 +8472,7 @@
       Arr1InnerIdleHandler = array of InnerIdleHandler;
       Arr2InnerIdleHandler = array of Arr1InnerIdleHandler;
       Arr3InnerIdleHandler = array of Arr2InnerIdleHandler;
-      InnerIdleHandler = interface external 'android.os' name 'IdleHandler' 
+      InnerIdleHandler = interface external 'android.os' name 'IdleHandler'
         function queueIdle(): jboolean; overload;
       end;
 
@@ -8483,7 +8483,7 @@
     procedure finalize(); overload; virtual;  // throws java.lang.Throwable
   end;
 
-  AOParcelable = interface external 'android.os' name 'Parcelable' 
+  AOParcelable = interface external 'android.os' name 'Parcelable'
     type
       InnerCreator = interface;
       Arr1InnerCreator = array of InnerCreator;
@@ -8493,7 +8493,7 @@
       Arr1InnerClassLoaderCreator = array of InnerClassLoaderCreator;
       Arr2InnerClassLoaderCreator = array of Arr1InnerClassLoaderCreator;
       Arr3InnerClassLoaderCreator = array of Arr2InnerClassLoaderCreator;
-      InnerCreator = interface external 'android.os' name 'Creator' 
+      InnerCreator = interface external 'android.os' name 'Creator'
         function createFromParcel(para1: AOParcel): JLObject; overload;
         function newArray(para1: jint): Arr1JLObject; overload;
       end;
@@ -8516,7 +8516,7 @@
       Arr1InnerWakeLock = array of InnerWakeLock;
       Arr2InnerWakeLock = array of Arr1InnerWakeLock;
       Arr3InnerWakeLock = array of Arr2InnerWakeLock;
-      InnerWakeLock = class external 'android.os' name 'WakeLock' 
+      InnerWakeLock = class external 'android.os' name 'WakeLock'
         procedure acquire; overload; virtual;
         procedure acquire(timeout: jlong); overload; virtual;
         function isHeld: boolean; overload; virtual;
@@ -8587,7 +8587,7 @@
       Arr1InnerProgressListener = array of InnerProgressListener;
       Arr2InnerProgressListener = array of Arr1InnerProgressListener;
       Arr3InnerProgressListener = array of Arr2InnerProgressListener;
-      InnerProgressListener = interface external 'android.os' name 'ProgressListener' 
+      InnerProgressListener = interface external 'android.os' name 'ProgressListener'
         procedure onProgress(para1: jint); overload;
       end;
 
@@ -8784,15 +8784,15 @@
       Arr1InnerOnActivityResultListener = array of InnerOnActivityResultListener;
       Arr2InnerOnActivityResultListener = array of Arr1InnerOnActivityResultListener;
       Arr3InnerOnActivityResultListener = array of Arr2InnerOnActivityResultListener;
-      InnerOnActivityDestroyListener = interface external 'android.preference' name 'OnActivityDestroyListener' 
+      InnerOnActivityDestroyListener = interface external 'android.preference' name 'OnActivityDestroyListener'
         procedure onActivityDestroy(); overload;
       end;
 
-      InnerOnActivityStopListener = interface external 'android.preference' name 'OnActivityStopListener' 
+      InnerOnActivityStopListener = interface external 'android.preference' name 'OnActivityStopListener'
         procedure onActivityStop(); overload;
       end;
 
-      InnerOnActivityResultListener = interface external 'android.preference' name 'OnActivityResultListener' 
+      InnerOnActivityResultListener = interface external 'android.preference' name 'OnActivityResultListener'
         function onActivityResult(para1: jint; para2: jint; para3: ACIntent): jboolean; overload;
       end;
 
@@ -8825,13 +8825,13 @@
     constructor create(); overload;
   end;
 
-  APBaseColumns = interface external 'android.provider' name 'BaseColumns' 
+  APBaseColumns = interface external 'android.provider' name 'BaseColumns'
     const
       _ID = '_id';
       _COUNT = '_count';
   end;
 
-  APOpenableColumns = interface external 'android.provider' name 'OpenableColumns' 
+  APOpenableColumns = interface external 'android.provider' name 'OpenableColumns'
     const
       DISPLAY_NAME = '_display_name';
       SIZE = '_size';
@@ -9207,15 +9207,15 @@
     function toString(): JLString; overload; virtual;
   end;
 
-  ASEndElementListener = interface external 'android.sax' name 'EndElementListener' 
+  ASEndElementListener = interface external 'android.sax' name 'EndElementListener'
     procedure &end(); overload;
   end;
 
-  ASEndTextElementListener = interface external 'android.sax' name 'EndTextElementListener' 
+  ASEndTextElementListener = interface external 'android.sax' name 'EndTextElementListener'
     procedure &end(para1: JLString); overload;
   end;
 
-  ASStartElementListener = interface external 'android.sax' name 'StartElementListener' 
+  ASStartElementListener = interface external 'android.sax' name 'StartElementListener'
     procedure start(para1: OXSAttributes); overload;
   end;
 
@@ -9234,11 +9234,11 @@
     class function getCertificateChain(para1: ACContext; para2: JLString): Arr1JSCX509Certificate; static; overload;  // throws android.security.KeyChainException, java.lang.InterruptedException
   end;
 
-  ASKeyChainAliasCallback = interface external 'android.security' name 'KeyChainAliasCallback' 
+  ASKeyChainAliasCallback = interface external 'android.security' name 'KeyChainAliasCallback'
     procedure alias(para1: JLString); overload;
   end;
 
-  ASRecognitionListener = interface external 'android.speech' name 'RecognitionListener' 
+  ASRecognitionListener = interface external 'android.speech' name 'RecognitionListener'
     procedure onReadyForSpeech(para1: AOBundle); overload;
     procedure onBeginningOfSpeech(); overload;
     procedure onRmsChanged(para1: jfloat); overload;
@@ -9324,7 +9324,7 @@
     procedure destroy(); overload; virtual;
   end;
 
-  ASTSynthesisCallback = interface external 'android.speech.tts' name 'SynthesisCallback' 
+  ASTSynthesisCallback = interface external 'android.speech.tts' name 'SynthesisCallback'
     function getMaxBufferSize(): jint; overload;
     function start(para1: jint; para2: jint; para3: jint): jint; overload;
     function audioAvailable(para1: Arr1jbyte; para2: jint; para3: jint): jint; overload;
@@ -9375,14 +9375,14 @@
         function toString(): JLString; overload; virtual;
       end;
 
-      InnerEngine = class external 'android.speech.tts' name 'Engine' 
+      InnerEngine = class external 'android.speech.tts' name 'Engine'
       end;
 
-      InnerOnUtteranceCompletedListener = interface external 'android.speech.tts' name 'OnUtteranceCompletedListener' 
+      InnerOnUtteranceCompletedListener = interface external 'android.speech.tts' name 'OnUtteranceCompletedListener'
         procedure onUtteranceCompleted(para1: JLString); overload;
       end;
 
-      InnerOnInitListener = interface external 'android.speech.tts' name 'OnInitListener' 
+      InnerOnInitListener = interface external 'android.speech.tts' name 'OnInitListener'
         procedure onInit(para1: jint); overload;
       end;
 
@@ -9677,13 +9677,13 @@
     class procedure checkEqualsAndHashCodeMethods(para1: JLObject; para2: JLObject; para3: jboolean); static; overload;
   end;
 
-  ATPerformanceTestCase = interface external 'android.test' name 'PerformanceTestCase' 
+  ATPerformanceTestCase = interface external 'android.test' name 'PerformanceTestCase'
     type
       InnerIntermediates = interface;
       Arr1InnerIntermediates = array of InnerIntermediates;
       Arr2InnerIntermediates = array of Arr1InnerIntermediates;
       Arr3InnerIntermediates = array of Arr2InnerIntermediates;
-      InnerIntermediates = interface external 'android.test' name 'Intermediates' 
+      InnerIntermediates = interface external 'android.test' name 'Intermediates'
         procedure setInternalIterations(para1: jint); overload;
         procedure startTiming(para1: jboolean); overload;
         procedure addIntermediate(para1: JLString); overload;
@@ -9695,7 +9695,7 @@
     function isPerformanceOnly(): jboolean; overload;
   end;
 
-  ATTestSuiteProvider = interface external 'android.test' name 'TestSuiteProvider' 
+  ATTestSuiteProvider = interface external 'android.test' name 'TestSuiteProvider'
     function getTestSuite(): JFTestSuite; overload;
   end;
 
@@ -9818,11 +9818,11 @@
       Arr1InnerImageGetter = array of InnerImageGetter;
       Arr2InnerImageGetter = array of Arr1InnerImageGetter;
       Arr3InnerImageGetter = array of Arr2InnerImageGetter;
-      InnerTagHandler = interface external 'android.text' name 'TagHandler' 
+      InnerTagHandler = interface external 'android.text' name 'TagHandler'
         procedure handleTag(para1: jboolean; para2: JLString; para3: ATEditable; para4: OXSXMLReader); overload;
       end;
 
-      InnerImageGetter = interface external 'android.text' name 'ImageGetter' 
+      InnerImageGetter = interface external 'android.text' name 'ImageGetter'
         function getDrawable(para1: JLString): AGDDrawable; overload;
       end;
 
@@ -9832,7 +9832,7 @@
     class function toHtml(para1: ATSpanned): JLString; static; overload;
   end;
 
-  ATInputFilter = interface external 'android.text' name 'InputFilter' 
+  ATInputFilter = interface external 'android.text' name 'InputFilter'
     type
       InnerLengthFilter = class;
       Arr1InnerLengthFilter = array of InnerLengthFilter;
@@ -9857,7 +9857,7 @@
     function filter(para1: JLCharSequence; para2: jint; para3: jint; para4: ATSpanned; para5: jint; para6: jint): JLCharSequence; overload;
   end;
 
-  ATInputType = interface external 'android.text' name 'InputType' 
+  ATInputType = interface external 'android.text' name 'InputType'
     const
       TYPE_MASK_CLASS = 15;
       TYPE_MASK_VARIATION = 4080;
@@ -9899,7 +9899,7 @@
       TYPE_DATETIME_VARIATION_TIME = 32;
   end;
 
-  ATNoCopySpan = interface external 'android.text' name 'NoCopySpan' 
+  ATNoCopySpan = interface external 'android.text' name 'NoCopySpan'
     type
       InnerConcrete = class;
       Arr1InnerConcrete = array of InnerConcrete;
@@ -10131,7 +10131,7 @@
     class function getJulianMondayFromWeeksSinceEpoch(para1: jint): jint; static; overload;
   end;
 
-  ATMKeyListener = interface external 'android.text.method' name 'KeyListener' 
+  ATMKeyListener = interface external 'android.text.method' name 'KeyListener'
     function getInputType(): jint; overload;
     function onKeyDown(para1: AVView; para2: ATEditable; para3: jint; para4: AVKeyEvent): jboolean; overload;
     function onKeyUp(para1: AVView; para2: ATEditable; para3: jint; para4: AVKeyEvent): jboolean; overload;
@@ -10172,7 +10172,7 @@
     function clearMetaKeyState(para1: jlong; para2: jint): jlong; overload; virtual;
   end;
 
-  ATMMovementMethod = interface external 'android.text.method' name 'MovementMethod' 
+  ATMMovementMethod = interface external 'android.text.method' name 'MovementMethod'
     procedure initialize(para1: AWTextView; para2: ATSpannable); overload;
     function onKeyDown(para1: AWTextView; para2: ATSpannable; para3: jint; para4: AVKeyEvent): jboolean; overload;
     function onKeyUp(para1: AWTextView; para2: ATSpannable; para3: jint; para4: AVKeyEvent): jboolean; overload;
@@ -10192,7 +10192,7 @@
     class function getInitialScrollY(para1: AWTextView; para2: ATSpannable): jint; static; overload;
   end;
 
-  ATMTransformationMethod = interface external 'android.text.method' name 'TransformationMethod' 
+  ATMTransformationMethod = interface external 'android.text.method' name 'TransformationMethod'
     function getTransformation(para1: JLCharSequence; para2: AVView): JLCharSequence; overload;
     procedure onFocusChanged(para1: AVView; para2: JLCharSequence; para3: jboolean; para4: jint; para5: AGRect); overload;
   end;
@@ -10205,10 +10205,10 @@
     function getUnderlying(): ATSCharacterStyle; overload; virtual;
   end;
 
-  ATSParagraphStyle = interface external 'android.text.style' name 'ParagraphStyle' 
+  ATSParagraphStyle = interface external 'android.text.style' name 'ParagraphStyle'
   end;
 
-  ATSUpdateAppearance = interface external 'android.text.style' name 'UpdateAppearance' 
+  ATSUpdateAppearance = interface external 'android.text.style' name 'UpdateAppearance'
   end;
 
   ATULinkify = class external 'android.text.util' name 'Linkify' (JLObject)
@@ -10222,11 +10222,11 @@
       Arr1InnerMatchFilter = array of InnerMatchFilter;
       Arr2InnerMatchFilter = array of Arr1InnerMatchFilter;
       Arr3InnerMatchFilter = array of Arr2InnerMatchFilter;
-      InnerTransformFilter = interface external 'android.text.util' name 'TransformFilter' 
+      InnerTransformFilter = interface external 'android.text.util' name 'TransformFilter'
         function transformUrl(para1: JURMatcher; para2: JLString): JLString; overload;
       end;
 
-      InnerMatchFilter = interface external 'android.text.util' name 'MatchFilter' 
+      InnerMatchFilter = interface external 'android.text.util' name 'MatchFilter'
         function acceptMatch(para1: JLCharSequence; para2: jint; para3: jint): jboolean; overload;
       end;
 
@@ -10269,7 +10269,7 @@
     function equals(para1: JLObject): jboolean; overload; virtual;
   end;
 
-  AUAttributeSet = interface external 'android.util' name 'AttributeSet' 
+  AUAttributeSet = interface external 'android.util' name 'AttributeSet'
     function getAttributeCount(): jint; overload;
     function getAttributeName(para1: jint): JLString; overload;
     function getAttributeValue(para1: jint): JLString; overload;
@@ -10525,7 +10525,7 @@
     class function digitsAndPlusOnly(para1: JURMatcher): JLString; static; overload; final;
   end;
 
-  AUPrinter = interface external 'android.util' name 'Printer' 
+  AUPrinter = interface external 'android.util' name 'Printer'
     procedure println(para1: JLString); overload;
   end;
 
@@ -10648,7 +10648,7 @@
       Arr1InnerCallback = array of InnerCallback;
       Arr2InnerCallback = array of Arr1InnerCallback;
       Arr3InnerCallback = array of Arr2InnerCallback;
-      InnerCallback = interface external 'android.view' name 'Callback' 
+      InnerCallback = interface external 'android.view' name 'Callback'
         function onCreateActionMode(para1: AVActionMode; para2: AVMenu): jboolean; overload;
         function onPrepareActionMode(para1: AVActionMode; para2: AVMenu): jboolean; overload;
         function onActionItemClicked(para1: AVActionMode; para2: AVMenuItem): jboolean; overload;
@@ -10682,7 +10682,7 @@
     procedure onPrepareSubMenu(para1: AVSubMenu); overload; virtual;
   end;
 
-  AVCollapsibleActionView = interface external 'android.view' name 'CollapsibleActionView' 
+  AVCollapsibleActionView = interface external 'android.view' name 'CollapsibleActionView'
     procedure onActionViewExpanded(); overload;
     procedure onActionViewCollapsed(); overload;
   end;
@@ -10728,13 +10728,13 @@
       Arr1InnerSimpleOnGestureListener = array of InnerSimpleOnGestureListener;
       Arr2InnerSimpleOnGestureListener = array of Arr1InnerSimpleOnGestureListener;
       Arr3InnerSimpleOnGestureListener = array of Arr2InnerSimpleOnGestureListener;
-      InnerOnDoubleTapListener = interface external 'android.view' name 'OnDoubleTapListener' 
+      InnerOnDoubleTapListener = interface external 'android.view' name 'OnDoubleTapListener'
         function onSingleTapConfirmed(para1: AVMotionEvent): jboolean; overload;
         function onDoubleTap(para1: AVMotionEvent): jboolean; overload;
         function onDoubleTapEvent(para1: AVMotionEvent): jboolean; overload;
       end;
 
-      InnerOnGestureListener = interface external 'android.view' name 'OnGestureListener' 
+      InnerOnGestureListener = interface external 'android.view' name 'OnGestureListener'
         function onDown(para1: AVMotionEvent): jboolean; overload;
         procedure onShowPress(para1: AVMotionEvent); overload;
         function onSingleTapUp(para1: AVMotionEvent): jboolean; overload;
@@ -10826,7 +10826,7 @@
       Arr1InnerCallback = array of InnerCallback;
       Arr2InnerCallback = array of Arr1InnerCallback;
       Arr3InnerCallback = array of Arr2InnerCallback;
-      InnerCallback = interface external 'android.view' name 'Callback' 
+      InnerCallback = interface external 'android.view' name 'Callback'
         procedure onInputQueueCreated(para1: AVInputQueue); overload;
         procedure onInputQueueDestroyed(para1: AVInputQueue); overload;
       end;
@@ -10848,11 +10848,11 @@
       Arr1InnerFactory2 = array of InnerFactory2;
       Arr2InnerFactory2 = array of Arr1InnerFactory2;
       Arr3InnerFactory2 = array of Arr2InnerFactory2;
-      InnerFactory = interface external 'android.view' name 'Factory' 
+      InnerFactory = interface external 'android.view' name 'Factory'
         function onCreateView(para1: JLString; para2: ACContext; para3: AUAttributeSet): AVView; overload;
       end;
 
-      InnerFilter = interface external 'android.view' name 'Filter' 
+      InnerFilter = interface external 'android.view' name 'Filter'
         function onLoadClass(para1: JLClass): jboolean; overload;
       end;
 
@@ -10883,7 +10883,7 @@
     function onCreateView(para1: AVView; para2: JLString; para3: AUAttributeSet): AVView; overload; virtual;  // throws java.lang.ClassNotFoundException
   end;
 
-  AVMenu = interface external 'android.view' name 'Menu' 
+  AVMenu = interface external 'android.view' name 'Menu'
     const
       NONE = 0;
       FIRST = 1;
@@ -10951,7 +10951,7 @@
       Arr1InnerSimpleOnScaleGestureListener = array of InnerSimpleOnScaleGestureListener;
       Arr2InnerSimpleOnScaleGestureListener = array of Arr1InnerSimpleOnScaleGestureListener;
       Arr3InnerSimpleOnScaleGestureListener = array of Arr2InnerSimpleOnScaleGestureListener;
-      InnerOnScaleGestureListener = interface external 'android.view' name 'OnScaleGestureListener' 
+      InnerOnScaleGestureListener = interface external 'android.view' name 'OnScaleGestureListener'
         function onScale(para1: AVScaleGestureDetector): jboolean; overload;
         function onScaleBegin(para1: AVScaleGestureDetector): jboolean; overload;
         procedure onScaleEnd(para1: AVScaleGestureDetector); overload;
@@ -11062,7 +11062,7 @@
     function hasPermanentMenuKey(): jboolean; overload; virtual;
   end;
 
-  AVViewManager = interface external 'android.view' name 'ViewManager' 
+  AVViewManager = interface external 'android.view' name 'ViewManager'
     procedure addView(para1: AVView; para2: AVViewGroup_LayoutParams); overload;
     procedure updateViewLayout(para1: AVView; para2: AVViewGroup_LayoutParams); overload;
     procedure removeView(para1: AVView); overload;
@@ -11091,23 +11091,23 @@
       Arr1InnerOnGlobalFocusChangeListener = array of InnerOnGlobalFocusChangeListener;
       Arr2InnerOnGlobalFocusChangeListener = array of Arr1InnerOnGlobalFocusChangeListener;
       Arr3InnerOnGlobalFocusChangeListener = array of Arr2InnerOnGlobalFocusChangeListener;
-      InnerOnScrollChangedListener = interface external 'android.view' name 'OnScrollChangedListener' 
+      InnerOnScrollChangedListener = interface external 'android.view' name 'OnScrollChangedListener'
         procedure onScrollChanged(); overload;
       end;
 
-      InnerOnTouchModeChangeListener = interface external 'android.view' name 'OnTouchModeChangeListener' 
+      InnerOnTouchModeChangeListener = interface external 'android.view' name 'OnTouchModeChangeListener'
         procedure onTouchModeChanged(para1: jboolean); overload;
       end;
 
-      InnerOnPreDrawListener = interface external 'android.view' name 'OnPreDrawListener' 
+      InnerOnPreDrawListener = interface external 'android.view' name 'OnPreDrawListener'
         function onPreDraw(): jboolean; overload;
       end;
 
-      InnerOnGlobalLayoutListener = interface external 'android.view' name 'OnGlobalLayoutListener' 
+      InnerOnGlobalLayoutListener = interface external 'android.view' name 'OnGlobalLayoutListener'
         procedure onGlobalLayout(); overload;
       end;
 
-      InnerOnGlobalFocusChangeListener = interface external 'android.view' name 'OnGlobalFocusChangeListener' 
+      InnerOnGlobalFocusChangeListener = interface external 'android.view' name 'OnGlobalFocusChangeListener'
         procedure onGlobalFocusChanged(para1: AVView; para2: AVView); overload;
       end;
 
@@ -11127,7 +11127,7 @@
     function dispatchOnPreDraw(): jboolean; overload; virtual; final;
   end;
 
-  AVAAccessibilityEventSource = interface external 'android.view.accessibility' name 'AccessibilityEventSource' 
+  AVAAccessibilityEventSource = interface external 'android.view.accessibility' name 'AccessibilityEventSource'
     procedure sendAccessibilityEvent(para1: jint); overload;
     procedure sendAccessibilityEventUnchecked(para1: AVAAccessibilityEvent); overload;
   end;
@@ -11139,7 +11139,7 @@
       Arr1InnerAccessibilityStateChangeListener = array of InnerAccessibilityStateChangeListener;
       Arr2InnerAccessibilityStateChangeListener = array of Arr1InnerAccessibilityStateChangeListener;
       Arr3InnerAccessibilityStateChangeListener = array of Arr2InnerAccessibilityStateChangeListener;
-      InnerAccessibilityStateChangeListener = interface external 'android.view.accessibility' name 'AccessibilityStateChangeListener' 
+      InnerAccessibilityStateChangeListener = interface external 'android.view.accessibility' name 'AccessibilityStateChangeListener'
         procedure onAccessibilityStateChanged(para1: jboolean); overload;
       end;
 
@@ -11288,7 +11288,7 @@
     function toShortString(): JLString; overload; virtual;
   end;
 
-  AVIInputConnection = interface external 'android.view.inputmethod' name 'InputConnection' 
+  AVIInputConnection = interface external 'android.view.inputmethod' name 'InputConnection'
     const
       GET_TEXT_WITH_STYLES = 1;
       GET_EXTRACTED_TEXT_MONITOR = 1;
@@ -11315,13 +11315,13 @@
     function performPrivateCommand(para1: JLString; para2: AOBundle): jboolean; overload;
   end;
 
-  AVIInputMethod = interface external 'android.view.inputmethod' name 'InputMethod' 
+  AVIInputMethod = interface external 'android.view.inputmethod' name 'InputMethod'
     type
       InnerSessionCallback = interface;
       Arr1InnerSessionCallback = array of InnerSessionCallback;
       Arr2InnerSessionCallback = array of Arr1InnerSessionCallback;
       Arr3InnerSessionCallback = array of Arr2InnerSessionCallback;
-      InnerSessionCallback = interface external 'android.view.inputmethod' name 'SessionCallback' 
+      InnerSessionCallback = interface external 'android.view.inputmethod' name 'SessionCallback'
         procedure sessionCreated(para1: AVIInputMethodSession); overload;
       end;
 
@@ -11394,13 +11394,13 @@
     function getLastInputMethodSubtype(): AVIInputMethodSubtype; overload; virtual;
   end;
 
-  AVIInputMethodSession = interface external 'android.view.inputmethod' name 'InputMethodSession' 
+  AVIInputMethodSession = interface external 'android.view.inputmethod' name 'InputMethodSession'
     type
       InnerEventCallback = interface;
       Arr1InnerEventCallback = array of InnerEventCallback;
       Arr2InnerEventCallback = array of Arr1InnerEventCallback;
       Arr3InnerEventCallback = array of Arr2InnerEventCallback;
-      InnerEventCallback = interface external 'android.view.inputmethod' name 'EventCallback' 
+      InnerEventCallback = interface external 'android.view.inputmethod' name 'EventCallback'
         procedure finishedEvent(para1: jint; para2: jboolean); overload;
       end;
 
@@ -11424,7 +11424,7 @@
       Arr1InnerSpellCheckerSessionListener = array of InnerSpellCheckerSessionListener;
       Arr2InnerSpellCheckerSessionListener = array of Arr1InnerSpellCheckerSessionListener;
       Arr3InnerSpellCheckerSessionListener = array of Arr2InnerSpellCheckerSessionListener;
-      InnerSpellCheckerSessionListener = interface external 'android.view.textservice' name 'SpellCheckerSessionListener' 
+      InnerSpellCheckerSessionListener = interface external 'android.view.textservice' name 'SpellCheckerSessionListener'
         procedure onGetSuggestions(para1: Arr1AVTSuggestionsInfo); overload;
         procedure onGetSuggestions(var para1: array of AVTSuggestionsInfo); overload;
       end;
@@ -11508,7 +11508,7 @@
     function getBoundary(para1: jint): jlong; overload; virtual;
   end;
 
-  AWDownloadListener = interface external 'android.webkit' name 'DownloadListener' 
+  AWDownloadListener = interface external 'android.webkit' name 'DownloadListener'
     procedure onDownloadStart(para1: JLString; para2: JLString; para3: JLString; para4: JLString; para5: jlong); overload;
   end;
 
@@ -11519,7 +11519,7 @@
       Arr1InnerCallback = array of InnerCallback;
       Arr2InnerCallback = array of Arr1InnerCallback;
       Arr3InnerCallback = array of Arr2InnerCallback;
-      InnerCallback = interface external 'android.webkit' name 'Callback' 
+      InnerCallback = interface external 'android.webkit' name 'Callback'
         procedure invoke(para1: JLString; para2: jboolean; para3: jboolean); overload;
       end;
 
@@ -11554,7 +11554,7 @@
     class function getSingleton(): AWMimeTypeMap; static; overload;
   end;
 
-  AWPluginStub = interface external 'android.webkit' name 'PluginStub' 
+  AWPluginStub = interface external 'android.webkit' name 'PluginStub'
     function getEmbeddedView(para1: jint; para2: ACContext): AVView; overload;
     function getFullScreenView(para1: jint; para2: ACContext): AVView; overload;
   end;
@@ -11581,7 +11581,7 @@
     class function guessFileName(para1: JLString; para2: JLString; para3: JLString): JLString; static; overload; final;
   end;
 
-  AWValueCallback = interface external 'android.webkit' name 'ValueCallback' 
+  AWValueCallback = interface external 'android.webkit' name 'ValueCallback'
     procedure onReceiveValue(para1: JLObject); overload;
   end;
 
@@ -11592,7 +11592,7 @@
       Arr1InnerIconListener = array of InnerIconListener;
       Arr2InnerIconListener = array of Arr1InnerIconListener;
       Arr3InnerIconListener = array of Arr2InnerIconListener;
-      InnerIconListener = interface external 'android.webkit' name 'IconListener' 
+      InnerIconListener = interface external 'android.webkit' name 'IconListener'
         procedure onReceivedIcon(para1: JLString; para2: AGBitmap); overload;
       end;
 
@@ -11635,7 +11635,7 @@
         function getUsage(): jlong; overload; virtual;
       end;
 
-      InnerQuotaUpdater = interface external 'android.webkit' name 'QuotaUpdater' 
+      InnerQuotaUpdater = interface external 'android.webkit' name 'QuotaUpdater'
         procedure updateQuota(para1: jlong); overload;
       end;
 
@@ -11701,7 +11701,7 @@
     procedure clearFormData(); overload; virtual;
   end;
 
-  AWAdapter = interface external 'android.widget' name 'Adapter' 
+  AWAdapter = interface external 'android.widget' name 'Adapter'
     const
       IGNORE_ITEM_VIEW_TYPE = -1;
       NO_SELECTION = -2147483648;
@@ -11717,7 +11717,7 @@
     function isEmpty(): jboolean; overload;
   end;
 
-  AWCheckable = interface external 'android.widget' name 'Checkable' 
+  AWCheckable = interface external 'android.widget' name 'Checkable'
     procedure setChecked(para1: jboolean); overload;
     function isChecked(): jboolean; overload;
     procedure toggle(); overload;
@@ -11735,7 +11735,7 @@
     function draw(para1: AGCanvas): jboolean; overload; virtual;
   end;
 
-  AWExpandableListAdapter = interface external 'android.widget' name 'ExpandableListAdapter' 
+  AWExpandableListAdapter = interface external 'android.widget' name 'ExpandableListAdapter'
     procedure registerDataSetObserver(para1: ADDataSetObserver); overload;
     procedure unregisterDataSetObserver(para1: ADDataSetObserver); overload;
     function getGroupCount(): jint; overload;
@@ -11767,7 +11767,7 @@
       Arr1InnerFilterResults = array of InnerFilterResults;
       Arr2InnerFilterResults = array of Arr1InnerFilterResults;
       Arr3InnerFilterResults = array of Arr2InnerFilterResults;
-      InnerFilterListener = interface external 'android.widget' name 'FilterListener' 
+      InnerFilterListener = interface external 'android.widget' name 'FilterListener'
         procedure onFilterComplete(para1: jint); overload;
       end;
 
@@ -11791,15 +11791,15 @@
     function convertResultToString(para1: JLObject): JLCharSequence; overload; virtual;
   end;
 
-  AWFilterQueryProvider = interface external 'android.widget' name 'FilterQueryProvider' 
+  AWFilterQueryProvider = interface external 'android.widget' name 'FilterQueryProvider'
     function runQuery(para1: JLCharSequence): ADCursor; overload;
   end;
 
-  AWFilterable = interface external 'android.widget' name 'Filterable' 
+  AWFilterable = interface external 'android.widget' name 'Filterable'
     function getFilter(): AWFilter; overload;
   end;
 
-  AWHeterogeneousExpandableList = interface external 'android.widget' name 'HeterogeneousExpandableList' 
+  AWHeterogeneousExpandableList = interface external 'android.widget' name 'HeterogeneousExpandableList'
     function getGroupType(para1: jint): jint; overload;
     function getChildType(para1: jint; para2: jint): jint; overload;
     function getGroupTypeCount(): jint; overload;
@@ -11845,11 +11845,11 @@
       Arr1InnerOnDismissListener = array of InnerOnDismissListener;
       Arr2InnerOnDismissListener = array of Arr1InnerOnDismissListener;
       Arr3InnerOnDismissListener = array of Arr2InnerOnDismissListener;
-      InnerOnMenuItemClickListener = interface external 'android.widget' name 'OnMenuItemClickListener' 
+      InnerOnMenuItemClickListener = interface external 'android.widget' name 'OnMenuItemClickListener'
         function onMenuItemClick(para1: AVMenuItem): jboolean; overload;
       end;
 
-      InnerOnDismissListener = interface external 'android.widget' name 'OnDismissListener' 
+      InnerOnDismissListener = interface external 'android.widget' name 'OnDismissListener'
         procedure onDismiss(para1: AWPopupMenu); overload;
       end;
 
@@ -11891,7 +11891,7 @@
     procedure setFinalY(para1: jint); overload; virtual;
   end;
 
-  AWSectionIndexer = interface external 'android.widget' name 'SectionIndexer' 
+  AWSectionIndexer = interface external 'android.widget' name 'SectionIndexer'
     function getSections(): Arr1JLObject; overload;
     function getPositionForSection(para1: jint): jint; overload;
     function getSectionForPosition(para1: jint): jint; overload;
@@ -11923,11 +11923,11 @@
     procedure setText(para1: JLCharSequence); overload; virtual;
   end;
 
-  JICloseable = interface external 'java.io' name 'Closeable' 
+  JICloseable = interface external 'java.io' name 'Closeable'
     procedure close(); overload;  // throws java.io.IOException
   end;
 
-  JIDataInput = interface external 'java.io' name 'DataInput' 
+  JIDataInput = interface external 'java.io' name 'DataInput'
     function readBoolean(): jboolean; overload;  // throws java.io.IOException
     function readByte(): jbyte; overload;  // throws java.io.IOException
     function readChar(): jchar; overload;  // throws java.io.IOException
@@ -11947,7 +11947,7 @@
     function skipBytes(para1: jint): jint; overload;  // throws java.io.IOException
   end;
 
-  JIDataOutput = interface external 'java.io' name 'DataOutput' 
+  JIDataOutput = interface external 'java.io' name 'DataOutput'
     procedure write(para1: Arr1jbyte); overload;  // throws java.io.IOException
     procedure write(var para1: array of jbyte); overload;  // throws java.io.IOException
     procedure write(para1: Arr1jbyte; para2: jint; para3: jint); overload;  // throws java.io.IOException
@@ -11979,23 +11979,23 @@
     function toString(): JLString; overload; virtual;
   end;
 
-  JIFileFilter = interface external 'java.io' name 'FileFilter' 
+  JIFileFilter = interface external 'java.io' name 'FileFilter'
     function accept(para1: JIFile): jboolean; overload;
   end;
 
-  JIFilenameFilter = interface external 'java.io' name 'FilenameFilter' 
+  JIFilenameFilter = interface external 'java.io' name 'FilenameFilter'
     function accept(para1: JIFile; para2: JLString): jboolean; overload;
   end;
 
-  JIFlushable = interface external 'java.io' name 'Flushable' 
+  JIFlushable = interface external 'java.io' name 'Flushable'
     procedure flush(); overload;  // throws java.io.IOException
   end;
 
-  JIObjectInputValidation = interface external 'java.io' name 'ObjectInputValidation' 
+  JIObjectInputValidation = interface external 'java.io' name 'ObjectInputValidation'
     procedure validateObject(); overload;  // throws java.io.InvalidObjectException
   end;
 
-  JIObjectStreamConstants = interface external 'java.io' name 'ObjectStreamConstants' 
+  JIObjectStreamConstants = interface external 'java.io' name 'ObjectStreamConstants'
     const
       STREAM_MAGIC = -21267;
       STREAM_VERSION = 5;
@@ -12146,7 +12146,7 @@
     function start(): JLProcess; overload; virtual;  // throws java.io.IOException
   end;
 
-  JLRunnable = interface external 'java.lang' name 'Runnable' 
+  JLRunnable = interface external 'java.lang' name 'Runnable'
     procedure run(); overload;
   end;
 
@@ -12269,7 +12269,7 @@
       fTYPE: JLClass; external name 'TYPE';
   end;
 
-  JLAAnnotation = interface external 'java.lang.annotation' name 'Annotation' 
+  JLAAnnotation = interface external 'java.lang.annotation' name 'Annotation'
     function annotationType(): JLClass; overload;
     function equals(para1: JLObject): jboolean; overload;
     function hashCode(): jint; overload;
@@ -12292,7 +12292,7 @@
     function remove(para1: jlong): JLRReference; overload; virtual;  // throws java.lang.InterruptedException
   end;
 
-  JLRInvocationHandler = interface external 'java.lang.reflect' name 'InvocationHandler' 
+  JLRInvocationHandler = interface external 'java.lang.reflect' name 'InvocationHandler'
     function invoke(para1: JLObject; para2: JLRMethod; para3: Arr1JLObject): JLObject; overload;  // throws java.lang.Throwable
     function invoke(para1: JLObject; para2: JLRMethod; var para3: array of JLObject): JLObject; overload;  // throws java.lang.Throwable
   end;
@@ -12351,7 +12351,7 @@
     function getContent(para1: JNURLConnection; var para2: array of JLClass): JLObject; overload; virtual;  // throws java.io.IOException
   end;
 
-  JNContentHandlerFactory = interface external 'java.net' name 'ContentHandlerFactory' 
+  JNContentHandlerFactory = interface external 'java.net' name 'ContentHandlerFactory'
     function createContentHandler(para1: JLString): JNContentHandler; overload;
   end;
 
@@ -12364,7 +12364,7 @@
     procedure put(para1: JNURI; para2: JUMap); overload; virtual; abstract;  // throws java.io.IOException
   end;
 
-  JNCookiePolicy = interface external 'java.net' name 'CookiePolicy' 
+  JNCookiePolicy = interface external 'java.net' name 'CookiePolicy'
     final class var
       fACCEPT_ALL: JNCookiePolicy; external name 'ACCEPT_ALL';
       fACCEPT_NONE: JNCookiePolicy; external name 'ACCEPT_NONE';
@@ -12372,7 +12372,7 @@
     function shouldAccept(para1: JNURI; para2: JNHttpCookie): jboolean; overload;
   end;
 
-  JNCookieStore = interface external 'java.net' name 'CookieStore' 
+  JNCookieStore = interface external 'java.net' name 'CookieStore'
     procedure add(para1: JNURI; para2: JNHttpCookie); overload;
     function get(para1: JNURI): JUList; overload;
     function getCookies(): JUList; overload;
@@ -12452,11 +12452,11 @@
     function getChannel(): JNCDatagramChannel; overload; virtual;
   end;
 
-  JNDatagramSocketImplFactory = interface external 'java.net' name 'DatagramSocketImplFactory' 
+  JNDatagramSocketImplFactory = interface external 'java.net' name 'DatagramSocketImplFactory'
     function createDatagramSocketImpl(): JNDatagramSocketImpl; overload;
   end;
 
-  JNFileNameMap = interface external 'java.net' name 'FileNameMap' 
+  JNFileNameMap = interface external 'java.net' name 'FileNameMap'
     function getContentTypeFor(para1: JLString): JLString; overload;
   end;
 
@@ -12618,11 +12618,11 @@
     procedure setPerformancePreferences(para1: jint; para2: jint; para3: jint); overload; virtual;
   end;
 
-  JNSocketImplFactory = interface external 'java.net' name 'SocketImplFactory' 
+  JNSocketImplFactory = interface external 'java.net' name 'SocketImplFactory'
     function createSocketImpl(): JNSocketImpl; overload;
   end;
 
-  JNSocketOptions = interface external 'java.net' name 'SocketOptions' 
+  JNSocketOptions = interface external 'java.net' name 'SocketOptions'
     const
       SO_LINGER = 128;
       SO_TIMEOUT = 4102;
@@ -12738,7 +12738,7 @@
     function sameFile(para1: JNURL; para2: JNURL): jboolean; overload; virtual;
   end;
 
-  JNURLStreamHandlerFactory = interface external 'java.net' name 'URLStreamHandlerFactory' 
+  JNURLStreamHandlerFactory = interface external 'java.net' name 'URLStreamHandlerFactory'
     function createURLStreamHandler(para1: JLString): JNURLStreamHandler; overload;
   end;
 
@@ -12913,7 +12913,7 @@
     function engineToString(): JLString; overload; virtual; abstract;
   end;
 
-  JSCertificate = interface external 'java.security' name 'Certificate' 
+  JSCertificate = interface external 'java.security' name 'Certificate'
     procedure decode(para1: JIInputStream); overload;  // throws java.security.KeyException, java.io.IOException
     procedure encode(para1: JIOutputStream); overload;  // throws java.security.KeyException, java.io.IOException
     function getFormat(): JLString; overload;
@@ -12923,12 +12923,12 @@
     function toString(para1: jboolean): JLString; overload;
   end;
 
-  JSDomainCombiner = interface external 'java.security' name 'DomainCombiner' 
+  JSDomainCombiner = interface external 'java.security' name 'DomainCombiner'
     function combine(para1: Arr1JSProtectionDomain; para2: Arr1JSProtectionDomain): Arr1JSProtectionDomain; overload;
     function combine(var para1: array of JSProtectionDomain; var para2: array of JSProtectionDomain): Arr1JSProtectionDomain; overload;
   end;
 
-  JSGuard = interface external 'java.security' name 'Guard' 
+  JSGuard = interface external 'java.security' name 'Guard'
     procedure checkGuard(para1: JLObject); overload;  // throws java.lang.SecurityException
   end;
 
@@ -12989,7 +12989,7 @@
       Arr1InnerParameters = array of InnerParameters;
       Arr2InnerParameters = array of Arr1InnerParameters;
       Arr3InnerParameters = array of Arr2InnerParameters;
-      InnerParameters = interface external 'java.security' name 'Parameters' 
+      InnerParameters = interface external 'java.security' name 'Parameters'
       end;
 
   public
@@ -13021,18 +13021,18 @@
     function engineGetPermissions(para1: JSProtectionDomain): JSPermissionCollection; overload; virtual;
   end;
 
-  JSPrincipal = interface external 'java.security' name 'Principal' 
+  JSPrincipal = interface external 'java.security' name 'Principal'
     function equals(para1: JLObject): jboolean; overload;
     function getName(): JLString; overload;
     function hashCode(): jint; overload;
     function toString(): JLString; overload;
   end;
 
-  JSPrivilegedAction = interface external 'java.security' name 'PrivilegedAction' 
+  JSPrivilegedAction = interface external 'java.security' name 'PrivilegedAction'
     function run(): JLObject; overload;
   end;
 
-  JSPrivilegedExceptionAction = interface external 'java.security' name 'PrivilegedExceptionAction' 
+  JSPrivilegedExceptionAction = interface external 'java.security' name 'PrivilegedExceptionAction'
     function run(): JLObject; overload;  // throws java.lang.Exception
   end;
 
@@ -13092,13 +13092,13 @@
     function clone(): JLObject; overload; virtual;  // throws java.lang.CloneNotSupportedException
   end;
 
-  JSAOwner = interface external 'java.security.acl' name 'Owner' 
+  JSAOwner = interface external 'java.security.acl' name 'Owner'
     function addOwner(para1: JSPrincipal; para2: JSPrincipal): jboolean; overload;  // throws java.security.acl.NotOwnerException
     function deleteOwner(para1: JSPrincipal; para2: JSPrincipal): jboolean; overload;  // throws java.security.acl.NotOwnerException, java.security.acl.LastOwnerException
     function isOwner(para1: JSPrincipal): jboolean; overload;
   end;
 
-  JSAPermission = interface external 'java.security.acl' name 'Permission' 
+  JSAPermission = interface external 'java.security.acl' name 'Permission'
     function equals(para1: JLObject): jboolean; overload;
     function toString(): JLString; overload;
   end;
@@ -13204,7 +13204,7 @@
     function engineGetCertPathEncodings(): JUIterator; overload; virtual;
   end;
 
-  JSCPolicyNode = interface external 'java.security.cert' name 'PolicyNode' 
+  JSCPolicyNode = interface external 'java.security.cert' name 'PolicyNode'
     function getChildren(): JUIterator; overload;
     function getDepth(): jint; overload;
     function getExpectedPolicies(): JUSet; overload;
@@ -13240,40 +13240,40 @@
     function toString(): JLString; overload; virtual;
   end;
 
-  JSCX509Extension = interface external 'java.security.cert' name 'X509Extension' 
+  JSCX509Extension = interface external 'java.security.cert' name 'X509Extension'
     function getCriticalExtensionOIDs(): JUSet; overload;
     function getExtensionValue(para1: JLString): Arr1jbyte; overload;
     function getNonCriticalExtensionOIDs(): JUSet; overload;
     function hasUnsupportedCriticalExtension(): jboolean; overload;
   end;
 
-  JSIDSAKey = interface external 'java.security.interfaces' name 'DSAKey' 
+  JSIDSAKey = interface external 'java.security.interfaces' name 'DSAKey'
     function getParams(): JSIDSAParams; overload;
   end;
 
-  JSIDSAKeyPairGenerator = interface external 'java.security.interfaces' name 'DSAKeyPairGenerator' 
+  JSIDSAKeyPairGenerator = interface external 'java.security.interfaces' name 'DSAKeyPairGenerator'
     procedure initialize(para1: JSIDSAParams; para2: JSSecureRandom); overload;  // throws java.security.InvalidParameterException
     procedure initialize(para1: jint; para2: jboolean; para3: JSSecureRandom); overload;  // throws java.security.InvalidParameterException
   end;
 
-  JSIDSAParams = interface external 'java.security.interfaces' name 'DSAParams' 
+  JSIDSAParams = interface external 'java.security.interfaces' name 'DSAParams'
     function getG(): JMBigInteger; overload;
     function getP(): JMBigInteger; overload;
     function getQ(): JMBigInteger; overload;
   end;
 
-  JSIECKey = interface external 'java.security.interfaces' name 'ECKey' 
+  JSIECKey = interface external 'java.security.interfaces' name 'ECKey'
     function getParams(): JSSECParameterSpec; overload;
   end;
 
-  JSIRSAKey = interface external 'java.security.interfaces' name 'RSAKey' 
+  JSIRSAKey = interface external 'java.security.interfaces' name 'RSAKey'
     function getModulus(): JMBigInteger; overload;
   end;
 
-  JSSAlgorithmParameterSpec = interface external 'java.security.spec' name 'AlgorithmParameterSpec' 
+  JSSAlgorithmParameterSpec = interface external 'java.security.spec' name 'AlgorithmParameterSpec'
   end;
 
-  JSSECField = interface external 'java.security.spec' name 'ECField' 
+  JSSECField = interface external 'java.security.spec' name 'ECField'
     function getFieldSize(): jint; overload;
   end;
 
@@ -13302,7 +13302,7 @@
     function hashCode(): jint; overload; virtual;
   end;
 
-  JSSKeySpec = interface external 'java.security.spec' name 'KeySpec' 
+  JSSKeySpec = interface external 'java.security.spec' name 'KeySpec'
   end;
 
   JSSRSAOtherPrimeInfo = class external 'java.security.spec' name 'RSAOtherPrimeInfo' (JLObject)
@@ -13313,7 +13313,7 @@
     function getExponent(): JMBigInteger; overload; virtual; final;
   end;
 
-  JSArray = interface external 'java.sql' name 'Array' 
+  JSArray = interface external 'java.sql' name 'Array'
     function getArray(): JLObject; overload;  // throws java.sql.SQLException
     function getArray(para1: jlong; para2: jint): JLObject; overload;  // throws java.sql.SQLException
     function getArray(para1: jlong; para2: jint; para3: JUMap): JLObject; overload;  // throws java.sql.SQLException
@@ -13327,7 +13327,7 @@
     procedure free(); overload;  // throws java.sql.SQLException
   end;
 
-  JSBlob = interface external 'java.sql' name 'Blob' 
+  JSBlob = interface external 'java.sql' name 'Blob'
     function getBinaryStream(): JIInputStream; overload;  // throws java.sql.SQLException
     function getBinaryStream(para1: jlong; para2: jlong): JIInputStream; overload;  // throws java.sql.SQLException
     function getBytes(para1: jlong; para2: jint): Arr1jbyte; overload;  // throws java.sql.SQLException
@@ -13344,7 +13344,7 @@
     procedure free(); overload;  // throws java.sql.SQLException
   end;
 
-  JSClob = interface external 'java.sql' name 'Clob' 
+  JSClob = interface external 'java.sql' name 'Clob'
     function getAsciiStream(): JIInputStream; overload;  // throws java.sql.SQLException
     function getCharacterStream(): JIReader; overload;  // throws java.sql.SQLException
     function getSubString(para1: jlong; para2: jint): JLString; overload;  // throws java.sql.SQLException
@@ -13360,7 +13360,7 @@
     function getCharacterStream(para1: jlong; para2: jlong): JIReader; overload;  // throws java.sql.SQLException
   end;
 
-  JSDriver = interface external 'java.sql' name 'Driver' 
+  JSDriver = interface external 'java.sql' name 'Driver'
     function acceptsURL(para1: JLString): jboolean; overload;  // throws java.sql.SQLException
     function connect(para1: JLString; para2: JUProperties): JSConnection; overload;  // throws java.sql.SQLException
     function getMajorVersion(): jint; overload;
@@ -13399,27 +13399,27 @@
     constructor create(para1: JLString; para2: JLString); overload;
   end;
 
-  JSRef = interface external 'java.sql' name 'Ref' 
+  JSRef = interface external 'java.sql' name 'Ref'
     function getBaseTypeName(): JLString; overload;  // throws java.sql.SQLException
     function getObject(): JLObject; overload;  // throws java.sql.SQLException
     function getObject(para1: JUMap): JLObject; overload;  // throws java.sql.SQLException
     procedure setObject(para1: JLObject); overload;  // throws java.sql.SQLException
   end;
 
-  JSRowId = interface external 'java.sql' name 'RowId' 
+  JSRowId = interface external 'java.sql' name 'RowId'
     function equals(para1: JLObject): jboolean; overload;
     function getBytes(): Arr1jbyte; overload;
     function toString(): JLString; overload;
     function hashCode(): jint; overload;
   end;
 
-  JSSQLData = interface external 'java.sql' name 'SQLData' 
+  JSSQLData = interface external 'java.sql' name 'SQLData'
     function getSQLTypeName(): JLString; overload;  // throws java.sql.SQLException
     procedure readSQL(para1: JSSQLInput; para2: JLString); overload;  // throws java.sql.SQLException
     procedure writeSQL(para1: JSSQLOutput); overload;  // throws java.sql.SQLException
   end;
 
-  JSSQLInput = interface external 'java.sql' name 'SQLInput' 
+  JSSQLInput = interface external 'java.sql' name 'SQLInput'
     function readString(): JLString; overload;  // throws java.sql.SQLException
     function readBoolean(): jboolean; overload;  // throws java.sql.SQLException
     function readByte(): jbyte; overload;  // throws java.sql.SQLException
@@ -13449,7 +13449,7 @@
     function readRowId(): JSRowId; overload;  // throws java.sql.SQLException
   end;
 
-  JSSQLOutput = interface external 'java.sql' name 'SQLOutput' 
+  JSSQLOutput = interface external 'java.sql' name 'SQLOutput'
     procedure writeString(para1: JLString); overload;  // throws java.sql.SQLException
     procedure writeBoolean(para1: jboolean); overload;  // throws java.sql.SQLException
     procedure writeByte(para1: jbyte); overload;  // throws java.sql.SQLException
@@ -13480,7 +13480,7 @@
     procedure writeSQLXML(para1: JSSQLXML); overload;  // throws java.sql.SQLException
   end;
 
-  JSSQLXML = interface external 'java.sql' name 'SQLXML' 
+  JSSQLXML = interface external 'java.sql' name 'SQLXML'
     procedure free(); overload;  // throws java.sql.SQLException
     function getBinaryStream(): JIInputStream; overload;  // throws java.sql.SQLException
     function setBinaryStream(): JIOutputStream; overload;  // throws java.sql.SQLException
@@ -13492,12 +13492,12 @@
     function setResult(para1: JLClass): JXTResult; overload;  // throws java.sql.SQLException
   end;
 
-  JSSavepoint = interface external 'java.sql' name 'Savepoint' 
+  JSSavepoint = interface external 'java.sql' name 'Savepoint'
     function getSavepointId(): jint; overload;  // throws java.sql.SQLException
     function getSavepointName(): JLString; overload;  // throws java.sql.SQLException
   end;
 
-  JSStruct = interface external 'java.sql' name 'Struct' 
+  JSStruct = interface external 'java.sql' name 'Struct'
     function getSQLTypeName(): JLString; overload;  // throws java.sql.SQLException
     function getAttributes(): Arr1JLObject; overload;  // throws java.sql.SQLException
     function getAttributes(para1: JUMap): Arr1JLObject; overload;  // throws java.sql.SQLException
@@ -13544,7 +13544,7 @@
       SQLXML = 2009;
   end;
 
-  JSWrapper = interface external 'java.sql' name 'Wrapper' 
+  JSWrapper = interface external 'java.sql' name 'Wrapper'
     function unwrap(para1: JLClass): JLObject; overload;  // throws java.sql.SQLException
     function isWrapperFor(para1: JLClass): jboolean; overload;  // throws java.sql.SQLException
   end;
@@ -13691,15 +13691,15 @@
     function size(): jint; overload; virtual; abstract;
   end;
 
-  JUEnumeration = interface external 'java.util' name 'Enumeration' 
+  JUEnumeration = interface external 'java.util' name 'Enumeration'
     function hasMoreElements(): jboolean; overload;
     function nextElement(): JLObject; overload;
   end;
 
-  JUEventListener = interface external 'java.util' name 'EventListener' 
+  JUEventListener = interface external 'java.util' name 'EventListener'
   end;
 
-  JUFormattable = interface external 'java.util' name 'Formattable' 
+  JUFormattable = interface external 'java.util' name 'Formattable'
     procedure formatTo(para1: JUFormatter; para2: jint; para3: jint; para4: jint); overload;  // throws java.util.IllegalFormatException
   end;
 
@@ -13728,11 +13728,11 @@
     procedure setChanged(); overload; virtual;
   end;
 
-  JUObserver = interface external 'java.util' name 'Observer' 
+  JUObserver = interface external 'java.util' name 'Observer'
     procedure update(para1: JUObservable; para2: JLObject); overload;
   end;
 
-  JURandomAccess = interface external 'java.util' name 'RandomAccess' 
+  JURandomAccess = interface external 'java.util' name 'RandomAccess'
   end;
 
   JUResourceBundle = class abstract external 'java.util' name 'ResourceBundle' (JLObject)
@@ -13811,11 +13811,11 @@
     procedure scheduleAtFixedRate(para1: JUTimerTask; para2: JUDate; para3: jlong); overload; virtual;
   end;
 
-  JUCCallable = interface external 'java.util.concurrent' name 'Callable' 
+  JUCCallable = interface external 'java.util.concurrent' name 'Callable'
     function call(): JLObject; overload;  // throws java.lang.Exception
   end;
 
-  JUCCompletionService = interface external 'java.util.concurrent' name 'CompletionService' 
+  JUCCompletionService = interface external 'java.util.concurrent' name 'CompletionService'
     function submit(para1: JUCCallable): JUCFuture; overload;
     function submit(para1: JLRunnable; para2: JLObject): JUCFuture; overload;
     function take(): JUCFuture; overload;  // throws java.lang.InterruptedException
@@ -13852,7 +13852,7 @@
     function exchange(para1: JLObject; para2: jlong; para3: JUCTimeUnit): JLObject; overload; virtual;  // throws java.lang.InterruptedException, java.util.concurrent.TimeoutException
   end;
 
-  JUCExecutor = interface external 'java.util.concurrent' name 'Executor' 
+  JUCExecutor = interface external 'java.util.concurrent' name 'Executor'
     procedure execute(para1: JLRunnable); overload;
   end;
 
@@ -13880,7 +13880,7 @@
     class function privilegedCallableUsingCurrentClassLoader(para1: JUCCallable): JUCCallable; static; overload;
   end;
 
-  JUCFuture = interface external 'java.util.concurrent' name 'Future' 
+  JUCFuture = interface external 'java.util.concurrent' name 'Future'
     function cancel(para1: jboolean): jboolean; overload;
     function isCancelled(): jboolean; overload;
     function isDone(): jboolean; overload;
@@ -13888,11 +13888,11 @@
     function get(para1: jlong; para2: JUCTimeUnit): JLObject; overload;  // throws java.lang.InterruptedException, java.util.concurrent.ExecutionException, java.util.concurrent.TimeoutException
   end;
 
-  JUCRejectedExecutionHandler = interface external 'java.util.concurrent' name 'RejectedExecutionHandler' 
+  JUCRejectedExecutionHandler = interface external 'java.util.concurrent' name 'RejectedExecutionHandler'
     procedure rejectedExecution(para1: JLRunnable; para2: JUCThreadPoolExecutor); overload;
   end;
 
-  JUCThreadFactory = interface external 'java.util.concurrent' name 'ThreadFactory' 
+  JUCThreadFactory = interface external 'java.util.concurrent' name 'ThreadFactory'
     function newThread(para1: JLRunnable): JLThread; overload;
   end;
 
@@ -13973,7 +13973,7 @@
     function attemptStamp(para1: JLObject; para2: jint): jboolean; overload; virtual;
   end;
 
-  JUCLCondition = interface external 'java.util.concurrent.locks' name 'Condition' 
+  JUCLCondition = interface external 'java.util.concurrent.locks' name 'Condition'
     procedure await(); overload;  // throws java.lang.InterruptedException
     procedure awaitUninterruptibly(); overload;
     function awaitNanos(para1: jlong): jlong; overload;  // throws java.lang.InterruptedException
@@ -13983,7 +13983,7 @@
     procedure signalAll(); overload;
   end;
 
-  JUCLLock = interface external 'java.util.concurrent.locks' name 'Lock' 
+  JUCLLock = interface external 'java.util.concurrent.locks' name 'Lock'
     procedure lock(); overload;
     procedure lockInterruptibly(); overload;  // throws java.lang.InterruptedException
     function tryLock(): jboolean; overload;
@@ -14004,7 +14004,7 @@
     class procedure parkUntil(para1: jlong); static; overload;
   end;
 
-  JUCLReadWriteLock = interface external 'java.util.concurrent.locks' name 'ReadWriteLock' 
+  JUCLReadWriteLock = interface external 'java.util.concurrent.locks' name 'ReadWriteLock'
     function readLock(): JUCLLock; overload;
     function writeLock(): JUCLLock; overload;
   end;
@@ -14020,7 +14020,7 @@
       Arr1InnerPacker = array of InnerPacker;
       Arr2InnerPacker = array of Arr1InnerPacker;
       Arr3InnerPacker = array of Arr2InnerPacker;
-      InnerUnpacker = interface external 'java.util.jar' name 'Unpacker' 
+      InnerUnpacker = interface external 'java.util.jar' name 'Unpacker'
         const
           DEFLATE_HINT = 'unpack.deflate.hint';
           &FALSE = 'false';
@@ -14034,7 +14034,7 @@
         procedure removePropertyChangeListener(para1: JBPropertyChangeListener); overload;
       end;
 
-      InnerPacker = interface external 'java.util.jar' name 'Packer' 
+      InnerPacker = interface external 'java.util.jar' name 'Packer'
         const
           CLASS_ATTRIBUTE_PFX = 'pack.class.attribute.';
           CODE_ATTRIBUTE_PFX = 'pack.code.attribute.';
@@ -14081,7 +14081,7 @@
     procedure error(para1: JLString; para2: JLException; para3: jint); overload; virtual;
   end;
 
-  JULFilter = interface external 'java.util.logging' name 'Filter' 
+  JULFilter = interface external 'java.util.logging' name 'Filter'
     function isLoggable(para1: JULLogRecord): jboolean; overload;
   end;
 
@@ -14200,7 +14200,7 @@
     procedure logrb(para1: JULLevel; para2: JLString; para3: JLString; para4: JLString; para5: JLString; para6: JLThrowable); overload; virtual;
   end;
 
-  JULLoggingMXBean = interface external 'java.util.logging' name 'LoggingMXBean' 
+  JULLoggingMXBean = interface external 'java.util.logging' name 'LoggingMXBean'
     function getLoggerLevel(para1: JLString): JLString; overload;
     function getLoggerNames(): JUList; overload;
     function getParentLoggerName(para1: JLString): JLString; overload;
@@ -14259,12 +14259,12 @@
     function toString(): JLString; overload; virtual; abstract;
   end;
 
-  JUPPreferencesFactory = interface external 'java.util.prefs' name 'PreferencesFactory' 
+  JUPPreferencesFactory = interface external 'java.util.prefs' name 'PreferencesFactory'
     function userRoot(): JUPPreferences; overload;
     function systemRoot(): JUPPreferences; overload;
   end;
 
-  JURMatchResult = interface external 'java.util.regex' name 'MatchResult' 
+  JURMatchResult = interface external 'java.util.regex' name 'MatchResult'
     function &end(): jint; overload;
     function &end(para1: jint): jint; overload;
     function group(): JLString; overload;
@@ -14274,7 +14274,7 @@
     function start(para1: jint): jint; overload;
   end;
 
-  JUZChecksum = interface external 'java.util.zip' name 'Checksum' 
+  JUZChecksum = interface external 'java.util.zip' name 'Checksum'
     function getValue(): jlong; overload;
     procedure reset(); overload;
     procedure update(para1: Arr1jbyte; para2: jint; para3: jint); overload;
@@ -14619,7 +14619,7 @@
     function engineTranslateKey(para1: JCSecretKey): JCSecretKey; overload; virtual; abstract;  // throws java.security.InvalidKeyException
   end;
 
-  JCIDHKey = interface external 'javax.crypto.interfaces' name 'DHKey' 
+  JCIDHKey = interface external 'javax.crypto.interfaces' name 'DHKey'
     function getParams(): JCSDHParameterSpec; overload;
   end;
 
@@ -14646,7 +14646,7 @@
     function getAlgorithm(): JLString; overload; virtual;
   end;
 
-  JMKEEGL = interface external 'javax.microedition.khronos.egl' name 'EGL' 
+  JMKEEGL = interface external 'javax.microedition.khronos.egl' name 'EGL'
   end;
 
   JMKEEGLConfig = class abstract external 'javax.microedition.khronos.egl' name 'EGLConfig' (JLObject)
@@ -14671,7 +14671,7 @@
     constructor create(); overload;
   end;
 
-  JMKOGL = interface external 'javax.microedition.khronos.opengles' name 'GL' 
+  JMKOGL = interface external 'javax.microedition.khronos.opengles' name 'GL'
   end;
 
   JNServerSocketFactory = class abstract external 'javax.net' name 'ServerSocketFactory' (JLObject)
@@ -14697,11 +14697,11 @@
     function createSocket(para1: JNInetAddress; para2: jint; para3: JNInetAddress; para4: jint): JNSocket; overload; virtual; abstract;  // throws java.io.IOException
   end;
 
-  JNSHostnameVerifier = interface external 'javax.net.ssl' name 'HostnameVerifier' 
+  JNSHostnameVerifier = interface external 'javax.net.ssl' name 'HostnameVerifier'
     function verify(para1: JLString; para2: JNSSSLSession): jboolean; overload;
   end;
 
-  JNSKeyManager = interface external 'javax.net.ssl' name 'KeyManager' 
+  JNSKeyManager = interface external 'javax.net.ssl' name 'KeyManager'
   end;
 
   JNSKeyManagerFactory = class external 'javax.net.ssl' name 'KeyManagerFactory' (JLObject)
@@ -14730,7 +14730,7 @@
     function engineGetKeyManagers(): Arr1JNSKeyManager; overload; virtual; abstract;
   end;
 
-  JNSManagerFactoryParameters = interface external 'javax.net.ssl' name 'ManagerFactoryParameters' 
+  JNSManagerFactoryParameters = interface external 'javax.net.ssl' name 'ManagerFactoryParameters'
   end;
 
   JNSSSLContext = class external 'javax.net.ssl' name 'SSLContext' (JLObject)
@@ -14791,7 +14791,7 @@
     procedure setWantClientAuth(para1: jboolean); overload; virtual;
   end;
 
-  JNSSSLSession = interface external 'javax.net.ssl' name 'SSLSession' 
+  JNSSSLSession = interface external 'javax.net.ssl' name 'SSLSession'
     function getApplicationBufferSize(): jint; overload;
     function getCipherSuite(): JLString; overload;
     function getCreationTime(): jlong; overload;
@@ -14815,7 +14815,7 @@
     procedure removeValue(para1: JLString); overload;
   end;
 
-  JNSSSLSessionContext = interface external 'javax.net.ssl' name 'SSLSessionContext' 
+  JNSSSLSessionContext = interface external 'javax.net.ssl' name 'SSLSessionContext'
     function getIds(): JUEnumeration; overload;
     function getSession(para1: Arr1jbyte): JNSSSLSession; overload;
     function getSession(var para1: array of jbyte): JNSSSLSession; overload;
@@ -14825,7 +14825,7 @@
     procedure setSessionTimeout(para1: jint); overload;  // throws java.lang.IllegalArgumentException
   end;
 
-  JNSTrustManager = interface external 'javax.net.ssl' name 'TrustManager' 
+  JNSTrustManager = interface external 'javax.net.ssl' name 'TrustManager'
   end;
 
   JNSTrustManagerFactory = class external 'javax.net.ssl' name 'TrustManagerFactory' (JLObject)
@@ -14852,15 +14852,15 @@
     function engineGetTrustManagers(): Arr1JNSTrustManager; overload; virtual; abstract;
   end;
 
-  JSADestroyable = interface external 'javax.security.auth' name 'Destroyable' 
+  JSADestroyable = interface external 'javax.security.auth' name 'Destroyable'
     procedure destroy(); overload;  // throws javax.security.auth.DestroyFailedException
     function isDestroyed(): jboolean; overload;
   end;
 
-  JSACCallback = interface external 'javax.security.auth.callback' name 'Callback' 
+  JSACCallback = interface external 'javax.security.auth.callback' name 'Callback'
   end;
 
-  JSACCallbackHandler = interface external 'javax.security.auth.callback' name 'CallbackHandler' 
+  JSACCallbackHandler = interface external 'javax.security.auth.callback' name 'CallbackHandler'
     procedure handle(para1: Arr1JSACCallback); overload;  // throws java.io.IOException, javax.security.auth.callback.UnsupportedCallbackException
     procedure handle(var para1: array of JSACCallback); overload;  // throws java.io.IOException, javax.security.auth.callback.UnsupportedCallbackException
   end;
@@ -14877,14 +14877,14 @@
     function getPublicKey(): JSPublicKey; overload; virtual; abstract;
   end;
 
-  JSCommonDataSource = interface external 'javax.sql' name 'CommonDataSource' 
+  JSCommonDataSource = interface external 'javax.sql' name 'CommonDataSource'
     function getLoginTimeout(): jint; overload;  // throws java.sql.SQLException
     function getLogWriter(): JIPrintWriter; overload;  // throws java.sql.SQLException
     procedure setLoginTimeout(para1: jint); overload;  // throws java.sql.SQLException
     procedure setLogWriter(para1: JIPrintWriter); overload;  // throws java.sql.SQLException
   end;
 
-  JSPooledConnection = interface external 'javax.sql' name 'PooledConnection' 
+  JSPooledConnection = interface external 'javax.sql' name 'PooledConnection'
     procedure addConnectionEventListener(para1: JSConnectionEventListener); overload;
     procedure close(); overload;  // throws java.sql.SQLException
     function getConnection(): JSConnection; overload;  // throws java.sql.SQLException
@@ -14893,7 +14893,7 @@
     procedure removeStatementEventListener(para1: JSStatementEventListener); overload;
   end;
 
-  JSRowSetInternal = interface external 'javax.sql' name 'RowSetInternal' 
+  JSRowSetInternal = interface external 'javax.sql' name 'RowSetInternal'
     function getConnection(): JSConnection; overload;  // throws java.sql.SQLException
     function getOriginal(): JSResultSet; overload;  // throws java.sql.SQLException
     function getOriginalRow(): JSResultSet; overload;  // throws java.sql.SQLException
@@ -14901,11 +14901,11 @@
     procedure setMetaData(para1: JSRowSetMetaData); overload;  // throws java.sql.SQLException
   end;
 
-  JSRowSetReader = interface external 'javax.sql' name 'RowSetReader' 
+  JSRowSetReader = interface external 'javax.sql' name 'RowSetReader'
     procedure readData(para1: JSRowSetInternal); overload;  // throws java.sql.SQLException
   end;
 
-  JSRowSetWriter = interface external 'javax.sql' name 'RowSetWriter' 
+  JSRowSetWriter = interface external 'javax.sql' name 'RowSetWriter'
     function writeData(para1: JSRowSetInternal): jboolean; overload;  // throws java.sql.SQLException
   end;
 
@@ -15018,7 +15018,7 @@
     function newXMLGregorianCalendarTime(para1: jint; para2: jint; para3: jint; para4: jint; para5: jint): JXDXMLGregorianCalendar; overload; virtual;
   end;
 
-  JXNNamespaceContext = interface external 'javax.xml.namespace' name 'NamespaceContext' 
+  JXNNamespaceContext = interface external 'javax.xml.namespace' name 'NamespaceContext'
     function getNamespaceURI(para1: JLString): JLString; overload;
     function getPrefix(para1: JLString): JLString; overload;
     function getPrefixes(para1: JLString): JUIterator; overload;
@@ -15117,7 +15117,7 @@
     function isXIncludeAware(): jboolean; overload; virtual;
   end;
 
-  JXTErrorListener = interface external 'javax.xml.transform' name 'ErrorListener' 
+  JXTErrorListener = interface external 'javax.xml.transform' name 'ErrorListener'
     procedure warning(para1: JXTTransformerException); overload;  // throws javax.xml.transform.TransformerException
     procedure error(para1: JXTTransformerException); overload;  // throws javax.xml.transform.TransformerException
     procedure fatalError(para1: JXTTransformerException); overload;  // throws javax.xml.transform.TransformerException
@@ -15138,7 +15138,7 @@
       MEDIA_TYPE = 'media-type';
   end;
 
-  JXTResult = interface external 'javax.xml.transform' name 'Result' 
+  JXTResult = interface external 'javax.xml.transform' name 'Result'
     const
       PI_DISABLE_OUTPUT_ESCAPING = 'javax.xml.transform.disable-output-escaping';
       PI_ENABLE_OUTPUT_ESCAPING = 'javax.xml.transform.enable-output-escaping';
@@ -15146,19 +15146,19 @@
     function getSystemId(): JLString; overload;
   end;
 
-  JXTSource = interface external 'javax.xml.transform' name 'Source' 
+  JXTSource = interface external 'javax.xml.transform' name 'Source'
     procedure setSystemId(para1: JLString); overload;
     function getSystemId(): JLString; overload;
   end;
 
-  JXTSourceLocator = interface external 'javax.xml.transform' name 'SourceLocator' 
+  JXTSourceLocator = interface external 'javax.xml.transform' name 'SourceLocator'
     function getPublicId(): JLString; overload;
     function getSystemId(): JLString; overload;
     function getLineNumber(): jint; overload;
     function getColumnNumber(): jint; overload;
   end;
 
-  JXTTemplates = interface external 'javax.xml.transform' name 'Templates' 
+  JXTTemplates = interface external 'javax.xml.transform' name 'Templates'
     function newTransformer(): JXTTransformer; overload;  // throws javax.xml.transform.TransformerConfigurationException
     function getOutputProperties(): JUProperties; overload;
   end;
@@ -15202,7 +15202,7 @@
     function getErrorListener(): JXTErrorListener; overload; virtual; abstract;
   end;
 
-  JXTURIResolver = interface external 'javax.xml.transform' name 'URIResolver' 
+  JXTURIResolver = interface external 'javax.xml.transform' name 'URIResolver'
     function resolve(para1: JLString; para2: JLString): JXTSource; overload;  // throws javax.xml.transform.TransformerException
   end;
 
@@ -15271,7 +15271,7 @@
     function getProperty(para1: JLString): JLObject; overload; virtual;  // throws org.xml.sax.SAXNotRecognizedException, org.xml.sax.SAXNotSupportedException
   end;
 
-  JXXXPath = interface external 'javax.xml.xpath' name 'XPath' 
+  JXXXPath = interface external 'javax.xml.xpath' name 'XPath'
     procedure reset(); overload;
     procedure setXPathVariableResolver(para1: JXXXPathVariableResolver); overload;
     function getXPathVariableResolver(): JXXXPathVariableResolver; overload;
@@ -15299,7 +15299,7 @@
       DOM_OBJECT_MODEL = 'http://java.sun.com/jaxp/xpath/dom';
   end;
 
-  JXXXPathExpression = interface external 'javax.xml.xpath' name 'XPathExpression' 
+  JXXXPathExpression = interface external 'javax.xml.xpath' name 'XPathExpression'
     function evaluate(para1: JLObject; para2: JXNQName): JLObject; overload;  // throws javax.xml.xpath.XPathExpressionException
     function evaluate(para1: JLObject): JLString; overload;  // throws javax.xml.xpath.XPathExpressionException
     function evaluate(para1: OXSInputSource; para2: JXNQName): JLObject; overload;  // throws javax.xml.xpath.XPathExpressionException
@@ -15325,15 +15325,15 @@
     function newXPath(): JXXXPath; overload; virtual; abstract;
   end;
 
-  JXXXPathFunction = interface external 'javax.xml.xpath' name 'XPathFunction' 
+  JXXXPathFunction = interface external 'javax.xml.xpath' name 'XPathFunction'
     function evaluate(para1: JUList): JLObject; overload;  // throws javax.xml.xpath.XPathFunctionException
   end;
 
-  JXXXPathFunctionResolver = interface external 'javax.xml.xpath' name 'XPathFunctionResolver' 
+  JXXXPathFunctionResolver = interface external 'javax.xml.xpath' name 'XPathFunctionResolver'
     function resolveFunction(para1: JXNQName; para2: jint): JXXXPathFunction; overload;
   end;
 
-  JXXXPathVariableResolver = interface external 'javax.xml.xpath' name 'XPathVariableResolver' 
+  JXXXPathVariableResolver = interface external 'javax.xml.xpath' name 'XPathVariableResolver'
     function resolveVariable(para1: JXNQName): JLObject; overload;
   end;
 
@@ -15377,11 +15377,11 @@
     class procedure assertNotSame(para1: JLObject; para2: JLObject); static; overload;
   end;
 
-  JFProtectable = interface external 'junit.framework' name 'Protectable' 
+  JFProtectable = interface external 'junit.framework' name 'Protectable'
     procedure protect(); overload;  // throws java.lang.Throwable
   end;
 
-  JFTest = interface external 'junit.framework' name 'Test' 
+  JFTest = interface external 'junit.framework' name 'Test'
     function countTestCases(): jint; overload;
     procedure run(para1: JFTestResult); overload;
   end;
@@ -15401,7 +15401,7 @@
     function isFailure(): jboolean; overload; virtual;
   end;
 
-  JFTestListener = interface external 'junit.framework' name 'TestListener' 
+  JFTestListener = interface external 'junit.framework' name 'TestListener'
     procedure addError(para1: JFTest; para2: JLThrowable); overload;
     procedure addFailure(para1: JFTest; para2: JFAssertionFailedError); overload;
     procedure endTest(para1: JFTest); overload;
@@ -15437,7 +15437,7 @@
     function wasSuccessful(): jboolean; overload; virtual;
   end;
 
-  JRTestSuiteLoader = interface external 'junit.runner' name 'TestSuiteLoader' 
+  JRTestSuiteLoader = interface external 'junit.runner' name 'TestSuiteLoader'
     function load(para1: JLString): JLClass; overload;  // throws java.lang.ClassNotFoundException
     function reload(para1: JLClass): JLClass; overload;  // throws java.lang.ClassNotFoundException
   end;
@@ -15447,7 +15447,7 @@
     class function id(): JLString; static; overload;
   end;
 
-  OACLLog = interface external 'org.apache.commons.logging' name 'Log' 
+  OACLLog = interface external 'org.apache.commons.logging' name 'Log'
     function isDebugEnabled(): jboolean; overload;
     function isErrorEnabled(): jboolean; overload;
     function isFatalEnabled(): jboolean; overload;
@@ -15468,17 +15468,17 @@
     procedure fatal(para1: JLObject; para2: JLThrowable); overload;
   end;
 
-  OAHConnectionReuseStrategy = interface external 'org.apache.http' name 'ConnectionReuseStrategy' 
+  OAHConnectionReuseStrategy = interface external 'org.apache.http' name 'ConnectionReuseStrategy'
     function keepAlive(para1: OAHHttpResponse; para2: OAHPHttpContext): jboolean; overload;
   end;
 
-  OAHHeader = interface external 'org.apache.http' name 'Header' 
+  OAHHeader = interface external 'org.apache.http' name 'Header'
     function getName(): JLString; overload;
     function getValue(): JLString; overload;
     function getElements(): Arr1OAHHeaderElement; overload;  // throws org.apache.http.ParseException
   end;
 
-  OAHHeaderElement = interface external 'org.apache.http' name 'HeaderElement' 
+  OAHHeaderElement = interface external 'org.apache.http' name 'HeaderElement'
     function getName(): JLString; overload;
     function getValue(): JLString; overload;
     function getParameters(): Arr1OAHNameValuePair; overload;
@@ -15487,7 +15487,7 @@
     function getParameter(para1: jint): OAHNameValuePair; overload;
   end;
 
-  OAHHttpConnection = interface external 'org.apache.http' name 'HttpConnection' 
+  OAHHttpConnection = interface external 'org.apache.http' name 'HttpConnection'
     procedure close(); overload;  // throws java.io.IOException
     function isOpen(): jboolean; overload;
     function isStale(): jboolean; overload;
@@ -15497,7 +15497,7 @@
     function getMetrics(): OAHHttpConnectionMetrics; overload;
   end;
 
-  OAHHttpConnectionMetrics = interface external 'org.apache.http' name 'HttpConnectionMetrics' 
+  OAHHttpConnectionMetrics = interface external 'org.apache.http' name 'HttpConnectionMetrics'
     function getRequestCount(): jlong; overload;
     function getResponseCount(): jlong; overload;
     function getSentBytesCount(): jlong; overload;
@@ -15506,7 +15506,7 @@
     procedure reset(); overload;
   end;
 
-  OAHHttpEntity = interface external 'org.apache.http' name 'HttpEntity' 
+  OAHHttpEntity = interface external 'org.apache.http' name 'HttpEntity'
     function isRepeatable(): jboolean; overload;
     function isChunked(): jboolean; overload;
     function getContentLength(): jlong; overload;
@@ -15518,7 +15518,7 @@
     procedure consumeContent(); overload;  // throws java.io.IOException
   end;
 
-  OAHHttpMessage = interface external 'org.apache.http' name 'HttpMessage' 
+  OAHHttpMessage = interface external 'org.apache.http' name 'HttpMessage'
     function getProtocolVersion(): OAHProtocolVersion; overload;
     function containsHeader(para1: JLString): jboolean; overload;
     function getHeaders(para1: JLString): Arr1OAHHeader; overload;
@@ -15539,25 +15539,25 @@
     procedure setParams(para1: OAHPHttpParams); overload;
   end;
 
-  OAHHttpRequestFactory = interface external 'org.apache.http' name 'HttpRequestFactory' 
+  OAHHttpRequestFactory = interface external 'org.apache.http' name 'HttpRequestFactory'
     function newHttpRequest(para1: OAHRequestLine): OAHHttpRequest; overload;  // throws org.apache.http.MethodNotSupportedException
     function newHttpRequest(para1: JLString; para2: JLString): OAHHttpRequest; overload;  // throws org.apache.http.MethodNotSupportedException
   end;
 
-  OAHHttpRequestInterceptor = interface external 'org.apache.http' name 'HttpRequestInterceptor' 
+  OAHHttpRequestInterceptor = interface external 'org.apache.http' name 'HttpRequestInterceptor'
     procedure process(para1: OAHHttpRequest; para2: OAHPHttpContext); overload;  // throws org.apache.http.HttpException, java.io.IOException
   end;
 
-  OAHHttpResponseFactory = interface external 'org.apache.http' name 'HttpResponseFactory' 
+  OAHHttpResponseFactory = interface external 'org.apache.http' name 'HttpResponseFactory'
     function newHttpResponse(para1: OAHProtocolVersion; para2: jint; para3: OAHPHttpContext): OAHHttpResponse; overload;
     function newHttpResponse(para1: OAHStatusLine; para2: OAHPHttpContext): OAHHttpResponse; overload;
   end;
 
-  OAHHttpResponseInterceptor = interface external 'org.apache.http' name 'HttpResponseInterceptor' 
+  OAHHttpResponseInterceptor = interface external 'org.apache.http' name 'HttpResponseInterceptor'
     procedure process(para1: OAHHttpResponse; para2: OAHPHttpContext); overload;  // throws org.apache.http.HttpException, java.io.IOException
   end;
 
-  OAHHttpStatus = interface external 'org.apache.http' name 'HttpStatus' 
+  OAHHttpStatus = interface external 'org.apache.http' name 'HttpStatus'
     const
       SC_CONTINUE = 100;
       SC_SWITCHING_PROTOCOLS = 101;
@@ -15609,22 +15609,22 @@
       SC_INSUFFICIENT_STORAGE = 507;
   end;
 
-  OAHNameValuePair = interface external 'org.apache.http' name 'NameValuePair' 
+  OAHNameValuePair = interface external 'org.apache.http' name 'NameValuePair'
     function getName(): JLString; overload;
     function getValue(): JLString; overload;
   end;
 
-  OAHReasonPhraseCatalog = interface external 'org.apache.http' name 'ReasonPhraseCatalog' 
+  OAHReasonPhraseCatalog = interface external 'org.apache.http' name 'ReasonPhraseCatalog'
     function getReason(para1: jint; para2: JULocale): JLString; overload;
   end;
 
-  OAHRequestLine = interface external 'org.apache.http' name 'RequestLine' 
+  OAHRequestLine = interface external 'org.apache.http' name 'RequestLine'
     function getMethod(): JLString; overload;
     function getProtocolVersion(): OAHProtocolVersion; overload;
     function getUri(): JLString; overload;
   end;
 
-  OAHStatusLine = interface external 'org.apache.http' name 'StatusLine' 
+  OAHStatusLine = interface external 'org.apache.http' name 'StatusLine'
     function getProtocolVersion(): OAHProtocolVersion; overload;
     function getStatusCode(): jint; overload;
     function getReasonPhrase(): JLString; overload;
@@ -15639,7 +15639,7 @@
       PROXY_AUTH_RESP = 'Proxy-Authorization';
   end;
 
-  OAHAAuthScheme = interface external 'org.apache.http.auth' name 'AuthScheme' 
+  OAHAAuthScheme = interface external 'org.apache.http.auth' name 'AuthScheme'
     procedure processChallenge(para1: OAHHeader); overload;  // throws org.apache.http.auth.MalformedChallengeException
     function getSchemeName(): JLString; overload;
     function getParameter(para1: JLString): JLString; overload;
@@ -15649,7 +15649,7 @@
     function authenticate(para1: OAHACredentials; para2: OAHHttpRequest): OAHHeader; overload;  // throws org.apache.http.auth.AuthenticationException
   end;
 
-  OAHAAuthSchemeFactory = interface external 'org.apache.http.auth' name 'AuthSchemeFactory' 
+  OAHAAuthSchemeFactory = interface external 'org.apache.http.auth' name 'AuthSchemeFactory'
     function newInstance(para1: OAHPHttpParams): OAHAAuthScheme; overload;
   end;
 
@@ -15704,12 +15704,12 @@
     function toString(): JLString; overload; virtual;
   end;
 
-  OAHACredentials = interface external 'org.apache.http.auth' name 'Credentials' 
+  OAHACredentials = interface external 'org.apache.http.auth' name 'Credentials'
     function getUserPrincipal(): JSPrincipal; overload;
     function getPassword(): JLString; overload;
   end;
 
-  OAHAPAuthPNames = interface external 'org.apache.http.auth.params' name 'AuthPNames' 
+  OAHAPAuthPNames = interface external 'org.apache.http.auth.params' name 'AuthPNames'
     const
       CREDENTIAL_CHARSET = 'http.auth.credential-charset';
   end;
@@ -15720,26 +15720,26 @@
     class procedure setCredentialCharset(para1: OAHPHttpParams; para2: JLString); static; overload;
   end;
 
-  OAHCAuthenticationHandler = interface external 'org.apache.http.client' name 'AuthenticationHandler' 
+  OAHCAuthenticationHandler = interface external 'org.apache.http.client' name 'AuthenticationHandler'
     function isAuthenticationRequested(para1: OAHHttpResponse; para2: OAHPHttpContext): jboolean; overload;
     function getChallenges(para1: OAHHttpResponse; para2: OAHPHttpContext): JUMap; overload;  // throws org.apache.http.auth.MalformedChallengeException
     function selectScheme(para1: JUMap; para2: OAHHttpResponse; para3: OAHPHttpContext): OAHAAuthScheme; overload;  // throws org.apache.http.auth.AuthenticationException
   end;
 
-  OAHCCookieStore = interface external 'org.apache.http.client' name 'CookieStore' 
+  OAHCCookieStore = interface external 'org.apache.http.client' name 'CookieStore'
     procedure addCookie(para1: OAHCCookie); overload;
     function getCookies(): JUList; overload;
     function clearExpired(para1: JUDate): jboolean; overload;
     procedure clear(); overload;
   end;
 
-  OAHCCredentialsProvider = interface external 'org.apache.http.client' name 'CredentialsProvider' 
+  OAHCCredentialsProvider = interface external 'org.apache.http.client' name 'CredentialsProvider'
     procedure setCredentials(para1: OAHAAuthScope; para2: OAHACredentials); overload;
     function getCredentials(para1: OAHAAuthScope): OAHACredentials; overload;
     procedure clear(); overload;
   end;
 
-  OAHCHttpClient = interface external 'org.apache.http.client' name 'HttpClient' 
+  OAHCHttpClient = interface external 'org.apache.http.client' name 'HttpClient'
     function getParams(): OAHPHttpParams; overload;
     function getConnectionManager(): OAHCClientConnectionManager; overload;
     function execute(para1: OAHCMHttpUriRequest): OAHHttpResponse; overload;  // throws java.io.IOException, org.apache.http.client.ClientProtocolException
@@ -15752,28 +15752,28 @@
     function execute(para1: OAHHttpHost; para2: OAHHttpRequest; para3: OAHCResponseHandler; para4: OAHPHttpContext): JLObject; overload;  // throws java.io.IOException, org.apache.http.client.ClientProtocolException
   end;
 
-  OAHCHttpRequestRetryHandler = interface external 'org.apache.http.client' name 'HttpRequestRetryHandler' 
+  OAHCHttpRequestRetryHandler = interface external 'org.apache.http.client' name 'HttpRequestRetryHandler'
     function retryRequest(para1: JIIOException; para2: jint; para3: OAHPHttpContext): jboolean; overload;
   end;
 
-  OAHCRedirectHandler = interface external 'org.apache.http.client' name 'RedirectHandler' 
+  OAHCRedirectHandler = interface external 'org.apache.http.client' name 'RedirectHandler'
     function isRedirectRequested(para1: OAHHttpResponse; para2: OAHPHttpContext): jboolean; overload;
     function getLocationURI(para1: OAHHttpResponse; para2: OAHPHttpContext): JNURI; overload;  // throws org.apache.http.ProtocolException
   end;
 
-  OAHCRequestDirector = interface external 'org.apache.http.client' name 'RequestDirector' 
+  OAHCRequestDirector = interface external 'org.apache.http.client' name 'RequestDirector'
     function execute(para1: OAHHttpHost; para2: OAHHttpRequest; para3: OAHPHttpContext): OAHHttpResponse; overload;  // throws org.apache.http.HttpException, java.io.IOException
   end;
 
-  OAHCResponseHandler = interface external 'org.apache.http.client' name 'ResponseHandler' 
+  OAHCResponseHandler = interface external 'org.apache.http.client' name 'ResponseHandler'
     function handleResponse(para1: OAHHttpResponse): JLObject; overload;  // throws org.apache.http.client.ClientProtocolException, java.io.IOException
   end;
 
-  OAHCUserTokenHandler = interface external 'org.apache.http.client' name 'UserTokenHandler' 
+  OAHCUserTokenHandler = interface external 'org.apache.http.client' name 'UserTokenHandler'
     function getUserToken(para1: OAHPHttpContext): JLObject; overload;
   end;
 
-  OAHCMAbortableHttpRequest = interface external 'org.apache.http.client.methods' name 'AbortableHttpRequest' 
+  OAHCMAbortableHttpRequest = interface external 'org.apache.http.client.methods' name 'AbortableHttpRequest'
     procedure setConnectionRequest(para1: OAHCClientConnectionRequest); overload;  // throws java.io.IOException
     procedure setReleaseTrigger(para1: OAHCConnectionReleaseTrigger); overload;  // throws java.io.IOException
     procedure abort(); overload;
@@ -15787,7 +15787,7 @@
       BASIC = 'Basic';
   end;
 
-  OAHCPClientPNames = interface external 'org.apache.http.client.params' name 'ClientPNames' 
+  OAHCPClientPNames = interface external 'org.apache.http.client.params' name 'ClientPNames'
     const
       CONNECTION_MANAGER_FACTORY_CLASS_NAME = 'http.connection-manager.factory-class-name';
       CONNECTION_MANAGER_FACTORY = 'http.connection-manager.factory-object';
@@ -15822,7 +15822,7 @@
     class procedure setCookiePolicy(para1: OAHPHttpParams; para2: JLString); static; overload;
   end;
 
-  OAHCPClientContext = interface external 'org.apache.http.client.protocol' name 'ClientContext' 
+  OAHCPClientContext = interface external 'org.apache.http.client.protocol' name 'ClientContext'
     const
       COOKIESPEC_REGISTRY = 'http.cookiespec-registry';
       AUTHSCHEME_REGISTRY = 'http.authscheme-registry';
@@ -15863,7 +15863,7 @@
     class function format(para1: JUList; para2: JLString): JLString; static; overload;
   end;
 
-  OAHCClientConnectionManager = interface external 'org.apache.http.conn' name 'ClientConnectionManager' 
+  OAHCClientConnectionManager = interface external 'org.apache.http.conn' name 'ClientConnectionManager'
     function getSchemeRegistry(): OAHCSSchemeRegistry; overload;
     function requestConnection(para1: OAHCRHttpRoute; para2: JLObject): OAHCClientConnectionRequest; overload;
     procedure releaseConnection(para1: OAHCManagedClientConnection; para2: jlong; para3: JUCTimeUnit); overload;
@@ -15872,60 +15872,60 @@
     procedure shutdown(); overload;
   end;
 
-  OAHCClientConnectionManagerFactory = interface external 'org.apache.http.conn' name 'ClientConnectionManagerFactory' 
+  OAHCClientConnectionManagerFactory = interface external 'org.apache.http.conn' name 'ClientConnectionManagerFactory'
     function newInstance(para1: OAHPHttpParams; para2: OAHCSSchemeRegistry): OAHCClientConnectionManager; overload;
   end;
 
-  OAHCClientConnectionOperator = interface external 'org.apache.http.conn' name 'ClientConnectionOperator' 
+  OAHCClientConnectionOperator = interface external 'org.apache.http.conn' name 'ClientConnectionOperator'
     function createConnection(): OAHCOperatedClientConnection; overload;
     procedure openConnection(para1: OAHCOperatedClientConnection; para2: OAHHttpHost; para3: JNInetAddress; para4: OAHPHttpContext; para5: OAHPHttpParams); overload;  // throws java.io.IOException
     procedure updateSecureConnection(para1: OAHCOperatedClientConnection; para2: OAHHttpHost; para3: OAHPHttpContext; para4: OAHPHttpParams); overload;  // throws java.io.IOException
   end;
 
-  OAHCClientConnectionRequest = interface external 'org.apache.http.conn' name 'ClientConnectionRequest' 
+  OAHCClientConnectionRequest = interface external 'org.apache.http.conn' name 'ClientConnectionRequest'
     function getConnection(para1: jlong; para2: JUCTimeUnit): OAHCManagedClientConnection; overload;  // throws java.lang.InterruptedException, org.apache.http.conn.ConnectionPoolTimeoutException
     procedure abortRequest(); overload;
   end;
 
-  OAHCConnectionKeepAliveStrategy = interface external 'org.apache.http.conn' name 'ConnectionKeepAliveStrategy' 
+  OAHCConnectionKeepAliveStrategy = interface external 'org.apache.http.conn' name 'ConnectionKeepAliveStrategy'
     function getKeepAliveDuration(para1: OAHHttpResponse; para2: OAHPHttpContext): jlong; overload;
   end;
 
-  OAHCConnectionReleaseTrigger = interface external 'org.apache.http.conn' name 'ConnectionReleaseTrigger' 
+  OAHCConnectionReleaseTrigger = interface external 'org.apache.http.conn' name 'ConnectionReleaseTrigger'
     procedure releaseConnection(); overload;  // throws java.io.IOException
     procedure abortConnection(); overload;  // throws java.io.IOException
   end;
 
-  OAHCEofSensorWatcher = interface external 'org.apache.http.conn' name 'EofSensorWatcher' 
+  OAHCEofSensorWatcher = interface external 'org.apache.http.conn' name 'EofSensorWatcher'
     function eofDetected(para1: JIInputStream): jboolean; overload;  // throws java.io.IOException
     function streamClosed(para1: JIInputStream): jboolean; overload;  // throws java.io.IOException
     function streamAbort(para1: JIInputStream): jboolean; overload;  // throws java.io.IOException
   end;
 
-  OAHCPConnConnectionPNames = interface external 'org.apache.http.conn.params' name 'ConnConnectionPNames' 
+  OAHCPConnConnectionPNames = interface external 'org.apache.http.conn.params' name 'ConnConnectionPNames'
     const
       MAX_STATUS_LINE_GARBAGE = 'http.connection.max-status-line-garbage';
   end;
 
-  OAHCPConnManagerPNames = interface external 'org.apache.http.conn.params' name 'ConnManagerPNames' 
+  OAHCPConnManagerPNames = interface external 'org.apache.http.conn.params' name 'ConnManagerPNames'
     const
       TIMEOUT = 'http.conn-manager.timeout';
       MAX_CONNECTIONS_PER_ROUTE = 'http.conn-manager.max-per-route';
       MAX_TOTAL_CONNECTIONS = 'http.conn-manager.max-total';
   end;
 
-  OAHCPConnPerRoute = interface external 'org.apache.http.conn.params' name 'ConnPerRoute' 
+  OAHCPConnPerRoute = interface external 'org.apache.http.conn.params' name 'ConnPerRoute'
     function getMaxForRoute(para1: OAHCRHttpRoute): jint; overload;
   end;
 
-  OAHCPConnRoutePNames = interface external 'org.apache.http.conn.params' name 'ConnRoutePNames' 
+  OAHCPConnRoutePNames = interface external 'org.apache.http.conn.params' name 'ConnRoutePNames'
     const
       DEFAULT_PROXY = 'http.route.default-proxy';
       LOCAL_ADDRESS = 'http.route.local-address';
       FORCED_ROUTE = 'http.route.forced-route';
   end;
 
-  OAHCRHttpRouteDirector = interface external 'org.apache.http.conn.routing' name 'HttpRouteDirector' 
+  OAHCRHttpRouteDirector = interface external 'org.apache.http.conn.routing' name 'HttpRouteDirector'
     const
       UNREACHABLE = -1;
       COMPLETE = 0;
@@ -15937,11 +15937,11 @@
     function nextStep(para1: OAHCRRouteInfo; para2: OAHCRRouteInfo): jint; overload;
   end;
 
-  OAHCRHttpRoutePlanner = interface external 'org.apache.http.conn.routing' name 'HttpRoutePlanner' 
+  OAHCRHttpRoutePlanner = interface external 'org.apache.http.conn.routing' name 'HttpRoutePlanner'
     function determineRoute(para1: OAHHttpHost; para2: OAHHttpRequest; para3: OAHPHttpContext): OAHCRHttpRoute; overload;  // throws org.apache.http.HttpException
   end;
 
-  OAHCSHostNameResolver = interface external 'org.apache.http.conn.scheme' name 'HostNameResolver' 
+  OAHCSHostNameResolver = interface external 'org.apache.http.conn.scheme' name 'HostNameResolver'
     function resolve(para1: JLString): JNInetAddress; overload;  // throws java.io.IOException
   end;
 
@@ -15970,7 +15970,7 @@
     procedure setItems(para1: JUMap); overload; virtual;
   end;
 
-  OAHCSSocketFactory = interface external 'org.apache.http.conn.scheme' name 'SocketFactory' 
+  OAHCSSocketFactory = interface external 'org.apache.http.conn.scheme' name 'SocketFactory'
     function createSocket(): JNSocket; overload;  // throws java.io.IOException
     function connectSocket(para1: JNSocket; para2: JLString; para3: jint; para4: JNInetAddress; para5: jint; para6: OAHPHttpParams): JNSocket; overload;  // throws java.io.IOException, java.net.UnknownHostException, org.apache.http.conn.ConnectTimeoutException
     function isSecure(para1: JNSocket): jboolean; overload;  // throws java.lang.IllegalArgumentException
@@ -15984,7 +15984,7 @@
     class function isIPv6Address(para1: JLString): jboolean; static; overload;
   end;
 
-  OAHCCookie = interface external 'org.apache.http.cookie' name 'Cookie' 
+  OAHCCookie = interface external 'org.apache.http.cookie' name 'Cookie'
     function getName(): JLString; overload;
     function getValue(): JLString; overload;
     function getComment(): JLString; overload;
@@ -15999,7 +15999,7 @@
     function isExpired(para1: JUDate): jboolean; overload;
   end;
 
-  OAHCCookieAttributeHandler = interface external 'org.apache.http.cookie' name 'CookieAttributeHandler' 
+  OAHCCookieAttributeHandler = interface external 'org.apache.http.cookie' name 'CookieAttributeHandler'
     procedure parse(para1: OAHCSetCookie; para2: JLString); overload;  // throws org.apache.http.cookie.MalformedCookieException
     procedure validate(para1: OAHCCookie; para2: OAHCCookieOrigin); overload;  // throws org.apache.http.cookie.MalformedCookieException
     function match(para1: OAHCCookie; para2: OAHCCookieOrigin): jboolean; overload;
@@ -16015,7 +16015,7 @@
     function toString(): JLString; overload; virtual;
   end;
 
-  OAHCCookieSpec = interface external 'org.apache.http.cookie' name 'CookieSpec' 
+  OAHCCookieSpec = interface external 'org.apache.http.cookie' name 'CookieSpec'
     function getVersion(): jint; overload;
     function parse(para1: OAHHeader; para2: OAHCCookieOrigin): JUList; overload;  // throws org.apache.http.cookie.MalformedCookieException
     procedure validate(para1: OAHCCookie; para2: OAHCCookieOrigin); overload;  // throws org.apache.http.cookie.MalformedCookieException
@@ -16024,7 +16024,7 @@
     function getVersionHeader(): OAHHeader; overload;
   end;
 
-  OAHCCookieSpecFactory = interface external 'org.apache.http.cookie' name 'CookieSpecFactory' 
+  OAHCCookieSpecFactory = interface external 'org.apache.http.cookie' name 'CookieSpecFactory'
     function newInstance(para1: OAHPHttpParams): OAHCCookieSpec; overload;
   end;
 
@@ -16039,7 +16039,7 @@
     procedure setItems(para1: JUMap); overload; virtual;
   end;
 
-  OAHCSM = interface external 'org.apache.http.cookie' name 'SM' 
+  OAHCSM = interface external 'org.apache.http.cookie' name 'SM'
     const
       COOKIE = 'Cookie';
       COOKIE2 = 'Cookie2';
@@ -16047,24 +16047,24 @@
       SET_COOKIE2 = 'Set-Cookie2';
   end;
 
-  OAHCPCookieSpecPNames = interface external 'org.apache.http.cookie.params' name 'CookieSpecPNames' 
+  OAHCPCookieSpecPNames = interface external 'org.apache.http.cookie.params' name 'CookieSpecPNames'
     const
       DATE_PATTERNS = 'http.protocol.cookie-datepatterns';
       SINGLE_COOKIE_HEADER = 'http.protocol.single-cookie-header';
   end;
 
-  OAHEContentLengthStrategy = interface external 'org.apache.http.entity' name 'ContentLengthStrategy' 
+  OAHEContentLengthStrategy = interface external 'org.apache.http.entity' name 'ContentLengthStrategy'
     const
       IDENTITY = -1;
       CHUNKED = -2;
     function determineLength(para1: OAHHttpMessage): jlong; overload;  // throws org.apache.http.HttpException
   end;
 
-  OAHEContentProducer = interface external 'org.apache.http.entity' name 'ContentProducer' 
+  OAHEContentProducer = interface external 'org.apache.http.entity' name 'ContentProducer'
     procedure writeTo(para1: JIOutputStream); overload;  // throws java.io.IOException
   end;
 
-  OAHIANTLMEngine = interface external 'org.apache.http.impl.auth' name 'NTLMEngine' 
+  OAHIANTLMEngine = interface external 'org.apache.http.impl.auth' name 'NTLMEngine'
     function generateType1Msg(para1: JLString; para2: JLString): JLString; overload;  // throws org.apache.http.impl.auth.NTLMEngineException
     function generateType3Msg(para1: JLString; para2: JLString; para3: JLString; para4: JLString; para5: JLString): JLString; overload;  // throws org.apache.http.impl.auth.NTLMEngineException
   end;
@@ -16141,12 +16141,12 @@
     procedure input(para1: JLString); overload; virtual;  // throws java.io.IOException
   end;
 
-  OAHICTPoolEntryRequest = interface external 'org.apache.http.impl.conn.tsccm' name 'PoolEntryRequest' 
+  OAHICTPoolEntryRequest = interface external 'org.apache.http.impl.conn.tsccm' name 'PoolEntryRequest'
     function getPoolEntry(para1: jlong; para2: JUCTimeUnit): OAHICTBasicPoolEntry; overload;  // throws java.lang.InterruptedException, org.apache.http.conn.ConnectionPoolTimeoutException
     procedure abortRequest(); overload;
   end;
 
-  OAHICTRefQueueHandler = interface external 'org.apache.http.impl.conn.tsccm' name 'RefQueueHandler' 
+  OAHICTRefQueueHandler = interface external 'org.apache.http.impl.conn.tsccm' name 'RefQueueHandler'
     procedure handleReference(para1: JLRReference); overload;
   end;
 
@@ -16242,20 +16242,20 @@
     procedure serialize(para1: OAHISessionOutputBuffer; para2: OAHHttpMessage; para3: OAHHttpEntity); overload; virtual;  // throws org.apache.http.HttpException, java.io.IOException
   end;
 
-  OAHIHttpMessageParser = interface external 'org.apache.http.io' name 'HttpMessageParser' 
+  OAHIHttpMessageParser = interface external 'org.apache.http.io' name 'HttpMessageParser'
     function parse(): OAHHttpMessage; overload;  // throws java.io.IOException, org.apache.http.HttpException
   end;
 
-  OAHIHttpMessageWriter = interface external 'org.apache.http.io' name 'HttpMessageWriter' 
+  OAHIHttpMessageWriter = interface external 'org.apache.http.io' name 'HttpMessageWriter'
     procedure write(para1: OAHHttpMessage); overload;  // throws java.io.IOException, org.apache.http.HttpException
   end;
 
-  OAHIHttpTransportMetrics = interface external 'org.apache.http.io' name 'HttpTransportMetrics' 
+  OAHIHttpTransportMetrics = interface external 'org.apache.http.io' name 'HttpTransportMetrics'
     function getBytesTransferred(): jlong; overload;
     procedure reset(); overload;
   end;
 
-  OAHISessionInputBuffer = interface external 'org.apache.http.io' name 'SessionInputBuffer' 
+  OAHISessionInputBuffer = interface external 'org.apache.http.io' name 'SessionInputBuffer'
     function read(para1: Arr1jbyte; para2: jint; para3: jint): jint; overload;  // throws java.io.IOException
     function read(var para1: array of jbyte; para2: jint; para3: jint): jint; overload;  // throws java.io.IOException
     function read(para1: Arr1jbyte): jint; overload;  // throws java.io.IOException
@@ -16267,7 +16267,7 @@
     function getMetrics(): OAHIHttpTransportMetrics; overload;
   end;
 
-  OAHISessionOutputBuffer = interface external 'org.apache.http.io' name 'SessionOutputBuffer' 
+  OAHISessionOutputBuffer = interface external 'org.apache.http.io' name 'SessionOutputBuffer'
     procedure write(para1: Arr1jbyte; para2: jint; para3: jint); overload;  // throws java.io.IOException
     procedure write(var para1: array of jbyte; para2: jint; para3: jint); overload;  // throws java.io.IOException
     procedure write(para1: Arr1jbyte); overload;  // throws java.io.IOException
@@ -16279,7 +16279,7 @@
     function getMetrics(): OAHIHttpTransportMetrics; overload;
   end;
 
-  OAHMHeaderValueFormatter = interface external 'org.apache.http.message' name 'HeaderValueFormatter' 
+  OAHMHeaderValueFormatter = interface external 'org.apache.http.message' name 'HeaderValueFormatter'
     function formatElements(para1: OAHUCharArrayBuffer; para2: Arr1OAHHeaderElement; para3: jboolean): OAHUCharArrayBuffer; overload;
     function formatElements(para1: OAHUCharArrayBuffer; var para2: array of OAHHeaderElement; para3: jboolean): OAHUCharArrayBuffer; overload;
     function formatHeaderElement(para1: OAHUCharArrayBuffer; para2: OAHHeaderElement; para3: jboolean): OAHUCharArrayBuffer; overload;
@@ -16288,21 +16288,21 @@
     function formatNameValuePair(para1: OAHUCharArrayBuffer; para2: OAHNameValuePair; para3: jboolean): OAHUCharArrayBuffer; overload;
   end;
 
-  OAHMHeaderValueParser = interface external 'org.apache.http.message' name 'HeaderValueParser' 
+  OAHMHeaderValueParser = interface external 'org.apache.http.message' name 'HeaderValueParser'
     function parseElements(para1: OAHUCharArrayBuffer; para2: OAHMParserCursor): Arr1OAHHeaderElement; overload;  // throws org.apache.http.ParseException
     function parseHeaderElement(para1: OAHUCharArrayBuffer; para2: OAHMParserCursor): OAHHeaderElement; overload;  // throws org.apache.http.ParseException
     function parseParameters(para1: OAHUCharArrayBuffer; para2: OAHMParserCursor): Arr1OAHNameValuePair; overload;  // throws org.apache.http.ParseException
     function parseNameValuePair(para1: OAHUCharArrayBuffer; para2: OAHMParserCursor): OAHNameValuePair; overload;  // throws org.apache.http.ParseException
   end;
 
-  OAHMLineFormatter = interface external 'org.apache.http.message' name 'LineFormatter' 
+  OAHMLineFormatter = interface external 'org.apache.http.message' name 'LineFormatter'
     function appendProtocolVersion(para1: OAHUCharArrayBuffer; para2: OAHProtocolVersion): OAHUCharArrayBuffer; overload;
     function formatRequestLine(para1: OAHUCharArrayBuffer; para2: OAHRequestLine): OAHUCharArrayBuffer; overload;
     function formatStatusLine(para1: OAHUCharArrayBuffer; para2: OAHStatusLine): OAHUCharArrayBuffer; overload;
     function formatHeader(para1: OAHUCharArrayBuffer; para2: OAHHeader): OAHUCharArrayBuffer; overload;
   end;
 
-  OAHMLineParser = interface external 'org.apache.http.message' name 'LineParser' 
+  OAHMLineParser = interface external 'org.apache.http.message' name 'LineParser'
     function parseProtocolVersion(para1: OAHUCharArrayBuffer; para2: OAHMParserCursor): OAHProtocolVersion; overload;  // throws org.apache.http.ParseException
     function hasProtocolVersion(para1: OAHUCharArrayBuffer; para2: OAHMParserCursor): jboolean; overload;
     function parseRequestLine(para1: OAHUCharArrayBuffer; para2: OAHMParserCursor): OAHRequestLine; overload;  // throws org.apache.http.ParseException
@@ -16321,7 +16321,7 @@
     function toString(): JLString; overload; virtual;
   end;
 
-  OAHPCoreConnectionPNames = interface external 'org.apache.http.params' name 'CoreConnectionPNames' 
+  OAHPCoreConnectionPNames = interface external 'org.apache.http.params' name 'CoreConnectionPNames'
     const
       SO_TIMEOUT = 'http.socket.timeout';
       TCP_NODELAY = 'http.tcp.nodelay';
@@ -16333,7 +16333,7 @@
       MAX_HEADER_COUNT = 'http.connection.max-header-count';
   end;
 
-  OAHPCoreProtocolPNames = interface external 'org.apache.http.params' name 'CoreProtocolPNames' 
+  OAHPCoreProtocolPNames = interface external 'org.apache.http.params' name 'CoreProtocolPNames'
     const
       PROTOCOL_VERSION = 'http.protocol.version';
       HTTP_ELEMENT_CHARSET = 'http.protocol.element-charset';
@@ -16353,7 +16353,7 @@
     constructor create(para1: OAHPHttpParams); overload;
   end;
 
-  OAHPHttpParams = interface external 'org.apache.http.params' name 'HttpParams' 
+  OAHPHttpParams = interface external 'org.apache.http.params' name 'HttpParams'
     function getParameter(para1: JLString): JLObject; overload;
     function setParameter(para1: JLString; para2: JLObject): OAHPHttpParams; overload;
     function copy(): OAHPHttpParams; overload;
@@ -16370,7 +16370,7 @@
     function isParameterFalse(para1: JLString): jboolean; overload;
   end;
 
-  OAHPExecutionContext = interface external 'org.apache.http.protocol' name 'ExecutionContext' 
+  OAHPExecutionContext = interface external 'org.apache.http.protocol' name 'ExecutionContext'
     const
       HTTP_CONNECTION = 'http.connection';
       HTTP_REQUEST = 'http.request';
@@ -16417,7 +16417,7 @@
     class function isWhitespace(para1: jchar): jboolean; static; overload;
   end;
 
-  OAHPHttpContext = interface external 'org.apache.http.protocol' name 'HttpContext' 
+  OAHPHttpContext = interface external 'org.apache.http.protocol' name 'HttpContext'
     const
       RESERVED_PREFIX = 'http.';
     function getAttribute(para1: JLString): JLObject; overload;
@@ -16437,7 +16437,7 @@
     function getCurrentDate(): JLString; overload; virtual;
   end;
 
-  OAHPHttpExpectationVerifier = interface external 'org.apache.http.protocol' name 'HttpExpectationVerifier' 
+  OAHPHttpExpectationVerifier = interface external 'org.apache.http.protocol' name 'HttpExpectationVerifier'
     procedure verify(para1: OAHHttpRequest; para2: OAHHttpResponse; para3: OAHPHttpContext); overload;  // throws org.apache.http.HttpException
   end;
 
@@ -16456,15 +16456,15 @@
     procedure postProcess(para1: OAHHttpResponse; para2: OAHPHttpProcessor; para3: OAHPHttpContext); overload; virtual;  // throws org.apache.http.HttpException, java.io.IOException
   end;
 
-  OAHPHttpRequestHandler = interface external 'org.apache.http.protocol' name 'HttpRequestHandler' 
+  OAHPHttpRequestHandler = interface external 'org.apache.http.protocol' name 'HttpRequestHandler'
     procedure handle(para1: OAHHttpRequest; para2: OAHHttpResponse; para3: OAHPHttpContext); overload;  // throws org.apache.http.HttpException, java.io.IOException
   end;
 
-  OAHPHttpRequestHandlerResolver = interface external 'org.apache.http.protocol' name 'HttpRequestHandlerResolver' 
+  OAHPHttpRequestHandlerResolver = interface external 'org.apache.http.protocol' name 'HttpRequestHandlerResolver'
     function lookup(para1: JLString): OAHPHttpRequestHandler; overload;
   end;
 
-  OAHPHttpRequestInterceptorList = interface external 'org.apache.http.protocol' name 'HttpRequestInterceptorList' 
+  OAHPHttpRequestInterceptorList = interface external 'org.apache.http.protocol' name 'HttpRequestInterceptorList'
     procedure addRequestInterceptor(para1: OAHHttpRequestInterceptor); overload;
     procedure addRequestInterceptor(para1: OAHHttpRequestInterceptor; para2: jint); overload;
     function getRequestInterceptorCount(): jint; overload;
@@ -16474,7 +16474,7 @@
     procedure setInterceptors(para1: JUList); overload;
   end;
 
-  OAHPHttpResponseInterceptorList = interface external 'org.apache.http.protocol' name 'HttpResponseInterceptorList' 
+  OAHPHttpResponseInterceptorList = interface external 'org.apache.http.protocol' name 'HttpResponseInterceptorList'
     procedure addResponseInterceptor(para1: OAHHttpResponseInterceptor); overload;
     procedure addResponseInterceptor(para1: OAHHttpResponseInterceptor; para2: jint); overload;
     function getResponseInterceptorCount(): jint; overload;
@@ -16760,14 +16760,14 @@
     class function dehexchar(para1: jchar): jint; static; overload;
   end;
 
-  OWDDOMConfiguration = interface external 'org.w3c.dom' name 'DOMConfiguration' 
+  OWDDOMConfiguration = interface external 'org.w3c.dom' name 'DOMConfiguration'
     procedure setParameter(para1: JLString; para2: JLObject); overload;  // throws org.w3c.dom.DOMException
     function getParameter(para1: JLString): JLObject; overload;  // throws org.w3c.dom.DOMException
     function canSetParameter(para1: JLString; para2: JLObject): jboolean; overload;
     function getParameterNames(): OWDDOMStringList; overload;
   end;
 
-  OWDDOMError = interface external 'org.w3c.dom' name 'DOMError' 
+  OWDDOMError = interface external 'org.w3c.dom' name 'DOMError'
     const
       SEVERITY_WARNING = 1;
       SEVERITY_ERROR = 2;
@@ -16780,28 +16780,28 @@
     function getLocation(): OWDDOMLocator; overload;
   end;
 
-  OWDDOMErrorHandler = interface external 'org.w3c.dom' name 'DOMErrorHandler' 
+  OWDDOMErrorHandler = interface external 'org.w3c.dom' name 'DOMErrorHandler'
     function handleError(para1: OWDDOMError): jboolean; overload;
   end;
 
-  OWDDOMImplementation = interface external 'org.w3c.dom' name 'DOMImplementation' 
+  OWDDOMImplementation = interface external 'org.w3c.dom' name 'DOMImplementation'
     function hasFeature(para1: JLString; para2: JLString): jboolean; overload;
     function createDocumentType(para1: JLString; para2: JLString; para3: JLString): OWDDocumentType; overload;  // throws org.w3c.dom.DOMException
     function createDocument(para1: JLString; para2: JLString; para3: OWDDocumentType): OWDDocument; overload;  // throws org.w3c.dom.DOMException
     function getFeature(para1: JLString; para2: JLString): JLObject; overload;
   end;
 
-  OWDDOMImplementationList = interface external 'org.w3c.dom' name 'DOMImplementationList' 
+  OWDDOMImplementationList = interface external 'org.w3c.dom' name 'DOMImplementationList'
     function item(para1: jint): OWDDOMImplementation; overload;
     function getLength(): jint; overload;
   end;
 
-  OWDDOMImplementationSource = interface external 'org.w3c.dom' name 'DOMImplementationSource' 
+  OWDDOMImplementationSource = interface external 'org.w3c.dom' name 'DOMImplementationSource'
     function getDOMImplementation(para1: JLString): OWDDOMImplementation; overload;
     function getDOMImplementationList(para1: JLString): OWDDOMImplementationList; overload;
   end;
 
-  OWDDOMLocator = interface external 'org.w3c.dom' name 'DOMLocator' 
+  OWDDOMLocator = interface external 'org.w3c.dom' name 'DOMLocator'
     function getLineNumber(): jint; overload;
     function getColumnNumber(): jint; overload;
     function getByteOffset(): jint; overload;
@@ -16810,13 +16810,13 @@
     function getUri(): JLString; overload;
   end;
 
-  OWDDOMStringList = interface external 'org.w3c.dom' name 'DOMStringList' 
+  OWDDOMStringList = interface external 'org.w3c.dom' name 'DOMStringList'
     function item(para1: jint): JLString; overload;
     function getLength(): jint; overload;
     function contains(para1: JLString): jboolean; overload;
   end;
 
-  OWDNameList = interface external 'org.w3c.dom' name 'NameList' 
+  OWDNameList = interface external 'org.w3c.dom' name 'NameList'
     function getName(para1: jint): JLString; overload;
     function getNamespaceURI(para1: jint): JLString; overload;
     function getLength(): jint; overload;
@@ -16824,7 +16824,7 @@
     function containsNS(para1: JLString; para2: JLString): jboolean; overload;
   end;
 
-  OWDNamedNodeMap = interface external 'org.w3c.dom' name 'NamedNodeMap' 
+  OWDNamedNodeMap = interface external 'org.w3c.dom' name 'NamedNodeMap'
     function getNamedItem(para1: JLString): OWDNode; overload;
     function setNamedItem(para1: OWDNode): OWDNode; overload;  // throws org.w3c.dom.DOMException
     function removeNamedItem(para1: JLString): OWDNode; overload;  // throws org.w3c.dom.DOMException
@@ -16835,7 +16835,7 @@
     function removeNamedItemNS(para1: JLString; para2: JLString): OWDNode; overload;  // throws org.w3c.dom.DOMException
   end;
 
-  OWDNode = interface external 'org.w3c.dom' name 'Node' 
+  OWDNode = interface external 'org.w3c.dom' name 'Node'
     const
       ELEMENT_NODE = 1;
       ATTRIBUTE_NODE = 2;
@@ -16894,12 +16894,12 @@
     function getUserData(para1: JLString): JLObject; overload;
   end;
 
-  OWDNodeList = interface external 'org.w3c.dom' name 'NodeList' 
+  OWDNodeList = interface external 'org.w3c.dom' name 'NodeList'
     function item(para1: jint): OWDNode; overload;
     function getLength(): jint; overload;
   end;
 
-  OWDTypeInfo = interface external 'org.w3c.dom' name 'TypeInfo' 
+  OWDTypeInfo = interface external 'org.w3c.dom' name 'TypeInfo'
     const
       DERIVATION_RESTRICTION = 1;
       DERIVATION_EXTENSION = 2;
@@ -16910,7 +16910,7 @@
     function isDerivedFrom(para1: JLString; para2: JLString; para3: jint): jboolean; overload;
   end;
 
-  OWDUserDataHandler = interface external 'org.w3c.dom' name 'UserDataHandler' 
+  OWDUserDataHandler = interface external 'org.w3c.dom' name 'UserDataHandler'
     const
       NODE_CLONED = 1;
       NODE_IMPORTED = 2;
@@ -16920,7 +16920,7 @@
     procedure handle(para1: jshort; para2: JLString; para3: JLObject; para4: OWDNode; para5: OWDNode); overload;
   end;
 
-  OWDLDOMImplementationLS = interface external 'org.w3c.dom.ls' name 'DOMImplementationLS' 
+  OWDLDOMImplementationLS = interface external 'org.w3c.dom.ls' name 'DOMImplementationLS'
     const
       MODE_SYNCHRONOUS = 1;
       MODE_ASYNCHRONOUS = 2;
@@ -16930,7 +16930,7 @@
     function createLSOutput(): OWDLLSOutput; overload;
   end;
 
-  OWDLLSInput = interface external 'org.w3c.dom.ls' name 'LSInput' 
+  OWDLLSInput = interface external 'org.w3c.dom.ls' name 'LSInput'
     function getCharacterStream(): JIReader; overload;
     procedure setCharacterStream(para1: JIReader); overload;
     function getByteStream(): JIInputStream; overload;
@@ -16949,7 +16949,7 @@
     procedure setCertifiedText(para1: jboolean); overload;
   end;
 
-  OWDLLSOutput = interface external 'org.w3c.dom.ls' name 'LSOutput' 
+  OWDLLSOutput = interface external 'org.w3c.dom.ls' name 'LSOutput'
     function getCharacterStream(): JIWriter; overload;
     procedure setCharacterStream(para1: JIWriter); overload;
     function getByteStream(): JIOutputStream; overload;
@@ -16960,7 +16960,7 @@
     procedure setEncoding(para1: JLString); overload;
   end;
 
-  OWDLLSParser = interface external 'org.w3c.dom.ls' name 'LSParser' 
+  OWDLLSParser = interface external 'org.w3c.dom.ls' name 'LSParser'
     const
       ACTION_APPEND_AS_CHILDREN = 1;
       ACTION_REPLACE_CHILDREN = 2;
@@ -16978,7 +16978,7 @@
     procedure abort(); overload;
   end;
 
-  OWDLLSParserFilter = interface external 'org.w3c.dom.ls' name 'LSParserFilter' 
+  OWDLLSParserFilter = interface external 'org.w3c.dom.ls' name 'LSParserFilter'
     const
       FILTER_ACCEPT = 1;
       FILTER_REJECT = 2;
@@ -16989,11 +16989,11 @@
     function getWhatToShow(): jint; overload;
   end;
 
-  OWDLLSResourceResolver = interface external 'org.w3c.dom.ls' name 'LSResourceResolver' 
+  OWDLLSResourceResolver = interface external 'org.w3c.dom.ls' name 'LSResourceResolver'
     function resolveResource(para1: JLString; para2: JLString; para3: JLString; para4: JLString; para5: JLString): OWDLLSInput; overload;
   end;
 
-  OWDLLSSerializer = interface external 'org.w3c.dom.ls' name 'LSSerializer' 
+  OWDLLSSerializer = interface external 'org.w3c.dom.ls' name 'LSSerializer'
     function getDomConfig(): OWDDOMConfiguration; overload;
     function getNewLine(): JLString; overload;
     procedure setNewLine(para1: JLString); overload;
@@ -17002,7 +17002,7 @@
     function writeToString(para1: OWDNode): JLString; overload;  // throws org.w3c.dom.DOMException, org.w3c.dom.ls.LSException
   end;
 
-  OXSAttributeList = interface external 'org.xml.sax' name 'AttributeList' 
+  OXSAttributeList = interface external 'org.xml.sax' name 'AttributeList'
     function getLength(): jint; overload;
     function getName(para1: jint): JLString; overload;
     function getType(para1: jint): JLString; overload;
@@ -17011,7 +17011,7 @@
     function getValue(para1: JLString): JLString; overload;
   end;
 
-  OXSAttributes = interface external 'org.xml.sax' name 'Attributes' 
+  OXSAttributes = interface external 'org.xml.sax' name 'Attributes'
     function getLength(): jint; overload;
     function getURI(para1: jint): JLString; overload;
     function getLocalName(para1: jint): JLString; overload;
@@ -17026,7 +17026,7 @@
     function getValue(para1: JLString): JLString; overload;
   end;
 
-  OXSContentHandler = interface external 'org.xml.sax' name 'ContentHandler' 
+  OXSContentHandler = interface external 'org.xml.sax' name 'ContentHandler'
     procedure setDocumentLocator(para1: OXSLocator); overload;
     procedure startDocument(); overload;  // throws org.xml.sax.SAXException
     procedure endDocument(); overload;  // throws org.xml.sax.SAXException
@@ -17042,12 +17042,12 @@
     procedure skippedEntity(para1: JLString); overload;  // throws org.xml.sax.SAXException
   end;
 
-  OXSDTDHandler = interface external 'org.xml.sax' name 'DTDHandler' 
+  OXSDTDHandler = interface external 'org.xml.sax' name 'DTDHandler'
     procedure notationDecl(para1: JLString; para2: JLString; para3: JLString); overload;  // throws org.xml.sax.SAXException
     procedure unparsedEntityDecl(para1: JLString; para2: JLString; para3: JLString; para4: JLString); overload;  // throws org.xml.sax.SAXException
   end;
 
-  OXSDocumentHandler = interface external 'org.xml.sax' name 'DocumentHandler' 
+  OXSDocumentHandler = interface external 'org.xml.sax' name 'DocumentHandler'
     procedure setDocumentLocator(para1: OXSLocator); overload;
     procedure startDocument(); overload;  // throws org.xml.sax.SAXException
     procedure endDocument(); overload;  // throws org.xml.sax.SAXException
@@ -17060,11 +17060,11 @@
     procedure processingInstruction(para1: JLString; para2: JLString); overload;  // throws org.xml.sax.SAXException
   end;
 
-  OXSEntityResolver = interface external 'org.xml.sax' name 'EntityResolver' 
+  OXSEntityResolver = interface external 'org.xml.sax' name 'EntityResolver'
     function resolveEntity(para1: JLString; para2: JLString): OXSInputSource; overload;  // throws org.xml.sax.SAXException, java.io.IOException
   end;
 
-  OXSErrorHandler = interface external 'org.xml.sax' name 'ErrorHandler' 
+  OXSErrorHandler = interface external 'org.xml.sax' name 'ErrorHandler'
     procedure warning(para1: OXSSAXParseException); overload;  // throws org.xml.sax.SAXException
     procedure error(para1: OXSSAXParseException); overload;  // throws org.xml.sax.SAXException
     procedure fatalError(para1: OXSSAXParseException); overload;  // throws org.xml.sax.SAXException
@@ -17088,14 +17088,14 @@
     function getCharacterStream(): JIReader; overload; virtual;
   end;
 
-  OXSLocator = interface external 'org.xml.sax' name 'Locator' 
+  OXSLocator = interface external 'org.xml.sax' name 'Locator'
     function getPublicId(): JLString; overload;
     function getSystemId(): JLString; overload;
     function getLineNumber(): jint; overload;
     function getColumnNumber(): jint; overload;
   end;
 
-  OXSParser = interface external 'org.xml.sax' name 'Parser' 
+  OXSParser = interface external 'org.xml.sax' name 'Parser'
     procedure setLocale(para1: JULocale); overload;  // throws org.xml.sax.SAXException
     procedure setEntityResolver(para1: OXSEntityResolver); overload;
     procedure setDTDHandler(para1: OXSDTDHandler); overload;
@@ -17105,7 +17105,7 @@
     procedure parse(para1: JLString); overload;  // throws org.xml.sax.SAXException, java.io.IOException
   end;
 
-  OXSXMLReader = interface external 'org.xml.sax' name 'XMLReader' 
+  OXSXMLReader = interface external 'org.xml.sax' name 'XMLReader'
     function getFeature(para1: JLString): jboolean; overload;  // throws org.xml.sax.SAXNotRecognizedException, org.xml.sax.SAXNotSupportedException
     procedure setFeature(para1: JLString; para2: jboolean); overload;  // throws org.xml.sax.SAXNotRecognizedException, org.xml.sax.SAXNotSupportedException
     function getProperty(para1: JLString): JLObject; overload;  // throws org.xml.sax.SAXNotRecognizedException, org.xml.sax.SAXNotSupportedException
@@ -17122,14 +17122,14 @@
     procedure parse(para1: JLString); overload;  // throws java.io.IOException, org.xml.sax.SAXException
   end;
 
-  OXSEDeclHandler = interface external 'org.xml.sax.ext' name 'DeclHandler' 
+  OXSEDeclHandler = interface external 'org.xml.sax.ext' name 'DeclHandler'
     procedure elementDecl(para1: JLString; para2: JLString); overload;  // throws org.xml.sax.SAXException
     procedure attributeDecl(para1: JLString; para2: JLString; para3: JLString; para4: JLString; para5: JLString); overload;  // throws org.xml.sax.SAXException
     procedure internalEntityDecl(para1: JLString; para2: JLString); overload;  // throws org.xml.sax.SAXException
     procedure externalEntityDecl(para1: JLString; para2: JLString; para3: JLString); overload;  // throws org.xml.sax.SAXException
   end;
 
-  OXSELexicalHandler = interface external 'org.xml.sax.ext' name 'LexicalHandler' 
+  OXSELexicalHandler = interface external 'org.xml.sax.ext' name 'LexicalHandler'
     procedure startDTD(para1: JLString; para2: JLString; para3: JLString); overload;  // throws org.xml.sax.SAXException
     procedure endDTD(); overload;  // throws org.xml.sax.SAXException
     procedure startEntity(para1: JLString); overload;  // throws org.xml.sax.SAXException
@@ -17174,7 +17174,7 @@
     class function createXMLReader(para1: JLString): OXSXMLReader; static; overload;  // throws org.xml.sax.SAXException
   end;
 
-  OXVXmlPullParser = interface external 'org.xmlpull.v1' name 'XmlPullParser' 
+  OXVXmlPullParser = interface external 'org.xmlpull.v1' name 'XmlPullParser'
     const
       NO_NAMESPACE = '';
       START_DOCUMENT = 0;
@@ -17260,7 +17260,7 @@
     class function newInstance(para1: JLString; para2: JLClass): OXVXmlPullParserFactory; static; overload;  // throws org.xmlpull.v1.XmlPullParserException
   end;
 
-  OXVXmlSerializer = interface external 'org.xmlpull.v1' name 'XmlSerializer' 
+  OXVXmlSerializer = interface external 'org.xmlpull.v1' name 'XmlSerializer'
     procedure setFeature(para1: JLString; para2: jboolean); overload;  // throws java.lang.IllegalArgumentException, java.lang.IllegalStateException
     function getFeature(para1: JLString): jboolean; overload;
     procedure setProperty(para1: JLString; para2: JLObject); overload;  // throws java.lang.IllegalArgumentException, java.lang.IllegalStateException
@@ -17325,7 +17325,7 @@
         constructor create(para1: JLString); overload;
       end;
 
-      InnerOnFrameAvailableListener = interface external 'android.graphics' name 'OnFrameAvailableListener' 
+      InnerOnFrameAvailableListener = interface external 'android.graphics' name 'OnFrameAvailableListener'
         procedure onFrameAvailable(para1: AGSurfaceTexture); overload;
       end;
 
@@ -17622,7 +17622,7 @@
       Arr1InnerAnimatorListener = array of InnerAnimatorListener;
       Arr2InnerAnimatorListener = array of Arr1InnerAnimatorListener;
       Arr3InnerAnimatorListener = array of Arr2InnerAnimatorListener;
-      InnerAnimatorListener = interface external 'android.animation' name 'AnimatorListener' 
+      InnerAnimatorListener = interface external 'android.animation' name 'AnimatorListener'
         procedure onAnimationStart(para1: AAAnimator); overload;
         procedure onAnimationEnd(para1: AAAnimator); overload;
         procedure onAnimationCancel(para1: AAAnimator); overload;
@@ -17795,7 +17795,7 @@
       Arr1InnerDescription = array of InnerDescription;
       Arr2InnerDescription = array of Arr1InnerDescription;
       Arr3InnerDescription = array of Arr2InnerDescription;
-      InnerAnimationListener = interface external 'android.view.animation' name 'AnimationListener' 
+      InnerAnimationListener = interface external 'android.view.animation' name 'AnimationListener'
         procedure onAnimationStart(para1: AVAAnimation); overload;
         procedure onAnimationEnd(para1: AVAAnimation); overload;
         procedure onAnimationRepeat(para1: AVAAnimation); overload;
@@ -18205,7 +18205,7 @@
       Arr1InnerNotFoundException = array of InnerNotFoundException;
       Arr2InnerNotFoundException = array of Arr1InnerNotFoundException;
       Arr3InnerNotFoundException = array of Arr2InnerNotFoundException;
-      InnerTheme = class sealed external 'android.content.res' name 'Theme' 
+      InnerTheme = class sealed external 'android.content.res' name 'Theme'
       end;
 
       InnerNotFoundException = class external 'android.content.res' name 'NotFoundException' (JLRuntimeException)
@@ -18330,7 +18330,7 @@
     constructor create(para1: JLThrowable); overload;
   end;
 
-  AVSurfaceHolder = interface external 'android.view' name 'SurfaceHolder' 
+  AVSurfaceHolder = interface external 'android.view' name 'SurfaceHolder'
     type
       InnerCallback = interface;
       Arr1InnerCallback = array of InnerCallback;
@@ -18344,7 +18344,7 @@
       Arr1InnerCallback2 = array of InnerCallback2;
       Arr2InnerCallback2 = array of Arr1InnerCallback2;
       Arr3InnerCallback2 = array of Arr2InnerCallback2;
-      InnerCallback = interface external 'android.view' name 'Callback' 
+      InnerCallback = interface external 'android.view' name 'Callback'
         procedure surfaceCreated(para1: AVSurfaceHolder); overload;
         procedure surfaceChanged(para1: AVSurfaceHolder; para2: jint; para3: jint; para4: jint); overload;
         procedure surfaceDestroyed(para1: AVSurfaceHolder); overload;
@@ -20092,7 +20092,7 @@
     function toString(): JLString; overload; virtual;
   end;
 
-  OAHCRRouteInfo = interface external 'org.apache.http.conn.routing' name 'RouteInfo' 
+  OAHCRRouteInfo = interface external 'org.apache.http.conn.routing' name 'RouteInfo'
     type
       InnerLayerType = class;
       Arr1InnerLayerType = array of InnerLayerType;
@@ -22454,11 +22454,11 @@
       Arr1InnerOnDismissListener = array of InnerOnDismissListener;
       Arr2InnerOnDismissListener = array of Arr1InnerOnDismissListener;
       Arr3InnerOnDismissListener = array of Arr2InnerOnDismissListener;
-      InnerOnCancelListener = interface external 'android.app' name 'OnCancelListener' 
+      InnerOnCancelListener = interface external 'android.app' name 'OnCancelListener'
         procedure onCancel(); overload;
       end;
 
-      InnerOnDismissListener = interface external 'android.app' name 'OnDismissListener' 
+      InnerOnDismissListener = interface external 'android.app' name 'OnDismissListener'
         procedure onDismiss(); overload;
       end;
 
@@ -22550,7 +22550,7 @@
       Arr1InnerMediaScannerConnectionClient = array of InnerMediaScannerConnectionClient;
       Arr2InnerMediaScannerConnectionClient = array of Arr1InnerMediaScannerConnectionClient;
       Arr3InnerMediaScannerConnectionClient = array of Arr2InnerMediaScannerConnectionClient;
-      InnerOnScanCompletedListener = interface external 'android.media' name 'OnScanCompletedListener' 
+      InnerOnScanCompletedListener = interface external 'android.media' name 'OnScanCompletedListener'
         procedure onScanCompleted(para1: JLString; para2: ANUri); overload;
       end;
 
@@ -22695,7 +22695,7 @@
       Arr1InnerCursorFactory = array of InnerCursorFactory;
       Arr2InnerCursorFactory = array of Arr1InnerCursorFactory;
       Arr3InnerCursorFactory = array of Arr2InnerCursorFactory;
-      InnerCursorFactory = interface external 'android.database.sqlite' name 'CursorFactory' 
+      InnerCursorFactory = interface external 'android.database.sqlite' name 'CursorFactory'
         function newCursor(para1: ADSSQLiteDatabase; para2: ADSSQLiteCursorDriver; para3: JLString; para4: ADSSQLiteQuery): ADCursor; overload;
       end;
 
@@ -23064,7 +23064,7 @@
         function toString(): JLString; overload; virtual;
       end;
 
-      InnerOnParameterChangeListener = interface external 'android.media.audiofx' name 'OnParameterChangeListener' 
+      InnerOnParameterChangeListener = interface external 'android.media.audiofx' name 'OnParameterChangeListener'
         procedure onParameterChange(para1: AMABassBoost; para2: jint; para3: jint; para4: jshort); overload;
       end;
 
@@ -23112,7 +23112,7 @@
         function toString(): JLString; overload; virtual;
       end;
 
-      InnerOnParameterChangeListener = interface external 'android.media.audiofx' name 'OnParameterChangeListener' 
+      InnerOnParameterChangeListener = interface external 'android.media.audiofx' name 'OnParameterChangeListener'
         procedure onParameterChange(para1: AMAEnvironmentalReverb; para2: jint; para3: jint; para4: jint); overload;
       end;
 
@@ -23178,7 +23178,7 @@
         function toString(): JLString; overload; virtual;
       end;
 
-      InnerOnParameterChangeListener = interface external 'android.media.audiofx' name 'OnParameterChangeListener' 
+      InnerOnParameterChangeListener = interface external 'android.media.audiofx' name 'OnParameterChangeListener'
         procedure onParameterChange(para1: AMAEqualizer; para2: jint; para3: jint; para4: jint; para5: jint); overload;
       end;
 
@@ -23233,7 +23233,7 @@
         function toString(): JLString; overload; virtual;
       end;
 
-      InnerOnParameterChangeListener = interface external 'android.media.audiofx' name 'OnParameterChangeListener' 
+      InnerOnParameterChangeListener = interface external 'android.media.audiofx' name 'OnParameterChangeListener'
         procedure onParameterChange(para1: AMAPresetReverb; para2: jint; para3: jint; para4: jshort); overload;
       end;
 
@@ -23277,7 +23277,7 @@
         function toString(): JLString; overload; virtual;
       end;
 
-      InnerOnParameterChangeListener = interface external 'android.media.audiofx' name 'OnParameterChangeListener' 
+      InnerOnParameterChangeListener = interface external 'android.media.audiofx' name 'OnParameterChangeListener'
         procedure onParameterChange(para1: AMAVirtualizer; para2: jint; para3: jint; para4: jshort); overload;
       end;
 
@@ -23571,7 +23571,7 @@
       Arr1InnerWorkerArgs = array of InnerWorkerArgs;
       Arr2InnerWorkerArgs = array of Arr1InnerWorkerArgs;
       Arr3InnerWorkerArgs = array of Arr2InnerWorkerArgs;
-      InnerWorkerHandler = class external 'android.content' name 'WorkerHandler' 
+      InnerWorkerHandler = class external 'android.content' name 'WorkerHandler'
       end;
 
       InnerWorkerArgs = class sealed external 'android.content' name 'WorkerArgs' (JLObject)
@@ -26978,7 +26978,7 @@
       Arr1InnerSimpleStringSplitter = array of InnerSimpleStringSplitter;
       Arr2InnerSimpleStringSplitter = array of Arr1InnerSimpleStringSplitter;
       Arr3InnerSimpleStringSplitter = array of Arr2InnerSimpleStringSplitter;
-      InnerEllipsizeCallback = interface external 'android.text' name 'EllipsizeCallback' 
+      InnerEllipsizeCallback = interface external 'android.text' name 'EllipsizeCallback'
         procedure ellipsized(para1: jint; para2: jint); overload;
       end;
 
@@ -28477,7 +28477,7 @@
       Arr1InnerOnPrimaryClipChangedListener = array of InnerOnPrimaryClipChangedListener;
       Arr2InnerOnPrimaryClipChangedListener = array of Arr1InnerOnPrimaryClipChangedListener;
       Arr3InnerOnPrimaryClipChangedListener = array of Arr2InnerOnPrimaryClipChangedListener;
-      InnerOnPrimaryClipChangedListener = interface external 'android.content' name 'OnPrimaryClipChangedListener' 
+      InnerOnPrimaryClipChangedListener = interface external 'android.content' name 'OnPrimaryClipChangedListener'
         procedure onPrimaryClipChanged(); overload;
       end;
 
@@ -28716,7 +28716,7 @@
     procedure println(para1: JLString); overload; virtual;
   end;
 
-  AVViewParent = interface external 'android.view' name 'ViewParent' 
+  AVViewParent = interface external 'android.view' name 'ViewParent'
     procedure requestLayout(); overload;
     function isLayoutRequested(): jboolean; overload;
     procedure requestTransparentRegion(para1: AVView); overload;
@@ -28747,7 +28747,7 @@
       Arr1InnerOnShareTargetSelectedListener = array of InnerOnShareTargetSelectedListener;
       Arr2InnerOnShareTargetSelectedListener = array of Arr1InnerOnShareTargetSelectedListener;
       Arr3InnerOnShareTargetSelectedListener = array of Arr2InnerOnShareTargetSelectedListener;
-      InnerOnShareTargetSelectedListener = interface external 'android.widget' name 'OnShareTargetSelectedListener' 
+      InnerOnShareTargetSelectedListener = interface external 'android.widget' name 'OnShareTargetSelectedListener'
         function onShareTargetSelected(para1: AWShareActionProvider; para2: ACIntent): jboolean; overload;
       end;
 
@@ -28770,7 +28770,7 @@
       Arr1InnerContextMenuInfo = array of InnerContextMenuInfo;
       Arr2InnerContextMenuInfo = array of Arr1InnerContextMenuInfo;
       Arr3InnerContextMenuInfo = array of Arr2InnerContextMenuInfo;
-      InnerContextMenuInfo = interface external 'android.view' name 'ContextMenuInfo' 
+      InnerContextMenuInfo = interface external 'android.view' name 'ContextMenuInfo'
       end;
 
     function setHeaderTitle(para1: jint): AVContextMenu; overload;
@@ -28811,7 +28811,7 @@
   strict protected
     procedure setBaseAttributes(para1: ACRTypedArray; para2: jint; para3: jint); overload; virtual;
   end;
-  
+
   AVWindowManager = interface external 'android.view' name 'WindowManager' (AVViewManager)
     type
       InnerLayoutParams = class;
@@ -29233,7 +29233,7 @@
       Arr1InnerCustomViewCallback = array of InnerCustomViewCallback;
       Arr2InnerCustomViewCallback = array of Arr1InnerCustomViewCallback;
       Arr3InnerCustomViewCallback = array of Arr2InnerCustomViewCallback;
-      InnerCustomViewCallback = interface external 'android.webkit' name 'CustomViewCallback' 
+      InnerCustomViewCallback = interface external 'android.webkit' name 'CustomViewCallback'
         procedure onCustomViewHidden(); overload;
       end;
 
@@ -29746,7 +29746,7 @@
       Arr1InnerState = array of InnerState;
       Arr2InnerState = array of Arr1InnerState;
       Arr3InnerState = array of Arr2InnerState;
-      InnerUncaughtExceptionHandler = interface external 'java.lang' name 'UncaughtExceptionHandler' 
+      InnerUncaughtExceptionHandler = interface external 'java.lang' name 'UncaughtExceptionHandler'
         procedure uncaughtException(para1: JLThread; para2: JLThrowable); overload;
       end;
 
@@ -32711,10 +32711,10 @@
       Arr1InnerPrivateKeyEntry = array of InnerPrivateKeyEntry;
       Arr2InnerPrivateKeyEntry = array of Arr1InnerPrivateKeyEntry;
       Arr3InnerPrivateKeyEntry = array of Arr2InnerPrivateKeyEntry;
-      InnerProtectionParameter = interface external 'java.security' name 'ProtectionParameter' 
+      InnerProtectionParameter = interface external 'java.security' name 'ProtectionParameter'
       end;
 
-      InnerEntry = interface external 'java.security' name 'Entry' 
+      InnerEntry = interface external 'java.security' name 'Entry'
       end;
 
       InnerPasswordProtection = class external 'java.security' name 'PasswordProtection' (JLObject, JSKeyStore.InnerProtectionParameter, JSADestroyable)
@@ -32726,7 +32726,7 @@
         function isDestroyed(): jboolean; overload; virtual;
       end;
 
-      InnerLoadStoreParameter = interface external 'java.security' name 'LoadStoreParameter' 
+      InnerLoadStoreParameter = interface external 'java.security' name 'LoadStoreParameter'
         function getProtectionParameter(): JSKeyStore.InnerProtectionParameter; overload;
       end;
 
@@ -33689,10 +33689,10 @@
       Arr1InnerConnAdapter = array of InnerConnAdapter;
       Arr2InnerConnAdapter = array of Arr1InnerConnAdapter;
       Arr3InnerConnAdapter = array of Arr2InnerConnAdapter;
-      InnerPoolEntry = class external 'org.apache.http.impl.conn' name 'PoolEntry' 
+      InnerPoolEntry = class external 'org.apache.http.impl.conn' name 'PoolEntry'
       end;
 
-      InnerConnAdapter = class external 'org.apache.http.impl.conn' name 'ConnAdapter' 
+      InnerConnAdapter = class external 'org.apache.http.impl.conn' name 'ConnAdapter'
       end;
 
   public
@@ -34886,7 +34886,7 @@
       Arr1InnerCanceledException = array of InnerCanceledException;
       Arr2InnerCanceledException = array of Arr1InnerCanceledException;
       Arr3InnerCanceledException = array of Arr2InnerCanceledException;
-      InnerOnFinished = interface external 'android.app' name 'OnFinished' 
+      InnerOnFinished = interface external 'android.app' name 'OnFinished'
         procedure onSendFinished(para1: AAPendingIntent; para2: ACIntent; para3: jint; para4: JLString; para5: AOBundle); overload;
       end;
 
@@ -35037,7 +35037,7 @@
       Arr1InnerSendIntentException = array of InnerSendIntentException;
       Arr2InnerSendIntentException = array of Arr1InnerSendIntentException;
       Arr3InnerSendIntentException = array of Arr2InnerSendIntentException;
-      InnerOnFinished = interface external 'android.content' name 'OnFinished' 
+      InnerOnFinished = interface external 'android.content' name 'OnFinished'
         procedure onSendFinished(para1: ACIntentSender; para2: ACIntent; para3: jint; para4: JLString; para5: AOBundle); overload;
       end;
 
@@ -35799,7 +35799,7 @@
       Arr1InnerBuilder = array of InnerBuilder;
       Arr2InnerBuilder = array of Arr1InnerBuilder;
       Arr3InnerBuilder = array of Arr2InnerBuilder;
-      InnerBuilder = class external 'android.animation' name 'Builder' 
+      InnerBuilder = class external 'android.animation' name 'Builder'
       end;
 
   public
@@ -35838,7 +35838,7 @@
       Arr1InnerAnimatorUpdateListener = array of InnerAnimatorUpdateListener;
       Arr2InnerAnimatorUpdateListener = array of Arr1InnerAnimatorUpdateListener;
       Arr3InnerAnimatorUpdateListener = array of Arr2InnerAnimatorUpdateListener;
-      InnerAnimatorUpdateListener = interface external 'android.animation' name 'AnimatorUpdateListener' 
+      InnerAnimatorUpdateListener = interface external 'android.animation' name 'AnimatorUpdateListener'
         procedure onAnimationUpdate(para1: AAValueAnimator); overload;
       end;
 
@@ -37178,7 +37178,7 @@
       Arr1InnerConditionObject = array of InnerConditionObject;
       Arr2InnerConditionObject = array of Arr1InnerConditionObject;
       Arr3InnerConditionObject = array of Arr2InnerConditionObject;
-      InnerConditionObject = class external 'java.util.concurrent.locks' name 'ConditionObject' 
+      InnerConditionObject = class external 'java.util.concurrent.locks' name 'ConditionObject'
       end;
 
   strict protected
@@ -37222,7 +37222,7 @@
       Arr1InnerConditionObject = array of InnerConditionObject;
       Arr2InnerConditionObject = array of Arr1InnerConditionObject;
       Arr3InnerConditionObject = array of Arr2InnerConditionObject;
-      InnerConditionObject = class external 'java.util.concurrent.locks' name 'ConditionObject' 
+      InnerConditionObject = class external 'java.util.concurrent.locks' name 'ConditionObject'
       end;
 
   strict protected
@@ -37869,7 +37869,7 @@
       Arr1InnerPipeDataWriter = array of InnerPipeDataWriter;
       Arr2InnerPipeDataWriter = array of Arr1InnerPipeDataWriter;
       Arr3InnerPipeDataWriter = array of Arr2InnerPipeDataWriter;
-      InnerPipeDataWriter = interface external 'android.content' name 'PipeDataWriter' 
+      InnerPipeDataWriter = interface external 'android.content' name 'PipeDataWriter'
         procedure writeDataToPipe(para1: AOParcelFileDescriptor; para2: ANUri; para3: JLString; para4: AOBundle; para5: JLObject); overload;
       end;
 
@@ -38172,7 +38172,7 @@
     function isRestricted(): jboolean; overload; virtual;
   end;
 
-  ADSSQLiteCursorDriver = interface external 'android.database.sqlite' name 'SQLiteCursorDriver' 
+  ADSSQLiteCursorDriver = interface external 'android.database.sqlite' name 'SQLiteCursorDriver'
     function query(para1: ADSSQLiteDatabase.InnerCursorFactory; para2: Arr1JLString): ADCursor; overload;
     function query(para1: ADSSQLiteDatabase.InnerCursorFactory; var para2: array of JLString): ADCursor; overload;
     procedure cursorDeactivated(); overload;
@@ -38924,11 +38924,11 @@
         constructor create(para1: AOParcelable); overload;
       end;
 
-      InnerOnPreferenceClickListener = interface external 'android.preference' name 'OnPreferenceClickListener' 
+      InnerOnPreferenceClickListener = interface external 'android.preference' name 'OnPreferenceClickListener'
         function onPreferenceClick(para1: APPreference): jboolean; overload;
       end;
 
-      InnerOnPreferenceChangeListener = interface external 'android.preference' name 'OnPreferenceChangeListener' 
+      InnerOnPreferenceChangeListener = interface external 'android.preference' name 'OnPreferenceChangeListener'
         function onPreferenceChange(para1: APPreference; para2: JLObject): jboolean; overload;
       end;
 
@@ -39354,14 +39354,14 @@
       Arr1InnerCalendarEntity = array of InnerCalendarEntity;
       Arr2InnerCalendarEntity = array of Arr1InnerCalendarEntity;
       Arr3InnerCalendarEntity = array of Arr2InnerCalendarEntity;
-      InnerExtendedPropertiesColumns = interface external 'android.provider' name 'ExtendedPropertiesColumns' 
+      InnerExtendedPropertiesColumns = interface external 'android.provider' name 'ExtendedPropertiesColumns'
         const
           EVENT_ID = 'event_id';
           NAME = 'name';
           VALUE = 'value';
       end;
 
-      InnerCalendarAlertsColumns = interface external 'android.provider' name 'CalendarAlertsColumns' 
+      InnerCalendarAlertsColumns = interface external 'android.provider' name 'CalendarAlertsColumns'
         const
           EVENT_ID = 'event_id';
           &BEGIN = 'begin';
@@ -39378,7 +39378,7 @@
           DEFAULT_SORT_ORDER = 'begin ASC,title ASC';
       end;
 
-      InnerRemindersColumns = interface external 'android.provider' name 'RemindersColumns' 
+      InnerRemindersColumns = interface external 'android.provider' name 'RemindersColumns'
         const
           EVENT_ID = 'event_id';
           MINUTES = 'minutes';
@@ -39390,19 +39390,19 @@
           METHOD_SMS = 3;
       end;
 
-      InnerEventDaysColumns = interface external 'android.provider' name 'EventDaysColumns' 
+      InnerEventDaysColumns = interface external 'android.provider' name 'EventDaysColumns'
         const
           STARTDAY = 'startDay';
           ENDDAY = 'endDay';
       end;
 
-      InnerCalendarCacheColumns = interface external 'android.provider' name 'CalendarCacheColumns' 
+      InnerCalendarCacheColumns = interface external 'android.provider' name 'CalendarCacheColumns'
         const
           KEY = 'key';
           VALUE = 'value';
       end;
 
-      InnerEventsColumns = interface external 'android.provider' name 'EventsColumns' 
+      InnerEventsColumns = interface external 'android.provider' name 'EventsColumns'
         const
           CALENDAR_ID = 'calendar_id';
           TITLE = 'title';
@@ -39458,7 +39458,7 @@
           CAN_INVITE_OTHERS = 'canInviteOthers';
       end;
 
-      InnerAttendeesColumns = interface external 'android.provider' name 'AttendeesColumns' 
+      InnerAttendeesColumns = interface external 'android.provider' name 'AttendeesColumns'
         const
           EVENT_ID = 'event_id';
           ATTENDEE_NAME = 'attendeeName';
@@ -39481,7 +39481,7 @@
           ATTENDEE_STATUS_TENTATIVE = 4;
       end;
 
-      InnerCalendarColumns = interface external 'android.provider' name 'CalendarColumns' 
+      InnerCalendarColumns = interface external 'android.provider' name 'CalendarColumns'
         const
           CALENDAR_COLOR = 'calendar_color';
           CALENDAR_DISPLAY_NAME = 'calendar_displayName';
@@ -39505,7 +39505,7 @@
           ALLOWED_REMINDERS = 'allowedReminders';
       end;
 
-      InnerCalendarSyncColumns = interface external 'android.provider' name 'CalendarSyncColumns' 
+      InnerCalendarSyncColumns = interface external 'android.provider' name 'CalendarSyncColumns'
         const
           CAL_SYNC1 = 'cal_sync1';
           CAL_SYNC2 = 'cal_sync2';
@@ -39904,7 +39904,7 @@
         constructor create(); overload;
       end;
 
-      InnerSettingsColumns = interface external 'android.provider' name 'SettingsColumns' 
+      InnerSettingsColumns = interface external 'android.provider' name 'SettingsColumns'
         const
           ACCOUNT_NAME = 'account_name';
           ACCOUNT_TYPE = 'account_type';
@@ -39916,7 +39916,7 @@
           UNGROUPED_WITH_PHONES = 'summ_phones';
       end;
 
-      InnerGroupsColumns = interface external 'android.provider' name 'GroupsColumns' 
+      InnerGroupsColumns = interface external 'android.provider' name 'GroupsColumns'
         const
           DATA_SET = 'data_set';
           TITLE = 'title';
@@ -39932,7 +39932,7 @@
           GROUP_IS_READ_ONLY = 'group_is_read_only';
       end;
 
-      InnerPresenceColumns = interface external 'android.provider' name 'PresenceColumns' 
+      InnerPresenceColumns = interface external 'android.provider' name 'PresenceColumns'
         const
           DATA_ID = 'presence_data_id';
           PROTOCOL = 'protocol';
@@ -39941,14 +39941,14 @@
           IM_ACCOUNT = 'im_account';
       end;
 
-      InnerPhoneLookupColumns = interface external 'android.provider' name 'PhoneLookupColumns' 
+      InnerPhoneLookupColumns = interface external 'android.provider' name 'PhoneLookupColumns'
         const
           NUMBER = 'number';
           &TYPE = 'type';
           &LABEL = 'label';
       end;
 
-      InnerDataColumns = interface external 'android.provider' name 'DataColumns' 
+      InnerDataColumns = interface external 'android.provider' name 'DataColumns'
         const
           MIMETYPE = 'mimetype';
           RAW_CONTACT_ID = 'raw_contact_id';
@@ -39977,7 +39977,7 @@
           SYNC4 = 'data_sync4';
       end;
 
-      InnerStatusColumns = interface external 'android.provider' name 'StatusColumns' 
+      InnerStatusColumns = interface external 'android.provider' name 'StatusColumns'
         const
           PRESENCE = 'mode';
           PRESENCE_STATUS = 'mode';
@@ -39999,7 +39999,7 @@
           CAPABILITY_HAS_CAMERA = 4;
       end;
 
-      InnerRawContactsColumns = interface external 'android.provider' name 'RawContactsColumns' 
+      InnerRawContactsColumns = interface external 'android.provider' name 'RawContactsColumns'
         const
           CONTACT_ID = 'contact_id';
           DATA_SET = 'data_set';
@@ -40009,7 +40009,7 @@
           RAW_CONTACT_IS_USER_PROFILE = 'raw_contact_is_user_profile';
       end;
 
-      InnerContactNameColumns = interface external 'android.provider' name 'ContactNameColumns' 
+      InnerContactNameColumns = interface external 'android.provider' name 'ContactNameColumns'
         const
           DISPLAY_NAME_SOURCE = 'display_name_source';
           DISPLAY_NAME_PRIMARY = 'display_name';
@@ -40020,7 +40020,7 @@
           SORT_KEY_ALTERNATIVE = 'sort_key_alt';
       end;
 
-      InnerDisplayNameSources = interface external 'android.provider' name 'DisplayNameSources' 
+      InnerDisplayNameSources = interface external 'android.provider' name 'DisplayNameSources'
         const
           UNDEFINED = 0;
           EMAIL = 10;
@@ -40030,7 +40030,7 @@
           STRUCTURED_NAME = 40;
       end;
 
-      InnerPhoneticNameStyle = interface external 'android.provider' name 'PhoneticNameStyle' 
+      InnerPhoneticNameStyle = interface external 'android.provider' name 'PhoneticNameStyle'
         const
           UNDEFINED = 0;
           PINYIN = 3;
@@ -40038,7 +40038,7 @@
           KOREAN = 5;
       end;
 
-      InnerFullNameStyle = interface external 'android.provider' name 'FullNameStyle' 
+      InnerFullNameStyle = interface external 'android.provider' name 'FullNameStyle'
         const
           UNDEFINED = 0;
           WESTERN = 1;
@@ -40048,7 +40048,7 @@
           KOREAN = 5;
       end;
 
-      InnerContactStatusColumns = interface external 'android.provider' name 'ContactStatusColumns' 
+      InnerContactStatusColumns = interface external 'android.provider' name 'ContactStatusColumns'
         const
           CONTACT_PRESENCE = 'contact_presence';
           CONTACT_CHAT_CAPABILITY = 'contact_chat_capability';
@@ -40059,7 +40059,7 @@
           CONTACT_STATUS_ICON = 'contact_status_icon';
       end;
 
-      InnerContactsColumns = interface external 'android.provider' name 'ContactsColumns' 
+      InnerContactsColumns = interface external 'android.provider' name 'ContactsColumns'
         const
           DISPLAY_NAME = 'display_name';
           PHOTO_ID = 'photo_id';
@@ -40072,7 +40072,7 @@
           LOOKUP_KEY = 'lookup';
       end;
 
-      InnerContactOptionsColumns = interface external 'android.provider' name 'ContactOptionsColumns' 
+      InnerContactOptionsColumns = interface external 'android.provider' name 'ContactOptionsColumns'
         const
           TIMES_CONTACTED = 'times_contacted';
           LAST_TIME_CONTACTED = 'last_time_contacted';
@@ -40081,7 +40081,7 @@
           SEND_TO_VOICEMAIL = 'send_to_voicemail';
       end;
 
-      InnerBaseSyncColumns = interface external 'android.provider' name 'BaseSyncColumns' 
+      InnerBaseSyncColumns = interface external 'android.provider' name 'BaseSyncColumns'
         const
           SYNC1 = 'sync1';
           SYNC2 = 'sync2';
@@ -40310,7 +40310,7 @@
           Arr1InnerNickname = array of InnerNickname;
           Arr2InnerNickname = array of Arr1InnerNickname;
           Arr3InnerNickname = array of Arr2InnerNickname;
-          InnerBaseTypes = interface external 'android.provider' name 'BaseTypes' 
+          InnerBaseTypes = interface external 'android.provider' name 'BaseTypes'
             const
               TYPE_CUSTOM = 0;
           end;
@@ -40985,7 +40985,7 @@
     function getUnderlying(): ATSCharacterStyle; overload; virtual;
   end;
 
-  AVMenuItem = interface external 'android.view' name 'MenuItem' 
+  AVMenuItem = interface external 'android.view' name 'MenuItem'
     type
       InnerOnActionExpandListener = interface;
       Arr1InnerOnActionExpandListener = array of InnerOnActionExpandListener;
@@ -40995,12 +40995,12 @@
       Arr1InnerOnMenuItemClickListener = array of InnerOnMenuItemClickListener;
       Arr2InnerOnMenuItemClickListener = array of Arr1InnerOnMenuItemClickListener;
       Arr3InnerOnMenuItemClickListener = array of Arr2InnerOnMenuItemClickListener;
-      InnerOnActionExpandListener = interface external 'android.view' name 'OnActionExpandListener' 
+      InnerOnActionExpandListener = interface external 'android.view' name 'OnActionExpandListener'
         function onMenuItemActionExpand(para1: AVMenuItem): jboolean; overload;
         function onMenuItemActionCollapse(para1: AVMenuItem): jboolean; overload;
       end;
 
-      InnerOnMenuItemClickListener = interface external 'android.view' name 'OnMenuItemClickListener' 
+      InnerOnMenuItemClickListener = interface external 'android.view' name 'OnMenuItemClickListener'
         function onMenuItemClick(para1: AVMenuItem): jboolean; overload;
       end;
 
@@ -41060,7 +41060,7 @@
       Arr1InnerCallback = array of InnerCallback;
       Arr2InnerCallback = array of Arr1InnerCallback;
       Arr3InnerCallback = array of Arr2InnerCallback;
-      InnerCallback = interface external 'android.view' name 'Callback' 
+      InnerCallback = interface external 'android.view' name 'Callback'
         function dispatchKeyEvent(para1: AVKeyEvent): jboolean; overload;
         function dispatchKeyShortcutEvent(para1: AVKeyEvent): jboolean; overload;
         function dispatchTouchEvent(para1: AVMotionEvent): jboolean; overload;
@@ -44120,7 +44120,7 @@
         procedure handleUpEvent(para1: AVKeyEvent); overload; virtual;
       end;
 
-      InnerCallback = interface external 'android.view' name 'Callback' 
+      InnerCallback = interface external 'android.view' name 'Callback'
         function onKeyDown(para1: jint; para2: AVKeyEvent): jboolean; overload;
         function onKeyLongPress(para1: jint; para2: AVKeyEvent): jboolean; overload;
         function onKeyUp(para1: jint; para2: AVKeyEvent): jboolean; overload;
@@ -45402,7 +45402,7 @@
       Arr1InnerRowBuilder = array of InnerRowBuilder;
       Arr2InnerRowBuilder = array of Arr1InnerRowBuilder;
       Arr3InnerRowBuilder = array of Arr2InnerRowBuilder;
-      InnerRowBuilder = class external 'android.database' name 'RowBuilder' 
+      InnerRowBuilder = class external 'android.database' name 'RowBuilder'
       end;
 
   public
@@ -45651,7 +45651,7 @@
         function getChangingConfigurations(): jint; overload; virtual; abstract;
       end;
 
-      InnerCallback = interface external 'android.graphics.drawable' name 'Callback' 
+      InnerCallback = interface external 'android.graphics.drawable' name 'Callback'
         procedure invalidateDrawable(para1: AGDDrawable); overload;
         procedure scheduleDrawable(para1: AGDDrawable; para2: JLRunnable; para3: jlong); overload;
         procedure unscheduleDrawable(para1: AGDDrawable; para2: JLRunnable); overload;
@@ -45868,13 +45868,13 @@
         constructor create(); overload;
       end;
 
-      InnerExtensionsColumns = interface external 'android.provider' name 'ExtensionsColumns' 
+      InnerExtensionsColumns = interface external 'android.provider' name 'ExtensionsColumns'
         const
           NAME = 'name';
           VALUE = 'value';
       end;
 
-      InnerPhotosColumns = interface external 'android.provider' name 'PhotosColumns' 
+      InnerPhotosColumns = interface external 'android.provider' name 'PhotosColumns'
         const
           LOCAL_VERSION = 'local_version';
           PERSON_ID = 'person';
@@ -45884,7 +45884,7 @@
           DATA = 'data';
       end;
 
-      InnerOrganizationColumns = interface external 'android.provider' name 'OrganizationColumns' 
+      InnerOrganizationColumns = interface external 'android.provider' name 'OrganizationColumns'
         const
           &TYPE = 'type';
           TYPE_CUSTOM = 0;
@@ -45897,7 +45897,7 @@
           ISPRIMARY = 'isprimary';
       end;
 
-      InnerPresenceColumns = interface external 'android.provider' name 'PresenceColumns' 
+      InnerPresenceColumns = interface external 'android.provider' name 'PresenceColumns'
         const
           PRIORITY = 'priority';
           PRESENCE_STATUS = 'mode';
@@ -45913,7 +45913,7 @@
           IM_ACCOUNT = 'im_account';
       end;
 
-      InnerContactMethodsColumns = interface external 'android.provider' name 'ContactMethodsColumns' 
+      InnerContactMethodsColumns = interface external 'android.provider' name 'ContactMethodsColumns'
         const
           KIND = 'kind';
           &TYPE = 'type';
@@ -45927,7 +45927,7 @@
           ISPRIMARY = 'isprimary';
       end;
 
-      InnerPhonesColumns = interface external 'android.provider' name 'PhonesColumns' 
+      InnerPhonesColumns = interface external 'android.provider' name 'PhonesColumns'
         const
           &TYPE = 'type';
           TYPE_CUSTOM = 0;
@@ -45944,7 +45944,7 @@
           ISPRIMARY = 'isprimary';
       end;
 
-      InnerGroupsColumns = interface external 'android.provider' name 'GroupsColumns' 
+      InnerGroupsColumns = interface external 'android.provider' name 'GroupsColumns'
         const
           NAME = 'name';
           NOTES = 'notes';
@@ -45952,7 +45952,7 @@
           SYSTEM_ID = 'system_id';
       end;
 
-      InnerPeopleColumns = interface external 'android.provider' name 'PeopleColumns' 
+      InnerPeopleColumns = interface external 'android.provider' name 'PeopleColumns'
         const
           NAME = 'name';
           PHONETIC_NAME = 'phonetic_name';
@@ -45966,7 +45966,7 @@
           PHOTO_VERSION = 'photo_version';
       end;
 
-      InnerSettingsColumns = interface external 'android.provider' name 'SettingsColumns' 
+      InnerSettingsColumns = interface external 'android.provider' name 'SettingsColumns'
         const
           _SYNC_ACCOUNT = '_sync_account';
           _SYNC_ACCOUNT_TYPE = '_sync_account_type';
@@ -46344,7 +46344,7 @@
           Arr1InnerMedia = array of InnerMedia;
           Arr2InnerMedia = array of Arr1InnerMedia;
           Arr3InnerMedia = array of Arr2InnerMedia;
-          InnerAlbumColumns = interface external 'android.provider' name 'AlbumColumns' 
+          InnerAlbumColumns = interface external 'android.provider' name 'AlbumColumns'
             const
               ALBUM_ID = 'album_id';
               ALBUM = 'album';
@@ -46357,7 +46357,7 @@
               ALBUM_ART = 'album_art';
           end;
 
-          InnerArtistColumns = interface external 'android.provider' name 'ArtistColumns' 
+          InnerArtistColumns = interface external 'android.provider' name 'ArtistColumns'
             const
               ARTIST = 'artist';
               ARTIST_KEY = 'artist_key';
@@ -46365,7 +46365,7 @@
               NUMBER_OF_TRACKS = 'number_of_tracks';
           end;
 
-          InnerPlaylistsColumns = interface external 'android.provider' name 'PlaylistsColumns' 
+          InnerPlaylistsColumns = interface external 'android.provider' name 'PlaylistsColumns'
             const
               NAME = 'name';
               DATA = '_data';
@@ -46373,7 +46373,7 @@
               DATE_MODIFIED = 'date_modified';
           end;
 
-          InnerGenresColumns = interface external 'android.provider' name 'GenresColumns' 
+          InnerGenresColumns = interface external 'android.provider' name 'GenresColumns'
             const
               NAME = 'name';
           end;
@@ -47197,7 +47197,7 @@
       Arr1InnerViewBinder = array of InnerViewBinder;
       Arr2InnerViewBinder = array of Arr1InnerViewBinder;
       Arr3InnerViewBinder = array of Arr2InnerViewBinder;
-      InnerViewBinder = interface external 'android.widget' name 'ViewBinder' 
+      InnerViewBinder = interface external 'android.widget' name 'ViewBinder'
         function setViewValue(para1: AVView; para2: JLObject; para3: JLString): jboolean; overload;
       end;
 
@@ -49080,7 +49080,7 @@
       Arr1InnerActivityLifecycleCallbacks = array of InnerActivityLifecycleCallbacks;
       Arr2InnerActivityLifecycleCallbacks = array of Arr1InnerActivityLifecycleCallbacks;
       Arr3InnerActivityLifecycleCallbacks = array of Arr2InnerActivityLifecycleCallbacks;
-      InnerActivityLifecycleCallbacks = interface external 'android.app' name 'ActivityLifecycleCallbacks' 
+      InnerActivityLifecycleCallbacks = interface external 'android.app' name 'ActivityLifecycleCallbacks'
         procedure onActivityCreated(para1: AAActivity; para2: AOBundle); overload;
         procedure onActivityStarted(para1: AAActivity); overload;
         procedure onActivityResumed(para1: AAActivity); overload;
@@ -49723,44 +49723,44 @@
         function onRequestSendAccessibilityEvent(para1: AVViewGroup; para2: AVView; para3: AVAAccessibilityEvent): jboolean; overload; virtual;
       end;
 
-      InnerOnAttachStateChangeListener = interface external 'android.view' name 'OnAttachStateChangeListener' 
+      InnerOnAttachStateChangeListener = interface external 'android.view' name 'OnAttachStateChangeListener'
         procedure onViewAttachedToWindow(para1: AVView); overload;
         procedure onViewDetachedFromWindow(para1: AVView); overload;
       end;
 
-      InnerOnSystemUiVisibilityChangeListener = interface external 'android.view' name 'OnSystemUiVisibilityChangeListener' 
+      InnerOnSystemUiVisibilityChangeListener = interface external 'android.view' name 'OnSystemUiVisibilityChangeListener'
         procedure onSystemUiVisibilityChange(para1: jint); overload;
       end;
 
-      InnerOnClickListener = interface external 'android.view' name 'OnClickListener' 
+      InnerOnClickListener = interface external 'android.view' name 'OnClickListener'
         procedure onClick(para1: AVView); overload;
       end;
 
-      InnerOnFocusChangeListener = interface external 'android.view' name 'OnFocusChangeListener' 
+      InnerOnFocusChangeListener = interface external 'android.view' name 'OnFocusChangeListener'
         procedure onFocusChange(para1: AVView; para2: jboolean); overload;
       end;
 
-      InnerOnDragListener = interface external 'android.view' name 'OnDragListener' 
+      InnerOnDragListener = interface external 'android.view' name 'OnDragListener'
         function onDrag(para1: AVView; para2: AVDragEvent): jboolean; overload;
       end;
 
-      InnerOnLongClickListener = interface external 'android.view' name 'OnLongClickListener' 
+      InnerOnLongClickListener = interface external 'android.view' name 'OnLongClickListener'
         function onLongClick(para1: AVView): jboolean; overload;
       end;
 
-      InnerOnGenericMotionListener = interface external 'android.view' name 'OnGenericMotionListener' 
+      InnerOnGenericMotionListener = interface external 'android.view' name 'OnGenericMotionListener'
         function onGenericMotion(para1: AVView; para2: AVMotionEvent): jboolean; overload;
       end;
 
-      InnerOnHoverListener = interface external 'android.view' name 'OnHoverListener' 
+      InnerOnHoverListener = interface external 'android.view' name 'OnHoverListener'
         function onHover(para1: AVView; para2: AVMotionEvent): jboolean; overload;
       end;
 
-      InnerOnTouchListener = interface external 'android.view' name 'OnTouchListener' 
+      InnerOnTouchListener = interface external 'android.view' name 'OnTouchListener'
         function onTouch(para1: AVView; para2: AVMotionEvent): jboolean; overload;
       end;
 
-      InnerOnKeyListener = interface external 'android.view' name 'OnKeyListener' 
+      InnerOnKeyListener = interface external 'android.view' name 'OnKeyListener'
         function onKey(para1: AVView; para2: jint; para3: AVKeyEvent): jboolean; overload;
       end;
 
@@ -49787,7 +49787,7 @@
         procedure onDrawShadow(para1: AGCanvas); overload; virtual;
       end;
 
-      InnerOnLayoutChangeListener = interface external 'android.view' name 'OnLayoutChangeListener' 
+      InnerOnLayoutChangeListener = interface external 'android.view' name 'OnLayoutChangeListener'
         procedure onLayoutChange(para1: AVView; para2: jint; para3: jint; para4: jint; para5: jint; para6: jint; para7: jint; para8: jint; para9: jint); overload;
       end;
 
@@ -49800,7 +49800,7 @@
         constructor create(para1: AOParcelable); overload;
       end;
 
-      InnerOnCreateContextMenuListener = interface external 'android.view' name 'OnCreateContextMenuListener' 
+      InnerOnCreateContextMenuListener = interface external 'android.view' name 'OnCreateContextMenuListener'
         procedure onCreateContextMenu(para1: AVContextMenu; para2: AVView; para3: AVContextMenu.InnerContextMenuInfo); overload;
       end;
 
@@ -50411,7 +50411,7 @@
       Arr1InnerViewBinder = array of InnerViewBinder;
       Arr2InnerViewBinder = array of Arr1InnerViewBinder;
       Arr3InnerViewBinder = array of Arr2InnerViewBinder;
-      InnerViewBinder = interface external 'android.widget' name 'ViewBinder' 
+      InnerViewBinder = interface external 'android.widget' name 'ViewBinder'
         function setViewValue(para1: AVView; para2: ADCursor; para3: jint): jboolean; overload;
       end;
 
@@ -50972,10 +50972,10 @@
       Arr1InnerAbstractInputMethodImpl = array of InnerAbstractInputMethodImpl;
       Arr2InnerAbstractInputMethodImpl = array of Arr1InnerAbstractInputMethodImpl;
       Arr3InnerAbstractInputMethodImpl = array of Arr2InnerAbstractInputMethodImpl;
-      InnerAbstractInputMethodSessionImpl = class abstract external 'android.inputmethodservice' name 'AbstractInputMethodSessionImpl' 
+      InnerAbstractInputMethodSessionImpl = class abstract external 'android.inputmethodservice' name 'AbstractInputMethodSessionImpl'
       end;
 
-      InnerAbstractInputMethodImpl = class abstract external 'android.inputmethodservice' name 'AbstractInputMethodImpl' 
+      InnerAbstractInputMethodImpl = class abstract external 'android.inputmethodservice' name 'AbstractInputMethodImpl'
       end;
 
   public
@@ -50998,7 +50998,7 @@
       Arr1InnerBuilder = array of InnerBuilder;
       Arr2InnerBuilder = array of Arr1InnerBuilder;
       Arr3InnerBuilder = array of Arr2InnerBuilder;
-      InnerBuilder = class external 'android.net' name 'Builder' 
+      InnerBuilder = class external 'android.net' name 'Builder'
       end;
 
   public
@@ -51049,7 +51049,7 @@
       Arr1InnerEngine = array of InnerEngine;
       Arr2InnerEngine = array of Arr1InnerEngine;
       Arr3InnerEngine = array of Arr2InnerEngine;
-      InnerEngine = class external 'android.service.wallpaper' name 'Engine' 
+      InnerEngine = class external 'android.service.wallpaper' name 'Engine'
       end;
 
   public
@@ -51074,7 +51074,7 @@
       Arr1InnerCallback = array of InnerCallback;
       Arr2InnerCallback = array of Arr1InnerCallback;
       Arr3InnerCallback = array of Arr2InnerCallback;
-      InnerCallback = class external 'android.speech' name 'Callback' 
+      InnerCallback = class external 'android.speech' name 'Callback'
       end;
 
   public
@@ -51114,7 +51114,7 @@
       Arr1InnerRemoteViewsFactory = array of InnerRemoteViewsFactory;
       Arr2InnerRemoteViewsFactory = array of Arr1InnerRemoteViewsFactory;
       Arr3InnerRemoteViewsFactory = array of Arr2InnerRemoteViewsFactory;
-      InnerRemoteViewsFactory = interface external 'android.widget' name 'RemoteViewsFactory' 
+      InnerRemoteViewsFactory = interface external 'android.widget' name 'RemoteViewsFactory'
         procedure onCreate(); overload;
         procedure onDataSetChanged(); overload;
         procedure onDestroy(); overload;
@@ -51600,7 +51600,7 @@
       Arr1InnerOnKeyboardActionListener = array of InnerOnKeyboardActionListener;
       Arr2InnerOnKeyboardActionListener = array of Arr1InnerOnKeyboardActionListener;
       Arr3InnerOnKeyboardActionListener = array of Arr2InnerOnKeyboardActionListener;
-      InnerOnKeyboardActionListener = interface external 'android.inputmethodservice' name 'OnKeyboardActionListener' 
+      InnerOnKeyboardActionListener = interface external 'android.inputmethodservice' name 'OnKeyboardActionListener'
         procedure onPress(para1: jint); overload;
         procedure onRelease(para1: jint); overload;
         procedure onKey(para1: jint; para2: Arr1jint); overload;
@@ -51683,7 +51683,7 @@
       Arr1InnerSurfaceTextureListener = array of InnerSurfaceTextureListener;
       Arr2InnerSurfaceTextureListener = array of Arr1InnerSurfaceTextureListener;
       Arr3InnerSurfaceTextureListener = array of Arr2InnerSurfaceTextureListener;
-      InnerSurfaceTextureListener = interface external 'android.view' name 'SurfaceTextureListener' 
+      InnerSurfaceTextureListener = interface external 'android.view' name 'SurfaceTextureListener'
         procedure onSurfaceTextureAvailable(para1: AGSurfaceTexture; para2: jint; para3: jint); overload;
         procedure onSurfaceTextureSizeChanged(para1: AGSurfaceTexture; para2: jint; para3: jint); overload;
         function onSurfaceTextureDestroyed(para1: AGSurfaceTexture): jboolean; overload;
@@ -51738,7 +51738,7 @@
       Arr1InnerMarginLayoutParams = array of InnerMarginLayoutParams;
       Arr2InnerMarginLayoutParams = array of Arr1InnerMarginLayoutParams;
       Arr3InnerMarginLayoutParams = array of Arr2InnerMarginLayoutParams;
-      InnerOnHierarchyChangeListener = interface external 'android.view' name 'OnHierarchyChangeListener' 
+      InnerOnHierarchyChangeListener = interface external 'android.view' name 'OnHierarchyChangeListener'
         procedure onChildViewAdded(para1: AVView; para2: AVView); overload;
         procedure onChildViewRemoved(para1: AVView; para2: AVView); overload;
       end;
@@ -51977,7 +51977,7 @@
       Arr1InnerOnInflateListener = array of InnerOnInflateListener;
       Arr2InnerOnInflateListener = array of Arr1InnerOnInflateListener;
       Arr3InnerOnInflateListener = array of Arr2InnerOnInflateListener;
-      InnerOnInflateListener = interface external 'android.view' name 'OnInflateListener' 
+      InnerOnInflateListener = interface external 'android.view' name 'OnInflateListener'
         procedure onInflate(para1: AVViewStub; para2: AVView); overload;
       end;
 
@@ -52092,7 +52092,7 @@
       Arr1InnerOnDismissListener = array of InnerOnDismissListener;
       Arr2InnerOnDismissListener = array of Arr1InnerOnDismissListener;
       Arr3InnerOnDismissListener = array of Arr2InnerOnDismissListener;
-      InnerOnDismissListener = interface external 'android.widget' name 'OnDismissListener' 
+      InnerOnDismissListener = interface external 'android.widget' name 'OnDismissListener'
         procedure onDismiss(); overload;
       end;
 
@@ -52247,7 +52247,7 @@
         function toString(): JLString; overload; virtual;
       end;
 
-      InnerOnEditorActionListener = interface external 'android.widget' name 'OnEditorActionListener' 
+      InnerOnEditorActionListener = interface external 'android.widget' name 'OnEditorActionListener'
         function onEditorAction(para1: AWTextView; para2: jint; para3: AVKeyEvent): jboolean; overload;
       end;
 
@@ -52507,7 +52507,7 @@
       Arr1InnerOnZoomListener = array of InnerOnZoomListener;
       Arr2InnerOnZoomListener = array of Arr1InnerOnZoomListener;
       Arr3InnerOnZoomListener = array of Arr2InnerOnZoomListener;
-      InnerOnZoomListener = interface external 'android.widget' name 'OnZoomListener' 
+      InnerOnZoomListener = interface external 'android.widget' name 'OnZoomListener'
         procedure onVisibilityChanged(para1: jboolean); overload;
         procedure onZoom(para1: jboolean); overload;
       end;
@@ -52557,11 +52557,11 @@
       Arr1InnerViewBinder = array of InnerViewBinder;
       Arr2InnerViewBinder = array of Arr1InnerViewBinder;
       Arr3InnerViewBinder = array of Arr2InnerViewBinder;
-      InnerCursorToStringConverter = interface external 'android.widget' name 'CursorToStringConverter' 
+      InnerCursorToStringConverter = interface external 'android.widget' name 'CursorToStringConverter'
         function convertToString(para1: ADCursor): JLCharSequence; overload;
       end;
 
-      InnerViewBinder = interface external 'android.widget' name 'ViewBinder' 
+      InnerViewBinder = interface external 'android.widget' name 'ViewBinder'
         function setViewValue(para1: AVView; para2: ADCursor; para3: jint): jboolean; overload;
       end;
 
@@ -52690,10 +52690,10 @@
         constructor create(); overload;
       end;
 
-      InnerInputMethodSessionImpl = class external 'android.inputmethodservice' name 'InputMethodSessionImpl' 
+      InnerInputMethodSessionImpl = class external 'android.inputmethodservice' name 'InputMethodSessionImpl'
       end;
 
-      InnerInputMethodImpl = class external 'android.inputmethodservice' name 'InputMethodImpl' 
+      InnerInputMethodImpl = class external 'android.inputmethodservice' name 'InputMethodImpl'
       end;
 
   public
@@ -52909,11 +52909,11 @@
       Arr1InnerBackStackEntry = array of InnerBackStackEntry;
       Arr2InnerBackStackEntry = array of Arr1InnerBackStackEntry;
       Arr3InnerBackStackEntry = array of Arr2InnerBackStackEntry;
-      InnerOnBackStackChangedListener = interface external 'android.app' name 'OnBackStackChangedListener' 
+      InnerOnBackStackChangedListener = interface external 'android.app' name 'OnBackStackChangedListener'
         procedure onBackStackChanged(); overload;
       end;
 
-      InnerBackStackEntry = interface external 'android.app' name 'BackStackEntry' 
+      InnerBackStackEntry = interface external 'android.app' name 'BackStackEntry'
         function getId(): jint; overload;
         function getName(): JLString; overload;
         function getBreadCrumbTitleRes(): jint; overload;
@@ -52975,7 +52975,7 @@
       Arr1InnerOnPreferenceStartFragmentCallback = array of InnerOnPreferenceStartFragmentCallback;
       Arr2InnerOnPreferenceStartFragmentCallback = array of Arr1InnerOnPreferenceStartFragmentCallback;
       Arr3InnerOnPreferenceStartFragmentCallback = array of Arr2InnerOnPreferenceStartFragmentCallback;
-      InnerOnPreferenceStartFragmentCallback = interface external 'android.preference' name 'OnPreferenceStartFragmentCallback' 
+      InnerOnPreferenceStartFragmentCallback = interface external 'android.preference' name 'OnPreferenceStartFragmentCallback'
         function onPreferenceStartFragment(para1: APPreferenceFragment; para2: APPreference): jboolean; overload;
       end;
 
@@ -53033,27 +53033,27 @@
       Arr1InnerGLWrapper = array of InnerGLWrapper;
       Arr2InnerGLWrapper = array of Arr1InnerGLWrapper;
       Arr3InnerGLWrapper = array of Arr2InnerGLWrapper;
-      InnerEGLConfigChooser = interface external 'android.opengl' name 'EGLConfigChooser' 
+      InnerEGLConfigChooser = interface external 'android.opengl' name 'EGLConfigChooser'
         function chooseConfig(para1: JMKEEGL10; para2: JMKEEGLDisplay): JMKEEGLConfig; overload;
       end;
 
-      InnerEGLWindowSurfaceFactory = interface external 'android.opengl' name 'EGLWindowSurfaceFactory' 
+      InnerEGLWindowSurfaceFactory = interface external 'android.opengl' name 'EGLWindowSurfaceFactory'
         function createWindowSurface(para1: JMKEEGL10; para2: JMKEEGLDisplay; para3: JMKEEGLConfig; para4: JLObject): JMKEEGLSurface; overload;
         procedure destroySurface(para1: JMKEEGL10; para2: JMKEEGLDisplay; para3: JMKEEGLSurface); overload;
       end;
 
-      InnerEGLContextFactory = interface external 'android.opengl' name 'EGLContextFactory' 
+      InnerEGLContextFactory = interface external 'android.opengl' name 'EGLContextFactory'
         function createContext(para1: JMKEEGL10; para2: JMKEEGLDisplay; para3: JMKEEGLConfig): JMKEEGLContext; overload;
         procedure destroyContext(para1: JMKEEGL10; para2: JMKEEGLDisplay; para3: JMKEEGLContext); overload;
       end;
 
-      InnerRenderer = interface external 'android.opengl' name 'Renderer' 
+      InnerRenderer = interface external 'android.opengl' name 'Renderer'
         procedure onSurfaceCreated(para1: JMKOGL10; para2: JMKEEGLConfig); overload;
         procedure onSurfaceChanged(para1: JMKOGL10; para2: jint; para3: jint); overload;
         procedure onDrawFrame(para1: JMKOGL10); overload;
       end;
 
-      InnerGLWrapper = interface external 'android.opengl' name 'GLWrapper' 
+      InnerGLWrapper = interface external 'android.opengl' name 'GLWrapper'
         function wrap(para1: JMKOGL): JMKOGL; overload;
       end;
 
@@ -53151,14 +53151,14 @@
         constructor create(para1: AVViewGroup_LayoutParams); overload;
       end;
 
-      InnerOnMenuVisibilityListener = interface external 'android.app' name 'OnMenuVisibilityListener' 
+      InnerOnMenuVisibilityListener = interface external 'android.app' name 'OnMenuVisibilityListener'
         procedure onMenuVisibilityChanged(para1: jboolean); overload;
       end;
 
-      InnerOnNavigationListener = interface external 'android.app' name 'OnNavigationListener' 
+      InnerOnNavigationListener = interface external 'android.app' name 'OnNavigationListener'
         function onNavigationItemSelected(para1: jint; para2: jlong): jboolean; overload;
       end;
-      
+
       InnerTab = class abstract external 'android.app' name 'Tab'
       end;
 
@@ -53282,16 +53282,16 @@
       Arr1InnerAdapterContextMenuInfo = array of InnerAdapterContextMenuInfo;
       Arr2InnerAdapterContextMenuInfo = array of Arr1InnerAdapterContextMenuInfo;
       Arr3InnerAdapterContextMenuInfo = array of Arr2InnerAdapterContextMenuInfo;
-      InnerOnItemSelectedListener = interface external 'android.widget' name 'OnItemSelectedListener' 
+      InnerOnItemSelectedListener = interface external 'android.widget' name 'OnItemSelectedListener'
         procedure onItemSelected(para1: AWAdapterView; para2: AVView; para3: jint; para4: jlong); overload;
         procedure onNothingSelected(para1: AWAdapterView); overload;
       end;
 
-      InnerOnItemLongClickListener = interface external 'android.widget' name 'OnItemLongClickListener' 
+      InnerOnItemLongClickListener = interface external 'android.widget' name 'OnItemLongClickListener'
         function onItemLongClick(para1: AWAdapterView; para2: AVView; para3: jint; para4: jlong): jboolean; overload;
       end;
 
-      InnerOnItemClickListener = interface external 'android.widget' name 'OnItemClickListener' 
+      InnerOnItemClickListener = interface external 'android.widget' name 'OnItemClickListener'
         procedure onItemClick(para1: AWAdapterView; para2: AVView; para3: jint; para4: jlong); overload;
       end;
 
@@ -53668,16 +53668,16 @@
       Arr1InnerOnDrawerOpenListener = array of InnerOnDrawerOpenListener;
       Arr2InnerOnDrawerOpenListener = array of Arr1InnerOnDrawerOpenListener;
       Arr3InnerOnDrawerOpenListener = array of Arr2InnerOnDrawerOpenListener;
-      InnerOnDrawerScrollListener = interface external 'android.widget' name 'OnDrawerScrollListener' 
+      InnerOnDrawerScrollListener = interface external 'android.widget' name 'OnDrawerScrollListener'
         procedure onScrollStarted(); overload;
         procedure onScrollEnded(); overload;
       end;
 
-      InnerOnDrawerCloseListener = interface external 'android.widget' name 'OnDrawerCloseListener' 
+      InnerOnDrawerCloseListener = interface external 'android.widget' name 'OnDrawerCloseListener'
         procedure onDrawerClosed(); overload;
       end;
 
-      InnerOnDrawerOpenListener = interface external 'android.widget' name 'OnDrawerOpenListener' 
+      InnerOnDrawerOpenListener = interface external 'android.widget' name 'OnDrawerOpenListener'
         procedure onDrawerOpened(); overload;
       end;
 
@@ -53806,7 +53806,7 @@
       Arr1InnerOnChronometerTickListener = array of InnerOnChronometerTickListener;
       Arr2InnerOnChronometerTickListener = array of Arr1InnerOnChronometerTickListener;
       Arr3InnerOnChronometerTickListener = array of Arr2InnerOnChronometerTickListener;
-      InnerOnChronometerTickListener = interface external 'android.widget' name 'OnChronometerTickListener' 
+      InnerOnChronometerTickListener = interface external 'android.widget' name 'OnChronometerTickListener'
         procedure onChronometerTick(para1: AWChronometer); overload;
       end;
 
@@ -53975,7 +53975,7 @@
       Arr1InnerListItem = array of InnerListItem;
       Arr2InnerListItem = array of Arr1InnerListItem;
       Arr3InnerListItem = array of Arr2InnerListItem;
-      InnerIconResizer = class external 'android.app' name 'IconResizer' 
+      InnerIconResizer = class external 'android.app' name 'IconResizer'
       end;
 
       InnerListItem = class external 'android.app' name 'ListItem' (JLObject)
@@ -54016,7 +54016,7 @@
       Arr1InnerOnBreadCrumbClickListener = array of InnerOnBreadCrumbClickListener;
       Arr2InnerOnBreadCrumbClickListener = array of Arr1InnerOnBreadCrumbClickListener;
       Arr3InnerOnBreadCrumbClickListener = array of Arr2InnerOnBreadCrumbClickListener;
-      InnerOnBreadCrumbClickListener = interface external 'android.app' name 'OnBreadCrumbClickListener' 
+      InnerOnBreadCrumbClickListener = interface external 'android.app' name 'OnBreadCrumbClickListener'
         function onBreadCrumbClick(para1: AAFragmentManager.InnerBackStackEntry; para2: jint): jboolean; overload;
       end;
 
@@ -54146,14 +54146,14 @@
       Arr1InnerWebViewTransport = array of InnerWebViewTransport;
       Arr2InnerWebViewTransport = array of Arr1InnerWebViewTransport;
       Arr3InnerWebViewTransport = array of Arr2InnerWebViewTransport;
-      InnerHitTestResult = class external 'android.webkit' name 'HitTestResult' 
+      InnerHitTestResult = class external 'android.webkit' name 'HitTestResult'
       end;
 
-      InnerPictureListener = interface external 'android.webkit' name 'PictureListener' 
+      InnerPictureListener = interface external 'android.webkit' name 'PictureListener'
         procedure onNewPicture(para1: AWWebView; para2: AGPicture); overload;
       end;
 
-      InnerWebViewTransport = class external 'android.webkit' name 'WebViewTransport' 
+      InnerWebViewTransport = class external 'android.webkit' name 'WebViewTransport'
       end;
 
   public
@@ -54445,15 +54445,15 @@
       Arr1InnerMultiChoiceModeListener = array of InnerMultiChoiceModeListener;
       Arr2InnerMultiChoiceModeListener = array of Arr1InnerMultiChoiceModeListener;
       Arr3InnerMultiChoiceModeListener = array of Arr2InnerMultiChoiceModeListener;
-      InnerRecyclerListener = interface external 'android.widget' name 'RecyclerListener' 
+      InnerRecyclerListener = interface external 'android.widget' name 'RecyclerListener'
         procedure onMovedToScrapHeap(para1: AVView); overload;
       end;
 
-      InnerSelectionBoundsAdjuster = interface external 'android.widget' name 'SelectionBoundsAdjuster' 
+      InnerSelectionBoundsAdjuster = interface external 'android.widget' name 'SelectionBoundsAdjuster'
         procedure adjustListItemSelectionBounds(para1: AGRect); overload;
       end;
 
-      InnerOnScrollListener = interface external 'android.widget' name 'OnScrollListener' 
+      InnerOnScrollListener = interface external 'android.widget' name 'OnScrollListener'
         const
           SCROLL_STATE_IDLE = 0;
           SCROLL_STATE_TOUCH_SCROLL = 1;
@@ -54789,18 +54789,18 @@
       Arr1InnerOnGesturingListener = array of InnerOnGesturingListener;
       Arr2InnerOnGesturingListener = array of Arr1InnerOnGesturingListener;
       Arr3InnerOnGesturingListener = array of Arr2InnerOnGesturingListener;
-      InnerOnGesturePerformedListener = interface external 'android.gesture' name 'OnGesturePerformedListener' 
+      InnerOnGesturePerformedListener = interface external 'android.gesture' name 'OnGesturePerformedListener'
         procedure onGesturePerformed(para1: AGGestureOverlayView; para2: AGGesture); overload;
       end;
 
-      InnerOnGestureListener = interface external 'android.gesture' name 'OnGestureListener' 
+      InnerOnGestureListener = interface external 'android.gesture' name 'OnGestureListener'
         procedure onGestureStarted(para1: AGGestureOverlayView; para2: AVMotionEvent); overload;
         procedure onGesture(para1: AGGestureOverlayView; para2: AVMotionEvent); overload;
         procedure onGestureEnded(para1: AGGestureOverlayView; para2: AVMotionEvent); overload;
         procedure onGestureCancelled(para1: AGGestureOverlayView; para2: AVMotionEvent); overload;
       end;
 
-      InnerOnGesturingListener = interface external 'android.gesture' name 'OnGesturingListener' 
+      InnerOnGesturingListener = interface external 'android.gesture' name 'OnGesturingListener'
         procedure onGesturingStarted(para1: AGGestureOverlayView); overload;
         procedure onGesturingEnded(para1: AGGestureOverlayView); overload;
       end;
@@ -54871,7 +54871,7 @@
       Arr1InnerOnDateChangeListener = array of InnerOnDateChangeListener;
       Arr2InnerOnDateChangeListener = array of Arr1InnerOnDateChangeListener;
       Arr3InnerOnDateChangeListener = array of Arr2InnerOnDateChangeListener;
-      InnerOnDateChangeListener = interface external 'android.widget' name 'OnDateChangeListener' 
+      InnerOnDateChangeListener = interface external 'android.widget' name 'OnDateChangeListener'
         procedure onSelectedDayChange(para1: AWCalendarView; para2: jint; para3: jint; para4: jint); overload;
       end;
 
@@ -54905,7 +54905,7 @@
       Arr1InnerOnDateChangedListener = array of InnerOnDateChangedListener;
       Arr2InnerOnDateChangedListener = array of Arr1InnerOnDateChangedListener;
       Arr3InnerOnDateChangedListener = array of Arr2InnerOnDateChangedListener;
-      InnerOnDateChangedListener = interface external 'android.widget' name 'OnDateChangedListener' 
+      InnerOnDateChangedListener = interface external 'android.widget' name 'OnDateChangedListener'
         procedure onDateChanged(para1: AWDatePicker; para2: jint; para3: jint; para4: jint); overload;
       end;
 
@@ -55011,7 +55011,7 @@
       Arr1InnerMediaPlayerControl = array of InnerMediaPlayerControl;
       Arr2InnerMediaPlayerControl = array of Arr1InnerMediaPlayerControl;
       Arr3InnerMediaPlayerControl = array of Arr2InnerMediaPlayerControl;
-      InnerMediaPlayerControl = interface external 'android.widget' name 'MediaPlayerControl' 
+      InnerMediaPlayerControl = interface external 'android.widget' name 'MediaPlayerControl'
         procedure start(); overload;
         procedure pause(); overload;
         function getDuration(): jint; overload;
@@ -55122,15 +55122,15 @@
       Arr1InnerTabSpec = array of InnerTabSpec;
       Arr2InnerTabSpec = array of Arr1InnerTabSpec;
       Arr3InnerTabSpec = array of Arr2InnerTabSpec;
-      InnerTabContentFactory = interface external 'android.widget' name 'TabContentFactory' 
+      InnerTabContentFactory = interface external 'android.widget' name 'TabContentFactory'
         function createTabContent(para1: JLString): AVView; overload;
       end;
 
-      InnerOnTabChangeListener = interface external 'android.widget' name 'OnTabChangeListener' 
+      InnerOnTabChangeListener = interface external 'android.widget' name 'OnTabChangeListener'
         procedure onTabChanged(para1: JLString); overload;
       end;
 
-      InnerTabSpec = class external 'android.widget' name 'TabSpec' 
+      InnerTabSpec = class external 'android.widget' name 'TabSpec'
       end;
 
   public
@@ -55167,7 +55167,7 @@
       Arr1InnerOnTimeChangedListener = array of InnerOnTimeChangedListener;
       Arr2InnerOnTimeChangedListener = array of Arr1InnerOnTimeChangedListener;
       Arr3InnerOnTimeChangedListener = array of Arr2InnerOnTimeChangedListener;
-      InnerOnTimeChangedListener = interface external 'android.widget' name 'OnTimeChangedListener' 
+      InnerOnTimeChangedListener = interface external 'android.widget' name 'OnTimeChangedListener'
         procedure onTimeChanged(para1: AWTimePicker; para2: jint; para3: jint); overload;
       end;
 
@@ -55235,11 +55235,11 @@
       Arr1InnerOnValueChangeListener = array of InnerOnValueChangeListener;
       Arr2InnerOnValueChangeListener = array of Arr1InnerOnValueChangeListener;
       Arr3InnerOnValueChangeListener = array of Arr2InnerOnValueChangeListener;
-      InnerFormatter = interface external 'android.widget' name 'Formatter' 
+      InnerFormatter = interface external 'android.widget' name 'Formatter'
         function format(para1: jint): JLString; overload;
       end;
 
-      InnerOnScrollListener = interface external 'android.widget' name 'OnScrollListener' 
+      InnerOnScrollListener = interface external 'android.widget' name 'OnScrollListener'
         const
           SCROLL_STATE_IDLE = 0;
           SCROLL_STATE_TOUCH_SCROLL = 1;
@@ -55247,7 +55247,7 @@
         procedure onScrollStateChange(para1: AWNumberPicker; para2: jint); overload;
       end;
 
-      InnerOnValueChangeListener = interface external 'android.widget' name 'OnValueChangeListener' 
+      InnerOnValueChangeListener = interface external 'android.widget' name 'OnValueChangeListener'
         procedure onValueChange(para1: AWNumberPicker; para2: jint; para3: jint); overload;
       end;
 
@@ -55307,7 +55307,7 @@
       Arr1InnerLayoutParams = array of InnerLayoutParams;
       Arr2InnerLayoutParams = array of Arr1InnerLayoutParams;
       Arr3InnerLayoutParams = array of Arr2InnerLayoutParams;
-      InnerOnCheckedChangeListener = interface external 'android.widget' name 'OnCheckedChangeListener' 
+      InnerOnCheckedChangeListener = interface external 'android.widget' name 'OnCheckedChangeListener'
         procedure onCheckedChanged(para1: AWRadioGroup; para2: jint); overload;
       end;
 
@@ -55361,16 +55361,16 @@
       Arr1InnerOnQueryTextListener = array of InnerOnQueryTextListener;
       Arr2InnerOnQueryTextListener = array of Arr1InnerOnQueryTextListener;
       Arr3InnerOnQueryTextListener = array of Arr2InnerOnQueryTextListener;
-      InnerOnSuggestionListener = interface external 'android.widget' name 'OnSuggestionListener' 
+      InnerOnSuggestionListener = interface external 'android.widget' name 'OnSuggestionListener'
         function onSuggestionSelect(para1: jint): jboolean; overload;
         function onSuggestionClick(para1: jint): jboolean; overload;
       end;
 
-      InnerOnCloseListener = interface external 'android.widget' name 'OnCloseListener' 
+      InnerOnCloseListener = interface external 'android.widget' name 'OnCloseListener'
         function onClose(): jboolean; overload;
       end;
 
-      InnerOnQueryTextListener = interface external 'android.widget' name 'OnQueryTextListener' 
+      InnerOnQueryTextListener = interface external 'android.widget' name 'OnQueryTextListener'
         function onQueryTextSubmit(para1: JLString): jboolean; overload;
         function onQueryTextChange(para1: JLString): jboolean; overload;
       end;
@@ -55626,7 +55626,7 @@
       Arr1InnerOnRatingBarChangeListener = array of InnerOnRatingBarChangeListener;
       Arr2InnerOnRatingBarChangeListener = array of Arr1InnerOnRatingBarChangeListener;
       Arr3InnerOnRatingBarChangeListener = array of Arr2InnerOnRatingBarChangeListener;
-      InnerOnRatingBarChangeListener = interface external 'android.widget' name 'OnRatingBarChangeListener' 
+      InnerOnRatingBarChangeListener = interface external 'android.widget' name 'OnRatingBarChangeListener'
         procedure onRatingChanged(para1: AWRatingBar; para2: jfloat; para3: jboolean); overload;
       end;
 
@@ -55657,7 +55657,7 @@
       Arr1InnerOnSeekBarChangeListener = array of InnerOnSeekBarChangeListener;
       Arr2InnerOnSeekBarChangeListener = array of Arr1InnerOnSeekBarChangeListener;
       Arr3InnerOnSeekBarChangeListener = array of Arr2InnerOnSeekBarChangeListener;
-      InnerOnSeekBarChangeListener = interface external 'android.widget' name 'OnSeekBarChangeListener' 
+      InnerOnSeekBarChangeListener = interface external 'android.widget' name 'OnSeekBarChangeListener'
         procedure onProgressChanged(para1: AWSeekBar; para2: jint; para3: jboolean); overload;
         procedure onStartTrackingTouch(para1: AWSeekBar); overload;
         procedure onStopTrackingTouch(para1: AWSeekBar); overload;
@@ -55677,7 +55677,7 @@
       Arr1InnerOnCheckedChangeListener = array of InnerOnCheckedChangeListener;
       Arr2InnerOnCheckedChangeListener = array of Arr1InnerOnCheckedChangeListener;
       Arr3InnerOnCheckedChangeListener = array of Arr2InnerOnCheckedChangeListener;
-      InnerOnCheckedChangeListener = interface external 'android.widget' name 'OnCheckedChangeListener' 
+      InnerOnCheckedChangeListener = interface external 'android.widget' name 'OnCheckedChangeListener'
         procedure onCheckedChanged(para1: AWCompoundButton; para2: jboolean); overload;
       end;
 
@@ -55732,7 +55732,7 @@
       Arr1InnerValidator = array of InnerValidator;
       Arr2InnerValidator = array of Arr1InnerValidator;
       Arr3InnerValidator = array of Arr2InnerValidator;
-      InnerValidator = interface external 'android.widget' name 'Validator' 
+      InnerValidator = interface external 'android.widget' name 'Validator'
         function isValid(para1: JLCharSequence): jboolean; overload;
         function fixText(para1: JLCharSequence): JLCharSequence; overload;
       end;
@@ -55936,7 +55936,7 @@
       Arr1InnerFixedViewInfo = array of InnerFixedViewInfo;
       Arr2InnerFixedViewInfo = array of Arr1InnerFixedViewInfo;
       Arr3InnerFixedViewInfo = array of Arr2InnerFixedViewInfo;
-      InnerFixedViewInfo = class external 'android.widget' name 'FixedViewInfo' 
+      InnerFixedViewInfo = class external 'android.widget' name 'FixedViewInfo'
       end;
 
   public
@@ -56137,7 +56137,7 @@
       Arr1InnerOnDateSetListener = array of InnerOnDateSetListener;
       Arr2InnerOnDateSetListener = array of Arr1InnerOnDateSetListener;
       Arr3InnerOnDateSetListener = array of Arr2InnerOnDateSetListener;
-      InnerOnDateSetListener = interface external 'android.app' name 'OnDateSetListener' 
+      InnerOnDateSetListener = interface external 'android.app' name 'OnDateSetListener'
         procedure onDateSet(para1: AWDatePicker; para2: jint; para3: jint; para4: jint); overload;
       end;
 
@@ -56192,7 +56192,7 @@
       Arr1InnerOnTimeSetListener = array of InnerOnTimeSetListener;
       Arr2InnerOnTimeSetListener = array of Arr1InnerOnTimeSetListener;
       Arr3InnerOnTimeSetListener = array of Arr2InnerOnTimeSetListener;
-      InnerOnTimeSetListener = interface external 'android.app' name 'OnTimeSetListener' 
+      InnerOnTimeSetListener = interface external 'android.app' name 'OnTimeSetListener'
         procedure onTimeSet(para1: AWTimePicker; para2: jint; para3: jint); overload;
       end;
 
@@ -56230,7 +56230,7 @@
       Arr1InnerViewFactory = array of InnerViewFactory;
       Arr2InnerViewFactory = array of Arr1InnerViewFactory;
       Arr3InnerViewFactory = array of Arr2InnerViewFactory;
-      InnerViewFactory = interface external 'android.widget' name 'ViewFactory' 
+      InnerViewFactory = interface external 'android.widget' name 'ViewFactory'
         function makeView(): AVView; overload;
       end;
 
@@ -56320,7 +56320,7 @@
       Arr1InnerCommaTokenizer = array of InnerCommaTokenizer;
       Arr2InnerCommaTokenizer = array of Arr1InnerCommaTokenizer;
       Arr3InnerCommaTokenizer = array of Arr2InnerCommaTokenizer;
-      InnerTokenizer = interface external 'android.widget' name 'Tokenizer' 
+      InnerTokenizer = interface external 'android.widget' name 'Tokenizer'
         function findTokenStart(para1: JLCharSequence; para2: jint): jint; overload;
         function findTokenEnd(para1: JLCharSequence; para2: jint): jint; overload;
         function terminateToken(para1: JLCharSequence): JLCharSequence; overload;
@@ -56444,19 +56444,19 @@
       Arr1InnerExpandableListContextMenuInfo = array of InnerExpandableListContextMenuInfo;
       Arr2InnerExpandableListContextMenuInfo = array of Arr1InnerExpandableListContextMenuInfo;
       Arr3InnerExpandableListContextMenuInfo = array of Arr2InnerExpandableListContextMenuInfo;
-      InnerOnChildClickListener = interface external 'android.widget' name 'OnChildClickListener' 
+      InnerOnChildClickListener = interface external 'android.widget' name 'OnChildClickListener'
         function onChildClick(para1: AWExpandableListView; para2: AVView; para3: jint; para4: jint; para5: jlong): jboolean; overload;
       end;
 
-      InnerOnGroupClickListener = interface external 'android.widget' name 'OnGroupClickListener' 
+      InnerOnGroupClickListener = interface external 'android.widget' name 'OnGroupClickListener'
         function onGroupClick(para1: AWExpandableListView; para2: AVView; para3: jint; para4: jlong): jboolean; overload;
       end;
 
-      InnerOnGroupExpandListener = interface external 'android.widget' name 'OnGroupExpandListener' 
+      InnerOnGroupExpandListener = interface external 'android.widget' name 'OnGroupExpandListener'
         procedure onGroupExpand(para1: jint); overload;
       end;
 
-      InnerOnGroupCollapseListener = interface external 'android.widget' name 'OnGroupCollapseListener' 
+      InnerOnGroupCollapseListener = interface external 'android.widget' name 'OnGroupCollapseListener'
         procedure onGroupCollapse(para1: jint); overload;
       end;
 

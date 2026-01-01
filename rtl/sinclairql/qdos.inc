@@ -265,7 +265,7 @@ asm
   movem.l (sp)+,d2-d3
 end;
 
-function sd_wdef(chan: Tchanid; timeout: Ttimeout; border_colour: byte; border_width: word; window: PQLRect): longint; assembler; public name '_sd_wdef'; 
+function sd_wdef(chan: Tchanid; timeout: Ttimeout; border_colour: byte; border_width: word; window: PQLRect): longint; assembler; public name '_sd_wdef';
 asm
   movem.l d2-d3,-(sp)
   move.l window,a1

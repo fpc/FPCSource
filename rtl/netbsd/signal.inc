@@ -188,7 +188,7 @@ struct sigcontext {
        sc_trapno    : longint;
        sc_err       : longint;
        sc_mask      : sigset_t;
- 
+
 (*           {
          * XXX FPU state is 27 * 4 bytes h/w, 1 * 4 bytes s/w (probably not
          * needed here), or that + 16 * 4 bytes for emulators (probably all

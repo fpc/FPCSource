@@ -45,7 +45,7 @@ Function FreeLibrary(Lib : TLibHandle) : Boolean; inline;
 Function GetProcAddress(Lib : TlibHandle; const ProcName : AnsiString) : {$ifdef cpui8086}FarPointer{$else}Pointer{$endif}; inline;
 
 Type
-  HModule = TLibHandle; 
+  HModule = TLibHandle;
 
 Implementation
 

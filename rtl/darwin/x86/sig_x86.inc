@@ -8,13 +8,13 @@
    * Copyright (c) 2000-2005 Apple Computer, Inc. All rights reserved.
    *
    * @APPLE_LICENSE_HEADER_START@
-   * 
+   *
    * The contents of this file constitute Original Code as defined in and
    * are subject to the Apple Public Source License Version 1.1 (the
    * "License").  You may not use this file except in compliance with the
    * License.  Please obtain a copy of the License at
    * http://www.apple.com/publicsource and read it before using this file.
-   * 
+   *
    * This Original Code and all software distributed under the License are
    * distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, EITHER
    * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
@@ -22,34 +22,34 @@
    * FITNESS FOR A PARTICULAR PURPOSE OR NON-INFRINGEMENT.  Please see the
    * License for the specific language governing rights and limitations
    * under the License.
-   * 
+   *
    * @APPLE_LICENSE_HEADER_END@
     }
   {
    * @OSF_COPYRIGHT@
     }
-  { 
+  {
    * Mach Operating System
    * Copyright (c) 1991,1990,1989 Carnegie Mellon University
    * All Rights Reserved.
-   * 
+   *
    * Permission to use, copy, modify and distribute this software and its
    * documentation is hereby granted, provided that both the copyright
    * notice and this permission notice appear in all copies of the
    * software, derivative works or modified versions, and any portions
    * thereof, and that both notices appear in supporting documentation.
-   * 
+   *
    * CARNEGIE MELLON ALLOWS FREE USE OF THIS SOFTWARE IN ITS "AS IS"
    * CONDITION.  CARNEGIE MELLON DISCLAIMS ANY LIABILITY OF ANY KIND FOR
    * ANY DAMAGES WHATSOEVER RESULTING FROM THE USE OF THIS SOFTWARE.
-   * 
+   *
    * Carnegie Mellon requests users of this software to return to
-   * 
+   *
    *  Software Distribution Coordinator  or  Software.Distribution@CS.CMU.EDU
    *  School of Computer Science
    *  Carnegie Mellon University
    *  Pittsburgh PA 15213-3890
-   * 
+   *
    * any improvements or extensions that they make and grant Carnegie Mellon
    * the rights to redistribute these changes.
     }
@@ -69,8 +69,8 @@
    *				calls.  This structure should never
    *				change.
    *
-   *	i386_float_state	exported to use threads for access to 
-   *				floating point registers. Try not to 
+   *	i386_float_state	exported to use threads for access to
+   *				floating point registers. Try not to
    *				change this one, either.
    *
     }
@@ -78,10 +78,10 @@
 
 {
   const
-     i386_THREAD_STATE = 1;     
-     i386_FLOAT_STATE = 2;     
-     i386_EXCEPTION_STATE = 3;     
-     THREAD_STATE_NONE = 4;     
+     i386_THREAD_STATE = 1;
+     i386_FLOAT_STATE = 2;
+     i386_EXCEPTION_STATE = 3;
+     THREAD_STATE_NONE = 4;
 }
   {
    * Main thread state consists of
@@ -142,17 +142,17 @@
     }
 
   const
-     USER_CODE_SELECTOR = $0017;     
-     USER_DATA_SELECTOR = $001f;     
-     KERN_CODE_SELECTOR = $0008;     
-     KERN_DATA_SELECTOR = $0010;     
-     FP_PREC_24B = 0;     
-     FP_PREC_53B = 2;     
-     FP_PREC_64B = 3;     
-     FP_RND_NEAR = 0;     
-     FP_RND_DOWN = 1;     
-     FP_RND_UP = 2;     
-     FP_CHOP = 3;     
+     USER_CODE_SELECTOR = $0017;
+     USER_DATA_SELECTOR = $001f;
+     KERN_CODE_SELECTOR = $0008;
+     KERN_DATA_SELECTOR = $0010;
+     FP_PREC_24B = 0;
+     FP_PREC_53B = 2;
+     FP_PREC_64B = 3;
+     FP_RND_NEAR = 0;
+     FP_RND_DOWN = 1;
+     FP_RND_UP = 2;
+     FP_CHOP = 3;
 
   type
 
@@ -290,13 +290,13 @@
           xmm_reg : array[0..15] of byte;
        end;
 
-  { 
+  {
    * Floating point state.
     }
   { number of chars worth of data from fpu_fcw  }
 
   const
-     FP_STATE_BYTES = 512;     
+     FP_STATE_BYTES = 512;
   { For legacy reasons we need to leave the hw_state as char bytes  }
   { x87 FPU control word  }
   { x87 FPU status word  }

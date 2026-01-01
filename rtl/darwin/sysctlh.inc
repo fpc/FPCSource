@@ -368,7 +368,7 @@
        VM_METER = 1;
     { struct loadavg  }
        VM_LOADAVG = 2;
-    {  Note: "3" was skipped sometime ago and should probably remain unused 
+    {  Note: "3" was skipped sometime ago and should probably remain unused
              to avoid any new entry from being accepted by older kernels...}
     { struct loadavg with mach factor }
        VM_MACHFACTOR = 4;

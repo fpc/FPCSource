@@ -1,4 +1,4 @@
-// libgs.h: Graphic Library Header 
+// libgs.h: Graphic Library Header
 unit libgs;
 interface
 uses libgte, libgpu;
@@ -34,7 +34,7 @@ type
 							_sub : PGsCOORDINATE2;
 		end;
 
-		
+
 		GsVIEW2 = packed record
 							view : MATRIX;
 							super : GsCOORDINATE2;
@@ -47,13 +47,13 @@ type
 							super : PGsCOORDINATE2;
 		end;
 		PGsRVIEW2 = ^GsRVIEW2;
-       
+
 		GsF_LIGHT = packed record
 							vx, vy, vz : longint;
 							r, g, b : byte;
 		end;
 		PGsF_LIGHT = ^GsF_LIGHT;
-       
+
 
 
 		GsOT_TAG = packed record
@@ -261,7 +261,7 @@ const
 		GsLMODE_FOG    	= 1;
 		GsLMODE_LOFF   	= 2;
 
-// libgs macro 
+// libgs macro
 		GsOFSGTE 		= 0;
 		GsOFSGPU 		= 4;
 		GsINTER  		= 1;
@@ -269,7 +269,7 @@ const
 		GsRESET0 		= 0;
 		GsRESET3 		= 3 shl 4;
 
-// object attribute set macro 
+// object attribute set macro
 		GsLDIM0 		= 0;
 		GsLDIM1 		= 1;
 		GsLDIM2 		= 2;
@@ -297,7 +297,7 @@ const
 		GsDOFF   		= 1 shl 31;
 
 
-// BG/sprite attribute set macro 
+// BG/sprite attribute set macro
 
 		GsPERS   		= 1 shl 26;
 		GsROTOFF 		= 1 shl 27;
@@ -310,7 +310,7 @@ const
 		GsVFLIP			= $02;
 
 
-// TMD structure 
+// TMD structure
 // GTE PACKET to-GPU command '<packet-name>.code'
 		GPU_COM_F3    	= $20;
 		GPU_COM_TF3   	= $24;

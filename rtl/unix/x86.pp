@@ -171,22 +171,22 @@ Procedure WritePortl (Port : Longint; Var Buf; Count: longint);
 }
 begin
   asm
-{$ifdef CPU386}        
+{$ifdef CPU386}
         movl count,%ecx
         movl buf,%esi
         movl port,%edx
         cld
         rep
         outsl
-{$endif CPU386}        
-{$ifdef CPUX86_64}        
+{$endif CPU386}
+{$ifdef CPUX86_64}
         movl count,%ecx
         movq buf,%rsi
         movl port,%edx
         cld
         rep
         outsl
-{$endif CPUX86_64}        
+{$endif CPUX86_64}
   end;
 end;
 
@@ -198,22 +198,22 @@ Procedure WritePortW (Port : Longint; Var Buf; Count: longint);
 }
 begin
   asm
-{$ifdef CPU386}        
+{$ifdef CPU386}
         movl count,%ecx
         movl buf,%esi
         movl port,%edx
         cld
         rep
         outsw
-{$endif CPU386}        
-{$ifdef CPUX86_64}        
+{$endif CPU386}
+{$ifdef CPUX86_64}
         movl count,%ecx
         movq buf,%rsi
         movl port,%edx
         cld
         rep
         outsw
-{$endif CPUX86_64}        
+{$endif CPUX86_64}
   end;
 end;
 
@@ -225,22 +225,22 @@ Procedure WritePortB (Port : Longint; Var Buf; Count: longint);
 }
 begin
   asm
-{$ifdef CPU386}        
+{$ifdef CPU386}
         movl count,%ecx
         movl buf,%esi
         movl port,%edx
         cld
         rep
         outsb
-{$endif CPU386}        
-{$ifdef CPUX86_64}        
+{$endif CPU386}
+{$ifdef CPUX86_64}
         movl count,%ecx
         movq buf,%rsi
         movl port,%edx
         cld
         rep
         outsb
-{$endif CPUX86_64}        
+{$endif CPUX86_64}
   end;
 end;
 
@@ -306,22 +306,22 @@ Procedure ReadPortL (Port : Longint; Var Buf; Count: longint);
 }
 begin
   asm
-{$ifdef CPU386}        
+{$ifdef CPU386}
         movl count,%ecx
         movl buf,%edi
         movl port,%edx
         cld
         rep
         insl
-{$endif CPU386}        
-{$ifdef CPUX86_64}        
+{$endif CPU386}
+{$ifdef CPUX86_64}
         movl count,%ecx
         movq buf,%rdi
         movl port,%edx
         cld
         rep
         insl
-{$endif CPUX86_64}        
+{$endif CPUX86_64}
   end;
 end;
 
@@ -333,22 +333,22 @@ Procedure ReadPortW (Port : Longint; Var Buf; Count: longint);
 }
 begin
   asm
-{$ifdef CPU386}        
+{$ifdef CPU386}
         movl count,%ecx
         movl buf,%edi
         movl port,%edx
         cld
         rep
         insw
-{$endif CPU386}        
-{$ifdef CPUX86_64}        
+{$endif CPU386}
+{$ifdef CPUX86_64}
         movl count,%ecx
         movq buf,%rdi
         movl port,%edx
         cld
         rep
         insw
-{$endif CPUX86_64}        
+{$endif CPUX86_64}
   end;
 end;
 
@@ -358,22 +358,22 @@ Procedure ReadPortB (Port : Longint; Var Buf; Count: longint);
 }
 begin
   asm
-{$ifdef CPU386}        
+{$ifdef CPU386}
         movl count,%ecx
         movl buf,%edi
         movl port,%edx
         cld
         rep
         insb
-{$endif CPU386}        
-{$ifdef CPUX86_64}        
+{$endif CPU386}
+{$ifdef CPUX86_64}
         movl count,%ecx
         movq buf,%rdi
         movl port,%edx
         cld
         rep
         insb
-{$endif CPUX86_64}        
+{$endif CPUX86_64}
   end;
 end;
 

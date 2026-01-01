@@ -50,7 +50,7 @@ uses
 {$DEFINE HAS_FILEGETDATETIMEINFO}
 
 {$DEFINE HAS_INVALIDHANDLE}
-const 
+const
   INVALID_HANDLE_VALUE = {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.INVALID_HANDLE_VALUE;
 
 // this target has an fileflush implementation, don't include dummy
@@ -115,7 +115,7 @@ implementation
 {$ENDIF FPC_DOTTEDUNITS}
 
 
-var 
+var
   FindExInfoDefaults : TFINDEX_INFO_LEVELS = FindExInfoStandard;
   FindFirstAdditionalFlags : DWord = 0;
 
@@ -639,9 +639,9 @@ Var
 begin
   Result:='';
   FillChar(Buf,MAX_PATH+1,0);
-  if Not FileExists(aLink,False) then 
+  if Not FileExists(aLink,False) then
     exit;
-  if not CheckWin32Version(6, 0) or not(assigned(GetFinalPathNameByHandle)) then 
+  if not CheckWin32Version(6, 0) or not(assigned(GetFinalPathNameByHandle)) then
     exit;
   Attrs:=GetFileAttributes(PAnsiChar(aLink));
   if (Attrs=INVALID_FILE_ATTRIBUTES) or ((Attrs and faSymLink)=0) then
@@ -655,8 +655,8 @@ begin
     exit;
   try
     Len:=GetFinalPathNameByHandle(aHandle,@Buf,MAX_PATH,VOLUME_NAME_NT);
-    If Len<=0 then 
-      exit; 
+    If Len<=0 then
+      exit;
     Result:=StrPas(PAnsiChar(@Buf));
   finally
     CloseHandle(aHandle);
@@ -708,12 +708,12 @@ begin
     if FollowLink then
       begin
       FN:=FollowSymlink(FileName);
-      if FN='' then 
-        exit; 
+      if FN='' then
+        exit;
       if not GetFileAttributesExW(PWideChar(FN), GetFileExInfoStandard, @Data) then
         exit;
       end;
-    end;     
+    end;
   DateTime.Data:=Data;
   Result:=True;
 end;
@@ -1361,7 +1361,7 @@ begin
         E:=LeadByte[i+1];
         end;
       end;
-    end;   
+    end;
 end;
 
 
@@ -1694,7 +1694,7 @@ begin
     GetDiskFreeSpaceEx:=TGetDiskFreeSpaceEx(GetProcAddress(kernel32dll,'GetDiskFreeSpaceExA'));
   if Win32MajorVersion<6 then
      FindExInfoDefaults := FindExInfoStandard; // also searches SFNs. XP only.
-  if (Win32MajorVersion>=6) and (Win32MinorVersion>=1) then 
+  if (Win32MajorVersion>=6) and (Win32MinorVersion>=1) then
     FindFirstAdditionalFlags := FIND_FIRST_EX_LARGE_FETCH; // win7 and 2008R2+
   // GetTimeZoneInformationForYear is supported only on Vista and newer
   if (kernel32dll<>0) and (Win32MajorVersion>=6) then

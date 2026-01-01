@@ -37,47 +37,47 @@ const
   ADPS0 = $00;  // ADC  Prescaler Select Bits
   ADPS1 = $01;  // ADC  Prescaler Select Bits
   ADPS2 = $02;  // ADC  Prescaler Select Bits
-  ADIE = $03;  
-  ADIF = $04;  
-  ADFR = $05;  
-  ADSC = $06;  
-  ADEN = $07;  
+  ADIE = $03;
+  ADIF = $04;
+  ADFR = $05;
+  ADSC = $06;
+  ADEN = $07;
   // The ADC multiplexer Selection Register
   MUX0 = $00;  // Analog Channel and Gain Selection Bits
   MUX1 = $01;  // Analog Channel and Gain Selection Bits
   MUX2 = $02;  // Analog Channel and Gain Selection Bits
-  ADLAR = $05;  
+  ADLAR = $05;
   REFS0 = $06;  // Reference Selection Bits
   REFS1 = $07;  // Reference Selection Bits
   // Analog Comparator Control And Status Register
   ACIS0 = $00;  // Analog Comparator Interrupt Mode Select bits
   ACIS1 = $01;  // Analog Comparator Interrupt Mode Select bits
-  ACIE = $03;  
-  ACI = $04;  
-  ACO = $05;  
-  ACBG = $06;  
-  ACD = $07;  
+  ACIE = $03;
+  ACI = $04;
+  ACO = $05;
+  ACBG = $06;
+  ACD = $07;
   // Data Register, Port B
-  PB0 = $00;  
-  PB1 = $01;  
-  PB2 = $02;  
-  PB3 = $03;  
-  PB4 = $04;  
+  PB0 = $00;
+  PB1 = $01;
+  PB2 = $02;
+  PB3 = $03;
+  PB4 = $04;
   // EEPROM Control Register
-  EERE = $00;  
-  EEWE = $01;  
-  EEMWE = $02;  
-  EERIE = $03;  
+  EERE = $00;
+  EEWE = $01;
+  EEMWE = $02;
+  EERIE = $03;
   // Watchdog Timer Control Register
   WDP0 = $00;  // Watch Dog Timer Prescaler bits
   WDP1 = $01;  // Watch Dog Timer Prescaler bits
   WDP2 = $02;  // Watch Dog Timer Prescaler bits
-  WDE = $03;  
-  WDTOE = $04;  
+  WDE = $03;
+  WDTOE = $04;
   // Special Function IO Register
-  PSR0 = $00;  
-  PSR1 = $01;  
-  FOC1A = $02;  
+  PSR0 = $00;
+  PSR1 = $01;
+  FOC1A = $02;
   // Timer/Counter Control Register
   CS10 = $00;  // Clock Select Bits
   CS11 = $01;  // Clock Select Bits
@@ -85,56 +85,56 @@ const
   CS13 = $03;  // Clock Select Bits
   COM1A0 = $04;  // Compare Output Mode, Bits
   COM1A1 = $05;  // Compare Output Mode, Bits
-  PWM1 = $06;  
-  CTC1 = $07;  
+  PWM1 = $06;
+  CTC1 = $07;
   // Status Register
-  OSCCAL0 = $00;  // Oscillator Calibration 
-  OSCCAL1 = $01;  // Oscillator Calibration 
-  OSCCAL2 = $02;  // Oscillator Calibration 
-  OSCCAL3 = $03;  // Oscillator Calibration 
-  OSCCAL4 = $04;  // Oscillator Calibration 
-  OSCCAL5 = $05;  // Oscillator Calibration 
-  OSCCAL6 = $06;  // Oscillator Calibration 
-  OSCCAL7 = $07;  // Oscillator Calibration 
+  OSCCAL0 = $00;  // Oscillator Calibration
+  OSCCAL1 = $01;  // Oscillator Calibration
+  OSCCAL2 = $02;  // Oscillator Calibration
+  OSCCAL3 = $03;  // Oscillator Calibration
+  OSCCAL4 = $04;  // Oscillator Calibration
+  OSCCAL5 = $05;  // Oscillator Calibration
+  OSCCAL6 = $06;  // Oscillator Calibration
+  OSCCAL7 = $07;  // Oscillator Calibration
   // Timer/Counter0 Control Register
-  CS00 = $00;  
-  CS01 = $01;  
-  CS02 = $02;  
+  CS00 = $00;
+  CS01 = $01;
+  CS02 = $02;
   // MCU Status register
-  PORF = $00;  
-  EXTRF = $01;  
-  BORF = $02;  
-  WDRF = $03;  
+  PORF = $00;
+  EXTRF = $01;
+  BORF = $02;
+  WDRF = $03;
   // MCU Control Register
   ISC00 = $00;  // Interrupt Sense Control 0 bits
   ISC01 = $01;  // Interrupt Sense Control 0 bits
   SM0 = $03;  // Sleep Mode Select Bits
   SM1 = $04;  // Sleep Mode Select Bits
-  SE = $05;  
-  PUD = $06;  
+  SE = $05;
+  PUD = $06;
   // Timer/Counter Interrupt Flag Register
-  TOV0 = $01;  
-  TOV1 = $02;  
-  OCF1A = $06;  
+  TOV0 = $01;
+  TOV1 = $02;
+  OCF1A = $06;
   // Timer/Counter Interrupt Mask Register
-  TOIE0 = $01;  
-  TOIE1 = $02;  
-  OCIE1A = $06;  
+  TOIE0 = $01;
+  TOIE1 = $02;
+  OCIE1A = $06;
   // General Interrupt Flag register
-  PCIF = $05;  
-  INTF0 = $06;  
+  PCIF = $05;
+  INTF0 = $06;
   // General Interrupt Mask Register
-  PCIE = $05;  
-  INT0 = $06;  
+  PCIE = $05;
+  INT0 = $06;
   // Status Register
-  C = $00;  
-  Z = $01;  
-  N = $02;  
-  V = $03;  
-  S = $04;  
-  H = $05;  
-  T = $06;  
-  I = $07;  
+  C = $00;
+  Z = $01;
+  N = $02;
+  V = $03;
+  S = $04;
+  H = $05;
+  T = $06;
+  I = $07;
 
 
 implementation

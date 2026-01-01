@@ -84,7 +84,7 @@ begin
     exit;
   assign(ft,GetTimeZoneFile);
 {$push}
-{$I-}  
+{$I-}
   reset(ft);
   if IOResult=0 then
     close(ft)

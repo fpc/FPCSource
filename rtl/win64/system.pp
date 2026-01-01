@@ -432,7 +432,7 @@ initialization
   StackLength := CheckInitialStkLen($1000000);
   StackBottom := StackTop - StackLength;
   SetThreadStackGuaranteeTo(StackMargin);
-  
+
   { get some helpful informations }
   GetStartupInfo(@startupinfo);
   { some misc Win32 stuff }

@@ -131,14 +131,14 @@ uses
   function PosLastSlash(const s : string) : longint;
     var
       i : longint;
-    begin 
+    begin
       PosLastSlash:=0;
       for i:=1 to length(s) do
         if s[i]='/' then
           PosLastSlash:=i;
     end;
-    
-    
+
+
   function SimpleExtractFilename(const s : string) : string;
     begin
       SimpleExtractFilename:=Copy(s,PosLastSlash(s)+1,Length(s)-PosLastSlash(s));

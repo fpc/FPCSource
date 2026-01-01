@@ -351,7 +351,7 @@ Type
   {$IFDEF CPULLVM}
   // LLVM does not allow the constref use.
   procedure FreeAndNil(var obj);
-  {$else}    
+  {$else}
   procedure FreeAndNil(constref obj : TObject);
   {$ENDIF}
   procedure FreeMemAndNil(var p);

@@ -20,7 +20,7 @@
        This is how the dynamic linker arranges to have DT_FINI
        functions called for shared libraries that have been loaded
        before this code runs.
-   
+
 
  Stack layout at program start:
 
@@ -51,17 +51,17 @@ procedure uclibc_main; external name '__uClibc_main';
 { Some helpers }
 
 {$ifdef FPC_PIC}
-function get3eipasebx : pointer; compilerproc; nostackframe; assembler; 
-asm  
-  movl (%esp),%ebx  
-  ret  
+function get3eipasebx : pointer; compilerproc; nostackframe; assembler;
+asm
+  movl (%esp),%ebx
+  ret
 end;
 {$endif FPC_PIC}
 
 procedure _init_fini_dummy; compilerproc; nostackframe; assembler;
 asm
   ret
-end; 
+end;
 
 {******************************************************************************
                        glibc 2.1 lib + profiling start/halt
@@ -83,11 +83,11 @@ asm
         pushl %edx
         pushl %ebx
         pushl %ecx
-	
+
 	call get3eipasebx
         addl  $_GLOBAL_OFFSET_TABLE_,%ebx
 
-	movl  dlexitproc@GOT(%ebx),%ecx 
+	movl  dlexitproc@GOT(%ebx),%ecx
 	movl  %edx,(%ecx)
 
 	movl  operatingsystem_parameter_envp@GOT(%ebx),%ecx
@@ -121,13 +121,13 @@ asm
   {$endif FPC_PIC}
 
         { int __libc_start_main(
-		int *(main) (int, char **, char **), 
-		int argc, 
-		char ** ubp_av, 
-		void (*init) (void), 
-		void (*fini) (void), 
-		void (*rtld_fini) (void), 
-		void (* stack_end)); } 
+		int *(main) (int, char **, char **),
+		int argc,
+		char ** ubp_av,
+		void (*init) (void),
+		void (*fini) (void),
+		void (*rtld_fini) (void),
+		void (* stack_end)); }
 
         pushl %ebp   			{ padding }
         pushl %esp   			{ stack_end }

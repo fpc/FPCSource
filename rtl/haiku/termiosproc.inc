@@ -46,7 +46,7 @@ end;
 Procedure CFSetISpeed(var tios:TermIOS;speed:Cardinal);
 begin
   // field unused under BeOS
-  tios.c_ixxxxx:=speed; 
+  tios.c_ixxxxx:=speed;
 end;
 
 

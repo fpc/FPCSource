@@ -34,7 +34,7 @@ begin
 end;
 
 procedure do_MkDir (S: rawbytestring);
-var 
+var
   RC: cardinal;
 begin
   if os_mode = osOs2 then

@@ -269,7 +269,7 @@ var
 begin
   CheckIndex(CurIndex);
   CheckIndex(NewIndex);
-  if (CurIndex=NewIndex) then 
+  if (CurIndex=NewIndex) then
     exit;
   Temp := FList^[CurIndex];
   if NewIndex > CurIndex then

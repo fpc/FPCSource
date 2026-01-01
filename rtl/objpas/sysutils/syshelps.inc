@@ -419,7 +419,7 @@ begin
     end;
 end;
 
-function TStringHelper.Contains(const AValue: TStringType; IgnoreCase: Boolean = False): Boolean; 
+function TStringHelper.Contains(const AValue: TStringType; IgnoreCase: Boolean = False): Boolean;
 begin
   if IgnoreCase then
     Result:=Pos(LowerCase(AValue),LowerCase(Self))>0
@@ -926,12 +926,12 @@ end;
 
 
 function TStringHelper.LastIndexOf(const AValue: TStringType; AStartIndex: SizeInt; ACount: SizeInt): SizeInt;
-  
+
 var
   I,L,LS,M : SizeInt;
   S : TStringType;
   P : PTStringChar;
-    
+
 begin
   Result:=-1;
   LS:=system.Length(Self);

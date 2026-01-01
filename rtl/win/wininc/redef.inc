@@ -1009,7 +1009,7 @@ function OpenWaitableTimer(dwDesiredAccess:DWORD;bInheritHandle:BOOL;lpTimerName
 //function PropertySheetA(p:TPROPSHEETHEADER):longint; external 'comctl32' name 'PropertySheetA';
 
 // native int64 typed overload.
-function GetFileSizeEx(InFileHandle : THANDLE;OutFileSize  : PINT64): BOOL; stdcall; external kernelDLL; 
+function GetFileSizeEx(InFileHandle : THANDLE;OutFileSize  : PINT64): BOOL; stdcall; external kernelDLL;
 function SetFilePointerEx(InFile : THANDLE; InDistanceToMove : Int64;OutoptNewFilePointer : PInt64;InMoveMethod : DWORD): BOOL; stdcall; external KernelDLL;
 
 // windows because of Delphi compat.

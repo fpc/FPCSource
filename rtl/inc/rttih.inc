@@ -35,9 +35,9 @@ type
 
   TVisibilityClass = (vcPrivate, vcProtected, vcPublic, vcPublished);
   TVisibilityClasses = set of TVisibilityClass;
- 
+
  {$MINENUMSIZE DEFAULT}
- 
+
 const
 {$IFNDEF SMALLRTTI}
   DefaultFieldRttiVisibility = [vcPrivate..vcPublished];
@@ -66,7 +66,7 @@ const
 
 {$ENDIF FPC_HAS_FEATURE_RTTI}
 
- 
+
 
 {$POP}
 

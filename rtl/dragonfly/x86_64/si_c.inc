@@ -2,13 +2,13 @@
 Type
     TCleanup = procedure; cdecl;
 
-var 
+var
   environ : PPAnsiChar; cvar; public  name '__environ';
   progname: PAnsiChar = #0#0; cvar; public name '__progname';
   dynamic : PAnsiChar;  external name '_DYNAMIC'; // #pragma weak
 
 procedure atexit(prc:TCleanup); cdecl external name 'atexit';
-procedure cleanup(prc:TCleanup); cdecl external name 'cleanup';			
+procedure cleanup(prc:TCleanup); cdecl external name 'cleanup';
 procedure init_tls; cdecl; external name 'init_tls';
 procedure fini; cdecl; external name '_fini';
 procedure init; cdecl; external name '_init';
@@ -19,8 +19,8 @@ function  main(nrarg:longint;pp:PPAnsiChar;env:PPAnsiChar):longint; cdecl; exter
  procedure cmcleanup; cdecl; external name '_mcleanup';
  procedure monstratup(p,p2:pointer); cdecl; external name 'monstartup';
 
-var 
- eprol:longint; external name 'eprol'; 
+var
+ eprol:longint; external name 'eprol';
  etext:longint; external name 'etext';
 {$endif}
 
@@ -31,7 +31,7 @@ var argc: longint;
     env : PPAnsiChar;
     s   : PAnsiChar;
 begin
-  argc:=plongint(ap)^; 
+  argc:=plongint(ap)^;
   argv:=PPAnsiChar(ap[1]);
   env:=	PPAnsiChar(ap[2+argc]);
   environ:=env;
@@ -44,7 +44,7 @@ begin
           if s^='/' then
             progname:=@s[1];
           inc(s);
-	end; 
+	end;
     end;
   if assigned(PAnsiChar(@dynamic)) then // I suspect this is a trick to find
 				    // out runtime if we are shared
@@ -59,13 +59,13 @@ begin
   atexit(@fini);
   {$ifdef GCRT}
     monstartup(@eprol,@etext);
-  {$endif} 
+  {$endif}
   init;
   {$ifdef GCRT}
    asm
     eprol:
    end;
-  {$endif} 
+  {$endif}
 
   libc_exit(main(argc,argv,env)); // doesn't return
  asm
@@ -75,7 +75,7 @@ begin
     .section ".note.ABI-tag", "a"
     .align 4
     .long 10
-    .long 4 
+    .long 4
     .long  1
     .asciz "DragonFly"
     .align 4

@@ -45,7 +45,7 @@ end;
 
 function TBasicActionLink.Execute(AComponent: TComponent): Boolean;
 begin
-  if not Assigned(FAction) then 
+  if not Assigned(FAction) then
     exit;
   FAction.ActionComponent := AComponent;
   try

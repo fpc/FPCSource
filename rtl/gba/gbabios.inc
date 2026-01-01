@@ -23,18 +23,18 @@
   ------------------
   Following infos come from GBATEK, Gameboy Advance Technical Info, that you can
 	find here: http://nocash.emubase.de/gbatek.htm
-  
+
   GBA Bios includes some useful optimized functions which can be accessed by
   SWI. Parameters can be passed to function by r0,r1,r2 and r3 registers; results
-  are stored in r0,r1 and r3. Unused 'out registers' generally return garbage; 
+  are stored in r0,r1 and r3. Unused 'out registers' generally return garbage;
   other registers are unchanged.
-  
+
   In ARM mode SWI register are called by:
-  
+
     SWI n * 0x010000
-  
+
   In THUMB mode:
-  
+
     SWI n
 
 
@@ -81,14 +81,14 @@
   41      29h       SoundDriverVSyncOn
   42      2Ah       -Undoc- ("GetJumpList" for Sound ???)
   43-255  2Bh-FFh   -Not used-
-  
+
   Values passed to SWI aren't range-checked, so calling 43-255 will lock-up GBA.
 *)
 
 
-(* 
-  Following defines are intended for future use, when fpc hopefully will handle 
-  both arm and thumb code. I have provided ARM and THUMB funcs, that can be 
+(*
+  Following defines are intended for future use, when fpc hopefully will handle
+  both arm and thumb code. I have provided ARM and THUMB funcs, that can be
 	activated by defines:
 	{$define __THUMB__}
 	{$define __ARM__}
@@ -119,7 +119,7 @@
         r1 signed 32bit Denom
       Return:
         r0 Number DIV Denom
-      =========================*) 
+      =========================*)
     function fpc_div_longint(n,z: longint):longint; [public, alias: 'FPC_DIV_LONGINT']; compilerproc; assembler; inline;
     asm
       swi 6
@@ -134,12 +134,12 @@
         r1 signed 32bit Denom
       Return:
         r1 Number MOD Denom
-      =========================*)    
+      =========================*)
     function fpc_mod_longint(n,z: longint):longint; [public, alias: 'FPC_MOD_LONGINT']; compilerproc; assembler; inline;
     asm
       swi 6
       mov r0, r1
-    end; 
+    end;
     (*=========================*)
 
 {$endif}
@@ -153,7 +153,7 @@
         r0 signed 32bit Denom
       Return:
         r0 Number DIV Denom
-      =========================*) 
+      =========================*)
     function fpc_div_longint(n,z: longint):longint; [public, alias: 'FPC_DIV_LONGINT']; compilerproc; assembler; inline;
     asm
       swi #0x070000
@@ -167,12 +167,12 @@
         r0 signed 32bit Denom
       Return:
         r1 Number MOD Denom
-      =========================*) 
+      =========================*)
     function fpc_mod_longint(n,z: longint):longint; [public, alias: 'FPC_MOD_LONGINT']; compilerproc; assembler; inline;
     asm
       swi #0x070000
       mov r0, r1
-    end; 
+    end;
     (*=========================*)
 
 {$endif}

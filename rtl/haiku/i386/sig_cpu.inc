@@ -74,9 +74,9 @@ type
     _reserved_106_111 : array[0..5] of byte;
     st5 : array[0..9] of byte;
     _reserved_122_127 : array[0..5] of byte;
-    st6 : array[0..9] of byte;    
+    st6 : array[0..9] of byte;
     _reserved_138_143 : array[0..5] of byte;
-    st7 : array[0..9] of byte;        
+    st7 : array[0..9] of byte;
     _reserved_154_159 : array[0..5] of byte;
   end;
 

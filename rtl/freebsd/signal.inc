@@ -185,7 +185,7 @@ type sigset_t = array[0..3] of Longint;
     Sa_Mask     : TSigSet;
   end;
   PSigActionRec = ^SigActionRec;
-  
+
 
   pstack_t = ^stack_t;
   stack_t = record

@@ -37,8 +37,8 @@ var
   MCUSR: byte absolute $54;  // MCU Status Register
   MCUCR: byte absolute $55;  // MCU Control Register
   SPMCSR: byte absolute $57;  // Store Program Memory Control and Status Register
-  SP: word absolute $5D;  // Stack Pointer 
-  SPL: byte absolute $5D;  // Stack Pointer 
+  SP: word absolute $5D;  // Stack Pointer
+  SPL: byte absolute $5D;  // Stack Pointer
   SPH: byte absolute $5E;  // Stack Pointer ;
   SREG: byte absolute $5F;  // Status Register
   WDTCSR: byte absolute $60;  // Watchdog Timer Control Register
@@ -90,29 +90,29 @@ var
 
 const
   // Port A Data Register
-  PA0 = $00;  
-  PA1 = $01;  
+  PA0 = $00;
+  PA1 = $01;
   // Data Register, Port B
-  PB0 = $00;  
-  PB1 = $01;  
-  PB2 = $02;  
-  PB3 = $03;  
+  PB0 = $00;
+  PB1 = $01;
+  PB2 = $02;
+  PB3 = $03;
   // Port C Data Register
-  PC0 = $00;  
+  PC0 = $00;
   // Timer/Counter Interrupt Flag register
-  TOV0 = $00;  
-  OCF0A = $01;  
-  OCF0B = $02;  
-  ICF0 = $03;  
+  TOV0 = $00;
+  OCF0A = $01;
+  OCF0B = $02;
+  ICF0 = $03;
   // Timer/Counter Interrupt Flag register
-  TOV1 = $00;  
-  OCF1A = $01;  
-  OCF1B = $02;  
-  ICF1 = $03;  
+  TOV1 = $00;
+  OCF1A = $01;
+  OCF1B = $02;
+  ICF1 = $03;
   // Oscillator Sampling Interface Control and Status Register
-  OSIEN = $00;  
-  OSIST = $01;  
-  OSISEL0 = $04;  
+  OSIEN = $00;
+  OSIST = $01;
+  OSISEL0 = $04;
   // External Interrupt Flag Register
   INTF0 = $00;  // External Interrupt Flags
   INTF1 = $01;  // External Interrupt Flags
@@ -122,88 +122,88 @@ const
   INT1 = $01;  // External Interrupt Request 2 Enable
   INT2 = $02;  // External Interrupt Request 2 Enable
   // EEPROM Control Register
-  EERE = $00;  
-  EEPE = $01;  
-  EEMPE = $02;  
-  EERIE = $03;  
+  EERE = $00;
+  EEPE = $01;
+  EEMPE = $02;
+  EERIE = $03;
   EEPM0 = $04;
   EEPM1 = $05;
   // General Timer/Counter Control Register
-  PSRSYNC = $00;  
-  TSM = $07;  
+  PSRSYNC = $00;
+  TSM = $07;
   // Timer/Counter0 Control Register
-  WGM00 = $00;  
-  ICS0 = $03;  
-  ICES0 = $04;  
-  ICNC0 = $05;  
-  ICEN0 = $06;  
-  TCW0 = $07;  
+  WGM00 = $00;
+  ICS0 = $03;
+  ICES0 = $04;
+  ICNC0 = $05;
+  ICEN0 = $06;
+  TCW0 = $07;
   // Timer/Counter0 Control Register
-  CS00 = $00;  
-  CS01 = $01;  
-  CS02 = $02;  
+  CS00 = $00;
+  CS01 = $01;
+  CS02 = $02;
   // SPI Control Register
   SPR0 = $00;  // SPI Clock Rate Selects
   SPR1 = $01;  // SPI Clock Rate Selects
-  CPHA = $02;  
-  CPOL = $03;  
-  MSTR = $04;  
-  DORD = $05;  
-  SPE = $06;  
-  SPIE = $07;  
+  CPHA = $02;
+  CPOL = $03;
+  MSTR = $04;
+  DORD = $05;
+  SPE = $06;
+  SPIE = $07;
   // SPI Status Register
-  SPI2X = $00;  
-  WCOL = $06;  
-  SPIF = $07;  
+  SPI2X = $00;
+  WCOL = $06;
+  SPIF = $07;
   // Sleep Mode Control Register
-  SE = $00;  
+  SE = $00;
   SM0 = $01;  // Sleep Mode Select bits
   SM1 = $02;  // Sleep Mode Select bits
   SM2 = $03;  // Sleep Mode Select bits
   // MCU Status Register
-  PORF = $00;  
-  EXTRF = $01;  
-  BODRF = $02;  
-  WDRF = $03;  
-  OCDRF = $04;  
+  PORF = $00;
+  EXTRF = $01;
+  BODRF = $02;
+  WDRF = $03;
+  OCDRF = $04;
   // MCU Control Register
-  PUD = $04;  
-  CKOE = $05;  
+  PUD = $04;
+  CKOE = $05;
   // Store Program Memory Control and Status Register
-  SPMEN = $00;  
-  PGERS = $01;  
-  PGWRT = $02;  
-  RFLB = $03;  
-  CTPB = $04;  
-  SIGRD = $05;  
+  SPMEN = $00;
+  PGERS = $01;
+  PGWRT = $02;
+  RFLB = $03;
+  CTPB = $04;
+  SIGRD = $05;
   // Status Register
-  C = $00;  
-  Z = $01;  
-  N = $02;  
-  V = $03;  
-  S = $04;  
-  H = $05;  
-  T = $06;  
-  I = $07;  
+  C = $00;
+  Z = $01;
+  N = $02;
+  V = $03;
+  S = $04;
+  H = $05;
+  T = $06;
+  I = $07;
   // Watchdog Timer Control Register
-  WDE = $03;  
-  WDCE = $04;  
+  WDE = $03;
+  WDCE = $04;
   WDP0 = $00;  // Watchdog Timer Prescaler Bits
   WDP1 = $01;  // Watchdog Timer Prescaler Bits
   WDP2 = $02;  // Watchdog Timer Prescaler Bits
   WDP3 = $05;  // Watchdog Timer Prescaler Bits
-  WDIE = $06;  
-  WDIF = $07;  
+  WDIE = $06;
+  WDIF = $07;
   // Clock Prescale Register
   CLKPS0 = $00;  // Clock Prescaler Select Bits
   CLKPS1 = $01;  // Clock Prescaler Select Bits
-  CLKPCE = $07;  
+  CLKPCE = $07;
   // Power Reduction Register 0
-  PRVADC = $00;  
-  PRTIM0 = $01;  
-  PRTIM1 = $02;  
-  PRSPI = $03;  
-  PRVRM = $05;  
+  PRVADC = $00;
+  PRTIM0 = $01;
+  PRTIM1 = $02;
+  PRSPI = $03;
+  PRVRM = $05;
   // External Interrupt Control Register
   ISC00 = $00;  // External Interrupt Sense Control 0 Bits
   ISC01 = $01;  // External Interrupt Sense Control 0 Bits
@@ -212,43 +212,43 @@ const
   ISC20 = $04;  // External Interrupt Sense Control 2 Bits
   ISC21 = $05;  // External Interrupt Sense Control 2 Bits
   // Timer/Counter Interrupt Mask Register
-  TOIE0 = $00;  
-  OCIE0A = $01;  
-  OCIE0B = $02;  
-  ICIE0 = $03;  
+  TOIE0 = $00;
+  OCIE0A = $01;
+  OCIE0B = $02;
+  ICIE0 = $03;
   // Timer/Counter Interrupt Mask Register
-  TOIE1 = $00;  
-  OCIE1A = $01;  
-  OCIE1B = $02;  
-  ICIE1 = $03;  
+  TOIE1 = $00;
+  OCIE1A = $01;
+  OCIE1B = $02;
+  ICIE1 = $03;
   // The VADC Control and Status register
-  VADCCIE = $00;  
-  VADCCIF = $01;  
-  VADSC = $02;  
-  VADEN = $03;  
+  VADCCIE = $00;
+  VADCCIF = $01;
+  VADSC = $02;
+  VADEN = $03;
   // The VADC multiplexer Selection Register
   VADMUX0 = $00;  // Analog Channel and Gain Selection Bits
   VADMUX1 = $01;  // Analog Channel and Gain Selection Bits
   VADMUX2 = $02;  // Analog Channel and Gain Selection Bits
   VADMUX3 = $03;  // Analog Channel and Gain Selection Bits
   // Digital Input Disable Register
-  PA0DID = $00;  
-  PA1DID = $01;  
+  PA0DID = $00;
+  PA1DID = $01;
   // Timer/Counter 1 Control Register A
-  WGM10 = $00;  
-  ICS1 = $03;  
-  ICES1 = $04;  
-  ICNC1 = $05;  
-  ICEN1 = $06;  
-  TCW1 = $07;  
+  WGM10 = $00;
+  ICS1 = $03;
+  ICES1 = $04;
+  ICNC1 = $05;
+  ICEN1 = $06;
+  TCW1 = $07;
   // Timer/Counter1 Control Register B
   CS10 = $00;  // Clock Select1 bis
   CS11 = $01;  // Clock Select1 bis
   CS12 = $02;  // Clock Select1 bis
   // Regulator Operating Condition Register
-  ROCWIE = $00;  
-  ROCWIF = $01;  
-  ROCS = $07;  
+  ROCWIE = $00;
+  ROCWIF = $01;
+  ROCS = $07;
   // Bandgap Calibration Register
   BGCC0 = $00;  // BG Calibration of PTAT Current Bits
   BGCC1 = $01;  // BG Calibration of PTAT Current Bits
@@ -256,7 +256,7 @@ const
   BGCC3 = $03;  // BG Calibration of PTAT Current Bits
   BGCC4 = $04;  // BG Calibration of PTAT Current Bits
   BGCC5 = $05;  // BG Calibration of PTAT Current Bits
-  BGD = $07;  
+  BGD = $07;
   // Bandgap Calibration of Resistor Ladder
   BGCR0 = $00;  // Bandgap calibration bits
   BGCR1 = $01;  // Bandgap calibration bits
@@ -267,47 +267,47 @@ const
   BGCR6 = $06;  // Bandgap calibration bits
   BGCR7 = $07;  // Bandgap calibration bits
   // CC-ADC Control and Status Register A
-  CADSE = $00;  
+  CADSE = $00;
   CADSI0 = $01;  // The CADSI bits determine the current sampling interval for the Regular Current detection in Power-down mode. The actual settings remain to be determined.
   CADSI1 = $02;  // The CADSI bits determine the current sampling interval for the Regular Current detection in Power-down mode. The actual settings remain to be determined.
   CADAS0 = $03;  // CC_ADC Accumulate Current Select Bits
   CADAS1 = $04;  // CC_ADC Accumulate Current Select Bits
-  CADUB = $05;  
-  CADPOL = $06;  
-  CADEN = $07;  
+  CADUB = $05;
+  CADPOL = $06;
+  CADEN = $07;
   // CC-ADC Control and Status Register B
-  CADICIF = $00;  
-  CADRCIF = $01;  
-  CADACIF = $02;  
-  CADICIE = $04;  
-  CADRCIE = $05;  
-  CADACIE = $06;  
+  CADICIF = $00;
+  CADRCIF = $01;
+  CADACIF = $02;
+  CADICIE = $04;
+  CADRCIE = $05;
+  CADACIE = $06;
   // FET Control and Status Register
-  CFE = $00;  
-  DFE = $01;  
-  CPS = $02;  
-  DUVRD = $03;  
+  CFE = $00;
+  DFE = $01;
+  CPS = $02;
+  DUVRD = $03;
   // Battery Protection Interrupt Mask Register
-  CHCIE = $00;  
-  DHCIE = $01;  
-  COCIE = $02;  
-  DOCIE = $03;  
-  SCIE = $04;  
+  CHCIE = $00;
+  DHCIE = $01;
+  COCIE = $02;
+  DOCIE = $03;
+  SCIE = $04;
   // Battery Protection Interrupt Flag Register
-  CHCIF = $00;  
-  DHCIF = $01;  
-  COCIF = $02;  
-  DOCIF = $03;  
-  SCIF = $04;  
+  CHCIF = $00;
+  DHCIF = $01;
+  COCIF = $02;
+  DOCIF = $03;
+  SCIF = $04;
   // Battery Protection Control Register
-  CHCD = $00;  
-  DHCD = $01;  
-  COCD = $02;  
-  DOCD = $03;  
-  SCD = $04;  
+  CHCD = $00;
+  DHCD = $01;
+  COCD = $02;
+  DOCD = $03;
+  SCD = $04;
   // Battery Protection Parameter Lock Register
-  BPPL = $00;  
-  BPPLE = $01;  
+  BPPL = $00;
+  BPPLE = $01;
 
 
 implementation

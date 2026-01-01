@@ -5,7 +5,7 @@
 
     Sysutils unit for Nintendo DS.
     This unit is based on the MorphOS one and is adapted for Nintendo DS
-    simply by stripping out all stuff inside funcs and procs. 
+    simply by stripping out all stuff inside funcs and procs.
     Copyright (c) 2006 by Francesco Lombardi
 
     Based on Amiga version by Carl Eric Codere, and other
@@ -177,14 +177,14 @@ end;
 
 
 Function FileAge (Const FileName : RawByteString): Int64;
-var 
+var
   info: Stat;
   SystemFileName: RawByteString;
 begin
   SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
   if (_stat(PAnsiChar(SystemFileName), Info) < 0) or S_ISDIR(info.st_mode) then
     exit(-1)
-  else 
+  else
     Result := (info.st_mtime);
 end;
 
@@ -286,7 +286,7 @@ var
 begin
 { $warning no idea if this calibration value is correct (FK) }
 { I estimated it roughly on the CPU clock of 16 MHz and 1+3 clock cycles for the loop }
-{ 
+{
   calib:=4000000;
   for i:=1 to Milliseconds do
     asm

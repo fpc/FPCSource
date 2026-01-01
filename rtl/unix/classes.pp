@@ -114,15 +114,15 @@ var
 
   begin
     P:=Pos(' ',L);
-    if P=0 then 
+    if P=0 then
       P:=Length(L)+1;
     Result:=Copy(L,1,P-1);
     Delete(L,1,P);
     L:=Trim(L);
   end;
-  
+
   Function GetNextInt : Int64; inline;
-  
+
   begin
     Result:=StrToint64(GetNextWord(Line));
   end;
@@ -133,7 +133,7 @@ begin
   {$i-}
   AssignFile(aFile,StatFile);
   Reset(aFile);
-  if IOResult<>0 then 
+  if IOResult<>0 then
     exit;
   {$i+}
   While not EOF(aFile) do
@@ -155,7 +155,7 @@ begin
       Result:=True;
       end
     end;
- CloseFile(aFile);  
+ CloseFile(aFile);
 end;
 {$ENDIF}
 

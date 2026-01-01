@@ -66,9 +66,9 @@ var
   PCMSK1 : byte absolute $00+$24; // Pin Change Interrupt Mask Register 1
   // CPU
   SREG : byte absolute $00+$5F; // Status Register
-  SP : word absolute $00+$5D; // Stack Pointer 
-  SPL : byte absolute $00+$5D; // Stack Pointer 
-  SPH : byte absolute $00+$5D+1; // Stack Pointer 
+  SP : word absolute $00+$5D; // Stack Pointer
+  SPL : byte absolute $00+$5D; // Stack Pointer
+  SPH : byte absolute $00+$5D+1; // Stack Pointer
   SPMCSR : byte absolute $00+$57; // Store Program Memory Control and Status register
   MCUCR : byte absolute $00+$55; // MCU Control Register
   MCUSR : byte absolute $00+$54; // MCU Status register
@@ -98,7 +98,7 @@ const
   // TCCR0B
   FOC0A = 7; // Force Output Compare B
   FOC0B = 6; // Force Output Compare B
-  WGM02 = 3; // 
+  WGM02 = 3; //
   CS0 = 0; // Clock Select
   // TIMSK
   TOIE1 = 7; // Timer/Counter1 Overflow Interrupt Enable
@@ -157,10 +157,10 @@ const
   ACO = 5; // Analog Compare Output
   ACI = 4; // Analog Comparator Interrupt Flag
   ACIE = 3; // Analog Comparator Interrupt Enable
-  ACIC = 2; // 
+  ACIC = 2; //
   ACIS = 0; // Analog Comparator Interrupt Mode Select bits
   // EECR
-  EEPM = 4; // 
+  EEPM = 4; //
   EERIE = 3; // EEProm Ready Interrupt Enable
   EEMPE = 2; // EEPROM Master Write Enable
   EEPE = 1; // EEPROM Write Enable
@@ -180,10 +180,10 @@ const
   USITC = 0; // Toggle Clock Port Pin
   // GIMSK
   INT = 6; // External Interrupt Request 1 Enable
-  PCIE = 5; // 
+  PCIE = 5; //
   // EIFR
   INTF = 6; // External Interrupt Flags
-  PCIF = 5; // 
+  PCIF = 5; //
   // PCMSK2
   PCINT = 0; // Pin Change Interrupt Masks
   // PCMSK1
@@ -217,14 +217,14 @@ const
   CLKPCE = 7; // Clock Prescaler Change Enable
   CLKPS = 0; // Clock Prescaler Select Bits
   // GTCCR
-  PSR10 = 0; // 
+  PSR10 = 0; //
   // PRR
-  PRTIM = 2; // 
-  PRUSI = 1; // 
-  PRUSART = 0; // 
+  PRTIM = 2; //
+  PRUSI = 1; //
+  PRUSART = 0; //
   // BODCR
-  BPDS = 1; // 
-  BPDSE = 0; // 
+  BPDS = 1; //
+  BPDSE = 0; //
 
 implementation
 
@@ -243,12 +243,12 @@ procedure USART__UDRE_ISR; external name 'USART__UDRE_ISR'; // Interrupt 8 USART
 procedure USART__TX_ISR; external name 'USART__TX_ISR'; // Interrupt 9 USART, Tx Complete
 procedure ANA_COMP_ISR; external name 'ANA_COMP_ISR'; // Interrupt 10 Analog Comparator
 procedure PCINT_B_ISR; external name 'PCINT_B_ISR'; // Interrupt 11 Pin Change Interrupt Request B
-procedure TIMER1_COMPB_ISR; external name 'TIMER1_COMPB_ISR'; // Interrupt 12 
-procedure TIMER0_COMPA_ISR; external name 'TIMER0_COMPA_ISR'; // Interrupt 13 
-procedure TIMER0_COMPB_ISR; external name 'TIMER0_COMPB_ISR'; // Interrupt 14 
+procedure TIMER1_COMPB_ISR; external name 'TIMER1_COMPB_ISR'; // Interrupt 12
+procedure TIMER0_COMPA_ISR; external name 'TIMER0_COMPA_ISR'; // Interrupt 13
+procedure TIMER0_COMPB_ISR; external name 'TIMER0_COMPB_ISR'; // Interrupt 14
 procedure USI_START_ISR; external name 'USI_START_ISR'; // Interrupt 15 USI Start Condition
 procedure USI_OVERFLOW_ISR; external name 'USI_OVERFLOW_ISR'; // Interrupt 16 USI Overflow
-procedure EEPROM_Ready_ISR; external name 'EEPROM_Ready_ISR'; // Interrupt 17 
+procedure EEPROM_Ready_ISR; external name 'EEPROM_Ready_ISR'; // Interrupt 17
 procedure WDT_OVERFLOW_ISR; external name 'WDT_OVERFLOW_ISR'; // Interrupt 18 Watchdog Timer Overflow
 procedure PCINT_A_ISR; external name 'PCINT_A_ISR'; // Interrupt 19 Pin Change Interrupt Request A
 procedure PCINT_D_ISR; external name 'PCINT_D_ISR'; // Interrupt 20 Pin Change Interrupt Request D

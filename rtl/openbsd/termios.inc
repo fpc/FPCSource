@@ -323,9 +323,9 @@ struct winsize {
  	FIONBIO          = IOCTLWRITE+$46600+126;     { set/clear non-blocking i/o }
  	FIOASYNC         = IOCTLWRITE+$46600+125;     { set/clear async i/o }
  	FIOSETOWN        = IOCTLWRITE+$46600+124;     { set owner }
- 	FIOGETOWN        = IOCTLREAD +$46600+123;     { get owner }  
- 	FIODTYPE         = IOCTLREAD +$46600+122;     { get d_flags type part }         
- 	FIOGETLBA        = IOCTLREAD +$46600+121;     { get start blk # }                 
+ 	FIOGETOWN        = IOCTLREAD +$46600+123;     { get owner }
+ 	FIODTYPE         = IOCTLREAD +$46600+122;     { get d_flags type part }
+ 	FIOGETLBA        = IOCTLREAD +$46600+121;     { get start blk # }
 
 {
  * Defaults on "first" open.

@@ -59,7 +59,7 @@ asm
 
   {$ifdef FPC_PIC}
         movl    %esp,%ebp               { Points to the arguments }
-        movl    %ecx,%esi               
+        movl    %ecx,%esi
   {$else FPC_PIC}
         movl    %esp,%ebx               { Points to the arguments }
   {$endif FPC_PIC}

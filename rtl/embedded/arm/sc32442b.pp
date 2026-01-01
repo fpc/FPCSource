@@ -23,7 +23,7 @@ unit sc32442b;
       REFRESH: longword 	absolute $48000024;
       BANKSIZE: longword 	absolute $48000028;
       MRSRB6: longword 		absolute $4800002C;
-    
+
     { USB Host Controller }
       HcRevision: longword 			absolute $49000000;
       HcControl: longword 				absolute $49000004;
@@ -48,7 +48,7 @@ unit sc32442b;
       HcRhStatus: longword				absolute $49000050;
       HcRhPortStatus1: longword		absolute $49000054;
       HcRhPortStatus2: longword		absolute $49000058;
-    
+
     { Interrupt controller }
       SRCPND: longword			absolute $4A000000;
       INTMOD: longword			absolute $4A000004;
@@ -58,7 +58,7 @@ unit sc32442b;
       INTOFFSET: longword		absolute $4A000014;
       SUBSRCPND: longword		absolute $4A000018;
       INTSUBMSK: longword		absolute $4A00001C;
-    
+
     type
      TDMA = packed record
       DISRC,
@@ -71,14 +71,14 @@ unit sc32442b;
       DCDST,
       DMASKTRIG: longword;
     end;
-    
+
    var
     { DMA }
     DMA0: TDMA	absolute $4B000000;
     DMA1: TDMA	absolute $4B000040;
     DMA2: TDMA	absolute $4B000080;
     DMA3: TDMA	absolute $4B0000C0;
-    
+
     { Clock and power }
     LOCKTIME: longword	absolute $4C000000;
     MPLLCON: longword		absolute $4C000004;
@@ -87,7 +87,7 @@ unit sc32442b;
     CLKSLOW: longword		absolute $4C000010;
     CLKDIVN: longword		absolute $4C000014;
     CAMDIVN: longword		absolute $4C000018;
-    
+
     { LCD Controller }
     LCDCON1: longword		absolute $4D000000;
     LCDCON2: longword		absolute $4D000004;
@@ -106,7 +106,7 @@ unit sc32442b;
     LCDSRCPND: longword	absolute $4D000058;
     LCDINTMSK: longword	absolute $4D00005C;
     TCONSEL: longword		absolute $4D000060;
-    
+
     { NAND Flash }
     NFCONF: longword		absolute $4E000000;
     NFCONT: longword		absolute $4E000004;
@@ -124,7 +124,7 @@ unit sc32442b;
     NFSECC2: longword		absolute $4E000034;
     NFSBLK: longword		absolute $4E000038;
     NFEBLK: longword		absolute $4E00003C;
-    
+
     type
      TUART = packed record
       ULCON,
@@ -144,7 +144,7 @@ unit sc32442b;
     UART0: TUART		absolute $50000000;
     UART1: TUART		absolute $50004000;
     UART2: TUART		absolute $50008000;
-    
+
    type
      TPWMTimer = packed record
       TCNTB,
@@ -157,7 +157,7 @@ unit sc32442b;
     TCFG1: longword 		absolute $51000004;
     TCON: longword 		absolute $51000008;
     PWMTimer: array[0..4] of TPWMTimer absolute $5100000C;
-    
+
     { USB Device }
     FUNC_ADDR_REG: byte		absolute $52000140;
     PWR_REG: byte				absolute $52000144;
@@ -205,26 +205,26 @@ unit sc32442b;
     EP4_DMA_TTC_L: byte		absolute $52000264;
     EP4_DMA_TTC_M: byte		absolute $52000268;
     EP4_DMA_TTC_H: byte		absolute $5200026C;
-    
+
     { Watchdog timer }
     WTCON: longword		absolute $53000000;
     WTDAT: longword		absolute $53000004;
     WTCNT: longword		absolute $53000008;
-    
+
     { I2C }
     IICCON: longword		absolute $54000000;
     IICSTAT: longword		absolute $54000004;
     IICADD: longword		absolute $54000008;
     IICDS: longword		absolute $5400000C;
     IICLC: longword		absolute $54000010;
-    
+
     { I2S }
     IISCON: longword		absolute $55000000;
     IISMOD: longword		absolute $55000004;
     IISPSR: longword		absolute $55000008;
     IISFCON: longword		absolute $5500000C;
     IISFIFO: longword		absolute $55000010;
-    
+
    type
      TGPIO = packed record
       CON,
@@ -259,7 +259,7 @@ unit sc32442b;
     GSTATUS3: longword	absolute $560000B8;
     GSTATUS4: longword	absolute $560000BC;
     MSLCON: longword		absolute $560000CC;
-    
+
     { RTC }
     RTCCON: byte		absolute $57000040;
     TICNT: byte			absolute $57000044;
@@ -278,7 +278,7 @@ unit sc32442b;
     BCDMON: byte		absolute $57000084;
     BCDYEAR: byte		absolute $57000088;
     RTCLBAT: byte		absolute $5700006C;
-    
+
     { AD converter }
     ADCCON: longword		absolute $58000000;
     ADCTSC: longword		absolute $58000004;
@@ -286,7 +286,7 @@ unit sc32442b;
     ADCDAT0: longword		absolute $5800000C;
     ADCDAT1: longword		absolute $58000010;
     ADCUPDN: longword		absolute $58000014;
-    
+
    type
      TSPI = packed record
       SPCON,
@@ -300,7 +300,7 @@ unit sc32442b;
     { SPI }
     SPI0: TSPI		absolute $59000000;
     SPI1: TSPI		absolute $59000020;
-    
+
     { SD Interface }
     SDICON: longword		absolute $5A000000;
     SDIPRE: longword		absolute $5A000004;
@@ -328,7 +328,7 @@ unit sc32442b;
     procedure DataAbortHandler; external name 'DataAbortHandler';
     procedure IRQHandler; external name 'IRQHandler';
     procedure FIQHandler; external name 'FIQHandler';
-        
+
     procedure DefaultExceptionHandler; assembler; nostackframe;
       asm
       .Lloop:
@@ -386,7 +386,7 @@ unit sc32442b;
         .weak DataAbortHandler
         .weak IRQHandler
         .weak FIQHandler
-        
+
         .set UndefinedInstrHandler, DefaultExceptionHandler
         .set SWIHandler, DefaultExceptionHandler
         .set PrefetchAbortHandler, DefaultExceptionHandler

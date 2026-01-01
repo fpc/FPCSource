@@ -34,8 +34,8 @@ const
   SIG_O5 = 13;
   SIG_O6 = 14;
   SIG_O7 = 15;
-  { l and i registers do not seem to be 
-    written in sigcontext struct 
+  { l and i registers do not seem to be
+    written in sigcontext struct
   SIG_L0 = 16;
   SIG_L1 = 17;
   SIG_L2 = 18;

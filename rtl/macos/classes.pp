@@ -35,14 +35,14 @@ interface
 uses
   System.SysUtils,
   System.RtlConsts,
-  System.Types,  
+  System.Types,
   System.TypInfo,
   System.SortBase;
 {$ELSE FPC_DOTTEDUNITS}
 uses
   sysutils,
   rtlconsts,
-  types,  
+  types,
   typinfo,
   sortbase;
 {$ENDIF FPC_DOTTEDUNITS}

@@ -112,7 +112,7 @@ begin
   POSBlock:=PTLSMem(SysOSAlloc(TLSMemblockSize));
   if POSBlock=Nil then
     Halt(203);
-  lBlockSize:=GetSingleTLSMemblockSize;  
+  lBlockSize:=GetSingleTLSMemblockSize;
   POSMem:=POSBlock;
   For I:=0 to MemBlockCount-1 do
     begin

@@ -46,7 +46,7 @@ function fpfdfillset(var nset : TFDSet):cint;
 var i :longint;
 
 Begin
-  for i:=0 to wordsinfdset-1 DO 
+  for i:=0 to wordsinfdset-1 DO
     nset[i]:=TFDSetEl(NOT 0);
   fpfdfillset:=0;
 End;

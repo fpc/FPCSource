@@ -174,7 +174,7 @@ begin
       inc(i);
     end;
 
-  { +2 is because argv[0] should be program name, 
+  { +2 is because argv[0] should be program name,
     and argv[argc+1] is argv array terminator }
   argv:=GetMem((argc+2)*sizeof(pointer));
   if not assigned(argv) then
@@ -229,7 +229,7 @@ end;
 
 
 var
-  start_proc: byte; external name '_start'; 
+  start_proc: byte; external name '_start';
 
   { WARNING! if you change this value, make sure there's enough
     buffer space for the job name in the startup code! }

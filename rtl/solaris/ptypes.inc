@@ -194,7 +194,7 @@ Type
 {$endif cpu64}
   end;
   pmbstate_t = ^mbstate_t;
-  
+
 
   clock32_t = int32_t;
   timeval32 = record

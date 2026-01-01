@@ -3,7 +3,7 @@ var
   OldPat,Srch: SRstring; // Srch and Oldp can contain uppercase versions of S,OldPattern
   PatLength,NewPatLength,P,Cnt,PrevP: Integer;
   c,d: SRPChar ;
-  
+
 begin
   aCount:=0;
   Result:='';

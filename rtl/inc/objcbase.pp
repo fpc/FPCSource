@@ -243,13 +243,13 @@ type
   NSMutableCopyingProtocol = objcprotocol external name 'NSMutableCopying'
     function mutableCopyWithZone(zone_: NSZonePtr): id; message 'mutableCopyWithZone:';
   end;
-  
+
 { NSCoding Protocol }
   NSCodingProtocol = objcprotocol external name 'NSCoding'
     procedure encodeWithCoder(aCoder: NSCoder); message 'encodeWithCoder:';
     function initWithCoder(aDecoder: NSCoder): id; message 'initWithCoder:';
   end;
-  
+
 { NSDiscardableContent Protocol }
   NSDiscardableContentProtocol = objcprotocol external name 'NSDiscardableContent'
     function beginContentAccess: ObjCBOOL; message 'beginContentAccess';

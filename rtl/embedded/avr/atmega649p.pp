@@ -32,9 +32,9 @@ var
   UBRR0H : byte absolute $00+$C4+1; // USART Baud Rate Register  Bytes
   // CPU
   SREG : byte absolute $00+$5F; // Status Register
-  SP : word absolute $00+$5D; // Stack Pointer 
-  SPL : byte absolute $00+$5D; // Stack Pointer 
-  SPH : byte absolute $00+$5D+1; // Stack Pointer 
+  SP : word absolute $00+$5D; // Stack Pointer
+  SPL : byte absolute $00+$5D; // Stack Pointer
+  SPH : byte absolute $00+$5D+1; // Stack Pointer
   MCUCR : byte absolute $00+$55; // MCU Control Register
   MCUSR : byte absolute $00+$54; // MCU Status Register
   OSCCAL : byte absolute $00+$66; // Oscillator Calibration Value

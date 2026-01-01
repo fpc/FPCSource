@@ -116,7 +116,7 @@
 {$IFDEF UNICODERTL}
     Function ToString: RTLString; override;
     function ToString(UpdateCapacity: Boolean): RTLString; overload;
-{$ELSE}    
+{$ELSE}
     Function ToString: SBString; {$IFNDEF SBUNICODE} override; {$ELSE}  reintroduce; {$ENDIF}
     function ToString(UpdateCapacity: Boolean): SBString; overload;
 {$ENDIF}

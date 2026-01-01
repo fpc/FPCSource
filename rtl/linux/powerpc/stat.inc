@@ -14,7 +14,7 @@
 
  **********************************************************************}
 
-{ This structure was ported from 
+{ This structure was ported from
 
     /usr/include/asm-ppc/stat.h
 

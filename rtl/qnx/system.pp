@@ -32,18 +32,18 @@ var
   argc : longint; public name 'operatingsystem_parameter_argc';
   argv : PPAnsiChar;public name 'operatingsystem_parameter_argv';
   envp : PPAnsiChar;public name 'operatingsystem_parameter_envp';
-  
-  
+
+
 var
-  Errno : longint; external name 'errno';  { declared in libc } 
-  
+  Errno : longint; external name 'errno';  { declared in libc }
+
 
 var
   UnusedHandle:longint;
   StdInputHandle:longint;
   StdOutputHandle:longint;
   StdErrorHandle:longint;
-  
+
 {Platform specific information}
 const
  LineEnding = #10;
@@ -52,7 +52,7 @@ const
  DriveSeparator = '';
  PathSeparator = ':';
  FileNameCaseSensitive  = True;
-  
+
 
 implementation
 
@@ -257,7 +257,7 @@ begin
   OpenStdIO(Output,fmOutput,StdOutputHandle);
   OpenStdIO(StdOut,fmOutput,StdOutputHandle);
   OpenStdIO(StdErr,fmOutput,StdErrorHandle);
-  
+
 { Reset IO Error }
   InOutRes:=0;
   setupexecname;

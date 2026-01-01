@@ -250,7 +250,7 @@ begin
       Result:=Result+QuoteString(S,QuoteChar)
     else
       Result:=Result+S;
-    if I<Count-1 then 
+    if I<Count-1 then
       Result:=Result+Delimiter;
     end;
   // Quote empty string:
@@ -427,11 +427,11 @@ Var
 begin
   if aList=self then
     begin
-    I:=0; 
+    I:=0;
     J:=Count-1;
     beginUpdate;
     try
-      while I<J do 
+      while I<J do
         begin
         Exchange(I, J);
         Inc(I);
@@ -441,7 +441,7 @@ begin
       EndUpdate;
     end;
     end
-  else 
+  else
     begin
     aList.BeginUpdate;
     try
@@ -452,8 +452,8 @@ begin
         aList.AddObject(Strings[i],Objects[i]);
     finally
       aList.EndUpdate;
-    end;      
-    end;  
+    end;
+    end;
 end;
 
 
@@ -925,7 +925,7 @@ Function TStrings.GetNextLineBreak (Const Value : String; Var S : String; Var P 
 
 var
   StartPos, FuturePos: SizeInt;
-  
+
 begin
   StartPos := P;
   if (StartPos <= 0) or (StartPos > Length(Value)) then // True for Length <= 0
@@ -1558,7 +1558,7 @@ Var
   Obj : TObject;
   Str : String;
 begin
-  if (CurIndex=NewIndex) then 
+  if (CurIndex=NewIndex) then
     Exit;
   BeginUpdate;
   Try
@@ -1729,7 +1729,7 @@ begin
     S:=StrPas(TheText)
   else
     S:='';
-  SetTextStr(S);  
+  SetTextStr(S);
 end;
 
 
@@ -1978,13 +1978,13 @@ end;
 
 Constructor TStringList.Create;
 begin
-  inherited Create;  
+  inherited Create;
 end;
 
 Constructor TStringList.Create(anOwnsObjects : Boolean);
 begin
   inherited Create;
-  FOwnsObjects:=anOwnsObjects; 
+  FOwnsObjects:=anOwnsObjects;
 end;
 
 destructor TStringList.Destroy;
@@ -2007,8 +2007,8 @@ begin
       end;
    BeginUpdate;
    try
-     InsertItem (Result,S);  
-     if (aObject<>Nil) then 
+     InsertItem (Result,S);
+     if (aObject<>Nil) then
       Objects[Result]:=AObject;
    finally
      EndUpdate;

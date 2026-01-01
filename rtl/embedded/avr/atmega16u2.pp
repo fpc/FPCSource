@@ -56,40 +56,40 @@ var
   // PLL
   PLLCSR : byte absolute $00+$49; // PLL Status and Control register
   // USB_DEVICE
-  UEINT : byte absolute $00+$F4; // 
-  UEBCLX : byte absolute $00+$F2; // 
-  UEDATX : byte absolute $00+$F1; // 
-  UEIENX : byte absolute $00+$F0; // 
-  UESTA1X : byte absolute $00+$EF; // 
-  UESTA0X : byte absolute $00+$EE; // 
-  UECFG1X : byte absolute $00+$ED; // 
-  UECFG0X : byte absolute $00+$EC; // 
-  UECONX : byte absolute $00+$EB; // 
-  UERST : byte absolute $00+$EA; // 
-  UENUM : byte absolute $00+$E9; // 
-  UEINTX : byte absolute $00+$E8; // 
-  UDMFN : byte absolute $00+$E6; // 
-  UDFNUM : word absolute $00+$E4; // 
-  UDFNUML : byte absolute $00+$E4; // 
-  UDFNUMH : byte absolute $00+$E4+1; // 
-  UDADDR : byte absolute $00+$E3; // 
-  UDIEN : byte absolute $00+$E2; // 
-  UDINT : byte absolute $00+$E1; // 
-  UDCON : byte absolute $00+$E0; // 
+  UEINT : byte absolute $00+$F4; //
+  UEBCLX : byte absolute $00+$F2; //
+  UEDATX : byte absolute $00+$F1; //
+  UEIENX : byte absolute $00+$F0; //
+  UESTA1X : byte absolute $00+$EF; //
+  UESTA0X : byte absolute $00+$EE; //
+  UECFG1X : byte absolute $00+$ED; //
+  UECFG0X : byte absolute $00+$EC; //
+  UECONX : byte absolute $00+$EB; //
+  UERST : byte absolute $00+$EA; //
+  UENUM : byte absolute $00+$E9; //
+  UEINTX : byte absolute $00+$E8; //
+  UDMFN : byte absolute $00+$E6; //
+  UDFNUM : word absolute $00+$E4; //
+  UDFNUML : byte absolute $00+$E4; //
+  UDFNUMH : byte absolute $00+$E4+1; //
+  UDADDR : byte absolute $00+$E3; //
+  UDIEN : byte absolute $00+$E2; //
+  UDINT : byte absolute $00+$E1; //
+  UDCON : byte absolute $00+$E0; //
   USBCON : byte absolute $00+$D8; // USB General Control Register
   REGCR : byte absolute $00+$63; // Regulator Control Register
   // PS2
-  UPOE : byte absolute $00+$FB; // 
+  UPOE : byte absolute $00+$FB; //
   PS2CON : byte absolute $00+$FA; // PS2 Pad Enable register
   // CPU
   SREG : byte absolute $00+$5F; // Status Register
-  SP : word absolute $00+$5D; // Stack Pointer 
-  SPL : byte absolute $00+$5D; // Stack Pointer 
-  SPH : byte absolute $00+$5D+1; // Stack Pointer 
+  SP : word absolute $00+$5D; // Stack Pointer
+  SPL : byte absolute $00+$5D; // Stack Pointer
+  SPH : byte absolute $00+$5D+1; // Stack Pointer
   MCUCR : byte absolute $00+$55; // MCU Control Register
   MCUSR : byte absolute $00+$54; // MCU Status Register
   OSCCAL : byte absolute $00+$66; // Oscillator Calibration Value
-  CLKPR : byte absolute $00+$61; // 
+  CLKPR : byte absolute $00+$61; //
   SMCR : byte absolute $00+$53; // Sleep Mode Control Register
   EIND : byte absolute $00+$5C; // Extended Indirect Register
   GPIOR2 : byte absolute $00+$4B; // General Purpose IO Register 2
@@ -97,9 +97,9 @@ var
   GPIOR0 : byte absolute $00+$3E; // General Purpose IO Register 0
   PRR1 : byte absolute $00+$65; // Power Reduction Register1
   PRR0 : byte absolute $00+$64; // Power Reduction Register0
-  CLKSTA : byte absolute $00+$D2; // 
-  CLKSEL1 : byte absolute $00+$D1; // 
-  CLKSEL0 : byte absolute $00+$D0; // 
+  CLKSTA : byte absolute $00+$D2; //
+  CLKSEL1 : byte absolute $00+$D1; //
+  CLKSEL0 : byte absolute $00+$D0; //
   DWDR : byte absolute $00+$51; // debugWire communication register
   // EXTERNAL_INTERRUPT
   EICRA : byte absolute $00+$69; // External Interrupt Control Register A
@@ -124,7 +124,7 @@ var
   WDTCKD : byte absolute $00+$62; // Watchdog Timer Clock Divider
   // ANALOG_COMPARATOR
   ACSR : byte absolute $00+$50; // Analog Comparator Control And Status Register
-  DIDR1 : byte absolute $00+$7F; // 
+  DIDR1 : byte absolute $00+$7F; //
   // PORTC
   PORTC : byte absolute $00+$28; // Port C Data Register
   DDRC : byte absolute $00+$27; // Port C Data Direction Register
@@ -161,7 +161,7 @@ const
   // TCCR0B
   FOC0A = 7; // Force Output Compare A
   FOC0B = 6; // Force Output Compare B
-  WGM02 = 3; // 
+  WGM02 = 3; //
   CS0 = 0; // Clock Select
   // TCCR0A
   COM0A = 6; // Compare Output Mode, Phase Correct PWM Mode
@@ -208,80 +208,80 @@ const
   PLLE = 1; // PLL Enable Bit
   PLOCK = 0; // PLL Lock Status Bit
   // UEIENX
-  FLERRE = 7; // 
-  NAKINE = 6; // 
-  NAKOUTE = 4; // 
-  RXSTPE = 3; // 
-  RXOUTE = 2; // 
-  STALLEDE = 1; // 
-  TXINE = 0; // 
+  FLERRE = 7; //
+  NAKINE = 6; //
+  NAKOUTE = 4; //
+  RXSTPE = 3; //
+  RXOUTE = 2; //
+  STALLEDE = 1; //
+  TXINE = 0; //
   // UESTA1X
-  CTRLDIR = 2; // 
-  CURRBK = 0; // 
+  CTRLDIR = 2; //
+  CURRBK = 0; //
   // UESTA0X
-  CFGOK = 7; // 
-  OVERFI = 6; // 
-  UNDERFI = 5; // 
-  DTSEQ = 2; // 
-  NBUSYBK = 0; // 
+  CFGOK = 7; //
+  OVERFI = 6; //
+  UNDERFI = 5; //
+  DTSEQ = 2; //
+  NBUSYBK = 0; //
   // UECFG1X
-  EPSIZE = 4; // 
-  EPBK = 2; // 
-  ALLOC = 1; // 
+  EPSIZE = 4; //
+  EPBK = 2; //
+  ALLOC = 1; //
   // UECFG0X
-  EPTYPE = 6; // 
-  EPDIR = 0; // 
+  EPTYPE = 6; //
+  EPDIR = 0; //
   // UECONX
-  STALLRQ = 5; // 
-  STALLRQC = 4; // 
-  RSTDT = 3; // 
-  EPEN = 0; // 
+  STALLRQ = 5; //
+  STALLRQC = 4; //
+  RSTDT = 3; //
+  EPEN = 0; //
   // UERST
-  EPRST = 0; // 
+  EPRST = 0; //
   // UEINTX
-  FIFOCON = 7; // 
-  NAKINI = 6; // 
-  RWAL = 5; // 
-  NAKOUTI = 4; // 
-  RXSTPI = 3; // 
-  RXOUTI = 2; // 
-  STALLEDI = 1; // 
-  TXINI = 0; // 
+  FIFOCON = 7; //
+  NAKINI = 6; //
+  RWAL = 5; //
+  NAKOUTI = 4; //
+  RXSTPI = 3; //
+  RXOUTI = 2; //
+  STALLEDI = 1; //
+  TXINI = 0; //
   // UDMFN
-  FNCERR = 4; // 
+  FNCERR = 4; //
   // UDADDR
-  ADDEN = 7; // 
-  UADD = 0; // 
+  ADDEN = 7; //
+  UADD = 0; //
   // UDIEN
-  UPRSME = 6; // 
-  EORSME = 5; // 
-  WAKEUPE = 4; // 
-  EORSTE = 3; // 
-  SOFE = 2; // 
-  SUSPE = 0; // 
+  UPRSME = 6; //
+  EORSME = 5; //
+  WAKEUPE = 4; //
+  EORSTE = 3; //
+  SOFE = 2; //
+  SUSPE = 0; //
   // UDINT
-  UPRSMI = 6; // 
-  EORSMI = 5; // 
-  WAKEUPI = 4; // 
-  EORSTI = 3; // 
-  SOFI = 2; // 
-  SUSPI = 0; // 
+  UPRSMI = 6; //
+  EORSMI = 5; //
+  WAKEUPI = 4; //
+  EORSTI = 3; //
+  SOFI = 2; //
+  SUSPI = 0; //
   // UDCON
-  RSTCPU = 2; // 
-  RMWKUP = 1; // 
-  DETACH = 0; // 
+  RSTCPU = 2; //
+  RMWKUP = 1; //
+  DETACH = 0; //
   // USBCON
-  USBE = 7; // 
-  FRZCLK = 5; // 
+  USBE = 7; //
+  FRZCLK = 5; //
   // REGCR
-  REGDIS = 0; // 
+  REGDIS = 0; //
   // UPOE
-  UPWE = 6; // 
-  UPDRV = 4; // 
-  SCKI = 3; // 
-  DATAI = 2; // 
-  DPI = 1; // 
-  DMI = 0; // 
+  UPWE = 6; //
+  UPDRV = 4; //
+  SCKI = 3; //
+  DATAI = 2; //
+  DPI = 1; //
+  DMI = 0; //
   // PS2CON
   PS2EN = 0; // Enable
   // SREG
@@ -304,8 +304,8 @@ const
   EXTRF = 1; // External Reset Flag
   PORF = 0; // Power-on reset flag
   // CLKPR
-  CLKPCE = 7; // 
-  CLKPS = 0; // 
+  CLKPCE = 7; //
+  CLKPS = 0; //
   // SMCR
   SM = 1; // Sleep Mode Select bits
   SE = 0; // Sleep Enable
@@ -329,17 +329,17 @@ const
   PRTIM1 = 3; // Power Reduction Timer/Counter1
   PRSPI = 2; // Power Reduction Serial Peripheral Interface
   // CLKSTA
-  RCON = 1; // 
-  EXTON = 0; // 
+  RCON = 1; //
+  EXTON = 0; //
   // CLKSEL1
-  RCCKSEL = 4; // 
-  EXCKSEL = 0; // 
+  RCCKSEL = 4; //
+  EXCKSEL = 0; //
   // CLKSEL0
-  RCSUT = 6; // 
-  EXSUT = 4; // 
-  RCE = 3; // 
-  EXTE = 2; // 
-  CLKS = 0; // 
+  RCSUT = 6; //
+  EXSUT = 4; //
+  RCE = 3; //
+  EXTE = 2; //
+  CLKS = 0; //
   // EICRA
   ISC3 = 6; // External Interrupt Sense Control Bit
   ISC2 = 4; // External Interrupt Sense Control Bit

@@ -58,7 +58,7 @@ type
 procedure qsort(__base: pointer; __nmemb: integer; __size: integer; __compar: TSort); cdecl; external;
 
 var
-  errno: plongint; external name '__errno'; 
+  errno: plongint; external name '__errno';
 
 type
 {
@@ -82,7 +82,7 @@ type
   end;
   P_FILE = ^_FILE;
  }
- 
+
    P_iobuf = ^_iobuf;
    _iobuf = record
         reserved : longint;
@@ -90,7 +90,7 @@ type
    _FILE = _iobuf;
    P_FILE = ^_FILE;
    PP_FILE = ^P_FILE;
- 
+
 const
   SEEK_SET = 0;
   SEEK_CUR = 1;
@@ -221,7 +221,7 @@ function unlink(path: PAnsiChar): longint; cdecl; external;
 function rename(para1: PAnsiChar; para2: PAnsiChar): longint; cdecl; external;
 
 function _open(path: PAnsiChar; oflag: longint): longint; cdecl; external name 'open';
-function _open(path: PAnsiChar; oflag, mode: longint): longint; cdecl; external name 'open';  
+function _open(path: PAnsiChar; oflag, mode: longint): longint; cdecl; external name 'open';
 function _read(fildes:longint; buf:pointer; nbytes:dword):longint;cdecl;external name 'read';
 function _read(fildes:longint; var buf; nbytes:dword):longint;cdecl;external name 'read';
 function _write(fildes:longint; buf:pointer; nbytes:dword):longint;cdecl;external name 'write';
@@ -287,7 +287,7 @@ const
  SH_DENYWR    = $00000020; // deny write mode
  SH_DENYRD    = $00000030; // deny read mode
  SH_DENYNO    = $00000040; // deny none mode
- 
+
 Const
 
 Sys_EPERM       = 1;    { Operation not permitted }

@@ -80,9 +80,9 @@ var
   PIND : byte absolute $00+$30; // Port D Input Pins
   // CPU
   SREG : byte absolute $00+$5F; // Status Register
-  SP : word absolute $00+$5D; // Stack Pointer 
-  SPL : byte absolute $00+$5D; // Stack Pointer 
-  SPH : byte absolute $00+$5D+1; // Stack Pointer 
+  SP : word absolute $00+$5D; // Stack Pointer
+  SPL : byte absolute $00+$5D; // Stack Pointer
+  SPH : byte absolute $00+$5D+1; // Stack Pointer
   OSCCAL : byte absolute $00+$51; // Oscillator Calibration Value
   // BOOT_LOAD
   SPMCR : byte absolute $00+$57; // Store Program Memory Control Register

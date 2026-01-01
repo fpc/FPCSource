@@ -140,7 +140,7 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
         {$define threadvarblocksize_set}
         threadvarblocksize:=align(threadvarblocksize,16);
         {$endif cpusparc}
-        
+
         {$ifdef cpusparc64}
         {$define threadvarblocksize_set}
         threadvarblocksize:=align(threadvarblocksize,16);
@@ -378,7 +378,7 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
     TLSInitialized : longbool = FALSE;
 
   Procedure InitCTLS;
-  
+
   begin
     if (InterLockedExchange(longint(TLSInitialized),ord(true)) = 0) then
       begin
@@ -676,10 +676,10 @@ type
      TPthreadMutex = pthread_mutex_t;
      Tbasiceventstate=record
          FCondVar: TPthreadCondition;
-{$if defined(Linux) and not defined(Android)}         
+{$if defined(Linux) and not defined(Android)}
          FAttr: pthread_condattr_t;
          FClockID: longint;
-{$ifend}        
+{$ifend}
          FEventSection: TPthreadMutex;
          FWaiters: longint;
          FIsSet,
@@ -698,33 +698,33 @@ Const
 function IntBasicEventCreate(EventAttributes : Pointer; AManualReset,InitialState : Boolean;const Name : ansistring):pEventState;
 var
   MAttr : pthread_mutexattr_t;
-  res   : cint;  
-{$if defined(Linux) and not defined(Android)}  
+  res   : cint;
+{$if defined(Linux) and not defined(Android)}
   timespec: ttimespec;
-{$ifend}  
+{$ifend}
 begin
   new(plocaleventstate(result));
   plocaleventstate(result)^.FManualReset:=AManualReset;
   plocaleventstate(result)^.FWaiters:=0;
   plocaleventstate(result)^.FDestroying:=False;
   plocaleventstate(result)^.FIsSet:=InitialState;
-{$if defined(Linux) and not defined(Android)}  
+{$if defined(Linux) and not defined(Android)}
   res := pthread_condattr_init(@plocaleventstate(result)^.FAttr);
   if (res <> 0) then
   begin
     FreeMem(result);
-    fpc_threaderror;  
+    fpc_threaderror;
   end;
-  
+
   if clock_gettime(CLOCK_MONOTONIC_RAW, @timespec) = 0 then
   begin
     res := pthread_condattr_setclock(@plocaleventstate(result)^.FAttr, CLOCK_MONOTONIC_RAW);
   end
   else
   begin
-    res := -1; // No support for CLOCK_MONOTONIC_RAW   
+    res := -1; // No support for CLOCK_MONOTONIC_RAW
   end;
-  
+
   if (res = 0) then
   begin
     plocaleventstate(result)^.FClockID := CLOCK_MONOTONIC_RAW;
@@ -740,14 +740,14 @@ begin
     begin
       pthread_condattr_destroy(@plocaleventstate(result)^.FAttr);
       FreeMem(result);
-      fpc_threaderror;  
-    end;    
-  end;  
+      fpc_threaderror;
+    end;
+  end;
 
   res := pthread_cond_init(@plocaleventstate(result)^.FCondVar, @plocaleventstate(result)^.FAttr);
   if (res <> 0) then
   begin
-    pthread_condattr_destroy(@plocaleventstate(result)^.FAttr);  
+    pthread_condattr_destroy(@plocaleventstate(result)^.FAttr);
     FreeMem(result);
     fpc_threaderror;
   end;
@@ -757,8 +757,8 @@ begin
   begin
     FreeMem(result);
     fpc_threaderror;
-  end; 
-{$ifend} 
+  end;
+{$ifend}
 
   res:=pthread_mutexattr_init(@MAttr);
   if res=0 then
@@ -776,9 +776,9 @@ begin
   if res <> 0 then
     begin
       pthread_cond_destroy(@plocaleventstate(result)^.FCondVar);
-{$if defined(Linux) and not defined(Android)}  
-      pthread_condattr_destroy(@plocaleventstate(result)^.FAttr);	
-{$ifend}      
+{$if defined(Linux) and not defined(Android)}
+      pthread_condattr_destroy(@plocaleventstate(result)^.FAttr);
+{$ifend}
       FreeMem(result);
       fpc_threaderror;
     end;
@@ -800,9 +800,9 @@ begin
 
   { and clean up }
   pthread_cond_destroy(@plocaleventstate(state)^.Fcondvar);
-{$if defined(Linux) and not defined(Android)}  
-  pthread_condattr_destroy(@plocaleventstate(state)^.FAttr);	
-{$ifend}  
+{$if defined(Linux) and not defined(Android)}
+  pthread_condattr_destroy(@plocaleventstate(state)^.FAttr);
+{$ifend}
   pthread_mutex_destroy(@plocaleventstate(state)^.FEventSection);
   dispose(plocaleventstate(state));
 end;
@@ -877,10 +877,10 @@ begin
         end;
       errres := 0;
       while (not plocaleventstate(state)^.FDestroying) and
-            (not plocaleventstate(state)^.FIsSet) and 
+            (not plocaleventstate(state)^.FIsSet) and
             (errres<>ESysETIMEDOUT) do
         errres := pthread_cond_timedwait(@plocaleventstate(state)^.Fcondvar,
-                                         @plocaleventstate(state)^.feventsection, 
+                                         @plocaleventstate(state)^.feventsection,
                                          @timespec);
     end;
 

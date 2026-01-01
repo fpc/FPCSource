@@ -14,7 +14,7 @@ unit libspu;
 interface
 
 const
-//  CONSTANT 
+//  CONSTANT
     SPU_SUCCESS         = 0;
     SPU_INVALID_ARGS    = -3;
     SPU_DIAG	        = -2;
@@ -119,19 +119,19 @@ const
     SPU_VOICE_VOLL		 = 1 shl  0;                //  volume (left)
     SPU_VOICE_VOLR		 = 1 shl  1;                // volume (right)
     SPU_VOICE_VOLMODEL	 = 1 shl  2;                // volume mode (left)
-    SPU_VOICE_VOLMODER	 = 1 shl  3;                // volume mode (right) 
+    SPU_VOICE_VOLMODER	 = 1 shl  3;                // volume mode (right)
     SPU_VOICE_PITCH		 = 1 shl  4;                // tone (pitch setting)
-    SPU_VOICE_NOTE		 = 1 shl  5;                // tone (note setting) 
+    SPU_VOICE_NOTE		 = 1 shl  5;                // tone (note setting)
     SPU_VOICE_SAMPLE_NOTE= 1 shl  6;                // waveform data sample note
     SPU_VOICE_WDSA		 = 1 shl  7;                // waveform data start address
-    SPU_VOICE_ADSR_AMODE = 1 shl  8;                // ADSR Attack rate mode 
+    SPU_VOICE_ADSR_AMODE = 1 shl  8;                // ADSR Attack rate mode
     SPU_VOICE_ADSR_SMODE = 1 shl  9;                // ADSR Sustain rate mode
     SPU_VOICE_ADSR_RMODE = 1 shl 10;                // ADSR Release rate mode
-    SPU_VOICE_ADSR_AR	 = 1 shl 11;                // ADSR Attack rate      
-    SPU_VOICE_ADSR_DR	 = 1 shl 12;                // ADSR Decay rate       
-    SPU_VOICE_ADSR_SR    = 1 shl 13;                // ADSR Sustain rate     
-    SPU_VOICE_ADSR_RR	 = 1 shl 14;                // ADSR Release rate     
-    SPU_VOICE_ADSR_SL	 = 1 shl 15;                // ADSR Sustain level    
+    SPU_VOICE_ADSR_AR	 = 1 shl 11;                // ADSR Attack rate
+    SPU_VOICE_ADSR_DR	 = 1 shl 12;                // ADSR Decay rate
+    SPU_VOICE_ADSR_SR    = 1 shl 13;                // ADSR Sustain rate
+    SPU_VOICE_ADSR_RR	 = 1 shl 14;                // ADSR Release rate
+    SPU_VOICE_ADSR_SL	 = 1 shl 15;                // ADSR Sustain level
     SPU_VOICE_LSAX		 = 1 shl 16;                // start address for loop
     SPU_VOICE_ADSR_ADSR1 = 1 shl 17;                // ADSR adsr1 for `VagAtr'
     SPU_VOICE_ADSR_ADSR2 = 1 shl 18;                // ADSR adsr2 for `VagAtr'
@@ -204,14 +204,14 @@ type
         left : smallint;
         right : smallint;
     end;
-    
+
     SpuVoiceAttr = packed record
         voice : dword;		                        // set voice:
                                                     //  SpuSetVoiceAttr: each voice is a bit array
                                                     //  SpuGetVoiceAttr: voice is a bit value
         mask : dword;		                        // settings attribute bit (invalid with Get)
-        volume : SpuVolume;		                    // volume                         
-        volmode : SpuVolume;	                    // volume mode                    
+        volume : SpuVolume;		                    // volume
+        volmode : SpuVolume;	                    // volume mode
         volumex : SpuVolume;	                    // current volume (invalid with Set)
         pitch : word;		                        // tone (pitch setting)
         note : word;		                        // tone (note setting)
@@ -219,14 +219,14 @@ type
         envx : smallint;		                    // current envelope value (invalid with Set)
         addr : dword;		                        // waveform data start address
         loop_addr : dword;	                        // loop start address
-        a_mode : longint;		                    // Attack rate mode	
+        a_mode : longint;		                    // Attack rate mode
         s_mode : longint;		                    // Sustain rate mode
         r_mode : longint;		                    // Release rate mode
-        ar : word;		                            // Attack rate		
-        dr : word;		                            // Decay rate		
-        sr : word;		                            // Sustain rate		
-        rr : word;		                            // Release rate		
-        sl : word;		                            // Sustain level	
+        ar : word;		                            // Attack rate
+        dr : word;		                            // Decay rate
+        sr : word;		                            // Sustain rate
+        rr : word;		                            // Release rate
+        sl : word;		                            // Sustain level
         adsr1 : word;		                        // adsr1 for `VagAtr'
         adsr2 : word;		                        // adsr2 for `VagAtr'
     end;
@@ -261,7 +261,7 @@ type
     end;
     SpuDecodeData = SpuDecodedData;
     PSpuDecodedData = ^SpuDecodedData;
-    
+
     SpuExtAttr = packed record
         volume : SpuVolume;		                    // volume
         reverb : longint;		                    // reverb on/off

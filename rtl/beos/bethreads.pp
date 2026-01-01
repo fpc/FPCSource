@@ -306,12 +306,12 @@ Uses
             { No recursive mutex support :/ }
             res := pthread_mutex_init(@CS,NIL);
         end
-      else 
+      else
         res:= pthread_mutex_init(@CS,NIL);
       pthread_mutexattr_destroy(@MAttr);
       if res <> 0 then
         runerror(6);
-    end;                           
+    end;
 
     procedure BeEnterCriticalSection(var CS);
       begin
@@ -377,7 +377,7 @@ Function BeInitThreads : Boolean;
 begin
 {$ifdef DEBUG_MT}
   Writeln('Entering InitThreads.');
-{$endif}  
+{$endif}
 {$ifndef dynpthreads}
   Result:=True;
 {$else}
@@ -406,10 +406,10 @@ type
          FManualReset: Boolean;
          FEventSection: TPthreadMutex;
 	end;
-     plocaleventstate = ^tbasiceventstate;  
+     plocaleventstate = ^tbasiceventstate;
 //     peventstate=pointer;
 
-Const 
+Const
 	wrSignaled = 0;
 	wrTimeout  = 1;
 	wrAbandoned= 2;
@@ -528,7 +528,7 @@ begin
     AllocateThreadVars     :=@BeAllocateThreadVars;
     ReleaseThreadVars      :=@BeReleaseThreadVars;
 {$endif}
-    BasicEventCreate       :=@intBasicEventCreate;       
+    BasicEventCreate       :=@intBasicEventCreate;
     BasicEventDestroy      :=@intBasicEventDestroy;
     BasicEventResetEvent   :=@intBasicEventResetEvent;
     BasicEventSetEvent     :=@intBasicEventSetEvent;

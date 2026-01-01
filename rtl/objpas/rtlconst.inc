@@ -19,7 +19,7 @@ unit RtlConsts;
 interface
 
 Const
-  SEmpty : string = 'Empty';  
+  SEmpty : string = 'Empty';
   SMenuSeparator: string = '-';
 
 ResourceString
@@ -278,7 +278,7 @@ ResourceString
   SSocketRead                   = 'Read';
   SSocketWrite                  = 'Write';
   SSortedListError              = 'Operation not allowed on sorted list';
-  SStreamInvalidSeek            = 'Invalid stream operation %s.Seek';   
+  SStreamInvalidSeek            = 'Invalid stream operation %s.Seek';
   SStreamNoReading              = 'Reading from %s is not supported';
   SStreamNoWriting              = 'Writing to %s is not supported';
   SStreamSetSize                = 'Error setting stream size';
@@ -325,7 +325,7 @@ ResourceString
   SErrCannotReadProperty        = 'Cannot read property "%s"';
   SErrNoNameValuePairAt         = 'No name=value pair at position %d';
   SErrCannotConvertNullToType   = 'Cannot convert Null to type %s';
-  
+
 { ---------------------------------------------------------------------
     Keysim Names
   ---------------------------------------------------------------------}
@@ -578,12 +578,12 @@ ResourceString
   // Constants for Delphi compatibility
   sAttributeExists = 'Attribute ''%s'' already exists';
   sDeviceExists = 'Device ''%s'' already exists';
-  sCannotManuallyConstructDevice = 'Manual construction of TDeviceInfo is not supported'; 
+  sCannotManuallyConstructDevice = 'Manual construction of TDeviceInfo is not supported';
   SArgumentOutOfRange = 'Argument out of range';
-  StrNoClientClass = 'The client cannot be an instance of the class %s';  
+  StrNoClientClass = 'The client cannot be an instance of the class %s';
   SListIndexErrorExt = 'List index out of bounds (%0:d).  %2:s object range is 0..%1:d';
   StrEActionNoSuported = 'Class %s does not support the action';
-  
+
   { Classes observer support }
   SErrNotIObserverInterface = 'Interface is not an IObserver interface';
   SErrUnsupportedObserver = 'Observer type not supported';
@@ -591,7 +591,7 @@ ResourceString
   SErrObserverNoSinglecast = 'No singlecast observer interface found';
   SerrObserverNoMulticastFound = 'No multicast observer interface (%d) found';
   SErrObserverNotAvailable = 'Observer type (%d) not available';
-  
+
 implementation
 
 end.

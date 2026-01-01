@@ -29,7 +29,7 @@ const
  syscall_nr_chmod                       =  15;
  syscall_nr_chown                       =  16;
  syscall_nr_break                       =  17;
- syscall_nr_getfsstat                   =  18;  
+ syscall_nr_getfsstat                   =  18;
                                         {  19  is old lseek }
  syscall_nr_getpid                      =  20;
  syscall_nr_mount                       =  21;

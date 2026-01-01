@@ -1071,10 +1071,10 @@ unit TypInfo;
 
       PPropInfoEx = ^TPropInfoEx;
 
-      TPropDataEx = 
+      TPropDataEx =
       {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
-      packed 
-      {$ENDIF FPC_REQUIRES_PROPER_ALIGNMENT}  
+      packed
+      {$ENDIF FPC_REQUIRES_PROPER_ALIGNMENT}
       record
       private
         function GetPropEx(Index: Word): PPropInfoEx;
@@ -1482,7 +1482,7 @@ begin
  else if TypeInfo^.Kind=tkInteger then
    Result:=IntToStr(Value)
  else
-   Result:='';  
+   Result:='';
 end;
 
 
@@ -2104,7 +2104,7 @@ begin
   TD:=PRecordData(GetTypeData(TypeInfo))^.ExRTTITable;
   Count:=TD^.PropCount;
   For I:=0 to Count-1 do
-  begin           
+  begin
     TP:=TD^.Prop[I];
     if ([]=Visibilities) or (TP^.Visibility in Visibilities) then
       begin

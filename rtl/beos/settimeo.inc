@@ -22,7 +22,7 @@
 {$ifdef FPC_USE_LIBC}
 function stime (t:ptime_t):cint; cdecl; external name 'stime';
 {$else}
-function stime (t:ptime_t):cint; 
+function stime (t:ptime_t):cint;
 begin
  stime:=do_SysCall(Syscall_nr_stime,TSysParam(t));
 end;

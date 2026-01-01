@@ -24,7 +24,7 @@ interface
 uses
 {$IFDEF FPC_DOTTEDUNITS}
   Wasm.Api;
-{$ELSE}  
+{$ELSE}
   WebAssembly;
 {$ENDIF}
 

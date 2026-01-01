@@ -152,7 +152,7 @@ end;
 function FileWrite(Handle: THandle; const Buffer; Count: LongInt): LongInt;
 begin
   FileWrite:=-1;
-  if (Count<=0) then 
+  if (Count<=0) then
     exit;
   FileWrite:= io_sstrg(Handle, -1, @Buffer, Count);
   if FileWrite < 0 then
@@ -170,13 +170,13 @@ begin
   case Origin of
     fsFromBeginning: dosResult := fs_posab(Handle, FOffset);
     fsFromCurrent: dosResult := fs_posre(Handle, FOffset);
-    fsFromEnd: 
+    fsFromEnd:
       begin
         seekEOF := $7FFFFFBF;
         dosResult := fs_posab(Handle, seekEOF);
         fOffset := -FOffset;
         dosResult := fs_posre(Handle, FOffset);
-      end;  
+      end;
   end;
 
   { We might need to handle Errors in dosResult, but
@@ -244,7 +244,7 @@ begin
   QLerr := fs_rename(Handle, PAnsiChar(NewName));
   FileClose(Handle);
   if QLerr >= 0 then
-    RenameFile := true; 
+    RenameFile := true;
 end;
 
 

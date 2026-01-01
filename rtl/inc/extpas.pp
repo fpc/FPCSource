@@ -39,7 +39,7 @@ unit extpas;
 {$IFDEF FPC_DOTTEDUNITS}
     uses
       TP.DOS;
-{$ELSE}      
+{$ELSE}
     uses
       dos;
 {$ENDIF}

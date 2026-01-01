@@ -462,8 +462,8 @@ function DdeQueryStringA(_para1:DWORD; _para2:HSZ; _para3:PAnsiChar;_para4:DWORD
 function LogonUserA(_para1:LPSTR; _para2:LPSTR; _para3:LPSTR; _para4:DWORD; _para5:DWORD;_para6:PHANDLE):WINBOOL; external 'advapi32' name 'LogonUserA';
 function CreateProcessAsUserA(_para1:HANDLE; _para2:LPCTSTR; _para3:LPTSTR; _para4:LPSECURITY_ATTRIBUTES; _para5:LPSECURITY_ATTRIBUTES;_para6:WINBOOL; _para7:DWORD; _para8:LPVOID; _para9:LPCTSTR;
   _para10:LPSTARTUPINFOA; _para11:LPPROCESS_INFORMATION):WINBOOL; external 'advapi32' name 'CreateProcessAsUserA';
-function CreateWaitableTimerA(lpTimerAttributes :LPSECURITY_ATTRIBUTES; bManualReset:BOOl;lpTimerName:LPCTSTR):THandle;external 'kernel32' name 'CreateWaitableTimerA'; 
-function OpenWaitableTimerA(dwDesiredAccess:DWORD;bInheritHandle:BOOL;lpTimerName:LPCTSTR):THandle;external 'kernel32' name 'OpenWaitableTimerA'; 
+function CreateWaitableTimerA(lpTimerAttributes :LPSECURITY_ATTRIBUTES; bManualReset:BOOl;lpTimerName:LPCTSTR):THandle;external 'kernel32' name 'CreateWaitableTimerA';
+function OpenWaitableTimerA(dwDesiredAccess:DWORD;bInheritHandle:BOOL;lpTimerName:LPCTSTR):THandle;external 'kernel32' name 'OpenWaitableTimerA';
 function FindFirstFileExA(lpfilename : LPCStr;fInfoLevelId:FINDEX_INFO_LEVELS ;lpFindFileData:pointer;fSearchOp : FINDEX_SEARCH_OPS;lpSearchFilter:pointer;dwAdditionalFlags:dword):Handle; stdcall; external 'kernel32' name 'FindFirstFileExA';
 // winver>$0600
 function FindFirstFileTransactedA(lpfilename : LPCStr;fInfoLevelId:FINDEX_INFO_LEVELS ;lpFindFileData:pointer;fSearchOp : FINDEX_SEARCH_OPS;lpSearchFilter:pointer;dwAdditionalFlags:dword;htransaction : HANDLE):Handle; stdcall; external 'kernel32' name 'FindFirstFileTransactedA';

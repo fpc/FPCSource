@@ -26,7 +26,7 @@
       make install
 
     to build and install binutils. To check that netware is supported by the version of binutils
-    installed, use i386-netware-ld --version. The emulation 'i386nw' must be present. Also check that 
+    installed, use i386-netware-ld --version. The emulation 'i386nw' must be present. Also check that
     i386-netware-nlmconv
     is present and can be started without specifying the complete path of i386-netware-nlmconv.
 
@@ -36,7 +36,7 @@
 
     Binutils for win32 and Fedora Core 2 are available from:
            ftp://ftp.freepascal.org/pub/fpc/contrib/cross
-	  
+
 
     Building the freepascal runtime-library for netware
     ===================================================
@@ -47,17 +47,17 @@
     Compile and install the rtl with
 
       make install
-      
+
     This will install the basic rtl files. To install all (packages,fcl and nlm's) do a
-    
+
     make OS_TARGET=netware build
-    
+
     and
-    
+
     make OS_TARGET=netware install
-    
+
     at the fpc source root dir.
-    
+
 
     Settings and needed files to compile for netware
     ================================================
@@ -158,7 +158,7 @@
 
       Debugging is possible with gdb on Netware 4.11, 5, 6 and 6.5.
       See http://home.arcor.de/armin.diehl/fpcnw/gdbnw.html for details
-      
+
 
     - Netware SDK
       -----------

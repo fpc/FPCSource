@@ -3909,9 +3909,9 @@ State - Flags (PAG_*) indicating state of the memory (or the first memory page
         if the states for the following pages differ):
 
 Possible return codes:
-  0 - NO_ERROR 
- 87 - ERROR_INVALID_PARAMETER 
-487 - ERROR_INVALID_ADDRESS 
+  0 - NO_ERROR
+ 87 - ERROR_INVALID_PARAMETER
+487 - ERROR_INVALID_ADDRESS
 }
 function DosQueryMemState (PMem: pointer; var Size: cardinal;
                                          var State: cardinal): cardinal; cdecl;

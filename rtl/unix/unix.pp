@@ -130,7 +130,7 @@ function FpExecVPE(Const PathName:RawByteString;args,env:PPAnsiChar):cint;
 
 Function fpSystem(const Command:RawByteString):cint;
 
-Function WaitProcess (Pid:cint):cint; 
+Function WaitProcess (Pid:cint):cint;
 
 Function WIFSTOPPED (Status: Integer): Boolean;
 Function W_EXITCODE (ReturnCode, Signal: Integer): Integer;
@@ -737,7 +737,7 @@ begin
  {$if not(defined(beos))}
   p^.dd_size:=0;
   p^.dd_loc:=0;
- {$endif} 
+ {$endif}
 end;
 
 function TellDir(p:pdir):TOff;
@@ -748,9 +748,9 @@ begin
      telldir:=-1;
      exit;
    end;
- {$ifndef beos}   
+ {$ifndef beos}
   telldir:=fplseek(p^.dd_fd,0,seek_cur)
- {$endif}     
+ {$endif}
   { We could try to use the nextoff field here, but on my 1.2.13
     kernel, this gives nothing... This may have to do with
     the readdir implementation of libc... I also didn't find any trace of
@@ -1367,7 +1367,7 @@ begin
    s:=''
   else
    SetLength(s,strlen(@s[1]));
-  getdomainname:=s;  
+  getdomainname:=s;
 end;
 {$endif}
 

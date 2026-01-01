@@ -88,9 +88,9 @@ var
   BGCCR : byte absolute $00+$D0; // Bandgap Calibration Register
   // CPU
   SREG : byte absolute $00+$5F; // Status Register
-  SP : word absolute $00+$5D; // Stack Pointer 
-  SPL : byte absolute $00+$5D; // Stack Pointer 
-  SPH : byte absolute $00+$5D+1; // Stack Pointer 
+  SP : word absolute $00+$5D; // Stack Pointer
+  SPL : byte absolute $00+$5D; // Stack Pointer
+  SPH : byte absolute $00+$5D+1; // Stack Pointer
   MCUCR : byte absolute $00+$55; // MCU Control Register
   MCUSR : byte absolute $00+$54; // MCU Status Register
   FOSCCAL : byte absolute $00+$66; // Fast Oscillator Calibration Value
@@ -157,20 +157,20 @@ const
   WCOL = 6; // Write Collision Flag
   SPI2X = 0; // Double SPI Speed Bit
   // EECR
-  EEPM = 4; // 
+  EEPM = 4; //
   EERIE = 3; // EEProm Ready Interrupt Enable
   EEMPE = 2; // EEPROM Master Write Enable
   EEPE = 1; // EEPROM Write Enable
   EERE = 0; // EEPROM Read Enable
   // CADCSRA
   CADEN = 7; // When the CADEN bit is cleared (zero), the CC-ADC is disabled. When the CADEN bit is set (one), the CC-ADC will continuously measure the voltage drop over the external sense resistor RSENSE. In Power-down, only the Regular Current detection is active. In Power-off, the CC-ADC is always disabled.
-  CADPOL = 6; // 
+  CADPOL = 6; //
   CADUB = 5; // CC_ADC Update Busy
   CADAS = 3; // CC_ADC Accumulate Current Select Bits
   CADSI = 1; // The CADSI bits determine the current sampling interval for the Regular Current detection in Power-down mode. The actual settings remain to be determined.
   CADSE = 0; // When the CADSE bit is written to one, the ongoing CC-ADC conversion is aborted, and the CC-ADC enters Regular Current detection mode.
   // CADCSRB
-  CADACIE = 6; // 
+  CADACIE = 6; //
   CADRCIE = 5; // Regular Current Interrupt Enable
   CADICIE = 4; // CAD Instantenous Current Interrupt Enable
   CADACIF = 2; // CC-ADC Accumulate Current Interrupt Flag
@@ -184,7 +184,7 @@ const
   TWBDT = 1; // TWI Bus Disconnect Time-out Period
   TWBCIP = 0; // TWI Bus Connect/Disconnect Interrupt Polarity
   // TWAMR
-  TWAM = 1; // 
+  TWAM = 1; //
   // TWCR
   TWINT = 7; // TWI Interrupt Flag
   TWEA = 6; // TWI Enable Acknowledge Bit

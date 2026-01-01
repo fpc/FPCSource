@@ -194,7 +194,7 @@ Type
     fsid    : array[0..1] of cint;          { File system ID }
     namelen : clong; { Maximum name length in system }
     frsize  : clong;
-    flags   : clong; 
+    flags   : clong;
     spare   : array [0..3] of clong; { For later use }
   end;
   {$else}
@@ -205,7 +205,7 @@ Type
     bfree,             { free blocks in system }
     bavail,            { Available free blocks to non-root users }
     files,             { File nodes in system }
-    ffree   : 
+    ffree   :
 {$ifdef __USE_LARGEFILE64}
     culonglong;  { Free file nodes in system }
 {$else}
@@ -214,7 +214,7 @@ Type
     fsid    : array[0..1] of cint;          { File system ID }
     namelen,           { Maximum name length in system }
     frsize  : cint;
-    flags   : cint; 
+    flags   : cint;
     spare   : array [0..3] of cint; { For later use }
   end;
   {$endif}

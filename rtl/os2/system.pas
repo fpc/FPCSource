@@ -585,7 +585,7 @@ begin
      end;
    end;
 
-   if (Err <> 0) and (ExceptLevel < MaxExceptionLevel) 
+   if (Err <> 0) and (ExceptLevel < MaxExceptionLevel)
 (* TH: The following line is necessary to avoid an endless loop *)
                  and (Report^.Exception_Num < Xcpt_Process_Terminate)
                                                                     then

@@ -41,7 +41,7 @@ function fs_rename(chan: Tchanid; new_name: PAnsiChar): longint; external name '
 function fs_truncate(chan: Tchanid): longint; external name '_fs_truncate';
 function fs_mkdir(chan: Tchanid): longint; external name '_iof_mkdr'; { SMS }
 
-function sd_wdef(chan: Tchanid; timeout: Ttimeout; border_colour: byte; border_width: word; window: PQLRect): longint; external name '_sd_wdef'; 
+function sd_wdef(chan: Tchanid; timeout: Ttimeout; border_colour: byte; border_width: word; window: PQLRect): longint; external name '_sd_wdef';
 function sd_clear(chan: Tchanid; timeout: Ttimeout): longint; external name '_sd_clear';
 
 function ut_con(params: PWindowDef): Tchanid; external name '_ut_con';

@@ -123,7 +123,7 @@ var tree_sizememloc,tree_memlocation:Pfree_block;
 
 {****************************************************************************
                           Page allocation/deallocation
- ****************************************************************************} 
+ ****************************************************************************}
 
 function fpmmap(adr:pointer;len,prot,flags,fd,off:sizeint):pointer;external name 'FPC_SYSC_MMAP';
 function fpmunmap(adr:pointer;len:sizeint):pointer;external name 'FPC_SYSC_MUNMAP';
@@ -246,7 +246,7 @@ begin
               freelist_8byte_with_bitmap^.freelist_prev:=page;
               freelist_8byte_with_bitmap:=page;
             end;
-          {Make sure the next allocation finds the slot without much searching.} 
+          {Make sure the next allocation finds the slot without much searching.}
           search_index:=index;
         end;
       block_allocation_map[index]:=block_allocation_map[index] or (1 shl bit);
