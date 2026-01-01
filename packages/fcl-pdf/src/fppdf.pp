@@ -4317,7 +4317,7 @@ var
   lUnderlinePos, lUnderlineSize, lStrikeOutPos, lStrikeOutSize: Single;
   a1, b1, c1, d1, a2, b2, c2, d2: Single;
   v : UTF8String;
-  
+
 begin
   inherited Write(AStream);
   WriteString('q' + CRLF, AStream);
@@ -5442,13 +5442,13 @@ var
   IDict: TPDFDictionary;
 
   Procedure DoEntry(aName, aValue : String; NoUnicode: boolean = false);
-  
+
   begin
     if aValue='' then exit;
     if UseUTF16 and not NoUnicode then
       IDict.AddString(aName,utf8decode(aValue))
     else
-      IDict.AddString(aName,aValue);  
+      IDict.AddString(aName,aValue);
   end;
 
 begin

@@ -19,7 +19,7 @@ type TGHashmapTest = class(TTestCase)
     procedure HashmapTest3;
   public
     procedure Setup;override;
-  private 
+  private
     data:THashmaplli;
   end;
 

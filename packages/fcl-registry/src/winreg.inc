@@ -199,8 +199,8 @@ begin
     FLastError:=RegQueryInfoKeyA(CurrentKey,nil,nil,nil,lpdword(@NumSubKeys),
               lpdword(@MaxSubKeyLen),nil,lpdword(@NumValues),lpdword(@MaxValueLen),
               lpdword(@MaxDataLen),nil,@winFileTime);
-    Result:=FLastError=ERROR_SUCCESS;          
-    end;          
+    Result:=FLastError=ERROR_SUCCESS;
+    end;
   if Result and FileTimeToLocalFileTime(@winFileTime, @LocalFileTime) and
     FileTimeToSystemTime(@LocalFileTime, @sysTime) then
   begin
@@ -217,7 +217,7 @@ begin
   Result:=false;
   OldAccess:=FAccess;
   try
-    FAccess:=KEY_QUERY_VALUE or KEY_ENUMERATE_SUB_KEYS or STANDARD_RIGHTS_READ 
+    FAccess:=KEY_QUERY_VALUE or KEY_ENUMERATE_SUB_KEYS or STANDARD_RIGHTS_READ
     {$ifndef WinCE} or (OldAccess and (KEY_WOW64_64KEY or KEY_WOW64_32KEY)) {$endif};
     KeyHandle:=GetKey(Key);
     if KeyHandle<>0 then
@@ -262,7 +262,7 @@ begin
     FLastError:=RegOpenKeyExW(GetBaseKey(RelativeKey(Key)),
                               PWideChar(u),0,fAccess,Handle);
     Result:=FLastError=ERROR_SUCCESS;
-    end;                     
+    end;
   If Result then begin
     if RelativeKey(Key) then
         begin

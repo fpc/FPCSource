@@ -6,9 +6,9 @@
 program parsepp;
 
 {$mode objfpc}{$H+}
- 
+
 uses SysUtils, Classes, PParser, PasTree;
- 
+
 type
   { We have to override abstract TPasTreeContainer methods.
     See utils/fpdoc/dglobals.pp for an implementation of TFPDocEngine,
@@ -21,7 +21,7 @@ type
       override;
     function FindElement(const AName: String): TPasElement; override;
   end;
- 
+
 function TSimpleEngine.CreateElement(AClass: TPTreeElement; const AName: String;
   AParent: TPasElement; AVisibility: TPasMemberVisibility;
   const ASourceFilename: String; ASourceLinenumber: Integer): TPasElement;
@@ -32,13 +32,13 @@ begin
   Result.SourceFilename := ASourceFilename;
   Result.SourceLinenumber := ASourceLinenumber;
 end;
- 
+
 function TSimpleEngine.FindElement(const AName: String): TPasElement;
 begin
   { dummy implementation, see TFPDocEngine.FindElement for a real example }
   Result := nil;
 end;
- 
+
 Procedure Usage;
 
 begin
@@ -47,14 +47,14 @@ begin
   Writeln('All other options are passed as-is to the parser');
   Halt(0);
 end;
- 
+
 var
   M: TPasModule;
   E: TPasTreeContainer;
   I: Integer;
   Decls: TFPList;
   cmdline : String;
-  
+
 begin
   cmdline:='';
   if (ParamCount=0) or (Paramstr(1)='-h') or (Paramstr(1)='--help') then
@@ -65,7 +65,7 @@ begin
   M := nil;
   try
     M := ParseSource(E, cmdline, 'linux', 'i386');
- 
+
     { Cool, we successfully parsed the module.
       Now output some info about it. }
     if M.InterfaceSection <> nil then
@@ -76,7 +76,7 @@ begin
           (TObject(Decls[I]) as TPasElement).Name);
     end else
       Writeln('No interface section --- this is not a unit, this is a ', M.ClassName);
- 
+
     if M.ImplementationSection <> nil then // may be nil in case of a simple program
     begin
       Decls := M.ImplementationSection.Declarations;
@@ -84,7 +84,7 @@ begin
         Writeln('Implementation item ', I, ': ' +
           (TObject(Decls[I]) as TPasElement).Name);
     end;
- 
+
   finally
     FreeAndNil(M);
     FreeAndNil(E)

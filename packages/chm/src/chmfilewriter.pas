@@ -192,7 +192,7 @@ begin
     Writer.AppendIndex(FIndexStream);
     if MakeBinaryIndex then
     begin
-      Error(chmnote,'CHM has binary index');      
+      Error(chmnote,'CHM has binary index');
       Writer.AppendBinaryIndexFromSiteMap(FIndex,False);
     end;
   end;

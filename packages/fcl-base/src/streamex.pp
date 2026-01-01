@@ -49,7 +49,7 @@ type
    public
       property Position: Longint read GetPosition write SetPosition;
    end;
-   
+
    { TBidirBinaryObjectWriter }
 
    TBidirBinaryObjectWriter = class(TBinaryObjectWriter)
@@ -59,7 +59,7 @@ type
    public
       property Position: Longint read GetPosition write SetPosition;
    end;
-  
+
    { TDelphiReader }
 
    TDelphiReader = class(TReader)
@@ -116,7 +116,7 @@ type
      FStream: TStream;
      FBuffer: array of Byte;
      procedure FillBuffer;
-   Protected  
+   Protected
      function IsEof: Boolean; override;
    public
      constructor Create(AStream: TStream; ABufferSize: Integer; AOwnsStream: Boolean); virtual;
@@ -137,7 +137,7 @@ type
    TStringReader = class(TTextReader)
    private
      FReader: TTextReader;
-   Protected  
+   Protected
      function IsEof: Boolean; override;
    public
      constructor Create(const AString: AnsiString; ABufferSize: Integer); virtual;
@@ -304,7 +304,7 @@ type
 
 
 
-  { allows you to represent just a small window of a bigger stream as a substream. 
+  { allows you to represent just a small window of a bigger stream as a substream.
     also makes sure one is actually at the correct position before clobbering stuff. }
 
   TWindowedStream = class(TOwnerStream)
@@ -979,12 +979,12 @@ end;
 
 procedure TStreamReader.FillBuffer;
 begin
-  if FClosed then 
+  if FClosed then
     begin
     FBufferRead:=0;
     FBufferPosition:=0;
     end
-  else  
+  else
     begin
     FBufferRead := FStream.Read(FBuffer[0], Pred(Length(FBuffer)));
     FBuffer[FBufferRead] := 0;
@@ -1301,7 +1301,7 @@ begin
 
   if vNewSourcePosition + aCount > fFrontier then // trying to access outside.
     aCount := fFrontier - vNewSourcePosition;
-    
+
   Result := Source.Read(aBuffer, aCount);
   Inc(fPositionHere, Result);
 end;
@@ -1320,7 +1320,7 @@ begin
   if vNewSourcePosition + aCount > fFrontier then // trying to access outside.
     Raise EWriteError.Create(SErrCannotWriteOutsideWindow);
     //aCount := fFrontier - vNewSourcePosition;
-    
+
   Result := Source.Write(aBuffer, aCount);
   Inc(fPositionHere, Result);
 end;
@@ -1335,12 +1335,12 @@ begin
   fStartingPositionHere .... fStart
   fPositionHere............. x
   }
-  
+
   if (aOrigin = soCurrent) and (aOffset = 0) then begin // get position.
     Result := fPositionHere;
     Exit;
   end;
-  
+
   if aOrigin = soBeginning then
     vNewPositionHere := aOffset
   else if aOrigin = soCurrent then
@@ -1353,7 +1353,7 @@ begin
   vSourcePosition := fStart + vNewPositionHere - fStartingPositionHere;
   if (vSourcePosition < 0) or (vSourcePosition >= fFrontier) then
     raise EReadError.Create(SErrInvalidSeekWindow);
-    
+
   Result := Source.Seek(vSourcePosition, 0);
   //if Result = -1 ??? can that happen?
   Result := vNewPositionHere;

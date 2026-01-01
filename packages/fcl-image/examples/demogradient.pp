@@ -2,11 +2,11 @@ program demogradient;
 
 uses
   Types, FPImage, FPCanvas, FPImgCanv, FPWriteBMP;
-  
+
 var
   img: TFPMemoryImage;
   canv: TFPCustomCanvas;
-  
+
 begin
   img := TFPMemoryImage.Create(256, 128);
   try

@@ -43,19 +43,19 @@ const
 
   procedure GenerateSchemaFileFromFactory(AFactory : ISDODataFactory; AFileName : string);
   var
-    xsdHelper : IXSDHelper;     
+    xsdHelper : IXSDHelper;
   begin
-    xsdHelper := TXSDHelper.Create(AFactory); 
+    xsdHelper := TXSDHelper.Create(AFactory);
     xsdHelper.Generate(AFactory.getTypes(),s_uri,AFileName);
   end;
 
   procedure PopulateFactoryBySchemaFile(AFactory : ISDODataFactory; AFileName : string);
   var
-    xsdHelper : IXSDHelper;     
+    xsdHelper : IXSDHelper;
   begin
-    xsdHelper := TXSDHelper.Create(AFactory); 
+    xsdHelper := TXSDHelper.Create(AFactory);
     xsdHelper.LoadFromFile(AFileName);
-  end;   
+  end;
 
 procedure MainProc();
 var
@@ -70,7 +70,7 @@ begin
   GenerateSchemaFileFromFactory(fact,locSchemaFileName);
   WriteLn('Schema file generated !');
 
-  projList := fact.createNew(s_uri,s_project_list_type); 
+  projList := fact.createNew(s_uri,s_project_list_type);
   //Add some data
   proj := projList.createDataObject(s_project);
     //add the project object to the list
@@ -122,9 +122,9 @@ begin
     proj.setDataObject('ProjectLeader',proj.getDataObject('Member[Name="SDO dev manager"]'));
 
   //save it now to file
-  serializer := TSDOSerializer.Create(fact,TSDOSerializerStreamXML.Create()); 
+  serializer := TSDOSerializer.Create(fact,TSDOSerializerStreamXML.Create());
   serializer.setOptions([]);
-  serializer.save(s_project_list_type,projList,'data-with-schema.xml'); 
+  serializer.save(s_project_list_type,projList,'data-with-schema.xml');
   serializer.setOptions([soExcludeSchema]);
   serializer.save(s_project_list_type,projList,'data-without-schema.xml');
   WriteLn('Data files created.');

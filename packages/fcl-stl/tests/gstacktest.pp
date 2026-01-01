@@ -13,7 +13,7 @@ type TGTStackTest = class(TTestCase)
     procedure TStackTest;
   public
     procedure Setup;override;
-  private 
+  private
     data:TStacklli;
   end;
 

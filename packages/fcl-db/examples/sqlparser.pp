@@ -11,7 +11,7 @@ program sqlparser;
 
 uses
   Classes, fpsqlparser, fpsqltree;
-  
+
 var
   parser : TSQLParser;
   aInput: TStringStream;
@@ -23,7 +23,7 @@ var
   lWhere: TSQLBinaryExpression;
   leftValue: TSQLIdentifierName;
   rightValue: TSQLIntegerLiteral;
-  
+
 begin
   aInput := TStringStream.Create('SELECT name,age FROM PERSON WHERE id = 5');
   parser := TSQLParser.Create(aInput);

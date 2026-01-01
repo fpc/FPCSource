@@ -62,7 +62,7 @@ end;
 class procedure TOrderingArrayUtils.Heapify(var Arr: TArr; Position:SizeUInt; Start,Fin:SizeUInt);
 var mpos,l,r:SizeUInt; temp:TValue;
 begin
-  while(true) do 
+  while(true) do
   begin
     mpos:=Position;
     l:=Left(Position-Start)+Start;
@@ -72,7 +72,7 @@ begin
     if (r<Fin) AND (TCompare.c(Arr[mpos],Arr[r])) then
       mpos:=r;
     if mpos = Position then break;
-    
+
     temp:=Arr[Position];
     Arr[Position]:=Arr[mpos];
     Arr[mpos]:=temp;
@@ -99,7 +99,7 @@ begin
     HeapSort(Arr, Start, Fin);
     exit;
   end;
-{median of 3} 
+{median of 3}
   j:=Start;
   k:=Fin-1;
   l:=(Start+Fin)div 2;
@@ -110,7 +110,7 @@ begin
       temp:=Arr[k];
       Arr[k]:=Arr[j];
       Arr[j]:=temp;
-    end else 
+    end else
     begin
       temp:=Arr[l];
       Arr[l]:=Arr[j];
@@ -132,17 +132,17 @@ begin
     end;
   end;
 
-{partition} 
+{partition}
   pivot:=Arr[Start];
 
   i:=Start-1;
   j:=Fin;
-  repeat 
+  repeat
     repeat
       dec(j);
     until (not (TCompare.c(pivot,Arr[j])));
-   
-    
+
+
     repeat
       inc(i);
     until (not (TCompare.c(Arr[i],pivot)));
@@ -179,7 +179,7 @@ var i,cur,next,l,r,size:SizeUInt; temp:Tvalue;
 begin
 {buildHeap}
   size:=Fin-Start;
-  for i:=((size div 2)-1) downto 0 do 
+  for i:=((size div 2)-1) downto 0 do
     Heapify(Arr, i+Start, Start, Fin);
 {bottomup HeapSort}
   for i:=size-1 downto 1 do
@@ -190,7 +190,7 @@ begin
     while(true) do
     begin
       l:=Left(cur-Start)+Start;
-      if l>=Fin then 
+      if l>=Fin then
         break;
       next:=l;
       r:=Right(cur-Start)+Start;
@@ -219,7 +219,7 @@ class function TOrderingArrayUtils.NextPermutation(var Arr: TArr; size: SizeUInt
 var i,f:SizeUInt; temp:TValue;
 begin
   f := size;
-  for i:=size-1 downto 1 do begin 
+  for i:=size-1 downto 1 do begin
     if (TCompare.c(arr[i-1], arr[i])) then begin
       f := i-1;
       break;

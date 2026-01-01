@@ -1,7 +1,7 @@
 This directory contains test programs for different elements/classes in
-the FCL. 
+the FCL.
 
-If you add a test give in this file a short description of what 
+If you add a test give in this file a short description of what
 class/function it tests, and your initials..
 
 Names
@@ -20,7 +20,7 @@ list.pp      TList object from unit 'classes'.  (MVC)
 mstream.pp   TMemorySteam object from unit 'classes' (MVC)
 fstream.pp   TFileStream object from unit 'classes' (MVC)
 dparser.pp   TParser object from unit 'classes' (MVC)
-stringl.pp   TStringList object from unit classes' (MVC) 
+stringl.pp   TStringList object from unit classes' (MVC)
 thread.pp    TTHread object from unit classes (PFV)
 testz.pp     T(De)Compressionstream objects from Zstream (MVC)
 testz2.pp    TGZFilestream object from Zstream (MVC)
@@ -49,7 +49,7 @@ sstream.pp   Tests TStringStream object.
 testol.pp    Tests TObjectList in contnrs. (MVC)
 testcont.pp  Tests TStack/TQueue in contnrs. (MVC)
 testhres.pp  Test hostresolver in resolve (MVC)
-testnres.pp  Test netresolver in resolve (MVC) 
+testnres.pp  Test netresolver in resolve (MVC)
 testsres.pp  Test serviceresolver in resolve (MVC)
 testrhre.pp  Test reverse hostresolver in resolve (MVC)
 testrnre.pp  Test reverse netresolver in resolve (MVC)

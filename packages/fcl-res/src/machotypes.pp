@@ -114,7 +114,7 @@ type
     nsects   : cuint32;
     flags    : cuint32;
   end;
-  
+
   TSection32 = record
     sectname : TSegSectName;
     segname  : TSegSectName;
@@ -150,7 +150,7 @@ type
     stroff : cuint32;
     strsize : cuint32;
   end;
-  
+
   TDySymtabCommand = record
     ilocalsym : cuint32;
     nlocalsym : cuint32;
@@ -171,7 +171,7 @@ type
     locreloff : cuint32;
     nlocrel : cuint32;
   end;
-  
+
   TNList32 = record
     strx : cuint32;
     _type : cuint8;
@@ -180,7 +180,7 @@ type
     value : cuint32;
   end;
   PNList32 = ^TNList32;
-  
+
   TNList64 = record
     strx : cuint32;
     _type : cuint8;

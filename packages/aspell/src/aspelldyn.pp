@@ -30,10 +30,10 @@ uses
   {WARNING Is it possible to omit the path?}
   const libaspell = 'libaspell.dylib';
   {$ENDIF}
-{$ELSE} 
+{$ELSE}
  {$IFDEF WINDOWS}
   const libaspell = 'aspell-15.dll';
- {$ELSE} 
+ {$ELSE}
   {$MESSAGE ERROR Target not supported'}
  {$ENDIF}
 {$ENDIF}

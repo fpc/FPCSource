@@ -19,7 +19,7 @@ type TGCompositeTest = class(TTestCase)
     procedure SetVectorTest;
   public
     procedure Setup;override;
-  private 
+  private
     data:matrix;
   end;
 
@@ -75,7 +75,7 @@ begin
     end;
   end;
   AssertEquals('bad val 5 1', 6, data[5][1]);
-  AssertEquals('bad val 5 2', 21, data[5][2]); 
+  AssertEquals('bad val 5 2', 21, data[5][2]);
   AssertEquals('bad val 5 5', 252, data[5][5]);
   AssertEquals('bad val 50 50', 933591892, data[50][50]);
 end;

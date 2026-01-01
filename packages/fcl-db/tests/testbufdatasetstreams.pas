@@ -16,7 +16,7 @@ type
   TUpdDatasetProc = procedure(ADataset : TCustomBufDataset) of object;
 
   // Use this class, it implements some abstract methods
-  
+
   { TMyCustomBufDataset }
 
   TMyCustomBufDataset = Class(TCustomBufDataset)

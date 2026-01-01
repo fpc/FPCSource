@@ -52,7 +52,7 @@ function ParseURI(const URI: String; Decode : Boolean = True):  TURI; overload;
 function ParseURI(const URI, DefaultProtocol: String; DefaultPort: Word; Decode : Boolean = True):  TURI; overload;
 
 function ResolveRelativeURI(const BaseUri, RelUri: UnicodeString;out ResultUri: UnicodeString): Boolean; overload;
-{$ifdef WINDOWS}  
+{$ifdef WINDOWS}
 function ResolveRelativeURI(const BaseUri, RelUri: WideString; out ResultUri: WideString): Boolean; overload;
 {$ENDIF}
 function ResolveRelativeURI(const BaseUri, RelUri: AnsiString;  out ResultUri: AnsiString): Boolean; overload;
@@ -187,7 +187,7 @@ var
   s, Authority: String;
   i,j: Integer;
   PortValid: Boolean;
-  
+
 begin
   Result:=Default(TURI);
   Result.Protocol := LowerCase(DefaultProtocol);
@@ -391,7 +391,7 @@ begin
       RemoveDotSegments(Path);
     end;
   end; // with
-  
+
   // EncodeUri percent-encodes the result, and that's good
   ResultUri := EncodeUri(Rel);
 end;

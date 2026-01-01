@@ -62,7 +62,7 @@ uses
   System.Classes, System.SysUtils;
 {$ELSE}
   Classes, SysUtils;
-{$ENDIF}  
+{$ENDIF}
 
 { TMarkDownLine }
 

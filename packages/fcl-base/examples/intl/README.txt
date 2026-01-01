@@ -10,16 +10,16 @@ Examples for this 2-char language codes are
 you can check the currently selected language with the command
   echo $LANG
 
-change this value using 
+change this value using
 (in bash)
   export LANG=<langcode>
 (in csh)
   setenv LANG <langcode>
 
 Then, make a copy of the file "restest.po", call the copy
-  restest.<langcode>.po 
+  restest.<langcode>.po
 (Insert your language code for <langcode>)
- 
+
 After this you can edit the created .po file using your favorite editor.
 For each string, there is an "msgid" and an "msgstr" entry. msgid is the
 original string, don't change its value. Just add the translated string to

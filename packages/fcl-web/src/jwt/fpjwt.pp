@@ -1,12 +1,12 @@
 { **********************************************************************
   This file is part of the Free Component Library (Fcl)
   Copyright (c) 2015 by the Free Pascal development team
-        
+
   JSON Web Token implementation
-            
+
   See the file COPYING.FPC, included in this distribution,
   for details about the copyright.
-                   
+
   This program is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
@@ -116,7 +116,7 @@ Type
   TJOSEClass = Class of TJOSE;
 
   { TClaims }
-  
+
   TClaims = Class(TBaseJWT)
   private
     FAuds: TStringDynArray;
@@ -772,7 +772,7 @@ begin
   if Length(Fauds)>0 then
     Result:=Fauds[0]
   else
-    Result:='';  
+    Result:='';
 end;
 
 function TClaims.WriteProp(P: PPropInfo; All: Boolean): Boolean;
@@ -804,7 +804,7 @@ begin
       end;
 end;
 
-Procedure TClaims.DoSaveToJSON(JSON : TJSONObject; All : Boolean); 
+Procedure TClaims.DoSaveToJSON(JSON : TJSONObject; All : Boolean);
 
 var
  lAuds : TJSONArray;

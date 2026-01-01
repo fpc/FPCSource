@@ -1565,7 +1565,7 @@ Type
   TValueItem = Class(TObject)
   Private
     FValue : String;
-  Public  
+  Public
     Constructor Create(AValue : String);
     Property Value : String Read FValue;
   end;
@@ -1575,8 +1575,8 @@ Type
   TFunctionItem = Class(TObject)
   Private
     FFunc : TReplaceFunction;
-  public  
-    Constructor Create(AFunc : TReplaceFunction); 
+  public
+    Constructor Create(AFunc : TReplaceFunction);
     Property Func : TReplaceFunction Read FFunc;
   end;
 

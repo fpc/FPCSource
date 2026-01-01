@@ -3,7 +3,7 @@
     Copyright (c) 2012 by the Free Pascal development team
 
     Basic indexer
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -12,7 +12,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
- 
+
 {$IFNDEF FPC_DOTTEDUNITS}
 unit FpIndexer;
 {$ENDIF FPC_DOTTEDUNITS}

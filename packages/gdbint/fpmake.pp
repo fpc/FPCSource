@@ -19,7 +19,7 @@ var
   GdbintTarget, GdbconTarget, GdbVerTarget: TTarget;
   Opts : TStrings;
   Prefix : String;
-  
+
 begin
   P := Sender as TPackage;
   Prefix:='';

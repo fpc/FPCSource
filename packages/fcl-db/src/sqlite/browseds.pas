@@ -19,7 +19,7 @@ program browseds;
 {$H+}
 {$define DEBUGHEAP}
 
-uses 
+uses
 {$ifdef DEBUGHEAP}
   Heaptrc,
 {$endif}
@@ -35,7 +35,7 @@ const
   DEFAULT_TABLENAME = 'tabletest';
   DEFAULT_FILENAME = 'test.db';
 
-var 
+var
   dsTest: TSqlite3Dataset;
   ini: TIniFile;
   i:Integer;

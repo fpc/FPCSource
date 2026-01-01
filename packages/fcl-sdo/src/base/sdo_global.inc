@@ -4,7 +4,7 @@
     {$mode objfpc}{$H+}
     {$DEFINE HAS_QWORD}
     {$DEFINE ATT_PROC_ADDRESS}
-    {$DEFINE HAS_UNICODE}  
+    {$DEFINE HAS_UNICODE}
     {$IF Defined(FPC_RELEASE) and (FPC_RELEASE > 0) }
       {$define FCL_HAS_TDOMElementList}
       {$IF Defined(FPC_VERSION) and (FPC_RELEASE >= 5) }
@@ -24,7 +24,7 @@
     {$ENDIF}
     {$IFDEF VER210}
       {$DEFINE HAS_UNICODE}
-    {$ENDIF}     
+    {$ENDIF}
     {$IFDEF VER220} //DelphiXE
       {$DEFINE HAS_UNICODE}
     {$ENDIF}

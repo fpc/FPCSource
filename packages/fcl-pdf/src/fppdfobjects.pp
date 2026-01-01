@@ -2784,7 +2784,7 @@ end;
 function TPDFDocument.FindDocumentInfo: TPDFDocumentInfo;
 
 Var
-  Obj : TPDFIndirect; 
+  Obj : TPDFIndirect;
 
 begin
   Result:=Nil;
@@ -2964,7 +2964,7 @@ Var
 
 begin
   Result:=0;
-  if Value='' then 
+  if Value='' then
     exit;
   If not (Copy(Value,1,2)='D:') then
     Raise EConvertError.CreateFmt('Not a valid Date/Time value : %s',[Value]);
@@ -3400,7 +3400,7 @@ function TPDFIndirect.FindDictValue(const aKey : RawbyteString) : TPDFObject;
 
 begin
   Result:=Nil;
-  if not CheckObjectDict then 
+  if not CheckObjectDict then
     exit;
   Result:=ObjectDict.FindValue(aKey);
 end;
@@ -3410,7 +3410,7 @@ function TPDFIndirect.GetDictValue(const aKey : RawbyteString) : TPDFObject;
 begin
   Result:=FindDictValue(aKey);
   if Result=Nil then
-    Raise EPDF.CreateFmt('No such value in object dictionary: %s',[aKey]) 
+    Raise EPDF.CreateFmt('No such value in object dictionary: %s',[aKey])
 end;
 
 class constructor TPDFIndirect.InitIndirect;
@@ -3655,9 +3655,9 @@ begin
     7 : Result:=SPDFKeyModDate;
     8 : Result:=SPDFKeyTrapped;
   else
-    Result:=''; // Silence compiler warning  
-  end;    
-  
+    Result:=''; // Silence compiler warning
+  end;
+
 end;
 
 function TPDFDocumentInfo.GetString(aIndex: Integer): String;
@@ -3666,7 +3666,7 @@ Var
   Key : RawByteString;
   Obj : TPDFObject;
   Val : TPDFValue absolute Obj;
-  
+
 begin
   Result:='';
   Key:=GetKeyName(aindex);
@@ -3692,7 +3692,7 @@ begin
     begin
     Obj:=FSource.FindValue(Key);
     if Obj is TPDFValue then
-      Result:=Val.AsDateTime; 
+      Result:=Val.AsDateTime;
     end;
 end;
 

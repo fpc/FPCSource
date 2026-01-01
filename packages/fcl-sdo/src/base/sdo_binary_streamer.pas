@@ -53,7 +53,7 @@ Type
   TAnsiCharacter = AnsiChar;
   TWideCharacter = WideChar;
   TByteDynArray = {$IFDEF FPC_DOTTEDUNITS}Sdo.BaseTypes.{$ELSE}sdo_types.{$ENDIF}TByteDynArray;
-  
+
   TFloat_Single_4    = Single;
   TFloat_Double_8    = Double;
   TFloat_Extended_10 = Extended;
@@ -63,16 +63,16 @@ Type
     ['{CA767A0E-7660-4765-9959-6960A69B1660}']
     procedure WriteInt8U(Const AData : TInt8U);
     procedure WriteInt8S(Const AData : TInt8S);
-    
+
     procedure WriteInt16U(Const AData : TInt16U);
     procedure WriteInt16S(Const AData : TInt16S);
 
     procedure WriteInt32U(Const AData : TInt32U);
     procedure WriteInt32S(Const AData : TInt32S);
-    
+
     procedure WriteInt64U(Const AData : TInt64U);
     procedure WriteInt64S(Const AData : TInt64S);
-    
+
     procedure WriteBool(Const AData : TBoolData);
     procedure WriteAnsiChar(const AData : TAnsiCharacter);
     procedure WriteWideChar(const AData : TWideCharacter);
@@ -83,7 +83,7 @@ Type
     procedure WriteUnicodeStr(Const AData : TUnicodeStringData);
 { $ENDIF USE_UNICODE}
     procedure WriteBinary(const AData : TByteDynArray);
-    
+
     procedure WriteSingle(Const AData : TFloat_Single_4);
     procedure WriteDouble(Const AData : TFloat_Double_8);
     procedure WriteExtended(Const AData : TFloat_Extended_10);
@@ -95,7 +95,7 @@ Type
     function IsAtEof():Boolean;
     function ReadInt8U():TInt8U;
     function ReadInt8S():TInt8S;
-    
+
     function ReadInt16U():TInt16U;
     function ReadInt16S():TInt16S;
 
@@ -104,7 +104,7 @@ Type
 
     function ReadInt64U():TInt64U;
     function ReadInt64S():TInt64S;
-    
+
     function ReadBool():TBoolData;
     function ReadAnsiChar() : TAnsiCharacter;
     function ReadWideChar() : TWideCharacter;
@@ -124,13 +124,13 @@ Type
 
   function CreateBinaryReader(AStream : TStream):IDataStoreReader;
   function CreateBinaryWriter(AStream : TStream):IDataStore;
-  
+
 {These routines transform their argument to "Big Endian" alignment}
   procedure ReverseBytes(var AData; const ALength : Integer);{$IFDEF USE_INLINE}{$IFDEF ENDIAN_BIG}inline;{$ENDIF}{$ENDIF}
   function Reverse_16(const AValue:Word):Word;{$IFDEF USE_INLINE}inline;{$ENDIF}
   function Reverse_32(const AValue:DWord):DWord;{$IFDEF USE_INLINE}inline;{$ENDIF}
   function Reverse_64(const AValue:QWord):QWord;{$IFDEF USE_INLINE}inline;{$ENDIF}
-  
+
   function Reverse_Single(const AValue:Single):Single;{$IFDEF USE_INLINE}inline;{$ENDIF}
   function Reverse_Double(const AValue:Double):Double;{$IFDEF USE_INLINE}inline;{$ENDIF}
   function Reverse_Extended(const AValue:Extended):Extended;{$IFDEF USE_INLINE}inline;{$ENDIF}
@@ -230,7 +230,7 @@ Type
   Protected
     procedure WriteInt8U(Const AData : TInt8U);
     procedure WriteInt8S(Const AData : TInt8S);
-    
+
     procedure WriteInt16U(Const AData : TInt16U);
     procedure WriteInt16S(Const AData : TInt16S);
 
@@ -239,7 +239,7 @@ Type
 
     procedure WriteInt64U(Const AData : TInt64U);
     procedure WriteInt64S(Const AData : TInt64S);
-    
+
     procedure WriteBool(Const AData : TBoolData);
     procedure WriteAnsiChar(const AData : TAnsiCharacter);
     procedure WriteWideChar(const AData : TWideCharacter);
@@ -250,7 +250,7 @@ Type
     procedure WriteUnicodeStr(Const AData : TUnicodeStringData);
 { $ENDIF USE_UNICODE}
     procedure WriteBinary(const AData : TByteDynArray);
-    
+
     procedure WriteSingle(Const AData : TFloat_Single_4);
     procedure WriteDouble(Const AData : TFloat_Double_8);
     procedure WriteExtended(Const AData : TFloat_Extended_10);
@@ -268,16 +268,16 @@ Type
     function IsAtEof():Boolean;
     function ReadInt8U():TInt8U;
     function ReadInt8S():TInt8S;
-    
+
     function ReadInt16U():TInt16U;
     function ReadInt16S():TInt16S;
 
     function ReadInt32U():TInt32U;
     function ReadInt32S():TInt32S;
-    
+
     function ReadInt64U():TInt64U;
     function ReadInt64S():TInt64S;
-    
+
     function ReadBool():TBoolData;
     function ReadAnsiChar() : TAnsiCharacter;
     function ReadWideChar() : TWideCharacter;

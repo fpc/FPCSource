@@ -91,7 +91,7 @@ var DataSize : longword;
     RawData : TResourceDataStream;
 begin
   Result:=Nil;
-  if aStream.Read(DataSize,4)<>4 then 
+  if aStream.Read(DataSize,4)<>4 then
     exit;
   try
     aStream.ReadBuffer(HeaderSize,4);

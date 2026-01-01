@@ -395,7 +395,7 @@ constructor TChmSearchWriter.Create ( AStream: TStream;
 begin
   FStream := AStream;
   FWordList := AWordList;
-  FActiveLeafNode:=NIL; 
+  FActiveLeafNode:=NIL;
 end;
 
 destructor TChmSearchWriter.Destroy;

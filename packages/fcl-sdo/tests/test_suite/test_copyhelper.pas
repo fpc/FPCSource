@@ -65,7 +65,7 @@ const
   CURRENCY_CONT_ARRAY : array[0..3] of TSDOCurrency = (
     123456789.3258, 0, -1478369.9876, -5869.9831
   );
-  
+
   DOUBLE_CONT_ARRAY : array[0..3] of TSDODouble = (
     123456789.3258942121, 0, -147258369.987654321, -58369.98321
   );
@@ -160,7 +160,7 @@ var
 {$IFDEF HAS_SDO_CURRENCY}
       locFactory.addProperty(locObj,s_currency_prop,sdo_namespace,SDOTypeDefaultTypeNames[CurrencyType], []);
         locFactory.addProperty(locObj,s_currency_propList,sdo_namespace,SDOTypeDefaultTypeNames[CurrencyType],[pfIsMany]);
-{$ENDIF HAS_SDO_CURRENCY} 
+{$ENDIF HAS_SDO_CURRENCY}
       locFactory.addProperty(locObj,s_date_prop,sdo_namespace,SDOTypeDefaultTypeNames[DateTimeType], []);
         locFactory.addProperty(locObj,s_date_propList,sdo_namespace,SDOTypeDefaultTypeNames[DateTimeType],[pfIsMany]);
 {$IFDEF HAS_SDO_DOUBLE}
@@ -180,7 +180,7 @@ var
 {$IFDEF HAS_SDO_SHORT}
       locFactory.addProperty(locObj,s_short_prop,sdo_namespace,SDOTypeDefaultTypeNames[ShortType], []);
         locFactory.addProperty(locObj,s_short_propList,sdo_namespace,SDOTypeDefaultTypeNames[ShortType],[pfIsMany]);
-{$ENDIF HAS_SDO_SHORT}        
+{$ENDIF HAS_SDO_SHORT}
       locFactory.addProperty(locObj,s_string_prop,sdo_namespace,SDOTypeDefaultTypeNames[StringType], []);
         locFactory.addProperty(locObj,s_string_propList,sdo_namespace,SDOTypeDefaultTypeNames[StringType],[pfIsMany]);
   end;
@@ -206,7 +206,7 @@ var
 {$IFDEF HAS_SDO_CURRENCY}
       locFactory.addProperty(locObj,s_currency_prop,sdo_namespace,SDOTypeDefaultTypeNames[CurrencyType], []);
         locFactory.addProperty(locObj,s_currency_propList,sdo_namespace,SDOTypeDefaultTypeNames[CurrencyType],[pfIsMany]);
-{$ENDIF HAS_SDO_CURRENCY} 
+{$ENDIF HAS_SDO_CURRENCY}
       locFactory.addProperty(locObj,s_date_prop,sdo_namespace,SDOTypeDefaultTypeNames[DateTimeType], []);
         locFactory.addProperty(locObj,s_date_propList,sdo_namespace,SDOTypeDefaultTypeNames[DateTimeType],[pfIsMany]);
 {$IFDEF HAS_SDO_DOUBLE}
@@ -266,7 +266,7 @@ var
 {$IFDEF HAS_SDO_FLOAT}
       locFactory.addProperty(locObj,s_float_prop,sdo_namespace,SDOTypeDefaultTypeNames[FloatType], []);
         locFactory.addProperty(locObj,s_float_propList,sdo_namespace,SDOTypeDefaultTypeNames[FloatType],[pfIsMany]);
-{$ENDIF HAS_SDO_FLOAT}        
+{$ENDIF HAS_SDO_FLOAT}
       locFactory.addProperty(locObj,s_integer_prop,sdo_namespace,SDOTypeDefaultTypeNames[IntegerType], []);
         locFactory.addProperty(locObj,s_integer_propList,sdo_namespace,SDOTypeDefaultTypeNames[IntegerType],[pfIsMany]);
 {$IFDEF HAS_SDO_LONG}
@@ -276,7 +276,7 @@ var
 {$IFDEF HAS_SDO_SHORT}
       locFactory.addProperty(locObj,s_short_prop,sdo_namespace,SDOTypeDefaultTypeNames[ShortType], []);
         locFactory.addProperty(locObj,s_short_propList,sdo_namespace,SDOTypeDefaultTypeNames[ShortType],[pfIsMany]);
-{$ENDIF HAS_SDO_SHORT}        
+{$ENDIF HAS_SDO_SHORT}
       locFactory.addProperty(locObj,s_string_prop,sdo_namespace,SDOTypeDefaultTypeNames[StringType], []);
         locFactory.addProperty(locObj,s_string_propList,sdo_namespace,SDOTypeDefaultTypeNames[StringType],[pfIsMany]);
   end;
@@ -313,7 +313,7 @@ var
     for k := 0 to High(v) do
       v[k] := k mod High(TSDOByte);
     VAL_1_BYTES := v;
-    v := nil;    
+    v := nil;
 
     VAL_2_BYTES := nil;
 
@@ -321,7 +321,7 @@ var
     for k := 0 to High(v) do
       v[k] := ( ( 3 * k ) + 1 ) mod High(TSDOByte);
     VAL_3_BYTES := v;
-    v := nil;  
+    v := nil;
 
     SetLength(v,30);
     for k := 0 to High(v) do
@@ -468,7 +468,7 @@ var
     for k := 0 to High(v) do
       v[k] := k mod High(TSDOByte);
     VAL_1_BYTES := v;
-    v := nil;    
+    v := nil;
 
     VAL_2_BYTES := nil;
 
@@ -476,7 +476,7 @@ var
     for k := 0 to High(v) do
       v[k] := ( ( 3 * k ) + 1 ) mod High(TSDOByte);
     VAL_3_BYTES := v;
-    v := nil;  
+    v := nil;
 
     SetLength(v,35);
     for k := 0 to High(v) do
@@ -570,7 +570,7 @@ begin
     ls.append(VAL_2);
     ls.append(VAL_3);
     ls.append(VAL_4);
-        
+
   ls := Result.getList(s_integer_propList);
     ls.append(12);
     ls.append(10);
@@ -646,8 +646,8 @@ begin
     ls.append(VAL_1);
     ls.append(VAL_2);
     ls.append(VAL_3);
-    ls.append(VAL_4);    
-        
+    ls.append(VAL_4);
+
   ls := Result.getList(s_integer_propList);
     ls.append(12);
     ls.append(10);

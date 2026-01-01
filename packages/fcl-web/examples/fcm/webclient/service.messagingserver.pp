@@ -24,11 +24,11 @@ interface
 uses js, fprpcclient;
 
 Type
-  
+
   { --------------------------------------------------------------------
     TMessagingService
     --------------------------------------------------------------------}
-  
+
   TMessagingService = Class(TRPCCustomService)
   Protected
     Function RPCClassName : string; override;
@@ -36,62 +36,62 @@ Type
     Function SendNotification (Message : TJSObject; aOnSuccess : TJSValueResultHandler = Nil; aOnFailure : TRPCFailureCallBack = Nil) : NativeInt;
     Function RegisterSubscription (Token : String; aOnSuccess : TJSValueResultHandler = Nil; aOnFailure : TRPCFailureCallBack = Nil) : NativeInt;
   end;
-  
+
   implementation
-  
-  
+
+
   { --------------------------------------------------------------------
     TMessagingService
     --------------------------------------------------------------------}
-  
-  
+
+
   Function TMessagingService.RPCClassName : string;
-  
+
   begin
     Result:='Messaging';
   end;
-  
-  
+
+
   Function TMessagingService.SendNotification (Message : TJSObject; aOnSuccess : TJSValueResultHandler = Nil; aOnFailure : TRPCFailureCallBack = Nil) : NativeInt;
-  
+
     Procedure DoSuccess(Sender : TObject; const aResult : JSValue);
-    
+
     begin
       If Assigned(aOnSuccess) then
         aOnSuccess(JSValue(aResult))
     end;
-  
+
   Var
     _Params : JSValue;
-  
+
   begin
     StartParams;
     AddParam('Message',Message);
     _Params:=EndParams;
     Result:=ExecuteRequest(RPCClassName,'SendNotification',_Params,@DoSuccess,aOnFailure);
   end;
-  
-  
+
+
   Function TMessagingService.RegisterSubscription (Token : String; aOnSuccess : TJSValueResultHandler = Nil; aOnFailure : TRPCFailureCallBack = Nil) : NativeInt;
-  
+
     Procedure DoSuccess(Sender : TObject; const aResult : JSValue);
-    
+
     begin
       If Assigned(aOnSuccess) then
         aOnSuccess(JSValue(aResult))
     end;
-  
+
   Var
     _Params : JSValue;
-  
+
   begin
     StartParams;
     AddParam('Token',Token);
     _Params:=EndParams;
     Result:=ExecuteRequest(RPCClassName,'RegisterSubscription',_Params,@DoSuccess,aOnFailure);
   end;
-  
-  
-  
-  
+
+
+
+
   end.

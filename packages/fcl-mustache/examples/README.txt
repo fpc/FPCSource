@@ -11,7 +11,7 @@ mustache example program:
 
 Can be used to load a template and data, and process the result.
 Output to standard output or file.
-The template and JSON value can be loaded from file (using @filename), 
+The template and JSON value can be loaded from file (using @filename),
 or their value can be specified directly on the command-line.
 
 Example usage:

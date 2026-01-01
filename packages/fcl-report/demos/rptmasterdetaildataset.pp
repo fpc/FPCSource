@@ -193,7 +193,7 @@ begin
   BudgetDataHeader.Frame.BackgroundColor := clDataHeaderFooter;
   {$endif}
   BudgetDataHeader.Data:=ReportBudgetData;
-   
+
   Memo := TFPReportMemo.Create(BudgetDataHeader);
   Memo.Layout.Left := 15;
   Memo.Layout.Top := 3;

@@ -56,7 +56,7 @@ begin
     result := UTF8Encode(Copy(s, 2, Length(s)-2))
   else
     result := UTF8Encode(s);
-    
+
   result := StringReplace(result, '\"', '"', [rfReplaceAll]);
   result := StringReplace(result, '''', '''''', [rfreplaceAll]);
   result := StringReplace(result, '\n', '''#10''', [rfReplaceAll]);
@@ -126,7 +126,7 @@ begin
     r := e['actual'] + ' < ' + ReplaceQuotes(e['expected'])
   else if e.TagName = 'greater' then
     r := e['actual'] + ' > ' + ReplaceQuotes(e['expected'])
-    
+
   // casting to Pointer works for both objects and strings
   else if e.TagName = 'isNull' then
     r := 'Pointer(' + e['obj'] + ') = nil'
@@ -238,7 +238,7 @@ function fixname(e: TDOMElement): string;
 begin
   if e.HasAttribute('_fixup_') then
     result := e['_fixup_']
-  else  
+  else
     result := e.TagName;
 end;
 
@@ -343,15 +343,15 @@ begin
   if assigned(apinode) then
   begin
     // handle most of DOM API in consistent way
-    
+
     if apinode.HasAttribute('rename') then   // handles reserved words, e.g 'type' -> 'htmlType'
       node['_fixup_'] := apinode['rename'];  // use this trick because DOM node cannot be renamed (yet)
-    
+
     arglist := apinode.GetElementsByTagName('arg');
 
     if apinode.HasAttribute('objtype') then
       CastTo(node, apinode['objtype']);
-      
+
     if apinode['type'] = 'prop' then
       rslt.Add(indent + prop_call(node))
     else if apinode['type'] = 'method' then
@@ -398,9 +398,9 @@ begin
     else
       rslt.Add(indent + 'CheckFeature(' + ReplaceQuotes(node['feature']) + ');')
   end
-  
+
   // service (non-DOM) statements follow
-  
+
   else if s = 'append' then
     rslt.Add(indent + '_append(' + node['collection'] + ', ' + ReplaceQuotes(node['item']) + ');')
   else if s = 'assign' then
@@ -410,7 +410,7 @@ begin
       rslt.Add(indent + '_assign(' + node['var'] + ', ' + node['value'] + ');')
     else // emit an assignment operator. Force type for the case where they assign Document to Element.
       rslt.Add(indent + node['var'] + ' := ' + TypeOfVar(node['var']) + '(' + ReplaceQuotes(node['value']) + ');');
-  end  
+  end
   else if s = 'increment' then
     rslt.Add(indent + 'Inc(' + node['var'] + ', ' + node['value'] + ');')
   else if s = 'decrement' then
@@ -580,7 +580,7 @@ begin
         if cond <> '' then cond := cond + ', ';
         cond := cond + TDOMElement(List[I])['code'];
       end;
-      
+
       rslt.Add(indent+'except');
       rslt.Add(indent+'  on E: EDOMError do');
       rslt.Add(indent+'    if not (E.code in ['+cond+']) then raise;');
@@ -765,7 +765,7 @@ begin
   VarTypes.Free;
   rslt.add('end;');
   rslt.Add('');
-  
+
   if FailFlag then
   begin
     if not forced then
@@ -905,7 +905,7 @@ begin
   impl.Add('  result := ''' + BaseURI + ''';');
   impl.Add('end;');
   impl.Add('');
-  
+
   testlist := suite.GetElementsByTagName('suite.member');
   testcount := testlist.Count;
   writeln;
@@ -973,7 +973,7 @@ var
 begin
   writeln('testgen - w3.org DOM test suite to Object Pascal converter');
   writeln('Copyright (c) 2008 by Sergei Gorelkin');
-  
+
   if ParamCount < 2 then
   begin
     writeln;

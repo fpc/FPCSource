@@ -71,7 +71,7 @@ type
   function IsStrEmpty(const AStr : UnicodeString) : Boolean; overload; {$IFDEF USE_INLINE}inline;{$ENDIF}
   function GetNextToken(var AStr : UnicodeString; const ASeparator : AnsiChar) : UnicodeString;overload; {$IFDEF USE_INLINE}inline;{$ENDIF}
   function GetNextToken(var AStr : UnicodeString; const ASeparator : UnicodeChar) : UnicodeString;overload;
-{$ENDIF HAS_UNICODE}    
+{$ENDIF HAS_UNICODE}
   function StringToVarBytes(const AValue : string) : TSDOBytes;
   function StreamToVarBytes(const AValue : TStream) : TSDOBytes; overload;
   function StreamToVarBytes(const AValue : TMemoryStream) : TSDOBytes; overload;
@@ -134,7 +134,7 @@ end;
 function IsStrEmpty(const AStr : UnicodeString) : Boolean;
 begin
   Result := ( Length(Trim(AStr)) = 0 )
-end; 
+end;
 
 function GetNextToken(var AStr : UnicodeString; const ASeparator : UnicodeChar) : UnicodeString;
 var
@@ -154,14 +154,14 @@ begin
     AStr := ''
   else
     Delete(AStr, 1, i);
-end;           
+end;
 
 function GetNextToken(var AStr : UnicodeString; const ASeparator : AnsiChar) : UnicodeString;
 begin
   Result := GetNextToken(AStr,UnicodeChar(ASeparator));
 end;
 
-{$ENDIF}  
+{$ENDIF}
 
 function StringToVarBytes(const AValue : string) : TSDOBytes;
 var

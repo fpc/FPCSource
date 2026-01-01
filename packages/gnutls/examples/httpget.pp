@@ -102,9 +102,9 @@ begin
     writeln(stderr, 'error: gnutls_server_name_set: ', gnutls_strerror(ret));
     halt(1);
     end;
-  
+
   gnutls_session_set_verify_cert(session,PAnsiChar(A),0);
-  
+
   Repeat
     ret:=gnutls_handshake(session);
     if Ret<>GNUTLS_E_SUCCESS then
@@ -120,7 +120,7 @@ begin
     writeln(stderr, '*** Handshake failed');
     gnutls_perror(ret);
     end
-  else  
+  else
     begin
     desc := gnutls_session_get_desc(session);
     writeln(StdErr,'- Session info: ', desc);

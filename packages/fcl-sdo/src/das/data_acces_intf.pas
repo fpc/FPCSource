@@ -38,7 +38,7 @@ const
   sDB_ALIAS       = 'DBALIAS';
   sSERVER_ADDRESS = 'SERVER_ADDRESS';
   sSERVER_INFO    = 'SERVER_INFO';
-    
+
 type
 
   EDataAccessException = class(Exception);
@@ -140,5 +140,5 @@ initialization
 
 finalization
   FreeAndNil(FFactoryList);
-  
+
 end.

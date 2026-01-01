@@ -45,7 +45,7 @@ type
     property SectionType : integer read fSectionType;
     property SectionName : string read fSectionName;
   end;
-  
+
   { TElfSubWriter }
 
 (*
@@ -172,7 +172,7 @@ begin
   hdr.count:=aResources.Count;
   hdr.usedhandles:=0;
   hdr.handles:=0;
-  
+
   fSymbolTable.AddSection(RSRCSECT_IDX);
   fSymbolTable.AddSection(HANDLESECT_IDX);
   case fRelocInfo.SectionType of

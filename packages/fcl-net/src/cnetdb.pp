@@ -73,7 +73,7 @@ uses
 uses
   BaseUnix, Sockets,initc;
 {$ENDIF FPC_DOTTEDUNITS}
-  
+
 const
   LIB_C = clib; // use initc's idea of what libc is called. In the future overrides might be necessary here.
                 // (older BSD convention is to have a separate libresolve that contains these functions)
@@ -187,7 +187,7 @@ const
 
 const
    SCOPE_DELIMITER = '%';
-   
+
 //#define	h_addr	h_addr_list[0]	/* address, for backward compatibility */
 
 type
@@ -245,7 +245,7 @@ type
 {$endif}
 {$if not defined(FIRST_CANONNAME_THEN_ADDR) and not defined(FIRST_ADDR_THEN_CANONNAME)}
 {$error fatal 'Please consult the netdb.h file for your system to determine the order of ai_addr and ai_canonname'}
-{$endif} 
+{$endif}
 
   PAddrInfo = ^addrinfo;
   addrinfo = record
@@ -266,7 +266,7 @@ type
   end;
   TAddrInfo = addrinfo;
   PPAddrInfo = ^PAddrInfo;
-   
+
 
 procedure endhostent; cdecl; external LIB_C name 'endhostent';
 procedure endnetent; cdecl; external LIB_C name 'endnetent';

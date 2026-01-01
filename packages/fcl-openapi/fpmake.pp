@@ -38,7 +38,7 @@ begin
 
     T:=P.Targets.AddUnit('fpopenapi.consts.pp');
 //    T.ResourceStrings:=true;
-    
+
     T:=P.Targets.AddUnit('fpopenapi.types.pp');
     with T.Dependencies do
       AddUnit('fpopenapi.consts');
@@ -90,7 +90,7 @@ begin
      end;
 
 
-      
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

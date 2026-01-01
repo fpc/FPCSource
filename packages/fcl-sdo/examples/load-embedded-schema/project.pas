@@ -24,7 +24,7 @@ const
   begin
     Result := StringOfChar(' ',3*AIndent);
   end;
-  
+
   function ToString(const AObj : ISDODataObject; const AIndent : Integer) : string;overload;forward;
   function ToString(const AObj : ISDODataObjectList; const AItemType : ISDOType; const AIndent : Integer) : string;overload;
   var
@@ -41,8 +41,8 @@ const
         end;
       end else begin
         while crs.MoveNext() do begin
-          Result := Result + sLinebreak + IndentStr(AIndent+1) + '(' +// sLineBreak + 
-                      Copy(IndentStr(1),2,1024) + TrimLeft(ToSTring(AObj.getDataObject(),AIndent+1)) + sLineBreak + 
+          Result := Result + sLinebreak + IndentStr(AIndent+1) + '(' +// sLineBreak +
+                      Copy(IndentStr(1),2,1024) + TrimLeft(ToSTring(AObj.getDataObject(),AIndent+1)) + sLineBreak +
                     IndentStr(AIndent+1) + ')';
         end;
         Result := Copy(IndentStr(1),2,1024) + TrimLeft(Result);
@@ -98,9 +98,9 @@ const
 
   procedure GenerateSchemaFileFromFactory(AFactory : ISDODataFactory; AFileName : string);
   var
-    xsdHelper : IXSDHelper;     
+    xsdHelper : IXSDHelper;
   begin
-    xsdHelper := TXSDHelper.Create(AFactory); 
+    xsdHelper := TXSDHelper.Create(AFactory);
     xsdHelper.Generate(AFactory.getTypes(),s_uri,AFileName);
   end;
 
@@ -113,15 +113,15 @@ var
 begin
   fact := TSDODataFactory.Create();
   locDataFileName := ExpandFileName('.' + PathDelim + 'data-with-schema.xml');
-  
+
   //Load data from the file
   serializer := TSDOSerializer.Create(fact,TSDOSerializerStreamXML.Create());
   projList := serializer.load(locDataFileName);
-  
+
   locSchemaFileName := ExpandFileName('.' + PathDelim + 'schema.xsd');
   GenerateSchemaFileFromFactory(fact,locSchemaFileName);
   WriteLn('Schema file generated !');
-  
+
   Writeln;
   WriteLn('Data :');
   WriteLn(ToString(projList,0));

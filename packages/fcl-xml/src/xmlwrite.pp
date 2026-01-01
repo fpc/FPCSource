@@ -259,7 +259,7 @@ begin
     end
     else
       Sender.wrtChr(']');
-  end  
+  end
   else
     raise EConvertError.Create('Illegal character');
 end;

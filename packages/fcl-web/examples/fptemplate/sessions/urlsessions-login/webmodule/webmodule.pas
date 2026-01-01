@@ -43,10 +43,10 @@ type
       TagParams: TStringList; Out ReplaceText: String);
   public
     { public declarations }
-  end; 
+  end;
 
 var
-  FPWebModule1: TFPWebModule1; 
+  FPWebModule1: TFPWebModule1;
 
 implementation
 

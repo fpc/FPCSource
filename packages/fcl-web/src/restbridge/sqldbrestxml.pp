@@ -104,7 +104,7 @@ end;
 
 Class Function TXMLOutputStreamer.FileExtension: String;
 begin
-  Result:='.xml';  
+  Result:='.xml';
 end;
 
 

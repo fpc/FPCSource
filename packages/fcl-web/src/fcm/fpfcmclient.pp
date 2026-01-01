@@ -22,7 +22,7 @@ unit fpfcmclient;
 
 interface
 
-uses    
+uses
 {$IFDEF FPC_DOTTEDUNITS}
   System.Classes, System.SysUtils, FpJson.Data, Jwt.Types, Fcm.Types, FpWeb.Client, System.Types;
 {$ELSE}
@@ -151,7 +151,7 @@ type
 implementation
 
 {$IFDEF FPC_DOTTEDUNITS}
-uses System.DateUtils, FpWeb.Http.Protocol, Fcm.Strings, Jwt.Jwa.Rsa, System.Hash.Pem; 
+uses System.DateUtils, FpWeb.Http.Protocol, Fcm.Strings, Jwt.Jwa.Rsa, System.Hash.Pem;
 {$ELSE}
 uses dateutils, httpprotocol, fpfcmstrings, fpjwarsa, fppem;
 {$ENDIF}

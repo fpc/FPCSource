@@ -171,7 +171,7 @@ Resourcestring
 { ---------------------------------------------------------------------
     Auxiliary Functions
   ---------------------------------------------------------------------}
-  
+
 function StartsWith(S1, S2: AnsiString): Boolean;
 
 var
@@ -254,10 +254,10 @@ end;
 
 procedure TCustomSQLScript.SetDirectives(value: TStrings);
 
-var 
+var
   i : Integer;
   S : AnsiString;
-  
+
 begin
   FDirectives.Clear();
   if (Value<>Nil) then
@@ -265,7 +265,7 @@ begin
     for i:=0 to value.Count - 1 do
       begin
       S:=UpperCase(ConvertWhiteSpace(value[i]));
-      if Length(S)>0 then 
+      if Length(S)>0 then
         FDirectives.Add(S);
       end;
     end;
@@ -374,9 +374,9 @@ end;
 
 procedure TCustomSQLScript.InternalStatement(Statement: TStrings;  var StopExecution: Boolean);
 
-var 
+var
   cont : boolean;
-  
+
 begin
   try
     ExecuteStatement(Statement, StopExecution);
@@ -394,10 +394,10 @@ end;
 
 procedure TCustomSQLScript.InternalDirective(Directive, Argument: String;  var StopExecution: Boolean);
 
-var 
+var
   cont : boolean;
   l : TStrings;
-  
+
 begin
   try
     ExecuteDirective(Directive, Argument, StopExecution);
@@ -425,10 +425,10 @@ end;
 
 procedure TCustomSQLScript.InternalCommit(CommitRetaining: boolean=true);
 
-var 
+var
   cont : boolean;
   l : TStrings;
-  
+
 begin
   try
     ExecuteCommit(CommitRetaining);
@@ -620,7 +620,7 @@ begin
     Sorted:=True;
     Duplicates:=dupIgnore;
     end;
-  FDefines:=L;  
+  FDefines:=L;
   FCommentsInSQL:=True;
   FTerminator:=';';
   L:=TStringList.Create();
@@ -662,7 +662,7 @@ end;
 procedure TCustomSQLScript.DefaultDirectives;
 
   Procedure Add(const S : String);
-  
+
   begin
     if FDirectives.IndexOf(S)=-1 then
       FDirectives.Add(S);

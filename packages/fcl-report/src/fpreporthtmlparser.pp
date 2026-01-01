@@ -134,7 +134,7 @@ uses
 {$IFDEF DEBUGLN_ON}
   // dummy, default debugging
   procedure debugproc(s: string);
-  // for custom debugging, assign this in your units 
+  // for custom debugging, assign this in your units
   var debugln: procedure(s: string) = debugproc;
 {$ENDIF}
 
@@ -184,7 +184,7 @@ implementation
 
 // default debugging, do nothing, let user do his own by assigning DebugLn var
 procedure debugproc(s: string);
-begin 
+begin
 end;
 
 { THTMLParser }
@@ -331,11 +331,11 @@ end;
 
 { default dummy "do nothing" events if events are unassigned }
 procedure THTMLParser.NilOnFoundTag(NoCaseTag, ActualTag: string);
-begin 
+begin
 end;
 
 procedure THTMLParser.NilOnFoundText(Text: string);
-begin 
+begin
 end;
 
 function THTMLParser.CurrentPos: Integer;

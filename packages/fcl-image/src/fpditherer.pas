@@ -262,7 +262,7 @@ begin
   end;
 
   { with a sorted palette, proceed by binary search. this is more efficient with large images or large palettes }
-  if FSorted then 
+  if FSorted then
   begin
     top:=0;
     bottom:=FPalette.Count-1;

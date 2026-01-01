@@ -24,7 +24,7 @@ interface
 uses
 {$IFDEF FPC_DOTTEDUNITS}
   System.Classes, FpImage;
-{$ELSE}  
+{$ELSE}
   Classes, FPimage;
 {$ENDIF}
 

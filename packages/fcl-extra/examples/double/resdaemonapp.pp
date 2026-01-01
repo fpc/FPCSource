@@ -21,7 +21,7 @@ implementation
 
 uses classes;
 
-Procedure TResDaemonApplication.CreateDaemonInstance(Var ADaemon : TCustomDaemon; DaemonDef : TDaemonDef); 
+Procedure TResDaemonApplication.CreateDaemonInstance(Var ADaemon : TCustomDaemon; DaemonDef : TDaemonDef);
 
 begin
   ADaemon:=DaemonDef.DaemonClass.Create(Self);

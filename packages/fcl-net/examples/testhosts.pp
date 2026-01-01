@@ -4,7 +4,7 @@ program testhosts;
 
 uses sockets,netdb;
 
-Const 
+Const
 {$ifdef unix}
   hosts = '/etc/hosts';
 {$else}
@@ -13,8 +13,8 @@ Const
 {$else}
   hosts = 'hosts';  { Fallback !! }
 {$endif}
-{$endif}  
-  
+{$endif}
+
 var
   L,P : PHostListEntry;
   I : Integer;
@@ -24,7 +24,7 @@ begin
   Try
     P:=L;
     I:=0;
-    While (P<>Nil) do 
+    While (P<>Nil) do
       begin
       With P^ do
         begin
@@ -34,11 +34,11 @@ begin
         If (P^.entry.Aliases<>'') then
           Writeln(' Aliases : ',P^.entry.Aliases)
         else
-          Writeln;   
-        P:=P^.next;  
+          Writeln;
+        P:=P^.next;
         end;
       end
   finally
-    FreeHostslist(L);    
-  end;   
+    FreeHostslist(L);
+  end;
 end.  

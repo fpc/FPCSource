@@ -325,7 +325,7 @@ function CompareProperties(Item1, Item2: Pointer): Integer;
 var
   lParam1 : TPascalPropertyData absolute Item1;
   lParam2 : TPascalPropertyData absolute Item2;
-  
+
 begin
   Result:=CompareText(lParam1.PascalName,lParam2.PascalName);
 end;

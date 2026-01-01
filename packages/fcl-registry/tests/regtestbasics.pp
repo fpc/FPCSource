@@ -64,7 +64,7 @@ begin
   AssertFalse(Registry.KeyExists('FPC1234'));
 {$ifdef windows}
   AssertTrue(Registry.KeyExists('SOFTWARE'));
-{$endif}  
+{$endif}
 
   Registry.Free;
 end;
@@ -97,7 +97,7 @@ var
   s,t: string;
 begin
   DeleteUserXmlFile;
-  
+
   r := TRegistry.Create;
   try
     r.RootKey := HKEY_CURRENT_USER;
@@ -189,13 +189,13 @@ end;
 
 procedure TTestBasics.TestInt64;
 
-  
+
 
 Var
   Def,I64 : Int64;
-    
+
 begin
-  def:=MaxInt*1024; 
+  def:=MaxInt*1024;
   With TRegistry.Create do
     try
       RootKey:=HKEY_CURRENT_USER;
@@ -205,7 +205,7 @@ begin
       AssertEquals('Value written and read',Def,I64);
     finally
       Free;
-    end;  
+    end;
 end;
 
 procedure TTestBasics.TestDeleteSubKey;

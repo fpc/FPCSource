@@ -39,7 +39,7 @@ type
     function initWithReferenceToData (data: NSData): id; message 'initWithReferenceToData:';
     function initWithReferenceToData_name_MIMEType (data: NSData; name: NSString; MIMEType: NSString): id; message 'initWithReferenceToData:name:MIMEType:';
     function dataRef: Handle; message 'dataRef';
-    function dataRefData: NSData; message 'dataRefData'; 
+    function dataRefData: NSData; message 'dataRefData';
     function dataRefType: NSString; message 'dataRefType';
     function referenceFile: NSString; message 'referenceFile';
     function referenceURL: NSURL; message 'referenceURL';

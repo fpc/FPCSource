@@ -1021,7 +1021,7 @@ begin
   Result:=aCall.Children[0];
   AssertNotNull('Have call argument',Result);
 end;
- 
+
 initialization
   RegisterTests([TTestCSSParser,TTestCSSFilesParser]);
 end.

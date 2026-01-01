@@ -670,16 +670,16 @@ begin
             begin
             aOctal := 0;
 
-            for i := 1 to 3 do begin 
+            for i := 1 to 3 do begin
               aOctal := aOctal * 8 + Ord(aChar2) - Ord('0');
 
-              if aOctal >= 256 then 
+              if aOctal >= 256 then
                 // It is more like invalid octal string rather than invalid octal character
                 DoError(senInvalidOctalCharacter, SErrInvalidOctalCharacter, [ aChar2 ]);
 
-              if FSource.IsEOF then 
+              if FSource.IsEOF then
                 DoError(senEOFWhileScanningString,SErrEOFWhileScanningString);
-              
+
               aChar2 := Char(FSource.GetByte());
 
               if not (aChar2 in ['0'..'7']) then

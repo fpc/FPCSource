@@ -110,7 +110,7 @@ type
     property Underline : boolean index 7 read GetFlags write SetFlags;
     property StrikeThrough : boolean index 8 read GetFlags write SetFlags;
     property Orientation: Integer read GetOrientation write SetOrientation default 0;
-        
+
   end;
   TFPCustomFontClass = class of TFPCustomFont;
 
@@ -160,7 +160,7 @@ type
     property JoinStyle : TFPPenJoinStyle read FJoinStyle write SetJoinStyle;
   end;
   TFPCustomPenClass = class of TFPCustomPen;
-  
+
   TFPBrushStyle = (bsSolid, bsClear, bsHorizontal, bsVertical, bsFDiagonal,
                    bsBDiagonal, bsCross, bsDiagCross, bsImage, bsPattern);
   TBrushPattern = array[0..PatternBitCount-1] of TPenPattern;
@@ -298,10 +298,10 @@ type
     procedure DoGetTextSize (text:ansistring; var w,h:integer); virtual; abstract;
     function  DoGetTextHeight (text:ansistring) : integer; virtual; abstract;
     function  DoGetTextWidth (text:ansistring) : integer; virtual; abstract;
-    procedure DoTextOut (x,y:integer;text:unicodestring); virtual; 
-    procedure DoGetTextSize (text:unicodestring; var w,h:integer); virtual; 
-    function  DoGetTextHeight (text:unicodestring) : integer; virtual; 
-    function  DoGetTextWidth (text:unicodestring) : integer; virtual; 
+    procedure DoTextOut (x,y:integer;text:unicodestring); virtual;
+    procedure DoGetTextSize (text:unicodestring; var w,h:integer); virtual;
+    function  DoGetTextHeight (text:unicodestring) : integer; virtual;
+    function  DoGetTextWidth (text:unicodestring) : integer; virtual;
     procedure DoRectangle (Const Bounds:TRect); virtual; abstract;
     procedure DoRectangleFill (Const Bounds:TRect); virtual; abstract;
     procedure DoRectangleAndFill (Const Bounds:TRect); virtual;
@@ -360,7 +360,7 @@ type
     procedure PolyBezier(Points: PPoint; NumPts: Integer;
                          Filled: boolean = False;
                          Continuous: boolean = False);  virtual;
-    procedure PolyBezier(const Points: array of TPoint;  
+    procedure PolyBezier(const Points: array of TPoint;
                          Filled: boolean = False;
                          Continuous: boolean = False); virtual;
     procedure Rectangle (Const Bounds : TRect); virtual;
@@ -419,9 +419,9 @@ type
     function DoGetTextHeight (text:ansistring) : integer; virtual; abstract;
     function DoGetTextWidth (text:ansistring) : integer; virtual; abstract;
     procedure DoDrawText (x,y:integer; text:unicodestring); virtual;
-    procedure DoGetTextSize (text: unicodestring; var w,h:integer); virtual; 
-    function DoGetTextHeight (text: unicodestring) : integer; virtual; 
-    function DoGetTextWidth (text: unicodestring) : integer; virtual; 
+    procedure DoGetTextSize (text: unicodestring; var w,h:integer); virtual;
+    function DoGetTextHeight (text: unicodestring) : integer; virtual;
+    function DoGetTextWidth (text: unicodestring) : integer; virtual;
   end;
 
   TFPEmptyFont = class (TFPCustomFont)

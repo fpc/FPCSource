@@ -50,7 +50,7 @@ type
     procedure SkipSpaces;
     function GetIdent : ansistring;
     procedure ReadLine(aStream : TStream);
-    
+
     function CheckTextDfm(aStream : TStream) : boolean;
     function CheckBinDfm(aStream : TStream) : boolean;
   protected
@@ -126,7 +126,7 @@ const CR = #13;
 var c : AnsiChar;
 begin
   fLine:='';
-  
+
   repeat
     aStream.ReadBuffer(c,1);
     if not (c in [CR,LF,#0]) then
@@ -199,7 +199,7 @@ begin
   end
   else
     ObjectTextToBinary(aStream,aRes.RawData);
-    
+
   try
     aResources.Add(aRes);
   except

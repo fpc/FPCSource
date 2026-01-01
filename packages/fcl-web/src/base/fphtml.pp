@@ -12,7 +12,7 @@
 
  **********************************************************************}
 {$IFNDEF FPC_DOTTEDUNITS}
-unit fphtml; 
+unit fphtml;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
@@ -415,7 +415,7 @@ type
     Property OnWriteFooter;
     Property OnWriteRecord;
   end;
-  
+
   { THTMLSelectProducer }
 
   THTMLSelectProducer = class (THTMLContentProducer)
@@ -468,7 +468,7 @@ type
     property ControlName : string read FControlName write FControlName;
     property OnWriteHeader;
   end;
-  
+
   { THTMLDataModule }
   THTMLGetContentEvent = Procedure (Sender : TObject; ARequest : TRequest; HTMLPage : THTMLWriter; Var Handled : Boolean) of object;
   TCreateDocumentEvent = Procedure(Sender : TObject; var ADocument : THTMLDocument) of object;
@@ -484,7 +484,7 @@ type
   Published
     Property OnGetContent : THTMLGetContentEvent Read FOnGetContent Write FOnGetContent;
   end;
-  
+
   { THTMLContentActions }
 
   THTMLContentActions = Class(TCustomWebActions)
@@ -515,7 +515,7 @@ type
     Procedure HandleRequest(ARequest : TRequest; AResponse : TResponse); override;
     Property Document : THTMLDocument Read FDocument;
   end;
-  
+
   TFPHTMLModule=Class(TCustomHTMLModule)
   Published
     Property Actions;
@@ -530,7 +530,7 @@ type
     Property OnSessionExpired;
     Property CORS;
   end;
-  
+
   EHTMLError = Class(EHTTP);
 
 const SimpleOkButton: array[0..0] of TWebButton = ((buttontype: btok;caption: 'Ok';onclick: ''));
@@ -1177,7 +1177,7 @@ Var
   B : Boolean;
   M : TMemoryStream;
 
-  
+
 begin
   FDocument := CreateDocument;
   Try
@@ -1218,7 +1218,7 @@ end;
 
 procedure THTMLContentActions.HandleRequest(ARequest: TRequest;
   HTMLPage: THTMLWriter; var Handled: Boolean);
-  
+
 Var
   A : TCustomWebAction;
 

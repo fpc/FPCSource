@@ -3,7 +3,7 @@
     Copyright (c) 1999-2022 by Michael van Canneyt and other members of the
     Free Pascal development team
 
-    Typesafe dataset  
+    Typesafe dataset
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -841,7 +841,7 @@ begin
   Result:=True;
 end;
 
-Class Function TDDTypeSafeDatasetCodeGenerator.NeedsFieldDefs : Boolean; 
+Class Function TDDTypeSafeDatasetCodeGenerator.NeedsFieldDefs : Boolean;
 
 begin
   Result:=True;

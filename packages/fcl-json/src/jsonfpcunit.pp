@@ -25,7 +25,7 @@ interface
 uses
 {$IFDEF FPC_DOTTEDUNITS}
   System.Classes, System.SysUtils, FpJson.Data, FpcUnit.Test;
-{$ELSE}  
+{$ELSE}
   Classes, SysUtils, fpjson, fpcunit;
 {$ENDIF}
 

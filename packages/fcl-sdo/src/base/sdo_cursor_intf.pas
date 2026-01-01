@@ -48,7 +48,7 @@ type
     function Clone():ICursor;
     function GetCount() : PtrInt;
   end;
-  
+
   IObjectFilter = interface
     ['{3DFB1A26-ED2D-428A-9F62-2091A076D97B}']
     function Evaluate(const AObject : TObject) : Boolean;
@@ -90,7 +90,7 @@ type
     AInputCursor : IObjectCursor;
     AFilter      : IObjectFilter
   ) : IFilterableObjectCursor ;
-  
+
 implementation
 
 type

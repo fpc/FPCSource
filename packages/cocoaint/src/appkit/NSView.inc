@@ -361,7 +361,7 @@ type
 		procedure setAccessibilityFrame(newValue: NSRect); message 'setAccessibilityFrame:';
     procedure setAccessibilityParent(newValue: id); message 'setAccessibilityParent:';
     procedure setAccessibilityIdentifier(newValue: NSString); message 'setAccessibilityIdentifier:';
-		
+
     procedure setAccessibilityActivationPoint(newValue: NSPoint); message 'setAccessibilityActivationPoint:';
     function accessibilityActivationPoint: NSPoint; message 'accessibilityActivationPoint';
     procedure setAccessibilityAllowedValues(newValue: NSArray); message 'setAccessibilityAllowedValues:';

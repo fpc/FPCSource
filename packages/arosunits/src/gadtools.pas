@@ -482,7 +482,7 @@ initialization
   GadToolsBase := OpenLibrary('gadtools.library', 36);
 finalization
   CloseLibrary(GadToolsBase);
-end. 
+end.
 
 
 

@@ -526,7 +526,7 @@ begin
           Inc(TokenStr);
           while Upcase(TokenStr[0]) in ['0'..'9','A'..'F'] do
             Inc(TokenStr);
-          Break;  
+          Break;
           end
         else
           Error(SInvalidHexadecimalNumber);

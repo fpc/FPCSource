@@ -1466,7 +1466,7 @@ procedure THTTPHeader.SetServerPort(AValue: Word);
 begin
   SetHTTPVariable(hvServerPort,IntToStr(AValue));
 end;
-    
+
 function THTTPHeader.GetSetFieldValue(Index: Integer): String;
 
 Var
@@ -1795,7 +1795,7 @@ procedure THTTPHeader.ParseCookies;
 Var
   P : Integer;
   S,C : String;
-  
+
 begin
 {$ifdef cgidebug}  SendMethodEnter('Parsecookies');{$endif}
   FCookieFields.Clear;
@@ -2065,11 +2065,11 @@ Var
 begin
   F:=TFileStream.Create(AFileName,fmCreate);
   Try
-{$IFDEF VER3_2}  
+{$IFDEF VER3_2}
     F.WriteBuffer(FRawData[0],DataSize);
 {$ELSE}
     F.WriteBuffer(FRawData,0,DataSize);
-{$ENDIF}    
+{$ENDIF}
   finally
     F.Free;
   end;
@@ -2234,7 +2234,7 @@ end;
 { -------------------------------------------------------------------
   TRequest
   -------------------------------------------------------------------}
-  
+
 constructor TRequest.Create;
 begin
   inherited create;
@@ -2291,7 +2291,7 @@ function TRequest.GetNextPathInfo: String;
 Var
   P : String;
   i : Integer;
-  
+
 begin
   P:=PathInfo;
 {$ifdef CGIDEBUG}SendDebug(Format('Pathinfo: "%s" "%s"',[P,FReturnedPathInfo]));{$ENDIF}
@@ -2460,7 +2460,7 @@ var
 
   begin
     if aPos > aLenStr then Exit(false);
-    Result := true;    
+    Result := true;
     BoT:=aPos;
     EoT:=aPos;
     for i:=aPos to aLenStr do
@@ -2891,7 +2891,7 @@ Function TUploadedFiles.FindFile(const AName: String): TUploadedFile;
 
 Var
   I : Integer;
-  
+
 begin
   I:=IndexOfFile(AName);
   If (I=-1) then
@@ -3227,7 +3227,7 @@ end;
 function TCookie.GetAsString: string;
 
   Procedure AddToResult(const S : String);
-  
+
   begin
     Result:=Result+';'+S;
   end;

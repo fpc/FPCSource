@@ -72,7 +72,7 @@ type
     _type : word;
   end;
   PCoffRelocation = ^TCoffRelocation;
-  
+
   { TCoffRelocations }
 
   TCoffRelocations = class
@@ -496,7 +496,7 @@ begin
       hdr.characteristics:=SwapEndian(hdr.characteristics);
     end;
   aStream.WriteBuffer(hdr,sizeof(hdr));
-  
+
   aStream.Position:=oldpos;
 
 end;

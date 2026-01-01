@@ -29,7 +29,7 @@ uses
   System.Classes, System.SysUtils, System.Contnrs,
 {$ELSE}
   Classes, SysUtils, Contnrs,
-{$ENDIF}  
+{$ENDIF}
   MarkDown.Scanner,
   MarkDown.Elements,
   MarkDown.Utils;

@@ -22,7 +22,7 @@ interface
 uses
 {$IFDEF FPC_DOTTEDUNITS}
   System.Classes, System.SysUtils, System.StrUtils, System.Contnrs, Xml.Dom, Xml.Writer,
-{$ELSE}  
+{$ELSE}
   Classes, SysUtils, strutils, contnrs, dom, XMLWrite,
 {$ENDIF}
   MarkDown.Elements, MarkDown.Render, MarkDown.Utils;

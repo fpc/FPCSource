@@ -1,7 +1,7 @@
 { **********************************************************************
     This file is part of the Free Component Library (FCL)
     Copyright (c) 2008 by Mattias Gaertner
-    
+
     Average Level Tree implementation by Mattias Gaertner
 
     See the file COPYING.FPC, included in this distribution,

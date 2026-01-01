@@ -43,7 +43,7 @@ type
   end;
 
   { memory manager template }
-  
+
   TPooledMemManager = class
   private
     procedure SetMaxFreeRatio(NewValue: integer);
@@ -71,10 +71,10 @@ type
     constructor Create;
     destructor Destroy; override;
   end;
-  
-  
+
+
   { TNonFreePooledMemManager - a memory manager for records without freeing }
-  
+
   TEnumItemsMethod = procedure(Item: Pointer) of object;
 
   TNonFreePooledMemManager = class

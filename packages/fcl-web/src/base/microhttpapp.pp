@@ -36,7 +36,7 @@ Type
 Var
   Application : TMicroHTTPApplication;
   ShowCleanUpErrors : Boolean = False;
-  
+
 Implementation
 
 {$IFDEF FPC_DOTTEDUNITS}
@@ -58,7 +58,7 @@ Procedure DoneHTTP;
 begin
   if CustomApplication=Application then
     CustomApplication := nil;
-  try  
+  try
     FreeAndNil(Application);
   except
     if ShowCleanUpErrors then
@@ -68,8 +68,8 @@ end;
 
 Initialization
   InitHTTP;
-  
+
 Finalization
   DoneHTTP;
-  
+
 end.

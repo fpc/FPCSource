@@ -237,7 +237,7 @@ begin
   FLongOpts := TStringList.Create;
   AppendLongOpts;
   StopOnException:=True;
-  NoExitCodeOnError:=false; 
+  NoExitCodeOnError:=false;
 end;
 
 destructor TTestRunner.Destroy;
@@ -435,7 +435,7 @@ begin
   If HasOption('n','no-addresses') then
     FSkipAddressInfo:=True;
   if HasOption('x','no-exitcode') then
-    NoExitCodeOnError:=True;  
+    NoExitCodeOnError:=True;
   If HasOption('u','status') then
     TAssert.StatusEvent:=@DoStatus;
   // Determine runmode

@@ -1,4 +1,4 @@
-unit webmodule; 
+unit webmodule;
 
 {$mode objfpc}{$H+}
 
@@ -27,10 +27,10 @@ type
       TagParams: TStringList; Out ReplaceText: String);
   public
     { public declarations }
-  end; 
+  end;
 
 var
-  FPWebModule1: TFPWebModule1; 
+  FPWebModule1: TFPWebModule1;
 
 implementation
 
@@ -229,5 +229,5 @@ begin
 end;
 
 initialization
-  RegisterHTTPModule('TFPWebModule1', TFPWebModule1); 
+  RegisterHTTPModule('TFPWebModule1', TFPWebModule1);
 end.

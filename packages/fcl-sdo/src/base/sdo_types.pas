@@ -59,7 +59,7 @@ type
   TBinaryString = TStringBufferType;
 
   TByteDynArray = {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Types.TByteDynArray;
-  
+
 implementation
 
 end.

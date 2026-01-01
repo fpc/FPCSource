@@ -378,7 +378,7 @@ begin
     WriteScanLine(Img);
 
    {$ifdef FPC_Debug_Image}
-    WriteLn('TFPReaderPSD.InternalRead AAA1 ',Stream.position,' ',Stream.size); 
+    WriteLn('TFPReaderPSD.InternalRead AAA1 ',Stream.position,' ',Stream.size);
     {$endif}
   finally
     FreeAndNil(FPalette);
@@ -601,15 +601,15 @@ function TFPReaderPSD.InternalCheck(Stream: TStream): boolean;
 var
   OldPos: Int64;
   n: Integer;
-  
+
 begin
   Result:=False;
-  if Stream=Nil then 
+  if Stream=Nil then
     exit;
   OldPos := Stream.Position;
   try
     n := SizeOf(FHeader);
-    Result:=(Stream.Read(FHeader, n) = n) 
+    Result:=(Stream.Read(FHeader, n) = n)
             and (FHeader.Signature = '8BPS')
   finally
     Stream.Position := OldPos;

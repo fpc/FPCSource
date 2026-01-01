@@ -8,7 +8,7 @@ interface
 
 {$IFDEF FPC_DOTTEDUNITS}
 uses
-  System.Classes, System.SysUtils, System.Net.Sockets, System.Net.Ssockets, System.Net.Sslsockets, 
+  System.Classes, System.SysUtils, System.Net.Sockets, System.Net.Ssockets, System.Net.Sslsockets,
   System.DateUtils, System.CTypes, System.Net.Sslbase, Api.GnuTls;
 {$ELSE FPC_DOTTEDUNITS}
 uses

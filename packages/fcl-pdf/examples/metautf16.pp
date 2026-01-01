@@ -24,9 +24,9 @@ begin
     D.StartDocument;
     D.AddFont('fonts/FreeSans.ttf','FreeSans');
 
-    
-    S:=D.Sections.AddSection;      
-   
+
+    S:=D.Sections.AddSection;
+
     P:=D.Pages.AddPage;
     P.PaperType := ptA4;
     P.UnitOfMeasure := uomPixels;

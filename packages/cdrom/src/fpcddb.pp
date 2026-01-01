@@ -34,10 +34,10 @@ interface
 
 {$IFDEF FPC_DOTTEDUNITS}
 uses
-  System.Classes, System.SysUtils; 
+  System.Classes, System.SysUtils;
 {$ELSE FPC_DOTTEDUNITS}
 uses
-  Classes, SysUtils; 
+  Classes, SysUtils;
 {$ENDIF FPC_DOTTEDUNITS}
 
 Type

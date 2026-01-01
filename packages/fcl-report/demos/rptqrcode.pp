@@ -66,7 +66,7 @@ var
   Memo: TFPReportMemo;
   PageFooter: TFPReportPageFooterBand;
   QR : TFPReportQRcode;
-  
+
 begin
   Inherited;
   rpt.Author := 'Michael Van Canneyt';

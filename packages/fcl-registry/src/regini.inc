@@ -139,7 +139,7 @@ end;
 procedure TRegIniFile.WriteDate(const Section, Ident: string; Value: TDateTime);
 
 begin
-  if OpenSection(Section,true) then 
+  if OpenSection(Section,true) then
     try
       if not fPreferStringValues then
         inherited WriteDate(Ident,Value)
@@ -155,7 +155,7 @@ end;
 procedure TRegIniFile.WriteDateTime(const Section, Ident: string; Value: TDateTime);
 
 begin
-  if OpenSection(Section,true) then 
+  if OpenSection(Section,true) then
     try
       if not fPreferStringValues then
         inherited WriteDateTime(Ident,Value)
@@ -171,7 +171,7 @@ end;
 procedure TRegIniFile.WriteTime(const Section, Ident: string; Value: TDateTime);
 
 begin
-  if OpenSection(Section,true) then 
+  if OpenSection(Section,true) then
     try
       if not fPreferStringValues then
         inherited WriteTime(Ident,Value)
@@ -187,7 +187,7 @@ end;
 procedure TRegIniFile.WriteFloat(const Section, Ident: string; Value: Double);
 
 begin
-  if OpenSection(Section,true) then 
+  if OpenSection(Section,true) then
     try
       if not fPreferStringValues then
         inherited WriteFloat(Ident,Value)
@@ -200,7 +200,7 @@ begin
   end;
 end;
 
-    
+
 
 function TRegIniFile.ReadBool(const Section, Ident: string; Default: Boolean): Boolean;
 begin
@@ -273,7 +273,7 @@ begin
     CloseSection;
   end;
 end;
- 
+
 function TRegIniFile.ReadTime(const Section, Ident: string; Default: TDateTime):TDateTime;
 
 begin

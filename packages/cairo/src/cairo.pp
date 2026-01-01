@@ -39,7 +39,7 @@ unit Cairo;
  * Contributor(s):
  *	Carl D. Worth <cworth@cworth.org>
  *
- *  This FreePascal binding generated August 26, 2005 
+ *  This FreePascal binding generated August 26, 2005
  *  by Jeffrey Pohlmeyer <yetanothergeek@yahoo.com>
  *
  * - Updated to cairo version 1.4
@@ -50,14 +50,14 @@ unit Cairo;
  * By Luiz Américo Pereira Câmara
  * October 2007
  *
- * - Review of the unit according of cairo.h, cairo-svg.h, 
+ * - Review of the unit according of cairo.h, cairo-svg.h,
  *   cairo-pdf.h and cairo-ps.h
  * - Adding structures, enumerations, and methods missing.
  * - Translation and addition of cairo-tee.h, cairo-script.h,
  *   cairo-script-interpreter.h and cairo-gobject.h
  * - Updated to cairo version 1.12
  * By Valdinilson Lourenço da Cunha - November 2012
- * 
+ *
 *)
 
 {$mode ObjFpc}
@@ -281,7 +281,7 @@ type
     CAIRO_FONT_TYPE_QUARTZ,
     CAIRO_FONT_TYPE_USER
   );
-  
+
   cairo_pattern_type_t = (
     CAIRO_PATTERN_TYPE_SOLID,
     CAIRO_PATTERN_TYPE_SURFACE,
@@ -290,7 +290,7 @@ type
     CAIRO_PATTERN_TYPE_MESH,
     CAIRO_PATTERN_TYPE_RASTER_SOURCE
   );
-  
+
   cairo_surface_type_t = (
     CAIRO_SURFACE_TYPE_IMAGE,
     CAIRO_SURFACE_TYPE_PDF,
@@ -318,12 +318,12 @@ type
     CAIRO_SURFACE_TYPE_SUBSURFACE,
     CAIRO_SURFACE_TYPE_COGL
   );
-  
+
   cairo_svg_version_t = (
     CAIRO_SVG_VERSION_1_1,
     CAIRO_SVG_VERSION_1_2
   );
-  
+
   cairo_device_type_t = (
     CAIRO_DEVICE_TYPE_INVALID = -1,
     CAIRO_DEVICE_TYPE_DRM,
@@ -333,14 +333,14 @@ type
     CAIRO_DEVICE_TYPE_XLIB,
     CAIRO_DEVICE_TYPE_XML,
     CAIRO_DEVICE_TYPE_COGL,
-    CAIRO_DEVICE_TYPE_WIN32   
+    CAIRO_DEVICE_TYPE_WIN32
   );
-  
+
   cairo_surface_observer_mode_t = (
 	CAIRO_SURFACE_OBSERVER_NORMAL = 0,
 	CAIRO_SURFACE_OBSERVER_RECORD_OPERATIONS = $1
   );
-  
+
   cairo_region_overlap_t = (
     CAIRO_REGION_OVERLAP_IN,		(* completely inside region *)
     CAIRO_REGION_OVERLAP_OUT,		(* completely outside region *)
@@ -360,7 +360,7 @@ type
     CAIRO_PS_LEVEL_2,
     CAIRO_PS_LEVEL_3
   );
-  
+
   cairo_script_mode_t = (
     CAIRO_SCRIPT_MODE_ASCII,
     CAIRO_SCRIPT_MODE_BINARY
@@ -406,7 +406,7 @@ type
   Pcairo_script_interpreter_hooks_t   = ^cairo_script_interpreter_hooks_t;
   Pcairo_raster_source_acquire_func_t = ^cairo_raster_source_acquire_func_t;
   Pcairo_raster_source_release_func_t = ^cairo_raster_source_release_func_t;
-  
+
   cairo_destroy_func_t                           = procedure (data: Pointer); cdecl;
   cairo_write_func_t                             = function (closure: Pointer; data: PByte; length: LongWord): cairo_status_t; cdecl;
   cairo_read_func_t                              = function (closure: Pointer; data: PByte; length: LongWord): cairo_status_t; cdecl;
@@ -489,25 +489,25 @@ type
     data : Pcairo_path_data_t;
     num_data : LongInt;
   end;
-  
+
   cairo_rectangle_t = record
     x, y, width, height: Double;
   end;
-  
+
   cairo_rectangle_int_t = record
     x, y, width, height: LongInt;
   end;
-  
+
   cairo_rectangle_list_t = record
     status: cairo_status_t;
     rectangles: Pcairo_rectangle_t;
     num_rectangles: LongInt;
   end;
-  
+
   cairo_text_cluster_t = record
     num_bytes, num_glyphs: LongInt;
   end;
-  
+
   cairo_script_interpreter_hooks_t = record
     closure: Pointer;
     surface_create: csi_surface_create_func_t;
@@ -517,7 +517,7 @@ type
     show_page: csi_show_page_func_t;
     copy_page: csi_copy_page_func_t;
   end;
-  
+
 function cairo_version: LongInt; cdecl; external LIB_CAIRO;
 function cairo_version_string: PAnsiChar; cdecl; external LIB_CAIRO;
 //Helper function to retrieve decoded version

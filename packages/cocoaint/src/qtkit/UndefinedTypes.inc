@@ -5,7 +5,7 @@ const
 	movieProgressUpdatePercent    = 1;
 	movieProgressClose            = 2;
 
-{ Movies.h 
+{ Movies.h
 type
 	Movie = OpaqueType;
 	Track = OpaqueType;
@@ -13,7 +13,7 @@ type
 	MovieController = pointer; // ComponentInstance
 	MovieControllerPtr = ^MovieController;
 }
-	
+
 {type
 	SMPTETime = record
 		mCounter: UInt64;

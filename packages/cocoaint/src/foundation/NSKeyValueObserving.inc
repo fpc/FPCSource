@@ -1,6 +1,6 @@
 { Parsed from Foundation.framework NSKeyValueObserving.h }
 
-{$ifdef TYPES} 
+{$ifdef TYPES}
 type
   NSKeyValueObservingOptions = NSUInteger;
   NSKeyValueObservingOptionsPtr = ^NSKeyValueObservingOptions;

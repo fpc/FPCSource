@@ -105,7 +105,7 @@ procedure TTestJSONConfig.TestEnumSubkeys;
 Var
   C : TJSONCOnfig;
   L : TStringList;
-  
+
 begin
   C:=CreateConf('test.json');
   try
@@ -207,7 +207,7 @@ procedure TTestJSONConfig.TestKey;
 Var
   C : TJSONCOnfig;
   L : TStrings;
-  
+
 begin
   C:=CreateConf('test.json');
   try
@@ -387,6 +387,6 @@ end;
 
 initialization
 
-  RegisterTest(TTestJSONConfig); 
+  RegisterTest(TTestJSONConfig);
 end.
 

@@ -425,7 +425,7 @@ const
   ANSI_DEFAULTS_ON: array[boolean] of shortstring = ('SET ANSI_DEFAULTS ON', 'SET QUOTED_IDENTIFIER ON');
   CURSOR_CLOSE_ON_COMMIT_OFF: array[boolean] of shortstring = ('SET CURSOR_CLOSE_ON_COMMIT OFF', 'SET CLOSE ON ENDTRAN OFF');
   VERSION_NUMBER: array[boolean] of shortstring = ('SERVERPROPERTY(''ProductVersion'')', '@@version_number');
-  
+
 begin
   // empty DatabaseName=default database defined for login
   inherited DoInternalConnect;
@@ -771,7 +771,7 @@ begin
   repeat
     Fstatus := dbnextrow(FDBProc);
     // In case of network failure FAIL is returned
-    // Use dbsettime() to specify query timeout, else on Windows TCP KeepAliveTime is used, which defaults to 2 hours 
+    // Use dbsettime() to specify query timeout, else on Windows TCP KeepAliveTime is used, which defaults to 2 hours
     Result  := Fstatus=REG_ROW;
   until Result or (Fstatus = NO_MORE_ROWS) or (Fstatus = FAIL);
 

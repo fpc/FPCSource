@@ -1,7 +1,7 @@
 { This file is part of the Free Component Library.
 
   Hash unit utilities.
-  
+
   See the file COPYING.FPC, included in this distribution,
   for details about the copyright.
 

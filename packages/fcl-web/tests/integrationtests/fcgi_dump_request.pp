@@ -163,7 +163,7 @@ begin
     Result := SHA1Print(SHA1File(AFileName));
 end;
 
-Function TMyCGIApp.InitializeWebHandler: TWebHandler; 
+Function TMyCGIApp.InitializeWebHandler: TWebHandler;
 begin
   Result:=TMyCgiHandler.Create(self);
 end;

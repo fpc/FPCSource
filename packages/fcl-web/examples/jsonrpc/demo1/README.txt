@@ -14,7 +14,7 @@ testcgiapp -i demo -p echo/extdirect < extdirect.in
 testcgiapp -i demo -p echo/dispatch < notification.in
 testcgiapp -i demo -p echo/extdirectapi
 testcgiapp -i demo -p echo/content < echobatch.in
-testcgiapp -i demo -p echo/module < echobatch.in    
+testcgiapp -i demo -p echo/module < echobatch.in
 
 The response is printed on standard output.
 

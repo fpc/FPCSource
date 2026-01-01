@@ -66,7 +66,7 @@ begin
     WriteLn('Out Of Memory!');
     Exit;
   end;
-  
+
   dbus_connection_flush(conn);
 
   WriteLn('Signal Sent');
@@ -329,7 +329,7 @@ end;
 begin
   { Initializes the errors }
   dbus_error_init(@err);
-  
+
   { Connection }
   conn := dbus_bus_get(DBUS_BUS_SESSION, @err);
 
@@ -338,11 +338,11 @@ begin
     WriteLn('Connection Error: ' + err.message);
     dbus_error_free(@err);
   end;
-  
+
   if conn = nil then Exit;
-  
+
   { Parses parameters }
-  
+
   if (ParamCount <> 1) and (ParamCount <> 2) then WriteLn(SINTAX_TEXT)
   else
   begin

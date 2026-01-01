@@ -31,7 +31,7 @@ all parsed data in a parse tree, as implemented in the pastree unit.
 
 pasresolver.pp
 --------------
-A symbol resolver: A TPasTreeContainer descendent that looks up symbols 
+A symbol resolver: A TPasTreeContainer descendent that looks up symbols
 (identifiers) in the parse tree, following the scope rules of Pascal
 
 passrcutil.pp

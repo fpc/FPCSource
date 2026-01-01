@@ -683,7 +683,7 @@ begin
     if Terminated then
       Exit;
     Sleep(100);
-  end; 
+  end;
   if Terminated then
     Exit;
   WriteLn(' Timeout');

@@ -77,7 +77,7 @@ procedure TPipeClientComm.Connect;
 begin
   If Not ServerRunning then
     DoError(SErrServerNotActive,[Owner.ServerID]);
-  // Use the sharedenynone line to allow more then one client 
+  // Use the sharedenynone line to allow more then one client
   // communicating with one server at the same time
   // see also mantis 15219
   FStream:=TFileStream.Create(FFileName,fmOpenWrite+fmShareDenyNone);
@@ -167,8 +167,8 @@ procedure TPipeServerComm.StartServer;
 const
   PrivateRights = S_IRUSR or S_IWUSR;
   GlobalRights  = PrivateRights or S_IRGRP or S_IWGRP or S_IROTH or S_IWOTH;
-  Rights : Array [Boolean] of Integer = (PrivateRights,GlobalRights);  
-    
+  Rights : Array [Boolean] of Integer = (PrivateRights,GlobalRights);
+
 begin
   If not FileExists(FFileName) then
     If (fpmkFifo(FFileName,438)<>0) then

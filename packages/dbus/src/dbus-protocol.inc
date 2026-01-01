@@ -120,7 +120,7 @@ const
  * arg0='hello' is OK, arg3489720987='hello' is not
  }
   DBUS_MAXIMUM_MATCH_RULE_ARG_NUMBER = 63;
-  
+
 { Max length of a marshaled array in bytes (64M, 2^26) We use signed
  * int for lengths so must be INT_MAX or less.  We need something a
  * bit smaller than INT_MAX because the array is inside a message with

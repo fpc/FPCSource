@@ -272,7 +272,7 @@ begin
   DataFooter.Font.Name := 'LiberationSans-Bold';
   DataFooter.Font.Color := clWhite;
   DataFooter.Data:=FDataPage2;
-  
+
   Memo := TFPReportMemo.Create(DataFooter);
   Memo.Layout.Left := 5;
   Memo.Layout.Top := 1.5;
@@ -288,7 +288,7 @@ begin
   DataBand.KeepTogetherWithChildren := False;
   DataBand.Frame.Shape := fsRectangle;
   DataBand.Frame.BackgroundColor := clDataBand;
-  
+
   Memo := TFPReportMemo.Create(DataBand);
   Memo.Layout.Left := 5;
   Memo.Layout.Top := 1;

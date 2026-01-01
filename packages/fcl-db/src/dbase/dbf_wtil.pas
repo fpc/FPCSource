@@ -32,7 +32,7 @@ uses
   {$ifdef FPC}
   UnixApi.Base,
   {$else}
-  Api.Libc, 
+  Api.Libc,
   {$endif}
  {$ENDIF OS2}
   System.Types, System.SysUtils, System.Classes;
@@ -44,7 +44,7 @@ uses
   {$ifdef FPC}
   BaseUnix,
   {$else}
-  Libc, 
+  Libc,
   {$endif}
  {$ENDIF OS2}
   Types, SysUtils, Classes;
@@ -242,7 +242,7 @@ const
 {$ELSE OS2}
  {$ifdef FPC}
   ERROR_LOCK_VIOLATION = ESysEACCES;
- {$else}  
+ {$else}
   ERROR_LOCK_VIOLATION = EACCES;
  {$endif}
 {$ENDIF OS2}

@@ -8,7 +8,7 @@
     Using tests from Mono test suite, written by
       Jason Diamond (jason@injektilo.org)
       Martin Willemoes Hansen (mwh@sysrq.dk)
-      (C) 2001, 2002 Jason Diamond  http://injektilo.org/    
+      (C) 2001, 2002 Jason Diamond  http://injektilo.org/
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.

@@ -2,7 +2,7 @@
 {$H+}
 program testtimer;
 
-uses 
+uses
 {$ifdef unix}
   cthreads,
 {$endif}
@@ -15,12 +15,12 @@ Type
     FCount : Integer;
     FTick : Integer;
     N : TDateTime;
-  Public  
+  Public
     Procedure DoRun; override;
     Procedure DoTick(Sender : TObject);
   end;
 
-Procedure TTestTimerApp.DoRun; 
+Procedure TTestTimerApp.DoRun;
 
 begin
   FTimer:=TFPTimer.Create(Self);
@@ -56,7 +56,7 @@ begin
   FTick:=0;
   N:=Now;
 end;
-        
+
 
 begin
   With TTestTimerApp.Create(Nil) do
@@ -64,5 +64,5 @@ begin
       Run
     finally
       Free;
-    end;  
+    end;
 end.

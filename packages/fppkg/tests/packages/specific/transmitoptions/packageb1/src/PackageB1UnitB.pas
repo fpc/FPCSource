@@ -8,7 +8,7 @@ Unit PackageB1UnitB;
 
 interface
 
-uses 
+uses
   PackageAUnitA;
 
 function PackageB1UnitBFunctionB: Boolean;

@@ -18,9 +18,9 @@
   is available from sourceforge:
   http://pxlib.sourceforge.net/
   it must be downloaded and installed separately. The header translations
-  for version 0.6.2 of pxlib are available in the pxlib unit in the Free 
+  for version 0.6.2 of pxlib are available in the pxlib unit in the Free
   Pascal Packages.
-  
+
   The TParadox component was implemented by Michael Van Canneyt
 }
 
@@ -109,7 +109,7 @@ type
     Function GetParam(Const ParamName : String) : String;
     Procedure SetParam(Const ParamName,ParamValue : String);
     property Doc : PPX_Doc Read FDoc;
-    
+
   public
     constructor Create(AOwner:tComponent); override;
     destructor Destroy; override;
@@ -146,7 +146,7 @@ type
     property OnPostError;
     property OnFilterRecord;
   end;
-  
+
   // in front of graphic data
   TGraphicHeader = packed record
     Count: Word;                { Always 1 }
@@ -180,7 +180,7 @@ ResourceString
   SErrParadoxNotOpen        = 'Paradox file not opened';
   SErrGetParamFailed        = 'Get of parameter %s failed.';
   SErrSetParamFailed        = 'Set of parameter %s failed.';
-  
+
 Const
   PXFieldTypes : Array[1..pxfNumTypes] of TFieldType
              = (ftString, ftDate, ftSmallInt, ftInteger,
@@ -202,14 +202,14 @@ Type
     BookmarkFlag: TBookmarkFlag;
   end;
   PDateTime = ^TDateTime;
-  
+
 Const
   DataOffSet = SizeOf(TPXRecInfo);
 
 { ---------------------------------------------------------------------
   Utility functions
   ---------------------------------------------------------------------}
-             
+
 Function PXFieldTypeToFieldType(PXFieldType : Integer) : TFieldType;
 
 begin
@@ -803,7 +803,7 @@ Var
   FLen,Res : Integer;
   M,D : Cint;
   H : PGraphicHeader;
-  
+
 begin
   Result:=Nil;
   FLen:=Field.Size;

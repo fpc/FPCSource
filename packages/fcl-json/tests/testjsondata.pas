@@ -15,7 +15,7 @@
 {$mode objfpc}
 {$h+}
 {$codepage utf8}
-unit testjsondata; 
+unit testjsondata;
 
 interface
 
@@ -43,9 +43,9 @@ type
     Procedure TestJSONStringToString;
     Procedure TestStringToJSONString;
   end;
-  
+
   { TTestJSON }
-  
+
   TTestJSON = Class(TTestCase)
   private
   Protected
@@ -63,7 +63,7 @@ type
     Procedure TestAsString(J : TJSONData; Expected : String; ExpectError : boolean = False);
     Procedure TestAsFloat(J : TJSONData; Expected : TJSONFloat; ExpectError : boolean = False);
   end;
-  
+
   { TTestNull }
 
   TTestNull = class(TTestJSON)
@@ -73,7 +73,7 @@ type
     Procedure TestMyClone;
     Procedure TestFormat;
   end;
-  
+
   { TTestBoolean }
 
   TTestBoolean = class(TTestJSON)
@@ -84,7 +84,7 @@ type
     Procedure TestMyClone;
     Procedure TestFormat;
   end;
-  
+
   { TTestInteger }
 
   TTestInteger = class(TTestJSON)
@@ -159,7 +159,7 @@ type
     Procedure TestMyClone;
     Procedure TestFormat;
   end;
-  
+
   { TTestArray }
 
   TTestArray = class(TTestJSON)
@@ -209,7 +209,7 @@ type
     Procedure TestFormat;
     Procedure TestFormatNil;
   end;
-  
+
   { TTestObject }
 
   TTestObject = class(TTestJSON)
@@ -1102,7 +1102,7 @@ Var
   B : Boolean;
   AssignOK : Boolean;
   Msg : String;
-  
+
 begin
   AssignOK:=False;
   Try
@@ -1232,7 +1232,7 @@ end;
 
 Procedure TTestJSON.TestAsString(J: TJSONData; Expected: String;
   ExpectError: boolean);
-  
+
 Var
   S : String;
   AssignOK : Boolean;
@@ -1266,7 +1266,7 @@ end;
 
 Procedure TTestJSON.TestAsFloat(J: TJSONData; Expected: TJSONFloat;
   ExpectError: boolean);
-  
+
 Var
   F : TJSONFloat;
   AssignOK : Boolean;
@@ -2060,7 +2060,7 @@ procedure TTestFloat.DoTest(F: TJSONFloat);
 Var
   J : TJSONFloatNumber;
   S : String;
-  
+
 begin
   Str(F,S);
   If S[1]=' ' then
@@ -2242,7 +2242,7 @@ procedure TTestArray.TestCreateStrings;
 Const
   S = 'A string';
   T = 'B string';
-  
+
 Var
   J : TJSONArray;
 
@@ -2311,7 +2311,7 @@ Const
 Var
   J : TJSONArray;
   r : String;
-  
+
 begin
   J:=TJSonArray.Create([S]);
   try
@@ -2436,7 +2436,7 @@ procedure TTestArray.TestCreateObject;
 Var
   J : TJSONArray;
   O : TObject;
-  
+
 begin
   J:=Nil;
   try
@@ -2458,7 +2458,7 @@ procedure TTestArray.TestCreateNilPointer;
 Var
   J : TJSONArray;
   P : Pointer;
-  
+
 begin
   J:=Nil;
   P:=Nil;
@@ -2475,7 +2475,7 @@ procedure TTestArray.TestCreatePointer;
 Var
   J : TJSONArray;
   P : Pointer;
-  
+
 begin
   J:=Nil;
   P:=@Self;
@@ -2628,7 +2628,7 @@ procedure TTestArray.TestAddString;
 Var
   J : TJSONArray;
   S : String;
-  
+
 begin
   S:='A string';
   J:=TJSonArray.Create;
@@ -2928,7 +2928,7 @@ procedure TTestArray.TestAddObject;
 Const
   A = 'a';
   B = 'b';
-  
+
 Var
   J : TJSONArray;
   J2 : TJSONObject;
@@ -3192,7 +3192,7 @@ procedure TTestObject.TestAddBoolean(B : Boolean);
 
 Const
   A = 'a';
-  
+
 begin
   B:=True;
   J.Add(A,B);
@@ -3318,7 +3318,7 @@ procedure TTestObject.TestDelete;
 Const
   A = 'a';
   B = 'b';
-  
+
 begin
   J.Add(A,0);
   J.Add(B,1);
@@ -3338,7 +3338,7 @@ Const
   A = 'a';
   B = 'b';
   C = 'c';
-  
+
 Var
   I : TJSONData;
 
@@ -3921,7 +3921,7 @@ procedure TTestObject.TestCreateJSONObject;
 
 Const
   A = 'A';
-  
+
 Var
   O : TJSONObject;
 

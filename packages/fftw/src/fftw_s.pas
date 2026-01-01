@@ -53,7 +53,7 @@ type    complex_single=record
                    fftw_patient,            {generate highly optimized alg.}
                    fftw_estimate);          {don't optimize, just use an alg.}
         fftw_flagset=set of fftw_flag;
-                   
+
 
 {Complex to complex transformations.}
 function fftw_plan_dft_1d(n:cardinal;i,o:Pcomplex_single;

@@ -36,7 +36,7 @@ begin
 
     T:=P.Targets.AddUnit('fpyaml.strings.pp');
 //    T.ResourceStrings:=true;
-    
+
     T:=P.Targets.AddUnit('fpyaml.types.pp');
     with T.Dependencies do
       AddUnit('fpyaml.strings');

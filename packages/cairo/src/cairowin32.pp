@@ -5,7 +5,7 @@ unit CairoWin32;
     This file is part of the Free Pascal libraries.
     Copyright (c) 2003-2008 by the Free Pascal development team
 
-    Translation of cairo-win32.h 
+    Translation of cairo-win32.h
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.

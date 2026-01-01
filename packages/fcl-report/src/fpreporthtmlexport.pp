@@ -17,7 +17,7 @@
   HTML Export filter.
 
   FpImage is included as standard with FPC. This exporter uses those classes
-  to generate image output. 
+  to generate image output.
 
 }
 {$IFNDEF FPC_DOTTEDUNITS}
@@ -842,7 +842,7 @@ begin
       begin
       D:=ExtractFilePath(FBasePageFileName);
       if (CSSDir<>'') then
-        D:=D+CSSDir+PathDelim; 
+        D:=D+CSSDir+PathDelim;
       FStyleContent.SaveToFile(D+ChangeFileExt(ExtractFileName(FBasePageFileName),'.css'));
       end;
     seStyleTag :

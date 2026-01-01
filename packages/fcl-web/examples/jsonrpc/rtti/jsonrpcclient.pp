@@ -23,7 +23,7 @@ program jsonrpcclient;
 {$endif}
 
 uses
-  SysUtils, Classes, fpjson, jsonparser, jsonscanner, fphttpclient, 
+  SysUtils, Classes, fpjson, jsonparser, jsonscanner, fphttpclient,
   rtti, typinfo {$ifdef useffi}, ffi.manager{$endif}, myapi, fpjsonvalue;
 
 type
@@ -54,8 +54,8 @@ var
   varParamCount, argidx, i: LongInt;
   resobj,argobj: TJSONObject;
   value: TValue;
-  
-  
+
+
 begin
   VarParamCount:=0;
   request := TJSONObject.Create;
@@ -83,22 +83,22 @@ begin
     response := DoRequest(request) as TJSONObject;
     try
       if (VarParamCount=0) then
-        begin    
+        begin
         if Assigned(aMethod.ReturnType) then
           aResult := JSONToValue(response.Elements['result'], aMethod.ReturnType);
         end
       else
-        begin  
+        begin
         resObj:=response.Objects['result'];
         if Assigned(aMethod.ReturnType) then
           aResult := JSONToValue(resObj.Elements['$result'], aMethod.ReturnType);
         argidx := 1;
-        for i := 0 to High(args) do 
+        for i := 0 to High(args) do
           begin
           arg := args[i];
           if pfHidden in arg.Flags then
             Continue;
-          if arg.Flags * [pfOut, pfVar] = [] then 
+          if arg.Flags * [pfOut, pfVar] = [] then
             begin
             Inc(argidx);
             Continue;
@@ -106,7 +106,7 @@ begin
           value := JSONToValue(resObj.Elements[arg.Name], arg.ParamType);
           value.ExtractRawData(aArgs[argidx].GetReferenceToRawData);
           Inc(argidx);
-          end; 
+          end;
       end;
     finally
       response.Free;

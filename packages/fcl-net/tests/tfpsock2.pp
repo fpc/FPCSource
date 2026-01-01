@@ -283,7 +283,7 @@ begin
       Received := specialize ReceiveFrom<TChunkString>(sock).Data;
     finally
       CloseSocket(sock);
-    end; 
+    end;
     if Received <> ReplyStr then
       ClientError := 'Unexpected response: ' + Received;
   except on E: Exception do

@@ -27,7 +27,7 @@ uses
 uses
   Classes, SysUtils, DB, fpDBExport;
 {$ENDIF FPC_DOTTEDUNITS}
-  
+
 Type
   TJSONRowFormat = (rfArray,rfObject);
   TJSONColumnFormat = (cfObject,cfArray);
@@ -96,7 +96,7 @@ Procedure UnRegisterSimpleJSONExportFormat;
 Const
   SSimpleJSON            = 'SimpleJSON';
   SSimpleJSONExtensions  = '.json';
-  
+
 Resourcestring
   SSimpleJSONDescription = 'Simple ASCII JSON file';
 

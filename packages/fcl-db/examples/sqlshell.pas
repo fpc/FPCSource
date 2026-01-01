@@ -71,7 +71,7 @@ Procedure TSQLShellApplication.ExecuteCommand(Const ASQL : UTF8String);
 Var
   Q : TSQLQuery;
   F : TField;
-  
+
 begin
   FreeAndNil(FQuery);
   Q:=TSQLQuery.Create(Conn);

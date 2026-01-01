@@ -15,7 +15,7 @@ Const
   MaxDataSet = 35;
   // Number of records in a trace dataset:
   NForTraceDataset = 15;
-  
+
 type
 
   { TDBConnector }
@@ -51,7 +51,7 @@ type
        // They should reset all data to their right/initial values.
        procedure ResetNDatasets; virtual;
        procedure ResetFieldDataset; virtual;
-       
+
        // These methods are called e.g. in the destructor.
        // They should clean up all mess, like tables on disk or on a DB server
        procedure DropNDatasets; virtual; abstract;
@@ -557,10 +557,10 @@ var DBConnectorClass : TPersistentClass;
     FormatSettings   : TFormatSettings;
 begin
   if DBConnectorRefCount>0 then exit;
-  
+
   FormatSettings.DecimalSeparator:='.';
   FormatSettings.ThousandSeparator:=#0;
-  
+
   testValues[ftString] := testStringValues;
   testValues[ftFixedChar] := testStringValues;
   testValues[ftTime] := testTimeValues;

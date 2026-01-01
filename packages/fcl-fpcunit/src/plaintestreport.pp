@@ -47,8 +47,8 @@ type
     procedure WriteTestHeader(ATest: TTest; ALevel: integer; ACount: integer); override;
     procedure WriteTestFooter(ATest: TTest; ALevel: integer; ATiming: TDateTime); override;
     procedure WriteSuiteHeader(ATestSuite: TTestSuite; ALevel: integer); override;
-    procedure WriteSuiteFooter(ATestSuite: TTestSuite; ALevel: integer; 
-      ATiming: TDateTime; ANumRuns: integer; ANumErrors: integer; 
+    procedure WriteSuiteFooter(ATestSuite: TTestSuite; ALevel: integer;
+      ATiming: TDateTime; ANumRuns: integer; ANumErrors: integer;
       ANumFailures: integer; ANumIgnores: integer); override;
   public
     constructor Create(aOwner: TComponent); override;
@@ -137,8 +137,8 @@ begin
   FDoc.Add(S);
   if Assigned(FTempFailure) then
   begin
-    //check if it's an error 
-    if not FTempFailure.IsFailure then 
+    //check if it's an error
+    if not FTempFailure.IsFailure then
     begin
       FDoc[FDoc.Count -1] := FDoc[FDoc.Count -1] + '  Error: ' + FTempFailure.ExceptionClassName;
       FDoc.Add(StringOfChar(' ',ALevel*2) + '    Exception:   ' + FTempFailure.ExceptionMessage);
@@ -148,13 +148,13 @@ begin
     else
       if FTempFailure.IsIgnoredTest then
       begin
-         FDoc[FDoc.Count -1] := FDoc[FDoc.Count -1] + '  Ignored test: ' 
+         FDoc[FDoc.Count -1] := FDoc[FDoc.Count -1] + '  Ignored test: '
            + FTempFailure.ExceptionMessage;
       end
       else
       begin
         //is a failure
-        FDoc[FDoc.Count -1] := FDoc[FDoc.Count -1] + '  Failed: ' 
+        FDoc[FDoc.Count -1] := FDoc[FDoc.Count -1] + '  Failed: '
           + FTempFailure.ExceptionMessage;
         FDoc.Add(StringOfChar(' ',ALevel*2) + '    Exception:   ' + FTempFailure.ExceptionMessage);
         FDoc.Add(StringOfChar(' ',ALevel*2) + '    at ' + FTempFailure.LocationInfo);
@@ -195,7 +195,7 @@ begin
     FTestResultOptions:=FTestResultOptions-[ttoSkipExceptionMessage,ttoErrorsOnly];
 end;
 
-procedure TPlainResultsWriter.WriteSuiteFooter(ATestSuite: TTestSuite; ALevel: integer; 
+procedure TPlainResultsWriter.WriteSuiteFooter(ATestSuite: TTestSuite; ALevel: integer;
   ATiming: TDateTime; ANumRuns: integer; ANumErrors: integer; ANumFailures: integer;
   ANumIgnores: integer);
 var

@@ -27,13 +27,13 @@ are created on the fly to perform their action.
 
 Demo6 demonstrates the use of the TSQLDBWebDataProvider component.
 
-All demos except Demo6 use CGI and a TDBF component to feed data to 
-the webpage, which means they are not very suitable for real life 
+All demos except Demo6 use CGI and a TDBF component to feed data to
+the webpage, which means they are not very suitable for real life
 situations due to file locking etc.
 
 
-To try a demo, compile one of the appropriate CGI apps, and open 
-the extgrid-json.html or extgrid-xml.html page in your browser 
+To try a demo, compile one of the appropriate CGI apps, and open
+the extgrid-json.html or extgrid-xml.html page in your browser
 through the webserver, something like:
 
 http://localhost/~myuser/extjs/demo2/extgrid-json.html

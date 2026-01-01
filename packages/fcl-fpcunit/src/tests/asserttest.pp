@@ -392,7 +392,7 @@ begin
   assertEquals('no test was run', 1, res.RunTests);
   assertEquals('Ignored Test reported even if the switch is not active', 0, res.NumberOfIgnoredTests);
   assertEquals('no failure caught', 1, res.NumberOfFailures);
-  assertFalse('failure is signalled as Ignored Test and the switch is not active', 
+  assertFalse('failure is signalled as Ignored Test and the switch is not active',
     TTestFailure(res.Failures[0]).IsIgnoredTest);
   assertEquals('wrong failure name', 'EAssertionFailedError', TTestFailure(res.Failures[0]).ExceptionClassName);
   assertEquals('wrong message', '"the compiler can count" expected: <3> but was: <2>', TTestFailure(res.Failures[0]).ExceptionMessage);
@@ -410,7 +410,7 @@ begin
     AssertTrue('EnableIgnores must be True at creation', ts.EnableIgnores);
     for i := 0 to ts.ChildTestCount - 1 do
       AssertTrue('EnableIgnores of Test ' + IntToStr(i) + ' must be True at creation', ts.Test[i].EnableIgnores);
-    ts.EnableIgnores := False; 
+    ts.EnableIgnores := False;
     AssertFalse('EnableIgnores was not set to false', ts.EnableIgnores);
     for i := 0 to ts.ChildTestCount - 1 do
       AssertFalse('EnableIgnores of Test ' + IntToStr(i) + ' was not set to False', ts.Test[i].EnableIgnores);

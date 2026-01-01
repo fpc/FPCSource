@@ -874,7 +874,7 @@ begin
     Add(AccessNames[aArg.Access]+' ');
   Add(aArg.SafeName+' : ');
   WriteType(aArg.ArgType,False);
-  if aArg.Value<>'' then  
+  if aArg.Value<>'' then
     Add(' = '+aArg.Value);
 end;
 
@@ -921,7 +921,7 @@ procedure TPasWriter.WriteRecordType(AType: TPasRecordType);
 Var
   Temp,TempVar : String;
   i : Integer;
-  
+
 begin
   Temp:='record';
   If aType.IsPacked then

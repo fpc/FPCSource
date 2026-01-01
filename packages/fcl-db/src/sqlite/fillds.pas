@@ -19,7 +19,7 @@ program fillds;
 {$H+}
 {$define DEBUGHEAP}
 
-uses 
+uses
 {$ifdef DEBUGHEAP}
   Heaptrc,
 {$endif}
@@ -35,11 +35,11 @@ const
   DEFAULT_FILENAME = 'test.db';
   MEMOTEST_FILENAME = 'createds.pas';
 
-var 
+var
   dsTest: TSqlite3Dataset;
   ini: TIniFile;
 
-begin 
+begin
   {$ifdef DEBUGHEAP}
   SetHeapTraceOutput(ExtractFileName(ParamStr(0))+'.heap.log');
   {$endif}

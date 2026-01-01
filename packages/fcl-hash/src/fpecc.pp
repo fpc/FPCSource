@@ -1,7 +1,7 @@
 { This file is part of the Free Component Library.
 
   Elliptic curve crypto hashing
-  
+
   See the file COPYING.FPC, included in this distribution,
   for details about the copyright.
 
@@ -59,11 +59,11 @@ type
   PPrivateKey = PEccPrivateKey;
 
 
-// Util function to work with ASN.1  
+// Util function to work with ASN.1
 procedure EccPublicKeyFromPrivateKey(out PublicKey: TEccPublicKey; const PrivateKey: TEccPrivateKey);
 function EccImportX963(Input: PByteBuffer; InputLen: Integer; out PublicKey: TEccPublicKey): Boolean;
 function EccImportX963FromXY(InputX: PByteBuffer; InputXLen: Integer; InputY: PByteBuffer; InputYLen: Integer; out PublicKey: TEccPublicKey): Boolean;
-function EccExportX963(const PublicKey: TEccPublicKey; Output: PByteBuffer; OutputLen: Integer): Boolean; 
+function EccExportX963(const PublicKey: TEccPublicKey; Output: PByteBuffer; OutputLen: Integer): Boolean;
 procedure EccPublicKeyFromHexa(out PublicKey: TEccPublicKey; const Hexa: String); overload;
 Function EccPublicKeyFromHexa(const Hexa: String) : TEccPublicKey; overload;
 
@@ -167,7 +167,7 @@ begin
     Inc(I);
     Digit := Digit shr 1;
   end;
-  Result := (NumDigits-1)*64 + I    
+  Result := (NumDigits-1)*64 + I
 end;
 
 // Sets Dest = Src
@@ -222,7 +222,7 @@ begin
   end;
 end;
 
-// Computes p_vli = p_vli shr 1 
+// Computes p_vli = p_vli shr 1
 procedure vli_rshift1(var VLI: TVLI);
 var
   Carry: UInt64;
@@ -392,7 +392,7 @@ begin
 end;
 
 // Computes Result = Product mod Curve
-// from http://www.nsa.gov/ia/_files/nist-routines.pdf 
+// from http://www.nsa.gov/ia/_files/nist-routines.pdf
 procedure vli_mmod_fast(out Output: TVLI; var p_product: TVLI2);
 var
   Carry: Int32;
@@ -400,7 +400,7 @@ var
 begin
   // t
   vli_set(Output, p_product);
-    
+
   // s1
   l_tmp[0] := 0;
   l_tmp[1] := p_product[5] and $FFFFFFFF00000000;
@@ -408,21 +408,21 @@ begin
   l_tmp[3] := p_product[7];
   Carry := vli_lshift(l_tmp, l_tmp, 1);
   Carry := Carry + vli_add(Output, Output, l_tmp);
-    
+
   // s2
   l_tmp[1] := p_product[6] shl 32;
   l_tmp[2] := (p_product[6] shr 32) or (p_product[7] shl 32);
   l_tmp[3] := p_product[7] shr 32;
   Carry := Carry + Int32(vli_lshift(l_tmp, l_tmp, 1));
   Carry := Carry + vli_add(Output, Output, l_tmp);
-    
+
   // s3
   l_tmp[0] := p_product[4];
   l_tmp[1] := p_product[5] and $FFFFFFFF;
   l_tmp[2] := 0;
   l_tmp[3] := p_product[7];
   Carry := Carry + vli_add(Output, Output, l_tmp);
-    
+
   // s4
   l_tmp[0] := (p_product[4] shr 32) or (p_product[5] shl 32);
   l_tmp[1] := (p_product[5] shr 32) or (p_product[6] and $FFFFFFFF00000000);
@@ -430,7 +430,7 @@ begin
   l_tmp[3] := (p_product[6] shr 32) or (p_product[4] shl 32);
   Carry := Carry + vli_add(Output, Output, l_tmp);
 
-  // d1 
+  // d1
   l_tmp[0] := (p_product[5] shr 32) or (p_product[6] shl 32);
   l_tmp[1] := (p_product[6] shr 32);
   l_tmp[2] := 0;
@@ -450,14 +450,14 @@ begin
   l_tmp[2] := (p_product[4] shr 32) or (p_product[5] shl 32);
   l_tmp[3] := (p_product[6] shl 32);
   Carry := Carry - vli_sub(Output, Output, l_tmp);
-    
-  // d4 
+
+  // d4
   l_tmp[0] := p_product[7];
   l_tmp[1] := p_product[4] and $FFFFFFFF00000000;
   l_tmp[2] := p_product[5];
   l_tmp[3] := p_product[6] and $FFFFFFFF00000000;
   Carry := Carry - vli_sub(Output, Output, l_tmp);
-    
+
   if Carry < 0 then
   begin
     repeat
@@ -517,7 +517,7 @@ begin
     if (a[0] and 1) = 0 then
     begin
       vli_rshift1(a);
-      if (u[0] and 1) = 1 then 
+      if (u[0] and 1) = 1 then
         Carry := vli_add(u, u, Modulo);
       vli_rshift1(u);
       if Carry <> 0 then
@@ -537,7 +537,7 @@ begin
       if vli_cmp(u, v) < 0 then
         vli_add(u, u, Modulo);
       vli_sub(u, u, v);
-      if (u[0] and 1) = 1 then 
+      if (u[0] and 1) = 1 then
         Carry := vli_add(u, u, Modulo);
       vli_rshift1(u);
       if Carry <> 0 then
@@ -559,7 +559,7 @@ begin
   vli_set(Output, u);
 end;
 
-// ------ Point operations ------ 
+// ------ Point operations ------
 
 // Returns 1 if p_point is the point at infinity, 0 otherwise.
 function EccPointIsZero(var Point: TEccPoint): Boolean;
@@ -606,15 +606,15 @@ begin
   vli_modSub(Z1, Z1, t5, Curve_P_32); // t3 = B^2 - A
   vli_modSub(Z1, Z1, t5, Curve_P_32); // t3 = B^2 - 2A = x3
   vli_modSub(t5, t5, Z1, Curve_P_32); // t5 = A - x3
-  vli_modMult_fast(X1, X1, t5);       // t1 = B * (A - x3) 
-  vli_modSub(t4, X1, t4, Curve_P_32); // t4 = B * (A - x3) - y1^4 = y3 
-    
+  vli_modMult_fast(X1, X1, t5);       // t1 = B * (A - x3)
+  vli_modSub(t4, X1, t4, Curve_P_32); // t4 = B * (A - x3) - y1^4 = y3
+
   vli_set(X1, Z1);
   vli_set(Z1, Y1);
   vli_set(Y1, t4);
 end;
 
-// Modify (x1, y1) => (x1 * z^2, y1 * z^3) 
+// Modify (x1, y1) => (x1 * z^2, y1 * z^3)
 procedure apply_z(var X1, Y1, Z: TVLI);
 var
   t1: TVLI;
@@ -663,7 +663,7 @@ begin
   vli_modSub(X2, X1, t5, Curve_P_32); // t3 = B - x3
   vli_modMult_fast(Y2, Y2, X2);       // t4 = (y2 - y1)*(B - x3)
   vli_modSub(Y2, Y2, Y1, Curve_P_32); // t4 = y3
-    
+
   vli_set(X2, t5);
 end;
 
@@ -696,7 +696,7 @@ begin
   vli_modSub(t7, t7, t6, Curve_P_32); // t7 = x3'
   vli_modSub(t6, t7, X1, Curve_P_32); // t6 = x3' - B
   vli_modMult_fast(t6, t6, t5);       // t6 = (y2 + y1)*(x3' - B)
-  vli_modSub(Y1, t6, Y1, Curve_P_32); // t2 = y3' 
+  vli_modSub(Y1, t6, Y1, Curve_P_32); // t2 = y3'
 
   vli_set(X1, t7);
 end;
@@ -725,14 +725,14 @@ begin
   else
     nb := 1;
   XYcZ_addC(Rx[1-nb], Ry[1-nb], Rx[nb], Ry[nb]);
-  // Find final 1/Z value. 
+  // Find final 1/Z value.
   vli_modSub(z, Rx[1], Rx[0], Curve_P_32);  // X1 - X0
   vli_modMult_fast(z, z, Ry[1-nb]);         // Yb * (X1 - X0)
   vli_modMult_fast(z, z, Point.x);          // xP * Yb * (X1 - X0)
   vli_modInv(z, z, Curve_P_32);             // 1 / (xP * Yb * (X1 - X0))
   vli_modMult_fast(z, z, Point.y);          // yP / (xP * Yb * (X1 - X0))
   vli_modMult_fast(z, z, Rx[1-nb]);         // Xb * yP / (xP * Yb * (X1 - X0))
-  // End 1/Z calculation 
+  // End 1/Z calculation
   XYcZ_add(Rx[nb], Ry[nb], Rx[1-nb], Ry[1-nb]);
   apply_z(Rx[0], Ry[0], z);
   vli_set(Output.x, Rx[0]);
@@ -773,7 +773,7 @@ begin
   end;
 end;
 
-// Compute a = sqrt(a) (mod curve_p). 
+// Compute a = sqrt(a) (mod curve_p).
 procedure ModSqrt(var a: TVLI);
 var
   I: Integer;
@@ -927,14 +927,14 @@ begin
   Result := not EccPointIsZero(Product);
 end;
 
-// -------- ECDSA code -------- 
+// -------- ECDSA code --------
 
 // Computes Result = (Left * Right) mod Modulo
 procedure vli_modMult(out Output: TVLI; const Left, Right, Modulo: TVLI);
 
 var
   Carry: UInt64;
-  Cmp: Integer; 
+  Cmp: Integer;
   ModMultiple, Product: TVLI2;
   ModMultipleVLI_Lo, ModMultipleVLI_Hi, ProductVLI_Lo, ProductVLI_Hi: PVLI;
   DigitShift, BitShift, ProductBits, ModBits: Integer;
@@ -998,7 +998,7 @@ function Max(const A, B: UInt32): UInt32; inline;
 begin
   if A > b then
     Result := A
-  else                                         
+  else
     Result := B;
 end;
 
@@ -1022,7 +1022,7 @@ begin
       vli_sub(k, k, Curve_N_32);
     // Temp = k * G
     EccPointMult(P, Curve_G_32, k, nil);
-    // r = x1 (mod n) 
+    // r = x1 (mod n)
     if vli_cmp(Curve_N_32, P.x) <> 1 then
       vli_sub(P.x, P.x, Curve_N_32);
   until not vli_isZero(p.x);
@@ -1031,7 +1031,7 @@ begin
   vli_modMult(S, P.x, Temp, Curve_N_32); // s = r*d
   EccBytes2Native(Temp, @Hash);
   vli_modAdd(S, Temp, S, Curve_N_32); // s = e + r*d
-  vli_modInv(k, k, Curve_N_32); // k = 1 / k 
+  vli_modInv(k, k, Curve_N_32); // k = 1 / k
   vli_modMult(S, S, k, Curve_N_32); // s = (e + r*d) / k
   EccNative2Bytes(@Signature[ECC_BYTES], S);
   Result := True;
@@ -1059,20 +1059,20 @@ begin
   if (vli_cmp(Curve_N_32, l_r) <> 1) or (vli_cmp(Curve_N_32, l_s) <> 1) then
     Exit; // r, s must be < n
   // Calculate u1 and u2
-  vli_modInv(z, l_s, Curve_N_32); // Z = s^-1 
+  vli_modInv(z, l_s, Curve_N_32); // Z = s^-1
   EccBytes2Native(u1, @Hash);
   vli_modMult(u1, u1, z, Curve_N_32); // u1 = e/s
   vli_modMult(u2, l_r, z, Curve_N_32); // u2 = r/s
-  // Calculate l_sum = G + Q. 
+  // Calculate l_sum = G + Q.
   vli_set(SumPoint.x, PublicPoint.x);
   vli_set(SumPoint.y, PublicPoint.y);
   vli_set(tx, Curve_G_32.x);
   vli_set(ty, Curve_G_32.y);
   vli_modSub(z, SumPoint.x, tx, Curve_P_32); // Z = x2 - x1
   XYcZ_add(tx, ty, SumPoint.x, SumPoint.y);
-  vli_modInv(z, z, Curve_P_32); // Z = 1/Z 
+  vli_modInv(z, z, Curve_P_32); // Z = 1/Z
   apply_z(SumPoint.x, SumPoint.y, z);
-  // Use Shamir's trick to calculate u1*G + u2*Q 
+  // Use Shamir's trick to calculate u1*G + u2*Q
   Points[0] := nil;
   Points[1] := @Curve_G_32;
   Points[2] := @PublicPoint;

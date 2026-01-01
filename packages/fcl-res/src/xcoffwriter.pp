@@ -23,7 +23,7 @@ interface
 
 {$IFDEF FPC_DOTTEDUNITS}
 uses
-  System.Classes, System.SysUtils, System.Resources.StringTable.Types, System.Resources.Resource, System.Resources.Tree,  
+  System.Classes, System.SysUtils, System.Resources.StringTable.Types, System.Resources.Resource, System.Resources.Tree,
   System.Resources.Coff.Types, System.Resources.Coff.Writer;
 {$ELSE FPC_DOTTEDUNITS}
 uses

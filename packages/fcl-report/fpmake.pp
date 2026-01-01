@@ -40,9 +40,9 @@ begin
 {$ENDIF}
     T:=P.Targets.AddUnit('fpreportstreamer.pp');
     T.ResourceStrings := True;
-    
+
     T:=P.Targets.AddUnit('fpreporthtmlparser.pp');
-   
+
     T:=P.Targets.AddUnit('fpreport.pp');
     T.ResourceStrings := True;
     with T.Dependencies do
@@ -56,7 +56,7 @@ begin
     T.ResourceStrings := True;
     with T.Dependencies do
       AddUnit('fpreport');
-      
+
     T:=P.Targets.AddUnit('fpreportdatacsv.pp');
     T.ResourceStrings := True;
     with T.Dependencies do
@@ -89,14 +89,14 @@ begin
       AddUnit('fpreport');
       AddUnit('fpreportdata');
       end;
-      
+
     T:=P.Targets.AddUnit('fpjsonreport.pp');
     T.ResourceStrings := True;
     with T.Dependencies do
       begin
       AddUnit('fpreport');
       AddUnit('fpreportdata');
-      end; 
+      end;
 
     T:=P.Targets.AddUnit('fplazreport.pp');
     T.ResourceStrings := True;
@@ -105,8 +105,8 @@ begin
       AddUnit('fpreport');
       AddUnit('fpjsonreport');
       AddUnit('fpreportdb');
-      end; 
-      
+      end;
+
     T:=P.Targets.AddUnit('fpreportjson.pp');
     T.ResourceStrings := True;
     with T.Dependencies do
@@ -114,7 +114,7 @@ begin
       AddUnit('fpreportstreamer');
       AddUnit('fpreport');
       end;
-    {  
+    {
     T:=P.Targets.AddUnit('fpreportdom.pp');
     T.ResourceStrings := True;
     with T.Dependencies do
@@ -139,7 +139,7 @@ begin
     T:=P.Targets.AddUnit('fpreportcanvashelper.pp');
     with T.Dependencies do
       AddUnit('fpreport');
-      
+
     T:=P.Targets.AddUnit('fpreporthtmlutil.pp');
     T.ResourceStrings := True;
     with T.Dependencies do

@@ -88,7 +88,7 @@ end;
 constructor TFPReaderXWD.create;
 begin
   inherited create;
-  
+
 end;
 
 destructor TFPReaderXWD.Destroy;
@@ -151,7 +151,7 @@ var
   MyColor: TFPColor;
 begin
   MyColor.alpha := 0;
-  
+
   case XWDFileHeader.bits_per_pixel of
    1 :
      for Column:=0 to Img.Width-1 do
@@ -239,7 +239,7 @@ begin
 
   // Avoids allocating too much space for the string
   if Size > 256 then raise Exception.Create('Window name string too big. The file might be corrupted.');
-  
+
   SetLength(WindowName, Size);
 
   Stream.Read(WindowName[0], Size);
@@ -299,5 +299,5 @@ end;
 initialization
 
   ImageHandlers.RegisterImageReader ('XWD Format', 'xwd', TFPReaderXWD);
-  
+
 end.

@@ -2,21 +2,21 @@
   This source is only used to compile and install the package.
  }
 
-unit lazwebdata; 
+unit lazwebdata;
 
 interface
 
 uses
-    reglazwebdata, extjsjson, extjsxml, fpextjs, fpwebdata, sqldbwebdata, 
+    reglazwebdata, extjsjson, extjsxml, fpextjs, fpwebdata, sqldbwebdata,
   LazarusPackageIntf;
 
 implementation
 
-procedure Register; 
+procedure Register;
 begin
-  RegisterUnit('reglazwebdata', @reglazwebdata.Register); 
-end; 
+  RegisterUnit('reglazwebdata', @reglazwebdata.Register);
+end;
 
 initialization
-  RegisterPackage('lazwebdata', @Register); 
+  RegisterPackage('lazwebdata', @Register);
 end.

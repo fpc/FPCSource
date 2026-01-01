@@ -15,7 +15,7 @@ type TGSetTest = class(TTestCase)
     procedure IteratorTest;
   public
     procedure Setup;override;
-  private 
+  private
     data:setlli;
   end;
 
@@ -55,7 +55,7 @@ begin
   data.insert(3);
   AssertEquals('Wrong size', 3, data.size);
   AssertEquals('Wrong min', 3, data.min().Data);
-  if(data.find(4)<>nil) then 
+  if(data.find(4)<>nil) then
     Fail('Found key which not there');
   if(data.find(5)=nil) then
     Fail('Not found key which was there');

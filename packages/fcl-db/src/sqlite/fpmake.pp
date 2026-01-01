@@ -6,10 +6,10 @@ uses fpmkunit;
 
 Var
   T : TTarget;
-   
+
 begin
   ChangeDir('../..');
-  With Installer do 
+  With Installer do
     begin
     {$i ../../fclmake.inc}
     {$i fpmake.inc}

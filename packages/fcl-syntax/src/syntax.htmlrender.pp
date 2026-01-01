@@ -22,7 +22,7 @@ interface
 uses
 {$IFDEF FPC_DOTTEDUNITS}
   System.Classes, System.SysUtils, syntax.highlighter;
-{$ELSE}  
+{$ELSE}
   Classes, SysUtils, syntax.highlighter;
 {$ENDIF}
 

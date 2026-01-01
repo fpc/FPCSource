@@ -43,7 +43,7 @@ Type
                          tNotify,     // Generate Property change notification test (tiOPF)
                          tMaxLen);    // Generate property MaxLen (tiOPF)
   TTestpropertyOptions = set of TTestpropertyOption;
-  TTestCodeOption = (coCreateDeclaration, // Generate declaration of test cases. 
+  TTestCodeOption = (coCreateDeclaration, // Generate declaration of test cases.
                      coImplementation,  // generate (empty) implementation of tests
                      coDefaultFail,     // Insert Fail() statement in tests
                      coSingleClass,     // Use a single test class for all tests
@@ -527,7 +527,7 @@ begin
   if AddFail then
     C.Add(Format('  Fail(''%s'');',[FM]));
   if AddInherited then
-    C.Add('  Inherited;');  
+    C.Add('  Inherited;');
   C.Add('end;');
   C.Add('');
 end;

@@ -43,9 +43,9 @@ const
 
   procedure GenerateSchemaFileFromFactory(AFactory : ISDODataFactory; AFileName : string);
   var
-    xsdHelper : IXSDHelper;     
+    xsdHelper : IXSDHelper;
   begin
-    xsdHelper := TXSDHelper.Create(AFactory); 
+    xsdHelper := TXSDHelper.Create(AFactory);
     xsdHelper.Generate(AFactory.getTypes(),s_uri,AFileName);
   end;
 
@@ -61,7 +61,7 @@ begin
   fact := TSDODataFactory.Create();
   PopulateFactoryByCode(fact);
   generateschemafilefromfactory(fact,'out.xsd');
-  projList := fact.createNew(s_uri,s_project_list_type); 
+  projList := fact.createNew(s_uri,s_project_list_type);
   // stop changes tracking
   projList.getChangeSummary().endLogging();
   //Add some data
@@ -117,9 +117,9 @@ begin
       pers.setString(s_name,'SDO dev 2');
       pers.setDataObject(s_manager,projList.getDataObject('Project[2]/Member[Name="SDO dev manager"]'));
     proj.setDataObject('ProjectLeader',proj.getDataObject('Member[Name="SDO dev manager"]'));
-  
+
   projList.getList(s_project).delete(0);
-  
+
   //save it now to file
   changeLS := projList.getChangeSummary.getChangedDataObjects();
   WriteLn('There are ',changeLS.size(), ' changed objects :');
@@ -129,7 +129,7 @@ begin
     WriteLn('    Object Path = ',getXpath(changeLS.getDataObject(i)));
   end;
 
-  
+
   //revert changes
   projList.getChangeSummary.undoChanges();
   WriteLn('There are ',changeLS.size(), ' changed objects after changes undo.');

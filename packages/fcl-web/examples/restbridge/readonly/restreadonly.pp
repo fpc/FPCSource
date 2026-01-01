@@ -53,14 +53,14 @@ var
 begin
   // quick check parameters
   ErrorMsg:=CheckOptions('hc:p:q', ['help','config:','port:','quiet']);
-  if ErrorMsg<>'' then 
+  if ErrorMsg<>'' then
     begin
     ShowException(Exception.Create(ErrorMsg));
     Terminate;
     Exit;
     end;
   // parse parameters
-  if HasOption('h', 'help') then 
+  if HasOption('h', 'help') then
     begin
     WriteHelp;
     Terminate;

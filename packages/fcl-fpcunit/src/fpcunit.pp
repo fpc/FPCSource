@@ -339,7 +339,7 @@ type
     // Only for backwards compatibility. Use Test and ChildTestCount.
     property Tests: TFPList read FTests; deprecated;
     end;
-  
+
   TProtect = procedure(aTest: TTest; aResult: TTestResult);
 
   { TTestResult }
@@ -395,7 +395,7 @@ type
   // Made public for 3rd party developers extending TTestCase with new AssertXXX methods
   function CallerAddr: Pointer;
 
-  
+
 Resourcestring
 
   SCompare = ' expected: <%s> but was: <%s>';
@@ -410,7 +410,7 @@ Resourcestring
   SNoValidTests = 'No valid tests found in ';
   SNoException = 'no exception';
   SAssertNotCalled = 'Assert not called during test.';
-  
+
 implementation
 
 {$IFDEF FPC_DOTTEDUNITS}
@@ -711,7 +711,7 @@ begin
   Inc(AssertCount);
   if AErrorAddrs = nil then
     raise EAssertionFailedError.CreateFmt(AFmt,Args) at CallerAddr
-  else    
+  else
     raise EAssertionFailedError.CreateFmt(AFmt,Args) at AErrorAddrs;
 end;
 
@@ -1768,7 +1768,7 @@ begin
       RunMethod;
       if (FExpectedException<>Nil) then
         FailMessage:=Format(SExceptionCompare, [FExpectedException.ClassName, SNoException]);
-      if CheckAssertCalled and (AssertCount=0) then  
+      if CheckAssertCalled and (AssertCount=0) then
         FailMessage:=SAssertNotCalled;
     except
       On E : Exception do
@@ -2049,7 +2049,7 @@ var
 begin
   if FTests.Count > 0 then
     AResult.StartTestSuite(self);
-    
+
   for i := 0 to FTests.Count - 1 do
     begin
     ti:=TTestItem(FTests[i]);

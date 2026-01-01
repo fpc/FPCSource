@@ -17,9 +17,9 @@ begin
     P.HomepageURL := 'www.freepascal.org';
     P.Email := '';
     P.Description := 'First basic test-package';
- 
+
     P.SourcePath.Add('src');
- 
+
     T:=P.Targets.AddUnit('PackageAUnitA.pas');
     Run;
     end;

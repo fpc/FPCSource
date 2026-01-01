@@ -28,7 +28,7 @@ uses
 uses
   Classes, SysUtils, resource, groupresource;
 {$ENDIF FPC_DOTTEDUNITS}
-  
+
 type
 
   { TGroupIconResource }
@@ -179,7 +179,7 @@ begin
   res.LangID:=LangID;
   if OwnerList<>nil then
     index:=OwnerList.AddAutoID(res);
-    
+
   GetMem(pii,sizeof(TIconInfo));
   fItemList.Add(pii);
   pii^.res:=res;

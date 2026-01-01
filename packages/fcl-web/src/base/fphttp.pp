@@ -57,7 +57,7 @@ Type
     Property Request : TRequest Read FRequest;
     Property Response : TResponse Read FResponse;
   end;
-  
+
   { TCustomWebAction }
   TCustomWebAction = Class(TCollectionItem)
   private
@@ -107,7 +107,7 @@ Type
     Property Actions[Index : Integer] : TCustomWebAction Read GetActions Write SetActions; Default;
     Property DefActionWhenUnknown : Boolean read FDefActionWhenUnknown write FDefActionWhenUnknown;
   end;
-  
+
   { TCustomHTTPModule }
 
   TInitModuleEvent = Procedure (Sender : TObject; ARequest : TRequest) of object;
@@ -490,7 +490,7 @@ end;
 
 procedure RegisterHTTPModule(const ModuleName: String;
   ModuleClass: TCustomHTTPModuleClass; SkipStreaming : Boolean = False);
-  
+
 begin
   ModuleFactory.RegisterHTTPModule(ModuleName,ModuleClass,SkipStreaming);
 end;
@@ -500,7 +500,7 @@ end;
 
 procedure THTTPContentProducer.HandleRequest(ARequest: TRequest;
   AResponse: TResponse; Var Handled : Boolean);
-  
+
 begin
   If Assigned(FBeforeRequest) then
     FBeforeRequest(Self,ARequest);
@@ -515,13 +515,13 @@ begin
     FBeforeRequest(Self,ARequest);
   DoGetContent(Arequest,Content,Handled);
 end;
-  
+
 procedure THTTPContentProducer.DoHandleRequest(ARequest: TRequest;
   AResponse: TResponse; Var Handled : Boolean);
 
 Var
   M : TMemoryStream;
-  
+
 begin
   FResponse:=AResponse;
   M:=TMemoryStream.Create;
@@ -680,7 +680,7 @@ begin
     Result := '';
   If Assigned(FOnGetAction) then
     FOnGetAction(Self,ARequest,Result);
-  // GetNextPathInfo is only used after OnGetAction, so that the call to 
+  // GetNextPathInfo is only used after OnGetAction, so that the call to
   // GetNextPathInfo can be avoided in the event.
   If (Result='') then
     Result:=ARequest.GetNextPathInfo;

@@ -34,7 +34,7 @@ begin
     P.SourcePath.Add('src');
 
     T:=P.Targets.AddUnit('ebnf.tree.pp');
-    
+
     T:=P.Targets.AddUnit('ebnf.scanner.pp');
     T.ResourceStrings:=true;
 
@@ -45,7 +45,7 @@ begin
       AddUnit('ebnf.tree');
       AddUnit('ebnf.scanner');
       end;
-      
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

@@ -1,13 +1,13 @@
-{* 
+{*
  * QR Code generator demo (Pascal)
- * 
+ *
  * Run this command-line program with no arguments. The program
  * computes a demonstration QR Codes and print it to the console.
  *
  * Pascal Version: Copyright (c) Michael Van Canneyt (michael@freepascal.org)
  * Copyright (c) Project Nayuki. (MIT License)
  * https://www.nayuki.io/page/qr-code-generator-library
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
  * the Software without restriction, including without limitation the rights to
@@ -37,7 +37,7 @@ var
   size : cardinal;
   border: byte;
   x,y : Integer;
-  
+
 begin
   Size:=QRgetSize(qrcode);
   border:=4;
@@ -45,9 +45,9 @@ begin
     begin
     For x:=-Border to size+Border-1 do
       if (X>=0) and (Y>=0) and QRgetModule(qrcode, x, y) then
-        write('##') 
+        write('##')
       else
-        Write('  '); 
+        Write('  ');
     writeln;
     end;
 end;
@@ -174,14 +174,14 @@ var
   segs : TQRSegmentArray;
   segs2 : TQRSegmentArray;
   len, I,j : integer;
-      
+
 begin
   SetLength(tempBuffer,QRBUFFER_LEN_MAX);
   SetLength(qrCode,QRBUFFER_LEN_MAX);
   // Illustration 'silver'
   silver0 := 'THE SQUARE ROOT OF 2 IS 1.';
   silver1 := '41421356237309504880168872420969807856967187537694807317667973799';
-  
+
   aText:=silver0+Silver1;
   if QRencodeText(aText, tempBuffer, qrcode, EccLOW,  QRVERSIONMIN, QRVERSIONMAX, mpAUTO, true) then
     printQr(qrcode);
@@ -234,7 +234,7 @@ begin
         #$BC#$9F;
   if  QRencodeText(aText, tempBuffer, qrcode, eccLOW, QRVERSIONMIN, QRVERSIONMAX, mpAUTO, true) then
     printQr(qrcode);
-    
+
   len:= SizeOf(kanjiChars) div sizeof(Word);
   SetLength(segBuf0,QRcalcSegmentBufferSize(mKANJI, len));
   seg.mode := mKANJI;

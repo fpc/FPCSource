@@ -22,10 +22,10 @@ interface
 
 {$IFDEF FPC_DOTTEDUNITS}
 uses
-  System.SysUtils; 
+  System.SysUtils;
 {$ELSE FPC_DOTTEDUNITS}
 uses
-  SysUtils; 
+  SysUtils;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
@@ -59,7 +59,7 @@ type
   function HasLogger() : Boolean;
   function SetLogger(ALogger : ILogger) : ILogger;
   function GetLogger() : ILogger;
-  
+
 implementation
 
 var FLogger : ILogger = nil;

@@ -27,7 +27,7 @@ uses
 uses
   Classes, SysUtils, DB, fpDBExport;
 {$ENDIF FPC_DOTTEDUNITS}
-  
+
 Type
   { TSimpleXMLFormatSettings }
 

@@ -26,13 +26,13 @@ CLOSE:
             - FreeFieldBuffers
             - UnPrepareStatement (Only if prepare is False, thus if prepared queries
                          were not supported)
-												 
+
 UnPrepare:
             - UnPrepareStatement
-            
+
 DESTROY:
             - DeAllocateCursorHandle (Also called if the Connection is changed)
-            
+
 
 ** Non select statement (execsql)
 From the TSQLConnection point of view the following methods are called if a non-
@@ -77,18 +77,18 @@ This function deallocates the TSQLCursor, and sets its value to nil.
 *** to do ***
 
 * function Commit(trans : TSQLHandle) : boolean; virtual; abstract;
-This function commits the statement in the context of 
+This function commits the statement in the context of
 transaction trans.
 
 * function RollBack(trans : TSQLHandle) : boolean; virtual; abstract;
-This function rolls back/reverts the statement in the context of 
+This function rolls back/reverts the statement in the context of
 transaction trans
 
 * function StartdbTransaction(trans : TSQLHandle; aParams : string) : boolean; virtual; abstract;
 This function starts the transaction trans.
 
 * procedure CommitRetaining(trans : TSQLHandle); virtual; abstract;
-This procedure commits the transaction tran and immediately starts the transaction again 
+This procedure commits the transaction tran and immediately starts the transaction again
 (or opens a new transaction with the same parameters/settings as tran).
 
 * procedure RollBackRetaining(trans : TSQLHandle); virtual; abstract;
@@ -111,7 +111,7 @@ new transaction with the same parameters/settings as the original transaction.
 This functions prepares the query which is given in buf.
 It's only called if Prepared is True (and cursor FPrepared is False).
 
-If the database supports prepared queries for the kind of SQL statement indicated 
+If the database supports prepared queries for the kind of SQL statement indicated
 in cursor.FStatementType and the prepare was successful, then cursor.FPrepared
 is set to True. This keeps Prepare from being called again until UnPrepared
 is called (which sets FPrepared to False).

@@ -2,7 +2,7 @@ Program AvlTreeTest;
 {
     This file is a demo of the Free Component Library (FCL)
     Copyright (c) 2009 by Marco van de Voort.
-  
+
     A demo/test of straightforward unit Avl_Tree usage.
 
     See the file COPYING.FPC, included in this distribution,
@@ -25,12 +25,12 @@ Program AvlTreeTest;
 
 Uses avl_tree,Sysutils,Classes;
 
-Const 
+Const
     NumberOfValues = 10000;
 
 Type TDataObject = Class
 		    Name:String;
-                    value : integer; 
+                    value : integer;
 		   end;
 
 Var objcompares : integer =0;
@@ -56,7 +56,7 @@ var
    obj       : TDataObject;
    AVLNode   : TAVLTreeNode;
 begin
- Randomize; 
+ Randomize;
  Tree :=TAVLTree.Create(@CompareProcObj);
  Allocated:=TBits.Create(NumberOfValues);
 
@@ -64,7 +64,7 @@ begin
  For I:=0 to NumberOfValues-1 do
   begin
     value:=Random(NumberOfValues);
-    valueStr:=inttostr(Value);  
+    valueStr:=inttostr(Value);
     If not assigned(Tree.FindKey(pointer(valueStr),@CompareProcKey)) Then
       begin
         obj:=TDataObject.Create;
@@ -82,7 +82,7 @@ begin
 
   // iterating and comparing with the TBits.
   AVLNode:=Tree.FindLowest;
-  while (AVLNode<>nil) do 
+  while (AVLNode<>nil) do
      begin
        value:=TDataObject(AVLNode.Data).value;
        if not Allocated[value] then
@@ -90,7 +90,7 @@ begin
       AVLNode:=Tree.FindSuccessor(AVLNode)
      end;
 
-  // Iterating is compareless as it should be, despite 
+  // Iterating is compareless as it should be, despite
   //   the "FINDsuccessor" method name.
   Writeln('object compares (insert):',objcompares);
   Writeln('key    compares (find  ):',keycompares);

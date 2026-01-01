@@ -28,7 +28,7 @@ uses
 uses
   Classes, SysUtils, DB, fpDataDict;
 {$ENDIF FPC_DOTTEDUNITS}
-  
+
 Type
   TPropType = (ptAuto,
                ptBoolean,
@@ -41,7 +41,7 @@ Type
                ptDateTime,
                ptEnumerated, ptSet, ptStream, ptTStrings,
                ptCustom);
-               
+
   TVisibility = (vPrivate,vProtected,vPublic,vPublished);
   TVisibilities = Set of TVisibility;
   TPropAccess = (paReadWrite,paReadonly,paWriteonly);
@@ -94,7 +94,7 @@ Type
     Property PropertyAccess : TPropAccess Read FPropAccess Write FPropAccess;
     Property PropSetters : TPropSetters Read FPropSetters Write FPropSetters;
   end;
-  
+
   { TFieldPropDefs }
 
   TFieldPropDefs = Class (TCollection)
@@ -202,7 +202,7 @@ Type
     Property CodeOptions : TCodeGeneratorOptions Read FCodeOptions Write FCodeOptions;
     Property Indent : Integer Read FIndent Write FIndent Default 2;
   end;
-  
+
   { TClassCodeGeneratorOptions }
 
   TClassCodeGeneratorOptions = Class(TCodeGeneratorOptions)
@@ -345,7 +345,7 @@ Type
   end;
 
   ECodeGenerator = Class(Exception);
-  
+
   { TExportFormatItem }
 
   TDDCustomCodeGeneratorClass = Class of TDDCustomCodeGenerator;
@@ -413,7 +413,7 @@ Var
     ptCustom, ptCustom, ptCustom, ptCustom, ptCustom,
     ptCustom, ptAnsiString, ptDateTime, ptCurrency, ptWideString, ptWideString,
     ptDateTime, ptDateTime, ptCustom, ptCustom, ptCustom, ptCustom, ptSingle);
-    
+
   PropTypeToVisibilityMap : TPropertyVisibilityMap = (
     vPrivate,
     vPublished,
@@ -505,7 +505,7 @@ Function MakeIdentifier (const S : String) : String;
 
 Var
   I : Integer;
-  
+
 begin
   Result:=S;
   For I:=Length(Result) downto 0 do
@@ -661,7 +661,7 @@ Var
   I : Integer;
   D : TFieldPropDef;
   F : TField;
-  
+
 begin
   If DoClear then
     Clear;
@@ -711,7 +711,7 @@ function TFieldPropDefs.FindPropName(const AName: String): TFieldPropDef;
 
 Var
   I : Integer;
-  
+
 begin
   I:=IndexOfPropName(AName);
   If (I<>-1) then
@@ -886,7 +886,7 @@ Var
   B : Boolean;
   I : Integer;
   F : TFieldPropDef;
-  
+
 begin
   AddLn(Strings,' { %s } ',[ClassOptions.ObjectClassName]);
   AddLn(Strings);
@@ -986,7 +986,7 @@ begin
       L:=Length(S);
       if (S[L]<>';') then
         S:=S+';';
-      AddLn(Strings,S);  
+      AddLn(Strings,S);
       end;
   Finally
     DecIndent;
@@ -1212,7 +1212,7 @@ procedure TDDClassCodeGenerator.WriteVisibilityStart(V: TVisibility;
 Var
   I : Integer;
   F : TFieldPropDef;
-  
+
 begin
   If (v=vPrivate) then
     begin
@@ -1460,7 +1460,7 @@ end;
 procedure TDDCustomCodeGenerator.GenerateCode(Strings: TStrings);
 
   Procedure MaybeAddUsesClause(S : String);
-  
+
   begin
     If (S<>'') then
       begin
@@ -1473,7 +1473,7 @@ procedure TDDCustomCodeGenerator.GenerateCode(Strings: TStrings);
 
 Var
   S : String;
-  
+
 begin
   FCurrentIndent:='';
   if (coUnit in CodeOptions.Options) then
@@ -1676,7 +1676,7 @@ procedure TCodeGeneratorOptions.Assign(ASource: TPersistent);
 
 Var
   CG : TCodeGeneratorOptions;
-  
+
 begin
   If ASource is TCodeGeneratorOptions then
     begin

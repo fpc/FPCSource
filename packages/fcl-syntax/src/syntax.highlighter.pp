@@ -60,7 +60,7 @@ type
   TSyntaxHighlightKindHelper = type helper for TSyntaxHighlightKind
     function toString : string;
   end;
-  
+
   { TSyntaxToken }
 
   // One syntax token

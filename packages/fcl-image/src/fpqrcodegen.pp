@@ -43,7 +43,7 @@ Type
   TQRBuffer = TBytes;
 
 
-{ 
+{
  * A segment of user/application data that a QR Code symbol can convey.
  * Each segment has a mode, a character count, and character/general data that is
  * already encoded as a sequence of bits. The maximum allowed bit length is 32767,
@@ -126,7 +126,7 @@ Type
 
 {---- Functions to generate QR Codes ----}
 
-{ 
+{
  * Encodes the given text string to a QR Code symbol, returning true if encoding succeeded.
  * If the data is too long to fit in any version in the given range
  * at the given ECC level, then false is returned.
@@ -149,7 +149,7 @@ function QREncodeText(aText : TQRString; tempBuffer, qrcode : TQRBuffer;
 	ecl : TQRErrorLevelCorrection; minVersion, maxVersion : TQRVersion;  mask : TQRMask;  boostEcl : Boolean) : boolean;
 
 
-{ 
+{
  * Encodes the given binary data to a QR Code symbol, returning true if encoding succeeded.
  * If the data is too long to fit in any version in the given range
  * at the given ECC level, then false is returned.
@@ -171,19 +171,19 @@ function QREncodeBinary(dataAndTemp : TQRBuffer; dataLen : Integer; qrcode : TQR
 	ecl: TQRErrorLevelCorrection; minVersion, maxVersion: TQRVersion; mask: TQRMask; boostEcl : Boolean) : Boolean;
 
 
-{ 
+{
  * Tests whether the given string can be encoded as a segment in alphanumeric mode.
  }
 Function QRIsAlphanumeric(aText : TQRString) : Boolean;
 
 
-{ 
+{
  * Tests whether the given string can be encoded as a segment in numeric mode.
  }
 Function QRIsNumeric(atext : TQRString) : Boolean;
 
 
-{ 
+{
  * Returns the number of bytes (uint8_t) needed for the data buffer of a segment
  * containing the given number of characters using the given mode. Notes:
  * - Returns SIZE_MAX on failure, i.e. numChars > INT16_MAX or
@@ -197,31 +197,31 @@ Function QRIsNumeric(atext : TQRString) : Boolean;
 Function QRCalcSegmentBufferSize(aMode: TQRMode; numChars : Cardinal) : Cardinal;
 
 
-{ 
+{
  * Returns a segment representing the given binary data encoded in byte mode.
  }
 Function QRmakeBytes(data: TQRBuffer; Buf : TQRBuffer) : TQRSegment;
 
-{ 
+{
  * Returns a segment representing the given string of decimal digits encoded in numeric mode.
  }
 Function QRMakeNumeric(digits : TQRString; buf : TQRBuffer) :  TQRSegment;
 
-{ 
+{
  * Returns a segment representing the given text string encoded in alphanumeric mode.
  * The characters allowed are: 0 to 9, A to Z (uppercase only), space,
  * dollar, percent, asterisk, plus, hyphen, period, slash, colon.
  }
 Function QRMakeAlphanumeric(aText : TQRString; buf : TQRBuffer) : TQRSegment;
 
-{ 
+{
  * Returns a segment representing an Extended Channel Interpretation
  * (ECI) designator with the given assignment value.
  }
 Function QRMakeECI(assignVal : Integer;  buf: TQRBuffer) : TQRSegment;
 
 
-{ 
+{
  * Renders a QR Code symbol representing the given data segments at the given error correction
  * level or higher. The smallest possible QR Code version is automatically chosen for the output.
  * Returns true if QR Code creation succeeded, or false if the data is too long to fit in any version.
@@ -234,7 +234,7 @@ Function QRMakeECI(assignVal : Integer;  buf: TQRBuffer) : TQRSegment;
  }
 Function QREncodeSegments(Segs : TQRSegmentArray; ecl: TQRErrorLevelCorrection; tempBuffer, qrcode : TQRBuffer) : Boolean;
 
-{ 
+{
  * Renders a QR Code symbol representing the given data segments with the given encoding parameters.
  * Returns true if QR Code creation succeeded, or false if the data is too long to fit in the range of versions.
  * The smallest possible QR Code version within the given range is automatically chosen for the output.
@@ -251,7 +251,7 @@ Function QREncodeSegmentsAdvanced(Segs : TQRSegmentArray; ecl: TQRErrorLevelCorr
 
 {---- Functions to extract raw data from QR Codes ----}
 
-{ 
+{
  * Returns the side length of the given QR Code, assuming that encoding succeeded.
  * The result is in the range [21, 177]. Note that the length of the array buffer
  * is related to the side length - every 'uint8_t qrcode[]' must have length at least
@@ -260,7 +260,7 @@ Function QREncodeSegmentsAdvanced(Segs : TQRSegmentArray; ecl: TQRErrorLevelCorr
 Function QRgetSize(qrcode : TQRBuffer) : Byte;
 
 
-{ 
+{
  * Returns the color of the module (pixel) at the given coordinates, which is either
  * false for white or true for black. The top left corner has the coordinates (x=0, y=0).
  * If the given coordinates are out of bounds, then false (white) is returned.
@@ -1338,13 +1338,13 @@ var
   bitlen, I,j : Integer;
   Version : TQRVersion;
   dataUsedBits  : Integer;
-  dataCapacityBits: integer; 
+  dataCapacityBits: integer;
   terminatorBits : Integer;
-  E: TQRErrorLevelCorrection; 
+  E: TQRErrorLevelCorrection;
   padbyte : byte;
   m  :TQRMask;
   penalty,minpenalty : integer;
-  
+
 begin
   Result:=False;
   assert((segs <> Nil) and (length(segs) <> 0));
@@ -1376,7 +1376,7 @@ begin
   bitLen := 0;
   for I:=0 to Length(segs)-1 do
     begin
-    case (segs[i].mode) of 
+    case (segs[i].mode) of
       mNUMERIC     :  modeBits := $1;
       mALPHANUMERIC:  modeBits := $2;
       mBYTE        :  modeBits := $4;
@@ -1489,18 +1489,18 @@ var
 begin
   if (version<=9) then
     i:=0
-  else if ((10 <= version) and (version <= 26)) then 
+  else if ((10 <= version) and (version <= 26)) then
     i:=1
   else if ((27 <= version)) then
     i:=2
-  else  
+  else
     begin
     assert(false);
     end;
   case (mode) of
-    mNUMERIC     : Result:=bmNumeric[i]; 
-    mALPHANUMERIC: Result:=bmALPHANUMERIC[i]; 
-    mBYTE        : Result:=bmBYTE[i]; 
+    mNUMERIC     : Result:=bmNumeric[i];
+    mALPHANUMERIC: Result:=bmALPHANUMERIC[i];
+    mBYTE        : Result:=bmBYTE[i];
     mKANJI       : Result:=bmKANJI[i];
     mECI         : Result:=0;
   else

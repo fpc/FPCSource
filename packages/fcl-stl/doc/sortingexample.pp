@@ -2,7 +2,7 @@ uses garrayutils, gutil, gvector;
 
 type vectorlli = specialize TVector<longint>;
      lesslli = specialize TLess<longint>;
-     sortlli = specialize 
+     sortlli = specialize
          TOrderingArrayUtils<vectorlli, longint, lesslli>;
 
 var data:vectorlli; n,i:longint;

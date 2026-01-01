@@ -452,7 +452,7 @@ type
   public
     property Data: AnsiString  read FData write FData;
   end;
-  
+
   TStringIteratorMethod = Procedure(Item: AnsiString; const Key: AnsiString; var Continue: Boolean) of object;
   TStringIteratorCallback = Procedure(Item: AnsiString; const Key: AnsiString; var Continue: Boolean);
 

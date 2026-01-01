@@ -337,7 +337,7 @@ var
       SetLength(O,Allocated);
     end;
   end;
-  
+
 begin
   LE:=LineEnding;
   LLE:=Length(LE);

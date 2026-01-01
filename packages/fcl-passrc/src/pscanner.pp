@@ -5227,13 +5227,13 @@ begin
      HandleIFNDEF(Param);
   'IFOPT':
      HandleIFOPT(Param);
-  'IFC',   
+  'IFC',
   'IF':
      HandleIF(Param,UpperCase(Directive)='IFC');
   'ELIFC',
   'ELSEIF':
      HandleELSEIF(Param,UpperCase(Directive)='ELIFC');
-  'ELSEC',   
+  'ELSEC',
   'ELSE':
      HandleELSE(Param);
   'ENDC',
@@ -5394,7 +5394,7 @@ procedure TPascalScanner.HandleBoolDirective(bs: TBoolSwitch;
   const Param: TPasScannerString);
 var
   NewValue: Boolean;
-  
+
 begin
   if CompareText(Param,'on')=0 then
     NewValue:=true
@@ -5958,7 +5958,7 @@ begin
           Inc(FTokenPos);
           Result:=tkDotDotDot;
           end
-        else  
+        else
           Result := tkDotDot;
         end
       else

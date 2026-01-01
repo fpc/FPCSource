@@ -175,7 +175,7 @@ type
     procedure TestOne;
     procedure TestTwo;
   end;
-  
+
   { TMyTestSetup }
 
   TMyTestSetup = class(TTestSetup)
@@ -196,8 +196,8 @@ type
   published
     procedure TestRun;
     procedure TestOneTimeSetup;
-  end; 
-  
+  end;
+
 var
   CountSetup: integer;
 
@@ -624,7 +624,7 @@ end;
 procedure TMockListener.StartTestSuite(ATestSuite: TTestSuite);
 begin
 end;
-    
+
 procedure TMockListener.EndTestSuite(ATestSuite: TTestSuite);
 begin
 end;

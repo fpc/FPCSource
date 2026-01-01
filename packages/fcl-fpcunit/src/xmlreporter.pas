@@ -15,7 +15,7 @@
   at <http://www.gnu.org/copyleft/gpl.html>. You can also obtain it by writing
   to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
   Boston, MA 02110-1301, USA.
-  
+
 
   Purpose:
     This unit contains an XML TestListener for use with the fpcUnit testing
@@ -53,7 +53,7 @@ uses
   ,XMLWrite
   ;
 {$ENDIF FPC_DOTTEDUNITS}
-  
+
 
 type
   { XML Test Listener }
@@ -117,7 +117,7 @@ begin
   n := FDoc.CreateElement('NumberOfFailures');
   n.AppendChild(FDoc.CreateTextNode(IntToStr(pTestResult.NumberOfFailures)));
   lResults.AppendChild(n);
-  
+
   n := FDoc.CreateElement('NumberOfIgnoredTests');
   n.AppendChild(FDoc.CreateTextNode(IntToStr(pTestResult.NumberOfIgnoredTests)));
   lResults.AppendChild(n);

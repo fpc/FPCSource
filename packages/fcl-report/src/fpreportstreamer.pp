@@ -252,7 +252,7 @@ begin
  CurrentElement.Add(AName, AValue);
  {$else}
  CurrentElement.Add(AName, Int64(AValue));
- {$endif} 
+ {$endif}
 end;
 
 procedure TFPReportJSONStreamer.WriteFloat(AName: String; AValue: Extended);
@@ -373,11 +373,11 @@ begin
   else
   begin
     if d.JSONType = jtNumber then
-{$if FPC_FULLVERSION>30000}    
+{$if FPC_FULLVERSION>30000}
       Result := d.AsQWord
-{$ELSE}      
+{$ELSE}
      Result := QWord(d.AsInt64)
-{$ENDIF}      
+{$ENDIF}
     else
       Result := ADefault;
   end;

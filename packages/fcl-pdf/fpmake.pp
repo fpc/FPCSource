@@ -62,7 +62,7 @@ begin
     T:=P.Targets.AddUnit('src/fppdfconsts.pp');
     T:=P.Targets.AddUnit('src/fppdfpredict.pp');
     T:=P.Targets.AddUnit('src/fppdfsource.pp');
-    
+
     T:=P.Targets.AddUnit('src/fppdfobjects.pp');
     T.Dependencies.AddUnit('fppdfconsts');
 
@@ -73,14 +73,14 @@ begin
     T.ResourceStrings:=true;
     T.Dependencies.AddUnit('fppdfobjects');
     T.Dependencies.AddUnit('fppdfsource');
-    
+
     T:=P.Targets.AddUnit('src/fppdfparser.pp');
     T.ResourceStrings:=true;
     T.Dependencies.AddUnit('fppdfobjects');
     T.Dependencies.AddUnit('fppdfsource');
     T.Dependencies.AddUnit('fppdfconsts');
     T.Dependencies.AddUnit('fppdfpredict');
-     
+
     // md5.ref
 
     P.NamespaceMap:='namespaces.lst';

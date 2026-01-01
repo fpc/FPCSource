@@ -5,7 +5,7 @@ unit wmjsonusers;
 interface
 
 uses
-  Classes, SysUtils, HTTPDefs, websession, fpHTTP, fpWeb, 
+  Classes, SysUtils, HTTPDefs, websession, fpHTTP, fpWeb,
     fpwebdata, extjsjson;
 
 type
@@ -19,10 +19,10 @@ type
     { private declarations }
   public
     { public declarations }
-  end; 
+  end;
 
 var
-  FPWebProviderDataModule1: TFPWebProviderDataModule1; 
+  FPWebProviderDataModule1: TFPWebProviderDataModule1;
 
 implementation
 

@@ -102,7 +102,7 @@ type
     property OriginalException : Exception read FOriginalException;
     property PreviousError : Integer read FPreviousError;
   end;
-  
+
 
 { TFieldDef }
 
@@ -146,7 +146,7 @@ type
   protected
     function GetDisplayName: string; override;
     procedure SetDisplayName(const AValue: string); override;
-  Public  
+  Public
     property DisplayName : string read GetDisplayName write SetDisplayName;
   published
     property Name : string read FName write SetDisplayName;
@@ -1259,7 +1259,7 @@ type
   public
     constructor Create(Owner: TIndexDefs; const AName, TheFields: string;
       TheOptions: TIndexOptions); overload;
-  published    
+  published
     property Expression: string read GetExpression write SetExpression;
     property Fields: string read FFields write FFields;
     property CaseInsFields: string read FCaseinsFields write SetCaseInsFields;
@@ -1557,7 +1557,7 @@ type
   end;
 
 { TDataSet }
-  
+
   {$ifdef noautomatedbookmark}
   TBookmark = Pointer;
   {$else}
@@ -1571,16 +1571,16 @@ type
 { These types are used by Delphi/Unicode to replace the ambiguous "PAnsiChar" buffer types.
   For now, they are just aliases to PAnsiChar, but in Delphi/Unicode it is pbyte. This will
   be changed later (2.8?), to allow a grace period for descendents to catch up.
-  
+
   Testing with TRecordBuffer=PByte will turn up typing problems. TRecordBuffer=pansichar is backwards
   compatible, even if overriden with "PAnsiChar" variants.
 }
-  TRecordBufferBaseType = AnsiChar; // must match TRecordBuffer. 
+  TRecordBufferBaseType = AnsiChar; // must match TRecordBuffer.
   TRecordBuffer = PAnsiChar;
   PBufferList = ^TBufferList;
   TBufferList = array[0..dsMaxBufferCount - 1] of TRecordBuffer;  // Dynamic array in Delphi.
   TBufferArray = ^TRecordBuffer;
-  
+
   TGetMode = (gmCurrent, gmNext, gmPrior);
 
   TGetResult = (grOK, grBOF, grEOF, grError);
@@ -1996,7 +1996,7 @@ type
     FDataSet: TDataSet;
     FBOF: Boolean;
     function GetCurrent: TFields;
-  public  
+  public
     constructor Create(ADataSet: TDataSet);
     function MoveNext: Boolean;
     property Current: TFields read GetCurrent;
@@ -2520,7 +2520,7 @@ function BuffersEqual(Buf1, Buf2: Pointer; Size: Integer): Boolean;
 function SkipComments(var p: PChar; EscapeSlash, EscapeRepeat : Boolean) : boolean;
 
 operator Enumerator(ADataSet: TDataSet): TDataSetEnumerator;
- 
+
 implementation
 
 {$IFDEF FPC_DOTTEDUNITS}
@@ -2581,7 +2581,7 @@ end;
 
 constructor EUpdateError.Create(NativeError, Context : String;
                                 ErrCode, PrevError : integer; E: Exception);
-                                
+
 begin
   Inherited CreateFmt(NativeError,[Context]);
   FContext := Context;
@@ -2969,7 +2969,7 @@ begin
     end;
 end;
 
-function BuffersEqual(Buf1, Buf2: Pointer; Size: Integer): Boolean; 
+function BuffersEqual(Buf1, Buf2: Pointer; Size: Integer): Boolean;
 
 begin
   Result:=CompareByte(Buf1,Buf2,Size)=0

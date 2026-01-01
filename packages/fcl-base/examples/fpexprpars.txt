@@ -1,19 +1,19 @@
 
 The fpexprpars unit contains an expression parser.
-The parser compiles the expression into a node tree, which is 
+The parser compiles the expression into a node tree, which is
 type checked after it was compiled.
 
 The expression parser handles the following types:
 
   Integer (64-bit)
-  Float (TExprFloat, normally Double) 
+  Float (TExprFloat, normally Double)
   TDateTime
-  Boolean 
+  Boolean
 
 The following operations are allowed:
-  + - / * 
+  + - / *
   not and or xor
-  ( ) 
+  ( )
 The binary operations can also be done on integer values, in which
 case they act on the bits of the integer.
 
@@ -36,18 +36,18 @@ of the expression parser to a set of the following values:
  bcDateTime: Various datetime routines
     date time now dayofweek extractyear extractmonth extractday extracthour
     extractmin extractsec extractmsec encodedate encodetime encodedatetime
-    shortdayname shortmonthname longdayname longmonthname formatdatetime   
+    shortdayname shortmonthname longdayname longmonthname formatdatetime
 
  bcMath: Various mathematical routines
     pi cos sin arctan abs sqr sqrt exp ln log frac int round trunc
 
  bcBoolean: Various boolean routines
-    shl shr IFS IFF IFD IFI  
+    shl shr IFS IFF IFD IFI
 
  bcConversion : Conversion routines
    inttostr strtoint strtointdef floattostr strtofloat strtofloatdef
    booltostr strtobool strtobooldef datetostr timetostr strtodate strtodatedef
-   strtotime strtotimedef strtodatetime strtodatetimedef 
+   strtotime strtotimedef strtodatetime strtodatetimedef
 
 Additional functions/variables can be added to the Identifiers collection:
 
@@ -57,7 +57,7 @@ The following will define a TODAY variable which has value equal to the date
 at the moment is is defined:
 
   FP.Identifiers.AddDateTimeVariable('TODAY',Date);
-  
+
 The following will define a function echodate:
 
 Procedure EchoDate(Var Result : TFPExpressionResult; Const Args : TExprParameterArray);
@@ -81,7 +81,7 @@ The arguments are:
              variable or an event (procedure of object).
 
 Result and arguments are type-checked.
-  
+
 The engine knows 2 built-in functions which are handled specially:
 
   IF(Expr,Res1,Res1)
@@ -115,7 +115,7 @@ Getting the result is quite simple
 
 This will raise an exception if the type of the result is not integer.
 
-In case the expression result type is unknown, it can be examined using 
+In case the expression result type is unknown, it can be examined using
 the ResultType function, as in :
 
   FP.Expression:='Some user-provided expression';
@@ -125,7 +125,7 @@ the ResultType function, as in :
     rtFloat   : Writeln(FP.Evaluate.ResFloat);
     rtBoolean : Writeln(FP.Evaluate.ResBoolean);
     rtDateTime : Writeln(FormatDateTime('cccc',FP.Evaluate.ResDateTime));
-  end;   
+  end;
 
 Which is equivalent to
 

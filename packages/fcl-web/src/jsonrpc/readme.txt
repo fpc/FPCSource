@@ -3,7 +3,7 @@ The JSON-RPC support for FPC consists out of 2 units:
 
 fpjsonrpc: a set of components suitable for executing requests.
 webjsonrpc: Handles all HTTP transport and content handling for the JSON-RPC requests.
-fpextdirect: implements a Ext.Direct variant of JSON-RPC; 
+fpextdirect: implements a Ext.Direct variant of JSON-RPC;
              It includes HTTP transport an content handling.
 
 The fpjsonrpc unit implements support for JSON-RPC: it implements versions
@@ -12,13 +12,13 @@ The fpjsonrpc unit implements support for JSON-RPC: it implements versions
 It introduces the following classes:
 
 TCustomJSONRPCHandler = Class(TComponent)
-  The main method of this class is 
+  The main method of this class is
     Function Execute(Const Params : TJSONData; AContext : TJSONRPCCallContext = Nil) : TJSONData;
        it executes a JSON-RPC call. The parameters to the call are in the Params
        parameter, the AContext parameter can be used by dispatching mechanisms to
        provide information about the context of the call (HTTP session etc.)
     Property ParamDefs : TJSONParamDefs Read FParamDefs Write SetParamDefs;
-       Describes the parameters to the call. If 'Options' contains jroCheckParams, 
+       Describes the parameters to the call. If 'Options' contains jroCheckParams,
        then the types (and names, if appropriate) of the parameters will be checked.
 
 TJSONRPCHandler = Class(TCustomJSONRPCHandler)
@@ -28,9 +28,9 @@ TJSONRPCHandler = Class(TCustomJSONRPCHandler)
 
 TCustomJSONRPCDispatcher = Class(TComponent)
   A request dispatching mechanism. It receives a JSON-encoded RPC request or a batch of
-  requests: 
+  requests:
     Function Execute(Requests : TJSONData; AContext : TJSONRPCCallContext = Nil) : TJSONData;
-  For each request in the batch, it will examine the 'method' and 'class' 
+  For each request in the batch, it will examine the 'method' and 'class'
   of the request and will search for a TCustomJSONRPCHandler instance that
   can execute the call, and pass the call on to that instance. It also
   passes the context to the handler.
@@ -43,7 +43,7 @@ TCustomJSONRPCDispatcher = Class(TComponent)
   is queryied for an instance of TCustomJSONRPCHandler that can handle the
   call. This instance is freed after the call ends.
 
-  The dispatcher can check the validity of the request and responses 
+  The dispatcher can check the validity of the request and responses
   based on the Options property:
     jdoJSONRPC1, // Allow JSON RPC-1
     jdoJSONRPC2, // Allow JSON RPC-2
@@ -52,7 +52,7 @@ TCustomJSONRPCDispatcher = Class(TComponent)
     jdoStrictNotifications // Error if notification returned result. Default is to discard result.
 
 TJSONRPCDispatcher = Class(TCustomJSONRPCDispatcher)
-  A descendent of TCustomJSONRPCDispatcher that publishes some events and  
+  A descendent of TCustomJSONRPCDispatcher that publishes some events and
   properties:
 
   OnStartBatch : Called before a batch is started
@@ -68,16 +68,16 @@ TCustomJSONRPCHandlerManager = Class(TComponent)
 
   A class that implements a TCustomJSONRPCHandler factory: definitions of TCustomJSONRPCHandler classes are kept.
   classes must be registered using one of the calls:
-    Function RegisterHandler(Const AMethodName : TJSONStringType; AClass : TCustomJSONRPCHandlerClass; AArgumentCount : Integer = 0) : TJSONRPCHandlerDef; 
-    Function RegisterHandler(Const AClassName,AMethodName : TJSONStringType; AClass : TCustomJSONRPCHandlerClass; AArgumentCount : Integer = 0) :TJSONRPCHandlerDef; 
+    Function RegisterHandler(Const AMethodName : TJSONStringType; AClass : TCustomJSONRPCHandlerClass; AArgumentCount : Integer = 0) : TJSONRPCHandlerDef;
+    Function RegisterHandler(Const AClassName,AMethodName : TJSONStringType; AClass : TCustomJSONRPCHandlerClass; AArgumentCount : Integer = 0) :TJSONRPCHandlerDef;
 
   There is also support for registering a datamodule with TCustomJSONRPCHandler instances:
 
     Procedure RegisterDatamodule(Const AClass : TDatamoduleClass; Const AHandlerClassName : TJSONStringType);
 
   This will create an instance of the datamodule, register all TCustomJSONRPCHandler instances on the datamodule
-  with the datamodule name as the classname is AHandlerClassName is empty, and the TCustomJSONRPCHandler instance 
-  name as the method name. After registration, the module is freed. 
+  with the datamodule name as the classname is AHandlerClassName is empty, and the TCustomJSONRPCHandler instance
+  name as the method name. After registration, the module is freed.
 
 A global instance of TCustomJSONRPCHandlerManager is available through the
 
@@ -87,19 +87,19 @@ function. By default, an instance of TJSONRPCHandlerManager is created.
 
 This instance is used by the dispatcher classes to search for a TCustomJSONRPCHandler instance.
 
-The webjsonrpc unit implements HTTP transport and content handling for the json-rpc mechanism. 
+The webjsonrpc unit implements HTTP transport and content handling for the json-rpc mechanism.
 It introduces the following classes:
 
-TCustomJSONRPCContentProducer = Class(THTTPContentProducer)    
+TCustomJSONRPCContentProducer = Class(THTTPContentProducer)
 
   Handles a HTTP request, extracts the JSON-RPC request from it, and returns the result in the HTTP response.
   It needs a dispatcher instance, which must be provided by a descendent.
 
 TJSONRPCContentProducer = Class(TCustomJSONRPCContentProducer)
-  Publishes a Dispatcher property, which must be set by the programmer. 
+  Publishes a Dispatcher property, which must be set by the programmer.
   All requests will be dispatched to this instance
 
-TJSONRPCSessionContext = Class(TJSONRPCCallContext) 
+TJSONRPCSessionContext = Class(TJSONRPCCallContext)
   JSON-RPC call context which gives access to the HTTP Session object.
 
 TSessionJSONRPCDispatcher = Class(TCustomJSONRPCDispatcher)
@@ -110,15 +110,15 @@ TJSONRPCDispatchModule = Class(TSessionHTTPModule)
   Webmodule which knows how to dispatch a request and create session information for it.
 
 TCustomJSONRPCModule = Class(TJSONRPCDispatchModule)
-  It completely handles a JSON-RPC request over HTTP. 
+  It completely handles a JSON-RPC request over HTTP.
   It creates a dispatcher if needed to handle the request.
   The dispatcher is by default of type TSessionJSONRPCDispatcher
 
-TJSONRPCModule= Class(TCustomJSONRPCModule)  
-  A webmodule which can be registered in the fcl-web module registry. 
+TJSONRPCModule= Class(TCustomJSONRPCModule)
+  A webmodule which can be registered in the fcl-web module registry.
   Publishes a property Dispatcher to dispatch a request, if set, this
   dispatcher will be used.
-  Publishes a property DispatchOptions; If the module creates a dispatcher,  
+  Publishes a property DispatchOptions; If the module creates a dispatcher,
   it will be passed these properties.
 
 The fpextdirect unit contains the following classes:
@@ -150,7 +150,7 @@ There are 4 ways to handle JSON-RPC in fcl-web:
   A. Drop one or more TJSONRPCHandler components on a webmodule.
   B. Implement the OnExecute handlers of the TJSONRPCHandler components
   C. Handle the request in a OnRequest handler of an webaction and/or webmodule.
-  This means 
+  This means
   1. converting the request to JSONData.
   2. Extracting the method(s) and (their) parameters from the data.
   3. locating The TJSONRPCHandler.
@@ -161,7 +161,7 @@ There are 4 ways to handle JSON-RPC in fcl-web:
   A. Drop one or more TJSONRPCHandler components on a webmodule.
   B. Implement the OnExecute handlers of the TJSONRPCHandler components
   C. Handle the request in a OnRequest handler of an webaction and/or webmodule.
-  This means 
+  This means
   1. converting the request to JSONData.
   4. Passing the parameters to the Execute method of the handler
   5. Convert the result to JSON and send it back.
@@ -170,7 +170,7 @@ There are 4 ways to handle JSON-RPC in fcl-web:
    A. Drop one or more TJSONRPCHandler components on a webmodule.
    B. Implement the OnExecute handlers of the TJSONRPCHandler components.
    C. Handle the request in a OnRequest handler of an webaction and/or webmodule.
-   1. Return the content of the TJSONRPCContentProducer. 
+   1. Return the content of the TJSONRPCContentProducer.
 
 4. Using a TJSONRPCModule
    A. Drop one or more TJSONRPCHandler on a TJSONRPCModule.

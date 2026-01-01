@@ -28,7 +28,7 @@ uses
 uses
   Classes, SysUtils, sqldb, fpdatadict, fpddsqldb;
 {$ENDIF FPC_DOTTEDUNITS}
-  
+
 Type
   { TSQLDBMySql57DDEngine }
 

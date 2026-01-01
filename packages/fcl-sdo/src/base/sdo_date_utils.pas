@@ -26,7 +26,7 @@ uses
 uses
   SysUtils, sdo_types;
 {$ENDIF FPC_DOTTEDUNITS}
-  
+
 type
 
   TDateTimeRec = packed record

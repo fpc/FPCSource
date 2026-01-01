@@ -803,7 +803,7 @@ begin
     BM4:=GetBookmark; // id=14
     next;
     BM5:=GetBookmark; // id=14, EOF
-    
+
     GotoBookmark(BM2);
     CheckEquals(3,FieldByName('id').AsInteger);
 
@@ -830,7 +830,7 @@ begin
 
     GotoBookmark(BM2);
     CheckEquals(3,FieldByName('id').AsInteger,'After #2 deleted');
-    
+
     delete;delete;    // id=3,4
 
     GotoBookmark(BM3);
@@ -847,7 +847,7 @@ begin
     insert;
     fieldbyname('id').AsInteger:=23;
     post;
-    
+
     GotoBookmark(BM3);
     CheckEquals(6,FieldByName('id').AsInteger);
 
@@ -1163,7 +1163,7 @@ begin
       post;
       CheckEquals('ValuesTestName',FieldByName('name').AsString);
       CheckEquals(243,FieldByName('id').AsInteger);
-    
+
       PassException:=false;
       try
         edit;
@@ -1197,7 +1197,7 @@ begin
     AVar:=FieldValues['name;id;'];
     CheckEquals(1,AVar[1]);
     CheckEquals('TestName1',AVar[0]);
-    
+
     PassException:=false;
     try
       AVar:=FieldValues['name;id;fake'];
@@ -1949,7 +1949,7 @@ begin
   ds := DBConnector.GetFieldDataset as TCustomBufDataset;
   with ds do
     begin
-    
+
     if not ActiveDS then
       begin
       AddIndex('testindex','F'+FieldTypeNames[AfieldType],[]);
@@ -2087,7 +2087,7 @@ begin
       end;
     finally
       flist.free;
-    end;  
+    end;
     end;
 end;
 
@@ -2135,7 +2135,7 @@ begin
         end;
     finally
       flist.free;
-    end;  
+    end;
     end;
 end;
 
@@ -2182,7 +2182,7 @@ begin
         end;
     finally
       FList.Free;
-    end;  
+    end;
     end;
 end;
 
@@ -2203,7 +2203,7 @@ begin
     open;
     IndexName:=''; // This should set the default index (default_order)
     first;
-    
+
     i := 0;
 
     while not eof do
@@ -2323,7 +2323,7 @@ begin
     CheckEquals('',IndexFieldNames);
     finally
       flist.free;
-    end;  
+    end;
 
     end;
 end;
@@ -2367,7 +2367,7 @@ begin
 
     CheckEquals(OldID,FieldByName('id').AsInteger);
     CheckEquals(OldStringValue,FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
-    
+
     next;
     CheckEquals(OldID+1,FieldByName('ID').AsInteger);
     prior;

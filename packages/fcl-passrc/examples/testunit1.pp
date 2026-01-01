@@ -1,7 +1,7 @@
 //This is only for testing the parser, it is not intended to be runable in a real
 //program but for checking the contructs to be parsed well.
-//All statements are written like testparser would print them out to diff the 
-//result with this file again to show differences. 
+//All statements are written like testparser would print them out to diff the
+//result with this file again to show differences.
 //Based on /utils/fpdoc/testunit.pp
 {$mode objfpc}
 {$h+}
@@ -9,13 +9,13 @@ unit testunit1;
 
 interface
 
- uses 
+ uses
   SysUtils,Classes;
 
 
 resourcestring
  SParserErrorAtToken = 'parser error at token';
- 
+
  const
   AnIntegerConst=1;
   AStringConst='Hello, World!';
@@ -27,16 +27,16 @@ resourcestring
   ASetConst=[true,false];
   ADeprecatedConst=1 deprecated;
   ADeprecatedConst2 = 2 deprecated 'use another const';
-     
+
  Type
   TLineEndStr = string [3];
 
   TDeprecatedType = Integer deprecated;
   TDeprecatedRecord = Record
-    x,Y : Integer; 
+    x,Y : Integer;
   end deprecated;
   TDeprecatedFieldsRecord = Record
-    x,Y : Integer deprecated; 
+    x,Y : Integer deprecated;
   end;
   TDeprecatedFieldsRecord2 = Record
     x,Y : Integer deprecated
@@ -47,7 +47,7 @@ resourcestring
   TIntegerSet = Set of 0..SizeOf(Integer)*8-1;
   TAnArrayType=Array[1..10] of Integer;
   TASubRangeType=one..two;
-  TABooleanArrayType=Array[Boolean] of Integer;  
+  TABooleanArrayType=Array[Boolean] of Integer;
   TDay = (monday,tuesday,wednesday,thursday,friday,saturday,sunday);
   TShortDay = (mon,tue,wed,thu,fri,sat,sun);
   TShortDays = set of TShortDay;
@@ -63,22 +63,22 @@ resourcestring
                           Case Integer of
                         1: (X,Y : Integer);
                         2: (phi,Omega : Real);
-                         end; 
+                         end;
   TAVariantRecordType2=record
                           A: String;
                           Case Atype : Integer of
                             1 : (X,Y : Integer);
                             2 : (phi,Omega : Real);
-                          end; 
-                          
-  MyRec = Record  
-          X : Longint;  
-          Case byte of  
-            2 : (Y : Longint;  
-                 case byte of  
-                 3 : (Z : Longint);  
-                 );  
-          end;                           
+                          end;
+
+  MyRec = Record
+          X : Longint;
+          Case byte of
+            2 : (Y : Longint;
+                 case byte of
+                 3 : (Z : Longint);
+                 );
+          end;
 
 TYPE
    PPoint = ^TPoint;
@@ -99,23 +99,23 @@ TYPE
       PROCEDURE Grow (ADX, ADY: Sw_Integer);
       PROCEDURE Assign (XA, YA, XB, YB: Sw_Integer);
    END;
-               
+
 
   TNotifyEvent = Procedure (Sender : TObject) of object;
 
   TNestedProcedure = Procedure (Sender : TObject) is nested;
 
   TNotifyEvent2 = Function (Sender : TObject) : Integer of object;
- 
-                          
+
+
 //  TADeprecatedType = Integer deprecated;
   TMyChildClass = Class;
   MyInterface = Interface;
-  
+
   { TMyParentClass }
 
   TMyParentClass=Class(TComponent)
-  Private 
+  Private
     FI: Integer;
     Function GetA(AIndex: Integer): String;
     Function GetIP(AIndex: integer): String;
@@ -125,7 +125,7 @@ TYPE
     Function ReadI: Integer;
   Protected
     Procedure AProtectedMethod;
-    Property AProtectedProp: Integer Read FI Write FI;  
+    Property AProtectedProp: Integer Read FI Write FI;
   Public
     Constructor Create(AOwner: TComponent); override;
     Destructor Destroy; override;
@@ -144,7 +144,7 @@ TYPE
   Published
     Procedure SomePublishedMethod;
   end;
-  
+
   { TMyChildClass }
 
   TMyChildClass=Class(TMyParentClass)
@@ -160,14 +160,14 @@ TYPE
   public
     destructor Destroy; override;
     Class Function TypeName: string;
-    Function ElementTypeName: string; 
-    Function GetDeclaration(Full: boolean): string; 
+    Function ElementTypeName: string;
+    Function GetDeclaration(Full: boolean): string;
     Procedure Something;  strict
-  Private  
+  Private
     Procedure SomethingElse;
   public
     ResultEl: TObject;
-  end; 
+  end;
 
   TPropModifiers = Class(TObject)
   Private
@@ -184,18 +184,18 @@ TYPE
   Public
     Property Ints[AI : Integer] : Integer Read GetI Write SetI; default;
   end;
-  
+
   TPropModifiers2 = class(TPropModifiers)
   Public
     Property Ints[AI : Integer] : Integer Read GetI Write SetI; default; deprecated;
-  end;                          
-  
+  end;
+
   TEdit = Class(TObject)
     Text : String;
   end;
-  
+
 var
-  ASimpleVar: Integer;  
+  ASimpleVar: Integer;
   ATypedVar: TMethod;
   ARecordVar: Record
                  A,B: Integer;
@@ -203,7 +203,7 @@ var
   AnArrayVar: Array[1..10] of Integer;
   ATypedArray: Array[TanEnumType] of Integer;
   AInitVar: Integer=1;
-  
+
   ADeprecatedVar: Integer deprecated;
   ACVarVar: Integer ; cvar;
   AnExternalVar1: Integer; external;
@@ -216,20 +216,20 @@ var
   APublicVar5 : String; cvar; external;
   APublicVar6 : String; external name 'me';
   APublicVar7 : String deprecated; external name 'me';
-      
+
  Procedure SimpleProc;
  Procedure OverloadedProc(A: Integer);
  Procedure OverloadedProc(B: String);
  Function SimpleFunc: Integer;
  Function OverloadedFunc(A: Integer): Integer;
- Function OverloadedFunc(B: String): Integer;  
+ Function OverloadedFunc(B: String): Integer;
 
- Procedure ConstArgProc(const A: Integer); 
- Procedure VarArgProc(var A: Integer); 
- Procedure OutArgProc(out A: Integer); 
- Procedure UntypedVarArgProc(var A); 
- Procedure UntypedConstArgProc(const A); 
- Procedure UntypedOutArgProc(out A); 
+ Procedure ConstArgProc(const A: Integer);
+ Procedure VarArgProc(var A: Integer);
+ Procedure OutArgProc(out A: Integer);
+ Procedure UntypedVarArgProc(var A);
+ Procedure UntypedConstArgProc(const A);
+ Procedure UntypedOutArgProc(out A);
 
  Procedure ArrayArgProc(A: TAnArrayType);
  Procedure OpenArrayArgProc(A: Array of string);
@@ -244,18 +244,18 @@ var
 Type
   FontEnumProc = function (var ELogFont:TEnumLogFont; var Metric:TNewTextMetric;
       FontType:longint; Data:LParam):longint; extdecl;
-      
- 
+
+
 Type
  generic TFPGListEnumerator<T> = class(TObject)
  protected
     FList: TFPList;
     FPosition: Integer;
     function GetCurrent: T;
- end;                 
- TFPGListEnumeratorSpec = specialize TFPGListEnumerator<TPasFunctionType>; 
+ end;
+ TFPGListEnumeratorSpec = specialize TFPGListEnumerator<TPasFunctionType>;
 
- 
+
 Implementation
 
 
@@ -272,7 +272,7 @@ Implementation
  begin
   a:= 1;
   c:= a+b;
-  for i:= 1 to 10 do 
+  for i:= 1 to 10 do
     write(a);
  end;
 
@@ -291,11 +291,11 @@ Implementation
  begin
  end;
 
- Function OverloadedFunc(A: Integer): Integer; 
+ Function OverloadedFunc(A: Integer): Integer;
  begin
  end;
 
- Function OverloadedFunc(B: String): Integer;  
+ Function OverloadedFunc(B: String): Integer;
  begin
  end;
 
@@ -311,27 +311,27 @@ Implementation
  begin
  end;
 
- Procedure ConstArgProc(const A: Integer); 
+ Procedure ConstArgProc(const A: Integer);
  begin
  end;
 
- Procedure VarArgProc(var A: Integer); 
+ Procedure VarArgProc(var A: Integer);
  begin
  end;
 
- Procedure OutArgProc(out A: Integer); 
+ Procedure OutArgProc(out A: Integer);
  begin
  end;
 
- Procedure UntypedVarArgProc(var A); 
+ Procedure UntypedVarArgProc(var A);
  begin
  end;
 
- Procedure UntypedConstArgProc(const A); 
+ Procedure UntypedConstArgProc(const A);
  begin
  end;
 
- Procedure UntypedOutArgProc(out A); 
+ Procedure UntypedOutArgProc(out A);
  begin
  end;
 
@@ -342,11 +342,11 @@ Implementation
  end;
 
  procedure TMyChildClass.AnAbstractProc;
- 
+
  procedure  SubCProc;
- 
+
    Var sc : string;
-   
+
   begin
    sc:= sc+'ac';
   end;
@@ -434,14 +434,14 @@ Type
     procedure test; virtual;
     property P : Integer Read FP Write SetP1;
   end;
-  
+
   Procedure TI.M1;
   begin
   end;
   Procedure TI.Test;
   begin
   end;
-  Function TI.F1 : Integer; 
+  Function TI.F1 : Integer;
   begin
   Result:=0;
   end;
@@ -449,7 +449,7 @@ Type
   begin
     FP:=A;
   end;
-  
+
 TYpe
   TI2 = Class(TI)
   procedure write(s : string);
@@ -468,7 +468,7 @@ TYpe
   begin
     writeln(s);
   end;
-  Function TI2.F1 :Integer; 
+  Function TI2.F1 :Integer;
   begin
      Result:=0;
   end;
@@ -491,7 +491,7 @@ TYpe
   var
   Atext : string;
   begin
-    Self.Write(EscapeText(AText)); 
+    Self.Write(EscapeText(AText));
     TComponent.Create(Self);
   end;
   Procedure TI2.SetP1(A : Integer);
@@ -549,7 +549,7 @@ TYpe
  begin
  end;
  procedure kissdwarf(i : integer);
- 
+
  begin
    writeln('kiss dwarf',i);
  end;
@@ -583,14 +583,14 @@ TYpe
                 Flight: String[10];
   end;
 
- Type 
+ Type
   AR=record
       X,Y: LongInt;
      end;
   TScanner = record
    currow,curcolumn : integer;
    curfilename : string;
-  end;  
+  end;
 
   //PAR = Record;
  var
@@ -601,7 +601,7 @@ TYpe
   S,T: Ar;
   M, X,Y : Double;
   Done : Boolean;
-  Weather,Good: Boolean;  
+  Weather,Good: Boolean;
   c : AnsiChar;
   j,dwarfs,i,Number,Block : integer;
   exp1,exp2,exp3,exp4,exp5,exp6,exp7,exp8,exp9 : boolean;
@@ -610,7 +610,7 @@ TYpe
   A,B,D : Passenger;
   E : Exception;
   scanner : tscanner;
-    
+
  begin
   O:=Nil;
   X:= X+Y;
@@ -637,11 +637,11 @@ TYpe
     1..5: DoSomethingElse;
   end;
 
-  Case C of  
+  Case C of
     'a': WriteLn('A pressed');
     'b': WriteLn('B pressed');
     'c': WriteLn('C pressed');
-  else  
+  else
    WriteLn('unknown letter pressed : ',C);
   end;
 
@@ -695,24 +695,24 @@ TYpe
   begin
     write('object');
   end
-  else 
-    if o is TMyParentClass then 
+  else
+    if o is TMyParentClass then
   begin
     write('real');
   end
-  else 
-    write('0'); 
+  else
+    write('0');
 
   if Today in [Monday..Friday] then
     WriteLn('Must work harder')
   else
     WriteLn('Take a day off.');
 
-  for Day:= Monday to Friday do 
+  for Day:= Monday to Friday do
     Work;
   for I:= 100 downto 1 do
     WriteLn('Counting down : ',i);
-  for I:= 1 to 7*dwarfs do 
+  for I:= 1 to 7*dwarfs do
     KissDwarf(i);
 
   for i:= 0 to 10 do
@@ -725,7 +725,7 @@ TYpe
     WriteLn('I =',i);
     I:= I+2;
   until I>100;
-    
+
   repeat
     X:= X/2;
   until x<10e-3;
@@ -737,20 +737,20 @@ TYpe
      I:= I+2;
     end;
     X:= X/2;
-    while i>=10e-3 do 
+    while i>=10e-3 do
       dec(i);
 
-    while i>0 do 
-    while j>0 do 
+    while i>0 do
+    while j>0 do
       begin
 	dec(i);
 	dec(j);
       end;
 
     while i>0 do
-    if i>2 then 
+    if i>2 then
      dec(i)
-    else 
+    else
      dec(i,2);
 
       X:= 2+3;
@@ -769,7 +769,7 @@ TYpe
 
     With A do
      With B do
-       With D do 
+       With D do
         Statement;
 
     S.X:= 1;S.Y:= 1;
@@ -797,9 +797,9 @@ TYpe
     finally
 	FreeAndNil(E)
    end;
-   
+
    raise EParserError.Create(Format(SParserErrorAtToken, [Msg, CurTokenName]) {$ifdef addlocation}+' ('+inttostr(scanner.currow)+' '+inttostr(scanner.curcolumn)+')'{$endif});
-    
+
     // try else
  end;
 
@@ -821,13 +821,13 @@ TYpe
     today,tomorrow : tday;
     bs : set of byte;
     cs : set of AnsiChar;
-    cc : AnsiChar;  
+    cc : AnsiChar;
     W : TShortDays;
     buffer : array[1..10] of byte;
     P : Pointer;
     SErrMultipleSourceFiles,FileName,Dirname,S : string;
     o,co : tobject;
-    
+
  begin
   x:= a+b *c /(-e+f)*(3 div 2) + 4 mod 5 - 2 shl 3 + 3 shr 1 ;
   b:= (a and not b) or c xor d;
@@ -835,10 +835,10 @@ TYpe
   u:= (i=1) or (a>b) or (b<a) or (i<>2);
   u:= i in [1..2];
 
- If Fu=@AddOne Then  
+ If Fu=@AddOne Then
   WriteLn('Functions are equal');
 
- If Fu()=Addone then  
+ If Fu()=Addone then
   WriteLn('Functions return same values ');
 
  z:= [today,tomorrow];
@@ -892,7 +892,7 @@ TYpe
   else
    Inherited Create(AName,AParent);
   Modules:= TList.Create;
- end;         
+ end;
 
  Function TPascalScanner.FetchToken: TToken;
  var
@@ -917,14 +917,14 @@ TYpe
         TokenStr:= IncludeStackItem.TokenStr;
         IncludeStackItem.Free;
         Result:= FCurToken;
-      end 
+      end
     else
       break
     else
       if not PPIsSkipping then
         break;
   end;
- end;  
+ end;
 
  Procedure IFS;
  begin
@@ -933,7 +933,7 @@ TYpe
    until false
   else
     Noting;
- end;           
+ end;
 
 
  Procedure IFS(x: integer); overload;
@@ -942,14 +942,14 @@ TYpe
     case x of
      1: writeln;
      2: write;
-   else 
+   else
     writeln('#');
    end
   else
     Noting;
  end;
 
- Procedure IFS1; 
+ Procedure IFS1;
  begin
   if true then
     while true do
@@ -961,13 +961,13 @@ TYpe
  Procedure IFS3;
  begin
   if true then
-   if true then 
+   if true then
     write
-   else 
+   else
     writeln;
- end; 
+ end;
 
 Initialization
- 
+
   hallo:= valid;
 end.

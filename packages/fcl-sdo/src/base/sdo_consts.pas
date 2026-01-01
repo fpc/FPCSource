@@ -79,7 +79,7 @@ resourcestring
   SERR_InvalidAttributeDef_EmptyUse = 'Invalid Attribute definition : empty "use".';
   SERR_InvalidAttributeDef_InvalidUse = 'Invalid Attribute definition : invalid "use" value "%s".';
   SERR_InvalidAttributeDef_MissingName = 'Invalid Attribute definition : missing "name" attribute.';
-  SERR_InvalidAttributeDef_MissingType = 'Invalid Attribute definition : missing "type" attribute.';     
+  SERR_InvalidAttributeDef_MissingType = 'Invalid Attribute definition : missing "type" attribute.';
   SERR_InvalidCollectionLength     = 'Invalid collection length : %d.';
   SERR_InvalidComplexSimpleTypeDef_NoRestOrExt = 'Invalid "complexeType.simpleType" definition : restriction/extension not found.';
   SERR_InvalidDataTypeInContext    = 'Invalid data type in this context : "%s".';
@@ -113,7 +113,7 @@ resourcestring
   SERR_NodeNotFoundByID            = 'Node not found with this ID in the document : "%s".';
   SERR_NoHandlerForThatVerb        = 'No handler for that verb : "%s".';
   SERR_NoReaderProc                = 'No reader proc for that type, Prop : "(%s : %s)".';
-  SERR_NoScope                     = 'There is no scope.';  
+  SERR_NoScope                     = 'There is no scope.';
   SERR_NoSerializerFoThisType      = 'No serializer for this type : "%s".';
   SERRE_ObjectCreationTimeOut      = 'Unable to create the object : Timeout expired.';
   SERR_OperationNotAllowedOnActivePool = 'Operation not allowed on an active pool.';

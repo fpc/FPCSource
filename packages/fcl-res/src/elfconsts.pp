@@ -79,7 +79,7 @@ const
   EM_ALPHA       = $9026; //unofficial, but used by gnu toolchain
   EM_RISCV       = 243;
   EM_LOONGARCH   = 258;
-  
+
   //machine-specific flags
   EF_IA_64_ABI64 = $10;  //wow, this is really a 64-bit object file!
 
@@ -124,7 +124,7 @@ const
   SHF_EXECINSTR =         4;
   SHF_MASKOS    = $0f000000;
   SHF_MASKPROC  = $f0000000;
-  
+
   //symbol bindings
   STB_LOCAL  =  0;
   STB_GLOBAL =  1;
@@ -133,7 +133,7 @@ const
   STB_HIOS   = 12;
   STB_LOPROC = 13;
   STB_HIPROC = 15;
-  
+
   //symbol types
   STT_NOTYPE         =  0;
   STT_OBJECT         =  1;
@@ -169,7 +169,7 @@ const
   //fpc resource constants
   RsrcSectName    = 'fpc.resources';
   HandlesSectName = 'fpc.reshandles';
-  
+
   RSRCSECT_IDX = 1;
   HANDLESECT_IDX = 2;
 

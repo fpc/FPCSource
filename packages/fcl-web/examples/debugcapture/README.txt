@@ -8,37 +8,37 @@ http://localhost:3000/
 
 running simpleserver -h will provide the following help:
 
--d --directory=dir  
+-d --directory=dir
 
   Base directory from which to serve files.
   Default is current working directory: /home/michael/FPC/trunk/packages/fcl-web/examples/simpleserver
 
--i --indexpage=name 
+-i --indexpage=name
 
   Directory index page to use (default: index.html)
 
--n --noindexpage    
+-n --noindexpage
 
   Do not allow index page.
 
--p --port=NNNN      
+-p --port=NNNN
 
   TCP/IP port to listen on (default is 3000)
 
--m --mimetypes=file 
+-m --mimetypes=file
 
   path of mime.types file. Loaded in addition to OS known types.
 
   A sample mime.types file is provided.
 
--q --quiet          
+-q --quiet
 
   Do not write diagnostic messages
 
--s --ssl            
+-s --ssl
 
-  Use SSL. 
+  Use SSL.
   If you set this, the -H or --hostname option must also be used.
 
--H --hostname=NAME  
+-H --hostname=NAME
   set hostname for self-signed SSL certificate

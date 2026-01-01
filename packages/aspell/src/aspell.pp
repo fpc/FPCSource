@@ -24,10 +24,10 @@ uses
 
 {$IFDEF UNIX}
   const libaspell = 'aspell';
-{$ELSE} 
+{$ELSE}
  {$IFDEF WINDOWS}
   const libaspell = 'aspell-15.dll';
- {$ELSE} 
+ {$ELSE}
   {$MESSAGE ERROR Target not supported'}
  {$ENDIF}
 {$ENDIF}
@@ -437,7 +437,7 @@ uses
      * "decode", "dictionary", "language", and "keyboard".  }
 
     function aspell_reset_cache(which:PAnsiChar):cint;cdecl;external libaspell name 'aspell_reset_cache';
-    
+
   function aspell_init(const libn: ansistring): Boolean;
   function aspell_loaded: Boolean;
 

@@ -28,12 +28,12 @@ uses
 uses
   Classes, SysUtils, db, fpddcodegen;
 {$ENDIF FPC_DOTTEDUNITS}
-  
+
 Type
   TListMode = (lmNone,lmList,lmObjectList,lmCollection,lmDBCollection,lmGenericList);
   TClassOption = (coCreateLoader,coUseFieldMap,coCreateArrayProperty,coCreateAssign, coRecord);
   TClassOptions = Set of TClassOption;
-  
+
   { TDBCollOptions }
 
   TDBCollOptions = Class(TClassCodeGeneratorOptions)
@@ -72,7 +72,7 @@ Type
     Property ArrayPropName : String Read GetArrayPropName Write SetArrayPropName;
     Property AncestorClass;
   end;
-  
+
   { TDDDBCollCodeGenerator }
 
   TDDDBCollCodeGenerator = Class(TDDClassCodeGenerator)
@@ -735,7 +735,7 @@ procedure TDDDBCollCodeGenerator.WriteFieldMapAssign(Strings : TStrings; F : TFi
 
 Var
   FN,PN,S : String;
-  
+
 begin
   PN:=F.PropertyName;
   FN:='Self.F'+F.FieldName;
@@ -1102,7 +1102,7 @@ end;
 
 Initialization
   RegisterCodeGenerator('DBColl','Simple object/record collection/list for the data',TDDDBCollCodeGenerator);
-  
+
 Finalization
   UnRegisterCodeGenerator(TDDDBCollCodeGenerator);
 end.

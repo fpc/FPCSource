@@ -42,9 +42,9 @@ type
   TProducerSetRecordEvent = procedure (Sender:THTMLDatasetFormProducer) of object;
   THTMLElementEvent = procedure (Sender:THTMLDatasetFormProducer; element : THTMLCustomElement) of object;
   TFieldCheckEvent = procedure (aField:TField; var check:boolean) of object;
-  
+
   TFieldItemEvent = procedure (Sender:TFormFieldItem; var aValue : string) of object;
-  
+
   TFormInputType = (fittext,fitpassword,fitcheckbox,fitradio,fitfile,fithidden,
                     fitproducer,fittextarea,fitrecordselection,fitlabel);
 
@@ -390,7 +390,7 @@ type
     property IncludeHeader;
     property AfterSetRecord;
   end;
-  
+
 implementation
 
 { TTableDef }
@@ -1095,7 +1095,7 @@ procedure THTMLDatasetFormShowProducer.ControlToTableDef (aControldef : TFormFie
         end;
       end;
   end;
-  
+
   procedure PlaceLabel;
   begin
     with TableDef.CopyTablePosition(aControlDef.LabelPos) do

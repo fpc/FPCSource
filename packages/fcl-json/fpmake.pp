@@ -56,7 +56,7 @@ begin
       begin
       AddUnit('fpjson');
      end;
-        
+
     T:=P.Targets.AddUnit('jsonparser.pp');
     T.ResourceStrings:=true;
     with T.Dependencies do
@@ -72,17 +72,17 @@ begin
       AddUnit('fpjson');
       AddUnit('jsonscanner');
       end;
-        
+
     T:=P.Targets.AddUnit('jsonwriter.pp');
     T.ResourceStrings:=true;
     with T.Dependencies do
       begin
       AddUnit('fpjson');
       end;
-        
+
     T:=P.Targets.AddUnit('jsonscanner.pp');
     T.ResourceStrings:=true;
-    
+
     T:=P.Targets.AddUnit('fpjsonrtti.pp');
     T.ResourceStrings:=true;
     with T.Dependencies do
@@ -90,7 +90,7 @@ begin
       AddUnit('fpjson');
       AddUnit('jsonparser');
       end;
-      
+
     T:=P.Targets.AddUnit('fpjsontopas.pp');
     T.ResourceStrings:=true;
     with T.Dependencies do

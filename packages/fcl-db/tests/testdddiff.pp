@@ -40,7 +40,7 @@ type
   public
     property Messages : TStringlist read FMsg;
   end;
-  
+
   { TTestDDDiff }
 
   TTestDDDiff = class (TTestcase)
@@ -74,8 +74,8 @@ type
     procedure TestIndexDescFields;
     procedure TestIndexCaseInsFields;
   end;
-  
-  
+
+
 implementation
 
 uses db;
@@ -389,6 +389,6 @@ end;
 initialization
 
   RegisterTest (TTestDDDiff);
-  
+
 end.
 

@@ -27,7 +27,7 @@ uses
 uses
   Classes, SysUtils, fpJSON, jsonscanner, jsonreader;
 {$ENDIF FPC_DOTTEDUNITS}
-  
+
 Type
 
   { TJSONParser }
@@ -59,9 +59,9 @@ Type
   Public
     function Parse: TJSONData;
   end;
-  
+
   EJSONParser = {$IFDEF FPC_DOTTEDUNITS}FpJson.Reader{$ELSE}jsonReader{$ENDIF}.EJSONParser;
-  
+
 implementation
 
 Resourcestring

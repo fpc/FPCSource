@@ -36,7 +36,7 @@ uses toolsunit;
 
 Type
   HackedDataset = class(TDataset);
-  
+
   { TMyDataset }
 
   TMyDataset = Class(TDataset)
@@ -200,16 +200,16 @@ procedure TTestBasics.TestInitFielddefsFromFields;
 
 var ds       : TDataset;
     F1,F2,F3 : Tfield;
-    
+
   Procedure CompareFieldAndFieldDef(Fld: TField; FldDef : TFieldDef);
-  
+
   begin
     AssertEquals(Fld.FieldName,FldDef.Name);
     AssertEquals(Fld.Size,FldDef.Size);
     AssertEquals(Fld.Required,FldDef.Required);
     AssertTrue(Fld.DataType=FldDef.DataType);
   end;
-    
+
 begin
   ds := TMyDataset.Create(nil);
   try
@@ -233,11 +233,11 @@ begin
   F3.Required := false;
   F3.Dataset:=ds;
   (f3 as TBCDField).Precision := 2;
-  
+
   HackedDataset(ds).InitFieldDefsFromfields;
-  
+
   AssertEquals(3,ds.FieldDefs.Count);
-  
+
   CompareFieldAndFieldDef(F1,ds.FieldDefs[0]);
   CompareFieldAndFieldDef(F2,ds.FieldDefs[1]);
   CompareFieldAndFieldDef(F3,ds.FieldDefs[2]);

@@ -3,7 +3,7 @@
     Copyright (c) 1999-2022 by Michael van Canneyt and other members of the
     Free Pascal development team
 
-    base report tests 
+    base report tests
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.

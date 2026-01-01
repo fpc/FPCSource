@@ -17,7 +17,7 @@
 Type
   HKEY = THandle;
   PHKEY = ^HKEY;
-  
+
 {$if defined(windows) and not defined(XMLREG)}
 
 { Direct mapping to constants in Windows unit }
@@ -68,5 +68,5 @@ Const
   KEY_WRITE              = $20006;
   KEY_WOW64_64KEY        = $100;
   KEY_WOW64_32KEY        = $200;
-  
+
 {$endif windows}

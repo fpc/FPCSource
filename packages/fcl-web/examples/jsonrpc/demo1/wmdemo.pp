@@ -1,4 +1,4 @@
-unit wmdemo; 
+unit wmdemo;
 
 {$mode objfpc}{$H+}
 
@@ -31,7 +31,7 @@ type
     { private declarations }
   public
     { public declarations }
-  end; 
+  end;
 
 var
   EchoModule: TEchoModule;

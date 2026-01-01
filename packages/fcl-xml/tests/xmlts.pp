@@ -147,15 +147,15 @@ begin
   begin
     FErrLine := Error.Line;
     FErrCol := Error.LinePos;
-  end;  
+  end;
 
   if Error.Severity = esError then
   begin
     if FValError = '' then // fetch the _first_ message
       FValError := Error.Message;
 { uncomment the line below to verify that the suite correctly handles
-  exception raised from the handler }    
-//  Abort;  
+  exception raised from the handler }
+//  Abort;
   end;
 end;
 

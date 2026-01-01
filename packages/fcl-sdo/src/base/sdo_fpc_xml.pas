@@ -60,7 +60,7 @@ type
   function FindNode(ANode : TDOMNode;const ANodeName : string) : TDOMNode;{$IFDEF USE_INLINE}inline;{$ENDIF}
 
   function NodeToBuffer(ANode : TDOMNode):string ;
-  
+
 resourcestring
   SERR_NoNodeXpathExpression = 'This XPath expression does not correspond to node(s) : %s.';
   SERR_XpathExpectingOneNode = 'Xpath expression expecting a single node while got %d node : %s.';

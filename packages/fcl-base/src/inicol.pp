@@ -106,7 +106,7 @@ resourcestring
   SErrNoFileName = '%s: No filename specified.';
   SErrNoSection = '%s: No [global] section specified.';
   SErrDuplicateName = 'Duplicate names "%s" not allowed in collection';
-  
+
 procedure TIniCollectionItem.LoadFromFile(const FileName, Section: String);
 
 Var

@@ -21,9 +21,9 @@ interface
 
 uses
   {$IFDEF FPC_DOTTEDUNITS}
-  System.Classes, System.SysUtils, System.Contnrs, FpJson.Data, 
+  System.Classes, System.SysUtils, System.Contnrs, FpJson.Data,
   {$ELSE}
-  Classes, SysUtils, contnrs, fpJSON, 
+  Classes, SysUtils, contnrs, fpJSON,
   {$ENDIF}
   fpopenapi.Types, fpjson.schema.schema;
 

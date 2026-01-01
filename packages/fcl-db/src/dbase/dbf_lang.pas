@@ -26,18 +26,18 @@ uses
   WinApi.Windows;
 {$else}
 {$ifdef KYLIX}
-  Api.Libc, 
-{$endif}  
+  Api.Libc,
+{$endif}
   System.Types, Data.Dbf.Wtil;
-{$endif}  
+{$endif}
 {$ELSE FPC_DOTTEDUNITS}
 uses
 {$ifdef WINDOWS}
   Windows;
 {$else}
 {$ifdef KYLIX}
-  Libc, 
-{$endif}  
+  Libc,
+{$endif}
   Types, dbf_wtil;
 {$endif}
 {$ENDIF FPC_DOTTEDUNITS}

@@ -20,11 +20,11 @@ unit fpopenapi.writer;
 
 interface
 
- uses 
+ uses
   {$IFDEF FPC_DOTTEDUNITS}
-  System.SysUtils, System.Classes, System.Contnrs, FpJson.Data, FpJson.Writer, 
+  System.SysUtils, System.Classes, System.Contnrs, FpJson.Data, FpJson.Writer,
   {$ELSE}
-  sysutils, classes, contnrs, fpjson, jsonwriter, 
+  sysutils, classes, contnrs, fpjson, jsonwriter,
   {$ENDIF}
   fpopenapi.types, fpopenapi.objects, fpjson.schema.schema, fpjson.schema.Writer;
 
@@ -1422,11 +1422,11 @@ begin
     case lKeyword of
     ofskImplicit:
       WriteOauthFlow(lName,aObj.Implicit);
-    ofskPassword: 
+    ofskPassword:
       WriteOauthFlow(lName,aObj.Password);
-    ofskClientCredentials: 
+    ofskClientCredentials:
       WriteOauthFlow(lName,aObj.ClientCredentials);
-    ofskClientAuthorizationCode: 
+    ofskClientAuthorizationCode:
       WriteOauthFlow(lName,aObj.ClientAuthorizationCode);
     end;
     end;
@@ -1448,11 +1448,11 @@ begin
     case lKeyword of
     ofkAuthorizationUrl:
       WriteProperty(lName,aObj.AuthorizationUrl);
-    ofkTokenURL: 
+    ofkTokenURL:
       WriteProperty(lName,aObj.TokenURL);
-    ofkRefreshURL: 
+    ofkRefreshURL:
       WriteProperty(lName,aObj.RefreshURL);
-    ofkScopes: 
+    ofkScopes:
       WriteStrings(lName,aObj.Scopes);
     end;
     end;

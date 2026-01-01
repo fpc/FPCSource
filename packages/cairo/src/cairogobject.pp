@@ -53,7 +53,7 @@ uses Api.Cairo.Lib;
 uses cairo;
 {$ENDIF FPC_DOTTEDUNITS}
 
-const 
+const
 {$ifdef MSWINDOWS}
   LIB_CAIROGOBJECT = LIB_CAIRO;
   {$IFDEF FPC}

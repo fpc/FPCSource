@@ -10,7 +10,7 @@ var i,o:Pcomplex_single;
 
 begin
   fftw_getmem(i,s*sizeof(complex_single));
-     
+
   fftw_getmem(o,s*sizeof(complex_single));
   p:=fftw_plan_dft_1d(128,i,o,fftw_forward,[fftw_estimate]);
   for a:=0 to 127 do

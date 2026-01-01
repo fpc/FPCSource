@@ -20,7 +20,7 @@ begin
     P.Dependencies.Add('packagevarianta');
 
     P.SourcePath.Add('src');
- 
+
     T:=P.Targets.AddProgram('packagevariantp.pp');
     Run;
     end;

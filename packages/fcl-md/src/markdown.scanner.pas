@@ -20,9 +20,9 @@ interface
 
 uses
 {$IFDEF FPC_DOTTEDUNITS}
-  System.SysUtils, 
-{$ELSE}  
-  SysUtils, 
+  System.SysUtils,
+{$ELSE}
+  SysUtils,
 {$ENDIF}
   MarkDown.Elements;
 

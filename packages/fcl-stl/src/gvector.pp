@@ -232,7 +232,7 @@ end;
 
 procedure TVector.Erase(Position: SizeUInt);
 begin
-  if Position < Size then 
+  if Position < Size then
   begin
     dec(FDataSize);
     // ensure that the data we want to erase is released
@@ -248,11 +248,11 @@ end;
 
 procedure TVector.Reserve(Num: SizeUInt);
 begin
-  if(Num < FCapacity) then 
+  if(Num < FCapacity) then
     exit
-  else if (Num <= NewCapacity) then 
+  else if (Num <= NewCapacity) then
     IncreaseCapacity
-  else begin 
+  else begin
     SetLength(FData, Num);
     FCapacity:=Num;
   end;

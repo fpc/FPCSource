@@ -40,7 +40,7 @@ Var
   Msg : TDebugMessage;
   StrBuffer : string = '';
   ObjFileStream : TFileStream = Nil;
-  
+
 
 class procedure THelperToWrite.WriteLnAllParams;
 Var

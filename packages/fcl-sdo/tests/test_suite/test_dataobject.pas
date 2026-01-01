@@ -2275,14 +2275,14 @@ var
     for k := 0 to High(v) do
       v[k] := k mod High(Byte);
     VAL_1 := v;
-    v := nil; 
+    v := nil;
 
-    VAL_2 := nil;    
+    VAL_2 := nil;
 
     SetLength(v,200);
     for k := 0 to High(v) do
       v[k] := ( ( 3 * k ) + 1 ) mod High(Byte);
-    VAL_3 := v;     
+    VAL_3 := v;
   end;
 
 var
@@ -2442,14 +2442,14 @@ var
     for k := 0 to High(v) do
       v[k] := k mod High(Byte);
     VAL_1 := v;
-    v := nil;    
+    v := nil;
 
     SetLength(v,200);
     for k := 0 to High(v) do
       v[k] := ( ( 3 * k ) + 1 ) mod High(Byte);
-    VAL_2 := v;     
-  end;  
-  
+    VAL_2 := v;
+  end;
+
 var
   obj : ISDODataObject;
   ls : ISDODataObjectList;
@@ -2495,7 +2495,7 @@ end;
 procedure TSDOBaseDataObject_Test.bytes_setnull_isnull();
 const
   LOCAL_PROP = s_PROP_BYTES_1;
-  LOCAL_PROP_ARRAY = s_PROP_BYTES_3;  
+  LOCAL_PROP_ARRAY = s_PROP_BYTES_3;
 var
   VAL_1 : TSDOBytes;
 
@@ -2508,8 +2508,8 @@ var
     for k := 0 to High(v) do
       v[k] := k mod High(Byte);
     VAL_1 := v;
-  end;  
-  
+  end;
+
 var
   obj : ISDODataObject;
 begin
@@ -2540,8 +2540,8 @@ var
     for k := 0 to High(v) do
       v[k] := k mod High(Byte);
     VAL_1 := v;
-  end;  
-  
+  end;
+
 var
   locFactory : ISDODataFactory;
   locA : ISDODataObject;
@@ -2576,14 +2576,14 @@ var
     for k := 0 to High(v) do
       v[k] := k mod High(Byte);
     VAL_1 := v;
-    v := nil;    
+    v := nil;
 
     SetLength(v,200);
     for k := 0 to High(v) do
       v[k] := ( ( 3 * k ) + 1 ) mod High(Byte);
-    VAL_2 := v;     
-  end; 
-  
+    VAL_2 := v;
+  end;
+
 var
   locFactory : ISDODataFactory;
   locA : ISDODataObject;
@@ -2658,7 +2658,7 @@ var
     for k := 0 to High(v) do
       v[k] := ( ( 3 * k ) + 1 ) mod High(Byte);
     o1_val_2 := v;
-    
+
     o2_val_A := nil;
 
     SetLength(v,200);
@@ -2691,7 +2691,7 @@ end;
 
 {$IFDEF HAS_SDO_CHAR}
 procedure TSDOBaseDataObject_Test.char_procs();
-const 
+const
   LOCAL_PROP_1 = s_PROP_CHAR_1;
   LOCAL_PROP_2 = s_PROP_CHAR_2;
   LOCAL_PROP_3 = s_PROP_CHAR_3;
@@ -2949,7 +2949,7 @@ end;
 
 {$IFDEF HAS_SDO_CURRENCY}
 procedure TSDOBaseDataObject_Test.currency_procs();
-const 
+const
   LOCAL_PROP_1 = s_PROP_CURRENCY_1;
   LOCAL_PROP_2 = s_PROP_CURRENCY_2;
   LOCAL_PROP_3 = s_PROP_CURRENCY_3;
@@ -3095,7 +3095,7 @@ procedure TSDOBaseDataObject_Test.currency_unset_isset();
 const
   LOCAL_PROP = s_PROP_CURRENCY_1;
   LOCAL_PROP_ARRAY = s_PROP_CURRENCY_3;
-  VAL_1 : TSDOCurrency = 12345678.9101; VAL_2 : TSDOCurrency = -9879879.8765; 
+  VAL_1 : TSDOCurrency = 12345678.9101; VAL_2 : TSDOCurrency = -9879879.8765;
 var
   obj : ISDODataObject;
   ls : ISDODataObjectList;
@@ -3211,7 +3211,7 @@ end;
 
 {$IFDEF HAS_SDO_DOUBLE}
 procedure TSDOBaseDataObject_Test.double_procs();
-const 
+const
   LOCAL_PROP_1 = s_PROP_DOUBLE_1;
   LOCAL_PROP_2 = s_PROP_DOUBLE_2;
   LOCAL_PROP_3 = s_PROP_DOUBLE_3;
@@ -3357,7 +3357,7 @@ procedure TSDOBaseDataObject_Test.double_unset_isset();
 const
   LOCAL_PROP = s_PROP_DOUBLE_1;
   LOCAL_PROP_ARRAY = s_PROP_DOUBLE_3;
-  VAL_1 : TSDODouble = 12345678.91011; VAL_2 : TSDODouble = -9879879.87654; 
+  VAL_1 : TSDODouble = 12345678.91011; VAL_2 : TSDODouble = -9879879.87654;
 var
   obj : ISDODataObject;
   ls : ISDODataObjectList;
@@ -3473,7 +3473,7 @@ end;
 
 {$IFDEF HAS_SDO_FLOAT}
 procedure TSDOBaseDataObject_Test.float_procs();
-const 
+const
   LOCAL_PROP_1 = s_PROP_FLOAT_1;
   LOCAL_PROP_2 = s_PROP_FLOAT_2;
   LOCAL_PROP_3 = s_PROP_FLOAT_3;
@@ -3619,7 +3619,7 @@ procedure TSDOBaseDataObject_Test.float_unset_isset();
 const
   LOCAL_PROP = s_PROP_FLOAT_1;
   LOCAL_PROP_ARRAY = s_PROP_FLOAT_3;
-  VAL_1 : TSDOFloat = 12345678.91011; VAL_2 : TSDOFloat = -9879879.87654; 
+  VAL_1 : TSDOFloat = 12345678.91011; VAL_2 : TSDOFloat = -9879879.87654;
 var
   obj : ISDODataObject;
   ls : ISDODataObjectList;
@@ -3735,7 +3735,7 @@ end;
 
 {$IFDEF HAS_SDO_LONG}
 procedure TSDOBaseDataObject_Test.long_procs();
-const 
+const
   LOCAL_PROP_1 = s_PROP_LONG_1;
   LOCAL_PROP_2 = s_PROP_LONG_2;
   LOCAL_PROP_3 = s_PROP_LONG_3;
@@ -5890,11 +5890,11 @@ const
   s_open_prop = 'open_prop';
   s_static_prop = s_PROP_BYTES_1;
   prop_type = BytesType;
-  
+
 var
   locVal : TSDOBytes;
   val_open : TSDOBytes;
-  
+
   procedure SetConstants();
   var
     v : TSDOBytes;
@@ -5911,7 +5911,7 @@ var
       v[k] := ( ( 3 * k ) + 1 ) mod High(Byte);
     val_open := v;
   end;
-  
+
 var
   locO : ISDODataObject;
   locOX : ISDODataObjectEx;
@@ -5940,7 +5940,7 @@ const
 var
   val_static : TSDOBytes;
   val_open : array of TSDOBytes;
-  
+
   procedure SetConstants();
   var
     v, e : TSDOBytes;
@@ -5963,10 +5963,10 @@ var
       val_open[k] := e;
     end;
   end;
-  
+
 var
   locO : ISDODataObject;
-  locOX : ISDODataObjectEx;  
+  locOX : ISDODataObjectEx;
   staticPropCount : PtrInt;
   i : PtrInt;
   ls : ISDODataObjectList;
@@ -5999,9 +5999,9 @@ procedure TSDOOpenedDataObject_Test.implicit_add_property_bytes();
 const
   s_static_prop = s_PROP_BYTES_1;
   s_open_prop = 'open_prop';
-var  
+var
   val_open, val_static : TSDOBytes;
-  
+
   procedure SetConstants();
   var
     v : TSDOBytes;
@@ -6018,7 +6018,7 @@ var
       v[k] := ( ( 3 * k ) + 1 ) mod High(Byte);
     val_static := v;
   end;
-  
+
 var
   locO : ISDODataObject;
   staticPropCount : PtrInt;

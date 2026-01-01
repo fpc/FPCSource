@@ -459,7 +459,7 @@ end;
 procedure TWebHandler.Terminate;
 begin
   FTerminated := true;
-  If Assigned(FOnTerminate) then 
+  If Assigned(FOnTerminate) then
     FOnTerminate(Self);
 end;
 
@@ -484,7 +484,7 @@ begin
   If (Result='') then
     begin
     S:=ARequest.PathInfo;
-    If (Length(S)>0) and (S[1]='/') then  
+    If (Length(S)>0) and (S[1]='/') then
       Delete(S,1,1);                      //Delete the leading '/' if exists
     I:=Length(S);
     If (I>0) and (S[I]='/') then

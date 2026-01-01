@@ -4,7 +4,7 @@ Unit PackageBUnitB;
 
 interface
 
-uses 
+uses
   PackageAUnitA;
 
 function PackageBUnitBFunctionB: Boolean;

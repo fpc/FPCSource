@@ -272,7 +272,7 @@ procedure TFPOAuth2IniStore.SetSessionSectionUser(AUser : String);
 begin
   If (UserSessionSection='') then
     begin
-    
+
     if (AUser='') then
        AUser:='anonymous';
     UserSessionSection:='session_'+AUser;

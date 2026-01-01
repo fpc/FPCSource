@@ -355,7 +355,7 @@ Type
     Procedure FormPost(const URL : string; FormData:  TStrings; const Response: TStrings);
     function FormPost(const URL : String; Const FormData: RawByteString): RawByteString;
     function FormPost(const URL: string; FormData : TStrings): RawByteString;
-    // Simple form 
+    // Simple form
     Class Procedure SimpleFormPost(const URL : String; Const FormData: RawByteString; const Response: TStream);
     Class Procedure SimpleFormPost(const URL : string; FormData:  TStrings; const Response: TStream);
     Class Procedure SimpleFormPost(const URL : String; Const FormData: RawByteString; const Response: TStrings);
@@ -824,7 +824,7 @@ begin
   {$else}
   G:=GetSocketHandler(UseSSL);
   FSocket:=TInetSocket.Create(AHost,APort,G);
-  {$endif}  
+  {$endif}
   try
     if FIOTimeout<>0 then
       FSocket.IOTimeout:=FIOTimeout;
@@ -1967,7 +1967,7 @@ end;
 
 
 class function TFPCustomHTTPClient.SimpleGet(const AURL: String): RawByteString;
- 
+
 begin
   With Self.Create(nil) do
     try

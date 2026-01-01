@@ -79,7 +79,7 @@ begin
   TestDataset.Open;
 
   TestDataset.Last;
-  TestDataset.First;  
+  TestDataset.First;
   AssertEquals('Number of records in test dataset', 0, TestDataset.RecordCount);
   TestDataset.Close;
 end;
@@ -93,7 +93,7 @@ begin
   TestDataset.Open;
 
   TestDataset.Last;
-  TestDataset.First;  
+  TestDataset.First;
   AssertEquals('Number of records in test dataset', 0, TestDataset.RecordCount);
   TestDataset.Close;
 end;

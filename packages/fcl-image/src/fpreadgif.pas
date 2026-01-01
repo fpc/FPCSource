@@ -200,14 +200,14 @@ begin
     Stream.Read(FHeader,SizeOf(FHeader));
     Progress(psRunning, trunc(100.0 * (Stream.position / Stream.size)), False, Rect(0,0,0,0), '', ContProgress);
     if not ContProgress then exit;
-     
+
     // Endian Fix Mantis 8541. Gif is always little endian
-    {$IFDEF ENDIAN_BIG}    
-      with FHeader do 
+    {$IFDEF ENDIAN_BIG}
+      with FHeader do
         begin
           ScreenWidth := LEtoN(ScreenWidth);
           ScreenHeight := LEtoN(ScreenHeight);
-        end; 
+        end;
     {$ENDIF}
     // global palette
     if (FHeader.Packedbit and $80) <> 0 then
@@ -220,14 +220,14 @@ begin
     Repeat
       Introducer:=SkipBlock(Stream);
     until (Introducer = $2C) or (Introducer = $3B) or (Stream.Position>=Stream.Size);
-    
-    if Stream.Position>=Stream.Size then 
+
+    if Stream.Position>=Stream.Size then
       Exit;
 
     // descriptor
     Stream.Read(FDescriptor, SizeOf(FDescriptor));
     {$IFDEF ENDIAN_BIG}
-      with FDescriptor do 
+      with FDescriptor do
         begin
           Left := LEtoN(Left);
           Top := LEtoN(Top);
@@ -390,8 +390,8 @@ begin
         CodeMask := (1 shl CodeSize) - 1;
       end;
     until (B = 0)  or (Stream.Position>=Stream.Size);
-    
-   { if Stream.Position>=Stream.Size then 
+
+   { if Stream.Position>=Stream.Size then
       Exit(False); }
 
     Progress(psRunning, trunc(100.0 * (Stream.position / Stream.size)),
@@ -410,10 +410,10 @@ begin
          Inc(SourcePtr,B);
       end;
     until (B = 0) or (Stream.Position>=Stream.Size);
-    
+
    { if Stream.Position>=Stream.Size then
        Exit(False); }
-              
+
 
     Progress(psRunning, trunc(100.0 * (Stream.position / Stream.size)),
              False, Rect(0,0,0,0), '', ContProgress);
@@ -575,7 +575,7 @@ function TFPReaderGif.InternalCheck(Stream: TStream): boolean;
 var
   OldPos: Int64;
   n: Int64;
-  
+
 begin
   Result:=False;
   if Stream = nil then
@@ -584,7 +584,7 @@ begin
   try
     n := SizeOf(FHeader);
     Result:=(Stream.Read(FHeader,n)=n)
-            and (FHeader.Signature = 'GIF') 
+            and (FHeader.Signature = 'GIF')
             and ((FHeader.Version = '87a') or (FHeader.Version = '89a'));
   finally
     Stream.Position := OldPos;

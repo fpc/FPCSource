@@ -587,7 +587,7 @@ begin
   else
     FLastError:=0;
 {$else}
-  FLastError:=0;    
+  FLastError:=0;
 {$endif}
 end;
 
@@ -775,7 +775,7 @@ var
       end;
     SetLength(Result,aLen);
   end;
-  
+
 {$ENDIF} // Unix or windows
 
 begin
@@ -805,7 +805,7 @@ begin
   aRead:=[];
   aWrite:=[];
   aExceptions:=[];
-{$ENDIF}  
+{$ENDIF}
 end;
 
 procedure TSocketStream.Close;

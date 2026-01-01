@@ -1,11 +1,11 @@
 This is a demo for the SQLDB REST Bridge.
 
 It requires a database. The database can be created using the
-expenses-DB.sql file (replace DB with the appropriate type) 
+expenses-DB.sql file (replace DB with the appropriate type)
 
 Sample data can be inserted with the expenses-data.sql file.
 
-You must edit the program to provide the correct database credentials: 
+You must edit the program to provide the correct database credentials:
 look for the ExposeDatabase() call, and edit the username/password.
 
 You must also change the name and location of the database.

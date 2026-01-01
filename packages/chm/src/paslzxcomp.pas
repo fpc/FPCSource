@@ -55,16 +55,16 @@ uses paslznonslide;
   {
       File lzx_compress.h, part of lzxcomp library
       Copyright (C) 2002 Matthew T. Russotto
-  
+
       This program is free software; you can redistribute it and/or modify
       it under the terms of the GNU Lesser General Public License as published by
       the Free Software Foundation; version 2.1 only
-  
+
       This program is distributed in the hope that it will be useful,
       but WITHOUT ANY WARRANTY; without even the implied warranty of
       MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
       GNU Lesser General Public License for more details.
-  
+
       You should have received a copy of the GNU Lesser General Public License
       along with this program; if not, write to the Free Software
       Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
@@ -87,13 +87,13 @@ uses paslznonslide;
           len_compressed_output : longint;
           len_uncompressed_input : longint;
        end;
-       
+
   phuff_entry = ^huff_entry;
   huff_entry = record
    codelength: smallint;
    code: word;
   end;
-       
+
   lzx_data = record
     in_arg : pointer;
     out_arg: pointer;
@@ -151,10 +151,10 @@ uses math, sysutils;
 {$ENDIF FPC_DOTTEDUNITS}
 var
   rloge2: double; // set in initialization section
-  
+
 const
   num_position_slots: array [0..6] of smallint = (30, 32, 34, 36, 38, 42, 50);
-  
+
   extra_bits: array [0..50] of Byte = (
     0,  0,  0,  0,  1,  1,  2,  2,  3,  3,  4,  4,  5,  5,  6,  6,
     7,  7,  8,  8,  9,  9,  10, 10, 11, 11, 12, 12, 13, 13, 14, 14,
@@ -474,7 +474,7 @@ var
   lzud: plzx_data;
 begin
   lzud := plzx_data(lzi^.user_data);
-  
+
   chars_read := lzud^.get_bytes(lzud^.in_arg, n, buf);
   Dec(lzud^.left_in_frame, chars_read mod LZX_FRAME_SIZE);
   if (lzud^.left_in_frame < 0) then
@@ -516,7 +516,7 @@ begin
     Inc(c2);
     Inc(j);
   end;
-  
+
   if (j = match_len) then begin
     match_locp^ := -loc;
     Exit(0);
@@ -823,7 +823,7 @@ begin
       //* literal */
       if not(block_code < NUM_CHARS) then
       raise Exception.Create('block_code < NUM_CHARS');
-      
+
       huffe := @lzxd^.main_tree[block_code];
       lzx_write_bits(lzxd, huffe^.codelength, huffe^.code);
       Inc(frame_count);
@@ -1013,7 +1013,7 @@ begin
     if (lzxd^.left_in_frame = 0) then begin
       lzxd^.left_in_frame := LZX_FRAME_SIZE;
     end;
-    
+
     if ((lzxd^.subdivide<0)
       or (lzxd^.left_in_block = 0)
       or ((lz_left_to_process(lzxd^.lzi) = 0) and lzxd^.at_eof(lzxd^.in_arg))) then begin
@@ -1037,7 +1037,7 @@ begin
       //* handle extra bits */
       uncomp_bits := 0;
       comp_bits := 0;
-      
+
       build_huffman_tree(LZX_ALIGNED_SIZE, 7, @lzxd^.aligned_freq_table[0], @lzxd^.aligned_tree[0]);
       for i := 0 to LZX_ALIGNED_SIZE-1 do begin
 	Inc(uncomp_bits, lzxd^.aligned_freq_table[i]* 3);
@@ -1111,7 +1111,7 @@ begin
   if ((wsize_code < 15) or (wsize_code > 21)) then begin
     Exit(-1);
   end;
-  
+
   //lzx_init_static(); I hardcoded this instead
 
   New(lzxd);

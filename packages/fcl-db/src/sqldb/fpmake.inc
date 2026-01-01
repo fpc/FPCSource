@@ -8,12 +8,12 @@ Targets.DefaultDir:='db/sqldb';
 T:=Targets.AddUnit('sqldb');
 T.ResourceStrings:=True;
 
-{ Include connection drivers }    
+{ Include connection drivers }
 
-{ PosGreSQL } 
+{ PosGreSQL }
 {$i postgres/fpmake.inc}
 
-{ MySQL }  
+{ MySQL }
 {$i mysql/fpmake.inc}
 
 { Interbase/Firebird }

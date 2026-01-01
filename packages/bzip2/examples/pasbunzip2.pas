@@ -15,7 +15,7 @@ program pasbunzip2;
  **********************************************************************}
 {$mode objfpc}{$H+}
 
-{ 
+{
 Example .bz2 file extractor.
 Decompresses a .bz2 file into another file using the classes-based bzip2stream unit
 Usage: bunzip2 compressedfile.bz2
@@ -37,7 +37,7 @@ begin
   try
     try
       Decompressed:=TDecompressBzip2Stream.Create(InFile);
-    except      
+    except
       // So[5mething went wrong, e.g. invalid format
       // Now get out of function with result false
       exit;
@@ -79,7 +79,7 @@ begin
     writeln('Decompressed '+CompressedFile+' to '+DecompressedFile);
   end
   else
-  begin  
+  begin
     writeln('An error occurred while decompressing '+CompressedFile);
     halt(1); // show error in exit code
   end;

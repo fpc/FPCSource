@@ -39,7 +39,7 @@ FreePascal trunk (future V7.0.0): (r* refers to FPC subversion revision/commit)
 - initial support for (Visual) FoxPro files (r24139)
 - annotated constants/file structure (r24139)
 - factored out get version/get codepage subprocedure for readability (r24139)
-- split out existing support for Visual FoxPro and Foxpro (r24109) 
+- split out existing support for Visual FoxPro and Foxpro (r24109)
   so future Visual FoxPro only features can be implemented
 - implemented FindFirst, FindNext, FindPrior, FindLast (r24107)
 - compile fix for FPC 2.6.2 (r24069), possibly useful for Delphi
@@ -49,7 +49,7 @@ V6.9.2
 
 - compile fixes for delphi 4, 5 (pdouble)
 - fix indexes to work properly with ansi upper/lower casing
-- fix memory leak when inserting duplicate item in AVL tree 
+- fix memory leak when inserting duplicate item in AVL tree
 - add german localization strings (thx heiko)
 
 ------------------------
@@ -75,7 +75,7 @@ V6.9.0
 - foxbase memo is 10 character index, sizes 4 and 10 are valid (thx majky)
 - add int64 to string conversion in expression parser function STR
 - fix nativeformat for tdbf.getfielddata(A,B) users
-- allow later defined expression variables to have same name as 
+- allow later defined expression variables to have same name as
     already defined function
 - third parameter in substr function is optional now
 - expression parser distinguishes between function() and variable, =no brackets
@@ -125,7 +125,7 @@ V6.4.7
 ------------------------
 V6.4.6
 
-- fixed: FPC 2.0.1 implements "backward-compatible" fielddata 
+- fixed: FPC 2.0.1 implements "backward-compatible" fielddata
     for datetime fields in particular (from alexandrov)
 - fixed: only allow >255 field length for creating foxpro files; prevents
     range check error (rep by miguel)
@@ -254,7 +254,7 @@ V6.3.8
 - chngd: made all filenames lowercase to ease usage on *nix
 - added: partial matching in expressions for filters
 - added: -, *, / operators in expressions
-- fixed: datetime issues with fieldtype '@' and delphi 4 and lower (nobody uses 
+- fixed: datetime issues with fieldtype '@' and delphi 4 and lower (nobody uses
     those fieldtypes? they have been horribly broken, and maybe still are)
 - fixed: getting recno in oncalcfields event (rep by lutz)
 - fixed: AV when checking empty binary fields

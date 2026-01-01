@@ -19,14 +19,14 @@ uses
 
 type
   TSuggestionArray = array of AnsiString;
-  
+
   TWordError = record
     Word: AnsiString; // the word itself
     Pos: LongWord; // word position in line
     Length: LongWord; // word length
     Suggestions: TSuggestionArray; // suggestions for the given word
   end;
-  
+
   TLineErrors = array of TWordError;
   TLineErrorsArray = array of TLineErrors;
 
@@ -50,7 +50,7 @@ type
     property Encoding: AnsiString read FEncoding write SetEncoding;
     property Language: AnsiString read FLanguage write SetLanguage;
   end;
-  
+
   { TWordSpeller }
 
   TWordSpeller = class(TSpeller) // class for simple per-word checking
@@ -64,7 +64,7 @@ type
    public
     function SpellCheck(const Word: AnsiString): TSuggestionArray; // use to check single words, parsed out by you
   end;
-  
+
   { TDocumentSpeller }
 
   TDocumentSpeller = class(TWordSpeller)
@@ -240,7 +240,7 @@ var
   Error: PAspellCanHaveError;
 begin
   inherited CreateSpeller;
-  
+
   Error := new_aspell_document_checker(FSpeller);
 
   if aspell_error_number(Error) <> 0 then
@@ -268,7 +268,7 @@ end;
 constructor TDocumentSpeller.Create;
 begin
   inherited Create;
-  
+
   FNameSuggestions := True;
 end;
 
@@ -297,13 +297,13 @@ begin
 
       if FNameSuggestions then
         DoNameSuggestions(Copy(aLine, Token.offset + 1, Token.len), Result[i]);
-        
+
       Inc(Count);
     end;
 
     Inc(i);
   until Token.len = 0;
-  
+
   SetLength(Result, Count);
 end;
 

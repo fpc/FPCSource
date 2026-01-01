@@ -15056,7 +15056,7 @@ begin
           {$IFNDEF PAS2JS}
           Result:=btAnsiChar // e.g. 'a'
           {$ELSE}
-          Result:=btWideChar           
+          Result:=btWideChar
           {$ENDIF}
         else
           Result:=btWideChar; // e.g. 'a'
@@ -23442,7 +23442,7 @@ procedure TPasResolver.RaiseIncompatibleTypeDesc(id: TMaxPrecInt; MsgNumber: int
 {$ELSE}
     vtUnicodeString: Result:={%H-}UnicodeString(Args[ArgNo].VUnicodeString);
     vtAnsiString: Result:=AnsiString(Args[ArgNo].VAnsiString);
-{$ENDIF}    
+{$ENDIF}
     else
       Result:='invalid param '+IntToStr(Ord(Args[ArgNo].VType));
     end;

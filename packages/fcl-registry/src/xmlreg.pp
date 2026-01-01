@@ -334,7 +334,7 @@ Var
   HasData: Boolean;
   D : DWord;
   Q : QWord;
-  
+
 begin
   //writeln('TXmlRegistry.DoGetValueData: Name=',Name,' IsUnicode=',IsUnicode);
   Node:=FindValueKey(Name);
@@ -717,7 +717,7 @@ Var
   N  : TDomElement;
   DN : TDomNode;
   L : Integer;
-  S: Ansistring; 
+  S: Ansistring;
 begin
   N:=FindValueKey(Name);
   Result:=(N<>Nil);

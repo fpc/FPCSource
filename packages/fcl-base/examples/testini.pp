@@ -21,7 +21,7 @@ begin
     lines.Add('key_c=   3');
     lines.Add('key_d="3"');
     WriteLn('ini file source:');
-    for i:=0 to lines.Count-1 do 
+    for i:=0 to lines.Count-1 do
       WriteLn('  ', lines[i]);
     ini:=TMemIniFile.Create('');
     try
@@ -30,7 +30,7 @@ begin
       lines.Clear();
       ini.ReadSectionValues('main', lines,[]);
       WriteLn('ReadSectionValues (no options):');
-      for i:=0 to lines.Count-1 do 
+      for i:=0 to lines.Count-1 do
         WriteLn('  ', lines[i]);
       lines.Clear();
       ini.ReadSectionValues('main', lines,[]);

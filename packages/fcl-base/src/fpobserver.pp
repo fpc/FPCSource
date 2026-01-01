@@ -1230,7 +1230,7 @@ procedure TBaseListMediator.CreateSubMediators;
 var
   I : integer;
   Model : TObjectList;
-  
+
 begin
   Model:=Subject as TObjectList;
   for i := 0 to Model.Count - 1 do

@@ -8,18 +8,18 @@ Simply add the test* units in this directory to the uses statement of the
 test runner and all tests will get registered and executed.
 
 A simple test runner (dbtestframework.pas) which generates XML output is
-included in this directory. 
+included in this directory.
 Additionally, a GUI Lazarus unit (dbtestframework_gui.lpr) is included for convenience.
 
 DBTestframework architecture
 ============================
 To test a TDataset descendent, a 'connector' is needed to test the database.
-To add a new connector, create a new *toolsunit.pas file, then add it to 
+To add a new connector, create a new *toolsunit.pas file, then add it to
 the uses section in 'dbtestframework.pas' and 'dbtestframework_gui.lpr'.
 Several connectors are available in the '*toolsunit.pas' files.
 
 The connector must inherit from TDBConnector in toolsunit.pas.
-The connector implements two different kinds of datasets: 
+The connector implements two different kinds of datasets:
 - a dataset with as many different kinds of fields as possible (see the *FieldDataSets subroutines).
 - a dataset with only a few fields (ID and NAME), but a lot (well, MaxDataset) of different records (see the *NDataSets subroutines)
 
@@ -40,15 +40,15 @@ In your test units, you can specify that you only want it to run for certain gro
 E.g. this example to only run for Bufdataset tests:
   TTestSpecificTBufDataset = class(TTestCase)
   ...
-initialization  
+initialization
   if uppercase(dbconnectorname)='BUFDATASET' then
     begin
     RegisterTestDecorator(TDBBasicsTestSetup, TTestSpecificTBufDataset);
     end;
-	
+
 In your individual tests, you can indicate you want to run tests only in certain cases, e.g. for certain SQLDB databases:
   if not(SQLConnType in [interbase]) then Ignore(STestNotApplicable);
-  
+
 Setting up your database
 ========================
 Some tests are file based (e.g. those for bufdataset); others by their nature need databases (e.g. a Firebird SQLDB test).
@@ -76,5 +76,5 @@ The parameters used depend on the connector type (sql,...)
 If you specify the wrong (or no) name (or don't have database.ini), you will get an exception in your test runner:
 Unknown db connector specified
 
-Joost van der Sluis (30-12-2006), 
+Joost van der Sluis (30-12-2006),
 amended by Reinier Olislagers (2012)

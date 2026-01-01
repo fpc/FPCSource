@@ -1,4 +1,4 @@
-unit wmusers; 
+unit wmusers;
 
 {$mode objfpc}{$H+}
 
@@ -27,10 +27,10 @@ type
     { private declarations }
   public
     { public declarations }
-  end; 
+  end;
 
 var
-  FPWebModule1: TFPWebModule1; 
+  FPWebModule1: TFPWebModule1;
 
 implementation
 

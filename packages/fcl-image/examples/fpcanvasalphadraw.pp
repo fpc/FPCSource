@@ -1,7 +1,7 @@
 {
   Sample program by Ondrey Pokorny to demonstrate drawing modes of the TFPCustomCanvas:
-    - opaque 
-    - alphablend 
+    - opaque
+    - alphablend
     - custom blending, using a callback (not-used in this case)
 }
 program FPCanvasAlphaDraw;

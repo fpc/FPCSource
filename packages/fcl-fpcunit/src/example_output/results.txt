@@ -108,7 +108,7 @@ Number of errors:    1
 Number of failures:  5
 
 List of errors:
-  Error: 
+  Error:
     Message:           TSuiteTwo.Test22: MyError
     Exception class:   EAccessViolation
     Exception message: MyError
@@ -118,30 +118,30 @@ List of errors:
 
 
 List of failures:
-  Failure: 
+  Failure:
     Message:           FirstNestedSuiteOne.Test12: Failed test
     Exception class:   EAssertionFailedError
     Exception message: Failed test
-  Failure: 
+  Failure:
     Message:           TSuiteOne.Test12: Failed test
     Exception class:   EAssertionFailedError
     Exception message: Failed test
-  Failure: 
+  Failure:
     Message:           SecondNestedSuiteOne.Test12: Failed test
     Exception class:   EAssertionFailedError
     Exception message: Failed test
-  Failure: 
+  Failure:
     Message:           TSuiteFour.Test42: Failed Test
     Exception class:   EAssertionFailedError
     Exception message: Failed Test
-  Failure: 
+  Failure:
     Message:           TAssertTest.TestFailEqualsBoolean: Wrong failure message: expected < expected: <TRUE> but was: <FALSE>>but was < expected: <-1> but was: <0>>
     Exception class:   EAssertionFailedError
     Exception message: Wrong failure message: expected < expected: <TRUE> but was: <FALSE>>but was < expected: <-1> but was: <0>>
 
 
 List of ignored tests:
-  Ignored test: 
+  Ignored test:
     Message:           TSuiteFour.Test41: This is an ignored test.
     Exception class:   EIgnoredTest
     Exception message: This is an ignored test.

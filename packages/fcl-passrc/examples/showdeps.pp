@@ -3,7 +3,7 @@
     Copyright (c) 2022 by Michael Van Canneyt, michael@freepascal.org
 
     Display unit/program dependencies.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -16,10 +16,10 @@ program showdeps;
 
 {$mode objfpc}
 {$H+}
- 
+
 uses SysUtils, Classes, PParser, PasTree;
 
- 
+
 type
   { We have to override abstract TPasTreeContainer methods.
     See utils/fpdoc/dglobals.pp for an implementation of TFPDocEngine,
@@ -32,7 +32,7 @@ type
       override;
     function FindElement(const AName: String): TPasElement; override;
   end;
- 
+
 function TSimpleEngine.CreateElement(AClass: TPTreeElement; const AName: String;
   AParent: TPasElement; AVisibility: TPasMemberVisibility;
   const ASourceFilename: String; ASourceLinenumber: Integer): TPasElement;
@@ -41,9 +41,9 @@ begin
   Result := AClass.Create(AName, AParent);
   Result.Visibility := AVisibility;
   Result.SourceFilename := ASourceFilename;
-  Result.SourceLinenumber := ASourceLinenumber; 
+  Result.SourceLinenumber := ASourceLinenumber;
 end;
- 
+
 function TSimpleEngine.FindElement(const AName: String): TPasElement;
 begin
   { dummy implementation, see TFPDocEngine.FindElement for a real example }
@@ -56,35 +56,35 @@ Var
   i : integer;
   aUses : TPasUsesUnit;
   aName : string;
-  
+
 begin
-  if aSection=Nil then 
-    exit;  
+  if aSection=Nil then
+    exit;
   for aUses in aSection.UsesClause do
     begin
     aName:='';
     if aShowFileName and assigned(aUses.InFileName) then
       aName:=AnsiDequotedStr(aUses.InFileName.Value,'''');
     if (aName='') and assigned(aUses.Expr) then
-      aName:=aUses.Expr.GetDeclaration(False);  
+      aName:=aUses.Expr.GetDeclaration(False);
     if aName='' then
       aName:=aUses.Name;
-    Writeln(aName);  
+    Writeln(aName);
     end;
 end;
- 
+
 Procedure Usage;
 
 begin
   Writeln('Usage : ',ExtractFileName(Paramstr(0)),' [OPTIONS] options ');
   Writeln('Where options is exactly one of');
   Writeln('-h or --help                 shows this help');
-  Writeln('-f or --filename             show actual unit filename, if available'); 
-  Writeln('-s or --skip-implementation  Do not show implementation dependencies'); 
+  Writeln('-f or --filename             show actual unit filename, if available');
+  Writeln('-s or --skip-implementation  Do not show implementation dependencies');
   Writeln('All other options are passed as-is to the parser');
   Halt(0);
 end;
- 
+
 var
   M: TPasModule;
   P : TPasProgram absolute M;
@@ -95,7 +95,7 @@ var
   cmdline : String;
   SkipImplementation,
   ShowFileName : Boolean;
-  
+
 begin
   cmdline:='';
   SkipImplementation:=False;
@@ -103,7 +103,7 @@ begin
   First:=ParamStr(1);
   if (ParamCount=0) or (First='-h') or (First='--help') then
     Usage;
-  Offset:=1;  
+  Offset:=1;
   Case first of
   '-f',
   '--filename':
@@ -112,7 +112,7 @@ begin
   '--skip-implementation':
     SkipImplementation:=True;
   else
-    Offset:=0;  
+    Offset:=0;
   end;
   For I:=1+Offset to ParamCount do
     CmdLine:=CmdLine+' '+Paramstr(i);

@@ -354,7 +354,7 @@ type
   end;
 
   EJSONDataset = Class(EDatabaseError);
-  
+
 implementation
 
 {$IFDEF FPC_DOTTEDUNITS}
@@ -1315,7 +1315,7 @@ begin
   if (Value < 0) or (Value > FCurrentIndex.Count) then
     raise EJSONDataset.CreateFmt('SetRecNo: index %d out of range',[Value]);
   FCurrent := Value - 1;
-  Resync([]); 
+  Resync([]);
   DoAfterScroll;
 end;
 

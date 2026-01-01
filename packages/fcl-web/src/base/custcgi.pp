@@ -370,7 +370,7 @@ Var
   I : Integer;
   R,V : String;
   M : TMap;
-  
+
 begin
   For I:=1 to CGIVarCount do
     begin

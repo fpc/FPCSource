@@ -253,7 +253,7 @@ begin
   Result:='application/json';
 end;
 
-Class Function TJSONOutputStreamer.FileExtension : String; 
+Class Function TJSONOutputStreamer.FileExtension : String;
 begin
   Result:='.json';
 end;

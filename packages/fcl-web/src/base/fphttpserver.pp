@@ -2,7 +2,7 @@
     $Id: header,v 1.1 2000/07/13 06:33:45 michael Exp $
     This file is part of the Free Component Library (Fcl)
     Copyright (c) 2011- by the Free Pascal development team
-    
+
     Simple HTTP server component.
 
     See the file COPYING.FPC, included in this distribution,

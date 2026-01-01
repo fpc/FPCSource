@@ -2102,7 +2102,7 @@ type
     property    ShapeType;
     property    Orientation;
     property    CornerRadius;
-    property    Color; 
+    property    Color;
     property    StretchMode;
   end;
 
@@ -2118,7 +2118,7 @@ type
     FImageID: integer;
     procedure   SetImage(AValue: TFPCustomImage);
     procedure   SetStretched(AValue: boolean);
-    procedure   SetFieldName(AValue: TFPReportString); 
+    procedure   SetFieldName(AValue: TFPReportString);
     procedure   SetDBImageType(AValue: TFPReportString);
     procedure   LoadDBData(AData: TFPReportData);
     procedure   SetImageID(AValue: integer);
@@ -5470,7 +5470,7 @@ begin
   idx := TFPReportCustomBand(Parent).Page.Report.Images.GetIndexFromID(ImageID);
   AWriter.WriteInteger('ImageIndex', idx);
   AWriter.WriteBoolean('Stretched', Stretched);
-  AWriter.WriteString('FieldName', FieldName);  
+  AWriter.WriteString('FieldName', FieldName);
   AWriter.WriteString('DBImageType', DBImageType);
 end;
 
@@ -5562,7 +5562,7 @@ begin
   { See code comments in DoWriteLocalProperties() }
   ImageID := AReader.ReadInteger('ImageIndex', -1);
   Stretched := AReader.ReadBoolean('Stretched', Stretched);
-  FieldName := AReader.ReadString('FieldName', FieldName);  
+  FieldName := AReader.ReadString('FieldName', FieldName);
   DBImageType := AReader.ReadString('DBImageType', DBImageType);
 end;
 
@@ -6929,7 +6929,7 @@ var
 
 begin
   Result := Visible;
-  if Result and (FVisibleExpr <> '') then 
+  if Result and (FVisibleExpr <> '') then
   begin
     if EvaluateExpression(FVisibleExpr,res) then
       if (res.ResultType=rtBoolean) then // We may need to change this.

@@ -1,16 +1,16 @@
-{ ********************************************************************* 
+{ *********************************************************************
     This file is part of the Free Component Library (FCL)
     Copyright (c) 2016 Michael Van Canneyt.
-       
+
     Javascript syntax tree definitions
-            
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
-                   
+
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-                                
+
   **********************************************************************}
 {$IFNDEF FPC_DOTTEDUNITS}
 unit jstree;
@@ -167,7 +167,7 @@ Type
   end;
 
   { TJSElement }
-  
+
   TJSElement = Class(TJSObject)
   private
     FData: TObject;
@@ -1323,7 +1323,7 @@ Type
     Property ParamName : TJSTypeDef Read FName Write FName;
     Property ParamType : TJSTypeDef Read FParamType Write FParamType;
   end;
-  
+
   { TJSTypeReference }
 
   TJSTypeReference = class(TJSTypeDef)
@@ -1481,7 +1481,7 @@ Type
   private
     FIndexType,
     FBaseType: TJSTypeDef;
-    
+
   Public
     Destructor Destroy; override;
     Property BaseType : TJSTypeDef Read FBaseType Write FBaseType;
@@ -1757,7 +1757,7 @@ Type
   Private
     FIsGlobal : Boolean;
   Public
-    Property IsGlobal : Boolean Read FIsGLobal Write FIsGlobal;  
+    Property IsGlobal : Boolean Read FIsGLobal Write FIsGlobal;
   end;
 
   { TJSNameSpaceStatement }

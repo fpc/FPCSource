@@ -27,10 +27,10 @@ type
     procedure GetAdaptorAndFormatter(P : TFPWebDataProvider; Var F :TExtJSDataFormatter; ARequest : TRequest; AResponse : TResponse);
   public
     { public declarations }
-  end; 
+  end;
 
 var
-  FPWebModule1: TFPWebModule1; 
+  FPWebModule1: TFPWebModule1;
 
 Var
   ResponseFileName : String; // Set to non empty to write request responses to a file.
@@ -67,11 +67,11 @@ begin
     F:=TExtJSXMLDataFormatter.Create(Self);
     TExtJSXMLDataFormatter(F).TotalProperty:='total';
     AResponse.ContentType:='text/xml';
-    P.Adaptor:=TExtJSXMLWebdataInputAdaptor.Create(Nil); 
+    P.Adaptor:=TExtJSXMLWebdataInputAdaptor.Create(Nil);
     end
   else
     begin
-    P.Adaptor:=TExtJSJSonWebdataInputAdaptor.Create(Nil); 
+    P.Adaptor:=TExtJSJSonWebdataInputAdaptor.Create(Nil);
     F:=TExtJSJSONDataFormatter.Create(Self);
     end;
   P.Adaptor.Request:=ARequest;

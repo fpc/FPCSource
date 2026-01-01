@@ -458,7 +458,7 @@ Type
   Published
     Sub : TIntegerComponent;
   end;
-  
+
   // Stream 2 sub components
   TStreamedOwnedComponents = Class(TChildrenComponent)
   Public

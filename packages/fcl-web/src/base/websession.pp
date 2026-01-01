@@ -26,7 +26,7 @@ uses
 uses
   Classes, SysUtils, fphttp, iniwebsession, httpdefs;
 {$ENDIF FPC_DOTTEDUNITS}
-  
+
 Type
 {$IFDEF FPC_DOTTEDUNITS}
   TIniWebSession = FpWeb.Session.Ini.TIniWebSession;

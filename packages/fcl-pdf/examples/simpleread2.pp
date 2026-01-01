@@ -4,7 +4,7 @@ uses fppdfobjects, fppdfparser;
 
 var
   Doc : TPDFDocument;
-  
+
 begin
   if ParamCount<1 then
     begin
@@ -16,5 +16,5 @@ begin
     Doc.LoadFromFile(paramstr(1));
   finally
     doc.free;
-  end;  
+  end;
 end.

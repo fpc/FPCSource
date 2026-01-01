@@ -518,7 +518,7 @@ begin
   nav_style         :=getnextint(txt,ind,len,flags,valid_navigation_pane_style);
   navpanewidth      :=getnextint(txt,ind,len,flags,valid_navigation_pane_width);
   buttons           :=getnextint(txt,ind,len,flags,valid_buttons);
-  
+
   (* initialize arr[] *)
   arr[0] :=0;
   arr[1] :=0;
@@ -537,7 +537,7 @@ begin
     (* looking for a max 4 int followed by a closing "]" *)
     repeat
       if k > 0 then s2:=getnext(txt,ind,len);
-      
+
       j:=pos(']',s2);
       if j>0 then delete(s2,j,1);
       if length(trim(s2))>0 then
@@ -546,7 +546,7 @@ begin
       inc(k);
     until (bArr <> True) or (j<>0) or (ind>len);
   end;
-   
+
   left  :=arr[0];
   top   :=arr[1];
   right :=arr[2];

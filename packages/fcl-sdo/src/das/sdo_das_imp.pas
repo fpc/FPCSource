@@ -53,12 +53,12 @@ type
       const ARowType : ISDOType;
       const AResList : ISDODataObjectList;
       const AOptions : TSDODASOptions
-    ) : ISDODataObjectList;overload; 
+    ) : ISDODataObjectList;overload;
     function ExecuteQuery(
       const ADac : TDataAccessInterface;
-      const AQuery : string;     
-      const AQueryParams : array of Variant 
-    ) : ISDODataObject;overload; 
+      const AQuery : string;
+      const AQueryParams : array of Variant
+    ) : ISDODataObject;overload;
     function ExecuteQuery(
       const ADac : TDataAccessInterface;
       const AQuery : string
@@ -122,7 +122,7 @@ type
     destructor Destroy(); override;
   end;
 
-  
+
 resourcestring
   SDODAS_MSG_NO_HANDLER_FOUND = 'No handler found for this type : "%s".';
   SDODAS_MSG_INALID_PARAMS = 'Invalid parameter(s) : "%s".';
@@ -171,7 +171,7 @@ begin
   if ( FFactory.getTypes().find(s_db_namespace,s_DataSetType) = nil ) then
     AddDatasetType();
   FObjectHandlerList := TObjectList.Create(True);
-end;    
+end;
 
 function TSDODAS.ExecuteQuery(
   const ADac : TDataAccessInterface;
@@ -179,14 +179,14 @@ function TSDODAS.ExecuteQuery(
   const ARowType : ISDOType;
   const AResList: ISDODataObjectList;
   const AOptions : TSDODASOptions
-) : ISDODataObjectList;  
+) : ISDODataObjectList;
 begin
   Result := ExecuteQuery(ADac,AQuery,[],ARowType,AResList,AOptions);
 end;
 
 function TSDODAS.ExecuteQuery(
   const ADac : TDataAccessInterface;
-  const AQuery: string;         
+  const AQuery: string;
   const AQueryParams : array of Variant;
   const ARowType : ISDOType;
   const AResList: ISDODataObjectList;
@@ -208,7 +208,7 @@ begin
   locAddProp := ARowType.isOpenType() and ( sdoAddProperty in AOptions );
   if (Length(AQueryParams) = 0) then
     ds := ADac.ExecuteDataset(AQuery)
-  else  
+  else
     ds := ADac.ExecuteDataset(AQuery,AQueryParams);
   try
     if not ds.IsEmpty() then begin
@@ -250,7 +250,7 @@ destructor TSDODAS.Destroy;
 begin
   FObjectHandlerList.Free();
   inherited;
-end;  
+end;
 
 function TSDODAS.ExecuteQuery(
   const ADac: TDataAccessInterface;
@@ -262,8 +262,8 @@ end;
 
 function TSDODAS.ExecuteQuery(
   const ADac: TDataAccessInterface;
-  const AQuery: string;     
-  const AQueryParams : array of Variant 
+  const AQuery: string;
+  const AQueryParams : array of Variant
 ) : ISDODataObject;
 var
   dsType : ISDOType;
@@ -447,5 +447,5 @@ initialization
 
 finalization
   DefaultImplementor := nil;
-  
+
 end.

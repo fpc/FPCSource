@@ -20,7 +20,7 @@ end;
 var
   F : TFileStream;
   Doc : TPDFDocument;
-  
+
 begin
   if ParamCount<1 then
     begin
@@ -34,5 +34,5 @@ begin
   finally
     doc.free;
     f.free;
-  end;  
+  end;
 end.

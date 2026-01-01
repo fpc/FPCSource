@@ -172,9 +172,9 @@ type
     Property UseConnectionCharSetIfNone : Boolean Read FUseConnectionCharSetIfNone Write FUseConnectionCharSetIfNone;
     property WireCompression: Boolean read FWireCompression write FWireCompression default False;
   end;
-  
+
   { TIBConnectionDef }
-  
+
   TIBConnectionDef = Class(TConnectionDef)
     Class Function TypeName : String; override;
     Class Function ConnectionClass : TSQLConnectionClass; override;
@@ -184,7 +184,7 @@ type
     Class Function UnLoadFunction : TLibraryUnLoadFunction; override;
     Class Function LoadedLibraryName: string; override;
   end;
-                  
+
 implementation
 
 {$IFDEF FPC_DOTTEDUNITS}
@@ -674,7 +674,7 @@ var
   ADatabaseName: String;
   DPB: string;
   HN : String;
-  
+
 begin
   DPB := chr(isc_dpb_version1);
   if (UserName <> '') then
@@ -693,13 +693,13 @@ begin
 
   FDatabaseHandle := nil;
   HN:=HostName;
-  if HN <> '' then 
+  if HN <> '' then
     begin
     if Port<>0 then
       HN:=HN+'/'+IntToStr(Port);
     ADatabaseName := HN+':'+DatabaseName
     end
-  else 
+  else
     ADatabaseName := DatabaseName;
   if isc_attach_database(@FStatus[0], Length(ADatabaseName), @ADatabaseName[1],
     @FDatabaseHandle, Length(DPB), @DPB[1]) <> 0 then
@@ -1009,7 +1009,7 @@ begin
       begin
       if isc_dsql_free_statement(@Status, @StatementHandle, DSQL_close)<>0 then
         // If transaction was closed (keepOpenOnCommit, then the cursor is already closed.
-        CheckError('Close Cursor', Status, [335544577]); 
+        CheckError('Close Cursor', Status, [335544577]);
       end;
     end;
 end;
@@ -1517,7 +1517,7 @@ var
 begin
   {$IFNDEF SUPPORT_MSECS}
   DateTimeToSystemTime(PTime,STime);
-  
+
   CTime.tm_year := STime.Year - 1900;
   CTime.tm_mon  := STime.Month -1;
   CTime.tm_mday := STime.Day;
@@ -1816,7 +1816,7 @@ var info_request       : string;
     subBlockSize       : integer;
     SelectedRows,
     InsertedRows       : integer;
-    
+
 begin
   SelectedRows:=-1;
   InsertedRows:=-1;
@@ -1860,12 +1860,12 @@ class function TIBConnectionDef.TypeName: String;
 begin
   Result:='Firebird';
 end;
-  
+
 class function TIBConnectionDef.ConnectionClass: TSQLConnectionClass;
 begin
   Result:=TIBConnection;
 end;
-    
+
 class function TIBConnectionDef.Description: String;
 begin
   Result:='Connect to Firebird/Interbase directly via the client library';

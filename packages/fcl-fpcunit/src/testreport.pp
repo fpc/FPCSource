@@ -239,12 +239,12 @@ begin
       Result := Result + '\flushleft' + System.sLineBreak;
       Result:=Result+TestSuiteAsLatex(TTestSuite(ASuite.Test[i]))+System.sLineBreak;
       end
-    else   
+    else
       begin
-      Result := Result + '\item[-] ' + 
+      Result := Result + '\item[-] ' +
                EscapeText(TTestcase(aSuite.Test[i]).TestName)
                + System.sLineBreak;
-      end;    
+      end;
   Result := Result +'\end{itemize}' + System.sLineBreak;
 end;
 

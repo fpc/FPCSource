@@ -28,7 +28,7 @@ uses
 uses
   Classes, SysUtils, sqldb, fpdatadict, fpddsqldb;
 {$ENDIF FPC_DOTTEDUNITS}
-  
+
 Type
   { TSQLDBMySql40DDEngine }
 
@@ -39,7 +39,7 @@ Type
     Class function Description : string; override;
     Class function DBType : String; override;
   end;
-  
+
 Procedure RegisterMySQL40DDEngine;
 Procedure UnRegisterMySQL40DDEngine;
 

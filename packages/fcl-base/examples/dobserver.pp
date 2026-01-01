@@ -11,8 +11,8 @@ type
   TMyObserver = class(TObject, IFPObserver)
   private
     procedure FPOObservedChanged(ASender : TObject; Operation : TFPObservedOperation; Data : Pointer);
-  end; 
-  
+  end;
+
 { TMyObserver }
 
 procedure TMyObserver.FPOObservedChanged(ASender: TObject;
@@ -38,7 +38,7 @@ begin
       OperationToString(Operation) + ']');
   end;
 end;
-  
+
 var
   sl: TStringList;
   observer: TMyObserver;
@@ -49,17 +49,17 @@ begin
   { this instance will be the observer - notified when StringList changes }
   observer := TMyObserver.Create;
 
-  { attach observer }  
+  { attach observer }
   if Supports(sl, IFPObserved, intf) then
   begin
     intf.FPOAttachObserver(observer);
   end;
-  
+
   { Do something to the stringlist }
   sl.Add('Item one');
   sl.Add('Item two');
   sl.Delete(0);
-  
+
   { Clean-up code - also shows ooFree operation }
   sl.Free;
   observer.Free;

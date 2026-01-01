@@ -1,4 +1,4 @@
- 
+
    Sample XSLT processing
    ----------------------
 
@@ -12,8 +12,8 @@ file. This is much faster that letting the web browser do it on the fly.
 
 For an example of the generated HTML results have a look at:
   http://opensoft.homeip.net/tiopf/fpcunit/index.html
-  
-  
+
+
 Configuration Options:
 ----------------------
 The new fpcunit.xsl file has many configuration option. Have a look at

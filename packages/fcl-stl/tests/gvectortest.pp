@@ -22,7 +22,7 @@ type TGVectorTest = class(TTestCase)
     procedure MutableTest;
   public
     procedure Setup;override;
-  private 
+  private
     data:vectorlli;
   end;
 
@@ -38,7 +38,7 @@ begin
     AssertEquals('Wrong data', i, data[i]);
 
   writeln(data[11]);
-  
+
   AssertEquals('Wrong size', 11, data.size);
   AssertEquals('IsEmpty', false, data.IsEmpty);
 end;
@@ -49,7 +49,7 @@ begin
   AssertEquals('Not IsEmpty', true, data.IsEmpty);
   data.resize(50);
   AssertEquals('IsEmpty', false, data.IsEmpty);
-  for i:=0 to 49 do 
+  for i:=0 to 49 do
     data[i]:=3*i;
   for i:=0 to 49 do
     AssertEquals('Wrong data', 3*i, data[i]);

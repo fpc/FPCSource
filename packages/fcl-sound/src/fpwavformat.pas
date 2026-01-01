@@ -27,7 +27,7 @@ const
   AUDIO_CHUNK_ID_fmt  = 'fmt ';
   AUDIO_CHUNK_ID_data = 'data';
   AUDIO_FORMAT_PCM = 1;
-  
+
   { WAVE form wFormatTag IDs }
   WAVE_FORMAT_UNKNOWN                    = $0000; { Microsoft Corporation }
   WAVE_FORMAT_PCM                        = $0001; { Microsoft Corporation }

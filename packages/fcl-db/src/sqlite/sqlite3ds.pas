@@ -75,7 +75,7 @@ uses
 uses
   sqlite3, db, strutils;
 {$ENDIF FPC_DOTTEDUNITS}
-  
+
 function SqliteCode2Str(Code: Integer): String;
 begin
   case Code of
@@ -361,7 +361,7 @@ end;
 function TSqlite3Dataset.QuickQuery(const ASQL: String; const AStrList: TStrings; FillObjects:Boolean): String;
 var
   vm: Pointer;
-    
+
   procedure FillStrings;
   begin
     while FReturnCode = SQLITE_ROW do
@@ -378,7 +378,7 @@ var
         TObject(PtrInt(sqlite3_column_int(vm, 1))));
       FReturnCode := sqlite3_step(vm);
     end;
-  end;    
+  end;
 begin
   if FSqliteHandle = nil then
     GetSqliteHandle;
@@ -386,20 +386,20 @@ begin
   FReturnCode := sqlite3_prepare_v2(FSqliteHandle,PAnsiChar(ASQL), -1, @vm, nil);
   if FReturnCode <> SQLITE_OK then
     DatabaseError(ReturnString, Self);
-    
+
   FReturnCode := sqlite3_step(vm);
   if (FReturnCode = SQLITE_ROW) and (sqlite3_column_count(vm) > 0) then
   begin
     Result := String(sqlite3_column_text(vm, 0));
     if AStrList <> nil then
-    begin   
+    begin
       if FillObjects and (sqlite3_column_count(vm) > 1) then
         FillStringsAndObjects
       else
         FillStrings;
-    end;          
-  end;  
-  sqlite3_finalize(vm); 
+    end;
+  end;
+  sqlite3_finalize(vm);
 end;
 
 end.

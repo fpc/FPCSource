@@ -28,7 +28,7 @@ uses
 uses
   Classes, SysUtils, resource, machotypes;
 {$ENDIF FPC_DOTTEDUNITS}
-  
+
 type
 
   { TMachOResourceReader }
@@ -93,7 +93,7 @@ type
       const aOppositeEndianess : boolean); virtual;
     destructor Destroy; override;
   end;
-  
+
 (*
 Almost all differences in 32 and 64 bit mach-o files lie in record sizes.
 Generics don't work with record types, so use macros to do this task
@@ -247,7 +247,7 @@ begin
     else
       exit;
   end;
-  
+
   if fOppositeEndianess then
     case fNativeEndianess of
       MACH_BIG_ENDIAN    : fEndianess:=MACH_LITTLE_ENDIAN;
@@ -255,7 +255,7 @@ begin
     end
   else
     fEndianess:=fNativeEndianess;
-  
+
   if fOppositeEndianess then
     begin
       fHeader.magic:=SwapEndian(fHeader.magic);
@@ -266,7 +266,7 @@ begin
       fHeader.sizeofcmds:=SwapEndian(fHeader.sizeofcmds);
       fHeader.flags:=SwapEndian(fHeader.flags);
     end;
-  
+
   if not MachOMachineTypesToPas(fHeader.cpuType,fheader.cpusubtype,fMachineType,fSubMachineType) then
     exit;
 
@@ -296,7 +296,7 @@ var subreader : TAbstractMachOSubReader;
 begin
   if not ReadMachOHeader(aStream) then
     raise EResourceReaderWrongFormatException.Create('');
-    
+
   case fBits of
     MACH_32BIT : subreader:=TMachO32SubReader.Create(self,fHeader,fOppositeEndianess);
     MACH_64BIT : subreader:=TMachO64SubReader.Create(self,fHeader,fOppositeEndianess);

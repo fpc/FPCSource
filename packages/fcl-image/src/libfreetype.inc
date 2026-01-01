@@ -3,7 +3,7 @@
     This file is part of the Free Pascal run time library.
     Copyright (c) 2003 by the Free Pascal development team
 
-    freetype header to be included from static and dynamically loaded header.      
+    freetype header to be included from static and dynamically loaded header.
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.

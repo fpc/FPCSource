@@ -46,8 +46,8 @@ Type
     Property Identifier : String Read FIDent Write SetIdent;
     Property Mode : TMode Read FMode Write FMode;
   end;
-  
-  
+
+
   { TDDSQLConstGenerator }
 
   TDDSQLConstGenerator = Class(TDDCustomCodeGenerator)
@@ -69,7 +69,7 @@ Type
 
 Const
   SSQLConst = 'SQLConst';
-  
+
 Resourcestring
   SSQLConstDescr = 'Generate Pascal constant/Stringlist from SQL';
 
@@ -95,7 +95,7 @@ procedure TDDSQLConstOptions.Assign(ASource: TPersistent);
 
 Var
   CO: TDDSQLConstOptions;
-  
+
 begin
   If ASource is TDDSQLConstOptions then
     begin
@@ -118,7 +118,7 @@ procedure TDDSQLConstGenerator.DoGenerateInterface(Strings: TStrings);
 Var
   S : String;
   I,L : Integer;
-  
+
 begin
   If (SQLOptions.Mode=mConst) then
     begin
@@ -207,7 +207,7 @@ end;
 
 Initialization
   RegisterCodeGenerator(SSQLConst, SSQLConstDescr, TDDSQLConstGenerator);
-  
+
 Finalization
   UnRegisterCodeGenerator(TDDSQLConstGenerator);
 

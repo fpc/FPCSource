@@ -92,10 +92,10 @@ Var
 implementation
 
 {$IFDEF FPC_DOTTEDUNITS}
-Uses 
+Uses
   System.SysUtils, System.Classes, System.Process, System.Simpleipc;
 {$ELSE FPC_DOTTEDUNITS}
-Uses 
+Uses
   SysUtils, classes, process, simpleipc;
 {$ENDIF FPC_DOTTEDUNITS}
 
@@ -106,7 +106,7 @@ Const
   ErrorLevel     : TErrorLevel
                  = (dmtInformation,dmtWarning,dmtError);
   IndentChars    = 2;
-  
+
 var
   DebugClient : TSimpleIPCClient = nil;
   MsgBuffer : TMemoryStream = Nil;
@@ -114,7 +114,7 @@ var
   ServerID : Integer;
   DebugDisabled : Boolean = False;
   Indent : Integer = 0;
-  
+
 Procedure WriteMessage(Const Msg : TDebugMessage);
 
 begin

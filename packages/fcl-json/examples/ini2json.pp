@@ -14,9 +14,9 @@ begin
     Writeln('Usage : ',ExtractFileName(ParamStr(0)),' infile [outfile]');
     Halt(1);
     end;
-  Fin:=ParamStr(1);  
-  FOut:=ParamStr(2);  
+  Fin:=ParamStr(1);
+  FOut:=ParamStr(2);
   If (Fout='') then
     Fout:=ChangeFileExt(Fin,'.json');
-  TJSONIniFile.ConvertIni(Fin,Fout,False);  
+  TJSONIniFile.ConvertIni(Fin,Fout,False);
 end.

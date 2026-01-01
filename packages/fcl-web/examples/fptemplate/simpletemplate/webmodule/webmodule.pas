@@ -1,4 +1,4 @@
-unit webmodule; 
+unit webmodule;
 
 {$mode objfpc}{$H+}
 
@@ -16,14 +16,14 @@ type
       AResponse: TResponse; var Handled: Boolean);
   private
     { private declarations }
-    procedure func1callReplaceTag(Sender: TObject; const TagString:String; 
+    procedure func1callReplaceTag(Sender: TObject; const TagString:String;
       TagParams: TStringList; Out ReplaceText: String);
   public
     { public declarations }
-  end; 
+  end;
 
 var
-  FPWebModule1: TFPWebModule1; 
+  FPWebModule1: TFPWebModule1;
 
 implementation
 

@@ -6,7 +6,7 @@ interface
 
 uses fpcunit, testregistry, gset, gutil;
 
-type 
+type
   arr = class
     a:longint;
   end;
@@ -21,7 +21,7 @@ type TGSetRefCountTest = class(TTestCase)
     procedure SetTest;
   public
     procedure Setup;override;
-  private 
+  private
     data:setlli;
   end;
 

@@ -1116,7 +1116,7 @@ end;
 function TPasTreeContainer.GetDefaultClassVisibility(AClass: TPasClassType
   ): TPasMemberVisibility;
 begin
-  Result:=visDefault; 
+  Result:=visDefault;
   if AClass=nil then ;  // avoid compiler warning
 end;
 
@@ -1555,7 +1555,7 @@ function TPasParser.TryErrorRecovery(const aContext: TRecoveryContext): boolean;
 var
   StopAt : TTokens;
   Obj : TObject;
-  
+
 begin
   Inc(FErrorCount);
   Result:=FErrorCount<FMaxErrorCount;

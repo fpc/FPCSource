@@ -13,7 +13,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
- 
+
 unit readerunit;
 {$mode objfpc}{$h+}
 
@@ -149,7 +149,7 @@ begin
     end;
   finally
     settings.Free;
-  end;  
+  end;
   // here other TXMLReader descendants may be tested the same way...
 end;
 
@@ -183,7 +183,7 @@ begin
     Str(exp, exps);
     Str(act, acts);
     Fail(id+ComparisonMsg(exps,acts));
-  end;  
+  end;
 end;
 
 procedure TXMLReaderTestBase.AssertEquals(exp, act: TXMLNodeType);

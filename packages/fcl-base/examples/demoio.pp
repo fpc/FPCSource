@@ -20,7 +20,7 @@ begin
     Writeln(F,'Hello World !');
     Writeln(F,a:3,b:3,c:3);
     CloseFile(F);
-    Writeln(S.DataString); 
+    Writeln(S.DataString);
   finally
     S.Free;
   end;

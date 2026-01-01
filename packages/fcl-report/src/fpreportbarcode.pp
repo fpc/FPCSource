@@ -65,7 +65,7 @@ Type
 
 Procedure RegisterReportBarcode;
 Procedure UnRegisterReportBarcode;
-  
+
 implementation
 
 {$IFDEF FPC_DOTTEDUNITS}
@@ -251,4 +251,4 @@ end;
 
 initialization
   RegisterReportBarcode;
-end.  
+end.

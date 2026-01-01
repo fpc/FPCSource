@@ -222,7 +222,7 @@ Var
   J : TJSONObject;
   I : AnsiChar;
   k : Integer;
-  
+
 begin
   Writeln('JSON object with elements a=0,b=1,c=2,d=3');
   J:=TJSONObject.Create(['a',0,'b',1,'c',2,'d',3]);

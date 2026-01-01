@@ -42,7 +42,7 @@ Compiling FreeTDS with iconv support:
 	- or -
 	Developer files: http://gnuwin32.sourceforge.net/downlinks/libiconv-lib-zip.php (include/iconv.h and lib/libiconv.lib)
 	Binaries: http://gnuwin32.sourceforge.net/downlinks/libiconv-bin-zip.php  (bin/libiconv2.dll)
-    and extract them to a directory, e.g. the directory iconv below your root FreeTDS folder	
+    and extract them to a directory, e.g. the directory iconv below your root FreeTDS folder
 2.  in TDS / Header Files edit config.h and change /* #undef HAVE_ICONV */ to #define HAVE_ICONV 1
 3.  in TDS Project properties:
       C/C++ / General / Additional Include Directories add path to "include/iconv.h" (e.g. "$(SolutionDir)..\iconv\include"

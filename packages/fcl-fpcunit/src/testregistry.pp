@@ -28,7 +28,7 @@ uses
 uses
   fpcunit, testdecorator;
 {$ENDIF FPC_DOTTEDUNITS}
-  
+
 type
 
   TTestDecoratorClass = class of TTestDecorator;

@@ -21,12 +21,12 @@ interface
 
 uses
 {$IFDEF FPC_DOTTEDUNITS}
-  System.Classes, System.SysUtils, System.StrUtils, System.Contnrs, 
+  System.Classes, System.SysUtils, System.StrUtils, System.Contnrs,
 {$ELSE}
-  Classes, SysUtils, strutils, contnrs, 
-{$ENDIF}  
-  MarkDown.Elements, 
-  MarkDown.Render, 
+  Classes, SysUtils, strutils, contnrs,
+{$ENDIF}
+  MarkDown.Elements,
+  MarkDown.Render,
   MarkDown.Utils;
 
 type

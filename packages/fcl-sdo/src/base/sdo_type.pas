@@ -80,8 +80,8 @@ type
     function getProperty(const APropertyIndex : Integer) : ISDOProperty;overload;virtual;abstract;
 	  function getPropertyIndex(const APropertyName : string) : Integer; virtual;abstract;
 	  function isDataObjectType() : Boolean;virtual;abstract;
-	  function isSequencedType() : Boolean; 
-	  function isOpenType() : Boolean; 
+	  function isSequencedType() : Boolean;
+	  function isOpenType() : Boolean;
 	  function isAbstractType() : Boolean;
     function isDataType() : Boolean;
     function isChangeSummaryType() : Boolean;virtual;abstract;
@@ -257,7 +257,7 @@ type
   public
     constructor Create(const AOwner : ISDODataFactory);
   end;
-{$ENDIF HAS_SDO_LONG}  
+{$ENDIF HAS_SDO_LONG}
 
 {$IFDEF HAS_SDO_SHORT}
   TSDOShortType = class(TSDOBaseOrdinalType)

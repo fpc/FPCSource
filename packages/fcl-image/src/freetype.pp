@@ -764,7 +764,7 @@ Var
   T : Array of Cardinal;
   C,I : Integer;
   U : UnicodeString;
-  
+
 begin
   CurFont := GetFont(FontID);
   InitMakeString (FontID, Size);
@@ -783,7 +783,7 @@ function TFontManager.MakeString (FontId:integer; Text:Unicodestring; Size:real)
 Var
   T : Array of Cardinal;
   C,I : Integer;
-  
+
 begin
   CurFont := GetFont(FontID);
   InitMakeString (FontID, Size);

@@ -23,7 +23,7 @@ Var
   Opts,FN,Args : TStrings;
 
 begin
-  CaseSensitiveOptions:=not HasOption('i','insensitive'); 
+  CaseSensitiveOptions:=not HasOption('i','insensitive');
   Writeln('Exe name            : ',ExeName);
   Writeln('Help file           : ',HelpFile);
   Writeln('Terminated          : ',Terminated);

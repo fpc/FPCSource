@@ -164,7 +164,7 @@ Resourcestring
 Var
   Locations : TStrings;
   MimeLoaded : Boolean;
-  
+
 Procedure CheckMimeLoaded;
 begin
   If (Not MimeLoaded) and (MimeTypesFile<>'') then
@@ -188,7 +188,7 @@ Var
 
 begin
   if (ALocation='') then
-    Raise HTTPError.Create(SErrNoLocation); 
+    Raise HTTPError.Create(SErrNoLocation);
   if Pos('/',ALocation)<>0 then
     Raise HTTPError.CreateFmt(SErrInvalidLocation,[aLocation]);
   if (Locations=Nil) then
@@ -435,7 +435,7 @@ begin
     exit;
     end;
   FN:=MapFileName(RFN);
-  if (FN='') or not AllowFile(FN) then  
+  if (FN='') or not AllowFile(FN) then
     begin
     AResponse.SetStatus(403,True);
     if Assigned (OnLog) then

@@ -472,7 +472,7 @@ begin
       begin
         wrtChr(' ');
         wrtQuotedLiteral(SystemID);
-      end;  
+      end;
     end
     else if SystemID <> '' then
     begin

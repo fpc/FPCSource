@@ -34,10 +34,10 @@ uses
 Const
   DefaultParseDepth = 100;
   MaxDelimLength    = 5;
-  
+
 Type
   TParseDelimiter = String[MaxDelimLength];
-  
+
 Var
   DefaultStartDelimiter : TParseDelimiter = '{';           //Template tag start                  |If you want Delphi-like, set it to '<#'
   DefaultEndDelimiter  : TParseDelimiter = '}';            //Template tag end                    |                                   '>'
@@ -135,7 +135,7 @@ Type
     Property OnReplaceTag : TReplaceTagEvent Read FOnReplaceTag Write FOnReplaceTag;
     Property AllowTagParams : Boolean Read FAllowTagParams Write FAllowTagParams;
   end;
-  
+
   TFPTemplate = Class(TFPCustomTemplate)
   Published
     Property FileName;
@@ -149,7 +149,7 @@ Type
     Property ParamValueSeparator;
     Property OnGetParam;
   end;
-  
+
   ETemplateParser = Class(Exception);
 
 Var
@@ -161,7 +161,7 @@ implementation
 Resourcestring
   SErrParseDepthExceeded = 'Maximum parse level (%d) exceeded.';
   SErrNoEmptyDelimiters = 'Delimiters cannot be empty';
-  
+
 { TTemplateParser }
 Type
 
@@ -306,7 +306,7 @@ procedure TTemplateParser.Clear;
 
 Var
   I : Integer;
-  
+
 begin
   If Assigned(FValues) then
     For I:=0 to FValues.Count-1 do
@@ -315,10 +315,10 @@ begin
 end;
 
 function TTemplateParser.GetParam(const Key: String; out AValue: String): Boolean;
-  
+
 Var
   I : Integer;
-  
+
 begin
   If Assigned(FValues) then
     I:=FValues.IndexOf(Key)
@@ -582,7 +582,7 @@ function TTemplateParser.ParseStream(Src: TStream; Dest: TStream): Integer;
 Var
   SS : TStringStream;
   S,R : String;
-  
+
 begin
   SS:=TStringStream.Create('');
   Try
@@ -629,7 +629,7 @@ end;
 { TFPCustomTemplate }
 
 procedure TFPCustomTemplate.GetParam(Sender: TObject; const ParamName: String; out AValue: String);
-  
+
 begin
   If Assigned(FOnGetParam) then
    FOnGetParam(Self,ParamName,AValue);
@@ -676,7 +676,7 @@ Var
   P : TTemplateParser;
   S : TStringStream;
   F : TFileStream;
-  
+
 begin
   F:=Nil;
   S:=Nil;

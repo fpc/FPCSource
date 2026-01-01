@@ -647,8 +647,8 @@ begin
   Result:=pal;
 end;
 
-{ slow   mode: no filtering 
-  normal mode: 8 bit r, 6 bit g, 6 bit b 
+{ slow   mode: no filtering
+  normal mode: 8 bit r, 6 bit g, 6 bit b
   fast   mode: 5 bit r, 5 bit g, 5 bit b }
 
 const mask_r_normal = $FFFF;

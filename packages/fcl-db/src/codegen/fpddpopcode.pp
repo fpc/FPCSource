@@ -32,7 +32,7 @@ Type
   TDDCodeGenOption = (dcoFields,dcoIndexes,dcoProcedurePerTable,dcoUseWith,
                       dcoClassDecl,dcoGenerators,dcoDomains,dcoMergeDomains);
   TDDCodeGenOptions = Set of TDDCodeGenoption;
-  
+
   { TFPDDPopulateCodeGenerator }
 
   TFPDDPopulateCodeGenerator = Class(TComponent)
@@ -97,13 +97,13 @@ Type
     Property DDVarName : String Read FDDV Write FDDV;
     Property ClassName : String Read FClassName Write FClassName;
   end;
-  
+
 implementation
 
 Resourcestring
   SErrNoDataDictionary = 'Cannot perform this operation without datadictionary';
   SErrNoDataDictionaryName = 'Cannot perform this operation without datadictionary name';
-  
+
 
 { TFPDDPopulateCodeGenerator }
 

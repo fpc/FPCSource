@@ -56,9 +56,9 @@ type
     constructor Create(aStream : TStream; aResource : TAbstractResource; aSize : int64); override;
     function Read(var Buffer; Count: Longint): Longint; override;
   end;
-  
+
   TCachedStreamClass = class of TCachedDataStream;
-  
+
 
   TUnderlyingStreamType = (usCached, usMemory, usCustom);
 
@@ -87,7 +87,7 @@ type
     function Seek(const Offset: Int64; Origin: TSeekOrigin): Int64; override;
     property Cached : boolean read GetCached write SetCached;
   end;
-  
+
 implementation
 
 { TCachedDataStream }

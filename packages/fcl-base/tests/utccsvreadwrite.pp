@@ -89,7 +89,7 @@ end;
 function TCSVReadWrite_Test2Lines: TTestString;
 begin
   Result := '';
- 
+
   FParser.SetSource('"this","line",has,an embedded' + LineEnding + 'newline');
   AssertLine(0, ['this', 'line', 'has', 'an embedded']);
   AssertLine(1, ['newline']);

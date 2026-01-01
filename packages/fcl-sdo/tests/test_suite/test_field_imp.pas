@@ -1078,7 +1078,7 @@ begin
   CheckEquals(True,IsBitON(valBuffer^,BIT_ORDER_SET + 1));
 
   intVal := 0;
-  Inc(valBuffer);  
+  Inc(valBuffer);
     obj.unset(buffer,F_OFFSET_1);
     CheckEquals(False,IsBitON(valBuffer^,BIT_ORDER_SET));
 
@@ -2199,7 +2199,7 @@ begin
       valBuffer^^ := VAL_5;
       CheckEquals(False,obj.getBoolean(buffer,F_OFFSET_1));
 
-      
+
     finally
       valBuffer^^ := '';
       FreeMem(valBuffer^,SizeOf(PSDOString));
@@ -3220,7 +3220,7 @@ begin
     valBuffer^^ := VAL_2;
     obj.setNull(buffer,F_OFFSET_0);
     CheckEquals(True,IsBitON(startBuffer^,BIT_ORDER_SET));
-    CheckEquals(True,IsBitON(startBuffer^,BIT_ORDER_NULL)); 
+    CheckEquals(True,IsBitON(startBuffer^,BIT_ORDER_NULL));
     Check(valBuffer^ = nil);
 
   FillChar(trueBuffer,SizeOf(trueBuffer),#0);
@@ -3942,7 +3942,7 @@ begin
 
   valBuffer^^ := nil;
   FreeMem(valBuffer^,SizeOf(PSDODataObject));
-  valBuffer^ := nil;    
+  valBuffer^ := nil;
 end;
 
 procedure TSDOBaseDataObject_Test.setNull();
@@ -4225,7 +4225,7 @@ begin
       obj.unset(buffer,F_OFFSET_1);
         CheckEquals(False,IsBitON(startBuffer^,BIT_ORDER_SET));
         CheckEquals(False,IsBitON(startBuffer^,BIT_ORDER_BUFFER));
-  
+
     GetMem(valBuffer^,SizeOf(PSDODataObject)); FillChar(valBuffer^^,SizeOf(ISDODataObject),#0);
     SetBit(startBuffer^,BIT_ORDER_SET,True);
     SetBit(startBuffer^,BIT_ORDER_NULL,False);
@@ -4481,7 +4481,7 @@ begin
       valBuffer^^ := nil;
       FreeMem(valBuffer^,SizeOf(PSDOChangeSummary));
       valBuffer^ := nil;
-    end;  
+    end;
 end;
 
 procedure TSDOChangeSummaryField_Test.setChangeSummary();
@@ -4565,7 +4565,7 @@ begin
 
   valBuffer^^ := nil;
   FreeMem(valBuffer^,SizeOf(PSDOChangeSummary));
-  valBuffer^ := nil;    
+  valBuffer^ := nil;
 
 end;
 
@@ -10115,7 +10115,7 @@ const F_OFFSET_0 = 0; F_OFFSET_1 = 1;
       VAL_1 : TSDOCurrency = 12345; VAL_2 : TSDOCurrency = -98765; VAL_3 : TSDOCurrency = 0;
 var
   obj : ISDOField;
-  intVal : array[0..100] of Byte; 
+  intVal : array[0..100] of Byte;
   buffer, tmpBuffer, attributeBuffer : PByte;
   valBuffer : PSDOCurrency;
 begin
@@ -10263,7 +10263,7 @@ const F_OFFSET_0 = 0; F_OFFSET_1 = 1;
       VAL_1 : TSDOCurrency = 12345; VAL_2 : TSDOCurrency = -98765; VAL_3 : TSDOCurrency = 0;
 var
   obj : ISDOField;
-  intVal : array[0..100] of Byte; 
+  intVal : array[0..100] of Byte;
   buffer, tmpBuffer, attributeBuffer : PByte;
   valBuffer : PSDOCurrency;
 begin

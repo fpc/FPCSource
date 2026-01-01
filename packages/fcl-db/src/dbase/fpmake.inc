@@ -3,7 +3,7 @@
 { FULLFCL will be defined if included from main FCL directory }
 
 { DBase, only for I386}
-Targets.ResetDefaults;  
+Targets.ResetDefaults;
 Targets.DefaultCPU:=[i386];
 Targets.DefaultOS:=[linux,win32,freebsd,os2,emx];
 Targets.DefaultDir:='db/dbase';

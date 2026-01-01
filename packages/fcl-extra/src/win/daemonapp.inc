@@ -21,7 +21,7 @@ uses windows,jwawinsvc;
 
 Const
   CM_SERVICE_CONTROL_CODE = WM_USER+1;
-  
+
 Resourcestring
   SErrRegisterHandler  = 'Could not register control handler, error code %d';
   SErrNoControlContext = 'Not handling Control message without control context: (%d %d %d).';
@@ -140,7 +140,7 @@ end;
 { ---------------------------------------------------------------------
   TCustomDaemonApplication
   ---------------------------------------------------------------------}
-  
+
 const
   WinServiceTypes : array[TServiceType] of Integer
                   = (SERVICE_WIN32_OWN_PROCESS, SERVICE_KERNEL_DRIVER,
@@ -157,7 +157,7 @@ const
 // Careful, result of this function must be freed !!
 
 Function GetDependencies(D : TDependencies) : PChar;
-  
+
 var
   I,L : Integer;
   P   : PChar;
@@ -197,7 +197,7 @@ Var
   PIDTag : LPDWord;
   PDeps,PN,PP : PChar;
   D : TServiceDescription;
-  
+
 begin
   SM:=TSMData(FSysData).FHandle;
   DD:=Daemon.Definition;
@@ -209,7 +209,7 @@ begin
     E:=E+' '+DD.RunArguments;
   N:=DD.Name;
   DN:=DD.DisplayName;
-  
+
   With DD.WinBindings do
     begin
     LG:=GroupName;
@@ -303,7 +303,7 @@ procedure TCustomDaemonApplication.SysStartInstallDaemons;
 
 Var
   SM : SC_HANDLE;
-  
+
 begin
   SM:=OpenSCManager(Nil,Nil,SC_MANAGER_ALL_ACCESS);
   if (SM=0) then
@@ -375,7 +375,7 @@ begin
             Terminate;
           end;
         if not Terminated then
-          WaitMessage;  
+          WaitMessage;
       Until Terminated;
       end;
   finally
@@ -391,7 +391,7 @@ Var
   I,C : Integer;
   RV : Integer;
   SN : AnsiString;
-  
+
 begin
   GetMem(P,SizeOf(TServiceTableEntry)*(FMapper.DaemonDefs.Count+1));
   Try
@@ -442,7 +442,7 @@ end;
 
 procedure TCustomDaemonApplication.RemoveController(
   AController: TDaemonController);
-  
+
 begin
   FreeAndNil(AController.FDaemon);
   AController.Free;
@@ -465,7 +465,7 @@ procedure TDaemonThread.StartServiceExecute;
 
 Var
   Msg : TMsg;
-  
+
 begin
   PeekMessage(Msg,0,WM_USER,WM_USER,PM_NOREMOVE);
 end;
@@ -519,7 +519,7 @@ Var
   T : TThread;
   H : SERVICE_STATUS_HANDLE;
   I : Integer;
-  
+
 begin
   For I:=0 to Argc-1 do
     FParams.Add(StrPas(Args[I]));

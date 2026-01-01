@@ -114,7 +114,7 @@ var
   TableLevelProvided: integer;
 begin
   TableLevelProvided := StrToIntDef(dbconnectorparams, 4);
-  if not (TableLevelProvided in [3, 4, 5, 7, 
+  if not (TableLevelProvided in [3, 4, 5, 7,
     TDBF_TABLELEVEL_FOXPRO, TDBF_TABLELEVEL_VISUALFOXPRO]) then
   begin
     Result := -1; // hope this crashes the tests so user is alerted.

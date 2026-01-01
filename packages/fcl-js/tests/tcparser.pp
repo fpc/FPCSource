@@ -3468,6 +3468,6 @@ end;
 
 initialization
 
-  RegisterTest(TTestJSParser); 
+  RegisterTest(TTestJSParser);
 end.
 

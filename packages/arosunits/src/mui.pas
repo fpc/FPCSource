@@ -4055,7 +4055,7 @@ type
     proc: PObject_;
     pad_align: record end; // properly pad previous field if applicable
     {$POP}
-  end; 
+  end;
 
   TMUIP_Process_Signal = record  // record with stacked fields
     {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}

@@ -179,7 +179,7 @@ const
   '<a>Testing this</a>'#10+
   '<b>and this too</b>'#10+
   '</doc>';
-  
+
   NodesetCompareTests: array[0..38] of TTestRec = (
    { same nodeset }
    (data: nscmp; expr: 'j[@l="12"] = j[@w="33"]'; rt: rtBool; b: True),   // #70
@@ -424,7 +424,7 @@ const
   '<a id="c"/>'+
   '<a id="d"/>'+
   '</t04>';
-  
+
   pos04='<doc>'+
   '<a test="true"><num>1</num></a>'+
   '<a><num>1191</num></a>'+
@@ -464,9 +464,9 @@ const
     (data: expr01; expr: 'para[@id="4" and lang("en")]'; rt: rtNodeStr; s: 'en-us'),  // expression03
     (data: expr01; expr: 'div/para[lang("en")]'; rt: rtNodeStr; s: 'en'),             // expression04
     (data: expr01; expr: 'para[@id="3" and lang("en")]'; rt: rtNodeStr; s: 'EN'),     // expression05
-    
+
     (data: id04; expr: 'id("c")/@id'; rt: rtNodeStr; s: 'c'),  // idkey04
-    
+
     // position() tests
     (data: pos04; expr: '*[@test][position()=4]/num'; rt: rtNodeStr; s: '4'),
 
@@ -539,7 +539,7 @@ const
   '<g><h><i><j><k><l><m><n><o><p><q><r><s><t><u><v><w><x><y><z><Yahoo>Yahoo</Yahoo>'#10+
   '</z></y></x></w></v></u></t></s></r></q></p></o></n></m></l></k></j></i></h>SecondNode_after_H</g></f></e></d></b>'#10+
   '</docs>';
-  
+
   out08=#10+
   'A'#10+
   'B-C'#10+
@@ -596,12 +596,12 @@ const
     (expr: 'contains("tititototata","toto")'; rt: rtBool; b: True),
     (expr: 'contains("tititototata","tata")'; rt: rtBool; b: True),
     (expr: 'contains("tititototata","tita")'; rt: rtBool; b: False),
-    // 'contains(concat(.,'BC'),concat('A','B','C'))' == true          // #57    
+    // 'contains(concat(.,'BC'),concat('A','B','C'))' == true          // #57
     (expr: 'contains("ab", "abc")';           rt: rtBool; b: False),   // #58
     (expr: 'contains("abc", "bcd")';          rt: rtBool; b: False),   // #60
     (expr: 'contains("abc", "")';             rt: rtBool; b: True),    // #61
     (expr: 'contains("", "")';                rt: rtBool; b: True),    // #62
-    (expr: 'contains(true(), "e")';           rt: rtBool; b: True),    // #63    
+    (expr: 'contains(true(), "e")';           rt: rtBool; b: True),    // #63
 
     (expr: 'substring("12345",2,3)'; rt: rtString; s: '234'),
     (expr: 'substring("12345",2)';   rt: rtString; s: '2345'),
@@ -664,7 +664,7 @@ const
     (expr: 'string(-123456789012345678)';    rt: rtString; s: '-123456789012345680'),   // #132.2
     (expr: 'string(.10123456789234567893)';  rt: rtString; s: '0.10123456789234568'),   // #133.1
     (expr: 'string(-.10123456789234567893)'; rt: rtString; s: '-0.10123456789234568'),  // #133.2
-    
+
     (expr: 'string(9.87654321012345)'; rt: rtString; s: '9.87654321012345'),  // #134.1
     (expr: 'string(98765432101234.5)'; rt: rtString; s: '98765432101234.5'),  // #134.2
     (expr: 'string(.0000000000000000000000000000000000000000123456789)'; rt: rtString;  // #135.1
@@ -801,7 +801,7 @@ const
 {$warnings on}
 
 var
-  FailCount: Integer = 0;  
+  FailCount: Integer = 0;
 
 procedure CheckResult(const t: TTestRec; r: TXPathVariable); overload;
 begin
@@ -830,7 +830,7 @@ begin
             Exit;
           if not IsNan(TXPathNumberVariable(r).Value) and SameValue(TXPathNumberVariable(r).Value, t.n) then
             Exit;
-        end;  
+        end;
       end;
       writeln;
       writeln('Failed: ', t.expr);
@@ -841,7 +841,7 @@ begin
     begin
       if (r is TXPathStringVariable) and (r.AsText = DOMString(t.s)) then
         Exit;
-      writeln;  
+      writeln;
       writeln('Failed: ', t.expr);
       writeln('Expected: ', DOMString(t.s), ' got: ', r.AsText);
     end;
@@ -849,7 +849,7 @@ begin
     begin
       if (r is TXPathNodeSetVariable) and (r.AsNodeSet.Count = 1) and (r.AsText = DOMString(t.s)) then
         Exit;
-      writeln;  
+      writeln;
       writeln('Failed: ', t.expr);
       if r.AsNodeSet.Count > 1 then
         writeln('Result is not a single node');
@@ -1006,7 +1006,7 @@ end;
 begin
   DoSuite(BaseTests);
   DoSuite(CompareTests);
-  DoSuite(NodesetCompareTests);  
+  DoSuite(NodesetCompareTests);
   DoSuite(EqualityTests);
   DoSuite(FloatTests);
   DoSuite(FunctionTests);

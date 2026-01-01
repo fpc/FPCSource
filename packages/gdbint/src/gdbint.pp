@@ -1914,7 +1914,7 @@ const
   {$define GDB_SET_SAVED_COMMAND_LINE}
 {$else}
  {$ifdef GDB_HAS_SAVED_COMMAND_LINE_SIZE}
-  { In some GDB versions, saved_command_line needs to 
+  { In some GDB versions, saved_command_line needs to
     be explicitly allocated at startup }
 var
   saved_command_line : PAnsiChar;cvar;external; { defined in top.c source }

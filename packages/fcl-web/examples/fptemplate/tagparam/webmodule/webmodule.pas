@@ -5,7 +5,7 @@ unit webmodule;
 interface
 
 uses
-  SysUtils, Classes, httpdefs, fpHTTP, fpWeb; 
+  SysUtils, Classes, httpdefs, fpHTTP, fpWeb;
 
 type
 
@@ -16,14 +16,14 @@ type
       AResponse: TResponse; var Handled: Boolean);
   private
     { private declarations }
-    procedure func1callReplaceTag(Sender: TObject; const TagString:String; 
+    procedure func1callReplaceTag(Sender: TObject; const TagString:String;
       TagParams: TStringList; Out ReplaceText: String);
   public
     { public declarations }
-  end; 
+  end;
 
 var
-  FPWebModule1: TFPWebModule1; 
+  FPWebModule1: TFPWebModule1;
 
 implementation
 
@@ -63,6 +63,6 @@ begin
 end;
 
 initialization
-  RegisterHTTPModule('TFPWebModule1', TFPWebModule1); 
+  RegisterHTTPModule('TFPWebModule1', TFPWebModule1);
 end.
 

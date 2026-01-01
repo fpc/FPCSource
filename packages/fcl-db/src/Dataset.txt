@@ -35,7 +35,7 @@ the bookmark information. Bookmark information is REQUIRED.
 
 The dataset allocates by default 'DefaultBufferCount+1' records(buffers)
 This constant can be changed at the beginning of dataset.inc, e.g.
-if you know you'll be working with big datasets, you can 
+if you know you'll be working with big datasets, you can
 increase this constant.
 
 The buffers are stored as pchars in the FBuffers array;
@@ -73,9 +73,9 @@ So the following picture follows from this:
 |               |
 +---------------+
 | FBufferCount  |
-+---------------+ 
++---------------+
 
-The array is zero based. 
+The array is zero based.
 
 The following methods are used to manipulate the array:
 
@@ -84,7 +84,7 @@ GetPriorRecords: tries to fill up the entire array, going backward
 GetNextRecord: gets the next record. Shifts the array if FRecordCount=BufferCount-1
 GetPriorRecord: gets the previous record. Shifts the array if FRecordCount=BufferCount-1
 
-For the last 2 methods: the underlying record pointer must be on the 
+For the last 2 methods: the underlying record pointer must be on the
 last/first record in the dataset, or things will go wrong.
 
 resync tries to refresh the array from the underlying dataset; it uses the
@@ -95,11 +95,11 @@ Dataset implementations
 =======================
 
 TDataset does most of the work associated with fields, buffers and
-navigating/editing/adding/removing records of some source of data. 
-There are, however, some methods that need to be filled in so that 
-a real TDataset can be implemented. 
+navigating/editing/adding/removing records of some source of data.
+There are, however, some methods that need to be filled in so that
+a real TDataset can be implemented.
 
-In order to have a working Dataset, the following Methods need to be 
+In order to have a working Dataset, the following Methods need to be
 overridden in order to make a dataset descendant:
 
 function AllocRecordBuffer: PChar; virtual; abstract;
@@ -122,7 +122,7 @@ Returns the bookmarkflag associated with Buffer.
 
 function GetFieldData(Field: TField; Buffer: Pointer): Boolean; virtual; abstract;
 ----------------------------------------------------------------------------------
-Puts the data for field Field from the active buffer into Buffer. 
+Puts the data for field Field from the active buffer into Buffer.
 This is called whenever a field value is demanded, so it must be
 efficient.
 
@@ -130,19 +130,19 @@ function GetRecord(Buffer: PChar; GetMode: TGetMode; DoCheck: Boolean): TGetResu
 -----------------------------------------------------------------------------------
 This method must do 3 things:
 1) Get the record data for the next/current/previous record, depending
-   on the GetMode value. It should return 
+   on the GetMode value. It should return
     grOK    if all was OK.
-    grBOF   if the previous record was requested, and we are at the start. 
+    grBOF   if the previous record was requested, and we are at the start.
     grEOF   if the next record was requested, and we are at the end.
     grError if an error occurred.
-   
+
 2) If DoCheck is True, and the result is grError, then an exception must be
    raised.
 
 3) It should initialize bookmark data for this record with flag 'bfCurrent'
    This data can be stored in the buffer, if space was allocated for it with
    AllocRecordBuffer.
- 
+
 function GetRecordSize: Word; virtual; abstract;
 ------------------------------------------------
 Should return the record size - this includes ONLY the data portion
@@ -178,7 +178,7 @@ the GetBookMarkData call, and should be kept for each record.
 
 procedure InternalHandleException; virtual; abstract;
 -----------------------------------------------------
-This procedure can try to handle exceptions raised in the Dataset, and 
+This procedure can try to handle exceptions raised in the Dataset, and
 raise an exception if it cannot handle it.
 If not used, just implement an empty call (as is currently done with
 most datasets).
@@ -192,7 +192,7 @@ It should add these definitions to the FFielddefs object.
 procedure InternalInitRecord(Buffer: PChar); virtual; abstract;
 ---------------------------------------------------------------
 This method is called to initialize a field buffer when the dataset
-is put into edit or append mode. Mostly, you'll want to zero out the 
+is put into edit or append mode. Mostly, you'll want to zero out the
 buffer.
 
 procedure InternalLast; virtual; abstract;
@@ -213,8 +213,8 @@ Post the data in the active buffer to the underlying dataset.
 
 procedure InternalSetToRecord(Buffer: PChar); virtual; abstract;
 ----------------------------------------------------------------
-Set the current record to the record in Buffer; if bookmark data 
-is specified in this buffer, that data can be used to determine which 
+Set the current record to the record in Buffer; if bookmark data
+is specified in this buffer, that data can be used to determine which
 record this should be.
 
 function IsCursorOpen: Boolean; virtual; abstract;
@@ -274,13 +274,13 @@ Some properties with the data content:
 
 FieldBuffers[Index] : Buffers containing the actual data of the current record.
                       (Nil if the field is empty)
-                      This data should be of size indicated in FieldSizes, and 
+                      This data should be of size indicated in FieldSizes, and
                       in a format that matches the fieldtype.
 BookMarkBuffer      : Buffer with the current bookmark.
 
 Some methods
 ------------
-OpenRecordSet  : Opens the recordset. It should initialize the FieldCount 
+OpenRecordSet  : Opens the recordset. It should initialize the FieldCount
                  and FieldTypes, FieldNames, and FieldSizes array data.
 
 CloseRecordSet : Do whatever is needed to close the recordset.

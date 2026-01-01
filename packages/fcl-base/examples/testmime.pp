@@ -8,13 +8,13 @@ Var
   L : TstringList;
   I : integer;
   FN : String;
-    
+
 begin
   FN:=Paramstr(1);
-{$ifdef unix}  
+{$ifdef unix}
   if (FN='') then
     FN:='/etc/mime.types';
-{$endif}  
+{$endif}
   MimeTypes.LoadFromFile(FN);
   L:=TStringList.Create;
   try

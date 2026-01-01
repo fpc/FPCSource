@@ -408,25 +408,25 @@ begin
     result := DoGetTextWidth (Text);
 end;
 
-procedure TFPCustomCanvas.DoTextOut (x,y:integer;text:unicodestring); 
+procedure TFPCustomCanvas.DoTextOut (x,y:integer;text:unicodestring);
 
 begin
   DoTextOut(x,y,UTF8Encode(text));
 end;
 
-procedure TFPCustomCanvas.DoGetTextSize (text:unicodestring; var w,h:integer); 
+procedure TFPCustomCanvas.DoGetTextSize (text:unicodestring; var w,h:integer);
 
 begin
   DoGetTextSize(UTF8Encode(Text),w,h);
 end;
 
-function  TFPCustomCanvas.DoGetTextHeight (text:unicodestring) : integer; 
+function  TFPCustomCanvas.DoGetTextHeight (text:unicodestring) : integer;
 
 begin
   Result:=DoGetTextHeight(UTF8Encode(text));
 end;
 
-function  TFPCustomCanvas.DoGetTextWidth (text:unicodestring) : integer; 
+function  TFPCustomCanvas.DoGetTextWidth (text:unicodestring) : integer;
 
 begin
   Result:=DoGetTextWidth(UTF8Encode(text));
@@ -540,11 +540,11 @@ procedure TFPCustomCanvas.PolyBezier(Points: PPoint; NumPts: Integer;
 begin
   DoPolyBezier(Points,NumPts,Filled,Continuous);
 end;
-                     
-procedure TFPCustomCanvas.PolyBezier(const Points: array of TPoint;  
+
+procedure TFPCustomCanvas.PolyBezier(const Points: array of TPoint;
                      Filled: boolean = False;
                      Continuous: boolean = False);
-var 
+var
   NPoints{, i}: integer;
 //  PointArray: ^TPoint;
 begin
@@ -555,7 +555,7 @@ begin
   NPoints:=High(Points)-Low(Points)+1;
   if NPoints<=0 then exit;
     GetMem(PointArray,SizeOf(TPoint)*NPoints);
-  try  
+  try
     for i:=0 to NPoints-1 do
       PointArray[i]:=Points[i+Low(Points)];
     DoPolyBezier(PointArray, NPoints, Filled, Continuous);
@@ -708,7 +708,7 @@ begin
         TFPCustomDrawPen(Pen).Ellipse (left,top,right,bottom);
     if b then
       DoEllipseFill (bounds)
-    else if db then 
+    else if db then
       with bounds do
         TFPCustomDrawBrush(Brush).Ellipse (left,top,right,bottom);
     end;
@@ -736,7 +736,7 @@ begin
     begin
     if not (brush is TFPCustomDrawBrush) then
       DoRectangleFill (ARect)
-    else 
+    else
       with ARect do
         TFPCustomDrawBrush(Brush).Rectangle (left,top,right,bottom);
     end;
@@ -747,7 +747,7 @@ procedure TFPCustomCanvas.FillRect(X1,Y1,X2,Y2: Integer);
 begin
   FillRect (Rect(X1,Y1,X2,Y2));
 end;
-        
+
 procedure TFPCustomCanvas.Rectangle (const Bounds:TRect);
 var np,nb,dp,db: boolean;
 begin
@@ -771,7 +771,7 @@ begin
       begin
       if not db then
         DoRectangleFill (bounds)
-      else 
+      else
         with bounds do
           TFPCustomDrawBrush(Brush).Rectangle (left,top,right,bottom);
       end;
