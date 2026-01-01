@@ -327,7 +327,7 @@ end;
 
 Function fplink(existing:PAnsiChar;newone:PAnsiChar):cint;
 {
-  Procedures a hard link from new to old.
+  Creates a hard link from new to old.
   In effect, new will be the same file as old.
 }
 begin

@@ -163,7 +163,7 @@ procedure sack_pages(p:pointer;count:cardinal);
 begin
   fpmunmap(p,count shl page_shift);
   if geterrno<>0 then
-    runerror(204); {This one should success.}
+    runerror(204); {This one should succeed.}
 end;
 
 {****************************************************************************
