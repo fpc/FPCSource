@@ -21,7 +21,7 @@
  ****************************************************************************}
 
 {$mode objfpc}
-{ Use ansitrings for long PATH variables }
+{ Use ansistrings for long PATH variables }
 {$H+}
 program fpc_with_valgrind;
 
@@ -29,9 +29,9 @@ program fpc_with_valgrind;
   This program uses:
 
    -- 'valgrind.fpc' is an optional file in starting directory
-      that can contain optional commmand line parameters for valgrind.
+      that can contain optional command line parameters for valgrind.
    -- 'VALGRIND_FPC' is an optional environment variable
-      that can contain optional commmand line parameters for valgrind.
+      that can contain optional command line parameters for valgrind.
 
   Note that valgrind also parses:
    -- '~/.valgrindrc' user file.

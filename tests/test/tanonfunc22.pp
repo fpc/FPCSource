@@ -1,6 +1,6 @@
 program tanonfunc22;
 
-{ test accessing references across impementation/interface boundaries }
+{ test accessing references across implementation/interface boundaries }
 
 uses uanonfunc22;
 

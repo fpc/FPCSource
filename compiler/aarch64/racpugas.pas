@@ -485,7 +485,7 @@ Unit racpugas;
                   exit;
                 end;
               else
-                begin // elsecase
+                begin // else case
                   Message(asmr_e_invalid_reference_syntax);
                   RecoverConsume(false);
                   exit;

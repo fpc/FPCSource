@@ -7,7 +7,7 @@
   in which case no stack space would be required... }
 
   { This is the reason of the -Sew option,
-    this test must fail because a warning sould be issued
+    this test must fail because a warning should be issued
     about nostackframe without assembler.
     Please do not remove -Sew option. PM 2012-10-17 }
 

@@ -74,7 +74,7 @@ begin
 end;
 
 const
-  // Use static format settings so we can run tests independantly of system locale!
+  // Use static format settings so we can run tests independently of system locale!
   Fmt: TFormatSettings = (
     CurrencyFormat: 1;
     NegCurrFormat: 5;

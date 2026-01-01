@@ -6,7 +6,7 @@ program write_read_date;
 
 
 // Problem - when write date and read date using binary object reader/writer,
-//readed value is not same as writed
+//read value is not same as written
 
 uses
   classes, sysutils, dateutils;

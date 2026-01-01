@@ -11,7 +11,7 @@ type
 function TGen.Check(ASource: TObject): Boolean;
 begin
   Result := (ASource is TGen)   // this line breaks the compiler...
-  and (ASource is ClassType);   // ...it should be equivelent to this line
+  and (ASource is ClassType);   // ...it should be equivalent to this line
 end;
 
 var

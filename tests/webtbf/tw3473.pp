@@ -15,7 +15,7 @@ type
 
 procedure TB.douseful;
 begin
-  { This should give an error, comaptible with Kylix
+  { This should give an error, compatible with Kylix
 
     Delphi eats this
     FP shouldn't by default

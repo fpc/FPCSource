@@ -460,7 +460,7 @@ procedure split ( str : String; count : Integer );
   end(*split*);
 
 function itemv ( i : Integer ) : String;
-  (* return ith item in splitted string (whole string for i=0) *)
+  (* return ith item in split string (whole string for i=0) *)
   begin
     if i=0 then
       itemv := itemstr

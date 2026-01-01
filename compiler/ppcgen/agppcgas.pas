@@ -506,7 +506,7 @@ unit agppcgas;
         hp : tai;
         max_al : longint;
       begin
-        { Parse all asmlists to get maximum alignement used for all types }
+        { Parse all asmlists to get maximum alignment used for all types }
         for hal:=low(TasmlistType) to high(TasmlistType) do
           begin
             if not (current_asmdata.asmlists[hal].empty) then

@@ -1,6 +1,6 @@
 { %FAIL}
 
-// test that it is imposible to use non-valid enumerator operator
+// test that it is impossible to use non-valid enumerator operator
 
 program tforin10;
 

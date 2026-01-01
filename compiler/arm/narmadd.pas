@@ -442,7 +442,7 @@ interface
             { Optimize for the common case of int64 < 0 }
             if nodetype in [ltn, gtn] then
               begin
-                {Just check for the MSB in reghi to be set or not, this is independed from nf_swapped}
+                {Just check for the MSB in reghi to be set or not, this is independent from nf_swapped}
                 location.resflags:=F_NE;
                 current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_TST,left.location.register64.reghi, aint($80000000)));
               end
@@ -520,7 +520,7 @@ interface
                 end;
                 cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                 current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,left.location.register64.reglo,right.location.register64.reglo));
-                { the comparisaion of the low dword have to be
+                { the comparison of the low dword have to be
                    always unsigned!                            }
                 cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(true),location.truelabel);
                 cg.a_jmp_always(current_asmdata.CurrAsmList,location.falselabel);

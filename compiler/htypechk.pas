@@ -972,7 +972,7 @@ implementation
           exit;
 
         { operator overload is possible }
-        { if we only check for the existance of the overload, then we assume that
+        { if we only check for the existence of the overload, then we assume that
           it is not overloaded }
         result:=not (ocf_check_only in ocf);
 
@@ -1491,7 +1491,7 @@ implementation
                                typecasted to this type, and then we "assign" to
                                this typecasted function result) -> always
                                disallow, since property accessors should be
-                               transparantly changeable to functions at all
+                               transparently changeable to functions at all
                                times
                        }
                        not(gottypeconv) and
@@ -3054,7 +3054,7 @@ implementation
                    { is_in_limit(def_from, def_to) means that def_from.low >= def_to.low and def_from.high <= def_to.high. }
                    hp^.increment_ordinal_distance(torddef(def_from).low-torddef(def_to).low);
                    hp^.increment_ordinal_distance(torddef(def_to).high-torddef(def_from).high);
-                   { Give wrong sign a small penalty, this is need to get a diffrence
+                   { Give wrong sign a small penalty, this is need to get a difference
                      from word->[longword,longint] }
                    if (is_signed(def_from)<>is_signed(def_to)) then
                      inc(hp^.ordinal_distance_secondary);
@@ -3099,7 +3099,7 @@ implementation
                      end;
                  end
                { compare_defs_ext compares sets and array constructors very poorly because
-                 it has too little information. So we do explicitly a detailed comparisation,
+                 it has too little information. So we do explicitly a detailed comparison,
                  see also bug #11288 (FK)
                }
                else if assigned(def_to) and (def_to.typ=setdef) and is_array_constructor(currpt.left.resultdef) then
@@ -3137,7 +3137,7 @@ implementation
                   check_valid_var:=false;
                 end
               else
-              { generic type comparision }
+              { generic type comparison }
                begin
                  if (hp^.data.procoptions*[po_rtlproc,po_compilerproc]=[]) and
                     is_ansistring(def_from) and
@@ -3763,7 +3763,7 @@ implementation
           deeper down the next chain
         }
 
-        { for the intial implementation, let's first do some more consistency checking}
+        { for the initial implementation, let's first do some more consistency checking}
         res := 0;
         hp := FCandidateProcs;
         while assigned(hp) do

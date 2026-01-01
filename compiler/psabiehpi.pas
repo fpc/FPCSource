@@ -475,7 +475,7 @@ implementation
                 gcc_except_table_data.concat(tai_comment.Create(strpnew('Call site table for '+procdef.fullprocname(true))));
 {$endif debug_eh}
                 gcc_except_table_data.concatList(callsite_table_data);
-                { action table must follow immediatly after callsite table }
+                { action table must follow immediately after callsite table }
 {$ifdef debug_eh}
                 if not(action_table_data.Empty) then
                   gcc_except_table_data.concat(tai_comment.Create(strpnew('Action table for '+procdef.fullprocname(true))));
@@ -638,7 +638,7 @@ implementation
            use_cleanup(exceptframekind) then
           begin
             { Resume might not be called outside of an landing pad else
-              the unwind is immediatly terminated, so create an empty landing pad }
+              the unwind is immediately terminated, so create an empty landing pad }
             psabiehprocinfo:=current_procinfo as tpsabiehprocinfo;
 
             if psabiehprocinfo.landingpadstack.count>1 then

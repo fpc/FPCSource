@@ -60,7 +60,7 @@ interface
          { Label for debug or other non-program information }
          AT_METADATA,
          { label for data that must always be accessed indirectly, because it
-           is handled explcitely in the system unit or (e.g. RTTI and threadvar
+           is handled explicitly in the system unit or (e.g. RTTI and threadvar
            tables) -- never seen in an assembler/assembler writer, always
            changed to AT_DATA }
          AT_DATA_FORCEINDIRECT,
@@ -260,7 +260,7 @@ interface
 
     type
       { Procedure variable to allow for special handling of
-        the occurence of use of a global variable,
+        the occurrence of use of a global variable,
         used by PIC code generation to request GOT loading }
       TGlobalUsedProcedure = procedure;
 

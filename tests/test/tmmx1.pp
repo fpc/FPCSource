@@ -79,6 +79,6 @@ begin
      end;
    writeln('Testing basic tmmxword support');
    testmmxword;
-   writeln('Test succesful');
+   writeln('Test successful');
    writeln;
 end.

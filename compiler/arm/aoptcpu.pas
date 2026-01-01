@@ -383,7 +383,7 @@ Implementation
          ) and
          (taicpu(movp).ops=2) and
          MatchOperand(taicpu(movp).oper[1]^, taicpu(p).oper[0]^.reg) and
-         { the destination register of the mov might not be used beween p and movp }
+         { the destination register of the mov might not be used between p and movp }
          not(RegUsedBetween(taicpu(movp).oper[0]^.reg,p,movp)) and
          { Take care to only do this for instructions which REALLY load to the first register.
            Otherwise
@@ -606,7 +606,7 @@ Implementation
              )
             ) do
             begin
-              { neither reg1 nor reg2 might be changed inbetween }
+              { neither reg1 nor reg2 might be changed in between }
               if RegModifiedBetween(taicpu(p).oper[0]^.reg,p,hp1) or
                 RegModifiedBetween(taicpu(p).oper[1]^.reg,p,hp1) then
                 break;
@@ -1196,7 +1196,7 @@ Implementation
             mov reg1,reg0, shift imm1+imm2
           }
           else if (taicpu(p).oper[2]^.shifterop^.shiftmode=taicpu(hp1).oper[2]^.shifterop^.shiftmode) or
-            { asr makes no use after a lsr, the asr can be foled into the lsr }
+            { asr makes no use after a lsr, the asr can be folded into the lsr }
              ((taicpu(p).oper[2]^.shifterop^.shiftmode=SM_LSR) and (taicpu(hp1).oper[2]^.shifterop^.shiftmode=SM_ASR) ) then
             begin
               inc(taicpu(p).oper[2]^.shifterop^.shiftimm,taicpu(hp1).oper[2]^.shifterop^.shiftimm);
@@ -1409,7 +1409,7 @@ Implementation
                  end;
              end;
 
-          { 2-operald mov optimisations }
+          { 2-operand mov optimisations }
           if (taicpu(p).ops = 2) then
             begin
               {
@@ -1597,7 +1597,7 @@ Implementation
                 end
             end
 
-          { 3-operald mov optimisations }
+          { 3-operand mov optimisations }
           else if (taicpu(p).ops = 3) then
             begin
 
@@ -1630,7 +1630,7 @@ Implementation
                     (taicpu(hpfar1).ops=3) and
                     MatchOperand(taicpu(p).oper[0]^, taicpu(hpfar1).oper[1]^) and
                     (taicpu(hpfar1).oper[2]^.typ = top_const) and
-                    { Check if the BIC actually would only mask out bits beeing already zero because of the shift }
+                    { Check if the BIC actually would only mask out bits being already zero because of the shift }
                     (taicpu(hpfar1).oper[2]^.val<>0) and
                     (BsfDWord(taicpu(hpfar1).oper[2]^.val)>=32-taicpu(p).oper[2]^.shifterop^.shiftimm) then
                     begin
@@ -1679,7 +1679,7 @@ Implementation
                    (hpfar1 = hp1)
                  )
                ) and
-               { reg1 might not be modified inbetween }
+               { reg1 might not be modified in between }
                not(RegModifiedBetween(taicpu(p).oper[1]^.reg,p,hpfar1)) and
                { The shifterop can contain a register, might not be modified}
                (
@@ -1776,7 +1776,7 @@ Implementation
                (taicpu(p).oper[1]^.typ = top_reg) and
                (taicpu(p).oper[2]^.typ = top_shifterop) and
                { RRX is tough to handle, because it requires tracking the C-Flag,
-                 it is also extremly unlikely to be emitted this way}
+                 it is also extremely unlikely to be emitted this way}
                (taicpu(p).oper[2]^.shifterop^.shiftmode <> SM_RRX) and
                (taicpu(p).oper[2]^.shifterop^.shiftimm <> 0) and
                (taicpu(p).oppostfix = PF_NONE) and
@@ -1911,7 +1911,7 @@ Implementation
           (taicpu(hp1).oper[1]^.typ=top_reg) and
           MatchOperand(taicpu(hp1).oper[1]^, taicpu(p).oper[0]^.reg))) and
         assigned(FindRegDealloc(taicpu(p).oper[0]^.reg,tai(hp1.Next))) and
-        { reg1 might not be modified inbetween }
+        { reg1 might not be modified in between }
         not(RegModifiedBetween(taicpu(p).oper[1]^.reg,p,hp1)) then
         begin
           DebugMsg(SPeepholeOptimization + 'MvnAnd2Bic done', p);
@@ -2533,7 +2533,7 @@ Implementation
                 Exit(True);
 
               { Instruction sets CPSR register due to S suffix (floating-point
-                instructios won't raise false positives) }
+                instructions won't raise false positives) }
               if (taicpu(p1).oppostfix = PF_S) then
                 Exit(True)
             end;
@@ -2669,7 +2669,7 @@ Implementation
                 (taicpu(hp1).oper[1]^.ref^.offset=0)
                 )
                ) or
-               { try to prove that the memory accesses don't overlapp }
+               { try to prove that the memory accesses don't overlap }
                ((taicpu(p).opcode in [A_STRB,A_STRH,A_STR]) and
                 (taicpu(p).oper[1]^.typ = top_ref) and
                 (taicpu(p).oper[1]^.ref^.base=taicpu(hp1).oper[1]^.ref^.base) and
@@ -2677,7 +2677,7 @@ Implementation
                 (taicpu(hp1).oppostfix=PF_None) and
                 (taicpu(p).oper[1]^.ref^.index=NR_NO) and
                 (taicpu(hp1).oper[1]^.ref^.index=NR_NO) and
-                { get operand sizes and check if the offset distance is large enough to ensure no overlapp }
+                { get operand sizes and check if the offset distance is large enough to ensure no overlap }
                 (abs(taicpu(p).oper[1]^.ref^.offset-taicpu(hp1).oper[1]^.ref^.offset)>=max(tcgsize2size[reg_cgsize(taicpu(p).oper[0]^.reg)],tcgsize2size[reg_cgsize(taicpu(hp1).oper[0]^.reg)]))
               )
             )

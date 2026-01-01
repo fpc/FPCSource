@@ -1,4 +1,4 @@
-This dirctory contains some utilities that come with the Free Pascal
+This directory contains some utilities that come with the Free Pascal
 Compiler. They can be compiled by typing 'make all' in this directory.
 
 Currently, the following things are provided:

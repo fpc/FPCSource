@@ -6,7 +6,7 @@ var
   p:pointer;
 begin
   returnnilifgrowheapfails:=true;
-  { Use a bigger absoulte value to avoid
+  { Use a bigger absolute value to avoid
     getting a overflow inside heaptrc
     if compiled with -gh option:
     -128 changed to -1024,

@@ -11,7 +11,7 @@ begin
   Writeln(DiskFree(3), '/', DiskSize(3));
 
   { Now get disk / by AddDisk. DiskFree and DiskSize below should return
-    the same (well, assuming that nothing was writeen to disk between
+    the same (well, assuming that nothing was written to disk between
     calls...). }
 {$ifdef unix}
   DiskNum := AddDisk('/');

@@ -158,8 +158,8 @@ begin
         heapsizestr:= HexStr(heapsize, 8);
 
       {Add a SIZE resource on the fly. It controls:
-         * backgrounding is enabled, to facilitate debuging with Power Mac Debugger
-         * it is signaled it is a 32 bit app. (perhaps not nessecary on PowerPC)
+         * backgrounding is enabled, to facilitate debugging with Power Mac Debugger
+         * it is signaled it is a 32 bit app. (perhaps not necessary on PowerPC)
          * heapsize  }
       if apptype <> app_tool then
         begin
@@ -243,7 +243,7 @@ begin
         if success then
                 success:=DoExec('Execute',CmdStr,true,false);
 
-{ Remove ReponseFile }
+{ Remove ResponseFile }
   if (success) and not(cs_link_nolink in current_settings.globalswitches) then
     DeleteFile(outputexedir+Info.ResName);
 
@@ -432,7 +432,7 @@ begin
 
   success:=MakeMacOSExe;
 
-  { Remove ReponseFile }
+  { Remove ResponseFile }
   if (success) and not(cs_link_nolink in current_settings.globalswitches) then
     DeleteFile(outputexedir+Info.ResName);
 

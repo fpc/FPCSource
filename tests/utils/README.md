@@ -85,7 +85,7 @@ options are examined to compose all data for a test run.
 - `   --svncompilerrevision=REV` set revision of used compiler
 - `   --svntestsrevision=REV` set revision of testsuite files
 - `   --svnrtlrevision=REV` set revision of RTL
-- `   --svnpackagesrevision=REV` set revison of packages
+- `   --svnpackagesrevision=REV` set revision of packages
 
 The preferred way to specify the options is in a `dbdigest.cfg` file. The
 name of this file is settable using the -f or --config command-line option.

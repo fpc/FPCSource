@@ -515,7 +515,7 @@ implementation
       begin
         href:=ref;
         fixref(list,href,fr_normal,tmpreg,tmpreg2);
-        { Fixref, so simplely work here. }
+        { Fixref, so simply work here. }
         if href.offset=0 then
           a_load_reg_reg(list,OS_ADDR,OS_ADDR,href.base,r)
         else if is_simm12(href.offset) and (href.base<>NR_NO) then
@@ -969,7 +969,7 @@ implementation
               regs:=regs+[RS_RETURN_ADDRESS_REG];
             { Float registers }
             fregs:=rg[R_FPUREGISTER].used_in_proc-paramanager.get_volatile_registers_fpu(pocall_stdcall);
-            { Calculate the stackcount of all regesters. }
+            { Calculate the stackcount of all registers. }
             stackcount:=16;
             for r:=RS_R1 to RS_R31 do
               if (r in regs) and (r<>RS_FRAME_POINTER_REG) and (r<>RS_RETURN_ADDRESS_REG) then
@@ -1041,7 +1041,7 @@ implementation
                   list.concat(taicpu.op_reg_ref(A_FST_D,newreg(R_FPUREGISTER,r,R_SUBWHOLE),href));
                   current_asmdata.asmcfi.cfa_offset(list,newreg(R_FPUREGISTER,r,R_SUBWHOLE),href.offset);
                 end;
-            { Decrese the remaining stack size. }
+            { Decrease the remaining stack size. }
             if (localsize-stackadjust)>2048 then
               begin
                 a_load_const_reg(list,OS_INT,localsize-stackadjust,NR_RETURN_ADDRESS_REG);
@@ -1565,7 +1565,7 @@ implementation
             else { ref.index=NR_NO }
               ref.index:=tmpreg;
           end
-        { Refernce only offset, make offset become a reg. }
+        { Reference only offset, make offset become a reg. }
         else if (ref.index=NR_NO) and (ref.base=NR_NO) then
           begin
             tmpreg:=getintregister(list,OS_INT);

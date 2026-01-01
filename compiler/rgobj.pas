@@ -73,7 +73,7 @@ unit rgobj;
        These instructions are moved between five linked lists. There
        is also a linked list per register to keep track about the moves
        it is associated with. Because we need to determine quickly in
-       which of the five lists it is we add anu enumeradtion to each
+       which of the five lists it is we add anu enumeration to each
        move instruction.}
 
       Tmoveset=(ms_coalesced_moves,ms_constrained_moves,ms_frozen_moves,
@@ -1479,7 +1479,7 @@ unit rgobj;
           add_worklist(u);
         end
       {Do u and v interfere? In that case the move is constrained. Two
-       precoloured nodes interfere allways. If v is precoloured, by the above
+       precoloured nodes interfere always. If v is precoloured, by the above
        code u is precoloured, thus interference...}
       else if (v<first_imaginary) or ibitmap[u,v] then
         begin
@@ -1560,7 +1560,7 @@ unit rgobj;
       freeze_moves(n);
     end;
 
-{ The spilling approach selected by SPILLING_NEW does not work well for AVR as it eploits apparently the problem of the current
+{ The spilling approach selected by SPILLING_NEW does not work well for AVR as it exploits apparently the problem of the current
   reg. allocator with AVR. The current reg. allocator is not aware of the fact that r1-r15 and r16-r31 are not equal on AVR }
 {$if defined(AVR)}
 {$define SPILLING_OLD}
@@ -1601,7 +1601,7 @@ unit rgobj;
 
         modify reg1
 
-        In this example, all register have the same degree. However, spilling reg1 is most benefical as it is used least. Furthermore,
+        In this example, all register have the same degree. However, spilling reg1 is most beneficial as it is used least. Furthermore,
         spilling reg1 is a step toward solving the coloring problem as the registers used during spilling will have a lower degree
         as no register are in use at the location where reg1 is spilled.
       }
@@ -1790,7 +1790,7 @@ unit rgobj;
       if spill_loop then
         begin
           { Spilling loop is detected when colouring registers using the select-stack order.
-            Trying to eliminte this by using a different colouring order. }
+            Trying to eliminate this by using a different colouring order. }
           reset_colours;
           { To prevent spilling of helper registers it is needed to assign colours to them first. }
           for i:=selectstack.length downto 1 do
@@ -2882,7 +2882,7 @@ unit rgobj;
           following code for it. The used positions where code need
           to be inserted are marked using #. Note that code is always inserted
           before the positions using pos.previous. This way the position is always
-          the same since pos doesn't change, but pos.previous is modified everytime
+          the same since pos doesn't change, but pos.previous is modified every time
           new code is inserted.
 
           [
@@ -2912,7 +2912,7 @@ unit rgobj;
         oldlive_registers.copyfrom(live_registers);
 
         { Process all tai_regallocs belonging to this instruction, ignore explicit
-          inserted regallocs. These can happend for example in i386:
+          inserted regallocs. These can happened for example in i386:
              mov ref,ireg26
              <regdealloc ireg26, instr=taicpu of lea>
              <regalloc edi, insrt=nil>
@@ -3054,7 +3054,7 @@ unit rgobj;
 {$ifdef DEBUG_SPILLCOALESCE}
     procedure trgobj.write_spill_stats;
 
-      { This procedure outputs spilling statistincs.
+      { This procedure outputs spilling statistics.
         If no spilling has occurred, no output is provided.
         NUM is the number of spilled registers.
         EFF is efficiency of the spilling which is based on

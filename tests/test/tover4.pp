@@ -55,7 +55,7 @@ begin
   if test1(a)<>3 then
     halt(1);
 
-  { test #2: single and double avaiable, passing cextended must select double }
+  { test #2: single and double available, passing cextended must select double }
   if test2(a)<>2 then
     halt(2);
 

@@ -51,7 +51,7 @@ Type
     Procedure DoLog(Const Msg : String);
     procedure DoLog(Const Fmt : String; Args : Array of Const);
     Procedure DoLogSender(Sender : TObject; Const Msg : String);
-    // Create documetation by specified Writer class
+    // Create documentation by specified Writer class
     procedure CreateOutput(APackage: TFPDocPackage; Engine: TFPDocEngine); virtual;
   Public
     Constructor Create(AOwner : TComponent); override;
@@ -309,7 +309,7 @@ begin
     For J:=0 to Apackage.Imports.Count-1 do
       begin
       Arg:=Apackage.Imports[j];
-      // conversion import FilePathes
+      // conversion import FilePaths
       WriterClass.SplitImport(Arg,Cmd);
       // create tree of imported objects
       Engine.ReadContentFile(Arg, Cmd);
@@ -342,7 +342,7 @@ begin
           if FProcessedUnits.IndexOf(Cmd)=-1 then
           begin
             FProcessedUnits.Add(Cmd);
-            // Parce sources for OS Target
+            // Parse sources for OS Target
             //WriteLn(Format('Parsing unit: %s', [ExtractFilenameOnly(Cmd)]));
             ParseSource(Engine,Cmd+' '+Arg, Options.OSTarget, Options.CPUTarget,[poUseStreams]); // poSkipDefaultDefs
           end;

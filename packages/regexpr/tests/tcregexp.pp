@@ -246,7 +246,7 @@ const
 procedure TOrgTestRegexpr.TestEmpty;
 begin
   AssertNotNull('Have RE',RE);
-  AssertFalse('UseOsLineEndOnReplace correcly set', RE.UseOsLineEndOnReplace);
+  AssertFalse('UseOsLineEndOnReplace correctly set', RE.UseOsLineEndOnReplace);
 end;
 
 procedure TOrgTestRegexpr.RunTest1;

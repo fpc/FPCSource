@@ -33,7 +33,7 @@ begin
   y:=x+1;
 end;
 
-{ If x is diclared as const parametr
+{ If x is declared as const parameter
   the compilation should fail }
 
 procedure testabs2({const }x : longint);

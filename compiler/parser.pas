@@ -76,7 +76,7 @@ implementation
        current_exceptblock:=0;
        exceptblockcounter:=0;
 
-       { Shut down things when the last file is compiled succesfull }
+       { Shut down things when the last file is compiled successful }
        if (module.is_initial) and (module.state=ms_compiled) and
            (status.errorcount=0) then
          begin
@@ -292,7 +292,7 @@ implementation
          reset_all_default_types;
 
          { if there was an error in the scanner, the scanner is
-           still assinged }
+           still assigned }
          if assigned(current_scanner) then
           begin
             current_scanner.free; // no nil needed

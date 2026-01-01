@@ -102,7 +102,7 @@ PROCEDURE RTrim(VAR P : AnsiString;Ch:AnsiChar);
 VAR I,J : LONGINT;
 
 BEGIN
- I:=Length(P);      { Keeping length in local data eases optimalisations}
+ I:=Length(P);      { Keeping length in local data eases optimizations}
  IF (I>0) THEN
   BEGIN
    J:=I;
@@ -129,7 +129,7 @@ PROCEDURE LTrim(VAR P : AnsiString;Ch:ansiChar);
 VAR I,J : LONGINT;
 
 BEGIN
- I:=Length(P);      { Keeping length in local data eases optimalisations}
+ I:=Length(P);      { Keeping length in local data eases optimizations}
  IF (I>0) THEN
   BEGIN
    J:=1;

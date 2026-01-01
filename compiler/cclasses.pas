@@ -364,7 +364,7 @@ type
           procedure InsertBefore(Item,Loc : TLinkedListItem);
           { inserts an Item after Loc }
           procedure InsertAfter(Item,Loc : TLinkedListItem);virtual;
-          { concats an Item }
+          { concatenate an Item }
           procedure Concat(Item:TLinkedListItem);
           { deletes an Item }
           procedure Remove(Item:TLinkedListItem);
@@ -378,13 +378,13 @@ type
           procedure insertListBefore(Item:TLinkedListItem;p : TLinkedList); virtual;
           { inserts another List after the provided item and make this List empty }
           procedure insertListAfter(Item:TLinkedListItem;p : TLinkedList); virtual;
-          { concats another List at the end and make this List empty }
+          { concatenate another List at the end and make this List empty }
           procedure concatList(p : TLinkedList); virtual;
-          { concats another List at the start and makes a copy
+          { concatenate another List at the start and makes a copy
             the list is ordered in reverse.
           }
           procedure insertListcopy(p : TLinkedList); virtual;
-          { concats another List at the end and makes a copy }
+          { concatenate another List at the end and makes a copy }
           procedure concatListcopy(p : TLinkedList); virtual;
           { removes all items from the list, the items are not freed }
           procedure RemoveAll; virtual;
@@ -417,7 +417,7 @@ type
           constructor Create_No_Double;
           { inserts an Item }
           procedure Insert(const s:TCmdStr);
-          { concats an Item }
+          { concatenate an Item }
           procedure Concat(const s:TCmdStr);
           { deletes an Item }
           procedure Remove(const s:TCmdStr);
@@ -431,7 +431,7 @@ type
           function Find(const s:TCmdStr):TCmdStrListItem;
           { inserts an item }
           procedure InsertItem(item:TCmdStrListItem);
-          { concats an item }
+          { concatenate an item }
           procedure ConcatItem(item:TCmdStrListItem);
           property Doubles:boolean read FDoubles write FDoubles;
        end;

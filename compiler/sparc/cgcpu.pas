@@ -117,7 +117,7 @@ interface
 
     procedure TCGSparc.a_load_const_reg(list : TAsmList;size : TCGSize;a : tcgint;reg : TRegister);
       begin
-        { we don't use the set instruction here because it could be evalutated to two
+        { we don't use the set instruction here because it could be evaluated to two
           instructions which would cause problems with the delay slot (FK) }
         if (a=0) then
           list.concat(taicpu.op_reg(A_CLR,reg))

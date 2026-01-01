@@ -323,7 +323,7 @@ var
  F: File;
 { test directory I/O }
 begin
-  { test on non-existant directory }
+  { test on non-existent directory }
   write('Testing change directory on non-existent file...');
   ChDir('notexist');
   test(IOResult,3);
@@ -331,7 +331,7 @@ begin
   ChDir('testdir.pas');
   test(IOResult,3);
   Writeln(' Passed!');
-  { test on non-existant directory }
+  { test on non-existent directory }
 {$ifdef go32v2}
   ChDir('Y:\test.dir');
   test(IOResult,15);
@@ -354,13 +354,13 @@ begin
   { now really remove the directory }
   RmDir(TMP_DIRECTORY);
   test(IOResult,0);
-  { remove non-existant directory }
+  { remove non-existent directory }
   write('Testing remove directory of non-existent file...');
   RmDir('testdir.exe');
   { TP here returns 5 , not 2 }
   test(IOResult,2);
   Writeln(' Passed!');
-  { erase non-existant file }
+  { erase non-existent file }
   write('Testing erase of non-existent file...');
   Assign(F,'notexist.txt');
   Erase(F);

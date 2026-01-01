@@ -116,7 +116,7 @@ Resourcestring
   SErrNoServiceClass   = 'Cannot run: No service thread class registered.';
   SErrRunNeedsOverride = 'Cannot run: Runservice must be overridden';
   SErrRunningService   = 'Error running service: %s';
-  SControlCodeReceived = 'Service: Recived control code %d';
+  SControlCodeReceived = 'Service: Received control code %d';
   SServicePaused       = 'Service received pause command.';
   SServiceContinued    = 'Service received continue command.';
 

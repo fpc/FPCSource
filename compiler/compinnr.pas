@@ -180,7 +180,7 @@ type
      in_max_quad         = 150,
 
 { MMX functions }
-{ these contants are used by the mmx unit }
+{ these constants are used by the mmx unit }
 
      { MMX }
      in_mmx_pcmpeqb      = 200,

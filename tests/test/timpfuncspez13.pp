@@ -2,7 +2,7 @@
 {$mode objfpc}
 {$modeswitch implicitfunctionspecialization}
 {
-  Test specializing proc vars by infering parameters from callback function
+  Test specializing proc vars by inferring parameters from callback function
 }
 
 program timpfuncspez13;

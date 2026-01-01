@@ -1,6 +1,6 @@
 {$mode objfpc}
 
-{ tests assignements and compare }
+{ tests assignments and compare }
 
 var
    o1,o2 : tobject;

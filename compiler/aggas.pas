@@ -398,7 +398,7 @@ implementation
             end;
           end;
 
-        { section type user gives the user full controll on the section name }
+        { section type user gives the user full control on the section name }
         if atype=sec_user then
           secname:=aname;
 
@@ -519,7 +519,7 @@ implementation
          system_i386_OS2,
          system_i386_EMX: ;
          system_m68k_atari, { atari tos/mint GNU AS also doesn't seem to like .section (KB) }
-         system_m68k_amiga, { amiga has old GNU AS (2.14), which blews up from .section (KB) }
+         system_m68k_amiga, { amiga has old GNU AS (2.14), which blows up from .section (KB) }
          system_m68k_sinclairql, { same story, only ancient GNU tools available (KB) }
          system_m68k_palmos, { see above... (KB) }
          system_m68k_human68k: { see above... (KB) }
@@ -1355,7 +1355,7 @@ implementation
                          writer.AsmWriteln(tai_label(hp).labsym.name);
                        end;
 {$ifdef arm}
-                     { do no change arm mode accidently, .globl seems to reset the mode }
+                     { do no change arm mode accidentally, .globl seems to reset the mode }
                      if GenerateThumbCode or GenerateThumb2Code then
                        writer.AsmWriteln(#9'.thumb_func'#9);
 {$endif arm}

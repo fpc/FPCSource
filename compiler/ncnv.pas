@@ -1382,7 +1382,7 @@ implementation
 {$else cpu8bitalu}
                exprtype:=uinttype;
 {$endif cpu8bitalu}
-               { create word(byte(char) shl 8 or 1) for litte endian machines }
+               { create word(byte(char) shl 8 or 1) for little endian machines}
                { and word(byte(char) or 256) for big endian machines          }
                left := ctypeconvnode.create_internal(left,exprtype);
                if (target_info.endian = endian_little) then
@@ -1677,7 +1677,7 @@ implementation
          inserttypeconv(left,cunicodestringtype);
          { evaluate again, reset resultdef so the convert_typ
            will be calculated again and cstring_to_pchar will
-           be used for futher conversion }
+           be used for further conversion }
          convtype:=tc_none;
          result:=pass_typecheck;
       end;
@@ -2111,7 +2111,7 @@ implementation
                  nil))))
 
           ));
-        { add assignment statememnts }
+        { add assignment statements }
         addstatement(newstatement,ctempdeletenode.create(temp2));
         addstatement(newstatement,assnode);
         { the last statement should return the value as
@@ -2169,7 +2169,7 @@ implementation
         temp2:=ctempcreatenode.create_value(sinttype,sinttype.size,tt_persistent,false,cordconstnode.create(paracount,s32inttype,true));
         addstatement(newstatement,temp2);
 
-        { add assignment statememnts }
+        { add assignment statements }
         addstatement(newstatement,ctempdeletenode.create(temp2));
         addstatement(newstatement,assnode);
         { the last statement should return the value as
@@ -3654,7 +3654,7 @@ implementation
               else
                { remove typeconv after niln, but not when the result is a
                  methodpointer. The typeconv of the methodpointer will then
-                 take care of updateing size of niln to OS_64 }
+                 take care of updating size of niln to OS_64 }
                if not((resultdef.typ=procvardef) and
                       not(tprocvardef(resultdef).is_addressonly)) and
                   { converting (dynamic array) nil to a an open array is not allowed }
@@ -3671,7 +3671,7 @@ implementation
 
           ordconstn :
             begin
-              { ordinal contants can be directly converted }
+              { ordinal constants can be directly converted }
               { but not char to char because it is a widechar to char or via versa }
               { which needs extra code to do the code page transistion             }
               { constant ordinal to pointer }
@@ -3698,7 +3698,7 @@ implementation
                      exclude(left.flags, nf_explicit);
                    { when converting from one boolean type to another, force }
                    { booleans to 0/1, and byte/word/long/qwordbool to 0/-1   }
-                   { (Delphi-compatibile)                                    }
+                   { (Delphi-compatible)                                     }
                    if is_boolean(left.resultdef) and
                       is_boolean(resultdef) and
                       (is_cbool(left.resultdef) or
@@ -4649,7 +4649,7 @@ implementation
                 is_void(left.resultdef) or
                 (left.resultdef.typ=formaldef) or
                 { int 2 int with same size reuses same location, or for
-                  tp7 mode also allow size < orignal size }
+                  tp7 mode also allow size < original size }
                 (
                  (convtype=tc_int_2_int) and
                  (

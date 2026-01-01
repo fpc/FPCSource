@@ -102,7 +102,7 @@ interface
       begin
         newsize:=def_cgsize(resultdef);
 
-        { insert range check if not explicit or interally generated conversion }
+        { insert range check if not explicit or internally generated conversion }
         if (flags*[nf_explicit,nf_internal])=[] then
           hlcg.g_rangecheck(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef);
 
@@ -149,7 +149,7 @@ interface
           begin
             { no special loading is required, reuse current location }
 
-            { that's not true, if you go from signed to unsiged or   }
+            { that's not true, if you go from signed to unsigned or  }
             { vice versa, you need sign extension/removal if the     }
             { value is already in a register (at least for archs     }
             { which don't have 8bit register components etc) (JM)    }

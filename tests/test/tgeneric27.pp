@@ -1,6 +1,6 @@
 program tgeneric27;
 
-{ check that specialization does not add enum members to the static symtable and reuses the generic enum definintion }
+{ check that specialization does not add enum members to the static symtable and reuses the generic enum definition }
 
 {$mode objfpc}{$H+}
 type

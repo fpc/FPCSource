@@ -132,7 +132,7 @@ interface
       t32bitarray = array[0..3] of byte;
 
     function ReplaceForbiddenChars(var s: string):Boolean;
-         {Returns wheater a replacement has occurred.}
+         {Returns whether a replacement has occurred.}
 
         var
           i:Integer;
@@ -150,7 +150,7 @@ interface
     end;
 
 
-{*** From here is copyed from agppcgas.pp, except where marked with CHANGED.
+{*** From here is copied from agppcgas.pp, except where marked with CHANGED.
      Perhaps put in a third common file. ***}
 
 
@@ -438,7 +438,7 @@ interface
       writer.AsmWriteLn(s);
     end;
 
-    {*** Until here is copyed from agppcgas.pp. ***}
+    {*** Utils here is copied from agppcgas.pp. ***}
 
 
     function single2str(d : single) : string;

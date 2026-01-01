@@ -84,7 +84,7 @@ begin
     if xClient.SendRequest(MESSAGE_STOP, nil, 100) and
        not xClient.ServerRunning
     then
-      Writeln('Server was sucessfully stopped.')
+      Writeln('Server was successfully stopped.')
     else
       Writeln('ERROR: I could not stop the server.')
   finally

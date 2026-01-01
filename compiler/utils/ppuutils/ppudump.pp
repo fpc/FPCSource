@@ -1246,7 +1246,7 @@ type
          { Label for debug or other non-program information }
          AT_METADATA,
          { label for data that must always be accessed indirectly, because it
-           is handled explcitely in the system unit or (e.g. RTTI and threadvar
+           is handled explicitly in the system unit or (e.g. RTTI and threadvar
            tables) -- never seen in an assembler/assembler writer, always
            changed to AT_DATA }
          AT_DATA_FORCEINDIRECT,
@@ -2258,7 +2258,7 @@ const
            constants in order to reduce the generated code size (Java routines
            are limited to 64kb of bytecode) }
         'JVM compact int array init', {ts_compact_int_array_init}
-         { for the JVM target: intialize enum fields in constructors with the
+         { for the JVM target: initialize enum fields in constructors with the
            enum class instance corresponding to ordinal value 0 (not done by
            default because this initialization can only be performed after the
            inherited constructors have run, and if they call a virtual method
@@ -2385,7 +2385,7 @@ const
         'Discard initializing data', {cs_link_discard_copydata}
         'Discard jump to PASCALMAIN', {cs_link_discard_jmp_main}
         'Link-Time Optimization disabled for system unit', {cs_lto_nosystem}
-        'Assemble on target OS', {cs_asemble_on_target}
+        'Assemble on target OS', {cs_assemble_on_target}
         'Use a memory model to support >2GB static data on 64 Bit target', {cs_large}
         'Generate UF2 binary', {cs_generate_uf2}
         'Link using ld.lld GNU compatible LLVM linker' {cs_link_lld}
@@ -2455,7 +2455,7 @@ const
          'm_tp_procvar',          { tp style procvars (no @ needed) }
          'm_mac_procvar',         { macpas style procvars }
          'm_repeat_forward',      { repeating forward declarations is needed }
-         'm_pointer_2_procedure', { allows the assignement of pointers to
+         'm_pointer_2_procedure', { allows the assignment of pointers to
                                   procedure variables                     }
          'm_autoderef',           { does auto dereferencing of struct. vars }
          'm_initfinal',           { initialization/finalization for units }
@@ -4135,7 +4135,7 @@ end;
 
 
 {****************************************************************************
-                         Read defintions Part
+                         Read definitions Part
 ****************************************************************************}
 
 procedure readdefinitions(const s:string; ParentDef: TPpuContainerDef);

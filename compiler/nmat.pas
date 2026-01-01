@@ -436,7 +436,7 @@ implementation
            end
          else
            begin
-              { Make everything always default singed int }
+              { Make everything always default signed int }
               if not(rd.ordtype in [torddef(sinttype).ordtype,torddef(uinttype).ordtype]) then
                 inserttypeconv(right,sinttype);
               if not(ld.ordtype in [torddef(sinttype).ordtype,torddef(uinttype).ordtype]) then
@@ -927,7 +927,7 @@ implementation
              if (not is_64bit(left.resultdef)) and
                 (torddef(left.resultdef).ordtype<>u32bit) then
                begin
-                 { keep singness of orignal type }
+                 { keep signedness of original type }
                  if is_signed(left.resultdef) then
                    begin
 {$if defined(cpu64bitalu) or defined(cpu32bitalu)}
@@ -1347,7 +1347,7 @@ implementation
         def : tdef;
       begin
         result:=nil;
-        { Try optmimizing ourself away }
+        { Try optimizing ourself away }
         if left.nodetype=notn then
           begin
             { Double not. Remove both }
@@ -1382,7 +1382,7 @@ implementation
              { not-nodes are not range checked by the code generator -> also
                don't range check while inlining; the resultdef is a bit tricky
                though: the node's resultdef gets changed in most cases compared
-               to left, but the not-operation itself is caried out in the code
+               to left, but the not-operation itself is carried out in the code
                generator using the size of left
                }
              if not(forinline) then
@@ -1474,7 +1474,7 @@ implementation
            begin
              if (expectloc in [LOC_REFERENCE,LOC_CREFERENCE,LOC_CREGISTER]) then
                expectloc:=LOC_REGISTER;
-             { xtensa has boolean registers which are treateed as flags but they
+             { xtensa has boolean registers which are treated as flags but they
                are not used for boolean expressions }
 {$if defined(cpuflags) and not(defined(xtensa))}
              if left.expectloc<>LOC_JUMP then

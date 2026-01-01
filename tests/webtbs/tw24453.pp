@@ -27,7 +27,7 @@ type
   protected
     // this however does not compile, compiler error is
     // ugenericsnestedclassdeclaration.pas(29,39) Fatal: Syntax error, ";" expected but "." found
-    // the same problem as with result type is  with arguments of methods aswell
+    // the same problem as with result type is  with arguments of methods as well
 
     function GetIterator: TAncestor<T>.TAncestorIterator;
 

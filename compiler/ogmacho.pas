@@ -1074,7 +1074,7 @@ uses
       {starting the first segment command}
       InitSegment(seg);
 
-      {initialze symbols. some sections (non_lazy, lazy pointers) are effected}
+      {initialize symbols. some sections (non_lazy, lazy pointers) are effected}
       InitSymbolIndexes(symCount, symlen);
 
       for i:=0 to machoData.ObjSectionList.Count-1 do
@@ -1108,7 +1108,7 @@ uses
       inc(fileofs, IndirIndex.size);
 
       {write symtab command}
-      {initilize symbos order. local first, extern second, undef last}
+      {initialize symbos order. local first, extern second, undef last}
       writeSymTabCommand;
       TrailZeros;
 

@@ -739,7 +739,7 @@ implementation
                   begin
                     { initial addend must be determined by parsing the instruction }
                     tmp:=address and $FF;
-                    rotation:=(address and $F00) shr 7;  { is in multpile of 2 bits }
+                    rotation:=(address and $F00) shr 7;  { is in multiple of 2 bits }
                     if rotation<>0 then
                       tmp:=RorDword(tmp,rotation);
                     case (address and $1E00000) of

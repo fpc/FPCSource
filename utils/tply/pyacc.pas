@@ -2248,7 +2248,7 @@ function yylex : integer;
   function scan_keyword : integer;
     (* scan %xy *)
     function lookup(key : String; var tok : integer) : boolean;
-      (* table of Yacc keywords (unstropped): *)
+      (* table of Yacc keywords (unstopped): *)
       const
         no_of_entries = 11;
         max_entry_length = 8;

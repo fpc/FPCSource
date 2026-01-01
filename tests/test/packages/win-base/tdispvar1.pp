@@ -56,7 +56,7 @@ begin
 	AutoObject.createObject(PropertyValue);
 
 	PropertyValue.Name := 'ReadOnly'; 	// "Arg cant be assigned" and
-        PropertyValue.Value := true;		//	"Incompatimle types: const string, untyped expected"
+        PropertyValue.Value := true;		//	"Incompatible types: const string, untyped expected"
 
         LoadParams[0] := PropertyValue;
    end

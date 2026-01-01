@@ -28,7 +28,7 @@ begin
   z := 0;
   Meth1(procedure begin
     Writeln('Enter Anon1');
-    z:= 42;                               // this captured assigment causes the problem
+    z:= 42;                               // this captured assignment causes the problem
     Meth2(procedure begin
       Writeln('Anon2');
     end);

@@ -127,7 +127,7 @@ begin
     r.RootKey := HKEY_CURRENT_USER;
     r.OpenKey('FirstNode',false);
     s := r.ReadString('string1');
-    AssertEquals('Failed chaning empty string value to non-empty one', 'string_value_1',s);
+    AssertEquals('Failed changing empty string value to non-empty one', 'string_value_1',s);
 
     r.WriteString('string1', '');
     r.CloseKey;

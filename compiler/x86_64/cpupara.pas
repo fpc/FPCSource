@@ -1333,7 +1333,7 @@ unit cpupara;
             end;
           objectdef :
             begin
-              { don't treat objects like records, because we only know wheter
+              { don't treat objects like records, because we only know whether
                 or not they'll have a VMT after the entire object is parsed
                 -> if they are used as function result from one of their own
                 methods, their size can still change after we've determined
@@ -1641,7 +1641,7 @@ unit cpupara;
         pushaddr   : boolean;
         paracgsize : tcgsize;
         { loc[2] onwards are only used for _m256 under vectorcall/SysV, and
-          homogeneous vector aggregates and homogeneous float aggreates under
+          homogeneous vector aggregates and homogeneous float aggregates under
           the vectorcall calling convention. [Kit] }
         loc        : tx64paraclasses;
         needintloc,

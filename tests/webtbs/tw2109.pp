@@ -9,7 +9,7 @@ interface
 
 { warning!!! -- pascal re-generates every result in an operator statement }
 {   attributes of the results have to be carried forward from the old value }
-{   as a work arround we have to ask the user to assign the original destination variable to OldBCD }
+{   as a work around we have to ask the user to assign the original destination variable to OldBCD }
 {   or OldZoned before doing any assignments or arithmetic }
 { fixme!!! -- assignment statements are used automatically to provide data }
 {   type conversion.  I need to provide a safety net so that this doesn't create bad behavior }

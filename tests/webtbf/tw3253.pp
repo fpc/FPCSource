@@ -7,7 +7,7 @@ PROGRAM TEST;
  {$R+}
  {$Q+}
  CONST Range = 10;
- { The next line is not possible, the ( expects an enumeration declation }
+ { The next line is not possible, the ( expects an enumeration declaration }
  TYPE Sometype = ((-1)*(Range-1))..(Range-1);
  VAR Somevar: SOMETYPE;
  BEGIN

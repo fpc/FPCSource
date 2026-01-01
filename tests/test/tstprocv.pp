@@ -1,6 +1,6 @@
 { %FAIL }
 { this compilation should fail
-  because an ansitring should not be allowed
+  because an ansistring should not be allowed
   as equivalent to a normal short string
   for procvars PM }
 

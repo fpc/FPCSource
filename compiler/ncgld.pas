@@ -1193,7 +1193,7 @@ implementation
                         LOC_CREFERENCE,
                         LOC_REFERENCE:
                         { i8086 and i386 have hacks in their code generators so that they can
-                          deal with 64 bit locations in this parcticular case }
+                          deal with 64 bit locations in this particular case }
 {$if not defined(cpu64bitalu) and not defined(x86) and not defined(cpuhighleveltarget)}
                           if left.location.size in [OS_S64,OS_64] then
                             begin

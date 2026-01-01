@@ -62,7 +62,7 @@ unit procinfo;
           parent : tprocinfo;
           { the definition of the routine itself }
           procdef : tprocdef;
-          { nested implicit finalzation procedure, used for platform-specific
+          { nested implicit finalization procedure, used for platform-specific
             exception handling }
           finalize_procinfo : tprocinfo;
           { file location of begin of procedure }
@@ -195,7 +195,7 @@ unit procinfo;
 
           { Get the required alignment for the current stack frame }
           property stackalignment: longint read fstackalignment;
-          { Update the resuired alignment for the current stack frame based
+          { Update the required alignment for the current stack frame based
             on the current value and the new required alignment }
           procedure updatestackalignment(alignment: longint);
           { Specific actions after the code has been generated }

@@ -205,7 +205,7 @@ begin
     Exit('Assign not correct');
   A := null;
   if A.HasValue then
-    Exit('Null assignement not correct');
+    Exit('Null assignment not correct');
 end;
 
 Function TestCompareNull : string;

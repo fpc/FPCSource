@@ -187,7 +187,7 @@ implementation
 
          oldflowcontrol:=flowcontrol;
          flowcontrol:=[fc_inflowcontrol];
-         { this can be called recursivly }
+         { this can be called recursively }
          oldbegintrylabel:=begintrylabel;
          oldendtrylabel:=endtrylabel;
          oldendexceptlabel:=endexceptlabel;

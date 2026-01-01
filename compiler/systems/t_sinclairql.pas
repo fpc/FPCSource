@@ -340,7 +340,7 @@ begin
       reset(fs,1);
       BinSize := FileSize(fs);
 
-      { We assume .bss size is total size indicated by linker minus emmited binary.
+      { We assume .bss size is total size indicated by linker minus emitted binary.
         DataSpace size is .bss + stack space }
       DataSpace := NToBE(DWord(max((HeaderSize - BinSize) - RelocSize + StackSize,0)));
 
@@ -399,7 +399,7 @@ begin
 
   success:=MakeSinclairQLExe;
 
-  { Remove ReponseFile }
+  { Remove ResponseFile }
   if (success) and not(cs_link_nolink in current_settings.globalswitches) then
     DeleteFile(outputexedir+Info.ResName);
 

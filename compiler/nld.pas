@@ -44,7 +44,7 @@ interface
          loadnf_inherited,
          { the loadnode is generated internally and a varspez=vs_const should be ignore,
            this requires that the parameter is actually passed by value
-           Be really carefull when using this flag! }
+           Be really careful when using this flag! }
          loadnf_isinternal_ignoreconst,
 
          loadnf_only_uninitialized_hint
@@ -801,12 +801,12 @@ implementation
          end;
 
         { shortstring helpers can do the conversion directly,
-          so treat them separatly }
+          so treat them separately }
         if (is_shortstring(left.resultdef)) then
          begin
            { insert typeconv, except for chars that are handled in
              secondpass and except for ansi/wide string that can
-             be converted immediatly }
+             be converted immediately }
            if not direct_shortstring_assignment then
              inserttypeconv(right,left.resultdef);
            if right.resultdef.typ=stringdef then
@@ -854,7 +854,7 @@ implementation
 
 {$ifdef arm}
                 { the assignment node code can't convert a single in
-                  an interger register to a double in an mmregister or
+                  an integer register to a double in an mmregister or
                   vice versa }
                 and (use_vectorfpu(left.resultdef) and
                      use_vectorfpu(right.resultdef) and
@@ -962,7 +962,7 @@ implementation
 
          firstpass(left);
 
-         { Optimize the reuse of the destination of the assingment in left.
+         { Optimize the reuse of the destination of the assignment in left.
            Allow the use of the left inside the tree generated on the right.
            This is especially useful for string routines where the destination
            is pushed as a parameter. Using the final destination of left directly

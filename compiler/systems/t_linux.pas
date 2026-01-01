@@ -621,7 +621,7 @@ begin
        end;
 
       { force local symbol resolution (i.e., inside the shared }
-      { library itself) for all non-exorted symbols, otherwise }
+      { library itself) for all non-exported symbols, otherwise}
       { several RTL symbols of FPC-compiled shared libraries   }
       { will be bound to those of a single shared library or   }
       { to the main program                                    }
@@ -807,7 +807,7 @@ begin
           end;
        end;
 
-      { Entry point. Only needed for executables, as for shared lubraries we use
+      { Entry point. Only needed for executables, as for shared libraries we use
         the -init command line option instead
 
        The "ENTRY" linkerscript command does not have any effect when augmenting
@@ -959,7 +959,7 @@ begin
         end;
     end;
 
-  { Remove ReponseFile }
+  { Remove ResponseFile }
   if (success) and not(cs_link_nolink in current_settings.globalswitches) then
    DeleteFile(outputexedir+Info.ResName);
 
@@ -1048,7 +1048,7 @@ begin
      success:=DoExec(FindUtil(utilsprefix+binstr),cmdstr,true,false);
    end;
 
-{ Remove ReponseFile }
+{ Remove ResponseFile }
   if (success) and not(cs_link_nolink in current_settings.globalswitches) then
    DeleteFile(outputexedir+Info.ResName);
 

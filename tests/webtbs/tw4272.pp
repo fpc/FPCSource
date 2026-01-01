@@ -12,5 +12,5 @@ var
   s: ansistring;
 begin
   s:='test';
-  go(s); //-->compiler can not determine whitch overloaded function to call
+  go(s); //-->compiler can not determine which overloaded function to call
 end.

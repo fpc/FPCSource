@@ -106,7 +106,7 @@ interface
        tifnodeclass = class of tifnode;
 
        tfornode = class(tloopnode)
-          { if count isn divisable by unrolls then
+          { if count isn't divisible by unrolls then
             the for loop must jump to this label to get the correct
             number of executions }
           entrylabel,
@@ -669,7 +669,7 @@ implementation
               end
             else
               begin
-                { Iterating throug slice }
+                { Iterating through slice }
                 if (expression.nodetype=vecn) and (tvecnode(expression).right.nodetype=rangen) then
                   begin
                     lowbound:=trangenode(tvecnode(expression).right).left.getcopy;
@@ -696,7 +696,7 @@ implementation
               end
             else
               begin
-                { Iterating throug slice }
+                { Iterating through slice }
                 if (expression.nodetype=vecn) and (tvecnode(expression).right.nodetype=rangen) then
                   begin
                     lowbound:=trangenode(tvecnode(expression).right).left.getcopy;
@@ -1912,7 +1912,7 @@ implementation
     function tfornode.simplify(forinline : boolean) : tnode;
       begin
         result:=nil;
-        { Can we spare the first comparision? }
+        { Can we spare the first comparison? }
         if (t1.nodetype=ordconstn) and
            (right.nodetype=ordconstn) and
            (

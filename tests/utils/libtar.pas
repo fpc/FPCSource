@@ -68,7 +68,7 @@ Date        Author Changes
 2001-11-13  HeySt  2.0.3 Bugfix: Take out ClearDirRec call from WriteTarHeader
                          Bug Reported by Tony BenBrahim
 2001-12-25  HeySt  2.0.4 WriteTarHeader: Fill Rec with zero bytes before filling it
-2002-05-18  HeySt  2.0.5 Kylix awareness: Thanks to Kerry L. Davison for the canges
+2002-05-18  HeySt  2.0.5 Kylix awareness: Thanks to Kerry L. Davison for the changes
 2005-09-03  HeySt  2.0.6 TTarArchive.FindNext: Don't access SourceStream.Size
                          (for compressed streams, which don't know their .Size)
 2006-03-13  HeySt  2.0.7 Bugfix in ReadFile (Buffer : POINTER)

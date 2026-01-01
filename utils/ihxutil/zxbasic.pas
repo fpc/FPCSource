@@ -3,7 +3,7 @@
   This file contains various definitions, constants and utility functions for
   dealing with BASIC programs on the ZX Spectrum.
 
-  Copyright (C) 2020 Nikolay Nikolov <nickysn@users.sourceforg.net>
+  Copyright (C) 2020 Nikolay Nikolov <nickysn@users.sourceforge.net>
 
   This source is free software; you can redistribute it and/or modify it under
   the terms of the GNU General Public License as published by the Free

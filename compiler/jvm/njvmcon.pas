@@ -61,7 +61,7 @@ interface
            keep the set constant instead }
          sct_notransform,
          { actually construct a JUBitSet/JUEnumSet that contains the set value
-           (for initializing the sets contstants) }
+           (for initializing the sets constants) }
          sct_construct
          );
        tjvmsetconstnode = class(tcgsetconstnode)

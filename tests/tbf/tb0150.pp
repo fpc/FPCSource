@@ -17,7 +17,7 @@ type
          m_nested_comment,      { nested comments }
          m_tp_procvar,          { tp style procvars (no @ needed) }
          m_repeat_forward,      { repeating forward declarations is needed }
-         m_pointer_2_procedure, { allows the assignement of pointers to
+         m_pointer_2_procedure, { allows the assignment of pointers to
                                   procedure variables                     }
          m_autoderef,           { does auto dereferencing of struct. vars }
          m_initfinal,           { initialization/finalization for units }

@@ -74,7 +74,7 @@ interface
 
        tjvmasnode = class(tcgasnode)
         protected
-         { to discern beween "obj as tclassref" and "tclassref(obj)" }
+         { to discern between "obj as tclassref" and "tclassref(obj)" }
          classreftypecast: boolean;
          function target_specific_typecheck: boolean;override;
         public
@@ -437,7 +437,7 @@ implementation
             while st.symtabletype=localsymtable do
               st:=st.defowner.owner;
             if st.symtabletype in [objectsymtable,recordsymtable] then
-              { nested routine in method -> part of encloding class }
+              { nested routine in method -> part of enclosing class }
               procload:=cloadvmtaddrnode.create(ctypenode.create(tdef(st.defowner)))
             else
               begin
@@ -801,7 +801,7 @@ implementation
        else
          thlcgjvm(hlcg).a_load_const_stack(current_asmdata.CurrAsmList,resultdef,-1,R_INTREGISTER);
        { we jump over the next constant load -> they don't appear on the
-         stack simulataneously }
+         stack simultaneously }
        thlcgjvm(hlcg).decstack(current_asmdata.CurrAsmList,1);
        hlcg.a_jmp_always(current_asmdata.CurrAsmList,hlabel2);
        hlcg.a_label(current_asmdata.CurrAsmList,hlabel1);

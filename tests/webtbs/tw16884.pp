@@ -23,7 +23,7 @@ begin
 
   if ForceFail then
     Sleep(1000); { This will force the issue. -
-                   it may not be easily reproducable depending on your OS, CPU thread scheduling.
+                   it may not be easily reproducible depending on your OS, CPU thread scheduling.
 
                    I discovered this on my OSX macbook but my collegue never had the problem on his computer OSX mac mini}
 

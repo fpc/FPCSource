@@ -441,7 +441,7 @@ interface
        OS_SPAIR = OS_S16;
 {$endif}
 
-       { Table to convert tcgsize variables to the correspondending
+       { Table to convert tcgsize variables to the corresponding
          unsigned types }
        tcgsize2unsigned : array[tcgsize] of tcgsize = (OS_NO,
          OS_8,    OS_16,   OS_32,   OS_64,   OS_128,
@@ -531,7 +531,7 @@ interface
     { returns true, if the shuffle describes only a move of the scalar at index 0 }
     function shufflescalar(shuffle : pmmshuffle) : boolean;
 
-    { removes shuffling from shuffle, this means that the destenation index of each shuffle is copied to
+    { removes shuffling from shuffle, this means that the destination index of each shuffle is copied to
       the source }
     procedure removeshuffles(var shuffle : tmmshuffle);
 

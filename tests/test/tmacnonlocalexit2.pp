@@ -32,7 +32,7 @@ begin
 	if failed then
 		writeln('Failed')
 	else
-		writeln('Succeded');
+		writeln('Succeeded');
 
   {$IFC NOT UNDEFINED FPC}
 	if failed then

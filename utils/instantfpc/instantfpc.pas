@@ -215,7 +215,7 @@ begin
     if DeleteCache then
       DeleteFile(OutputFileName);
   finally
-    // memory is freed by OS, but for debugging puposes you can do it manually
+    // memory is freed by OS, but for debugging purposes you can do it manually
     {$IFDEF IFFreeMem}
     Proc.Free;
     Src.Free;

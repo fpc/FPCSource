@@ -61,7 +61,7 @@ function TTestCollection.Add(const Item: TTestItem): Integer;
   end;
 
 { NOTE - The construction of the internal loop in the method below, specifically
-    the setting of Result, is paramount for triggering Internal Error 200405231 }
+    the setting of Result, is paramcount for triggering Internal Error 200405231 }
 function TTestCollection.FindByName(const Val: ansistring; Ignore: TTestItem): TTestItem;
   var
     i: Integer;

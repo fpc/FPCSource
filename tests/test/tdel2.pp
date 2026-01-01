@@ -136,7 +136,7 @@ begin
  * GetInterface function
  *******************************************************************************)
 
-  writeln('Testing GetInteface()...');
+  writeln('Testing GetInterface()...');
   for T := 0 to High(tests) do
   begin
     C := tests[T].c.Create;

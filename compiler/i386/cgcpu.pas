@@ -236,7 +236,7 @@ unit cgcpu;
         dirref:=r;
 
         { this could probably done in a more optimized way, but for now this
-          is sufficent }
+          is sufficient }
         make_direct_ref(list,dirref);
 
         with dirref do
@@ -399,7 +399,7 @@ unit cgcpu;
            { complex return values are removed from stack in C code PM }
            { but not on win32 }
            { and not for safecall with hidden exceptions, because the result }
-           { wich contains the exception is passed in EAX }
+           { which contains the exception is passed in EAX }
            if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
              list.concat(tai_regalloc.dealloc(NR_STACK_POINTER_REG,nil));
 

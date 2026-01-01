@@ -156,13 +156,13 @@ const
  *
  * The subtype definitions here are unusual for historical reasons.
  * NeXT used to consider 68030 code as generic 68000 code.  For
- * backwards compatability:
+ * backwards compatibility:
  *
  *	CPU_SUBTYPE_MC68030 symbol has been preserved for source code
- *	compatability.
+ *	compatibility.
  *
  *	CPU_SUBTYPE_MC680x0_ALL has been defined to be the same
- *	subtype as CPU_SUBTYPE_MC68030 for binary comatability.
+ *	subtype as CPU_SUBTYPE_MC68030 for binary compatibility.
  *
  *	CPU_SUBTYPE_MC68030_ONLY has been added to allow new object
  *	files to be tagged as containing 68030-specific instructions.
@@ -413,11 +413,11 @@ const
    * segment padding greatly increases its size.
    *
    * The file type MH_PRELOAD is an executable format intended for things that
-   * are not executed under the kernel (proms, stand alones, kernels, etc).  The
+   * are not executed under the kernel (proms, stand alone, kernels, etc).  The
    * format can be executed under the kernel but may demand paged it and not
    * preload it before execution.
    *
-   * A core file is in MH_CORE format and can be any in an arbritray legal
+   * A core file is in MH_CORE format and can be any in an arbitrary legal
    * Mach-O file.
    *
    * Constants for the filetype field of the mach_header }
@@ -439,14 +439,14 @@ const
 
   MH_NOUNDEFS     = $1;   { the object file has no undefined references  }
   MH_INCRLINK     = $2;   { the object file is the output of an  incremental link against a base file and can't be link edited again  }
-  MH_DYLDLINK     = $4;   { the object file is input for the dynamic linker and can't be staticly link edited again  }
+  MH_DYLDLINK     = $4;   { the object file is input for the dynamic linker and can't be statically link edited again  }
   MH_BINDATLOAD   = $8;   { the object file's undefined references are bound by the dynamic linker when loaded.  }
   MH_PREBOUND     = $10;  { the file has its dynamic undefined references prebound.  }
   MH_SPLIT_SEGS   = $20;  { the file has its read-only and read-write segments split  }
   MH_LAZY_INIT    = $40;  { the shared library init routine is to be run lazily via catching memory faults to its writeable segments (obsolete)  }
   MH_TWOLEVEL     = $80;  { the image is using two-level name space bindings  }
   MH_FORCE_FLAT   = $100; { the executable is forcing all images to use flat name space bindings  }
-  MH_NOMULTIDEFS  = $200; { this umbrella guarantees no multiple defintions of symbols in its sub-images so the two-level namespace hints can always be used.  }
+  MH_NOMULTIDEFS  = $200; { this umbrella guarantees no multiple definitions of symbols in its sub-images so the two-level namespace hints can always be used.  }
   MH_NOFIXPREBINDING = $400;  { do not have dyld notify the prebinding agent about this executable  }
   MH_PREBINDABLE     = $800;  { the binary is not prebound but can have its prebinding redone. only used when MH_PREBOUND is not set.  }
   MH_ALLMODSBOUND    = $1000; { indicates that this binary binds to  all two-level namespace modules of                }
@@ -809,7 +809,7 @@ const
   SEG_UNIXSTACK = '__UNIXSTACK'; { the unix stack segment  }
 
   SEG_IMPORT = '__IMPORT'; { the segment for the self (dyld)  }
-                           { modifing code stubs that has read, write and execute permissions  }
+                           { modifying code stubs that has read, write and execute permissions  }
 
   {* Fixed virtual memory shared libraries are identified by two things.  The
    * target pathname (the name of the library as found for execution), and the
@@ -836,7 +836,7 @@ type
   end;
   pfvmlib_command = ^fvmlib_command;
 
-  {* Dynamicly linked shared libraries are identified by two things.  The
+  {* Dynamically linked shared libraries are identified by two things.  The
    * pathname (the name of the library as found for execution), and the
    * compatibility version number.  The pathname must match and the compatibility
    * number in the user of the library must be greater than or equal to the
@@ -900,9 +900,9 @@ type
    * A dynamically linked shared library may be a sub_umbrella of an umbrella
    * framework.  If so it will be linked with "-sub_umbrella umbrella_name" where
    * Where "umbrella_name" is the name of the sub_umbrella framework.  When
-   * staticly linking when -twolevel_namespace is in effect a twolevel namespace
+   * statically linking when -twolevel_namespace is in effect a twolevel namespace
    * umbrella framework will only cause its subframeworks and those frameworks
-   * listed as sub_umbrella frameworks to be implicited linked in.  Any other
+   * listed as sub_umbrella frameworks to be implicated linked in.  Any other
    * dependent dynamic libraries will not be linked it when -twolevel_namespace
    * is in effect.  The primary library recorded by the static linker when
    * resolving a symbol in these libraries will be the umbrella framework.
@@ -919,10 +919,10 @@ type
   {* A dynamically linked shared library may be a sub_library of another shared
    * library.  If so it will be linked with "-sub_library library_name" where
    * Where "library_name" is the name of the sub_library shared library.  When
-   * staticly linking when -twolevel_namespace is in effect a twolevel namespace
+   * statically linking when -twolevel_namespace is in effect a twolevel namespace
    * shared library will only cause its subframeworks and those frameworks
    * listed as sub_umbrella frameworks and libraries listed as sub_libraries to
-   * be implicited linked in.  Any other dependent dynamic libraries will not be
+   * be implicated linked in.  Any other dependent dynamic libraries will not be
    * linked it when -twolevel_namespace is in effect.  The primary library
    * recorded by the static linker when resolving a symbol in these libraries
    * will be the umbrella framework (or dynamic library). Zero or more sub_library
@@ -1193,14 +1193,14 @@ type
     nextrel         : uint32_t; { number of external relocation entries  }
     {   * All the local relocation entries are grouped together (they are not
        * grouped by their module since they are only used if the object is moved
-       * from it staticly link edited address).      }
+       * from it statically link edited address).      }
     locreloff       : uint32_t; { offset to local relocation entries  }
     nlocrel         : uint32_t; { number of local relocation entries  }
   end;
 
   {
    * An indirect symbol table entry is simply a 32bit index into the symbol table
-   * to the symbol that the pointer or stub is refering to.  Unless it is for a
+   * to the symbol that the pointer or stub is referring to.  Unless it is for a
    * non-lazy symbol pointer section for a defined symbol which strip(1) as
    * removed.  In which case it has the value INDIRECT_SYMBOL_LOCAL.  If the
    * symbol was also absolute INDIRECT_SYMBOL_ABS is or'ed with that.
@@ -1388,7 +1388,7 @@ type
     cmdsize   : uint32_t; { sizeof(struct encryption_info_command)  }
     cryptoff  : uint32_t; { file offset of encrypted range  }
     cryptsize : uint32_t; { file size of encrypted range  }
-    cryptid   : uint32_t; { which enryption system, 0 means not-encrypted yet  }
+    cryptid   : uint32_t; { which encryption system, 0 means not-encrypted yet  }
   end;
   pencryption_info_command = ^encryption_info_command;
 
@@ -1437,7 +1437,7 @@ type
 
 
   {* This header file describes the structures of the file format for "fat"
-   * architecture specific file (wrapper design).  At the begining of the file
+   * architecture specific file (wrapper design).  At the beginning of the file
    * there is one fat_header structure followed by a number of fat_arch
    * structures.  For each architecture in the file, specified by a pair of
    * cputype and cpusubtype, the fat_header describes the file offset, file
@@ -1601,7 +1601,7 @@ const
 
   {* To simplify stripping of objects that use are used with the dynamic link
    * editor, the static link editor marks the symbols defined an object that are
-   * referenced by a dynamicly bound object (dynamic shared libraries, bundles).
+   * referenced by a dynamically bound object (dynamic shared libraries, bundles).
    * With this marking strip knows not to strip these symbols.}
   REFERENCED_DYNAMICALLY = $0010;
 
@@ -1657,7 +1657,7 @@ const
 
   {* The N_DESC_DISCARDED bit of the n_desc field never appears in linked image.
    * But is used in very rare cases by the dynamic link editor to mark an in
-   * memory symbol as discared and longer used for linking. }
+   * memory symbol as discard and longer used for linking. }
   N_DESC_DISCARDED = $0020; { symbol is discarded  }
 
   {* The N_WEAK_REF bit of the n_desc field indicates to the dynamic linker that
@@ -1667,16 +1667,16 @@ const
 
   {* The N_WEAK_DEF bit of the n_desc field indicates to the static and dynamic
    * linkers that the symbol definition is weak, allowing a non-weak symbol to
-   * also be used which causes the weak definition to be discared.  Currently this
-   * is only supported for symbols in coalesed sections. }
-  N_WEAK_DEF = $0080; { coalesed symbol is a weak definition  }
+   * also be used which causes the weak definition to be discard.  Currently this
+   * is only supported for symbols in coalesced sections. }
+  N_WEAK_DEF = $0080; { coalesced symbol is a weak definition  }
 
   {* The N_REF_TO_WEAK bit of the n_desc field indicates to the dynamic linker
    * that the undefined symbol should be resolved using flat namespace searching. }
   N_REF_TO_WEAK = $0080; { reference to a weak symbol  }
 
   {* The N_ARM_THUMB_DEF bit of the n_desc field indicates that the symbol is
-   * a defintion of a Thumb function. }
+   * a definition of a Thumb function. }
   N_ARM_THUMB_DEF = $0008; { symbol is a Thumb function (ARM)  }
 
   {* There are two known orders of table of contents for archives.  The first is
@@ -1751,7 +1751,7 @@ const
    * In 4.3BSD a.out objects this offset is from the start of the "segment" for
    * which relocation entry is for (text or data).  For Mach-O object files it is
    * also an offset but from the start of the "section" for which the relocation
-   * entry is for.  See comments in <mach-o/loader.h> about the r_address feild
+   * entry is for.  See comments in <mach-o/loader.h> about the r_address field
    * in images for used with the dynamic linker.
    *
    * In 4.3BSD a.out objects if r_extern is zero then r_symbolnum is an ordinal
@@ -1824,7 +1824,7 @@ type
                   		    r_length:2, 	/* 0=byte, 1=word, 2=long, 3=quad */
                   		    r_type:4,   	/* if not 0, machine specific relocation type */
                           r_address:24;	/* offset in the section to what is being relocated */}
-    r_value : int32_t;  {* the value the item to be relocated is refering to (without any offset added) *}
+    r_value : int32_t;  {* the value the item to be relocated is referring to (without any offset added) *}
     {$else}
     r_value : int32_t;
     r_info  : longint; {*	r_address:24,	  /* offset in the section to what is being relocated */
@@ -1837,7 +1837,7 @@ type
 
   {
    * Relocation types used in a generic implementation.  Relocation entries for
-   * normal things use the generic relocation as discribed above and their r_type
+   * normal things use the generic relocation as described above and their r_type
    * is GENERIC_RELOC_VANILLA (a value of zero).
    *
    * Another type of generic relocation, GENERIC_RELOC_SECTDIFF, is to support
@@ -1848,14 +1848,14 @@ type
    * symbol1 is stored in the first relocation entry's r_value field and the
    * value of symbol2 is stored in the pair's r_value field.
    *
-   * A special case for a prebound lazy pointer is needed to beable to set the
+   * A special case for a prebound lazy pointer is needed to be able to set the
    * value of the lazy pointer back to its non-prebound state.  This is done
    * using the GENERIC_RELOC_PB_LA_PTR r_type.  This is a scattered relocation
-   * entry where the r_value feild is the value of the lazy pointer not prebound.
+   * entry where the r_value field is the value of the lazy pointer not prebound.
     }
 
 const
-  GENERIC_RELOC_VANILLA        = 0; { generic relocation as discribed above  }
+  GENERIC_RELOC_VANILLA        = 0; { generic relocation as described above  }
   GENERIC_RELOC_PAIR           = 1; { Only follows a GENERIC_RELOC_SECTDIFF  }
   GENERIC_RELOC_SECTDIFF       = 2;
   GENERIC_RELOC_PB_LA_PTR      = 3; { prebound lazy pointer  }
@@ -2017,7 +2017,7 @@ const
 
 
   {* Relocation types used in the ppc implementation.  Relocation entries for
-   * things other than instructions use the same generic relocation as discribed
+   * things other than instructions use the same generic relocation as described
    * above and their r_type is RELOC_VANILLA.  The rest of the relocation types
    * are for instructions.  Since they are for instructions the r_address field
    * indicates the 32 bit instruction that the relocation is to be preformed on.
@@ -2032,7 +2032,7 @@ const
     }
 
 const
-  PPC_RELOC_VANILLA   = 0; { generic relocation as discribed above  }
+  PPC_RELOC_VANILLA   = 0; { generic relocation as described above  }
   PPC_RELOC_PAIR      = 1; { the second relocation entry of a pair  }
   PPC_RELOC_BR14      = 2; { 14 bit branch displacement (to a word address)  }
   PPC_RELOC_BR24      = 3; { 24 bit branch displacement (to a word address)  }
@@ -2062,7 +2062,7 @@ const
    *
    * where n_type is the defined constant and not listed in the comment.  Other
    * fields not listed are zero. n_sect is the section ordinal the entry is
-   * refering to.
+   * referring to.
     }
 
 const

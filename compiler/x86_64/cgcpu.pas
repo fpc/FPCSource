@@ -301,7 +301,7 @@ unit cgcpu;
         inc(list.section_count);
         templist:=TAsmList.Create;
 
-        { We need to record postive offsets from RSP; if registers are saved
+        { We need to record positive offsets from RSP; if registers are saved
           at negative offsets from RBP we need to account for it. }
         if (not use_push) then
           frame_offset:=current_procinfo.final_localsize

@@ -2674,7 +2674,7 @@ unit cgcpu;
 
     procedure tbasecgarm.g_concatcopy_internal(list : TAsmList;const source,dest : treference;len : tcgint;aligned : boolean);
       const
-        maxtmpreg_arm = 10; {roozbeh: can be reduced to 8 or lower if might conflick with reserved ones,also +2 is used becouse of regs required for referencing}
+        maxtmpreg_arm = 10; {roozbeh: can be reduced to 8 or lower if might conflict with reserved ones,also +2 is used because of regs required for referencing}
         maxtmpreg_thumb = 5;
 
       type
@@ -2987,7 +2987,7 @@ unit cgcpu;
                 countreg:=getintregister(list,OS_32);
 
 //            if cs_opt_size in current_settings.optimizerswitches  then
-                { roozbeh : it seems loading 1 byte is faster becouse of caching/fetching(?) }
+                { roozbeh : it seems loading 1 byte is faster because of caching/fetching(?) }
                 {if aligned then
                 genloop(len,4)
                 else}
@@ -3534,7 +3534,7 @@ unit cgcpu;
             end;
             if size=OS_64 then
               begin
-                { the arm has an weired opinion how flags for SUB/ADD are handled }
+                { the arm has an weird opinion how flags for SUB/ADD are handled }
                 ovloc.loc:=LOC_FLAGS;
                 case op of
                   OP_ADD:
@@ -3640,7 +3640,7 @@ unit cgcpu;
             ovloc.loc:=LOC_FLAGS;
             if size=OS_64 then
               begin
-                { arm has a weired opinion how flags for SUB/ADD are handled }
+                { arm has a weird opinion how flags for SUB/ADD are handled }
                 case op of
                   OP_ADD:
                     ovloc.resflags:=F_CS;

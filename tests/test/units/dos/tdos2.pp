@@ -252,7 +252,7 @@ Begin
   in stime function.
   When you set 36 hours, the time AND the date are changed
   It seems it is a valid value under BeOS, but you have jump in the future :
-  36 hours in the future from the begining of the starting day, more or less
+  36 hours in the future from the beginning of the starting day, more or less
   depending on your timezone.
   For example in Paris, in summer (2 hours from GMT time zone),
   this call set the clock to 14:<Minute>:<Second>:<Sec100> the next day !

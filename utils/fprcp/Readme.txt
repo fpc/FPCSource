@@ -1,6 +1,6 @@
 This binary with source code is released to public domain.
 The utility can be compiled by Turbo Pascal (but 16-bit version
-cannot handle files greather than 64K!), Delphi or Free Pascal.
+cannot handle files greater than 64K!), Delphi or Free Pascal.
 fprcp.exe extracts from C header and Pascal files included into
 resource scripts numerical constants and replaces these constants
 to its values in resource script. Modified resource script is writing

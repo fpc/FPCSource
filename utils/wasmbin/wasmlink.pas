@@ -61,7 +61,7 @@ const
   R_WASM_MEMORY_ADDR_I32     = 5;  // a linear memory index encoded as a uint32, e.g. taking the address of a C++ global in a static data initializer.
   R_WASM_TYPE_INDEX_LEB      = 6;  // a type table index encoded as a 5-byte varuint32, e.g. the type immediate in a call_indirect.
   R_WASM_GLOBAL_INDEX_LEB    = 7;  // a global index encoded as a 5-byte varuint32, e.g. the index immediate in a get_global.
-  R_WASM_FUNCTION_OFFSET_I32 = 8;  // a byte offset within code section for the specic function encoded as a uint32. The offsets start at the actual function code excluding its size field.
+  R_WASM_FUNCTION_OFFSET_I32 = 8;  // a byte offset within code section for the specific function encoded as a uint32. The offsets start at the actual function code excluding its size field.
   R_WASM_SECTION_OFFSET_I32  = 9;  // an byte offset from start of the specified section encoded as a uint32.
   R_WASM_EVENT_INDEX_LEB     = 10; // an event index encoded as a 5-byte varuint32. Used for the immediate argument of a throw and if_except instruction.
   R_WASM_TABLE_NUMBER_LEB    = 13; // a table number encoded as a 5-byte varuint32. Used for the table immediate argument in the table.* instructions.
@@ -173,7 +173,7 @@ type
     symbols : array of TSymInfo;
   end;
 
-// the stream should be set at the beggining of the section
+// the stream should be set at the beginning of the section
 // after name and size values
 procedure ReadLinkingSection(st: TStream; size: integer; var sc: TLinkingSection);
 procedure WriteLinkingSection(st: TStream; const sc: TLinkingSection);
@@ -556,7 +556,7 @@ begin
     mem.Free;
   end;
 
-  // todo: other sub setions are possible
+  // todo: other sub sections are possible
 end;
 
 end.

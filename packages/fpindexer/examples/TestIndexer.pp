@@ -126,7 +126,7 @@ begin
 
     endtime := Now;
     if N <> 0 then
-      writeln('indexing succesfull')
+      writeln('indexing successful')
     else
       writeln('error indexing.');
     writeln(Format('done in %.1f sec.', [(endtime - start) * 24 * 3600]));

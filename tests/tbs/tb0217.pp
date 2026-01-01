@@ -1,5 +1,5 @@
 { Old file: tbs0256.pp }
-{ problem with conditionnals in TP mode                OK 0.99.11 (PM) }
+{ problem with conditionals in TP mode                OK 0.99.11 (PM) }
 
 {$mode tp}
 

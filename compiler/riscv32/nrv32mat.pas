@@ -219,7 +219,7 @@ implementation
                 emit_instr(taicpu.op_reg_reg_reg(A_SLL,resreg.reghi,lreg.reglo,tmpreg1));
                 cg.a_jmp_always(current_asmdata.CurrAsmList,finished);
                 cg.a_label(current_asmdata.CurrAsmList,less32);
-                { simple case were we know where the bit ends up, usefull when bitmasks are created }
+                { simple case were we know where the bit ends up, useful when bitmasks are created }
                 if (left.nodetype=ordconstn) and (tordconstnode(left).value=1) then
                   begin
                     emit_instr(taicpu.op_reg_reg_reg(A_SLL,resreg.reglo,lreg.reglo,right.location.register64.reglo));

@@ -765,7 +765,7 @@ type
           ot: toperandtype;
         begin
           // fix me: this function could use some improvements, in particular checking
-          // agains for example CF or 68000 limitations, etc
+          // against for example CF or 68000 limitations, etc
           result:=false;
 
           for ot in ots do
@@ -871,7 +871,7 @@ type
 
         if (InsEntry=nil) then
           begin
-            { set the file postion }
+            { set the file position }
             current_filepos:=fileinfo;
           end
         else
@@ -969,7 +969,7 @@ type
         { Error? }
         if (InsEntry=nil) and (InsSize=-1) then
           exit;
-        { set the file postion }
+        { set the file position }
         current_filepos:=fileinfo;
         { Get InsEntry }
         if FindInsEntry(ObjData) then

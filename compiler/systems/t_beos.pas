@@ -412,7 +412,7 @@ begin
   useshell:=not (tf_no_backquote_support in source_info.flags);
   success:=DoExec(FindUtil(utilsprefix+BinStr),CmdStr,true,useshell);
 
-{ Remove ReponseFile }
+{ Remove ResponseFile }
   if (success) and not(cs_link_nolink in current_settings.globalswitches) then
    DeleteFile(outputexedir+Info.ResName);
 
@@ -478,7 +478,7 @@ var
      success:=DoExec(FindUtil(utilsprefix+binstr),cmdstr,true,false);
    end;
 
-{ Remove ReponseFile }
+{ Remove ResponseFile }
   if (success) and not(cs_link_nolink in current_settings.globalswitches) then
    DeleteFile(outputexedir+Info.ResName);
 

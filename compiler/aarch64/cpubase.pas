@@ -653,7 +653,7 @@ unit cpubase;
                 checkpattern:=pattern;
                 while replicatedlen<maxbits do
                   begin
-                    { douplicate current pattern }
+                    { duplicate current pattern }
                     checkpattern:=checkpattern or (checkpattern shl replicatedlen);
                     replicatedlen:=replicatedlen*2;
                   end;

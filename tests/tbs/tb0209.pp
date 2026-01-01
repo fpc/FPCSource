@@ -1,5 +1,5 @@
 { Old file: tbs0247.pp }
-{ var with initial value not supprted (Delphi var x : integer = 5;) allowed in -Sd mode OK 0.99.11 (PM) }
+{ var with initial value not supported (Delphi var x : integer = 5;) allowed in -Sd mode OK 0.99.11 (PM) }
 
 {$mode delphi}
 

@@ -575,7 +575,7 @@ implementation
         sep : string[3];
         secname : string;
       begin
-        { section type user gives the user full controll on the section name }
+        { section type user gives the user full control on the section name }
         if atype=sec_user then
           result:=aname
         else
@@ -1078,7 +1078,7 @@ implementation
            createsymtab(data);
            { Create the relocation sections, this needs valid secidx and symidx }
            ObjSectionList.ForEachCall(@section_create_relocsec,data);
-           { recalc nsections to incude the reloc sections }
+           { recalc nsections to include the reloc sections }
            nsections:=1;
            ObjSectionList.ForEachCall(@section_count_sections,@nsections);
            { create .shstrtab }

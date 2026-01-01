@@ -131,7 +131,7 @@ Type
     procedure AppendProcedureArgsSection(Element: TPasProcedureType);
     procedure AppendFunctionResultSection(Element: TPasFunctionType);
     procedure WritePropertyPage(PropDecl: TPasProperty);
-    // Overriden from fpdocwriter;
+    // Overridden from fpdocwriter;
     procedure DescrWriteText(const AText: DOMString); override;
     procedure DescrBeginBold; override;
     procedure DescrEndBold; override;

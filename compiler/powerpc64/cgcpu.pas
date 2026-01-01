@@ -857,7 +857,7 @@ begin
   end;
 end;
 
-{*************** compare instructructions ****************}
+{*************** compare instructions ****************}
 
 procedure tcgppc.a_cmp_const_reg_label(list: TAsmList; size: tcgsize;
   cmp_op: topcmp; a: aint; reg: tregister; l: tasmlabel);

@@ -1388,7 +1388,7 @@ begin
                      else
                       begin
                         { if no register then take the opsize (which is available with ATT),
-                          if not availble then give an error }
+                          if not available then give an error }
                         if opsize<>S_NO then
                           tx86operand(operands[i]).opsize:=opsize
                         else
@@ -1732,7 +1732,7 @@ begin
   else
     exit;
   end;
-  { Handle the BW,BL,WL separatly }
+  { Handle the BW,BL,WL separately }
   sizeerr:=false;
   { special push/pop selector case }
   if ((opcode=A_PUSH) or

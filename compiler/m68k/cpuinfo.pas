@@ -169,7 +169,7 @@ type
       CPUM68K_HAS_INDEXSCALE,   { CPU supports scaling the index register with 2 or 4       }
       CPUM68K_HAS_INDEXSCALE8,  { CPU supports scaling the index register with 2, 4 or 8    }
       CPUM68K_HAS_INDEXWORD,    { CPU supports indexing with 16bit index                    }
-      CPUM68K_HAS_BYTEWORDMATH, { CPU supports supports 8 and 16bit aritmetic operations    }
+      CPUM68K_HAS_BYTEWORDMATH, { CPU supports supports 8 and 16bit arithmetic operations   }
       CPUM68K_HAS_BITFIELD,     { CPU supports bitfield instructions                        }
       CPUM68K_HAS_LONGENCODING, { CPU supports long instruction encoding (i.e. non-CF)      }
       CPUM68K_HAS_TSTAREG       { CPU supports TST on address registers                     }

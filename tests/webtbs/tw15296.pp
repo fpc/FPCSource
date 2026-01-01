@@ -32,7 +32,7 @@ begin
   // rounding occurs
   // variants are interpreted as floats
   // but this code works in delphi as expected (different when comparing)
-  // so don't know is this comparisson problem or values are rounded too much.
+  // so don't know is this comparison problem or values are rounded too much.
   VarDate1 := GetPropValue(TestObject, 'Date1');
   VarDate2 := GetPropValue(TestObject, 'Date2');
 

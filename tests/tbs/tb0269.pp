@@ -18,7 +18,7 @@
      pfadd MM0,[EDI]
      movq [EDX],MM0
     { Now the correct way would be something like: }
-     movd MM0,[EBX+8]  // [movd reg??,mem?? - invalid combination of opcod
+     movd MM0,[EBX+8]  // [movd reg??,mem?? - invalid combination of opcode
      movd MM1,[EDI+8]  // and here, too
      pfadd MM0,MM1
      movd [EDX+8],MM0  // and here

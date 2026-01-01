@@ -23,7 +23,7 @@
 unit cputarg;
 {$i fpcdefs.inc}
 
-{ this unit adds all target relevant units, so this hint is not usefull }
+{ this unit adds all target relevant units, so this hint is not useful }
 {$WARN 5023 off : Unit "$1" not used in $2}
 
 interface

@@ -605,7 +605,7 @@ begin
   sc.Next;
 end;
 
-// parseIdOffset - should only be used for elems declareted at module leve
+// parseIdOffset - should only be used for elems declared at module level
 // if elems declared in a table, parseIdOffset should be set to false
 procedure ParseElem(sc: TWatScanner; dst: TWasmElement; parseIdOffset: Boolean);
 var

@@ -4,7 +4,7 @@ program sam8;
 { from the gpc testsuite (sam8.pas) }
 
 {
- Using a subrange type in a packed recrod seems to break passing the type
+ Using a subrange type in a packed record seems to break passing the type
  by reference
 }
 type

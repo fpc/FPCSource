@@ -1,5 +1,5 @@
 { Old file: tbs0291.pp }
-{ @procvar in tp mode bugss                             OK 0.99.13 (PFV) }
+{ @procvar in tp mode bugs                             OK 0.99.13 (PFV) }
 
 {$ifdef fpc}{$mode tp}{$endif}
 {$F+}

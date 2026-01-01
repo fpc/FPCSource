@@ -190,7 +190,7 @@ begin
                   // length of TypeParameter string
                  (Length(TypeParameter^)+1));
  end;
-  // If it is the last parameter and if the method is a  fonction
+  // If it is the last parameter and if the method is a  function
   // Next Working for the result type function
   if TypeMethode = mkFunction
    then List_of_Param.ResultType:=PShortString(ParameterCurrent)^
@@ -257,7 +257,7 @@ begin
 {$ELSE}
         DTypeData:= GetTypeData(PTypeInfo(PropType^));
 {$ENDIF}
-         // Détermine le type de la méthode
+         // Déterminate le type de la méthode
         Case DTypeData^.MethodKind of
          mkProcedure: PropTypeZ := 'procedure';
          mkFunction: PropTypeZ := 'function';
@@ -347,7 +347,7 @@ begin
         Definition := Definition+' of object;';
 
      //=================================
-                   // Build  the definion of  method
+                   // Build  the definition of  method
         Writeln(PropTypeZ+' '+Definition);
         if ((PropTypeZ+' '+Definition) <> expectedresult) then
           begin

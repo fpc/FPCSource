@@ -9,7 +9,7 @@ var temp        : longint;
     DLL_Version : extended{real};
 
 begin
-  temp:= 14340; { This value is normaly retrieved form an external DLL }
+  temp:= 14340; { This value is normally retrieved form an external DLL }
 
   low:= ((temp shr 8) and $FF);
   high:= (temp and $FF);          { Some calculation...   }

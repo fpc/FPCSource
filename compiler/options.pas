@@ -3922,7 +3922,7 @@ begin
              begin
                {  -WB200000 means set trefered base address
                  to $200000, but does not change relocsection boolean
-                 this way we can create both relocatble and
+                 this way we can create both relocatable and
                  non relocatable DLL at a specific base address PM }
                if (length(More)>j) then
                  begin
@@ -5260,7 +5260,7 @@ begin
           exclude(init_settings.moduleswitches,cs_debuginfo);
         end;
       { Some assemblers, like clang, do not support
-        stabs debugging format, switch to dwardé in that case }
+        stabs debugging format, switch to dwordé in that case }
       if (af_no_stabs in asminfos[option.paratargetasm]^.flags) and
          (option.paratargetdbg=dbg_stabs) then
         begin

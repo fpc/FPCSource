@@ -308,7 +308,7 @@ begin
     If (TPasArrayType(Element).ElType<>Nil) then
       Result := AppendType(CodeEl, TableEl, TPasArrayType(Element).ElType, False);
   end else
-  // Procedure or funtion type
+  // Procedure or function type
   if Element.InheritsFrom(TPasProcedureType) then
   begin
     AppendKw(CodeEl, TPasProcedureType(Element).TypeName);
@@ -430,7 +430,7 @@ end;
 
 { Used in two places:
   - Page for the method of a class
-  - Page for a tandalone procedure or function. }
+  - Page for a standalone procedure or function. }
 
 procedure THTMLWriter.AppendProcDecl(CodeEl, TableEl: TDOMElement;
   Element: TPasProcedureBase);

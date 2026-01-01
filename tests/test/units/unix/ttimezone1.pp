@@ -44,7 +44,7 @@ begin
   if GetOffset(2019, 03, 31, 3, 0, 0, False)<>2 then Halt(12);
 
   if GetOffset(2019, 10, 27, 1, 59, 0, False)<>2 then Halt(13);
-  // 2019-10-27 02:00-03:00 CET is ambiguos, therefore do not check
+  // 2019-10-27 02:00-03:00 CET is ambiguous, therefore do not check
   if GetOffset(2019, 10, 27, 3, 0, 0, False)<>1 then Halt(14);
 
   if GetOffset(2019, 03, 31, 0, 59, 0, True)<>1 then Halt(15);

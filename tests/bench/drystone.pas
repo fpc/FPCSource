@@ -38,7 +38,7 @@ PROGRAM Dhrystone( input, output );
  *
  *   The combination of these three aspects is balanced only approximately.
  *
- *   The program does not compute anything meaningfull, but it is
+ *   The program does not compute anything meaningful, but it is
  *   syntactically and semantically correct.
  *
  }

@@ -108,7 +108,7 @@ implementation
       bit_set_clr_instr: array[boolean] of tasmop = (A_BTR,A_BTS);
     begin
 {$ifdef I8086}
-      { BTR/BTS is only supportd by 80386 CPU or later }
+      { BTR/BTS is only supported by 80386 CPU or later }
       if not(CPUX86_HAS_BTX in cpu_capabilities[current_settings.optimizecputype]) then
 	inherited
       else

@@ -1,7 +1,7 @@
 { %FAIL }
 { second simple array of const test }
 { there is no way know how many args
-  are psuhed for a cdecl'ared araay of const
+  are psuhed for a cdecl'ared array of const
   the compiler should complain here }
 
 {$mode objfpc}

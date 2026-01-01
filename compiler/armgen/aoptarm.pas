@@ -226,7 +226,7 @@ Implementation
          MatchOperand(taicpu(hp1).oper[1]^, taicpu(p).oper[0]^.reg))
         ) and
         RegEndofLife(taicpu(p).oper[0]^.reg,taicpu(hp1)) and
-        { reg1 might not be modified inbetween }
+        { reg1 might not be modified in between }
         not(RegModifiedBetween(taicpu(p).oper[1]^.reg,p,hp1)) then
         begin
           DebugMsg('Peephole '+gas_op2str[taicpu(p).opcode]+gas_op2str[taicpu(hp1).opcode]+'2'+gas_op2str[taicpu(hp1).opcode]+' done', p);
@@ -287,7 +287,7 @@ Implementation
         MatchOperand(taicpu(movp).oper[1]^, taicpu(p).oper[0]^.reg) and
         { don't mess with moves to fp }
         (taicpu(movp).oper[0]^.reg<>current_procinfo.framepointer) and
-        { the destination register of the mov might not be used beween p and movp }
+        { the destination register of the mov might not be used between p and movp }
         not(RegUsedBetween(taicpu(movp).oper[0]^.reg,p,movp)) and
 {$ifdef ARM}
         { PC should be changed only by moves }
@@ -664,7 +664,7 @@ Implementation
                         end;
                     end;
 
-                  { On low optimisation settions, don't search more than one instruction ahead }
+                  { On low optimisation sections, don't search more than one instruction ahead }
                   if not(cs_opt_level3 in current_settings.optimizerswitches) or
                     { Stop at procedure calls and jumps }
                     is_calljmp(taicpu(next_hp).opcode) or
@@ -822,7 +822,7 @@ Implementation
                 assigned(FindRegDealloc(taicpu(p).oper[0]^.reg,tai(hp1.Next))) and
                 { the reference in strb might not use reg2 }
                 not(RegInRef(taicpu(p).oper[0]^.reg,taicpu(hp1).oper[1]^.ref^)) and
-                { reg1 might not be modified inbetween }
+                { reg1 might not be modified in between }
                 not(RegModifiedBetween(taicpu(p).oper[1]^.reg,p,hp1)) then
                 begin
                   DebugMsg('Peephole UxtbStrb2Strb done', p);
@@ -841,7 +841,7 @@ Implementation
                 (taicpu(hp1).ops = 2) and
                 MatchOperand(taicpu(hp1).oper[1]^, taicpu(p).oper[0]^.reg) and
                 RegEndofLife(taicpu(p).oper[0]^.reg,taicpu(hp1)) and
-                { reg1 might not be modified inbetween }
+                { reg1 might not be modified in between }
                 not(RegModifiedBetween(taicpu(p).oper[1]^.reg,p,hp1)) then
                 begin
                   DebugMsg('Peephole UxtbUxth2Uxtb done', p);
@@ -863,7 +863,7 @@ Implementation
                 (taicpu(hp1).ops = 2) and
                 MatchOperand(taicpu(hp1).oper[1]^, taicpu(p).oper[0]^.reg) and
                 RegEndofLife(taicpu(p).oper[0]^.reg,taicpu(hp1)) and
-                { reg1 might not be modified inbetween }
+                { reg1 might not be modified in between }
                 not(RegModifiedBetween(taicpu(p).oper[1]^.reg,p,hp1)) then
                 begin
                   DebugMsg('Peephole UxtbUxtb2Uxtb done', p);
@@ -887,7 +887,7 @@ Implementation
                 ((taicpu(hp1).oper[2]^.val and $FF)=$FF) and
                 MatchOperand(taicpu(hp1).oper[1]^, taicpu(p).oper[0]^.reg) and
                 RegEndofLife(taicpu(p).oper[0]^.reg,taicpu(hp1)) and
-                { reg1 might not be modified inbetween }
+                { reg1 might not be modified in between }
                 not(RegModifiedBetween(taicpu(p).oper[1]^.reg,p,hp1)) then
                 begin
                   DebugMsg('Peephole UxtbAndImm2Uxtb done', p);
@@ -936,7 +936,7 @@ Implementation
                 RegEndofLife(taicpu(p).oper[0]^.reg,taicpu(hp1)) and
                 { the reference in strb might not use reg2 }
                 not(RegInRef(taicpu(p).oper[0]^.reg,taicpu(hp1).oper[1]^.ref^)) and
-                { reg1 might not be modified inbetween }
+                { reg1 might not be modified in between }
                 not(RegModifiedBetween(taicpu(p).oper[1]^.reg,p,hp1)) then
                 begin
                   DebugMsg('Peephole UXTHStrh2Strh done', p);
@@ -955,7 +955,7 @@ Implementation
                 (taicpu(hp1).ops=2) and
                 MatchOperand(taicpu(hp1).oper[1]^, taicpu(p).oper[0]^.reg) and
                 RegEndofLife(taicpu(p).oper[0]^.reg,taicpu(hp1)) and
-                { reg1 might not be modified inbetween }
+                { reg1 might not be modified in between }
                 not(RegModifiedBetween(taicpu(p).oper[1]^.reg,p,hp1)) then
                 begin
                   DebugMsg('Peephole UxthUxth2Uxth done', p);
@@ -978,7 +978,7 @@ Implementation
                 ((taicpu(hp1).oper[2]^.val and $FFFF)=$FFFF) and
                 MatchOperand(taicpu(hp1).oper[1]^, taicpu(p).oper[0]^.reg) and
                 RegEndofLife(taicpu(p).oper[0]^.reg,taicpu(hp1)) and
-                { reg1 might not be modified inbetween }
+                { reg1 might not be modified in between }
                 not(RegModifiedBetween(taicpu(p).oper[1]^.reg,p,hp1)) then
                 begin
                   DebugMsg('Peephole UxthAndImm2Uxth done', p);
@@ -1027,7 +1027,7 @@ Implementation
                 assigned(FindRegDealloc(taicpu(p).oper[0]^.reg,tai(hp1.Next))) and
                 { the reference in strb might not use reg2 }
                 not(RegInRef(taicpu(p).oper[0]^.reg,taicpu(hp1).oper[1]^.ref^)) and
-                { reg1 might not be modified inbetween }
+                { reg1 might not be modified in between }
                 not(RegModifiedBetween(taicpu(p).oper[1]^.reg,p,hp1)) then
                 begin
                   DebugMsg('Peephole SxtbStrb2Strb done', p);
@@ -1046,7 +1046,7 @@ Implementation
                 (taicpu(hp1).ops = 2) and
                 MatchOperand(taicpu(hp1).oper[1]^, taicpu(p).oper[0]^.reg) and
                 RegEndofLife(taicpu(p).oper[0]^.reg,taicpu(hp1)) and
-                { reg1 might not be modified inbetween }
+                { reg1 might not be modified in between }
                 not(RegModifiedBetween(taicpu(p).oper[1]^.reg,p,hp1)) then
                 begin
                   DebugMsg('Peephole SxtbSxth2Sxtb done', p);
@@ -1068,7 +1068,7 @@ Implementation
                 (taicpu(hp1).ops = 2) and
                 MatchOperand(taicpu(hp1).oper[1]^, taicpu(p).oper[0]^.reg) and
                 RegEndofLife(taicpu(p).oper[0]^.reg,taicpu(hp1)) and
-                { reg1 might not be modified inbetween }
+                { reg1 might not be modified in between }
                 not(RegModifiedBetween(taicpu(p).oper[1]^.reg,p,hp1)) then
                 begin
                   DebugMsg('Peephole SxtbSxtb2Sxtb done', p);
@@ -1092,7 +1092,7 @@ Implementation
                 ((taicpu(hp1).oper[2]^.val and $FF)=$FF) and
                 MatchOperand(taicpu(hp1).oper[1]^, taicpu(p).oper[0]^.reg) and
                 RegEndofLife(taicpu(p).oper[0]^.reg,taicpu(hp1)) and
-                { reg1 might not be modified inbetween }
+                { reg1 might not be modified in between }
                 not(RegModifiedBetween(taicpu(p).oper[1]^.reg,p,hp1)) then
                 begin
                   DebugMsg('Peephole SxtbAndImm2Uxtb done', p);
@@ -1143,7 +1143,7 @@ Implementation
                 RegEndofLife(taicpu(p).oper[0]^.reg,taicpu(hp1)) and
                 { the reference in strb might not use reg2 }
                 not(RegInRef(taicpu(p).oper[0]^.reg,taicpu(hp1).oper[1]^.ref^)) and
-                { reg1 might not be modified inbetween }
+                { reg1 might not be modified in between }
                 not(RegModifiedBetween(taicpu(p).oper[1]^.reg,p,hp1)) then
                 begin
                   DebugMsg('Peephole SxthStrh2Strh done', p);
@@ -1164,7 +1164,7 @@ Implementation
                 (taicpu(hp1).ops=2) and
                 MatchOperand(taicpu(hp1).oper[1]^, taicpu(p).oper[0]^.reg) and
                 RegEndofLife(taicpu(p).oper[0]^.reg,taicpu(hp1)) and
-                { reg1 might not be modified inbetween }
+                { reg1 might not be modified in between }
                 not(RegModifiedBetween(taicpu(p).oper[1]^.reg,p,hp1)) then
                 begin
                   DebugMsg('Peephole SxthSxth2Sxth done', p);
@@ -1188,7 +1188,7 @@ Implementation
                 (taicpu(hp1).ops=2) and
                 MatchOperand(taicpu(hp1).oper[1]^, taicpu(p).oper[0]^.reg) and
                 RegEndofLife(taicpu(p).oper[0]^.reg,taicpu(hp1)) and
-                { reg1 might not be modified inbetween }
+                { reg1 might not be modified in between }
                 not(RegModifiedBetween(taicpu(p).oper[1]^.reg,p,hp1)) then
                 begin
                   DebugMsg('Peephole SxthSxtw2Sxth done', p);
@@ -1214,7 +1214,7 @@ Implementation
                 ((taicpu(hp1).oper[2]^.val and $FFFF)=$FFFF) and
                 MatchOperand(taicpu(hp1).oper[1]^, taicpu(p).oper[0]^.reg) and
                 RegEndofLife(taicpu(p).oper[0]^.reg,taicpu(hp1)) and
-                { reg1 might not be modified inbetween }
+                { reg1 might not be modified in between }
                 not(RegModifiedBetween(taicpu(p).oper[1]^.reg,p,hp1)) then
                 begin
                   DebugMsg('Peephole SxthAndImm2Uxth done', p);
@@ -1601,7 +1601,7 @@ Implementation
             assigned(FindRegDealloc(taicpu(p).oper[0]^.reg,tai(hp1.Next))) and
             { the reference in strb might not use reg2 }
             not(RegInRef(taicpu(p).oper[0]^.reg,taicpu(hp1).oper[1]^.ref^)) and
-            { reg1 might not be modified inbetween }
+            { reg1 might not be modified in between }
             not(RegModifiedBetween(taicpu(p).oper[1]^.reg,p,hp1)) then
             begin
               DebugMsg('Peephole AndStrb2Strb done', p);
@@ -1630,7 +1630,7 @@ Implementation
             (taicpu(hp1).ops = 2) and
             RegEndofLife(taicpu(p).oper[0]^.reg,taicpu(hp1)) and
             MatchOperand(taicpu(hp1).oper[1]^, taicpu(p).oper[0]^.reg) and
-            { reg1 might not be modified inbetween }
+            { reg1 might not be modified in between }
             not(RegModifiedBetween(taicpu(p).oper[1]^.reg,p,hp1)) then
             begin
               DebugMsg('Peephole AndUxt2And done', p);
@@ -1652,7 +1652,7 @@ Implementation
             (taicpu(hp1).ops = 2) and
             RegEndofLife(taicpu(p).oper[0]^.reg,taicpu(hp1)) and
             MatchOperand(taicpu(hp1).oper[1]^, taicpu(p).oper[0]^.reg) and
-            { reg1 might not be modified inbetween }
+            { reg1 might not be modified in between }
             not(RegModifiedBetween(taicpu(p).oper[1]^.reg,p,hp1)) then
             begin
               DebugMsg('Peephole AndSxt2And done', p);

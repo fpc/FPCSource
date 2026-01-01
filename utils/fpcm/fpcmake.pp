@@ -286,7 +286,7 @@ end;
 
 Procedure ProcessOpts;
 {
-  Process command line opions, and checks if command line options OK.
+  Process command line options, and checks if command line options OK.
 }
 const
   ShortOpts = 'pwqrvh?VsT:o:x:';

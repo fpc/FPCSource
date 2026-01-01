@@ -371,7 +371,7 @@ end;
 Class procedure TTemplateWriter.Usage(List: TStrings);
 
 begin
-  // Add options to list. Eelement I is option, element i+1 is explanation.
+  // Add options to list. Element I is option, element i+1 is explanation.
 end;
 
 

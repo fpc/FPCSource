@@ -1,4 +1,4 @@
-{ comparsion of empty string }
+{ comparison of empty string }
 
 {$H-}
 var

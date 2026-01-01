@@ -489,7 +489,7 @@ interface
     function taarch64addnode.pass_1: tnode;
       begin
         Result:=inherited pass_1;
-        { if the result is not nil, a new node has been generated and the current node will be discarted }
+        { if the result is not nil, a new node has been generated and the current node will be discarded }
         if Result=nil then
           begin
             if left.resultdef.typ=floatdef then

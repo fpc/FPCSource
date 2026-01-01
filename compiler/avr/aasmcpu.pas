@@ -327,7 +327,7 @@ implementation
         { Error? }
         if (Insentry=nil) and (InsSize=-1) then
           exit;
-        { set the file postion }
+        { set the file position }
         current_filepos:=fileinfo;
 
         { Get InsEntry }
@@ -576,7 +576,7 @@ implementation
                       ra_alloc:
                         if (tai_regalloc(curtai).reg=NR_DEFAULTFLAGS) then
                           begin
-                            { there are still douple allocations/deallocations in the cg, so
+                            { there are still couple allocations/deallocations in the cg, so
                               this ie cannot be enabled
                               if flagsallocated then
                                 Internalerror(2022050101);
@@ -586,7 +586,7 @@ implementation
                       ra_dealloc:
                         if (tai_regalloc(curtai).reg=NR_DEFAULTFLAGS) then
                           begin
-                            { there are still douple allocations/deallocations in the cg, so
+                            { there are still couple allocations/deallocations in the cg, so
                               this ie cannot be enabled
                               if not(flagsallocated) then
                                 Internalerror(2022050102);

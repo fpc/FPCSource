@@ -30,7 +30,7 @@
        Therefore adding new CPU targets should not change the
        values of the pre-existing targets. (CEC)
        FURTHERMORE : Make sure that this branch values, are
-       consistant with the main branch version always.
+       consistent with the main branch version always.
      *)
        tsystemcpu=
        (
@@ -85,9 +85,9 @@
      (* IMPORTANT NOTE:
        the integer value of this enum is stored in PPU
        files to recognize the target, so if you add new targets
-       allways add them at end PM
+       always add them at end PM
        FURTHERMORE : Make sure that this branch values are
-       consistant with the main branch version always. (CEC)
+       consistent with the main branch version always. (CEC)
        *)
      type
        tsystem =

@@ -350,7 +350,7 @@ implementation
            exit;
          end;
 
-        { insert the system unit, it is allways the first. Load also the
+        { insert the system unit, it is always the first. Load also the
           internal types from the system unit }
         Sys:=AddUnit(curr,'system');
         Result:=Assigned(Sys) and (Sys.State in [ms_processed,ms_compiled]);
@@ -970,7 +970,7 @@ implementation
         ps:=cprocsym.create('$'+name);
         { always register the symbol }
         ps.register_sym;
-        { main are allways used }
+        { main are always used }
         inc(ps.refs);
         st.insertsym(ps);
         pd:=tprocdef(cnodeutils.create_main_procdef(target_info.cprefix+name,potype,ps));
@@ -2172,7 +2172,7 @@ type
              exit;
            end;
 
-         { remove all unused units, this happends when units are removed
+         { remove all unused units, this happens when units are removed
            from the uses clause in the source and the ppu was already being loaded }
          hp:=tmodule(loaded_units.first);
          while assigned(hp) do
@@ -2258,7 +2258,7 @@ type
            begin
              { we add all loaded units that are not part of a package to the
                package; this includes units in the "contains" section as well
-               as implicitely imported ones }
+               as implicitly imported ones }
              hp:=tmodule(loaded_units.first);
              while assigned(hp) do
               begin
@@ -2612,7 +2612,7 @@ type
         { create whole program optimisation information }
         curr.wpoinfo:=tunitwpoinfo.create;
 
-        { The program intialization needs an alias, so it can be called
+        { The program initialization needs an alias, so it can be called
           from the bootstrap code.}
         if islibrary then
          begin
@@ -2683,7 +2683,7 @@ type
           add_synthetic_interface_classes_for_st(curr.localsymtable,true,true);
 
         { generate construction functions for all attributes in the program }
-        { before write_vmts that asume attributes for methods is ready }
+        { before write_vmts that assume attributes for methods is ready }
         generate_attr_constrs(curr.used_rtti_attrs);
 
         { Generate VMTs }

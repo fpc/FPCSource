@@ -551,7 +551,7 @@ procedure fixup_jmps(list: TAsmList);
         { ait_const is for jump tables }
         case p.typ of
           ait_instruction:
-            { probleim here: pseudo-instructions can translate into
+            { problem here: pseudo-instructions can translate into
               several CPU instructions, possibly depending on assembler options,
               to obe on safe side, let's assume a mean of two. }
             inc(instrpos,2);

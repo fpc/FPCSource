@@ -48,7 +48,7 @@ interface
     function max(a,b : int64) : int64;{$ifdef USEINLINE}inline;{$endif}
     function max(a,b : qword) : qword;{$ifdef USEINLINE}inline;{$endif}
 
-    { These functions are intenionally put here and not in the constexp unit.
+    { These functions are intentionally put here and not in the constexp unit.
       Since Tconstexprint may be automatically converted to int, which causes
       loss of data and since there are already min and max functions for ints in
       this unit, we put min and max for Tconstexprint as well. This way we avoid
@@ -134,7 +134,7 @@ interface
     function CompareStr(const S1, S2: string): Integer;
     function CompareText(S1, S2: string): integer;
 
-    { releases the string p and assignes nil to p }
+    { releases the string p and assigns nil to p  }
     { if p=nil then freemem isn't called          }
     procedure stringdispose(var p : pshortstring);{$ifdef USEINLINE}inline;{$endif}
 

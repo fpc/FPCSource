@@ -1272,7 +1272,7 @@ begin //'a','b','c','d','e','f','g','h','i','j','k','l'
   sequence.ApplyStatement(@statement);
   wresult := nil;
   ComputeWeigths(@sequence.Data[0],sequence.ActualLength,wfirst,wresult);
-  //Generate updatet tables
+  //Generate updated tables
   ConstructUnicodeBook(wresult,'test3','second',@unicodeBook1,unicodeBook2);
     CheckInf(['a','b','g'{*}, 'c','d','e','f','h','i','j','k','l'],@unicodeBook2);
     CheckInf(['bb','g'{*}],@unicodeBook2);
@@ -1290,7 +1290,7 @@ begin //'a','b','c','d','e','f','g','h','i','j','k','l'
   sequence.ApplyStatement(@statement);
   wresult := nil;
   ComputeWeigths(@sequence.Data[0],sequence.ActualLength,wfirst,wresult);
-  //Generate updatet tables
+  //Generate updated tables
   ConstructUnicodeBook(wresult,'test3','second',@unicodeBook1,unicodeBook2);
     CheckInf(['a','b','c','ch'{*},'d','e','f','g','h','i','j','k','l'],@unicodeBook2);
     CheckInf(['ca','ch'{*}],@unicodeBook2);
@@ -1315,7 +1315,7 @@ begin //'a','b','c','d','e','f','g','h','i','j','k','l'
   sequence.ApplyStatement(@statement);
   wresult := nil;
   ComputeWeigths(@sequence.Data[0],sequence.ActualLength,wfirst,wresult);
-  //Generate updatet tables
+  //Generate updated tables
   ConstructUnicodeBook(wresult,'test3','second',@unicodeBook1,unicodeBook2);
     CheckInf(['a','b','k'{*},'d','e','f','g','h','i','j','l'],@unicodeBook2);
     CheckInf(['a','b','c'{*},'d','e','f','g','h','i','j','l'],@unicodeBook2);
@@ -1342,7 +1342,7 @@ begin //'a','b','c','d','e','f','g','h','i','j','k','l'
   wresult := nil;
   ComputeWeigths(@sequence.Data[0],sequence.ActualLength,wfirst,wresult);
   WriteLn(DumpLines(wresult),sLineBreak+sLineBreak);
-  //Generate updatet tables
+  //Generate updated tables
   ConstructUnicodeBook(wresult,'test3','second',@unicodeBook1,unicodeBook2);
     CheckInf(['a','c'{*},'ch'{*},'b','d','e','f','g','h','i','j','k','l'],@unicodeBook2);
     CheckInf(['ca','ch'{*}],@unicodeBook2);
@@ -1446,7 +1446,7 @@ begin
   wresult := nil;
   ComputeWeigths(@sequence.Data[0],sequence.ActualLength,wfirst,wresult);
   WriteLn(DumpLines(wresult),sLineBreak+sLineBreak);
-  //Generate updatet tables
+  //Generate updated tables
   ConstructUnicodeBook(wresult,'test4','second',@unicodeBook1,unicodeBook2);
   unicodeBook2.Base := @unicodeBook1;
     CheckInf(['a','b','g'{*}, 'c','d','e','f','h','i','j','k','l'],@unicodeBook2);
@@ -1473,7 +1473,7 @@ begin
   wresult := nil;
   ComputeWeigths(@sequence.Data[0],sequence.ActualLength,wfirst,wresult);
   WriteLn(DumpLines(wresult),sLineBreak+sLineBreak);
-  //Generate updatet tables
+  //Generate updated tables
   ConstructUnicodeBook(wresult,'test4','second',@unicodeBook1,unicodeBook2);
   unicodeBook2.Base := @unicodeBook1;
     CheckInf(['a','b','g'{*},'k'{*}, 'c','d','e','f','h','i','j','l'],@unicodeBook2);
@@ -1568,7 +1568,7 @@ begin
   wresult := nil;
   ComputeWeigths(@sequence.Data[0],sequence.ActualLength,wfirst,wresult);
   WriteLn(DumpLines(wresult),sLineBreak+sLineBreak);
-  //Generate updatet tables
+  //Generate updated tables
   ConstructUnicodeBook(wresult,'test5','second',@unicodeBook1,unicodeBook2);
   unicodeBook2.Base := @unicodeBook1;
     CheckInf(['a','b','ada','d','e',  'c'{* deleted !}],@unicodeBook2);
@@ -1586,7 +1586,7 @@ begin
   wresult := nil;
   ComputeWeigths(@sequence.Data[0],sequence.ActualLength,wfirst,wresult);
   WriteLn(DumpLines(wresult),sLineBreak+sLineBreak);
-  //Generate updatet tables
+  //Generate updated tables
   ConstructUnicodeBook(wresult,'test5','second',@unicodeBook1,unicodeBook2);
   unicodeBook2.Base := @unicodeBook1;
     CheckInf(['a', 'adac'{* deleted !}, 'b','c','d','e'],@unicodeBook2);
@@ -1675,7 +1675,7 @@ begin
   wresult := nil;
   ComputeWeigths(@sequence.Data[0],sequence.ActualLength,wfirst,wresult);
   WriteLn(DumpLines(wresult),sLineBreak+sLineBreak);
-  //Generate updatet tables
+  //Generate updated tables
   ConstructUnicodeBook(wresult,'test6','second',@unicodeBook1,unicodeBook2);
   unicodeBook2.Base := @unicodeBook1;
     CheckInf(['a', 'ad'{*},'ada', 'b','c','d','e'],@unicodeBook2);
@@ -1695,7 +1695,7 @@ begin
   wresult := nil;
   ComputeWeigths(@sequence.Data[0],sequence.ActualLength,wfirst,wresult);
   WriteLn(DumpLines(wresult),sLineBreak+sLineBreak);
-  //Generate updatet tables
+  //Generate updated tables
   ConstructUnicodeBook(wresult,'test6','second',@unicodeBook2,unicodeBook3);
   unicodeBook3.Base := @unicodeBook2;
     CheckInf(['a', 'ad'{*},'ada'{*}, 'b','c','d','e'],@unicodeBook3);
@@ -1714,7 +1714,7 @@ begin
   wresult := nil;
   ComputeWeigths(@sequence.Data[0],sequence.ActualLength,wfirst,wresult);
   WriteLn(DumpLines(wresult),sLineBreak+sLineBreak);
-  //Generate updatet tables
+  //Generate updated tables
   ConstructUnicodeBook(wresult,'test6','second',@unicodeBook1,unicodeBook2);
   unicodeBook2.Base := @unicodeBook1;
     CheckInf(['a', 'b', 'ad', 'c','d','e'],@unicodeBook2);
@@ -1803,7 +1803,7 @@ begin  // Permutation simple test
   wresult := nil;
   ComputeWeigths(@sequence.Data[0],sequence.ActualLength,wfirst,wresult);
   WriteLn(DumpLines(wresult),sLineBreak+sLineBreak);
-  //Generate updatet tables
+  //Generate updated tables
   ConstructUnicodeBook(wresult,'test7','second',@unicodeBook1,unicodeBook2);
   unicodeBook2.Base := @unicodeBook1;
     CheckInf([#$030A,#$0327,#$0061,#$0061#$030A ,#$0062,#$0063,#$0064,'k'],@unicodeBook2);
@@ -1905,7 +1905,7 @@ begin
   sequence.ApplyStatement(@statement);
   wresult := nil;
   ComputeWeigths(@sequence.Data[0],sequence.ActualLength,wfirst,wresult);
-  //Generate updatet tables
+  //Generate updated tables
   ConstructUnicodeBook(wresult,'test8','second',@unicodeBook1,unicodeBook2);
     CheckInf(['a','b','c','d','e','f','g','h','i','j','k','l'],@unicodeBook2);
     CheckEqual('cc','c-'{*},@unicodeBook2);
@@ -1926,7 +1926,7 @@ begin
   sequence.ApplyStatement(@statement);
   wresult := nil;
   ComputeWeigths(@sequence.Data[0],sequence.ActualLength,wfirst,wresult);
-  //Generate updatet tables
+  //Generate updated tables
   ConstructUnicodeBook(wresult,'test8','second',@unicodeBook1,unicodeBook2);
     CheckInf(['a','b','c','d','e','f','g','h','i','j','k','l'],@unicodeBook2);
     CheckInf('cc','c-'{*},@unicodeBook2);
@@ -1948,7 +1948,7 @@ begin
   sequence.ApplyStatement(@statement);
   wresult := nil;
   ComputeWeigths(@sequence.Data[0],sequence.ActualLength,wfirst,wresult);
-  //Generate updatet tables
+  //Generate updated tables
   ConstructUnicodeBook(wresult,'test8','second',@unicodeBook1,unicodeBook2);
     CheckInf(['a','b','c','d','e','f','g','h','i','j','k','l'],@unicodeBook2);
     CheckEqual('cc','c-+'{*},@unicodeBook2);
@@ -1978,7 +1978,7 @@ begin
   sequence.ApplyStatement(@statement);
   wresult := nil;
   ComputeWeigths(@sequence.Data[0],sequence.ActualLength,wfirst,wresult);
-  //Generate updatet tables
+  //Generate updated tables
   ConstructUnicodeBook(wresult,'test8','second',@unicodeBook1,unicodeBook2);
     CheckInf(['a','b','c','d','e','f','g','h','i','j','k','l'],@unicodeBook2);
     // Check c
@@ -2021,7 +2021,7 @@ begin
   sequence.ApplyStatement(@statement);
   wresult := nil;
   ComputeWeigths(@sequence.Data[0],sequence.ActualLength,wfirst,wresult);
-  //Generate updatet tables
+  //Generate updated tables
   ConstructUnicodeBook(wresult,'test8','second',@unicodeBook1,unicodeBook2);
     CheckInf(['a','-h','b','c','d','e','f','g','h','i','j','k','l'],@unicodeBook2);
     CheckEqual('cc','c-'{*},@unicodeBook2);
@@ -2118,7 +2118,7 @@ begin// Permutation with Context
   wresult := nil;
   ComputeWeigths(@sequence.Data[0],sequence.ActualLength,wfirst,wresult);
   WriteLn(DumpLines(wresult),sLineBreak+sLineBreak);
-  //Generate updatet tables
+  //Generate updated tables
   ConstructUnicodeBook(wresult,'test9','second',@unicodeBook1,unicodeBook2);
   unicodeBook2.Base := @unicodeBook1;
     CheckInf([#$030A,#$0327,#$0061,#$0062,#$0063,#$0064,'k'],@unicodeBook2);
@@ -2427,7 +2427,7 @@ begin
   wresult := nil;
   ComputeWeigths(@sequence.Data[0],sequence.ActualLength,wfirst,wresult);
   WriteLn(DumpLines(wresult),sLineBreak+sLineBreak);
-  //Generate updatet tables
+  //Generate updated tables
   ConstructUnicodeBook(wresult,'test1','second',@unicodeBook1,unicodeBook2);
     CheckInf(['a','b','c','x'{*},'d','e','f','g','h','i','j','k','l'],@unicodeBook2);
     CheckInf('ch','x'{*},@unicodeBook2);
@@ -2448,7 +2448,7 @@ begin
   wresult := nil;
   ComputeWeigths(@sequence.Data[0],sequence.ActualLength,wfirst,wresult);
   WriteLn(DumpLines(wresult),sLineBreak+sLineBreak);
-  //Generate updatet tables
+  //Generate updated tables
   ConstructUnicodeBook(wresult,'test2','second',@unicodeBook1,unicodeBook2);
     CheckInf(['a','b','c','x'{*},'X'{*},'d','e','f','g','h','i','j','k','l'],@unicodeBook2);
     CheckInf('ch','x'{*},@unicodeBook2);
@@ -2869,7 +2869,7 @@ begin
   wresult := nil;
   ComputeWeigths(@sequence.Data[0],sequence.ActualLength,wfirst,wresult);
   WriteLn(DumpLines(wresult),sLineBreak+sLineBreak);
-  //Generate updatet tables
+  //Generate updated tables
   ConstructUnicodeBook(wresult,'test','second',@unicodeBook1,unicodeBook2);
     CheckInf(['a','b','c','xy'],@unicodeBook2);
     test12_check_1(unicodeBook2);
@@ -2890,7 +2890,7 @@ begin
   wresult := nil;
   ComputeWeigths(@sequence.Data[0],sequence.ActualLength,wfirst,wresult);
   WriteLn(DumpLines(wresult),sLineBreak+sLineBreak);
-  //Generate updatet tables
+  //Generate updated tables
   ConstructUnicodeBook(wresult,'test','second',@unicodeBook1,unicodeBook2);
     CheckInf(['a','b','c','hi','k'],@unicodeBook2);
     test12_check_2(unicodeBook2);
@@ -2911,7 +2911,7 @@ begin
   wresult := nil;
   ComputeWeigths(@sequence.Data[0],sequence.ActualLength,wfirst,wresult);
   WriteLn(DumpLines(wresult),sLineBreak+sLineBreak);
-  //Generate updatet tables
+  //Generate updated tables
   ConstructUnicodeBook(wresult,'test','second',@unicodeBook1,unicodeBook2);
     CheckInf(['a','b','c','ci','k'],@unicodeBook2);
     test12_check_3(unicodeBook2);
@@ -2933,7 +2933,7 @@ begin
   wresult := nil;
   ComputeWeigths(@sequence.Data[0],sequence.ActualLength,wfirst,wresult);
   WriteLn(DumpLines(wresult),sLineBreak+sLineBreak);
-  //Generate updatet tables
+  //Generate updated tables
   ConstructUnicodeBook(wresult,'test','second',@unicodeBook1,unicodeBook2);
     CheckInf(['a','b','c','ci','k','cs'],@unicodeBook2);
     test12_check_4(unicodeBook2);
@@ -3074,7 +3074,7 @@ begin
   wresult := nil;
   ComputeWeigths(@sequence.Data[0],sequence.ActualLength,wfirst,wresult);
   WriteLn(DumpLines(wresult),sLineBreak+sLineBreak);
-  //Generate updatet tables
+  //Generate updated tables
   ConstructUnicodeBook(wresult,'test','second',@unicodeBook1,unicodeBook2);
     CheckInf(['a','bu','b'{because b's weigth is now computed!}],@unicodeBook2);
     test13_check_1(unicodeBook2);
@@ -3097,7 +3097,7 @@ begin
   wresult := nil;
   ComputeWeigths(@sequence.Data[0],sequence.ActualLength,wfirst,wresult);
   WriteLn(DumpLines(wresult),sLineBreak+sLineBreak);
-  //Generate updatet tables
+  //Generate updated tables
   ConstructUnicodeBook(wresult,'test','second',@unicodeBook1,unicodeBook2);
     CheckInf(['a','bu','c','b'{because b's weigth is now computed!}],@unicodeBook2);
     test13_check_2(unicodeBook2);
@@ -3434,7 +3434,7 @@ begin
   wresult := nil;
   ComputeWeigths(@sequence.Data[0],sequence.ActualLength,wfirst,wresult);
   WriteLn(DumpLines(wresult),sLineBreak+sLineBreak);
-  //Generate updatet tables
+  //Generate updated tables
   ConstructUnicodeBook(wresult,'test','second',@unicodeBook1,unicodeBook2);
     test14_check_1(unicodeBook2);
     WriteLn('    -- test 1 - ok');
@@ -3453,7 +3453,7 @@ begin
   wresult := nil;
   ComputeWeigths(@sequence.Data[0],sequence.ActualLength,wfirst,wresult);
   WriteLn(DumpLines(wresult),sLineBreak+sLineBreak);
-  //Generate updatet tables
+  //Generate updated tables
   ConstructUnicodeBook(wresult,'test','second',@unicodeBook1,unicodeBook2);
     test14_check_2(unicodeBook2);
     WriteLn('    -- test 2 - ok');
@@ -3485,7 +3485,7 @@ begin
   wresult := nil;
   ComputeWeigths(@sequence.Data[0],sequence.ActualLength,wfirst,wresult);
   WriteLn(DumpLines(wresult),sLineBreak+sLineBreak);
-  //Generate updatet tables
+  //Generate updated tables
   ConstructUnicodeBook(wresult,'test','second',@unicodeBook1,unicodeBook2);
     test14_check_3(unicodeBook2);
     WriteLn('    -- test 3 - ok');
@@ -3525,7 +3525,7 @@ begin
   wresult := nil;
   ComputeWeigths(@sequence.Data[0],sequence.ActualLength,wfirst,wresult);
   WriteLn(DumpLines(wresult),sLineBreak+sLineBreak);
-  //Generate updatet tables
+  //Generate updated tables
   ConstructUnicodeBook(wresult,'test','second',@unicodeBook1,unicodeBook2);
     test14_check_4(unicodeBook2);
     WriteLn('    -- test 4 - ok');
@@ -3605,7 +3605,7 @@ begin
   wresult := nil;
   ComputeWeigths(@sequence.Data[0],sequence.ActualLength,wfirst,wresult);
   WriteLn(DumpLines(wresult),sLineBreak+sLineBreak);
-  //Generate updatet tables
+  //Generate updated tables
   ConstructUnicodeBook(wresult,'test','second',@unicodeBook1,unicodeBook2);
     Check(ConvertEndianFromNative(unicodeBook2.Props,unicodeBook2.PropCount),'Endian conversion failed.');
     WriteLn('    -- test 1 - ok');
@@ -3622,7 +3622,7 @@ begin
   wresult := nil;
   ComputeWeigths(@sequence.Data[0],sequence.ActualLength,wfirst,wresult);
   WriteLn(DumpLines(wresult),sLineBreak+sLineBreak);
-  //Generate updatet tables
+  //Generate updated tables
   ConstructUnicodeBook(wresult,'test','second',@unicodeBook1,unicodeBook2);
     Check(ConvertEndianFromNative(unicodeBook2.Props,unicodeBook2.PropCount),'Endian conversion failed.');
     WriteLn('    -- test 2 - ok');
@@ -3641,7 +3641,7 @@ begin
   wresult := nil;
   ComputeWeigths(@sequence.Data[0],sequence.ActualLength,wfirst,wresult);
   WriteLn(DumpLines(wresult),sLineBreak+sLineBreak);
-  //Generate updatet tables
+  //Generate updated tables
   ConstructUnicodeBook(wresult,'test','second',@unicodeBook1,unicodeBook2);
     Check(ConvertEndianFromNative(unicodeBook2.Props,unicodeBook2.PropCount),'Endian conversion failed.');
     WriteLn('    -- test 3 - ok');
@@ -3672,7 +3672,7 @@ begin
   wresult := nil;
   ComputeWeigths(@sequence.Data[0],sequence.ActualLength,wfirst,wresult);
   WriteLn(DumpLines(wresult),sLineBreak+sLineBreak);
-  //Generate updatet tables
+  //Generate updated tables
   ConstructUnicodeBook(wresult,'test','second',@unicodeBook1,unicodeBook2);
     Check(ConvertEndianFromNative(unicodeBook2.Props,unicodeBook2.PropCount),'Endian conversion failed.');
     WriteLn('    -- test 4 - ok');
@@ -3712,7 +3712,7 @@ begin
   wresult := nil;
   ComputeWeigths(@sequence.Data[0],sequence.ActualLength,wfirst,wresult);
   WriteLn(DumpLines(wresult),sLineBreak+sLineBreak);
-  //Generate updatet tables
+  //Generate updated tables
   ConstructUnicodeBook(wresult,'test','second',@unicodeBook1,unicodeBook2);
     Check(ConvertEndianFromNative(unicodeBook2.Props,unicodeBook2.PropCount),'Endian conversion failed.');
     WriteLn('    -- test 5 - ok');
@@ -3731,7 +3731,7 @@ begin
   wresult := nil;
   ComputeWeigths(@sequence.Data[0],sequence.ActualLength,wfirst,wresult);
   WriteLn(DumpLines(wresult),sLineBreak+sLineBreak);
-  //Generate updatet tables
+  //Generate updated tables
   ConstructUnicodeBook(wresult,'test','second',@unicodeBook1,unicodeBook2);
     Check(ConvertEndianFromNative(unicodeBook2.Props,unicodeBook2.PropCount),'Endian conversion failed.');
     WriteLn('    -- test 6 - ok');
@@ -3751,7 +3751,7 @@ begin
   wresult := nil;
   ComputeWeigths(@sequence.Data[0],sequence.ActualLength,wfirst,wresult);
   WriteLn(DumpLines(wresult),sLineBreak+sLineBreak);
-  //Generate updatet tables
+  //Generate updated tables
   ConstructUnicodeBook(wresult,'test','second',@unicodeBook1,unicodeBook2);
     Check(ConvertEndianFromNative(unicodeBook2.Props,unicodeBook2.PropCount),'Endian conversion failed.');
     WriteLn('    -- test 7 - ok');
@@ -3771,7 +3771,7 @@ begin
   wresult := nil;
   ComputeWeigths(@sequence.Data[0],sequence.ActualLength,wfirst,wresult);
   WriteLn(DumpLines(wresult),sLineBreak+sLineBreak);
-  //Generate updatet tables
+  //Generate updated tables
   ConstructUnicodeBook(wresult,'test','second',@unicodeBook1,unicodeBook2);
     Check(ConvertEndianFromNative(unicodeBook2.Props,unicodeBook2.PropCount),'Endian conversion failed.');
     WriteLn('    -- test 8 - ok');
@@ -6060,7 +6060,7 @@ begin
       Check((xtyp.Rules[i].Kind=TCldrCollationRuleKind.ReorderSequence),'xtyp.Rules[i].Kind=ReorderSequence');
       CheckEqual(locData.Data[c+i],xtyp.Rules[i].Reorder);
     end;
-    k := 3{import statemnts};
+    k := 3{import statements};
     c := c+Length(xtyp.Rules);
     for i := k to Length(typ.Rules)-1 do begin
       Check((typ.Rules[i].Kind=TCldrCollationRuleKind.ReorderSequence),'typ.Rules[i].Kind=ReorderSequence');

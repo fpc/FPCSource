@@ -41,7 +41,7 @@ interface
           symdifn,          {Represents the >< operator}
           modn,             {Represents the mod operator}
           assignn,          {Represents an assignment}
-          loadn,            {Represents the use of a variabele}
+          loadn,            {Represents the use of a variable}
           rangen,           {Represents a range (i.e. 0..9)}
           ltn,              {Represents the < operator}
           lten,             {Represents the <= operator}
@@ -208,7 +208,7 @@ interface
     type
        { all boolean field of ttree are now collected in flags }
        tnodeflag = (
-         { tbinop operands are swaped    }
+         { tbinop operands are swapped    }
          nf_swapped,
 
          { general }
@@ -232,7 +232,7 @@ interface
          nf_absolute,
 
          { taddnode, but appears in typeconv nodes as well among other places }
-         { if the result type of a node is currency, then this flag denotes, that the value is already mulitplied by 10000 }
+         { if the result type of a node is currency, then this flag denotes, that the value is already multiplied by 10000 }
          nf_is_currency,
 
          { ttypeconvnode, and the first one also treal/ord/pointerconstn }
@@ -260,7 +260,7 @@ interface
          tnf_pass1_done,
          tnf_error,
 
-         { tbinop operands can be swaped }
+         { tbinop operands can be swapped }
          tnf_swapable,
 
          tnf_processing,
@@ -354,7 +354,7 @@ interface
 
          { comparing of nodes }
          function isequal(p : tnode) : boolean;
-         { to implement comparisation, override this method }
+         { to implement comparison, override this method }
          function docompare(p : tnode) : boolean;virtual;
          { wrapper for getcopy }
          function getcopy : tnode;
@@ -387,7 +387,7 @@ interface
 
       tnodeclassarray = array[tnodetype] of tnodeclass;
 
-      { this node is the anchestor for all nodes with at least   }
+      { this node is the ancestor for all nodes with at least    }
       { one child, you have to use it if you want to use         }
       { true- and current_procinfo.CurrFalseLabel                                     }
       //punarynode = ^tunarynode;

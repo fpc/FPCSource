@@ -839,7 +839,7 @@ implementation
              elseblock:=nil;
            end;
 
-         { evalutes the case expression }
+         { evaluates the case expression }
          firstpass(left);
          set_varstate(left,vs_read,[vsf_must_be_valid]);
          if codegenerror then

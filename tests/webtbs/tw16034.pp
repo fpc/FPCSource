@@ -63,7 +63,7 @@ type
       Function Value(p: UInt): UInt; Virtual;
     enD;
 
-{ Implmentation }
+{ Implementation }
 
 Constructor TObj0.Init;
 begin

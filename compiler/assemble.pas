@@ -1540,7 +1540,7 @@ Implementation
                       have_second_symbol:=true;
                       if not have_first_symbol then
                         internalerror(2007032202);
-                      { second symbol should substracted to first }
+                      { second symbol should subtracted to first }
                       if not dosub then
                         internalerror(2007032203);
                       if (relocsym.objsection<>sym.objsection) then
@@ -1987,7 +1987,7 @@ Implementation
                      Tai_align_abstract(hp).fillsize:=align(ObjData.CurrObjSec.Size,Tai_align_abstract(hp).aligntype)-
                        ObjData.CurrObjSec.Size;
 
-                     { maximum number of bytes for alignment exeeded? }
+                     { maximum number of bytes for alignment exceeded? }
                      if (Tai_align_abstract(hp).aligntype<>Tai_align_abstract(hp).maxbytes) and
                        (Tai_align_abstract(hp).fillsize>Tai_align_abstract(hp).maxbytes) then
                        Tai_align_abstract(hp).fillsize:=align(ObjData.CurrObjSec.Size,Byte(Tai_align_abstract(hp).aligntype div 2))-

@@ -14,14 +14,14 @@ type
     procedure DoSomething;
   end;
 
-  { TConainer }
+  { TContainer }
 
   TContainer = class
   public
     constructor Create;
   end;
 
-{ TConainer }
+{ TContainer }
 
 constructor TContainer.Create;
 begin

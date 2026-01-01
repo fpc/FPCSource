@@ -2360,10 +2360,10 @@ implementation
             continue;
           { vo_is_external and vo_has_local_copy means a staticvarsym that is
             alias for a constsym, whose sole purpose is for allocating and
-            intialising the constant }
+            initializing the constant }
           if [vo_is_external,vo_has_local_copy]*vs.varoptions=[vo_is_external] then
              continue;
-          { threadvar innitializations are handled at the node tree level }
+          { threadvar initializations are handled at the node tree level }
           if vo_is_thread_var in vs.varoptions then
             begin
               { nothing }

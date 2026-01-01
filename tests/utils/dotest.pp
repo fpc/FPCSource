@@ -831,7 +831,7 @@ end;
   the list of options passed to the compiler.
   %DELOPT=XYZ  will remove XYZ exactly
   %DELOPT=XYZ* will remove all options starting with XYZ.
-  NOTE: This fuinction does not handle quoted options. }
+  NOTE: This function does not handle quoted options. }
 function DelOptions(Pattern, opts : string) : string;
 var
   currentopt : string;
@@ -1920,7 +1920,7 @@ begin
         begin
 {$ifndef MACOS}
           { handle paths that are parallel to the tests directory (let's hope
-            that noone uses ../../ -.- ) }
+            that none uses ../../ -.- ) }
           { ToDo: check relative paths on MACOS }
           PPPrefix:=Copy(PPDir,1,3);
           if (PPPrefix='../') or (PPPrefix='..\') then

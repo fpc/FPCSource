@@ -21,7 +21,7 @@ begin
   s:=copy(AString,5,11);
   writeln('Before NestedProc: "',s,'"');
   NestedProc(s);
-  writeln('After NestedProc: "',s,'"'); // s is now emtpy
+  writeln('After NestedProc: "',s,'"'); // s is now empty
   if s<>'AStrangeBug' then
     halt(1);
 end;

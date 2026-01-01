@@ -155,13 +155,13 @@ interface
          procedure insertListBefore(Item:TLinkedListItem;p : TLinkedList); override;
          { inserts another List after the provided item and make this List empty }
          procedure insertListAfter(Item:TLinkedListItem;p : TLinkedList); override;
-         { concats another List at the end and make this List empty }
+         { concatenate another List at the end and make this List empty }
          procedure concatList(p : TLinkedList); override;
-         { concats another List at the start and makes a copy
+         { concatenate another List at the start and makes a copy
            the list is ordered in reverse.
          }
          procedure insertListcopy(p : TLinkedList); override;
-         { concats another List at the end and makes a copy }
+         { concatenate another List at the end and makes a copy }
          procedure concatListcopy(p : TLinkedList); override;
          { removes all items from the list, the items are not freed }
          procedure RemoveAll; override;

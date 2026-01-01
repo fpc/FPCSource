@@ -1299,7 +1299,7 @@ implementation
            ishexstr(copy(s,16,4)) and ishexstr(copy(s,21,4)) and
            ishexstr(copy(s,26,12)) then begin
           GUID.D1:=dword(hexstr2longint(copy(s,2,8)));
-          { these values are arealdy in the correct range (4 chars = word) }
+          { these values are already in the correct range (4 chars = word) }
           GUID.D2:=word(hexstr2longint(copy(s,11,4)));
           GUID.D3:=word(hexstr2longint(copy(s,16,4)));
           for i:=0 to 1 do

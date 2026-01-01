@@ -1798,7 +1798,7 @@ implementation
 
         { we need to add this helper to the extendeddefs of the current module,
           as the global and static symtable are not pushed onto the symtable
-          stack again (it will be removed when poping the symtable) }
+          stack again (it will be removed when popping the symtable) }
         if is_objectpascal_helper(current_structdef) and
             (current_objectdef.extendeddef.typ<>errordef) then
           begin

@@ -5,7 +5,7 @@ procedure stringbug;
 var env:ansistring;
   procedure addenv(s:ansistring);
   begin
-  // Uncomment next line and everything works as espected.
+  // Uncomment next line and everything works as expected.
   //writeln(length(env));
       if length(env)=0 then env:=s
                        else env:=env+'|'+s;
@@ -16,7 +16,7 @@ begin
   addenv('first');
   addenv('second');
   addenv('third');
-  // It schould write "first|second|third",
+  // It should write "first|second|third",
   // but only writes "third".
   writeln(env);
   if env<>'first|second|third' then

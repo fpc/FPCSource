@@ -22,7 +22,7 @@
 {
   This units contains support for DWARF debug info generation.
 
-  Currently a lot of code looks like being mergable with dbgstabs. This might
+  Currently a lot of code looks like being mergeable with dbgstabs. This might
   change however when improved dwarf info is generated, so the stuff shouldn't be
   merged yet. (FK)
 
@@ -4121,7 +4121,7 @@ implementation
         var
           upperopcodes: longint;
         begin
-          { deref=true -> ansi/unicde/widestring; deref = false -> short/longstring }
+          { deref=true -> ansi/unicode/widestring; deref = false -> short/longstring }
           if assigned(def.typesym) then
             append_entry(DW_TAG_array_type,true,[
               DW_AT_name,DW_FORM_string,name+#0,

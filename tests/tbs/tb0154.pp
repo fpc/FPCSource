@@ -15,14 +15,14 @@ Begin
   BSet := BSet + [b];  {creates a big, empty set}
   BSet := BSet + [c];  {creates another one}
   BSet := BSet + [3];  {creates a big set with element three set}
-  BSet := BSet + [3];  {and antoher one}
+  BSet := BSet + [3];  {and another one}
 
   SSet := SSet + [5];  {creates a small set containing 5}
   SSet := SSet + [s];  {creates a small, empty set}
   SSet := SSet + [5];  {creates another small set containing 5}
   SSet := SSet + [s];  {creates another small, empty set}
 
-{BTW: small constant sets don't have to be stored seperately in the
+{BTW: small constant sets don't have to be stored separately in the
  executable, as they're simple 32 bit constants, like longints!}
 
 End.

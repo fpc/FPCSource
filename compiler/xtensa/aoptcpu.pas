@@ -216,7 +216,7 @@ Implementation
         { We can't optimize if there is a shiftop }
         (taicpu(movp).ops=2) and
         MatchOperand(taicpu(movp).oper[1]^, taicpu(p).oper[0]^.reg) and
-       { the destination register of the mov might not be used beween p and movp }
+       { the destination register of the mov might not be used between p and movp }
         not(RegUsedBetween(taicpu(movp).oper[0]^.reg,p,movp)) and
         { Take care to only do this for instructions which REALLY load to the first register.
           Otherwise

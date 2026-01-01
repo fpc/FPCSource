@@ -498,7 +498,7 @@ implemented
           (-> aligned in least significant bits of 64 bit word on big endian) to
           a multiple of *4 bytes* (when passed by memory, don't occupy 8 bytes)
    x    b) other aggregates are padded with 0s on the right (-> aligned in most
-           signifcant bits of 64 bit word of integer register) to a multiple of
+           significant bits of 64 bit word of integer register) to a multiple of
            *4 bytes*
    x    c) all floating pointer parameters (not in aggregates) are promoted to
            double (doesn't seem to be correct: 8 bytes are reserved in the
@@ -510,7 +510,7 @@ implemented
         f) floats in *structures without unions* are processed per rule c)
            (similar for vector fields)
         g) other fields in *structures without unions* are processed
-           recursively according to e) / f) if they are aggragates, and h)
+           recursively according to e) / f) if they are aggregates, and h)
            otherwise (i.e, without promotion!)
   (x)   h) everything else (structures with unions and size<>16, arrays with
            size<>16, ...) is passed "normally" in integer registers

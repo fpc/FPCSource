@@ -1,8 +1,8 @@
 { Old file: tbs0134.pp }
-{ 'continue' keyword is bugsgy.                          OK 0.99.6 (FK) }
+{ 'continue' keyword is buggy.                          OK 0.99.6 (FK) }
 
 {
-In this simple examply, the even loop is wrong.  When continue; is called,
+In this simple example, the even loop is wrong.  When continue; is called,
 it should go back to the top and check the loop conditions and exit when i =
 4, but continue skips checking the loop conditions and does i=5 too, then it
 is odd, doesn't run the continue, and the loop terminates properly.

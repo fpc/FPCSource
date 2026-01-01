@@ -532,7 +532,7 @@ unit optloop;
                       addstatement(deletecodestatements,ctempdeletenode.create(tempnode));
                     end;
                   { Copy the nf_write,nf_modify flags to the new deref node of the temp.
-                    Othewise assignments to vector elements will be removed. }
+                    Otherwise assignments to vector elements will be removed. }
                   if nflags*[nf_write,nf_modify]<>[] then
                     begin
                       if (n.nodetype<>typeconvn) or (ttypeconvnode(n).left.nodetype<>derefn) then

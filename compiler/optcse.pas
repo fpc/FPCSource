@@ -127,7 +127,7 @@ unit optcse;
         all expressions of B are available during evaluation of C. However considerung the whole expression,
         values of B and C might not be available due to short boolean evaluation.
 
-        So recurseintobooleanchain detectes such chained and/or expressions and makes sub-expressions of B
+        So recurseintobooleanchain detects such chained and/or expressions and makes sub-expressions of B
         available during the evaluation of C
 
         firstleftend is later used to remove all sub expressions of B and C by storing the expression count
@@ -152,7 +152,7 @@ unit optcse;
         result:=fen_false;
         { don't add the tree below an untyped const parameter: there is
           no information available that this kind of tree actually needs
-          to be addresable, this could be improved }
+          to be addressable, this could be improved }
         { the nodes below a type conversion node created for an absolute
           reference cannot be handled separately, because the absolute reference
           may have special requirements (no regability, must be in memory, ...)
@@ -258,14 +258,14 @@ unit optcse;
               begin
                 if tnode(plists(arg)^.nodelist[i]).isequal(n) and DFASetIn(plists(arg)^.avail,i) then
                   begin
-                    { use always the first occurence }
+                    { use always the first occurrence }
                     if plists(arg)^.equalto[i]<>pointer(-1) then
                       plists(arg)^.equalto[plists(arg)^.nodelist.count-1]:=plists(arg)^.equalto[i]
                     else
                       plists(arg)^.equalto[plists(arg)^.nodelist.count-1]:=pointer(ptrint(i));
                     plists(arg)^.refs[i]:=pointer(plists(arg)^.refs[i])+1;
                     { tree has been found, no need to search further,
-                      sub-trees have been added by the first occurence of
+                      sub-trees have been added by the first occurrence of
                       the tree already }
                     result:=fen_norecurse_false;
                     break;

@@ -1318,7 +1318,7 @@ implementation
            really adjusted because a ret xxx was done, depends on
            pop_parasize which uses pushedparasize to determine this
 
-           This does not apply to interrupt procedures, their ret statment never clears any stack parameters }
+           This does not apply to interrupt procedures, their ret statement never clears any stack parameters }
          else if paramanager.use_fixed_stack and
                  not(po_interrupt in procdefinition.procoptions) and
                  (target_info.abi=abi_i386_dynalignedstack) then

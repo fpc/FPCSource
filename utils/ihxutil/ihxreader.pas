@@ -2,7 +2,7 @@
 
   This file contains the IHX writer code.
 
-  Copyright (C) 2020 Nikolay Nikolov <nickysn@users.sourceforg.net>
+  Copyright (C) 2020 Nikolay Nikolov <nickysn@users.sourceforge.net>
 
   This source is free software; you can redistribute it and/or modify it under
   the terms of the GNU General Public License as published by the Free

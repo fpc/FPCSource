@@ -973,7 +973,7 @@ end;
 Procedure TMethodComponent2.MyMethod2;
 
 begin
- // Do nothng
+ // Do nothing
 end;
 
 { TOwnedInterface }

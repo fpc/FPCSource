@@ -82,7 +82,7 @@ type
     a_insrwi_, a_rotlwi, a_rotlwi_, a_rotlw, a_rotlw_, a_slwi, a_slwi_,
     a_srwi, a_srwi_, a_clrlwi, a_clrlwi_, a_clrrwi, a_clrrwi_, a_clrslwi,
     a_clrslwi_, a_bf, a_bt, a_blr, a_bctr, a_blrl, a_bctrl, a_crset, a_crclr, a_crmove,
-    a_crnot, a_mt {move to special prupose reg}, a_mf
+    a_crnot, a_mt {move to special propose reg}, a_mf
       {move from special purpose reg},
     a_nop, a_li, a_lis, a_la, a_mr, a_mr_, a_not, a_mtcr, a_mtlr, a_mflr,
     a_mtctr, a_mfctr,

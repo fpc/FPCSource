@@ -917,7 +917,7 @@ begin
   E := TJSONObject(FRD.NewElement('MyElement'));
 
   AssertSame('Current element not changed', E, FRD.CurrentElement);
-  AssertEquals('Reading non-existant boolean property', False, FRD.ReadBoolean('Bool', False));
+  AssertEquals('Reading non-existent boolean property', False, FRD.ReadBoolean('Bool', False));
   AssertSame('Current element not changed', E, FRD.CurrentElement);
 end;
 
@@ -953,7 +953,7 @@ begin
   E := TJSONObject(FRD.NewElement('MyElement'));
 
   AssertSame('Current element not changed', E, FRD.CurrentElement);
-  AssertEquals('Reading non existant float property', 2.34, FRD.ReadFloat('Float', 2.34), 0.001);
+  AssertEquals('Reading non existent float property', 2.34, FRD.ReadFloat('Float', 2.34), 0.001);
   AssertSame('Current element not changed', E, FRD.CurrentElement);
 end;
 

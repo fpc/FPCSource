@@ -40,7 +40,7 @@ interface
       // flags of the *handle_calling_convention routines
       thccflag=(
         hcc_declaration,          // declaration (as opposed to definition, i.e. interface rather than implementation)
-        hcc_check,                // perform checks and outup errors if found
+        hcc_check,                // perform checks and output errors if found
         hcc_insert_hidden_paras   // insert hidden parameters
       );
       thccflags=set of thccflag;
@@ -156,7 +156,7 @@ implementation
             else
               paranr:=paranr_parentfp_delphi_cc;
             { Generate frame pointer. It can't be put in a register since it
-              must be accessable from nested routines }
+              must be accessible from nested routines }
             if not(target_info.system in systems_fpnestedstruct) or
                { in case of errors or declared procvardef types, prevent invalid
                  type cast and possible nil pointer dereference }
@@ -398,7 +398,7 @@ implementation
             vs:=clocalvarsym.create('$safecallresult',vs_value,search_system_type('HRESULT').typedef,[vo_is_funcret]);
             { do not put this variable in a register. The register which will be bound
               to this symbol will not be allocated automatically. Which means it will
-              be re-used wich breaks the code. Besides this it is questionable if it is
+              be re-used which breaks the code. Besides this it is questionable if it is
               an optimization if one of the registers is kept allocated during the complete
               function, without ever using it.
               (It would be better to re-write the safecall-support in such a way that this
@@ -1073,7 +1073,7 @@ implementation
                         { stop when one of the two lists is at the end }
                         if (fwidx>=fwparacnt) or (curridx>=currparacnt) then
                           break;
-                        { compare names of parameters, ignore implictly
+                        { compare names of parameters, ignore implicitly
                           renamed parameters }
                         currparasym:=tsym(currpd.parast.SymList[curridx]);
                         fwparasym:=tsym(fwpd.parast.SymList[fwidx]);

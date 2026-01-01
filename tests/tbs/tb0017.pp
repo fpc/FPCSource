@@ -1,7 +1,7 @@
 { Old file: tbs0021.pp }
-{  tests compatibility of empty sets with other set and the evalution of constant sets                  OK 0.9.3 }
+{  tests compatibility of empty sets with other set and the evaluation of constant sets                  OK 0.9.3 }
 
-{ tests constant set evalution }
+{ tests constant set evaluation }
 
 var
    a : set of byte;

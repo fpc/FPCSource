@@ -1109,7 +1109,7 @@ unit cgrv;
 
         if assigned(ref.symbol) then
           begin
-{$ifdef unsed}
+{$ifdef unused}
             { keeping the code for reference
 
               we use the pseudo instruction LA below which is expanded by the assembler, doing
@@ -1153,7 +1153,7 @@ unit cgrv;
                 href.refaddr:=addr_pcrel_lo12;
                 list.concat(taicpu.op_reg_reg_ref(A_ADDI,tmpreg,tmpreg,href));
               end;
-{$endif unsed}
+{$endif unused}
 
             reference_reset_symbol(href,ref.symbol,0,0,[]);
             href.refaddr:=addr_full;

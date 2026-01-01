@@ -173,7 +173,7 @@ begin
   Writeln('-c --config=FILE   Config file');
   Writeln('-h   --help        This help');
   Writeln('-l --list=FILE     if file exists, read todo IDS from list. If file does not exist, write file after querying gitlab');
-  Writeln('-n --no-write     Do not actaully change the TODO item');
+  Writeln('-n --no-write     Do not actually change the TODO item');
   Writeln('-q --quiet         less messages');
   Writeln('-s --state=STATE   State of issue coupled to TODO. default is "closed". If set to "any" all issues will be marked.');
 end;

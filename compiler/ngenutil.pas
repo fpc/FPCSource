@@ -344,7 +344,7 @@ implementation
       hp : tnode;
     begin
       if ((tsym(p).typ = localvarsym) or
-          { check staticvarsym for record management opeators and for objects
+          { check staticvarsym for record management operators and for objects
             which might contain record with management operators }
           ((tsym(p).typ = staticvarsym) and
            (
@@ -519,7 +519,7 @@ implementation
              if mf_classinits in current_module.moduleflags then
                append_struct_initfinis(current_module, potype_class_constructor, stat);
            end;
-         { units have separate code for initilization and finalization }
+         { units have separate code for initialization and finalization }
          potype_unitfinalize: ;
          { program init/final is generated in separate procedure }
          potype_proginit: ;
@@ -713,7 +713,7 @@ implementation
                   method definitions coming after this class constructor), the
                   ones from inside the class definition have already been parsed.
                   in case of $j-, these are marked "final" in Java and such
-                  static fields must be initialsed in the class constructor
+                  static fields must be initialized in the class constructor
                   itself -> add them here }
                 block:=internalstatements(stat);
                 if assigned(pd.struct.tcinitcode) then

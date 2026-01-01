@@ -93,8 +93,8 @@ unit optconstprop;
         tree_modified4:=false;
         tree_modified5:=false;
 
-        { while it might be usefull, to use foreach to iterate all nodes, it is safer to
-          iterate manually here so we have full controll how all nodes are processed }
+        { while it might be useful, to use foreach to iterate all nodes, it is safer to
+          iterate manually here so we have full control how all nodes are processed }
 
         { We cannot analyze beyond those nodes, so we terminate to be on the safe side }
         if (n.nodetype in [addrn,derefn,asmn,casen,whilerepeatn,labeln,continuen,breakn,
@@ -106,7 +106,7 @@ unit optconstprop;
           begin
             tree_modified:=false;
 
-            { we can propage the constant in both branches because the evaluation order is not defined }
+            { we can propagate the constant in both branches because the evaluation order is not defined }
             result:=replaceBasicAssign(tassignmentnode(n).right, arg, tree_modified);
             { do not use the intuitive way result:=result and replace... because this would prevent
               replaceBasicAssign being called if the result is already false }
@@ -141,7 +141,7 @@ unit optconstprop;
                   assigned(tfornode(n).t2.optinfo) and assigned(tassignmentnode(arg).left.optinfo) then
                   begin
                     CalcDefSum(tfornode(n).t2);
-                    { the constant can propagete if is is not the counter variable ... }
+                    { the constant can propagate if is is not the counter variable ... }
                     if not(tassignmentnode(arg).left.isequal(actualtargetnode(@tfornode(n).left)^)) and
                     { if it is a temprefn or its address is not taken in case of loadn }
                       ((tassignmentnode(arg).left.nodetype=temprefn) or not(tabstractvarsym(tloadnode(tassignmentnode(arg).left).symtableentry).addr_taken)) and

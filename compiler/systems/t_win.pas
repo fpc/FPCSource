@@ -1501,7 +1501,7 @@ implementation
         if success then
          success:=PostProcessExecutable(current_module.exefilename,false);
 
-      { Remove ReponseFile }
+      { Remove ResponseFile }
         if (success) and not(cs_link_nolink in current_settings.globalswitches) then
          begin
            DeleteFile(outputexedir+Info.ResName);
@@ -1607,7 +1607,7 @@ implementation
         if success then
          success:=PostProcessExecutable(current_module.sharedlibfilename,true);
 
-      { Remove ReponseFile }
+      { Remove ResponseFile }
         if (success) and not(cs_link_nolink in current_settings.globalswitches) then
          begin
            DeleteFile(outputexedir+Info.ResName);

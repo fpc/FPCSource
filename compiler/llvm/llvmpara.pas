@@ -37,7 +37,7 @@ unit llvmpara;
         aggregate parameters into multiple simple parameters in case they have
         to be passed in special registers (such as floating point or SSE), and
         also for indicating whether e.g. 8 bit parameters need to be sign or
-        zero exntended. This corresponds to pretty much what we do when creating
+        zero extended. This corresponds to pretty much what we do when creating
         parameter locations, so we reuse the original parameter manager and then
         process its output.
 

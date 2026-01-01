@@ -983,7 +983,7 @@ implementation
         // any symbol used from another unit must be fully declared in .wat
         // (reference by symbol name only doesn't work in Wasm)
         // the entire entry should declared (as imported) symbol.
-        // The wasm-import name (name of exernal module and name)
+        // The wasm-import name (name of external module and name)
         // is not important, as the linker would be using the symbol name
         // while linking.
         for i:=0 to current_module.unitimportsyms.Count-1 do begin

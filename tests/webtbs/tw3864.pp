@@ -1,4 +1,4 @@
-{ Explictly disable range check as the test
+{ Explicitly disable range check as the test
   is not about this but does generate a range check error
   for the index of rasteriso array }
 {$R-}

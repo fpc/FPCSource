@@ -2628,7 +2628,7 @@ Const
   sgrealize = 'realize';
   sgunrealize = 'unrealize';
   sgDrawFocus = 'draw-focus';
-  sgDrawDefault = 'draw-defaut';
+  sgDrawDefault = 'draw-default';
   sgParentSet = 'parent-set';
   sgGrabFocus = 'grab-focus';
   sgEvent = 'event';

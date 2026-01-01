@@ -63,7 +63,7 @@ Type
   TAoptBaseCpu = class(TAoptBase)
     { checks whether reading the value in reg1 depends on the value of reg2. This
       is very similar to SuperRegisterEquals, except it takes into account that
-      R_SUBH and R_SUBL are independendent (e.g. reading from AL does not
+      R_SUBH and R_SUBL are independent (e.g. reading from AL does not
       depend on the value in AH). }
     function Reg1ReadDependsOnReg2(reg1, reg2: tregister): boolean;
     function RegModifiedByInstruction(Reg: TRegister; p1: tai): boolean; override;

@@ -25,7 +25,7 @@ type
    // FChannels:TChannelList;
     procedure SendString(AMsgType: Integer;const AText:String);
   public
-    ActiveClasses: set of TDebugClass;//Made a public field toallow use of include
+    ActiveClasses: set of TDebugClass;//Made a public field to allow use of include
     constructor Create;
     destructor Destroy; override;
     procedure Clear;

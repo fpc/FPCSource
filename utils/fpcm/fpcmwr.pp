@@ -369,10 +369,10 @@ implementation
               Add(varname+':=$(strip $(wildcard $(addsuffix /'+altexename+'$(SRCEXEEXT),$(SEARCHPATH))))');
             end;
            Add('ifeq ($('+varname+'),)');
-           Add(varname+'= __missing_command_'+varname); {This is to be shure make stops,
+           Add(varname+'= __missing_command_'+varname); {This is to be sure make stops,
               if the command is not found. Otherwise if the command was set to the
               empty string, options to the command would be interpreted as command,
-              and because options is preceeded by a "-", make will ignore the error
+              and because options is preceded by a "-", make will ignore the error
               that the command is not found.}
            Add('else');
            Add(varname+':=$(firstword $('+varname+'))');
@@ -538,7 +538,7 @@ implementation
           unitfpmakedirvar:='UNITDIR_FPMAKE_'+VarName(pack);
           { Search packagedir by looking for Makefile.fpc }
           FOutput.Add(packdirvar+':=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /'+pack+'/Makefile.fpc,$(PACKAGESDIR))))))');
-          { Packages may no longer have a Makefile.fpc . Check existance of Makefile + fpmake.pp to be sure }
+          { Packages may no longer have a Makefile.fpc . Check existence of Makefile + fpmake.pp to be sure }
           FOutput.Add('ifeq ($('+packdirvar+'),)');
           FOutput.Add(packdirvar+':=$(firstword $(subst /Makefile,,$(strip $(wildcard $(addsuffix /'+pack+'/Makefile,$(PACKAGESDIR))))))');
           FOutput.Add('ifneq ($('+packdirvar+'),)');

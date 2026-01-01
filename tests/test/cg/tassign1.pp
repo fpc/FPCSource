@@ -8,7 +8,7 @@
 {            FPC     = Target is FreePascal compiler             }
 {****************************************************************}
 { REMARKS : Tested with Delphi 3 as reference implementation     }
-{           Tests the sortstring assignment.                     }
+{           Tests the shortstring assignment.                    }
 {****************************************************************}
 program tassign1;
 

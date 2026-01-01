@@ -166,7 +166,7 @@ procedure objcreatestringpoolentryintern(p: pchar; len: longint; pooltype: tcons
         { Make sure strlab has a reference }
         strlab.increfs;
 
-        { add the string to the approriate section }
+        { add the string to the appropriate section }
         tcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_new_section]);
         def:=tcb.emit_pchar_const(pchar(entry^.key),entry^.keylength);
         current_asmdata.asmlists[al_objc_pools].concatList(

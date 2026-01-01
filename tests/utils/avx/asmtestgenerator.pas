@@ -1354,7 +1354,7 @@ const
     begin
 
 
-      // only supported intructiones with SSE- or AVX-operands
+      // only supported instructions with SSE- or AVX-operands
       if not(InsTabMemRefSizeInfoCache^[AsmOp].ExistsSSEAVX) then
       begin
         InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize  := msiUnknown;

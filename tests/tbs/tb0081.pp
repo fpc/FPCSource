@@ -1,5 +1,5 @@
 { Old file: tbs0093.pp }
-{ Two Cardinal type bugss                                0K 0.99.1 (FK/MvC) }
+{ Two Cardinal type bugs                                0K 0.99.1 (FK/MvC) }
 
 { Two cardinal type bugs }
 var

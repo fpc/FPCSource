@@ -23,7 +23,7 @@
  ****************************************************************************}
 
 {$mode objfpc}
-{ Use ansitrings for long PATH variables }
+{ Use ansistrings for long PATH variables }
 {$H+}
 program fpc_with_gdb;
 

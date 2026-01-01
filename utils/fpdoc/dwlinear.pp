@@ -87,7 +87,7 @@ Type
     procedure WriteUnitEntry(UnitRef : TPasType);virtual; Abstract;
     procedure EndUnitOverview; virtual; Abstract;
     Property LastURL : DomString Read FLastURL Write FLastURL;
-    // Overriden from fpdocwriter;
+    // Overridden from fpdocwriter;
     procedure DescrWriteText(const AText: DOMString); override;
     // Actual writing happens here.
     Procedure DoWriteDocumentation; override;

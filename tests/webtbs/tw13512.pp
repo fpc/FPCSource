@@ -7,7 +7,7 @@ Uses SysUtils;
 var
   gotexcept: boolean;
 Begin
-    WriteLn (BCDToInt ($1234)); { should retuen 1234 }
+    WriteLn (BCDToInt ($1234)); { should return 1234 }
     if (BCDToInt ($1234)) <> 1234 then
       halt(1);
 

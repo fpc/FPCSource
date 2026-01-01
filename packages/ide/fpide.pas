@@ -710,8 +710,8 @@ resourcestring  menu_local_gotosource = '~G~oto source';
                 label_colors_grp_clock        = 'Clock';
 
                 label_colors_clockview        = 'Clock view';
-                label_colors_highlighcolumn   = 'Higlight column';
-                label_colors_highlightrow     = 'Higlight row';
+                label_colors_highlighcolumn   = 'Highlight column';
+                label_colors_highlightrow     = 'Highlight row';
                 label_colors_errormessages    = 'Error message';
                 label_colors_helptext         = 'Text';
                 label_colors_helplinks        = 'Link';

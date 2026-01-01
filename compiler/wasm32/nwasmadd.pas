@@ -46,7 +46,7 @@ interface
           procedure second_cmpordinal;override;
           procedure second_cmpsmallset;override;
 
-          // special treatement for short-boolean expressions
+          // special treatment for short-boolean expressions
           // using IF block, instead of direct labels
           procedure second_addboolean; override;
        public
@@ -333,7 +333,7 @@ interface
               orn :
                 begin
                    // inside of IF (the condition evaluated as true)
-                   // for "or" must end evalaution immediately - satified!
+                   // for "or" must end evaluation immediately - satisfied!
                    if is_64bit(left.resultdef) then
                      current_asmdata.CurrAsmList.Concat( taicpu.op_const(a_i64_const, 1) )
                    else

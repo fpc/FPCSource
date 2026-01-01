@@ -237,7 +237,7 @@ interface
           function  tokenreadsizeint : asizeint;
           procedure tokenwritesettings(var asettings : tsettings; var size : asizeint);
           { longword/longint are 32 bits on all targets }
-          { word/smallint are 16-bits on all targest }
+          { word/smallint are 16-bits on all targets }
           function  tokenreadlongword : longword;
           function  tokenreadword : word;
           function  tokenreadlongint : longint;
@@ -479,7 +479,7 @@ implementation
               begin
                 { m_systemcodepage gets enabled -> disable any -FcXXX and
                   "codepage XXX" settings (exclude cs_explicit_codepage), and
-                  overwrite the sourcecode page }
+                  overwrite the source codepage }
                 current_settings.sourcecodepage:=DefaultSystemCodePage;
                 if (current_settings.sourcecodepage<>CP_UTF8) and not cpavailable(current_settings.sourcecodepage) then
                   begin
@@ -1013,7 +1013,7 @@ not well defined, the type system does a best effort. The drawback is
 that some errors might not be detected.
 
 Instead of returning a particular data type, a set of possible data types
-are returned. This way ambigouos types can be handled.  For instance a
+are returned. This way ambiguous types can be handled.  For instance a
 value of 1 can be both a boolean and and integer.
 
 Booleans
@@ -1802,7 +1802,7 @@ type
           The result from this procedure can either be that the token
           itself is a value, or that it is a compile time variable/macro,
           which then is substituted for another value (for macros
-          recursivelly substituted).}
+          recursively substituted).}
 
         var
           hs: string;
@@ -1822,7 +1822,7 @@ type
           searchstr := @basesearchstr;
           mac:=nil;
           foundmacro:=false;
-          { Substitue macros and compiler variables with their content/value.
+          { Substitute macros and compiler variables with their content/value.
             For real macros also do recursive substitution. }
           macrocount:=0;
           repeat
@@ -2718,7 +2718,7 @@ type
 
              if length(hs) <> 0 then
                begin
-                 {If we are absolutely shure it is boolean, translate
+                 {If we are absolutely sure it is boolean, translate
                   to TRUE/FALSE to increase possibility to do future type check}
                  if exprvalue.isBoolean then
                    begin
@@ -3242,7 +3242,7 @@ type
                to_dispose:=nil;
                dec(inputfilecount);
              end;
-           { we can allways close the file, no ? }
+           { we can always close the file, no ? }
            inputfile.close;
            inputfile:=inputfile.next;
            if assigned(to_dispose) then
@@ -3987,7 +3987,7 @@ type
       begin
         with inputfile do
          begin
-           { when nothing more to read then leave immediatly, so we
+           { when nothing more to read then leave immediately, so we
              don't change the current_filepos and leave it point to the last
              char }
            if (c=#26) and (not assigned(next)) then
@@ -4116,7 +4116,7 @@ type
       var
         hp : tinputfile;
       begin
-        { save old postion }
+        { save old position }
 {$ifdef CHECK_INPUTPOINTER_LIMITS}
         dec_inputpointer;
 {$else not CHECK_INPUTPOINTER_LIMITS}

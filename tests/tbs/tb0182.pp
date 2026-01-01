@@ -1,5 +1,5 @@
 { Old file: tbs0215.pp }
-{ more bugss with static methods                        OK 0.99.11 (PM) }
+{ more bugs with static methods                        OK 0.99.11 (PM) }
 
 { allow static keyword }
 { submitted by Andrew Wilson }

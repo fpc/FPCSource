@@ -5,7 +5,7 @@ program tw40474f;
   supposed to have three operands, but the compiler mistakenly treated it as
   if it only had 2 (and an optional shifter operand) }
 
-{ Test a = 64-bit registers, immediatre operand (is converted into equivalent machine code for AND) }
+{ Test a = 64-bit registers, immediate operand (is converted into equivalent machine code for AND) }
 
 function ClearFirstAndLastBits(const Input: QWord): QWord; assembler; nostackframe;
 asm

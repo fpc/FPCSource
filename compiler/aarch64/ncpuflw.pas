@@ -412,7 +412,7 @@ procedure taarch64tryexceptnode.pass_generate_code;
     breakexceptlabel:=nil;
 
     include(flowcontrol,fc_inflowcontrol);
-    { this can be called recursivly }
+    { this can be called recursively }
     oldBreakLabel:=nil;
     oldContinueLabel:=nil;
     oldendexceptlabel:=endexceptlabel;

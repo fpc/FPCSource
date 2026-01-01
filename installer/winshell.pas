@@ -127,7 +127,7 @@ type
 
 
 {    IShellLinkDataList }
-{ inplemented in shell32.dll version 4.71 or later }
+{ implemented in shell32.dll version 4.71 or later }
 
 {Data block structureDescription}
 const

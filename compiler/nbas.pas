@@ -314,7 +314,7 @@ interface
         { a node which removes a temp }
         ttempdeletenode = class(ttempbasenode)
           constructor create(const temp: ttempcreatenode); virtual;
-          { this will convert the persistant temp to a normal temp
+          { this will convert the persistent temp to a normal temp
             for returning to the other nodes }
           constructor create_normal_temp(const temp: ttempcreatenode);
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;

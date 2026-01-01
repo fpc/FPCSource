@@ -551,7 +551,7 @@ implementation
                }
               tcb.start_internal_data_builder(current_asmdata.AsmLists[al_const],sec_rodata,_class.vmt_mangledname,lists.pubmethodstcb,lab);
               get_tabledef(itp_vmt_intern_tmethodnametable,u32inttype,lists.methodnamerec,count,packrecords,pubmethodsdef,pubmethodsarraydef);
-              { begin record ecompassing the tmethodnametable and the extended method table }
+              { begin record encompassing the tmethodnametable and the extended method table }
               lists.pubmethodstcb.begin_anonymous_record('',packrecords,
                   pubmethodsdef.alignment, targetinfos[target_info.system]^.alignment.recordalignmin);
               { begin tmethodnametable }

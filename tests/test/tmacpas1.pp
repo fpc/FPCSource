@@ -28,7 +28,7 @@ uses
 {$ENDC}
 
 {$IFC UNDEFINED UMACPAS_PRE_IMPL_COMP_VAR }
-{$ERRORC UMACPAS_PRE_IMPL_COMP_VAR is defined, while it shoud not}
+{$ERRORC UMACPAS_PRE_IMPL_COMP_VAR is defined, while it should not}
 {$ENDC}
 
 

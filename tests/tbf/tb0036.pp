@@ -1,6 +1,6 @@
 { %FAIL }
 { Old file: tbf0173.pp }
-{ secondbugs is parsed as asm, but should be normal pascalcode OK 0.99.9 (PFV) }
+{ secondbugs is parsed as asm, but should be normal pascal code OK 0.99.9 (PFV) }
 
 var
   secondbug : word;

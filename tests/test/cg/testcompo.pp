@@ -7,7 +7,7 @@
   corresponding to a temporary partial copy of the reference record
   for the part that is put on stack at $sp+16
   when a_load_ref_stack is called,
-  but the temp is never copied back to coorect location $sp+16
+  but the temp is never copied back to correct location $sp+16
 .Lj518:
 # Temp 192,56 allocated
 	# Register a0 allocated

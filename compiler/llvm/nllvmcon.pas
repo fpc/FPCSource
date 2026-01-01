@@ -65,7 +65,7 @@ implementation
         inherited;
         if def=llvm_metadatatype then
           begin
-            { astringdef is only used if the constant type is ansitring }
+            { astringdef is only used if the constant type is ansistring }
             cst_type:=cst_ansistring;
             astringdef:=def;
           end;

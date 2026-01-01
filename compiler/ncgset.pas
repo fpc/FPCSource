@@ -135,9 +135,9 @@ implementation
       fillchar(setparts,sizeof(setparts),0);
       numparts:=0;
       compares:=0;
-      { Lots of comparisions take a lot of time, so do not allow
-        too much comparisions. 8 comparisions are, however, still
-        smalller than emitting the set }
+      { Lots of comparisons take a lot of time, so do not allow
+        too much comparisons. 8 comparisons are, however, still
+        smaller than emitting the set }
       if cs_opt_size in current_settings.optimizerswitches then
         maxcompares:=8
       else
@@ -378,7 +378,7 @@ implementation
          if codegenerror then
            exit;
 
-         { ofcourse not commutative }
+         { of course not commutative }
          if nf_swapped in flags then
           swapleftright;
 
@@ -394,7 +394,7 @@ implementation
              hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,opdef,false);
              pleftreg := left.location.register;
 
-             { how much have we already substracted from the x in the }
+             { how much have we already subtracted from the x in the  }
              { "x in [y..z]" expression                               }
              adjustment := 0;
              hr:=NR_NO;
@@ -408,10 +408,10 @@ implementation
                    begin
                      { yes, is the lower bound <> 0? }
                      if (setparts[i].start <> 0) then
-                       { we're going to substract from the left register,   }
+                       { we're going to subtract from the left register,    }
                        { so in case of a LOC_CREGISTER first move the value }
                        { to edi (not done before because now we can do the  }
-                       { move and substract in one instruction with LEA)    }
+                       { move and subtract in one instruction with LEA)     }
                        if (left.location.loc = LOC_CREGISTER) and
                           (hr<>pleftreg) then
                          begin
@@ -427,7 +427,7 @@ implementation
                            hlcg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SUB,opdef,
                               setparts[i].start-adjustment,pleftreg)
                          end;
-                     { new total value substracted from x:           }
+                     { new total value subtracted from x:            }
                      { adjustment + (setparts[i].start - adjustment) }
                      adjustment := setparts[i].start;
 
@@ -893,7 +893,7 @@ implementation
                                hregister2, elselabel);
                           cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_32, jmp_gt, aint(hi(int64(t^._low.svalue))),
                                hregister2, l1);
-                          { the comparisation of the low dword must be always unsigned! }
+                          { the comparison of the low dword must be always unsigned! }
                           cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_32, OC_B, aint(lo(int64(t^._low.svalue))), hregister, elselabel);
                           cg.a_label(current_asmdata.CurrAsmList,l1);
                        end
@@ -925,7 +925,7 @@ implementation
                                cg.GetNextReg(hregister), elselabel);
                           cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_16, jmp_gt, aint(hi(int32(t^._low.svalue))),
                                cg.GetNextReg(hregister), l1);
-                          { the comparisation of the low dword must be always unsigned! }
+                          { the comparison of the low dword must be always unsigned! }
                           cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_16, OC_B, aint(lo(int32(t^._low.svalue))), hregister, elselabel);
                           cg.a_label(current_asmdata.CurrAsmList,l1);
                        end
@@ -970,7 +970,7 @@ implementation
                          current_asmdata.getjumplabel(l1);
                          cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,jmp_lt,aint(hi(int16(t^._low.svalue))),cg.GetNextReg(hregister),elselabel);
                          cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,jmp_gt,aint(hi(int16(t^._low.svalue))),cg.GetNextReg(hregister),l1);
-                         { the comparisation of the low dword must be always unsigned! }
+                         { the comparison of the low dword must be always unsigned! }
                          cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_8,OC_B,aint(lo(int16(t^._low.svalue))),hregister,elselabel);
                          cg.a_label(current_asmdata.CurrAsmList,l1);
                        end

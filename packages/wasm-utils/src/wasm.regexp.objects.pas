@@ -197,7 +197,7 @@ function TWasmRegExp.CheckRegExpResult(Res: TWasmRegexpResult; const aOperation:
 begin
   Result:=Res=WASMRE_RESULT_SUCCESS;
   if (not Result) and aRaise then
-    Raise EWasmRegExp.CreateFmt('Error %d occured during "%s"',[Res,aOperation]);
+    Raise EWasmRegExp.CreateFmt('Error %d occurred during "%s"',[Res,aOperation]);
 end;
 
 constructor TWasmRegExp.Create(const aExpression, aFlags: String);

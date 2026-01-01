@@ -113,7 +113,7 @@ end;
 
 procedure CheckTarget;
 begin
-  //if user explicitally set a format, use it
+  //if user explicitly set a format, use it
   if params.Target.objformat<>ofNone then
     CurrentTarget.objformat:=params.Target.objformat;
   //if no machine was specified, check if current is ok for this format,

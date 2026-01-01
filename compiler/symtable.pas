@@ -2040,7 +2040,7 @@ implementation
                   ) or
                   (
                    { In Delphi, you can repeat members of a parent class. You can't }
-                   { do this for objects however, and you (obviouly) can't          }
+                   { do this for objects however, and you (obviously) can't         }
                    { declare two fields with the same name in a single class        }
                    (m_delphi in current_settings.modeswitches) and
                    (
@@ -3440,7 +3440,7 @@ implementation
                          (symownerdef.owner.iscurrentunit)
                        ) or
                        { access from a generic method that belongs to the class
-                         but that is specialized elsewere }
+                         but that is specialized elsewhere }
                        (
                          isspezproc and
                          (current_procinfo.procdef.struct=curstruct)
@@ -3508,7 +3508,7 @@ implementation
                         )
                        ) or
                        { access from a generic method that belongs to the class
-                         but that is specialized elsewere }
+                         but that is specialized elsewhere }
                        (
                          isspezproc and
                          (current_procinfo.procdef.struct=curstruct)
@@ -3565,7 +3565,7 @@ implementation
                     exit;
                   end;
               end;
-            { check dummy sym visbility by following associated procsyms }
+            { check dummy sym visibility by following associated procsyms }
             if tprocsym(sym).could_be_implicitly_specialized then
               begin
                 for i:=0 to tprocsym(sym).genprocsymovlds.count-1 do
@@ -4246,7 +4246,7 @@ implementation
                     break;
                   end;
                 { independently of the operator being better count if we encountered
-                  multpile String[x] operators }
+                  multiple String[x] operators }
                 if checkshortstring and assigned(currpd) and is_shortstring(currpd.returndef) then
                   inc(shortstringcount);
                 if curreq>besteq then
@@ -4285,7 +4285,7 @@ implementation
         if result=nil then
           result:=search_specific_assignment_operator(_ASSIGNMENT,from_def,to_def);
 
-        { if we're assigning to a typed pointer, but we did not find a suitable assignement
+        { if we're assigning to a typed pointer, but we did not find a suitable assignment
           operator then we also check for a untyped pointer assignment operator }
         if not assigned(result) and is_pointer(to_def) and not is_voidpointer(to_def) then
           begin
@@ -4589,7 +4589,7 @@ implementation
               dec(i);
             until result or (i<0);
             if not result then
-              { just to be sure that noone uses odef }
+              { just to be sure that none uses odef }
               odef:=nil;
           end;
       end;

@@ -3127,7 +3127,7 @@ const
         parse_proc_direc:=false;
         name:=tokeninfo^[idtoken].str;
 
-      { Hint directive? Then exit immediatly }
+      { Hint directive? Then exit immediately }
         if (m_hintdirective in current_settings.modeswitches) then
          begin
            case idtoken of
@@ -3474,9 +3474,9 @@ const
 
         { Class constructors and destructor are static class methods in real. }
         { There are many places in the compiler where either class or static  }
-        { method flag changes the behavior. It is simplier to add them to     }
+        { method flag changes the behavior. It is simpler to add them to      }
         { the class constructors/destructors options than to fix all the      }
-        { occurencies. (Paul)                                                 }
+        { occurrences. (Paul)                                                 }
         if pd.proctypeoption in [potype_class_constructor,potype_class_destructor] then
           begin
             include(pd.procoptions,po_classmethod);

@@ -1,5 +1,5 @@
 { Old file: tbs0009.pp }
-{  tests comperations in function calls a(c<0);        OK 0.9.2 }
+{  tests comparisons in function calls a(c<0);        OK 0.9.2 }
 
 var c:byte;
 

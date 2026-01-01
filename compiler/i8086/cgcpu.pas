@@ -2480,7 +2480,7 @@ unit cgcpu;
            { complex return values are removed from stack in C code PM }
            { but not on win32 }
            { and not for safecall with hidden exceptions, because the result }
-           { wich contains the exception is passed in EAX }
+           { which contains the exception is passed in EAX }
            if (target_info.system <> system_i386_win32) and
               not ((current_procinfo.procdef.proccalloption = pocall_safecall) and
                (tf_safecall_exceptions in target_info.flags)) and
