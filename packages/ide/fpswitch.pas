@@ -239,7 +239,7 @@ const
       opt_allowmmxoperations = 'Allow MMX operations';
 
       opt_mode_freepascal = 'Free Pascal dialect';
-      opt_mode_objectpascal = 'Object Pascal extension on';
+      opt_mode_objectpascal = 'Object Pascal extension';
       opt_mode_turbopascal = 'Turbo Pascal compatible';
       opt_mode_delphi = 'Delphi compatible';
       opt_mode_delphiunicode = 'Delphi Unicode';
@@ -269,9 +269,11 @@ const
       opt_generatesmallercode = 'G~e~nerate smaller code';
       opt_useregistervariables = 'Use regis~t~er-variables';
       opt_uncertainoptimizations = '~U~ncertain optimizations';
+      opt_disableoptimizations = '~D~isable optimizations';
       opt_level1optimizations = 'Level ~1~ optimizations';
       opt_level2optimizations = 'Level ~2~ optimizations';
       opt_level3optimizations = 'Level ~3~ optimizations';
+      opt_level4optimizations = 'Level ~4~ optimizations';
       { optimization processor target }
       opt_i386486 = 'i~3~86/i486';
       opt_pentium = 'P~e~ntium (tm)';
@@ -1273,12 +1275,16 @@ begin
   with OptimizationSwitches^ do
    begin
      AddBooleanItem(opt_generatesmallercode,'s',idNone);
+{$if defined(I386) or defined(x86_64) or defined(i8086)}
 {$ifdef I386}
      AddBooleanItem(opt_useregistervariables,'oregvar',idNone);
      AddBooleanItem(opt_uncertainoptimizations,'ouncertain',idNone);
+{$endif}
+     AddBooleanItem(opt_disableoptimizations,'-',idNone);
      AddBooleanItem(opt_level1optimizations,'1',idNone);
      AddBooleanItem(opt_level2optimizations,'2',idNone);
      AddBooleanItem(opt_level3optimizations,'3',idNone);
+     AddBooleanItem(opt_level4optimizations,'4',idNone);
 {$else not I386}
  {$ifdef m68k}
      AddBooleanItem(opt_level1optimizations,'a',idNone);
