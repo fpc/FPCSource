@@ -80,6 +80,9 @@ const
   oldmousey : longint = -1;
   mouselock : boolean = false;
 
+  { mouse wheel scroll up or down }
+  MouseButton_4_5 = MouseButton4 or MouseButton5;
+
 {$ASMMODE ATT}
 { if the cursor is drawn by this the unit, we must be careful }
 { when drawing while the interrupt handler is called          }
@@ -176,13 +179,30 @@ asm
 .Lmouse_nocursor:
         cmpb    MouseEventBufSize,PendingMouseEvents
         je      .Lmouse_exit
+        leal    PendingMouseEvent,%eax
+
+        movl    PendingMouseTail,%edi
+        cmpl    %eax,%edi
+        jne     .Lmouse_tail_with_offset
+        addl    MouseEventBufSize*8,%edi
+.Lmouse_tail_with_offset:
+        subl    $8,%edi { previous event }
+        cmpw    %bx,(%edi)
+        jne     .Lmouse_add_event
+        cmpw    %cx,2(%edi)
+        jne     .Lmouse_add_event
+        cmpw    %dx,4(%edi)
+        jne     .Lmouse_add_event
+        testb   MouseButton_4_5, %bl
+        jne     .Lmouse_add_event
+        jmp     .Lmouse_exit  { mouse event isn't uniq, don't add it }
+.Lmouse_add_event:
         movl    PendingMouseTail,%edi
         movw    %bx,(%edi)
         movw    %cx,2(%edi)
         movw    %dx,4(%edi)
         movw    $0,6(%edi)
         addl    $8,%edi
-        leal    PendingMouseEvent,%eax
         addl    MouseEventBufSize*8,%eax
         cmpl    %eax,%edi
         jne     .Lmouse_nowrap
