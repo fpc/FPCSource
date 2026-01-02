@@ -1065,7 +1065,12 @@ begin
        'T' : res:=TargetSwitches^.ReadItemsCfg(s);
        'v' : res:=VerboseSwitches^.ReadItemsCfg(s);
        'X' : begin
-               res:=LibLinkerSwitches^.ReadItemsCfg(s);
+               { This is workaround. ReadItemsCfg do UpCase to S
+                   and our -Xs got lost because there are -XS as well.  M. }
+               if (s = 's') then   { -Xs defined }
+                 res:=OtherLinkerSwitches^.ReadItemsCfg(s);
+               if not res then
+                 res:=LibLinkerSwitches^.ReadItemsCfg(s);
                if not res then
                  res:=OtherLinkerSwitches^.ReadItemsCfg(s);
              end;
