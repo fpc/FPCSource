@@ -15,7 +15,7 @@ type
     CLIC_BWEI_IRQn      = 17,    // Bus Error interrupt
     CLIC_PMOVI_IRQn     = 18,    // Performance Monitor
 
-    // interruput numbers
+    // interrupt numbers
     WWDGT_IRQn          = 19,    // window watchDog timer interrupt
     LVD_IRQn            = 20,    // LVD through EXTI line detect interrupt
     TAMPER_IRQn         = 21,    // tamper through EXTI line detect

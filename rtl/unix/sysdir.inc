@@ -61,7 +61,7 @@ End;
 // !! on special filesystems like NFS etc.
 // !! In the libc versions, the alt code is already integrated in the libc code.
 // !! Also significantly boosted buffersize. This will make failure of the
-// !! dos legacy api's better visibile due to cut-off path, instead of "empty"
+// !! dos legacy api's better visible due to cut-off path, instead of "empty"
 
 
 procedure do_getdir(drivenr : byte;var dir : rawbytestring);

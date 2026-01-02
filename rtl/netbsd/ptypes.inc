@@ -170,7 +170,7 @@ struct statfs12 {
     end;
    pmbstate_t = ^mbstate_t;
 
-{ records transcripted fromm NetBSD 5.1 libpthread sources }
+{ records transcribed fromm NetBSD 5.1 libpthread sources }
    pthread_t            = pointer;
    pthread_attr_t       = record
      pta_magic : cuint;

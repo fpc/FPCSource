@@ -437,12 +437,16 @@ var f: text;
     S,TS: string;
     P: PINISection;
     I: integer;
+    oFileMode : byte;
 begin
   New(P, Init(MainSectionName));
   Sections^.Insert(P);
+  oFileMode:=FileMode;   {save file open mode}
+  FileMode:=0;           {Reset will open file in read only mode }
   Assign(f,FileName^);
 {$I-}
   Reset(f);
+  FileMode:=oFileMode;   {restore file open mode}
   OK:=EatIO=0;
   while OK and (Eof(f)=false) do
     begin

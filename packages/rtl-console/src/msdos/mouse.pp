@@ -61,6 +61,9 @@ const
   oldmousey : smallint = -1;
   mouselock : boolean = false;
 
+  { mouse wheel scroll up or down }
+  MouseButton_4_5 = MouseButton4 or MouseButton5;
+
 { if the cursor is drawn by this the unit, we must be careful }
 { when drawing while the interrupt handler is called          }
 procedure lockmouse;assembler;
@@ -193,6 +196,36 @@ asm
 @@mouse_nocursor:
         cmp     PendingMouseEvents, MouseEventBufSize
         je      @@mouse_exit
+        lea     ax, PendingMouseEvent
+{$if defined(FPC_MM_COMPACT) or defined(FPC_MM_LARGE) or defined(FPC_MM_HUGE)}
+        les     di, [PendingMouseTail]
+{$else}
+        mov     di, PendingMouseTail
+{$endif}
+        cmp     di, ax
+        jne     @@Lmouse_tail_with_offset
+        add     di, MouseEventBufSize*8
+@@Lmouse_tail_with_offset:
+        sub     di, 8 { previous event }
+{$if defined(FPC_MM_COMPACT) or defined(FPC_MM_LARGE) or defined(FPC_MM_HUGE)}
+        cmp     word ptr es:[di], bx
+        jne     @@mouse_add_event
+        cmp     word ptr es:[di+2], cx
+        jne     @@mouse_add_event
+        cmp     word ptr es:[di+4], dx
+{$else}
+        cmp     word ptr [di], bx
+        jne     @@mouse_add_event
+        cmp     word ptr [di+2], cx
+        jne     @@mouse_add_event
+        cmp     word ptr [di+4], dx
+{$endif}
+        jne     @@mouse_add_event
+        test    bl, MouseButton_4_5
+        jne     @@mouse_add_event
+        jmp     @@mouse_exit  { mouse event isn't uniq, don't add it }
+
+@@mouse_add_event:
 {$if defined(FPC_MM_COMPACT) or defined(FPC_MM_LARGE) or defined(FPC_MM_HUGE)}
         les     di, [PendingMouseTail]
         mov     word ptr es:[di], bx
@@ -207,7 +240,6 @@ asm
         mov     word ptr [di+6], 0
 {$endif}
         add     di, 8
-        lea     ax, PendingMouseEvent
         add     ax, MouseEventBufSize*8
         cmp     di, ax
         jne     @@mouse_nowrap
@@ -308,7 +340,7 @@ begin
     Mouse_Action($ffff, @MouseInt);                    { Set masks/interrupt }
   drawmousecursor:=false;
   CustomMouse_MouseIsVisible:=false;
-  if (screenwidth>80) or (screenheight>50) then
+  if (screenwidth=132){ or (screenheight>50)} then
     DoCustomMouse(true);
   ShowMouse;
 end;
@@ -349,8 +381,8 @@ begin
           Dec(CustomMouse_HideCount);
         if (CustomMouse_HideCount=0) and not(CustomMouse_MouseIsVisible) then
           begin
-             oldmousex:=getmousex-1;
-             oldmousey:=getmousey-1;
+             oldmousex:=getmousex{-1};
+             oldmousey:=getmousey{-1};
 
              mem[videoseg:(((screenwidth*oldmousey)+oldmousex)*2)+1]:=
                mem[videoseg:(((screenwidth*oldmousey)+oldmousex)*2)+1] xor $7f;
@@ -488,6 +520,16 @@ asm
         shl     dx, 1 {character based convert to pixels: y * 8}
         shl     dx, 1
         shl     dx, 1
+{$ifdef FPC_MM_HUGE}
+        mov     ax, SEG ScreenWidth
+        mov     es, ax
+        cmp     es:[ScreenWidth], 40
+{$else}
+        cmp     ScreenWidth, 40
+{$endif}
+        jne     @@morethan40cols
+        shl     cx, 1
+@@morethan40cols:
         mov     ax, 4
         push    bp
         int     33h

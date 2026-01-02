@@ -869,7 +869,7 @@
      WS_EX_NODRAG           = $40000000;
      WS_EX_CAPTIONOKBTN     = $80000000;
 
-     WS_EX_NOINHERITLAYOUT  = $00100000; // Disable inheritence of mirroring by children
+     WS_EX_NOINHERITLAYOUT  = $00100000; // Disable inheritance of mirroring by children
      WS_EX_LAYOUTRTL        = $00400000; // Right to left mirroring
 
 

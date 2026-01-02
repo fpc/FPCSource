@@ -227,8 +227,8 @@ const
   WUTIF = $07;
   // Watchdog Timer Configuration Lock Register
   WDCLE = $00;
-  WDCL0 = $01;  // Watchdog Timer Comfiguration Lock bits
-  WDCL1 = $02;  // Watchdog Timer Comfiguration Lock bits
+  WDCL0 = $01;  // Watchdog Timer Configuration Lock bits
+  WDCL1 = $02;  // Watchdog Timer Configuration Lock bits
   // Power Reduction Register 0
   PRTIM0 = $00;
   PRTIM1 = $01;

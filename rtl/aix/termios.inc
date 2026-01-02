@@ -476,7 +476,7 @@ const
   VDISCRD = 12;
   VWERSE = 13;
   VLNEXT = 14;
-{ 5.4 compatability  }
+{ 5.4 compatibility  }
   VSTRT = VSTART;
 
 const
