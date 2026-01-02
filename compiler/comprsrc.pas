@@ -301,7 +301,7 @@ begin
           if (target_info.endian=endian_big) then
             arch:=arch+'eb';
         end;
-      if target_info.cpu=systems.cpu_powerpc64 then
+      if target_info.cpu=cpu_powerpc64 then
         begin
           { differentiate between ppc64 and ppc64le }
           if target_info.endian=endian_little then

@@ -740,7 +740,7 @@ unit cgppc;
      case target_info.abi of
        abi_powerpc_aix:
          result:=LA_RTOC_AIX;
-{$ifdef powerpc64}
+{$if defined(_CALL_ELF) and (_CALL_ELF = 1)}
        { no TOC on Linux/ppc32 }
        abi_powerpc_elfv1:
          result:=LA_RTOC_SYSV;
