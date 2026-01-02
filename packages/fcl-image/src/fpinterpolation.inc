@@ -149,7 +149,7 @@ var
   xSupport: integer;// how many horizontal pixel are needed to create one pixel
   yEntries: Pointer;
   yEntrySize: integer;
-  ySupport: integer;// how many vertizontal pixel are needed to create one pixel
+  ySupport: integer;// how many vertical pixel are needed to create one pixel
   NewSupportLines: LongInt;
   yEntry: Pointer;
   SrcStartY: LongInt;

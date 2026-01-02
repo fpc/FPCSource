@@ -179,7 +179,7 @@ TYPE
                   FBytesToGo  : INT64;     // Bytes until the next Header Record
                 PUBLIC
                   CONSTRUCTOR Create (Stream   : TStream);                                OVERLOAD;
-                  CONSTRUCTOR Create (Filename : STRING;
+                  CONSTRUCTOR Create (const Filename : AnsiString;
                                       FileMode : WORD = fmOpenRead OR fmShareDenyWrite);  OVERLOAD;
                   DESTRUCTOR Destroy;                                       OVERRIDE;
                   PROCEDURE Reset;                                         // Reset File Pointer
@@ -210,9 +210,9 @@ TYPE
                  CONSTRUCTOR CreateEmpty;
                PUBLIC
                  CONSTRUCTOR Create (TargetStream   : TStream);                            OVERLOAD;
-                 CONSTRUCTOR Create (TargetFilename : STRING; Mode : INTEGER = fmCreate);  OVERLOAD;
+                 CONSTRUCTOR Create (const TargetFilename : AnsiString; Mode : INTEGER = fmCreate);  OVERLOAD;
                  DESTRUCTOR Destroy; OVERRIDE;                   // Writes End-Of-File Tag
-                 PROCEDURE AddFile   (Filename : STRING;  TarFilename : AnsiString = '');
+                 PROCEDURE AddFile   (const Filename : AnsiString;  TarFilename : AnsiString = '');
                  PROCEDURE AddStream (Stream   : TStream; TarFilename : AnsiString; FileDateGmt : TDateTime);
                  PROCEDURE AddString (Contents : Ansistring;  TarFilename : AnsiString; FileDateGmt : TDateTime);  // RawByteString
                  PROCEDURE AddDir          (Dirname            : AnsiString; DateGmt : TDateTime; MaxDirSize : INT64 = 0);
@@ -244,8 +244,8 @@ CONST
 
 
 FUNCTION  PermissionString      (Permissions : TTarPermissions) : STRING;
-FUNCTION  ConvertFilename       (Filename    : STRING)          : STRING;
-FUNCTION  FileTimeGMT           (FileName    : STRING)          : TDateTime;  OVERLOAD;
+FUNCTION  ConvertFilename       (const Filename    : AnsiString)          : AnsiString;
+FUNCTION  FileTimeGMT           (const FileName    : AnsiString)          : TDateTime;  OVERLOAD;
 FUNCTION  FileTimeGMT           (SearchRec   : TSearchRec)      : TDateTime;  OVERLOAD;
 PROCEDURE ClearDirRec           (VAR DirRec  : TTarDirRec);
 
@@ -273,7 +273,7 @@ BEGIN
 END;
 
 
-FUNCTION ConvertFilename  (Filename : STRING) : STRING;
+FUNCTION ConvertFilename  (const Filename : AnsiString) : AnsiString;
 // Converts the filename to Unix conventions
 // could be empty and inlined away for FPC. FPC I/O should be
 // forward/backward slash safe.
@@ -285,7 +285,7 @@ BEGIN
   (*$ENDIF *)
 END;
 
-FUNCTION FileTimeGMT (FileName: STRING): TDateTime;
+FUNCTION FileTimeGMT (const FileName: AnsiString): TDateTime;
          // Returns the Date and Time of the last modification of the given File
          // The Result is zero if the file could not be found
          // The Result is given in UTC (GMT) time zone
@@ -589,7 +589,7 @@ BEGIN
 END;
 
 
-CONSTRUCTOR TTarArchive.Create (Filename : STRING; FileMode : WORD);
+CONSTRUCTOR TTarArchive.Create (const Filename : Ansistring; FileMode : WORD);
 BEGIN
   INHERITED Create;
   FStream     := TFileStream.Create (Filename, FileMode);
@@ -801,7 +801,7 @@ BEGIN
 END;
 
 
-CONSTRUCTOR TTarWriter.Create (TargetFilename : STRING; Mode : INTEGER = fmCreate);
+CONSTRUCTOR TTarWriter.Create (const TargetFilename : AnsiString; Mode : INTEGER = fmCreate);
 BEGIN
   CreateEmpty;
   FStream     := TFileStream.Create (TargetFilename, Mode);
@@ -821,7 +821,7 @@ BEGIN
 END;
 
 
-PROCEDURE TTarWriter.AddFile   (Filename : STRING;  TarFilename : AnsiString = '');
+PROCEDURE TTarWriter.AddFile   (const Filename : AnsiString;  TarFilename : AnsiString = '');
 VAR
   S    : TFileStream;
   Date : TDateTime;
