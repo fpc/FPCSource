@@ -308,7 +308,7 @@ begin
     Mouse_Action($ffff, @MouseInt);                    { Set masks/interrupt }
   drawmousecursor:=false;
   CustomMouse_MouseIsVisible:=false;
-  if (screenwidth>80) or (screenheight>50) then
+  if (screenwidth=132){ or (screenheight>50)} then
     DoCustomMouse(true);
   ShowMouse;
 end;
@@ -349,8 +349,8 @@ begin
           Dec(CustomMouse_HideCount);
         if (CustomMouse_HideCount=0) and not(CustomMouse_MouseIsVisible) then
           begin
-             oldmousex:=getmousex-1;
-             oldmousey:=getmousey-1;
+             oldmousex:=getmousex{-1};
+             oldmousey:=getmousey{-1};
 
              mem[videoseg:(((screenwidth*oldmousey)+oldmousex)*2)+1]:=
                mem[videoseg:(((screenwidth*oldmousey)+oldmousex)*2)+1] xor $7f;
@@ -488,6 +488,16 @@ asm
         shl     dx, 1 {character based convert to pixels: y * 8}
         shl     dx, 1
         shl     dx, 1
+{$ifdef FPC_MM_HUGE}
+        mov     ax, SEG ScreenWidth
+        mov     es, ax
+        cmp     es:[ScreenWidth], 40
+{$else}
+        cmp     ScreenWidth, 40
+{$endif}
+        jne     @@morethan40cols
+        shl     cx, 1
+@@morethan40cols:
         mov     ax, 4
         push    bp
         int     33h
