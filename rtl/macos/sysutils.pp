@@ -639,7 +639,7 @@ end;
 Procedure InitInternational;
 begin
   InitInternationalGeneric;
-  InitAnsi;  
+  InitAnsi;
 end;
 
 function SysErrorMessage(ErrorCode: Integer): String;

@@ -1,17 +1,17 @@
 {
      File:       HIToolbox/HIRelevanceBar.h
- 
+
      Contains:   Definition of the relevance bar view provided by HIToolbox.
- 
+
      Version:    HIToolbox-624~3
- 
+
      Copyright:  © 2006-2008 by Apple Computer, Inc., all rights reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {       Initial Pascal Translation:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
@@ -231,7 +231,7 @@ uses MacTypes,Appearance,CarbonEvents,Controls,QuickdrawTypes,HIObject;
 
 {
  *  HIRelevanceBar.h
- *  
+ *
  *  Discussion:
  *    API definitions for the relevance bar view.
  }
@@ -245,10 +245,10 @@ uses MacTypes,Appearance,CarbonEvents,Controls,QuickdrawTypes,HIObject;
 {$ifc not TARGET_CPU_64}
 {
  *  CreateRelevanceBarControl()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later

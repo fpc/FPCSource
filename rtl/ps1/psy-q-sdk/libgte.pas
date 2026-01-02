@@ -1,5 +1,5 @@
 {$MODE OBJFPC}
-unit libgte; 
+unit libgte;
 interface
 
 
@@ -16,7 +16,7 @@ type
 			m : array [0..2, 0..2] of smallint;		// 3x3 rotation matrix
         		t : array [0..2] of longint;			// transfer vector
        end;
-	
+
 
 	VECTOR = packed record							// long word type 3D vector
 			vx, vy : longint;
@@ -29,12 +29,12 @@ type
 				vz, pad : smallint;
 			  end;
 	PSVECTOR = ^SVECTOR;
-	       
+
 	CVECTOR = packed record							// color type vector
 			  	r, g, b, cd : byte;
 			  end;
 	PCVECTOR = ^CVECTOR;
-	       
+
 	DVECTOR = packed record							// 2D short vector
 				vx, vy : smallint;
 			  end;
@@ -100,7 +100,7 @@ type
            end;
     PSPOL = ^SPOL;
 
-                                        
+
     POL4 = packed record							// polygon: 41 bytes/1 polygon
         	sxy : array [0..3, 0..1] of smallint;   //0..7
         	sz : array [0..3, 0..1] of smallint;    // 8..15sz[][1] is dummy
@@ -347,43 +347,43 @@ procedure NormalColorCol_nom(v0: PSVECTOR; v1: PCVECTOR); stdcall; external;
 procedure NormalColorCol3_nom(v0, v1, v2: PSVECTOR; v3: PCVECTOR); stdcall; external;
 
 
-procedure RotSMD_F3(pa: plongint; ot: pdword; otlen, id, sclip, hclip, vclip, nclipmode: longint); stdcall; external;	
-procedure RotSMD_G3(pa: plongint; ot: pdword; otlen, id, sclip, hclip, vclip, nclipmode: longint); stdcall; external;	
-procedure RotSMD_FT3(pa: plongint; ot: pdword; otlen, id, sclip, hclip, vclip, nclipmode: longint);	 stdcall; external;	
-procedure RotSMD_GT3(pa: plongint; ot: pdword; otlen, id, sclip, hclip, vclip, nclipmode: longint); stdcall; external;		
-procedure RotSMD_F4(pa: plongint; ot: pdword; otlen, id, sclip, hclip, vclip, nclipmode: longint); stdcall; external;		
-procedure RotSMD_G4(pa: plongint; ot: pdword; otlen, id, sclip, hclip, vclip, nclipmode: longint); stdcall; external;		
-procedure RotSMD_FT4(pa: plongint; ot: pdword; otlen, id, sclip, hclip, vclip, nclipmode: longint); stdcall; external;		
-procedure RotSMD_GT4(pa: plongint; ot: pdword; otlen, id, sclip, hclip, vclip, nclipmode: longint); stdcall; external;		
+procedure RotSMD_F3(pa: plongint; ot: pdword; otlen, id, sclip, hclip, vclip, nclipmode: longint); stdcall; external;
+procedure RotSMD_G3(pa: plongint; ot: pdword; otlen, id, sclip, hclip, vclip, nclipmode: longint); stdcall; external;
+procedure RotSMD_FT3(pa: plongint; ot: pdword; otlen, id, sclip, hclip, vclip, nclipmode: longint);	 stdcall; external;
+procedure RotSMD_GT3(pa: plongint; ot: pdword; otlen, id, sclip, hclip, vclip, nclipmode: longint); stdcall; external;
+procedure RotSMD_F4(pa: plongint; ot: pdword; otlen, id, sclip, hclip, vclip, nclipmode: longint); stdcall; external;
+procedure RotSMD_G4(pa: plongint; ot: pdword; otlen, id, sclip, hclip, vclip, nclipmode: longint); stdcall; external;
+procedure RotSMD_FT4(pa: plongint; ot: pdword; otlen, id, sclip, hclip, vclip, nclipmode: longint); stdcall; external;
+procedure RotSMD_GT4(pa: plongint; ot: pdword; otlen, id, sclip, hclip, vclip, nclipmode: longint); stdcall; external;
 
-procedure RotSMD_SV_F3(pa: plongint; va: plongint; ot: pdword; otlen, id, sclip, hclip, vclip, nclipmode: longint);	 stdcall; external;	
-procedure RotSMD_SV_G3(pa: plongint; va: plongint; ot: pdword; otlen, id, sclip, hclip, vclip, nclipmode: longint); stdcall; external;		
-procedure RotSMD_SV_FT3(pa: plongint; va: plongint; ot: pdword; otlen, id, sclip, hclip, vclip, nclipmode: longint); stdcall; external;		
-procedure RotSMD_SV_GT3(pa: plongint; va: plongint; ot: pdword; otlen, id, sclip, hclip, vclip, nclipmode: longint); stdcall; external;		
-procedure RotSMD_SV_F4(pa: plongint; va: plongint; ot: pdword; otlen, id, sclip, hclip, vclip, nclipmode: longint); stdcall; external;		
-procedure RotSMD_SV_G4(pa: plongint; va: plongint; ot: pdword; otlen, id, sclip, hclip, vclip, nclipmode: longint); stdcall; external;		
-procedure RotSMD_SV_FT4(pa: plongint; va: plongint; ot: pdword; otlen, id, sclip, hclip, vclip, nclipmode: longint); stdcall; external;		
-procedure RotSMD_SV_GT4(pa: plongint; va: plongint; ot: pdword; otlen, id, sclip, hclip, vclip, nclipmode: longint); stdcall; external;		
+procedure RotSMD_SV_F3(pa: plongint; va: plongint; ot: pdword; otlen, id, sclip, hclip, vclip, nclipmode: longint);	 stdcall; external;
+procedure RotSMD_SV_G3(pa: plongint; va: plongint; ot: pdword; otlen, id, sclip, hclip, vclip, nclipmode: longint); stdcall; external;
+procedure RotSMD_SV_FT3(pa: plongint; va: plongint; ot: pdword; otlen, id, sclip, hclip, vclip, nclipmode: longint); stdcall; external;
+procedure RotSMD_SV_GT3(pa: plongint; va: plongint; ot: pdword; otlen, id, sclip, hclip, vclip, nclipmode: longint); stdcall; external;
+procedure RotSMD_SV_F4(pa: plongint; va: plongint; ot: pdword; otlen, id, sclip, hclip, vclip, nclipmode: longint); stdcall; external;
+procedure RotSMD_SV_G4(pa: plongint; va: plongint; ot: pdword; otlen, id, sclip, hclip, vclip, nclipmode: longint); stdcall; external;
+procedure RotSMD_SV_FT4(pa: plongint; va: plongint; ot: pdword; otlen, id, sclip, hclip, vclip, nclipmode: longint); stdcall; external;
+procedure RotSMD_SV_GT4(pa: plongint; va: plongint; ot: pdword; otlen, id, sclip, hclip, vclip, nclipmode: longint); stdcall; external;
 
 
 
-procedure RotRMD_F3(pa: plongint; ot: pdword; otlen, id, sclip, hclip, vclip, nclipmode: longint); stdcall; external;	
-procedure RotRMD_G3(pa: plongint; ot: pdword; otlen, id, sclip, hclip, vclip, nclipmode: longint); stdcall; external;	
-procedure RotRMD_FT3(pa: plongint; ot: pdword; otlen, id, sclip, hclip, vclip, nclipmode: longint); stdcall; external;		
-procedure RotRMD_GT3(pa: plongint; ot: pdword; otlen, id, sclip, hclip, vclip, nclipmode: longint); stdcall; external;		
-procedure RotRMD_F4(pa: plongint;  ot: pdword; otlen, id, sclip, hclip, vclip, nclipmode: longint); stdcall; external;		
-procedure RotRMD_G4(pa: plongint; ot: pdword; otlen, id, sclip, hclip, vclip, nclipmode: longint); stdcall; external;		
-procedure RotRMD_FT4(pa: plongint; ot: pdword; otlen, id, sclip, hclip, vclip, nclipmode: longint); stdcall; external;		
-procedure RotRMD_GT4(pa: plongint; ot: pdword; otlen, id, sclip, hclip, vclip, nclipmode: longint); stdcall; external;		
+procedure RotRMD_F3(pa: plongint; ot: pdword; otlen, id, sclip, hclip, vclip, nclipmode: longint); stdcall; external;
+procedure RotRMD_G3(pa: plongint; ot: pdword; otlen, id, sclip, hclip, vclip, nclipmode: longint); stdcall; external;
+procedure RotRMD_FT3(pa: plongint; ot: pdword; otlen, id, sclip, hclip, vclip, nclipmode: longint); stdcall; external;
+procedure RotRMD_GT3(pa: plongint; ot: pdword; otlen, id, sclip, hclip, vclip, nclipmode: longint); stdcall; external;
+procedure RotRMD_F4(pa: plongint;  ot: pdword; otlen, id, sclip, hclip, vclip, nclipmode: longint); stdcall; external;
+procedure RotRMD_G4(pa: plongint; ot: pdword; otlen, id, sclip, hclip, vclip, nclipmode: longint); stdcall; external;
+procedure RotRMD_FT4(pa: plongint; ot: pdword; otlen, id, sclip, hclip, vclip, nclipmode: longint); stdcall; external;
+procedure RotRMD_GT4(pa: plongint; ot: pdword; otlen, id, sclip, hclip, vclip, nclipmode: longint); stdcall; external;
 
-procedure RotRMD_SV_F3(pa: plongint; va: plongint; ot: pdword; otlen, id, sclip, hclip, vclip, nclipmode: longint); stdcall; external;		
-procedure RotRMD_SV_G3(pa: plongint; va: plongint; ot: pdword; otlen, id, sclip, hclip, vclip, nclipmode: longint); stdcall; external;		
-procedure RotRMD_SV_FT3(pa: plongint; va: plongint; ot: pdword; otlen, id, sclip, hclip, vclip, nclipmode: longint); stdcall; external;		
-procedure RotRMD_SV_GT3(pa: plongint; va: plongint; ot: pdword; otlen, id, sclip, hclip, vclip, nclipmode: longint); stdcall; external;		
-procedure RotRMD_SV_F4(pa: plongint; va: plongint; ot: pdword; otlen, id, sclip, hclip, vclip, nclipmode: longint); stdcall; external;		
-procedure RotRMD_SV_G4(pa: plongint; va: plongint; ot: pdword; otlen, id, sclip, hclip, vclip, nclipmode: longint); stdcall; external;		
-procedure RotRMD_SV_FT4(pa: plongint; va: plongint; ot: pdword; otlen, id, sclip, hclip, vclip, nclipmode: longint); stdcall; external;		
-procedure RotRMD_SV_GT4(pa: plongint; va: plongint; ot: pdword; otlen, id, sclip, hclip, vclip, nclipmode: longint); stdcall; external;		
+procedure RotRMD_SV_F3(pa: plongint; va: plongint; ot: pdword; otlen, id, sclip, hclip, vclip, nclipmode: longint); stdcall; external;
+procedure RotRMD_SV_G3(pa: plongint; va: plongint; ot: pdword; otlen, id, sclip, hclip, vclip, nclipmode: longint); stdcall; external;
+procedure RotRMD_SV_FT3(pa: plongint; va: plongint; ot: pdword; otlen, id, sclip, hclip, vclip, nclipmode: longint); stdcall; external;
+procedure RotRMD_SV_GT3(pa: plongint; va: plongint; ot: pdword; otlen, id, sclip, hclip, vclip, nclipmode: longint); stdcall; external;
+procedure RotRMD_SV_F4(pa: plongint; va: plongint; ot: pdword; otlen, id, sclip, hclip, vclip, nclipmode: longint); stdcall; external;
+procedure RotRMD_SV_G4(pa: plongint; va: plongint; ot: pdword; otlen, id, sclip, hclip, vclip, nclipmode: longint); stdcall; external;
+procedure RotRMD_SV_FT4(pa: plongint; va: plongint; ot: pdword; otlen, id, sclip, hclip, vclip, nclipmode: longint); stdcall; external;
+procedure RotRMD_SV_GT4(pa: plongint; va: plongint; ot: pdword; otlen, id, sclip, hclip, vclip, nclipmode: longint); stdcall; external;
 
 function p2otz(p, projection: longint): longint; stdcall; external;
 function otz2p(otz, projection: longint): longint; stdcall; external;

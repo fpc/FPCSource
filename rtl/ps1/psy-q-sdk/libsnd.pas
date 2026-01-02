@@ -23,14 +23,14 @@ const
 	SS_TICKMODE_MAX  = 6;
 	SSPLAY_PAUSE     = 0;
 	SSPLAY_PLAY      = 1;
-	SS_SOFF          = 0;     
-	SS_SON           = 1;     
-	SS_MIX           = 0;   
-	SS_REV           = 1;   
+	SS_SOFF          = 0;
+	SS_SON           = 1;
+	SS_MIX           = 0;
+	SS_REV           = 1;
 	SS_SERIAL_A      = 0;
-	SS_SERIAL_B      = 1;    
-	SS_MUTE_OFF      = 0;    
-	SS_MUTE_ON       = 1;    
+	SS_SERIAL_B      = 1;
+	SS_MUTE_OFF      = 0;
+	SS_MUTE_ON       = 1;
 
 	SS_IMEDIATE 	    = 0;
 	SS_IMMEDIATE        = 0;
@@ -47,8 +47,8 @@ const
 	SS_REV_TYPE_DELAY      = 8;
 	SS_REV_TYPE_PIPE       = 9;
 	SSSKIP_TICK    	       = 0;
-	SSSKIP_NOTE4   	       = 1; 
-	SSSKIP_NOTE8   	       = 2; 
+	SSSKIP_NOTE4   	       = 1;
+	SSSKIP_NOTE8   	       = 2;
 	SSSKIP_BAR     	       = 3;
 
 	SS_SEQ_TABSIZ          = 176;
@@ -63,7 +63,7 @@ const
 	NULL 		       = 0;
 
 
-// Vag & Vab Structure 
+// Vag & Vab Structure
 type
 	VabHdr = packed record			// VAB Bank Headdings
 		form : longint;          	// always 'VABp'
@@ -188,7 +188,7 @@ function SsSeqSkip(access_num, seq_num: smallint; _unit: byte; count: smallint):
 procedure SsSeqStop(seq_access_num: smallint); stdcall; external;
 procedure SsSeqSetVol(seq_access_num: smallint; voll, volr: smallint); stdcall; external;
 procedure SsSeqSetNext(seq_access_num1, seq_access_num2: smallint); stdcall; external;
-procedure SsSeqSetCrescendo(seq_access_num: smallint; vol: smallint; v_time: longint); stdcall; external; 
+procedure SsSeqSetCrescendo(seq_access_num: smallint; vol: smallint; v_time: longint); stdcall; external;
 procedure SsSeqSetDecrescendo(seq_access_num: smallint; vol: smallint; v_time: longint); stdcall; external;
 procedure SsSeqSetAccelerando(seq_access_num: smallint; tempo: longint; v_time: longint); stdcall; external;
 procedure SsSeqSetRitardando(seq_access_num: smallint; tempo: longint; v_time: longint); stdcall; external;
@@ -221,10 +221,10 @@ procedure SsSetSerialVol(s_num:  byte; voll, volr: smallint); stdcall; external;
 procedure SsGetSerialVol(s_num: byte; s_vol: PSndVolume); stdcall; external;
 procedure SsSetNck(n_clock: smallint); stdcall; external;
 function SsGetNck: smallint; stdcall; external;
-procedure SsSetNoiseOn(voll, volr: smallint); stdcall; external;  
+procedure SsSetNoiseOn(voll, volr: smallint); stdcall; external;
 procedure SsSetNoiseOff; stdcall; external;
 procedure SsSetMono; stdcall; external;
-procedure SsSetStereo; stdcall; external;      
+procedure SsSetStereo; stdcall; external;
 procedure SsSetTempo(access_num, seq_num: smallint; tempo: smallint); stdcall; external;
 procedure SsSetLoop(access_num, seq_num: smallint; I_count: smallint); stdcall; external;
 function SsIsEos(access_num, seq_num: smallint): smallint; stdcall; external;
@@ -304,20 +304,20 @@ const
 	CC_EXTERNAL   	= 11;
 	CC_RESETALL   	= 12;
 
-	DE_PRIORITY	= 0;	 
+	DE_PRIORITY	= 0;
 	DE_MODE  	= 1;
 	DE_LIMITL	= 2;
 	DE_LIMITH	= 3;
-	DE_ADSR_AR_L	= 4; 
+	DE_ADSR_AR_L	= 4;
 	DE_ADSR_AR_E	= 5;
 	DE_ADSR_DR  	= 6;
-	DE_ADSR_SL  	= 7; 
+	DE_ADSR_SL  	= 7;
 	DE_ADSR_SR_L  	= 8;
 	DE_ADSR_SR_E 	= 9;
-	DE_ADSR_RR_L	= 10; 
+	DE_ADSR_RR_L	= 10;
 	DE_ADSR_RR_E	= 11;
 	DE_ADSR_SR  	= 12;
-	DE_VIB_TIME 	= 13; 
+	DE_VIB_TIME 	= 13;
 	DE_PORTA_DEPTH	= 14;
 	DE_REV_TYPE  	= 15;
 	DE_REV_DEPTH 	= 16;
@@ -336,21 +336,21 @@ type
 	end;
 
 procedure _SsNoteOn (short, short, unsigned char, unsigned char);
-procedure _SsSetProgramChange(short, short, unsigned char); 
-procedure _SsGetMetaEvent(short, short, unsigned char); 
+procedure _SsSetProgramChange(short, short, unsigned char);
+procedure _SsGetMetaEvent(short, short, unsigned char);
 procedure _SsSetPitchBend(short, short);
-procedure _SsSetControlChange(short, short, unsigned char); 
-procedure _SsContBankChange(short, short); 
+procedure _SsSetControlChange(short, short, unsigned char);
+procedure _SsContBankChange(short, short);
 procedure _SsContDataEntry(short, short, unsigned char);
-procedure _SsContMainVol(short, short, unsigned char);  
+procedure _SsContMainVol(short, short, unsigned char);
 procedure _SsContPanpot(short, short, unsigned char);
-procedure _SsContExpression(short, short, unsigned char); 
-procedure _SsContDamper(short, short, unsigned char); 
-procedure _SsContExternal(short, short, unsigned char); 
-procedure _SsContNrpn1(short, short, unsigned char); 
-procedure _SsContNrpn2(short, short, unsigned char); 
-procedure _SsContRpn1(short, short, unsigned char); 
-procedure _SsContRpn2(short, short, unsigned char); 
+procedure _SsContExpression(short, short, unsigned char);
+procedure _SsContDamper(short, short, unsigned char);
+procedure _SsContExternal(short, short, unsigned char);
+procedure _SsContNrpn1(short, short, unsigned char);
+procedure _SsContNrpn2(short, short, unsigned char);
+procedure _SsContRpn1(short, short, unsigned char);
+procedure _SsContRpn2(short, short, unsigned char);
 procedure _SsContResetAll(short, short);
 
 procedure _SsSetNrpnVabAttr0(short, short, short, VagAtr, short, unsigned char);
@@ -376,21 +376,21 @@ procedure _SsSetNrpnVabAttr19(short, short, short, VagAtr, short, unsigned char)
 
 procedure dmy_nothing1(short, short, unsigned char, unsigned char);
 procedure dmy_SsNoteOn (short, short, unsigned char, unsigned char);
-procedure dmy_SsSetProgramChange(short, short, unsigned char); 
-procedure dmy_SsGetMetaEvent(short, short, unsigned char); 
+procedure dmy_SsSetProgramChange(short, short, unsigned char);
+procedure dmy_SsGetMetaEvent(short, short, unsigned char);
 procedure dmy_SsSetPitchBend(short, short);
-procedure dmy_SsSetControlChange(short, short, unsigned char); 
-procedure dmy_SsContBankChange(short, short); 
+procedure dmy_SsSetControlChange(short, short, unsigned char);
+procedure dmy_SsContBankChange(short, short);
 procedure dmy_SsContDataEntry(short, short, unsigned char);
-procedure dmy_SsContMainVol(short, short, unsigned char);  
+procedure dmy_SsContMainVol(short, short, unsigned char);
 procedure dmy_SsContPanpot(short, short, unsigned char);
-procedure dmy_SsContExpression(short, short, unsigned char); 
-procedure dmy_SsContDamper(short, short, unsigned char); 
-procedure dmy_SsContExternal(short, short, unsigned char); 
-procedure dmy_SsContNrpn1(short, short, unsigned char); 
-procedure dmy_SsContNrpn2(short, short, unsigned char); 
-procedure dmy_SsContRpn1(short, short, unsigned char); 
-procedure dmy_SsContRpn2(short, short, unsigned char); 
+procedure dmy_SsContExpression(short, short, unsigned char);
+procedure dmy_SsContDamper(short, short, unsigned char);
+procedure dmy_SsContExternal(short, short, unsigned char);
+procedure dmy_SsContNrpn1(short, short, unsigned char);
+procedure dmy_SsContNrpn2(short, short, unsigned char);
+procedure dmy_SsContRpn1(short, short, unsigned char);
+procedure dmy_SsContRpn2(short, short, unsigned char);
 procedure dmy_SsContResetAll(short, short);
 procedure dmy_SsSetNrpnVabAttr0(short, short, short, VagAtr, short, unsigned char);
 procedure dmy_SsSetNrpnVabAttr1(short, short, short, VagAtr, short, unsigned char);
@@ -422,7 +422,7 @@ begin
 //	SsFCALL.noteon                   = (void (*)())_SsNoteOn;
 //	SsFCALL.programchange            = (void (*)())_SsSetProgramChange;
 //	SsFCALL.metaevent                = (void (*)())_SsGetMetaEvent;
-//	SsFCALL.pitchbend                = (void (*)())_SsSetPitchBend; 
+//	SsFCALL.pitchbend                = (void (*)())_SsSetPitchBend;
 //        SsFCALL.control [CC_NUMBER]      = (void (*)())_SsSetControlChange;
 //	SsFCALL.control [CC_BANKCHANGE]  = (void (*)())_SsContBankChange;
 //	SsFCALL.control [CC_MAINVOL]     = (void (*)())_SsContMainVol;
@@ -436,26 +436,26 @@ begin
 //	SsFCALL.control [CC_EXTERNAL]    = (void (*)())_SsContExternal;
 //	SsFCALL.control [CC_RESETALL]    = (void (*)())_SsContResetAll;
 //	SsFCALL.control [CC_DATAENTRY]   = (void (*)())_SsContDataEntry;
-//	SsFCALL.ccentry [DE_PRIORITY]	 = (void (*)())_SsSetNrpnVabAttr0;   
-//	SsFCALL.ccentry [DE_MODE]        = (void (*)())_SsSetNrpnVabAttr1; 
-//	SsFCALL.ccentry [DE_LIMITL]      = (void (*)())_SsSetNrpnVabAttr2; 
-//	SsFCALL.ccentry [DE_LIMITH]      = (void (*)())_SsSetNrpnVabAttr3; 
-//	SsFCALL.ccentry [DE_ADSR_AR_L]   = (void (*)())_SsSetNrpnVabAttr4; 
-//	SsFCALL.ccentry [DE_ADSR_AR_E]   = (void (*)())_SsSetNrpnVabAttr5; 
-//	SsFCALL.ccentry [DE_ADSR_DR]     = (void (*)())_SsSetNrpnVabAttr6; 
-//	SsFCALL.ccentry [DE_ADSR_SL]     = (void (*)())_SsSetNrpnVabAttr7; 
-//	SsFCALL.ccentry [DE_ADSR_SR_L]   = (void (*)())_SsSetNrpnVabAttr8; 
-//	SsFCALL.ccentry [DE_ADSR_SR_E]   = (void (*)())_SsSetNrpnVabAttr9; 
-//	SsFCALL.ccentry [DE_ADSR_RR_L]   = (void (*)())_SsSetNrpnVabAttr10; 
-//	SsFCALL.ccentry [DE_ADSR_RR_E]   = (void (*)())_SsSetNrpnVabAttr11; 
-//	SsFCALL.ccentry [DE_ADSR_SR]     = (void (*)())_SsSetNrpnVabAttr12; 
-//	SsFCALL.ccentry [DE_VIB_TIME]    = (void (*)())_SsSetNrpnVabAttr13; 
-//	SsFCALL.ccentry [DE_PORTA_DEPTH] = (void (*)())_SsSetNrpnVabAttr14; 
-//	SsFCALL.ccentry [DE_REV_TYPE]    = (void (*)())_SsSetNrpnVabAttr15; 
-//	SsFCALL.ccentry [DE_REV_DEPTH]   = (void (*)())_SsSetNrpnVabAttr16; 
-//	SsFCALL.ccentry [DE_ECHO_FB]     = (void (*)())_SsSetNrpnVabAttr17; 
-//	SsFCALL.ccentry [DE_ECHO_DELAY]  = (void (*)())_SsSetNrpnVabAttr18; 
-//	SsFCALL.ccentry [DE_DELAY]       = (void (*)())_SsSetNrpnVabAttr19; 
+//	SsFCALL.ccentry [DE_PRIORITY]	 = (void (*)())_SsSetNrpnVabAttr0;
+//	SsFCALL.ccentry [DE_MODE]        = (void (*)())_SsSetNrpnVabAttr1;
+//	SsFCALL.ccentry [DE_LIMITL]      = (void (*)())_SsSetNrpnVabAttr2;
+//	SsFCALL.ccentry [DE_LIMITH]      = (void (*)())_SsSetNrpnVabAttr3;
+//	SsFCALL.ccentry [DE_ADSR_AR_L]   = (void (*)())_SsSetNrpnVabAttr4;
+//	SsFCALL.ccentry [DE_ADSR_AR_E]   = (void (*)())_SsSetNrpnVabAttr5;
+//	SsFCALL.ccentry [DE_ADSR_DR]     = (void (*)())_SsSetNrpnVabAttr6;
+//	SsFCALL.ccentry [DE_ADSR_SL]     = (void (*)())_SsSetNrpnVabAttr7;
+//	SsFCALL.ccentry [DE_ADSR_SR_L]   = (void (*)())_SsSetNrpnVabAttr8;
+//	SsFCALL.ccentry [DE_ADSR_SR_E]   = (void (*)())_SsSetNrpnVabAttr9;
+//	SsFCALL.ccentry [DE_ADSR_RR_L]   = (void (*)())_SsSetNrpnVabAttr10;
+//	SsFCALL.ccentry [DE_ADSR_RR_E]   = (void (*)())_SsSetNrpnVabAttr11;
+//	SsFCALL.ccentry [DE_ADSR_SR]     = (void (*)())_SsSetNrpnVabAttr12;
+//	SsFCALL.ccentry [DE_VIB_TIME]    = (void (*)())_SsSetNrpnVabAttr13;
+//	SsFCALL.ccentry [DE_PORTA_DEPTH] = (void (*)())_SsSetNrpnVabAttr14;
+//	SsFCALL.ccentry [DE_REV_TYPE]    = (void (*)())_SsSetNrpnVabAttr15;
+//	SsFCALL.ccentry [DE_REV_DEPTH]   = (void (*)())_SsSetNrpnVabAttr16;
+//	SsFCALL.ccentry [DE_ECHO_FB]     = (void (*)())_SsSetNrpnVabAttr17;
+//	SsFCALL.ccentry [DE_ECHO_DELAY]  = (void (*)())_SsSetNrpnVabAttr18;
+//	SsFCALL.ccentry [DE_DELAY]       = (void (*)())_SsSetNrpnVabAttr19;
 end;
 }
 

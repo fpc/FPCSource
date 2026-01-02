@@ -60,8 +60,8 @@ CONST
   STAT_ISUID  = $0800; {0004000 }
   STAT_ISGID  = $0400; {0002000 }
   STAT_ISVTX  = $0200; {0001000}
-    
-    
+
+
     STAT_IRWXU =  %0111000000;     { Read, Write, Exec permission for owner   }
     STAT_IRUSR =  %0100000000;     { Read permission for owner   }
     STAT_IWUSR =  %0010000000;     { Write permission for owner  }

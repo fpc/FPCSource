@@ -279,7 +279,7 @@ type
 
   { directory services }
    dirent_55  = record
-        d_fileno      : ino_t;                       
+        d_fileno      : ino_t;
 	d_off         : off_t;
         d_reclen      : cuint16;                        // length of this record
         d_type        : cuint8;                         // file type, see below

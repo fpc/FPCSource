@@ -865,25 +865,25 @@ begin
 
                         begin
                           if not stripinfo then
-                            writeln(outfile,'{ C++ extern C conditionnal removed }');
+                            writeln(outfile,'{ C++ extern C conditional removed }');
                         end;
   51:
 
                         begin
                           if not stripinfo then
-                            writeln(outfile,'{ C++ extern C conditionnal removed }');
+                            writeln(outfile,'{ C++ extern C conditional removed }');
                         end;
   52:
 
                         begin
                           if not stripinfo then
-                            writeln(outfile,'{ C++ end of extern C conditionnal removed }');
+                            writeln(outfile,'{ C++ end of extern C conditional removed }');
                         end;
   53:
 
                         begin
                           if not stripinfo then
-                            writeln(outfile,'{ C++ end of extern C conditionnal removed }');
+                            writeln(outfile,'{ C++ end of extern C conditional removed }');
                         end;
   54:
 

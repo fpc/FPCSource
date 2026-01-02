@@ -1,4 +1,4 @@
-  JLObject = class external 'java.lang' name 'Object' 
+  JLObject = class external 'java.lang' name 'Object'
   public
     constructor create(); overload;
     function getClass(): JLClass; overload; virtual; final;
@@ -17,30 +17,30 @@
     procedure finalize(); overload; virtual;  // throws java.lang.Throwable
   end;
 
-  JISerializable = interface external 'java.io' name 'Serializable' 
+  JISerializable = interface external 'java.io' name 'Serializable'
   end;
 
-  JLAppendable = interface external 'java.lang' name 'Appendable' 
+  JLAppendable = interface external 'java.lang' name 'Appendable'
     function append(para1: JLCharSequence): JLAppendable; overload;  // throws java.io.IOException
     function append(para1: JLCharSequence; para2: jint; para3: jint): JLAppendable; overload;  // throws java.io.IOException
     function append(para1: jchar): JLAppendable; overload;  // throws java.io.IOException
   end;
 
-  JLCharSequence = interface external 'java.lang' name 'CharSequence' 
+  JLCharSequence = interface external 'java.lang' name 'CharSequence'
     function length(): jint; overload;
     function charAt(para1: jint): jchar; overload;
     function subSequence(para1: jint; para2: jint): JLCharSequence; overload;
     function toString(): JLString; overload;
   end;
 
-  JLCloneable = interface external 'java.lang' name 'Cloneable' 
+  JLCloneable = interface external 'java.lang' name 'Cloneable'
   end;
 
-  JLComparable = interface external 'java.lang' name 'Comparable' 
+  JLComparable = interface external 'java.lang' name 'Comparable'
     function compareTo(para1: JLObject): jint; overload;
   end;
 
-  JLIterable = interface external 'java.lang' name 'Iterable' 
+  JLIterable = interface external 'java.lang' name 'Iterable'
     function iterator(): JUIterator; overload;
   end;
 
@@ -106,7 +106,7 @@
     class function scalb(para1: jfloat; para2: jint): jfloat; static; overload;
   end;
 
-  JLReadable = interface external 'java.lang' name 'Readable' 
+  JLReadable = interface external 'java.lang' name 'Readable'
     function read(para1: JNCharBuffer): jint; overload;  // throws java.io.IOException
   end;
 
@@ -189,19 +189,19 @@
       Arr1InnerEntry = array of InnerEntry;
       Arr2InnerEntry = array of Arr1InnerEntry;
       Arr3InnerEntry = array of Arr2InnerEntry;
-      InnerThreadLocalMap = class external 'java.lang' name 'ThreadLocalMap' 
+      InnerThreadLocalMap = class external 'java.lang' name 'ThreadLocalMap'
       public
         type
           InnerEntry = class;
           Arr1InnerEntry = array of InnerEntry;
           Arr2InnerEntry = array of Arr1InnerEntry;
           Arr3InnerEntry = array of Arr2InnerEntry;
-          InnerEntry = class external 'java.lang' name 'Entry' 
+          InnerEntry = class external 'java.lang' name 'Entry'
           end;
 
       end;
 
-      InnerEntry = class external 'java.lang' name 'Entry' 
+      InnerEntry = class external 'java.lang' name 'Entry'
       end;
 
   strict protected
@@ -213,7 +213,7 @@
     procedure remove(); overload; virtual;
   end;
 
-  JLRAnnotatedElement = interface external 'java.lang.reflect' name 'AnnotatedElement' 
+  JLRAnnotatedElement = interface external 'java.lang.reflect' name 'AnnotatedElement'
     function isAnnotationPresent(para1: JLClass): jboolean; overload;
     function getAnnotation(para1: JLClass): JLAAnnotation; overload;
     function getAnnotations(): Arr1JLAAnnotation; overload;
@@ -246,11 +246,11 @@
     class procedure setDouble(para1: JLObject; para2: jint; para3: jdouble); static; overload;  // throws java.lang.IllegalArgumentException, java.lang.ArrayIndexOutOfBoundsException
   end;
 
-  JLRGenericDeclaration = interface external 'java.lang.reflect' name 'GenericDeclaration' 
+  JLRGenericDeclaration = interface external 'java.lang.reflect' name 'GenericDeclaration'
     function getTypeParameters(): Arr1JLRTypeVariable; overload;
   end;
 
-  JLRMember = interface external 'java.lang.reflect' name 'Member' 
+  JLRMember = interface external 'java.lang.reflect' name 'Member'
     const
       &PUBLIC = 0;
       DECLARED = 1;
@@ -260,7 +260,7 @@
     function isSynthetic(): jboolean; overload;
   end;
 
-  JLRType = interface external 'java.lang.reflect' name 'Type' 
+  JLRType = interface external 'java.lang.reflect' name 'Type'
   end;
 
   JNBuffer = class abstract external 'java.nio' name 'Buffer' (JLObject)
@@ -372,7 +372,7 @@
       Arr1InnerCache = array of InnerCache;
       Arr2InnerCache = array of Arr1InnerCache;
       Arr3InnerCache = array of Arr2InnerCache;
-      InnerCache = class abstract external 'java.nio.charset' name 'Cache' 
+      InnerCache = class abstract external 'java.nio.charset' name 'Cache'
       end;
 
   public
@@ -417,7 +417,7 @@
       Arr1InnerArrayList = array of InnerArrayList;
       Arr2InnerArrayList = array of Arr1InnerArrayList;
       Arr3InnerArrayList = array of Arr2InnerArrayList;
-      InnerArrayList = class external 'java.util' name 'ArrayList' 
+      InnerArrayList = class external 'java.util' name 'ArrayList'
       end;
 
   public
@@ -633,24 +633,24 @@
     class function deepToString(var para1: array of JLObject): JLString; static; overload;
   end;
 
-  JUComparator = interface external 'java.util' name 'Comparator' 
+  JUComparator = interface external 'java.util' name 'Comparator'
     function compare(para1: JLObject; para2: JLObject): jint; overload;
     function equals(para1: JLObject): jboolean; overload;
   end;
 
-  JUIterator = interface external 'java.util' name 'Iterator' 
+  JUIterator = interface external 'java.util' name 'Iterator'
     function hasNext(): jboolean; overload;
     function next(): JLObject; overload;
     procedure remove(); overload;
   end;
 
-  JUMap = interface external 'java.util' name 'Map' 
+  JUMap = interface external 'java.util' name 'Map'
     type
       InnerEntry = interface;
       Arr1InnerEntry = array of InnerEntry;
       Arr2InnerEntry = array of Arr1InnerEntry;
       Arr3InnerEntry = array of Arr2InnerEntry;
-      InnerEntry = interface external 'java.util' name 'Entry' 
+      InnerEntry = interface external 'java.util' name 'Entry'
         function getKey(): JLObject; overload;
         function getValue(): JLObject; overload;
         function setValue(para1: JLObject): JLObject; overload;
@@ -828,7 +828,7 @@
       Arr1InnerCharacterCache = array of InnerCharacterCache;
       Arr2InnerCharacterCache = array of Arr1InnerCharacterCache;
       Arr3InnerCharacterCache = array of Arr2InnerCharacterCache;
-      InnerCharacterCache = class external 'java.lang' name 'CharacterCache' 
+      InnerCharacterCache = class external 'java.lang' name 'CharacterCache'
       end;
 
   public
@@ -1174,7 +1174,7 @@
       Arr1InnerCaseInsensitiveComparator = array of InnerCaseInsensitiveComparator;
       Arr2InnerCaseInsensitiveComparator = array of Arr1InnerCaseInsensitiveComparator;
       Arr3InnerCaseInsensitiveComparator = array of Arr2InnerCaseInsensitiveComparator;
-      InnerCaseInsensitiveComparator = class external 'java.lang' name 'CaseInsensitiveComparator' 
+      InnerCaseInsensitiveComparator = class external 'java.lang' name 'CaseInsensitiveComparator'
       end;
 
   public
@@ -1319,7 +1319,7 @@
       Arr1InnerCalendarAccessControlContext = array of InnerCalendarAccessControlContext;
       Arr2InnerCalendarAccessControlContext = array of Arr1InnerCalendarAccessControlContext;
       Arr3InnerCalendarAccessControlContext = array of Arr2InnerCalendarAccessControlContext;
-      InnerCalendarAccessControlContext = class external 'java.util' name 'CalendarAccessControlContext' 
+      InnerCalendarAccessControlContext = class external 'java.util' name 'CalendarAccessControlContext'
       end;
 
   public
@@ -1480,10 +1480,10 @@
       Arr1InnerMethodArray = array of InnerMethodArray;
       Arr2InnerMethodArray = array of Arr1InnerMethodArray;
       Arr3InnerMethodArray = array of Arr2InnerMethodArray;
-      InnerEnclosingMethodInfo = class sealed external 'java.lang' name 'EnclosingMethodInfo' 
+      InnerEnclosingMethodInfo = class sealed external 'java.lang' name 'EnclosingMethodInfo'
       end;
 
-      InnerMethodArray = class external 'java.lang' name 'MethodArray' 
+      InnerMethodArray = class external 'java.lang' name 'MethodArray'
       end;
 
   public
@@ -1677,7 +1677,7 @@
       Arr1InnerCollatorGetter = array of InnerCollatorGetter;
       Arr2InnerCollatorGetter = array of Arr1InnerCollatorGetter;
       Arr3InnerCollatorGetter = array of Arr2InnerCollatorGetter;
-      InnerCollatorGetter = class external 'java.text' name 'CollatorGetter' 
+      InnerCollatorGetter = class external 'java.text' name 'CollatorGetter'
       end;
 
   public
@@ -1772,7 +1772,7 @@
       Arr1InnerByteCache = array of InnerByteCache;
       Arr2InnerByteCache = array of Arr1InnerByteCache;
       Arr3InnerByteCache = array of Arr2InnerByteCache;
-      InnerByteCache = class external 'java.lang' name 'ByteCache' 
+      InnerByteCache = class external 'java.lang' name 'ByteCache'
       end;
 
   public
@@ -1904,7 +1904,7 @@
       Arr1InnerIntegerCache = array of InnerIntegerCache;
       Arr2InnerIntegerCache = array of Arr1InnerIntegerCache;
       Arr3InnerIntegerCache = array of Arr2InnerIntegerCache;
-      InnerIntegerCache = class external 'java.lang' name 'IntegerCache' 
+      InnerIntegerCache = class external 'java.lang' name 'IntegerCache'
       end;
 
   public
@@ -1964,7 +1964,7 @@
       Arr1InnerLongCache = array of InnerLongCache;
       Arr2InnerLongCache = array of Arr1InnerLongCache;
       Arr3InnerLongCache = array of Arr2InnerLongCache;
-      InnerLongCache = class external 'java.lang' name 'LongCache' 
+      InnerLongCache = class external 'java.lang' name 'LongCache'
       end;
 
   public
@@ -2024,7 +2024,7 @@
       Arr1InnerShortCache = array of InnerShortCache;
       Arr2InnerShortCache = array of Arr1InnerShortCache;
       Arr3InnerShortCache = array of Arr2InnerShortCache;
-      InnerShortCache = class external 'java.lang' name 'ShortCache' 
+      InnerShortCache = class external 'java.lang' name 'ShortCache'
       end;
 
   public
@@ -2476,28 +2476,28 @@
       Arr1InnerValues = array of InnerValues;
       Arr2InnerValues = array of Arr1InnerValues;
       Arr3InnerValues = array of Arr2InnerValues;
-      InnerEntry = class external 'java.util' name 'Entry' 
+      InnerEntry = class external 'java.util' name 'Entry'
       end;
 
-      InnerEntryIterator = class sealed external 'java.util' name 'EntryIterator' 
+      InnerEntryIterator = class sealed external 'java.util' name 'EntryIterator'
       end;
 
-      InnerKeyIterator = class sealed external 'java.util' name 'KeyIterator' 
+      InnerKeyIterator = class sealed external 'java.util' name 'KeyIterator'
       end;
 
-      InnerValueIterator = class sealed external 'java.util' name 'ValueIterator' 
+      InnerValueIterator = class sealed external 'java.util' name 'ValueIterator'
       end;
 
-      InnerEntrySet = class sealed external 'java.util' name 'EntrySet' 
+      InnerEntrySet = class sealed external 'java.util' name 'EntrySet'
       end;
 
-      InnerKeySet = class sealed external 'java.util' name 'KeySet' 
+      InnerKeySet = class sealed external 'java.util' name 'KeySet'
       end;
 
-      InnerHashIterator = class abstract external 'java.util' name 'HashIterator' 
+      InnerHashIterator = class abstract external 'java.util' name 'HashIterator'
       end;
 
-      InnerValues = class sealed external 'java.util' name 'Values' 
+      InnerValues = class sealed external 'java.util' name 'Values'
       end;
 
   public
@@ -2626,7 +2626,7 @@
       Arr1InnerSerializationProxy = array of InnerSerializationProxy;
       Arr2InnerSerializationProxy = array of Arr1InnerSerializationProxy;
       Arr3InnerSerializationProxy = array of Arr2InnerSerializationProxy;
-      InnerSerializationProxy = class external 'java.util' name 'SerializationProxy' 
+      InnerSerializationProxy = class external 'java.util' name 'SerializationProxy'
       end;
 
   public
@@ -2708,28 +2708,28 @@
       Arr1InnerValues = array of InnerValues;
       Arr2InnerValues = array of Arr1InnerValues;
       Arr3InnerValues = array of Arr2InnerValues;
-      InnerEntry = class external 'java.util' name 'Entry' 
+      InnerEntry = class external 'java.util' name 'Entry'
       end;
 
-      InnerEntryIterator = class external 'java.util' name 'EntryIterator' 
+      InnerEntryIterator = class external 'java.util' name 'EntryIterator'
       end;
 
-      InnerKeyIterator = class external 'java.util' name 'KeyIterator' 
+      InnerKeyIterator = class external 'java.util' name 'KeyIterator'
       end;
 
-      InnerValueIterator = class external 'java.util' name 'ValueIterator' 
+      InnerValueIterator = class external 'java.util' name 'ValueIterator'
       end;
 
-      InnerEntrySet = class external 'java.util' name 'EntrySet' 
+      InnerEntrySet = class external 'java.util' name 'EntrySet'
       end;
 
-      InnerKeySet = class external 'java.util' name 'KeySet' 
+      InnerKeySet = class external 'java.util' name 'KeySet'
       end;
 
-      InnerHashIterator = class abstract external 'java.util' name 'HashIterator' 
+      InnerHashIterator = class abstract external 'java.util' name 'HashIterator'
       end;
 
-      InnerValues = class external 'java.util' name 'Values' 
+      InnerValues = class external 'java.util' name 'Values'
       end;
 
   public

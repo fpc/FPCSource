@@ -3,9 +3,9 @@
 	@framework	AudioToolbox.framework
 	@copyright	(c) 2006-2015 by Apple, Inc., all rights reserved.
     @abstract   API's for general high level audio services.
- 
+
     @discussion
- 
+
      The Audio Hardware Service (AHS) provides a way for applications to query and manipulate the
      aspects of an audio hardware device without incurring the overhead of loading the full audio
      HAL. AHS provides access to all the AudioObjects and their properties on the system. However,
@@ -228,7 +228,7 @@ uses MacTypes,AudioHardwareBase,AudioHardware;
 
 
 
-    
+
 //==================================================================================================
 //#pragma mark    Audio Hardware Service Properties
 
@@ -261,7 +261,7 @@ uses MacTypes,AudioHardwareBase,AudioHardware;
 const
 	kAudioHardwareServiceProperty_ServiceRestarted = FourCharCode('srst');
 	kAudioHardwareServiceDeviceProperty_VirtualMasterVolume = FourCharCode('vmvc');
-	kAudioHardwareServiceDeviceProperty_VirtualMasterBalance = FourCharCode('vmbc'); 
+	kAudioHardwareServiceDeviceProperty_VirtualMasterBalance = FourCharCode('vmbc');
 
 //==================================================================================================
 //#pragma mark    Audio Hardware Service Functions

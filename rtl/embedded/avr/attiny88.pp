@@ -59,7 +59,7 @@ var
   EICRA : byte absolute $00+$69; // External Interrupt Control Register
   EIMSK : byte absolute $00+$3D; // External Interrupt Mask Register
   EIFR : byte absolute $00+$3C; // External Interrupt Flag Register
-  PCICR : byte absolute $00+$68; // 
+  PCICR : byte absolute $00+$68; //
   PCMSK3 : byte absolute $00+$6A; // Pin Change Mask Register 3
   PCMSK2 : byte absolute $00+$6D; // Pin Change Mask Register 2
   PCMSK1 : byte absolute $00+$6C; // Pin Change Mask Register 1
@@ -90,7 +90,7 @@ var
   SPMCSR : byte absolute $00+$57; // Store Program Memory Control Register
   MCUCR : byte absolute $00+$55; // MCU Control Register
   MCUSR : byte absolute $00+$54; // MCU Status Register
-  SMCR : byte absolute $00+$53; // 
+  SMCR : byte absolute $00+$53; //
   GPIOR2 : byte absolute $00+$4B; // General Purpose I/O Register 2
   GPIOR1 : byte absolute $00+$4A; // General Purpose I/O Register 1
   GPIOR0 : byte absolute $00+$3E; // General Purpose I/O Register 0
@@ -120,8 +120,8 @@ const
   ICES1 = 6; // Input Capture 1 Edge Select
   CS1 = 0; // Prescaler source of Timer/Counter 1
   // TCCR1C
-  FOC1A = 7; // 
-  FOC1B = 6; // 
+  FOC1A = 7; //
+  FOC1B = 6; //
   // GTCCR
   TSM = 7; // Timer/Counter Synchronization Mode
   PSRSYNC = 0; // Prescaler Reset Timer/Counter1 and Timer/Counter0
@@ -155,9 +155,9 @@ const
   WDCE = 4; // Watchdog Change Enable
   WDE = 3; // Watch Dog Enable
   // TWHSR
-  TWHS = 0; // 
+  TWHS = 0; //
   // TWAMR
-  TWAM = 1; // 
+  TWAM = 1; //
   // TWCR
   TWINT = 7; // TWI Interrupt Flag
   TWEA = 6; // TWI Enable Acknowledge Bit
@@ -184,18 +184,18 @@ const
   ADIE = 3; // ADC Interrupt Enable
   ADPS = 0; // ADC  Prescaler Select Bits
   // ADCSRB
-  ACME = 6; // 
+  ACME = 6; //
   ADTS = 0; // ADC Auto Trigger Source bits
   // DIDR1
   // DIDR0
-  ADC7D = 7; // 
-  ADC6D = 6; // 
-  ADC5D = 5; // 
-  ADC4D = 4; // 
-  ADC3D = 3; // 
-  ADC2D = 2; // 
-  ADC1D = 1; // 
-  ADC0D = 0; // 
+  ADC7D = 7; //
+  ADC6D = 6; //
+  ADC5D = 5; //
+  ADC4D = 4; //
+  ADC3D = 3; //
+  ADC2D = 2; //
+  ADC1D = 1; //
+  ADC0D = 0; //
   // EICRA
   ISC1 = 2; // External Interrupt Sense Control 1 Bits
   ISC0 = 0; // External Interrupt Sense Control 0 Bits
@@ -204,7 +204,7 @@ const
   // EIFR
   INTF = 0; // External Interrupt Flags
   // PCICR
-  PCIE = 0; // 
+  PCIE = 0; //
   // PCMSK3
   PCINT = 0; // Pin Change Enable Masks
   // PCMSK2
@@ -252,24 +252,24 @@ const
   // MCUCR
   BODS = 6; // BOD Sleep
   BODSE = 5; // BOD Sleep Enable
-  PUD = 4; // 
+  PUD = 4; //
   // MCUSR
   WDRF = 3; // Watchdog Reset Flag
   BORF = 2; // Brown-out Reset Flag
   EXTRF = 1; // External Reset Flag
   PORF = 0; // Power-on reset flag
   // SMCR
-  SM = 1; // 
-  SE = 0; // 
+  SM = 1; //
+  SE = 0; //
   // PORTCR
-  BBMD = 7; // 
-  BBMC = 6; // 
-  BBMB = 5; // 
-  BBMA = 4; // 
-  PUDD = 3; // 
-  PUDC = 2; // 
-  PUDB = 1; // 
-  PUDA = 0; // 
+  BBMD = 7; //
+  BBMC = 6; //
+  BBMB = 5; //
+  BBMA = 4; //
+  PUDD = 3; //
+  PUDC = 2; //
+  PUDB = 1; //
+  PUDA = 0; //
   // EECR
   EEPM = 4; // EEPROM Programming Mode Bits
   EERIE = 3; // EEPROM Ready Interrupt Enable

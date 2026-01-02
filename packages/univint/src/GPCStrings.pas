@@ -388,58 +388,58 @@ implementation
   begin
     result := length(s);
   end;
-  
+
   function Str27Length( const s: Str27 )  : Integer;
   begin
     result := length(s);
   end;
-  
+
   function Str31Length( const s: Str31 )  : Integer;
   begin
     result := length(s);
   end;
-  
+
   function Str32Length( const s: Str32 )  : Integer;
   begin
     result := length(s);
   end;
-  
+
   function Str63Length( const s: Str63 )  : Integer;
   begin
     result := length(s);
   end;
-  
+
   function Str255Length( const s: Str255 )  : Integer;
   begin
     result := length(s);
   end;
-  
+
 
   procedure SetStr15Length( var s: Str15; len: Integer );
   begin
     setlength(s,len);
   end;
-  
+
   procedure SetStr27Length( var s: Str27; len: Integer );
   begin
     setlength(s,len);
   end;
-  
+
   procedure SetStr31Length( var s: Str31; len: Integer );
   begin
     setlength(s,len);
   end;
-  
+
   procedure SetStr32Length( var s: Str32; len: Integer );
   begin
     setlength(s,len);
   end;
-  
+
   procedure SetStr63Length( var s: Str63; len: Integer );
   begin
     setlength(s,len);
   end;
-  
+
   procedure SetStr255Length( var s: Str255; len: Integer );
   begin
     setlength(s,len);

@@ -329,11 +329,11 @@ const
  * given filepath.  In the simplest example, given a filepath of "/foo",
  * returns the rootpath of "/" and filepath points at "foo".  This is far
  * more complex on other platforms, which will canonicalize the root form
- * to a consistant format, given the APR_FILEPATH_TRUENAME flag, and also
+ * to a consistent format, given the APR_FILEPATH_TRUENAME flag, and also
  * test for the validity of that root (e.g., that a drive d:/ or network
  * share //machine/foovol/).
  * The function returns APR_ERELATIVE if filepath isn't rooted (an
- * error), APR_EINCOMPLETE if the root path is ambigious (but potentially
+ * error), APR_EINCOMPLETE if the root path is ambiguous (but potentially
  * legitimate, e.g. "/" on Windows is incomplete because it doesn't specify
  * the drive letter), or APR_EBADPATH if the root is simply invalid.
  * APR_SUCCESS is returned if filepath is an absolute path.

@@ -843,10 +843,10 @@ const
 	function GsU_07010200(arg: PGsARGUNIT): pdword; external;
 	function GsU_07020200(arg: PGsARGUNIT): pdword; external;
 	function GsU_07030200(arg: PGsARGUNIT): pdword; external;
-	
+
 	// update driver
 	function GsU_03000000(sp: PGsARGUNIT_ANIM): pdword; external;
-	
+
 	// interpolation driver
 	function GsU_03000001(sp: PGsARGUNIT_ANIM): longint; external;
 	function GsU_03000002(sp: PGsARGUNIT_ANIM): longint; external;

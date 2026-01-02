@@ -280,7 +280,7 @@ procedure CGPDFContextAddDestinationAtPoint( context: CGContextRef; name: CFStri
 procedure CGPDFContextSetDestinationForRect( context: CGContextRef; name: CFStringRef; rect: CGRect ); external name '_CGPDFContextSetDestinationForRect';
 (* CG_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_2_0) *)
 
-{** Keys for the auxiliary info dictionary or the page info dictionary. **} 
+{** Keys for the auxiliary info dictionary or the page info dictionary. **}
 
 { The media box for the document or for a given page. Optional; if present,
    the value of this key must be a CFData containing a CGRect (stored by
@@ -492,12 +492,12 @@ var kCGPDFXDestinationOutputProfile: CFStringRef; external name '_kCGPDFXDestina
 // #if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_4
 
 {
-	PNL comments: 
-	
+	PNL comments:
+
 	There is an issue here that these types below are macro defines, and they
 	conflict with the definitions above unless only one or the other is defined.
-	
-	This only applies to GPC where GPCMacros.inc contains the macros and 
+
+	This only applies to GPC where GPCMacros.inc contains the macros and
 	is typically read before this Pascal source file.
 }
 

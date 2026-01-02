@@ -1,17 +1,17 @@
 {
      File:       HIToolbox/HITextUtils.h
- 
+
      Contains:   Text utilities provided by HIToolbox.
- 
+
      Version:    HIToolbox-624~3
- 
+
      Copyright:  © 2002-2008 by Apple Computer, Inc., all rights reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {       Pascal Translation:  Peter N Lewis, <peter@stairways.com.au>, August 2005 }
 {       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
@@ -233,12 +233,12 @@ uses MacTypes, TextCommon, CFBase;
 {$ifc not TARGET_CPU_64}
 {
  *  GetTextAndEncodingFromCFString()
- *  
+ *
  *  Summary:
  *    Converts the contents of a CFString to the one- or two-byte
  *    encoding that most accurately represents the original Unicode
  *    characters in the string.
- *  
+ *
  *  Discussion:
  *    Because the Macintosh toolbox has had, until Carbon, little
  *    support for Unicode, you may often find that your applications
@@ -268,29 +268,29 @@ uses MacTypes, TextCommon, CFBase;
  *    more complex text translation, you should call the Unicode
  *    converter directly (see ConvertFromUnicodeToTextRun, which
  *    GetTextAndEncodingFromCFString uses internally).
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inString:
  *      The string to convert.
- *    
+ *
  *    outText:
  *      The output buffer in which to place the converted text.
- *    
+ *
  *    inTextMaxLength:
  *      The length in bytes of the input buffer.
- *    
+ *
  *    outTextLength:
  *      On exit, contains the length in bytes of the text that was
  *      placed into the output buffer.
- *    
+ *
  *    outEncoding:
  *      On exit, contains the encoding of the text that was placed into
  *      the output buffer.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.2.5 and later

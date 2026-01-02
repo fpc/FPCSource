@@ -1,15 +1,15 @@
 {
      File:       OSServices/CSIdentityQuery.h
- 
+
      Contains:   Identity Query APIs
- 
+
      Copyright:  (c) 2006-2011 Apple Inc. All rights reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {
     Modified for use with Free Pascal
@@ -226,13 +226,13 @@ uses MacTypes,MacOSXPosix,CSIdentity,CSIdentityAuthority,CFBase,CFArray,CFData,C
 
 {
  *  CSIdentityQueryGetTypeID()
- *  
+ *
  *  Summary:
  *    Retrieve the CFTypeID of the CSIdentityQuery class
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.5
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -244,10 +244,10 @@ function CSIdentityQueryGetTypeID: CFTypeID; external name '_CSIdentityQueryGetT
 
 {
  *  CSIdentityQueryFlags
- *  
+ *
  *  Summary:
  *    Execution options for an identity query
- *  
+ *
  *  Discussion:
  *    A bit mask for setting execution options on a query
  }
@@ -269,10 +269,10 @@ type
 
 {
  *  CSIdentityQueryStringComparisonMethod
- *  
+ *
  *  Summary:
  *    Options for querying the database by name
- *  
+ *
  *  Discussion:
  *    When searching for identities by name, this value specifies the
  *    string comparison function
@@ -293,32 +293,32 @@ type
 {$ifc not TARGET_OS_IPHONE and not TARGET_IPHONE_SIMULATOR}
 {
  *  CSIdentityQueryCreate()
- *  
+ *
  *  Summary:
  *    Creates an identity query object for all identities in the
  *    specified authority
- *  
+ *
  *  Discussion:
  *    The results of this query include all of the identities in the
  *    specified authority's database.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.5
- *  
+ *
  *  Parameters:
- *    
+ *
  *    allocator:
  *      The allocator to use for this instance
- *    
+ *
  *    identityClass:
  *      The class of identity to find
- *    
+ *
  *    authority:
  *      The identity authority to query
- *  
+ *
  *  Result:
  *    A new CSIdentityQuery object
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -330,37 +330,37 @@ function CSIdentityQueryCreate( allocator: CFAllocatorRef; identityClass: CSIden
 
 {
  *  CSIdentityQueryCreateForName()
- *  
+ *
  *  Summary:
  *    Creates an identity query object based on a name
- *  
+ *
  *  Discussion:
  *    The query finds identities by name. It searches the full names,
  *    posix names and aliases for matches.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.5
- *  
+ *
  *  Parameters:
- *    
+ *
  *    allocator:
  *      The allocator to use for this instance
- *    
+ *
  *    name:
  *      The name criteria for the query.
- *    
+ *
  *    comparisonMethod:
- *      The comparision function (equal or begins with)
- *    
+ *      The comparison function (equal or begins with)
+ *
  *    identityClass:
  *      The class of identity to find
- *    
+ *
  *    authority:
  *      The identity authority to query
- *  
+ *
  *  Result:
  *    A new CSIdentityQuery object
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -373,30 +373,30 @@ function CSIdentityQueryCreateForName( allocator: CFAllocatorRef; name: CFString
 {$ifc not TARGET_OS_IPHONE and not TARGET_IPHONE_SIMULATOR}
 {
  *  CSIdentityQueryCreateForUUID()
- *  
+ *
  *  Summary:
  *    Creates an identity query object based on a UUID
- *  
+ *
  *  Discussion:
  *    Finds an identity by its UUID
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.5
- *  
+ *
  *  Parameters:
- *    
+ *
  *    allocator:
  *      The allocator to use for this instance
- *    
+ *
  *    uuid:
  *      The UUID of the identity to find
- *    
+ *
  *    authority:
  *      The identity authority to query
- *  
+ *
  *  Result:
  *    A new CSIdentityQuery object
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -408,33 +408,33 @@ function CSIdentityQueryCreateForUUID( allocator: CFAllocatorRef; uuid: CFUUIDRe
 
 {
  *  CSIdentityQueryCreateForPosixID()
- *  
+ *
  *  Summary:
  *    Creates an identity query object based on a POSIX ID
- *  
+ *
  *  Discussion:
  *    Finds an identity by its UID or GID
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.5
- *  
+ *
  *  Parameters:
- *    
+ *
  *    allocator:
  *      The allocator to use for this instance
- *    
+ *
  *    posixID:
  *      The UID or GID of the identity to find
- *    
+ *
  *    identityClass:
  *      The class of identity to find
- *    
+ *
  *    authority:
  *      The identity authority to query
- *  
+ *
  *  Result:
  *    A new CSIdentityQuery object
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -446,29 +446,29 @@ function CSIdentityQueryCreateForPosixID( allocator: CFAllocatorRef; posixID: id
 
 {
  *  CSIdentityQueryCreateForPersistentReference()
- *  
+ *
  *  Summary:
  *    Creates an identity query object based on an identity reference
  *    data object
- *  
+ *
  *  Discussion:
  *    Finds an identity by reference data obtained from
  *    CSIdentityCreateReferenceData
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.5
- *  
+ *
  *  Parameters:
- *    
+ *
  *    allocator:
  *      The allocator to use for this instance
- *    
+ *
  *    referenceData:
  *      The reference data that fully describes an identity
- *  
+ *
  *  Result:
  *    A new CSIdentityQuery object
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -481,21 +481,21 @@ function CSIdentityQueryCreateForPersistentReference( allocator: CFAllocatorRef;
 {$ifc not TARGET_OS_IPHONE and not TARGET_IPHONE_SIMULATOR}
 {
  *  CSIdentityQueryCreateForCurrentUser()
- *  
+ *
  *  Summary:
  *    Creates a query for the current session user's identity
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.5
- *  
+ *
  *  Parameters:
- *    
+ *
  *    allocator:
  *      The allocator to use for this instance
- *  
+ *
  *  Result:
  *    A new CSIdentityQuery object
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -507,25 +507,25 @@ function CSIdentityQueryCreateForCurrentUser( allocator: CFAllocatorRef ): CSIde
 
 {
  *  CSIdentityQueryCopyResults()
- *  
+ *
  *  Summary:
  *    Retrieve the results of executing an identity query
- *  
+ *
  *  Discussion:
  *    Returns an immutable array of CSIdentityRefs, reflecting the
  *    current results of the query's execution.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.5
- *  
+ *
  *  Parameters:
- *    
+ *
  *    query:
  *      The query object to access
- *  
+ *
  *  Result:
  *    An array of zero or more CSIdentityRefs
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -537,29 +537,29 @@ function CSIdentityQueryCopyResults( query: CSIdentityQueryRef ): CFArrayRef; ex
 
 {
  *  CSIdentityQueryExecute()
- *  
+ *
  *  Summary:
  *    Execute an identity query synchronously
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.5
- *  
+ *
  *  Parameters:
- *    
+ *
  *    query:
  *      The query object to execute
- *    
+ *
  *    flags:
  *      Execution options
- *    
+ *
  *    error:
  *      Optional pointer to a CFError object which must be released by
  *      the caller if CSIdentityQueryExecute returns false
- *  
+ *
  *  Result:
  *    Returns true if the query executed successfully, false if an
  *    error occurred.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -571,10 +571,10 @@ function CSIdentityQueryExecute( query: CSIdentityQueryRef; flags: CSIdentityQue
 
 {
  *  CSIdentityQueryEvent
- *  
+ *
  *  Summary:
  *    Results from executing an asynchronous query
- *  
+ *
  *  Discussion:
  *    Events generated during asynchronous query execution
  }
@@ -613,25 +613,25 @@ type
 
 {
  *  CSIdentityQueryReceiveEventCallback
- *  
+ *
  *  Summary:
  *    The client event callback function for receiving asynchronous
  *    query events
- *  
+ *
  *  Parameters:
- *    
+ *
  *    query:
  *      The identity query object that has completed an event
- *    
+ *
  *    event:
  *      The event the identity query object has completed
- *    
+ *
  *    identities:
  *      a CFArray containing identities resulting from the query
- *    
+ *
  *    error:
  *      A CFError object if there was an error from the query
- *    
+ *
  *    info:
  *      Any other information you want passed to the callback function
  }
@@ -640,7 +640,7 @@ type
 
 {
  *  CSIdentityQueryClientContext
- *  
+ *
  *  Summary:
  *    Client structure specifying callbacks and private context data
  }
@@ -655,34 +655,34 @@ type
 	end;
 {
  *  CSIdentityQueryExecuteAsynchronously()
- *  
+ *
  *  Summary:
  *    Execute an identity query asynchronously
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.5
- *  
+ *
  *  Parameters:
- *    
+ *
  *    query:
  *      The query object to execute
- *    
+ *
  *    flags:
  *      Execution options
- *    
+ *
  *    clientContext:
  *      The client context and callbacks to be used during execution
- *    
+ *
  *    runLoop:
  *      The run loop on which to schedule callbacks
- *    
+ *
  *    runLoopMode:
  *      The run loop mode in which callbacks may be scheduled
- *  
+ *
  *  Result:
  *    Returns true if query execution started, false if the query has
  *    already been executed.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -694,24 +694,24 @@ function CSIdentityQueryExecuteAsynchronously( query: CSIdentityQueryRef; flags:
 
 {
  *  CSIdentityQueryStop()
- *  
+ *
  *  Summary:
  *    Invalidate an identity query client
- *  
+ *
  *  Discussion:
  *    Invalidate a query client so that its callback will never be
  *    called in the future. Clients should call CSIdentityQueryStop
  *    when an query will no longer be used, prior to releasing the
  *    final query reference.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.5
- *  
+ *
  *  Parameters:
- *    
+ *
  *    query:
  *      The query to access
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available

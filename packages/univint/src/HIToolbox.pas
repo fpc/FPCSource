@@ -1,17 +1,17 @@
 {
      File:       HIToolbox/HIToolbox.h
- 
+
      Contains:   Master include for HIToolbox private framework
- 
+
      Version:    HIToolbox-624~3
- 
+
      Copyright:  © 1999-2008 by Apple Computer, Inc., all rights reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {       Pascal Translation:  Peter N Lewis, <peter@stairways.com.au>, August 2005 }
 {       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }

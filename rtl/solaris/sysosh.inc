@@ -19,7 +19,7 @@ type
   THandle = Longint;
   TThreadID = Cardinal;
   TOSTimestamp = Int64;
-  
+
   PRTLCriticalSection = ^TRTLCriticalSection;
   TRTLCriticalSection = record
     __pthread_mutex_flags : record

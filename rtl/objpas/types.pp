@@ -186,7 +186,7 @@ type
           function  Floor   : TPoint;
           function  Round   : TPoint;
           function  Length  : Single;
- 
+
           function Rotate(angle: single): TPointF;
           function Reflect(const normal: TPointF): TPointF;
           function MidPoint(const b: TPointF): TPointF;
@@ -520,11 +520,11 @@ type
   generic TScoped<T:class> = record
   private
     obj: T;
-  public  
+  public
     class operator Initialize(var hdl: TScoped);
     class operator Finalize(var hdl: TScoped);
-    class operator :=(aObj : T) : TScoped; 
-    class operator :=(const aObj : TScoped) : T; 
+    class operator :=(aObj : T) : TScoped;
+    class operator :=(const aObj : TScoped) : T;
     procedure Assign(aObj : T); inline;
     function Swap(AObj: T): T;
     function Get : T;
@@ -1069,7 +1069,7 @@ Function SingleToStr(aValue : Single; aSize,aDecimals : Byte) : ShortString; inl
 var
   S : ShortString;
   Len,P : Byte;
-  
+
 begin
   Str(aValue:aSize:aDecimals,S);
   Len:=Length(S);
@@ -1421,7 +1421,7 @@ end;
 
 { TSizeF }
 
-function TSizeF.ToString(aSize,aDecimals : Byte) : RTLString; 
+function TSizeF.ToString(aSize,aDecimals : Byte) : RTLString;
 
 var
   Sx,Sy : shortstring;
@@ -1432,7 +1432,7 @@ begin
   Result:='('+Sx+'x'+Sy+')';
 end;
 
-function TSizeF.ToString : RTLString; 
+function TSizeF.ToString : RTLString;
 
 begin
   Result:=ToString(8,2);
@@ -1591,7 +1591,7 @@ end;
 
 { TRectF }
 
-function TRectF.ToString(aSize,aDecimals : Byte; aUseSize : Boolean = False) : RTLString; 
+function TRectF.ToString(aSize,aDecimals : Byte; aUseSize : Boolean = False) : RTLString;
 
 var
   S : RTLString;
@@ -1599,7 +1599,7 @@ var
 begin
   if aUseSize then
     S:=Size.ToString(aSize,aDecimals)
-  else  
+  else
     S:=BottomRight.ToString(aSize,aDecimals);
   Result:='['+TopLeft.ToString(aSize,aDecimals)+' - '+S+']';
 end;
@@ -2019,8 +2019,8 @@ end;
 
 { TPoint3D }
 
-function TPoint3D.ToString(aSize,aDecimals : Byte) : RTLString; 
- 
+function TPoint3D.ToString(aSize,aDecimals : Byte) : RTLString;
+
 var
   Sx,Sy,Sz : shortstring;
   P : integer;
@@ -2031,7 +2031,7 @@ begin
   Sz:=SingleToStr(Z,aSize,aDecimals);
   Result:='('+Sx+','+Sy+','+Sz+')';
 end;
- 
+
 function TPoint3D.ToString : RTLString;
 
 begin
@@ -2124,13 +2124,13 @@ begin
   Result :=  self.obj;
 end;
 
-class operator TScoped.:=(aObj : T) : TScoped; 
+class operator TScoped.:=(aObj : T) : TScoped;
 
 begin
   result.assign(aObj);
 end;
 
-class operator TScoped.:=(const aObj : TScoped) : T; 
+class operator TScoped.:=(const aObj : TScoped) : T;
 
 begin
   Result:=aObj.Get();

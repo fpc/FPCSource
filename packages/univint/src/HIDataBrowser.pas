@@ -1,17 +1,17 @@
 {
      File:       HIToolbox/HIDataBrowser.h
- 
+
      Contains:   API and type definitions related to Data Browser.
- 
+
      Version:    HIToolbox-624~3
- 
+
      Copyright:  © 1999-2008 by Apple Computer, Inc., all rights reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {       Initial Pascal Translation:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {       Pascal Translation Updated:  Gorazd Krosl, <gorazd_1957@yahoo.ca>, October 2009 }
@@ -396,7 +396,7 @@ const
 
 {
  *  DataBrowserPropertyID
- *  
+ *
  *  Discussion:
  *    Properties with values 0 through 1023 are reserved for Apple's
  *    use. Values greater than or equal to 1024 are for client use.
@@ -419,8 +419,8 @@ const
    * an alias or symlink that the item might represent. If the incoming
    * item is an alias to another item, you can call
    * SetDataBrowserItemDataItemID to let Data Browser know which other
-   * item the incoming item points to. 
-   * 
+   * item the incoming item points to.
+   *
    * This is only sent from column view, and your support for it is
    * optional. It allows Data Browser to be more memory efficient with
    * its internal storage. If a given container item is an alias to an
@@ -432,14 +432,14 @@ const
   {
    * kDataBrowserColumnViewPreviewProperty is sent to various callbacks
    * to give you a chance to draw or track in the preview column of
-   * column view. 
-   * 
+   * column view.
+   *
    * You can also pass kDataBrowserColumnViewPreviewProperty in the
    * property parameter of RevealDataBrowserItem in conjunction with
    * the appropriate DataBrowserItemID of the item whose preview is
    * being displayed when you want to make sure the preview column is
-   * visible to the user. 
-   * 
+   * visible to the user.
+   *
    * kDataBrowserColumnViewPreviewProperty is only supported in column
    * view.
    }
@@ -448,8 +448,8 @@ const
   {
    * kDataBrowserItemParentContainerProperty is sent to your
    * DataBrowserItemDataProcPtr callback when Data Browser needs to
-   * know the parent container item for a given item. 
-   * 
+   * know the parent container item for a given item.
+   *
    * In column view, this allows the internals of SetDataBrowserTarget
    * to work. The target is the container whose contents you wish to
    * display, which is the rightmost column in column view. However,
@@ -457,13 +457,13 @@ const
    * offer a way for you to communicate the DataBrowserItemIDs of the
    * rest of the column containers, so SetDataBrowserTarget needs to
    * ask for them explicitly by asking for the container's parent, then
-   * the container's parent's parent, and so on. 
-   * 
+   * the container's parent's parent, and so on.
+   *
    * In list view, this allows you to pass a non-container to
    * SetDataBrowserTarget. In this situation, Data Browser will ask you
    * for the parent of the target so it knows which container to
-   * display the contents of in the list view. 
-   * 
+   * display the contents of in the list view.
+   *
    * In both list and column views, your DataBrowserItemDataProcPtr
    * callback might be called with
    * kDataBrowserItemParentContainerProperty at a variety of other
@@ -553,8 +553,8 @@ const
 	kDataBrowserRelativeDateTime = kDataBrowserDateTimeRelative; { support for an old name}
 
 {
-   Next 8 bits contain viewStyle-specific modifiers 
-   See individual ViewStyle sections below for flag definitions 
+   Next 8 bits contain viewStyle-specific modifiers
+   See individual ViewStyle sections below for flag definitions
 }
 const
 	kDataBrowserViewSpecificFlagsOffset = 16;
@@ -580,7 +580,7 @@ type
 	DataBrowserItemUPP = DataBrowserItemProcPtr;
 {
  *  NewDataBrowserItemUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -591,7 +591,7 @@ function NewDataBrowserItemUPP( userRoutine: DataBrowserItemProcPtr ): DataBrows
 
 {
  *  DisposeDataBrowserItemUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -602,7 +602,7 @@ procedure DisposeDataBrowserItemUPP( userUPP: DataBrowserItemUPP ); external nam
 
 {
  *  InvokeDataBrowserItemUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -615,10 +615,10 @@ procedure InvokeDataBrowserItemUPP( item: DataBrowserItemID; state: DataBrowserI
 {$ifc not TARGET_CPU_64}
 {
  *  CreateDataBrowserControl()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -630,10 +630,10 @@ function CreateDataBrowserControl( window: WindowRef; const (*var*) boundsRect: 
 
 {
  *  GetDataBrowserViewStyle()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -645,10 +645,10 @@ function GetDataBrowserViewStyle( browser: ControlRef; var style: DataBrowserVie
 
 {
  *  SetDataBrowserViewStyle()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -664,7 +664,7 @@ function SetDataBrowserViewStyle( browser: ControlRef; style: DataBrowserViewSty
 {
  *  Summary:
  *    Data Browser attributes
- *  
+ *
  *  Discussion:
  *    For use with DataBrowserChangeAttributes and
  *    DataBrowserGetAttributes. Available in Mac OS X 10.4 and later.
@@ -705,13 +705,13 @@ const
    * Whether the Data Browser should hide scroll bar when they are not
    * necessary, and use the additional space to draw more content. By
    * default this attribute is turned off. This attribute is available
-   * on Mac OS X 10.5 and later. 
+   * on Mac OS X 10.5 and later.
    * As of Mac OS X 10.5, this is only respected in list view, but it
    * may be respected in column view in the future. If you set this now
    * for a Data Browser instance that uses column view, you must be
    * prepared for the scroll bars to auto hide in the future. This
    * attribute is only respected in compositing mode; it will be
-   * ignored in non-compositing mode. 
+   * ignored in non-compositing mode.
    * When this attribute is turned on for a Data Browser instance that
    * is allowed to use both horizontal and vertical scroll bars (see
    * SetDataBrowserHasScrollBars), the Data Browser will attempt to use
@@ -738,27 +738,27 @@ const
 {$ifc not TARGET_CPU_64}
 {
  *  DataBrowserChangeAttributes()
- *  
+ *
  *  Summary:
  *    Set the attributes for the given Data Browser.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inDataBrowser:
  *      The Data Browser whose attributes to change.
- *    
+ *
  *    inAttributesToSet:
  *      The attributes to set.
- *    
+ *
  *    inAttributesToClear:
  *      The attributes to clear.
- *  
+ *
  *  Result:
  *    An operating system status code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.4 and later
@@ -770,25 +770,25 @@ function DataBrowserChangeAttributes( inDataBrowser: ControlRef; inAttributesToS
 
 {
  *  DataBrowserGetAttributes()
- *  
+ *
  *  Summary:
  *    Returns the attributes of a given Data Browser.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inDataBrowser:
  *      The Data Browser whose attributes to query.
- *    
+ *
  *    outAttributes:
  *      On exit, will contain the attributes of the Data Browser. This
  *      parameter cannot be NULL.
- *  
+ *
  *  Result:
  *    An operating system status code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.4 and later
@@ -804,7 +804,7 @@ function DataBrowserGetAttributes( inDataBrowser: ControlRef; var outAttributes:
 {
  *  Summary:
  *    DataBrowserMetric values
- *  
+ *
  *  Discussion:
  *    For use with DataBrowserSetMetric.
  }
@@ -853,37 +853,37 @@ type
 {$ifc not TARGET_CPU_64}
 {
  *  DataBrowserSetMetric()
- *  
+ *
  *  Summary:
  *    Sets a value for a specified Data Browser metric.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inDataBrowser:
  *      The Data Browser instance whose metric is being changed.
- *    
+ *
  *    inMetric:
  *      The DataBrowserMetric whose value is being changed.
- *    
+ *
  *    inUseDefaultValue:
  *      A Boolean indicating whether you want the Data Browser instance
  *      to revert to the default value for the metric. If you pass
  *      true, inValue will be ignored and a suitable default value will
  *      be used. If you pass false, inValue will be used as the value
  *      of the metric.
- *    
+ *
  *    inValue:
  *      When you pass false for inUseDefaultValue, this parameter is
  *      the value to use for the metric.
- *  
+ *
  *  Result:
  *    An operating system status code. If the incoming ControlRef isn't
  *    a Data Browser instance, or if the incoming metric isn't known,
  *    this function will return paramErr.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.4 and later
@@ -895,34 +895,34 @@ function DataBrowserSetMetric( inDataBrowser: ControlRef; inMetric: DataBrowserM
 
 {
  *  DataBrowserGetMetric()
- *  
+ *
  *  Summary:
  *    Gets the value for a specified Data Browser metric.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inDataBrowser:
  *      The Data Browser instance whose metric value to get.
- *    
+ *
  *    inMetric:
  *      The DataBrowserMetric value to get.
- *    
+ *
  *    outUsingDefaultValue:
  *      On exit, this is a Boolean indicating whether the metric's
  *      value is determined by Data Browser's default values. You may
  *      pass NULL if you don't need this information.
- *    
+ *
  *    outValue:
  *      On exit, this is the value of the metric.
- *  
+ *
  *  Result:
  *    An operating system status code. If the incoming ControlRef isn't
  *    a Data Browser instance, or if the incoming metric isn't known,
  *    this function will return paramErr.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.4 and later
@@ -939,10 +939,10 @@ function DataBrowserGetMetric( inDataBrowser: ControlRef; inMetric: DataBrowserM
 { "generate IDs starting from 1." }
 {
  *  AddDataBrowserItems()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -954,10 +954,10 @@ function AddDataBrowserItems( browser: ControlRef; container: DataBrowserItemID;
 
 {
  *  RemoveDataBrowserItems()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -969,10 +969,10 @@ function RemoveDataBrowserItems( browser: ControlRef; container: DataBrowserItem
 
 {
  *  UpdateDataBrowserItems()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -985,10 +985,10 @@ function UpdateDataBrowserItems( browser: ControlRef; container: DataBrowserItem
 { Edit Menu Enabling and Handling }
 {
  *  EnableDataBrowserEditCommand()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1000,10 +1000,10 @@ function EnableDataBrowserEditCommand( browser: ControlRef; command: DataBrowser
 
 {
  *  ExecuteDataBrowserEditCommand()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1015,10 +1015,10 @@ function ExecuteDataBrowserEditCommand( browser: ControlRef; command: DataBrowse
 
 {
  *  GetDataBrowserSelectionAnchor()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1030,10 +1030,10 @@ function GetDataBrowserSelectionAnchor( browser: ControlRef; var first: DataBrow
 
 {
  *  MoveDataBrowserSelectionAnchor()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1046,10 +1046,10 @@ function MoveDataBrowserSelectionAnchor( browser: ControlRef; direction: DataBro
 { Container Manipulation }
 {
  *  OpenDataBrowserContainer()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1061,10 +1061,10 @@ function OpenDataBrowserContainer( browser: ControlRef; container: DataBrowserIt
 
 {
  *  CloseDataBrowserContainer()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1076,10 +1076,10 @@ function CloseDataBrowserContainer( browser: ControlRef; container: DataBrowserI
 
 {
  *  SortDataBrowserContainer()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1092,10 +1092,10 @@ function SortDataBrowserContainer( browser: ControlRef; container: DataBrowserIt
 { Aggregate Item Access and Iteration }
 {
  *  GetDataBrowserItems()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1107,10 +1107,10 @@ function GetDataBrowserItems( browser: ControlRef; container: DataBrowserItemID;
 
 {
  *  GetDataBrowserItemCount()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1122,10 +1122,10 @@ function GetDataBrowserItemCount( browser: ControlRef; container: DataBrowserIte
 
 {
  *  ForEachDataBrowserItem()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1138,10 +1138,10 @@ function ForEachDataBrowserItem( browser: ControlRef; container: DataBrowserItem
 { Individual Item Access and Display }
 {
  *  IsDataBrowserItemSelected()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1153,10 +1153,10 @@ function IsDataBrowserItemSelected( browser: ControlRef; item: DataBrowserItemID
 
 {
  *  GetDataBrowserItemState()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1168,10 +1168,10 @@ function GetDataBrowserItemState( browser: ControlRef; item: DataBrowserItemID; 
 
 {
  *  RevealDataBrowserItem()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1184,10 +1184,10 @@ function RevealDataBrowserItem( browser: ControlRef; item: DataBrowserItemID; pr
 { Selection Set Manipulation }
 {
  *  SetDataBrowserSelectedItems()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1201,10 +1201,10 @@ function SetDataBrowserSelectedItems( browser: ControlRef; numItems: ItemCount; 
 { The user customizable portion of the current view style settings }
 {
  *  SetDataBrowserUserState()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1216,10 +1216,10 @@ function SetDataBrowserUserState( browser: ControlRef; stateInfo: CFDictionaryRe
 
 {
  *  GetDataBrowserUserState()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1232,10 +1232,10 @@ function GetDataBrowserUserState( browser: ControlRef; var stateInfo: CFDictiona
 { All items are active/enabled or not }
 {
  *  SetDataBrowserActiveItems()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1247,10 +1247,10 @@ function SetDataBrowserActiveItems( browser: ControlRef; active: Boolean ): OSSt
 
 {
  *  GetDataBrowserActiveItems()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1263,10 +1263,10 @@ function GetDataBrowserActiveItems( browser: ControlRef; var active: Boolean ): 
 { Inset the scrollbars within the DataBrowser bounds }
 {
  *  SetDataBrowserScrollBarInset()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1278,10 +1278,10 @@ function SetDataBrowserScrollBarInset( browser: ControlRef; var insetRect: Rect 
 
 {
  *  GetDataBrowserScrollBarInset()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1296,10 +1296,10 @@ function GetDataBrowserScrollBarInset( browser: ControlRef; var insetRect: Rect 
 { For the ColumnView, this means the rightmost container column }
 {
  *  SetDataBrowserTarget()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1311,10 +1311,10 @@ function SetDataBrowserTarget( browser: ControlRef; target: DataBrowserItemID ):
 
 {
  *  GetDataBrowserTarget()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1328,10 +1328,10 @@ function GetDataBrowserTarget( browser: ControlRef; var target: DataBrowserItemI
 { ListView tracks this per-column }
 {
  *  SetDataBrowserSortOrder()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1343,10 +1343,10 @@ function SetDataBrowserSortOrder( browser: ControlRef; order: DataBrowserSortOrd
 
 {
  *  GetDataBrowserSortOrder()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1359,10 +1359,10 @@ function GetDataBrowserSortOrder( browser: ControlRef; var order: DataBrowserSor
 { Scrollbar values }
 {
  *  SetDataBrowserScrollPosition()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1374,10 +1374,10 @@ function SetDataBrowserScrollPosition( browser: ControlRef; top: UInt32; left: U
 
 {
  *  GetDataBrowserScrollPosition()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1390,10 +1390,10 @@ function GetDataBrowserScrollPosition( browser: ControlRef; var top: UInt32; var
 { Show/Hide each scrollbar }
 {
  *  SetDataBrowserHasScrollBars()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1405,10 +1405,10 @@ function SetDataBrowserHasScrollBars( browser: ControlRef; horiz: Boolean; vert:
 
 {
  *  GetDataBrowserHasScrollBars()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1421,10 +1421,10 @@ function GetDataBrowserHasScrollBars( browser: ControlRef; var horiz: Boolean; v
 { Property passed to sort callback (ListView sort column) }
 {
  *  SetDataBrowserSortProperty()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1436,10 +1436,10 @@ function SetDataBrowserSortProperty( browser: ControlRef; property: DataBrowserP
 
 {
  *  GetDataBrowserSortProperty()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1452,10 +1452,10 @@ function GetDataBrowserSortProperty( browser: ControlRef; var property: DataBrow
 { Modify selection behavior }
 {
  *  SetDataBrowserSelectionFlags()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1467,10 +1467,10 @@ function SetDataBrowserSelectionFlags( browser: ControlRef; selectionFlags: Data
 
 {
  *  GetDataBrowserSelectionFlags()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1483,10 +1483,10 @@ function GetDataBrowserSelectionFlags( browser: ControlRef; var selectionFlags: 
 { Dynamically modify property appearance/behavior }
 {
  *  SetDataBrowserPropertyFlags()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1498,10 +1498,10 @@ function SetDataBrowserPropertyFlags( browser: ControlRef; property: DataBrowser
 
 {
  *  GetDataBrowserPropertyFlags()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1514,10 +1514,10 @@ function GetDataBrowserPropertyFlags( browser: ControlRef; property: DataBrowser
 { Text of current in-place edit session }
 {
  *  SetDataBrowserEditText()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1529,10 +1529,10 @@ function SetDataBrowserEditText( browser: ControlRef; text: CFStringRef ): OSSta
 
 {
  *  CopyDataBrowserEditText()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.5 and later
@@ -1544,10 +1544,10 @@ function CopyDataBrowserEditText( browser: ControlRef; var text: CFStringRef ): 
 
 {
  *  GetDataBrowserEditText()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1560,10 +1560,10 @@ function GetDataBrowserEditText( browser: ControlRef; text: CFMutableStringRef )
 { Item/property currently being edited }
 {
  *  SetDataBrowserEditItem()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1575,10 +1575,10 @@ function SetDataBrowserEditItem( browser: ControlRef; item: DataBrowserItemID; p
 
 {
  *  GetDataBrowserEditItem()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1591,10 +1591,10 @@ function GetDataBrowserEditItem( browser: ControlRef; var item: DataBrowserItemI
 { Get the current bounds of a visual part of an item's property }
 {
  *  GetDataBrowserItemPartBounds()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1612,10 +1612,10 @@ type
 {$ifc not TARGET_CPU_64}
 {
  *  SetDataBrowserItemDataIcon()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1627,10 +1627,10 @@ function SetDataBrowserItemDataIcon( itemData: DataBrowserItemDataRef; theData: 
 
 {
  *  GetDataBrowserItemDataIcon()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.5 and later
@@ -1642,10 +1642,10 @@ function GetDataBrowserItemDataIcon( itemData: DataBrowserItemDataRef; var theDa
 
 {
  *  SetDataBrowserItemDataText()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1657,10 +1657,10 @@ function SetDataBrowserItemDataText( itemData: DataBrowserItemDataRef; theData: 
 
 {
  *  GetDataBrowserItemDataText()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1672,10 +1672,10 @@ function GetDataBrowserItemDataText( itemData: DataBrowserItemDataRef; var theDa
 
 {
  *  SetDataBrowserItemDataValue()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1687,10 +1687,10 @@ function SetDataBrowserItemDataValue( itemData: DataBrowserItemDataRef; theData:
 
 {
  *  GetDataBrowserItemDataValue()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1702,10 +1702,10 @@ function GetDataBrowserItemDataValue( itemData: DataBrowserItemDataRef; var theD
 
 {
  *  SetDataBrowserItemDataMinimum()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1717,10 +1717,10 @@ function SetDataBrowserItemDataMinimum( itemData: DataBrowserItemDataRef; theDat
 
 {
  *  GetDataBrowserItemDataMinimum()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1732,10 +1732,10 @@ function GetDataBrowserItemDataMinimum( itemData: DataBrowserItemDataRef; var th
 
 {
  *  SetDataBrowserItemDataMaximum()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1747,10 +1747,10 @@ function SetDataBrowserItemDataMaximum( itemData: DataBrowserItemDataRef; theDat
 
 {
  *  GetDataBrowserItemDataMaximum()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1762,10 +1762,10 @@ function GetDataBrowserItemDataMaximum( itemData: DataBrowserItemDataRef; var th
 
 {
  *  SetDataBrowserItemDataBooleanValue()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1777,10 +1777,10 @@ function SetDataBrowserItemDataBooleanValue( itemData: DataBrowserItemDataRef; t
 
 {
  *  GetDataBrowserItemDataBooleanValue()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1792,10 +1792,10 @@ function GetDataBrowserItemDataBooleanValue( itemData: DataBrowserItemDataRef; v
 
 {
  *  SetDataBrowserItemDataMenuRef()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1807,10 +1807,10 @@ function SetDataBrowserItemDataMenuRef( itemData: DataBrowserItemDataRef; theDat
 
 {
  *  GetDataBrowserItemDataMenuRef()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1822,10 +1822,10 @@ function GetDataBrowserItemDataMenuRef( itemData: DataBrowserItemDataRef; var th
 
 {
  *  SetDataBrowserItemDataRGBColor()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1837,10 +1837,10 @@ function SetDataBrowserItemDataRGBColor( itemData: DataBrowserItemDataRef; const
 
 {
  *  GetDataBrowserItemDataRGBColor()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1852,10 +1852,10 @@ function GetDataBrowserItemDataRGBColor( itemData: DataBrowserItemDataRef; var t
 
 {
  *  SetDataBrowserItemDataDrawState()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1867,10 +1867,10 @@ function SetDataBrowserItemDataDrawState( itemData: DataBrowserItemDataRef; theD
 
 {
  *  GetDataBrowserItemDataDrawState()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1882,10 +1882,10 @@ function GetDataBrowserItemDataDrawState( itemData: DataBrowserItemDataRef; var 
 
 {
  *  SetDataBrowserItemDataButtonValue()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1897,10 +1897,10 @@ function SetDataBrowserItemDataButtonValue( itemData: DataBrowserItemDataRef; th
 
 {
  *  GetDataBrowserItemDataButtonValue()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1912,10 +1912,10 @@ function GetDataBrowserItemDataButtonValue( itemData: DataBrowserItemDataRef; va
 
 {
  *  SetDataBrowserItemDataIconTransform()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1927,10 +1927,10 @@ function SetDataBrowserItemDataIconTransform( itemData: DataBrowserItemDataRef; 
 
 {
  *  GetDataBrowserItemDataIconTransform()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1942,10 +1942,10 @@ function GetDataBrowserItemDataIconTransform( itemData: DataBrowserItemDataRef; 
 
 {
  *  SetDataBrowserItemDataDateTime()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1957,10 +1957,10 @@ function SetDataBrowserItemDataDateTime( itemData: DataBrowserItemDataRef; theDa
 
 {
  *  GetDataBrowserItemDataDateTime()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1972,10 +1972,10 @@ function GetDataBrowserItemDataDateTime( itemData: DataBrowserItemDataRef; var t
 
 {
  *  SetDataBrowserItemDataLongDateTime()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1987,10 +1987,10 @@ function SetDataBrowserItemDataLongDateTime( itemData: DataBrowserItemDataRef; (
 
 {
  *  GetDataBrowserItemDataLongDateTime()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2002,10 +2002,10 @@ function GetDataBrowserItemDataLongDateTime( itemData: DataBrowserItemDataRef; v
 
 {
  *  SetDataBrowserItemDataItemID()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2017,10 +2017,10 @@ function SetDataBrowserItemDataItemID( itemData: DataBrowserItemDataRef; theData
 
 {
  *  GetDataBrowserItemDataItemID()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.5 and later
@@ -2032,10 +2032,10 @@ function GetDataBrowserItemDataItemID( itemData: DataBrowserItemDataRef; var the
 
 {
  *  GetDataBrowserItemDataProperty()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2102,7 +2102,7 @@ type
 	DataBrowserItemHelpContentUPP = DataBrowserItemHelpContentProcPtr;
 {
  *  NewDataBrowserItemDataUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2113,7 +2113,7 @@ function NewDataBrowserItemDataUPP( userRoutine: DataBrowserItemDataProcPtr ): D
 
 {
  *  NewDataBrowserItemCompareUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2124,7 +2124,7 @@ function NewDataBrowserItemCompareUPP( userRoutine: DataBrowserItemCompareProcPt
 
 {
  *  NewDataBrowserItemNotificationWithItemUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.5 and later
@@ -2135,7 +2135,7 @@ function NewDataBrowserItemNotificationWithItemUPP( userRoutine: DataBrowserItem
 
 {
  *  NewDataBrowserItemNotificationUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2146,7 +2146,7 @@ function NewDataBrowserItemNotificationUPP( userRoutine: DataBrowserItemNotifica
 
 {
  *  NewDataBrowserAddDragItemUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2157,7 +2157,7 @@ function NewDataBrowserAddDragItemUPP( userRoutine: DataBrowserAddDragItemProcPt
 
 {
  *  NewDataBrowserAcceptDragUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2168,7 +2168,7 @@ function NewDataBrowserAcceptDragUPP( userRoutine: DataBrowserAcceptDragProcPtr 
 
 {
  *  NewDataBrowserReceiveDragUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2179,7 +2179,7 @@ function NewDataBrowserReceiveDragUPP( userRoutine: DataBrowserReceiveDragProcPt
 
 {
  *  NewDataBrowserPostProcessDragUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2190,7 +2190,7 @@ function NewDataBrowserPostProcessDragUPP( userRoutine: DataBrowserPostProcessDr
 
 {
  *  NewDataBrowserGetContextualMenuUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2201,7 +2201,7 @@ function NewDataBrowserGetContextualMenuUPP( userRoutine: DataBrowserGetContextu
 
 {
  *  NewDataBrowserSelectContextualMenuUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2212,7 +2212,7 @@ function NewDataBrowserSelectContextualMenuUPP( userRoutine: DataBrowserSelectCo
 
 {
  *  NewDataBrowserItemHelpContentUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2223,7 +2223,7 @@ function NewDataBrowserItemHelpContentUPP( userRoutine: DataBrowserItemHelpConte
 
 {
  *  DisposeDataBrowserItemDataUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2234,7 +2234,7 @@ procedure DisposeDataBrowserItemDataUPP( userUPP: DataBrowserItemDataUPP ); exte
 
 {
  *  DisposeDataBrowserItemCompareUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2245,7 +2245,7 @@ procedure DisposeDataBrowserItemCompareUPP( userUPP: DataBrowserItemCompareUPP )
 
 {
  *  DisposeDataBrowserItemNotificationWithItemUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.5 and later
@@ -2256,7 +2256,7 @@ procedure DisposeDataBrowserItemNotificationWithItemUPP( userUPP: DataBrowserIte
 
 {
  *  DisposeDataBrowserItemNotificationUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2267,7 +2267,7 @@ procedure DisposeDataBrowserItemNotificationUPP( userUPP: DataBrowserItemNotific
 
 {
  *  DisposeDataBrowserAddDragItemUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2278,7 +2278,7 @@ procedure DisposeDataBrowserAddDragItemUPP( userUPP: DataBrowserAddDragItemUPP )
 
 {
  *  DisposeDataBrowserAcceptDragUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2289,7 +2289,7 @@ procedure DisposeDataBrowserAcceptDragUPP( userUPP: DataBrowserAcceptDragUPP ); 
 
 {
  *  DisposeDataBrowserReceiveDragUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2300,7 +2300,7 @@ procedure DisposeDataBrowserReceiveDragUPP( userUPP: DataBrowserReceiveDragUPP )
 
 {
  *  DisposeDataBrowserPostProcessDragUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2311,7 +2311,7 @@ procedure DisposeDataBrowserPostProcessDragUPP( userUPP: DataBrowserPostProcessD
 
 {
  *  DisposeDataBrowserGetContextualMenuUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2322,7 +2322,7 @@ procedure DisposeDataBrowserGetContextualMenuUPP( userUPP: DataBrowserGetContext
 
 {
  *  DisposeDataBrowserSelectContextualMenuUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2333,7 +2333,7 @@ procedure DisposeDataBrowserSelectContextualMenuUPP( userUPP: DataBrowserSelectC
 
 {
  *  DisposeDataBrowserItemHelpContentUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2344,7 +2344,7 @@ procedure DisposeDataBrowserItemHelpContentUPP( userUPP: DataBrowserItemHelpCont
 
 {
  *  InvokeDataBrowserItemDataUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2355,7 +2355,7 @@ function InvokeDataBrowserItemDataUPP( browser: ControlRef; item: DataBrowserIte
 
 {
  *  InvokeDataBrowserItemCompareUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2366,7 +2366,7 @@ function InvokeDataBrowserItemCompareUPP( browser: ControlRef; itemOne: DataBrow
 
 {
  *  InvokeDataBrowserItemNotificationWithItemUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.5 and later
@@ -2377,7 +2377,7 @@ procedure InvokeDataBrowserItemNotificationWithItemUPP( browser: ControlRef; ite
 
 {
  *  InvokeDataBrowserItemNotificationUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2388,7 +2388,7 @@ procedure InvokeDataBrowserItemNotificationUPP( browser: ControlRef; item: DataB
 
 {
  *  InvokeDataBrowserAddDragItemUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2399,7 +2399,7 @@ function InvokeDataBrowserAddDragItemUPP( browser: ControlRef; theDrag: DragRefe
 
 {
  *  InvokeDataBrowserAcceptDragUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2410,7 +2410,7 @@ function InvokeDataBrowserAcceptDragUPP( browser: ControlRef; theDrag: DragRefer
 
 {
  *  InvokeDataBrowserReceiveDragUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2421,7 +2421,7 @@ function InvokeDataBrowserReceiveDragUPP( browser: ControlRef; theDrag: DragRefe
 
 {
  *  InvokeDataBrowserPostProcessDragUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2432,7 +2432,7 @@ procedure InvokeDataBrowserPostProcessDragUPP( browser: ControlRef; theDrag: Dra
 
 {
  *  InvokeDataBrowserGetContextualMenuUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2443,7 +2443,7 @@ procedure InvokeDataBrowserGetContextualMenuUPP( browser: ControlRef; var menu: 
 
 {
  *  InvokeDataBrowserSelectContextualMenuUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2454,7 +2454,7 @@ procedure InvokeDataBrowserSelectContextualMenuUPP( browser: ControlRef; menu: M
 
 {
  *  InvokeDataBrowserItemHelpContentUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2489,10 +2489,10 @@ type
 {$ifc not TARGET_CPU_64}
 {
  *  InitDataBrowserCallbacks()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2508,10 +2508,10 @@ function InitDataBrowserCallbacks( var callbacks: DataBrowserCallbacks ): OSStat
 
 {
  *  GetDataBrowserCallbacks()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2523,10 +2523,10 @@ function GetDataBrowserCallbacks( browser: ControlRef; var callbacks: DataBrowse
 
 {
  *  SetDataBrowserCallbacks()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2554,7 +2554,7 @@ const
 
 {
     kEventClassDataBrowser quick reference:
-    
+
     kEventDataBrowserDrawCustomItem         = 1
 }
 
@@ -2567,10 +2567,10 @@ const
 
 {
  *  kEventClassDataBrowser / kEventDataBrowserDrawCustomItem
- *  
+ *
  *  Summary:
  *    DataBrowser is requesting a custom item be drawn.
- *  
+ *
  *  Discussion:
  *    If the client has installed a custom item draw handler on a data
  *    browser containing custom items, as indicated by the
@@ -2580,38 +2580,38 @@ const
  *    is only sent in compositing mode. If a result other than noErr is
  *    returned the DataBrowserDrawItemProcPtr will be invoked if it has
  *    bee installed.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    --> kEventParamDirectObject (in, typeControlRef)
  *          The DataBrowser requesting a custom item be drawn.
- *    
+ *
  *    --> kEventParamDataBrowserItemID (in, typeRefCon)
  *          The item ID for the item to draw.
- *    
+ *
  *    --> kEventParamDataBrowserPropertyID (in, typeRefCon)
  *          The property ID for the item. In list view, this is the
  *          four-character sequence that you previously assigned to the
  *          column. In column view, this is the property
  *          kDataBrowserItemSelfIdentityProperty.
- *    
+ *
  *    --> kEventParamDataBrowserItemState (in, typeUInt32)
  *          The state to use when drawing the item.
- *    
+ *
  *    --> kEventParamBounds (in, typeHIRect)
  *          The bounding rectangle that specifies where in the provided
  *          context to draw the item. This rectangle is the content
  *          rectangle, not the enclosing rectangle.
- *    
+ *
  *    --> kEventParamCGContextRef (in, typeCGContext)
  *          The context into which the custom drawing should be
  *          performed. The context will be automatically flipped to use
  *          a top left orientation similar to the kEventControlDraw
  *          event.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -2647,7 +2647,7 @@ type
 	DataBrowserItemReceiveDragUPP = DataBrowserItemReceiveDragProcPtr;
 {
  *  NewDataBrowserDrawItemUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2658,7 +2658,7 @@ function NewDataBrowserDrawItemUPP( userRoutine: DataBrowserDrawItemProcPtr ): D
 
 {
  *  NewDataBrowserEditItemUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2669,7 +2669,7 @@ function NewDataBrowserEditItemUPP( userRoutine: DataBrowserEditItemProcPtr ): D
 
 {
  *  NewDataBrowserHitTestUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2680,7 +2680,7 @@ function NewDataBrowserHitTestUPP( userRoutine: DataBrowserHitTestProcPtr ): Dat
 
 {
  *  NewDataBrowserTrackingUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2691,7 +2691,7 @@ function NewDataBrowserTrackingUPP( userRoutine: DataBrowserTrackingProcPtr ): D
 
 {
  *  NewDataBrowserItemDragRgnUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2702,7 +2702,7 @@ function NewDataBrowserItemDragRgnUPP( userRoutine: DataBrowserItemDragRgnProcPt
 
 {
  *  NewDataBrowserItemAcceptDragUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2713,7 +2713,7 @@ function NewDataBrowserItemAcceptDragUPP( userRoutine: DataBrowserItemAcceptDrag
 
 {
  *  NewDataBrowserItemReceiveDragUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2724,7 +2724,7 @@ function NewDataBrowserItemReceiveDragUPP( userRoutine: DataBrowserItemReceiveDr
 
 {
  *  DisposeDataBrowserDrawItemUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2735,7 +2735,7 @@ procedure DisposeDataBrowserDrawItemUPP( userUPP: DataBrowserDrawItemUPP ); exte
 
 {
  *  DisposeDataBrowserEditItemUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2746,7 +2746,7 @@ procedure DisposeDataBrowserEditItemUPP( userUPP: DataBrowserEditItemUPP ); exte
 
 {
  *  DisposeDataBrowserHitTestUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2757,7 +2757,7 @@ procedure DisposeDataBrowserHitTestUPP( userUPP: DataBrowserHitTestUPP ); extern
 
 {
  *  DisposeDataBrowserTrackingUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2768,7 +2768,7 @@ procedure DisposeDataBrowserTrackingUPP( userUPP: DataBrowserTrackingUPP ); exte
 
 {
  *  DisposeDataBrowserItemDragRgnUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2779,7 +2779,7 @@ procedure DisposeDataBrowserItemDragRgnUPP( userUPP: DataBrowserItemDragRgnUPP )
 
 {
  *  DisposeDataBrowserItemAcceptDragUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2790,7 +2790,7 @@ procedure DisposeDataBrowserItemAcceptDragUPP( userUPP: DataBrowserItemAcceptDra
 
 {
  *  DisposeDataBrowserItemReceiveDragUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2801,7 +2801,7 @@ procedure DisposeDataBrowserItemReceiveDragUPP( userUPP: DataBrowserItemReceiveD
 
 {
  *  InvokeDataBrowserDrawItemUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2812,7 +2812,7 @@ procedure InvokeDataBrowserDrawItemUPP( browser: ControlRef; item: DataBrowserIt
 
 {
  *  InvokeDataBrowserEditItemUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2823,7 +2823,7 @@ function InvokeDataBrowserEditItemUPP( browser: ControlRef; item: DataBrowserIte
 
 {
  *  InvokeDataBrowserHitTestUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2834,7 +2834,7 @@ function InvokeDataBrowserHitTestUPP( browser: ControlRef; itemID: DataBrowserIt
 
 {
  *  InvokeDataBrowserTrackingUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2845,7 +2845,7 @@ function InvokeDataBrowserTrackingUPP( browser: ControlRef; itemID: DataBrowserI
 
 {
  *  InvokeDataBrowserItemDragRgnUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2856,7 +2856,7 @@ procedure InvokeDataBrowserItemDragRgnUPP( browser: ControlRef; itemID: DataBrow
 
 {
  *  InvokeDataBrowserItemAcceptDragUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2867,7 +2867,7 @@ function InvokeDataBrowserItemAcceptDragUPP( browser: ControlRef; itemID: DataBr
 
 {
  *  InvokeDataBrowserItemReceiveDragUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2899,10 +2899,10 @@ type
 {$ifc not TARGET_CPU_64}
 {
  *  InitDataBrowserCustomCallbacks()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2918,10 +2918,10 @@ function InitDataBrowserCustomCallbacks( var callbacks: DataBrowserCustomCallbac
 
 {
  *  GetDataBrowserCustomCallbacks()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2933,10 +2933,10 @@ function GetDataBrowserCustomCallbacks( browser: ControlRef; var callbacks: Data
 
 {
  *  SetDataBrowserCustomCallbacks()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2976,10 +2976,10 @@ const
 {$ifc not TARGET_CPU_64}
 {
  *  RemoveDataBrowserTableViewColumn()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2991,10 +2991,10 @@ function RemoveDataBrowserTableViewColumn( browser: ControlRef; column: DataBrow
 
 {
  *  GetDataBrowserTableViewColumnCount()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -3006,10 +3006,10 @@ function GetDataBrowserTableViewColumnCount( browser: ControlRef; var numColumns
 
 {
  *  SetDataBrowserTableViewHiliteStyle()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -3021,10 +3021,10 @@ function SetDataBrowserTableViewHiliteStyle( browser: ControlRef; hiliteStyle: D
 
 {
  *  GetDataBrowserTableViewHiliteStyle()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -3036,10 +3036,10 @@ function GetDataBrowserTableViewHiliteStyle( browser: ControlRef; var hiliteStyl
 
 {
  *  SetDataBrowserTableViewRowHeight()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -3051,10 +3051,10 @@ function SetDataBrowserTableViewRowHeight( browser: ControlRef; height: UInt16 )
 
 {
  *  GetDataBrowserTableViewRowHeight()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -3066,10 +3066,10 @@ function GetDataBrowserTableViewRowHeight( browser: ControlRef; var height: UInt
 
 {
  *  SetDataBrowserTableViewColumnWidth()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -3081,10 +3081,10 @@ function SetDataBrowserTableViewColumnWidth( browser: ControlRef; width: UInt16 
 
 {
  *  GetDataBrowserTableViewColumnWidth()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -3096,10 +3096,10 @@ function GetDataBrowserTableViewColumnWidth( browser: ControlRef; var width: UIn
 
 {
  *  SetDataBrowserTableViewItemRowHeight()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -3111,10 +3111,10 @@ function SetDataBrowserTableViewItemRowHeight( browser: ControlRef; item: DataBr
 
 {
  *  GetDataBrowserTableViewItemRowHeight()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -3126,10 +3126,10 @@ function GetDataBrowserTableViewItemRowHeight( browser: ControlRef; item: DataBr
 
 {
  *  SetDataBrowserTableViewNamedColumnWidth()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -3141,10 +3141,10 @@ function SetDataBrowserTableViewNamedColumnWidth( browser: ControlRef; column: D
 
 {
  *  GetDataBrowserTableViewNamedColumnWidth()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -3156,10 +3156,10 @@ function GetDataBrowserTableViewNamedColumnWidth( browser: ControlRef; column: D
 
 {
  *  SetDataBrowserTableViewGeometry()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -3171,10 +3171,10 @@ function SetDataBrowserTableViewGeometry( browser: ControlRef; variableWidthColu
 
 {
  *  GetDataBrowserTableViewGeometry()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -3186,10 +3186,10 @@ function GetDataBrowserTableViewGeometry( browser: ControlRef; var variableWidth
 
 {
  *  GetDataBrowserTableViewItemID()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -3201,10 +3201,10 @@ function GetDataBrowserTableViewItemID( browser: ControlRef; row: DataBrowserTab
 
 {
  *  SetDataBrowserTableViewItemRow()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -3216,10 +3216,10 @@ function SetDataBrowserTableViewItemRow( browser: ControlRef; item: DataBrowserI
 
 {
  *  GetDataBrowserTableViewItemRow()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -3231,10 +3231,10 @@ function GetDataBrowserTableViewItemRow( browser: ControlRef; item: DataBrowserI
 
 {
  *  SetDataBrowserTableViewColumnPosition()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -3246,10 +3246,10 @@ function SetDataBrowserTableViewColumnPosition( browser: ControlRef; column: Dat
 
 {
  *  GetDataBrowserTableViewColumnPosition()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -3261,10 +3261,10 @@ function GetDataBrowserTableViewColumnPosition( browser: ControlRef; column: Dat
 
 {
  *  GetDataBrowserTableViewColumnProperty()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -3350,10 +3350,10 @@ const
 {$ifc not TARGET_CPU_64}
 {
  *  AutoSizeDataBrowserListViewColumns()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -3365,10 +3365,10 @@ function AutoSizeDataBrowserListViewColumns( browser: ControlRef ): OSStatus; ex
 
 {
  *  AddDataBrowserListViewColumn()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -3380,34 +3380,34 @@ function AddDataBrowserListViewColumn( browser: ControlRef; var columnDesc: Data
 
 {
  *  GetDataBrowserListViewHeaderDesc()
- *  
+ *
  *  Summary:
  *    Returns information about a specified column header in a list
  *    view.
- *  
+ *
  *  Discussion:
  *    Note that this API does not correctly use CoreFoundation naming
  *    conventions. Although the API name begins with "Get", implying
  *    that you do not need to release the CFStringRef and IconRef
  *    returned by this API, in fact you do actually need to release
  *    these objects.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    browser:
  *      The data browser for which you need header information.
- *    
+ *
  *    column:
  *      The column ID for which you need header information.
- *    
+ *
  *    desc:
  *      On exit, contains header information for the specified column.
  *      You must release the CFStringRef and IconRef contained in this
  *      structure.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.5 and later
@@ -3419,10 +3419,10 @@ function GetDataBrowserListViewHeaderDesc( browser: ControlRef; column: DataBrow
 
 {
  *  SetDataBrowserListViewHeaderDesc()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.5 and later
@@ -3434,10 +3434,10 @@ function SetDataBrowserListViewHeaderDesc( browser: ControlRef; column: DataBrow
 
 {
  *  SetDataBrowserListViewHeaderBtnHeight()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -3449,10 +3449,10 @@ function SetDataBrowserListViewHeaderBtnHeight( browser: ControlRef; height: UIn
 
 {
  *  GetDataBrowserListViewHeaderBtnHeight()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -3464,10 +3464,10 @@ function GetDataBrowserListViewHeaderBtnHeight( browser: ControlRef; var height:
 
 {
  *  SetDataBrowserListViewUsePlainBackground()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -3479,10 +3479,10 @@ function SetDataBrowserListViewUsePlainBackground( browser: ControlRef; usePlain
 
 {
  *  GetDataBrowserListViewUsePlainBackground()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -3494,10 +3494,10 @@ function GetDataBrowserListViewUsePlainBackground( browser: ControlRef; var useP
 
 {
  *  SetDataBrowserListViewDisclosureColumn()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -3509,10 +3509,10 @@ function SetDataBrowserListViewDisclosureColumn( browser: ControlRef; column: Da
 
 {
  *  GetDataBrowserListViewDisclosureColumn()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -3525,10 +3525,10 @@ function GetDataBrowserListViewDisclosureColumn( browser: ControlRef; var column
 { DataBrowserColumnView API }
 {
  *  GetDataBrowserColumnViewPath()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -3540,10 +3540,10 @@ function GetDataBrowserColumnViewPath( browser: ControlRef; path: Handle ): OSSt
 
 {
  *  GetDataBrowserColumnViewPathLength()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -3555,10 +3555,10 @@ function GetDataBrowserColumnViewPathLength( browser: ControlRef; var pathLength
 
 {
  *  SetDataBrowserColumnViewPath()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -3570,10 +3570,10 @@ function SetDataBrowserColumnViewPath( browser: ControlRef; length: UInt32; path
 
 {
  *  SetDataBrowserColumnViewDisplayType()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -3585,10 +3585,10 @@ function SetDataBrowserColumnViewDisplayType( browser: ControlRef; propertyType:
 
 {
  *  GetDataBrowserColumnViewDisplayType()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -3601,15 +3601,15 @@ function GetDataBrowserColumnViewDisplayType( browser: ControlRef; var propertyT
 { DataBrowser UPP macros }
 {
     Customizing Data Browser Accessibility Information
-    
+
     Warning: The following assumes you already understand how to handle the
     Accessibility Carbon Events described in CarbonEvents.h.
-    
+
     Data Browser automatically handles the various Accessibility Carbon
     Events to provide a large amount of Accessibility information. However,
     your application may need to override or augment the default information
     that Data Browser provides.
-    
+
     Though it is already possible for your application to install various
     Accessibility Carbon Event handlers on a Data Browser instance, it is
     impossible to interpret the AXUIElementRefs contained in the events
@@ -3620,23 +3620,23 @@ function GetDataBrowserColumnViewDisplayType( browser: ControlRef; var propertyT
     your application will need to ask Data Browser what any given
     AXUIElementRef represents. The AXUIElementGetDataBrowserItemInfo allows
     your application to ask that question.
-    
+
     Additionally, your application may want to generate its own AXUIElementRefs
     that represent children of or point to various rows or cells of a Data Browser
     instance. The AXUIElementCreateWithDataBrowserAndItemInfo API allows your
     application to manufacture AXUIElementRefs that represent certain parts of a
     Data Browser so you can provide them in your Accessibility Carbon Event
     handlers.
-    
+
     Typical Usage Scenario: You want to add an Accessibility attribute to
     all rows in a Data Browser list view.
-    
+
         Step 1: Install the appropriate Accessibility Carbon Event handlers
         on your Data Browser instance. Call InstallEventHandler or a similar
         API to install a handler onto your Data Browser ControlRef for the
         kEventAccessibleGetAllAttributeNames,
         kEventAccessibleGetNamedAttribute, and other appropriate events.
-        
+
         Step 2: Your handler should find out what part of the Data Browser
         is being asked for its accessibility information. Extract the
         kEventParamAccessibleObject parameter out of the Carbon Event and
@@ -3648,13 +3648,13 @@ function GetDataBrowserColumnViewDisplayType( browser: ControlRef; var propertyT
         you are looking for a row, so you would make sure the item field is
         not kDataBrowserNoItem, and that the columnProperty is
         kDataBrowserItemNoProperty.
-        
+
         Step 3: Your event handler should call CallNextEventHandler to allow
         the Data Browser to do the default handling of the event. This is
         particularly important if the AXUIElementRef did not represent a
         row, since you don't want to disrupt the Data Browser's handling of
         the event for parts other than rows.
-        
+
         Step 4: If you determined that the part was a row in step 2, your
         handler should now do whatever custom work it deems necessary. For
         the kEventAccessibleGetAllAttributeNames, your handler would extract
@@ -3665,7 +3665,7 @@ function GetDataBrowserColumnViewDisplayType( browser: ControlRef; var propertyT
         your custom attribute name; if so, your handler would put its custom
         data in the kEventParamAccessibleAttributeValue parameter. Any other
         events would be handled similarly.
-        
+
         Step 5: Your event handler should return an appropriate result code.
         In cases where the AXUIElementRef does not represent a row or when
         the attribute name is not your custom attribute, your handler can
@@ -3681,11 +3681,11 @@ function GetDataBrowserColumnViewDisplayType( browser: ControlRef; var propertyT
 
 {
  *  DataBrowserAccessibilityItemInfoV0
- *  
+ *
  *  Summary:
  *    A specific description of Data Browser accessibility item
  *    information.
- *  
+ *
  *  Discussion:
  *    If you fill this structure as part of a
  *    DataBrowserAccessibilityItemInfo, you must set the
@@ -3747,19 +3747,19 @@ type
 
 {
  *  DataBrowserAccessibilityItemInfoV1
- *  
+ *
  *  Summary:
  *    A specific description of Data Browser accessibility item
  *    information.
- *  
+ *
  *  Discussion:
  *    If you fill this structure as part of a
  *    DataBrowserAccessibilityItemInfo, you must set the
- *    DataBrowserAccessibilityItemInfo's version field to one. 
- *     
+ *    DataBrowserAccessibilityItemInfo's version field to one.
+ *
  *    This structure is identical to the V0 structure except for the
  *    inclusion of row and column indices. These indices may be useful
- *    to clients who call AXUIElementGetDataBrowserItemInfo. 
+ *    to clients who call AXUIElementGetDataBrowserItemInfo.
  *    If your Data Browser instance allows a given item and/or
  *    container to be displayed more than once at a given point in
  *    time, you can use the row and column indices to differentiate the
@@ -3853,11 +3853,11 @@ type
 
 {
  *  DataBrowserAccessibilityItemInfo
- *  
+ *
  *  Summary:
  *    A generalized description of Data Browser accessibility item
  *    information.
- *  
+ *
  *  Discussion:
  *    Pass this structure to AXUIElementGetDataBrowserItemInfo or
  *    AXUIElementCreateWithDataBrowserAndItemInfo.
@@ -3883,31 +3883,31 @@ type
 {$ifc not TARGET_CPU_64}
 {
  *  AXUIElementGetDataBrowserItemInfo()
- *  
+ *
  *  Summary:
  *    Gets a description of the part of a Data Browser represented by a
  *    given AXUIElementRef.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inElement:
  *      An AXUIElementRef representing part of a Data Browser.
- *    
+ *
  *    inDataBrowser:
  *      A Data Browser ControlRef.
- *    
+ *
  *    inDesiredInfoVersion:
  *      A UInt32 indicating the the version you want the ioInfo
  *      structure passed back as.
- *    
+ *
  *    outInfo:
  *      A DataBrowserAccessibilityItemInfo that will be filled in with
  *      a description of the part of the Data Browser that the
  *      AXUIElementRef represents.
- *  
+ *
  *  Result:
  *    An OSStatus result code. The function will return noErr if it was
  *    able to generate a description of the AXUIElementRef. If the
@@ -3915,7 +3915,7 @@ type
  *    the function will return paramErr. If the AXUIElementRef
  *    represents some non-item part of the Data Browser, the function
  *    will return errDataBrowserItemNotFound.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.4 and later
@@ -3927,27 +3927,27 @@ function AXUIElementGetDataBrowserItemInfo( inElement: AXUIElementRef; inDataBro
 
 {
  *  AXUIElementCreateWithDataBrowserAndItemInfo()
- *  
+ *
  *  Summary:
  *    Creates an AXUIElementRef to represent some part of a Data
  *    Browser accessibility hierarchy.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inDataBrowser:
  *      A Data Browser ControlRef.
- *    
+ *
  *    inInfo:
  *      A DataBrowserAccessibilityItemInfo describing the part of the
  *      Data Browser for which you want to create an AXUIElementRef.
- *  
+ *
  *  Result:
  *    An AXUIElementRef representing the part, or NULL if one cannot be
  *    created to represent the part you specified.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.4 and later

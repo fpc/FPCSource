@@ -365,7 +365,7 @@ const
   { Include the window specified by `relativeToWindow' in any list,
      effectively creating `at-or-above' or `at-or-below' lists. }
 	kCGWindowListOptionIncludingWindow = 1 shl 3;
-    
+
   { Exclude any windows from the list that are elements of the desktop. }
 	kCGWindowListExcludeDesktopElements = 1 shl 4;
 

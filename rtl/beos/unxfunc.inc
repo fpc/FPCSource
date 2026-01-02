@@ -47,7 +47,7 @@ end;
 
 // can't have oldfpccall here, linux doesn't need it.
 Function AssignPipe(var pipe_in,pipe_out:cint):cint; [public, alias : 'FPC_SYSC_ASSIGNPIPE'];
-{ 
+{
   Sets up a pair of file variables, which act as a pipe. The first one can
   be read from, the second one can be written to.
   If the operation was unsuccesful, linuxerror is set.

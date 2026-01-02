@@ -47,14 +47,14 @@
 				<integer>12345</integer>
 				<key>factoryFunction</key>
 				<string>AUExampleFactory</string>
-				
+
 				<!-- An AudioComponent is sandbox safe -->
-				
+
 				<key>sandboxSafe</key>
 				<true/>
-				
+
 				<!-- or it can describe its resource usage -->
-				
+
 				<key>resourceUsage</key>
 				<dict>
 					<key>iokit.user-client</key>
@@ -74,7 +74,7 @@
 				</dict>
 
 				<!-- An AudioComponent can define its tags -->
-				
+
 				<key>tags</key>
 				<array>
 					<string>Effect</string>
@@ -145,11 +145,11 @@
 	definition. "Equalizer", "Dynamics", "Distortion", "Synthesizer", "Effects", "Filter", "Dynamics
 	Processor", "Delay", "Reverb", "Pitch", "Panner", "Imaging", "Sampler", "Mixer", "Format
 	Converter", "Time Effect", "Output", "Offline Effect", "Drums", "Guitar", "Vocal", "Bass",
-	"MIDI". 
+	"MIDI".
 
 	These standard tags should not be localized in the audio unit.
 
-	Localizing the tags is similar to localizing AudioUnit parameter strings. Create a strings 
+	Localizing the tags is similar to localizing AudioUnit parameter strings. Create a strings
 	resource file and name it "AudioUnitTags.strings".
 	For more information on strings resource file please check
 	https://developer.apple.com/library/mac/documentation/macosx/conceptual/bpinternational/Articles/StringsFiles.html
@@ -385,24 +385,24 @@ uses MacTypes,CoreAudioTypes,Components,CFBase,CFDictionary;
 	will only return this component when performing a specific, non-wildcard search for the
 	component, i.e. with non-zero values of componentType, componentSubType, and
 	componentManufacturer. This can be useful when privately registering a component.
-	
+
 	@constant	kAudioComponentFlag_SandboxSafe
-	
+
 	An AudioComponent sets this bit in its componentFlags to indicate to the system that the
 	AudioComponent is safe to open in a sandboxed process.
-	
+
 	@constant	kAudioComponentFlag_IsV3AudioUnit
-	
+
 	The system sets this flag automatically when registering components which implement a version 3
 	Audio Unit.
-	
+
 	@constant	kAudioComponentFlag_RequiresAsyncInstantiation
-	
+
 	The system sets this flag automatically when registering components which require asynchronous
 	instantiation via AudioComponentInstantiate (v3 audio units with views).
-	
+
 	@constant	kAudioComponentFlag_CanLoadInProcess
-	
+
 	The system sets this flag automatically when registering components which can be loaded into
 	the current process. This is always true for V2 audio units; it depends on the packaging
 	in the case of a V3 audio unit.
@@ -426,7 +426,7 @@ const
         requires that the developer package the audio unit in a bundle separate from the application
         extension, since an extension's main binary cannot be dynamically loaded into another
         process.
-        
+
         An OS X host may request in-process loading of such audio units using
         kAudioComponentInstantiation_LoadInProcess.
 
@@ -452,7 +452,7 @@ const
 
 {!
     @struct         AudioComponentDescription
-    @discussion     A structure used to describe the unique and identifying IDs of an audio component 
+    @discussion     A structure used to describe the unique and identifying IDs of an audio component
     @field          componentType
                         A unique 4-byte code identifying the generic type of an audio component
     @field          componentSubType
@@ -483,7 +483,7 @@ type
     @discussion     An audio component is usually found through a search and is then uniquely
                     identified by the triple of an audio component's type, subtype and
                     manufacturer.
-                    
+
                     It can have properties associated with it (such as a name, a version).
 
                     It is then used as a factory (like a class in an object-oriented programming
@@ -507,7 +507,7 @@ type
     @abstract       The type used to represent an instance of a particular audio component
     @discussion     An audio component instance is created from its factory/producer audio
                     component. It is the body of code that does the work.
-    
+
                     A special note: While on the desktop this is typedef'd to a
                     ComponentInstanceRecord *, you should not assume that this will always be
                     compatible and usable with Component Manager calls.
@@ -523,7 +523,7 @@ type
 					selector. For example, the AudioUnitInitialize API call is implemented by a
 					plugin implementing the kAudioUnitInitializeSelect selector. Any function implementing
 					an audio plugin selector conforms to the basic pattern where the first argument
-					is a pointer to the plugin instance structure, has 0 or more specific arguments,  
+					is a pointer to the plugin instance structure, has 0 or more specific arguments,
 					and returns an OSStatus.
 }
 type
@@ -531,13 +531,13 @@ type
 
 {!
     @struct         AudioComponentPlugInInterface
-    @discussion     A structure used to represent an audio plugin's routines 
+    @discussion     A structure used to represent an audio plugin's routines
     @field          Open
                         the function used to open (or create) an audio plugin instance
     @field          Close
                         the function used to close (or dispose) an audio plugin instance
     @field          Lookup
-                        this is used to return a function pointer for a given selector, 
+                        this is used to return a function pointer for a given selector,
 						or NULL if that selector is not implemented
     @field          reserved
                         must be NULL
@@ -558,7 +558,7 @@ type
                     Authors of AudioComponents may register them from bundles as described
                     above in the discussion of this header file, or dynamically within a single
                     process, using AudioComponentRegister.
-    
+
     @param          inDesc
                         The AudioComponentDescription specifying the component to be instantiated.
     @result         A pointer to a AudioComponentPlugInInterface structure.
@@ -665,7 +665,7 @@ Needs to be added to CocoaInt
     @discussion
         For a component originating in an app extension, the returned icon will be that of the
         application containing the extension.
-        
+
         For components loaded from bundles, the icon will be that of the bundle.
 }
 extern NSImage * __nullable
@@ -699,7 +699,7 @@ function AudioComponentInstanceNew( inComponent: AudioComponent; var outInstance
     @discussion     This is an asynchronous version of AudioComponentInstanceNew(). It must be
                     used to instantiate any component with kAudioComponentFlag_RequiresAsyncInstantiation
                     set in its component flags. It may be used for other components as well.
-					
+
 					Note: Do not block the main thread while waiting for the completion handler
 					to be called; this can deadlock.
     @param          inComponent
@@ -763,7 +763,7 @@ function AudioComponentInstanceCanDo( inInstance: AudioComponentInstance; inSele
         AudioComponents are registered either when found in appropriate bundles in the filesystem,
         or via this call. AudioComponents registered via this call are available only within
         the current process.
-    
+
     @param          inDesc
                         The AudioComponentDescription that describes the AudioComponent. Note that
                         the registrar needs to be sure to set the flag kAudioComponentFlag_SandboxSafe
@@ -821,7 +821,7 @@ const
 	kAudioComponentValidationResult_TimedOut = 3;
 	kAudioComponentValidationResult_UnauthorizedError_Open = 4;
 	kAudioComponentValidationResult_UnauthorizedError_Init = 5;
-	
+
 {!
 	@define		kAudioComponentConfigurationInfo_ValidationResult
 	@abstract	Dictionary that contains the AudioComponentValidationResult for the component.
@@ -830,7 +830,7 @@ const
 }
 const
 	kAudioComponentConfigurationInfo_ValidationResult = 'ValidationResult';
-	
+
 {!
 	@function		AudioComponentValidate
 	@abstract		Tests a specified AudioComponent for API and behavioral conformance.
@@ -847,7 +847,7 @@ const
 }
 function AudioComponentValidate( inComponent: AudioComponent; inValidationParameters: CFDictionaryRef; var outValidationResult: AudioComponentValidationResult): OSStatus; external name '_AudioComponentValidate';
 (* API_AVAILABLE(macos(10.7)) *)
-	
+
 {!
 	@define		kAudioComponentValidationParameter_TimeOut
 	@discussion This is a number that indicates the time in seconds to wait for a validation
@@ -856,7 +856,7 @@ function AudioComponentValidate( inComponent: AudioComponent; inValidationParame
 }
 const
 	kAudioComponentValidationParameter_TimeOut = 'TimeOut';
-	
+
 {!
 	 @define	 kAudioComponentValidationParameter_ForceValidation
 	 @discussion

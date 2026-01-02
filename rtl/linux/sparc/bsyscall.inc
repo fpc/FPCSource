@@ -21,7 +21,7 @@ Function fppipe(var fildes : tfildes):cint;assembler;
 }
 asm
         mov     42,%g1
-        mov     %i0,%o0        
+        mov     %i0,%o0
         ta      0x10
         bcc     .LSyscOK
         nop

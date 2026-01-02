@@ -287,14 +287,14 @@ end;
   What follows, is a short description on my implementation of TThread.
   Most information can also be found by reading the source and accompanying
   comments.
-  
+
   A thread is created using BeginThread, which in turn calls
   pthread_create. So the threads here are always posix threads.
   Posix doesn't define anything for suspending threads as this is
   inherintly unsafe. Just don't suspend threads at points they cannot
   control. Therefore, I didn't implement .Suspend() if its called from
   outside the threads execution flow (except on Linux _without_ NPTL).
-  
+
   The implementation for .suspend uses a semaphore, which is initialized
   at thread creation. If the thread tries to suspend itself, we simply
   let it wait on the semaphore until it is unblocked by someone else
@@ -305,7 +305,7 @@ end;
   are possible.
   1) the system has the LinuxThreads pthread implementation
   2) the system has NPTL as the pthread implementation.
-  
+
   In the first case, each thread is a process on its own, which as far as
   know actually violates posix with respect to signal handling.
   But we can detect this case, because getpid(2) will
@@ -316,10 +316,10 @@ end;
   PID across all threads, which is detected, and TThread.Suspend() does
   nothing in that case. This should probably be changed, but I know of
   no way to suspend a thread when using NPTL.
-  
+
   If the symbol LINUX is not defined, then the unimplemented
   function SuspendThread is called.
-  
+
   Johannes Berg <johannes@sipsolutions.de>, Sunday, November 16 2003
 }
 

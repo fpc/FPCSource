@@ -257,7 +257,7 @@ begin
 
   ptr:=BinSearchRes(ptr,ResourceType);
   if ptr=nil then exit;
-  
+
   tot:=ptr^.ncounthandle+ptr^.idcountsize;
   ptr:=ptr^.subptr;
   IntEnumResourceNames:=true;

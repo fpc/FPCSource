@@ -234,12 +234,12 @@
        RTLString = shortstring;
 
        {$endif FPC_HAS_FEATURE_ANSISTRINGS}
-       
+
        // Dispatch needs a DWord as the first 4 bytes in its untyped parameter.
        // Note that this is different from Delphi, which uses only a word.
        TDispatchMessage = record
          MsgID: DWord;
-       end;  
+       end;
 
        TObject = class
        {$IFDEF SYSTEM_HAS_FEATURE_MONITOR}
@@ -286,7 +286,7 @@
           {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
 	  class function ClassNameIs(const name : RTLString) : boolean; overload;  {$ifdef SYSTEMINLINE}inline;{$endif}
           {$endif FPC_HAS_FEATURE_ANSISTRINGS}
-          class function ClassNameIs(const name : ShortString) : boolean; 
+          class function ClassNameIs(const name : ShortString) : boolean;
           class function ClassParent : tclass;{$ifdef SYSTEMINLINE}inline;{$endif}
           class function InstanceSize : SizeInt;// {$ifdef SYSTEMINLINE}inline;{$endif}
           class function InheritsFrom(aclass : tclass) : boolean;
@@ -323,7 +323,7 @@
           class function QualifiedClassName: RTLString;
           Procedure DisposeOf; inline;
           Procedure CheckDisposed; inline;
-          
+
           function Equals(Obj: TObject) : boolean;virtual;
           function GetHashCode: PtrInt;virtual;
           function ToString: RTLString; virtual;
@@ -411,7 +411,7 @@
            function _Release : longint;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
        end;
 
-       
+
        TInterfaceThunk = Class(TInterfacedObject)
        Public
          Type
@@ -427,14 +427,14 @@
        Private
          FOnQueryInterface : TQueryInterfaceCallback;
          FCallback : TThunkCallback;
-       Protected  
+       Protected
          function QueryInterface({$IFDEF FPC_HAS_CONSTREF}constref{$ELSE}const{$ENDIF} iid : tguid;out obj) : longint;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
          Procedure Thunk(aMethod: Longint; aCount : Longint; aData : PArgData); virtual;
-       Public  
+       Public
          constructor create(aCallBack : TThunkCallback);
          function InterfaceVMTOffset : word; virtual;
          property OnQueryInterface : TQueryInterfaceCallback read FOnQueryInterface Write FOnQueryInterface;
-       end;  
+       end;
        TInterfaceThunkClass = class of TInterfaceThunk;
 
        { some pointer definitions }
@@ -783,15 +783,15 @@ Type
   end;
   TPtrWrapperArray = Array of TPtrWrapper;
 
-  { Generic array type. 
-    Slightly Less useful in FPC, since dyn array compatibility is at the element level. 
+  { Generic array type.
+    Slightly Less useful in FPC, since dyn array compatibility is at the element level.
     But still useful for generic methods and of course Delphi compatibility}
   generic TArray<T> = array of T;
 
 
   TMarshal = class sealed
   public
-    Type 
+    Type
       TUnicodeCharArray = Array of UnicodeChar;
       Tint8Array = Array of int8;
       Tint16Array = Array of int16;
@@ -801,7 +801,7 @@ Type
       TUint16Array = Array of Uint16;
       TUint32Array = Array of Uint32;
       TUint64Array = Array of Uint64;
-      
+
   Public
     constructor Create;
 

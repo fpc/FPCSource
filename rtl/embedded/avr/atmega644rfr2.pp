@@ -56,8 +56,8 @@ var
   MCUSR: byte absolute $54;  // MCU Status Register
   MCUCR: byte absolute $55;  // MCU Control Register
   SPMCSR: byte absolute $57;  // Store Program Memory Control Register
-  SP: word absolute $5D;  // Stack Pointer 
-  SPL: byte absolute $5D;  // Stack Pointer 
+  SP: word absolute $5D;  // Stack Pointer
+  SPL: byte absolute $5D;  // Stack Pointer
   SPH: byte absolute $5E;  // Stack Pointer ;
   SREG: byte absolute $5F;  // Status Register
   WDTCSR: byte absolute $60;  // Watchdog Timer Control Register
@@ -314,100 +314,100 @@ var
 
 const
   // Port A Data Register
-  PA0 = $00;  
-  PA1 = $01;  
-  PA2 = $02;  
-  PA3 = $03;  
-  PA4 = $04;  
-  PA5 = $05;  
-  PA6 = $06;  
-  PA7 = $07;  
+  PA0 = $00;
+  PA1 = $01;
+  PA2 = $02;
+  PA3 = $03;
+  PA4 = $04;
+  PA5 = $05;
+  PA6 = $06;
+  PA7 = $07;
   // Port B Data Register
-  PB0 = $00;  
-  PB1 = $01;  
-  PB2 = $02;  
-  PB3 = $03;  
-  PB4 = $04;  
-  PB5 = $05;  
-  PB6 = $06;  
-  PB7 = $07;  
+  PB0 = $00;
+  PB1 = $01;
+  PB2 = $02;
+  PB3 = $03;
+  PB4 = $04;
+  PB5 = $05;
+  PB6 = $06;
+  PB7 = $07;
   // Port C Data Register
-  PC0 = $00;  
-  PC1 = $01;  
-  PC2 = $02;  
-  PC3 = $03;  
-  PC4 = $04;  
-  PC5 = $05;  
-  PC6 = $06;  
-  PC7 = $07;  
+  PC0 = $00;
+  PC1 = $01;
+  PC2 = $02;
+  PC3 = $03;
+  PC4 = $04;
+  PC5 = $05;
+  PC6 = $06;
+  PC7 = $07;
   // Port D Data Register
-  PD0 = $00;  
-  PD1 = $01;  
-  PD2 = $02;  
-  PD3 = $03;  
-  PD4 = $04;  
-  PD5 = $05;  
-  PD6 = $06;  
-  PD7 = $07;  
+  PD0 = $00;
+  PD1 = $01;
+  PD2 = $02;
+  PD3 = $03;
+  PD4 = $04;
+  PD5 = $05;
+  PD6 = $06;
+  PD7 = $07;
   // Port E Data Register
-  PE0 = $00;  
-  PE1 = $01;  
-  PE2 = $02;  
-  PE3 = $03;  
-  PE4 = $04;  
-  PE5 = $05;  
-  PE6 = $06;  
-  PE7 = $07;  
+  PE0 = $00;
+  PE1 = $01;
+  PE2 = $02;
+  PE3 = $03;
+  PE4 = $04;
+  PE5 = $05;
+  PE6 = $06;
+  PE7 = $07;
   // Port F Data Register
-  PF0 = $00;  
-  PF1 = $01;  
-  PF2 = $02;  
-  PF3 = $03;  
-  PF4 = $04;  
-  PF5 = $05;  
-  PF6 = $06;  
-  PF7 = $07;  
+  PF0 = $00;
+  PF1 = $01;
+  PF2 = $02;
+  PF3 = $03;
+  PF4 = $04;
+  PF5 = $05;
+  PF6 = $06;
+  PF7 = $07;
   // Port G Data Register
-  PG0 = $00;  
-  PG1 = $01;  
-  PG2 = $02;  
-  PG3 = $03;  
-  PG4 = $04;  
-  PG5 = $05;  
-  PG6 = $06;  
-  PG7 = $07;  
+  PG0 = $00;
+  PG1 = $01;
+  PG2 = $02;
+  PG3 = $03;
+  PG4 = $04;
+  PG5 = $05;
+  PG6 = $06;
+  PG7 = $07;
   // Timer/Counter0 Interrupt Flag Register
-  TOV0 = $00;  
-  OCF0A = $01;  
-  OCF0B = $02;  
+  TOV0 = $00;
+  OCF0A = $01;
+  OCF0B = $02;
   // Timer/Counter1 Interrupt Flag Register
-  TOV1 = $00;  
-  OCF1A = $01;  
-  OCF1B = $02;  
-  OCF1C = $03;  
-  ICF1 = $05;  
+  TOV1 = $00;
+  OCF1A = $01;
+  OCF1B = $02;
+  OCF1C = $03;
+  ICF1 = $05;
   // Timer/Counter Interrupt Flag Register
-  TOV2 = $00;  
-  OCF2A = $01;  
-  OCF2B = $02;  
+  TOV2 = $00;
+  OCF2A = $01;
+  OCF2B = $02;
   // Timer/Counter3 Interrupt Flag Register
-  TOV3 = $00;  
-  OCF3A = $01;  
-  OCF3B = $02;  
-  OCF3C = $03;  
-  ICF3 = $05;  
+  TOV3 = $00;
+  OCF3A = $01;
+  OCF3B = $02;
+  OCF3C = $03;
+  ICF3 = $05;
   // Timer/Counter4 Interrupt Flag Register
-  TOV4 = $00;  
-  OCF4A = $01;  
-  OCF4B = $02;  
-  OCF4C = $03;  
-  ICF4 = $05;  
+  TOV4 = $00;
+  OCF4A = $01;
+  OCF4B = $02;
+  OCF4C = $03;
+  ICF4 = $05;
   // Timer/Counter5 Interrupt Flag Register
-  TOV5 = $00;  
-  OCF5A = $01;  
-  OCF5B = $02;  
-  OCF5C = $03;  
-  ICF5 = $05;  
+  TOV5 = $00;
+  OCF5A = $01;
+  OCF5B = $02;
+  OCF5C = $03;
+  ICF5 = $05;
   // Pin Change Interrupt Flag Register
   PCIF0 = $00;  // Pin Change Interrupt Flags
   PCIF1 = $01;  // Pin Change Interrupt Flags
@@ -431,25 +431,25 @@ const
   INT6 = $06;  // External Interrupt Request Enable
   INT7 = $07;  // External Interrupt Request Enable
   // General Purpose IO Register 0
-  GPIOR00 = $00;  
-  GPIOR01 = $01;  
-  GPIOR02 = $02;  
-  GPIOR03 = $03;  
-  GPIOR04 = $04;  
-  GPIOR05 = $05;  
-  GPIOR06 = $06;  
-  GPIOR07 = $07;  
+  GPIOR00 = $00;
+  GPIOR01 = $01;
+  GPIOR02 = $02;
+  GPIOR03 = $03;
+  GPIOR04 = $04;
+  GPIOR05 = $05;
+  GPIOR06 = $06;
+  GPIOR07 = $07;
   // EEPROM Control Register
-  EERE = $00;  
-  EEPE = $01;  
-  EEMPE = $02;  
-  EERIE = $03;  
+  EERE = $00;
+  EEPE = $01;
+  EEMPE = $02;
+  EERIE = $03;
   EEPM0 = $04;  // EEPROM Programming Mode
   EEPM1 = $05;  // EEPROM Programming Mode
   // General Timer Counter Control register
-  PSRSYNC = $00;  
-  PSRASY = $01;  
-  TSM = $07;  
+  PSRSYNC = $00;
+  PSRASY = $01;
+  TSM = $07;
   // Timer/Counter0 Control Register A
   WGM00 = $00;  // Waveform Generation Mode
   WGM01 = $01;  // Waveform Generation Mode
@@ -461,9 +461,9 @@ const
   CS00 = $00;  // Clock Select
   CS01 = $01;  // Clock Select
   CS02 = $02;  // Clock Select
-  WGM02 = $03;  
-  FOC0B = $06;  
-  FOC0A = $07;  
+  WGM02 = $03;
+  FOC0B = $06;
+  FOC0A = $07;
   // General Purpose I/O Register 2
   GPIOR20 = $00;  // General Purpose I/O Register 2 Value
   GPIOR21 = $01;  // General Purpose I/O Register 2 Value
@@ -476,25 +476,25 @@ const
   // SPI Control Register
   SPR0 = $00;  // SPI Clock Rate Select 1 and 0
   SPR1 = $01;  // SPI Clock Rate Select 1 and 0
-  CPHA = $02;  
-  CPOL = $03;  
-  MSTR = $04;  
-  DORD = $05;  
-  SPE = $06;  
-  SPIE = $07;  
+  CPHA = $02;
+  CPOL = $03;
+  MSTR = $04;
+  DORD = $05;
+  SPE = $06;
+  SPIE = $07;
   // SPI Status Register
-  SPI2X = $00;  
-  WCOL = $06;  
-  SPIF = $07;  
+  SPI2X = $00;
+  WCOL = $06;
+  SPIF = $07;
   // Analog Comparator Control And Status Register
   ACIS0 = $00;  // Analog Comparator Interrupt Mode Select
   ACIS1 = $01;  // Analog Comparator Interrupt Mode Select
-  ACIC = $02;  
-  ACIE = $03;  
-  ACI = $04;  
-  ACO = $05;  
-  ACBG = $06;  
-  ACD = $07;  
+  ACIC = $02;
+  ACIE = $03;
+  ACI = $04;
+  ACO = $05;
+  ACBG = $06;
+  ACD = $07;
   // On-Chip Debug Register
   OCDR0 = $00;  // On-Chip Debug Register Data
   OCDR1 = $01;  // On-Chip Debug Register Data
@@ -505,74 +505,74 @@ const
   OCDR6 = $06;  // On-Chip Debug Register Data
   OCDR7 = $07;  // On-Chip Debug Register Data
   // Sleep Mode Control Register
-  SE = $00;  
+  SE = $00;
   SM0 = $01;  // Sleep Mode Select bits
   SM1 = $02;  // Sleep Mode Select bits
   SM2 = $03;  // Sleep Mode Select bits
   // MCU Status Register
-  PORF = $00;  
-  EXTRF = $01;  
-  BORF = $02;  
-  WDRF = $03;  
-  JTRF = $04;  
+  PORF = $00;
+  EXTRF = $01;
+  BORF = $02;
+  WDRF = $03;
+  JTRF = $04;
   // MCU Control Register
-  IVCE = $00;  
-  IVSEL = $01;  
-  PUD = $04;  
-  JTD = $07;  
+  IVCE = $00;
+  IVSEL = $01;
+  PUD = $04;
+  JTD = $07;
   // Store Program Memory Control Register
-  SPMEN = $00;  
-  PGERS = $01;  
-  PGWRT = $02;  
-  BLBSET = $03;  
-  RWWSRE = $04;  
-  SIGRD = $05;  
-  RWWSB = $06;  
-  SPMIE = $07;  
+  SPMEN = $00;
+  PGERS = $01;
+  PGWRT = $02;
+  BLBSET = $03;
+  RWWSRE = $04;
+  SIGRD = $05;
+  RWWSB = $06;
+  SPMIE = $07;
   // Status Register
-  C = $00;  
-  Z = $01;  
-  N = $02;  
-  V = $03;  
-  S = $04;  
-  H = $05;  
-  T = $06;  
-  I = $07;  
+  C = $00;
+  Z = $01;
+  N = $02;
+  V = $03;
+  S = $04;
+  H = $05;
+  T = $06;
+  I = $07;
   // Watchdog Timer Control Register
-  WDE = $03;  
-  WDCE = $04;  
+  WDE = $03;
+  WDCE = $04;
   WDP0 = $00;  // Watchdog Timer Prescaler Bits
   WDP1 = $01;  // Watchdog Timer Prescaler Bits
   WDP2 = $02;  // Watchdog Timer Prescaler Bits
   WDP3 = $05;  // Watchdog Timer Prescaler Bits
-  WDIE = $06;  
-  WDIF = $07;  
+  WDIE = $06;
+  WDIF = $07;
   // Clock Prescale Register
   CLKPS0 = $00;  // Clock Prescaler Select Bits
   CLKPS1 = $01;  // Clock Prescaler Select Bits
   CLKPS2 = $02;  // Clock Prescaler Select Bits
   CLKPS3 = $03;  // Clock Prescaler Select Bits
-  CLKPCE = $07;  
+  CLKPCE = $07;
   // Power Reduction Register 2
-  PRRAM0 = $00;  
-  PRRAM1 = $01;  
-  PRRAM2 = $02;  
-  PRRAM3 = $03;  
+  PRRAM0 = $00;
+  PRRAM1 = $01;
+  PRRAM2 = $02;
+  PRRAM3 = $03;
   // Power Reduction Register0
-  PRADC = $00;  
-  PRUSART0 = $01;  
-  PRSPI = $02;  
-  PRTIM1 = $03;  
-  PRPGA = $04;  
-  PRTIM0 = $05;  
-  PRTIM2 = $06;  
-  PRTWI = $07;  
+  PRADC = $00;
+  PRUSART0 = $01;
+  PRSPI = $02;
+  PRTIM1 = $03;
+  PRPGA = $04;
+  PRTIM0 = $05;
+  PRTIM2 = $06;
+  PRTWI = $07;
   // Power Reduction Register 1
-  PRUSART1 = $00;  
-  PRTIM3 = $03;  
-  PRTIM4 = $04;  
-  PRTIM5 = $05;  
-  PRTRX24 = $06;  
+  PRUSART1 = $00;
+  PRTIM3 = $03;
+  PRTIM4 = $04;
+  PRTIM5 = $05;
+  PRTRX24 = $06;
   // Oscillator Calibration Value
   CAL0 = $00;  // Oscillator Calibration Tuning Value
   CAL1 = $01;  // Oscillator Calibration Tuning Value
@@ -622,41 +622,41 @@ const
   PCINT22 = $06;  // Pin Change Enable Mask
   PCINT23 = $07;  // Pin Change Enable Mask
   // Timer/Counter0 Interrupt Mask Register
-  TOIE0 = $00;  
-  OCIE0A = $01;  
-  OCIE0B = $02;  
+  TOIE0 = $00;
+  OCIE0A = $01;
+  OCIE0B = $02;
   // Timer/Counter1 Interrupt Mask Register
-  TOIE1 = $00;  
-  OCIE1A = $01;  
-  OCIE1B = $02;  
-  OCIE1C = $03;  
-  ICIE1 = $05;  
+  TOIE1 = $00;
+  OCIE1A = $01;
+  OCIE1B = $02;
+  OCIE1C = $03;
+  ICIE1 = $05;
   // Timer/Counter Interrupt Mask register
-  TOIE2 = $00;  
-  OCIE2A = $01;  
-  OCIE2B = $02;  
+  TOIE2 = $00;
+  OCIE2A = $01;
+  OCIE2B = $02;
   // Timer/Counter3 Interrupt Mask Register
-  TOIE3 = $00;  
-  OCIE3A = $01;  
-  OCIE3B = $02;  
-  OCIE3C = $03;  
-  ICIE3 = $05;  
+  TOIE3 = $00;
+  OCIE3A = $01;
+  OCIE3B = $02;
+  OCIE3C = $03;
+  ICIE3 = $05;
   // Timer/Counter4 Interrupt Mask Register
-  TOIE4 = $00;  
-  OCIE4A = $01;  
-  OCIE4B = $02;  
-  OCIE4C = $03;  
-  ICIE4 = $05;  
+  TOIE4 = $00;
+  OCIE4A = $01;
+  OCIE4B = $02;
+  OCIE4C = $03;
+  ICIE4 = $05;
   // Timer/Counter5 Interrupt Mask Register
-  TOIE5 = $00;  
-  OCIE5A = $01;  
-  OCIE5B = $02;  
-  OCIE5C = $03;  
-  ICIE5 = $05;  
+  TOIE5 = $00;
+  OCIE5A = $01;
+  OCIE5B = $02;
+  OCIE5C = $03;
+  ICIE5 = $05;
   // Flash Extended-Mode Control-Register
   AEAM0 = $04;  // Address for Extended Address Mode of Extra Rows
   AEAM1 = $05;  // Address for Extended Address Mode of Extra Rows
-  ENEAM = $06;  
+  ENEAM = $06;
   // The ADC Control and Status Register C
   ADSUT0 = $00;  // ADC Start-up Time
   ADSUT1 = $01;  // ADC Start-up Time
@@ -669,50 +669,50 @@ const
   ADPS0 = $00;  // ADC  Prescaler Select Bits
   ADPS1 = $01;  // ADC  Prescaler Select Bits
   ADPS2 = $02;  // ADC  Prescaler Select Bits
-  ADIE = $03;  
-  ADIF = $04;  
-  ADATE = $05;  
-  ADSC = $06;  
-  ADEN = $07;  
+  ADIE = $03;
+  ADIF = $04;
+  ADATE = $05;
+  ADSC = $06;
+  ADEN = $07;
   // The ADC Control and Status Register B
   ADTS0 = $00;  // ADC Auto Trigger Source
   ADTS1 = $01;  // ADC Auto Trigger Source
   ADTS2 = $02;  // ADC Auto Trigger Source
-  MUX5 = $03;  
-  ACCH = $04;  
-  REFOK = $05;  
-  ACME = $06;  
-  AVDDOK = $07;  
+  MUX5 = $03;
+  ACCH = $04;
+  REFOK = $05;
+  ACME = $06;
+  AVDDOK = $07;
   // The ADC Multiplexer Selection Register
   MUX0 = $00;  // Analog Channel and Gain Selection Bits
   MUX1 = $01;  // Analog Channel and Gain Selection Bits
   MUX2 = $02;  // Analog Channel and Gain Selection Bits
   MUX3 = $03;  // Analog Channel and Gain Selection Bits
   MUX4 = $04;  // Analog Channel and Gain Selection Bits
-  ADLAR = $05;  
+  ADLAR = $05;
   REFS0 = $06;  // Reference Selection Bits
   REFS1 = $07;  // Reference Selection Bits
   // Digital Input Disable Register 2
-  ADC8D = $00;  
-  ADC9D = $01;  
-  ADC10D = $02;  
-  ADC11D = $03;  
-  ADC12D = $04;  
-  ADC13D = $05;  
-  ADC14D = $06;  
-  ADC15D = $07;  
+  ADC8D = $00;
+  ADC9D = $01;
+  ADC10D = $02;
+  ADC11D = $03;
+  ADC12D = $04;
+  ADC13D = $05;
+  ADC14D = $06;
+  ADC15D = $07;
   // Digital Input Disable Register 0
-  ADC0D = $00;  
-  ADC1D = $01;  
-  ADC2D = $02;  
-  ADC3D = $03;  
-  ADC4D = $04;  
-  ADC5D = $05;  
-  ADC6D = $06;  
-  ADC7D = $07;  
+  ADC0D = $00;
+  ADC1D = $01;
+  ADC2D = $02;
+  ADC3D = $03;
+  ADC4D = $04;
+  ADC5D = $05;
+  ADC6D = $06;
+  ADC7D = $07;
   // Digital Input Disable Register 1
-  AIN0D = $00;  
-  AIN1D = $01;  
+  AIN0D = $00;
+  AIN1D = $01;
   // Timer/Counter1 Control Register A
   WGM10 = $00;  // Waveform Generation Mode
   WGM11 = $01;  // Waveform Generation Mode
@@ -726,12 +726,12 @@ const
   CS10 = $00;  // Clock Select
   CS11 = $01;  // Clock Select
   CS12 = $02;  // Clock Select
-  ICES1 = $06;  
-  ICNC1 = $07;  
+  ICES1 = $06;
+  ICNC1 = $07;
   // Timer/Counter1 Control Register C
-  FOC1C = $05;  
-  FOC1B = $06;  
-  FOC1A = $07;  
+  FOC1C = $05;
+  FOC1B = $06;
+  FOC1A = $07;
   // Timer/Counter3 Control Register A
   WGM30 = $00;  // Waveform Generation Mode
   WGM31 = $01;  // Waveform Generation Mode
@@ -745,12 +745,12 @@ const
   CS30 = $00;  // Clock Select
   CS31 = $01;  // Clock Select
   CS32 = $02;  // Clock Select
-  ICES3 = $06;  
-  ICNC3 = $07;  
+  ICES3 = $06;
+  ICNC3 = $07;
   // Timer/Counter3 Control Register C
-  FOC3C = $05;  
-  FOC3B = $06;  
-  FOC3A = $07;  
+  FOC3C = $05;
+  FOC3B = $06;
+  FOC3A = $07;
   // Timer/Counter4 Control Register A
   WGM40 = $00;  // Waveform Generation Mode
   WGM41 = $01;  // Waveform Generation Mode
@@ -764,12 +764,12 @@ const
   CS40 = $00;  // Clock Select
   CS41 = $01;  // Clock Select
   CS42 = $02;  // Clock Select
-  ICES4 = $06;  
-  ICNC4 = $07;  
+  ICES4 = $06;
+  ICNC4 = $07;
   // Timer/Counter4 Control Register C
-  FOC4C = $05;  
-  FOC4B = $06;  
-  FOC4A = $07;  
+  FOC4C = $05;
+  FOC4B = $06;
+  FOC4A = $07;
   // Timer/Counter2 Control Register A
   WGM20 = $00;  // Waveform Generation Mode
   WGM21 = $01;  // Waveform Generation Mode
@@ -781,18 +781,18 @@ const
   CS20 = $00;  // Clock Select
   CS21 = $01;  // Clock Select
   CS22 = $02;  // Clock Select
-  WGM22 = $03;  
-  FOC2B = $06;  
-  FOC2A = $07;  
+  WGM22 = $03;
+  FOC2B = $06;
+  FOC2A = $07;
   // Asynchronous Status Register
-  TCR2BUB = $00;  
-  TCR2AUB = $01;  
-  OCR2BUB = $02;  
-  OCR2AUB = $03;  
-  TCN2UB = $04;  
-  AS2 = $05;  
-  EXCLK = $06;  
-  EXCLKAMR = $07;  
+  TCR2BUB = $00;
+  TCR2AUB = $01;
+  OCR2BUB = $02;
+  OCR2AUB = $03;
+  TCN2UB = $04;
+  AS2 = $05;
+  EXCLK = $06;
+  EXCLKAMR = $07;
   // TWI Status Register
   TWPS0 = $00;  // TWI Prescaler Bits
   TWPS1 = $01;  // TWI Prescaler Bits
@@ -802,7 +802,7 @@ const
   TWS6 = $06;  // TWI Status
   TWS7 = $07;  // TWI Status
   // TWI (Slave) Address Register
-  TWGCE = $00;  
+  TWGCE = $00;
   TWA0 = $01;  // TWI (Slave) Address
   TWA1 = $02;  // TWI (Slave) Address
   TWA2 = $03;  // TWI (Slave) Address
@@ -811,15 +811,15 @@ const
   TWA5 = $06;  // TWI (Slave) Address
   TWA6 = $07;  // TWI (Slave) Address
   // TWI Control Register
-  TWIE = $00;  
-  TWEN = $02;  
-  TWWC = $03;  
-  TWSTO = $04;  
-  TWSTA = $05;  
-  TWEA = $06;  
-  TWINT = $07;  
+  TWIE = $00;
+  TWEN = $02;
+  TWWC = $03;
+  TWSTO = $04;
+  TWSTA = $05;
+  TWEA = $06;
+  TWINT = $07;
   // TWI (Slave) Address Mask Register
-  Res = $00;  
+  Res = $00;
   TWAM0 = $01;  // TWI Address Mask
   TWAM1 = $02;  // TWI Address Mask
   TWAM2 = $03;  // TWI Address Mask
@@ -828,71 +828,71 @@ const
   TWAM5 = $06;  // TWI Address Mask
   TWAM6 = $07;  // TWI Address Mask
   // Transceiver Interrupt Enable Register 1
-  TX_START_EN = $00;  
-  MAF_0_AMI_EN = $01;  
-  MAF_1_AMI_EN = $02;  
-  MAF_2_AMI_EN = $03;  
-  MAF_3_AMI_EN = $04;  
+  TX_START_EN = $00;
+  MAF_0_AMI_EN = $01;
+  MAF_1_AMI_EN = $02;
+  MAF_2_AMI_EN = $03;
+  MAF_3_AMI_EN = $04;
   // Transceiver Interrupt Status Register 1
-  TX_START = $00;  
-  MAF_0_AMI = $01;  
-  MAF_1_AMI = $02;  
-  MAF_2_AMI = $03;  
-  MAF_3_AMI = $04;  
+  TX_START = $00;
+  MAF_0_AMI = $01;
+  MAF_1_AMI = $02;
+  MAF_2_AMI = $03;
+  MAF_3_AMI = $04;
   // USART0 MSPIM Control and Status Register A
-  MPCM0 = $00;  
-  U2X0 = $01;  
-  UPE0 = $02;  
-  DOR0 = $03;  
-  FE0 = $04;  
-  UDRE0 = $05;  
-  TXC0 = $06;  
-  RXC0 = $07;  
+  MPCM0 = $00;
+  U2X0 = $01;
+  UPE0 = $02;
+  DOR0 = $03;
+  FE0 = $04;
+  UDRE0 = $05;
+  TXC0 = $06;
+  RXC0 = $07;
   // USART0 MSPIM Control and Status Register B
-  TXB80 = $00;  
-  RXB80 = $01;  
-  UCSZ02 = $02;  
-  TXEN0 = $03;  
-  RXEN0 = $04;  
-  UDRIE0 = $05;  
-  TXCIE0 = $06;  
-  RXCIE0 = $07;  
+  TXB80 = $00;
+  RXB80 = $01;
+  UCSZ02 = $02;
+  TXEN0 = $03;
+  RXEN0 = $04;
+  UDRIE0 = $05;
+  TXCIE0 = $06;
+  RXCIE0 = $07;
   // USART0 MSPIM Control and Status Register C
-  UCPOL0 = $00;  
-  UCPHA0 = $01;  
-  UDORD0 = $02;  
+  UCPOL0 = $00;
+  UCPHA0 = $01;
+  UDORD0 = $02;
   UCSZ00 = $01;  // Character Size
   UCSZ01 = $02;  // Character Size
-  USBS0 = $03;  
+  USBS0 = $03;
   UPM00 = $04;  // Parity Mode
   UPM01 = $05;  // Parity Mode
   UMSEL00 = $06;  // USART Mode Select
   UMSEL01 = $07;  // USART Mode Select
   // USART1 MSPIM Control and Status Register A
-  MPCM1 = $00;  
-  U2X1 = $01;  
-  UPE1 = $02;  
-  DOR1 = $03;  
-  FE1 = $04;  
-  UDRE1 = $05;  
-  TXC1 = $06;  
-  RXC1 = $07;  
+  MPCM1 = $00;
+  U2X1 = $01;
+  UPE1 = $02;
+  DOR1 = $03;
+  FE1 = $04;
+  UDRE1 = $05;
+  TXC1 = $06;
+  RXC1 = $07;
   // USART1 MSPIM Control and Status Register B
-  TXB81 = $00;  
-  RXB81 = $01;  
-  UCSZ12 = $02;  
-  TXEN1 = $03;  
-  RXEN1 = $04;  
-  UDRIE1 = $05;  
-  TXCIE1 = $06;  
-  RXCIE1 = $07;  
+  TXB81 = $00;
+  RXB81 = $01;
+  UCSZ12 = $02;
+  TXEN1 = $03;
+  RXEN1 = $04;
+  UDRIE1 = $05;
+  TXCIE1 = $06;
+  RXCIE1 = $07;
   // USART1 MSPIM Control and Status Register C
-  UCPOL1 = $00;  
-  UCPHA1 = $01;  
-  UDORD1 = $02;  
+  UCPOL1 = $00;
+  UCPHA1 = $01;
+  UDORD1 = $02;
   UCSZ10 = $01;  // Character Size
   UCSZ11 = $02;  // Character Size
-  USBS1 = $03;  
+  USBS1 = $03;
   UPM10 = $04;  // Parity Mode
   UPM11 = $05;  // Parity Mode
   UMSEL10 = $06;  // USART Mode Select
@@ -944,32 +944,32 @@ const
   SCCMP1 = $00;  // Symbol Counter Compare Unit 3 Mode select
   SCCMP2 = $01;  // Symbol Counter Compare Unit 3 Mode select
   SCCMP3 = $02;  // Symbol Counter Compare Unit 3 Mode select
-  SCTSE = $03;  
-  SCCKSEL = $04;  
-  SCEN = $05;  
-  SCMBTS = $06;  
-  SCRES = $07;  
+  SCTSE = $03;
+  SCCKSEL = $04;
+  SCEN = $05;
+  SCMBTS = $06;
+  SCRES = $07;
   // Symbol Counter Control Register 1
-  SCENBO = $00;  
-  SCEECLK = $01;  
+  SCENBO = $00;
+  SCEECLK = $01;
   SCCKDIV0 = $02;  // Clock divider for synchronous clock source (16MHz Transceiver Clock)
   SCCKDIV1 = $03;  // Clock divider for synchronous clock source (16MHz Transceiver Clock)
   SCCKDIV2 = $04;  // Clock divider for synchronous clock source (16MHz Transceiver Clock)
-  SCBTSM = $05;  
+  SCBTSM = $05;
   // Symbol Counter Status Register
-  SCBSY = $00;  
+  SCBSY = $00;
   // Symbol Counter Interrupt Mask Register
   IRQMCP1 = $00;  // Symbol Counter Compare Match 3 IRQ enable
   IRQMCP2 = $01;  // Symbol Counter Compare Match 3 IRQ enable
   IRQMCP3 = $02;  // Symbol Counter Compare Match 3 IRQ enable
-  IRQMOF = $03;  
-  IRQMBO = $04;  
+  IRQMOF = $03;
+  IRQMBO = $04;
   // Symbol Counter Interrupt Status Register
   IRQSCP1 = $00;  // Compare Unit 3 Compare Match IRQ
   IRQSCP2 = $01;  // Compare Unit 3 Compare Match IRQ
   IRQSCP3 = $02;  // Compare Unit 3 Compare Match IRQ
-  IRQSOF = $03;  
-  IRQSBO = $04;  
+  IRQSOF = $03;
+  IRQSBO = $04;
   // Symbol Counter Register LL-Byte
   SCCNTLL0 = $00;  // Symbol Counter Register LL-Byte
   SCCNTLL1 = $01;  // Symbol Counter Register LL-Byte
@@ -1223,19 +1223,19 @@ const
   SCTSTRHH6 = $06;  // Symbol Counter Transmit Frame Timestamp Register HH-Byte
   SCTSTRHH7 = $07;  // Symbol Counter Transmit Frame Timestamp Register HH-Byte
   // Multiple Address Filter Configuration Register 0
-  MAF0EN = $00;  
-  MAF1EN = $01;  
-  MAF2EN = $02;  
-  MAF3EN = $03;  
+  MAF0EN = $00;
+  MAF1EN = $01;
+  MAF2EN = $02;
+  MAF3EN = $03;
   // Multiple Address Filter Configuration Register 1
-  AACK_0_I_AM_COORD = $00;  
-  AACK_0_SET_PD = $01;  
-  AACK_1_I_AM_COORD = $02;  
-  AACK_1_SET_PD = $03;  
-  AACK_2_I_AM_COORD = $04;  
-  AACK_2_SET_PD = $05;  
-  AACK_3_I_AM_COORD = $06;  
-  AACK_3_SET_PD = $07;  
+  AACK_0_I_AM_COORD = $00;
+  AACK_0_SET_PD = $01;
+  AACK_1_I_AM_COORD = $02;
+  AACK_1_SET_PD = $03;
+  AACK_2_I_AM_COORD = $04;
+  AACK_2_SET_PD = $05;
+  AACK_3_I_AM_COORD = $06;
+  AACK_3_SET_PD = $07;
   // Transceiver MAC Short Address Register for Frame Filter 0 (Low Byte)
   MAFSA0L0 = $00;  // MAC Short Address low Byte for Frame Filter 0
   MAFSA0L1 = $01;  // MAC Short Address low Byte for Frame Filter 0
@@ -1393,19 +1393,19 @@ const
   CS50 = $00;  // Clock Select
   CS51 = $01;  // Clock Select
   CS52 = $02;  // Clock Select
-  ICES5 = $06;  
-  ICNC5 = $07;  
+  ICES5 = $06;
+  ICNC5 = $07;
   // Timer/Counter5 Control Register C
-  FOC5C = $05;  
-  FOC5B = $06;  
-  FOC5A = $07;  
+  FOC5C = $05;
+  FOC5B = $06;
+  FOC5A = $07;
   // Low Leakage Voltage Regulator Control Register
-  LLENCAL = $00;  
-  LLSHORT = $01;  
-  LLTCO = $02;  
-  LLCAL = $03;  
-  LLCOMP = $04;  
-  LLDONE = $05;  
+  LLENCAL = $00;
+  LLSHORT = $01;
+  LLTCO = $02;
+  LLCAL = $03;
+  LLCOMP = $04;
+  LLDONE = $05;
   // Low Leakage Voltage Regulator Data Register (Low-Byte)
   LLDRL0 = $00;  // Low-Byte Data Register Bits
   LLDRL1 = $01;  // Low-Byte Data Register Bits
@@ -1418,8 +1418,8 @@ const
   LLDRH3 = $03;  // High-Byte Data Register Bits
   LLDRH4 = $04;  // High-Byte Data Register Bits
   // Data Retention Configuration Register #0
-  ENDRT = $04;  
-  DRTSWOK = $05;  
+  ENDRT = $04;
+  DRTSWOK = $05;
   // Port Driver Strength Register 0
   PBDRV0 = $00;  // Driver Strength Port B
   PBDRV1 = $01;  // Driver Strength Port B
@@ -1433,8 +1433,8 @@ const
   PGDRV0 = $00;  // Driver Strength Port G
   PGDRV1 = $01;  // Driver Strength Port G
   // Power Amplifier Ramp up/down Control Register
-  PARUFI = $00;  
-  PARDFI = $01;  
+  PARUFI = $00;
+  PARDFI = $01;
   PALTU0 = $02;  // ext. PA Ramp Up Lead Time
   PALTU1 = $03;  // ext. PA Ramp Up Lead Time
   PALTU2 = $04;  // ext. PA Ramp Up Lead Time
@@ -1442,16 +1442,16 @@ const
   PALTD1 = $06;  // ext. PA Ramp Down Lead Time
   PALTD2 = $07;  // ext. PA Ramp Down Lead Time
   // Transceiver Pin Register
-  TRXRST = $00;  
-  SLPTR = $01;  
+  TRXRST = $00;
+  SLPTR = $01;
   // AES Control Register
-  AES_IM = $02;  
-  AES_DIR = $03;  
-  AES_MODE = $05;  
-  AES_REQUEST = $07;  
+  AES_IM = $02;
+  AES_DIR = $03;
+  AES_MODE = $05;
+  AES_REQUEST = $07;
   // AES Status Register
-  AES_DONE = $00;  
-  AES_ER = $07;  
+  AES_DONE = $00;
+  AES_ER = $07;
   // AES Plain and Cipher Text Buffer Register
   AES_STATE0 = $00;  // AES Plain and Cipher Text Buffer
   AES_STATE1 = $01;  // AES Plain and Cipher Text Buffer
@@ -1476,9 +1476,9 @@ const
   TRX_STATUS2 = $02;  // Transceiver Main Status
   TRX_STATUS3 = $03;  // Transceiver Main Status
   TRX_STATUS4 = $04;  // Transceiver Main Status
-  TST_STATUS = $05;  
-  CCA_STATUS = $06;  
-  CCA_DONE = $07;  
+  TST_STATUS = $05;
+  CCA_STATUS = $06;
+  CCA_DONE = $07;
   // Transceiver State Control Register
   TRX_CMD0 = $00;  // State Control Command
   TRX_CMD1 = $01;  // State Control Command
@@ -1489,15 +1489,15 @@ const
   TRAC_STATUS1 = $06;  // Transaction Status
   TRAC_STATUS2 = $07;  // Transaction Status
   // Reserved
-  PMU_IF_INV = $04;  
-  PMU_START = $05;  
-  PMU_EN = $06;  
-  Res7 = $07;  
+  PMU_IF_INV = $04;
+  PMU_START = $05;
+  PMU_EN = $06;
+  Res7 = $07;
   // Transceiver Control Register 1
-  PLL_TX_FLT = $04;  
-  TX_AUTO_CRC_ON = $05;  
-  IRQ_2_EXT_EN = $06;  
-  PA_EXT_EN = $07;  
+  PLL_TX_FLT = $04;
+  TX_AUTO_CRC_ON = $05;
+  IRQ_2_EXT_EN = $06;
+  PA_EXT_EN = $07;
   // Transceiver Transmit Power Control Register
   TX_PWR0 = $00;  // Transmit Power Setting
   TX_PWR1 = $01;  // Transmit Power Setting
@@ -1511,7 +1511,7 @@ const
   RSSI4 = $04;  // Receiver Signal Strength Indicator
   RND_VALUE0 = $05;  // Random Value
   RND_VALUE1 = $06;  // Random Value
-  RX_CRC_VALID = $07;  
+  RX_CRC_VALID = $07;
   // Transceiver Energy Detection Level Register
   ED_LEVEL0 = $00;  // Energy Detection Level
   ED_LEVEL1 = $01;  // Energy Detection Level
@@ -1529,7 +1529,7 @@ const
   CHANNEL4 = $04;  // RX/TX Channel Selection
   CCA_MODE0 = $05;  // Select CCA Measurement Mode
   CCA_MODE1 = $06;  // Select CCA Measurement Mode
-  CCA_REQUEST = $07;  
+  CCA_REQUEST = $07;
   // Transceiver CCA Threshold Setting Register
   CCA_ED_THRES0 = $00;  // ED Threshold Level for CCA Measurement
   CCA_ED_THRES1 = $01;  // ED Threshold Level for CCA Measurement
@@ -1556,45 +1556,45 @@ const
   // Transceiver Control Register 2
   OQPSK_DATA_RATE0 = $00;  // Data Rate Selection
   OQPSK_DATA_RATE1 = $01;  // Data Rate Selection
-  RX_SAFE_MODE = $07;  
+  RX_SAFE_MODE = $07;
   // Antenna Diversity Control Register
   ANT_CTRL0 = $00;  // Static Antenna Diversity Switch Control
   ANT_CTRL1 = $01;  // Static Antenna Diversity Switch Control
-  ANT_EXT_SW_EN = $02;  
-  ANT_DIV_EN = $03;  
-  ANT_SEL = $07;  
+  ANT_EXT_SW_EN = $02;
+  ANT_DIV_EN = $03;
+  ANT_SEL = $07;
   // Transceiver Interrupt Enable Register
-  PLL_LOCK_EN = $00;  
-  PLL_UNLOCK_EN = $01;  
-  RX_START_EN = $02;  
-  RX_END_EN = $03;  
-  CCA_ED_DONE_EN = $04;  
-  AMI_EN = $05;  
-  TX_END_EN = $06;  
-  AWAKE_EN = $07;  
+  PLL_LOCK_EN = $00;
+  PLL_UNLOCK_EN = $01;
+  RX_START_EN = $02;
+  RX_END_EN = $03;
+  CCA_ED_DONE_EN = $04;
+  AMI_EN = $05;
+  TX_END_EN = $06;
+  AWAKE_EN = $07;
   // Transceiver Interrupt Status Register
-  PLL_LOCK = $00;  
-  PLL_UNLOCK = $01;  
-  RX_START = $02;  
-  RX_END = $03;  
-  CCA_ED_DONE = $04;  
-  AMI = $05;  
-  TX_END = $06;  
-  AWAKE = $07;  
+  PLL_LOCK = $00;
+  PLL_UNLOCK = $01;
+  RX_START = $02;
+  RX_END = $03;
+  CCA_ED_DONE = $04;
+  AMI = $05;
+  TX_END = $06;
+  AWAKE = $07;
   // Voltage Regulator Control and Status Register
-  DVDD_OK = $02;  
-  DVREG_EXT = $03;  
-  AVDD_OK = $06;  
-  AVREG_EXT = $07;  
+  DVDD_OK = $02;
+  DVREG_EXT = $03;
+  AVDD_OK = $06;
+  AVREG_EXT = $07;
   // Battery Monitor Control and Status Register
   BATMON_VTH0 = $00;  // Battery Monitor Threshold Voltage
   BATMON_VTH1 = $01;  // Battery Monitor Threshold Voltage
   BATMON_VTH2 = $02;  // Battery Monitor Threshold Voltage
   BATMON_VTH3 = $03;  // Battery Monitor Threshold Voltage
-  BATMON_HR = $04;  
-  BATMON_OK = $05;  
-  BAT_LOW_EN = $06;  
-  BAT_LOW = $07;  
+  BATMON_HR = $04;
+  BATMON_OK = $05;
+  BAT_LOW_EN = $06;
+  BAT_LOW = $07;
   // Crystal Oscillator Control Register
   XTAL_TRIM0 = $00;  // Crystal Oscillator Load Capacitance Trimming
   XTAL_TRIM1 = $01;  // Crystal Oscillator Load Capacitance Trimming
@@ -1623,28 +1623,28 @@ const
   RX_PDT_LEVEL1 = $01;  // Reduce Receiver Sensitivity
   RX_PDT_LEVEL2 = $02;  // Reduce Receiver Sensitivity
   RX_PDT_LEVEL3 = $03;  // Reduce Receiver Sensitivity
-  RX_OVERRIDE = $06;  
-  RX_PDT_DIS = $07;  
+  RX_OVERRIDE = $06;
+  RX_PDT_DIS = $07;
   // Transceiver Reduced Power Consumption Control
-  XAH_RPC_EN = $00;  
-  IPAN_RPC_EN = $01;  
-  Res0 = $02;  
-  PLL_RPC_EN = $03;  
-  PDT_RPC_EN = $04;  
-  RX_RPC_EN = $05;  
+  XAH_RPC_EN = $00;
+  IPAN_RPC_EN = $01;
+  Res0 = $02;
+  PLL_RPC_EN = $03;
+  PDT_RPC_EN = $04;
+  RX_RPC_EN = $05;
   RX_RPC_CTRL0 = $06;  // Smart Receiving Mode Timing
   RX_RPC_CTRL1 = $07;  // Smart Receiving Mode Timing
   // Transceiver Acknowledgment Frame Control Register 1
-  AACK_PROM_MODE = $01;  
-  AACK_ACK_TIME = $02;  
-  AACK_UPLD_RES_FT = $04;  
-  AACK_FLTR_RES_FT = $05;  
+  AACK_PROM_MODE = $01;
+  AACK_ACK_TIME = $02;
+  AACK_UPLD_RES_FT = $04;
+  AACK_FLTR_RES_FT = $05;
   // Transceiver Filter Tuning Control Register
-  FTN_START = $07;  
+  FTN_START = $07;
   // Transceiver Center Frequency Calibration Control Register
-  PLL_CF_START = $07;  
+  PLL_CF_START = $07;
   // Transceiver Delay Cell Calibration Control Register
-  PLL_DCU_START = $07;  
+  PLL_DCU_START = $07;
   // Device Identification Register (Part Number)
   PART_NUM0 = $00;  // Part Number
   PART_NUM1 = $01;  // Part Number
@@ -1664,14 +1664,14 @@ const
   VERSION_NUM6 = $06;  // Version Number
   VERSION_NUM7 = $07;  // Version Number
   // Device Identification Register (Manufacture ID Low Byte)
-  MAN_ID_00 = $00;  
-  MAN_ID_01 = $01;  
-  MAN_ID_02 = $02;  
-  MAN_ID_03 = $03;  
-  MAN_ID_04 = $04;  
-  MAN_ID_05 = $05;  
-  MAN_ID_06 = $06;  
-  MAN_ID_07 = $07;  
+  MAN_ID_00 = $00;
+  MAN_ID_01 = $01;
+  MAN_ID_02 = $02;
+  MAN_ID_03 = $03;
+  MAN_ID_04 = $04;
+  MAN_ID_05 = $05;
+  MAN_ID_06 = $06;
+  MAN_ID_07 = $07;
   // Device Identification Register (Manufacture ID High Byte)
   MAN_ID_10 = $00;  // Manufacturer ID (High Byte)
   MAN_ID_11 = $01;  // Manufacturer ID (High Byte)
@@ -1682,14 +1682,14 @@ const
   MAN_ID_16 = $06;  // Manufacturer ID (High Byte)
   MAN_ID_17 = $07;  // Manufacturer ID (High Byte)
   // Transceiver MAC Short Address Register (Low Byte)
-  SHORT_ADDR_00 = $00;  
-  SHORT_ADDR_01 = $01;  
-  SHORT_ADDR_02 = $02;  
-  SHORT_ADDR_03 = $03;  
-  SHORT_ADDR_04 = $04;  
-  SHORT_ADDR_05 = $05;  
-  SHORT_ADDR_06 = $06;  
-  SHORT_ADDR_07 = $07;  
+  SHORT_ADDR_00 = $00;
+  SHORT_ADDR_01 = $01;
+  SHORT_ADDR_02 = $02;
+  SHORT_ADDR_03 = $03;
+  SHORT_ADDR_04 = $04;
+  SHORT_ADDR_05 = $05;
+  SHORT_ADDR_06 = $06;
+  SHORT_ADDR_07 = $07;
   // Transceiver MAC Short Address Register (High Byte)
   SHORT_ADDR_10 = $00;  // MAC Short Address
   SHORT_ADDR_11 = $01;  // MAC Short Address
@@ -1700,14 +1700,14 @@ const
   SHORT_ADDR_16 = $06;  // MAC Short Address
   SHORT_ADDR_17 = $07;  // MAC Short Address
   // Transceiver Personal Area Network ID Register (Low Byte)
-  PAN_ID_00 = $00;  
-  PAN_ID_01 = $01;  
-  PAN_ID_02 = $02;  
-  PAN_ID_03 = $03;  
-  PAN_ID_04 = $04;  
-  PAN_ID_05 = $05;  
-  PAN_ID_06 = $06;  
-  PAN_ID_07 = $07;  
+  PAN_ID_00 = $00;
+  PAN_ID_01 = $01;
+  PAN_ID_02 = $02;
+  PAN_ID_03 = $03;
+  PAN_ID_04 = $04;
+  PAN_ID_05 = $05;
+  PAN_ID_06 = $06;
+  PAN_ID_07 = $07;
   // Transceiver Personal Area Network ID Register (High Byte)
   PAN_ID_10 = $00;  // MAC Personal Area Network ID
   PAN_ID_11 = $01;  // MAC Personal Area Network ID
@@ -1718,14 +1718,14 @@ const
   PAN_ID_16 = $06;  // MAC Personal Area Network ID
   PAN_ID_17 = $07;  // MAC Personal Area Network ID
   // Transceiver MAC IEEE Address Register 0
-  IEEE_ADDR_00 = $00;  
-  IEEE_ADDR_01 = $01;  
-  IEEE_ADDR_02 = $02;  
-  IEEE_ADDR_03 = $03;  
-  IEEE_ADDR_04 = $04;  
-  IEEE_ADDR_05 = $05;  
-  IEEE_ADDR_06 = $06;  
-  IEEE_ADDR_07 = $07;  
+  IEEE_ADDR_00 = $00;
+  IEEE_ADDR_01 = $01;
+  IEEE_ADDR_02 = $02;
+  IEEE_ADDR_03 = $03;
+  IEEE_ADDR_04 = $04;
+  IEEE_ADDR_05 = $05;
+  IEEE_ADDR_06 = $06;
+  IEEE_ADDR_07 = $07;
   // Transceiver MAC IEEE Address Register 1
   IEEE_ADDR_10 = $00;  // MAC IEEE Address
   IEEE_ADDR_11 = $01;  // MAC IEEE Address
@@ -1736,7 +1736,7 @@ const
   IEEE_ADDR_16 = $06;  // MAC IEEE Address
   IEEE_ADDR_17 = $07;  // MAC IEEE Address
   // Transceiver Extended Operating Mode Control Register
-  SLOTTED_OPERATION = $00;  
+  SLOTTED_OPERATION = $00;
   MAX_CSMA_RETRIES0 = $01;  // Maximum Number of CSMA-CA Procedure Repetition Attempts
   MAX_CSMA_RETRIES1 = $02;  // Maximum Number of CSMA-CA Procedure Repetition Attempts
   MAX_CSMA_RETRIES2 = $03;  // Maximum Number of CSMA-CA Procedure Repetition Attempts
@@ -1745,21 +1745,21 @@ const
   MAX_FRAME_RETRIES2 = $06;  // Maximum Number of Frame Re-transmission Attempts
   MAX_FRAME_RETRIES3 = $07;  // Maximum Number of Frame Re-transmission Attempts
   // Transceiver CSMA-CA Random Number Generator Seed Register
-  CSMA_SEED_00 = $00;  
-  CSMA_SEED_01 = $01;  
-  CSMA_SEED_02 = $02;  
-  CSMA_SEED_03 = $03;  
-  CSMA_SEED_04 = $04;  
-  CSMA_SEED_05 = $05;  
-  CSMA_SEED_06 = $06;  
-  CSMA_SEED_07 = $07;  
+  CSMA_SEED_00 = $00;
+  CSMA_SEED_01 = $01;
+  CSMA_SEED_02 = $02;
+  CSMA_SEED_03 = $03;
+  CSMA_SEED_04 = $04;
+  CSMA_SEED_05 = $05;
+  CSMA_SEED_06 = $06;
+  CSMA_SEED_07 = $07;
   // Transceiver Acknowledgment Frame Control Register 2
   CSMA_SEED_10 = $00;  // Seed Value for CSMA Random Number Generator
   CSMA_SEED_11 = $01;  // Seed Value for CSMA Random Number Generator
   CSMA_SEED_12 = $02;  // Seed Value for CSMA Random Number Generator
-  AACK_I_AM_COORD = $03;  
-  AACK_DIS_ACK = $04;  
-  AACK_SET_PD = $05;  
+  AACK_I_AM_COORD = $03;
+  AACK_DIS_ACK = $04;
+  AACK_SET_PD = $05;
   AACK_FVN_MODE0 = $06;  // Acknowledgment Frame Filter Mode
   AACK_FVN_MODE1 = $07;  // Acknowledgment Frame Filter Mode
   // Transceiver CSMA-CA Back-off Exponent Control Register

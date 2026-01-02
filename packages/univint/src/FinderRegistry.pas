@@ -1,17 +1,17 @@
 {
      File:       OpenScripting/FinderRegistry.h
- 
+
      Contains:   Data types for Finder AppleEvents
- 
+
      Version:    OSA-148~28
- 
+
      Copyright:  © 1991-2008 by Apple Computer, Inc., all rights reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 
 {  Pascal Translation Updated: Gorazd Krosl <gorazd_1957@yahoo.ca>, October 2009 }

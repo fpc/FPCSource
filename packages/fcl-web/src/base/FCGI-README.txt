@@ -427,7 +427,7 @@ Example:
 
 And the FastCGI process must be started somehow separately.
 On windows, a windows service application is most suitable.
-On Unices, a simple process can be put in the system startup scripts.
+On Unixes, a simple process can be put in the system startup scripts.
 
 Then, NGINX must be told to forward all requests to this address.
 

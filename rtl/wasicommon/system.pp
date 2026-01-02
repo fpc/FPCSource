@@ -75,7 +75,7 @@ var
   envp: PPAnsiChar;
   ___fpc_wasm_suspender: WasmExternRef; section 'WebAssembly.Global';
   WasmGrowMemoryCallback : TWasmGrowMemoryCallBack;
-  
+
 function __fpc_get_wasm_suspender: WasmExternRef;
 procedure __fpc_set_wasm_suspender(v: WasmExternRef);
 
@@ -532,7 +532,7 @@ begin
   SysInitStdIO;
   Setup_Environment;
   Setup_PreopenedDirs;
-{$ifdef FPC_WASM_THREADS}  
+{$ifdef FPC_WASM_THREADS}
   TLSInfoBlock:=Nil;
-{$endif}  
+{$endif}
 end.

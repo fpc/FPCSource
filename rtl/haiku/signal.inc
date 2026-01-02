@@ -39,8 +39,8 @@ Const   { For sending a signal }
 
 {Haiku Checked}
 {
-   The numbering of signals for BeOS attempts to maintain 
-   some consistency with UN*X conventions so that things 
+   The numbering of signals for BeOS attempts to maintain
+   some consistency with UN*X conventions so that things
    like "kill -9" do what you expect.
 }
 

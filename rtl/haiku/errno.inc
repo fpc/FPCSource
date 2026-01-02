@@ -156,7 +156,7 @@ const
   ESTALE          = B_POSIX_ERROR_BASE + 40;
   EOVERFLOW       = B_POSIX_ERROR_BASE + 41;
   EMSGSIZE        = B_POSIX_ERROR_BASE + 42;
-  EOPNOTSUPP      = B_POSIX_ERROR_BASE + 43;                      
+  EOPNOTSUPP      = B_POSIX_ERROR_BASE + 43;
   ENOTSOCK        = B_POSIX_ERROR_BASE + 44;
 
   ENOMEM       = B_NO_MEMORY;

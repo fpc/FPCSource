@@ -1,16 +1,16 @@
 {
      File:       PMPrintingDialogExtensions.h
- 
+
      Contains:   Mac OS X Printing Manager Print Dialog Extensions' Interfaces.
- 
+
      Version:    Technology: Mac OS X
                  Release:    1.0
- 
+
      Copyright  (c) 1998-2008 by Apple Inc. All Rights Reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
 }
 {  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
@@ -365,7 +365,7 @@ Basic types...
 {$definec kPrinterModuleTypeIDStr CFSTRP('BDB091F4-E57F-11D3-B5CC-0050E4603277')}
 {$endc}
 
-	
+
 {$endc} {TARGET_OS_MAC}
 {$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 

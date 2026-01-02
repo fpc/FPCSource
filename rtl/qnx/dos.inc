@@ -122,12 +122,12 @@ var
  s: shortstring;
  T: text;
 begin
- GetTimeZoneString:=''; 
+ GetTimeZoneString:='';
  { first try 'TZ' }
  s := GetEnv('TZ');
  if s<>'' then
   begin
-   GetTimeZoneString:=s;   
+   GetTimeZoneString:=s;
    exit;
   end;
 { otherwise try to open the TIMEZONE file }
@@ -143,7 +143,7 @@ begin
  GetTimeZoneString:=s;
 end;
 
-{ QNX does not use timezone files }  
+{ QNX does not use timezone files }
 function GetTimezoneFile:string;
 begin
   GetTimezoneFile:='';

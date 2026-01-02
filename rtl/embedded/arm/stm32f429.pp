@@ -376,7 +376,7 @@ interrupt_vectors:
    .long LTDC_interrupt
    .long LTDC_ERR_interrupt
    .long DMA2D_interrupt
-   
+
    .weak NMI_interrupt
    .weak Hardfault_interrupt
    .weak MemManage_interrupt
@@ -475,7 +475,7 @@ interrupt_vectors:
    .weak LTDC_interrupt
    .weak LTDC_ERR_interrupt
    .weak DMA2D_interrupt
-   
+
    .set NMI_interrupt, HaltProc
    .set Hardfault_interrupt, HaltProc
    .set MemManage_interrupt, HaltProc

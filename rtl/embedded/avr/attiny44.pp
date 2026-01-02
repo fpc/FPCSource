@@ -14,7 +14,7 @@ var
   // ANALOG_COMPARATOR
   ADCSRB : byte absolute $00+$23; // ADC Control and Status Register B
   ACSR : byte absolute $00+$28; // Analog Comparator Control And Status Register
-  DIDR0 : byte absolute $00+$21; // 
+  DIDR0 : byte absolute $00+$21; //
   // AD_CONVERTER
   ADMUX : byte absolute $00+$27; // ADC Multiplexer Selection Register
   ADCSRA : byte absolute $00+$26; // ADC Control and Status Register A
@@ -74,9 +74,9 @@ var
   OSCCAL : byte absolute $00+$51; // Oscillator Calibration Value
   CLKPR : byte absolute $00+$46; // Clock Prescale Register
   SREG : byte absolute $00+$5F; // Status Register
-  SP : word absolute $00+$5D; // Stack Pointer 
-  SPL : byte absolute $00+$5D; // Stack Pointer 
-  SPH : byte absolute $00+$5D+1; // Stack Pointer 
+  SP : word absolute $00+$5D; // Stack Pointer
+  SPL : byte absolute $00+$5D; // Stack Pointer
+  SPH : byte absolute $00+$5D+1; // Stack Pointer
   MCUSR : byte absolute $00+$54; // MCU Status Register
   GPIOR2 : byte absolute $00+$35; // General Purpose I/O Register 2
   GPIOR1 : byte absolute $00+$34; // General Purpose I/O Register 1
@@ -206,7 +206,7 @@ const
   Z = 1; // Zero Flag
   C = 0; // Carry Flag
   // MCUCR
-  PUD = 6; // 
+  PUD = 6; //
   SE = 5; // Sleep Enable
   SM = 3; // Sleep Mode Select Bits
   // MCUSR

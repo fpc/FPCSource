@@ -6,7 +6,7 @@
  *
  }
 {  Pascal Translation:  Gorazd Krosl, <gorazd_1957@yahoo.ca>, 2009 }
-{  Pascal Translation Update: Jonas Maebe <jonas@freepascal.org>, October 2012 } 
+{  Pascal Translation Update: Jonas Maebe <jonas@freepascal.org>, October 2012 }
 {  Pascal Translation Update: Jonas Maebe <jonas@freepascal.org>, August 2015 }
 {
     Modified for use with Free Pascal
@@ -218,14 +218,14 @@ uses MacTypes,CFBase,CFString,CFDictionary,CVReturns,CVImageBuffer,CGLTypes,macg
 
 
 {$ifc TARGET_OS_MAC}
- 
+
 {$ALIGN POWER}
 
  {! @header CVOpenGLBuffer.h
 	@copyright 2004 Apple Computer, Inc. All rights reserved.
 	@availability Mac OS X 10.4 or later
-    @discussion A CoreVideo buffer derives from a generic buffer and can be an ImageBuffer or PixelBuffer. 
-		   
+    @discussion A CoreVideo buffer derives from a generic buffer and can be an ImageBuffer or PixelBuffer.
+
 }
 
 

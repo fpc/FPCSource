@@ -162,7 +162,7 @@ following Tag in a template:
 .
 
 
-I know, I know its ugly html progamming and who uses tables and font html tags
+I know, I know its ugly html programming and who uses tables and font html tags
 nowadays, etc. ... but you get the idea.
 The OnReplaceTag event handler just need to replace the whole REPORTRESULT
 template tag with the ~Column1, ~Column2 for the HEADER parameter, and the

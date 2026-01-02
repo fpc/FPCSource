@@ -28,7 +28,7 @@ begin
         begin
           addr := siginfo^._sifields._sigfault._addr;
           res := 207;
-          
+
           case  siginfo^.si_code of
             FPE_INTDIV:
               res:=200;  // maps to EDivByZero
@@ -63,9 +63,9 @@ begin
           if sig=SIGFPE then
             begin
               { Clear FPU exception bits }
-              UContext^.uc_mcontext.sigc_fpc_csr := UContext^.uc_mcontext.sigc_fpc_csr 
+              UContext^.uc_mcontext.sigc_fpc_csr := UContext^.uc_mcontext.sigc_fpc_csr
                 and not (fpu_cause_mask or fpu_flags_mask);
-            end;             
+            end;
           { Change $a0, $a1, $a2 and sig_pc to HandleErrorAddrFrame parameters }
           UContext^.uc_mcontext.sigc_regs[4]:=res;
           UContext^.uc_mcontext.sigc_regs[5]:=ptrint(addr);

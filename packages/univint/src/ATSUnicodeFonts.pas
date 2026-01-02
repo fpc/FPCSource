@@ -1,17 +1,17 @@
 {
      File:       QD/ATSUnicodeFonts.h
- 
+
      Contains:   ATSUI font handling functions.
- 
+
      Version:    Quickdraw-285~150
- 
+
      Copyright:  © 2003-2008 by Apple Inc. all rights reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {  Pascal Translation:  Peter N Lewis, <peter@stairways.com.au>, 2004 }
 {  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
@@ -237,14 +237,14 @@ uses MacTypes,ATSUnicodeTypes,SFNTTypes;
 
 {
  *  ATSUSetFontFeatures()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTFontDescriptorCreateCopyWithFeature,
  *    CTFontDescriptorCreateWithAttributes instead.
- *  
+ *
  *  Summary:
  *    Sets font features in a style object.
- *  
+ *
  *  Discussion:
  *    This function enables you to set multiple font features for a
  *    style object. Any unset font features retain their font-defined
@@ -259,33 +259,33 @@ uses MacTypes,ATSUnicodeTypes,SFNTTypes;
  *    should check Apple's font feature registry website for the most
  *    up-to-date list of font feature types and selectors:
  *    http://developer.apple.com/fonts/Registry/index.html.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iStyle:
  *      The style object for which to set font features.
- *    
+ *
  *    iFeatureCount:
  *      The number of font features to set. This value should
  *      correspond to the number of elements in the iType and iSelector
  *      arrays.
- *    
+ *
  *    iType:
  *      An array of feature types. Each element in the array must
  *      contain a valid feature type that corresponds to a feature
  *      selector in the iSelector array. To obtain the valid feature
  *      types for a font, call the function ATSUGetFontFeatureTypes .
- *    
+ *
  *    iSelector:
  *      An array of feature selectors. Each element in the array must
  *      contain a valid feature selector that corresponds to a feature
  *      type in the iType array. To obtain the valid feature selectors
  *      for a font, call the function ATSUGetFontFeatureSelectors .
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -298,14 +298,14 @@ function ATSUSetFontFeatures( iStyle: ATSUStyle; iFeatureCount: ItemCount; {cons
 {$ifc not TARGET_CPU_64}
 {
  *  ATSUGetFontFeature()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTFontDescriptorCopyAttribute instead.
- *  
+ *
  *  Summary:
  *    Obtains the font feature corresponding to an index into an array
  *    of font features for a style object.
- *  
+ *
  *  Discussion:
  *    You might typically call ATSUGetFontFeature if you need to obtain
  *    one previously set feature after another within your program's
@@ -317,35 +317,35 @@ function ATSUSetFontFeatures( iStyle: ATSUStyle; iFeatureCount: ItemCount; {cons
  *    then pass the index for the feature whose setting you want to
  *    obtain in the iTag and iMaximumValueSize parameters of
  *    ATSUGetFontFeature.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iStyle:
  *      The style you wish to obtain font feature information for.
- *    
+ *
  *    iFeatureIndex:
  *      An index into the array of font features for the style object.
  *      This index identifies the font feature to examine. Because this
  *      index is zero-based, you must pass a value between 0 and one
  *      less than the value produced in the oActualFeatureCount
  *      parameter of the function ATSUGetAllFontFeatures.
- *    
+ *
  *    oFeatureType:
  *      On return, the value identifies the font feature type
  *      corresponding to the index passed in the iFeatureIndex
  *      parameter. You must allocate space for ATSUGetFontFeature to
  *      store this value.
- *    
+ *
  *    oFeatureSelector:
  *      On return, the value identifies the font feature selector that
  *      corresponds to the feature type produced in the oFeatureType
  *      parameter. ou must allocate space for ATSUGetFontFeature to
  *      store this value.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -357,14 +357,14 @@ function ATSUGetFontFeature( iStyle: ATSUStyle; iFeatureIndex: ItemCount; oFeatu
 
 {
  *  ATSUGetAllFontFeatures()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTFontDescriptorCopyAttribute instead.
- *  
+ *
  *  Summary:
  *    Obtains the font features of a style object that are not at
  *    default settings.
- *  
+ *
  *  Discussion:
  *    The ATSUGetAllFontFeatures function obtains all of a style
  *    object's font features that are not at default settings. Font
@@ -385,12 +385,12 @@ function ATSUGetFontFeature( iStyle: ATSUStyle; iFeatureIndex: ItemCount; oFeatu
  *    pointer to the arrays in the oFeatureType and oFeatureSelector
  *    parameters. On return, the arrays contain the font feature types
  *    and selectors, respectively, for the style object.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iStyle:
  *      The style for which you wish to obtain font feature information.
- *    
+ *
  *    iMaximumFeatureCount:
  *      The maximum number of feature types and selectors to obtain for
  *      the style object. Typically, this is equivalent to the number
@@ -398,13 +398,13 @@ function ATSUGetFontFeature( iStyle: ATSUStyle; iFeatureIndex: ItemCount; oFeatu
  *      which you have allocated memory in the oFeatureType and
  *      oFeatureSelector parameters, respectively. To determine this
  *      value, see the Discussion.
- *    
+ *
  *    oFeatureType:
  *      On return, the array contains constants identifying each type
  *      of font feature that is at a nondefault setting in the style
  *      object. If you are uncertain of how much memory to allocate for
  *      this array, see the Discussion.
- *    
+ *
  *    oFeatureSelector:
  *      On return, the array contains constants identifying the feature
  *      selectors that are at nondefault settings in the style object.
@@ -412,17 +412,17 @@ function ATSUGetFontFeature( iStyle: ATSUStyle; iFeatureIndex: ItemCount; oFeatu
  *      feature type produced in the oFeatureType parameter. If you are
  *      uncertain of how much memory to allocate for this array, see
  *      the Discussion.
- *    
+ *
  *    oActualFeatureCount:
  *      On return, the value specifies the actual number of font
  *      feature types and selectors in the style object. This may be
  *      greater than the value you specified in the
  *      iMaximumFeatureCount parameter.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -434,14 +434,14 @@ function ATSUGetAllFontFeatures( iStyle: ATSUStyle; iMaximumFeatureCount: ItemCo
 
 {
  *  ATSUClearFontFeatures()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CoreText API and CFRelease instead.
- *  
+ *
  *  Summary:
  *    Restores default settings to the specified font features of a
  *    style object.
- *  
+ *
  *  Discussion:
  *    This function removes those font features that are identified by
  *    the feature selector and type constants in the iSelector and
@@ -454,12 +454,12 @@ function ATSUGetAllFontFeatures( iStyle: ATSUStyle; iMaximumFeatureCount: ItemCo
  *    style object, call ATSUClearAttributes. To restore all default
  *    settings to a style object (for font features, variations, and
  *    style attributes), call the function ATSUClearStyle.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iStyle:
  *      A style whose font features you wish to clear.
- *    
+ *
  *    iFeatureCount:
  *      The number of font features to restore to default settings.
  *      This value should correspond to the number of elements in the
@@ -467,7 +467,7 @@ function ATSUGetAllFontFeatures( iStyle: ATSUStyle; iMaximumFeatureCount: ItemCo
  *      the font features in the specified style object, pass the
  *      constant kATSUClearAll in this parameter. In this case, the
  *      values in the iType and iSelector parameters are ignored.
- *    
+ *
  *    iType:
  *      An array of feature types. Each value should identify a font
  *      feature to restore to its default setting. To obtain all
@@ -475,7 +475,7 @@ function ATSUGetAllFontFeatures( iStyle: ATSUStyle; iMaximumFeatureCount: ItemCo
  *      call the function ATSUGetAllFontFeatures. You may pass NULL for
  *      this parameter if you are passing kATSUClearAll for the
  *      iFeatureCount parameter.
- *    
+ *
  *    iSelector:
  *      An array of feature selectors. Each element in the array must
  *      contain a valid feature selector corresponding to a font
@@ -484,11 +484,11 @@ function ATSUGetAllFontFeatures( iStyle: ATSUStyle; iMaximumFeatureCount: ItemCo
  *      can call the function ATSUGetAllFontFeatures. You may pass NULL
  *      for this parameter if you are passing kATSUClearAll for the
  *      iFeatureCount parameter.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -503,14 +503,14 @@ function ATSUClearFontFeatures( iStyle: ATSUStyle; iFeatureCount: ItemCount; {co
 { ---------------------------------------------------------------------------- }
 {
  *  ATSUSetVariations()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTFontDescriptorCreateCopyWithVariation,
  *    CTFontDescriptorCreateWithAttributes instead.
- *  
+ *
  *  Summary:
  *    Sets font variation axes and values in a style object.
- *  
+ *
  *  Discussion:
  *    If you supply font variation axes and values to the
  *    ATSUSetVariations function, you can change the appearance of a
@@ -523,24 +523,24 @@ function ATSUClearFontFeatures( iStyle: ATSUStyle; iFeatureCount: ItemCount; {co
  *    specify, your custom variation has no visual effect. By calling
  *    the function ATSUGetIndFontVariation, you can obtain a variation
  *    axis and its maximum, minimum, and default values for a font.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iStyle:
  *      The style object for which to set font variation values.
- *    
+ *
  *    iVariationCount:
  *      The number of font variation values to set. This value should
  *      correspond to the number of elements in the iAxes and iValue
  *      arrays.
- *    
+ *
  *    iAxes:
  *      An array of font variation axes. Each element in the array must
  *      represent a valid variation axis tag that corresponds to a
  *      variation value in the iValue array. To obtain a valid
  *      variation axis tag for a font, you can call the functions
  *      ATSUGetIndFontVariation or ATSUGetFontInstance.
- *    
+ *
  *    iValue:
  *      An array of font variation values. Each element in the array
  *      must contain a value that is valid for the corresponding
@@ -549,11 +549,11 @@ function ATSUClearFontFeatures( iStyle: ATSUStyle; iFeatureCount: ItemCount; {co
  *      by calling the function ATSUGetIndFontVariation . You can
  *      obtain the font variation axis values for a font instance by
  *      calling ATSUGetFontInstance.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -565,14 +565,14 @@ function ATSUSetVariations( iStyle: ATSUStyle; iVariationCount: ItemCount; {cons
 
 {
  *  ATSUGetFontVariationValue()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTFontDescriptorCopyAttribute instead.
- *  
+ *
  *  Summary:
  *    Obtains the current value for a single font variation axis in a
  *    style object.
- *  
+ *
  *  Discussion:
  *    This function obtains the setting for a specified font variation
  *    axis in a style object. You might typically call
@@ -584,28 +584,28 @@ function ATSUSetVariations( iStyle: ATSUStyle; iVariationCount: ItemCount; {cons
  *    ATSUGetFontVariationValue, call the function
  *    ATSUGetAllFontVariations to obtain the font variation axes that
  *    are set for the style object.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iStyle:
  *      The style for which you want to obtain a variation value.
- *    
+ *
  *    iFontVariationAxis:
  *      A tag specifying the style object's variation axis to examine.
  *      You can obtain a list of variation axis tags that are set to
  *      non-default values in a particular style object from the
  *      function ATSUGetAllFontVariations.
- *    
+ *
  *    oFontVariationValue:
  *      On return, ATSUGetFontVariationValue produces the currently set
  *      value for the style object's specified variation axis. If this
  *      value has not been set, ATSUGetFontVariationValue produces the
  *      font-defined default value.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -617,14 +617,14 @@ function ATSUGetFontVariationValue( iStyle: ATSUStyle; iFontVariationAxis: ATSUF
 
 {
  *  ATSUGetAllFontVariations()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTFontDescriptorCopyAttribute instead.
- *  
+ *
  *  Summary:
  *    Obtains a style object's font variation values that are not at
  *    default settings.
- *  
+ *
  *  Discussion:
  *    This function obtains all of a style object's font variation axes
  *    that are not at default settings, as well as the current values
@@ -642,13 +642,13 @@ function ATSUGetFontVariationValue( iStyle: ATSUStyle; iFontVariationAxis: ATSUF
  *    parameters. On return, the arrays contain the font variation axes
  *    and their corresponding values, respectively, for the style
  *    object.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iStyle:
  *      A style for which you wish to obtain information about current
  *      variation settings.
- *    
+ *
  *    iVariationCount:
  *      The maximum number of font variation values to obtain for the
  *      style object. Typically, this is equivalent to the number of
@@ -656,29 +656,29 @@ function ATSUGetFontVariationValue( iStyle: ATSUStyle; iFontVariationAxis: ATSUF
  *      which you have allocated memory in the oVariationAxes and
  *      oFontVariationValues parameters, respectively. To determine
  *      this value, see the Discussion.
- *    
+ *
  *    oVariationAxes:
  *      On return, the array contains the current font variation values
  *      for the font variation axes produced in the oVariationAxes
  *      array. If you are uncertain of how much memory to allocate for
  *      this array, see the Discussion.
- *    
+ *
  *    oFontVariationValues:
  *      On return, the value specifies the actual number of nondefault
  *      font variation values in the style object. This may be greater
  *      than the value you passed in the iVariationCount parameter. If
  *      you are uncertain of how much memory to allocate for this
  *      array, see the Discussion.
- *    
+ *
  *    oActualVariationCount:
  *      On return, the value specifies the actual number of nondefault
  *      font variation values in the style object. This may be greater
  *      than the value you passed in the iVariationCount parameter.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -690,14 +690,14 @@ function ATSUGetAllFontVariations( iStyle: ATSUStyle; iVariationCount: ItemCount
 
 {
  *  ATSUClearFontVariations()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CoreText API and CFRelease instead.
- *  
+ *
  *  Summary:
  *    Restores default values to the specified font variation axes of a
  *    style object.
- *  
+ *
  *  Discussion:
  *    The ATSUClearFontVariations function removes those font variation
  *    axis values identified by variation axis tags in the iAxis array
@@ -709,12 +709,12 @@ function ATSUGetAllFontVariations( iStyle: ATSUStyle; iVariationCount: ItemCount
  *    all default settings to a style object (for font features,
  *    variations, and style attributes), call the function
  *    ATSUClearStyle.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iStyle:
  *      The style in which you wish to clear font variation settings.
- *    
+ *
  *    iAxisCount:
  *      The number of font variation axes to restore to default
  *      settings. This value should correspond to the number of
@@ -722,7 +722,7 @@ function ATSUGetAllFontVariations( iStyle: ATSUStyle; iVariationCount: ItemCount
  *      the font variation axes in the style object, pass the constant
  *      kATSUClearAll in this parameter. If you pass kATSUClearAll the
  *      value in the iAxis parameter is ignored.
- *    
+ *
  *    iAxis:
  *      An array of font variation axes. Each element in the array must
  *      contain a valid tag that corresponds to a font variation axis
@@ -730,11 +730,11 @@ function ATSUGetAllFontVariations( iStyle: ATSUStyle; iVariationCount: ItemCount
  *      axis tags for a style object from the function
  *      ATSUGetAllFontVariations. You may pass NULL for this parameter
  *      if you are passing kATSUClearAll for the iAxisCount parameter.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -749,14 +749,14 @@ function ATSUClearFontVariations( iStyle: ATSUStyle; iAxisCount: ItemCount; {con
 { ---------------------------------------------------------------------------- }
 {
  *  ATSUFontCount()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTFontCollectionCreateFromAvailableFonts instead.
- *  
+ *
  *  Summary:
  *    Obtains the number of ATSUI-compatible fonts installed on a
  *    user's system.
- *  
+ *
  *  Discussion:
  *    The ATSUFontCount function obtains the number of fonts on a
  *    user's system that are compatible with ATSUI. Incompatible fonts
@@ -777,17 +777,17 @@ function ATSUClearFontVariations( iStyle: ATSUStyle; iAxisCount: ItemCount; {con
  *    same. It is possible for a font to be added and another removed
  *    between two successive calls to ATSUFontCount , leaving the total
  *    number unchanged.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    oFontCount:
  *      On return, the number of ATSUI-compatible fonts installed on a
  *      user's system.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -799,44 +799,44 @@ function ATSUFontCount( var oFontCount: ItemCount ): OSStatus; external name '_A
 
 {
  *  ATSUGetFontIDs()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTFontCollectionCreateFromAvailableFonts
  *    CTFontCollectionCreateWithFontDescriptors, or
  *    CTFontCollectionCreateCopyWithFontDescriptors instead.
- *  
+ *
  *  Summary:
  *    Obtains a list of all the ATSUI-compatible fonts installed on the
  *    user's system.
- *  
+ *
  *  Discussion:
  *    Use the function ATSUFontCount to determine how much memory to
  *    allocate before calling this function. Also see the discussion
  *    for the ATSUFontCount function.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    oFontIDs:
  *      On return, the array contains unique identifiers for each of
  *      the ATSUI-compatible fonts installed on the user's system. You
  *      should allocate enough memory to contain an array the size of
  *      the count produced by the function ATSUFontCount.
- *    
+ *
  *    iArraySize:
  *      The maximum number of fonts to obtain. Typically, this is
  *      equivalent to the number of ATSUFontID values for which you
  *      have allocated memory in the oFontIDs parameter.
- *    
+ *
  *    oFontCount:
  *      On return, the value specifies the actual number of
  *      ATSUI-compatible fonts installed on the user's system. This may
  *      be greater than the value you specified in the iArraySize
  *      parameter.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -848,14 +848,14 @@ function ATSUGetFontIDs( oFontIDs: {variable-size-array} ATSUFontIDPtr; iArraySi
 
 {
  *  ATSUFONDtoFontID()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CoreText API instead.
- *  
+ *
  *  Summary:
  *    Finds the ATSUI font ID that corresponds to a font family number,
  *    if one exists.
- *  
+ *
  *  Discussion:
  *    This function is not recommended. It is specifically associated
  *    with old QD data types (i.e. the QD font family or 'FOND'
@@ -863,7 +863,7 @@ function ATSUGetFontIDs( oFontIDs: {variable-size-array} ATSUFontIDPtr; iArraySi
  *    concept of FOND ID and font family instances are all QD-specific
  *    concepts that are not supported in Cocoa, Quartz, and the
  *    non-deprecated parts of ATS and ATSUI.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -875,14 +875,14 @@ function ATSUFONDtoFontID( iFONDNumber: SInt16; iFONDStyle: Style; var oFontID: 
 
 {
  *  ATSUFontIDtoFOND()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CoreText API instead.
- *  
+ *
  *  Summary:
  *    Finds the font family number and style that correspond to an
  *    ATSUI font ID, if these exist.
- *  
+ *
  *  Discussion:
  *    This function is not recommended. It is specifically associated
  *    with old QD data types (i.e. the QD font family or 'FOND'
@@ -890,7 +890,7 @@ function ATSUFONDtoFontID( iFONDNumber: SInt16; iFONDStyle: Style; var oFontID: 
  *    concept of FOND ID and font family instances are all QD-specific
  *    concepts that are not supported in Cocoa, Quartz, and the
  *    non-deprecated parts of ATS and ATSUI.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -905,16 +905,16 @@ function ATSUFontIDtoFOND( iFontID: ATSUFontID; var oFONDNumber: SInt16; var oFO
 { ---------------------------------------------------------------------------- }
 {
  *  ATSUCountFontNames()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTFontCopyPostScriptName, CTFontCopyFamilyName,
  *    CTFontCopyFullName, CTFontCopyDisplayName, CTFontCopyName, or
  *    CTFontCopyLocalizedName instead.
- *  
+ *
  *  Summary:
  *    Obtains the number of font names that correspond to a given ATSUI
  *    font ID.
- *  
+ *
  *  Discussion:
  *    This function obtains the number of font names defined in a font
  *    name table for a given ATSUI font ID. This number includes
@@ -925,20 +925,20 @@ function ATSUFontIDtoFOND( iFontID: ATSUFontID; var oFONDNumber: SInt16; var oFO
  *    count to the function ATSUGetIndFontName to obtain a name string,
  *    name code, platform, script, and language for a given ATSUI font
  *    ID.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iFontID:
  *      The font for which you wish to obtain the font name count.
- *    
+ *
  *    oFontNameCount:
  *      On return, the value specifies the number of entries in the
  *      font name table corresponding to the given ATSUI font ID.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -950,17 +950,17 @@ function ATSUCountFontNames( iFontID: ATSUFontID; var oFontNameCount: ItemCount 
 
 {
  *  ATSUGetIndFontName()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTFontCopyPostScriptName, CTFontCopyFamilyName,
  *    CTFontCopyFullName, CTFontCopyDisplayName, CTFontCopyName, or
  *    CTFontCopyLocalizedName instead.
- *  
+ *
  *  Summary:
  *    Obtains a name string, name code, platform, script, and language
  *    for the font that matches an ATSUI font ID and name table index
  *    value.
- *  
+ *
  *  Discussion:
  *    Typically you use the ATSUGetIndFontName function by calling it
  *    twice, as follows: (1) Pass valid values for the iFontID,
@@ -977,26 +977,26 @@ function ATSUCountFontNames( iFontID: ATSUFontID; var oFontNameCount: ItemCount 
  *    first font in a name table that matches the specified name
  *    string, name code, platform, script, and/or language, call the
  *    function ATSUFindFontFromName.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iFontID:
  *      The font for which to obtain information. Note that because
  *      Apple Type Services assigns ATSUFontID values systemwide at
  *      runtime, font IDs can change across system restarts.
- *    
+ *
  *    iFontNameIndex:
  *      An index to the font for which to obtain information. Because
  *      this index must be 0-based, you should pass a value between 0
  *      and one less than the count produced by the function
  *      ATSUCountFontNames.
- *    
+ *
  *    iMaximumNameLength:
  *      The maximum length of the font name string to obtain.
  *      Typically, this is equivalent to the size of the buffer that
  *      you have allocated in the oName parameter. To determine this
  *      length, see the Discussion.
- *    
+ *
  *    oName:
  *      On return, the buffer contains the name string of the font
  *      matching the ATSUI font ID and name table index value being
@@ -1004,35 +1004,35 @@ function ATSUCountFontNames( iFontID: ATSUFontID; var oFontNameCount: ItemCount 
  *      contain the name string, ATSUGetIndFontName produces a partial
  *      string. If you are unsure how much memory to allocate for this
  *      parameter, see the Discussion.
- *    
+ *
  *    oActualNameLength:
  *      On return, the value specifies the actual length of the
  *      complete name string. This may be greater than the value passed
  *      in the iMaximumNameLength parameter. You should check this
  *      value to ensure that you have allocated sufficient memory and
  *      therefore obtained the complete name string for the font.
- *    
+ *
  *    oFontNameCode:
  *      On return, a value specifying the type of name returned (i.e.,
  *      full name, postscript name) of the font. See SFNTTypes.h for a
  *      list of possible values.
- *    
+ *
  *    oFontNamePlatform:
  *      On return, a value specifying the encoding of the font. See
  *      SFNTTypes.h for a list of possible values.
- *    
+ *
  *    oFontNameScript:
  *      On return, a value specifying the script of the font. See
  *      SFNTTypes.h for a list of possible values.
- *    
+ *
  *    oFontNameLanguage:
  *      On return, a value specifying the language of the font. See
  *      SFNTTypes.h for a list of possible values.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1044,17 +1044,17 @@ function ATSUGetIndFontName( iFontID: ATSUFontID; iFontNameIndex: ItemCount; iMa
 
 {
  *  ATSUFindFontName()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTFontCopyPostScriptName, CTFontCopyFamilyName,
  *    CTFontCopyFullName, CTFontCopyDisplayName, CTFontCopyName, or
  *    CTFontCopyLocalizedName instead.
- *  
+ *
  *  Summary:
  *    Obtains a name string and index value for the first font in a
  *    name table that matches the specified ATSUI font ID, name code,
  *    platform, script, and/or language.
- *  
+ *
  *  Discussion:
  *    Typically you use the ATSUFindFontName function by calling it
  *    twice, as follows: (1) Pass NULL for the oName and oFontNameIndex
@@ -1071,69 +1071,69 @@ function ATSUGetIndFontName( iFontID: ATSUFontID; iFontNameIndex: ItemCount; iMa
  *    platform, script, and language for the font that matches an ATSUI
  *    font ID and name table index, call the function
  *    ATSUGetIndFontName. Although they will each accept NULL on input
- *    individually, you must pass a vaild pointer to at least one of
+ *    individually, you must pass a valid pointer to at least one of
  *    the three parameters oName, oActualNameLength, or oFontNameIndex,
  *    or ATSUFindFontName will return paramErr.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iFontID:
  *      The font for which to obtain a name string. Note that because
  *      Apple Type Services assigns ATSUFontID values systemwide at
  *      runtime, font IDs can change across system restarts.
- *    
+ *
  *    iFontNameCode:
  *      A constant specifying the FontNameCode value of the font for
  *      which to obtain a name string. See the SFNTTypes.h header file
  *      for a definition of the FontNameCode type and a list of
  *      possible values.
- *    
+ *
  *    iFontNamePlatform:
  *      A constant specifying the encoding of the font. See SFNTTypes.h
  *      for possible values to pass for this parameter. If you pass the
  *      kFontNoPlatformCode constant, ATSUFindFontName produces the
  *      first font in the name table matching the other specified
  *      parameters.
- *    
+ *
  *    iFontNameScript:
  *      A constant specifying the script of the font. See SFNTTypes.h
  *      for possible values to pass for this parameter. If you pass the
  *      kFontNoScriptCode constant, ATSUFindFontName produces the first
  *      font in the name table matching the other specified parameters.
- *    
+ *
  *    iFontNameLanguage:
  *      A constant specifying the language of the font you are
  *      searching for. See SFNTLayoutTypes.h for possible values to
  *      pass for this parameter.
- *    
+ *
  *    iMaximumNameLength:
  *      The maximum size of string you want ATSUFindFontName to return.
  *      Typically, this value is equal to the size of the buffer you
  *      have allocated for the oName parameter. To determine this
  *      length, see the Discussion.
- *    
+ *
  *    oName:
  *      On return, the name string of the first font in the font name
  *      table matching your specified parameters. If the buffer you
  *      allocate is not large enough, ATSUFindFontName produces a
  *      partial string. If you are unsure how much space to allocate
  *      for this parameter, see the Discussion.
- *    
+ *
  *    oActualNameLength:
  *      On return, specifies the actual length of the complete name
  *      string. This may be greater than the value passed in the
  *      iMaximumNameLength parameter. You should check this value to
  *      ensure that you have allocated sufficient memory and therefore
  *      obtained the complete name string for the font.
- *    
+ *
  *    oFontNameIndex:
  *      On return, the value provides a 0-based index to the font name
  *      in the font name table.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1145,65 +1145,65 @@ function ATSUFindFontName( iFontID: ATSUFontID; iFontNameCode: FontNameCode; iFo
 
 {
  *  ATSUFindFontFromName()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTFontCreateWithName instead.
- *  
+ *
  *  Summary:
  *    Obtains an ATSUI font ID for the first font in a name table that
  *    matches the specified name string, name code, platform, script,
  *    and/or language.
- *  
+ *
  *  Discussion:
  *    Because ATSUI cannot guarantee the uniqueness of names among
  *    installed fonts, ATSUFindFontFromName does not necessarily find
  *    the only font that matches these parameters. As a result, you may
  *    want to create a more sophisticated name-matching algorithm or
  *    guarantee the uniqueness of names among installed fonts.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iName:
  *      A pointer to a buffer containing the name string of the font
  *      for which to obtain an ATSUI font ID.
- *    
+ *
  *    iNameLength:
  *      The length, in bytes, of the name string provided in the iName
  *      parameter.
- *    
+ *
  *    iFontNameCode:
  *      A constant specifying the type of name to search for (i.e.,
- *      full name, postcript name). See SFNTTypes.h for a list possible
+ *      full name, postscript name). See SFNTTypes.h for a list possible
  *      values to pass for this parameter.
- *    
+ *
  *    iFontNamePlatform:
  *      A constant specifying the encoding of the font you are
  *      searching for. See SFNTTypes.h for possible values to pass for
  *      this parameter. Pass kFontNoPlatformCode if you do not want to
  *      limit your search to a particular encoding.
- *    
+ *
  *    iFontNameScript:
  *      A constant specifying the script of the font you are searching
  *      for. See SFNTTypes.h for possible values to pass for this
  *      parameter. Pass kFontNoScriptCode if you do not want to limit
  *      your search to a particular script.
- *    
+ *
  *    iFontNameLanguage:
  *      A constant specifying the language of the font you are
  *      searching for. See SFNTTypes.h for possible values to pass for
  *      this parameter. Pass kFontNoLanguageCode if you do not want to
  *      limit your search to a particular language.
- *    
+ *
  *    oFontID:
  *      On return, the value provides a unique identifier for the
  *      specified font. If no installed font matches the specified
  *      parameters, kATSUInvalidFontID is returned for this parameter.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. If the font cannot be found,
  *    kATSUInvalidFontErr is returned. See MacErrors.h for other
  *    possible error codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1218,33 +1218,33 @@ function ATSUFindFontFromName( iName: {const} UnivPtr; iNameLength: ByteCount; i
 { ---------------------------------------------------------------------------- }
 {
  *  ATSUCountFontFeatureTypes()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTFontCopyFeatures, CTFontCopyFeatureSettings instead.
- *  
+ *
  *  Summary:
  *    Obtains the number of available feature types in a font.
- *  
+ *
  *  Discussion:
  *    This function function obtains the total number of feature types
  *    defined for a font. You can use the count produced by
  *    ATSUCountFontFeatureTypes to determine how much memory to
  *    allocate for the oTypes array in the function
  *    ATSUGetFontFeatureTypes.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iFontID:
  *      The font for which to obtain a count of feature types.
- *    
+ *
  *    oTypeCount:
  *      On return, the actual number of feature types defined for the
  *      font.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1256,39 +1256,39 @@ function ATSUCountFontFeatureTypes( iFontID: ATSUFontID; var oTypeCount: ItemCou
 
 {
  *  ATSUCountFontFeatureSelectors()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTFontCopyFeatures, CTFontCopyFeatureSettings instead.
- *  
+ *
  *  Summary:
  *    Obtains the number of available feature selectors for a given
  *    feature type in a font.
- *  
+ *
  *  Discussion:
  *    This function obtains the total number of feature selectors
  *    defined for a given feature type in the font. You can use the
  *    count produced by ATSUCountFontFeatureSelectors to determine how
  *    much memory to allocate for the oSelectors array in the function
  *    ATSUGetFontFeatureSelectors.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iFontID:
  *      The font for which to obtain feature selector information.
- *    
+ *
  *    iType:
  *      A value specifying one of the font's supported feature types.
  *      To obtain the available feature types for a font, call the
  *      function ATSUGetFontFeatureTypes.
- *    
+ *
  *    oSelectorCount:
  *      On return, specifies the actual number of feature selectors
  *      defined for the feature type by the font.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1300,13 +1300,13 @@ function ATSUCountFontFeatureSelectors( iFontID: ATSUFontID; iType: ATSUFontFeat
 
 {
  *  ATSUGetFontFeatureTypes()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTFontCopyFeatures, CTFontCopyFeatureSettings instead.
- *  
+ *
  *  Summary:
  *    Obtains the available feature types of a font.
- *  
+ *
  *  Discussion:
  *    A given font may not support all possible feature types and
  *    selectors. If you select features that are not available in a
@@ -1319,17 +1319,17 @@ function ATSUCountFontFeatureSelectors( iFontID: ATSUFontID; iType: ATSUFontFeat
  *    to present the user a list of font features from which to select
  *    and to call such functions as ATSUSetFontFeatures with more
  *    accuracy.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iFontID:
  *      The font for which to obtain information about feature types.
- *    
+ *
  *    iMaximumTypes:
  *      The maximum number of feature types to obtain for the font.
  *      Typically, this is equivalent to the number of elements in the
  *      oTypes array.
- *    
+ *
  *    oTypes:
  *      A pointer to memory you have allocated for an array of
  *      ATSUFontFeatureType values.  You can call the function
@@ -1341,16 +1341,16 @@ function ATSUCountFontFeatureSelectors( iFontID: ATSUFontID; iType: ATSUFontFeat
  *      the header file SFNTLayoutTypes.h and are described in the
  *      official ATSUI documentation, available on the Apple developer
  *      website.
- *    
+ *
  *    oActualTypeCount:
  *      On return, the actual number of feature types defined in the
  *      font. This may be greater than the value you specify in the
  *      iMaximumTypes parameter.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1362,14 +1362,14 @@ function ATSUGetFontFeatureTypes( iFontID: ATSUFontID; iMaximumTypes: ItemCount;
 
 {
  *  ATSUGetFontFeatureSelectors()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTFontCopyFeatures, CTFontCopyFeatureSettings instead.
- *  
+ *
  *  Summary:
  *    Obtains the available feature selectors for a given feature type
  *    in a font.
- *  
+ *
  *  Discussion:
  *    A given font may not support all possible feature types and
  *    selectors. If you select features that are not available in a
@@ -1382,23 +1382,23 @@ function ATSUGetFontFeatureTypes( iFontID: ATSUFontID; iMaximumTypes: ItemCount;
  *    types. You can then use this information both to present the user
  *    a list of font features from which to select and to call such
  *    functions as ATSUSetFontFeatures with more accuracy.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iFontID:
  *      The font for which to obtain feature selectors.
- *    
+ *
  *    iType:
  *      An ATSUFontFeatureType value specifying one of the font's
  *      supported feature types. To obtain the available feature types
  *      for a font, call the function ATSUGetFontFeatureTypes.
- *    
+ *
  *    iMaximumSelectors:
  *      An ItemCount value specifying the maximum number of feature
  *      selectors to obtain for the font's specified feature type.
  *      Typically, this is equivalent to the number of elements in the
  *      oSelectors array.
- *    
+ *
  *    oSelectors:
  *      A pointer to memory you have allocated for an array of
  *      ATSUFontFeatureSelector values.  You can call the function
@@ -1410,7 +1410,7 @@ function ATSUGetFontFeatureTypes( iFontID: ATSUFontID; iMaximumTypes: ItemCount;
  *      represent font feature selectors are defined in the header file
  *      SFNTLayoutTypes.h and are described in the official ATSUI
  *      documentation, available on the Apple developer website.
- *    
+ *
  *    oSelectorIsOnByDefault:
  *      A pointer to memory you have allocated for an array of Boolean
  *      values. The number of elements in this array should correspond
@@ -1419,13 +1419,13 @@ function ATSUGetFontFeatureTypes( iFontID: ATSUFontID; iMaximumTypes: ItemCount;
  *      corresponding feature selector in the oSelectors array is on or
  *      off. If true, the feature selector is on by default; if false,
  *      off.
- *    
+ *
  *    oActualSelectorCount:
  *      On return, the value specifies the actual number of feature
  *      selectors defined for the given feature type. This value may be
  *      greater than the value you specify in the iMaximumSelectors
  *      parameter.
- *    
+ *
  *    oIsMutuallyExclusive:
  *      On return, the value indicates whether the feature selectors
  *      for the given feature type are exclusive or nonexclusive. If a
@@ -1435,11 +1435,11 @@ function ATSUGetFontFeatureTypes( iFontID: ATSUFontID; iMaximumTypes: ItemCount;
  *      type is nonexclusive, you can enable any number of feature
  *      selectors at once. If true , the feature type is exclusive and
  *      only one selector can be used at a time.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1451,14 +1451,14 @@ function ATSUGetFontFeatureSelectors( iFontID: ATSUFontID; iType: ATSUFontFeatur
 
 {
  *  ATSUGetFontFeatureNameCode()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTFontCopyFeatures, CTFontCopyFeatureSettings instead.
- *  
+ *
  *  Summary:
  *    btains the name code for a font's feature type or selector that
  *    matches an ASTUI font ID, feature type, and feature selector.
- *  
+ *
  *  Discussion:
  *    This function obtains the name code for a font's feature type or
  *    selector that matches an ASTUI font ID, feature type and feature
@@ -1468,18 +1468,18 @@ function ATSUGetFontFeatureSelectors( iFontID: ATSUFontID; iType: ATSUFontFeatur
  *    the iSelector parameter. You can use the function
  *    ATSUFindFontName to obtain the localized name string for the name
  *    code produced by ATSUGetFontFeatureNameCode.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iFontID:
  *      The font for which to obtain the name code for a feature type
  *      or selector.
- *    
+ *
  *    iType:
  *      A constant identifying a valid feature type. To obtain the
  *      valid feature types for a font, call the function
  *      ATSUGetFontFeatureTypes.
- *    
+ *
  *    iSelector:
  *      A constant identifying a valid feature selector that
  *      corresponds to the feature type passed in the iType parameter.
@@ -1488,17 +1488,17 @@ function ATSUGetFontFeatureSelectors( iFontID: ATSUFontID; iType: ATSUFontFeatur
  *      type, not the feature selector. To obtain the valid feature
  *      selectors for a font, call the function
  *      ATSUGetFontFeatureSelectors.
- *    
+ *
  *    oNameCode:
  *      On return, the value contains the name code for the font
  *      feature selector or type. See the SFNTTypes.h header file for a
  *      definition of the FontNameCode type and a list of possible
  *      values.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1513,39 +1513,39 @@ function ATSUGetFontFeatureNameCode( iFontID: ATSUFontID; iType: ATSUFontFeature
 { ---------------------------------------------------------------------------- }
 {
  *  ATSUCountFontTracking()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTFontCopyTable instead.
- *  
+ *
  *  Summary:
  *    Obtains the number of entries in the font tracking table that
  *    correspond to a given ATSUI font ID and glyph orientation.
- *  
+ *
  *  Discussion:
  *    This function obtains the number of font tracking entries defined
  *    in a font tracking table for a given ATSUI font ID and glyph
  *    orientation. You can pass an index value based on this count to
  *    the function ATSUGetIndFontTracking to obtain the name code and
  *    tracking value of a font tracking.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iFontID:
  *      The font for which to obtain tracking table information.
- *    
+ *
  *    iCharacterOrientation:
  *      A constant identifying the glyph orientation of the font
  *      tracking entries. See the definition of
  *      ATSUVerticalCharacterType for a list of possible values.
- *    
+ *
  *    oTrackingCount:
  *      On return, the number of entries in the font tracking table
  *      corresponding to the given ATSUI font ID and glyph orientation.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1557,15 +1557,15 @@ function ATSUCountFontTracking( iFontID: ATSUFontID; iCharacterOrientation: ATSU
 
 {
  *  ATSUGetIndFontTracking()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTFontCopyTable instead.
- *  
+ *
  *  Summary:
  *    Obtains the name code and tracking value for the font tracking
  *    that matches an ASTUI font ID, glyph orientation, and tracking
  *    table index.
- *  
+ *
  *  Discussion:
  *    You can call the ATSUGetIndFontTracking function to obtain the
  *    name code and tracking value that matches the specified ATSUI
@@ -1574,35 +1574,35 @@ function ATSUCountFontTracking( iFontID: ATSUFontID; iCharacterOrientation: ATSU
  *    style using this font via the kATSUTrackingTag attribute. You can
  *    use the function ATSUFindFontName to obtain the localized name
  *    string for the name code produced by ATSUGetIndFontTracking.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iFontID:
  *      The font for which to obtain tracking information.
- *    
+ *
  *    iCharacterOrientation:
  *      A constant identifying the glyph orientation of the font
  *      tracking entries. See the definition of
  *      ATSUVerticalCharacterType for a list of possible values.
- *    
+ *
  *    iTrackIndex:
  *      An index to the font tracking for which to obtain information.
  *      Because this index must be 0-based, you should pass a value
  *      between 0 and one less than the count produced by the function
  *      ATSUCountFontTracking.
- *    
+ *
  *    oFontTrackingValue:
  *      On return, the value contains the font tracking value.
- *    
+ *
  *    oNameCode:
  *      On return, the value contains the name code for the font
  *      tracking. See the SFNTTypes.h header file for a definition of
  *      the FontNameCode type and a list of possible values.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1617,32 +1617,32 @@ function ATSUGetIndFontTracking( iFontID: ATSUFontID; iCharacterOrientation: ATS
 { ---------------------------------------------------------------------------- }
 {
  *  ATSUCountFontVariations()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTFontCopyVariationAxes, CTFontCopyVariation instead.
- *  
+ *
  *  Summary:
  *    Obtains the number of defined variation axes in a font.
- *  
+ *
  *  Discussion:
  *    This function function obtains the total number of variation axes
  *    defined for a font. You can use the count produced by
  *    ATSUCountFontVariations to get information about a specific font
  *    variation axis from the function ATSUGetIndFontVariation.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iFontID:
  *      The font for which to obtain a count of variation axes.
- *    
+ *
  *    oVariationCount:
  *      On return, a count of the number of variation axes defined for
  *      the font.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1654,13 +1654,13 @@ function ATSUCountFontVariations( iFontID: ATSUFontID; var oVariationCount: Item
 
 {
  *  ATSUGetIndFontVariation()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTFontCopyVariationAxes, CTFontCopyVariation instead.
- *  
+ *
  *  Summary:
  *    Obtains a variation axis and its value range for a font.
- *  
+ *
  *  Discussion:
  *    By calling this function, you can obtain a variation axis and its
  *    maximum, minimum, and default values for a font. If you supply
@@ -1669,12 +1669,12 @@ function ATSUCountFontVariations( iFontID: ATSUFontID; var oVariationCount: Item
  *    accordingly. Note that while you may pass NULL for any of the
  *    output parameters, at least one must be non-NULL or paramErr will
  *    be returned.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iFontID:
  *      A font for which to obtain variation information for.
- *    
+ *
  *    iVariationIndex:
  *      A value specifying an index into the array of variation axes
  *      for the font. This index identifies the font variation axis to
@@ -1682,24 +1682,24 @@ function ATSUCountFontVariations( iFontID: ATSUFontID; var oVariationCount: Item
  *      value between 0 and one less than the value produced in the
  *      oVariationCount parameter of the function
  *      ATSUCountFontVariations.
- *    
+ *
  *    oATSUFontVariationAxis:
  *      On return, a four-character code identifying the font variation
  *      axis corresponding to the specified index.
- *    
+ *
  *    oMinimumValue:
  *      On return, the variation axis minimum.
- *    
+ *
  *    oMaximumValue:
  *      On return, the variation axis maximum.
- *    
+ *
  *    oDefaultValue:
  *      On return, the variation axis default.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1711,41 +1711,41 @@ function ATSUGetIndFontVariation( iFontID: ATSUFontID; iVariationIndex: ItemCoun
 
 {
  *  ATSUGetFontVariationNameCode()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTFontCopyVariationAxes, CTFontCopyVariation instead.
- *  
+ *
  *  Summary:
  *    Obtains the name code for the font variation that matches an
  *    ASTUI font ID and font variation axis.
- *  
+ *
  *  Discussion:
  *    This function function obtains the name code for the font
  *    variation that matches an ASTUI font ID and font variation axis
  *    tag. You can use the function ATSUFindFontName to obtain the
  *    localized name string for the name code produced by
  *    ATSUGetFontVariationNameCode.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iFontID:
  *      The font for which to obtain a font variation name code.
- *    
+ *
  *    iAxis:
  *      An ATSUFontVariationAxis value representing a valid variation
  *      axis tag. To obtain a valid variation axis tag for a font, you
  *      can call the functions ATSUGetIndFontVariation or
  *      ATSUGetFontInstance.
- *    
+ *
  *    oNameCode:
  *      On return, the value contains the name code for the font
  *      variation. See the SFNTTypes.h header file for a definition of
  *      the FontNameCode type and a list of possible values.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1760,32 +1760,32 @@ function ATSUGetFontVariationNameCode( iFontID: ATSUFontID; iAxis: ATSUFontVaria
 { ---------------------------------------------------------------------------- }
 {
  *  ATSUCountFontInstances()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTFontCopyVariationAxes, CTFontCopyVariation instead.
- *  
+ *
  *  Summary:
  *    Obtains the number of defined font instances in a font.
- *  
+ *
  *  Discussion:
  *    This function obtains the total number of font instances defined
  *    in a font. You can use an index value derived from this count to
  *    get information about a specific font instance by calling the
  *    function ATSUGetFontInstance.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iFontID:
  *      The font for which to obtain a count of defined instances.
- *    
+ *
  *    oInstances:
  *      On return, the value specifies the number of font instances
  *      defined for the font.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1797,13 +1797,13 @@ function ATSUCountFontInstances( iFontID: ATSUFontID; var oInstances: ItemCount 
 
 {
  *  ATSUGetFontInstance()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTFontCopyVariationAxes, CTFontCopyVariation instead.
- *  
+ *
  *  Summary:
  *    Obtains the font variation axis values for a font instance.
- *  
+ *
  *  Discussion:
  *    with a minimum value of 0.0, a default of 0.5, and a maximum of
  *    1.0. Additionally, the variation axis 'wdth' is also defined for
@@ -1825,19 +1825,19 @@ function ATSUCountFontInstances( iFontID: ATSUFontID; var oInstances: ItemCount 
  *    parameters. On return, the arrays contain the font variation axes
  *    and their corresponding values, respectively, for the font
  *    instance.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iFontID:
  *      The font for which to obtain instance information.
- *    
+ *
  *    iFontInstanceIndex:
  *      An index into an array of instances for the font. This index
  *      identifies the font instance to examine. Because this index is
  *      zero-based, you must pass a value between 0 and one less than
  *      the value produced in the oInstances parameter of the function
  *      ATSUCountFontInstances.
- *    
+ *
  *    iMaximumVariations:
  *      The maximum number of font variation axes to obtain for the
  *      font instance. Typically, this is equivalent to the number of
@@ -1845,28 +1845,28 @@ function ATSUCountFontInstances( iFontID: ATSUFontID; var oInstances: ItemCount 
  *      which you have allocated memory in the oAxes and oValues
  *      parameters, respectively. To determine this value, see the
  *      Discussion.
- *    
+ *
  *    oAxes:
  *      On return, the array contains tags identifying the font
  *      variation axes that constitute the font instance. If you are
  *      uncertain of how much memory to allocate for this array, see
  *      the Discussion.
- *    
+ *
  *    oValues:
  *      On return, the array contains the defined values for the font
  *      variation axes produced in the oAxes array. If you are
  *      uncertain of how much memory to allocate for this array, see
  *      the Discussion.
- *    
+ *
  *    oActualVariationCount:
  *      On return, the actual number of font variation axes that
  *      constitute the font instance. This may be greater than the
  *      value you passed in the iMaximumVariations parameter.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1878,14 +1878,14 @@ function ATSUGetFontInstance( iFontID: ATSUFontID; iFontInstanceIndex: ItemCount
 
 {
  *  ATSUGetFontInstanceNameCode()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTFontCopyVariationAxes, CTFontCopyVariation instead.
- *  
+ *
  *  Summary:
  *    Obtains the name code for the font instance that matches an ASTUI
  *    font ID and font instance index value.
- *  
+ *
  *  Discussion:
  *    A font instance consists of a named set of values for each
  *    variation axis in a font. The ATSUGetFontInstanceNameCode
@@ -1895,27 +1895,27 @@ function ATSUGetFontInstance( iFontID: ATSUFontID; iFontInstanceIndex: ItemCount
  *    the name code produced by ATSUGetFontInstanceNameCode. You can
  *    obtain the font variation axis values for a font instance by
  *    calling the function ATSUGetFontInstance.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iFontID:
  *      The font for which to obtain a font instance name code.
- *    
+ *
  *    iInstanceIndex:
  *      An index to the font instance for which to obtain a name code.
  *      Because this index must be 0-based, you should pass a value
  *      between 0 and one less than the count produced by the function
  *      ATSUCountFontInstances.
- *    
+ *
  *    oNameCode:
  *      On return, the name code for the font instance. See the
  *      SFNTTypes.h header file for a definition of the FontNameCode
  *      type and a list of possible values.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later

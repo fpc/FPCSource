@@ -1,13 +1,13 @@
 {
      File:       LSQuarantine.h
- 
+
      Contains:   File quarantine property keys
- 
+
      Copyright:  (c) 2003-2012 by Apple Inc. All rights reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
 }
 
@@ -229,34 +229,34 @@ uses MacTypes,CFBase;
 {
  *    The following keys may appear in a quarantine properties dictionary. To access a
  *    file's quarantine properties dictionary, fetch the kLSItemQuarantineProperties
- *    attribute using LSCopyItemAttribute() or LSCopyItemAttributes(). 
+ *    attribute using LSCopyItemAttribute() or LSCopyItemAttributes().
  *    The quarantine property dictionary can be set using LSSetItemAttribute().
  *
  *
  * kLSQuarantineAgentNameKey - value type CFStringRef
  *
  *    The name of the quarantining agent (application or program). When setting quarantine
- *    properties, this value is set automatically to the current process name if this key is not 
+ *    properties, this value is set automatically to the current process name if this key is not
  *    present in the caller's dictionary.
  *
  *
  * kLSQuarantineAgentBundleIdentifierKey - value type CFStringRef
  *
- *    The bundle identifier of the quarantining agent, if available. When setting quarantine 
- *    properties, this value is set automatically if the key is not present in the caller's 
+ *    The bundle identifier of the quarantining agent, if available. When setting quarantine
+ *    properties, this value is set automatically if the key is not present in the caller's
  *    dictionary. The automatic value is the main bundle identifier of the current process.
  *
  *
  * kLSQuarantineTimeStampKey - value type CFDateRef
  *
  *    The date and time the item was quarantined. When setting quarantine properties,
- *    this property is set automatically to the current date and time if this key is not present 
+ *    this property is set automatically to the current date and time if this key is not present
  *    in the caller's dictionary.
  *
  *
  * kLSQuarantineTypeKey - value type CFStringRef
  *
- *    A symbolic string identifying the why the item is quarantined, if available. 
+ *    A symbolic string identifying the why the item is quarantined, if available.
  *    The value is one of the following:
  *
  *    kLSQuarantineTypeWebDownload
@@ -279,16 +279,16 @@ uses MacTypes,CFBase;
  *    view. For web downloads, this property is the URL of the web page on which the user initiated
  *    the download. For attachments, this property is the URL of the resource to which the quarantined
  *    item was attached (e.g. the email message, calendar event, etc.). The origin URL may be a file URL
- *    for local resources, or a custom URL to which the quarantining application will respond when asked 
- *    to open it. The quarantining application should respond by displaying the resource to the user. 
- *    Note: The origin URL should not be set to the data URL, or the quarantining application may start 
- *    downloading the file again if the user choses to view the origin URL while resolving a quarantine 
+ *    for local resources, or a custom URL to which the quarantining application will respond when asked
+ *    to open it. The quarantining application should respond by displaying the resource to the user.
+ *    Note: The origin URL should not be set to the data URL, or the quarantining application may start
+ *    downloading the file again if the user choses to view the origin URL while resolving a quarantine
  *    warning.
  *
  }
 {
  *  kLSQuarantineAgentNameKey
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -298,7 +298,7 @@ var kLSQuarantineAgentNameKey: CFStringRef; external name '_kLSQuarantineAgentNa
 (* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 {
  *  kLSQuarantineAgentBundleIdentifierKey
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -308,7 +308,7 @@ var kLSQuarantineAgentBundleIdentifierKey: CFStringRef; external name '_kLSQuara
 (* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 {
  *  kLSQuarantineTimeStampKey
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -318,7 +318,7 @@ var kLSQuarantineTimeStampKey: CFStringRef; external name '_kLSQuarantineTimeSta
 (* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 {
  *  kLSQuarantineTypeKey
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -328,7 +328,7 @@ var kLSQuarantineTypeKey: CFStringRef; external name '_kLSQuarantineTypeKey'; (*
 (* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 {
  *  kLSQuarantineTypeWebDownload
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -338,7 +338,7 @@ var kLSQuarantineTypeWebDownload: CFStringRef; external name '_kLSQuarantineType
 (* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 {
  *  kLSQuarantineTypeOtherDownload
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -348,7 +348,7 @@ var kLSQuarantineTypeOtherDownload: CFStringRef; external name '_kLSQuarantineTy
 (* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 {
  *  kLSQuarantineTypeEmailAttachment
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -358,7 +358,7 @@ var kLSQuarantineTypeEmailAttachment: CFStringRef; external name '_kLSQuarantine
 (* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 {
  *  kLSQuarantineTypeInstantMessageAttachment
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -368,7 +368,7 @@ var kLSQuarantineTypeInstantMessageAttachment: CFStringRef; external name '_kLSQ
 (* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 {
  *  kLSQuarantineTypeCalendarEventAttachment
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -378,7 +378,7 @@ var kLSQuarantineTypeCalendarEventAttachment: CFStringRef; external name '_kLSQu
 (* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 {
  *  kLSQuarantineTypeOtherAttachment
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -388,7 +388,7 @@ var kLSQuarantineTypeOtherAttachment: CFStringRef; external name '_kLSQuarantine
 (* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 {
  *  kLSQuarantineOriginURLKey
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -398,7 +398,7 @@ var kLSQuarantineOriginURLKey: CFStringRef; external name '_kLSQuarantineOriginU
 (* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 {
  *  kLSQuarantineDataURLKey
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available

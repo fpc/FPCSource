@@ -225,15 +225,15 @@ type
 	_CGLContextObject = Record end;
 	CGLContextObj = ^_CGLContextObject;
 	PCGLContextObj = ^CGLContextObj;
-	
+
 	_CGLPixelFormatObject = Record end;
 	CGLPixelFormatObj = ^_CGLPixelFormatObject;
 	PCGLPixelFormatObj = ^CGLPixelFormatObj;
-	
+
 	_CGLRendererInfoObject = Record end;
 	CGLRendererInfoObj = ^_CGLRendererInfoObject;
 	PCGLRendererInfoObj	= ^CGLRendererInfoObj;
-	
+
 	_CGLPBufferObject = Record end;
 	CGLPBufferObj = ^_CGLPBufferObject;
 	PCGLPBufferObj = ^CGLPBufferObj;
@@ -247,7 +247,7 @@ type
 type
 	CGLPixelFormatAttribute	= SInt32;
 	PCGLPixelFormatAttribute = ^CGLPixelFormatAttribute;
-	
+
 const
 	kCGLPFAAllRenderers       =   1;	{ choose from all available renderers          }
 	kCGLPFADoubleBuffer       =   5;	{ choose a double buffered pixel format        }
@@ -286,7 +286,7 @@ const
 	kCGLPFAVirtualScreenCount = 128;	{ number of virtual screens in this format     }
 
 {
-	Note: 
+	Note:
 		kCGLPFARobust, kCGLPFAMPSafe and kCGLPFAMultiScreen attributes will be deprecated in 10.5
 		Applications with these attributes will continue to work but these are being
 		deprecated for new applications.
@@ -302,7 +302,7 @@ const
 type
 	CGLRendererProperty = SInt32;
 	PCGLRendererProperty = ^CGLRendererProperty;
-	
+
 const
 	kCGLRPOffScreen           =  53;
 	kCGLRPFullScreen          =  54;
@@ -339,7 +339,7 @@ const
 type
 	CGLContextEnable = SInt32;
 	PCGLContextEnable = ^CGLContextEnable;
-	
+
 { CGLContextEnable }
 const
 	kCGLCESwapRectangle    = 201;	{ Enable or disable the swap rectangle          }
@@ -356,7 +356,7 @@ const
 type
 	CGLContextParameter = SInt32;
 	PCGLContextParameter = ^CGLContextParameter;
-	
+
 { CGLContextParameter }
 const
 	kCGLCPSwapRectangle          = 200; { 4 params.  Set or get the swap rectangle (x, y, w, h)        }
@@ -392,7 +392,7 @@ const
 type
 	CGLGlobalOption = SInt32;
 	PCGLGlobalOption = ^CGLGlobalOption;
-	
+
 { CGLGlobalOption }
 const
 	kCGLGOFormatCacheSize  = 501;	{ Set the size of the pixel format cache        }
@@ -410,7 +410,7 @@ const
 type
 	CGLError	= SInt32; { in case there will be negative errors in the future }
 	PCGLError = ^CGLError;
-	
+
 { CGLError }
 const
 	kCGLNoError               = 0;      { no error }
@@ -434,7 +434,7 @@ const
 	kCGLBadConnection         = 10017; 	{ invalid CoreGraphics connection }
 
 
-{ 
+{
 ** Buffer modes
 }
 const

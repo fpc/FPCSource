@@ -137,11 +137,11 @@ var
   WDTCSR : byte absolute $00+$60; // Watchdog Timer Control Register
   // CPU
   SREG : byte absolute $00+$5F; // Status Register
-  SP : word absolute $00+$5D; // Stack Pointer 
-  SPL : byte absolute $00+$5D; // Stack Pointer 
-  SPH : byte absolute $00+$5D+1; // Stack Pointer 
+  SP : word absolute $00+$5D; // Stack Pointer
+  SPL : byte absolute $00+$5D; // Stack Pointer
+  SPH : byte absolute $00+$5D+1; // Stack Pointer
   OSCCAL : byte absolute $00+$66; // Oscillator Calibration Value
-  CLKPR : byte absolute $00+$61; // 
+  CLKPR : byte absolute $00+$61; //
   SMCR : byte absolute $00+$53; // Sleep Mode Control Register
   RAMPZ : byte absolute $00+$5B; // RAM Page Z Select Register
   GPIOR2 : byte absolute $00+$4B; // General Purpose IO Register 2
@@ -191,7 +191,7 @@ const
   // TCCR0B
   FOC0A = 7; // Force Output Compare A
   FOC0B = 6; // Force Output Compare B
-  WGM02 = 3; // 
+  WGM02 = 3; //
   CS0 = 0; // Clock Select
   // TCCR0A
   COM0A = 6; // Compare Output Mode, Phase Correct PWM Mode
@@ -317,14 +317,14 @@ const
   // ADCSRB
   ADTS = 0; // ADC Auto Trigger Source bits
   // DIDR0
-  ADC7D = 7; // 
-  ADC6D = 6; // 
-  ADC5D = 5; // 
-  ADC4D = 4; // 
-  ADC3D = 3; // 
-  ADC2D = 2; // 
-  ADC1D = 1; // 
-  ADC0D = 0; // 
+  ADC7D = 7; //
+  ADC6D = 6; //
+  ADC5D = 5; //
+  ADC4D = 4; //
+  ADC3D = 3; //
+  ADC2D = 2; //
+  ADC1D = 1; //
+  ADC0D = 0; //
   // MCUCR
   JTD = 7; // JTAG Interface Disable
   // MCUSR
@@ -336,7 +336,7 @@ const
   EEPE = 1; // EEPROM Write Enable
   EERE = 0; // EEPROM Read Enable
   // TWAMR
-  TWAM = 1; // 
+  TWAM = 1; //
   // TWCR
   TWINT = 7; // TWI Interrupt Flag
   TWEA = 6; // TWI Enable Acknowledge Bit
@@ -414,8 +414,8 @@ const
   EXTRF = 1; // External Reset Flag
   PORF = 0; // Power-on reset flag
   // CLKPR
-  CLKPCE = 7; // 
-  CLKPS = 0; // 
+  CLKPCE = 7; //
+  CLKPS = 0; //
   // SMCR
   SM = 1; // Sleep Mode Select bits
   SE = 0; // Sleep Enable

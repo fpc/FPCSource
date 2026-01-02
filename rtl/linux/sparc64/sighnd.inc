@@ -70,7 +70,7 @@ begin
       addr:=pointer(sigcontext^.sigc_pc);
       framebp:=pointer(sigcontext^.sigc_gregs[SIG_SP]);
     end;
-  
+
   { give runtime error at the position where the signal was raised }
   if res<>0 then
     HandleErrorAddrFrame(res,addr,framebp);

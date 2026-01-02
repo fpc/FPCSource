@@ -1,17 +1,17 @@
 {
      File:       HIToolbox/Lists.h
- 
+
      Contains:   List Manager Interfaces.
- 
+
      Version:    HIToolbox-624~3
- 
+
      Copyright:  © 1985-2008 by Apple Computer, Inc., all rights reserved
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {       Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, August 2005 }
 {       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
@@ -231,7 +231,7 @@ uses MacTypes,Events,QuickdrawTypes,Controls,HIObject;
 
 {
  *  List Manager
- *  
+ *
  *  Discussion:
  *    The List Manager is deprecated in Mac OS X 10.5 and later, and is
  *    not included in the 64-bit version of HIToolbox. Applications
@@ -348,7 +348,7 @@ type
 	ListDefUPP = ListDefProcPtr;
 {
  *  NewListSearchUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -359,7 +359,7 @@ function NewListSearchUPP( userRoutine: ListSearchProcPtr ): ListSearchUPP; exte
 
 {
  *  NewListClickLoopUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -370,7 +370,7 @@ function NewListClickLoopUPP( userRoutine: ListClickLoopProcPtr ): ListClickLoop
 
 {
  *  NewListDefUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -381,7 +381,7 @@ function NewListDefUPP( userRoutine: ListDefProcPtr ): ListDefUPP; external name
 
 {
  *  DisposeListSearchUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -392,7 +392,7 @@ procedure DisposeListSearchUPP( userUPP: ListSearchUPP ); external name '_Dispos
 
 {
  *  DisposeListClickLoopUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -403,7 +403,7 @@ procedure DisposeListClickLoopUPP( userUPP: ListClickLoopUPP ); external name '_
 
 {
  *  DisposeListDefUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -414,7 +414,7 @@ procedure DisposeListDefUPP( userUPP: ListDefUPP ); external name '_DisposeListD
 
 {
  *  InvokeListSearchUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -425,7 +425,7 @@ function InvokeListSearchUPP( aPtr: Ptr; bPtr: Ptr; aLen: SInt16; bLen: SInt16; 
 
 {
  *  InvokeListClickLoopUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -436,7 +436,7 @@ function InvokeListClickLoopUPP( userUPP: ListClickLoopUPP ): Boolean; external 
 
 {
  *  InvokeListDefUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -465,10 +465,10 @@ type
 {$ifc not TARGET_CPU_64}
 {
  *  CreateCustomList()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -483,10 +483,10 @@ function CreateCustomList( const (*var*) rView: Rect; const (*var*) dataBounds: 
 {$ifc not TARGET_CPU_64}
 {
  *  LNew()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -498,10 +498,10 @@ function LNew( const (*var*) rView: Rect; const (*var*) dataBounds: ListBounds; 
 
 {
  *  LDispose()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -513,10 +513,10 @@ procedure LDispose( lHandle: ListHandle ); external name '_LDispose';
 
 {
  *  LAddColumn()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -528,10 +528,10 @@ function LAddColumn( count: SInt16; colNum: SInt16; lHandle: ListHandle ): SInt1
 
 {
  *  LAddRow()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -543,10 +543,10 @@ function LAddRow( count: SInt16; rowNum: SInt16; lHandle: ListHandle ): SInt16; 
 
 {
  *  LDelColumn()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -558,10 +558,10 @@ procedure LDelColumn( count: SInt16; colNum: SInt16; lHandle: ListHandle ); exte
 
 {
  *  LDelRow()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -573,10 +573,10 @@ procedure LDelRow( count: SInt16; rowNum: SInt16; lHandle: ListHandle ); externa
 
 {
  *  LGetSelect()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -588,10 +588,10 @@ function LGetSelect( next: Boolean; var theCell: Cell; lHandle: ListHandle ): Bo
 
 {
  *  LLastClick()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -603,10 +603,10 @@ function LLastClick( lHandle: ListHandle ): Cell; external name '_LLastClick';
 
 {
  *  LNextCell()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -618,10 +618,10 @@ function LNextCell( hNext: Boolean; vNext: Boolean; var theCell: Cell; lHandle: 
 
 {
  *  LSearch()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -633,10 +633,10 @@ function LSearch( dataPtr: {const} UnivPtr; dataLen: SInt16; searchProc: ListSea
 
 {
  *  LSize()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -648,10 +648,10 @@ procedure LSize( listWidth: SInt16; listHeight: SInt16; lHandle: ListHandle ); e
 
 {
  *  LSetDrawingMode()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -663,10 +663,10 @@ procedure LSetDrawingMode( drawIt: Boolean; lHandle: ListHandle ); external name
 
 {
  *  LScroll()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -678,10 +678,10 @@ procedure LScroll( dCols: SInt16; dRows: SInt16; lHandle: ListHandle ); external
 
 {
  *  LAutoScroll()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -693,10 +693,10 @@ procedure LAutoScroll( lHandle: ListHandle ); external name '_LAutoScroll';
 
 {
  *  LUpdate()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -708,10 +708,10 @@ procedure LUpdate( theRgn: RgnHandle; lHandle: ListHandle ); external name '_LUp
 
 {
  *  LActivate()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -723,10 +723,10 @@ procedure LActivate( act: Boolean; lHandle: ListHandle ); external name '_LActiv
 
 {
  *  LCellSize()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -738,10 +738,10 @@ procedure LCellSize( cSize: Point; lHandle: ListHandle ); external name '_LCellS
 
 {
  *  LClick()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -753,10 +753,10 @@ function LClick( pt: Point; modifiers: EventModifiers; lHandle: ListHandle ): Bo
 
 {
  *  LAddToCell()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -768,10 +768,10 @@ procedure LAddToCell( dataPtr: {const} UnivPtr; dataLen: SInt16; theCell: Cell; 
 
 {
  *  LClrCell()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -783,10 +783,10 @@ procedure LClrCell( theCell: Cell; lHandle: ListHandle ); external name '_LClrCe
 
 {
  *  LGetCell()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -798,10 +798,10 @@ procedure LGetCell( dataPtr: UnivPtr; var dataLen: SInt16; theCell: Cell; lHandl
 
 {
  *  LRect()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -813,10 +813,10 @@ procedure LRect( var cellRect: Rect; theCell: Cell; lHandle: ListHandle ); exter
 
 {
  *  LSetCell()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -828,10 +828,10 @@ procedure LSetCell( dataPtr: {const} UnivPtr; dataLen: SInt16; theCell: Cell; lH
 
 {
  *  LSetSelect()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -843,10 +843,10 @@ procedure LSetSelect( setIt: Boolean; theCell: Cell; lHandle: ListHandle ); exte
 
 {
  *  LDraw()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -858,10 +858,10 @@ procedure LDraw( theCell: Cell; lHandle: ListHandle ); external name '_LDraw';
 
 {
  *  LGetCellDataLocation()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -875,11 +875,11 @@ procedure LGetCellDataLocation( var offset: SInt16; var len: SInt16; theCell: Ce
 
 {
  *  RegisterListDefinition()   *** DEPRECATED ***
- *  
+ *
  *  Summary:
  *    Registers a binding between a resource ID and a list definition
  *    function.
- *  
+ *
  *  Discussion:
  *    In the Mac OS 8.x List Manager, a 'ldes' resource can contain an
  *    embedded LDEF procID that is used by the List Manager as the
@@ -889,19 +889,19 @@ procedure LGetCellDataLocation( var offset: SInt16; var len: SInt16; theCell: Ce
  *    resource. However, using RegisterListDefinition you can instead
  *    specify a UniversalProcPtr pointing to code in your application
  *    code fragment.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inResID:
  *      An LDEF proc ID, as used in a 'ldes' resource.
- *    
+ *
  *    inDefSpec:
  *      Specifies the ListDefUPP that should be used for lists with the
  *      given LDEF procID.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.5 and later
@@ -917,10 +917,10 @@ function RegisterListDefinition( inResID: SInt16; inDefSpec: ListDefSpecPtr ): O
 {$ifc not TARGET_CPU_64}
 {
  *  GetListViewBounds()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -932,10 +932,10 @@ function GetListViewBounds( list: ListHandle; var view: Rect ): RectPtr; externa
 
 {
  *  GetListPort()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -947,10 +947,10 @@ function GetListPort( list: ListHandle ): CGrafPtr; external name '_GetListPort'
 
 {
  *  GetListCellIndent()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -962,10 +962,10 @@ function GetListCellIndent( list: ListHandle; var indent: Point ): PointPtr; ext
 
 {
  *  GetListCellSize()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -977,10 +977,10 @@ function GetListCellSize( list: ListHandle; var size: Point ): PointPtr; externa
 
 {
  *  GetListVisibleCells()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -992,10 +992,10 @@ function GetListVisibleCells( list: ListHandle; var visible: ListBounds ): ListB
 
 {
  *  GetListVerticalScrollBar()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1007,10 +1007,10 @@ function GetListVerticalScrollBar( list: ListHandle ): ControlRef; external name
 
 {
  *  GetListHorizontalScrollBar()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1022,10 +1022,10 @@ function GetListHorizontalScrollBar( list: ListHandle ): ControlRef; external na
 
 {
  *  GetListActive()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1037,10 +1037,10 @@ function GetListActive( list: ListHandle ): Boolean; external name '_GetListActi
 
 {
  *  GetListClickTime()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1052,10 +1052,10 @@ function GetListClickTime( list: ListHandle ): SInt32; external name '_GetListCl
 
 {
  *  GetListClickLocation()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1067,10 +1067,10 @@ function GetListClickLocation( list: ListHandle; var click: Point ): PointPtr; e
 
 {
  *  GetListMouseLocation()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1082,10 +1082,10 @@ function GetListMouseLocation( list: ListHandle; var mouse: Point ): PointPtr; e
 
 {
  *  GetListClickLoop()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1097,10 +1097,10 @@ function GetListClickLoop( list: ListHandle ): ListClickLoopUPP; external name '
 
 {
  *  GetListRefCon()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1112,10 +1112,10 @@ function GetListRefCon( list: ListHandle ): SInt32; external name '_GetListRefCo
 
 {
  *  GetListDefinition()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1127,10 +1127,10 @@ function GetListDefinition( list: ListHandle ): Handle; external name '_GetListD
 
 {
  *  GetListUserHandle()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1142,10 +1142,10 @@ function GetListUserHandle( list: ListHandle ): Handle; external name '_GetListU
 
 {
  *  GetListDataBounds()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1157,10 +1157,10 @@ function GetListDataBounds( list: ListHandle; var bounds: ListBounds ): ListBoun
 
 {
  *  GetListDataHandle()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1172,10 +1172,10 @@ function GetListDataHandle( list: ListHandle ): DataHandle; external name '_GetL
 
 {
  *  GetListFlags()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1187,10 +1187,10 @@ function GetListFlags( list: ListHandle ): OptionBits; external name '_GetListFl
 
 {
  *  GetListSelectionFlags()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1203,10 +1203,10 @@ function GetListSelectionFlags( list: ListHandle ): OptionBits; external name '_
 { Setters }
 {
  *  SetListViewBounds()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1218,10 +1218,10 @@ procedure SetListViewBounds( list: ListHandle; const (*var*) view: Rect ); exter
 
 {
  *  SetListPort()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1233,10 +1233,10 @@ procedure SetListPort( list: ListHandle; port: CGrafPtr ); external name '_SetLi
 
 {
  *  SetListCellIndent()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1248,10 +1248,10 @@ procedure SetListCellIndent( list: ListHandle; var indent: Point ); external nam
 
 {
  *  SetListClickTime()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1263,10 +1263,10 @@ procedure SetListClickTime( list: ListHandle; time: SInt32 ); external name '_Se
 
 {
  *  SetListClickLoop()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1278,10 +1278,10 @@ procedure SetListClickLoop( list: ListHandle; clickLoop: ListClickLoopUPP ); ext
 
 {
  *  SetListLastClick()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1293,10 +1293,10 @@ procedure SetListLastClick( list: ListHandle; var lastClick: Cell ); external na
 
 {
  *  SetListRefCon()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1308,10 +1308,10 @@ procedure SetListRefCon( list: ListHandle; refCon: SInt32 ); external name '_Set
 
 {
  *  SetListUserHandle()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1323,10 +1323,10 @@ procedure SetListUserHandle( list: ListHandle; userHandle: Handle ); external na
 
 {
  *  SetListFlags()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1338,10 +1338,10 @@ procedure SetListFlags( list: ListHandle; listFlags: OptionBits ); external name
 
 {
  *  SetListSelectionFlags()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later

@@ -56,7 +56,7 @@
   type
 
      MAKEINTRESOURCE = pwidechar;
-     
+
      ATOM = word;                     //windef
      TAtom = ATOM;
 
@@ -89,7 +89,7 @@
 
      DWORDLONG  = qword;  { was unsigned long  }
      PDWORDLONG = ^DWORDLONG;
-     
+
      INT_PTR = PtrInt;
      UINT_PTR = PtrUInt;
      LONG_PTR = PtrInt;
@@ -412,7 +412,7 @@ type
      end;
      _SID = SID;
      PSID = ^SID;
-     
+
      SID_NAME_USE = (             //~winnt, added SidTypeComputer
       SidTypeUser:= 1,
       SidTypeGroup,
@@ -524,7 +524,7 @@ type
 
   { was #define dname(params) def_expr }
   { argument types are unknown }
-  function MAKEINTATOM(i : longint) : LPTSTR; 
+  function MAKEINTATOM(i : longint) : LPTSTR;
 
   { was #define dname(params) def_expr }
   { argument types are unknown }

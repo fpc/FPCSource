@@ -43,8 +43,8 @@ var
   MCUSR: byte absolute $54;  // MCU Status Register
   MCUCR: byte absolute $55;  // MCU Control Register
   SPMCSR: byte absolute $57;  // Store Program Memory Control Register
-  SP: word absolute $5D;  // Stack Pointer 
-  SPL: byte absolute $5D;  // Stack Pointer 
+  SP: word absolute $5D;  // Stack Pointer
+  SPL: byte absolute $5D;  // Stack Pointer
   SPH: byte absolute $5E;  // Stack Pointer ;
   SREG: byte absolute $5F;  // Status Register
   WDTCSR: byte absolute $60;  // Watchdog Timer Control Register
@@ -123,28 +123,28 @@ var
   PCTL0: byte absolute $DB;  // PSC 0 Control Register
   PFRC0A: byte absolute $DC;  // PSC 0 Input A Control
   PFRC0B: byte absolute $DD;  // PSC 0 Input B Control
-  PICR0: word absolute $DE;  // PSC 0 Input Capture Register 
-  PICR0L: byte absolute $DE;  // PSC 0 Input Capture Register 
+  PICR0: word absolute $DE;  // PSC 0 Input Capture Register
+  PICR0L: byte absolute $DE;  // PSC 0 Input Capture Register
   PICR0H: byte absolute $DF;  // PSC 0 Input Capture Register ;
   PSOC1: byte absolute $E0;  // PSC1 Synchro and Output Configuration
-  OCR1SA: word absolute $E2;  // Output Compare SA Register 
-  OCR1SAL: byte absolute $E2;  // Output Compare SA Register 
+  OCR1SA: word absolute $E2;  // Output Compare SA Register
+  OCR1SAL: byte absolute $E2;  // Output Compare SA Register
   OCR1SAH: byte absolute $E3;  // Output Compare SA Register ;
-  OCR1RA: word absolute $E4;  // Output Compare RA Register 
-  OCR1RAL: byte absolute $E4;  // Output Compare RA Register 
+  OCR1RA: word absolute $E4;  // Output Compare RA Register
+  OCR1RAL: byte absolute $E4;  // Output Compare RA Register
   OCR1RAH: byte absolute $E5;  // Output Compare RA Register ;
-  OCR1SB: word absolute $E6;  // Output Compare SB Register 
-  OCR1SBL: byte absolute $E6;  // Output Compare SB Register 
+  OCR1SB: word absolute $E6;  // Output Compare SB Register
+  OCR1SBL: byte absolute $E6;  // Output Compare SB Register
   OCR1SBH: byte absolute $E7;  // Output Compare SB Register ;
-  OCR1RB: word absolute $E8;  // Output Compare RB Register 
-  OCR1RBL: byte absolute $E8;  // Output Compare RB Register 
+  OCR1RB: word absolute $E8;  // Output Compare RB Register
+  OCR1RBL: byte absolute $E8;  // Output Compare RB Register
   OCR1RBH: byte absolute $E9;  // Output Compare RB Register ;
   PCNF1: byte absolute $EA;  // PSC 1 Configuration Register
   PCTL1: byte absolute $EB;  // PSC 1 Control Register
   PFRC1A: byte absolute $EC;  // PSC 1 Input B Control
   PFRC1B: byte absolute $ED;  // PSC 1 Input B Control
-  PICR1: word absolute $EE;  // PSC 1 Input Capture Register 
-  PICR1L: byte absolute $EE;  // PSC 1 Input Capture Register 
+  PICR1: word absolute $EE;  // PSC 1 Input Capture Register
+  PICR1L: byte absolute $EE;  // PSC 1 Input Capture Register
   PICR1H: byte absolute $EF;  // PSC 1 Input Capture Register ;
   PSOC2: byte absolute $F0;  // PSC2 Synchro and Output Configuration
   POM2: byte absolute $F1;  // PSC 2 Output Matrix
@@ -164,8 +164,8 @@ var
   PCTL2: byte absolute $FB;  // PSC 2 Control Register
   PFRC2A: byte absolute $FC;  // PSC 2 Input B Control
   PFRC2B: byte absolute $FD;  // PSC 2 Input B Control
-  PICR2: word absolute $FE;  // PSC 2 Input Capture Register 
-  PICR2L: byte absolute $FE;  // PSC 2 Input Capture Register 
+  PICR2: word absolute $FE;  // PSC 2 Input Capture Register
+  PICR2L: byte absolute $FE;  // PSC 2 Input Capture Register
   PICR2H: byte absolute $FF;  // PSC 2 Input Capture Register ;
 
 const
@@ -398,14 +398,14 @@ const
   PRPSC1 = $06;
   PRPSC2 = $07;
   // Oscillator Calibration Value
-  OSCCAL0 = $00;  // Oscillator Calibration 
-  OSCCAL1 = $01;  // Oscillator Calibration 
-  OSCCAL2 = $02;  // Oscillator Calibration 
-  OSCCAL3 = $03;  // Oscillator Calibration 
-  OSCCAL4 = $04;  // Oscillator Calibration 
-  OSCCAL5 = $05;  // Oscillator Calibration 
-  OSCCAL6 = $06;  // Oscillator Calibration 
-  OSCCAL7 = $07;  // Oscillator Calibration 
+  OSCCAL0 = $00;  // Oscillator Calibration
+  OSCCAL1 = $01;  // Oscillator Calibration
+  OSCCAL2 = $02;  // Oscillator Calibration
+  OSCCAL3 = $03;  // Oscillator Calibration
+  OSCCAL4 = $04;  // Oscillator Calibration
+  OSCCAL5 = $05;  // Oscillator Calibration
+  OSCCAL6 = $06;  // Oscillator Calibration
+  OSCCAL7 = $07;  // Oscillator Calibration
   // External Interrupt Control Register A
   ISC00 = $00;  // External Interrupt Sense Control Bit
   ISC01 = $01;  // External Interrupt Sense Control Bit
@@ -772,7 +772,7 @@ const
   PELEV0B = $05;
   PISEL0B = $06;
   PCAE0B = $07;
-  // PSC 0 Input Capture Register 
+  // PSC 0 Input Capture Register
   PICR00 = $00;  // PSC 0 Input Capture Bytes
   PICR01 = $01;  // PSC 0 Input Capture Bytes
   PICR02 = $02;  // PSC 0 Input Capture Bytes
@@ -911,7 +911,7 @@ const
   PELEV2B = $05;
   PISEL2B = $06;
   PCAE2B = $07;
-  // PSC 2 Input Capture Register 
+  // PSC 2 Input Capture Register
   PICR20 = $00;  // PSC 2 Input Capture Bytes
   PICR21 = $01;  // PSC 2 Input Capture Bytes
   PICR22 = $02;  // PSC 2 Input Capture Bytes
@@ -939,7 +939,7 @@ procedure INT0_ISR; external name 'INT0_ISR'; // Interrupt 10 External Interrupt
 procedure TIMER1_CAPT_ISR; external name 'TIMER1_CAPT_ISR'; // Interrupt 11 Timer/Counter1 Capture Event
 procedure TIMER1_COMPA_ISR; external name 'TIMER1_COMPA_ISR'; // Interrupt 12 Timer/Counter1 Compare Match A
 procedure TIMER1_COMPB_ISR; external name 'TIMER1_COMPB_ISR'; // Interrupt 13 Timer/Counter Compare Match B
-procedure RESERVED15_ISR; external name 'RESERVED15_ISR'; // Interrupt 14 
+procedure RESERVED15_ISR; external name 'RESERVED15_ISR'; // Interrupt 14
 procedure TIMER1_OVF_ISR; external name 'TIMER1_OVF_ISR'; // Interrupt 15 Timer/Counter1 Overflow
 procedure TIMER0_COMPA_ISR; external name 'TIMER0_COMPA_ISR'; // Interrupt 16 Timer/Counter0 Compare Match A
 procedure TIMER0_OVF_ISR; external name 'TIMER0_OVF_ISR'; // Interrupt 17 Timer/Counter0 Overflow
@@ -954,8 +954,8 @@ procedure WDT_ISR; external name 'WDT_ISR'; // Interrupt 25 Watchdog Timeout Int
 procedure EE_READY_ISR; external name 'EE_READY_ISR'; // Interrupt 26 EEPROM Ready
 procedure TIMER0_COMPB_ISR; external name 'TIMER0_COMPB_ISR'; // Interrupt 27 Timer Counter 0 Compare Match B
 procedure INT3_ISR; external name 'INT3_ISR'; // Interrupt 28 External Interrupt Request 3
-procedure RESERVED30_ISR; external name 'RESERVED30_ISR'; // Interrupt 29 
-procedure RESERVED31_ISR; external name 'RESERVED31_ISR'; // Interrupt 30 
+procedure RESERVED30_ISR; external name 'RESERVED30_ISR'; // Interrupt 29
+procedure RESERVED31_ISR; external name 'RESERVED31_ISR'; // Interrupt 30
 procedure SPM_READY_ISR; external name 'SPM_READY_ISR'; // Interrupt 31 Store Program Memory Read
 
 procedure _FPC_start; assembler; nostackframe; noreturn; public name '_START'; section '.init';

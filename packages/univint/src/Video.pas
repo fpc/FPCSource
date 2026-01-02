@@ -1,17 +1,17 @@
 {
      File:       QD/Video.h
- 
+
      Contains:   Video Driver Interfaces.
- 
+
      Version:    Quickdraw-262~1
- 
+
      Copyright:  © 1986-2008 by Apple Computer, Inc., all rights reserved
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {   Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {
@@ -230,10 +230,10 @@ uses MacTypes,QuickdrawTypes;
 
 {******************* DEPRECATION NOTICE *********************
  *
- * All declarations in this file are deprecated; their use 
+ * All declarations in this file are deprecated; their use
  * doesn't make sense on Mac OS X. Some structures are used
  * in the DisplayMgr API, which is being deprecated as well.
- * Use the CGDirectDisplay API in the CoreGraphics framework in 
+ * Use the CGDirectDisplay API in the CoreGraphics framework in
  * ApplicationServices.framework as replacement.
  *
  ************************************************************}
@@ -297,7 +297,7 @@ const
     Corresponding   .h equates are in Video.h
                     .a equates are in Video.a
                     .r equates are in DepVideoEqu.r
-    
+
     The second enum is the old names (for compatibility).
     The first enum is the new names.
 }
@@ -691,9 +691,9 @@ type
         ¥ Instruct the frame buffer controller NOT to actively drive any of the monitor sense lines
         ¥ Read the state of the monitor sense lines 2, 1, and 0.  (2 is the MSB, 0 the LSB)
 
-    IMPORTANT Note: 
-    When the 'kTaggingInfoNonStandard' bit of 'csConnectFlags' is FALSE, then these constants 
-    are valid 'csConnectTaggedType' values in 'VDDisplayConnectInfo' 
+    IMPORTANT Note:
+    When the 'kTaggingInfoNonStandard' bit of 'csConnectFlags' is FALSE, then these constants
+    are valid 'csConnectTaggedType' values in 'VDDisplayConnectInfo'
 
 }
 type
@@ -716,15 +716,15 @@ const
 
     For 'standard' sense code hardware, the extended sense code algorithm is as follows:
     (Note:  as described here, sense line 'A' corresponds to '2', 'B' to '1', and 'C' to '0')
-        ¥ Drive sense line 'A' low and read the values of 'B' and 'C'.  
+        ¥ Drive sense line 'A' low and read the values of 'B' and 'C'.
         ¥ Drive sense line 'B' low and read the values of 'A' and 'C'.
         ¥ Drive sense line 'C' low and read the values of 'A' and 'B'.
 
-    In this way, a six-bit number of the form BC/AC/AB is generated. 
+    In this way, a six-bit number of the form BC/AC/AB is generated.
 
-    IMPORTANT Note: 
-    When the 'kTaggingInfoNonStandard' bit of 'csConnectFlags' is FALSE, then these constants 
-    are valid 'csConnectTaggedData' values in 'VDDisplayConnectInfo' 
+    IMPORTANT Note:
+    When the 'kTaggingInfoNonStandard' bit of 'csConnectFlags' is FALSE, then these constants
+    are valid 'csConnectTaggedData' values in 'VDDisplayConnectInfo'
 
 }
 type
@@ -1000,12 +1000,12 @@ type
 	VDPowerStatePtr = VDPowerStateRecPtr;
 {
     Private Data to video drivers.
-    
-    In versions of MacOS with multiple address spaces (System 8), the OS 
+
+    In versions of MacOS with multiple address spaces (System 8), the OS
     must know the extent of parameters in order to move them between the caller
     and driver.  The old private-selector model for video drivers does not have
     this information so:
-    
+
     For post-7.x Systems private calls should be implemented using the cscPrivateCall
 }
 type

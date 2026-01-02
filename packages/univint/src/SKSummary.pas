@@ -1,17 +1,17 @@
 {
      File:       SearchKit/SKSummary.h
- 
+
      Contains:   SearchKit Interfaces.
- 
+
      Version:    SearchKit-407~38
- 
+
      Copyright:  © 2004-2008 by Apple Computer, Inc., all rights reserved
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://developer.apple.com/bugreporter/
- 
+
 }
 {
     Modified for use with Free Pascal
@@ -231,10 +231,10 @@ uses MacTypes,CFBase,CFString;
 
 {
  *  SKSummaryRef
- *  
+ *
  *  Summary:
  *    An opaque data type representing summary information.
- *  
+ *
  *  Discussion:
  *    A summary reference contains summary information, from which
  *    summary text can be obtained.
@@ -245,13 +245,13 @@ type
 	SKSummaryRefPtr = ^SKSummaryRef;
 {
  *  SKSummaryGetTypeID()
- *  
+ *
  *  Summary:
  *    Returns the type identifier of the SKSummaryRef type.
- *  
+ *
  *  Result:
  *    Returns a CFTypeID object, or <tt>NULL</tt> on failure.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -263,23 +263,23 @@ function SKSummaryGetTypeID: CFTypeID; external name '_SKSummaryGetTypeID';
 
 {
  *  SKSummaryCreateWithString()
- *  
+ *
  *  Summary:
  *    Creates a summary reference with text string.
- *  
+ *
  *  Discussion:
  *    Creates a summary reference that pre-computes what is needed for
  *    fast summarization. This function must be balanced with a call at
  *    a later time to CFRelease.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inString:
  *      the text string.
- *  
+ *
  *  Result:
  *    Returns a summary reference, or <tt>NULL</tt> on failure.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -291,15 +291,15 @@ function SKSummaryCreateWithString( inString: CFStringRef ): SKSummaryRef; exter
 
 {
  *  SKSummaryGetSentenceCount()
- *  
+ *
  *  Summary:
  *    Gets the number of sentences available.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    summary:
  *      A reference to the summary object
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -311,15 +311,15 @@ function SKSummaryGetSentenceCount( summary: SKSummaryRef ): CFIndex; external n
 
 {
  *  SKSummaryGetParagraphCount()
- *  
+ *
  *  Summary:
  *    Gets the number of paragraphs available.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    summary:
  *      A reference to the summary object
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -331,18 +331,18 @@ function SKSummaryGetParagraphCount( summary: SKSummaryRef ): CFIndex; external 
 
 {
  *  SKSummaryCopySentenceAtIndex()
- *  
+ *
  *  Summary:
  *    Gets the ith sentence from the original text.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    summary:
  *      A reference to the summary object
- *    
+ *
  *    i:
  *      zero-based index
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -354,18 +354,18 @@ function SKSummaryCopySentenceAtIndex( summary: SKSummaryRef; i: CFIndex ): CFSt
 
 {
  *  SKSummaryCopyParagraphAtIndex()
- *  
+ *
  *  Summary:
  *    Gets the ith paragraph from the original text.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    summary:
  *      A reference to the summary object
- *    
+ *
  *    i:
  *      zero-based index
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -377,19 +377,19 @@ function SKSummaryCopyParagraphAtIndex( summary: SKSummaryRef; i: CFIndex ): CFS
 
 {
  *  SKSummaryCopySentenceSummaryString()
- *  
+ *
  *  Summary:
  *    Gets a summary string that includes at most the requested number
  *    of sentences.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    summary:
  *      A reference to the summary object
- *    
+ *
  *    numSentences:
  *      the number of sentences desired
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -401,19 +401,19 @@ function SKSummaryCopySentenceSummaryString( summary: SKSummaryRef; numSentences
 
 {
  *  SKSummaryCopyParagraphSummaryString()
- *  
+ *
  *  Summary:
  *    Gets a summary string that includes at most the requested number
  *    of paragraphs.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    summary:
  *      A reference to the summary object
- *    
+ *
  *    numParagraphs:
  *      the number of paragraphs desired
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -425,34 +425,34 @@ function SKSummaryCopyParagraphSummaryString( summary: SKSummaryRef; numParagrap
 
 {
  *  SKSummaryGetSentenceSummaryInfo()
- *  
+ *
  *  Summary:
  *    Get detailed information about a sentence-based summary. Useful
  *    for constructing your own summary string. Arrays must be of size
  *    numSentences or they can be nil. Return value is the number of
  *    sentences actually returned. Sentences are returned in text order
  *    via outSentenceIndexOfSentences.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    summary:
  *      A reference to the summary object
- *    
+ *
  *    numSentencesInSummary:
  *      the number of sentences desired
- *    
+ *
  *    outRankOrderOfSentences:
  *      array for returning the rank of each sentence; most important
  *      sentence is rank 1
- *    
+ *
  *    outSentenceIndexOfSentences:
  *      array for returning the index of each sentence; use
  *      SKSummaryCopySentenceAtIndex to get sentence
- *    
+ *
  *    outParagraphIndexOfSentences:
  *      array for returning the index of the paragraph in which
  *      sentence occurred
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -464,30 +464,30 @@ function SKSummaryGetSentenceSummaryInfo( summary: SKSummaryRef; numSentencesInS
 
 {
  *  SKSummaryGetParagraphSummaryInfo()
- *  
+ *
  *  Summary:
  *    Get detailed information about a paragraph-based summary. Useful
  *    for constructing your own summary string. Arrays must be of size
  *    numParagraphs or they can be nil. Return value is the number of
  *    paragraphs actually returned. Paragraphs are returned in text
  *    order via outParagraphIndexOfParagraphs.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    summary:
  *      A reference to the summary object
- *    
+ *
  *    numParagraphsInSummary:
  *      the number of sentences desired
- *    
+ *
  *    outRankOrderOfParagraphs:
  *      array for returning the rank of each paragraph; most important
  *      paragraph is rank 1
- *    
+ *
  *    outParagraphIndexOfParagraphs:
  *      array for returning the index of each paragraph; use
  *      SKSummaryCopyParagraphAtIndex to get paragraph
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available

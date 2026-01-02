@@ -116,7 +116,7 @@ begin
     end;
   {$IFDEF DEBUGWASMTHREADS}DebugWriteln('Thread func calling EndThread');{$ENDIF}
   EndThread(Result);
-  
+
 end;
 
 procedure TThread.SysCreate(CreateSuspended: Boolean; const StackSize: SizeUInt);
@@ -160,7 +160,7 @@ begin
   {$IFDEF DEBUGWASMTHREADS}DebugWriteln('TThread.SysDestroy: '+IntToStr(PtrInt(FThreadID))+' = '+IntToStr(PtrInt(GetCurrentThreadID)));{$ENDIF}
   {$IFDEF DEBUGWASMTHREADS}DebugWriteln('TThread.SysDestroy: thread itself is freeing');{$ENDIF}
     if not(FFreeOnTerminate) and not FFinished then
-       begin 
+       begin
        {$IFDEF DEBUGWASMTHREADS}DebugWriteln('TThread.SysDestroy: error condition');{$ENDIF}
        raise EThreadDestroyCalled.Create('A thread cannot destroy itself except by setting FreeOnTerminate and leaving!');
        end;
@@ -196,7 +196,7 @@ begin
    {$IFDEF DEBUGWASMTHREADS}DebugWriteln('TThread.SysDestroy: freeing fatal exception if it exists');{$ENDIF}
    FFatalException.Free;
    FFatalException := nil;
-   // Free resources associated with thread. 
+   // Free resources associated with thread.
    // This must be done after EndThread is called, but that is called in ThreadFunc
    CloseThread(FHandle);
 end;

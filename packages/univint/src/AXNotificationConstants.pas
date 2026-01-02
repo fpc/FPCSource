@@ -318,7 +318,7 @@ uses MacTypes;
 // layout area notifications
 {$ifc USE_CFSTR_CONSTANT_MACROS}
 {$definec kAXUnitsChangedNotification CFSTRP('AXUnitsChanged')}
-{$endc}  
+{$endc}
 {$ifc USE_CFSTR_CONSTANT_MACROS}
 {$definec kAXSelectedChildrenMovedNotification CFSTRP('AXSelectedChildrenMoved')}
 {$endc}

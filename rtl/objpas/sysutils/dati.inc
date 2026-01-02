@@ -79,7 +79,7 @@ function MSecsToTimeStamp(MSecs: comp): TTimeStamp;
 
 var
   D1 : Int64;
-  
+
 begin
   D1:=Trunc(msecs);
   Result:=MSecsToTimeStamp(D1);
@@ -176,7 +176,7 @@ begin
     begin
     if Date>0 then
       Date:=Date+1/(msecsperday*2)
-    else  
+    else
       Date:=Date-1/(msecsperday*2);
     if Date>MaxDateTime then
       Date:=MaxDateTime;
@@ -490,7 +490,7 @@ begin
     begin
     FixErrorMsg(SInvalidDateFormat,s);
     Exit;
-    end; 
+    end;
   // Fill in values.
   getLocalTime(LocalTime);
   ly := LocalTime.Year;
@@ -855,33 +855,33 @@ begin
   TimeStr := '';
   DateTimeStr := Trim(DateTimeStr);
   if Length(DateTimeStr) = 0 then exit;
-  if (FS.DateSeparator = #32) and (FS.TimeSeparator = #32) and (Pos(#32, DateTimeStr) > 0) then 
+  if (FS.DateSeparator = #32) and (FS.TimeSeparator = #32) and (Pos(#32, DateTimeStr) > 0) then
     begin
     DateStr:=DateTimeStr;
     {
-      Assume a date: dd [mm [yy]]. 
-      Really fancy would be counting the number of whitespace occurrences and decide 
+      Assume a date: dd [mm [yy]].
+      Really fancy would be counting the number of whitespace occurrences and decide
       and split accordingly
     }
-    Exit(1); 
+    Exit(1);
     end;
   p:=1;
   //find separator
   if Pos(Space,FS.DateSeparator)=0 then
-    begin  
-    while (p<Length(DateTimeStr)) and (not (DateTimeStr[p+1] in WhiteSpace)) do 
+    begin
+    while (p<Length(DateTimeStr)) and (not (DateTimeStr[p+1] in WhiteSpace)) do
       Inc(p);
     end
   else
     begin
     p:=Pos(FS.TimeSeparator, DateTimeStr);
-    if (p<>0) then 
+    if (p<>0) then
       repeat
         Dec(p);
       until (p=0) or (DateTimeStr[p] in WhiteSpace);
     end;
   //Always fill DateStr, it eases the algorithm later
-  if (p=0) then 
+  if (p=0) then
     p:=Length(DateTimeStr);
   DateStr:=Copy(DateTimeStr,1,p);
   TimeStr:=Trim(Copy(DateTimeStr,p+1,MaxInt));
@@ -900,7 +900,7 @@ begin
       DateStr := '';
       end;
     end;
-end; 
+end;
 
 
 function StrToDateTime(const s: String; const FormatSettings : TFormatSettings): TDateTime;
@@ -909,7 +909,7 @@ var
   PartsFound: Integer;
 begin
   PartsFound := SplitDateTimeStr(S, FormatSettings, DateStr, TimeStr);
-  case PartsFound of  
+  case PartsFound of
     0: Result:=StrToDate('');
     1: if (Length(DateStr) > 0) then
          Result := StrToDate(DateStr, FormatSettings.ShortDateFormat,FormatSettings.DateSeparator)
@@ -949,13 +949,13 @@ end;
 
 {   DateTimeToString formats DateTime to the given format in FormatStr   }
 
-procedure DateTimeToString(out Result: string; const FormatStr: string; 
+procedure DateTimeToString(out Result: string; const FormatStr: string;
   const DateTime: TDateTime; Options : TFormatDateTimeOptions = []);
 begin
   DateTimeToString(Result, FormatStr, DateTime, DefaultFormatSettings, Options);
 end;
 
-procedure DateTimeToString(out Result: string; const FormatStr: string; const DateTime: TDateTime; 
+procedure DateTimeToString(out Result: string; const FormatStr: string; const DateTime: TDateTime;
   const FormatSettings: TFormatSettings; Options : TFormatDateTimeOptions = []);
 var
   ResultLen: integer;
@@ -1251,7 +1251,7 @@ var
                      Count := P - FormatCurrent;
                      StoreString(ConvertEraYearString(Count,Year,Month,Day));
                    end;
-                 prevlasttoken := lastformattoken;  
+                 prevlasttoken := lastformattoken;
                  lastformattoken:=token;
                end;
              'G':

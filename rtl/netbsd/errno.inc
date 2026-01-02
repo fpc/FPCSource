@@ -149,7 +149,7 @@ Const
         ESysENOATTR             = 93;           { Attribute not found }
 
 { Realtime, XSI STREAMS option errors }
-        ESysEMULTIHOP           = 94;           { Multihop attempted } 
+        ESysEMULTIHOP           = 94;           { Multihop attempted }
         ESysENOLINK             = 95;           { Link has been severed }
         ESysEPROTO              = 96;           { Protocol error }
 

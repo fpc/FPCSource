@@ -1,17 +1,17 @@
 {
      File:       HIToolbox/Dialogs.h
- 
+
      Contains:   Dialog Manager interfaces.
- 
+
      Version:    HIToolbox-624~3
- 
+
      Copyright:  © 1985-2008 by Apple Computer, Inc., all rights reserved
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {       Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, August 2005 }
 {       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
@@ -339,7 +339,7 @@ type
 	UserItemUPP = UserItemProcPtr;
 {
  *  NewSoundUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -348,7 +348,7 @@ type
 
 {
  *  NewModalFilterUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -359,7 +359,7 @@ function NewModalFilterUPP( userRoutine: ModalFilterProcPtr ): ModalFilterUPP; e
 
 {
  *  NewModalFilterYDUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -370,7 +370,7 @@ function NewModalFilterYDUPP( userRoutine: ModalFilterYDProcPtr ): ModalFilterYD
 
 {
  *  NewUserItemUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -381,7 +381,7 @@ function NewUserItemUPP( userRoutine: UserItemProcPtr ): UserItemUPP; external n
 
 {
  *  DisposeSoundUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -390,7 +390,7 @@ function NewUserItemUPP( userRoutine: UserItemProcPtr ): UserItemUPP; external n
 
 {
  *  DisposeModalFilterUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -401,7 +401,7 @@ procedure DisposeModalFilterUPP( userUPP: ModalFilterUPP ); external name '_Disp
 
 {
  *  DisposeModalFilterYDUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -412,7 +412,7 @@ procedure DisposeModalFilterYDUPP( userUPP: ModalFilterYDUPP ); external name '_
 
 {
  *  DisposeUserItemUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -423,7 +423,7 @@ procedure DisposeUserItemUPP( userUPP: UserItemUPP ); external name '_DisposeUse
 
 {
  *  InvokeSoundUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -432,7 +432,7 @@ procedure DisposeUserItemUPP( userUPP: UserItemUPP ); external name '_DisposeUse
 
 {
  *  InvokeModalFilterUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -443,7 +443,7 @@ function InvokeModalFilterUPP( theDialog: DialogRef; var theEvent: EventRecord; 
 
 {
  *  InvokeModalFilterYDUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -454,7 +454,7 @@ function InvokeModalFilterYDUPP( theDialog: DialogRef; var theEvent: EventRecord
 
 {
  *  InvokeUserItemUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -493,7 +493,7 @@ const
 
 {
  *  Dialog feature flags
- *  
+ *
  *  Summary:
  *    These feature flags can be used in a 'dlgx' resource or in the
  *    inFlags parameter to NewFeaturesDialog.
@@ -540,7 +540,7 @@ const
 
 {
  *  Alert feature flags
- *  
+ *
  *  Summary:
  *    These feature flags can be used in a 'alrx' resource.
  }
@@ -607,10 +607,10 @@ const
 
 {
  *  AlertStdAlertParamRec
- *  
+ *
  *  Summary:
  *    AlertStdCFStringAlertParamRec is preferred.
- *  
+ *
  *  Discussion:
  *    As of Mac OS X 10.5, defaultButton can be the same as the
  *    cancelButton. Prior to Mac OS X 10.5, having cancelButton and
@@ -743,11 +743,11 @@ const
 
 {
  *  AlertStdCFStringAlertParamRec
- *  
+ *
  *  Summary:
  *    A CFString variant of AlertStdAlertParamRec. CFStrings are
  *    preferred.
- *  
+ *
  *  Discussion:
  *    As of Mac OS X 10.5, defaultButton can be the same as the
  *    cancelButton. Prior to Mac OS X 10.5, having cancelButton and
@@ -831,10 +831,10 @@ type
 {$ifc not TARGET_CPU_64}
 {
  *  NewDialog()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -846,10 +846,10 @@ function NewDialog( dStorage: UnivPtr; const (*var*) boundsRect: Rect; const (*v
 
 {
  *  GetNewDialog()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -861,10 +861,10 @@ function GetNewDialog( dialogID: SInt16; dStorage: UnivPtr; behind: WindowRef ):
 
 {
  *  NewColorDialog()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -876,10 +876,10 @@ function NewColorDialog( dStorage: UnivPtr; const (*var*) boundsRect: Rect; cons
 
 {
  *  DisposeDialog()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -891,10 +891,10 @@ procedure DisposeDialog( theDialog: DialogRef ); external name '_DisposeDialog';
 
 {
  *  ModalDialog()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -906,10 +906,10 @@ procedure ModalDialog( modalFilter: ModalFilterUPP; var itemHit: DialogItemIndex
 
 {
  *  IsDialogEvent()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -921,10 +921,10 @@ function IsDialogEvent( const (*var*) theEvent: EventRecord ): Boolean; external
 
 {
  *  DialogSelect()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -936,10 +936,10 @@ function DialogSelect( const (*var*) theEvent: EventRecord; var theDialog: Dialo
 
 {
  *  DrawDialog()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -951,10 +951,10 @@ procedure DrawDialog( theDialog: DialogRef ); external name '_DrawDialog';
 
 {
  *  UpdateDialog()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -966,10 +966,10 @@ procedure UpdateDialog( theDialog: DialogRef; updateRgn: RgnHandle ); external n
 
 {
  *  HideDialogItem()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -981,10 +981,10 @@ procedure HideDialogItem( theDialog: DialogRef; itemNo: DialogItemIndex ); exter
 
 {
  *  ShowDialogItem()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -996,10 +996,10 @@ procedure ShowDialogItem( theDialog: DialogRef; itemNo: DialogItemIndex ); exter
 
 {
  *  FindDialogItem()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1014,10 +1014,10 @@ function FindDialogItem( theDialog: DialogRef; thePt: Point ): DialogItemIndexZe
 {$ifc not TARGET_CPU_64}
 {
  *  DialogCut()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1029,10 +1029,10 @@ procedure DialogCut( theDialog: DialogRef ); external name '_DialogCut';
 
 {
  *  DialogPaste()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1044,10 +1044,10 @@ procedure DialogPaste( theDialog: DialogRef ); external name '_DialogPaste';
 
 {
  *  DialogCopy()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1059,10 +1059,10 @@ procedure DialogCopy( theDialog: DialogRef ); external name '_DialogCopy';
 
 {
  *  DialogDelete()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1077,10 +1077,10 @@ procedure DialogDelete( theDialog: DialogRef ); external name '_DialogDelete';
 {$ifc not TARGET_CPU_64}
 {
  *  Alert()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1092,10 +1092,10 @@ function Alert( alertID: SInt16; modalFilter: ModalFilterUPP ): DialogItemIndex;
 
 {
  *  StopAlert()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1107,10 +1107,10 @@ function StopAlert( alertID: SInt16; modalFilter: ModalFilterUPP ): DialogItemIn
 
 {
  *  NoteAlert()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1122,10 +1122,10 @@ function NoteAlert( alertID: SInt16; modalFilter: ModalFilterUPP ): DialogItemIn
 
 {
  *  CautionAlert()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1137,10 +1137,10 @@ function CautionAlert( alertID: SInt16; modalFilter: ModalFilterUPP ): DialogIte
 
 {
  *  GetDialogItem()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1152,10 +1152,10 @@ procedure GetDialogItem( theDialog: DialogRef; itemNo: DialogItemIndex; var item
 
 {
  *  SetDialogItem()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1167,10 +1167,10 @@ procedure SetDialogItem( theDialog: DialogRef; itemNo: DialogItemIndex; itemType
 
 {
  *  ParamText()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1182,10 +1182,10 @@ procedure ParamText( const (*var*) param0: Str255; const (*var*) param1: Str255;
 
 {
  *  SelectDialogItemText()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1197,10 +1197,10 @@ procedure SelectDialogItemText( theDialog: DialogRef; itemNo: DialogItemIndex; s
 
 {
  *  GetDialogItemText()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1212,10 +1212,10 @@ procedure GetDialogItemText( item: Handle; var text: Str255 ); external name '_G
 
 {
  *  SetDialogItemText()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1227,10 +1227,10 @@ procedure SetDialogItemText( item: Handle; const (*var*) text: Str255 ); externa
 
 {
  *  GetAlertStage()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1242,10 +1242,10 @@ function GetAlertStage: SInt16; external name '_GetAlertStage';
 
 {
  *  SetDialogFont()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1257,10 +1257,10 @@ procedure SetDialogFont( fontNum: SInt16 ); external name '_SetDialogFont';
 
 {
  *  ResetAlertStage()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1273,10 +1273,10 @@ procedure ResetAlertStage; external name '_ResetAlertStage';
 { APIs in Carbon}
 {
  *  GetParamText()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1288,10 +1288,10 @@ procedure GetParamText( param0: StringPtr; param1: StringPtr; param2: StringPtr;
 
 {
  *  AppendDITL()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1303,10 +1303,10 @@ procedure AppendDITL( theDialog: DialogRef; theHandle: Handle; method: DITLMetho
 
 {
  *  CountDITL()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1318,10 +1318,10 @@ function CountDITL( theDialog: DialogRef ): DialogItemIndex; external name '_Cou
 
 {
  *  ShortenDITL()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1333,10 +1333,10 @@ procedure ShortenDITL( theDialog: DialogRef; numberItems: DialogItemIndex ); ext
 
 {
  *  InsertDialogItem()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1348,10 +1348,10 @@ function InsertDialogItem( theDialog: DialogRef; afterItem: DialogItemIndex; ite
 
 {
  *  RemoveDialogItems()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1366,10 +1366,10 @@ function RemoveDialogItems( theDialog: DialogRef; itemNo: DialogItemIndex; amoun
 {$ifc not TARGET_CPU_64}
 {
  *  StdFilterProc()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1384,10 +1384,10 @@ function StdFilterProc( theDialog: DialogRef; var event: EventRecord; var itemHi
 {$ifc not TARGET_CPU_64}
 {
  *  GetStdFilterProc()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1399,10 +1399,10 @@ function GetStdFilterProc( var theProc: ModalFilterUPP ): OSErr; external name '
 
 {
  *  SetDialogDefaultItem()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1414,10 +1414,10 @@ function SetDialogDefaultItem( theDialog: DialogRef; newItem: DialogItemIndex ):
 
 {
  *  SetDialogCancelItem()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1429,10 +1429,10 @@ function SetDialogCancelItem( theDialog: DialogRef; newItem: DialogItemIndex ): 
 
 {
  *  SetDialogTracksCursor()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1450,10 +1450,10 @@ function SetDialogTracksCursor( theDialog: DialogRef; tracks: Boolean ): OSErr; 
 
 {
  *  NewFeaturesDialog()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1465,10 +1465,10 @@ function NewFeaturesDialog( inStorage: UnivPtr; const (*var*) inBoundsRect: Rect
 
 {
  *  AutoSizeDialog()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1485,10 +1485,10 @@ function AutoSizeDialog( inDialog: DialogRef ): OSErr; external name '_AutoSizeD
 }
 {
  *  StandardAlert()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1502,7 +1502,7 @@ function StandardAlert( inAlertType: AlertType; const (*var*) inError: Str255; c
 
 {
  *  GetStandardAlertDefaultParams()
- *  
+ *
  *  Summary:
  *    Fills out an AlertStdCFStringAlertParamRec with default
  *    values:
@@ -1510,18 +1510,18 @@ function StandardAlert( inAlertType: AlertType; const (*var*) inError: Str255; c
  *    -   no help button
  *    -   default button with title kAlertDefaultOKText
  *    -   no cancel or other buttons
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    param:
  *      The parameter block to initialize.
- *    
+ *
  *    version:
  *      The parameter block version; pass kStdCFStringAlertVersionOne.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
@@ -1533,52 +1533,52 @@ function GetStandardAlertDefaultParams( param: AlertStdCFStringAlertParamPtr; ve
 
 {
  *  CreateStandardAlert()
- *  
+ *
  *  Summary:
  *    Creates an alert containing standard elements and using standard
  *    formatting rules.
- *  
+ *
  *  Discussion:
  *    CreateStandardAlert should be used in conjunction with
  *    RunStandardAlert. After CreateStandardAlert returns, the alert is
  *    still invisible. RunStandardAlert will show the alert and run a
- *    modal dialog loop to process events in the alert. 
- *    
+ *    modal dialog loop to process events in the alert.
+ *
  *    The strings passed to this API in the error, explanation, and
  *    AlertStdCFStringAlertParamRec button title parameters will all be
  *    retained during the creation of the alert, and released when the
  *    alert is disposed by RunStandardAlert. There is no net change to
  *    the refcount of these strings across CreateStandardAlert and
  *    RunStandardAlert.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    alertType:
  *      The type of alert to create.
- *    
+ *
  *    error:
  *      The error string to display. CreateStandardAlert increments the
  *      refcount on this string, so you may release it after
  *      CreateStandardAlert returns if you don't need it later.
- *    
+ *
  *    explanation:
  *      The explanation string to display. May be NULL or empty to
  *      display no explanation. CreateStandardAlert increments the
  *      refcount on this string, so you may release it after
  *      CreateStandardAlert returns if you don't need it later.
- *    
+ *
  *    param:
  *      The parameter block describing how to create the alert. May be
  *      NULL. CreateStandardAlert increments the refcount on the button
  *      title strings in the parameter block, so you may release them
  *      after CreateStandardAlert returns if you don't need them later.
- *    
+ *
  *    outAlert:
  *      On exit, contains the new alert.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
@@ -1590,38 +1590,38 @@ function CreateStandardAlert( alertType_: AlertType; error: CFStringRef; explana
 
 {
  *  RunStandardAlert()
- *  
+ *
  *  Summary:
  *    Shows, runs, and destroys a standard alert using a modal dialog
  *    loop.
- *  
+ *
  *  Discussion:
  *    RunStandardAlert displays and runs an alert created by
  *    CreateStandardAlert. It handles all user interaction with the
  *    alert. After the user has dismissed the alert, RunStandardAlert
  *    destroys the alert dialog; the DialogRef will be invalid after
- *    RunStandardAlert returns. DO NOT call DisposeDialog. 
- *    
+ *    RunStandardAlert returns. DO NOT call DisposeDialog.
+ *
  *    NOTE: DO NOT call this function for a dialog that was not created
  *    with CreateStandardAlert! You will sorely regret it, I promise
  *    you.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inAlert:
  *      The alert to display.
- *    
+ *
  *    filterProc:
  *      An event filter function for handling events that do not apply
  *      to the alert. May be NULL.
- *    
+ *
  *    outItemHit:
  *      On exit, contains the item index of the button that was pressed
  *      to close the alert.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
@@ -1633,11 +1633,11 @@ function RunStandardAlert( inAlert: DialogRef; filterProc: ModalFilterUPP { can 
 
 {
  *  CreateStandardSheet()
- *  
+ *
  *  Summary:
  *    Creates an alert containing standard elements and using standard
  *    formatting rules, and prepares it to be displayed as a sheet.
- *  
+ *
  *  Discussion:
  *    CreateStandardSheet should be used in conjunction with
  *    ShowSheetWindow. After CreateStandardSheet returns, the alert is
@@ -1650,51 +1650,51 @@ function RunStandardAlert( inAlert: DialogRef; filterProc: ModalFilterUPP { can 
  *    command IDs kHICommandOK, kHICommandCancel, or kHICommandOther.
  *    The sheet is hidden and the sheet dialog destroyed before the
  *    command is sent; the caller does not have to call HideSheetWindow
- *    or DisposeDialog. 
- *    
+ *    or DisposeDialog.
+ *
  *    If the caller needs to destroy the sheet before showing it, then
  *    it is sufficient to call DisposeDialog on the sheet. This is the
  *    only case in which the caller would need to destroy the sheet
- *    explicitly. 
- *    
+ *    explicitly.
+ *
  *    The strings passed to this API in the error, explanation, and
  *    AlertStdCFStringAlertParamRec button title parameters will all be
  *    retained during the creation of the sheet, and released when the
  *    sheet is disposed. There is no net change to the refcount of
  *    these strings across CreateStandardSheet and sheet destruction.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    alertType:
  *      The type of alert to create.
- *    
+ *
  *    error:
  *      The error string to display. CreateStandardSheet increments the
  *      refcount on this string, so you may release it after
  *      CreateStandardSheet returns if you don't need it later.
- *    
+ *
  *    explanation:
  *      The explanation string to display. May be NULL or empty to
  *      display no explanation. CreateStandardSheet increments the
  *      refcount on this string, so you may release it after
  *      CreateStandardSheet returns if you don't need it later.
- *    
+ *
  *    param:
  *      The parameter block describing how to create the alert. May be
  *      NULL. CreateStandardSheet increments the refcount on the button
  *      title strings in the parameter block, so you may release them
  *      after CreateStandardSheet returns if you don't need them later.
- *    
+ *
  *    notifyTarget:
  *      The event target to be notified when the sheet is closed. The
  *      caller should install an event handler on this target for the
  *      [kEventClassCommand, kEventProcessCommand] event. May be NULL
  *      if the caller does not need the command event to be sent to any
- *      target. 
- *      
+ *      target.
+ *
  *      Typically, this will be the event target for the parent window
  *      of the sheet; a standard practice is to install a handler on
  *      the parent window just before showing the sheet window, and to
@@ -1707,10 +1707,10 @@ function RunStandardAlert( inAlert: DialogRef; filterProc: ModalFilterUPP { can 
  *      handler, because CreateStandardSheet installs its own handler
  *      on the sheet and that handler must be allowed to run to close
  *      the sheet window and release the DialogRef.
- *    
+ *
  *    outSheet:
  *      On exit, contains the new alert.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
@@ -1722,11 +1722,11 @@ function CreateStandardSheet( alertType_: AlertType; error: CFStringRef; explana
 
 {
  *  CloseStandardSheet()
- *  
+ *
  *  Summary:
  *    Closes a standard sheet dialog and releases the dialog data
  *    structures.
- *  
+ *
  *  Discussion:
  *    CloseStandardSheet is meant to be used when you need to remove a
  *    sheet because of a higher-priority request to close the sheet's
@@ -1734,29 +1734,29 @@ function CreateStandardSheet( alertType_: AlertType; error: CFStringRef; explana
  *    open on a document window. Meanwhile, the user drags the document
  *    into the trash. When your application sees that the document has
  *    been moved to the trash, it knows that it should close the
- *    document window, but first it needs to close the sheet. 
- *    
+ *    document window, but first it needs to close the sheet.
+ *
  *    CloseStandardSheet should not be used by your Carbon event
  *    handler in response to a click in one of the sheet buttons; the
  *    Dialog Manager will close the sheet automatically in that case.
- *    
- *    
+ *
+ *
  *    If kStdAlertDoNotDisposeSheet was specified when the sheet was
  *    created, the sheet dialog will be hidden but not released, and
  *    you can reuse the sheet later.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inSheet:
  *      The sheet to close.
- *    
+ *
  *    inResultCommand:
  *      This command, if not zero, will be sent to the EventTarget
  *      specified when the sheet was created.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
@@ -1768,10 +1768,10 @@ function CloseStandardSheet( inSheet: DialogRef; inResultCommand: UInt32 ): OSSt
 
 {
  *  GetDialogItemAsControl()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1783,10 +1783,10 @@ function GetDialogItemAsControl( inDialog: DialogRef; inItemNo: DialogItemIndex;
 
 {
  *  MoveDialogItem()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1798,10 +1798,10 @@ function MoveDialogItem( inDialog: DialogRef; inItemNo: DialogItemIndex; inHoriz
 
 {
  *  SizeDialogItem()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1813,10 +1813,10 @@ function SizeDialogItem( inDialog: DialogRef; inItemNo: DialogItemIndex; inWidth
 
 {
  *  AppendDialogItemList()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1834,10 +1834,10 @@ function AppendDialogItemList( dialog: DialogRef; ditlID: SInt16; method: DITLMe
 
 {
  *  SetDialogTimeout()
- *  
+ *
  *  Summary:
  *    Sets the timeout for a modal dialog.
- *  
+ *
  *  Discussion:
  *    SetDialogTimeout sets the delay after which a dialog will be
  *    automatically dismissed. When SetDialogTimeout is called, the
@@ -1851,25 +1851,25 @@ function AppendDialogItemList( dialog: DialogRef; ditlID: SInt16; method: DITLMe
  *    timeout value; if you are handling events in a modeless dialog or
  *    sheet using IsDialogEvent and DialogSelect, the timeout will be
  *    ignored.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inDialog:
  *      The dialog on which to set a timeout.
- *    
+ *
  *    inButtonToPress:
  *      The dialog item index that should be returned from ModalDialog
  *      when the timeout expires.
- *    
+ *
  *    inSecondsToWait:
  *      The time to wait before dismissing the dialog, in seconds.
- *  
+ *
  *  Result:
  *    An operating system result code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1881,36 +1881,36 @@ function SetDialogTimeout( inDialog: DialogRef; inButtonToPress: DialogItemIndex
 
 {
  *  GetDialogTimeout()
- *  
+ *
  *  Summary:
  *    Retrieves the timeout for a modal dialog.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inDialog:
  *      The dialog from which to retrieve the timeout.
- *    
+ *
  *    outButtonToPress:
  *      On exit, contains the dialog item index that should be returned
  *      from ModalDialog when the dialog is dismissed. May be NULL if
  *      you do not need this information.
- *    
+ *
  *    outSecondsToWait:
  *      On exit, contains the time to wait before dismissing the
  *      dialog, in seconds. May be NULL if you do not need this
  *      information.
- *    
+ *
  *    outSecondsRemaining:
  *      On exit, contains the time until the dialog is dismissed, in
  *      seconds. May be NULL if you do not need this information.
- *  
+ *
  *  Result:
  *    An operating system result code. Returns dialogNoTimeoutErr if no
  *    timeout has been set for this dialog.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1922,10 +1922,10 @@ function GetDialogTimeout( inDialog: DialogRef; outButtonToPress: DialogItemInde
 
 {
  *  SetModalDialogEventMask()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1937,10 +1937,10 @@ function SetModalDialogEventMask( inDialog: DialogRef; inMask: EventMask ): OSSt
 
 {
  *  GetModalDialogEventMask()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1959,10 +1959,10 @@ function GetModalDialogEventMask( inDialog: DialogRef; var outMask: EventMask ):
 
 {
  *  GetDialogWindow()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1974,10 +1974,10 @@ function GetDialogWindow( dialog: DialogRef ): WindowRef; external name '_GetDia
 
 {
  *  GetDialogTextEditHandle()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1989,10 +1989,10 @@ function GetDialogTextEditHandle( dialog: DialogRef ): TEHandle; external name '
 
 {
  *  GetDialogDefaultItem()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2004,10 +2004,10 @@ function GetDialogDefaultItem( dialog: DialogRef ): SInt16; external name '_GetD
 
 {
  *  GetDialogCancelItem()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2019,10 +2019,10 @@ function GetDialogCancelItem( dialog: DialogRef ): SInt16; external name '_GetDi
 
 {
  *  GetDialogKeyboardFocusItem()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2034,10 +2034,10 @@ function GetDialogKeyboardFocusItem( dialog: DialogRef ): SInt16; external name 
 
 {
  *  SetPortDialogPort()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2049,10 +2049,10 @@ procedure SetPortDialogPort( dialog: DialogRef ); external name '_SetPortDialogP
 
 {
  *  GetDialogPort()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2064,10 +2064,10 @@ function GetDialogPort( dialog: DialogRef ): CGrafPtr; external name '_GetDialog
 
 {
  *  GetDialogFromWindow()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later

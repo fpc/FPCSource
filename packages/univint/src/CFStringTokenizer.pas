@@ -225,7 +225,7 @@ uses MacTypes,CFBase,CFLocale,CFArray,CFString;
 		current token. If current token is a compound, you can call
 		CFStringTokenizerGetCurrentSubTokens to retrieve the subtokens or derived
 		subtokens contained in the compound token.
-		To guess the language of a string, you call 
+		To guess the language of a string, you call
 		CFStringTokenizerCopyBestStringLanguage.
 }
 
@@ -246,7 +246,7 @@ uses MacTypes,CFBase,CFLocale,CFArray,CFString;
 		If the range is empty (length 0), the first few hundred characters in
 		the string are used.
 	@result A language represented in BCP 47 string, or NULL if the
-		language of the string cannot be guessed. 
+		language of the string cannot be guessed.
 	@discussion The result is not guaranteed to be accurate. Typically 200-400
 		characters are required to reliably guess the language of a string.
 }
@@ -270,7 +270,7 @@ const
 {!
 	Tokenization Unit
 	Use one of tokenization unit options with CFStringTokenizerCreate to
-	specify how the string should be tokenized. 
+	specify how the string should be tokenized.
 	}
     { kCFStringTokenizerUnitWord is not locale sensitive. It doesn't return
     space between words as a token. }
@@ -289,8 +289,8 @@ const
     Use attribute specifier to tell tokenizer to prepare the specified attribute
 	when it tokenizes the given string. The attribute value can be retrieved by
 	calling CFStringTokenizerCopyCurrentTokenAttribute with one of the attribute
-	option. 
-	}	
+	option.
+	}
     { Latin Transcription. Used with kCFStringTokenizerUnitWord or
         kCFStringTokenizerUnitWordBoundary }
 	kCFStringTokenizerAttributeLatinTranscription = 1 shl 16;
@@ -306,18 +306,18 @@ const
 const
 { Have no token. }
 	kCFStringTokenizerTokenNone = 0;
-    
+
 	{ Normal token }
 	kCFStringTokenizerTokenNormal = 1 shl 0;
-    
+
 	{!
     Compound token which may contain subtokens but with no derived subtokens.
     Its subtokens can be obtained by calling CFStringTokenizerGetCurrentSubTokens.
     }
 	kCFStringTokenizerTokenHasSubTokensMask = 1 shl 1;
-    
+
 	{!
-    Compound token which may contain derived subtokens. 
+    Compound token which may contain derived subtokens.
     Its subtokens and derived subtokens can be obtained by calling
     CFStringTokenizerGetCurrentSubTokens.
     }
@@ -335,17 +335,17 @@ type
 }
 function CFStringTokenizerGetTypeID: CFTypeID; external name '_CFStringTokenizerGetTypeID';
 (* CF_AVAILABLE_STARTING(10_5, 3_0) *)
-																				
+
 {!
 	@function CFStringTokenizerCreate
 	@abstract Creates a tokenizer instance.
 	@param alloc The CFAllocator which should be used to allocate memory for the
-		tokenizer and its storage for values. This parameter may be NULL in which 
-		case the current default CFAllocator is used. 	
+		tokenizer and its storage for values. This parameter may be NULL in which
+		case the current default CFAllocator is used.
 	@param string The string to tokenize.
 	@param range The range of characters within the string to be tokenized. The
 		specified range must not exceed the length of the string.
-	@param options Use one of the Tokenization Unit options to specify how the 
+	@param options Use one of the Tokenization Unit options to specify how the
 		string should be tokenized. Optionally specify one or more attribute
 		specifiers to tell the tokenizer to prepare specified attributes when it
 		tokenizes the string.
@@ -367,7 +367,7 @@ function CFStringTokenizerCreate( alloc: CFAllocatorRef; strng: CFStringRef; ran
 }
 procedure CFStringTokenizerSetString( tokenizer: CFStringTokenizerRef; strng: CFStringRef; range: CFRange ); external name '_CFStringTokenizerSetString';
 (* CF_AVAILABLE_STARTING(10_5, 3_0) *)
-																		
+
 {!
 	@function CFStringTokenizerGoToTokenAtIndex
 	@abstract Random access to a token. Find a token that includes the character specified
@@ -381,7 +381,7 @@ procedure CFStringTokenizerSetString( tokenizer: CFStringTokenizerRef; strng: CF
 		CFStringTokenizerGetCurrentTokenRange and CFStringTokenizerCopyCurrentTokenAttribute.
 		If the token is a compound (with type kCFStringTokenizerTokenHasSubTokensMask or
 		kCFStringTokenizerTokenHasDerivedSubTokensMask), its subtokens and
-		(or) derived subtokens can be obtained by calling CFStringTokenizerGetCurrentSubTokens. 
+		(or) derived subtokens can be obtained by calling CFStringTokenizerGetCurrentSubTokens.
 }
 function CFStringTokenizerGoToTokenAtIndex( tokenizer: CFStringTokenizerRef; index: CFIndex ): CFStringTokenizerTokenType; external name '_CFStringTokenizerGoToTokenAtIndex';
 (* CF_AVAILABLE_STARTING(10_5, 3_0) *)
@@ -393,19 +393,19 @@ function CFStringTokenizerGoToTokenAtIndex( tokenizer: CFStringTokenizerRef; ind
 		CFStringTokenizerCreate.
 	@result Type of the token if succeeded in finding a token and setting it as
 		current token. kCFStringTokenizerTokenNone if failed in finding a token.
-	@discussion If there is no preceding call to CFStringTokenizerGoToTokenAtIndex 
+	@discussion If there is no preceding call to CFStringTokenizerGoToTokenAtIndex
 		or CFStringTokenizerAdvanceToNextToken, it finds the first token in the range
 		specified to CFStringTokenizerCreate. If there is a current token after successful
 		call to CFStringTokenizerGoToTokenAtIndex or CFStringTokenizerAdvanceToNextToken,
-		it proceeds to the next token. If succeeded in finding a token, set it as current 
+		it proceeds to the next token. If succeeded in finding a token, set it as current
 		token and return its token type. Otherwise invalidate current token and return
 		kCFStringTokenizerTokenNone.
 		The range and attribute of the token can be obtained by calling
-		CFStringTokenizerGetCurrentTokenRange and 
+		CFStringTokenizerGetCurrentTokenRange and
         CFStringTokenizerCopyCurrentTokenAttribute. If the token is a compound
 		(with type kCFStringTokenizerTokenHasSubTokensMask or
 		kCFStringTokenizerTokenHasDerivedSubTokensMask), its subtokens and
-		(or) derived subtokens can be obtained by calling CFStringTokenizerGetCurrentSubTokens. 
+		(or) derived subtokens can be obtained by calling CFStringTokenizerGetCurrentSubTokens.
 }
 function CFStringTokenizerAdvanceToNextToken( tokenizer: CFStringTokenizerRef ): CFStringTokenizerTokenType; external name '_CFStringTokenizerAdvanceToNextToken';
 (* CF_AVAILABLE_STARTING(10_5, 3_0) *)
@@ -419,7 +419,7 @@ function CFStringTokenizerAdvanceToNextToken( tokenizer: CFStringTokenizerRef ):
 }
 function CFStringTokenizerGetCurrentTokenRange( tokenizer: CFStringTokenizerRef ): CFRange; external name '_CFStringTokenizerGetCurrentTokenRange';
 (* CF_AVAILABLE_STARTING(10_5, 3_0) *)
-																				
+
 {!
 	@function CFStringTokenizerCopyCurrentTokenAttribute
 	@abstract Copies the specified attribute of current token.
@@ -438,25 +438,25 @@ function CFStringTokenizerCopyCurrentTokenAttribute( tokenizer: CFStringTokenize
 	@function CFStringTokenizerGetCurrentSubTokens
 	@abstract Retrieves the subtokens or derived subtokens contained in the compound token.
 	@param tokenizer The reference to CFStringTokenizer returned by CFStringTokenizerCreate.
-	@param ranges An array of CFRange to fill in with the ranges of subtokens. The filled in 
+	@param ranges An array of CFRange to fill in with the ranges of subtokens. The filled in
 		ranges are relative to the string specified to CFStringTokenizerCreate. This parameter
 		can be NULL.
 	@param maxRangeLength The maximum number of ranges to return.
 	@param derivedSubTokens An array of CFMutableArray to which the derived subtokens are to
 		be added. This parameter can be NULL.
 	@result number of subtokens.
-	@discussion If token type is kCFStringTokenizerTokenNone, the ranges array and 
+	@discussion If token type is kCFStringTokenizerTokenNone, the ranges array and
 		derivedSubTokens array are untouched and the return value is 0.
         If token type is kCFStringTokenizerTokenNormal, the ranges array has one item
         filled in with the entire range of the token (if maxRangeLength >= 1) and a string
-		taken from the entire token range is added to the derivedSubTokens array and the 
+		taken from the entire token range is added to the derivedSubTokens array and the
 		return value is 1.
 		If token type is kCFStringTokenizerTokenHasSubTokensMask or
         kCFStringTokenizerTokenHasDerivedSubTokensMask, the ranges array is filled
         in with as many items as there are subtokens (up to a limit of maxRangeLength).
-		The derivedSubTokens array will have sub tokens added even when the sub token is a 
+		The derivedSubTokens array will have sub tokens added even when the sub token is a
 		substring of the token. If token type is kCFStringTokenizerTokenHasSubTokensMask,
-		the ordinary non-derived subtokens are added to the derivedSubTokens array. 
+		the ordinary non-derived subtokens are added to the derivedSubTokens array.
 }
 function CFStringTokenizerGetCurrentSubTokens( tokenizer: CFStringTokenizerRef; var ranges: CFRange; maxRangeLength: CFIndex; derivedSubTokens: CFMutableArrayRef ): CFIndex; external name '_CFStringTokenizerGetCurrentSubTokens';
 (* CF_AVAILABLE_STARTING(10_5, 3_0) *)

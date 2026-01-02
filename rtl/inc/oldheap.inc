@@ -1435,10 +1435,10 @@ begin
               if assigned(loc_freelists^.oslist_all) then
                 loc_freelists^.oslist_all^.prev_any := poc;
               loc_freelists^.oslist_all := poc;
-              
+
               { setup new block location }
               p:=pointer(poc)+varfirstoffset+sizeof(tmemchunk_var_hdr);
-              
+
               { setup the block data }
               pmcv:=pmemchunk_var(p-sizeof(tmemchunk_var_hdr));
               pmcv^.size:=(ptruint(newsize-varfirstoffset) and sizemask) or (firstblockflag or lastblockflag);

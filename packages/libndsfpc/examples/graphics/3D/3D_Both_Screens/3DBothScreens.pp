@@ -97,7 +97,7 @@ end;
 
 
 //-------------------------------------------------------
-// set up a 2D layer construced of bitmap sprites
+// set up a 2D layer constructed of bitmap sprites
 // this holds the image when rendering to the top screen
 //-------------------------------------------------------
 procedure initSubSprites();

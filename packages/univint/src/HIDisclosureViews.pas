@@ -1,17 +1,17 @@
 {
      File:       HIToolbox/HIDisclosureViews.h
- 
+
      Contains:   API and type definitions related to disclosure views.
- 
+
      Version:    HIToolbox-624~3
- 
+
      Copyright:  © 1999-2008 by Apple Computer, Inc., all rights reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {       Initial Pascal Translation:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
@@ -240,10 +240,10 @@ uses MacTypes,Controls,HIView,MacWindows,QuickdrawTypes,CFBase,HIObject;
 {$ifc not TARGET_CPU_64}
 {
  *  CreateDisclosureButtonControl()
- *  
+ *
  *  Summary:
  *    Creates a new instance of the Disclosure Button Control.
- *  
+ *
  *  Discussion:
  *    CreateDisclosureButtonControl is preferred over NewControl
  *    because it allows you to specify the exact set of parameters
@@ -251,31 +251,31 @@ uses MacTypes,Controls,HIView,MacWindows,QuickdrawTypes,CFBase,HIObject;
  *    semantics. The initial minimum of the Disclosure Button will be
  *    kControlDisclosureButtonClosed, and the maximum will be
  *    kControlDisclosureButtonDisclosed.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inWindow:
  *      The WindowRef in which to create the control.
- *    
+ *
  *    inBoundsRect:
  *      The bounding rectangle for the control. The height of the
  *      control is fixed and the control will be centered vertically
  *      within the rectangle you specify.
- *    
+ *
  *    inValue:
  *      The initial value; either kControlDisclosureButtonClosed or
  *      kControlDisclosureButtonDisclosed.
- *    
+ *
  *    inAutoToggles:
  *      A boolean value indicating whether its value should change
  *      automatically after tracking the mouse.
- *    
+ *
  *    outControl:
  *      On successful exit, this will contain the new control.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
@@ -321,7 +321,7 @@ const
 {
  *  Summary:
  *    Triangle proc IDs
- *  
+ *
  *  Discussion:
  *    This control can be used as either left or right facing. It can
  *    also handle its own tracking if you wish. This means that when
@@ -340,7 +340,7 @@ const
 
 {
  *  ControlDisclosureTriangleOrientation
- *  
+ *
  *  Summary:
  *    The orientations available to a disclosure triangle control.
  }
@@ -366,11 +366,11 @@ const
 {$ifc not TARGET_CPU_64}
 {
  *  CreateDisclosureTriangleControl()
- *  
+ *
  *  Summary:
  *    Creates a Disclosure Triangle control at a specific position in
  *    the specified window.
- *  
+ *
  *  Discussion:
  *    Disclosure Triangles are small controls that give the user a way
  *    to toggle the visibility of information or other user interface.
@@ -382,52 +382,52 @@ const
  *    Mac OS X, a root control will be created for the window if one
  *    does not already exist. If a root control exists for the window,
  *    the Disclosure Triangle control will be embedded into it.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inWindow:
  *      The WindowRef into which the Disclosure Triangle will be
  *      created.
- *    
+ *
  *    inBoundsRect:
  *      The desired position (in coordinates local to the window's
  *      port) for the Disclosure Triangle.
- *    
+ *
  *    inOrientation:
  *      The direction the Disclosure Triangle should point when it is
  *      "closed". Passing kControlDisclosureTrianglePointDefault is
  *      only legal as of Mac OS X and CarbonLib 1.5.
- *    
+ *
  *    inTitle:
  *      The title for the Disclosure Triangle. The title will only be
  *      displayed if the inDrawTitle parameter is true. Title display
  *      only works on Mac OS X.
- *    
+ *
  *    inInitialValue:
  *      The starting value determines whether the Disclosure Triangle
  *      is initially in its "open" or "closed" state. The value 0
  *      represents the "closed" state and 1 represents the "open" state.
- *    
+ *
  *    inDrawTitle:
  *      A Boolean indicating whether the Disclosure Triangle should
  *      draw its title next to the widget. Title display only works on
  *      Mac OS X.
- *    
+ *
  *    inAutoToggles:
  *      A Boolean indicating whether the Disclosure Triangle should
  *      change its own value (from "open" to "closed" and vice-versa)
  *      automatically when it is clicked on.
- *    
+ *
  *    outControl:
  *      On successful output, outControl will contain a reference to
  *      the Disclosure Triangle control.
- *  
+ *
  *  Result:
  *    An OSStatus code indicating success or failure.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -453,24 +453,24 @@ const
 {$ifc not TARGET_CPU_64}
 {
  *  SetDisclosureTriangleLastValue()
- *  
+ *
  *  Summary:
  *    Set the last value that the control had.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inDisclosureTriangle:
  *      The disclosure triangle to affect.
- *    
+ *
  *    inValue:
  *      The last value.
- *  
+ *
  *  Result:
  *    An OSErr code indicating success or failure.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -482,25 +482,25 @@ function SetDisclosureTriangleLastValue( inDisclosureTriangle: HIViewRef; inValu
 
 {
  *  HIDisclosureTriangleSetDisplaysTitle()
- *  
+ *
  *  Summary:
  *    Sets whether a disclosure triangle displays its title.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inDisclosureTriangle:
  *      The disclosure triangle to affect.
- *    
+ *
  *    inDisplaysTitle:
  *      A Boolean where true means "display the title" and false means
  *      "don't display the title".
- *  
+ *
  *  Result:
  *    An OSStatus code indicating success or failure.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available
@@ -512,23 +512,23 @@ function HIDisclosureTriangleSetDisplaysTitle( inDisclosureTriangle: HIViewRef; 
 
 {
  *  HIDisclosureTriangleGetDisplaysTitle()
- *  
+ *
  *  Summary:
  *    Determines whether a disclosure triangle displays its title.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inDisclosureTriangle:
  *      The disclosure triangle to test.
- *  
+ *
  *  Result:
  *    A Boolean indicating if the view will display the title. The
  *    incoming disclosure triangle reference must be valid or the
  *    return value is undefined.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available

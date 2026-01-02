@@ -1,9 +1,9 @@
 {
      File:       CarbonCore/MacErrors.h
- 
+
      Contains:   OSErr codes.
                  The contents of this header file are deprecated.
- 
+
      Copyright:  © 1985-2011 by Apple Inc. All rights reserved.
 }
 {     Pascal Translation Updated:  Gale R Paeper, <gpaeper@empirenet.com>, June 2018 }
@@ -1182,7 +1182,7 @@ const
 	noIconDataAvailableErr = -2582; { The necessary icon data is not available }
 
 
-{        
+{
     Dynamic AppleScript errors:
 
     These errors result from data-dependent conditions and are typically
@@ -1204,14 +1204,14 @@ const
 	errOSACantGetTerminology = -2709;
 	errOSACantCreate = -2710;
 
-{        
+{
     Component-specific dynamic script errors:
 
     The range -2720 thru -2739 is reserved for component-specific runtime errors.
     (Note that error codes from different scripting components in this range will
     overlap.)
 }
-{        
+{
     Static AppleScript errors:
 
     These errors comprise what are commonly thought of as parse and compile-
@@ -1238,14 +1238,14 @@ const
 	OSAInconsistentDeclarations = -2754; { Signaled when a variable is declared inconsistently in the same scope, such as both local and global}
 	OSAControlFlowError = -2755; { Signaled when illegal control flow occurs in an application (no catcher for throw, non-lexical loop exit, etc.)}
 
-{        
+{
     Component-specific AppleScript static errors:
 
     The range -2760 thru -2779 is reserved for component-specific parsing and
     compile-time errors. (Note that error codes from different scripting
     components in this range will overlap.)
 }
-{        
+{
     Dialect-specific AppleScript errors:
 
     The range -2780 thru -2799 is reserved for dialect specific error codes for
@@ -1881,16 +1881,16 @@ const
 	kUSBPending = 1;
 
 {
-   
-   USB Hardware Errors 
-   Note pipe stalls are communication 
-   errors. The affected pipe can not 
-   be used until USBClearPipeStallByReference  
+
+   USB Hardware Errors
+   Note pipe stalls are communication
+   errors. The affected pipe can not
+   be used until USBClearPipeStallByReference
    is used.
-   kUSBEndpointStallErr is returned in 
-   response to a stall handshake 
-   from a device. The device has to be 
-   cleared before a USBClearPipeStallByReference 
+   kUSBEndpointStallErr is returned in
+   response to a stall handshake
+   from a device. The device has to be
+   cleared before a USBClearPipeStallByReference
    can be used.
 }
 const
@@ -1913,8 +1913,8 @@ const
 
 
 {
-   
-   USB Manager Errors 
+
+   USB Manager Errors
 }
 const
 	kUSBQueueFull = -6948; { Internal queue maxxed  }
@@ -1926,7 +1926,7 @@ const
 {
    USB internal errors are in range -6960 to -6951
    please do not use this range
-   
+
 }
 const
 	kUSBInternalReserved10 = -6951;
@@ -3061,9 +3061,9 @@ const
 	dsPCCardATASysError = 29205; {PCCard has been ejected while still in use. }
 
 {
-    System Errors that are used after MacsBug is loaded to put up dialogs since these should not 
-    cause MacsBug to stop, they must be in the range (30, 42, 16384-32767) negative numbers add 
-    to an existing dialog without putting up a whole new dialog 
+    System Errors that are used after MacsBug is loaded to put up dialogs since these should not
+    cause MacsBug to stop, they must be in the range (30, 42, 16384-32767) negative numbers add
+    to an existing dialog without putting up a whole new dialog
 }
 const
 	dsNoExtsMacsBug = -1;   {not a SysErr, just a placeholder }
@@ -3210,7 +3210,7 @@ const
 
 {
  *  SysError()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later

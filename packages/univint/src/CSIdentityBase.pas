@@ -1,15 +1,15 @@
 {
      File:       OSServices/CSIdentityBase.h
- 
+
      Contains:   CSIdentity APIs
- 
+
      Copyright:  (c) 2006-2011 Apple Inc. All rights reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {
     Modified for use with Free Pascal
@@ -220,27 +220,27 @@ uses MacTypes,CFBase,SecBase;
 {$endc} {not MACOSALLINCLUDE}
 
 
-	
+
 {$ALIGN MAC68K}
-	
-	
+
+
 {
- The error domain of all CFErrors reported by Identity Services 
+ The error domain of all CFErrors reported by Identity Services
  }
 {
  *  kCSIdentityErrorDomain
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available
  *    Non-Carbon CFM:   not available
  }
 var kCSIdentityErrorDomain: CFStringRef; external name '_kCSIdentityErrorDomain'; (* attribute const *)
-(* __OSX_AVAILABLE_STARTING( __MAC_10_5,__IPHONE_5_0 ) *) 
+(* __OSX_AVAILABLE_STARTING( __MAC_10_5,__IPHONE_5_0 ) *)
 
 {
  *  CSIdentity error codes
- *  
+ *
  *  Discussion:
  *    Error codes in the CSIdentity error domain
  }
@@ -249,43 +249,43 @@ const
 	 * The specified authority is not recognized
 	 }
 	kCSIdentityUnknownAuthorityErr = -1;
-	
+
 	{
 	 * The specified authority is currently not accessible
 	 }
 	kCSIdentityAuthorityNotAccessibleErr = -2;
-	
+
 	{
 	 * The caller does not have permission to perform the operation
 	 }
 	kCSIdentityPermissionErr = -3;
-	
+
 	{
 	 * The requested identity has been deleted
 	 }
 	kCSIdentityDeletedErr = -4;
-	
+
 	{
 	 * The full name is not valid (length: [1-255])
 	 }
 	kCSIdentityInvalidFullNameErr = -5;
-	
+
 	{
 	 * The full name is already assigned to another identity
 	 }
 	kCSIdentityDuplicateFullNameErr = -6;
-	
+
 	{
 	 * The Posix name is not valid (AnsiChar set: [a-zA-Z0-9_-] length:
 	 * [1-255])
 	 }
 	kCSIdentityInvalidPosixNameErr = -7;
-	
+
 	{
 	 * The Posix name is already assigned to another identity
 	 }
 	kCSIdentityDuplicatePosixNameErr = -8;
-	
+
 
 {$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 

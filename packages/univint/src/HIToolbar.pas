@@ -1,17 +1,17 @@
 {
      File:       HIToolbox/HIToolbar.h
- 
+
      Contains:   Toolbar and Toolbar Item API
- 
+
      Version:    HIToolbox-624~3
- 
+
      Copyright:  © 2001-2008 by Apple Computer, Inc., all rights reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {     File:       HIToolbar.p(.pas)																		}
 { 																										}
@@ -473,7 +473,7 @@ const
 
 {
     kEventClassToolbar quick reference:
-    
+
     kEventToolbarGetDefaultIdentifiers      = 1,
     kEventToolbarGetAllowedIdentifiers      = 2,
     kEventToolbarCreateItemWithIdentifier   = 3,
@@ -498,22 +498,22 @@ const
 
 {
  *  kEventClassToolbar / kEventToolbarGetDefaultIdentifiers
- *  
+ *
  *  Summary:
  *    This event is sent to the delegate to get a list of all of the
  *    default item identifiers that should be created for a toolbar.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    --> kEventParamToolbar (in, typeHIToolbarRef)
  *          The toolbar for which to retrieve identifiers.
- *    
+ *
  *    --> kEventParamMutableArray (in, typeCFMutableArrayRef)
  *          A mutable array to fill in with the identifiers.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -523,24 +523,24 @@ const
 
 {
  *  kEventClassToolbar / kEventToolbarGetAllowedIdentifiers
- *  
+ *
  *  Summary:
  *    This event is sent to the delegate to get a list of all the items
  *    which could possibly be added to the toolbar. This is sent out
  *    when the configuration sheet is about to be displayed. You are
  *    passed a mutable array to fill in with the identifiers.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    --> kEventParamToolbar (in, typeHIToolbarRef)
  *          The toolbar for which to retrieve identifiers.
- *    
+ *
  *    --> kEventParamMutableArray (in, typeCFMutableArrayRef)
  *          A mutable array to fill in with the identifiers.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -550,7 +550,7 @@ const
 
 {
  *  kEventClassToolbar / kEventToolbarGetSelectableIdentifiers
- *  
+ *
  *  Summary:
  *    This event is sent to the delegate to get a list of all the items
  *    which can acquire a selection highlight when clicked. This is
@@ -567,18 +567,18 @@ const
  *    attribute for the clicked item using
  *    HIToolbarItemChangeAttributes; in this case, you should not
  *    handle the kEventToolbarGetSelectableIdentifiers event.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    --> kEventParamToolbar (in, typeHIToolbarRef)
  *          The toolbar for which to retrieve identifiers.
- *    
+ *
  *    --> kEventParamMutableArray (in, typeCFMutableArrayRef)
  *          A mutable array to fill in with the identifiers.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -588,30 +588,30 @@ const
 
 {
  *  kEventClassToolbar / kEventToolbarCreateItemWithIdentifier
- *  
+ *
  *  Summary:
  *    This event is sent to the delegate when we need to create an item
  *    from an identifier.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    --> kEventParamToolbar (in, typeHIToolbarRef)
  *          The toolbar for which to create an item.
- *    
+ *
  *    --> kEventParamToolbarItemIdentifier (in, typeCFStringRef)
  *          The toolbar item identifier.
- *    
+ *
  *    --> kEventParamToolbarItemConfigData (in, typeCFTypeRef)
  *          The toolbar item configuration data. This parameter is
  *          optional and may not be present in all instances of this
  *          event.
- *    
+ *
  *    <-- kEventParamToolbarItem (out, typeHIToolbarItemRef)
  *          On exit, contains the new toolbar item.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -621,27 +621,27 @@ const
 
 {
  *  kEventClassToolbar / kEventToolbarCreateItemFromDrag
- *  
+ *
  *  Summary:
  *    This event is sent to the delegate to when we need to create an
  *    item from a drag.
- *  
+ *
  *  Discussion:
  *    This event allows you to be able to drag items into a toolbar
  *    that arenÕt normal toolbar items. You might use this to allow
  *    your toolbar to accept file system items, for example.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    --> kEventParamDragRef (in, typeDragRef)
  *          The DragRef with information about the drag.
- *    
+ *
  *    <-- kEventParamToolbarItem (out, typeHIToolbarItemRef)
  *          On exit, contains the new toolbar item.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -651,23 +651,23 @@ const
 
 {
  *  kEventClassToolbar / kEventToolbarItemAdded
- *  
+ *
  *  Summary:
  *    Sent to interested parties when an item is added to the toolbar.
  *    The toolbar object sends this event to itself, so you'd need to
  *    install a handler on the toolbar to receive this event.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    --> kEventParamToolbarItem (in, typeHIToolbarItemRef)
  *          The item that was just added.
- *    
+ *
  *    --> kEventParamIndex (in, typeCFIndex)
  *          The index at which the item now exists.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -677,21 +677,21 @@ const
 
 {
  *  kEventClassToolbar / kEventToolbarItemRemoved
- *  
+ *
  *  Summary:
  *    Sent to interested parties when an item is removed from toolbar.
  *    It is called after the item has already been removed. The toolbar
  *    object sends this event to itself, so you'd need to install a
  *    handler on the toolbar to receive this event.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    --> kEventParamToolbarItem (in, typeHIToolbarItemRef)
  *          The item that was just removed.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -701,16 +701,16 @@ const
 
 {
  *  kEventClassToolbar / kEventToolbarDisplayModeChanged
- *  
+ *
  *  Summary:
  *    Sent to interested parties when an the display mode is changed
  *    for a toolbar. The toolbar object sends this event to itself, so
  *    you'd need to install a handler on the toolbar to receive this
  *    event.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -720,16 +720,16 @@ const
 
 {
  *  kEventClassToolbar / kEventToolbarDisplaySizeChanged
- *  
+ *
  *  Summary:
  *    Sent to interested parties when an the display size is changed
  *    for a toolbar. The toolbar object sends this event to itself, so
  *    you'd need to install a handler on the toolbar to receive this
  *    event.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -739,7 +739,7 @@ const
 
 {
  *  kEventClassToolbar / kEventToolbarLayoutChanged
- *  
+ *
  *  Summary:
  *    Sent to interested parties when the layout of a toolbar changes
  *    (either an item has been moved, or the entire contents have been
@@ -747,10 +747,10 @@ const
  *    total resync with the current state of things. The toolbar object
  *    sends this event to itself, so you'd need to install a handler on
  *    the toolbar to receive this event.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -760,7 +760,7 @@ const
 
 {
  *  kEventClassToolbar / kEventToolbarBeginMultiChange
- *  
+ *
  *  Summary:
  *    Sent to interested parties when multiple attributes are going to
  *    be changed at once. For example, it is possible for the display
@@ -771,10 +771,10 @@ const
  *    relayout, etc. until the EndMultiChange event comes in. The
  *    toolbar object sends this event to itself, so you'd need to
  *    install a handler on the toolbar to receive this event.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -784,17 +784,17 @@ const
 
 {
  *  kEventClassToolbar / kEventToolbarEndMultiChange
- *  
+ *
  *  Summary:
  *    Sent to interested parties when the toolbar is done adjusting
  *    multiple attributes. See kEventToolbarBeginMultiChange for more
  *    information. The toolbar object sends this event to itself, so
  *    you'd need to install a handler on the toolbar to receive this
  *    event.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -804,7 +804,7 @@ const
 
 {
     kEventClassToolbarItem quick reference:
-    
+
     kEventToolbarItemImageChanged           = 1,
     kEventToolbarItemLabelChanged           = 2,
     kEventToolbarItemHelpTextChanged        = 3,
@@ -819,15 +819,15 @@ const
 }
 {
  *  kEventClassToolbarItem / kEventToolbarItemImageChanged
- *  
+ *
  *  Summary:
  *    This event is sent to the item when the image changes. Any
  *    interested parties can install handlers on the toolbar item to
  *    receive notifications.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -837,15 +837,15 @@ const
 
 {
  *  kEventClassToolbarItem / kEventToolbarItemLabelChanged
- *  
+ *
  *  Summary:
  *    This event is sent to the item when the label changes. Any
  *    interested parties can install handlers on the toolbar item to
  *    receive notifications.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -855,15 +855,15 @@ const
 
 {
  *  kEventClassToolbarItem / kEventToolbarItemHelpTextChanged
- *  
+ *
  *  Summary:
  *    This event is sent to the item when the help text changes. Any
  *    interested parties can install handlers on the toolbar item to
  *    receive notifications.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -873,15 +873,15 @@ const
 
 {
  *  kEventClassToolbarItem / kEventToolbarItemCommandIDChanged
- *  
+ *
  *  Summary:
  *    This event is sent to the item when the command ID changes. Any
  *    interested parties can install handlers on the toolbar item to
  *    receive notifications.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -891,7 +891,7 @@ const
 
 {
  *  kEventClassToolbarItem / kEventToolbarItemGetPersistentData
- *  
+ *
  *  Summary:
  *    This event is sent to the item when the toolbar is going to write
  *    out the configuration information for the item. Any custom items
@@ -899,15 +899,15 @@ const
  *    is written out into the config so that it can be reanimated later
  *    on from the same config data. Typically, you'd not need to handle
  *    this event.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    <-- kEventParamToolbarItemConfigData (out, typeCFTypeRef)
  *          On exit, contains configuration information for the item.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -917,21 +917,21 @@ const
 
 {
  *  kEventClassToolbarItem / kEventToolbarItemCreateCustomView
- *  
+ *
  *  Summary:
  *    This event is sent to the toolbar item when it is time to create
  *    a view for it to display its contents. Implementors of custom
  *    toolbar items can install a handler for this event to create
  *    their own custom views for their items.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    <-- kEventParamControlRef (out, typeControlRef)
  *          On exit, contains the itemÕs custom view.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -941,24 +941,24 @@ const
 
 {
  *  kEventClassToolbarItem / kEventToolbarItemEnabledStateChanged
- *  
+ *
  *  Summary:
  *    This event is sent to the item when the enabled state changes.
  *    Any interested parties can install handlers on the toolbar item
  *    to receive notifications.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    <-- kEventParamControlRef (out, typeControlRef)
  *          The window in which the item is changing state. This
  *          parameter is optional and may not be present in all
  *          instances of this event. If not present, the item is
  *          changing state across all windows that share the same
  *          toolbar.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -968,24 +968,24 @@ const
 
 {
  *  kEventClassToolbarItem / kEventToolbarItemSelectedStateChanged
- *  
+ *
  *  Summary:
  *    This event is sent to the item when the selected state changes.
  *    Any interested parties can install handlers on the toolbar item
  *    to receive notifications.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    --> kEventParamWindowRef (in, typeWindowRef)
  *          The window in which the item is changing state. This
  *          parameter is optional and may not be present in all
  *          instances of this event. If not present, the item is
  *          changing state across all windows that share the same
  *          toolbar.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -995,16 +995,16 @@ const
 
 {
  *  kEventClassToolbarItem / kEventToolbarItemPerformAction
- *  
+ *
  *  Summary:
  *    This event is sent when a toolbar item is clicked. Subclasses of
  *    toolbar items can choose to do special actions by overriding this
  *    event. If this event is unhandled, the default action of sending
  *    a command event will occur.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -1014,7 +1014,7 @@ const
 
 {
  *  kEventClassToolbarItem / kEventToolbarItemWouldAcceptDrop
- *  
+ *
  *  Summary:
  *    This event is sent when a drag enters a toolbar item. If the
  *    toolbar item wants to accept drags (like finder items can when
@@ -1024,21 +1024,21 @@ const
  *    not need to respond to this, since you'll have full drag and drop
  *    capability via the view system. This is to support custom items
  *    which are using the standard view.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    --> kEventParamDragRef (in, typeDragRef)
  *          The drag to test for tastiness of flavors.
- *    
+ *
  *    <-- kEventParamResult (out, typeBoolean)
  *          A boolean value representing whether the drag was something
  *          the item wants to accept (true) or not (false). If this
  *          parameter does not exist or is false, we do not consult any
  *          other parameters in this event.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -1048,20 +1048,20 @@ const
 
 {
  *  kEventClassToolbarItem / kEventToolbarItemAcceptDrop
- *  
+ *
  *  Summary:
  *    If you responded to kEventToolbarItemLikesDrag and returned true
  *    in the kEventParamResult parameter, and the user drops the drag
  *    onto your item, you will be called with this event.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    --> kEventParamDragRef (in, typeDragRef)
  *          The drag that was just dropped.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -1071,7 +1071,7 @@ const
 
 {
     kEventClassToolbarItemView quick reference:
-    
+
     kEventToolbarItemViewConfigForMode      = 3,
     kEventToolbarItemViewConfigForSize      = 4,
     kEventToolbarItemViewEnterConfigMode    = 5,
@@ -1085,11 +1085,11 @@ const
 
 {
  *  kEventClassToolbarItemView / kEventToolbarItemViewConfigForMode
- *  
+ *
  *  Summary:
  *    Notifies a toolbar item view that the toolbar's display mode has
  *    changed.
- *  
+ *
  *  Discussion:
  *    Notifies a toolbar item view that the toolbar's display mode has
  *    changed. A custom toolbar item view can respond to this in any
@@ -1097,15 +1097,15 @@ const
  *    Ñ when the toolbar goes from icon to text only, for example, the
  *    view is automatically hidden, so there is not much to do. It is
  *    here for informational purposes only.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    --> kEventParamToolbarDisplayMode (in, typeHIToolbarDisplayMode)
  *          The toolbar item view's new display mode.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -1115,26 +1115,26 @@ const
 
 {
  *  kEventClassToolbarItemView / kEventToolbarItemViewConfigForSize
- *  
+ *
  *  Summary:
  *    Notifies a toolbar item view that the toolbar's display size has
  *    changed.
- *  
+ *
  *  Discussion:
  *    Notifies a toolbar item view that the toolbar's display size has
  *    changed. A custom toolbar item view can respond to this in any
  *    way it sees fit. Most times, responding to this is not necessary.
  *    However, some custom views might need to flush metrics caches
  *    when the display size changes.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    --> kEventParamToolbarDisplaySize (in, typeHIToolbarDisplaySize)
  *          The toolbar item view's new display size.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -1144,20 +1144,20 @@ const
 
 {
  *  kEventClassToolbarItemView / kEventToolbarItemViewEnterConfigMode
- *  
+ *
  *  Summary:
  *    Notifies a toolbar item view that we've entered configure mode.
- *  
+ *
  *  Discussion:
  *    Notifies a toolbar item view that we've entered configure mode. A
  *    custom toolbar item view can respond to this in any way it sees
  *    fit. For example, the space and flexible space mark themselves to
  *    draw a rectangle and merely invalidate so they get redrawn so you
  *    can see them during configure.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -1167,19 +1167,19 @@ const
 
 {
  *  kEventClassToolbarItemView / kEventToolbarItemViewExitConfigMode
- *  
+ *
  *  Summary:
  *    Notifies a toolbar item view that we've finished with configure
  *    mode.
- *  
+ *
  *  Discussion:
  *    Notifies a toolbar item view that we're now out of configure
  *    mode. A custom toolbar item view can respond to this in any way
  *    it sees fit.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -1287,10 +1287,10 @@ const
 {$ifc not TARGET_CPU_64}
 {
  *  HIToolbarCreate()
- *  
+ *
  *  Summary:
  *    Creates a toolbar.
- *  
+ *
  *  Discussion:
  *    After creating a toolbar, one would normally attach it to a
  *    window using SetWindowToolbar, described in MacWindows.h. Since
@@ -1298,28 +1298,28 @@ const
  *    are no routines to hide or show it here. Please look to
  *    MacWindows.h for the routines ShowHideWindowToolbar and
  *    IsWindowToolbarVisible for more information.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inIdentifier:
  *      The identifier of the toolbar. If you specify that the toolbar
  *      auto-saves its configuration, this identifier is used to mark
  *      the config info in your application's preferences. You must
  *      specify an identifier.
- *    
+ *
  *    inAttributes:
  *      Any toolbar attributes you wish to specify, such as
  *      kHIToolbarAutoSavesConfig or kHIToolbarIsConfigurable.
- *    
+ *
  *    outToolbar:
  *      The toolbar reference to your new toolbar.
- *  
+ *
  *  Result:
  *    An operating system result code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -1331,24 +1331,24 @@ function HIToolbarCreate( inIdentifier: CFStringRef; inAttributes: OptionBits; v
 
 {
  *  HIToolbarGetAttributes()
- *  
+ *
  *  Summary:
  *    Returns the attributes for the given toolbar.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inToolbar:
  *      The toolbar whose attributes to retrieve.
- *    
+ *
  *    outAttributes:
  *      The attributes.
- *  
+ *
  *  Result:
  *    An operating system result code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -1360,27 +1360,27 @@ function HIToolbarGetAttributes( inToolbar: HIToolbarRef; var outAttributes: Opt
 
 {
  *  HIToolbarChangeAttributes()
- *  
+ *
  *  Summary:
  *    Changes the attributes of a toolbar.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inToolbar:
  *      The toolbar whose attributes you want to change.
- *    
+ *
  *    inAttrsToSet:
  *      The attributes you wish to set/enable.
- *    
+ *
  *    inAttrsToClear:
  *      The attributes you wish to clear/disable.
- *  
+ *
  *  Result:
  *    An operating system result code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -1392,24 +1392,24 @@ function HIToolbarChangeAttributes( inToolbar: HIToolbarRef; inAttrsToSet: Optio
 
 {
  *  HIToolbarGetDisplayMode()
- *  
+ *
  *  Summary:
  *    Returns the current display mode of a toolbar.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inToolbar:
  *      The toolbar whose display mode you wish to receive.
- *    
+ *
  *    outDisplayMode:
  *      The display mode.
- *  
+ *
  *  Result:
  *    An operating system result code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -1421,24 +1421,24 @@ function HIToolbarGetDisplayMode( inToolbar: HIToolbarRef; var outDisplayMode: H
 
 {
  *  HIToolbarSetDisplayMode()
- *  
+ *
  *  Summary:
  *    Sets the current display mode of a toolbar.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inToolbar:
  *      The toolbar whose display mode you wish to set.
- *    
+ *
  *    inDisplayMode:
  *      The display mode. If the toolbar is visible, it will be redrawn.
- *  
+ *
  *  Result:
  *    An operating system result code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -1450,24 +1450,24 @@ function HIToolbarSetDisplayMode( inToolbar: HIToolbarRef; inDisplayMode: HITool
 
 {
  *  HIToolbarGetDisplaySize()
- *  
+ *
  *  Summary:
  *    Gets the current display size of a toolbar.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inToolbar:
  *      The toolbar whose display size you wish to get.
- *    
+ *
  *    outSize:
  *      The display size.
- *  
+ *
  *  Result:
  *    An operating system result code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -1479,24 +1479,24 @@ function HIToolbarGetDisplaySize( inToolbar: HIToolbarRef; var outSize: HIToolba
 
 {
  *  HIToolbarSetDisplaySize()
- *  
+ *
  *  Summary:
  *    Sets the current display size of a toolbar.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inToolbar:
  *      The toolbar whose display size you wish to set.
- *    
+ *
  *    inSize:
  *      The display size. If the toolbar is visible, it will be redrawn.
- *  
+ *
  *  Result:
  *    An operating system result code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -1508,25 +1508,25 @@ function HIToolbarSetDisplaySize( inToolbar: HIToolbarRef; inSize: HIToolbarDisp
 
 {
  *  HIToolbarCopyIdentifier()
- *  
+ *
  *  Summary:
  *    Returns the identifier for a toolbar.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inToolbar:
  *      The toolbar whose identifier you wish to get.
- *    
+ *
  *    outIdentifier:
  *      The identifier. You must release it when you are finished with
  *      it.
- *  
+ *
  *  Result:
  *    An operating system result code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -1538,10 +1538,10 @@ function HIToolbarCopyIdentifier( inToolbar: HIToolbarRef; var outIdentifier: CF
 
 {
  *  HIToolbarSetItemsWithIdentifiers()
- *  
+ *
  *  Summary:
  *    Allows you to set a toolbar's items all at once.
- *  
+ *
  *  Discussion:
  *    The entries in the array must be either CFStringRefs or
  *    CFDictionaryRefs. You do not need to use the same type for all
@@ -1553,21 +1553,21 @@ function HIToolbarCopyIdentifier( inToolbar: HIToolbarRef; var outIdentifier: CF
  *    toolbar item's configuration data, if the item requires it. The
  *    key for the identifier string is kHIToolbarIdentifierKey, and the
  *    key for the config data string is kHIToolbarDataKey.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inToolbar:
  *      The toolbar whose items you wish to set.
- *    
+ *
  *    inArray:
  *      The array of toolbar items to create.
- *  
+ *
  *  Result:
  *    An operating system result code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -1579,25 +1579,25 @@ function HIToolbarSetItemsWithIdentifiers( inToolbar: HIToolbarRef; inArray: CFA
 
 {
  *  HIToolbarCopyItems()
- *  
+ *
  *  Summary:
  *    Returns the array of toolbar items for a toolbar.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inToolbar:
  *      The toolbar whose items you wish to receive.
- *    
+ *
  *    outItems:
  *      The array of toolbar items owned by the toolbar. You must
  *      release the array when you are finished with it.
- *  
+ *
  *  Result:
  *    An operating system result code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -1609,38 +1609,38 @@ function HIToolbarCopyItems( inToolbar: HIToolbarRef; var outItems: CFArrayRef )
 
 {
  *  HIToolbarCreateItemWithIdentifier()
- *  
+ *
  *  Summary:
  *    Creates an item specified by a particular identifier.
- *  
+ *
  *  Discussion:
  *    Using this function allows you to create any item a delegate
  *    supports by naming its identifier. It also allows you to create
  *    standard items supplied by the Toolbox, such as the separator
  *    item.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inToolbar:
  *      The toolbar you are adding to.
- *    
+ *
  *    inIdentifier:
  *      The identifier of the item you wish to add.
- *    
+ *
  *    inConfigData:
  *      Any config data required by the item to safely construct.
  *      Standard items do not require any extra data, so NULL can be
  *      passed.
- *    
+ *
  *    outItem:
  *      The newly created toolbar item.
- *  
+ *
  *  Result:
  *    An operating system result code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -1652,31 +1652,31 @@ function HIToolbarCreateItemWithIdentifier( inToolbar: HIToolbarRef; inIdentifie
 
 {
  *  HIToolbarInsertItemAtIndex()
- *  
+ *
  *  Summary:
  *    Inserts a toolbar item at a given index into a toolbar.
- *  
+ *
  *  Discussion:
  *    Generally, you should always add items via identifier, and not
  *    with this routine.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inToolbar:
  *      The toolbar to receive the new item.
- *    
+ *
  *    inItem:
  *      The item reference of the toolbar item you are adding.
- *    
+ *
  *    inIndex:
  *      The index you wish to add the item at. This index is zero-based.
- *  
+ *
  *  Result:
  *    An operating system result code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -1688,28 +1688,28 @@ function HIToolbarInsertItemAtIndex( inToolbar: HIToolbarRef; inItem: HIToolbarI
 
 {
  *  HIToolbarAppendItem()
- *  
+ *
  *  Summary:
  *    Appends an item to the end of a toolbar.
- *  
+ *
  *  Discussion:
  *    Generally, you should always add items via identifier, and not
  *    with this routine.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inToolbar:
  *      The toolbar to receive the new item.
- *    
+ *
  *    inItem:
  *      The item reference of the toolbar item you are adding.
- *  
+ *
  *  Result:
  *    An operating system result code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -1721,24 +1721,24 @@ function HIToolbarAppendItem( inToolbar: HIToolbarRef; inItem: HIToolbarItemRef 
 
 {
  *  HIToolbarRemoveItemAtIndex()
- *  
+ *
  *  Summary:
  *    Removes an item at a given index from a toolbar.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inToolbar:
  *      The toolbar you are removing the item from.
- *    
+ *
  *    inIndex:
  *      The index of the item to remove. This index is zero-based.
- *  
+ *
  *  Result:
  *    An operating system result code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -1750,28 +1750,28 @@ function HIToolbarRemoveItemAtIndex( inToolbar: HIToolbarRef; inIndex: CFIndex )
 
 {
  *  HIToolbarSetDelegate()
- *  
+ *
  *  Discussion:
  *    A delegate is required for the toolbar to work properly if the
  *    toolbar uses custom toolbar items. The delegate is asked to
  *    create toolbar items. If the delegate does not respond, the
  *    toolbar will attempt to create a toolbar item, but it can only
  *    create the standard items defined at the top of this header.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inToolbar:
  *      The toolbar whose delegate you want to set.
- *    
+ *
  *    inDelegate:
  *      The HIObjectRef to act as the delegate.
- *  
+ *
  *  Result:
  *    An operating system result code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -1783,21 +1783,21 @@ function HIToolbarSetDelegate( inToolbar: HIToolbarRef; inDelegate: HIObjectRef 
 
 {
  *  HIToolbarGetDelegate()
- *  
+ *
  *  Discussion:
  *    Returns the current delegate in use by a toolbar.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inToolbar:
  *      The toolbar you want the delegate from.
- *  
+ *
  *  Result:
  *    An HIObjectRef.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -1829,30 +1829,30 @@ function HIToolbarGetDelegate( inToolbar: HIToolbarRef ): HIObjectRef; external 
 {$ifc not TARGET_CPU_64}
 {
  *  HIToolbarItemCreate()
- *  
+ *
  *  Discussion:
  *    Creates a toolbar item for use in a toolbar. Typically, you would
  *    create toolbar items in your delegate. When a toolbar needs to
  *    create an item with a given identifier, your delegate is asked to
  *    create it.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inIdentifier:
  *      The identifier of the item in question.
- *    
+ *
  *    inOptions:
  *      Any options for the item.
- *    
+ *
  *    outItem:
  *      The item you created.
- *  
+ *
  *  Result:
  *    An operating system result code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -1864,27 +1864,27 @@ function HIToolbarItemCreate( inIdentifier: CFStringRef; inOptions: OptionBits; 
 
 {
  *  HIToolbarItemCopyIdentifier()
- *  
+ *
  *  Discussion:
  *    Returns the identifier of the given item. The toolbar uses this
  *    identifier when writing the config information to the preferences
  *    (if set up for auto-config).
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inItem:
  *      The item in question.
- *    
+ *
  *    outIdentifier:
  *      The identifier of the item. You should release this string when
  *      you are finished with it.
- *  
+ *
  *  Result:
  *    An operating system result code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -1896,24 +1896,24 @@ function HIToolbarItemCopyIdentifier( inItem: HIToolbarItemRef; var outIdentifie
 
 {
  *  HIToolbarItemGetAttributes()
- *  
+ *
  *  Discussion:
  *    Returns the attributes of the given item.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inItem:
  *      The item in question.
- *    
+ *
  *    outAttributes:
  *      The attributes of the item.
- *  
+ *
  *  Result:
  *    An operating system result code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -1925,31 +1925,31 @@ function HIToolbarItemGetAttributes( inItem: HIToolbarItemRef; var outAttributes
 
 {
  *  HIToolbarItemChangeAttributes()
- *  
+ *
  *  Discussion:
  *    Changes the attributes of a toolbar item. Only those attributes
  *    defined by the kHIToolbarItemMutableAttrs can be passed into this
  *    API. All other options can only be specified at creation.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inItem:
  *      The item in question.
- *    
+ *
  *    inAttrsToSet:
  *      The attributes to set on the item. This value can be
  *      kHIToolbarItemNoAttributes if you are only clearing attributes.
- *    
+ *
  *    inAttrsToClear:
  *      The attributes to clear on the item. This value can be
  *      kHIToolbarItemNoAttributes if you are only setting attributes.
- *  
+ *
  *  Result:
  *    An operating system result code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -1961,11 +1961,11 @@ function HIToolbarItemChangeAttributes( inItem: HIToolbarItemRef; inAttrsToSet: 
 
 {
  *  HIToolbarItemGetAttributesInWindow()
- *  
+ *
  *  Summary:
  *    Returns the attributes of the given item in a given window, and
  *    information about which attributes are overridden for that window.
- *  
+ *
  *  Discussion:
  *    The HIToolbarItemGetAttributesInWindow returns the combined
  *    attributes that control a toolbar item view in a specific window.
@@ -1973,35 +1973,35 @@ function HIToolbarItemChangeAttributes( inItem: HIToolbarItemRef; inAttrsToSet: 
  *    which attributes are overridden for this particular window, and
  *    which are inherited from the non-window-specific toolbar item
  *    attributes.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inItem:
  *      The item in question.
- *    
+ *
  *    inWindow:
  *      The window containing the item. Passing NULL is equivalent to
  *      calling HIToolbarItemGetAttributes; it returns the
  *      non-window-specific attributes for the item with no per-window
  *      modifications.
- *    
+ *
  *    outOverriddenAttributes:
  *      On exit, contains a bitmask indicating which attributes are
  *      overridden for this particular window. May be NULL if you don't
  *      need this information.
- *    
+ *
  *    outCombinedAttributes:
  *      On exit, contains the effective attributes for this item in
  *      this window, produced by combining the item's
  *      non-window-specific attributes with the overridden attributes
  *      for this window. May be NULL if you don't need this information.
- *  
+ *
  *  Result:
  *    An operating system result code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.4 and later
@@ -2013,10 +2013,10 @@ function HIToolbarItemGetAttributesInWindow( inItem: HIToolbarItemRef; inWindow:
 
 {
  *  HIToolbarItemChangeAttributesInWindow()
- *  
+ *
  *  Summary:
  *    Changes the attributes of a toolbar item in a specific window.
- *  
+ *
  *  Discussion:
  *    The HIToolbarItemChangeAttributesInWindow API allows the
  *    attributes of a toolbar item to be overridden on a per-window
@@ -2028,8 +2028,8 @@ function HIToolbarItemGetAttributesInWindow( inItem: HIToolbarItemRef; inWindow:
  *    example, your application might have a toolbar that is shared
  *    across several windows, but in some windows a toolbar item might
  *    be enabled, and in other windows the same item might be disabled.
- *    
- *    
+ *
+ *
  *    Whenever HIToolbarChangeAttributesInWindow is used to set or
  *    clear attributes, the toolbar item adds the modified attributes
  *    to a bitmask of attributes recording which attributes are
@@ -2042,41 +2042,41 @@ function HIToolbarItemGetAttributesInWindow( inItem: HIToolbarItemRef; inWindow:
  *    the override mask for the toolbar item in the specified window.
  *    The effective value of attributes removed from the override mask
  *    will then revert back to the non-window- specific value of the
- *    attributes for the toolbar item. 
- *    
+ *    attributes for the toolbar item.
+ *
  *    Only those attributes defined by the kHIToolbarItemMutableAttrs
  *    can be passed into this API. All other options can only be
- *    specified at creation. 
- *    
+ *    specified at creation.
+ *
  *    The per-window attributes for an item are not saved in the
  *    toolbar preferences.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inItem:
  *      The item in question.
- *    
+ *
  *    inWindow:
  *      The window containing the item. Passing NULL is equivalent to
  *      calling HIToolbarItemChangeAttributes; the item's
  *      non-window-specific attributes will be changed, rather than its
  *      per-window attributes.
- *    
+ *
  *    inAttrsToSet:
  *      The attributes to set on the item. Pass
  *      kHIToolbarItemNoAttributes if you are only clearing attributes.
  *      These attributes will be added to the overridden attribute mask
  *      associated with this item in this window.
- *    
+ *
  *    inAttrsToClear:
  *      The attributes to clear on the item. Pass
  *      kHIToolbarItemNoAttributes if you are only setting attributes.
  *      These attributes will be added to the overridden attribute mask
  *      associated with this item in this window.
- *    
+ *
  *    inAttrsToNoLongerOverride:
  *      The attributes that should no longer be overridden at the
  *      per-window level for this toolbar item; pass
@@ -2086,10 +2086,10 @@ function HIToolbarItemGetAttributesInWindow( inItem: HIToolbarItemRef; inWindow:
  *      attribute will no longer be overridden. If the inWindow
  *      parameter is NULL, this parameter must be
  *      kHIToolbarItemNoAttributes; if not, paramErr will be returned.
- *  
+ *
  *  Result:
  *    An operating system result code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.4 and later
@@ -2101,32 +2101,32 @@ function HIToolbarItemChangeAttributesInWindow( inItem: HIToolbarItemRef; inWind
 
 {
  *  HIToolbarGetSelectedItemInWindow()
- *  
+ *
  *  Summary:
  *    Returns the toolbar item that is selected in a given window.
- *  
+ *
  *  Discussion:
  *    Each window that shares a toolbar may have a different selected
  *    item. This API returns the selected item in a particular window.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inToolbar:
  *      The toolbar in question.
- *    
+ *
  *    inWindow:
  *      A window containing the toolbar.
- *    
+ *
  *    outItem:
  *      On exit, contains the toolbar item that is selected in the
  *      specified window, or NULL if there is no selected item.
- *  
+ *
  *  Result:
  *    An operating system result code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.4 and later
@@ -2138,26 +2138,26 @@ function HIToolbarGetSelectedItemInWindow( inToolbar: HIToolbarRef; inWindow: Wi
 
 {
  *  HIToolbarItemSetLabel()
- *  
+ *
  *  Discussion:
  *    Sets the label of a toolbar item. This is what the toolbar view
  *    will display underneath the image. It is also used in the
  *    configuration palette for configurable toolbars.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inItem:
  *      The item in question.
- *    
+ *
  *    inLabel:
  *      The label. The toolbox will copy the string passed in.
- *  
+ *
  *  Result:
  *    An operating system result code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -2169,25 +2169,25 @@ function HIToolbarItemSetLabel( inItem: HIToolbarItemRef; inLabel: CFStringRef )
 
 {
  *  HIToolbarItemCopyLabel()
- *  
+ *
  *  Discussion:
  *    Returns the label of a toolbar item.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inItem:
  *      The item in question.
- *    
+ *
  *    outLabel:
  *      The label of the item. You should release this when you are
  *      finished with it.
- *  
+ *
  *  Result:
  *    An operating system result code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -2199,32 +2199,32 @@ function HIToolbarItemCopyLabel( inItem: HIToolbarItemRef; var outLabel: CFStrin
 
 {
  *  HIToolbarItemSetHelpText()
- *  
+ *
  *  Discussion:
  *    Sets the text used for help tags for a toolbar item.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inItem:
  *      The item in question.
- *    
+ *
  *    inShortText:
  *      The short help text. This is what is displayed normally by the
  *      help tag system when the user hovers over the toolbar item with
  *      the mouse.
- *    
+ *
  *    inLongText:
  *      The long help text. This is what is displayed by the help tag
  *      system when the user hovers over the toolbar item with the
  *      mouse and holds the command key down. This parameter is
  *      optional; you may pass NULL.
- *  
+ *
  *  Result:
  *    An operating system result code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -2236,35 +2236,35 @@ function HIToolbarItemSetHelpText( inItem: HIToolbarItemRef; inShortText: CFStri
 
 {
  *  HIToolbarItemCopyHelpText()
- *  
+ *
  *  Discussion:
  *    Returns the text used for help tags for a toolbar item.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inItem:
  *      The item in question.
- *    
+ *
  *    outShortText:
  *      The short help text. This is what is displayed normally by the
  *      help tag system when the user hovers over the toolbar item with
  *      the mouse. You should release this string when you are finished
  *      with it. If you do not wish to receive the short help text,
  *      pass NULL for this parameter.
- *    
+ *
  *    outLongText:
  *      The long help text. This is what is displayed by the help tag
  *      system when the user hovers over the toolbar item with the
  *      mouse and holds the command key down. You should release this
  *      string when you are finished with it. If you do not wish to
  *      receive the long help text, pass NULL for this parameter.
- *  
+ *
  *  Result:
  *    An operating system result code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -2276,28 +2276,28 @@ function HIToolbarItemCopyHelpText( inItem: HIToolbarItemRef; outShortText: CFSt
 
 {
  *  HIToolbarItemSetCommandID()
- *  
+ *
  *  Discussion:
  *    Sets the command ID of a toolbar item. When an toolbar item is
  *    clicked, the default behavior is to send out the command assigned
  *    to the item. This API lets you set that command ID. The command
  *    is sent out via the ProcessHICommand API, so it uses Carbon
  *    Events.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inItem:
  *      The item in question.
- *    
+ *
  *    inCommandID:
  *      The command ID.
- *  
+ *
  *  Result:
  *    An operating system result code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -2309,24 +2309,24 @@ function HIToolbarItemSetCommandID( inItem: HIToolbarItemRef; inCommandID: MenuC
 
 {
  *  HIToolbarItemGetCommandID()
- *  
+ *
  *  Discussion:
  *    Gets the command ID of a toolbar item.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inItem:
  *      The item in question.
- *    
+ *
  *    outCommandID:
  *      The command ID.
- *  
+ *
  *  Result:
  *    An operating system result code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -2338,26 +2338,26 @@ function HIToolbarItemGetCommandID( inItem: HIToolbarItemRef; var outCommandID: 
 
 {
  *  HIToolbarItemSetIconRef()
- *  
+ *
  *  Discussion:
  *    Sets the icon for a toolbar item.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inItem:
  *      The item in question.
- *    
+ *
  *    inIcon:
  *      The icon ref. The toolbar will create an appropriate CGImageRef
  *      for the icon passed in. The icon can be released after this API
  *      is called.
- *  
+ *
  *  Result:
  *    An operating system result code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -2369,26 +2369,26 @@ function HIToolbarItemSetIconRef( inItem: HIToolbarItemRef; inIcon: IconRef ): O
 
 {
  *  HIToolbarItemCopyIconRef()
- *  
+ *
  *  Discussion:
  *    Returns the icon for a toolbar item. This icon is already
  *    retained by the time you receive it, so you can release it when
  *    you are done with it.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inItem:
  *      The item in question.
- *    
+ *
  *    outIcon:
  *      The retained icon. You should release it when finished with it.
- *  
+ *
  *  Result:
  *    An operating system result code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available
@@ -2400,28 +2400,28 @@ function HIToolbarItemCopyIconRef( inItem: HIToolbarItemRef; var outIcon: IconRe
 
 {
  *  HIToolbarItemSetImage()
- *  
+ *
  *  Discussion:
  *    Sets the image for a toolbar item. Currently, the image should be
  *    no higher than 32 pixels. This image is used both in the toolbar
  *    as well as the configuration sheet, if the toolbar is
  *    configurable.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inItem:
  *      The item in question.
- *    
+ *
  *    inImage:
  *      The image. This image is retained by the toolbar item. You may
  *      release it after calling this API.
- *  
+ *
  *  Result:
  *    An operating system result code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -2433,26 +2433,26 @@ function HIToolbarItemSetImage( inItem: HIToolbarItemRef; inImage: CGImageRef ):
 
 {
  *  HIToolbarItemCopyImage()
- *  
+ *
  *  Discussion:
  *    Returns the image for a toolbar item. This image is already
  *    retained by the time you receive it, so you can release it when
  *    you are done with it.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inItem:
  *      The item in question.
- *    
+ *
  *    outImage:
  *      The retained image. You should release it when finished with it.
- *  
+ *
  *  Result:
  *    An operating system result code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -2464,7 +2464,7 @@ function HIToolbarItemCopyImage( inItem: HIToolbarItemRef; var outImage: CGImage
 
 {
  *  HIToolbarItemSetMenu()
- *  
+ *
  *  Discussion:
  *    Sets the submenu for a toolbar item. Normally, items do not have
  *    a submenu. You can attach one with this API. The submenu will, by
@@ -2474,24 +2474,24 @@ function HIToolbarItemCopyImage( inItem: HIToolbarItemRef; var outImage: CGImage
  *    label is clicked. You should attach a Carbon Event handler to the
  *    menu to handle updating the menu items as appropriate before the
  *    menu is displayed.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inItem:
  *      The item in question.
- *    
+ *
  *    inMenu:
  *      The menu. It is retained by the toolbar item, so you can safely
  *      release it after calling this API. On Mac OS X 10.3 and later,
  *      you can pass NULL for this parameter to remove and release any
  *      menu that might be attached.
- *  
+ *
  *  Result:
  *    An operating system result code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -2503,25 +2503,25 @@ function HIToolbarItemSetMenu( inItem: HIToolbarItemRef; inMenu: MenuRef { can b
 
 {
  *  HIToolbarItemCopyMenu()
- *  
+ *
  *  Discussion:
  *    Gets the submenu for a toolbar item.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inItem:
  *      The item in question.
- *    
+ *
  *    outMenu:
  *      The retained menu. You should release it when you are finished
  *      with it.
- *  
+ *
  *  Result:
  *    An operating system result code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -2533,28 +2533,28 @@ function HIToolbarItemCopyMenu( inItem: HIToolbarItemRef; var outMenu: MenuRef )
 
 {
  *  HIToolbarItemGetToolbar()
- *  
+ *
  *  Discussion:
- *    Returns the toolbar containing a toolbar item. 
- *    
+ *    Returns the toolbar containing a toolbar item.
+ *
  *    Due to a bug in the toolbar item implementation in Mac OS X 10.2,
  *    Mac OS X 10.3, and Mac OS X 10.4, this function may crash or
  *    return an invalid HIToolbarRef if called before toolbar item is
  *    inserted into a toolbar. This bug is fixed in Mac OS X 10.5 and
  *    later.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inItem:
  *      The item in question.
- *  
+ *
  *  Result:
  *    The toolbar item reference of the toolbar this item is bound to,
  *    or NULL if this toolbar item is not attached to any toolbar.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -2566,21 +2566,21 @@ function HIToolbarItemGetToolbar( inItem: HIToolbarItemRef ): HIToolbarRef; exte
 
 {
  *  HIToolbarItemIsEnabled()
- *  
+ *
  *  Discussion:
  *    Used to determine if a toolbar item is enabled.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inItem:
  *      The item in question.
- *  
+ *
  *  Result:
  *    A boolean result.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -2592,24 +2592,24 @@ function HIToolbarItemIsEnabled( inItem: HIToolbarItemRef ): Boolean; external n
 
 {
  *  HIToolbarItemSetEnabled()
- *  
+ *
  *  Discussion:
  *    Enables or disables a toolbar item.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inItem:
  *      The item in question.
- *    
+ *
  *    inEnabled:
  *      The new enabled state.
- *  
+ *
  *  Result:
  *    An operating system result code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -2621,7 +2621,7 @@ function HIToolbarItemSetEnabled( inItem: HIToolbarItemRef; inEnabled: Boolean )
 
 {
  *  HIToolbarItemConfigDataChanged()
- *  
+ *
  *  Discussion:
  *    Informs the toolbar that the config data for a toolbar item has
  *    changed and should be written to the toolbar config prefs. This
@@ -2629,18 +2629,18 @@ function HIToolbarItemSetEnabled( inItem: HIToolbarItemRef; inEnabled: Boolean )
  *    that has changed (perhaps you've changed an alias that a toolbar
  *    item points to, for example). This function does nothing if the
  *    toolbar is not set to auto save its configuration.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inItem:
  *      The item whose information has changed.
- *  
+ *
  *  Result:
  *    An operating system result code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later

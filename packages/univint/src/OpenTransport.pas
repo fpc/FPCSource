@@ -1,15 +1,15 @@
 {
      File:       OSServices/OpenTransport.h
- 
+
      Contains:   *** DEPRECATED *** Open Transport client interface file.
- 
+
      Copyright:  (c) 1985-2011 Apple Inc. All rights reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {      Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, November 2005 }
 {      Pascal Translation Updated: Jonas Maebe <jonas@freepascal.org>, September 2012 }
@@ -317,7 +317,7 @@ uses MacTypes,MixedMode,MacErrors;
    There are four outcomes when this code is compiled, depending on
    whether qDebug and OTDEBUG are defined beforehand.  The following
    table shows the outcome in each case.
-   qDebug     OTDEBUG    Outcome       Explanation  
+   qDebug     OTDEBUG    Outcome       Explanation
    ------     -------    -------       -----------
    defined    defined    OTDEBUG wins  Mixed legacy and new code, we believe the new code.
    defined    undefined  qDebug wins   Legacy code.
@@ -482,7 +482,7 @@ const
 
 {$ifc CALL_NOT_IN_CARBON}
 {
-   BSD defines O_ASYNC, O_NDELAY and O_NONBLOCK in fcntl.h 
+   BSD defines O_ASYNC, O_NDELAY and O_NONBLOCK in fcntl.h
    Use kO_ASYNC, kO_NDELAY and kO_NONBLOCK in the unlikely event you need the OT value in Carbon
 }
 const
@@ -512,7 +512,7 @@ type
    other languages won't have these symbols overloaded.
 }
 
-     
+
 const
 	EPERM = 1;    { Permission denied            }
 	ENOENT = 2;    { No such file or directory       }
@@ -745,7 +745,7 @@ const
    ***** OTBand *****
    A band is a STREAMS concepts which defines the priority of data
    on a stream.  Although this type is defined as a 32 bit number
-   for efficiency's sake, bands actually only range from 0 to 255. 
+   for efficiency's sake, bands actually only range from 0 to 255.
    Typically band 0 is used for normal data and band 1 for expedited data.
 }
 type
@@ -788,7 +788,7 @@ type
 	OTEventCode = UInt32;
 {
    Events are divided into numerous categories:
-   
+
    1. (0x0000xxxx) The core XTI events have identifiers of the form
       T_XXXX.  These signal that an XTI event has occurred on a stream.
    2. (0x1000xxxx) Private events are reserved for protocol specific
@@ -949,7 +949,7 @@ type
 	OTNotifyUPP = OTNotifyProcPtr;
 {
  *  NewOTNotifyUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -960,7 +960,7 @@ function NewOTNotifyUPP( userRoutine: OTNotifyProcPtr ): OTNotifyUPP; external n
 
 {
  *  DisposeOTNotifyUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -971,7 +971,7 @@ procedure DisposeOTNotifyUPP( userUPP: OTNotifyUPP ); external name '_DisposeOTN
 
 {
  *  InvokeOTNotifyUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1323,7 +1323,7 @@ type
 {$ifc not TARGET_CPU_64}
 {
  *  OTCreatePortRef()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1335,7 +1335,7 @@ function OTCreatePortRef( busType: OTBusType; devType: OTDeviceType; slot: OTSlo
 
 {
  *  OTGetDeviceTypeFromPortRef()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1347,7 +1347,7 @@ function OTGetDeviceTypeFromPortRef( ref: OTPortRef ): OTDeviceType; external na
 
 {
  *  OTGetBusTypeFromPortRef()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1359,7 +1359,7 @@ function OTGetBusTypeFromPortRef( ref: OTPortRef ): UInt16; external name '_OTGe
 
 {
  *  OTGetSlotFromPortRef()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1371,7 +1371,7 @@ function OTGetSlotFromPortRef( ref: OTPortRef; var other: UInt16 ): OTSlotNumber
 
 {
  *  OTSetDeviceTypeInPortRef()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1383,7 +1383,7 @@ function OTSetDeviceTypeInPortRef( ref: OTPortRef; devType: OTDeviceType ): OTPo
 
 {
  *  OTSetBusTypeInPortRef()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1399,10 +1399,10 @@ function OTSetBusTypeInPortRef( ref: OTPortRef; busType: OTBusType ): OTPortRef;
 
 // #define OTCreateNuBusPortRef(devType, slot, other)  \
 //   OTCreatePortRef(kOTNuBus, devType, slot, other)
-    
+
 // #define OTCreatePCIPortRef(devType, slot, other)   \
 //   OTCreatePortRef(kOTPCIBus, devType, slot, other)
-   
+
 // #define OTCreatePCCardPortRef(devType, slot, other)    \
 //   OTCreatePortRef(kOTPCCardBus, devType, slot, other)
 
@@ -1479,7 +1479,7 @@ type
 {$ifc not TARGET_CPU_64}
 {
  *  OTGetIndexedPort()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1492,7 +1492,7 @@ function OTGetIndexedPort( var portRecord: OTPortRecord; index: OTItemCount ): B
 { Index through the ports in the system}
 {
  *  OTFindPort()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1505,7 +1505,7 @@ function OTFindPort( var portRecord: OTPortRecord; portName: ConstCStringPtr ): 
 { Find an OTPortRecord for a port using it's name}
 {
  *  OTFindPortByRef()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1520,7 +1520,7 @@ function OTFindPortByRef( var portRecord: OTPortRecord; ref: OTPortRef ): Boolea
 
 {
  *  OTRegisterPort()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -1534,7 +1534,7 @@ function OTFindPortByRef( var portRecord: OTPortRecord; ref: OTPortRef ): Boolea
 }
 {
  *  OTUnregisterPort()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -1551,7 +1551,7 @@ function OTFindPortByRef( var portRecord: OTPortRecord; ref: OTPortRef ): Boolea
 }
 {
  *  OTChangePortState()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -1852,7 +1852,7 @@ type
 	OTClientContextPtr = ^SInt32; { an opaque type }
 	OTClientContextPtrPtr = ^OTClientContextPtr;
 {
-   For Carbon the InitOpenTransport interface has changed so it takes a flags parameter 
+   For Carbon the InitOpenTransport interface has changed so it takes a flags parameter
    and returns a client context pointer.
    The flag passed to indicates whether OT should be initialized for application use or for some other target
    (for example, plugins that run in an application context but not the application itself.)
@@ -1868,7 +1868,7 @@ const
 {$ifc not TARGET_CPU_64}
 {
  *  InitOpenTransportInContext()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1885,7 +1885,7 @@ function InitOpenTransportInContext( flags: OTInitializationFlags; outClientCont
 }
 {
  *  CloseOpenTransportInContext()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1899,7 +1899,7 @@ procedure CloseOpenTransportInContext( clientContext: OTClientContextPtr ); exte
 
 {
  *  InitOpenTransport()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -1909,7 +1909,7 @@ procedure CloseOpenTransportInContext( clientContext: OTClientContextPtr ); exte
 
 {
  *  InitOpenTransportUtilities()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -1919,7 +1919,7 @@ procedure CloseOpenTransportInContext( clientContext: OTClientContextPtr ); exte
 
 {
  *  CloseOpenTransport()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -1929,7 +1929,7 @@ procedure CloseOpenTransportInContext( clientContext: OTClientContextPtr ); exte
 
 {
  *  OTRegisterAsClient()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -1944,7 +1944,7 @@ procedure CloseOpenTransportInContext( clientContext: OTClientContextPtr ); exte
 }
 {
  *  OTUnregisterAsClient()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -1955,7 +1955,7 @@ procedure CloseOpenTransportInContext( clientContext: OTClientContextPtr ); exte
 {$ifc not TARGET_CPU_64}
 {
  *  OTRegisterAsClientInContext()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -1967,7 +1967,7 @@ function OTRegisterAsClientInContext( name: OTClientName; proc: OTNotifyUPP; cli
 
 {
  *  OTUnregisterAsClientInContext()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -1990,7 +1990,7 @@ function OTUnregisterAsClientInContext( clientContext: OTClientContextPtr ): OSS
 
 {
  *  OTEnterInterrupt()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -2000,7 +2000,7 @@ function OTUnregisterAsClientInContext( clientContext: OTClientContextPtr ): OSS
 
 {
  *  OTLeaveInterrupt()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -2010,7 +2010,7 @@ function OTUnregisterAsClientInContext( clientContext: OTClientContextPtr ): OSS
 
 {
  *  OTIsAtInterruptLevel()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -2020,7 +2020,7 @@ function OTUnregisterAsClientInContext( clientContext: OTClientContextPtr ): OSS
 
 {
  *  OTCanLoadLibraries()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -2038,7 +2038,7 @@ type
 	OTProcessUPP = OTProcessProcPtr;
 {
  *  NewOTProcessUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2049,7 +2049,7 @@ function NewOTProcessUPP( userRoutine: OTProcessProcPtr ): OTProcessUPP; externa
 
 {
  *  DisposeOTProcessUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2060,7 +2060,7 @@ procedure DisposeOTProcessUPP( userUPP: OTProcessUPP ); external name '_DisposeO
 
 {
  *  InvokeOTProcessUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2079,7 +2079,7 @@ procedure InvokeOTProcessUPP( arg: UnivPtr; userUPP: OTProcessUPP ); external na
 {$ifc not TARGET_CPU_64}
 {
  *  OTCreateDeferredTaskInContext()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2103,7 +2103,7 @@ type
 	OTDeferredTaskRef = SIGNEDLONG;
 {
  *  OTCreateDeferredTask()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -2114,7 +2114,7 @@ type
 {$ifc not TARGET_CPU_64}
 {
  *  OTScheduleDeferredTask()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2128,7 +2128,7 @@ function OTScheduleDeferredTask( dtCookie: OTDeferredTaskRef ): Boolean; externa
 
 {
  *  OTScheduleInterruptTask()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -2139,7 +2139,7 @@ function OTScheduleDeferredTask( dtCookie: OTDeferredTaskRef ): Boolean; externa
 {$ifc not TARGET_CPU_64}
 {
  *  OTDestroyDeferredTask()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2163,7 +2163,7 @@ type
 	OTSystemTaskRef = SIGNEDLONG;
 {
  *  OTCreateSystemTask()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -2173,7 +2173,7 @@ type
 
 {
  *  OTDestroySystemTask()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -2183,7 +2183,7 @@ type
 
 {
  *  OTScheduleSystemTask()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -2193,7 +2193,7 @@ type
 
 {
  *  OTCancelSystemTask()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -2204,7 +2204,7 @@ type
 {$ifc not TARGET_CPU_64}
 {
  *  OTCanMakeSyncCall()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2222,7 +2222,7 @@ function OTCanMakeSyncCall: Boolean; external name '_OTCanMakeSyncCall';
 {$ifc NOT OTKERNEL}
 {
  *  OTAsyncOpenProvider()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -2232,7 +2232,7 @@ function OTCanMakeSyncCall: Boolean; external name '_OTCanMakeSyncCall';
 
 {
  *  OTOpenProvider()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -2243,7 +2243,7 @@ function OTCanMakeSyncCall: Boolean; external name '_OTCanMakeSyncCall';
 {$ifc not TARGET_CPU_64}
 {
  *  OTCloseProvider()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2257,7 +2257,7 @@ function OTCloseProvider( ref: ProviderRef ): OSStatus; external name '_OTCloseP
 
 {
  *  OTTransferProviderOwnership()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -2267,7 +2267,7 @@ function OTCloseProvider( ref: ProviderRef ): OSStatus; external name '_OTCloseP
 
 {
  *  OTWhoAmI()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -2277,7 +2277,7 @@ function OTCloseProvider( ref: ProviderRef ): OSStatus; external name '_OTCloseP
 
 {
  *  OTGetProviderPortRef()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -2288,7 +2288,7 @@ function OTCloseProvider( ref: ProviderRef ): OSStatus; external name '_OTCloseP
 {$ifc not TARGET_CPU_64}
 {
  *  OTIoctl()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2302,7 +2302,7 @@ function OTIoctl( ref: ProviderRef; cmd: UInt32; data: UnivPtr ): SInt32; extern
 
 {
  *  OTGetMessage()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -2312,7 +2312,7 @@ function OTIoctl( ref: ProviderRef; cmd: UInt32; data: UnivPtr ): SInt32; extern
 
 {
  *  OTGetPriorityMessage()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -2322,7 +2322,7 @@ function OTIoctl( ref: ProviderRef; cmd: UInt32; data: UnivPtr ): SInt32; extern
 
 {
  *  OTPutMessage()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -2332,7 +2332,7 @@ function OTIoctl( ref: ProviderRef; cmd: UInt32; data: UnivPtr ): SInt32; extern
 
 {
  *  OTPutPriorityMessage()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -2343,7 +2343,7 @@ function OTIoctl( ref: ProviderRef; cmd: UInt32; data: UnivPtr ): SInt32; extern
 {$ifc not TARGET_CPU_64}
 {
  *  OTSetAsynchronous()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2355,7 +2355,7 @@ function OTSetAsynchronous( ref: ProviderRef ): OSStatus; external name '_OTSetA
 
 {
  *  OTSetSynchronous()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2367,7 +2367,7 @@ function OTSetSynchronous( ref: ProviderRef ): OSStatus; external name '_OTSetSy
 
 {
  *  OTIsSynchronous()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2379,7 +2379,7 @@ function OTIsSynchronous( ref: ProviderRef ): Boolean; external name '_OTIsSynch
 
 {
  *  OTSetBlocking()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2391,7 +2391,7 @@ function OTSetBlocking( ref: ProviderRef ): OSStatus; external name '_OTSetBlock
 
 {
  *  OTSetNonBlocking()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2403,7 +2403,7 @@ function OTSetNonBlocking( ref: ProviderRef ): OSStatus; external name '_OTSetNo
 
 {
  *  OTIsBlocking()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2415,7 +2415,7 @@ function OTIsBlocking( ref: ProviderRef ): Boolean; external name '_OTIsBlocking
 
 {
  *  OTInstallNotifier()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2427,7 +2427,7 @@ function OTInstallNotifier( ref: ProviderRef; proc: OTNotifyUPP; contextPtr: Uni
 
 {
  *  OTUseSyncIdleEvents()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2439,7 +2439,7 @@ function OTUseSyncIdleEvents( ref: ProviderRef; useEvents: Boolean ): OSStatus; 
 
 {
  *  OTRemoveNotifier()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2451,7 +2451,7 @@ procedure OTRemoveNotifier( ref: ProviderRef ); external name '_OTRemoveNotifier
 
 {
  *  OTLeaveNotifier()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2463,7 +2463,7 @@ procedure OTLeaveNotifier( ref: ProviderRef ); external name '_OTLeaveNotifier';
 
 {
  *  OTEnterNotifier()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2475,7 +2475,7 @@ function OTEnterNotifier( ref: ProviderRef ): Boolean; external name '_OTEnterNo
 
 {
  *  OTAckSends()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2487,7 +2487,7 @@ function OTAckSends( ref: ProviderRef ): OSStatus; external name '_OTAckSends';
 
 {
  *  OTDontAckSends()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2499,7 +2499,7 @@ function OTDontAckSends( ref: ProviderRef ): OSStatus; external name '_OTDontAck
 
 {
  *  OTIsAckingSends()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2511,7 +2511,7 @@ function OTIsAckingSends( ref: ProviderRef ): Boolean; external name '_OTIsAckin
 
 {
  *  OTCancelSynchronousCalls()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2537,7 +2537,7 @@ function OTCancelSynchronousCalls( ref: ProviderRef; err: OSStatus ): OSStatus; 
 {$ifc not TARGET_CPU_64}
 {
  *  OTOpenEndpointInContext()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2549,7 +2549,7 @@ function OTOpenEndpointInContext( config: OTConfigurationRef; oflag: OTOpenFlags
 
 {
  *  OTAsyncOpenEndpointInContext()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2563,7 +2563,7 @@ function OTAsyncOpenEndpointInContext( config: OTConfigurationRef; oflag: OTOpen
 
 {
  *  OTOpenEndpoint()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -2573,7 +2573,7 @@ function OTAsyncOpenEndpointInContext( config: OTConfigurationRef; oflag: OTOpen
 
 {
  *  OTAsyncOpenEndpoint()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -2590,7 +2590,7 @@ function OTAsyncOpenEndpointInContext( config: OTConfigurationRef; oflag: OTOpen
 {$ifc not TARGET_CPU_64}
 {
  *  OTGetEndpointInfo()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2602,7 +2602,7 @@ function OTGetEndpointInfo( ref: EndpointRef; var info: TEndpointInfo ): OSStatu
 
 {
  *  OTGetEndpointState()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2614,7 +2614,7 @@ function OTGetEndpointState( ref: EndpointRef ): OTResult; external name '_OTGet
 
 {
  *  OTLook()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2628,7 +2628,7 @@ function OTLook( ref: EndpointRef ): OTResult; external name '_OTLook';
 
 {
  *  OTSync()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -2639,7 +2639,7 @@ function OTLook( ref: EndpointRef ): OTResult; external name '_OTLook';
 {$ifc not TARGET_CPU_64}
 {
  *  OTCountDataBytes()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2651,7 +2651,7 @@ function OTCountDataBytes( ref: EndpointRef; var countPtr: OTByteCount ): OTResu
 
 {
  *  OTGetProtAddress()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2663,7 +2663,7 @@ function OTGetProtAddress( ref: EndpointRef; boundAddr: TBindPtr { can be NULL }
 
 {
  *  OTResolveAddress()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2689,7 +2689,7 @@ function OTResolveAddress( ref: EndpointRef; var reqAddr: TBind; var retAddr: TB
 }
 {
  *  OTAllocInContext()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2703,7 +2703,7 @@ function OTAllocInContext( ref: EndpointRef; structType: OTStructType; fields: U
 
 {
  *  OTAlloc()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -2719,7 +2719,7 @@ function OTAllocInContext( ref: EndpointRef; structType: OTStructType; fields: U
 {$ifc not TARGET_CPU_64}
 {
  *  OTFree()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2735,7 +2735,7 @@ function OTFree( ptr: UnivPtr; structType: OTStructType ): OTResult; external na
 
 {
  *  OTOptionManagement()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2751,7 +2751,7 @@ function OTOptionManagement( ref: EndpointRef; var req: TOptMgmt; var ret: TOptM
 
 {
  *  OTCreateOptions()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -2761,7 +2761,7 @@ function OTOptionManagement( ref: EndpointRef; var req: TOptMgmt; var ret: TOptM
 
 {
  *  OTCreateOptionString()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -2772,7 +2772,7 @@ function OTOptionManagement( ref: EndpointRef; var req: TOptMgmt; var ret: TOptM
 {$ifc not TARGET_CPU_64}
 {
  *  OTNextOption()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2784,7 +2784,7 @@ function OTNextOption( buffer: UInt8Ptr; buflen: UInt32; var prevOptPtr: TOption
 
 {
  *  OTFindOption()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2798,7 +2798,7 @@ function OTFindOption( buffer: UInt8Ptr; buflen: UInt32; level: OTXTILevel; name
 
 {
  *  OTBind()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2810,7 +2810,7 @@ function OTBind( ref: EndpointRef; reqAddr: TBindPtr { can be NULL }; retAddr: T
 
 {
  *  OTUnbind()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2824,7 +2824,7 @@ function OTUnbind( ref: EndpointRef ): OSStatus; external name '_OTUnbind';
 
 {
  *  OTConnect()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2836,7 +2836,7 @@ function OTConnect( ref: EndpointRef; var sndCall: TCall; rcvCall: TCallPtr { ca
 
 {
  *  OTRcvConnect()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2848,7 +2848,7 @@ function OTRcvConnect( ref: EndpointRef; call: TCallPtr { can be NULL } ): OSSta
 
 {
  *  OTListen()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2860,7 +2860,7 @@ function OTListen( ref: EndpointRef; var call: TCall ): OSStatus; external name 
 
 {
  *  OTAccept()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2872,7 +2872,7 @@ function OTAccept( listener: EndpointRef; worker: EndpointRef; var call: TCall )
 
 {
  *  OTSndDisconnect()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2884,7 +2884,7 @@ function OTSndDisconnect( ref: EndpointRef; call: TCallPtr { can be NULL } ): OS
 
 {
  *  OTSndOrderlyDisconnect()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2896,7 +2896,7 @@ function OTSndOrderlyDisconnect( ref: EndpointRef ): OSStatus; external name '_O
 
 {
  *  OTRcvDisconnect()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2908,7 +2908,7 @@ function OTRcvDisconnect( ref: EndpointRef; discon: TDisconPtr { can be NULL } )
 
 {
  *  OTRcvOrderlyDisconnect()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2922,7 +2922,7 @@ function OTRcvOrderlyDisconnect( ref: EndpointRef ): OSStatus; external name '_O
 
 {
  *  OTRcv()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2934,7 +2934,7 @@ function OTRcv( ref: EndpointRef; buf: UnivPtr; nbytes: OTByteCount; var flags: 
 
 {
  *  OTSnd()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2948,7 +2948,7 @@ function OTSnd( ref: EndpointRef; buf: UnivPtr; nbytes: OTByteCount; flags: OTFl
 
 {
  *  OTSndUData()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2960,7 +2960,7 @@ function OTSndUData( ref: EndpointRef; var udata: TUnitData ): OSStatus; externa
 
 {
  *  OTRcvUData()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2972,7 +2972,7 @@ function OTRcvUData( ref: EndpointRef; var udata: TUnitData; var flags: OTFlags 
 
 {
  *  OTRcvUDErr()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2988,7 +2988,7 @@ function OTRcvUDErr( ref: EndpointRef; uderr: TUDErrPtr { can be NULL } ): OSSta
 
 {
  *  OTSndRequest()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -2998,7 +2998,7 @@ function OTRcvUDErr( ref: EndpointRef; uderr: TUDErrPtr { can be NULL } ): OSSta
 
 {
  *  OTRcvReply()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -3008,7 +3008,7 @@ function OTRcvUDErr( ref: EndpointRef; uderr: TUDErrPtr { can be NULL } ): OSSta
 
 {
  *  OTSndReply()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -3018,7 +3018,7 @@ function OTRcvUDErr( ref: EndpointRef; uderr: TUDErrPtr { can be NULL } ): OSSta
 
 {
  *  OTRcvRequest()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -3028,7 +3028,7 @@ function OTRcvUDErr( ref: EndpointRef; uderr: TUDErrPtr { can be NULL } ): OSSta
 
 {
  *  OTCancelRequest()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -3038,7 +3038,7 @@ function OTRcvUDErr( ref: EndpointRef; uderr: TUDErrPtr { can be NULL } ): OSSta
 
 {
  *  OTCancelReply()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -3050,7 +3050,7 @@ function OTRcvUDErr( ref: EndpointRef; uderr: TUDErrPtr { can be NULL } ): OSSta
 
 {
  *  OTSndURequest()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -3060,7 +3060,7 @@ function OTRcvUDErr( ref: EndpointRef; uderr: TUDErrPtr { can be NULL } ): OSSta
 
 {
  *  OTRcvUReply()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -3070,7 +3070,7 @@ function OTRcvUDErr( ref: EndpointRef; uderr: TUDErrPtr { can be NULL } ): OSSta
 
 {
  *  OTSndUReply()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -3080,7 +3080,7 @@ function OTRcvUDErr( ref: EndpointRef; uderr: TUDErrPtr { can be NULL } ): OSSta
 
 {
  *  OTRcvURequest()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -3090,7 +3090,7 @@ function OTRcvUDErr( ref: EndpointRef; uderr: TUDErrPtr { can be NULL } ): OSSta
 
 {
  *  OTCancelURequest()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -3100,7 +3100,7 @@ function OTRcvUDErr( ref: EndpointRef; uderr: TUDErrPtr { can be NULL } ): OSSta
 
 {
  *  OTCancelUReply()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -3120,7 +3120,7 @@ function OTRcvUDErr( ref: EndpointRef; uderr: TUDErrPtr { can be NULL } ): OSSta
 {$ifc not TARGET_CPU_64}
 {
  *  OTAsyncOpenMapperInContext()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3132,7 +3132,7 @@ function OTAsyncOpenMapperInContext( config: OTConfigurationRef; oflag: OTOpenFl
 
 {
  *  OTOpenMapperInContext()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3146,7 +3146,7 @@ function OTOpenMapperInContext( config: OTConfigurationRef; oflag: OTOpenFlags; 
 
 {
  *  OTAsyncOpenMapper()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -3156,7 +3156,7 @@ function OTOpenMapperInContext( config: OTConfigurationRef; oflag: OTOpenFlags; 
 
 {
  *  OTOpenMapper()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -3171,7 +3171,7 @@ function OTOpenMapperInContext( config: OTConfigurationRef; oflag: OTOpenFlags; 
 {$ifc not TARGET_CPU_64}
 {
  *  OTRegisterName()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3183,7 +3183,7 @@ function OTRegisterName( ref: MapperRef; var req: TRegisterRequest; var reply: T
 
 {
  *  OTDeleteName()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3195,7 +3195,7 @@ function OTDeleteName( ref: MapperRef; var name: TNetbuf ): OSStatus; external n
 
 {
  *  OTDeleteNameByID()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3207,7 +3207,7 @@ function OTDeleteNameByID( ref: MapperRef; nameID: OTNameID ): OSStatus; externa
 
 {
  *  OTLookupName()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3221,7 +3221,7 @@ function OTLookupName( ref: MapperRef; var req: TLookupRequest; var reply: TLook
 
 {
  *  OTCreateConfiguration()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3233,7 +3233,7 @@ function OTCreateConfiguration( path: ConstCStringPtr ): OTConfigurationRef; ext
 
 {
  *  OTCloneConfiguration()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3245,7 +3245,7 @@ function OTCloneConfiguration( cfig: OTConfigurationRef ): OTConfigurationRef; e
 
 {
  *  OTDestroyConfiguration()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3271,7 +3271,7 @@ procedure OTDestroyConfiguration( cfig: OTConfigurationRef ); external name '_OT
 
 {
  *  OTAllocMemInContext()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3285,7 +3285,7 @@ function OTAllocMemInContext( size: OTByteCount; clientContext: OTClientContextP
 
 {
  *  OTAllocMem()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -3296,7 +3296,7 @@ function OTAllocMemInContext( size: OTByteCount; clientContext: OTClientContextP
 {$ifc not TARGET_CPU_64}
 {
  *  OTFreeMem()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3321,7 +3321,7 @@ procedure OTFreeMem( mem: UnivPtr ); external name '_OTFreeMem';
 {$ifc not TARGET_CPU_64}
 {
  *  OTDelay()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3333,7 +3333,7 @@ procedure OTDelay( seconds: UInt32 ); external name '_OTDelay';
 
 {
  *  OTIdle()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3361,7 +3361,7 @@ procedure OTIdle; external name '_OTIdle';
 {$ifc not TARGET_CPU_64}
 {
  *  OTMemcpy()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3373,7 +3373,7 @@ procedure OTMemcpy( dest: UnivPtr; src: {const} UnivPtr; nBytes: OTByteCount ); 
 
 {
  *  OTMemcmp()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3385,7 +3385,7 @@ function OTMemcmp( mem1: {const} UnivPtr; mem2: {const} UnivPtr; nBytes: OTByteC
 
 {
  *  OTMemmove()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3397,7 +3397,7 @@ procedure OTMemmove( dest: UnivPtr; src: {const} UnivPtr; nBytes: OTByteCount );
 
 {
  *  OTMemzero()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3409,7 +3409,7 @@ procedure OTMemzero( dest: UnivPtr; nBytes: OTByteCount ); external name '_OTMem
 
 {
  *  OTMemset()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3421,7 +3421,7 @@ procedure OTMemset( dest: UnivPtr; toSet: OTUInt8Param; nBytes: OTByteCount ); e
 
 {
  *  OTStrLength()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3433,7 +3433,7 @@ function OTStrLength( str: ConstCStringPtr ): OTByteCount; external name '_OTStr
 
 {
  *  OTStrCopy()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3445,7 +3445,7 @@ procedure OTStrCopy( var dest: AnsiChar; src: ConstCStringPtr ); external name '
 
 {
  *  OTStrCat()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3457,7 +3457,7 @@ procedure OTStrCat( var dest: AnsiChar; src: ConstCStringPtr ); external name '_
 
 {
  *  OTStrEqual()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3471,10 +3471,10 @@ function OTStrEqual( src1: ConstCStringPtr; src2: ConstCStringPtr ): Boolean; ex
 
 {
    OTGetTimeStamp returns time in "tick" numbers, stored in 64 bits.
-   This timestamp can be used as a base number for calculating elapsed 
+   This timestamp can be used as a base number for calculating elapsed
    time.
    OTSubtractTimeStamps returns a pointer to the "result" parameter.
-    
+
    OTGetClockTimeInSecs returns time since Open Transport was initialized
    in seconds.
 }
@@ -3487,7 +3487,7 @@ type
 {$ifc not TARGET_CPU_64}
 {
  *  OTGetTimeStamp()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3499,7 +3499,7 @@ procedure OTGetTimeStamp( var currentTime: OTTimeStamp ); external name '_OTGetT
 
 {
  *  OTSubtractTimeStamps()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3511,7 +3511,7 @@ function OTSubtractTimeStamps( var result: OTTimeStamp; var startTime: OTTimeSta
 
 {
  *  OTTimeStampInMilliseconds()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3523,7 +3523,7 @@ function OTTimeStampInMilliseconds( var delta: OTTimeStamp ): UInt32; external n
 
 {
  *  OTTimeStampInMicroseconds()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3535,7 +3535,7 @@ function OTTimeStampInMicroseconds( var delta: OTTimeStamp ): UInt32; external n
 
 {
  *  OTElapsedMilliseconds()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3547,7 +3547,7 @@ function OTElapsedMilliseconds( var startTime: OTTimeStamp ): UInt32; external n
 
 {
  *  OTElapsedMicroseconds()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3559,7 +3559,7 @@ function OTElapsedMicroseconds( var startTime: OTTimeStamp ): UInt32; external n
 
 {
  *  OTGetClockTimeInSecs()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3615,7 +3615,7 @@ type
 {$ifc not TARGET_CPU_64}
 {
  *  OTLIFOEnqueue()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3631,7 +3631,7 @@ procedure OTLIFOEnqueue( var list: OTLIFO; var link: OTLink ); external name '_O
 }
 {
  *  OTLIFODequeue()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3647,7 +3647,7 @@ function OTLIFODequeue( var list: OTLIFO ): OTLinkPtr; external name '_OTLIFODeq
 }
 {
  *  OTLIFOStealList()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3664,7 +3664,7 @@ function OTLIFOStealList( var list: OTLIFO ): OTLinkPtr; external name '_OTLIFOS
 }
 {
  *  OTReverseList()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3695,7 +3695,7 @@ type
 	OTListSearchUPP = OTListSearchProcPtr;
 {
  *  NewOTListSearchUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3706,7 +3706,7 @@ function NewOTListSearchUPP( userRoutine: OTListSearchProcPtr ): OTListSearchUPP
 
 {
  *  DisposeOTListSearchUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3717,7 +3717,7 @@ procedure DisposeOTListSearchUPP( userUPP: OTListSearchUPP ); external name '_Di
 
 {
  *  InvokeOTListSearchUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3735,7 +3735,7 @@ type
 {$ifc not TARGET_CPU_64}
 {
  *  OTAddFirst()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3748,7 +3748,7 @@ procedure OTAddFirst( var list: OTList; var link: OTLink ); external name '_OTAd
 { Add the link to the list at the end}
 {
  *  OTAddLast()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3761,7 +3761,7 @@ procedure OTAddLast( var list: OTList; var link: OTLink ); external name '_OTAdd
 { Remove the first link from the list}
 {
  *  OTRemoveFirst()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3774,7 +3774,7 @@ function OTRemoveFirst( var list: OTList ): OTLinkPtr; external name '_OTRemoveF
 { Remove the last link from the list}
 {
  *  OTRemoveLast()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3787,7 +3787,7 @@ function OTRemoveLast( var list: OTList ): OTLinkPtr; external name '_OTRemoveLa
 { Return the first link from the list}
 {
  *  OTGetFirst()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3800,7 +3800,7 @@ function OTGetFirst( var list: OTList ): OTLinkPtr; external name '_OTGetFirst';
 { Return the last link from the list}
 {
  *  OTGetLast()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3813,7 +3813,7 @@ function OTGetLast( var list: OTList ): OTLinkPtr; external name '_OTGetLast';
 { Return true if the link is present in the list}
 {
  *  OTIsInList()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3832,7 +3832,7 @@ function OTIsInList( var list: OTList; var link: OTLink ): Boolean; external nam
 }
 {
  *  OTFindLink()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3845,7 +3845,7 @@ function OTFindLink( var list: OTList; proc: OTListSearchUPP; ref: {const} UnivP
 { Remove the specified link from the list, returning true if it was found}
 {
  *  OTRemoveLink()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3858,7 +3858,7 @@ function OTRemoveLink( var list: OTList; var link: OTLink ): Boolean; external n
 { Similar to OTFindLink, but it also removes it from the list.}
 {
  *  OTFindAndRemoveLink()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3871,7 +3871,7 @@ function OTFindAndRemoveLink( var list: OTList; proc: OTListSearchUPP; ref: {con
 { Return the "index"th link in the list}
 {
  *  OTGetIndexedLink()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3896,7 +3896,7 @@ function OTGetIndexedLink( var list: OTList; index: OTItemCount ): OTLinkPtr; ex
 }
 {
  *  OTEnqueue()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3912,7 +3912,7 @@ procedure OTEnqueue( var listHead: UnivPtr; objct: UnivPtr; linkOffset: OTByteCo
 }
 {
  *  OTDequeue()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3939,7 +3939,7 @@ function OTDequeue( var listHead: UnivPtr; linkOffset: OTByteCount ): UnivPtr; e
 
 {
  *  OTAtomicSetBit()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3957,7 +3957,7 @@ function OTAtomicSetBit( bytePtr: UInt8Ptr; bitNumber: OTByteCount ): Boolean; e
 }
 {
  *  OTAtomicClearBit()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3975,7 +3975,7 @@ function OTAtomicClearBit( bytePtr: UInt8Ptr; bitNumber: OTByteCount ): Boolean;
 }
 {
  *  OTAtomicTestBit()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3993,7 +3993,7 @@ function OTAtomicTestBit( bytePtr: UInt8Ptr; bitNumber: OTByteCount ): Boolean; 
 }
 {
  *  OTCompareAndSwapPtr()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4010,7 +4010,7 @@ function OTCompareAndSwapPtr( oldValue: UnivPtr; newValue: UnivPtr; var dest: Un
 }
 {
  *  OTCompareAndSwap32()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4027,7 +4027,7 @@ function OTCompareAndSwap32( oldValue: UInt32; newValue: UInt32; var dest: UInt3
 }
 {
  *  OTCompareAndSwap16()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4044,7 +4044,7 @@ function OTCompareAndSwap16( oldValue: UInt32; newValue: UInt32; var dest: UInt1
 }
 {
  *  OTCompareAndSwap8()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4061,7 +4061,7 @@ function OTCompareAndSwap8( oldValue: UInt32; newValue: UInt32; var dest: UInt8 
 }
 {
  *  OTAtomicAdd32()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4081,7 +4081,7 @@ function OTAtomicAdd32( toAdd: SInt32; var dest: SInt32 ): SInt32; external name
 }
 {
  *  OTAtomicAdd16()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4094,7 +4094,7 @@ function OTAtomicAdd16( toAdd: SInt32; var dest: SInt16 ): SInt16; external name
 { Not used frequently enough to justify inlining.}
 {
  *  OTAtomicAdd8()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later

@@ -1,15 +1,15 @@
 {
 	 File:	   CFNetwork/CFNetDiagnostics.h
- 
+
 	 Contains:   CFNetDiagnostics interface
-  
+
 	 Copyright:  Copyright (c) 2004-2008, Apple Inc. All rights reserved.
- 
+
 	 Bugs?:	  For bug reports, consult the following page on
 				 the World Wide Web:
- 
+
 					 http://bugs.freepascal.org
- 
+
 }
 {       Pascal Translation:  Gale R Paeper, <gpaeper@empirenet.com>, 2008 }
 {       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
@@ -229,7 +229,7 @@ uses MacTypes, CFBase, CFStream, CFURL;
 
 {
  *  CFNetDiagnosticRef
- *  
+ *
  *  Discussion:
  *	This is the type used to describe the types of connection that
  *	clients may be querying about
@@ -240,7 +240,7 @@ type
 
 {
  *  CFNetDiagnosticStatusValues
- *  
+ *
  *  Discussion:
  *	Values for CFNetDiagnosticStatus
  }
@@ -271,7 +271,7 @@ const
 
 {
  *  CFNetDiagnosticStatus
- *  
+ *
  *  Discussion:
  *	Returned by the various status and diagnostic calls
  }
@@ -279,27 +279,27 @@ type
 	CFNetDiagnosticStatus = CFIndex;
 {
  *  CFNetDiagnosticCreateWithStreams()
- *  
+ *
  *  Discussion:
  *	Creates a CFNetDiagnosticRef from a pair of CFStreams. Either
  *	stream may be NULL. This is the preferred interface for creating
  *	a CFNetDiagnosticRef.
- *  
+ *
  *  Parameters:
- *	
+ *
  *	alloc:
  *	  The CF allocator to use.
- *	
+ *
  *	readStream:
  *	  CFReadStreamRef referring to the failed connection. May be NULL.
- *	
+ *
  *	writeStream:
  *	  CFWriteStreamRef referring to the failed connection. May be
  *	  NULL.
- *  
+ *
  *  Result:
  *	A CFNetDiagnosticRef referring to the current networking issue.
- *  
+ *
  *  Availability:
  *	Mac OS X:		 in version 10.4 and later in CoreServices.framework
  *	CarbonLib:		not available
@@ -311,22 +311,22 @@ function CFNetDiagnosticCreateWithStreams( alloc: CFAllocatorRef; readStream: CF
 
 {
  *  CFNetDiagnosticCreateWithURL()
- *  
+ *
  *  Discussion:
  *	Creates a CFNetDiagnosticRef based on a CFURLRef passed in by the
  *	application.
- *  
+ *
  *  Parameters:
- *	
+ *
  *	alloc:
  *	  The CF allocator to use.
- *	
+ *
  *	url:
  *	  CFURLRef referring to the failed connection.
- *  
+ *
  *  Result:
  *	A CFNetDiagnosticRef referring to the current networking issue.
- *  
+ *
  *  Availability:
  *	Mac OS X:		 in version 10.4 and later in CoreServices.framework
  *	CarbonLib:		not available
@@ -338,23 +338,23 @@ function CFNetDiagnosticCreateWithURL( alloc: CFAllocatorRef; url: CFURLRef ): C
 
 {
  *  CFNetDiagnosticSetName()
- *  
+ *
  *  Discussion:
  *	If the framework requires an application name to be displayed to
  *	the user it will derive it from the bundle identifier of the
  *	currently running application, in that application's current
  *	localization. If you want to override that you may use
  *	CFNetDiagnosticSetName to specify a CFStringRef to be used.
- *  
+ *
  *  Parameters:
- *	
+ *
  *	details:
  *	  CFNetDiagnosticRef referring to the current problem.
- *	
+ *
  *	name:
  *	  The localized name that should appear to the user when
  *	  referring to the application.
- *  
+ *
  *  Availability:
  *	Mac OS X:		 in version 10.4 and later in CoreServices.framework
  *	CarbonLib:		not available
@@ -366,22 +366,22 @@ procedure CFNetDiagnosticSetName( details: CFNetDiagnosticRef; name: CFStringRef
 
 {
  *  CFNetDiagnosticDiagnoseProblemInteractively()
- *  
+ *
  *  Discussion:
  *	Opens the Network Diagnostics window and returns immediately once
  *	it is open. The client passes in a CFNetDiagnosticRef built with
  *	one of the creator functions.
- *  
+ *
  *  Parameters:
- *	
+ *
  *	details:
  *	  CFNetDiagnosticRef referring to the current problem.
- *  
+ *
  *  Result:
  *	A CFNetDiagnosticStatus. Will either be CFNetDiagnosticNoErr, or
  *	CFNetDiagnosticErr if there was an error attempting to run the
  *	diagnosis.
- *  
+ *
  *  Availability:
  *	Mac OS X:		 in version 10.4 and later in CoreServices.framework
  *	CarbonLib:		not available
@@ -393,7 +393,7 @@ function CFNetDiagnosticDiagnoseProblemInteractively( details: CFNetDiagnosticRe
 
 {
  *  CFNetDiagnosticCopyNetworkStatusPassively()
- *  
+ *
  *  Discussion:
  *	Returns a status value that can be used to display basic
  *	information about the connection. If the caller wishes they may
@@ -403,18 +403,18 @@ function CFNetDiagnosticDiagnoseProblemInteractively( details: CFNetDiagnosticRe
  *	want a description they may pass in NULL.
  *	CFNetDiagnosticCopyNetworkStatusPassively() is guaranteed not to
  *	cause network activity.
- *  
+ *
  *  Parameters:
- *	
+ *
  *	details:
  *	  CFNetDiagnosticRef referring to the current problem.
- *	
+ *
  *	description:
  *	  A pointer to a CFStringRef that, upon return, will point to a
  *	  localized string containing a description of the current
  *	  network status. May be NULL. If it is not NULL, the client must
  *	  call CFRelease on the returned object.
- *  
+ *
  *  Availability:
  *	Mac OS X:		 in version 10.4 and later in CoreServices.framework
  *	CarbonLib:		not available

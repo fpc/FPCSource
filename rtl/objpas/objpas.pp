@@ -59,17 +59,17 @@ interface
        TPointerArray = PointerArray;
        PPointerArray = ^PointerArray;
 
-       // Delphi Berlin compatibility 
+       // Delphi Berlin compatibility
        FixedInt  = Int32;
        FixedUInt = UInt32;
        PFixedInt = ^FixedInt;
        PFixedUInt= ^FixedUInt;
-   
-       
+
+
 {$if FPC_FULLVERSION >= 20701}
 
-     
-      
+
+
       { Generic support for enumerator interfaces. These are added here, because
         mode (Obj)FPC does currently not allow the overloading of types with
         generic types (this will need a modeswitch...) }

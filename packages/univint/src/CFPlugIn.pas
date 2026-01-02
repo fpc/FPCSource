@@ -259,7 +259,7 @@ function CFPlugInIsLoadOnDemand( plugIn: CFPlugInRef ): Boolean; external name '
 
 function CFPlugInFindFactoriesForPlugInType( typeUUID: CFUUIDRef ): CFArrayRef; external name '_CFPlugInFindFactoriesForPlugInType';
     { This function finds all the factories from any plugin for the given type.  Returns an array that the caller must release. }
-    
+
 function CFPlugInFindFactoriesForPlugInTypeInPlugIn( typeUUID: CFUUIDRef; plugIn: CFPlugInRef ): CFArrayRef; external name '_CFPlugInFindFactoriesForPlugInTypeInPlugIn';
     { This function restricts the result to factories from the given plug-in that can create the given type.  Returns an array that the caller must release. }
 

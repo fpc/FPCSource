@@ -1,10 +1,10 @@
 {
      File:       CarbonCore/Aliases.h
- 
+
      Contains:   Alias Manager Interfaces.
                  The contents of this header file are deprecated.
                  Use Foundation or CoreFoundation URL Bookmarks instead.
- 
+
      Copyright:  © 1989-2011 by Apple Inc. All rights reserved.
 }
 {
@@ -300,7 +300,7 @@ type
 	AliasFilterUPP = AliasFilterProcPtr;
 {
  *  NewAliasFilterUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -311,7 +311,7 @@ function NewAliasFilterUPP( userRoutine: AliasFilterProcPtr ): AliasFilterUPP; e
 (* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 {
  *  DisposeAliasFilterUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -322,7 +322,7 @@ procedure DisposeAliasFilterUPP( userUPP: AliasFilterUPP ); external name '_Disp
 
 {
  *  InvokeAliasFilterUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -345,10 +345,10 @@ type
 
 {
  *  FSNewAlias()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -360,10 +360,10 @@ function FSNewAlias( {const} fromFile: FSRefPtr { can be NULL }; const (*var*) t
 
 {
  *  FSNewAliasMinimal()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -375,10 +375,10 @@ function FSNewAliasMinimal( const (*var*) target: FSRef; var inAlias: AliasHandl
 
 {
  *  FSIsAliasFile()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -390,10 +390,10 @@ function FSIsAliasFile( const (*var*) fileRef: FSRef; var aliasFileFlag: Boolean
 
 {
  *  FSResolveAliasWithMountFlags()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -405,10 +405,10 @@ function FSResolveAliasWithMountFlags( {const} fromFile: FSRefPtr { can be NULL 
 
 {
  *  FSResolveAlias()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -420,10 +420,10 @@ function FSResolveAlias( {const} fromFile: FSRefPtr { can be NULL }; alias: Alia
 
 {
  *  FSResolveAliasFileWithMountFlags()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -435,10 +435,10 @@ function FSResolveAliasFileWithMountFlags( var theRef: FSRef; resolveAliasChains
 
 {
  *  FSResolveAliasFile()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -450,10 +450,10 @@ function FSResolveAliasFile( var theRef: FSRef; resolveAliasChains: Boolean; var
 
 {
  *  FSFollowFinderAlias()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -465,10 +465,10 @@ function FSFollowFinderAlias( fromFile: FSRefPtr { can be NULL }; alias: AliasHa
 
 {
  *  FSUpdateAlias()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -480,39 +480,39 @@ function FSUpdateAlias( {const} fromFile: FSRefPtr { can be NULL }; const (*var*
 
 {
  *  FSNewAliasUnicode()
- *  
+ *
  *  Summary:
  *    Creates an alias given a ref to the target's parent directory and
  *    the target's unicode name.  If the target does not exist fnfErr
  *    will be returned but the alias will still be created.  This
  *    allows the creation of aliases to targets that do not exist.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    fromFile:
  *      The starting point for a relative search.
- *    
+ *
  *    targetParentRef:
  *      An FSRef to the parent directory of the target.
- *    
+ *
  *    targetNameLength:
  *      Number of Unicode characters in the target's name.
- *    
+ *
  *    targetName:
  *      A pointer to the Unicode name.
- *    
+ *
  *    inAlias:
  *      A Handle to the newly created alias record.
- *    
+ *
  *    isDirectory:
  *      On input, if target does not exist, a flag to indicate whether
  *      or not the target is a directory.  On output, if the target did
  *      exist, a flag indicating if the target is a directory.  Pass
- *      NULL in the non-existant case if unsure.
- *  
+ *      NULL in the non-existent case if unsure.
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -524,35 +524,35 @@ function FSNewAliasUnicode( {const} fromFile: FSRefPtr { can be NULL }; const (*
 
 {
  *  FSNewAliasMinimalUnicode()
- *  
+ *
  *  Summary:
  *    Creates a minimal alias given a ref to the target's parent
  *    directory and the target's unicode name.  If the target does not
  *    exist fnfErr will be returned but the alias will still be created.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    targetParentRef:
  *      An FSRef to the parent directory of the target.
- *    
+ *
  *    targetNameLength:
  *      Number of Unicode characters in the target's name.
- *    
+ *
  *    targetName:
  *      A pointer to the Unicode name.
- *    
+ *
  *    inAlias:
  *      A Handle to the newly created alias record.
- *    
+ *
  *    isDirectory:
  *      On input, if target does not exist, a flag to indicate whether
  *      or not the target is a directory.  On output, if the target did
  *      exist, a flag indicating if the target is a directory.  Pass
- *      NULL in the non-existant case if unsure.
- *  
+ *      NULL in the non-existent case if unsure.
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -564,36 +564,36 @@ function FSNewAliasMinimalUnicode( const (*var*) targetParentRef: FSRef; targetN
 
 {
  *  FSNewAliasFromPath()
- *  
+ *
  *  Summary:
- *    Creates an alias given a POSIX style utf-8 path to the target. 
+ *    Creates an alias given a POSIX style utf-8 path to the target.
  *    If the target file does not exist but the path up to the leaf
  *    does then fnfErr will be returned but the alias will still be
  *    created.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.5
- *  
+ *
  *  Parameters:
- *    
+ *
  *    fromFilePath:
  *      The starting point for a relative search.
- *    
+ *
  *    targetPath:
  *      POSIX style UTF-8 path to target.
- *    
+ *
  *    flags:
  *      Options for future use.  Pass in 0.
- *    
+ *
  *    inAlias:
  *      A Handle to the newly created alias record.
- *    
+ *
  *    isDirectory:
  *      On input, if target does not exist, a flag to indicate whether
  *      or not the target is a directory.  On output, if the target did
  *      exist, a flag indicating if the target is a directory.  Pass
- *      NULL in the non-existant case if unsure.
- *  
+ *      NULL in the non-existent case if unsure.
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.5 and later
@@ -605,14 +605,14 @@ function FSNewAliasFromPath( fromFilePath: ConstCStringPtr { can be NULL }; targ
 
 {
  *  FSMatchAliasBulk()
- *  
+ *
  *  Summary:
  *    Given an alias handle and fromFile, match the alias and return
  *    FSRefs to the aliased file(s) and needsUpdate flag
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.5
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -624,38 +624,38 @@ function FSMatchAliasBulk( {const} fromFile: FSRefPtr { can be NULL }; rulesMask
 
 {
  *  FSCopyAliasInfo()
- *  
+ *
  *  Discussion:
  *    This routine will return the requested information from the
  *    passed in aliasHandle.  The information is gathered only from the
  *    alias record so it may not match what is on disk (no disk i/o is
  *    performed).  The whichInfo paramter is an output parameter that
  *    signifies which fields in the info record contain valid data.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inAlias:
  *      A handle to the alias record to get the information from.
- *    
+ *
  *    targetName:
  *      The name of the target item.
- *    
+ *
  *    volumeName:
  *      The name of the volume the target resides on.
- *    
+ *
  *    pathString:
  *      POSIX path to target.
- *    
+ *
  *    whichInfo:
  *      An indication of which fields in the info block contain valid
  *      data.
- *    
+ *
  *    info:
  *      Returned information about the alias.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -667,24 +667,24 @@ function FSCopyAliasInfo( inAlias: AliasHandle; targetName: HFSUniStr255Ptr { ca
 
 {
  *  GetAliasSize()
- *  
+ *
  *  Discussion:
  *    This routine will return the size of the alias record referenced
  *    by the AliasHandle alias.  This will be smaller than the size
  *    returned by GetHandleSize if any custom data has been added (IM
  *    Files 4-13).
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.4
- *  
+ *
  *  Parameters:
- *    
+ *
  *    alias:
  *      A handle to the alias record to get the information from.
- *  
+ *
  *  Result:
  *    The size of the private section of the alias record.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.4 and later
@@ -696,22 +696,22 @@ function GetAliasSize( alias: AliasHandle ): Size; external name '_GetAliasSize'
 
 {
  *  GetAliasUserType()
- *  
+ *
  *  Discussion:
  *    This routine will return the usertype associated with the alias
  *    record referenced by the AliasHandle alias.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.4
- *  
+ *
  *  Parameters:
- *    
+ *
  *    alias:
  *      A handle to the alias record to get the userType from.
- *  
+ *
  *  Result:
  *    The userType associated with the alias as an OSType
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.4 and later
@@ -723,22 +723,22 @@ function GetAliasUserType( alias: AliasHandle ): OSType; external name '_GetAlia
 
 {
  *  SetAliasUserType()
- *  
+ *
  *  Discussion:
  *    This routine will set the userType associated with an alias
  *    record.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.4
- *  
+ *
  *  Parameters:
- *    
+ *
  *    alias:
  *      A handle to the alias record to set the userType for.
- *    
+ *
  *    userType:
  *      The OSType to set the userType to.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.4 and later
@@ -750,22 +750,22 @@ procedure SetAliasUserType( alias: AliasHandle; userType: OSType ); external nam
 
 {
  *  GetAliasSizeFromPtr()
- *  
+ *
  *  Discussion:
  *    This routine will return the size of the alias record referenced
  *    by a pointer to the AliasRecord.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.4
- *  
+ *
  *  Parameters:
- *    
+ *
  *    alias:
  *      A pointer to the alias record to get the information from.
- *  
+ *
  *  Result:
  *    The size of the private section of the alias record.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -777,22 +777,22 @@ function GetAliasSizeFromPtr( const (*var*) alias: AliasRecord ): Size; external
 
 {
  *  GetAliasUserTypeFromPtr()
- *  
+ *
  *  Discussion:
- *    This routine will return the usertype associated withthe alias
+ *    This routine will return the usertype associated with the alias
  *    record pointed to by alias.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.4
- *  
+ *
  *  Parameters:
- *    
+ *
  *    alias:
  *      A pointer to the alias record to get the userType from.
- *  
+ *
  *  Result:
  *    The userType associated with the alias as an OSType
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -804,22 +804,22 @@ function GetAliasUserTypeFromPtr( const (*var*) alias: AliasRecord ): OSType; ex
 
 {
  *  SetAliasUserTypeWithPtr()
- *  
+ *
  *  Discussion:
  *    This routine will set the userType associated with an alias
  *    record.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.4
- *  
+ *
  *  Parameters:
- *    
+ *
  *    alias:
  *      A pointer to the alias record to set the userType for.
- *    
+ *
  *    userType:
  *      The OSType to set the userType to.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -834,17 +834,17 @@ procedure SetAliasUserTypeWithPtr( alias: AliasPtr; userType: OSType ); external
 {$ifc not TARGET_CPU_64}
 {
  *  FSMatchAlias()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use FSMatchAliasBulk instead
- *  
+ *
  *  Summary:
  *    Given an alias handle and fromFile, match the alias and return
  *    FSRefs to the aliased file(s) and needsUpdate flag
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -856,16 +856,16 @@ function FSMatchAlias( {const} fromFile: FSRefPtr { can be NULL }; rulesMask: UN
 
 {
  *  FSMatchAliasNoUI()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use FSMatchAliasBulk with the kARMNoUI flag instead
- *  
+ *
  *  Summary:
  *    variation on FSMatchAlias that does not prompt user with a dialog
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -877,24 +877,24 @@ function FSMatchAliasNoUI( {const} fromFile: FSRefPtr { can be NULL }; rulesMask
 
 {
  *  NewAlias()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use FSNewAlias
- *  
+ *
  *  Summary:
  *    create a new alias between fromFile and target, returns alias
  *    record handle
- *  
+ *
  *  Discussion:
- *    Create an alias betwen fromFile and target, and return it in an
+ *    Create an alias between fromFile and target, and return it in an
  *    AliasHandle. This function is deprecated in Mac OS X 10.4;
  *    instead, you should use FSNewAliasUnicode() because NewAlias()
  *    has problems creating aliases to certain files, including those
  *    which are impossible to represent in an FSSpec.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -906,14 +906,14 @@ function NewAlias( {const} fromFile: FSSpecPtr { can be NULL }; const (*var*) ta
 
 {
  *  NewAliasMinimal()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use FSNewAliasMinimalUnicode
- *  
+ *
  *  Summary:
  *    create a minimal new alias for a target and return alias record
  *    handle
- *  
+ *
  *  Discussion:
  *    Create a minimal alias for a target, and return it in an
  *    AliasHandle. This function is deprecated in Mac OS X 10.4;
@@ -921,10 +921,10 @@ function NewAlias( {const} fromFile: FSSpecPtr { can be NULL }; const (*var*) ta
  *    NewAliasMinimalAlias() has problems creating aliases to certain
  *    files, including those which are impossible to represent in an
  *    FSSpec.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -936,14 +936,14 @@ function NewAliasMinimal( const (*var*) target: FSSpec; var alias: AliasHandle )
 
 {
  *  NewAliasMinimalFromFullPath()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use FSNewAliasMinimalUnicode
- *  
+ *
  *  Summary:
  *    create a minimal new alias from a target fullpath (optional zone
  *    and server name) and return alias record handle
- *  
+ *
  *  Discussion:
  *    Create a minimal alias for a target fullpath, and return it in an
  *    AliasHandle. This function is deprecated in Mac OS X 10.4;
@@ -951,10 +951,10 @@ function NewAliasMinimal( const (*var*) target: FSSpec; var alias: AliasHandle )
  *    NewAliasMinimalFromFullPath() has problems creating aliases to
  *    certain files, including those which are impossible to represent
  *    in an FSSpec.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -966,17 +966,17 @@ function NewAliasMinimalFromFullPath( fullPathLength: SInt16; fullPath: {const} 
 
 {
  *  ResolveAlias()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use FSResolveAlias() or FSResolveAliasWithMountFlags() instead.
- *  
+ *
  *  Summary:
  *    given an alias handle and fromFile, resolve the alias, update the
  *    alias record and return aliased filename and wasChanged flag.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -988,20 +988,20 @@ function ResolveAlias( {const} fromFile: FSSpecPtr { can be NULL }; alias: Alias
 
 {
  *  GetAliasInfo()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use FSCopyAliasInfo instead.
- *  
+ *
  *  Summary:
  *    This call does not work on all aliases. Given an alias handle and
  *    an index specifying requested alias information type, return the
  *    information from alias record as a string. An empty string is
  *    returned when the index is greater than the number of levels
  *    between the target and root.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.0
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.3
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1013,16 +1013,16 @@ function GetAliasInfo( alias: AliasHandle; itemIndex: AliasInfoType; var theStri
 
 {
  *  IsAliasFile()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use FSIsAliasFile() instead.
- *  
+ *
  *  Summary:
  *    Return true if the file pointed to by fileFSSpec is an alias file.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.0
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1034,19 +1034,19 @@ function IsAliasFile( const (*var*) fileFSSpec: FSSpec; var aliasFileFlag: Boole
 
 {
  *  ResolveAliasWithMountFlags()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use FSResolveAliasWithMountFlags() instead.
- *  
+ *
  *  Summary:
  *    Given an AliasHandle, return target file spec. It resolves the
  *    entire alias chain or one step of the chain.  It returns info
  *    about whether the target is a folder or file; and whether the
  *    input file spec was an alias or not.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1058,19 +1058,19 @@ function ResolveAliasWithMountFlags( {const} fromFile: FSSpecPtr { can be NULL }
 
 {
  *  ResolveAliasFile()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use FSResolveAliasFile
- *  
+ *
  *  Summary:
  *    Given a file spec, return target file spec if input file spec is
  *    an alias. It resolves the entire alias chain or one step of the
  *    chain.  It returns info about whether the target is a folder or
  *    file; and whether the input file spec was an alias or not.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1083,10 +1083,10 @@ function ResolveAliasFile( var theSpec: FSSpec; resolveAliasChains: Boolean; var
 { Deprecated: Use FSResolveAliasFileWithMountFlags instead}
 {
  *  ResolveAliasFileWithMountFlags()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1099,10 +1099,10 @@ function ResolveAliasFileWithMountFlags( var theSpec: FSSpec; resolveAliasChains
 { Deprecated:  Use FSFollowFinderAlias instead}
 {
  *  FollowFinderAlias()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1112,23 +1112,23 @@ function FollowFinderAlias( {const} fromFile: FSSpecPtr { can be NULL }; alias: 
 (* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_5, __IPHONE_NA, __IPHONE_NA) *)
 
 
-{ 
-   Low Level Routines 
+{
+   Low Level Routines
 }
 {
  *  UpdateAlias()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    UseFSUpdateAlias
- *  
+ *
  *  Summary:
  *    given a fromFile-target pair and an alias handle, update the
  *    alias record pointed to by alias handle to represent target as
  *    the new alias.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1140,17 +1140,17 @@ function UpdateAlias( {const} fromFile: FSSpecPtr { can be NULL }; const (*var*)
 
 {
  *  MatchAlias()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use FSMatchAliasBulk instead
- *  
+ *
  *  Summary:
  *    Given an alias handle and fromFile, match the alias and return
  *    FSSpecs to the aliased file(s) and needsUpdate flag
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1162,18 +1162,18 @@ function MatchAlias( {const} fromFile: FSSpecPtr { can be NULL }; rulesMask: UNS
 
 {
  *  ResolveAliasFileWithMountFlagsNoUI()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use FSResolveAliasFileWithMountFlags passing in the
  *    kResolveAliasFileNoUI flag
- *  
+ *
  *  Summary:
  *    variation on ResolveAliasFile that does not prompt user with a
  *    dialog
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1185,16 +1185,16 @@ function ResolveAliasFileWithMountFlagsNoUI( var theSpec: FSSpec; resolveAliasCh
 
 {
  *  MatchAliasNoUI()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use FSMatchAliasBulk with the kARMNoUI flag instead
- *  
+ *
  *  Summary:
  *    variation on MatchAlias that does not prompt user with a dialog
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later

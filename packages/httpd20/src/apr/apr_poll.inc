@@ -175,7 +175,7 @@ function apr_poll_socket_clear(aprset: Papr_pollfd_t;
  * @param event The returned events for the socket.  One of:
  * <PRE>
  *            APR_POLLIN       Data is available to be read
- *            APR_POLLPRI      Priority data is availble to be read
+ *            APR_POLLPRI      Priority data is available to be read
  *            APR_POLLOUT      Write will succeed
  *            APR_POLLERR      An error occurred on the socket
  *            APR_POLLHUP      The connection has been terminated

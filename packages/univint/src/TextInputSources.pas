@@ -1,15 +1,15 @@
 {
      File:       HIToolbox/TextInputSources.h
- 
+
      Version:    HIToolbox-624~3
- 
+
      Copyright:  © 2006-2008 Apple Inc. All rights reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 
 {	 Pascal Translation:  Gale R Paeper, <gpaeper@empirenet.com>, 2008 }
@@ -230,13 +230,13 @@ uses MacTypes, CFArray, CFBase, CFDictionary, CFURL;
 
 {
  *  TextInputSources.h
- *  
+ *
  *  Summary:
  *    Specifies the modern, non-Script-Manager-based interfaces for
  *    operating on text input sources: finding information about them,
  *    selecting/enabling/disabling them, and receiving notifications
  *    about relevant changes.
- *  
+ *
  *  Discussion:
  *    Text input sources are of three general categories: keyboard
  *    input sources (keyboard layouts, keyboard input methods and input
@@ -249,18 +249,18 @@ uses MacTypes, CFArray, CFBase, CFDictionary, CFURL;
  *    of several input modes which are directly selectable in the user
  *    interface (e.g. hiragana, katakana, romaji); in this case the
  *    parent input method is not directly selectable. Non-mode-enabled
- *    input methods are directly selectable. 
- *    
- *    
+ *    input methods are directly selectable.
+ *
+ *
  *    Some input sources are invisible to system UI; they do not appear
  *    in the normal user interface for manipulating input sources.
  *    Examples include input sources such as ink, the dictionary panel,
  *    and some assistiveware; these have their own special UI for
  *    enabling, disabling, etc. Other examples include special keyboard
  *    layouts used by input methods, which have their own ways of
- *    controlling use of these keyboard layouts. 
- *    
- *    
+ *    controlling use of these keyboard layouts.
+ *
+ *
  *    Some input sources are pre-installed by Apple. Other input
  *    sources (of any type) may be installed as third party products
  *    themselves or as part of installing certain applications. Most
@@ -272,22 +272,22 @@ uses MacTypes, CFArray, CFBase, CFDictionary, CFURL;
  *    using some of the functions here. At least one keyboard input
  *    source is enabled (the system ensures this). At most one ink
  *    input source may be enabled; multiple instances of other input
- *    source types may be enabled. 
- *    
- *    
+ *    source types may be enabled.
+ *
+ *
  *    Some enabled input sources are invisible but programmatically
  *    selectable, such as ink. Some are visible but not
  *    programmatically selectable, such as mode-savvy parent input
  *    methods (which must be visible so that International Preferences
  *    can display the parent input method for a group of input modes).
- *    
- *    
- *    
+ *
+ *
+ *
  *    Input modes can only be changed from disabled to enabled if their
  *    parent input method is enabled. Input modes can only be selected
- *    if both they and their parent input method are enabled. 
- *     
- *    
+ *    if both they and their parent input method are enabled.
+ *
+ *
  *    Exactly one keyboard input source is selected at any time; this
  *    is the current keyboard input source. Selecting a new keyboard
  *    input source deselects the previous keyboard input source.
@@ -307,11 +307,11 @@ uses MacTypes, CFArray, CFBase, CFDictionary, CFURL;
 
 {
  *  TISInputSourceRef
- *  
+ *
  *  Summary:
  *    Opaque CF object that unambiguously (within a single process)
  *    represents a text input source.
- *  
+ *
  *  Discussion:
  *    Cannot be shared cross-process.
  }
@@ -320,14 +320,14 @@ type
 	__TISInputSource = record end;
 {
  *  TISInputSourceGetTypeID()
- *  
+ *
  *  Summary:
  *    Gets the CFTypeID of a TISInputSourceRef.
- *  
+ *
  *  Result:
  *    Returns the CFTypeID of a TISInputSourceRef, for comparison with
  *    the result of CFGetTypeID().
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -354,16 +354,16 @@ function TISInputSourceGetTypeID: CFTypeID; external name '_TISInputSourceGetTyp
 }
 {
  *  kTISPropertyInputSourceCategory
- *  
+ *
  *  Summary:
  *    The property key constant for a CFStringRef value that indicates
  *    the category of input source.
- *  
+ *
  *  Discussion:
  *    The possible values are specified by property value constants
  *    kTISCategoryKeyboardInputSource, kTISCategoryPaletteInputSource,
  *    kTISCategoryInkInputSource.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -373,18 +373,18 @@ var kTISPropertyInputSourceCategory: CFStringRef; external name '_kTISPropertyIn
 (* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
 {
  *  kTISPropertyInputSourceType
- *  
+ *
  *  Summary:
  *    The property key constant for a CFStringRef value that indicates
  *    the specific type of input source.
- *  
+ *
  *  Discussion:
  *    The possible values are specified by property value constants
  *    kTISTypeKeyboardLayout, kTISTypeKeyboardInputMethodWithoutModes,
  *    kTISTypeKeyboardInputMethodModeEnabled,
  *    kTISTypeKeyboardInputMode, kTISTypeCharacterPalette,
  *    kTISTypeKeyboardViewer, kTISTypeInk.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -394,11 +394,11 @@ var kTISPropertyInputSourceType: CFStringRef; external name '_kTISPropertyInputS
 (* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
 {
  *  kTISPropertyInputSourceIsASCIICapable
- *  
+ *
  *  Summary:
  *    The property key constant for a CFBooleanRef value that indicates
  *    whether the input source identifies itself as ASCII-capable.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -408,27 +408,27 @@ var kTISPropertyInputSourceIsASCIICapable: CFStringRef; external name '_kTISProp
 (* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
 {
  *  kTISPropertyInputSourceIsEnableCapable
- *  
+ *
  *  Summary:
  *    The property key constant for a CFBooleanRef value that indicates
  *    whether the input source can ever (given the right conditions) be
  *    programmatically enabled using TISEnableInputSource.
- *  
+ *
  *  Discussion:
  *    This is a static property of an input source, and does not depend
- *    on any current state. 
- *    
+ *    on any current state.
+ *
  *    Most input sources can be programmatically enabled at any time;
  *    kTISPropertyInputSourceIsEnableCapable is true for these.
- *    
- *    
+ *
+ *
  *    Some input sources can never be programmatically enabled. These
  *    are mainly input method private keyboard layouts that are used by
  *    the input method via TISSetInputMethodKeyboardLayoutOverride, but
  *    which cannot be directly enabled and used as keyboard layout
  *    input sources. kTISPropertyInputSourceIsEnableCapable is false
- *    for these. 
- *    
+ *    for these.
+ *
  *    Some input sources can only be programmatically enabled under the
  *    correct conditions. These are mainly input modes, which can only
  *    be changed from disabled to enabled if their parent input method
@@ -436,7 +436,7 @@ var kTISPropertyInputSourceIsASCIICapable: CFStringRef; external name '_kTISProp
  *    but not currently selectable - if their parent input method is
  *    disabled). kTISPropertyInputSourceIsEnableCapable is true for
  *    these.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -446,37 +446,37 @@ var kTISPropertyInputSourceIsEnableCapable: CFStringRef; external name '_kTISPro
 (* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
 {
  *  kTISPropertyInputSourceIsSelectCapable
- *  
+ *
  *  Summary:
  *    The property key constant for a CFBooleanRef value that indicates
  *    whether the input source can ever (given the right conditions) be
  *    programmatically selected using TISSelectInputSource.
- *  
+ *
  *  Discussion:
  *    This is a static property of an input source, and does not depend
- *    on any current state. 
- *    
+ *    on any current state.
+ *
  *    Most input sources can be programmatically selected if they are
  *    enabled; kTISPropertyInputSourceIsSelectCapable is true for
- *    these. 
- *    
+ *    these.
+ *
  *    Some input sources can never be programmatically selected even if
  *    they are enabled. These are mainly input methods that have modes
  *    (parent input methods); only their modes can be selected.
  *    kTISPropertyInputSourceIsSelectCapable is false for these.
- *    
- *    
+ *
+ *
  *    Some input sources which are enabled can only be programmatically
  *    selected under the correct conditions. These are mainly input
  *    modes, which can only be selected if both they and their parent
  *    input method are enabled.  kTISPropertyInputSourceIsSelectCapable
- *    is true for these. 
- *    
+ *    is true for these.
+ *
  *    Input source which can never be enabled - i.e. for which
  *    kTISPropertyInputSourceIsEnableCapable is false - can also never
  *    be selected. kTISPropertyInputSourceIsSelectCapable is false for
  *    these.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -486,11 +486,11 @@ var kTISPropertyInputSourceIsSelectCapable: CFStringRef; external name '_kTISPro
 (* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
 {
  *  kTISPropertyInputSourceIsEnabled
- *  
+ *
  *  Summary:
  *    The property key constant for a CFBooleanRef value that indicates
  *    whether the input source is currently enabled.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -500,11 +500,11 @@ var kTISPropertyInputSourceIsEnabled: CFStringRef; external name '_kTISPropertyI
 (* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
 {
  *  kTISPropertyInputSourceIsSelected
- *  
+ *
  *  Summary:
  *    The property key constant for a CFBooleanRef value that indicates
  *    whether the input source is currently selected.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -514,26 +514,26 @@ var kTISPropertyInputSourceIsSelected: CFStringRef; external name '_kTISProperty
 (* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
 {
  *  kTISPropertyInputSourceID
- *  
+ *
  *  Summary:
  *    The property key constant for a CFStringRef value for the unique
  *    reverse DNS name associated with the input source.
- *  
+ *
  *  Discussion:
  *    1. For keyboard input methods and for input sources of the
  *    palette or ink category, this is typically the bundle ID, e.g.
- *    "com.apple.Kotoeri". 
- *    
+ *    "com.apple.Kotoeri".
+ *
  *    2. For keyboard input modes, this is typically the bundle ID of
  *    the parent input method plus a suffix that uniquely identifies
  *    the input mode, e.g. "com.apple.Kotoeri.Katakana" (it is not the
  *    generic input mode name used across input methods, e.g.
- *    "com.apple.inputmethod.Japanese.Katakana"). 
- *    
+ *    "com.apple.inputmethod.Japanese.Katakana").
+ *
  *    3. For keyboard layouts this is a new identification mechanism
  *    typically structured as "com.company.keyboardlayout.name", e.g.
  *    "com.apple.keyboardlayout.US".
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -543,15 +543,15 @@ var kTISPropertyInputSourceID: CFStringRef; external name '_kTISPropertyInputSou
 (* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
 {
  *  kTISPropertyBundleID
- *  
+ *
  *  Summary:
  *    The property key constant for a CFStringRef value for the reverse
  *    DNS BundleID associated with the input source.
- *  
+ *
  *  Discussion:
  *    Not valid for all input sources (especially some keyboard
  *    layouts).
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -561,21 +561,21 @@ var kTISPropertyBundleID: CFStringRef; external name '_kTISPropertyBundleID'; (*
 (* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
 {
  *  kTISPropertyInputModeID
- *  
+ *
  *  Summary:
  *    The property key constant for a CFStringRef value that identifies
  *    a particular usage class for input modes.
- *  
+ *
  *  Discussion:
  *    For example, "com.apple.inputmethod.Japanese.Katakana" identifies
  *    a standard Katakana-input usage class that may be associated with
- *    input modes from several different input methods. 
- *    
+ *    input modes from several different input methods.
+ *
  *    This InputModeID can be attached to a TSMDocument using
  *    TSMSetDocumentProperty with the tag
  *    kTSMDocumentInputModePropertyTag, in order to control which input
  *    mode usage class should be used with that TSMDocument.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -585,17 +585,17 @@ var kTISPropertyInputModeID: CFStringRef; external name '_kTISPropertyInputModeI
 (* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
 {
  *  kTISPropertyLocalizedName
- *  
+ *
  *  Summary:
  *    The property key constant for a CFStringRef value for the input
  *    source's localized name for UI purposes.
- *  
+ *
  *  Discussion:
  *    Uses the best match (determined by CFBundle) between the
  *    localization being used by the caller and the available
  *    localizations of the input source name. In some cases this may
  *    fall back to an unlocalized name.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -611,23 +611,23 @@ var kTISPropertyLocalizedName: CFStringRef; external name '_kTISPropertyLocalize
 }
 {
  *  kTISPropertyInputSourceLanguages
- *  
+ *
  *  Summary:
  *    The property key constant for a value which is a CFArrayRef of
  *    CFStringRefs, where each CFString is the language code for a
  *    language that can be input using the input source.
- *  
+ *
  *  Discussion:
  *    Languages codes are in the same BCP 47 format as returned by
  *    CFLocaleCreateCanonicalLanguageIdentifierFromString. The first
  *    language code in the array is the language for which the input
  *    source is intended. If there is no such language (e.g. for the
  *    Unicode Hex Input keyboard layout), the first language code is an
- *    empty string. 
- *    
+ *    empty string.
+ *
  *    NOTE: This key (and a corresponding value) may not be used in the
  *    filter dictionary passed to TISCreateInputSourceList.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -637,20 +637,20 @@ var kTISPropertyInputSourceLanguages: CFStringRef; external name '_kTISPropertyI
 (* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
 {
  *  kTISPropertyUnicodeKeyLayoutData
- *  
+ *
  *  Summary:
  *    The property key constant for a value which is a CFDataRef that
  *    refers to the 'uchr' keyboard layout data for a keyboard layout
  *    input source.
- *  
+ *
  *  Discussion:
  *    The uchr data is in native-endian order. If the input source is
  *    not a keyboard layout, or is a keyboard layout for which only
- *    'KCHR data' is available, the value is NULL. 
- *    
+ *    'KCHR data' is available, the value is NULL.
+ *
  *    NOTE: This key (and a corresponding value) may not be used in the
  *    filter dictionary passed to TISCreateInputSourceList.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -660,19 +660,19 @@ var kTISPropertyUnicodeKeyLayoutData: CFStringRef; external name '_kTISPropertyU
 (* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
 {
  *  kTISPropertyIconRef
- *  
+ *
  *  Summary:
  *    The property key constant for an IconRef value for the input
  *    source icon.
- *  
+ *
  *  Discussion:
  *    IconRefs are the normal icon format for keyboard layouts and
  *    input methods. If an IconRef is not available for the specified
- *    input source, the value is NULL. 
- *    
+ *    input source, the value is NULL.
+ *
  *    NOTE: This key (and a corresponding value) may not be used in the
  *    filter dictionary passed to TISCreateInputSourceList.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -682,21 +682,21 @@ var kTISPropertyIconRef: CFStringRef; external name '_kTISPropertyIconRef'; (* a
 (* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
 {
  *  kTISPropertyIconImageURL
- *  
+ *
  *  Summary:
  *    The property key constant for a CFURLRef value indicating the
  *    file containing the image (typically TIFF) to be used as the
  *    input source icon.
- *  
+ *
  *  Discussion:
  *    TIFF files are the normal icon format for input modes. If an
  *    image file URL is not available for the specified input source,
  *    the value will be NULL. Note that other image formats (e.g. JPEG,
- *    PNG) may also be used in the future. 
- *    
+ *    PNG) may also be used in the future.
+ *
  *    NOTE: This key (and a corresponding value) may not be used in the
  *    filter dictionary passed to TISCreateInputSourceList.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -711,18 +711,18 @@ var kTISPropertyIconImageURL: CFStringRef; external name '_kTISPropertyIconImage
 }
 {
  *  kTISCategoryKeyboardInputSource
- *  
+ *
  *  Summary:
  *    The property value constant for one input source category value
  *    associated with the property key kTISPropertyInputSourceCategory.
- *  
+ *
  *  Discussion:
  *    This category includes keyboard layouts, keyboard input methods
  *    (both with modes and without), and keyboard input modes. At least
  *    one input source in this category is installed. Of all input
  *    sources in this category, exactly one is selected; selecting a
  *    new one deselects the previous one.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -732,15 +732,15 @@ var kTISCategoryKeyboardInputSource: CFStringRef; external name '_kTISCategoryKe
 (* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
 {
  *  kTISCategoryPaletteInputSource
- *  
+ *
  *  Summary:
  *    The property value constant for one input source category value
  *    associated with the property key kTISPropertyInputSourceCategory.
- *  
+ *
  *  Discussion:
  *    This category includes character palettes and keyboard viewers.
  *    Zero or more of these can be selected.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -750,14 +750,14 @@ var kTISCategoryPaletteInputSource: CFStringRef; external name '_kTISCategoryPal
 (* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
 {
  *  kTISCategoryInkInputSource
- *  
+ *
  *  Summary:
  *    The property value constant for one input source category value
  *    associated with the property key kTISPropertyInputSourceCategory.
- *  
+ *
  *  Discussion:
  *    Zero or one ink input sources can be installed and selected.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -772,14 +772,14 @@ var kTISCategoryInkInputSource: CFStringRef; external name '_kTISCategoryInkInpu
 }
 {
  *  kTISTypeKeyboardLayout
- *  
+ *
  *  Summary:
  *    The property value constant for one input source type value
  *    associated with the property key kTISPropertyInputSourceType.
- *  
+ *
  *  Discussion:
  *    This type belongs to the category kTISCategoryKeyboardInputSource.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -789,14 +789,14 @@ var kTISTypeKeyboardLayout: CFStringRef; external name '_kTISTypeKeyboardLayout'
 (* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
 {
  *  kTISTypeKeyboardInputMethodWithoutModes
- *  
+ *
  *  Summary:
  *    The property value constant for one input source type value
  *    associated with the property key kTISPropertyInputSourceType.
- *  
+ *
  *  Discussion:
  *    This type belongs to the category kTISCategoryKeyboardInputSource.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -806,14 +806,14 @@ var kTISTypeKeyboardInputMethodWithoutModes: CFStringRef; external name '_kTISTy
 (* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
 {
  *  kTISTypeKeyboardInputMethodModeEnabled
- *  
+ *
  *  Summary:
  *    The property value constant for one input source type value
  *    associated with the property key kTISPropertyInputSourceType.
- *  
+ *
  *  Discussion:
  *    This type belongs to the category kTISCategoryKeyboardInputSource.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -823,14 +823,14 @@ var kTISTypeKeyboardInputMethodModeEnabled: CFStringRef; external name '_kTISTyp
 (* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
 {
  *  kTISTypeKeyboardInputMode
- *  
+ *
  *  Summary:
  *    The property value constant for one input source type value
  *    associated with the property key kTISPropertyInputSourceType.
- *  
+ *
  *  Discussion:
  *    This type belongs to the category kTISCategoryKeyboardInputSource.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -840,14 +840,14 @@ var kTISTypeKeyboardInputMode: CFStringRef; external name '_kTISTypeKeyboardInpu
 (* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
 {
  *  kTISTypeCharacterPalette
- *  
+ *
  *  Summary:
  *    The property value constant for one input source type value
  *    associated with the property key kTISPropertyInputSourceType.
- *  
+ *
  *  Discussion:
  *    This type belongs to the category kTISCategoryPaletteInputSource.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -857,14 +857,14 @@ var kTISTypeCharacterPalette: CFStringRef; external name '_kTISTypeCharacterPale
 (* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
 {
  *  kTISTypeKeyboardViewer
- *  
+ *
  *  Summary:
  *    The property value constant for one input source type value
  *    associated with the property key kTISPropertyInputSourceType.
- *  
+ *
  *  Discussion:
  *    This type belongs to the category kTISCategoryPaletteInputSource.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -874,17 +874,17 @@ var kTISTypeKeyboardViewer: CFStringRef; external name '_kTISTypeKeyboardViewer'
 (* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
 {
  *  kTISTypeInk
- *  
+ *
  *  Summary:
  *    The property value constant for one input source type value
  *    associated with the property key kTISPropertyInputSourceType.
- *  
+ *
  *  Discussion:
  *    This type belongs to the category kTISCategoryInkInputSource.
  *    Even though it is the only type in that category, a type is
  *    provided so that clients who don’t need category information can
  *    just check input source type.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -899,18 +899,18 @@ var kTISTypeInk: CFStringRef; external name '_kTISTypeInk'; (* attribute const *
 }
 {
  *  TISGetInputSourceProperty()
- *  
+ *
  *  Summary:
  *    Gets value of specified property for specified input source.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inputSource:
  *      The text input source for which a property value is requested.
- *    
+ *
  *    propertyKey:
  *      The property key constant specifying the desired property value.
- *  
+ *
  *  Result:
  *    Returns a pointer type appropriate for value object associated
  *    with the property key. The specific pointer type is specified for
@@ -920,7 +920,7 @@ var kTISTypeInk: CFStringRef; external name '_kTISTypeInk'; (* attribute const *
  *    The objects referred to by the pointer follow the "Get" rule and
  *    should not be be released by the caller (unless first retained by
  *    the caller).
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -932,10 +932,10 @@ function TISGetInputSourceProperty( inputSource: TISInputSourceRef; propertyKey:
 
 {
  *  TISCreateInputSourceList()
- *  
+ *
  *  Summary:
  *    Creates a list of input sources that match specified properties.
- *  
+ *
  *  Discussion:
  *    This list represents a snapshot of input sources that matched the
  *    specified properties at the time the call was made. If the caller
@@ -944,8 +944,8 @@ function TISGetInputSourceProperty( inputSource: TISInputSourceRef; propertyKey:
  *    true. Typically this is done in order to obtain a
  *    TISInputSourceRef for a newly-installed input source; in this
  *    case the properties parameter would include very specific
- *    criteria limiting the matching input sources. 
- *    
+ *    criteria limiting the matching input sources.
+ *
  *    Warning: Calling this with includeAllInstalled true can have
  *    significant memory impact on the calling application if the
  *    properties parameter is NULL (match all) or if it specifies
@@ -959,23 +959,23 @@ function TISGetInputSourceProperty( inputSource: TISInputSourceRef; propertyKey:
  *    check whether the returned array includes the desired input
  *    source(s); if not, then call TISCreateInputSourceList again with
  *    includeAllInstalled = true.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    properties:
  *      Dictionary of property keys and corresponding values to filter
  *      the input source list. May be NULL, in which case no filtering
  *      is performed.
- *    
+ *
  *    includeAllInstalled:
  *      Normally false so that only enabled input sources will be
  *      included; set true to include all installed input sources that
  *      match the filter (see discussion).
- *  
+ *
  *  Result:
  *    Returns a CFArrayRef for a list of TISInputSourceRefs that match
  *    the specified properties.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -992,11 +992,11 @@ function TISCreateInputSourceList( properties: CFDictionaryRef; includeAllInstal
 }
 {
  *  TISCopyCurrentKeyboardInputSource()
- *  
+ *
  *  Summary:
  *    Copies a TISInputSourceRef for the currently-selected keyboard
  *    input source; convenience function.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -1008,7 +1008,7 @@ function TISCopyCurrentKeyboardInputSource: TISInputSourceRef; external name '_T
 
 {
  *  TISCopyCurrentKeyboardLayoutInputSource()
- *  
+ *
  *  Summary:
  *    Copies a TISInputSourceRef for the keyboard layout currently
  *    being used. If the currently-selected keyboard input source is a
@@ -1016,7 +1016,7 @@ function TISCopyCurrentKeyboardInputSource: TISInputSourceRef; external name '_T
  *    the currently-selected keyboard input source is an input method
  *    or mode, the TISInputSourceRef refers to the keyboard layout
  *    being used by that input method or mode.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -1028,16 +1028,16 @@ function TISCopyCurrentKeyboardLayoutInputSource: TISInputSourceRef; external na
 
 {
  *  TISCopyCurrentASCIICapableKeyboardInputSource()
- *  
+ *
  *  Summary:
  *    Copies a TISInputSourceRef for the most-recently-used
  *    ASCII-capable keyboard input source.
- *  
+ *
  *  Discussion:
  *    If no ASCII-capable keyboard input source has been used yet,
  *    returns the default ASCII-capable keyboard layout (chosen by
  *    Setup Assistant).
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -1049,23 +1049,23 @@ function TISCopyCurrentASCIICapableKeyboardInputSource: TISInputSourceRef; exter
 
 {
  *  TISCopyCurrentASCIICapableKeyboardLayoutInputSource()
- *  
+ *
  *  Summary:
  *    Copies a TISInputSourceRef for the most-recently-used
  *    ASCII-capable keyboard layout.
- *  
+ *
  *  Discussion:
  *    If no ASCII-capable keyboard input source has been used yet,
  *    returns the default ASCII-capable keyboard layout (chosen by
- *    Setup Assistant). 
- *    
+ *    Setup Assistant).
+ *
  *    This is used by input methods to get the keyboard layout that
  *    will be used for key translation if there is no specific keyboard
- *    layout override. 
- *    
+ *    layout override.
+ *
  *    Note the similar TISCopyCurrentASCIICapableKeyboardInputSource,
  *    which can return input sources that are not keyboard layouts.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -1077,31 +1077,31 @@ function TISCopyCurrentASCIICapableKeyboardLayoutInputSource: TISInputSourceRef;
 
 {
  *  TISCopyInputSourceForLanguage()
- *  
+ *
  *  Summary:
  *    Copies a TISInputSourceRef for the input source that should be
  *    used to input the specified language.
- *  
+ *
  *  Discussion:
  *    Sample usage: If a text field is expected to have input in a
  *    particular language, an application can call
  *    TISCopyInputSourceForLanguage and then TISSelectInputSource to
  *    select an input source that would be appropriate for that
- *    language. 
- *    
+ *    language.
+ *
  *    This is intended to provide a replacement for one way in which
  *    the now-deprecated KeyScript API was used: Selection of the
  *    default input source associated with a particular ScriptCode.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    language:
  *      A language tag in BCP 47 format (i.e. in the same form as
  *      returned by
  *      CFLocaleCreateCanonicalLanguageIdentifierFromString) that
  *      represents the language for which an input source should be
  *      returned.
- *  
+ *
  *  Result:
  *    TISInputSourceRef for an enabled input source that can input the
  *    specified language. If there is more than one such input source
@@ -1111,7 +1111,7 @@ function TISCopyCurrentASCIICapableKeyboardLayoutInputSource: TISInputSourceRef;
  *    languages of the input sources. If there is no enabled input
  *    source that can input the specified language, the function will
  *    return NULL.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -1123,10 +1123,10 @@ function TISCopyInputSourceForLanguage( language: CFStringRef ): TISInputSourceR
 
 {
  *  TISCreateASCIICapableInputSourceList()
- *  
+ *
  *  Summary:
  *    Creates a list of ASCII capable keyboard input sources.
- *  
+ *
  *  Discussion:
  *    This list represents a snapshot of ASCII capable keyboard input
  *    sources that were enabled at the time the call was made.
@@ -1137,10 +1137,10 @@ function TISCopyInputSourceForLanguage( language: CFStringRef ): TISInputSourceR
  *    enabled or disabled, whether by the user or programmatically, the
  *    kTISNotifyEnabledKeyboardInputSourcesChanged CF distributed
  *    notification is posted.
- *  
+ *
  *  Result:
  *    Returns a CFArrayRef containing a list of TISInputSourceRefs.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -1157,10 +1157,10 @@ function TISCreateASCIICapableInputSourceList: CFArrayRef; external name '_TISCr
 }
 {
  *  TISSelectInputSource()
- *  
+ *
  *  Summary:
  *    Selects the specified input source.
- *  
+ *
  *  Discussion:
  *    Calling TISSelectInputSource on a keyboard input source that can
  *    be selected makes the specified input source the new current
@@ -1170,19 +1170,19 @@ function TISCreateASCIICapableInputSourceList: CFArrayRef; external name '_TISCr
  *    sources are typically enabled and selected at the same time.
  *    Calling TISSelectInputSource on a palette or ink input source has
  *    no effect on other input sources. Calling TISSelectInputSource
- *    for an already-selected input source has no effect. 
- *    
+ *    for an already-selected input source has no effect.
+ *
  *    For TISSelectInputSource to succeed, the input source must be
  *    capable of being selected (kTISPropertyInputSourceIsSelectCapable
  *    must be true) and the input source must be enabled
  *    (kTISPropertyInputSourceIsEnabled must be true). Furthermore, if
  *    if the input source is an input mode, its parent must be enabled
  *    for it to be selected.
- *  
+ *
  *  Result:
  *    Returns an error code: paramErr if the input source is not
  *    selectable, else noErr.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -1194,21 +1194,21 @@ function TISSelectInputSource( inputSource: TISInputSourceRef ): OSStatus; exter
 
 {
  *  TISDeselectInputSource()
- *  
+ *
  *  Summary:
  *    Deselects the specified input source.
- *  
+ *
  *  Discussion:
  *    TISDeselectInputSource is only intended for use with palette or
  *    ink input sources; calling it has no effect on other input
  *    sources. When palette input sources are disabled, the palette
  *    disappears. Ink input sources are usually deselected and disabled
  *    at the same time.
- *  
+ *
  *  Result:
  *    Returns an error code: paramErr if the input source is not
  *    deselectable, else noErr.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -1220,27 +1220,27 @@ function TISDeselectInputSource( inputSource: TISInputSourceRef ): OSStatus; ext
 
 {
  *  TISEnableInputSource()
- *  
+ *
  *  Summary:
  *    Enables the specified input source.
- *  
+ *
  *  Discussion:
  *    TISEnableInputSource is mainly intended for input methods, or for
  *    applications that supply their own input sources (e.g.
  *    applications that provide keyboard layouts or palette input
  *    methods, and keyboard input methods that provide their own
  *    keyboard layouts and/or input modes). It makes the specified
- *    input source available in UI for selection. 
- *    
+ *    input source available in UI for selection.
+ *
  *    For TISEnableInputSource to succeed, the input source must be
  *    capable of being enabled (kTISPropertyInputSourceIsEnableCapable
  *    must be true). Furthermore, if the input source is an input mode,
  *    its parent must already be enabled for the mode to become enabled.
- *  
+ *
  *  Result:
  *    Returns an error code: paramErr if the input source cannot be
  *    enabled, else noErr.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -1252,10 +1252,10 @@ function TISEnableInputSource( inputSource: TISInputSourceRef ): OSStatus; exter
 
 {
  *  TISDisableInputSource()
- *  
+ *
  *  Summary:
  *    Disables the specified input source.
- *  
+ *
  *  Discussion:
  *    TISDisableInputSource is mainly intended for input methods, or
  *    for applications that supply their own input sources (e.g.
@@ -1264,11 +1264,11 @@ function TISEnableInputSource( inputSource: TISInputSourceRef ): OSStatus; exter
  *    keyboard layouts and/or input modes). It makes the specified
  *    input source unavailable for selection, and removes it from
  *    system UI.
- *  
+ *
  *  Result:
  *    Returns an error code: paramErr if the input source cannot be
  *    disabled, else noErr.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -1285,11 +1285,11 @@ function TISDisableInputSource( inputSource: TISInputSourceRef ): OSStatus; exte
 }
 {
  *  kTISNotifySelectedKeyboardInputSourceChanged
- *  
+ *
  *  Summary:
  *    The name of the CF distributed notification for a change to the
  *    selected keyboard input source.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -1299,11 +1299,11 @@ var kTISNotifySelectedKeyboardInputSourceChanged: CFStringRef; external name '_k
 (* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
 {
  *  kTISNotifyEnabledKeyboardInputSourcesChanged
- *  
+ *
  *  Summary:
  *    The name of the CF distributed notification for a change to the
  *    set of enabled keyboard input sources.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -1318,10 +1318,10 @@ var kTISNotifyEnabledKeyboardInputSourcesChanged: CFStringRef; external name '_k
 }
 {
  *  TISSetInputMethodKeyboardLayoutOverride()
- *  
+ *
  *  Summary:
  *    Sets the keyboard layout override for an input method or mode.
- *  
+ *
  *  Discussion:
  *    When an input method or mode is the selected input source, TSM
  *    will by default use the most-recently-used ASCII-capable keyboard
@@ -1332,43 +1332,43 @@ var kTISNotifyEnabledKeyboardInputSourcesChanged: CFStringRef; external name '_k
  *    layout should be used for a particular input method or mode, then
  *    when that input method/mode is activated it should call
  *    TISSetInputMethodKeyboardLayoutOverride to specify the desired
- *    keyboard layout. 
- *    
+ *    keyboard layout.
+ *
  *    For example, when a Kotoeri user selects kana layout for kana
  *    input, Kotoeri should call
  *    TISSetInputMethodKeyboardLayoutOverride to set the kana keyboard
- *    as the override for the appropriate input modes. 
- *    
+ *    as the override for the appropriate input modes.
+ *
  *    The keyboard layout set in this way will be used for the final
  *    stage of key translation in the Window Server - the connection or
- *    application-specific key translation. 
- *    
+ *    application-specific key translation.
+ *
  *    The override setting is lost when the input method that set it is
- *    deactivated. 
- *    
+ *    deactivated.
+ *
  *    The keyboardLayout to be used for overriding need not be enabled
  *    or explicitly selectable. It can be a non-selectable layout that
  *    is included in an input method bundle and automatically
- *    registered. 
- *    
+ *    registered.
+ *
  *    *The default behavior is new for Mac OS X 10.5, and is meant to
  *    eliminate the necessity for input methods to have UI for setting
  *    which ASCII- capable keyboard to use for latin-character-based
  *    phonetic input.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    keyboardLayout:
  *      TISInputSourceRef for the keyboard layout that should be used
  *      until the current input method is deactivated (if it should be
  *      something other than the most-recently-used ASCII-capable
  *      keyboard layout).
- *  
+ *
  *  Result:
  *    Returns an error code: paramErr if the current keyboard input
  *    source is not an input method/mode or if keyboardLayout does not
  *    designate a keyboard layout, else noErr.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -1380,16 +1380,16 @@ function TISSetInputMethodKeyboardLayoutOverride( keyboardLayout: TISInputSource
 
 {
  *  TISCopyInputMethodKeyboardLayoutOverride()
- *  
+ *
  *  Summary:
  *    Copies a TISInputSourceRef for the currently-selected input
  *    method's keyboard layout override, if any.
- *  
+ *
  *  Result:
  *    If the current keyboard input source is an input method or mode
  *    that has a keyboard layout override, then a TISInputSourceRef for
  *    that keyboard layout is returned; otherwise, NULL is returned.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -1406,12 +1406,12 @@ function TISCopyInputMethodKeyboardLayoutOverride: TISInputSourceRef; external n
 }
 {
  *  TISRegisterInputSource()
- *  
+ *
  *  Summary:
  *    Registers the new input source(s) in a file or bundle so that a
  *    TISInputSourceRef can immediately be obtained for each of the new
  *    input source(s).
- *  
+ *
  *  Discussion:
  *    This allows an installer for an input method bundle or a keyboard
  *    layout file or bundle to notify the system that these new input
@@ -1420,40 +1420,40 @@ function TISCopyInputMethodKeyboardLayoutOverride: TISInputSourceRef; external n
  *    so that the installer can immediately call
  *    TISCreateInputSourceList with appropriate properties (e.g.
  *    BundleID or InputSourceID) in order to get TISInputSourceRefs for
- *    one or more of the newly registered input sources. 
- *    
- *    This can only be used to register the following: 
- *    
+ *    one or more of the newly registered input sources.
+ *
+ *    This can only be used to register the following:
+ *
  *    - Keyboard layout files or bundles in "/Library/Keyboard
  *    Layouts/" or "~/Library/Keyboard Layouts/" (available to all
  *    users or current user, respectively). Such keyboard layouts, once
- *    enabled, are selectable. 
- *    
+ *    enabled, are selectable.
+ *
  *    - Input method bundles in the new "/Library/Input Methods/" or
  *    "~/Library/Input Methods/" directories (available to all users or
- *    current user, respectively). 
- *    
+ *    current user, respectively).
+ *
  *    Note: Input method bundles can include private non-selectable
  *    keyboard layouts for use with
  *    TISSetInputMethodKeyboardLayoutOverride. These are registered
  *    automatically when the input method is registered, and do not
- *    need to be separately registered. 
- *    
+ *    need to be separately registered.
+ *
  *    Security: Any code that calls TISRegisterInputSource is part of
  *    an application or service that has already been validated in some
  *    way (e.g. by the user).
- *  
+ *
  *  Parameters:
- *    
+ *
  *    location:
  *      CFURLRef for the location of the input source(s), a file or
  *      bundle.
- *  
+ *
  *  Result:
  *    Error code: paramErr if location is invalid or the input
  *    source(s) in the specified location cannot be registered;
  *    otherwise noErr.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework
  *    CarbonLib:        not available

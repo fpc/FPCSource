@@ -1,17 +1,17 @@
 {
      File:       HIToolbox/ControlDefinitions.h
- 
+
      Contains:   Definitions of controls provided by the Control Manager
- 
+
      Version:    HIToolbox-624~3
- 
+
      Copyright:  © 1999-2008 by Apple Computer, Inc., all rights reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {       Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, August 2005 }
 {       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
@@ -233,7 +233,7 @@ uses MacTypes,TextEdit,AXUIElement,AEDataModel,CFBase,Events,QuickdrawTypes,Icon
 
 {
  *  ControlDefinitions.h
- *  
+ *
  *  Discussion:
  *    System software supplies a variety of controls for your
  *    applications to use. They are described herein.
@@ -309,55 +309,55 @@ const
 {$ifc not TARGET_CPU_64}
 {
  *  CreateEditTextControl()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CreateEditUnicodeTextControl API instead.
- *  
+ *
  *  Summary:
  *    Creates a new edit text control.
- *  
+ *
  *  Discussion:
  *    This control is a legacy control. It is deprecated in favor of
  *    the EditUnicodeText control, which handles Unicode and draws its
  *    text using antialiasing.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    window:
  *      The window in which the control should be placed. May be NULL
  *      in 10.3 and later.
- *    
+ *
  *    boundsRect:
  *      The bounds of the control, in local coordinates of the window.
- *    
+ *
  *    text:
  *      The text of the control. May be NULL.
- *    
+ *
  *    isPassword:
  *      A Boolean indicating whether the field is to be used as a
  *      password field. Passing false indicates that the field is to
  *      display entered text normally. True means that the field will
  *      be used as a password field and any text typed into the field
  *      will be displayed only as bullets.
- *    
+ *
  *    useInlineInput:
  *      A Boolean indicating whether or not the control is to accept
  *      inline input. Pass true to to accept inline input, otherwise
  *      pass false.
- *    
+ *
  *    style:
  *      The control's font style, size, color, and so on. May be NULL.
- *    
+ *
  *    outControl:
  *      On exit, contains the new control (if noErr is returned as the
  *      result code).
- *  
+ *
  *  Result:
  *    An operating system result code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -377,7 +377,7 @@ const
 
 {
     The classic EditText control also supports these tags defined for the EditUnicodeText control:
-    
+
         kControlEditTextLockedTag
         kControlEditTextStyleTag
         kControlEditTextFixedTextTag
@@ -413,32 +413,32 @@ const
 {$ifc not TARGET_CPU_64}
 {
  *  CreatePictureControl()
- *  
+ *
  *  Summary:
  *    Creates a picture control.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    window:
  *      The window that should contain the control. May be NULL on 10.3
  *      and later.
- *    
+ *
  *    boundsRect:
  *      The bounding box of the control.
- *    
+ *
  *    content:
  *      The descriptor for the picture you want the control to display.
- *    
+ *
  *    dontTrack:
  *      A Boolean value indicating whether the control should hilite
  *      when it is clicked on. False means hilite and track the mouse.
- *    
+ *
  *    outControl:
  *      On exit, contains the new control.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -476,10 +476,10 @@ const
 {$ifc not TARGET_CPU_64}
 {
  *  CreateListBoxControl()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -533,10 +533,10 @@ const
 {$ifc not TARGET_CPU_64}
 {
  *  CreateScrollingTextBoxControl()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later

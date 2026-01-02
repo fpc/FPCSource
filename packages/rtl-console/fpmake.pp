@@ -69,6 +69,8 @@ begin
 
     T:=P.Targets.AddUnit('winevent.pp',WinEventOSes);
 
+    T:=P.Targets.AddUnit('fpansi.pp');
+    
     T:=P.Targets.AddUnit('keyboard.pp',KbdOSes);
     with T.Dependencies do
       begin

@@ -20,7 +20,7 @@
 *****************************************************************************}
 
 Procedure do_MkDir(s: rawbytestring);
-var 
+var
     Rc : word;
 begin
   DoDirSeparators(s);
@@ -34,7 +34,7 @@ begin
 end;
 
 Procedure do_RmDir(s: rawbytestring);
-var 
+var
     Rc : word;
 begin
   if s = '.' then

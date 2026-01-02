@@ -935,7 +935,7 @@
      tagINITCOMMONCONTROLSEX = record
           dwSize:DWORD;             // size of this structure
           dwICC:DWORD;              // flags indicating which classes to be initialized
-        end;  
+        end;
      TINITCOMMONCONTROLSEX=tagINITCOMMONCONTROLSEX;
      LPINITCOMMONCONTROLSEX=^tagINITCOMMONCONTROLSEX;
 
@@ -4326,8 +4326,8 @@
           rgbFg  : COLORREF;
           fStyle  : UINT;
           dwRop : DWORD;
-       end;  
-       
+       end;
+
      _IMAGELISTDRAWPARAMS=IMAGELISTDRAWPARAMS;
      PIMAGELISTDRAWPARAMS=^IMAGELISTDRAWPARAMS;
 

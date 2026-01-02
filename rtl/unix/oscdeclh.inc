@@ -137,7 +137,7 @@ const
   {$else}
     Function  FPSelect  (N:cint;readfds,writefds,exceptfds:pfdSet;TimeOut:PTimeVal):cint; cdecl; external 'net' name 'select';
     Function  FpPoll    (fds: ppollfd; nfds: cuint; timeout: clong): cint; cdecl; external clib name 'poll';
-  {$endif}  
+  {$endif}
 {$else}
     Function  FPSelect  (N:cint;readfds,writefds,exceptfds:pfdSet;TimeOut:PTimeVal):cint; cdecl; external clib name 'select';
     Function  FpPoll    (fds: ppollfd; nfds: cuint; timeout: clong): cint; cdecl; external clib name 'poll';
@@ -145,8 +145,8 @@ const
     { The libc version has "..." as third parameter -> wrap for }
     { interface compatibility with syscalls                     }
     function  FpIOCtl   (Handle:cint;Ndx: TIOCtlRequest;Data: Pointer):cint; {$ifdef FPC_IS_SYSTEM}forward;{$endif}
-{$ifdef solaris}   
-{$linklib md5} 
+{$ifdef solaris}
+{$linklib md5}
 {$linklib aio}
     Function  FPnanosleep  (const rqtp: ptimespec; rmtp: ptimespec): cint; cdecl; external 'rt' name 'nanosleep';
 {$else solaris}

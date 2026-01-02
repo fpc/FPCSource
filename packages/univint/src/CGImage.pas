@@ -332,7 +332,7 @@ function CGImageCreateWithImageInRect( image: CGImageRef; rect: CGRect ): CGImag
 
    The parameter `image' may not be an image mask and may not have an image
    mask or masking color associated with it.
-  
+
    If `mask' is an image, then it must be in the DeviceGray color space, may
    not have alpha, and may not itself be masked by an image mask or a
    masking color. }

@@ -63,7 +63,7 @@ var
   l_fpucw : longint;
 begin
 {$if defined(FPU68881) or defined(FPUCOLDFIRE)}
-  asm 
+  asm
     fmove.l fpcr,l_fpucw
   end;
   { Reset only exception based control bits in fpcr }

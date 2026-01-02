@@ -335,7 +335,7 @@ var
   {$IFDEF HAVECLOCKGETTIME}
   ts: TTimeSpec;
   {$ENDIF}
-  
+
 begin
  {$IFDEF HAVECLOCKGETTIME}
    if clock_gettime(CLOCK_MONOTONIC, @ts)=0 then
@@ -374,7 +374,7 @@ begin
       { Solaris' & AIX' flock is based on top of fcntl, which does not allow
         exclusive locks for files only opened for reading nor shared locks
         for files opened only for writing.
-        
+
         If no locking is specified, we normally need an exclusive lock.
         So create an exclusive lock for fmOpenWrite and fmOpenReadWrite,
         but only a shared lock for fmOpenRead (since an exclusive lock
@@ -456,14 +456,14 @@ begin
   until (fd<>-1) or (fpgeterrno<>ESysEINTR);
 
   { Do not allow to open directories with FileOpen.
-    This would cause weird behavior of TFileStream.Size, 
+    This would cause weird behavior of TFileStream.Size,
     TMemoryStream.LoadFromFile etc. }
   if (fd<>-1) and IsHandleDirectory(fd) then
     begin
     fpClose(fd);
     fd:=feInvalidHandle;
     end;
-  FileOpenNoLocking:=fd;  
+  FileOpenNoLocking:=fd;
 end;
 
 
@@ -617,7 +617,7 @@ begin
 
   If  (fpstat(PAnsiChar(SystemFileName),Info)<0) or fpS_ISDIR(info.st_mode) then
     exit(-1)
-  else 
+  else
     Result:=info.st_mtime;
 end;
 
@@ -1495,7 +1495,7 @@ Procedure GetDateTime(Var Year,Month,Day,hour,minute,second:Word);
 }
 Var
   usec,msec : word;
-  
+
 Begin
   DoGetLocalDateTime(year,month,day,hour,minute,second,msec,usec);
 End;
@@ -1812,7 +1812,7 @@ end;
 
 
 {****************************************************************************
-                              GetTempDir 
+                              GetTempDir
 ****************************************************************************}
 
 
@@ -1841,7 +1841,7 @@ begin
 end;
 
 {****************************************************************************
-                              GetUserDir 
+                              GetUserDir
 ****************************************************************************}
 
 Var
@@ -1862,7 +1862,7 @@ begin
     else
       TheUserDir:=GetTempDir(False);
     end;
-  Result:=TheUserDir;    
+  Result:=TheUserDir;
 end;
 
 Procedure SysBeep;
@@ -1883,7 +1883,7 @@ end;
 function GetLocalTimeOffset: Integer;
 
 begin
- Result := -Tzseconds div 60; 
+ Result := -Tzseconds div 60;
 end;
 
 

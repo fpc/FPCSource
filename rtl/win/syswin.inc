@@ -815,14 +815,14 @@ type
   WINBOOL = longbool;
   PHANDLER_ROUTINE = function (dwCtrlType:DWORD):WINBOOL; stdcall;
 
-function SetConsoleCtrlHandler(HandlerRoutine:PHANDLER_ROUTINE; Add:WINBOOL):WINBOOL; stdcall; 
+function SetConsoleCtrlHandler(HandlerRoutine:PHANDLER_ROUTINE; Add:WINBOOL):WINBOOL; stdcall;
   external 'kernel32' name 'SetConsoleCtrlHandler';
 
 function WinCtrlBreakHandler(dwCtrlType:DWORD): WINBOOL;stdcall;
 const
   CTRL_BREAK_EVENT = 1;
 begin
-  if Assigned(CtrlBreakHandler) then 
+  if Assigned(CtrlBreakHandler) then
     Result:=CtrlBreakHandler((dwCtrlType and CTRL_BREAK_EVENT > 0))
   else
     Result:=false;
@@ -831,7 +831,7 @@ end;
 function SysSetCtrlBreakHandler (Handler: TCtrlBreakHandler): TCtrlBreakHandler;
 begin
   (* Return either nil or previous handler *)
-  if (Assigned(CtrlBreakHandler)) and (not Assigned(Handler)) then   
+  if (Assigned(CtrlBreakHandler)) and (not Assigned(Handler)) then
     SetConsoleCtrlHandler(@WinCtrlBreakHandler, false)
   else if (not Assigned(CtrlBreakHandler)) and (Assigned(Handler)) then
     SetConsoleCtrlHandler(@WinCtrlBreakHandler, true);

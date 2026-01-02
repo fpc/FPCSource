@@ -320,29 +320,29 @@ function CFWriteStreamCopyError( stream: CFWriteStreamRef ): CFErrorRef; externa
 (* CF_AVAILABLE_STARTING(10_5, 2_0) *)
 
 { Returns success/failure.  Opening a stream causes it to reserve all the system
-   resources it requires.  If the stream can open non-blocking, this will always 
+   resources it requires.  If the stream can open non-blocking, this will always
    return TRUE; listen to the run loop source to find out when the open completes
-   and whether it was successful, or poll using CFRead/WriteStreamGetStatus(), waiting 
+   and whether it was successful, or poll using CFRead/WriteStreamGetStatus(), waiting
    for a status of kCFStreamStatusOpen or kCFStreamStatusError.  }
 function CFReadStreamOpen( stream: CFReadStreamRef ): Boolean; external name '_CFReadStreamOpen';
 function CFWriteStreamOpen( stream: CFWriteStreamRef ): Boolean; external name '_CFWriteStreamOpen';
 
-{ Terminates the flow of bytes; releases any system resources required by the 
-   stream.  The stream may not fail to close.  You may call CFStreamClose() to 
+{ Terminates the flow of bytes; releases any system resources required by the
+   stream.  The stream may not fail to close.  You may call CFStreamClose() to
    effectively abort a stream. }
 procedure CFReadStreamClose( stream: CFReadStreamRef ); external name '_CFReadStreamClose';
 procedure CFWriteStreamClose( stream: CFWriteStreamRef ); external name '_CFWriteStreamClose';
 
-{ Whether there is data currently available for reading; returns TRUE if it's 
+{ Whether there is data currently available for reading; returns TRUE if it's
    impossible to tell without trying }
 function CFReadStreamHasBytesAvailable( stream: CFReadStreamRef ): Boolean; external name '_CFReadStreamHasBytesAvailable';
 
-{ Returns the number of bytes read, or -1 if an error occurs preventing any 
-   bytes from being read, or 0 if the stream's end was encountered.  
-   It is an error to try and read from a stream that hasn't been opened first.  
+{ Returns the number of bytes read, or -1 if an error occurs preventing any
+   bytes from being read, or 0 if the stream's end was encountered.
+   It is an error to try and read from a stream that hasn't been opened first.
    This call will block until at least one byte is available; it will NOT block
    until the entire buffer can be filled.  To avoid blocking, either poll using
-   CFReadStreamHasBytesAvailable() or use the run loop and listen for the 
+   CFReadStreamHasBytesAvailable() or use the run loop and listen for the
    kCFStreamCanRead event for notification of data available. }
 function CFReadStreamRead( stream: CFReadStreamRef; buffer: UnivPtr; bufferLength: CFIndex ): CFIndex; external name '_CFReadStreamRead';
 
@@ -371,25 +371,25 @@ function CFWriteStreamWrite( stream: CFWriteStreamRef; buffer: UnivPtr; bufferLe
 { Particular streams can name properties and assign meanings to them; you
    access these properties through the following calls.  A property is any interesting
    information about the stream other than the data being transmitted itself.
-   Examples include the headers from an HTTP transmission, or the expected 
+   Examples include the headers from an HTTP transmission, or the expected
    number of bytes, or permission information, etc.  Properties that can be set
    configure the behavior of the stream, and may only be settable at particular times
-   (like before the stream has been opened).  See the documentation for particular 
+   (like before the stream has been opened).  See the documentation for particular
    properties to determine their get- and set-ability. }
 function CFReadStreamCopyProperty( stream: CFReadStreamRef; propertyName: CFStringRef ): CFTypeRef; external name '_CFReadStreamCopyProperty';
 function CFWriteStreamCopyProperty( stream: CFWriteStreamRef; propertyName: CFStringRef ): CFTypeRef; external name '_CFWriteStreamCopyProperty';
 
 {#if MAC_OS_X_VERSION_10_2 <= MAC_OS_X_VERSION_MAX_ALLOWED}
-{ Returns TRUE if the stream recognizes and accepts the given property-value pair; 
+{ Returns TRUE if the stream recognizes and accepts the given property-value pair;
    FALSE otherwise. }
 function CFReadStreamSetProperty( stream: CFReadStreamRef; propertyName: CFStringRef; propertyValue: CFTypeRef ): Boolean; external name '_CFReadStreamSetProperty';
 function CFWriteStreamSetProperty( stream: CFWriteStreamRef; propertyName: CFStringRef; propertyValue: CFTypeRef ): Boolean; external name '_CFWriteStreamSetProperty';
 {#endif}
 
-{ Asynchronous processing - If you wish to neither poll nor block, you may register 
+{ Asynchronous processing - If you wish to neither poll nor block, you may register
    a client to hear about interesting events that occur on a stream.  Only one client
    per stream is allowed; registering a new client replaces the previous one.
- 
+
    Once you have set a client, the stream must be scheduled to provide the context in
    which the client will be called.  Streams may be scheduled on a single dispatch queue
    or on one or more run loops.  If scheduled on a run loop, it is the caller's responsibility
@@ -425,8 +425,8 @@ procedure CFWriteStreamSetDispatchQueue( stream: CFWriteStreamRef; q: dispatch_q
 (* CF_AVAILABLE_STARTING(10_9, 7_0) *)
 
 {
- * Returns the previously set dispatch queue with an incremented retain count.  
- * Note that the stream's queue may have been set to NULL if the stream was 
+ * Returns the previously set dispatch queue with an incremented retain count.
+ * Note that the stream's queue may have been set to NULL if the stream was
  * scheduled on a runloop subsequent to it having had a dispatch queue set.
  }
 function CFReadStreamCopyDispatchQueue( stream: CFReadStreamRef ): dispatch_queue_t; external name '_CFReadStreamCopyDispatchQueue';
@@ -445,13 +445,13 @@ type
 
 type
 	CFStreamError = record
-		domain: CFIndex; 
+		domain: CFIndex;
 		error: SInt32;
 	end;
 	CFStreamErrorPtr = ^CFStreamError;
 
 { 0 is returned if no error has occurred.  errorDomain specifies the domain
-   in which the error code should be interpretted; pass NULL if you are not 
+   in which the error code should be interpreted; pass NULL if you are not
    interested. }
 function CFReadStreamGetError( stream: CFReadStreamRef ): CFStreamError; external name '_CFReadStreamGetError';
 function CFWriteStreamGetError( stream: CFWriteStreamRef ): CFStreamError; external name '_CFWriteStreamGetError';

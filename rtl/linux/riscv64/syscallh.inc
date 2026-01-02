@@ -3,7 +3,7 @@
     Copyright (c) 2002 Marco van de Voort
     member of the Free Pascal development team.
 
-    rsicv64 syscall headers for Linux 
+    rsicv64 syscall headers for Linux
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.

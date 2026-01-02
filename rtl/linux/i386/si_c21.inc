@@ -82,13 +82,13 @@ asm
   {$endif FPC_PIC}
 
         { int __libc_start_main(
-		int *(main) (int, char **, char **), 
-		int argc, 
-		AnsiChar * * ubp_av, 
-		void (*init) (void), 
-		void (*fini) (void), 
-		void (*rtld_fini) (void), 
-		void (* stack_end)); } 
+		int *(main) (int, char **, char **),
+		int argc,
+		AnsiChar * * ubp_av,
+		void (*init) (void),
+		void (*fini) (void),
+		void (*rtld_fini) (void),
+		void (* stack_end)); }
 
         pushl %ebp   			{ padding }
         pushl %esp   			{ stack_end }

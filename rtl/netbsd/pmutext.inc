@@ -14,7 +14,7 @@
 
 { definition of pthread_mutex_t, because needed in both ptypes.inc and }
 { in sysosh.inc                                                        }
-(* from /usr/include/pthread_types.h 
+(* from /usr/include/pthread_types.h
 struct	__pthread_mutex_st {
 	unsigned int	ptm_magic;
 	pthread_spin_t	ptm_errorcheck;

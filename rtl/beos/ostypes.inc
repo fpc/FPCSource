@@ -13,7 +13,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
- 
+
 {***********************************************************************}
 {                         POSIX STRUCTURES                              }
 {***********************************************************************}
@@ -28,7 +28,7 @@ Type
   end;
   ptimezone =^timezone;
   TTimeZone = timezone;
-  
+
   rusage = packed record
         ru_utime    : timeval;          { user time used }
         ru_stime    : timeval;          { system time used }
@@ -77,10 +77,10 @@ CONST                		// OS specific parameters for general<fd,sig>set behaviou
 //   SIG_MAXSIG      = 32;    //128;	// highest signal version
    FD_MAXFDSET	   = 1024;
 //   wordsinsigset   = 4;		// words in sigset_t
-   ln2bitsinword   = 5;         { 32bit : ln(32)/ln(2)=5 } 
+   ln2bitsinword   = 5;         { 32bit : ln(32)/ln(2)=5 }
    ln2bitmask	   = 2 shl ln2bitsinword - 1;
-   wordsinfdset    = FD_MAXFDSET DIV BITSINWORD;        // words in fdset_t   
-   wordsinsigset   = SIG_MAXSIG  DIV BITSINWORD;      
+   wordsinfdset    = FD_MAXFDSET DIV BITSINWORD;        // words in fdset_t
+   wordsinsigset   = SIG_MAXSIG  DIV BITSINWORD;
 
 TYPE
    { system information services }
@@ -129,7 +129,7 @@ TYPE
    stat = packed record
       st_dev:longint;     {"device" that this file resides on}
       st_ino:int64;       {this file's inode #, unique per device}
-      st_mode:dword;      {mode bits (rwx for user, group, etc)}      
+      st_mode:dword;      {mode bits (rwx for user, group, etc)}
       st_nlink:longint;   {number of hard links to this file}
       st_uid:dword;       {user id of the owner of this file}
       st_gid:dword;       {group id of the owner of this file}
@@ -141,7 +141,7 @@ TYPE
       st_ctime:longint;   {last change time, not creation time}
       crtime:longint;  {creation time}
    end;
-   
+
    TStat = stat;
    pStat = ^stat;
 
@@ -215,7 +215,7 @@ TYPE
  TTms= tms;
  pTms= ^tms;
 
- TFDSetEl  = Cardinal; 
+ TFDSetEl  = Cardinal;
  TFDSet    = ARRAY[0..(FD_MAXFDSET div 32)-1] of TFDSetEl;
  pFDSet    = ^TFDSet;
 
@@ -264,11 +264,11 @@ CONST
     WNOHANG   =          1;     { don't block waiting               }
     WUNTRACED =          2;     { report status of stopped children }
 
-Type 
+Type
         TRLimit  = record
                      rlim_cur,               { current (soft) limit }
           	     rlim_max : TRLim;     { maximum value for rlim_cur }
-		    end;	
+		    end;
         PRLimit  = ^TRLimit;
 
  iovec = record
@@ -276,7 +276,7 @@ Type
 	    iov_len  : size_t;
 	   end;
   tiovec=iovec;
-  piovec=^tiovec;		
+  piovec=^tiovec;
 
 
     {*************************************************************************}
@@ -334,7 +334,7 @@ const
    B_SYSTEM_IMAGE  = 4;
 type
     image_info = packed record
-     id      : image_id;   
+     id      : image_id;
      _type   : longint;
      sequence: longint;
      init_order: longint;
@@ -354,7 +354,7 @@ type
      text_size: longint;
      data_size: longint;
     end;
-    
+
 (*----- symbol types and functions ------------------------*)
 
 const B_SYMBOL_TYPE_DATA = $1;

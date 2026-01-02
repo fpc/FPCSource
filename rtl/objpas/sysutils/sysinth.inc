@@ -79,7 +79,7 @@ var
     TimePMString: 'PM';
     ShortTimeFormat: 'hh:nn';
     LongTimeFormat: 'hh:nn:ss';
-    ShortMonthNames: ('Jan','Feb','Mar','Apr','May','Jun', 
+    ShortMonthNames: ('Jan','Feb','Mar','Apr','May','Jun',
                       'Jul','Aug','Sep','Oct','Nov','Dec');
     LongMonthNames: ('January','February','March','April','May','June',
                      'July','August','September','October','November','December');

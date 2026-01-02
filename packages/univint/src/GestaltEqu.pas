@@ -1,10 +1,10 @@
 {
      File:       CarbonCore/Gestalt.h
- 
+
      Contains:   Gestalt Interfaces.
                  The contents of this header file are deprecated.
                  Use sysctl(3) instead.
- 
+
      Copyright:  © 1988-2011 by Apple Inc. All rights reserved.
 }
 {   Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
@@ -227,10 +227,10 @@ type
 	SelectorFunctionUPP = SelectorFunctionProcPtr;
 {
  *  Gestalt()
- *  
+ *
  *  Summary:
  *    Gestalt returns information about the operating environment.
- *  
+ *
  *  Discussion:
  *    The Gestalt function places the information requested by the
  *    selector parameter in the variable parameter response . Note that
@@ -244,7 +244,7 @@ type
  *    returned by the selector function specified by the selector
  *    parameter. Gestalt ignores any information already at that
  *    address.
- *    
+ *
  *    The Apple-defined selector codes fall into two categories:
  *    environmental selectors, which supply specific environmental
  *    information you can use to control the behavior of your
@@ -254,20 +254,20 @@ type
  *    defined by Apple (listed in the "Constants" section beginning on
  *    page 1-14 ) or a selector code defined by a third-party
  *    product.
- *    
+ *
  *    The meaning of the value that Gestalt returns in the response
  *    parameter depends on the selector code with which it was called.
  *    For example, if you call Gestalt using the gestaltTimeMgrVersion
  *    selector, it returns a version code in the response parameter. In
  *    this case, a returned value of 3 indicates that the extended Time
  *    Manager is available.
- *    
+ *
  *    In most cases, the last few characters in the selector's symbolic
  *    name form a suffix that indicates what type of value you can
  *    expect Gestalt to place in the response parameter. For example,
  *    if the suffix in a Gestalt selector is Size , then Gestalt
  *    returns a size in the response parameter.
- *    
+ *
  *    Attr:  A range of 32 bits, the meanings of which are defined by a
  *    list of constants. Bit 0 is the least significant bit of the
  *    SInt32.
@@ -283,7 +283,7 @@ type
  *    $0701, for example, returned in response to the
  *    gestaltSystemVersion selector, represents system software version
  *    7.0.1.
- *    
+ *
  *    Selectors that have the suffix Attr deserve special attention.
  *    They cause Gestalt to return a bit field that your application
  *    must interpret to determine whether a desired feature is present.
@@ -292,19 +292,19 @@ type
  *    LongInt that contains the Sound Manager attributes field
  *    retrieved from Gestalt . To determine whether a particular
  *    feature is available, you need to look at the designated bit.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    selector:
  *      The selector to return information for
- *    
+ *
  *    response:
  *      On exit, the requested information whose format depends on the
  *      selector specified.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -317,38 +317,38 @@ function Gestalt( selector: OSType; var response: SInt32 ): OSErr; external name
 {$ifc not TARGET_CPU_64}
 {
  *  ReplaceGestalt()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use NewGestaltValue instead wherever possible.
- *  
+ *
  *  Summary:
  *    Replaces the gestalt function associated with a selector.
- *  
+ *
  *  Discussion:
  *    The ReplaceGestalt function replaces the selector function
  *    associated with an existing selector code.
- *    
+ *
  *    So that your function can call the function previously associated
  *    with the selector, ReplaceGestalt places the address of the old
  *    selector function in the oldGestaltFunction parameter. If
  *    ReplaceGestalt returns an error of any type, then the value of
  *    oldGestaltFunction is undefined.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    selector:
  *      the selector to replace
- *    
+ *
  *    gestaltFunction:
  *      a UPP for the new selector function
- *    
+ *
  *    oldGestaltFunction:
  *      on exit, a pointer to the UPP of the previously associated with
  *      the specified selector
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.3
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -363,13 +363,13 @@ function ReplaceGestalt( selector: OSType; gestaltFunction: SelectorFunctionUPP;
 {$ifc not TARGET_CPU_64}
 {
  *  NewGestalt()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use NewGestaltValue instead wherever possible.
- *  
+ *
  *  Summary:
  *    Adds a selector code to those already recognized by Gestalt.
- *  
+ *
  *  Discussion:
  *    The NewGestalt function registers a specified selector code with
  *    the Gestalt Manager so that when the Gestalt function is called
@@ -377,33 +377,33 @@ function ReplaceGestalt( selector: OSType; gestaltFunction: SelectorFunctionUPP;
  *    executed. Before calling NewGestalt, you must define a selector
  *    function callback. See SelectorFunctionProcPtr for a description
  *    of how to define your selector function.
- *    
+ *
  *    Registering with the Gestalt Manager is a way for software such
  *    as system extensions to make their presence known to potential
  *    users of their services.
- *    
+ *
  *    In Mac OS X, the selector and replacement value are on a
  *    per-context basis. That means they are available only to the
  *    application or other code that installs them. You cannot use this
  *    function to make information available to another process.
- *     
+ *
  *    A Gestalt selector registered with NewGestalt() can not be
  *    deleted.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    selector:
  *      the selector to create
- *    
+ *
  *    gestaltFunction:
  *      a UPP for the new selector function, which Gestalt executes
  *      when it receives the new selector code. See
  *      SelectorFunctionProcPtr for more information on the callback
  *      you need to provide.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.3
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -417,10 +417,10 @@ function NewGestalt( selector: OSType; gestaltFunction: SelectorFunctionUPP ): O
 
 {
  *  NewGestaltValue()
- *  
+ *
  *  Summary:
  *    Adds a selector code to those already recognized by Gestalt.
- *  
+ *
  *  Discussion:
  *    The NewGestalt function registers a specified selector code with
  *    the Gestalt Manager so that when the Gestalt function is called
@@ -428,27 +428,27 @@ function NewGestalt( selector: OSType; gestaltFunction: SelectorFunctionUPP ): O
  *    executed. Before calling NewGestalt, you must define a selector
  *    function callback. See SelectorFunctionProcPtr for a description
  *    of how to define your selector function.
- *    
+ *
  *    Registering with the Gestalt Manager is a way for software such
  *    as system extensions to make their presence known to potential
  *    users of their services.
- *    
+ *
  *    In Mac OS X, the selector and replacement value are on a
  *    per-context basis. That means they are available only to the
  *    application or other code that installs them. You cannot use this
  *    function to make information available to another process.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    selector:
  *      the selector to create
- *    
+ *
  *    newValue:
  *      the value to return for the new selector code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -460,33 +460,33 @@ function NewGestaltValue( selector: OSType; newValue: SInt32 ): OSErr; external 
 
 {
  *  ReplaceGestaltValue()
- *  
+ *
  *  Summary:
  *    Replaces the value that the function Gestalt returns for a
  *    specified selector code with the value provided to the function.
- *  
+ *
  *  Discussion:
  *    You use the function ReplaceGestaltValue to replace an existing
  *    value. You should not call this function to introduce a value
  *    that doesn't already exist; instead call the function
  *    NewGestaltValue.
- *    
+ *
  *    In Mac OS X, the selector and replacement value are on a
  *    per-context basis. That means they are available only to the
  *    application or other code that installs them. You cannot use this
  *    function to make information available to another process.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    selector:
  *      the selector to create
- *    
+ *
  *    replacementValue:
  *      the new value to return for the new selector code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -498,32 +498,32 @@ function ReplaceGestaltValue( selector: OSType; replacementValue: SInt32 ): OSEr
 
 {
  *  SetGestaltValue()
- *  
+ *
  *  Summary:
  *    Sets the value the function Gestalt will return for a specified
  *    selector code, installing the selector if it was not already
  *    installed.
- *  
+ *
  *  Discussion:
  *    You use SetGestaltValue to establish a value for a selector,
  *    without regard to whether the selector was already installed.
- *     
+ *
  *    In Mac OS X, the selector and replacement value are on a
  *    per-context basis. That means they are available only to the
  *    application or other code that installs them. You cannot use this
  *    function to make information available to another process.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    selector:
  *      the selector to create
- *    
+ *
  *    newValue:
  *      the new value to return for the new selector code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -535,28 +535,28 @@ function SetGestaltValue( selector: OSType; newValue: SInt32 ): OSErr; external 
 
 {
  *  DeleteGestaltValue()
- *  
+ *
  *  Summary:
  *    Deletes a Gestalt selector code so that it is no longer
  *    recognized by Gestalt.
- *  
+ *
  *  Discussion:
  *    After calling this function, subsequent query or replacement
  *    calls for the selector code will fail as if the selector had
- *    never been installed 
- *    
+ *    never been installed
+ *
  *    In Mac OS X, the selector and replacement value are on a
  *    per-context basis. That means they are available only to the
  *    application or other code that installs them.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    selector:
  *      the selector to delete
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -568,7 +568,7 @@ function DeleteGestaltValue( selector: OSType ): OSErr; external name '_DeleteGe
 
 {
  *  NewSelectorFunctionUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -579,7 +579,7 @@ function NewSelectorFunctionUPP( userRoutine: SelectorFunctionProcPtr ): Selecto
 
 {
  *  DisposeSelectorFunctionUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -590,7 +590,7 @@ procedure DisposeSelectorFunctionUPP( userUPP: SelectorFunctionUPP ); external n
 
 {
  *  InvokeSelectorFunctionUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -796,13 +796,13 @@ const
     using those apis you may be able to avoid linking against Frameworks which you
     otherwise don't need, and may lessen the memory and code footprint of your
     applications.
-    
+
     The gestaltNativeCPUfamily ('cpuf') selector can be used to determine the
     general family the native CPU is in.
 
     gestaltNativeCPUfamily uses the same results as gestaltNativeCPUtype, but
     will only return certain CPU values.
-    
+
     IMPORTANT NOTE: gestaltNativeCPUFamily may no longer be updated for any new
                     processor families introduced after the 970.  If there are
                     processor specific features you need to be checking for in
@@ -1856,15 +1856,15 @@ const
 const
 	gestaltQTVRMgrVers = FourCharCode('qtvv'); { QuickTime VR version                                  }
 
-{    
+{
     Because some PowerPC machines now support very large physical memory capacities, including
     some above the maximum value which can held in a 32 bit quantity, there is now a new selector,
     gestaltPhysicalRAMSizeInMegabytes, which returns the size of physical memory scaled
     in megabytes.  It is recommended that code transition to using this new selector if
     it wants to get a useful value for the amount of physical memory on the system.  Code can
     also use the sysctl() and sysctlbyname() BSD calls to get these kinds of values.
-    
-    For compatability with code which assumed that the value in returned by the
+
+    For compatibility with code which assumed that the value in returned by the
     gestaltPhysicalRAMSize selector would be a signed quantity of bytes, this selector will
     now return 2 gigabytes-1 ( INT_MAX ) if the system has 2 gigabytes of physical memory or more.
 }
@@ -2030,32 +2030,32 @@ const
 const
 	gestaltSystemUpdateVersion = FourCharCode('sysu'); { System Update version }
 
-{  
+{
     Returns the system version as a 32 bit packed BCD ( binary coded decimal )
     version representation.  Bits 0 through 3 are the "bug fix" revision number.
     Bits 4 through 7 are the minor revision, and bits 8 through 31 are the bcd
     decimal digits of the major release version.
-    
+
       Value:  0xMMMMMMRB = M.R.B            Example: 0x00001023 = 10.2.3
                 ^^^^^^     major rev                   ^^^^^^   major rev   = 10
                       ^    minor rev                         ^  minor rev   =  2
                        ^   bug fix rev                        ^ bug fix rev =  3
-    
+
     If the values of the minor or bug fix revision are larger than 9, then
     gestaltSystemVersion will substitute the value 9 for them.  For example,
     Mac OS X 10.3.15 will be returned as 0x1039, and Mac OS X 10.10.5 will
     return 0x1095.
-    
+
     A better way to get version information with the deprecated Gestalt API
 	would be to use the gestaltSystemVersionMajor, gestaltSystemVersionMinor,
     and gestaltSystemVersionBugFix selectors, which don't have arbitrary limits
     on the values returned. However, because Gestalt is deprecated, you should
 	use NSProcessInfo's operatingSystemVersion property instead.
- 
+
     If you want to know the product build version string, product name, or
     the user visible version string you should read in the system version
     information from the file /System/Library/CoreServices/SystemVersion.plist.
- 
+
 }
 const
 	gestaltSystemVersion = FourCharCode('sysv'); { system version}
@@ -2321,7 +2321,7 @@ const
 	gestaltX86HasHTT = 28;   { Hyper-Threading Technology}
 	gestaltX86HasTM = 29;    { Thermal Monitor}
 
-{ 'cpuid' now returns a 64 bit value, and the following 
+{ 'cpuid' now returns a 64 bit value, and the following
     gestalt selector and field definitions apply
     to the extended form of this instruction }
 const

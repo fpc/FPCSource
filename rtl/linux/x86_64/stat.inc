@@ -57,7 +57,7 @@
     st_blocks: cLong;	//* Number 512-byte blocks allocated. */
 
     st_atime: cuLong;
-    st_atime_nsec: cuLong; 
+    st_atime_nsec: cuLong;
     st_mtime: cuLong;
     st_mtime_nsec: cuLong;
     st_ctime: cuLong;

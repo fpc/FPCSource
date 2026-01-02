@@ -249,7 +249,7 @@ type
 	AudioPanningModePtr = ^AudioPanningMode;
 const
 	kPanningMode_SoundField = 3;
-	kPanningMode_VectorBasedPanning = 4; 
+	kPanningMode_VectorBasedPanning = 4;
 
 {!
     @struct		AudioPanningInfo
@@ -257,20 +257,20 @@ const
     @field      mPanningMode			the PanningMode to be used for the pan
     @field      mCoordinateFlags		the coordinates are specified as in the AudioChannelDescription struct in CoreAudioTypes.h
     @field      mCoordinates			the coordinates are specified as in the AudioChannelDescription struct in CoreAudioTypes.h
-    @field      mGainScale				
+    @field      mGainScale
 					mGainScale is used to multiply the panning values.
 					In typical usage you are applying an existing volume.
 					value in 0 -> 1 (where 1 is unity gain) to the panned values.
 					1 would give you panning at unity.
 					0 would give you back a matrix of zeroes.
-    @field      mOutputChannelMap				
+    @field      mOutputChannelMap
 					This is the channel map that is going to be used to determine channel volumes for this pan.
 }
 type
 	AudioPanningInfo = record
 		mPanningMode: AudioPanningMode;
 		mCoordinateFlags: UInt32;
-		mCoordinates: array [0..3-1] of Float32;	
+		mCoordinates: array [0..3-1] of Float32;
 		mGainScale: Float32;
 		mOutputChannelMap: {const} AudioChannelLayoutPtr;
 	end;
@@ -280,7 +280,7 @@ type
     @enum		AudioBalanceFadeType
     @abstract   used for mType field of AudioBalanceFade struct
     @constant   kAudioBalanceFadeType_MaxUnityGain
-					the gain value never exceeds 1.0, the opposite channel fades out. 
+					the gain value never exceeds 1.0, the opposite channel fades out.
 					This can reduce overall loudness when the balance or fade is not in the center.
     @constant   kAudioBalanceFadeType_EqualPower
 					The overall loudness remains constant, but gain can exceed 1.0.
@@ -292,18 +292,18 @@ type
 	AudioBalanceFadeTypePtr = ^AudioBalanceFadeType;
 const
 	kAudioBalanceFadeType_MaxUnityGain = 0;
-	kAudioBalanceFadeType_EqualPower = 1; 
-	
+	kAudioBalanceFadeType_EqualPower = 1;
+
 {!
     @struct		AudioBalanceFade
     @abstract   this struct is used with kAudioFormatProperty_BalanceFade
-    @field      mLeftRightBalance 
+    @field      mLeftRightBalance
 					-1 is full left, 0 is center, +1 is full right
-    @field      mBackFrontFade 
+    @field      mBackFrontFade
 					-1 is full rear, 0 is center, +1 is full front
-    @field      mType 
+    @field      mType
 					an AudioBalanceFadeType constant
-    @field      mChannelLayout 
+    @field      mChannelLayout
 					a pointer to an AudioChannelLayout
 }
 type
@@ -318,11 +318,11 @@ type
 {!
     @struct		AudioFormatInfo
     @abstract   this struct is used as a specifier for the kAudioFormatProperty_FormatList property
-    @field      mASBD 
+    @field      mASBD
 					an AudioStreamBasicDescription
-    @field      mMagicCookie 
+    @field      mMagicCookie
 					a pointer to the decompression info for the data described in mASBD
-    @field      mMagicCookieSize 
+    @field      mMagicCookieSize
 					the size in bytes of mMagicCookie
 }
 type
@@ -336,11 +336,11 @@ type
 {!
     @struct		ExtendedAudioFormatInfo
     @abstract   this struct is used as a specifier for the kAudioFormatProperty_FormatList property
-    @field      mASBD 
+    @field      mASBD
 					an AudioStreamBasicDescription
-    @field      mMagicCookie 
+    @field      mMagicCookie
 					a pointer to the decompression info for the data described in mASBD
-    @field      mMagicCookieSize 
+    @field      mMagicCookieSize
 					the size in bytes of mMagicCookie
 	@field		mClassDescription
 					an AudioClassDescription specifying the codec to be used in answering the question.
@@ -357,9 +357,9 @@ type
 {!
     @struct		AudioFormatListItem
     @abstract   this struct is used as output from the kAudioFormatProperty_FormatList property
-    @field      mASBD 
+    @field      mASBD
 					an AudioStreamBasicDescription
-    @field      mChannelLayoutTag 
+    @field      mChannelLayoutTag
 					an AudioChannelLayoutTag
 }
 type
@@ -379,9 +379,9 @@ type
     @constant   kAudioFormatProperty_FormatInfo
 					Retrieves general information about a format. The specifier is a
 					magic cookie, or NULL.
-					On input, the property value is an AudioStreamBasicDescription which 
+					On input, the property value is an AudioStreamBasicDescription which
 					should have at least the mFormatID filled out. On output it will be filled out
-					as much as possible given the information known about the format 
+					as much as possible given the information known about the format
 					and the contents of the magic cookie (if any is given).
 					If multiple formats can be described by the AudioStreamBasicDescription and the associated magic cookie,
 					this property will return the base level format.
@@ -392,7 +392,7 @@ type
 					the format is variable bytes per packet.
     @constant   kAudioFormatProperty_FormatIsExternallyFramed
 					Returns whether or not a format requires external framing information,
-					i.e. AudioStreamPacketDescriptions. 
+					i.e. AudioStreamPacketDescriptions.
 					The specifier is an AudioStreamBasicDescription describing
 					the format to ask about. The value is a UInt32 where non-zero means
 					the format is externally framed. Any format which has variable byte sized packets
@@ -402,18 +402,18 @@ type
                     The value is a UInt32 where non-zero means the format is encrypted.
     @constant   kAudioFormatProperty_EncodeFormatIDs
 					No specifier needed. Must be set to NULL.
-					Returns an array of UInt32 format IDs for formats that are valid output formats 
-					for a converter. 
+					Returns an array of UInt32 format IDs for formats that are valid output formats
+					for a converter.
     @constant   kAudioFormatProperty_DecodeFormatIDs
 					No specifier needed. Must be set to NULL.
-					Returns an array of UInt32 format IDs for formats that are valid input formats 
-					for a converter. 
+					Returns an array of UInt32 format IDs for formats that are valid input formats
+					for a converter.
     @constant   kAudioFormatProperty_Encoders
 					The specifier is the format that you are interested in, e.g. 'aac '
-					Returns an array of AudioClassDescriptions for all installed encoders for the given format 
+					Returns an array of AudioClassDescriptions for all installed encoders for the given format
     @constant   kAudioFormatProperty_Decoders
 					The specifier is the format that you are interested in, e.g. 'aac '
-					Returns an array of AudioClassDescriptions for all installed decoders for the given format 
+					Returns an array of AudioClassDescriptions for all installed decoders for the given format
     @constant   kAudioFormatProperty_AvailableEncodeBitRates
 					The specifier is a UInt32 format ID.
 					The property value is an array of AudioValueRange describing all available bit rates.
@@ -421,15 +421,15 @@ type
 					The specifier is a UInt32 format ID.
 					The property value is an array of AudioValueRange describing all available sample rates.
     @constant   kAudioFormatProperty_AvailableEncodeChannelLayoutTags
-					The specifier is an AudioStreamBasicDescription with at least the mFormatID 
+					The specifier is an AudioStreamBasicDescription with at least the mFormatID
 					and mChannelsPerFrame fields set.
 					The property value is an array of AudioChannelLayoutTags for the format and number of
 					channels specified. If mChannelsPerFrame is zero, then all layouts supported by
-					the format are returned.	
+					the format are returned.
     @constant   kAudioFormatProperty_AvailableEncodeNumberChannels
 					The specifier is an AudioStreamBasicDescription with at least the mFormatID field set.
 					The property value is an array of UInt32 indicating the number of channels that can be encoded.
-					A value of 0xFFFFFFFF indicates that any number of channels may be encoded. 
+					A value of 0xFFFFFFFF indicates that any number of channels may be encoded.
     @constant   kAudioFormatProperty_FormatName
 					Returns a name for a given format. The specifier is an
 					AudioStreamBasicDescription describing the format to ask about.
@@ -437,31 +437,31 @@ type
 					returned string. For some formats (eg, Linear PCM) you will get back a
 					descriptive string (e.g. 16-bit, interleaved, etc...)
     @constant   kAudioFormatProperty_ASBDFromESDS
-					Returns an audio stream description for a given ESDS. The specifier is an ESDS. 
-					The value is a AudioStreamBasicDescription. If multiple formats can be described 
+					Returns an audio stream description for a given ESDS. The specifier is an ESDS.
+					The value is a AudioStreamBasicDescription. If multiple formats can be described
 					by the ESDS this property will return the base level format.
     @constant   kAudioFormatProperty_ChannelLayoutFromESDS
 					Returns an audio channel layout for a given ESDS. The specifier is an
 					ESDS. The value is a AudioChannelLayout.
     @constant   kAudioFormatProperty_ASBDFromMPEGPacket
-					Returns an audio stream description for a given MPEG Packet. The specifier is an MPEG Packet. 
-					The value is a AudioStreamBasicDescription.					
+					Returns an audio stream description for a given MPEG Packet. The specifier is an MPEG Packet.
+					The value is a AudioStreamBasicDescription.
     @constant   kAudioFormatProperty_FormatList
 					Returns a list of AudioFormatListItem structs describing the audio formats contained within the compressed bit stream
-					as described by the magic cookie. The specifier is an AudioFormatInfo struct. The mFormatID member of the 
-					ASBD struct must filled in. Formats are returned in order from the most to least 'rich', with 
-					channel count taking the highest precedence followed by sample rate. The kAudioFormatProperty_FormatList property 
+					as described by the magic cookie. The specifier is an AudioFormatInfo struct. The mFormatID member of the
+					ASBD struct must filled in. Formats are returned in order from the most to least 'rich', with
+					channel count taking the highest precedence followed by sample rate. The kAudioFormatProperty_FormatList property
 					is the preferred method for discovering format information of the audio data. If the audio data can only be described
 					by a single AudioFormatListItem, this property would be equivalent to using the kAudioFormatProperty_FormatInfo property,
-					which should be used by the application as a fallback case, to ensure backward compatibility with existing systems 
+					which should be used by the application as a fallback case, to ensure backward compatibility with existing systems
 					when kAudioFormatProperty_FormatList is not present on the running system.
     @constant   kAudioFormatProperty_OutputFormatList
 					Returns a list of AudioFormatListItem structs describing the audio formats which may be obtained by decoding the format
 					described by the specifier.
 					The specifier is an AudioFormatInfo struct. At a minimum formatID member of the ASBD struct must filled in. Other fields
-					may be filled in. If there is no magic cookie, then the number of channels and sample rate should be filled in. 
+					may be filled in. If there is no magic cookie, then the number of channels and sample rate should be filled in.
 	@constant	kAudioFormatProperty_FirstPlayableFormatFromList
-					The specifier is a list of 1 or more AudioFormatListItem. Generally it is the list of these items returned from kAudioFormatProperty_FormatList. The property value retrieved is an UInt32 that specifies an index into that list. The list that the caller provides is generally sorted with the first item as the best format (most number of channels, highest sample rate), and the returned index represents the first item in that list that can be played by the system. 
+					The specifier is a list of 1 or more AudioFormatListItem. Generally it is the list of these items returned from kAudioFormatProperty_FormatList. The property value retrieved is an UInt32 that specifies an index into that list. The list that the caller provides is generally sorted with the first item as the best format (most number of channels, highest sample rate), and the returned index represents the first item in that list that can be played by the system.
 					Thus, the property is typically used to determine the best playable format for a given (layered) audio stream
 	@constant   kAudioFormatProperty_ValidateChannelLayout
 					The specifier is an AudioChannelLayout. The property value and size are not used and must be set to NULL.
@@ -470,12 +470,12 @@ type
 					or kAudioFormatUnknownFormatError for unrecognized layout tags or channel labels.
 	@constant   kAudioFormatProperty_ChannelLayoutForTag
 					Returns the channel descriptions for a standard channel layout.
-					The specifier is a AudioChannelLayoutTag (the mChannelLayoutTag field 
-					of the AudioChannelLayout struct) containing the layout constant. 
+					The specifier is a AudioChannelLayoutTag (the mChannelLayoutTag field
+					of the AudioChannelLayout struct) containing the layout constant.
 					The value is an AudioChannelLayout structure. In typical use a AudioChannelLayout
 					can be valid with just a defined AudioChannelLayoutTag (ie, those layouts
 					have predefined speaker locations and orderings).
-					Returns an error if the tag is kAudioChannelLayoutTag_UseChannelBitmap 
+					Returns an error if the tag is kAudioChannelLayoutTag_UseChannelBitmap
     @constant   kAudioFormatProperty_TagForChannelLayout
 					Returns an AudioChannelLayoutTag for a layout, if there is one.
 					The specifier is an AudioChannelLayout containing the layout description.
@@ -484,16 +484,16 @@ type
 					or kAudioChannelLayoutTag_UseChannelBitmap to a known AudioChannelLayoutTag.
     @constant   kAudioFormatProperty_ChannelLayoutForBitmap
 					Returns the channel descriptions for a standard channel layout.
-					The specifier is a UInt32 (the mChannelBitmap field 
+					The specifier is a UInt32 (the mChannelBitmap field
 					of the AudioChannelLayout struct) containing the layout bitmap. The value
-					is an AudioChannelLayout structure. In some uses, an AudioChannelLayout can be 
+					is an AudioChannelLayout structure. In some uses, an AudioChannelLayout can be
 					valid with the layoutTag set to "use bitmap" and the bitmap set appropriately.
     @constant   kAudioFormatProperty_BitmapForLayoutTag
 					Returns a bitmap for an AudioChannelLayoutTag, if there is one.
 					The specifier is a AudioChannelLayoutTag  containing the layout tag.
 					The value is an UInt32 bitmap. The bits are as defined in CoreAudioTypes.h.
-					To go in the other direction, i.e. get a layout tag for a bitmap, 
-					use kAudioFormatProperty_TagForChannelLayout where your layout tag 
+					To go in the other direction, i.e. get a layout tag for a bitmap,
+					use kAudioFormatProperty_TagForChannelLayout where your layout tag
 					is kAudioChannelLayoutTag_UseChannelBitmap and the bitmap is filled in.
     @constant   kAudioFormatProperty_ChannelLayoutName
 					Returns the a name for a particular channel layout. The specifier is
@@ -501,7 +501,7 @@ type
 					is a CFStringRef. The caller is responsible for releasing the
 					returned string.
     @constant   kAudioFormatProperty_ChannelLayoutSimpleName
-					Returns the a simpler name for a channel layout than does kAudioFormatProperty_ChannelLayoutName. 
+					Returns the a simpler name for a channel layout than does kAudioFormatProperty_ChannelLayoutName.
 					It omits the channel labels from the name. The specifier is
 					an AudioChannelLayout containing the layout description. The value
 					is a CFStringRef. The caller is responsible for releasing the
@@ -517,21 +517,21 @@ type
 					is a CFStringRef. The caller is responsible for releasing the
 					returned string.
     @constant   kAudioFormatProperty_MatrixMixMap
-					Returns a matrix of scaling coefficients for converting audio from one channel map 
+					Returns a matrix of scaling coefficients for converting audio from one channel map
 					to another in a standard way, if one is known. Otherwise an error is returned.
-					The specifier is an array of two pointers to AudioChannelLayout structures. 
+					The specifier is an array of two pointers to AudioChannelLayout structures.
 					The first points to the input layout, the second to the output layout.
-					The value is a two dimensional array of Float32 where the first dimension (rows) 
-					is the input channel and the second dimension (columns) is the output channel. 
+					The value is a two dimensional array of Float32 where the first dimension (rows)
+					is the input channel and the second dimension (columns) is the output channel.
     @constant   kAudioFormatProperty_ChannelMap
 					Returns an array of SInt32 for reordering input channels.
-					The specifier is an array of two pointers to AudioChannelLayout structures. 
+					The specifier is an array of two pointers to AudioChannelLayout structures.
 					The first points to the input layout, the second to the output layout.
 					The length of the output array is equal to the number of output channels.
     @constant   kAudioFormatProperty_NumberOfChannelsForLayout
 					This is a general call for parsing a AudioChannelLayout provided as the specifier,
 					to determine the number of valid channels that are represented. So, if the
-					LayoutTag is specified, it returns the number of channels for that layout. If 
+					LayoutTag is specified, it returns the number of channels for that layout. If
 					the bitmap is specified, it returns the number of channels represented by that bitmap.
 					If the layout tag is 'kAudioChannelLayoutTag_UseChannelDescriptions' it returns
 						the number of channel descriptions.
@@ -540,7 +540,7 @@ type
 					In order to be equivalent, the layouts must describe the same channels in the same order.
 					Whether the layout is represented by a bitmap, channel descriptions or a channel layout tag is not significant.
 					The channel coordinates are only significant if the channel label is kAudioChannelLabel_UseCoordinates.
-					The specifier is an array of two pointers to AudioChannelLayout structures. 
+					The specifier is an array of two pointers to AudioChannelLayout structures.
 					The value is a pointer to the UInt32 result.
     @constant   kAudioFormatProperty_ChannelLayoutHash
 					Returns a UInt32 which represents the hash of the provided channel layout.
@@ -548,13 +548,13 @@ type
 					The value is a pointer to the UInt32 result.
     @constant   kAudioFormatProperty_TagsForNumberOfChannels
 					returns an array of AudioChannelLayoutTags for the number of channels specified.
-					The specifier is a UInt32 number of channels. 
+					The specifier is a UInt32 number of channels.
     @constant   kAudioFormatProperty_PanningMatrix
 					This call will pass in an AudioPanningInfo struct that specifies one of the
 					kPanningMode_ constants for the panning algorithm and an AudioChannelLayout
 					to describe the destination channel layout. As in kAudioFormatProperty_MatrixMixMap
 					the return value is an array of Float32 values of the number of channels
-						represented by this specified channel layout. It is presumed that the source 
+						represented by this specified channel layout. It is presumed that the source
 					being panned is mono (thus for a quad channel layout, 4 Float32 values are returned).
 					The intention of this API is to provide support for panning operations that are
 					strictly manipulating the respective volumes of the channels. Thus, more
@@ -566,18 +566,18 @@ type
 					For stereo formats, vector based panning is equivalent to the equal-power pan mode.
     @constant   kAudioFormatProperty_BalanceFade
 					get an array of coefficients for applying left/right balance and front/back fade.
-					The specifier is an AudioBalanceFade struct. 
+					The specifier is an AudioBalanceFade struct.
 					the return value is an array of Float32 values of the number of channels
-						represented by this specified channel layout.  
+						represented by this specified channel layout.
 					The volume values will typically be presented within a 0->1 range (where 1 is unity gain)
     @constant   kAudioFormatProperty_ID3TagSize
-					Returns a UInt32 indicating the ID3 tag size. 
+					Returns a UInt32 indicating the ID3 tag size.
 					The specifier must begin with the ID3 tag header and be at least 10 bytes in length
     @constant   kAudioFormatProperty_ID3TagToDictionary
 					Returns a CFDictionary containing key/value pairs for the frames in the ID3 tag
 					The specifier is the entire ID3 tag
 					Caller must call CFRelease for the returned dictionary
-					
+
 }
 const
 //=============================================================================
@@ -601,7 +601,7 @@ const
 	kAudioFormatProperty_AvailableEncodeSampleRates = FourCharCode('aesr');
 	kAudioFormatProperty_AvailableEncodeChannelLayoutTags = FourCharCode('aecl');
 	kAudioFormatProperty_AvailableEncodeNumberChannels = FourCharCode('avnc');
-	kAudioFormatProperty_ASBDFromMPEGPacket = FourCharCode('admp'); 
+	kAudioFormatProperty_ASBDFromMPEGPacket = FourCharCode('admp');
 
 
 //=============================================================================
@@ -623,14 +623,14 @@ const
 	kAudioFormatProperty_ChannelShortName = FourCharCode('csnm');
 	kAudioFormatProperty_TagsForNumberOfChannels = FourCharCode('tagc');
 	kAudioFormatProperty_PanningMatrix = FourCharCode('panm');
-	kAudioFormatProperty_BalanceFade = FourCharCode('balf'); 
+	kAudioFormatProperty_BalanceFade = FourCharCode('balf');
 
 //=============================================================================
 //	The following properties concern the ID3 Tags
 //=============================================================================
 
 	kAudioFormatProperty_ID3TagSize = FourCharCode('id3s');
-	kAudioFormatProperty_ID3TagToDictionary = FourCharCode('id3d'); 
+	kAudioFormatProperty_ID3TagToDictionary = FourCharCode('id3d');
 
 
 //=============================================================================

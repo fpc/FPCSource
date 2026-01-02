@@ -47,7 +47,7 @@ end;
 
 Function SysGetLoadErrorStr: AnsiString;
 
-begin  
+begin
   Result:='';
 end;
 

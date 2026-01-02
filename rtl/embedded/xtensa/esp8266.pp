@@ -238,7 +238,7 @@ begin
       pdst^:=0;
       inc(pdst);
     end;
-  
+
   PascalMain;
   Haltproc;
 end;

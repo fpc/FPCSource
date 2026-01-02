@@ -8,7 +8,7 @@ function  cmain(nrarg:longint;pp:PPAnsiChar;env:PPAnsiChar):longint; cdecl; exte
  procedure cmcleanup; cdecl; external name '_mcleanup';
  procedure monstratup(p,p2:pointer); cdecl; external name 'monstartup';
 
-var 
+var
   eprol:longint; external name 'eprol';
   etext:longint; external name 'etext';
 {$endif}
@@ -46,7 +46,7 @@ begin
    asm
     eprol:
    end;
-  {$endif} 
+  {$endif}
   handle_static_init(argc, argv, env);
   libc_exit(cmain(argc,argv,env)); // doesn't return
 end;

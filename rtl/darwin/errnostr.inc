@@ -122,4 +122,4 @@ const
         'llegal byte sequence',                                  { EILSEQ }
         'Attribute not found'                                      { ENOATTR }
 );
- 
+

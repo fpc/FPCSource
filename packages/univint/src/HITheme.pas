@@ -1,17 +1,17 @@
 {
      File:       HIToolbox/HITheme.h
- 
+
      Contains:   HIToolbox HITheme interfaces.
- 
+
      Version:    HIToolbox-624~3
- 
+
      Copyright:  © 1994-2008 by Apple Computer, Inc., all rights reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {       Pascal Translation:  Peter N Lewis, <peter@stairways.com.au>, 2004 }
 {       Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, August 2005 }
@@ -394,11 +394,11 @@ const
 
 {
  *  HIScrollBarTrackInfo
- *  
+ *
  *  Summary:
  *    Drawing parameters passed to scroll bar drawing and measuring
  *    theme APIs.
- *  
+ *
  *  Discussion:
  *    New in Mac OS X 10.3.
  }
@@ -428,11 +428,11 @@ type
 
 {
  *  HIThemeTrackDrawInfo
- *  
+ *
  *  Summary:
  *    Drawing parameters passed to track drawing and measuring theme
  *    APIs.
- *  
+ *
  *  Discussion:
  *    New in Mac OS X 10.3, but based on legacy TrackDrawInfo.
  }
@@ -507,10 +507,10 @@ type
 
 {
  *  HIThemeAnimationTimeInfo
- *  
+ *
  *  Summary:
  *    Time parameters passed to button drawing and measuring theme APIs.
- *  
+ *
  *  Discussion:
  *    New in Mac OS X 10.3.
  }
@@ -519,13 +519,13 @@ type
 {
    * The CFAbsoluteTime of the beginning of the animation of the
    * button.  This only applies to buttons that animate -- currently
-   * only kThemePushButton.  All other buttons will ignore this field. 
+   * only kThemePushButton.  All other buttons will ignore this field.
    * If there is to be no animation, set this field to 0.
    }
 		start: CFAbsoluteTime;
 
   {
-   * The CFAbsoluteTime of the current animation frame of the button. 
+   * The CFAbsoluteTime of the current animation frame of the button.
    * This only applies to buttons that animate -- currently only
    * kThemePushButton.  All other buttons will ignore this field.  If
    * there is to be no animation, set this field to 0.
@@ -536,11 +536,11 @@ type
 
 {
  *  HIThemeAnimationFrameInfo
- *  
+ *
  *  Summary:
  *    Frame parameters passed to button drawing and measuring theme
  *    APIs.
- *  
+ *
  *  Discussion:
  *    New in Mac OS X 10.3.
  }
@@ -557,11 +557,11 @@ type
 
 {
  *  HIThemeButtonDrawInfo
- *  
+ *
  *  Summary:
  *    Drawing parameters passed to button drawing and measuring theme
  *    APIs.
- *  
+ *
  *  Discussion:
  *    New in Mac OS X 10.3.
  }
@@ -604,11 +604,11 @@ type
 
 {
  *  HIThemeSplitterDrawInfo
- *  
+ *
  *  Summary:
  *    Drawing parameters passed to splitter drawing and measuring theme
  *    APIs.
- *  
+ *
  *  Discussion:
  *    New in Mac OS X 10.3.
  }
@@ -730,10 +730,10 @@ type
 
 {
  *  HIThemeTabDrawInfo
- *  
+ *
  *  Summary:
  *    Drawing parameters passed to tab drawing and measuring theme APIs.
- *  
+ *
  *  Discussion:
  *    In Mac OS X 10.4, added kind and position fields.
  }
@@ -780,12 +780,12 @@ type
 
 {
  *  HIThemeTabDrawInfoVersionZero
- *  
+ *
  *  Summary:
  *    This structure is left here as a reference to the previous
  *    version of the tab drawing parameters. Please use the current
  *    version.
- *  
+ *
  *  Discussion:
  *    Shipped with Mac OS X 10.3.
  }
@@ -811,11 +811,11 @@ type
 
 {
  *  HIThemeTabPaneDrawInfo
- *  
+ *
  *  Summary:
  *    Drawing parameters passed to tab pane drawing and measuring theme
  *    APIs.
- *  
+ *
  *  Discussion:
  *    In Mac OS X 10.4, added kind and adornment fields.
  }
@@ -857,12 +857,12 @@ type
 
 {
  *  HIThemeTabPaneDrawInfoVersionZero
- *  
+ *
  *  Summary:
  *    This structure is left here as a reference to the previous
  *    version of the tab pane drawing parameters. Please use the
  *    current version.
- *  
+ *
  *  Discussion:
  *    Shipped with Mac OS X 10.3.
  }
@@ -891,11 +891,11 @@ const
 
 {
  *  HIThemeMenuDrawInfo
- *  
+ *
  *  Summary:
  *    Drawing parameters passed to menu drawing and measuring theme
  *    APIs.
- *  
+ *
  *  Discussion:
  *    New in Mac OS X 10.3; revised in Mac OS X 10.5.
  }
@@ -943,11 +943,11 @@ type
 
 {
  *  HIThemeMenuDrawInfoVersionZero
- *  
+ *
  *  Summary:
  *    Drawing parameters passed to menu drawing and measuring theme
  *    APIs.
- *  
+ *
  *  Discussion:
  *    New in Mac OS X 10.3.
  }
@@ -967,11 +967,11 @@ type
 
 {
  *  HIThemeMenuItemDrawInfo
- *  
+ *
  *  Summary:
  *    Drawing parameters passed to menu item drawing and measuring
  *    theme APIs.
- *  
+ *
  *  Discussion:
  *    New in Mac OS X 10.3.
  }
@@ -997,11 +997,11 @@ type
 
 {
  *  HIThemeFrameDrawInfo
- *  
+ *
  *  Summary:
  *    Drawing parameters passed to frame drawing and measuring theme
  *    APIs.
- *  
+ *
  *  Discussion:
  *    New in Mac OS X 10.3.
  }
@@ -1032,11 +1032,11 @@ type
 
 {
  *  HIThemeGroupBoxDrawInfo
- *  
+ *
  *  Summary:
  *    Drawing parameters passed to group box drawing and measuring
  *    theme APIs.
- *  
+ *
  *  Discussion:
  *    New in Mac OS X 10.3.
  }
@@ -1062,11 +1062,11 @@ type
 
 {
  *  HIThemeGrabberDrawInfo
- *  
+ *
  *  Summary:
  *    Drawing parameters passed to grabber drawing and measuring theme
  *    APIs.
- *  
+ *
  *  Discussion:
  *    New in Mac OS X 10.3.
  }
@@ -1086,11 +1086,11 @@ type
 
 {
  *  HIThemePlacardDrawInfo
- *  
+ *
  *  Summary:
  *    Drawing parameters passed to placard drawing and measuring theme
  *    APIs.
- *  
+ *
  *  Discussion:
  *    New in Mac OS X 10.3.
  }
@@ -1110,11 +1110,11 @@ type
 
 {
  *  HIThemeHeaderDrawInfo
- *  
+ *
  *  Summary:
  *    Drawing parameters passed to header drawing and measuring theme
  *    APIs.
- *  
+ *
  *  Discussion:
  *    New in Mac OS X 10.3.
  }
@@ -1139,10 +1139,10 @@ type
 
 {
  *  HIThemeMenuBarDrawInfo
- *  
+ *
  *  Summary:
  *    Drawing parameters passed to HIThemeDrawMenuBarBackground.
- *  
+ *
  *  Discussion:
  *    New in Mac OS X 10.3.
  }
@@ -1167,10 +1167,10 @@ type
 
 {
  *  HIThemeMenuTitleDrawInfo
- *  
+ *
  *  Summary:
  *    Drawing parameters passed to HIThemeDrawMenuTitle.
- *  
+ *
  *  Discussion:
  *    New in Mac OS X 10.3.
  }
@@ -1208,11 +1208,11 @@ type
 
 {
  *  HIThemeTickMarkDrawInfo
- *  
+ *
  *  Summary:
  *    Drawing parameters passed to tick mark drawing and measuring
  *    theme APIs.
- *  
+ *
  *  Discussion:
  *    New in Mac OS X 10.3.
  }
@@ -1232,11 +1232,11 @@ type
 
 {
  *  HIThemeWindowDrawInfo
- *  
+ *
  *  Summary:
  *    Drawing parameters passed to window drawing and measuring theme
  *    APIs.
- *  
+ *
  *  Discussion:
  *    New in Mac OS X 10.3, but based on legacy ThemeWindowMetrics.
  }
@@ -1277,11 +1277,11 @@ type
 
 {
  *  HIThemeWindowWidgetDrawInfo
- *  
+ *
  *  Summary:
  *    Drawing parameters passed to window widget drawing and measuring
  *    theme APIs.
- *  
+ *
  *  Discussion:
  *    New in Mac OS X 10.3, but based on legacy ThemeWindowMetrics.
  }
@@ -1334,11 +1334,11 @@ type
 
 {
  *  HIThemeSeparatorDrawInfo
- *  
+ *
  *  Summary:
  *    Drawing parameters passed to separator drawing and measuring
  *    theme APIs.
- *  
+ *
  *  Discussion:
  *    New in Mac OS X 10.3.
  }
@@ -1358,11 +1358,11 @@ type
 
 {
  *  HIThemeScrollBarDelimitersDrawInfo
- *  
+ *
  *  Summary:
  *    Drawing parameters passed to separator drawing and measuring
  *    theme APIs.
- *  
+ *
  *  Discussion:
  *    New in Mac OS X 10.3.
  }
@@ -1394,11 +1394,11 @@ type
 
 {
  *  HIThemeChasingArrowsDrawInfo
- *  
+ *
  *  Summary:
  *    Drawing parameters passed to chasing arrows drawing and measuring
  *    theme APIs.
- *  
+ *
  *  Discussion:
  *    New in Mac OS X 10.3.
  }
@@ -1424,11 +1424,11 @@ type
 
 {
  *  HIThemePopupArrowDrawInfo
- *  
+ *
  *  Summary:
  *    Drawing parameters passed to popup arrow drawing and measuring
  *    theme APIs.
- *  
+ *
  *  Discussion:
  *    New in Mac OS X 10.3.
  }
@@ -1459,11 +1459,11 @@ type
 
 {
  *  HIThemeGrowBoxDrawInfo
- *  
+ *
  *  Summary:
  *    Drawing parameters passed to grow box drawing and measuring theme
  *    APIs.
- *  
+ *
  *  Discussion:
  *    New in Mac OS X 10.3.
  }
@@ -1499,7 +1499,7 @@ type
 
 {
  *  HIThemeBackgroundDrawInfo
- *  
+ *
  *  Discussion:
  *    New in Mac OS X 10.3, but based on legacy TrackDrawInfo.
  }
@@ -1526,39 +1526,39 @@ type
 { -------------------------------------------------------------------------- }
 {
  *  HIThemeDrawButton()
- *  
+ *
  *  Summary:
  *    Draw a themed button.
- *  
+ *
  *  Discussion:
  *    This generic button drawing theme primitive draws not just a push
  *    button, but all of the kinds of buttons described by
  *    ThemeButtonKind.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inBounds:
  *      The HIRect in which to draw.  Note that this API may draw
  *      outside of its bounds.
- *    
+ *
  *    inDrawInfo:
  *      An HIThemeButtonDrawInfo describing the button that will be
  *      drawn.
- *    
+ *
  *    inContext:
  *      The CG context in which the drawing is to be done.
- *    
+ *
  *    inOrientation:
  *      An HIThemeOrientation that describes the orientation of the
  *      passed in context.
- *    
+ *
  *    outLabelRect:
  *      A pointer to an HIRect into which to put the bounds of the
  *      label rect.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -1570,32 +1570,32 @@ function HIThemeDrawButton( const (*var*) inBounds: HIRect; const (*var*) inDraw
 
 {
  *  HIThemeGetButtonShape()
- *  
+ *
  *  Summary:
  *    Get a shape of a themed button.
- *  
+ *
  *  Discussion:
  *    This API was mistakenly named as a "Get" API. It behaves as
  *    "Copy" API. THE CALLER IS RESPONSIBLE FOR RELEASING THE RETURNED
  *    SHAPE.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inBounds:
  *      An HIRect indicating where the button would be drawn.
- *    
+ *
  *    inDrawInfo:
  *      An HIThemeButtonDrawInfo describing the button that would be
  *      drawn.
- *    
+ *
  *    outShape:
  *      A pointer to an HIShapeRef which will be set to the shape of
  *      the button that would be drawn. It needs to be released by the
  *      caller.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -1607,26 +1607,26 @@ function HIThemeGetButtonShape( const (*var*) inBounds: HIRect; const (*var*) in
 
 {
  *  HIThemeGetButtonContentBounds()
- *  
+ *
  *  Summary:
  *    Get the bounds of a themed button's content.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inBounds:
  *      An HIRect indicating where the button would be drawn.
- *    
+ *
  *    inDrawInfo:
  *      An HIThemeButtonDrawInfo describing the button that would be
  *      drawn.
- *    
+ *
  *    outBounds:
  *      A pointer to an HIRect in which will be returned the rectangle
  *      of the button content bounds.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -1638,26 +1638,26 @@ function HIThemeGetButtonContentBounds( const (*var*) inBounds: HIRect; const (*
 
 {
  *  HIThemeGetButtonBackgroundBounds()
- *  
+ *
  *  Summary:
  *    Get the bounds of the background of a themed button.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inBounds:
  *      An HIRect indicating where the button would be drawn.
- *    
+ *
  *    inDrawInfo:
  *      An HIThemeButtonDrawInfo describing the button that would be
  *      drawn.
- *    
+ *
  *    outBounds:
  *      A pointer to an HIRect in which will be returned the rectangle
  *      of the button background bounds.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -1669,33 +1669,33 @@ function HIThemeGetButtonBackgroundBounds( const (*var*) inBounds: HIRect; const
 
 {
  *  HIThemeDrawChasingArrows()
- *  
+ *
  *  Summary:
  *    Draw themed chasing arrows.
- *  
+ *
  *  Discussion:
  *    Draw a frame from the chasing arrows animation.  The animation
  *    frame is based on a modulo value calculated from the index.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inBounds:
  *      An HIRect indicating where the chasing arrows are to be drawn.
- *    
+ *
  *    inDrawInfo:
  *      An HIThemeChasingArrowsDrawInfo describing the chasing arrows
  *      to be drawn or measured.
- *    
+ *
  *    inContext:
  *      The CG context in which the drawing is to be done.
- *    
+ *
  *    inOrientation:
  *      An HIThemeOrientation that describes the orientation of the
  *      passed in context.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -1707,29 +1707,29 @@ function HIThemeDrawChasingArrows( const (*var*) inBounds: HIRect; const (*var*)
 
 {
  *  HIThemeDrawPopupArrow()
- *  
+ *
  *  Summary:
  *    Draws a themed popup arrow.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inBounds:
  *      The HIRect in which to draw.
- *    
+ *
  *    inDrawInfo:
  *      An HIThemePopupArrowDrawInfo describing the popup arrow to be
  *      drawn or measured.
- *    
+ *
  *    inContext:
  *      The CG context in which the drawing is to be done.
- *    
+ *
  *    inOrientation:
  *      An HIThemeOrientation that describes the orientation of the
  *      passed in context.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -1744,28 +1744,28 @@ function HIThemeDrawPopupArrow( const (*var*) inBounds: HIRect; const (*var*) in
 { -------------------------------------------------------------------------- }
 {
  *  HIThemeDrawMenuBarBackground()
- *  
+ *
  *  Summary:
  *    Draws the menu bar background for a given area.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inBounds:
  *      The HIRect in which to draw.
- *    
+ *
  *    inDrawInfo:
  *      The HIThemeMenuBarDrawInfo of the menu bar to be drawn.
- *    
+ *
  *    inContext:
  *      The CG context in which the drawing is to be done.
- *    
+ *
  *    inOrientation:
  *      An HIThemeOrientation that describes the orientation of the
  *      passed in context.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -1777,10 +1777,10 @@ function HIThemeDrawMenuBarBackground( const (*var*) inBounds: HIRect; const (*v
 
 {
  *  HIThemeDrawMenuTitle()
- *  
+ *
  *  Summary:
  *    Draws the menu title background for a menu.
- *  
+ *
  *  Discussion:
  *    This API draws the background of a menu title. It does not draw
  *    the menu title text; it is the caller's responsibility to draw
@@ -1788,33 +1788,33 @@ function HIThemeDrawMenuBarBackground( const (*var*) inBounds: HIRect; const (*v
  *    into the bounds returned in the outLabelRect parameter; the
  *    caller should ensure that the text is not drawn outside of those
  *    bounds, either by truncating or clipping the text.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inMenuBarRect:
  *      An HIRect indicating the bounds of the whole menu bar for which
  *      the menu title is to be drawn.
- *    
+ *
  *    inTitleRect:
  *      An HIRect for the bounds of the menu title to be drawn.
- *    
+ *
  *    inDrawInfo:
  *      The HIThemeMenuTitleDrawInfo of the menu title to be drawn.
- *    
+ *
  *    inContext:
  *      The CG context in which the drawing is to be done.
- *    
+ *
  *    inOrientation:
  *      An HIThemeOrientation that describes the orientation of the
  *      passed in context.
- *    
+ *
  *    outLabelRect:
  *      On exit, contains the bounds in which the menu title text
  *      should be drawn. May be NULL if you don't need this information.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -1826,30 +1826,30 @@ function HIThemeDrawMenuTitle( const (*var*) inMenuBarRect: HIRect; const (*var*
 
 {
  *  HIThemeDrawMenuBackground()
- *  
+ *
  *  Summary:
  *    Draws the theme menu background in a rectangle.  This API may
  *    draw outside of the specified rectangle.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inMenuRect:
  *      An HIRect indicating the bounds of the whole menu for which the
  *      background is to be drawn.
- *    
+ *
  *    inMenuDrawInfo:
  *      An HIThemeMenuDrawInfo describing the menu to be drawn.
- *    
+ *
  *    inContext:
  *      The CG context in which the drawing is to be done.
- *    
+ *
  *    inOrientation:
  *      An HIThemeOrientation that describes the orientation of the
  *      passed in context.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -1861,37 +1861,37 @@ function HIThemeDrawMenuBackground( const (*var*) inMenuRect: HIRect; const (*va
 
 {
  *  HIThemeDrawMenuItem()
- *  
+ *
  *  Summary:
  *    Draws a themed menu item.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inMenuRect:
  *      An HIRect indicating the bounds of the whole menu for which the
  *      menu item is to be drawn.
- *    
+ *
  *    inItemRect:
  *      An HIRect for the bounds of the menu item to be drawn.
- *    
+ *
  *    inItemDrawInfo:
  *      An HIThemeMenuItemDrawInfo describing the drawing
  *      characteristics of the menu item to be drawn.
- *    
+ *
  *    inContext:
  *      The CG context in which the drawing is to be done.
- *    
+ *
  *    inOrientation:
  *      An HIThemeOrientation that describes the orientation of the
  *      passed in context.
- *    
+ *
  *    outContentRect:
  *      An HIRect that will be filled with the rectangle describing
  *      where the menu item content is to be drawn.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -1903,33 +1903,33 @@ function HIThemeDrawMenuItem( const (*var*) inMenuRect: HIRect; const (*var*) in
 
 {
  *  HIThemeDrawMenuSeparator()
- *  
+ *
  *  Summary:
  *    Draws a themed menu separator.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inMenuRect:
  *      An HIRect indicating the bounds of the whole menu for which the
  *      menu separator is to be drawn.
- *    
+ *
  *    inItemRect:
  *      An HIRect for the bounds of the menu separator to be drawn.
- *    
+ *
  *    inItemDrawInfo:
  *      An HIThemeMenuItemDrawInfo describing the drawing
  *      characteristics of the menu item to be drawn.
- *    
+ *
  *    inContext:
  *      The CG context in which the drawing is to be done.
- *    
+ *
  *    inOrientation:
  *      An HIThemeOrientation that describes the orientation of the
  *      passed in context.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -1941,30 +1941,30 @@ function HIThemeDrawMenuSeparator( const (*var*) inMenuRect: HIRect; const (*var
 
 {
  *  HIThemeGetMenuBackgroundShape()
- *  
+ *
  *  Summary:
  *    Gets the shape of the background for a themed menu.
- *  
+ *
  *  Discussion:
  *    This shape can extend outside of the bounds of the specified
  *    rectangle.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inMenuRect:
  *      An HIRect indicating the bounds of the menu for which the menu
  *      background is to be retrieved.
- *    
+ *
  *    inMenuDrawInfo:
  *      An HIThemeMenuDrawInfo describing the menu to be measured.
- *    
+ *
  *    outShape:
  *      A valid HIShape that will be cleared and filled with the shape
  *      of the menu background. It needs to be released by the caller.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -2089,11 +2089,11 @@ type
 
 {
  *  HIThemeSegmentDrawInfo
- *  
+ *
  *  Summary:
  *    Drawing parameters passed to segment drawing and measuring theme
  *    APIs.
- *  
+ *
  *  Discussion:
  *    New in Mac OS X 10.4.
  }
@@ -2133,35 +2133,35 @@ type
 	HIThemeSegmentDrawInfoPtr = ^HIThemeSegmentDrawInfo;
 {
  *  HIThemeDrawSegment()
- *  
+ *
  *  Summary:
  *    Draw a piece of a segmented view.
- *  
+ *
  *  Discussion:
  *    New in Mac OS X 10.4. Please note that segments can draw a
  *    separator outside of the specified bounds and the adornments of
  *    the individual segments must coordinate their drawing of
  *    separators (with the adornment field of the passed in
  *    HIThemeSegmentDrawInfo) to avoid overdrawing.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inBounds:
  *      The bounds of the segment to be drawn.
- *    
+ *
  *    inDrawInfo:
  *      A HIThemeSegmentDrawInfo describing the segment to be drawn.
- *    
+ *
  *    inContext:
  *      The CG context in which the drawing is to be done.
- *    
+ *
  *    inOrientation:
  *      An HIThemeOrientation that describes the orientation of the
  *      passed in context.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in Carbon.framework
  *    CarbonLib:        not available in CarbonLib 1.x
@@ -2176,28 +2176,28 @@ function HIThemeDrawSegment( const (*var*) inBounds: HIRect; const (*var*) inDra
 { -------------------------------------------------------------------------- }
 {
  *  HIThemeDrawTabPane()
- *  
+ *
  *  Summary:
  *    Draws a themed tab pane.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inRect:
  *      The HIRect in which to draw the pane.
- *    
+ *
  *    inDrawInfo:
  *      The HIThemeTabPaneDrawInfo of the tab pane to be drawn.
- *    
+ *
  *    inContext:
  *      The CG context in which the drawing is to be done.
- *    
+ *
  *    inOrientation:
  *      An HIThemeOrientation that describes the orientation of the
  *      passed in context.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -2209,31 +2209,31 @@ function HIThemeDrawTabPane( const (*var*) inRect: HIRect; const (*var*) inDrawI
 
 {
  *  HIThemeDrawTab()
- *  
+ *
  *  Summary:
  *    Draw a themed tab.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inRect:
  *      The HIRect in which to draw.
- *    
+ *
  *    inDrawInfo:
  *      An HIThemeTabDrawInfo describing the tab to be drawn.
- *    
+ *
  *    inContext:
  *      The CG context in which the drawing is to be done.
- *    
+ *
  *    inOrientation:
  *      An HIThemeOrientation that describes the orientation of the
  *      passed in context.
- *    
+ *
  *    outLabelRect:
  *      An HIRect into which to put the bounds of the label rect.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -2245,37 +2245,37 @@ function HIThemeDrawTab( const (*var*) inRect: HIRect; const (*var*) inDrawInfo:
 
 {
  *  HIThemeGetTabPaneDrawShape()
- *  
+ *
  *  Summary:
  *    Gets the shape of the draw area relative to the full bounds of
  *    the tab+pane.
- *  
+ *
  *  Discussion:
  *    This API was mistakenly named as a "Get" API. It behaves as
  *    "Copy" API. THE CALLER IS RESPONSIBLE FOR RELEASING THE RETURNED
  *    SHAPE.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inRect:
  *      An HIRect indicating the entire tabs area for which the tab
  *      pane shape is to be retrieved.
- *    
+ *
  *    inDirection:
  *      A ThemeTabDirection describing on which side of the pane the
  *      tabs would be drawn.
- *    
+ *
  *    inTabSize:
  *      An HIThemeTabSize indicating the size of tab pane that would be
  *      drawn.
- *    
+ *
  *    outShape:
  *      A pointer to an HIShapeRef which will be set to the shape of
  *      the draw area. It needs to be released by the caller.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -2287,37 +2287,37 @@ function HIThemeGetTabPaneDrawShape( const (*var*) inRect: HIRect; inDirection: 
 
 {
  *  HIThemeGetTabPaneContentShape()
- *  
+ *
  *  Summary:
  *    Gets the shape of the content area relative to the full bounds of
  *    the tab+pane.
- *  
+ *
  *  Discussion:
  *    This API was mistakenly named as a "Get" API. It behaves as
  *    "Copy" API. THE CALLER IS RESPONSIBLE FOR RELEASING THE RETURNED
  *    SHAPE.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inRect:
  *      An HIRect indicating the entire tabs area for which the tab
  *      content shape is to be retrieved.
- *    
+ *
  *    inDirection:
  *      A ThemeTabDirection describing on which side of the pane the
  *      tabs would be drawn.
- *    
+ *
  *    inTabSize:
  *      An HIThemeTabSize indicating what size of tab pane that would
  *      be drawn.
- *    
+ *
  *    outShape:
  *      A pointer to an HIShapeRef which will be set to the shape of
  *      the draw content. It needs to be released by the caller.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -2329,32 +2329,32 @@ function HIThemeGetTabPaneContentShape( const (*var*) inRect: HIRect; inDirectio
 
 {
  *  HIThemeGetTabDrawShape()
- *  
+ *
  *  Summary:
  *    Gets the shape of the tab drawing area relative to the full
  *    bounds of the tab+pane.
- *  
+ *
  *  Discussion:
  *    This API was mistakenly named as a "Get" API. It behaves as
  *    "Copy" API. THE CALLER IS RESPONSIBLE FOR RELEASING THE RETURNED
  *    SHAPE.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inRect:
  *      An HIRect indicating the entire tab+pane area for which the tab
  *      shape is to be retrieved.
- *    
+ *
  *    inDrawInfo:
  *      An HIThemeTabDrawInfo describing the tab that would be drawn.
- *    
+ *
  *    outShape:
  *      A pointer to an HIShapeRef which will be set to the shape of
  *      the tab drawing area. It needs to be released by the caller.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -2366,31 +2366,31 @@ function HIThemeGetTabDrawShape( const (*var*) inRect: HIRect; const (*var*) inD
 
 {
  *  HIThemeGetTabShape()
- *  
+ *
  *  Summary:
  *    Gets the shape for a themed tab.
- *  
+ *
  *  Discussion:
  *    This API was mistakenly named as a "Get" API. It behaves as
  *    "Copy" API. THE CALLER IS RESPONSIBLE FOR RELEASING THE RETURNED
  *    SHAPE.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inRect:
  *      An HIRect indicating the entire tabs area for which the tab
  *      shape is to be retrieved.
- *    
+ *
  *    inDrawInfo:
  *      An HIThemeTabDrawInfo describing the tab that would be drawn.
- *    
+ *
  *    outShape:
  *      A pointer to an HIShapeRef which will be set to the shape of
  *      the tab. It needs to be released by the caller.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -2518,11 +2518,11 @@ const
 
 {
  *  HIThemeTextInfo
- *  
+ *
  *  Summary:
  *    Drawing parameters passed to text drawing and measuring theme
  *    APIs.
- *  
+ *
  *  Discussion:
  *    New in Mac OS X 10.3, this structure is used for measuring and
  *    drawing text with the HIThemeGetTextDimensions and
@@ -2606,31 +2606,31 @@ type
 	HIThemeTextInfoPtr = ^HIThemeTextInfo;
 {
  *  HIThemeGetTextDimensions()
- *  
+ *
  *  Summary:
  *    Get text dimensions of a string
- *  
+ *
  *  Discussion:
  *    This allows you to get various dimension characteristics of a
  *    string bound to certain criteria that you specify. It allows you
  *    to get the absolute bounds of a string laid out in a single line,
  *    or the bounds of a string constrained to a given width.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inString:
  *      A CFStringRef containing the unicode characters you wish to
  *      measure. You MUST NOT pass in a CFStringRef that was allocated
  *      with any of the "NoCopy" CFString creation APIs; a string
  *      created with a "NoCopy" API has transient storage which is
- *      incompatible with HIThemeGetTextDimensions's caches. 
- *      
+ *      incompatible with HIThemeGetTextDimensions's caches.
+ *
  *      In Mac OS X 10.5 and later, this API may also be passed a
  *      CFAttributedStringRef.
- *    
+ *
  *    inWidth:
  *      The width to constrain the text before wrapping. If inWidth is
  *      0, the text will not wrap and will be laid out as a single
@@ -2639,33 +2639,33 @@ type
  *      measurements will include space for multiple lines of text. If
  *      inWidth is not 0, the text will wrap at the given width and the
  *      measurements will be returned from the multi-line layout.
- *      
- *      
+ *
+ *
  *      To force single-line layout even in the presence of embedded
  *      CR/LF characters, pass FLT_MAX for inWidth,
  *      kHIThemeTextTruncationEnd for inTextInfo.truncationPosition,
  *      and 1 for inTextInfo.truncationMaxLines.
- *    
+ *
  *    inTextInfo:
  *      The HIThemeTextInfo parameter block specifying additional
  *      options for flushness and truncation. The truncationHappened
  *      field is the only field that will be written to by this API
  *      (and the reason for inTextInfo not being const).
- *    
+ *
  *    outWidth:
  *      On output, will contain the width of the string. This width may
  *      be smaller than the constrain inWidth parameter if the text has
  *      wrapped. It will return the true bounding width of the layout.
  *      Can be NULL.
- *    
+ *
  *    outHeight:
  *      On output, will contain the height of the string. Can be NULL.
- *    
+ *
  *    outBaseline:
  *      On output, will contain the baseline of the string. This is the
  *      delta from the top of the text to the baseline of the first
  *      line. Can be NULL.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -2677,33 +2677,33 @@ function HIThemeGetTextDimensions( inString: CFStringRef; inWidth: CGFloat; var 
 
 {
  *  HIThemeDrawTextBox()
- *  
+ *
  *  Summary:
  *    Draw the string into the given bounding box
- *  
+ *
  *  Discussion:
  *    Draw the string into the bounding box given. You can specify
  *    options such as truncation and justification as well as
  *    determining whether the text was truncated when it was drawn.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inString:
  *      A CFStringRef containing the unicode characters you wish to
  *      render. You MUST NOT pass in a CFStringRef that was allocated
  *      with any of the "NoCopy" CFString creation APIs; a string
  *      created with a "NoCopy" API has transient storage which is
- *      incompatible with HIThemeDrawTextBox's caches. 
- *      
+ *      incompatible with HIThemeDrawTextBox's caches.
+ *
  *      In Mac OS X 10.5 and later, this API may also be passed a
  *      CFAttributedStringRef.
- *    
+ *
  *    inBounds:
  *      The HIRect that bounds where the text is to be drawn
- *    
+ *
  *    inTextInfo:
  *      The HIThemeTextInfo parameter block specifying additional
  *      options for truncation and flushness. You can control the
@@ -2714,14 +2714,14 @@ function HIThemeGetTextDimensions( inString: CFStringRef; inWidth: CGFloat; var 
  *      truncationMaxLines field. The truncationHappened field is the
  *      only field that will be written to by this API (and the reason
  *      for inTextInfo not being const).
- *    
+ *
  *    inContext:
  *      The CGContextRef into which to draw the text.
- *    
+ *
  *    inOrientation:
  *      An HIThemeOrientation that describes the orientation of the
  *      passed in context.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -2733,31 +2733,31 @@ function HIThemeDrawTextBox( inString: CFStringRef; const (*var*) inBounds: HIRe
 
 {
  *  HIThemeGetUIFontType()
- *  
+ *
  *  Summary:
  *    Returns the CTFontUIFontType for a ThemeFontID
- *  
+ *
  *  Discussion:
  *    It is possible to create a CTFontRef that represents a
  *    ThemeFontID by using this API in conjunction with
- *    CTFontCreateUIFontForLanguage. 
- *    
- *    Suggested usage: 
+ *    CTFontCreateUIFontForLanguage.
+ *
+ *    Suggested usage:
  *    CTFontRef font = CTFontCreateUIFontForLanguage(
  *    HIThemeGetUIFontType( inFontID ), 0, NULL );
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inFontID:
  *      The ThemeFontID to map to a CTFontUIFontType.
- *  
+ *
  *  Result:
  *    The CTFontUIFontType that represents the ThemeFontID or
  *    kCTFontNoFontType if there is an error.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -2772,34 +2772,34 @@ function HIThemeGetUIFontType( inFontID: ThemeFontID ): CTFontUIFontType; extern
 { -------------------------------------------------------------------------- }
 {
  *  HIThemeDrawTrack()
- *  
+ *
  *  Summary:
  *    Draw a themed track item.
- *  
+ *
  *  Discussion:
  *    Used to draw any tracked element including sliders and scroll
  *    bars.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inDrawInfo:
  *      An HIThemeTrackDrawInfo describing the track that will be drawn.
- *    
+ *
  *    inGhostRect:
  *      An HIRect describing the location of the ghost indicator to be
  *      drawn. Generally, this should be NULL and the control using
- *      this primitive should support live feeback.
- *    
+ *      this primitive should support live feedback.
+ *
  *    inContext:
  *      The CG context in which the drawing is to be done.
- *    
+ *
  *    inOrientation:
  *      An HIThemeOrientation that describes the orientation of the
  *      passed in context.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -2811,35 +2811,35 @@ function HIThemeDrawTrack( const (*var*) inDrawInfo: HIThemeTrackDrawInfo; {cons
 
 {
  *  HIThemeDrawTrackTickMarks()
- *  
+ *
  *  Summary:
  *    Draws the tick marks for a slider track.
- *  
+ *
  *  Discussion:
- *    This primitive only draws evenly distributed tick marks. 
+ *    This primitive only draws evenly distributed tick marks.
  *    Internally, it calls HIThemeDrawTickMark to do the actual tick
  *    mark drawing, and any custom (non-even distribution) drawing of
  *    tick marks should be done with HIThemeDrawTickMark.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inDrawInfo:
  *      An HIThemeTrackDrawInfo describing the track tick marks that
  *      will be drawn.
- *    
+ *
  *    inNumTicks:
  *      A value indicating the number of tick marks to be drawn.
- *    
+ *
  *    inContext:
  *      The CG context in which the drawing is to be done.
- *    
+ *
  *    inOrientation:
  *      An HIThemeOrientation that describes the orientation of the
  *      passed in context.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -2851,34 +2851,34 @@ function HIThemeDrawTrackTickMarks( const (*var*) inDrawInfo: HIThemeTrackDrawIn
 
 {
  *  HIThemeDrawTickMark()
- *  
+ *
  *  Summary:
  *    Draws a single tick mark.
- *  
+ *
  *  Discussion:
  *    This primitive draws a single tick mark and can be used to draw
  *    custom tick marks that are not easily drawn by
  *    HIThemeDrawTrackTickMarks, which only draws evenly distributed
  *    tick marks.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inBounds:
  *      The HIRect in which to draw.
- *    
+ *
  *    inDrawInfo:
  *      The HIThemeTickMarkDrawInfo of the tick mark to be drawn.
- *    
+ *
  *    inContext:
  *      The CG context in which the drawing is to be done.
- *    
+ *
  *    inOrientation:
  *      An HIThemeOrientation that describes the orientation of the
  *      passed in context.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -2890,27 +2890,27 @@ function HIThemeDrawTickMark( const (*var*) inBounds: HIRect; const (*var*) inDr
 
 {
  *  HIThemeGetTrackThumbShape()
- *  
+ *
  *  Summary:
  *    Get the thumb shape of a themed track.
- *  
+ *
  *  Discussion:
  *    This API was mistakenly named as a "Get" API. It behaves as
  *    "Copy" API. THE CALLER IS RESPONSIBLE FOR RELEASING THE RETURNED
  *    SHAPE.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inDrawInfo:
  *      An HIThemeTrackDrawInfo describing the track to be measured.
- *    
+ *
  *    outThumbShape:
  *      A pointer to an HIShapeRef which will be set to the shape of
  *      the themed track's thumb. It needs to be released by the caller.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -2922,29 +2922,29 @@ function HIThemeGetTrackThumbShape( const (*var*) inDrawInfo: HIThemeTrackDrawIn
 
 {
  *  HIThemeHitTestTrack()
- *  
+ *
  *  Summary:
  *    Hit test the themed track.
- *  
+ *
  *  Discussion:
- *    Returns true if the track was hit and fills in outPartHit. 
+ *    Returns true if the track was hit and fills in outPartHit.
  *    Otherwise, returns false.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inDrawInfo:
  *      An HIThemeTabDrawInfo describing the tab that will be drawn.
- *    
+ *
  *    inMousePoint:
  *      An HIPoint which will be location basis for the test.
- *    
+ *
  *    outPartHit:
  *      A pointer to a ControlPartCode that will be filled with the
  *      part hit by the incoming point.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -2956,22 +2956,22 @@ function HIThemeHitTestTrack( const (*var*) inDrawInfo: HIThemeTrackDrawInfo; co
 
 {
  *  HIThemeGetTrackBounds()
- *  
+ *
  *  Summary:
  *    Gets the track bounds of a themed track.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inDrawInfo:
  *      An HIThemeTrackDrawInfo describing the track that will be drawn.
- *    
+ *
  *    outBounds:
  *      A pointer to an HIRect in which will be returned the rectangle
  *      of the track bounds.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -2983,33 +2983,33 @@ function HIThemeGetTrackBounds( const (*var*) inDrawInfo: HIThemeTrackDrawInfo; 
 
 {
  *  HIThemeGetTrackPartBounds()
- *  
+ *
  *  Summary:
  *    Returns measurements for the bounds of the a track part,
  *    according to the specifics of that track as specified in the
  *    incoming draw info record.
- *  
+ *
  *  Discussion:
  *    HIThemeGetTrackPartBounds allows you to get the boundaries of
  *    individual pieces of a track's theme layout.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inDrawInfo:
  *      An HIThemeTrackDrawInfo describing the track to be measured.
- *    
+ *
  *    inPartCode:
  *      A ControlPartCode describing which part to measure.  A list of
  *      available ControlPartCodes can be retrieved using
  *      HIThemeGetTrackParts.
- *    
+ *
  *    outPartBounds:
  *      The bounds of the specified part relative to the start
  *      rectangle specified in inDrawInfo.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -3021,40 +3021,40 @@ function HIThemeGetTrackPartBounds( const (*var*) inDrawInfo: HIThemeTrackDrawIn
 
 {
  *  HIThemeGetTrackParts()
- *  
+ *
  *  Summary:
  *    Counts the number of parts that make up a track.  Optionally
  *    returns an array of ControlPartCodes that describe each of the
  *    counted parts.
- *  
+ *
  *  Discussion:
  *    HIThemeGetTrackParts allows you to count the number of parts that
  *    make up a track.  This is useful if you need to iterate through
  *    the parts of a track and get information about them, i.e. using
  *    HIThemeGetTrackPartBounds.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inDrawInfo:
  *      An HIThemeTrackDrawInfo describing the track to be measured.
- *    
+ *
  *    outNumberOfParts:
  *      A pointer to a UInt32 in which to return the number of counted
  *      parts.
- *    
+ *
  *    inMaxParts:
  *      The maximum number of ControlPartCodes that can be copied into
  *      the supplied ioPartsBuffer.  This value is ignored if
  *      ioPartsBuffer is NULL.
- *    
+ *
  *    ioPartsBuffer:
  *      An pointer to an array into which HIThemeGetTrackPartBounds
  *      will copy ControlPartCodes that describe each of the counted
  *      parts.  This pointer can be NULL if you are just counting parts.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -3066,22 +3066,22 @@ function HIThemeGetTrackParts( const (*var*) inDrawInfo: HIThemeTrackDrawInfo; v
 
 {
  *  HIThemeGetTrackDragRect()
- *  
+ *
  *  Summary:
  *    Get the rectangle of the drag area of a themed track.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inDrawInfo:
  *      An HIThemeTrackDrawInfo describing the track to be measured.
- *    
+ *
  *    outDragRect:
  *      A pointer to an HIRect in which will be returned the rectangle
  *      of the drag area of the track.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -3093,26 +3093,26 @@ function HIThemeGetTrackDragRect( const (*var*) inDrawInfo: HIThemeTrackDrawInfo
 
 {
  *  HIThemeGetTrackThumbPositionFromOffset()
- *  
+ *
  *  Summary:
  *    Get the track's relative thumb position based on the offset.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inDrawInfo:
  *      An HIThemeTrackDrawInfo describing the track to be measured.
- *    
+ *
  *    inThumbOffset:
  *      An HIPoint describing the position of the thumb as an offset
  *      from the track bounds.
- *    
+ *
  *    outRelativePosition:
  *      On output, the track-relative position calculated from the
  *      thumb offset.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -3124,27 +3124,27 @@ function HIThemeGetTrackThumbPositionFromOffset( const (*var*) inDrawInfo: HIThe
 
 {
  *  HIThemeGetTrackThumbPositionFromBounds()
- *  
+ *
  *  Summary:
  *    Get the themed track thumb position from its bounds.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inDrawInfo:
  *      A pointer to an HIThemeTrackDrawInfo describing the track to be
  *      measured.
- *    
+ *
  *    inThumbBounds:
- *      The bounds of the thumb from which the postion is to be
+ *      The bounds of the thumb from which the position is to be
  *      calculated.
- *    
+ *
  *    outRelativePosition:
  *      On output, the track-relative position calculated from the
  *      thumb location.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -3156,26 +3156,26 @@ function HIThemeGetTrackThumbPositionFromBounds( const (*var*) inDrawInfo: HIThe
 
 {
  *  HIThemeGetTrackLiveValue()
- *  
+ *
  *  Summary:
  *    Get the themed track live value.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inDrawInfo:
  *      An HIThemeTrackDrawInfo describing the track to be measured.
- *    
+ *
  *    inRelativePosition:
  *      An HIPoint describing the position of the thumb as an offset
  *      from the track bounds.
- *    
+ *
  *    outValue:
  *      On output, the track value as calculated from the relative
- *      postion of the thumb.
- *  
+ *      position of the thumb.
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -3187,32 +3187,32 @@ function HIThemeGetTrackLiveValue( const (*var*) inDrawInfo: HIThemeTrackDrawInf
 
 {
  *  HIThemeGetScrollBarTrackRect()
- *  
+ *
  *  Summary:
  *    Gets the rectangle of the tracking area of a themed scroll bar.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inBounds:
  *      An HIRect indicating the area in which the scroll bar would be
  *      drawn.
- *    
+ *
  *    inTrackInfo:
  *      An HIScrollBarTrackInfo for the scroll bar that would be drawn.
  *      Currently, only the pressState and enableState fields are used.
- *    
+ *
  *    inIsHoriz:
  *      A Boolean where true means that the scroll bar would be
  *      horizontal and false means that the scroll bar would be
  *      vertical.
- *    
+ *
  *    outTrackBounds:
  *      A pointer to an HIRect in which will be returned the rectangle
  *      of the track area of the scroll bar.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -3224,42 +3224,42 @@ function HIThemeGetScrollBarTrackRect( const (*var*) inBounds: HIRect; const (*v
 
 {
  *  HIThemeHitTestScrollBarArrows()
- *  
+ *
  *  Summary:
  *    Hit test the theme scroll bar arrows to determine where the hit
  *    occurred.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inScrollBarBounds:
  *      An HIRect indicating the bounds of the scroll bar that will be
  *      hit tested.
- *    
+ *
  *    inTrackInfo:
  *      An HIScrollBarTrackInfo for the scroll bar to be drawn.
  *      Currently, only the version, pressState and enableState fields
  *      are used.
- *    
+ *
  *    inIsHoriz:
  *      A Boolean where true means that the scroll bar is to be
  *      horizontal and false means that the scroll bar is to be
  *      vertical.
- *    
+ *
  *    inPtHit:
  *      An HIPoint indicating where the control was hit and which will
  *      be used for hit testing.
- *    
+ *
  *    outTrackBounds:
  *      A pointer to an HIRect in which will be returned the rectangle
  *      of the track area of the scroll bar.  Can be NULL.
- *    
+ *
  *    outPartCode:
  *      A pointer to a ControlPartCode in which the part code of the
  *      hit part will be returned.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -3271,34 +3271,34 @@ function HIThemeHitTestScrollBarArrows( const (*var*) inScrollBarBounds: HIRect;
 
 {
  *  HIThemeDrawScrollBarDelimiters()
- *  
+ *
  *  Summary:
  *    Draw themed scroll bar delimiters.
- *  
+ *
  *  Discussion:
  *    Draws the grow lines delimiting the scroll bar areas.  Does not
  *    draw the size box.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inContRect:
  *      An HIRect indicating the rectangle of the content area of the
  *      window to be drawn.
- *    
+ *
  *    inDrawInfo:
  *      The HIThemeScrollBarDelimitersDrawInfo of the delimiters to be
  *      drawn.
- *    
+ *
  *    inContext:
  *      The CG context in which the drawing is to be done.
- *    
+ *
  *    inOrientation:
  *      An HIThemeOrientation that describes the orientation of the
  *      passed in context.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -3313,33 +3313,33 @@ function HIThemeDrawScrollBarDelimiters( const (*var*) inContRect: HIRect; const
 { -------------------------------------------------------------------------- }
 {
  *  HIThemeDrawWindowFrame()
- *  
+ *
  *  Summary:
  *    Draws a themed window frame.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inContRect:
  *      An HIRect indicating the rectangle of the content area of the
  *      window to be drawn.
- *    
+ *
  *    inDrawInfo:
  *      The HIThemeWindowDrawInfo of the window frame to be drawn.
- *    
+ *
  *    inContext:
  *      The CG context in which the drawing is to be done.
- *    
+ *
  *    inOrientation:
  *      An HIThemeOrientation that describes the orientation of the
  *      passed in context.
- *    
+ *
  *    outTitleRect:
  *      A pointer to an HIRect into which to put the bounds of the
  *      title rect.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -3351,10 +3351,10 @@ function HIThemeDrawWindowFrame( const (*var*) inContRect: HIRect; const (*var*)
 
 {
  *  HIThemeDrawTitleBarWidget()
- *  
+ *
  *  Summary:
  *    Draws the requested theme title bar widget.
- *  
+ *
  *  Discussion:
  *    HIThemeDrawTitleBarWidget renders the requested theme title bar
  *    widget in the proper location of a window.  A common
@@ -3365,29 +3365,29 @@ function HIThemeDrawWindowFrame( const (*var*) inContRect: HIRect; const (*var*)
  *    common problem is to ignore the window's attributes.  The
  *    attributes must be set up properly to describe the window for
  *    which the widget is to be drawn.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inContRect:
  *      A rectangle describing the window's content area.  The widget
  *      is drawn relative to the content rectangle of the window, so
  *      this parameter does not describe the actual widget bounds, it
  *      describes the window's content rectangle.
- *    
+ *
  *    inDrawInfo:
  *      The HIThemeWindowWidgetDrawInfo of the window widget to be
  *      drawn.
- *    
+ *
  *    inContext:
  *      The CG context in which the drawing is to be done.
- *    
+ *
  *    inOrientation:
  *      An HIThemeOrientation that describes the orientation of the
  *      passed in context.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -3399,29 +3399,29 @@ function HIThemeDrawTitleBarWidget( const (*var*) inContRect: HIRect; const (*va
 
 {
  *  HIThemeDrawGrowBox()
- *  
+ *
  *  Summary:
  *    Draws a theme grow box.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inOrigin:
  *      The origin from which to draw the grow box.
- *    
+ *
  *    inDrawInfo:
  *      An HIThemeGrowBoxDrawInfo describing the grow box to be drawn
  *      or measured.
- *    
+ *
  *    inContext:
  *      The CG context in which the drawing is to be done.
- *    
+ *
  *    inOrientation:
  *      An HIThemeOrientation that describes the orientation of the
  *      passed in context.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -3433,26 +3433,26 @@ function HIThemeDrawGrowBox( const (*var*) inOrigin: HIPoint; const (*var*) inDr
 
 {
  *  HIThemeGetGrowBoxBounds()
- *  
+ *
  *  Summary:
  *    Gets the bounds for a grow box.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inOrigin:
  *      The origin from which to draw the grow box.
- *    
+ *
  *    inDrawInfo:
  *      An HIThemeGrowBoxDrawInfo describing the grow box to be
  *      measured. The state field is ignored.
- *    
+ *
  *    outBounds:
  *      A pointer to an HIRect in which will be returned the rectangle
  *      of the standalone grow box bounds.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -3464,36 +3464,36 @@ function HIThemeGetGrowBoxBounds( const (*var*) inOrigin: HIPoint; const (*var*)
 
 {
  *  HIThemeGetWindowShape()
- *  
+ *
  *  Summary:
  *    Obtains the specified window shape.
- *  
+ *
  *  Discussion:
  *    This API was mistakenly named as a "Get" API. It behaves as
  *    "Copy" API. THE CALLER IS RESPONSIBLE FOR RELEASING THE RETURNED
  *    SHAPE.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inContRect:
  *      An HIRect indicating the rectangle of the content area of the
  *      window that would be drawn.
- *    
+ *
  *    inDrawInfo:
  *      The HIThemeWindowDrawInfo of the window frame to be measured.
- *    
+ *
  *    inWinRegion:
  *      A WindowRegionCode indicating the desired region for which to
  *      return the shape.
- *    
+ *
  *    outShape:
  *      A pointer to an HIShapeRef which will be set to the shape of
  *      the requested window region. It needs to be released by the
  *      caller.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -3505,31 +3505,31 @@ function HIThemeGetWindowShape( const (*var*) inContRect: HIRect; const (*var*) 
 
 {
  *  HIThemeGetWindowRegionHit()
- *  
+ *
  *  Summary:
  *    Get the window region hit in a themed window.
- *  
+ *
  *  Discussion:
  *    Not that this call does not return a region, but a region code.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inContRect:
  *      An HIRect indicating the rectangle of the content area of the
  *      window that would be drawn.
- *    
+ *
  *    inDrawInfo:
  *      The HIThemeWindowDrawInfo of the window frame to be measured.
- *    
+ *
  *    inPoint:
  *      An HIPoint against which the test will occur.
- *    
+ *
  *    outRegionHit:
  *      The output WindowRegionCode of hit window region.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -3544,29 +3544,29 @@ function HIThemeGetWindowRegionHit( const (*var*) inContRect: HIRect; const (*va
 { -------------------------------------------------------------------------- }
 {
  *  HIThemeDrawFrame()
- *  
+ *
  *  Summary:
  *    Draws a variety of frames.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inRect:
  *      The HIRect in which to draw.
- *    
+ *
  *    inDrawInfo:
  *      An HIThemeFrameDrawInfo describing the frame to be drawn or
  *      measured.
- *    
+ *
  *    inContext:
  *      The CG context in which the drawing is to be done.
- *    
+ *
  *    inOrientation:
  *      An HIThemeOrientation that describes the orientation of the
  *      passed in context.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -3578,29 +3578,29 @@ function HIThemeDrawFrame( const (*var*) inRect: HIRect; const (*var*) inDrawInf
 
 {
  *  HIThemeDrawGroupBox()
- *  
+ *
  *  Summary:
  *    Draws a themed primary group box.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inRect:
  *      The HIRect in which to draw.
- *    
+ *
  *    inDrawInfo:
  *      An HIThemeGroupBoxDrawInfo describing the group box to be drawn
  *      or measured.
- *    
+ *
  *    inContext:
  *      The CG context in which the drawing is to be done.
- *    
+ *
  *    inOrientation:
  *      An HIThemeOrientation that describes the orientation of the
  *      passed in context.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -3612,31 +3612,31 @@ function HIThemeDrawGroupBox( const (*var*) inRect: HIRect; const (*var*) inDraw
 
 {
  *  HIThemeDrawGenericWell()
- *  
+ *
  *  Summary:
  *    Draws a themed generic well.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inRect:
  *      The HIRect in which to draw.
- *    
+ *
  *    inDrawInfo:
  *      An HIThemeButtonDrawInfo that describes attributes of the well
  *      to be drawn. Set the kThemeAdornmentDefault bit of the
  *      adornment field of this structure to also draw the center of
  *      the well.
- *    
+ *
  *    inContext:
  *      The CG context in which the drawing is to be done.
- *    
+ *
  *    inOrientation:
  *      An HIThemeOrientation that describes the orientation of the
  *      passed in context.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -3648,28 +3648,28 @@ function HIThemeDrawGenericWell( const (*var*) inRect: HIRect; const (*var*) inD
 
 {
  *  HIThemeDrawPaneSplitter()
- *  
+ *
  *  Summary:
  *    Draws a themed pane splitter.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inRect:
  *      The HIRect in which to draw.
- *    
+ *
  *    inDrawInfo:
  *      The HIThemeSplitterDrawInfo of the pane splitter to be drawn.
- *    
+ *
  *    inContext:
  *      The CG context in which the drawing is to be done.
- *    
+ *
  *    inOrientation:
  *      An HIThemeOrientation that describes the orientation of the
  *      passed in context.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -3681,28 +3681,28 @@ function HIThemeDrawPaneSplitter( const (*var*) inRect: HIRect; const (*var*) in
 
 {
  *  HIThemeDrawGrabber()
- *  
+ *
  *  Summary:
  *    Draws a themed grabber.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inRect:
  *      The HIRect in which to draw.
- *    
+ *
  *    inDrawInfo:
  *      The HIThemeGrabberDrawInfo of the grabber to be drawn.
- *    
+ *
  *    inContext:
  *      The CG context in which the drawing is to be done.
- *    
+ *
  *    inOrientation:
  *      An HIThemeOrientation that describes the orientation of the
  *      passed in context.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -3714,28 +3714,28 @@ function HIThemeDrawGrabber( const (*var*) inRect: HIRect; const (*var*) inDrawI
 
 {
  *  HIThemeDrawPlacard()
- *  
+ *
  *  Summary:
  *    Draws a themed placard.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inRect:
  *      The HIRect in which to draw.
- *    
+ *
  *    inDrawInfo:
  *      The HIThemePlacardDrawInfo of the placard to be drawn.
- *    
+ *
  *    inContext:
  *      The CG context in which the drawing is to be done.
- *    
+ *
  *    inOrientation:
  *      An HIThemeOrientation that describes the orientation of the
  *      passed in context.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -3747,28 +3747,28 @@ function HIThemeDrawPlacard( const (*var*) inRect: HIRect; const (*var*) inDrawI
 
 {
  *  HIThemeDrawHeader()
- *  
+ *
  *  Summary:
  *    Draws a themed window header in the specified rectangle.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inRect:
  *      The HIRect in which to draw.
- *    
+ *
  *    inDrawInfo:
  *      The HIThemeHeaderDrawInfo of the window frame to be drawn.
- *    
+ *
  *    inContext:
  *      The CG context in which the drawing is to be done.
- *    
+ *
  *    inOrientation:
  *      An HIThemeOrientation that describes the orientation of the
  *      passed in context.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -3780,29 +3780,29 @@ function HIThemeDrawHeader( const (*var*) inRect: HIRect; const (*var*) inDrawIn
 
 {
  *  HIThemeDrawFocusRect()
- *  
+ *
  *  Summary:
  *    Draws a themed focus rectangle in the specified rectangle.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inRect:
  *      The HIRect in which to draw.
- *    
+ *
  *    inHasFocus:
  *      Pass in true to draw focus. Passing false effectively makes
  *      this API a no-op.
- *    
+ *
  *    inContext:
  *      The CG context in which the drawing is to be done.
- *    
+ *
  *    inOrientation:
  *      An HIThemeOrientation that describes the orientation of the
  *      passed in context.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -3836,10 +3836,10 @@ type
 	HIThemeFocusRing = UInt32;
 {
  *  HIThemeBeginFocus()
- *  
+ *
  *  Summary:
  *    Begin focus drawing.
- *  
+ *
  *  Discussion:
  *    Call HIThemeBeginFocus to begin focus drawing. All drawing
  *    operations in the specified context after this call will be drawn
@@ -3856,26 +3856,26 @@ type
  *    the size of the context's clip at the time it is called -- so an
  *    extremely large clip or an unset clip may cause a large,
  *    inefficient allocation.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inContext:
  *      The CG context in which the focus is to be drawn.
- *    
+ *
  *    inRing:
  *      An HIThemeFocusRing indicating which type of focus is to be
  *      drawn.
- *    
+ *
  *    inReserved:
  *      Always pass NULL for this parameter.
- *  
+ *
  *  Result:
  *    A result code indicating success or failure. Don't call
  *    HIThemeEndFocus on the context if HIThemeBeginFocus fails.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -3887,28 +3887,28 @@ function HIThemeBeginFocus( inContext: CGContextRef; inRing: HIThemeFocusRing; i
 
 {
  *  HIThemeEndFocus()
- *  
+ *
  *  Summary:
  *    End focus drawing.
- *  
+ *
  *  Discussion:
  *    See HIThemeBeginFocus for focus drawing details. Calling
  *    HIThemeEndFocus indicates that the drawing operations to be
  *    focused are complete.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inContext:
  *      The CG context in which the focus is to be drawn. This needs to
  *      be the same context passed to the HIThemeBeginFocus call with
  *      which this call to HIThemeEndFocus is paired.
- *  
+ *
  *  Result:
  *    A result code indicating success or failure.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -3920,28 +3920,28 @@ function HIThemeEndFocus( inContext: CGContextRef ): OSStatus; external name '_H
 
 {
  *  HIThemeDrawSeparator()
- *  
+ *
  *  Summary:
  *    Draw a themed separator element.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inRect:
  *      The HIRect in which to draw.
- *    
+ *
  *    inDrawInfo:
  *      The HIThemeSeparatorDrawInfo of the window frame to be drawn.
- *    
+ *
  *    inContext:
  *      The CG context in which the drawing is to be done.
- *    
+ *
  *    inOrientation:
  *      An HIThemeOrientation that describes the orientation of the
  *      passed in context.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -3953,35 +3953,35 @@ function HIThemeDrawSeparator( const (*var*) inRect: HIRect; const (*var*) inDra
 
 {
  *  HIThemeSetFill()
- *  
+ *
  *  Summary:
  *    Set the context fill color to that specified by the requested
  *    brush.
- *  
+ *
  *  Discussion:
  *    Note that this call does not actually draw anything. It sets the
  *    passed context's fill color to that of the specified theme brush.
  *    Subsequent fills in the context will be with the color specified
  *    by the theme brush.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inBrush:
  *      The ThemeBrush describing the requested fill color.
- *    
+ *
  *    inInfo:
  *      Not used. Should always be NULL.
- *    
+ *
  *    inContext:
  *      The CG context for which the fill color is to be set.
- *    
+ *
  *    inOrientation:
  *      An HIThemeOrientation that describes the orientation of the
  *      passed in context.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in Carbon.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.4 and later
@@ -3993,35 +3993,35 @@ function HIThemeSetFill( inBrush: ThemeBrush; inInfo: UnivPtr; inContext: CGCont
 
 {
  *  HIThemeSetStroke()
- *  
+ *
  *  Summary:
  *    Set the context stroke color to that specified by the requested
  *    brush.
- *  
+ *
  *  Discussion:
  *    Note that this call does not actually draw anything. It sets the
  *    passed context's stroke color to that of the specified theme
  *    brush. Subsequent strokes in the context will be with the color
  *    specified by the theme brush.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inBrush:
  *      The ThemeBrush describing the requested stroke color.
- *    
+ *
  *    inInfo:
  *      Not used. Should always be NULL.
- *    
+ *
  *    inContext:
  *      The CG context for which the stroke color is to be set.
- *    
+ *
  *    inOrientation:
  *      An HIThemeOrientation that describes the orientation of the
  *      passed in context.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in Carbon.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.4 and later
@@ -4033,35 +4033,35 @@ function HIThemeSetStroke( inBrush: ThemeBrush; inInfo: UnivPtr; inContext: CGCo
 
 {
  *  HIThemeSetTextFill()
- *  
+ *
  *  Summary:
  *    Set the context text fill color to that specified by the
  *    requested brush.
- *  
+ *
  *  Discussion:
  *    Note that this call does not actually draw anything. It sets the
  *    passed context's text fill color to that of the specified
  *    ThemeTextColor. Subsequent text drawing in the context will be
  *    with the color specified by the ThemeTextColor.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inColor:
  *      A ThemeTextColor describing the requested text fill color.
- *    
+ *
  *    inInfo:
  *      Not used. Should always be NULL.
- *    
+ *
  *    inContext:
  *      The CG context for which the fill color is to be set.
- *    
+ *
  *    inOrientation:
  *      An HIThemeOrientation that describes the orientation of the
  *      passed in context.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in Carbon.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.4 and later
@@ -4073,36 +4073,36 @@ function HIThemeSetTextFill( inColor: ThemeTextColor; inInfo: UnivPtr; inContext
 
 {
  *  HIThemeApplyBackground()
- *  
+ *
  *  Summary:
  *    Apply a themed background for a rectangle.
- *  
+ *
  *  Discussion:
  *    Note that this call does not actually draw anything. It sets the
  *    passed context's fill color to the requested theme background.
  *    Subsequent fills in the context will fill with the theme
  *    background.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inBounds:
  *      An HIRect enclosing the whole background. This rectangle is
  *      used to calculate the pattern phase (if there is one) of the
  *      background as it is set up in the context.
- *    
+ *
  *    inDrawInfo:
  *      An HIThemeBackgroundDrawInfo describing the background.
- *    
+ *
  *    inContext:
  *      The CG context for which the background is to be set.
- *    
+ *
  *    inOrientation:
  *      An HIThemeOrientation that describes the orientation of the
  *      passed in context.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -4114,18 +4114,18 @@ function HIThemeApplyBackground( const (*var*) inBounds: HIRect; const (*var*) i
 
 {
  *  HIThemeDrawBackground()
- *  
+ *
  *  Summary:
  *    Draw a themed background for a rectangle.
- *  
+ *
  *  Discussion:
  *    Currently, this call only works with kThemeBackgroundMetal.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inBounds:
  *      An HIRect indicating the bounds to fill with the background.
  *      For backgrounds that need pattern continuity, such as
@@ -4134,18 +4134,18 @@ function HIThemeApplyBackground( const (*var*) inBounds: HIRect; const (*var*) i
  *      sub-rectangle of that background, set the clip and draw the
  *      full rectangle. This routine has been optimized to not perform
  *      calculations on the non-clip part of the drawing bounds.
- *    
+ *
  *    inDrawInfo:
  *      An HIThemeBackgroundDrawInfo describing the background to be
  *      drawn.
- *    
+ *
  *    inContext:
  *      The CG context in which the drawing is to be done.
- *    
+ *
  *    inOrientation:
  *      An HIThemeOrientation that describes the orientation of the
  *      passed in context.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -4157,28 +4157,28 @@ function HIThemeDrawBackground( const (*var*) inBounds: HIRect; const (*var*) in
 
 {
  *  HIThemeBrushCreateCGColor()
- *  
+ *
  *  Summary:
  *    Create a CGColor for a ThemeBrush.
- *  
+ *
  *  Discussion:
  *    Color is an ambiguous term. The color may be a pattern.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inBrush:
  *      The ThemeBrush describing the requested color.
- *    
+ *
  *    outColor:
  *      A pointer to a CGColorRef that will be set to the newly created
  *      CGColor.
- *  
+ *
  *  Result:
  *    An operating system result code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in Carbon.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.4 and later
@@ -4190,42 +4190,42 @@ function HIThemeBrushCreateCGColor( inBrush: ThemeBrush; var outColor: CGColorRe
 
 {
  *  HIThemeGetTextColorForThemeBrush()
- *  
+ *
  *  Summary:
  *    Returns an appropriate ThemeTextColor that matches a ThemeBrush.
- *  
+ *
  *  Discussion:
  *    Creates a ThemeTextColor for use with HIThemeSetTextFill.
- *    ThemeTextColors are currently availabe for these theme brushes:
- *    
- *    
- *    kThemeBrushDialogBackgroundActive/Inactive 
- *    
- *    kThemeBrushAlertBackgroundActive/Inactive 
- *    
- *    kThemeBrushModelessDialogBackgroundActive/Inactive 
+ *    ThemeTextColors are currently available for these theme brushes:
+ *
+ *
+ *    kThemeBrushDialogBackgroundActive/Inactive
+ *
+ *    kThemeBrushAlertBackgroundActive/Inactive
+ *
+ *    kThemeBrushModelessDialogBackgroundActive/Inactive
  *    <BR> kThemeBrushNotificationWindowBackground
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inBrush:
  *      The ThemeBrush describing the requested color.
- *    
+ *
  *    inWindowIsActive:
  *      Whether the text color should indicate an active or inactive
  *      state.
- *    
+ *
  *    outColor:
  *      A pointer to a ThemeTextColor that will be set to the matched
  *      color.
- *  
+ *
  *  Result:
  *    An operating system result code. themeNoAppropriateBrushErr will
  *    be returned if no matching ThemeTextColor exists.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -4238,19 +4238,19 @@ function HIThemeGetTextColorForThemeBrush( inBrush: ThemeBrush; inWindowIsActive
 { The following routines were in Appearance.h prior to 10.6 }
 {
  *  GetThemeMenuSeparatorHeight()
- *  
+ *
  *  Summary:
  *    Returns the height of a menu item separator, in points.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    outHeight:
  *      On exit, contains the height of a menu item separator, in
  *      points.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4262,25 +4262,25 @@ function GetThemeMenuSeparatorHeight( var outHeight: SInt16 ): OSStatus; externa
 
 {
  *  GetThemeMenuItemExtra()
- *  
+ *
  *  Summary:
  *    Returns the extra width and height required for a menu item
  *    beyond the height of the text.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inItemType:
  *      The type of menu item. These are defined in Appearance.h.
- *    
+ *
  *    outHeight:
  *      Extra height, in points, for this item type.
- *    
+ *
  *    outWidth:
  *      Extra width, in points, for this item type.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4292,22 +4292,22 @@ function GetThemeMenuItemExtra( inItemType: ThemeMenuItemType; var outHeight: SI
 
 {
  *  GetThemeMenuTitleExtra()
- *  
+ *
  *  Summary:
  *    Returns the extra width for a menu title, in points.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    outWidth:
  *      On exit, contains the extra menu title width, in points.
- *    
+ *
  *    inIsSquished:
  *      Indicates whether the menu title is being drawn with a
  *      condensed appearance.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4323,7 +4323,7 @@ function GetThemeMenuTitleExtra( var outWidth: SInt16; inIsSquished: Boolean ): 
  *  Summary:
  *    Theme metrics allow you to find out sizes of things in the
  *    current environment, such as how wide a scroll bar is, etc.
- *  
+ *
  *  Discussion:
  *    ThemeMetrics
  }
@@ -4879,22 +4879,22 @@ type
 	ThemeMetric = UInt32;
 {
  *  GetThemeMetric()
- *  
+ *
  *  Summary:
  *    Returns a measurement in points for a specified type of user
  *    interface element.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inMetric:
  *      The metric to retrieve.
- *    
+ *
  *    outMetric:
  *      The size of the specified user interface element, in points.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4906,20 +4906,20 @@ function GetThemeMetric( inMetric: ThemeMetric; var outMetric: SInt32 ): OSStatu
 
 {
  *  CopyThemeIdentifier()
- *  
+ *
  *  Summary:
  *    Retrieves a string identifying the current theme variant, which
  *    may be Aqua or Graphite.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    outIdentifier:
  *      On exit, contains the theme variant identifier. This string
  *      must be released by the caller.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.4 and later

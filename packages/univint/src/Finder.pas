@@ -1,9 +1,9 @@
 {
      File:       CarbonCore/Finder.h
- 
+
      Contains:   Finder flags and container types.
                  The contents of this header file are deprecated.
- 
+
      Copyright:  © 1990-2011 by Apple Inc. All rights reserved.
 }
 {
@@ -271,15 +271,15 @@ type
 	CustomBadgeResourcePtr = ^CustomBadgeResource;
 type
 	CustomBadgeResourceHandle = ^CustomBadgeResourcePtr;
-{ You can specify routing information for a file by including a 'rout' 0 
-    resource in it and setting the kExtendedFlagHasRoutingInfo bit in the extended 
-    Finder flags. 
+{ You can specify routing information for a file by including a 'rout' 0
+    resource in it and setting the kExtendedFlagHasRoutingInfo bit in the extended
+    Finder flags.
     The 'rout' resource is an array of RoutingResourceEntry. Each entry is considered
     in turn. The first matching entry is used.
     If the creator and fileType match the file being dropped and targetFolder match
-    the folder ID of the folder being dropped onto, then the file is rerouted 
+    the folder ID of the folder being dropped onto, then the file is rerouted
     into the specified destination folder.
-    The only target folder currently supported is the system folder, 
+    The only target folder currently supported is the system folder,
     kSystemFolderType = 'macs'.
 }
 const
@@ -454,7 +454,7 @@ type
 {------------------------------------------------------------------------}
 {
    The following data structures are here for compatibility.
-   Use the new data structures replacing them if possible (i.e. FileInfo 
+   Use the new data structures replacing them if possible (i.e. FileInfo
    instead of FInfo, etc...)
 }
 {------------------------------------------------------------------------}
@@ -493,7 +493,7 @@ type
 { Folder info }
 {
      IMPORTANT:
-     In MacOS 8, the frView field was changed to become reserved 
+     In MacOS 8, the frView field was changed to become reserved
      field for the Finder.
 }
 type

@@ -17,7 +17,7 @@
       OS Memory allocation / deallocation
  ****************************************************************************}
 
- 
+
 function SysOSAlloc(size: ptruint): pointer;
 begin
 

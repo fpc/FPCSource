@@ -55,7 +55,7 @@ var
                 exit;
               end;
            end
-{$ifndef beos}	 
+{$ifndef beos}
           else if (ino_t(d^.d_fileno)=myino) and (st.st_dev=mydev) then
            begin
              fpclosedir(dirstream^);
@@ -75,7 +75,7 @@ begin
   TTYName:='';
   if (fpfstat(handle,st)=-1) or (isatty (handle)<>1) then
    exit;
-{$ifndef beos}	 
+{$ifndef beos}
   mydev:=st.st_dev;
   myino:=st.st_ino;
 {$endif}

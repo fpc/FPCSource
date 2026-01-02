@@ -253,13 +253,13 @@ end;
 function TThread.WaitFor: Integer;
 begin
   WRITE_DEBUG('waiting for thread ',ptruint(FHandle));
-  If (MainThreadID=GetCurrentThreadID) then 
+  If (MainThreadID=GetCurrentThreadID) then
     {
-     FFinished is set after DoTerminate, which does a synchronize of OnTerminate, 
-     so make sure synchronize works (or indeed any other synchronize that may be 
+     FFinished is set after DoTerminate, which does a synchronize of OnTerminate,
+     so make sure synchronize works (or indeed any other synchronize that may be
      in progress)
     }
-    While not FFinished do  
+    While not FFinished do
       CheckSynchronize(100);
   WaitFor := WaitForThreadTerminate(FHandle, 0);
   { should actually check for errors in WaitForThreadTerminate, but no }

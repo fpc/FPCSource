@@ -1,9 +1,9 @@
 {
      File:       CarbonCore/LowMem.h
- 
+
      Contains:   Low Memory Accessor Interfaces.
                  The contents of this header file are deprecated.
- 
+
      Copyright:  © 1993-2011 by Apple Inc. All rights reserved.
 }
 {
@@ -226,7 +226,7 @@ uses MacTypes,Files;
 *************************************************************************************}
 {
     The following functions were moved to Quickdraw.h:
-    
+
         LMSetDeviceList
         LMSetLastSPExtra
         LMGetWidthListHand
@@ -257,18 +257,18 @@ uses MacTypes,Files;
         LMSetCursorNew
         LMGetHiliteRGB
         LMSetHiliteRGB
-    
+
     The following functions were moved to TextEdit.h:
-    
+
         LMGetWordRedraw
         LMSetWordRedraw
 
     The following functions were moved to Menus.h:
-    
+
         LMGetTheMenu
-    
+
     The following functions were moved to Events.h:
-    
+
         LMGetKeyRepThresh
         LMSetKeyRepThresh
         LMGetKeyThresh
@@ -283,7 +283,7 @@ uses MacTypes,Files;
 {$ifc not TARGET_CPU_64}
 {
  *  LMGetMemTop()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -295,7 +295,7 @@ function LMGetMemTop: Ptr; external name '_LMGetMemTop';
 
 {
  *  LMSetMemTop()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -307,7 +307,7 @@ procedure LMSetMemTop( value: Ptr ); external name '_LMSetMemTop';
 
 {
  *  LMGetBufPtr()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -319,7 +319,7 @@ function LMGetBufPtr: Ptr; external name '_LMGetBufPtr';
 
 {
  *  LMSetBufPtr()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -331,7 +331,7 @@ procedure LMSetBufPtr( value: Ptr ); external name '_LMSetBufPtr';
 
 {
  *  LMGetHeapEnd()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -343,7 +343,7 @@ function LMGetHeapEnd: Ptr; external name '_LMGetHeapEnd';
 
 {
  *  LMSetHeapEnd()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -355,7 +355,7 @@ procedure LMSetHeapEnd( value: Ptr ); external name '_LMSetHeapEnd';
 
 {
  *  LMGetCPUFlag()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -367,7 +367,7 @@ function LMGetCPUFlag: UInt8; external name '_LMGetCPUFlag';
 
 {
  *  LMSetCPUFlag()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -379,7 +379,7 @@ procedure LMSetCPUFlag( value: ByteParameter ); external name '_LMSetCPUFlag';
 
 {
  *  LMGetRndSeed()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -391,7 +391,7 @@ function LMGetRndSeed: SInt32; external name '_LMGetRndSeed';
 
 {
  *  LMSetRndSeed()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -403,7 +403,7 @@ procedure LMSetRndSeed( value: SInt32 ); external name '_LMSetRndSeed';
 
 {
  *  LMGetSEvtEnb()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -415,7 +415,7 @@ function LMGetSEvtEnb: UInt8; external name '_LMGetSEvtEnb';
 
 {
  *  LMSetSEvtEnb()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -429,7 +429,7 @@ procedure LMSetSEvtEnb( value: ByteParameter ); external name '_LMSetSEvtEnb';
 
 {
  *  LMGetBootDrive()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -441,7 +441,7 @@ function LMGetBootDrive: SInt16; external name '_LMGetBootDrive';
 
 {
  *  LMSetBootDrive()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -454,7 +454,7 @@ procedure LMSetBootDrive( value: SInt16 ); external name '_LMSetBootDrive';
 {$ifc not TARGET_CPU_64}
 {
  *  LMGetSdVolume()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -466,7 +466,7 @@ function LMGetSdVolume: UInt8; external name '_LMGetSdVolume';
 
 {
  *  LMSetSdVolume()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -478,7 +478,7 @@ procedure LMSetSdVolume( value: ByteParameter ); external name '_LMSetSdVolume';
 
 {
  *  LMGetSoundPtr()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -490,7 +490,7 @@ function LMGetSoundPtr: Ptr; external name '_LMGetSoundPtr';
 
 {
  *  LMSetSoundPtr()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -502,7 +502,7 @@ procedure LMSetSoundPtr( value: Ptr ); external name '_LMSetSoundPtr';
 
 {
  *  LMGetSoundBase()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -514,7 +514,7 @@ function LMGetSoundBase: Ptr; external name '_LMGetSoundBase';
 
 {
  *  LMSetSoundBase()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -526,7 +526,7 @@ procedure LMSetSoundBase( value: Ptr ); external name '_LMSetSoundBase';
 
 {
  *  LMGetSoundLevel()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -538,7 +538,7 @@ function LMGetSoundLevel: UInt8; external name '_LMGetSoundLevel';
 
 {
  *  LMSetSoundLevel()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -550,7 +550,7 @@ procedure LMSetSoundLevel( value: ByteParameter ); external name '_LMSetSoundLev
 
 {
  *  LMGetCurPitch()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -562,7 +562,7 @@ function LMGetCurPitch: SInt16; external name '_LMGetCurPitch';
 
 {
  *  LMSetCurPitch()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -576,7 +576,7 @@ procedure LMSetCurPitch( value: SInt16 ); external name '_LMSetCurPitch';
 
 {
  *  LMGetROM85()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -586,7 +586,7 @@ procedure LMSetCurPitch( value: SInt16 ); external name '_LMSetCurPitch';
 
 {
  *  LMSetROM85()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -596,7 +596,7 @@ procedure LMSetCurPitch( value: SInt16 ); external name '_LMSetCurPitch';
 
 {
  *  LMGetPortBUse()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -606,7 +606,7 @@ procedure LMSetCurPitch( value: SInt16 ); external name '_LMSetCurPitch';
 
 {
  *  LMSetPortBUse()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -616,7 +616,7 @@ procedure LMSetCurPitch( value: SInt16 ); external name '_LMSetCurPitch';
 
 {
  *  LMGetGNEFilter()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -626,7 +626,7 @@ procedure LMSetCurPitch( value: SInt16 ); external name '_LMSetCurPitch';
 
 {
  *  LMSetGNEFilter()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -636,7 +636,7 @@ procedure LMSetCurPitch( value: SInt16 ); external name '_LMSetCurPitch';
 
 {
  *  LMGetROMBase()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -646,7 +646,7 @@ procedure LMSetCurPitch( value: SInt16 ); external name '_LMSetCurPitch';
 
 {
  *  LMSetROMBase()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -656,7 +656,7 @@ procedure LMSetCurPitch( value: SInt16 ); external name '_LMSetCurPitch';
 
 {
  *  LMGetRAMBase()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -666,7 +666,7 @@ procedure LMSetCurPitch( value: SInt16 ); external name '_LMSetCurPitch';
 
 {
  *  LMSetRAMBase()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -676,7 +676,7 @@ procedure LMSetCurPitch( value: SInt16 ); external name '_LMSetCurPitch';
 
 {
  *  LMGetDSAlertTab()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -686,7 +686,7 @@ procedure LMSetCurPitch( value: SInt16 ); external name '_LMSetCurPitch';
 
 {
  *  LMSetDSAlertTab()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -696,21 +696,21 @@ procedure LMSetCurPitch( value: SInt16 ); external name '_LMSetCurPitch';
 
 {
     NOTE:   LMGetABusVars and LMSetABusVars have been removed.
-            Their implememtation in InterfaceLib was inconsistent
-            with their prototypes here.  In InterfaceLib LMSetABusVars 
+            Their implementation in InterfaceLib was inconsistent
+            with their prototypes here.  In InterfaceLib LMSetABusVars
             would copy eight bytes and LMGetABusVars would return the
             value 0x02D8 instead of the long at that location.
-            
+
             Use LMGetABusGlobals/LMSetABusGlobals to get/set the
             long at location 0x02D8 which is a pointer to the AppleTalk
             globals.  Use LMGetABusDCE/LMSetABusDCE to get/set the
             long at location 0x02DC which is the .MPP driver
-            Device Control Entry. 
-            
+            Device Control Entry.
+
 }
 {
  *  LMGetABusGlobals()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -720,7 +720,7 @@ procedure LMSetCurPitch( value: SInt16 ); external name '_LMSetCurPitch';
 
 {
  *  LMGetABusDCE()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -730,7 +730,7 @@ procedure LMSetCurPitch( value: SInt16 ); external name '_LMSetCurPitch';
 
 {
  *  LMSetABusGlobals()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -740,7 +740,7 @@ procedure LMSetCurPitch( value: SInt16 ); external name '_LMSetCurPitch';
 
 {
  *  LMSetABusDCE()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -751,7 +751,7 @@ procedure LMSetCurPitch( value: SInt16 ); external name '_LMSetCurPitch';
 {$ifc not TARGET_CPU_64}
 {
  *  LMGetScrDmpEnb()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -763,7 +763,7 @@ function LMGetScrDmpEnb: UInt8; external name '_LMGetScrDmpEnb';
 
 {
  *  LMSetScrDmpEnb()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -775,7 +775,7 @@ procedure LMSetScrDmpEnb( value: ByteParameter ); external name '_LMSetScrDmpEnb
 
 {
  *  LMGetBufTgFNum()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -787,7 +787,7 @@ function LMGetBufTgFNum: SInt32; external name '_LMGetBufTgFNum';
 
 {
  *  LMSetBufTgFNum()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -799,7 +799,7 @@ procedure LMSetBufTgFNum( value: SInt32 ); external name '_LMSetBufTgFNum';
 
 {
  *  LMGetBufTgFFlg()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -811,7 +811,7 @@ function LMGetBufTgFFlg: SInt16; external name '_LMGetBufTgFFlg';
 
 {
  *  LMSetBufTgFFlg()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -823,7 +823,7 @@ procedure LMSetBufTgFFlg( value: SInt16 ); external name '_LMSetBufTgFFlg';
 
 {
  *  LMGetBufTgFBkNum()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -835,7 +835,7 @@ function LMGetBufTgFBkNum: SInt16; external name '_LMGetBufTgFBkNum';
 
 {
  *  LMSetBufTgFBkNum()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -847,7 +847,7 @@ procedure LMSetBufTgFBkNum( value: SInt16 ); external name '_LMSetBufTgFBkNum';
 
 {
  *  LMGetBufTgDate()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -859,7 +859,7 @@ function LMGetBufTgDate: SInt32; external name '_LMGetBufTgDate';
 
 {
  *  LMSetBufTgDate()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -871,7 +871,7 @@ procedure LMSetBufTgDate( value: SInt32 ); external name '_LMSetBufTgDate';
 
 {
  *  LMGetMinStack()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -883,7 +883,7 @@ function LMGetMinStack: SInt32; external name '_LMGetMinStack';
 
 {
  *  LMSetMinStack()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -895,7 +895,7 @@ procedure LMSetMinStack( value: SInt32 ); external name '_LMSetMinStack';
 
 {
  *  LMGetDefltStack()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -907,7 +907,7 @@ function LMGetDefltStack: SInt32; external name '_LMGetDefltStack';
 
 {
  *  LMSetDefltStack()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -919,7 +919,7 @@ procedure LMSetDefltStack( value: SInt32 ); external name '_LMSetDefltStack';
 
 {
  *  LMGetGZRootHnd()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -931,7 +931,7 @@ function LMGetGZRootHnd: Handle; external name '_LMGetGZRootHnd';
 
 {
  *  LMSetGZRootHnd()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -943,7 +943,7 @@ procedure LMSetGZRootHnd( value: Handle ); external name '_LMSetGZRootHnd';
 
 {
  *  LMGetGZMoveHnd()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -955,7 +955,7 @@ function LMGetGZMoveHnd: Handle; external name '_LMGetGZMoveHnd';
 
 {
  *  LMSetGZMoveHnd()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -967,7 +967,7 @@ procedure LMSetGZMoveHnd( value: Handle ); external name '_LMSetGZMoveHnd';
 
 {
  *  LMGetToExtFS()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -979,7 +979,7 @@ function LMGetToExtFS: UniversalProcPtr; external name '_LMGetToExtFS';
 
 {
  *  LMSetToExtFS()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -991,7 +991,7 @@ procedure LMSetToExtFS( value: UniversalProcPtr ); external name '_LMSetToExtFS'
 
 {
  *  LMGetJStash()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1003,7 +1003,7 @@ function LMGetJStash: UniversalProcPtr; external name '_LMGetJStash';
 
 {
  *  LMSetJStash()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1015,7 +1015,7 @@ procedure LMSetJStash( value: UniversalProcPtr ); external name '_LMSetJStash';
 
 {
  *  LMGetCurApRefNum()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1027,7 +1027,7 @@ function LMGetCurApRefNum: FSIORefNum; external name '_LMGetCurApRefNum';
 
 {
  *  LMSetCurApRefNum()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1039,12 +1039,12 @@ procedure LMSetCurApRefNum( value: FSIORefNum ); external name '_LMSetCurApRefNu
 
 {
  *  LMGetCurStackBase()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
- *    If using the Thread Manager APIs, use ThreadCurrentStackSpace(). 
+ *    If using the Thread Manager APIs, use ThreadCurrentStackSpace().
  *    If using pthreads(), get the stack with
  *    pthread_get_stackaddr_np().
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1056,10 +1056,10 @@ function LMGetCurStackBase: Ptr; external name '_LMGetCurStackBase';
 
 {
  *  LMSetCurStackBase()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Mac OS X does not support setting the stack base.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1071,7 +1071,7 @@ procedure LMSetCurStackBase( value: Ptr ); external name '_LMSetCurStackBase';
 
 {
  *  LMGetCurPageOption()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1083,7 +1083,7 @@ function LMGetCurPageOption: SInt16; external name '_LMGetCurPageOption';
 
 {
  *  LMSetCurPageOption()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1095,7 +1095,7 @@ procedure LMSetCurPageOption( value: SInt16 ); external name '_LMSetCurPageOptio
 
 {
  *  LMGetPrintErr()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1107,7 +1107,7 @@ function LMGetPrintErr: SInt16; external name '_LMGetPrintErr';
 
 {
  *  LMSetPrintErr()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1121,11 +1121,11 @@ procedure LMSetPrintErr( value: SInt16 ); external name '_LMSetPrintErr';
 
 {
  *  LMGetApFontID()   *** DEPRECATED ***
- *  
+ *
  *  Summary:
  *    Get the id of the application font.  Use GetAppFont() in the
  *    Quickdraw framework instead of this.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1137,11 +1137,11 @@ function LMGetApFontID: SInt16; external name '_LMGetApFontID';
 
 {
  *  LMSetApFontID()   *** DEPRECATED ***
- *  
+ *
  *  Summary:
  *    Set the id of the application font.  Don't use this call anymore;
  *    this functionality is not supported on Mac OS X.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1154,7 +1154,7 @@ procedure LMSetApFontID( value: SInt16 ); external name '_LMSetApFontID';
 {$ifc not TARGET_CPU_64}
 {
  *  LMGetOneOne()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1166,7 +1166,7 @@ function LMGetOneOne: SInt32; external name '_LMGetOneOne';
 
 {
  *  LMSetOneOne()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1178,7 +1178,7 @@ procedure LMSetOneOne( value: SInt32 ); external name '_LMSetOneOne';
 
 {
  *  LMGetMinusOne()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1190,7 +1190,7 @@ function LMGetMinusOne: SInt32; external name '_LMGetMinusOne';
 
 {
  *  LMSetMinusOne()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1204,7 +1204,7 @@ procedure LMSetMinusOne( value: SInt32 ); external name '_LMSetMinusOne';
 
 {
  *  LMGetSysMap()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1216,7 +1216,7 @@ function LMGetSysMap: SInt16; external name '_LMGetSysMap';
 
 {
  *  LMSetSysMap()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1228,7 +1228,7 @@ procedure LMSetSysMap( value: SInt16 ); external name '_LMSetSysMap';
 
 {
  *  LMGetResLoad()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1240,7 +1240,7 @@ function LMGetResLoad: UInt8; external name '_LMGetResLoad';
 
 {
  *  LMSetResLoad()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1252,7 +1252,7 @@ procedure LMSetResLoad( value: ByteParameter ); external name '_LMSetResLoad';
 
 {
  *  LMGetResErr()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1264,7 +1264,7 @@ function LMGetResErr: SInt16; external name '_LMGetResErr';
 
 {
  *  LMSetResErr()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1276,7 +1276,7 @@ procedure LMSetResErr( value: SInt16 ); external name '_LMSetResErr';
 
 {
  *  LMGetTmpResLoad()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1288,7 +1288,7 @@ function LMGetTmpResLoad: UInt8; external name '_LMGetTmpResLoad';
 
 {
  *  LMSetTmpResLoad()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1300,7 +1300,7 @@ procedure LMSetTmpResLoad( value: ByteParameter ); external name '_LMSetTmpResLo
 
 {
  *  LMGetIntlSpec()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1312,7 +1312,7 @@ function LMGetIntlSpec: Ptr; external name '_LMGetIntlSpec';
 
 {
  *  LMSetIntlSpec()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1326,11 +1326,11 @@ procedure LMSetIntlSpec( value: Ptr ); external name '_LMSetIntlSpec';
 {$ifc not TARGET_CPU_64}
 {
  *  LMGetSysFontFam()   *** DEPRECATED ***
- *  
+ *
  *  Summary:
  *    Get the id of the system font family.  Use GetSysFont() in the
  *    Quickdraw framework instead of this.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1344,11 +1344,11 @@ function LMGetSysFontFam: SInt16; external name '_LMGetSysFontFam';
 
 {
  *  LMSetSysFontFam()   *** DEPRECATED ***
- *  
+ *
  *  Summary:
  *    Set the id of the system font family.  This is not supported on
  *    Mac OS X.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1360,11 +1360,11 @@ procedure LMSetSysFontFam( value: SInt16 ); external name '_LMSetSysFontFam';
 
 {
  *  LMGetSysFontSize()   *** DEPRECATED ***
- *  
+ *
  *  Summary:
  *    Get the size of the system font.  Use DefFontSize() in the
  *    Quickdraw framework instead of this.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1376,11 +1376,11 @@ function LMGetSysFontSize: SInt16; external name '_LMGetSysFontSize';
 
 {
  *  LMSetSysFontSize()
- *  
+ *
  *  Summary:
  *    Set the size for the system font.  This is not supported on Mac
  *    OS X.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1392,13 +1392,13 @@ procedure LMSetSysFontSize( value: SInt16 ); external name '_LMSetSysFontSize';
 
 {*************************************************************************************
     "BLOCKMOVE ACCESSORS"
-    
+
         These lowmem accessors use the BlockMove to set
 *************************************************************************************}
 {$ifc not TARGET_CPU_64}
 {
  *  LMGetCurApName()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1410,7 +1410,7 @@ function LMGetCurApName: StringPtr; external name '_LMGetCurApName';
 
 {
  *  LMSetCurApName()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1422,11 +1422,11 @@ procedure LMSetCurApName( curApNameValue: ConstStr31Param ); external name '_LMS
 
 {
  *  LMGetSysResName()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
- *    Mac OS X does not have the concept of a "System" file name. 
+ *    Mac OS X does not have the concept of a "System" file name.
  *    Remove usage of this lowmem value.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1438,11 +1438,11 @@ function LMGetSysResName: StringPtr; external name '_LMGetSysResName';
 
 {
  *  LMSetSysResName()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
- *    Mac OS X does not have the concept of a "System" file name. 
+ *    Mac OS X does not have the concept of a "System" file name.
  *    Remove usage of this lowmem value.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1454,13 +1454,13 @@ procedure LMSetSysResName( sysResNameValue: ConstStr15Param ); external name '_L
 
 {
  *  LMGetFinderName()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Getting the name of the Finder isn't terribly useful.  If you
  *    need to find the Finder process, look it up with the CFBundle
  *    calls by bundle id ( "com.apple.finder" ).  Remove usage of this
  *    lowmem value.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1472,11 +1472,11 @@ function LMGetFinderName: StringPtr; external name '_LMGetFinderName';
 
 {
  *  LMSetFinderName()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Setting the name of the Finder application is not supported on
  *    Mac OS X.  Remove usage of this lowmem accessor.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1488,13 +1488,13 @@ procedure LMSetFinderName( finderNameValue: ConstStr15Param ); external name '_L
 
 {
  *  LMGetToolScratch()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Mac OS X gives each process its own tool scratch area, so this
  *    accessor is fairly useless. If you really need to share 8 bytes
  *    of memory among various libraries, just make it a global and
  *    export it from one library and import it into the others.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1506,13 +1506,13 @@ function LMGetToolScratch: Ptr; external name '_LMGetToolScratch';
 
 {
  *  LMSetToolScratch()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Mac OS X gives each process its own tool scratch area, so this
  *    accessor is fairly useless. If you really need to share 8 bytes
  *    of memory among various libraries, just make it a global and
  *    export it from one library and import it into the others.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1524,13 +1524,13 @@ procedure LMSetToolScratch( toolScratchValue: {const} UnivPtr ); external name '
 
 {*************************************************************************************
     "INDEXED ACCESSORS"
-    
+
         These lowmem accessors take an index parameter to get/set an indexed
         lowmem global.
 *************************************************************************************}
 {
  *  LMGetLvl2DT()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1542,7 +1542,7 @@ function LMGetLvl2DT( vectorNumber: SInt16 ): UniversalProcPtr; external name '_
 
 {
  *  LMSetLvl2DT()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1554,20 +1554,20 @@ procedure LMSetLvl2DT( Lvl2DTValue: UniversalProcPtr; vectorNumber: SInt16 ); ex
 
 {*************************************************************************************
     "Missing Accessors"
-    
+
         These lowmem accessors are not in the original InterfaceLib.  They were
         added to InterfaceLib in Mac OS 8.5.  In Universal Interfaces 3.2 they
         were defined via a macro. In you want to use these functions on a pre-8.5
         systems, you must write your own macros to override the function prototype
         or write your own implementation.
-    
+
 *************************************************************************************}
 
 
 { accesses "HiHeapMark"}
 {
  *  LMGetHighHeapMark()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1579,7 +1579,7 @@ function LMGetHighHeapMark: Ptr; external name '_LMGetHighHeapMark';
 
 {
  *  LMSetHighHeapMark()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1592,7 +1592,7 @@ procedure LMSetHighHeapMark( value: Ptr ); external name '_LMSetHighHeapMark';
 { accesses "StkLowPt"}
 {
  *  LMGetStackLowPoint()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1604,7 +1604,7 @@ function LMGetStackLowPoint: Ptr; external name '_LMGetStackLowPoint';
 
 {
  *  LMSetStackLowPoint()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1617,7 +1617,7 @@ procedure LMSetStackLowPoint( value: Ptr ); external name '_LMSetStackLowPoint';
 { accesses "FmtDefaults"}
 {
  *  LMGetDiskFormatingHFSDefaults()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1629,7 +1629,7 @@ function LMGetDiskFormatingHFSDefaults: Ptr; external name '_LMGetDiskFormatingH
 
 {
  *  LMSetDiskFormatingHFSDefaults()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later

@@ -1,15 +1,15 @@
 {
 	 File:	   CFNetwork/CFNetworkErrors.h
- 
+
 	 Contains:   CFNetwork error header
- 
+
 	 Copyright:  Copyright (c) 2006-2008, Apple Inc. All rights reserved.
- 
+
 	 Bugs?:	  For bug reports, consult the following page on
 				 the World Wide Web:
- 
+
 					 http://bugs.freepascal.org
- 
+
 }
 {       Pascal Translation:  Gale R Paeper, <gpaeper@empirenet.com>, 2008 }
 {       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
@@ -229,11 +229,11 @@ uses MacTypes, CFBase;
 
 {
  *  kCFErrorDomainCFNetwork
- *  
+ *
  *  Discussion:
  *	Error domain for all errors originating in CFNetwork. Error codes
  *	may be interpreted using the list below.
- *  
+ *
  *  Availability:
  *	Mac OS X:		 in version 10.5 and later in CoreServices.framework
  *	CarbonLib:		not available
@@ -244,11 +244,11 @@ var kCFErrorDomainCFNetwork: CFStringRef; external name '_kCFErrorDomainCFNetwor
 
 {
  *  kCFErrorDomainWinSock
- *  
+ *
  *  Discussion:
  *	On Windows, errors originating from WinSock are represented using
  *	this domain.
- *  
+ *
  *  Availability:
  *	Mac OS X:		 in version 10.5 and later in CoreServices.framework
  *	CarbonLib:		not available
@@ -260,7 +260,7 @@ var kCFErrorDomainWinSock: CFStringRef; external name '_kCFErrorDomainWinSock'; 
 
 {
  *  CFNetworkErrors
- *  
+ *
  *  Discussion:
  *	The list of all public error codes returned under the error domain
  *	kCFErrorDomainCFNetwork
@@ -299,7 +299,7 @@ const
 	kCFErrorPACFileAuth = 309;
 	kCFErrorHTTPSProxyConnectionFailure = 310;
 	kCFStreamErrorHTTPSProxyFailureUnexpectedResponseToCONNECTMethod = 311;
-	
+
   // Error codes for CFURLConnection and CFURLProtocol
 	kCFURLErrorUnknown = -998;
 	kCFURLErrorCancelled = -999;
@@ -347,7 +347,7 @@ const
 	kCFURLErrorCannotMoveFile = -3005;
 	kCFURLErrorDownloadDecodingFailedMidStream = -3006;
 	kCFURLErrorDownloadDecodingFailedToComplete = -3007;
-	
+
   // Cookie errors
 	kCFHTTPCookieCannotParseCookieFile = -4000;
 
@@ -360,17 +360,17 @@ const
 	kCFNetServiceErrorCancel = -72005;
 	kCFNetServiceErrorInvalid = -72006;
 	kCFNetServiceErrorTimeout = -72007;
-	kCFNetServiceErrorDNSServiceFailure = -73000; // An error from DNS discovery; look at kCFDNSServiceFailureKey to get the error number and interpret using dns_sd.h	
+	kCFNetServiceErrorDNSServiceFailure = -73000; // An error from DNS discovery; look at kCFDNSServiceFailureKey to get the error number and interpret using dns_sd.h
 
 
 { Keys used by CFNetwork to pass additional error information back to the user within CFError's userInfo dictionary }
 {
  *  kCFURLErrorFailingURLErrorKey
- *  
+ *
  *  Discussion:
  *	When an NSURLConnection or NSURLDownload error occurs, this key's
  *  value is set to the URL which caused a load to fail
- *  
+ *
  *  Availability:
  *	Mac OS X:		 in version 10.6 and later in CoreServices.framework
  *	CarbonLib:		not available
@@ -381,12 +381,12 @@ var kCFURLErrorFailingURLErrorKey: CFStringRef; external name '_kCFURLErrorFaili
 
 {
  *  kCFURLErrorFailingURLStringErrorKey
- *  
+ *
  *  Discussion:
  *	When an NSURLConnection or NSURLDownload error occurs, this key's
  *  value is set to the CFString value of the URL which caused a load
  *  to fail
- *  
+ *
  *  Availability:
  *	Mac OS X:		 in version 10.6 and later in CoreServices.framework
  *	CarbonLib:		not available
@@ -397,12 +397,12 @@ var kCFURLErrorFailingURLStringErrorKey: CFStringRef; external name '_kCFURLErro
 
 {
  *  kCFGetAddrInfoFailureKey
- *  
+ *
  *  Discussion:
  *	When an error of kCFHostErrorUnknown is returned, this key's
  *	value is set to a CFNumber containing the raw error value
  *	returned by getaddrinfo()
- *  
+ *
  *  Availability:
  *	Mac OS X:		 in version 10.5 and later in CoreServices.framework
  *	CarbonLib:		not available
@@ -413,11 +413,11 @@ var kCFGetAddrInfoFailureKey: CFStringRef; external name '_kCFGetAddrInfoFailure
 
 {
  *  kCFSOCKSStatusCodeKey
- *  
+ *
  *  Discussion:
  *	When a SOCKS failure has occurred, this key's value is set to a
  *	CFString containing the status value returned by the SOCKS server.
- *  
+ *
  *  Availability:
  *	Mac OS X:		 in version 10.5 and later in CoreServices.framework
  *	CarbonLib:		not available
@@ -428,12 +428,12 @@ var kCFSOCKSStatusCodeKey: CFStringRef; external name '_kCFSOCKSStatusCodeKey'; 
 
 {
  *  kCFSOCKSVersionKey
- *  
+ *
  *  Discussion:
  *	When an error of kCFSOCKSErrorUnsupportedServerVersion is
  *	returned, this key's value is set to a CFString containing the
  *	version number requested by the server.
- *  
+ *
  *  Availability:
  *	Mac OS X:		 in version 10.5 and later in CoreServices.framework
  *	CarbonLib:		not available
@@ -444,12 +444,12 @@ var kCFSOCKSVersionKey: CFStringRef; external name '_kCFSOCKSVersionKey'; (* att
 
 {
  *  kCFSOCKSNegotiationMethodKey
- *  
+ *
  *  Discussion:
  *	When an error of kCFSOCKS5ErrorUnsupportedNegotiationMethod is
  *	returned, this key's value is set to a CFString containing the
  *	negotiation method requested by the server.
- *  
+ *
  *  Availability:
  *	Mac OS X:		 in version 10.5 and later in CoreServices.framework
  *	CarbonLib:		not available
@@ -460,12 +460,12 @@ var kCFSOCKSNegotiationMethodKey: CFStringRef; external name '_kCFSOCKSNegotiati
 
 {
  *  kCFDNSServiceFailureKey
- *  
+ *
  *  Discussion:
  *	When an error of kCFNetServicesErrorDNSServiceFailure is
  *	returned, this key's value is set to a CFNumber containing the
- *	value returned from DNS; interret it using the values dns_sd.h
- *  
+ *	value returned from DNS; interpret it using the values dns_sd.h
+ *
  *  Availability:
  *	Mac OS X:		 in version 10.5 and later in CoreServices.framework
  *	CarbonLib:		not available
@@ -476,12 +476,12 @@ var kCFDNSServiceFailureKey: CFStringRef; external name '_kCFDNSServiceFailureKe
 
 {
  *  kCFFTPStatusCodeKey
- *  
+ *
  *  Discussion:
  *	When an error of kCFFTPErrorUnexpectedStatusCode is returned,
  *	this key's value is set to a CFString containing the status code
  *	returned by the server
- *  
+ *
  *  Availability:
  *	Mac OS X:		 in version 10.5 and later in CoreServices.framework
  *	CarbonLib:		not available

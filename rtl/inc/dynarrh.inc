@@ -29,7 +29,7 @@ type
     eletype : ppdynarraytypeinfo;
     vartype : longint;
   end;
-  
+
 procedure DynArraySetLength(var a: Pointer; typeInfo: Pointer; dimCnt: SizeInt; lengthVec: PSizeInt);
 function DynArraySize(a : pointer): tdynarrayindex;
 procedure DynArrayClear(var a: Pointer; typeInfo: Pointer);

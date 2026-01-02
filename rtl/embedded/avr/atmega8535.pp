@@ -86,11 +86,11 @@ var
   WDTCR : byte absolute $00+$41; // Watchdog Timer Control Register
   // CPU
   SREG : byte absolute $00+$5F; // Status Register
-  SP : word absolute $00+$5D; // Stack Pointer 
-  SPL : byte absolute $00+$5D; // Stack Pointer 
-  SPH : byte absolute $00+$5D+1; // Stack Pointer 
+  SP : word absolute $00+$5D; // Stack Pointer
+  SPL : byte absolute $00+$5D; // Stack Pointer
+  SPH : byte absolute $00+$5D+1; // Stack Pointer
   OSCCAL : byte absolute $00+$51; // Oscillator Calibration Value
-  SPMCR : byte absolute $00+$57; // 
+  SPMCR : byte absolute $00+$57; //
 
 const
   // ADMUX

@@ -26,9 +26,9 @@ implementation
 uses
   baseunix;
 {$ELSE FPC_DOTTEDUNITS}
-uses 
+uses
   UnixApi.Base;
-{$ENDIF FPC_DOTTEDUNITS}  
+{$ENDIF FPC_DOTTEDUNITS}
 {$endif UNIX}
 
 

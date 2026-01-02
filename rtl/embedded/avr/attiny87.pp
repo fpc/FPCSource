@@ -142,7 +142,7 @@ const
   LDISR = 7; // Disable Bit Timing Resynchronization
   LBT = 0; // LIN Bit Timing bits
   // LINBRRL
-  LDIV = 0; // 
+  LDIV = 0; //
   // LINBRRH
   // LINDLR
   LTXDL = 4; // LIN Transmit Data Length bits
@@ -154,7 +154,7 @@ const
   LAINC = 3; // Auto Increment of Data Buffer Index (Active Low)
   LINDX = 0; // FIFO LIN Data Buffer Index bits
   // LINDAT
-  LDATA = 0; // 
+  LDATA = 0; //
   // USISR
   USISIF = 7; // Start Condition Interrupt Flag
   USIOIF = 6; // Counter Overflow Interrupt Flag
@@ -263,18 +263,18 @@ const
   AREFEN = 2; // External Voltage Reference Input Enable
   XREFEN = 1; // Internal Voltage Reference Output Enable
   // DIDR1
-  ADC10D = 2; // 
-  ADC9D = 1; // 
-  ADC8D = 0; // 
+  ADC10D = 2; //
+  ADC9D = 1; //
+  ADC8D = 0; //
   // DIDR0
-  ADC7D = 7; // 
-  ADC6D = 6; // 
-  ADC5D = 5; // 
-  ADC4D = 4; // 
-  ADC3D = 3; // 
-  ADC2D = 2; // 
-  ADC1D = 1; // 
-  ADC0D = 0; // 
+  ADC7D = 7; //
+  ADC6D = 6; //
+  ADC5D = 5; //
+  ADC4D = 4; //
+  ADC3D = 3; //
+  ADC2D = 2; //
+  ADC1D = 1; //
+  ADC0D = 0; //
   // AMISCR
   ISRCEN = 0; // Current Source Enable
   // ADCSRB

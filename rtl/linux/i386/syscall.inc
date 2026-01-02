@@ -269,7 +269,7 @@ asm
         movl  %edx,%ebx		// param1
 	pop   %ecx		// param2
         movl  param3,%edx	// param3
-        call  _psysinfo 
+        call  _psysinfo
   {$else FPC_PIC}
         movl  %edx,%ebx		// param1
 	pop   %ecx		// param2
@@ -333,7 +333,7 @@ asm
 	pop   %ecx		// param2
         movl  param3,%edx	// param3
         movl  param4,%esi	// param4
-        call  _psysinfo 
+        call  _psysinfo
   {$else FPC_PIC}
         movl  %edx,%ebx		// param1
 	pop   %ecx		// param2
@@ -403,7 +403,7 @@ asm
         movl  param3,%edx	// param3
         movl  param4,%esi	// param4
 	movl  param5,%edi	// param5
-        call  _psysinfo 
+        call  _psysinfo
   {$else FPC_PIC}
         movl  %edx,%ebx		// param1
 	pop   %ecx		// param2
@@ -479,7 +479,7 @@ asm
         movl  param3,%edx	// param3
         movl  param4,%esi	// param4
 	movl  param5,%edi	// param5
-        // push address of psysinfo, since ebp will be rewritten below 
+        // push address of psysinfo, since ebp will be rewritten below
         // and ebp based access to local vars will be unavailable after that
         push  _psysinfo
 	movl  param6,%ebp	// param6

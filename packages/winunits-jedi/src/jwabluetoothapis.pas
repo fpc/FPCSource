@@ -1038,7 +1038,7 @@ function BluetoothIsDiscoverable(hRadio: THandle): BOOL; stdcall;
 //
 //      The system enforces that a radio that is not connectable is not
 //      discoverable too. The radio must be made non-discoverable (see
-//      BluetoothEnableDiscovery) prior to making a radio non-connectionable.
+//      BluetoothEnableDiscovery) prior to making a radio non-connectable.
 //      Failure to do so will result in this call failing (returns FALSE).
 //
 //  Parameters:
@@ -1106,7 +1106,7 @@ type
 //  Parameters:
 //      pbtdi
 //          A pointer to a BLUETOOTH_DEVICE_INFO structure. The Bluetooth
-//          address will be used for comparision.
+//          address will be used for comparison.
 //
 //      phRegHandle
 //          A pointer to where the registration HANDLE value will be

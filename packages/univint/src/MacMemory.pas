@@ -1,10 +1,10 @@
 {
      File:       CarbonCore/MacMemory.h
- 
+
      Contains:   Memory Manager Interfaces.
                  The contents of this header file are deprecated.
                  Use malloc, free, etc instead.
- 
+
      Copyright:  © 1985-2011 by Apple Inc. All rights reserved.
 }
 {
@@ -328,7 +328,7 @@ type
 
 {
  *  NewGrowZoneUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -339,7 +339,7 @@ function NewGrowZoneUPP( userRoutine: GrowZoneProcPtr ): GrowZoneUPP; external n
 
 {
  *  NewPurgeUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -350,7 +350,7 @@ function NewPurgeUPP( userRoutine: PurgeProcPtr ): PurgeUPP; external name '_New
 
 {
  *  NewUserFnUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -361,7 +361,7 @@ function NewUserFnUPP( userRoutine: UserFnProcPtr ): UserFnUPP; external name '_
 
 {
  *  DisposeGrowZoneUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -372,7 +372,7 @@ procedure DisposeGrowZoneUPP( userUPP: GrowZoneUPP ); external name '_DisposeGro
 
 {
  *  DisposePurgeUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -383,7 +383,7 @@ procedure DisposePurgeUPP( userUPP: PurgeUPP ); external name '_DisposePurgeUPP'
 
 {
  *  DisposeUserFnUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -394,7 +394,7 @@ procedure DisposeUserFnUPP( userUPP: UserFnUPP ); external name '_DisposeUserFnU
 
 {
  *  InvokeGrowZoneUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -405,7 +405,7 @@ function InvokeGrowZoneUPP( cbNeeded: Size; userUPP: GrowZoneUPP ): SIGNEDLONG; 
 
 {
  *  InvokePurgeUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -416,7 +416,7 @@ procedure InvokePurgeUPP( blockToPurge: Handle; userUPP: PurgeUPP ); external na
 
 {
  *  InvokeUserFnUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -429,11 +429,11 @@ procedure InvokeUserFnUPP( parameter: UnivPtr; userUPP: UserFnUPP ); external na
 
 {
  *  MemError()
- *  
+ *
  *  Summary:
  *    Determines if an application’s last direct call to a Memory
  *    Manager function executed successfully.
- *  
+ *
  *  Discussion:
  *    MemError() yields the result code produced by the last Memory
  *    Manager function your application called directly, and resets
@@ -442,10 +442,10 @@ procedure InvokeUserFnUPP( parameter: UnivPtr; userUPP: UserFnUPP ); external na
  *    part of a memory-management scheme to identify instances in which
  *    the Memory Manager rejects overly large memory requests by
  *    returning the error code memFullErr.
- *    
+ *
  *    To view the result codes that MemError() can produce, see "Memory
  *    Manager Result Codes".
- *    
+ *
  *    Do not rely on MemError() as the only component of a
  *    memory-management scheme. For example, suppose you call NewHandle
  *    or NewPtr and receive the result code noErr, indicating that the
@@ -456,15 +456,15 @@ procedure InvokeUserFnUPP( parameter: UnivPtr; userUPP: UserFnUPP ); external na
  *    relying on MemError(), check before making a memory request that
  *    there is enough memory both to fulfill the request and to support
  *    essential operations.
- *    
+ *
  *    On Mac OS X 10.3 and later, the value of MemError() is kept for
  *    each thread; prior to Mac OS X 10.3.  MemError() is global to the
  *    application.  Because of this, and other problems, the Memory
  *    Manager APIs are not thread safe before Mac OS X 10.3.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -476,11 +476,11 @@ function MemError: OSErr; external name '_MemError';
 
 {
  *  LMGetMemErr()
- *  
+ *
  *  Summary:
  *    Returns the result of the last Memory Manager function, without
  *    clearing the value like MemError() does.
- *  
+ *
  *  Discussion:
  *    LMGetMemErr yields the result code produced by the last Memory
  *    Manager function your application called directly. Unlike
@@ -492,10 +492,10 @@ function MemError: OSErr; external name '_MemError';
  *    one part of a memory-management scheme to identify instances in
  *    which the Memory Manager rejects overly large memory requests by
  *    returning the error code memFullErr.
- *    
+ *
  *    To view the result codes that MemError() can produce, see "Memory
  *    Manager Result Codes".
- *    
+ *
  *    Do not rely on MemError() as the only component of a
  *    memory-management scheme. For example, suppose you call NewHandle
  *    or NewPtr and receive the result code noErr, indicating that the
@@ -506,16 +506,16 @@ function MemError: OSErr; external name '_MemError';
  *    relying on MemError(), check before making a memory request that
  *    there is enough memory both to fulfill the request and to support
  *    essential operations.
- *    
+ *
  *    On Mac OS X 10.3 and later, the value of MemError() is kept for
  *    each thread; prior to Mac OS X 10.3 there was one global value of
  *    MemError() which all threads shared. Because of this, and other
  *    problems, the Memory Manager APIs are not thread safe before Mac
  *    OS X 10.3.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -527,22 +527,22 @@ function LMGetMemErr: SInt16; external name '_LMGetMemErr';
 
 {
  *  LMSetMemErr()
- *  
+ *
  *  Summary:
  *    Set the value which will be returned by MemError()
- *  
+ *
  *  Discussion:
  *    User code shouldn't need to call this function, which is used to
  *    set the value which the next call to MemError() will return.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    value:
  *      the value which the next MemError() function call should return
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -554,10 +554,10 @@ procedure LMSetMemErr( value: SInt16 ); external name '_LMSetMemErr';
 
 {
  *  NewHandle()
- *  
+ *
  *  Summary:
  *    Allocate a relocatable memory block of a specified size.
- *  
+ *
  *  Discussion:
  *    The NewHandle function attempts to allocate a new relocatable
  *    block in the current heap zone with a logical size of logicalSize
@@ -566,26 +566,26 @@ procedure LMSetMemErr( value: SInt16 ); external name '_LMSetMemErr';
  *    the requested size, it returns NULL.  The memory block returned
  *    likely will contain garbage, and will be unlocked and
  *    non-purgeable.
- *    
+ *
  *    WARNING
- *    
+ *
  *    Do not try to manufacture your own handles without this function
  *    by simply assigning the address of a variable of type Ptr to a
  *    variable of type Handle. The resulting "fake handle" would not
  *    reference a relocatable block and could cause a system crash.
  *     If this function returns NIL, the error result can be determined
  *    by calling the function MemError().
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    byteCount:
  *      the size of the relocatable memory block to allocate.  If this
  *      value is < 0, NIL will be returned. If this value is 0, a
  *      handle to 0 byte block will be returned.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -597,10 +597,10 @@ function NewHandle( byteCount: Size ): Handle; external name '_NewHandle';
 
 {
  *  NewHandleClear()
- *  
+ *
  *  Summary:
  *    Allocate a relocatable memory block of a specified size.
- *  
+ *
  *  Discussion:
  *    The NewHandle function attempts to allocate a new relocatable
  *    block in the current heap zone with a logical size of logicalSize
@@ -608,26 +608,26 @@ function NewHandle( byteCount: Size ): Handle; external name '_NewHandle';
  *    unlocked and unpurgeable. If NewHandle cannot allocate a block of
  *    the requested size, it returns NULL.  The memory block returned
  *    will be zeroed, and will be unlocked and non-purgeable.
- *    
+ *
  *    WARNING
- *    
+ *
  *    Do not try to manufacture your own handles without this function
  *    by simply assigning the address of a variable of type Ptr to a
  *    variable of type Handle. The resulting "fake handle" would not
  *    reference a relocatable block and could cause a system crash.
  *     If this function returns NIL, the error result can be determined
  *    by calling the function MemError().
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    byteCount:
  *      the size of the relocatable memory block to allocate.  If this
  *      value is < 0, NIL will be returned. If this value is 0, a
  *      handle to 0 byte block will be returned.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -639,11 +639,11 @@ function NewHandleClear( byteCount: Size ): Handle; external name '_NewHandleCle
 
 {
  *  RecoverHandle()
- *  
+ *
  *  Summary:
  *    Returns a handle to a relocatable block pointed to by a specified
  *    pointer.
- *  
+ *
  *  Discussion:
  *    The Memory Manager does not allow you to change relocatable
  *    blocks into nonrelocatable blocks, or vice-versa. However, if you
@@ -651,22 +651,22 @@ function NewHandleClear( byteCount: Size ): Handle; external name '_NewHandleCle
  *    master pointer p, you can use the RecoverHandle function to
  *    recreate a handle to the relocatable block referenced by
  *    p.
- *    
+ *
  *    Call the function MemError() to get the result code. See "Memory
  *    Manager Result Codes".
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    p:
  *      the master pointer to a relocatable block.
- *  
+ *
  *  Result:
  *    A handle to a relocatable block point to by p. If p does not
  *    point to a valid block, this function returns NULL.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -678,10 +678,10 @@ function RecoverHandle( p: Ptr ): Handle; external name '_RecoverHandle';
 
 {
  *  NewPtr()
- *  
+ *
  *  Summary:
  *    Allocates a nonrelocatable block of memory of a specified size.
- *  
+ *
  *  Discussion:
  *    The NewPtr function attempts to reserve space for the new block.
  *    If it is able to reserve the requested amount of space, NewPtr
@@ -692,17 +692,17 @@ function RecoverHandle( p: Ptr ): Handle; external name '_RecoverHandle';
  *    allocate a pointer of size 0.
  *    Call the function MemError to get the result code. See "Memory
  *    Manager Result Codes".
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    byteCount:
  *      The requested size (in bytes) of the nonrelocatable block.  If
  *      you pass a value of zero, this function returns a valid zero
  *      length pointer.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -714,11 +714,11 @@ function NewPtr( byteCount: Size ): Ptr; external name '_NewPtr';
 
 {
  *  NewPtrClear()
- *  
+ *
  *  Summary:
  *    Allocates a nonrelocatable block of memory of a specified size
  *    with all its bytes set to 0.
- *  
+ *
  *  Discussion:
  *    The NewPtr function attempts to reserve space for the new block.
  *    If it is able to reserve the requested amount of space, NewPtr
@@ -729,17 +729,17 @@ function NewPtr( byteCount: Size ): Ptr; external name '_NewPtr';
  *    allocate a pointer of size 0.
  *    Call the function MemError to get the result code. See "Memory
  *    Manager Result Codes".
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    byteCount:
  *      The requested size (in bytes) of the nonrelocatable block.  If
  *      you pass a value of zero, this function returns a valid zero
  *      length pointer.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -752,20 +752,20 @@ function NewPtrClear( byteCount: Size ): Ptr; external name '_NewPtrClear';
 {$ifc not TARGET_CPU_64}
 {
  *  MaxBlock()   *** DEPRECATED ***
- *  
+ *
  *  Summary:
  *    Return the size of the largest block you could allocate in the
  *    current heap zone after compaction.
- *  
+ *
  *  Discussion:
  *    On Mac OS X, this function always returns a large value, because
  *    virtual memory is always available to fulfill any request for
  *    memory.  This function is deprecated on Mac OS X and later.  You
  *    can assume that any reasonable memory allocation will succeed.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -777,13 +777,13 @@ function MaxBlock: SIGNEDLONG; external name '_MaxBlock';
 
 {
  *  StackSpace()   *** DEPRECATED ***
- *  
+ *
  *  Summary:
  *    Returns the amount of space unused on the current thread's stack.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -797,20 +797,20 @@ function StackSpace: SIGNEDLONG; external name '_StackSpace';
 
 {
  *  NewEmptyHandle()
- *  
+ *
  *  Summary:
  *    Initializes a new handle without allocating any memory for it to
  *    control.
- *  
+ *
  *  Discussion:
  *    When you want to allocate memory for the empty handle, use the
  *    ReallocateHandle function.
  *    Call the function MemError to get the result code. See "Memory
  *    Manager Result Codes".
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -822,18 +822,18 @@ function NewEmptyHandle: Handle; external name '_NewEmptyHandle';
 
 {
  *  HLock()
- *  
+ *
  *  Summary:
  *    Lock a relocatable block so that it does not move in the heap
- *  
+ *
  *  Discussion:
  *    The HLock procedure locks the relocatable block to which h is a
  *    handle, preventing it from being moved within its heap zone. If
  *    the block is already locked,HLock does nothing.
- *    
+ *
  *    On Mac OS X, the behaviour of the Memory Manager and of heaps in
  *    general is different than on Mac OS 9.x and earlier. In
- *    particular, the heap on Mac OS X is never purged or compacted. 
+ *    particular, the heap on Mac OS X is never purged or compacted.
  *    Therefore, an unlocked handle will never be relocated except as a
  *    result of a direct action by something calling SetHandleSize() or
  *    by using a function like PtrAndHand() which implicitly resizes
@@ -844,22 +844,22 @@ function NewEmptyHandle: Handle; external name '_NewEmptyHandle';
  *    your sources before you include MacMemory.h, then HLock() and
  *    several other functions will become empty operations, removing
  *    the overhead of a function call.
- *    
+ *
  *    However, some applications are relying on the behavior that
  *    resizing a locked handle produces an error, or tracking the state
  *    of the locked bit for a give handle via the HGetState() function.
  *     Applications which rely on this can not use
  *    __MAC_OS_X_MEMORY_MANAGER_CLEAN__.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    h:
  *      the handle to lock.  If h is == NULL, then HLock() sets
  *      MemError() to noErr.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -871,10 +871,10 @@ procedure HLock( h: Handle ); external name '_HLock';
 
 {
  *  HLockHi()
- *  
+ *
  *  Summary:
  *    Lock a relocatable handle.
- *  
+ *
  *  Discussion:
  *    The HLockHi() function locks a handle in memory.  On versions of
  *    Mac OS before Mac OS X, it would first attempt to move the handle
@@ -883,16 +883,16 @@ procedure HLock( h: Handle ); external name '_HLock';
  *    this function never moves a handle before locking it.
  *    See the discussion about handle locking above the function
  *    HLock().
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    h:
  *      the handle to lock.  If h is == NULL, then HLockHi() sets
  *      MemError() to noErr.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -904,27 +904,27 @@ procedure HLockHi( h: Handle ); external name '_HLockHi';
 
 {
  *  HUnlock()
- *  
+ *
  *  Summary:
  *    Unlock a relocatable block so that it does not move in the heap
- *  
+ *
  *  Discussion:
  *    The HUnlock procedure unlocks the relocatable block to which h is
  *    a handle, allowing it from being moved within its heap zone. If
  *    the block is already unlocked, HUnlock does nothing.
- *    
+ *
  *    See the discussion about handles and locking on Mac OS X above
  *    the HLock() function.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    h:
  *      the handle to unlock.  If h is == NULL, then HUnlock() sets
  *      MemError() to noErr.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -937,36 +937,36 @@ procedure HUnlock( h: Handle ); external name '_HUnlock';
 {$ifc not TARGET_CPU_64}
 {
  *  HPurge()   *** DEPRECATED ***
- *  
+ *
  *  Summary:
  *    Mark a relocatable block so that it does can be purged if a
  *    memory request cannot be fulfilled after compaction of the heap
- *  
+ *
  *  Discussion:
  *    The HPurge procedure makes the relocatable block to which h is a
  *    handle purgeable. If the block is already purgeable, HPurge does
  *    nothing.
- *    
+ *
  *    On Mac OS X, heaps are never purged.  Therefore, the use of
  *    HPurge() and its associated functios is deprecated. If you define
  *    a macro __MAC_OS_X_MEMORY_MANAGER_CLEAN__ in your sources before
  *    you include MacMemory.h, then any calls to HPurge() in your
  *    program will essentially be removed.
- *    
+ *
  *    However, some applications may set the handle as purgeable, and
  *    then later check the purgeBit for the handle via HGetState().  If
  *    your application depends on the purge bit being set for handles,
  *    you will not be able to take advantage of this macro.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    h:
  *      the handle to mark as purgeable.  If h is == NULL, then
  *      HPurge() just sets MemError() to noErr.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -978,24 +978,24 @@ procedure HPurge( h: Handle ); external name '_HPurge';
 
 {
  *  HNoPurge()   *** DEPRECATED ***
- *  
+ *
  *  Summary:
  *    Mark a relocatable block so that it can not be purged.
- *  
+ *
  *  Discussion:
  *    The HNoPurge procedure makes the relocatable block to which h is
  *    a handle unpurgeable. See the discussion about purgable handles
  *    above the HPurge() function.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    h:
  *      the handle to mark as nonpurgeable.  If h is == NULL, then
  *      HPurge() just sets MemError() to noErr.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1009,10 +1009,10 @@ procedure HNoPurge( h: Handle ); external name '_HNoPurge';
 
 {
  *  TempNewHandle()
- *  
+ *
  *  Summary:
  *    Allocate a relocatable memory block of a specified size.
- *  
+ *
  *  Discussion:
  *    The TempNewHandle function attempts to allocate a new relocatable
  *    block in the current heap zone with a logical size of logicalSize
@@ -1020,35 +1020,35 @@ procedure HNoPurge( h: Handle ); external name '_HNoPurge';
  *    unlocked and unpurgeable. If NewHandle cannot allocate a block of
  *    the requested size, it returns NULL.  The memory block returned
  *    likely will contain garbage.
- *    
+ *
  *    WARNING
- *    
+ *
  *    Do not try to manufacture your own handles without this function
  *    by simply assigning the address of a variable of type Ptr to a
  *    variable of type Handle. The resulting "fake handle" would not
  *    reference a relocatable block and could cause a system crash.
  *     If this function returns NIL, the error result can be determined
  *    by calling the function MemError().
- *    
+ *
  *    On Mac OS X, there is no temporary memory heap, and thus no
  *    difference between the handles returned by TempNewHandle() and
  *    those returned by NewHandle().  The only difference between the
  *    two is that TempNewHandle() also returns the error result of the
  *    call in resultCode.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    logicalSize:
  *      the size of the relocatable memory block to allocate.  If this
  *      value is < 0, NIL will be returned. If this value is 0, a
  *      handle to 0 byte block will be returned.
- *    
+ *
  *    resultCode:
  *      On exit, this will be set to the result of the operation.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1061,24 +1061,24 @@ function TempNewHandle( logicalSize: Size; var resultCode: OSErr ): Handle; exte
 {$ifc not TARGET_CPU_64}
 {
  *  TempMaxMem()   *** DEPRECATED ***
- *  
+ *
  *  Summary:
  *    Return the maximum amount of temporary memory available
- *  
+ *
  *  Discussion:
  *    On Mac OS X, this function always returns a large value, because
  *    virtual memory is always available to fulfill any request for
  *    memory.  This function is deprecated on Mac OS X and later.  You
  *    can assume that any reasonable memory allocation will succeed.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    grow:
  *      If != NULL, then this is filled in with the the value 0.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1090,20 +1090,20 @@ function TempMaxMem( var grow: Size ): Size; external name '_TempMaxMem';
 
 {
  *  TempFreeMem()   *** DEPRECATED ***
- *  
+ *
  *  Summary:
  *    Return the maximum amount of free memory in the temporary heap.
- *  
+ *
  *  Discussion:
  *    On Mac OS X, there is no separate temporary memory heap.  This
  *    function always returns a large value, because virtual memory is
  *    always available to fulfill any request for memory.  This
  *    function is deprecated on Mac OS X and later.  You can assume
  *    that any reasonable memory allocation will succeed.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1115,19 +1115,19 @@ function TempFreeMem: SIGNEDLONG; external name '_TempFreeMem';
 
 {
  *  CompactMem()   *** DEPRECATED ***
- *  
+ *
  *  Summary:
  *    Compact the heap by purging and moving blocks such that at least
  *    cbNeeded bytes are available, if possible.
- *  
+ *
  *  Discussion:
  *    On Mac OS X and later, blocks are never purged and memory heaps
  *    will grow as necessary, so compaction is never necessary nor
  *    performed.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1139,19 +1139,19 @@ function CompactMem( cbNeeded: Size ): Size; external name '_CompactMem';
 
 {
  *  PurgeMem()   *** DEPRECATED ***
- *  
+ *
  *  Summary:
  *    Purge blocks from the heap until cbNeeded bytes are available, if
  *    possible.
- *  
+ *
  *  Discussion:
  *    On Mac OS X and later, blocks are never purged and memory heaps
  *    will grow as necessary, so purging of a heap is never necessary
  *    nor performed.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1163,19 +1163,19 @@ procedure PurgeMem( cbNeeded: Size ); external name '_PurgeMem';
 
 {
  *  FreeMem()   *** DEPRECATED ***
- *  
+ *
  *  Summary:
  *    Return the maximum amount of free memory in the temporary heap.
- *  
+ *
  *  Discussion:
  *    On Mac OS X, this function always returns a large value, because
  *    virtual memory is always available to fulfill any request for
  *    memory.  This function is deprecated on Mac OS X and later.  You
  *    can assume that any reasonable memory allocation will succeed.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1191,24 +1191,24 @@ function MacFreeMem: SInt32; external name '_FreeMem';
 
 {
  *  MaxMem()   *** DEPRECATED ***
- *  
+ *
  *  Summary:
  *    Return the maximum amount of free memory available
- *  
+ *
  *  Discussion:
  *    On Mac OS X, this function always returns a large value, because
  *    virtual memory is always available to fulfill any request for
  *    memory.  This function is deprecated on Mac OS X and later.  You
  *    can assume that any reasonable memory allocation will succeed.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    grow:
  *      If != NULL, then this is filled in with the the value 0.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1220,22 +1220,22 @@ function MaxMem( var grow: Size ): Size; external name '_MaxMem';
 
 {
  *  SetGrowZone()   *** DEPRECATED ***
- *  
+ *
  *  Summary:
  *    Set a function which is called when a heap is grown
- *  
+ *
  *  Discussion:
  *    On Mac OS X and later, heaps never grow, and so the function set
  *    by SetGrowZone() is never called.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    growZone:
  *      a upp for a function to call when a heap needs to be grown
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1247,17 +1247,17 @@ procedure SetGrowZone( growZone: GrowZoneUPP ); external name '_SetGrowZone';
 
 {
  *  GetGrowZone()   *** DEPRECATED ***
- *  
+ *
  *  Summary:
  *    Get the function which is called when a heap is grown
- *  
+ *
  *  Discussion:
  *    On Mac OS X and later, heaps never grow, and so this function (
  *    set by SetGrowZone() ) is never called.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1269,10 +1269,10 @@ function GetGrowZone: GrowZoneUPP; external name '_GetGrowZone';
 
 {
  *  MoveHHi()   *** DEPRECATED ***
- *  
+ *
  *  Summary:
  *    Move a handle as high in memory as possible
- *  
+ *
  *  Discussion:
  *    On versions of Mac OS before Mac OS X, MoveHHi() would move the
  *    handle as high in memory as feasible. However, on Mac OS X and
@@ -1280,15 +1280,15 @@ function GetGrowZone: GrowZoneUPP; external name '_GetGrowZone';
  *    and so this function never moves a handle before locking it.
  *     See the discussion about handle locking above the function
  *    HLock().
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    h:
  *      the handle to move
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1302,10 +1302,10 @@ procedure MoveHHi( h: Handle ); external name '_MoveHHi';
 
 {
  *  DisposePtr()
- *  
+ *
  *  Summary:
  *    Release memory occupied by a nonrelocatable block
- *  
+ *
  *  Discussion:
  *    When you no longer need a nonrelocatable block, call the
  *    DisposePtr function to free it for other uses.
@@ -1313,17 +1313,17 @@ procedure MoveHHi( h: Handle ); external name '_MoveHHi';
  *    Manager Result Codes".
  *    After a call to DisposePtr, all pointers to the released block
  *    become invalid and should not be used again. Any subsequent use
- *    of a pointer to the released block might cause a system error. 
+ *    of a pointer to the released block might cause a system error.
  *    You can pass the value NULL as the pointer to dispose.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    p:
  *      A pointer to the nonrelocatable block you want to dispose of
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1335,28 +1335,28 @@ procedure DisposePtr( p: Ptr ); external name '_DisposePtr';
 
 {
  *  GetPtrSize()
- *  
+ *
  *  Summary:
  *    Returns the logical size of the nonrelocatable block
  *    corresponding to a pointer.
- *  
+ *
  *  Discussion:
  *    This function returns the number of bytes used for the given
  *    pointer.  Call the function MemError to get the result code. See
  *    "Memory Manager Result Codes".
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    p:
  *      a pointer to a nonrelocatable block.
- *  
+ *
  *  Result:
  *    The logical size, in bytes, of the nonrelocatable block pointed
  *    to by p. In case of error, the function returns 0.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1368,10 +1368,10 @@ function GetPtrSize( p: Ptr ): Size; external name '_GetPtrSize';
 
 {
  *  SetPtrSize()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1383,10 +1383,10 @@ procedure SetPtrSize( p: Ptr; newSize: Size ); external name '_SetPtrSize';
 
 {
  *  DisposeHandle()
- *  
+ *
  *  Summary:
  *    Releases memory occupied by a relocatable block.
- *  
+ *
  *  Discussion:
  *    The DisposeHandle function releases the memory occupied by the
  *    relocatable block whose handle is h. It also frees the handle’s
@@ -1403,15 +1403,15 @@ procedure SetPtrSize( p: Ptr; newSize: Size ); external name '_SetPtrSize';
  *    to DisposeHandleusing an invalid handle might damage the master
  *    pointer list.  You can pass the value NULL as the handle to
  *    dispose.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    h:
  *      A handle to a relocatable block.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1423,38 +1423,38 @@ procedure DisposeHandle( h: Handle ); external name '_DisposeHandle';
 
 {
  *  SetHandleSize()
- *  
+ *
  *  Summary:
  *    Changes the logical size of the relocatable block corresponding
  *    to the specified handle.
- *  
+ *
  *  Discussion:
  *    Change the logical size of the relocatable block corresponding to
  *    the specified handle. SetHandleSize might need to move the
  *    relocatable block to obtain enough space for the resized block.
  *    Thus, for best results you should unlock a block before resizing
  *    it.
- *    
+ *
  *    An attempt to increase the size of a locked block might fail,
  *    because of blocks above and below it that are either
  *    nonrelocatable or locked. You should be prepared for this
  *    possibility.
- *    
+ *
  *    Instead of using the SetHandleSize function to set the size of a
  *    handle to 0, you can use the EmptyHandle function.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    h:
  *      a handle to a relocatable block.
- *    
+ *
  *    newSize:
  *      the desired new logical size, in bytes, of the relocatable
  *      block.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1466,28 +1466,28 @@ procedure SetHandleSize( h: Handle; newSize: Size ); external name '_SetHandleSi
 
 {
  *  GetHandleSize()
- *  
+ *
  *  Summary:
  *    Returns the logical size of the relocatable block corresponding
  *    to a handle.
- *  
+ *
  *  Discussion:
  *    Returns the logical size of the relocatable block corresponding
  *    to a handle.  Call the function MemError to get the result code.
  *    See "Memory Manager Result Codes".
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    h:
  *      a handle to a relocatable block.
- *  
+ *
  *  Result:
  *    The logical size, in bytes, of the relocatable block whose handle
  *    is h. In case of error, the function return 0.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1499,37 +1499,37 @@ function GetHandleSize( h: Handle ): Size; external name '_GetHandleSize';
 
 {
  *  ReallocateHandle()
- *  
+ *
  *  Summary:
  *    Allocates a new relocatable block of a specified size and sets a
  *    handle’s master pointer to point to the new block.
- *  
+ *
  *  Discussion:
  *    Usually you use ReallocateHandle to reallocate space for a block
  *    that you have emptied. If the handle references an existing
  *    block, ReallocateHandle releases that block before creating a new
  *    one.
- *    
+ *
  *    To reallocate space for a resource that has been purged, you
  *    should call LoadResource, not ReallocateHandle. To resize
  *    relocatable blocks, you should call the SetHandleSize
  *    function.
- *    
+ *
  *    Call the function MemError to get the result code. See "Memory
  *    Manager Result Codes".
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    h:
  *      A handle to a relocatable block.
- *    
+ *
  *    byteCount:
  *      the desired new logical size (in bytes) of the relocatable
  *      block. The new block is unlocked and unpurgeable.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1541,11 +1541,11 @@ procedure ReallocateHandle( h: Handle; byteCount: Size ); external name '_Reallo
 
 {
  *  EmptyHandle()
- *  
+ *
  *  Summary:
  *    Purges a relocatable block and sets the corresponding handle’s
  *    master pointer to NULL.
- *  
+ *
  *  Discussion:
  *    The EmptyHandle function purges the relocatable block whose
  *    handle is h and sets the handle’s master pointer to NULL. The
@@ -1553,29 +1553,29 @@ procedure ReallocateHandle( h: Handle; byteCount: Size ); external name '_Reallo
  *    relocatable block without freeing the relocatable block’s master
  *    pointer for other uses. The block whose handle is h must be
  *    unlocked but need not be purgeable.
- *    
+ *
  *    Note that if there are multiple handles to the relocatable block,
  *    then calling the EmptyHandle function empties them all, because
  *    all of the handles share a common master pointer. When you later
  *    use ReallocateHandle to reallocate space for the block, the
  *    master pointer is updated, and all of the handles reference the
  *    new block correctly.
- *    
+ *
  *    To free the memory taken up by a relocatable block and release
  *    the block’s master pointer for other uses, use the DisposeHandle
  *    function.
- *    
+ *
  *    Call the function MemError to get the result code. See "Memory
  *    Manager Result Codes".
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    h:
  *      a handle to a relocatable block.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1587,13 +1587,13 @@ procedure EmptyHandle( h: Handle ); external name '_EmptyHandle';
 
 {
  *  HSetRBit()
- *  
+ *
  *  Summary:
  *    Set the "R" bit for the handle state.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1605,13 +1605,13 @@ procedure HSetRBit( h: Handle ); external name '_HSetRBit';
 
 {
  *  HClrRBit()
- *  
+ *
  *  Summary:
  *    Clear the "R" bit for the handle state.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1623,11 +1623,11 @@ procedure HClrRBit( h: Handle ); external name '_HClrRBit';
 
 {
  *  HGetState()
- *  
+ *
  *  Summary:
  *    Get the current state of the handle's locked, purgeable, and R
  *    bits
- *  
+ *
  *  Discussion:
  *    The HGetState function returns a signed byte (AnsiChar) containing
  *    the flags of the master pointer for the given handle. You can
@@ -1635,7 +1635,7 @@ procedure HClrRBit( h: Handle ); external name '_HClrRBit';
  *    functions described in this section, and then restore their
  *    original states by passing the byte to the HSetState
  *    function.
- *    
+ *
  *    You can use bit-manipulation functions on the returned signed
  *    byte to determine the value of a given attribute.
  *    Currently the following bits are used:
@@ -1654,20 +1654,20 @@ procedure HClrRBit( h: Handle ); external name '_HClrRBit';
  *    include MacMemory.h, then HGetState() and several other functions
  *    will become empty operations, removing the overhead of a function
  *    call.
- *    
+ *
  *    However, some applications may depend on the state bits of a
  *    handle being correct or changing as functions like HLock(), etc.,
  *    are called.  Applications which rely on this can not use
  *    __MAC_OS_X_MEMORY_MANAGER_CLEAN__.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    h:
  *      the handle to get the state for
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1679,26 +1679,26 @@ function HGetState( h: Handle ): SInt8; external name '_HGetState';
 
 {
  *  HSetState()
- *  
+ *
  *  Summary:
  *    Set the current state of the handle's locked, purgeable, and R
  *    bits
- *  
+ *
  *  Discussion:
  *    See the discussion about handle state and Mac OS X above the
  *    function HGetState().
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    h:
  *      the handle to set the state for
- *    
+ *
  *    flags:
  *      the flags to set for the handle
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1712,9 +1712,9 @@ procedure HSetState( h: Handle; flags: SInt8 ); external name '_HSetState';
 
     Beginning in Mac OS X Tiger, BlockMove, BlockMoveData, BlockMoveUncached,
     BlockMoveDataUncached, BlockZero, and BlockZeroUncached are inlined to a
-    direct call to the posix memmove or bzero functions; this allows the 
+    direct call to the posix memmove or bzero functions; this allows the
     compiler to optimize in some cases.
-    
+
     However, CarbonCore.framework still exports functions with these names,
     both so old code which linked them there will run and to support
     compilers which don't support inline function definitions.
@@ -1722,13 +1722,13 @@ procedure HSetState( h: Handle; flags: SInt8 ); external name '_HSetState';
     To use the exported version of BlockMove, #define NO_BLOCKMOVE_INLINE
     in your source code ( or prefix header file ) before including any headers
     which would include MacMemory.h.
-    
+
 ****************************************************************************}
 
 {$ifc not TARGET_CPU_64}
 {
  *  BlockMove()
- *  
+ *
  *  Availability:
  *    Non-Carbon CFM:   in DriverServicesLib 1.0 and later
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1737,7 +1737,7 @@ procedure HSetState( h: Handle; flags: SInt8 ); external name '_HSetState';
 procedure BlockMove( srcPtr: {const} UnivPtr; destPtr: UnivPtr; byteCount: Size ); external name '_BlockMove';
 {
  *  BlockMoveData()
- *  
+ *
  *  Availability:
  *    Non-Carbon CFM:   in DriverServicesLib 1.0 and later
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1746,7 +1746,7 @@ procedure BlockMove( srcPtr: {const} UnivPtr; destPtr: UnivPtr; byteCount: Size 
 procedure BlockMoveData( srcPtr: {const} UnivPtr; destPtr: UnivPtr; byteCount: Size ); external name '_BlockMoveData';
 {
  *  BlockMoveUncached()
- *  
+ *
  *  Availability:
  *    Non-Carbon CFM:   in InterfaceLib 8.5 and later
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1756,7 +1756,7 @@ procedure BlockMoveUncached( srcPtr: {const} UnivPtr; destPtr: UnivPtr; byteCoun
 
 {
  *  BlockMoveDataUncached()
- *  
+ *
  *  Availability:
  *    Non-Carbon CFM:   in InterfaceLib 8.5 and later
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1766,7 +1766,7 @@ procedure BlockMoveDataUncached( srcPtr: {const} UnivPtr; destPtr: UnivPtr; byte
 
 {
  *  BlockZero()
- *  
+ *
  *  Availability:
  *    Non-Carbon CFM:   in InterfaceLib 8.5 and later
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1776,7 +1776,7 @@ procedure BlockZero( destPtr: UnivPtr; byteCount: Size ); external name '_BlockZ
 
 {
  *  BlockZeroUncached()
- *  
+ *
  *  Availability:
  *    Non-Carbon CFM:   in InterfaceLib 8.5 and later
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1788,42 +1788,42 @@ procedure BlockZeroUncached( destPtr: UnivPtr; byteCount: Size ); external name 
 
 {
  *  HandToHand()
- *  
+ *
  *  Summary:
  *    Copies all of the data from one relocatable block to a new
  *    relocatable block.
- *  
+ *
  *  Discussion:
  *    The HandToHand function attempts to copy the information in the
  *    relocatable block to which theHndl is a handle; if successful,
  *    HandToHand sets theHndlto a handle pointing to the new
  *    relocatable block.
- *    
+ *
  *    If successful in creating a new relocatable block, the HandToHand
  *    function does not duplicate the properties of the original block.
  *    The new block is unlocked, unpurgeable, and not a resource. Call
  *    HLock or HPurge to adjust the properties of the new
  *    block.
- *    
+ *
  *    To copy only part of a relocatable block into a new relocatable
  *    block, use the PtrToHand function. Before calling PtrToHand, lock
  *    and dereference the handle pointing to the relocatable block you
  *    want to copy.
- *    
+ *
  *    Because HandToHand replaces its parameter with the new handle,
  *    you should retain the original parameter value somewhere else,
  *    otherwise you will not be able to access it.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    theHndl:
  *      a handle to the relocatable block whose data HandToHand will
  *      copy.  On return, theHndl contains a handle to a new
  *      relocatable block whose data duplicates the original.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1835,30 +1835,30 @@ function HandToHand( var theHndl: Handle ): OSErr; external name '_HandToHand';
 
 {
  *  PtrToXHand()
- *  
+ *
  *  Summary:
  *    Copies data referenced by a pointer to an existing relocatable
  *    block.
- *  
+ *
  *  Discussion:
  *    The PtrToXHand function copies the specified number of bytes from
  *    the location specified by srcPtr to the handle specified by
  *    dstHndl.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    srcPtr:
  *      the address of the first byte to copy.
- *    
+ *
  *    dstHndl:
  *      a handle to an existing relocatable block.
- *    
+ *
  *    size:
  *      the number of bytes to copy.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1870,23 +1870,23 @@ function PtrToXHand( srcPtr: {const} UnivPtr; dstHndl: Handle; size: SIGNEDLONG 
 
 {
  *  PtrToHand()
- *  
+ *
  *  Summary:
  *    Copies data referenced by a pointer to a new relocatable block.
- *  
+ *
  *  Discussion:
  *    If you dereference and lock a handle, the PtrToHand function can
  *    copy its data to a new handle. However, for copying data from one
  *    handle to another, the HandToHand function is more efficient.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    srcPtr:
  *      the address of the first byte to copy.
- *    
+ *
  *    dstHndl:
  *      a handle for which you have not yet allocated any memory. The
  *      PtrToHand function allocates memory for the handle and copies
@@ -1895,10 +1895,10 @@ function PtrToXHand( srcPtr: {const} UnivPtr; dstHndl: Handle; size: SIGNEDLONG 
  *      result. Its value on entry is ignored. If no error occurs, on
  *      exit it points to an unlocked, non-purgeable Handle of the
  *      requested size.
- *    
+ *
  *    size:
  *      the number of bytes to copy.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1910,19 +1910,19 @@ function PtrToHand( srcPtr: {const} UnivPtr; var dstHndl: Handle; size: SIGNEDLO
 
 {
  *  HandAndHand()
- *  
+ *
  *  Summary:
  *    Use the HandAndHand function to concatenate two relocatable
  *    blocks.
- *  
+ *
  *  Discussion:
  *    The HandAndHand function concatenates the information from the
  *    relocatable block to which aHndl is a handle onto the end of the
  *    relocatable block to which bHndl is a handle. The aHndl variable
  *    remains unchanged.
- *    
+ *
  *    WARNING
- *    
+ *
  *    The HandAndHand function dereferences the handle aHndl. You must
  *    call the HLock procedure to lock the block before calling
  *    HandAndHand. Afterward, you can call the HUnlock procedure to
@@ -1930,22 +1930,22 @@ function PtrToHand( srcPtr: {const} UnivPtr; var dstHndl: Handle; size: SIGNEDLO
  *    by calling the HGetState function, lock the block by calling
  *    HLock, and then restore the original settings by calling
  *    HSetState.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    hand1:
  *      A handle to the first relocatable block, whose contents do not
  *      change but are concatenated to the end of the second
  *      relocatable block.
- *    
+ *
  *    hand2:
  *      A handle to the second relocatable block, whose size the Memory
  *      Manager expands so that it can concatenate the information from
  *      aHndl to the end of the contents of this block.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1957,35 +1957,35 @@ function HandAndHand( hand1: Handle; hand2: Handle ): OSErr; external name '_Han
 
 {
  *  PtrAndHand()
- *  
+ *
  *  Summary:
  *    Concatenates part or all of a memory block to the end of a
  *    relocatable block.
- *  
+ *
  *  Discussion:
  *    The PtrAndHand function takes the number of bytes specified by
  *    the size parameter, beginning at the location specified by ptr1,
  *    and concatenates them onto the end of the relocatable block to
  *    which hand2 is a handle. The contents of the source block remain
  *    unchanged.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    ptr1:
  *      a pointer to the beginning of the data that the Memory Manager
  *      is to concatenate onto the end of the relocatable block.
- *    
+ *
  *    hand2:
  *      a handle to the relocatable block, whose size the Memory
  *      Manager expands so that it can concatenate the information from
  *      ptr1 onto the end of this block.
- *    
+ *
  *    size:
  *      the number of bytes of the block referenced by ptr1 to copy.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1998,14 +1998,14 @@ function PtrAndHand( ptr1: {const} UnivPtr; hand2: Handle; size: SIGNEDLONG ): O
 {$ifc not TARGET_CPU_64}
 {
  *  MoreMasters()   *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    On Mac OS X and later, master pointers do not need to be
  *    pre-allocated.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2017,19 +2017,19 @@ procedure MoreMasters; external name '_MoreMasters';
 
 {
  *  MoreMasterPointers()   *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    On Mac OS X and later, master pointers do not need to be
  *    pre-allocated.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inCount:
  *      the number of master pointers to preallocate
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2042,14 +2042,14 @@ procedure MoreMasterPointers( inCount: UInt32 ); external name '_MoreMasterPoint
 {  Temporary Memory routines renamed, but obsolete, in System 7.0 and later.  }
 {
  *  TempHLock()   *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    This function has been deprecated for many years; replace it with
  *    HLock()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2061,14 +2061,14 @@ procedure TempHLock( h: Handle; var resultCode: OSErr ); external name '_TempHLo
 
 {
  *  TempHUnlock()   *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    This function has been deprecated for many years; replace it with
  *    HUnlock()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2080,14 +2080,14 @@ procedure TempHUnlock( h: Handle; var resultCode: OSErr ); external name '_TempH
 
 {
  *  TempDisposeHandle()   *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    This function has been deprecated for many years; replace it with
  *    DisposeHandle()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2099,14 +2099,14 @@ procedure TempDisposeHandle( h: Handle; var resultCode: OSErr ); external name '
 
 {
  *  TempTopMem()   *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    Mac OS X and later does not have a seperate temporary memory
  *    heap.  This function returns NULL.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2118,7 +2118,7 @@ function TempTopMem: Ptr; external name '_TempTopMem';
 
 {
  *  HoldMemory()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Mac OS X has never supported HoldMemory.  The functions in
  *    ./sys/mman.h may be useful for replacing usage of these
@@ -2128,10 +2128,10 @@ function TempTopMem: Ptr; external name '_TempTopMem';
  *    If you define a macro __MAC_OS_X_MEMORY_MANAGER_CLEAN__ in your
  *    sources before you include MacMemory.h, then any calls to
  *    HoldMemory() in your program will essentially be removed.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2143,14 +2143,14 @@ function HoldMemory( address: UnivPtr; count: UNSIGNEDLONG ): OSErr; external na
 
 {
  *  UnholdMemory()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Mac OS X has never supported MakeMemoryResident.  See the comment
  *    above UnholdMemory for more information.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2162,22 +2162,22 @@ function UnholdMemory( address: UnivPtr; count: UNSIGNEDLONG ): OSErr; external 
 
 {
  *  MakeMemoryResident()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Mac OS X has never supported MakeMemoryResident.  See the comment
  *    above UnholdMemory for more information.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    address:
  *      the address to make resident
- *    
+ *
  *    count:
  *      the count of pages to make make resident
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -2189,22 +2189,22 @@ function MakeMemoryResident( address: UnivPtr; count: UNSIGNEDLONG ): OSErr; ext
 
 {
  *  ReleaseMemoryData()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Mac OS X has never supported MakeMemoryResident.  See the comment
  *    above UnholdMemory for more information.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    address:
  *      the address to make release
- *    
+ *
  *    count:
  *      the count of pages to make make release
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -2216,22 +2216,22 @@ function ReleaseMemoryData( address: UnivPtr; count: UNSIGNEDLONG ): OSErr; exte
 
 {
  *  MakeMemoryNonResident()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Mac OS X has never supported MakeMemoryResident.  See the comment
  *    above UnholdMemory for more information.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    address:
  *      the address to make non-resident
- *    
+ *
  *    count:
  *      the count of pages to make make non-resident
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -2243,22 +2243,22 @@ function MakeMemoryNonResident( address: UnivPtr; count: UNSIGNEDLONG ): OSErr; 
 
 {
  *  FlushMemory()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Mac OS X has never supported MakeMemoryResident.  See the comment
  *    above UnholdMemory for more information.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    address:
  *      the address to flush
- *    
+ *
  *    count:
  *      the count of pages to make flush
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -2270,13 +2270,13 @@ function FlushMemory( address: UnivPtr; count: UNSIGNEDLONG ): OSErr; external n
 
 {
  *  GZSaveHnd()   *** DEPRECATED ***
- *  
+ *
  *  Summary:
  *    This function is deprecated on Mac OS X and always returns NULL.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2288,13 +2288,13 @@ function GZSaveHnd: Handle; external name '_GZSaveHnd';
 
 {
  *  TopMem()   *** DEPRECATED ***
- *  
+ *
  *  Summary:
  *    This function is deprecated on Mac OS X and always returns NULL.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2306,13 +2306,13 @@ function TopMem: Ptr; external name '_TopMem';
 
 {
  *  ReserveMem()   *** DEPRECATED ***
- *  
+ *
  *  Summary:
  *    This function is deprecated on Mac OS X.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2324,23 +2324,23 @@ procedure ReserveMem( cbNeeded: Size ); external name '_ReserveMem';
 
 {
  *  PurgeSpace()   *** DEPRECATED ***
- *  
+ *
  *  Summary:
  *    This function is deprecated on Mac OS X.
- *  
+ *
  *  Discussion:
  *    On Mac OS X and later, heaps are never purged and therefore
  *    PurgeSpace will always return a large value for both the total
  *    space available and the largest block available.  You can assume
  *    that any reasonable memory allocation will succeed.
- *    
+ *
  *    If you define a macro __MAC_OS_X_MEMORY_MANAGER_CLEAN__ in your
  *    sources before you include MacMemory.h, then any calls to
  *    PurgeSpace() in your program will essentially be removed.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2352,18 +2352,18 @@ procedure PurgeSpace( var total: SIGNEDLONG; var contig: SIGNEDLONG ); external 
 
 {
  *  PurgeSpaceTotal()   *** DEPRECATED ***
- *  
+ *
  *  Summary:
  *    This function is deprecated on Mac OS X.
- *  
+ *
  *  Discussion:
  *    On Mac OS X and later, heaps are never purged and therefore
  *    PurgeSpaceTotal will always return a large value. You can assume
  *    that any reasonable memory allocation will succeed.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2375,18 +2375,18 @@ function PurgeSpaceTotal: SIGNEDLONG; external name '_PurgeSpaceTotal';
 
 {
  *  PurgeSpaceContiguous()   *** DEPRECATED ***
- *  
+ *
  *  Summary:
  *    This function is deprecated on Mac OS X.
- *  
+ *
  *  Discussion:
  *    On Mac OS X and later, heaps are never purged and therefore
  *    PurgeSpaceContiguous will always return a large value. You can
  *    assume that any reasonable memory allocation will succeed.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2399,15 +2399,15 @@ function PurgeSpaceContiguous: SIGNEDLONG; external name '_PurgeSpaceContiguous'
 { Carbon routines to aid in debugging. }
 {
  *  CheckAllHeaps()   *** DEPRECATED ***
- *  
+ *
  *  Summary:
  *    Check all known heaps for validity.  Deprecated on Mac OS X,
  *    since there really aren't heaps.  Use IsHeapValid() if you really
  *    want this functionality.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2421,13 +2421,13 @@ function CheckAllHeaps: Boolean; external name '_CheckAllHeaps';
 
 {
  *  IsHeapValid()
- *  
+ *
  *  Summary:
  *    Check if the heap is valid.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.4
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2440,10 +2440,10 @@ function IsHeapValid: Boolean; external name '_IsHeapValid';
 { It is invalid to pass a NULL or an empty Handle to IsHandleValid }
 {
  *  IsHandleValid()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2456,10 +2456,10 @@ function IsHandleValid( h: Handle ): Boolean; external name '_IsHandleValid';
 { It is invalid to pass a NULL Pointer to IsPointerValid }
 {
  *  IsPointerValid()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2473,13 +2473,13 @@ function IsPointerValid( p: Ptr ): Boolean; external name '_IsPointerValid';
 {$ifc not TARGET_CPU_64}
 {
  *  LMGetSysZone()   *** DEPRECATED ***
- *  
+ *
  *  Summary:
  *    This function is deprecated on Mac OS X.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2491,13 +2491,13 @@ function LMGetSysZone: THz; external name '_LMGetSysZone';
 
 {
  *  LMSetSysZone()   *** DEPRECATED ***
- *  
+ *
  *  Summary:
  *    This function is deprecated on Mac OS X.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2509,13 +2509,13 @@ procedure LMSetSysZone( value: THz ); external name '_LMSetSysZone';
 
 {
  *  LMGetApplZone()   *** DEPRECATED ***
- *  
+ *
  *  Summary:
  *    This function is deprecated on Mac OS X.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2527,13 +2527,13 @@ function LMGetApplZone: THz; external name '_LMGetApplZone';
 
 {
  *  LMSetApplZone()   *** DEPRECATED ***
- *  
+ *
  *  Summary:
  *    This function is deprecated on Mac OS X.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later

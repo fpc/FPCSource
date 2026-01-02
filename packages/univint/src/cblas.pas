@@ -1,7 +1,7 @@
 {
    =================================================================================================
    Definitions of the Basic Linear Algebra Subprograms (BLAS) as provided Apple Computer.
-   A few additional functions, unique to Mac OS, have also been provided.  
+   A few additional functions, unique to Mac OS, have also been provided.
    These are clearly documented as Apple extensions.
 
    Documentation on the BLAS standard, including reference implementations, can be found on the web
@@ -777,7 +777,7 @@ procedure vMultMatMat_16x16( ConstVectorFloat A[16][4]; ConstVectorFloat B[16][4
 procedure vMultVecMat_32x32( ConstVectorFloat X[8]; ConstVectorFloat A[32][8]; VectorFloat Y[8] ); external name '_vMultVecMat_32x32';
 procedure vMultMatVec_32x32( ConstVectorFloat A[32][8]; ConstVectorFloat X[8]; VectorFloat Y[8] ); external name '_vMultMatVec_32x32';
 procedure vMultMatMat_32x32( ConstVectorFloat A[32][8]; ConstVectorFloat B[32][8]; VectorFloat C[32][8] ); external name '_vMultMatMat_32x32';
-    
+
     {
      -------------------------------------------------------------------------------------------------
      These routines provide optimized support for common small matrix multiplications. They use
@@ -787,7 +787,7 @@ procedure vMultMatMat_32x32( ConstVectorFloat A[32][8]; ConstVectorFloat B[32][8
      these are all square, column major matrices can be multiplied by simply reversing the parameters.
      -------------------------------------------------------------------------------------------------
      }
-    
+
 procedure sMultVecMat_4x4( ConstVectorFloat X[1]; ConstVectorFloat A[4][1]; VectorFloat Y[1] ); external name '_sMultVecMat_4x4';
 procedure sMultMatVec_4x4( ConstVectorFloat A[4][1]; ConstVectorFloat X[1]; VectorFloat Y[1] ); external name '_sMultMatVec_4x4';
 procedure sMultMatMat_4x4( ConstVectorFloat A[4][1]; ConstVectorFloat B[4][1]; VectorFloat C[4][1] ); external name '_sMultMatMat_4x4';
@@ -800,7 +800,7 @@ procedure sMultMatMat_16x16( ConstVectorFloat A[16][4]; ConstVectorFloat B[16][4
 procedure sMultVecMat_32x32( ConstVectorFloat X[8]; ConstVectorFloat A[32][8]; VectorFloat Y[8] ); external name '_sMultVecMat_32x32';
 procedure sMultMatVec_32x32( ConstVectorFloat A[32][8]; ConstVectorFloat X[8]; VectorFloat Y[8] ); external name '_sMultMatVec_32x32';
 procedure sMultMatMat_32x32( ConstVectorFloat A[32][8]; ConstVectorFloat B[32][8]; VectorFloat C[32][8] ); external name '_sMultMatMat_32x32';
-    
+
 procedure dMultVecMat_4x4( const double X[4]; const double A[4][4]; double Y[4] ); external name '_dMultVecMat_4x4';
 procedure dMultMatVec_4x4( const double A[4][4]; const double X[4]; double Y[4] ); external name '_dMultMatVec_4x4';
 procedure dMultMatMat_4x4( const double A[4][4]; const double B[4][4]; double C[4][4] ); external name '_dMultMatMat_4x4';

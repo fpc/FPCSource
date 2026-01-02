@@ -119,11 +119,11 @@ var
   UBRR1H : byte absolute $00+$CC+1; // USART Baud Rate Register  Bytes
   // CPU
   SREG : byte absolute $00+$5F; // Status Register
-  SP : word absolute $00+$5D; // Stack Pointer 
-  SPL : byte absolute $00+$5D; // Stack Pointer 
-  SPH : byte absolute $00+$5D+1; // Stack Pointer 
+  SP : word absolute $00+$5D; // Stack Pointer
+  SPL : byte absolute $00+$5D; // Stack Pointer
+  SPH : byte absolute $00+$5D+1; // Stack Pointer
   OSCCAL : byte absolute $00+$66; // Oscillator Calibration Value
-  CLKPR : byte absolute $00+$61; // 
+  CLKPR : byte absolute $00+$61; //
   SMCR : byte absolute $00+$53; // Sleep Mode Control Register
   GPIOR2 : byte absolute $00+$4B; // General Purpose IO Register 2
   GPIOR1 : byte absolute $00+$4A; // General Purpose IO Register 1
@@ -171,7 +171,7 @@ const
   // TCCR0B
   FOC0A = 7; // Force Output Compare A
   FOC0B = 6; // Force Output Compare B
-  WGM02 = 3; // 
+  WGM02 = 3; //
   CS0 = 0; // Clock Select
   // TCCR0A
   COM0A = 6; // Compare Output Mode, Phase Correct PWM Mode
@@ -265,14 +265,14 @@ const
   // ADCSRB
   ADTS = 0; // ADC Auto Trigger Source bits
   // DIDR0
-  ADC7D = 7; // 
-  ADC6D = 6; // 
-  ADC5D = 5; // 
-  ADC4D = 4; // 
-  ADC3D = 3; // 
-  ADC2D = 2; // 
-  ADC1D = 1; // 
-  ADC0D = 0; // 
+  ADC7D = 7; //
+  ADC6D = 6; //
+  ADC5D = 5; //
+  ADC4D = 4; //
+  ADC3D = 3; //
+  ADC2D = 2; //
+  ADC1D = 1; //
+  ADC0D = 0; //
   // TIMSK1
   ICIE1 = 5; // Timer/Counter1 Input Capture Interrupt Enable
   OCIE1B = 2; // Timer/Counter1 Output Compare B Match Interrupt Enable
@@ -314,7 +314,7 @@ const
   SPR10 = 1; // SPI Clock Rate Select 1
   SPR00 = 0; // SPI Clock Rate Select 0
   // TWAMR
-  TWAM = 1; // 
+  TWAM = 1; //
   // TWCR
   TWINT = 7; // TWI Interrupt Flag
   TWEA = 6; // TWI Enable Acknowledge Bit
@@ -374,8 +374,8 @@ const
   EXTRF = 1; // External Reset Flag
   PORF = 0; // Power-on reset flag
   // CLKPR
-  CLKPCE = 7; // 
-  CLKPS = 0; // 
+  CLKPCE = 7; //
+  CLKPS = 0; //
   // SMCR
   SM = 1; // Sleep Mode Select bits
   SE = 0; // Sleep Enable

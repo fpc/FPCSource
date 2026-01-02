@@ -94,11 +94,11 @@ Function fpFlock (fd,mode : longint) : cint;
 		  begin
 			  cmd:=F_SETLK;
 			  { turn off this bit }
-			  mode:=mode and not(LOCK_NB);	
+			  mode:=mode and not(LOCK_NB);
 			end
 		else
 			cmd:=F_SETLKW;
-	
+
 		case mode of
 		  LOCK_UN:
 			  fl.l_type:=fl.l_type or F_UNLCK;
@@ -113,9 +113,9 @@ Function fpFlock (fd,mode : longint) : cint;
 			    exit;
 			  end;
 		end;
-	
+
 		fpFlock:=fpFcntl(fd,cmd,fl);
-	
+
 		if (fpFlock=-1) and (errno=ESysEACCES) then
 			errno:=ESysEWOULDBLOCK;
   end;
@@ -124,7 +124,7 @@ const
   SolarisTimeZoneFile = '/etc/default/init';
   SolarisTimeZoneDir = '/usr/share/lib/zoneinfo/';
 
-{$define FPC_HAS_GETTIMEZONEFILE}  
+{$define FPC_HAS_GETTIMEZONEFILE}
 
 function GetTimezoneFile:shortstring;
 var
@@ -135,7 +135,7 @@ begin
   GetTimezoneFile:='';
   assign(ft,SolarisTimeZoneFile);
 {$push}
-{$I-}  
+{$I-}
   reset(ft);
   if IOResult=0 then
     begin

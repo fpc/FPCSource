@@ -226,7 +226,7 @@ type
 {$ifc TARGET_OS_MAC}
 { The following list of properties are used with the CFDictionary passed to IOSurfaceCreate(). }
 
-{ kIOSurfaceAllocSize    - CFNumber of the total allocation size of the buffer including all planes.    
+{ kIOSurfaceAllocSize    - CFNumber of the total allocation size of the buffer including all planes.
 				    Defaults to BufferHeight * BytesPerRow if not specified.   Must be specified for
 				    dimensionless buffers. }
 var kIOSurfaceAllocSize: CFStringRef; external name '_kIOSurfaceAllocSize'; (* attribute const *)
@@ -247,16 +247,16 @@ var kIOSurfaceBytesPerRow: CFStringRef; external name '_kIOSurfaceBytesPerRow'; 
 (* IOSFC_AVAILABLE_STARTING(__MAC_10_6, __IPHONE_NA) *)
 
 { Optional properties for non-planar two dimensional images }
- 
+
 { kIOSurfaceBitsPerElement - CFNumber for the total number of bytes in an element.  Default to 1. }
 var kIOSurfaceBytesPerElement: CFStringRef; external name '_kIOSurfaceBytesPerElement'; (* attribute const *)
 (* IOSFC_AVAILABLE_STARTING(__MAC_10_6, __IPHONE_NA) *)
 
-{ kIOSurfaceElementWidth   - CFNumber for how many pixels wide each element is.   Defaults to 1. } 
+{ kIOSurfaceElementWidth   - CFNumber for how many pixels wide each element is.   Defaults to 1. }
 var kIOSurfaceElementWidth: CFStringRef; external name '_kIOSurfaceElementWidth'; (* attribute const *)
 (* IOSFC_AVAILABLE_STARTING(__MAC_10_6, __IPHONE_NA) *)
 
-{ kIOSurfaceElementHeight  - CFNumber for how many pixels high each element is.   Defaults to 1. } 
+{ kIOSurfaceElementHeight  - CFNumber for how many pixels high each element is.   Defaults to 1. }
 var kIOSurfaceElementHeight: CFStringRef; external name '_kIOSurfaceElementHeight'; (* attribute const *)
 (* IOSFC_AVAILABLE_STARTING(__MAC_10_6, __IPHONE_NA) *)
 
@@ -335,7 +335,7 @@ function IOSurfaceCreate( properties: CFDictionaryRef ): IOSurfaceRef; external 
 { Perform an atomic lookup and retain of a IOSurface by its IOSurfaceID.
    Note: Performing multiple lookups of the same IOSurface will *NOT* return
    the same IOSurfaceRef.   If you need to compare two IOSurface objects
-   for equality, you must either do so by comparing their IOSurfaceIDs, or by 
+   for equality, you must either do so by comparing their IOSurfaceIDs, or by
    using CFEqual(). }
 function IOSurfaceLookup( csid: IOSurfaceID ): IOSurfaceRef; external name '_IOSurfaceLookup';
 (* IOSFC_AVAILABLE_STARTING(__MAC_10_6, __IPHONE_NA) *)
@@ -343,40 +343,40 @@ function IOSurfaceLookup( csid: IOSurfaceID ): IOSurfaceRef; external name '_IOS
 { Retrieve the unique IOSurfaceID value for a IOSurface }
 function IOSurfaceGetID( buffer: IOSurfaceRef ): IOSurfaceID; external name '_IOSurfaceGetID';
 (* IOSFC_AVAILABLE_STARTING(__MAC_10_6, __IPHONE_NA) *)
-	
+
 const
 // If you are not going to modify the data while you hold the lock, you should set this flag to avoid invalidating
 	// any existing caches of the buffer contents.  This flag should be passed both to the lock and unlock functions.
 	// Non-symmetrical usage of this flag will result in undefined behavior.
 	kIOSurfaceLockReadOnly = $00000001;
-	
+
 	// If you want to detect/avoid a potentially expensive paging operation (such as readback from a GPU to system memory)
 	// when you lock the buffer, you may include this flag.   If locking the buffer requires a readback, the lock will
 	// fail with an error return of kIOReturnCannotLock.
 	kIOSurfaceLockAvoidSync = $00000002;
-			
+
 { "Lock" or "Unlock" a IOSurface for reading or writing.
 
     The term "lock" is used loosely in this context, and is simply used along with the
     "unlock" information to put a bound on CPU access to the raw IOSurface data.
-    
+
     If the seed parameter is non-NULL, IOSurfaceLock() will store the buffer's
     internal modification seed value at the time you made the lock call.   You can compare
     this value to a value returned previously to determine of the contents of the buffer
     has been changed since the last lock.
-    
+
     In the case of IOSurfaceUnlock(), the seed value returned will be the internal
     seed value at the time of the unlock.  If you locked the buffer for writing, this value
     will be incremented as the unlock is performed and the new value will be returned.
-    
+
     See the kIOSurfaceLock enums for more information.
-    
+
     Note: Locking and unlocking a IOSurface is not a particularly cheap operation,
-    so care should be taken to avoid the calls whenever possible.   The seed values are 
+    so care should be taken to avoid the calls whenever possible.   The seed values are
     particularly useful for keeping a cache of the buffer contents.
 }
 function IOSurfaceLock( buffer: IOSurfaceRef; options: UInt32; var seed: UInt32 ): IOReturn; external name '_IOSurfaceLock';
-(* IOSFC_AVAILABLE_STARTING(__MAC_10_6, __IPHONE_NA) *)	
+(* IOSFC_AVAILABLE_STARTING(__MAC_10_6, __IPHONE_NA) *)
 function IOSurfaceUnlock( buffer: IOSurfaceRef; options: UInt32; var seed: UInt32 ): IOReturn; external name '_IOSurfaceUnlock';
 (* IOSFC_AVAILABLE_STARTING(__MAC_10_6, __IPHONE_NA) *)
 
@@ -386,7 +386,7 @@ function IOSurfaceGetAllocSize( buffer: IOSurfaceRef ): size_t; external name '_
 
 function IOSurfaceGetWidth( buffer: IOSurfaceRef ): size_t; external name '_IOSurfaceGetWidth';
 (* IOSFC_AVAILABLE_STARTING(__MAC_10_6, __IPHONE_NA) *)
-	
+
 function IOSurfaceGetHeight( buffer: IOSurfaceRef ): size_t; external name '_IOSurfaceGetHeight';
 (* IOSFC_AVAILABLE_STARTING(__MAC_10_6, __IPHONE_NA) *)
 
@@ -417,7 +417,7 @@ function IOSurfaceGetSeed( buffer: IOSurfaceRef ): UInt32; external name '_IOSur
 function IOSurfaceGetPlaneCount( buffer: IOSurfaceRef ): size_t; external name '_IOSurfaceGetPlaneCount';
 (* IOSFC_AVAILABLE_STARTING(__MAC_10_6, __IPHONE_NA) *)
 
-{ These routines return information about a particular plane of a IOSurface.   
+{ These routines return information about a particular plane of a IOSurface.
 
    If the planeIndex is greater than or equal to the plane count of the IOSurface, zero
    is returned.... with one exception.   If this IOSurface has zero planes and a planeIndex
@@ -445,7 +445,7 @@ function IOSurfaceGetElementWidthOfPlane( buffer: IOSurfaceRef; planeIndex: size
 function IOSurfaceGetElementHeightOfPlane( buffer: IOSurfaceRef; planeIndex: size_t ): size_t; external name '_IOSurfaceGetElementHeightOfPlane';
 (* IOSFC_AVAILABLE_STARTING(__MAC_10_6, __IPHONE_NA) *)
 
-{ These calls let you attach CF property list types to a IOSurface buffer.  These calls are 
+{ These calls let you attach CF property list types to a IOSurface buffer.  These calls are
    expensive (they essentially must serialize the data into the kernel) and thus should be avoided whenever
    possible.   Note:  These functions can not be used to change the underlying surface properties. }
 procedure IOSurfaceSetValue( buffer: IOSurfaceRef; key: CFStringRef; value: CFTypeRef ); external name '_IOSurfaceSetValue';
@@ -457,10 +457,10 @@ function IOSurfaceCopyValue( buffer: IOSurfaceRef; key: CFStringRef ): CFTypeRef
 procedure IOSurfaceRemoveValue( buffer: IOSurfaceRef; key: CFStringRef ); external name '_IOSurfaceRemoveValue';
 (* IOSFC_AVAILABLE_STARTING(__MAC_10_6, __IPHONE_NA) *)
 
-{ This call lets you get a mach_port_t that holds a reference to the IOSurface. This is useful 
+{ This call lets you get a mach_port_t that holds a reference to the IOSurface. This is useful
    if you need to atomically or securely pass an IOSurface to another task without making the surface global to
-   the entire system.  The returned port must be deallocated with mach_port_deallocate or the equivalent.  
-   Note: Any live mach ports created from an IOSurfaceRef implicity increase the IOSurface's global use
+   the entire system.  The returned port must be deallocated with mach_port_deallocate or the equivalent.
+   Note: Any live mach ports created from an IOSurfaceRef implicitly increase the IOSurface's global use
    count by one until the port is deleted. }
 function IOSurfaceCreateMachPort( buffer: IOSurfaceRef ): mach_port_t; external name '_IOSurfaceCreateMachPort';
 (* IOSFC_AVAILABLE_STARTING(__MAC_10_6, __IPHONE_NA) *)
@@ -482,41 +482,41 @@ function IOSurfaceLookupFromXPCObject( xobj: xpc_object_t ): IOSurfaceRef; exter
 (* IOSFC_AVAILABLE_STARTING(__MAC_10_7, __IPHONE_NA) *)
 {$endif} {XPC_TRANSLATED}
 
-{ 
-   IOSurfaceGetPropertyMaximum() will return the maximum of a given property that is guaranteed to be 
+{
+   IOSurfaceGetPropertyMaximum() will return the maximum of a given property that is guaranteed to be
    compatible with all of the current devices (GPUs, etc.) in the system.   The most important ones being:
-   
+
    kIOSurfaceBytesPerRow
    kIOSurfaceWidth
    kIOSurfaceHeight
    kIOSurfacePlaneBytesPerRow
    kIOSurfacePlaneWidth
    kIOSurfacePlaneHeight
-   
+
    For the width and height properties, the maximum values are the largest that are guaranteed to work
    for both reading and writing.   In OpenGL terms this translates into the largest size that will work
    for both textures and render targets.
-   
+
    This function returns 0 for properties that have no predefined limit or where the concept of a limit
    would be considered invalid (such as kIOSurfacePixelFormat).
-      
-}   
+
+}
 function IOSurfaceGetPropertyMaximum( property: CFStringRef ): size_t; external name '_IOSurfaceGetPropertyMaximum';
 (* IOSFC_AVAILABLE_STARTING(__MAC_10_6, __IPHONE_NA) *)
 
-{ 
-   If a property has a particular alignment requirement, then IOSurfaceGetPropertyAlignment() will return it.  
-   If the property has no alignment requirement then 1 will be returned.   The following properties 
+{
+   If a property has a particular alignment requirement, then IOSurfaceGetPropertyAlignment() will return it.
+   If the property has no alignment requirement then 1 will be returned.   The following properties
    should always be aligned if you choose calculate them yourself:
-   
+
    kIOSurfaceBytesPerRow
    kIOSurfaceOffset
-   
+
    kIOSurfacePlaneBase
    kIOSurfacePlaneOffset
    kIOSurfacePlaneBytesPerRow
-   
-}   
+
+}
 function IOSurfaceGetPropertyAlignment( property: CFStringRef ): size_t; external name '_IOSurfaceGetPropertyAlignment';
 (* IOSFC_AVAILABLE_STARTING(__MAC_10_6, __IPHONE_NA) *)
 

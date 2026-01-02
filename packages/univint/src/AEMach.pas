@@ -1,17 +1,17 @@
 {
      File:       AE/AEMach.h
- 
+
      Contains:   AppleEvent over mach_msg interfaces
- 
-    
- 
+
+
+
      Copyright:  © 2000-2008 by Apple Computer, Inc., all rights reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {
     Modified for use with Free Pascal
@@ -240,12 +240,12 @@ uses MacTypes,MacOSXPosix,AEDataModel;
  * Of note is a new attribute for an AppleEvent, keyReplyPortAttr.
  * This specifies the mach_port_t to which an AppleEvent reply
  * should be directed.  By default, replies are sent to the
- * processes' registered port where they are culled from the normal  
+ * processes' registered port where they are culled from the normal
  * event stream if there is an outstanding AESend + kAEWaitReply.
  * But it may be desirable for a client to specify their own port to
- * receive queud replies.
+ * receive queued replies.
  *
- * In the case of AESendMessage with kAEWaitReply specified, an 
+ * In the case of AESendMessage with kAEWaitReply specified, an
  * anonymous port will be used to block until the reply is received.
  *
  * Not supplied is a convenience routine to block a server and
@@ -268,7 +268,7 @@ const
 
 {
  *  AEGetRegisteredMachPort()
- *  
+ *
  *  Discussion:
  *    Return the mach_port_t that was registered by the AppleEvent
  *    framework for this process.  This port is considered public, and
@@ -277,10 +277,10 @@ const
  *    only if, you are not also using routines from HIToolbox.  In that
  *    case, HIToolbox retains control of this port and AppleEvents are
  *    dispatched through the main event loop.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
@@ -292,7 +292,7 @@ function AEGetRegisteredMachPort: mach_port_t; external name '_AEGetRegisteredMa
 
 {
  *  AEDecodeMessage()
- *  
+ *
  *  Discussion:
  *    Decode a mach_msg into an AppleEvent and its related reply.  (The
  *    reply is set up from fields of the event.)  You can call this
@@ -305,21 +305,21 @@ function AEGetRegisteredMachPort: mach_port_t; external name '_AEGetRegisteredMa
  *    the AppleEvent reply with a event class attribute of
  *    typeAppleEvent, class typeAppleEventReply:
  *    The contents of the header are invalid after this call.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    header:
  *      The incoming mach message to be dispatched
- *    
+ *
  *    event:
  *      The AppleEvent to decode the message in header into
- *    
+ *
  *    reply:
  *      The AppleEvent reply is decoded into reply
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
@@ -331,20 +331,20 @@ function AEDecodeMessage( var header: mach_msg_header_t; var event: AppleEvent; 
 
 {
  *  AEProcessMessage()
- *  
+ *
  *  Discussion:
  *    Decodes and dispatches an event to an event handler.  Handles
  *    packaging and returning the reply to the sender.
  *    The contents of the header are invalid after this call.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    header:
  *      The incoming mach message to be dispatched.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
@@ -356,31 +356,31 @@ function AEProcessMessage( var header: mach_msg_header_t ): OSStatus; external n
 
 {
  *  AESendMessage()
- *  
+ *
  *  Discussion:
  *    Send an AppleEvent to a target process.  If the target is the
  *    current process (as specified by using typeProcessSerialNumber of
  *    ( 0, kCurrentProcess ) it is dispatched directly to the
  *    appropriate event handler in your process and not serialized.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Parameters:
- *    
+ *
  *    event:
  *      The event to be sent
- *    
+ *
  *    reply:
  *      The reply for the event, if non-NULL
- *    
+ *
  *    sendMode:
  *      The mode to send the event
- *    
+ *
  *    timeOutInTicks:
  *      The timeout for sending the event, in ticks.  If 0, there is no
  *      timeout.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later

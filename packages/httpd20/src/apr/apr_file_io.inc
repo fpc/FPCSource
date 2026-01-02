@@ -600,7 +600,7 @@ function apr_file_name_get(const newpath: PPAnsiChar; thefile: Papr_file_t): apr
 {
  * Return the data associated with the current file.
  * @param data The user data associated with the file.
- * @param key The key to use for retreiving data associated with this file.
+ * @param key The key to use for retrieving data associated with this file.
  * @param file The currently open file.
  }
 function apr_file_data_get(data: PPointer; const key: PAnsiChar;
@@ -612,7 +612,7 @@ function apr_file_data_get(data: PPointer; const key: PAnsiChar;
  * Set the data associated with the current file.
  * @param file The currently open file.
  * @param data The user data to associate with the file.
- * @param key The key to use for assocaiteing data with the file.
+ * @param key The key to use for associating data with the file.
  * @param cleanup The cleanup routine to use when the file is destroyed.
  }
 //function apr_file_data_set(ch: AnsiChar; thefile: PPapr_file_t): apr_status_t;

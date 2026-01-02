@@ -14,7 +14,7 @@
 
  **********************************************************************}
 
-{ This structure was ported from 
+{ This structure was ported from
 
     /usr/include/asm-ppc64/stat.h
 
@@ -23,7 +23,7 @@
 }
 
 {$PACKRECORDS C}
-  stat = record 
+  stat = record
       st_dev     : cULong;
       st_ino     : cULong;     { wrongly defined in RTL? }
       st_nlink   : cULong;     { wrongly defined in RTL? }

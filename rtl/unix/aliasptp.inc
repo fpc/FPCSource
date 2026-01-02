@@ -68,7 +68,7 @@ type
     timespec = UT.timespec;
     ptimespec= UT.ptimespec;
     Ttimespec= UT.Ttimespec;
-    
+
     pthread_mutex_t   = UT.pthread_mutex_t;
     pthread_cond_t    = UT.pthread_cond_t;
     pthread_t         = UT.pthread_t;

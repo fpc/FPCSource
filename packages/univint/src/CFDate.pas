@@ -289,7 +289,7 @@ const
 function CFGregorianDateIsValid( gdate: CFGregorianDate; unitFlags: CFOptionFlags ): Boolean; external name '_CFGregorianDateIsValid';
 (* CF_CALENDAR_DEPRECATED(10_4, 10_9, 2_0, 7_0, "Use CFCalendar or NSCalendar API instead") *)
 
-function CFGregorianDateGetAbsoluteTime( gdate: CFGregorianDate; tz: CFTimeZoneRef ): CFAbsoluteTime; external name '_CFGregorianDateGetAbsoluteTime'; 
+function CFGregorianDateGetAbsoluteTime( gdate: CFGregorianDate; tz: CFTimeZoneRef ): CFAbsoluteTime; external name '_CFGregorianDateGetAbsoluteTime';
 (* CF_CALENDAR_DEPRECATED(10_4, 10_9, 2_0, 7_0, "Use CFCalendar or NSCalendar API instead") *)
 
 function CFAbsoluteTimeGetGregorianDate( at: CFAbsoluteTime; tz: CFTimeZoneRef ): CFGregorianDate; external name '_CFAbsoluteTimeGetGregorianDate';

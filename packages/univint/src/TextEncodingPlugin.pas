@@ -1,15 +1,15 @@
 {
      File:       CarbonCore/TextEncodingPlugin.h
- 
+
      Contains:   Required interface for Text Encoding Converter-Plugins
- 
+
      Copyright:  © 1996-2011 by Apple Inc. All rights reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {     Pascal Translation Updated:  Gale R Paeper, <gpaeper@empirenet.com>, June 2018 }
 
@@ -233,7 +233,7 @@ uses MacTypes,TextCommon,TextEncodingConverter;
 }
 {
    This constant is needed for MacOS X development only. It is the name in which the
-   function to grab the plugin's dispatch table must go by. 
+   function to grab the plugin's dispatch table must go by.
 }
 const
 	kTECMacOSXDispatchTableNameString = 'ConverterPluginGetPluginDispatchTable';
@@ -495,9 +495,9 @@ type
    The last prototype here is for MacOS X plugins only. TEC Plugins in MacOS X need to export a
    a function called ConverterPluginGetPluginDispatchTable with the following prototype:
    extern TECPluginDispatchTable *ConverterPluginGetPluginDispatchTable( void )
-   This function will need to return a pointer to the plugin's function dispatch table 
-   when called. It is important that the function be called exactly 
-   "ConverterPluginGetPluginDispatchTable". TECPluginGetPluginDispatchTablePtr is a 
+   This function will need to return a pointer to the plugin's function dispatch table
+   when called. It is important that the function be called exactly
+   "ConverterPluginGetPluginDispatchTable". TECPluginGetPluginDispatchTablePtr is a
    function pointer to this function.
 }
 type

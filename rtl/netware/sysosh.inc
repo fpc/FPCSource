@@ -20,7 +20,7 @@ type
   THandle = DWord;
   TThreadID = THandle;
   TOSTimestamp = Longint;
-  
+
    { the fields of this record are os dependent  }
    { and they shouldn't be used in a program     }
    { only the type TCriticalSection is important }

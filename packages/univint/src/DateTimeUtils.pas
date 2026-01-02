@@ -1,15 +1,15 @@
 {
      File:       CarbonCore/DateTimeUtils.h
- 
+
      Contains:   International Date and Time Interfaces (previously in TextUtils)
- 
+
      Copyright:  © 1994-2011 by Apple Inc. All rights reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {
     Modified for use with Free Pascal
@@ -228,16 +228,16 @@ uses MacTypes,UTCUtils,CFDate;
 
     Here are the current routine names and the translations to the older forms.
     Please use the newer forms in all new code and migrate the older names out of existing
-    code as maintainance permits.
-    
+    code as maintenance permits.
+
     New Name                    Old Name(s)
-    
-    DateString                  IUDatePString IUDateString 
+
+    DateString                  IUDatePString IUDateString
     InitDateCache
     LongDateString              IULDateString
     LongTimeString              IULTimeString
     StringToDate                String2Date
-    StringToTime                                
+    StringToTime
     TimeString                  IUTimeString IUTimePString
     LongDateToSeconds           LongDate2Secs
     LongSecondsToDate           LongSecs2Date
@@ -247,11 +247,11 @@ uses MacTypes,UTCUtils,CFDate;
 
     Carbon only supports the new names.  The old names are undefined for Carbon targets.
     This is true for C, Assembly and Pascal.
-    
+
     InterfaceLib always has exported the old names.  For C macros have been defined to allow
     the use of the new names.  For Pascal and Assembly using the new names will result
-    in link errors. 
-    
+    in link errors.
+
 }
 
 type
@@ -420,30 +420,30 @@ type
 		reserved: array [0..3] of SInt32;
 	end;
 {
-    Conversion utilities between CF and Carbon time types. 
+    Conversion utilities between CF and Carbon time types.
 }
 {
  *  UCConvertUTCDateTimeToCFAbsoluteTime()
- *  
+ *
  *  Discussion:
  *    Use UCConvertUTCDateTimeToCFAbsoluteTime to convert from a
  *    UTCDDateTime to a CFAbsoluteTime. Remember that the epoch for
  *    UTCDateTime is January 1, 1904 while the epoch for CFAbsoluteTime
  *    is January 1, 2001.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iUTCDate:
  *      A pointer to a UTCDateTime struct that represents the time you
  *      wish to convert from.
- *    
+ *
  *    oCFTime:
  *      A pointer to a CFAbsoluteTime. On successful return, this will
  *      contain the converted time from the input time type.
- *  
+ *
  *  Result:
  *    A result code indicating whether or not conversion was successful.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x
@@ -455,26 +455,26 @@ function UCConvertUTCDateTimeToCFAbsoluteTime( const (*var*) iUTCDate: UTCDateTi
 
 {
  *  UCConvertSecondsToCFAbsoluteTime()
- *  
+ *
  *  Discussion:
  *    Use UCConvertSecondsToCFAbsoluteTime to convert from the normal
  *    seconds representation of time to a CFAbsoluteTime. Remember that
  *    the epoch for seconds is January 1, 1904 while the epoch for
  *    CFAbsoluteTime is January 1, 2001.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iSeconds:
  *      A UInt32 value that represents the time you wish to convert
  *      from.
- *    
+ *
  *    oCFTime:
  *      A pointer to a CFAbsoluteTime. On successful return, this will
  *      contain the converted time from the input time type.
- *  
+ *
  *  Result:
  *    A result code indicating whether or not conversion was successful.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x
@@ -486,26 +486,26 @@ function UCConvertSecondsToCFAbsoluteTime( iSeconds: UInt32; var oCFTime: CFAbso
 
 {
  *  UCConvertLongDateTimeToCFAbsoluteTime()
- *  
+ *
  *  Discussion:
  *    Use UCConvertLongDateTimeToCFAbsoluteTime to convert from a
  *    LongDateTime to a CFAbsoluteTime. Remember that the epoch for
  *    LongDateTime is January 1, 1904 while the epoch for
  *    CFAbsoluteTime is January 1, 2001.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iLongTime:
  *      A LongDateTime value that represents the time you wish to
  *      convert from.
- *    
+ *
  *    oCFTime:
  *      A pointer to a CFAbsoluteTime. On successful return, this will
  *      contain the converted time from the input time type.
- *  
+ *
  *  Result:
  *    A result code indicating whether or not conversion was successful.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x
@@ -517,26 +517,26 @@ function UCConvertLongDateTimeToCFAbsoluteTime( iLongTime: LongDateTime; var oCF
 
 {
  *  UCConvertCFAbsoluteTimeToUTCDateTime()
- *  
+ *
  *  Discussion:
  *    Use UCConvertCFAbsoluteTimeToUTCDateTime to convert from a
  *    CFAbsoluteTime to a UTCDateTime. Remember that the epoch for
  *    UTCDateTime is January 1, 1904 while the epoch for CFAbsoluteTime
  *    is January 1, 2001.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iCFTime:
  *      A CFAbsoluteTime value that represents the time you wish to
  *      convert from.
- *    
+ *
  *    oUTCDate:
  *      A pointer to a UTCDateTime. On successful return, this will
  *      contain the converted time from the CFAbsoluteTime input.
- *  
+ *
  *  Result:
  *    A result code indicating whether or not conversion was successful.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x
@@ -548,26 +548,26 @@ function UCConvertCFAbsoluteTimeToUTCDateTime( iCFTime: CFAbsoluteTime; var oUTC
 
 {
  *  UCConvertCFAbsoluteTimeToSeconds()
- *  
+ *
  *  Discussion:
  *    Use UCConvertCFAbsoluteTimeToSeconds to convert from a
  *    CFAbsoluteTime to a UInt32 representation of seconds. Remember
  *    that the epoch for seconds is January 1, 1904 while the epoch for
  *    CFAbsoluteTime is January 1, 2001.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iCFTime:
  *      A CFAbsoluteTime value that represents the time you wish to
  *      convert from.
- *    
+ *
  *    oSeconds:
  *      A pointer to a UInt32. On successful return, this will contain
  *      the converted time from the CFAbsoluteTime input.
- *  
+ *
  *  Result:
  *    A result code indicating whether or not conversion was successful.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x
@@ -579,26 +579,26 @@ function UCConvertCFAbsoluteTimeToSeconds( iCFTime: CFAbsoluteTime; var oSeconds
 
 {
  *  UCConvertCFAbsoluteTimeToLongDateTime()
- *  
+ *
  *  Discussion:
  *    Use UCConvertCFAbsoluteTimeToLongDateTime to convert from a
  *    CFAbsoluteTime to a LongDateTime. Remember that the epoch for
  *    LongDateTime is January 1, 1904 while the epoch for
  *    CFAbsoluteTime is January 1, 2001.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iCFTime:
  *      A CFAbsoluteTime value that represents the time you wish to
  *      convert from.
- *    
+ *
  *    oLongDate:
  *      A pointer to a LongDateTime. On successful return, this will
  *      contain the converted time from the CFAbsoluteTime input.
- *  
+ *
  *  Result:
  *    A result code indicating whether or not conversion was successful.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x
@@ -615,14 +615,14 @@ function UCConvertCFAbsoluteTimeToLongDateTime( iCFTime: CFAbsoluteTime; var oLo
 {$ifc not TARGET_CPU_64}
 {
  *  DateString()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    use CFDateFormatterCreateStringWithDate instead
- *  
+ *
  *  Discussion:
  *    This function is no longer recommended. Please use
  *    CFDateFormatterCreateStringWithDate instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.3
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -634,14 +634,14 @@ procedure DateString( dateTime: SInt32; longFlag: DateForm; var result: Str255; 
 
 {
  *  TimeString()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    use CFDateFormatterCreateStringWithDate instead
- *  
+ *
  *  Discussion:
  *    This function is no longer recommended. Please use
  *    CFDateFormatterCreateStringWithDate instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.3
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -653,14 +653,14 @@ procedure TimeString( dateTime: SInt32; wantSeconds: Boolean; var result: Str255
 
 {
  *  LongDateString()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    use CFDateFormatterCreateStringWithDate instead
- *  
+ *
  *  Discussion:
  *    This function is no longer recommended. Please use
  *    CFDateFormatterCreateStringWithDate instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.3
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -672,14 +672,14 @@ procedure LongDateString( (*const*) var dateTime: LongDateTime; longFlag: DateFo
 
 {
  *  LongTimeString()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    use CFDateFormatterCreateStringWithDate instead
- *  
+ *
  *  Discussion:
  *    This function is no longer recommended. Please use
  *    CFDateFormatterCreateStringWithDate instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.3
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -694,13 +694,13 @@ procedure LongTimeString( (*const*) var dateTime: LongDateTime; wantSeconds: Boo
 }
 {
  *  InitDateCache()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    No longer needed on MacOS X.
- *  
+ *
  *  Discussion:
- *    This function is obsolate.
- *  
+ *    This function is obsolete.
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.3
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -712,14 +712,14 @@ function InitDateCache( theCache: DateCachePtr ): OSErr; external name '_InitDat
 
 {
  *  StringToDate()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    use CFDateFormatterCreateDateFromString instead
- *  
+ *
  *  Discussion:
  *    This function is no longer recommended. Please use
  *    CFDateFormatterCreateDateFromString instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.3
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -731,14 +731,14 @@ function StringToDate( textPtr: Ptr; textLen: SInt32; theCache: DateCachePtr; va
 
 {
  *  StringToTime()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    use CFDateFormatterCreateDateFromString instead
- *  
+ *
  *  Discussion:
  *    This function is no longer recommended. Please use
  *    CFDateFormatterCreateDateFromString instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.3
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -750,14 +750,14 @@ function StringToTime( textPtr: Ptr; textLen: SInt32; theCache: DateCachePtr; va
 
 {
  *  LongDateToSeconds()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    use CFCalendar instead.
- *  
+ *
  *  Discussion:
  *    This function is no longer recommended. Please use CFCalendar
  *    instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.3
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -769,14 +769,14 @@ procedure LongDateToSeconds( const (*var*) lDate: LongDateRec; var lSecs: LongDa
 
 {
  *  LongSecondsToDate()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    use CFCalendar instead.
- *  
+ *
  *  Discussion:
  *    This function is no longer recommended. Please use CFCalendar
  *    instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.3
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -788,14 +788,14 @@ procedure LongSecondsToDate( (*const*) var lSecs: LongDateTime; var lDate: LongD
 
 {
  *  ToggleDate()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    use CFCalendar instead.
- *  
+ *
  *  Discussion:
  *    This function is no longer recommended. Please use CFCalendar
  *    instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.3
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -807,14 +807,14 @@ function ToggleDate( var lSecs: LongDateTime; field: LongDateField; delta: DateD
 
 {
  *  ValidDate()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    use CFCalendar instead.
- *  
+ *
  *  Discussion:
  *    This function is no longer recommended. Please use CFCalendar
  *    instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.3
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -826,14 +826,14 @@ function ValidDate( const (*var*) vDate: LongDateRec; flags: SIGNEDLONG; var new
 
 {
  *  ReadDateTime()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    use CFAbsoluteTimeGetCurrent instead.
- *  
+ *
  *  Discussion:
  *    This function is no longer recommended. Please use
  *    CFAbsoluteTimeGetCurrent instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.3
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -845,14 +845,14 @@ function ReadDateTime( var datetime: UNSIGNEDLONG ): OSErr; external name '_Read
 
 {
  *  GetDateTime()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    use CFAbsoluteTimeGetCurrent instead.
- *  
+ *
  *  Discussion:
  *    This function is no longer recommended. Please use
  *    CFAbsoluteTimeGetCurrent instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.3
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -864,14 +864,14 @@ procedure GetDateTime( var secs: UNSIGNEDLONG ); external name '_GetDateTime';
 
 {
  *  SetDateTime()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    deprecated it without replacement
- *  
+ *
  *  Discussion:
  *    This function is no longer recommended.  One has to be root on
  *    MacOSX to set. This is done through other means on OS X
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.3
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -883,14 +883,14 @@ function SetDateTime( datetime: UNSIGNEDLONG ): OSErr; external name '_SetDateTi
 
 {
  *  SetTime()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    deprecated it without replacement
- *  
+ *
  *  Discussion:
  *    This function is no longer recommended.  One has to be root on
  *    MacOSX to set. This is done through other means on OS X
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.3
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -902,14 +902,14 @@ procedure SetTime( const (*var*) d: DateTimeRec ); external name '_SetTime';
 
 {
  *  GetTime()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    use CFAbsoluteTimeGetCurrent instead.
- *  
+ *
  *  Discussion:
  *    This function is no longer recommended. Please use
  *    CFAbsoluteTimeGetCurrent instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.3
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -924,14 +924,14 @@ procedure GetTime( var d: DateTimeRec ); external name '_GetTime';
 {$ifc not TARGET_CPU_64}
 {
  *  DateToSeconds()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    use CFCalendar instead.
- *  
+ *
  *  Discussion:
  *    This function is no longer recommended. Please use CFCalendar
  *    instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.3
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -946,14 +946,14 @@ procedure DateToSeconds( const (*var*) d: DateTimeRec; var secs: UNSIGNEDLONG );
 {$ifc not TARGET_CPU_64}
 {
  *  SecondsToDate()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    use CFCalendar instead.
- *  
+ *
  *  Discussion:
  *    This function is no longer recommended. Please use CFCalendar
  *    instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.3
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -966,12 +966,12 @@ procedure SecondsToDate( secs: UNSIGNEDLONG; var d: DateTimeRec ); external name
 {
     These routine are available in InterfaceLib using their old name.
     Macros allow using the new names in all source code.
-    
+
     @deprecated use CFDateFormatter instead.
 }
 {
  *  IUDateString()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available [32-bit only] but deprecated in 10.3
  *    CarbonLib:        not available
@@ -981,7 +981,7 @@ procedure SecondsToDate( secs: UNSIGNEDLONG; var d: DateTimeRec ); external name
 
 {
  *  IUTimeString()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available [32-bit only] but deprecated in 10.3
  *    CarbonLib:        not available
@@ -991,7 +991,7 @@ procedure SecondsToDate( secs: UNSIGNEDLONG; var d: DateTimeRec ); external name
 
 {
  *  IUDatePString()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available [32-bit only] but deprecated in 10.3
  *    CarbonLib:        not available
@@ -1001,7 +1001,7 @@ procedure SecondsToDate( secs: UNSIGNEDLONG; var d: DateTimeRec ); external name
 
 {
  *  IUTimePString()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available [32-bit only] but deprecated in 10.3
  *    CarbonLib:        not available
@@ -1011,7 +1011,7 @@ procedure SecondsToDate( secs: UNSIGNEDLONG; var d: DateTimeRec ); external name
 
 {
  *  IULDateString()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available [32-bit only] but deprecated in 10.3
  *    CarbonLib:        not available
@@ -1021,7 +1021,7 @@ procedure SecondsToDate( secs: UNSIGNEDLONG; var d: DateTimeRec ); external name
 
 {
  *  IULTimeString()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available [32-bit only] but deprecated in 10.3
  *    CarbonLib:        not available
@@ -1033,7 +1033,7 @@ procedure SecondsToDate( secs: UNSIGNEDLONG; var d: DateTimeRec ); external name
 
 {
  *  iudatestring()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -1043,7 +1043,7 @@ procedure SecondsToDate( secs: UNSIGNEDLONG; var d: DateTimeRec ); external name
 
 {
  *  iudatepstring()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -1053,7 +1053,7 @@ procedure SecondsToDate( secs: UNSIGNEDLONG; var d: DateTimeRec ); external name
 
 {
  *  iutimestring()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -1063,7 +1063,7 @@ procedure SecondsToDate( secs: UNSIGNEDLONG; var d: DateTimeRec ); external name
 
 {
  *  iutimepstring()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -1073,7 +1073,7 @@ procedure SecondsToDate( secs: UNSIGNEDLONG; var d: DateTimeRec ); external name
 
 {
  *  iuldatestring()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -1083,7 +1083,7 @@ procedure SecondsToDate( secs: UNSIGNEDLONG; var d: DateTimeRec ); external name
 
 {
  *  iultimestring()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available

@@ -44,13 +44,13 @@ Type
     CodePage    : TSystemCodePage;
     ElementSize : Word;
 {$if not defined(VER3_2)}
-  {$ifdef CPU64}	
+  {$ifdef CPU64}
     Ref         : Longint;
   {$else}
     Ref         : SizeInt;
   {$endif}
 {$else}
-  {$ifdef CPU64}	
+  {$ifdef CPU64}
     { align fields  }
 	Dummy       : DWord;
   {$endif CPU64}

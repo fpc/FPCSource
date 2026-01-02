@@ -98,9 +98,9 @@ begin
   s:='';
   for i:=1 to paramcount do
     begin
-    if Pos(' ', paramstr(i)) > 0 then 
+    if Pos(' ', paramstr(i)) > 0 then
       s := s + '"' + paramstr(i) + '" '
-    else 
+    else
       s:=s+paramstr(i)+' ';
     end;
   s:=s+#0;
@@ -151,7 +151,7 @@ end;
 function strpas(p : pansichar) : ansistring;
 
 begin
-  if p=nil then 
+  if p=nil then
     strpas:=''
   else
     strpas:=p;
@@ -234,7 +234,7 @@ begin
            delete(opts,1,1);
          end;
   else
-    ordering:=permute; 
+    ordering:=permute;
   end;
 end;
 

@@ -112,10 +112,10 @@ implementation
 {$IFDEF FPC_DOTTEDUNITS}
 uses
   System.Math;
-{$ELSE}  
+{$ELSE}
 uses
   math;
-{$ENDIF}  
+{$ENDIF}
 
 {$r-}
 {$q-}

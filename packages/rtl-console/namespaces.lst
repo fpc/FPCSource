@@ -1,3 +1,4 @@
+src/inc/fpansi.pp=namespaced/System.Console.Ansi.pp
 src/emx/crt.pp=namespaced/System.Console.Crt.pp
 {s*:src/emx/}=namespaced/
 {i+:src/emx/}

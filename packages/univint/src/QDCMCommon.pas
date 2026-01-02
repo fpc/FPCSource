@@ -1,17 +1,17 @@
 {
      File:       QD/QuickdrawAPI.h and ColorSync/CMTypes.h
- 
+
      Contains:   Definitions shared between these two headers.
- 
+
      Version:    Quickdraw-262~1
- 
+
      Copyright:  © 2005-2008 by Apple Inc. all rights reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {
@@ -231,7 +231,7 @@ type
 	CMBitmapCallBackUPP = CMBitmapCallBackProcPtr;
 {
  *  NewCMBitmapCallBackUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -241,7 +241,7 @@ function NewCMBitmapCallBackUPP( userRoutine: CMBitmapCallBackProcPtr ): CMBitma
 
 {
  *  DisposeCMBitmapCallBackUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -251,7 +251,7 @@ procedure DisposeCMBitmapCallBackUPP( userUPP: CMBitmapCallBackUPP ); external n
 
 {
  *  InvokeCMBitmapCallBackUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later
  *    CarbonLib:        in CarbonLib 1.0 and later

@@ -159,7 +159,7 @@ end;
 function FileWrite(Handle: THandle; const Buffer; Count: LongInt): LongInt;
 begin
   FileWrite:=-1;
-  if (Count<=0) then 
+  if (Count<=0) then
     exit;
 
   FileWrite:=gemdos_fwrite(handle, count, @buffer);

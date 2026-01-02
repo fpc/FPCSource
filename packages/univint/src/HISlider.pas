@@ -1,17 +1,17 @@
 {
      File:       HIToolbox/HISlider.h
- 
+
      Contains:   API and type definitions related to HISlider.
- 
+
      Version:    HIToolbox-624~3
- 
+
      Copyright:  © 1999-2008 by Apple Computer, Inc., all rights reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {       Initial Pascal Translation:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
@@ -233,8 +233,8 @@ uses MacTypes,HIView,MacWindows,Controls,QuickdrawTypes,HIObject;
  *  Discussion:
  *    There are several variants that control the behavior of the
  *    slider control. Any combination of the following three constants
- *    can be added to the basic CDEF ID (kSliderProc). 
- *    
+ *    can be added to the basic CDEF ID (kSliderProc).
+ *
  *    Mac OS X has a "Scroll to here" option in the General pane of
  *    System Preferences which allows users to click in the page
  *    up/down regions of a slider and have the thumb/indicator jump
@@ -242,22 +242,22 @@ uses MacTypes,HIView,MacWindows,Controls,QuickdrawTypes,HIObject;
  *    slider and moves any associated content appropriately. As long as
  *    the mouse button is held down, the click is treated as though the
  *    user had clicked in the thumb/indicator in the first place.
- *    
- *    
+ *
+ *
  *    If you want the sliders in your application to work with the
- *    "Scroll to here" option, you must do the following: 
- *    
+ *    "Scroll to here" option, you must do the following:
+ *
  *    1. Create live-tracking sliders, not sliders that show a "ghost"
  *    thumb when you click on it. You can request live-tracking sliders
  *    by passing true in the liveTracking parameter to
  *    CreateSliderControl. If you create sliders with NewControl, use
- *    the kControlSliderLiveFeedback variant. 
- *    
+ *    the kControlSliderLiveFeedback variant.
+ *
  *    2. Write an appropriate ControlActionProc and associate it with
  *    your slider via the SetControlAction API. This allows your
  *    application to update its content appropriately when the
- *    live-tracking slider is clicked. 
- *    
+ *    live-tracking slider is clicked.
+ *
  *    3. When calling HandleControlClick or TrackControl, pass -1 in
  *    the action proc parameter. This is a request for the Control
  *    Manager to use the action proc you associated with your control
@@ -274,7 +274,7 @@ const
 
 {
  *  ControlSliderOrientation
- *  
+ *
  *  Discussion:
  *    Slider Orientation
  }
@@ -312,51 +312,51 @@ const
 {$ifc not TARGET_CPU_64}
 {
  *  CreateSliderControl()
- *  
+ *
  *  Summary:
  *    Creates a slider control with the specified settings.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    window:
  *      The window in which to create the slider.
- *    
+ *
  *    boundsRect:
  *      The bounds with which to create the slider.
- *    
+ *
  *    value:
  *      The initial value of the slider. Should be in the range of the
  *      minimum and maximum values.
- *    
+ *
  *    minimum:
  *      The minimum value of the slider. Should be less than the
  *      maximum.
- *    
+ *
  *    maximum:
  *      The maximum value of the slider. Should be greater than the
  *      minimum.
- *    
+ *
  *    orientation:
  *      The orientation of the slider.
- *    
+ *
  *    numTickMarks:
  *      The number of tick marks of the slider. The orientation must
  *      not support tick marks if this value is non-zero.
- *    
+ *
  *    liveTracking:
- *    
+ *
  *    liveTrackingProc:
- *    
+ *
  *    outControl:
  *      A pointer to a ControlRef in which to store a reference to the
  *      created slider.
- *  
+ *
  *  Result:
  *    An operating system status code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -368,27 +368,27 @@ function CreateSliderControl( window: WindowRef; const (*var*) boundsRect: Rect;
 
 {
  *  HISliderGetThumbOrientation()
- *  
+ *
  *  Summary:
  *    Get the orientation of the thumb of a slider.
- *  
+ *
  *  Discussion:
  *    Available only on Mac OS X 10.5 and later.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inSlider:
  *      A reference to the slider from which to retrieve the thumb
  *      orientation.
- *  
+ *
  *  Result:
  *    The current thumb orientation of the specified slider. The
  *    incoming slider reference must be valid or the return value is
  *    undefined.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available
@@ -400,31 +400,31 @@ function HISliderGetThumbOrientation( inSlider: HIViewRef ): ControlSliderOrient
 
 {
  *  HISliderSetThumbOrientation()
- *  
+ *
  *  Summary:
  *    Set the orientation of the thumb of a slider.
- *  
+ *
  *  Discussion:
  *    Available only on Mac OS X 10.5 and later. This call may change
  *    the bounds needed to draw the slider fully. If changing the
  *    orientation so that tick marks will appear/disappear, be sure to
  *    resize the control to its optimal size if necessary.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inSlider:
  *      A reference to the slider from which to retrieve the thumb
  *      orientation.
- *    
+ *
  *    inOrientation:
  *      A ControlSliderOrientation for the desired thumb orientation.
- *  
+ *
  *  Result:
  *    An OSStatus code indicating success or failure.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available
@@ -436,25 +436,25 @@ function HISliderSetThumbOrientation( inSlider: HIViewRef; inOrientation: Contro
 
 {
  *  HISliderGetTickMarkCount()
- *  
+ *
  *  Summary:
  *    Get the tick mark count of a slider.
- *  
+ *
  *  Discussion:
  *    Available only on Mac OS X 10.5 and later.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inSlider:
  *      A reference to the slider for which to get the tick mark count.
- *  
+ *
  *  Result:
  *    The current tick mark count of the specified slider. The incoming
  *    slider reference must be valid or the return value is undefined.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available
@@ -466,7 +466,7 @@ function HISliderGetTickMarkCount( inSlider: HIViewRef ): ItemCount; external na
 
 {
  *  HISliderSetTickMarkCount()
- *  
+ *
  *  Summary:
  *    Set the tick mark count of a slider. Tick marks will not appear
  *    on a slider unless its orientation is pointy (i.e.
@@ -474,24 +474,24 @@ function HISliderGetTickMarkCount( inSlider: HIViewRef ): ItemCount; external na
  *    the bounds needed to draw the slider fully. If changing the tick
  *    mark count so that tick marks will appear/disappear, be sure to
  *    resize the control to its optimal size if necessary.
- *  
+ *
  *  Discussion:
  *    Available only on Mac OS X 10.5 and later.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inSlider:
  *      A reference to the slider for which to set the tick mark count.
- *    
+ *
  *    inNumTicks:
  *      The desired number of tick marks.
- *  
+ *
  *  Result:
  *    An OSStatus code indicating success or failure.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available

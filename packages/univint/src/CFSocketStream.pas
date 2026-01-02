@@ -1,15 +1,15 @@
 {
 	 File:	   CFNetwork/CFSocketStream.h
- 
+
 	 Contains:   CoreFoundation Network socket streams header
- 
+
 	 Copyright:  Copyright (c) 2001-2008, Apple Inc. All rights reserved.
- 
+
 	 Bugs?:	  For bug reports, consult the following page on
 				 the World Wide Web:
- 
+
 					 http://bugs.freepascal.org
- 
+
 }
 {       Pascal Translation:  Peter N Lewis, <peter@stairways.com.au>, 2004 }
 {       Pascal Translation Updated:  Gale R Paeper, <gpaeper@empirenet.com>, 2008 }
@@ -228,7 +228,7 @@ uses MacTypes,CFStream,CFBase,CFHost,CFNetServices;
 
 
 {
- *  kCFStreamPropertySSLContext 
+ *  kCFStreamPropertySSLContext
  *
  * The SSLContextRef used for both read and write operations on a
  * CFSocketStream.
@@ -262,25 +262,25 @@ var kCFStreamPropertySSLContext: CFStringRef; external name '_kCFStreamPropertyS
 
 {
  *  kCFStreamPropertySSLPeerTrust
- *  
+ *
  *  Discussion:
  *	Stream property value for copy operations.  Returns a SecTrustRef
  *	which was a result of the SSL handshake.  This property is not valid before
  *  a stream is opened.  See Security/SecTrust.h for more information.
- *  
+ *
  }
 var kCFStreamPropertySSLPeerTrust: CFStringRef; external name '_kCFStreamPropertySSLPeerTrust'; (* attribute const *)
 (* __OSX_AVAILABLE_STARTING(__MAC_10_5,__IPHONE_2_0) *)
 
 {
  *  kCFStreamSSLValidatesCertificateChain
- *  
+ *
  *  Discussion:
- *	Security property key for kCFStreamPropertySSLSettings. 
+ *	Security property key for kCFStreamPropertySSLSettings.
  *	CFBooleanRef indicating whether the certificate chain should be
  *	validated or not.  The value is kCFBooleanTrue by default (not
  *	set).
- *  
+ *
  *  Availability:
  *	Mac OS X:		 in version 10.4 and later in CoreServices.framework
  *	CarbonLib:		not available
@@ -288,15 +288,15 @@ var kCFStreamPropertySSLPeerTrust: CFStringRef; external name '_kCFStreamPropert
  }
 var kCFStreamSSLValidatesCertificateChain: CFStringRef; external name '_kCFStreamSSLValidatesCertificateChain'; (* attribute const *)
 (* __OSX_AVAILABLE_STARTING(__MAC_10_4,__IPHONE_2_0) *)
-	
+
 {
  *  kCFStreamPropertySSLSettings
- *  
+ *
  *  Discussion:
  *	Stream property key for set operations.  CFDictionaryRef filled
  *	with different security settings.  By default, there are no
  *	security settings.
- *  
+ *
  *  Availability:
  *	Mac OS X:		 in version 10.4 and later in CoreServices.framework
  *	CarbonLib:		not available
@@ -307,12 +307,12 @@ var kCFStreamPropertySSLSettings: CFStringRef; external name '_kCFStreamProperty
 
 {
  *  kCFStreamSSLLevel
- *  
+ *
  *  Discussion:
- *	Security property key for kCFStreamPropertySSLSettings. 
+ *	Security property key for kCFStreamPropertySSLSettings.
  *	CFStringRef being one of the security levels.  The value is
  *	kCFStreamSocketSecurityLevelNegotiatedSSL by default (not set).
- *  
+ *
  *  Availability:
  *	Mac OS X:		 in version 10.4 and later in CoreServices.framework
  *	CarbonLib:		not available
@@ -323,14 +323,14 @@ var kCFStreamSSLLevel: CFStringRef; external name '_kCFStreamSSLLevel'; (* attri
 
 {
  *  kCFStreamSSLPeerName
- *  
+ *
  *  Discussion:
- *	Security property key for kCFStreamPropertySSLSettings. 
+ *	Security property key for kCFStreamPropertySSLSettings.
  *	CFStringRef overriding the name used for certificate
- *	verification.  Set to kCFNull to prevent name verification. 
+ *	verification.  Set to kCFNull to prevent name verification.
  *	Default is the host name with which the streams were created.  If
  *	no host name was used, no peer name will be used.
- *  
+ *
  *  Availability:
  *	Mac OS X:		 in version 10.4 and later in CoreServices.framework
  *	CarbonLib:		not available
@@ -341,13 +341,13 @@ var kCFStreamSSLPeerName: CFStringRef; external name '_kCFStreamSSLPeerName'; (*
 
 {
  *  kCFStreamSSLCertificates
- *  
+ *
  *  Discussion:
- *	Security property key for kCFStreamPropertySSLSettings. 
+ *	Security property key for kCFStreamPropertySSLSettings.
  *	CFArrayRef of SecCertificateRefs, except for index [0], which is
  *	a SecIdentityRef.  See SSLSetCertificate in
  *	Security/SecureTransport.h for more information.
- *  
+ *
  *  Availability:
  *	Mac OS X:		 in version 10.4 and later in CoreServices.framework
  *	CarbonLib:		not available
@@ -358,14 +358,14 @@ var kCFStreamSSLCertificates: CFStringRef; external name '_kCFStreamSSLCertifica
 
 {
  *  kCFStreamSSLIsServer
- *  
+ *
  *  Discussion:
- *	Security property key for kCFStreamPropertySSLSettings. 
+ *	Security property key for kCFStreamPropertySSLSettings.
  *	CFBooleanRef indicating whether the connection is to act as a
  *	server in the SSL process or not.  The value is kCFBooleanFalse
  *	by default (not set).  If set to kCFBooleanTrue, there must be a
  *	valid value for the kCFStreamSSLCertificates key too.
- *  
+ *
  *  Availability:
  *	Mac OS X:		 in version 10.4 and later in CoreServices.framework
  *	CarbonLib:		not available
@@ -374,16 +374,16 @@ var kCFStreamSSLCertificates: CFStringRef; external name '_kCFStreamSSLCertifica
 var kCFStreamSSLIsServer: CFStringRef; external name '_kCFStreamSSLIsServer'; (* attribute const *)
 (* __OSX_AVAILABLE_STARTING(__MAC_10_4,__IPHONE_2_0) *)
 
-	
+
 {
  * The following properties are considered deprecated in Mac OS 10.6 and later.
  *
- * kCFStreamPropertySSLPeerCertificates: 
+ * kCFStreamPropertySSLPeerCertificates:
  *			The peer certificates are available as part of the SecTrustRef object.  See <Security/SecTrust.h>
  *
  * kCFStreamSSLAllowsExpiredCertificates:
  * kCFStreamSSLAllowsExpiredRoots:
- * kCFStreamSSLAllowsAnyRoot: 
+ * kCFStreamSSLAllowsAnyRoot:
  *			The SSL handshake flags which affect untrusted certificate chain evaluation are deprecated.
  *			Instead, use the single property kCFStreamSSLValidatesCertificateChain to disable certificate
  *			chain checking if the user has decided that it is appropriate to do so.
@@ -392,12 +392,12 @@ var kCFStreamSSLIsServer: CFStringRef; external name '_kCFStreamSSLIsServer'; (*
 {$ifc TARGET_OS_MAC}
 {
  *  kCFStreamPropertySSLPeerCertificates
- *  
+ *
  *  Discussion:
  *	Stream property key for copy operations.  CFArrayRef containing
  *	SecCertificateRefs. See SSLGetPeerCertificates in
  *	Security/SecureTransport.h for more information.
- *  
+ *
  *  Availability:
  *	Mac OS X:		 in version 10.4 and later in CoreServices.framework
  *	CarbonLib:		not available
@@ -408,13 +408,13 @@ var kCFStreamPropertySSLPeerCertificates: CFStringRef; external name '_kCFStream
 
 {
  *  kCFStreamSSLAllowsExpiredCertificates
- *  
+ *
  *  Discussion:
- *	Security property key for kCFStreamPropertySSLSettings. 
+ *	Security property key for kCFStreamPropertySSLSettings.
  *	CFBooleanRef indicating whether expired certificates should be
  *	allowed or not.  The value is kCFBooleanFalse by default (not
  *	set).
- *  
+ *
  *  Availability:
  *	Mac OS X:		 in version 10.4 and later in CoreServices.framework
  *	CarbonLib:		not available
@@ -425,13 +425,13 @@ var kCFStreamSSLAllowsExpiredCertificates: CFStringRef; external name '_kCFStrea
 
 {
  *  kCFStreamSSLAllowsExpiredRoots
- *  
+ *
  *  Discussion:
- *	Security property key for kCFStreamPropertySSLSettings. 
+ *	Security property key for kCFStreamPropertySSLSettings.
  *	CFBooleanRef indicating whether expired root certificates should
  *	be allowed or not.  The value is kCFBooleanFalse by default (not
  *	set).
- *  
+ *
  *  Availability:
  *	Mac OS X:		 in version 10.4 and later in CoreServices.framework
  *	CarbonLib:		not available
@@ -442,13 +442,13 @@ var kCFStreamSSLAllowsExpiredRoots: CFStringRef; external name '_kCFStreamSSLAll
 
 {
  *  kCFStreamSSLAllowsAnyRoot
- *  
+ *
  *  Discussion:
- *	Security property key for kCFStreamPropertySSLSettings. 
+ *	Security property key for kCFStreamPropertySSLSettings.
  *	CFBooleanRef indicating whether any root certificates should be
  *	allowed or not.  The value is kCFBooleanFalse by default (not
  *	set).
- *  
+ *
  *  Availability:
  *	Mac OS X:		 in version 10.4 and later in CoreServices.framework
  *	CarbonLib:		not available
@@ -483,14 +483,14 @@ var kCFStreamNetworkServiceTypeVoice: CFStringRef; external name '_kCFStreamNetw
 
 {
  *  kCFStreamPropertyNoCellular
- *  
+ *
  *  Discussion:
  *  Stream property value, for both set and copy operations.
  *  The value is a CFBooleanRef which indicates whether the connection
- *  is allowed to use the built-in celluar radios.  A value of kCFBooleanTrue 
+ *  is allowed to use the built-in cellular radios.  A value of kCFBooleanTrue
  *  disallows use of cellular interfaces.  kCFBooleanFalse (the default)
  *  allows use of cellular interfaces.
- *  
+ *
  }
 var kCFStreamPropertyNoCellular: CFStringRef; external name '_kCFStreamPropertyNoCellular'; (* attribute const *)
 (* __OSX_AVAILABLE_STARTING(__MAC_10_8, __IPHONE_5_0) *)
@@ -508,13 +508,13 @@ var kCFStreamPropertyConnectionIsCellular: CFStringRef; external name '_kCFStrea
 
 {
  *  kCFStreamErrorDomainWinSock
- *  
+ *
  *  Discussion:
  *	WinSock error domain.  On Win32 platforms, networking errors will
  *	come in this domain.  See <winsock2.h> for values.  Note that
  *	non-networking errors, like ENOMEM, will continue to come in the
  *	POSIX domain as on OS X.
- *  
+ *
  *  Availability:
  *	Mac OS X:		 in version 10.5 and later in CoreServices.framework
  *	CarbonLib:		not available
@@ -525,10 +525,10 @@ var kCFStreamErrorDomainWinSock: CFIndex; external name '_kCFStreamErrorDomainWi
 
 {
  *  kCFStreamErrorDomainSOCKS
- *  
+ *
  *  Discussion:
  *	SOCKS proxy error domain.  Errors formulated using inlines below.
- *  
+ *
  *  Availability:
  *	Mac OS X:		 in version 10.2 and later
  *	CarbonLib:		not available
@@ -574,7 +574,7 @@ const
 
 {
  *  kCFStreamPropertySOCKSProxy
- *  
+ *
  *  Discussion:
  *	Stream property key, for both set and copy operations.  To set a
  *	stream to use a SOCKS proxy, call CFReadStreamSetProperty or
@@ -584,7 +584,7 @@ const
  *	and kCFStreamPropertySOCKSProxyPort.  The dictionary returned by
  *	SystemConfiguration for SOCKS proxies will work without
  *	alteration.
- *  
+ *
  *  Availability:
  *	Mac OS X:		 in version 10.2 and later
  *	CarbonLib:		not available
@@ -594,13 +594,13 @@ var kCFStreamPropertySOCKSProxy: CFStringRef; external name '_kCFStreamPropertyS
 
 {
  *  kCFStreamPropertySOCKSProxyHost
- *  
+ *
  *  Discussion:
  *	CFDictionary key for SOCKS proxy information.  The key
  *	kCFStreamPropertySOCKSProxyHost should contain a CFStringRef
  *	value representing the SOCKS proxy host.  Defined to match
  *	kSCPropNetProxiesSOCKSProxy
- *  
+ *
  *  Availability:
  *	Mac OS X:		 in version 10.2 and later
  *	CarbonLib:		not available
@@ -610,14 +610,14 @@ var kCFStreamPropertySOCKSProxyHost: CFStringRef; external name '_kCFStreamPrope
 
 {
  *  kCFStreamPropertySOCKSProxyPort
- *  
+ *
  *  Discussion:
  *	CFDictionary key for SOCKS proxy information.  The key
  *	kCFStreamPropertySOCKSProxyPort should contain a CFNumberRef
  *	which itself is of type kCFNumberSInt32Type.  This value should
  *	represent the port on which the proxy is listening.  Defined to
  *	match kSCPropNetProxiesSOCKSPort
- *  
+ *
  *  Availability:
  *	Mac OS X:		 in version 10.2 and later
  *	CarbonLib:		not available
@@ -627,14 +627,14 @@ var kCFStreamPropertySOCKSProxyPort: CFStringRef; external name '_kCFStreamPrope
 
 {
  *  kCFStreamPropertySOCKSVersion
- *  
+ *
  *  Discussion:
  *	CFDictionary key for SOCKS proxy information.  By default, SOCKS5
  *	will be used unless there is a kCFStreamPropertySOCKSVersion key
  *	in the dictionary.  Its value must be
  *	kCFStreamSocketSOCKSVersion4 or kCFStreamSocketSOCKSVersion5 to
  *	set SOCKS4 or SOCKS5, respectively.
- *  
+ *
  *  Availability:
  *	Mac OS X:		 in version 10.2 and later
  *	CarbonLib:		not available
@@ -644,11 +644,11 @@ var kCFStreamPropertySOCKSVersion: CFStringRef; external name '_kCFStreamPropert
 
 {
  *  kCFStreamSocketSOCKSVersion4
- *  
+ *
  *  Discussion:
- *	CFDictionary value for SOCKS proxy information.  Indcates that
+ *	CFDictionary value for SOCKS proxy information.  Indicates that
  *	SOCKS will or is using version 4 of the SOCKS protocol.
- *  
+ *
  *  Availability:
  *	Mac OS X:		 in version 10.2 and later
  *	CarbonLib:		not available
@@ -658,11 +658,11 @@ var kCFStreamSocketSOCKSVersion4: CFStringRef; external name '_kCFStreamSocketSO
 
 {
  *  kCFStreamSocketSOCKSVersion5
- *  
+ *
  *  Discussion:
- *	CFDictionary value for SOCKS proxy information.  Indcates that
+ *	CFDictionary value for SOCKS proxy information.  Indicates that
  *	SOCKS will or is using version 5 of the SOCKS protocol.
- *  
+ *
  *  Availability:
  *	Mac OS X:		 in version 10.2 and later
  *	CarbonLib:		not available
@@ -672,15 +672,15 @@ var kCFStreamSocketSOCKSVersion5: CFStringRef; external name '_kCFStreamSocketSO
 
 {
  *  kCFStreamPropertySOCKSUser
- *  
+ *
  *  Discussion:
  *	CFDictionary key for SOCKS proxy information.  To set a user name
  *	and/or password, if required, the dictionary must contain the
- *	key(s) kCFStreamPropertySOCKSUser and/or  
+ *	key(s) kCFStreamPropertySOCKSUser and/or
  *	kCFStreamPropertySOCKSPassword with the value being the user's
  *	name as a CFStringRef and/or the user's password as a
  *	CFStringRef, respectively.
- *  
+ *
  *  Availability:
  *	Mac OS X:		 in version 10.2 and later
  *	CarbonLib:		not available
@@ -690,15 +690,15 @@ var kCFStreamPropertySOCKSUser: CFStringRef; external name '_kCFStreamPropertySO
 
 {
  *  kCFStreamPropertySOCKSPassword
- *  
+ *
  *  Discussion:
  *	CFDictionary key for SOCKS proxy information.  To set a user name
  *	and/or password, if required, the dictionary must contain the
- *	key(s) kCFStreamPropertySOCKSUser and/or  
+ *	key(s) kCFStreamPropertySOCKSUser and/or
  *	kCFStreamPropertySOCKSPassword with the value being the user's
  *	name as a CFStringRef and/or the user's password as a
  *	CFStringRef, respectively.
- *  
+ *
  *  Availability:
  *	Mac OS X:		 in version 10.2 and later
  *	CarbonLib:		not available
@@ -708,10 +708,10 @@ var kCFStreamPropertySOCKSPassword: CFStringRef; external name '_kCFStreamProper
 
 {
  *  kCFStreamErrorDomainSSL
- *  
+ *
  *  Discussion:
  *	Errors located in Security/SecureTransport.h
- *  
+ *
  *  Availability:
  *	Mac OS X:		 in version 10.2 and later
  *	CarbonLib:		not available
@@ -721,7 +721,7 @@ var kCFStreamErrorDomainSSL: SInt32; external name '_kCFStreamErrorDomainSSL'; (
 
 {
  *  kCFStreamPropertySocketSecurityLevel
- *  
+ *
  *  Discussion:
  *	Stream property key, for both set and copy operations. To set a
  *	stream to be secure, call CFReadStreamSetProperty or
@@ -729,7 +729,7 @@ var kCFStreamErrorDomainSSL: SInt32; external name '_kCFStreamErrorDomainSSL'; (
  *	kCFStreamPropertySocketSecurityLevel and the value being one of
  *	the following values.  Streams may set a security level after
  *	open in order to allow on-the-fly securing of a stream.
- *  
+ *
  *  Availability:
  *	Mac OS X:		 in version 10.2 and later
  *	CarbonLib:		not available
@@ -739,11 +739,11 @@ var kCFStreamPropertySocketSecurityLevel: CFStringRef; external name '_kCFStream
 
 {
  *  kCFStreamSocketSecurityLevelNone
- *  
+ *
  *  Discussion:
  *	Stream property value, for both set and copy operations.
  *	Indicates to use no security (default setting).
- *  
+ *
  *  Availability:
  *	Mac OS X:		 in version 10.2 and later
  *	CarbonLib:		not available
@@ -753,11 +753,11 @@ var kCFStreamSocketSecurityLevelNone: CFStringRef; external name '_kCFStreamSock
 
 {
  *  kCFStreamSocketSecurityLevelSSLv2
- *  
+ *
  *  Discussion:
  *	Stream property value, for both set and copy operations.
  *	Indicates to use SSLv2 security.
- *  
+ *
  *  Availability:
  *	Mac OS X:		 in version 10.2 and later
  *	CarbonLib:		not available
@@ -767,11 +767,11 @@ var kCFStreamSocketSecurityLevelSSLv2: CFStringRef; external name '_kCFStreamSoc
 
 {
  *  kCFStreamSocketSecurityLevelSSLv3
- *  
+ *
  *  Discussion:
  *	Stream property value, for both set and copy operations.
  *	Indicates to use SSLv3 security.
- *  
+ *
  *  Availability:
  *	Mac OS X:		 in version 10.2 and later
  *	CarbonLib:		not available
@@ -781,11 +781,11 @@ var kCFStreamSocketSecurityLevelSSLv3: CFStringRef; external name '_kCFStreamSoc
 
 {
  *  kCFStreamSocketSecurityLevelTLSv1
- *  
+ *
  *  Discussion:
  *	Stream property value, for both set and copy operations.
  *	Indicates to use TLSv1 security.
- *  
+ *
  *  Availability:
  *	Mac OS X:		 in version 10.2 and later
  *	CarbonLib:		not available
@@ -795,12 +795,12 @@ var kCFStreamSocketSecurityLevelTLSv1: CFStringRef; external name '_kCFStreamSoc
 
 {
  *  kCFStreamSocketSecurityLevelNegotiatedSSL
- *  
+ *
  *  Discussion:
  *	Stream property value, for both set and copy operations.
  *	Indicates to use TLS or SSL with fallback to lower versions. This
  *	is what HTTPS does, for instance.
- *  
+ *
  *  Availability:
  *	Mac OS X:		 in version 10.2 and later
  *	CarbonLib:		not available
@@ -809,7 +809,7 @@ var kCFStreamSocketSecurityLevelTLSv1: CFStringRef; external name '_kCFStreamSoc
 var kCFStreamSocketSecurityLevelNegotiatedSSL: CFStringRef; external name '_kCFStreamSocketSecurityLevelNegotiatedSSL'; (* attribute const *)
 {
  *  kCFStreamPropertyShouldCloseNativeSocket
- *  
+ *
  *  Discussion:
  *	Set the value to kCFBooleanTrue if the stream should close and
  *	release the underlying native socket when the stream is released.
@@ -821,7 +821,7 @@ var kCFStreamSocketSecurityLevelNegotiatedSSL: CFStringRef; external name '_kCFS
  *	CFReadStreamSetProperty or CFWriteStreamSetProperty.  The
  *	property can be copied through CFReadStreamCopyProperty or
  *	CFWriteStreamCopyProperty.
- *  
+ *
  *  Availability:
  *	Mac OS X:		 in version 10.2 and later
  *	CarbonLib:		not available
@@ -832,11 +832,11 @@ var kCFStreamPropertyShouldCloseNativeSocket: CFStringRef; external name '_kCFSt
 
 {
  *  kCFStreamPropertySocketRemoteHost
- *  
+ *
  *  Discussion:
  *	Stream property key for copy operations. Returns a CFHostRef if
  *	known, otherwise NULL.
- *  
+ *
  *  Availability:
  *	Mac OS X:		 in version 10.3 and later in CoreServices.framework
  *	CarbonLib:		not available
@@ -848,11 +848,11 @@ var kCFStreamPropertySocketRemoteHost: CFStringRef; external name '_kCFStreamPro
 
 {
  *  kCFStreamPropertySocketRemoteNetService
- *  
+ *
  *  Discussion:
  *	Stream property key for copy operations. Returns a
  *	CFNetServiceRef if known, otherwise NULL.
- *  
+ *
  *  Availability:
  *	Mac OS X:		 in version 10.3 and later in CoreServices.framework
  *	CarbonLib:		not available
@@ -864,37 +864,37 @@ var kCFStreamPropertySocketRemoteNetService: CFStringRef; external name '_kCFStr
 
 {
  *  CFStreamCreatePairWithSocketToCFHost()
- *  
+ *
  *  Discussion:
  *	Given a CFHostRef, this function will create a pair of streams
  *	suitable for connecting to the host.  If there is a failure
  *	during creation, the stream references will be set to NULL.
- *  
+ *
  *  Mac OS X threading:
  *	Thread safe
- *  
+ *
  *  Parameters:
- *	
+ *
  *	alloc:
  *	  The CFAllocator which should be used to allocate memory for the
  *	  streams. If this reference is not a valid CFAllocator, the
  *	  behavior is undefined.
- *	
+ *
  *	host:
  *	  A reference to a CFHost to which the streams are desired.  If
  *	  unresolved, the host will be resolved prior to connecting.
- *	
+ *
  *	port:
  *	  The port to which the connection should be established.
- *	
+ *
  *	readStream:
  *	  A pointer to a CFReadStreamRef which will be set to the new
  *	  read stream instance.  Can be set to NULL if not desired.
- *	
+ *
  *	writeStream:
  *	  A pointer to a CFWriteStreamRef which will be set to the new
  *	  write stream instance.  Can be set to NULL if not desired.
- *  
+ *
  *  Availability:
  *	Mac OS X:		 in version 10.3 and later in CoreServices.framework
  *	CarbonLib:		not available
@@ -906,35 +906,35 @@ procedure CFStreamCreatePairWithSocketToCFHost( alloc: CFAllocatorRef; host: CFH
 
 {
  *  CFStreamCreatePairWithSocketToNetService()
- *  
+ *
  *  Discussion:
  *	Given a CFNetService, this function will create a pair of streams
  *	suitable for connecting to the service.  If there is a failure
  *	during creation, the stream references will be set to NULL.
- *  
+ *
  *  Mac OS X threading:
  *	Thread safe
- *  
+ *
  *  Parameters:
- *	
+ *
  *	alloc:
  *	  The CFAllocator which should be used to allocate memory for the
  *	  streams. If this reference is not a valid CFAllocator, the
  *	  behavior is undefined.
- *	
+ *
  *	service:
  *	  A reference to a CFNetService to which the streams are desired.
  *	   If unresolved, the service will be resolved prior to
  *	  connecting.
- *	
+ *
  *	readStream:
  *	  A pointer to a CFReadStreamRef which will be set to the new
  *	  read stream instance.  Can be set to NULL if not desired.
- *	
+ *
  *	writeStream:
  *	  A pointer to a CFWriteStreamRef which will be set to the new
  *	  write stream instance.  Can be set to NULL if not desired.
- *  
+ *
  *  Availability:
  *	Mac OS X:		 in version 10.3 and later in CoreServices.framework
  *	CarbonLib:		not available
@@ -946,7 +946,7 @@ procedure CFStreamCreatePairWithSocketToNetService( alloc: CFAllocatorRef; servi
 {$ifc TARGET_OS_MAC}
 {
  *  CFStreamSocketSecurityProtocol
- *  
+ *
  *  Discussion:
  *	These enum values and CFSocketStreamPairSetSecurityProtocol have
  *	been deprecated in favor of CFReadStreamSetProperty and
@@ -983,34 +983,34 @@ const
 
 {
  *  CFSocketStreamPairSetSecurityProtocol()   *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *	CFSocketStreamPairSetSecurityProtocol has been deprecated in
  *	favor of CFReadStreamSetProperty and CFWriteStreamSetProperty
  *	with the previously mentioned property and values.  Sets the
  *	security level on a pair of streams.
- *  
+ *
  *  Mac OS X threading:
  *	Thread safe
- *  
+ *
  *  Parameters:
- *	
+ *
  *	socketReadStream:
  *	  Read stream reference which is to have its security level
  *	  changed.
- *	
+ *
  *	socketWriteStream:
  *	  Write stream reference which is to have its security level
  *	  changed.
- *	
+ *
  *	securityProtocol:
  *	  CFStreamSocketSecurityProtocol enum indicating the security
  *	  level to be set.
- *  
+ *
  *  Result:
  *	Returns TRUE if the settings were placed on the stream, FALSE
  *	otherwise.
- *  
+ *
  *  Availability:
  *	Mac OS X:		 in version 10.1 and later in CoreServices.framework but deprecated in 10.2
  *	CarbonLib:		not available
@@ -1022,13 +1022,13 @@ function CFSocketStreamPairSetSecurityProtocol( socketReadStream: CFReadStreamRe
 
 {
  *  kCFStreamPropertyProxyLocalBypass
- *  
+ *
  *  Discussion:
  *	CFDictionary key for proxy information.  It matches
  *	kSCPropNetProxiesExcludeSimpleHostnames defined in
  *	SCSchemaDefinitions.h.  CFNumber (0 or 1) indicating to bypass
  *	the proxies for simple hostnames (names without dots).
- *  
+ *
  *  Availability:
  *	Mac OS X:		 in version 10.4 and later in CoreServices.framework
  *	CarbonLib:		not available

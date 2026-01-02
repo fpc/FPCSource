@@ -98,8 +98,8 @@ const
   BIN = 7; // Bipolar Input Mode
   GSEL = 6; // Gain Select
   IPR = 5; // Input Polarity Mode
-  REFS2 = 4; // 
-  MUX5 = 3; // 
+  REFS2 = 4; //
+  MUX5 = 3; //
   ADTS = 0; // ADC Auto Trigger Sources
   // DIDR1
   ADC10D = 7; // ADC10 Digital input Disable
@@ -213,8 +213,8 @@ const
   OCF1B = 5; // Timer/Counter1 Output Compare Flag 1B
   TOV1 = 2; // Timer/Counter1 Overflow Flag
   // DT1
-  DT1H = 4; // 
-  DT1L = 0; // 
+  DT1H = 4; //
+  DT1L = 0; //
   // SPMCSR
   CTPB = 4; // Clear temporary page buffer
   RFLB = 3; // Read fuse and lock bits

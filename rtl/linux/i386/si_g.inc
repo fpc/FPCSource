@@ -68,7 +68,7 @@ asm
 
   finit                           { initialize fpu }
   fwait
-  fldcw   Default8087CW 
+  fldcw   Default8087CW
 
   pushl   $gmon_etext                 { Initialize gmon }
   pushl   $_FPC_proc_gprof_start

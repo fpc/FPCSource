@@ -1,15 +1,15 @@
 {
      File:       PMErrors.h
- 
+
      Contains:   Mac OS X Printing Manager Error Codes.
- 
+
      Copyright (c) 2001-2006,2008 Apple Inc. All Rights Reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {  Pascal Translation:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
@@ -228,7 +228,7 @@ uses MacErrors,PMDefinitions;
 
 
 const
-// general purpose printing error codes used by various printing modules 
+// general purpose printing error codes used by various printing modules
 	kPMAllocationFailure = memFullErr;	{ out of memory error }
 	kPMInternalError = kPMGeneralError;	{ internal printing error }
 
@@ -250,7 +250,7 @@ const
 	kPMInvalidObject = -30896;		{ invalid object or internal error }
 	kPMInvalidPaper = -30897;		{ Invalid PMPaper. }
 	kPMInvalidCalibrationTarget = -30898;		{ invalid dictionary specifying printer calibration target }
-    
+
 	{ Print Job Creator and Printing Dialog Extension error codes (-9500 to -9540) }
 	kPMNoDefaultItem = -9500;
 	kPMNoDefaultSettings = -9501;		{ unused; to be removed }
@@ -258,7 +258,7 @@ const
 	kPMDontSwitchPDEError = -9531;		{ tells the pjc not to switch panels }
 	kPMUnableToFindProcess = -9532;		{ unable to find the Finder.app process }
 	kPMFeatureNotInstalled = -9533;		{ printer is feature capable, but not installed }
-    
+
     { PrintCenter and Printer Browser error codes (-9540 to -9579) }
 	kPMInvalidPBMRef = -9540;		{ invalid printer browser module reference.}
 	kPMNoSelectedPrinters = -9541;		{ no selected printers or error getting selection.}
@@ -280,7 +280,7 @@ const
 	kPMKeyNotFound = -9589;        { the requested update is for a key that doesn't exist. }
 	kPMKeyNotUnique = -9590;      	{ the key passed in already exists in the ticket, can't make a new one. }
 	kPMUnknownDataType = -9591;        { couldn't determine proper CF type for the value passed in. }
-   
+
     { ClientPrintingLib (-9620 to -9629) }
 	kPMCreateMessageFailed = -9620;		{ could not create message }
 	kPMServerCommunicationFailed = -9621;		{ communication with print server failed }
@@ -303,7 +303,7 @@ const
 	kPMJobBusy = -9642;		{ job is busy }
 	kPMJobCanceled = -9643;		{ job has aborted }
 	kPMDocumentNotFound = -9644;		{ document not found }
-    
+
     { Job Manager (-9660 to -9699) }
 	kPMPMSymbolNotFound = -9660;		{ a required printer module symbol is missing }
 	kPMIOMSymbolNotFound = -9661; 		{ a required IO module symbol is missing }
@@ -319,7 +319,7 @@ const
 	kPMJobManagerAborted = -9671;		{ Job Manager is aborting }
 	kPMJobGetTicketBadFormatError = -9672;		{ The XML for the printer module tickets could not be parsed. }
 	kPMJobGetTicketReadError = -9673;		{ There was an unknown error reading stdout from the PrintJobMgr }
-    
+
 	{ Converters (-9700 to -9739) }
 	kPMPluginNotFound = -9701;		{ Converter plugin not found }
 	kPMPluginRegisterationFailed = -9702;		{ Converter Plugin error }
@@ -328,10 +328,10 @@ const
 	kPMGeneralCGError = -9705;		{ CoreGraphics returned error }
 	kPMInvalidState = -9706;		{ Invalid converter state }
 	kPMUnexpectedImagingError = -9707;		{ An unexpected imaging error occurred }
-	
+
 	{ Printer Modules (-9740 to -9779) }
 
-	{ IO Modules (-9780 to -9799) }					
+	{ IO Modules (-9780 to -9799) }
 	kPMInvalidPrinterAddress = -9780;		{ a file or connection could not be open }
 	kPMOpenFailed = -9781;		{ a file or connection could not be open }
 	kPMReadFailed = -9782;		{ file/connection read failed }

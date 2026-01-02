@@ -187,7 +187,7 @@ Const
   faEncrypted  = $00004000 platform;
   faVirtual    = $00010000 platform;
   faAnyFile    = $000001FF;
-             
+
 
   { File open modes }
   fmOpenRead       = $0000;
@@ -273,7 +273,7 @@ Function FileRead (Handle : THandle; out Buffer; Count : longint) : Longint;
 Function FileWrite (Handle : THandle; const Buffer; Count : Longint) : Longint;
 Function FileSeek (Handle : THandle; FOffset, Origin: Longint) : Longint;
 Function FileSeek (Handle : THandle; FOffset: Int64; Origin: Longint) : Int64;
-function FileFlush(Handle: THandle): Boolean; 
+function FileFlush(Handle: THandle): Boolean;
 Procedure FileClose (Handle : THandle);
 Function FileTruncate (Handle : THandle;Size: Int64) : boolean;
 Function FindNext (Var Rslt : TRawByteSearchRec) : Longint;

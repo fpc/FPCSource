@@ -16,12 +16,12 @@
 
  **********************************************************************}
 
-// Under BeOS, we use stdcall for this line because the default calling convention in 1.9 
+// Under BeOS, we use stdcall for this line because the default calling convention in 1.9
 // is register instead of stdcall. But assembler is already written, so i used the stdcall
 // calling convention !
 function Do_SysCall( callnr : longint; var regs : SysCallArgs ): longint; stdcall; assembler; [public, alias : 'FPC_SYSCALL'];
 {
-  This routine sets up the parameters on the stack, all the parameters 
+  This routine sets up the parameters on the stack, all the parameters
   are in reverse order on the stack (like C parameter passing).
 }
 asm
@@ -30,7 +30,7 @@ asm
   movl  24(%eax),%ebx
   pushl %ebx
   movl  20(%eax),%ebx
-  pushl %ebx 
+  pushl %ebx
   movl  16(%eax),%ebx
   pushl %ebx
   movl  12(%eax),%ebx
@@ -47,7 +47,7 @@ asm
   addl  $28,%esp
 end;
 
-// Under BeOS, we use stdcall for this line because the default calling convention in 1.9 
+// Under BeOS, we use stdcall for this line because the default calling convention in 1.9
 // is register instead of stdcall. But assembler is already written, so i used the stdcall
 // calling convention ! Maybe don't needed here. But to be sure...
 Function SysCall( callnr:longint;var args : SysCallArgs ):longint; stdcall;

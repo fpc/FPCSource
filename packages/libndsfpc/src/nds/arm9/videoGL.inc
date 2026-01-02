@@ -290,7 +290,7 @@ type
   gl_hidden_globals = record
     matrixMode: GL_MATRIX_MODE_ENUM; // holds the current Matrix Mode
 
-    vramBlocks: array [0..1] of ps_vramBlock;		// Two classe instances, one for textures, and one for palettes
+    vramBlocks: array [0..1] of ps_vramBlock;		// Two class instances, one for textures, and one for palettes
     vramLock: array [0..1] of cint;				// Holds the current lock state of the VRAM banks
 
     // texture globals

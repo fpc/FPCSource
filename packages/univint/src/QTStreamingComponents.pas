@@ -1,17 +1,17 @@
 {
      File:       QuickTime/QTStreamingComponents.h
- 
+
      Contains:   QuickTime Interfaces.
- 
+
      Version:    QuickTime 7.7.1
- 
+
      Copyright:  © 1990-2012 by Apple Inc., all rights reserved
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
@@ -266,7 +266,7 @@ type
 	end;
 {
  *  QTSNewSourcer()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -459,7 +459,7 @@ const
 -----------------------------------------}
 {
  *  QTSSourcerInitialize()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.6 and later
@@ -471,7 +471,7 @@ function QTSSourcerInitialize( inSourcer: QTSSourcer; const (*var*) inInitParams
 
 {
  *  QTSSourcerIdle()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -483,7 +483,7 @@ function QTSSourcerIdle( inSourcer: QTSSourcer; (*const*) var inTime: TimeValue6
 
 {
  *  QTSSourcerSetEnable()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -495,7 +495,7 @@ function QTSSourcerSetEnable( inSourcer: QTSSourcer; inEnableMode: Boolean; inFl
 
 {
  *  QTSSourcerGetEnable()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -507,7 +507,7 @@ function QTSSourcerGetEnable( inSourcer: QTSSourcer; var outEnableMode: Boolean;
 
 {
  *  QTSSourcerSetTimeScale()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -519,7 +519,7 @@ function QTSSourcerSetTimeScale( inSourcer: QTSSourcer; inTimeScale: TimeScale )
 
 {
  *  QTSSourcerGetTimeScale()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -531,7 +531,7 @@ function QTSSourcerGetTimeScale( inSourcer: QTSSourcer; var outTimeScale: TimeSc
 
 {
  *  QTSSourcerSetInfo()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -543,7 +543,7 @@ function QTSSourcerSetInfo( inSourcer: QTSSourcer; inSelector: OSType; ioParams:
 
 {
  *  QTSSourcerGetInfo()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -880,7 +880,7 @@ const
 
 {
  *  QTSFindReassemblerForPayloadID()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -893,7 +893,7 @@ function QTSFindReassemblerForPayloadID( inPayloadID: UInt8; var inSortInfo: RTP
 
 {
  *  QTSFindReassemblerForPayloadName()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -947,7 +947,7 @@ const
 
 {
  *  RTPRssmInitialize()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -960,7 +960,7 @@ function RTPRssmInitialize( rtpr: RTPReassembler; var inInitParams: RTPRssmInitP
 
 {
  *  RTPRssmHandleNewPacket()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -973,7 +973,7 @@ function RTPRssmHandleNewPacket( rtpr: RTPReassembler; var inStreamBuffer: QTSSt
 
 {
  *  RTPRssmComputeChunkSize()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -986,7 +986,7 @@ function RTPRssmComputeChunkSize( rtpr: RTPReassembler; var inPacketListHead: RT
 
 {
  *  RTPRssmAdjustPacketParams()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -999,7 +999,7 @@ function RTPRssmAdjustPacketParams( rtpr: RTPReassembler; var inPacket: RTPRssmP
 
 {
  *  RTPRssmCopyDataToChunk()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1012,7 +1012,7 @@ function RTPRssmCopyDataToChunk( rtpr: RTPReassembler; var inPacketListHead: RTP
 
 {
  *  RTPRssmSendPacketList()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1025,7 +1025,7 @@ function RTPRssmSendPacketList( rtpr: RTPReassembler; var inPacketListHead: RTPR
 
 {
  *  RTPRssmGetTimeScaleFromPacket()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1038,7 +1038,7 @@ function RTPRssmGetTimeScaleFromPacket( rtpr: RTPReassembler; var inStreamBuffer
 
 {
  *  RTPRssmSetInfo()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1051,7 +1051,7 @@ function RTPRssmSetInfo( rtpr: RTPReassembler; inSelector: OSType; ioParams: Uni
 
 {
  *  RTPRssmGetInfo()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1064,7 +1064,7 @@ function RTPRssmGetInfo( rtpr: RTPReassembler; inSelector: OSType; ioParams: Uni
 
 {
  *  RTPRssmHasCharacteristic()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1077,7 +1077,7 @@ function RTPRssmHasCharacteristic( rtpr: RTPReassembler; inCharacteristic: OSTyp
 
 {
  *  RTPRssmReset()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1094,7 +1094,7 @@ function RTPRssmReset( rtpr: RTPReassembler; inFlags: SInt32 ): ComponentResult;
 { ----- setup}
 {
  *  RTPRssmSetCapabilities()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1107,7 +1107,7 @@ function RTPRssmSetCapabilities( rtpr: RTPReassembler; inFlags: SInt32; inFlagsM
 
 {
  *  RTPRssmGetCapabilities()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1120,7 +1120,7 @@ function RTPRssmGetCapabilities( rtpr: RTPReassembler; var outFlags: SInt32 ): C
 
 {
  *  RTPRssmSetPayloadHeaderLength()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1133,7 +1133,7 @@ function RTPRssmSetPayloadHeaderLength( rtpr: RTPReassembler; inPayloadHeaderLen
 
 {
  *  RTPRssmGetPayloadHeaderLength()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1146,7 +1146,7 @@ function RTPRssmGetPayloadHeaderLength( rtpr: RTPReassembler; var outPayloadHead
 
 {
  *  RTPRssmSetTimeScale()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1159,7 +1159,7 @@ function RTPRssmSetTimeScale( rtpr: RTPReassembler; inSHTimeScale: TimeScale ): 
 
 {
  *  RTPRssmGetTimeScale()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1172,7 +1172,7 @@ function RTPRssmGetTimeScale( rtpr: RTPReassembler; var outSHTimeScale: TimeScal
 
 {
  *  RTPRssmNewStreamHandler()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1185,7 +1185,7 @@ function RTPRssmNewStreamHandler( rtpr: RTPReassembler; inSHType: OSType; inSamp
 
 {
  *  RTPRssmSetStreamHandler()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1198,7 +1198,7 @@ function RTPRssmSetStreamHandler( rtpr: RTPReassembler; inStreamHandler: Compone
 
 {
  *  RTPRssmGetStreamHandler()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1211,7 +1211,7 @@ function RTPRssmGetStreamHandler( rtpr: RTPReassembler; var outStreamHandler: Co
 
 {
  *  RTPRssmSendStreamHandlerChanged()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1224,7 +1224,7 @@ function RTPRssmSendStreamHandlerChanged( rtpr: RTPReassembler ): ComponentResul
 
 {
  *  RTPRssmSetSampleDescription()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1238,7 +1238,7 @@ function RTPRssmSetSampleDescription( rtpr: RTPReassembler; inSampleDescription:
 { ----- manually sending chunks}
 {
  *  RTPRssmGetChunkAndIncrRefCount()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1251,7 +1251,7 @@ function RTPRssmGetChunkAndIncrRefCount( rtpr: RTPReassembler; inChunkDataSize: 
 
 {
  *  RTPRssmGetExtChunkAndIncrRefCount()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.6 and later
@@ -1264,7 +1264,7 @@ function RTPRssmGetExtChunkAndIncrRefCount( rtpr: RTPReassembler; inChunkDataSiz
 
 {
  *  RTPRssmSendChunkAndDecrRefCount()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1277,7 +1277,7 @@ function RTPRssmSendChunkAndDecrRefCount( rtpr: RTPReassembler; var inChunk: SHC
 
 {
  *  RTPRssmSendLostChunk()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1290,7 +1290,7 @@ function RTPRssmSendLostChunk( rtpr: RTPReassembler; (*const*) var inChunkPresen
 
 {
  *  RTPRssmSendStreamBufferRange()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1303,7 +1303,7 @@ function RTPRssmSendStreamBufferRange( rtpr: RTPReassembler; var inParams: RTPSe
 
 {
  *  RTPRssmClearCachedPackets()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1316,7 +1316,7 @@ function RTPRssmClearCachedPackets( rtpr: RTPReassembler; inFlags: SInt32 ): Com
 
 {
  *  RTPRssmFillPacketListParams()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1329,7 +1329,7 @@ function RTPRssmFillPacketListParams( rtpr: RTPReassembler; var inPacketListHead
 
 {
  *  RTPRssmReleasePacketList()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1342,7 +1342,7 @@ function RTPRssmReleasePacketList( rtpr: RTPReassembler; var inPacketListHead: R
 
 {
  *  RTPRssmIncrChunkRefCount()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1355,7 +1355,7 @@ function RTPRssmIncrChunkRefCount( rtpr: RTPReassembler; var inChunk: SHChunkRec
 
 {
  *  RTPRssmDecrChunkRefCount()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1442,7 +1442,7 @@ const
 
 {
  *  QTSFindMediaPacketizer()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1455,7 +1455,7 @@ function QTSFindMediaPacketizer( inPacketizerinfo: MediaPacketizerRequirementsPt
 
 {
  *  QTSFindMediaPacketizerForTrack()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1468,7 +1468,7 @@ function QTSFindMediaPacketizerForTrack( inTrack: Track; inSampleDescriptionInde
 
 {
  *  QTSFindMediaPacketizerForPayloadID()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1481,7 +1481,7 @@ function QTSFindMediaPacketizerForPayloadID( payloadID: SIGNEDLONG; inSortInfo: 
 
 {
  *  QTSFindMediaPacketizerForPayloadName()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1598,7 +1598,7 @@ const
 
 {
  *  RTPMPInitialize()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1612,7 +1612,7 @@ function RTPMPInitialize( rtpm: RTPMediaPacketizer; inFlags: SInt32 ): Component
 { return noErr if you can handle this media }
 {
  *  RTPMPPreflightMedia()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1629,7 +1629,7 @@ function RTPMPPreflightMedia( rtpm: RTPMediaPacketizer; inMediaType: OSType; inS
 }
 {
  *  RTPMPIdle()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1649,7 +1649,7 @@ function RTPMPIdle( rtpm: RTPMediaPacketizer; inFlags: SInt32; var outFlags: SIn
 }
 {
  *  RTPMPSetSampleData()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1666,7 +1666,7 @@ function RTPMPSetSampleData( rtpm: RTPMediaPacketizer; const (*var*) inSampleDat
 }
 {
  *  RTPMPFlush()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1685,7 +1685,7 @@ function RTPMPFlush( rtpm: RTPMediaPacketizer; inFlags: SInt32; var outFlags: SI
 }
 {
  *  RTPMPReset()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1701,7 +1701,7 @@ function RTPMPReset( rtpm: RTPMediaPacketizer; inFlags: SInt32 ): ComponentResul
 -----------------------------------------}
 {
  *  RTPMPSetInfo()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1714,7 +1714,7 @@ function RTPMPSetInfo( rtpm: RTPMediaPacketizer; inSelector: OSType; ioParams: {
 
 {
  *  RTPMPGetInfo()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1727,7 +1727,7 @@ function RTPMPGetInfo( rtpm: RTPMediaPacketizer; inSelector: OSType; ioParams: U
 
 {
  *  RTPMPSetTimeScale()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1740,7 +1740,7 @@ function RTPMPSetTimeScale( rtpm: RTPMediaPacketizer; inTimeScale: TimeScale ): 
 
 {
  *  RTPMPGetTimeScale()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1753,7 +1753,7 @@ function RTPMPGetTimeScale( rtpm: RTPMediaPacketizer; var outTimeScale: TimeScal
 
 {
  *  RTPMPSetTimeBase()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1766,7 +1766,7 @@ function RTPMPSetTimeBase( rtpm: RTPMediaPacketizer; inTimeBase: TimeBase ): Com
 
 {
  *  RTPMPGetTimeBase()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1779,7 +1779,7 @@ function RTPMPGetTimeBase( rtpm: RTPMediaPacketizer; var outTimeBase: TimeBase )
 
 {
  *  RTPMPHasCharacteristic()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1792,7 +1792,7 @@ function RTPMPHasCharacteristic( rtpm: RTPMediaPacketizer; inSelector: OSType; v
 
 {
  *  RTPMPSetPacketBuilder()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1805,7 +1805,7 @@ function RTPMPSetPacketBuilder( rtpm: RTPMediaPacketizer; inPacketBuilder: Compo
 
 {
  *  RTPMPGetPacketBuilder()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1818,7 +1818,7 @@ function RTPMPGetPacketBuilder( rtpm: RTPMediaPacketizer; var outPacketBuilder: 
 
 {
  *  RTPMPSetMediaType()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1831,7 +1831,7 @@ function RTPMPSetMediaType( rtpm: RTPMediaPacketizer; inMediaType: OSType ): Com
 
 {
  *  RTPMPGetMediaType()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1845,7 +1845,7 @@ function RTPMPGetMediaType( rtpm: RTPMediaPacketizer; var outMediaType: OSType )
 { size is in bytes}
 {
  *  RTPMPSetMaxPacketSize()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1858,7 +1858,7 @@ function RTPMPSetMaxPacketSize( rtpm: RTPMediaPacketizer; inMaxPacketSize: UInt3
 
 {
  *  RTPMPGetMaxPacketSize()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1872,7 +1872,7 @@ function RTPMPGetMaxPacketSize( rtpm: RTPMediaPacketizer; var outMaxPacketSize: 
 { duration is in milliseconds}
 {
  *  RTPMPSetMaxPacketDuration()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1885,7 +1885,7 @@ function RTPMPSetMaxPacketDuration( rtpm: RTPMediaPacketizer; inMaxPacketDuratio
 
 {
  *  RTPMPGetMaxPacketDuration()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1898,7 +1898,7 @@ function RTPMPGetMaxPacketDuration( rtpm: RTPMediaPacketizer; var outMaxPacketDu
 
 {
  *  RTPMPDoUserDialog()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1911,7 +1911,7 @@ function RTPMPDoUserDialog( rtpm: RTPMediaPacketizer; inFilterUPP: ModalFilterUP
 
 {
  *  RTPMPSetSettingsFromAtomContainerAtAtom()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1924,7 +1924,7 @@ function RTPMPSetSettingsFromAtomContainerAtAtom( rtpm: RTPMediaPacketizer; inCo
 
 {
  *  RTPMPGetSettingsIntoAtomContainerAtAtom()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1937,7 +1937,7 @@ function RTPMPGetSettingsIntoAtomContainerAtAtom( rtpm: RTPMediaPacketizer; inOu
 
 {
  *  RTPMPGetSettingsAsText()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1950,7 +1950,7 @@ function RTPMPGetSettingsAsText( rtpm: RTPMediaPacketizer; var text: Handle ): C
 
 {
  *  RTPMPGetSettings()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -1963,7 +1963,7 @@ function RTPMPGetSettings( rtpm: RTPMediaPacketizer; var outSettings: QTAtomCont
 
 {
  *  RTPMPSetSettings()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -2037,7 +2037,7 @@ const
 -----------------------------------------}
 {
  *  RTPPBBeginPacketGroup()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2050,7 +2050,7 @@ function RTPPBBeginPacketGroup( rtpb: RTPPacketBuilder; inFlags: SInt32; inTimeS
 
 {
  *  RTPPBEndPacketGroup()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2063,7 +2063,7 @@ function RTPPBEndPacketGroup( rtpb: RTPPacketBuilder; inFlags: SInt32; inPacketG
 
 {
  *  RTPPBBeginPacket()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2076,7 +2076,7 @@ function RTPPBBeginPacket( rtpb: RTPPacketBuilder; inFlags: SInt32; inPacketGrou
 
 {
  *  RTPPBEndPacket()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2093,7 +2093,7 @@ function RTPPBEndPacket( rtpb: RTPPacketBuilder; inFlags: SInt32; inPacketGroup:
 }
 {
  *  RTPPBAddPacketLiteralData()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2110,7 +2110,7 @@ function RTPPBAddPacketLiteralData( rtpb: RTPPacketBuilder; inFlags: SInt32; inP
 }
 {
  *  RTPPBAddPacketSampleData()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2127,7 +2127,7 @@ function RTPPBAddPacketSampleData( rtpb: RTPPacketBuilder; inFlags: SInt32; inPa
 }
 {
  *  RTPPBAddPacketSampleData64()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -2144,7 +2144,7 @@ function RTPPBAddPacketSampleData64( rtpb: RTPPacketBuilder; inFlags: SInt32; in
 }
 {
  *  RTPPBAddPacketRepeatedData()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2158,7 +2158,7 @@ function RTPPBAddPacketRepeatedData( rtpb: RTPPacketBuilder; inFlags: SInt32; in
 { call when done with repeated data}
 {
  *  RTPPBReleaseRepeatedData()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2175,7 +2175,7 @@ function RTPPBReleaseRepeatedData( rtpb: RTPPacketBuilder; inDataRef: RTPPacketR
 }
 {
  *  RTPPBSetPacketSequenceNumber()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2188,7 +2188,7 @@ function RTPPBSetPacketSequenceNumber( rtpb: RTPPacketBuilder; inFlags: SInt32; 
 
 {
  *  RTPPBGetPacketSequenceNumber()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2201,7 +2201,7 @@ function RTPPBGetPacketSequenceNumber( rtpb: RTPPacketBuilder; inFlags: SInt32; 
 
 {
  *  RTPPBSetPacketTimeStampOffset()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -2214,7 +2214,7 @@ function RTPPBSetPacketTimeStampOffset( rtpb: RTPPacketBuilder; inFlags: SInt32;
 
 {
  *  RTPPBGetPacketTimeStampOffset()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -2227,7 +2227,7 @@ function RTPPBGetPacketTimeStampOffset( rtpb: RTPPacketBuilder; inFlags: SInt32;
 
 {
  *  RTPPBAddRepeatPacket()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -2244,7 +2244,7 @@ function RTPPBAddRepeatPacket( rtpb: RTPPacketBuilder; inFlags: SInt32; inPacket
 }
 {
  *  RTPPBSetCallback()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2257,7 +2257,7 @@ function RTPPBSetCallback( rtpb: RTPPacketBuilder; inCallback: RTPPBCallbackUPP;
 
 {
  *  RTPPBGetCallback()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2270,7 +2270,7 @@ function RTPPBGetCallback( rtpb: RTPPacketBuilder; var outCallback: RTPPBCallbac
 
 {
  *  RTPPBSetInfo()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2283,7 +2283,7 @@ function RTPPBSetInfo( rtpb: RTPPacketBuilder; inSelector: OSType; ioParams: Uni
 
 {
  *  RTPPBGetInfo()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2296,7 +2296,7 @@ function RTPPBGetInfo( rtpb: RTPPacketBuilder; inSelector: OSType; ioParams: Uni
 
 {
  *  RTPPBGetSampleData()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -2310,7 +2310,7 @@ function RTPPBGetSampleData( rtpb: RTPPacketBuilder; var inParams: RTPMPSampleDa
 { UPP call backs }
 {
  *  NewRTPMPDataReleaseUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -2321,7 +2321,7 @@ function NewRTPMPDataReleaseUPP( userRoutine: RTPMPDataReleaseProcPtr ): RTPMPDa
 
 {
  *  NewRTPPBCallbackUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -2332,7 +2332,7 @@ function NewRTPPBCallbackUPP( userRoutine: RTPPBCallbackProcPtr ): RTPPBCallback
 
 {
  *  DisposeRTPMPDataReleaseUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -2343,7 +2343,7 @@ procedure DisposeRTPMPDataReleaseUPP( userUPP: RTPMPDataReleaseUPP ); external n
 
 {
  *  DisposeRTPPBCallbackUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -2354,7 +2354,7 @@ procedure DisposeRTPPBCallbackUPP( userUPP: RTPPBCallbackUPP ); external name '_
 
 {
  *  InvokeRTPMPDataReleaseUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -2365,7 +2365,7 @@ procedure InvokeRTPMPDataReleaseUPP( var inData: UInt8; inRefCon: UnivPtr; userU
 
 {
  *  InvokeRTPPBCallbackUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later

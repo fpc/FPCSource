@@ -1,6 +1,6 @@
 {
 Register definitions and utility code for stellaris
-Preliminary startup code 
+Preliminary startup code
 Geoffrey Barton 2010 08 01  gjb@periphon.net
 based on stm32f103 created by Jeppe Johansen 2009 - jepjoh2@kom.aau.dk
 }
@@ -19,9 +19,9 @@ unit lm3tempest;
       PeripheralBase 	= $40000000;
       PPBbase		= $E0000fff;
       APBbase 		= PeripheralBase;
-      
+
 {$ifdef highspeedports}
-      portAoffset=APBbase+$58000;     
+      portAoffset=APBbase+$58000;
       portBoffset=APBbase+$59000;
       portCoffset=APBbase+$5A000;
       portDoffset=APBbase+$5B000;
@@ -30,9 +30,9 @@ unit lm3tempest;
       portGoffset=APBbase+$5E000;
       portHoffset=APBbase+$5F000;
       portJoffset=APBbase+$60000;
-      
+
 {$else}
-      portAoffset=APBbase+$4000;     
+      portAoffset=APBbase+$4000;
       portBoffset=APBbase+$5000;
       portCoffset=APBbase+$6000;
       portDoffset=APBbase+$7000;
@@ -43,7 +43,7 @@ unit lm3tempest;
       portJoffset=APBbase+$3d000;
 {$endif}
       sysconoffset=APBbase+$fe000;
-      
+
     type
       TgpioPort=record
         data:array[0..255] of dword;dir,_is,ibe,iev,im,ris,mis,icr,
@@ -74,7 +74,7 @@ unit lm3tempest;
     //  rcgc0			:dword absolute (sysconoffset+$100);
    //   rcgc1			:dword absolute (sysconoffset+$104);
     //  rcgc2			:dword absolute (sysconoffset+$108);
-	
+
   implementation
 
 procedure NMI_interrupt; external name 'NMI_interrupt';
@@ -164,7 +164,7 @@ interrupt_vectors:
   .long 0
   .long PendingSV_interrupt
   .long SysTick_interrupt
-  
+
   .long GPIO_Port_A_Interrupt
   .long GPIO_Port_B_Interrupt
   .long GPIO_Port_C_Interrupt
@@ -220,7 +220,7 @@ interrupt_vectors:
   .long I2S0_Interrupt
   .long EPI_Interrupt
   .long GPIO_Port_J_Interrupt
-  
+
   .weak NMI_interrupt
   .weak Hardfault_interrupt
   .weak MemManage_interrupt
@@ -285,7 +285,7 @@ interrupt_vectors:
   .weak I2S0_Interrupt
   .weak EPI_Interrupt
   .weak GPIO_Port_J_Interrupt
-  
+
   .set NMI_interrupt, haltproc
   .set Hardfault_interrupt, haltproc
   .set MemManage_interrupt, haltproc
@@ -350,7 +350,7 @@ interrupt_vectors:
   .set I2S0_Interrupt, haltproc
   .set EPI_Interrupt, haltproc
   .set GPIO_Port_J_Interrupt, haltproc
-  
+
   .text
 end;
 

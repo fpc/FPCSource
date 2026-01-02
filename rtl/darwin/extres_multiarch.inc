@@ -547,7 +547,7 @@ begin
 
   tot:=ptr^.idcountsize;
   ptr:=GetResInfoPtr(ResHeader,ptr^.subptr);
-  
+
   if Other<>nil then
   begin
     otarr:=InternalFindResource(Other,ResourceName,ResourceType);

@@ -47,7 +47,7 @@ function _StartNLM (NLMHandle              : longint;
                    customDataSize          : longint;
                    NLMInformation          : pointer;
                    userStartFunc           : pointer) : longint; cdecl; external '!clib' name '_StartNLM';
-                                                                                                                                                                                                                                                          
+
 
 function _TerminateNLM  (NLMInformation          : pointer;
                          threadID, status        : longint) : longint; cdecl; external '!clib' name '_TerminateNLM';
@@ -55,7 +55,7 @@ function _TerminateNLM  (NLMInformation          : pointer;
 
 procedure _Stop; cdecl; forward;
 
-// This is the main program (not loader) Entry-Point that will be called by netware    
+// This is the main program (not loader) Entry-Point that will be called by netware
 // it sets up the argc and argv and calls _nlm_main (in system.pp)
 
 procedure _pasStart; assembler; export; [alias:'_pasStart_'];
@@ -82,7 +82,7 @@ type kNLMInfoT =
       wchar_tSize    : longint;
     end;
 
-var 
+var
   _kNLMInfo:kNLMInfoT = (Signature:'NLMI';Flavor:0;Version:1;LongDoubleSize:8;wChar_tSize:2);
 
 
@@ -145,7 +145,7 @@ asm
    	pushl	%eax
      	movl	0x24(%ebp),%edx  // 1b7f6
    	pushl	%edx
-       	pushl	%ecx  
+       	pushl	%ecx
    	pushl	%ebx
        	pushl	%esi			// uninitialized data size
        	pushl	%edi

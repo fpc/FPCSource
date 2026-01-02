@@ -285,7 +285,7 @@
     { Identifier removed }
        ESysEIDRM = 90;
     { No message of desired type }
-       ESysENOMSG = 91;   
+       ESysENOMSG = 91;
     { Illegal byte sequence }
        ESysEILSEQ = 92;
     { Attribute not found }

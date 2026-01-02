@@ -1,15 +1,15 @@
 {
      File:       Print/PMApplication.h
- 
+
      Contains:   Carbon Printing Manager Interfaces.
- 
+
      Copyright  (c) 1998-2008 Apple Inc. All Rights Reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
@@ -236,7 +236,7 @@ type
 
 {
  *  NewPMSheetDoneUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -247,7 +247,7 @@ function NewPMSheetDoneUPP( userRoutine: PMSheetDoneProcPtr ): PMSheetDoneUPP; e
 
 {
  *  DisposePMSheetDoneUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework  [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -258,7 +258,7 @@ procedure DisposePMSheetDoneUPP( userUPP: PMSheetDoneUPP ); external name '_Disp
 
 {
  *  InvokePMSheetDoneUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework  [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -271,11 +271,11 @@ procedure InvokePMSheetDoneUPP( printSession: PMPrintSession; documentWindow: Wi
 { Print loop }
 {
  *  PMSessionBeginCGDocument()
- *  
+ *
  *  Summary:
  *    Begin a new print job that uses only drawing to a CoreGraphics
  *    context.
- *  
+ *
  *  Discussion:
  *    This is an updated version of the function
  *    PMSessionBeginDocument. The functionality is identical to
@@ -285,7 +285,7 @@ procedure InvokePMSheetDoneUPP( printSession: PMPrintSession; documentWindow: Wi
  *    function should be used in conjunction with
  *    PMSessionGetCGGraphicsContext instead of
  *    PMSessionGetGraphicsContext.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in Carbon.framework  [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.4 and later
@@ -296,7 +296,7 @@ function PMSessionBeginCGDocument( printSession: PMPrintSession; printSettings: 
 
 {
  *  PMSessionEndDocument()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework  [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -308,7 +308,7 @@ function PMSessionEndDocument( printSession: PMPrintSession ): OSStatus; externa
 
 {
  *  PMSessionBeginPage()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework  [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -320,7 +320,7 @@ function PMSessionBeginPage( printSession: PMPrintSession; pageFormat: PMPageFor
 
 {
  *  PMSessionEndPage()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework  [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -337,7 +337,7 @@ function PMSessionEndPage( printSession: PMPrintSession ): OSStatus; external na
 
 {
  *  PMSessionPageSetupDialog()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework  [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -349,7 +349,7 @@ function PMSessionPageSetupDialog( printSession: PMPrintSession; pageFormat: PMP
 
 {
  *  PMSessionPrintDialog()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework  [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -361,8 +361,8 @@ function PMSessionPrintDialog( printSession: PMPrintSession; printSettings: PMPr
 
 {
  *  PMSessionUseSheets()
- *  
- *  
+ *
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework  [32-bit only]
  *    CarbonLib:        in CarbonLib 1.2 and later
@@ -373,7 +373,7 @@ function PMSessionUseSheets( printSession: PMPrintSession; documentWindow: Windo
 
 {
  *  PMShowPageSetupDialogAsSheet()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework  [32-bit only]
  *    CarbonLib:        not available
@@ -385,7 +385,7 @@ function PMShowPageSetupDialogAsSheet( printSession: PMPrintSession; pageFormat:
 
 {
  *  PMShowPrintDialogWithOptions()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework  [32-bit only]
  *    CarbonLib:        not available
@@ -396,7 +396,7 @@ function PMShowPrintDialogWithOptions( printSession: PMPrintSession; printSettin
 
 {
  *  PMShowPrintDialogWithOptionsAsSheet()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework  [32-bit only]
  *    CarbonLib:        not available
@@ -414,24 +414,24 @@ function PMShowPrintDialogWithOptionsAsSheet( printSession: PMPrintSession; prin
 { Presets }
 {
  *  PMSessionEnablePrinterPresets()
- *  
+ *
  *  Summary:
  *    Enable the use of printer presets in the print dialog.
- *  
+ *
  *  Discussion:
  *    Displaying the print dialog on a session after making this call
  *    will show the presets available for the specified graphics type.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    session:
  *      The session that will be used to present the print dialog.
- *    
+ *
  *    graphicsType:
  *      The printer presets in the dialog should be suitable for
  *      rendering this type of graphic. Currently defined graphics
  *      types are: "Photo"
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework  [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -442,15 +442,15 @@ function PMSessionEnablePrinterPresets( session: PMPrintSession; graphicsType: C
 
 {
  *  PMSessionDisablePrinterPresets()
- *  
+ *
  *  Summary:
  *    Disable the use of printer presets in the print dialog.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    session:
  *      The session that will be used to present the print dialog.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework  [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later

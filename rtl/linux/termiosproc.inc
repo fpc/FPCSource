@@ -178,7 +178,7 @@ end;
 Function TCGetPGrp(fd:cint;var id:cint):cint;  inline;
 begin
   id:=real_tcgetpgrp(fd);
-  tcgetpgrp:=id;  
+  tcgetpgrp:=id;
 end;
 
 Function TCDrain(fd:cint):cint;  inline;

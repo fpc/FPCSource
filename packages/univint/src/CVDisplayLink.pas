@@ -223,13 +223,13 @@ uses MacTypes, CFBase, CGDirectDisplay, CVBase, CVReturns, CGLTypes;
 
 {$ifc TARGET_OS_MAC}
 
- 
+
   {! @header CVDisplayLink.h
 	@copyright 2004 Apple Computer, Inc. All rights reserved.
 	@availability Mac OS X 10.4 or later
     @discussion The main purpose of the CoreVideo DisplayLink API is to provide a worker thread to the VideoUnit subsystem that is clocked based on the refresh rate of a CGDirectDisplay device. In the current implementation, these DisplayLinks are created automatically by the Video Unit display nodes, and the developer does not have to deal with them directly.
-		A CoreVideo DisplayLink is represented in code by a CVDisplayLinkRef. The CVDisplayLinkRef API uses the CoreFoundation class system internally to provide reference counting behaviour and other such goodies. There are three different ways to create a CVDisplayLinkRef in the current API. The first call is the most general case, and the other two are provided as a convenience (the third will probably go away, as it's only marginally useful). 
-		   
+		A CoreVideo DisplayLink is represented in code by a CVDisplayLinkRef. The CVDisplayLinkRef API uses the CoreFoundation class system internally to provide reference counting behaviour and other such goodies. There are three different ways to create a CVDisplayLinkRef in the current API. The first call is the most general case, and the other two are provided as a convenience (the third will probably go away, as it's only marginally useful).
+
 }
 
 
@@ -321,7 +321,7 @@ function CVDisplayLinkGetCurrentCGDisplay( displayLink: CVDisplayLinkRef ): CGDi
 
 {!
     @function   CVDisplayLinkSetOutputCallback
-    @abstract   Set the renderer output callback function	
+    @abstract   Set the renderer output callback function
     @discussion The DisplayLink will invoke this callback whenever it wants you to output a frame.
     @param      displayLink target CVDisplayLinkRef
     @param	callback	CVDisplayLinkOutputCallback function
@@ -409,7 +409,7 @@ function CVDisplayLinkGetCurrentTime( displayLink: CVDisplayLinkRef; var outTime
                     another. Note that the device has to be running for this call to succeed.
     @param      displayLink The CVDisplayLink who's timebase should be used to do the translation.
     @param      inTime A CVTimeStamp containing the source time to be translated.
-    @param      outTime A CVTimeStamp into which the target time will be written. This struct's version field must currently be set correctly 
+    @param      outTime A CVTimeStamp into which the target time will be written. This struct's version field must currently be set correctly
                 (currently 0) to indicate which version of the timestamp struct is desired.  As well, the flags field should be used to specify
                 which representations to translate to.
     @result     kCVReturnSuccess if the time could be translated, otherwise an error indicating why the operation failed.

@@ -225,7 +225,7 @@ uses MacTypes,CFBase,CFString,CFDictionary,CVBase,CVReturns,CVOpenGLBuffer;
 	@copyright 2004 Apple Computer, Inc. All rights reserved.
 	@availability Mac OS X 10.4 or later
     @discussion CVOpenGLBufferPool is a utility object for managing a set of CVOpenGLBuffer objects that are going to be recycled.
-		   
+
 }
 
 

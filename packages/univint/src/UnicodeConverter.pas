@@ -1,15 +1,15 @@
 {
      File:       CarbonCore/UnicodeConverter.h
- 
+
      Contains:   Types, constants, and prototypes for Unicode Converter
- 
+
      Copyright:  © 1994-2011 Apple Inc. All rights reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {
     Modified for use with Free Pascal
@@ -311,7 +311,7 @@ const
    Now TruncateForUnicodeToText uses control flags from the same set as used by
    ConvertFromTextToUnicode, ConvertFromUnicodeToText, etc., but only
    kUnicodeStringUnterminatedMask is meaningful for TruncateForUnicodeToText.
-   
+
    Previously two special control flags were defined for TruncateForUnicodeToText:
         kUnicodeTextElementSafeBit = 0
         kUnicodeRestartSafeBit = 1
@@ -365,7 +365,7 @@ type
 	UnicodeToTextFallbackUPP = UnicodeToTextFallbackProcPtr;
 {
  *  NewUnicodeToTextFallbackUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -376,7 +376,7 @@ function NewUnicodeToTextFallbackUPP( userRoutine: UnicodeToTextFallbackProcPtr 
 
 {
  *  DisposeUnicodeToTextFallbackUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -387,7 +387,7 @@ procedure DisposeUnicodeToTextFallbackUPP( userUPP: UnicodeToTextFallbackUPP ); 
 
 {
  *  InvokeUnicodeToTextFallbackUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -399,7 +399,7 @@ function InvokeUnicodeToTextFallbackUPP( iSrcUniStr: UniCharPtr; iSrcUniStrLen: 
 { Function prototypes }
 {
  *  CreateTextToUnicodeInfo()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -411,7 +411,7 @@ function CreateTextToUnicodeInfo( iUnicodeMapping: ConstUnicodeMappingPtr; var o
 
 {
  *  CreateTextToUnicodeInfoByEncoding()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -423,7 +423,7 @@ function CreateTextToUnicodeInfoByEncoding( iEncoding: TextEncoding; var oTextTo
 
 {
  *  CreateUnicodeToTextInfo()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -435,7 +435,7 @@ function CreateUnicodeToTextInfo( iUnicodeMapping: ConstUnicodeMappingPtr; var o
 
 {
  *  CreateUnicodeToTextInfoByEncoding()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -447,7 +447,7 @@ function CreateUnicodeToTextInfoByEncoding( iEncoding: TextEncoding; var oUnicod
 
 {
  *  CreateUnicodeToTextRunInfo()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -459,7 +459,7 @@ function CreateUnicodeToTextRunInfo( iNumberOfMappings: ItemCount; {const} iUnic
 
 {
  *  CreateUnicodeToTextRunInfoByEncoding()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -471,7 +471,7 @@ function CreateUnicodeToTextRunInfoByEncoding( iNumberOfEncodings: ItemCount; {c
 
 {
  *  CreateUnicodeToTextRunInfoByScriptCode()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -484,7 +484,7 @@ function CreateUnicodeToTextRunInfoByScriptCode( iNumberOfScriptCodes: ItemCount
 { Change the TextToUnicodeInfo to another mapping. }
 {
  *  ChangeTextToUnicodeInfo()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -497,7 +497,7 @@ function ChangeTextToUnicodeInfo( ioTextToUnicodeInfo: TextToUnicodeInfo; iUnico
 { Change the UnicodeToTextInfo to another mapping. }
 {
  *  ChangeUnicodeToTextInfo()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -509,7 +509,7 @@ function ChangeUnicodeToTextInfo( ioUnicodeToTextInfo: UnicodeToTextInfo; iUnico
 
 {
  *  DisposeTextToUnicodeInfo()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -521,7 +521,7 @@ function DisposeTextToUnicodeInfo( var ioTextToUnicodeInfo: TextToUnicodeInfo ):
 
 {
  *  DisposeUnicodeToTextInfo()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -533,7 +533,7 @@ function DisposeUnicodeToTextInfo( var ioUnicodeToTextInfo: UnicodeToTextInfo ):
 
 {
  *  DisposeUnicodeToTextRunInfo()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -545,7 +545,7 @@ function DisposeUnicodeToTextRunInfo( var ioUnicodeToTextRunInfo: UnicodeToTextR
 
 {
  *  ConvertFromTextToUnicode()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -557,7 +557,7 @@ function ConvertFromTextToUnicode( iTextToUnicodeInfo: TextToUnicodeInfo; iSourc
 
 {
  *  ConvertFromUnicodeToText()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -569,7 +569,7 @@ function ConvertFromUnicodeToText( iUnicodeToTextInfo: UnicodeToTextInfo; iUnico
 
 {
  *  ConvertFromUnicodeToTextRun()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -581,7 +581,7 @@ function ConvertFromUnicodeToTextRun( iUnicodeToTextInfo: UnicodeToTextRunInfo; 
 
 {
  *  ConvertFromUnicodeToScriptCodeRun()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -594,7 +594,7 @@ function ConvertFromUnicodeToScriptCodeRun( iUnicodeToTextInfo: UnicodeToTextRun
 { Truncate a multibyte string at a safe place. }
 {
  *  TruncateForTextToUnicode()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -607,7 +607,7 @@ function TruncateForTextToUnicode( iTextToUnicodeInfo: ConstTextToUnicodeInfo; i
 { Truncate a Unicode string at a safe place. }
 {
  *  TruncateForUnicodeToText()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -620,7 +620,7 @@ function TruncateForUnicodeToText( iUnicodeToTextInfo: ConstUnicodeToTextInfo; i
 { Convert a Pascal string to Unicode string. }
 {
  *  ConvertFromPStringToUnicode()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -633,7 +633,7 @@ function ConvertFromPStringToUnicode( iTextToUnicodeInfo: TextToUnicodeInfo; con
 { Convert a Unicode string to Pascal string. }
 {
  *  ConvertFromUnicodeToPString()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -646,7 +646,7 @@ function ConvertFromUnicodeToPString( iUnicodeToTextInfo: UnicodeToTextInfo; iUn
 { Count the available conversion mappings. }
 {
  *  CountUnicodeMappings()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -659,7 +659,7 @@ function CountUnicodeMappings( iFilter: OptionBits; iFindMapping: ConstUnicodeMa
 { Get a list of the available conversion mappings. }
 {
  *  QueryUnicodeMappings()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -672,7 +672,7 @@ function QueryUnicodeMappings( iFilter: OptionBits; iFindMapping: ConstUnicodeMa
 { Setup the fallback handler for converting Unicode To Text. }
 {
  *  SetFallbackUnicodeToText()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -685,7 +685,7 @@ function SetFallbackUnicodeToText( iUnicodeToTextInfo: UnicodeToTextInfo; iFallb
 { Setup the fallback handler for converting Unicode To TextRuns. }
 {
  *  SetFallbackUnicodeToTextRun()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -698,7 +698,7 @@ function SetFallbackUnicodeToTextRun( iUnicodeToTextRunInfo: UnicodeToTextRunInf
 { Re-initialize all state information kept by the context objects. }
 {
  *  ResetTextToUnicodeInfo()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -711,7 +711,7 @@ function ResetTextToUnicodeInfo( ioTextToUnicodeInfo: TextToUnicodeInfo ): OSSta
 { Re-initialize all state information kept by the context objects. }
 {
  *  ResetUnicodeToTextInfo()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -724,7 +724,7 @@ function ResetUnicodeToTextInfo( ioUnicodeToTextInfo: UnicodeToTextInfo ): OSSta
 { Re-initialize all state information kept by the context objects in TextRun conversions. }
 {
  *  ResetUnicodeToTextRunInfo()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later

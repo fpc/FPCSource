@@ -1,17 +1,17 @@
 {
      File:       QuickTime/QuickTimeComponents.h
- 
+
      Contains:   QuickTime Interfaces.
- 
+
      Version:    QuickTime 7.7.1
- 
+
      Copyright:  © 1990-2012 by Apple Inc., all rights reserved
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
@@ -247,7 +247,7 @@ const
 {* These are Clock procedures *}
 {
  *  ClockGetTime()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -260,7 +260,7 @@ function ClockGetTime( aClock: ComponentInstance; var out: TimeRecord ): Compone
 
 {
  *  ClockNewCallBack()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -273,7 +273,7 @@ function ClockNewCallBack( aClock: ComponentInstance; tb: TimeBase; callBackType
 
 {
  *  ClockDisposeCallBack()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -286,7 +286,7 @@ function ClockDisposeCallBack( aClock: ComponentInstance; cb: QTCallBack ): Comp
 
 {
  *  ClockCallMeWhen()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -299,7 +299,7 @@ function ClockCallMeWhen( aClock: ComponentInstance; cb: QTCallBack; param1: SIG
 
 {
  *  ClockCancelCallBack()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -312,7 +312,7 @@ function ClockCancelCallBack( aClock: ComponentInstance; cb: QTCallBack ): Compo
 
 {
  *  ClockRateChanged()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -325,7 +325,7 @@ function ClockRateChanged( aClock: ComponentInstance; cb: QTCallBack ): Componen
 
 {
  *  ClockTimeChanged()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -338,7 +338,7 @@ function ClockTimeChanged( aClock: ComponentInstance; cb: QTCallBack ): Componen
 
 {
  *  ClockSetTimeBase()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -351,7 +351,7 @@ function ClockSetTimeBase( aClock: ComponentInstance; tb: TimeBase ): ComponentR
 
 {
  *  ClockStartStopChanged()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -364,7 +364,7 @@ function ClockStartStopChanged( aClock: ComponentInstance; cb: QTCallBack; start
 
 {
  *  ClockGetRate()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -377,7 +377,7 @@ function ClockGetRate( aClock: ComponentInstance; var rate: Fixed ): ComponentRe
 
 {
  *  ClockGetTimesForRateChange()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 (or QuickTime 6.4) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -390,7 +390,7 @@ function ClockGetTimesForRateChange( aClock: ComponentInstance; fromRate: Fixed;
 
 {
  *  ClockGetRateChangeConstraints()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 (or QuickTime 6.4) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -612,7 +612,7 @@ type
 
 {
  *  SCVideoMultiPassEncodingSettings
- *  
+ *
  *  Summary:
  *    Struct for passing multi pass encoding settings through
  *    scVideoMultiPassEncodingSettingsType
@@ -645,7 +645,7 @@ const
 {
  *  Summary:
  *    Preference Flags for scPreferenceFlagsType
- *  
+ *
  *  Discussion:
  *    Preference flags that specify how StdCompression should handle
  *    frame reordering and multi pass encoding settings.
@@ -752,7 +752,7 @@ const
   {
    * kQTSCAudioPropertyID_HasLegacyCodecOptionsDialog: Some compression
    * formats have format-specific properties that are only accessible
-   * via a compressor-provided dialog. 
+   * via a compressor-provided dialog.
    * kQTSCAudioPropertyID_HasLegacyCodecOptionsDialog lets you know if
    * the current compression format has such a dialog.
    }
@@ -792,7 +792,7 @@ const
    * kQTSCAudioPropertyID_AvailableSampleRateList are currently
    * applicable. The kQTSCAudioPropertyID_AvailableSampleRateList takes
    * into account client restrictions, and a compression format's
-   * general sample rate restrictions. 
+   * general sample rate restrictions.
    * kQTSCAudioPropertyID_ApplicableSampleRateList further filters the
    * list to just those sample rates that are legal and valid given the
    * current codec configuration.  Use QTGetComponentPropertyInfo to
@@ -809,7 +809,7 @@ const
    * closest output rate to the input rate that's allowed by the output
    * format.  kQTSCAudioPropertyID_SampleRateIsRecommended is
    * read-only.  To set the sample rate to recommended, a client sets
-   * the kQTSCAudioPropertyID_BasicDescription with mSampleRate = 0.0. 
+   * the kQTSCAudioPropertyID_BasicDescription with mSampleRate = 0.0.
    * To unset the sample rate as recommended, the client sets the
    * kQTSCAudioPropertyID_BasicDescription with a non-zero mSampleRate
    * field.
@@ -860,7 +860,7 @@ const
    * applicable. The
    * kQTSCAudioPropertyID_AvailableLPCMBitsPerChannelList takes into
    * account client restrictions, and LPCM's general bits per channel
-   * restrictions. 
+   * restrictions.
    * kQTSCAudioPropertyID_ApplicableLPCMBitsPerChannelList further
    * filters the list to just those bits per channel that are legal and
    * valid given the current LPCM configuration.  Use
@@ -935,7 +935,7 @@ const
    * kQTSCAudioPropertyID_AvailableChannelLayoutTagList are currently
    * applicable. The kQTSCAudioPropertyID_AvailableChannelLayoutTagList
    * takes into account client restrictions, and the current output
-   * format's general channel layout restrictions. 
+   * format's general channel layout restrictions.
    * kQTSCAudioPropertyID_ApplicableChannelLayoutTagList further
    * filters the list to just those channel layouts that are legal and
    * valid given the current codec configuration.  Use
@@ -1136,7 +1136,7 @@ const
 
 {
  *  SCAudioFormatFlagsRestrictions
- *  
+ *
  *  Summary:
  *    Struct describing the restrictions a client wishes to impose on
  *    the mFormatFlags fields of an AudioStreamBasicDescription.  In
@@ -1164,21 +1164,21 @@ type
 	end;
 {
  *  SCAudioInvokeLegacyCodecOptionsDialog()
- *  
+ *
  *  Discussion:
  *    If kQTSCAudioPropertyID_HasLegacyCodecOptionsDialog is true,
  *    SCAudioInvokeLegacyCodecOptionsDialog invokes the compressor's
  *    options dialog. Note - this call blocks until the options dialog
  *    "OK" or "Cancel" buttons are pressed.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    ci:
  *      The client's connection to a StdAudio Compression component
- *  
+ *
  *  Result:
  *    ComponentResult
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -1198,9 +1198,9 @@ function SCAudioInvokeLegacyCodecOptionsDialog( ci: ComponentInstance ): Compone
    The StandardCompressionSubTypeAudio component provides an SCAudioFillBuffer
    call with the same parameters and behaviors of AudioConverterFillComplexBuffer.
    One important difference between the AudioConverter and SCAudio component is
-   that the SCAudio compression API's can do mixing as well as n -> n channels 
+   that the SCAudio compression API's can do mixing as well as n -> n channels
    conversion.  A client wishes to compress/decompress/transcode audio using
-   the SCAudioFillBuffer interface configures the StandardCompressionSubTypeAudio 
+   the SCAudioFillBuffer interface configures the StandardCompressionSubTypeAudio
    component with the desired input and output formats (or uses the SCRequestImageSettings
    API to present a dialog and let a user pick an output format), then calls
    SCAudioFillBuffer, providing an SCAudioInputDataProc callback which will be
@@ -1210,32 +1210,32 @@ function SCAudioInvokeLegacyCodecOptionsDialog( ci: ComponentInstance ): Compone
 
 {
  *  SCAudioInputDataProc
- *  
+ *
  *  Discussion:
  *    Clients using the SCAudioFillBuffer API call must provide an
  *    input data proc in which they provide source packets of audio.
  *    SCAudioInputDataProc is available in QT 7.1 and later.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    ci:
  *      The client's connection to a StdAudio Compression component
- *    
+ *
  *    ioNumberDataPackets:
  *      On input, the number of audio packets requested. On output, the
  *      number of audio packets you've actually provided.
- *    
+ *
  *    ioData:
  *      An AudioBufferList in which you store the requested data.
- *    
+ *
  *    outDataPacketDescription:
  *      An array of AudioStreamPacketDescriptions you provide to inform
  *      downstream components how to decode your externally framed
  *      audio packets.
- *    
+ *
  *    inRefCon:
  *      The ref con you provided to SCAudioFillBuffer.
- *  
+ *
  *  Result:
  *    ComponentResult An error code you return.
  }
@@ -1245,7 +1245,7 @@ type
 
 {
  *  SCAudioFillBuffer()
- *  
+ *
  *  Discussion:
  *    Used to pull compressed frames from the StdAudio component in
  *    kQTSCAudioPropertyID_BasicDescription format.  The StdAudio
@@ -1255,39 +1255,39 @@ type
  *    behavior of the SCAudioFillBuffer call (signalling end of data,
  *    etc.) is identical to the AudioConverter's
  *    AudioConverterFillComplexBuffer API.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    ci:
  *      The client's connection to a StdAudio Compression component
- *    
+ *
  *    inInputDataProc:
  *      The proc address of the function that will be called to supply
  *      data in the kQTSCAudioPropertyID_InputBasicDescription format
  *      to SCAudio.
- *    
+ *
  *    inInputDataProcRefCon:
  *      The client refcon that will be passed to the user-provided
  *      SCAudioInputDataProc function.
- *    
+ *
  *    ioOutputDataPacketSize:
  *      On input, the number of desired packets.  On output, the actual
  *      number of packets delivered (can be fewer than the input
  *      desired packets).
- *    
+ *
  *    outOutputData:
  *      An AudioBufferList providing sufficiently large buffers to hold
  *      the requested number of packets.
- *    
+ *
  *    outPacketDescription:
  *      An array of AudioStreamPacketDescriptions.  If the requested
  *      output format requires external framing info (i.e. a VBR format
  *      such as AAC), allocate and pass an array of packet descriptions
  *      as large as the number of packets you are requesting.
- *  
+ *
  *  Result:
  *    ComponentResult
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 (or QuickTime 7.1) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -1299,19 +1299,19 @@ function SCAudioFillBuffer( ci: ComponentInstance; inInputDataProc: SCAudioInput
 
 {
  *  SCAudioReset()
- *  
+ *
  *  Discussion:
  *    Used to reset an SCAudio conversion chain, flushing any latency
  *    present in internal buffers
- *  
+ *
  *  Parameters:
- *    
+ *
  *    ci:
  *      The client's connection to a StdAudio Compression component
- *  
+ *
  *  Result:
  *    ComponentResult
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 (or QuickTime 7.1) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -1325,7 +1325,7 @@ function SCAudioReset( ci: ComponentInstance ): ComponentResult; external name '
 {* These are Progress procedures *}
 {
  *  SCGetCompressionExtended()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1338,7 +1338,7 @@ function SCGetCompressionExtended( ci: ComponentInstance; var params: SCParams; 
 
 {
  *  SCPositionRect()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1351,7 +1351,7 @@ function SCPositionRect( ci: ComponentInstance; var rp: Rect; var where: Point )
 
 {
  *  SCPositionDialog()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1364,7 +1364,7 @@ function SCPositionDialog( ci: ComponentInstance; id: SInt16; var where: Point )
 
 {
  *  SCSetTestImagePictHandle()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1377,7 +1377,7 @@ function SCSetTestImagePictHandle( ci: ComponentInstance; testPict: PicHandle; v
 
 {
  *  SCSetTestImagePictFile()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1390,7 +1390,7 @@ function SCSetTestImagePictFile( ci: ComponentInstance; testFileRef: SInt16; var
 
 {
  *  SCSetTestImagePixMap()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1403,7 +1403,7 @@ function SCSetTestImagePixMap( ci: ComponentInstance; testPixMap: PixMapHandle; 
 
 {
  *  SCGetBestDeviceRect()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1416,7 +1416,7 @@ function SCGetBestDeviceRect( ci: ComponentInstance; var r: Rect ): ComponentRes
 
 {
  *  SCRequestImageSettings()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1429,7 +1429,7 @@ function SCRequestImageSettings( ci: ComponentInstance ): ComponentResult; exter
 
 {
  *  SCCompressImage()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1442,7 +1442,7 @@ function SCCompressImage( ci: ComponentInstance; src: PixMapHandle; const (*var*
 
 {
  *  SCCompressPicture()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1455,7 +1455,7 @@ function SCCompressPicture( ci: ComponentInstance; srcPicture: PicHandle; dstPic
 
 {
  *  SCCompressPictureFile()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1468,7 +1468,7 @@ function SCCompressPictureFile( ci: ComponentInstance; srcRefNum: SInt16; dstRef
 
 {
  *  SCRequestSequenceSettings()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1481,7 +1481,7 @@ function SCRequestSequenceSettings( ci: ComponentInstance ): ComponentResult; ex
 
 {
  *  SCCompressSequenceBegin()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1494,7 +1494,7 @@ function SCCompressSequenceBegin( ci: ComponentInstance; src: PixMapHandle; cons
 
 {
  *  SCCompressSequenceFrame()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1507,7 +1507,7 @@ function SCCompressSequenceFrame( ci: ComponentInstance; src: PixMapHandle; cons
 
 {
  *  SCCompressSequenceEnd()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1520,7 +1520,7 @@ function SCCompressSequenceEnd( ci: ComponentInstance ): ComponentResult; extern
 
 {
  *  SCDefaultPictHandleSettings()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1533,7 +1533,7 @@ function SCDefaultPictHandleSettings( ci: ComponentInstance; srcPicture: PicHand
 
 {
  *  SCDefaultPictFileSettings()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1546,7 +1546,7 @@ function SCDefaultPictFileSettings( ci: ComponentInstance; srcRef: SInt16; motio
 
 {
  *  SCDefaultPixMapSettings()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1559,7 +1559,7 @@ function SCDefaultPixMapSettings( ci: ComponentInstance; src: PixMapHandle; moti
 
 {
  *  SCGetInfo()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1572,7 +1572,7 @@ function SCGetInfo( ci: ComponentInstance; infoType: OSType; info: UnivPtr ): Co
 
 {
  *  SCSetInfo()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1585,7 +1585,7 @@ function SCSetInfo( ci: ComponentInstance; infoType: OSType; info: UnivPtr ): Co
 
 {
  *  SCNewGWorld()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1598,7 +1598,7 @@ function SCNewGWorld( ci: ComponentInstance; var gwp: GWorldPtr; var rp: Rect; f
 
 {
  *  SCSetCompressFlags()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1611,7 +1611,7 @@ function SCSetCompressFlags( ci: ComponentInstance; flags: SIGNEDLONG ): Compone
 
 {
  *  SCGetCompressFlags()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1624,7 +1624,7 @@ function SCGetCompressFlags( ci: ComponentInstance; var flags: SIGNEDLONG ): Com
 
 {
  *  SCGetSettingsAsText()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1637,7 +1637,7 @@ function SCGetSettingsAsText( ci: ComponentInstance; var text: Handle ): Compone
 
 {
  *  SCGetSettingsAsAtomContainer()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1650,7 +1650,7 @@ function SCGetSettingsAsAtomContainer( ci: ComponentInstance; var settings: QTAt
 
 {
  *  SCSetSettingsFromAtomContainer()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1664,7 +1664,7 @@ function SCSetSettingsFromAtomContainer( ci: ComponentInstance; settings: QTAtom
 { Note: if you're using SCCompressSequenceFrameAsync with a scForceKeyValue setting, you must call SCAsyncIdle occasionally at main task time. }
 {
  *  SCCompressSequenceFrameAsync()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -1677,7 +1677,7 @@ function SCCompressSequenceFrameAsync( ci: ComponentInstance; src: PixMapHandle;
 
 {
  *  SCAsyncIdle()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -1690,23 +1690,23 @@ function SCAsyncIdle( ci: ComponentInstance ): ComponentResult; external name '_
 
 {
  *  SCCopyCompressionSessionOptions()
- *  
+ *
  *  Summary:
  *    Retrieve relevant settings in a form of compression session
  *    options that can be given to a compression session. The caller
  *    must release it when it is done.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    ci:
  *      A component instance of type StdCompression subtype
  *      StandardCompressionSubTypeVideo.
- *    
+ *
  *    outOptions:
- *      A pointer to ICMCompressionSettionOptionsRef where a reference
+ *      A pointer to ICMCompressionSectionOptionsRef where a reference
  *      to a new instance of ICM Compression Session Options object is
  *      returned.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -1724,7 +1724,7 @@ type
 	TweenerComponent = ComponentInstance;
 {
  *  TweenerInitialize()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1737,7 +1737,7 @@ function TweenerInitialize( tc: TweenerComponent; container: QTAtomContainer; tw
 
 {
  *  TweenerDoTween()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1750,7 +1750,7 @@ function TweenerDoTween( tc: TweenerComponent; var tr: TweenRecord ): ComponentR
 
 {
  *  TweenerReset()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1852,7 +1852,7 @@ type
 	TimeCode64Counter = SInt64;
 {
  *  TCGetCurrentTimeCode()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1865,7 +1865,7 @@ function TCGetCurrentTimeCode( mh: MediaHandler; var frameNum: SIGNEDLONG; var t
 
 {
  *  TCGetTimeCodeAtTime()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1878,7 +1878,7 @@ function TCGetTimeCodeAtTime( mh: MediaHandler; mediaTime: TimeValue; var frameN
 
 {
  *  TCTimeCodeToString()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1891,7 +1891,7 @@ function TCTimeCodeToString( mh: MediaHandler; var tcdef: TimeCodeDef; var tcrec
 
 {
  *  TCTimeCodeToFrameNumber()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1904,7 +1904,7 @@ function TCTimeCodeToFrameNumber( mh: MediaHandler; var tcdef: TimeCodeDef; var 
 
 {
  *  TCFrameNumberToTimeCode()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1917,7 +1917,7 @@ function TCFrameNumberToTimeCode( mh: MediaHandler; frameNumber: SIGNEDLONG; var
 
 {
  *  TCGetSourceRef()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1930,7 +1930,7 @@ function TCGetSourceRef( mh: MediaHandler; tcdH: TimeCodeDescriptionHandle; var 
 
 {
  *  TCSetSourceRef()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1943,7 +1943,7 @@ function TCSetSourceRef( mh: MediaHandler; tcdH: TimeCodeDescriptionHandle; sref
 
 {
  *  TCSetTimeCodeFlags()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1956,7 +1956,7 @@ function TCSetTimeCodeFlags( mh: MediaHandler; flags: SIGNEDLONG; flagsMask: SIG
 
 {
  *  TCGetTimeCodeFlags()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1969,7 +1969,7 @@ function TCGetTimeCodeFlags( mh: MediaHandler; var flags: SIGNEDLONG ): HandlerE
 
 {
  *  TCSetDisplayOptions()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1982,7 +1982,7 @@ function TCSetDisplayOptions( mh: MediaHandler; textOptions: TCTextOptionsPtr ):
 
 {
  *  TCGetDisplayOptions()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1996,22 +1996,22 @@ function TCGetDisplayOptions( mh: MediaHandler; textOptions: TCTextOptionsPtr ):
 { The following are the 64-bit TimeCode Media API's}
 {
  *  TCGetCurrentFrameAndTimeCodeDef()
- *  
+ *
  *  Summary:
  *    Retrieves the frame number and time code format information for
  *    the current movie time.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    mh:
  *      The time code media handler.
- *    
+ *
  *    outFrameNum:
  *      Pointer to a field that receives the current frame number.
- *    
+ *
  *    outTCDef:
  *      Pointer to field that receives the time code format information.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 (or QuickTime 7.1) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -2023,27 +2023,27 @@ function TCGetCurrentFrameAndTimeCodeDef( mh: MediaHandler; var outFrameNum: SIn
 
 {
  *  TCGetFrameAndTimeCodeDefAtTime()
- *  
+ *
  *  Summary:
  *    Retrieves the frame number and time code format information for a
  *    specific movie time.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    mh:
  *      The time code media handler.
- *    
+ *
  *    mediaTime:
  *      A const pointer to the field containing the media time at which
  *      time code information is required.
- *    
+ *
  *    outFrameNum:
  *      Pointer to a field that receives the frame number at time
  *      mediaTime.
- *    
+ *
  *    outTCDef:
  *      Pointer to field that receives the time code format information.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 (or QuickTime 7.1) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -2055,28 +2055,28 @@ function TCGetFrameAndTimeCodeDefAtTime( mh: MediaHandler; (*const*) var mediaTi
 
 {
  *  TCTimeCodeTimeToString()
- *  
+ *
  *  Summary:
  *    Converts a time value into a text string in the (-) HH:MM:SS:FF
  *    format.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    mh:
  *      The time code media handler.
- *    
+ *
  *    tCDef:
  *      A const pointer to a TimeCodeDef that contains time code format
  *      info for the conversion.
- *    
+ *
  *    tCTime:
  *      A const pointer to a SMPTETime structure that contains the time
  *      value to convert.
- *    
+ *
  *    outTCStr:
  *      Pointer to a CFStringRef that is to receive the converted time
  *      value. Client responsible for disposing string.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 (or QuickTime 7.1) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -2088,27 +2088,27 @@ function TCTimeCodeTimeToString( mh: MediaHandler; const (*var*) tCDef: TimeCode
 
 {
  *  TCTimeCodeCounterToString()
- *  
+ *
  *  Summary:
  *    Converts a counter value into a text string.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    mh:
  *      The time code media handler.
- *    
+ *
  *    tCDef:
  *      A const pointer to a TimeCodeDef that contains time code format
  *      info for the conversion.
- *    
+ *
  *    tCCounter:
  *      A const pointer to a TimeCode64Counter that contains the
  *      counter value to convert.
- *    
+ *
  *    outTCStr:
  *      Pointer to a CFStringRef that is to receive the converted time
- *      value. Client reponsible for disposing string.
- *  
+ *      value. Client responsible for disposing string.
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 (or QuickTime 7.1) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -2120,27 +2120,27 @@ function TCTimeCodeCounterToString( mh: MediaHandler; const (*var*) tCDef: TimeC
 
 {
  *  TCTimeCodeTimeToFrameNumber()
- *  
+ *
  *  Summary:
  *    Converts a time value into its corresponding frame number.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    mh:
  *      The time code media handler.
- *    
+ *
  *    tCDef:
  *      A const pointer to a TimeCodeDef that contains time code format
  *      info for the conversion.
- *    
+ *
  *    tCTime:
  *      A const pointer to a SMPTETime structure that contains the time
  *      value to convert.
- *    
+ *
  *    outFrameNum:
  *      Pointer to a field that is to receive the frame number
  *      corresponding to the time value in tCTime.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 (or QuickTime 7.1) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -2152,27 +2152,27 @@ function TCTimeCodeTimeToFrameNumber( mh: MediaHandler; const (*var*) tCDef: Tim
 
 {
  *  TCTimeCodeCounterToFrameNumber()
- *  
+ *
  *  Summary:
  *    Converts a counter value into its corresponding frame number.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    mh:
  *      The time code media handler.
- *    
+ *
  *    tCDef:
  *      A const pointer to a TimeCodeDef that contains format info for
  *      the conversion.
- *    
+ *
  *    tCCounter:
  *      A const pointer to a TimeCode64Counter that contains the
  *      counter value to convert.
- *    
+ *
  *    outFrameNum:
  *      Pointer to a field that is to receive the frame number
  *      corresponding to the counter value in tCCounter.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 (or QuickTime 7.1) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -2184,27 +2184,27 @@ function TCTimeCodeCounterToFrameNumber( mh: MediaHandler; const (*var*) tCDef: 
 
 {
  *  TCFrameNumberToTimeCodeTime()
- *  
+ *
  *  Summary:
  *    Converts a frame number to its corresponding timecode time value.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    mh:
  *      The time code media handler.
- *    
+ *
  *    frameNumber:
  *      A const pointer to the field containing the frame number that
  *      is to be converted.
- *    
+ *
  *    tCDef:
  *      A const pointer to a TimeCodeDef that contains format info for
  *      the conversion.
- *    
+ *
  *    outTCTime:
  *      Pointer to a SMPTETime structure that is to receive the time
  *      value.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 (or QuickTime 7.1) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -2216,27 +2216,27 @@ function TCFrameNumberToTimeCodeTime( mh: MediaHandler; (*const*) var frameNumbe
 
 {
  *  TCFrameNumberToTimeCodeCounter()
- *  
+ *
  *  Summary:
  *    Converts a frame number to its corresponding counter value.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    mh:
  *      The time code media handler.
- *    
+ *
  *    frameNumber:
  *      A const pointer to the field containing the frame number that
  *      is to be converted.
- *    
+ *
  *    tCDef:
  *      A const pointer to a TimeCodeDef that contains format info for
  *      the conversion.
- *    
+ *
  *    outTCCounter:
  *      Pointer to a TimeCode64Counter that is to receive the counter
  *      value.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 (or QuickTime 7.1) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -2539,7 +2539,7 @@ type
 	MovieExportStageReachedCallbackUPP = MovieExportGetPropertyProcPtr;
 {
  *  NewSCModalFilterUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2550,7 +2550,7 @@ function NewSCModalFilterUPP( userRoutine: SCModalFilterProcPtr ): SCModalFilter
 
 {
  *  NewSCModalHookUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2561,7 +2561,7 @@ function NewSCModalHookUPP( userRoutine: SCModalHookProcPtr ): SCModalHookUPP; e
 
 {
  *  NewMovieExportGetDataUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2572,7 +2572,7 @@ function NewMovieExportGetDataUPP( userRoutine: MovieExportGetDataProcPtr ): Mov
 
 {
  *  NewMovieExportGetPropertyUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2583,7 +2583,7 @@ function NewMovieExportGetPropertyUPP( userRoutine: MovieExportGetPropertyProcPt
 
 {
  *  NewMovieExportStageReachedCallbackUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 (or QuickTime 6.4) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -2594,7 +2594,7 @@ function NewMovieExportStageReachedCallbackUPP( userRoutine: MovieExportStageRea
 
 {
  *  DisposeSCModalFilterUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2605,7 +2605,7 @@ procedure DisposeSCModalFilterUPP( userUPP: SCModalFilterUPP ); external name '_
 
 {
  *  DisposeSCModalHookUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2616,7 +2616,7 @@ procedure DisposeSCModalHookUPP( userUPP: SCModalHookUPP ); external name '_Disp
 
 {
  *  DisposeMovieExportGetDataUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2627,7 +2627,7 @@ procedure DisposeMovieExportGetDataUPP( userUPP: MovieExportGetDataUPP ); extern
 
 {
  *  DisposeMovieExportGetPropertyUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2638,7 +2638,7 @@ procedure DisposeMovieExportGetPropertyUPP( userUPP: MovieExportGetPropertyUPP )
 
 {
  *  DisposeMovieExportStageReachedCallbackUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 (or QuickTime 6.4) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -2649,7 +2649,7 @@ procedure DisposeMovieExportStageReachedCallbackUPP( userUPP: MovieExportStageRe
 
 {
  *  InvokeSCModalFilterUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2660,7 +2660,7 @@ function InvokeSCModalFilterUPP( theDialog: DialogRef; var theEvent: EventRecord
 
 {
  *  InvokeSCModalHookUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2671,7 +2671,7 @@ function InvokeSCModalHookUPP( theDialog: DialogRef; itemHit: SInt16; params: Un
 
 {
  *  InvokeMovieExportGetDataUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2682,7 +2682,7 @@ function InvokeMovieExportGetDataUPP( refCon: UnivPtr; var params: MovieExportGe
 
 {
  *  InvokeMovieExportGetPropertyUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2693,7 +2693,7 @@ function InvokeMovieExportGetPropertyUPP( refcon: UnivPtr; trackID: SIGNEDLONG; 
 
 {
  *  InvokeMovieExportStageReachedCallbackUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 (or QuickTime 6.4) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -2704,7 +2704,7 @@ function InvokeMovieExportStageReachedCallbackUPP( inStage: OSType; inMovie: Mov
 
 {
  *  MovieImportHandle()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2717,7 +2717,7 @@ function MovieImportHandle( ci: MovieImportComponent; dataH: Handle; theMovie: M
 
 {
  *  MovieImportFile()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2730,7 +2730,7 @@ function MovieImportFile( ci: MovieImportComponent; const (*var*) theFile: FSSpe
 
 {
  *  MovieImportSetSampleDuration()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2743,7 +2743,7 @@ function MovieImportSetSampleDuration( ci: MovieImportComponent; duration: TimeV
 
 {
  *  MovieImportSetSampleDescription()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2756,7 +2756,7 @@ function MovieImportSetSampleDescription( ci: MovieImportComponent; desc: Sample
 
 {
  *  MovieImportSetMediaFile()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2769,7 +2769,7 @@ function MovieImportSetMediaFile( ci: MovieImportComponent; alias: AliasHandle )
 
 {
  *  MovieImportSetDimensions()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2782,7 +2782,7 @@ function MovieImportSetDimensions( ci: MovieImportComponent; width: Fixed; heigh
 
 {
  *  MovieImportSetChunkSize()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2795,7 +2795,7 @@ function MovieImportSetChunkSize( ci: MovieImportComponent; chunkSize: SIGNEDLON
 
 {
  *  MovieImportSetProgressProc()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2808,7 +2808,7 @@ function MovieImportSetProgressProc( ci: MovieImportComponent; proc: MovieProgre
 
 {
  *  MovieImportSetAuxiliaryData()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2821,7 +2821,7 @@ function MovieImportSetAuxiliaryData( ci: MovieImportComponent; data: Handle; ha
 
 {
  *  MovieImportSetFromScrap()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2834,7 +2834,7 @@ function MovieImportSetFromScrap( ci: MovieImportComponent; fromScrap: Boolean )
 
 {
  *  MovieImportDoUserDialog()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2847,7 +2847,7 @@ function MovieImportDoUserDialog( ci: MovieImportComponent; const (*var*) theFil
 
 {
  *  MovieImportSetDuration()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2860,7 +2860,7 @@ function MovieImportSetDuration( ci: MovieImportComponent; duration: TimeValue )
 
 {
  *  MovieImportGetAuxiliaryDataType()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2873,7 +2873,7 @@ function MovieImportGetAuxiliaryDataType( ci: MovieImportComponent; var auxType:
 
 {
  *  MovieImportValidate()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2886,7 +2886,7 @@ function MovieImportValidate( ci: MovieImportComponent; const (*var*) theFile: F
 
 {
  *  MovieImportGetFileType()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2899,7 +2899,7 @@ function MovieImportGetFileType( ci: MovieImportComponent; var fileType: OSType 
 
 {
  *  MovieImportDataRef()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2912,7 +2912,7 @@ function MovieImportDataRef( ci: MovieImportComponent; dataRef: Handle; dataRefT
 
 {
  *  MovieImportGetSampleDescription()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2925,7 +2925,7 @@ function MovieImportGetSampleDescription( ci: MovieImportComponent; var desc: Sa
 
 {
  *  MovieImportGetMIMETypeList()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2938,7 +2938,7 @@ function MovieImportGetMIMETypeList( ci: MovieImportComponent; var mimeInfo: QTA
 
 {
  *  MovieImportSetOffsetAndLimit()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2951,7 +2951,7 @@ function MovieImportSetOffsetAndLimit( ci: MovieImportComponent; offset: UNSIGNE
 
 {
  *  MovieImportGetSettingsAsAtomContainer()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2964,7 +2964,7 @@ function MovieImportGetSettingsAsAtomContainer( ci: MovieImportComponent; var se
 
 {
  *  MovieImportSetSettingsFromAtomContainer()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2977,7 +2977,7 @@ function MovieImportSetSettingsFromAtomContainer( ci: MovieImportComponent; sett
 
 {
  *  MovieImportSetOffsetAndLimit64()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -2990,7 +2990,7 @@ function MovieImportSetOffsetAndLimit64( ci: MovieImportComponent; const (*var*)
 
 {
  *  MovieImportIdle()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -3003,7 +3003,7 @@ function MovieImportIdle( ci: MovieImportComponent; inFlags: SIGNEDLONG; var out
 
 {
  *  MovieImportValidateDataRef()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -3016,7 +3016,7 @@ function MovieImportValidateDataRef( ci: MovieImportComponent; dataRef: Handle; 
 
 {
  *  MovieImportGetLoadState()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -3029,7 +3029,7 @@ function MovieImportGetLoadState( ci: MovieImportComponent; var importerLoadStat
 
 {
  *  MovieImportGetMaxLoadedTime()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -3042,7 +3042,7 @@ function MovieImportGetMaxLoadedTime( ci: MovieImportComponent; var time: TimeVa
 
 {
  *  MovieImportEstimateCompletionTime()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -3055,7 +3055,7 @@ function MovieImportEstimateCompletionTime( ci: MovieImportComponent; var time: 
 
 {
  *  MovieImportSetDontBlock()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -3068,7 +3068,7 @@ function MovieImportSetDontBlock( ci: MovieImportComponent; dontBlock: Boolean )
 
 {
  *  MovieImportGetDontBlock()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -3081,7 +3081,7 @@ function MovieImportGetDontBlock( ci: MovieImportComponent; var willBlock: Boole
 
 {
  *  MovieImportSetIdleManager()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.6 and later
@@ -3094,7 +3094,7 @@ function MovieImportSetIdleManager( ci: MovieImportComponent; im: IdleManager ):
 
 {
  *  MovieImportSetNewMovieFlags()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.6 and later
@@ -3107,7 +3107,7 @@ function MovieImportSetNewMovieFlags( ci: MovieImportComponent; newMovieFlags: S
 
 {
  *  MovieImportGetDestinationMediaType()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.6 and later
@@ -3120,7 +3120,7 @@ function MovieImportGetDestinationMediaType( ci: MovieImportComponent; var media
 
 {
  *  MovieImportSetMediaDataRef()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 (or QuickTime 6.4) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -3133,7 +3133,7 @@ function MovieImportSetMediaDataRef( ci: MovieImportComponent; dataRef: Handle; 
 
 {
  *  MovieImportDoUserDialogDataRef()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 (or QuickTime 6.4) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -3146,7 +3146,7 @@ function MovieImportDoUserDialogDataRef( ci: MovieImportComponent; dataRef: Hand
 
 {
  *  MovieExportToHandle()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3159,7 +3159,7 @@ function MovieExportToHandle( ci: MovieExportComponent; dataH: Handle; theMovie:
 
 {
  *  MovieExportToFile()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3172,7 +3172,7 @@ function MovieExportToFile( ci: MovieExportComponent; const (*var*) theFile: FSS
 
 {
  *  MovieExportGetAuxiliaryData()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3185,7 +3185,7 @@ function MovieExportGetAuxiliaryData( ci: MovieExportComponent; dataH: Handle; v
 
 {
  *  MovieExportSetProgressProc()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3198,7 +3198,7 @@ function MovieExportSetProgressProc( ci: MovieExportComponent; proc: MovieProgre
 
 {
  *  MovieExportSetSampleDescription()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3211,7 +3211,7 @@ function MovieExportSetSampleDescription( ci: MovieExportComponent; desc: Sample
 
 {
  *  MovieExportDoUserDialog()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3224,7 +3224,7 @@ function MovieExportDoUserDialog( ci: MovieExportComponent; theMovie: Movie; onl
 
 {
  *  MovieExportGetCreatorType()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3237,7 +3237,7 @@ function MovieExportGetCreatorType( ci: MovieExportComponent; var creator: OSTyp
 
 {
  *  MovieExportToDataRef()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3250,7 +3250,7 @@ function MovieExportToDataRef( ci: MovieExportComponent; dataRef: Handle; dataRe
 
 {
  *  MovieExportFromProceduresToDataRef()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3263,7 +3263,7 @@ function MovieExportFromProceduresToDataRef( ci: MovieExportComponent; dataRef: 
 
 {
  *  MovieExportAddDataSource()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3276,7 +3276,7 @@ function MovieExportAddDataSource( ci: MovieExportComponent; trackType: OSType; 
 
 {
  *  MovieExportValidate()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3289,7 +3289,7 @@ function MovieExportValidate( ci: MovieExportComponent; theMovie: Movie; onlyThi
 
 {
  *  MovieExportGetSettingsAsAtomContainer()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3302,7 +3302,7 @@ function MovieExportGetSettingsAsAtomContainer( ci: MovieExportComponent; var se
 
 {
  *  MovieExportSetSettingsFromAtomContainer()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3315,7 +3315,7 @@ function MovieExportSetSettingsFromAtomContainer( ci: MovieExportComponent; sett
 
 {
  *  MovieExportGetFileNameExtension()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3328,7 +3328,7 @@ function MovieExportGetFileNameExtension( ci: MovieExportComponent; var extensio
 
 {
  *  MovieExportGetShortFileTypeString()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3341,7 +3341,7 @@ function MovieExportGetShortFileTypeString( ci: MovieExportComponent; var typeSt
 
 {
  *  MovieExportGetSourceMediaType()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3354,7 +3354,7 @@ function MovieExportGetSourceMediaType( ci: MovieExportComponent; var mediaType:
 
 {
  *  MovieExportSetGetMoviePropertyProc()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -3388,7 +3388,7 @@ type
 	GraphicImageMovieImportComponent = ComponentInstance;
 {
  *  TextExportGetDisplayData()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3401,7 +3401,7 @@ function TextExportGetDisplayData( ci: TextExportComponent; var textDisplay: Tex
 
 {
  *  TextExportGetTimeFraction()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3414,7 +3414,7 @@ function TextExportGetTimeFraction( ci: TextExportComponent; var movieTimeFracti
 
 {
  *  TextExportSetTimeFraction()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3427,7 +3427,7 @@ function TextExportSetTimeFraction( ci: TextExportComponent; movieTimeFraction: 
 
 {
  *  TextExportGetSettings()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3440,7 +3440,7 @@ function TextExportGetSettings( ci: TextExportComponent; var setting: SIGNEDLONG
 
 {
  *  TextExportSetSettings()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3453,7 +3453,7 @@ function TextExportSetSettings( ci: TextExportComponent; setting: SIGNEDLONG ): 
 
 {
  *  MIDIImportGetSettings()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3466,7 +3466,7 @@ function MIDIImportGetSettings( ci: TextExportComponent; var setting: SIGNEDLONG
 
 {
  *  MIDIImportSetSettings()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3479,7 +3479,7 @@ function MIDIImportSetSettings( ci: TextExportComponent; setting: SIGNEDLONG ): 
 
 {
  *  MovieExportNewGetDataAndPropertiesProcs()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3492,7 +3492,7 @@ function MovieExportNewGetDataAndPropertiesProcs( ci: MovieExportComponent; trac
 
 {
  *  MovieExportDisposeGetDataAndPropertiesProcs()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3529,7 +3529,7 @@ type
 	end;
 {
  *  GraphicsImageImportSetSequenceEnabled()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3542,7 +3542,7 @@ function GraphicsImageImportSetSequenceEnabled( ci: GraphicImageMovieImportCompo
 
 {
  *  GraphicsImageImportGetSequenceEnabled()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3586,7 +3586,7 @@ const
 
 {
  *  PreviewShowData()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3599,7 +3599,7 @@ function PreviewShowData( p: pnotComponent; dataType: OSType; data: Handle; cons
 
 {
  *  PreviewMakePreview()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3612,7 +3612,7 @@ function PreviewMakePreview( p: pnotComponent; var previewType: OSType; var prev
 
 {
  *  PreviewMakePreviewReference()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3625,7 +3625,7 @@ function PreviewMakePreviewReference( p: pnotComponent; var previewType: OSType;
 
 {
  *  PreviewEvent()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3650,7 +3650,7 @@ const
 {* These are DataCodec procedures *}
 {
  *  DataCodecDecompress()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3663,7 +3663,7 @@ function DataCodecDecompress( dc: DataCodecComponent; srcData: UnivPtr; srcSize:
 
 {
  *  DataCodecGetCompressBufferSize()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3676,7 +3676,7 @@ function DataCodecGetCompressBufferSize( dc: DataCodecComponent; srcSize: UInt32
 
 {
  *  DataCodecCompress()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3689,7 +3689,7 @@ function DataCodecCompress( dc: DataCodecComponent; srcData: UnivPtr; srcSize: U
 
 {
  *  DataCodecBeginInterruptSafe()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3702,7 +3702,7 @@ function DataCodecBeginInterruptSafe( dc: DataCodecComponent; maxSrcSize: UNSIGN
 
 {
  *  DataCodecEndInterruptSafe()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3715,7 +3715,7 @@ function DataCodecEndInterruptSafe( dc: DataCodecComponent ): ComponentResult; e
 
 {
  *  DataCodecDecompressPartial()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3728,7 +3728,7 @@ function DataCodecDecompressPartial( dc: DataCodecComponent; var next_in: UnivPt
 
 {
  *  DataCodecCompressPartial()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3831,7 +3831,7 @@ type
 
 {
  *  DataHGetData()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3844,7 +3844,7 @@ function DataHGetData( dh: DataHandler; h: Handle; hOffset: SIGNEDLONG; offset: 
 
 {
  *  DataHPutData()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3857,7 +3857,7 @@ function DataHPutData( dh: DataHandler; h: Handle; hOffset: SIGNEDLONG; var offs
 
 {
  *  DataHFlushData()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3870,7 +3870,7 @@ function DataHFlushData( dh: DataHandler ): ComponentResult; external name '_Dat
 
 {
  *  DataHOpenForWrite()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3883,7 +3883,7 @@ function DataHOpenForWrite( dh: DataHandler ): ComponentResult; external name '_
 
 {
  *  DataHCloseForWrite()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3896,7 +3896,7 @@ function DataHCloseForWrite( dh: DataHandler ): ComponentResult; external name '
 
 {
  *  DataHOpenForRead()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3909,7 +3909,7 @@ function DataHOpenForRead( dh: DataHandler ): ComponentResult; external name '_D
 
 {
  *  DataHCloseForRead()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3922,7 +3922,7 @@ function DataHCloseForRead( dh: DataHandler ): ComponentResult; external name '_
 
 {
  *  DataHSetDataRef()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3935,7 +3935,7 @@ function DataHSetDataRef( dh: DataHandler; dataRef: Handle ): ComponentResult; e
 
 {
  *  DataHGetDataRef()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3948,7 +3948,7 @@ function DataHGetDataRef( dh: DataHandler; var dataRef: Handle ): ComponentResul
 
 {
  *  DataHCompareDataRef()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3961,7 +3961,7 @@ function DataHCompareDataRef( dh: DataHandler; dataRef: Handle; var equal: Boole
 
 {
  *  DataHTask()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3974,7 +3974,7 @@ function DataHTask( dh: DataHandler ): ComponentResult; external name '_DataHTas
 
 {
  *  DataHScheduleData()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3987,7 +3987,7 @@ function DataHScheduleData( dh: DataHandler; PlaceToPutDataPtr: Ptr; FileOffset:
 
 {
  *  DataHFinishData()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4000,7 +4000,7 @@ function DataHFinishData( dh: DataHandler; PlaceToPutDataPtr: Ptr; Cancel: Boole
 
 {
  *  DataHFlushCache()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4013,7 +4013,7 @@ function DataHFlushCache( dh: DataHandler ): ComponentResult; external name '_Da
 
 {
  *  DataHResolveDataRef()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4026,7 +4026,7 @@ function DataHResolveDataRef( dh: DataHandler; theDataRef: Handle; var wasChange
 
 {
  *  DataHGetFileSize()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4039,7 +4039,7 @@ function DataHGetFileSize( dh: DataHandler; var fileSize: SIGNEDLONG ): Componen
 
 {
  *  DataHCanUseDataRef()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
   *    Mac OS X:         in version 10.0 and later in QuickTime.framework
@@ -4053,7 +4053,7 @@ function DataHCanUseDataRef( dh: DataHandler; dataRef: Handle; var useFlags: SIG
 
 {
  *  DataHGetVolumeList()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4066,7 +4066,7 @@ function DataHGetVolumeList( dh: DataHandler; var volumeList: DataHVolumeList ):
 
 {
  *  DataHWrite()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4079,7 +4079,7 @@ function DataHWrite( dh: DataHandler; data: Ptr; offset: SIGNEDLONG; size: SIGNE
 
 {
  *  DataHPreextend()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4092,7 +4092,7 @@ function DataHPreextend( dh: DataHandler; maxToAdd: UNSIGNEDLONG; var spaceAdded
 
 {
  *  DataHSetFileSize()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4105,7 +4105,7 @@ function DataHSetFileSize( dh: DataHandler; fileSize: SIGNEDLONG ): ComponentRes
 
 {
  *  DataHGetFreeSpace()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4118,7 +4118,7 @@ function DataHGetFreeSpace( dh: DataHandler; var freeSize: UNSIGNEDLONG ): Compo
 
 {
  *  DataHCreateFile()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4131,7 +4131,7 @@ function DataHCreateFile( dh: DataHandler; creator: OSType; deleteExisting: Bool
 
 {
  *  DataHGetPreferredBlockSize()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4144,7 +4144,7 @@ function DataHGetPreferredBlockSize( dh: DataHandler; var blockSize: SIGNEDLONG 
 
 {
  *  DataHGetDeviceIndex()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4157,7 +4157,7 @@ function DataHGetDeviceIndex( dh: DataHandler; var deviceIndex: SIGNEDLONG ): Co
 
 {
  *  DataHIsStreamingDataHandler()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4170,7 +4170,7 @@ function DataHIsStreamingDataHandler( dh: DataHandler; var yes: Boolean ): Compo
 
 {
  *  DataHGetDataInBuffer()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4183,7 +4183,7 @@ function DataHGetDataInBuffer( dh: DataHandler; startOffset: SIGNEDLONG; var siz
 
 {
  *  DataHGetScheduleAheadTime()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4196,7 +4196,7 @@ function DataHGetScheduleAheadTime( dh: DataHandler; var millisecs: SIGNEDLONG )
 
 {
  *  DataHSetCacheSizeLimit()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4209,7 +4209,7 @@ function DataHSetCacheSizeLimit( dh: DataHandler; cacheSizeLimit: Size ): Compon
 
 {
  *  DataHGetCacheSizeLimit()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4222,7 +4222,7 @@ function DataHGetCacheSizeLimit( dh: DataHandler; var cacheSizeLimit: Size ): Co
 
 {
  *  DataHGetMovie()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4235,7 +4235,7 @@ function DataHGetMovie( dh: DataHandler; var theMovie: Movie; var id: SInt16 ): 
 
 {
  *  DataHAddMovie()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4248,7 +4248,7 @@ function DataHAddMovie( dh: DataHandler; theMovie: Movie; var id: SInt16 ): Comp
 
 {
  *  DataHUpdateMovie()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4261,7 +4261,7 @@ function DataHUpdateMovie( dh: DataHandler; theMovie: Movie; id: SInt16 ): Compo
 
 {
  *  DataHDoesBuffer()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4274,7 +4274,7 @@ function DataHDoesBuffer( dh: DataHandler; var buffersReads: Boolean; var buffer
 
 {
  *  DataHGetFileName()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4287,7 +4287,7 @@ function DataHGetFileName( dh: DataHandler; var str: Str255 ): ComponentResult; 
 
 {
  *  DataHGetAvailableFileSize()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4300,7 +4300,7 @@ function DataHGetAvailableFileSize( dh: DataHandler; var fileSize: SIGNEDLONG ):
 
 {
  *  DataHGetMacOSFileType()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4313,7 +4313,7 @@ function DataHGetMacOSFileType( dh: DataHandler; var fileType: OSType ): Compone
 
 {
  *  DataHGetMIMEType()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4326,7 +4326,7 @@ function DataHGetMIMEType( dh: DataHandler; var mimeType: Str255 ): ComponentRes
 
 {
  *  DataHSetDataRefWithAnchor()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4339,7 +4339,7 @@ function DataHSetDataRefWithAnchor( dh: DataHandler; anchorDataRef: Handle; data
 
 {
  *  DataHGetDataRefWithAnchor()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4352,7 +4352,7 @@ function DataHGetDataRefWithAnchor( dh: DataHandler; anchorDataRef: Handle; data
 
 {
  *  DataHSetMacOSFileType()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4365,7 +4365,7 @@ function DataHSetMacOSFileType( dh: DataHandler; fileType: OSType ): ComponentRe
 
 {
  *  DataHSetTimeBase()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -4378,7 +4378,7 @@ function DataHSetTimeBase( dh: DataHandler; tb: TimeBase ): ComponentResult; ext
 
 {
  *  DataHGetInfoFlags()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -4391,7 +4391,7 @@ function DataHGetInfoFlags( dh: DataHandler; var flags: UInt32 ): ComponentResul
 
 {
  *  DataHScheduleData64()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -4404,7 +4404,7 @@ function DataHScheduleData64( dh: DataHandler; PlaceToPutDataPtr: Ptr; const (*v
 
 {
  *  DataHWrite64()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -4417,7 +4417,7 @@ function DataHWrite64( dh: DataHandler; data: Ptr; const (*var*) offset: wide; s
 
 {
  *  DataHGetFileSize64()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -4430,7 +4430,7 @@ function DataHGetFileSize64( dh: DataHandler; var fileSize: wide ): ComponentRes
 
 {
  *  DataHPreextend64()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -4443,7 +4443,7 @@ function DataHPreextend64( dh: DataHandler; const (*var*) maxToAdd: wide; var sp
 
 {
  *  DataHSetFileSize64()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -4456,7 +4456,7 @@ function DataHSetFileSize64( dh: DataHandler; const (*var*) fileSize: wide ): Co
 
 {
  *  DataHGetFreeSpace64()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -4469,7 +4469,7 @@ function DataHGetFreeSpace64( dh: DataHandler; var freeSize: wide ): ComponentRe
 
 {
  *  DataHAppend64()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -4482,7 +4482,7 @@ function DataHAppend64( dh: DataHandler; data: UnivPtr; var fileOffset: wide; si
 
 {
  *  DataHReadAsync()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -4495,7 +4495,7 @@ function DataHReadAsync( dh: DataHandler; dataPtr: UnivPtr; dataSize: UInt32; co
 
 {
  *  DataHPollRead()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -4508,7 +4508,7 @@ function DataHPollRead( dh: DataHandler; dataPtr: UnivPtr; var dataSizeSoFar: UI
 
 {
  *  DataHGetDataAvailability()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -4521,7 +4521,7 @@ function DataHGetDataAvailability( dh: DataHandler; offset: SIGNEDLONG; len: SIG
 
 {
  *  DataHGetFileSizeAsync()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -4534,7 +4534,7 @@ function DataHGetFileSizeAsync( dh: DataHandler; var fileSize: wide; completionR
 
 {
  *  DataHGetDataRefAsType()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -4547,7 +4547,7 @@ function DataHGetDataRefAsType( dh: DataHandler; requestedType: OSType; var data
 
 {
  *  DataHSetDataRefExtension()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -4560,7 +4560,7 @@ function DataHSetDataRefExtension( dh: DataHandler; extension: Handle; idType: O
 
 {
  *  DataHGetDataRefExtension()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -4573,7 +4573,7 @@ function DataHGetDataRefExtension( dh: DataHandler; var extension: Handle; idTyp
 
 {
  *  DataHGetMovieWithFlags()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -4586,7 +4586,7 @@ function DataHGetMovieWithFlags( dh: DataHandler; var theMovie: Movie; var id: S
 
 {
  *  DataHGetFileTypeOrdering()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -4603,7 +4603,7 @@ const
 
 {
  *  DataHCreateFileWithFlags()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -4616,7 +4616,7 @@ function DataHCreateFileWithFlags( dh: DataHandler; creator: OSType; deleteExist
 
 {
  *  DataHGetMIMETypeAsync()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -4629,7 +4629,7 @@ function DataHGetMIMETypeAsync( dh: DataHandler; var mimeType: Str255; completio
 
 {
  *  DataHGetInfo()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.6 and later
@@ -4642,7 +4642,7 @@ function DataHGetInfo( dh: DataHandler; what: OSType; info: UnivPtr ): Component
 
 {
  *  DataHSetIdleManager()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.6 and later
@@ -4655,7 +4655,7 @@ function DataHSetIdleManager( dh: DataHandler; im: IdleManager ): ComponentResul
 
 {
  *  DataHDeleteFile()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.6 and later
@@ -4671,7 +4671,7 @@ const
 
 {
  *  DataHSetMovieUsageFlags()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.6 and later
@@ -4690,7 +4690,7 @@ const
 
 {
  *  DataHUseTemporaryDataRef()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.6 and later
@@ -4703,7 +4703,7 @@ function DataHUseTemporaryDataRef( dh: DataHandler; inFlags: SIGNEDLONG ): Compo
 
 {
  *  DataHGetTemporaryDataRefCapabilities()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.6 and later
@@ -4716,7 +4716,7 @@ function DataHGetTemporaryDataRefCapabilities( dh: DataHandler; var outUnderstoo
 
 {
  *  DataHRenameFile()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.6 and later
@@ -4733,28 +4733,28 @@ function DataHRenameFile( dh: DataHandler; newDataRef: Handle ): ComponentResult
 { selector 77 skipped }
 {
  *  DataHGetAvailableFileSize64()
- *  
+ *
  *  Summary:
  *    Returns the amount of contiguous data from the start of the file
  *    that's currently available for reading.
- *  
+ *
  *  Discussion:
  *    The 64-bit variant of DataHGetAvailableFileSize. Note that all
  *    data handlers that support fast-start playback, e.g. an http data
  *    handler, must implement DataHGetAvailableFileSize. Those that
  *    support files larger than 2 GB must also implement
  *    DataHGetAvailableFileSize64.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    dh:
  *      Component instance / instance globals.
- *    
+ *
  *    fileSize:
  *      Points to a variable to receive the amount of contiguous data
  *      from the start of the file that's currently available for
  *      reading.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -4766,43 +4766,43 @@ function DataHGetAvailableFileSize64( dh: DataHandler; var fileSize: wide ): Com
 
 {
  *  DataHGetDataAvailability64()
- *  
+ *
  *  Summary:
  *    Checks the availability of the specified range of data and
  *    returns the first range of missing data needed to satisfy a read
  *    request. Returns an empty range starting at the end of the
  *    specified range when a read request for the specified range can
  *    be satisfied immediately.
- *  
+ *
  *  Discussion:
  *    The 64-bit variant of DataHGetDataAvailability. Note that all
  *    data handlers that support fast-start playback, e.g. an http data
  *    handler, should implement DataHGetDataAvailability. Those that
  *    support files larger than 2 GB should also implement
  *    DataHGetDataAvailability64.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    dh:
  *      Component instance / instance globals.
- *    
+ *
  *    offset:
  *      The start of the requested range of data.
- *    
+ *
  *    len:
  *      The length of the requested range of data.
- *    
+ *
  *    missing_offset:
  *      The offset from the start of the file of the first byte of data
  *      within the requested range that's not yet available. If the
  *      entire range is available, the offset returned is the offset of
  *      the first byte after the requested range.
- *    
+ *
  *    missing_len:
  *      The length of the range of data starting at missing_offset
  *      that's not yet available. If the entire range of data is
  *      available, the length returned is 0.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -4816,7 +4816,7 @@ function DataHGetDataAvailability64( dh: DataHandler; const (*var*) offset: wide
 { selector 81 skipped }
 {
  *  DataHPlaybackHints()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4829,7 +4829,7 @@ function DataHPlaybackHints( dh: DataHandler; flags: SIGNEDLONG; minFileOffset: 
 
 {
  *  DataHPlaybackHints64()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -4846,7 +4846,7 @@ const
 
 {
  *  DataHGetDataRate()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -4863,7 +4863,7 @@ const
 
 {
  *  DataHSetTimeHints()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -5059,7 +5059,7 @@ const
 
 {
  *  VDGetMaxSrcRect()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5072,7 +5072,7 @@ function VDGetMaxSrcRect( ci: VideoDigitizerComponent; inputStd: SInt16; var max
 
 {
  *  VDGetActiveSrcRect()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5085,7 +5085,7 @@ function VDGetActiveSrcRect( ci: VideoDigitizerComponent; inputStd: SInt16; var 
 
 {
  *  VDSetDigitizerRect()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5098,7 +5098,7 @@ function VDSetDigitizerRect( ci: VideoDigitizerComponent; var digitizerRect: Rec
 
 {
  *  VDGetDigitizerRect()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5111,7 +5111,7 @@ function VDGetDigitizerRect( ci: VideoDigitizerComponent; var digitizerRect: Rec
 
 {
  *  VDGetVBlankRect()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5124,7 +5124,7 @@ function VDGetVBlankRect( ci: VideoDigitizerComponent; inputStd: SInt16; var vBl
 
 {
  *  VDGetMaskPixMap()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5137,7 +5137,7 @@ function VDGetMaskPixMap( ci: VideoDigitizerComponent; maskPixMap: PixMapHandle 
 
 {
  *  VDGetPlayThruDestination()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5150,7 +5150,7 @@ function VDGetPlayThruDestination( ci: VideoDigitizerComponent; var dest: PixMap
 
 {
  *  VDUseThisCLUT()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5163,7 +5163,7 @@ function VDUseThisCLUT( ci: VideoDigitizerComponent; colorTableHandle: CTabHandl
 
 {
  *  VDSetInputGammaValue()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5176,7 +5176,7 @@ function VDSetInputGammaValue( ci: VideoDigitizerComponent; channel1: Fixed; cha
 
 {
  *  VDGetInputGammaValue()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5189,7 +5189,7 @@ function VDGetInputGammaValue( ci: VideoDigitizerComponent; var channel1: Fixed;
 
 {
  *  VDSetBrightness()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5202,7 +5202,7 @@ function VDSetBrightness( ci: VideoDigitizerComponent; var brightness: UInt16 ):
 
 {
  *  VDGetBrightness()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5215,7 +5215,7 @@ function VDGetBrightness( ci: VideoDigitizerComponent; var brightness: UInt16 ):
 
 {
  *  VDSetContrast()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5228,7 +5228,7 @@ function VDSetContrast( ci: VideoDigitizerComponent; var contrast: UInt16 ): Vid
 
 {
  *  VDSetHue()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5241,7 +5241,7 @@ function VDSetHue( ci: VideoDigitizerComponent; var hue: UInt16 ): VideoDigitize
 
 {
  *  VDSetSharpness()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5254,7 +5254,7 @@ function VDSetSharpness( ci: VideoDigitizerComponent; var sharpness: UInt16 ): V
 
 {
  *  VDSetSaturation()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5267,7 +5267,7 @@ function VDSetSaturation( ci: VideoDigitizerComponent; var saturation: UInt16 ):
 
 {
  *  VDGetContrast()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5280,7 +5280,7 @@ function VDGetContrast( ci: VideoDigitizerComponent; var contrast: UInt16 ): Vid
 
 {
  *  VDGetHue()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5293,7 +5293,7 @@ function VDGetHue( ci: VideoDigitizerComponent; var hue: UInt16 ): VideoDigitize
 
 {
  *  VDGetSharpness()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5306,7 +5306,7 @@ function VDGetSharpness( ci: VideoDigitizerComponent; var sharpness: UInt16 ): V
 
 {
  *  VDGetSaturation()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5319,7 +5319,7 @@ function VDGetSaturation( ci: VideoDigitizerComponent; var saturation: UInt16 ):
 
 {
  *  VDGrabOneFrame()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5332,7 +5332,7 @@ function VDGrabOneFrame( ci: VideoDigitizerComponent ): VideoDigitizerError; ext
 
 {
  *  VDGetMaxAuxBuffer()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5345,7 +5345,7 @@ function VDGetMaxAuxBuffer( ci: VideoDigitizerComponent; var pm: PixMapHandle; v
 
 {
  *  VDGetDigitizerInfo()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5358,7 +5358,7 @@ function VDGetDigitizerInfo( ci: VideoDigitizerComponent; var info: DigitizerInf
 
 {
  *  VDGetCurrentFlags()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5371,7 +5371,7 @@ function VDGetCurrentFlags( ci: VideoDigitizerComponent; var inputCurrentFlag: S
 
 {
  *  VDSetKeyColor()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5384,7 +5384,7 @@ function VDSetKeyColor( ci: VideoDigitizerComponent; index: SIGNEDLONG ): VideoD
 
 {
  *  VDGetKeyColor()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5397,7 +5397,7 @@ function VDGetKeyColor( ci: VideoDigitizerComponent; var index: SIGNEDLONG ): Vi
 
 {
  *  VDAddKeyColor()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5410,7 +5410,7 @@ function VDAddKeyColor( ci: VideoDigitizerComponent; var index: SIGNEDLONG ): Vi
 
 {
  *  VDGetNextKeyColor()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5423,7 +5423,7 @@ function VDGetNextKeyColor( ci: VideoDigitizerComponent; index: SIGNEDLONG ): Vi
 
 {
  *  VDSetKeyColorRange()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5436,7 +5436,7 @@ function VDSetKeyColorRange( ci: VideoDigitizerComponent; var minRGB: RGBColor; 
 
 {
  *  VDGetKeyColorRange()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5449,7 +5449,7 @@ function VDGetKeyColorRange( ci: VideoDigitizerComponent; var minRGB: RGBColor; 
 
 {
  *  VDSetDigitizerUserInterrupt()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5462,7 +5462,7 @@ function VDSetDigitizerUserInterrupt( ci: VideoDigitizerComponent; flags: SIGNED
 
 {
  *  VDSetInputColorSpaceMode()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5475,7 +5475,7 @@ function VDSetInputColorSpaceMode( ci: VideoDigitizerComponent; colorSpaceMode: 
 
 {
  *  VDGetInputColorSpaceMode()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5488,7 +5488,7 @@ function VDGetInputColorSpaceMode( ci: VideoDigitizerComponent; var colorSpaceMo
 
 {
  *  VDSetClipState()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5501,7 +5501,7 @@ function VDSetClipState( ci: VideoDigitizerComponent; clipEnable: SInt16 ): Vide
 
 {
  *  VDGetClipState()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5514,7 +5514,7 @@ function VDGetClipState( ci: VideoDigitizerComponent; var clipEnable: SInt16 ): 
 
 {
  *  VDSetClipRgn()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5527,7 +5527,7 @@ function VDSetClipRgn( ci: VideoDigitizerComponent; clipRegion: RgnHandle ): Vid
 
 {
  *  VDClearClipRgn()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5540,7 +5540,7 @@ function VDClearClipRgn( ci: VideoDigitizerComponent; clipRegion: RgnHandle ): V
 
 {
  *  VDGetCLUTInUse()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5553,7 +5553,7 @@ function VDGetCLUTInUse( ci: VideoDigitizerComponent; var colorTableHandle: CTab
 
 {
  *  VDSetPLLFilterType()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5566,7 +5566,7 @@ function VDSetPLLFilterType( ci: VideoDigitizerComponent; pllType: SInt16 ): Vid
 
 {
  *  VDGetPLLFilterType()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5579,7 +5579,7 @@ function VDGetPLLFilterType( ci: VideoDigitizerComponent; var pllType: SInt16 ):
 
 {
  *  VDGetMaskandValue()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5592,7 +5592,7 @@ function VDGetMaskandValue( ci: VideoDigitizerComponent; blendLevel: UInt16; var
 
 {
  *  VDSetMasterBlendLevel()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5605,7 +5605,7 @@ function VDSetMasterBlendLevel( ci: VideoDigitizerComponent; var blendLevel: UIn
 
 {
  *  VDSetPlayThruDestination()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5618,7 +5618,7 @@ function VDSetPlayThruDestination( ci: VideoDigitizerComponent; dest: PixMapHand
 
 {
  *  VDSetPlayThruOnOff()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5631,7 +5631,7 @@ function VDSetPlayThruOnOff( ci: VideoDigitizerComponent; state: SInt16 ): Video
 
 {
  *  VDSetFieldPreference()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5644,7 +5644,7 @@ function VDSetFieldPreference( ci: VideoDigitizerComponent; fieldFlag: SInt16 ):
 
 {
  *  VDGetFieldPreference()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5657,7 +5657,7 @@ function VDGetFieldPreference( ci: VideoDigitizerComponent; var fieldFlag: SInt1
 
 {
  *  VDPreflightDestination()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5670,7 +5670,7 @@ function VDPreflightDestination( ci: VideoDigitizerComponent; var digitizerRect:
 
 {
  *  VDPreflightGlobalRect()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5683,7 +5683,7 @@ function VDPreflightGlobalRect( ci: VideoDigitizerComponent; theWindow: GrafPtr;
 
 {
  *  VDSetPlayThruGlobalRect()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5696,7 +5696,7 @@ function VDSetPlayThruGlobalRect( ci: VideoDigitizerComponent; theWindow: GrafPt
 
 {
  *  VDSetInputGammaRecord()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5709,7 +5709,7 @@ function VDSetInputGammaRecord( ci: VideoDigitizerComponent; inputGammaPtr: VDGa
 
 {
  *  VDGetInputGammaRecord()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5722,7 +5722,7 @@ function VDGetInputGammaRecord( ci: VideoDigitizerComponent; var inputGammaPtr: 
 
 {
  *  VDSetBlackLevelValue()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5735,7 +5735,7 @@ function VDSetBlackLevelValue( ci: VideoDigitizerComponent; var blackLevel: UInt
 
 {
  *  VDGetBlackLevelValue()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5748,7 +5748,7 @@ function VDGetBlackLevelValue( ci: VideoDigitizerComponent; var blackLevel: UInt
 
 {
  *  VDSetWhiteLevelValue()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5761,7 +5761,7 @@ function VDSetWhiteLevelValue( ci: VideoDigitizerComponent; var whiteLevel: UInt
 
 {
  *  VDGetWhiteLevelValue()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5774,7 +5774,7 @@ function VDGetWhiteLevelValue( ci: VideoDigitizerComponent; var whiteLevel: UInt
 
 {
  *  VDGetVideoDefaults()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5787,7 +5787,7 @@ function VDGetVideoDefaults( ci: VideoDigitizerComponent; var blackLevel: UInt16
 
 {
  *  VDGetNumberOfInputs()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5800,7 +5800,7 @@ function VDGetNumberOfInputs( ci: VideoDigitizerComponent; var inputs: SInt16 ):
 
 {
  *  VDGetInputFormat()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5813,7 +5813,7 @@ function VDGetInputFormat( ci: VideoDigitizerComponent; input: SInt16; var forma
 
 {
  *  VDSetInput()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5826,7 +5826,7 @@ function VDSetInput( ci: VideoDigitizerComponent; input: SInt16 ): VideoDigitize
 
 {
  *  VDGetInput()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5839,7 +5839,7 @@ function VDGetInput( ci: VideoDigitizerComponent; var input: SInt16 ): VideoDigi
 
 {
  *  VDSetInputStandard()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5852,7 +5852,7 @@ function VDSetInputStandard( ci: VideoDigitizerComponent; inputStandard: SInt16 
 
 {
  *  VDSetupBuffers()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5865,7 +5865,7 @@ function VDSetupBuffers( ci: VideoDigitizerComponent; bufferList: VdigBufferRecL
 
 {
  *  VDGrabOneFrameAsync()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5878,7 +5878,7 @@ function VDGrabOneFrameAsync( ci: VideoDigitizerComponent; buffer: SInt16 ): Vid
 
 {
  *  VDDone()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5891,7 +5891,7 @@ function VDDone( ci: VideoDigitizerComponent; buffer: SInt16 ): VideoDigitizerEr
 
 {
  *  VDSetCompression()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5904,7 +5904,7 @@ function VDSetCompression( ci: VideoDigitizerComponent; compressType: OSType; de
 
 {
  *  VDCompressOneFrameAsync()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5915,12 +5915,12 @@ function VDCompressOneFrameAsync( ci: VideoDigitizerComponent ): VideoDigitizerE
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
-{    Note that UInt8* queuedFrameCount replaces Boolean* done. 0(==false) still means no frames, and 1(==true) one, 
+{    Note that UInt8* queuedFrameCount replaces Boolean* done. 0(==false) still means no frames, and 1(==true) one,
     but if more than one are available the number should be returned here. The value 2 previously meant more than one frame,
     so some VDIGs may return 2 even if more than 2 are available, and some will still return 1 as they are using the original definition }
 {
  *  VDCompressDone()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5933,7 +5933,7 @@ function VDCompressDone( ci: VideoDigitizerComponent; var queuedFrameCount: UInt
 
 {
  *  VDReleaseCompressBuffer()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5946,7 +5946,7 @@ function VDReleaseCompressBuffer( ci: VideoDigitizerComponent; bufferAddr: Ptr )
 
 {
  *  VDGetImageDescription()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5959,7 +5959,7 @@ function VDGetImageDescription( ci: VideoDigitizerComponent; desc: ImageDescript
 
 {
  *  VDResetCompressSequence()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5972,7 +5972,7 @@ function VDResetCompressSequence( ci: VideoDigitizerComponent ): VideoDigitizerE
 
 {
  *  VDSetCompressionOnOff()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5985,7 +5985,7 @@ function VDSetCompressionOnOff( ci: VideoDigitizerComponent; state: Boolean ): V
 
 {
  *  VDGetCompressionTypes()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5998,7 +5998,7 @@ function VDGetCompressionTypes( ci: VideoDigitizerComponent; h: VDCompressionLis
 
 {
  *  VDSetTimeBase()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -6011,7 +6011,7 @@ function VDSetTimeBase( ci: VideoDigitizerComponent; t: TimeBase ): VideoDigitiz
 
 {
  *  VDSetFrameRate()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -6024,7 +6024,7 @@ function VDSetFrameRate( ci: VideoDigitizerComponent; framesPerSecond: Fixed ): 
 
 {
  *  VDGetDataRate()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -6037,7 +6037,7 @@ function VDGetDataRate( ci: VideoDigitizerComponent; var milliSecPerFrame: SIGNE
 
 {
  *  VDGetSoundInputDriver()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -6050,7 +6050,7 @@ function VDGetSoundInputDriver( ci: VideoDigitizerComponent; var soundDriverName
 
 {
  *  VDGetDMADepths()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -6063,7 +6063,7 @@ function VDGetDMADepths( ci: VideoDigitizerComponent; var depthArray: SIGNEDLONG
 
 {
  *  VDGetPreferredTimeScale()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -6076,7 +6076,7 @@ function VDGetPreferredTimeScale( ci: VideoDigitizerComponent; var preferred: Ti
 
 {
  *  VDReleaseAsyncBuffers()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -6090,7 +6090,7 @@ function VDReleaseAsyncBuffers( ci: VideoDigitizerComponent ): VideoDigitizerErr
 { 83 is reserved for compatibility reasons }
 {
  *  VDSetDataRate()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -6103,7 +6103,7 @@ function VDSetDataRate( ci: VideoDigitizerComponent; bytesPerSecond: SIGNEDLONG 
 
 {
  *  VDGetTimeCode()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -6116,7 +6116,7 @@ function VDGetTimeCode( ci: VideoDigitizerComponent; var atTime: TimeRecord; tim
 
 {
  *  VDUseSafeBuffers()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -6129,7 +6129,7 @@ function VDUseSafeBuffers( ci: VideoDigitizerComponent; useSafeBuffers: Boolean 
 
 {
  *  VDGetSoundInputSource()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -6142,7 +6142,7 @@ function VDGetSoundInputSource( ci: VideoDigitizerComponent; videoInput: SIGNEDL
 
 {
  *  VDGetCompressionTime()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -6155,7 +6155,7 @@ function VDGetCompressionTime( ci: VideoDigitizerComponent; compressionType: OST
 
 {
  *  VDSetPreferredPacketSize()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -6168,7 +6168,7 @@ function VDSetPreferredPacketSize( ci: VideoDigitizerComponent; preferredPacketS
 
 {
  *  VDSetPreferredImageDimensions()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -6181,7 +6181,7 @@ function VDSetPreferredImageDimensions( ci: VideoDigitizerComponent; width: SIGN
 
 {
  *  VDGetPreferredImageDimensions()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -6194,7 +6194,7 @@ function VDGetPreferredImageDimensions( ci: VideoDigitizerComponent; var width: 
 
 {
  *  VDGetInputName()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -6207,7 +6207,7 @@ function VDGetInputName( ci: VideoDigitizerComponent; videoInput: SIGNEDLONG; va
 
 {
  *  VDSetDestinationPort()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -6219,15 +6219,15 @@ function VDSetDestinationPort( ci: VideoDigitizerComponent; destPort: CGrafPtr )
 
 
 {
-   The following call is designed to give the VDIG a little more control over how it is presented to the User, to clarify the 
+   The following call is designed to give the VDIG a little more control over how it is presented to the User, to clarify the
    distinction between Devices and Inputs. Historically, the assumption has been that there is one component registered per device
    and the component name is displayed. This change lets a component choose its name after registration.
-   vdDeviceFlagShowInputsAsDevices is meant for components that register once and support multiple devices 
-   The UI is clearer if these are presented as device rather than inputs, 
+   vdDeviceFlagShowInputsAsDevices is meant for components that register once and support multiple devices
+   The UI is clearer if these are presented as device rather than inputs,
    and this allows a VDIG to present itself this way without huge restructuring
-   vdDeviceFlagHideDevice is for the kind of VDIG that registers itself, and then can register a further VDIG for each device. 
-   If no hardware is available, returning this flag will omit it from the list. 
-   This call being made is also a good time to check for hardware and register further VDIG components if needed, 
+   vdDeviceFlagHideDevice is for the kind of VDIG that registers itself, and then can register a further VDIG for each device.
+   If no hardware is available, returning this flag will omit it from the list.
+   This call being made is also a good time to check for hardware and register further VDIG components if needed,
    allowing for lazy initialization when the Application needs to find a VDIG rather than on every launch or replug.
 }
 
@@ -6237,7 +6237,7 @@ const
 
 {
  *  VDGetDeviceNameAndFlags()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.6 and later
@@ -6260,7 +6260,7 @@ const
 
 {
  *  VDCaptureStateChanging()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.6 and later
@@ -6274,14 +6274,14 @@ function VDCaptureStateChanging( ci: VideoDigitizerComponent; inStateFlags: UInt
 {
    These UniqueID calls are so that the VDIG can give the SG information enabling it to restore a particular
    configuration - choose a particular device and input from those available.
-   For example, restoring the specific camera for a set of several hot-plugged FireWire cameras 
+   For example, restoring the specific camera for a set of several hot-plugged FireWire cameras
    the caller can pass nil if it is not interested in one of the IDs
    returning 0 in an ID means you don't have one
 }
 
 {
  *  VDGetUniqueIDs()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.6 and later
@@ -6300,7 +6300,7 @@ function VDGetUniqueIDs( ci: VideoDigitizerComponent; var outDeviceID: UInt64; v
 
 {
  *  VDSelectUniqueIDs()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.6 and later
@@ -6313,7 +6313,7 @@ function VDSelectUniqueIDs( ci: VideoDigitizerComponent; (*const*) var inDeviceI
 
 {
  *  VDCopyPreferredAudioDevice()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 (or QuickTime 6.4) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -6326,7 +6326,7 @@ function VDCopyPreferredAudioDevice( vdig: ComponentInstance; var outAudioDevice
 {
    IIDC (Instrumentation & Industrial Digital Camera) Video Digitizers
    Video Digitizers of subtype vdSubtypeIIDC support FireWire cameras which conform to the
-   "IIDC 1394-based Digital Camera Specification." 
+   "IIDC 1394-based Digital Camera Specification."
 }
 
 const
@@ -6334,7 +6334,7 @@ const
 
 {
    vdIIDCAtomTypeFeature
-   Parent node for the QTAtoms which describe a given feature.  
+   Parent node for the QTAtoms which describe a given feature.
 }
 const
 	vdIIDCAtomTypeFeature = FourCharCode('feat');
@@ -6342,7 +6342,7 @@ const
 {
    vdIIDCAtomTypeFeatureAtomTypeAndID
    This atom describes the feature's OSType/group/name and QTAtomType & QTAtomID needed to retrieve its settings.
-   The contents of this atom is a VDIIDCFeatureAtomTypeAndID structure.  
+   The contents of this atom is a VDIIDCFeatureAtomTypeAndID structure.
 }
 const
 	vdIIDCAtomTypeFeatureAtomTypeAndID = FourCharCode('t&id');
@@ -6531,7 +6531,7 @@ const
 }
 {
  *  VDIIDCGetFeatures()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 (or QuickTime 6.4) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -6543,7 +6543,7 @@ function VDIIDCGetFeatures( ci: VideoDigitizerComponent; var container: QTAtomCo
 
 {
  *  VDIIDCSetFeatures()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 (or QuickTime 6.4) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -6555,7 +6555,7 @@ function VDIIDCSetFeatures( ci: VideoDigitizerComponent; container: QTAtomContai
 
 {
  *  VDIIDCGetDefaultFeatures()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 (or QuickTime 6.4) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -6567,7 +6567,7 @@ function VDIIDCGetDefaultFeatures( ci: VideoDigitizerComponent; var container: Q
 
 {
  *  VDIIDCGetCSRData()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 (or QuickTime 6.4) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -6579,7 +6579,7 @@ function VDIIDCGetCSRData( ci: VideoDigitizerComponent; offsetFromUnitBase: Bool
 
 {
  *  VDIIDCSetCSRData()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 (or QuickTime 6.4) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -6591,7 +6591,7 @@ function VDIIDCSetCSRData( ci: VideoDigitizerComponent; offsetFromUnitBase: Bool
 
 {
  *  VDIIDCGetFeaturesForSpecifier()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 (or QuickTime 6.4) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -6727,7 +6727,7 @@ type
 {  Parses the XML file pointed to by dataRef, returning a XMLDoc parse tree}
 {
  *  XMLParseDataRef()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -6741,7 +6741,7 @@ function XMLParseDataRef( aParser: ComponentInstance; dataRef: Handle; dataRefTy
 {  Parses the XML file pointed to by fileSpec, returning a XMLDoc parse tree}
 {
  *  XMLParseFile()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -6755,7 +6755,7 @@ function XMLParseFile( aParser: ComponentInstance; fileSpec: ConstFSSpecPtr; par
 {  Disposes of a XMLDoc parse tree}
 {
  *  XMLParseDisposeXMLDoc()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -6772,7 +6772,7 @@ function XMLParseDisposeXMLDoc( aParser: ComponentInstance; document: XMLDoc ): 
 }
 {
  *  XMLParseGetDetailedParseError()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -6790,7 +6790,7 @@ function XMLParseGetDetailedParseError( aParser: ComponentInstance; var errorLin
 }
 {
  *  XMLParseAddElement()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -6808,7 +6808,7 @@ function XMLParseAddElement( aParser: ComponentInstance; elementName: CStringPtr
 }
 {
  *  XMLParseAddAttribute()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -6827,7 +6827,7 @@ function XMLParseAddAttribute( aParser: ComponentInstance; elementID: UInt32; na
 }
 {
  *  XMLParseAddMultipleAttributes()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -6846,7 +6846,7 @@ function XMLParseAddMultipleAttributes( aParser: ComponentInstance; elementID: U
 }
 {
  *  XMLParseAddAttributeAndValue()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -6865,7 +6865,7 @@ function XMLParseAddAttributeAndValue ( aParser: ComponentInstance; elementID: U
 }
 {
  *  XMLParseAddMultipleAttributesAndValues()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -6882,7 +6882,7 @@ function XMLParseAddMultipleAttributesAndValues( aParser: ComponentInstance; ele
 }
 {
  *  XMLParseAddAttributeValueKind()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -6900,7 +6900,7 @@ function XMLParseAddAttributeValueKind( aParser: ComponentInstance; elementID: U
 }
 {
  *  XMLParseAddNameSpace()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -6914,7 +6914,7 @@ function XMLParseAddNameSpace( aParser: ComponentInstance; nameSpaceURL: CString
 {  Specifies the offset and limit for reading from the dataref to be used when parsing}
 {
  *  XMLParseSetOffsetAndLimit()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -6928,7 +6928,7 @@ function XMLParseSetOffsetAndLimit( aParser: ComponentInstance; offset: UInt32; 
 {  Set the event parse refcon}
 {
  *  XMLParseSetEventParseRefCon()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -6942,7 +6942,7 @@ function XMLParseSetEventParseRefCon( aParser: ComponentInstance; refcon: SIGNED
 {  Set the start document handler UPP for event parsing}
 {
  *  XMLParseSetStartDocumentHandler()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -6956,7 +6956,7 @@ function XMLParseSetStartDocumentHandler( aParser: ComponentInstance; startDocum
 {  Set the end document handler UPP for event parsing}
 {
  *  XMLParseSetEndDocumentHandler()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -6970,7 +6970,7 @@ function XMLParseSetEndDocumentHandler( aParser: ComponentInstance; endDocument:
 {  Set the start element handler UPP for event parsing}
 {
  *  XMLParseSetStartElementHandler()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -6984,7 +6984,7 @@ function XMLParseSetStartElementHandler( aParser: ComponentInstance; startElemen
 {  Set the end element handler UPP for event parsing}
 {
  *  XMLParseSetEndElementHandler()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -6998,7 +6998,7 @@ function XMLParseSetEndElementHandler( aParser: ComponentInstance; endElement: E
 {  Set the character data handler UPP for event parsing}
 {
  *  XMLParseSetCharDataHandler()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -7012,7 +7012,7 @@ function XMLParseSetCharDataHandler( aParser: ComponentInstance; charData: CharD
 {  Set the preprocess instruction handler UPP for event parsing}
 {
  *  XMLParseSetPreprocessInstructionHandler()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -7026,7 +7026,7 @@ function XMLParseSetPreprocessInstructionHandler( aParser: ComponentInstance; pr
 {  Set the comment handler UPP for event parsing}
 {
  *  XMLParseSetCommentHandler()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -7040,7 +7040,7 @@ function XMLParseSetCommentHandler( aParser: ComponentInstance; comment: Comment
 {  Set the cdata handler UPP for event parsing}
 {
  *  XMLParseSetCDataHandler()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.6 and later
@@ -7053,32 +7053,32 @@ function XMLParseSetCDataHandler( aParser: ComponentInstance; cdata: CDataHandle
 
 {
     Helper Macros
-    
+
         These macros allow you to easily add entities and attributes to the parser
         in an error free manner when the identifiers are defined in a particular manner.
         For these to work, you must define the identifiers as follows:
-        
+
         For entities, they must be defined as element_elementName, as in:
-        
+
             enum
             (
                 element_xml =   1,      //  "xml"
                 element_head,           //  "head"
                 element_body            //  "body"
             );
-            
+
         If the element name has characters that are illegal in an identifier,
         some of the macros support that, but the identifier must not contain
         the illegal characters:
-        
+
             enum
             (
                 element_rootlayout      //  "root-layout"
             )
-            
+
         For attribute names, similar rules apply except that they must be defined
         as attr_attributeName, as in:
-            
+
             enum
             (
                 attr_src    =   1,      //  "src"
@@ -7086,7 +7086,7 @@ function XMLParseSetCDataHandler( aParser: ComponentInstance; cdata: CDataHandle
                 attr_width,
                 attr_height
             )
-            
+
         Finally, the existence of local variables elementID and attributeID is required.
 }
 {
@@ -7345,7 +7345,7 @@ const
 
 {
  *  SGInitialize()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -7358,7 +7358,7 @@ function SGInitialize( s: SeqGrabComponent ): ComponentResult; external name '_S
 
 {
  *  SGSetDataOutput()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -7371,7 +7371,7 @@ function SGSetDataOutput( s: SeqGrabComponent; const (*var*) movieFile: FSSpec; 
 
 {
  *  SGGetDataOutput()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -7384,7 +7384,7 @@ function SGGetDataOutput( s: SeqGrabComponent; var movieFile: FSSpec; var whereF
 
 {
  *  SGSetGWorld()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -7397,7 +7397,7 @@ function SGSetGWorld( s: SeqGrabComponent; gp: CGrafPtr; gd: GDHandle ): Compone
 
 {
  *  SGGetGWorld()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -7410,7 +7410,7 @@ function SGGetGWorld( s: SeqGrabComponent; var gp: CGrafPtr; var gd: GDHandle ):
 
 {
  *  SGNewChannel()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -7423,7 +7423,7 @@ function SGNewChannel( s: SeqGrabComponent; channelType: OSType; var ref: SGChan
 
 {
  *  SGDisposeChannel()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -7436,7 +7436,7 @@ function SGDisposeChannel( s: SeqGrabComponent; c: SGChannel ): ComponentResult;
 
 {
  *  SGStartPreview()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -7449,7 +7449,7 @@ function SGStartPreview( s: SeqGrabComponent ): ComponentResult; external name '
 
 {
  *  SGStartRecord()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -7462,7 +7462,7 @@ function SGStartRecord( s: SeqGrabComponent ): ComponentResult; external name '_
 
 {
  *  SGIdle()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -7475,7 +7475,7 @@ function SGIdle( s: SeqGrabComponent ): ComponentResult; external name '_SGIdle'
 
 {
  *  SGStop()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -7488,7 +7488,7 @@ function SGStop( s: SeqGrabComponent ): ComponentResult; external name '_SGStop'
 
 {
  *  SGPause()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -7501,7 +7501,7 @@ function SGPause( s: SeqGrabComponent; pause: ByteParameter ): ComponentResult; 
 
 {
  *  SGPrepare()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -7514,7 +7514,7 @@ function SGPrepare( s: SeqGrabComponent; prepareForPreview: Boolean; prepareForR
 
 {
  *  SGRelease()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -7527,7 +7527,7 @@ function SGRelease( s: SeqGrabComponent ): ComponentResult; external name '_SGRe
 
 {
  *  SGGetMovie()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -7540,7 +7540,7 @@ function SGGetMovie( s: SeqGrabComponent ): Movie; external name '_SGGetMovie';
 
 {
  *  SGSetMaximumRecordTime()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -7553,7 +7553,7 @@ function SGSetMaximumRecordTime( s: SeqGrabComponent; ticks: UNSIGNEDLONG ): Com
 
 {
  *  SGGetMaximumRecordTime()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -7566,7 +7566,7 @@ function SGGetMaximumRecordTime( s: SeqGrabComponent; var ticks: UNSIGNEDLONG ):
 
 {
  *  SGGetStorageSpaceRemaining()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -7579,7 +7579,7 @@ function SGGetStorageSpaceRemaining( s: SeqGrabComponent; var bytes: UNSIGNEDLON
 
 {
  *  SGGetTimeRemaining()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -7592,7 +7592,7 @@ function SGGetTimeRemaining( s: SeqGrabComponent; var ticksLeft: SIGNEDLONG ): C
 
 {
  *  SGGrabPict()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -7605,7 +7605,7 @@ function SGGrabPict( s: SeqGrabComponent; var p: PicHandle; const (*var*) bounds
 
 {
  *  SGGetLastMovieResID()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -7618,7 +7618,7 @@ function SGGetLastMovieResID( s: SeqGrabComponent; var resID: SInt16 ): Componen
 
 {
  *  SGSetFlags()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -7631,7 +7631,7 @@ function SGSetFlags( s: SeqGrabComponent; sgFlags: SIGNEDLONG ): ComponentResult
 
 {
  *  SGGetFlags()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -7644,7 +7644,7 @@ function SGGetFlags( s: SeqGrabComponent; var sgFlags: SIGNEDLONG ): ComponentRe
 
 {
  *  SGSetDataProc()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -7657,7 +7657,7 @@ function SGSetDataProc( s: SeqGrabComponent; proc: SGDataUPP; refCon: SIGNEDLONG
 
 {
  *  SGNewChannelFromComponent()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -7670,7 +7670,7 @@ function SGNewChannelFromComponent( s: SeqGrabComponent; var newChannel: SGChann
 
 {
  *  SGDisposeDeviceList()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -7683,7 +7683,7 @@ function SGDisposeDeviceList( s: SeqGrabComponent; list: SGDeviceList ): Compone
 
 {
  *  SGAppendDeviceListToMenu()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -7696,7 +7696,7 @@ function SGAppendDeviceListToMenu( s: SeqGrabComponent; list: SGDeviceList; mh: 
 
 {
  *  SGSetSettings()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -7709,7 +7709,7 @@ function SGSetSettings( s: SeqGrabComponent; ud: UserData; flags: SIGNEDLONG ): 
 
 {
  *  SGGetSettings()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -7722,7 +7722,7 @@ function SGGetSettings( s: SeqGrabComponent; var ud: UserData; flags: SIGNEDLONG
 
 {
  *  SGGetIndChannel()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -7735,7 +7735,7 @@ function SGGetIndChannel( s: SeqGrabComponent; index: SInt16; var ref: SGChannel
 
 {
  *  SGUpdate()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -7748,7 +7748,7 @@ function SGUpdate( s: SeqGrabComponent; updateRgn: RgnHandle ): ComponentResult;
 
 {
  *  SGGetPause()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -7763,7 +7763,7 @@ type
 	ConstComponentListPtr = ^Component;
 {
  *  SGSettingsDialog()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -7776,7 +7776,7 @@ function SGSettingsDialog( s: SeqGrabComponent; c: SGChannel; numPanels: SInt16;
 
 {
  *  SGGetAlignmentProc()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -7789,7 +7789,7 @@ function SGGetAlignmentProc( s: SeqGrabComponent; alignmentProc: ICMAlignmentPro
 
 {
  *  SGSetChannelSettings()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -7802,7 +7802,7 @@ function SGSetChannelSettings( s: SeqGrabComponent; c: SGChannel; ud: UserData; 
 
 {
  *  SGGetChannelSettings()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -7815,7 +7815,7 @@ function SGGetChannelSettings( s: SeqGrabComponent; c: SGChannel; var ud: UserDa
 
 {
  *  SGGetMode()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -7828,7 +7828,7 @@ function SGGetMode( s: SeqGrabComponent; var previewMode: Boolean; var recordMod
 
 {
  *  SGSetDataRef()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -7841,7 +7841,7 @@ function SGSetDataRef( s: SeqGrabComponent; dataRef: Handle; dataRefType: OSType
 
 {
  *  SGGetDataRef()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -7854,7 +7854,7 @@ function SGGetDataRef( s: SeqGrabComponent; var dataRef: Handle; var dataRefType
 
 {
  *  SGNewOutput()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -7867,7 +7867,7 @@ function SGNewOutput( s: SeqGrabComponent; dataRef: Handle; dataRefType: OSType;
 
 {
  *  SGDisposeOutput()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -7880,7 +7880,7 @@ function SGDisposeOutput( s: SeqGrabComponent; sgOut: SGOutput ): ComponentResul
 
 {
  *  SGSetOutputFlags()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -7893,7 +7893,7 @@ function SGSetOutputFlags( s: SeqGrabComponent; sgOut: SGOutput; whereFlags: SIG
 
 {
  *  SGSetChannelOutput()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -7906,7 +7906,7 @@ function SGSetChannelOutput( s: SeqGrabComponent; c: SGChannel; sgOut: SGOutput 
 
 {
  *  SGGetDataOutputStorageSpaceRemaining()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -7919,7 +7919,7 @@ function SGGetDataOutputStorageSpaceRemaining( s: SeqGrabComponent; sgOut: SGOut
 
 {
  *  SGHandleUpdateEvent()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -7932,7 +7932,7 @@ function SGHandleUpdateEvent( s: SeqGrabComponent; const (*var*) event: EventRec
 
 {
  *  SGSetOutputNextOutput()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -7945,7 +7945,7 @@ function SGSetOutputNextOutput( s: SeqGrabComponent; sgOut: SGOutput; nextOut: S
 
 {
  *  SGGetOutputNextOutput()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -7958,7 +7958,7 @@ function SGGetOutputNextOutput( s: SeqGrabComponent; sgOut: SGOutput; var nextOu
 
 {
  *  SGSetOutputMaximumOffset()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -7971,7 +7971,7 @@ function SGSetOutputMaximumOffset( s: SeqGrabComponent; sgOut: SGOutput; const (
 
 {
  *  SGGetOutputMaximumOffset()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -7984,7 +7984,7 @@ function SGGetOutputMaximumOffset( s: SeqGrabComponent; sgOut: SGOutput; var max
 
 {
  *  SGGetOutputDataReference()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -7997,7 +7997,7 @@ function SGGetOutputDataReference( s: SeqGrabComponent; sgOut: SGOutput; var dat
 
 {
  *  SGWriteExtendedMovieData()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -8010,7 +8010,7 @@ function SGWriteExtendedMovieData( s: SeqGrabComponent; c: SGChannel; p: Ptr; le
 
 {
  *  SGGetStorageSpaceRemaining64()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -8023,7 +8023,7 @@ function SGGetStorageSpaceRemaining64( s: SeqGrabComponent; var bytes: wide ): C
 
 {
  *  SGGetDataOutputStorageSpaceRemaining64()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -8039,7 +8039,7 @@ function SGGetDataOutputStorageSpaceRemaining64( s: SeqGrabComponent; sgOut: SGO
 }
 {
  *  SGWriteMovieData()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -8052,7 +8052,7 @@ function SGWriteMovieData( s: SeqGrabComponent; c: SGChannel; p: Ptr; len: SIGNE
 
 {
  *  SGAddFrameReference()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -8065,7 +8065,7 @@ function SGAddFrameReference( s: SeqGrabComponent; frameInfo: SeqGrabFrameInfoPt
 
 {
  *  SGGetNextFrameReference()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -8078,7 +8078,7 @@ function SGGetNextFrameReference( s: SeqGrabComponent; frameInfo: SeqGrabFrameIn
 
 {
  *  SGGetTimeBase()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -8091,7 +8091,7 @@ function SGGetTimeBase( s: SeqGrabComponent; var tb: TimeBase ): ComponentResult
 
 {
  *  SGSortDeviceList()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -8104,7 +8104,7 @@ function SGSortDeviceList( s: SeqGrabComponent; list: SGDeviceList ): ComponentR
 
 {
  *  SGAddMovieData()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -8117,7 +8117,7 @@ function SGAddMovieData( s: SeqGrabComponent; c: SGChannel; p: Ptr; len: SIGNEDL
 
 {
  *  SGChangedSource()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -8130,7 +8130,7 @@ function SGChangedSource( s: SeqGrabComponent; c: SGChannel ): ComponentResult; 
 
 {
  *  SGAddExtendedFrameReference()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -8143,7 +8143,7 @@ function SGAddExtendedFrameReference( s: SeqGrabComponent; frameInfo: SeqGrabExt
 
 {
  *  SGGetNextExtendedFrameReference()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -8156,7 +8156,7 @@ function SGGetNextExtendedFrameReference( s: SeqGrabComponent; frameInfo: SeqGra
 
 {
  *  SGAddExtendedMovieData()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -8169,7 +8169,7 @@ function SGAddExtendedMovieData( s: SeqGrabComponent; c: SGChannel; p: Ptr; len:
 
 {
  *  SGAddOutputDataRefToMedia()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -8182,7 +8182,7 @@ function SGAddOutputDataRefToMedia( s: SeqGrabComponent; sgOut: SGOutput; theMed
 
 {
  *  SGSetSettingsSummary()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.6 and later
@@ -8197,7 +8197,7 @@ function SGSetSettingsSummary( s: SeqGrabComponent; summaryText: Handle ): Compo
 
 {
  *  SGSetChannelUsage()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -8210,7 +8210,7 @@ function SGSetChannelUsage( c: SGChannel; usage: SIGNEDLONG ): ComponentResult; 
 
 {
  *  SGGetChannelUsage()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -8223,7 +8223,7 @@ function SGGetChannelUsage( c: SGChannel; var usage: SIGNEDLONG ): ComponentResu
 
 {
  *  SGSetChannelBounds()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -8236,7 +8236,7 @@ function SGSetChannelBounds( c: SGChannel; const (*var*) bounds: Rect ): Compone
 
 {
  *  SGGetChannelBounds()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -8249,7 +8249,7 @@ function SGGetChannelBounds( c: SGChannel; var bounds: Rect ): ComponentResult; 
 
 {
  *  SGSetChannelVolume()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -8262,7 +8262,7 @@ function SGSetChannelVolume( c: SGChannel; volume: SInt16 ): ComponentResult; ex
 
 {
  *  SGGetChannelVolume()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -8275,7 +8275,7 @@ function SGGetChannelVolume( c: SGChannel; var volume: SInt16 ): ComponentResult
 
 {
  *  SGGetChannelInfo()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -8288,7 +8288,7 @@ function SGGetChannelInfo( c: SGChannel; var channelInfo: SIGNEDLONG ): Componen
 
 {
  *  SGSetChannelPlayFlags()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -8301,7 +8301,7 @@ function SGSetChannelPlayFlags( c: SGChannel; playFlags: SIGNEDLONG ): Component
 
 {
  *  SGGetChannelPlayFlags()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -8314,7 +8314,7 @@ function SGGetChannelPlayFlags( c: SGChannel; var playFlags: SIGNEDLONG ): Compo
 
 {
  *  SGSetChannelMaxFrames()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -8327,7 +8327,7 @@ function SGSetChannelMaxFrames( c: SGChannel; frameCount: SIGNEDLONG ): Componen
 
 {
  *  SGGetChannelMaxFrames()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -8340,7 +8340,7 @@ function SGGetChannelMaxFrames( c: SGChannel; var frameCount: SIGNEDLONG ): Comp
 
 {
  *  SGSetChannelRefCon()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -8353,7 +8353,7 @@ function SGSetChannelRefCon( c: SGChannel; refCon: SIGNEDLONG ): ComponentResult
 
 {
  *  SGSetChannelClip()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -8366,7 +8366,7 @@ function SGSetChannelClip( c: SGChannel; theClip: RgnHandle ): ComponentResult; 
 
 {
  *  SGGetChannelClip()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -8379,7 +8379,7 @@ function SGGetChannelClip( c: SGChannel; var theClip: RgnHandle ): ComponentResu
 
 {
  *  SGGetChannelSampleDescription()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -8392,7 +8392,7 @@ function SGGetChannelSampleDescription( c: SGChannel; sampleDesc: Handle ): Comp
 
 {
  *  SGGetChannelDeviceList()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -8405,7 +8405,7 @@ function SGGetChannelDeviceList( c: SGChannel; selectionFlags: SIGNEDLONG; var l
 
 {
  *  SGSetChannelDevice()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -8418,7 +8418,7 @@ function SGSetChannelDevice( c: SGChannel; name: StringPtr ): ComponentResult; e
 
 {
  *  SGSetChannelMatrix()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -8431,7 +8431,7 @@ function SGSetChannelMatrix( c: SGChannel; const (*var*) m: MatrixRecord ): Comp
 
 {
  *  SGGetChannelMatrix()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -8444,7 +8444,7 @@ function SGGetChannelMatrix( c: SGChannel; var m: MatrixRecord ): ComponentResul
 
 {
  *  SGGetChannelTimeScale()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -8457,7 +8457,7 @@ function SGGetChannelTimeScale( c: SGChannel; var scale: TimeScale ): ComponentR
 
 {
  *  SGChannelPutPicture()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -8470,7 +8470,7 @@ function SGChannelPutPicture( c: SGChannel ): ComponentResult; external name '_S
 
 {
  *  SGChannelSetRequestedDataRate()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -8483,7 +8483,7 @@ function SGChannelSetRequestedDataRate( c: SGChannel; bytesPerSecond: SIGNEDLONG
 
 {
  *  SGChannelGetRequestedDataRate()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -8496,7 +8496,7 @@ function SGChannelGetRequestedDataRate( c: SGChannel; var bytesPerSecond: SIGNED
 
 {
  *  SGChannelSetDataSourceName()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -8509,7 +8509,7 @@ function SGChannelSetDataSourceName( c: SGChannel; const (*var*) name: Str255; s
 
 {
  *  SGChannelGetDataSourceName()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -8522,7 +8522,7 @@ function SGChannelGetDataSourceName( c: SGChannel; var name: Str255; var scriptT
 
 {
  *  SGChannelSetCodecSettings()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -8535,7 +8535,7 @@ function SGChannelSetCodecSettings( c: SGChannel; settings: Handle ): ComponentR
 
 {
  *  SGChannelGetCodecSettings()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -8548,7 +8548,7 @@ function SGChannelGetCodecSettings( c: SGChannel; var settings: Handle ): Compon
 
 {
  *  SGGetChannelTimeBase()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -8561,7 +8561,7 @@ function SGGetChannelTimeBase( c: SGChannel; var tb: TimeBase ): ComponentResult
 
 {
  *  SGGetChannelRefCon()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.6 and later
@@ -8575,7 +8575,7 @@ function SGGetChannelRefCon( c: SGChannel; var refCon: SIGNEDLONG ): ComponentRe
 { A utility call to find out the current device and input names, instead of having to call GetDeviceList and walk it yourself }
 {
  *  SGGetChannelDeviceAndInputNames()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.6 and later
@@ -8589,7 +8589,7 @@ function SGGetChannelDeviceAndInputNames( c: SGChannel; var outDeviceName: Str25
 { A media format independent call for this. Inputs start at 0 here (Sound starts at 1, VDIGs at 0 in direct calls) }
 {
  *  SGSetChannelDeviceInput()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.6 and later
@@ -8600,7 +8600,7 @@ function SGSetChannelDeviceInput( c: SGChannel; inInputNumber: SInt16 ): Compone
 (* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
 
 
-{ A call to bracket SetSettings related calls, to give downstream components an opportunity to deal with the entire 
+{ A call to bracket SetSettings related calls, to give downstream components an opportunity to deal with the entire
     settings change in one go }
 const
 	sgSetSettingsBegin = 1 shl 0; { SGSetSettings related set calls about to start}
@@ -8608,7 +8608,7 @@ const
 
 {
  *  SGSetChannelSettingsStateChanging()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.6 and later
@@ -8624,7 +8624,7 @@ function SGSetChannelSettingsStateChanging( c: SGChannel; inFlags: UInt32 ): Com
 }
 {
  *  SGInitChannel()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -8637,7 +8637,7 @@ function SGInitChannel( c: SGChannel; owner: SeqGrabComponent ): ComponentResult
 
 {
  *  SGWriteSamples()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -8650,7 +8650,7 @@ function SGWriteSamples( c: SGChannel; m: Movie; theFile: AliasHandle ): Compone
 
 {
  *  SGGetDataRate()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -8663,7 +8663,7 @@ function SGGetDataRate( c: SGChannel; var bytesPerSecond: SIGNEDLONG ): Componen
 
 {
  *  SGAlignChannelRect()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -8679,7 +8679,7 @@ function SGAlignChannelRect( c: SGChannel; var r: Rect ): ComponentResult; exter
 }
 {
  *  SGPanelGetDitl()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -8692,7 +8692,7 @@ function SGPanelGetDitl( s: SeqGrabComponent; var ditl: Handle ): ComponentResul
 
 {
  *  SGPanelGetTitle()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -8705,7 +8705,7 @@ function SGPanelGetTitle( s: SeqGrabComponent; var title: Str255 ): ComponentRes
 
 {
  *  SGPanelCanRun()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -8718,7 +8718,7 @@ function SGPanelCanRun( s: SeqGrabComponent; c: SGChannel ): ComponentResult; ex
 
 {
  *  SGPanelInstall()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -8731,7 +8731,7 @@ function SGPanelInstall( s: SeqGrabComponent; c: SGChannel; d: DialogRef; itemOf
 
 {
  *  SGPanelEvent()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -8744,7 +8744,7 @@ function SGPanelEvent( s: SeqGrabComponent; c: SGChannel; d: DialogRef; itemOffs
 
 {
  *  SGPanelItem()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -8757,7 +8757,7 @@ function SGPanelItem( s: SeqGrabComponent; c: SGChannel; d: DialogRef; itemOffse
 
 {
  *  SGPanelRemove()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -8770,7 +8770,7 @@ function SGPanelRemove( s: SeqGrabComponent; c: SGChannel; d: DialogRef; itemOff
 
 {
  *  SGPanelSetGrabber()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -8783,7 +8783,7 @@ function SGPanelSetGrabber( s: SeqGrabComponent; sg: SeqGrabComponent ): Compone
 
 {
  *  SGPanelSetResFile()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -8796,7 +8796,7 @@ function SGPanelSetResFile( s: SeqGrabComponent; resRef: SInt16 ): ComponentResu
 
 {
  *  SGPanelGetSettings()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -8809,7 +8809,7 @@ function SGPanelGetSettings( s: SeqGrabComponent; c: SGChannel; var ud: UserData
 
 {
  *  SGPanelSetSettings()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -8822,7 +8822,7 @@ function SGPanelSetSettings( s: SeqGrabComponent; c: SGChannel; ud: UserData; fl
 
 {
  *  SGPanelValidateInput()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -8835,7 +8835,7 @@ function SGPanelValidateInput( s: SeqGrabComponent; var ok: Boolean ): Component
 
 {
  *  SGPanelSetEventFilter()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -8850,7 +8850,7 @@ function SGPanelSetEventFilter( s: SeqGrabComponent; proc: SGModalFilterUPP; ref
     SGPanelGetDITLForSize is used to retrieve user interface elements that fit within a specified size
     panel.  The component should return badComponentSelector for sizes it does not support.  The component
     is required to support kSGSmallestDITLSize, and it is recommended to support kSGLargestDITLSize.
-    
+
     If SGPanelGetDITLForSize is unimplemented entirely, the panel is assumed to not have resizable UI elements.
 }
 const
@@ -8859,7 +8859,7 @@ const
 
 {
  *  SGPanelGetDITLForSize()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.6 and later
@@ -8890,7 +8890,7 @@ type
 	SGCompressCompleteBottleProcPtr = function( c: SGChannel; bufferNum: SInt16; var done: Boolean; var ci: SGCompressInfo; refCon: SIGNEDLONG ): ComponentResult;
 	SGAddFrameBottleProcPtr = function( c: SGChannel; bufferNum: SInt16; atTime: TimeValue; scale: TimeScale; const (*var*) ci: SGCompressInfo; refCon: SIGNEDLONG ): ComponentResult;
 	SGTransferFrameBottleProcPtr = function( c: SGChannel; bufferNum: SInt16; var mp: MatrixRecord; clipRgn: RgnHandle; refCon: SIGNEDLONG ): ComponentResult;
-{    Note that UInt8 *queuedFrameCount replaces Boolean *done. 0(==false) still means no frames, and 1(==true) one, 
+{    Note that UInt8 *queuedFrameCount replaces Boolean *done. 0(==false) still means no frames, and 1(==true) one,
     but if more than one are available the number should be returned here. The value 2 previously meant more than one frame,
     so some VDIGs may return 2 even if more than 2 are available, and some will still return 1 as they are using the original definition. }
 type
@@ -8921,7 +8921,7 @@ type
 	end;
 {
  *  SGGetSrcVideoBounds()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -8934,7 +8934,7 @@ function SGGetSrcVideoBounds( c: SGChannel; var r: Rect ): ComponentResult; exte
 
 {
  *  SGSetVideoRect()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -8947,7 +8947,7 @@ function SGSetVideoRect( c: SGChannel; const (*var*) r: Rect ): ComponentResult;
 
 {
  *  SGGetVideoRect()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -8960,7 +8960,7 @@ function SGGetVideoRect( c: SGChannel; var r: Rect ): ComponentResult; external 
 
 {
  *  SGGetVideoCompressorType()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -8973,7 +8973,7 @@ function SGGetVideoCompressorType( c: SGChannel; var compressorType: OSType ): C
 
 {
  *  SGSetVideoCompressorType()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -8986,7 +8986,7 @@ function SGSetVideoCompressorType( c: SGChannel; compressorType: OSType ): Compo
 
 {
  *  SGSetVideoCompressor()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -8999,7 +8999,7 @@ function SGSetVideoCompressor( c: SGChannel; depth: SInt16; compressor: Compress
 
 {
  *  SGGetVideoCompressor()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -9012,7 +9012,7 @@ function SGGetVideoCompressor( c: SGChannel; var depth: SInt16; var compressor: 
 
 {
  *  SGGetVideoDigitizerComponent()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -9025,7 +9025,7 @@ function SGGetVideoDigitizerComponent( c: SGChannel ): ComponentInstance; extern
 
 {
  *  SGSetVideoDigitizerComponent()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -9038,7 +9038,7 @@ function SGSetVideoDigitizerComponent( c: SGChannel; vdig: ComponentInstance ): 
 
 {
  *  SGVideoDigitizerChanged()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -9051,7 +9051,7 @@ function SGVideoDigitizerChanged( c: SGChannel ): ComponentResult; external name
 
 {
  *  SGSetVideoBottlenecks()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -9064,7 +9064,7 @@ function SGSetVideoBottlenecks( c: SGChannel; var vb: VideoBottles ): ComponentR
 
 {
  *  SGGetVideoBottlenecks()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -9077,7 +9077,7 @@ function SGGetVideoBottlenecks( c: SGChannel; var vb: VideoBottles ): ComponentR
 
 {
  *  SGGrabFrame()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -9090,7 +9090,7 @@ function SGGrabFrame( c: SGChannel; bufferNum: SInt16 ): ComponentResult; extern
 
 {
  *  SGGrabFrameComplete()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -9103,7 +9103,7 @@ function SGGrabFrameComplete( c: SGChannel; bufferNum: SInt16; var done: Boolean
 
 {
  *  SGDisplayFrame()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -9116,7 +9116,7 @@ function SGDisplayFrame( c: SGChannel; bufferNum: SInt16; const (*var*) mp: Matr
 
 {
  *  SGCompressFrame()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -9129,7 +9129,7 @@ function SGCompressFrame( c: SGChannel; bufferNum: SInt16 ): ComponentResult; ex
 
 {
  *  SGCompressFrameComplete()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -9142,7 +9142,7 @@ function SGCompressFrameComplete( c: SGChannel; bufferNum: SInt16; var done: Boo
 
 {
  *  SGAddFrame()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -9155,7 +9155,7 @@ function SGAddFrame( c: SGChannel; bufferNum: SInt16; atTime: TimeValue; scale: 
 
 {
  *  SGTransferFrameForCompress()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -9168,7 +9168,7 @@ function SGTransferFrameForCompress( c: SGChannel; bufferNum: SInt16; const (*va
 
 {
  *  SGSetCompressBuffer()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -9181,7 +9181,7 @@ function SGSetCompressBuffer( c: SGChannel; depth: SInt16; const (*var*) compres
 
 {
  *  SGGetCompressBuffer()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -9194,7 +9194,7 @@ function SGGetCompressBuffer( c: SGChannel; var depth: SInt16; var compressSize:
 
 {
  *  SGGetBufferInfo()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -9207,7 +9207,7 @@ function SGGetBufferInfo( c: SGChannel; bufferNum: SInt16; var bufferPM: PixMapH
 
 {
  *  SGSetUseScreenBuffer()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -9220,7 +9220,7 @@ function SGSetUseScreenBuffer( c: SGChannel; useScreenBuffer: Boolean ): Compone
 
 {
  *  SGGetUseScreenBuffer()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -9231,12 +9231,12 @@ function SGGetUseScreenBuffer( c: SGChannel; var useScreenBuffer: Boolean ): Com
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
-{    Note that UInt8 *queuedFrameCount replaces Boolean *done. 0(==false) still means no frames, and 1(==true) one, 
+{    Note that UInt8 *queuedFrameCount replaces Boolean *done. 0(==false) still means no frames, and 1(==true) one,
     but if more than one are available the number should be returned here. The value 2 previously meant more than one frame,
     so some VDIGs may return 2 even if more than 2 are available, and some will still return 1 as they are using the original definition. }
 {
  *  SGGrabCompressComplete()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -9249,7 +9249,7 @@ function SGGrabCompressComplete( c: SGChannel; var queuedFrameCount: UInt8; var 
 
 {
  *  SGDisplayCompress()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -9262,7 +9262,7 @@ function SGDisplayCompress( c: SGChannel; dataPtr: Ptr; desc: ImageDescriptionHa
 
 {
  *  SGSetFrameRate()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -9275,7 +9275,7 @@ function SGSetFrameRate( c: SGChannel; frameRate: Fixed ): ComponentResult; exte
 
 {
  *  SGGetFrameRate()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -9288,7 +9288,7 @@ function SGGetFrameRate( c: SGChannel; var frameRate: Fixed ): ComponentResult; 
 
 {
  *  SGSetPreferredPacketSize()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -9301,7 +9301,7 @@ function SGSetPreferredPacketSize( c: SGChannel; preferredPacketSizeInBytes: SIG
 
 {
  *  SGGetPreferredPacketSize()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -9314,7 +9314,7 @@ function SGGetPreferredPacketSize( c: SGChannel; var preferredPacketSizeInBytes:
 
 {
  *  SGSetUserVideoCompressorList()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -9327,7 +9327,7 @@ function SGSetUserVideoCompressorList( c: SGChannel; compressorTypes: Handle ): 
 
 {
  *  SGGetUserVideoCompressorList()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -9483,7 +9483,7 @@ const
 
   {
    * kQTSGAudioPropertyID_DeviceAlive: If the device in question dies
-   * (is hot unplugged) listeners of this property will be notified. 
+   * (is hot unplugged) listeners of this property will be notified.
    * If a record/preview operation is in progress, it will be stopped,
    * but it is left to the client to select a new device.
    }
@@ -9511,7 +9511,7 @@ const
    * set hardware playthru during seqGrabPreview or
    * seqGrabPlayDuringRecord operations. Setting this value will have
    * no effect if the record device and preview device are not the
-   * same.  Also, some devices do not support hardware playthru. 
+   * same.  Also, some devices do not support hardware playthru.
    * Devices report whether or not they support this feature through
    * the kQTSGAudioPropertyID_DeviceListWithAttributes property.
    }
@@ -9570,7 +9570,7 @@ const
    * kAudioConverterPropertySettings property (defined in
    * <AudioToolbox/AudioConverter.h>).  Note that not all compressed
    * formats expose a settings array. Older codecs may only expose a
-   * magic cookie for out-of-band data (see the following property). 
+   * magic cookie for out-of-band data (see the following property).
    * When an audio compressor exposes a settings array, prefer it over
    * a magic cookie, as the settings array is richer. The
    * CodecSpecificSettingsArray is a CFArray of CFDictionaries, where
@@ -9618,7 +9618,7 @@ const
    * describes the data written to the QuickTime movie track.  A
    * QTGetComponentProperty call allocates the SoundDescriptionHandle
    * for you.  Caller should declare a SoundDescriptionHandle and set
-   * it to NULL, and pass its address to QTGetComponentProperty. 
+   * it to NULL, and pass its address to QTGetComponentProperty.
    * Caller must DisposeHandle() the resulting SoundDescriptionHandle
    * when done with it.
    }
@@ -9647,7 +9647,7 @@ const
   {
    * kQTSGAudioPropertyID_OutputSelection: Some devices allow switching
    * between output destinations, such as analog, adat, sdi, aes/ebu,
-   * spdif. Use this property to change the current output selection. 
+   * spdif. Use this property to change the current output selection.
    * Note that when output selection changes, the StreamFormat of the
    * device may change as well (In particular, the number of channels
    * may change).
@@ -9672,7 +9672,7 @@ const
    * turns output level metering on/off.  When level meters are
    * enabled, use kQTSGAudioPropertyID_AveragePowerLevels to get
    * instantaneous levels.  Use kQTSGAudioPropertyID_PeakHoldLevels to
-   * get peak-hold style meters (better for clipping detection, etc). 
+   * get peak-hold style meters (better for clipping detection, etc).
    * Level meters should only be enabled if you intend to poll for
    * levels, as they incur an added CPU load when enabled.
    }
@@ -9738,7 +9738,7 @@ const
    * (volume) of the recorded audio data in software (pre-mixdown) min
    * = 0.0, max = unbounded.  Normally you wouldn't set the volume
    * greater than 1.0, but if the source material provided by the
-   * device is too soft, a gain of > 1.0 may be set to boost the gain. 
+   * device is too soft, a gain of > 1.0 may be set to boost the gain.
    * Note that some devices do not respond to this property setting.
    }
 	kQTSGAudioPropertyID_MasterGain = FourCharCode('mgan'); { Data: Float32, R/W/L: Read/Write, Class(es): kQTPropertyClass_SGAudio, kQTPropertyClass_SGAudioRecordDevice, kQTPropertyClass_SGAudioPreviewDevice }
@@ -9757,7 +9757,7 @@ const
    * correspond to the valence of channels on output (which is affected
    * by a channel map, if you've set one).  With
    * kQTPropertyClass_SGAudio, this property gets/sets the gain
-   * (volume) of each channel of recorded audio data in software. 
+   * (volume) of each channel of recorded audio data in software.
    * Levels set on the record device or preview device must adhere to
    * min = 0.0, max = 1.0.  Levels set in software may be set to values
    * greater than 1.0 in order to boost low signals.  Caller may
@@ -9777,7 +9777,7 @@ const
    * kQTPropertyClass_SGAudioRecordDevice and
    * kQTPropertyClass_SGAudioPreviewDevice classes), and from 0.0 - 1.0
    * or greater (for kQTPropertyClass_SGAudio).  For UI purposes, it
-   * may be useful to map the scalar gain value to a decibel value. 
+   * may be useful to map the scalar gain value to a decibel value.
    * kQTSGAudioPropertyID_GainScalarToDecibels is a read-only property
    * that takes a Float32 scalar value and returns the corresponding
    * decibel value for that scalar value.  Note that this property uses
@@ -9790,7 +9790,7 @@ const
   {
    * kQTSGAudioPropertyID_MixerCoefficients: If you wish to perform a
    * custom mix-down from the incoming record device channel valence
-   * (discoverable using a combination of 
+   * (discoverable using a combination of
    * kQTPropertyClass_SGAudioRecordDevice /
    * kQTSGAudioPropertyID_StreamFormat &
    * kQTPropertyClass_SGAudioRecordDevice /
@@ -9970,13 +9970,13 @@ const
 	kQTAudioDeviceAttribute_DeviceTransportTypeKey = FourCharCode('tran');
 
   {
-   * kQTAudioDeviceAttribute_DeviceAliveKey: value = CFBooleanRef. 
+   * kQTAudioDeviceAttribute_DeviceAliveKey: value = CFBooleanRef.
    * True if device is present.
    }
 	kQTAudioDeviceAttribute_DeviceAliveKey = kQTSGAudioPropertyID_DeviceAlive;
 
   {
-   * kQTAudioDeviceAttribute_DeviceCanRecordKey: value = CFBooleanRef. 
+   * kQTAudioDeviceAttribute_DeviceCanRecordKey: value = CFBooleanRef.
    * True if device can be used for recording (some can only do
    * playback)
    }
@@ -9989,7 +9989,7 @@ const
 	kQTAudioDeviceAttribute_DeviceCanPreviewKey = FourCharCode('prev');
 
   {
-   * kQTAudioDeviceAttribute_DeviceHoggedKey: value = CFNumberRef. 
+   * kQTAudioDeviceAttribute_DeviceHoggedKey: value = CFNumberRef.
    * CFNumber wraps the unique process ID that is hogging the device,
    * or -1 if the device is currently not being hogged.  Process id
    * comes from getpid().
@@ -9997,7 +9997,7 @@ const
 	kQTAudioDeviceAttribute_DeviceHoggedKey = kQTSGAudioPropertyID_DeviceHogged;
 
   {
-   * kQTAudioDeviceAttribute_DeviceInUseKey: value = CFBooleanRef. 
+   * kQTAudioDeviceAttribute_DeviceInUseKey: value = CFBooleanRef.
    * True if someone is performing IO w/ the device (in any process).
    }
 	kQTAudioDeviceAttribute_DeviceInUseKey = kQTSGAudioPropertyID_DeviceInUse;
@@ -10010,7 +10010,7 @@ const
 	kQTAudioDeviceAttribute_DeviceSupportsHardwarePlaythruKey = FourCharCode('hard');
 
   {
-   * kQTAudioDeviceAttribute_InputSelectionKey: value = CFNumberRef. 
+   * kQTAudioDeviceAttribute_InputSelectionKey: value = CFNumberRef.
    * CFNumber wraps an OSType (device may or may not have an input
    * selection)
    }
@@ -10136,7 +10136,7 @@ type
 
 {
  *  SGAudioCallback
- *  
+ *
  *  Discussion:
  *    Clients define an SGAudioCallback to tap into an SGAudio channel,
  *    and gain access to its data at various point along the signal
@@ -10145,35 +10145,35 @@ type
  *    callback. They should do as little work as possible inside their
  *    callback, returning control as soon as possible to the calling
  *    SGAudio channel.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    c:
  *      The SGChannel originating this callback
- *    
+ *
  *    inRefCon:
  *      The refCon assigned by the client when filling out an
  *      SGAudioCallbackStruct
- *    
+ *
  *    ioFlags:
  *      This flags field is currently unused.
- *    
+ *
  *    inTimeStamp:
  *      The time stamp associated with the first sample passed in inData
- *    
+ *
  *    inNumberPackets:
  *      The number of data packets (if dealing with LPCM formats,
  *      number of packets is the same as number of frames) held in
  *      inData.
- *    
+ *
  *    inData:
  *      A bufferlist containing the requested sample data.
- *    
+ *
  *    inPacketDescriptions:
  *      If the packets contained in inData are of variable size,
  *      inPacketDescriptions will contain an array of inNumberPackets
  *      packet descriptions.
- *  
+ *
  *  Result:
  *    OSStatus Your SGAudioCallback function should return noErr.
  }
@@ -10191,7 +10191,7 @@ type
 }
 {
  *  SGSetSoundInputDriver()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -10204,7 +10204,7 @@ function SGSetSoundInputDriver( c: SGChannel; const (*var*) driverName: Str255 )
 
 {
  *  SGGetSoundInputDriver()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -10217,7 +10217,7 @@ function SGGetSoundInputDriver( c: SGChannel ): SIGNEDLONG; external name '_SGGe
 
 {
  *  SGSoundInputDriverChanged()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -10230,7 +10230,7 @@ function SGSoundInputDriverChanged( c: SGChannel ): ComponentResult; external na
 
 {
  *  SGSetSoundRecordChunkSize()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -10243,7 +10243,7 @@ function SGSetSoundRecordChunkSize( c: SGChannel; seconds: SIGNEDLONG ): Compone
 
 {
  *  SGGetSoundRecordChunkSize()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -10256,7 +10256,7 @@ function SGGetSoundRecordChunkSize( c: SGChannel ): SIGNEDLONG; external name '_
 
 {
  *  SGSetSoundInputRate()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -10269,7 +10269,7 @@ function SGSetSoundInputRate( c: SGChannel; rate: Fixed ): ComponentResult; exte
 
 {
  *  SGGetSoundInputRate()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -10282,7 +10282,7 @@ function SGGetSoundInputRate( c: SGChannel ): Fixed; external name '_SGGetSoundI
 
 {
  *  SGSetSoundInputParameters()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -10295,7 +10295,7 @@ function SGSetSoundInputParameters( c: SGChannel; sampleSize: SInt16; numChannel
 
 {
  *  SGGetSoundInputParameters()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -10308,7 +10308,7 @@ function SGGetSoundInputParameters( c: SGChannel; var sampleSize: SInt16; var nu
 
 {
  *  SGSetAdditionalSoundRates()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -10321,7 +10321,7 @@ function SGSetAdditionalSoundRates( c: SGChannel; rates: Handle ): ComponentResu
 
 {
  *  SGGetAdditionalSoundRates()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -10337,7 +10337,7 @@ function SGGetAdditionalSoundRates( c: SGChannel; var rates: Handle ): Component
 }
 {
  *  SGSetFontName()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -10350,7 +10350,7 @@ function SGSetFontName( c: SGChannel; pstr: StringPtr ): ComponentResult; extern
 
 {
  *  SGSetFontSize()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -10363,7 +10363,7 @@ function SGSetFontSize( c: SGChannel; fontSize: SInt16 ): ComponentResult; exter
 
 {
  *  SGSetTextForeColor()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -10376,7 +10376,7 @@ function SGSetTextForeColor( c: SGChannel; var theColor: RGBColor ): ComponentRe
 
 {
  *  SGSetTextBackColor()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -10389,7 +10389,7 @@ function SGSetTextBackColor( c: SGChannel; var theColor: RGBColor ): ComponentRe
 
 {
  *  SGSetJustification()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -10402,7 +10402,7 @@ function SGSetJustification( c: SGChannel; just: SInt16 ): ComponentResult; exte
 
 {
  *  SGGetTextReturnToSpaceValue()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -10415,7 +10415,7 @@ function SGGetTextReturnToSpaceValue( c: SGChannel; var rettospace: SInt16 ): Co
 
 {
  *  SGSetTextReturnToSpaceValue()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -10431,7 +10431,7 @@ function SGSetTextReturnToSpaceValue( c: SGChannel; rettospace: SInt16 ): Compon
 }
 {
  *  SGGetInstrument()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -10444,7 +10444,7 @@ function SGGetInstrument( c: SGChannel; var td: ToneDescription ): ComponentResu
 
 {
  *  SGSetInstrument()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -10532,7 +10532,7 @@ const
 {* These are QTVideoOutput procedures *}
 {
  *  QTVideoOutputGetDisplayModeList()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -10545,7 +10545,7 @@ function QTVideoOutputGetDisplayModeList( vo: QTVideoOutputComponent; var output
 
 {
  *  QTVideoOutputGetCurrentClientName()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -10558,7 +10558,7 @@ function QTVideoOutputGetCurrentClientName( vo: QTVideoOutputComponent; var str:
 
 {
  *  QTVideoOutputSetClientName()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -10571,7 +10571,7 @@ function QTVideoOutputSetClientName( vo: QTVideoOutputComponent; const (*var*) s
 
 {
  *  QTVideoOutputGetClientName()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -10584,7 +10584,7 @@ function QTVideoOutputGetClientName( vo: QTVideoOutputComponent; var str: Str255
 
 {
  *  QTVideoOutputBegin()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -10597,7 +10597,7 @@ function QTVideoOutputBegin( vo: QTVideoOutputComponent ): ComponentResult; exte
 
 {
  *  QTVideoOutputEnd()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -10610,7 +10610,7 @@ function QTVideoOutputEnd( vo: QTVideoOutputComponent ): ComponentResult; extern
 
 {
  *  QTVideoOutputSetDisplayMode()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -10623,7 +10623,7 @@ function QTVideoOutputSetDisplayMode( vo: QTVideoOutputComponent; displayModeID:
 
 {
  *  QTVideoOutputGetDisplayMode()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -10636,7 +10636,7 @@ function QTVideoOutputGetDisplayMode( vo: QTVideoOutputComponent; var displayMod
 
 {
  *  QTVideoOutputCustomConfigureDisplay()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -10649,7 +10649,7 @@ function QTVideoOutputCustomConfigureDisplay( vo: QTVideoOutputComponent; filter
 
 {
  *  QTVideoOutputSaveState()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -10662,7 +10662,7 @@ function QTVideoOutputSaveState( vo: QTVideoOutputComponent; var state: QTAtomCo
 
 {
  *  QTVideoOutputRestoreState()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -10675,7 +10675,7 @@ function QTVideoOutputRestoreState( vo: QTVideoOutputComponent; state: QTAtomCon
 
 {
  *  QTVideoOutputGetGWorld()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -10688,7 +10688,7 @@ function QTVideoOutputGetGWorld( vo: QTVideoOutputComponent; var gw: GWorldPtr )
 
 {
  *  QTVideoOutputGetGWorldParameters()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -10701,7 +10701,7 @@ function QTVideoOutputGetGWorldParameters( vo: QTVideoOutputComponent; var baseA
 
 {
  *  QTVideoOutputGetIndSoundOutput()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -10714,7 +10714,7 @@ function QTVideoOutputGetIndSoundOutput( vo: QTVideoOutputComponent; index: SIGN
 
 {
  *  QTVideoOutputGetClock()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -10727,7 +10727,7 @@ function QTVideoOutputGetClock( vo: QTVideoOutputComponent; var clock: Component
 
 {
  *  QTVideoOutputSetEchoPort()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -10740,7 +10740,7 @@ function QTVideoOutputSetEchoPort( vo: QTVideoOutputComponent; echoPort: CGrafPt
 
 {
  *  QTVideoOutputGetIndImageDecompressor()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -10753,7 +10753,7 @@ function QTVideoOutputGetIndImageDecompressor( vo: QTVideoOutputComponent; index
 
 {
  *  QTVideoOutputBaseSetEchoPort()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.6 and later
@@ -10766,7 +10766,7 @@ function QTVideoOutputBaseSetEchoPort( vo: QTVideoOutputComponent; echoPort: CGr
 
 {
  *  QTVideoOutputCopyIndAudioOutputDeviceUID()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 (or QuickTime 6.4) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -10780,7 +10780,7 @@ function QTVideoOutputCopyIndAudioOutputDeviceUID( vo: QTVideoOutputComponent; i
 { UPP call backs }
 {
  *  NewDataHCompletionUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -10791,7 +10791,7 @@ function NewDataHCompletionUPP( userRoutine: DataHCompletionProcPtr ): DataHComp
 
 {
  *  NewVdigIntUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -10802,7 +10802,7 @@ function NewVdigIntUPP( userRoutine: VdigIntProcPtr ): VdigIntUPP; external name
 
 {
  *  NewStartDocumentHandlerUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -10813,7 +10813,7 @@ function NewStartDocumentHandlerUPP( userRoutine: StartDocumentHandler ): StartD
 
 {
  *  NewEndDocumentHandlerUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -10824,7 +10824,7 @@ function NewEndDocumentHandlerUPP( userRoutine: EndDocumentHandler ): EndDocumen
 
 {
  *  NewStartElementHandlerUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -10835,7 +10835,7 @@ function NewStartElementHandlerUPP( userRoutine: StartElementHandler ): StartEle
 
 {
  *  NewEndElementHandlerUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -10846,7 +10846,7 @@ function NewEndElementHandlerUPP( userRoutine: EndElementHandler ): EndElementHa
 
 {
  *  NewCharDataHandlerUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -10857,7 +10857,7 @@ function NewCharDataHandlerUPP( userRoutine: CharDataHandler ): CharDataHandlerU
 
 {
  *  NewPreprocessInstructionHandlerUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -10868,7 +10868,7 @@ function NewPreprocessInstructionHandlerUPP( userRoutine: PreprocessInstructionH
 
 {
  *  NewCommentHandlerUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -10879,7 +10879,7 @@ function NewCommentHandlerUPP( userRoutine: CommentHandler ): CommentHandlerUPP;
 
 {
  *  NewCDataHandlerUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.6 and later
@@ -10890,7 +10890,7 @@ function NewCDataHandlerUPP( userRoutine: CDataHandler ): CDataHandlerUPP; exter
 
 {
  *  NewSGDataUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -10901,7 +10901,7 @@ function NewSGDataUPP( userRoutine: SGDataProcPtr ): SGDataUPP; external name '_
 
 {
  *  NewSGModalFilterUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -10912,7 +10912,7 @@ function NewSGModalFilterUPP( userRoutine: SGModalFilterProcPtr ): SGModalFilter
 
 {
  *  NewSGGrabBottleUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -10923,7 +10923,7 @@ function NewSGGrabBottleUPP( userRoutine: SGGrabBottleProcPtr ): SGGrabBottleUPP
 
 {
  *  NewSGGrabCompleteBottleUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -10934,7 +10934,7 @@ function NewSGGrabCompleteBottleUPP( userRoutine: SGGrabCompleteBottleProcPtr ):
 
 {
  *  NewSGDisplayBottleUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -10945,7 +10945,7 @@ function NewSGDisplayBottleUPP( userRoutine: SGDisplayBottleProcPtr ): SGDisplay
 
 {
  *  NewSGCompressBottleUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -10956,7 +10956,7 @@ function NewSGCompressBottleUPP( userRoutine: SGCompressBottleProcPtr ): SGCompr
 
 {
  *  NewSGCompressCompleteBottleUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -10967,7 +10967,7 @@ function NewSGCompressCompleteBottleUPP( userRoutine: SGCompressCompleteBottlePr
 
 {
  *  NewSGAddFrameBottleUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -10978,7 +10978,7 @@ function NewSGAddFrameBottleUPP( userRoutine: SGAddFrameBottleProcPtr ): SGAddFr
 
 {
  *  NewSGTransferFrameBottleUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -10989,7 +10989,7 @@ function NewSGTransferFrameBottleUPP( userRoutine: SGTransferFrameBottleProcPtr 
 
 {
  *  NewSGGrabCompressCompleteBottleUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -11000,7 +11000,7 @@ function NewSGGrabCompressCompleteBottleUPP( userRoutine: SGGrabCompressComplete
 
 {
  *  NewSGDisplayCompressBottleUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -11011,7 +11011,7 @@ function NewSGDisplayCompressBottleUPP( userRoutine: SGDisplayCompressBottleProc
 
 {
  *  DisposeDataHCompletionUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -11022,7 +11022,7 @@ procedure DisposeDataHCompletionUPP( userUPP: DataHCompletionUPP ); external nam
 
 {
  *  DisposeVdigIntUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -11033,7 +11033,7 @@ procedure DisposeVdigIntUPP( userUPP: VdigIntUPP ); external name '_DisposeVdigI
 
 {
  *  DisposeStartDocumentHandlerUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -11044,7 +11044,7 @@ procedure DisposeStartDocumentHandlerUPP( userUPP: StartDocumentHandlerUPP ); ex
 
 {
  *  DisposeEndDocumentHandlerUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -11055,7 +11055,7 @@ procedure DisposeEndDocumentHandlerUPP( userUPP: EndDocumentHandlerUPP ); extern
 
 {
  *  DisposeStartElementHandlerUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -11066,7 +11066,7 @@ procedure DisposeStartElementHandlerUPP( userUPP: StartElementHandlerUPP ); exte
 
 {
  *  DisposeEndElementHandlerUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -11077,7 +11077,7 @@ procedure DisposeEndElementHandlerUPP( userUPP: EndElementHandlerUPP ); external
 
 {
  *  DisposeCharDataHandlerUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -11088,7 +11088,7 @@ procedure DisposeCharDataHandlerUPP( userUPP: CharDataHandlerUPP ); external nam
 
 {
  *  DisposePreprocessInstructionHandlerUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -11099,7 +11099,7 @@ procedure DisposePreprocessInstructionHandlerUPP( userUPP: PreprocessInstruction
 
 {
  *  DisposeCommentHandlerUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -11110,7 +11110,7 @@ procedure DisposeCommentHandlerUPP( userUPP: CommentHandlerUPP ); external name 
 
 {
  *  DisposeCDataHandlerUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.6 and later
@@ -11121,7 +11121,7 @@ procedure DisposeCDataHandlerUPP( userUPP: CDataHandlerUPP ); external name '_Di
 
 {
  *  DisposeSGDataUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -11132,7 +11132,7 @@ procedure DisposeSGDataUPP( userUPP: SGDataUPP ); external name '_DisposeSGDataU
 
 {
  *  DisposeSGModalFilterUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -11143,7 +11143,7 @@ procedure DisposeSGModalFilterUPP( userUPP: SGModalFilterUPP ); external name '_
 
 {
  *  DisposeSGGrabBottleUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -11154,7 +11154,7 @@ procedure DisposeSGGrabBottleUPP( userUPP: SGGrabBottleUPP ); external name '_Di
 
 {
  *  DisposeSGGrabCompleteBottleUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -11165,7 +11165,7 @@ procedure DisposeSGGrabCompleteBottleUPP( userUPP: SGGrabCompleteBottleUPP ); ex
 
 {
  *  DisposeSGDisplayBottleUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -11176,7 +11176,7 @@ procedure DisposeSGDisplayBottleUPP( userUPP: SGDisplayBottleUPP ); external nam
 
 {
  *  DisposeSGCompressBottleUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -11187,7 +11187,7 @@ procedure DisposeSGCompressBottleUPP( userUPP: SGCompressBottleUPP ); external n
 
 {
  *  DisposeSGCompressCompleteBottleUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -11198,7 +11198,7 @@ procedure DisposeSGCompressCompleteBottleUPP( userUPP: SGCompressCompleteBottleU
 
 {
  *  DisposeSGAddFrameBottleUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -11209,7 +11209,7 @@ procedure DisposeSGAddFrameBottleUPP( userUPP: SGAddFrameBottleUPP ); external n
 
 {
  *  DisposeSGTransferFrameBottleUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -11220,7 +11220,7 @@ procedure DisposeSGTransferFrameBottleUPP( userUPP: SGTransferFrameBottleUPP ); 
 
 {
  *  DisposeSGGrabCompressCompleteBottleUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -11231,7 +11231,7 @@ procedure DisposeSGGrabCompressCompleteBottleUPP( userUPP: SGGrabCompressComplet
 
 {
  *  DisposeSGDisplayCompressBottleUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -11242,7 +11242,7 @@ procedure DisposeSGDisplayCompressBottleUPP( userUPP: SGDisplayCompressBottleUPP
 
 {
  *  InvokeDataHCompletionUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -11253,7 +11253,7 @@ procedure InvokeDataHCompletionUPP( request: Ptr; refcon: SIGNEDLONG; err: OSErr
 
 {
  *  InvokeVdigIntUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -11264,7 +11264,7 @@ procedure InvokeVdigIntUPP( flags: SIGNEDLONG; refcon: SIGNEDLONG; userUPP: Vdig
 
 {
  *  InvokeStartDocumentHandlerUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -11275,7 +11275,7 @@ function InvokeStartDocumentHandlerUPP( refcon: SIGNEDLONG; userUPP: StartDocume
 
 {
  *  InvokeEndDocumentHandlerUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -11286,7 +11286,7 @@ function InvokeEndDocumentHandlerUPP( refcon: SIGNEDLONG; userUPP: EndDocumentHa
 
 {
  *  InvokeStartElementHandlerUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -11297,7 +11297,7 @@ function InvokeStartElementHandlerUPP( name: ConstCStringPtr; var atts: ConstCSt
 
 {
  *  InvokeEndElementHandlerUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -11308,7 +11308,7 @@ function InvokeEndElementHandlerUPP( name: ConstCStringPtr; refcon: SIGNEDLONG; 
 
 {
  *  InvokeCharDataHandlerUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -11319,7 +11319,7 @@ function InvokeCharDataHandlerUPP( charData: ConstCStringPtr; refcon: SIGNEDLONG
 
 {
  *  InvokePreprocessInstructionHandlerUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -11330,7 +11330,7 @@ function InvokePreprocessInstructionHandlerUPP( name: ConstCStringPtr; atts: Con
 
 {
  *  InvokeCommentHandlerUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -11341,7 +11341,7 @@ function InvokeCommentHandlerUPP( comment: ConstCStringPtr; refcon: SIGNEDLONG; 
 
 {
  *  InvokeCDataHandlerUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.6 and later
@@ -11352,7 +11352,7 @@ function InvokeCDataHandlerUPP( cdata: ConstCStringPtr; refcon: SIGNEDLONG; user
 
 {
  *  InvokeSGDataUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -11363,7 +11363,7 @@ function InvokeSGDataUPP( c: SGChannel; p: Ptr; len: SIGNEDLONG; var offset: SIG
 
 {
  *  InvokeSGModalFilterUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -11374,7 +11374,7 @@ function InvokeSGModalFilterUPP( theDialog: DialogRef; const (*var*) theEvent: E
 
 {
  *  InvokeSGGrabBottleUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -11385,7 +11385,7 @@ function InvokeSGGrabBottleUPP( c: SGChannel; bufferNum: SInt16; refCon: SIGNEDL
 
 {
  *  InvokeSGGrabCompleteBottleUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -11396,7 +11396,7 @@ function InvokeSGGrabCompleteBottleUPP( c: SGChannel; bufferNum: SInt16; var don
 
 {
  *  InvokeSGDisplayBottleUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -11407,7 +11407,7 @@ function InvokeSGDisplayBottleUPP( c: SGChannel; bufferNum: SInt16; var mp: Matr
 
 {
  *  InvokeSGCompressBottleUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -11418,7 +11418,7 @@ function InvokeSGCompressBottleUPP( c: SGChannel; bufferNum: SInt16; refCon: SIG
 
 {
  *  InvokeSGCompressCompleteBottleUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -11429,7 +11429,7 @@ function InvokeSGCompressCompleteBottleUPP( c: SGChannel; bufferNum: SInt16; var
 
 {
  *  InvokeSGAddFrameBottleUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -11440,7 +11440,7 @@ function InvokeSGAddFrameBottleUPP( c: SGChannel; bufferNum: SInt16; atTime: Tim
 
 {
  *  InvokeSGTransferFrameBottleUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -11451,7 +11451,7 @@ function InvokeSGTransferFrameBottleUPP( c: SGChannel; bufferNum: SInt16; var mp
 
 {
  *  InvokeSGGrabCompressCompleteBottleUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -11462,7 +11462,7 @@ function InvokeSGGrabCompressCompleteBottleUPP( c: SGChannel; var queuedFrameCou
 
 {
  *  InvokeSGDisplayCompressBottleUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later

@@ -1425,7 +1425,7 @@ type
     CTRLG: byte;  //Control Register G
     INTCTRL: byte;  //Interrupt Control Register
     INTFLAGS: byte;  //Interrupt Flag Register
-    PLC: byte;  //Peripheral Length Control Register 
+    PLC: byte;  //Peripheral Length Control Register
     CNTL: byte;  //Counter Register Low
     CNTH: byte;  //Counter Register High
     CMPL: byte;  //Compare Register Low
@@ -2537,7 +2537,7 @@ type
     FDDBDbm = $20;
     // Port Control Mode
     PORTCTRLbm = $10;
-    // Fuse State 
+    // Fuse State
     FUSEbm = $08;
     // Fault E Digital Filter Selection
     FILTEREbm = $04;
@@ -2653,7 +2653,7 @@ type
     PGVBUF: byte;  //Pattern Generation Value Buffer Register
     Reserved13: byte;
     Reserved14: byte;
-    OUTOVDIS: byte;  //Output Override Disable Register 
+    OUTOVDIS: byte;  //Output Override Disable Register
   const
     // Update Source Selection
     UPSELbm = $80;
@@ -2672,9 +2672,9 @@ type
     DTI1ENbm = $02;
     // Dead-Time Insertion Generator 0 Enable
     DTI0ENbm = $01;
-    // Swap Buffer Valid 
+    // Swap Buffer Valid
     SWAPBUFbm = $04;
-    // Pattern Generator Value Buffer Valid 
+    // Pattern Generator Value Buffer Valid
     PGVBUFVbm = $02;
     // Pattern Generator Overwrite Buffer Valid
     PGOBUFVbm = $01;
@@ -2686,11 +2686,11 @@ type
     SWAP1bm = $02;
     // Swap DTI output pair 0
     SWAP0bm = $01;
-    // Swap DTI output pair 3 
+    // Swap DTI output pair 3
     SWAP3BUFbm = $08;
     // Swap DTI output pair 2
     SWAP2BUFbm = $04;
-    // Swap DTI output pair 1 
+    // Swap DTI output pair 1
     SWAP1BUFbm = $02;
     // Swap DTI output pair 0
     SWAP0BUFbm = $01;

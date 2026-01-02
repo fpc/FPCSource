@@ -375,7 +375,7 @@ const
     kCFStringEncodingEBCDIC_CP037 = $0C02;	{ code page 037, extended EBCDIC (Latin-1 set) for US,Canada... }
 
     kCFStringEncodingUTF7 = $04000100; (* CF_AVAILABLE_STARTING(10_6, 4_0) *) { kTextEncodingUnicodeDefault + kUnicodeUTF7Format RFC2152 }
-    kCFStringEncodingUTF7_IMAP = $0A10; (* CF_AVAILABLE_STARTING(10_6, 4_0) *) { UTF-7 (IMAP folder variant) RFC3501 } 
+    kCFStringEncodingUTF7_IMAP = $0A10; (* CF_AVAILABLE_STARTING(10_6, 4_0) *) { UTF-7 (IMAP folder variant) RFC3501 }
 
     { Deprecated constants }
     kCFStringEncodingShiftJIS_X0213_00 = $0628; { Shift-JIS format encoding of JIS X0213 planes 1 and 2 (DEPRECATED) }

@@ -14,7 +14,7 @@ var
   // ANALOG_COMPARATOR
   ADCSRB : byte absolute $00+$23; // ADC Control and Status Register B
   ACSR : byte absolute $00+$28; // Analog Comparator Control And Status Register
-  DIDR0 : byte absolute $00+$21; // 
+  DIDR0 : byte absolute $00+$21; //
   // AD_CONVERTER
   ADMUX : byte absolute $00+$27; // ADC Multiplexer Selection Register
   ADCSRA : byte absolute $00+$26; // ADC Control and Status Register A
@@ -198,7 +198,7 @@ const
   Z = 1; // Zero Flag
   C = 0; // Carry Flag
   // MCUCR
-  PUD = 6; // 
+  PUD = 6; //
   SE = 5; // Sleep Enable
   SM = 3; // Sleep Mode Select Bits
   // MCUSR

@@ -143,7 +143,7 @@ begin
   //put bg 0 at a lower priority than the text background
   bgSetPriority(0, 1);
 
-  // Bottom screeen
+  // Bottom screen
   vramSetBankI(VRAM_I_SUB_BG_0x06208000);
   consoleInit(@bottomScreen, 0, BgType_Text4bpp, BgSize_T_256x256, 20, 0, false, false);
 
@@ -377,7 +377,7 @@ begin
 
       // Make the Anya's rotoscaled sprite translucent just for kicks
       // Use glSpriteRotateScaleXY() for some effect
-      // Give it a polygon ID so that transluceny would work
+      // Give it a polygon ID so that translucency would work
       glPolyFmt(POLY_ALPHA(20) or POLY_CULL_NONE or POLY_ID(1));
       glSpriteRotateScaleXY(SCREEN_WIDTH div 2, SCREEN_HEIGHT div 2,
           Frame * 140, sinLerp(Frame * 120) * 3, sinLerp(Frame * 210) * 2,

@@ -658,14 +658,14 @@ begin
   FDriver := CreateDriver(Stream, BufSize);
 {$ifdef FPC_HAS_FEATURE_THREADING}
   InitCriticalSection(FLock);
-{$ENDIF}  
+{$ENDIF}
 end;
 
 destructor TReader.Destroy;
 begin
 {$ifdef FPC_HAS_FEATURE_THREADING}
   DoneCriticalSection(FLock);
-{$ENDIF}  
+{$ENDIF}
   FDriver.Free;
   inherited Destroy;
 end;
@@ -674,14 +674,14 @@ procedure TReader.Lock;
 begin
 {$ifdef FPC_HAS_FEATURE_THREADING}
   EnterCriticalSection(FLock);
-{$ENDIF}  
+{$ENDIF}
 end;
 
 procedure TReader.Unlock;
 begin
 {$ifdef FPC_HAS_FEATURE_THREADING}
   LeaveCriticalSection(FLock);
-{$ENDIF}  
+{$ENDIF}
 end;
 
 procedure TReader.FlushBuffer;
@@ -789,7 +789,7 @@ Var
   L : TLinkedList;
   RI: Pointer; // raw interface
   IIDStr: ShortString;
-  
+
 begin
   If Assigned(FFixups) then
     begin
@@ -890,7 +890,7 @@ function TReader.ReadWideChar: WideChar;
 
 var
   W: WideString;
-  
+
 begin
   W := ReadWideString;
   if Length(W) = 1 then
@@ -898,12 +898,12 @@ begin
   else
     raise EReadError.Create(SInvalidPropertyValue);
 end;
-            
+
 function TReader.ReadUnicodeChar: UnicodeChar;
 
 var
   U: UnicodeString;
-  
+
 begin
   U := ReadUnicodeString;
   if Length(U) = 1 then
@@ -911,7 +911,7 @@ begin
   else
     raise EReadError.Create(SInvalidPropertyValue);
 end;
-            
+
 procedure TReader.ReadCollection(Collection: TCollection);
 var
   Item: TCollectionItem;
@@ -933,7 +933,7 @@ end;
 procedure TReader.SetName(aComponent: TComponent; var aName : string);
 
 begin
-  if Assigned(FOnSetName) then 
+  if Assigned(FOnSetName) then
     FOnSetName(Self,aComponent,aName);
   aComponent.Name:=aName;
 end;
@@ -1092,7 +1092,7 @@ end;
 procedure TReader.ReadData(Instance: TComponent);
 var
   SavedOwner, SavedParent: TComponent;
-  
+
 begin
   { Read properties }
   while not EndOfList do
@@ -1133,7 +1133,7 @@ end;
 
 function TReader.ReadDouble: Double;
 begin
-  // We have no vaDouble 
+  // We have no vaDouble
   Case FDriver.NextValue of
   vaExtended:
     begin
@@ -1246,13 +1246,13 @@ begin
     Result := ReadInteger;
 end;
 
-function TReader.ReadSet(EnumType: Pointer): Integer; 
+function TReader.ReadSet(EnumType: Pointer): Integer;
 begin
   if FDriver.NextValue = vaSet then
     begin
       FDriver.ReadValue;
       Result := FDriver.ReadSet(enumtype);
-    end 
+    end
   else
     Result := ReadInteger;
 end;
@@ -1496,7 +1496,7 @@ begin
     tkChar:
       SetOrdProp(Instance, PropInfo, Ord(ReadChar));
     tkWChar,tkUChar:
-      SetOrdProp(Instance, PropInfo, Ord(ReadWideChar));  
+      SetOrdProp(Instance, PropInfo, Ord(ReadWideChar));
     tkEnumeration:
       begin
         Value := GetEnumValue(PropType, ReadIdent);
@@ -1586,11 +1586,11 @@ begin
   end;
 end;
 
-procedure TReader.ReadPrefix(var aFlags: TFilerFlags; var aChildPos: Integer); 
+procedure TReader.ReadPrefix(var aFlags: TFilerFlags; var aChildPos: Integer);
 
 var
   CompUnitName, CompClassName, CompName : String;
-  
+
 begin
   if RawMode then
     Driver.ReadPrefix(aFlags,aChildPos)
@@ -1954,7 +1954,7 @@ begin
   ShortName:=AName;
   ShortClassName:=AClassName;
   Result:=FindInFieldTable(Root);
-  
+
   if (Result=nil) and assigned(LookupRoot) and (LookupRoot<>Root) then
     Result:=FindInFieldTable(LookupRoot);
 
@@ -1969,7 +1969,7 @@ begin
     if PersistentClass.InheritsFrom(TComponent) then
       Result := TComponentClass(PersistentClass);
   end;
-    
+
   if (Result=nil) and assigned(OnFindComponentClass) then
     OnFindComponentClass(Self, AClassName, Result);
 
@@ -1986,7 +1986,7 @@ var
   ResHandle: THandle;
   RootName, Delta, DeltaName: AnsiString;
   S: TStream;
-  
+
 begin
   if (Instance=nil) or not Assigned(Proc) then
     Raise EArgumentNilException.Create(SArgumentNil);
@@ -2000,12 +2000,12 @@ begin
      if ResHandle<>NilHandle then
        Break;
      end;
-  if ResHandle=NilHandle then 
-    exit;     
-{$ifdef FPC_OS_UNICODE}    
+  if ResHandle=NilHandle then
+    exit;
+{$ifdef FPC_OS_UNICODE}
 // Wince
   S:=TResourceStream.Create(NilHandle,DeltaName, PWideChar(RT_RCDATA));
-{$ELSE}  
+{$ELSE}
   S:=TResourceStream.Create(NilHandle,DeltaName, PAnsiChar(RT_RCDATA));
 {$ENDIF}
   try
@@ -2014,7 +2014,7 @@ begin
     S.Free;
   end;
 end;
-    
+
 { TAbstractObjectReader }
 
 procedure TAbstractObjectReader.FlushBuffer;

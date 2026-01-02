@@ -61,7 +61,7 @@ begin
 
     end;
 
-		//move the selection asterick
+		//move the selection asterisk
 		if ((pressed and KEY_UP) <> 0) and (selected > 0) then
       dec(selected);
 

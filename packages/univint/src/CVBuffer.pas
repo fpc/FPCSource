@@ -5,7 +5,7 @@
  *  Copyright (c) 2004 Apple Computer, Inc. All rights reserved.
  *
  }
- 
+
 {  Pascal Translation:  Gale R Paeper, <gpaeper@empirenet.com>, 2008 }
 {  Pascal Translation Update:  Gorazd Krosl, <gorazd_1957@yahoo.ca>, 2009 }
 {  Pascal Translation Update: Jonas Maebe <jonas@freepascal.org>, October 2012 }
@@ -222,14 +222,14 @@ uses MacTypes, CFBase, CFDictionary, CVBase, CVReturns;
 
 {$ALIGN POWER}
 
- 
+
  {! @header CVBuffer.h
 	@copyright 2004 Apple Computer, Inc. All rights reserved.
 	@availability Mac OS X 10.4 or later
     @discussion CVBufferRef types are abstract and only define ways to attach meta data to buffers (such as timestamps,
 	        colorspace information, etc.).    CVBufferRefs do not imply any particular kind of data storage.  It could
 		be compressed data, image data, etc.
-		   
+
 }
 
 

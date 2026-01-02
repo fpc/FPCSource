@@ -1,17 +1,17 @@
 {
      File:       OpenScripting/OSAComp.h
- 
+
      Contains:   AppleScript Component Implementor's Interfaces.
- 
+
      Version:    OSA-148~28
- 
+
      Copyright:  © 1992-2008 by Apple Computer, Inc., all rights reserved
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 
 {  Pascal Translation Updated: Gorazd Krosl <gorazd_1957@yahoo.ca>, October 2009 }
@@ -234,11 +234,11 @@ uses MacTypes,AEDataModel;
     Types and Constants
 *************************************************************************}
 {*************************************************************************
-    Routines for Associating a Storage Type with a Script Data Handle 
+    Routines for Associating a Storage Type with a Script Data Handle
 *************************************************************************}
 {
  *  OSAGetStorageType()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -250,7 +250,7 @@ function OSAGetStorageType( scriptData: AEDataStorage; var dscType: DescType ): 
 
 {
  *  OSAAddStorageType()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -262,7 +262,7 @@ function OSAAddStorageType( scriptData: AEDataStorage; dscType: DescType ): OSEr
 
 {
  *  OSARemoveStorageType()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later

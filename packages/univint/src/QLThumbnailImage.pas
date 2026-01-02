@@ -8,7 +8,7 @@
  }
 { Pascal Translation: Gorazd Krosl <gorazd_1957@yahoo.ca>, November 2009 }
 { Pascal Translation updated: Jonas Maebe <jonas@freepascal.org>, October 2012 }
- 
+
 {
     Modified for use with Free Pascal
     Version 308

@@ -417,7 +417,7 @@ function apr_getnameinfo(hostname: PPAnsiChar; sa: Papr_socket_t; flags: apr_int
  *   abc:65536             (invalid port number)
  *
  * @param addr The new buffer containing just the hostname.  On output, *addr
- *             will be NULL if no hostname/IP address was specfied.
+ *             will be NULL if no hostname/IP address was specified.
  * @param scope_id The new buffer containing just the scope id.  On output,
  *                 *scope_id will be NULL if no scope id was specified.
  * @param port The port number.  On output, *port will be 0 if no port was

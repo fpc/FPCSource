@@ -1,17 +1,17 @@
 {
      File:       ATS/ATSTypes.h
- 
+
      Contains:   Public interfaces for Apple Type Services components.
- 
+
      Version:    ATS
- 
+
      Copyright:  Copyright 1997-2012 by Apple Inc., all rights reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 
 {  Pascal Translation Updated: Gorazd Krosl <gorazd_1957@yahoo.ca>, October 2009 }
@@ -244,8 +244,8 @@ type
 
 {$ifc TARGET_CPU_64}
 {
-   ATSFSSpec serves as a temporary place holder for the FSSpec data type which is deprecated for 64-bit. 
-   A 64-bit replacement for FSSpec based APIs will be introduced.  
+   ATSFSSpec serves as a temporary place holder for the FSSpec data type which is deprecated for 64-bit.
+   A 64-bit replacement for FSSpec based APIs will be introduced.
 }
 type
 	ATSFSSpec = record
@@ -257,9 +257,9 @@ type
 type
 	ATSFSSpec = FSSpec;
 {$endc}  { TARGET_CPU_64 }
-	
+
 	ATSFSSpecPtr = ^ATSFSSpec;
-	
+
 { FMGeneration }
 
 	FMGeneration = UInt32;
@@ -273,14 +273,14 @@ type
 
 	FMFontFamily = SInt16;
 	FMFontFamilyPtr = ^FMFontFamily;
-	
+
 	FMFontStyle = SInt16;
 	FMFontStylePtr = ^FMFontStyle;
-	
+
 	FMFontSize = SInt16;
 	FMFontSizePtr = ^FMFontSize;
-	
-{ 
+
+{
    The font family is a collection of fonts, each of which is identified
    by an FMFont reference that maps to a single object registered with
    the font database. The font references associated with the font
@@ -290,7 +290,7 @@ type
 
 	FMFont = UInt32;
 	FMFontPtr = ^FMFont;
-	
+
 	FMFontFamilyInstancePtr = ^FMFontFamilyInstance;
 	FMFontFamilyInstance = record
 		fontFamily: FMFontFamily;
@@ -307,13 +307,13 @@ type
 		reserved: array[0..15] of UInt32;
 	end;
 	FMFontIteratorPtr = ^FMFontIterator;
-	
+
 
 	FMFontFamilyInstanceIterator = record
 		reserved: array[0..15] of UInt32;
 	end;
 	FMFontFamilyInstanceIteratorPtr = ^FMFontFamilyInstanceIterator;
-	
+
 const
 	kInvalidGeneration = 0;
 	kInvalidFontFamily = -1;
@@ -345,7 +345,7 @@ type
 
 {
  *  NewFMFontFamilyCallbackFilterUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -356,7 +356,7 @@ function NewFMFontFamilyCallbackFilterUPP( userRoutine: FMFontFamilyCallbackFilt
 
 {
  *  NewFMFontCallbackFilterUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -367,7 +367,7 @@ function NewFMFontCallbackFilterUPP( userRoutine: FMFontCallbackFilterProcPtr ):
 
 {
  *  DisposeFMFontFamilyCallbackFilterUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -378,7 +378,7 @@ procedure DisposeFMFontFamilyCallbackFilterUPP( userUPP: FMFontFamilyCallbackFil
 
 {
  *  DisposeFMFontCallbackFilterUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -389,7 +389,7 @@ procedure DisposeFMFontCallbackFilterUPP( userUPP: FMFontCallbackFilterUPP ); ex
 
 {
  *  InvokeFMFontFamilyCallbackFilterUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -400,7 +400,7 @@ function InvokeFMFontFamilyCallbackFilterUPP( iFontFamily: FMFontFamily; iRefCon
 
 {
  *  InvokeFMFontCallbackFilterUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -424,7 +424,7 @@ type
 		reserved: array[0..1] of UInt32;
 	end;
 	FMFontDirectoryFilterPtr = ^FMFontDirectoryFilter;
-	
+
 {
    Note: The fontContainerFilter member is not available in 64-bit. Use fontFileRefFilter
    and the kFMFontFileRefFilterSelector enum instead.
@@ -440,27 +440,27 @@ type
 			5:	(fontDirectoryFilter: FMFontDirectoryFilter);
 			6:	(fontFileRefFilter: { const } FSRefPtr);
 	end;
-	
+
 	FMFilter = record
 		format: UInt32;
 		selector: FMFilterSelector;
 		filter : FMFilterfilter;
 	end;
 	FMFilterPtr = ^FMFilter;
-	
+
 	ATSOptionFlags = OptionBits;
 	ATSGeneration = UInt32;
 	ATSFontContainerRef = UInt32;
-	
+
 	ATSFontFamilyRef = UInt32;
 	ATSFontFamilyRefPtr = ^ATSFontFamilyRef;
-	
+
 	ATSFontRef = UInt32;
 	ATSFontRefPtr = ^ATSFontRef;
 
 	ATSGlyphRef = UInt16;
 	ATSGlyphRefPtr = ^ATSGlyphRef;
-	
+
 	ATSFontSize = CGFloat;
 	ATSFontFormat = UInt32;
 const
@@ -497,7 +497,7 @@ type
 		underlineThickness: CGFloat;     { Stroke width for underlining }
 	end;
 	ATSFontMetricsPtr = ^ATSFontMetrics;
-	
+
 const
 	kATSItalicQDSkew = (1 shl 16) / 4; { fixed value of 0.25 }
 	kATSBoldQDStretch = (1 shl 16) * 3 / 2; { fixed value of 1.50 }
@@ -511,7 +511,7 @@ const
 	kATSQuadCurveType = $0002;
 	kATSOtherCurveType = $0003;
 
-{ 
+{
     This is what the ATSGlyphRef is set to when the glyph is deleted -
     that is, when the glyph is set to no longer appear when the layout
     is actually drawn

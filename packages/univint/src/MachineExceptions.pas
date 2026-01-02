@@ -1,9 +1,9 @@
 {
      File:       CarbonCore/MachineExceptions.h
- 
+
      Contains:   Processor Exception Handling Interfaces.
                  The contents of this header file are deprecated.
- 
+
      Copyright:  © 1993-2011 by Apple Inc. All rights reserved.
 }
 {     Pascal Translation Updated:  Gale R Paeper, <gpaeper@empirenet.com>, June 2018 }
@@ -592,9 +592,9 @@ type
 	end;
 {$endc}  { TARGET_CPU_ARM64 }
 
-{ 
+{
     Note:   An ExceptionHandler is NOT a UniversalProcPtr, except in Carbon.
-            It must be a PowerPC function pointer with NO routine descriptor, 
+            It must be a PowerPC function pointer with NO routine descriptor,
             except on Carbon, where it must be a UniversalProcPtr (TPP actually)
             to allow the interface to work from both CFM and Mach-O.
 }
@@ -604,7 +604,7 @@ type
 
 {
  *  NewExceptionHandlerUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -615,7 +615,7 @@ function NewExceptionHandlerUPP( userRoutine: ExceptionHandlerProcPtr ): Excepti
 
 {
  *  DisposeExceptionHandlerUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -626,7 +626,7 @@ procedure DisposeExceptionHandlerUPP( userUPP: ExceptionHandlerUPP ); external n
 
 {
  *  InvokeExceptionHandlerUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -649,7 +649,7 @@ type
 { Routine for installing per-process exception handlers }
 {
  *  InstallExceptionHandler()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.1 and later

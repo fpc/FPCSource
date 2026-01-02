@@ -81,7 +81,7 @@ type
     wint_t    = cint32;
     wchar_t   = cint32;
     pwchar_t  = ^wchar_t;
-    
+
     clock_t  = culong;
     TClock   = clock_t;
     pClock   = ^clock_t;
@@ -98,8 +98,8 @@ type
 Const
     MNAMELEN   = 90;      // found in sys/mount.h
     MNAMLEN = MNAMELEN; // Keep all constant name.
-    MFSNAMELEN = 16;// found in sys/compat/sys/mount.h	
-    MFSNamLen = MFSNAMELEN;	
+    MFSNAMELEN = 16;// found in sys/compat/sys/mount.h
+    MFSNamLen = MFSNAMELEN;
 type
 { Checked, found in sys/fstypes.h }
     fsid_t  = array[0..1] of cint32;
@@ -147,7 +147,7 @@ struct statfs12 {
       mountpoint     : array[0..MNAMLEN-1] of AnsiChar;
       mnfromname     : array[0..MNAMLEN-1] of AnsiChar;
     end;
-    TStatFS = TStatFS12;   
+    TStatFS = TStatFS12;
     PStatFS=^TStatFS;
     timeval = packed record
                 tv_sec,
@@ -169,8 +169,8 @@ struct statfs12 {
         1: (_mbstateL: cint64); { for alignment }
     end;
    pmbstate_t = ^mbstate_t;
- 
-{ records transcripted fromm NetBSD 5.1 libpthread sources } 
+
+{ records transcripted fromm NetBSD 5.1 libpthread sources }
    pthread_t            = pointer;
    pthread_attr_t       = record
      pta_magic : cuint;

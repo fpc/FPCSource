@@ -134,15 +134,15 @@ var
   DIDR2 : byte absolute $00+$7D; // Digital Input Disable Register 1
   // ANALOG_COMPARATOR
   ACSR : byte absolute $00+$50; // Analog Comparator Control And Status Register
-  DIDR1 : byte absolute $00+$7F; // 
+  DIDR1 : byte absolute $00+$7F; //
   // CPU
   SREG : byte absolute $00+$5F; // Status Register
-  SP : word absolute $00+$5D; // Stack Pointer 
-  SPL : byte absolute $00+$5D; // Stack Pointer 
-  SPH : byte absolute $00+$5D+1; // Stack Pointer 
+  SP : word absolute $00+$5D; // Stack Pointer
+  SPL : byte absolute $00+$5D; // Stack Pointer
+  SPH : byte absolute $00+$5D+1; // Stack Pointer
   OSCCAL : byte absolute $00+$66; // Oscillator Calibration Value
   RCCTRL : byte absolute $00+$67; // Oscillator Control Register
-  CLKPR : byte absolute $00+$61; // 
+  CLKPR : byte absolute $00+$61; //
   SMCR : byte absolute $00+$53; // Sleep Mode Control Register
   EIND : byte absolute $00+$5C; // Extended Indirect Register
   GPIOR2 : byte absolute $00+$4B; // General Purpose IO Register 2
@@ -150,38 +150,38 @@ var
   GPIOR0 : byte absolute $00+$3E; // General Purpose IO Register 0
   PRR1 : byte absolute $00+$65; // Power Reduction Register1
   PRR0 : byte absolute $00+$64; // Power Reduction Register0
-  CLKSTA : byte absolute $00+$C7; // 
-  CLKSEL1 : byte absolute $00+$C6; // 
-  CLKSEL0 : byte absolute $00+$C5; // 
+  CLKSTA : byte absolute $00+$C7; //
+  CLKSEL1 : byte absolute $00+$C6; //
+  CLKSEL0 : byte absolute $00+$C5; //
   // PLL
   PLLCSR : byte absolute $00+$49; // PLL Status and Control register
   PLLFRQ : byte absolute $00+$52; // PLL Frequency Control Register
   // USB_DEVICE
-  UEINT : byte absolute $00+$F4; // 
-  UEBCHX : byte absolute $00+$F3; // 
-  UEBCLX : byte absolute $00+$F2; // 
-  UEDATX : byte absolute $00+$F1; // 
-  UEIENX : byte absolute $00+$F0; // 
-  UESTA1X : byte absolute $00+$EF; // 
-  UESTA0X : byte absolute $00+$EE; // 
-  UECFG1X : byte absolute $00+$ED; // 
-  UECFG0X : byte absolute $00+$EC; // 
-  UECONX : byte absolute $00+$EB; // 
-  UERST : byte absolute $00+$EA; // 
-  UENUM : byte absolute $00+$E9; // 
-  UEINTX : byte absolute $00+$E8; // 
-  UDMFN : byte absolute $00+$E6; // 
-  UDFNUM : word absolute $00+$E4; // 
-  UDFNUML : byte absolute $00+$E4; // 
-  UDFNUMH : byte absolute $00+$E4+1; // 
-  UDADDR : byte absolute $00+$E3; // 
-  UDIEN : byte absolute $00+$E2; // 
-  UDINT : byte absolute $00+$E1; // 
-  UDCON : byte absolute $00+$E0; // 
+  UEINT : byte absolute $00+$F4; //
+  UEBCHX : byte absolute $00+$F3; //
+  UEBCLX : byte absolute $00+$F2; //
+  UEDATX : byte absolute $00+$F1; //
+  UEIENX : byte absolute $00+$F0; //
+  UESTA1X : byte absolute $00+$EF; //
+  UESTA0X : byte absolute $00+$EE; //
+  UECFG1X : byte absolute $00+$ED; //
+  UECFG0X : byte absolute $00+$EC; //
+  UECONX : byte absolute $00+$EB; //
+  UERST : byte absolute $00+$EA; //
+  UENUM : byte absolute $00+$E9; //
+  UEINTX : byte absolute $00+$E8; //
+  UDMFN : byte absolute $00+$E6; //
+  UDFNUM : word absolute $00+$E4; //
+  UDFNUML : byte absolute $00+$E4; //
+  UDFNUMH : byte absolute $00+$E4+1; //
+  UDADDR : byte absolute $00+$E3; //
+  UDIEN : byte absolute $00+$E2; //
+  UDINT : byte absolute $00+$E1; //
+  UDCON : byte absolute $00+$E0; //
   USBCON : byte absolute $00+$D8; // USB General Control Register
-  USBINT : byte absolute $00+$DA; // 
-  USBSTA : byte absolute $00+$D9; // 
-  UHWCON : byte absolute $00+$D7; // 
+  USBINT : byte absolute $00+$DA; //
+  USBSTA : byte absolute $00+$D9; //
+  UHWCON : byte absolute $00+$D7; //
 
 const
   // WDTCSR
@@ -244,7 +244,7 @@ const
   // TCCR0B
   FOC0A = 7; // Force Output Compare A
   FOC0B = 6; // Force Output Compare B
-  WGM02 = 3; // 
+  WGM02 = 3; //
   CS0 = 0; // Clock Select
   // TCCR0A
   COM0A = 6; // Compare Output Mode, Phase Correct PWM Mode
@@ -338,8 +338,8 @@ const
   COM4B = 4; // Compare Output Mode 4B, bits
   FOC4A = 3; // Force Output Compare Match 4A
   FOC4B = 2; // Force Output Compare Match 4B
-  PWM4A = 1; // 
-  PWM4B = 0; // 
+  PWM4A = 1; //
+  PWM4B = 0; //
   // TCCR4B
   PWM4X = 7; // PWM Inversion Mode
   PSR4 = 6; // Prescaler Reset Timer/Counter 4
@@ -440,10 +440,10 @@ const
   EXTRF = 1; // External Reset Flag
   PORF = 0; // Power-on reset flag
   // RCCTRL
-  RCFREQ = 0; // 
+  RCFREQ = 0; //
   // CLKPR
-  CLKPCE = 7; // 
-  CLKPS = 0; // 
+  CLKPCE = 7; //
+  CLKPS = 0; //
   // SMCR
   SM = 1; // Sleep Mode Select bits
   SE = 0; // Sleep Enable
@@ -472,104 +472,104 @@ const
   PRUSART0 = 1; // Power Reduction USART
   PRADC = 0; // Power Reduction ADC
   // CLKSTA
-  RCON = 1; // 
-  EXTON = 0; // 
+  RCON = 1; //
+  EXTON = 0; //
   // CLKSEL1
-  RCCKSEL = 4; // 
-  EXCKSEL = 0; // 
+  RCCKSEL = 4; //
+  EXCKSEL = 0; //
   // CLKSEL0
-  RCSUT = 6; // 
-  EXSUT = 4; // 
-  RCE = 3; // 
-  EXTE = 2; // 
-  CLKS = 0; // 
+  RCSUT = 6; //
+  EXSUT = 4; //
+  RCE = 3; //
+  EXTE = 2; //
+  CLKS = 0; //
   // PLLCSR
   PINDIV = 4; // PLL prescaler Bit 2
   PLLE = 1; // PLL Enable Bit
   PLOCK = 0; // PLL Lock Status Bit
   // PLLFRQ
-  PINMUX = 7; // 
-  PLLUSB = 6; // 
-  PLLTM = 4; // 
-  PDIV = 0; // 
+  PINMUX = 7; //
+  PLLUSB = 6; //
+  PLLTM = 4; //
+  PDIV = 0; //
   // UEDATX
-  DAT = 0; // 
+  DAT = 0; //
   // UEIENX
-  FLERRE = 7; // 
-  NAKINE = 6; // 
-  NAKOUTE = 4; // 
-  RXSTPE = 3; // 
-  RXOUTE = 2; // 
-  STALLEDE = 1; // 
-  TXINE = 0; // 
+  FLERRE = 7; //
+  NAKINE = 6; //
+  NAKOUTE = 4; //
+  RXSTPE = 3; //
+  RXOUTE = 2; //
+  STALLEDE = 1; //
+  TXINE = 0; //
   // UESTA1X
-  CTRLDIR = 2; // 
-  CURRBK = 0; // 
+  CTRLDIR = 2; //
+  CURRBK = 0; //
   // UESTA0X
-  CFGOK = 7; // 
-  OVERFI = 6; // 
-  UNDERFI = 5; // 
-  DTSEQ = 2; // 
-  NBUSYBK = 0; // 
+  CFGOK = 7; //
+  OVERFI = 6; //
+  UNDERFI = 5; //
+  DTSEQ = 2; //
+  NBUSYBK = 0; //
   // UECFG1X
-  EPSIZE = 4; // 
-  EPBK = 2; // 
-  ALLOC = 1; // 
+  EPSIZE = 4; //
+  EPBK = 2; //
+  ALLOC = 1; //
   // UECFG0X
-  EPTYPE = 6; // 
-  EPDIR = 0; // 
+  EPTYPE = 6; //
+  EPDIR = 0; //
   // UECONX
-  STALLRQ = 5; // 
-  STALLRQC = 4; // 
-  RSTDT = 3; // 
-  EPEN = 0; // 
+  STALLRQ = 5; //
+  STALLRQC = 4; //
+  RSTDT = 3; //
+  EPEN = 0; //
   // UERST
-  EPRST = 0; // 
+  EPRST = 0; //
   // UEINTX
-  FIFOCON = 7; // 
-  NAKINI = 6; // 
-  RWAL = 5; // 
-  NAKOUTI = 4; // 
-  RXSTPI = 3; // 
-  RXOUTI = 2; // 
-  STALLEDI = 1; // 
-  TXINI = 0; // 
+  FIFOCON = 7; //
+  NAKINI = 6; //
+  RWAL = 5; //
+  NAKOUTI = 4; //
+  RXSTPI = 3; //
+  RXOUTI = 2; //
+  STALLEDI = 1; //
+  TXINI = 0; //
   // UDMFN
-  FNCERR = 4; // 
+  FNCERR = 4; //
   // UDADDR
-  ADDEN = 7; // 
-  UADD = 0; // 
+  ADDEN = 7; //
+  UADD = 0; //
   // UDIEN
-  UPRSME = 6; // 
-  EORSME = 5; // 
-  WAKEUPE = 4; // 
-  EORSTE = 3; // 
-  SOFE = 2; // 
-  SUSPE = 0; // 
+  UPRSME = 6; //
+  EORSME = 5; //
+  WAKEUPE = 4; //
+  EORSTE = 3; //
+  SOFE = 2; //
+  SUSPE = 0; //
   // UDINT
-  UPRSMI = 6; // 
-  EORSMI = 5; // 
-  WAKEUPI = 4; // 
-  EORSTI = 3; // 
-  SOFI = 2; // 
-  SUSPI = 0; // 
+  UPRSMI = 6; //
+  EORSMI = 5; //
+  WAKEUPI = 4; //
+  EORSTI = 3; //
+  SOFI = 2; //
+  SUSPI = 0; //
   // UDCON
   LSM = 2; // USB low speed mode
-  RSTCPU = 3; // 
-  RMWKUP = 1; // 
-  DETACH = 0; // 
+  RSTCPU = 3; //
+  RMWKUP = 1; //
+  DETACH = 0; //
   // USBCON
-  USBE = 7; // 
-  FRZCLK = 5; // 
-  OTGPADE = 4; // 
-  VBUSTE = 0; // 
+  USBE = 7; //
+  FRZCLK = 5; //
+  OTGPADE = 4; //
+  VBUSTE = 0; //
   // USBINT
-  VBUSTI = 0; // 
+  VBUSTI = 0; //
   // USBSTA
-  SPEED = 3; // 
-  VBUS = 0; // 
+  SPEED = 3; //
+  VBUS = 0; //
   // UHWCON
-  UVREGE = 0; // 
+  UVREGE = 0; //
 
 implementation
 
@@ -610,7 +610,7 @@ procedure TIMER3_COMPA_ISR; external name 'TIMER3_COMPA_ISR'; // Interrupt 32 Ti
 procedure TIMER3_COMPB_ISR; external name 'TIMER3_COMPB_ISR'; // Interrupt 33 Timer/Counter3 Compare Match B
 procedure TIMER3_COMPC_ISR; external name 'TIMER3_COMPC_ISR'; // Interrupt 34 Timer/Counter3 Compare Match C
 procedure TIMER3_OVF_ISR; external name 'TIMER3_OVF_ISR'; // Interrupt 35 Timer/Counter3 Overflow
-procedure TWI_ISR; external name 'TWI_ISR'; // Interrupt 36 2-wire Serial Interface        
+procedure TWI_ISR; external name 'TWI_ISR'; // Interrupt 36 2-wire Serial Interface
 procedure SPM_READY_ISR; external name 'SPM_READY_ISR'; // Interrupt 37 Store Program Memory Read
 procedure TIMER4_COMPA_ISR; external name 'TIMER4_COMPA_ISR'; // Interrupt 38 Timer/Counter4 Compare Match A
 procedure TIMER4_COMPB_ISR; external name 'TIMER4_COMPB_ISR'; // Interrupt 39 Timer/Counter4 Compare Match B

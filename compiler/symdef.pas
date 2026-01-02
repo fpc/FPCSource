@@ -372,6 +372,8 @@ interface
           function is_visible_for_rtti(option: trtti_option; vis: tvisibility): boolean; inline;
           function rtti_visibilities_for_option(option: trtti_option): tvisibilities; inline;
           function has_extended_rtti: boolean; inline;
+          { update the name of the object, typically needed after getcopy }
+          procedure setobjrealname(const n: string);
        end;
 
        pvariantrecdesc = ^tvariantrecdesc;
@@ -5349,6 +5351,12 @@ implementation
           end;
       end;
 {$endif DEBUG_NODE_XML}
+
+    procedure tabstractrecorddef.setobjrealname(const n:string);
+      begin
+        Freemem(objrealname);
+        objrealname:=stringdup(n);
+      end;
 
 {***************************************************************************
                                   trecorddef

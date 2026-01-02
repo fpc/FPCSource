@@ -212,7 +212,7 @@ uses MacTypes,CFBase;
 {$ALIGN POWER}
 
 
-    
+
 type
 	CFDataRef = ^__CFData; { an opaque type }
 	__CFData = record end;

@@ -2029,7 +2029,7 @@ function LoWord(arg: UInt32): UInt16; inline;
 begin
   LoWord := UInt16(arg);
 end;
-  
+
 
 {$endc} {TARGET_OS_MAC}
 
@@ -2181,7 +2181,7 @@ begin
 	kQLGeneratorTypeID := CFUUIDGetConstantUUIDWithBytes(kCFAllocatorDefault, $5E, $2D, $96, $80, $50, $22, $40, $FA, $B8, $06, $43, $34, $96, $22, $E5, $B9)
 end;
 
-function kQLGeneratorCallbacksInterfaceID: CFUUIDRef; inline; 
+function kQLGeneratorCallbacksInterfaceID: CFUUIDRef; inline;
 begin
 	kQLGeneratorCallbacksInterfaceID := CFUUIDGetConstantUUIDWithBytes(kCFAllocatorDefault, $86, $5A, $F5, $E0, $6D, $30, $43, $45, $95, $1B, $D3, $71, $05, $75, $4F, $2D)
 end;

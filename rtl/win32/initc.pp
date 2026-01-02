@@ -25,7 +25,7 @@ uses
 uses
   ctypes;
 {$ENDIF FPC_DOTTEDUNITS}
-  
+
 function fpgetCerrno:cint;
 procedure fpsetCerrno(err:cint);
 

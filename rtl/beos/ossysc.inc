@@ -118,7 +118,7 @@ begin
   args.param[3] := flags;
   args.param[4] := cint(mode);
   args.param[5] := 0;               { close on execute flag }
-  fpopen:= SysCall(syscall_nr_open, args);   
+  fpopen:= SysCall(syscall_nr_open, args);
 {Begin
  Fpopen:=do_syscall(syscall_nr_open,TSysParam(path),TSysParam(flags),TSysParam(mode));
 }
@@ -159,7 +159,7 @@ var
 
 begin
   args.param[1] := fd;
-  args.param[2] := cint(offset and $FFFFFFFF);      
+  args.param[2] := cint(offset and $FFFFFFFF);
   args.param[3] := cint((offset shr 32) and $FFFFFFFF);
   args.param[4] := whence;
   { we currently only support seeks upto 32-bit in length }
@@ -175,15 +175,15 @@ type
   twstat = packed record
 {00}   filler : array[1..3] of longint;
 {12}   newmode : mode_t;     { chmod mode_t parameter }
-{16}   unknown1 : longint;  
-{20}   newuser : uid_t;      { chown uid_t parameter  } 
+{16}   unknown1 : longint;
+{20}   newuser : uid_t;      { chown uid_t parameter  }
 {24}   newgroup : gid_t;     { chown gid_t parameter  }
 {28}   trunc_offset : off_t; { ftrucnate parameter    }
 {36}   unknown2 : array[1..2] of longint;
-{44}   utime_param: int64;  
+{44}   utime_param: int64;
 {52}   unknown3 : array[1..2] of longint;
   end;
-  
+
 function Fpftruncate(fd : cint; flength : off_t): cint; [public, alias : 'FPC_SYSC_FTRUNCATE'];
 var
   args: SysCallArgs;
@@ -206,7 +206,7 @@ end;
 
 const
   B_OS_NAME_LENGTH = 32;
-  B_PAGE_SIZE = 4096;  
+  B_PAGE_SIZE = 4096;
 
 const
   B_NO_LOCK       = 0;
@@ -226,7 +226,7 @@ const
 
 type
   area_id   = Longint;
-  
+
 function create_area(name : PAnsiChar; var addr : longint;
   addr_typ : longint; size : longint; lock_type: longint; protection : longint): area_id;
 var
@@ -256,7 +256,7 @@ begin
   Str(len, s);
   WriteLn(s);
   myheapstart:=start;
-{$IFDEF FPC_USE_LIBC}  
+{$IFDEF FPC_USE_LIBC}
   heap_handle := create_area('fpcheap',myheapstart,0,len,0,3);//!!
 {$ELSE}
   heap_handle := create_area('fpcheap',longint(myheapstart),0,len,0,3);//!!
@@ -328,7 +328,7 @@ begin
    end
   else
    begin
-     fpwrite := -1; 
+     fpwrite := -1;
      errno := errorcode;
    end;
 {begin
@@ -934,7 +934,7 @@ extern _IMPEXP_ROOT status_t  get_nth_image_symbol(image_id imid, int32 index,
                   void **ptr);
 }
 
-// 
+//
 {$ifdef FPC_USE_LIBC}
 
 // private; use the macros, below
@@ -993,7 +993,7 @@ end;
        args.param[3] := cint(@info);
        args.param[4] := cint(sizeof(image_info));
        get_next_image_info := SysCall(syscall_nr_get_next_image_info, args);
-   end;       
+   end;
 
     function load_image(argc : longint; argv : PPAnsiChar; envp : PPAnsiChar): thread_id;
      var
@@ -1005,7 +1005,7 @@ end;
        args.param[3] := cint(envp);
        load_image := SysCall(syscall_nr_load_image, args);
      end;
-    
+
     function get_system_info(var info: system_info): status_t;
      var
       args: SysCallArgs;
@@ -1045,7 +1045,7 @@ end;
        args.param[5] := cint(@info);
        fs_stat_dev := SysCall(syscall_nr_statfs, args);
      end;
-     
+
 {$endif}
 
 

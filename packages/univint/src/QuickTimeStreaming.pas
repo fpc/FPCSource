@@ -1,17 +1,17 @@
 {
      File:       QuickTime/QuickTimeStreaming.h
- 
+
      Contains:   QuickTime Interfaces.
- 
+
      Version:    QuickTime 7.7.1
- 
+
      Copyright:  © 1990-2012 by Apple Inc., all rights reserved
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
@@ -682,7 +682,7 @@ type
 { all "apps" must call this }
 {
  *  InitializeQTS()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -695,7 +695,7 @@ function InitializeQTS: OSErr; external name '_InitializeQTS';
 
 {
  *  TerminateQTS()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -711,7 +711,7 @@ function TerminateQTS: OSErr; external name '_TerminateQTS';
 -----------------------------------------}
 {
  *  QTSNewPresentation()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -724,7 +724,7 @@ function QTSNewPresentation( const (*var*) inParams: QTSNewPresentationParams; v
 
 {
  *  QTSNewPresentationFromData()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -737,7 +737,7 @@ function QTSNewPresentationFromData( inDataType: OSType; inData: {const} UnivPtr
 
 {
  *  QTSNewPresentationFromFile()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -750,7 +750,7 @@ function QTSNewPresentationFromFile( const (*var*) inFileSpec: FSSpec; const (*v
 
 {
  *  QTSNewPresentationFromDataRef()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -763,7 +763,7 @@ function QTSNewPresentationFromDataRef( inDataRef: Handle; inDataRefType: OSType
 
 {
  *  QTSDisposePresentation()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -776,7 +776,7 @@ function QTSDisposePresentation( inPresentation: QTSPresentation; inFlags: SInt3
 
 {
  *  QTSPresExport()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -789,7 +789,7 @@ function QTSPresExport( inPresentation: QTSPresentation; inStream: QTSStream; va
 
 {
  *  QTSPresIdle()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -802,7 +802,7 @@ procedure QTSPresIdle( inPresentation: QTSPresentation; var ioParams: QTSPresIdl
 
 {
  *  QTSPresInvalidateRegion()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -818,7 +818,7 @@ function QTSPresInvalidateRegion( inPresentation: QTSPresentation; inRegion: Rgn
 -----------------------------------------}
 {
  *  QTSPresSetFlags()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -831,7 +831,7 @@ function QTSPresSetFlags( inPresentation: QTSPresentation; inFlags: SInt32; inFl
 
 {
  *  QTSPresGetFlags()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -844,7 +844,7 @@ function QTSPresGetFlags( inPresentation: QTSPresentation; var outFlags: SInt32 
 
 {
  *  QTSPresGetTimeBase()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -857,7 +857,7 @@ function QTSPresGetTimeBase( inPresentation: QTSPresentation; var outTimeBase: T
 
 {
  *  QTSPresGetTimeScale()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -870,7 +870,7 @@ function QTSPresGetTimeScale( inPresentation: QTSPresentation; var outTimeScale:
 
 {
  *  QTSPresSetInfo()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -883,7 +883,7 @@ function QTSPresSetInfo( inPresentation: QTSPresentation; inStream: QTSStream; i
 
 {
  *  QTSPresGetInfo()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -896,7 +896,7 @@ function QTSPresGetInfo( inPresentation: QTSPresentation; inStream: QTSStream; i
 
 {
  *  QTSPresHasCharacteristic()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -909,7 +909,7 @@ function QTSPresHasCharacteristic( inPresentation: QTSPresentation; inStream: QT
 
 {
  *  QTSPresSetNotificationProc()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -922,7 +922,7 @@ function QTSPresSetNotificationProc( inPresentation: QTSPresentation; inNotifica
 
 {
  *  QTSPresGetNotificationProc()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -938,7 +938,7 @@ function QTSPresGetNotificationProc( inPresentation: QTSPresentation; var outNot
 -----------------------------------------}
 {
  *  QTSPresPreview()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -950,7 +950,7 @@ function QTSPresPreview( inPresentation: QTSPresentation; inStream: QTSStream; (
 
 {
  *  QTSPresPreroll()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -963,7 +963,7 @@ function QTSPresPreroll( inPresentation: QTSPresentation; inStream: QTSStream; i
 
 {
  *  QTSPresPreroll64()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -976,7 +976,7 @@ function QTSPresPreroll64( inPresentation: QTSPresentation; inStream: QTSStream;
 
 {
  *  QTSPresStart()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -989,7 +989,7 @@ function QTSPresStart( inPresentation: QTSPresentation; inStream: QTSStream; inF
 
 {
  *  QTSPresSkipTo()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1002,7 +1002,7 @@ function QTSPresSkipTo( inPresentation: QTSPresentation; inTimeValue: UInt32 ): 
 
 {
  *  QTSPresSkipTo64()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1015,7 +1015,7 @@ function QTSPresSkipTo64( inPresentation: QTSPresentation; (*const*) var inTimeV
 
 {
  *  QTSPresStop()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1034,7 +1034,7 @@ function QTSPresStop( inPresentation: QTSPresentation; inStream: QTSStream; inFl
 -----------------------------------------}
 {
  *  QTSPresNewStream()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1047,7 +1047,7 @@ function QTSPresNewStream( inPresentation: QTSPresentation; inDataType: OSType; 
 
 {
  *  QTSDisposeStream()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1060,7 +1060,7 @@ function QTSDisposeStream( inStream: QTSStream; inFlags: SInt32 ): OSErr; extern
 
 {
  *  QTSPresGetNumStreams()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1073,7 +1073,7 @@ function QTSPresGetNumStreams( inPresentation: QTSPresentation ): UInt32; extern
 
 {
  *  QTSPresGetIndStream()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1086,7 +1086,7 @@ function QTSPresGetIndStream( inPresentation: QTSPresentation; inIndex: UInt32 )
 
 {
  *  QTSGetStreamPresentation()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1099,7 +1099,7 @@ function QTSGetStreamPresentation( inStream: QTSStream ): QTSPresentation; exter
 
 {
  *  QTSPresSetPreferredRate()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1112,7 +1112,7 @@ function QTSPresSetPreferredRate( inPresentation: QTSPresentation; inRate: Fixed
 
 {
  *  QTSPresGetPreferredRate()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1125,7 +1125,7 @@ function QTSPresGetPreferredRate( inPresentation: QTSPresentation; var outRate: 
 
 {
  *  QTSPresSetEnable()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1138,7 +1138,7 @@ function QTSPresSetEnable( inPresentation: QTSPresentation; inStream: QTSStream;
 
 {
  *  QTSPresGetEnable()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1151,7 +1151,7 @@ function QTSPresGetEnable( inPresentation: QTSPresentation; inStream: QTSStream;
 
 {
  *  QTSPresSetPresenting()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1164,7 +1164,7 @@ function QTSPresSetPresenting( inPresentation: QTSPresentation; inStream: QTSStr
 
 {
  *  QTSPresGetPresenting()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1177,7 +1177,7 @@ function QTSPresGetPresenting( inPresentation: QTSPresentation; inStream: QTSStr
 
 {
  *  QTSPresSetActiveSegment()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1190,7 +1190,7 @@ function QTSPresSetActiveSegment( inPresentation: QTSPresentation; inStream: QTS
 
 {
  *  QTSPresGetActiveSegment()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1203,7 +1203,7 @@ function QTSPresGetActiveSegment( inPresentation: QTSPresentation; inStream: QTS
 
 {
  *  QTSPresSetPlayHints()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1216,7 +1216,7 @@ function QTSPresSetPlayHints( inPresentation: QTSPresentation; inStream: QTSStre
 
 {
  *  QTSPresGetPlayHints()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1232,7 +1232,7 @@ function QTSPresGetPlayHints( inPresentation: QTSPresentation; inStream: QTSStre
 -----------------------------------------}
 {
  *  QTSPresSetGWorld()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1245,7 +1245,7 @@ function QTSPresSetGWorld( inPresentation: QTSPresentation; inStream: QTSStream;
 
 {
  *  QTSPresGetGWorld()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1258,7 +1258,7 @@ function QTSPresGetGWorld( inPresentation: QTSPresentation; inStream: QTSStream;
 
 {
  *  QTSPresSetClip()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1271,7 +1271,7 @@ function QTSPresSetClip( inPresentation: QTSPresentation; inStream: QTSStream; i
 
 {
  *  QTSPresGetClip()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1284,7 +1284,7 @@ function QTSPresGetClip( inPresentation: QTSPresentation; inStream: QTSStream; v
 
 {
  *  QTSPresSetMatrix()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1297,7 +1297,7 @@ function QTSPresSetMatrix( inPresentation: QTSPresentation; inStream: QTSStream;
 
 {
  *  QTSPresGetMatrix()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1310,7 +1310,7 @@ function QTSPresGetMatrix( inPresentation: QTSPresentation; inStream: QTSStream;
 
 {
  *  QTSPresSetDimensions()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1323,7 +1323,7 @@ function QTSPresSetDimensions( inPresentation: QTSPresentation; inStream: QTSStr
 
 {
  *  QTSPresGetDimensions()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1336,7 +1336,7 @@ function QTSPresGetDimensions( inPresentation: QTSPresentation; inStream: QTSStr
 
 {
  *  QTSPresSetGraphicsMode()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1349,7 +1349,7 @@ function QTSPresSetGraphicsMode( inPresentation: QTSPresentation; inStream: QTSS
 
 {
  *  QTSPresGetGraphicsMode()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1362,7 +1362,7 @@ function QTSPresGetGraphicsMode( inPresentation: QTSPresentation; inStream: QTSS
 
 {
  *  QTSPresGetPicture()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1375,7 +1375,7 @@ function QTSPresGetPicture( inPresentation: QTSPresentation; inStream: QTSStream
 
 {
  *  QTSPresSetVisualContext()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1388,7 +1388,7 @@ function QTSPresSetVisualContext( inPresentation: QTSPresentation; inStream: QTS
 
 {
  *  QTSPresGetVisualContext()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1404,7 +1404,7 @@ function QTSPresGetVisualContext( inPresentation: QTSPresentation; inStream: QTS
 -----------------------------------------}
 {
  *  QTSPresSetVolumes()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1417,7 +1417,7 @@ function QTSPresSetVolumes( inPresentation: QTSPresentation; inStream: QTSStream
 
 {
  *  QTSPresGetVolumes()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1433,7 +1433,7 @@ function QTSPresGetVolumes( inPresentation: QTSPresentation; inStream: QTSStream
 -----------------------------------------}
 {
  *  QTSPresGetSettingsAsText()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.6 and later
@@ -1445,7 +1445,7 @@ function QTSPresGetSettingsAsText( inPresentation: QTSPresentation; inStream: QT
 
 {
  *  QTSPresSettingsDialog()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -1457,7 +1457,7 @@ function QTSPresSettingsDialog( inPresentation: QTSPresentation; inStream: QTSSt
 
 {
  *  QTSPresSettingsDialogWithFilters()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.6 and later
@@ -1469,7 +1469,7 @@ function QTSPresSettingsDialogWithFilters( inPresentation: QTSPresentation; inSt
 
 {
  *  QTSPresSetSettings()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -1481,7 +1481,7 @@ function QTSPresSetSettings( inPresentation: QTSPresentation; inStream: QTSStrea
 
 {
  *  QTSPresGetSettings()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -1493,7 +1493,7 @@ function QTSPresGetSettings( inPresentation: QTSPresentation; inStream: QTSStrea
 
 {
  *  QTSPresAddSourcer()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -1505,7 +1505,7 @@ function QTSPresAddSourcer( inPresentation: QTSPresentation; inStream: QTSStream
 
 {
  *  QTSPresRemoveSourcer()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -1517,7 +1517,7 @@ function QTSPresRemoveSourcer( inPresentation: QTSPresentation; inStream: QTSStr
 
 {
  *  QTSPresGetNumSourcers()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -1529,7 +1529,7 @@ function QTSPresGetNumSourcers( inPresentation: QTSPresentation; inStream: QTSSt
 
 {
  *  QTSPresGetIndSourcer()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -1548,7 +1548,7 @@ const
 
 {
  *  QTSSetNetworkAppName()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1561,7 +1561,7 @@ function QTSSetNetworkAppName( inAppName: ConstCStringPtr; inFlags: SInt32 ): OS
 
 {
  *  QTSGetNetworkAppName()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1663,7 +1663,7 @@ const
 
 {
  *  QTSNewStatHelper()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1676,7 +1676,7 @@ function QTSNewStatHelper( inPresentation: QTSPresentation; inStream: QTSStream;
 
 {
  *  QTSDisposeStatHelper()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1689,7 +1689,7 @@ function QTSDisposeStatHelper( inStatHelper: QTSStatHelper ): OSErr; external na
 
 {
  *  QTSStatHelperGetStats()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1702,7 +1702,7 @@ function QTSStatHelperGetStats( inStatHelper: QTSStatHelper ): OSErr; external n
 
 {
  *  QTSStatHelperResetIter()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1715,7 +1715,7 @@ function QTSStatHelperResetIter( inStatHelper: QTSStatHelper ): OSErr; external 
 
 {
  *  QTSStatHelperNext()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1728,7 +1728,7 @@ function QTSStatHelperNext( inStatHelper: QTSStatHelper; var ioParams: QTSStatHe
 
 {
  *  QTSStatHelperGetNumStats()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1742,7 +1742,7 @@ function QTSStatHelperGetNumStats( inStatHelper: QTSStatHelper ): UInt32; extern
 { used by components to put statistics into the atom container }
 {
  *  QTSGetOrMakeStatAtomForStream()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1755,7 +1755,7 @@ function QTSGetOrMakeStatAtomForStream( inContainer: QTAtomContainer; inStream: 
 
 {
  *  QTSInsertStatistic()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1768,7 +1768,7 @@ function QTSInsertStatistic( inContainer: QTAtomContainer; inParentAtom: QTAtom;
 
 {
  *  QTSInsertStatisticName()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1781,7 +1781,7 @@ function QTSInsertStatisticName( inContainer: QTAtomContainer; inParentAtom: QTA
 
 {
  *  QTSInsertStatisticUnits()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1992,7 +1992,7 @@ const
 
 {
  *  QTSPrefsAddProxySetting()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2005,7 +2005,7 @@ function QTSPrefsAddProxySetting( proxyType: OSType; portID: SInt32; flags: UInt
 
 {
  *  QTSPrefsFindProxyByType()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2018,7 +2018,7 @@ function QTSPrefsFindProxyByType( proxyType: OSType; flags: UInt32; flagsMask: U
 
 {
  *  QTSPrefsAddConnectionSetting()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2031,7 +2031,7 @@ function QTSPrefsAddConnectionSetting( protocol: OSType; portID: SInt32; flags: 
 
 {
  *  QTSPrefsFindConnectionByType()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2044,7 +2044,7 @@ function QTSPrefsFindConnectionByType( protocol: OSType; flags: UInt32; flagsMas
 
 {
  *  QTSPrefsGetActiveConnection()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2057,7 +2057,7 @@ function QTSPrefsGetActiveConnection( protocol: OSType; var connectInfo: QTSTran
 
 {
  *  QTSPrefsGetNoProxyURLs()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2070,7 +2070,7 @@ function QTSPrefsGetNoProxyURLs( var noProxyHndl: UnivPtr ): OSErr; external nam
 
 {
  *  QTSPrefsSetNoProxyURLs()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2083,7 +2083,7 @@ function QTSPrefsSetNoProxyURLs( urls: CStringPtr; flags: UInt32; seed: UInt32 )
 
 {
  *  QTSPrefsAddProxyUserInfo()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.6 and later
@@ -2096,7 +2096,7 @@ function QTSPrefsAddProxyUserInfo( proxyType: OSType; flags: SInt32; flagsMask: 
 
 {
  *  QTSPrefsFindProxyUserInfoByType()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.6 and later
@@ -2109,7 +2109,7 @@ function QTSPrefsFindProxyUserInfoByType( proxyType: OSType; flags: SInt32; flag
 
 {
  *  QTSPrefsGetInstantOnSettings()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.6 and later
@@ -2122,7 +2122,7 @@ function QTSPrefsGetInstantOnSettings( var outPref: QTSInstantOnPref; inFlags: S
 
 {
  *  QTSPrefsSetInstantOnSettings()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.6 and later
@@ -2146,7 +2146,7 @@ function QTSPrefsSetInstantOnSettings( var inPref: QTSInstantOnPref; inFlags: SI
 
 {
  *  QTSNewPtr()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2159,7 +2159,7 @@ function QTSNewPtr( inByteCount: UInt32; inFlags: SInt32; var outFlags: SInt32 )
 
 {
  *  QTSNewHandle()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2193,11 +2193,11 @@ type
    These routines are for buffers that will be recirculated
    you must use QTReleaseMemPtr instead of DisposePtr
    QTSReleaseMemPtr can be used at interrupt time
-   but QTSAllocMemPtr currently cannot 
+   but QTSAllocMemPtr currently cannot
 }
 {
  *  QTSAllocMemPtr()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2210,7 +2210,7 @@ function QTSAllocMemPtr( inByteCount: UInt32; inFlags: SInt32 ): QTSMemPtr; exte
 
 {
  *  QTSReleaseMemPtr()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2252,7 +2252,7 @@ const
 
 {
  *  QTSNewStreamBuffer()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -2265,7 +2265,7 @@ function QTSNewStreamBuffer( inDataSize: UInt32; inFlags: SInt32; var outStreamB
 
 {
  *  QTSFreeMessage()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2283,7 +2283,7 @@ procedure QTSFreeMessage( var inMessage: QTSStreamBuffer ); external name '_QTSF
 }
 {
  *  QTSDuplicateMessage()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -2296,7 +2296,7 @@ function QTSDuplicateMessage( var inMessage: QTSStreamBuffer; inFlags: SInt32; v
 
 {
  *  QTSMessageLength()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2309,7 +2309,7 @@ function QTSMessageLength( var inMessage: QTSStreamBuffer ): UInt32; external na
 
 {
  *  QTSStreamBufferDataInfo()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -2324,7 +2324,7 @@ procedure QTSStreamBufferDataInfo( var inStreamBuffer: QTSStreamBuffer; var outD
 
 {
  *  QTSAllocBuffer()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2337,7 +2337,7 @@ function QTSAllocBuffer( inSize: SInt32 ): QTSStreamBufferPtr; external name '_Q
 
 {
  *  QTSDupMessage()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2350,7 +2350,7 @@ function QTSDupMessage( var inMessage: QTSStreamBuffer ): QTSStreamBufferPtr; ex
 
 {
  *  QTSCopyMessage()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2363,7 +2363,7 @@ function QTSCopyMessage( var inMessage: QTSStreamBuffer ): QTSStreamBufferPtr; e
 
 {
  *  QTSFlattenMessage()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2379,7 +2379,7 @@ function QTSFlattenMessage( var inMessage: QTSStreamBuffer ): QTSStreamBufferPtr
 ============================================================================}
 {
  *  QTSGetErrorString()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2392,7 +2392,7 @@ function QTSGetErrorString( inErrorCode: SInt32; inMaxErrorStringLength: UInt32;
 
 {
  *  QTSInitializeMediaParams()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.6 and later
@@ -2406,7 +2406,7 @@ function QTSInitializeMediaParams( var inMediaParams: QTSMediaParams ): OSErr; e
 { UPP call backs }
 {
  *  NewQTSNotificationUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -2417,7 +2417,7 @@ function NewQTSNotificationUPP( userRoutine: QTSNotificationProcPtr ): QTSNotifi
 
 {
  *  NewQTSPanelFilterUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.6 and later
@@ -2428,7 +2428,7 @@ function NewQTSPanelFilterUPP( userRoutine: QTSPanelFilterProcPtr ): QTSPanelFil
 
 {
  *  NewQTSModalFilterUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -2439,7 +2439,7 @@ function NewQTSModalFilterUPP( userRoutine: QTSModalFilterProcPtr ): QTSModalFil
 
 {
  *  DisposeQTSNotificationUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -2450,7 +2450,7 @@ procedure DisposeQTSNotificationUPP( userUPP: QTSNotificationUPP ); external nam
 
 {
  *  DisposeQTSPanelFilterUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.6 and later
@@ -2461,7 +2461,7 @@ procedure DisposeQTSPanelFilterUPP( userUPP: QTSPanelFilterUPP ); external name 
 
 {
  *  DisposeQTSModalFilterUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -2472,7 +2472,7 @@ procedure DisposeQTSModalFilterUPP( userUPP: QTSModalFilterUPP ); external name 
 
 {
  *  InvokeQTSNotificationUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -2483,7 +2483,7 @@ function InvokeQTSNotificationUPP( inErr: ComponentResult; inNotificationType: O
 
 {
  *  InvokeQTSPanelFilterUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.6 and later
@@ -2494,7 +2494,7 @@ function InvokeQTSPanelFilterUPP( var inParams: QTSPanelFilterParams; inRefCon: 
 
 {
  *  InvokeQTSModalFilterUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later

@@ -1,17 +1,17 @@
 {
      File:       AE/AEHelpers.h
- 
+
      Contains:   AEPrint, AEBuild and AEStream for Carbon
- 
-    
- 
+
+
+
      Copyright:  © 1999-2008 by Apple Computer, Inc., all rights reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {
     Modified for use with Free Pascal
@@ -240,7 +240,7 @@ uses MacTypes,AppleEvents,AEDataModel;
  * format is similar to the stdio printf call, where meta data is
  * extracted from a format string and used to build the final
  * representation.
- * 
+ *
  * For more information on AEBuild and other APIs in AEHelpers, see:
  *     <http://developer.apple.com/technotes/tn/tn2045.html>
  }
@@ -283,10 +283,10 @@ type
 }
 {
  *  AEBuildDesc()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -299,10 +299,10 @@ function AEBuildDesc( var dst: AEDesc; error: AEBuildErrorPtr { can be NULL }; s
 { varargs version of AEBuildDesc}
 {
  *  vAEBuildDesc()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -315,10 +315,10 @@ function AEBuildDesc( var dst: AEDesc; error: AEBuildErrorPtr { can be NULL }; s
 { Append parameters to an existing AppleEvent}
 {
  *  AEBuildParameters()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -331,10 +331,10 @@ function AEBuildParameters( var event: AppleEvent; error: AEBuildErrorPtr { can 
 { varargs version of AEBuildParameters}
 {
  *  vAEBuildParameters()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -347,10 +347,10 @@ function AEBuildParameters( var event: AppleEvent; error: AEBuildErrorPtr { can 
 { Building an entire Apple event:}
 {
  *  AEBuildAppleEvent()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -363,10 +363,10 @@ function AEBuildAppleEvent( theClass: AEEventClass; theID: AEEventID; addressTyp
 { varargs version of AEBuildAppleEvent}
 {
  *  vAEBuildAppleEvent()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -387,10 +387,10 @@ function AEBuildAppleEvent( theClass: AEEventClass; theID: AEEventID; addressTyp
  }
 {
  *  AEPrintDescToHandle()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -419,10 +419,10 @@ type
 }
 {
  *  AEStreamOpen()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -439,10 +439,10 @@ function AEStreamOpen: AEStreamRef; external name '_AEStreamOpen';
 }
 {
  *  AEStreamClose()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -458,10 +458,10 @@ function AEStreamClose( ref: AEStreamRef; var desc: AEDesc ): OSStatus; external
 }
 {
  *  AEStreamOpenDesc()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -474,10 +474,10 @@ function AEStreamOpenDesc( ref: AEStreamRef; newType: DescType ): OSStatus; exte
 { Append data to the previously opened desc.}
 {
  *  AEStreamWriteData()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -493,10 +493,10 @@ function AEStreamWriteData( ref: AEStreamRef; data: {const} UnivPtr; length: Siz
 }
 {
  *  AEStreamCloseDesc()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -509,10 +509,10 @@ function AEStreamCloseDesc( ref: AEStreamRef ): OSStatus; external name '_AEStre
 { Write data as a desc to the stream}
 {
  *  AEStreamWriteDesc()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -525,10 +525,10 @@ function AEStreamWriteDesc( ref: AEStreamRef; newType: DescType; data: {const} U
 { Write an entire desc to the stream}
 {
  *  AEStreamWriteAEDesc()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -544,10 +544,10 @@ function AEStreamWriteAEDesc( ref: AEStreamRef; const (*var*) desc: AEDesc ): OS
 }
 {
  *  AEStreamOpenList()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -560,10 +560,10 @@ function AEStreamOpenList( ref: AEStreamRef ): OSStatus; external name '_AEStrea
 { Finish a list.}
 {
  *  AEStreamCloseList()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -579,10 +579,10 @@ function AEStreamCloseList( ref: AEStreamRef ): OSStatus; external name '_AEStre
 }
 {
  *  AEStreamOpenRecord()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -595,10 +595,10 @@ function AEStreamOpenRecord( ref: AEStreamRef; newType: DescType ): OSStatus; ex
 { Change the type of a record.}
 {
  *  AEStreamSetRecordType()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -611,10 +611,10 @@ function AEStreamSetRecordType( ref: AEStreamRef; newType: DescType ): OSStatus;
 { Finish a record}
 {
  *  AEStreamCloseRecord()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -630,10 +630,10 @@ function AEStreamCloseRecord( ref: AEStreamRef ): OSStatus; external name '_AESt
 }
 {
  *  AEStreamWriteKeyDesc()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -649,10 +649,10 @@ function AEStreamWriteKeyDesc( ref: AEStreamRef; key: AEKeyword; newType: DescTy
 }
 {
  *  AEStreamOpenKeyDesc()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -665,10 +665,10 @@ function AEStreamOpenKeyDesc( ref: AEStreamRef; key: AEKeyword; newType: DescTyp
 { Write a key to the stream - you can follow this with an AEWriteDesc.}
 {
  *  AEStreamWriteKey()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -685,10 +685,10 @@ function AEStreamWriteKey( ref: AEStreamRef; key: AEKeyword ): OSStatus; externa
 }
 {
  *  AEStreamCreateEvent()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -708,10 +708,10 @@ function AEStreamCreateEvent( clazz: AEEventClass; id: AEEventID; targetType: De
 }
 {
  *  AEStreamOpenEvent()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -724,10 +724,10 @@ function AEStreamOpenEvent( var event: AppleEvent ): AEStreamRef; external name 
 { Mark a keyword as being an optional parameter.}
 {
  *  AEStreamOptionalParam()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.1 and later

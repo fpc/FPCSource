@@ -32,14 +32,14 @@ var
   PRR : byte absolute $00+$64; // Power Reduction Register
   CCP : byte absolute $00+$56; // Configuration Change Protection
   OSCCAL0 : byte absolute $00+$66; // Oscillator Calibration Value
-  OSCCAL1 : byte absolute $00+$67; // 
-  OSCTCAL0A : byte absolute $00+$F0; // 
-  OSCTCAL0B : byte absolute $00+$F1; // 
+  OSCCAL1 : byte absolute $00+$67; //
+  OSCTCAL0A : byte absolute $00+$F0; //
+  OSCTCAL0B : byte absolute $00+$F1; //
   CLKPR : byte absolute $00+$61; // Clock Prescale Register
   SREG : byte absolute $00+$5F; // Status Register
-  SP : word absolute $00+$5D; // Stack Pointer 
-  SPL : byte absolute $00+$5D; // Stack Pointer 
-  SPH : byte absolute $00+$5D+1; // Stack Pointer 
+  SP : word absolute $00+$5D; // Stack Pointer
+  SPL : byte absolute $00+$5D; // Stack Pointer
+  SPH : byte absolute $00+$5D+1; // Stack Pointer
   MCUCR : byte absolute $00+$55; // MCU Control Register
   MCUSR : byte absolute $00+$54; // MCU Status Register
   GPIOR2 : byte absolute $00+$4B; // General Purpose I/O Register 2
@@ -181,7 +181,7 @@ const
   // TCCR0B
   FOC0A = 7; // Force Output Compare A
   FOC0B = 6; // Force Output Compare B
-  WGM02 = 3; // 
+  WGM02 = 3; //
   CS0 = 0; // Clock Select
   // TCCR0A
   COM0A = 6; // Compare Output Mode, Phase Correct PWM Mode
@@ -217,8 +217,8 @@ const
   ICES1 = 6; // Input Capture 1 Edge Select
   CS1 = 0; // Prescaler source of Timer/Counter 1
   // TCCR1C
-  FOC1A = 7; // 
-  FOC1B = 6; // 
+  FOC1A = 7; //
+  FOC1B = 6; //
   // GTCCR
   // TOCPMSA1
   TOCC7S = 6; // Timer Output Compare Channel 7 Selection Bits
@@ -252,7 +252,7 @@ const
   ADIE = 3; // ADC Interrupt Enable
   ADPS = 0; // ADC Prescaler Select Bits
   // ADCSRB
-  ADLAR = 3; // 
+  ADLAR = 3; //
   ADTS = 0; // ADC Auto Trigger Sources
   // DIDR3
   ADC27D = 3; // ADC27 Digital input Disable
@@ -337,7 +337,7 @@ const
   // TWSCRB
   TWHNM = 3; // TWI High Noise Mode
   TWAA = 2; // TWI Acknowledge Action
-  TWCMD = 0; // 
+  TWCMD = 0; //
   // TWSSRA
   TWDIF = 7; // TWI Data Interrupt Flag.
   TWASIF = 6; // TWI Address/Stop Interrupt Flag

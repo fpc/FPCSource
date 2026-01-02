@@ -1,4 +1,4 @@
-  JLObject = class external 'java.lang' name 'Object' 
+  JLObject = class external 'java.lang' name 'Object'
   public
     constructor create(); overload;
   strict protected
@@ -18,7 +18,7 @@
     procedure wait(para1: jlong; para2: jint); overload; virtual; final;  // throws java.lang.InterruptedException
   end;
 
-  JISerializable = interface external 'java.io' name 'Serializable' 
+  JISerializable = interface external 'java.io' name 'Serializable'
   end;
 
   JLAbstractStringBuilder = class abstract external 'java.lang' name 'AbstractStringBuilder' (JLObject)
@@ -46,27 +46,27 @@
     function offsetByCodePoints(para1: jint; para2: jint): jint; overload; virtual;
   end;
 
-  JLAppendable = interface external 'java.lang' name 'Appendable' 
+  JLAppendable = interface external 'java.lang' name 'Appendable'
     function append(para1: jchar): JLAppendable; overload;  // throws java.io.IOException
     function append(para1: JLCharSequence): JLAppendable; overload;  // throws java.io.IOException
     function append(para1: JLCharSequence; para2: jint; para3: jint): JLAppendable; overload;  // throws java.io.IOException
   end;
 
-  JLCharSequence = interface external 'java.lang' name 'CharSequence' 
+  JLCharSequence = interface external 'java.lang' name 'CharSequence'
     function length(): jint; overload;
     function charAt(para1: jint): jchar; overload;
     function subSequence(para1: jint; para2: jint): JLCharSequence; overload;
     function toString(): JLString; overload;
   end;
 
-  JLCloneable = interface external 'java.lang' name 'Cloneable' 
+  JLCloneable = interface external 'java.lang' name 'Cloneable'
   end;
 
-  JLComparable = interface external 'java.lang' name 'Comparable' 
+  JLComparable = interface external 'java.lang' name 'Comparable'
     function compareTo(para1: JLObject): jint; overload;
   end;
 
-  JLIterable = interface external 'java.lang' name 'Iterable' 
+  JLIterable = interface external 'java.lang' name 'Iterable'
     function iterator(): JUIterator; overload;
   end;
 
@@ -132,7 +132,7 @@
     class function scalb(para1: jfloat; para2: jint): jfloat; static; overload;
   end;
 
-  JLReadable = interface external 'java.lang' name 'Readable' 
+  JLReadable = interface external 'java.lang' name 'Readable'
     function read(para1: JNCharBuffer): jint; overload;  // throws java.io.IOException
   end;
 
@@ -215,7 +215,7 @@
     procedure remove(); overload; virtual;
   end;
 
-  JLRAnnotatedElement = interface external 'java.lang.reflect' name 'AnnotatedElement' 
+  JLRAnnotatedElement = interface external 'java.lang.reflect' name 'AnnotatedElement'
     function getAnnotation(para1: JLClass): JLAAnnotation; overload;
     function getAnnotations(): Arr1JLAAnnotation; overload;
     function getDeclaredAnnotations(): Arr1JLAAnnotation; overload;
@@ -248,11 +248,11 @@
     class procedure setShort(para1: JLObject; para2: jint; para3: jshort); static; overload;  // throws java.lang.IllegalArgumentException, java.lang.ArrayIndexOutOfBoundsException
   end;
 
-  JLRGenericDeclaration = interface external 'java.lang.reflect' name 'GenericDeclaration' 
+  JLRGenericDeclaration = interface external 'java.lang.reflect' name 'GenericDeclaration'
     function getTypeParameters(): Arr1JLRTypeVariable; overload;
   end;
 
-  JLRMember = interface external 'java.lang.reflect' name 'Member' 
+  JLRMember = interface external 'java.lang.reflect' name 'Member'
     const
       &PUBLIC = 0;
       DECLARED = 1;
@@ -262,7 +262,7 @@
     function isSynthetic(): jboolean; overload;
   end;
 
-  JLRType = interface external 'java.lang.reflect' name 'Type' 
+  JLRType = interface external 'java.lang.reflect' name 'Type'
   end;
 
   JNBuffer = class abstract external 'java.nio' name 'Buffer' (JLObject)
@@ -606,24 +606,24 @@
     class function copyOfRange(var para1: array of JLObject; para2: jint; para3: jint; para4: JLClass): Arr1JLObject; static; overload;
   end;
 
-  JUComparator = interface external 'java.util' name 'Comparator' 
+  JUComparator = interface external 'java.util' name 'Comparator'
     function compare(para1: JLObject; para2: JLObject): jint; overload;
     function equals(para1: JLObject): jboolean; overload;
   end;
 
-  JUIterator = interface external 'java.util' name 'Iterator' 
+  JUIterator = interface external 'java.util' name 'Iterator'
     function hasNext(): jboolean; overload;
     function next(): JLObject; overload;
     procedure remove(); overload;
   end;
 
-  JUMap = interface external 'java.util' name 'Map' 
+  JUMap = interface external 'java.util' name 'Map'
     type
       InnerEntry = interface;
       Arr1InnerEntry = array of InnerEntry;
       Arr2InnerEntry = array of Arr1InnerEntry;
       Arr3InnerEntry = array of Arr2InnerEntry;
-      InnerEntry = interface external 'java.util' name 'Entry' 
+      InnerEntry = interface external 'java.util' name 'Entry'
         function equals(para1: JLObject): jboolean; overload;
         function getKey(): JLObject; overload;
         function getValue(): JLObject; overload;

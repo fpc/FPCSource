@@ -1,9 +1,9 @@
 {
      File:       CarbonCore/PLStringFuncs.h
- 
+
      Contains:   Pascal string manipulation routines that parallel ANSI C string.h
                  The contents of this header file are deprecated.
- 
+
      Copyright:  © 1999-2011 by Apple Inc. All rights reserved.
 }
 {
@@ -219,13 +219,13 @@ uses MacTypes;
 
 {
  *  PLstrcmp()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    use CFString instead.
- *  
+ *
  *  Summary:
  *    Compare two pascal strings
- *  
+ *
  *  Discussion:
  *    This function compares two pascal strings, and returns a value <
  *    0 if the first string is lexicographically less than the second
@@ -233,25 +233,25 @@ uses MacTypes;
  *    the first string is lexicographically greater than the second.
  *    This function should be deprecated since pascal strings are
  *    obsolete on MacOSX and CFString should be used instead.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
  *    Thread safe provided no other thread is modifying str1 or str2.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    str1:
  *      the first pascal string
- *    
+ *
  *    str2:
  *      the second pascal string
- *  
+ *
  *  Result:
  *    This function returns an integer greater than, equal to, or less
  *    than 0, according as the string str1 is greater than, equal to,
  *    or less than the string str2.  The comparison is done using
  *    unsigned characters, so that `\200' is greater than `\0'.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -263,45 +263,45 @@ function PLstrcmp( const (*var*) str1: Str255; const (*var*) str2: Str255 ): SIn
 
 {
  *  PLstrncmp()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    use CFString instead.
- *  
+ *
  *  Summary:
  *    Compare two pascal strings
- *  
+ *
  *  Discussion:
  *    This function compares two pascal strings, and returns a value <
  *    0 if the first string is lexicographically less than the second
  *    string, or 0 if the two strings are identical, or a value > 0 if
- *    the first string is lexicographically greater than the second. 
+ *    the first string is lexicographically greater than the second.
  *    This function compares not more than num characters of either
  *    string, even if their lengths are greater than num.  Two strings
  *    whose first num characters are identical will return 0 when
  *    compared. This function should be deprecated since pascal strings
  *    are obsolete on MacOSX and CFString should be used instead.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
  *    Thread safe provided no other thread is modifying str1 or str2.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    str1:
  *      the first pascal string
- *    
+ *
  *    str2:
  *      the second pascal string
- *    
+ *
  *    num:
  *      the maximum number of characters to compare
- *  
+ *
  *  Result:
  *    This function returns an integer greater than, equal to, or less
  *    than 0, according as the string str1 is greater than, equal to,
  *    or less than the string str2.  The comparison is done using
  *    unsigned characters, so that `\200' is greater than `\0'.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -313,13 +313,13 @@ function PLstrncmp( const (*var*) str1: Str255; const (*var*) str2: Str255; num:
 
 {
  *  PLstrcpy()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    use CFString instead.
- *  
+ *
  *  Summary:
  *    Copy a pascal string
- *  
+ *
  *  Discussion:
  *    This function copies the string source to dest (including the
  *    initial length byte ). The caller must ensure that neither source
@@ -327,21 +327,21 @@ function PLstrncmp( const (*var*) str1: Str255; const (*var*) str2: Str255; num:
  *    entire contents of source. This function should be deprecated
  *    since pascal strings are obsolete on MacOSX and CFString should
  *    be used instead.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    dest:
  *      the destination pascal string
- *    
+ *
  *    source:
  *      the source pascal string
- *  
+ *
  *  Result:
  *    This function returns dest.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -353,16 +353,16 @@ function PLstrcpy( dest: StringPtr; const (*var*) source: Str255 ): StringPtr; e
 
 {
  *  PLstrncpy()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    use CFString instead.
- *  
+ *
  *  Summary:
  *    Copy a pascal string
- *  
+ *
  *  Discussion:
  *    This function copies the string source to dest (including the
- *    initial length byte ), provided the length of source is <= num. 
+ *    initial length byte ), provided the length of source is <= num.
  *    If the length of source is > num, then the first num characters
  *    of source are copied into dest, and the length of dest is set to
  *    num.  The caller must ensure that neither source or dest are
@@ -370,25 +370,25 @@ function PLstrcpy( dest: StringPtr; const (*var*) source: Str255 ): StringPtr; e
  *    of source. This function should be deprecated since pascal
  *    strings are obsolete on MacOSX and CFString should be used
  *    instead.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
  *    Thread safe provided no other thread is modifying source.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    dest:
  *      the destination pascal string
- *    
+ *
  *    source:
  *      the source pascal string
- *    
+ *
  *    num:
  *      the maximum number of bytes to copy
- *  
+ *
  *  Result:
  *    This function returns dest.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -400,13 +400,13 @@ function PLstrncpy( dest: StringPtr; const (*var*) source: Str255; num: SInt16 )
 
 {
  *  PLstrcat()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    use CFString instead.
- *  
+ *
  *  Summary:
  *    Append a pascal string to another pascal string
- *  
+ *
  *  Discussion:
  *    This function append a copy of the pascal string append to the
  *    end of the pascal string str.  If the length of str plus the
@@ -417,22 +417,22 @@ function PLstrncpy( dest: StringPtr; const (*var*) source: Str255; num: SInt16 )
  *    NULL, and that str is large enough to hold the entire contents of
  *    append. This function should be deprecated since pascal strings
  *    are obsolete on MacOSX and CFString should be used instead.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
  *    Thread safe provided no other thread is modifying str or append.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    str:
  *      the destination pascal string
- *    
+ *
  *    append:
  *      the pascal string to append
- *  
+ *
  *  Result:
  *    This function returns s.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -444,13 +444,13 @@ function PLstrcat( str: StringPtr; const (*var*) append: Str255 ): StringPtr; ex
 
 {
  *  PLstrncat()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    use CFString instead.
- *  
+ *
  *  Summary:
  *    Append up to num bytes of a pascal string to another pascal string
- *  
+ *
  *  Discussion:
  *    This function append up to the first num bytes of the pascal
  *    string append to the end of the pascal string s.  If the length
@@ -462,25 +462,25 @@ function PLstrcat( str: StringPtr; const (*var*) append: Str255 ): StringPtr; ex
  *    contents of append. This function should be deprecated since
  *    pascal strings are obsolete on MacOSX and CFString should be used
  *    instead.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
  *    Thread safe provided no other thread is modifying str1 or append.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    str1:
  *      the destination pascal string
- *    
+ *
  *    append:
  *      the pascal string to append
- *    
+ *
  *    num:
  *      the maximum number of bytes of append to append onto s
- *  
+ *
  *  Result:
  *    This function returns str.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -492,35 +492,35 @@ function PLstrncat( str1: StringPtr; const (*var*) append: Str255; num: SInt16 )
 
 {
  *  PLstrchr()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    use CFString instead.
- *  
+ *
  *  Summary:
  *    Return a pointer to the first occurrence of ch1 in str.
- *  
+ *
  *  Discussion:
  *    The PLstrrchr() function locates the first occurrence of ch1
  *    (converted to an unsigned AnsiChar) in the string s.  If ch1 does not
  *    occur in the string, this returns NULL. This function should be
  *    deprecated since pascal strings are obsolete on MacOSX and
  *    CFString should be used instead.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
  *    Thread safe provided no other thread is modifying str1.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    str1:
  *      the pascal string
- *    
+ *
  *    ch1:
  *      the character to find
- *  
+ *
  *  Result:
  *    A pointer to the first occurrence of ch1 in str1, or NULL.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -532,35 +532,35 @@ function PLstrchr( const (*var*) str1: Str255; ch1: SInt16 ): Ptr; external name
 
 {
  *  PLstrrchr()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    use CFString instead.
- *  
+ *
  *  Summary:
  *    Return a pointer to the last occurrence of ch1 in str.
- *  
+ *
  *  Discussion:
  *    The PLstrrchr() function locates the last occurrence of ch1
  *    (converted to an unsigned AnsiChar) in the string s.  If ch1 does not
  *    occur in the string, this returns NULL. This function should be
  *    deprecated since pascal strings are obsolete on MacOSX and
  *    CFString should be used instead.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
  *    Thread safe provided no other thread is modifying str1.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    str1:
  *      the pascal string
- *    
+ *
  *    ch1:
  *      the character to find
- *  
+ *
  *  Result:
  *    A pointer to the last occurrence of ch1 in str1, or NULL.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -572,37 +572,37 @@ function PLstrrchr( const (*var*) str1: Str255; ch1: SInt16 ): Ptr; external nam
 
 {
  *  PLstrpbrk()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    use CFString instead.
- *  
+ *
  *  Summary:
  *    Return a pointer to the first occurrence in str of any character
  *    in charSet.
- *  
+ *
  *  Discussion:
  *    The PLstrpbrk() function returns a pointer to the first
  *    occurrence in str of any character in searchStr.  If none of the
  *    characters in searchStr can be found in str, then NULL is
  *    returned. This function should be deprecated since pascal strings
  *    are obsolete on MacOSX and CFString should be used instead.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
  *    Thread safe provided no other thread is modifying str1 or charSet.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    str1:
  *      the pascal string
- *    
+ *
  *    charSet:
  *      the character to find
- *  
+ *
  *  Result:
  *    A pointer to the first occurrence of any character in charSet in
  *    str1, or NULL.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -614,14 +614,14 @@ function PLstrpbrk( const (*var*) str1: Str255; const (*var*) charSet: Str255 ):
 
 {
  *  PLstrspn()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    use CFString instead.
- *  
+ *
  *  Summary:
  *    Spans the initial part of str1 as long as the characters from
  *    str1 occur in string charset
- *  
+ *
  *  Discussion:
  *    The PLstrspn() function spans the initial part of the pascal
  *    string str1 as long as the characters from s occur in string
@@ -630,23 +630,23 @@ function PLstrpbrk( const (*var*) str1: Str255; const (*var*) charSet: Str255 ):
  *    in charset. This function should be deprecated since pascal
  *    strings are obsolete on MacOSX and CFString should be used
  *    instead.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
  *    Thread safe provided no other thread is modifying str1 or charSet.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    str1:
  *      the pascal string
- *    
+ *
  *    charSet:
  *      the character to find
- *  
+ *
  *  Result:
  *    The count of characters at the beginning of str1 which are in
  *    charSet.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -658,36 +658,36 @@ function PLstrspn( const (*var*) str1: Str255; const (*var*) charSet: Str255 ): 
 
 {
  *  PLstrstr()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    use CFString instead.
- *  
+ *
  *  Summary:
  *    Returns a pointer to the first occurrence of searchStr in str1
- *  
+ *
  *  Discussion:
  *    The PLstrstr() function returns a pointer to the first occurrence
  *    of searchStr in str1, or NULL if searchStr does not exist in
  *    str1. This function should be deprecated since pascal strings are
  *    obsolete on MacOSX and CFString should be used instead.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
  *    Thread safe provided no other thread is modifying str1 or
  *    searchStr.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    str1:
  *      the pascal string
- *    
+ *
  *    searchStr:
  *      the string to find
- *  
+ *
  *  Result:
  *    The count of characters at the beginning of str1 which are in
  *    charSet.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -699,30 +699,30 @@ function PLstrstr( const (*var*) str1: Str255; const (*var*) searchStr: Str255 )
 
 {
  *  PLstrlen()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    use CFString instead.
- *  
+ *
  *  Summary:
  *    Returns the length of the pascal string
- *  
+ *
  *  Discussion:
  *    The PLstrlen() function returns the length of the pascal string
  *    str. This function should be deprecated since pascal strings are
  *    obsolete on MacOSX and CFString should be used instead.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
  *    Thread safe provided no other thread is modifying str.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    str:
  *      the pascal string
- *  
+ *
  *  Result:
  *    The length of the pascal string str.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -734,13 +734,13 @@ function PLstrlen( const (*var*) str: Str255 ): SInt16; external name '_PLstrlen
 
 {
  *  PLpos()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    use CFString instead.
- *  
+ *
  *  Summary:
  *    Returns the offset to the first occurrence of searchStr in str1
- *  
+ *
  *  Discussion:
  *    The PLpos() function returns the offset of the string searchStr
  *    in str1, or 0 if searchStr does not occur in str1.  For example,
@@ -748,24 +748,24 @@ function PLstrlen( const (*var*) str: Str255 ): SInt16; external name '_PLstrlen
  *    function will return the value 7. This function should be
  *    deprecated since pascal strings are obsolete on MacOSX and
  *    CFString should be used instead.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
  *    Thread safe provided no other thread is modifying str1 or
  *    searchStr.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    str1:
  *      the pascal string
- *    
+ *
  *    searchStr:
  *      the string to find
- *  
+ *
  *  Result:
  *    The count of characters at the beginning of str1 which are in
  *    charSet.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later

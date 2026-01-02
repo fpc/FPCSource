@@ -636,9 +636,9 @@ Procedure HandlePreProcStripConditional(isEnd : Boolean);
 begin
   if not stripinfo then
     if isEnd then
-      writeln(outfile,'{ C++ end of extern C conditionnal removed }')
+      writeln(outfile,'{ C++ end of extern C conditional removed }')
     else
-      writeln(outfile,'{ C++ extern C conditionnal removed }');
+      writeln(outfile,'{ C++ extern C conditional removed }');
 end;
 
 Procedure HandleIdentifier;

@@ -228,53 +228,53 @@ uses MacTypes,CoreAudioTypes,AudioComponents;
 
 {!
 	@header AudioCodec
- 
+
 	This header defines the property sets and the public API for various audio codecs.
 
 	<h2>Theory of Operation</h2>
- 
+
 	AudioCodec components translate audio data from one format to another. There
-	are three kinds of AudioCodec components. Decoder components ('adec') 
-	translate data that isn't in linear PCM into linear PCM formatted data. 
-	Encoder components ('aenc') translate linear PCM data into some other format. 
-	Unity codecs ('acdc') translate between different flavors of the same type 
+	are three kinds of AudioCodec components. Decoder components ('adec')
+	translate data that isn't in linear PCM into linear PCM formatted data.
+	Encoder components ('aenc') translate linear PCM data into some other format.
+	Unity codecs ('acdc') translate between different flavors of the same type
 	(e.g. 16 bit signed integer linear PCM into 32 bit floating point linear PCM).
- 
+
 	AudioCodec components are standard components and are managed by the Component
 	Manager.
- 
+
 	Once an AudioCodec is found that implements the translation in question,
 	it has to be set up to do the translation. This can be done by setting the
 	appropriate properties or by calling AudioCodecInitialize. If the translation
 	is specified by properties, AudioCodecInitialize still needs to be called
 	prior to appending input data or producing output data.
- 
+
 	AudioCodecInitialize puts the codec into the "initialized" state. In this state,
 	the format information for the translation cannot be changed. The codec
 	has to be in the initialized state for AudioCodecAppendInputData and
 	AudioCodecProduceOutputData to work. They will return kAudioCodecStateError
 	if the codec isn't initialized.
- 
+
 	AudioCodecUninitialize will return the codec to the uninitialized state and
 	release any allocated resources. The codec may then be configured freely. It is not
 	necessary to call AudioCodecUninitialize prior to closing the codec.
- 
+
 	Once in the initialized state, the codec is ready to receive input and produce
 	output using the AudioCodecAppendInputData and AudioCodecProduceOutputData
-	routines. Input data can be fed into an encoder and some decoders in any size (even 
-	byte by byte). Input data fed to a decoder should be in terms of whole packets in the 
-	encoded format if the format is variable bit rate and is not self framing (e.g. MPEG-4 AAC). 
-	Output data can only be produced in whole packet sizes. Both routines will return 
+	routines. Input data can be fed into an encoder and some decoders in any size (even
+	byte by byte). Input data fed to a decoder should be in terms of whole packets in the
+	encoded format if the format is variable bit rate and is not self framing (e.g. MPEG-4 AAC).
+	Output data can only be produced in whole packet sizes. Both routines will return
 	the amount of data they consume/produce.
- 
+
 	AudioCodecProduceOutputData also returns a status code to the caller that
 	indicates the result of the operation (success or failure) as well as the
 	state of the input buffer.
-	
+
 	The combination of AppendInputData and ProduceOutputPackets can be thought of a "push-pull"
-	model of data handling. First, the input data is pushed into the component and the 
+	model of data handling. First, the input data is pushed into the component and the
 	resulting output data gets pulled out of that same component.
- 
+
 	Basic Workflow
 	1. Find the appropriate codec component
 	2. Open the codec component
@@ -284,7 +284,7 @@ uses MacTypes,CoreAudioTypes,AudioComponents;
 		a. AppendInputData (EOF is signaled by passing a 0-sized buffer)
 		b. ProduceOutputPackets
 	6. Close the codec component
-	
+
  }
 
 //=============================================================================
@@ -301,13 +301,13 @@ type
 
 {!
     @struct AudioCodecMagicCookieInfo
- 
+
 	@abstract Structure holding the <em>magic cookie</em> information.
- 
+
 	@discussion Passed as input to AudioCodecGetProperty for kAudioCodecPropertyFormatList.
 				The first four + sizeof(void *) bytes of the buffer pointed at by outPropertyData
 				will contain this struct.
- 
+
 	@field mMagicCookieSize
         The size of the magic cookie
 	@field mMagicCookie
@@ -319,7 +319,7 @@ type
 		mMagicCookie: (*const*) UnivPtr;
 	end;
 	AudioCodecMagicCookieInfoPtr = ^AudioCodecMagicCookieInfo;
-	
+
 //=============================================================================
 //#pragma mark AudioCodec Component Constants
 //=============================================================================
@@ -327,9 +327,9 @@ type
 
 {!
 	@enum           AudioCodecComponentType
- 
+
 	@discussion     Collection of audio codec component types
- 
+
 	@constant		kAudioDecoderComponentType
 					A codec that translates data in some other format into linear PCM.
 					The component subtype specifies the format ID of the other format.
@@ -343,7 +343,7 @@ type
 const
 	kAudioDecoderComponentType = FourCharCode('adec');
 	kAudioEncoderComponentType = FourCharCode('aenc');
-	kAudioUnityCodecComponentType = FourCharCode('acdc'); 
+	kAudioUnityCodecComponentType = FourCharCode('acdc');
 
 //=============================================================================
 //#pragma	mark Global Codec Properties
@@ -358,14 +358,14 @@ const
 	@discussion	These properties reflect the capabilities of the underlying codec.
 				The values of these properties are independent of the codec's internal
 				state.
-				
+
 				These properties can be read at any time the codec is open.
 
 	@constant	kAudioCodecPropertySupportedInputFormats
-					An array of AudioStreamBasicDescription structs describing what formats 
+					An array of AudioStreamBasicDescription structs describing what formats
 					the codec supports for input data
 	@constant	kAudioCodecPropertySupportedOutputFormats
-					An array of AudioStreamBasicDescription structs describing what formats 
+					An array of AudioStreamBasicDescription structs describing what formats
 					the codec supports for output data
  	@constant	kAudioCodecPropertyAvailableInputSampleRates
 					An array of AudioValueRange indicating the valid ranges for the
@@ -380,7 +380,7 @@ const
 	@constant	kAudioCodecPropertyAvailableBitRateRange
 					An array of AudioValueRange that indicate the target bit rates
 					supported by the encoder. This can be total bit rate or bit
-					rate per channel as appropriate. 
+					rate per channel as appropriate.
 					This property is only relevant to encoders.
 					(see also kAudioCodecPropertyApplicableBitRateRange)
 	@constant	kAudioCodecPropertyMinimumNumberInputPackets
@@ -398,7 +398,7 @@ const
 					capable of encoding or decoding to. 0xFFFFFFFF means any number
 					of channels.
 	@constant	kAudioCodecPropertyDoesSampleRateConversion
-					A UInt32 indicating if the codec wants to do a sample rate conversion (if 
+					A UInt32 indicating if the codec wants to do a sample rate conversion (if
 					necessary) because it can do it in a way that is meaningful for quality.
 					Value is 1 if true, 0 otherwise.
 	@constant	kAudioCodecPropertyAvailableInputChannelLayoutTags
@@ -410,12 +410,12 @@ const
 	@constant	kAudioCodecPropertyInputFormatsForOutputFormat
 					An array of AudioStreamBasicDescription indicating what the codec supports
 					for input data given an output format that's passed in as the first member of
-					the array (and is overwritten on the reply). Always a subset of 
+					the array (and is overwritten on the reply). Always a subset of
 					kAudioCodecPropertySupportedInputFormats
 	@constant	kAudioCodecPropertyOutputFormatsForInputFormat
 					An array of AudioStreamBasicDescription indicating what the codec supports
 					for output data given an input format that's passed in as the first member of
-					the array (and is overwritten on the reply). Always a subset of 
+					the array (and is overwritten on the reply). Always a subset of
 					kAudioCodecPropertySupportedOutputFormats
 	@constant	kAudioCodecPropertyFormatInfo
 					Takes an AudioFormatInfo on input. This AudioformatInfo is validated either through
@@ -446,38 +446,38 @@ const
 
 {!
 	@enum			AudioCodecInstanceProperty
- 
+
 	@discussion		Properties which can be set or read on an instance of the
-					underlying audio codec. These properties are dependent on the 
+					underlying audio codec. These properties are dependent on the
 					codec's current state. A property may be read/write or read
 					only, depending on the data format of the codec.
-					
+
 					These properties may have different values depending on whether the
 					codec is initialized or not. All properties can be read at any time
-					the codec is open. However, to ensure the codec is in a valid 
+					the codec is open. However, to ensure the codec is in a valid
 					operational state and therefore the property value is valid the codec
 					must be initialized at the time the property is read.
-					
+
 					Properties that are writable are only writable when the codec
 					is not initialized.
- 
+
 	@constant		kAudioCodecPropertyInputBufferSize
 						A UInt32 indicating the maximum input buffer size for the codec
-						in bytes. 
-						Not writable, but can vary on some codecs depending on the bit stream 
+						in bytes.
+						Not writable, but can vary on some codecs depending on the bit stream
 						format being handled.
 	@constant		kAudioCodecPropertyPacketFrameSize
 						A UInt32 indicating the number of frames of audio data encapsulated in each
 						packet of data in the codec's format. For encoders, this is the
 						output format. For decoders this is the input format.
-						Formats with variable frames per packet should return a maximum value 
+						Formats with variable frames per packet should return a maximum value
 						for this property.
 						Not writable.
 	@constant		kAudioCodecPropertyHasVariablePacketByteSizes
 						A UInt32 where 0 indicates that all packets in the codec's format
 						have the same byte size (sometimes referred to as CBR codecs),
-						and 1 indicates that they vary in size (sometimes referred to as 
-						VBR codecs). The maximum size of a variable packet is up to 
+						and 1 indicates that they vary in size (sometimes referred to as
+						VBR codecs). The maximum size of a variable packet is up to
 						the one indicated in kAudioCodecPropertyMaximumPacketByteSize.
 						Any codec that reports 1 for this property must be able to handle packet
 						descriptions, though it does not have to require them.
@@ -492,10 +492,10 @@ const
 						Not writable.
 	@constant		kAudioCodecPropertyPacketSizeLimitForVBR
                         A UInt32 indicating the maximum number of bits in an output packet of an encoder.
-                        The output packet size will not exceed this number. The size should be smaller 
-                        than kAudioCodecPropertyMaximumPacketByteSize. This property will configure the 
-                        encoder to VBR mode with the highest VBR quality that can maintain the packet 
-                        size limit. kAudioCodecPropertySoundQualityForVBR can be used to retrieve the 
+                        The output packet size will not exceed this number. The size should be smaller
+                        than kAudioCodecPropertyMaximumPacketByteSize. This property will configure the
+                        encoder to VBR mode with the highest VBR quality that can maintain the packet
+                        size limit. kAudioCodecPropertySoundQualityForVBR can be used to retrieve the
                         quality setting that will be used given that packet size limit.
                         Writeable if supported.
 	@constant		kAudioCodecPropertyCurrentInputFormat
@@ -511,7 +511,7 @@ const
 	@constant		kAudioCodecPropertyMagicCookie
 						An untyped buffer of out of band configuration data the codec
 						requires to process the stream of data correctly. The contents
-						of this data is private to the codec. 
+						of this data is private to the codec.
 						Not all codecs have magic cookies. If a call to AudioCodecGetPropertyInfo
 						returns a size greater than 0 then the codec may take one.
 						Writable if present.
@@ -555,13 +555,13 @@ const
                         Not writable.
 	@constant		kAudioCodecPropertyApplicableInputSampleRates
 						An array of AudioValueRange indicating the valid ranges for the
-						input sample rate of the codec for the current bit rate. 
+						input sample rate of the codec for the current bit rate.
 						This property is only relevant to encoders.
 						See also kAudioCodecPropertyAvailableInputSampleRates.
 						Not writable.
 	@constant		kAudioCodecPropertyApplicableOutputSampleRates
 						An array of AudioValueRange indicating the valid ranges for the
-						output sample rate of the codec for the current bit rate. 
+						output sample rate of the codec for the current bit rate.
 						This property is only relevant to encoders.
 						See also kAudioCodecPropertyAvailableOutputSampleRates.
 						Not writable.
@@ -573,7 +573,7 @@ const
 	@constant		kAudioCodecPropertyPrimeMethod
 						A UInt32 specifying priming method.
 						See enum below.
-						May be writable. Some encoders offer the option of padding out the last packet, and this 
+						May be writable. Some encoders offer the option of padding out the last packet, and this
 						may be set here.
 	@constant		kAudioCodecPropertyPrimeInfo
 						A pointer to an AudioCodecPrimeInfo struct.
@@ -592,28 +592,28 @@ const
 						Encoders only.
 						Obviously this will be linked to many of the other properties listed herein and as such
 						it potentially will cause synchronization problems. Therefore, when setting this property
-						on an encoder a GetProperty should be done first to retrieve the current dictionary, 
-						and only one setting within the dictionary should change with each SetProperty call, 
+						on an encoder a GetProperty should be done first to retrieve the current dictionary,
+						and only one setting within the dictionary should change with each SetProperty call,
 						as it is not guaranteed that changing one property will not have side effects.
 						Writable if supported.
 	@constant		kAudioCodecPropertyBitRateControlMode
-						A UInt32 indicating which bit rate control mode will be applied to encoders that 
+						A UInt32 indicating which bit rate control mode will be applied to encoders that
 						can produce variable packet sizes (sometimes referred to as VBR encoders).
-						Although the packet size may be variable, a constant bit rate can be maintained 
-						over a transmission channel when decoding in real-time with a fixed end-to-end audio delay. 
+						Although the packet size may be variable, a constant bit rate can be maintained
+						over a transmission channel when decoding in real-time with a fixed end-to-end audio delay.
 						E.g., MP3 and MPEG-AAC use a bit reservoir mechanism to meet that constraint.
-						See enum below. 
+						See enum below.
 						Only needs to be settable if the codec supports multiple bit rate control strategies.
 	@constant		kAudioCodecPropertyFormatList
 						An array of AudioFormatListItem structs list all formats that can be handled by the decoder
 						For decoders, takes a Magic Cookie that gets passed in on the GetProperty call. No default.
-						On input, the outPropertyData parameter passed to GetProperty should begin with a 
-						AudioCodecMagicCookieInfo struct which will be overwritten by the AudioFormatListItems 
+						On input, the outPropertyData parameter passed to GetProperty should begin with a
+						AudioCodecMagicCookieInfo struct which will be overwritten by the AudioFormatListItems
 						returned from the property. For encoders, returns a list of formats which will be in the
 						bitstream. No input data required.
 						Important note: this encoder property is only applicable to audio formats which are made of
 						two or more layers where the base layers(s) can be decoded by systems which aren't capable of
-						handling the enhancement layers. For example, a High Efficiency AAC bitstream which contains 
+						handling the enhancement layers. For example, a High Efficiency AAC bitstream which contains
 						an AAC Low Complexity base layer can be decoded by any AAC decoder.
 	@constant		kAudioCodecPropertySoundQualityForVBR
 						A UInt32 that sets a target sound quality level.
@@ -623,10 +623,10 @@ const
 						See also kAudioCodecPropertyQualitySetting
 						Writable if supported.
     @constant		kAudioCodecPropertyDelayMode
-                        A UInt32 specifying the delay mode. See enum below.                        
+                        A UInt32 specifying the delay mode. See enum below.
                         Writable if supported.
 	@constant		kAudioCodecPropertyAdjustLocalQuality
-						An SInt32 number in the range [-128, 127] to allow encoding quality adjustements on a packet by packet basis.
+						An SInt32 number in the range [-128, 127] to allow encoding quality adjustments on a packet by packet basis.
 						This property can be set on an initialized encoder object without having to uninitialize and re-initialize it
 						and allows to adjust the encoder quality level for every packet. This is useful for packets streamed over
 						unreliable IP networks where the encoder needs to adapt immediately to network condition changes.
@@ -683,14 +683,14 @@ const
 	kAudioCodecPropertyAdjustLocalQuality = FourCharCode('^qal');
 	kAudioCodecPropertyProgramTargetLevel = FourCharCode('pptl');
 	kAudioCodecPropertyDynamicRangeControlMode = FourCharCode('mdrc');
-	kAudioCodecPropertyProgramTargetLevelConstant = FourCharCode('ptlc'); 
+	kAudioCodecPropertyProgramTargetLevelConstant = FourCharCode('ptlc');
 
 
 {!
 	@enum			AudioCodecQuality
- 
+
 	@discussion		Constants to be used with kAudioCodecPropertyQualitySetting
- 
+
 	@constant		kAudioCodecQuality_Max
 	@constant		kAudioCodecQuality_High
 	@constant		kAudioCodecQuality_Medium
@@ -707,9 +707,9 @@ const
 
 {!
 	@enum			AudioCodecPrimeMethod
- 
+
 	@discussion		Constants to be used with kAudioCodecPropertyPrimeMethod.
- 
+
 	@constant		kAudioCodecPrimeMethod_Pre
 						Primes with leading and trailing input frames
 	@constant		kAudioCodecPrimeMethod_Normal
@@ -727,36 +727,36 @@ const
 
 {!
 	@enum			kAudioCodecPropertyBitRateControlMode
- 
+
 	@discussion		Constants defining various bit rate control modes
 					to be used with kAudioCodecPropertyBitRateControlMode.
 					These modes are only applicable to encoders that can produce
 					variable packet sizes, such as AAC.
 
 	@constant		kAudioCodecBitRateControlMode_Constant
-						The encoder maintains a constant bit rate suitable for use over a transmission 
-						channel when decoding in real-time with a fixed end-to-end audio delay.  
-						Note that while a constant bit rate is maintained in this mode, the number of bits 
-						allocated to encode each fixed length of audio data may be variable 
+						The encoder maintains a constant bit rate suitable for use over a transmission
+						channel when decoding in real-time with a fixed end-to-end audio delay.
+						Note that while a constant bit rate is maintained in this mode, the number of bits
+						allocated to encode each fixed length of audio data may be variable
 						(ie. packet sizes are variable).
 						E.g., MP3 and MPEG-AAC use a bit reservoir mechanism to meet that constraint.
 	@constant		kAudioCodecBitRateControlMode_LongTermAverage
 						 The provided target bit rate is achieved over a long term average
-						 (typically after the first 1000 packets). This mode is similar to 
-						 kAudioCodecBitRateControlMode_Constant in the sense that the 
-						 target bit rate will be maintained in a long term average. However, it does not 
-						 provide constant delay when using constant bit rate transmission. This mode offers 
-						 a better sound quality than kAudioCodecBitRateControlMode_Constant 
-						 can, that is, a more efficient encoding is performed. 
+						 (typically after the first 1000 packets). This mode is similar to
+						 kAudioCodecBitRateControlMode_Constant in the sense that the
+						 target bit rate will be maintained in a long term average. However, it does not
+						 provide constant delay when using constant bit rate transmission. This mode offers
+						 a better sound quality than kAudioCodecBitRateControlMode_Constant
+						 can, that is, a more efficient encoding is performed.
 	@constant		kAudioCodecBitRateControlMode_VariableConstrained
 						Encoder dynamically allocates the bit resources according to the characteristics
-						of the underlying signal. However, some constraints are applied in order to limit 
+						of the underlying signal. However, some constraints are applied in order to limit
 						the variation of the bit rate.
 	@constant		kAudioCodecBitRateControlMode_Variable
 						Similar to the VBR constrained mode, however the packet size is virtually unconstrained.
-						The coding process targets constant sound quality, and the sound quality level is 
+						The coding process targets constant sound quality, and the sound quality level is
 						set by kAudioCodecPropertySoundQualityForVBR.
-						This mode usually provides the best tradeoff between quality and bit rate.
+						This mode usually provides the best trade-off between quality and bit rate.
 }
 const
 	kAudioCodecBitRateControlMode_Constant = 0;
@@ -766,7 +766,7 @@ const
 
 {!
     @enum			AudioCodecDelayMode
- 
+
     @discussion		Constants defining various delay modes to be used with kAudioCodecPropertyDelayMode.
                     The resulting priming frames are reflected in the kAudioCodecPropertyPrimeInfo property.
                     Note that for layered streams like aach and aacp, the priming information always refers
@@ -784,7 +784,7 @@ const
 const
 	kAudioCodecDelayMode_Compatibility = 0;
 	kAudioCodecDelayMode_Minimum = 1;
-	kAudioCodecDelayMode_Optimal = 2; 
+	kAudioCodecDelayMode_Optimal = 2;
 
 {!
 	@enum			ProgramTargetLevel
@@ -792,7 +792,7 @@ const
 	@discussion		Constants to be used with kAudioCodecPropertyProgramTargetLevelConstant
 
 	@constant		kProgramTargetLevel_None
-						
+
 	@constant		kProgramTargetLevel_Minus31dB
 	@constant		kProgramTargetLevel_Minus23dB
 	@constant		kProgramTargetLevel_Minus20dB
@@ -801,8 +801,8 @@ const
 	kProgramTargetLevel_None = 0;
 	kProgramTargetLevel_Minus31dB = 1;
 	kProgramTargetLevel_Minus23dB = 2;
-	kProgramTargetLevel_Minus20dB = 3; 
-    
+	kProgramTargetLevel_Minus20dB = 3;
+
 {!
 	@enum			DynamicRangeControlMode
 
@@ -818,18 +818,18 @@ const
 const
 	kDynamicRangeControlMode_None = 0;
 	kDynamicRangeControlMode_Light = 1;
-	kDynamicRangeControlMode_Heavy = 2; 
+	kDynamicRangeControlMode_Heavy = 2;
 
 {!
-	@struct			AudioCodecPrimeInfo 
- 
+	@struct			AudioCodecPrimeInfo
+
 	@discussion		Specifies the number of leading and trailing empty frames
 					which have to be inserted.
- 
+
 	@field			leadingFrames
 						An unsigned integer specifying the number of leading empty frames
 	@field			trailingFrames
-						An unsigned integer specifying the number of trailing empty frames 
+						An unsigned integer specifying the number of trailing empty frames
 }
 type
 	AudioCodecPrimeInfo = record
@@ -837,7 +837,7 @@ type
 		trailingFrames: UInt32;
 	end;
 	AudioCodecPrimeInfoPtr = ^AudioCodecPrimeInfo;
-	
+
 
 //=============================================================================
 //#pragma mark -
@@ -872,17 +872,17 @@ const
 
 {!
 	@enum			AudioSettingsFlags
- 
+
 	@discussion		Constants to be used with kAudioSettings_Hint
 					in the kAudioCodecPropertySettings property dictionary.
-					Indicates any special characteristics of each parameter within the dictionary, 
+					Indicates any special characteristics of each parameter within the dictionary,
 
 	@constant		kAudioSettingsFlags_ExpertParameter
 						If set, then the parameter is an expert parameter.
 	@constant		kAudioSettingsFlags_InvisibleParameter
-						If set, then the parameter should not be displayed. 
+						If set, then the parameter should not be displayed.
 	@constant		kAudioSettingsFlags_MetaParameter
-						If set, then changing this parameter may affect the values of other parameters. 
+						If set, then changing this parameter may affect the values of other parameters.
 						If not set, then this parameter can be set without affecting the values of other parameters.
 	@constant		kAudioSettingsFlags_UserInterfaceParameter
 						If set, then this is only a user interface element and not reflected in the codec's bit stream.
@@ -902,13 +902,13 @@ const
 //=============================================================================
 {!
 	@enum			AudioCodecProduceOutputPacketStatus
- 
+
 	@discussion		Possible return status
- 
+
 	@constant		kAudioCodecProduceOutputPacketFailure
 						Couldn't complete the request due to an error. It is possible
 						that some output data was produced. This is reflected in the value
-						returned in ioNumberPackets. 
+						returned in ioNumberPackets.
 	@constant		kAudioCodecProduceOutputPacketSuccess
 						The number of requested output packets was produced without incident
 						and there isn't any more input data to process
@@ -924,7 +924,7 @@ const
 						than the requested number of output packets may have been
 						produced. Check the value returned in ioNumberPackets for the
 						actual number produced. Note that not all formats have EOF
-						markers in them. 
+						markers in them.
 }
 const
 	kAudioCodecProduceOutputPacketFailure = 1;
@@ -940,10 +940,10 @@ const
 //=============================================================================
 {!
 	@enum			AudioCodecSelectors
- 
+
 	@discussion		Allows selection of component routines supported the the AudioCodec API
 					Used by the Component Manager.
- 
+
 	@constant		kAudioCodecGetPropertyInfoSelect
 	@constant		kAudioCodecGetPropertySelect
 	@constant		kAudioCodecSetPropertySelect
@@ -974,9 +974,9 @@ const
 //=============================================================================
 {!
 	@enum			AudioCodecErrors
- 
+
 	@discussion		Possible errors returned by audio codec components
- 
+
 	@constant		kAudioCodecNoError
 	@constant		kAudioCodecUnspecifiedError
 	@constant		kAudioCodecUnknownPropertyError
@@ -996,7 +996,7 @@ const
 	kAudioCodecUnsupportedFormatError = FourCharCode('!dat');
 	kAudioCodecStateError = FourCharCode('!stt');
 	kAudioCodecNotEnoughBufferSpaceError = FourCharCode('!buf');
-	kAudioCodecBadDataError = FourCharCode('bada'); 
+	kAudioCodecBadDataError = FourCharCode('bada');
 
 
 //=============================================================================
@@ -1006,12 +1006,12 @@ const
 
 {!
 	@function		AudioCodecGetPropertyInfo
- 
+
 	@discussion		Retrieve information about the given property. The outSize argument
 					will return the size in bytes of the current value of the property.
 					The outWritable argument will return whether or not the property
 					in question can be changed.
- 
+
 	@param			inCodec
 						An AudioCodec instance
 	@param			inPropertyID
@@ -1019,8 +1019,8 @@ const
 	@param			outSize
 						Size in bytes of the property
 	@param			outWritable
-						Flag indicating wether the underlying property can be modified or not 
- 
+						Flag indicating wether the underlying property can be modified or not
+
 	@result			The OSStatus value
 }
 function AudioCodecGetPropertyInfo( inCodec: AudioCodec; inPropertyID: AudioCodecPropertyID; var outSize: UInt32; var outWritable: Boolean ): OSStatus; external name '_AudioCodecGetPropertyInfo';
@@ -1029,11 +1029,11 @@ function AudioCodecGetPropertyInfo( inCodec: AudioCodec; inPropertyID: AudioCode
 
 {!
 	@function		AudioCodecGetProperty
- 
+
 	@discussion		Retrieve the indicated property data. On input, ioDataSize has the size
 					of the data pointed to by outPropertyData. On output, ioDataSize will contain
 					the amount written.
- 
+
 	@param			inCodec
 						An AudioCodec instance
 	@param			inPropertyID
@@ -1053,7 +1053,7 @@ function AudioCodecGetProperty( inCodec: AudioCodec; inPropertyID: AudioCodecPro
 	@function		AudioCodecSetProperty
 
 	@discussion		Set the indicated property data.
- 
+
 	@param			inCodec
 						An AudioCodec instance
 	@param			inPropertyID
@@ -1062,7 +1062,7 @@ function AudioCodecGetProperty( inCodec: AudioCodec; inPropertyID: AudioCodecPro
 						Size in bytes of the property data
 	@param			inPropertyData
 						Pointer to the property data buffer
- 
+
 	@result			The OSStatus value
 }
 function AudioCodecSetProperty( inCodec: AudioCodec; inPropertyID: AudioCodecPropertyID; inPropertyDataSize: UInt32; inPropertyData: {const} UnivPtr ): OSStatus; external name '_AudioCodecSetProperty';
@@ -1076,12 +1076,12 @@ function AudioCodecSetProperty( inCodec: AudioCodec; inPropertyID: AudioCodecPro
 
 {!
 	@function		AudioCodecInitialize
- 
+
 	@discussion		This call will allocate any buffers needed and otherwise set the codec
 					up to perform the indicated translation. If an argument is NULL, any
 					previously set properties will be used for preparing the codec for work.
 					Note that this routine will also validate the format information as useable.
- 
+
 	@param			inCodec
 						An AudioCodec instance
 	@param			inInputFormat
@@ -1092,7 +1092,7 @@ function AudioCodecSetProperty( inCodec: AudioCodec; inPropertyID: AudioCodecPro
 						Pointer to the magic cookie
 	@param			inMagicCookieByteSize
 						Size in bytes of the magic cookie
-  
+
 	@result			The OSStatus value
 }
 function AudioCodecInitialize( inCodec: AudioCodec; const (*var*) inInputFormat: AudioStreamBasicDescription; const (*var*) inOutputFormat: AudioStreamBasicDescription; inMagicCookie: {const} UnivPtr; inMagicCookieByteSize: UInt32 ): OSStatus; external name '_AudioCodecInitialize';
@@ -1101,14 +1101,14 @@ function AudioCodecInitialize( inCodec: AudioCodec; const (*var*) inInputFormat:
 
 {!
 	@function		AudioCodecUninitialize
-  
+
 	@discussion		This call will move the codec from the initialized state back to the
 					uninitialized state. The codec will release any resources it allocated
 					or claimed in AudioCodecInitialize.
- 
+
 	@param			inCodec
 						An AudioCodec instance
- 
+
 	@result			The OSStatus value
 }
 function AudioCodecUninitialize( inCodec: AudioCodec ): OSStatus; external name '_AudioCodecUninitialize';
@@ -1117,18 +1117,18 @@ function AudioCodecUninitialize( inCodec: AudioCodec ): OSStatus; external name 
 
 {!
 	@function		AudioCodecAppendInputData
- 
+
 	@discussion		Append as much of the given data in inInputData to the codec's input buffer as possible
 					and return in ioInputDataByteSize the amount of data used.
- 
+
 					The inPacketDescription argument is an array of AudioStreamPacketDescription
 					structs that describes the packet layout. The number of elements in this array
 					is indicated on input by ioNumberPackets. On return, this number indicates the number
 					of packets consumed.
- 
+
 					Note also in this case that it is an error to supply less than a full packet
 					of data at a time.
- 
+
 	@param			inCodec
 						An AudioCodec instance
 	@param			inInputData
@@ -1140,7 +1140,7 @@ function AudioCodecUninitialize( inCodec: AudioCodec ): OSStatus; external name 
 						The number of packets
 	@param			inPacketDescription
 						The packet description pointer
- 
+
 	@result			The OSStatus value
 }
 function AudioCodecAppendInputData( inCodec: AudioCodec; inInputData: {const} UnivPtr; var ioInputDataByteSize: UInt32; var ioNumberPackets: UInt32; const (*var*) inPacketDescription: AudioStreamPacketDescription ): OSStatus; external name '_AudioCodecAppendInputData';
@@ -1154,7 +1154,7 @@ function AudioCodecAppendInputData( inCodec: AudioCodec; inInputData: {const} Un
 					allows for. The outStatus argument returns information about the codec's
 					status to allow for proper data management. See the constants above for
 					the possible values that can be returned.
- 
+
 					The outPacketDescription argument is an array of AudioStreamPacketDescription
 					structs that describes the packet layout returned in outOutputData. This
 					argument is optional. Pass NULL if this information is not to be returned.
@@ -1165,7 +1165,7 @@ function AudioCodecAppendInputData( inCodec: AudioCodec; inInputData: {const} Un
 					the number frames in a packet of the encoded format (as returned by
 					kAudioCodecPropertyPacketFrameSize). Encoders will consume this many frames
 					of linear PCM data to produce a packet of their format.
- 
+
 	@param			inCodec
 						The AudioCodec instance
 	@param			outOutputData
@@ -1191,9 +1191,9 @@ function AudioCodecProduceOutputBufferList( inCodec: AudioCodec; var ioBufferLis
 	@discussion		Flushes all the data in the codec and clears the input buffer. Note that
 					the formats, and magic cookie will be retained so they won't need to be
 					set up again to decode the same data.
- 
+
 	@param			inCodec The audio codec descriptor
- 
+
 	@result			the OSStatus value
 }
 function AudioCodecReset( inCodec: AudioCodec ): OSStatus; external name '_AudioCodecReset';
@@ -1257,7 +1257,7 @@ const
 					The name of the codec component as a CFStringRef. The CFStringRef
 					retrieved via this property must be released by the caller.
 	@constant	kAudioCodecPropertyManufacturerCFString
-					The manufacturer of the codec as a CFStringRef. The CFStringRef 
+					The manufacturer of the codec as a CFStringRef. The CFStringRef
 					retrieved via this property must be released by the caller.
 	@constant	kAudioCodecPropertyFormatCFString
 					The name of the codec's format as a CFStringRef. The CFStringRef
@@ -1267,12 +1267,12 @@ const
 const
 	kAudioCodecPropertyNameCFString = FourCharCode('lnam');
 	kAudioCodecPropertyManufacturerCFString = FourCharCode('lmak');
-	kAudioCodecPropertyFormatCFString = FourCharCode('lfor');		
+	kAudioCodecPropertyFormatCFString = FourCharCode('lfor');
 
 {!
 	@enum		AudioCodecProperty
 	@deprecated	in version 10.5
- 
+
 	@constant	kAudioCodecPropertyRequiresPacketDescription
 					A UInt32 where a non-zero value indicates that the format the codec implements
 					requires that an AudioStreamPacketDescription array must be supplied with any data
@@ -1282,8 +1282,8 @@ const
 					on output.
 					A decoder must be able to handle packet descriptions even if it does not require them.
 					An encoder does not have to fill out packet descriptions if it does not require them.
-					Redundant due to kAudioCodecPropertyHasVariablePacketByteSizes. Codecs with variable-sized 
-					packets must handle packet descriptions while codecs with constant-sized packets do not 
+					Redundant due to kAudioCodecPropertyHasVariablePacketByteSizes. Codecs with variable-sized
+					packets must handle packet descriptions while codecs with constant-sized packets do not
 					have to.
 	@constant	kAudioCodecPropertyAvailableBitRates
 					An array of UInt32 that indicates the target bit rates
@@ -1292,21 +1292,21 @@ const
 	@constant	kAudioCodecExtendFrequencies
 					A UInt32 indicating whether an encoder should extend its cutoff frequency
 					if such an option exists. 0 == extended frequencies off, 1 == extended frequencies on
-					e.g. some encoders normally cut off the signal at 16 kHz but can encode up to 20 kHz if 
+					e.g. some encoders normally cut off the signal at 16 kHz but can encode up to 20 kHz if
 					asked to.
 					Redundant.
 	@constant	kAudioCodecUseRecommendedSampleRate
 					For encoders that do sample rate conversion, a UInt32 indicating whether or
-					not the encoder is using the recommended sample rate for the given input. 
+					not the encoder is using the recommended sample rate for the given input.
 					A value of 0 indicates it isn't, 1 indicates it is.
-					This property is read only and indicates whether or not a user has explicitly set an output 
+					This property is read only and indicates whether or not a user has explicitly set an output
 					sample rate.
 					Redundant as 0.0 for a sample rate means let the codec decide.
 	@constant	kAudioCodecOutputPrecedence
 					For encoders that do sample rate conversion, a UInt32 indicating whether the
 					bit rate, sample rate, or neither have precedence over the other. See enum below.
-					Redundant because precedence is implicitly set by either providing a non-zero bit rate or 
-					sample rate and setting the other to zero (which allows the encoder to choose any applicable rate). 
+					Redundant because precedence is implicitly set by either providing a non-zero bit rate or
+					sample rate and setting the other to zero (which allows the encoder to choose any applicable rate).
 					If both values are set to non-zero, neither value has precedence.
 	@constant	kAudioCodecDoesSampleRateConversion
 					Renamed to kAudioCodecPropertyDoesSampleRateConversion
@@ -1345,9 +1345,9 @@ const
 	@deprecated	in version 10.5
 
 	@discussion	Constants to be used with kAudioCodecBitRateFormat.
-					This is deprecated. 
+					This is deprecated.
 					Use kAudioCodecPropertyBitRateControlMode instead.
- 
+
 	@constant	kAudioCodecBitRateFormat_CBR is mapped to kAudioCodecBitRateControlMode_Constant
 	@constant	kAudioCodecBitRateFormat_ABR is mapped to kAudioCodecBitRateControlMode_LongTermAverage
 	@constant	kAudioCodecBitRateFormat_VBR is mapped to kAudioCodecBitRateControlMode_VariableConstrained
@@ -1363,7 +1363,7 @@ const
 	@deprecated	in version 10.5
 
 	@discussion	Constants to be used with kAudioCodecOutputPrecedence
- 
+
 	@constant	kAudioCodecOutputPrecedenceNone
 					Change in the bit rate or the sample rate are constrained by
 					the other value.
@@ -1381,23 +1381,23 @@ const
 
 {!
 	@typedef	MagicCookieInfo
- 
+
 	@deprecated	in version 10.5
- 
-	@discussion	renamed to AudioCodecMagicCookieInfo 
+
+	@discussion	renamed to AudioCodecMagicCookieInfo
  }
 type
 	MagicCookieInfo = AudioCodecMagicCookieInfo;
 
 {!
 	@enum		AudioCodecSettingsHint
- 
+
 	@deprecated	in version 10.4
- 
+
 	@discussion	Constants to be used with kAudioSettings_Hint.
 				This is deprecated.
 				Use	AudioSettingsFlag instead.
- 
+
 	@constant	kHintBasic
 	@constant	kHintAdvanced
 	@constant	kHintHidden

@@ -1,17 +1,17 @@
 {
      File:       HIToolbox/HIMenuView.h
- 
+
      Contains:   Definition of the base and standard menu views provided by HIToolbox.
- 
+
      Version:    HIToolbox-624~3
- 
+
      Copyright:  © 2006-2008 by Apple Computer, Inc., all rights reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
@@ -231,7 +231,7 @@ uses MacTypes,Menus,HIObject,HIView;
 
 {
  *  HIMenuView.h
- *  
+ *
  *  Discussion:
  *    API definitions for the base and standard menu views.
  }
@@ -266,20 +266,20 @@ const
     The kEventHIObjectInitialize event for HIMenuView and HIStandardMenuView is expected to contain
     the following parameters. Be sure to include these parameters in the init event if you create an
     instance of these views with HIObjectCreate.
-    
+
     --> kEventParamMenuRef (in, typeMenuRef)
             The menu that the view should draw.
 }
 {
  *  kHIViewMenuContentID
- *  
+ *
  *  Summary:
  *    The HIViewID for the menu content view. The Menu Manager assigns
  *    this view ID to all menu content views.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available
@@ -290,30 +290,30 @@ var kHIViewMenuContentID: HIViewID; external name '_kHIViewMenuContentID'; (* at
 {$ifc not TARGET_CPU_64}
 {
  *  HIMenuViewGetMenu()
- *  
+ *
  *  Summary:
  *    Returns the MenuRef that is associated with an HIView that is a
  *    subclass of HIMenuView.
- *  
+ *
  *  Discussion:
  *    An HIMenuView subclass might use this API to determine the menu
  *    that it should draw. Prior to Mac OS X 10.5, this API returns
  *    NULL if passed an instance of the standard menu view. In Mac OS X
  *    10.5 and later, this API correctly returns the owning menu of an
  *    instance of the standard menu view.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inView:
  *      The view whose menu to return.
- *  
+ *
  *  Result:
  *    The MenuRef associated with the HIView, or NULL if an HIView is
  *    passed that is not a subclass of HIMenuView.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later

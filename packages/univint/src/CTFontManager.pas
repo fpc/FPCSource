@@ -232,13 +232,13 @@ uses MacTypes,CTFontDescriptor,CTFontManagerErrors,CFBase,CFArray,CFData,CFError
 {$ifc TARGET_OS_MAC}
 {!
 	@constant	CTRegisterBundleFonts
-	@discussion If this key is defined in the application bundle info dictionary with a boolean value of true, CTFontManager will register all fonts in the Fonts subdirectory of the bundle's Resources directory in the process scope.  
+	@discussion If this key is defined in the application bundle info dictionary with a boolean value of true, CTFontManager will register all fonts in the Fonts subdirectory of the bundle's Resources directory in the process scope.
  }
 
 {!
 	@function   CTFontManagerCopyAvailablePostScriptNames
 	@abstract   Returns an array of unique PostScript font names.
- 
+
 	@result     This function returns a retained reference to a CFArray of CFString references, or NULL on error. The caller is responsible for releasing the array.
  }
 function CTFontManagerCopyAvailablePostScriptNames: CFArrayRef; external name '_CTFontManagerCopyAvailablePostScriptNames';
@@ -368,28 +368,28 @@ function CTFontManagerUnregisterFontsForURL( fontURL: CFURLRef; scope: CTFontMan
                 Attempts to register a font that is either already registered or contains the same Postscript of an already registered font will fail.
                 This functionality is useful for fonts that may be embedded in documents or present/constructed in memory. A graphics font is obtained
                 by calling CGFontCreateWithDataProvider. Fonts that are backed by files should be registered using CTFontManagerRegisterFontsForURL.
- 
+
     @param      font
                 Graphics font to be registered.
- 
+
     @param      error
                 Pointer to receive CFError in the case of failed registration.
- 
+
     @result     Returns true if registration of the fonts was successful.
 }
 function CTFontManagerRegisterGraphicsFont( font: CGFontRef; var error: CFErrorRef ): CBool; external name '_CTFontManagerRegisterGraphicsFont';
 (* CT_AVAILABLE_STARTING( __MAC_10_8, __IPHONE_4_1) *)
-    
+
 {!
     @function   CTFontManagerUnregisterGraphicsFont
     @abstract   Unregisters the specified graphics font with the font manager. Unregistered fonts are no longer discoverable through font descriptor matching.
- 
+
     @param      font
                 Graphics font to be unregistered.
- 
+
     @param      error
                 Pointer to receive CFError in the case of failed unregistration.
- 
+
     @result     Returns true if unregistration of the font was successful.
 }
 function CTFontManagerUnregisterGraphicsFont( font: CGFontRef; var error: CFErrorRef ): CBool; external name '_CTFontManagerUnregisterGraphicsFont';

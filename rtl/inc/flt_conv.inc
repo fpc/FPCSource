@@ -132,7 +132,7 @@
 (*-------------------------------------------------------
  | Compatibility settings
  *-------------------------------------------------------*)
-    
+
     // FPC defaults to "real indefinite" QNaN value, which is negative.
     // Undefine to respect the sign provided during ASCII->float conversion.
     {$define GRISU1_A2F_QNAN_REAL_INDEFINITE}
@@ -233,7 +233,7 @@ const
     bits, i.e. 24/53/64/113 accordingly (including the implicit one if any)
 }
         // RT_S32REAL
-        ( nDig_mantissa: {$ifdef GRISU1_F2A_SINGLE_10DIGITS} 10 {$else} 9 {$endif}; 
+        ( nDig_mantissa: {$ifdef GRISU1_F2A_SINGLE_10DIGITS} 10 {$else} 9 {$endif};
           nDig_exp10: 2;
         ),
         // RT_S64REAL
@@ -270,7 +270,7 @@ const
 
 {$ifdef fpc_softfpu_implementation}
 (****************************************************************************
- * 
+ *
  * SoftPFU unit: Multiple instances for all supported floating point types
  *
  ****************************************************************************)
@@ -291,7 +291,7 @@ const
     {$define ValReal:=float32rec}
     {$define TDIY_FP:=TDIY_FP32}
     {$define TDIY_FP_Power_of_10:=TDIY_FP32_Power_of_10}
-    
+
  // Implementation
     {$info === float32<->ASCII ===}
     {$i flt_core.inc}
@@ -368,7 +368,7 @@ const
 
 {$else not fpc_softfpu_implementation}
 (****************************************************************************
- * 
+ *
  * System unit: only one native floating point type
  *
  ****************************************************************************)

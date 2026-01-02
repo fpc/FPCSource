@@ -1,6 +1,6 @@
 {
 Register definitions and utility code for stellaris
-Preliminary startup code 
+Preliminary startup code
 Geoffrey Barton 2010 08 01  gjb@periphon.net
 based on stm32f103 created by Jeppe Johansen 2009 - jepjoh2@kom.aau.dk
 }
@@ -132,7 +132,7 @@ interrupt_vectors:
   .long 0
   .long PendingSV_interrupt
   .long SysTick_interrupt
-  
+
   .long GPIO_Port_A_Interrupt
   .long GPIO_Port_B_Interrupt
   .long GPIO_Port_C_Interrupt
@@ -177,7 +177,7 @@ interrupt_vectors:
   .long 0
   .long 0
   .long Hibernation_Module_Interrupt
-  
+
   .weak NMI_interrupt
   .weak Hardfault_interrupt
   .weak MemManage_interrupt
@@ -221,7 +221,7 @@ interrupt_vectors:
   .weak Timer_3B_Interrupt
   .weak I2C1_Interrupt
   .weak Hibernation_Module_Interrupt
-  
+
   .set NMI_interrupt, Startup
   .set Hardfault_interrupt, Startup
   .set MemManage_interrupt, Startup
@@ -265,7 +265,7 @@ interrupt_vectors:
   .set Timer_3B_Interrupt, Startup
   .set I2C1_Interrupt, Startup
   .set Hibernation_Module_Interrupt, Startup
-  
+
   .text
 end;
 

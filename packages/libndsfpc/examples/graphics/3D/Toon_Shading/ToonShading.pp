@@ -81,7 +81,7 @@ begin
   glLight(0, RGB15(16,16,16) , 0,   floattov10(-1.0),   0);
   glLight(1, RGB15(16,16,16),   floattov10(-1.0), 0,    0);
 
-  gluLookAt(  0.0, 0.0, -3.0,   //camera possition
+  gluLookAt(  0.0, 0.0, -3.0,   //camera position
         0.0, 0.0, 0.0,    //look at
         0.0, 1.0, 0.0);   //up
 

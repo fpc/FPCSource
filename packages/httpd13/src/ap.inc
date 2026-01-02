@@ -144,7 +144,7 @@ function ap_vsnprintf(buf: PAnsiChar; len: size_t; const format: PAnsiChar; ap: 
  * or anything non A-Z,0-9 etc as terminal.
  *
  * plain strings/binary sequences are not assumed '\0' terminated. Encoded
- * strings are neither. But propably should.
+ * strings are neither. But probably should.
  *
  }
 function ap_base64encode_len(len: cint): cint;

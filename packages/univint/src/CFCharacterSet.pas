@@ -452,7 +452,7 @@ function CFCharacterSetCreateMutableCopy( alloc: CFAllocatorRef; theSet: CFChara
 	@param theChar The Unicode character for which to test against the
                 character set.  Note that this function takes 16-bit Unicode
                 character value; hence, it does not support access to the
-                non-BMP planes.  
+                non-BMP planes.
         @result true, if the value is in the character set, otherwise false.
 }
 function CFCharacterSetIsCharacterMember( theSet: CFCharacterSetRef; theChar: UniChar ): Boolean; external name '_CFCharacterSetIsCharacterMember';

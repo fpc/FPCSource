@@ -4,7 +4,7 @@
 
     Low level directory functions for Nintendo Wii
     Copyright (c) 2011 by Francesco Lombardi
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 

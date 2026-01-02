@@ -25,7 +25,7 @@ const
   FPE_FLTINV = 7;
   FPE_FLTSUB = 8;
 
- 
+
 procedure SignalToRunerror(sig : longint; SigInfo: PSigInfo; SigContext: PSigContext);public name '_FPC_DEFAULTSIGHANDLER';cdecl;
 var
   res : word;

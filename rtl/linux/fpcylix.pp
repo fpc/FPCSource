@@ -27,7 +27,7 @@ unit fpcylix;
     uses
       cthreads,cwstring,dynlibs;
 {$ENDIF FPC_DOTTEDUNITS}
-      
+
     const
       MAX_PATH = 4095;
 

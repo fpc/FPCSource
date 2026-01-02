@@ -1,17 +1,17 @@
 {
      File:       HIServices/InternetConfig.h
- 
+
      Contains:   Internet Config interfaces
- 
+
      Version:    HIServices-416~44
- 
+
      Copyright:  © 1999-2008 by Apple Computer, Inc., all rights reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
@@ -520,233 +520,233 @@ type
 {***********************************************************************************************
   keys
  ***********************************************************************************************}
-{ 
-    key reserved for use by Internet Config 
+{
+    key reserved for use by Internet Config
 }
 const
 	kICReservedKey = 'kICReservedKey';
 {
-    STR# -- formatted, list of Archie servers  
+    STR# -- formatted, list of Archie servers
 }
 const
 	kICArchieAll = 'ArchieAll';
 {
-    PString -- formatted, preferred Archie server   
+    PString -- formatted, preferred Archie server
 }
 const
 	kICArchiePreferred = 'ArchiePreferred';
 {
-    ICCharTable -- Mac-to-Net and Net-to-Mac character translation   
+    ICCharTable -- Mac-to-Net and Net-to-Mac character translation
 }
 const
 	kICCharacterSet = 'CharacterSet';
 {
-    ICFontRecord -- font used for proportional text   
+    ICFontRecord -- font used for proportional text
 }
 const
 	kICDocumentFont = 'DocumentFont';
 {
-    ICFileSpec -- where to put newly downloaded files   
+    ICFileSpec -- where to put newly downloaded files
 }
 const
 	kICDownloadFolder = 'DownloadFolder';
 {
-    PString -- user@host.domain, email address of user, ie return address   
+    PString -- user@host.domain, email address of user, ie return address
 }
 const
 	kICEmail = 'Email';
 {
-    PString -- host.domain, default FTP server   
+    PString -- host.domain, default FTP server
 }
 const
 	kICFTPHost = 'FTPHost';
 {
-    PString -- second level FTP proxy authorisation   
+    PString -- second level FTP proxy authorisation
 }
 const
 	kICFTPProxyAccount = 'FTPProxyAccount';
 {
-    PString -- host.domain   
+    PString -- host.domain
 }
 const
 	kICFTPProxyHost = 'FTPProxyHost';
 {
-    PString -- scrambled, password for FTPProxyUser   
+    PString -- scrambled, password for FTPProxyUser
 }
 const
 	kICFTPProxyPassword = 'FTPProxyPassword';
 {
-    PString -- first level FTP proxy authorisation   
+    PString -- first level FTP proxy authorisation
 }
 const
 	kICFTPProxyUser = 'FTPProxyUser';
 {
-    PString -- host.domain, default finger server   
+    PString -- host.domain, default finger server
 }
 const
 	kICFingerHost = 'FingerHost';
 {
-    PString -- host.domain, default Gopher server   
+    PString -- host.domain, default Gopher server
 }
 const
 	kICGopherHost = 'GopherHost';
 {
-    PString -- host.domain, see note in Prog Docs   
+    PString -- host.domain, see note in Prog Docs
 }
 const
 	kICGopherProxy = 'GopherProxy';
 {
-    PString -- host.domain   
+    PString -- host.domain
 }
 const
 	kICHTTPProxyHost = 'HTTPProxyHost';
 {
-    ICAppSpec -- helpers for URL schemes   
+    ICAppSpec -- helpers for URL schemes
 }
 const
 	kICHelper = 'Helper¥';
 {
-    PString -- description for URL scheme   
+    PString -- description for URL scheme
 }
 const
 	kICHelperDesc = 'HelperDesc¥';
 {
-    ICAppSpecList -- list of common helpers for URL schemes   
+    ICAppSpecList -- list of common helpers for URL schemes
 }
 const
 	kICHelperList = 'HelperList¥';
 {
-    PString -- host.domain, Internet Relay Chat server   
+    PString -- host.domain, Internet Relay Chat server
 }
 const
 	kICIRCHost = 'IRCHost';
 {
-    STR# -- formatted, list of Info-Mac servers   
+    STR# -- formatted, list of Info-Mac servers
 }
 const
 	kICInfoMacAll = 'InfoMacAll';
 {
-    PString -- formatted, preferred Info-Mac server   
+    PString -- formatted, preferred Info-Mac server
 }
 const
 	kICInfoMacPreferred = 'InfoMacPreferred';
 {
-    PString -- string LDAP thing   
+    PString -- string LDAP thing
 }
 const
 	kICLDAPSearchbase = 'LDAPSearchbase';
 {
-    PString -- host.domain   
+    PString -- host.domain
 }
 const
 	kICLDAPServer = 'LDAPServer';
 {
-    ICFontRecord -- font used for lists of items (eg news article lists)   
+    ICFontRecord -- font used for lists of items (eg news article lists)
 }
 const
 	kICListFont = 'ListFont';
 {
-    PString -- host for MacSearch queries   
+    PString -- host for MacSearch queries
 }
 const
 	kICMacSearchHost = 'MacSearchHost';
 {
-    PString -- user@host.domain, account from which to fetch mail   
+    PString -- user@host.domain, account from which to fetch mail
 }
 const
 	kICMailAccount = 'MailAccount';
 {
-    TEXT -- extra headers for mail messages   
+    TEXT -- extra headers for mail messages
 }
 const
 	kICMailHeaders = 'MailHeaders';
 {
-    PString -- scrambled, password for MailAccount   
+    PString -- scrambled, password for MailAccount
 }
 const
 	kICMailPassword = 'MailPassword';
 {
-    ICMapEntries -- file type mapping, see documentation   
+    ICMapEntries -- file type mapping, see documentation
 }
 const
 	kICMapping = 'Mapping';
 {
-    PString -- host.domain, NNTP server   
+    PString -- host.domain, NNTP server
 }
 const
 	kICNNTPHost = 'NNTPHost';
 {
-    PString -- host.domain, Network Time Protocol (NTP)   
+    PString -- host.domain, Network Time Protocol (NTP)
 }
 const
 	kICNTPHost = 'NTPHost';
 {
-    Boolean   
+    Boolean
 }
 const
 	kICNewMailDialog = 'NewMailDialog';
 {
-    Boolean -- how to announce new mail   
+    Boolean -- how to announce new mail
 }
 const
 	kICNewMailFlashIcon = 'NewMailFlashIcon';
 {
-    Boolean   
+    Boolean
 }
 const
 	kICNewMailPlaySound = 'NewMailPlaySound';
 {
-    PString   
+    PString
 }
 const
 	kICNewMailSoundName = 'NewMailSoundName';
 {
-    PString -- scrambled, password for NewsAuthUsername   
+    PString -- scrambled, password for NewsAuthUsername
 }
 const
 	kICNewsAuthPassword = 'NewsAuthPassword';
 {
-    PString -- user name for authorised news servers   
+    PString -- user name for authorised news servers
 }
 const
 	kICNewsAuthUsername = 'NewsAuthUsername';
 {
-    TEXT -- extra headers for news messages   
+    TEXT -- extra headers for news messages
 }
 const
 	kICNewsHeaders = 'NewsHeaders';
 {
-    STR# -- list of domains not to be proxied   
+    STR# -- list of domains not to be proxied
 }
 const
 	kICNoProxyDomains = 'NoProxyDomains';
 {
-    PString -- for X-Organization string   
+    PString -- for X-Organization string
 }
 const
 	kICOrganization = 'Organization';
 {
-    PString -- host.domain, default Ph server   
+    PString -- host.domain, default Ph server
 }
 const
 	kICPhHost = 'PhHost';
 {
-    TEXT -- default response for finger servers   
+    TEXT -- default response for finger servers
 }
 const
 	kICPlan = 'Plan';
 {
-    ICFontRecord -- font used to print ScreenFont   
+    ICFontRecord -- font used to print ScreenFont
 }
 const
 	kICPrinterFont = 'PrinterFont';
 {
-    PString -- used to quote responses in news and mail   
+    PString -- used to quote responses in news and mail
 }
 const
 	kICQuotingString = 'QuotingString';
 {
-    PString -- real name of user   
+    PString -- real name of user
 }
 const
 	kICRealName = 'RealName';
@@ -756,67 +756,67 @@ const
 const
 	kICRTSPProxyHost = 'RTSPProxyHost';
 {
-    PString -- host.domain, SMTP server   
+    PString -- host.domain, SMTP server
 }
 const
 	kICSMTPHost = 'SMTPHost';
 {
-    ICFontRecord -- font used for monospaced text (eg news articles)   
+    ICFontRecord -- font used for monospaced text (eg news articles)
 }
 const
 	kICScreenFont = 'ScreenFont';
 {
-    ICServices -- TCP and IP port-to-name mapping   
+    ICServices -- TCP and IP port-to-name mapping
 }
 const
 	kICServices = 'Services';
 {
-    TEXT -- append to news and mail messages   
+    TEXT -- append to news and mail messages
 }
 const
 	kICSignature = 'Signature';
 {
-    TEXT -- preferred mailing address   
+    TEXT -- preferred mailing address
 }
 const
 	kICSnailMailAddress = 'SnailMailAddress';
 {
-    PString -- host.domain, remember that host.domain format allows ":port" and " port"  
+    PString -- host.domain, remember that host.domain format allows ":port" and " port"
 }
 const
 	kICSocksHost = 'SocksHost';
 {
-    PString -- host.domain, default Telnet address   
+    PString -- host.domain, default Telnet address
 }
 const
 	kICTelnetHost = 'TelnetHost';
 {
-    STR# -- formatted, list of UMich servers   
+    STR# -- formatted, list of UMich servers
 }
 const
 	kICUMichAll = 'UMichAll';
 {
-    PString -- formatted, preferred UMich server   
+    PString -- formatted, preferred UMich server
 }
 const
 	kICUMichPreferred = 'UMichPreferred';
 {
-    Boolean   
+    Boolean
 }
 const
 	kICUseFTPProxy = 'UseFTPProxy';
 {
-    Boolean   
+    Boolean
 }
 const
 	kICUseGopherProxy = 'UseGopherProxy';
 {
-    Boolean   
+    Boolean
 }
 const
 	kICUseHTTPProxy = 'UseHTTPProxy';
 {
-    Boolean -- use PASV command for FTP transfers   
+    Boolean -- use PASV command for FTP transfers
 }
 const
 	kICUsePassiveFTP = 'UsePassiveFTP';
@@ -826,52 +826,52 @@ const
 const
 	kICUseRTSPProxy = 'UseRTSPProxy';
 {
-    Boolean   
+    Boolean
 }
 const
 	kICUseSocks = 'UseSocks';
 {
-    PString -- no idea   
+    PString -- no idea
 }
 const
 	kICWAISGateway = 'WAISGateway';
 {
-    PString -- URL, users default WWW page   
+    PString -- URL, users default WWW page
 }
 const
 	kICWWWHomePage = 'WWWHomePage';
 {
-    RGBColor -- background colour for web pages   
+    RGBColor -- background colour for web pages
 }
 const
 	kICWebBackgroundColour = 'WebBackgroundColour';
 {
-    RGBColor -- colour for read links   
+    RGBColor -- colour for read links
 }
 const
 	kICWebReadColor = '646F6777¥WebReadColor';
 {
-    PString -- URL, users default search page   
+    PString -- URL, users default search page
 }
 const
 	kICWebSearchPagePrefs = 'WebSearchPagePrefs';
 {
-    RGBColor -- colour for normal text   
+    RGBColor -- colour for normal text
 }
 const
 	kICWebTextColor = 'WebTextColor';
 {
-    Boolean -- whether to underline links   
+    Boolean -- whether to underline links
 }
 const
 	kICWebUnderlineLinks = '646F6777¥WebUnderlineLinks';
 {
-    RGBColor -- colour for unread links   
+    RGBColor -- colour for unread links
 }
 const
 	kICWebUnreadColor = '646F6777¥WebUnreadColor';
 {
-    PString -- host.domain, default whois server   
+    PString -- host.domain, default whois server
 }
 const
 	kICWhoisHost = 'WhoisHost';
@@ -887,7 +887,7 @@ const
       [r2] Requires IC 1.2 or higher.
       [r3] Requires IC 2.0 or higher.
       [r4] Requires IC 2.5 or higher.
-      
+
       IMPORTANT:
 
       In IC 2.5, instances automatically use the default configuration.
@@ -896,22 +896,22 @@ const
       notes only apply to IC 2.0 and earlier.
 
       [c1]  You must have specified a configuration before calling this routine.
-      
+
       [c2]  You must have specified the default configuration before calling this
             routine.
-      
+
       [c3]  You do not need to specify a configuration before calling this routine.
-      
+
       [b1]  You must be inside a Begin/End pair when calling this routine.
-      
+
       [b2]  You must be inside a Begin/End read/write pair when calling this routine.
-      
+
       [b3]  You do not need to be inside a Begin/End pair when calling this routine.
-      
+
       [b4]  If you are getting or setting multiple preferences, you should make this
             call inside a Begin/End pair. If you do not make this call inside a Begin/End
             pair, the call will automatically do it for you.
-      
+
       [b5]  It is illegal to call this routine inside a Begin/End pair.
 
  ***********************************************************************************************}
@@ -919,10 +919,10 @@ const
 { ***** Starting Up and Shutting Down *****  }
 {
  *  ICStart()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -938,10 +938,10 @@ function ICStart( var inst: ICInstance; signature: OSType ): OSStatus; external 
    }
 {
  *  ICStop()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -951,16 +951,16 @@ function ICStop( inst: ICInstance ): OSStatus; external name '_ICStop';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_7 *)
 
 
-{ [b5] 
+{ [b5]
    * Call this at application initialisation, after which inst
    * is no longer valid connection to IC.
    }
 {
  *  ICGetVersion()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -970,17 +970,17 @@ function ICGetVersion( inst: ICInstance; whichVersion: SIGNEDLONG; var version: 
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_7 *)
 
 
-{ [r4] [c3] [b3] 
+{ [r4] [c3] [b3]
    * Returns the version of Internet Config.  Pass kICComponentVersion
-   * to get the version as previously returned by GetComponenVerson.
+   * to get the version as previously returned by GetComponenVersion.
    * Pass kICNumVersion to get a NumVersion structure.
    }
 {
  *  ICGetConfigName()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -990,7 +990,7 @@ function ICGetConfigName( inst: ICInstance; longname: Boolean; var name: Str255 
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_7 *)
 
 
-{ [r2] [c1] [b3] 
+{ [r2] [c1] [b3]
    * Returns a string that describes the current configuration at a user
    * level. Set longname to true if you want a long name, up to 255
    * characters, or false if you want a short name, typically about 32
@@ -1002,10 +1002,10 @@ function ICGetConfigName( inst: ICInstance; longname: Boolean; var name: Str255 
 { ***** Getting Information *****  }
 {
  *  ICGetSeed()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -1015,17 +1015,17 @@ function ICGetSeed( inst: ICInstance; var seed: SIGNEDLONG ): OSStatus; external
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_7 *)
 
 
-{ [c3] [b3] 
+{ [c3] [b3]
    * Returns the current seed for the IC prefs database.
    * This seed changes each time a non-volatile preference is changed.
    * You can poll this to determine if any cached preferences change.
    }
 {
  *  ICGetPerm()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -1035,7 +1035,7 @@ function ICGetPerm( inst: ICInstance; var perm: ICPerm ): OSStatus; external nam
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_7 *)
 
 
-{ [c3] [b3] 
+{ [c3] [b3]
    * Returns the access permissions currently associated with this instance.
    * While applications normally know what permissions they have,
    * this routine is designed for use by override components.
@@ -1043,10 +1043,10 @@ function ICGetPerm( inst: ICInstance; var perm: ICPerm ): OSStatus; external nam
 { ***** Reading and Writing Preferences *****  }
 {
  *  ICBegin()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -1056,7 +1056,7 @@ function ICBegin( inst: ICInstance; perm: ICPerm ): OSStatus; external name '_IC
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_7 *)
 
 
-{ [c1] [b5] 
+{ [c1] [b5]
    * Starting reading or writing multiple preferences.
    * A call to this must be balanced by a call to ICEnd.
    * Do not call WaitNextEvent between these calls.
@@ -1067,10 +1067,10 @@ function ICBegin( inst: ICInstance; perm: ICPerm ): OSStatus; external name '_IC
    }
 {
  *  ICGetPref()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -1080,7 +1080,7 @@ function ICGetPref( inst: ICInstance; const (*var*) key: Str255; var attr: ICAtt
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_7 *)
 
 
-{ [c1] [b4] 
+{ [c1] [b4]
    * Reads the preference specified by key from the IC database to the
    * buffer pointed to by buf and size.
    * key must not be the empty string.
@@ -1097,10 +1097,10 @@ function ICGetPref( inst: ICInstance; const (*var*) key: Str255; var attr: ICAtt
    }
 {
  *  ICSetPref()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -1110,11 +1110,11 @@ function ICSetPref( inst: ICInstance; const (*var*) key: Str255; attr: ICAttr; b
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_7 *)
 
 
-{ [c1] [b4] 
+{ [c1] [b4]
    * Sets the preference specified by key from the IC database to the
    * value pointed to by buf and size.
    * key must not be the empty string.
-   * size must be non-negative. 
+   * size must be non-negative.
    * If buf is nil then the preference value is not set and size is ignored.
    * If buf is not nil then the preference value is set to the size
    * bytes pointed to by buf.
@@ -1125,10 +1125,10 @@ function ICSetPref( inst: ICInstance; const (*var*) key: Str255; attr: ICAttr; b
    }
 {
  *  ICFindPrefHandle()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -1138,7 +1138,7 @@ function ICFindPrefHandle( inst: ICInstance; const (*var*) key: Str255; var attr
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_7 *)
 
 
-{ [r2] [c1] [b4] 
+{ [r2] [c1] [b4]
    * This routine effectively replaces ICGetPrefHandle.
    * Reads the preference specified by key from the IC database into
    * a handle, prefh.
@@ -1149,10 +1149,10 @@ function ICFindPrefHandle( inst: ICInstance; const (*var*) key: Str255; var attr
    }
 {
  *  ICGetPrefHandle()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -1162,7 +1162,7 @@ function ICGetPrefHandle( inst: ICInstance; const (*var*) key: Str255; var attr:
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_7 *)
 
 
-{ [r1] [c1] [b4] 
+{ [r1] [c1] [b4]
    * This routine is now obsolete. Use ICFindPrefHandle instead.
    * Reads the preference specified by key from the IC database into
    * a newly created handle, prefh.
@@ -1176,10 +1176,10 @@ function ICGetPrefHandle( inst: ICInstance; const (*var*) key: Str255; var attr:
    }
 {
  *  ICSetPrefHandle()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -1189,7 +1189,7 @@ function ICSetPrefHandle( inst: ICInstance; const (*var*) key: Str255; attr: ICA
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_7 *)
 
 
-{ [r1] [c1] [b4] 
+{ [r1] [c1] [b4]
    * Sets the preference specified by key from the IC database to the
    * value contained in prefh.
    * key must not be the empty string.
@@ -1203,10 +1203,10 @@ function ICSetPrefHandle( inst: ICInstance; const (*var*) key: Str255; attr: ICA
    }
 {
  *  ICCountPref()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -1216,16 +1216,16 @@ function ICCountPref( inst: ICInstance; var count: SIGNEDLONG ): OSStatus; exter
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_7 *)
 
 
-{ [c1] [b1] 
+{ [c1] [b1]
    * Counts the total number of preferences.
    * If the routine returns an error, count is set to 0.
    }
 {
  *  ICGetIndPref()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -1235,7 +1235,7 @@ function ICGetIndPref( inst: ICInstance; index: SIGNEDLONG; var key: Str255 ): O
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_7 *)
 
 
-{ [c1] [b1] 
+{ [c1] [b1]
    * Returns the key of the index'th preference.
    * index must be positive.
    * Returns icPrefNotFoundErr if index is greater than the total number of preferences.
@@ -1243,10 +1243,10 @@ function ICGetIndPref( inst: ICInstance; index: SIGNEDLONG; var key: Str255 ): O
    }
 {
  *  ICDeletePref()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -1256,17 +1256,17 @@ function ICDeletePref( inst: ICInstance; const (*var*) key: Str255 ): OSStatus; 
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_7 *)
 
 
-{ [c1] [b2] 
+{ [c1] [b2]
    * Deletes the preference specified by key.
    * key must not be the empty string.
    * Returns icPrefNotFound if the preference specified by key is not present.
    }
 {
  *  ICEnd()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -1276,16 +1276,16 @@ function ICEnd( inst: ICInstance ): OSStatus; external name '_ICEnd';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_7 *)
 
 
-{ [c1] [b1] 
+{ [c1] [b1]
    * Terminates a preference session, as started by ICBegin.
    * You must have called ICBegin before calling this routine.
    }
 {
  *  ICGetDefaultPref()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -1295,17 +1295,17 @@ function ICGetDefaultPref( inst: ICInstance; const (*var*) key: Str255; prefH: H
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_7 *)
 
 
-{ [r4] [c3] [b5] 
+{ [r4] [c3] [b5]
    * Returns a default preference value for the specified key.  You
    * must pass in a valid prefH, which is resized to fit the data.
    }
 { ***** User Interface Stuff *****  }
 {
  *  ICEditPreferences()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -1315,7 +1315,7 @@ function ICEditPreferences( inst: ICInstance; const (*var*) key: Str255 ): OSSta
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_7 *)
 
 
-{ [r1] [c1] [b3] 
+{ [r1] [c1] [b3]
    * Instructs IC to display the user interface associated with editing
    * preferences and focusing on the preference specified by key.
    * If key is the empty string then no preference should be focused upon.
@@ -1330,10 +1330,10 @@ function ICEditPreferences( inst: ICInstance; const (*var*) key: Str255 ): OSSta
 { ***** URL Handling *****  }
 {
  *  ICLaunchURL()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -1343,7 +1343,7 @@ function ICLaunchURL( inst: ICInstance; const (*var*) hint: Str255; data: {const
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_7 *)
 
 
-{ [r1] [c1] [b3] 
+{ [r1] [c1] [b3]
    * Parses a URL out of the specified text and feeds it off to the
    * appropriate helper.
    * hint indicates the default scheme for URLs of the form "name@address".
@@ -1362,10 +1362,10 @@ function ICLaunchURL( inst: ICInstance; const (*var*) hint: Str255; data: {const
    }
 {
  *  ICParseURL()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -1375,7 +1375,7 @@ function ICParseURL( inst: ICInstance; const (*var*) hint: Str255; data: {const}
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_7 *)
 
 
-{ [r1] [c1] [b3] 
+{ [r1] [c1] [b3]
    * Parses a URL out of the specified text and returns it in a canonical form
    * in a handle.
    * hint indicates the default scheme for URLs of the form "name@address".
@@ -1394,10 +1394,10 @@ function ICParseURL( inst: ICInstance; const (*var*) hint: Str255; data: {const}
    }
 {
  *  ICCreateGURLEvent()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -1407,16 +1407,16 @@ function ICCreateGURLEvent( inst: ICInstance; helperCreator: OSType; urlH: Handl
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_7 *)
 
 
-{ [r4] [c1] [b3] 
+{ [r4] [c1] [b3]
    * Creates a GURL Apple event, targetted at the application whose creator
    * code is helperCreator, with a direct object containing the URL text from urlH.
    }
 {
  *  ICSendGURLEvent()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -1426,21 +1426,21 @@ function ICSendGURLEvent( inst: ICInstance; var theEvent: AppleEvent ): OSStatus
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_7 *)
 
 
-{ [r4] [c1] [b3] 
+{ [r4] [c1] [b3]
    * Sends theEvent to the target application.
    }
 { ***** Mappings Routines *****
- * 
+ *
  * Routines for interrogating mappings database.
- * 
+ *
  * ----- High Level Routines -----
   }
 {
  *  ICMapFilename()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -1450,7 +1450,7 @@ function ICMapFilename( inst: ICInstance; const (*var*) filename: Str255; var en
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_7 *)
 
 
-{ [r1] [c1] [b4] 
+{ [r1] [c1] [b4]
    * Takes the name of an incoming file and returns the most appropriate
    * mappings database entry, based on its extension.
    * filename must not be the empty string.
@@ -1458,10 +1458,10 @@ function ICMapFilename( inst: ICInstance; const (*var*) filename: Str255; var en
    }
 {
  *  ICMapTypeCreator()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -1471,7 +1471,7 @@ function ICMapTypeCreator( inst: ICInstance; fType: OSType; fCreator: OSType; co
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_7 *)
 
 
-{ [r1] [c1] [b4] 
+{ [r1] [c1] [b4]
    * Takes the type and creator (and optionally the name) of an outgoing
    * file and returns the most appropriate mappings database entry.
    * The filename may be either the name of the outgoing file or
@@ -1481,10 +1481,10 @@ function ICMapTypeCreator( inst: ICInstance; fType: OSType; fCreator: OSType; co
 { ----- Mid Level Routines -----  }
 {
  *  ICMapEntriesFilename()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -1494,7 +1494,7 @@ function ICMapEntriesFilename( inst: ICInstance; entries: Handle; const (*var*) 
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_7 *)
 
 
-{ [r1] [c1] [b3] 
+{ [r1] [c1] [b3]
    * Takes the name of an incoming file and returns the most appropriate
    * mappings database entry, based on its extension.
    * entries must be a handle to a valid IC mappings database preference.
@@ -1503,10 +1503,10 @@ function ICMapEntriesFilename( inst: ICInstance; entries: Handle; const (*var*) 
    }
 {
  *  ICMapEntriesTypeCreator()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -1516,7 +1516,7 @@ function ICMapEntriesTypeCreator( inst: ICInstance; entries: Handle; fType: OSTy
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_7 *)
 
 
-{ [r1] [c1] [b3] 
+{ [r1] [c1] [b3]
    * Takes the type and creator (and optionally the name) of an outgoing
    * file and returns the most appropriate mappings database entry.
    * entries must be a handle to a valid IC mappings database preference.
@@ -1527,10 +1527,10 @@ function ICMapEntriesTypeCreator( inst: ICInstance; entries: Handle; fType: OSTy
 { ----- Low Level Routines -----  }
 {
  *  ICCountMapEntries()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -1540,17 +1540,17 @@ function ICCountMapEntries( inst: ICInstance; entries: Handle; var count: SIGNED
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_7 *)
 
 
-{ [r1] [c1] [b3] 
+{ [r1] [c1] [b3]
    * Counts the number of entries in the mappings database.
    * entries must be a handle to a valid IC mappings database preference.
    * count is set to the number of entries.
    }
 {
  *  ICGetIndMapEntry()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -1560,7 +1560,7 @@ function ICGetIndMapEntry( inst: ICInstance; entries: Handle; index: SIGNEDLONG;
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_7 *)
 
 
-{ [r1] [c1] [b3] 
+{ [r1] [c1] [b3]
    * Gets the index'th entry in the mappings database.
    * entries must be a handle to a valid IC mappings database preference.
    * index must be in the range from 1 to the number of entries in the database.
@@ -1571,10 +1571,10 @@ function ICGetIndMapEntry( inst: ICInstance; entries: Handle; index: SIGNEDLONG;
    }
 {
  *  ICGetMapEntry()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -1584,7 +1584,7 @@ function ICGetMapEntry( inst: ICInstance; entries: Handle; pos: SIGNEDLONG; var 
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_7 *)
 
 
-{ [r1] [c1] [b3] 
+{ [r1] [c1] [b3]
    * Returns the entry located at position pos in the mappings database.
    * entries must be a handle to a valid IC mappings database preference.
    * pos should be 0 to get the first entry. To get the subsequent entries, add
@@ -1593,10 +1593,10 @@ function ICGetMapEntry( inst: ICInstance; entries: Handle; pos: SIGNEDLONG; var 
    }
 {
  *  ICSetMapEntry()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -1606,7 +1606,7 @@ function ICSetMapEntry( inst: ICInstance; entries: Handle; pos: SIGNEDLONG; cons
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_7 *)
 
 
-{ [r1] [c1] [b3] 
+{ [r1] [c1] [b3]
    * Sets the entry located at position pos in the mappings database.
    * entries must be a handle to a valid IC mappings database preference.
    * pos should be either a value returned from ICGetIndMapEntry or a value
@@ -1617,10 +1617,10 @@ function ICSetMapEntry( inst: ICInstance; entries: Handle; pos: SIGNEDLONG; cons
    }
 {
  *  ICDeleteMapEntry()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -1630,7 +1630,7 @@ function ICDeleteMapEntry( inst: ICInstance; entries: Handle; pos: SIGNEDLONG ):
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_7 *)
 
 
-{ [r1] [c1] [b3] 
+{ [r1] [c1] [b3]
    * Deletes the mappings database entry at pos.
    * entries must be a handle to a valid IC mappings database preference.
    * pos should be either a value returned from ICGetIndMapEntry or a value
@@ -1639,10 +1639,10 @@ function ICDeleteMapEntry( inst: ICInstance; entries: Handle; pos: SIGNEDLONG ):
    }
 {
  *  ICAddMapEntry()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -1652,7 +1652,7 @@ function ICAddMapEntry( inst: ICInstance; entries: Handle; const (*var*) entry: 
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_7 *)
 
 
-{ [r1] [c1] [b3] 
+{ [r1] [c1] [b3]
    * Adds an entry to the mappings database.
    * entries must be a handle to a valid IC mappings database preference.
    * The entry is added to the end of the entries database.
@@ -1661,10 +1661,10 @@ function ICAddMapEntry( inst: ICInstance; entries: Handle; const (*var*) entry: 
 { ***** Profile Management Routines *****  }
 {
  *  ICGetCurrentProfile()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -1674,15 +1674,15 @@ function ICGetCurrentProfile( inst: ICInstance; var currentID: ICProfileID ): OS
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_7 *)
 
 
-{ [r3] [c1] [b3] 
+{ [r3] [c1] [b3]
    * Returns the profile ID of the current profile.
    }
 {
  *  ICSetCurrentProfile()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -1692,15 +1692,15 @@ function ICSetCurrentProfile( inst: ICInstance; newID: ICProfileID ): OSStatus; 
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_7 *)
 
 
-{ [r3] [c1] [b3] 
+{ [r3] [c1] [b3]
    * Sets the current profile to the profile specified in newProfile.
    }
 {
  *  ICCountProfiles()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -1710,15 +1710,15 @@ function ICCountProfiles( inst: ICInstance; var count: SIGNEDLONG ): OSStatus; e
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_7 *)
 
 
-{ [r3] [c1] [b1] 
+{ [r3] [c1] [b1]
    * Returns the total number of profiles.
    }
 {
  *  ICGetIndProfile()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -1728,17 +1728,17 @@ function ICGetIndProfile( inst: ICInstance; index: SIGNEDLONG; var thisID: ICPro
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_7 *)
 
 
-{ [r3] [c1] [b1] 
+{ [r3] [c1] [b1]
    * Returns the profile ID of the index'th profile.  index must be positive.
    * Returns icProfileNotFoundErr if index is greater than the total number
    * of profiles.
    }
 {
  *  ICGetProfileName()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -1748,17 +1748,17 @@ function ICGetProfileName( inst: ICInstance; thisID: ICProfileID; var name: Str2
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_7 *)
 
 
-{ [r3] [c1] [b3] 
+{ [r3] [c1] [b3]
    * Returns the name of a profile given its ID.  The name may not uniquely
    * identify the profile.  [That's what the profile ID is for!]  The name
    * is assumed to be in the system script.
    }
 {
  *  ICSetProfileName()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -1768,16 +1768,16 @@ function ICSetProfileName( inst: ICInstance; thisID: ICProfileID; const (*var*) 
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_7 *)
 
 
-{ [r3] [c1] [b3] 
+{ [r3] [c1] [b3]
    * This routine sets the name of the specified profile.  Profile names
    * need not be unique.  The name should be in the system script.
    }
 {
  *  ICAddProfile()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -1787,7 +1787,7 @@ function ICAddProfile( inst: ICInstance; prototypeID: ICProfileID; var newID: IC
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_7 *)
 
 
-{ [r3] [c1] [b2] 
+{ [r3] [c1] [b2]
    * If prototypeID = kICNilProfileID, this routine
    * creates a default profile, otherwise it creates a
    * profile by cloning the prototype profile.  The ID
@@ -1797,10 +1797,10 @@ function ICAddProfile( inst: ICInstance; prototypeID: ICProfileID; var newID: IC
    }
 {
  *  ICDeleteProfile()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.7
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -1810,7 +1810,7 @@ function ICDeleteProfile( inst: ICInstance; thisID: ICProfileID ): OSStatus; ext
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_7 *)
 
 
-{ [r3] [c1] [b2] 
+{ [r3] [c1] [b2]
    * This routine deletes the profile specified by
    * thisID.  Attempting to delete the current profile
    * or the last profile will return error.

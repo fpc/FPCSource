@@ -24,9 +24,9 @@ var
   SRCCAL : byte absolute $00+$65; // SRC-Oscillator Calibration Register
   VMCSR : byte absolute $00+$36; // Voltage Monitor Control and Status Register
   SREG : byte absolute $00+$5F; // Status Register
-  SP : word absolute $00+$5D; // Stack Pointer 
-  SPL : byte absolute $00+$5D; // Stack Pointer 
-  SPH : byte absolute $00+$5D+1; // Stack Pointer 
+  SP : word absolute $00+$5D; // Stack Pointer
+  SPL : byte absolute $00+$5D; // Stack Pointer
+  SPH : byte absolute $00+$5D+1; // Stack Pointer
   SPMCSR : byte absolute $00+$57; // Store Program Memory Control Register
   MCUCR : byte absolute $00+$55; // MCU Control Register
   MCUSR : byte absolute $00+$54; // MCU Status Register
@@ -40,9 +40,9 @@ var
   LFRB : byte absolute $00+$56; // Low Frequency Receive data Buffer
   LFRR : byte absolute $00+$50; // LF RSSI Data Register
   LFHCR : byte absolute $00+$83; // LF Header Compare Register
-  LFIDC : word absolute $00+$84; // LF ID Compare Register 
-  LFIDCL : byte absolute $00+$84; // LF ID Compare Register 
-  LFIDCH : byte absolute $00+$84+1; // LF ID Compare Register 
+  LFIDC : word absolute $00+$84; // LF ID Compare Register
+  LFIDCL : byte absolute $00+$84; // LF ID Compare Register
+  LFIDCH : byte absolute $00+$84+1; // LF ID Compare Register
   LFIMR : byte absolute $00+$81; // Low Frequency Interrupt Mask Register
   LFFR : byte absolute $00+$38; // Low Frequency Flag Register
   LFCAL : word absolute $00+$86; // LF Calibration Register  Bytes
@@ -179,7 +179,7 @@ const
   PGERS = 1; // Page Erase
   SELFPRGEN = 0; // Self Programming Enable
   // MCUCR
-  PUD = 4; // 
+  PUD = 4; //
   IVSEL = 1; // Interrupt Vector Select
   IVCE = 0; // Interrupt Vector Change Enable
   // MCUSR
@@ -189,8 +189,8 @@ const
   EXTRF = 1; // External Reset Flag
   PORF = 0; // Power-on reset flag
   // SMCR
-  SM = 1; // 
-  SE = 0; // 
+  SM = 1; //
+  SE = 0; //
   // LFRCR
   LFCS = 5; // LF receiver Capacitor Select Bits
   LFRSS = 4; // LF Receiver Sensitivity Select Bit

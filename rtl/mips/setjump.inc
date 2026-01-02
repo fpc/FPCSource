@@ -1,7 +1,7 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 2002 by Jonas Maebe and David Zhang 
-    
+    Copyright (c) 2002 by Jonas Maebe and David Zhang
+
     SetJmp and LongJmp implementation for exception handling
 
     See the file COPYING.FPC, included in this distribution,

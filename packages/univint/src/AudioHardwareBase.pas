@@ -225,9 +225,9 @@ uses MacTypes,CoreAudioTypes;
 //#pragma mark Overview
 {!
     @header AudioHardwareBase
-    
+
     This file defines the HAL's object model including the properties and their needed types and
-    constants that describe the proeprty values.
+    constants that describe the property values.
 }
 
 //==================================================================================================
@@ -372,7 +372,7 @@ const
 	kAudioDevicePermissionsError = FourCharCode('!hog');
 
 {!
-    @enum           Predefined AudioObjectID values 
+    @enum           Predefined AudioObjectID values
     @abstract       ObjectIDs that are always the same
     @constant       kAudioObjectUnknown
                         This is the sentinel value. No object will have an ID whose value is 0.
@@ -579,8 +579,8 @@ const
                         the caller as the property's data. Note that an error is not returned if the
                         UID doesn't refer to any AudioEndpoints. Rather, this property will return
                         kAudioObjectUnknown as the value of the property.
-    @constant       kAudioTransportManagerPorpertyTransportType
-                        A UInt32 whose value indicates how the transport manager's endpoints and 
+    @constant       kAudioTransportManagerPropertyTransportType
+                        A UInt32 whose value indicates how the transport manager's endpoints and
 						endpoint devices are connected to the CPU. Constants for some of the values
 						for this property can be found in the enum in the AudioDevice Constants
 						section of this file.
@@ -937,7 +937,7 @@ const
                         The AudioStreamBasicDescription that describes the format of the stream.
                         Note that the mSampleRate field of the structure will be the same as the
                         the values in mSampleRateRange when only a single sample rate is supported.
-                        It will be kAudioStreamAnyRate when there is a range with more elements. 
+                        It will be kAudioStreamAnyRate when there is a range with more elements.
     @field          mSampleRateRange
                         The AudioValueRange that describes the minimum and maximum sample rate for
                         the stream. If the mSampleRate field of mFormat is kAudioStreamAnyRate the
@@ -1220,12 +1220,12 @@ const
                         or the current IO session stops and a new IO session starts.
     @constant       kAudioTalkbackControlClassID
                         An AudioBooleanControl where true means that the talkback channel is
-                        enabled. This control is for talkback channels that are handled outside of 
+                        enabled. This control is for talkback channels that are handled outside of
                         the regular IO channels. If the talkback channel is among the normal IO
                         channels, it will use AudioMuteControl.
     @constant       kAudioListenbackControlClassID
                         An AudioBooleanControl where true means that the listenback channel is
-                        audible. This control is for listenback channels that are handled outside of 
+                        audible. This control is for listenback channels that are handled outside of
                         the regular IO channels. If the listenback channel is among the normal IO
                         channels, it will use AudioMuteControl.
 }
@@ -1314,7 +1314,7 @@ const
 	kAudioSelectorControlPropertyItemKind = FourCharCode('clkk');
 
 {!
-    @enum           Constants for the value of the property, kAudioSelectorControlPropertyItemKind 
+    @enum           Constants for the value of the property, kAudioSelectorControlPropertyItemKind
                     for any selector control item
     @constant       kAudioSelectorControlItemKindSpacer
                         This ID represents an item in a selector control's range that represents a

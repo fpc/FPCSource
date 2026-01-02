@@ -1,15 +1,15 @@
 {
      File:       CarbonCore/UnicodeUtilities.h
- 
+
      Contains:   Types, constants, prototypes for Unicode Utilities (Unicode input and text utils)
- 
+
      Copyright:  © 1997-2016 by Apple Inc. All rights reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {     Pascal Translation Updated:  Gale R Paeper, <gpaeper@empirenet.com>, June 2018 }
 
@@ -436,7 +436,7 @@ const
 
 {
    -------------------------------------------------------------------------------------------------
-   Constants for keyAction parameter in UCKeyTranslate() 
+   Constants for keyAction parameter in UCKeyTranslate()
    -------------------------------------------------------------------------------------------------
 }
 
@@ -448,7 +448,7 @@ const
 
 {
    -------------------------------------------------------------------------------------------------
-   Bit assignments & masks for keyTranslateOptions parameter in UCKeyTranslate() 
+   Bit assignments & masks for keyTranslateOptions parameter in UCKeyTranslate()
    -------------------------------------------------------------------------------------------------
 }
 
@@ -572,7 +572,7 @@ type
 	IndexToUCStringUPP = IndexToUCStringProcPtr;
 {
  *  NewIndexToUCStringUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.4 and later
@@ -583,7 +583,7 @@ function NewIndexToUCStringUPP( userRoutine: IndexToUCStringProcPtr ): IndexToUC
 
 {
  *  DisposeIndexToUCStringUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.4 and later
@@ -594,7 +594,7 @@ procedure DisposeIndexToUCStringUPP( userUPP: IndexToUCStringUPP ); external nam
 
 {
  *  InvokeIndexToUCStringUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.4 and later
@@ -627,7 +627,7 @@ type
 
 {
  *  UCTextBreakType
- *  
+ *
  *  Discussion:
  *    Specifies kinds of text boundaries.
  }
@@ -683,7 +683,7 @@ const
 
 {
  *  UCKeyTranslate()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -697,7 +697,7 @@ function UCKeyTranslate( const (*var*) keyLayoutPtr: UCKeyboardLayout; virtualKe
 
 {
  *  UCCreateCollator()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -709,7 +709,7 @@ function UCCreateCollator( locale: LocaleRef; opVariant: LocaleOperationVariant;
 
 {
  *  UCGetCollationKey()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -721,7 +721,7 @@ function UCGetCollationKey( collatorRef_: CollatorRef; textPtr: ConstUniCharPtr;
 
 {
  *  UCCompareCollationKeys()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -733,7 +733,7 @@ function UCCompareCollationKeys( key1Ptr: UCCollationValuePtr; key1Length: ItemC
 
 {
  *  UCCompareText()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -745,7 +745,7 @@ function UCCompareText( collatorRef_: CollatorRef; text1Ptr: ConstUniCharPtr; te
 
 {
  *  UCDisposeCollator()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -759,7 +759,7 @@ function UCDisposeCollator( var collatorRef_: CollatorRef ): OSStatus; external 
 
 {
  *  UCCompareTextDefault()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -773,7 +773,7 @@ function UCCompareTextDefault( options: UCCollateOptions; text1Ptr: ConstUniChar
 
 {
  *  UCCompareTextNoLocale()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -807,12 +807,12 @@ function UCCompareTextNoLocale( options: UCCollateOptions; text1Ptr: ConstUniCha
 }
 {
  *  UCCreateTextBreakLocator()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CFStringTokenizer functions or
  *    CFStringGetRangeOfComposedCharactersAtIndex, see discussion above
  *    for details.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -824,12 +824,12 @@ function UCCreateTextBreakLocator( locale: LocaleRef; opVariant: LocaleOperation
 
 {
  *  UCFindTextBreak()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CFStringTokenizer functions or
  *    CFStringGetRangeOfComposedCharactersAtIndex, see discussion above
  *    for details.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -841,12 +841,12 @@ function UCFindTextBreak( breakRef: TextBreakLocatorRef; breakType: UCTextBreakT
 
 {
  *  UCDisposeTextBreakLocator()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CFStringTokenizer functions or
  *    CFStringGetRangeOfComposedCharactersAtIndex, see discussion above
  *    for details.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -864,32 +864,32 @@ function UCDisposeTextBreakLocator( var breakRef: TextBreakLocatorRef ): OSStatu
 
 {
  *  UCTypeSelectCreateSelector()
- *  
+ *
  *  Summary:
  *    Responsible for creating the opaque UCTypeSelectRef object.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    locale:
  *      LocaleRef obtained by client from a call such as
  *      LocaleRefFromLangOrRegionCode. This can be set to NULL if the
  *      default system locale is desired.
- *    
+ *
  *    opVariant:
  *      Variant of the locale. Specify 0 if no variant is needed.
- *    
+ *
  *    options:
  *      Any collation options the client wishes to specify. These will
  *      have an impact on the order in which selection will occur.
  *      Specify kUCCollateStandardOptions for the default options.
- *    
+ *
  *    newSelector:
  *      The newly created UCTypeSelectRef object.
- *  
+ *
  *  Result:
  *    Will return paramErr if newSelector is NULL, or any other error
  *    that may be returned by an internal function call.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x
@@ -901,19 +901,19 @@ function UCTypeSelectCreateSelector( locale: LocaleRef { can be NULL }; opVarian
 
 {
  *  UCTypeSelectFlushSelectorData()
- *  
+ *
  *  Summary:
  *    Flushes the key list and resets the timeout timer for the
  *    UCTypeSelectRef.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    ref:
  *      UCTypeSelectRef to be flushed.
- *  
+ *
  *  Result:
  *    Returns paramErr if ref is invalid.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x
@@ -925,21 +925,21 @@ function UCTypeSelectFlushSelectorData( ref: UCTypeSelectRef ): OSStatus; extern
 
 {
  *  UCTypeSelectReleaseSelector()
- *  
+ *
  *  Summary:
  *    Cleans up and disposes of any temporary memory acquired by the
  *    UCTypeSelectRef object.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    ref:
  *      A pointer to the UCTypeSelectRef to be disposed of. On exit,
  *      the UCTypeSelectRef to which this parameter points will be set
  *      to NULL.
- *  
+ *
  *  Result:
  *    Returns paramErr if ref is invalid.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x
@@ -951,32 +951,32 @@ function UCTypeSelectReleaseSelector( var ref: UCTypeSelectRef ): OSStatus; exte
 
 {
  *  UCTypeSelectWouldResetBuffer()
- *  
+ *
  *  Summary:
  *    Indicates whether, if the specified text were added to the
  *    buffer, the current text in the buffer would be discarded.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inRef:
  *      The type-selection object.
- *    
+ *
  *    inText:
  *      The text that would be added to the buffer. Some text (such as
  *      Backspace, Enter, and Clear keys) always causes the buffer to
  *      be reset. May be NULL; in that case, the implementation only
  *      considers the event time.
- *    
+ *
  *    inEventTime:
  *      The time in seconds since boot (as returned by
  *      GetCurrentEventTime) that the text event occurred. If the event
  *      occurred at a time greater than the type-select timeout, then
  *      the current buffered text would be discarded.
- *  
+ *
  *  Result:
  *    Whether the current text in the buffer would be discarded while
  *    processing the specified text.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x
@@ -988,43 +988,43 @@ function UCTypeSelectWouldResetBuffer( inRef: UCTypeSelectRef; inText: CFStringR
 
 {
  *  UCTypeSelectAddKeyToSelector()
- *  
+ *
  *  Summary:
  *    Appends the given Unicode values to the selector's internal
  *    buffer of keystrokes. It also handles timeouts and delete/clear
  *    keys. If the key sent is a delete/clear/esc code, the key buffer
  *    will be flushed and false will be returned.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inRef:
  *      The type-selection object.
- *    
+ *
  *    inText:
  *      A CFString that contains the keystroke to be added.
- *    
+ *
  *    inEventTime:
  *      The time in seconds since boot (as returned by
  *      GetCurrentEventTime) that the text event occurred.  If zero is
  *      passed, then the current time is used automatically.
- *    
+ *
  *    updateFlag:
  *      On exit, notifies the client if it needs to update its current
- *      selection, as follows: 
- *      
+ *      selection, as follows:
+ *
  *      TRUE - indicates that the client needs to update its selection
  *      based on the keystroke passed in. A call to UCTypeSelectCompare
  *      or UCTypeSelectFindItem should be made to find the new item to
- *      select based on the new keys added. 
- *      
+ *      select based on the new keys added.
+ *
  *      FALSE - indicates that the client does not need to update its
  *      selection. This would occur if a delete/clear/esc key was
  *      passed in.
- *  
+ *
  *  Result:
  *    returns paramErr if ref or textPtr are invalid. Can also return
  *    other errors from intermediate function calls.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x
@@ -1036,29 +1036,29 @@ function UCTypeSelectAddKeyToSelector( inRef: UCTypeSelectRef; inText: CFStringR
 
 {
  *  UCTypeSelectCompare()
- *  
+ *
  *  Summary:
  *    Compares the Unicode text buffer passed in inText with the
  *    keystroke buffer stored in the UCTypeSelectRef. This function
  *    works the same as the non-Unicode TypeSelectCompare() call.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    ref:
  *      UCTypeSelectRef to which the Unicode text sent in inText will
  *      be compared.
- *    
+ *
  *    inText:
  *      A reference to the text to be compared
- *    
+ *
  *    result:
- *      Just as in TypeSelectCompare(), the following values are 
+ *      Just as in TypeSelectCompare(), the following values are
  *      returned: -1 if characters in UCTypeSelectRef’s keystroke
  *      buffer sort before those in inText, 0 if characters in
  *      UCTypeSelectRef’s keystroke buffer are the same as those in
  *      inText, and 1 if the characters in UCTypeSelectRef’s keystroke
  *      buffer sort after those in inText.
- *  
+ *
  *  Result:
  *    This function can return three different types of values. First,
  *    it will return paramErr if ref, inText, or result are invalid.
@@ -1067,7 +1067,7 @@ function UCTypeSelectAddKeyToSelector( inRef: UCTypeSelectRef; inText: CFStringR
  *    kUCTSNoKeysAddedToObjectErr will be returned. Finally, it can
  *    also return other errors should any be encountered by
  *    intermediate function calls.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x
@@ -1079,7 +1079,7 @@ function UCTypeSelectCompare( ref: UCTypeSelectRef; inText: CFStringRef; var res
 
 {
  *  UCTypeSelectFindItem()
- *  
+ *
  *  Summary:
  *    In a given list, pointed to by listDataPtr, find the closest
  *    match to the keystrokes stored in the UCTypeSelectRef. The
@@ -1089,37 +1089,37 @@ function UCTypeSelectCompare( ref: UCTypeSelectRef; inText: CFStringRef; var res
  *    callback UPP. This callback is necessary in order to provide the
  *    client with data structure independence through client-side
  *    indexing.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    ref:
  *      UCTypeSelectRef holding the state and keystrokes to be compared.
- *    
+ *
  *    listSize:
  *      Size of the list to be searched through. If the size of the
  *      list is unknown, pass in kUCTypeSelectMaxListSize (0xFFFFFFFF)
  *      and have the IndexToUCString function return false after it has
  *      reached the last item in the list.
- *    
+ *
  *    listDataPtr:
  *      Pointer to the head or first node of the client’s data
  *      structure. This will be passed into to the client’s
  *      IndexToUCString function. Can be NULL, depending on the
  *      client’s IndexToUCString implementation.
- *    
+ *
  *    refcon:
  *      Any parameter the calling function wishes to pass as a
  *      reference into its IndexToUCString callback function. This
  *      parameter can be set to NULL if not needed.
- *    
+ *
  *    userUPP:
  *      The UPP pointing to the client’s IndexToUCString callback
  *      function.
- *    
+ *
  *    closestItem:
  *      Upon return, this will contain the index of the item that
  *      matches the text in the keystroke buffer of UCTypeSelectRef.
- *  
+ *
  *  Result:
  *    This function has four possibilities for return values. First,
  *    paramErr will be returned if ref or closestItem are invalid.
@@ -1129,7 +1129,7 @@ function UCTypeSelectCompare( ref: UCTypeSelectRef; inText: CFStringRef; var res
  *    UCTypeSelectAddKeyToSelectorData(), kUCTSNoKeysAddedToObjectErr
  *    will be returned. Finally, this function can return other OS
  *    errors should any be encountered by an internal function call.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x
@@ -1141,7 +1141,7 @@ function UCTypeSelectFindItem( ref: UCTypeSelectRef; listSize: UInt32; listDataP
 
 {
  *  UCTypeSelectWalkList()
- *  
+ *
  *  Summary:
  *    UCTypeSelectWalkList can perform an in-order alphabetical walk of
  *    an unsorted list. To do this, the client passes a pointer to the
@@ -1161,55 +1161,55 @@ function UCTypeSelectFindItem( ref: UCTypeSelectRef; listSize: UInt32; listDataP
  *    provide an IndexToUCString callback UPP. This callback is
  *    necessary in order to provide the client with data structure
  *    independence through client-side indexing.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    ref:
  *      UCTypeSelectRef holding state information as well as the
  *      function pointer needed to call the client’s IndexToUCString
  *      function
- *    
+ *
  *    currSelect:
  *      CFString reference to the current selection’s text.
- *    
+ *
  *    direction:
  *      The direction of the walk. The valid values for this parameter
- *      are: 
- *      
+ *      are:
+ *
  *      kUCTSDirectionNext  - find the next item in the list
  *       kUCTSDirectionPrevious - find the previous item in the list
- *      
- *      
+ *
+ *
  *      If kUCTSDirectionNext is specified and the selected item is the
  *      last item in the list or if kUCTSDirectionPrevious is specified
  *      and the selected item is the first item in the list, the index
  *      of the selected item will be returned in closestItem.
- *    
+ *
  *    listSize:
  *      Size of the list to be searched through. If the size of the
  *      list is unknown, pass in kUCTypeSelectMaxListSize (0xFFFFFFFF)
  *      and have the IndexToUCString function return false after it has
  *      reached the last item in the list.
- *    
+ *
  *    listDataPtr:
  *      Pointer to the head or first node of the client’s data
  *      structure. This will be passed into to the client’s
  *      IndexToUCString function. Can be NULL, depending on the
  *      client’s IndexToUCString implementation.
- *    
+ *
  *    refcon:
  *      Any parameter the calling function wishes to pass as a
  *      reference into its IndexToUCString callback function. This
  *      parameter can be set to NULL if not needed.
- *    
+ *
  *    userUPP:
  *      The UPP pointing to the client’s IndexToUCString callback
  *      function.
- *    
+ *
  *    closestItem:
  *      Upon return, this will contain the index of the item that
  *      matches the text in the keystroke buffer of UCTypeSelectRef.
- *  
+ *
  *  Result:
  *    This function has three possibilities for return values. First,
  *    paramErr will be returned if ref, currSelect, or closestItem are
@@ -1217,7 +1217,7 @@ function UCTypeSelectFindItem( ref: UCTypeSelectRef; listSize: UInt32; listDataP
  *    cannot be read, kUCTSSearchListErr  will be returned. Finally,
  *    this function can return other OS errors should any be
  *    encountered by an internal function call.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x

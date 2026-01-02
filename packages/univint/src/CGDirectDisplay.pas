@@ -265,7 +265,7 @@ function CGGetDisplaysWithRect( rect: CGRect; maxDisplays: UInt32; displays: CGD
 
 function CGGetDisplaysWithOpenGLDisplayMask( mask: CGOpenGLDisplayMask; maxDisplays: UInt32; displays: CGDirectDisplayIDPtr; var matchingDisplayCount: UInt32 ): CGError; external name '_CGGetDisplaysWithOpenGLDisplayMask';
 (* CG_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_NA) *)
-                            
+
 { Return a list of active displays.
 
    If `activeDisplays' is NULL, then `maxDisplays' is ignored, and
@@ -328,7 +328,7 @@ function CGDisplayPixelsHigh( display: CGDirectDisplayID ): size_t; external nam
 { Return an array of all modes for the specified display, or NULL if
    `display' is invalid. The "options" field is reserved for future
    expansion; pass NULL for now. }
-  
+
 function CGDisplayCopyAllDisplayModes( display: CGDirectDisplayID; options: CFDictionaryRef ): CFArrayRef; external name '_CGDisplayCopyAllDisplayModes';
 (* CG_AVAILABLE_STARTING(__MAC_10_6, __IPHONE_NA) *)
 
@@ -337,7 +337,7 @@ var kCGDisplayShowDuplicateLowResolutionModes: CFStringRef; external name '_kCGD
 
 { Return the current mode of the specified display, or NULL if `display'
    is invalid. }
-   
+
 function CGDisplayCopyDisplayMode( display: CGDirectDisplayID ): CGDisplayModeRef; external name '_CGDisplayCopyDisplayMode';
 (* CG_AVAILABLE_STARTING(__MAC_10_6, __IPHONE_NA) *)
 
@@ -438,7 +438,7 @@ function CGDisplayModeGetPixelHeight( mode: CGDisplayModeRef ): size_t; external
 type
 	CGGammaValue = Float32;
 	CGGammaValuePtr = ^CGGammaValue;
-                                              
+
 function CGSetDisplayTransferByFormula( display: CGDirectDisplayID; redMin: CGGammaValue; redMax: CGGammaValue; redGamma: CGGammaValue; greenMin: CGGammaValue; greenMax: CGGammaValue; greenGamma: CGGammaValue; blueMin: CGGammaValue; blueMax: CGGammaValue; blueGamma: CGGammaValue ): CGError; external name '_CGSetDisplayTransferByFormula';
 (* CG_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_NA) *)
 
@@ -613,7 +613,7 @@ function CGDisplayGetDrawingContext( display: CGDirectDisplayID ): CGContextRef;
    Keys used in mode dictionaries.  Source C strings shown won't change.
    Some CFM environments cannot import data variables, and so
    the definitions are provided directly.
-  
+
    These keys are used only within the scope of the mode dictionaries,
    so further uniquing, as by prefix, of the source string is not needed.
  }
@@ -734,7 +734,7 @@ function CGDisplayAddressForPosition( display: CGDirectDisplayID; x: CGDisplayCo
  * kCGDisplayRefreshRate encodes a double value, so to get the fractional
  * refresh rate use kCFNumberDoubleType.
  }
- 
+
 { Use `CGDisplayCreateImage' or `CGDisplayCreateImageForRect' instead. }
 function CGDisplayBytesPerRow( display: CGDirectDisplayID ): size_t; external name '_CGDisplayBytesPerRow';
 (* CG_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_6, __IPHONE_NA, __IPHONE_NA) *)
@@ -770,7 +770,7 @@ function CGDisplayCurrentMode( display: CGDirectDisplayID ): CFDictionaryRef; ex
 (* CG_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_6, __IPHONE_NA, __IPHONE_NA) *)
 
 {
- * Switch display mode.  Note that after switching, 
+ * Switch display mode.  Note that after switching,
  * display parameters and addresses may change.
  * The selected display mode persists for the life of the program, and automatically
  * reverts to the permanent setting made by Preferences when the program terminates.
@@ -782,7 +782,7 @@ function CGDisplayCurrentMode( display: CGDirectDisplayID ): CFDictionaryRef; ex
  *
  * When changing display modes of displays in a mirroring set, other displays in
  * the mirroring set will be set to a display mode capable of mirroring the bounds
- * of the largest display being explicitly set. 
+ * of the largest display being explicitly set.
  }
 { Use the CGDisplayMode APIs instead. }
 function CGDisplaySwitchToMode( display: CGDirectDisplayID; mode: CFDictionaryRef ): CGError; external name '_CGDisplaySwitchToMode';

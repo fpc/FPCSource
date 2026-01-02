@@ -182,7 +182,7 @@ CRTSCTS		= RTSFLOW or CTSFLOW;
  * the letter "I" and look like they belong in the
  * input flag.
  }
- 
+
 {
   c_lflag - local modes
 }
@@ -205,7 +205,7 @@ EV_RING			= $0001;
 EV_BREAK		= $0002;
 EV_CARRIER		= $0004;
 EV_CARRIERLOST	= $0008;
- 
+
 {
  * Commands passed to tcsetattr() for setting the termios structure.
 }
@@ -215,7 +215,7 @@ CONST
         TCSANOW         = $01;             { make change immediate }
         TCSADRAIN       = $02;             { drain output, then change }
         TCSAFLUSH       = $04;             { drain output, flush input }
-        
+
         // TCASOFT undefined under BeOS
         TCSASOFT        = $10;           { flag - don't alter h.w. state }
 
@@ -293,7 +293,7 @@ struct winsize {
 	                                                { 127-124 compat }
 
 // BeOS values
-		TIOCGETA		= $8000;		
+		TIOCGETA		= $8000;
 		TIOCSETA		= TIOCGETA + 1;
 		TIOCSETAF		= TIOCGETA + 2;
 		TIOCSETAW		= TIOCGETA + 3;
@@ -308,11 +308,11 @@ struct winsize {
 		TIOCGWINSZ		= TIOCGETA + 12;
 		TIOCSWINSZ		= TIOCGETA + 13;
 		TCVTIME			= TIOCGETA + 14;
-		
-		
+
+
 //		TIOCTIMESTAMP 	= TCVTIME;
 // end BeOS values
-(*		      
+(*
 //        TIOCSBRK         =IOCTLVOID+$7400+ 123;         { set break bit }
         TIOCCBRK         =IOCTLVOID+$7400+ 122;         { clear break bit }
 //        TIOCSDTR         =IOCTLVOID+$7400+ 121;         { set data terminal ready }
@@ -417,7 +417,7 @@ struct winsize {
 
 {
   According to posix/sys/ioctl.h
-  /* these currently work only on sockets */	
+  /* these currently work only on sockets */
 }
 	FIONBIO  = $be000000;
 	FIONREAD = $be000001;

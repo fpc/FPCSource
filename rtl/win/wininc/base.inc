@@ -613,7 +613,7 @@
     function IMAGE_ORDINAL(Ordinal : cardinal) : cardinal; inline;
     function IMAGE_SNAP_BY_ORDINAL(Ordinal : cardinal) : boolean; inline;
   {$endif}
- 
+
 
 
  {
@@ -631,7 +631,7 @@
      PTHREAD_START_ROUTINE = function(p:pointer):integer; stdcall;
 
      LPTHREAD_START_ROUTINE = PTHREAD_START_ROUTINE;
-     TThreadStartRoutine    = PTHREAD_START_ROUTINE;  
+     TThreadStartRoutine    = PTHREAD_START_ROUTINE;
 
      EDITSTREAMCALLBACK = function (_para1:DWORD_PTR; _para2:LPBYTE; _para3:LONG; _para4:PLONG):DWORD;stdcall;
 

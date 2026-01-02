@@ -25,7 +25,7 @@
 type
    { extra types to compile with FPC }
    HRSRC =  TFPResourceHandle deprecated;
-   
+
    TComponentName = type string;
    THandle = System.THandle;
 
@@ -34,7 +34,7 @@ type
    TSmallPoint=TYU.TSmallPoint;
 
 {$ifndef FPC_HAS_FEATURE_DYNLIBS}
-   HMODULE = ptrint; 
+   HMODULE = ptrint;
 {$else}
    HModule = System.HModule;
 {$endif}
@@ -161,7 +161,7 @@ type
 Const
   // Delphi compatibility
   ssCommand = ssMeta;
-  
+
   SGUIDObserved = '{663C603C-3F3C-4CC5-823C-AC8079F979E5}';
   SGUIDObserver = '{BC7376EA-199C-4C2A-8684-F4805F0691CA}';
 
@@ -1569,7 +1569,7 @@ type
     procedure WriteUnicodeString(const AString: UnicodeString);
     function ReadAnsiString(Count: Longint): AnsiString; overload;
     procedure WriteAnsiString(const AString: AnsiString); override;
-    function ReadString(Count: Longint): string; 
+    function ReadString(Count: Longint): string;
     procedure WriteString(const AString: string);
     property DataString: RTLString read GetDataString;
     Property AnsiDataString : AnsiString Read GetAnsiDataString;
@@ -2409,7 +2409,7 @@ type
     property ThreadID: TThreadID read FThreadID;
     property OnTerminate: TNotifyEvent read FOnTerminate write FOnTerminate;
     property FatalException: TObject read FFatalException;
-  end; 
+  end;
 
 
 { TComponent class }
@@ -2457,7 +2457,7 @@ type
   end;
 
   TBasicAction = class;
-  
+
 
   { TComponent }
 
@@ -2577,7 +2577,7 @@ type
     property Owner: TComponent read FOwner;
     property VCLComObject: Pointer read FVCLComObject write FVCLComObject;
     Property Observers : TObservers Read GetObservers;
-    property OnGetDeltaStreams: TGetDeltaStreamsEvent read FOnGetDeltaStreams write FOnGetDeltaStreams;    
+    property OnGetDeltaStreams: TGetDeltaStreamsEvent read FOnGetDeltaStreams write FOnGetDeltaStreams;
   published
     property Name: TComponentName read FName write SetName stored False;
     property Tag: PtrInt read FTag write FTag default 0;
@@ -2772,17 +2772,17 @@ type
   TDataModuleClass = Class of TDataModule;
 
   TPlatformIds = UInt32;
-  
+
   ComponentPlatformsAttribute = class(TCustomAttribute)
   private
     FPlatforms: TPlatformIds;
   public
     constructor Create(const aPlatforms: TPlatformIds);
     property Platforms: TPlatformIds read FPlatforms write FPlatforms;
-  end;  
+  end;
 
 
-  
+
 const
   { Platform identifiers }
     pidWin32          = $00000001;
@@ -2811,16 +2811,16 @@ const
     pidAllPlatforms = pidWin32 or pidWin64 or
                     pidOSX32 or pidOSX64 or pidOSXArm64 or
                     pidiOSDevice32 or pidiOSDevice64 or
-                    pidiOSSimulator32 or pidiOSSimulator64 or 
+                    pidiOSSimulator32 or pidiOSSimulator64 or
                     pidAndroidArm32 or pidAndroidArm64 or
                     pidLinux64;
-                    
+
     pfidWindows     = pidWin32 or pidWin64;
     pfidOSX         = pidOSX32 or pidOSX64 or pidOSXArm64;
     pfidiOS         = pidiOSDevice32 or pidiOSDevice64 or
                       pidiOSSimulator32 or pidiOSSimulator64;
     pfidAndroid     = pidAndroidArm32 or pidAndroidArm64;
-    pfidLinux       = pidLinux64;  
+    pfidLinux       = pidLinux64;
 
 var
   // IDE hooks for TDatamodule support.
@@ -2902,7 +2902,7 @@ Type
 var
   GlobalNameSpace: IReadWriteSync;
   IsUniqueGlobalComponentNameProc: TIsUniqueGlobalComponentName;
-  
+
 { Object filing routines }
 
 type
@@ -2915,7 +2915,7 @@ type
   TIntToIdent = function(Int: Longint; var Ident: string): Boolean;
   TFindGlobalComponent = function(const Name: string): TComponent;
   TInitComponentHandler = function(Instance: TComponent; RootAncestor : TClass): boolean;
-  
+
 var
   MainThreadID: TThreadID;
 

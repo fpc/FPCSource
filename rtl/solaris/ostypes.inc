@@ -129,7 +129,7 @@ TYPE
        { overlay with alias }
        2 : (
             d_fileno : ino_t;
-           ); 
+           );
    end;
 
 
@@ -170,7 +170,7 @@ CONST
     { File access modes for `open' and `fcntl'.    }
     O_RDONLY    = 0;    { Open read-only.  }
     O_WRONLY    = 1;    { Open write-only. }
-    O_RDWR      = 2;    { Open read/write. }    
+    O_RDWR      = 2;    { Open read/write. }
     O_NDELAY    = 4;
     { Bits OR'd into the second argument to open.  }
     O_CREAT     = $100; { Create file if it doesn't exist.  }
@@ -249,7 +249,7 @@ type
 	    iov_len  : size_t;
 	   end;
   tiovec=iovec;
-  piovec=^tiovec;		
+  piovec=^tiovec;
 
  tms = packed record
          tms_utime  : clock_t;  { User CPU time }

@@ -511,7 +511,7 @@ begin
   CheckIndex(Index);
   p:=InternalItems[Index];
   if assigned(p) then
-    DeRef(p);	
+    DeRef(p);
   InternalItems[Index] := Item;
 end;
 
@@ -680,19 +680,19 @@ var
   IncSize : Longint;
 begin
   Result := Self;
-  if FCount < FCapacity then 
+  if FCount < FCapacity then
     exit;
-  if FCapacity > 127 then 
+  if FCapacity > 127 then
     IncSize:=FCapacity shr 2
-  else if FCapacity > 8 then 
+  else if FCapacity > 8 then
     IncSize := 16
-  else if FCapacity > 3 then 
+  else if FCapacity > 3 then
     IncSize := 8
   else
-    IncSize := 4;  
+    IncSize := 4;
   // If we were at max capacity already, force error.
   If IncSize<=0 then
-    IncSize:=1; // Will trigger error 
+    IncSize:=1; // Will trigger error
   SetCapacity(FCapacity + IncSize);
 end;
 
@@ -1025,7 +1025,7 @@ procedure TFPGList.AddList(Source: TFPGList);
 
 var
   i: Integer;
-  
+
 begin
   if ItemIsManaged then
     begin

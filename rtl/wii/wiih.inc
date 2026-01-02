@@ -29,7 +29,7 @@ type
   TDoIsdevice = function  (handle: THandle): boolean;
 
   TFileIO = packed record
-    DoOpen    : TDoOpen; 
+    DoOpen    : TDoOpen;
     DoClose   : TDoClose;
     DoWrite   : TDoWrite;
     DoRead    : TDoRead;
@@ -69,7 +69,7 @@ procedure AssignDevice(const FIOD: TFileIODevice);
 
 var
   FileIODevice: TFileIODevice = (
-    FileIO: ( 
+    FileIO: (
               DoOpen: nil;
               DoClose: nil;
               DoWrite: nil;
@@ -83,7 +83,7 @@ var
               DoTruncate: nil;
               DoIsdevice: nil;
             );
-    DirIO:  ( 
+    DirIO:  (
               DoMkdir:  nil;
               DoRmdir:  nil;
               DoChdir:  nil;

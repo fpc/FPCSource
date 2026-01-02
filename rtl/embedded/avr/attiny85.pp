@@ -10,7 +10,7 @@ var
   // ANALOG_COMPARATOR
   ADCSRB : byte absolute $00+$23; // ADC Control and Status Register B
   ACSR : byte absolute $00+$28; // Analog Comparator Control And Status Register
-  DIDR0 : byte absolute $00+$34; // 
+  DIDR0 : byte absolute $00+$34; //
   // AD_CONVERTER
   ADMUX : byte absolute $00+$27; // The ADC multiplexer Selection Register
   ADCSRA : byte absolute $00+$26; // The ADC Control and Status register
@@ -153,7 +153,7 @@ const
   // TCCR0B
   FOC0A = 7; // Force Output Compare A
   FOC0B = 6; // Force Output Compare B
-  WGM02 = 3; // 
+  WGM02 = 3; //
   CS0 = 0; // Clock Select
   // GTCCR
   TSM = 7; // Timer/Counter Synchronization Mode
@@ -179,8 +179,8 @@ const
   PSR1 = 1; // Prescaler Reset Timer/Counter1
   // DTPS
   // DT1A
-  DTVH = 4; // 
-  DTVL = 0; // 
+  DTVH = 4; //
+  DTVL = 0; //
   // DT1B
   // SPMCSR
   CTPB = 4; // Clear temporary page buffer

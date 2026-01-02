@@ -380,11 +380,11 @@ var kABDepartmentProperty: CFStringRef; external name '_kABDepartmentProperty'; 
 var kABPersonFlags: CFStringRef; external name '_kABPersonFlags'; (* attribute const *)
 (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)     // Various flags - kABIntegerProperty - (Person)
 
-const	
+const
 	kABShowAsMask = 7;
 	kABShowAsPerson = 0;
 	kABShowAsCompany = 1;
-	
+
 	kABNameOrderingMask = 7 shl 3;
 	kABDefaultNameOrdering = 0 shl 3;
 	kABFirstNameFirst = 4 shl 3;

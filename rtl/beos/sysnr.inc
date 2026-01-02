@@ -13,10 +13,10 @@ const
       syscall_nr_kget_tzfilename = $AF;
       syscall_nr_get_next_image_info = $3C;
 
-const           
+const
       syscall_nr_exit   		= $3F;
-      syscall_nr_chdir  		= $57; 
-      syscall_nr_mkdir  		= $1E; 
+      syscall_nr_chdir  		= $57;
+      syscall_nr_mkdir  		= $1E;
       syscall_nr_unlink 		= $27;
       syscall_nr_rmdir  		= $60;
       syscall_nr_close  		= $01;

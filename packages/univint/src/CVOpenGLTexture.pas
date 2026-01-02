@@ -222,12 +222,12 @@ uses MacTypes,CFBase,CVBase,CVReturns,CVImageBuffer,CGLTypes,macgl;
 
 {$ALIGN POWER}
 
- 
+
  {! @header CVOpenGLTexture.h
 	@copyright 2004 Apple Computer, Inc. All rights reserved.
 	@availability Mac OS X 10.4 or later
     @discussion A CoreVideo Texture derives from an ImageBuffer, and is used for supplying source image data to OpenGL.
-    		   
+
 }
 
 
@@ -291,7 +291,7 @@ function CVOpenGLTextureIsFlipped( image: CVOpenGLTextureRef ): Boolean; externa
 (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
 
 {!
-    @function   CVOpenGLTextureGetCleanTexCoords 
+    @function   CVOpenGLTextureGetCleanTexCoords
     @abstract   Returns convenient texture coordinates for the part of the image that should be displayed
     @discussion This function automatically takes into account whether or not the texture is flipped.
     @param      image Target CVOpenGLTexture

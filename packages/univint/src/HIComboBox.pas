@@ -1,17 +1,17 @@
 {
      File:       HIToolbox/HIComboBox.h
- 
+
      Contains:   Definition of the combo box view provided by HIToolbox.
- 
+
      Version:    HIToolbox-624~3
- 
+
      Copyright:  © 2006-2008 by Apple Computer, Inc., all rights reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {       Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
@@ -231,7 +231,7 @@ uses MacTypes,Appearance,CarbonEvents,Controls,CFBase,CFArray,HIGeometry,HIObjec
 
 {
  *  HIComboBox.h
- *  
+ *
  *  Discussion:
  *    API definitions for the combo box view.
  }
@@ -248,7 +248,7 @@ uses MacTypes,Appearance,CarbonEvents,Controls,CFBase,CFArray,HIGeometry,HIObjec
 {$endc}
 {
     kEventClassHIComboBox quick reference:
-    
+
     kEventComboBoxListItemSelected  = 1
 }
 const
@@ -259,11 +259,11 @@ const
 
 {
  *  kEventClassHIComboBox / kEventComboBoxListItemSelected
- *  
+ *
  *  Summary:
  *    Notification that an item in the ComboBox disclosure list has
  *    been selected.
- *  
+ *
  *  Discussion:
  *    This event is sent as a notification when an item in the ComboBox
  *    disclosure list has been selected.  This event is sent to all
@@ -271,18 +271,18 @@ const
  *    selection has been accepted; for that you will need to register
  *    for the kEventClassTextField/kEventTextAccepted event; you can
  *    register for that event in order to make live selections however.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    --> kEventParamDirectObject (in, typeControlRef)
  *          The ComboBox view that has sent the notification.
- *    
+ *
  *    --> kEventParamComboBoxListSelectedItemIndex (in, typeCFIndex)
  *          The index of the combo box list item that has been selected.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -343,7 +343,7 @@ const
 {
     The ComboBox view supports these tags previously defined for the EditUnicodeText view.
     These tags are available through Get/SetControlData with a ControlPartCode of kHIComboBoxEditTextPart:
-    
+
         kControlFontStyleTag
         kControlEditTextFixedTextTag
         kControlEditTextTextTag
@@ -390,36 +390,36 @@ const
 {$ifc not TARGET_CPU_64}
 {
  *  HIComboBoxCreate()
- *  
+ *
  *  Summary:
  *    Creates a combo box view. The new view is initially invisible.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    boundsRect:
  *      The bounding box of the view.
- *    
+ *
  *    text:
  *      The default text in the editable portion of the view. Can be
  *      NULL.
- *    
+ *
  *    style:
  *      The font style of the both editable text and the text in the
  *      disclosure list. Can be NULL.
- *    
+ *
  *    list:
  *      The default values available in the disclosure list. Can be
  *      NULL.
- *    
+ *
  *    inAttributes:
  *      The default attributes of the combo box.
- *    
+ *
  *    outComboBox:
  *      On exit, contains the new view.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -431,21 +431,21 @@ function HIComboBoxCreate( const (*var*) boundsRect: HIRect; text: CFStringRef {
 
 {
  *  HIComboBoxGetItemCount()
- *  
+ *
  *  Summary:
  *    Get the number of items in the combo box disclosure list.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inComboBox:
  *      The combo box.
- *  
+ *
  *  Result:
  *    The number of items in the combo box disclosure list.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -457,30 +457,30 @@ function HIComboBoxGetItemCount( inComboBox: HIViewRef ): ItemCount; external na
 
 {
  *  HIComboBoxInsertTextItemAtIndex()
- *  
+ *
  *  Summary:
  *    Inserts a CFString in the disclosure list
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inComboBox:
  *      The combo box whose disclosure list the text will be inserted
  *      in.
- *    
+ *
  *    inIndex:
  *      The index that the text should be inserted in. If the index
  *      does not fall within the number of items in the combo box list,
  *      it will be appended to the end of the list.
- *    
+ *
  *    inText:
  *      The text item to be inserted in the combo box disclosure list.
- *  
+ *
  *  Result:
  *    An operating system status code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -492,29 +492,29 @@ function HIComboBoxInsertTextItemAtIndex( inComboBox: HIViewRef; inIndex: CFInde
 
 {
  *  HIComboBoxAppendTextItem()
- *  
+ *
  *  Summary:
  *    Appends a text item to the combo box disclosure list.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inComboBox:
  *      The combo box whose disclosure list the text will be appended
  *      to.
- *    
+ *
  *    inText:
  *      The text item to be appended to the combo box disclosure list.
- *    
+ *
  *    outIndex:
  *      On exit, the index of the new item. Can be NULL if the caller
  *      does not require this information.
- *  
+ *
  *  Result:
  *    An operating system status code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -526,30 +526,30 @@ function HIComboBoxAppendTextItem( inComboBox: HIViewRef; inText: CFStringRef; o
 
 {
  *  HIComboBoxCopyTextItemAtIndex()
- *  
+ *
  *  Summary:
  *    Copy the text from the combo box disclosure list
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inComboBox:
  *      The combo box that contains the text item you would like to
  *      copy.
- *    
+ *
  *    inIndex:
  *      The index of the text item. Will return paramErr if the index
  *      is out of bounds of the combo box list.
- *    
+ *
  *    outString:
  *      A copy of the string at the given index. Remember this is now
  *      your copy that you will need to release.
- *  
+ *
  *  Result:
  *    An operating system status code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -561,25 +561,25 @@ function HIComboBoxCopyTextItemAtIndex( inComboBox: HIViewRef; inIndex: CFIndex;
 
 {
  *  HIComboBoxRemoveItemAtIndex()
- *  
+ *
  *  Summary:
  *    Remove an item from a combo box disclosure list.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inComboBox:
  *      The combo box that contains the disclosure list that you would
  *      like to remove an item from.
- *    
+ *
  *    inIndex:
  *      The index of the item to remove.
- *  
+ *
  *  Result:
  *    An operating system status code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -591,27 +591,27 @@ function HIComboBoxRemoveItemAtIndex( inComboBox: HIViewRef; inIndex: CFIndex ):
 
 {
  *  HIComboBoxChangeAttributes()
- *  
+ *
  *  Summary:
  *    Change the attributes of a combo box
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inComboBox:
  *      The combo box whose attributes you would like to change.
- *    
+ *
  *    inAttributesToSet:
  *      The attributes to set.
- *    
+ *
  *    inAttributesToClear:
  *      The attributes to clear.
- *  
+ *
  *  Result:
  *    An operating system status code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -623,24 +623,24 @@ function HIComboBoxChangeAttributes( inComboBox: HIViewRef; inAttributesToSet: O
 
 {
  *  HIComboBoxGetAttributes()
- *  
+ *
  *  Summary:
  *    Get the attributes of a combo box.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inComboBox:
  *      The combo box whose attributes you would like to obtain.
- *    
+ *
  *    outAttributes:
  *      The attributes of the combo box.
- *  
+ *
  *  Result:
  *    An operating system status code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -652,22 +652,22 @@ function HIComboBoxGetAttributes( inComboBox: HIViewRef; var outAttributes: Opti
 
 {
  *  HIComboBoxIsListVisible()
- *  
+ *
  *  Summary:
  *    Returns whether the combo box list is currently disclosed.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inComboBox:
  *      The combo box whose list visibility you would like to obtain.
- *  
+ *
  *  Result:
  *    A boolean value indicating whether the combo box list is
  *    disclosed (true) or hidden (false).
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.4 and later
@@ -679,25 +679,25 @@ function HIComboBoxIsListVisible( inComboBox: HIViewRef ): Boolean; external nam
 
 {
  *  HIComboBoxSetListVisible()
- *  
+ *
  *  Summary:
  *    Hides or shows the combo box list.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inComboBox:
  *      The combo box whose list will be hidden or shown.
- *    
+ *
  *    inVisible:
  *      A boolean value indicating whether you wish to hide the list
  *      (false) or show the list (true).
- *  
+ *
  *  Result:
  *    An operating system result code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.4 and later

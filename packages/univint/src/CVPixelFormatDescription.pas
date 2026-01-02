@@ -9,7 +9,7 @@
 {  Pascal Translation Update:  Gorazd Krosl, <gorazd_1957@yahoo.ca>, 2009 }
 {  Pascal Translation Update: Jonas Maebe <jonas@freepascal.org>, October 2012 }
 {  Pascal Translation Update: Jonas Maebe <jonas@freepascal.org>, August 2015 }
- 
+
 {
     Modified for use with Free Pascal
     Version 308
@@ -245,7 +245,7 @@ var kCVPixelFormatFourCC: CFStringRef; external name '_kCVPixelFormatFourCC'; (*
 var kCVPixelFormatContainsAlpha: CFStringRef; external name '_kCVPixelFormatContainsAlpha'; (* attribute const *)
 (* __OSX_AVAILABLE_STARTING(__MAC_10_7,__IPHONE_4_3) *)
 
-{ All buffers have one or more image planes.  Each plane may contain a single or an interleaved set of components }   
+{ All buffers have one or more image planes.  Each plane may contain a single or an interleaved set of components }
 { For simplicity sake, pixel formats that are not planar may place the required format keys at the top
    level dictionary. }
 var kCVPixelFormatPlanes: CFStringRef; external name '_kCVPixelFormatPlanes'; (* attribute const *)
@@ -270,12 +270,12 @@ var kCVPixelFormatBlockWidth: CFStringRef; external name '_kCVPixelFormatBlockWi
 var kCVPixelFormatBlockHeight: CFStringRef; external name '_kCVPixelFormatBlockHeight'; (* attribute const *)
 (* __OSX_AVAILABLE_STARTING(__MAC_10_4,__IPHONE_4_0) *)
 
-{ This value must be present.  For simple pixel formats this will be equivalent to the traditional 
+{ This value must be present.  For simple pixel formats this will be equivalent to the traditional
    bitsPerPixel value. }
 var kCVPixelFormatBitsPerBlock: CFStringRef; external name '_kCVPixelFormatBitsPerBlock'; (* attribute const *)
 (* __OSX_AVAILABLE_STARTING(__MAC_10_4,__IPHONE_4_0) *)
 
-{ Used to state requirements on block multiples.  v210 would be '8' here for the horizontal case, 
+{ Used to state requirements on block multiples.  v210 would be '8' here for the horizontal case,
    to match the standard v210 row alignment value of 48.
    These may be assumed as 1 if not present. }
 var kCVPixelFormatBlockHorizontalAlignment: CFStringRef; external name '_kCVPixelFormatBlockHorizontalAlignment'; (* attribute const *)
@@ -284,7 +284,7 @@ var kCVPixelFormatBlockVerticalAlignment: CFStringRef; external name '_kCVPixelF
 (* __OSX_AVAILABLE_STARTING(__MAC_10_4,__IPHONE_4_0) *)
 
 { CFData containing the bit pattern for a block of black pixels.  If absent, black is assumed to be all zeros.
-   If present, this should be bitsPerPixel bits long -- if bitsPerPixel is less than a byte, repeat the bit pattern 
+   If present, this should be bitsPerPixel bits long -- if bitsPerPixel is less than a byte, repeat the bit pattern
    for the full byte.  }
 var kCVPixelFormatBlackBlock: CFStringRef; external name '_kCVPixelFormatBlackBlock'; (* attribute const *)
 (* __OSX_AVAILABLE_STARTING(__MAC_10_6,__IPHONE_4_0) *)
@@ -322,7 +322,7 @@ var kCVPixelFormatOpenGLESCompatibility: CFStringRef; external name '_kCVPixelFo
 (* __OSX_AVAILABLE_STARTING(__MAC_NA,__IPHONE_5_0) *)
 {$endc}
 
-{ This callback routine implements code to handle the functionality of CVPixelBufferFillExtendedPixels.  
+{ This callback routine implements code to handle the functionality of CVPixelBufferFillExtendedPixels.
    For custom pixel formats where you will never need to use that call, this is not required. }
 type
 	CVFillExtendedPixelsCallBack = function( pixelBuffer: CVPixelBufferRef; refCon: UnivPtr ): Boolean;

@@ -355,7 +355,7 @@ const
     { enable/disable IPV6_HOPOPTS  }
       IPV6_RECVHOPOPTS = $14;
     {
-     * This options exists for backwards compatability and should no longer be
+     * This options exists for backwards compatibility and should no longer be
      * used.  Use IPV6_RECVDSTOPTS instead.
       }
       _OLD_IPV6_RECVDSTOPTS = $15;

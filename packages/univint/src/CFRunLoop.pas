@@ -252,7 +252,7 @@ uses MacTypes,CFBase,CFArray,CFDate,CFString,MacOSXPosix;
 
 	While being run, a run loop goes through a cycle of activities.
 	Input sources are checked, timers which need firing are fired,
-	and then the run loop blocks, waiting for something to happen 
+	and then the run loop blocks, waiting for something to happen
 	(or in the case of timers, waiting for it to be time for
 	something to happen). When something does happen, the run loop
 	wakes up, processes the activity (usually by calling a callback
@@ -379,7 +379,7 @@ procedure CFRunLoopStop( rl: CFRunLoopRef ); external name '_CFRunLoopStop';
 
 {#if __BLOCKS__ && MAC_OS_X_VERSION_10_6 <= MAC_OS_X_VERSION_MAX_ALLOWED}
 { requires support for blocks
-extern void CFRunLoopPerformBlock(CFRunLoopRef rl, CFTypeRef mode, void (^block)(void)) CF_AVAILABLE_STARTING(10_6, 4_0); 
+extern void CFRunLoopPerformBlock(CFRunLoopRef rl, CFTypeRef mode, void (^block)(void)) CF_AVAILABLE_STARTING(10_6, 4_0);
 }
 {#endif}
 
@@ -417,7 +417,7 @@ procedure CFRunLoopRemoveTimer( rl: CFRunLoopRef; timer: CFRunLoopTimerRef; mode
 		the source, almost always just the pointer passed as the
 		parameter.
 	@field release The callback used to remove a retain previously
-		added for the source on the info pointer. 
+		added for the source on the info pointer.
 	@field copyDescription The callback used to create a descriptive
 		string representation of the info pointer (or the data
 		pointed to by the info pointer) for debugging purposes.

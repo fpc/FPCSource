@@ -1,13 +1,13 @@
 {
      File:       UTCoreTypes.h
- 
+
      Contains:   String constants for core uniform type identifiers
- 
+
      Copyright:  (c) 2004-2012 by Apple Inc. All rights reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
 }
 
@@ -319,7 +319,7 @@ var kUTTypeDiskImage: CFStringRef; external name '_kUTTypeDiskImage'; (* attribu
  *
  *  kUTTypeDirectory
  *
- *    file system directory 
+ *    file system directory
  *    (includes packages AND folders)
  *
  *    UTI: public.directory
@@ -376,7 +376,7 @@ var kUTTypeDiskImage: CFStringRef; external name '_kUTTypeDiskImage'; (* attribu
  *
  *  kUTTypeFileURL
  *
- *    The text of a "file:" URL 
+ *    The text of a "file:" URL
  *    (OSType 'furl')
  *
  *    UTI: public.file-url
@@ -408,7 +408,7 @@ var kUTTypeFileURL: CFStringRef; external name '_kUTTypeFileURL'; (* attribute c
 {
  *  kUTTypeText
  *
- *    base type for all text-encoded data, 
+ *    base type for all text-encoded data,
  *    including text with markup (HTML, RTF, etc.)
  *
  *    UTI: public.text
@@ -434,8 +434,8 @@ var kUTTypeFileURL: CFStringRef; external name '_kUTTypeFileURL'; (* attribute c
  *
  *  kUTTypeUTF16ExternalPlainText
  *
- *    plain text, UTF-16 encoding, with BOM, or if BOM 
- *    is not present, has "external representation" 
+ *    plain text, UTF-16 encoding, with BOM, or if BOM
+ *    is not present, has "external representation"
  *    byte order (big-endian).
  *    (OSType 'ut16')
  *
@@ -587,7 +587,7 @@ var kUTTypeJavaSource: CFStringRef; external name '_kUTTypeJavaSource'; (* attri
  *
  *  kUTTypeRTFD
  *
- *    Rich Text Format Directory 
+ *    Rich Text Format Directory
  *    (RTF with content embedding, on-disk format)
  *
  *    UTI: com.apple.rtfd
@@ -922,7 +922,7 @@ var kUTTypeFramework: CFStringRef; external name '_kUTTypeFramework'; (* attribu
  *
  *  kUTTypeApplicationFile
  *
- *    a single-file Carbon/Classic application 
+ *    a single-file Carbon/Classic application
  *
  *    UTI: com.apple.application-file
  *    conforms to: com.apple.application, public.data

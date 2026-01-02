@@ -3,7 +3,7 @@
     Copyright (c) 2006 Sven Barth
     member of the Free Pascal development team.
 
-    m68k syscall headers for Linux 
+    m68k syscall headers for Linux
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.

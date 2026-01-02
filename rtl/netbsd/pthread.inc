@@ -19,7 +19,7 @@
 
  **********************************************************************}
 
-CONST 
+CONST
       PTHREAD_INHERIT_SCHED        = 0;
       PTHREAD_EXPLICIT_SCHED       = 1;
       PTHREAD_CREATE_DETACHED      = 1;

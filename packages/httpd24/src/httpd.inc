@@ -237,7 +237,7 @@ const
     AP_MAX_REG_MATCH = 10;
 
   {*
-   * APR_HAS_LARGE_FILES introduces the problem of spliting sendfile into
+   * APR_HAS_LARGE_FILES introduces the problem of splitting sendfile into
    * multiple buckets, no greater than MAX(apr_size_t), and more granular
    * than that in case the brigade code/filters attempt to read it directly.
    * ### 16mb is an invention, no idea if it is reasonable.
@@ -626,9 +626,9 @@ const
   const
   {* linefeed  }
     LF = 10;
-  {* carrige return  }
+  {* carriage return  }
     CR = 13;
-  {* carrige return /Line Feed Combo  }
+  {* carriage return /Line Feed Combo  }
     CRLF = #015#012;
 
   {*

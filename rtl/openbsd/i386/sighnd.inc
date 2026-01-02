@@ -29,9 +29,9 @@ begin
   if assigned(sigcontext) then
     begin
       if has_mmx_support then
-        getaltfpustate:=sigcontext^.sc_fpustate^.xmmState.fx_fsw 
+        getaltfpustate:=sigcontext^.sc_fpustate^.xmmState.fx_fsw
       else
-        getaltfpustate:=sigcontext^.sc_fpustate^.x87state.en_sw 
+        getaltfpustate:=sigcontext^.sc_fpustate^.x87state.en_sw
     end
   else
     getaltfpustate:=0;

@@ -179,7 +179,7 @@ begin
   Each background uses 8K of palette memory starting at the base of the vram bank
   you allocate (which bank is up to you within limits, see the vram usage table
   to determine which banks can be mapped for textures).  These 8K blocks are often
-  refered to as "slots" with each background getting its own slot.
+  referred to as "slots" with each background getting its own slot.
 
    By default, Background 0 uses slot 0 ... Background 3 uses slot 3.  It is possible
    to assign Background 0 to slot 2 and Background 1 to slot 3 (only these two are configurable)

@@ -494,7 +494,7 @@ type
 	 *
 	 * Although many types may have a property of the same name, any given
 	 * instance of a property belongs to only one type.
-	 * This method returns the type which holds this proeprty.
+	 * This method returns the type which holds this property.
 	 }
    function getContainingType() : ISDOType;
 
@@ -906,7 +906,7 @@ type
      * copied.
      * The byte array is not necessarily null terminated. If a null terminated
      * C style string is required, then getCString is an alternative.
-     * The third paarameter is the length of the allocated buffer, which may be more
+     * The third parameter is the length of the allocated buffer, which may be more
      * than the length of the byte array. If the length specified is less than the
      * length of the byte array, then only a portion of the
      * byte array is returned.
@@ -927,7 +927,7 @@ type
      * by the users program. The return value is the number of wchar_t actually
      * copied.
      * The array is not necessarily null terminated.
-     * The third paarameter is the length of the allocated buffer, which may be more
+     * The third parameter is the length of the allocated buffer, which may be more
      * than the length of the array. If the length specified is less than the
      * length of the array, then only a portion of the array is returned.
        }
@@ -1123,7 +1123,7 @@ type
     {  clear unsets all the properties
      *
      * This method unsets all the properties, and deletes all the data object
-     * propertiy values from this data object.
+     * property values from this data object.
      }
 
     procedure clear();

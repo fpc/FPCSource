@@ -404,7 +404,7 @@ type
   cc_t = byte;
 
 const
-  NCCS = 16;  
+  NCCS = 16;
 type
   Pspeed_t = ^speed_t;
   speed_t = dword;
@@ -446,170 +446,170 @@ function cfsetispeed(var _para1:termios; _para2:speed_t):longint;cdecl;external;
 { values for optional_actions arguments to tcsetattr()  }
 
 const
-  TCSANOW = 0;  
-  TCSADRAIN = 1;  
-  TCSAFLUSH = 2;  
+  TCSANOW = 0;
+  TCSADRAIN = 1;
+  TCSAFLUSH = 2;
 { values for the queue_selector argument to tcflush()  }
-  TCIFLUSH = 0;  
-  TCOFLUSH = 1;  
-  TCIOFLUSH = 2;  
+  TCIFLUSH = 0;
+  TCOFLUSH = 1;
+  TCIOFLUSH = 2;
 { values for the action argument to tcflow()  }
-  TCOOFF = 0;  
-  TCOON = 1;  
-  TCIOFF = 2;  
-  TCION = 3;  
+  TCOOFF = 0;
+  TCOON = 1;
+  TCIOFF = 2;
+  TCION = 3;
 { control characters  }
-  VINTR = 0;  
-  VQUIT = 1;  
-  VERASE = 2;  
-  VKILL = 3;  
-  VEOF = 4;  
-  VEOL = 5;  
-  VSTART = 7;  
-  VSTOP = 8;  
-  VSUSP = 9;  
-  VMIN = 4;  
-  VTIME = 5;  
-  VEOL2 = 6;  
-  VDSUSP = 10;  
-  VREPRINT = 11;  
-  VDISCRD = 12;  
-  VWERSE = 13;  
-  VLNEXT = 14;  
+  VINTR = 0;
+  VQUIT = 1;
+  VERASE = 2;
+  VKILL = 3;
+  VEOF = 4;
+  VEOL = 5;
+  VSTART = 7;
+  VSTOP = 8;
+  VSUSP = 9;
+  VMIN = 4;
+  VTIME = 5;
+  VEOL2 = 6;
+  VDSUSP = 10;
+  VREPRINT = 11;
+  VDISCRD = 12;
+  VWERSE = 13;
+  VLNEXT = 14;
 { 5.4 compatability  }
-  VSTRT = VSTART;  
+  VSTRT = VSTART;
 
 const
-  B0 = $00000000;  
-  B50 = $00000001;  
-  B75 = $00000002;  
-  B110 = $00000003;  
-  B134 = $00000004;  
-  B150 = $00000005;  
-  B200 = $00000006;  
-  B300 = $00000007;  
-  B600 = $00000008;  
-  B1200 = $00000009;  
-  B1800 = $0000000a;  
-  B2400 = $0000000b;  
-  B4800 = $0000000c;  
-  B9600 = $0000000d;  
-  B19200 = $0000000e;  
-  B38400 = $0000000f;  
-  EXTA = B19200;  
-  EXTB = B38400;  
+  B0 = $00000000;
+  B50 = $00000001;
+  B75 = $00000002;
+  B110 = $00000003;
+  B134 = $00000004;
+  B150 = $00000005;
+  B200 = $00000006;
+  B300 = $00000007;
+  B600 = $00000008;
+  B1200 = $00000009;
+  B1800 = $0000000a;
+  B2400 = $0000000b;
+  B4800 = $0000000c;
+  B9600 = $0000000d;
+  B19200 = $0000000e;
+  B38400 = $0000000f;
+  EXTA = B19200;
+  EXTB = B38400;
 { _ALL_SOURCE  }
 { c_iflag bits  }
 
 const
-  IGNBRK = $00000001;  
-  BRKINT = $00000002;  
-  IGNPAR = $00000004;  
-  PARMRK = $00000008;  
-  INPCK = $00000010;  
-  ISTRIP = $00000020;  
-  INLCR = $00000040;  
-  IGNCR = $00000080;  
-  ICRNL = $00000100;  
-  IXON = $00000200;  
-  IXOFF = $00000400;  
+  IGNBRK = $00000001;
+  BRKINT = $00000002;
+  IGNPAR = $00000004;
+  PARMRK = $00000008;
+  INPCK = $00000010;
+  ISTRIP = $00000020;
+  INLCR = $00000040;
+  IGNCR = $00000080;
+  ICRNL = $00000100;
+  IXON = $00000200;
+  IXOFF = $00000400;
 const
-  IUCLC = $00000800;  
+  IUCLC = $00000800;
 
 const
-  IXANY = $00001000;  
-  IMAXBEL = $00010000;  
+  IXANY = $00001000;
+  IMAXBEL = $00010000;
 { c_oflag bits  }
 
 const
-  OPOST = $00000001;  
+  OPOST = $00000001;
 const
-  OLCUC = $00000002;  
+  OLCUC = $00000002;
 
 const
-  ONLCR = $00000004;  
-  OCRNL = $00000008;  
-  ONOCR = $00000010;  
-  ONLRET = $00000020;  
-  OFILL = $00000040;  
-  OFDEL = $00000080;  
-  CRDLY = $00000300;  
+  ONLCR = $00000004;
+  OCRNL = $00000008;
+  ONOCR = $00000010;
+  ONLRET = $00000020;
+  OFILL = $00000040;
+  OFDEL = $00000080;
+  CRDLY = $00000300;
 //  CR0 = $00000000;
 //  CR1 = $00000100;
 //  CR2 = $00000200;
 //  CR3 = $00000300;
-  TABDLY = $00000c00;  
+  TABDLY = $00000c00;
 //  TAB0 = $00000000;
 //  TAB1 = $00000400;
 //  TAB2 = $00000800;
 //  TAB3 = $00000c00;
-  BSDLY = $00001000;  
+  BSDLY = $00001000;
 //  BS0 = $00000000;
 //  BS1 = $00001000;
-  FFDLY = $00002000;  
+  FFDLY = $00002000;
 //  FF0 = $00000000;
 //  FF1 = $00002000;
-  NLDLY = $00004000;  
+  NLDLY = $00004000;
 //  NL0 = $00000000;
 //  NL1 = $00004000;
-  VTDLY = $00008000;  
-  VT0 = $00000000;  
-  VT1 = $00008000;  
-  DLY_MASK = ((((NLDLY or CRDLY) or TABDLY) or BSDLY) or VTDLY) or FFDLY;  
+  VTDLY = $00008000;
+  VT0 = $00000000;
+  VT1 = $00008000;
+  DLY_MASK = ((((NLDLY or CRDLY) or TABDLY) or BSDLY) or VTDLY) or FFDLY;
 { expand tabs to spaces added     	 }
-  OXTABS = $00040000;  
+  OXTABS = $00040000;
 { on 08/05/92.                          }
 { discard EOT's (^D) on output    	 }
-  ONOEOT = $00080000;  
+  ONOEOT = $00080000;
 { added on 08/05/92.                    }
 { c_cflag bits  }
 
 const
-  _CBAUD = $0000000f;  
+  _CBAUD = $0000000f;
   CBAUD = _CBAUD;
   CSIZE = $00000030;
-  CS5 = $00000000;  
-  CS6 = $00000010;  
-  CS7 = $00000020;  
-  CS8 = $00000030;  
-  CSTOPB = $00000040;  
-  CREAD = $00000080;  
-  PARENB = $00000100;  
-  PARODD = $00000200;  
-  HUPCL = $00000400;  
-  CLOCAL = $00000800;  
-  _CIBAUD = $000f0000;  
-  _IBSHIFT = 16;  
-  CIBAUD = _CIBAUD;  
-  IBSHIFT = _IBSHIFT;  
-  PAREXT = $00100000;  
+  CS5 = $00000000;
+  CS6 = $00000010;
+  CS7 = $00000020;
+  CS8 = $00000030;
+  CSTOPB = $00000040;
+  CREAD = $00000080;
+  PARENB = $00000100;
+  PARODD = $00000200;
+  HUPCL = $00000400;
+  CLOCAL = $00000800;
+  _CIBAUD = $000f0000;
+  _IBSHIFT = 16;
+  CIBAUD = _CIBAUD;
+  IBSHIFT = _IBSHIFT;
+  PAREXT = $00100000;
 { c_lflag bits  }
 
 const
-  ISIG = $00000001;  
-  ICANON = $00000002;  
+  ISIG = $00000001;
+  ICANON = $00000002;
 
 const
-  XCASE = $00000004;  
+  XCASE = $00000004;
 
 const
 //  ECHO = $00000008;
-  ECHOE = $00000010;  
-  ECHOK = $00000020;  
-  ECHONL = $00000040;  
-  NOFLSH = $00000080;  
+  ECHOE = $00000010;
+  ECHOK = $00000020;
+  ECHONL = $00000040;
+  NOFLSH = $00000080;
 //  TOSTOP = $00010000;
-  ECHOCTL = $00020000;  
-  ECHOPRT = $00040000;  
-  ECHOKE = $00080000;  
+  ECHOCTL = $00020000;
+  ECHOPRT = $00040000;
+  ECHOKE = $00080000;
 //  FLUSHO = $00100000;
 { use alternate WERASE    	 }
-  ALTWERASE = $00400000;  
+  ALTWERASE = $00400000;
 { algorithm, added ALTWERASE    }
 { on 08/05/92.                  }
 //  PENDIN = $20000000;
 { ALL_SOURCE  }
 
 const
-  IEXTEN = $00200000;  
+  IEXTEN = $00200000;
 

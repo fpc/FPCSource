@@ -1239,9 +1239,9 @@ uses ctypes,
      OCI_ATTR_DEQCOND = 146;
   { reserved  }
      OCI_ATTR_RESERVED_2 = 147;
-  { recepient of subscription  }
+  { recipient of subscription  }
      OCI_ATTR_SUBSCR_RECPT = 148;
-  { protocol for recepient  }
+  { protocol for recipient  }
      OCI_ATTR_SUBSCR_RECPTPROTO = 149;
   { For values 150 - 151, see DirPathAPI attribute section in this file  }
   { LDAP host to connect to  }
@@ -1256,7 +1256,7 @@ uses ctypes,
      OCI_ATTR_WALL_LOC = 157;
   { LDAP authentication method  }
      OCI_ATTR_LDAP_AUTH = 158;
-  { LDAP adminstration context DN  }
+  { LDAP administration context DN  }
      OCI_ATTR_LDAP_CTX = 159;
   { list of registration server DNs  }
      OCI_ATTR_SERVER_DNS = 160;
@@ -1307,7 +1307,7 @@ uses ctypes,
      OCI_ATTR_NUM_OPEN_STMTS = 188;
   { get native info via desc  }
      OCI_ATTR_DESCRIBE_NATIVE = 189;
-  { number of bind postions  }
+  { number of bind positions  }
      OCI_ATTR_BIND_COUNT = 190;
   { pos of bind/define handle  }
      OCI_ATTR_HANDLE_POSITION = 191;
@@ -1327,7 +1327,7 @@ uses ctypes,
      OCI_ATTR_SCN_BASE = 198;
   { snapshot wrap  }
      OCI_ATTR_SCN_WRAP = 199;
-  { --------------------------- Miscellanous attributes ---------------------  }
+  { -------------------------- Miscellaneous attributes ---------------------  }
   { reserved  }
      OCI_ATTR_RESERVED_6 = 200;
   { txn is readonly  }
@@ -1479,7 +1479,7 @@ uses ctypes,
   { ----------------- port no attribute in subscription handle  -------------  }
   { port no to listen         }
      OCI_ATTR_SUBSCR_PORTNO = 390;
-  {------------- Supported Values for protocol for recepient ----------------- }
+  {------------- Supported Values for protocol for recipient ----------------- }
   { oci  }
      OCI_SUBSCR_PROTO_OCI = 0;
   { mail  }
@@ -1490,7 +1490,7 @@ uses ctypes,
      OCI_SUBSCR_PROTO_HTTP = 3;
   { max current protocols  }
      OCI_SUBSCR_PROTO_MAX = 4;
-  {------------- Supported Values for presentation for recepient ------------- }
+  {------------- Supported Values for presentation for recipient ------------- }
   { default  }
      OCI_SUBSCR_PRES_DEFAULT = 0;
   { xml  }
@@ -1753,7 +1753,7 @@ uses ctypes,
      OCI_LOGON2_CPOOL = OCI_CPOOL;
   { Use Stmt Caching  }
      OCI_LOGON2_STMTCACHE = $0004;
-  { Proxy authentiaction  }
+  { Proxy authentication  }
      OCI_LOGON2_PROXY = $0008;
   {--------------------------------------------------------------------------- }
   {------------------------- OCISessionPoolCreate Modes ---------------------- }
@@ -2060,7 +2060,7 @@ uses ctypes,
   {=======================Describe Handle Parameter Attributes =============== }
   {
      These attributes are orthogonal to the other set of attributes defined
-     above.  These attrubutes are to be used only for the describe handle.
+     above.  These attributes are to be used only for the describe handle.
    }
   {=========================================================================== }
   { Attributes common to Columns and Stored Procs  }
@@ -3242,7 +3242,7 @@ uses ctypes,
      OCI_NLS_GROUP = 46;
   { Native symbol of debit  }
      OCI_NLS_DEBIT = 47;
-  { Native sumbol of credit  }
+  { Native symbol of credit  }
      OCI_NLS_CREDIT = 48;
   { Oracle date format  }
      OCI_NLS_DATEFORMAT = 49;

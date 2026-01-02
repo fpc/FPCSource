@@ -1,15 +1,15 @@
 {
  * Copyright (c) 2003 Apple Computer, Inc. All Rights Reserved.
- * 
+ *
  * @APPLE_LICENSE_HEADER_START@
- * 
+ *
  * This file contains Original Code and/or Modifications of Original Code
  * as defined in and that are subject to the Apple Public Source License
  * Version 2.0 (the 'License'). You may not use this file except in
  * compliance with the License. Please obtain a copy of the License at
  * http://www.opensource.apple.com/apsl/ and read it before using this
  * file.
- * 
+ *
  * The Original Code and all software distributed under the License are
  * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
  * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
@@ -17,7 +17,7 @@
  * FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
  * Please see the License for the specific language governing rights and
  * limitations under the License.
- * 
+ *
  * @APPLE_LICENSE_HEADER_END@
  }
 {  Pascal Translation:  Gorazd Krosl <gorazd_1957@yahoo.ca>, October 2009 }
@@ -250,11 +250,11 @@ uses MacTypes,Authorization,CFBase,CFDictionary,CFString,CFBundle;
 	Version 1.0
 
 	This API allows for any programs to get, modify, delete and add new right definitions to the policy database.  Meta-rights specify whether and what authorization is required to make these modifications.
-	
+
 	AuthorizationRightSet(authRef, "com.ifoo.ifax.send", CFSTR(kRuleIsAdmin), CFSTR("You must authenticate to send a fax."), NULL, NULL)
 
 	add a rule for letting admins send faxes using a canned rule, delegating to a pre-specified rule that authorizes everyone who is an admin.
-	
+
 	AuthorizationRightSet(authRef, "com.ifoo.ifax.send", [[CFSTR(kRightRule), CFSTR(kRuleIsAdmin)], [CFSTR(kRightComment), CFSTR("authorizes sending of 1 fax message")]], CFSTR("Authorize sending of a fax"), NULL, NULL)
 
 	add identical rule, but specify additional attributes this time.
@@ -295,7 +295,7 @@ const
 	kAuthorizationRuleClassAllow = 'allow';
 
 {! @defined kAuthorizationRuleClassDeny
-	Class that denies anything. 
+	Class that denies anything.
 }
 const
 	kAuthorizationRuleClassDeny = 'deny';
@@ -309,9 +309,9 @@ const
 
 
 {!
-	@function AuthorizationRightGet 
-	
-	Retrieves a right definition as a dictionary.  There are no restrictions to keep anyone from retrieving these definitions.  
+	@function AuthorizationRightGet
+
+	Retrieves a right definition as a dictionary.  There are no restrictions to keep anyone from retrieving these definitions.
 
 	@param rightName (input) the rightname (ASCII).  Wildcard rightname definitions are okay.
 	@param rightDefinition (output/optional) the dictionary with all keys defining the right.  See documented keys.  Passing in NULL will just check if there is a definition.  The caller is responsible for releasing the returned dictionary.
@@ -325,7 +325,7 @@ function AuthorizationRightGet( rightName: ConstCStringPtr; rightDefinition: CFD
 
 {!
 	@function AuthorizationRightSet
-	
+
 	Create or update a right entry.  Only normal rights can be registered (wildcard rights are denied); wildcard rights are considered to be put in by an administrator putting together a site configuration.
 
 	@param authRef (input) authRef to authorize modifications.
@@ -334,7 +334,7 @@ function AuthorizationRightGet( rightName: ConstCStringPtr; rightDefinition: CFD
 	@param descriptionKey (input/optional) a CFString to use as a key for looking up localized descriptions.  If no localization is found this will be the description itself.
 	@param bundle (input/optional) a bundle to get localizations from if not the main bundle.
 	@param localeTableName (input/optional) stringtable name to get localizations from.
-	
+
 	@result errAuthorizationSuccess 0 added right definition successfully.
 
 	errAuthorizationDenied -60005 Unable to create or update right definition.
@@ -354,7 +354,7 @@ function AuthorizationRightSet( authRef: AuthorizationRef; rightName: ConstCStri
 
 	@param authRef (input) authRef, to be used to authorize this action.
 	@param rightName (input) the rightname (ASCII).  Wildcard rightnames are not okay.
-	
+
 }
 function AuthorizationRightRemove( authRef: AuthorizationRef; rightName: ConstCStringPtr ): OSStatus; external name '_AuthorizationRightRemove';
 

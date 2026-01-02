@@ -1,17 +1,17 @@
 {
      File:       ATS/ATSFont.h
- 
+
      Contains:   Public interface to the font access and data management functions of ATS.
- 
+
      Version:    ATS
- 
+
      Copyright:  © 2000-2012 by Apple Inc., all rights reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 
 {  Pascal Translation Updated: Gorazd Krosl <gorazd_1957@yahoo.ca>, October 2009 }
@@ -322,7 +322,7 @@ type
 
 {
  *  ATSFontNotifyOption
- *  
+ *
  *  Discussion:
  *    Options used with ATSFontNotificationSubscribe.  Any of the
  *    options that follow may be used together in order to alter the
@@ -349,7 +349,7 @@ const
 
 {
  *  ATSFontNotifyAction
- *  
+ *
  *  Discussion:
  *    Used with ATSFontNotify.   The following is a list of actions you
  *    might wish the ATS server to perform and notify clients if
@@ -380,16 +380,16 @@ const
 
 {
  *  ATSNotificationCallback
- *  
+ *
  *  Discussion:
  *    Callback delivered for ATS notifications.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    info:
  *      Parameter is placed here for future improvements.  Initially
  *      the contents of this parameter will be NULL.
- *    
+ *
  *    refCon:
  *      User data/state to be supplied to callback function
  }
@@ -400,10 +400,10 @@ type
 { ----------------------------------------------------------------------------------------- }
 {
  *  ATSGetGeneration()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version Jaguar
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
@@ -419,47 +419,47 @@ function ATSGetGeneration: ATSGeneration; external name '_ATSGetGeneration';
 {$ifc not TARGET_CPU_64}
 {
  *  ATSFontActivateFromFileSpecification()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use ATSFontActivateFromFileReference instead.
- *  
+ *
  *  Summary:
  *    Activates one or more fonts from a file specification.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version Jaguar
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iFile:
  *      A pointer to the file specification that specifies the name and
  *      location of a file or directory that contains the font data you
  *      want to activate.
- *    
+ *
  *    iContext:
  *      A value that specifies the context of the activated font.
- *    
+ *
  *    iFormat:
  *      A value that represents the format identifier of the font. Pass
  *      kATSFontFormatUnspecified as the system automatically
  *      determines the format of the font.
- *    
+ *
  *    iReserved:
  *      This parameter is currently reserved for future use, so you
  *      should pass NULL.
- *    
+ *
  *    iOptions:
  *      An options flag.  See developer documentation for appropriate
  *      flags.
- *    
+ *
  *    oContainer:
  *      On output, a reference to the font container that is activated
  *      from the file specification. You need this reference when you
  *      deactivate the font by calling the function ATSFontDeactivate.
- *  
+ *
  *  Result:
  *    noErr Activated successfully
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
@@ -476,44 +476,44 @@ function ATSFontActivateFromFileSpecification( const (*var*) iFile: FSSpec; iCon
 
 {
  *  ATSFontActivateFromFileReference()
- *  
+ *
  *  Summary:
  *    Activates one or more fonts from a file reference.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.5
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iFile:
  *      A pointer to the file specification that specifies the name and
  *      location of a file or directory that contains the font data you
  *      want to activate.
- *    
+ *
  *    iContext:
  *      A value that specifies the context of the activated font.
- *    
+ *
  *    iFormat:
  *      A value that represents the format identifier of the font. Pass
  *      kATSFontFormatUnspecified as the system automatically
  *      determines the format of the font.
- *    
+ *
  *    iRefCon:
  *      This parameter is currently reserved for future use, so you
  *      should pass NULL.
- *    
+ *
  *    iOptions:
  *      An options flag.  See developer documentation for appropriate
  *      flags.
- *    
+ *
  *    oContainer:
  *      On output, a reference to the font container that is activated
  *      from the file specification. You need this reference when you
  *      deactivate the font by calling the function ATSFontDeactivate.
- *  
+ *
  *  Result:
  *    noErr Activated successfully
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in ApplicationServices.framework
  *    CarbonLib:        not available
@@ -528,10 +528,10 @@ function ATSFontActivateFromFileReference( const (*var*) iFile: FSRef; iContext:
 
 {
  *  ATSFontActivateFromMemory()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version Jaguar
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
@@ -546,10 +546,10 @@ function ATSFontActivateFromMemory( iData: LogicalAddress; iLength: ByteCount; i
 
 {
  *  ATSFontDeactivate()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version Jaguar
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
@@ -562,20 +562,20 @@ function ATSFontDeactivate( iContainer: ATSFontContainerRef; iRefCon: UnivPtr; i
 
 {
  *  ATSFontGetContainerFromFileReference()
- *  
+ *
  *  Summary:
  *    Get the font container reference associated with an activated
  *    file reference.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.5
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iFile:
- *      A pointer to the valid file reference that specificies the
+ *      A pointer to the valid file reference that specifies the
  *      activated font file for which to get the container.
- *    
+ *
  *    iContext:
  *      The context that the font file is accessible too. If
  *      kATSFontContextGlobal is specified this function will return
@@ -585,20 +585,20 @@ function ATSFontDeactivate( iContainer: ATSFontContainerRef; iRefCon: UnivPtr; i
  *      adhere to precedence rules. In which case a container activated
  *      in kATSFontContextLocal will be preferred over one activated in
  *      kATSFontContextGlobal.
- *    
+ *
  *    iOptions:
  *      An options flag.  See developer documentation for appropriate
  *      flags.
- *    
+ *
  *    oContainer:
  *      On output, a reference to the font container representing the
  *      file reference activated in the specified context. On error or
  *      for a file that is not activated, this will be set to
  *      kATSFontContainerRefUnspecified.
- *  
+ *
  *  Result:
  *    paramErr One or more parameters are invalid.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in ApplicationServices.framework
  *    CarbonLib:        not available
@@ -611,30 +611,30 @@ function ATSFontGetContainerFromFileReference( const (*var*) iFile: FSRef; iCont
 
 {
  *  ATSFontGetContainer()
- *  
+ *
  *  Summary:
  *    Gets the font container reference for the font.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.5
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iFont:
  *      The font reference.
- *    
+ *
  *    iOptions:
  *      An options flag.  See developer documentation for appropriate
  *      flags.
- *    
+ *
  *    oContainer:
  *      On output, a reference to the font container that was used to
  *      activate the font reference. On error this will be set to
  *      kATSFontContainerRefUnspecified.
- *  
+ *
  *  Result:
  *    kATSInvalidFontContainerAccess The font container is invalid.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in ApplicationServices.framework
  *    CarbonLib:        not available
@@ -647,30 +647,30 @@ function ATSFontGetContainer( iFont: ATSFontRef; iOptions: ATSOptionFlags; var o
 
 {
  *  ATSFontSetEnabled()
- *  
+ *
  *  Summary:
  *    Sets a font's state to enabled or disabled.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.5
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iFont:
  *      The font reference.
- *    
+ *
  *    iOptions:
  *      An options flag.  See developer documentation for appropriate
  *      flags.
- *    
+ *
  *    iEnabled:
  *      The state to set the font to. True for enabled, false for
  *      disabled.
- *  
+ *
  *  Result:
  *    kATSInvalidFontAccess The font reference is invalid in the
  *    current application context.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in ApplicationServices.framework
  *    CarbonLib:        not available
@@ -683,21 +683,21 @@ function ATSFontSetEnabled( iFont: ATSFontRef; iOptions: ATSOptionFlags; iEnable
 
 {
  *  ATSFontIsEnabled()
- *  
+ *
  *  Summary:
  *    Returns true if the font is enabled.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.5
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iFont:
  *      The font reference
- *  
+ *
  *  Result:
  *    false The font is disabled.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in ApplicationServices.framework
  *    CarbonLib:        not available
@@ -712,10 +712,10 @@ function ATSFontIsEnabled( iFont: ATSFontRef ): Boolean; external name '_ATSFont
 { ----------------------------------------------------------------------------------------- }
 {
  *  ATSFontFamilyApplyFunction()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version Jaguar
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
@@ -727,10 +727,10 @@ function ATSFontFamilyApplyFunction( iFunction: ATSFontFamilyApplierFunction; iR
 
 {
  *  ATSFontFamilyIteratorCreate()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version Jaguar
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
@@ -742,10 +742,10 @@ function ATSFontFamilyIteratorCreate( iContext: ATSFontContext; {const} iFilter:
 
 {
  *  ATSFontFamilyIteratorRelease()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version Jaguar
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
@@ -757,10 +757,10 @@ function ATSFontFamilyIteratorRelease( var ioIterator: ATSFontFamilyIterator ): 
 
 {
  *  ATSFontFamilyIteratorReset()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version Jaguar
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
@@ -772,10 +772,10 @@ function ATSFontFamilyIteratorReset( iContext: ATSFontContext; {const} iFilter: 
 
 {
  *  ATSFontFamilyIteratorNext()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version Jaguar
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
@@ -787,10 +787,10 @@ function ATSFontFamilyIteratorNext( iIterator: ATSFontFamilyIterator; var oFamil
 
 {
  *  ATSFontFamilyFindFromName()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version Jaguar
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
@@ -802,10 +802,10 @@ function ATSFontFamilyFindFromName( iName: CFStringRef; iOptions: ATSOptionFlags
 
 {
  *  ATSFontFamilyGetGeneration()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version Jaguar
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
@@ -817,10 +817,10 @@ function ATSFontFamilyGetGeneration( iFamily: ATSFontFamilyRef ): ATSGeneration;
 
 {
  *  ATSFontFamilyGetName()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version Jaguar
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
@@ -832,10 +832,10 @@ function ATSFontFamilyGetName( iFamily: ATSFontFamilyRef; iOptions: ATSOptionFla
 
 {
  *  ATSFontFamilyGetEncoding()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version Jaguar
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
@@ -850,10 +850,10 @@ function ATSFontFamilyGetEncoding( iFamily: ATSFontFamilyRef ): TextEncoding; ex
 { ----------------------------------------------------------------------------------------- }
 {
  *  ATSFontApplyFunction()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version Jaguar
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
@@ -865,10 +865,10 @@ function ATSFontApplyFunction( iFunction: ATSFontApplierFunction; iRefCon: UnivP
 
 {
  *  ATSFontIteratorCreate()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version Jaguar
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
@@ -880,10 +880,10 @@ function ATSFontIteratorCreate( iContext: ATSFontContext; {const} iFilter: ATSFo
 
 {
  *  ATSFontIteratorRelease()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version Jaguar
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
@@ -895,10 +895,10 @@ function ATSFontIteratorRelease( var ioIterator: ATSFontIterator ): OSStatus; ex
 
 {
  *  ATSFontIteratorReset()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version Jaguar
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
@@ -910,10 +910,10 @@ function ATSFontIteratorReset( iContext: ATSFontContext; {const} iFilter: ATSFon
 
 {
  *  ATSFontIteratorNext()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version Jaguar
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
@@ -925,10 +925,10 @@ function ATSFontIteratorNext( iIterator: ATSFontIterator; var oFont: ATSFontRef 
 
 {
  *  ATSFontFindFromName()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version Jaguar
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
@@ -940,10 +940,10 @@ function ATSFontFindFromName( iName: CFStringRef; iOptions: ATSOptionFlags ): AT
 
 {
  *  ATSFontFindFromPostScriptName()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version Jaguar
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
@@ -955,10 +955,10 @@ function ATSFontFindFromPostScriptName( iName: CFStringRef; iOptions: ATSOptionF
 
 {
  *  ATSFontFindFromContainer()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version Jaguar
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
@@ -970,10 +970,10 @@ function ATSFontFindFromContainer( iContainer: ATSFontContainerRef; iOptions: AT
 
 {
  *  ATSFontGetGeneration()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version Jaguar
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
@@ -985,10 +985,10 @@ function ATSFontGetGeneration( iFont: ATSFontRef ): ATSGeneration; external name
 
 {
  *  ATSFontGetName()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version Jaguar
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
@@ -1000,10 +1000,10 @@ function ATSFontGetName( iFont: ATSFontRef; iOptions: ATSOptionFlags; var oName:
 
 {
  *  ATSFontGetPostScriptName()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version Jaguar
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
@@ -1015,10 +1015,10 @@ function ATSFontGetPostScriptName( iFont: ATSFontRef; iOptions: ATSOptionFlags; 
 
 {
  *  ATSFontGetTableDirectory()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version Jaguar
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
@@ -1030,10 +1030,10 @@ function ATSFontGetTableDirectory( iFont: ATSFontRef; iBufferSize: ByteCount; io
 
 {
  *  ATSFontGetTable()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version Jaguar
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
@@ -1045,10 +1045,10 @@ function ATSFontGetTable( iFont: ATSFontRef; iTag: FourCharCode; iOffset: ByteOf
 
 {
  *  ATSFontGetHorizontalMetrics()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version Jaguar
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
@@ -1060,10 +1060,10 @@ function ATSFontGetHorizontalMetrics( iFont: ATSFontRef; iOptions: ATSOptionFlag
 
 {
  *  ATSFontGetVerticalMetrics()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version Jaguar
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
@@ -1078,10 +1078,10 @@ function ATSFontGetVerticalMetrics( iFont: ATSFontRef; iOptions: ATSOptionFlags;
 { ----------------------------------------------------------------------------------------- }
 {
  *  ATSFontFamilyFindFromQuickDrawName()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version Jaguar
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
@@ -1093,10 +1093,10 @@ function ATSFontFamilyFindFromQuickDrawName( const (*var*) iName: Str255 ): ATSF
 
 {
  *  ATSFontFamilyGetQuickDrawName()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version Jaguar
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
@@ -1110,30 +1110,30 @@ function ATSFontFamilyGetQuickDrawName( iFamily: ATSFontFamilyRef; var oName: St
 {$ifc TARGET_CPU_64}
 {
  *  ATSFontGetFileSpecification()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use ATSFontGetFileReference instead.
- *  
+ *
  *  Summary:
  *    Obtains the file specification for a font.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version Jaguar
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iFont:
  *      A reference to the font whose file specification you want to
  *      obtain.
- *    
+ *
  *    oFile:
  *      On output, points to the file specification that specifies the
  *      name and location of a file or directory that contains the font
  *      data specified by the iFont parameter.
- *  
+ *
  *  Result:
  *    noErr File specification obtained successfully.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
@@ -1148,27 +1148,27 @@ function ATSFontGetFileSpecification( iFont: ATSFontRef; var oFile: ATSFSSpec ):
 
 {
  *  ATSFontGetFileReference()
- *  
+ *
  *  Summary:
  *    Obtains the file reference for a font.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.5
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iFont:
  *      A reference to the font whose file specification you want to
  *      obtain.
- *    
+ *
  *    oFile:
  *      On output, points to the file reference that specifies the name
  *      and location of a file or directory that contains the font data
  *      specified by the iFont parameter.
- *  
+ *
  *  Result:
  *    noErr File specification obtained successfully.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in ApplicationServices.framework
  *    CarbonLib:        not available
@@ -1181,10 +1181,10 @@ function ATSFontGetFileReference( iFont: ATSFontRef; var oFile: FSRef ): OSStatu
 
 {
  *  ATSFontGetFontFamilyResource()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version Jaguar
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
@@ -1199,26 +1199,26 @@ function ATSFontGetFontFamilyResource( iFont: ATSFontRef; iBufferSize: ByteCount
 { ----------------------------------------------------------------------------------------- }
 {
  *  ATSFontNotify()
- *  
+ *
  *  Summary:
  *    Used to alert ATS that an action which may require notification
  *    to clients has occurred.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version Jaguar
- *  
+ *
  *  Parameters:
- *    
+ *
  *    action:
  *      Action that should be taken by the ATS Server
- *    
+ *
  *    info:
  *      Any required or optional information that may be required by
  *      the action taken.
- *  
+ *
  *  Result:
  *    noErr Action successfully reported paramErr Invalid action passed
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -1230,37 +1230,37 @@ function ATSFontNotify( action: ATSFontNotifyAction; info: UnivPtr { can be NULL
 
 {
  *  ATSFontNotificationSubscribe()
- *  
+ *
  *  Summary:
  *    Ask the ATS System to notify caller when certain events have
  *    occurred.  Note that your application must have a CFRunLoop in
  *    order to receive notifications. Any Appkit or Carbon event loop
  *    based application will have one by default.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version Jaguar
- *  
+ *
  *  Parameters:
- *    
+ *
  *    callback:
  *      Function that will be called by the ATS system whenever an
  *      event of interest takes place.
- *    
+ *
  *    options:
  *      Set the wanted ATSFontNotificationOptions to modify the default
  *      behavior of ATS Notifications.
- *    
+ *
  *    iRefcon:
- *      User data/state which will be passed to the callback funtion
- *    
+ *      User data/state which will be passed to the callback function
+ *
  *    oNotificationRef:
  *      You may use this reference to un-subscribe to this notification.
- *  
+ *
  *  Result:
  *    noErr Subscribed successfully paramErr NULL callback was passed.
  *    memFullErr Could not allocate enough memory for internal data
  *    structures.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -1272,26 +1272,26 @@ function ATSFontNotificationSubscribe( callback: ATSNotificationCallback; option
 
 {
  *  ATSFontNotificationUnsubscribe()
- *  
+ *
  *  Summary:
  *    Release subscription and stop receiving notifications for a given
  *    reference.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version Jaguar
- *  
+ *
  *  Parameters:
- *    
+ *
  *    notificationRef:
  *      Notification reference for which you want to stop receiving
  *      notifications. Note, if more than one notification has been
  *      requested of ATS, you will still receive notifications on those
  *      requests.
- *  
+ *
  *  Result:
  *    noErr Unsubscribed successfully paramErr NULL/invalid
  *    notificationRef passed
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -1307,7 +1307,7 @@ function ATSFontNotificationUnsubscribe( notificationRef: ATSFontNotificationRef
 
 {
  *  ATSFontQuerySourceContext
- *  
+ *
  *  Summary:
  *    A parameter block for client information to be retained by ATS
  *    and passed back to an ATSFontQueryCallback function.
@@ -1340,7 +1340,7 @@ type
 
 {
  *  ATSFontQueryMessageID
- *  
+ *
  *  Discussion:
  *    Constants for ATS font query message types.
  }
@@ -1358,23 +1358,23 @@ const
 
 {
  *  ATSFontQueryCallback
- *  
+ *
  *  Summary:
  *    Callback for receiving font-related queries from ATS.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    msgid:
  *      An ATSFontQueryMessageID that identifies the message type.
- *    
+ *
  *    data:
  *      A CFPropertyListRef that represents the query. The content is
  *      message type-specific.
- *    
+ *
  *    refCon:
  *      A pointer-sized client datum that was optionally provided to
  *      ATSCreateFontQueryRunLoopSource.
- *  
+ *
  *  Result:
  *    A CFPropertyListRef that represents the message type-specific
  *    response to the query. May be NULL.
@@ -1383,38 +1383,38 @@ type
 	ATSFontQueryCallback = function( msgid: ATSFontQueryMessageID; data: CFPropertyListRef; refCon: UnivPtr ): CFPropertyListRef;
 {
  *  ATSCreateFontQueryRunLoopSource()
- *  
+ *
  *  Summary:
  *    Creates a CFRunLoopSourceRef that will be used to convey font
  *    queries from ATS.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version Jaguar
- *  
+ *
  *  Parameters:
- *    
+ *
  *    queryOrder:
  *      A CFIndex that specifies the priority of this query receiver
  *      relative to others. When ATS makes a font query, it will send
  *      the query to each receiver in priority order, from highest to
  *      lowest. "Normal" priority is 0.
- *    
+ *
  *    sourceOrder:
  *      The order of the created run loop source.
- *    
+ *
  *    callout:
  *      A function pointer of type ATSFontQueryCallback that will be
  *      called to process a font query.
- *    
+ *
  *    context:
  *      An ATSFontQuerySourceContext parameter block that provides a
  *      pointer-sized client datum which will be retained by ATS and
  *      passed to the callout function. May be NULL.
- *  
+ *
  *  Result:
  *    A CFRunLoopSourceRef. To stop receiving queries, invalidate this
  *    run loop source.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework
  *    CarbonLib:        not available
@@ -1433,7 +1433,7 @@ function ATSCreateFontQueryRunLoopSource( queryOrder: CFIndex; sourceOrder: CFIn
 
 {
  *  kATSQueryClientPID
- *  
+ *
  *  Discussion:
  *    The process ID of the application making the query. The
  *    corresponding value is a CFNumberRef that contains a pid_t.
@@ -1444,7 +1444,7 @@ function ATSCreateFontQueryRunLoopSource( queryOrder: CFIndex; sourceOrder: CFIn
 
 {
  *  kATSQueryQDFamilyName
- *  
+ *
  *  Discussion:
  *    The Quickdraw-style family name of the font being requested, e.g.
  *    the name passed to GetFNum. The corresponding value is a
@@ -1456,7 +1456,7 @@ function ATSCreateFontQueryRunLoopSource( queryOrder: CFIndex; sourceOrder: CFIn
 
 {
  *  kATSQueryFontName
- *  
+ *
  *  Discussion:
  *    The name of the font being requested. The corresponding value is
  *    a CFStringRef suitable as an argument to ATSFontFindFromName().
@@ -1468,7 +1468,7 @@ function ATSCreateFontQueryRunLoopSource( queryOrder: CFIndex; sourceOrder: CFIn
 
 {
  *  kATSQueryFontPostScriptName
- *  
+ *
  *  Discussion:
  *    The PostScript name of the font being requested. The
  *    corresponding value is a CFStringRef suitable as an argument to
@@ -1482,7 +1482,7 @@ function ATSCreateFontQueryRunLoopSource( queryOrder: CFIndex; sourceOrder: CFIn
 
 {
  *  kATSQueryFontNameTableEntries
- *  
+ *
  *  Discussion:
  *    A descriptor for sfnt name table entries that the requested font
  *    must have. The corresponding value is a CFArrayRef of
@@ -1496,7 +1496,7 @@ function ATSCreateFontQueryRunLoopSource( queryOrder: CFIndex; sourceOrder: CFIn
 
 {
  *  kATSFontNameTableCode
- *  
+ *
  *  Discussion:
  *    The font name's name code. The corresponding value is a
  *    CFNumberRef. If missing, assume kFontNoNameCode.
@@ -1507,7 +1507,7 @@ function ATSCreateFontQueryRunLoopSource( queryOrder: CFIndex; sourceOrder: CFIn
 
 {
  *  kATSFontNameTablePlatform
- *  
+ *
  *  Discussion:
  *    The font name's platform code. The corresponding value is a
  *    CFNumberRef. If missing, assume kFontNoPlatformCode.
@@ -1518,7 +1518,7 @@ function ATSCreateFontQueryRunLoopSource( queryOrder: CFIndex; sourceOrder: CFIn
 
 {
  *  kATSFontNameTableScript
- *  
+ *
  *  Discussion:
  *    The font name's script code. The corresponding value is a
  *    CFNumberRef. If missing, assume kFontNoScriptCode.
@@ -1529,7 +1529,7 @@ function ATSCreateFontQueryRunLoopSource( queryOrder: CFIndex; sourceOrder: CFIn
 
 {
  *  kATSFontNameTableLanguage
- *  
+ *
  *  Discussion:
  *    The font name's language code. The corresponding value is a
  *    CFNumberRef. If missing, assume kFontNoLanguageCode.
@@ -1540,7 +1540,7 @@ function ATSCreateFontQueryRunLoopSource( queryOrder: CFIndex; sourceOrder: CFIn
 
 {
  *  kATSFontNameTableBytes
- *  
+ *
  *  Discussion:
  *    The raw bytes of the font name. The corresponding value is a
  *    CFDataRef that contains the raw name bytes.
@@ -1554,7 +1554,7 @@ function ATSCreateFontQueryRunLoopSource( queryOrder: CFIndex; sourceOrder: CFIn
 
 {
  *  ATSAutoActivationSetting
- *  
+ *
  *  Summary:
  *    Values for auto activation settings.
  }
@@ -1579,23 +1579,23 @@ type
 	ATSFontAutoActivationSetting = UInt32;
 {
  *  ATSFontSetGlobalAutoActivationSetting()
- *  
+ *
  *  Summary:
  *    Sets the user's global auto-activation setting.
- *  
+ *
  *  Discussion:
  *    This function can be used to set the user's global
  *    auto-activation setting.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version Leopard
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iSetting:
  *      One of the enumerated constants above specifying the setting
  *      for font auto-activation. Will return paramErr on invalid input.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in ApplicationServices.framework
  *    CarbonLib:        not available
@@ -1607,17 +1607,17 @@ function ATSFontSetGlobalAutoActivationSetting( iSetting: ATSFontAutoActivationS
 
 {
  *  ATSFontGetGlobalAutoActivationSetting()
- *  
+ *
  *  Summary:
  *    Gets the user's global auto-activation setting.
- *  
+ *
  *  Discussion:
  *    This function can be used to get the user's global
  *    auto-activation setting.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version Leopard
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in ApplicationServices.framework
  *    CarbonLib:        not available
@@ -1629,36 +1629,36 @@ function ATSFontGetGlobalAutoActivationSetting: ATSFontAutoActivationSetting; ex
 
 {
  *  ATSFontSetAutoActivationSettingForApplication()
- *  
+ *
  *  Summary:
  *    Sets the auto-activation setting for the specified application
  *    bundle.
- *  
+ *
  *  Discussion:
  *    This function can be used to set the auto-activation setting for
  *    the specified application. The per-application setting overrides
  *    the global setting.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version Leopard
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iSetting:
  *      One of the enumerated constants above specifying the setting
  *      for font auto-activation. Specifying
  *      kATSFontAutoActivationDefault will clear the application
  *      specific setting and the global setting will be used.
- *    
+ *
  *    iApplicationFileURL:
  *      A valid file URL for an application. Passing NULL for this
  *      parameter indicates the current process.
- *  
+ *
  *  Result:
  *    An OSStatus code. Will return noErr on success, and paramErr on
  *    any invalid input. May return memFullErr if unable to allocate
  *    temporary structures.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in ApplicationServices.framework
  *    CarbonLib:        not available
@@ -1670,30 +1670,30 @@ function ATSFontSetAutoActivationSettingForApplication( iSetting: ATSFontAutoAct
 
 {
  *  ATSFontGetAutoActivationSettingForApplication()
- *  
+ *
  *  Summary:
  *    Query the activation setting for the specified application.
- *  
+ *
  *  Discussion:
  *    This function can be used to query the auto-activation setting
  *    for the specified application. The setting is the app-specific
  *    setting if available, otherwise it is
  *    kATSFontAutoActivationDefault.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version Leopard
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iApplicationFileURL:
  *      A valid file URL for an application. Passing NULL for this
  *      parameter indicates the current process.
- *  
+ *
  *  Result:
  *    Returns the setting that will be used for the specified
  *    application. If this returns kATSFontAutoActivationDefault the
  *    global setting will be used.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in ApplicationServices.framework
  *    CarbonLib:        not available

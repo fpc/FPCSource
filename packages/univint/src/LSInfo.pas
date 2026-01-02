@@ -1,13 +1,13 @@
 {
      File:       LSInfo.h
- 
+
      Contains:   Public interfaces for LaunchServices.framework
- 
+
      Copyright:  (c) 2001-2012 by Apple Inc. All rights reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
 }
 
@@ -268,7 +268,7 @@ const
 { #define kLSInvalidExtensionIndex ULONG_MAX }
 const
 	kLSInvalidExtensionIndex = high(UNSIGNEDLONG);	// Index returned from LSGetExtensionInfo when name has no extension
-	
+
 type
 	LSRequestedInfo = OptionBits;
 const
@@ -345,10 +345,10 @@ const
 
 {
  *  LSInit()   *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    LSInit is deprecated. Do not use.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.3
  *    CarbonLib:        not available in CarbonLib 1.x
@@ -360,10 +360,10 @@ function LSInit( inFlags: LSInitializeFlags ): OSStatus; external name '_LSInit'
 
 {
  *  LSTerm()   *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    LSTerm is deprecated. It does nothing.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.3
  *    CarbonLib:        not available in CarbonLib 1.x
@@ -375,28 +375,28 @@ function LSTerm: OSStatus; external name '_LSTerm';
 
 {
  *  LSCopyItemInfoForRef()
- *  
+ *
  *  Summary:
  *    Return information about an item.
- *  
+ *
  *  Discussion:
  *    Returns as much or as little information as requested about
  *    inItemRef.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inItemRef:
  *      The FSRef of the item about which information is requested.
- *    
+ *
  *    inWhichInfo:
  *      Flags indicating which information to return
- *    
+ *
  *    outItemInfo:
  *      Information is returned in this structure. Must not be NULL
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x
@@ -408,27 +408,27 @@ function LSCopyItemInfoForRef( const (*var*) inItemRef: FSRef; inWhichInfo: LSRe
 
 {
  *  LSCopyItemInfoForURL()
- *  
+ *
  *  Summary:
  *    Return information about an item.
- *  
+ *
  *  Discussion:
  *    Returns as much or as little information as requested about inURL.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inURL:
  *      The CFURLRef of the item about which information is requested.
- *    
+ *
  *    inWhichInfo:
  *      Flags indicating which information to return
- *    
+ *
  *    outItemInfo:
  *      Information is returned in this structure. Must not be NULL
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x
@@ -440,31 +440,31 @@ function LSCopyItemInfoForURL( inURL: CFURLRef; inWhichInfo: LSRequestedInfo; va
 
 {
  *  LSGetExtensionInfo()
- *  
+ *
  *  Summary:
  *    Get information about the extension for a file system name.
- *  
+ *
  *  Discussion:
  *    Returns the starting index of the extension (not including the
  *    period) or kLSInvalidExtensionIndex if the input name has no
  *    extension.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inNameLen:
  *      The number of the UniChars in inNameBuffer.
- *    
+ *
  *    inNameBuffer:
  *      The buffer containing the name's Unicode characters.
- *    
+ *
  *    outExtStartIndex:
  *      On success, the starting index of the extension if there is one
  *      (not including the period). Set to kLSInvalidExtensionIndex if
  *      inNameBuffer does not contain a valid extension.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x
@@ -476,26 +476,26 @@ function LSGetExtensionInfo( inNameLen: UniCharCount; {const} inNameBuffer: {var
 
 {
  *  LSCopyDisplayNameForRef()
- *  
+ *
  *  Summary:
  *    Get the display name for an FSRef.
- *  
+ *
  *  Discussion:
  *    Return a copy of the display name for an FSRef. Takes into
  *    consideration whether this item has a hidden extension or not.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inRef:
  *      The FSRef for which the display name is desired.
- *    
+ *
  *    outDisplayName:
  *      Pointer to the CFString into which the display name should be
  *      copied. Callers must dispose of the resulting CFString.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x
@@ -507,26 +507,26 @@ function LSCopyDisplayNameForRef( const (*var*) inRef: FSRef; var outDisplayName
 
 {
  *  LSCopyDisplayNameForURL()
- *  
+ *
  *  Summary:
  *    Get the display name for a CFURLRef.
- *  
+ *
  *  Discussion:
  *    Return a copy of the display name for a CFURLRef. Takes into
  *    consideration whether this item has a hidden extension or not.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inURL:
  *      The URL for which the display name is desired.
- *    
+ *
  *    outDisplayName:
  *      Pointer to the CFString into which the display name should be
  *      copied. Callers must dispose of the resulting CFString.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x
@@ -538,27 +538,27 @@ function LSCopyDisplayNameForURL( inURL: CFURLRef; var outDisplayName: CFStringR
 
 {
  *  LSSetExtensionHiddenForRef()
- *  
+ *
  *  Summary:
  *    Sets whether the extension for an FSRef is hidden or not.
- *  
+ *
  *  Discussion:
  *    Sets the necessary file system state to indicate that the
  *    extension for inRef is hidden, as in the Finder. You can
  *    determine if an FSRef's extension is hidden using
  *    LSCopyItemInfoForRef.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inRef:
  *      The FSRef for which the extension is to be hidden or shown.
- *    
+ *
  *    inHide:
  *      True to hide inRef's extension, false to show it.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x
@@ -570,27 +570,27 @@ function LSSetExtensionHiddenForRef( const (*var*) inRef: FSRef; inHide: Boolean
 
 {
  *  LSSetExtensionHiddenForURL()
- *  
+ *
  *  Summary:
  *    Sets whether the extension for a CFURLRef is hidden or not.
- *  
+ *
  *  Discussion:
  *    Sets the necessary file system state to indicate that the
  *    extension for inURL is hidden, as in the Finder. You can
  *    determine if a CFURLRef's extension is hidden using
  *    LSCopyItemInfoForURL.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inURL:
  *      The CFURLRef for which the extension is to be hidden or shown.
- *    
+ *
  *    inHide:
  *      True to hide inURL's extension, false to show it.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x
@@ -602,26 +602,26 @@ function LSSetExtensionHiddenForURL( inURL: CFURLRef; inHide: Boolean ): OSStatu
 
 {
  *  LSCopyKindStringForRef()
- *  
+ *
  *  Summary:
  *    Get the kind string for an item.
- *  
+ *
  *  Discussion:
  *    Returns the kind string as used in the Finder and elsewhere for
  *    inFSRef. The CFStringRef must be released after use.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inFSRef:
  *      The item for which the kind string is requested.
- *    
+ *
  *    outKindString:
  *      A CFStringRef* to receive the copied kind string object. This
  *      CFStringRef must be released eventually.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x
@@ -633,26 +633,26 @@ function LSCopyKindStringForRef( const (*var*) inFSRef: FSRef; var outKindString
 
 {
  *  LSCopyKindStringForURL()
- *  
+ *
  *  Summary:
  *    Get the kind string for an item.
- *  
+ *
  *  Discussion:
  *    Returns the kind string as used in the Finder and elsewhere for
  *    inURL. The CFStringRef must be released after use.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inURL:
  *      The item for which the kind string is requested.
- *    
+ *
  *    outKindString:
  *      A CFStringRef* to receive the copied kind string object. This
  *      CFStringRef must be released eventually.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x
@@ -664,10 +664,10 @@ function LSCopyKindStringForURL( inURL: CFURLRef; var outKindString: CFStringRef
 
 {
  *  LSCopyKindStringForTypeInfo()
- *  
+ *
  *  Summary:
  *    Return the kind string for items like the provided info
- *  
+ *
  *  Discussion:
  *    Returns the kind string as shown in the Finder for the those
  *    items whose type, creator, and/or extension match the provided
@@ -679,28 +679,28 @@ function LSCopyKindStringForURL( inURL: CFURLRef; var outKindString: CFStringRef
  *    creator/type/extension combination to open in an application with
  *    a different creator, the kind string will be loaded from the
  *    user's preferred application.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inType:
  *      The OSType file type for which you want a kind string. Specify
  *      kLSUnknownType if no file type information is available.
- *    
+ *
  *    inCreator:
  *      The OSType creator for which you want a kind string. Specify
  *      kLSUnknownCreator if no creator information is available.
- *    
+ *
  *    inExtension:
  *      The extension for which you want a kind string. Specify NULL if
  *      no extension information is available.
- *    
+ *
  *    outKindString:
  *      A CFStringRef* to receive the copied kind string object. This
  *      CFStringRef must be released eventually.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x
@@ -712,26 +712,26 @@ function LSCopyKindStringForTypeInfo( inType: OSType; inCreator: OSType; inExten
 
 {
  *  LSCopyKindStringForMIMEType()
- *  
+ *
  *  Summary:
  *    Get the kind string for the specified MIME type.
- *  
+ *
  *  Discussion:
  *    Returns the localized kind string describing the specified MIME
  *    type.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inMIMEType:
  *      The string specifying the MIME type.
- *    
+ *
  *    outKindString:
  *      A CFStringRef* to receive the copied kind string object. This
  *      CFStringRef must be released eventually.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x
@@ -743,10 +743,10 @@ function LSCopyKindStringForMIMEType( inMIMEType: CFStringRef; var outKindString
 
 {
  *  LSGetApplicationForItem()
- *  
+ *
  *  Summary:
  *    Return the application used to open an item.
- *  
+ *
  *  Discussion:
  *    Consults the binding tables to return the application that would
  *    be used to open inItemRef if it were double-clicked in the
@@ -754,28 +754,28 @@ function LSCopyKindStringForMIMEType( inMIMEType: CFStringRef; var outKindString
  *    appropriate or the default otherwise. If no application is known
  *    to LaunchServices suitable for opening this item,
  *    kLSApplicationNotFoundErr will be returned.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inItemRef:
  *      The FSRef of the item for which the application is requested.
- *    
+ *
  *    inRoleMask:
  *      Whether to return the editor or viewer for inItemRef. If you
  *      don't care which, use kLSRolesAll.
- *    
+ *
  *    outAppRef:
  *      Filled in with the FSRef of the application if not NULL.
- *    
+ *
  *    outAppURL:
  *      Filled in with the CFURLRef of the application if not NULL.
  *      THIS FUNCTION, DESPITE ITS NAME, RETAINS THE URL REFERENCE ON
  *      BEHALF OF THE CALLER. THE CALLER MUST EVENTUALLY RELEASE THE
  *      RETURNED URL REFERENCE.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x
@@ -787,10 +787,10 @@ function LSGetApplicationForItem( const (*var*) inItemRef: FSRef; inRoleMask: LS
 
 {
  *  LSGetApplicationForInfo()
- *  
+ *
  *  Summary:
  *    Return the application used to open items with particular data.
- *  
+ *
  *  Discussion:
  *    Consults the binding tables to return the application that would
  *    be used to open items with type, creator, and/or extension as
@@ -800,34 +800,34 @@ function LSGetApplicationForItem( const (*var*) inItemRef: FSRef; inRoleMask: LS
  *    for opening such items, kLSApplicationNotFoundErr will be
  *    returned. Not all three input parameters can be NULL at the same
  *    time nor can both output parameters be NULL at the same time.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inType:
  *      The file type to consider. Can be kLSUnknownType.
- *    
+ *
  *    inCreator:
  *      The file creator to consider. Can be kLSUnknownCreator.
- *    
+ *
  *    inExtension:
  *      The file name extension to consider. Can be NULL.
- *    
+ *
  *    inRoleMask:
  *      Whether to return the editor or viewer for inItemRef. If you
  *      don't care which, use kLSRolesAll.
- *    
+ *
  *    outAppRef:
  *      Filled in with the FSRef of the application if not NULL.
- *    
+ *
  *    outAppURL:
  *      Filled in with the CFURLRef of the application if not NULL.
  *      THIS FUNCTION, DESPITE ITS NAME, RETAINS THE URL REFERENCE ON
  *      BEHALF OF THE CALLER. THE CALLER MUST EVENTUALLY RELEASE THE
  *      RETURNED URL REFERENCE.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x
@@ -839,34 +839,34 @@ function LSGetApplicationForInfo( inType: OSType; inCreator: OSType; inExtension
 
 {
  *  LSCopyApplicationForMIMEType()
- *  
+ *
  *  Summary:
  *    Return the application used to handle data with the specified
  *    MIME type.
- *  
+ *
  *  Discussion:
  *    The returned application URL will be the user's preferred handler
  *    for the MIME type if one has been set. If no user preferred
  *    application has been set, Launch Services will select a default
  *    handler for the MIME type. If no application is known to handle
  *    the MIME type, kLSApplicationNotFoundErr will be returned.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inMIMEType:
  *      The string specifying the MIME type.
- *    
+ *
  *    inRoleMask:
  *      A role mask that the chosen application must satisfy. Use
  *      kLSRolesAll if the role is not important.
- *    
+ *
  *    outAppURL:
  *      Receives the copied CFURLRef, which must be released by the
  *      caller.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x
@@ -878,10 +878,10 @@ function LSCopyApplicationForMIMEType( inMIMEType: CFStringRef; inRoleMask: LSRo
 
 {
  *  LSGetApplicationForURL()
- *  
+ *
  *  Summary:
  *    Return the application used to open an item.
- *  
+ *
  *  Discussion:
  *    Consults the binding tables to return the application that would
  *    be used to open inURL if it were double-clicked in the Finder.
@@ -889,28 +889,28 @@ function LSCopyApplicationForMIMEType( inMIMEType: CFStringRef; inRoleMask: LSRo
  *    appropriate or the default otherwise. If no application is known
  *    to LaunchServices suitable for opening this item,
  *    kLSApplicationNotFoundErr will be returned.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inURL:
  *      The CFURLRef of the item for which the application is requested.
- *    
+ *
  *    inRoleMask:
  *      Whether to return the editor or viewer for inItemRef. If you
  *      don't care which, use kLSRolesAll.
- *    
+ *
  *    outAppRef:
  *      Filled in with the FSRef of the application if not NULL.
- *    
+ *
  *    outAppURL:
  *      Filled in with the CFURLRef of the application if not NULL.
  *      THIS FUNCTION, DESPITE ITS NAME, RETAINS THE URL REFERENCE ON
  *      BEHALF OF THE CALLER. THE CALLER MUST EVENTUALLY RELEASE THE
  *      RETURNED URL REFERENCE.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x
@@ -922,41 +922,41 @@ function LSGetApplicationForURL( inURL: CFURLRef; inRoleMask: LSRolesMask; outAp
 
 {
  *  LSFindApplicationForInfo()
- *  
+ *
  *  Summary:
  *    Locate a specific application.
- *  
+ *
  *  Discussion:
  *    Returns the application with the corresponding input information.
  *    The registry of applications is consulted first in order of
  *    bundleID, then creator, then name. All comparisons are case
  *    insensitive and 'ties' are decided first by version, then by
  *    native vs. Classic.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inCreator:
  *      The file creator to consider. Can be kLSUnknownCreator.
- *    
+ *
  *    inBundleID:
  *      The bundle ID to consider. Can be NULL.
- *    
+ *
  *    inName:
  *      The name to consider. Can be NULL. Must include any extensions
  *      that are part of the file system name, e.g. '.app'.
- *    
+ *
  *    outAppRef:
  *      Filled in with the FSRef of the application if not NULL.
- *    
+ *
  *    outAppURL:
  *      Filled in with the CFURLRef of the application if not NULL.
  *      THIS FUNCTION, DESPITE ITS NAME, RETAINS THE URL REFERENCE ON
  *      BEHALF OF THE CALLER. THE CALLER MUST EVENTUALLY RELEASE THE
  *      RETURNED URL REFERENCE.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x
@@ -968,37 +968,37 @@ function LSFindApplicationForInfo( inCreator: OSType; inBundleID: CFStringRef { 
 
 {
  *  LSCanRefAcceptItem()
- *  
+ *
  *  Summary:
  *    Determine whether an item can accept another item.
- *  
+ *
  *  Discussion:
  *    Returns in outAcceptsItem whether inTargetRef can accept
  *    inItemFSRef as in a drag and drop operation. If inRoleMask is
  *    other than kLSRolesAll then make sure inTargetRef claims to
  *    fulfill the requested role.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inItemFSRef:
  *      FSRef of the item about which acceptance is requested.
- *    
+ *
  *    inTargetRef:
  *      FSRef of the potential target.
- *    
+ *
  *    inRoleMask:
  *      The role(s) the target must claim in order to consider
  *      acceptance.
- *    
+ *
  *    inFlags:
  *      Use kLSAcceptDefault.
- *    
+ *
  *    outAcceptsItem:
  *      Filled in with result. Must not be NULL.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x
@@ -1010,37 +1010,37 @@ function LSCanRefAcceptItem( const (*var*) inItemFSRef: FSRef; const (*var*) inT
 
 {
  *  LSCanURLAcceptURL()
- *  
+ *
  *  Summary:
  *    Determine whether an item can accept another item.
- *  
+ *
  *  Discussion:
  *    Returns in outAcceptsItem whether inTargetURL can accept
  *    inItemURL as in a drag and drop operation. If inRoleMask is other
  *    than kLSRolesAll then make sure inTargetRef claims to fulfill the
  *    requested role.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inItemURL:
  *      CFURLRef of the item about which acceptance is requested.
- *    
+ *
  *    inTargetURL:
  *      CFURLRef of the potential target.
- *    
+ *
  *    inRoleMask:
  *      The role(s) the target must claim in order to consider
  *      acceptance.
- *    
+ *
  *    inFlags:
  *      Use kLSAcceptDefault.
- *    
+ *
  *    outAcceptsItem:
  *      Filled in with result. Must not be NULL.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x
@@ -1052,32 +1052,32 @@ function LSCanURLAcceptURL( inItemURL: CFURLRef; inTargetURL: CFURLRef; inRoleMa
 
 {
  *  LSRegisterURL()
- *  
+ *
  *  Discussion:
  *    If the specified URL refers to an application or other bundle
  *    claiming to handle documents or URLs, add the bundle's document
  *    and URL claims to the Launch Services database.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inURL:
  *      The CFURLRef of the item (a directory or file) to be registered.
- *    
+ *
  *    inUpdate:
  *      When false, LSRegisterURL does not register the item if it has
  *      already been registered and the current modification date of
  *      the item has not changed from when it was last registered. When
  *      true, the item's registered info is updated, even if the
  *      modification has not changed.
- *  
+ *
  *  Result:
  *    An OSStatus value: noErr - Success kLSNoRegistrationInfoErr - The
  *    item does not contain info requiring registration kLSDataErr -
  *    The item's property list info is malformed.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x
@@ -1089,32 +1089,32 @@ function LSRegisterURL( inURL: CFURLRef; inUpdate: Boolean ): OSStatus; external
 
 {
  *  LSRegisterFSRef()
- *  
+ *
  *  Discussion:
  *    If the specified FSRef refers to an application or other bundle
  *    claiming to handle documents or URLs, add the bundle's document
  *    and URL claims to the Launch Services database.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inRef:
  *      The FSRef of the item to be registered.
- *    
+ *
  *    inUpdate:
  *      When false, LSRegisterFSRef does not register the item if it
  *      has already been registered and the current modification date
  *      of the item has not changed from when it was last registered.
  *      When true, the item's registered info is updated, even if the
  *      modification has not changed.
- *  
+ *
  *  Result:
  *    An OSStatus value: noErr - Success kLSNoRegistrationInfoErr - The
  *    item does not contain info requiring registration kLSDataErr -
  *    The item's property list info is malformed.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x
@@ -1126,35 +1126,35 @@ function LSRegisterFSRef( const (*var*) inRef: FSRef; inUpdate: Boolean ): OSSta
 
 {
  *  LSCopyApplicationURLsForURL()
- *  
+ *
  *  Discussion:
  *    Returns an array of URLs to applications that offer the requested
  *    role(s) for the input item.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inURL:
  *      The CFURLRef of the item for which all suitable applications
  *      are desired. If the URL is a file URL, it is treated as a
  *      document, and applications are selected based on the document's
  *      type information. Otherwise, applications are selected based on
  *      the URL's scheme.
- *    
+ *
  *    inRoleMask:
  *      The role(s) which must intersect with the role provided by an
  *      application for the specified item in order for the application
  *      to be included in the result. Pass kLSRolesAll if any role is
  *      acceptable.
- *  
+ *
  *  Result:
  *    An array of CFURLRefs, one for each application which can open
  *    inURL with at least one of the roles in inRoleMask, or NULL if no
  *    applications can open the item. When an array is returned, you
  *    must eventually release it.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x
@@ -1167,7 +1167,7 @@ function LSCopyApplicationURLsForURL( inURL: CFURLRef; inRoleMask: LSRolesMask )
 { ================================================================================== }
 {   API for retrieving item attributes                                               }
 { ================================================================================== }
-{ 
+{
  *  Attributes Names
  *
  *  kLSItemContentType
@@ -1185,13 +1185,13 @@ function LSCopyApplicationURLsForURL( inURL: CFURLRef; inRoleMask: LSRolesMask )
  *  kLSItemFileCreator
  *
  *    The item's file creator (OSType)
- *    Value type CFStringRef 
+ *    Value type CFStringRef
  *
  *
  *  kLSItemExtension
  *
  *    The item's filename extension
- *    Value type CFStringRef 
+ *    Value type CFStringRef
  *
  *
  *  kLSItemDisplayName
@@ -1199,32 +1199,32 @@ function LSCopyApplicationURLsForURL( inURL: CFURLRef; inRoleMask: LSRolesMask )
  *    The item's name as displayed to the user
  *    (The display name reflects localization and
  *    extension hiding which may be in effect)
- *    Value type CFStringRef 
+ *    Value type CFStringRef
  *
  *
  *  kLSItemDisplayKind
  *
  *    The localized kind string describing this item's type
- *    Value type CFStringRef 
+ *    Value type CFStringRef
  *
  *
  *  kLSItemRoleHandlerDisplayName
  *
  *    The display name of the application set to handle (open) this item
  *    (subject to the role mask)
- *    value type CFStringRef 
+ *    value type CFStringRef
  *
  *
  *  kLSItemIsInvisible
  *
  *    True if the item is normally hidden from users
- *    Value type CFBooleanRef 
+ *    Value type CFBooleanRef
  *
  *
  *  kLSItemExtensionIsHidden
  *
  *    True if the item's extension is set to be hidden
- *    Value type CFBooleanRef 
+ *    Value type CFBooleanRef
  *
  *
  *  kLSItemQuarantineProperties (can be set)
@@ -1236,7 +1236,7 @@ function LSCopyApplicationURLsForURL( inURL: CFURLRef; inRoleMask: LSRolesMask )
  }
 {
  *  kLSItemContentType
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -1246,7 +1246,7 @@ var kLSItemContentType: CFStringRef; external name '_kLSItemContentType'; (* att
 (* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_NA) *)
 {
  *  kLSItemFileType
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -1256,7 +1256,7 @@ var kLSItemFileType: CFStringRef; external name '_kLSItemFileType'; (* attribute
 (* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_NA) *)
 {
  *  kLSItemFileCreator
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -1266,7 +1266,7 @@ var kLSItemFileCreator: CFStringRef; external name '_kLSItemFileCreator'; (* att
 (* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_NA) *)
 {
  *  kLSItemExtension
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -1276,7 +1276,7 @@ var kLSItemExtension: CFStringRef; external name '_kLSItemExtension'; (* attribu
 (* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_NA) *)
 {
  *  kLSItemDisplayName
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -1286,7 +1286,7 @@ var kLSItemDisplayName: CFStringRef; external name '_kLSItemDisplayName'; (* att
 (* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_NA) *)
 {
  *  kLSItemDisplayKind
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -1296,7 +1296,7 @@ var kLSItemDisplayKind: CFStringRef; external name '_kLSItemDisplayKind'; (* att
 (* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_NA) *)
 {
  *  kLSItemRoleHandlerDisplayName
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -1306,7 +1306,7 @@ var kLSItemRoleHandlerDisplayName: CFStringRef; external name '_kLSItemRoleHandl
 (* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_NA) *)
 {
  *  kLSItemIsInvisible
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -1316,7 +1316,7 @@ var kLSItemIsInvisible: CFStringRef; external name '_kLSItemIsInvisible'; (* att
 (* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_NA) *)
 {
  *  kLSItemExtensionIsHidden
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -1326,7 +1326,7 @@ var kLSItemExtensionIsHidden: CFStringRef; external name '_kLSItemExtensionIsHid
 (* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_NA) *)
 {
  *  kLSItemQuarantineProperties
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -1336,35 +1336,35 @@ var kLSItemQuarantineProperties: CFStringRef; external name '_kLSItemQuarantineP
 (* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_NA) *)
 {
  *  LSCopyItemAttribute()
- *  
+ *
  *  Discussion:
  *    Assigns the value of the specified item's attribute (or NULL, if
  *    the item has no such attribute or an error occurs) to *outValue.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.4
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inItem:
  *      The FSRef of the item
- *    
+ *
  *    inRoles:
  *      The role(s), at least one of which must be provided by the
  *      application selected when computing attributes related to
  *      document binding (such as kLSItemRoleHandlerDisplayName). Pass
  *      kLSRolesAll if any role is acceptable.
- *    
+ *
  *    inAttributeName:
  *      The name of the attribute to copy
- *    
+ *
  *    outValue:
  *      Receives the attribute value
- *  
+ *
  *  Result:
  *    an OSStatus value. Returns kLSAttributeNotFoundErr if the item
  *    does not have the requested attribute.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -1376,7 +1376,7 @@ function LSCopyItemAttribute( const (*var*) inItem: FSRef; inRoles: LSRolesMask;
 
 {
  *  LSCopyItemAttributes()
- *  
+ *
  *  Discussion:
  *    Creates a dictionary containing the specified attribute values
  *    and assigns it to *outValues. The output dictionary keys are the
@@ -1384,30 +1384,30 @@ function LSCopyItemAttribute( const (*var*) inItem: FSRef; inRoles: LSRolesMask;
  *    varies by attribute. See each attribute name constant for a
  *    description of its value type. An attribute key will be absent
  *    from the values dictionary if the item has no such attribute.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.4
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inItem:
  *      The FSRef of the item
- *    
+ *
  *    inRoles:
  *      The role(s), at least one of which must be provided by the
  *      application selected when computing attributes related to
  *      document binding (such as kLSItemRoleHandlerDisplayName). Pass
  *      kLSRolesAll if any role is acceptable.
- *    
+ *
  *    inAttributeNames:
  *      The array of attribute names
- *    
+ *
  *    outValues:
  *      Receives the dictionary of attribure name-value pairs
- *  
+ *
  *  Result:
  *    an OSStatus value.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -1419,34 +1419,34 @@ function LSCopyItemAttributes( const (*var*) inItem: FSRef; inRoles: LSRolesMask
 
 {
  *  LSSetItemAttribute()
- *  
+ *
  *  Discussion:
  *    Sets the value of a settable item's attribute. Currently, only
  *    the kLSItemQuarantineProperties attribute may be set.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.5
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inItem:
  *      The FSRef of the item
- *    
+ *
  *    inRoles:
  *      Reserved for future use. To ensure compatibility, pass
  *      kLSRolesAll for this argument.
- *    
+ *
  *    inAttributeName:
  *      The name of the attribute to set
- *    
+ *
  *    inValue:
  *      The new value of the attribute. If NULL, removes the attribute
  *      from the item.
- *  
+ *
  *  Result:
  *    an OSStatus value. Returns kLSAttributeNotSettableErr if the
  *    attribute is read-only.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -1462,18 +1462,18 @@ function LSSetItemAttribute( const (*var*) inItem: FSRef; inRoles: LSRolesMask; 
 
 {
  *  LSCopyDefaultRoleHandlerForContentType
- *  
- *  Returns the application bundle identifier of the default handler 
+ *
+ *  Returns the application bundle identifier of the default handler
  *  for the specified content type (UTI), in the specified role(s).
  *  For any role, specify kLSRolesAll. Returns NULL if no handler
  *  is available.
  }
 {
  *  LSCopyDefaultRoleHandlerForContentType()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.4
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -1485,20 +1485,20 @@ function LSCopyDefaultRoleHandlerForContentType( inContentType: CFStringRef; inR
 
 {
  *  LSCopyAllRoleHandlersForContentType
- *  
+ *
  *  Returns an array of application bundle identifiers for
- *  applications capable of handling the specified content type 
- *  (UTI) with the specified role(s). Application content handling 
- *  capabilities are determined according to the kCFBundleDocumentTypes 
- *  listed in an application's Info.plist). For any role, specify kLSRolesAll. 
+ *  applications capable of handling the specified content type
+ *  (UTI) with the specified role(s). Application content handling
+ *  capabilities are determined according to the kCFBundleDocumentTypes
+ *  listed in an application's Info.plist). For any role, specify kLSRolesAll.
  *  Returns NULL if no handlers are available.
  }
 {
  *  LSCopyAllRoleHandlersForContentType()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.4
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -1510,7 +1510,7 @@ function LSCopyAllRoleHandlersForContentType( inContentType: CFStringRef; inRole
 
 {
  *  LSSetDefaultRoleHandlerForContentType
- *  
+ *
  *  Sets the user's preferred handler for the specified content
  *  type (UTI) in the specified role(s). For all roles, specify
  *  kLSRolesAll. The handler is specified as an application
@@ -1518,10 +1518,10 @@ function LSCopyAllRoleHandlersForContentType( inContentType: CFStringRef; inRole
  }
 {
  *  LSSetDefaultRoleHandlerForContentType()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.4
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -1538,8 +1538,8 @@ function LSSetDefaultRoleHandlerForContentType( inContentType: CFStringRef; inRo
  *
  *    kLSHandlerOptionsDefault - by default, Launch Services will
  *        use a content item's creator (when available) to select a handler
- *    kLSHandlerOptionsIgnoreCreator - Launch Services will ignore content item 
- *        creator information when selecting a role handler for the specified 
+ *    kLSHandlerOptionsIgnoreCreator - Launch Services will ignore content item
+ *        creator information when selecting a role handler for the specified
  *        content type
  }
 type
@@ -1551,15 +1551,15 @@ const
 
 {
  *  LSGetHandlerOptionsForContentType
- *  
+ *
  *  Get the handler options for the specified content type (UTI).
  }
 {
  *  LSGetHandlerOptionsForContentType()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.4
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -1571,15 +1571,15 @@ function LSGetHandlerOptionsForContentType( inContentType: CFStringRef ): LSHand
 
 {
  *  LSSetHandlerOptionsForContentType
- *  
+ *
  *  Set the handler options for the specified content type (UTI).
  }
 {
  *  LSSetHandlerOptionsForContentType()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.4
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -1591,17 +1591,17 @@ function LSSetHandlerOptionsForContentType( inContentType: CFStringRef; inOption
 
 {
  *  LSCopyDefaultHandlerForURLScheme
- *  
+ *
  *  Returns the bundle identifier of the default handler for
  *  the specified URL scheme. Returns NULL if no handler
  *  is available.
  }
 {
  *  LSCopyDefaultHandlerForURLScheme()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.4
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -1613,19 +1613,19 @@ function LSCopyDefaultHandlerForURLScheme( inURLScheme: CFStringRef ): CFStringR
 
 {
  *  LSCopyAllHandlersForURLScheme
- *  
+ *
  *  Returns an array of application bundle identifiers for
- *  applications capable of handling the specified URL scheme. 
- *  URL handling capability is determined according to the 
+ *  applications capable of handling the specified URL scheme.
+ *  URL handling capability is determined according to the
  *  kCFBundleURLTypes listed in an application's Info.plist).
  *  Returns NULL if no handlers are available.
  }
 {
  *  LSCopyAllHandlersForURLScheme()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.4
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -1637,17 +1637,17 @@ function LSCopyAllHandlersForURLScheme( inURLScheme: CFStringRef ): CFArrayRef; 
 
 {
  *  LSSetDefaultHandlerForURLScheme
- *  
+ *
  *  Sets the user's preferred handler for the specified URL
  *  scheme. The handler is specified as an application
  *  bundle identifier.
  }
 {
  *  LSSetDefaultHandlerForURLScheme()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.4
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available

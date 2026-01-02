@@ -668,7 +668,7 @@ var kQLPreviewContentIDScheme: CFStringRef; external name '_kQLPreviewContentIDS
 { 5E2D9680-5022-40FA-B806-43349622E5B9 }
 function kQLGeneratorTypeID : CFUUIDRef; inline;
 { 865AF5E0-6D30-4345-951B-D37105754F2D }
-function kQLGeneratorCallbacksInterfaceID: CFUUIDRef; inline; 
+function kQLGeneratorCallbacksInterfaceID: CFUUIDRef; inline;
 
 
 {$endif} {TARGET_OS_MAC}
@@ -684,7 +684,7 @@ begin
 	kQLGeneratorTypeID := CFUUIDGetConstantUUIDWithBytes(kCFAllocatorDefault, $5E, $2D, $96, $80, $50, $22, $40, $FA, $B8, $06, $43, $34, $96, $22, $E5, $B9)
 end;
 
-function kQLGeneratorCallbacksInterfaceID: CFUUIDRef; inline; 
+function kQLGeneratorCallbacksInterfaceID: CFUUIDRef; inline;
 begin
 	kQLGeneratorCallbacksInterfaceID := CFUUIDGetConstantUUIDWithBytes(kCFAllocatorDefault, $86, $5A, $F5, $E0, $6D, $30, $43, $45, $95, $1B, $D3, $71, $05, $75, $4F, $2D)
 end;

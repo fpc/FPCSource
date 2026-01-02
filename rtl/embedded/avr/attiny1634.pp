@@ -76,15 +76,15 @@ var
   PRR : byte absolute $00+$54; // Power Reduction Register
   CCP : byte absolute $00+$4F; // Configuration Change Protection
   OSCCAL0 : byte absolute $00+$63; // Oscillator Calibration Value
-  OSCCAL1 : byte absolute $00+$66; // 
-  OSCTCAL0A : byte absolute $00+$64; // 
-  OSCTCAL0B : byte absolute $00+$65; // 
+  OSCCAL1 : byte absolute $00+$66; //
+  OSCTCAL0A : byte absolute $00+$64; //
+  OSCTCAL0B : byte absolute $00+$65; //
   CLKPR : byte absolute $00+$53; // Clock Prescale Register
   CLKSR : byte absolute $00+$52; // Clock Setting Register
   SREG : byte absolute $00+$5F; // Status Register
-  SP : word absolute $00+$5D; // Stack Pointer 
-  SPL : byte absolute $00+$5D; // Stack Pointer 
-  SPH : byte absolute $00+$5D+1; // Stack Pointer 
+  SP : word absolute $00+$5D; // Stack Pointer
+  SPL : byte absolute $00+$5D; // Stack Pointer
+  SPH : byte absolute $00+$5D+1; // Stack Pointer
   MCUCR : byte absolute $00+$56; // MCU Control Register
   MCUSR : byte absolute $00+$55; // MCU Status Register
   GPIOR2 : byte absolute $00+$36; // General Purpose I/O Register 2
@@ -128,7 +128,7 @@ const
   TWSME = 0; // TWI Smart Mode Enable
   // TWSCRB
   TWAA = 2; // TWI Acknowledge Action
-  TWCMD = 0; // 
+  TWCMD = 0; //
   // TWSA
   // TWSD
   // PORTCR
@@ -148,7 +148,7 @@ const
   ADIE = 3; // ADC Interrupt Enable
   ADPS = 0; // ADC Prescaler Select Bits
   // ADCSRB
-  ADLAR = 3; // 
+  ADLAR = 3; //
   ADTS = 0; // ADC Auto Trigger Sources
   // DIDR2
   ADC11D = 2; // ADC11 Digital input Disable
@@ -222,7 +222,7 @@ const
   // TCCR0B
   FOC0A = 7; // Force Output Compare B
   FOC0B = 6; // Force Output Compare B
-  WGM02 = 3; // 
+  WGM02 = 3; //
   CS0 = 0; // Clock Select
   // PCMSK1
   PCINT = 0; // Pin Change Enable Masks

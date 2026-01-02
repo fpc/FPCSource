@@ -3,7 +3,7 @@ unit samd51p19a;
 {$ENDIF FPC_DOTTEDUNITS}
 (*
   Copyright (c) 2020 Microchip Technology Inc.
-                   
+
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
   You may obtain a copy of the Licence at
@@ -320,7 +320,7 @@ type
     BASEADDR     : longWord;             //0034 Descriptor Memory Section Base Address
     WRBADDR      : longWord;             //0038 Write-Back Memory Section Base Address
     RESERVED3    : longWord;
-    CHANNEL      : array[0..31] of TDMAC_CHANNEL_Registers;  //0040 
+    CHANNEL      : array[0..31] of TDMAC_CHANNEL_Registers;  //0040
   end;
 
   TDMAC_DESCRIPTOR_Registers = record
@@ -400,7 +400,7 @@ type
     INTSTATUS    : longWord;             //0014 Interrupt Status
     BUSYCH       : longWord;             //0018 Busy Channels
     READYUSR     : longWord;             //001C Ready Users
-    CHANNEL      : array[0..31] of TEVSYS_CHANNEL_Registers;  //0020 
+    CHANNEL      : array[0..31] of TEVSYS_CHANNEL_Registers;  //0020
     USER         : array[0..66] of longWord; //0120 User Multiplexer n
   end;
 
@@ -433,7 +433,7 @@ type
   end;
 
   THMATRIXB_Registers = record
-    PRS          : array[0..15] of THMATRIXB_PRS_Registers;  //0080 
+    PRS          : array[0..15] of THMATRIXB_PRS_Registers;  //0080
   end;
 
   TICM_Registers = record
@@ -555,7 +555,7 @@ type
     DFLLMUL      : longWord;             //0028 DFLL48M Multiplier
     DFLLSYNC     : byte;                 //002C DFLL48M Synchronization
     RESERVED3    : array[1..3] of byte;
-    DPLL         : array[0..1] of TOSCCTRL_DPLL_Registers;  //0030 
+    DPLL         : array[0..1] of TOSCCTRL_DPLL_Registers;  //0030
   end;
 
   TOSC32KCTRL_Registers = record
@@ -662,7 +662,7 @@ type
   end;
 
   TPORT_Registers = record
-    GROUP        : array[0..3] of TPORT_GROUP_Registers;  //0000 
+    GROUP        : array[0..3] of TPORT_GROUP_Registers;  //0000
   end;
 
   TPUKCC_Registers = record
@@ -1153,7 +1153,7 @@ type
     DESCADD      : longWord;             //0024 Descriptor Address
     PADCAL       : word;                 //0028 USB PAD Calibration
     RESERVED9    : array[1..214] of byte;
-    HOST_PIPE    : array[0..7] of TUSB_HOST_PIPE_Registers;  //0100 
+    HOST_PIPE    : array[0..7] of TUSB_HOST_PIPE_Registers;  //0100
   end;
 
   TUSBHOST_Registers = record
@@ -1182,15 +1182,15 @@ type
     DESCADD      : longWord;             //0024 Descriptor Address
     PADCAL       : word;                 //0028 USB PAD Calibration
     RESERVED9    : array[1..214] of byte;
-    HOST_PIPE    : array[0..7] of TUSB_HOST_PIPE_Registers;  //0100 
+    HOST_PIPE    : array[0..7] of TUSB_HOST_PIPE_Registers;  //0100
   end;
 
   TUSB_DESCRIPTORDEVICE_Registers = record
-    HOST_DESC_BANK : array[0..1] of TUSB_HOST_DESC_BANK_Registers;  //0000 
+    HOST_DESC_BANK : array[0..1] of TUSB_HOST_DESC_BANK_Registers;  //0000
   end;
 
   TUSB_DESCRIPTORHOST_Registers = record
-    HOST_DESC_BANK : array[0..1] of TUSB_HOST_DESC_BANK_Registers;  //0000 
+    HOST_DESC_BANK : array[0..1] of TUSB_HOST_DESC_BANK_Registers;  //0000
   end;
 
   TWDT_Registers = record

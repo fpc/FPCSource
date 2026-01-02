@@ -220,12 +220,12 @@ uses MacTypes, CFArray, CFBase, CFDictionary, CVBase, CVImageBuffer, CVReturns;
 
 {$ALIGN POWER}
 
- 
+
   {! @header CVPixelBuffer.h
 	@copyright 2004 Apple Computer, Inc. All rights reserved.
 	@availability Mac OS X 10.4 or later
     @discussion CVPixelBuffers are CVImageBuffers that hold the pixels in main memory
-		   
+
 }
 
 {
@@ -270,7 +270,7 @@ const
 	kCVPixelFormatType_420YpCbCr8PlanarFullRange = FourCharCode('f420');   { Planar Component Y'CbCr 8-bit 4:2:0, full range.  baseAddr points to a big-endian CVPlanarPixelBufferInfo_YCbCrPlanar struct }
 	kCVPixelFormatType_422YpCbCr_4A_8BiPlanar = FourCharCode('a2vy'); { First plane: Video-range Component Y'CbCr 8-bit 4:2:2, ordered Cb Y'0 Cr Y'1; second plane: alpha 8-bit 0-255 }
 	kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange = FourCharCode('420v'); { Bi-Planar Component Y'CbCr 8-bit 4:2:0, video-range (luma=[16,235] chroma=[16,240]).  baseAddr points to a big-endian CVPlanarPixelBufferInfo_YCbCrBiPlanar struct }
-	kCVPixelFormatType_420YpCbCr8BiPlanarFullRange = FourCharCode('420f'); { Bi-Planar Component Y'CbCr 8-bit 4:2:0, full-range (luma=[0,255] chroma=[1,255]).  baseAddr points to a big-endian CVPlanarPixelBufferInfo_YCbCrBiPlanar struct } 
+	kCVPixelFormatType_420YpCbCr8BiPlanarFullRange = FourCharCode('420f'); { Bi-Planar Component Y'CbCr 8-bit 4:2:0, full-range (luma=[0,255] chroma=[1,255]).  baseAddr points to a big-endian CVPlanarPixelBufferInfo_YCbCrBiPlanar struct }
 	kCVPixelFormatType_422YpCbCr8_yuvs = FourCharCode('yuvs');     { Component Y'CbCr 8-bit 4:2:2, ordered Y'0 Cb Y'1 Cr }
 	kCVPixelFormatType_422YpCbCr8FullRange = FourCharCode('yuvf'); { Component Y'CbCr 8-bit 4:2:2, full range, ordered Y'0 Cb Y'1 Cr }
 	kCVPixelFormatType_OneComponent8 = FourCharCode('L008');     { 8 bit one component, black is zero }
@@ -282,7 +282,7 @@ const
 	kCVPixelFormatType_64RGBAHalf = FourCharCode('RGhA');     { 64 bit RGBA IEEE half-precision float, 16-bit little-endian samples }
 	kCVPixelFormatType_128RGBAFloat = FourCharCode('RGfA');     { 128 bit RGBA IEEE float, 32-bit little-endian samples }
 
-	
+
 {!
 	@enum Pixel Buffer Locking Flags
 	@discussion Flags to pass to CVPixelBufferLockBaseAddress() / CVPixelBufferUnlockBaseAddress()
@@ -298,8 +298,8 @@ const
 	kCVPixelBufferLock_ReadOnly = $00000001;
 
 {
-Planar pixel buffers have the following descriptor at their base address.  
-Clients should generally use CVPixelBufferGetBaseAddressOfPlane, 
+Planar pixel buffers have the following descriptor at their base address.
+Clients should generally use CVPixelBufferGetBaseAddressOfPlane,
 CVPixelBufferGetBytesPerRowOfPlane, etc. instead of accessing it directly.
 }
 type
@@ -414,7 +414,7 @@ function CVPixelBufferCreateResolvedAttributesDictionary( allocator: CFAllocator
     @param	pixelBufferAttributes      A dictionary with additional attributes for a a pixel buffer. This parameter is optional. See PixelBufferAttributes for more details.
     @param      pixelBufferOut          The new pixel buffer will be returned here
     @result	returns kCVReturnSuccess on success.
-}    
+}
 function CVPixelBufferCreate( allocator: CFAllocatorRef; width: size_t; height: size_t; pixelFormatType: OSType; pixelBufferAttributes: CFDictionaryRef; var pixelBufferOut: CVPixelBufferRef ): CVReturn; external name '_CVPixelBufferCreate';
 (* __OSX_AVAILABLE_STARTING(__MAC_10_4,__IPHONE_4_0) *)
 
@@ -610,7 +610,7 @@ function CVPixelBufferGetBytesPerRowOfPlane( pixelBuffer: CVPixelBufferRef; plan
     @abstract   Returns the size of extended pixels of the PixelBuffer.
     @param      pixelBuffer Target PixelBuffer.
     @param      extraColumnsOnLeft Returns the pixel row padding to the left.  May be NULL.
-    @param      extraRowsOnTop Returns the pixel row padding to the top.  May be NULL. 
+    @param      extraRowsOnTop Returns the pixel row padding to the top.  May be NULL.
     @param      extraColumnsOnRight Returns the pixel row padding to the right. May be NULL.
     @param      extraRowsOnBottom Returns the pixel row padding to the bottom. May be NULL.
 }

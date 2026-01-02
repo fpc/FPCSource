@@ -10,7 +10,7 @@ unit MacOS;
 interface
 
 {$IFDEF FPC_DOTTEDUNITS}
-uses 
+uses
   MacOsApi.ABActions,
   MacOsApi.ABAddressBook,
   MacOsApi.ABGlobals,
@@ -485,7 +485,7 @@ uses
   MacOsApi.Xattr,
   MacOsApi.GPCStrings;
 {$ELSE FPC_DOTTEDUNITS}
-uses 
+uses
   ABActions,
   ABAddressBook,
   ABGlobals,

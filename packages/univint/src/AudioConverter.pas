@@ -3,7 +3,7 @@
 	@framework	AudioToolbox.framework
 	@copyright	(c) 1985-2015 by Apple, Inc., all rights reserved.
     @abstract   API's to perform audio format conversions.
-    
+
     @discussion
 		AudioConverters convert between various linear PCM and compressed
 		audio formats. Supported transformations include:
@@ -232,7 +232,7 @@ uses MacTypes,CoreAudioTypes;
 
 {!
     @header     AudioConverter.h
-    
+
 }
 
 //=============================================================================
@@ -270,7 +270,7 @@ type
     @enum       AudioConverterPropertyID
     @abstract   The properties of an AudioConverter, accessible via AudioConverterGetProperty()
                 and AudioConverterSetProperty().
-    
+
     @constant   kAudioConverterPropertyMinimumInputBufferSize
                     a UInt32 that indicates the size in bytes of the smallest buffer of input
                     data that can be supplied via the AudioConverterInputProc or as the input to
@@ -282,7 +282,7 @@ type
     @constant   kAudioConverterPropertyMaximumInputBufferSize
                     DEPRECATED. The AudioConverter input proc may be passed any number of packets of data.
                     If fewer are packets are returned than required, then the input proc will be called again.
-                    If more packets are passed than required, they will remain in the client's buffer and be 
+                    If more packets are passed than required, they will remain in the client's buffer and be
                     consumed as needed.
     @constant   kAudioConverterPropertyMaximumInputPacketSize
                     a UInt32 that indicates the size in bytes of the largest single packet of
@@ -317,7 +317,7 @@ type
                     A UInt32 that specifies rendering quality of the sample rate converter (see
                     enum constants below)
     @constant   kAudioConverterSampleRateConverterInitialPhase
-                    A Float64 with value 0.0 <= x < 1.0 giving the initial subsample position of the 
+                    A Float64 with value 0.0 <= x < 1.0 giving the initial subsample position of the
                     sample rate converter.
     @constant   kAudioConverterCodecQuality
                     A UInt32 that specifies rendering quality of a codec (see enum constants
@@ -338,14 +338,14 @@ type
                     channels. When I > O, the first O inputs are routed to the first O outputs,
                     and the remaining puts discarded.  When O > I, the first I inputs are routed
                     to the first O outputs, and the remaining outputs are zeroed.
-                    
+
                     A simple example for splitting mono input to stereo output (instead of routing
                     the input to only the first output channel):
-                    
+
 <pre>
    // this should be as large as the number of output channels:
   SInt32 channelMap[2] = ( 0, 0 );
-  AudioConverterSetProperty(theConverter, kAudioConverterChannelMap, 
+  AudioConverterSetProperty(theConverter, kAudioConverterChannelMap,
     sizeof(channelMap), channelMap);
 </pre>
     @constant   kAudioConverterDecompressionMagicCookie
@@ -438,18 +438,18 @@ const
 	kAudioConverterCurrentInputStreamDescription = FourCharCode('acid');
 	kAudioConverterPropertySettings = FourCharCode('acps');
 	kAudioConverterPropertyBitDepthHint = FourCharCode('acbd');
-	kAudioConverterPropertyFormatList = FourCharCode('flst'); 
+	kAudioConverterPropertyFormatList = FourCharCode('flst');
 
 
 //=============================================================================
-//  
+//
 //=============================================================================
 
 {!
     @enum       Mac OS X AudioConverter Properties
 
     @constant   kAudioConverterPropertyDithering
-					A UInt32. Set to a value from the enum of dithering algorithms below. 
+					A UInt32. Set to a value from the enum of dithering algorithms below.
 					Zero means no dithering and is the default. (Mac OS X only.)
     @constant   kAudioConverterPropertyDitherBitDepth
 					A UInt32. Dither is applied at this bit depth.  (Mac OS X only.)
@@ -457,7 +457,7 @@ const
 }
 const
 	kAudioConverterPropertyDithering = FourCharCode('dith');
-	kAudioConverterPropertyDitherBitDepth = FourCharCode('dbit'); 
+	kAudioConverterPropertyDitherBitDepth = FourCharCode('dbit');
 
 {!
     @enum       Dithering algorithms
@@ -469,7 +469,7 @@ const
 }
 const
 	kDitherAlgorithm_TPDF = 1;
-	kDitherAlgorithm_NoiseShaping = 2; 
+	kDitherAlgorithm_NoiseShaping = 2;
 
 {!
     @enum       Quality constants
@@ -487,7 +487,7 @@ const
 	kAudioConverterQuality_High = $60;
 	kAudioConverterQuality_Medium = $40;
 	kAudioConverterQuality_Low = $20;
-	kAudioConverterQuality_Min = 0; 
+	kAudioConverterQuality_Min = 0;
 
 
 {!
@@ -512,7 +512,7 @@ const
 							MinimumPhase High   is similar to Mastering Low.
 						In general, MinimumPhase performs better than Normal and Mastering for the equivalent qualities listed above.
 						MinimumPhase High is several times faster than Mastering Low.
- 
+
 }
 const
 	kAudioConverterSampleRateConverterComplexity_Linear = FourCharCode('line');    // linear interpolation
@@ -525,7 +525,7 @@ const
     @enum       Prime method constants
 
     @abstract   Constants to be used with kAudioConverterPrimeMethod.
-    
+
     @constant   kConverterPrimeMethod_Pre
                     Primes with leading + trailing input frames.
     @constant   kConverterPrimeMethod_Normal
@@ -538,12 +538,12 @@ const
 const
 	kConverterPrimeMethod_Pre = 0;
 	kConverterPrimeMethod_Normal = 1;
-	kConverterPrimeMethod_None = 2; 
+	kConverterPrimeMethod_None = 2;
 
 {!
     @struct     AudioConverterPrimeInfo
     @abstract   Specifies priming information.
-    
+
     @field      leadingFrames
         Specifies the number of leading (previous) input frames, relative to the normal/desired
         start input frame, required by the converter to perform a high quality conversion. If
@@ -561,15 +561,15 @@ const
         kConverterPrimeMethod_None. If no more frames of input are available in the input stream
         (because, for example, the desired end frame is at the end of an audio file), then zero
         (silent) trailing frames will be synthesized for the client.
-            
+
     @discussion
         When using AudioConverterFillComplexBuffer() (either a single call or a series of calls), some
         conversions, particularly involving sample-rate conversion, ideally require a certain
         number of input frames previous to the normal start input frame and beyond the end of
         the last expected input frame in order to yield high-quality results.
-        
+
         These are expressed in the leadingFrames and trailingFrames members of the structure.
-        
+
         The very first call to AudioConverterFillComplexBuffer(), or first call after
         AudioConverterReset(), will request additional input frames beyond those normally
         expected in the input proc callback to fulfill this first AudioConverterFillComplexBuffer()
@@ -610,13 +610,13 @@ const
 	kAudioConverterErr_OperationNotSupported = $6F703F3F;  // 'op??', integer used because of trigraph
 	kAudioConverterErr_PropertyNotSupported = FourCharCode('prop');
 	kAudioConverterErr_InvalidInputSize = FourCharCode('insz');
-	kAudioConverterErr_InvalidOutputSize = FourCharCode('otsz'); 
+	kAudioConverterErr_InvalidOutputSize = FourCharCode('otsz');
         // e.g. byte size is not a multiple of the frame size
 	kAudioConverterErr_UnspecifiedError = FourCharCode('what');
 	kAudioConverterErr_BadPropertySizeError = FourCharCode('!siz');
 	kAudioConverterErr_RequiresPacketDescriptionsError = FourCharCode('!pkd');
 	kAudioConverterErr_InputSampleRateOutOfRange = FourCharCode('!isr');
-	kAudioConverterErr_OutputSampleRateOutOfRange = FourCharCode('!osr'); 
+	kAudioConverterErr_OutputSampleRateOutOfRange = FourCharCode('!osr');
 
 
 //=============================================================================
@@ -635,11 +635,11 @@ const
     @param      outAudioConverter
                     On successful return, points to a new AudioConverter instance.
     @result     An OSStatus result code.
-    
+
     @discussion
                 For a pair of linear PCM formats, the following conversions
                 are supported:
-                
+
                 <ul>
                 <li>addition and removal of channels, when the stream descriptions'
                 mChannelsPerFrame does not match. Channels may also be reordered and removed
@@ -655,7 +655,7 @@ const
                     <li>32 and 64-bit float, big- or little-endian.</li>
                     </ul>
                 </ul>
-                
+
                 Also, encoding and decoding between linear PCM and compressed formats is
                 supported. Functions in AudioToolbox/AudioFormat.h return information about the
                 supported formats. When using a codec, you can use any supported PCM format (as
@@ -682,7 +682,7 @@ function AudioConverterNew( const (*var*) inSourceFormat: AudioStreamBasicDescri
     @param      outAudioConverter
                     On successful return, points to a new AudioConverter instance.
     @result     An OSStatus result code.
-    
+
     @discussion
                 This function is identical to AudioConverterNew(), except that the client may
                 explicitly choose which codec to instantiate if there is more than one choice.
@@ -710,7 +710,7 @@ function AudioConverterDispose( inAudioConverter: AudioConverterRef ): OSStatus;
     @param      inAudioConverter
                     The AudioConverter to reset.
     @result     An OSStatus result code.
-    
+
     @discussion
                 Should be called whenever there is a discontinuity in the source audio stream
                 being provided to the converter. This will flush any internal buffers in the
@@ -748,7 +748,7 @@ function AudioConverterGetPropertyInfo( inAudioConverter: AudioConverterRef; inP
     @param      inPropertyID
                     The property to fetch.
     @param      ioPropertyDataSize
-                    On entry, the size of the memory pointed to by outPropertyData. On 
+                    On entry, the size of the memory pointed to by outPropertyData. On
                     successful exit, the size of the property value.
     @param      outPropertyData
                     On exit, the property value.
@@ -793,20 +793,20 @@ function AudioConverterSetProperty( inAudioConverter: AudioConverterRef; inPrope
     @param      inUserData
                     The inInputDataProcUserData parameter passed to AudioConverterFillBuffer().
     @result     An OSStatus result code.
-    
+
     @discussion
-                <b>NOTE:</b> This API is now deprecated, 
+                <b>NOTE:</b> This API is now deprecated,
                 use AudioConverterFillComplexBuffer instead.
 
                 This callback function supplies input to AudioConverterFillBuffer.
-                
+
                 The AudioConverter requests a minimum amount of data (*ioDataSize). The callback
                 may return any amount of data. If it is less than than the minimum, the callback
                 will simply be called again in the near future.
 
                 The callback supplies a pointer to a buffer of audio data. The callback is
                 responsible for not freeing or altering this buffer until it is called again.
-                
+
                 If the callback returns an error, it must return zero bytes of data.
                 AudioConverterFillBuffer will stop producing output and return whatever output
                 has already been produced to its caller, along with the error code. This
@@ -834,13 +834,13 @@ type
     @param      outOutputData
                     The buffer into which the converted data is written.
     @result     An OSStatus result code.
-    
+
     @discussion
-                <b>NOTE:</b> This API is now deprecated, 
+                <b>NOTE:</b> This API is now deprecated,
                 use AudioConverterFillComplexBuffer instead.
 
                 Produces a buffer of output data from an AudioConverter. The supplied input
-                callback function is called whenever necessary.             
+                callback function is called whenever necessary.
 }
 extern OSStatus
 AudioConverterFillBuffer(   AudioConverterRef               inAudioConverter,
@@ -848,7 +848,7 @@ AudioConverterFillBuffer(   AudioConverterRef               inAudioConverter,
                             void * __nullable               inInputDataProcUserData,
                             UInt32 *                        ioOutputDataSize,
                             void *                          outOutputData)
-                            
+
                                 API_DEPRECATED("no longer supported", macos(10.1, 10.5)) API_UNAVAILABLE(ios, watchos, tvos);
 *)
 //-----------------------------------------------------------------------------
@@ -901,10 +901,10 @@ function AudioConverterConvertBuffer( inAudioConverter: AudioConverterRef; inInp
     @param      inUserData
                     The inInputDataProcUserData parameter passed to AudioConverterFillComplexBuffer().
     @result     An OSStatus result code.
-    
+
     @discussion
                 This callback function supplies input to AudioConverterFillComplexBuffer.
-                
+
                 The AudioConverter requests a minimum number of packets (*ioNumberDataPackets).
                 The callback may return one or more packets. If this is less than the minimum,
                 the callback will simply be called again in the near future.

@@ -153,7 +153,7 @@ const
                    _VFP_ENABLE_UM or
                    _VFP_ENABLE_PM or
                    _VFP_ENABLE_DM;    { mask for all flags     }
-                   
+
   _VFP_ROUNDINGMODE_MASK_SHIFT = 22;
   _VFP_ROUNDINGMODE_MASK = 3 shl _VFP_ROUNDINGMODE_MASK_SHIFT;
 
@@ -188,7 +188,7 @@ function VFPCw2RoundingMode(cw: dword): TFPURoundingMode;
   end;
 
 
-function GetRoundMode: TFPURoundingMode; 
+function GetRoundMode: TFPURoundingMode;
   begin
     result:=VFPCw2RoundingMode(VFP_GetCW);
   end;

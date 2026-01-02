@@ -268,7 +268,7 @@ location specified by app-user-host is searched.  The returned
 CFType must be released by the caller when it is finished with it. }
 function CFPreferencesCopyValue( key: CFStringRef; applicationID: CFStringRef; userName: CFStringRef; hostName: CFStringRef ): CFPropertyListRef; external name '_CFPreferencesCopyValue';
 
-{ Convenience to fetch multiple keys at once.  Keys in 
+{ Convenience to fetch multiple keys at once.  Keys in
 keysToFetch that are not present in the returned dictionary
 are not present in the domain.  If keysToFetch is NULL, all
 keys are fetched. }

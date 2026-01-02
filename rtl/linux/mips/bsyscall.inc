@@ -1,7 +1,7 @@
 {
     This file is part of the Free Pascal run time library.
     Copyright (c) 2005-2009 by Michael Van Canneyt and David Zhang
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -41,7 +41,7 @@ asm
   b    .L2
   li   $v0,-1              { in delay slot }
 .L1:
-  { the two files descriptors are now in v0 and v1 registers 
+  { the two files descriptors are now in v0 and v1 registers
     copying them back into fildes variable }
   lw   $t1,tmp
   sw   $v0,($t1)

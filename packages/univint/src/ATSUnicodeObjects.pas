@@ -1,17 +1,17 @@
 {
      File:       QD/ATSUnicodeObjects.h
- 
+
      Contains:   ATSUI object manipulation functions.
- 
+
      Version:    Quickdraw-285~150
- 
+
      Copyright:  © 2003-2008 by Apple Inc. all rights reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {  Pascal Translation:  Peter N Lewis, <peter@stairways.com.au>, 2004 }
 {  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
@@ -237,7 +237,7 @@ uses MacTypes,ATSUnicodeTypes,TextCommon,SFNTLayoutTypes;
 
 {
  *  ATSUCreateStyle()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTFontCopyGraphicsFont, CTFontCreateWithGraphicsFont,
  *    CTFontCreateWithPlatformFont, CTFontCreateWithQuickdrawInstance,
@@ -245,10 +245,10 @@ uses MacTypes,ATSUnicodeTypes,TextCommon,SFNTLayoutTypes;
  *    CTFontCreateCopyWithSymbolicTraits, CTFontCreateCopyWithFamily,
  *    CTFontCreateForString, CTFontCreateWithName, or
  *    CTFontCreateWithFontDescriptor instead.
- *  
+ *
  *  Summary:
  *    Creates an ATSUStyle object with default settings.
- *  
+ *
  *  Discussion:
  *    ATSUStyle objects created by this function have a default set of
  *    values for all attributes. The attributes include settings such
@@ -261,19 +261,19 @@ uses MacTypes,ATSUnicodeTypes,TextCommon,SFNTLayoutTypes;
  *    characters in an ATSUTextLayout object. You can do this by
  *    calling functions such as ATSUSetRunStyle or
  *    ATSUCreateTextLayoutWithTextPtr. You are responsible for freeing
- *    memory assoicated with an ATSUStyle object by calling
+ *    memory associated with an ATSUStyle object by calling
  *    ATSUDisposeStyle.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    oStyle:
  *      On return, a reference to an ATSUStyle object with default
  *      settings.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -286,7 +286,7 @@ function ATSUCreateStyle( var oStyle: ATSUStyle ): OSStatus; external name '_ATS
 {$ifc not TARGET_CPU_64}
 {
  *  ATSUCreateAndCopyStyle()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTFontCopyGraphicsFont, CTFontCreateWithGraphicsFont,
  *    CTFontCreateWithPlatformFont, CTFontCreateWithQuickdrawInstance,
@@ -294,32 +294,32 @@ function ATSUCreateStyle( var oStyle: ATSUStyle ): OSStatus; external name '_ATS
  *    CTFontCreateCopyWithSymbolicTraits, CTFontCreateCopyWithFamily,
  *    CTFontCreateForString, CTFontCreateWithName, or
  *    CTFontCreateWithFontDescriptor instead.
- *  
+ *
  *  Summary:
  *    Creates a new ATSUStyle object with the same attributes, font
  *    features, and font variation settings as the input style.
- *  
+ *
  *  Discussion:
  *    All attributes, font features, and font variation settings of the
  *    input ATSUStyle object are copied over to a newly created
  *    ATSUStyle object. Note that reference constants are not copied.
- *    You are responsible for freeing memory assoicated with the
+ *    You are responsible for freeing memory associated with the
  *    returned ATSUStyle object by calling ATSUDisposeStyle.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iStyle:
  *      The ATSUStyle object you want to copy.
- *    
+ *
  *    oStyle:
  *      On return, a newly created ATSUStyle object. This will be an
  *      exact copy of iStyle, except for the reference constant (if
  *      set).
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -333,13 +333,13 @@ function ATSUCreateAndCopyStyle( iStyle: ATSUStyle; var oStyle: ATSUStyle ): OSS
 
 {
  *  ATSUDisposeStyle()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CoreText API and CFRelease instead.
- *  
+ *
  *  Summary:
  *    Disposes of the memory associated with a style object.
- *  
+ *
  *  Discussion:
  *    The ATSUDisposeStyle function frees the memory associated with
  *    the specified style object and its internal structures, including
@@ -352,16 +352,16 @@ function ATSUCreateAndCopyStyle( iStyle: ATSUStyle; var oStyle: ATSUStyle ): OSS
  *    should keep it and use it as often as needed. You should dispose
  *    of the style object only when it is no longer needed in your
  *    application.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iStyle:
  *      The style you want to dispose of.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -374,13 +374,13 @@ function ATSUDisposeStyle( iStyle: ATSUStyle ): OSStatus; external name '_ATSUDi
 {$ifc not TARGET_CPU_64}
 {
  *  ATSUSetStyleRefCon()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTFontDescriptorCopyAttributes instead.
- *  
+ *
  *  Summary:
  *    Sets a reference constant for an ATSUStyle object.
- *  
+ *
  *  Discussion:
  *    Reference constants are any 32-bit value you wish to associate
  *    with an object. It can be a pointer to application-specific data,
@@ -389,20 +389,20 @@ function ATSUDisposeStyle( iStyle: ATSUStyle ): OSStatus; external name '_ATSUDi
  *    constant is neither copied nor removed. To obtain the reference
  *    constant for a particular ATSUStyle object after it has been set,
  *    use the function ATSUGetStyleRefCon.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iStyle:
  *      An ATSUStyle object you want to set the reference constant for.
- *    
+ *
  *    iRefCon:
  *      Any arbitrary 32-bit value containing or referring to
  *      application-specific data.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -414,33 +414,33 @@ function ATSUSetStyleRefCon( iStyle: ATSUStyle; iRefCon: URefCon ): OSStatus; ex
 
 {
  *  ATSUGetStyleRefCon()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTFontDescriptorCopyAttributes instead.
- *  
+ *
  *  Summary:
  *    Returns the reference constant for an ATSUStyle object.
- *  
+ *
  *  Discussion:
  *    Together with ATSUSetStyleRefCon, this function provides a
  *    mechanism for keeping application-specific data associated with
  *    ATSUStyle objects. Note that if an ATSUStyle object is copied or
  *    cleared, its associated reference constant, if any, is not copied
  *    or cleared.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iStyle:
  *      The style object for which to obtain application-specific data.
- *    
+ *
  *    oRefCon:
  *      On return, the reference constant for iStyle.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. If no reference constant is set in
  *    iStyle, paramErr is returned. See MacErrors.h for other possible
  *    error codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -455,13 +455,13 @@ function ATSUGetStyleRefCon( iStyle: ATSUStyle; var oRefCon: URefCon ): OSStatus
 { ---------------------------------------------------------------------------- }
 {
  *  ATSUCompareStyles()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTFontDescriptorCreateMatchingFontDescriptor instead.
- *  
+ *
  *  Summary:
  *    Compares two ATSUStyleObjects.
- *  
+ *
  *  Discussion:
  *    The ATSUCompareStyles function compares the contents of two style
  *    objects, including their style attributes, font features, and
@@ -469,27 +469,27 @@ function ATSUGetStyleRefCon( iStyle: ATSUStyle; var oRefCon: URefCon ): OSStatus
  *    application-defined style attributes in the comparison. Note that
  *    order is important, as the ATSUStyleComparison constants that can
  *    be returned indicate "contains" vs. "contained by" based on which
- *    style is considered first in the comparsion.
- *  
+ *    style is considered first in the comparison.
+ *
  *  Parameters:
- *    
+ *
  *    iFirstStyle:
  *      The first style to be compared.
- *    
+ *
  *    iSecondStyle:
  *      The second style to be compared.
- *    
+ *
  *    oComparison:
  *      On return, the value contains the results of the comparison and
  *      indicates whether the two style objects are the same,
  *      different, or if one is a subset of the other. See the
  *      definition of the ATSUStyleComparison type for more information
  *      on possible values returned for this parameter.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -504,32 +504,32 @@ function ATSUCompareStyles( iFirstStyle: ATSUStyle; iSecondStyle: ATSUStyle; var
 { ---------------------------------------------------------------------------- }
 {
  *  ATSUCopyAttributes()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTFontDescriptorCreateCopyWithAttributes instead.
- *  
+ *
  *  Summary:
  *    Copies attributes from one style to another.
- *  
+ *
  *  Discussion:
  *    There are three types of settings in a style: attributes, font
  *    features, and font variations. This function copies only the
  *    first. To copy all three types of settings, use the function
  *    ATSUCreateAndCopyStyle. Also note that this function does not
  *    copy reference constants.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iSourceStyle:
  *      The style whose attributes you are copying from.
- *    
+ *
  *    iDestinationStyle:
  *      The style whose attributes you are copying to.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -541,14 +541,14 @@ function ATSUCopyAttributes( iSourceStyle: ATSUStyle; iDestinationStyle: ATSUSty
 
 {
  *  ATSUOverwriteAttributes()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTFontDescriptorCreateCopyWithAttributes instead.
- *  
+ *
  *  Summary:
  *    Copies to a destination style object the nondefault style
  *    attribute settings of a source style object.
- *  
+ *
  *  Discussion:
  *    The ATSUOverwriteAttributes function copies all nondefault style
  *    attribute values from a source style object to a destination
@@ -568,21 +568,21 @@ function ATSUCopyAttributes( iSourceStyle: ATSUStyle; iDestinationStyle: ATSUSty
  *    copy style attributes that are set in the source but not in the
  *    destination style object, call the function
  *    ATSUUnderwriteAttributes.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iSourceStyle:
  *      An ATSUStyle value specifying the style object from which to
  *      copy nondefault style attributes.
- *    
+ *
  *    iDestinationStyle:
  *      An ATSUStyle value specifying the style object containing the
  *      style attributes to be overwritten.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -594,15 +594,15 @@ function ATSUOverwriteAttributes( iSourceStyle: ATSUStyle; iDestinationStyle: AT
 
 {
  *  ATSUUnderwriteAttributes()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTFontDescriptorCreateCopyWithAttributes instead.
- *  
+ *
  *  Summary:
  *    Copies to a destination style object only those nondefault style
  *    attribute settings of a source style object that are at default
  *    settings in the destination object.
- *  
+ *
  *  Discussion:
  *    The ATSUUnderwriteAttributes function copies to a destination
  *    style object only those nondefault style attribute values of a
@@ -622,21 +622,21 @@ function ATSUOverwriteAttributes( iSourceStyle: ATSUStyle; iDestinationStyle: AT
  *    ATSUCopyAttributes. To copy style attributes that are set in the
  *    source whether or not they are set in the destination style
  *    object, call the function ATSUOverwriteAttributes.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iSourceStyle:
  *      An ATSUStyle value specifying the style object from which to
  *      copy nondefault style attributes.
- *    
+ *
  *    iDestinationStyle:
  *      An ATSUStyle value specifying the style object containing style
  *      attribute values to be set.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -651,13 +651,13 @@ function ATSUUnderwriteAttributes( iSourceStyle: ATSUStyle; iDestinationStyle: A
 { ---------------------------------------------------------------------------- }
 {
  *  ATSUClearStyle()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CoreText API and CFRelease instead.
- *  
+ *
  *  Summary:
  *    Restores default values to a style object.
- *  
+ *
  *  Discussion:
  *    Clears a style object of all style attributes (including any
  *    application-defined attributes), font features, and font
@@ -666,16 +666,16 @@ function ATSUUnderwriteAttributes( iSourceStyle: ATSUStyle; iDestinationStyle: A
  *    use the functions ATSUClearAttributes, ATSUClearFontVariations,
  *    or ATSUClearFontFeatures, respectively. Note that ATSUClearStyle
  *    does not affect Reference constants.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iStyle:
  *      The style to be cleared.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -687,24 +687,24 @@ function ATSUClearStyle( iStyle: ATSUStyle ): OSStatus; external name '_ATSUClea
 
 {
  *  ATSUStyleIsEmpty()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CoreText API instead.
- *  
+ *
  *  Summary:
  *    Indicates whether a style object contains only default values.
- *  
+ *
  *  Discussion:
  *    You can call the ATSUStyleIsEmpty function to determine whether a
  *    style object contains only default values for style attributes,
  *    font features, and font variations. ATSUStyleIsEmpty does not
  *    consider reference constants in its evaluation.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iStyle:
  *      An ATSUStyle value specifying the style object to examine.
- *    
+ *
  *    oIsClear:
  *      On return, the value is set to true if the style object
  *      contains only default values for style attributes, font
@@ -712,11 +712,11 @@ function ATSUClearStyle( iStyle: ATSUStyle ): OSStatus; external name '_ATSUClea
  *      contains one or more nondefault values for style attributes,
  *      font features, or font variations. Reference constants do not
  *      affect this result.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -731,13 +731,13 @@ function ATSUStyleIsEmpty( iStyle: ATSUStyle; var oIsClear: Boolean ): OSStatus;
 { ---------------------------------------------------------------------------- }
 {
  *  ATSUCalculateBaselineDeltas()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CoreText API instead.
- *  
+ *
  *  Summary:
  *    Obtains the optimal baseline positions for glyphs in a style run.
- *  
+ *
  *  Discussion:
  *    Depending on the writing system, a baseline may be above, below,
  *    or through the centers of glyphs. In general, a style run has a
@@ -758,19 +758,19 @@ function ATSUStyleIsEmpty( iStyle: ATSUStyle; var oIsClear: Boolean ): OSStatus;
  *    ATSUSetLayoutControls allow you to set baseline offset values at
  *    the line or layout level, respectively, using the
  *    kATSULineBaselineValuesTag control attribute tag.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iStyle:
  *      An ATSUStyle value specifying the style object to examine.
- *    
+ *
  *    iBaselineClass:
  *      A BslnBaselineClass constant identifying the primary baseline
  *      from which to measure other baselines. See SFNTLayoutTypes.h
  *      for an enumeration of possible values. Pass the constant
  *      kBSLNNoBaselineOverride to use the standard baseline value from
  *      the current font.
- *    
+ *
  *    oBaselineDeltas:
  *      On return, an array that contains baseline offsets, specifying
  *      distances measured in points, from the default baseline to each
@@ -779,11 +779,11 @@ function ATSUStyleIsEmpty( iStyle: ATSUStyle; var oIsClear: Boolean ): OSStatus;
  *      negative values indicate baselines below it. See
  *      SFNTLayoutTypes.h for a description of the BslnBaselineRecord
  *      type.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -797,15 +797,15 @@ function ATSUCalculateBaselineDeltas( iStyle: ATSUStyle; iBaselineClass: BslnBas
 
 {
  *  ATSUSetAttributes()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTFontDescriptorCreateWithNameAndSize,
  *    CTFontDescriptorCreateWithAttributes, or
  *    CTFontDescriptorCreateCopyWithAttributes instead.
- *  
+ *
  *  Summary:
  *    Sets style attribute values in a style object.
- *  
+ *
  *  Discussion:
  *    Style attributes are a collection of values and settings that
  *    specify information about a style such as font, point size, and
@@ -818,41 +818,41 @@ function ATSUCalculateBaselineDeltas( iStyle: ATSUStyle; iBaselineClass: BslnBas
  *    retain their previous values. To set font features and font
  *    variations, call the functions ATSUSetFontFeatures and
  *    ATSUSetVariations, respectively.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iStyle:
  *      A style in which to set attributes.
- *    
+ *
  *    iAttributeCount:
  *      An ItemCount value specifying the number of attributes to set.
  *      This value should correspond to the number of elements in the
  *      iTag, iValueSize, and iValue arrays.
- *    
+ *
  *    iTag:
  *      An array of attribute tags. The number of elements in this
  *      array must not be less than iAttributeCount. Each element in
  *      the array must contain a valid style attribute tag (see the
  *      definition of ATSUAttributeTag for possible values).
- *    
+ *
  *    iValueSize:
  *      An array of ByteCount values. The number of elements in this
  *      array must not be less than iAttributeCount. Each ByteCount
- *      value corresoponds to the size of an element referred to by a
+ *      value corresponds to the size of an element referred to by a
  *      pointer in the iValue array.
- *    
+ *
  *    iValue:
  *      An array of pointers of type ATSUAttributeValuePtr. Each
- *      pointer referrs to a value that corresponds to a tag specified
+ *      pointer refers to a value that corresponds to a tag specified
  *      by the iTag array. The size of the data referred to is
  *      determined by a corresponding element in the iValueSize array.
  *      The number of elements in this array must not be less than
  *      iAttributeCount.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -865,13 +865,13 @@ function ATSUSetAttributes( iStyle: ATSUStyle; iAttributeCount: ItemCount; {cons
 {$ifc not TARGET_CPU_64}
 {
  *  ATSUGetAttribute()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTFontDescriptorCopyAttribute instead.
- *  
+ *
  *  Summary:
  *    Obtains a single attribute value for a style object.
- *  
+ *
  *  Discussion:
  *    The ATSUGetAttribute function obtains the value of a specified
  *    style attribute for a given style object. Before calling
@@ -882,32 +882,32 @@ function ATSUSetAttributes( iStyle: ATSUStyle; iAttributeCount: ItemCount; {cons
  *    value to obtain. This function may return kATSUNotSetErr for some
  *    attributes that have not been set to a non-default via a call to
  *    ATSUSetAttributes.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iStyle:
  *      The style object you with to retrieve an attribute value from.
- *    
+ *
  *    iTag:
  *      The tag you wish to obtain the value of.
- *    
+ *
  *    iExpectedValueSize:
  *      The size of the buffer pointed to by oValue.
- *    
+ *
  *    oValue:
  *      On input, a buffer you have allocated to retain the value of
  *      the specified attribute. On return, the value of the requested
  *      attribute will be placed here. You may pass NULL for this
  *      parameter.
- *    
+ *
  *    oActualValueSize:
  *      On return, the actual number of bytes written to oValue is
  *      placed here. You may pass NULL for this parameter.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -919,14 +919,14 @@ function ATSUGetAttribute( iStyle: ATSUStyle; iTag: ATSUAttributeTag; iExpectedV
 
 {
  *  ATSUGetAllAttributes()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTFontDescriptorCopyAttributes instead.
- *  
+ *
  *  Summary:
  *    Obtains an array of style attribute tags and value sizes for a
  *    style object.
- *  
+ *
  *  Discussion:
  *    This function returns information as to which attributes have had
  *    non-default values set in a particular ATSUStyle object. It will
@@ -945,13 +945,13 @@ function ATSUGetAttribute( iStyle: ATSUStyle; iTag: ATSUAttributeTag; iExpectedV
  *    the oAttributeInfoArray parameter. On return, the pointer refers
  *    to an array of the style attribute tag and value-size pairs
  *    contained in the style object.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iStyle:
  *      The style object you wish to retrieve a list of attribute tags
  *      from.
- *    
+ *
  *    oAttributeInfoArray:
  *      On return, an array of ATSUAttributeInfo structures. Each
  *      structure contains information about an attribute in iStyle
@@ -959,19 +959,19 @@ function ATSUGetAttribute( iStyle: ATSUStyle; iTag: ATSUAttributeTag; iExpectedV
  *      array. If you are unsure how much space to allocate, you may
  *      pass NULL for this parameter and use the oTagValuePairCount
  *      parameter to determine how much space to allocate.
- *    
+ *
  *    iTagValuePairArraySize:
  *      The size of the array you allocated and are passing in for the
  *      oAttributeInfoArray parameter.
- *    
+ *
  *    oTagValuePairCount:
  *      On return, the number of attributes whose information was
  *      stored in the oAttributeInfoArray parameter.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -983,14 +983,14 @@ function ATSUGetAllAttributes( iStyle: ATSUStyle; oAttributeInfoArray: {variable
 
 {
  *  ATSUClearAttributes()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CoreText API and CFRelease instead.
- *  
+ *
  *  Summary:
  *    Restores default values to the specified style attributes of a
  *    style object.
- *  
+ *
  *  Discussion:
  *    Removes those style attribute values identified by the tag
  *    constants in the iTag array and replaces them with the default
@@ -1002,25 +1002,25 @@ function ATSUGetAllAttributes( iStyle: ATSUStyle; oAttributeInfoArray: {variable
  *    To remove all previously set style attributes as well as font
  *    features and font variations from a style object, call the
  *    function ATSUClearStyle.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iStyle:
  *      A style whose attributes you want to clear.
- *    
+ *
  *    iTagCount:
  *      The number of tags you are passing in via the iTag parameter.
  *      Pass kATSUClearAll to clear all attributes.
- *    
+ *
  *    iTag:
  *      An array of ATSUAttributeTag indicating which attributes to
  *      clear. You may pass NULL for this parameter if you are passing
  *      kATSUClearAll for the iTagCount parameter.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1035,17 +1035,17 @@ function ATSUClearAttributes( iStyle: ATSUStyle; iTagCount: ItemCount; {const} i
 { ---------------------------------------------------------------------------- }
 {
  *  ATSUCreateTextLayout()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTTypesetterCreateWithAttributedString,
  *    CTTypesetterCreateWithAttributedStringAndOptions,
  *    CTLineCreateWithAttributedString, CTLineCreateTruncatedLine, or
  *    CTLineCreateJustifiedLine instead.
- *  
+ *
  *  Summary:
  *    Creates an opaque text layout object containing only default text
  *    layout attributes.
- *  
+ *
  *  Discussion:
  *    This function creates a empty text layout object that has no
  *    styles or text buffer associated with it. Most ATSUI functions
@@ -1064,16 +1064,16 @@ function ATSUClearAttributes( iStyle: ATSUStyle; iTagCount: ItemCount; {const} i
  *    if the text associated with it is altered. Call the functions
  *    ATSUSetTextPointerLocation, ATSUTextDeleted, or ATSUTextInserted
  *    to manage the altered text.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    oTextLayout:
  *      On return, the value refers to an empty text layout object.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1085,16 +1085,16 @@ function ATSUCreateTextLayout( var oTextLayout: ATSUTextLayout ): OSStatus; exte
 
 {
  *  ATSUCreateAndCopyTextLayout()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTTypesetterCreateWithAttributedString,
  *    CTTypesetterCreateWithAttributedStringAndOptions,
  *    CTLineCreateWithAttributedString, CTLineCreateTruncatedLine, or
  *    CTLineCreateJustifiedLine instead.
- *  
+ *
  *  Summary:
  *    Creates a copy of a text layout object.
- *  
+ *
  *  Discussion:
  *    This function creates a copy of the source text layout object's
  *    style runs (including references to the associated text buffer
@@ -1104,20 +1104,20 @@ function ATSUCreateTextLayout( var oTextLayout: ATSUTextLayout ): OSStatus; exte
  *    copying a source object, you can the function
  *    ATSUCreateTextLayout or the function
  *    ATSUCreateTextLayoutWithTextPtr.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iTextLayout:
  *      The layout to be copied.
- *    
+ *
  *    oTextLayout:
  *      On return, a reference to a layout object which is a copy of
  *      iTextLayout.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1131,17 +1131,17 @@ function ATSUCreateAndCopyTextLayout( iTextLayout: ATSUTextLayout; var oTextLayo
 
 {
  *  ATSUCreateTextLayoutWithTextPtr()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTTypesetterCreateWithAttributedString,
  *    CTTypesetterCreateWithAttributedStringAndOptions,
  *    CTLineCreateWithAttributedString, CTLineCreateTruncatedLine, or
  *    CTLineCreateJustifiedLine instead.
- *  
+ *
  *  Summary:
  *    Creates an opaque text layout object containing default text
  *    layout attributes as well as associated text and text styles.
- *  
+ *
  *  Discussion:
  *    This function creates a text layout object and associates the
  *    specified text buffer and style runs with it. All layout
@@ -1163,9 +1163,9 @@ function ATSUCreateAndCopyTextLayout( iTextLayout: ATSUTextLayout; var oTextLayo
  *    Text layout objects are readily reusable and should themselves be
  *    cached for later use, if possible. Text objects are thread-safe
  *    starting with ATSUI version 2.4.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iText:
  *      A text buffer containing UTF-16Ðencoded text. ATSUI associates
  *      this buffer with the new text layout object and analyzes the
@@ -1177,7 +1177,7 @@ function ATSUCreateAndCopyTextLayout( iTextLayout: ATSUTextLayout; var oTextLayo
  *      paragraph, ATSUI can neither reliably obtain the context for
  *      bidirectional processing nor reliably generate accent
  *      attachments and ligature formations for Roman text.
- *    
+ *
  *    iTextOffset:
  *      The offset from the beginning of the text buffer to the first
  *      character of the range to include in the layout. To indicate
@@ -1187,7 +1187,7 @@ function ATSUCreateAndCopyTextLayout( iTextLayout: ATSUTextLayout; var oTextLayo
  *      in this parameter and kATSUToTextEnd in the iTextLength
  *      parameter. For best results, use one layout for each paragraph
  *      within the text buffer.
- *    
+ *
  *    iTextLength:
  *      The length of the text range. Note that the sum of iTextOffset
  *      and iTextLength must be less than or equal to the value of the
@@ -1195,19 +1195,19 @@ function ATSUCreateAndCopyTextLayout( iTextLayout: ATSUTextLayout; var oTextLayo
  *      extend to the end of the text buffer, you can pass the constant
  *      kATSUToTextEnd. For best results, use one layout for each
  *      paragraph within the text buffer.
- *    
+ *
  *    iTextTotalLength:
  *      The length of the entire text buffer referred to by iText. This
  *      value should be greater than or equal to the range of text
  *      defined by the iTextLength parameter.
- *    
+ *
  *    iNumberOfRuns:
  *      The number of text style runs you want to define within the
  *      overall text range. The number of style objects and style run
  *      lengths passed in the iStyles and iRunLengths parameters,
  *      respectively, should be equal to the number of runs specified
  *      here.
- *    
+ *
  *    iRunLengths:
  *      An array providing ATSUI with the lengths of each of the text's
  *      style runs. You can pass kATSUToTextEnd for the last style run
@@ -1215,22 +1215,22 @@ function ATSUCreateAndCopyTextLayout( iTextLayout: ATSUTextLayout; var oTextLayo
  *      text range. If the sum of the style run lengths is less than
  *      the total length of the text range, the remaining characters
  *      are assigned to the last style run.
- *    
+ *
  *    iStyles:
  *      An array of styles, each corresponding to a style run defined
  *      in iRunLengths. The same ATSUStyle object may be referred to
  *      more than once in this array. The number of elements in this
  *      array must be equal to the value specified by the iNumberOfRuns
  *      parameter.
- *    
+ *
  *    oTextLayout:
  *      A valid pointer to an ATSUTextLayout value. On return, the
  *      value refers to the newly created text layout object.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1242,13 +1242,13 @@ function ATSUCreateTextLayoutWithTextPtr( iText: ConstUniCharArrayPtr; iTextOffs
 
 {
  *  ATSUClearLayoutCache()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CoreText API and CFRelease instead.
- *  
+ *
  *  Summary:
  *    Clears the layout cache of a line or an entire text layout object.
- *  
+ *
  *  Discussion:
  *    The layout cache contains all the layout information ATSUI
  *    calculates and needs to draw a range of text in a text layout
@@ -1273,12 +1273,12 @@ function ATSUCreateTextLayoutWithTextPtr( iText: ConstUniCharArrayPtr; iTextOffs
  *    positions, or the text memory location. If you do not want to
  *    retain these values, you should dispose of the text layout object
  *    by calling the ATSUDisposeTextLayout function.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iTextLayout:
  *      The layout for which to clear the layout caches.
- *    
+ *
  *    iLineStart:
  *      The offset from the beginning of the text buffer to the
  *      beginning of the line for which to discard the layout cache. If
@@ -1287,11 +1287,11 @@ function ATSUCreateTextLayoutWithTextPtr( iText: ConstUniCharArrayPtr; iTextOffs
  *      corresponding to the beginning of the new line to draw with
  *      each call. To clear the layout cache of the entire text layout
  *      object, you can pass the constant kATSUFromTextBeginning.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1303,13 +1303,13 @@ function ATSUClearLayoutCache( iTextLayout: ATSUTextLayout; iLineStart: UniCharA
 
 {
  *  ATSUDisposeTextLayout()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CoreText API and CFRelease instead.
- *  
+ *
  *  Summary:
  *    Disposes of the memory associated with a text layout object.
- *  
+ *
  *  Discussion:
  *    This function frees the memory associated with the specified text
  *    layout object and its internal structures, including line and
@@ -1324,16 +1324,16 @@ function ATSUClearLayoutCache( iTextLayout: ATSUTextLayout; iLineStart: UniCharA
  *    ATSUSetTextPointerLocation, ATSUTextDeleted, or ATSUTextInserted
  *    to manage the altered text, rather than disposing of the text
  *    layout object and creating a new one.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iTextLayout:
  *      The layout object to dispose of.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1345,13 +1345,13 @@ function ATSUDisposeTextLayout( iTextLayout: ATSUTextLayout ): OSStatus; externa
 
 {
  *  ATSUSetTextLayoutRefCon()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CFAttributedStringSetAttributes instead.
- *  
+ *
  *  Summary:
  *    Sets application-specific data for a text layout object.
- *  
+ *
  *  Discussion:
  *    This function associates a reference constant (that is,
  *    application-specific data) with a text layout object. You might
@@ -1363,20 +1363,20 @@ function ATSUDisposeTextLayout( iTextLayout: ATSUTextLayout ): OSStatus; externa
  *    responsible for freeing any memory allocated for the reference
  *    constant. Calling the function ATSUDisposeTextLayout does not do
  *    so.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iTextLayout:
  *      A layout for which you wish to set a reference constant.
- *    
+ *
  *    iRefCon:
  *      Any arbitrary 32-bit value you wish to store in association
  *      with iTextLayout.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1389,31 +1389,31 @@ function ATSUSetTextLayoutRefCon( iTextLayout: ATSUTextLayout; iRefCon: URefCon 
 {$ifc not TARGET_CPU_64}
 {
  *  ATSUGetTextLayoutRefCon()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CFAttributedStringSetAttributes instead.
- *  
+ *
  *  Summary:
  *    Obtains application-specific data for a text layout object.
- *  
+ *
  *  Discussion:
  *    This function obtains a reference constant (that is,
  *    application-specific data) associated with a text layout object.
  *    To associate a reference constant with a text layout object, call
  *    the function ATSUSetTextLayoutRefCon.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iTextLayout:
- *      A layout for which you wish to retreive the reference constant.
- *    
+ *      A layout for which you wish to retrieve the reference constant.
+ *
  *    oRefCon:
  *      On return, the reference constant associated with iTextLayout.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1428,14 +1428,14 @@ function ATSUGetTextLayoutRefCon( iTextLayout: ATSUTextLayout; var oRefCon: URef
 { ---------------------------------------------------------------------------- }
 {
  *  ATSUSetTextPointerLocation()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CoreText API instead.
- *  
+ *
  *  Summary:
  *    Associates a text buffer with a text layout object or updates
  *    previously associated text.
- *  
+ *
  *  Discussion:
  *    For ATSUI to render your text, you must associate the text with
  *    both a text layout object and style information. Some functions,
@@ -1471,16 +1471,16 @@ function ATSUGetTextLayoutRefCon( iTextLayout: ATSUTextLayout; var oRefCon: URef
  *    with a text layout object, use ATSUSetRunStyle to associate style
  *    information with the text. You can then call the function
  *    ATSUDrawText to display the text or a subrange of the text.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iTextLayout:
  *      The layout object for which you wish to associate a text buffer.
- *    
+ *
  *    iText:
  *      A pointer to a buffer of Unicode text in UTF-16 format. This is
  *      the text that will be associated with iTextLayout.
- *    
+ *
  *    iTextOffset:
  *      The starting offset of the subrange of the text buffer you wish
  *      to associate with iTextLayout. To indicate that the specified
@@ -1488,7 +1488,7 @@ function ATSUGetTextLayoutRefCon( iTextLayout: ATSUTextLayout; var oRefCon: URef
  *      pass the constant kATSUFromTextBeginning . To specify the
  *      entire text buffer, pass kATSUFromTextBeginning in this
  *      parameter and kATSUToTextEnd in the iTextLength parameter.
- *    
+ *
  *    iTextLength:
  *      The length of the subrage of the text buffer you wish to
  *      associate with iTextLayout. Note that the sum of iTextOffset
@@ -1496,16 +1496,16 @@ function ATSUGetTextLayoutRefCon( iTextLayout: ATSUTextLayout; var oRefCon: URef
  *      iTextTotalLength parameter. If you want the range of text to
  *      extend to the end of the text buffer, you can pass the constant
  *      kATSUToTextEnd.
- *    
+ *
  *    iTextTotalLength:
  *      The length of the entire text buffer. This value should be
  *      greater than or equal to the range of text defined by the
  *      iTextLength parameter.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1517,14 +1517,14 @@ function ATSUSetTextPointerLocation( iTextLayout: ATSUTextLayout; iText: ConstUn
 
 {
  *  ATSUGetTextLocation()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CoreText API instead.
- *  
+ *
  *  Summary:
  *    Returns information about the Unicode text buffer associated with
  *    a layout.
- *  
+ *
  *  Discussion:
  *    For a given layout, ATSUGetTextLocation will return information
  *    about the Unicode text buffer associated with it, including its
@@ -1535,40 +1535,40 @@ function ATSUSetTextPointerLocation( iTextLayout: ATSUTextLayout; iText: ConstUn
  *    and oTextTotalLength give information about the entire text
  *    buffer. You may pass NULL for any parameters you are not
  *    interested in. Only iTextLayout is required.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iTextLayout:
  *      A text layout whose text buffer you want information regarding.
- *    
+ *
  *    oText:
  *      A pointer to data of any type. On return, the pointer is set to
  *      either a pointer or a handle that refers to the text buffer for
  *      the specified text layout object.
- *    
+ *
  *    oTextIsStoredInHandle:
  *      On return, the value is set to true if the text buffer referred
  *      to by the oText parameter is accessed by a handle; if false, a
  *      pointer.
- *    
+ *
  *    oOffset:
  *      On return, the offset from the beginning of the text buffer to
  *      the first character of the layout's current text range.
- *    
+ *
  *    oTextLength:
  *      On return, the value specifies the length of the layout's
  *      current text range.
- *    
+ *
  *    oTextTotalLength:
  *      On return, the total length of the text buffer. Note this is
  *      not necessarily the same as the length of the layout's current
  *      range. (A layout may refer to only a subrange within a text
  *      buffer.)
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1580,13 +1580,13 @@ function ATSUGetTextLocation( iTextLayout: ATSUTextLayout; oText: UnivPtrPtr { c
 
 {
  *  ATSUTextDeleted()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CoreText API instead.
- *  
+ *
  *  Summary:
  *    Informs ATSUI of the location and length of a text deletion.
- *  
+ *
  *  Discussion:
  *    When you call the ATSUTextDeleted function to inform ATSUI of a
  *    text deletion, it shortens the style run(s) containing the
@@ -1608,12 +1608,12 @@ function ATSUGetTextLocation( iTextLayout: ATSUTextLayout; oText: UnivPtrPtr { c
  *    function ATSUTextDeleted automatically removes previously-set
  *    soft line breaks if the line breaks are within the range of text
  *    that is deleted.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iTextLayout:
  *      The text layout containing the deleted text.
- *    
+ *
  *    iDeletedRangeStart:
  *      The starting location of the deleted text. To specify a
  *      deletion point at the beginning of the text buffer, you can
@@ -1621,16 +1621,16 @@ function ATSUGetTextLocation( iTextLayout: ATSUTextLayout; oText: UnivPtrPtr { c
  *      entire text buffer has been deleted, pass
  *      kATSUFromTextBeginning in this parameter and kATSUToTextEnd in
  *      the iDeletedRangeLength parameter.
- *    
+ *
  *    iDeletedRangeLength:
  *      The length of the deleted text. To specify a deletion length
  *      extending to the end of the text buffer, you can pass the
  *      constant kATSUToTextEnd.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1642,13 +1642,13 @@ function ATSUTextDeleted( iTextLayout: ATSUTextLayout; iDeletedRangeStart: UniCh
 
 {
  *  ATSUTextInserted()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CoreText API instead.
- *  
+ *
  *  Summary:
  *    Informs ATSUI of the location and length of a text insertion.
- *  
+ *
  *  Discussion:
  *    When you call the ATSUTextInserted function to inform ATSUI of a
  *    text insertion, it extends the style run containing the insertion
@@ -1666,22 +1666,22 @@ function ATSUTextDeleted( iTextLayout: ATSUTextLayout; iDeletedRangeStart: UniCh
  *    insert style runs or line breaks; to do so, call the functions
  *    ATSUSetRunStyle and ATSUSetSoftLineBreak, respectively. Break
  *    line operations should be redone after you call ATSUTextInserted.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iTextLayout:
  *      The text layout in which the text insertion is taking place.
- *    
+ *
  *    iInsertionLocation:
  *      The offset corresponding to the beginning of the inserted text.
- *    
+ *
  *    iInsertionLength:
  *      The length of the inserted text.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1695,32 +1695,32 @@ function ATSUTextInserted( iTextLayout: ATSUTextLayout; iInsertionLocation: UniC
 
 {
  *  ATSUTextMoved()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CoreText API instead.
- *  
+ *
  *  Summary:
  *    Informs ATSUI of the new memory location of relocated text.
- *  
+ *
  *  Discussion:
  *    You should call the ATSUTextMoved function when a range of text
  *    consisting of less than an entire text buffer has been moved. The
  *    ATSUTextMoved function informs ATSUI of the new memory location
  *    of the text. You are responsible for moving the text. The text
  *    buffer should remain otherwise unchanged.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iTextLayout:
  *      The text layout containing the moved text.
- *    
+ *
  *    iNewLocation:
  *      The new memory location of the moved text.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1736,14 +1736,14 @@ function ATSUTextMoved( iTextLayout: ATSUTextLayout; iNewLocation: ConstUniCharA
 {$ifc not TARGET_CPU_64}
 {
  *  ATSUCopyLayoutControls()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTParagraphStyleCreate or CTLineGetPenOffsetForFlush instead.
- *  
+ *
  *  Summary:
  *    Copies all layout control attribute settings from a source text
  *    layout object to a destination text layout object.
- *  
+ *
  *  Discussion:
  *    This function copies all layout control attribute values to a
  *    destination text layout object from a source text layout object,
@@ -1755,19 +1755,19 @@ function ATSUTextMoved( iTextLayout: ATSUTextLayout; iNewLocation: ConstUniCharA
  *    valid until both the source and destination text layout objects
  *    are disposed. To copy line control attribute values from one text
  *    layout object to another, call the function ATSUCopyLineControls.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iSourceTextLayout:
  *      The text layout to copy layout controls from.
- *    
+ *
  *    iDestTextLayout:
  *      The text layout to copy layout controls to.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1781,13 +1781,13 @@ function ATSUCopyLayoutControls( iSourceTextLayout: ATSUTextLayout; iDestTextLay
 
 {
  *  ATSUSetLayoutControls()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CoreText API and CFAttributedStringSetAttributes instead.
- *  
+ *
  *  Summary:
  *    Sets layout control attribute values in a text layout object.
- *  
+ *
  *  Discussion:
  *    When you use ATSUI to image your text, you can control the text's
  *    display and formatting at a number of different levels: layout,
@@ -1808,35 +1808,35 @@ function ATSUCopyLayoutControls( iSourceTextLayout: ATSUTextLayout; iDestTextLay
  *    does not provide a tag. For a list of layout control tags defined
  *    by ATSUI and their default values, see the definition of
  *    ATSUAttributeTag.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iTextLayout:
  *      The text layout in which to set layout-level controls.
- *    
+ *
  *    iAttributeCount:
  *      The number of attributes to set. This value should correspond
  *      to the number of elements in the iTag, iValueSize, and iValue
  *      arrays.
- *    
+ *
  *    iTag:
  *      An array of attribute tags to set. For a list of layout control
  *      tags defined by ATSUI and their default values, see the
  *      definition of ATSUAttributeTag.
- *    
+ *
  *    iValueSize:
  *      An array of values indicating the sizes of the values pointed
  *      to by the elements in the iValue array.
- *    
+ *
  *    iValue:
  *      An array of attribute value pointers. Each value in the array
  *      must correspond to a tag in the iTag array and be a legal value
  *      for that tag.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1849,14 +1849,14 @@ function ATSUSetLayoutControls( iTextLayout: ATSUTextLayout; iAttributeCount: It
 {$ifc not TARGET_CPU_64}
 {
  *  ATSUGetLayoutControl()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CoreText API and CFAttributedStringGetAttributes instead.
- *  
+ *
  *  Summary:
  *    Obtains a single layout control attribute value for a text layout
  *    object.
- *  
+ *
  *  Discussion:
  *    Before calling ATSUGetLayoutControl, you should call the function
  *    ATSUGetAllLayoutControls to obtain an array of nondefault layout
@@ -1875,37 +1875,37 @@ function ATSUSetLayoutControls( iTextLayout: ATSUTextLayout; iAttributeCount: It
  *    attribute value contained in the text layout object. For a list
  *    of layout control tags defined by ATSUI and their default values,
  *    see the definition of ATSUAttributeTag.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iTextLayout:
  *      The text layout for which you wish to obtain a single layout
  *      control value.
- *    
+ *
  *    iTag:
  *      An attribute tag specifying the layout control value you wish
  *      to obtain. For a list of layout control tags defined by ATSUI
  *      and their default values, see the definition of
  *      ATSUAttributeTag.
- *    
+ *
  *    iExpectedValueSize:
  *      The size in bytes of the buffer you have allocated for the
  *      oValue parameter.
- *    
+ *
  *    oValue:
- *      On return, the value assocaited with the layout tag specified
+ *      On return, the value associated with the layout tag specified
  *      by the iTag parameter.
- *    
+ *
  *    oActualValueSize:
  *      On return, the value contains the actual size (in bytes) of the
  *      attribute value. You should examine this parameter if you are
  *      unsure of the size of the attribute value being obtained, as in
  *      the case of custom layout control attributes.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1917,14 +1917,14 @@ function ATSUGetLayoutControl( iTextLayout: ATSUTextLayout; iTag: ATSUAttributeT
 
 {
  *  ATSUGetAllLayoutControls()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CoreText API and CFAttributedStringGetAttributes instead.
- *  
+ *
  *  Summary:
  *    Obtains an array of non-default layout control attribute tags and
  *    value sizes for a text layout object.
- *  
+ *
  *  Discussion:
  *    This function function obtains all nondefault layout control
  *    attribute tags and their values sizes for a text layout object.
@@ -1944,36 +1944,36 @@ function ATSUGetLayoutControl( iTextLayout: ATSUTextLayout; iTag: ATSUAttributeT
  *    in the oAttributeInfoArray parameter. On return, the pointer
  *    refers to an array of the layout control attribute tag and value
  *    size pairs contained in the text layout object.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iTextLayout:
  *      The layout for which you wish to obtain the set of non-default
  *      layout tags.
- *    
+ *
  *    oAttributeInfoArray:
  *      On return, this array contains pairs of tags and value sizes
  *      for the object's layout control attributes that are not at
  *      default values. If you are uncertain of how much memory to
  *      allocate for this parameter, see the Discussion.
- *    
+ *
  *    iTagValuePairArraySize:
  *      A value specifying the maximum number of tag and value size
  *      pairs to obtain for the text layout object. Typically, this is
  *      equivalent to the number of ATSUAttributeInfo structures for
  *      which you have allocated memory in the oAttributeInfoArray
  *      parameter. To determine this value, see the Discussion.
- *    
+ *
  *    oTagValuePairCount:
  *      On return, the value specifies the actual number of
  *      ATSUAttributeInfo structures in the text layout object. This
  *      may be greater than the value you specified in the
  *      iTagValuePairArraySize parameter.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1985,14 +1985,14 @@ function ATSUGetAllLayoutControls( iTextLayout: ATSUTextLayout; oAttributeInfoAr
 
 {
  *  ATSUClearLayoutControls()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CoreText API and CFAttributedStringSetAttributes instead.
- *  
+ *
  *  Summary:
  *    Restores default values to the specified layout control
  *    attributes of a text layout object.
- *  
+ *
  *  Discussion:
  *    This function removes those layout control attribute values
  *    identified by the tag constants in the iTag array and replaces
@@ -2000,29 +2000,29 @@ function ATSUGetAllLayoutControls( iTextLayout: ATSUTextLayout; oAttributeInfoAr
  *    unset attribute values be removed, the function does not return
  *    an error. For a list of layout control tags defined by ATSUI and
  *    their default values, see the definition of ATSUAttributeTag.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iTextLayout:
  *      The text layout in which you wish to clear layout controls.
- *    
+ *
  *    iTagCount:
  *      The number of tags you wish to clear. This value should
- *      correspond to the nuumber of elements in the iTag array. Pass
+ *      correspond to the number of elements in the iTag array. Pass
  *      kATSUClearAll for this parameter if you wish to clear all
  *      layout controls.
- *    
+ *
  *    iTag:
  *      An array of layout control tags to be cleared. For a list of
  *      layout control tags defined by ATSUI and their default values,
  *      see the definition of ATSUAttributeTag. You may pass NULL for
  *      this parameter if you are passing kATSUClearAll for the
  *      iTagCount parameter.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2037,14 +2037,14 @@ function ATSUClearLayoutControls( iTextLayout: ATSUTextLayout; iTagCount: ItemCo
 { ---------------------------------------------------------------------------- }
 {
  *  ATSUCopyLineControls()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CoreText API and CFAttributedStringSetAttributes instead.
- *  
+ *
  *  Summary:
  *    Copies line control attribute settings from a line in a source
  *    text layout object to a line in a destination text layout object.
- *  
+ *
  *  Discussion:
  *    This function copies all line control attribute values to a line
  *    in a destination text layout object from a line in a source text
@@ -2055,31 +2055,31 @@ function ATSUClearLayoutControls( iTextLayout: ATSUTextLayout; iTagCount: ItemCo
  *    reference constants. You are responsible for ensuring that this
  *    memory remains valid until the source text layout object is
  *    disposed.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iSourceTextLayout:
  *      The text layout object from which to copy line control
  *      attributes.
- *    
+ *
  *    iSourceLineStart:
  *      The start of the line from which to copy line control
  *      attributes.
- *    
+ *
  *    iDestTextLayout:
  *      The text layout object for which to set line control
  *      attributes. This can be the same text layout object passed in
  *      the iSourceTextLayout parameter if you want to copy line
  *      control attributes from one line to another within a text
  *      layout object.
- *    
+ *
  *    iDestLineStart:
  *      The start of the line to which to copy line control attributes.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2091,14 +2091,14 @@ function ATSUCopyLineControls( iSourceTextLayout: ATSUTextLayout; iSourceLineSta
 
 {
  *  ATSUSetLineControls()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CoreText API and CFAttributedStringSetAttributes instead.
- *  
+ *
  *  Summary:
  *    Sets one or more line control values for a specified line in a
  *    text layout.
- *  
+ *
  *  Discussion:
  *    When you use ATSUI to image your text, you can control the text's
  *    display and formatting at a number of different levels: layout,
@@ -2124,39 +2124,39 @@ function ATSUCopyLineControls( iSourceTextLayout: ATSUTextLayout; iSourceLineSta
  *    which ATSUI does not provide a tag. For a list of line control
  *    tags defined by ATSUI and their default values, see the
  *    definition of ATSUAttributeTag.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iTextLayout:
  *      The layout in which you wish to set line controls.
- *    
+ *
  *    iLineStart:
  *      The starting offset of the line for which you wish to set
  *      controls.
- *    
+ *
  *    iAttributeCount:
  *      The number of attributes to set. This value should correspond
  *      to the number of elements in the iTag, iValueSize, and iValue
  *      arrays.
- *    
+ *
  *    iTag:
  *      An array of attribute tags to set. For a list of line control
  *      tags defined by ATSUI and their default values, see the
  *      definition of ATSUAttributeTag.
- *    
+ *
  *    iValueSize:
  *      An array of values indicating the sizes of the values pointed
  *      to by the elements in the iValue array.
- *    
+ *
  *    iValue:
  *      An array of attribute value pointers. Each value in the array
  *      must correspond to a tag in the iTag array and be a legal value
  *      for that tag.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2168,14 +2168,14 @@ function ATSUSetLineControls( iTextLayout: ATSUTextLayout; iLineStart: UniCharAr
 
 {
  *  ATSUGetLineControl()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CoreText API and CFAttributedStringSetAttributes instead.
- *  
+ *
  *  Summary:
  *    Obtains a single line control attribute value for a line in a
  *    text layout object.
- *  
+ *
  *  Discussion:
  *    Before calling ATSUGetLineControl, you should call the function
  *    ATSUGetAllLineControls to obtain an array of nondefault line
@@ -2192,37 +2192,37 @@ function ATSUSetLineControls( iTextLayout: ATSUTextLayout; iLineStart: UniCharAr
  *    valid pointer in the oValue parameter. On return, the pointer
  *    refers to the actual attribute value contained for the line in
  *    the text layout object.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iTextLayout:
  *      The text layout for which to obtain a line control value.
- *    
+ *
  *    iLineStart:
  *      The start of the line for which to obtain a line control value.
- *    
+ *
  *    iTag:
  *      A tag specifying the line control value to be obtained. For a
  *      list of line control tags defined by ATSUI and their default
  *      values, see the definition of ATSUAttributeTag.
- *    
+ *
  *    iExpectedValueSize:
  *      The expected size (in bytes) of the value to obtain.
- *    
+ *
  *    oValue:
  *      On return, the actual attribute value. If you are uncertain of
  *      how much memory to allocate, see the Discussion.
- *    
+ *
  *    oActualValueSize:
  *      On return, the value contains the actual size (in bytes) of the
  *      attribute value. You should examine this parameter if you are
  *      unsure of the size of the attribute value being obtained, as in
  *      the case of custom line control attributes.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2234,14 +2234,14 @@ function ATSUGetLineControl( iTextLayout: ATSUTextLayout; iLineStart: UniCharArr
 
 {
  *  ATSUGetAllLineControls()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CoreText API and CFAttributedStringGetAttributes instead.
- *  
+ *
  *  Summary:
  *    Obtains an array of line control attribute tags and value sizes
  *    for a line in a text layout object.
- *  
+ *
  *  Discussion:
  *    This function obtains all nondefault line control attribute tags
  *    and their values sizes for a line in a text layout object. You
@@ -2264,37 +2264,37 @@ function ATSUGetLineControl( iTextLayout: ATSUTextLayout; iLineStart: UniCharArr
  *    contained in the specified line. To obtain the nondefault layout
  *    control attribute tags and value sizes for a text layout object,
  *    call the function ATSUGetAllLayoutControls.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iTextLayout:
  *      The layout for which you wish to obtain line control
  *      information.
- *    
+ *
  *    iLineStart:
  *      The beginning of the line for which you wish to obtain line
  *      control information.
- *    
+ *
  *    oAttributeInfoArray:
  *      On return, this array contains pairs of tags and value sizes
  *      for the object's line control attributes that are not at
  *      default values. If you are uncertain of how much memory to
  *      allocate for this array, see the Discussion.
- *    
+ *
  *    iTagValuePairArraySize:
  *      The size of of the array you allocated for the
  *      oAttributeInfoArray parameter.
- *    
+ *
  *    oTagValuePairCount:
  *      On return, the value specifies the actual number of
  *      ATSUAttributeInfo structures in the line. This may be greater
  *      than the value you specified in the iTagValuePairArraySize
  *      parameter.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2306,14 +2306,14 @@ function ATSUGetAllLineControls( iTextLayout: ATSUTextLayout; iLineStart: UniCha
 
 {
  *  ATSUClearLineControls()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CoreText API and CFAttributedStringSetAttributes instead.
- *  
+ *
  *  Summary:
  *    Restores default values to the specified line control attributes
  *    of a text layout object.
- *  
+ *
  *  Discussion:
  *    This function removes those line control attribute values
  *    identified by the tag constants in the iTag array and replaces
@@ -2321,31 +2321,31 @@ function ATSUGetAllLineControls( iTextLayout: ATSUTextLayout; iLineStart: UniCha
  *    unset attribute values be removed, the function does not return
  *    an error. For a list of line control tags defined by ATSUI and
  *    their default values, see the definition of ATSUAttributeTag.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iTextLayout:
  *      The text layout in which you wish to clear line controls.
- *    
+ *
  *    iLineStart:
  *      The start of the line in which to clear line controls.
- *    
+ *
  *    iTagCount:
  *      The number of tags you wish to clear. This value should
- *      correspond to the nuumber of elements in the iTag array. Pass
+ *      correspond to the number of elements in the iTag array. Pass
  *      kATSUClearAll to clear all line controls.
- *    
+ *
  *    iTag:
  *      An array of line control tags to be cleared. For a list of line
  *      control tags defined by ATSUI and their default values, see the
  *      definition of ATSUAttributeTag. You may pass NULL for this
  *      parameter if you are passing kATSUClearAll for the iTagCount
  *      parameter.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2362,14 +2362,14 @@ function ATSUClearLineControls( iTextLayout: ATSUTextLayout; iLineStart: UniChar
 
 {
  *  ATSUSetRunStyle()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CoreText API and CFAttributedStringSetAttributes instead.
- *  
+ *
  *  Summary:
  *    Defines a style run by associating style information with a run
  *    of text.
- *  
+ *
  *  Discussion:
  *    A text run consists of one or more characters that are contiguous
  *    in memory. If you associate these characters with a distinct
@@ -2396,28 +2396,28 @@ function ATSUClearLineControls( iTextLayout: ATSUTextLayout; iLineStart: UniChar
  *    you change style attributes or text layout attributes. In such
  *    cases, ATSUI automatically updates the layout of the text as
  *    appropriate.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iTextLayout:
  *      The layout in which you wish to set the style run.
- *    
+ *
  *    iStyle:
  *      The style to be assigned to the run of characters.
- *    
+ *
  *    iRunStart:
  *      The start of the run of characters. To specify the beginning of
  *      the text buffer, pass kATSUFromTextBeginning for this parameter.
- *    
+ *
  *    iRunLength:
  *      The end of the run of characters. To specify a run that
  *      continues to the end of the text buffer, pass kATSUToTextEnd
  *      for this parameter.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2430,14 +2430,14 @@ function ATSUSetRunStyle( iTextLayout: ATSUTextLayout; iStyle: ATSUStyle; iRunSt
 {$ifc not TARGET_CPU_64}
 {
  *  ATSUGetRunStyle()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTLineGetGlyphRuns instead.
- *  
+ *
  *  Summary:
  *    Obtains style run information for a character offset in a run of
  *    text.
- *  
+ *
  *  Discussion:
  *    You can use the ATSUGetRunStyle function to obtain the style
  *    object assigned to a given text offset. ATSUGetRunStyle also
@@ -2452,38 +2452,38 @@ function ATSUSetRunStyle( iTextLayout: ATSUTextLayout; iStyle: ATSUStyle; iRunSt
  *    and it does not cover the entire text layout object,
  *    ATSUGetRunStyle uses the style run information for the iOffset
  *    parameter to set the style run information for the remaining text.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iTextLayout:
  *      The layout for which to obtain style run information.
- *    
+ *
  *    iOffset:
  *      The beginning character for which you want to obtain style run
  *      information.
- *    
+ *
  *    oStyle:
  *      On return, the style object assigned to the range of text
  *      containing the character at iOffset. Note that if you pass an
  *      offset in the iOffset parameter that is at a style run
  *      boundary, ATSUGetRunStyle produces style run information for
  *      the following, not preceding, style run.
- *    
+ *
  *    oRunStart:
  *      On return, the offset from the beginning of the text buffer to
  *      the first character of the style run containing the character
  *      at iOffset. Note that the entire style run does not necessarily
  *      share the same unset attribute values as the character at
  *      iOffset.
- *    
+ *
  *    oRunLength:
  *      On return, the length of the style run containing the character
  *      at iOffset.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2495,14 +2495,14 @@ function ATSUGetRunStyle( iTextLayout: ATSUTextLayout; iOffset: UniCharArrayOffs
 
 {
  *  ATSUGetContinuousAttributes()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTParagraphStyleCreate instead.
- *  
+ *
  *  Summary:
  *    Obtains the style attribute values that are continuous over a
  *    given text range.
- *  
+ *
  *  Discussion:
  *    This function examines the specified text range to obtain the
  *    style attribute values (including those at default values) that
@@ -2510,31 +2510,31 @@ function ATSUGetRunStyle( iTextLayout: ATSUTextLayout; iOffset: UniCharArrayOffs
  *    ATSUGetContinuousAttributes to determine the style information
  *    that remains constant over text that has been selected by the
  *    user.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iTextLayout:
  *      The layout for which you wish to obtain style run information.
- *    
+ *
  *    iOffset:
  *      The starting character for which to examine style run
  *      attributes. To specify the beginning of the text buffer, pass
  *      kATSUFromTextBeginning for this parameter.
- *    
+ *
  *    iLength:
  *      The length of the range of characters to examine. To specify a
  *      range that continues to the end of the text buffer, pass
  *      kATSUToTextEnd for this parameter.
- *    
+ *
  *    oStyle:
  *      On return, a style object containing those attributes which are
  *      the same for the entire text range specified by the iOffset and
  *      iLength parameters.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2549,13 +2549,13 @@ function ATSUGetContinuousAttributes( iTextLayout: ATSUTextLayout; iOffset: UniC
 { ---------------------------------------------------------------------------- }
 {
  *  ATSUSetTabArray()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTParagraphStyleCreate instead.
- *  
+ *
  *  Summary:
  *    Sets a tab ruler for a text layout object.
- *  
+ *
  *  Discussion:
  *    When a tab ruler is set for a text layout object, ATSUI
  *    automatically aligns text such that any tabs characters in the
@@ -2564,23 +2564,23 @@ function ATSUGetContinuousAttributes( iTextLayout: ATSUTextLayout; iOffset: UniC
  *    function ATSUBatchBreakLines, then you must set tabs by calling
  *    the function ATSUSetTabArray. See the definition of ATSUTab for
  *    more information about setting up a tab ruler.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iTextLayout:
  *      The layout in which to set the tab array.
- *    
+ *
  *    iTabs:
  *      An array of tabstops. See the definition of ATSUTab for more
- *      inforamation about specifying tabs.
- *    
+ *      information about specifying tabs.
+ *
  *    iTabCount:
  *      The number of tab stops in the iTabs array.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -2592,13 +2592,13 @@ function ATSUSetTabArray( iTextLayout: ATSUTextLayout; {const} iTabs: {variable-
 
 {
  *  ATSUGetTabArray()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTParagraphStyleCreate instead.
- *  
+ *
  *  Summary:
  *    Retrieves the tab ruler associated with a text layout object.
- *  
+ *
  *  Discussion:
  *    This function can be used to retrieve all the tabs that were
  *    previously set for a text layout object, using the function
@@ -2612,30 +2612,30 @@ function ATSUSetTabArray( iTextLayout: ATSUTextLayout; {const} iTabs: {variable-
  *    call the function again, passing a valid pointer to the buffer in
  *    the oTabs parameter. On return, the buffer contains the tab
  *    values in order of position along the line from left to right.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iTextLayout:
  *      The text layout for which to retrieve the tab ruler.
- *    
+ *
  *    iMaxTabCount:
  *      The size of the array you have allocated for the oTabs
  *      parameter. If you are unsure what to pass for this parameter,
  *      see the Discussion.
- *    
+ *
  *    oTabs:
  *      On return, an array of ATSUTab structures specifying the
  *      currently set tab ruler for this layout.
- *    
+ *
  *    oTabCount:
  *      On return, the number of tabs currently set in this layout.
  *      Note that this may be greater than the value you have passed
  *      for iMaxTabCount.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -2650,14 +2650,14 @@ function ATSUGetTabArray( iTextLayout: ATSUTextLayout; iMaxTabCount: ItemCount; 
 { ---------------------------------------------------------------------------- }
 {
  *  ATSUCreateFontFallbacks()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTFontDescriptorCreateCopyWithAttributes instead.
- *  
+ *
  *  Summary:
  *    Creates an opaque object that can be set to contain a font list
  *    and a font-search method.
- *  
+ *
  *  Discussion:
  *    After using this fucntion to create an ATSUFontFallbacks object,
  *    you can then use ATSUSetObjFontFallbacks to set the fallback
@@ -2665,19 +2665,19 @@ function ATSUGetTabArray( iTextLayout: ATSUTextLayout; iMaxTabCount: ItemCount; 
  *    kATSULineFontFallbacksTag to apply the object to a layout. You
  *    may then either call ATSUMatchFontsToText to manually perform
  *    font substitution, or call ATSUSetTransientFontMatching to
- *    perform automatic font subtitution.
- *  
+ *    perform automatic font substitution.
+ *
  *  Parameters:
- *    
+ *
  *    oFontFallback:
  *      On return, a reference to a newly created ATSUFontFallbacks
  *      object. You are responsible for freeing this object with
  *      ATSUDisposeFontFallbacks.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.1 and later
@@ -2689,28 +2689,28 @@ function ATSUCreateFontFallbacks( var oFontFallback: ATSUFontFallbacks ): OSStat
 
 {
  *  ATSUDisposeFontFallbacks()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTFontDescriptorCreateCopyWithAttributes instead.
- *  
+ *
  *  Summary:
  *    Disposes of an ATSUDisposeFontFallbacks object.
- *  
+ *
  *  Discussion:
  *    This function will only dispose of the ATSUDisposeFontFallbacks
  *    itself. If you have allocated an array of ATSUFontIDs for use
  *    with this ATSUFontFallbacks object, you are responsible for
  *    freeing it separately.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iFontFallbacks:
  *      The ATSUFontFallbacks object to be disposed of.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.1 and later
@@ -2722,14 +2722,14 @@ function ATSUDisposeFontFallbacks( iFontFallbacks: ATSUFontFallbacks ): OSStatus
 
 {
  *  ATSUSetObjFontFallbacks()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTFontDescriptorCreateCopyWithAttributes instead.
- *  
+ *
  *  Summary:
  *    Assigns a font-search method and a font list to a font fallback
  *    object.
- *  
+ *
  *  Discussion:
  *    This function allows you to define the settings for a font
  *    fallback object. These settings determine the method ATSUI uses
@@ -2740,23 +2740,23 @@ function ATSUDisposeFontFallbacks( iFontFallbacks: ATSUFontFallbacks ): OSStatus
  *    this function, you typically will want to associate the font
  *    fallback object with a text layout using ATSUSetLayoutControls
  *    and the kATSULineFontFallbacksTag attribute.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iFontFallbacks:
  *      The fallback object for which you wish to set or change
  *      settings.
- *    
+ *
  *    iFontFallbacksCount:
  *      The number of fonts contained in the iFonts array. Some font
  *      fallbacks methods do not require such a list. In such cases,
  *      you may pass zero for this paramter.
- *    
+ *
  *    iFonts:
  *      A list of fonts for ATSUI to search through when performing
  *      fallbacks. Some font fallbacks methods do not require such a
  *      list. In such cases, you may pass NULL for this parameter.
- *    
+ *
  *    iFontFallbackMethod:
  *      The font fallback method for ATSUI to use. See the definition
  *      of ATSUFontFallbackMethod for a list of possible constants to
@@ -2764,11 +2764,11 @@ function ATSUDisposeFontFallbacks( iFontFallbacks: ATSUFontFallbacks ): OSStatus
  *      require a list of fonts for ATSUI to search. In such cases, use
  *      the iFonts and iFontFallbacksCount parameters to specify this
  *      list.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.1 and later
@@ -2780,49 +2780,49 @@ function ATSUSetObjFontFallbacks( iFontFallbacks: ATSUFontFallbacks; iFontFallba
 
 {
  *  ATSUGetObjFontFallbacks()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTFontDescriptorCreateCopyWithAttributes instead.
- *  
+ *
  *  Summary:
  *    Returns information about the current settings in an
  *    ATSUFontFallbacks object.
- *  
+ *
  *  Discussion:
  *    Information returned includes the font-search method, and the
  *    font search list, if one is set. Note that some font fallback
  *    modes do not have a client-specified search list. You must
  *    allocate space for this list.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iFontFallbacks:
  *      The font fallback object you want to know the current settings
  *      of.
- *    
+ *
  *    iMaxFontFallbacksCount:
  *      For this parameter, pass in the size of the array you are
  *      passing in for the oFonts parameter.
- *    
+ *
  *    oFonts:
  *      On input, a buffer you have allocated for storing the font
  *      search list. On return, ATSUGetObjFontFallbacks will populate
  *      the list up to iMaxFontFallbacksCount items.
- *    
+ *
  *    oFontFallbackMethod:
  *      On return, the font fallback method currently set for this
  *      object. See the definition of ATSUFontFallbackMethod for more
  *      information regarding the different font fallback modes.
- *    
+ *
  *    oActualFallbacksCount:
  *      On return, the size of the font search list. You can use this
  *      parameter to determine how much space to allocate for the
  *      oFonts parameter.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.1 and later
@@ -2839,14 +2839,14 @@ function ATSUGetObjFontFallbacks( iFontFallbacks: ATSUFontFallbacks; iMaxFontFal
 
 {
  *  ATSUMatchFontsToText()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTFontCreateForString instead.
- *  
+ *
  *  Summary:
  *    Examines a text range for characters that cannot be drawn with
  *    the current font and suggests a substitute font, if necessary.
- *  
+ *
  *  Discussion:
  *    When you call the ATSUMatchFontsToText function, ATSUI scans the
  *    given range of text for characters that cannot be drawn with the
@@ -2881,36 +2881,36 @@ function ATSUGetObjFontFallbacks( iFontFallbacks: ATSUFontFallbacks; iMaxFontFal
  *    suggested font substitution to be performed. If you want ATSUI to
  *    perform font substitution automatically, you can call the
  *    function ATSUSetTransientFontMatching.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iTextLayout:
  *      The text layout object to examine.
- *    
+ *
  *    iTextStart:
  *      The first character of the range to examine. To start at the
  *      beginning of the text buffer, pass the constant
  *      kATSUFromTextBeginning.
- *    
+ *
  *    iTextLength:
  *      The length of the text range to examine. If you want the range
  *      of text to extend to the end of the text buffer, you can pass
  *      the constant kATSUToTextEnd.
- *    
+ *
  *    oFontID:
  *      On return, the value provides a font ID for the suggested
  *      substitute font or kATSUInvalidFontID, if no substitute font is
  *      available.
- *    
+ *
  *    oChangedOffset:
  *      On return, this value specifies the offset from the beginning
  *      of the text buffer to the first character that cannot be drawn
  *      with the current font.
- *    
+ *
  *    oChangedLength:
  *      On return, this value specifies the length of the text range
  *      that cannot be drawn with the current font.
- *  
+ *
  *  Result:
  *    The result code noErr indicates that all the characters in the
  *    given range can be rendered with their current font(s) and no
@@ -2919,7 +2919,7 @@ function ATSUGetObjFontFallbacks( iFontFallbacks: ATSUFontFallbacks; iMaxFontFal
  *    update the input range and call ATSUMatchFontsToText again to
  *    ensure that all the characters in the range can be drawn. See
  *    MacErrors.h for other possible error codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2931,13 +2931,13 @@ function ATSUMatchFontsToText( iTextLayout: ATSUTextLayout; iTextStart: UniCharA
 
 {
  *  ATSUSetTransientFontMatching()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CoreText API instead.
- *  
+ *
  *  Summary:
  *    Sets the current transient font matching state for a given layout.
- *  
+ *
  *  Discussion:
  *    Transient font matching allows ATSUI to automatically substitute
  *    glyphs from other fonts if the specified styles do not contain
@@ -2945,21 +2945,21 @@ function ATSUMatchFontsToText( iTextLayout: ATSUTextLayout; iTextStart: UniCharA
  *    behavior of this font substitution by calling the function
  *    ATSUCreateFontFallbacks and defining your own font fallback
  *    settings for the text layout object.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iTextLayout:
  *      A layout for which to set the current transient font matching
  *      state.
- *    
+ *
  *    iTransientFontMatching:
  *      A boolean value indicating if the current transient font
  *      matching state to set.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2972,14 +2972,14 @@ function ATSUSetTransientFontMatching( iTextLayout: ATSUTextLayout; iTransientFo
 {$ifc not TARGET_CPU_64}
 {
  *  ATSUGetTransientFontMatching()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CoreText API instead.
- *  
+ *
  *  Summary:
  *    Obtains the current transient font matching state for a given
  *    layout.
- *  
+ *
  *  Discussion:
  *    Transient font matching allows ATSUI to automatically substitute
  *    glyphs from other fonts if the specified styles do not contain
@@ -2987,21 +2987,21 @@ function ATSUSetTransientFontMatching( iTextLayout: ATSUTextLayout; iTransientFo
  *    behavior of this font substitution by calling the function
  *    ATSUCreateFontFallbacks and defining your own font fallback
  *    settings for the text layout object.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iTextLayout:
  *      A layout for which to obtain the current transient font
  *      matching state.
- *    
+ *
  *    oTransientFontMatching:
  *      On return, a boolean value indicating the current transient
  *      font matching state.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3018,13 +3018,13 @@ function ATSUGetTransientFontMatching( iTextLayout: ATSUTextLayout; var oTransie
 { ---------------------------------------------------------------------------- }
 {
  *  ATSUSetFontFallbacks()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CoreText API instead.
- *  
+ *
  *  Summary:
  *    Sets font fallback behavior on a global basis.
- *  
+ *
  *  Discussion:
  *    Control of font fallback behavior on a global basis is no longer
  *    recommended. Object based font fallbacks are preferred. See the
@@ -3032,11 +3032,11 @@ function ATSUGetTransientFontMatching( iTextLayout: ATSUTextLayout; var oTransie
  *    ATSUSetObjFontFallbacks, and ATSUGetObjFontFallbacks, as well as
  *    the kATSULineFontFallbacksTag attribute for more information
  *    about object based font fallbacks.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.3
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3048,13 +3048,13 @@ function ATSUSetFontFallbacks( iFontFallbacksCount: ItemCount; {const} iFontIDs:
 
 {
  *  ATSUGetFontFallbacks()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CoreText API instead.
- *  
+ *
  *  Summary:
  *    Gets the current global font fallback behavior.
- *  
+ *
  *  Discussion:
  *    Control of font fallback behavior on a global basis is no longer
  *    recommended. Object based font fallbacks are preferred. See the
@@ -3062,11 +3062,11 @@ function ATSUSetFontFallbacks( iFontFallbacksCount: ItemCount; {const} iFontIDs:
  *    ATSUSetObjFontFallbacks, and ATSUGetObjFontFallbacks, as well as
  *    the kATSULineFontFallbacksTag attribute for more information
  *    about object based font fallbacks.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.3
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3081,17 +3081,17 @@ function ATSUGetFontFallbacks( iMaxFontFallbacksCount: ItemCount; oFontIDs: {var
 { ---------------------------------------------------------------------------- }
 {
  *  ATSUCreateTextLayoutWithTextHandle()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTTypesetterCreateWithAttributedString,
  *    CTTypesetterCreateWithAttributedStringAndOptions,
  *    CTLineCreateWithAttributedString, CTLineCreateTruncatedLine, or
  *    CTLineCreateJustifiedLine instead.
- *  
+ *
  *  Discussion:
  *    This function is no longer recommended. Please use
  *    ATSUCreateTextLayoutWithTextPtr instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.0
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3103,14 +3103,14 @@ function ATSUCreateTextLayoutWithTextHandle( iText: UniCharArrayHandle; iTextOff
 
 {
  *  ATSUSetTextHandleLocation()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CoreText API and CFAttributedStringSetAttributes instead.
- *  
+ *
  *  Discussion:
  *    This function is no longer recommended. Please use
  *    ATSUSetTextPointerLocation instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.0
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3125,18 +3125,18 @@ function ATSUSetTextHandleLocation( iTextLayout: ATSUTextLayout; iText: UniCharA
 { ---------------------------------------------------------------------------- }
 {
  *  ATSUIdle()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    No longer needed on MacOS X.
- *  
+ *
  *  Summary:
  *    Performs background processing.
- *  
+ *
  *  Discussion:
  *    Current versions of ATSUI do not implement background processing
  *    for text layout objects. In Mac OS X, the function ATSUIdle does
  *    nothing.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.0
  *    CarbonLib:        in CarbonLib 1.0 and later

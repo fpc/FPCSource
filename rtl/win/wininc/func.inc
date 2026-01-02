@@ -1300,8 +1300,8 @@ function GET_DEVICE_CHANGE_WPARAM(wParam: WPARAM): WORD; inline;
 function GET_DEVICE_CHANGE_LPARAM(lParam: LPARAM): WORD; inline;
 //#endif /* (_WIN32_WINNT >= 0x0601) */
 
-function CONSOLE_REAL_OUTPUT_HANDLE : HANDLE; 
-  function CONSOLE_REAL_INPUT_HANDLE : HANDLE; 
+function CONSOLE_REAL_OUTPUT_HANDLE : HANDLE;
+  function CONSOLE_REAL_INPUT_HANDLE : HANDLE;
   function GetConsoleScreenBufferInfoEx(hConsoleOutput:HANDLE; lpConsoleScreenBufferInfoEx:PCONSOLE_SCREEN_BUFFER_INFOEX):BOOL;stdcall;external 'kernel32' name 'GetConsoleScreenBufferInfoEx';
   function SetConsoleScreenBufferInfoEx(hConsoleOutput:HANDLE; lpConsoleScreenBufferInfoEx:PCONSOLE_SCREEN_BUFFER_INFOEX):BOOL;stdcall;external 'kernel32' name 'SetConsoleScreenBufferInfoEx';
  // function GetLargestConsoleWindowSize(hConsoleOutput:HANDLE):COORD;stdcall;external 'kernel32' name 'GetLargestConsoleWindowSize';
@@ -1313,13 +1313,13 @@ function CONSOLE_REAL_OUTPUT_HANDLE : HANDLE;
   function GetConsoleFontSize(hConsoleOutput:HANDLE; nFont:DWORD):COORD;stdcall;external 'kernel32' name 'GetConsoleFontSize';
   function GetConsoleSelectionInfo(lpConsoleSelectionInfo:PCONSOLE_SELECTION_INFO):BOOL;stdcall;external 'kernel32' name 'GetConsoleSelectionInfo';
   function AttachConsole(dwProcessId:DWORD):BOOL;stdcall;external 'kernel32' name 'AttachConsole';
-  function ATTACH_PARENT_PROCESS : DWORD;    
+  function ATTACH_PARENT_PROCESS : DWORD;
 
   function GetConsoleDisplayMode(lpModeFlags:LPDWORD):BOOL;stdcall;external 'kernel32' name 'GetConsoleDisplayMode';
   function SetConsoleDisplayMode(hConsoleOutput:HANDLE; dwFlags:DWORD; lpNewScreenBufferDimensions:PCOORD):BOOL;stdcall;external 'kernel32' name 'SetConsoleDisplayMode';
   function GetConsoleWindow:HWND;stdcall;external 'kernel32' name 'GetConsoleWindow';
   function GetConsoleProcessList(lpdwProcessList:LPDWORD; dwProcessCount:DWORD):DWORD;stdcall;external 'kernel32' name 'GetConsoleProcessList';
-  function ReadDirectoryChangesW(hDirectory: HANDLE; lpBuffer: LPVOID;nBufferLength: DWORD; bWatchSubtree: BOOL; dwNotifyFilter: DWORD;lpBytesReturned: LPDWORD;lpOverlapped: LPOVERLAPPED;lpCompletionRoutine: LPOVERLAPPED_COMPLETION_ROUTINE): BOOL; stdcall; external 'kernel32' name 'ReadDirectoryChangesW';  
+  function ReadDirectoryChangesW(hDirectory: HANDLE; lpBuffer: LPVOID;nBufferLength: DWORD; bWatchSubtree: BOOL; dwNotifyFilter: DWORD;lpBytesReturned: LPDWORD;lpOverlapped: LPOVERLAPPED;lpCompletionRoutine: LPOVERLAPPED_COMPLETION_ROUTINE): BOOL; stdcall; external 'kernel32' name 'ReadDirectoryChangesW';
   function IsDebuggerPresent : BOOL; stdcall; external 'kernel32.dll' name 'IsDebuggerPresent';
   function Wow64DisableWow64FsRedirection(RedirectionState : ppointer) : BOOL; stdcall;   external 'kernel32.dll' name 'Wow64DisableWow64FsRedirection';
   function Wow64EnableWow64FsRedirection(Wow64FsEnableRedirection:BYTE) : BOOL; stdcall;   external 'kernel32.dll' name 'Wow64EnableWow64FsRedirection';
@@ -1371,9 +1371,9 @@ function CONSOLE_REAL_OUTPUT_HANDLE : HANDLE;
   function Thread32First(hSnapshot: HANDLE; var lpte: THREADENTRY32): BOOL; stdcall; external KernelDLL;
   function Thread32Next(hSnapshot: HANDLE; var lpte: THREADENTRY32): BOOL; stdcall; external KernelDLL;
   function Toolhelp32ReadProcessMemory(th32ProcessID: DWORD; lpBaseAddress: pointer; lpBuffer: pointer; cbRead: SIZE_T; lpNumberOfBytesRead: PSIZE_T): BOOL; stdcall; external KernelDLL;
-  function GetFileSizeEx(InFileHandle : THANDLE;OutFileSize  : PLARGE_INTEGER): BOOL; stdcall; external kernelDLL; 
+  function GetFileSizeEx(InFileHandle : THANDLE;OutFileSize  : PLARGE_INTEGER): BOOL; stdcall; external kernelDLL;
   function SetFilePointerEx(InFile : THANDLE; InDistanceToMove : LARGE_INTEGER;OutoptNewFilePointer : PLARGE_INTEGER;InMoveMethod : DWORD): BOOL; stdcall; external KernelDLL;
-  
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -2476,7 +2476,7 @@ end;
     ((ULONG_PTR)(ntheader) + \
      FIELD_OFFSET( IMAGE_NT_HEADERS, OptionalHeader ) + \
      ((ntheader))->FileHeader.SizeOfOptionalHeader \
-    )) 
+    ))
 
 }
 
@@ -2516,7 +2516,7 @@ begin
   GET_DEVICE_CHANGE_LPARAM:=LOWORD(lParam);
 end;
 
-function CONSOLE_REAL_OUTPUT_HANDLE : HANDLE; 
+function CONSOLE_REAL_OUTPUT_HANDLE : HANDLE;
 begin
   CONSOLE_REAL_OUTPUT_HANDLE:=HANDLE(-(2));
 end;

@@ -1,17 +1,17 @@
 {
      File:       OpenScripting/AppleScript.h
- 
+
      Contains:   AppleScript Specific Interfaces.
- 
+
      Version:    OSA-148~28
- 
+
      Copyright:  © 1992-2008 by Apple Computer, Inc., all rights reserved
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 
 {  Pascal Translation Updated: Gorazd Krosl <gorazd_1957@yahoo.ca>, October 2009 }
@@ -263,9 +263,9 @@ const
 
 {
         This selector is used to query a context as to whether it contains
-        a handler for the kAEOpenDocuments event. This allows "applets" to be 
+        a handler for the kAEOpenDocuments event. This allows "applets" to be
         distinguished from "droplets."  OSAGetScriptInfo returns false if
-        there is no kAEOpenDocuments handler, and returns the error value 
+        there is no kAEOpenDocuments handler, and returns the error value
         errOSAInvalidAccess if the input is not a context.
     }
 {*************************************************************************
@@ -273,7 +273,7 @@ const
 *************************************************************************}
 {
  *  ASInit()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -288,7 +288,7 @@ function ASInit( scriptingComponent: ComponentInstance; modeFlags: SInt32; minSt
         This call can be used to explicitly initialize AppleScript.  If it is
         not called, the a scripting size resource is looked for and used. If
         there is no scripting size resource, then the constants listed below
-        are used.  If at any stage (the init call, the size resource, the 
+        are used.  If at any stage (the init call, the size resource, the
         defaults) any of these parameters are zero, then parameters from the
         next stage are used.  ModeFlags are not currently used.
         Errors:
@@ -311,10 +311,10 @@ const
 *************************************************************************}
 {
  *  ASSetSourceStyles()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    use ASSetSourceAttributes instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -326,10 +326,10 @@ function ASSetSourceStyles( scriptingComponent: ComponentInstance; sourceStyles:
 
 {
  *  ASGetSourceStyles()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    use ASCopySourceAttributes instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -341,20 +341,20 @@ function ASGetSourceStyles( scriptingComponent: ComponentInstance; var resulting
 
 {
  *  ASCopySourceAttributes()
- *  
+ *
  *  Summary:
  *    Get the current AppleScript source style attributes.
- *  
+ *
  *  Discussion:
  *    A "style attribute" will typically be something meaningful to a
  *    CFAttributedString, but clients may add any attributes they like
  *    using ASSetSourceAttributes.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    scriptingComponent:
  *      A valid AppleScript component instance.
- *    
+ *
  *    resultingSourceAttributes:
  *      If successful, *resultingSourceAttributes will be set to a
  *      CFArray of CFDictionaries of text attributes.  The order of the
@@ -362,7 +362,7 @@ function ASGetSourceStyles( scriptingComponent: ComponentInstance; var resulting
  *      and therefore also to the names returned by
  *      ASGetSourceStyleNames. The caller is responsible for releasing
  *      this array.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -374,28 +374,28 @@ function ASCopySourceAttributes( scriptingComponent: ComponentInstance; var resu
 
 {
  *  ASSetSourceAttributes()
- *  
+ *
  *  Summary:
  *    Set the AppleScript source style attributes.
- *  
+ *
  *  Discussion:
  *    A "style attribute" will typically be something meaningful to a
  *    CFAttributedString, but clients may add any attributes they like.
  *     Because of this, you should generally call ASSetSourceAttributes
  *    with a modified copy of the result from ASCopySourceAttributes,
  *    not a built-from-scratch set of attributes.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    scriptingComponent:
  *      A valid AppleScript component instance.
- *    
+ *
  *    sourceAttributes:
  *      A CFArray of CFDictionaries of text attributes.  The order of
  *      the array elements corresponds to the source style constants
  *      below, and therefore also to the names returned by
  *      ASGetSourceStyleNames.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -407,17 +407,17 @@ function ASSetSourceAttributes( scriptingComponent: ComponentInstance; sourceAtt
 
 {
  *  ASGetSourceStyleNames()
- *  
+ *
  *  Summary:
  *    Returns the AppleScript source style names.
- *  
+ *
  *  Discussion:
  *    This call returns an AEList of text descriptors with the names of
  *    the source styles.  The order of the names corresponds to the
  *    order of the source style constants, below.  The precise type of
  *    the text descriptors is not defined; you should coerce them to
  *    the type you want to handle.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later

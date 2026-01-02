@@ -189,7 +189,7 @@ type sigset_t = array[0..3] of Longint;
     Sa_Mask     : TSigSet;
   end;
   PSigActionRec = ^SigActionRec;
-  
+
 
 {$ifndef CPUPOWERPC64}
   pstack_t = ^stack_t;

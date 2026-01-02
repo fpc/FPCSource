@@ -7,7 +7,7 @@
 #    Author:        Nikolay Nikolov <nickysn@users.sourceforge.net>
 #                   Based on the cp437, cp855 and cp866 tables by:
 #                   Shawn.Steele@microsoft.com
-#                   
+#
 #    General notes: This was the most popular DOS/OEM code page, used in
 #                   Bulgaria, during the DOS era. It was the default character
 #                   set of the Bulgarian Pravetz-16 IBM PC compatible computers

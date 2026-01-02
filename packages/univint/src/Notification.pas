@@ -1,17 +1,17 @@
 {
      File:       HIToolbox/Notification.h
- 
+
      Contains:   Notification Manager interfaces
- 
+
      Version:    HIToolbox-624~3
- 
+
      Copyright:  © 1989-2008 by Apple Computer, Inc., all rights reserved
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {       Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, August 2005 }
 {       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
@@ -249,7 +249,7 @@ type
 
 {
  *  NewNMUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -260,7 +260,7 @@ function NewNMUPP( userRoutine: NMProcPtr ): NMUPP; external name '_NewNMUPP';
 
 {
  *  DisposeNMUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -271,7 +271,7 @@ procedure DisposeNMUPP( userUPP: NMUPP ); external name '_DisposeNMUPP';
 
 {
  *  InvokeNMUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -283,10 +283,10 @@ procedure InvokeNMUPP( nmReqPtr: NMRecPtr; userUPP: NMUPP ); external name '_Inv
 {$ifc not TARGET_CPU_64}
 {
  *  NMInstall()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -298,10 +298,10 @@ function NMInstall( nmReqPtr: NMRecPtr ): OSErr; external name '_NMInstall';
 
 {
  *  NMRemove()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later

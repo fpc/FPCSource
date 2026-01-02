@@ -1,13 +1,13 @@
 {
      File:       LSOpen.h
- 
+
      Contains:   Public interfaces for LaunchServices.framework
- 
+
      Copyright:  (c) 2003-2012 by Apple Inc. All rights reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
 }
 
@@ -278,30 +278,30 @@ type
 
 {
  *  LSOpenFSRef()
- *  
+ *
  *  Summary:
  *    Open an application, document, or folder.
- *  
+ *
  *  Discussion:
  *    Opens applications, documents, and folders. Applications are
  *    opened via an 'oapp' or 'rapp' event. Documents are opened in
  *    their user-overridden or default applications as appropriate.
  *    Folders are opened in the Finder. Use the more specific
  *    LSOpenFromRefSpec for more control over launching.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inRef:
  *      The FSRef of the item to launch.
- *    
+ *
  *    outLaunchedRef:
  *      The FSRef of the item actually launched. For inRefs that are
  *      documents, outLaunchedRef will be the application used to
  *      launch the document. Can be NULL.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x
@@ -313,32 +313,32 @@ function LSOpenFSRef( const (*var*) inRef: FSRef; outLaunchedRef: FSRefPtr { can
 
 {
  *  LSOpenCFURLRef()
- *  
+ *
  *  Summary:
  *    Open an application, document, or folder.
- *  
+ *
  *  Discussion:
  *    Opens applications, documents, and folders. Applications are
  *    opened via an 'oapp' or 'rapp' event. Documents are opened in
  *    their user-overridden or default applications as appropriate.
  *    Folders are opened in the Finder. Use the more specific
  *    LSOpenFromURLSpec for more control over launching.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inURL:
  *      The CFURLRef of the item to launch.
- *    
+ *
  *    outLaunchedURL:
  *      The CFURLRef of the item actually launched. For inURLs that are
  *      documents, outLaunchedURL will be the application used to
  *      launch the document. Can be NULL. THIS FUNCTION, DESPITE ITS
  *      NAME, RETAINS THE URL REFERENCE ON BEHALF OF THE CALLER. THE
  *      CALLER MUST EVENTUALLY RELEASE THE RETURNED URL REFERENCE.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x
@@ -350,26 +350,26 @@ function LSOpenCFURLRef( inURL: CFURLRef; outLaunchedURL: CFURLRefPtr { can be N
 
 {
  *  LSOpenFromRefSpec()
- *  
+ *
  *  Summary:
  *    Opens an application or one or more documents or folders.
- *  
+ *
  *  Discussion:
  *    Opens applications, documents, and folders.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inLaunchSpec:
  *      The specification of what to launch and how to launch it.
- *    
+ *
  *    outLaunchedRef:
  *      The FSRef of the item actually launched. For inRefs that are
  *      documents, outLaunchedRef will be the application used to
  *      launch the document. Can be NULL.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x
@@ -381,28 +381,28 @@ function LSOpenFromRefSpec( const (*var*) inLaunchSpec: LSLaunchFSRefSpec; outLa
 
 {
  *  LSOpenFromURLSpec()
- *  
+ *
  *  Summary:
  *    Opens an application or one or more documents or folders.
- *  
+ *
  *  Discussion:
  *    Opens applications, documents, and folders.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inLaunchSpec:
  *      The specification of what to launch and how to launch it.
- *    
+ *
  *    outLaunchedURL:
  *      The CFURLRef of the item actually launched. For inURLs that are
  *      documents, outLaunchedURL will be the application used to
  *      launch the document. Can be NULL. THIS FUNCTION, DESPITE ITS
  *      NAME, RETAINS THE URL REFERENCE ON BEHALF OF THE CALLER. THE
  *      CALLER MUST EVENTUALLY RELEASE THE RETURNED URL REFERENCE.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x
@@ -423,8 +423,8 @@ function LSOpenFromURLSpec( const (*var*) inLaunchSpec: LSLaunchURLSpec; outLaun
  *    an application, launch flags, and additional parameters
  *    controlling how an application is launched.
  *
- *    A version field allows the structure to be extended in 
- *    future releases. 
+ *    A version field allows the structure to be extended in
+ *    future releases.
  }
 type
 	LSApplicationParameters = record
@@ -440,10 +440,10 @@ type
 	end;
 type
 	LSApplicationParametersPtr = ^LSApplicationParameters;
-	
+
 {
  *  LSOpenApplication()
- *  
+ *
  *    LSOpenApplication launches one application. This function
  *    is an updated alternative to the Process Manager's LaunchApplication().
  *
@@ -452,17 +452,17 @@ type
  *    session, it will be made the front process (unless the kLSLaunchNewInstance
  *    flag is used, which will always cause a new process to be created).
  *
- *    If outPSN is not NULL, the structure it points to will contain the process 
- *    serial number of the launched (or activated) process. Note that for 
+ *    If outPSN is not NULL, the structure it points to will contain the process
+ *    serial number of the launched (or activated) process. Note that for
  *    asynchronous launches, the application may not have finished launching
  *    when this function returns.
  }
 {
  *  LSOpenApplication()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.4
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -474,20 +474,20 @@ function LSOpenApplication( const (*var*) appParams: LSApplicationParameters; ou
 
 {
  *  LSOpenItemsWithRole()
- *  
+ *
  *    Opens the items specified as an array of FSRefs with the role
  *    specified by inRoleMask. If the role doesn't matter, use kLSRolesAll.
  *
- *    Clients can optionally specify the application and launch parameters 
- *    in inAppParams. If a specific application is given in inAppParams, then 
- *    inRoleMask is ignored and the application is launched (if necessary). 
- *    Otherwise, an application will be selected which can handle each input 
+ *    Clients can optionally specify the application and launch parameters
+ *    in inAppParams. If a specific application is given in inAppParams, then
+ *    inRoleMask is ignored and the application is launched (if necessary).
+ *    Otherwise, an application will be selected which can handle each input
  *    item in the specified role(s).
  *
  *    Each launched application will receive an 'odoc' Apple Event specifying
  *    which items are to be opened.
  *
- *    Note that if the input items array contains any applications, this 
+ *    Note that if the input items array contains any applications, this
  *    function will not launch them unless the kLSRolesShell bit is set
  *    in the inRolesMask (in which case the application is its own shell).
  *
@@ -501,10 +501,10 @@ function LSOpenApplication( const (*var*) appParams: LSApplicationParameters; ou
  }
 {
  *  LSOpenItemsWithRole()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.4
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -516,24 +516,24 @@ function LSOpenItemsWithRole( const (*var*) inItems: FSRef; inItemCount: CFIndex
 
 {
  *  LSOpenURLsWithRole()
- *  
+ *
  *    Opens the URLs specified by inURLs (an array of CFURLRefs) with the role
  *    specified by inRoleMask. If the role doesn't matter, use kLSRolesAll.
  *
- *    Clients can optionally specify the application and launch parameters 
- *    in inAppParams. If a specific application is given in inAppParams, then 
- *    inRoleMask is ignored and the application is launched (if necessary). 
- *    Otherwise, an application will be selected which can handle each input 
+ *    Clients can optionally specify the application and launch parameters
+ *    in inAppParams. If a specific application is given in inAppParams, then
+ *    inRoleMask is ignored and the application is launched (if necessary).
+ *    Otherwise, an application will be selected which can handle each input
  *    URL in at least one of the specified role(s).
  *
- *    Each launched application will receive one or more 'GURL' Apple Event 
+ *    Each launched application will receive one or more 'GURL' Apple Event
  *    specifying the URLs to be opened. Clients may also pass file URLs, which
- *    will be interpreted as file system items and opened in the manner of 
+ *    will be interpreted as file system items and opened in the manner of
  *    LSOpenItemsWithRole (i.e., a handler will be selected base on the item's
  *    metadata).
  *
- *    Note that if the input array contains any application URLs, this 
- *    function will not launch them unless the kLSRolesShell bit is set 
+ *    Note that if the input array contains any application URLs, this
+ *    function will not launch them unless the kLSRolesShell bit is set
  *    in the inRolesMask (in which case the application is its own shell).
  *
  *    The optional inAEParam argument specifies an AEDesc to be attached to
@@ -546,10 +546,10 @@ function LSOpenItemsWithRole( const (*var*) inItems: FSRef; inItemCount: CFIndex
  }
 {
  *  LSOpenURLsWithRole()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.4
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available

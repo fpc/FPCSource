@@ -1,15 +1,15 @@
 {
      File:       PrintCore/PMCoreDeprecated.h
- 
+
      Contains:   Deprecated Carbon Printing Manager Interfaces.
- 
+
      Copyright (c) 1998-2006,2008 by Apple Inc. All Rights Reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {  Pascal Translation:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
@@ -229,13 +229,13 @@ uses MacTypes,Files,QuickdrawTypes,PMDefinitions,PMDefinitionsDeprecated,ColorSy
 
 {
  *  PMFlattenPageFormatToCFData() *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    Use PMPageFormatCreateDataRepresentation instead.
  *
  *  Summary:
  *    Returns a flattened representation of the page format object in a CFDataRef.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in ApplicationServices.framework but deprecated in 10.5
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.4 and later
@@ -246,14 +246,14 @@ function PMFlattenPageFormatToCFData( pageFormat: PMPageFormat; var flatFormat: 
 
 {
  *  PMFlattenPageFormatToURL() *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    Instead use PMPageFormatCreateDataRepresentation and write the resulting data to your destination.
  *
  *  Summary:
  *    Writes a flattened representation of the print settings to the
  *    URL specified by flattenFileURL.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in ApplicationServices.framework but deprecated in 10.5
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.4 and later
@@ -264,24 +264,24 @@ function PMFlattenPageFormatToURL( pageFormat: PMPageFormat; flattenFileURL: CFU
 
 {
  *  PMUnflattenPageFormatWithCFData()	*** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    Use PMPageFormatCreateWithDataRepresentation instead.
  *
  *  Summary:
  *    Returns a page format object given a CFDataRef to a previously
  *    flattened page format.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    flattenCFData:
  *      A CFDataRef containing a flattened print settings.
- *    
+ *
  *    pageFormat:
  *      On return, a newly created page format object create with the
  *      data contained in 'flattenCFData'. The printing framework will
  *      create the object. The app is responsible for disposing of it.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in ApplicationServices.framework but deprecated in 10.5
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.4 and later
@@ -292,25 +292,25 @@ function PMUnflattenPageFormatWithCFData( flattenCFData: CFDataRef; var pageForm
 
 {
  *  PMUnflattenPageFormatWithURL()	*** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    Instead read the data into a CFData object and use PMPageFormatCreateWithDataRepresentation.
  *
  *  Summary:
  *    Returns a page format object given a CFURLRef referencing a file
  *    containing a previously flattened page format.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    flattenFileURL:
  *      A CFURLRef referencing a file that contains a flattened page
  *      format.
- *    
+ *
  *    pageFormat:
  *      On return, a newly created page format object created from the
  *      flattened page format data specified by 'flattenFileURL'. The
  *      caller is responsible for releasing the page format created.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in ApplicationServices.framework but deprecated in 10.5
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.4 and later
@@ -321,13 +321,13 @@ function PMUnflattenPageFormatWithURL( flattenFileURL: CFURLRef; var pageFormat:
 
 {
  *  PMFlattenPrintSettingsToCFData()	*** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    Use PMPrintSettingsCreateDataRepresentation instead.
  *
  *  Summary:
  *    Returns a flattened print settings object as a CFDataRef.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in ApplicationServices.framework but deprecated in 10.5
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.4 and later
@@ -338,14 +338,14 @@ function PMFlattenPrintSettingsToCFData( printSettings: PMPrintSettings; var fla
 
 {
  *  PMFlattenPrintSettingsToURL()	*** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    Instead use PMPrintSettingsCreateDataRepresentation and write the resulting data to your destination.
  *
  *  Summary:
  *    Writes a flattened representation of the print settings to the
  *    URL specified by flattenFileURL.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in ApplicationServices.framework but deprecated in 10.5
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.4 and later
@@ -356,25 +356,25 @@ function PMFlattenPrintSettingsToURL( printSettings: PMPrintSettings; flattenFil
 
 {
  *  PMUnflattenPrintSettingsWithCFData()	*** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    Use PMPrintSettingsCreateWithDataRepresentation instead.
  *
  *  Summary:
  *    Returns a print settings object given a CFDataRef to a previously
  *    flatten print settings.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    flattenCFData:
  *      A CFDataRef containing a flatten print settings.
- *    
+ *
  *    printSettings:
  *      On return, a newly created print settings object create with
  *      the data contained in 'flattenCFData'. The printing framework
  *      will create the object. The app is responsible for disposing of
  *      it.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in ApplicationServices.framework but deprecated in 10.5
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.4 and later
@@ -385,25 +385,25 @@ function PMUnflattenPrintSettingsWithCFData( flattenCFData: CFDataRef; var print
 
 {
  *  PMUnflattenPrintSettingsWithURL()	*** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    Instead read the data into a CFData object and use PMPrintSettingsCreateWithDataRepresentation.
  *
  *  Summary:
  *    Returns a print settings object given a CFURLRef referencing a
  *    file containing a previously flattened print settings.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    flattenFileURL:
  *      A CFURLRef referencing a file that contains a flattened print
  *      settings.
- *    
+ *
  *    printSettings:
  *      On return, a newly created print settings object created with
  *      the data specified by 'flattenFileURL'. The caller is
  *      responsible for releasing the print settings created.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in ApplicationServices.framework but deprecated in 10.5
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.4 and later
@@ -411,10 +411,10 @@ function PMUnflattenPrintSettingsWithCFData( flattenCFData: CFDataRef; var print
  }
 function PMUnflattenPrintSettingsWithURL( flattenFileURL: CFURLRef; var printSettings: PMPrintSettings ): OSStatus; external name '_PMUnflattenPrintSettingsWithURL';
 (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
-  
+
 {
  *  PMGetPrintSettingsExtendedData()	*** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    Use PMPrintSettingsGetValue instead.
  *
@@ -428,7 +428,7 @@ function PMGetPrintSettingsExtendedData( printSettings: PMPrintSettings; dataID:
 
 {
  *  PMSetPrintSettingsExtendedData()	*** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    Use PMPrintSettingsSetValue instead.
  *
@@ -442,51 +442,51 @@ function PMSetPrintSettingsExtendedData( printSettings: PMPrintSettings; dataID:
 
 {
  *  PMPaperGetName()
- *  
+ *
  *  Summary:
  *    Returns the name for a given paper.
- *  
+ *
  *  Discussion:
  *		Use PMPaperCreateLocalizedName instead
  *
  *  Parameters:
- *    
+ *
  *    paper:
  *      Obtain the name for this paper.
- *    
+ *
  *    paperName:
  *      If successful noErr is returned and *paperName is set to the
  *      name of the paper. The returned paper name is that appropriate
  *      to display to a user.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in ApplicationServices.framework but deprecated in 10.7
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
  *    Non-Carbon CFM:   not available
- *  
+ *
  *  Compatibility:
  *  	Not appropriate for CUPS filters, drivers, and backends.
- *  
+ *
  }
 function PMPaperGetName( paper: PMPaper; var paperName: CFStringRef ): OSStatus; external name '_PMPaperGetName';
 (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_7 *)
 
 {
  *  PMPrinterCreatePaperInfoListForMenu()
- *  
+ *
  *  Summary:
  *    Hand back a list of paper info items that can be used to create a
  *    paper size menu. Each item is a dictionary describing the menu item.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    printer:
  *      The printer whose page size list should be enumerated. To get
  *      the session's current printer, see PMSessionGetCurrentPrinter().
- *    
+ *
  *    pageFormat:
- *      The page format object that contains the current paper size. 
- *    
+ *      The page format object that contains the current paper size.
+ *
  *    paperInfoList:
  *      If this function is successful then noErr will be returned and
  *      *'paperInfoList' will be set to a newly created CFArray. Each
@@ -511,11 +511,11 @@ function PMPrinterCreatePaperInfoListForMenu( printer: PMPrinter; pageFormat: PM
 
 {
  *  PMSetProfile()   *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    Application must be rendering with QuickDraw for this to have
  *    effect. Use Quartz drawing instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -535,7 +535,7 @@ type
 
 {
  *  NewPMIdleUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -546,7 +546,7 @@ function NewPMIdleUPP( userRoutine: PMIdleProcPtr ): PMIdleUPP; external name '_
 
 {
  *  DisposePMIdleUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -557,7 +557,7 @@ procedure DisposePMIdleUPP( userUPP: PMIdleUPP ); external name '_DisposePMIdleU
 
 {
  *  InvokePMIdleUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -574,7 +574,7 @@ procedure InvokePMIdleUPP( userUPP: PMIdleUPP ); external name '_InvokePMIdleUPP
  }
 {
  *  PMSessionBeginDocumentNoDialog()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.6 and later
@@ -585,22 +585,22 @@ function PMSessionBeginDocumentNoDialog( printSession: PMPrintSession; printSett
 
 {
  *  PMSessionGetGraphicsContext()   *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    Use PMSessionGetCGGraphicsContext instead.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    printSession:
  *      the session
- *    
+ *
  *    graphicsContextType:
  *      either kPMGraphicsContextQuickdraw or
  *      kPMGraphicsContextCoreGraphics
- *    
+ *
  *    graphicsContext:
  *      returns a GrafPtr or a CGContextRef
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -611,11 +611,11 @@ function PMSessionGetGraphicsContext( printSession: PMPrintSession; graphicsCont
 
 {
  *  PMSessionEnableColorSync()   *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    Application must be rendering with QuickDraw for this to have
  *    effect. Use Quartz drawing instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -627,11 +627,11 @@ function PMSessionEnableColorSync( printSession: PMPrintSession ): OSStatus; ext
 
 {
  *  PMSessionDisableColorSync()   *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    Application must be rendering with QuickDraw for this to have
  *    effect. Use Quartz drawing instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -643,7 +643,7 @@ function PMSessionDisableColorSync( printSession: PMPrintSession ): OSStatus; ex
 
 {
  *  PMSessionSetIdleProc()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -655,10 +655,10 @@ function PMSessionSetIdleProc( printSession: PMPrintSession; idleProc: PMIdleUPP
 
 {
  *  PMSessionGeneral()   *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    Use PMPrinterGetCommInfo instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -670,7 +670,7 @@ function PMSessionGeneral( printSession: PMPrintSession; pData: Ptr ): OSStatus;
 
 {
  *  PMSessionConvertOldPrintRecord()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -682,7 +682,7 @@ function PMSessionConvertOldPrintRecord( printSession: PMPrintSession; printReco
 
 {
  *  PMSessionMakeOldPrintRecord()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -694,11 +694,11 @@ function PMSessionMakeOldPrintRecord( printSession: PMPrintSession; printSetting
 
 {
  *  PMSessionSetCurrentPrinter()   *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    Use PMSessionSetCurrentPMPrinter after creating a PMPrinter with
  *    PMPrinterCreateFromPrinterID.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.4 and later
@@ -710,7 +710,7 @@ function PMSessionSetCurrentPrinter( session: PMPrintSession; printerName: CFStr
 
 {
  *  PMSessionPostScriptBegin()   *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    Use PMPrinterPrintWithFile or PMPrinterPrintWithProvider instead.
  *
@@ -728,7 +728,7 @@ function PMSessionPostScriptBegin( printSession: PMPrintSession ): OSStatus; ext
 
 {
  *  PMSessionPostScriptEnd()   *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    Use PMPrinterPrintWithFile or PMPrinterPrintWithProvider instead.
  *
@@ -746,13 +746,13 @@ function PMSessionPostScriptEnd( printSession: PMPrintSession ): OSStatus; exter
 
 {
  *  PMSessionPostScriptHandle()   *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    Use PMPrinterPrintWithFile or PMPrinterPrintWithProvider instead.
  *
  *    For using EPS data together with other application drawing
  *    using Quartz, see PMCGImageCreateWithEPSDataProvider.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -764,13 +764,13 @@ function PMSessionPostScriptHandle( printSession: PMPrintSession; psHandle: Hand
 
 {
  *  PMSessionPostScriptData()   *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    Use PMPrinterPrintWithFile or PMPrinterPrintWithProvider instead.
  *
  *    For using EPS data together with other application drawing
  *    using Quartz, see PMCGImageCreateWithEPSDataProvider.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -782,13 +782,13 @@ function PMSessionPostScriptData( printSession: PMPrintSession; psPtr: Ptr; len:
 
 {
  *  PMSessionPostScriptFile()   *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    Use PMPrinterPrintWithFile or PMPrinterPrintWithProvider instead.
  *
  *    For using EPS data together with other application drawing
  *    using Quartz, see PMCGImageCreateWithEPSDataProvider.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -800,13 +800,13 @@ function PMSessionPostScriptFile( printSession: PMPrintSession; var psFile: FSSp
 
 {
  *  PMSessionSetPSInjectionData()   *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    Use PMPrinterPrintWithFile or PMPrinterPrintWithProvider instead.
  *
  *    For using EPS data together with other application drawing
  *    using Quartz, see PMCGImageCreateWithEPSDataProvider.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -818,13 +818,13 @@ function PMSessionSetPSInjectionData( printSession: PMPrintSession; printSetting
 
 {
  *  PMSessionGetDocumentFormatSupported()   *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    Use PMPrinterPrintWithFile or PMPrinterPrintWithProvider instead.
  *
  *    For using EPS data together with other application drawing
  *    using Quartz, see PMCGImageCreateWithEPSDataProvider.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -836,13 +836,13 @@ function PMSessionGetDocumentFormatSupported( printSession: PMPrintSession; var 
 
 {
  *  PMSessionGetDocumentFormatGeneration()   *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    Use PMPrinterPrintWithFile or PMPrinterPrintWithProvider instead.
  *
  *    For using EPS data together with other application drawing
  *    using Quartz, see PMCGImageCreateWithEPSDataProvider.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -854,7 +854,7 @@ function PMSessionGetDocumentFormatGeneration( printSession: PMPrintSession; var
 
 {
  *  PMSessionSetDocumentFormatGeneration()   *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    Carbon applications using CoreGraphics instead of QuickDraw for
  *    all their drawing should use PMSessionBeginCGDocument or
@@ -862,7 +862,7 @@ function PMSessionGetDocumentFormatGeneration( printSession: PMPrintSession; var
  *    you should be using: PMPrinterPrintWithFile or
  *    PMPrinterPrintWithProvider. For mixing EPS data with Quartz drawing
  *    use PMCGImageCreateWithEPSDataProvider.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -874,13 +874,13 @@ function PMSessionSetDocumentFormatGeneration( printSession: PMPrintSession; doc
 
 {
  *  PMSessionIsDocumentFormatSupported()   *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    Use PMPrinterPrintWithFile or PMPrinterPrintWithProvider instead.
  *
  *    For using EPS data together with other application drawing
  *    using Quartz, see PMCGImageCreateWithEPSDataProvider.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -893,7 +893,7 @@ function PMSessionIsDocumentFormatSupported( printSession: PMPrintSession; docFo
 
 {
  *  PMSetIdleProc()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -906,10 +906,10 @@ function PMSetIdleProc( idleProc: PMIdleUPP ): OSStatus; external name '_PMSetId
 { Print loop }
 {
  *  PMBegin()   *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    Use PMCreateSession instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -921,7 +921,7 @@ function PMBegin: OSStatus; external name '_PMBegin';
 
 {
  *  PMEnd()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -933,10 +933,10 @@ function PMEnd: OSStatus; external name '_PMEnd';
 
 {
  *  PMGetGrafPtr()   *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    Use PMSessionGetCGGraphicsContext instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -949,10 +949,10 @@ function PMGetGrafPtr( printContext: PMPrintContext; var grafPort: GrafPtr ): OS
 { PMPageFormat }
 {
  *  PMNewPageFormat()   *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    Use PMCreatePageFormat instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -964,10 +964,10 @@ function PMNewPageFormat( var pageFormat: PMPageFormat ): OSStatus; external nam
 
 {
  *  PMDisposePageFormat()   *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    Use PMRelease instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -979,10 +979,10 @@ function PMDisposePageFormat( pageFormat: PMPageFormat ): OSStatus; external nam
 
 {
  *  PMDefaultPageFormat()   *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    Use PMSessionDefaultPageFormat instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -994,10 +994,10 @@ function PMDefaultPageFormat( pageFormat: PMPageFormat ): OSStatus; external nam
 
 {
  *  PMValidatePageFormat()   *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    Use PMSessionValidatePageFormat instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1010,10 +1010,10 @@ function PMValidatePageFormat( pageFormat: PMPageFormat; var result: Boolean ): 
 { PMPrintSettings }
 {
  *  PMNewPrintSettings()   *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    Use PMCreatePrintSettings instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1025,10 +1025,10 @@ function PMNewPrintSettings( var printSettings: PMPrintSettings ): OSStatus; ext
 
 {
  *  PMDisposePrintSettings()   *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    Use PMRelease instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1040,10 +1040,10 @@ function PMDisposePrintSettings( printSettings: PMPrintSettings ): OSStatus; ext
 
 {
  *  PMDefaultPrintSettings()   *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    Use PMSessionDefaultPrintSettings instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1055,10 +1055,10 @@ function PMDefaultPrintSettings( printSettings: PMPrintSettings ): OSStatus; ext
 
 {
  *  PMValidatePrintSettings()   *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    Use PMSessionValidatePrintSettings instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1071,7 +1071,7 @@ function PMValidatePrintSettings( printSettings: PMPrintSettings; result: Boolea
 { Mac OS 9 Support }
 {
  *  PMGeneral()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1083,7 +1083,7 @@ function PMGeneral( pData: Ptr ): OSStatus; external name '_PMGeneral';
 
 {
  *  PMConvertOldPrintRecord()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1095,7 +1095,7 @@ function PMConvertOldPrintRecord( printRecordHandle: Handle; var printSettings: 
 
 {
  *  PMMakeOldPrintRecord()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1108,10 +1108,10 @@ function PMMakeOldPrintRecord( printSettings: PMPrintSettings; pageFormat: PMPag
 { Driver Information }
 {
  *  PMIsPostScriptDriver()   *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    Use PMPrinterIsPostScriptCapable or PMPrinterIsPostScriptPrinter instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1123,10 +1123,10 @@ function PMIsPostScriptDriver( var isPostScript: Boolean ): OSStatus; external n
 
 {
  *  PMGetLanguageInfo()   *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    Use PMPrinterGetLanguageInfo instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1138,10 +1138,10 @@ function PMGetLanguageInfo( var info: PMLanguageInfo ): OSStatus; external name 
 
 {
  *  PMGetDriverCreator()   *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    Use PMPrinterGetDriverCreator instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1153,10 +1153,10 @@ function PMGetDriverCreator( var creator: OSType ): OSStatus; external name '_PM
 
 {
  *  PMGetDriverReleaseInfo()   *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    Use PMPrinterGetDriverReleaseInfo instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1168,10 +1168,10 @@ function PMGetDriverReleaseInfo( var release: VersRec ): OSStatus; external name
 
 {
  *  PMGetPrinterResolutionCount()   *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    Use PMPrinterGetPrinterResolutionCount instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1183,10 +1183,10 @@ function PMGetPrinterResolutionCount( var count: UInt32 ): OSStatus; external na
 
 {
  *  PMGetPrinterResolution()   *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    Use PMPrinterGetPrinterResolution instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1198,10 +1198,10 @@ function PMGetPrinterResolution( tag: PMTag; var res: PMResolution ): OSStatus; 
 
 {
  *  PMGetIndexedPrinterResolution()   *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    Use PMPrinterGetIndexedPrinterResolution instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1214,10 +1214,10 @@ function PMGetIndexedPrinterResolution( index: UInt32; var res: PMResolution ): 
 { ColorSync & PostScript Support }
 {
  *  PMEnableColorSync()   *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    Use Quartz drawing instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1229,10 +1229,10 @@ function PMEnableColorSync: OSStatus; external name '_PMEnableColorSync';
 
 {
  *  PMDisableColorSync()   *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    Use Quartz drawing instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1244,13 +1244,13 @@ function PMDisableColorSync: OSStatus; external name '_PMDisableColorSync';
 
 {
  *  PMPostScriptBegin()   *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    Use PMPrinterPrintWithFile or PMPrinterPrintWithProvider instead.
  *
  *    For using EPS data together with other application drawing
  *    using Quartz, see PMCGImageCreateWithEPSDataProvider.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1262,13 +1262,13 @@ function PMPostScriptBegin: OSStatus; external name '_PMPostScriptBegin';
 
 {
  *  PMPostScriptEnd()   *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    Use PMPrinterPrintWithFile or PMPrinterPrintWithProvider instead.
  *
  *    For using EPS data together with other application drawing
  *    using Quartz, see PMCGImageCreateWithEPSDataProvider.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1280,13 +1280,13 @@ function PMPostScriptEnd: OSStatus; external name '_PMPostScriptEnd';
 
 {
  *  PMPostScriptHandle()   *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    Use PMPrinterPrintWithFile or PMPrinterPrintWithProvider instead.
  *
  *    For using EPS data together with other application drawing
  *    using Quartz, see PMCGImageCreateWithEPSDataProvider.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1298,13 +1298,13 @@ function PMPostScriptHandle( psHandle: Handle ): OSStatus; external name '_PMPos
 
 {
  *  PMPostScriptData()   *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    Use PMPrinterPrintWithFile or PMPrinterPrintWithProvider instead.
  *
  *    For using EPS data together with other application drawing
  *    using Quartz, see PMCGImageCreateWithEPSDataProvider.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1316,13 +1316,13 @@ function PMPostScriptData( psPtr: Ptr; len: Size ): OSStatus; external name '_PM
 
 {
  *  PMPostScriptFile()   *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    Use PMPrinterPrintWithFile or PMPrinterPrintWithProvider instead.
  *
  *    For using EPS data together with other application drawing
  *    using Quartz, see PMCGImageCreateWithEPSDataProvider.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1335,10 +1335,10 @@ function PMPostScriptFile( var psFile: FSSpec ): OSStatus; external name '_PMPos
 { Error }
 {
  *  PMError()   *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    Use PMSessionError instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1350,10 +1350,10 @@ function PMError: OSStatus; external name '_PMError';
 
 {
  *  PMSetError()   *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    Use PMSessionSetError instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1366,10 +1366,10 @@ function PMSetError( printError: OSStatus ): OSStatus; external name '_PMSetErro
 
 {
  *  PMGetJobName()   *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    Use PMPrintSettingsGetJobName instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1380,10 +1380,10 @@ function PMGetJobName( printSettings: PMPrintSettings; name: StringPtr ): OSStat
 
 {
  *  PMSetJobName()   *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    Use PMPrintSettingsSetJobName instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1395,10 +1395,10 @@ function PMSetJobName( printSettings: PMPrintSettings; const name: Str255 ): OSS
 
 {
  *  PMGetPhysicalPaperSize()   *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    Use PMGetUnadjustedPaperRect instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1410,7 +1410,7 @@ function PMGetPhysicalPaperSize( pageFormat: PMPageFormat; var paperSize: PMRect
 
 {
  *  PMSetAdjustedPageRect() *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    To set a particular paper size and margins create a PMPaper first then call
  *    PMCreatePageFormatWithPMPaper.
@@ -1425,11 +1425,11 @@ function PMSetAdjustedPageRect( pageFormat: PMPageFormat; const (*var*) pageRect
 
 {
  *  PMSetPhysicalPaperSize()   *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    To set a particular paper size create a PMPaper first then call
  *    PMCreatePageFormatWithPMPaper.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1440,11 +1440,11 @@ function PMSetPhysicalPaperSize( pageFormat: PMPageFormat; const (*var*) paperSi
 
 {
  *  PMSetUnadjustedPaperRect()	 *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    To set a particular paper size create a PMPaper first then call
  *    PMCreatePageFormatWithPMPaper.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1455,10 +1455,10 @@ function PMSetUnadjustedPaperRect( pageFormat: PMPageFormat; const (*var*) paper
 
 {
  *  PMGetPhysicalPageSize()   *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    Use PMGetUnadjustedPageRect instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1470,7 +1470,7 @@ function PMGetPhysicalPageSize( pageFormat: PMPageFormat; var pageSize: PMRect )
 
 {
  *  PMGetColorMode()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1482,7 +1482,7 @@ function PMGetColorMode( printSettings: PMPrintSettings; var colorMode: PMColorM
 
 {
  *  PMSetColorMode()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1507,12 +1507,12 @@ function PMGetDestination( printSettings: PMPrintSettings; var destType: PMDesti
 
 {
  *  PMPrinterGetDescriptionURL()   *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    Use PMPrinterCopyDescriptionURL instead. Please be aware that
  *    PMPrinterGetDescriptionURL will return a copy of the URL which
  *    you'll need to release.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1524,12 +1524,12 @@ function PMPrinterGetDescriptionURL( printer: PMPrinter; descriptionType: CFStri
 
 {
  *  PMPrinterGetDeviceURI()   *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    Use PMPrinterCopyDeviceURI instead. Please be aware that
  *    PMPrinterGetDeviceURI will return a copy of the URI which you'll
  *    need to release.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -1541,10 +1541,10 @@ function PMPrinterGetDeviceURI( printer: PMPrinter; var deviceURI: CFURLRef ): O
 
 {
  *  PMGetResolution()	*** DEPRECATED ***
- *  
+ *
  *  Summary:
  *    Obtains the current application drawing resolution.
- *  
+ *
  *  Discussion:
  *
  *    Use Quartz drawing and call CGContextScaleCTM instead.
@@ -1553,7 +1553,7 @@ function PMPrinterGetDeviceURI( printer: PMPrinter; var deviceURI: CFURLRef ): O
  *    confused with the resolution of the printer. You can call
  *    PMGetPrinterResolution to see what resolutions are avaliable for
  *    the current printer.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1565,7 +1565,7 @@ function PMGetResolution( pageFormat: PMPageFormat; var res: PMResolution ): OSS
 
 {
  *  PMSetResolution()	*** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    Use Quartz drawing and call CGContextScaleCTM instead.
  *
@@ -1583,12 +1583,12 @@ function PMSetResolution( pageFormat: PMPageFormat; const (*var*) res: PMResolut
 
 {
  *  PMFlattenPageFormat()    *** DEPRECATED ***
- *  
+ *
  *  Summary:
  *    Use PMPageFormatCreateDataRepresentation instead.
  *
  *    Flattens a PMPageFormat object for storage in a user document.
- *  
+ *
  *  Discussion:
  *    Flattening a page format should only be necessary if you intend
  *    to preserve the object settings along with a document. A page
@@ -1600,17 +1600,17 @@ function PMSetResolution( pageFormat: PMPageFormat; const (*var*) res: PMResolut
  *    PMSessionValidatePageFormat in a
  *    PMSessionBeginDocxxx/PMSessionEndDocxxx block with a valid
  *    session.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    pageFormat:
  *      A page format object.
- *    
+ *
  *    flatFormat:
  *      On return, a handle to a flattened PMPageFormat object. The
  *      handle is allocated by the function. You are responsible for
  *      disposing of the handle.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1622,7 +1622,7 @@ function PMFlattenPageFormat( pageFormat: PMPageFormat; var flatFormat: Handle )
 
 {
  *  PMUnflattenPageFormat()    *** DEPRECATED ***
- *  
+ *
  *  Summary:
  *    Use PMPageFormatCreateWithDataRepresentation instead.
  *
@@ -1637,12 +1637,12 @@ function PMUnflattenPageFormat( flatFormat: Handle; var pageFormat: PMPageFormat
 
 {
  *  PMFlattenPrintSettings()    *** DEPRECATED ***
- *  
+ *
  *  Summary:
  *    Use PMPrintSettingsCreateDataRepresentation instead.
  *
  *    Flattens a PMPrintSettings object for storage in a user document.
- *  
+ *
  *  Discussion:
  *    Flattening a print settings should only be necessary if you
  *    intend to preserve the object settings along with a document. A
@@ -1654,17 +1654,17 @@ function PMUnflattenPageFormat( flatFormat: Handle; var pageFormat: PMPageFormat
  *    PMSessionValidatePrintSettings in a
  *    PMSessionBeginDocxxx/PMSessionEndDocxxx block with a valid
  *    session.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    printSettings:
  *      A print settings object.
- *    
+ *
  *    flatSettings:
  *      On return, a handle to a flattened PMPrintSettings object. The
  *      handle is allocated by the function. You are responsible for
  *      disposing of the handle.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1676,10 +1676,10 @@ function PMFlattenPrintSettings( printSettings: PMPrintSettings; var flatSetting
 
 {
  *  PMUnflattenPrintSettings()    *** DEPRECATED ***
- *  
+ *
  *  Summary:
  *    Use PMPrintSettingsCreateWithDataRepresentation instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1691,13 +1691,13 @@ function PMUnflattenPrintSettings( flatSettings: Handle; var printSettings: PMPr
 
 {
  *  PMGetJobNameCFString()    *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    Use PMPrintSettingsGetJobName instead.
- *    
- *    Please be aware that PMGetJobNameCFString will return a copy of 
+ *
+ *    Please be aware that PMGetJobNameCFString will return a copy of
  *    the job name which you'll need to release.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1709,10 +1709,10 @@ function PMGetJobNameCFString( printSettings: PMPrintSettings; var name: CFStrin
 
 {
  *  PMSetJobNameCFString()    *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    Use PMPrintSettingsSetJobName instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1727,7 +1727,7 @@ function PMSetJobNameCFString( printSettings: PMPrintSettings; name: CFStringRef
  *
  *  Discussion:
  *    Use PMPrinterGetPrinterResolutionCount and PMPrinterGetIndexedPrinterResolution to examine the available printer resolutions.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1738,11 +1738,11 @@ function PMPrinterGetPrinterResolution( printer: PMPrinter; tag: PMTag; var res:
 
 {
  *  PMPaperCreate()			*** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    Use PMPrinterGetPaperList to list the PMPaper instances available for a given printer or use PMPaperCreateCustom
  *    to create a PMPaper that represents a custom paper instance.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later

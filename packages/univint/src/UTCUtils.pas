@@ -1,15 +1,15 @@
 {
      File:       CarbonCore/UTCUtils.h
- 
+
      Contains:   Interface for UTC to Local Time conversion and 64 Bit Clock routines
- 
+
      Copyright:  © 1999-2011 by Apple Inc., all rights reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {
     Modified for use with Free Pascal
@@ -250,17 +250,17 @@ type
 {$ifc not TARGET_CPU_64}
 {
  *  ConvertLocalTimeToUTC()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    use
  *    UCConvertUTCDateTimeToCFAbsoluteTime/CFTimeZoneGetSecondsFromGMT
  *    instead.
- *  
+ *
  *  Discussion:
  *    This function is no longer recommended. Please use
  *    UCConvertUTCDateTimeToCFAbsoluteTime and
  *    CFTimeZoneGetSecondsFromGMT instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -272,17 +272,17 @@ function ConvertLocalTimeToUTC( localSeconds: UInt32; var utcSeconds: UInt32 ): 
 
 {
  *  ConvertUTCToLocalTime()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    use
  *    UCConvertUTCDateTimeToCFAbsoluteTime/CFTimeZoneGetSecondsFromGMT
  *    instead.
- *  
+ *
  *  Discussion:
  *    This function is no longer recommended. Please use
  *    UCConvertUTCDateTimeToCFAbsoluteTime and
  *    CFTimeZoneGetSecondsFromGMT instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -295,17 +295,17 @@ function ConvertUTCToLocalTime( utcSeconds: UInt32; var localSeconds: UInt32 ): 
 { 64 bit clock conversion routines }
 {
  *  ConvertUTCToLocalDateTime()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    use
  *    UCConvertUTCDateTimeToCFAbsoluteTime/CFTimeZoneGetSecondsFromGMT
  *    instead.
- *  
+ *
  *  Discussion:
  *    This function is no longer recommended. Please use
  *    UCConvertUTCDateTimeToCFAbsoluteTime and
  *    CFTimeZoneGetSecondsFromGMT instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -317,17 +317,17 @@ function ConvertUTCToLocalDateTime( const (*var*) utcDateTime_: UTCDateTime; var
 
 {
  *  ConvertLocalToUTCDateTime()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    use
  *    UCConvertUTCDateTimeToCFAbsoluteTime/CFTimeZoneGetSecondsFromGMT
  *    instead.
- *  
+ *
  *  Discussion:
  *    This function is no longer recommended. Please use
  *    UCConvertUTCDateTimeToCFAbsoluteTime and
  *    CFTimeZoneGetSecondsFromGMT instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -340,14 +340,14 @@ function ConvertLocalToUTCDateTime( const (*var*) localDateTime_: LocalDateTime;
 { Getter and Setter Clock routines using 64 Bit values }
 {
  *  GetUTCDateTime()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    use CFAbsoluteTimeGetCurrent instead.
- *  
+ *
  *  Discussion:
  *    This function is no longer recommended. Please use
  *    CFAbsoluteTimeGetCurrent instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -359,14 +359,14 @@ function GetUTCDateTime( var utcDateTime_: UTCDateTime; options: OptionBits ): O
 
 {
  *  SetUTCDateTime()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    use settimeofday (2) instead.
- *  
+ *
  *  Discussion:
  *    This function is no longer recommended. Setting the time requires
  *    root privileges. If you must, use settimeofday (2)
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -378,14 +378,14 @@ function SetUTCDateTime( const (*var*) utcDateTime_: UTCDateTime; options: Optio
 
 {
  *  GetLocalDateTime()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    use CFAbsoluteTimeGetCurrent/CFTimeZoneGetSecondsFromGMT instead.
- *  
+ *
  *  Discussion:
  *    This function is no longer recommended. Please use
  *    CFAbsoluteTimeGetCurrent and CFTimeZoneGetSecondsFromGMT instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -397,13 +397,13 @@ function GetLocalDateTime( var localDateTime_: LocalDateTime; options: OptionBit
 
 {
  *  SetLocalDateTime()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    it without replacement
- *  
+ *
  *  Discussion:
  *    This function is no longer recommended. There is no replacement.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0.2 and later

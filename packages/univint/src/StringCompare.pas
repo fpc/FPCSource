@@ -1,9 +1,9 @@
 {
      File:       CarbonCore/StringCompare.h
- 
+
      Contains:   Public interfaces for String Comparison and related operations
                  The contents of this header file are deprecated.
- 
+
      Copyright:  © 1985-2011 by Apple Inc., all rights reserved.
 }
 {
@@ -225,9 +225,9 @@ uses MacTypes,MixedMode,TextCommon,Script;
     Here are the current System 7 routine names and the translations to the older forms.
     Please use the newer forms in all new code and migrate the older names out of existing
     code as maintenance permits.
-    
+
     NEW NAME                    OLD NAME                    OBSOLETE FORM (no handle)
-    
+
     CompareString (Str255)      IUCompPString (hp only)     IUCompString (hp only)
     CompareText (ptr/len)       IUMagPString                IUMagString
     IdenticalString (Str255)    IUEqualPString (hp only)    IUEqualString  (hp only)
@@ -238,17 +238,17 @@ uses MacTypes,MixedMode,TextCommon,Script;
     TextOrder (ptr/len)         IUTextOrder
 
     RelString
-    CmpString (a only)                  
+    CmpString (a only)
     EqualString (hp only)
-    
+
     ReplaceText
 
     Carbon only supports the new names.  The old names are undefined for Carbon targets.
 
     InterfaceLib always has exported the old names.  For C macros have been defined to allow
     the use of the new names.  For Pascal and Assembly using the new names will result
-    in link errors. 
-    
+    in link errors.
+
 }
 
 const
@@ -276,14 +276,14 @@ const
 {$ifc not TARGET_CPU_64}
 {
  *  [Mac]ReplaceText()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    use CFStringReplace instead.
- *  
+ *
  *  Discussion:
  *    This function is no longer recommended. Please use
  *    CFStringReplace instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -295,14 +295,14 @@ function MacReplaceText( baseText: Handle; substitutionText: Handle; key: Str15 
 
 {
  *  ScriptOrder()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    use CFStringCompare or UCCompareText instead.
- *  
+ *
  *  Discussion:
  *    This function is no longer recommended. Please use
  *    CFStringCompare or UCCompareText instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -314,14 +314,14 @@ function ScriptOrder( script1: ScriptCode; script2: ScriptCode ): SInt16; extern
 
 {
  *  [Mac]CompareString()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    use CFStringCompare or UCCompareText instead.
- *  
+ *
  *  Discussion:
  *    This function is no longer recommended. Please use
  *    CFStringCompare or UCCompareText instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -333,14 +333,14 @@ function MacCompareString( const (*var*) aStr: Str255; const (*var*) bStr: Str25
 
 {
  *  IdenticalString()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    use CFStringCompare instead.
- *  
+ *
  *  Discussion:
  *    This function is no longer recommended. Please use
  *    CFStringCompare instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -352,14 +352,14 @@ function IdenticalString( const (*var*) aStr: Str255; const (*var*) bStr: Str255
 
 {
  *  StringOrder()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    use CFStringCompare or UCCompareText instead.
- *  
+ *
  *  Discussion:
  *    This function is no longer recommended. Please use
  *    CFStringCompare or UCCompareText instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -371,14 +371,14 @@ function StringOrder( const (*var*) aStr: Str255; const (*var*) bStr: Str255; aS
 
 {
  *  CompareText()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    use CFStringCompare or UCCompareText instead.
- *  
+ *
  *  Discussion:
  *    This function is no longer recommended. Please use
  *    CFStringCompare or UCCompareText instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -390,14 +390,14 @@ function CompareText( aPtr: {const} UnivPtr; bPtr: {const} UnivPtr; aLen: SInt16
 
 {
  *  IdenticalText()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    use CFStringCompare instead.
- *  
+ *
  *  Discussion:
  *    This function is no longer recommended. Please use
  *    CFStringCompare instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -409,14 +409,14 @@ function IdenticalText( aPtr: {const} UnivPtr; bPtr: {const} UnivPtr; aLen: SInt
 
 {
  *  TextOrder()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    use CFStringCompare or UCCompareText instead.
- *  
+ *
  *  Discussion:
  *    This function is no longer recommended. Please use
  *    CFStringCompare or UCCompareText instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -428,14 +428,14 @@ function TextOrder( aPtr: {const} UnivPtr; bPtr: {const} UnivPtr; aLen: SInt16; 
 
 {
  *  LanguageOrder()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    use CFStringCompare or UCCompareText instead.
- *  
+ *
  *  Discussion:
  *    This function is no longer recommended. Please use
  *    CFStringCompare or UCCompareText instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -453,7 +453,7 @@ function LanguageOrder( language1: LangCode; language2: LangCode ): SInt16; exte
 
 {
  *  IUMagPString()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -463,7 +463,7 @@ function LanguageOrder( language1: LangCode; language2: LangCode ): SInt16; exte
 
 {
  *  IUMagIDPString()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -473,7 +473,7 @@ function LanguageOrder( language1: LangCode; language2: LangCode ): SInt16; exte
 
 {
  *  IUTextOrder()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -483,7 +483,7 @@ function LanguageOrder( language1: LangCode; language2: LangCode ): SInt16; exte
 
 {
  *  IULangOrder()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -493,7 +493,7 @@ function LanguageOrder( language1: LangCode; language2: LangCode ): SInt16; exte
 
 {
  *  IUScriptOrder()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -503,7 +503,7 @@ function LanguageOrder( language1: LangCode; language2: LangCode ): SInt16; exte
 
 {
  *  IUMagString()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -513,7 +513,7 @@ function LanguageOrder( language1: LangCode; language2: LangCode ): SInt16; exte
 
 {
  *  IUMagIDString()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -523,7 +523,7 @@ function LanguageOrder( language1: LangCode; language2: LangCode ): SInt16; exte
 
 {
  *  IUCompPString()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -533,7 +533,7 @@ function LanguageOrder( language1: LangCode; language2: LangCode ): SInt16; exte
 
 {
  *  IUEqualPString()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -543,7 +543,7 @@ function LanguageOrder( language1: LangCode; language2: LangCode ): SInt16; exte
 
 {
  *  IUStringOrder()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -553,7 +553,7 @@ function LanguageOrder( language1: LangCode; language2: LangCode ): SInt16; exte
 
 {
  *  IUCompString()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -563,7 +563,7 @@ function LanguageOrder( language1: LangCode; language2: LangCode ): SInt16; exte
 
 {
  *  IUEqualString()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -573,7 +573,7 @@ function LanguageOrder( language1: LangCode; language2: LangCode ): SInt16; exte
 
 {
  *  iucomppstring()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -583,7 +583,7 @@ function LanguageOrder( language1: LangCode; language2: LangCode ): SInt16; exte
 
 {
  *  iuequalpstring()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -593,7 +593,7 @@ function LanguageOrder( language1: LangCode; language2: LangCode ): SInt16; exte
 
 {
  *  iustringorder()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -603,7 +603,7 @@ function LanguageOrder( language1: LangCode; language2: LangCode ): SInt16; exte
 
 {
  *  iucompstring()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -613,7 +613,7 @@ function LanguageOrder( language1: LangCode; language2: LangCode ): SInt16; exte
 
 {
  *  iuequalstring()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -624,14 +624,14 @@ function LanguageOrder( language1: LangCode; language2: LangCode ): SInt16; exte
 {$ifc not TARGET_CPU_64}
 {
  *  RelString()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    use CFStringCompare or UCCompareText instead.
- *  
+ *
  *  Discussion:
  *    This function is no longer recommended. Please use
  *    CFStringCompare or UCCompareText instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -643,14 +643,14 @@ function RelString( const (*var*) str1: Str255; const (*var*) str2: Str255; case
 
 {
  *  EqualString()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    use CFStringCompare instead.
- *  
+ *
  *  Discussion:
  *    This function is no longer recommended. Please use
  *    CFStringCompare instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -665,14 +665,14 @@ function EqualString( const (*var*) str1: Str255; const (*var*) str2: Str255; ca
 {$ifc not TARGET_CPU_64}
 {
  *  relstring()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    use CFStringCompare or UCCompareText instead.
- *  
+ *
  *  Discussion:
  *    This function is no longer recommended. Please use
  *    CFStringCompare or UCCompareText instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -688,7 +688,7 @@ function relstring( str1: ConstCStringPtr; str2: ConstCStringPtr; caseSensitive:
 
 {
  *  equalstring()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available [32-bit only]
  *    CarbonLib:        not available

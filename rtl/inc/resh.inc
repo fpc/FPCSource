@@ -1,4 +1,4 @@
-  
+
 type
   //Obsolete types, kept for backwards compatibility
   TResourceHandle = PtrUint;
@@ -19,9 +19,9 @@ type
   MAKEINTRESOURCE = pwidechar;
 {$else}
   MAKEINTRESOURCE = PAnsiChar;
-{$endif}  
+{$endif}
 {$endif not Win16}
-  
+
 {$ifndef MSWINDOWS }
 { windows has this in the windows unit. It probably would better
   fit into the classes/sysutils unit but because it is resource

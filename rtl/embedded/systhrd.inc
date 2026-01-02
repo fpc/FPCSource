@@ -30,7 +30,7 @@ Procedure NoThreadError;NoReturn;
       Writeln(StdErr,SRecompileWithThreads);
       end;
   {$endif FPC_HAS_FEATURE_CONSOLEIO}
-    { providing an rte on embedded makes often little sense and 
+    { providing an rte on embedded makes often little sense and
       runerror(...) would pull in a lot of unnecessary code }
     system_exit;
   end;

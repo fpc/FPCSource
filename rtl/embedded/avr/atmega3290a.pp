@@ -147,9 +147,9 @@ var
   LCDCRA : byte absolute $00+$E4; // LCD Control and Status Register A
   // CPU
   SREG : byte absolute $00+$5F; // Status Register
-  SP : word absolute $00+$5D; // Stack Pointer 
-  SPL : byte absolute $00+$5D; // Stack Pointer 
-  SPH : byte absolute $00+$5D+1; // Stack Pointer 
+  SP : word absolute $00+$5D; // Stack Pointer
+  SPL : byte absolute $00+$5D; // Stack Pointer
+  SPH : byte absolute $00+$5D+1; // Stack Pointer
   OSCCAL : byte absolute $00+$66; // Oscillator Calibration Value
   CLKPR : byte absolute $00+$61; // Clock Prescale Register
   PRR : byte absolute $00+$64; // Power Reduction Register

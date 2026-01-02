@@ -1,15 +1,15 @@
 {
     File:       CoreMIDI/MIDIThruConnection.h
- 
+
     Contains:   Routines for creating MIDI play-through connections.
- 
+
  	Copyright:  (c) 2000-2008 by Apple Inc., all rights reserved.
- 
+
     Bugs?:      For bug reports, consult the following page on
                 the World Wide Web:
- 
+
                     http://bugs.freepascal.org
- 
+
 }
 {  Pascal Translation:  Gorazd Krosl <gorazd_1957@yahoo.ca>, October 2009 }
 {  Pascal Translation Update: Jonas Maebe <jonas@freepascal.org>, October 2012 }
@@ -235,19 +235,19 @@ uses MacTypes,CFBase,CFData,MIDIServices;
     This header defines functions to create MIDI play-through connections
     between the MIDI sources and destinations.  These connections may be
     persistent or transitory, owned by a client.
-    
+
     By using connections instead of doing MIDI Thru operations themselves,
     the overhead of moving MIDI messages between the server and the client
     for thru-ing is reduced.
-    
-    The aim of these functions is to permit as flexible a set of transformations 
-    as possible while keeping the API and data structures relatively simple.    
+
+    The aim of these functions is to permit as flexible a set of transformations
+    as possible while keeping the API and data structures relatively simple.
 }
 //  -----------------------------------------------------------------------------
 
 {!
     @typedef        MIDIThruConnectionRef
-    
+
     @discussion     An opaque reference to a play-through connection.
 }
 //#if __LP64__
@@ -262,7 +262,7 @@ type
 
 {!
     @struct         MIDIValueMap
-    
+
     @discussion     A custom mapping function to transform MIDI 7-bit values,
                     as contained in note numbers, velocities, control values,
                     etc.  y = value[x], where x is the input MIDI value, y the
@@ -275,9 +275,9 @@ type
 
 {!
     @enum           MIDITransformType
-    
+
     @discussion     Values specifying a type of MIDI transformation, as found in the transform member of MIDITransform.
-    
+
     @constant   kMIDITransform_None
         no transformation (param unused)
     @constant   kMIDITransform_FilterOut
@@ -313,7 +313,7 @@ const
 
 {!
     @enum       MIDITransformControlType
-    
+
     @discussion Specifies how control numbers are interpreted.
     @constant   kMIDIControlType_7Bit
         control numbers may be 0-127
@@ -356,7 +356,7 @@ type
         A single MIDIThruConnectionParams may describe any number of transformations to control
         events. It is important that multiple transformations are ordered correctly: filter out,
         remap, then alter values.
-        
+
         All transformations are done internally using 14-bit values, so for example, when doing
         an add/min/max transform on a 7-bit control value, the parameter must be a 14-bit value.
         For example, to add 10 to a control value, param must be (10 << 7) = 1280.
@@ -383,7 +383,7 @@ type
     @discussion
         When creating one of these, you can leave uniqueID 0 if the endpoint exists and you are passing
         its MIDIEndpointRef.
-        
+
         When obtaining one of these from CoreMIDI, endpointRef may be NULL if it doesn't exist, but the
         uniqueID will always be non-zero.
 }
@@ -427,9 +427,9 @@ type
     @field      numControlTransforms    The number of control transformations in the variable-length portion of the struct.
     @field      numMaps                 The number of MIDIValueMaps in the variable-length portion of the struct.
     @field      reserved3       Must be 0.
-    
+
     @discussion
-        The remainder of the structure is variably-sized. It contains numControlTransform instances of 
+        The remainder of the structure is variably-sized. It contains numControlTransform instances of
         MIDIControlTransform, followed by numMaps instances of MIDIValueMap.
 }
 type
@@ -439,7 +439,7 @@ type
         sources: array[0..kMIDIThruConnection_MaxEndpoints-1] of MIDIThruConnectionEndpoint;
 		numDestinations: UInt32;
     	destinations: array[0..kMIDIThruConnection_MaxEndpoints-1] of MIDIThruConnectionEndpoint;
-    
+
         channelMap: packed array[0..15] of UInt8;
 		lowVelocity, highVelocity: UInt8;
 		lowNote, highNote: UInt8;
@@ -449,14 +449,14 @@ type
 		channelPressure: MIDITransform;
 		programChange: MIDITransform;
 		pitchBend: MIDITransform;
-    
+
 		filterOutSysEx: UInt8;
 		filterOutMTC: UInt8;
 		filterOutBeatClock: UInt8;
 		filterOutTuneRequest: UInt8;
     	reserved2: packed array[0..2] of UInt8;
 		filterOutAllControls: UInt8;
-    
+
 		numControlTransforms: UInt16;
 		numMaps: UInt16;
         reserved3: array[0..3] of UInt16;
@@ -466,7 +466,7 @@ type
     //      MIDIValueMap            maps[];
 	end;
 	MIDIThruConnectionParamsPtr = ^MIDIThruConnectionParams;
-	
+
 {!
     @defined    MIDIThruConnectionParamsSize
     @abstract   Returns the size of a MIDIThruConnectionParams.
@@ -484,7 +484,7 @@ function MIDIThruConnectionParamsSize(ptr : MIDIThruConnectionParamsPtr) : size_
     @discussion
         This convenience function fills the connection structure with default values:
 no endpoints, no transformations (mostly zeroes except for the channel map).
-Then, just filling in the source and adding one destination will create a simple, 
+Then, just filling in the source and adding one destination will create a simple,
 unmodified thru connection.
 }
 procedure MIDIThruConnectionParamsInitialize( var inConnectionParams: MIDIThruConnectionParams ); external name '_MIDIThruConnectionParamsInitialize';

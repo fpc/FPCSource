@@ -1,15 +1,15 @@
 {
      File:       OSServices/Power.h
- 
+
      Contains:   *** DEPRECATED *** Power Manager Interfaces.
- 
+
      Copyright:  (c) 1990-2012 Apple Inc. All rights reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {
     Modified for use with Free Pascal
@@ -286,7 +286,7 @@ type
 	end;
 {
  *  NewSleepQUPP()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -298,7 +298,7 @@ function NewSleepQUPP( userRoutine: SleepQProcPtr ): SleepQUPP; external name '_
 
 {
  *  DisposeSleepQUPP()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -310,7 +310,7 @@ procedure DisposeSleepQUPP( userUPP: SleepQUPP ); external name '_DisposeSleepQU
 
 {
  *  InvokeSleepQUPP()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -322,17 +322,17 @@ function InvokeSleepQUPP( message: SIGNEDLONG; qRecPtr: SleepQRecPtr; userUPP: S
 
 {
  *  GetCPUSpeed()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use sysctlbyname("hw.cpufrequency"). Found in <sys/sysctl.h>.
- *  
+ *
  *  Discussion:
  *    GetCPUSpeed() returns the current effective clock speed of the
  *    CPU in megahertz.
- *  
+ *
  *  Result:
  *    the current effective clock speed of the CPU in megahertz.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.8
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -344,18 +344,18 @@ function GetCPUSpeed: SIGNEDLONG; external name '_GetCPUSpeed';
 
 {
  *  SleepQInstall()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use IORegisterForSystemPower(). Found in <IOKit/pwr_mgt/IOPMLib.h>.
- *  
+ *
  *  Discussion:
  *    Adds an entry to the sleep queue.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    qRecPtr:
  *      A pointer to a sleep queue record to be installed.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.8
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -367,18 +367,18 @@ procedure SleepQInstall( qRecPtr: SleepQRecPtr ); external name '_SleepQInstall'
 
 {
  *  SleepQRemove()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use IODeregisterForSystemPower(). Found in <IOKit/pwr_mgt/IOPMLib.h>.
- *  
+ *
  *  Discussion:
  *    Remove an entry from the sleep queue.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    qRecPtr:
  *      A pointer to a sleep queue record to be removed.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.8
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -390,17 +390,17 @@ procedure SleepQRemove( qRecPtr: SleepQRecPtr ); external name '_SleepQRemove';
 
 {
  *  MaximumProcessorSpeed()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use sysctlbyname("hw.cpufrequency_max"). Found in <sys/sysctl.h>.
- *  
+ *
  *  Discussion:
  *    MaximumProcessorSpeed() returns the maximum effective clock speed
  *    of the CPU in megahertz.
- *  
+ *
  *  Result:
  *    the maximum effective clock speed of the CPU in megahertz.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.8
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -412,18 +412,18 @@ function MaximumProcessorSpeed: SInt16; external name '_MaximumProcessorSpeed';
 
 {
  *  MinimumProcessorSpeed()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use sysctlbyname("hw.cpufrequency_min"). Found in <sys/sysctl.h>.
- *  
+ *
  *  Discussion:
  *    MinimumProcessorSpeed() returns the minimum effective clock speed
  *    of the CPU in megahertz. Before Mac OS X 10.4, this function
  *    always returns the maximum cpu speed, not the minimum as expected.
- *  
+ *
  *  Result:
  *    the minimum effective clock speed of the CPU in megahertz.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in CoreServices.framework but deprecated in 10.8
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -435,20 +435,20 @@ function MinimumProcessorSpeed: SInt16; external name '_MinimumProcessorSpeed';
 
 {
  *  CurrentProcessorSpeed()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use sysctlbyname("hw.cpufrequency"). Found in <sys/sysctl.h>.
- *  
+ *
  *  Discussion:
  *    CurrentProcessorSpeed() returns the current effective clock speed
  *    of the CPU in megahertz. Before Mac OS X 10.4, this function
  *    always returns the maximum cpu speed, not the actual current
  *    speed the processor is running at.  One MHz represents one
  *    million cycles per second.
- *  
+ *
  *  Result:
  *    the current effective clock speed of the CPU in megahertz.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.8
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -460,16 +460,16 @@ function CurrentProcessorSpeed: SInt16; external name '_CurrentProcessorSpeed';
 
 {
  *  BatteryCount()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use IOPowerSources API. Found in <IOKit/ps/IOPowerSources.h>.
- *  
+ *
  *  Summary:
  *    Return the count of batteries installed on this computer.
- *  
+ *
  *  Result:
  *    the count of batteries installed.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.8
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -481,10 +481,10 @@ function BatteryCount: SInt16; external name '_BatteryCount';
 
 {
  *  UpdateSystemActivity()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use IOPMAssertionCreateWithName(). Found in <IOKit/pwr_mgt/IOPMLib.h>.
- *  
+ *
  *  Summary:
  *    You can use the UpdateSystemActivity function to notify the Power
  *    Manager that activity has taken place.
@@ -611,7 +611,7 @@ type
 	PowerHandlerUPP = PowerHandlerProcPtr;
 {
  *  NewPowerHandlerUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -620,7 +620,7 @@ type
 
 {
  *  DisposePowerHandlerUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -629,7 +629,7 @@ type
 
 {
  *  InvokePowerHandlerUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -888,7 +888,7 @@ type
 {$ifc not TARGET_CPU_64}
 {
  *  SetSpindownDisable()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -900,7 +900,7 @@ procedure SetSpindownDisable( setDisable: Boolean ); external name '_SetSpindown
 
 {
  *  PMSelectorCount()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -912,7 +912,7 @@ function PMSelectorCount: SInt16; external name '_PMSelectorCount';
 
 {
  *  PMFeatures()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -924,7 +924,7 @@ function PMFeatures: UInt32; external name '_PMFeatures';
 
 {
  *  SetProcessorSpeed()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -936,7 +936,7 @@ function SetProcessorSpeed( fullSpeed: Boolean ): Boolean; external name '_SetPr
 
 {
  *  FullProcessorSpeed()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -949,7 +949,7 @@ function FullProcessorSpeed: Boolean; external name '_FullProcessorSpeed';
 {  The following constants, structures, and functions have all been deprecated on Mac OS X and are not recommended for use.}
 {
  *  DisableWUTime()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.0
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -961,7 +961,7 @@ function DisableWUTime: OSErr; external name '_DisableWUTime';
 
 {
  *  SetWUTime()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.0
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -976,7 +976,7 @@ function SetWUTime( wuTime: SIGNEDLONG ): OSErr; external name '_SetWUTime';
 {$ifc not TARGET_CPU_64}
 {
  *  GetWUTime()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.0
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -988,7 +988,7 @@ function GetWUTime( var wuTime: SIGNEDLONG; var wuFlag: SignedByte ): OSErr; ext
 
 {
  *  BatteryStatus()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.0
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1000,7 +1000,7 @@ function BatteryStatus( var status: SignedByte; var power: SignedByte ): OSErr; 
 
 {
  *  ModemStatus()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.0
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1015,12 +1015,12 @@ function ModemStatus( var status: SignedByte ): OSErr; external name '_ModemStat
 {$ifc not TARGET_CPU_64}
 {
  *  IdleUpdate()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    The Power Manager is deprecated in Mac OS X.  Some of this
  *    functionality is provided in similar form in IOKit; some is
  *    provided in the Carbon and Cocoa frameworks.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.0
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1032,12 +1032,12 @@ function IdleUpdate: SIGNEDLONG; external name '_IdleUpdate';
 
 {
  *  EnableIdle()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    The Power Manager is deprecated in Mac OS X.  Some of this
  *    functionality is provided in similar form in IOKit; some is
  *    provided in the Carbon and Cocoa frameworks.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.0
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1049,12 +1049,12 @@ procedure EnableIdle; external name '_EnableIdle';
 
 {
  *  DisableIdle()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    The Power Manager is deprecated in Mac OS X.  Some of this
  *    functionality is provided in similar form in IOKit; some is
  *    provided in the Carbon and Cocoa frameworks.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.0
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1066,12 +1066,12 @@ procedure DisableIdle; external name '_DisableIdle';
 
 {
  *  AOn()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    This function is deprecated on Mac OS X.  IOKit may provide
  *    replacement functionality depending on what this was being used
  *    for.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.0
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1083,12 +1083,12 @@ procedure AOn; external name '_AOn';
 
 {
  *  AOnIgnoreModem()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    This function is deprecated on Mac OS X.  IOKit may provide
  *    replacement functionality depending on what this was being used
  *    for.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.0
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1100,12 +1100,12 @@ procedure AOnIgnoreModem; external name '_AOnIgnoreModem';
 
 {
  *  BOn()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    This function is deprecated on Mac OS X.  IOKit may provide
  *    replacement functionality depending on what this was being used
  *    for.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.0
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1117,12 +1117,12 @@ procedure BOn; external name '_BOn';
 
 {
  *  AOff()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    This function is deprecated on Mac OS X.  IOKit may provide
  *    replacement functionality depending on what this was being used
  *    for.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.0
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1134,12 +1134,12 @@ procedure AOff; external name '_AOff';
 
 {
  *  BOff()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    This function is deprecated on Mac OS X.  IOKit may provide
  *    replacement functionality depending on what this was being used
  *    for.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.0
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1152,7 +1152,7 @@ procedure BOff; external name '_BOff';
 { Public Power Management API  }
 {
  *  GetSleepTimeout()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.0
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1164,7 +1164,7 @@ function GetSleepTimeout: UInt8; external name '_GetSleepTimeout';
 
 {
  *  SetSleepTimeout()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.0
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1176,7 +1176,7 @@ procedure SetSleepTimeout( timeout: ByteParameter ); external name '_SetSleepTim
 
 {
  *  GetHardDiskTimeout()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.0
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1188,7 +1188,7 @@ function GetHardDiskTimeout: UInt8; external name '_GetHardDiskTimeout';
 
 {
  *  SetHardDiskTimeout()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.0
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1200,7 +1200,7 @@ procedure SetHardDiskTimeout( timeout: ByteParameter ); external name '_SetHardD
 
 {
  *  HardDiskPowered()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.0
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1212,7 +1212,7 @@ function HardDiskPowered: Boolean; external name '_HardDiskPowered';
 
 {
  *  SpinDownHardDisk()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.0
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1224,7 +1224,7 @@ procedure SpinDownHardDisk; external name '_SpinDownHardDisk';
 
 {
  *  IsSpindownDisabled()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.0
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1236,7 +1236,7 @@ function IsSpindownDisabled: Boolean; external name '_IsSpindownDisabled';
 
 {
  *  HardDiskQInstall()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.0
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1248,7 +1248,7 @@ function HardDiskQInstall( var theElement: HDQueueElement ): OSErr; external nam
 
 {
  *  HardDiskQRemove()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.0
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1260,7 +1260,7 @@ function HardDiskQRemove( var theElement: HDQueueElement ): OSErr; external name
 
 {
  *  GetScaledBatteryInfo()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.0
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1272,7 +1272,7 @@ procedure GetScaledBatteryInfo( whichBattery: SInt16; var theInfo: BatteryInfo )
 
 {
  *  AutoSleepControl()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.0
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1284,7 +1284,7 @@ procedure AutoSleepControl( enableSleep: Boolean ); external name '_AutoSleepCon
 
 {
  *  GetIntModemInfo()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.0
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1296,7 +1296,7 @@ function GetIntModemInfo: UInt32; external name '_GetIntModemInfo';
 
 {
  *  SetIntModemState()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.0
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1308,7 +1308,7 @@ procedure SetIntModemState( theState: SInt16 ); external name '_SetIntModemState
 
 {
  *  GetSCSIDiskModeAddress()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.0
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1320,7 +1320,7 @@ function GetSCSIDiskModeAddress: SInt16; external name '_GetSCSIDiskModeAddress'
 
 {
  *  SetSCSIDiskModeAddress()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.0
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1332,7 +1332,7 @@ procedure SetSCSIDiskModeAddress( scsiAddress: SInt16 ); external name '_SetSCSI
 
 {
  *  GetWakeupTimer()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.0
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1344,7 +1344,7 @@ procedure GetWakeupTimer( var theTime: WakeupTime ); external name '_GetWakeupTi
 
 {
  *  SetWakeupTimer()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.0
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1356,7 +1356,7 @@ procedure SetWakeupTimer( var theTime: WakeupTime ); external name '_SetWakeupTi
 
 {
  *  IsProcessorCyclingEnabled()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.0
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1368,7 +1368,7 @@ function IsProcessorCyclingEnabled: Boolean; external name '_IsProcessorCyclingE
 
 {
  *  EnableProcessorCycling()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.0
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1380,7 +1380,7 @@ procedure EnableProcessorCycling( enable: Boolean ); external name '_EnableProce
 
 {
  *  GetBatteryVoltage()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.0
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1392,7 +1392,7 @@ function GetBatteryVoltage( whichBattery: SInt16 ): Fixed; external name '_GetBa
 
 {
  *  GetBatteryTimes()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.0
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1404,7 +1404,7 @@ procedure GetBatteryTimes( whichBattery: SInt16; var theTimes: BatteryTimeRec );
 
 {
  *  GetDimmingTimeout()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.0
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1416,7 +1416,7 @@ function GetDimmingTimeout: UInt8; external name '_GetDimmingTimeout';
 
 {
  *  SetDimmingTimeout()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.0
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1428,7 +1428,7 @@ procedure SetDimmingTimeout( timeout: ByteParameter ); external name '_SetDimmin
 
 {
  *  DimmingControl()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.0
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1440,7 +1440,7 @@ procedure DimmingControl( enableSleep: Boolean ); external name '_DimmingControl
 
 {
  *  IsDimmingControlDisabled()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.0
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1452,7 +1452,7 @@ function IsDimmingControlDisabled: Boolean; external name '_IsDimmingControlDisa
 
 {
  *  IsAutoSlpControlDisabled()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.0
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1464,7 +1464,7 @@ function IsAutoSlpControlDisabled: Boolean; external name '_IsAutoSlpControlDisa
 
 {
  *  PMgrStateQInstall()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.0
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1476,7 +1476,7 @@ function PMgrStateQInstall( var theElement: PMgrQueueElement ): OSErr; external 
 
 {
  *  PMgrStateQRemove()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.0
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1488,7 +1488,7 @@ function PMgrStateQRemove( var theElement: PMgrQueueElement ): OSErr; external n
 
 {
  *  DelaySystemIdle()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.0
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1500,7 +1500,7 @@ function DelaySystemIdle: OSErr; external name '_DelaySystemIdle';
 
 {
  *  GetStartupTimer()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.0
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1512,7 +1512,7 @@ function GetStartupTimer( var theTime: StartupTime ): OSErr; external name '_Get
 
 {
  *  SetStartupTimer()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.0
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1524,7 +1524,7 @@ function SetStartupTimer( var theTime: StartupTime ): OSErr; external name '_Set
 
 {
  *  GetLastActivity()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.0
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1536,7 +1536,7 @@ function GetLastActivity( var theActivity: ActivityInfo ): OSErr; external name 
 
 {
  *  GetSoundMixerState()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.0
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1548,7 +1548,7 @@ function GetSoundMixerState( var theSoundMixerByte: SoundMixerByte ): OSErr; ext
 
 {
  *  SetSoundMixerState()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.0
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1560,7 +1560,7 @@ function SetSoundMixerState( var theSoundMixerByte: SoundMixerByte ): OSErr; ext
 
 {
  *  GetDimSuspendState()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.0
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1572,7 +1572,7 @@ function GetDimSuspendState: Boolean; external name '_GetDimSuspendState';
 
 {
  *  SetDimSuspendState()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.0
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1587,7 +1587,7 @@ procedure SetDimSuspendState( dimSuspendState: Boolean ); external name '_SetDim
 
 {
  *  NewHDSpindownUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1599,7 +1599,7 @@ function NewHDSpindownUPP( userRoutine: HDSpindownProcPtr ): HDSpindownUPP; exte
 
 {
  *  NewPMgrStateChangeUPP()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1611,7 +1611,7 @@ function NewPMgrStateChangeUPP( userRoutine: PMgrStateChangeProcPtr ): PMgrState
 
 {
  *  DisposeHDSpindownUPP()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1623,7 +1623,7 @@ procedure DisposeHDSpindownUPP( userUPP: HDSpindownUPP ); external name '_Dispos
 
 {
  *  DisposePMgrStateChangeUPP()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1635,7 +1635,7 @@ procedure DisposePMgrStateChangeUPP( userUPP: PMgrStateChangeUPP ); external nam
 
 {
  *  InvokeHDSpindownUPP()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1647,7 +1647,7 @@ procedure InvokeHDSpindownUPP( var theElement: HDQueueElement; userUPP: HDSpindo
 
 {
  *  InvokePMgrStateChangeUPP()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later

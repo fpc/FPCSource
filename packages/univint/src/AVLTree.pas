@@ -1,9 +1,9 @@
 {
      File:       CarbonCore/AVLTree.h
- 
+
      Contains:   Interfaces for AVL balanced trees.
                  The contents of this header file are deprecated.
- 
+
      Copyright:  © 1999-2011 by Apple Inc. All rights reserved.
 }
 {
@@ -222,7 +222,7 @@ uses MacTypes;
 
 {
  *  AVLVisitStage
- *  
+ *
  *  Discussion:
  *    The visit stage for AVLWalk() walkProcs
  }
@@ -248,7 +248,7 @@ const
 
 {
  *  AVLOrder
- *  
+ *
  *  Discussion:
  *    The order the tree is walked or disposed of.
  }
@@ -268,7 +268,7 @@ const
 
 {
  *  AVLNodeType
- *  
+ *
  *  Discussion:
  *    The type of the node being passed to a callback proc.
  }
@@ -291,10 +291,10 @@ const
 
 {
  *  AVLTreeStruct
- *  
+ *
  *  Summary:
  *    An opaque structure for a balanced binary tree.
- *  
+ *
  *  Discussion:
  *    The structure of a tree.  It's opaque; don't assume it's 36 bytes
  *    in size.
@@ -310,11 +310,11 @@ type
 
 {
  *  AVLCompareItemsProcPtr
- *  
+ *
  *  Summary:
  *    A callback function which compares two data items and returns
  *    their ordering.
- *  
+ *
  *  Discussion:
  *    Every tree must have a function which compares the data for two
  *    items and returns < 0, 0, or >0 for the items - < 0 if the first
@@ -323,22 +323,22 @@ type
  *    if the first item is 'after' the second item according to the
  *    criteria.  The comparison function is also passed the node type,
  *    but most of the time this can be ignored.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    tree:
  *      The tree which contains the items being compared
- *    
+ *
  *    i1:
  *      A pointer to the first item
- *    
+ *
  *    i2:
  *      A pointer to the second item
- *    
+ *
  *    nd_typ:
  *      The type of the nodes being compared.  This is not terribly
  *      useful most of the time.
- *  
+ *
  *  Result:
  *    A value < 0 if i1 is 'before' i2, > 0 if i1 is 'after' i2, or ==
  *    0 if i1 is equal to i2.
@@ -348,25 +348,25 @@ type
 
 {
  *  AVLItemSizeProcPtr
- *  
+ *
  *  Summary:
  *    A callback function which returns the size of an item.
- *  
+ *
  *  Discussion:
  *    Every tree must have a itemSizeProc; this routine gets passed a
  *    pointer to the item's data and returns the size of the data.  If
  *    a tree contains records of a fixed size, this function can just
  *    return sizeof( that-struct ); otherwise it should calculate the
  *    size of the item based on the data for the item.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    tree:
  *      The tree which contains the item whose size is being requested.
- *    
+ *
  *    itemPtr:
  *      A pointer to the item whose size is being returned.
- *  
+ *
  *  Result:
  *    The size of the item.
  }
@@ -375,23 +375,23 @@ type
 
 {
  *  AVLDisposeItemProcPtr
- *  
+ *
  *  Summary:
  *    Dispose of any additional memory associated with an item in the
  *    tree.
- *  
+ *
  *  Discussion:
  *    A tree may have an optional disposeItemProc, which gets called
  *    whenever an item is removed from the tree ( via AVLRemove() or
  *    when AVLDispose() deletes all of the items in the tree ). This
  *    might be useful if the nodes in the tree own 'resources'  ( like,
  *    open files ) which should be released before the item is removed.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    tree:
  *      The tree containing the item being disposed.
- *    
+ *
  *    dataP:
  *      A pointer to the data for the item being disposed.
  }
@@ -400,11 +400,11 @@ type
 
 {
  *  AVLWalkProcPtr
- *  
+ *
  *  Summary:
  *    A callback function which gets passed each item in the tree, in a
  *    specified order.
- *  
+ *
  *  Discussion:
  *    The common way to iterate across all of the items in a tree is
  *    via AVLWalk(), which takes a walkProcPtr.  This function will get
@@ -419,33 +419,33 @@ type
  *    the tree, up until the last item in the tree structure is called.
  *    In general, you'll only care about calls to this function when
  *    visitStage == kAVLInOrder.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    tree:
  *      The tree being walked.
- *    
+ *
  *    dataPtr:
  *      A pointer to the data for an item in the tree.
- *    
+ *
  *    visitStage:
  *      The stage of the walk for the given node.
- *    
+ *
  *    node:
  *      The type of the given node. This is not terribly useful most of
  *      the time.
- *    
+ *
  *    level:
  *      How 'deep' in the tree the given node is.  This is not terribly
  *      useful most of the time.
- *    
+ *
  *    balance:
  *      How balanced the given node in the tree is.  This is not
  *      terribly useful most of the time.
- *    
+ *
  *    refCon:
  *      The refCon passed into AVLWalk() for this call.
- *  
+ *
  *  Result:
  *    Return 0 to continue walking the tree, or 1 to terminate.
  }
@@ -457,7 +457,7 @@ type
 	AVLWalkUPP = AVLWalkProcPtr;
 {
  *  NewAVLCompareItemsUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -468,7 +468,7 @@ function NewAVLCompareItemsUPP( userRoutine: AVLCompareItemsProcPtr ): AVLCompar
 
 {
  *  NewAVLItemSizeUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -479,7 +479,7 @@ function NewAVLItemSizeUPP( userRoutine: AVLItemSizeProcPtr ): AVLItemSizeUPP; e
 
 {
  *  NewAVLDisposeItemUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -490,7 +490,7 @@ function NewAVLDisposeItemUPP( userRoutine: AVLDisposeItemProcPtr ): AVLDisposeI
 
 {
  *  NewAVLWalkUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -501,7 +501,7 @@ function NewAVLWalkUPP( userRoutine: AVLWalkProcPtr ): AVLWalkUPP; external name
 
 {
  *  DisposeAVLCompareItemsUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -512,7 +512,7 @@ procedure DisposeAVLCompareItemsUPP( userUPP: AVLCompareItemsUPP ); external nam
 
 {
  *  DisposeAVLItemSizeUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -523,7 +523,7 @@ procedure DisposeAVLItemSizeUPP( userUPP: AVLItemSizeUPP ); external name '_Disp
 
 {
  *  DisposeAVLDisposeItemUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -534,7 +534,7 @@ procedure DisposeAVLDisposeItemUPP( userUPP: AVLDisposeItemUPP ); external name 
 
 {
  *  DisposeAVLWalkUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -545,7 +545,7 @@ procedure DisposeAVLWalkUPP( userUPP: AVLWalkUPP ); external name '_DisposeAVLWa
 
 {
  *  InvokeAVLCompareItemsUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -556,7 +556,7 @@ function InvokeAVLCompareItemsUPP( tree: AVLTreePtr; i1: {const} UnivPtr; i2: {c
 
 {
  *  InvokeAVLItemSizeUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -567,7 +567,7 @@ function InvokeAVLItemSizeUPP( tree: AVLTreePtr; itemPtr: {const} UnivPtr; userU
 
 {
  *  InvokeAVLDisposeItemUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -578,7 +578,7 @@ procedure InvokeAVLDisposeItemUPP( tree: AVLTreePtr; dataP: {const} UnivPtr; use
 
 {
  *  InvokeAVLWalkUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -590,10 +590,10 @@ function InvokeAVLWalkUPP( tree: AVLTreePtr; dataPtr: {const} UnivPtr; visitStag
 {$ifc not TARGET_CPU_64}
 {
  *  AVLInit()   *** DEPRECATED ***
- *  
+ *
  *  Summary:
  *    Create an AVL ( balanced binary ) tree
- *  
+ *
  *  Discussion:
  *    Create an AVL tree.  The compareItemsProc and the sizeItemProc
  *    are required; disposeItemProc is optional and can be nil.  The
@@ -603,24 +603,24 @@ function InvokeAVLWalkUPP( tree: AVLTreePtr; dataPtr: {const} UnivPtr; visitStag
  *    with AVLInsert ) will be created in what is the current zone at
  *    the time AVLInit() is called.  Always call AVLDispose() to
  *    dispose of a list created with AVLInit().
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    flags:
  *      Creation flags.  Currently, no flags are defined, so pass 0.
- *    
+ *
  *    compareItemsProc:
  *      A UPP for a function which compares two data items, and returns
  *      a value which is < 0, == 0, or > 0 depending on whether the
  *      first item is 'before', 'equal', or 'after' the first item.
- *    
+ *
  *    sizeItemProc:
  *      A UPP for a function which takes a pointer to a data item, and
  *      returns the size in bytes which it requires to store.
- *    
+ *
  *    disposeItemProc:
  *      A UPP for a function which takes a pointer to a data item, and
  *      disposes of any memory which may have been allocated for the
@@ -629,15 +629,15 @@ function InvokeAVLWalkUPP( tree: AVLTreePtr; dataPtr: {const} UnivPtr; visitStag
  *      passed in may be pointing to.  This function may be NULL if
  *      data items do not use any memory besides that taken up by the
  *      item itself.
- *    
+ *
  *    refCon:
  *      A 32 bit quantity which is stored with this tree, and can be
  *      retrieved at an time ( and in a callback, if desired ) with
  *      AVLGetRefcon().
- *    
+ *
  *    tree:
  *      The created AVLTree, or NULL if there is an error.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -649,29 +649,29 @@ function AVLInit( flags: UInt32; compareItemsProc: AVLCompareItemsUPP; sizeItemP
 
 {
  *  AVLDispose()   *** DEPRECATED ***
- *  
+ *
  *  Summary:
  *    Dispose of an AVL tree created with AVLInit()
- *  
+ *
  *  Discussion:
  *    Dispose of an AVL tree.  This will dispose of each item in the
  *    tree in the order specified, call the tree's disposeProc proc for
  *    each item, and then dispose of the space allocated for the tree
  *    itself.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
  *    AVLDispose is thread safe provided no other thread is still using
  *    the tree being dispose.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    tree:
  *      The tree to dispose, which was created with AVLInit().
- *    
+ *
  *    order:
  *      The order to dispose of the items in the tree.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -683,11 +683,11 @@ function AVLDispose( var tree: AVLTreePtr; order: AVLOrder ): OSErr; external na
 
 {
  *  AVLWalk()   *** DEPRECATED ***
- *  
+ *
  *  Summary:
  *    Iterate across all of the items in an AVL tree, in a specified
  *    order.
- *  
+ *
  *  Discussion:
  *    Iterate across all of the items in the tree, in the order
  *    specified.  kLeftToRight is basically lowest-to-highest order,
@@ -703,7 +703,7 @@ function AVLDispose( var tree: AVLTreePtr; order: AVLOrder ): OSErr; external na
  *    walkProc if visit stage is kAVLPostOrder ( because if you remove
  *    a node during the pre or in order stages you will corrupt the
  *    list ) OR if you return a non-zero result from the walkProc call
- *    which called AVLRemove() to immediately terminate the walkProc. 
+ *    which called AVLRemove() to immediately terminate the walkProc.
  *    Do not call AVLInsert() to insert a node into the tree from
  *    inside a walkProc. The walkProc function gets called with the
  *    AVLTreePtr, a pointer to the data for the current node ( which
@@ -716,28 +716,28 @@ function AVLDispose( var tree: AVLTreePtr; order: AVLOrder ): OSErr; external na
  *    to get that refCon if you want it inside a walkProc. ( Most
  *    walkProcs will not care about the values for node type, level, or
  *    balance. )
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
  *    AVLWalk is thread safe as long as no other thread tries to modify
  *    the tree by inserting or removing an item, or disposing of the
  *    tree itself.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    tree:
  *      The tree to dispose, which was created with AVLInit().
- *    
+ *
  *    walkProc:
  *      A UPP for a function which is called during the walk thru the
  *      tree for each item.
- *    
+ *
  *    order:
  *      The order to iterate thru the tree.
- *    
+ *
  *    walkRefCon:
  *      A 32 bit value passed to the walkProc each time it is called.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -749,27 +749,27 @@ function AVLWalk( tree: AVLTreePtr; walkProc: AVLWalkUPP; order: AVLOrder; walkR
 
 {
  *  AVLCount()   *** DEPRECATED ***
- *  
+ *
  *  Summary:
  *    Return the number of items in the given tree.
- *  
+ *
  *  Discussion:
  *    Return the number of items in the given tree.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
  *    AVLCount is thread safe as long as no other thread tries to
  *    modify the tree by inserting or removing an item, or disposing of
  *    the tree itself.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    tree:
  *      The tree to return the count of items for.
- *    
+ *
  *    count:
  *      On return, the count of items ( 1-based ) in the tree.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -781,10 +781,10 @@ function AVLCount( tree: AVLTreePtr; var count: UInt32 ): OSErr; external name '
 
 {
  *  AVLGetIndItem()   *** DEPRECATED ***
- *  
+ *
  *  Summary:
  *    Return the data of the index-th item from the tree.
- *  
+ *
  *  Discussion:
  *    Return the one-based index-th item from the tree by putting it's
  *    data at dataPtr if dataPtr is non-nil, and it's size into
@@ -792,32 +792,32 @@ function AVLCount( tree: AVLTreePtr; var count: UInt32 ): OSErr; external name '
  *    return errItemNotFoundInTree.  ( Internally, this does an
  *    AVLWalk(), so the tree can not be modified while this call is in
  *    progress ).
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
  *    AVLGetIndItem is thread safe as long as no other thread tries to
  *    modify the tree by inserting or removing an item, or disposing of
  *    the tree itself.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    tree:
  *      The tree to return the index-th items for.
- *    
+ *
  *    index:
  *      A index of the item to return.  The 'first' item in the tree is
  *      index = 1, the last item is index = the count of items in the
  *      tree.
- *    
+ *
  *    dataPtr:
  *      An address in memory to return the data for the item, or NULL
  *      if you don not want data returned.  The memory point to must be
  *      large enough to hold all of the data for the item.
- *    
+ *
  *    itemSize:
  *      On return, the size of the data for the index-th item.  If you
  *      do not care about the size of the data, pass NULL.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -829,10 +829,10 @@ function AVLGetIndItem( tree: AVLTreePtr; index: UInt32; dataPtr: UnivPtr; var i
 
 {
  *  AVLInsert()   *** DEPRECATED ***
- *  
+ *
  *  Summary:
  *    Insert an item into the tree.
- *  
+ *
  *  Discussion:
  *    Insert the given item into the tree.  This will call the tree's
  *    sizeItemProc to determine how big the item at data is, and then
@@ -841,21 +841,21 @@ function AVLGetIndItem( tree: AVLTreePtr; index: UInt32; dataPtr: UnivPtr; var i
  *    the same key ( so that the compareItemsUPP returns 0 when asked
  *    to compare this item to an existing one ), then it will return
  *    errItemNotFoundInTree.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
  *    AVLInsert is thread safe as long as no other thread tries to walk
  *    or modify the tree by inserting or removing an item, or disposing
  *    of the tree itself.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    tree:
  *      The tree to return the index-th items for.
- *    
+ *
  *    data:
  *      A pointer to the item to be inserted.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -867,10 +867,10 @@ function AVLInsert( tree: AVLTreePtr; data: {const} UnivPtr ): OSErr; external n
 
 {
  *  AVLRemove()   *** DEPRECATED ***
- *  
+ *
  *  Summary:
  *    Remove an item from the tree.
- *  
+ *
  *  Discussion:
  *    Remove any item from the tree with the given key.  If dataPtr !=
  *    nil, then copy the item's data to dataPtr before removing it from
@@ -878,34 +878,34 @@ function AVLInsert( tree: AVLTreePtr; data: {const} UnivPtr ): OSErr; external n
  *    disposeItemProc to let it release anything used by the data in
  *    the tree.  It is not necessary to fill in a complete record for
  *    key, only that the compareItemsProc return 0 when asked to
- *    compare the data at key with the node in the tree to be deleted. 
+ *    compare the data at key with the node in the tree to be deleted.
  *    If the item cannot be found in the tree, this will return
  *    errItemNotFoundInTree.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
  *    AVLRemove is thread safe as long as no other thread tries to walk
  *    or modify the tree by inserting or removing an item, or disposing
  *    of the tree itself.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    tree:
  *      The tree to return the index-th items for.
- *    
+ *
  *    key:
  *      A pointer to the item to be removed ( or, enough of the item
  *      that it can be found in the tree ).
- *    
+ *
  *    dataPtr:
  *      An address in memory to return the data for the item, or NULL
  *      if you don not want data returned.  The memory point to must be
  *      large enough to hold all of the data for the item.
- *    
+ *
  *    itemSize:
  *      On return, the size of the data for the index-th item.  If you
  *      do not care about the size of the data, pass NULL.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -917,10 +917,10 @@ function AVLRemove( tree: AVLTreePtr; key: {const} UnivPtr; dataPtr: UnivPtr; va
 
 {
  *  AVLFind()   *** DEPRECATED ***
- *  
+ *
  *  Summary:
  *    Remove an item from the tree.
- *  
+ *
  *  Discussion:
  *    Find the item in the tree with the given key, and return it's
  *    data in dataPtr ( if dataPtr != nil ), and it's size in *itemSize
@@ -929,31 +929,31 @@ function AVLRemove( tree: AVLTreePtr; key: {const} UnivPtr; dataPtr: UnivPtr; va
  *    when asked to compare the data at key with the node in the tree
  *    to be deleted.  If the item cannot be found in the tree, this
  *    will return errItemNotFoundInTree.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
  *    AVLRemove is thread safe as long as no other thread tries to walk
  *    or modify the tree by inserting or removing an item, or disposing
  *    of the tree itself.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    tree:
  *      The tree to return the index-th items for.
- *    
+ *
  *    key:
  *      A pointer to the item to be found ( or, enough of the item that
  *      it can be found in the tree ).
- *    
+ *
  *    dataPtr:
  *      An address in memory to return the data for the item, or NULL
  *      if you don not want data returned.  The memory point to must be
  *      large enough to hold all of the data for the item.
- *    
+ *
  *    itemSize:
  *      On return, the size of the data for the index-th item.  If you
  *      do not care about the size of the data, pass NULL.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -965,27 +965,27 @@ function AVLFind( tree: AVLTreePtr; key: {const} UnivPtr; dataPtr: UnivPtr; var 
 
 {
  *  AVLGetRefcon()   *** DEPRECATED ***
- *  
+ *
  *  Summary:
  *    Return the refCon set when the tree was created.
- *  
+ *
  *  Discussion:
  *    Get the refCon for the given tree ( set in AVLInit ) and return
  *    it.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe
  *    AVLGetRefcon is thread safe as long as no other thread tries to
  *    dispose of the tree itself.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    tree:
  *      The tree to return the refcon for.
- *    
+ *
  *    refCon:
  *      On return, the refCon for the tree, or NULL if tree is invalid.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later

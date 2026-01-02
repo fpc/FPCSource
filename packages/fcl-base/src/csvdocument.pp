@@ -124,7 +124,7 @@ type
 
     // Return column for cell data AString at row ARow
     function  IndexOfCol(const AString: String; ARow: Integer): Integer;
-    // Return row for cell data AString at coloumn ACol
+    // Return row for cell data AString at column ACol
     function  IndexOfRow(const AString: String; ACol: Integer): Integer;
 
     // Utils

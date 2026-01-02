@@ -340,7 +340,7 @@ const
  * application.
  *
  * "Product tokens should be short and to the point -- use of them for
- * advertizing or other non-essential information is explicitly forbidden."
+ * advertising or other non-essential information is explicitly forbidden."
  *
  * Example: "Apache/1.1.0 MrWidget/0.1-alpha"
  }
@@ -749,7 +749,7 @@ type
 
     { On systems with case insensitive file systems (Windows, OS/2, etc.),
      * r->filename is case canonicalized (folded to either lower or upper
-     * case, depending on the specific system) to accomodate file access
+     * case, depending on the specific system) to accommodate file access
      * checking. case_preserved_filename is the same as r->filename
      * except case is preserved. There is at least one instance where Apache
      * needs access to the case preserved filename: Java class files published

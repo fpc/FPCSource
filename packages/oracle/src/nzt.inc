@@ -870,7 +870,7 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
    *    persona  IN/OUT    Persona.
    *
    * NOTES
-   *    The persona is destroyd in the open state, but it will
+   *    The persona is destroyed in the open state, but it will
    *    not be associated with a wallet.
    *
    *    The persona parameter is doubly indirect so that at the
@@ -931,7 +931,7 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
    *    vkey_len OUT    Private Key Length
    *
    * NOTES
-   *    This funiction will only work for X.509 based persona which contain
+   *    This function will only work for X.509 based persona which contain
    *    a private key.
    *    A copy of the private key is returned to the caller so that they do not
    *    have to worry about the key changeing "underneath them".
@@ -962,7 +962,7 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
    *    cert_len OUT    Certificate length
    *
    * NOTES
-   *    This funiction will only work for X.509 based persona which contain
+   *    This function will only work for X.509 based persona which contain
    *    a certificate for the self identity.
    *    A copy of the certificate is returned to the caller so that they do not
    *    have to worry about the certificate changeing "underneath them".
@@ -1216,7 +1216,7 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
    *
    * RETURNS
    *    NZERROR_OK           Success.
-   *    NZERROR_TK_CANTGROW  Needed to grow outptu buffer but could not.
+   *    NZERROR_TK_CANTGROW  Needed to grow output buffer but could not.
    *    NZERROR_TK_NOTOPEN   Persona is not open.
    *    NZERROR_TK_NOTSUPP   Function not supported with persona.
     }
@@ -1762,7 +1762,7 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
   {-------------------- nztdbuf_DestroyBuf -------------------- }
   {
    * NAME
-   *    nztdbuf_DestroyBuf - Deallocation funtions for ub1 and text buffer
+   *    nztdbuf_DestroyBuf - Deallocation functions for ub1 and text buffer
    *
    * PARAMETERS
    *    Name   IN/OUT   Description
@@ -2029,7 +2029,7 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
    *    parameter.
    *
    * RETURNS
-   *    NZERROR_OK                 Sucess.
+   *    NZERROR_OK                 Success.
    *    NZERROR_TK_WALLET_EXISTS   Wallet already exists.
    *    NZERROR_RIO_OPEN           RIO could not create wallet (see trace file).
     }

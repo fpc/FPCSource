@@ -1,17 +1,17 @@
 {
      File:       SearchKit/SKDocument.h
- 
+
      Contains:   SearchKit Interfaces.
- 
+
      Version:    SearchKit-407~38
- 
+
      Copyright:  © 2003-2008 by Apple Computer, Inc., all rights reserved
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://developer.apple.com/bugreporter/
- 
+
 }
 {
     Modified for use with Free Pascal
@@ -227,10 +227,10 @@ uses MacTypes,CFBase,CFURL;
 
 {
  *  SKDocumentRef
- *  
+ *
  *  Summary:
  *    An opaque data type representing a document.
- *  
+ *
  *  Discussion:
  *    A document reference is a generic descriptor to a document. It is
  *    built from a document scheme, a parent document, and a document
@@ -241,13 +241,13 @@ type
 	SKDocumentRefPtr = ^SKDocumentRef;
 {
  *  SKDocumentGetTypeID()
- *  
+ *
  *  Summary:
  *    Returns the type identifier of the SKDocument type.
- *  
+ *
  *  Result:
  *    Returns a CFTypeID object, or <tt>NULL</tt> on failure.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -259,26 +259,26 @@ function SKDocumentGetTypeID: CFTypeID; external name '_SKDocumentGetTypeID';
 
 {
  *  SKDocumentCreateWithURL()
- *  
+ *
  *  Summary:
  *    Creates a reference to a document with a URL.
- *  
+ *
  *  Discussion:
  *    Use SKDocumentCreateWithURL to create a reference to a file or
  *    other URL. This function must be balanced with a call at a later
  *    time to CFRelease.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inURL:
  *      Only "file:" URLs can be used with the SKIndexAddDocument
  *      function, but the URL scheme may be anything you like if you
  *      use the SKIndexAddDocumentWithText function. The scheme of the
  *      document created is set to the scheme of the URL used.
- *  
+ *
  *  Result:
  *    Returns a reference to the document, or <tt>NULL</tt> on failure.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -290,13 +290,13 @@ function SKDocumentCreateWithURL( inURL: CFURLRef ): SKDocumentRef; external nam
 
 {
  *  SKDocumentCopyURL()
- *  
+ *
  *  Summary:
  *    Builds a CFURL object from a document reference.
- *  
+ *
  *  Result:
  *    Returns a CFURL object, or <tt>NULL</tt> on failure.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -308,36 +308,36 @@ function SKDocumentCopyURL( inDocument: SKDocumentRef ): CFURLRef; external name
 
 {
  *  SKDocumentCreate()
- *  
+ *
  *  Summary:
  *    Create a document based on a scheme, parent, and name.
- *  
+ *
  *  Discussion:
  *    The parent can be <tt>NULL</tt>, but either a scheme or a parent
  *    must be specified. This function must be balanced with a call at
  *    a later time to CFRelease
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inScheme:
  *      Analogous to the scheme of a URL. Documents with a "file"
  *      scheme can be read by the <tt>SKIndexAddDocument</tt> function
  *      (see SearchKit.h). The scheme may be anything you like if you
  *      use the SKIndexAddDocumentWithText function. If the scheme is
  *      <tt>NULL</tt>, it will be set to be the same as the parent.
- *    
+ *
  *    inParent:
  *      The reference to the document or container one step up in the
  *      document hierarchy.
- *    
+ *
  *    inName:
  *      The name of this document. For a "file" scheme, it is the name
  *      of the file or the container, not its path. The path can be
  *      constructed by following parent links.
- *  
+ *
  *  Result:
  *    Returns a reference to the document, or <tt>NULL</tt> on failure.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -349,18 +349,18 @@ function SKDocumentCreate( inScheme: CFStringRef; inParent: SKDocumentRef { can 
 
 {
  *  SKDocumentGetSchemeName()
- *  
+ *
  *  Summary:
  *    Gets the scheme name of a document.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inDocument:
  *      The document whose scheme name you want to get.
- *  
+ *
  *  Result:
  *    Returns a CFString object, or <tt>NULL</tt> on failure.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -372,18 +372,18 @@ function SKDocumentGetSchemeName( inDocument: SKDocumentRef ): CFStringRef; exte
 
 {
  *  SKDocumentGetName()
- *  
+ *
  *  Summary:
  *    Gets the name of a document.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inDocument:
  *      The document whose name you want to get.
- *  
+ *
  *  Result:
  *    Returns a CFString object, or <tt>NULL</tt> on failure.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -395,19 +395,19 @@ function SKDocumentGetName( inDocument: SKDocumentRef ): CFStringRef; external n
 
 {
  *  SKDocumentGetParent()
- *  
+ *
  *  Summary:
  *    Gets a reference to the parent document of a document.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inDocument:
  *      The document whose parent you want to get.
- *  
+ *
  *  Result:
  *    Returns a reference to the parent document, or <tt>NULL</tt> on
  *    failure.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in CoreServices.framework
  *    CarbonLib:        not available

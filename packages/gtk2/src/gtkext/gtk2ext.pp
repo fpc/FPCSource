@@ -15,7 +15,7 @@ uses
 {$ENDIF FPC_DOTTEDUNITS}
 
 const
-  { This is equired when people don't have -dev/-devel packages on linux.
+  { This is required when people don't have -dev/-devel packages on linux.
     I'm not sure how Darwin is handled tho }
   {$ifdef windows}
   GtkLibNames: array[1..1] of ansistring = (gtklib);

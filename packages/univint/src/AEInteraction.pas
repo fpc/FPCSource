@@ -1,17 +1,17 @@
 {
      File:       HIToolbox/AEInteraction.h
- 
+
      Contains:   AppleEvent functions that deal with Events and interacting with user
- 
+
      Version:    HIToolbox-624~3
- 
+
      Copyright:  © 2000-2008 by Apple Computer, Inc., all rights reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {       Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, August 2005 }
 {       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
@@ -231,7 +231,7 @@ uses MacTypes,QuickdrawTypes,AEDataModel,Notification,Events,CarbonEventsCore;
 
 
 {*************************************************************************
-  AppleEvent callbacks. 
+  AppleEvent callbacks.
 *************************************************************************}
 type
 	AEIdleProcPtr = function( var theEvent: EventRecord; var sleepTime: SInt32; var mouseRgn: RgnHandle ): Boolean;
@@ -241,14 +241,14 @@ type
 
 {*************************************************************************
   The next couple of calls are basic routines used to create, send,
-  and process AppleEvents. 
+  and process AppleEvents.
 *************************************************************************}
 {
  *  AESend()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -260,10 +260,10 @@ function AESend( const (*var*) theAppleEvent: AppleEvent; var reply: AppleEvent;
 
 {
  *  AEProcessAppleEvent()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -275,11 +275,11 @@ function AEProcessAppleEvent( const (*var*) theEventRecord: EventRecord ): OSErr
 
 {
  *  AEProcessEvent()
- *  
+ *
  *  Summary:
  *    Dispatches a Carbon event of type kEventAppleEvent to the
  *    appropriate AppleEvent handlers.
- *  
+ *
  *  Discussion:
  *    This API is similar to AEProcessAppleEvent, but does not require
  *    the Carbon event to be converted to an EventRecord. Also, unlike
@@ -290,21 +290,21 @@ function AEProcessAppleEvent( const (*var*) theEventRecord: EventRecord ): OSErr
  *    event from its event queue later once you're done handling it,
  *    and it is also acceptable to remove it from the event queue
  *    before calling this API.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inEvent:
  *      A Carbon event of class kEventClassAppleEvent and kind
  *      kEventAppleEvent.
- *  
+ *
  *  Result:
  *    The operating system result code returned by the AppleEvent
  *    handler, or paramErr if the event passed to this API is not of
  *    the correct class and kind.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -314,18 +314,18 @@ function AEProcessEvent( inEvent: EventRef ): OSStatus; external name '_AEProces
 (* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
 
 
-{ 
+{
  Note: during event processing, an event handler may realize that it is likely
  to exceed the client's timeout limit. Passing the reply to this
  routine causes a wait event to be generated that asks the client
- for more time. 
+ for more time.
 }
 {
  *  AEResetTimer()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -337,7 +337,7 @@ function AEResetTimer( const (*var*) reply: AppleEvent ): OSErr; external name '
 
 {*************************************************************************
   The following three calls are used to allow applications to behave
-  courteously when a user interaction such as a dialog box is needed. 
+  courteously when a user interaction such as a dialog box is needed.
 *************************************************************************}
 
 type
@@ -349,10 +349,10 @@ const
 
 {
  *  AEGetInteractionAllowed()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -364,10 +364,10 @@ function AEGetInteractionAllowed( var level: AEInteractAllowed ): OSErr; externa
 
 {
  *  AESetInteractionAllowed()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -379,10 +379,10 @@ function AESetInteractionAllowed( level: AEInteractAllowed ): OSErr; external na
 
 {
  *  AEInteractWithUser()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -403,10 +403,10 @@ function AEInteractWithUser( timeOutInTicks: SInt32; nmReqPtr: NMRecPtr; idlePro
 *************************************************************************}
 {
  *  AESuspendTheCurrentEvent()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -416,7 +416,7 @@ function AESuspendTheCurrentEvent( const (*var*) theAppleEvent: AppleEvent ): OS
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
-{ 
+{
  Note: The following routine tells the AppleEvent manager that processing
  is either about to resume or has been completed on a previously suspended
  event. The procPtr passed in as the dispatcher parameter will be called to
@@ -446,10 +446,10 @@ const
 
 {
  *  AEResumeTheCurrentEvent()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -461,10 +461,10 @@ function AEResumeTheCurrentEvent( const (*var*) theAppleEvent: AppleEvent; const
 
 {
  *  AEGetTheCurrentEvent()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -476,10 +476,10 @@ function AEGetTheCurrentEvent( var theAppleEvent: AppleEvent ): OSErr; external 
 
 {
  *  AESetTheCurrentEvent()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -490,11 +490,11 @@ function AESetTheCurrentEvent( const (*var*) theAppleEvent: AppleEvent ): OSErr;
 
 
 {*************************************************************************
-  AppleEvent callbacks. 
+  AppleEvent callbacks.
 *************************************************************************}
 {
  *  NewAEIdleUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -505,7 +505,7 @@ function NewAEIdleUPP( userRoutine: AEIdleProcPtr ): AEIdleUPP; external name '_
 
 {
  *  NewAEFilterUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -516,7 +516,7 @@ function NewAEFilterUPP( userRoutine: AEFilterProcPtr ): AEFilterUPP; external n
 
 {
  *  DisposeAEIdleUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -527,7 +527,7 @@ procedure DisposeAEIdleUPP( userUPP: AEIdleUPP ); external name '_DisposeAEIdleU
 
 {
  *  DisposeAEFilterUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -538,7 +538,7 @@ procedure DisposeAEFilterUPP( userUPP: AEFilterUPP ); external name '_DisposeAEF
 
 {
  *  InvokeAEIdleUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -549,7 +549,7 @@ function InvokeAEIdleUPP( var theEvent: EventRecord; var sleepTime: SInt32; var 
 
 {
  *  InvokeAEFilterUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later

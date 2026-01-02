@@ -1,17 +1,17 @@
 {
      File:       HIToolbox/HITextViews.h
- 
+
      Contains:   Definitions of text-display and text-editing views provided by HIToolbox.
- 
+
      Version:    HIToolbox-624~3
- 
+
      Copyright:  © 2006-2008 by Apple Computer, Inc., all rights reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {       Initial Pascal Translation:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
@@ -231,7 +231,7 @@ uses MacTypes,Appearance,CarbonEvents,Controls,MacTextEditor,QuickdrawTypes,Text
 
 {
  *  HITextViews.h
- *  
+ *
  *  Discussion:
  *    API definitions for the standard text-display and text-editing
  *    views: Static text view, HITextView, EditUnicodeText view, and
@@ -256,34 +256,34 @@ const
 {$ifc not TARGET_CPU_64}
 {
  *  CreateStaticTextControl()
- *  
+ *
  *  Summary:
  *    Creates a new static text control.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    window:
  *      The window in which the control should be placed. May be NULL
  *      in 10.3 and later.
- *    
+ *
  *    boundsRect:
  *      The bounds of the control, in local coordinates of the window.
- *    
+ *
  *    text:
  *      The text of the control. May be NULL.
- *    
+ *
  *    style:
  *      The control's font style, size, color, and so on. May be NULL.
- *    
+ *
  *    outControl:
  *      On exit, contains the new control.
- *  
+ *
  *  Result:
  *    An operating system result code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -371,7 +371,7 @@ const
 {==============================================================================}
 {
     kEventClassTextField quick reference:
-    
+
     kEventTextAccepted              = 1,
     kEventTextShouldChangeInRange   = 2,
     kEventTextDidChange             = 3
@@ -388,11 +388,11 @@ const
 
 {
  *  kEventClassTextField / kEventTextAccepted
- *  
+ *
  *  Summary:
  *    Notification that the text in a view's editable text field has
  *    been accepted.
- *  
+ *
  *  Discussion:
  *    This event is sent as a notification when the text contained in a
  *    view's editable text field has been accepted by the user. Text is
@@ -400,20 +400,20 @@ const
  *    for the EditUnicodeText, HIComboBox, and HISearchField views, or
  *    when the text has changed in the field and the field loses focus
  *    for the EditUnicodeText, HIComboBox, HISearchField and HITextView
- *    views. 
- *    
+ *    views.
+ *
  *    This event is sent to the view containing the text field only, it
  *    will not propagate. It is sent to all handlers installed on the
  *    view containing the text field.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    --> kEventParamDirectObject (in, typeControlRef)
  *          The editable text field that has sent the notification.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -423,11 +423,11 @@ const
 
 {
  *  kEventClassTextField / kEventTextShouldChangeInRange
- *  
+ *
  *  Summary:
  *    Returns whether the text should be changed in editable text
  *    fields.
- *  
+ *
  *  Discussion:
  *    There are several editable text field views, such as the
  *    HIComboBox, HISearchField, HITextView, and EditUnicodeText views.
@@ -440,36 +440,36 @@ const
  *    Service operation. You can change what text is inserted by
  *    providing a replacement string as a parameter to this event. This
  *    event is only sent for Unicode text views; it is not sent for the
- *    classic non-Unicode EditText control. 
- *    
+ *    classic non-Unicode EditText control.
+ *
  *    This event is not sent prior to programmatic modification of the
- *    text field contents using SetControlData. 
- *    
+ *    text field contents using SetControlData.
+ *
  *    This event is not sent while an active inline editing session is
  *    in progress. Once the inline text has been confirmed, this event
  *    will be sent prior to the confirmed text being inserted into the
  *    text field. If you need control over keystrokes during an inline
  *    editing session, you can use the kEventTextInputFilterText event.
- *    
- *    
+ *
+ *
  *    This event is sent to the view containing the text field only; it
  *    will not propagate.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    --> kEventParamDirectObject (in, typeControlRef)
  *          The editable text field that has sent the notification.
  *          Available in Mac OS X 10.5 and later.
- *    
+ *
  *    --> kEventParamTextSelection (in, typeCFRange)
  *          The range of the selection that is about to be changed. The
  *          units of the selection are in the same units that are
  *          returned in a EditTextSelectionRec, when called with
  *          GetControlData using kControlEditTextSelectionTag.
- *    
+ *
  *    --> kEventParamCandidateText (in, typeCFStringRef)
  *          The text that is going to replace the selection. Note that
  *          this string was originally created with
@@ -479,22 +479,22 @@ const
  *          should extract the characters from the string with
  *          CFStringGetCharacters, and then store those characters or
  *          create a new CFString from them.
- *    
+ *
  *    <-- kEventParamReplacementText (out, typeCFStringRef)
  *          On output, can contain optional replacement text.
- *  
+ *
  *  Result:
  *    If noErr is returned from your handler and the
  *    kEventParamReplacementText parameter is added to the event, then
  *    the contents of that parameter, rather than the candidate text,
- *    will be added to the text field. 
- *    
+ *    will be added to the text field.
+ *
  *    If noErr is returned from your handler and the
  *    kEventParamReplacementText parameter is _not_ added to the event,
  *    then the candidate text will be filtered out and no text will be
  *    entered in the text field. The current selection will be deleted,
- *    however. 
- *    
+ *    however.
+ *
  *    If userCanceledErr is returned from your handler, then no text
  *    will be entered in the text field and the current selection will
  *    remain unchanged. Effectively, the editing operation will be
@@ -502,15 +502,15 @@ const
  *    you will only receive this event when the user attempts to
  *    confirm the inline input. You should not return userCanceledErr
  *    at this point; doing so will not really prevent the text from
- *    being committed. 
- *    
+ *    being committed.
+ *
  *    If eventNotHandledErr is returned from your handler, the contents
  *    of the kEventParamReplacementText parameter are ignored, and the
- *    candidate text will replace the selection. 
- *    
+ *    candidate text will replace the selection.
+ *
  *    Any other return value will result in the default behavior, as if
  *    eventNotHandledErr had been returned.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -520,17 +520,17 @@ const
 
 {
  *  kEventClassTextField / kEventTextDidChange
- *  
+ *
  *  Summary:
  *    Indicates that the contents of an editable text field have
  *    changed.
- *  
+ *
  *  Discussion:
  *    This event is sent by all of the Unicode-based editable text
  *    views: HIComboBox, HISearchField, HITextView and EditUnicodeText.
  *    This event is not sent for the classic non-Unicode EditText view.
- *    
- *    
+ *
+ *
  *    Note that this event is sent after inline editing operations,
  *    such as pressing a dead key, or using a input method that creates
  *    an inline editing hole. Most clients of this event should ignore
@@ -539,29 +539,29 @@ const
  *    the presence of the kEventParamUnconfirmedRange parameter to
  *    determine whether inline editing is currently active; if this
  *    parameter is present, the client may wish to ignore the event.
- *    
- *    
+ *
+ *
  *    This event is not sent after programmatic modification of the
- *    text field contents using SetControlData. 
- *    
+ *    text field contents using SetControlData.
+ *
  *    This event is sent only to the view containing the text field; it
  *    will not propagate. It is sent to all handlers registered for it.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    --> kEventParamDirectObject (in, typeControlRef)
  *          The editable text field that has sent the notification.
  *          Available in Mac OS X 10.5 and later.
- *    
+ *
  *    --> kEventParamUnconfirmedRange (in, typeCFRange)
  *          If the text field currently has an open inline hole, this
  *          parameter contains the range of text inside the hole. This
  *          parameter is optional and is only present during inline
  *          editing.
- *    
+ *
  *    --> kEventParamUnconfirmedText (in, typeCFStringRef)
  *          If the text field currently has an open inline hole, this
  *          parameter contains the non-confirmed text currently being
@@ -574,7 +574,7 @@ const
  *          should extract the characters from the string with
  *          CFStringGetCharacters, and then store those characters or
  *          create a new CFString from them.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -596,7 +596,7 @@ const
 {==============================================================================}
 {
     In Mac OS X 10.4 and later, HITextView supports these tags previously defined for the EditUnicodeText control:
-    
+
         kControlEditTextCharCount
         kControlEditTextSelectionTag
         kControlEditTextCFStringTag
@@ -606,10 +606,10 @@ const
 { The HIObject class ID for the HITextView class. }
 {
  *  kHITextViewClassID
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -625,28 +625,28 @@ const
 {$ifc not TARGET_CPU_64}
 {
  *  HITextViewCreate()
- *  
+ *
  *  Summary:
  *    Creates a text view. The new view is initially invisible.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inBoundsRect:
  *      The bounding box of the view. If NULL, the bounds of the view
  *      will be initialized to 0.
- *    
+ *
  *    inOptions:
  *      There are currently no options. This must be 0.
- *    
+ *
  *    inTXNFrameOptions:
  *      Any frame options desired for the TXN object creation.
- *    
+ *
  *    outTextView:
  *      On exit, contains the new view.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -658,21 +658,21 @@ function HITextViewCreate( {const} inBoundsRect: HIRectPtr { can be NULL }; inOp
 
 {
  *  HITextViewGetTXNObject()
- *  
+ *
  *  Summary:
  *    Obtains the TXNObject that backs the text view.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inTextView:
  *      The text view that contains the TXNObject you wish to retrieve.
- *  
+ *
  *  Result:
  *    The TXNObject backing the given view.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -684,20 +684,20 @@ function HITextViewGetTXNObject( inTextView: HIViewRef ): TXNObject; external na
 
 {
  *  HITextViewSetBackgroundColor()
- *  
+ *
  *  Summary:
  *    Sets the background color of the view. This allows you to provide
  *    alpha as well. If inColor is NULL, the background of the text
  *    view will not draw.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inTextView:
  *      The text view that you are modifying the background color of.
- *    
+ *
  *    inColor:
  *      A CGColorRef representing the color or pattern that will fill
  *      the background of the text view. The CGColorRef will be
@@ -705,10 +705,10 @@ function HITextViewGetTXNObject( inTextView: HIViewRef ): TXNObject; external na
  *      background color, it will be released prior to the new color
  *      being retained. If inColor is NULL, the background of the text
  *      view will not draw.
- *  
+ *
  *  Result:
  *    An operating system status code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -720,20 +720,20 @@ function HITextViewSetBackgroundColor( inTextView: HIViewRef; inColor: CGColorRe
 
 {
  *  HITextViewCopyBackgroundColor()
- *  
+ *
  *  Summary:
  *    Gets the background color of the view. If the background color
  *    returned is NULL, the background does not draw.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inTextView:
  *      The text view from which you want to obtain the background
  *      color.
- *    
+ *
  *    outColor:
  *      A CGColorRef representing the color or pattern that is used for
  *      drawing the background of the text view. If the returned value
@@ -741,10 +741,10 @@ function HITextViewSetBackgroundColor( inTextView: HIViewRef; inColor: CGColorRe
  *      CGColorRef is not NULL, it will be retained on return. You are
  *      responsible for releasing this CGColorRef when you are no
  *      longer referencing it.
- *  
+ *
  *  Result:
  *    An operating system status code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -777,47 +777,47 @@ const
 {$ifc not TARGET_CPU_64}
 {
  *  CreateEditUnicodeTextControl()
- *  
+ *
  *  Summary:
  *    Creates a new edit text control.
- *  
+ *
  *  Discussion:
  *    This is the preferred edit text control. Use it instead of the
  *    EditText control. This control handles Unicode and draws its text
  *    using antialiasing, which the other control does not.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    window:
  *      The window in which the control should be placed. May be NULL
  *      in 10.3 and later.
- *    
+ *
  *    boundsRect:
  *      The bounds of the control, in local coordinates of the window.
- *    
+ *
  *    text:
  *      The text of the control. May be NULL.
- *    
+ *
  *    isPassword:
  *      A Boolean indicating whether the field is to be used as a
  *      password field. Passing false indicates that the field is to
  *      display entered text normally. True means that the field will
  *      be used as a password field and any text typed into the field
  *      will be displayed only as bullets.
- *    
+ *
  *    style:
  *      The control's font style, size, color, and so on. May be NULL.
- *    
+ *
  *    outControl:
  *      On exit, contains the new control (if noErr is returned as the
  *      result code).
- *  
+ *
  *  Result:
  *    An operating system result code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
@@ -895,7 +895,7 @@ type
 	EditUnicodePostUpdateUPP = EditUnicodePostUpdateProcPtr;
 {
  *  NewControlEditTextValidationUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -906,7 +906,7 @@ function NewControlEditTextValidationUPP( userRoutine: ControlEditTextValidation
 
 {
  *  NewEditUnicodePostUpdateUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
@@ -917,7 +917,7 @@ function NewEditUnicodePostUpdateUPP( userRoutine: EditUnicodePostUpdateProcPtr 
 
 {
  *  DisposeControlEditTextValidationUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -928,7 +928,7 @@ procedure DisposeControlEditTextValidationUPP( userUPP: ControlEditTextValidatio
 
 {
  *  DisposeEditUnicodePostUpdateUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
@@ -939,7 +939,7 @@ procedure DisposeEditUnicodePostUpdateUPP( userUPP: EditUnicodePostUpdateUPP ); 
 
 {
  *  InvokeControlEditTextValidationUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -950,7 +950,7 @@ procedure InvokeControlEditTextValidationUPP( control: ControlRef; userUPP: Cont
 
 {
  *  InvokeEditUnicodePostUpdateUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later

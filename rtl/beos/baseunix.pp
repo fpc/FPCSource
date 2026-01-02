@@ -46,8 +46,8 @@ Uses UnixType;
   {$i bunxh.inc}		{ Functions}
 {$ENDIF}
 
-function fpgeterrno:longint; 
-procedure fpseterrno(err:longint); 
+function fpgeterrno:longint;
+procedure fpseterrno(err:longint);
 
 {$ifndef ver1_0}
 property errno : cint read fpgeterrno write fpseterrno;
@@ -58,9 +58,9 @@ property errno : cint read fpgeterrno write fpseterrno;
 {$ifdef FPC_USE_LIBC}
 {$ifdef beos}
 function  fpsettimeofday(tp:ptimeval;tzp:ptimezone):cint;
-Function fpFlock (var fd : text; mode : longint) : cint; 
-Function fpFlock (var fd : File; mode : longint) : cint; 
-Function fpFlock (fd, mode : longint) : cint; 
+Function fpFlock (var fd : text; mode : longint) : cint;
+Function fpFlock (var fd : File; mode : longint) : cint;
+Function fpFlock (fd, mode : longint) : cint;
 Function  FpNanoSleep  (req : ptimespec;rem : ptimespec):cint;
 {$endif}
 {$endif}
@@ -118,12 +118,12 @@ procedure fpseterrno(err:longint); external name 'FPC_SYS_SETERRNO';
 function intgeterrno:longint; external name 'FPC_SYS_GETERRNO';
 procedure intseterrno(err:longint); external name 'FPC_SYS_SETERRNO';
 
-function fpgeterrno:longint; 
+function fpgeterrno:longint;
 begin
   fpgeterrno:=intgeterrno;
 end;
 
-procedure fpseterrno(err:longint); 
+procedure fpseterrno(err:longint);
 begin
   intseterrno(err);
 end;
@@ -135,19 +135,19 @@ begin
   fpsettimeofday := settimeofday(tp, tzp);
 end;
 
-Function fpFlock (var fd : File; mode : longint) : cint; 
+Function fpFlock (var fd : File; mode : longint) : cint;
 begin
-  {$warning TODO BeOS fpFlock implementation}  
+  {$warning TODO BeOS fpFlock implementation}
 end;
 
-Function fpFlock (var fd : Text; mode : longint) : cint; 
+Function fpFlock (var fd : Text; mode : longint) : cint;
 begin
-  {$warning TODO BeOS fpFlock implementation}  
+  {$warning TODO BeOS fpFlock implementation}
 end;
 
-Function fpFlock (fd, mode : longint) : cint; 
+Function fpFlock (fd, mode : longint) : cint;
 begin
-  {$warning TODO BeOS fpFlock implementation}  
+  {$warning TODO BeOS fpFlock implementation}
 end;
 
 function snooze(microseconds : bigtime_t) : status_t; cdecl; external 'root' name 'snooze';

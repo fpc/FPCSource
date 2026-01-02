@@ -2,16 +2,16 @@
  * Copyright (c) 1999 Apple Computer, Inc. All rights reserved.
  *
  * @APPLE_LICENSE_HEADER_START@
- * 
+ *
  * Copyright (c) 1999-2003 Apple Computer, Inc.  All Rights Reserved.
- * 
+ *
  * This file contains Original Code and/or Modifications of Original Code
  * as defined in and that are subject to the Apple Public Source License
  * Version 2.0 (the 'License'). You may not use this file except in
  * compliance with the License. Please obtain a copy of the License at
  * http://www.opensource.apple.com/apsl/ and read it before using this
  * file.
- * 
+ *
  * The Original Code and all software distributed under the License are
  * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
  * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
@@ -19,7 +19,7 @@
  * FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
  * Please see the License for the specific language governing rights and
  * limitations under the License.
- * 
+ *
  * @APPLE_LICENSE_HEADER_END@
  }
 
@@ -36,7 +36,7 @@
  *	Copyright 2004 Apple Computer, Inc.
 
  *  objc_exception.h
-		Support for Objective-C language Exceptions	
+		Support for Objective-C language Exceptions
 		Created by Blaine Garst on Fri Nov 01 2002.
  *  Copyright (c) 2002-3 Apple Computer, Inc. All rights reserved.
 
@@ -262,18 +262,18 @@ uses MacTypes;
 
 type
   objc_ivar_list_Ptr = ^objc_ivar_list;
-  objc_method_list_PtrPtr = ^objc_method_list_Ptr;  
+  objc_method_list_PtrPtr = ^objc_method_list_Ptr;
   objc_method_list_Ptr = ^objc_method_list;
   objc_cache_Ptr = ^objc_cache;
   objc_protocol_list_Ptr = ^objc_protocol_list;
 
-{ 
+{
  *	Class Template
  }
 	objc_class_Ptr = ^objc_class;
 	objc_class = record
-		isa: objc_class_Ptr;	
-		super_class: objc_class_Ptr;	
+		isa: objc_class_Ptr;
+		super_class: objc_class_Ptr;
 		name: CStringPtr;
 		version: SInt32;
 		info: SInt32;
@@ -284,7 +284,7 @@ type
 		protocols: objc_protocol_list_Ptr
 	end;
 
-{ 
+{
  *	Category Template
  }
 	objc_category_Ptr = ^objc_category;
@@ -297,7 +297,7 @@ type
 	end;
 	Category = objc_category_Ptr;
 
-{ 
+{
  *	Instance Variable Template
  }
 	objc_ivar_Ptr = ^objc_ivar;
@@ -334,14 +334,14 @@ type
 	id = objc_id;
 	id_Ptr = objc_id_Ptr;
 
-  objc_selector_Ptr = UnivPtr;  
+  objc_selector_Ptr = UnivPtr;
 
-  SELPtr = ^SEL;  
+  SELPtr = ^SEL;
   SEL = objc_selector_Ptr;
 
-	IMP = function( self_ObjC: objc_id; param2: SEL; ... ): objc_id; 
+	IMP = function( self_ObjC: objc_id; param2: SEL; ... ): objc_id;
 
-{ 
+{
  *	Method Template
  }
 	objc_method_Ptr = ^objc_method;
@@ -373,14 +373,14 @@ type
 	Cache = objc_cache_Ptr;
 	objc_cache = record
 		mask: UInt32;            { total = mask + 1 }
-		occupied: UInt32;        
+		occupied: UInt32;
     buckets: array[0..0] of Method
 	end;
 
 type
 	BOOL = boolean; {SInt8}
 {
-	BOOL is explicitly signed so @encode(BOOL) == "c" rather than "C" 
+	BOOL is explicitly signed so @encode(BOOL) == "c" rather than "C"
   even if -funsigned-AnsiChar is used.
 }
 
@@ -542,7 +542,7 @@ const
 	do ( \
 		free(margs); \
 	) while (0)
-	
+
 #define marg_adjustedOffset(method, offset) \
 	(marg_prearg_size + offset)
 
@@ -638,7 +638,7 @@ function objc_sync_wait( obj: objc_id; milliSecondsMaxWait: SInt64): SInt32; ext
 }
 function objc_sync_notify( obj: objc_id): SInt32; external name '_objc_sync_notify';
 
-{ 
+{
    Wake up all threads waiting on 'obj'
    Return OBJC_SYNC_SUCCESS, OBJC_SYNC_NOT_OWNING_THREAD_ERROR
 }
@@ -654,7 +654,7 @@ type
 	objc_symtab_Ptr = ^objc_symtab;
 	objc_symtab = record
 		sel_ref_cnt: UInt32;
-		refs: SELPtr;		
+		refs: SELPtr;
 		cls_def_cnt: UInt16;
 		cat_def_cnt: UInt16;
 		defs: array[ 0..0] of UnivPtr
@@ -689,16 +689,16 @@ function objc_msgSendSuper( super: objc_super_Ptr; op: SEL; ...): objc_id; exter
 
 
 { Floating-point-returning Messaging Primitives (prototypes)
- * 
- * On some platforms, the ABI for functions returning a floating-point 
- * value is incompatible with that for functions returning an integral type. 
- * objc_msgSend_fpret must be used for these. 
- * 
+ *
+ * On some platforms, the ABI for functions returning a floating-point
+ * value is incompatible with that for functions returning an integral type.
+ * objc_msgSend_fpret must be used for these.
+ *
  * ppc: objc_msgSend_fpret not used
  * ppc64: objc_msgSend_fpret not used
  * i386: objc_msgSend_fpret REQUIRED
  *
- * For `float` or `long double` return types, cast the function 
+ * For `float` or `long double` return types, cast the function
  * to an appropriate function pointer type first.
  }
 
@@ -709,19 +709,19 @@ function objc_msgSend_fpret(self_ObjC: objc_id; op: SEL; ...): double; external 
 
 { Struct-returning Messaging Primitives (prototypes)
  *
- * For historical reasons, the prototypes for the struct-returning 
- * messengers are unusual. The portable, correct way to call these functions 
+ * For historical reasons, the prototypes for the struct-returning
+ * messengers are unusual. The portable, correct way to call these functions
  * is to cast them to your desired return type first.
- * 
+ *
  * For example, `NSRect result = [myNSView frame]` could be written as:
  *   NSRect (*msgSend_stret_fn)(id, SEL, ...) = (NSRect(*)(id, SEL, ...))objc_msgSend_stret;
  *   NSRect result = (*msgSend_stret_fn)(myNSView, @selector(frame));
  * or, without the function pointer:
  *   NSRect result = (*(NSRect(*)(id, SEL, ...))objc_msgSend_stret)(myNSView, @selector(frame));
- * 
- * BE WARNED that these prototypes have changed in the past and will change 
- * in the future. Code that uses a cast like the example above will be 
- * unaffected. 
+ *
+ * BE WARNED that these prototypes have changed in the past and will change
+ * in the future. Code that uses a cast like the example above will be
+ * unaffected.
  }
 
 procedure objc_msgSend_stret( stretAddr: UnivPtr; self_ObjC: objc_id; op: SEL; ...); external name '_objc_msgSend_stret';
@@ -730,8 +730,8 @@ procedure objc_msgSendSuper_stret( stretAddr: UnivPtr; super: objc_super_Ptr; op
 
 { Forwarding }
 
-{ Note that objc_msgSendv_stret() does not return a structure type, 
- * and should not be cast to do so. This is unlike objc_msgSend_stret() 
+{ Note that objc_msgSendv_stret() does not return a structure type,
+ * and should not be cast to do so. This is unlike objc_msgSend_stret()
  * and objc_msgSendSuper_stret().
  }
 
@@ -742,9 +742,9 @@ function  objc_msgSendv_fpret( seflid: objc_id; op: SEL; arg_size: UInt32; arg_f
 {$endc}
 
 
-{ 
+{
     getting all the classes in the application...
-    
+
     int objc_getClassList(buffer, bufferLen)
 	classes is an array of Class values (which are pointers)
 		which will be filled by the function; if this

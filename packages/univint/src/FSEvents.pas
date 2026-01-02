@@ -1,15 +1,15 @@
 {
      File:       CarbonCore/FSEvents.h
- 
+
      Contains:   FSEventStream API
- 
+
      Copyright:  © 2006-2011 by Apple Inc. All rights reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {
     Modified for use with Free Pascal
@@ -226,8 +226,8 @@ uses MacTypes,MacOSXPosix,CFBase,CFArray,CFDate,CFRunLoop,CFUUID;
 
 
 {
- *  
- *  
+ *
+ *
  *  Discussion:
  *    This header describes the FSEvents API.  This API provides a
  *    mechanism to notify clients about directories they ought to
@@ -238,16 +238,16 @@ uses MacTypes,MacOSXPosix,CFBase,CFArray,CFDate,CFRunLoop,CFUUID;
  *    notifying the client of changes to several directories in a
  *    single callback. By using the API, clients can notice such
  *    changes quickly, without needing to resort to recursive
- *    polling/scanning of the file system. 
- *    
+ *    polling/scanning of the file system.
+ *
  *    Much like kqueues, the FSEvents API allows an application to find
  *    near-immediately when the contents of a particular directory has
  *    changed.  However, unlike kqueues, the FSEvents API allows the
  *    application to monitor the whole file system hierarchy rooted at
  *    a specified directory (and still get precise per-directory
  *    notifications) -- to do this with the kqueues API would require
- *    the client to monitor each directory individually. 
- *    
+ *    the client to monitor each directory individually.
+ *
  *    Clients can register interest in a chunk of the filesystem
  *    hierarchy and will receive callbacks from their runloop whenever
  *    an event occurs that modifies the filesystem therein.  The
@@ -258,20 +258,20 @@ uses MacTypes,MacOSXPosix,CFBase,CFArray,CFDate,CFRunLoop,CFUUID;
  *    occurs before forwarding it; this reduces the volume of events
  *    and reduces the chance that the client will see an "intermediate"
  *    state, like those that arise when doing a "safe save" of a file,
- *    creating a package, or downloading a file via Safari. 
- *    
- *    
- *    
+ *    creating a package, or downloading a file via Safari.
+ *
+ *
+ *
  *    The lifecycle of an FSEventStream consists of these stages:
- *    
- *    
+ *
+ *
  *    1. FSEventStreamCreate() / FSEventStreamCreateRelativeToDevice()
- *    -> Creates an FSEventStream. 
- *    
+ *    -> Creates an FSEventStream.
+ *
  *    2. FSEventStreamScheduleWithRunLoop() -> Schedules an
  *    FSEventStream on a runloop, like CFRunLoopAddSource() does for a
- *    CFRunLoopSourceRef. 
- *    
+ *    CFRunLoopSourceRef.
+ *
  *    3. FSEventStreamStart() -> Starts receiving events and servicing
  *    them from the client's runloop(s) using the callback supplied by
  *    the client when the stream was created. If a value was supplied
@@ -279,25 +279,25 @@ uses MacTypes,MacOSXPosix,CFBase,CFArray,CFDate,CFRunLoop,CFUUID;
  *    via your callback first, then a HistoryDone event, then
  *    "contemporary" events will be sent on an ongoing basis (as though
  *    you had supplied kFSEventStreamEventIdSinceNow for sinceWhen).
- *    
- *    
+ *
+ *
  *    4. FSEventStreamStop()  -> Stops the stream, ensuring the
- *    client's callback will not be called again for this stream.   
+ *    client's callback will not be called again for this stream.
  *    After stopping the stream, it can be restarted seamlessly via
- *    FSEventStreamStart() without missing any events. 
- *    
+ *    FSEventStreamStart() without missing any events.
+ *
  *    5. FSEventStreamInvalidate() -> Invalidates the stream, like
- *    CFRunLoopSourceInvalidate() does for a CFRunLoopSourcRef.
- *    
- *    
+ *    CFRunLoopSourceInvalidate() does for a CFRunLoopSourceRef.
+ *
+ *
  *    6. FSEventStreamRelease() -> Decrements the refcount on the
  *    stream (initially one and incremented via FSEventStreamRetain()).
  *     If the refcount reaches zero, the stream is deallocated.
- *    
- *    
+ *
+ *
  *    Once the event stream has been started, the following calls can
- *    be used: 
- *    
+ *    be used:
+ *
  *    FSEventStreamGetLatestEventId() -> Initially, this returns the
  *    sinceWhen value supplied when the stream was created; thereafter,
  *    it is updated with the highest-numbered event ID mentioned in the
@@ -310,50 +310,50 @@ uses MacTypes,MacOSXPosix,CFBase,CFArray,CFDate,CFRunLoop,CFUUID;
  *    matches what you stored.  This works because the FSEvents service
  *    stores events in a persistent, per-volume database.  In this
  *    regard,the stream of event IDs acts like a global, system-wide
- *    clock, but bears no relation to any particular timebase. 
- *    
+ *    clock, but bears no relation to any particular timebase.
+ *
  *    FSEventStreamFlushAsync() -> Requests that the fseventsd daemon
  *    send any events it has already buffered (via the latency
  *    parameter to one of the FSEventStreamCreate...() functions). This
  *    occurs asynchronously; clients will not have received all the
- *    callbacks by the time this call returns to them. 
- *    
+ *    callbacks by the time this call returns to them.
+ *
  *    FSEventStreamFlushSync() -> Requests that the fseventsd daemon
  *    send any events it has already buffered (via the latency
  *    parameter to one of the FSEventStreamCreate...() functions). Then
  *    runs the runloop in its private mode till all events that have
  *    occurred have been reported (via the clients callback).  This
  *    occurs synchronously; clients will have received all the
- *    callbacks by the time this call returns to them. 
- *    
+ *    callbacks by the time this call returns to them.
+ *
  *    FSEventStreamGetDeviceBeingWatched() -> Gets the dev_t value
  *    supplied when the stream was created with
- *    FSEventStreamCreateRelativeToDevice(), otherwise 0. 
- *    
+ *    FSEventStreamCreateRelativeToDevice(), otherwise 0.
+ *
  *    FSEventStreamCopyPathsBeingWatched() -> Gets the paths supplied
  *    when the stream was created with one of the
- *    FSEventStreamCreate...() functions. 
- *    
- *    Calls that can be made without a stream: 
- *    
+ *    FSEventStreamCreate...() functions.
+ *
+ *    Calls that can be made without a stream:
+ *
  *    FSEventsCopyUUIDForDevice() -> Gets a UUID that uniquely
  *    identifies the FSEvents database for that volume. If the database
  *    gets discarded then its replacement will have a different UUID so
  *    that clients will be able to detect this situation and avoid
  *    trying to use event IDs that they stored as the sinceWhen
- *    parameter to the FSEventStreamCreate...() functions. 
- *    
+ *    parameter to the FSEventStreamCreate...() functions.
+ *
  *    FSEventsGetCurrentEventId() -> Gets the most recently generated
- *    event ID, system-wide (not just for one stream). 
- *    
+ *    event ID, system-wide (not just for one stream).
+ *
  *    FSEventsGetLastEventIdForDeviceBeforeTime() -> Gets the last
  *    event ID for the given device that was returned before the given
  *    time.  This is conservative in the sense that if you then use the
  *    returned event ID as the sinceWhen parameter of
  *    FSEventStreamCreateRelativeToDevice() that you will not miss any
  *    events that happened since that time.  On the other hand, you
- *    might receive some (harmless) extra events. 
- *    
+ *    might receive some (harmless) extra events.
+ *
  *    FSEventsPurgeEventsForDeviceUpToEventId() -> Purges old events
  *    from the persistent per-volume database maintained by the
  *    service.  You can combine this with
@@ -366,7 +366,7 @@ uses MacTypes,MacOSXPosix,CFBase,CFArray,CFDate,CFRunLoop,CFUUID;
 
 {
  *  FSEventStreamCreateFlags
- *  
+ *
  *  Discussion:
  *    Flags that can be passed to the FSEventStreamCreate...()
  *    functions to modify the behavior of the stream being created.
@@ -377,7 +377,7 @@ type
 
 {
  *  FSEventStreamCreateFlags
- *  
+ *
  *  Discussion:
  *    Flags that can be passed to the FSEventStreamCreate...()
  *    functions to modify the behavior of the stream being created.
@@ -454,7 +454,7 @@ const
 
 {
  *  FSEventStreamEventFlags
- *  
+ *
  *  Discussion:
  *    Flags that can be passed your FSEventStreamCallback function.
  }
@@ -464,7 +464,7 @@ type
 
 {
  *  FSEventStreamEventFlags
- *  
+ *
  *  Discussion:
  *    Flags that can be passed to your FSEventStreamCallback function.
  }
@@ -584,7 +584,7 @@ const
 
 {
  *  FSEventStreamEventId
- *  
+ *
  *  Discussion:
  *    Event IDs that can be passed to the FSEventStreamCreate...()
  *    functions and FSEventStreamCallback(). They are monotonically
@@ -601,7 +601,7 @@ const
 
 {
  *  FSEventStreamRef
- *  
+ *
  *  Discussion:
  *    This is the type of a reference to an FSEventStream.
  }
@@ -611,7 +611,7 @@ type
 
 {
  *  ConstFSEventStreamRef
- *  
+ *
  *  Discussion:
  *    This is the type of a reference to a constant FSEventStream.
  }
@@ -620,7 +620,7 @@ type
 
 {
  *  FSEventStreamContext
- *  
+ *
  *  Discussion:
  *    Structure containing client-supplied data (and callbacks to
  *    manage it) that should be associated with a newly-created stream.
@@ -665,27 +665,27 @@ type
 
 {
  *  FSEventStreamCallback
- *  
+ *
  *  Discussion:
  *    This is the type of the callback function supplied by the client
  *    when creating a new stream.  This callback is invoked by the
  *    service from the client's runloop(s) when events occur, per the
  *    parameters specified when the stream was created.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    streamRef:
  *      The stream for which event(s) occurred.
- *    
+ *
  *    clientCallBackInfo:
  *      The info field that was supplied in the context when this
  *      stream was created.
- *    
+ *
  *    numEvents:
  *      The number of events being reported in this callback. Each of
  *      the arrays (eventPaths, eventFlags, eventIds) will have this
  *      many elements.
- *    
+ *
  *    eventPaths:
  *      An array of paths to the directories in which event(s)
  *      occurred. The type of this parameter depends on the flags
@@ -701,13 +701,13 @@ type
  *      callback returns. A path might be "/" if ether of these flags
  *      is set for the event: kFSEventStreamEventFlagUserDropped,
  *      kFSEventStreamEventFlagKernelDropped.
- *    
+ *
  *    eventFlags:
  *      An array of flag words corresponding to the paths in the
  *      eventPaths parameter. If no flags are set, then there was some
  *      change in the directory at the specific path supplied in this
  *      event. See FSEventStreamEventFlags.
- *    
+ *
  *    eventIds:
  *      An array of FSEventStreamEventIds corresponding to the paths in
  *      the eventPaths parameter. Each event ID comes from the most
@@ -732,35 +732,35 @@ type
  }
 {
  *  FSEventStreamCreate()
- *  
+ *
  *  Discussion:
  *    Creates a new FS event stream object with the given parameters.
  *    In order to start receiving callbacks you must also call
  *    FSEventStreamScheduleWithRunLoop() and FSEventStreamStart().
- *  
+ *
  *  Parameters:
- *    
+ *
  *    allocator:
- *      The CFAllocator to be used to allocate memory for the stream. 
+ *      The CFAllocator to be used to allocate memory for the stream.
  *      Pass NULL or kCFAllocatorDefault to use the current default
  *      allocator.
- *    
+ *
  *    callback:
  *      An FSEventStreamCallback which will be called when FS events
  *      occur.
- *    
+ *
  *    context:
  *      A pointer to the FSEventStreamContext structure the client
  *      wants to associate with this stream.  Its fields are copied out
  *      into the stream itself so its memory can be released after the
  *      stream is created.  Passing NULL is allowed and has the same
  *      effect as passing a structure whose fields are all set to zero.
- *    
+ *
  *    pathsToWatch:
  *      A CFArray of CFStringRefs, each specifying a path to a
  *      directory, signifying the root of a filesystem hierarchy to be
  *      watched for modifications.
- *    
+ *
  *    sinceWhen:
  *      The service will supply events that have happened after the
  *      given event ID. To ask for events "since now" pass the constant
@@ -771,21 +771,21 @@ type
  *      sinceWhen, unless you want to receive events for every
  *      directory modified since "the beginning of time" -- an unlikely
  *      scenario.
- *    
+ *
  *    latency:
  *      The number of seconds the service should wait after hearing
  *      about an event from the kernel before passing it along to the
  *      client via its callback. Specifying a larger value may result
  *      in more effective temporal coalescing, resulting in fewer
  *      callbacks and greater overall efficiency.
- *    
+ *
  *    flags:
  *      Flags that modify the behavior of the stream being created. See
  *      FSEventStreamCreateFlags.
- *  
+ *
  *  Result:
  *    A valid FSEventStreamRef.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -797,37 +797,37 @@ function FSEventStreamCreate( allocator: CFAllocatorRef; callback: FSEventStream
 
 {
  *  FSEventStreamCreateRelativeToDevice()
- *  
+ *
  *  Discussion:
  *    Creates a new FS event stream object for a particular device with
  *    the given parameters. In order to start receiving callbacks you
  *    must also call FSEventStreamScheduleWithRunLoop() and
  *    FSEventStreamStart().
- *  
+ *
  *  Parameters:
- *    
+ *
  *    allocator:
- *      The CFAllocator to be used to allocate memory for the stream. 
+ *      The CFAllocator to be used to allocate memory for the stream.
  *      Pass NULL or kCFAllocatorDefault to use the current default
  *      allocator.
- *    
+ *
  *    callback:
  *      An FSEventStreamCallback which will be called when FS events
  *      occur.
- *    
+ *
  *    context:
  *      A pointer to the FSEventStreamContext structure the client
  *      wants to associate with this stream.  Its fields are copied out
  *      into the stream itself so its memory can be released after the
  *      stream is created.
- *    
+ *
  *    deviceToWatch:
  *      A dev_t corresponding to the device which you want to receive
  *      notifications from.  The dev_t is the same as the st_dev field
  *      from a stat structure of a file on that device or the f_fsid[0]
  *      field of a statfs structure.  If the value of dev is zero, it
  *      is ignored.
- *    
+ *
  *    pathsToWatchRelativeToDevice:
  *      A CFArray of CFStringRefs, each specifying a relative path to a
  *      directory on the device identified by the dev parameter.  The
@@ -836,7 +836,7 @@ function FSEventStreamCreate( allocator: CFAllocatorRef; callback: FSEventStream
  *      and you want to watch "/Volumes/MyData/Pictures/July", specify
  *      a path string of "Pictures/July".  To watch the root of a
  *      volume pass a path of "" (the empty string).
- *    
+ *
  *    sinceWhen:
  *      The service will supply events that have happened after the
  *      given event ID. To ask for events "since now" pass the constant
@@ -847,21 +847,21 @@ function FSEventStreamCreate( allocator: CFAllocatorRef; callback: FSEventStream
  *      sinceWhen, unless you want to receive events for every
  *      directory modified since "the beginning of time" -- an unlikely
  *      scenario.
- *    
+ *
  *    latency:
  *      The number of seconds the service should wait after hearing
  *      about an event from the kernel before passing it along to the
  *      client via its callback. Specifying a larger value may result
  *      in more effective temporal coalescing, resulting in fewer
  *      callbacks.
- *    
+ *
  *    flags:
  *      Flags that modify the behavior of the stream being created. See
  *      FSEventStreamCreateFlags.
- *  
+ *
  *  Result:
  *    A valid FSEventStreamRef.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -876,21 +876,21 @@ function FSEventStreamCreateRelativeToDevice( allocator: CFAllocatorRef; callbac
  }
 {
  *  FSEventStreamGetLatestEventId()
- *  
+ *
  *  Discussion:
  *    Fetches the sinceWhen property of the stream.  Upon receiving an
  *    event (and just before invoking the client's callback) this
  *    attribute is updated to the highest-numbered event ID mentioned
  *    in the event.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    streamRef:
  *      A valid stream.
- *  
+ *
  *  Result:
  *    The sinceWhen attribute of the stream.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -902,19 +902,19 @@ function FSEventStreamGetLatestEventId( streamRef: ConstFSEventStreamRef ): FSEv
 
 {
  *  FSEventStreamGetDeviceBeingWatched()
- *  
+ *
  *  Discussion:
  *    Fetches the dev_t supplied when the stream was created via
  *    FSEventStreamCreateRelativeToDevice(), otherwise 0.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    streamRef:
  *      A valid stream.
- *  
+ *
  *  Result:
  *    The dev_t for a device-relative stream, otherwise 0.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -926,20 +926,20 @@ function FSEventStreamGetDeviceBeingWatched( streamRef: ConstFSEventStreamRef ):
 
 {
  *  FSEventStreamCopyPathsBeingWatched()
- *  
+ *
  *  Discussion:
  *    Fetches the paths supplied when the stream was created via one of
  *    the FSEventStreamCreate...() functions.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    streamRef:
  *      A valid stream.
- *  
+ *
  *  Result:
  *    A CFArray of CFStringRefs corresponding to those supplied when
  *    the stream was created. Ownership follows the Copy rule.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -951,15 +951,15 @@ function FSEventStreamCopyPathsBeingWatched( streamRef: ConstFSEventStreamRef ):
 
 {
  *  FSEventsGetCurrentEventId()
- *  
+ *
  *  Discussion:
  *    Fetches the most recently generated event ID, system-wide (not
  *    just for one stream). By thetime it is returned to your
  *    application even newer events may have already been generated.
- *  
+ *
  *  Result:
  *    The event ID of the most recent event generated by the system.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -971,7 +971,7 @@ function FSEventsGetCurrentEventId: FSEventStreamEventId; external name '_FSEven
 
 {
  *  FSEventsCopyUUIDForDevice()
- *  
+ *
  *  Discussion:
  *    Gets the UUID associated with a device, or NULL if not possible
  *    (for example, on read-only device).  A (non-NULL) UUID uniquely
@@ -983,19 +983,19 @@ function FSEventsGetCurrentEventId: FSEventStreamEventId; external name '_FSEven
  *    indicates that "historical" events are not available, i.e., you
  *    should not supply a "sinceWhen" value to FSEventStreamCreate...()
  *    other than kFSEventStreamEventIdSinceNow.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    dev:
  *      The dev_t of the device that you want to get the UUID for.
- *  
+ *
  *  Result:
  *    The UUID associated with the stream of events on this device, or
  *    NULL if no UUID is available (for example, on a read-only
  *    device).  The UUID is stored on the device itself and travels
- *    with it even when the device is attached to different computers. 
+ *    with it even when the device is attached to different computers.
  *    Ownership follows the Copy Rule.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -1007,7 +1007,7 @@ function FSEventsCopyUUIDForDevice( dev: dev_t ): CFUUIDRef; external name '_FSE
 
 {
  *  FSEventsGetLastEventIdForDeviceBeforeTime()
- *  
+ *
  *  Discussion:
  *    Gets the last event ID for the given device that was returned
  *    before the given time.  This is conservative in the sense that if
@@ -1019,20 +1019,20 @@ function FSEventsCopyUUIDForDevice( dev: dev_t ): CFUUIDRef; external name '_FSE
  *    someone might change the system's clock (either backwards or
  *    forwards).  Or an external drive might be used on different
  *    systems without perfectly synchronized clocks.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    dev:
  *      The dev_t of the device.
- *    
+ *
  *    time:
  *      The time as a CFAbsoluteTime whose value is the number of
  *      seconds since Jan 1, 1970 (i.e. a posix style time_t).
- *  
+ *
  *  Result:
  *    The last event ID for the given device that was returned before
  *    the given time.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -1044,22 +1044,22 @@ function FSEventsGetLastEventIdForDeviceBeforeTime( dev: dev_t; time: CFAbsolute
 
 {
  *  FSEventsPurgeEventsForDeviceUpToEventId()
- *  
+ *
  *  Discussion:
  *    Purges old events from the persistent per-volume database
  *    maintained by the service. Can only be called by the root user.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    dev:
  *      The dev_t of the device.
- *    
+ *
  *    eventId:
  *      The event ID.
- *  
+ *
  *  Result:
  *    True if it succeeds, otherwise False if it fails.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -1076,14 +1076,14 @@ function FSEventsPurgeEventsForDeviceUpToEventId( dev: dev_t; eventId: FSEventSt
  *    @function FSEventStreamRetain
  *    Increments the stream's refcount.  The refcount is initially one and is
  *    decremented via FSEventStreamRelease().
- *  
+ *
  *    @param streamRef
  *      A valid stream.
- *    
+ *
  }
 {
  *  FSEventStreamRetain()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -1095,17 +1095,17 @@ procedure FSEventStreamRetain( streamRef: FSEventStreamRef ); external name '_FS
 
 {
  *  FSEventStreamRelease()
- *  
+ *
  *  Discussion:
  *    Decrements the stream's refcount.  The refcount is initially one
  *    and is incremented via FSEventStreamRetain().  If the refcount
  *    reaches zero then the stream is deallocated.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    streamRef:
  *      A valid stream.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -1120,7 +1120,7 @@ procedure FSEventStreamRelease( streamRef: FSEventStreamRef ); external name '_F
  }
 {
  *  FSEventStreamScheduleWithRunLoop()
- *  
+ *
  *  Discussion:
  *    This function schedules the stream on the specified run loop,
  *    like CFRunLoopAddSource() does for a CFRunLoopSourceRef.  The
@@ -1130,18 +1130,18 @@ procedure FSEventStreamRelease( streamRef: FSEventStreamRef ); external name '_F
  *    events on the stream, call FSEventStreamStart(). To remove the
  *    stream from the run loops upon which it has been scheduled, call
  *    FSEventStreamUnscheduleFromRunLoop() or FSEventStreamInvalidate().
- *  
+ *
  *  Parameters:
- *    
+ *
  *    streamRef:
  *      A valid stream.
- *    
+ *
  *    runLoop:
  *      The run loop on which to schedule the stream.
- *    
+ *
  *    runLoopMode:
  *      A run loop mode on which to schedule the stream.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -1153,22 +1153,22 @@ procedure FSEventStreamScheduleWithRunLoop( streamRef: FSEventStreamRef; runLoop
 
 {
  *  FSEventStreamUnscheduleFromRunLoop()
- *  
+ *
  *  Discussion:
  *    This function removes the stream from the specified run loop,
  *    like CFRunLoopRemoveSource() does for a CFRunLoopSourceRef.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    streamRef:
  *      A valid stream.
- *    
+ *
  *    runLoop:
  *      The run loop from which to unschedule the stream.
- *    
+ *
  *    runLoopMode:
  *      The run loop mode from which to unschedule the stream.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -1180,7 +1180,7 @@ procedure FSEventStreamUnscheduleFromRunLoop( streamRef: FSEventStreamRef; runLo
 
 {
  *  FSEventStreamSetDispatchQueue()
- *  
+ *
  *  Discussion:
  *    This function schedules the stream on the specified dispatch
  *    queue. The caller is responsible for ensuring that the stream is
@@ -1190,22 +1190,22 @@ procedure FSEventStreamUnscheduleFromRunLoop( streamRef: FSEventStreamRef; runLo
  *    receiving events on the stream, call FSEventStreamStart(). To
  *    remove the stream from the queue on which it was scheduled, call
  *    FSEventStreamSetDispatchQueue() with a NULL queue parameter or
- *    call FSEventStreamInvalidate() which will do the same thing. 
+ *    call FSEventStreamInvalidate() which will do the same thing.
  *    Note: you must eventually call FSEventStreamInvalidate() and it
  *    is an error to call FSEventStreamInvalidate() without having the
  *    stream either scheduled on a runloop or a dispatch queue, so do
  *    not set the dispatch queue to NULL before calling
  *    FSEventStreamInvalidate().
- *  
+ *
  *  Parameters:
- *    
+ *
  *    streamRef:
  *      A valid stream.
- *    
+ *
  *    q:
  *      The dispatch queue to use to receive events (or NULL to to stop
  *      receiving events from the stream).
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.6 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -1220,7 +1220,7 @@ procedure FSEventStreamSetDispatchQueue( streamRef: FSEventStreamRef; q: dispatc
 
 {
  *  FSEventStreamInvalidate()
- *  
+ *
  *  Discussion:
  *    Invalidates the stream, like CFRunLoopSourceInvalidate() does for
  *    a CFRunLoopSourceRef.  It will be unscheduled from any runloops
@@ -1228,12 +1228,12 @@ procedure FSEventStreamSetDispatchQueue( streamRef: FSEventStreamRef; q: dispatc
  *    FSEventStreamInvalidate() can only be called on the stream after
  *    you have called FSEventStreamScheduleWithRunLoop() or
  *    FSEventStreamSetDispatchQueue().
- *  
+ *
  *  Parameters:
- *    
+ *
  *    streamRef:
  *      A valid stream.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -1248,25 +1248,25 @@ procedure FSEventStreamInvalidate( streamRef: FSEventStreamRef ); external name 
  }
 {
  *  FSEventStreamStart()
- *  
+ *
  *  Discussion:
  *    Attempts to register with the FS Events service to receive events
  *    per the parameters in the stream. FSEventStreamStart() can only
  *    be called once the stream has been scheduled on at least one
  *    runloop, via FSEventStreamScheduleWithRunLoop(). Once started,
  *    the stream can be stopped via FSEventStreamStop().
- *  
+ *
  *  Parameters:
- *    
+ *
  *    streamRef:
  *      A valid stream.
- *  
+ *
  *  Result:
  *    True if it succeeds, otherwise False if it fails.  It ought to
  *    always succeed, but in the event it does not then your code
  *    should fall back to performing recursive scans of the directories
  *    of interest as appropriate.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -1278,7 +1278,7 @@ function FSEventStreamStart( streamRef: FSEventStreamRef ): Boolean; external na
 
 {
  *  FSEventStreamFlushAsync()
- *  
+ *
  *  Discussion:
  *    Asks the FS Events service to flush out any events that have
  *    occurred but have not yet been delivered, due to the latency
@@ -1287,16 +1287,16 @@ function FSEventStreamStart( streamRef: FSEventStreamRef ): Boolean; external na
  *    have already been delivered by the time this call returns.
  *    FSEventStreamFlushAsync() can only be called after the stream has
  *    been started, via FSEventStreamStart().
- *  
+ *
  *  Parameters:
- *    
+ *
  *    streamRef:
  *      A valid stream.
- *  
+ *
  *  Result:
  *    The largest event id of any event ever queued for this stream,
  *    otherwise zero if no events have been queued for this stream.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -1308,7 +1308,7 @@ function FSEventStreamFlushAsync( streamRef: FSEventStreamRef ): FSEventStreamEv
 
 {
  *  FSEventStreamFlushSync()
- *  
+ *
  *  Discussion:
  *    Asks the FS Events service to flush out any events that have
  *    occurred but have not yet been delivered, due to the latency
@@ -1318,12 +1318,12 @@ function FSEventStreamFlushAsync( streamRef: FSEventStreamRef ): FSEventStreamEv
  *    already occurred at the time you made this call.
  *    FSEventStreamFlushSync() can only be called after the stream has
  *    been started, via FSEventStreamStart().
- *  
+ *
  *  Parameters:
- *    
+ *
  *    streamRef:
  *      A valid stream.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -1335,7 +1335,7 @@ procedure FSEventStreamFlushSync( streamRef: FSEventStreamRef ); external name '
 
 {
  *  FSEventStreamStop()
- *  
+ *
  *  Discussion:
  *    Unregisters with the FS Events service.  The client callback will
  *    not be called for this stream while it is stopped.
@@ -1343,12 +1343,12 @@ procedure FSEventStreamFlushSync( streamRef: FSEventStreamRef ); external name '
  *    started, via FSEventStreamStart(). Once stopped, the stream can
  *    be restarted via FSEventStreamStart(), at which point it will
  *    resume receiving events from where it left off ("sinceWhen").
- *  
+ *
  *  Parameters:
- *    
+ *
  *    streamRef:
  *      A valid stream.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -1363,16 +1363,16 @@ procedure FSEventStreamStop( streamRef: FSEventStreamRef ); external name '_FSEv
  }
 {
  *  FSEventStreamShow()
- *  
+ *
  *  Discussion:
  *    Prints a description of the supplied stream to stderr. For
  *    debugging only.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    streamRef:
  *      A valid stream.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -1384,15 +1384,15 @@ procedure FSEventStreamShow( streamRef: ConstFSEventStreamRef ); external name '
 
 {
  *  FSEventStreamCopyDescription()
- *  
+ *
  *  Discussion:
  *    Returns a CFStringRef containing the description of the supplied
  *    stream. For debugging only.
- *  
+ *
  *  Result:
  *    A CFStringRef containing the description of the supplied stream.
  *    Ownership follows the Copy rule.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -1405,13 +1405,13 @@ function FSEventStreamCopyDescription( streamRef: ConstFSEventStreamRef ): CFStr
 {
  * FSEventStreamSetExclusionPaths()
  *
- * Discussion: 
+ * Discussion:
  *    Sets directories to be filtered from the EventStream.
  *    A maximum of 8 directories maybe specified.
  *
  * Result:
  *    True if it succeeds, otherwise False if it fails.
- *     
+ *
  * Availability:
  *    Mac OS X:         in version 10.9 and later in CoreServices.framework
  *    CarbonLib:        not available

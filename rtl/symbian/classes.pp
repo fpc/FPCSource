@@ -3,7 +3,7 @@
     Copyright (c) 1999-2002 by the Free Pascal development team
 
     Classes unit for Embedded target
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 

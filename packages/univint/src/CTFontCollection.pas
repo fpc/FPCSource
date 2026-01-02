@@ -519,7 +519,7 @@ function CTFontCollectionCopyFontAttribute( collection: CTFontCollectionRef; att
 {!
     @function   CTFontCollectionCopyFontAttributes
     @abstract   Returns an array of dictionaries containing font descriptor attribute values.
- 
+
     @param      collection
                 The font collection reference.
 

@@ -40,7 +40,7 @@ procedure memset(var x; value: byte; count: size_t); cdecl; external clib;
 Procedure FillChar(var x;count: sizeint;value:byte);{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   { don't exit if count is <= 0, this makes the compiler think x is uninitialized,
-    as FillChar is probably rarely called with count <= 0, the performance hit is 
+    as FillChar is probably rarely called with count <= 0, the performance hit is
     probably neglible }
   if count < 0 then
     count := 0;

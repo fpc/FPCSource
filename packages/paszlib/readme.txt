@@ -38,7 +38,7 @@ Please see the fpdoc help and the zipper.pp for details on using the class.
 
 Zip file format
 ===============
-The standard mentioned above documents the zip file format authoratively
+The standard mentioned above documents the zip file format authoritatively
 and in detail. However, a brief summary can be useful:
 A zip file consists of
 
@@ -87,7 +87,7 @@ central directory file header version is used.
 
 If zip64 support is needed due to zip64 local/central file headers and/or the
 number of files in the zip file, the zip64 alternatives to the end of central
-diretory variables are always written. Although the zip standard doesn't seem to
+directory variables are always written. Although the zip standard doesn't seem to
 require this explicitly, it doesn't forbid it either and other utilities such as
 rar and Windows 7 built in zip support seem to require it.
 

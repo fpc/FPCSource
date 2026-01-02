@@ -7,11 +7,11 @@
 
     MorphOS port was done on a free Pegasos II/G4 machine
     provided by Genesi S.a.r.l. <www.genesi.lu>
-    
+
     This unit is based on the MorphOS one and is adapted for Nintendo Wii
-    simply by stripping out all stuff inside funcs and procs. 
+    simply by stripping out all stuff inside funcs and procs.
     Copyright (c) 2011 by Francesco Lombardi
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 

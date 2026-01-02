@@ -961,6 +961,10 @@ implementation
                         end;
 
                       include(hdef.defoptions,df_unique);
+
+                      { update object's real name for better error messages }
+                      if hdef is tabstractrecorddef then
+                        tabstractrecorddef(hdef).setobjrealname(newtype.RealName);
                     end;
                   if not assigned(hdef.typesym) then
                     begin

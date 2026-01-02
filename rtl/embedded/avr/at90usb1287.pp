@@ -31,15 +31,15 @@ var
   PINF : byte absolute $00+$2F; // Input Pins, Port F
   // CPU
   SREG : byte absolute $00+$5F; // Status Register
-  SP : word absolute $00+$5D; // Stack Pointer 
-  SPL : byte absolute $00+$5D; // Stack Pointer 
-  SPH : byte absolute $00+$5D+1; // Stack Pointer 
+  SP : word absolute $00+$5D; // Stack Pointer
+  SPL : byte absolute $00+$5D; // Stack Pointer
+  SPH : byte absolute $00+$5D+1; // Stack Pointer
   MCUCR : byte absolute $00+$55; // MCU Control Register
   MCUSR : byte absolute $00+$54; // MCU Status Register
   XMCRA : byte absolute $00+$74; // External Memory Control Register A
   XMCRB : byte absolute $00+$75; // External Memory Control Register B
   OSCCAL : byte absolute $00+$66; // Oscillator Calibration Value
-  CLKPR : byte absolute $00+$61; // 
+  CLKPR : byte absolute $00+$61; //
   SMCR : byte absolute $00+$53; // Sleep Mode Control Register
   EIND : byte absolute $00+$5C; // Extended Indirect Register
   RAMPZ : byte absolute $00+$5B; // RAM Page Z Select Register
@@ -68,60 +68,60 @@ var
   UBRR1L : byte absolute $00+$CC; // USART Baud Rate Register  Bytes
   UBRR1H : byte absolute $00+$CC+1; // USART Baud Rate Register  Bytes
   // USB_DEVICE
-  UEINT : byte absolute $00+$F4; // 
-  UEBCHX : byte absolute $00+$F3; // 
-  UEBCLX : byte absolute $00+$F2; // 
-  UEDATX : byte absolute $00+$F1; // 
-  UEIENX : byte absolute $00+$F0; // 
-  UESTA1X : byte absolute $00+$EF; // 
-  UESTA0X : byte absolute $00+$EE; // 
-  UECFG1X : byte absolute $00+$ED; // 
-  UECFG0X : byte absolute $00+$EC; // 
-  UECONX : byte absolute $00+$EB; // 
-  UERST : byte absolute $00+$EA; // 
-  UENUM : byte absolute $00+$E9; // 
-  UEINTX : byte absolute $00+$E8; // 
-  UDMFN : byte absolute $00+$E6; // 
-  UDFNUM : word absolute $00+$E4; // 
-  UDFNUML : byte absolute $00+$E4; // 
-  UDFNUMH : byte absolute $00+$E4+1; // 
-  UDADDR : byte absolute $00+$E3; // 
-  UDIEN : byte absolute $00+$E2; // 
-  UDINT : byte absolute $00+$E1; // 
-  UDCON : byte absolute $00+$E0; // 
+  UEINT : byte absolute $00+$F4; //
+  UEBCHX : byte absolute $00+$F3; //
+  UEBCLX : byte absolute $00+$F2; //
+  UEDATX : byte absolute $00+$F1; //
+  UEIENX : byte absolute $00+$F0; //
+  UESTA1X : byte absolute $00+$EF; //
+  UESTA0X : byte absolute $00+$EE; //
+  UECFG1X : byte absolute $00+$ED; //
+  UECFG0X : byte absolute $00+$EC; //
+  UECONX : byte absolute $00+$EB; //
+  UERST : byte absolute $00+$EA; //
+  UENUM : byte absolute $00+$E9; //
+  UEINTX : byte absolute $00+$E8; //
+  UDMFN : byte absolute $00+$E6; //
+  UDFNUM : word absolute $00+$E4; //
+  UDFNUML : byte absolute $00+$E4; //
+  UDFNUMH : byte absolute $00+$E4+1; //
+  UDADDR : byte absolute $00+$E3; //
+  UDIEN : byte absolute $00+$E2; //
+  UDINT : byte absolute $00+$E1; //
+  UDCON : byte absolute $00+$E0; //
   // USB_GLOBAL
-  OTGINT : byte absolute $00+$DF; // 
-  OTGIEN : byte absolute $00+$DE; // 
-  OTGCON : byte absolute $00+$DD; // 
-  OTGTCON : byte absolute $00+$F9; // 
-  USBINT : byte absolute $00+$DA; // 
-  USBSTA : byte absolute $00+$D9; // 
+  OTGINT : byte absolute $00+$DF; //
+  OTGIEN : byte absolute $00+$DE; //
+  OTGCON : byte absolute $00+$DD; //
+  OTGTCON : byte absolute $00+$F9; //
+  USBINT : byte absolute $00+$DA; //
+  USBSTA : byte absolute $00+$D9; //
   USBCON : byte absolute $00+$D8; // USB General Control Register
   UHWCON : byte absolute $00+$D7; // USB Hardware Configuration Register
   // USB_HOST
-  UPERRX : byte absolute $00+$F5; // 
-  UPINT : byte absolute $00+$F8; // 
-  UPBCHX : byte absolute $00+$F7; // 
-  UPBCLX : byte absolute $00+$F6; // 
-  UPDATX : byte absolute $00+$AF; // 
-  UPIENX : byte absolute $00+$AE; // 
-  UPCFG2X : byte absolute $00+$AD; // 
-  UPSTAX : byte absolute $00+$AC; // 
-  UPCFG1X : byte absolute $00+$AB; // 
-  UPCFG0X : byte absolute $00+$AA; // 
-  UPCONX : byte absolute $00+$A9; // 
-  UPRST : byte absolute $00+$A8; // 
-  UPNUM : byte absolute $00+$A7; // 
-  UPINTX : byte absolute $00+$A6; // 
-  UPINRQX : byte absolute $00+$A5; // 
-  UHFLEN : byte absolute $00+$A4; // 
-  UHFNUM : word absolute $00+$A2; // 
-  UHFNUML : byte absolute $00+$A2; // 
-  UHFNUMH : byte absolute $00+$A2+1; // 
-  UHADDR : byte absolute $00+$A1; // 
-  UHIEN : byte absolute $00+$A0; // 
-  UHINT : byte absolute $00+$9F; // 
-  UHCON : byte absolute $00+$9E; // 
+  UPERRX : byte absolute $00+$F5; //
+  UPINT : byte absolute $00+$F8; //
+  UPBCHX : byte absolute $00+$F7; //
+  UPBCLX : byte absolute $00+$F6; //
+  UPDATX : byte absolute $00+$AF; //
+  UPIENX : byte absolute $00+$AE; //
+  UPCFG2X : byte absolute $00+$AD; //
+  UPSTAX : byte absolute $00+$AC; //
+  UPCFG1X : byte absolute $00+$AB; //
+  UPCFG0X : byte absolute $00+$AA; //
+  UPCONX : byte absolute $00+$A9; //
+  UPRST : byte absolute $00+$A8; //
+  UPNUM : byte absolute $00+$A7; //
+  UPINTX : byte absolute $00+$A6; //
+  UPINRQX : byte absolute $00+$A5; //
+  UHFLEN : byte absolute $00+$A4; //
+  UHFNUM : word absolute $00+$A2; //
+  UHFNUML : byte absolute $00+$A2; //
+  UHFNUMH : byte absolute $00+$A2+1; //
+  UHADDR : byte absolute $00+$A1; //
+  UHIEN : byte absolute $00+$A0; //
+  UHINT : byte absolute $00+$9F; //
+  UHCON : byte absolute $00+$9E; //
   // BOOT_LOAD
   SPMCSR : byte absolute $00+$57; // Store Program Memory Control Register
   // EEPROM
@@ -210,7 +210,7 @@ var
   DIDR0 : byte absolute $00+$7E; // Digital Input Disable Register 1
   // ANALOG_COMPARATOR
   ACSR : byte absolute $00+$50; // Analog Comparator Control And Status Register
-  DIDR1 : byte absolute $00+$7F; // 
+  DIDR1 : byte absolute $00+$7F; //
   // PLL
   PLLCSR : byte absolute $00+$49; // PLL Status and Control register
 
@@ -250,8 +250,8 @@ const
   XMBK = 7; // External Memory Bus Keeper Enable
   XMM = 0; // External Memory High Mask
   // CLKPR
-  CLKPCE = 7; // 
-  CLKPS = 0; // 
+  CLKPCE = 7; //
+  CLKPS = 0; //
   // SMCR
   SM = 1; // Sleep Mode Select bits
   SE = 0; // Sleep Enable
@@ -279,7 +279,7 @@ const
   PRSPI = 2; // Power Reduction Serial Peripheral Interface
   PRADC = 0; // Power Reduction ADC
   // TWAMR
-  TWAM = 1; // 
+  TWAM = 1; //
   // TWCR
   TWINT = 7; // TWI Interrupt Flag
   TWEA = 6; // TWI Enable Acknowledge Bit
@@ -331,168 +331,168 @@ const
   UCSZ1 = 1; // Character Size
   UCPOL1 = 0; // Clock Polarity
   // UEIENX
-  FLERRE = 7; // 
-  NAKINE = 6; // 
-  NAKOUTE = 4; // 
-  RXSTPE = 3; // 
-  RXOUTE = 2; // 
-  STALLEDE = 1; // 
-  TXINE = 0; // 
+  FLERRE = 7; //
+  NAKINE = 6; //
+  NAKOUTE = 4; //
+  RXSTPE = 3; //
+  RXOUTE = 2; //
+  STALLEDE = 1; //
+  TXINE = 0; //
   // UESTA1X
-  CTRLDIR = 2; // 
-  CURRBK = 0; // 
+  CTRLDIR = 2; //
+  CURRBK = 0; //
   // UESTA0X
-  CFGOK = 7; // 
-  OVERFI = 6; // 
-  UNDERFI = 5; // 
-  DTSEQ = 2; // 
-  NBUSYBK = 0; // 
+  CFGOK = 7; //
+  OVERFI = 6; //
+  UNDERFI = 5; //
+  DTSEQ = 2; //
+  NBUSYBK = 0; //
   // UECFG1X
-  EPSIZE = 4; // 
-  EPBK = 2; // 
-  ALLOC = 1; // 
+  EPSIZE = 4; //
+  EPBK = 2; //
+  ALLOC = 1; //
   // UECFG0X
-  EPTYPE = 6; // 
-  EPDIR = 0; // 
+  EPTYPE = 6; //
+  EPDIR = 0; //
   // UECONX
-  STALLRQ = 5; // 
-  STALLRQC = 4; // 
-  RSTDT = 3; // 
-  EPEN = 0; // 
+  STALLRQ = 5; //
+  STALLRQC = 4; //
+  RSTDT = 3; //
+  EPEN = 0; //
   // UERST
-  EPRST = 0; // 
+  EPRST = 0; //
   // UEINTX
-  FIFOCON = 7; // 
-  NAKINI = 6; // 
-  RWAL = 5; // 
-  NAKOUTI = 4; // 
-  RXSTPI = 3; // 
-  RXOUTI = 2; // 
-  STALLEDI = 1; // 
-  TXINI = 0; // 
+  FIFOCON = 7; //
+  NAKINI = 6; //
+  RWAL = 5; //
+  NAKOUTI = 4; //
+  RXSTPI = 3; //
+  RXOUTI = 2; //
+  STALLEDI = 1; //
+  TXINI = 0; //
   // UDMFN
-  FNCERR = 4; // 
+  FNCERR = 4; //
   // UDADDR
-  ADDEN = 7; // 
-  UADD = 0; // 
+  ADDEN = 7; //
+  UADD = 0; //
   // UDIEN
-  UPRSME = 6; // 
-  EORSME = 5; // 
-  WAKEUPE = 4; // 
-  EORSTE = 3; // 
-  SOFE = 2; // 
-  SUSPE = 0; // 
+  UPRSME = 6; //
+  EORSME = 5; //
+  WAKEUPE = 4; //
+  EORSTE = 3; //
+  SOFE = 2; //
+  SUSPE = 0; //
   // UDINT
-  UPRSMI = 6; // 
-  EORSMI = 5; // 
-  WAKEUPI = 4; // 
-  EORSTI = 3; // 
-  SOFI = 2; // 
-  SUSPI = 0; // 
+  UPRSMI = 6; //
+  EORSMI = 5; //
+  WAKEUPI = 4; //
+  EORSTI = 3; //
+  SOFI = 2; //
+  SUSPI = 0; //
   // UDCON
-  LSM = 2; // 
-  RMWKUP = 1; // 
-  DETACH = 0; // 
+  LSM = 2; //
+  RMWKUP = 1; //
+  DETACH = 0; //
   // OTGINT
-  STOI = 5; // 
-  HNPERRI = 4; // 
-  ROLEEXI = 3; // 
-  BCERRI = 2; // 
-  VBERRI = 1; // 
-  SRPI = 0; // 
+  STOI = 5; //
+  HNPERRI = 4; //
+  ROLEEXI = 3; //
+  BCERRI = 2; //
+  VBERRI = 1; //
+  SRPI = 0; //
   // OTGIEN
-  STOE = 5; // 
-  HNPERRE = 4; // 
-  ROLEEXE = 3; // 
-  BCERRE = 2; // 
-  VBERRE = 1; // 
-  SRPE = 0; // 
+  STOE = 5; //
+  HNPERRE = 4; //
+  ROLEEXE = 3; //
+  BCERRE = 2; //
+  VBERRE = 1; //
+  SRPE = 0; //
   // OTGCON
-  HNPREQ = 5; // 
-  SRPREQ = 4; // 
-  SRPSEL = 3; // 
-  VBUSHWC = 2; // 
-  VBUSREQ = 1; // 
-  VBUSRQC = 0; // 
+  HNPREQ = 5; //
+  SRPREQ = 4; //
+  SRPSEL = 3; //
+  VBUSHWC = 2; //
+  VBUSREQ = 1; //
+  VBUSRQC = 0; //
   // OTGTCON
-  OTGTCON_7 = 7; // 
-  PAGE = 5; // 
-  VALUE_2 = 0; // 
+  OTGTCON_7 = 7; //
+  PAGE = 5; //
+  VALUE_2 = 0; //
   // USBINT
-  IDTI = 1; // 
-  VBUSTI = 0; // 
+  IDTI = 1; //
+  VBUSTI = 0; //
   // USBSTA
-  SPEED = 3; // 
-  ID = 1; // 
-  VBUS = 0; // 
+  SPEED = 3; //
+  ID = 1; //
+  VBUS = 0; //
   // USBCON
-  USBE = 7; // 
-  HOST = 6; // 
-  FRZCLK = 5; // 
-  OTGPADE = 4; // 
-  IDTE = 1; // 
-  VBUSTE = 0; // 
+  USBE = 7; //
+  HOST = 6; //
+  FRZCLK = 5; //
+  OTGPADE = 4; //
+  IDTE = 1; //
+  VBUSTE = 0; //
   // UHWCON
-  UIMOD = 7; // 
-  UIDE = 6; // 
-  UVCONE = 4; // 
-  UVREGE = 0; // 
+  UIMOD = 7; //
+  UIDE = 6; //
+  UVCONE = 4; //
+  UVREGE = 0; //
   // UPERRX
-  COUNTER = 5; // 
-  CRC16 = 4; // 
-  TIMEOUT = 3; // 
-  PID = 2; // 
-  DATAPID = 1; // 
-  DATATGL = 0; // 
+  COUNTER = 5; //
+  CRC16 = 4; //
+  TIMEOUT = 3; //
+  PID = 2; //
+  DATAPID = 1; //
+  DATATGL = 0; //
   // UPIENX
-  NAKEDE = 6; // 
-  PERRE = 4; // 
-  TXSTPE = 3; // 
-  TXOUTE = 2; // 
-  RXSTALLE = 1; // 
-  RXINE = 0; // 
+  NAKEDE = 6; //
+  PERRE = 4; //
+  TXSTPE = 3; //
+  TXOUTE = 2; //
+  RXSTALLE = 1; //
+  RXINE = 0; //
   // UPSTAX
-  NBUSYK = 0; // 
+  NBUSYK = 0; //
   // UPCFG1X
-  PSIZE = 4; // 
-  PBK = 2; // 
+  PSIZE = 4; //
+  PBK = 2; //
   // UPCFG0X
-  PTYPE = 6; // 
-  PTOKEN = 4; // 
-  PEPNUM = 0; // 
+  PTYPE = 6; //
+  PTOKEN = 4; //
+  PEPNUM = 0; //
   // UPCONX
-  PFREEZE = 6; // 
-  INMODE = 5; // 
-  PEN = 0; // 
+  PFREEZE = 6; //
+  INMODE = 5; //
+  PEN = 0; //
   // UPRST
-  PRST = 0; // 
+  PRST = 0; //
   // UPINTX
-  NAKEDI = 6; // 
-  PERRI = 4; // 
-  TXSTPI = 3; // 
-  TXOUTI = 2; // 
-  RXSTALLI = 1; // 
-  RXINI = 0; // 
+  NAKEDI = 6; //
+  PERRI = 4; //
+  TXSTPI = 3; //
+  TXOUTI = 2; //
+  RXSTALLI = 1; //
+  RXINI = 0; //
   // UHIEN
-  HWUPE = 6; // 
-  HSOFE = 5; // 
-  RXRSME = 4; // 
-  RSMEDE = 3; // 
-  RSTE = 2; // 
-  DDISCE = 1; // 
-  DCONNE = 0; // 
+  HWUPE = 6; //
+  HSOFE = 5; //
+  RXRSME = 4; //
+  RSMEDE = 3; //
+  RSTE = 2; //
+  DDISCE = 1; //
+  DCONNE = 0; //
   // UHINT
-  UHUPI = 6; // 
-  HSOFI = 5; // 
-  RXRSMI = 4; // 
-  RSMEDI = 3; // 
-  RSTI = 2; // 
-  DDISCI = 1; // 
-  DCONNI = 0; // 
+  UHUPI = 6; //
+  HSOFI = 5; //
+  RXRSMI = 4; //
+  RSMEDI = 3; //
+  RSTI = 2; //
+  DDISCI = 1; //
+  DCONNI = 0; //
   // UHCON
-  RESUME = 2; // 
-  RESET = 1; // 
-  SOFEN = 0; // 
+  RESUME = 2; //
+  RESET = 1; //
+  SOFEN = 0; //
   // SPMCSR
   SPMIE = 7; // SPM Interrupt Enable
   RWWSB = 6; // Read While Write Section Busy
@@ -511,7 +511,7 @@ const
   // TCCR0B
   FOC0A = 7; // Force Output Compare A
   FOC0B = 6; // Force Output Compare B
-  WGM02 = 3; // 
+  WGM02 = 3; //
   CS0 = 0; // Clock Select
   // TCCR0A
   COM0A = 6; // Compare Output Mode, Phase Correct PWM Mode
@@ -705,7 +705,7 @@ procedure TIMER3_COMPA_ISR; external name 'TIMER3_COMPA_ISR'; // Interrupt 32 Ti
 procedure TIMER3_COMPB_ISR; external name 'TIMER3_COMPB_ISR'; // Interrupt 33 Timer/Counter3 Compare Match B
 procedure TIMER3_COMPC_ISR; external name 'TIMER3_COMPC_ISR'; // Interrupt 34 Timer/Counter3 Compare Match C
 procedure TIMER3_OVF_ISR; external name 'TIMER3_OVF_ISR'; // Interrupt 35 Timer/Counter3 Overflow
-procedure TWI_ISR; external name 'TWI_ISR'; // Interrupt 36 2-wire Serial Interface        
+procedure TWI_ISR; external name 'TWI_ISR'; // Interrupt 36 2-wire Serial Interface
 procedure SPM_READY_ISR; external name 'SPM_READY_ISR'; // Interrupt 37 Store Program Memory Read
 
 procedure _FPC_start; assembler; nostackframe; noreturn; public name '_START'; section '.init';

@@ -37,8 +37,8 @@ var
   MCUSR: byte absolute $54;  // MCU Status Register
   MCUCR: byte absolute $55;  // MCU Control Register
   SPMCSR: byte absolute $57;  // Store Program Memory Control and Status Register
-  SP: word absolute $5D;  // Stack Pointer 
-  SPL: byte absolute $5D;  // Stack Pointer 
+  SP: word absolute $5D;  // Stack Pointer
+  SPL: byte absolute $5D;  // Stack Pointer
   SPH: byte absolute $5E;  // Stack Pointer ;
   SREG: byte absolute $5F;  // Status Register
   WDTCSR: byte absolute $60;  // Watchdog Timer Control Register
@@ -108,158 +108,158 @@ var
 
 const
   // Port A Data Register
-  PA0 = $00;  
-  PA1 = $01;  
+  PA0 = $00;
+  PA1 = $01;
   // Port B Data Register
-  PB0 = $00;  
-  PB1 = $01;  
-  PB2 = $02;  
-  PB3 = $03;  
-  PB4 = $04;  
-  PB5 = $05;  
-  PB6 = $06;  
-  PB7 = $07;  
+  PB0 = $00;
+  PB1 = $01;
+  PB2 = $02;
+  PB3 = $03;
+  PB4 = $04;
+  PB5 = $05;
+  PB6 = $06;
+  PB7 = $07;
   // Timer/Counter Interrupt Flag register
-  TOV0 = $00;  
-  OCF0A = $01;  
-  OCF0B = $02;  
-  ICF0 = $03;  
+  TOV0 = $00;
+  OCF0A = $01;
+  OCF0B = $02;
+  ICF0 = $03;
   // Timer/Counter Interrupt Flag register
-  TOV1 = $00;  
-  OCF1A = $01;  
-  OCF1B = $02;  
-  ICF1 = $03;  
+  TOV1 = $00;
+  OCF1A = $01;
+  OCF1B = $02;
+  ICF1 = $03;
   // Pin Change Interrupt Flag Register
   PCIF0 = $00;  // Pin Change Interrupt Flags
   PCIF1 = $01;  // Pin Change Interrupt Flags
   // External Interrupt Flag Register
-  INTF0 = $00;  
+  INTF0 = $00;
   // External Interrupt Mask Register
-  INT0 = $00;  
+  INT0 = $00;
   // EEPROM Control Register
-  EERE = $00;  
-  EEPE = $01;  
-  EEMPE = $02;  
-  EERIE = $03;  
+  EERE = $00;
+  EEPE = $01;
+  EEMPE = $02;
+  EERIE = $03;
   EEPM0 = $04;
   EEPM1 = $05;
   // General Timer/Counter Control Register
-  PSRSYNC = $00;  
-  TSM = $07;  
+  PSRSYNC = $00;
+  TSM = $07;
   // Timer/Counter 0 Control Register A
-  WGM00 = $00;  
-  ICS0 = $03;  
-  ICES0 = $04;  
-  ICNC0 = $05;  
-  ICEN0 = $06;  
-  TCW0 = $07;  
+  WGM00 = $00;
+  ICS0 = $03;
+  ICES0 = $04;
+  ICNC0 = $05;
+  ICEN0 = $06;
+  TCW0 = $07;
   // Timer/Counter0 Control Register B
-  CS00 = $00;  
-  CS01 = $01;  
-  CS02 = $02;  
+  CS00 = $00;
+  CS01 = $01;
+  CS02 = $02;
   // SPI Control Register
   SPR0 = $00;  // SPI Clock Rate Selects
   SPR1 = $01;  // SPI Clock Rate Selects
-  CPHA = $02;  
-  CPOL = $03;  
-  MSTR = $04;  
-  DORD = $05;  
-  SPE = $06;  
-  SPIE = $07;  
+  CPHA = $02;
+  CPOL = $03;
+  MSTR = $04;
+  DORD = $05;
+  SPE = $06;
+  SPIE = $07;
   // SPI Status Register
-  SPI2X = $00;  
-  WCOL = $06;  
-  SPIF = $07;  
+  SPI2X = $00;
+  WCOL = $06;
+  SPIF = $07;
   // Sleep Mode Control Register
-  SE = $00;  
+  SE = $00;
   SM0 = $01;  // Sleep Mode Select bits
   SM1 = $02;  // Sleep Mode Select bits
   SM2 = $03;  // Sleep Mode Select bits
   // MCU Status Register
-  PORF = $00;  
-  EXTRF = $01;  
-  BODRF = $02;  
-  WDRF = $03;  
-  OCDRF = $04;  
+  PORF = $00;
+  EXTRF = $01;
+  BODRF = $02;
+  WDRF = $03;
+  OCDRF = $04;
   // MCU Control Register
-  IVCE = $00;  
-  IVSEL = $01;  
-  PUD = $04;  
-  CKOE = $05;  
+  IVCE = $00;
+  IVSEL = $01;
+  PUD = $04;
+  CKOE = $05;
   // Store Program Memory Control and Status Register
-  SPMEN = $00;  
-  PGERS = $01;  
-  PGWRT = $02;  
-  LBSET = $03;  
-  RWWSRE = $04;  
-  SIGRD = $05;  
-  RWWSB = $06;  
-  SPMIE = $07;  
+  SPMEN = $00;
+  PGERS = $01;
+  PGWRT = $02;
+  LBSET = $03;
+  RWWSRE = $04;
+  SIGRD = $05;
+  RWWSB = $06;
+  SPMIE = $07;
   // Status Register
-  C = $00;  
-  Z = $01;  
-  N = $02;  
-  V = $03;  
-  S = $04;  
-  H = $05;  
-  T = $06;  
-  I = $07;  
+  C = $00;
+  Z = $01;
+  N = $02;
+  V = $03;
+  S = $04;
+  H = $05;
+  T = $06;
+  I = $07;
   // Watchdog Timer Control Register
-  WDE = $03;  
-  WDCE = $04;  
+  WDE = $03;
+  WDCE = $04;
   WDP0 = $00;  // Watchdog Timer Prescaler Bits
   WDP1 = $01;  // Watchdog Timer Prescaler Bits
   WDP2 = $02;  // Watchdog Timer Prescaler Bits
   WDP3 = $05;  // Watchdog Timer Prescaler Bits
-  WDIE = $06;  
-  WDIF = $07;  
+  WDIE = $06;
+  WDIF = $07;
   // Clock Prescale Register
   CLKPS0 = $00;  // Clock Prescaler Select Bits
   CLKPS1 = $01;  // Clock Prescaler Select Bits
-  CLKPCE = $07;  
+  CLKPCE = $07;
   // Wake-up Timer Control and Status Register
   WUTP0 = $00;  // Wake-up Timer Prescaler Bits
   WUTP1 = $01;  // Wake-up Timer Prescaler Bits
   WUTP2 = $02;  // Wake-up Timer Prescaler Bits
-  WUTE = $03;  
-  WUTR = $04;  
-  WUTIE = $06;  
-  WUTIF = $07;  
+  WUTE = $03;
+  WUTR = $04;
+  WUTIE = $06;
+  WUTIF = $07;
   // Watchdog Timer Configuration Lock Register
-  WDCLE = $00;  
+  WDCLE = $00;
   WDCL0 = $01;  // Watchdog Timer Comfiguration Lock bits
   WDCL1 = $02;  // Watchdog Timer Comfiguration Lock bits
   // Power Reduction Register 0
-  PRTIM0 = $00;  
-  PRTIM1 = $01;  
-  PRSPI = $02;  
-  PRLIN = $03;  
+  PRTIM0 = $00;
+  PRTIM1 = $01;
+  PRSPI = $02;
+  PRLIN = $03;
   // Pin Change Interrupt Control Register
   PCIE0 = $00;  // Pin Change Interrupt Enables
   PCIE1 = $01;  // Pin Change Interrupt Enables
   // External Interrupt Control Register
-  ISC00 = $00;  
-  ISC01 = $01;  
+  ISC00 = $00;
+  ISC01 = $01;
   // Timer/Counter Interrupt Mask Register
-  TOIE0 = $00;  
-  OCIE0A = $01;  
-  OCIE0B = $02;  
-  ICIE0 = $03;  
+  TOIE0 = $00;
+  OCIE0A = $01;
+  OCIE0B = $02;
+  ICIE0 = $03;
   // Timer/Counter Interrupt Mask Register
-  TOIE1 = $00;  
-  OCIE1A = $01;  
-  OCIE1B = $02;  
-  ICIE1 = $03;  
+  TOIE1 = $00;
+  OCIE1A = $01;
+  OCIE1B = $02;
+  ICIE1 = $03;
   // Digital Input Disable Register
-  PA0DID = $00;  
-  PA1DID = $01;  
+  PA0DID = $00;
+  PA1DID = $01;
   // Timer/Counter 1 Control Register A
-  WGM10 = $00;  
-  ICS1 = $03;  
-  ICES1 = $04;  
-  ICNC1 = $05;  
-  ICEN1 = $06;  
-  TCW1 = $07;  
+  WGM10 = $00;
+  ICS1 = $03;
+  ICES1 = $04;
+  ICNC1 = $05;
+  ICEN1 = $06;
+  TCW1 = $07;
   // Timer/Counter1 Control Register B
   CS10 = $00;  // Clock Select1 bis
   CS11 = $01;  // Clock Select1 bis
@@ -268,34 +268,34 @@ const
   LCMD0 = $00;  // LIN Command and Mode bits
   LCMD1 = $01;  // LIN Command and Mode bits
   LCMD2 = $02;  // LIN Command and Mode bits
-  LENA = $03;  
+  LENA = $03;
   LCONF0 = $04;  // LIN Configuration bits
   LCONF1 = $05;  // LIN Configuration bits
-  LIN13 = $06;  
-  LSWRES = $07;  
+  LIN13 = $06;
+  LSWRES = $07;
   // LIN Status and Interrupt Register
-  LRXOK = $00;  
-  LTXOK = $01;  
-  LIDOK = $02;  
-  LERR = $03;  
-  LBUSY = $04;  
+  LRXOK = $00;
+  LTXOK = $01;
+  LIDOK = $02;
+  LERR = $03;
+  LBUSY = $04;
   LIDST0 = $05;  // Identifier Status bits
   LIDST1 = $06;  // Identifier Status bits
   LIDST2 = $07;  // Identifier Status bits
   // LIN Enable Interrupt Register
-  LENRXOK = $00;  
-  LENTXOK = $01;  
-  LENIDOK = $02;  
-  LENERR = $03;  
+  LENRXOK = $00;
+  LENTXOK = $01;
+  LENIDOK = $02;
+  LENERR = $03;
   // LIN Error Register
-  LBERR = $00;  
-  LCERR = $01;  
-  LPERR = $02;  
-  LSERR = $03;  
-  LFERR = $04;  
-  LOVERR = $05;  
-  LTOERR = $06;  
-  LABORT = $07;  
+  LBERR = $00;
+  LCERR = $01;
+  LPERR = $02;
+  LSERR = $03;
+  LFERR = $04;
+  LOVERR = $05;
+  LTOERR = $06;
+  LABORT = $07;
   // LIN Bit Timing Register
   LBT0 = $00;  // LIN Bit Timing bits
   LBT1 = $01;  // LIN Bit Timing bits
@@ -303,7 +303,7 @@ const
   LBT3 = $03;  // LIN Bit Timing bits
   LBT4 = $04;  // LIN Bit Timing bits
   LBT5 = $05;  // LIN Bit Timing bits
-  LDISR = $07;  
+  LDISR = $07;
   // LIN Baud Rate Low Register
   LDIV0 = $00;
   LDIV1 = $01;
@@ -335,7 +335,7 @@ const
   LINDX0 = $00;  // FIFO LIN Data Buffer Index bits
   LINDX1 = $01;  // FIFO LIN Data Buffer Index bits
   LINDX2 = $02;  // FIFO LIN Data Buffer Index bits
-  LAINC = $03;  
+  LAINC = $03;
   // LIN Data Register
   LDATA0 = $00;
   LDATA1 = $01;
@@ -368,33 +368,33 @@ const
   BGCN6 = $06;  // Band Gap Calibration Nominal
   BGCN7 = $07;  // Band Gap Calibration Nominal
   // Band Gap Lock Register
-  BGPL = $00;  
-  BGPLE = $01;  
+  BGPL = $00;
+  BGPLE = $01;
   // PLL Control and Status Register
-  PLLCIE = $00;  
-  PLLCIF = $01;  
-  LOCK = $04;  
-  SWEN = $05;  
+  PLLCIE = $00;
+  PLLCIF = $01;
+  LOCK = $04;
+  SWEN = $05;
   // Port B Override
-  PBOE0 = $00;  
-  PBOE3 = $03;  
-  PBOVCE = $07;  
+  PBOE0 = $00;
+  PBOE3 = $03;
+  PBOVCE = $07;
   // ADC Synchronization Control and Status Register
   SCMD0 = $00;  // Synchronization Command
   SCMD1 = $01;  // Synchronization Command
-  SBSY = $02;  
+  SBSY = $02;
   // ADC Synchronization Control and Status Register
-  CADICRB = $00;  
-  CADACRB = $01;  
-  CADICPS = $02;  
-  VADICRB = $04;  
-  VADACRB = $05;  
-  VADICPS = $06;  
+  CADICRB = $00;
+  CADACRB = $01;
+  CADICPS = $02;
+  VADICRB = $04;
+  VADACRB = $05;
+  VADICPS = $06;
   // ADC Control Register A
-  CKSEL = $00;  
+  CKSEL = $00;
   ADCMS0 = $01;  // C-ADC Chopper Mode Select
   ADCMS1 = $02;  // C-ADC Chopper Mode Select
-  ADPSEL = $03;  
+  ADPSEL = $03;
   // ADC Control Register B
   ADADES0 = $00;  // Accumulated Decimation Ratio Select
   ADADES1 = $01;  // Accumulated Decimation Ratio Select
@@ -408,9 +408,9 @@ const
   CADRCT3 = $03;  // C-ADC Regular Current Count Threshold
   CADRCM0 = $04;  // C-ADC Regular Current Comparator Mode
   CADRCM1 = $05;  // C-ADC Regular Current Comparator Mode
-  CADEN = $07;  
+  CADEN = $07;
   // ADC Control Register D
-  CADDSEL = $00;  
+  CADDSEL = $00;
   CADPDM0 = $01;  // C-ADC Pin Diagnostics Mode
   CADPDM1 = $02;  // C-ADC Pin Diagnostics Mode
   CADG0 = $03;  // C-ADC Gain
@@ -422,20 +422,20 @@ const
   VADMUX2 = $02;  // V-ADC Channel Select
   VADPDM0 = $03;  // V-ADC Pin Diagnostics Mode
   VADPDM1 = $04;  // V-ADC Pin Diagnostics Mode
-  VADREFS = $05;  
-  VADEN = $07;  
+  VADREFS = $05;
+  VADEN = $07;
   // ADC Interrupt Flag Register
-  CADICIF = $00;  
-  CADACIF = $01;  
-  CADRCIF = $02;  
-  VADICIF = $04;  
-  VADACIF = $05;  
+  CADICIF = $00;
+  CADACIF = $01;
+  CADRCIF = $02;
+  VADICIF = $04;
+  VADACIF = $05;
   // ADC Interrupt Mask Register
-  CADICIE = $00;  
-  CADACIE = $01;  
-  CADRCIE = $02;  
-  VADICIE = $04;  
-  VADACIE = $05;  
+  CADICIE = $00;
+  CADACIE = $01;
+  CADRCIE = $02;
+  VADICIE = $04;
+  VADACIE = $05;
 
 
 implementation

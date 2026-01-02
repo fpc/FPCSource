@@ -1,17 +1,17 @@
 {
      File:       CommonPanels/NSL.h
- 
+
      Contains:   Interface to API for using the NSL User Interface
- 
+
      Version:    CommonPanels-91~177
- 
+
      Copyright:  © 1997-2008 by Apple Computer, Inc., all rights reserved
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {
@@ -256,7 +256,7 @@ type
 	NSLEventUPP = NSLEventProcPtr;
 {
  *  NewNSLURLFilterUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -267,7 +267,7 @@ function NewNSLURLFilterUPP( userRoutine: NSLURLFilterProcPtr ): NSLURLFilterUPP
 
 {
  *  NewNSLEventUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -278,7 +278,7 @@ function NewNSLEventUPP( userRoutine: NSLEventProcPtr ): NSLEventUPP; external n
 
 {
  *  DisposeNSLURLFilterUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -289,7 +289,7 @@ procedure DisposeNSLURLFilterUPP( userUPP: NSLURLFilterUPP ); external name '_Di
 
 {
  *  DisposeNSLEventUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -300,7 +300,7 @@ procedure DisposeNSLEventUPP( userUPP: NSLEventUPP ); external name '_DisposeNSL
 
 {
  *  InvokeNSLURLFilterUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -311,7 +311,7 @@ function InvokeNSLURLFilterUPP( url: CStringPtr; var displayString: Str255; user
 
 {
  *  InvokeNSLEventUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -353,7 +353,7 @@ procedure InvokeNSLEventUPP( var newEvent: EventRecord; userContext: UnivPtr; us
 }
 { AnsiChar* serviceTypeList }
 {
-   the serviceTypeList parameter is a null terminated string that will 
+   the serviceTypeList parameter is a null terminated string that will
    directly affect the contents of the services popup in the dialog.
    The structure of this string is a set of tuples as follows:
    Name of ServiceType as to be represented in the popup followed by
@@ -401,7 +401,7 @@ procedure InvokeNSLEventUPP( var newEvent: EventRecord; userContext: UnivPtr; us
 
 {
  *  NSLStandardGetURL()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -413,7 +413,7 @@ function NSLStandardGetURL( dialogOptions: NSLDialogOptionsPtr { can be NULL }; 
 
 {
  *  NSLGetDefaultDialogOptions()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -427,7 +427,7 @@ function NSLGetDefaultDialogOptions( var dialogOptions: NSLDialogOptions ): OSSt
 { ---> url is memory created by a call to NSLStandardGetURL }
 {
  *  NSLFreeURL()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -443,7 +443,7 @@ function NSLFreeURL( url: CStringPtr ): CStringPtr; external name '_NSLFreeURL';
 { ---> userFriendlyName is used for the file name and the display name (in the UI) }
 {
  *  NSLSaveURLAliasToFolder()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        not available

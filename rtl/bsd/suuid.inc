@@ -15,7 +15,7 @@
 
  **********************************************************************}
 
-{$IF DEFINED(FREEBSD) AND NOT DEFINED(FREEBSD4)} 
+{$IF DEFINED(FREEBSD) AND NOT DEFINED(FREEBSD4)}
 {$IFDEF FPC_USE_LIBC}
 
 function cuuidgen(p:PGUID;x:cint):cint; external clib name 'uuidgen';
@@ -34,12 +34,12 @@ Function SysCreateGUID(out GUID : TGUID) : Integer;
 begin
  result:=0;
  if cuuidgen(@guid,1)=-1 then
-    GetRandomBytes(GUID,SizeOf(Guid));  
+    GetRandomBytes(GUID,SizeOf(Guid));
 end;
 
 {$ELSE}
 
-Const 
+Const
   RandomDevice  = '/dev/urandom';
 
 
@@ -48,7 +48,7 @@ Function GetURandomBytes(Var Buf; NBytes : Integer) : Boolean;
 Var
   fd,I : Integer;
   P : PByte;
-  
+
 begin
   P:=@Buf;
   fd:=FileOpen(RandomDevice,fmOpenRead or fmShareDenyNone);
@@ -63,7 +63,7 @@ begin
           Inc(P,I);
           Dec(NBytes,I);
           end;
-        end;  
+        end;
     Finally
       FileClose(Fd);
     end;
@@ -74,7 +74,7 @@ Function SysCreateGUID(out GUID : TGUID) : Integer;
 
 begin
   if not GetUrandomBytes(Guid,SizeOf(GUID)) then
-    GetRandomBytes(GUID,SizeOf(Guid));  
-  Result:=0;    
+    GetRandomBytes(GUID,SizeOf(Guid));
+  Result:=0;
 end;
 {$ENDIF}

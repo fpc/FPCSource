@@ -294,7 +294,7 @@ function CFURLEnumeratorGetDescendentLevel( enumerator: CFURLEnumeratorRef ): CF
 
 
 { CFURLEnumeratorGetSourceDidChange is deprecated. If your program is interested in directory hierarchy changes during enumeration (and most programs are not interested), you should use the File System Events API.
- 
+
  CFURLEnumeratorGetSourceDidChange does nothing and always returns false.
  }
 function CFURLEnumeratorGetSourceDidChange( enumerator: CFURLEnumeratorRef ): Boolean; external name '_CFURLEnumeratorGetSourceDidChange';

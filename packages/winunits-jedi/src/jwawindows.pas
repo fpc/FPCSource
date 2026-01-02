@@ -193,7 +193,7 @@ uses
 //OleUnits creates PalmApi.Window handles that prevents SetThreadDesktop to work
   WinApi.Oleserver, //[warning] requires D5 or higher - required by WinApi.Jedi.Adstlb.pas
   OleCtrls,
-//JwaAdsTlb.pas and WinApi.Jedi.Dde.pas use these units and is therfore excluded
+//JwaAdsTlb.pas and WinApi.Jedi.Dde.pas use these units and is therefore excluded
 {$ENDIF JWA_INCLUDE_JWAADSTLB}
 
   {$ENDIF USE_DELPHI_TYPES}
@@ -222,7 +222,7 @@ uses
 //OleUnits creates window handles that prevents SetThreadDesktop to work
   OleServer, //[warning] requires D5 or higher - required by jwaAdsTLB.pas
   OleCtrls,
-//JwaAdsTlb.pas and JwaDde.pas use these units and is therfore excluded
+//JwaAdsTlb.pas and JwaDde.pas use these units and is therefore excluded
 {$ENDIF JWA_INCLUDE_JWAADSTLB}
 
   {$ENDIF USE_DELPHI_TYPES}

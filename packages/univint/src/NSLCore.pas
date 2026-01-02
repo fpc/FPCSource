@@ -1,17 +1,17 @@
 {
      File:       NSLCore/NSLCore.h
- 
+
      Contains:   Interface to API for using the NSL Manager
- 
+
      Version:    NSLCore-145~102
- 
+
      Copyright:  © 2000-2008 by Apple Computer, Inc., all rights reserved
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {      Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {
@@ -343,7 +343,7 @@ type
 	NSLClientNotifyUPP = NSLClientNotifyProcPtr;
 {
  *  NewNSLMgrNotifyUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -354,7 +354,7 @@ function NewNSLMgrNotifyUPP( userRoutine: NSLMgrNotifyProcPtr ): NSLMgrNotifyUPP
 
 {
  *  NewNSLClientNotifyUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -365,7 +365,7 @@ function NewNSLClientNotifyUPP( userRoutine: NSLClientNotifyProcPtr ): NSLClient
 
 {
  *  DisposeNSLMgrNotifyUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -376,7 +376,7 @@ procedure DisposeNSLMgrNotifyUPP( userUPP: NSLMgrNotifyUPP ); external name '_Di
 
 {
  *  DisposeNSLClientNotifyUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -387,7 +387,7 @@ procedure DisposeNSLClientNotifyUPP( userUPP: NSLClientNotifyUPP ); external nam
 
 {
  *  InvokeNSLMgrNotifyUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -398,7 +398,7 @@ procedure InvokeNSLMgrNotifyUPP( var thePluginAsyncInfo: NSLPluginAsyncInfo; use
 
 {
  *  InvokeNSLClientNotifyUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -480,7 +480,7 @@ type
 {$ifc not TARGET_CPU_64}
 {
  *  NSLLibraryVersion()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -494,14 +494,14 @@ function NSLLibraryVersion: UInt32; external name '_NSLLibraryVersion';
 
 
 // #define NSLLibraryPresent()        true
-   
+
 
 {
   -----------------------------------------------------------------------------
     High level API calls: the following two calls are ALL an application needs
     to register/deregister its service.
-    If you use these, you don't need to make any of the other calls to NSLAPI 
-    (including NSLOpenNavigationAPI) 
+    If you use these, you don't need to make any of the other calls to NSLAPI
+    (including NSLOpenNavigationAPI)
   -----------------------------------------------------------------------------
 }
 
@@ -513,7 +513,7 @@ function NSLLibraryVersion: UInt32; external name '_NSLLibraryVersion';
 {$ifc not TARGET_CPU_64}
 {
  *  NSLStandardRegisterURL()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -530,7 +530,7 @@ function NSLStandardRegisterURL( urlToRegister: NSLPath; neighborhoodToRegisterI
             If parameter is NULL, then the plugins will determine where to register the service }
 {
  *  NSLStandardDeregisterURL()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -544,7 +544,7 @@ function NSLStandardDeregisterURL( urlToDeregister: NSLPath; neighborhoodToDereg
 
 {
  *  NSLHexEncodeText()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -556,7 +556,7 @@ function NSLHexEncodeText( rawText: ConstCStringPtr; rawTextLen: UInt16; newText
 
 {
  *  NSLHexDecodeText()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -574,7 +574,7 @@ function NSLHexDecodeText( encodedText: ConstCStringPtr; encodedTextLen: UInt16;
 
 {
  *  NSLMakeNewServicesList()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -586,7 +586,7 @@ function NSLMakeNewServicesList( initialServiceList: ConstCStringPtr ): NSLServi
 
 {
  *  NSLAddServiceToServicesList()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -598,7 +598,7 @@ function NSLAddServiceToServicesList( serviceList: NSLServicesList; serviceType:
 
 {
  *  NSLDisposeServicesList()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -616,7 +616,7 @@ procedure NSLDisposeServicesList( theList: NSLServicesList ); external name '_NS
 }
 {
  *  NSLMakeNewNeighborhood()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -629,7 +629,7 @@ function NSLMakeNewNeighborhood( name: ConstCStringPtr; protocolList: ConstCStri
 { creates an exact copy of an existing neighborhood }
 {
  *  NSLCopyNeighborhood()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -641,7 +641,7 @@ function NSLCopyNeighborhood( neighborhood: NSLNeighborhood ): NSLNeighborhood; 
 
 {
  *  NSLFreeNeighborhood()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -653,7 +653,7 @@ function NSLFreeNeighborhood( neighborhood: NSLNeighborhood ): NSLNeighborhood; 
 
 {
  *  NSLGetNameFromNeighborhood()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -669,7 +669,7 @@ procedure NSLGetNameFromNeighborhood( neighborhood: NSLNeighborhood; var name: C
 }
 {
  *  NSLMakeServicesRequestPB()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -682,7 +682,7 @@ function NSLMakeServicesRequestPB( serviceList: NSLServicesList; var newDataPtr:
 { releases any storage created with MakeXXXPB calls, associated with TypedData.}
 {
  *  NSLFreeTypedDataPtr()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -698,7 +698,7 @@ function NSLFreeTypedDataPtr( nslTypeData: NSLTypedDataPtr ): NSLTypedDataPtr; e
 }
 {
  *  NSLGetNextUrl()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -714,7 +714,7 @@ function NSLGetNextUrl( infoPtr: NSLClientAsyncInfoPtr; var urlPtr: CStringPtr; 
 }
 {
  *  NSLGetNextNeighborhood()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -727,14 +727,14 @@ function NSLGetNextNeighborhood( infoPtr: NSLClientAsyncInfoPtr; var neighborhoo
 {
    NSLErrorToString:    convert a numeric error code to its string equivalent.  Caller must
                         have allocated sufficient space to store both strings.  (Max 255 chars each)
-                                
+
                         The errorString parameter will return a textual explanation of what is wrong,
                         while the solutionString returns a possible solution to get around the problem
 }
 
 {
  *  NSLErrorToString()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -752,7 +752,7 @@ function NSLErrorToString( theErr: NSLError; errorString: CStringPtr; solutionSt
 
 {
  *  NSLOpenNavigationAPI()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -764,7 +764,7 @@ function NSLOpenNavigationAPI( var newRef: NSLClientRef ): OSStatus; external na
 
 {
  *  NSLCloseNavigationAPI()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -780,9 +780,9 @@ procedure NSLCloseNavigationAPI( theClient: NSLClientRef ); external name '_NSLC
     completed, or if an error occurs.  When the notifier is called, the cookie will be the NSLRequestRef.
     If notifier is NULL, then the NSLManager will assume that the request is made synchronously.  This
     should only be used while in a separate thread, so that the client app can still process events, etc.
-    
-    contextPtr is a void* which is passed as the contextPtr argument when the notifier is called.  
-    
+
+    contextPtr is a void* which is passed as the contextPtr argument when the notifier is called.
+
     upon exit:
     1) ref will contain a pointer to a NSLRequestRef which must be passed to all other functions
     which require a NSLRequestRef.
@@ -792,7 +792,7 @@ procedure NSLCloseNavigationAPI( theClient: NSLClientRef ); external name '_NSLC
 
 {
  *  NSLPrepareRequest()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -805,12 +805,12 @@ function NSLPrepareRequest( notifier: NSLClientNotifyUPP; contextPtr: UnivPtr; t
 {
    NSLStartNeighborhoodLookup: looking for neighborhoods associated with or neighboring a particular neighborhood
     Passing in NULL for neighborhood will generate a list of a default neighborhood(s)
-   
+
 }
 
 {
  *  NSLStartNeighborhoodLookup()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -822,12 +822,12 @@ function NSLStartNeighborhoodLookup( ref: NSLRequestRef; neighborhood: NSLNeighb
 
 {
    NSLStartServicesLookup: starts looking for entities if the specified type in the specified neighborhood
-   
+
 }
 
 {
  *  NSLStartServicesLookup()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -841,7 +841,7 @@ function NSLStartServicesLookup( ref: NSLRequestRef; neighborhood: NSLNeighborho
 
 {
  *  NSLContinueLookup()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -855,7 +855,7 @@ function NSLContinueLookup( var asyncInfo: NSLClientAsyncInfo ): NSLError; exter
 
 {
  *  NSLCancelRequest()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -872,7 +872,7 @@ function NSLCancelRequest( ref: NSLRequestRef ): NSLError; external name '_NSLCa
 
 {
  *  NSLDeleteRequest()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -895,7 +895,7 @@ function NSLDeleteRequest( ref: NSLRequestRef ): NSLError; external name '_NSLDe
 { ---> serviceListLen is the length of the serviceListPtr data pointed to by serviceListPtr }
 {
  *  NSLParseServicesRequestPB()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -914,7 +914,7 @@ function NSLParseServicesRequestPB( newDataPtr: NSLTypedDataPtr; var serviceList
 { ---> urlLen is the length of the url data pointed to by urlPtr }
 {
  *  NSLParseServiceRegistrationPB()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -936,7 +936,7 @@ function NSLParseServiceRegistrationPB( newDataPtr: NSLTypedDataPtr; var neighbo
 { <--> solutionString is a pointer to valid memory of at least 256 bytes which will be filled out by the solution portion of the error string }
 {
  *  NSLGetErrorStringsFromResource()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -951,7 +951,7 @@ function NSLGetErrorStringsFromResource( theErr: OSStatus; const (*var*) fileSpe
 { ---> svcToFind is an NSLServiceType of a particular service to check if it is in the serviceList }
 {
  *  NSLServiceIsInServiceList()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -966,7 +966,7 @@ function NSLServiceIsInServiceList( serviceList: NSLServicesList; svcToFind: NSL
 { ---> svcLen is the length of the serviceType pointed to by svcString }
 {
  *  NSLGetServiceFromURL()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -980,7 +980,7 @@ function NSLGetServiceFromURL( theURL: CStringPtr; var svcString: CStringPtr; va
 { ---> neighborhood is a valid NSLNeighborhood }
 {
  *  NSLGetNeighborhoodLength()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1000,7 +1000,7 @@ function NSLGetNeighborhoodLength( neighborhood: NSLNeighborhood ): SIGNEDLONG; 
 { that the thread is added to the NSL manager's thread list. }
 {
  *  NSLNewThread()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1014,7 +1014,7 @@ function NSLNewThread( threadStyle_: ThreadStyle; threadEntry: ThreadEntryProcPt
 { that the thread is removed from the NSL manager's thread list. }
 {
  *  NSLDisposeThread()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later

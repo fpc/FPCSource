@@ -24,9 +24,9 @@ var
   ACSRA : byte absolute $00+$14; // Analog Comparator Control And Status Register A
   // CPU
   CCP : byte absolute $00+$3C; // Configuration Change Protection
-  SP : word absolute $00+$3D; // Stack Pointer 
-  SPL : byte absolute $00+$3D; // Stack Pointer 
-  SPH : byte absolute $00+$3D+1; // Stack Pointer 
+  SP : word absolute $00+$3D; // Stack Pointer
+  SPL : byte absolute $00+$3D; // Stack Pointer
+  SPH : byte absolute $00+$3D+1; // Stack Pointer
   SREG : byte absolute $00+$3F; // Status Register
   CLKMSR : byte absolute $00+$37; // Clock Main Settings Register
   CLKPSR : byte absolute $00+$36; // Clock Prescale Register
@@ -66,15 +66,15 @@ var
   TCCR1A : byte absolute $00+$24; // Timer/Counter1 Control Register A
   TCCR1B : byte absolute $00+$23; // Timer/Counter1 Control Register B
   TCCR1C : byte absolute $00+$22; // Timer/Counter1 Control Register C
-  TCNT1 : word absolute $00+$20; // Timer/Counter1 
-  TCNT1L : byte absolute $00+$20; // Timer/Counter1 
-  TCNT1H : byte absolute $00+$20+1; // Timer/Counter1 
-  OCR1A : word absolute $00+$1E; // Timer/Counter 1 Output Compare Register A 
-  OCR1AL : byte absolute $00+$1E; // Timer/Counter 1 Output Compare Register A 
-  OCR1AH : byte absolute $00+$1E+1; // Timer/Counter 1 Output Compare Register A 
-  OCR1B : word absolute $00+$1C; // Timer/Counter1 Output Compare Register B 
-  OCR1BL : byte absolute $00+$1C; // Timer/Counter1 Output Compare Register B 
-  OCR1BH : byte absolute $00+$1C+1; // Timer/Counter1 Output Compare Register B 
+  TCNT1 : word absolute $00+$20; // Timer/Counter1
+  TCNT1L : byte absolute $00+$20; // Timer/Counter1
+  TCNT1H : byte absolute $00+$20+1; // Timer/Counter1
+  OCR1A : word absolute $00+$1E; // Timer/Counter 1 Output Compare Register A
+  OCR1AL : byte absolute $00+$1E; // Timer/Counter 1 Output Compare Register A
+  OCR1AH : byte absolute $00+$1E+1; // Timer/Counter 1 Output Compare Register A
+  OCR1B : word absolute $00+$1C; // Timer/Counter1 Output Compare Register B
+  OCR1BL : byte absolute $00+$1C; // Timer/Counter1 Output Compare Register B
+  OCR1BH : byte absolute $00+$1C+1; // Timer/Counter1 Output Compare Register B
   ICR1 : word absolute $00+$1A; // Input Capture Register  Bytes
   ICR1L : byte absolute $00+$1A; // Input Capture Register  Bytes
   ICR1H : byte absolute $00+$1A+1; // Input Capture Register  Bytes
@@ -102,7 +102,7 @@ const
   ADIE = 3; // ADC Interrupt Enable
   ADPS = 0; // ADC Prescaler Select Bits
   // ADCSRB
-  ADLAR = 3; // 
+  ADLAR = 3; //
   ADTS = 0; // ADC Auto Trigger Sources
   // DIDR0
   ADC7D = 7; // ADC6 Digital input Disable
@@ -195,7 +195,7 @@ const
   TWSME = 0; // TWI Smart Mode Enable
   // TWSCRB
   TWAA = 2; // TWI Acknowledge Action
-  TWCMD = 0; // 
+  TWCMD = 0; //
   // TWSA
   // TWSD
   // PORTCR

@@ -509,7 +509,7 @@ interrupt_vectors:
    .long 0
    .long PendingSV_interrupt
    .long SysTick_interrupt
-   
+
    .long Window_Watchdog_interrupt
    .long PVD_through_EXTI_Line_detection_interrupt
    .long Tamper_interrupt
@@ -578,7 +578,7 @@ interrupt_vectors:
    .long CAN2_RX1_interrupt
    .long CAN2_SCE_interrupt
    .long USB_On_The_Go_FS_global_interrupt
-   
+
    .weak NMI_interrupt
    .weak Hardfault_interrupt
    .weak MemManage_interrupt
@@ -588,7 +588,7 @@ interrupt_vectors:
    .weak DebugMonitor_interrupt
    .weak PendingSV_interrupt
    .weak SysTick_interrupt
-   
+
    .weak Window_Watchdog_interrupt
    .weak PVD_through_EXTI_Line_detection_interrupt
    .weak Tamper_interrupt
@@ -651,7 +651,7 @@ interrupt_vectors:
    .weak CAN2_SCE_interrupt
    .weak USB_On_The_Go_FS_global_interrupt
 
-   
+
    .set NMI_interrupt, HaltProc
    .set Hardfault_interrupt, HaltProc
    .set MemManage_interrupt, HaltProc
@@ -723,7 +723,7 @@ interrupt_vectors:
    .set CAN2_RX1_interrupt, HaltProc
    .set CAN2_SCE_interrupt, HaltProc
    .set USB_On_The_Go_FS_global_interrupt, HaltProc
-   
+
    .text
 end;
 

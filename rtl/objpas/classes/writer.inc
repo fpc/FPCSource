@@ -352,7 +352,7 @@ begin
     {$ENDIF}
   end;
 end;
-                      
+
 procedure TBinaryObjectWriter.WriteUnicodeString(const Value: UnicodeString);
 var len : longword;
 {$IFDEF ENDIAN_BIG}
@@ -705,9 +705,9 @@ Var
   SRoot, SRootA : TComponent;
   SList : TStringList;
   SPos, I , SAncestorPos: Integer;
-  
+
 begin
-  // Write children list. 
+  // Write children list.
   // While writing children, the ancestor environment must be saved
   // This is recursive...
   SRoot:=FRoot;
@@ -733,10 +733,10 @@ begin
       Component.GetChildren(@WriteComponent, FRoot);
     Finally
       If Assigned(Fancestors) then
-        For I:=0 to FAncestors.Count-1 do 
+        For I:=0 to FAncestors.Count-1 do
           FAncestors.Objects[i].Free;
       FreeAndNil(FAncestors);
-    end;    
+    end;
   finally
     FAncestors:=Slist;
     FRoot:=SRoot;
@@ -747,7 +747,7 @@ begin
 end;
 
 procedure TWriter.WriteComponentData(Instance: TComponent);
-var 
+var
   Flags: TFilerFlags;
 begin
   Flags := [];
@@ -845,12 +845,12 @@ var PropCount,i : integer;
     PropList  : PPropList;
 begin
   PropCount:=GetPropList(Instance,PropList);
-  if PropCount>0 then 
+  if PropCount>0 then
     try
       for i := 0 to PropCount-1 do
         if IsStoredProp(Instance,PropList^[i]) then
           WriteProperty(Instance,PropList^[i]);
-    Finally    
+    Finally
       Freemem(PropList);
     end;
   Instance.DefineProperties(Self);
@@ -1099,7 +1099,7 @@ begin
           begin
           { Subcomponents are streamed the same way as persistents }
           if ObjValue.InheritsFrom(TComponent)
-            and ((not (csSubComponent in TComponent(ObjValue).ComponentStyle)) 
+            and ((not (csSubComponent in TComponent(ObjValue).ComponentStyle))
                  or ((TComponent(ObjValue).Owner<>Instance) and (TComponent(ObjValue).Owner<>Nil))) then
             begin
             Component := TComponent(ObjValue);
@@ -1125,7 +1125,7 @@ begin
                 Name:=C.Name + Name;
                 C:= C.Owner;
                 end;
-              if (C=nil) and (Component.Owner=nil) then 
+              if (C=nil) and (Component.Owner=nil) then
                 if (Name<>'') then              //foreign root
                   Name:=Name+'.Owner';
               if Length(Name) > 0 then

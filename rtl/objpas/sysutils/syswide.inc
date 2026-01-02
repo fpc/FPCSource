@@ -40,14 +40,14 @@ function Trim(const S: widestring): widestring;
 	begin
 	  Result := Trim(S, TTrimMode.Both);
 	end;
-	
+
 
 {   TrimLeft returns a copy of S with all blank characters on the left stripped off  }
 function TrimLeft(const S: widestring): widestring;
 	begin
 	  Result := Trim(S, TTrimMode.Left);
 	end;
-	
+
 
 {   TrimRight returns a copy of S with all blank characters on the right stripped off  }
 function TrimRight(const S: widestring): widestring;
@@ -84,13 +84,13 @@ function WideCompareText(const s1, s2 : WideString) : PtrInt;{$ifdef SYSUTILSINL
   begin
     result:=widestringmanager.CompareWideStringProc(s1,s2,[coIgnoreCase]);
   end;
-  
-  
+
+
 function WideSameText(const s1, s2 : WideString) : Boolean;{$ifdef SYSUTILSINLINE}inline;{$endif}
   begin
     result:=widestringmanager.CompareWideStringProc(s1,s2,[coIgnoreCase])=0;
   end;
-  
+
 
 { we've no templates, but with includes we can simulate this :) }
 {$macro on}
@@ -117,7 +117,7 @@ end;
 Function WideFormatBuf (Var Buffer; BufLen : Cardinal;
                      Const Fmt; fmtLen : Cardinal;
                      Const Args : Array of const; Const FormatSettings: TFormatSettings) : Cardinal;
-Var 
+Var
   S,F : WideString;
 begin
   Setlength(F,fmtlen);

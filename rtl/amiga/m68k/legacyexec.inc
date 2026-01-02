@@ -65,17 +65,17 @@ var
 begin
   CreateMsgPort:=nil;
   sigbit := AllocSignal(-1);
-  if sigbit = -1 then 
+  if sigbit = -1 then
     exit;
 
   msgPort := execAllocMem(sizeof(TMsgPort),MEMF_CLEAR);
-  if not assigned(msgPort) then 
+  if not assigned(msgPort) then
     begin
       FreeSignal(sigbit);
       exit;
     end;
 
-  with msgPort^ do 
+  with msgPort^ do
     begin
       mp_Node.ln_Name := nil;
       mp_Node.ln_Pri := 0;
@@ -123,7 +123,7 @@ end;
 procedure DeleteIORequest(IOReq: PIORequest); public name '_fpc_amiga_deleteiorequest';
 begin
   if assigned(IOReq) then
-    with IOReq^ do 
+    with IOReq^ do
       begin
         io_Message.mn_Node.ln_Type := $FF;
         io_Message.mn_ReplyPort := PMsgPort(PtrUInt(-1));

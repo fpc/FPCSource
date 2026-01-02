@@ -219,7 +219,7 @@ type
 	u_quad_t = UInt64;	{ quads }
 	quad_t = SInt64;
 	qaddr_t = ^quad_t;
-	
+
 	caddr_t = Ptr;	{ core address }
 	daddr_t = SInt32;	{ disk address }
 	dev_t = UInt32;		{ device number }
@@ -262,7 +262,7 @@ type
 	  msgh_reserved: mach_msg_size_t;
 	  msgh_id: mach_msg_id_t;
   end;
-	  
+
 
 	type
 		sockaddr = packed record

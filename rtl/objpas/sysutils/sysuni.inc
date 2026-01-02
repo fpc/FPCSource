@@ -35,14 +35,14 @@ function Trim(const S: unicodestring): unicodestring;
   begin
     result := Trim(S, TTrimMode.Both);
   end;
-	
+
 
 { TrimLeft returns a copy of S with all blank characters on the left stripped off  }
 function TrimLeft(const S: unicodestring): unicodestring;
   begin
     Result := Trim(S, TTrimMode.Left);
   end;
-	
+
 
 { TrimRight returns a copy of S with all blank characters on the right stripped off  }
 function TrimRight(const S: unicodestring): unicodestring;
@@ -123,13 +123,13 @@ function UnicodeCompareText(const s1, s2 : UnicodeString) : PtrInt;{$ifdef SYSUT
   begin
     result:=widestringmanager.CompareUnicodeStringProc(s1,s2,[coIgnoreCase]);
   end;
-  
-  
+
+
 function UnicodeSameText(const s1, s2 : UnicodeString) : Boolean;{$ifdef SYSUTILSINLINE}inline;{$endif}
   begin
     result:=widestringmanager.CompareUnicodeStringProc(s1,s2,[coIgnoreCase])=0;
   end;
-  
+
 
 { we've no templates, but with includes we can simulate this :) }
 {$macro on}
@@ -168,7 +168,7 @@ end;
 Function UnicodeFormatBuf (Var Buffer; BufLen : Cardinal;
                      Const Fmt ; fmtLen : Cardinal;
                      Const Args : Array of const; Const FormatSettings: TFormatSettings) : Cardinal;
-Var 
+Var
   S,F : UnicodeString;
 
 begin

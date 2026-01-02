@@ -1374,7 +1374,7 @@
     TWMQueryUIState  = TWMNoParams;
 
     TWMPaste         = TWMNoParams;
-    TWMCut 	     = TWMNoParams;	
+    TWMCut 	     = TWMNoParams;
     TWMCopy	     = TWMNoParams;
 
     TWMUIState = record

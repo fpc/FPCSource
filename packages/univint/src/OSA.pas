@@ -1,17 +1,17 @@
 {
      File:       OpenScripting/OSA.h
- 
+
      Contains:   Open Scripting Architecture Client Interfaces.
- 
+
      Version:    OSA-148~28
- 
+
      Copyright:  © 1992-2008 by Apple Inc., all rights reserved
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 
 {  Pascal Translation Updated: Gorazd Krosl <gorazd_1957@yahoo.ca>, October 2009 }
@@ -250,7 +250,7 @@ const
 	kOSAFileType = FourCharCode('osas');
 
 {
-        Suite and event code of the RecordedText event. 
+        Suite and event code of the RecordedText event.
         (See OSAStartRecording, below.)
     }
 { 0x61736372 }
@@ -287,7 +287,7 @@ const
 	kOSAScriptBestType = FourCharCode('best');
 
 {
-        This selector is used to determine whether a script has source 
+        This selector is used to determine whether a script has source
         associated with it that when given to OSAGetSource, the call will not
         fail.  The selector returns a boolean.
     }
@@ -332,7 +332,7 @@ type
 
 {
  *  NewOSACreateAppleEventUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -343,7 +343,7 @@ function NewOSACreateAppleEventUPP( userRoutine: OSACreateAppleEventProcPtr ): O
 
 {
  *  NewOSASendUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -354,7 +354,7 @@ function NewOSASendUPP( userRoutine: OSASendProcPtr ): OSASendUPP; external name
 
 {
  *  DisposeOSACreateAppleEventUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -365,7 +365,7 @@ procedure DisposeOSACreateAppleEventUPP( userUPP: OSACreateAppleEventUPP ); exte
 
 {
  *  DisposeOSASendUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -376,7 +376,7 @@ procedure DisposeOSASendUPP( userUPP: OSASendUPP ); external name '_DisposeOSASe
 
 {
  *  InvokeOSACreateAppleEventUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -387,7 +387,7 @@ function InvokeOSACreateAppleEventUPP( theAEEventClass: AEEventClass; theAEEvent
 
 {
  *  InvokeOSASendUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -403,9 +403,9 @@ function InvokeOSASendUPP( const (*var*) theAppleEvent: AppleEvent; var reply: A
     The OSA Interface is broken down into a required interface, and several
     optional interfaces to support additional functionality.  A given scripting
     component may choose to support only some of the optional interfaces in
-    addition to the basic interface.  The OSA Component Flags may be used to 
+    addition to the basic interface.  The OSA Component Flags may be used to
     query the Component Manager to find a scripting component with a particular
-    capability, or determine if a particular scripting component supports a 
+    capability, or determine if a particular scripting component supports a
     particular capability.
 *************************************************************************}
 { OSA Component Flags: }
@@ -543,7 +543,7 @@ const
         mode flag sent or not. NOTE: This flag is exactly the opposite sense of
         the AppleEvent flag kAEDontRecord.  This is to provide a more convenient
         default, i.e. not supplying any mode (kOSAModeNull) means to send events
-        with kAEDontRecord.  Supplying the kOSAModeDoRecord mode flag will 
+        with kAEDontRecord.  Supplying the kOSAModeDoRecord mode flag will
         cause AESend to be called without kAEDontRecord.
     }
 const
@@ -639,7 +639,7 @@ const
 
 {
  *  OSALoad()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -651,7 +651,7 @@ function OSALoad( scriptingComponent: ComponentInstance; const (*var*) scriptDat
 
 {
         OSAComponentFunctionInline(kOSASelectLoad, 12);
-    
+
         Errors:
             badComponentInstance        invalid scripting component instance
             errOSASystemError
@@ -659,13 +659,13 @@ function OSALoad( scriptingComponent: ComponentInstance; const (*var*) scriptDat
             errOSACorruptData:          data seems to be corrupt
             errOSADataFormatObsolete    script data format is no longer supported
             errOSADataFormatTooNew      script data format is from a newer version
-        
+
         ModeFlags:
             kOSAModePreventGetSource
     }
 {
  *  OSAStore()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -677,13 +677,13 @@ function OSAStore( scriptingComponent: ComponentInstance; scriptID: OSAID; desir
 
 {
         OSAComponentFunctionInline(kOSASelectStore, 16);
-    
+
         Errors:
             badComponentInstance    invalid scripting component instance
             errOSASystemError
             errOSAInvalidID
             errOSABadStorageType:   desiredType not for this scripting component
-        
+
         ModeFlags:
             kOSAModePreventGetSource
             kOSAModeDontStoreParent
@@ -691,7 +691,7 @@ function OSAStore( scriptingComponent: ComponentInstance; scriptID: OSAID; desir
 { Executing Scripts: }
 {
  *  OSAExecute()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -707,17 +707,17 @@ function OSAExecute( scriptingComponent: ComponentInstance; compiledScriptID: OS
         with which global variables in the script are resolved.  The constant
         kOSANullScript may be used for the contextID if the application wishes
         to not deal with context directly (a default one is associated with each
-        scripting component instance).  The resultingScriptValueID is the 
+        scripting component instance).  The resultingScriptValueID is the
         result of evaluation, and contains a value which may be displayed using
         the OSAGetSource call.  The modeFlags convey scripting component
         specific information.
-    
+
         Errors:
             badComponentInstance    invalid scripting component instance
             errOSASystemError
             errOSAInvalidID
             errOSAScriptError:      the executing script got an error
-    
+
         ModeFlags:
             kOSAModeNeverInteract
             kOSAModeCanInteract
@@ -729,7 +729,7 @@ function OSAExecute( scriptingComponent: ComponentInstance; compiledScriptID: OS
 { Displaying results: }
 {
  *  OSADisplay()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -747,15 +747,15 @@ function OSADisplay( scriptingComponent: ComponentInstance; scriptValueID: OSAID
         resulting text. This call differs from OSAGetSource in that (1) it
         always produces at least typeChar, (2) is only works on script values,
         (3) it may display it's output in non-compilable form (e.g. without
-        string quotes, elipses inserted in long and/or circular lists, etc.) and
+        string quotes, ellipsis inserted in long and/or circular lists, etc.) and
         (4) it is required by the basic scripting interface.
-    
+
         Errors:
             badComponentInstance    invalid scripting component instance
             errOSASystemError
             errOSAInvalidID
             errAECoercionFail:      desiredType not supported by scripting component
-    
+
         ModeFlags:
             kOSAModeDisplayForHumans
     }
@@ -766,7 +766,7 @@ function OSADisplay( scriptingComponent: ComponentInstance; scriptValueID: OSAID
 }
 {
  *  OSACopyDisplayString()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -779,7 +779,7 @@ function OSACopyDisplayString( scriptingComponent: ComponentInstance; scriptID: 
 { Getting Error Information: }
 {
  *  OSAScriptError()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -796,7 +796,7 @@ function OSAScriptError( scriptingComponent: ComponentInstance; selector: OSType
         the type of information desired about the error (various selectors are
         listed below).  The desiredType indicates the data type of the result
         desired for that selector.
-    
+
         Errors:
             badComponentInstance    invalid scripting component instance
             errOSASystemError
@@ -808,7 +808,7 @@ function OSAScriptError( scriptingComponent: ComponentInstance; selector: OSType
         This selector is used to determine the error number of a script error.
         These error numbers may be either system error numbers, or error numbers
         that are scripting component specific.
-        Required desiredTypes:  
+        Required desiredTypes:
             typeSInt32
     }
 const
@@ -852,7 +852,7 @@ const
 	kOSAErrorApp = FourCharCode('erap');
 
 {
-        This selector is used to determine any partial result returned by an 
+        This selector is used to determine any partial result returned by an
         operation. If an AESend call failed, but a partial result was returned,
         then the partial result may be returned as an AEDesc.
         Required desiredTypes:
@@ -864,7 +864,7 @@ const
 
 {
         This selector is used to determine any object which caused the error
-        that may have been indicated by an application.  The result is an 
+        that may have been indicated by an application.  The result is an
         AEDesc.
         Required desiredTypes:
             typeBest                    AEDesc of any offending object
@@ -874,7 +874,7 @@ const
 	kOSAErrorOffendingObject = FourCharCode('erob');
 
 {
-        This selector is used to determine the type expected by a coercion 
+        This selector is used to determine the type expected by a coercion
         operation if a type error occurred.
     }
 {  0x65727274   }
@@ -882,7 +882,7 @@ const
 	kOSAErrorExpectedType = FourCharCode('errt');
 
 {
-        This selector is used to determine the source text range (start and 
+        This selector is used to determine the source text range (start and
         end positions) of where the error occurred.
         Required desiredTypes:
             typeOSAErrorRange
@@ -912,7 +912,7 @@ const
 { Disposing Script IDs: }
 {
  *  OSADispose()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -925,7 +925,7 @@ function OSADispose( scriptingComponent: ComponentInstance; scriptID: OSAID ): O
 {
         OSAComponentFunctionInline(kOSASelectDispose, 4);
         Disposes a script or context.
-    
+
         Errors:
             badComponentInstance    invalid scripting component instance
             errOSASystemError
@@ -934,7 +934,7 @@ function OSADispose( scriptingComponent: ComponentInstance; scriptID: OSAID ): O
 { Getting and Setting Script Information: }
 {
  *  OSASetScriptInfo()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -946,7 +946,7 @@ function OSASetScriptInfo( scriptingComponent: ComponentInstance; scriptID: OSAI
 
 {
         OSAComponentFunctionInline(kOSASelectSetScriptInfo, 12);
-    
+
         Errors:
             badComponentInstance    invalid scripting component instance
             errOSASystemError
@@ -956,7 +956,7 @@ function OSASetScriptInfo( scriptingComponent: ComponentInstance; scriptID: OSAI
     }
 {
  *  OSAGetScriptInfo()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -968,7 +968,7 @@ function OSAGetScriptInfo( scriptingComponent: ComponentInstance; scriptID: OSAI
 
 {
         OSAComponentFunctionInline(kOSASelectGetScriptInfo, 12);
-    
+
         Errors:
             badComponentInstance    invalid scripting component instance
             errOSASystemError
@@ -987,7 +987,7 @@ type
 
 {
  *  NewOSAActiveUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -998,7 +998,7 @@ function NewOSAActiveUPP( userRoutine: OSAActiveProcPtr ): OSAActiveUPP; externa
 
 {
  *  DisposeOSAActiveUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1009,7 +1009,7 @@ procedure DisposeOSAActiveUPP( userUPP: OSAActiveUPP ); external name '_DisposeO
 
 {
  *  InvokeOSAActiveUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1021,7 +1021,7 @@ function InvokeOSAActiveUPP( refCon: SRefCon; userUPP: OSAActiveUPP ): OSErr; ex
 
 {
  *  OSASetActiveProc()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1034,14 +1034,14 @@ function OSASetActiveProc( scriptingComponent: ComponentInstance; activeProc: OS
 {
         OSAComponentFunctionInline(kOSASelectSetActiveProc, 8);
         If activeProc is nil, the default activeProc is used.
-    
+
         Errors:
             badComponentInstance    invalid scripting component instance
             errOSASystemError
     }
 {
  *  OSAGetActiveProc()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1053,7 +1053,7 @@ function OSAGetActiveProc( scriptingComponent: ComponentInstance; var activeProc
 
 {
         OSAComponentFunctionInline(kOSASelectGetActiveProc, 8);
-    
+
         Errors:
             badComponentInstance    invalid scripting component instance
             errOSASystemError
@@ -1061,12 +1061,12 @@ function OSAGetActiveProc( scriptingComponent: ComponentInstance; var activeProc
 {*************************************************************************
     OSA Optional Compiling Interface
 **************************************************************************
-    Scripting components that support the Compiling interface have the 
+    Scripting components that support the Compiling interface have the
     kOSASupportsCompiling bit set in it's ComponentDescription.
 *************************************************************************}
 {
  *  OSAScriptingComponentName()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1083,14 +1083,14 @@ function OSAScriptingComponentName( scriptingComponent: ComponentInstance; var r
         The generic scripting component returns the name of the default
         scripting component.  This name should be sufficient to convey to the
         user the kind of script (syntax) he is expected to write.
-    
+
         Errors:
             badComponentInstance    invalid scripting component instance
             errOSASystemError
     }
 {
  *  OSACompile()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1108,7 +1108,7 @@ function OSACompile( scriptingComponent: ComponentInstance; const (*var*) source
         (result parameter) is made to refer to the newly compiled script,
         unless it was originally kOSANullScript.  In this case a new script
         ID is created and used.
-    
+
         Errors:
             badComponentInstance    invalid scripting component instance
             errOSASystemError
@@ -1116,7 +1116,7 @@ function OSACompile( scriptingComponent: ComponentInstance; const (*var*) source
             errOSAScriptError:      sourceData was a bad script (syntax error)
             errOSAInvalidID:        previousAndResultingCompiledScriptID was not
                                     valid on input
-    
+
         ModeFlags:
             kOSAModePreventGetSource
             kOSAModeCompileIntoContext
@@ -1130,7 +1130,7 @@ function OSACompile( scriptingComponent: ComponentInstance; const (*var*) source
     }
 {
  *  OSACopyID()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1144,8 +1144,8 @@ function OSACopyID( scriptingComponent: ComponentInstance; fromID: OSAID; var to
         OSAComponentFunctionInline(kOSASelectCopyID, 8);
         If toID is a reference to kOSANullScript then it is updated to have a
         new scriptID value.  This call can be used to perform undo or revert
-        operations on scripts. 
-    
+        operations on scripts.
+
         Errors:
             badComponentInstance    invalid scripting component instance
             errOSASystemError
@@ -1153,7 +1153,7 @@ function OSACopyID( scriptingComponent: ComponentInstance; fromID: OSAID; var to
     }
 {
  *  OSACopyScript()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.6 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -1166,8 +1166,8 @@ function OSACopyScript( scriptingComponent: ComponentInstance; fromID: OSAID; va
 {
         OSAComponentFunctionInline(kOSASelectCopyScript, 8);
         Creates a duplicate copy of the script with the given OSAID and returns
-        a new OSAID for it.  Can be used by script editors or debuggers. 
-    
+        a new OSAID for it.  Can be used by script editors or debuggers.
+
         Errors:
             badComponentInstance    invalid scripting component instance
             errOSASystemError
@@ -1176,12 +1176,12 @@ function OSACopyScript( scriptingComponent: ComponentInstance; fromID: OSAID; va
 {*************************************************************************
     OSA Optional GetSource Interface
 **************************************************************************
-    Scripting components that support the GetSource interface have the 
+    Scripting components that support the GetSource interface have the
     kOSASupportsGetSource bit set in their ComponentDescription.
 *************************************************************************}
 {
  *  OSAGetSource()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1209,7 +1209,7 @@ function OSAGetSource( scriptingComponent: ComponentInstance; scriptID: OSAID; d
 }
 {
  *  OSACopySourceString()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -1222,12 +1222,12 @@ function OSACopySourceString( scriptingComponent: ComponentInstance; scriptID: O
 {*************************************************************************
     OSA Optional AECoercion Interface
 **************************************************************************
-    Scripting components that support the AECoercion interface have the 
+    Scripting components that support the AECoercion interface have the
     kOSASupportsAECoercion bit set in their ComponentDescription.
 *************************************************************************}
 {
  *  OSACoerceFromDesc()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1243,11 +1243,11 @@ function OSACoerceFromDesc( scriptingComponent: ComponentInstance; const (*var*)
         If the scriptData is an AppleEvent, then the resultingScriptID is a
         compiled script ID (mode flags for OSACompile may be used in this case).
         Other scriptData descriptors create script value IDs.
-    
+
         Errors:
             badComponentInstance    invalid scripting component instance
             errOSASystemError
-    
+
         ModeFlags:
             kOSAModePreventGetSource
             kOSAModeCompileIntoContext
@@ -1260,7 +1260,7 @@ function OSACoerceFromDesc( scriptingComponent: ComponentInstance; const (*var*)
     }
 {
  *  OSACoerceToDesc()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1273,9 +1273,9 @@ function OSACoerceToDesc( scriptingComponent: ComponentInstance; scriptID: OSAID
 {
         OSAComponentFunctionInline(kOSASelectCoerceToDesc, 16);
         This routine causes a script value to be coerced into any desired form.
-        If the scriptID denotes a compiled script, then it may be coerced to 
+        If the scriptID denotes a compiled script, then it may be coerced to
         typeAppleEvent.
-    
+
         Errors:
             badComponentInstance    invalid scripting component instance
             errOSASystemError
@@ -1284,7 +1284,7 @@ function OSACoerceToDesc( scriptingComponent: ComponentInstance; scriptID: OSAID
 {*************************************************************************
     OSA Optional AESending Interface
 **************************************************************************
-    Scripting components that support the AESending interface have the 
+    Scripting components that support the AESending interface have the
     kOSASupportsAESending bit set in their ComponentDescription.
 *************************************************************************}
 {
@@ -1293,7 +1293,7 @@ function OSACoerceToDesc( scriptingComponent: ComponentInstance; scriptID: OSAID
 }
 {
  *  OSASetSendProc()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1306,14 +1306,14 @@ function OSASetSendProc( scriptingComponent: ComponentInstance; sendProc: OSASen
 {
         OSAComponentFunctionInline(kOSASelectSetSendProc, 8);
         If sendProc is nil, the default sendProc is used.
-    
+
         Errors:
             badComponentInstance    invalid scripting component instance
             errOSASystemError
     }
 {
  *  OSAGetSendProc()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1325,14 +1325,14 @@ function OSAGetSendProc( scriptingComponent: ComponentInstance; var sendProc: OS
 
 {
         OSAComponentFunctionInline(kOSASelectGetSendProc, 8);
-    
+
         Errors:
             badComponentInstance    invalid scripting component instance
             errOSASystemError
     }
 {
  *  OSASetCreateProc()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1345,14 +1345,14 @@ function OSASetCreateProc( scriptingComponent: ComponentInstance; createProc: OS
 {
         OSAComponentFunctionInline(kOSASelectSetCreateProc, 8);
         If createProc is nil, the default createProc is used.
-    
+
         Errors:
             badComponentInstance    invalid scripting component instance
             errOSASystemError
     }
 {
  *  OSAGetCreateProc()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1364,14 +1364,14 @@ function OSAGetCreateProc( scriptingComponent: ComponentInstance; var createProc
 
 {
         OSAComponentFunctionInline(kOSASelectGetCreateProc, 8);
-    
+
         Errors:
             badComponentInstance    invalid scripting component instance
             errOSASystemError
     }
 {
  *  OSASetDefaultTarget()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1386,9 +1386,9 @@ function OSASetDefaultTarget( scriptingComponent: ComponentInstance; const (*var
         This routine sets the default target application for AE sending.
         It also establishes the default target from which terminologies come.
         It is effectively like having an AppleScript "tell" statement around
-        the entire program.  If this routine is not called, or if the target 
+        the entire program.  If this routine is not called, or if the target
         is a null AEDesc, then the current application is the default target.
-    
+
         Errors:
             badComponentInstance    invalid scripting component instance
             errOSASystemError
@@ -1396,12 +1396,12 @@ function OSASetDefaultTarget( scriptingComponent: ComponentInstance; const (*var
 {*************************************************************************
     OSA Optional Recording Interface
 **************************************************************************
-    Scripting components that support the Recording interface have the 
+    Scripting components that support the Recording interface have the
     kOSASupportsRecording bit set in their ComponentDescription.
 *************************************************************************}
 {
  *  OSAStartRecording()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1416,9 +1416,9 @@ function OSAStartRecording( scriptingComponent: ComponentInstance; var compiledS
         Starts recording.  If compiledScriptToModifyID is kOSANullScript, a
         new script ID is created and returned.  If the current application has
         a handler for the kOSARecordedText event, then kOSARecordedText events
-        are sent to the application containing the text of each AppleEvent 
+        are sent to the application containing the text of each AppleEvent
         recorded.
-    
+
         Errors:
             badComponentInstance    invalid scripting component instance
             errOSASystemError
@@ -1427,7 +1427,7 @@ function OSAStartRecording( scriptingComponent: ComponentInstance; var compiledS
     }
 {
  *  OSAStopRecording()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1441,7 +1441,7 @@ function OSAStopRecording( scriptingComponent: ComponentInstance; compiledScript
         OSAComponentFunctionInline(kOSASelectStopRecording, 4);
         If compiledScriptID is not being recorded into or recording is not
         currently on, no error is returned.
-    
+
         Errors:
             badComponentInstance    invalid scripting component instance
             errOSASystemError
@@ -1450,12 +1450,12 @@ function OSAStopRecording( scriptingComponent: ComponentInstance; compiledScript
 {*************************************************************************
     OSA Optional Convenience Interface
 **************************************************************************
-    Scripting components that support the Convenience interface have the 
+    Scripting components that support the Convenience interface have the
     kOSASupportsConvenience bit set in their ComponentDescription.
 *************************************************************************}
 {
  *  OSALoadExecute()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1470,7 +1470,7 @@ function OSALoadExecute( scriptingComponent: ComponentInstance; const (*var*) sc
         This routine is effectively equivalent to calling OSALoad followed by
         OSAExecute.  After execution, the compiled source is disposed.  Only the
         resulting value ID is retained.
-    
+
         Errors:
             badComponentInstance        invalid scripting component instance
             errOSASystemError
@@ -1480,7 +1480,7 @@ function OSALoadExecute( scriptingComponent: ComponentInstance; const (*var*) sc
             errOSADataFormatTooNew      script data format is from a newer version
             errOSAInvalidID
             errOSAScriptError:          the executing script got an error
-    
+
         ModeFlags:
             kOSAModeNeverInteract
             kOSAModeCanInteract
@@ -1491,7 +1491,7 @@ function OSALoadExecute( scriptingComponent: ComponentInstance; const (*var*) sc
     }
 {
  *  OSACompileExecute()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1506,7 +1506,7 @@ function OSACompileExecute( scriptingComponent: ComponentInstance; const (*var*)
         This routine is effectively equivalent to calling OSACompile followed by
         OSAExecute.  After execution, the compiled source is disposed.  Only the
         resulting value ID is retained.
-    
+
         Errors:
             badComponentInstance    invalid scripting component instance
             errOSASystemError
@@ -1515,7 +1515,7 @@ function OSACompileExecute( scriptingComponent: ComponentInstance; const (*var*)
             errOSAInvalidID:        previousAndResultingCompiledScriptID was not
                                     valid on input
             errOSAScriptError:      the executing script got an error
-    
+
         ModeFlags:
             kOSAModeNeverInteract
             kOSAModeCanInteract
@@ -1526,7 +1526,7 @@ function OSACompileExecute( scriptingComponent: ComponentInstance; const (*var*)
     }
 {
  *  OSADoScript()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1541,21 +1541,21 @@ function OSADoScript( scriptingComponent: ComponentInstance; const (*var*) sourc
         This routine is effectively equivalent to calling OSACompile followed by
         OSAExecute and then OSADisplay.  After execution, the compiled source
         and the resulting value are is disposed.  Only the resultingText
-        descriptor is retained.  If a script error occur during processing, the 
+        descriptor is retained.  If a script error occur during processing, the
         resultingText gets the error message of the error, and errOSAScriptError
-        is returned.  OSAScriptError may still be used to extract more 
+        is returned.  OSAScriptError may still be used to extract more
         information about the particular error.
-    
+
         Errors:
             badComponentInstance    invalid scripting component instance
             errOSASystemError
-            errAECoercionFail:      sourceData is not compilable or 
+            errAECoercionFail:      sourceData is not compilable or
                                     desiredType not supported by scripting component
             errOSAScriptError:      sourceData was a bad script (syntax error)
             errOSAInvalidID:        previousAndResultingCompiledScriptID was not
                                     valid on input
             errOSAScriptError:      the executing script got an error
-    
+
         ModeFlags:
             kOSAModeNeverInteract
             kOSAModeCanInteract
@@ -1568,7 +1568,7 @@ function OSADoScript( scriptingComponent: ComponentInstance; const (*var*) sourc
 {*************************************************************************
     OSA Optional Dialects Interface
 **************************************************************************
-    Scripting components that support the Dialects interface have the 
+    Scripting components that support the Dialects interface have the
     kOSASupportsDialects bit set in their ComponentDescription.
 *************************************************************************}
 {
@@ -1578,7 +1578,7 @@ function OSADoScript( scriptingComponent: ComponentInstance; const (*var*) sourc
 }
 {
  *  OSASetCurrentDialect()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1590,7 +1590,7 @@ function OSASetCurrentDialect( scriptingComponent: ComponentInstance; dialectCod
 
 {
         OSAComponentFunctionInline(kOSASelectSetCurrentDialect, 2);
-    
+
         Errors:
             badComponentInstance    invalid scripting component instance
             errOSASystemError
@@ -1598,7 +1598,7 @@ function OSASetCurrentDialect( scriptingComponent: ComponentInstance; dialectCod
     }
 {
  *  OSAGetCurrentDialect()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1610,14 +1610,14 @@ function OSAGetCurrentDialect( scriptingComponent: ComponentInstance; var result
 
 {
         OSAComponentFunctionInline(kOSASelectGetCurrentDialect, 4);
-    
+
         Errors:
             badComponentInstance    invalid scripting component instance
             errOSASystemError
     }
 {
  *  OSAAvailableDialects()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1632,16 +1632,16 @@ function OSAAvailableDialects( scriptingComponent: ComponentInstance; var result
         This call return an AEList containing information about each of the
         currently available dialects of a scripting component.  Each item
         is an AERecord of typeOSADialectInfo that contains at least the fields
-        keyOSADialectName, keyOSADialectCode, KeyOSADialectLangCode and 
+        keyOSADialectName, keyOSADialectCode, KeyOSADialectLangCode and
         keyOSADialectScriptCode.
-    
+
         Errors:
             badComponentInstance    invalid scripting component instance
             errOSASystemError
     }
 {
  *  OSAGetDialectInfo()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1654,11 +1654,11 @@ function OSAGetDialectInfo( scriptingComponent: ComponentInstance; dialectCode: 
 {
         OSAComponentFunctionInline(kOSASelectGetDialectInfo, 10);
         This call gives information about the specified dialect of a scripting
-        component. It returns an AEDesc whose type depends on the selector 
+        component. It returns an AEDesc whose type depends on the selector
         specified. Available selectors are the same as the field keys for a
-        dialect info record. The type of AEDesc returned is the same as the 
+        dialect info record. The type of AEDesc returned is the same as the
         type of the field that has same key as the selector.
-    
+
         Errors:
             badComponentInstance    invalid scripting component instance
             errOSASystemError
@@ -1667,7 +1667,7 @@ function OSAGetDialectInfo( scriptingComponent: ComponentInstance; dialectCode: 
     }
 {
  *  OSAAvailableDialectCodeList()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1684,7 +1684,7 @@ function OSAAvailableDialectCodeList( scriptingComponent: ComponentInstance; var
         This call return an AEList containing dialect code for each of the
         currently available dialects of a scripting component. Each dialect
         code is a short integer of type typeSInt16.
-    
+
         Errors:
             badComponentInstance    invalid scripting component instance
             errOSASystemError
@@ -1702,12 +1702,12 @@ function OSAAvailableDialectCodeList( scriptingComponent: ComponentInstance; var
 {*************************************************************************
     OSA Optional Event Handling Interface
 **************************************************************************
-    Scripting components that support the Event Handling interface have the 
+    Scripting components that support the Event Handling interface have the
     kOSASupportsEventHandling bit set in their ComponentDescription.
 *************************************************************************}
 {
  *  OSASetResumeDispatchProc()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1726,7 +1726,7 @@ function OSASetResumeDispatchProc( scriptingComponent: ComponentInstance; resume
         may also be passed to this routine indicating that the handler registered
         in the application with AEInstallEventHandler should be used, or no
         dispatch should occur, respectively.
-    
+
         Errors:
             badComponentInstance    invalid scripting component instance
             errOSASystemError
@@ -1735,10 +1735,10 @@ const
 	kOSAUseStandardDispatch = kAEUseStandardDispatch;
 
 {
-        Special ResumeDispatchProc constant which may be passed to 
+        Special ResumeDispatchProc constant which may be passed to
         OSASetResumeDispatchProc indicating that the handler registered
         in the application with AEInstallEventHandler should be used.
-        
+
         NOTE:   Had to remove the cast (AEEventHandlerUPP).  The C compiler
                 doesn't allow pointer types to be assigned to an enum.  All
                 constants must be assigned as enums to translate properly to
@@ -1748,9 +1748,9 @@ const
 	kOSANoDispatch = kAENoDispatch;
 
 {
-        Special ResumeDispatchProc constant which may be passed to 
+        Special ResumeDispatchProc constant which may be passed to
         OSASetResumeDispatchProc indicating that no dispatch should occur.
-        
+
         NOTE:   Had to remove the cast (AEEventHandlerUPP).  The C compiler
                 doesn't allow pointer types to be assigned to an enum.  All
                 constants must be assigned as enums to translate properly to
@@ -1764,13 +1764,13 @@ const
         only when kOSAUseStandardDispatch is used as the ResumeDispatchProc.
         This causes the standard dispatch to be performed, except the phac
         handler is not called.  This is useful during tinkerability, when
-        the phac handler is used to lookup a context associated with an event's 
+        the phac handler is used to lookup a context associated with an event's
         direct parameter, and call OSAExecuteEvent or OSADoEvent.  Failure to
         bypass the phac handler would result in an infinite loop.
     }
 {
  *  OSAGetResumeDispatchProc()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1784,14 +1784,14 @@ function OSAGetResumeDispatchProc( scriptingComponent: ComponentInstance; var re
         OSAComponentFunctionInline(kOSASelectGetResumeDispatchProc, 8);
         Returns the registered ResumeDispatchProc.  If no ResumeDispatchProc has
         been registered, then kOSAUseStandardDispatch (the default) is returned.
-    
+
         Errors:
             badComponentInstance    invalid scripting component instance
             errOSASystemError
     }
 {
  *  OSAExecuteEvent()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1808,17 +1808,17 @@ function OSAExecuteEvent( scriptingComponent: ComponentInstance; const (*var*) t
         defines any event handlers for that event, they are used to process
         the event.  If no event handler can be found in the context
         errAEEventNotHandled is returned.  If an event handler is found and
-        the hander "continues" control onward, the ResumeDispatchProc
+        the handler "continues" control onward, the ResumeDispatchProc
         (registered with OSASetResumeDispatchProc, above) is called given the
         AppleEvent.  The result is returned as a scriptValueID.
-    
+
         Errors:
             badComponentInstance    invalid scripting component instance
             errOSASystemError
             errOSAInvalidID
             errOSAScriptError:      the executing script got an error
             errAEEventNotHandled:   no handler for event in contextID
-    
+
         ModeFlags:
             kOSAModeNeverInteract
             kOSAModeCanInteract
@@ -1829,7 +1829,7 @@ function OSAExecuteEvent( scriptingComponent: ComponentInstance; const (*var*) t
     }
 {
  *  OSADoEvent()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1842,7 +1842,7 @@ function OSADoEvent( scriptingComponent: ComponentInstance; const (*var*) theApp
 {
         OSAComponentFunctionInline(kOSASelectDoEvent, 16);
         This call is similar to OSADoScript except the initial command to
-        execute comes in the form of an AppleEvent, and the result is an 
+        execute comes in the form of an AppleEvent, and the result is an
         AppleEvent reply record.  If the contextID defines any event handlers
         for that event, they are used to process the event.  If no event handler
         can be found in the context errAEEventNotHandled is returned.  If an
@@ -1854,13 +1854,13 @@ function OSADoEvent( scriptingComponent: ComponentInstance; const (*var*) theApp
         then the OSADoEvent call itself returns an error reply (i.e. OSADoEvent
         should never return errOSAScriptError).  Any error result returned by
         the ResumeDispatchProc will be returned by OSADoEvent.
-    
+
         Errors:
             badComponentInstance    invalid scripting component instance
             errOSASystemError
             errOSAInvalidID
             errAEEventNotHandled:   no handler for event in contextID
-    
+
         ModeFlags:
             kOSAModeNeverInteract
             kOSAModeCanInteract
@@ -1871,7 +1871,7 @@ function OSADoEvent( scriptingComponent: ComponentInstance; const (*var*) theApp
     }
 {
  *  OSAMakeContext()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1883,11 +1883,11 @@ function OSAMakeContext( scriptingComponent: ComponentInstance; const (*var*) co
 
 {
         OSAComponentFunctionInline(kOSASelectMakeContext, 12);
-        Makes a new empty context which may be passed to OSAExecute or 
+        Makes a new empty context which may be passed to OSAExecute or
         OSAExecuteEvent.  If contextName is typeNull, an unnamed context is
         created. If parentContext is kOSANullScript then the resulting context
         does not inherit bindings from any other context.
-    
+
         Errors:
             badComponentInstance    invalid scripting component instance
             errOSASystemError
@@ -1901,7 +1901,7 @@ function OSAMakeContext( scriptingComponent: ComponentInstance; const (*var*) co
 *************************************************************************}
 {
  *  OSAGetScriptDataFromURL()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.6 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -1918,22 +1918,22 @@ function OSAGetScriptDataFromURL( scriptURL: CFURLRef; storable: BooleanPtr { ca
         is the source text. If "storable" is non-NULL, it will be set to
         indicate whether a script can be stored into the script file using
         OSAStoreFile().
-     
+
         You may use OSALoadScriptData() with the resulting descriptor to
         load the script into a component instance. Doing this in two steps
         affords the opportunity to examine the script data with
         OSAGetStorageType() and select a component instance.
-    
+
         Errors:
             errOSASystemError
             File system errors.
-            
+
         ModeFlags:
             No mode flags are supported at this time.
     }
 {
  *  OSALoadScriptData()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.6 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -1948,16 +1948,16 @@ function OSALoadScriptData( scriptingComponent: ComponentInstance; const (*var*)
         scripting component. If "scriptData" is source, it will be compiled.
         If "fromURL" is non-NULL, it indicates the file from which the data
         was read.
-    
+
         Errors:
             See OSALoad() and OSACompile().
-            
+
         ModeFlags:
             See OSALoad() and OSACompile().
     }
 {
  *  OSALoadFile()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -1972,16 +1972,16 @@ function OSALoadFile( scriptingComponent: ComponentInstance; const (*var*) scrip
         If "scriptFile" is a text file, the script will be compiled. If
         "storable" is non-NULL, it will be set to indicate whether a
         script can be stored into the script file using OSAStoreFile().
-    
+
         Errors:
             See OSALoad() and OSACompile().
-            
+
         ModeFlags:
             See OSALoad() and OSACompile().
     }
 {
  *  OSAStoreFile()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -1993,16 +1993,16 @@ function OSAStoreFile( scriptingComponent: ComponentInstance; scriptID: OSAID; d
 
 {
         This routine stores a script into the specified file.
-    
+
         Errors:
             See OSAStore().
-        
+
         ModeFlags:
             See OSAStore().
     }
 {
  *  OSALoadExecuteFile()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -2016,16 +2016,16 @@ function OSALoadExecuteFile( scriptingComponent: ComponentInstance; const (*var*
         This routine is effectively equivalent to calling OSALoadFile followed by
         OSAExecute.  After execution, the compiled source is disposed.  Only the
         resulting value ID is retained.
-    
+
         Errors:
             See OSALoadExecute() and OSACompileExecute().
-    
+
         ModeFlags:
             See OSALoadExecute() and OSACompileExecute().
     }
 {
  *  OSADoScriptFile()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -2036,17 +2036,17 @@ function OSADoScriptFile( scriptingComponent: ComponentInstance; const (*var*) s
 
 
 {
-        This routine is effectively equivalent to calling OSALoadFile, followed by 
-        OSAExecute, OSADisplay, and then OSAStoreFile if the script has persistent 
-        properties.  After execution, the compiled source and the resulting value are 
-        disposed.  Only the resultingText descriptor is retained.  If a script error 
-        occurs during processing, the resultingText gets the error message of the error, 
-        and errOSAScriptError is returned.  OSAScriptError may still be used to extract 
+        This routine is effectively equivalent to calling OSALoadFile, followed by
+        OSAExecute, OSADisplay, and then OSAStoreFile if the script has persistent
+        properties.  After execution, the compiled source and the resulting value are
+        disposed.  Only the resultingText descriptor is retained.  If a script error
+        occurs during processing, the resultingText gets the error message of the error,
+        and errOSAScriptError is returned.  OSAScriptError may still be used to extract
         more information about the particular error.
-    
+
         Errors:
             See OSALoad(), OSACompile(), OSAExecute(), OSADisplay(), and OSAStore().
-    
+
         ModeFlags:
             See OSALoad(), OSACompile(), OSAExecute(), and OSADisplay().
     }

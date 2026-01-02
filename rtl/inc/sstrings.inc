@@ -777,7 +777,7 @@ begin
 			  inc(reslen);
 			  inc(tlen);
 			end;
-		end;		
+		end;
     end;
   { preparing result string }
   if reslen<len then

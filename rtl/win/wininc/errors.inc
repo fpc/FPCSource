@@ -740,7 +740,7 @@ const
      ERROR_REC_NON_EXISTENT                       = 4005;
      ERROR_RPL_NOT_ALLOWED                        = 4006;
      {ERROR_NO_BROWSER_SERVERS_FOUND              = 6118; already above }
-                                                  
+
      E_UNEXPECTED                                 = HRESULT($8000FFFF);
      E_NOTIMPL                                    = HRESULT($80004001);
      E_OUTOFMEMORY                                = HRESULT($8007000E);
@@ -780,14 +780,14 @@ const
      CO_E_CLSREG_INCONSISTENT                     = HRESULT($8000401F);
      CO_E_IIDREG_INCONSISTENT                     = HRESULT($80004020);
      CO_E_NOT_SUPPORTED                           = HRESULT($80004021);
-                                                  
+
      CO_E_FIRST                                   = DWORD  ($800401F0);
      CO_E_LAST                                    = DWORD  ($800401FF);
      CO_S_FIRST                                   = DWORD  (   $401F0);
      CO_S_LAST                                    = DWORD  (   $401FF);
      S_OK                                         = HRESULT($00000000);
      S_FALSE                                      = HRESULT($00000001);
-                                                  
+
      CO_E_NOTINITIALIZED                          = HRESULT($800401F0);
      CO_E_ALREADYINITIALIZED                      = HRESULT($800401F1);
      CO_E_CANTDETERMINECLASS                      = HRESULT($800401F2);
@@ -804,7 +804,7 @@ const
      CO_E_OBJNOTCONNECTED                         = HRESULT($800401FD);
      CO_E_APPDIDNTREG                             = HRESULT($800401FE);
      CO_E_RELEASED                                = HRESULT($800401FF);
-                                                  
+
      OLE_E_FIRST                                  = HRESULT($80040000);
      OLE_E_LAST                                   = HRESULT($800400FF);
      OLE_S_FIRST                                  = HRESULT($00040000);
@@ -863,7 +863,7 @@ const
      VIEW_E_LAST                                  = DWORD  ($8004014F);
      VIEW_S_FIRST                                 = DWORD  ($00040140);
      VIEW_S_LAST                                  = DWORD  ($0004014F);
-     VIEW_E_DRAW                                  = HRESULT($80040140);     
+     VIEW_E_DRAW                                  = HRESULT($80040140);
      REGDB_E_FIRST                                = DWORD  ($80040150);
      REGDB_E_LAST                                 = DWORD  ($8004015F);
      REGDB_S_FIRST                                = DWORD  ($00040150);
@@ -1137,7 +1137,7 @@ const
      NTE_BAD_KEYSET_PARAM                         = HRESULT($8009001F);
      NTE_FAIL                                     = HRESULT($80090020);
      NTE_SYS_ERR                                  = HRESULT($80090021);
-     NTE_OP_OK                                    = HRESULT(	    0);      
+     NTE_OP_OK                                    = HRESULT(	    0);
      TRUST_E_PROVIDER_UNKNOWN                     = HRESULT($800B0001);
      TRUST_E_ACTION_UNKNOWN                       = HRESULT($800B0002);
      TRUST_E_SUBJECT_FORM_UNKNOWN                 = HRESULT($800B0003);

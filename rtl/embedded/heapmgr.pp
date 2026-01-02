@@ -20,7 +20,7 @@ Unit heapmgr;
   interface
 
     procedure RegisterHeapBlock(AAddress: pointer; ASize: ptruint);
-    
+
     function GetAlignedMem(Size, Alignment: ptruint): pointer;
 
   implementation

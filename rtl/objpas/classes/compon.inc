@@ -82,7 +82,7 @@ begin
     if op = opInsert then
       comp.FreeNotification(Self)
     else
-      comp.RemoveFreeNotification(Self); 
+      comp.RemoveFreeNotification(Self);
    end;
 end;
 
@@ -116,12 +116,12 @@ begin
   Result:=FDObservers;
 end;
 
-function TComponent.CanObserve(const ID: Integer): Boolean; 
+function TComponent.CanObserve(const ID: Integer): Boolean;
 begin
   Result:=False;
 end;
 
-procedure TComponent.ObserverAdded(const ID: Integer; const Observer: IObserver); 
+procedure TComponent.ObserverAdded(const ID: Integer; const Observer: IObserver);
 begin
   // Do nothing, can be used in descendants
 end;
@@ -312,7 +312,7 @@ end;
 Procedure TComponent.Notification(AComponent: TComponent;
   Operation: TOperation);
 
-Var 
+Var
   C : Longint;
 
 begin
@@ -327,7 +327,7 @@ begin
     Dec(C);
     if C>=FComponents.Count then
       C:=FComponents.Count-1;
-    end;  
+    end;
 end;
 
 
@@ -768,7 +768,7 @@ end;
 { Delta stream support }
 
 
-procedure TComponent.GetDeltaStreams(aProc: TGetStreamProc); 
+procedure TComponent.GetDeltaStreams(aProc: TGetStreamProc);
 
 begin
   // To be implemented by descendants
@@ -783,13 +783,13 @@ procedure TComponent.ReadDeltaState;
 
 var
   Done : boolean;
-  
+
 begin
   if (csDesigning in ComponentState) then
     exit;
   Done:=False;
   if Assigned(FOnGetDeltaStreams) then
-    FOnGetDeltaStreams(Self,@ReadDeltaStream,Done);  
+    FOnGetDeltaStreams(Self,@ReadDeltaStream,Done);
   if not Done then
     GetDeltaStreams(@ReadDeltaStream);
 end;

@@ -1,17 +1,17 @@
 {
      File:       HIToolbox/HIButtonViews.h
- 
+
      Contains:   Definitions of the button views provided by HIToolbox.
- 
+
      Version:    HIToolbox-624~3
- 
+
      Copyright:  © 2006-2008 by Apple Computer, Inc., all rights reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {       Initial Pascal Translation:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {       Pascal Translation Updated:  Gorazd Krosl, <gorazd_1957@yahoo.ca>, October 2009 }
@@ -232,7 +232,7 @@ uses MacTypes,Appearance,CarbonEvents,Controls,IconsCore,Icons,Menus,QuickdrawTy
 
 {
  *  HIButtonViews.h
- *  
+ *
  *  Discussion:
  *    API definitions for the simple button views provided by
  *    HIToolbox: pushbutton, checkbox, radio button and radio group,
@@ -278,28 +278,28 @@ const
 {$ifc not TARGET_CPU_64}
 {
  *  CreatePushButtonControl()
- *  
+ *
  *  Summary:
  *    Creates a push button control.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    window:
  *      The window that should contain the control. May be NULL on 10.3
  *      and later.
- *    
+ *
  *    boundsRect:
  *      The bounds of the control, in local coordinates of the window.
- *    
+ *
  *    title:
  *      The control title. May be NULL.
- *    
+ *
  *    outControl:
  *      On exit, contains the new control.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -311,35 +311,35 @@ function CreatePushButtonControl( window: WindowRef; const (*var*) boundsRect: R
 
 {
  *  CreatePushButtonWithIconControl()
- *  
+ *
  *  Summary:
  *    Creates a push button control containing an icon or other
  *    graphical content.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    window:
  *      The window that should contain the control. May be NULL on 10.3
  *      and later.
- *    
+ *
  *    boundsRect:
  *      The bounds of the control, in local coordinates of the window.
- *    
+ *
  *    title:
  *      The control title. May be NULL.
- *    
+ *
  *    icon:
  *      The control graphic content.
- *    
+ *
  *    iconAlignment:
  *      The alignment of the control graphic content.
- *    
+ *
  *    outControl:
  *      On exit, contains the new control.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -400,7 +400,7 @@ const
 {
  *  Summary:
  *    Tagged data supported by push buttons
- *  
+ *
  *  Discussion:
  *    This new tag is available on Mac OS X 10.4 and later. The
  *    constant is not in the Mac OS X 10.4 and Mac OS X 10.5 headers,
@@ -441,38 +441,38 @@ const
 {$ifc not TARGET_CPU_64}
 {
  *  CreateCheckBoxControl()
- *  
+ *
  *  Summary:
  *    Creates a checkbox control.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    window:
  *      The window that should contain the control. May be NULL on 10.3
  *      and later.
- *    
+ *
  *    boundsRect:
  *      The bounds of the control, in local coordinates of the window.
- *    
+ *
  *    title:
  *      The control title. May be NULL.
- *    
+ *
  *    initialValue:
  *      The initial value of the control. Should be zero (off), one
  *      (on), or two (mixed). The control is automatically given a
  *      minimum value of zero and a maximum value of two.
- *    
+ *
  *    autoToggle:
  *      Whether this control should have auto-toggle behavior. If true,
  *      the control will automatically toggle between on and off states
  *      when clicked.
- *    
+ *
  *    outControl:
  *      On exit, contains the new control.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -523,30 +523,30 @@ const
 {$ifc not TARGET_CPU_64}
 {
  *  CreateRadioButtonControl()
- *  
+ *
  *  Summary:
  *    Creates a radio button control.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    window:
  *      The window that should contain the control. May be NULL on 10.3
  *      and later.
- *    
+ *
  *    boundsRect:
  *      The bounds of the control, in local coordinates of the window.
- *    
+ *
  *    title:
  *      The control title. May be NULL.
- *    
+ *
  *    initialValue:
  *      The initial value of the control. Should be zero (off), one
  *      (on), or two (mixed). The control is automatically given a
  *      minimum value of zero and a maximum value of two.
- *    
+ *
  *    autoToggle:
  *      Whether this control should have auto-toggle behavior. If true,
  *      the control will automatically toggle between on and off states
@@ -554,10 +554,10 @@ const
  *      will be embedded into a radio group control; in that case, the
  *      radio group will handle setting the correct control value in
  *      response to a click.
- *    
+ *
  *    outControl:
  *      On exit, contains the new control.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -602,10 +602,10 @@ const
 {$ifc not TARGET_CPU_64}
 {
  *  CreateRadioGroupControl()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -617,7 +617,7 @@ function CreateRadioGroupControl( window: WindowRef; const (*var*) boundsRect: R
 
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ
      BEVEL BUTTON INTERFACE (CDEF 2)
-  
+
     Bevel buttons allow you to control the content type (pict/icon/etc.), the behavior
    (pushbutton/toggle/sticky), and the bevel size. You also have the option of
     attaching a menu to it. When a menu is present, you can specify which way the
@@ -627,7 +627,7 @@ function CreateRadioGroupControl( window: WindowRef; const (*var*) boundsRect: R
     control, as well as adjusting the variant. Here's the breakdown of what goes where:
 
     Parameter                   What Goes Here
-                
+
     Min                         Hi Byte = Behavior, Lo Byte = content type.
     Max                         ResID for resource-based content types.
     Value                       MenuID to attach, 0 = no menu, please.
@@ -664,7 +664,7 @@ function CreateRadioGroupControl( window: WindowRef; const (*var*) boundsRect: R
             with the GetBevelButtonMenuValue helper function.
 
     Handle-based Content
-    
+
     You can create your control and then set the content to an existing handle to an
     icon suite, etc. using the macros below. Please keep in mind that resource-based
     content is owned by the control, handle-based content is owned by you. The CDEF will
@@ -674,13 +674,13 @@ function CreateRadioGroupControl( window: WindowRef; const (*var*) boundsRect: R
     else a memory leak will ensue.
 
     Textual Content
-    
+
     Please note that if a bevel button gets its textual content from the title
     of the control. To alter the textual content of a bevel button, use the
     SetControlTitle[WithCFString] API.
 
     Implicit Menu Arrow Sizing
-    
+
     Bevel buttons can now have implicit popup menu arrow sizes on Mac OS X 10.5 and later. Use
     SetControlData(..., kControlSizeTag, ...), where the default control size is
     kControlSizeAuto. kControlSizeAuto has the bevel button render its popup menu arrow
@@ -749,10 +749,10 @@ const
 {$ifc not TARGET_CPU_64}
 {
  *  CreateBevelButtonControl()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -850,10 +850,10 @@ const
 {$ifc not TARGET_CPU_64}
 {
  *  GetBevelButtonMenuValue()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -865,10 +865,10 @@ function GetBevelButtonMenuValue( inButton: ControlRef; var outValue: MenuItemIn
 
 {
  *  SetBevelButtonMenuValue()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -880,10 +880,10 @@ function SetBevelButtonMenuValue( inButton: ControlRef; inValue: MenuItemIndex )
 
 {
  *  GetBevelButtonMenuHandle()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -899,10 +899,10 @@ function GetBevelButtonMenuRef__NAME__GetBevelButtonMenuHandle( possibleWindow: 
 
 {
  *  GetBevelButtonContentInfo()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -914,10 +914,10 @@ function GetBevelButtonContentInfo( inButton: ControlRef; outContent: ControlBut
 
 {
  *  SetBevelButtonContentInfo()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -929,10 +929,10 @@ function SetBevelButtonContentInfo( inButton: ControlRef; inContent: ControlButt
 
 {
  *  SetBevelButtonTransform()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -944,10 +944,10 @@ function SetBevelButtonTransform( inButton: ControlRef; transform: IconTransform
 
 {
  *  SetBevelButtonGraphicAlignment()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -959,10 +959,10 @@ function SetBevelButtonGraphicAlignment( inButton: ControlRef; inAlign: ControlB
 
 {
  *  SetBevelButtonTextAlignment()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -974,10 +974,10 @@ function SetBevelButtonTextAlignment( inButton: ControlRef; inAlign: ControlButt
 
 {
  *  SetBevelButtonTextPlacement()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -996,7 +996,7 @@ function SetBevelButtonTextPlacement( inButton: ControlRef; inWhere: ControlButt
 
 {
  *  ControlRoundButtonSize
- *  
+ *
  *  Discussion:
  *    Button Sizes
  }
@@ -1029,41 +1029,41 @@ const
 {$ifc not TARGET_CPU_64}
 {
  *  CreateRoundButtonControl()
- *  
+ *
  *  Summary:
  *    Creates a new instance of the Round Button Control.
- *  
+ *
  *  Discussion:
  *    CreateRoundButtonControl is preferred over NewControl because it
  *    allows you to specify the exact set of parameters required to
  *    create the control without overloading parameter semantics.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inWindow:
  *      The WindowRef in which to create the control. May be NULL in
  *      10.3 and later.
- *    
+ *
  *    inBoundsRect:
  *      The bounding rectangle for the control. The height and width of
  *      the control is fixed (specified by the ControlRoundButtonSize
  *      parameter) and the control will be centered within the
  *      rectangle you specify.
- *    
+ *
  *    inSize:
  *      The button size; either kControlRoundButtonNormalSize or
  *      kControlRoundButtonLargeSize.
- *    
+ *
  *    inContent:
  *      Any optional content displayed in the button. Currently only
  *      kControlContentIconRef is supported. May be NULL.
- *    
+ *
  *    outControl:
  *      On successful exit, this will contain the new control.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later

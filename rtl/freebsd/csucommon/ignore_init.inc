@@ -27,7 +27,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-Translated into Pascal by Marco van de Voort 
+Translated into Pascal by Marco van de Voort
 }
 
 //#include <sys/cdefs.h>

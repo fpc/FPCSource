@@ -257,7 +257,7 @@ function ColorSyncRegisterDevice( deviceClass: CFStringRef; deviceID: CFUUIDRef;
    {
     *   deviceInfo  -a dictionary containing information needed to register a device.
     *   ----------------------------------------------------------------------------
-    *               
+    *
     *               Required keys:
     *               ==============
     *                   kColorSyncDeviceDescriptions: CFDictionary with localized names of the device.
@@ -287,7 +287,7 @@ function ColorSyncRegisterDevice( deviceClass: CFStringRef; deviceID: CFUUIDRef;
     *                   that describes an individual device profile.
     *
     *                   kColorSyncDeviceDefaultProfileID: the associated value must be one of the ProfileID
-    *                                                     present in the dictionary. Presence of this 
+    *                                                     present in the dictionary. Presence of this
     *                                                     key is not required if there is only one factory profile.
     *
     *                   profile info CFDictionary
@@ -296,9 +296,9 @@ function ColorSyncRegisterDevice( deviceClass: CFStringRef; deviceID: CFUUIDRef;
     *                   ==============
     *                       kColorSyncDeviceProfileURL      :CFURLRef of the profile to be registered
     *                       kColorSyncDeviceModeDescriptions:CFDictionary with localized device mode
-    *                                                        names for the profile. Localization keys 
+    *                                                        names for the profile. Localization keys
     *                                                        must be five character strings containing
-    *                                                        language code and region code in the lc_RG 
+    *                                                        language code and region code in the lc_RG
     *                                                        format and it must contain (at least) the
     *                                                        "en_US" locale.
     *                                                        E.g. "en_US" "Glossy Paper with best quality"
@@ -323,7 +323,7 @@ function ColorSyncRegisterDevice( deviceClass: CFStringRef; deviceID: CFUUIDRef;
     *                                                                                                           ...
     *                                                                                                       >>
     *                                           ...
-    *                                           
+    *
     *                                           kColorSyncDeviceDefaultProfileID  CFSTR("Profile 1")
     *                                       >>
     *       kColorSyncDeviceUserScope   kCFPreferencesAnyUser
@@ -332,7 +332,7 @@ function ColorSyncRegisterDevice( deviceClass: CFStringRef; deviceID: CFUUIDRef;
     *   <<
     *
     * Notes:    1. Scope for factory profiles is exactly the same as the device scope.
-    *           2. Pass kCFNull in lieu of the profile URL or no URl key/value pair at all if 
+    *           2. Pass kCFNull in lieu of the profile URL or no URl key/value pair at all if
     *              factory profile is not available. This will enable setting custom profile.
     *           3. For the reasons of compatibility with legacy API, it is recommended that the
     *              profile keys are created as CFStrings from uint32_t numbers as follows:
@@ -350,7 +350,7 @@ function ColorSyncUnregisterDevice( deviceClass: CFStringRef; deviceID: CFUUIDRe
 
 function ColorSyncDeviceSetCustomProfiles( deviceClass: CFStringRef; deviceID: CFUUIDRef; profileInfo: CFDictionaryRef ): CBool; external name '_ColorSyncDeviceSetCustomProfiles';
    {
-    *                   profileInfo is a CFDictionary containing the information about 
+    *                   profileInfo is a CFDictionary containing the information about
     *                   custom profiles to be set in lieu of factory profiles.
     *                   Required keys:
     *                   ==============
@@ -405,11 +405,11 @@ function ColorSyncDeviceCopyDeviceInfo( deviceClass: CFStringRef; devID: CFUUIDR
     *       kColorSyncDeviceHostScope              (kCFPreferencesAnyHost or kCFPreferencesCurrentHost)
     *   >>
     }
-    
+
 type
 	ColorSyncDeviceProfileIterateCallback = function( colorSyncDeviceProfileInfo: CFDictionaryRef; userInfo: UnivPtr ): CBool;
    {
-    *   colorSyncDeviceProfileInfo contains the following keys: 
+    *   colorSyncDeviceProfileInfo contains the following keys:
     *   <<
     *       kColorSyncDeviceClass                   (camera, display, printer, scanner)
     *       kColorSyncDeviceID                      (CFUUIDRef registered with ColorSync)
@@ -422,7 +422,7 @@ type
     *       kColorSyncDeviceProfileIsCurrent        (kCFBooleanTrue or kCFBooleanFalse)
     *   >>
     }
-                                                       
+
 procedure ColorSyncIterateDeviceProfiles( callBack: ColorSyncDeviceProfileIterateCallback; userInfo: UnivPtr ); external name '_ColorSyncIterateDeviceProfiles';
 
 
@@ -431,7 +431,7 @@ procedure ColorSyncIterateDeviceProfiles( callBack: ColorSyncDeviceProfileIterat
      }
 function CGDisplayCreateUUIDFromDisplayID( displayID: UInt32 ): CFUUIDRef; external name '_CGDisplayCreateUUIDFromDisplayID';
 (* AVAILABLE_MAC_OS_X_VERSION_10_7_AND_LATER *)
-    
+
     {
      * A utility function converting first 32 bits of CFUUIDRef to displayID
      }

@@ -1573,7 +1573,7 @@ type
   be changed later (2.8?), to allow a grace period for descendents to catch up.
 
   Testing with TRecordBuffer=PByte will turn up typing problems. TRecordBuffer=pansichar is backwards
-  compatible, even if overriden with "PAnsiChar" variants.
+  compatible, even if overridden with "PAnsiChar" variants.
 }
   TRecordBufferBaseType = AnsiChar; // must match TRecordBuffer.
   TRecordBuffer = PAnsiChar;

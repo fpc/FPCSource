@@ -1,17 +1,17 @@
 {
      File:       CommonPanels/FontPanel.h
- 
+
      Contains:   Carbon Font Panel package Interfaces.
- 
+
      Version:    CommonPanels-94~602
- 
+
      Copyright:  © 2002-2008 by Apple Computer, Inc., all rights reserved
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {  Pascal Translation:  Gale R Paeper, <gpaeper@empirenet.com>, 2006 }
 {  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
@@ -262,7 +262,7 @@ const
 {
  *  Summary:
  *    Font events (kEventClassFont)
- *  
+ *
  *  Discussion:
  *    When the user closes the Font Panel, a kEventWindowClosed event
  *    will be detected by the Carbon event handler installed by the
@@ -300,16 +300,16 @@ const
 
     kEventFontPanelClosed
         None.
-        
+
     kEventFontSelection
         -->     kEventParamATSUFontID               typeATSUFontID
         -->     kEventParamATSUFontSize             typeATSUSize
         -->     kEventParamFMFontFamily             typeFMFontFamily
         -->     kEventParamFMFontSize               typeFMFontSize
         -->     kEventParamFontColor                typeFontColor
-        -->     kEventParamDictionary               typeCFDictionaryRef 
+        -->     kEventParamDictionary               typeCFDictionaryRef
         -->     kEventParamViewAttributesDictionary typeCFDictionaryRef
-                A dictionary containing attributes that can be applied to an entire text view.  An example of this is the background color to 
+                A dictionary containing attributes that can be applied to an entire text view.  An example of this is the background color to
                 apply to the view.
 }
 const
@@ -336,7 +336,7 @@ const
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}
 {
  *  kFontPanelATSUFontIDKey
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -347,7 +347,7 @@ var kFontPanelATSUFontIDKey: CFStringRef; external name '_kFontPanelATSUFontIDKe
 {Value is a CFNumber containing the ATSU Font ID}
 {
  *  kFontPanelVariationAxesKey
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -358,7 +358,7 @@ var kFontPanelVariationAxesKey: CFStringRef; external name '_kFontPanelVariation
 { Value is a CFDataRef containing one or more ATSUI Variation Axes}
 {
  *  kFontPanelVariationValuesKey
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -369,7 +369,7 @@ var kFontPanelVariationValuesKey: CFStringRef; external name '_kFontPanelVariati
 {Value is a CFDataRef containing one or more ATSU Variation values}
 {
  *  kFontPanelFeatureTypesKey
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -380,7 +380,7 @@ var kFontPanelFeatureTypesKey: CFStringRef; external name '_kFontPanelFeatureTyp
 {  Value is a CFDataRef containing one or more ATSUI feature types}
 {
  *  kFontPanelFeatureSelectorsKey
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -391,7 +391,7 @@ var kFontPanelFeatureSelectorsKey: CFStringRef; external name '_kFontPanelFeatur
 {  Value is a CFDataRef containing one or more ATSUI feature selectors}
 {
  *  kFontPanelAttributesKey
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -433,7 +433,7 @@ var kFontPanelAttributesKey: CFStringRef; external name '_kFontPanelAttributesKe
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}
 {
  *  kFontPanelAttributeTagsKey
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -444,7 +444,7 @@ var kFontPanelAttributeTagsKey: CFStringRef; external name '_kFontPanelAttribute
 {Value is a CFDataRef containing one or more style attribute tags}
 {
  *  kFontPanelAttributeSizesKey
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -455,7 +455,7 @@ var kFontPanelAttributeSizesKey: CFStringRef; external name '_kFontPanelAttribut
 {Value is a CFDataRef containing one or more style attribute sizes}
 {
  *  kFontPanelAttributeValuesKey
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -471,7 +471,7 @@ a control that tracks such as a slider.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}
 {
  *  kFontPanelMouseTrackingState
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -492,7 +492,7 @@ Keys to access the data from the document attributes dictionary (kEventParamView
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}
 {
  *  kFontPanelBackgroundColorAttributeName
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.5 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -552,7 +552,7 @@ type
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}
 {
  *  FPIsFontPanelVisible()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework
  *    CarbonLib:        not available in CarbonLib 1.x
@@ -564,7 +564,7 @@ function FPIsFontPanelVisible: Boolean; external name '_FPIsFontPanelVisible';
 
 {
  *  FPShowHideFontPanel()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework
  *    CarbonLib:        not available in CarbonLib 1.x
@@ -576,7 +576,7 @@ function FPShowHideFontPanel: OSStatus; external name '_FPShowHideFontPanel';
 
 {
  *  SetFontInfoForSelection()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework
  *    CarbonLib:        not available in CarbonLib 1.x
@@ -591,9 +591,9 @@ function SetFontInfoForSelection( iStyleType: OSType; iNumStyles: UInt32; iStyle
 
     In 10.3 the ability to create and modify font collections is available.  Font
     collections are files containing font descriptions.  Font descriptions are
-    encapsulated in the opaque object FCFontDescriptorRef. A FCFontDescriptroRef
+    encapsulated in the opaque object FCFontDescriptorRef. A FCFontDescriptorRef
     is a CFType.  To release one call CFRelease.
-    
+
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}
 {~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     Font Collection Types
@@ -603,18 +603,18 @@ type
 	OpaqueFCFontDescriptorRef = record end;
 {
  *  FCCopyCollectionNames()
- *  
+ *
  *  Discussion:
  *    FCCopyCollectionNames returns a copy of the CFArrayRef containing
  *    the displayable names of every font collection available to the
  *    current user.
- *  
+ *
  *  Result:
  *    A CFArrayRef containing CFStringRefs where each CFStringRef
  *    contains a font collection's displayable name. Callers are
  *    responsible for releasing the returned CFArrayRef.  If the
  *    operation is not successful NULL is returned.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -626,16 +626,16 @@ function FCCopyCollectionNames: CFArrayRef; external name '_FCCopyCollectionName
 
 {
  *  FCCopyFontDescriptorsInCollection()
- *  
+ *
  *  Discussion:
  *    FCCopyFontDescriptorsInCollection copies the fontDescriptors in a
  *    named collection into an array.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iCollection:
  *      The name of a collection that descriptors should be copied from.
- *  
+ *
  *  Result:
  *    A CFArrayRef containing copies of the FCFontDescriptorRefs
  *    contained in the name collection.  Callers are responsible for
@@ -644,7 +644,7 @@ function FCCopyCollectionNames: CFArrayRef; external name '_FCCopyCollectionName
  *    destroyed.  You can access a font descriptor in the array in the
  *    following manner: fd =
  *    (FCFontDescriptorRef)CFArrayGetValueAtIndex(array, i);
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -656,22 +656,22 @@ function FCCopyFontDescriptorsInCollection( iCollection: CFStringRef ): CFArrayR
 
 {
  *  FCAddCollection()
- *  
+ *
  *  Discussion:
  *    Add a collection to the font descriptor collections available to
  *    the current user. If the collection is successfully added noErr
  *    is returned.  If the collection is not added an error code is
  *    returned.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iCollection:
  *      the name of the collection to add.
- *    
+ *
  *    iCollectionOptions:
  *      currently there are no options.  Set to kNilOptions.  This
  *      parameter is available for future expansion.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -683,18 +683,18 @@ function FCAddCollection( iCollection: CFStringRef; iCollectionOptions: OptionBi
 
 {
  *  FCRemoveCollection()
- *  
+ *
  *  Discussion:
  *    Remove a named collection from the font descriptor collections
  *    available to the current user. Returns noErr if the collection
  *    was successfully removed.  An appropriate error code is returned
  *    if the operation was not successful.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iCollection:
  *      the name of the collection to remove.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -706,24 +706,24 @@ function FCRemoveCollection( iCollection: CFStringRef ): OSStatus; external name
 
 {
  *  FCAddFontDescriptorToCollection()
- *  
+ *
  *  Discussion:
  *    Add a font descriptor to the named collection.  noErr is returned
  *    if the font descriptor is added. An error code describing the
  *    failure is returned if the descriptor is not added.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iDescriptor:
  *      the font descriptor that should be added.  The
  *      FCFontDescriptorRef is retained when it is added to the
  *      collection.  After calling this function the caller may release
  *      their copy.
- *    
+ *
  *    iCollection:
  *      the name of the collection to which the font descriptor should
  *      be added.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -735,21 +735,21 @@ function FCAddFontDescriptorToCollection( iDescriptor: FCFontDescriptorRef; iCol
 
 {
  *  FCRemoveFontDescriptorFromCollection()
- *  
+ *
  *  Discussion:
  *    Remove a font descriptor from the named collection.  An error is
  *    returned if the font descriptor can not be removed.  noErr is
  *    returned if the descriptor is removed.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iDescriptor:
  *      the descriptor that should be removed.
- *    
+ *
  *    iCollection:
  *      the name of the collection that the descriptor should be
  *      removed from.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -762,19 +762,19 @@ function FCRemoveFontDescriptorFromCollection( iDescriptor: FCFontDescriptorRef;
 {~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     Font Descriptor Attribute Keys
-    
-    Font Descriptors contain font attributes that are set and accessed via a set of 
+
+    Font Descriptors contain font attributes that are set and accessed via a set of
     keys.  The keys are all constant CFStringRefs.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}
 
 {
  *  kFCFontFamilyAttribute
- *  
+ *
  *  Discussion:
  *    The key for a CFStringRef that contains a font family name (e.g.
  *    Baskerville).
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -784,11 +784,11 @@ var kFCFontFamilyAttribute: CFStringRef; external name '_kFCFontFamilyAttribute'
 (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
 {
  *  kFCFontNameAttribute
- *  
+ *
  *  Discussion:
  *    The key for a CFStringRef containing a font name (e.g.
  *    Baskerville-Italic).
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -798,10 +798,10 @@ var kFCFontNameAttribute: CFStringRef; external name '_kFCFontNameAttribute'; (*
 (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
 {
  *  kFCFontFaceAttribute
- *  
+ *
  *  Discussion:
  *    The key for a CFStringRef containing a face name (e.g. Italic).
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -811,10 +811,10 @@ var kFCFontFaceAttribute: CFStringRef; external name '_kFCFontFaceAttribute'; (*
 (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
 {
  *  kFCFontSizeAttribute
- *  
+ *
  *  Discussion:
- *    The key for a CFNumber containg the font size (e.g. 12).
- *  
+ *    The key for a CFNumber containing the font size (e.g. 12).
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -824,11 +824,11 @@ var kFCFontSizeAttribute: CFStringRef; external name '_kFCFontSizeAttribute'; (*
 (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
 {
  *  kFCFontVisibleNameAttribute
- *  
+ *
  *  Discussion:
  *    The Key for a CFStringRef containing the name that should be used
  *    in a UI to describe the font.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -838,10 +838,10 @@ var kFCFontVisibleNameAttribute: CFStringRef; external name '_kFCFontVisibleName
 (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
 {
  *  kFCFontCGColorAttribute
- *  
+ *
  *  Discussion:
  *    The Key for a CGColorRef containing the fonts color.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -851,20 +851,20 @@ var kFCFontCGColorAttribute: CFStringRef; external name '_kFCFontCGColorAttribut
 (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
 {
  *  FCFontDescriptorCreateWithFontAttributes()
- *  
+ *
  *  Discussion:
  *    Create a font descriptor using the attributes contained in the
  *    dictionary.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iAttributes:
  *      a dictionary containing one or more of the attributes described
  *      above.
- *  
+ *
  *  Result:
  *    A valid FCFontDescriptorRef.  NULL if one cannot be created.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available
@@ -876,21 +876,21 @@ function FCFontDescriptorCreateWithFontAttributes( iAttributes: CFDictionaryRef 
 
 {
  *  FCFontDescriptorCreateWithName()
- *  
+ *
  *  Discussion:
  *    Create a font descriptor using a fontname and font size.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iFontName:
  *      The name of the font (e.g. Baskerville-Italic).
- *    
+ *
  *    iSize:
  *      the size of the font. (e.g. 12.0).
- *  
+ *
  *  Result:
  *    A valid FCFontDescriptorRef.  NULL if one cannot be created.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework
  *    CarbonLib:        not available

@@ -943,11 +943,11 @@ const
 	{ APPLE_flush_buffer_range }
 	kCGLFEglBufferParameteriAPPLE = 717;
 	kCGLFEglFlushMappedBufferRangeAPPLE = 718;
-	
+
 	{ GL_EXT_gpu_program_parameters }
 	kCGLFEglProgramEnvParameters4fvEXT = 719;
 	kCGLFEglProgramLocalParameters4fvEXT = 720;
-	
+
 	{ GL_APPLE_object_purgeable }
 	kCGLFEglObjectPurgeableAPPLE = 721;
 	kCGLFEglObjectUnpurgeableAPPLE = 722;

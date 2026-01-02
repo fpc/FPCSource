@@ -46,7 +46,7 @@
 {
   Please note that the rounding mode setting via FPCR in most emulators is broken.
   The list includes most versions and incarnations of UAE, MorphOS' Trance emulator,
-  and others. The following code was verified to work on real hardware. (KB) 
+  and others. The following code was verified to work on real hardware. (KB)
 }
 
 const

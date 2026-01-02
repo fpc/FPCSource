@@ -37,7 +37,7 @@ The JSON should be saved in a file called
 ```
 messagingserver-serviceaccount.json
 ```
-It will be loaded by the server when communicaton with FCM servers is
+It will be loaded by the server when communication with FCM servers is
 needed.
 
 ### HTTPS 

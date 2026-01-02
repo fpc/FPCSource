@@ -59,5 +59,5 @@ begin
     dec(i);
     end;
   result:=binbufsize-i;
-end;                  
+end;
 

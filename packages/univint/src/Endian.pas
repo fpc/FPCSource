@@ -1,10 +1,10 @@
 {
      File:       CarbonCore/Endian.h
- 
-     Contains:   Endian swapping utilties
+
+     Contains:   Endian swapping utilities
                  The contents of this header file are deprecated.
                  Use CFByteOrder API instead.
- 
+
      Copyright:  © 1997-2011 by Apple Inc. All rights reserved.
 }
 {
@@ -222,40 +222,40 @@ uses MacTypes;
 {
     This file provides Endian Flipping routines for dealing with converting data
     between Big-Endian and Little-Endian machines.  These routines are useful
-    when writing code to compile for both Big and Little Endian machines and  
-    which must handle other endian number formats, such as reading or writing 
+    when writing code to compile for both Big and Little Endian machines and
+    which must handle other endian number formats, such as reading or writing
     to a file or network packet.
-    
+
     These routines are named as follows:
-    
+
         Endian<U><W>_<S>to<D>
 
     where
         <U> is whether the integer is signed ('S') or unsigned ('U')
-        <W> is integer bit width: 16, 32, or 64 
+        <W> is integer bit width: 16, 32, or 64
         <S> is the source endian format: 'B' for big, 'L' for little, or 'N' for native
         <D> is the destination endian format: 'B' for big, 'L' for little, or 'N' for native
-    
+
     For example, to convert a Big Endian 32-bit unsigned integer to the current native format use:
-        
+
         long i = EndianU32_BtoN(data);
-        
+
     This file is set up so that the function macro to nothing when the target runtime already
     is the desired format (e.g. on Big Endian machines, EndianU32_BtoN() macros away).
-            
+
     If long long's are not supported, you cannot get 64-bit quantities as a single value.
     The macros are not defined in that case.
 
     For gcc, the macros build on top of the inline byte swapping
     routines from <libkern/OSByteOrder.h>, which may have better performance.
-    
-    
+
+
                                 <<< W A R N I N G >>>
-    
-    It is very important not to put any autoincrements inside the macros.  This 
-    will produce erroneous results because each time the address is accessed in the macro, 
+
+    It is very important not to put any autoincrements inside the macros.  This
+    will produce erroneous results because each time the address is accessed in the macro,
     the increment occurs.
-    
+
  }
  // Macros might be better solutions
 function Endian16_Swap( arg: UInt16 ): UInt16; inline;
@@ -422,7 +422,7 @@ type
         This API is used to generically massage data buffers, in
         place, from one endian architecture to another.  In effect,
         the API supports registering a set of callbacks that can
-        effect this translation.  
+        effect this translation.
 
         The data types have specific meanings within their domain,
         although some data types can be registered with the same
@@ -439,37 +439,37 @@ const
 
 {
  *  CoreEndianFlipProc
- *  
+ *
  *  Discussion:
  *    Callback use to flip endian-ness of typed data
- *  
+ *
  *  Parameters:
- *    
+ *
  *    dataDomain:
  *      Domain of the data type
- *    
+ *
  *    dataType:
  *      Type of data being flipped
- *    
+ *
  *    id:
  *      resource id (if being flipped on behalf of the resource
  *      manager, otherwise will be zero)
- *    
+ *
  *    dataPtr:
  *      Pointer to the data
- *    
+ *
  *    dataSize:
  *      Length of the data
- *    
+ *
  *    currentlyNative:
  *      Boolean indicating which direction to flip: false means flip
  *      from disk big endian to native (from disk), true means flip
  *      from native to disk big endian (to disk)
- *    
+ *
  *    refcon:
  *      An optional user reference supplied when the flipper is
  *      installed
- *  
+ *
  *  Result:
  *    Error code indicating whether the data was flipped.  noErr would
  *    indicate that the data was flipped as appropriate; any other
@@ -482,32 +482,32 @@ type
  }
 {
  *  CoreEndianInstallFlipper()
- *  
+ *
  *  Summary:
  *    Installs a flipper proc for the given data type.  If the flipper
  *    is already registered, this flipper will take replace it.
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    dataDomain:
  *      Domain of the data type
- *    
+ *
  *    dataType:
  *      Type of data for which this flipper should be installed
- *    
+ *
  *    proc:
  *      Flipper callback to be called for data of this type
- *    
+ *
  *    refcon:
  *      Optional user reference for the flipper
- *  
+ *
  *  Result:
  *    Error code indicating whether or not the flipper could be
  *    installed
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -519,31 +519,31 @@ function CoreEndianInstallFlipper( dataDomain: OSType; dataType: OSType; proc: C
 
 {
  *  CoreEndianGetFlipper()
- *  
+ *
  *  Summary:
  *    Gets an existing data flipper proc for the given data type
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    dataDomain:
  *      Domain of the data type
- *    
+ *
  *    dataType:
  *      Type of the data for which this flipper should be installed
- *    
+ *
  *    proc:
  *      Pointer to a flipper callback
- *    
+ *
  *    refcon:
  *      Pointer to the callback refcon
- *  
+ *
  *  Result:
  *    noErr if the given flipper could be found; otherwise
  *    handlerNotFoundErr will be returned.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in CoreServices.framework
  *    CarbonLib:        not available
@@ -555,39 +555,39 @@ function CoreEndianGetFlipper( dataDomain: OSType; dataType: OSType; var proc: C
 
 {
  *  CoreEndianFlipData()
- *  
+ *
  *  Summary:
  *    Calls the flipper for the given data type with the associated data
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.3
- *  
+ *
  *  Parameters:
- *    
+ *
  *    dataDomain:
  *      Domain of the data type
- *    
+ *
  *    dataType:
  *      type of the data
- *    
+ *
  *    id:
  *      resource id (if not a resource, pass zero)
- *    
+ *
  *    data:
  *      a pointer to the data to be flipped (in place)
- *    
+ *
  *    dataLen:
  *      length of the data to flip
- *    
+ *
  *    currentlyNative:
  *      a boolean indicating the direction to flip (whether the data is
  *      currently native endian or big-endian)
- *  
+ *
  *  Result:
  *    Error code indicating whether the data was flipped.  If
  *    handlerNotFound is returned, then no flipping took place (which
- *    is not necessarily an error condtion)
- *  
+ *    is not necessarily an error condition)
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in CoreServices.framework
  *    CarbonLib:        not available

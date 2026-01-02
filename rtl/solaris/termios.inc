@@ -512,7 +512,7 @@
   FIOSETOWN = (IOC_IN or (sizeof(cint) and IOCPARM_MASK) << 16) or ((ord('f') << 8) or 124);
   FIOGETOWN = (IOC_OUT or (sizeof(cint) and IOCPARM_MASK) << 16) or ((ord('f') << 8) or 123);
   FIODTYPE = (IOC_OUT or (sizeof(cint) and IOCPARM_MASK) << 16) or ((ord('f') << 8) or 122);
-  
+
   const
      B0 = 0;
      B50 = 1;

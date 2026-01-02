@@ -1,17 +1,17 @@
 {
      File:       HIToolbox/TSMTE.h
- 
+
      Contains:   Text Services Manager for TextEdit Interfaces. All TextEdit functions as well all functions in
- 
+
      Version:    HIToolbox-624~3
- 
+
      Copyright:  © 1991-2008 by Apple Computer, Inc., all rights reserved
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {       Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, August 2005 }
 {       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
@@ -226,9 +226,9 @@ uses MacTypes,TextEdit,Dialogs,AppleEvents,TextServices;
 
 
 {****************************************************************************************************************
-    
-    All Textedit functions as well all functions in this file are deprecated for Mac OS 10.4. The Multilingual Text 
-    Engine (MLTE) API is recommended instead. MLTE support for inline input is built-in so there is no need for an 
+
+    All Textedit functions as well all functions in this file are deprecated for Mac OS 10.4. The Multilingual Text
+    Engine (MLTE) API is recommended instead. MLTE support for inline input is built-in so there is no need for an
     API parallel to TSMTE on Mac OS X. Please see MacTextEditor.h file for a description of the MLTE API.
 
 *****************************************************************************************************************}
@@ -275,7 +275,7 @@ type
 	TSMTERecHandle = ^TSMTERecPtr;
 {
  *  NewTSMTEPreUpdateUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -286,7 +286,7 @@ function NewTSMTEPreUpdateUPP( userRoutine: TSMTEPreUpdateProcPtr ): TSMTEPreUpd
 
 {
  *  NewTSMTEPostUpdateUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -297,7 +297,7 @@ function NewTSMTEPostUpdateUPP( userRoutine: TSMTEPostUpdateProcPtr ): TSMTEPost
 
 {
  *  DisposeTSMTEPreUpdateUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -308,7 +308,7 @@ procedure DisposeTSMTEPreUpdateUPP( userUPP: TSMTEPreUpdateUPP ); external name 
 
 {
  *  DisposeTSMTEPostUpdateUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -319,7 +319,7 @@ procedure DisposeTSMTEPostUpdateUPP( userUPP: TSMTEPostUpdateUPP ); external nam
 
 {
  *  InvokeTSMTEPreUpdateUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -330,7 +330,7 @@ procedure InvokeTSMTEPreUpdateUPP( textH: TEHandle; refCon: SIGNEDLONG; userUPP:
 
 {
  *  InvokeTSMTEPostUpdateUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -342,10 +342,10 @@ procedure InvokeTSMTEPostUpdateUPP( textH: TEHandle; fixLen: SIGNEDLONG; inputAr
 {$ifc not TARGET_CPU_64}
 {
  *  IsTSMTEDialog()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -358,10 +358,10 @@ function IsTSMTEDialog( dialog: DialogRef ): Boolean; external name '_IsTSMTEDia
 { Getters }
 {
  *  GetTSMTEDialogDocumentID()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -373,10 +373,10 @@ function GetTSMTEDialogDocumentID( dialog: DialogRef ): TSMDocumentID; external 
 
 {
  *  GetTSMTEDialogTSMTERecHandle()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -389,10 +389,10 @@ function GetTSMTEDialogTSMTERecHandle( dialog: DialogRef ): TSMTERecHandle; exte
 { Setters }
 {
  *  SetTSMTEDialogDocumentID()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -404,10 +404,10 @@ procedure SetTSMTEDialogDocumentID( dialog: DialogRef; documentID: TSMDocumentID
 
 {
  *  SetTSMTEDialogTSMTERecHandle()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0.2 and later

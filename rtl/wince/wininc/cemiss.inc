@@ -14,7 +14,7 @@
  **********************************************************************}
 {
   *What should contain this file*
-  
+
   functions missing on wince api
 
 }

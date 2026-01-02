@@ -49,6 +49,6 @@ Function SysCreateGUID(out GUID : TGUID) : Integer;
 
 begin
   if not GetUrandomBytes(Guid,SizeOf(GUID)) then
-    GetRandomBytes(GUID,SizeOf(Guid));  
+    GetRandomBytes(GUID,SizeOf(Guid));
   Result:=0;
 end;

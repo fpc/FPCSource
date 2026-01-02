@@ -255,7 +255,7 @@ function TCollection.GetNamePath: string;
 var o : TPersistent;
 begin
   o:=getowner;
-  if assigned(o) and (propname<>'') then 
+  if assigned(o) and (propname<>'') then
      result:=o.getnamepath+'.'+propname
    else
      result:=classname;
@@ -356,7 +356,7 @@ begin
     DoClear;
   finally
     EndUpdate;
-  end;    
+  end;
 end;
 
 

@@ -92,7 +92,7 @@ const
   // TCCR0B
   FOC0A = 7; // Force Output Compare B
   FOC0B = 6; // Force Output Compare B
-  WGM02 = 3; // 
+  WGM02 = 3; //
   CS0 = 0; // Clock Select
   // TIMSK
   TOIE1 = 7; // Timer/Counter1 Overflow Interrupt Enable
@@ -123,10 +123,10 @@ const
   WDE = 3; // Watch Dog Enable
   // GIMSK
   INT = 6; // External Interrupt Request 1 Enable
-  PCIE = 5; // 
+  PCIE = 5; //
   // EIFR
   INTF = 6; // External Interrupt Flags
-  PCIF = 5; // 
+  PCIF = 5; //
   // UCSRA
   RXC = 7; // USART Receive Complete
   TXC = 6; // USART Transmitt Complete
@@ -157,10 +157,10 @@ const
   ACO = 5; // Analog Compare Output
   ACI = 4; // Analog Comparator Interrupt Flag
   ACIE = 3; // Analog Comparator Interrupt Enable
-  ACIC = 2; // 
+  ACIC = 2; //
   ACIS = 0; // Analog Comparator Interrupt Mode Select bits
   // EECR
-  EEPM = 4; // 
+  EEPM = 4; //
   EERIE = 3; // EEProm Ready Interrupt Enable
   EEMPE = 2; // EEPROM Master Write Enable
   EEPE = 1; // EEPROM Write Enable
@@ -195,7 +195,7 @@ const
   CLKPCE = 7; // Clock Prescaler Change Enable
   CLKPS = 0; // Clock Prescaler Select Bits
   // GTCCR
-  PSR10 = 0; // 
+  PSR10 = 0; //
   // USISR
   USISIF = 7; // Start Condition Interrupt Flag
   USIOIF = 6; // Counter Overflow Interrupt Flag
@@ -226,13 +226,13 @@ procedure USART__RX_ISR; external name 'USART__RX_ISR'; // Interrupt 7 USART, Rx
 procedure USART__UDRE_ISR; external name 'USART__UDRE_ISR'; // Interrupt 8 USART Data Register Empty
 procedure USART__TX_ISR; external name 'USART__TX_ISR'; // Interrupt 9 USART, Tx Complete
 procedure ANA_COMP_ISR; external name 'ANA_COMP_ISR'; // Interrupt 10 Analog Comparator
-procedure PCINT_ISR; external name 'PCINT_ISR'; // Interrupt 11 
-procedure TIMER1_COMPB_ISR; external name 'TIMER1_COMPB_ISR'; // Interrupt 12 
-procedure TIMER0_COMPA_ISR; external name 'TIMER0_COMPA_ISR'; // Interrupt 13 
-procedure TIMER0_COMPB_ISR; external name 'TIMER0_COMPB_ISR'; // Interrupt 14 
+procedure PCINT_ISR; external name 'PCINT_ISR'; // Interrupt 11
+procedure TIMER1_COMPB_ISR; external name 'TIMER1_COMPB_ISR'; // Interrupt 12
+procedure TIMER0_COMPA_ISR; external name 'TIMER0_COMPA_ISR'; // Interrupt 13
+procedure TIMER0_COMPB_ISR; external name 'TIMER0_COMPB_ISR'; // Interrupt 14
 procedure USI_START_ISR; external name 'USI_START_ISR'; // Interrupt 15 USI Start Condition
 procedure USI_OVERFLOW_ISR; external name 'USI_OVERFLOW_ISR'; // Interrupt 16 USI Overflow
-procedure EEPROM_Ready_ISR; external name 'EEPROM_Ready_ISR'; // Interrupt 17 
+procedure EEPROM_Ready_ISR; external name 'EEPROM_Ready_ISR'; // Interrupt 17
 procedure WDT_OVERFLOW_ISR; external name 'WDT_OVERFLOW_ISR'; // Interrupt 18 Watchdog Timer Overflow
 
 procedure _FPC_start; assembler; nostackframe; noreturn; public name '_START'; section '.init';

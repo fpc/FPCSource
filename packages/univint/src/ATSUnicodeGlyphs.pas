@@ -1,17 +1,17 @@
 {
      File:       QD/ATSUnicodeGlyphs.h
- 
+
      Contains:   ATSUI glyph handling functions.
- 
+
      Version:    Quickdraw-285~150
- 
+
      Copyright:  © 2003-2008 by Apple Inc. all rights reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {  Pascal Translation:  Peter N Lewis, <peter@stairways.com.au>, 2004 }
 {  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
@@ -238,17 +238,17 @@ uses MacTypes,ATSUnicodeTypes,TextCommon,ATSTypes;
 {$ifc not TARGET_CPU_64}
 {
  *  ATSUGlyphGetIdealMetrics()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTFontGetGlyphWithName,
  *    CTFontGetVerticalTranslationsForGlyphs,
  *    CTFontGetBoundingRectsForGlyphs, or CTFontGetAdvancesForGlyphs
  *    instead.
- *  
+ *
  *  Summary:
  *    Obtains resolution-independent font metric information for glyphs
  *    associated with a given style object.
- *  
+ *
  *  Discussion:
  *    The advance width is the full horizontal width of the glyph as
  *    measured from its origin to the origin of the next glyph on the
@@ -265,37 +265,37 @@ uses MacTypes,ATSUnicodeTypes,TextCommon,ATSTypes;
  *    glyph metrics. To obtain device-adjusted (that is,
  *    resolution-dependent) glyph metrics, call the function
  *    ATSUGlyphGetScreenMetrics.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iATSUStyle:
  *      A style referring to a font you wish to obtain glyph metrics
  *      from.
- *    
+ *
  *    iNumOfGlyphs:
  *      The number of glyph IDs you are passing in to be examined. This
  *      value should be equal to the size of the array you are passing
  *      in for the iGlyphIDs parameter.
- *    
+ *
  *    iGlyphIDs:
  *      An array of glyph IDs referring to glyphs for which you wish to
  *      obtain metrics.
- *    
+ *
  *    iInputOffset:
  *      A ByteOffset value specifying the offset in bytes between glyph
  *      IDs in the iGlyphIDs array.
- *    
+ *
  *    oIdealMetrics:
  *      A pointer to memory you have allocated for an array of
  *      ATSGlyphIdealMetrics structures. On return, each structure
  *      contains advance and side-bearing values for a glyph. See
  *      ATSTypes.h for more information regarding the
  *      ATSGlyphIdealMetrics structure.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -307,16 +307,16 @@ function ATSUGlyphGetIdealMetrics( iATSUStyle: ATSUStyle; iNumOfGlyphs: ItemCoun
 
 {
  *  ATSUGlyphGetScreenMetrics()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTFontGetBoundingBox, CTFontGetUnderlinePosition,
  *    CTFontGetUnderlineThickness, CTFontGetSlantAngle,
- *    CTFontGetCapHeight, or CTFontGetXHeight iinstead.
- *  
+ *    CTFontGetCapHeight, or CTFontGetXHeight instead.
+ *
  *  Summary:
  *    Obtains device-adjusted font metric information for glyphs
  *    associated with a given style object.
- *  
+ *
  *  Discussion:
  *    You can call the ATSUGlyphGetScreenMetrics function to obtain an
  *    array of ATSGlyphScreenMetrics structures containing values for
@@ -325,45 +325,45 @@ function ATSUGlyphGetIdealMetrics( iATSUStyle: ATSUStyle; iNumOfGlyphs: ItemCoun
  *    obtain device-adjusted (that is, resolution-dependent) glyph
  *    metrics. To obtain resolution-independent glyph metrics, call the
  *    function ATSUGlyphGetIdealMetrics.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iATSUStyle:
  *      A style referring to a font you wish to obtain glyph metrics
  *      from.
- *    
+ *
  *    iNumOfGlyphs:
  *      The number of glyph IDs you are passing in to be examined. This
  *      value should be equal to the size of the array you are passing
  *      in for the iGlyphIDs parameter.
- *    
+ *
  *    iGlyphIDs:
  *      An array of glyph IDs referring to glyphs for which you wish to
  *      obtain metrics.
- *    
+ *
  *    iInputOffset:
  *      A ByteOffset value specifying the offset in bytes between glyph
  *      IDs in the iGlyphIDs array.
- *    
+ *
  *    iForcingAntiAlias:
  *      A Boolean value indicating whether anti-aliasing is forced for
  *      the style object.
- *    
+ *
  *    iAntiAliasSwitch:
  *      A Boolean value indicating whether anti-aliasing is currently
  *      on or off.
- *    
+ *
  *    oScreenMetrics:
  *      A pointer to memory you have allocated for an array of
  *      ATSGlyphScreenMetrics structures. On return, each structure
  *      contains advance and side-bearing values for a glyph. See
  *      ATSTypes.h for more information regarding the
  *      ATSGlyphScreenMetrics structure.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -378,13 +378,13 @@ function ATSUGlyphGetScreenMetrics( iATSUStyle: ATSUStyle; iNumOfGlyphs: ItemCou
 { ---------------------------------------------------------------------------- }
 {
  *  ATSUGetNativeCurveType()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTFontCreatePathForGlyph instead.
- *  
+ *
  *  Summary:
  *    Returns the native curve format for a specific font.
- *  
+ *
  *  Discussion:
  *    Use this function to decide whether to call
  *    ATSUGlyphGetQuadraticPaths or ATSUGlyphGetCubicPaths. Both
@@ -393,23 +393,23 @@ function ATSUGlyphGetScreenMetrics( iATSUStyle: ATSUStyle; iNumOfGlyphs: ItemCou
  *    font, the curves you get back will be mathematically converted,
  *    rather than native font data. See the definition of ATSCurveType
  *    in ATSTypes.h for possible return values from this function.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iATSUStyle:
  *      A style referencing a font for which you wish to obtain the
  *      native curve type.
- *    
+ *
  *    oCurveType:
  *      On return, a value indicating the native curve type of the font
  *      referenced by iATSUStyle. See the definition of ATSCurveType in
  *      ATSTypes.h for a list of possible return values for this
  *      parameter.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -424,19 +424,19 @@ function ATSUGetNativeCurveType( iATSUStyle: ATSUStyle; var oCurveType: ATSCurve
 
 {
  *  ATSQuadraticNewPathProcPtr
- *  
+ *
  *  Discussion:
  *    A pointer to a client supplied callback function for handling
  *    glyph curve drawing operations. This callback handles operations
  *    to start a new drawing path.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    callBackDataPtr:
  *      A pointer to any application specific data that may have been
  *      passed to the callbacks through the iCallbackDataPtr parameter
  *      of the ATSUGlyphGetQuadraticPaths function.
- *  
+ *
  *  Result:
  *    Return status. Pass any errors you wish to propagate back to the
  *    original caller of ATSUGlyphGetQuadraticPaths through this return
@@ -448,7 +448,7 @@ type
 	ATSQuadraticNewPathUPP = ATSQuadraticNewPathProcPtr;
 {
  *  NewATSQuadraticNewPathUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -459,7 +459,7 @@ function NewATSQuadraticNewPathUPP( userRoutine: ATSQuadraticNewPathProcPtr ): A
 
 {
  *  DisposeATSQuadraticNewPathUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -470,7 +470,7 @@ procedure DisposeATSQuadraticNewPathUPP( userUPP: ATSQuadraticNewPathUPP ); exte
 
 {
  *  InvokeATSQuadraticNewPathUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -481,25 +481,25 @@ function InvokeATSQuadraticNewPathUPP( callBackDataPtr: UnivPtr; userUPP: ATSQua
 
 {
  *  ATSQuadraticLineProcPtr
- *  
+ *
  *  Discussion:
  *    A pointer to a client supplied callback function for handling
  *    glyph curve drawing operations. This callback handles operations
  *    to draw straight lines.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    pt1:
  *      The starting point of the line.
- *    
+ *
  *    pt2:
  *      The end point of the line.
- *    
+ *
  *    callBackDataPtr:
  *      A pointer to any application specific data that may have been
  *      passed to the callbacks through the iCallbackDataPtr parameter
  *      of the ATSUGlyphGetQuadraticPaths function.
- *  
+ *
  *  Result:
  *    Return status. Pass any errors you wish to propagate back to the
  *    original caller of ATSUGlyphGetQuadraticPaths through this return
@@ -511,7 +511,7 @@ type
 	ATSQuadraticLineUPP = ATSQuadraticLineProcPtr;
 {
  *  NewATSQuadraticLineUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -522,7 +522,7 @@ function NewATSQuadraticLineUPP( userRoutine: ATSQuadraticLineProcPtr ): ATSQuad
 
 {
  *  DisposeATSQuadraticLineUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -533,7 +533,7 @@ procedure DisposeATSQuadraticLineUPP( userUPP: ATSQuadraticLineUPP ); external n
 
 {
  *  InvokeATSQuadraticLineUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -544,30 +544,30 @@ function InvokeATSQuadraticLineUPP( const (*var*) pt1: Float32Point; const (*var
 
 {
  *  ATSQuadraticCurveProcPtr
- *  
+ *
  *  Discussion:
  *    A pointer to a client supplied callback function for handling
  *    glyph curve drawing operations. This callback handles operations
  *    to draw curves. The curve is a quadratic patch specified by a
  *    start point (pt1), and end point (pt2), and a single control
  *    point (controlPt).
- *  
+ *
  *  Parameters:
- *    
+ *
  *    pt1:
  *      The starting point of the curve.
- *    
+ *
  *    controlPt:
  *      The off-curve control point.
- *    
+ *
  *    pt2:
  *      The end point of the curve.
- *    
+ *
  *    callBackDataPtr:
  *      A pointer to any application specific data that may have been
  *      passed to the callbacks through the iCallbackDataPtr parameter
  *      of the ATSUGlyphGetQuadraticPaths function.
- *  
+ *
  *  Result:
  *    Return status. Pass any errors you wish to propagate back to the
  *    original caller of ATSUGlyphGetQuadraticPaths through this return
@@ -579,7 +579,7 @@ type
 	ATSQuadraticCurveUPP = ATSQuadraticCurveProcPtr;
 {
  *  NewATSQuadraticCurveUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -590,7 +590,7 @@ function NewATSQuadraticCurveUPP( userRoutine: ATSQuadraticCurveProcPtr ): ATSQu
 
 {
  *  DisposeATSQuadraticCurveUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -601,7 +601,7 @@ procedure DisposeATSQuadraticCurveUPP( userUPP: ATSQuadraticCurveUPP ); external
 
 {
  *  InvokeATSQuadraticCurveUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -612,19 +612,19 @@ function InvokeATSQuadraticCurveUPP( const (*var*) pt1: Float32Point; const (*va
 
 {
  *  ATSQuadraticClosePathProcPtr
- *  
+ *
  *  Discussion:
  *    A pointer to a client supplied callback function for handling
  *    glyph curve drawing operations. This callback handles operations
  *    to close the current drawing path.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    callBackDataPtr:
  *      A pointer to any application specific data that may have been
  *      passed to the callbacks through the iCallbackDataPtr parameter
  *      of the ATSUGlyphGetQuadraticPaths function.
- *  
+ *
  *  Result:
  *    Return status. Pass any errors you wish to propagate back to the
  *    original caller of ATSUGlyphGetQuadraticPaths through this return
@@ -636,7 +636,7 @@ type
 	ATSQuadraticClosePathUPP = ATSQuadraticClosePathProcPtr;
 {
  *  NewATSQuadraticClosePathUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -647,7 +647,7 @@ function NewATSQuadraticClosePathUPP( userRoutine: ATSQuadraticClosePathProcPtr 
 
 {
  *  DisposeATSQuadraticClosePathUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -658,7 +658,7 @@ procedure DisposeATSQuadraticClosePathUPP( userUPP: ATSQuadraticClosePathUPP ); 
 
 {
  *  InvokeATSQuadraticClosePathUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -670,14 +670,14 @@ function InvokeATSQuadraticClosePathUPP( callBackDataPtr: UnivPtr; userUPP: ATSQ
 {$ifc not TARGET_CPU_64}
 {
  *  ATSUGlyphGetQuadraticPaths()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTFontCreatePathForGlyph instead.
- *  
+ *
  *  Summary:
  *    Uses a callback mechanism to obtain a set of Quadratic outlines
  *    for a specified glyph in a specified font.
- *  
+ *
  *  Discussion:
  *    This function will allow you to use callbacks to obtain the exact
  *    outline of a specified glyph, in quadratic form. Although this
@@ -691,55 +691,55 @@ function InvokeATSQuadraticClosePathUPP( callBackDataPtr: UnivPtr; userUPP: ATSQ
  *    of ATSQuadraticNewPathProcPtr, ATSQuadraticLineProcPtr,
  *    ATSQuadraticCurveProcPtr, and ATSQuadraticClosePathProcPtr for
  *    more information about setting up the callbacks.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iATSUStyle:
  *      A style referring to a font you wish to obtain a set of glyph
  *      outlines from.
- *    
+ *
  *    iGlyphID:
  *      A ID number referring to the glyph for which you wish to obtain
  *      outline data. Use the ATSUI direct access functions in
  *      ATSUnicodeDirectAccess.h to obtain values to pass for this
  *      parameter.
- *    
+ *
  *    iNewPathProc:
  *      A pointer to a callback function for quadratic new path
  *      operations. See the definition of ATSQuadraticNewPathProcPtr
  *      for more information about creating, disposing, and invoking
  *      this type of Universal Procedure Pointer.
- *    
+ *
  *    iLineProc:
  *      A pointer to a callback function for quadratic LineTo
  *      operations. See the definition of ATSQuadraticLineProcPtr for
  *      more information about creating, disposing, and invoking this
  *      type of Universal Procedure Pointer.
- *    
+ *
  *    iCurveProc:
  *      A pointer to a callback function for quadratic curve
  *      operations. See the definition of ATSQuadraticCurveProcPtr for
  *      more information about creating, disposing, and invoking this
  *      type of Universal Procedure Pointer.
- *    
+ *
  *    iClosePathProc:
  *      A pointer to a callback function for quadratic close path
  *      operations. See the definition of ATSQuadraticClosePathProcPtr
  *      for more information about creating, disposing, and invoking
  *      this type of Universal Procedure Pointer.
- *    
+ *
  *    iCallbackDataPtr:
  *      Any valid pointer. Any application specific data you wish to
  *      pass to your callbacks may be sent through this parameter.
- *    
+ *
  *    oCallbackResult:
  *      On return, status returned by callback functions. If an error
  *      occurs, callbacks may communicate it through this parameter.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -754,22 +754,22 @@ function ATSUGlyphGetQuadraticPaths( iATSUStyle: ATSUStyle; iGlyphID: GlyphID; i
 
 {
  *  ATSCubicMoveToProcPtr
- *  
+ *
  *  Discussion:
  *    A pointer to a client supplied callback function for handling
  *    glyph curve drawing operations. This callback handles operations
  *    to move the current pen location.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    pt:
  *      The point to which to move the current pen location.
- *    
+ *
  *    callBackDataPtr:
  *      A pointer to any application specific data that may have been
  *      passed to the callbacks through the iCallbackDataPtr parameter
  *      of the ATSUGlyphGetCubicPaths function.
- *  
+ *
  *  Result:
  *    Return status. Pass any errors you wish to propagate back to the
  *    original caller of ATSUGlyphGetCubicPaths through this return
@@ -781,7 +781,7 @@ type
 	ATSCubicMoveToUPP = ATSCubicMoveToProcPtr;
 {
  *  NewATSCubicMoveToUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -792,7 +792,7 @@ function NewATSCubicMoveToUPP( userRoutine: ATSCubicMoveToProcPtr ): ATSCubicMov
 
 {
  *  DisposeATSCubicMoveToUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -803,7 +803,7 @@ procedure DisposeATSCubicMoveToUPP( userUPP: ATSCubicMoveToUPP ); external name 
 
 {
  *  InvokeATSCubicMoveToUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -814,23 +814,23 @@ function InvokeATSCubicMoveToUPP( const (*var*) pt: Float32Point; callBackDataPt
 
 {
  *  ATSCubicLineToProcPtr
- *  
+ *
  *  Discussion:
  *    A pointer to a client supplied callback function for handling
  *    glyph curve drawing operations. This callback handles operations
  *    to draw straight lines.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    pt:
  *      The end point of the line to be drawn. The starting point is
  *      whatever the current pen position is.
- *    
+ *
  *    callBackDataPtr:
  *      A pointer to any application specific data that may have been
  *      passed to the callbacks through the iCallbackDataPtr parameter
  *      of the ATSUGlyphGetCubicPaths function.
- *  
+ *
  *  Result:
  *    Return status. Pass any errors you wish to propagate back to the
  *    original caller of ATSUGlyphGetCubicPaths through this return
@@ -842,7 +842,7 @@ type
 	ATSCubicLineToUPP = ATSCubicLineToProcPtr;
 {
  *  NewATSCubicLineToUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -853,7 +853,7 @@ function NewATSCubicLineToUPP( userRoutine: ATSCubicLineToProcPtr ): ATSCubicLin
 
 {
  *  DisposeATSCubicLineToUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -864,7 +864,7 @@ procedure DisposeATSCubicLineToUPP( userUPP: ATSCubicLineToUPP ); external name 
 
 {
  *  InvokeATSCubicLineToUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -875,30 +875,30 @@ function InvokeATSCubicLineToUPP( const (*var*) pt: Float32Point; callBackDataPt
 
 {
  *  ATSCubicCurveToProcPtr
- *  
+ *
  *  Discussion:
  *    A pointer to a client supplied callback function for handling
  *    glyph curve drawing operations. This callback handles operations
  *    to draw a curve. The curve is a Bezier patch defined by two
  *    off-curve control points (pt1 and pt2), and an endpoint (pt3).
  *    The starting point is whatever the current pen position is.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    pt1:
  *      The first off-curve control point.
- *    
+ *
  *    pt2:
  *      The second off-curve control point.
- *    
+ *
  *    pt3:
  *      The end point of the curve.
- *    
+ *
  *    callBackDataPtr:
  *      A pointer to any application specific data that may have been
  *      passed to the callbacks through the iCallbackDataPtr parameter
  *      of the ATSUGlyphGetCubicPaths function.
- *  
+ *
  *  Result:
  *    Return status. Pass any errors you wish to propagate back to the
  *    original caller of ATSUGlyphGetCubicPaths through this return
@@ -910,7 +910,7 @@ type
 	ATSCubicCurveToUPP = ATSCubicCurveToProcPtr;
 {
  *  NewATSCubicCurveToUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -921,7 +921,7 @@ function NewATSCubicCurveToUPP( userRoutine: ATSCubicCurveToProcPtr ): ATSCubicC
 
 {
  *  DisposeATSCubicCurveToUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -932,7 +932,7 @@ procedure DisposeATSCubicCurveToUPP( userUPP: ATSCubicCurveToUPP ); external nam
 
 {
  *  InvokeATSCubicCurveToUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -943,19 +943,19 @@ function InvokeATSCubicCurveToUPP( const (*var*) pt1: Float32Point; const (*var*
 
 {
  *  ATSCubicClosePathProcPtr
- *  
+ *
  *  Discussion:
  *    A pointer to a client supplied callback function for handling
  *    glyph curve drawing operations. This callback handles operations
  *    to close the current drawing path.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    callBackDataPtr:
  *      A pointer to any application specific data that may have been
  *      passed to the callbacks through the iCallbackDataPtr parameter
  *      of the ATSUGlyphGetCubicPaths function.
- *  
+ *
  *  Result:
  *    Return status. Pass any errors you wish to propagate back to the
  *    original caller of ATSUGlyphGetCubicPaths through this return
@@ -967,7 +967,7 @@ type
 	ATSCubicClosePathUPP = ATSCubicClosePathProcPtr;
 {
  *  NewATSCubicClosePathUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -978,7 +978,7 @@ function NewATSCubicClosePathUPP( userRoutine: ATSCubicClosePathProcPtr ): ATSCu
 
 {
  *  DisposeATSCubicClosePathUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -989,7 +989,7 @@ procedure DisposeATSCubicClosePathUPP( userUPP: ATSCubicClosePathUPP ); external
 
 {
  *  InvokeATSCubicClosePathUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1001,14 +1001,14 @@ function InvokeATSCubicClosePathUPP( callBackDataPtr: UnivPtr; userUPP: ATSCubic
 {$ifc not TARGET_CPU_64}
 {
  *  ATSUGlyphGetCubicPaths()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTFontCreatePathForGlyph instead.
- *  
+ *
  *  Summary:
  *    Uses a callback mechanism to obtain a set of Cubic outlines for a
  *    specified glyph in a specified font.
- *  
+ *
  *  Discussion:
  *    This function will allow you to use callbacks to obtain the exact
  *    outline of a specified glyph, in cubic form. Although this
@@ -1022,55 +1022,55 @@ function InvokeATSCubicClosePathUPP( callBackDataPtr: UnivPtr; userUPP: ATSCubic
  *    of ATSCubicMoveToProcPtr, ATSCubicLineToProcPtr,
  *    ATSCubicCurveToProcPtr, and ATSCubicClosePathProcPtr for more
  *    information about setting up the callbacks.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iATSUStyle:
  *      A style referring to a font you wish to obtain a set of glyph
  *      outlines from.
- *    
+ *
  *    iGlyphID:
  *      A ID number referring to the glyph for which you wish to obtain
  *      outline data. Use the ATSUI direct access functions in
  *      ATSUnicodeDirectAccess.h to obtain values to pass for this
  *      parameter.
- *    
+ *
  *    iMoveToProc:
  *      A pointer to a callback function for cubic MoveTo operations.
  *      See the definition of ATSCubicMoveToProcPtr for more
  *      information about creating, disposing, and invoking this type
  *      of Universal Procedure Pointer.
- *    
+ *
  *    iLineToProc:
  *      A pointer to a callback function for cubic LineTo operations.
  *      See the definition of ATSCubicLineToProcPtr for more
  *      information about creating, disposing, and invoking this type
  *      of Universal Procedure Pointer.
- *    
+ *
  *    iCurveToProc:
  *      A pointer to a callback function for cubic CurveTo operations.
  *      See the definition of ATSCubicCurveToProcPtr for more
  *      information about creating, disposing, and invoking this type
  *      of Universal Procedure Pointer.
- *    
+ *
  *    iClosePathProc:
  *      A pointer to a callback function for cubic MoveTo operations.
  *      See the definition of ATSCubicClosePathProcPtr for more
  *      information about creating, disposing, and invoking this type
  *      of Universal Procedure Pointer.
- *    
+ *
  *    iCallbackDataPtr:
  *      Any valid pointer. Any application specific data you wish to
  *      pass to your callbacks may be sent through this parameter.
- *    
+ *
  *    oCallbackResult:
  *      On return, status returned by callback functions. If an error
  *      occurs, callbacks may communicate it through this parameter.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1082,13 +1082,13 @@ function ATSUGlyphGetCubicPaths( iATSUStyle: ATSUStyle; iGlyphID: GlyphID; iMove
 
 {
  *  ATSUGlyphGetCurvePaths()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTFontCreatePathForGlyph instead.
- *  
+ *
  *  Summary:
  *    Obtains glyph curve data without the use of callbacks.
- *  
+ *
  *  Discussion:
  *    This function will return glyph curve data in a single data
  *    structure rather than through the use of callbacks, but you must
@@ -1105,33 +1105,33 @@ function ATSUGlyphGetCubicPaths( iATSUStyle: ATSUStyle; iGlyphID: GlyphID; iMove
  *    call the ATSUGlyphGetCurvePaths again, passing a pointer to the
  *    array in the oPaths parameter. On return, the array contains the
  *    glyph outline data.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iATSUStyle:
  *      A style referring to a font you wish to obtain a set of glyph
  *      outlines from.
- *    
+ *
  *    iGlyphID:
  *      A ID number referring to the glyph for which you wish to obtain
  *      outline data. Use the ATSUI direct access functions in
  *      ATSUnicodeDirectAccess.h to obtain values to pass for this
  *      parameter.
- *    
+ *
  *    ioBufferSize:
  *      On input, the size of the buffer you have allocated for the
  *      oPaths parameter. On return, the actual size of the data
  *      structure that has been copied into the oPaths parameter.
- *    
+ *
  *    oPaths:
  *      On return, a data structure containing glyph outline
  *      information. See ATSTypes.h for a definition of this data
  *      structure.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1148,19 +1148,19 @@ function ATSUGlyphGetCurvePaths( iATSUStyle: ATSUStyle; iGlyphID: GlyphID; ioBuf
 { ---------------------------------------------------------------------------- }
 {
  *  ATSUGetGlyphInfo()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTRunGetGlyphsPtr,CTRunGetGlyphs, CTRunGetPositionsPtr,
  *    CTRunGetPositions, CTRunGetStringIndicesPtr,
  *    CTRunGetStringIndices, CTRunGetStringRange instead.
- *  
+ *
  *  Summary:
  *    Obtains a copy of the style and layout information for each glyph
  *    in a line.
- *  
+ *
  *  Discussion:
  *    Please see ATSUnicodeDirectAccess.h for replacement functions.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.3
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -1172,19 +1172,19 @@ function ATSUGetGlyphInfo( iTextLayout: ATSUTextLayout; iLineStart: UniCharArray
 
 {
  *  ATSUDrawGlyphInfo()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CTRunGetGlyphsPtr,CTRunGetGlyphs, CTRunGetPositionsPtr,
  *    CTRunGetPositions, CTRunGetStringIndicesPtr,
  *    CTRunGetStringIndices, CTRunGetStringRange instead.
- *  
+ *
  *  Summary:
  *    Draws glyphs at the specified location, based on style and layout
  *    information specified for each glyph.
- *  
+ *
  *  Discussion:
  *    Please see ATSUnicodeDirectAccess.h for replacement functions.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.3
  *    CarbonLib:        in CarbonLib 1.1 and later

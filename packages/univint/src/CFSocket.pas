@@ -220,7 +220,7 @@ type
 	CFSocketRef = ^__CFSocket; { an opaque type }
 	__CFSocket = record end;
 
-{ A CFSocket contains a native socket within a structure that can 
+{ A CFSocket contains a native socket within a structure that can
 be used to read from the socket in the background and make the data
 thus read available using a runloop source.  The callback used for
 this may be of three types, as specified by the callBackTypes
@@ -230,7 +230,7 @@ If kCFSocketReadCallBack is used, then data will not be
 automatically read, but the callback will be called when data
 is available to be read, or a new child socket is waiting to be
 accepted.
-    
+
 If kCFSocketAcceptCallBack is used, then new child sockets will be
 accepted and passed to the callback, with the data argument being
 a pointer to a CFSocketNativeHandle.  This is usable only with
@@ -251,49 +251,49 @@ an SInt32 error code if the connect failed.  kCFSocketConnectCallBack
 will never be sent more than once for a given socket.
 
 The callback types may also have kCFSocketWriteCallBack added to
-them, if large amounts of data are to be sent rapidly over the 
+them, if large amounts of data are to be sent rapidly over the
 socket and notification is desired when there is space in the
-kernel buffers so that the socket is writable again.  
+kernel buffers so that the socket is writable again.
 
 With a connection-oriented socket, if the connection is broken from the
-other end, then one final kCFSocketReadCallBack or kCFSocketDataCallBack 
-will occur.  In the case of kCFSocketReadCallBack, the underlying socket 
+other end, then one final kCFSocketReadCallBack or kCFSocketDataCallBack
+will occur.  In the case of kCFSocketReadCallBack, the underlying socket
 will have 0 bytes available to read.  In the case of kCFSocketDataCallBack,
 the data argument will be a CFDataRef of length 0.
 
-There are socket flags that may be set to control whether callbacks of 
-a given type are automatically reenabled after they are triggered, and 
+There are socket flags that may be set to control whether callbacks of
+a given type are automatically reenabled after they are triggered, and
 whether the underlying native socket will be closed when the CFSocket
-is invalidated.  By default read, accept, and data callbacks are 
+is invalidated.  By default read, accept, and data callbacks are
 automatically reenabled; write callbacks are not, and connect callbacks
 may not be, since they are sent once only.  Be careful about automatically
-reenabling read and write callbacks, since this implies that the 
+reenabling read and write callbacks, since this implies that the
 callbacks will be sent repeatedly if the socket remains readable or
 writable respectively.  Be sure to set these flags only for callbacks
 that your CFSocket actually possesses; the result of setting them for
 other callback types is undefined.
 
-Individual callbacks may also be enabled and disabled manually, whether 
-they are automatically reenabled or not.  If they are not automatically 
-reenabled, then they will need to be manually reenabled when the callback 
-is ready to be received again (and not sooner).  Even if they are 
+Individual callbacks may also be enabled and disabled manually, whether
+they are automatically reenabled or not.  If they are not automatically
+reenabled, then they will need to be manually reenabled when the callback
+is ready to be received again (and not sooner).  Even if they are
 automatically reenabled, there may be occasions when it will be useful
 to be able to manually disable them temporarily and then reenable them.
 Be sure to enable and disable only callbacks that your CFSocket actually
 possesses; the result of enabling and disabling other callback types is
 undefined.
 
-By default the underlying native socket will be closed when the CFSocket 
-is invalidated, but it will not be if kCFSocketCloseOnInvalidate is 
-turned off.  This can be useful in order to destroy a CFSocket but 
-continue to use the underlying native socket.  The CFSocket must 
-still be invalidated when it will no longer be used.  Do not in 
-either case close the underlying native socket without invalidating 
+By default the underlying native socket will be closed when the CFSocket
+is invalidated, but it will not be if kCFSocketCloseOnInvalidate is
+turned off.  This can be useful in order to destroy a CFSocket but
+continue to use the underlying native socket.  The CFSocket must
+still be invalidated when it will no longer be used.  Do not in
+either case close the underlying native socket without invalidating
 the CFSocket.
 
 Addresses are stored as CFDatas containing a struct sockaddr
 appropriate for the protocol family; make sure that all fields are
-filled in properly when passing in an address.  
+filled in properly when passing in an address.
 
 }
 
@@ -381,7 +381,7 @@ procedure CFSocketEnableCallBacks( s: CFSocketRef; callBackTypes: CFOptionFlags 
 { For convenience, a function is provided to send data using the socket with a timeout.  The timeout will be used only if the specified value is positive.  The address should be left NULL if the socket is already connected. }
 function CFSocketSendData( s: CFSocketRef; address: CFDataRef; data: CFDataRef; timeout: CFTimeInterval ): CFSocketError; external name '_CFSocketSendData';
 
-{ Generic name registry functionality (CFSocketRegisterValue, 
+{ Generic name registry functionality (CFSocketRegisterValue,
 CFSocketCopyRegisteredValue) allows the registration of any property
 list type.  Functions specific to CFSockets (CFSocketRegisterSocketData,
 CFSocketCopyRegisteredSocketData) register a CFData containing the

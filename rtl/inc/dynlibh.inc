@@ -18,7 +18,7 @@
 type
   TLibHandle = THandle;
   HINST = TLibHandle;
-  
+
 const
   NilHandle = TLibHandle(0);
 {$endif FPC_SYSTEM_HAS_SYSDLH}
@@ -69,8 +69,8 @@ Procedure SetDynLibsManager (Const New : TDynLibsManager; out Old: TDynLibsManag
 // Delphi compatibility, needs to be expanded when packages arrive.
 Type
   TEnumModuleFuncLW = function (HInstance: THandle; Data: Pointer): Boolean;
-  
-procedure EnumModules(Func: TEnumModuleFuncLW; Data: Pointer); 
 
-  
-  
+procedure EnumModules(Func: TEnumModuleFuncLW; Data: Pointer);
+
+
+

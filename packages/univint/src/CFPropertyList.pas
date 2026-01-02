@@ -218,7 +218,7 @@ const
 	kCFPropertyListImmutable = 0;
 	kCFPropertyListMutableContainers = 1;
 	kCFPropertyListMutableContainersAndLeaves = 2;
-    
+
 {
 	Creates a property list object from its XML description; xmlData should
 	be the raw bytes of that description, possibly the contents of an XML
@@ -226,7 +226,7 @@ const
 	and errorString is non-NULL, a human-readable description of the failure
 	is returned in errorString. It is the caller's responsibility to release
 	either the returned object or the error string, whichever is applicable.
- 
+
         This function is obsolete and will be deprecated soon. See CFPropertyListCreateWithData() for a replacement.
 }
 function CFPropertyListCreateFromXMLData( allocator: CFAllocatorRef; xmlData: CFDataRef; mutabilityOption: CFOptionFlags; errorString: CFStringRefPtr ): CFPropertyListRef; external name '_CFPropertyListCreateFromXMLData';
@@ -240,7 +240,7 @@ function CFPropertyListCreateFromXMLData( allocator: CFAllocatorRef; xmlData: CF
 	appropriate for writing out to an XML file. Note that a data, not a
 	string, is returned because the bytes contain in them a description
 	of the string encoding used.
- 
+
         This function is obsolete and will be deprecated soon. See CFPropertyListCreateData() for a replacement.
 }
 function CFPropertyListCreateXMLData( allocator: CFAllocatorRef; propertyList: CFPropertyListRef ): CFDataRef; external name '_CFPropertyListCreateXMLData';
@@ -278,7 +278,7 @@ function CFPropertyListIsValid( plist: CFPropertyListRef; format: CFPropertyList
  * reading stream to end wherever the writing ended, so that the
  * end of the plist data can be identified. Returns the number of bytes
  * written, or 0 on error. Error messages are not currently localized, but
- * may be in the future, so they are not suitable for comparison. 
+ * may be in the future, so they are not suitable for comparison.
  *
  * This function is obsolete and will be deprecated soon. See CFPropertyListWrite() for a replacement. }
 function CFPropertyListWriteToStream( propertyList: CFPropertyListRef; stream: CFWriteStreamRef; format: CFPropertyListFormat; var errorString: CFStringRef ): CFIndex; external name '_CFPropertyListWriteToStream';
@@ -292,7 +292,7 @@ function CFPropertyListWriteToStream( propertyList: CFPropertyListRef; stream: C
  * of the stream, which is expected to be the end of the plist, or up to the
  * number of bytes given by the length parameter if it is not 0. Error messages
  * are not currently localized, but may be in the future, so they are not
- * suitable for comparison. 
+ * suitable for comparison.
  *
  * This function is obsolete and will be deprecated soon. See CFPropertyListCreateWithStream() for a replacement. }
 function CFPropertyListCreateFromStream( allocator: CFAllocatorRef; stream: CFReadStreamRef; streamLength: CFIndex; mutabilityOption: CFOptionFlags; var format: CFPropertyListFormat; var errorString: CFStringRef ): CFPropertyListRef; external name '_CFPropertyListCreateFromStream';

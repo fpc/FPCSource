@@ -53,8 +53,8 @@ const
  syscall_nr_statfs4                     = 157;  // COMPAT4x
  syscall_nr_fstatfs4                    = 158;  // COMPAT4x
  syscall_nr_getfsstat                   = 557;
- syscall_nr_statfs                      = 396;  
- syscall_nr_fstatfs                     = 397;  
+ syscall_nr_statfs                      = 396;
+ syscall_nr_fstatfs                     = 397;
  syscall_nr_fsync                       =  95;
  syscall_nr_ftruncate                   = 480;
  syscall_nr_getdents                    = 272;

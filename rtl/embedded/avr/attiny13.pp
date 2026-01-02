@@ -78,7 +78,7 @@ const
   AIN1D = 1; // AIN1 Digital Input Disable
   AIN0D = 0; // AIN0 Digital Input Disable
   // EECR
-  EEPM = 4; // 
+  EEPM = 4; //
   EERIE = 3; // EEProm Ready Interrupt Enable
   EEMWE = 2; // EEPROM Master Write Enable
   EEWE = 1; // EEPROM Write Enable

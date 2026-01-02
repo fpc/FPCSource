@@ -35,7 +35,7 @@ Options control the behaviour of the object. It can be a set of the
 following constants:
 
 poExecuteOnCreate
-  If you include this option, the constructor will immediatly
+  If you include this option, the constructor will immediately
   call the Execute method, using default settings for all parameters.
   This has the effect that the program is run at once.
 
@@ -54,13 +54,13 @@ poUsePipes
 
 poNoConsole
   If you include this option, the application will not display a
-  console, untill it explicitly needs one or requests one using the
+  console, until it explicitly needs one or requests one using the
   AllocConsole method. This is very convenient in combination with the
   poUsePipes option, allowing you to run an application without getting
   the Console window, and being able to read it's output at once.
 
 poStderrToOutPut
-  If This option is included, then the error desciptor is redirected to
+  If This option is included, then the error descriptor is redirected to
   the standard output director, i.e. all output goes to the standard
   output.
 
@@ -89,7 +89,7 @@ Destructor Destroy; virtual;
   you may kill it.
 
 Procedure Execute; virtual;
-  This actually runs the application. It will return immediatly, unless
+  This actually runs the application. It will return immediately, unless
   you specified the poWaitOnExit option when creating the object.
 
 Function Resume : Integer; virtual;
@@ -109,8 +109,8 @@ Function Terminate (AExitCode : Integer): Boolean; virtual;
   It returns True on succes, False on failure.
 
 Function WaitOnExit : Boolean;
-  This function returns true if the wait for the process exit was succesful,
-  false if some error occurded. It returns immediatly if the application is
+  This function returns true if the wait for the process exit was successful,
+  false if some error occurred. It returns immediately if the application is
   not running, and waits for the application to finish if it was still running.
 
 Property ApplicationName : String;
@@ -143,7 +143,7 @@ Property CreationFlags : Cardinal;
   settings tat you may have made.
 
 Property CurrentDirectory : String;
-  When set, the process wil start in the directory that you have set
+  When set, the process will start in the directory that you have set
   for it.
 
 Property DeskTop : String;
@@ -164,7 +164,7 @@ Property ExitStatus : Integer;
 
 Property ExitCode : Integer;
   Read-Only
-  This returns the exit code as returned by the application, if it exited correcly.
+  This returns the exit code as returned by the application, if it exited correctly.
   It returns 0 if the process didn't exit correctly (e.g. a signal).
 
 Property FillAttribute : Integer;
@@ -210,7 +210,7 @@ Property ProcessInformation : TProcessInformation;
 
 Property Running : Boolean;
   Read-Only
-  Retruns True if the application is still running, False otherwise.
+  Returns True if the application is still running, False otherwise.
   If the application is suspended or not doesn't affect the result.
 
 Property ShowWindow : Word;

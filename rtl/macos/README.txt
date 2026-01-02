@@ -1,4 +1,4 @@
-The info in this file has moved to 
+The info in this file has moved to
 
 http://www.freepascal.org/wiki/index.php/Mode_MacPas
 

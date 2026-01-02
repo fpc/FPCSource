@@ -1,17 +1,17 @@
 {
      File:       QuickTime/ImageCompression.h
- 
+
      Contains:   QuickTime Image Compression Interfaces.
- 
+
      Version:    QuickTime 7.7.1
- 
+
      Copyright:  © 1990-2012 by Apple Inc., all rights reserved
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
@@ -730,7 +730,7 @@ type
 
 {
  *  NewICMDataUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -741,7 +741,7 @@ function NewICMDataUPP( userRoutine: ICMDataProcPtr ): ICMDataUPP; external name
 
 {
  *  NewICMFlushUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -752,7 +752,7 @@ function NewICMFlushUPP( userRoutine: ICMFlushProcPtr ): ICMFlushUPP; external n
 
 {
  *  NewICMCompletionUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -763,7 +763,7 @@ function NewICMCompletionUPP( userRoutine: ICMCompletionProcPtr ): ICMCompletion
 
 {
  *  NewICMProgressUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -774,7 +774,7 @@ function NewICMProgressUPP( userRoutine: ICMProgressProcPtr ): ICMProgressUPP; e
 
 {
  *  NewStdPixUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -785,7 +785,7 @@ function NewStdPixUPP( userRoutine: StdPixProcPtr ): StdPixUPP; external name '_
 
 {
  *  NewQDPixUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -796,7 +796,7 @@ function NewQDPixUPP( userRoutine: QDPixProcPtr ): QDPixUPP; external name '_New
 
 {
  *  NewICMAlignmentUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -807,7 +807,7 @@ function NewICMAlignmentUPP( userRoutine: ICMAlignmentProcPtr ): ICMAlignmentUPP
 
 {
  *  NewICMCursorShieldedUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -818,7 +818,7 @@ function NewICMCursorShieldedUPP( userRoutine: ICMCursorShieldedProcPtr ): ICMCu
 
 {
  *  NewICMMemoryDisposedUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -829,7 +829,7 @@ function NewICMMemoryDisposedUPP( userRoutine: ICMMemoryDisposedProcPtr ): ICMMe
 
 {
  *  NewICMConvertDataFormatUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -840,7 +840,7 @@ function NewICMConvertDataFormatUPP( userRoutine: ICMConvertDataFormatProcPtr ):
 
 {
  *  DisposeICMDataUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -851,7 +851,7 @@ procedure DisposeICMDataUPP( userUPP: ICMDataUPP ); external name '_DisposeICMDa
 
 {
  *  DisposeICMFlushUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -862,7 +862,7 @@ procedure DisposeICMFlushUPP( userUPP: ICMFlushUPP ); external name '_DisposeICM
 
 {
  *  DisposeICMCompletionUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -873,7 +873,7 @@ procedure DisposeICMCompletionUPP( userUPP: ICMCompletionUPP ); external name '_
 
 {
  *  DisposeICMProgressUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -884,7 +884,7 @@ procedure DisposeICMProgressUPP( userUPP: ICMProgressUPP ); external name '_Disp
 
 {
  *  DisposeStdPixUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -895,7 +895,7 @@ procedure DisposeStdPixUPP( userUPP: StdPixUPP ); external name '_DisposeStdPixU
 
 {
  *  DisposeQDPixUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -906,7 +906,7 @@ procedure DisposeQDPixUPP( userUPP: QDPixUPP ); external name '_DisposeQDPixUPP'
 
 {
  *  DisposeICMAlignmentUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -917,7 +917,7 @@ procedure DisposeICMAlignmentUPP( userUPP: ICMAlignmentUPP ); external name '_Di
 
 {
  *  DisposeICMCursorShieldedUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -928,7 +928,7 @@ procedure DisposeICMCursorShieldedUPP( userUPP: ICMCursorShieldedUPP ); external
 
 {
  *  DisposeICMMemoryDisposedUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -939,7 +939,7 @@ procedure DisposeICMMemoryDisposedUPP( userUPP: ICMMemoryDisposedUPP ); external
 
 {
  *  DisposeICMConvertDataFormatUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -950,7 +950,7 @@ procedure DisposeICMConvertDataFormatUPP( userUPP: ICMConvertDataFormatUPP ); ex
 
 {
  *  InvokeICMDataUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -961,7 +961,7 @@ function InvokeICMDataUPP( var dataP: Ptr; bytesNeeded: SIGNEDLONG; refcon: SIGN
 
 {
  *  InvokeICMFlushUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -972,7 +972,7 @@ function InvokeICMFlushUPP( data: Ptr; bytesAdded: SIGNEDLONG; refcon: SIGNEDLON
 
 {
  *  InvokeICMCompletionUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -983,7 +983,7 @@ procedure InvokeICMCompletionUPP( result: OSErr; flags: SInt16; refcon: SIGNEDLO
 
 {
  *  InvokeICMProgressUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -994,7 +994,7 @@ function InvokeICMProgressUPP( message: SInt16; completeness: Fixed; refcon: SIG
 
 {
  *  InvokeStdPixUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1005,7 +1005,7 @@ procedure InvokeStdPixUPP( var src: PixMap; var srcRect: Rect; var matrix: Matri
 
 {
  *  InvokeQDPixUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1016,7 +1016,7 @@ procedure InvokeQDPixUPP( var src: PixMap; var srcRect: Rect; var matrix: Matrix
 
 {
  *  InvokeICMAlignmentUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1027,7 +1027,7 @@ procedure InvokeICMAlignmentUPP( var rp: Rect; refcon: SIGNEDLONG; userUPP: ICMA
 
 {
  *  InvokeICMCursorShieldedUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1038,7 +1038,7 @@ procedure InvokeICMCursorShieldedUPP( const (*var*) r: Rect; refcon: UnivPtr; fl
 
 {
  *  InvokeICMMemoryDisposedUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1049,7 +1049,7 @@ procedure InvokeICMMemoryDisposedUPP( memoryBlock: Ptr; refcon: UnivPtr; userUPP
 
 {
  *  InvokeICMConvertDataFormatUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1061,7 +1061,7 @@ function InvokeICMConvertDataFormatUPP( refCon: UnivPtr; flags: SIGNEDLONG; desi
 
 {
  *  CodecManagerVersion()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1074,7 +1074,7 @@ function CodecManagerVersion( var version: SIGNEDLONG ): OSErr; external name '_
 
 {
  *  GetCodecNameList()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1087,7 +1087,7 @@ function GetCodecNameList( var list: CodecNameSpecListPtr; showAll: SInt16 ): OS
 
 {
  *  DisposeCodecNameList()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1100,7 +1100,7 @@ function DisposeCodecNameList( list: CodecNameSpecListPtr ): OSErr; external nam
 
 {
  *  GetCodecInfo()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1113,7 +1113,7 @@ function GetCodecInfo( var info: CodecInfo; cType: CodecType; codec: CodecCompon
 
 {
  *  GetMaxCompressionSize()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1126,7 +1126,7 @@ function GetMaxCompressionSize( src: PixMapHandle; const (*var*) srcRect: Rect; 
 
 {
  *  GetCSequenceMaxCompressionSize()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1139,7 +1139,7 @@ function GetCSequenceMaxCompressionSize( seqID: ImageSequence; src: PixMapHandle
 
 {
  *  GetCompressionTime()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1152,7 +1152,7 @@ function GetCompressionTime( src: PixMapHandle; const (*var*) srcRect: Rect; col
 
 {
  *  CompressImage()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1165,7 +1165,7 @@ function CompressImage( src: PixMapHandle; const (*var*) srcRect: Rect; quality:
 
 {
  *  FCompressImage()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1178,7 +1178,7 @@ function FCompressImage( src: PixMapHandle; const (*var*) srcRect: Rect; colorDe
 
 {
  *  DecompressImage()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1191,7 +1191,7 @@ function DecompressImage( data: Ptr; desc: ImageDescriptionHandle; dst: PixMapHa
 
 {
  *  FDecompressImage()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1205,7 +1205,7 @@ function FDecompressImage( data: Ptr; desc: ImageDescriptionHandle; dst: PixMapH
 { For video compression, consider using ICMCompressionSessionCreate etc. instead of CompressSequenceBegin etc. }
 {
  *  CompressSequenceBegin()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1218,7 +1218,7 @@ function CompressSequenceBegin( var seqID: ImageSequence; src: PixMapHandle; pre
 
 {
  *  CompressSequenceFrame()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1232,7 +1232,7 @@ function CompressSequenceFrame( seqID: ImageSequence; src: PixMapHandle; const (
 { For video decompression, consider using ICMDecompressionSessionCreate etc. instead of DecompressSequenceBegin etc. }
 {
  *  DecompressSequenceBegin()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1246,7 +1246,7 @@ function DecompressSequenceBegin( var seqID: ImageSequence; desc: ImageDescripti
 { For video decompression, consider using ICMDecompressionSessionCreate etc. instead of DecompressSequenceBeginS etc. }
 {
  *  DecompressSequenceBeginS()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1259,7 +1259,7 @@ function DecompressSequenceBeginS( var seqID: ImageSequence; desc: ImageDescript
 
 {
  *  DecompressSequenceFrame()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1272,7 +1272,7 @@ function DecompressSequenceFrame( seqID: ImageSequence; data: Ptr; inFlags: Code
 
 {
  *  DecompressSequenceFrameS()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1285,7 +1285,7 @@ function DecompressSequenceFrameS( seqID: ImageSequence; data: Ptr; dataSize: SI
 
 {
  *  DecompressSequenceFrameWhen()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1298,7 +1298,7 @@ function DecompressSequenceFrameWhen( seqID: ImageSequence; data: Ptr; dataSize:
 
 {
  *  CDSequenceFlush()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1311,7 +1311,7 @@ function CDSequenceFlush( seqID: ImageSequence ): OSErr; external name '_CDSeque
 
 {
  *  SetDSequenceMatrix()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1324,7 +1324,7 @@ function SetDSequenceMatrix( seqID: ImageSequence; matrix: MatrixRecordPtr ): OS
 
 {
  *  GetDSequenceMatrix()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -1337,7 +1337,7 @@ function GetDSequenceMatrix( seqID: ImageSequence; matrix: MatrixRecordPtr ): OS
 
 {
  *  SetDSequenceMatte()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1350,7 +1350,7 @@ function SetDSequenceMatte( seqID: ImageSequence; matte: PixMapHandle; const (*v
 
 {
  *  SetDSequenceMask()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1363,7 +1363,7 @@ function SetDSequenceMask( seqID: ImageSequence; mask: RgnHandle ): OSErr; exter
 
 {
  *  SetDSequenceTransferMode()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1376,7 +1376,7 @@ function SetDSequenceTransferMode( seqID: ImageSequence; mode: SInt16; const (*v
 
 {
  *  SetDSequenceDataProc()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1389,7 +1389,7 @@ function SetDSequenceDataProc( seqID: ImageSequence; dataProc: ICMDataProcRecord
 
 {
  *  SetDSequenceAccuracy()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1402,7 +1402,7 @@ function SetDSequenceAccuracy( seqID: ImageSequence; accuracy: CodecQ ): OSErr; 
 
 {
  *  SetDSequenceSrcRect()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1415,7 +1415,7 @@ function SetDSequenceSrcRect( seqID: ImageSequence; const (*var*) srcRect: Rect 
 
 {
  *  SetDSequenceFlags()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -1445,7 +1445,7 @@ const
 
 {
  *  ICMSequenceGetInfo()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -1458,7 +1458,7 @@ function ICMSequenceGetInfo( seqID: ImageSequence; which: OSType; data: UnivPtr 
 
 {
  *  ICMSequenceSetInfo()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -1471,7 +1471,7 @@ function ICMSequenceSetInfo( seqID: ImageSequence; which: OSType; data: UnivPtr;
 
 {
  *  GetDSequenceImageBuffer()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1484,7 +1484,7 @@ function GetDSequenceImageBuffer( seqID: ImageSequence; var gworld: GWorldPtr ):
 
 {
  *  GetDSequenceScreenBuffer()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1497,7 +1497,7 @@ function GetDSequenceScreenBuffer( seqID: ImageSequence; var gworld: GWorldPtr )
 
 {
  *  SetCSequenceQuality()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1510,7 +1510,7 @@ function SetCSequenceQuality( seqID: ImageSequence; spatialQuality: CodecQ; temp
 
 {
  *  SetCSequencePrev()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1523,7 +1523,7 @@ function SetCSequencePrev( seqID: ImageSequence; prev: PixMapHandle; const (*var
 
 {
  *  SetCSequenceFlushProc()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1536,7 +1536,7 @@ function SetCSequenceFlushProc( seqID: ImageSequence; flushProc: ICMFlushProcRec
 
 {
  *  SetCSequenceKeyFrameRate()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1549,7 +1549,7 @@ function SetCSequenceKeyFrameRate( seqID: ImageSequence; keyFrameRate: SIGNEDLON
 
 {
  *  GetCSequenceKeyFrameRate()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1562,7 +1562,7 @@ function GetCSequenceKeyFrameRate( seqID: ImageSequence; var keyFrameRate: SIGNE
 
 {
  *  GetCSequencePrevBuffer()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1575,7 +1575,7 @@ function GetCSequencePrevBuffer( seqID: ImageSequence; var gworld: GWorldPtr ): 
 
 {
  *  CDSequenceBusy()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1588,7 +1588,7 @@ function CDSequenceBusy( seqID: ImageSequence ): OSErr; external name '_CDSequen
 
 {
  *  CDSequenceEnd()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1601,7 +1601,7 @@ function CDSequenceEnd( seqID: ImageSequence ): OSErr; external name '_CDSequenc
 
 {
  *  CDSequenceEquivalentImageDescription()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1614,7 +1614,7 @@ function CDSequenceEquivalentImageDescription( seqID: ImageSequence; newDesc: Im
 
 {
  *  CDSequenceEquivalentImageDescriptionS()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -1627,7 +1627,7 @@ function CDSequenceEquivalentImageDescriptionS( seqID: ImageSequence; newDesc: I
 
 {
  *  ReplaceDSequenceImageDescription()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -1640,7 +1640,7 @@ function ReplaceDSequenceImageDescription( seqID: ImageSequence; newDesc: ImageD
 
 {
  *  GetCompressedImageSize()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1653,7 +1653,7 @@ function GetCompressedImageSize( desc: ImageDescriptionHandle; data: Ptr; buffer
 
 {
  *  GetSimilarity()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1675,7 +1675,7 @@ const
 
 {
  *  GetImageDescriptionCTable()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1688,7 +1688,7 @@ function GetImageDescriptionCTable( desc: ImageDescriptionHandle; var ctable: CT
 
 {
  *  SetImageDescriptionCTable()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1701,7 +1701,7 @@ function SetImageDescriptionCTable( desc: ImageDescriptionHandle; ctable: CTabHa
 
 {
  *  GetImageDescriptionExtension()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1714,7 +1714,7 @@ function GetImageDescriptionExtension( desc: ImageDescriptionHandle; var extensi
 
 {
  *  AddImageDescriptionExtension()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1727,7 +1727,7 @@ function AddImageDescriptionExtension( desc: ImageDescriptionHandle; extension: 
 
 {
  *  RemoveImageDescriptionExtension()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1740,7 +1740,7 @@ function RemoveImageDescriptionExtension( desc: ImageDescriptionHandle; idType: 
 
 {
  *  CountImageDescriptionExtensionType()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1753,7 +1753,7 @@ function CountImageDescriptionExtensionType( desc: ImageDescriptionHandle; idTyp
 
 {
  *  GetNextImageDescriptionExtensionType()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1766,7 +1766,7 @@ function GetNextImageDescriptionExtensionType( desc: ImageDescriptionHandle; var
 
 {
  *  FindCodec()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1779,7 +1779,7 @@ function FindCodec( cType: CodecType; specCodec: CodecComponent; var compressor:
 
 {
  *  CompressPicture()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1792,7 +1792,7 @@ function CompressPicture( srcPicture: PicHandle; dstPicture: PicHandle; quality:
 
 {
  *  FCompressPicture()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1805,7 +1805,7 @@ function FCompressPicture( srcPicture: PicHandle; dstPicture: PicHandle; colorDe
 
 {
  *  CompressPictureFile()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1818,7 +1818,7 @@ function CompressPictureFile( srcRefNum: SInt16; dstRefNum: SInt16; quality: Cod
 
 {
  *  FCompressPictureFile()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1831,7 +1831,7 @@ function FCompressPictureFile( srcRefNum: SInt16; dstRefNum: SInt16; colorDepth:
 
 {
  *  GetPictureFileHeader()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1844,7 +1844,7 @@ function GetPictureFileHeader( refNum: SInt16; var frame: Rect; var header: Open
 
 {
  *  DrawPictureFile()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1857,7 +1857,7 @@ function DrawPictureFile( refNum: SInt16; const (*var*) frame: Rect; progressPro
 
 {
  *  DrawTrimmedPicture()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1870,7 +1870,7 @@ function DrawTrimmedPicture( srcPicture: PicHandle; const (*var*) frame: Rect; t
 
 {
  *  DrawTrimmedPictureFile()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1883,7 +1883,7 @@ function DrawTrimmedPictureFile( srcRefnum: SInt16; const (*var*) frame: Rect; t
 
 {
  *  MakeThumbnailFromPicture()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1896,7 +1896,7 @@ function MakeThumbnailFromPicture( picture: PicHandle; colorDepth: SInt16; thumb
 
 {
  *  MakeThumbnailFromPictureFile()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1909,7 +1909,7 @@ function MakeThumbnailFromPictureFile( refNum: SInt16; colorDepth: SInt16; thumb
 
 {
  *  MakeThumbnailFromPixMap()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1922,7 +1922,7 @@ function MakeThumbnailFromPixMap( src: PixMapHandle; const (*var*) srcRect: Rect
 
 {
  *  TrimImage()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1935,7 +1935,7 @@ function TrimImage( desc: ImageDescriptionHandle; inData: Ptr; inBufferSize: SIG
 
 {
  *  ConvertImage()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1948,7 +1948,7 @@ function ConvertImage( srcDD: ImageDescriptionHandle; srcData: Ptr; colorDepth: 
 
 {
  *  GetCompressedPixMapInfo()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1961,7 +1961,7 @@ function GetCompressedPixMapInfo( pix: PixMapPtr; var desc: ImageDescriptionHand
 
 {
  *  SetCompressedPixMapInfo()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1974,7 +1974,7 @@ function SetCompressedPixMapInfo( pix: PixMapPtr; desc: ImageDescriptionHandle; 
 
 {
  *  StdPix()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1987,7 +1987,7 @@ procedure StdPix( src: PixMapPtr; const (*var*) srcRect: Rect; matrix: MatrixRec
 
 {
  *  TransformRgn()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2003,7 +2003,7 @@ function TransformRgn( matrix: MatrixRecordPtr; rgn: RgnHandle ): OSErr; externa
 **********}
 {
  *  SFGetFilePreview()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -2014,7 +2014,7 @@ function TransformRgn( matrix: MatrixRecordPtr; rgn: RgnHandle ): OSErr; externa
 
 {
  *  SFPGetFilePreview()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -2025,7 +2025,7 @@ function TransformRgn( matrix: MatrixRecordPtr; rgn: RgnHandle ): OSErr; externa
 
 {
  *  StandardGetFilePreview()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -2036,7 +2036,7 @@ function TransformRgn( matrix: MatrixRecordPtr; rgn: RgnHandle ): OSErr; externa
 
 {
  *  CustomGetFilePreview()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -2047,7 +2047,7 @@ function TransformRgn( matrix: MatrixRecordPtr; rgn: RgnHandle ): OSErr; externa
 
 {
  *  MakeFilePreview()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2060,7 +2060,7 @@ function MakeFilePreview( resRefNum: SInt16; progress: ICMProgressProcRecordPtr 
 
 {
  *  AddFilePreview()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2084,7 +2084,7 @@ type
 	PreviewResource = ^PreviewResourcePtr;
 {
  *  AlignScreenRect()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2097,7 +2097,7 @@ procedure AlignScreenRect( var rp: Rect; alignmentProc: ICMAlignmentProcRecordPt
 
 {
  *  AlignWindow()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2110,7 +2110,7 @@ procedure AlignWindow( wp: WindowRef; front: Boolean; const (*var*) alignmentRec
 
 {
  *  DragAlignedWindow()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2123,7 +2123,7 @@ procedure DragAlignedWindow( wp: WindowRef; startPt: Point; var boundsRect: Rect
 
 {
  *  DragAlignedGrayRgn()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2136,7 +2136,7 @@ function DragAlignedGrayRgn( theRgn: RgnHandle; startPt: Point; var boundsRect: 
 
 {
  *  SetCSequenceDataRateParams()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2149,7 +2149,7 @@ function SetCSequenceDataRateParams( seqID: ImageSequence; params: DataRateParam
 
 {
  *  SetCSequenceFrameNumber()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2162,7 +2162,7 @@ function SetCSequenceFrameNumber( seqID: ImageSequence; frameNumber: SIGNEDLONG 
 
 {
  *  SetCSequencePreferredPacketSize()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2175,7 +2175,7 @@ function SetCSequencePreferredPacketSize( seqID: ImageSequence; preferredPacketS
 
 {
  *  NewImageGWorld()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2188,7 +2188,7 @@ function NewImageGWorld( var gworld: GWorldPtr; idh: ImageDescriptionHandle; fla
 
 {
  *  GetCSequenceDataRateParams()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2201,7 +2201,7 @@ function GetCSequenceDataRateParams( seqID: ImageSequence; params: DataRateParam
 
 {
  *  GetCSequenceFrameNumber()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2214,7 +2214,7 @@ function GetCSequenceFrameNumber( seqID: ImageSequence; var frameNumber: SIGNEDL
 
 {
  *  GetBestDeviceRect()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2227,7 +2227,7 @@ function GetBestDeviceRect( var gdh: GDHandle; var rp: Rect ): OSErr; external n
 
 {
  *  SetSequenceProgressProc()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2240,7 +2240,7 @@ function SetSequenceProgressProc( seqID: ImageSequence; var progressProc: ICMPro
 
 {
  *  GDHasScale()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2253,7 +2253,7 @@ function GDHasScale( gdh: GDHandle; depth: SInt16; var scale: Fixed ): OSErr; ex
 
 {
  *  GDGetScale()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2266,7 +2266,7 @@ function GDGetScale( gdh: GDHandle; var scale: Fixed; var flags: SInt16 ): OSErr
 
 {
  *  GDSetScale()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2279,7 +2279,7 @@ function GDSetScale( gdh: GDHandle; scale: Fixed; flags: SInt16 ): OSErr; extern
 
 {
  *  ICMShieldSequenceCursor()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2292,7 +2292,7 @@ function ICMShieldSequenceCursor( seqID: ImageSequence ): OSErr; external name '
 
 {
  *  ICMDecompressComplete()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2305,7 +2305,7 @@ procedure ICMDecompressComplete( seqID: ImageSequence; err: OSErr; flag: SInt16;
 
 {
  *  ICMDecompressCompleteS()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2318,7 +2318,7 @@ function ICMDecompressCompleteS( seqID: ImageSequence; err: OSErr; flag: SInt16;
 
 {
  *  ICMSequenceLockBits()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2331,7 +2331,7 @@ function ICMSequenceLockBits( seqID: ImageSequence; dst: PixMapPtr; flags: SIGNE
 
 {
  *  ICMSequenceUnlockBits()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2367,7 +2367,7 @@ type
 { IMPORTANT: Fill in theInfo->size with sizeof(ICMPixelFormatInfo) before calling ICMGetPixelFormatInfo }
 {
  *  ICMGetPixelFormatInfo()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2381,7 +2381,7 @@ function ICMGetPixelFormatInfo( PixelFormat: OSType; theInfo: ICMPixelFormatInfo
 { IMPORTANT: Fill in theInfo->size with sizeof(ICMPixelFormatInfo) before calling ICMSetPixelFormatInfo }
 {
  *  ICMSetPixelFormatInfo()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2400,7 +2400,7 @@ const
 
 {
  *  ICMSequenceGetChainMember()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2413,7 +2413,7 @@ function ICMSequenceGetChainMember( seqID: ImageSequence; var retSeqID: ImageSeq
 
 {
  *  SetDSequenceTimeCode()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2426,7 +2426,7 @@ function SetDSequenceTimeCode( seqID: ImageSequence; timeCodeFormat: UnivPtr; ti
 
 {
  *  CDSequenceNewMemory()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2439,7 +2439,7 @@ function CDSequenceNewMemory( seqID: ImageSequence; var data: Ptr; dataSize: Siz
 
 {
  *  CDSequenceDisposeMemory()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2452,7 +2452,7 @@ function CDSequenceDisposeMemory( seqID: ImageSequence; data: Ptr ): OSErr; exte
 
 {
  *  CDSequenceNewDataSource()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2465,7 +2465,7 @@ function CDSequenceNewDataSource( seqID: ImageSequence; var sourceID: ImageSeque
 
 {
  *  CDSequenceDisposeDataSource()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2478,7 +2478,7 @@ function CDSequenceDisposeDataSource( sourceID: ImageSequenceDataSource ): OSErr
 
 {
  *  CDSequenceSetSourceData()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2491,7 +2491,7 @@ function CDSequenceSetSourceData( sourceID: ImageSequenceDataSource; data: UnivP
 
 {
  *  CDSequenceChangedSourceData()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2504,7 +2504,7 @@ function CDSequenceChangedSourceData( sourceID: ImageSequenceDataSource ): OSErr
 
 {
  *  CDSequenceSetSourceDataQueue()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2517,7 +2517,7 @@ function CDSequenceSetSourceDataQueue( sourceID: ImageSequenceDataSource; dataQu
 
 {
  *  CDSequenceGetDataSource()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2530,7 +2530,7 @@ function CDSequenceGetDataSource( seqID: ImageSequence; var sourceID: ImageSeque
 
 {
  *  PtInDSequenceData()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2543,7 +2543,7 @@ function PtInDSequenceData( seqID: ImageSequence; data: UnivPtr; dataSize: Size;
 
 {
  *  HitTestDSequenceData()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2556,7 +2556,7 @@ function HitTestDSequenceData( seqID: ImageSequence; data: UnivPtr; dataSize: Si
 
 {
  *  SetDSequenceNonScheduledDisplayTime()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -2569,7 +2569,7 @@ function SetDSequenceNonScheduledDisplayTime( sequence: ImageSequence; displayTi
 
 {
  *  GetDSequenceNonScheduledDisplayTime()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -2582,7 +2582,7 @@ function GetDSequenceNonScheduledDisplayTime( sequence: ImageSequence; var displ
 
 {
  *  SetDSequenceNonScheduledDisplayDirection()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -2595,7 +2595,7 @@ function SetDSequenceNonScheduledDisplayDirection( sequence: ImageSequence; rate
 
 {
  *  GetDSequenceNonScheduledDisplayDirection()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -2608,7 +2608,7 @@ function GetDSequenceNonScheduledDisplayDirection( sequence: ImageSequence; var 
 
 {
  *  GetGraphicsImporterForFile()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2621,7 +2621,7 @@ function GetGraphicsImporterForFile( const (*var*) theFile: FSSpec; var gi: Comp
 
 {
  *  GetGraphicsImporterForDataRef()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2637,7 +2637,7 @@ const
 
 {
  *  GetGraphicsImporterForFileWithFlags()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2650,7 +2650,7 @@ function GetGraphicsImporterForFileWithFlags( const (*var*) theFile: FSSpec; var
 
 {
  *  GetGraphicsImporterForDataRefWithFlags()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -2663,7 +2663,7 @@ function GetGraphicsImporterForDataRefWithFlags( dataRef: Handle; dataRefType: O
 
 {
  *  QTGetFileNameExtension()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2676,7 +2676,7 @@ function QTGetFileNameExtension(const (*var*) fileName: StrFileName; fileType: O
 
 {
  *  ImageTranscodeSequenceBegin()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2689,7 +2689,7 @@ function ImageTranscodeSequenceBegin( var its: ImageTranscodeSequence; srcDesc: 
 
 {
  *  ImageTranscodeSequenceEnd()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2702,7 +2702,7 @@ function ImageTranscodeSequenceEnd( its: ImageTranscodeSequence ): OSErr; extern
 
 {
  *  ImageTranscodeFrame()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2715,7 +2715,7 @@ function ImageTranscodeFrame( its: ImageTranscodeSequence; srcData: UnivPtr; src
 
 {
  *  ImageTranscodeDisposeFrameData()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2728,7 +2728,7 @@ function ImageTranscodeDisposeFrameData( its: ImageTranscodeSequence; dstData: U
 
 {
  *  CDSequenceInvalidate()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2741,7 +2741,7 @@ function CDSequenceInvalidate( seqID: ImageSequence; invalRgn: RgnHandle ): OSEr
 
 {
  *  CDSequenceSetTimeBase()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2754,7 +2754,7 @@ function CDSequenceSetTimeBase( seqID: ImageSequence; base: UnivPtr ): OSErr; ex
 
 {
  *  ImageFieldSequenceBegin()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2767,7 +2767,7 @@ function ImageFieldSequenceBegin( var ifs: ImageFieldSequence; desc1: ImageDescr
 
 {
  *  ImageFieldSequenceExtractCombine()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2780,7 +2780,7 @@ function ImageFieldSequenceExtractCombine( ifs: ImageFieldSequence; fieldFlags: 
 
 {
  *  ImageFieldSequenceEnd()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2797,7 +2797,7 @@ const
 
 {
  *  QTNewGWorld()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2810,7 +2810,7 @@ function QTNewGWorld( var offscreenGWorld: GWorldPtr; PixelFormat: OSType; const
 
 {
  *  QTNewGWorldFromPtr()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -2823,7 +2823,7 @@ function QTNewGWorldFromPtr( var gw: GWorldPtr; pixelFormat: OSType; const (*var
 
 {
  *  QTUpdateGWorld()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2836,7 +2836,7 @@ function QTUpdateGWorld( var offscreenGWorld: GWorldPtr; PixelFormat: OSType; co
 
 {
  *  MakeImageDescriptionForPixMap()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2849,7 +2849,7 @@ function MakeImageDescriptionForPixMap( pixmap: PixMapHandle; var idh: ImageDesc
 
 {
  *  MakeImageDescriptionForEffect()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -2862,7 +2862,7 @@ function MakeImageDescriptionForEffect( effectType: OSType; var idh: ImageDescri
 
 {
  *  QTGetPixelSize()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -2875,7 +2875,7 @@ function QTGetPixelSize( PixelFormat: OSType ): SInt16; external name '_QTGetPix
 
 {
  *  QTGetPixelFormatDepthForImageDescription()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.6 and later
@@ -2888,7 +2888,7 @@ function QTGetPixelFormatDepthForImageDescription( PixelFormat: OSType ): SInt16
 
 {
  *  QTGetPixMapPtrRowBytes()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -2901,7 +2901,7 @@ function QTGetPixMapPtrRowBytes( pm: PixMapPtr ): SIGNEDLONG; external name '_QT
 
 {
  *  QTGetPixMapHandleRowBytes()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -2914,7 +2914,7 @@ function QTGetPixMapHandleRowBytes( pm: PixMapHandle ): SIGNEDLONG; external nam
 
 {
  *  QTSetPixMapPtrRowBytes()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -2927,7 +2927,7 @@ function QTSetPixMapPtrRowBytes( pm: PixMapPtr; rowBytes: SIGNEDLONG ): OSErr; e
 
 {
  *  QTSetPixMapHandleRowBytes()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -2945,7 +2945,7 @@ const
 
 {
  *  QTGetPixMapPtrGammaLevel()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -2958,7 +2958,7 @@ function QTGetPixMapPtrGammaLevel( pm: PixMapPtr ): Fixed; external name '_QTGet
 
 {
  *  QTSetPixMapPtrGammaLevel()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -2971,7 +2971,7 @@ function QTSetPixMapPtrGammaLevel( pm: PixMapPtr; gammaLevel: Fixed ): OSErr; ex
 
 {
  *  QTGetPixMapHandleGammaLevel()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -2984,7 +2984,7 @@ function QTGetPixMapHandleGammaLevel( pm: PixMapHandle ): Fixed; external name '
 
 {
  *  QTSetPixMapHandleGammaLevel()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -2997,7 +2997,7 @@ function QTSetPixMapHandleGammaLevel( pm: PixMapHandle; gammaLevel: Fixed ): OSE
 
 {
  *  QTGetPixMapPtrRequestedGammaLevel()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -3010,7 +3010,7 @@ function QTGetPixMapPtrRequestedGammaLevel( pm: PixMapPtr ): Fixed; external nam
 
 {
  *  QTSetPixMapPtrRequestedGammaLevel()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -3023,7 +3023,7 @@ function QTSetPixMapPtrRequestedGammaLevel( pm: PixMapPtr; requestedGammaLevel: 
 
 {
  *  QTGetPixMapHandleRequestedGammaLevel()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -3036,7 +3036,7 @@ function QTGetPixMapHandleRequestedGammaLevel( pm: PixMapHandle ): Fixed; extern
 
 {
  *  QTSetPixMapHandleRequestedGammaLevel()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.3 and later
@@ -3049,7 +3049,7 @@ function QTSetPixMapHandleRequestedGammaLevel( pm: PixMapHandle; requestedGammaL
 
 {
  *  QuadToQuadMatrix()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -3075,7 +3075,7 @@ type
 	MatrixFlags = UInt16;
 {
  *  GetMatrixType()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3088,7 +3088,7 @@ function GetMatrixType( const (*var*) m: MatrixRecord ): SInt16; external name '
 
 {
  *  CopyMatrix()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3101,7 +3101,7 @@ procedure CopyMatrix( const (*var*) m1: MatrixRecord; var m2: MatrixRecord ); ex
 
 {
  *  EqualMatrix()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3114,7 +3114,7 @@ function EqualMatrix( const (*var*) m1: MatrixRecord; const (*var*) m2: MatrixRe
 
 {
  *  SetIdentityMatrix()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3127,7 +3127,7 @@ procedure SetIdentityMatrix( var matrix: MatrixRecord ); external name '_SetIden
 
 {
  *  TranslateMatrix()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3140,7 +3140,7 @@ procedure TranslateMatrix( var m: MatrixRecord; deltaH: Fixed; deltaV: Fixed ); 
 
 {
  *  RotateMatrix()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3153,7 +3153,7 @@ procedure RotateMatrix( var m: MatrixRecord; degrees: Fixed; aboutX: Fixed; abou
 
 {
  *  ScaleMatrix()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3166,7 +3166,7 @@ procedure ScaleMatrix( var m: MatrixRecord; scaleX: Fixed; scaleY: Fixed; aboutX
 
 {
  *  SkewMatrix()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3179,7 +3179,7 @@ procedure SkewMatrix( var m: MatrixRecord; skewX: Fixed; skewY: Fixed; aboutX: F
 
 {
  *  TransformFixedPoints()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3192,7 +3192,7 @@ function TransformFixedPoints( const (*var*) m: MatrixRecord; var fpt: FixedPoin
 
 {
  *  TransformPoints()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3205,7 +3205,7 @@ function TransformPoints( const (*var*) mp: MatrixRecord; var pt1: Point; count:
 
 {
  *  TransformFixedRect()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3218,7 +3218,7 @@ function TransformFixedRect( const (*var*) m: MatrixRecord; var fr: FixedRect; v
 
 {
  *  TransformRect()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3231,7 +3231,7 @@ function TransformRect( const (*var*) m: MatrixRecord; var r: Rect; var fpp: Fix
 
 {
  *  InverseMatrix()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3244,7 +3244,7 @@ function InverseMatrix( const (*var*) m: MatrixRecord; var im: MatrixRecord ): B
 
 {
  *  ConcatMatrix()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3257,7 +3257,7 @@ procedure ConcatMatrix( const (*var*) a: MatrixRecord; var b: MatrixRecord ); ex
 
 {
  *  RectMatrix()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3270,7 +3270,7 @@ procedure RectMatrix( var matrix: MatrixRecord; const (*var*) srcRect: Rect; con
 
 {
  *  MapMatrix()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3283,7 +3283,7 @@ procedure MapMatrix( var matrix: MatrixRecord; const (*var*) fromRect: Rect; con
 
 {
  *  CompAdd()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3296,7 +3296,7 @@ procedure CompAdd( var src: wide; var dst: wide ); external name '_CompAdd';
 
 {
  *  CompSub()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3309,7 +3309,7 @@ procedure CompSub( var src: wide; var dst: wide ); external name '_CompSub';
 
 {
  *  CompNeg()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3322,7 +3322,7 @@ procedure CompNeg( var dst: wide ); external name '_CompNeg';
 
 {
  *  CompShift()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3335,7 +3335,7 @@ procedure CompShift( var src: wide; shift: SInt16 ); external name '_CompShift';
 
 {
  *  CompMul()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3348,7 +3348,7 @@ procedure CompMul( src1: SIGNEDLONG; src2: SIGNEDLONG; var dst: wide ); external
 
 {
  *  CompDiv()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3361,7 +3361,7 @@ function CompDiv( var numerator: wide; denominator: SIGNEDLONG; var remainder: S
 
 {
  *  CompFixMul()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3374,7 +3374,7 @@ procedure CompFixMul( var compSrc: wide; fixSrc: Fixed; var compDst: wide ); ext
 
 {
  *  CompMulDiv()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3387,7 +3387,7 @@ procedure CompMulDiv( var co: wide; mul: SIGNEDLONG; divisor: SIGNEDLONG ); exte
 
 {
  *  CompMulDivTrunc()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3400,7 +3400,7 @@ procedure CompMulDivTrunc( var co: wide; mul: SIGNEDLONG; divisor: SIGNEDLONG; v
 
 {
  *  CompCompare()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3413,7 +3413,7 @@ function CompCompare( const (*var*) a: wide; const (*var*) minusb: wide ): SIGNE
 
 {
  *  CompSquareRoot()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3426,7 +3426,7 @@ function CompSquareRoot( const (*var*) src: wide ): UNSIGNEDLONG; external name 
 
 {
  *  FixMulDiv()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3439,7 +3439,7 @@ function FixMulDiv( src: Fixed; mul: Fixed; divisor: Fixed ): Fixed; external na
 
 {
  *  UnsignedFixMulDiv()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3452,7 +3452,7 @@ function UnsignedFixMulDiv( src: Fixed; mul: Fixed; divisor: Fixed ): Fixed; ext
 
 {
  *  FracSinCos()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3465,7 +3465,7 @@ function FracSinCos( degree: Fixed; var cosOut: Fract ): Fract; external name '_
 
 {
  *  FixExp2()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3478,7 +3478,7 @@ function FixExp2( src: Fixed ): Fixed; external name '_FixExp2';
 
 {
  *  FixLog2()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3491,7 +3491,7 @@ function FixLog2( src: Fixed ): Fixed; external name '_FixLog2';
 
 {
  *  FixPow()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3672,7 +3672,7 @@ const
 {* These are GraphicsImport procedures *}
 {
  *  GraphicsImportSetDataReference()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3685,7 +3685,7 @@ function GraphicsImportSetDataReference( ci: GraphicsImportComponent; dataRef: H
 
 {
  *  GraphicsImportGetDataReference()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3698,7 +3698,7 @@ function GraphicsImportGetDataReference( ci: GraphicsImportComponent; var dataRe
 
 {
  *  GraphicsImportSetDataFile()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3711,7 +3711,7 @@ function GraphicsImportSetDataFile( ci: GraphicsImportComponent; const (*var*) t
 
 {
  *  GraphicsImportGetDataFile()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3724,7 +3724,7 @@ function GraphicsImportGetDataFile( ci: GraphicsImportComponent; var theFile: FS
 
 {
  *  GraphicsImportSetDataHandle()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3737,7 +3737,7 @@ function GraphicsImportSetDataHandle( ci: GraphicsImportComponent; h: Handle ): 
 
 {
  *  GraphicsImportGetDataHandle()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3750,7 +3750,7 @@ function GraphicsImportGetDataHandle( ci: GraphicsImportComponent; var h: Handle
 
 {
  *  GraphicsImportGetImageDescription()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3763,7 +3763,7 @@ function GraphicsImportGetImageDescription( ci: GraphicsImportComponent; var des
 
 {
  *  GraphicsImportGetDataOffsetAndSize()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3776,7 +3776,7 @@ function GraphicsImportGetDataOffsetAndSize( ci: GraphicsImportComponent; var of
 
 {
  *  GraphicsImportReadData()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3789,7 +3789,7 @@ function GraphicsImportReadData( ci: GraphicsImportComponent; dataPtr: UnivPtr; 
 
 {
  *  GraphicsImportSetClip()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3802,7 +3802,7 @@ function GraphicsImportSetClip( ci: GraphicsImportComponent; clipRgn: RgnHandle 
 
 {
  *  GraphicsImportGetClip()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3815,7 +3815,7 @@ function GraphicsImportGetClip( ci: GraphicsImportComponent; var clipRgn: RgnHan
 
 {
  *  GraphicsImportSetSourceRect()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3828,7 +3828,7 @@ function GraphicsImportSetSourceRect( ci: GraphicsImportComponent; const (*var*)
 
 {
  *  GraphicsImportGetSourceRect()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3841,7 +3841,7 @@ function GraphicsImportGetSourceRect( ci: GraphicsImportComponent; var sourceRec
 
 {
  *  GraphicsImportGetNaturalBounds()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3854,7 +3854,7 @@ function GraphicsImportGetNaturalBounds( ci: GraphicsImportComponent; var natura
 
 {
  *  GraphicsImportDraw()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3867,7 +3867,7 @@ function GraphicsImportDraw( ci: GraphicsImportComponent ): ComponentResult; ext
 
 {
  *  GraphicsImportSetGWorld()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3880,7 +3880,7 @@ function GraphicsImportSetGWorld( ci: GraphicsImportComponent; port: CGrafPtr; g
 
 {
  *  GraphicsImportGetGWorld()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3893,7 +3893,7 @@ function GraphicsImportGetGWorld( ci: GraphicsImportComponent; var port: CGrafPt
 
 {
  *  GraphicsImportSetMatrix()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3906,7 +3906,7 @@ function GraphicsImportSetMatrix( ci: GraphicsImportComponent; const (*var*) mat
 
 {
  *  GraphicsImportGetMatrix()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3919,7 +3919,7 @@ function GraphicsImportGetMatrix( ci: GraphicsImportComponent; var matrix: Matri
 
 {
  *  GraphicsImportSetBoundsRect()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3932,7 +3932,7 @@ function GraphicsImportSetBoundsRect( ci: GraphicsImportComponent; const (*var*)
 
 {
  *  GraphicsImportGetBoundsRect()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3945,7 +3945,7 @@ function GraphicsImportGetBoundsRect( ci: GraphicsImportComponent; var bounds: R
 
 {
  *  GraphicsImportSaveAsPicture()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3958,7 +3958,7 @@ function GraphicsImportSaveAsPicture( ci: GraphicsImportComponent; const (*var*)
 
 {
  *  GraphicsImportSetGraphicsMode()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3971,7 +3971,7 @@ function GraphicsImportSetGraphicsMode( ci: GraphicsImportComponent; graphicsMod
 
 {
  *  GraphicsImportGetGraphicsMode()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3984,7 +3984,7 @@ function GraphicsImportGetGraphicsMode( ci: GraphicsImportComponent; var graphic
 
 {
  *  GraphicsImportSetQuality()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -3997,7 +3997,7 @@ function GraphicsImportSetQuality( ci: GraphicsImportComponent; quality: CodecQ 
 
 {
  *  GraphicsImportGetQuality()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4010,7 +4010,7 @@ function GraphicsImportGetQuality( ci: GraphicsImportComponent; var quality: Cod
 
 {
  *  GraphicsImportSaveAsQuickTimeImageFile()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4023,7 +4023,7 @@ function GraphicsImportSaveAsQuickTimeImageFile( ci: GraphicsImportComponent; co
 
 {
  *  GraphicsImportSetDataReferenceOffsetAndLimit()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4036,7 +4036,7 @@ function GraphicsImportSetDataReferenceOffsetAndLimit( ci: GraphicsImportCompone
 
 {
  *  GraphicsImportGetDataReferenceOffsetAndLimit()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4049,7 +4049,7 @@ function GraphicsImportGetDataReferenceOffsetAndLimit( ci: GraphicsImportCompone
 
 {
  *  GraphicsImportGetAliasedDataReference()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4062,7 +4062,7 @@ function GraphicsImportGetAliasedDataReference( ci: GraphicsImportComponent; var
 
 {
  *  GraphicsImportValidate()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4075,7 +4075,7 @@ function GraphicsImportValidate( ci: GraphicsImportComponent; var valid: Boolean
 
 {
  *  GraphicsImportGetMetaData()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4088,7 +4088,7 @@ function GraphicsImportGetMetaData( ci: GraphicsImportComponent; userData: UnivP
 
 {
  *  GraphicsImportGetMIMETypeList()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4101,7 +4101,7 @@ function GraphicsImportGetMIMETypeList( ci: GraphicsImportComponent; qtAtomConta
 
 {
  *  GraphicsImportDoesDrawAllPixels()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4114,7 +4114,7 @@ function GraphicsImportDoesDrawAllPixels( ci: GraphicsImportComponent; var draws
 
 {
  *  GraphicsImportGetAsPicture()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4127,7 +4127,7 @@ function GraphicsImportGetAsPicture( ci: GraphicsImportComponent; var picture: P
 
 {
  *  GraphicsImportExportImageFile()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4140,7 +4140,7 @@ function GraphicsImportExportImageFile( ci: GraphicsImportComponent; fileType: O
 
 {
  *  GraphicsImportGetExportImageTypeList()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4153,7 +4153,7 @@ function GraphicsImportGetExportImageTypeList( ci: GraphicsImportComponent; qtAt
 
 {
  *  GraphicsImportDoExportImageFileDialog()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4166,7 +4166,7 @@ function GraphicsImportDoExportImageFileDialog( ci: GraphicsImportComponent; con
 
 {
  *  GraphicsImportGetExportSettingsAsAtomContainer()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4179,7 +4179,7 @@ function GraphicsImportGetExportSettingsAsAtomContainer( ci: GraphicsImportCompo
 
 {
  *  GraphicsImportSetExportSettingsFromAtomContainer()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4192,7 +4192,7 @@ function GraphicsImportSetExportSettingsFromAtomContainer( ci: GraphicsImportCom
 
 {
  *  GraphicsImportSetProgressProc()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4205,7 +4205,7 @@ function GraphicsImportSetProgressProc( ci: GraphicsImportComponent; progressPro
 
 {
  *  GraphicsImportGetProgressProc()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -4218,7 +4218,7 @@ function GraphicsImportGetProgressProc( ci: GraphicsImportComponent; progressPro
 
 {
  *  GraphicsImportGetImageCount()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -4231,7 +4231,7 @@ function GraphicsImportGetImageCount( ci: GraphicsImportComponent; var imageCoun
 
 {
  *  GraphicsImportSetImageIndex()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -4244,7 +4244,7 @@ function GraphicsImportSetImageIndex( ci: GraphicsImportComponent; imageIndex: U
 
 {
  *  GraphicsImportGetImageIndex()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -4257,7 +4257,7 @@ function GraphicsImportGetImageIndex( ci: GraphicsImportComponent; var imageInde
 
 {
  *  GraphicsImportGetDataOffsetAndSize64()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -4270,7 +4270,7 @@ function GraphicsImportGetDataOffsetAndSize64( ci: GraphicsImportComponent; var 
 
 {
  *  GraphicsImportReadData64()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -4283,7 +4283,7 @@ function GraphicsImportReadData64( ci: GraphicsImportComponent; dataPtr: UnivPtr
 
 {
  *  GraphicsImportSetDataReferenceOffsetAndLimit64()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -4296,7 +4296,7 @@ function GraphicsImportSetDataReferenceOffsetAndLimit64( ci: GraphicsImportCompo
 
 {
  *  GraphicsImportGetDataReferenceOffsetAndLimit64()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -4309,7 +4309,7 @@ function GraphicsImportGetDataReferenceOffsetAndLimit64( ci: GraphicsImportCompo
 
 {
  *  GraphicsImportGetDefaultMatrix()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -4322,7 +4322,7 @@ function GraphicsImportGetDefaultMatrix( ci: GraphicsImportComponent; var defaul
 
 {
  *  GraphicsImportGetDefaultClip()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -4335,7 +4335,7 @@ function GraphicsImportGetDefaultClip( ci: GraphicsImportComponent; var defaultR
 
 {
  *  GraphicsImportGetDefaultGraphicsMode()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -4348,7 +4348,7 @@ function GraphicsImportGetDefaultGraphicsMode( ci: GraphicsImportComponent; var 
 
 {
  *  GraphicsImportGetDefaultSourceRect()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -4361,7 +4361,7 @@ function GraphicsImportGetDefaultSourceRect( ci: GraphicsImportComponent; var de
 
 {
  *  GraphicsImportGetColorSyncProfile()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -4374,7 +4374,7 @@ function GraphicsImportGetColorSyncProfile( ci: GraphicsImportComponent; var pro
 
 {
  *  GraphicsImportSetDestRect()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -4387,7 +4387,7 @@ function GraphicsImportSetDestRect( ci: GraphicsImportComponent; const (*var*) d
 
 {
  *  GraphicsImportGetDestRect()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -4400,7 +4400,7 @@ function GraphicsImportGetDestRect( ci: GraphicsImportComponent; var destRect: R
 
 {
  *  GraphicsImportSetFlags()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -4413,7 +4413,7 @@ function GraphicsImportSetFlags( ci: GraphicsImportComponent; flags: SIGNEDLONG 
 
 {
  *  GraphicsImportGetFlags()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -4427,7 +4427,7 @@ function GraphicsImportGetFlags( ci: GraphicsImportComponent; var flags: SIGNEDL
 { 2 private selectors }
 {
  *  GraphicsImportGetBaseDataOffsetAndSize64()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.4 and later
@@ -4440,7 +4440,7 @@ function GraphicsImportGetBaseDataOffsetAndSize64( ci: GraphicsImportComponent; 
 
 {
  *  GraphicsImportSetImageIndexToThumbnail()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.6 and later
@@ -4454,7 +4454,7 @@ function GraphicsImportSetImageIndexToThumbnail( ci: GraphicsImportComponent ): 
 {$ifc TARGET_API_MAC_OSX}
 {
  *  GraphicsImportCreateCGImage()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 (or QuickTime 6.4) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -4468,7 +4468,7 @@ function GraphicsImportCreateCGImage( ci: GraphicsImportComponent; var imageRefO
 
 {
  *  GraphicsImportSaveAsPictureToDataRef()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 (or QuickTime 6.4) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -4481,7 +4481,7 @@ function GraphicsImportSaveAsPictureToDataRef( ci: GraphicsImportComponent; data
 
 {
  *  GraphicsImportSaveAsQuickTimeImageFileToDataRef()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 (or QuickTime 6.4) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -4494,7 +4494,7 @@ function GraphicsImportSaveAsQuickTimeImageFileToDataRef( ci: GraphicsImportComp
 
 {
  *  GraphicsImportExportImageFileToDataRef()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 (or QuickTime 6.4) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -4507,7 +4507,7 @@ function GraphicsImportExportImageFileToDataRef( ci: GraphicsImportComponent; fi
 
 {
  *  GraphicsImportDoExportImageFileToDataRefDialog()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 (or QuickTime 6.4) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -4522,7 +4522,7 @@ function GraphicsImportDoExportImageFileToDataRefDialog( ci: GraphicsImportCompo
 { NOTE: If the source override ColorSync profile is NULL, then the image's ColorSync profile may be used if available, otherwise a generic ColorSync profile may be used. }
 {
  *  GraphicsImportSetOverrideSourceColorSyncProfileRef()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 (or QuickTime 6.4) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -4534,7 +4534,7 @@ function GraphicsImportSetOverrideSourceColorSyncProfileRef( ci: GraphicsImportC
 
 {
  *  GraphicsImportGetOverrideSourceColorSyncProfileRef()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 (or QuickTime 6.4) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -4547,7 +4547,7 @@ function GraphicsImportGetOverrideSourceColorSyncProfileRef( ci: GraphicsImportC
 { NOTE: If the destination ColorSync profile is NULL, then a generic ColorSync profile may be used. }
 {
  *  GraphicsImportSetDestinationColorSyncProfileRef()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 (or QuickTime 6.4) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -4559,7 +4559,7 @@ function GraphicsImportSetDestinationColorSyncProfileRef( ci: GraphicsImportComp
 
 {
  *  GraphicsImportGetDestinationColorSyncProfileRef()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 (or QuickTime 6.4) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -4573,7 +4573,7 @@ function GraphicsImportGetDestinationColorSyncProfileRef( ci: GraphicsImportComp
 
 {
  *  GraphicsImportWillUseColorMatching()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 (or QuickTime 6.4) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -4588,7 +4588,7 @@ function GraphicsImportWillUseColorMatching( ci: GraphicsImportComponent; var ou
 { This convenience API is implemented by the base graphics importer for format-specific importers. }
 {
  *  GraphicsImportGetGenericColorSyncProfile()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 (or QuickTime 6.4) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -4600,11 +4600,11 @@ function GraphicsImportGetGenericColorSyncProfile( ci: GraphicsImportComponent; 
 
 {$endc} {TARGET_API_MAC_OSX}
 
-{ Format-specific importers that implement GetColorSyncProfile and that want the base graphics 
+{ Format-specific importers that implement GetColorSyncProfile and that want the base graphics
    importer to automatically support ColorSync matching should:
    (a) implement GraphicsImportSetReturnGenericColorSyncProfile; when it is called, set an internal flag
    (b) change GraphicsImportGetColorSyncProfile so that, if this internal flag is set,
-       when the source image file contains a profile 
+       when the source image file contains a profile
        and the kGraphicsImporterDontUseColorMatching flag is NOT set,
        it returns a generic profile of the appropriate colorspace instead.
    Other importers should *not* implement GraphicsImportSetReturnGenericColorSyncProfile. }
@@ -4612,7 +4612,7 @@ function GraphicsImportGetGenericColorSyncProfile( ci: GraphicsImportComponent; 
    Set kGraphicsImporterDontUseColorMatching instead. }
 {
  *  GraphicsImportSetReturnGenericColorSyncProfile()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 (or QuickTime 6.4) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -4626,7 +4626,7 @@ function GraphicsImportSetReturnGenericColorSyncProfile( ci: GraphicsImportCompo
 { WARNING: Applications should not call this API; it is internal graphics importer plumbing. }
 {
  *  GraphicsImportGetReturnGenericColorSyncProfile()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 (or QuickTime 6.4) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -4705,7 +4705,7 @@ const
 { To use: set the input and output (and other settings as desired) and call GEDoExport. }
 {
  *  GraphicsExportDoExport()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -4719,7 +4719,7 @@ function GraphicsExportDoExport( ci: GraphicsExportComponent; var actualSizeWrit
 { Used for internal communication between the base and format-specific graphics exporter: }
 {
  *  GraphicsExportCanTranscode()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -4732,7 +4732,7 @@ function GraphicsExportCanTranscode( ci: GraphicsExportComponent; var canTransco
 
 {
  *  GraphicsExportDoTranscode()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -4745,7 +4745,7 @@ function GraphicsExportDoTranscode( ci: GraphicsExportComponent ): ComponentResu
 
 {
  *  GraphicsExportCanUseCompressor()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -4758,7 +4758,7 @@ function GraphicsExportCanUseCompressor( ci: GraphicsExportComponent; var canUse
 
 {
  *  GraphicsExportDoUseCompressor()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -4771,7 +4771,7 @@ function GraphicsExportDoUseCompressor( ci: GraphicsExportComponent; codecSettin
 
 {
  *  GraphicsExportDoStandaloneExport()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -4785,7 +4785,7 @@ function GraphicsExportDoStandaloneExport( ci: GraphicsExportComponent ): Compon
 { Queries applications can make of a format-specific graphics exporter: }
 {
  *  GraphicsExportGetDefaultFileTypeAndCreator()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -4798,7 +4798,7 @@ function GraphicsExportGetDefaultFileTypeAndCreator( ci: GraphicsExportComponent
 
 {
  *  GraphicsExportGetDefaultFileNameExtension()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -4811,7 +4811,7 @@ function GraphicsExportGetDefaultFileNameExtension( ci: GraphicsExportComponent;
 
 {
  *  GraphicsExportGetMIMETypeList()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -4826,7 +4826,7 @@ function GraphicsExportGetMIMETypeList( ci: GraphicsExportComponent; qtAtomConta
 { Graphics exporter settings: }
 {
  *  GraphicsExportRequestSettings()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -4839,7 +4839,7 @@ function GraphicsExportRequestSettings( ci: GraphicsExportComponent; filterProc:
 
 {
  *  GraphicsExportSetSettingsFromAtomContainer()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -4852,7 +4852,7 @@ function GraphicsExportSetSettingsFromAtomContainer( ci: GraphicsExportComponent
 
 {
  *  GraphicsExportGetSettingsAsAtomContainer()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -4865,7 +4865,7 @@ function GraphicsExportGetSettingsAsAtomContainer( ci: GraphicsExportComponent; 
 
 {
  *  GraphicsExportGetSettingsAsText()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -4879,7 +4879,7 @@ function GraphicsExportGetSettingsAsText( ci: GraphicsExportComponent; var theTe
 { Graphics exporters may implement some or none of the following: }
 {
  *  GraphicsExportSetDontRecompress()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -4892,7 +4892,7 @@ function GraphicsExportSetDontRecompress( ci: GraphicsExportComponent; dontRecom
 
 {
  *  GraphicsExportGetDontRecompress()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -4905,7 +4905,7 @@ function GraphicsExportGetDontRecompress( ci: GraphicsExportComponent; var dontR
 
 {
  *  GraphicsExportSetInterlaceStyle()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -4918,7 +4918,7 @@ function GraphicsExportSetInterlaceStyle( ci: GraphicsExportComponent; interlace
 
 {
  *  GraphicsExportGetInterlaceStyle()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -4931,7 +4931,7 @@ function GraphicsExportGetInterlaceStyle( ci: GraphicsExportComponent; var inter
 
 {
  *  GraphicsExportSetMetaData()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -4944,7 +4944,7 @@ function GraphicsExportSetMetaData( ci: GraphicsExportComponent; userData: UnivP
 
 {
  *  GraphicsExportGetMetaData()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -4957,7 +4957,7 @@ function GraphicsExportGetMetaData( ci: GraphicsExportComponent; userData: UnivP
 
 {
  *  GraphicsExportSetTargetDataSize()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -4970,7 +4970,7 @@ function GraphicsExportSetTargetDataSize( ci: GraphicsExportComponent; targetDat
 
 {
  *  GraphicsExportGetTargetDataSize()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -4983,7 +4983,7 @@ function GraphicsExportGetTargetDataSize( ci: GraphicsExportComponent; var targe
 
 {
  *  GraphicsExportSetCompressionMethod()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -4996,7 +4996,7 @@ function GraphicsExportSetCompressionMethod( ci: GraphicsExportComponent; compre
 
 {
  *  GraphicsExportGetCompressionMethod()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -5009,7 +5009,7 @@ function GraphicsExportGetCompressionMethod( ci: GraphicsExportComponent; var co
 
 {
  *  GraphicsExportSetCompressionQuality()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -5022,7 +5022,7 @@ function GraphicsExportSetCompressionQuality( ci: GraphicsExportComponent; spati
 
 {
  *  GraphicsExportGetCompressionQuality()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -5035,7 +5035,7 @@ function GraphicsExportGetCompressionQuality( ci: GraphicsExportComponent; var s
 
 {
  *  GraphicsExportSetResolution()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -5048,7 +5048,7 @@ function GraphicsExportSetResolution( ci: GraphicsExportComponent; horizontalRes
 
 {
  *  GraphicsExportGetResolution()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -5061,7 +5061,7 @@ function GraphicsExportGetResolution( ci: GraphicsExportComponent; var horizonta
 
 {
  *  GraphicsExportSetDepth()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -5074,7 +5074,7 @@ function GraphicsExportSetDepth( ci: GraphicsExportComponent; depth: SIGNEDLONG 
 
 {
  *  GraphicsExportGetDepth()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -5088,7 +5088,7 @@ function GraphicsExportGetDepth( ci: GraphicsExportComponent; var depth: SIGNEDL
 { (2 unused selectors) }
 {
  *  GraphicsExportSetColorSyncProfile()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -5101,7 +5101,7 @@ function GraphicsExportSetColorSyncProfile( ci: GraphicsExportComponent; colorSy
 
 {
  *  GraphicsExportGetColorSyncProfile()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -5115,7 +5115,7 @@ function GraphicsExportGetColorSyncProfile( ci: GraphicsExportComponent; var col
 { Always implemented by the base graphics exporter: }
 {
  *  GraphicsExportSetProgressProc()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -5128,7 +5128,7 @@ function GraphicsExportSetProgressProc( ci: GraphicsExportComponent; progressPro
 
 {
  *  GraphicsExportGetProgressProc()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -5142,7 +5142,7 @@ function GraphicsExportGetProgressProc( ci: GraphicsExportComponent; progressPro
 { Sources for the input image: }
 {
  *  GraphicsExportSetInputDataReference()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -5155,7 +5155,7 @@ function GraphicsExportSetInputDataReference( ci: GraphicsExportComponent; dataR
 
 {
  *  GraphicsExportGetInputDataReference()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -5168,7 +5168,7 @@ function GraphicsExportGetInputDataReference( ci: GraphicsExportComponent; var d
 
 {
  *  GraphicsExportSetInputFile()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -5181,7 +5181,7 @@ function GraphicsExportSetInputFile( ci: GraphicsExportComponent; const (*var*) 
 
 {
  *  GraphicsExportGetInputFile()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -5194,7 +5194,7 @@ function GraphicsExportGetInputFile( ci: GraphicsExportComponent; var theFile: F
 
 {
  *  GraphicsExportSetInputHandle()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -5207,7 +5207,7 @@ function GraphicsExportSetInputHandle( ci: GraphicsExportComponent; h: Handle; d
 
 {
  *  GraphicsExportGetInputHandle()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -5220,7 +5220,7 @@ function GraphicsExportGetInputHandle( ci: GraphicsExportComponent; var h: Handl
 
 {
  *  GraphicsExportSetInputPtr()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -5233,7 +5233,7 @@ function GraphicsExportSetInputPtr( ci: GraphicsExportComponent; p: Ptr; size: U
 
 {
  *  GraphicsExportGetInputPtr()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -5246,7 +5246,7 @@ function GraphicsExportGetInputPtr( ci: GraphicsExportComponent; var p: Ptr; var
 
 {
  *  GraphicsExportSetInputGraphicsImporter()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -5259,7 +5259,7 @@ function GraphicsExportSetInputGraphicsImporter( ci: GraphicsExportComponent; gr
 
 {
  *  GraphicsExportGetInputGraphicsImporter()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -5272,7 +5272,7 @@ function GraphicsExportGetInputGraphicsImporter( ci: GraphicsExportComponent; va
 
 {
  *  GraphicsExportSetInputPicture()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -5285,7 +5285,7 @@ function GraphicsExportSetInputPicture( ci: GraphicsExportComponent; picture: Pi
 
 {
  *  GraphicsExportGetInputPicture()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -5298,7 +5298,7 @@ function GraphicsExportGetInputPicture( ci: GraphicsExportComponent; var picture
 
 {
  *  GraphicsExportSetInputGWorld()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -5311,7 +5311,7 @@ function GraphicsExportSetInputGWorld( ci: GraphicsExportComponent; gworld: GWor
 
 {
  *  GraphicsExportGetInputGWorld()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -5324,7 +5324,7 @@ function GraphicsExportGetInputGWorld( ci: GraphicsExportComponent; var gworld: 
 
 {
  *  GraphicsExportSetInputPixmap()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -5337,7 +5337,7 @@ function GraphicsExportSetInputPixmap( ci: GraphicsExportComponent; pixmap: PixM
 
 {
  *  GraphicsExportGetInputPixmap()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -5351,7 +5351,7 @@ function GraphicsExportGetInputPixmap( ci: GraphicsExportComponent; var pixmap: 
 { Only applicable when the input is a data reference, file, handle or ptr: }
 {
  *  GraphicsExportSetInputOffsetAndLimit()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -5364,7 +5364,7 @@ function GraphicsExportSetInputOffsetAndLimit( ci: GraphicsExportComponent; offs
 
 {
  *  GraphicsExportGetInputOffsetAndLimit()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -5378,7 +5378,7 @@ function GraphicsExportGetInputOffsetAndLimit( ci: GraphicsExportComponent; var 
 { Used by format-specific graphics exporters when transcoding: }
 {
  *  GraphicsExportMayExporterReadInputData()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -5391,7 +5391,7 @@ function GraphicsExportMayExporterReadInputData( ci: GraphicsExportComponent; va
 
 {
  *  GraphicsExportGetInputDataSize()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -5404,7 +5404,7 @@ function GraphicsExportGetInputDataSize( ci: GraphicsExportComponent; var size: 
 
 {
  *  GraphicsExportReadInputData()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -5418,7 +5418,7 @@ function GraphicsExportReadInputData( ci: GraphicsExportComponent; dataPtr: Univ
 { Used by format-specific graphics exporters, especially when doing standalone export: }
 {
  *  GraphicsExportGetInputImageDescription()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -5431,7 +5431,7 @@ function GraphicsExportGetInputImageDescription( ci: GraphicsExportComponent; va
 
 {
  *  GraphicsExportGetInputImageDimensions()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -5444,7 +5444,7 @@ function GraphicsExportGetInputImageDimensions( ci: GraphicsExportComponent; var
 
 {
  *  GraphicsExportGetInputImageDepth()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -5457,7 +5457,7 @@ function GraphicsExportGetInputImageDepth( ci: GraphicsExportComponent; var inpu
 
 {
  *  GraphicsExportDrawInputImage()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -5471,7 +5471,7 @@ function GraphicsExportDrawInputImage( ci: GraphicsExportComponent; gw: CGrafPtr
 { Destinations for the output image: }
 {
  *  GraphicsExportSetOutputDataReference()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -5484,7 +5484,7 @@ function GraphicsExportSetOutputDataReference( ci: GraphicsExportComponent; data
 
 {
  *  GraphicsExportGetOutputDataReference()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -5497,7 +5497,7 @@ function GraphicsExportGetOutputDataReference( ci: GraphicsExportComponent; var 
 
 {
  *  GraphicsExportSetOutputFile()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -5510,7 +5510,7 @@ function GraphicsExportSetOutputFile( ci: GraphicsExportComponent; const (*var*)
 
 {
  *  GraphicsExportGetOutputFile()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -5523,7 +5523,7 @@ function GraphicsExportGetOutputFile( ci: GraphicsExportComponent; var theFile: 
 
 {
  *  GraphicsExportSetOutputHandle()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -5536,7 +5536,7 @@ function GraphicsExportSetOutputHandle( ci: GraphicsExportComponent; h: Handle )
 
 {
  *  GraphicsExportGetOutputHandle()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -5549,7 +5549,7 @@ function GraphicsExportGetOutputHandle( ci: GraphicsExportComponent; var h: Hand
 
 {
  *  GraphicsExportSetOutputOffsetAndMaxSize()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -5562,7 +5562,7 @@ function GraphicsExportSetOutputOffsetAndMaxSize( ci: GraphicsExportComponent; o
 
 {
  *  GraphicsExportGetOutputOffsetAndMaxSize()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -5575,7 +5575,7 @@ function GraphicsExportGetOutputOffsetAndMaxSize( ci: GraphicsExportComponent; v
 
 {
  *  GraphicsExportSetOutputFileTypeAndCreator()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -5588,7 +5588,7 @@ function GraphicsExportSetOutputFileTypeAndCreator( ci: GraphicsExportComponent;
 
 {
  *  GraphicsExportGetOutputFileTypeAndCreator()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -5602,7 +5602,7 @@ function GraphicsExportGetOutputFileTypeAndCreator( ci: GraphicsExportComponent;
 { Used by format-specific graphics exporters: }
 {
  *  GraphicsExportWriteOutputData()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -5615,7 +5615,7 @@ function GraphicsExportWriteOutputData( ci: GraphicsExportComponent; dataPtr: {c
 
 {
  *  GraphicsExportSetOutputMark()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -5628,7 +5628,7 @@ function GraphicsExportSetOutputMark( ci: GraphicsExportComponent; mark: UNSIGNE
 
 {
  *  GraphicsExportGetOutputMark()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -5641,7 +5641,7 @@ function GraphicsExportGetOutputMark( ci: GraphicsExportComponent; var mark: UNS
 
 {
  *  GraphicsExportReadOutputData()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0.2 and later
@@ -5655,7 +5655,7 @@ function GraphicsExportReadOutputData( ci: GraphicsExportComponent; dataPtr: Uni
 { Allows embedded thumbnail creation, if supported. }
 {
  *  GraphicsExportSetThumbnailEnabled()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.4 and later
@@ -5668,7 +5668,7 @@ function GraphicsExportSetThumbnailEnabled( ci: GraphicsExportComponent; enableT
 
 {
  *  GraphicsExportGetThumbnailEnabled()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.4 and later
@@ -5682,7 +5682,7 @@ function GraphicsExportGetThumbnailEnabled( ci: GraphicsExportComponent; var thu
 { Allows export of Exif files, if supported.  This disables Exif-incompatible settings such as grayscale JPEG and compressed TIFF, and enables export of Exif metadata. }
 {
  *  GraphicsExportSetExifEnabled()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.4 and later
@@ -5695,7 +5695,7 @@ function GraphicsExportSetExifEnabled( ci: GraphicsExportComponent; enableExif: 
 
 {
  *  GraphicsExportGetExifEnabled()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.4 and later
@@ -5709,7 +5709,7 @@ function GraphicsExportGetExifEnabled( ci: GraphicsExportComponent; var exifEnab
 {$ifc TARGET_API_MAC_OSX}
 {
  *  GraphicsExportSetInputCGImage()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 (or QuickTime 6.4) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -5721,7 +5721,7 @@ function GraphicsExportSetInputCGImage( ci: GraphicsExportComponent; imageRef: C
 
 {
  *  GraphicsExportGetInputCGImage()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 (or QuickTime 6.4) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -5733,7 +5733,7 @@ function GraphicsExportGetInputCGImage( ci: GraphicsExportComponent; var imageRe
 
 {
  *  GraphicsExportSetInputCGBitmapContext()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 (or QuickTime 6.4) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -5745,7 +5745,7 @@ function GraphicsExportSetInputCGBitmapContext( ci: GraphicsExportComponent; bit
 
 {
  *  GraphicsExportGetInputCGBitmapContext()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 (or QuickTime 6.4) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -5759,7 +5759,7 @@ function GraphicsExportGetInputCGBitmapContext( ci: GraphicsExportComponent; var
 
 {
  *  GraphicsExportSetFlags()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 (or QuickTime 6.4) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -5771,7 +5771,7 @@ function GraphicsExportSetFlags( ci: GraphicsExportComponent; flags: UInt32 ): C
 
 {
  *  GraphicsExportGetFlags()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 (or QuickTime 6.4) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -5790,7 +5790,7 @@ const
 {* These are ImageTranscoder procedures *}
 {
  *  ImageTranscoderBeginSequence()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5803,7 +5803,7 @@ function ImageTranscoderBeginSequence( itc: ImageTranscoderComponent; srcDesc: I
 
 {
  *  ImageTranscoderConvert()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5816,7 +5816,7 @@ function ImageTranscoderConvert( itc: ImageTranscoderComponent; srcData: UnivPtr
 
 {
  *  ImageTranscoderDisposeData()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5829,7 +5829,7 @@ function ImageTranscoderDisposeData( itc: ImageTranscoderComponent; dstData: Uni
 
 {
  *  ImageTranscoderEndSequence()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -5903,7 +5903,7 @@ type
 	end;
 
 
-//#endif  { #MAC_OS_X_VERSION_10_3 <= MAC_OS_X_VERSION_MAX_ALLOWED } 
+//#endif  { #MAC_OS_X_VERSION_10_3 <= MAC_OS_X_VERSION_MAX_ALLOWED }
 
 
 { == "QT" prefixed Component Property calls == }
@@ -5914,7 +5914,7 @@ type
 
 {
  *  QTGetComponentPropertyInfo()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 (or QuickTime 6.4) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -5926,7 +5926,7 @@ function QTGetComponentPropertyInfo( inComponent: ComponentInstance; inPropClass
 
 {
  *  QTGetComponentProperty()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 (or QuickTime 6.4) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -5938,7 +5938,7 @@ function QTGetComponentProperty( inComponent: ComponentInstance; inPropClass: Co
 
 {
  *  QTSetComponentProperty()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 (or QuickTime 6.4) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -5950,7 +5950,7 @@ function QTSetComponentProperty( inComponent: ComponentInstance; inPropClass: Co
 
 {
  *  QTAddComponentPropertyListener()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 (or QuickTime 6.4) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -5962,7 +5962,7 @@ function QTAddComponentPropertyListener( inComponent: ComponentInstance; inPropC
 
 {
  *  QTRemoveComponentPropertyListener()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 (or QuickTime 6.4) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -5990,7 +5990,7 @@ const
 
 {
  *  NewQTComponentPropertyListenerUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 (or QuickTime 6.4) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -6001,7 +6001,7 @@ function NewQTComponentPropertyListenerUPP( userRoutine: QTComponentPropertyList
 
 {
  *  NewQTComponentPropertyListenerFilterUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 (or QuickTime 6.4) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -6012,7 +6012,7 @@ function NewQTComponentPropertyListenerFilterUPP( userRoutine: QTComponentProper
 
 {
  *  DisposeQTComponentPropertyListenerUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 (or QuickTime 6.4) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -6023,7 +6023,7 @@ procedure DisposeQTComponentPropertyListenerUPP( userUPP: QTComponentPropertyLis
 
 {
  *  DisposeQTComponentPropertyListenerFilterUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 (or QuickTime 6.4) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -6034,7 +6034,7 @@ procedure DisposeQTComponentPropertyListenerFilterUPP( userUPP: QTComponentPrope
 
 {
  *  InvokeQTComponentPropertyListenerUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 (or QuickTime 6.4) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -6045,7 +6045,7 @@ procedure InvokeQTComponentPropertyListenerUPP( inComponent: ComponentInstance; 
 
 {
  *  InvokeQTComponentPropertyListenerFilterUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 (or QuickTime 6.4) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -6056,7 +6056,7 @@ function InvokeQTComponentPropertyListenerFilterUPP( inCollection: QTComponentPr
 
 {
  *  QTComponentPropertyListenerCollectionCreate()
- *  
+ *
  *  Summary:
  *    Create a collection to use with the functions
  *    ComponentPropertyListenerCollectionAddListener,
@@ -6064,20 +6064,20 @@ function InvokeQTComponentPropertyListenerFilterUPP( inCollection: QTComponentPr
  *    ComponentPropertyListenerCollectionNotifyListeners,
  *    ComponentPropertyListenerCollectionIsEmpty, and
  *    ComponentPropertyListenerCollectionHasListenersForProperty.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    outCollection:
  *      Returns the new, empty, listener collection.
- *    
+ *
  *    inAllocator:
  *      Allocator used to create the collection and it's contents.
- *    
+ *
  *    inContext:
  *      The listener collection context. May be NULL.  A copy of the
  *      contents of the structure is made, so a pointer to a structure
  *      on the stack can be passed.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 (or QuickTime 6.4) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -6089,28 +6089,28 @@ function QTComponentPropertyListenerCollectionCreate( inAllocator: CFAllocatorRe
 
 {
  *  QTComponentPropertyListenerCollectionAddListener()
- *  
+ *
  *  Summary:
  *    Add a listener callback for the specified property class and ID
  *    to a property listener collection.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inCollection:
  *      The property listener collection.
- *    
+ *
  *    inPropClass:
  *      The property class.
- *    
+ *
  *    inPropID:
  *      The property ID.
- *    
+ *
  *    inListenerProc:
  *      The property listener callback function.
- *    
+ *
  *    inListenerProcRefCon:
  *      The data parameter to pass to the listener callback function.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 (or QuickTime 6.4) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -6122,28 +6122,28 @@ function QTComponentPropertyListenerCollectionAddListener( inCollection: QTCompo
 
 {
  *  QTComponentPropertyListenerCollectionRemoveListener()
- *  
+ *
  *  Summary:
  *    Remove a listener callback for the specified property class and
  *    ID from a property listener collection.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inCollection:
  *      The property listener collection.
- *    
+ *
  *    inPropClass:
  *      The property class.
- *    
+ *
  *    inPropID:
  *      The property ID.
- *    
+ *
  *    inListenerProc:
  *      The property listener callback function.
- *    
+ *
  *    inListenerProcRefCon:
  *      The data parameter to pass to the listener callback function.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 (or QuickTime 6.4) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -6155,11 +6155,11 @@ function QTComponentPropertyListenerCollectionRemoveListener( inCollection: QTCo
 
 {
  *  QTComponentPropertyListenerCollectionNotifyListeners()
- *  
+ *
  *  Summary:
  *    Call all listener callbacks in the collection registered for the
  *    specified property class and ID.
- *  
+ *
  *  Discussion:
  *    If the "filterProcUPP" in the collection's context is non-NULL,
  *    the filter function will be called before each registered
@@ -6168,27 +6168,27 @@ function QTComponentPropertyListenerCollectionRemoveListener( inCollection: QTCo
  *    called. This is intended to allow a component to change the
  *    calling semantics (call another thread, etc), to use a different
  *    listener callback signature, etc.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inCollection:
  *      The property listener collection.
- *    
+ *
  *    inNotifier:
  *      The calling ComponentInstance.
- *    
+ *
  *    inPropClass:
  *      The property class.
- *    
+ *
  *    inPropID:
  *      The property ID.
- *    
+ *
  *    inFilterProcRefCon:
  *      The data parameter to pass to the filter function.
- *    
+ *
  *    inFlags:
  *      Flags.  Must be set to 0.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 (or QuickTime 6.4) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -6200,15 +6200,15 @@ function QTComponentPropertyListenerCollectionNotifyListeners( inCollection: QTC
 
 {
  *  QTComponentPropertyListenerCollectionIsEmpty()
- *  
+ *
  *  Summary:
  *    Return true if the listener collection is empty.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inCollection:
  *      The property listener collection.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 (or QuickTime 6.4) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -6220,22 +6220,22 @@ function QTComponentPropertyListenerCollectionIsEmpty( inCollection: QTComponent
 
 {
  *  QTComponentPropertyListenerCollectionHasListenersForProperty()
- *  
+ *
  *  Summary:
  *    Returns true if there are any listeners registered for the
  *    specified property class and ID.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inCollection:
  *      The property listener collection.
- *    
+ *
  *    inPropClass:
  *      The property class.
- *    
+ *
  *    inPropID:
  *      The property ID.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 (or QuickTime 6.4) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -6428,17 +6428,17 @@ const
 {
  *  Summary:
  *    Aperture modes
- *  
+ *
  *  Discussion:
  *    You can set the aperture mode property on a movie to indicate
  *    whether aspect ratio and clean aperture correction should be
  *    performed (kQTPropertyClass_Visual /
  *    kQTVisualPropertyID_ApertureMode). When a movie is in clean,
  *    production or encoded pixels aperture mode, each track's
- *    dimensions are overriden by special dimensions for that mode. The
+ *    dimensions are overridden by special dimensions for that mode. The
  *    original track dimensions are preserved and can be restored by
  *    setting the movie into classic aperture mode. Aperture modes are
- *    not saved in movies. 
+ *    not saved in movies.
  *    You can set the aperture mode property on a decompression session
  *    options object to indicate whether pixel buffers should be tagged
  *    to enable aspect ratio and clean aperture correction
@@ -6448,12 +6448,12 @@ const
 const
 {
    * An aperture mode which gives compatibility with behavior in
-   * QuickTime 7.0.x and earlier. 
+   * QuickTime 7.0.x and earlier.
    * A movie in classic aperture mode uses track dimensions as set in
-   * NewMovieTrack and SetTrackDimensions. 
+   * NewMovieTrack and SetTrackDimensions.
    * A decompression session in classic aperture mode does not set the
    * clean aperture or pixel aspect ratio attachments on emitted pixel
-   * buffers. 
+   * buffers.
    * Movies default to classic aperture mode. If you call
    * SetTrackDimensions on a track, the movie is automatically switched
    * into classic aperture mode.
@@ -6461,11 +6461,11 @@ const
 	kQTApertureMode_Classic = FourCharCode('clas');
 
   {
-   * An aperture mode for general display. 
+   * An aperture mode for general display.
    * Where possible, video will be displayed at the correct pixel
    * aspect ratio, trimmed to the clean aperture. A movie in clean
    * aperture mode sets each track's dimensions to match its
-   * kQTVisualPropertyID_CleanApertureDimensions. 
+   * kQTVisualPropertyID_CleanApertureDimensions.
    * A decompression session in clean aperture mode sets the clean
    * aperture and pixel aspect ratio attachments on emitted pixel
    * buffers based on the image description.
@@ -6473,12 +6473,12 @@ const
 	kQTApertureMode_CleanAperture = FourCharCode('clea');
 
   {
-   * An aperture mode for modal use in authoring applications. 
+   * An aperture mode for modal use in authoring applications.
    *  Where possible, video will be displayed at the correct pixel
    * aspect ratio, but without trimming to the clean aperture so that
    * the edge processing region can be viewed. A movie in production
    * aperture mode sets each track's dimensions to match its
-   * kQTVisualPropertyID_ProductionApertureDimensions. 
+   * kQTVisualPropertyID_ProductionApertureDimensions.
    * A decompression session in production aperture mode sets the pixel
    * aspect ratio attachments on emitted pixel buffers based on the
    * image description.
@@ -6486,11 +6486,11 @@ const
 	kQTApertureMode_ProductionAperture = FourCharCode('prod');
 
   {
-   * An aperture mode for technical use. 
+   * An aperture mode for technical use.
    * Displays all encoded pixels with no aspect ratio or clean aperture
    * compensation. A movie in encoded pixels aperture mode sets each
    * track's dimensions to match its
-   * kQTVisualPropertyID_EncodedPixelsDimensions. 
+   * kQTVisualPropertyID_EncodedPixelsDimensions.
    * A decompression session in encoded pixels aperture mode does not
    * set the clean aperture or pixel aspect ratio attachments on
    * emitted pixel buffers.
@@ -6538,7 +6538,7 @@ const
   {
    * Dimensions at which the image could be displayed on a square-pixel
    * display, generally calculated using the clean aperture and pixel
-   * aspect ratio. 
+   * aspect ratio.
    * Note that this value is returned as a FixedPoint; the width and
    * height can also be read separately as rounded SInt32s via
    * kICMImageDescriptionPropertyID_CleanApertureDisplayWidth and
@@ -6552,7 +6552,7 @@ const
    * aspect ratio. This may be useful for authoring applications that
    * want to expose the edge processing region. For general viewing,
    * use kICMImageDescriptionPropertyID_CleanApertureDimensions
-   * instead. 
+   * instead.
    * Note that this value is returned as a FixedPoint; the width and
    * height can also be read separately as rounded SInt32s via
    * kICMImageDescriptionPropertyID_ProductionApertureDisplayWidth and
@@ -6561,7 +6561,7 @@ const
 	kICMImageDescriptionPropertyID_ProductionApertureDisplayDimensions = FourCharCode('prdi'); { FixedPoint, Read }
 
   {
-   * Dimensions of the encoded image. 
+   * Dimensions of the encoded image.
    * Note that this value is returned as a FixedPoint for convenience;
    * the width and height can also be read separately as SInt32s via
    * kICMImageDescriptionPropertyID_EncodedWidth and
@@ -6694,7 +6694,7 @@ const
    * The clean aperture as a FixedRect in source coordinates, within
    * the rectangle defined by the image description width and height,
    * suitable for use as a source rectangle in a decompression
-   * sequence. 
+   * sequence.
    * For historical reasons, the DVCPROHD codecs store the production
    * aperture display dimensions in the image description width and
    * height; the actual encoded dimensions are smaller. For DVCPROHD,
@@ -6705,7 +6705,7 @@ const
 
   {
    * A matrix transforming the clean aperture clip rect to the origin,
-   * scaled to the clean aperture display dimensions. 
+   * scaled to the clean aperture display dimensions.
    * For historical reasons, the DVCPROHD codecs store the production
    * aperture display dimensions in the image description width and
    * height; the actual encoded dimensions are smaller. For DVCPROHD,
@@ -6716,7 +6716,7 @@ const
 
   {
    * A matrix transforming the image to the origin, scaled to the
-   * production aperture display dimensions. 
+   * production aperture display dimensions.
    * For historical reasons, the DVCPROHD codecs store the production
    * aperture display dimensions in the image description width and
    * height; the actual encoded dimensions are smaller. For DVCPROHD,
@@ -6727,11 +6727,11 @@ const
 
   {
    * A localized, human readable string summarizing the image as a
-   * CFString, ie: "Apple DV, 720 x 480 (640 x 480), Millions". 
+   * CFString, ie: "Apple DV, 720 x 480 (640 x 480), Millions".
    *  The elements are: the codec name, the encoded pixels dimensions,
    * then parenthetically the clean aperture mode dimensions, but only
    * if they are different from the encoded pixels dimensions; then the
-   * depth. 
+   * depth.
    * The codec name shall be from the localized decompressor component
    * name string if exactly one decompressor with the correct cType is
    * available; otherwise the string in the image description shall be
@@ -6742,30 +6742,30 @@ const
 
 {
  *  ICMImageDescriptionGetPropertyInfo()
- *  
+ *
  *  Summary:
  *    Gets info about a particular property of a ImageDescription.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inDesc:
  *      ImageDescriptionHandle being interrogated
- *    
+ *
  *    inPropClass:
  *      The class of property being requested
- *    
+ *
  *    inPropID:
  *      The ID of the property being requested
- *    
+ *
  *    outPropType:
  *      The type of property is returned here (can be NULL)
- *    
+ *
  *    outPropValueSize:
  *      The size of property is returned here (can be NULL)
- *    
+ *
  *    outPropertyFlags:
  *      The property flags are returned here (can be NULL)
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -6777,31 +6777,31 @@ function ICMImageDescriptionGetPropertyInfo( inDesc: ImageDescriptionHandle; inP
 
 {
  *  ICMImageDescriptionGetProperty()
- *  
+ *
  *  Summary:
  *    Gets a particular property of a ImageDescriptionHandle.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inDesc:
  *      ImageDescriptionHandle being interrogated
- *    
+ *
  *    inPropClass:
  *      The class of property being requested
- *    
+ *
  *    inPropID:
  *      The ID of the property being requested
- *    
+ *
  *    inPropValueSize:
  *      The size of the property value buffer
- *    
+ *
  *    outPropValueAddress:
  *      Points to the buffer to receive the property value
- *    
+ *
  *    outPropValueSizeUsed:
  *      Points to a variable to receive the actual size of returned
  *      property value (can be NULL)
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -6813,27 +6813,27 @@ function ICMImageDescriptionGetProperty( inDesc: ImageDescriptionHandle; inPropC
 
 {
  *  ICMImageDescriptionSetProperty()
- *  
+ *
  *  Summary:
  *    Sets a particular property of a ImageDescriptionHandle.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inDesc:
  *      ImageDescriptionHandle being modified
- *    
+ *
  *    inPropClass:
  *      The class of property being set
- *    
+ *
  *    inPropID:
  *      The ID of the property being set
- *    
+ *
  *    inPropValueSize:
  *      The size of property value
- *    
+ *
  *    inPropValueAddress:
  *      Points to the property value buffer
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -6845,7 +6845,7 @@ function ICMImageDescriptionSetProperty( inDesc: ImageDescriptionHandle; inPropC
 
 {
  *  ICMValidTimeFlags
- *  
+ *
  *  Summary:
  *    Flags to describe which time values are valid.
  }
@@ -6882,11 +6882,11 @@ const
 
 {
  *  ICMDecompressionSessionRef
- *  
+ *
  *  Summary:
  *    Represents a decompression session that emits CVPixelBufferRefs
  *    containing frames, tagged with display times.
- *  
+ *
  *  Discussion:
  *    ICMDecompressionSession does not support source extraction,
  *    matrix transformations, graphics transfer modes, region-based
@@ -6900,10 +6900,10 @@ type
 
 {
  *  QTVisualContextRef
- *  
+ *
  *  Summary:
  *    Represents a destination visual rendering environment.
- *  
+ *
  *  Discussion:
  *    The QTVisualContextRef type encapsulates a connection to a
  *    generic visual destination. A single visual context object may
@@ -6915,7 +6915,7 @@ type
 
 {
  *  ICMDecompressionSessionOptionsRef
- *  
+ *
  *  Summary:
  *    Holds options for a decompression session.
  }
@@ -6925,7 +6925,7 @@ type
 
 {
  *  ICMDecompressionFrameOptionsRef
- *  
+ *
  *  Summary:
  *    Holds options for decompressing an individual frame.
  }
@@ -6935,7 +6935,7 @@ type
 
 {
  *  ICMDecompressionTrackingFlags
- *  
+ *
  *  Summary:
  *    Describes changes in state of a frame queued with an ICM
  *    decompression session.
@@ -6980,47 +6980,47 @@ const
 
 {
  *  ICMDecompressionTrackingCallback
- *  
+ *
  *  Summary:
  *    The callback through which a client of an ICM decompression
  *    session receives decoded frames and information about decoding.
- *  
+ *
  *  Discussion:
  *    The client may retain the emitted pixel buffers as long as it
  *    needs; they will not be reused before the client releases them.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    decompressionTrackingRefCon:
  *      The callback's reference value, copied from the
  *      decompressionTrackingRefCon field of the
  *      ICMDecompressionTrackingCallbackRecord structure.
- *    
+ *
  *    result:
  *      Indicates whether there was an error in decompression.
- *    
+ *
  *    decompressionTrackingFlags:
  *      One or more flags describing the a frame's state transitions.
- *    
+ *
  *    pixelBuffer:
  *      When the kICMDecompressionTracking_EmittingFrame flag is set in
  *      decompressionTrackingFlags, a pixel buffer containing the
  *      decompressed frame.  Otherwise, NULL.
- *    
+ *
  *    displayTime:
  *      If kICMValidTime_DisplayTimeStampIsValid is set in
  *      validTimeFlags, the display time of the frame.
- *    
+ *
  *    displayDuration:
  *      If kICMValidTime_DisplayDurationIsValid is set in
  *      validTimeFlags, the display duration of the frame.
- *    
+ *
  *    validTimeFlags:
  *      Indicates which of displayTime and displayDuration is valid.
- *    
+ *
  *    reserved:
  *      Reserved for future use.  Ignore the value of this parameter.
- *    
+ *
  *    sourceFrameRefCon:
  *      The frame's reference value, copied from the sourceFrameRefCon
  *      parameter to ICMDecompressionSessionDecodeFrame.
@@ -7030,7 +7030,7 @@ type
 
 {
  *  ICMDecompressionTrackingCallbackRecord
- *  
+ *
  *  Summary:
  *    A tracking callback for an ICM decompression session.
  }
@@ -7049,37 +7049,37 @@ type
 	end;
 {
  *  ICMDecompressionSessionCreate()
- *  
+ *
  *  Summary:
  *    Creates a session for decompressing video frames.
- *  
+ *
  *  Discussion:
  *    Frames will be output through calls to trackingCallback.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    allocator:
  *      An allocator for the session.  Pass NULL to use the default
  *      allocator.
- *    
+ *
  *    desc:
  *      An image description for the source frames.
- *    
+ *
  *    decompressionOptions:
  *      Options for the session. The session will retain this options
  *      object. You may change some options during the session by
  *      modifying the object.
- *    
+ *
  *    destinationPixelBufferAttributes:
  *      Describes requirements for emitted pixel buffers.
- *    
+ *
  *    trackingCallback:
  *      The callback to be called with information about queued frames,
  *      and pixel buffers containing the decompressed frames.
- *    
+ *
  *    decompressionSessionOut:
  *      Points to a variable to receive the new decompression session.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -7091,39 +7091,39 @@ function ICMDecompressionSessionCreate( allocator: CFAllocatorRef { can be NULL 
 
 {
  *  ICMDecompressionSessionCreateForVisualContext()
- *  
+ *
  *  Summary:
  *    Creates a session for decompressing video frames.
- *  
+ *
  *  Discussion:
  *    Frames will be output to a visual context.  If desired, the
  *    trackingCallback may attach additional data to pixel buffers
  *    before they are sent to the visual context.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    allocator:
  *      An allocator for the session.  Pass NULL to use the default
  *      allocator.
- *    
+ *
  *    desc:
  *      An image description for the source frames.
- *    
+ *
  *    decompressionOptions:
  *      Options for the session. The session will retain this options
  *      object. You may change some options during the session by
  *      modifying the object.
- *    
+ *
  *    visualContext:
  *      The target visual context.
- *    
+ *
  *    trackingCallback:
  *      The callback to be called with information about queued frames,
  *      and pixel buffers containing the decompressed frames.
- *    
+ *
  *    decompressionSessionOut:
  *      Points to a variable to receive the new decompression session.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -7135,13 +7135,13 @@ function ICMDecompressionSessionCreateForVisualContext( allocator: CFAllocatorRe
 
 {
  *  ICMDecompressionSessionRetain()
- *  
+ *
  *  Summary:
  *    Increments the retain count of a decompression session.
- *  
+ *
  *  Discussion:
  *    If you pass NULL to this function, nothing happens.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -7153,14 +7153,14 @@ function ICMDecompressionSessionRetain( session: ICMDecompressionSessionRef ): I
 
 {
  *  ICMDecompressionSessionRelease()
- *  
+ *
  *  Summary:
  *    Decrements the retain count of a decompression session.  If it
  *    drops to zero, the session is disposed.
- *  
+ *
  *  Discussion:
  *    If you pass NULL to this function, nothing happens.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -7172,10 +7172,10 @@ procedure ICMDecompressionSessionRelease( session: ICMDecompressionSessionRef );
 
 {
  *  ICMDecompressionSessionGetTypeID()
- *  
+ *
  *  Summary:
  *    Returns the CFTypeID for decompression sessions.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -7187,34 +7187,34 @@ function ICMDecompressionSessionGetTypeID: CFTypeID; external name '_ICMDecompre
 
 {
  *  ICMDecompressionSessionDecodeFrame()
- *  
+ *
  *  Summary:
  *    Queues a frame for decompression.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    session:
  *      The decompression session.
- *    
+ *
  *    data:
  *      Points to the compressed data for this frame. The data must
  *      remain in this location until the tracking callback is called
  *      with the kICMDecompressionTracking_ReleaseSourceData flag set
  *      in decompressionTrackingFlags.
- *    
+ *
  *    dataSize:
  *      The number of bytes of compressed data. You may not pass zero
  *      in this parameter.
- *    
+ *
  *    frameOptions:
  *      Options for this frame.
- *    
+ *
  *    frameTime:
  *      Points to a structure describing the frame's timing information.
- *    
+ *
  *    sourceFrameRefCon:
  *      Your reference value for the frame.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -7226,10 +7226,10 @@ function ICMDecompressionSessionDecodeFrame( session: ICMDecompressionSessionRef
 
 {
  *  ICMDecompressionSessionGetPropertyInfo()
- *  
+ *
  *  Summary:
  *    Retrieves information about properties of a decompression session.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -7241,11 +7241,11 @@ function ICMDecompressionSessionGetPropertyInfo( session: ICMDecompressionSessio
 
 {
  *  ICMDecompressionSessionGetProperty()
- *  
+ *
  *  Summary:
  *    Retrieves the value of a specific property of a decompression
  *    session.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -7257,10 +7257,10 @@ function ICMDecompressionSessionGetProperty( session: ICMDecompressionSessionRef
 
 {
  *  ICMDecompressionSessionSetProperty()
- *  
+ *
  *  Summary:
  *    Sets the value of a specific property of a decompression session.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -7272,7 +7272,7 @@ function ICMDecompressionSessionSetProperty( session: ICMDecompressionSessionRef
 
 {
  *  ICMNonScheduledDisplayTime
- *  
+ *
  *  Discussion:
  *    The display time for a decompression session.
  }
@@ -7308,13 +7308,13 @@ const
   {
    * The non-scheduled display time for a decompression session.
    * Setting this requests display of the non-scheduled queued frame at
-   * that display time, if there is one. 
+   * that display time, if there is one.
    * See ICMDecompressionSessionSetNonScheduledDisplayTime.
    }
 	kICMDecompressionSessionPropertyID_NonScheduledDisplayTime = FourCharCode('nsti'); { ICMNonScheduledDisplayTime, Read/Write }
 
   {
-   * The direction for non-scheduled display time. 
+   * The direction for non-scheduled display time.
    * See ICMDecompressionSessionSetNonScheduledDisplayDirection.
    }
 	kICMDecompressionSessionPropertyID_NonScheduledDisplayDirection = FourCharCode('nsdu'); { Fixed, Read/Write }
@@ -7336,42 +7336,42 @@ const
 
 {
  *  ICMDecompressionSessionSetNonScheduledDisplayTime()
- *  
+ *
  *  Summary:
  *    Sets the display time for a decompression session, and requests
  *    display of the non-scheduled queued frame at that display time,
  *    if there is one.
- *  
+ *
  *  Discussion:
  *    Call ICMDecompressionSessionSetNonScheduledDisplayTime after
  *    queueing non-scheduled frames with
  *    ICMDecompressionSessionDecodeFrame with the
  *    icmFrameTimeIsNonScheduledDisplayTime flag set to request display
- *    of the frame at a particular display time. 
+ *    of the frame at a particular display time.
  *    If there is no queued non-scheduled frame with this display time,
  *    the frame with the next earlier display time is displayed. (Which
  *    of two display times is earlier is determined using the
  *    non-scheduled display time direction, which you can set with
  *    ICMDecompressionSessionSetNonScheduledDisplayDirection.) If there
- *    is no such frame, nothing happens. 
+ *    is no such frame, nothing happens.
  *    This has no effect if frames are scheduled against a timebase.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    session:
  *      The decompression session.
- *    
+ *
  *    displayTime:
  *      A display time.  Usually this is the display time of a
  *      non-scheduled queued frame.
- *    
+ *
  *    displayTimeScale:
  *      The timescale according to which displayTime should be
  *      interpreted.
- *    
+ *
  *    flags:
  *      Reserved, set to zero.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -7383,26 +7383,26 @@ function ICMDecompressionSessionSetNonScheduledDisplayTime( session: ICMDecompre
 
 {
  *  ICMDecompressionSessionSetNonScheduledDisplayDirection()
- *  
+ *
  *  Summary:
  *    Sets the direction for non-scheduled display time.
- *  
+ *
  *  Discussion:
  *    If rate is zero or positive, direction is forwards.  If negative,
- *    direction is backwards. 
+ *    direction is backwards.
  *    Any frames queued under the opposite direction will be flushed.
- *    
+ *
  *    The non-scheduled display direction defaults to forwards (rate
  *    1.0).
- *  
+ *
  *  Parameters:
- *    
+ *
  *    session:
  *      The decompression session.
- *    
+ *
  *    rate:
  *      Indicates the direction.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -7414,19 +7414,19 @@ function ICMDecompressionSessionSetNonScheduledDisplayDirection( session: ICMDec
 
 {
  *  ICMDecompressionSessionFlush()
- *  
+ *
  *  Summary:
  *    Flushes frames queued with a decompression session.
- *  
+ *
  *  Discussion:
  *    The tracking callback will be called for each frame with the
  *    result -1.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    session:
  *      The decompression session.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -7438,10 +7438,10 @@ function ICMDecompressionSessionFlush( session: ICMDecompressionSessionRef ): OS
 
 {
  *  ICMDecompressionSessionOptionsCreate()
- *  
+ *
  *  Summary:
  *    Creates a decompression session options object.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -7453,10 +7453,10 @@ function ICMDecompressionSessionOptionsCreate( allocator: CFAllocatorRef { can b
 
 {
  *  ICMDecompressionSessionOptionsCreateCopy()
- *  
+ *
  *  Summary:
  *    Copies a decompression session options object.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -7468,14 +7468,14 @@ function ICMDecompressionSessionOptionsCreateCopy( allocator: CFAllocatorRef { c
 
 {
  *  ICMDecompressionSessionOptionsRetain()
- *  
+ *
  *  Summary:
  *    Increments the retain count of a decompression session options
  *    object.
- *  
+ *
  *  Discussion:
  *    If you pass NULL to this function, nothing happens.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -7487,14 +7487,14 @@ function ICMDecompressionSessionOptionsRetain( options: ICMDecompressionSessionO
 
 {
  *  ICMDecompressionSessionOptionsRelease()
- *  
+ *
  *  Summary:
  *    Decrements the retain count of a decompression session options
  *    object.  If it drops to zero, the object is disposed.
- *  
+ *
  *  Discussion:
  *    If you pass NULL to this function, nothing happens.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -7506,10 +7506,10 @@ procedure ICMDecompressionSessionOptionsRelease( options: ICMDecompressionSessio
 
 {
  *  ICMDecompressionSessionOptionsGetTypeID()
- *  
+ *
  *  Summary:
  *    Returns the CFTypeID for decompression session options objects.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -7521,11 +7521,11 @@ function ICMDecompressionSessionOptionsGetTypeID: CFTypeID; external name '_ICMD
 
 {
  *  ICMDecompressionSessionOptionsGetPropertyInfo()
- *  
+ *
  *  Summary:
  *    Retrieves information about properties of a decompression session
  *    options object.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -7537,11 +7537,11 @@ function ICMDecompressionSessionOptionsGetPropertyInfo( options: ICMDecompressio
 
 {
  *  ICMDecompressionSessionOptionsGetProperty()
- *  
+ *
  *  Summary:
  *    Retrieves the value of a specific property of a decompression
  *    session options object.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -7553,11 +7553,11 @@ function ICMDecompressionSessionOptionsGetProperty( options: ICMDecompressionSes
 
 {
  *  ICMDecompressionSessionOptionsSetProperty()
- *  
+ *
  *  Summary:
  *    Sets the value of a specific property of a decompression session
  *    options object.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -7588,13 +7588,13 @@ const
   {
    * A specific decompressor component or component instance to be
    * used, or one of the wildcards anyCodec, bestSpeedCodec,
-   * bestFidelityCodec, or bestCompressionCodec. 
+   * bestFidelityCodec, or bestCompressionCodec.
    * By default, this is anyCodec.
    }
 	kICMDecompressionSessionOptionsPropertyID_DecompressorComponent = FourCharCode('imdc'); { DecompressorComponent, Read/Write }
 
   {
-   * The decompression accuracy. 
+   * The decompression accuracy.
    * The default accuracy is codecNormalQuality.
    }
 	kICMDecompressionSessionOptionsPropertyID_Accuracy = FourCharCode('acur'); { CodecQ, Read/Write }
@@ -7633,7 +7633,7 @@ const
 
 {
  *  ICMFieldMode
- *  
+ *
  *  Summary:
  *    Describes special field handling.
  }
@@ -7666,10 +7666,10 @@ const
 
 {
  *  ICMDecompressionFrameOptionsCreate()
- *  
+ *
  *  Summary:
  *    Creates a frame decompression options object.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -7681,10 +7681,10 @@ function ICMDecompressionFrameOptionsCreate( allocator: CFAllocatorRef { can be 
 
 {
  *  ICMDecompressionFrameOptionsCreateCopy()
- *  
+ *
  *  Summary:
  *    Copies a frame decompression options object.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -7696,14 +7696,14 @@ function ICMDecompressionFrameOptionsCreateCopy( allocator: CFAllocatorRef { can
 
 {
  *  ICMDecompressionFrameOptionsRetain()
- *  
+ *
  *  Summary:
  *    Increments the retain count of a frame decompression options
  *    object.
- *  
+ *
  *  Discussion:
  *    If you pass NULL to this function, nothing happens.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -7715,14 +7715,14 @@ function ICMDecompressionFrameOptionsRetain( options: ICMDecompressionFrameOptio
 
 {
  *  ICMDecompressionFrameOptionsRelease()
- *  
+ *
  *  Summary:
  *    Decrements the retain count of a frame decompression options
  *    object.  If it drops to zero, the object is disposed.
- *  
+ *
  *  Discussion:
  *    If you pass NULL to this function, nothing happens.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -7734,10 +7734,10 @@ procedure ICMDecompressionFrameOptionsRelease( options: ICMDecompressionFrameOpt
 
 {
  *  ICMDecompressionFrameOptionsGetTypeID()
- *  
+ *
  *  Summary:
  *    Returns the CFTypeID for frame decompression options objects.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -7749,11 +7749,11 @@ function ICMDecompressionFrameOptionsGetTypeID: CFTypeID; external name '_ICMDec
 
 {
  *  ICMDecompressionFrameOptionsGetPropertyInfo()
- *  
+ *
  *  Summary:
  *    Retrieves information about properties of a decompression frame
  *    options object.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -7765,11 +7765,11 @@ function ICMDecompressionFrameOptionsGetPropertyInfo( options: ICMDecompressionF
 
 {
  *  ICMDecompressionFrameOptionsGetProperty()
- *  
+ *
  *  Summary:
  *    Retrieves the value of a specific property of a decompression
  *    frame options object.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -7781,11 +7781,11 @@ function ICMDecompressionFrameOptionsGetProperty( options: ICMDecompressionFrame
 
 {
  *  ICMDecompressionFrameOptionsSetProperty()
- *  
+ *
  *  Summary:
  *    Sets the value of a specific property of a decompression frame
  *    options object.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -7816,9 +7816,9 @@ const
 
 {
  *  ICMCompressionSessionRef
- *  
+ *
  *  Summary:
- *    Represents a compression session for a sequence of images. 
+ *    Represents a compression session for a sequence of images.
  *    B-frame capable.
  }
 type
@@ -7827,11 +7827,11 @@ type
 
 {
  *  ICMEncodedFrameRef
- *  
+ *
  *  Summary:
  *    Represents a frame encoded by a compressor component and emitted
  *    by a compression session.
- *  
+ *
  *  Discussion:
  *    Compressor components have access to the mutable flavor of
  *    encoded frame object (ICMMutableEncodedFrameRef); compression
@@ -7848,7 +7848,7 @@ type
 
 {
  *  ICMCompressionSessionOptionsRef
- *  
+ *
  *  Summary:
  *    An opaque struct which holds options to configure a compression
  *    session.
@@ -7859,7 +7859,7 @@ type
 
 {
  *  ICMCompressionFrameOptionsRef
- *  
+ *
  *  Summary:
  *    A token which holds options to configure an individual frame
  *    during a compression session.
@@ -7870,11 +7870,11 @@ type
 
 {
  *  ICMMultiPassStorageRef
- *  
+ *
  *  Summary:
  *    A mechanism for storing information for each frame of a multipass
  *    compression session.
- *  
+ *
  *  Discussion:
  *    The ICM provides default storage mechanisms using temporary
  *    files, but clients may override this with custom mechanisms.
@@ -7885,39 +7885,39 @@ type
 
 {
  *  ICMEncodedFrameOutputCallback
- *  
+ *
  *  Summary:
  *    The callback through which a client of an ICM compression session
  *    receives encoded frames.
- *  
+ *
  *  Discussion:
  *    During the encoded frame output callback, the ICM has a reference
  *    to the passed ICMEncodedFrame, but the ICM will release that
  *    reference afterwards; the callback should retain the encoded
  *    frame if the client wants to keep it after the callback returns.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    encodedFrameOutputRefCon:
  *      The callback's reference value, copied from the
  *      encodedFrameOutputRefCon field of the
  *      ICMEncodedFrameOutputRecord.
- *    
+ *
  *    session:
  *      The compression session.
- *    
+ *
  *    error:
  *      Indicates whether there was an error.
- *    
+ *
  *    frame:
  *      The encoded frame.
- *    
+ *
  *    reserved:
  *      Reserved for future use.  Ignore the value of this parameter.
- *  
+ *
  *  Result:
  *    If the callback returns an error, the compressor and ICM will
- *    stop emitting frames so that the error can be propogated back to
+ *    stop emitting frames so that the error can be propagated back to
  *    the caller of ICMCompressionSessionEncodeFrame or
  *    ICMCompressionSessionCompleteFrames.
  }
@@ -7926,7 +7926,7 @@ type
 
 {
  *  ICMEncodedFrameOutputRecord
- *  
+ *
  *  Summary:
  *    Holds an encoded frame callback and reference value.
  }
@@ -7951,7 +7951,7 @@ type
 
 {
  *  ICMSourceTrackingFlags
- *  
+ *
  }
 type
 	ICMSourceTrackingFlags = UInt32;
@@ -7998,28 +7998,28 @@ const
 
 {
  *  ICMSourceTrackingCallback
- *  
+ *
  *  Summary:
  *    A callback which the ICM calls to provide information about the
  *    status of a frame that was passed to
  *    ICMCompressionSessionEncodeFrame.
- *  
+ *
  *  Discussion:
  *    Note that this callback may be called several times.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    sourceTrackingRefCon:
  *      The callback's reference value, copied from the
  *      sourceTrackingRefCon field of ICMSourceTrackingCallbackRecord.
- *    
+ *
  *    sourceTrackingFlags:
  *      Flags describing what has happened to the frame.
- *    
+ *
  *    sourceFrameRefCon:
  *      The frame's reference value, copied from the sourceFrameRefCon
  *      parameter to ICMCompressionSessionEncodeFrame.
- *    
+ *
  *    reserved:
  *      Reserved for future use.  Ignore the value of this parameter.
  }
@@ -8028,7 +8028,7 @@ type
 
 {
  *  ICMSourceTrackingCallbackRecord
- *  
+ *
  *  Summary:
  *    A tracking callback for an ICM compression session.
  }
@@ -8048,10 +8048,10 @@ type
 
 {
  *  ICMFrameType
- *  
+ *
  *  Summary:
  *    Informally identifies a type of frame.
- *  
+ *
  *  Discussion:
  *    Do not assume that there are no other frame types beyond I, P and
  *    B.
@@ -8068,49 +8068,49 @@ const
 { ICMCompressionSessionRef routines }
 {
  *  ICMCompressionSessionCreate()
- *  
+ *
  *  Summary:
  *    Creates a compression session for the given codec type.
- *  
+ *
  *  Discussion:
  *    Some compressors do not support arbitrary source dimensions, and
  *    may override the suggested width and height.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    allocator:
  *      An allocator for the session.  Pass NULL to use the default
  *      allocator.
- *    
+ *
  *    width:
  *      The width of frames.
- *    
+ *
  *    height:
  *      The height of frames.
- *    
+ *
  *    cType:
  *      The codec type.
- *    
+ *
  *    timescale:
  *      The timescale to be used for all timestamps and durations used
  *      in the session.
- *    
+ *
  *    compressionOptions:
  *      Settings configuring the session.
- *    
+ *
  *    sourcePixelBufferAttributes:
  *      Required attributes for source pixel buffers, used when
  *      creating a pixel buffer pool for source frames. If you do not
  *      want the ICM to create one for you, pass NULL. (Using pixel
  *      buffers not allocated by the ICM may increase the chance that
  *      it will be necessary to copy image data.)
- *    
+ *
  *    encodedFrameOutputRecord:
  *      The callback that will receive encoded frames.
- *    
+ *
  *    compressionSessionOut:
  *      Points to a variable to receive the created session object.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -8122,13 +8122,13 @@ function ICMCompressionSessionCreate( allocator: CFAllocatorRef { can be NULL };
 
 {
  *  ICMCompressionSessionRetain()
- *  
+ *
  *  Summary:
  *    Increments the retain count of a compression session.
- *  
+ *
  *  Discussion:
  *    If you pass NULL to this function, nothing happens.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -8140,17 +8140,17 @@ function ICMCompressionSessionRetain( session: ICMCompressionSessionRef ): ICMCo
 
 {
  *  ICMCompressionSessionRelease()
- *  
+ *
  *  Summary:
  *    Decrements the retain count of a compression session.  If it
  *    drops to zero, the session is disposed.
- *  
+ *
  *  Discussion:
  *    If you pass NULL to this function, nothing happens. Remember to
  *    call ICMCompressionSessionCompleteFrames first if you want to
  *    ensure any pending frames are emitted.  If you do not, they will
  *    be discarded.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -8162,10 +8162,10 @@ procedure ICMCompressionSessionRelease( session: ICMCompressionSessionRef ); ext
 
 {
  *  ICMCompressionSessionGetTypeID()
- *  
+ *
  *  Summary:
  *    Returns the CFTypeID for compression sessions.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -8177,10 +8177,10 @@ function ICMCompressionSessionGetTypeID: CFTypeID; external name '_ICMCompressio
 
 {
  *  ICMCompressionSessionGetPropertyInfo()
- *  
+ *
  *  Summary:
  *    Retrieves information about properties of a compression session.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -8192,11 +8192,11 @@ function ICMCompressionSessionGetPropertyInfo( session: ICMCompressionSessionRef
 
 {
  *  ICMCompressionSessionGetProperty()
- *  
+ *
  *  Summary:
  *    Retrieves the value of a specific property of a compression
  *    session.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -8208,10 +8208,10 @@ function ICMCompressionSessionGetProperty( session: ICMCompressionSessionRef; in
 
 {
  *  ICMCompressionSessionSetProperty()
- *  
+ *
  *  Summary:
  *    Sets the value of a specific property of a compression session.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -8263,17 +8263,17 @@ const
    * codecs, the image description may not be available before the
    * first frame is compressed. Multiple calls to retrieve this
    * property will return the same handle. The ICM will dispose this
-   * handle when the compression session is disposed. 
+   * handle when the compression session is disposed.
    * IMPORTANT: The caller must NOT dispose this handle.
    }
 	kICMCompressionSessionPropertyID_ImageDescription = FourCharCode('idsc'); { ImageDescriptionHandle, Read }
 
 {
  *  ICMCompressionSessionGetTimeScale()
- *  
+ *
  *  Summary:
  *    Retrieves the time scale for the compression session.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -8285,11 +8285,11 @@ function ICMCompressionSessionGetTimeScale( session: ICMCompressionSessionRef ):
 
 {
  *  ICMCompressionSessionGetPixelBufferPool()
- *  
+ *
  *  Summary:
  *    Returns a pool that can provide ideal source pixel buffers for a
  *    compression session.
- *  
+ *
  *  Discussion:
  *    The compression session creates this pixel buffer pool based on
  *    the compressor's pixel buffer attributes and any pixel buffer
@@ -8298,7 +8298,7 @@ function ICMCompressionSessionGetTimeScale( session: ICMCompressionSessionRef ):
  *    attributes can not be reconciled, the pool is based on the source
  *    pixel buffer attributes and the ICM converts each CVPixelBuffer
  *    internally.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -8310,18 +8310,18 @@ function ICMCompressionSessionGetPixelBufferPool( session: ICMCompressionSession
 
 {
  *  ICMCompressionSessionGetImageDescription()
- *  
+ *
  *  Summary:
  *    Retrieves the image description for the compression session.
- *  
+ *
  *  Discussion:
  *    For some codecs, this may fail if called before the first frame
  *    is compressed. Multiple calls to
  *    ICMCompressionSessionGetImageDescription will return the same
  *    handle. The ICM will dispose this handle when the compression
- *    session is disposed. 
+ *    session is disposed.
  *    IMPORTANT: The caller must NOT dispose this handle.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -8334,31 +8334,31 @@ function ICMCompressionSessionGetImageDescription( session: ICMCompressionSessio
 { ICMCompressionSessionRef encoding routines }
 {
  *  ICMCompressionSessionEncodeFrame()
- *  
+ *
  *  Summary:
  *    Call this function to present frames to the compression session.
  *    Encoded frames may or may not be output before the function
  *    returns.
- *  
+ *
  *  Discussion:
  *    The session will retain the pixel buffer as long as necessary;
  *    the client should not modify the pixel data until the session
  *    releases it. (The most practical way to deal with this is by
- *    allocating pixel buffers from a pool.) 
+ *    allocating pixel buffers from a pool.)
  *    The client may fill in both, either or neither of
  *    displayTimeStamp and displayDuration, but should set the
  *    appropriate flags to indicate which is valid. If the client needs
  *    to track the progress of a source frame, it should provide a
- *    sourceTrackingCallback. 
+ *    sourceTrackingCallback.
  *    Note: If multipass compression is enabled, calls to
  *    ICMCompressionSessionEncodeFrame must be bracketed by
  *    ICMCompressionSessionBeginPass ... ICMCompressionSessionEndPass.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    session:
  *      Identifies the compression session.
- *    
+ *
  *    pixelBuffer:
  *      Contains the source image to be compressed. PixelBuffer must
  *      have a nonzero reference count. The session will retain it as
@@ -8367,32 +8367,32 @@ function ICMCompressionSessionGetImageDescription( session: ICMCompressionSessio
  *      multipass encoding session pass where the compressor suggested
  *      the flag kICMCompressionPassMode_NoSourceFrames, you may pass
  *      NULL for pixelBuffer.
- *    
+ *
  *    displayTimeStamp:
  *      The display timestamp of the frame, using the timescale passed
  *      to ICMCompressionSessionCreate. If you pass a valid value, set
  *      the kICMValidTime_DisplayTimeStampIsValid flag in
  *      validTimeFlags.
- *    
+ *
  *    displayDuration:
  *      The display duration of the frame, using the timescale passed
  *      to ICMCompressionSessionCreate. If you pass a valid value, set
  *      the kICMValidTime_DisplayDurationIsValid flag in validTimeFlags.
- *    
+ *
  *    validTimeFlags:
  *      Flags to indicate which of displayTimeStamp and displayDuration
  *      are valid.
- *    
+ *
  *    frameOptions:
  *      Options for this frame.
- *    
+ *
  *    sourceTrackingCallback:
  *      A callback to be notified about the status of this source
  *      frame. Pass NULL if you do not require notification.
- *    
+ *
  *    sourceFrameRefCon:
  *      Your reference to the source frame.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -8404,39 +8404,39 @@ function ICMCompressionSessionEncodeFrame( session: ICMCompressionSessionRef; pi
 
 {
  *  ICMCompressionSessionCompleteFrames()
- *  
+ *
  *  Discussion:
  *    Call this function to force the compression session to complete
  *    encoding frames. Set completeAllFrames to direct the session to
- *    complete all pending frames. 
+ *    complete all pending frames.
  *    If completeAllFrames is false, only frames with display time
- *    stamps up to and including completeUntilDisplayTimeStamp. 
+ *    stamps up to and including completeUntilDisplayTimeStamp.
  *    If ICMCompressionSessionOptionsSetDurationsNeeded is true and you
  *    are passing valid display timestamps but not display durations to
  *    ICMCompressionSessionEncodeFrame, pass the display timestamp of
  *    the next frame that would be passed to EncodeFrame in
- *    nextDisplayTimeStamp. 
+ *    nextDisplayTimeStamp.
  *    Note: This function might return before frames are completed if
  *    the encoded frame callback returns an error.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    session:
  *      Identifies the compression session.
- *    
+ *
  *    completeAllFrames:
  *      Set to direct the session to complete all pending frames.
- *    
+ *
  *    completeUntilDisplayTimeStamp:
  *      If completeAllFrames is false, the display timestamp to
  *      complete frames up to. Ignored if completeAllFrames is true.
- *    
+ *
  *    nextDisplayTimeStamp:
  *      See above. Ignored unless
  *      ICMCompressionSessionOptionsSetDurationsNeeded set true and
  *      kICMValidTime_DisplayDurationIsValid was clear in
  *      validTimeFlags in last call to ICMCompressionSessionEncodeFrame.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -8450,7 +8450,7 @@ function ICMCompressionSessionCompleteFrames( session: ICMCompressionSessionRef;
 
 {
  *  ICMCompressionPassModeFlags
- *  
+ *
  *  Summary:
  *    Flags describing how a compressor should behave in a given pass
  *    of multipass encoding.
@@ -8492,36 +8492,36 @@ const
 
 {
  *  ICMCompressionSessionSupportsMultiPassEncoding()
- *  
+ *
  *  Summary:
  *    Queries whether a compression session supports multipass encoding.
- *  
+ *
  *  Discussion:
  *    Even if this function returns false, if you set the
  *    kICMCompressionSessionOptionsPropertyID_MultiPassStorage property
  *    on the CompressionSessionOptions, you must call
  *    ICMCompressionSessionBeginPass and ICMCompressionSessionEndPass.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    session:
  *      The compression session.
- *    
+ *
  *    multiPassStyleFlags:
  *      Reserved.  Set to zero.
- *    
+ *
  *    firstPassModeFlagsOut:
  *      Points to a variable to receive the session's requested mode
  *      flags for the first pass. The client may modify these flags,
  *      but should not set kICMCompressionPassMode_NoSourceFrames. Pass
  *      NULL if you do not want this information.
- *  
+ *
  *  Result:
  *    true if the session supports multipass encoding, false otherwise.
  *    If the session does not support multipass encoding,
  *    *firstPassModeFlagsOut will be set to
  *    kICMCompressionPassMode_OutputEncodedFrames.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -8533,36 +8533,36 @@ function ICMCompressionSessionSupportsMultiPassEncoding( session: ICMCompression
 
 {
  *  ICMCompressionSessionBeginPass()
- *  
+ *
  *  Summary:
  *    Call to announce the start of a specific compression pass.
- *  
+ *
  *  Discussion:
  *    The source frames and frame options for each display timestamp
- *    should be the same across passes. 
+ *    should be the same across passes.
  *    During multipass compression, valid displayTimeStamps must be
  *    passed to ICMCompressionSessionEncodeFrame since they are used to
- *    index the compressor's stored state. 
+ *    index the compressor's stored state.
  *    During an analysis pass
  *    (kICMCompressionPassMode_WriteToMultiPassStorage), the compressor
  *    does not output encoded frames, but records compressor-private
- *    information for each frame. 
+ *    information for each frame.
  *    During repeated analysis passes and the encoding pass
  *    (kICMCompressionPassMode_ReadFromMultiPassStorage), the
  *    compressor may refer to this information for other frames and use
- *    it to improve encoding. 
+ *    it to improve encoding.
  *    During an encoding pass
  *    (kICMCompressionPassMode_OutputEncodedFrames), the compressor
- *    must output encoded frames. 
+ *    must output encoded frames.
  *    If the compressor set the kICMCompressionPassMode_NoSourceFrames
  *    flag for the pass, the client may pass NULL pixel buffers to
- *    ICMCompressionSessionEncodeFrame. 
+ *    ICMCompressionSessionEncodeFrame.
  *    By default, the ICM provides local storage that lasts only until
  *    the compression session is disposed. If the client provides
  *    custom multipass storage, pass may be performed at different
  *    times or on different machines; segments of each pass may even be
  *    distributed.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -8574,10 +8574,10 @@ function ICMCompressionSessionBeginPass( session: ICMCompressionSessionRef; pass
 
 {
  *  ICMCompressionSessionEndPass()
- *  
+ *
  *  Summary:
  *    Call to announce the end of a pass.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -8589,39 +8589,39 @@ function ICMCompressionSessionEndPass( session: ICMCompressionSessionRef ): OSSt
 
 {
  *  ICMCompressionSessionProcessBetweenPasses()
- *  
+ *
  *  Summary:
  *    Lets the compressor perform processing between passes.
- *  
+ *
  *  Discussion:
  *    Call this function repeatedly, until the compressor sets
  *    *interpassProcessingDoneOut to true to indicate that it is done
- *    with this round of interpass processing. 
+ *    with this round of interpass processing.
  *    When done, the compressor will indicate its preferred mode for
- *    the next pass. 
+ *    the next pass.
  *    The client may choose to begin an encoding pass (by ORing in the
  *    kICMCompressionPassMode_OutputEncodedFrames flag) regardless of
  *    the compressor's request.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    session:
  *      The compression session.
- *    
+ *
  *    flags:
  *      Reserved.  Set to zero.
- *    
+ *
  *    interpassProcessingDoneOut:
  *      Points to a Boolean that will be set to false if
  *      ICMCompressionSessionProcessBetweenPasses should be called
  *      again, true if not
- *    
+ *
  *    requestedNextPassModeFlagsOut:
  *      Points to ICMCompressionPassModeFlags that will be set to the
  *      codec's recommended mode flags for the next pass.
  *      kICMCompressionPassMode_OutputEncodedFrames will only be set if
  *      it recommends that the next pass be the final one.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -8634,10 +8634,10 @@ function ICMCompressionSessionProcessBetweenPasses( session: ICMCompressionSessi
 { ICMCompressionSessionOptionsRef routines }
 {
  *  ICMCompressionSessionOptionsCreate()
- *  
+ *
  *  Summary:
  *    Creates a compression session options object.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -8649,10 +8649,10 @@ function ICMCompressionSessionOptionsCreate( allocator: CFAllocatorRef { can be 
 
 {
  *  ICMCompressionSessionOptionsCreateCopy()
- *  
+ *
  *  Summary:
  *    Copies a compression session options object.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -8664,14 +8664,14 @@ function ICMCompressionSessionOptionsCreateCopy( allocator: CFAllocatorRef { can
 
 {
  *  ICMCompressionSessionOptionsRetain()
- *  
+ *
  *  Summary:
  *    Increments the retain count of a compression session options
  *    object.
- *  
+ *
  *  Discussion:
  *    If you pass NULL to this function, nothing happens.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -8683,14 +8683,14 @@ function ICMCompressionSessionOptionsRetain( options: ICMCompressionSessionOptio
 
 {
  *  ICMCompressionSessionOptionsRelease()
- *  
+ *
  *  Summary:
  *    Decrements the retain count of a compression session options
  *    object.  If it drops to zero, the object is disposed.
- *  
+ *
  *  Discussion:
  *    If you pass NULL to this function, nothing happens.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -8702,10 +8702,10 @@ procedure ICMCompressionSessionOptionsRelease( options: ICMCompressionSessionOpt
 
 {
  *  ICMCompressionSessionOptionsGetTypeID()
- *  
+ *
  *  Summary:
  *    Returns the CFTypeID for compression session options objects.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -8717,11 +8717,11 @@ function ICMCompressionSessionOptionsGetTypeID: CFTypeID; external name '_ICMCom
 
 {
  *  ICMCompressionSessionOptionsGetPropertyInfo()
- *  
+ *
  *  Summary:
  *    Retrieves information about properties of a compression session
  *    options object.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -8733,11 +8733,11 @@ function ICMCompressionSessionOptionsGetPropertyInfo( options: ICMCompressionSes
 
 {
  *  ICMCompressionSessionOptionsGetProperty()
- *  
+ *
  *  Summary:
  *    Retrieves the value of a specific property of a compression
  *    session options object.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -8749,11 +8749,11 @@ function ICMCompressionSessionOptionsGetProperty( options: ICMCompressionSession
 
 {
  *  ICMCompressionSessionOptionsSetProperty()
- *  
+ *
  *  Summary:
  *    Sets the value of a specific property of a compression session
  *    options object.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -8784,10 +8784,10 @@ const
 
 {
  *  ICMDataRateLimit
- *  
+ *
  *  Summary:
  *    A hard limit on the data rate.
- *  
+ *
  *  Discussion:
  *    A hard limit is described by a data size in bytes and a duration
  *    in seconds, and requires that the total size of compressed data
@@ -8810,7 +8810,7 @@ type
 {
  *  Summary:
  *    Scaling modes
- *  
+ *
  *  Discussion:
  *    These constants indicate how source frames to a compression
  *    session should be scaled if the dimensions and/or display aspect
@@ -8850,11 +8850,11 @@ const
 
 {
  *  ICMSimpleBoundaryConditions
- *  
+ *
  *  Summary:
  *    Indicates whether and how a compression session's frames will be
  *    concatenated with other compressed frames to form a longer series.
- *  
+ *
  *  Discussion:
  *    Some clients divide a long series of frames into several shorter
  *    segments, each of which is then compressed by an independent
@@ -8862,10 +8862,10 @@ const
  *    about how each session fits into the greater series: does this
  *    session stand alone, or will it be used to encode the first
  *    segment, a middle segment, or the last segment in a longer
- *    continuum? 
+ *    continuum?
  *    This information enables compressors to ensure that compressed
  *    segments can be concatenated smoothly -- for example, avoiding
- *    data rate spikes where segments are joined. 
+ *    data rate spikes where segments are joined.
  *    By default, a session is assumed to stand alone.
  }
 type
@@ -8899,32 +8899,32 @@ const
 
   {
    * Enables temporal compression. By default, temporal compression is
-   * disabled. 
+   * disabled.
    * IMPORTANT: If you want temporal compression (P frames and/or B
    * frames) you must set this to true.
    }
 	kICMCompressionSessionOptionsPropertyID_AllowTemporalCompression = FourCharCode('p ok'); { Boolean, Read/Write }
 
   {
-   * Enables frame reordering. 
+   * Enables frame reordering.
    * In order to encode B frames, a compressor must reorder frames,
    * which means that the order in which they will be emitted and
    * stored (the decode order) is different from the order in which
-   * they were presented to the compressor (the display order). 
-   * By default, frame reordering is disabled. 
+   * they were presented to the compressor (the display order).
+   * By default, frame reordering is disabled.
    * IMPORTANT: In order to encode using B frames, you must enable
    * frame reordering.
    }
 	kICMCompressionSessionOptionsPropertyID_AllowFrameReordering = FourCharCode('b ok'); { Boolean, Read/Write }
 
   {
-   * Indicates that durations of emitted frames are needed. 
+   * Indicates that durations of emitted frames are needed.
    * If this flag is set and source frames are provided with times but
    * not durations, then frames will be delayed so that durations can
    * be calculated as the difference between one frame's time stamp and
-   * the next frame's time stamp. 
+   * the next frame's time stamp.
    * By default, this flag is clear, so frames will not be delayed in
-   * order to calculate durations. 
+   * order to calculate durations.
    * IMPORTANT: If you will be passing encoded frames to
    * AddMediaSampleFromEncodedFrame, you must set this flag to true.
    }
@@ -8932,13 +8932,13 @@ const
 
   {
    * The maximum interval between key frames, also known as the key
-   * frame rate. 
+   * frame rate.
    * Key frames, also known as sync frames, reset inter-frame
    * dependencies; decoding a key frame is sufficient to prepare a
    * decompressor for correctly decoding the difference frames that
-   * follow. 
+   * follow.
    * Compressors are allowed to generate key frames more frequently if
-   * this would result in more efficient compression. 
+   * this would result in more efficient compression.
    * The default key frame interval is 0, which indicates that the
    * compressor should choose where to place all key frames. A key
    * frame interval of 1 indicates that every frame must be a key
@@ -8950,38 +8950,38 @@ const
   {
    * The requested maximum interval between partial sync frames. If the
    * interval is n, any sequence of n successive frames must include at
-   * least one key or partial sync frame. 
+   * least one key or partial sync frame.
    * Where supported, partial sync frames perform a partial reset of
    * inter-frame dependencies; decoding two partial sync frames and the
    * non-droppable difference frames between them is sufficient to
    * prepare a decompressor for correctly decoding the difference
-   * frames that follow. 
+   * frames that follow.
    * Compressors are allowed to generate partial sync frames more
    * frequently if this would result in more efficient compression.
-   * 
+   *
    * The default partial sync frame interval is 0, which indicates that
    * the compressor should choose where to place partial sync frames. A
    * partial sync frame interval of 1 means there can be no difference
    * frames, so it is equivalent to a key frame interval of 1. A
    * partial sync frame interval of 2 means that every other frame must
-   * be a key frame or a partial sync frame. 
+   * be a key frame or a partial sync frame.
    * Compressors that do not support partial sync frames will ignore
    * this setting.
    }
 	kICMCompressionSessionOptionsPropertyID_MaxPartialSyncFrameInterval = FourCharCode('psfr'); { SInt32, Read/Write }
 
   {
-   * Enables the compressor to modify frame times. 
+   * Enables the compressor to modify frame times.
    * Some compressors are able to identify and coalesce runs of
    * identical frames and output single frames with longer duration, or
    * output frames at a different frame rate from the original. This
    * feature is controlled by the "allow frame time changes" flag. By
    * default, this flag is set to false, which forces compressors to
    * emit one encoded frame for every source frame, and to preserve
-   * frame display times. 
+   * frame display times.
    * (Note: this feature replaces the practice of having compressors
    * return special high similarity values to indicate that frames
-   * could be dropped.) 
+   * could be dropped.)
    * If you want to allow the compressor to modify frame times in order
    * to improve compression performance, enable frame time changes.
    }
@@ -8989,7 +8989,7 @@ const
 
   {
    * Enables the compressor to call the encoded-frame callback from a
-   * different thread. 
+   * different thread.
    * By default, the flag is false, which means that the compressor
    * must call the encoded-frame callback from the same thread that
    * ICMCompressionSessionEncodeFrame and
@@ -9003,7 +9003,7 @@ const
    * frame. It limits the number of frames that may be held in the
    * "compression window". If the maximum frame delay count is M, then
    * before the call to encode frame N returns, frame N-M must have
-   * been emitted. 
+   * been emitted.
    * The default is kICMUnlimitedFrameDelayCount, which sets no limit
    * on the compression window.
    }
@@ -9016,7 +9016,7 @@ const
    * in the "compression window". If the maximum frame delay time is
    * TM, then before the call to encode a frame with display time TN
    * returns, all frames with display times up to and including TN-TM
-   * must have been emitted. 
+   * must have been emitted.
    * The default is kICMUnlimitedFrameDelayTime, which sets no time
    * limit on the compression window.
    }
@@ -9025,9 +9025,9 @@ const
   {
    * Sets a specific compressor component or component instance to be
    * used, or one of the wildcards anyCodec, bestSpeedCodec,
-   * bestFidelityCodec, or bestCompressionCodec. 
+   * bestFidelityCodec, or bestCompressionCodec.
    * Use this API to force the Image Compression Manager to use a
-   * specific compressor component or compressor component instance. 
+   * specific compressor component or compressor component instance.
    * (If you pass in a component instance that you opened, the ICM will
    * not close that instance; you must do so after the compression
    * session is released.) To allow the Image Compression Manager to
@@ -9045,7 +9045,7 @@ const
 	kICMCompressionSessionOptionsPropertyID_CompressorSettings = FourCharCode('cost'); { Handle, Read/Write }
 
   {
-   * The depth for compression. 
+   * The depth for compression.
    * If a compressor does not support a specific depth, the closest
    * supported depth will be used (preferring deeper depths to
    * shallower depths). The default depth is k24RGBPixelFormat.
@@ -9054,14 +9054,14 @@ const
 
   {
    * The color table for compression.  Used with indexed-color depths.
-   * 
+   *
    * Clients who get this property are responsible for disposing the
    * returned CTabHandle.
    }
 	kICMCompressionSessionOptionsPropertyID_ColorTable = FourCharCode('clut'); { CTabHandle, Read/Write}
 
   {
-   * The compression quality. 
+   * The compression quality.
    * This value is always used to set the spatialQuality; if temporal
    * compression is enabled, it is also used to set temporalQuality.
    * <BR> The default quality is codecNormalQuality.
@@ -9069,10 +9069,10 @@ const
 	kICMCompressionSessionOptionsPropertyID_Quality = FourCharCode('qual'); { CodecQ, Read/Write }
 
   {
-   * The long-term desired average data rate in bytes per second. 
-   *  This is not a hard limit. 
+   * The long-term desired average data rate in bytes per second.
+   *  This is not a hard limit.
    * The default data rate is zero, which indicates that the quality
-   * setting should determine the size of compressed data. 
+   * setting should determine the size of compressed data.
    * Note that data rate settings only have an effect when timing
    * information is provided for source frames, and that some codecs do
    * not support limiting to specified data rates.
@@ -9080,15 +9080,15 @@ const
 	kICMCompressionSessionOptionsPropertyID_AverageDataRate = FourCharCode('aver'); { SInt32, Read/Write }
 
   {
-   * Zero, one or two hard limits on data rate. 
+   * Zero, one or two hard limits on data rate.
    * Each hard limit is described by a data size in bytes and a
    * duration in seconds, and requires that the total size of
    * compressed data for any contiguous segment of that duration (in
-   * decode time) must not exceed the data size. 
-   * By default, no data rate limits are set. 
+   * decode time) must not exceed the data size.
+   * By default, no data rate limits are set.
    * When setting this property, the inPropValueSize parameter should
    * be the number of data rate limits multiplied by
-   * sizeof(ICMDataRateLimit). 
+   * sizeof(ICMDataRateLimit).
    * Note that data rate settings only have an effect when timing
    * information is provided for source frames, and that some codecs do
    * not support limiting to specified data rates.
@@ -9106,7 +9106,7 @@ const
 	kICMCompressionSessionOptionsPropertyID_MaxDataRateLimits = FourCharCode('mhar'); { UInt32, Read }
 
   {
-   * Indicates that the source was previously compressed. 
+   * Indicates that the source was previously compressed.
    * This property is purely an optional, informational hint to the
    * compressor; by default it is false.
    }
@@ -9114,32 +9114,32 @@ const
 
   {
    * Recommends a CPU time budget for the compressor in microseconds
-   * per frame. 
-   * Zero means to go as fast as possible. 
+   * per frame.
+   * Zero means to go as fast as possible.
    * By default, this is set to kICMUnlimitedCPUTimeBudget, which sets
-   * no limit. 
+   * no limit.
    * This is an advisory hint to the compressor, and some compressors
    * may ignore it. Multithreaded compressors may use this amount of
-   * CPU time on each processor. 
+   * CPU time on each processor.
    * Compressors should not feel compelled to use the full time budget
    * if they complete ahead of time!
    }
 	kICMCompressionSessionOptionsPropertyID_CPUTimeBudget = FourCharCode('cput'); { UInt32, Read/Write }
 
   {
-   * Storage for multi-pass compression. 
+   * Storage for multi-pass compression.
    * To enable multipass compression, the client must provide a storage
    * location for multipass data.  Use
    * ICMMultiPassStorageCreateWithTemporaryFile to have the ICM store
    * it in a temporary file.  Use
    * ICMMultiPassStorageCreateWithCallbacks to manage the storage
-   * yourself. 
+   * yourself.
    * Note that the amount of multipass data to be stored can be
    * substantial; it could be greater than the size of the output movie
-   * file. 
+   * file.
    * If this property is not NULL, the client must call
    * ICMCompressionSessionBeginPass and ICMCompressionSessionEndPass
-   * around groups of calls to ICMCompressionSessionEncodeFrame. 
+   * around groups of calls to ICMCompressionSessionEncodeFrame.
    *  By default, this property is NULL and multipass compression is
    * not enabled. The compression session options object retains the
    * multipass storage object, when one is set.
@@ -9149,7 +9149,7 @@ const
   {
    * Indicates the number of source frames, if known. If nonzero, this
    * should be the exact number of times that the client calls
-   * ICMCompressionSessionEncodeFrame in each pass. 
+   * ICMCompressionSessionEncodeFrame in each pass.
    * The default is 0, which indicates that the number of source frames
    * is not known.
    }
@@ -9216,15 +9216,15 @@ const
 
 {
  *  ICMCompressionSessionOptionsSetAllowTemporalCompression()
- *  
+ *
  *  Summary:
  *    Enables temporal compression.
- *  
+ *
  *  Discussion:
- *    By default, temporal compression is disabled. 
+ *    By default, temporal compression is disabled.
  *    IMPORTANT: If you want temporal compression (P frames and/or B
  *    frames) you must set this to true.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -9236,10 +9236,10 @@ function ICMCompressionSessionOptionsSetAllowTemporalCompression( options: ICMCo
 
 {
  *  ICMCompressionSessionOptionsGetAllowTemporalCompression()
- *  
+ *
  *  Summary:
  *    Retrieves the allow temporal compression flag.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -9251,19 +9251,19 @@ function ICMCompressionSessionOptionsGetAllowTemporalCompression( options: ICMCo
 
 {
  *  ICMCompressionSessionOptionsSetAllowFrameReordering()
- *  
+ *
  *  Summary:
  *    Enables frame reordering.
- *  
+ *
  *  Discussion:
  *    In order to encode B frames, a compressor must reorder frames,
  *    which means that the order in which they will be emitted and
  *    stored (the decode order) is different from the order in which
- *    they were presented to the compressor (the display order). 
- *     By default, frame reordering is disabled. 
+ *    they were presented to the compressor (the display order).
+ *     By default, frame reordering is disabled.
  *    IMPORTANT: In order to encode using B frames, you must enable
  *    frame reordering.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -9275,10 +9275,10 @@ function ICMCompressionSessionOptionsSetAllowFrameReordering( options: ICMCompre
 
 {
  *  ICMCompressionSessionOptionsGetAllowFrameReordering()
- *  
+ *
  *  Summary:
  *    Retrieves the allow frame reordering flag.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -9290,20 +9290,20 @@ function ICMCompressionSessionOptionsGetAllowFrameReordering( options: ICMCompre
 
 {
  *  ICMCompressionSessionOptionsSetDurationsNeeded()
- *  
+ *
  *  Summary:
  *    Indicates that durations of emitted frames are needed.
- *  
+ *
  *  Discussion:
  *    If this flag is set and source frames are provided with times but
  *    not durations, then frames will be delayed so that durations can
  *    be calculated as the difference between one frame's time stamp
- *    and the next frame's time stamp. 
+ *    and the next frame's time stamp.
  *    By default, this flag is clear, so frames will not be delayed in
- *    order to calculate durations. 
+ *    order to calculate durations.
  *    IMPORTANT: If you will be passing encoded frames to
  *    AddMediaSampleFromEncodedFrame, you must set this flag to true.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -9315,10 +9315,10 @@ function ICMCompressionSessionOptionsSetDurationsNeeded( options: ICMCompression
 
 {
  *  ICMCompressionSessionOptionsGetDurationsNeeded()
- *  
+ *
  *  Summary:
  *    Retrieves the "durations needed" flag.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -9330,19 +9330,19 @@ function ICMCompressionSessionOptionsGetDurationsNeeded( options: ICMCompression
 
 {
  *  ICMCompressionSessionOptionsSetMaxKeyFrameInterval()
- *  
+ *
  *  Summary:
  *    Sets the maximum interval between key frames (also known as the
  *    key frame rate).
- *  
+ *
  *  Discussion:
  *    Compressors are allowed to generate key frames more frequently if
- *    this would result in more efficient compression. 
+ *    this would result in more efficient compression.
  *    The default key frame interval is 0, which indicates that the
- *    compressor should choose where to place all key frames. 
+ *    compressor should choose where to place all key frames.
  *     (Note: this is a break with previous practice, which used a key
  *    frame rate of zero to disable temporal compression.)
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -9354,10 +9354,10 @@ function ICMCompressionSessionOptionsSetMaxKeyFrameInterval( options: ICMCompres
 
 {
  *  ICMCompressionSessionOptionsGetMaxKeyFrameInterval()
- *  
+ *
  *  Summary:
  *    Retrieves the maximum key frame interval.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -9369,10 +9369,10 @@ function ICMCompressionSessionOptionsGetMaxKeyFrameInterval( options: ICMCompres
 
 {
  *  ICMCompressionSessionOptionsSetAllowFrameTimeChanges()
- *  
+ *
  *  Summary:
  *    Enables the compressor to modify frame times.
- *  
+ *
  *  Discussion:
  *    Some compressors are able to identify and coalesce runs of
  *    identical frames and output single frames with longer duration,
@@ -9380,14 +9380,14 @@ function ICMCompressionSessionOptionsGetMaxKeyFrameInterval( options: ICMCompres
  *    This feature is controlled by the "allow frame time changes"
  *    flag. By default, this flag is set to false, which forces
  *    compressors to emit one encoded frame for every source frame, and
- *    to preserve frame display times. 
+ *    to preserve frame display times.
  *    (Note: this feature replaces the practice of having compressors
  *    return special high similarity values to indicate that frames
- *    could be dropped.) 
+ *    could be dropped.)
  *    If you want to allow the compressor to modify frame times in
  *    order to improve compression performance, enable frame time
  *    changes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -9399,10 +9399,10 @@ function ICMCompressionSessionOptionsSetAllowFrameTimeChanges( options: ICMCompr
 
 {
  *  ICMCompressionSessionOptionsGetAllowFrameTimeChanges()
- *  
+ *
  *  Summary:
  *    Retrieves the allow frame time changes flag.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -9416,7 +9416,7 @@ function ICMCompressionSessionOptionsGetAllowFrameTimeChanges( options: ICMCompr
 
 {
  *  ICMMultiPassStorageCreationFlags
- *  
+ *
  }
 type
 	ICMMultiPassStorageCreationFlags = UInt32;
@@ -9429,18 +9429,18 @@ const
 
 {
  *  ICMMultiPassStorageCreateWithTemporaryFile()
- *  
+ *
  *  Summary:
  *    Creates a multipass storage using a temporary file.
- *  
+ *
  *  Discussion:
  *    If you pass NULL for directoryRef, the ICM will use the user's
- *    temporary items folder. 
+ *    temporary items folder.
  *    If you pass NULL for fileName, the ICM will pick a unique name.
- *    
+ *
  *    The file will be deleted when the multipass storage is released,
  *    unless you set the kICMMultiPassStorage_DoNotDeleteWhenDone flag.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -9452,7 +9452,7 @@ function ICMMultiPassStorageCreateWithTemporaryFile( allocator: CFAllocatorRef {
 
 {
  *  ICMMultiPassStorageStep
- *  
+ *
  *  Summary:
  *    Indicates a jump in time stamps used to index multipass storage.
  }
@@ -9484,27 +9484,27 @@ const
 
 {
  *  ICMMultiPassSetDataAtTimeStampCallback
- *  
+ *
  *  Summary:
  *    Stores a value at a given time stamp.
- *  
+ *
  *  Discussion:
  *    The new data should replace any previous data held at that
  *    timestamp with that index.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    storageRefCon:
  *      The callbacks' reference value.
- *    
+ *
  *    timeStamp:
  *      The time stamp at which the value should be stored.
- *    
+ *
  *    index:
  *      An index by which multiple values may be stored at a time
  *      stamp. The meaning of individual indexes is private to the
  *      compressor.
- *    
+ *
  *    data:
  *      The data to be stored, or NULL to delete the value. The
  *      contents are private to the compressor component.
@@ -9514,21 +9514,21 @@ type
 
 {
  *  ICMMultiPassGetTimeStampCallback
- *  
+ *
  *  Summary:
  *    Retrieves a time stamp for which a value is stored.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    storageRefCon:
  *      The callbacks' reference value.
- *    
+ *
  *    fromTimeStamp:
  *      The initial time stamp.  Ignored for some values of step.
- *    
+ *
  *    step:
  *      Indicates the kind of time stamp search to perform.
- *    
+ *
  *    timeStampOut:
  *      Points to a TimeValue64 to receive the found time stamp. Set to
  *      -1 if no time stamp is found.
@@ -9538,23 +9538,23 @@ type
 
 {
  *  ICMMultiPassCopyDataAtTimeStampCallback
- *  
+ *
  *  Summary:
  *    Retrieves a value at a given time stamp and index.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    storageRefCon:
  *      The callbacks' reference value.
- *    
+ *
  *    timeStamp:
  *      The time stamp at which the value should be retrieved.
- *    
+ *
  *    index:
  *      An index by which multiple values may be stored at a time
  *      stamp. The meaning of individual indexes is private to the
  *      compressor.
- *    
+ *
  *    dataOut:
  *      Points to a variable to receive the value. Set to a
  *      newly-created CFMutableData containing the value for the given
@@ -9567,12 +9567,12 @@ type
 
 {
  *  ICMMultiPassReleaseCallback
- *  
+ *
  *  Summary:
  *    Called when the multipass storage's retain count drops to zero.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    storageRefCon:
  *      The callbacks' reference value.
  }
@@ -9581,7 +9581,7 @@ type
 
 {
  *  ICMMultiPassStorageCallbacks
- *  
+ *
  *  Summary:
  *    A collection of callbacks for creating a custom multipass storage
  *    object.
@@ -9624,10 +9624,10 @@ const
 
 {
  *  ICMMultiPassStorageCreateWithCallbacks()
- *  
+ *
  *  Summary:
  *    Assembles a multipass storage mechanism from callbacks.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -9639,13 +9639,13 @@ function ICMMultiPassStorageCreateWithCallbacks( allocator: CFAllocatorRef { can
 
 {
  *  ICMMultiPassStorageRetain()
- *  
+ *
  *  Summary:
  *    Increments the retain count of a multipass storage object.
- *  
+ *
  *  Discussion:
  *    If you pass NULL to this function, nothing happens.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -9657,14 +9657,14 @@ function ICMMultiPassStorageRetain( multiPassStorage: ICMMultiPassStorageRef ): 
 
 {
  *  ICMMultiPassStorageRelease()
- *  
+ *
  *  Summary:
  *    Decrements the retain count of a multipass storage object.  If it
  *    drops to zero, the object is disposed.
- *  
+ *
  *  Discussion:
  *    If you pass NULL to this function, nothing happens.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -9676,10 +9676,10 @@ procedure ICMMultiPassStorageRelease( multiPassStorage: ICMMultiPassStorageRef )
 
 {
  *  ICMMultiPassStorageGetTypeID()
- *  
+ *
  *  Summary:
  *    Returns the CFTypeID for multipass storage objects.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -9692,10 +9692,10 @@ function ICMMultiPassStorageGetTypeID: CFTypeID; external name '_ICMMultiPassSto
 { ICMCompressionFrameOptionsRef routines }
 {
  *  ICMCompressionFrameOptionsCreate()
- *  
+ *
  *  Summary:
  *    Creates a frame compression options object.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -9707,10 +9707,10 @@ function ICMCompressionFrameOptionsCreate( allocator: CFAllocatorRef { can be NU
 
 {
  *  ICMCompressionFrameOptionsCreateCopy()
- *  
+ *
  *  Summary:
  *    Copies a frame compression options object.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -9722,13 +9722,13 @@ function ICMCompressionFrameOptionsCreateCopy( allocator: CFAllocatorRef { can b
 
 {
  *  ICMCompressionFrameOptionsRetain()
- *  
+ *
  *  Summary:
  *    Increments the retain count of a frame compression options object.
- *  
+ *
  *  Discussion:
  *    If you pass NULL to this function, nothing happens.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -9740,14 +9740,14 @@ function ICMCompressionFrameOptionsRetain( options: ICMCompressionFrameOptionsRe
 
 {
  *  ICMCompressionFrameOptionsRelease()
- *  
+ *
  *  Summary:
  *    Decrements the retain count of a frame compression options
  *    object.  If it drops to zero, the object is disposed.
- *  
+ *
  *  Discussion:
  *    If you pass NULL to this function, nothing happens.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -9759,10 +9759,10 @@ procedure ICMCompressionFrameOptionsRelease( options: ICMCompressionFrameOptions
 
 {
  *  ICMCompressionFrameOptionsGetTypeID()
- *  
+ *
  *  Summary:
  *    Returns the CFTypeID for frame compression options objects.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -9774,11 +9774,11 @@ function ICMCompressionFrameOptionsGetTypeID: CFTypeID; external name '_ICMCompr
 
 {
  *  ICMCompressionFrameOptionsGetPropertyInfo()
- *  
+ *
  *  Summary:
  *    Retrieves information about properties of a compression frame
  *    options object.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -9790,11 +9790,11 @@ function ICMCompressionFrameOptionsGetPropertyInfo( options: ICMCompressionFrame
 
 {
  *  ICMCompressionFrameOptionsGetProperty()
- *  
+ *
  *  Summary:
  *    Retrieves the value of a specific property of a compression frame
  *    options object.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -9806,11 +9806,11 @@ function ICMCompressionFrameOptionsGetProperty( options: ICMCompressionFrameOpti
 
 {
  *  ICMCompressionFrameOptionsSetProperty()
- *  
+ *
  *  Summary:
  *    Sets the value of a specific property of a compression frame
  *    options object.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -9831,17 +9831,17 @@ const
 	kQTPropertyClass_ICMCompressionFrameOptions = FourCharCode('icfo');
 
   {
-   * Forces frames to be compressed as key frames. 
+   * Forces frames to be compressed as key frames.
    * The compressor must obey the "force key frame" flag if set. By
    * default this property is false.
    }
 	kICMCompressionFrameOptionsPropertyID_ForceKeyFrame = FourCharCode('keyf'); { Boolean, Read/Write }
 
   {
-   * Requests a frame be compressed as a particular frame type. 
+   * Requests a frame be compressed as a particular frame type.
    *  The frame type setting may be ignored by the compressor if not
-   * appropriate. 
-   * By default this is set to kICMFrameType_Unknown. 
+   * appropriate.
+   * By default this is set to kICMFrameType_Unknown.
    * Do not assume that kICMFrameType_I means a key frame; if you need
    * a key frame, set the "force key frame" property.
    }
@@ -9849,14 +9849,14 @@ const
 
 {
  *  ICMCompressionFrameOptionsSetForceKeyFrame()
- *  
+ *
  *  Summary:
  *    Forces frames to be compressed as key frames.
- *  
+ *
  *  Discussion:
  *    The compressor must obey the "force key frame" flag if set. By
  *    default this is set false.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -9868,10 +9868,10 @@ function ICMCompressionFrameOptionsSetForceKeyFrame( options: ICMCompressionFram
 
 {
  *  ICMCompressionFrameOptionsGetForceKeyFrame()
- *  
+ *
  *  Summary:
  *    Retrieves the "force key frame" flag.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -9883,17 +9883,17 @@ function ICMCompressionFrameOptionsGetForceKeyFrame( options: ICMCompressionFram
 
 {
  *  ICMCompressionFrameOptionsSetFrameType()
- *  
+ *
  *  Summary:
  *    Requests a frame be compressed as a particular frame type.
- *  
+ *
  *  Discussion:
  *    The frame type setting may be ignored by the compressor if not
- *    appropriate. 
- *    By default this is set to kICMFrameType_Unknown. 
+ *    appropriate.
+ *    By default this is set to kICMFrameType_Unknown.
  *    Do not assume that kICMFrameType_I means a key frame; if you need
  *    a key frame, set forceKeyFrame.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -9905,10 +9905,10 @@ function ICMCompressionFrameOptionsSetFrameType( options: ICMCompressionFrameOpt
 
 {
  *  ICMCompressionFrameOptionsGetFrameType()
- *  
+ *
  *  Summary:
  *    Retrieves the frame type setting.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -9921,13 +9921,13 @@ function ICMCompressionFrameOptionsGetFrameType( options: ICMCompressionFrameOpt
 { ICMEncodedFrameRef routines }
 {
  *  ICMEncodedFrameRetain()
- *  
+ *
  *  Summary:
  *    Increments the retain count of an encoded frame object.
- *  
+ *
  *  Discussion:
  *    If you pass NULL to this function, nothing happens.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -9939,14 +9939,14 @@ function ICMEncodedFrameRetain( frame: ICMEncodedFrameRef ): ICMEncodedFrameRef;
 
 {
  *  ICMEncodedFrameRelease()
- *  
+ *
  *  Summary:
  *    Decrements the retain count of an encoded frame object.  If it
  *    drops to zero, the object is disposed.
- *  
+ *
  *  Discussion:
  *    If you pass NULL to this function, nothing happens.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -9958,10 +9958,10 @@ procedure ICMEncodedFrameRelease( frame: ICMEncodedFrameRef ); external name '_I
 
 {
  *  ICMEncodedFrameGetTypeID()
- *  
+ *
  *  Summary:
  *    Returns the CFTypeID for encoded frame objects.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -9973,10 +9973,10 @@ function ICMEncodedFrameGetTypeID: CFTypeID; external name '_ICMEncodedFrameGetT
 
 {
  *  ICMEncodedFrameGetDataPtr()
- *  
+ *
  *  Summary:
  *    Gets the data buffer.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -9988,13 +9988,13 @@ function ICMEncodedFrameGetDataPtr( frame: ICMEncodedFrameRef ): UInt8Ptr; exter
 
 {
  *  ICMEncodedFrameGetBufferSize()
- *  
+ *
  *  Summary:
  *    Gets the size of the data buffer.
- *  
+ *
  *  Discussion:
  *    This is the physical size of the buffer.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -10006,14 +10006,14 @@ function ICMEncodedFrameGetBufferSize( frame: ICMEncodedFrameRef ): ByteCount; e
 
 {
  *  ICMEncodedFrameGetDataSize()
- *  
+ *
  *  Summary:
  *    Gets the data size of the compressed frame in the buffer.
- *  
+ *
  *  Discussion:
  *    This is the logical size of the frame data. It may be less than
  *    the physical size of the buffer.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -10025,10 +10025,10 @@ function ICMEncodedFrameGetDataSize( frame: ICMEncodedFrameRef ): ByteCount; ext
 
 {
  *  ICMEncodedFrameSetDataSize()
- *  
+ *
  *  Summary:
  *    Sets the data size of the compressed frame in the buffer.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -10040,16 +10040,16 @@ function ICMEncodedFrameSetDataSize( frame: ICMMutableEncodedFrameRef; dataSize:
 
 {
  *  ICMEncodedFrameGetDecodeNumber()
- *  
+ *
  *  Summary:
  *    Retrieves the decode number.
- *  
+ *
  *  Discussion:
  *    The ICM automatically stamps ascending decode numbers on frames
  *    after the compressor emits them. The first decode number in a
- *    session is 1. 
+ *    session is 1.
  *    Note: Compressors should not call this function.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -10061,14 +10061,14 @@ function ICMEncodedFrameGetDecodeNumber( frame: ICMEncodedFrameRef ): UInt32; ex
 
 {
  *  ICMEncodedFrameGetTimeScale()
- *  
+ *
  *  Summary:
  *    Retrieves the timescale.
- *  
+ *
  *  Discussion:
  *    This is always the same as the timescale of the compression
  *    session.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -10080,15 +10080,15 @@ function ICMEncodedFrameGetTimeScale( frame: ICMEncodedFrameRef ): TimeScale; ex
 
 {
  *  ICMEncodedFrameGetImageDescription()
- *  
+ *
  *  Summary:
  *    Retrieves the image description.
- *  
+ *
  *  Discussion:
  *    Returns the same image description handle as
- *    ICMCompressionSessionGetImageDescription. 
+ *    ICMCompressionSessionGetImageDescription.
  *    IMPORTANT: The caller should NOT dispose this handle.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -10100,11 +10100,11 @@ function ICMEncodedFrameGetImageDescription( frame: ICMEncodedFrameRef; var imag
 
 {
  *  ICMEncodedFrameGetValidTimeFlags()
- *  
+ *
  *  Summary:
  *    Retrieves flags indicating which of the time stamps and durations
  *    are valid.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -10116,10 +10116,10 @@ function ICMEncodedFrameGetValidTimeFlags( frame: ICMEncodedFrameRef ): ICMValid
 
 {
  *  ICMEncodedFrameGetDecodeTimeStamp()
- *  
+ *
  *  Summary:
  *    Retrieves the frame's decode time stamp.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -10131,10 +10131,10 @@ function ICMEncodedFrameGetDecodeTimeStamp( frame: ICMEncodedFrameRef ): TimeVal
 
 {
  *  ICMEncodedFrameGetDisplayTimeStamp()
- *  
+ *
  *  Summary:
  *    Retrieves the frame's display time stamp.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -10146,11 +10146,11 @@ function ICMEncodedFrameGetDisplayTimeStamp( frame: ICMEncodedFrameRef ): TimeVa
 
 {
  *  ICMEncodedFrameGetDisplayOffset()
- *  
+ *
  *  Summary:
  *    Retrieves the frame's display offset, which is the offset from
  *    decode time stamp to display time stamp.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -10162,10 +10162,10 @@ function ICMEncodedFrameGetDisplayOffset( frame: ICMEncodedFrameRef ): TimeValue
 
 {
  *  ICMEncodedFrameGetDecodeDuration()
- *  
+ *
  *  Summary:
  *    Retrieves the frame's decode duration.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -10177,10 +10177,10 @@ function ICMEncodedFrameGetDecodeDuration( frame: ICMEncodedFrameRef ): TimeValu
 
 {
  *  ICMEncodedFrameGetDisplayDuration()
- *  
+ *
  *  Summary:
  *    Retrieves the frame's display duration.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -10192,11 +10192,11 @@ function ICMEncodedFrameGetDisplayDuration( frame: ICMEncodedFrameRef ): TimeVal
 
 {
  *  ICMEncodedFrameSetValidTimeFlags()
- *  
+ *
  *  Summary:
  *    Sets flags that indicate which of the time stamps and durations
  *    are valid.
- *  
+ *
  *  Discussion:
  *    Note that setting the (decode/display) (timestamp/duration)
  *    automatically sets the corresponding valid time flags. For
@@ -10204,7 +10204,7 @@ function ICMEncodedFrameGetDisplayDuration( frame: ICMEncodedFrameRef ): TimeVal
  *    kICMValidTime_DisplayTimeStampIsValid. If both decode timestamp
  *    and display timestamp are valid,
  *    kICMValidTime_DisplayOffsetIsValid is automatically set.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -10216,15 +10216,15 @@ function ICMEncodedFrameSetValidTimeFlags( frame: ICMMutableEncodedFrameRef; val
 
 {
  *  ICMEncodedFrameSetDecodeTimeStamp()
- *  
+ *
  *  Summary:
  *    Sets the decode time stamp.
- *  
+ *
  *  Discussion:
  *    This automatically sets the kICMValidTime_DecodeTimeStampIsValid
  *    flag. If the display timestamp is valid, it also sets the
  *    kICMValidTime_DisplayOffsetIsValid flag.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -10236,15 +10236,15 @@ function ICMEncodedFrameSetDecodeTimeStamp( frame: ICMMutableEncodedFrameRef; de
 
 {
  *  ICMEncodedFrameSetDisplayTimeStamp()
- *  
+ *
  *  Summary:
  *    Sets the display time stamp.
- *  
+ *
  *  Discussion:
  *    This automatically sets the kICMValidTime_DisplayTimeStampIsValid
  *    flag. If the decode timestamp is valid, it also sets the
  *    kICMValidTime_DisplayOffsetIsValid flag.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -10256,14 +10256,14 @@ function ICMEncodedFrameSetDisplayTimeStamp( frame: ICMMutableEncodedFrameRef; d
 
 {
  *  ICMEncodedFrameSetDecodeDuration()
- *  
+ *
  *  Summary:
  *    Sets the decode duration.
- *  
+ *
  *  Discussion:
  *    This automatically sets the kICMValidTime_DecodeDurationIsValid
  *    flag.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -10275,14 +10275,14 @@ function ICMEncodedFrameSetDecodeDuration( frame: ICMMutableEncodedFrameRef; dec
 
 {
  *  ICMEncodedFrameSetDisplayDuration()
- *  
+ *
  *  Summary:
  *    Sets the display duration.
- *  
+ *
  *  Discussion:
  *    This automatically sets the kICMValidTime_DisplayDurationIsValid
  *    flag.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -10294,10 +10294,10 @@ function ICMEncodedFrameSetDisplayDuration( frame: ICMMutableEncodedFrameRef; di
 
 {
  *  ICMEncodedFrameGetMediaSampleFlags()
- *  
+ *
  *  Summary:
  *    Retrieves the media sample flags for an encoded frame.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -10309,10 +10309,10 @@ function ICMEncodedFrameGetMediaSampleFlags( frame: ICMEncodedFrameRef ): MediaS
 
 {
  *  ICMEncodedFrameSetMediaSampleFlags()
- *  
+ *
  *  Summary:
  *    Sets the media sample flags for an encoded frame.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -10324,10 +10324,10 @@ function ICMEncodedFrameSetMediaSampleFlags( frame: ICMMutableEncodedFrameRef; m
 
 {
  *  ICMEncodedFrameGetFrameType()
- *  
+ *
  *  Summary:
  *    Retrieves the frame type for an encoded frame.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -10339,10 +10339,10 @@ function ICMEncodedFrameGetFrameType( frame: ICMEncodedFrameRef ): ICMFrameType;
 
 {
  *  ICMEncodedFrameSetFrameType()
- *  
+ *
  *  Summary:
  *    Sets the frame type for an encoded frame.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -10354,14 +10354,14 @@ function ICMEncodedFrameSetFrameType( frame: ICMMutableEncodedFrameRef; frameTyp
 
 {
  *  ICMEncodedFrameGetSimilarity()
- *  
+ *
  *  Summary:
  *    Retrieves the similarity for an encoded frame.
- *  
+ *
  *  Discussion:
  *    1.0 means identical.  0.0 means not at all alike. By default,
  *    this is set to -1.0, which means unknown.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -10373,13 +10373,13 @@ function ICMEncodedFrameGetSimilarity( frame: ICMEncodedFrameRef ): Float32; ext
 
 {
  *  ICMEncodedFrameSetSimilarity()
- *  
+ *
  *  Summary:
  *    Sets the similarity for an encoded frame.
- *  
+ *
  *  Discussion:
  *    1.0 means identical.  0.0 means not at all alike.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -10391,14 +10391,14 @@ function ICMEncodedFrameSetSimilarity( frame: ICMMutableEncodedFrameRef; similar
 
 {
  *  ICMEncodedFrameGetSourceFrameRefCon()
- *  
+ *
  *  Summary:
  *    Retrieves the source frame reference value.
- *  
+ *
  *  Discussion:
  *    This is copied from the sourceFrameRefCon parameter to
  *    ICMCompressionSessionEncodeFrame.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -10412,11 +10412,11 @@ function ICMEncodedFrameGetSourceFrameRefCon( frame: ICMEncodedFrameRef ): UnivP
 
 {
  *  ICMCompressorSessionRef
- *  
+ *
  *  Summary:
  *    Represents the session between the ICM and an image compressor
  *    component.
- *  
+ *
  *  Discussion:
  *    (Do not confuse this with ICMCompressionSessionRef, which is the
  *    session between the client and the ICM.) Note: compressors do not
@@ -10428,11 +10428,11 @@ type
 
 {
  *  ICMCompressorSourceFrameRef
- *  
+ *
  *  Summary:
  *    An opaque token that represents a frame that has been passed to
  *    ICMCompressionSessionEncodeFrame.
- *  
+ *
  *  Discussion:
  *    Such tokens are passed to the compressor component, which may
  *    retain a window of them in order to perform out-of-order encoding.
@@ -10443,13 +10443,13 @@ type
 	ICMCompressorSourceFrameRefPtr = ^ICMCompressorSourceFrameRef;
 {
  *  ICMCompressorSourceFrameRetain()
- *  
+ *
  *  Summary:
  *    Increments the retain count of a source frame object.
- *  
+ *
  *  Discussion:
  *    If you pass NULL to this function, nothing happens.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -10461,14 +10461,14 @@ function ICMCompressorSourceFrameRetain( sourceFrame: ICMCompressorSourceFrameRe
 
 {
  *  ICMCompressorSourceFrameRelease()
- *  
+ *
  *  Summary:
  *    Decrements the retain count of a source frame object.  If it
  *    drops to zero, the object is disposed.
- *  
+ *
  *  Discussion:
  *    If you pass NULL to this function, nothing happens.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -10480,10 +10480,10 @@ procedure ICMCompressorSourceFrameRelease( sourceFrame: ICMCompressorSourceFrame
 
 {
  *  ICMCompressorSourceFrameGetTypeID()
- *  
+ *
  *  Summary:
  *    Returns the CFTypeID for source frame objects.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -10495,10 +10495,10 @@ function ICMCompressorSourceFrameGetTypeID: CFTypeID; external name '_ICMCompres
 
 {
  *  ICMCompressorSourceFrameGetPixelBuffer()
- *  
+ *
  *  Summary:
  *    Retrieves a source frame's pixel buffer.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -10510,17 +10510,17 @@ function ICMCompressorSourceFrameGetPixelBuffer( sourceFrame: ICMCompressorSourc
 
 {
  *  ICMCompressorSourceFrameGetDisplayNumber()
- *  
+ *
  *  Summary:
  *    Retrieves a source frame's display number.
- *  
+ *
  *  Discussion:
  *    The ICM tags source frames with display numbers in the order they
  *    are passed to ICMCompressionSessionEncodeFrame; the first display
  *    number is 1. Compressors may compare these numbers to work out
  *    whether prediction is forward or backward even when display times
  *    are not provided.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -10532,10 +10532,10 @@ function ICMCompressorSourceFrameGetDisplayNumber( sourceFrame: ICMCompressorSou
 
 {
  *  ICMCompressorSourceFrameGetDisplayTimeStampAndDuration()
- *  
+ *
  *  Summary:
  *    Retrieves the display time stamp and duration of a source frame.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -10547,10 +10547,10 @@ function ICMCompressorSourceFrameGetDisplayTimeStampAndDuration( sourceFrame: IC
 
 {
  *  ICMCompressorSourceFrameGetFrameOptions()
- *  
+ *
  *  Summary:
  *    Retrieves the frame compression options for a source frame.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -10562,11 +10562,11 @@ function ICMCompressorSourceFrameGetFrameOptions( sourceFrame: ICMCompressorSour
 
 {
  *  ICMCompressorSourceFrameDetachPixelBuffer()
- *  
+ *
  *  Summary:
  *    Disconnects the pixel buffer from the source frame and allows it
  *    to be released.
- *  
+ *
  *  Discussion:
  *    Compressor components often need to hold onto
  *    ICMCompressorSourceFrameRefs for some time after they are done
@@ -10576,7 +10576,7 @@ function ICMCompressorSourceFrameGetFrameOptions( sourceFrame: ICMCompressorSour
  *    have no further need for the source frame's pixel buffer. After
  *    calling this, ICMCompressorSourceFrameGetPixelBuffer will return
  *    NULL.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -10588,16 +10588,16 @@ function ICMCompressorSourceFrameDetachPixelBuffer( sourceFrame: ICMCompressorSo
 
 {
  *  ICMCompressorSessionDropFrame()
- *  
+ *
  *  Summary:
  *    Called by a compressor to indicate that sourceFrame has been
  *    dropped and will not contribute to any encoded frames.
- *  
+ *
  *  Discussion:
  *    Calling this function does not automatically release the source
  *    frame; if the compressor called ICMCompressorSourceFrameRetain it
  *    should still call ICMCompressorSourceFrameRelease.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -10609,21 +10609,21 @@ function ICMCompressorSessionDropFrame( session: ICMCompressorSessionRef; source
 
 {
  *  ICMCompressorSessionEmitEncodedFrame()
- *  
+ *
  *  Summary:
  *    Called by a compressor to output an encoded frame corresponding
  *    to one (or more) source frames.
- *  
+ *
  *  Discussion:
  *    (Encoded frames may only correspond to more than one source frame
  *    if allowFrameTimeChanges is set in the
- *    compressionSessionOptions.) 
+ *    compressionSessionOptions.)
  *    After calling this, the compressor should release the encoded
- *    frame by calling ICMEncodedFrameRelease. 
+ *    frame by calling ICMEncodedFrameRelease.
  *    Calling this function does not automatically release the source
  *    frames; if the compressor called ICMCompressorSourceFrameRetain
  *    it should still call ICMCompressorSourceFrameRelease.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -10635,24 +10635,24 @@ function ICMCompressorSessionEmitEncodedFrame( session: ICMCompressorSessionRef;
 
 {
  *  ICMEncodedFrameCreateMutable()
- *  
+ *
  *  Summary:
  *    Called by a compressor to create an encoded-frame token
  *    corresponding to a given source frame.
- *  
+ *
  *  Discussion:
  *    The encoded frame will initially have zero mediaSampleFlags; if
  *    the frame is not a key frame, the compressor must call
  *    ICMEncodedFrameSetMediaSampleFlags to set mediaSampleNotSync. If
  *    the frame is droppable, the compressor should set
  *    mediaSampleDroppable. If the frame is a partial key frame, the
- *    compressor should set mediaSamplePartialSync. 
+ *    compressor should set mediaSamplePartialSync.
  *    The encoded frame will initially have undefined decodeTimeStamp
  *    and decodeDuration. The compressor may set these directly by
  *    calling ICMEncodedFrameSetDecodeTimeStamp and/or
  *    ICMEncodedFrameSetDecodeDuration. If these are not set by the
  *    compressor, the ICM will attempt to derive them.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -10665,32 +10665,32 @@ function ICMEncodedFrameCreateMutable( session: ICMCompressorSessionRef; sourceF
 { Multi-pass storage access routines for compressor components }
 {
  *  ICMMultiPassStorageSetDataAtTimeStamp()
- *  
+ *
  *  Summary:
  *    Called by a multipass-capable compressor to store data at a given
  *    timestamp.
- *  
+ *
  *  Discussion:
  *    The new data replaces any previous data held at that timestamp.
  *    If data is NULL, the data for that timestamp is deleted. The
  *    format of the data is private to the compressor.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    multiPassStorage:
  *      The multipass storage object.
- *    
+ *
  *    timeStamp:
  *      The time stamp at which the value should be stored.
- *    
+ *
  *    index:
  *      An index by which multiple values may be stored at a time
  *      stamp. The meaning of individual indexes is private to the
  *      compressor.
- *    
+ *
  *    data:
  *      The data to be stored, or NULL to delete the value.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -10702,26 +10702,26 @@ function ICMMultiPassStorageSetDataAtTimeStamp( multiPassStorage: ICMMultiPassSt
 
 {
  *  ICMMultiPassStorageGetTimeStamp()
- *  
+ *
  *  Summary:
  *    Called by a multipass-capable compressor to retrieve a time stamp
  *    for which a value is stored.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    multiPassStorage:
  *      The multipass storage object.
- *    
+ *
  *    fromTimeStamp:
  *      The initial time stamp.  Ignored for some values of step.
- *    
+ *
  *    step:
  *      Indicates the kind of time stamp search to perform.
- *    
+ *
  *    timeStampOut:
  *      Points to a TimeValue64 to receive the found time stamp. It
  *      will be set to -1 if no time stamp is found.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -10733,31 +10733,31 @@ function ICMMultiPassStorageGetTimeStamp( multiPassStorage: ICMMultiPassStorageR
 
 {
  *  ICMMultiPassStorageCopyDataAtTimeStamp()
- *  
+ *
  *  Summary:
  *    Called by a multipass-capable compressor to retrieve data at a
  *    given timestamp.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    multiPassStorage:
  *      The multipass storage object.
- *    
+ *
  *    timeStamp:
  *      The time stamp at which the value should be retrieved.
- *    
+ *
  *    index:
  *      An index by which multiple values may be stored at a time
  *      stamp. The meaning of individual indexes is private to the
  *      compressor.
- *    
+ *
  *    dataOut:
  *      Points to a CFMutableDataRef to receive the value. It will be
  *      set to a newly-created CFMutableData containing the value for
  *      the given time stamp and index, or set to NULL if no value is
  *      at that time stamp and index. It is the caller's responsibility
  *      to release the CFMutableData.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -10769,10 +10769,10 @@ function ICMMultiPassStorageCopyDataAtTimeStamp( multiPassStorage: ICMMultiPassS
 
 {
  *  kQTVisualContextTypeKey
- *  
+ *
  *  Summary:
  *    Read-only CFStringRef: Type of the visual context.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -10782,11 +10782,11 @@ var kQTVisualContextTypeKey: CFStringRef; external name '_kQTVisualContextTypeKe
 (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
 {
  *  kQTVisualContextType_PixelBuffer
- *  
+ *
  *  Summary:
  *    Value for kQTVisualContextTypeKey for pixel buffer visual
  *    contexts.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -10796,11 +10796,11 @@ var kQTVisualContextType_PixelBuffer: CFStringRef; external name '_kQTVisualCont
 (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
 {
  *  kQTVisualContextType_OpenGLTexture
- *  
+ *
  *  Summary:
  *    Value for kQTVisualContextTypeKey for OpenGL texture visual
  *    contexts.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -10810,12 +10810,12 @@ var kQTVisualContextType_OpenGLTexture: CFStringRef; external name '_kQTVisualCo
 (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
 {
  *  kQTVisualContextWorkingColorSpaceKey
- *  
+ *
  *  Summary:
  *    CGColorSpaceRef: Color space in which QuickTime will perform
  *    image processing. If this attribute is not set, images will be
  *    processed in the output color space.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -10825,12 +10825,12 @@ var kQTVisualContextWorkingColorSpaceKey: CFStringRef; external name '_kQTVisual
 (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
 {
  *  kQTVisualContextOutputColorSpaceKey
- *  
+ *
  *  Summary:
  *    CGColorSpaceRef: Color space of images produced by this visual
  *    context. If this attribute is not set, images may be in any color
  *    space.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -10840,14 +10840,14 @@ var kQTVisualContextOutputColorSpaceKey: CFStringRef; external name '_kQTVisualC
 (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
 {
  *  kQTVisualContextExpectedReadAheadKey
- *  
+ *
  *  Summary:
  *    CFNumberRef: Number of seconds ahead of real-time that the client
  *    expects to pull images out of the visual context.  Applications
  *    using the CoreVideo display link should set this attribute
  *    according to value returned from
  *    CVDisplayLinkGetOutputVideoLatency().
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -10857,11 +10857,11 @@ var kQTVisualContextExpectedReadAheadKey: CFStringRef; external name '_kQTVisual
 (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
 {
  *  kQTVisualContextPixelBufferAttributesKey
- *  
+ *
  *  Summary:
  *    CFDictionaryRef: Dictionary containing pixel buffer attributes as
  *    described for the CoreVideo pixel buffer pool.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -10871,7 +10871,7 @@ var kQTVisualContextPixelBufferAttributesKey: CFStringRef; external name '_kQTVi
 (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
 {
  *  kQTVisualContextTargetDimensionsKey
- *  
+ *
  *  Summary:
  *    CFDictionaryRef: Dictionary containing
  *    kQTVisualContextTargetDimensions_WidthKey and
@@ -10879,7 +10879,7 @@ var kQTVisualContextPixelBufferAttributesKey: CFStringRef; external name '_kQTVi
  *    to optimize certain media types, such as text, that can render at
  *    any resolution. If this attribute is not set, the movie will
  *    render at its native resolution.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -10889,10 +10889,10 @@ var kQTVisualContextTargetDimensionsKey: CFStringRef; external name '_kQTVisualC
 (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
 {
  *  kQTVisualContextTargetDimensions_WidthKey
- *  
+ *
  *  Summary:
  *    CFNumberRef: Width, in pixels, of the rendering target.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -10902,10 +10902,10 @@ var kQTVisualContextTargetDimensions_WidthKey: CFStringRef; external name '_kQTV
 (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
 {
  *  kQTVisualContextTargetDimensions_HeightKey
- *  
+ *
  *  Summary:
  *    CFNumberRef: Height, in pixels, of the rendering target.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -10915,19 +10915,19 @@ var kQTVisualContextTargetDimensions_HeightKey: CFStringRef; external name '_kQT
 (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
 {
  *  QTVisualContextRetain()
- *  
+ *
  *  Summary:
  *    Increments the visual context's reference count.
- *  
+ *
  *  Discussion:
  *    The same visual context is returned for convenience. If
  *    visualContext is NULL, nothing happens.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    visualContext:
  *      [in] The visual context to retain.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -10939,19 +10939,19 @@ function QTVisualContextRetain( visualContext: QTVisualContextRef ): QTVisualCon
 
 {
  *  QTVisualContextRelease()
- *  
+ *
  *  Summary:
  *    Decrements the visual context's reference count.
- *  
+ *
  *  Discussion:
  *    If the retain count decreases to zero, the visual context is
  *    disposed. If visualContext is NULL, nothing happens.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    visualContext:
  *      [in] The visual context to release.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -10963,18 +10963,18 @@ procedure QTVisualContextRelease( visualContext: QTVisualContextRef ); external 
 
 {
  *  QTVisualContextGetTypeID()
- *  
+ *
  *  Summary:
  *    Returns the CFTypeID for QTVisualContextRef.
- *  
+ *
  *  Discussion:
  *    You could use this to test whether a CFTypeRef that extracted
- *    from a CF container such as a CFArray was a QTVisualContextRef. 
+ *    from a CF container such as a CFArray was a QTVisualContextRef.
  *    All visual contexts have the same CFTypeID.  If you need to
  *    distinguish between different types of visual contexts (eg.
  *    PixelBuffer vs. OpenGLTexture), query for kQTVisualContextTypeKey
  *    with QTVisualContextGetAttribute().
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -10986,21 +10986,21 @@ function QTVisualContextGetTypeID: CFTypeID; external name '_QTVisualContextGetT
 
 {
  *  QTVisualContextSetAttribute()
- *  
+ *
  *  Summary:
  *    Sets a visual context attribute.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    visualContext:
  *      [in] The visual context.
- *    
+ *
  *    attributeKey:
  *      [in] Identifier of attribute to set.
- *    
+ *
  *    attributeValue:
  *      [in] Value of attribute to set, or NULL to remove a value.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -11012,22 +11012,22 @@ function QTVisualContextSetAttribute( visualContext: QTVisualContextRef; attribu
 
 {
  *  QTVisualContextGetAttribute()
- *  
+ *
  *  Summary:
  *    Gets a visual context attribute.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    visualContext:
  *      [in]  The visual context.
- *    
+ *
  *    attributeKey:
  *      [in]  Identifier of attribute to get.
- *    
+ *
  *    attributeValueOut:
  *      [out] Pointer to variable that will receive the attribute
  *      value, or NULL if the attribute is not set.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -11039,27 +11039,27 @@ function QTVisualContextGetAttribute( visualContext: QTVisualContextRef; attribu
 
 {
  *  QTVisualContextImageAvailableCallback
- *  
+ *
  *  Summary:
  *    User-defined callback function to recieve notifications when a
  *    new image becomes available.
- *  
+ *
  *  Discussion:
- *    Due to unpredictible activity, such as user seeks or the arrival
+ *    Due to unpredictable activity, such as user seeks or the arrival
  *    of streaming video packets from a network, new images may become
- *    available for times supposedly occupied by previous images. 
+ *    available for times supposedly occupied by previous images.
  *    Applications using the CoreVideo display link to drive rendering
  *    probably do not need to install a callback of this type since
  *    they will already be checking for new images at a sufficient rate.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    visualContext:
  *      [in] The visual context invoking the callback.
- *    
+ *
  *    timeStamp:
  *      [in] Time for which a new image has become available.
- *    
+ *
  *    refCon:
  *      [in] User-defined value passed to
  *      QTVisualContextSetImageAvailableCallback.
@@ -11068,29 +11068,29 @@ type
 	QTVisualContextImageAvailableCallback = procedure( visualContext: QTVisualContextRef; const (*var*) timeStamp: CVTimeStamp; refCon: UnivPtr );
 {
  *  QTVisualContextSetImageAvailableCallback()
- *  
+ *
  *  Summary:
  *    Installs user-defined callback to be notified when new images
  *    become available.
- *  
+ *
  *  Discussion:
  *    This routine installs the user defined
  *    QTVisualContextImageAvailableCallback callback. There can only be
  *    one callback associated with a QTVisualContext at a given time.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    visualContext:
  *      [in] The visual context.
- *    
+ *
  *    imageAvailableCallback:
  *      [in] User-defined callback function to recieve notifications.
  *      Pass NULL to remove any existing callback.
- *    
+ *
  *    refCon:
  *      [in] User-defined value to pass to
  *      QTVisualContextImageAvailableCallback.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -11102,25 +11102,25 @@ function QTVisualContextSetImageAvailableCallback( visualContext: QTVisualContex
 
 {
  *  QTVisualContextIsNewImageAvailable()
- *  
+ *
  *  Summary:
  *    Queries whether a new image is available for a given time.
- *  
+ *
  *  Discussion:
  *    This function returns true if there is a image available for the
  *    specified time that is different from the last image retrieved
  *    from QTVisualContextCopyImageForTime. See
  *    QTVisualContextCopyImageForTime for restrictions on time-stamps.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    visualContext:
  *      [in] The visual context.
- *    
+ *
  *    timeStamp:
  *      [in] Time in question.  Pass NULL to request the image at the
  *      current time.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -11132,34 +11132,34 @@ function QTVisualContextIsNewImageAvailable( visualContext: QTVisualContextRef; 
 
 {
  *  QTVisualContextCopyImageForTime()
- *  
+ *
  *  Summary:
  *    Retrieves an image buffer from the visual context, indexed by the
  *    provided timestamp.
- *  
+ *
  *  Discussion:
  *    You should not request image buffers further ahead of the current
  *    time than the read-ahead time specified with the
  *    kQTVisualContextExpectedReadAheadKey attribute.  You may skip
  *    images by passing later times, but you may not pass an earlier
  *    time than passed to a previous call to this function.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    visualContext:
  *      [in]  The visual context.
- *    
+ *
  *    allocator:
  *      [in]  Allocator used to create new CVImageBufferRef.
- *    
+ *
  *    timeStamp:
  *      [in]  Time in question.  Pass NULL to request the image at the
  *      current time.
- *    
+ *
  *    newImage:
  *      [out] Points to variable to receive new image. If there is no
  *      video at the requested time, this variable will be set to NULL.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -11171,22 +11171,22 @@ function QTVisualContextCopyImageForTime( visualContext: QTVisualContextRef; all
 
 {
  *  QTVisualContextTask()
- *  
+ *
  *  Summary:
  *    Causes visual context to release internally held resources for
  *    later re-use.
- *  
+ *
  *  Discussion:
  *    For optimal resource management, this function should be called
  *    in every rendering pass, after old images have been released, new
  *    images have been used and all rendering has been flushed to the
  *    screen.  This call is not mandatory.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    visualContext:
  *      [in] The visual context.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -11198,32 +11198,32 @@ procedure QTVisualContextTask( visualContext: QTVisualContextRef ); external nam
 
 {
  *  QTOpenGLTextureContextCreate()
- *  
+ *
  *  Summary:
  *    Creates a new OpenGL texture context for the given OpenGL context
  *    and pixel format.
- *  
+ *
  *  Discussion:
  *    This function will fail if the graphics hardware is insufficient.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    allocator:
  *      [in]  Allocator used to create the texture context.
- *    
+ *
  *    cglContext:
  *      [in]  OpenGL context used to create textures.
- *    
+ *
  *    cglPixelFormat:
  *      [in]  OpenGL pixel format used to create the OpenGL context.
- *    
+ *
  *    attributes:
  *      [in]  Dictionary of attributes.
- *    
+ *
  *    newTextureContext:
  *      [out] Points to a variable to recieve the new OpenGL texture
  *      context.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available
@@ -11235,25 +11235,25 @@ function QTOpenGLTextureContextCreate( allocator: CFAllocatorRef { can be NULL }
 
 {
  *  QTPixelBufferContextCreate()
- *  
+ *
  *  Summary:
  *    Creates a new pixel buffer context with the given attributes.
- *  
+ *
  *  Discussion:
  *    This function will fail if the graphics hardware is insufficient.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    allocator:
  *      [in]  Allocator used to create the pixel buffer context.
- *    
+ *
  *    attributes:
  *      [in]  Dictionary of attributes.
- *    
+ *
  *    newPixelBufferContext:
  *      [out] Points to a variable to recieve the new pixel buffer
  *      context.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 (or QuickTime 7.0) and later in QuickTime.framework
  *    CarbonLib:        not available

@@ -319,8 +319,8 @@ function CFBinaryHeapGetTypeID: CFTypeID; external name '_CFBinaryHeapGetTypeID'
 	@param capacity A hint about the number of values that will be held
 		by the CFBinaryHeap. Pass 0 for no hint. The implementation may
 		ignore this hint, or may use it to optimize various
-		operations. A heap's actual capacity is only limited by 
-		address space and available memory constraints). If this 
+		operations. A heap's actual capacity is only limited by
+		address space and available memory constraints). If this
 		parameter is negative, the behavior is undefined.
 #endif
 	@param callBacks A pointer to a CFBinaryHeapCallBacks structure
@@ -378,7 +378,7 @@ function CFBinaryHeapCreate( allocator: CFAllocatorRef; capacity: CFIndex; callB
 		by the CFBinaryHeap. Pass 0 for no hint. The implementation may
 		ignore this hint, or may use it to optimize various
 		operations. A heap's actual capacity is only limited by
-		address space and available memory constraints). 
+		address space and available memory constraints).
 		This parameter must be greater than or equal
 		to the count of the heap which is to be copied, or the
 		behavior is undefined. If this parameter is negative, the
@@ -452,7 +452,7 @@ function CFBinaryHeapGetMinimum( heap: CFBinaryHeapRef ): UnivPtr; external name
                 minimum values, any one may be returned.
 	@param heap The binary heap to be searched. If this parameter is not a
 		valid CFBinaryHeap, the behavior is undefined.
-        @param value A C pointer to pointer-sized storage to be filled with the minimum value in 
+        @param value A C pointer to pointer-sized storage to be filled with the minimum value in
                 the binary heap.  If this value is not a valid C pointer to a pointer-sized block
                 of storage, the result is undefined.  If the result of the function is false, the value
                 stored at this address is undefined.
@@ -467,10 +467,10 @@ function CFBinaryHeapGetMinimumIfPresent( heap: CFBinaryHeapRef; {const} value: 
 		valid CFBinaryHeap, the behavior is undefined.
 	@param values A C array of pointer-sized values to be filled with
 		values from the binary heap. The values in the C array are ordered
-		from least to greatest. If this parameter is not a valid pointer to a 
+		from least to greatest. If this parameter is not a valid pointer to a
                 C array of at least CFBinaryHeapGetCount() pointers, the behavior is undefined.
 }
-type 
+type
 	CFBinaryHeapValues = array[0..($7F000000 div SizeOf(Ptr))] of Ptr;
 	CFBinaryHeapValuesPtr = ^CFBinaryHeapValues;
 procedure CFBinaryHeapGetValues( heap: CFBinaryHeapRef; {const} values: {variable-size-array} CFBinaryHeapValuesPtr ); external name '_CFBinaryHeapGetValues';
@@ -485,7 +485,7 @@ procedure CFBinaryHeapGetValues( heap: CFBinaryHeapRef; {const} values: {variabl
 		pointer to a function of the correct prototype, the behavior
 		is undefined. If there are values in the binary heap which the
 		applier function does not expect or cannot properly apply
-		to, the behavior is undefined. 
+		to, the behavior is undefined.
 	@param context A pointer-sized user-defined value, which is passed
 		as the second parameter to the applier function, but is
 		otherwise unused by this function. If the context is not
@@ -513,7 +513,7 @@ procedure CFBinaryHeapAddValue( heap: CFBinaryHeapRef; value: {const} UnivPtr );
 {!
 	@function CFBinaryHeapRemoveMinimumValue
 	Removes the minimum value from the binary heap.
-	@param heap The binary heap from which the minimum value is to be removed. If this 
+	@param heap The binary heap from which the minimum value is to be removed. If this
                 parameter is not a valid mutable CFBinaryHeap, the behavior is undefined.
 }
 procedure CFBinaryHeapRemoveMinimumValue( heap: CFBinaryHeapRef ); external name '_CFBinaryHeapRemoveMinimumValue';

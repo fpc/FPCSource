@@ -1,9 +1,9 @@
 {
      File:       CarbonCore/Script.h
- 
+
      Contains:   Script Manager interfaces
                  The contents of this header file are deprecated.
- 
+
      Copyright:  © 1986-2011 by Apple Inc. All rights reserved.
 }
 {
@@ -1070,60 +1070,60 @@ const
 
 {
  *  GetScriptManagerVariable()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    The replacement for GetScriptManagerVariable depends on the
  *    selector used with it. Many of the selectors refer to information
  *    that is not meaningful on a Unicode system, or refer to details
  *    of the Script Manager itself; in general there is no replacement
- *    functionality for these. 
+ *    functionality for these.
  *    Selectors that have meaningful replacements are as follows (these
  *    are not direct replacements; they provide analogous but more
- *    modern functionality): 
+ *    modern functionality):
  *    1. smSysScript - To obtain a TextEncoding for the legacy Mac OS
  *    encoding associated with the user's preferred UI language or with
  *    the application's default text encoding, use
  *    CFStringGetSystemEncoding or GetApplicationTextEncoding.
  *    Sometimes smSysScript is just used to get a script code to pass
  *    to GetScriptVariable; in this case the replacements for
- *    GetScriptVariable selectors may provide more information. 
+ *    GetScriptVariable selectors may provide more information.
  *    2. smKeyScript - To obtain the intended language associated with
  *    the user's current keyboard input source (plus other languages
  *    that can be input using it): Use
  *    TISCopyCurrentKeyboardInputSource to get that input source, then
  *    pass it to TISGetInputSourceProperty with the
- *    kTISPropertyInputSourceLanguages key. 
+ *    kTISPropertyInputSourceLanguages key.
  *    3. smKCHRCache - To obtain the key layout data for the keyboard
  *    layout currently in use, use
  *    TISCopyCurrentKeyboardLayoutInputSource to get that input source,
  *    then pass it to TISGetInputSourceProperty with the
  *    kTISPropertyUnicodeKeyLayoutData key (this returns 'uchr' Unicode
  *    layout data only; it will not return any data for keyboard
- *    layouts that only have 'KCHR' data). 
+ *    layouts that only have 'KCHR' data).
  *    4. smRegionCode - To obtain the locale associated with the user's
- *    preferred formats (for dates, times, numbers, etc.) do: 
- *     CFStringRef curLocaleStringRef = NULL;  // 
- *    localeRef = CFLocaleCopyCurrent();  // 
- *    if (localeRef) (    // 
- *    curLocaleStringRef = CFLocaleGetIdentifier(localeRef);  // 
- *     CFRelease(localeRef);   // 
- *    )   // 
- *    To obtain the user's preferred UI language, do: 
+ *    preferred formats (for dates, times, numbers, etc.) do:
+ *     CFStringRef curLocaleStringRef = NULL;  //
+ *    localeRef = CFLocaleCopyCurrent();  //
+ *    if (localeRef) (    //
+ *    curLocaleStringRef = CFLocaleGetIdentifier(localeRef);  //
+ *     CFRelease(localeRef);   //
+ *    )   //
+ *    To obtain the user's preferred UI language, do:
  *    CFArrayRef langArray = (CFArrayRef)CFPreferencesCopyAppValue(
  *    CFSTR("AppleLanguages"), kCFPreferencesCurrentApplication );  //
- *    
+ *
  *    the first entry in langArray indicates the preferred language.
  *    For Mac OS X 10.5 there is also a proposed API to return this.
- *    
+ *
  *    Selectors that have no meaningful replacement on a Unicode system
- *    include smEnabled, smBidirect, smDoubleByte, etc. 
+ *    include smEnabled, smBidirect, smDoubleByte, etc.
  *    Selectors that pertain to internal operation of the Script
  *    Manager itself and thus have no meaningful replacement include
  *    smVersion, smMunged, smPrint, smSysRef, etc.
- *  
+ *
  *  Summary:
  *    Check the value of Script Manager general environment variables.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1135,17 +1135,17 @@ function GetScriptManagerVariable( selector: SInt16 ): SIGNEDLONG; external name
 
 {
  *  SetScriptManagerVariable()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    This is mainly used to set the value of variables that control
  *    the internal operation of the Script Manager (selectors
  *    smIntlForce, smGenFlags) and therefore there is no modern
  *    replacement.
- *  
+ *
  *  Summary:
  *    Set the value of (some) Script Manager general environment
  *    variables.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1241,25 +1241,25 @@ const
 {$ifc not TARGET_CPU_64}
 {
  *  GetScriptVariable()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    The replacement for GetScriptVariable depends on the selector
  *    used with it. Many of the selectors refer to information that is
  *    not meaningful on a Unicode system, or refer to details of the
  *    Script Manager itself; in general there is no replacement
- *    functionality for these. 
+ *    functionality for these.
  *    Selectors that have meaningful replacements are as follows (these
  *    are not direct replacements; they provide analogous but more
- *    modern functionality): 
+ *    modern functionality):
  *    1. smScriptLang - This was typically used with the system script
  *    to determine the system language. Instead, to obtain the user's
- *    preferred UI language, do: 
+ *    preferred UI language, do:
  *    CFArrayRef langArray = (CFArrayRef)CFPreferencesCopyAppValue(
  *    CFSTR("AppleLanguages"), kCFPreferencesCurrentApplication );  //
- *    
+ *
  *    the first entry in langArray indicates the preferred language.
  *    For Mac OS X 10.5 there is also a proposed API to return this.
- *    
+ *
  *    2. Font selectors smScriptSysFond / smScriptSysFondSize,
  *    smScriptAppFond / smScriptAppFondSize,  smScriptMonoFondSize,
  *    smScriptPrefFondSize, smScriptSmallFondSize, smScriptHelpFondSize
@@ -1267,12 +1267,12 @@ const
  *    appropriate font based on character script to ensure that
  *    characters are displayed correctly; Unicode encoding and font
  *    fallbacks (to automatically find a font that can display a
- *    character) take care of this. 
+ *    character) take care of this.
  *    However for cases where you do need to do this (such as Carbon
  *    applications that handle non-Unicode text), the CoreText function
  *    CTFontCreateUIFontForLanguage (available in 10.5 and later)
  *    provides a way to get a CTFontRef for a specified language and UI
- *    usage. 
+ *    usage.
  *    3. Script resource ID selectors smScriptNumber, smScriptDate,
  *    smScriptSort, smScriptToken - These were used in several ways.
  *    Sometimes they were used to get a resource ID so specific fields
@@ -1286,17 +1286,17 @@ const
  *    other system function. For text sorting, this is replaced by the
  *    collation functionality in CFString. For formatting of times,
  *    dates, and numbers, this is replaced by functionality in
- *    CFLocale, CFDateFormatter, CFNumberFormatter. 
+ *    CFLocale, CFDateFormatter, CFNumberFormatter.
  *    4. smScriptKeys - To determine an appropriate keyboard input
  *    source for a particular language, use
- *    TISCopyInputSourceForLanguage. 
+ *    TISCopyInputSourceForLanguage.
  *    5. smScriptIcon - To obtain an icon for a particular keyboard
  *    input source, use TISGetInputSourceProperty with the
  *    kTISPropertyIconRef or kTISPropertyIconImageURL key.
- *  
+ *
  *  Summary:
  *    Check the value of a script system's variables.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1311,22 +1311,22 @@ function GetScriptVariable( script: SInt16; selector: SInt16 ): SIGNEDLONG; exte
 {$ifc not TARGET_CPU_64}
 {
  *  SetScriptVariable()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    The primary (perhaps only) recent usage of SetScriptVariable is
- *    to set a specific keyboard layout, as follows: 
- *    err = SetScriptVariable(aScript, smScriptKeys, aKeyLayoutID);  
- *    // 
- *    KeyScript(aScript); // 
+ *    to set a specific keyboard layout, as follows:
+ *    err = SetScriptVariable(aScript, smScriptKeys, aKeyLayoutID);
+ *    //
+ *    KeyScript(aScript); //
  *    The replacement depends on whether the goal is to set the
- *    keyboard layout globally or for a specific TSMDocument. 
- *    To set it globally, use TISSelectInputSource. 
+ *    keyboard layout globally or for a specific TSMDocument.
+ *    To set it globally, use TISSelectInputSource.
  *    To set it for a specific document, use the TSMDocument property
  *    kTSMDocumentInputSourceOverridePropertyTag.
- *  
+ *
  *  Summary:
  *    Set the value of (some of) a script system's variables.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1341,13 +1341,13 @@ function SetScriptVariable( script: SInt16; selector: SInt16; param: SIGNEDLONG 
 {$ifc not TARGET_CPU_64}
 {
  *  GetSysDirection()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    The preferred replacement is +[NSParagraphStyle
  *    defaultWritingDirectionForLanguage:]. If you cannot use that, you
  *    may instead call CFLocaleGetLanguageCharacterDirection for the UI
  *    language in which the application is running. See discussion.
- *  
+ *
  *  Discussion:
  *    Although GetSysDirection ostensibly provided an overall system
  *    direction, it was patched by the Language Manager in Classic Mac
@@ -1357,14 +1357,14 @@ function SetScriptVariable( script: SInt16; selector: SInt16; param: SIGNEDLONG 
  *    direction associated with the user-interface language in which it
  *    is running (e.g. the first language in the array returned by
  *    CFBundleCopyPreferredLocalizationsFromArray when given the
- *    application's bundle localizations). 
- *    
+ *    application's bundle localizations).
+ *
  *    Calling +[NSParagraphStyle defaultWritingDirectionForLanguage:]
  *    is the preferred way to determine this. If that is not possible
  *    for your application, then an alternative is to call
  *    CFLocaleGetLanguageCharacterDirection for the application's
  *    user-interface language (determined as described above).
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1376,13 +1376,13 @@ function GetSysDirection: SInt16; external name '_GetSysDirection';
 
 {
  *  SetSysDirection()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    No longer needed on MacOS X.
- *  
+ *
  *  Discussion:
  *    This function is obsolete.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1394,10 +1394,10 @@ procedure SetSysDirection( value: SInt16 ); external name '_SetSysDirection';
 
 {
  *  FontScript()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use ATSFontFamilyGetEncoding instead.
- *  
+ *
  *  Discussion:
  *    This function returns the ScriptCode of the font of the Quickdraw
  *    grafPort or - if that font is Roman and the smFontForce flag is
@@ -1407,7 +1407,7 @@ procedure SetSysDirection( value: SInt16 ); external name '_SetSysDirection';
  *    function ATSFontFamilyGetEncoding. To get an ATSFontFamilyRef for
  *    a (deprecated) Quickdraw-style FMFontFamily ID, use the
  *    deprecated Quickdraw function FMGetATSFontFamilyRefFromFontFamily.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1419,10 +1419,10 @@ function FontScript: SInt16; external name '_FontScript';
 
 {
  *  IntlScript()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use ATSFontFamilyGetEncoding instead.
- *  
+ *
  *  Discussion:
  *    This function returns the ScriptCode of the font of the Quickdraw
  *    grafPort or - if the smIntlForce flag is true - it returns the
@@ -1432,7 +1432,7 @@ function FontScript: SInt16; external name '_FontScript';
  *    To get an ATSFontFamilyRef for a (deprecated) Quickdraw-style
  *    FMFontFamily ID, use the deprecated Quickdraw function
  *    FMGetATSFontFamilyRefFromFontFamily.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1444,11 +1444,11 @@ function IntlScript: SInt16; external name '_IntlScript';
 
 {
  *  FontToScript()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use FMGetATSFontFamilyRefFromFontFamily +
  *    ATSFontFamilyGetEncoding instead.
- *  
+ *
  *  Discussion:
  *    This function returns the ScriptCode associated with a Quickdraw
  *    FMFontFamily ID. Both the FMFontFamily type and the ScriptCode
@@ -1456,7 +1456,7 @@ function IntlScript: SInt16; external name '_IntlScript';
  *    an ATSFontFamilyRef using the function ATSFontFamilyGetEncoding.
  *    To get an ATSFontFamilyRef for a FMFontFamily ID, use the
  *    deprecated Quickdraw function FMGetATSFontFamilyRefFromFontFamily.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1468,16 +1468,16 @@ function FontToScript( fontNumber: SInt16 ): SInt16; external name '_FontToScrip
 
 {
  *  CharacterByteType()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    use the combination of CFString, UCGetCharProperty and
  *    CFCharacterSet  instead.
- *  
+ *
  *  Discussion:
  *    This function is no longer recommended. Please use the
- *    combination of CFString, UCGetCharProperty and CFCharacterSet 
+ *    combination of CFString, UCGetCharProperty and CFCharacterSet
  *    instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1489,16 +1489,16 @@ function CharacterByteType( textBuf: Ptr; textOffset: SInt16; script: ScriptCode
 
 {
  *  CharacterType()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    use the combination of CFString, UCGetCharProperty and
  *    CFCharacterSet  instead.
- *  
+ *
  *  Discussion:
  *    This function is no longer recommended. Please use the
- *    combination of CFString, UCGetCharProperty and CFCharacterSet 
+ *    combination of CFString, UCGetCharProperty and CFCharacterSet
  *    instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1510,14 +1510,14 @@ function CharacterType( textBuf: Ptr; textOffset: SInt16; script: ScriptCode ): 
 
 {
  *  TransliterateText()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    use CFStringTransform instead.
- *  
+ *
  *  Discussion:
  *    This function is no longer recommended. Please use
  *    CFStringTransform instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1529,16 +1529,16 @@ function TransliterateText( srcHandle: Handle; dstHandle: Handle; target: SInt16
 
 {
  *  FillParseTable()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    use the combination of CFString, UCGetCharProperty and
  *    CFCharacterSet  instead.
- *  
+ *
  *  Discussion:
  *    This function is no longer recommended. Please use the
- *    combination of CFString, UCGetCharProperty and CFCharacterSet 
+ *    combination of CFString, UCGetCharProperty and CFCharacterSet
  *    instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1550,27 +1550,27 @@ function FillParseTable( var table: CharByteTable; script: ScriptCode ): Boolean
 
 {
  *  GetIntlResource()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Depending on the information that GetIntlResource was being
  *    called to obtain, it can be replaced by the use of
  *    CFLocaleCopyCurrent to get an appropriate CFLocaleRef followed by
- *    one of the following: 
- *    
+ *    one of the following:
+ *
  *    - CFLocaleGetValue with keys such as kCFLocaleUsesMetricSystem,
- *    kCFLocaleDecimalSeparator, kCFLocaleCurrencySymbol. 
- *    
+ *    kCFLocaleDecimalSeparator, kCFLocaleCurrencySymbol.
+ *
  *    - CFDateFormatterCreate to get an appropriate CFDateFormatterRef,
  *    followed by CFDateFormatterCopyProperty with keys such as
  *    kCFDateFormatterMonthSymbols, kCFDateFormatterWeekdaySymbols,
- *    kCFDateFormatterAMSymbol. 
- *    
+ *    kCFDateFormatterAMSymbol.
+ *
  *    - CFNumberFormatterCreate to get an appropriate
  *    CFNumberFormatterRef, followed by CFNumberFormatterCopyProperty
  *    with keys such as kCFNumberFormatterCurrencyDecimalSeparator,
  *    kCFNumberFormatterMinusSign, kCFNumberFormatterPercentSymbol,
  *    kCFNumberFormatterNegativePrefix.
- *  
+ *
  *  Discussion:
  *    GetIntlResource was used to get a handle to the specified
  *    international resource type (e.g. 'itl0', 'itl1', 'itl2, 'itl4').
@@ -1579,7 +1579,7 @@ function FillParseTable( var table: CharByteTable; script: ScriptCode ): Boolean
  *    performed - for example - string comparison. GetIntlResource is
  *    no longer recommended; please use the replacements described in
  *    the "deprecated" section.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1591,13 +1591,13 @@ function GetIntlResource( theID: SInt16 ): Handle; external name '_GetIntlResour
 
 {
  *  ClearIntlResourceCache()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    No longer needed on MacOS X.
- *  
+ *
  *  Discussion:
  *    This function is obsolete.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1609,13 +1609,13 @@ procedure ClearIntlResourceCache; external name '_ClearIntlResourceCache';
 
 {
  *  GetIntlResourceTable()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    No longer needed on MacOS X.
- *  
+ *
  *  Discussion:
  *    This function is obsolete.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1629,7 +1629,7 @@ procedure GetIntlResourceTable( script: ScriptCode; tableCode: SInt16; var itlHa
 
 {
  *  GetScriptUtilityAddress()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -1639,7 +1639,7 @@ procedure GetIntlResourceTable( script: ScriptCode; tableCode: SInt16; var itlHa
 
 {
  *  SetScriptUtilityAddress()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -1649,7 +1649,7 @@ procedure GetIntlResourceTable( script: ScriptCode; tableCode: SInt16; var itlHa
 
 {
  *  GetScriptQDPatchAddress()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -1659,7 +1659,7 @@ procedure GetIntlResourceTable( script: ScriptCode; tableCode: SInt16; var itlHa
 
 {
  *  SetScriptQDPatchAddress()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -1669,7 +1669,7 @@ procedure GetIntlResourceTable( script: ScriptCode; tableCode: SInt16; var itlHa
 
 {
  *  SetIntlResource()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -1679,7 +1679,7 @@ procedure GetIntlResourceTable( script: ScriptCode; tableCode: SInt16; var itlHa
 
 {
  *  CharByte()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -1689,7 +1689,7 @@ procedure GetIntlResourceTable( script: ScriptCode; tableCode: SInt16; var itlHa
 
 {
  *  CharType()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -1699,7 +1699,7 @@ procedure GetIntlResourceTable( script: ScriptCode; tableCode: SInt16; var itlHa
 
 {
  *  Transliterate()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -1709,7 +1709,7 @@ procedure GetIntlResourceTable( script: ScriptCode; tableCode: SInt16; var itlHa
 
 {
  *  ParseTable()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -1720,13 +1720,13 @@ procedure GetIntlResourceTable( script: ScriptCode; tableCode: SInt16; var itlHa
 {$ifc not TARGET_CPU_64}
 {
  *  IntlTokenize()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    No longer needed on MacOS X.
- *  
+ *
  *  Discussion:
  *    This function is obsolete.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later

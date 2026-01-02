@@ -15,7 +15,7 @@
     Also the output is not always in the same order as in input as this
     information is not available easily.
 
-    !!!Do not expect this program to produce executeable output!!!
+    !!!Do not expect this program to produce executable output!!!
 
     Status: -workes with one Unit or Program
             -Some type declarations missing
@@ -182,7 +182,7 @@ var
   E: TPasTreeContainer;
   I: Integer;
   cmdl, TargetOS, TargetCPU : string;
-  isim, //is Impleamentation, only for GetTPasProcedureBody
+  isim, //is Implementation, only for GetTPasProcedureBody
   Unformated:boolean; // no Formating in output
 
 

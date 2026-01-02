@@ -1,17 +1,17 @@
 {
      File:       HIToolbox/Drag.h
- 
+
      Contains:   Drag and Drop Interfaces.
- 
+
      Version:    HIToolbox-624~3
- 
+
      Copyright:  © 1992-2008 by Apple Computer, Inc., all rights reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {       Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, August 2005 }
 {       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
@@ -231,7 +231,7 @@ uses MacTypes,AEDataModel,CGImage,CGGeometry,Events,Files,AppleEvents,QuickdrawT
 
 {
   _________________________________________________________________________________________________________
-      
+
    ¥ DRAG MANAGER DATA TYPES
   _________________________________________________________________________________________________________
 }
@@ -243,7 +243,7 @@ type
 	FlavorType = OSType;
 {
   _________________________________________________________________________________________________________
-      
+
    ¥ DRAG ATTRIBUTES
   _________________________________________________________________________________________________________
 }
@@ -256,7 +256,7 @@ const
 
 {
   _________________________________________________________________________________________________________
-      
+
    ¥ DRAG BEHAVIORS
   _________________________________________________________________________________________________________
 }
@@ -269,7 +269,7 @@ const
 
 {
   _________________________________________________________________________________________________________
-      
+
    ¥ DRAG IMAGE FLAGS
   _________________________________________________________________________________________________________
 }
@@ -277,7 +277,7 @@ const
 
 {
  *  DragImageFlags
- *  
+ *
  *  Summary:
  *    Parameters to SetDragImage and SetDragImageWithCGImage.
  }
@@ -303,7 +303,7 @@ const
 
 {
   _________________________________________________________________________________________________________
-      
+
    ¥ DRAG IMAGE TRANSLUCENCY LEVELS
   _________________________________________________________________________________________________________
 }
@@ -316,7 +316,7 @@ const
 
 {
   _________________________________________________________________________________________________________
-      
+
    ¥ FLAVOR FLAGS
   _________________________________________________________________________________________________________
 }
@@ -332,7 +332,7 @@ const
 
 {
   _________________________________________________________________________________________________________
-      
+
    ¥ FLAVORS FOR FINDER 8.0 AND LATER
   _________________________________________________________________________________________________________
 }
@@ -347,7 +347,7 @@ const
 
 {
   _________________________________________________________________________________________________________
-      
+
    ¥ DRAG ACTIONS
   _________________________________________________________________________________________________________
 }
@@ -358,14 +358,14 @@ type
 {
  *  Summary:
  *    Drag Action constants
- *  
+ *
  *  Discussion:
  *    The following constants define, in a general way, what actions a
  *    drag should or has performed.  Some drag actions enforce a mode
  *    of operation while others are flexible suggestions.  These
  *    constants are used in conjunction with the
- *    Get/SetDragAllowableActions() and Get/SetDragDropAction() APIs. 
- *    Adopting the Drag Action APIs increases compatability with the
+ *    Get/SetDragAllowableActions() and Get/SetDragDropAction() APIs.
+ *    Adopting the Drag Action APIs increases compatibility with the
  *    Cocoa drag operation model.
  }
 const
@@ -415,7 +415,7 @@ const
 
 {
   _________________________________________________________________________________________________________
-      
+
    ¥ PROVIDING CALLBACK PROCEDURES
   _________________________________________________________________________________________________________
 }
@@ -425,7 +425,7 @@ type
 	DragInputUPP = DragInputProcPtr;
 {
  *  NewDragInputUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -436,7 +436,7 @@ function NewDragInputUPP( userRoutine: DragInputProcPtr ): DragInputUPP; externa
 
 {
  *  DisposeDragInputUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -447,7 +447,7 @@ procedure DisposeDragInputUPP( userUPP: DragInputUPP ); external name '_DisposeD
 
 {
  *  InvokeDragInputUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -459,10 +459,10 @@ function InvokeDragInputUPP( var mouse: Point; var modifiers: SInt16; dragInputR
 {$ifc not TARGET_CPU_64}
 {
  *  SetDragInputProc()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -474,17 +474,17 @@ function SetDragInputProc( theDrag: DragRef; inputProc: DragInputUPP; dragInputR
 
 {
   _________________________________________________________________________________________________________
-      
+
    ¥ CREATING & DISPOSING
   _________________________________________________________________________________________________________
 }
 
 {
  *  NewDrag()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -496,10 +496,10 @@ function NewDrag( var theDrag: DragRef ): OSErr; external name '_NewDrag';
 
 {
  *  DisposeDrag()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -511,23 +511,23 @@ function DisposeDrag( theDrag: DragRef ): OSErr; external name '_DisposeDrag';
 
 {
   _________________________________________________________________________________________________________
-      
+
    ¥ DRAG PASTEBOARD
   _________________________________________________________________________________________________________
 }
 
 {
  *  NewDragWithPasteboard()
- *  
+ *
  *  Discussion:
  *    Creates a new Drag reference containing the pasteboard reference
  *    provided.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inPasteboard:
  *      A pasteboard created by the drag sender for use with the drag.
  *      Items may be added to the pasteboard via the Pasteboard Manager
@@ -539,13 +539,13 @@ function DisposeDrag( theDrag: DragRef ): OSErr; external name '_DisposeDrag';
  *      may be done at any time after this routine is called. The
  *      pasteboard is retained by the Drag Manager for the duration of
  *      the drag.
- *    
+ *
  *    outDrag:
  *      A drag reference which receives the newly created drag.
- *  
+ *
  *  Result:
  *    An operating system result code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -557,28 +557,28 @@ function NewDragWithPasteboard( inPasteboard: PasteboardRef; var outDrag: DragRe
 
 {
  *  GetDragPasteboard()
- *  
+ *
  *  Discussion:
  *    Returns the pasteboard reference contained within the provided
  *    drag reference. This routine may be called by a drag sender or
  *    receiver at any point after a valid drag reference has been
  *    created/received.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inDrag:
  *      The drag reference containing the requested pasteboard.
- *    
+ *
  *    outPasteboard:
  *      A pasteboard reference which receives the pasteboard contained
  *      by the drag.
- *  
+ *
  *  Result:
  *    An operating system result code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
@@ -590,30 +590,30 @@ function GetDragPasteboard( inDrag: DragRef; var outPasteboard: PasteboardRef ):
 
 {
   _________________________________________________________________________________________________________
-      
+
    ¥ SETTING THE DRAG IMAGE
   _________________________________________________________________________________________________________
 }
 
 {
  *  SetDragImageWithCGImage()
- *  
+ *
  *  Discussion:
  *    Used by the sender of the drag to set the image, in CGImage
  *    format, to be displayed as user feedback during the drag.  This
  *    API may be called  at any point during the drag to update the
  *    image.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inDrag:
  *      The drag reference for which the image will be displayed.
- *    
+ *
  *    inCGImage:
- *      The CGImageRef for the image to be displayed during the drag. 
+ *      The CGImageRef for the image to be displayed during the drag.
  *      The image is retained internally by the Drag Manager for the
  *      duration of the drag so it may be released by the client
  *      immediately after setting. For Mac OS X 10.4 and earlier only
@@ -621,7 +621,7 @@ function GetDragPasteboard( inDrag: DragRef; var outPasteboard: PasteboardRef ):
  *      kCGImageAlphaPremultipliedLast and kCGImageAlphaFirst inclusive
  *      are properly accepted. All alpha info values are accepted in
  *      later versions.
- *    
+ *
  *    inImageOffsetPt:
  *      A pointer to the offset from the mouse to the upper left of the
  *      image (normally expressed in negative values).  This differs
@@ -631,13 +631,13 @@ function GetDragPasteboard( inDrag: DragRef; var outPasteboard: PasteboardRef ):
  *      kDragDoNotScaleImage flag must be set. In this case, the
  *      inImageOffsetPt parameter will be interpreted in pixels rather
  *      than points.
- *    
+ *
  *    inImageFlags:
  *      The flags determining image drawing during the drag.
- *  
+ *
  *  Result:
  *    An operating system result code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x
@@ -649,17 +649,17 @@ function SetDragImageWithCGImage( inDrag: DragRef; inCGImage: CGImageRef; const 
 
 {
   _________________________________________________________________________________________________________
-      
+
    ¥ ALTERING THE BEHAVIOR OF A DRAG
   _________________________________________________________________________________________________________
 }
 
 {
  *  ChangeDragBehaviors()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -671,30 +671,30 @@ function ChangeDragBehaviors( theDrag: DragRef; inBehaviorsToSet: DragBehaviors;
 
 {
   _________________________________________________________________________________________________________
-      
+
    ¥ PERFORMING A DRAG
   _________________________________________________________________________________________________________
 }
 
 {
  *  TrackDrag()
- *  
+ *
  *  Summary:
  *    Tracks a drag across the displays, returning when the drag has
  *    completed, either via a drop action or a user cancel operation.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    theDrag:
  *      A drag reference describing the data to be dragged.
- *    
+ *
  *    theEvent:
  *      An event describing the start location for the drag and
  *      modifier keys.
- *    
+ *
  *    theRegion:
  *      A region describing the visible outline of the dragged data. If
  *      no drag image was supplied, or if a drag image was supplied
@@ -702,10 +702,10 @@ function ChangeDragBehaviors( theDrag: DragRef; inBehaviorsToSet: DragBehaviors;
  *      across the displays as the user moves the mouse during the drag
  *      operation. On Mac OS X 10.5 and later, you may pass NULL if you
  *      only want the drag image to be shown.
- *  
+ *
  *  Result:
  *    An operating system result code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -717,17 +717,17 @@ function TrackDrag( theDrag: DragRef; const (*var*) theEvent: EventRecord; theRe
 
 {
   _________________________________________________________________________________________________________
-      
+
    ¥ GETTING INFORMATION ABOUT A DRAG
   _________________________________________________________________________________________________________
 }
 
 {
  *  GetDragAttributes()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -739,10 +739,10 @@ function GetDragAttributes( theDrag: DragRef; var flags: DragAttributes ): OSErr
 
 {
  *  GetDragMouse()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -754,10 +754,10 @@ function GetDragMouse( theDrag: DragRef; var mouse: Point; var globalPinnedMouse
 
 {
  *  SetDragMouse()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -769,10 +769,10 @@ function SetDragMouse( theDrag: DragRef; globalPinnedMouse: Point ): OSErr; exte
 
 {
  *  GetDragOrigin()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -784,10 +784,10 @@ function GetDragOrigin( theDrag: DragRef; var globalInitialMouse: Point ): OSErr
 
 {
  *  GetDragModifiers()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -799,10 +799,10 @@ function GetDragModifiers( theDrag: DragRef; var modifiers: SInt16; var mouseDow
 
 {
  *  GetDragItemBounds()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -814,10 +814,10 @@ function GetDragItemBounds( theDrag: DragRef; theItemRef: DragItemRef; var itemB
 
 {
  *  SetDragItemBounds()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -829,36 +829,36 @@ function SetDragItemBounds( theDrag: DragRef; theItemRef: DragItemRef; const (*v
 
 {
   _________________________________________________________________________________________________________
-      
+
    ¥ ACCESSING DRAG ACTIONS
   _________________________________________________________________________________________________________
 }
 
 {
  *  GetDragAllowableActions()
- *  
+ *
  *  Discussion:
  *    Gets the actions the drag sender has allowed the receiver to
  *    perform. These are not requirements, but they highly suggested
  *    actions which allows the drag receiver to improve harmony across
  *    the system.  The allowable actions received are always those
  *    local to the caller's process.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    theDrag:
- *      The drag reference from which to retreive the allowable drag
+ *      The drag reference from which to retrieve the allowable drag
  *      actions.
- *    
+ *
  *    outActions:
  *      A pointer to receive the field of allowable drag actions.
- *  
+ *
  *  Result:
  *    An operating system result code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.1 and later
@@ -870,33 +870,33 @@ function GetDragAllowableActions( theDrag: DragRef; var outActions: DragActions 
 
 {
  *  SetDragAllowableActions()
- *  
+ *
  *  Discussion:
- *    Sets the actions the receiver of the drag is allowed to perform. 
+ *    Sets the actions the receiver of the drag is allowed to perform.
  *    These are not requirements, but they highly suggested actions
  *    which allows the drag receiver to improve harmony across the
  *    system.  The caller may select wether these drag actions apply to
  *    a local or remote process.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    theDrag:
  *      The drag reference in which to set the allowable drag actions.
- *    
+ *
  *    inActions:
  *      A field of allowable drag actions to be set.
- *    
+ *
  *    isLocal:
  *      A boolean value allowing the drag sender to distinguish between
  *      those drag actions allowable by the local receiver versus a
  *      remote one.
- *  
+ *
  *  Result:
  *    An operating system result code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.1 and later
@@ -908,26 +908,26 @@ function SetDragAllowableActions( theDrag: DragRef; inActions: DragActions; isLo
 
 {
  *  GetDragDropAction()
- *  
+ *
  *  Discussion:
  *    Gets the action performed by the receiver of the drag.  More than
  *    one action may have been performed.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    theDrag:
- *      The drag reference from which to retreive the performed drop
+ *      The drag reference from which to retrieve the performed drop
  *      action.
- *    
+ *
  *    outAction:
  *      A pointer to receive the drag action performed.
- *  
+ *
  *  Result:
  *    An operating system result code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.1 and later
@@ -939,25 +939,25 @@ function GetDragDropAction( theDrag: DragRef; var outAction: DragActions ): OSSt
 
 {
  *  SetDragDropAction()
- *  
+ *
  *  Discussion:
  *    Sets the action performed by the receiver of the drag.  More than
  *    one action may be performed.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    theDrag:
  *      The drag reference in which to set the performed drop action.
- *    
+ *
  *    inAction:
  *      The drop action performed.
- *  
+ *
  *  Result:
  *    An operating system result code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.1 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.1 and later
@@ -969,17 +969,17 @@ function SetDragDropAction( theDrag: DragRef; inAction: DragActions ): OSStatus;
 
 {
   _________________________________________________________________________________________________________
-      
+
    ¥ UTILITIES
   _________________________________________________________________________________________________________
 }
 
 {
  *  WaitMouseMoved()
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1069,7 +1069,7 @@ const
 {
  *  Summary:
  *    Standard Drop Location constants
- *  
+ *
  *  Discussion:
  *    The following constants define common "meta" drop locations.
  }
@@ -1100,7 +1100,7 @@ type
 	DragDrawingUPP = DragDrawingProcPtr;
 {
  *  NewDragSendDataUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1111,7 +1111,7 @@ function NewDragSendDataUPP( userRoutine: DragSendDataProcPtr ): DragSendDataUPP
 
 {
  *  NewDragTrackingHandlerUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1122,7 +1122,7 @@ function NewDragTrackingHandlerUPP( userRoutine: DragTrackingHandlerProcPtr ): D
 
 {
  *  NewDragReceiveHandlerUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1133,7 +1133,7 @@ function NewDragReceiveHandlerUPP( userRoutine: DragReceiveHandlerProcPtr ): Dra
 
 {
  *  NewDragDrawingUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1144,7 +1144,7 @@ function NewDragDrawingUPP( userRoutine: DragDrawingProcPtr ): DragDrawingUPP; e
 
 {
  *  DisposeDragSendDataUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1155,7 +1155,7 @@ procedure DisposeDragSendDataUPP( userUPP: DragSendDataUPP ); external name '_Di
 
 {
  *  DisposeDragTrackingHandlerUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1166,7 +1166,7 @@ procedure DisposeDragTrackingHandlerUPP( userUPP: DragTrackingHandlerUPP ); exte
 
 {
  *  DisposeDragReceiveHandlerUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1177,7 +1177,7 @@ procedure DisposeDragReceiveHandlerUPP( userUPP: DragReceiveHandlerUPP ); extern
 
 {
  *  DisposeDragDrawingUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1188,7 +1188,7 @@ procedure DisposeDragDrawingUPP( userUPP: DragDrawingUPP ); external name '_Disp
 
 {
  *  InvokeDragSendDataUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1199,7 +1199,7 @@ function InvokeDragSendDataUPP( theType: FlavorType; dragSendRefCon: UnivPtr; th
 
 {
  *  InvokeDragTrackingHandlerUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1210,7 +1210,7 @@ function InvokeDragTrackingHandlerUPP( message: DragTrackingMessage; theWindow: 
 
 {
  *  InvokeDragReceiveHandlerUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1221,7 +1221,7 @@ function InvokeDragReceiveHandlerUPP( theWindow: WindowRef; handlerRefCon: UnivP
 
 {
  *  InvokeDragDrawingUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1233,30 +1233,30 @@ function InvokeDragDrawingUPP( message: DragRegionMessage; showRegion: RgnHandle
 {$ifc not TARGET_CPU_64}
 {
  *  GetStandardDropLocation()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use PasteboardGetStandardPasteLocation instead.
- *  
+ *
  *  Discussion:
  *    Gets the standard drop location that was set by the receiver of
  *    the drag.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    theDrag:
  *      The drag reference from which to retrieve the allowable drag
  *      actions.
- *    
+ *
  *    outDropLocation:
  *      A pointer to the standard drop location, set by the receiver,
  *      representing the location where the drag was dropped.
- *  
+ *
  *  Result:
  *    An operating system result code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -1268,30 +1268,30 @@ function GetStandardDropLocation( theDrag: DragRef; var outDropLocation: Standar
 
 {
  *  SetStandardDropLocation()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use PasteboardSetStandardPasteLocation instead.
- *  
+ *
  *  Discussion:
  *    Used by the receiver of the drag to set the standard drop
  *    location.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    theDrag:
  *      The drag reference from which to retrieve the allowable drag
  *      actions.
- *    
+ *
  *    dropLocation:
  *      The standard drop location representing the location where the
  *      drag was dropped.
- *  
+ *
  *  Result:
  *    An operating system result code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -1303,14 +1303,14 @@ function SetStandardDropLocation( theDrag: DragRef; dropLocation: StandardDropLo
 
 {
  *  ZoomRects()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use window transitions or custom drawing in an overlay window
  *    instead.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1322,14 +1322,14 @@ function ZoomRects( const (*var*) fromRect: Rect; const (*var*) toRect: Rect; zo
 
 {
  *  ZoomRegion()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use window transitions or custom drawing in an overlay window
  *    instead.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1341,48 +1341,48 @@ function ZoomRegion( region: RgnHandle; zoomDistance: Point; zoomSteps: SInt16; 
 
 {
  *  SetDragImage()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Applications should use SetDragImageWithCGImage instead.
- *  
+ *
  *  Summary:
  *    Associates an image with a drag reference.
- *  
+ *
  *  Discussion:
  *    Used by the sender of the drag to set the image, in PixMapHandle
  *    format, to be displayed as user feedback during the drag.  This
  *    API may be called  at any point during the drag to update the
  *    image.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Parameters:
- *    
+ *
  *    inDrag:
  *      The drag reference for which the image will be displayed.
- *    
+ *
  *    inImagePixMap:
  *      The PixMapHandle for the image to be displayed during the drag.
- *    
+ *
  *    inImageRgn:
  *      A mask describing the portion of the PixMap contained in the
  *      imagePixMap parameter which contains the drag image. Pass NULL
  *      for inImageRgn if the entire PixMap, including white space,
  *      should be dragged.
- *    
+ *
  *    inImageOffsetPt:
  *      The offset required to move the PixMap specified in the
  *      imagePixMap parameter to the global coordinates where the image
  *      initially appears. If this parameter is (0,0), the PixMap
  *      should already be in global coordinates.
- *    
+ *
  *    inImageFlags:
  *      Flags controlling the appearance of the drag image.
- *  
+ *
  *  Result:
  *    An operating system result code.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1395,21 +1395,21 @@ function SetDragImage( inDrag: DragRef; inImagePixMap: PixMapHandle; inImageRgn:
 {
     The method for setting Drag Manager promises differs from that for Scrap Manger promises.  This chart
     describes the method for setting drag promises via AddDragItemFlavor().
-    
+
         dataPtr         dataSize                                result
      pointer value  actual data size    The data of size dataSize pointed to by dataPtr is added to the drag.
         NULL             ignored        A promise is placed on the drag.
 }
 {
  *  AddDragItemFlavor()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    The Drag Flavor APIs are deprecated. Use PasteboardPutItemFlavor
  *    instead.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1421,14 +1421,14 @@ function AddDragItemFlavor( theDrag: DragRef; theItemRef: DragItemRef; theType: 
 
 {
  *  SetDragItemFlavorData()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    The Drag Flavor APIs are deprecated. Use PasteboardPutItemFlavor
  *    instead.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1440,14 +1440,14 @@ function SetDragItemFlavorData( theDrag: DragRef; theItemRef: DragItemRef; theTy
 
 {
  *  InstallTrackingHandler()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Install drag suite event handlers on a drag tracking HIView
  *    instead.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1459,14 +1459,14 @@ function InstallTrackingHandler( trackingHandler: DragTrackingHandlerUPP; theWin
 
 {
  *  InstallReceiveHandler()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Install drag suite event handlers on a drag tracking HIView
  *    instead.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1478,14 +1478,14 @@ function InstallReceiveHandler( receiveHandler: DragReceiveHandlerUPP; theWindow
 
 {
  *  RemoveTrackingHandler()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Remove drag suite event handlers from a drag tracking HIView
  *    instead.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1497,14 +1497,14 @@ function RemoveTrackingHandler( trackingHandler: DragTrackingHandlerUPP; theWind
 
 {
  *  RemoveReceiveHandler()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Remove drag suite event handlers from a drag tracking HIView
  *    instead.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1516,14 +1516,14 @@ function RemoveReceiveHandler( receiveHandler: DragReceiveHandlerUPP; theWindow:
 
 {
  *  SetDragSendProc()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    The Drag Flavor APIs are deprecated. Use
  *    PasteboardSetPromiseKeeper instead.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1535,13 +1535,13 @@ function SetDragSendProc( theDrag: DragRef; sendProc: DragSendDataUPP; dragSendR
 
 {
  *  SetDragDrawingProc()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use SetDragImageWithCGImage instead.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1553,14 +1553,14 @@ function SetDragDrawingProc( theDrag: DragRef; drawingProc: DragDrawingUPP; drag
 
 {
  *  CountDragItems()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    The Drag Flavor APIs are deprecated. Use PasteboardGetItemCount
  *    instead.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1572,14 +1572,14 @@ function CountDragItems( theDrag: DragRef; var numItems: UInt16 ): OSErr; extern
 
 {
  *  GetDragItemReferenceNumber()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    The Drag Flavor APIs are deprecated. Use
  *    PasteboardGetItemIdentifier instead.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1591,14 +1591,14 @@ function GetDragItemReferenceNumber( theDrag: DragRef; theIndex: UInt16; var the
 
 {
  *  CountDragItemFlavors()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    The Drag Flavor APIs are deprecated. Use
  *    PasteboardCopyItemFlavors instead.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1610,14 +1610,14 @@ function CountDragItemFlavors( theDrag: DragRef; theItemRef: DragItemRef; var nu
 
 {
  *  GetFlavorType()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    The Drag Flavor APIs are deprecated. Use
  *    PasteboardCopyItemFlavors instead.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1629,14 +1629,14 @@ function GetFlavorType( theDrag: DragRef; theItemRef: DragItemRef; theIndex: UIn
 
 {
  *  GetFlavorFlags()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    The Drag Flavor APIs are deprecated. Use
  *    PasteboardGetItemFlavorFlags instead.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1648,14 +1648,14 @@ function GetFlavorFlags( theDrag: DragRef; theItemRef: DragItemRef; theType: Fla
 
 {
  *  GetFlavorDataSize()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    The Drag Flavor APIs are deprecated. Use
  *    PasteboardCopyItemFlavorData instead.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1667,14 +1667,14 @@ function GetFlavorDataSize( theDrag: DragRef; theItemRef: DragItemRef; theType: 
 
 {
  *  GetFlavorData()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    The Drag Flavor APIs are deprecated. Use
  *    PasteboardCopyItemFlavorData instead.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1686,13 +1686,13 @@ function GetFlavorData( theDrag: DragRef; theItemRef: DragItemRef; theType: Flav
 
 {
  *  GetDropLocation()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use PasteboardCopyPasteLocation instead.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1704,13 +1704,13 @@ function GetDropLocation( theDrag: DragRef; var dropLocation: AEDesc ): OSErr; e
 
 {
  *  SetDropLocation()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use PasteboardSetPasteLocation instead.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1722,15 +1722,15 @@ function SetDropLocation( theDrag: DragRef; const (*var*) dropLocation: AEDesc )
 
 {
  *  ShowDragHilite()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    The Drag scroll and hilite APIs are deprecated. Use the
  *    kThemeBrushDragHilite theme brush and draw the hilight as part of
  *    your custom window or control drawing instead.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1742,15 +1742,15 @@ function ShowDragHilite( theDrag: DragRef; hiliteFrame: RgnHandle; inside: Boole
 
 {
  *  HideDragHilite()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    The Drag scroll and hilite APIs are deprecated. Use the
  *    kThemeBrushDragHilite theme brush and draw the hilight as part of
  *    your custom window or control drawing instead.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1762,14 +1762,14 @@ function HideDragHilite( theDrag: DragRef ): OSErr; external name '_HideDragHili
 
 {
  *  DragPreScroll()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    The Drag scroll and hilite APIs are deprecated. Redraw as part of
  *    your custom window or control drawing instead.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1781,14 +1781,14 @@ function DragPreScroll( theDrag: DragRef; dH: SInt16; dV: SInt16 ): OSErr; exter
 
 {
  *  DragPostScroll()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    The Drag scroll and hilite APIs are deprecated. Redraw as part of
  *    your custom window or control drawing instead.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1800,15 +1800,15 @@ function DragPostScroll( theDrag: DragRef ): OSErr; external name '_DragPostScro
 
 {
  *  UpdateDragHilite()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    The Drag scroll and hilite APIs are deprecated. Use the
  *    kThemeBrushDragHilite theme brush and draw the hilight as part of
  *    your custom window or control drawing instead.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1820,15 +1820,15 @@ function UpdateDragHilite( theDrag: DragRef; updateRgn: RgnHandle ): OSErr; exte
 
 {
  *  GetDragHiliteColor()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    The Drag scroll and hilite APIs are deprecated. Use the
  *    kThemeBrushDragHilite theme brush and draw the hilight as part of
  *    your custom window or control drawing instead.
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later

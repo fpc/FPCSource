@@ -64,13 +64,13 @@ var
   // CPU
   SPMCSR : byte absolute $00+$57; // Store Program Memory Control Register
   SREG : byte absolute $00+$5F; // Status Register
-  SP : word absolute $00+$5D; // Stack Pointer 
-  SPL : byte absolute $00+$5D; // Stack Pointer 
-  SPH : byte absolute $00+$5D+1; // Stack Pointer 
+  SP : word absolute $00+$5D; // Stack Pointer
+  SPL : byte absolute $00+$5D; // Stack Pointer
+  SPH : byte absolute $00+$5D+1; // Stack Pointer
   MCUCR : byte absolute $00+$55; // MCU Control Register
   MCUSR : byte absolute $00+$54; // MCU Status Register
   OSCCAL : byte absolute $00+$66; // Oscillator Calibration Value
-  CLKPR : byte absolute $00+$61; // 
+  CLKPR : byte absolute $00+$61; //
   SMCR : byte absolute $00+$53; // Sleep Mode Control Register
   GPIOR2 : byte absolute $00+$3A; // General Purpose IO Register 2
   GPIOR1 : byte absolute $00+$39; // General Purpose IO Register 1
@@ -117,9 +117,9 @@ var
   ADCSRB : byte absolute $00+$7B; // ADC Control and Status Register B
   DIDR0 : byte absolute $00+$7E; // Digital Input Disable Register 0
   DIDR1 : byte absolute $00+$7F; // Digital Input Disable Register 0
-  AMP0CSR : byte absolute $00+$75; // 
-  AMP1CSR : byte absolute $00+$76; // 
-  AMP2CSR : byte absolute $00+$77; // 
+  AMP0CSR : byte absolute $00+$75; //
+  AMP1CSR : byte absolute $00+$76; //
+  AMP2CSR : byte absolute $00+$77; //
   // LINUART
   LINCR : byte absolute $00+$C8; // LIN Control Register
   LINSIR : byte absolute $00+$C9; // LIN Status and Interrupt Register
@@ -227,10 +227,10 @@ const
   IDE = 4; // Identifier Extension
   DLC = 0; // Data Length Code bits
   // CANIDT4
-  IDT = 3; // 
-  RTRTAG = 2; // 
-  RB1TAG = 1; // 
-  RB0TAG = 0; // 
+  IDT = 3; //
+  RTRTAG = 2; //
+  RB1TAG = 1; //
+  RB0TAG = 0; //
   // AC0CON
   AC0EN = 7; // Analog Comparator 0 Enable Bit
   AC0IE = 6; // Analog Comparator 0 Interrupt Enable Bit
@@ -298,8 +298,8 @@ const
   EXTRF = 1; // External Reset Flag
   PORF = 0; // Power-on reset flag
   // CLKPR
-  CLKPCE = 7; // 
-  CLKPS = 0; // 
+  CLKPCE = 7; //
+  CLKPS = 0; //
   // SMCR
   SM = 1; // Sleep Mode Select bits
   SE = 0; // Sleep Enable
@@ -342,7 +342,7 @@ const
   // TCCR0B
   FOC0A = 7; // Force Output Compare A
   FOC0B = 6; // Force Output Compare B
-  WGM02 = 3; // 
+  WGM02 = 3; //
   CS0 = 0; // Clock Select
   // GTCCR
   TSM = 7; // Timer/Counter Synchronization Mode
@@ -367,8 +367,8 @@ const
   ICES1 = 6; // Input Capture 1 Edge Select
   CS1 = 0; // Prescaler source of Timer/Counter 1
   // TCCR1C
-  FOC1A = 7; // 
-  FOC1B = 6; // 
+  FOC1A = 7; //
+  FOC1B = 6; //
   // GTCCR
   PSRSYNC = 0; // Prescaler Reset Timer/Counter1 and Timer/Counter0
   // ADMUX
@@ -405,23 +405,23 @@ const
   ADC9D = 1; // ADC9 Pin Digital input Disable
   ADC8D = 0; // ADC8 Pin Digital input Disable
   // AMP0CSR
-  AMP0EN = 7; // 
-  AMP0IS = 6; // 
-  AMP0G = 4; // 
+  AMP0EN = 7; //
+  AMP0IS = 6; //
+  AMP0G = 4; //
   AMPCMP0 = 3; // Amplifier 0 - Comparator 0 Connection
-  AMP0TS = 0; // 
+  AMP0TS = 0; //
   // AMP1CSR
-  AMP1EN = 7; // 
-  AMP1IS = 6; // 
-  AMP1G = 4; // 
+  AMP1EN = 7; //
+  AMP1IS = 6; //
+  AMP1G = 4; //
   AMPCMP1 = 3; // Amplifier 1 - Comparator 1 Connection
-  AMP1TS = 0; // 
+  AMP1TS = 0; //
   // AMP2CSR
-  AMP2EN = 7; // 
-  AMP2IS = 6; // 
-  AMP2G = 4; // 
+  AMP2EN = 7; //
+  AMP2IS = 6; //
+  AMP2G = 4; //
   AMPCMP2 = 3; // Amplifier 2 - Comparator 2 Connection
-  AMP2TS = 0; // 
+  AMP2TS = 0; //
   // LINCR
   LSWRES = 7; // Software Reset
   LIN13 = 6; // LIN Standard
@@ -453,7 +453,7 @@ const
   LDISR = 7; // Disable Bit Timing Resynchronization
   LBT = 0; // LIN Bit Timing bits
   // LINBRRL
-  LDIV = 0; // 
+  LDIV = 0; //
   // LINBRRH
   // LINDLR
   LTXDL = 4; // LIN Transmit Data Length bits
@@ -465,7 +465,7 @@ const
   LAINC = 3; // Auto Increment of Data Buffer Index (Active Low)
   LINDX = 0; // FIFO LIN Data Buffer Index bits
   // LINDAT
-  LDATA = 0; // 
+  LDATA = 0; //
   // SPCR
   SPIE = 7; // SPI Interrupt Enable
   SPE = 6; // SPI Enable
@@ -503,7 +503,7 @@ const
   // PCIFR
   PCIF = 0; // Pin Change Interrupt Flags
   // EECR
-  EEPM = 4; // 
+  EEPM = 4; //
   EERIE = 3; // EEProm Ready Interrupt Enable
   EEMWE = 2; // EEPROM Master Write Enable
   EEWE = 1; // EEPROM Write Enable

@@ -1,17 +1,17 @@
 {
      File:       QD/ATSUnicodeFlattening.h
- 
+
      Contains:   Public interfaces for Apple Type Services for Unicode Imaging
- 
+
      Version:    Quickdraw-285~150
- 
+
      Copyright:  © 2002-2008 by Apple Inc. all rights reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {  Pascal Translation:  Peter N Lewis, <peter@stairways.com.au>, 2004 }
 {  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
@@ -247,7 +247,7 @@ const
 
 {
    ATSUFlattenStyleRunOptions is a bitfield list of options that can be passed
-   into the ATSUFlattenStyleRunsToStream API. Currently, there are no options. 
+   into the ATSUFlattenStyleRunsToStream API. Currently, there are no options.
    This is here for future expansion.
 }
 type
@@ -257,7 +257,7 @@ const
 
 {
    ATSUUnFlattenStyleRunOptions is a bitfield list of options that can be passed
-   into the ATSUUnFlattenStyleRunsToStream API. Currently, there are no options. 
+   into the ATSUUnFlattenStyleRunsToStream API. Currently, there are no options.
    This is here for future expansion.
 }
 type
@@ -271,10 +271,10 @@ const
 { ---------------------------------------------------------------------------- }
 
 {
-   ATSUStyleRunInfo is a structure that contains an index into an array of 
-   unique ATSUStyle objects as well as the length of the run that the style run 
-   object covers. This structure is utilized by ATSUUnflattenStyleRunsFromStream() 
-   to return the style run info to the caller. 
+   ATSUStyleRunInfo is a structure that contains an index into an array of
+   unique ATSUStyle objects as well as the length of the run that the style run
+   object covers. This structure is utilized by ATSUUnflattenStyleRunsFromStream()
+   to return the style run info to the caller.
 }
 type
 	ATSUStyleRunInfo = record
@@ -291,7 +291,7 @@ type
    2. Flattened Text Layout Data
    3. Flattened Style Run Data
    4. Flattened Style Data
-   Per the 'ustl' spec, these structures should maintain four-byte alignment. 
+   Per the 'ustl' spec, these structures should maintain four-byte alignment.
    For things that are variable width (such as font names), padding bytes must
    be added to ensure that this alignment is always kept.
 }
@@ -435,7 +435,7 @@ type
 	ATSFlatDataLineInfoDataPtr = ^ATSFlatDataLineInfoData;
 {
    This structure is the main data header for the flattened line info data. This
-   is what a non-zero offsetToLineInfo points to in the 
+   is what a non-zero offsetToLineInfo points to in the
    ATSFlatDataTextLayoutDataHeader structure above.
 }
 type
@@ -484,12 +484,12 @@ type
 {
    The block 4 structures store flattened ATSUStyle objects. This too, is
    currently used by the ATSUI style run flattening and parsing functions,
-   ATSUFlattenStyleRunsToStream and ATSUUnflattenStyleRunsFromStream. 
+   ATSUFlattenStyleRunsToStream and ATSUUnflattenStyleRunsFromStream.
 }
 
 {
    this structure forms the beginning of an individually flattened ATSUStyle
-   object. 
+   object.
 }
 type
 	ATSFlatDataStyleListStyleDataHeader = record
@@ -567,8 +567,8 @@ type
 	end;
 	ATSFlatDataStyleListFeatureDataPtr = ^ATSFlatDataStyleListFeatureData;
 {
-   this structure stores the flattened font variation data. An array of these 
-   comes after the array of ATSFlatDataStyleListFeatureData structures (if any) 
+   this structure stores the flattened font variation data. An array of these
+   comes after the array of ATSFlatDataStyleListFeatureData structures (if any)
    if the numberOfSetVariations is non-zero. There must be one of these
    structures for each numberOfSetFeatures.
 }
@@ -585,10 +585,10 @@ type
 { Flattened Font Data Info }
 { ------------------------ }
 {
-   This is somewhat of an addendum to the 'ustl' structure above. These flattened 
-   data structures are stored in block 4 as a font attribute with the attribute 
+   This is somewhat of an addendum to the 'ustl' structure above. These flattened
+   data structures are stored in block 4 as a font attribute with the attribute
    tag of kATSUFontTag. They can store font data in a few different ways, such as
-   by a FontSync reference or by simple raw font name data. Just as with the 
+   by a FontSync reference or by simple raw font name data. Just as with the
    'ustl' above, this structure must maintain four byte alignment.
 }
 
@@ -604,7 +604,7 @@ const
 {
    this is the main header for the font data. It dictates what type of data
    is stored. The actual data stored must match the type specified by the
-   nameSpecType. 
+   nameSpecType.
 }
 type
 	ATSFlatDataFontNameDataHeader = record
@@ -664,13 +664,13 @@ type
 {
    this is a header structure that defines some things constant throughout
    the entire search for the font name, as well as the array of
-   ATSFlatDataFontNameData structures. In order to gaurantee that the same font 
+   ATSFlatDataFontNameData structures. In order to gaurantee that the same font
    will be used, more than one name specifer should be stored. The standard ATSUI
    style run flattening and parsing functions, ATSUFlattenStyleRunsToStream and
    ATSUUnflattenStyleRunsFromStream. These will store both the font's full name
    (kFontFullName) as well as the font's manufacturer name (kFontManufacturerName)
    and match fonts based on both of
-   these. 
+   these.
 }
 type
 	ATSFlatDataFontSpecRawNameDataHeader = record
@@ -691,14 +691,14 @@ type
 {$ifc not TARGET_CPU_64}
 {
  *  ATSUFlattenStyleRunsToStream()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CoreFoundation flattening API instead.
- *  
+ *
  *  Summary:
  *    Converts a series of ATSUStyle objects and associated run info to
  *    a flat binary representation.
- *  
+ *
  *  Discussion:
  *    This function takes an array of ATSUStyle objects and style run
  *    information and flattens the data to the specified format. The
@@ -717,26 +717,26 @@ type
  *    buffer. (2) Allocate an appropriately-sized buffer for the
  *    oStreamBuffer parameter and then call the function
  *    ATSUFlattenStyleRunsToStream a second time.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iStreamFormat:
  *      The format of the flattened data. There is only one format
  *      supported at this time ('ustl'), so you must pass the constant
  *      kATSUDataStreamUnicodeStyledText.
- *    
+ *
  *    iFlattenOptions:
  *      The options you want to use to flatten the data. There are no
  *      options supported at this time, so you must pass the constant
  *      kATSUFlattenOptionNoOptionsMask.
- *    
+ *
  *    iNumberOfRunInfo:
  *      The number of style run information structures passed in the
  *      iRunInfoArray parameter. If you pass 0, ATSUI assumes there is
  *      only one style for the entire text block passed in the
  *      oStreamBuffer parameter. The flattened data format passed to
  *      the iStreamFormat parameter must support the use of one style.
- *    
+ *
  *    iRunInfoArray:
  *      An array of ATSUStyleRunInfo structures that describes the
  *      style runs to be flattened. This array must contain
@@ -746,22 +746,22 @@ type
  *      index in the ATSUStyleRunInfo structure must reference a valid
  *      ATSUStyle object passed in the iStyleArray parameter. You can
  *      pass NULL, only if iNumberOfRunInfo is set to zero.
- *    
+ *
  *    iNumberOfStyleObjects:
  *      The number of ATSUStyle objects in the array passed to the
  *      iStyleArray parameter. You must pass a value that is greater
  *      than 0.
- *    
+ *
  *    iStyleArray:
  *      An array of ATSUStyle objects to be flattened. You cannot pass
  *      NULL.
- *    
+ *
  *    iStreamBufferSize:
  *      The size of the stream buffer, pointed to by the oStreamBuffer
  *      parameter. You can pass 0only if the iStreamBufferSize
  *      parameter is set to NULL. If you are uncertain of the size of
  *      the array, see the Discussion.
- *    
+ *
  *    oStreamBuffer:
  *      On input, a pointer to the data you want to flatten. On return,
  *      points to the flattened data. If you pass NULL for this
@@ -770,16 +770,16 @@ type
  *      parameter. See the Discussion for more details. You are
  *      responsible for allocating the text buffer passed in the
  *      oStreamBuffer parameter.
- *    
+ *
  *    oActualStreamBufferSize:
  *      On return, the size of the data written to the oStreamBuffer
  *      parameter. You can pass NULL only if the oStreamBuffer
  *      parameter is not NULL.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -791,14 +791,14 @@ function ATSUFlattenStyleRunsToStream( iStreamFormat: ATSUFlattenedDataStreamFor
 
 {
  *  ATSUUnflattenStyleRunsFromStream()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CoreFoundation flattening API instead.
- *  
+ *
  *  Summary:
  *    Creates a series of ATSUStyle objects and associated run
  *    information from a flat binary representation.
- *  
+ *
  *  Discussion:
  *    This function extracts the ATSUI style run information from
  *    previously-flattened data. The style objects and style run
@@ -824,39 +824,39 @@ function ATSUFlattenStyleRunsToStream( iStreamFormat: ATSUFlattenedDataStreamFor
  *    the newly allocated arrays in the oRunInfoArray and oStyleArray
  *    parameters, with the iNumberOfRunInfo and iNumberOfStyleObjects
  *    parameters set to the values you obtained from the first call.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    iStreamFormat:
  *      The format of the flattened data. There is only one format
  *      supported at this time ('ustl'), so you must pass the constant
  *      kATSUDataStreamUnicodeStyledText.
- *    
+ *
  *    iUnflattenOptions:
  *      The options you want to use to unflatten the data. There are no
  *      options supported at this time, so you must pass the constant
  *      kATSUUnflattenOptionNoOptionsMask.
- *    
+ *
  *    iStreamBufferSize:
  *      The size of the buffer pointed to by the iStreamBuffer
  *      parameter. You must pass a value greater than 0.
- *    
+ *
  *    iStreamBuffer:
  *      A pointer to the buffer that contains the flattened data. The
  *      data must be of the format specified by the iStreamFormat
  *      parameter and must be of size specified by the
  *      iStreamBufferSize parameter. You cannot pass NULL .
- *    
+ *
  *    iNumberOfRunInfo:
  *      The number of style run information structures passed in the
  *      oRunInfoArray parameter. If you are uncertain of the number of
  *      style run information structures, see the Discussion.
- *    
+ *
  *    iNumberOfStyleObjects:
  *      The number of ATSUStyle objects in the array passed into the
  *      iStyleArray parameter. If you are uncertain of the number of
  *      ATSUStyle objects, see the Discussion.
- *    
+ *
  *    oRunInfoArray:
  *      On return, points to an array of style run information
  *      structures. Each structure contains a style run length and
@@ -864,7 +864,7 @@ function ATSUFlattenStyleRunsToStream( iStreamFormat: ATSUFlattenedDataStreamFor
  *      much memory to allocate for this array, see the Discussion. You
  *      are responsible for disposing of the array when you no longer
  *      need it.
- *    
+ *
  *    oStyleArray:
  *      On return, a pointer to an array of the unique ATSUStyle
  *      objects obtained from the flattened data. The indices returned
@@ -873,24 +873,24 @@ function ATSUFlattenStyleRunsToStream( iStreamFormat: ATSUFlattenedDataStreamFor
  *      see the Discussion. You are responsible for disposing of the
  *      array and the ATSUI style objects in the array when you no
  *      longer need the array.
- *    
+ *
  *    oActualNumberOfRunInfo:
  *      On return, points to the actual number of ATSUStyleRunInfo
  *      structures obtained from the flattened data. The actual number
  *      of structures is the number of entries added to the array
  *      oRunInfoArray. You can pass NULL if you to not want to obtain
  *      this value.
- *    
+ *
  *    oActualNumberOfStyleObjects:
  *      On return, points to the actual number of unique ATSUStyle
  *      objects obtained from the flattened data. The actual number is
  *      the number of entries added to the oStyleArray array. You can
  *      pass NULL if you do no want to obtain this value.
- *  
+ *
  *  Result:
  *    On success, noErr is returned. See MacErrors.h for possible error
  *    codes.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
@@ -904,14 +904,14 @@ function ATSUUnflattenStyleRunsFromStream( iStreamFormat: ATSUFlattenedDataStrea
 
 {
  *  ATSUCopyToHandle()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CoreFoundation flattening API instead.
- *  
+ *
  *  Discussion:
  *    This function is no longer recommended. Please use
  *    ATSUFlattenStyleRunsToStream instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.1
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -923,14 +923,14 @@ function ATSUCopyToHandle( iStyle: ATSUStyle; oStyleHandle: Handle ): OSStatus; 
 
 {
  *  ATSUPasteFromHandle()   *** DEPRECATED ***
- *  
+ *
  *  Deprecated:
  *    Use CoreFoundation flattening API instead.
- *  
+ *
  *  Discussion:
  *    This function is no longer recommended. Please use
  *    ATSUUnflattenStyleRunsFromStream instead.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.1
  *    CarbonLib:        in CarbonLib 1.0 and later

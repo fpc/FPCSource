@@ -52,7 +52,7 @@ Function SysGetLoadErrorStr: AnsiString;
 Var
   rc,c : integer;
   temp: WideString;
-begin  
+begin
   rc := GetLastError;
   SetLength(temp,255);
   C:=FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM,nil,rc,

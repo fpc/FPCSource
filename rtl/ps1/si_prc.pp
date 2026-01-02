@@ -39,7 +39,7 @@ begin
 
 	PascalMain;
 
-end; 
+end;
 
 begin
 end.

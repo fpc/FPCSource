@@ -298,7 +298,7 @@ var kCGImageSourceThumbnailMaxPixelSize: CFStringRef; external name '_kCGImageSo
 
 { Specifies whether the thumbnail should be rotated and scaled according
  * to the orientation and pixel aspect ratio of the full image. The value
- * of this key must be a CFBooleanRef; the default value of this key is 
+ * of this key must be a CFBooleanRef; the default value of this key is
  * kCFBooleanFalse. }
 
 var kCGImageSourceCreateThumbnailWithTransform: CFStringRef; external name '_kCGImageSourceCreateThumbnailWithTransform'; (* attribute const *)

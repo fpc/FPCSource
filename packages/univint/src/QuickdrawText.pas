@@ -1,17 +1,17 @@
 {
      File:       QD/QuickdrawText.h
- 
+
      Contains:   Quickdraw Text Interfaces.
- 
+
      Version:    Quickdraw-262~1
- 
+
      Copyright:  © 1983-2008 by Apple Inc. all rights reserved.
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {   Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {
@@ -231,7 +231,7 @@ uses MacTypes,MixedMode,IntlResources;
  *  The remaining functions in this file have all been deprecated on Mac OS X 10.4. There are other
  *  solutions that are recommended that provide better compatibility with the rest of the operating
  *  system.
- *  
+ *
  *  Instead of using the QuickDraw functions, you should consider the following:
  *
  *  1.  For drawing and measuring text, you can use the Appearance Manager API in HITheme.h or the
@@ -239,7 +239,7 @@ uses MacTypes,MixedMode,IntlResources;
  *
  *  2.  For accessing information on fonts tracked by the operating system, please refer to the
  *      functions described in ATSFont.h.
- *  
+ *
  *  3.  For accessing and modifying information on fonts in a Quartz graphics context, please refer
  *      to the functions described in CoreGraphics.h.
  }
@@ -316,11 +316,11 @@ type
 {$ifc not TARGET_CPU_64}
 {
  *  StandardGlyphs()   *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    The CGrafPort bottleneck ("newProc2") function, used in Unicode
  *    text drawing.
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -337,7 +337,7 @@ type
 	StyleRunDirectionUPP = StyleRunDirectionProcPtr;
 {
  *  NewStyleRunDirectionUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -348,7 +348,7 @@ function NewStyleRunDirectionUPP( userRoutine: StyleRunDirectionProcPtr ): Style
 
 {
  *  DisposeStyleRunDirectionUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -359,7 +359,7 @@ procedure DisposeStyleRunDirectionUPP( userUPP: StyleRunDirectionUPP ); external
 
 {
  *  InvokeStyleRunDirectionUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -371,7 +371,7 @@ function InvokeStyleRunDirectionUPP( styleRunIndex: SInt16; dirParam: UnivPtr; u
 {$ifc not TARGET_CPU_64}
 {
  *  Pixel2Char()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available [32-bit only]
  *    CarbonLib:        not available
@@ -381,7 +381,7 @@ function InvokeStyleRunDirectionUPP( styleRunIndex: SInt16; dirParam: UnivPtr; u
 
 {
  *  Char2Pixel()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available [32-bit only]
  *    CarbonLib:        not available
@@ -391,7 +391,7 @@ function InvokeStyleRunDirectionUPP( styleRunIndex: SInt16; dirParam: UnivPtr; u
 
 {
  *  PixelToChar()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -403,7 +403,7 @@ function PixelToChar( textBuf: Ptr; textLength: SIGNEDLONG; slop: Fixed; pixelWi
 
 {
  *  CharToPixel()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -415,7 +415,7 @@ function CharToPixel( textBuf: Ptr; textLength: SIGNEDLONG; slop: Fixed; offset:
 
 {
  *  DrawJustified()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -427,7 +427,7 @@ procedure DrawJustified( textPtr: Ptr; textLength: SIGNEDLONG; slop: Fixed; styl
 
 {
  *  MeasureJustified()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -439,7 +439,7 @@ procedure MeasureJustified( textPtr: Ptr; textLength: SIGNEDLONG; slop: Fixed; c
 
 {
  *  PortionLine()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -451,7 +451,7 @@ function PortionLine( textPtr: Ptr; textLen: SIGNEDLONG; styleRunPosition: JustS
 
 {
  *  HiliteText()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -463,7 +463,7 @@ procedure HiliteText( textPtr: Ptr; textLength: SInt16; firstOffset: SInt16; sec
 
 {
  *  DrawJust()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available [32-bit only]
  *    CarbonLib:        not available
@@ -473,7 +473,7 @@ procedure HiliteText( textPtr: Ptr; textLength: SInt16; firstOffset: SInt16; sec
 
 {
  *  MeasureJust()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available [32-bit only]
  *    CarbonLib:        not available
@@ -483,7 +483,7 @@ procedure HiliteText( textPtr: Ptr; textLength: SInt16; firstOffset: SInt16; sec
 
 {
  *  PortionText()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available [32-bit only]
  *    CarbonLib:        not available
@@ -493,7 +493,7 @@ procedure HiliteText( textPtr: Ptr; textLength: SInt16; firstOffset: SInt16; sec
 
 {
  *  VisibleLength()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -505,7 +505,7 @@ function VisibleLength( textPtr: Ptr; textLength: SIGNEDLONG ): SIGNEDLONG; exte
 
 {
  *  GetFormatOrder()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -517,7 +517,7 @@ procedure GetFormatOrder( ordering: FormatOrderPtr; firstFormat: SInt16; lastFor
 
 {
  *  TextFont()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -529,7 +529,7 @@ procedure TextFont( font: SInt16 ); external name '_TextFont';
 
 {
  *  TextFace()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -541,7 +541,7 @@ procedure TextFace( face: StyleParameter ); external name '_TextFace';
 
 {
  *  TextMode()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -553,7 +553,7 @@ procedure TextMode( mode: SInt16 ); external name '_TextMode';
 
 {
  *  TextSize()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -565,7 +565,7 @@ procedure TextSize( size: SInt16 ); external name '_TextSize';
 
 {
  *  SpaceExtra()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -577,7 +577,7 @@ procedure SpaceExtra( extra: Fixed ); external name '_SpaceExtra';
 
 {
  *  DrawChar()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -589,7 +589,7 @@ procedure DrawChar( ch: CharParameter ); external name '_DrawChar';
 
 {
  *  DrawString()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -601,7 +601,7 @@ procedure DrawString( const (*var*) s: Str255 ); external name '_DrawString';
 
 {
  *  [Mac]DrawText()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -616,7 +616,7 @@ procedure DrawText( textBuf: {const} UnivPtr; firstByte: SInt16; byteCount: SInt
 
 {
  *  CharWidth()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -628,7 +628,7 @@ function CharWidth( ch: CharParameter ): SInt16; external name '_CharWidth';
 
 {
  *  StringWidth()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -640,7 +640,7 @@ function StringWidth( const (*var*) s: Str255 ): SInt16; external name '_StringW
 
 {
  *  TextWidth()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -652,7 +652,7 @@ function TextWidth( textBuf: {const} UnivPtr; firstByte: SInt16; byteCount: SInt
 
 {
  *  MeasureText()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -664,7 +664,7 @@ procedure MeasureText( count: SInt16; textAddr: {const} UnivPtr; charLocs: UnivP
 
 {
  *  GetFontInfo()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -676,7 +676,7 @@ procedure GetFontInfo( var info: FontInfo ); external name '_GetFontInfo';
 
 {
  *  CharExtra()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -688,7 +688,7 @@ procedure CharExtra( extra: Fixed ); external name '_CharExtra';
 
 {
  *  StdText()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -700,7 +700,7 @@ procedure StdText( count: SInt16; textAddr: {const} UnivPtr; numer: Point; denom
 
 {
  *  StdTxMeas()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -712,7 +712,7 @@ function StdTxMeas( byteCount: SInt16; textAddr: {const} UnivPtr; var numer: Poi
 
 {
  *  StyledLineBreak()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -724,7 +724,7 @@ function StyledLineBreak( textPtr: Ptr; textLen: SInt32; textStart: SInt32; text
 
 {
  *  TruncString()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -736,7 +736,7 @@ function TruncString( width: SInt16; var theString: Str255; truncWhere: TruncCod
 
 {
  *  TruncText()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -751,7 +751,7 @@ function TruncText( width: SInt16; textPtr: Ptr; var length: SInt16; truncWhere:
 {$ifc not TARGET_CPU_64}
 {
  *  drawstring()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available [32-bit only]
  *    CarbonLib:        not available
@@ -761,7 +761,7 @@ function TruncText( width: SInt16; textPtr: Ptr; var length: SInt16; truncWhere:
 
 {
  *  stringwidth()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available [32-bit only]
  *    CarbonLib:        not available
@@ -771,7 +771,7 @@ function TruncText( width: SInt16; textPtr: Ptr; var length: SInt16; truncWhere:
 
 {
  *  stdtext()   *** DEPRECATED ***
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -787,10 +787,10 @@ function TruncText( width: SInt16; textPtr: Ptr; var length: SInt16; truncWhere:
 {$ifc not TARGET_CPU_64}
 {
  *  SwapQDTextFlags()   *** DEPRECATED ***
- *  
+ *
  *  Discussion:
  *    Use QDSwapTextFlags instead (in Quickdraw.h).
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later

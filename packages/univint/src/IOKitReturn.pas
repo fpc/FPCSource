@@ -2,7 +2,7 @@
  * Copyright (c) 1998-2002 Apple Computer, Inc. All rights reserved.
  *
  * @APPLE_OSREFERENCE_LICENSE_HEADER_START@
- * 
+ *
  * This file contains Original Code and/or Modifications of Original Code
  * as defined in and that are subject to the Apple Public Source License
  * Version 2.0 (the 'License'). You may not use this file except in
@@ -11,10 +11,10 @@
  * unlawful or unlicensed copies of an Apple operating system, or to
  * circumvent, violate, or enable the circumvention or violation of, any
  * terms of an Apple operating system software license agreement.
- * 
+ *
  * Please obtain a copy of the License at
  * http://www.opensource.apple.com/apsl/ and read it before using this file.
- * 
+ *
  * The Original Code and all software distributed under the License are
  * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
  * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
@@ -22,7 +22,7 @@
  * FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
  * Please see the License for the specific language governing rights and
  * limitations under the License.
- * 
+ *
  * @APPLE_OSREFERENCE_LICENSE_HEADER_END@
  }
 {       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, September 2010 }
@@ -238,7 +238,7 @@ uses MacTypes,kern_return,mach_error;
 {
  * HISTORY
  }
- 
+
 {
  * Core IOReturn values. Others may be family defined.
  }
@@ -273,43 +273,43 @@ function iokit_vendor_specific_err(ret: IOReturn): IOReturn; inline;
 
 const
   kIOReturnSuccess = KERN_SUCCESS;            // OK
-  kIOReturnError = (sys_iokit or sub_iokit_common or $2bc); // general error 	
-  kIOReturnNoMemory = (sys_iokit or sub_iokit_common or $2bd); // can't allocate memory 
-  kIOReturnNoResources = (sys_iokit or sub_iokit_common or $2be); // resource shortage 
-  kIOReturnIPCError = (sys_iokit or sub_iokit_common or $2bf); // error during IPC 
-  kIOReturnNoDevice = (sys_iokit or sub_iokit_common or $2c0); // no such device 
-  kIOReturnNotPrivileged = (sys_iokit or sub_iokit_common or $2c1); // privilege violation 
-  kIOReturnBadArgument = (sys_iokit or sub_iokit_common or $2c2); // invalid argument 
-  kIOReturnLockedRead = (sys_iokit or sub_iokit_common or $2c3); // device read locked 
-  kIOReturnLockedWrite = (sys_iokit or sub_iokit_common or $2c4); // device write locked 
+  kIOReturnError = (sys_iokit or sub_iokit_common or $2bc); // general error
+  kIOReturnNoMemory = (sys_iokit or sub_iokit_common or $2bd); // can't allocate memory
+  kIOReturnNoResources = (sys_iokit or sub_iokit_common or $2be); // resource shortage
+  kIOReturnIPCError = (sys_iokit or sub_iokit_common or $2bf); // error during IPC
+  kIOReturnNoDevice = (sys_iokit or sub_iokit_common or $2c0); // no such device
+  kIOReturnNotPrivileged = (sys_iokit or sub_iokit_common or $2c1); // privilege violation
+  kIOReturnBadArgument = (sys_iokit or sub_iokit_common or $2c2); // invalid argument
+  kIOReturnLockedRead = (sys_iokit or sub_iokit_common or $2c3); // device read locked
+  kIOReturnLockedWrite = (sys_iokit or sub_iokit_common or $2c4); // device write locked
   kIOReturnExclusiveAccess = (sys_iokit or sub_iokit_common or $2c5); // exclusive access and
-                                                         //   device already open 
+                                                         //   device already open
   kIOReturnBadMessageID = (sys_iokit or sub_iokit_common or $2c6); // sent/received messages
                                                          //   had different msg_id
-  kIOReturnUnsupported = (sys_iokit or sub_iokit_common or $2c7); // unsupported function 
-  kIOReturnVMError = (sys_iokit or sub_iokit_common or $2c8); // misc. VM failure 
-  kIOReturnInternalError = (sys_iokit or sub_iokit_common or $2c9); // internal error 
-  kIOReturnIOError = (sys_iokit or sub_iokit_common or $2ca); // General I/O error 
-//#define kIOReturn???Error      (sys_iokit or sub_iokit_common or $2cb) // ??? 
+  kIOReturnUnsupported = (sys_iokit or sub_iokit_common or $2c7); // unsupported function
+  kIOReturnVMError = (sys_iokit or sub_iokit_common or $2c8); // misc. VM failure
+  kIOReturnInternalError = (sys_iokit or sub_iokit_common or $2c9); // internal error
+  kIOReturnIOError = (sys_iokit or sub_iokit_common or $2ca); // General I/O error
+//#define kIOReturn???Error      (sys_iokit or sub_iokit_common or $2cb) // ???
   kIOReturnCannotLock = (sys_iokit or sub_iokit_common or $2cc); // can't acquire lock
-  kIOReturnNotOpen = (sys_iokit or sub_iokit_common or $2cd); // device not open 
-  kIOReturnNotReadable = (sys_iokit or sub_iokit_common or $2ce); // read not supported 
-  kIOReturnNotWritable = (sys_iokit or sub_iokit_common or $2cf); // write not supported 
-  kIOReturnNotAligned = (sys_iokit or sub_iokit_common or $2d0); // alignment error 
-  kIOReturnBadMedia = (sys_iokit or sub_iokit_common or $2d1); // Media Error 
-  kIOReturnStillOpen = (sys_iokit or sub_iokit_common or $2d2); // device(s) still open 
-  kIOReturnRLDError = (sys_iokit or sub_iokit_common or $2d3); // rld failure 
-  kIOReturnDMAError = (sys_iokit or sub_iokit_common or $2d4); // DMA failure 
-  kIOReturnBusy = (sys_iokit or sub_iokit_common or $2d5); // Device Busy 
-  kIOReturnTimeout = (sys_iokit or sub_iokit_common or $2d6); // I/O Timeout 
-  kIOReturnOffline = (sys_iokit or sub_iokit_common or $2d7); // device offline 
-  kIOReturnNotReady = (sys_iokit or sub_iokit_common or $2d8); // not ready 
-  kIOReturnNotAttached = (sys_iokit or sub_iokit_common or $2d9); // device not attached 
+  kIOReturnNotOpen = (sys_iokit or sub_iokit_common or $2cd); // device not open
+  kIOReturnNotReadable = (sys_iokit or sub_iokit_common or $2ce); // read not supported
+  kIOReturnNotWritable = (sys_iokit or sub_iokit_common or $2cf); // write not supported
+  kIOReturnNotAligned = (sys_iokit or sub_iokit_common or $2d0); // alignment error
+  kIOReturnBadMedia = (sys_iokit or sub_iokit_common or $2d1); // Media Error
+  kIOReturnStillOpen = (sys_iokit or sub_iokit_common or $2d2); // device(s) still open
+  kIOReturnRLDError = (sys_iokit or sub_iokit_common or $2d3); // rld failure
+  kIOReturnDMAError = (sys_iokit or sub_iokit_common or $2d4); // DMA failure
+  kIOReturnBusy = (sys_iokit or sub_iokit_common or $2d5); // Device Busy
+  kIOReturnTimeout = (sys_iokit or sub_iokit_common or $2d6); // I/O Timeout
+  kIOReturnOffline = (sys_iokit or sub_iokit_common or $2d7); // device offline
+  kIOReturnNotReady = (sys_iokit or sub_iokit_common or $2d8); // not ready
+  kIOReturnNotAttached = (sys_iokit or sub_iokit_common or $2d9); // device not attached
   kIOReturnNoChannels = (sys_iokit or sub_iokit_common or $2da); // no DMA channels left
-  kIOReturnNoSpace = (sys_iokit or sub_iokit_common or $2db); // no space for data 
-//#define kIOReturn???Error      (sys_iokit or sub_iokit_common or $2dc) // ??? 
+  kIOReturnNoSpace = (sys_iokit or sub_iokit_common or $2db); // no space for data
+//#define kIOReturn???Error      (sys_iokit or sub_iokit_common or $2dc) // ???
   kIOReturnPortExists = (sys_iokit or sub_iokit_common or $2dd); // port already exists
-  kIOReturnCannotWire = (sys_iokit or sub_iokit_common or $2de); // can't wire down 
+  kIOReturnCannotWire = (sys_iokit or sub_iokit_common or $2de); // can't wire down
                                                          //   physical memory
   kIOReturnNoInterrupt = (sys_iokit or sub_iokit_common or $2df); // no interrupt attached
   kIOReturnNoFrames = (sys_iokit or sub_iokit_common or $2e0); // no DMA frames enqueued

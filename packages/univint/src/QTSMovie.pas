@@ -1,17 +1,17 @@
 {
      File:       QuickTime/QTSMovie.h
- 
+
      Contains:   QuickTime Interfaces.
- 
+
      Version:    QuickTime 7.6.3
- 
+
      Copyright:  © 1990-2008 by Apple Inc., all rights reserved
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {
@@ -312,7 +312,7 @@ const
 -----------------------------------------}
 {
  *  QTSMediaSetInfo()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -325,7 +325,7 @@ function QTSMediaSetInfo( mh: MediaHandler; inSelector: OSType; ioParams: UnivPt
 
 {
  *  QTSMediaGetInfo()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -338,7 +338,7 @@ function QTSMediaGetInfo( mh: MediaHandler; inSelector: OSType; ioParams: UnivPt
 
 {
  *  QTSMediaSetIndStreamInfo()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
@@ -351,7 +351,7 @@ function QTSMediaSetIndStreamInfo( mh: MediaHandler; inIndex: SInt32; inSelector
 
 {
  *  QTSMediaGetIndStreamInfo()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in QuickTime.framework
  *    CarbonLib:        in CarbonLib 1.1 and later

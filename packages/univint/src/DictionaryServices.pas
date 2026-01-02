@@ -1,7 +1,7 @@
 {
 	DictionaryServices.h
 	DictionaryServices framework
-     
+
 	Copyright (c) 2007 Apple Inc. All rights reserved.
 }
 {

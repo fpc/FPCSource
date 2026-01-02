@@ -299,7 +299,7 @@ const
  }
 type
 	SecTrustRef = ^OpaqueSecTrustRef; { an opaque type }
-	{ already defined in SecBase 
+	{ already defined in SecBase
 	__SecTrust = record end; }
 
 {!

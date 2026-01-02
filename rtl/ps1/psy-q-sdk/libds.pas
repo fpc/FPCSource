@@ -1,10 +1,10 @@
-unit libds; 
+unit libds;
 interface
 uses libstd;
 
 const
 	// CD-ROM Mode (used int CdlSetmode)
-	DslModeStream		= 	$100;// Normal Streaming 
+	DslModeStream		= 	$100;// Normal Streaming
 	DslModeStream2		= 	$120;// SUB HEADER information includes
 	DslModeSpeed		= 	$80;// 0: normal speed	1: double speed
 	DslModeRT			= 	$40;// 0: ADPCM off		1: ADPCM on
@@ -42,7 +42,7 @@ const
 	DslMute				=	$0b;// mute on
 	DslDemute			=	$0c;// mute off
 	DslSetfilter		=	$0d;// set subheader filter
-	DslSetmode			=	$0e;// set mode 
+	DslSetmode			=	$0e;// set mode
 	DslGetparam			=	$0f;// get mode
 	DslGetlocL			=	$10;// get head position (data sector)
 	DslGetlocP			=	$11;// get head position (DA sector)
@@ -79,7 +79,7 @@ type
 
 
 // Location
-type 
+type
 	DslLOC = packed record
 				minute : byte;		// minute (BCD)
 				second : byte;		// second (BCD)
@@ -104,7 +104,7 @@ type
 			 end;
 	PDslATV = ^DslATV;
 
-// Low Level File System for DsSearchFile() 
+// Low Level File System for DsSearchFile()
 const
 	DslMAXFILE		= 	64;		// max number of files in a directory
 	DslMAXDIR		=	128;	// max number of total directories

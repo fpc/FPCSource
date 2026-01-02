@@ -184,9 +184,9 @@ Function ToSingleByteFileSystemEncodedFileName(const Str: RawByteString): RawByt
 
 Type
   TLocaleNameToCodePageCallBack = Procedure (const localename : shortstring; out codepage : TSystemCodePage; aHandled : Boolean);
-  
+
 
 Var
   LocaleNameToCodePageCallBack : TLocaleNameToCodePageCallBack;
-  
+
 Function LocaleNameToCodePage(const localename : shortstring; out codepage : TSystemCodePage) : Boolean;

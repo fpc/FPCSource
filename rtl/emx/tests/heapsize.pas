@@ -12,7 +12,7 @@ begin
     asm
         movl $0x7f00,%eax
         xorl %edx,%edx
-        call syscall       
+        call syscall
         mov %eax,A
     end;
     writeln(a);

@@ -19,7 +19,7 @@ Type
     Next : TLinkedListItem;
   end;
   TLinkedListItemClass = Class of TLinkedListItem;
-  
+
   { TLinkedListVisitor }
 
   TLinkedListVisitor = Class

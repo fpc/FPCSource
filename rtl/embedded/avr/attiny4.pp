@@ -5,12 +5,12 @@ interface
 var
   // ANALOG_COMPARATOR
   ACSR : byte absolute $00+$1F; // Analog Comparator Control And Status Register
-  DIDR0 : byte absolute $00+$17; // 
+  DIDR0 : byte absolute $00+$17; //
   // CPU
   CCP : byte absolute $00+$3C; // Configuration Change Protection
-  SP : word absolute $00+$3D; // Stack Pointer 
-  SPL : byte absolute $00+$3D; // Stack Pointer 
-  SPH : byte absolute $00+$3D+1; // Stack Pointer 
+  SP : word absolute $00+$3D; // Stack Pointer
+  SPL : byte absolute $00+$3D; // Stack Pointer
+  SPH : byte absolute $00+$3D+1; // Stack Pointer
   SREG : byte absolute $00+$3F; // Status Register
   CLKMSR : byte absolute $00+$37; // Clock Main Settings Register
   CLKPSR : byte absolute $00+$36; // Clock Prescale Register
@@ -38,15 +38,15 @@ var
   TCCR0A : byte absolute $00+$2E; // Timer/Counter 0 Control Register A
   TCCR0B : byte absolute $00+$2D; // Timer/Counter 0 Control Register B
   TCCR0C : byte absolute $00+$2C; // Timer/Counter 0 Control Register C
-  TCNT0 : word absolute $00+$28; // Timer/Counter0 
-  TCNT0L : byte absolute $00+$28; // Timer/Counter0 
-  TCNT0H : byte absolute $00+$28+1; // Timer/Counter0 
-  OCR0A : word absolute $00+$26; // Timer/Counter 0 Output Compare Register A 
-  OCR0AL : byte absolute $00+$26; // Timer/Counter 0 Output Compare Register A 
-  OCR0AH : byte absolute $00+$26+1; // Timer/Counter 0 Output Compare Register A 
-  OCR0B : word absolute $00+$24; // Timer/Counter0 Output Compare Register B 
-  OCR0BL : byte absolute $00+$24; // Timer/Counter0 Output Compare Register B 
-  OCR0BH : byte absolute $00+$24+1; // Timer/Counter0 Output Compare Register B 
+  TCNT0 : word absolute $00+$28; // Timer/Counter0
+  TCNT0L : byte absolute $00+$28; // Timer/Counter0
+  TCNT0H : byte absolute $00+$28+1; // Timer/Counter0
+  OCR0A : word absolute $00+$26; // Timer/Counter 0 Output Compare Register A
+  OCR0AL : byte absolute $00+$26; // Timer/Counter 0 Output Compare Register A
+  OCR0AH : byte absolute $00+$26+1; // Timer/Counter 0 Output Compare Register A
+  OCR0B : word absolute $00+$24; // Timer/Counter0 Output Compare Register B
+  OCR0BL : byte absolute $00+$24; // Timer/Counter0 Output Compare Register B
+  OCR0BH : byte absolute $00+$24+1; // Timer/Counter0 Output Compare Register B
   ICR0 : word absolute $00+$22; // Input Capture Register  Bytes
   ICR0L : byte absolute $00+$22; // Input Capture Register  Bytes
   ICR0H : byte absolute $00+$22+1; // Input Capture Register  Bytes

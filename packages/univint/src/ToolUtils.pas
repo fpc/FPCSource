@@ -1,9 +1,9 @@
 {
      File:       CarbonCore/ToolUtils.h
- 
+
      Contains:   Toolbox Utilities Interfaces.
                  The contents of this header file are deprecated.
- 
+
      Copyright:  © 1990-2011 by Apple Inc. All rights reserved.
 }
 {
@@ -221,18 +221,18 @@ uses MacTypes,FixMath,TextUtils,IconsCore,QuickdrawTypes;
 
 {
 ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ
-    Note: 
-    
+    Note:
+
     The following routines that used to be in this header file, have moved to
-    more appropriate headers.  
-    
+    more appropriate headers.
+
         FixMath.h:      FixMul
                         FixRatio
                         FixRound
-        
+
         Icons.h:        GetIcon
                         PlotIcon
-                        
+
         Quickdraw.h:    AngleFromSlope
                         DeltaPoint
                         GetCursor
@@ -244,7 +244,7 @@ uses MacTypes,FixMath,TextUtils,IconsCore,QuickdrawTypes;
                         ShieldCursor
                         SlopeFromAngle
                         UnpackBits
-                        
+
         TextUtils.h:    Munger
                         GetIndString
                         GetString
@@ -255,7 +255,7 @@ uses MacTypes,FixMath,TextUtils,IconsCore,QuickdrawTypes;
 
 {
  *  BitTst()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -267,7 +267,7 @@ function BitTst( bytePtr: {const} UnivPtr; bitNum: SIGNEDLONG ): Boolean; extern
 
 {
  *  BitSet()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -279,7 +279,7 @@ procedure BitSet( bytePtr: UnivPtr; bitNum: SIGNEDLONG ); external name '_BitSet
 
 {
  *  BitClr()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -291,7 +291,7 @@ procedure BitClr( bytePtr: UnivPtr; bitNum: SIGNEDLONG ); external name '_BitClr
 
 {
  *  BitAnd()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -303,7 +303,7 @@ function BitAnd( value1: SIGNEDLONG; value2: SIGNEDLONG ): SIGNEDLONG; external 
 
 {
  *  BitOr()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -315,7 +315,7 @@ function BitOr( value1: SIGNEDLONG; value2: SIGNEDLONG ): SIGNEDLONG; external n
 
 {
  *  BitXor()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -327,7 +327,7 @@ function BitXor( value1: SIGNEDLONG; value2: SIGNEDLONG ): SIGNEDLONG; external 
 
 {
  *  BitNot()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -339,7 +339,7 @@ function BitNot( value: SIGNEDLONG ): SIGNEDLONG; external name '_BitNot';
 
 {
  *  BitShift()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -349,12 +349,12 @@ function BitShift( value: SIGNEDLONG; count: SInt16 ): SIGNEDLONG; external name
 (* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 {
-   HiWord and LoWord are not in Carbon, but Metrowerks 
+   HiWord and LoWord are not in Carbon, but Metrowerks
    supplies an implementation on PPC
 }
 {
  *  HiWord()
- *  
+ *
  *  Availability:
  *    Non-Carbon CFM:   not available
  *    CarbonLib:        in CarbonLib H.a.c.k and later
@@ -363,7 +363,7 @@ function BitShift( value: SIGNEDLONG; count: SInt16 ): SIGNEDLONG; external name
 
 {
  *  LoWord()
- *  
+ *
  *  Availability:
  *    Non-Carbon CFM:   not available
  *    CarbonLib:        in CarbonLib H.a.c.k and later
@@ -410,7 +410,7 @@ function LoWord(arg: UInt32): UInt16; inline;
 begin
   LoWord := UInt16(arg);
 end;
-  
+
 
 {$endc} {TARGET_OS_MAC}
 

@@ -225,21 +225,21 @@ uses MacTypes;
 ** this file except in compliance with the License. You may obtain a copy
 ** of the License at Silicon Graphics, Inc., attn: Legal Services, 1600
 ** Amphitheatre Parkway, Mountain View, CA 94043-1351, or at:
-** 
+**
 ** http://oss.sgi.com/projects/FreeB
-** 
+**
 ** Note that, as provided in the License, the Software is distributed on an
 ** "AS IS" basis, with ALL EXPRESS AND IMPLIED WARRANTIES AND CONDITIONS
 ** DISCLAIMED, INCLUDING, WITHOUT LIMITATION, ANY IMPLIED WARRANTIES AND
 ** CONDITIONS OF MERCHANTABILITY, SATISFACTORY QUALITY, FITNESS FOR A
 ** PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
-** 
+**
 ** Original Code. The Original Code is: OpenGL Sample Implementation,
 ** Version 1.2.1, released January 26, 2000, developed by Silicon Graphics,
 ** Inc. The Original Code is Copyright (c) 1991-2000 Silicon Graphics, Inc.
 ** Copyright in any portions created by third parties is as indicated
 ** elsewhere herein. All Rights Reserved.
-** 
+**
 ** Additional Notice Provisions: This software was created using the
 ** OpenGL(R) version 1.2.1 Sample Implementation published by SGI, but has
 ** not been independently verified as being compliant with the OpenGL(R)
@@ -252,46 +252,46 @@ uses MacTypes;
 type
 	GLenum = UInt32;
 	PGLenum = ^GLenum;
-	
+
 	GLboolean = UInt8;
 	PGLboolean = ^GLboolean;
-	
+
 	GLbitfield = UInt32;
 	PGLbitfield = ^GLbitfield;
-	
+
 	GLbyte = SInt8;
 	PGLbyte = ^GLbyte;
-	
+
 	GLshort = SInt16;
 	PGLshort = ^GLshort;
-	
+
 	GLint = SInt32;
 	PGLint = ^GLint;
-	
+
 	GLsizei = SInt32;
 	PGLsizei = ^GLsizei;
-	
+
 	GLubyte = UInt8;
 	PGLubyte = ^GLubyte;
-	
+
 	GLushort = UInt16;
 	PGLushort = ^GLushort;
-	
+
 	GLuint = UInt32;
 	PGLuint = ^GLuint;
-	
+
 	GLfloat = Float32;
 	PGLfloat = ^GLfloat;
-	
+
 	GLclampf = Float32;
 	PGLclampf = ^GLclampf;
-	
+
 	GLdouble = Float64;
 	PGLdouble = ^GLdouble;
-	
+
 	GLclampd = Float64;
 	PGLclampd = ^GLclampd;
-	
+
 //	GLvoid = void;
 
 type
@@ -1881,7 +1881,7 @@ const GL_SAMPLES_PASSED                 = $8914;
 const GL_FOG_COORD_SRC                  = $8450;
 const GL_FOG_COORD                      = $8451;
 const GL_FRAGMENT_DEPTH                 = $8452;
-const GL_CURRENT_FOG_COORD              = $8453;  
+const GL_CURRENT_FOG_COORD              = $8453;
 const GL_FOG_COORD_ARRAY_TYPE           = $8454;
 const GL_FOG_COORD_ARRAY_STRIDE         = $8455;
 const GL_FOG_COORD_ARRAY_POINTER        = $8456;
@@ -1890,7 +1890,7 @@ const GL_FOG_COORD_ARRAY                = $8457;
 { Obsolete }
 const GL_FOG_COORDINATE_SOURCE          = $8450;
 const GL_FOG_COORDINATE                 = $8451;
-const GL_CURRENT_FOG_COORDINATE         = $8453;  
+const GL_CURRENT_FOG_COORDINATE         = $8453;
 const GL_FOG_COORDINATE_ARRAY_TYPE      = $8454;
 const GL_FOG_COORDINATE_ARRAY_STRIDE    = $8455;
 const GL_FOG_COORDINATE_ARRAY_POINTER   = $8456;
@@ -2507,9 +2507,9 @@ type
 
 type
 	glFogCoordfProcPtr = procedure( coord: GLfloat );
-	glFogCoordfvProcPtr = procedure( const coord: PGLfloat );  
+	glFogCoordfvProcPtr = procedure( const coord: PGLfloat );
 	glFogCoorddProcPtr = procedure( coord: GLdouble );
-	glFogCoorddvProcPtr = procedure( const coord: PGLdouble );   
+	glFogCoorddvProcPtr = procedure( const coord: PGLdouble );
 	glFogCoordPointerProcPtr = procedure( typ: GLenum; stride: GLsizei; const pointr: UnivPtr );
 
 type
@@ -2532,9 +2532,9 @@ type
 	glSecondaryColorPointerProcPtr = procedure( size: GLint; typ: GLenum; stride: GLsizei; const pointr: UnivPtr );
 
 type
-	glPointParameterfProcPtr = procedure( pname: GLenum; param: GLfloat ); 
+	glPointParameterfProcPtr = procedure( pname: GLenum; param: GLfloat );
 	glPointParameterfvProcPtr = procedure( pname: GLenum; const params: PGLfloat );
-	glPointParameteriProcPtr = procedure( pname: GLenum; param: GLint ); 
+	glPointParameteriProcPtr = procedure( pname: GLenum; param: GLint );
 	glPointParameterivProcPtr = procedure( pname: GLenum; const params: PGLint );
 
 type
@@ -2549,7 +2549,7 @@ type
 	glWindowPos2dvProcPtr = procedure( const v: PGLdouble );
 	glWindowPos2fProcPtr = procedure( x: GLfloat; y: GLfloat );
 	glWindowPos2fvProcPtr = procedure( const v: PGLfloat );
-	glWindowPos2iProcPtr = procedure( x: GLint; y: GLint ); 
+	glWindowPos2iProcPtr = procedure( x: GLint; y: GLint );
 	glWindowPos2ivProcPtr = procedure( const v: PGLint );
 	glWindowPos2sProcPtr = procedure( x: GLshort; y: GLshort );
 	glWindowPos2svProcPtr = procedure( const v: PGLshort );
@@ -3117,9 +3117,9 @@ procedure glMultiTexCoord4s( target: GLenum; s: GLshort; t: GLshort; r: GLshort;
 procedure glMultiTexCoord4sv( target: GLenum; const v: PGLshort ); external name '_glMultiTexCoord4sv';
 
 procedure glFogCoordf( coord: GLfloat ); external name '_glFogCoordf';
-procedure glFogCoordfv( const coord: PGLfloat ); external name '_glFogCoordfv';  
+procedure glFogCoordfv( const coord: PGLfloat ); external name '_glFogCoordfv';
 procedure glFogCoordd( coord: GLdouble ); external name '_glFogCoordd';
-procedure glFogCoorddv( const coord: PGLdouble ); external name '_glFogCoorddv';   
+procedure glFogCoorddv( const coord: PGLdouble ); external name '_glFogCoorddv';
 procedure glFogCoordPointer( typ: GLenum; stride: GLsizei; const pointr: UnivPtr ); external name '_glFogCoordPointer';
 
 procedure glSecondaryColor3b( red: GLbyte; green: GLbyte; blue: GLbyte ); external name '_glSecondaryColor3b';
@@ -3140,9 +3140,9 @@ procedure glSecondaryColor3us( red: GLushort; green: GLushort; blue: GLushort );
 procedure glSecondaryColor3usv( const v: PGLushort ); external name '_glSecondaryColor3usv';
 procedure glSecondaryColorPointer( size: GLint; typ: GLenum; stride: GLsizei; const pointr: UnivPtr ); external name '_glSecondaryColorPointer';
 
-procedure glPointParameterf( pname: GLenum; param: GLfloat ); external name '_glPointParameterf'; 
+procedure glPointParameterf( pname: GLenum; param: GLfloat ); external name '_glPointParameterf';
 procedure glPointParameterfv( pname: GLenum; const params: PGLfloat ); external name '_glPointParameterfv';
-procedure glPointParameteri( pname: GLenum; param: GLint ); external name '_glPointParameteri'; 
+procedure glPointParameteri( pname: GLenum; param: GLint ); external name '_glPointParameteri';
 procedure glPointParameteriv( pname: GLenum; const params: PGLint ); external name '_glPointParameteriv';
 
 procedure glBlendFuncSeparate( srcRGB: GLenum; dstRGB: GLenum; srcAlpha: GLenum; dstAlpha: GLenum ); external name '_glBlendFuncSeparate';
@@ -3154,7 +3154,7 @@ procedure glWindowPos2d( x: GLdouble; y: GLdouble ); external name '_glWindowPos
 procedure glWindowPos2dv( const v: PGLdouble ); external name '_glWindowPos2dv';
 procedure glWindowPos2f( x: GLfloat; y: GLfloat ); external name '_glWindowPos2f';
 procedure glWindowPos2fv( const v: PGLfloat ); external name '_glWindowPos2fv';
-procedure glWindowPos2i( x: GLint; y: GLint ); external name '_glWindowPos2i'; 
+procedure glWindowPos2i( x: GLint; y: GLint ); external name '_glWindowPos2i';
 procedure glWindowPos2iv( const v: PGLint ); external name '_glWindowPos2iv';
 procedure glWindowPos2s( x: GLshort; y: GLshort ); external name '_glWindowPos2s';
 procedure glWindowPos2sv( const v: PGLshort ); external name '_glWindowPos2sv';

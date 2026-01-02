@@ -1610,7 +1610,7 @@ begin
            ErrorOfSig:=206
          else
            ErrorOfSig:=207;  {'Coprocessor Error'}
-         { if exceptions then Reset FPU and reload control word }        
+         { if exceptions then Reset FPU and reload control word }
          if (FPUStatus and FPU_ExceptionMask)<>0 then
            SysResetFPU;
         end;

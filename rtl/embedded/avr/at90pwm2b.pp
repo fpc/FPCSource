@@ -31,13 +31,13 @@ var
   DACON : byte absolute $00+$AA; // DAC Control Register
   // CPU
   SREG : byte absolute $00+$5F; // Status Register
-  SP : word absolute $00+$5D; // Stack Pointer 
-  SPL : byte absolute $00+$5D; // Stack Pointer 
-  SPH : byte absolute $00+$5D+1; // Stack Pointer 
+  SP : word absolute $00+$5D; // Stack Pointer
+  SPL : byte absolute $00+$5D; // Stack Pointer
+  SPH : byte absolute $00+$5D+1; // Stack Pointer
   MCUCR : byte absolute $00+$55; // MCU Control Register
   MCUSR : byte absolute $00+$54; // MCU Status Register
   OSCCAL : byte absolute $00+$66; // Oscillator Calibration Value
-  CLKPR : byte absolute $00+$61; // 
+  CLKPR : byte absolute $00+$61; //
   SMCR : byte absolute $00+$53; // Sleep Mode Control Register
   GPIOR3 : byte absolute $00+$3B; // General Purpose IO Register 3
   GPIOR2 : byte absolute $00+$3A; // General Purpose IO Register 2
@@ -85,8 +85,8 @@ var
   ADCSRB : byte absolute $00+$7B; // ADC Control and Status Register B
   DIDR0 : byte absolute $00+$7E; // Digital Input Disable Register 0
   DIDR1 : byte absolute $00+$7F; // Digital Input Disable Register 0
-  AMP0CSR : byte absolute $00+$76; // 
-  AMP1CSR : byte absolute $00+$77; // 
+  AMP0CSR : byte absolute $00+$76; //
+  AMP1CSR : byte absolute $00+$77; //
   // USART
   UDR : byte absolute $00+$C6; // USART I/O Data Register
   UCSRA : byte absolute $00+$C0; // USART Control and Status register A
@@ -111,48 +111,48 @@ var
   EEDR : byte absolute $00+$40; // EEPROM Data Register
   EECR : byte absolute $00+$3F; // EEPROM Control Register
   // PSC0
-  PICR0 : word absolute $00+$DE; // PSC 0 Input Capture Register 
-  PICR0L : byte absolute $00+$DE; // PSC 0 Input Capture Register 
-  PICR0H : byte absolute $00+$DE+1; // PSC 0 Input Capture Register 
+  PICR0 : word absolute $00+$DE; // PSC 0 Input Capture Register
+  PICR0L : byte absolute $00+$DE; // PSC 0 Input Capture Register
+  PICR0H : byte absolute $00+$DE+1; // PSC 0 Input Capture Register
   PFRC0B : byte absolute $00+$DD; // PSC 0 Input B Control
   PFRC0A : byte absolute $00+$DC; // PSC 0 Input A Control
   PCTL0 : byte absolute $00+$DB; // PSC 0 Control Register
   PCNF0 : byte absolute $00+$DA; // PSC 0 Configuration Register
-  OCR0RB : word absolute $00+$D8; // Output Compare RB Register 
-  OCR0RBL : byte absolute $00+$D8; // Output Compare RB Register 
-  OCR0RBH : byte absolute $00+$D8+1; // Output Compare RB Register 
-  OCR0SB : word absolute $00+$D6; // Output Compare SB Register 
-  OCR0SBL : byte absolute $00+$D6; // Output Compare SB Register 
-  OCR0SBH : byte absolute $00+$D6+1; // Output Compare SB Register 
-  OCR0RA : word absolute $00+$D4; // Output Compare RA Register 
-  OCR0RAL : byte absolute $00+$D4; // Output Compare RA Register 
-  OCR0RAH : byte absolute $00+$D4+1; // Output Compare RA Register 
-  OCR0SA : word absolute $00+$D2; // Output Compare SA Register 
-  OCR0SAL : byte absolute $00+$D2; // Output Compare SA Register 
-  OCR0SAH : byte absolute $00+$D2+1; // Output Compare SA Register 
+  OCR0RB : word absolute $00+$D8; // Output Compare RB Register
+  OCR0RBL : byte absolute $00+$D8; // Output Compare RB Register
+  OCR0RBH : byte absolute $00+$D8+1; // Output Compare RB Register
+  OCR0SB : word absolute $00+$D6; // Output Compare SB Register
+  OCR0SBL : byte absolute $00+$D6; // Output Compare SB Register
+  OCR0SBH : byte absolute $00+$D6+1; // Output Compare SB Register
+  OCR0RA : word absolute $00+$D4; // Output Compare RA Register
+  OCR0RAL : byte absolute $00+$D4; // Output Compare RA Register
+  OCR0RAH : byte absolute $00+$D4+1; // Output Compare RA Register
+  OCR0SA : word absolute $00+$D2; // Output Compare SA Register
+  OCR0SAL : byte absolute $00+$D2; // Output Compare SA Register
+  OCR0SAH : byte absolute $00+$D2+1; // Output Compare SA Register
   PSOC0 : byte absolute $00+$D0; // PSC0 Synchro and Output Configuration
   PIM0 : byte absolute $00+$A1; // PSC0 Interrupt Mask Register
   PIFR0 : byte absolute $00+$A0; // PSC0 Interrupt Flag Register
   // PSC2
-  PICR2 : word absolute $00+$FE; // PSC 2 Input Capture Register 
-  PICR2L : byte absolute $00+$FE; // PSC 2 Input Capture Register 
-  PICR2H : byte absolute $00+$FE+1; // PSC 2 Input Capture Register 
+  PICR2 : word absolute $00+$FE; // PSC 2 Input Capture Register
+  PICR2L : byte absolute $00+$FE; // PSC 2 Input Capture Register
+  PICR2H : byte absolute $00+$FE+1; // PSC 2 Input Capture Register
   PFRC2B : byte absolute $00+$FD; // PSC 2 Input B Control
   PFRC2A : byte absolute $00+$FC; // PSC 2 Input B Control
   PCTL2 : byte absolute $00+$FB; // PSC 2 Control Register
   PCNF2 : byte absolute $00+$FA; // PSC 2 Configuration Register
-  OCR2RB : word absolute $00+$F8; // Output Compare RB Register 
-  OCR2RBL : byte absolute $00+$F8; // Output Compare RB Register 
-  OCR2RBH : byte absolute $00+$F8+1; // Output Compare RB Register 
-  OCR2SB : word absolute $00+$F6; // Output Compare SB Register 
-  OCR2SBL : byte absolute $00+$F6; // Output Compare SB Register 
-  OCR2SBH : byte absolute $00+$F6+1; // Output Compare SB Register 
-  OCR2RA : word absolute $00+$F4; // Output Compare RA Register 
-  OCR2RAL : byte absolute $00+$F4; // Output Compare RA Register 
-  OCR2RAH : byte absolute $00+$F4+1; // Output Compare RA Register 
-  OCR2SA : word absolute $00+$F2; // Output Compare SA Register 
-  OCR2SAL : byte absolute $00+$F2; // Output Compare SA Register 
-  OCR2SAH : byte absolute $00+$F2+1; // Output Compare SA Register 
+  OCR2RB : word absolute $00+$F8; // Output Compare RB Register
+  OCR2RBL : byte absolute $00+$F8; // Output Compare RB Register
+  OCR2RBH : byte absolute $00+$F8+1; // Output Compare RB Register
+  OCR2SB : word absolute $00+$F6; // Output Compare SB Register
+  OCR2SBL : byte absolute $00+$F6; // Output Compare SB Register
+  OCR2SBH : byte absolute $00+$F6+1; // Output Compare SB Register
+  OCR2RA : word absolute $00+$F4; // Output Compare RA Register
+  OCR2RAL : byte absolute $00+$F4; // Output Compare RA Register
+  OCR2RAH : byte absolute $00+$F4+1; // Output Compare RA Register
+  OCR2SA : word absolute $00+$F2; // Output Compare SA Register
+  OCR2SAL : byte absolute $00+$F2; // Output Compare SA Register
+  OCR2SAH : byte absolute $00+$F2+1; // Output Compare SA Register
   POM2 : byte absolute $00+$F1; // PSC 2 Output Matrix
   PSOC2 : byte absolute $00+$F0; // PSC2 Synchro and Output Configuration
   PIM2 : byte absolute $00+$A5; // PSC2 Interrupt Mask Register
@@ -233,8 +233,8 @@ const
   EXTRF = 1; // External Reset Flag
   PORF = 0; // Power-on reset flag
   // CLKPR
-  CLKPCE = 7; // 
-  CLKPS = 0; // 
+  CLKPCE = 7; //
+  CLKPS = 0; //
   // SMCR
   SM = 1; // Sleep Mode Select bits
   SE = 0; // Sleep Enable
@@ -277,7 +277,7 @@ const
   // TCCR0B
   FOC0A = 7; // Force Output Compare A
   FOC0B = 6; // Force Output Compare B
-  WGM02 = 3; // 
+  WGM02 = 3; //
   CS0 = 0; // Clock Select
   // GTCCR
   TSM = 7; // Timer/Counter Synchronization Mode
@@ -302,8 +302,8 @@ const
   ICES1 = 6; // Input Capture 1 Edge Select
   CS1 = 0; // Prescaler source of Timer/Counter 1
   // TCCR1C
-  FOC1A = 7; // 
-  FOC1B = 6; // 
+  FOC1A = 7; //
+  FOC1B = 6; //
   // GTCCR
   PSRSYNC = 0; // Prescaler Reset Timer/Counter1 and Timer/Counter0
   // ADMUX
@@ -318,22 +318,22 @@ const
   ADIE = 3; // ADC Interrupt Enable
   ADPS = 0; // ADC  Prescaler Select Bits
   // DIDR1
-  ACMP0D = 5; // 
-  AMP0PD = 4; // 
-  AMP0ND = 3; // 
-  ADC10D = 2; // 
-  ADC9D = 1; // 
-  ADC8D = 0; // 
+  ACMP0D = 5; //
+  AMP0PD = 4; //
+  AMP0ND = 3; //
+  ADC10D = 2; //
+  ADC9D = 1; //
+  ADC8D = 0; //
   // AMP0CSR
-  AMP0EN = 7; // 
-  AMP0IS = 6; // 
-  AMP0G = 4; // 
-  AMP0TS = 0; // 
+  AMP0EN = 7; //
+  AMP0IS = 6; //
+  AMP0G = 4; //
+  AMP0TS = 0; //
   // AMP1CSR
-  AMP1EN = 7; // 
-  AMP1IS = 6; // 
-  AMP1G = 4; // 
-  AMP1TS = 0; // 
+  AMP1EN = 7; //
+  AMP1IS = 6; //
+  AMP1G = 4; //
+  AMP1TS = 0; //
   // UCSRA
   RXC = 7; // USART Receive Complete
   TXC = 6; // USART Transmitt Complete
@@ -507,7 +507,7 @@ procedure INT0_ISR; external name 'INT0_ISR'; // Interrupt 10 External Interrupt
 procedure TIMER1_CAPT_ISR; external name 'TIMER1_CAPT_ISR'; // Interrupt 11 Timer/Counter1 Capture Event
 procedure TIMER1_COMPA_ISR; external name 'TIMER1_COMPA_ISR'; // Interrupt 12 Timer/Counter1 Compare Match A
 procedure TIMER1_COMPB_ISR; external name 'TIMER1_COMPB_ISR'; // Interrupt 13 Timer/Counter Compare Match B
-procedure RESERVED15_ISR; external name 'RESERVED15_ISR'; // Interrupt 14 
+procedure RESERVED15_ISR; external name 'RESERVED15_ISR'; // Interrupt 14
 procedure TIMER1_OVF_ISR; external name 'TIMER1_OVF_ISR'; // Interrupt 15 Timer/Counter1 Overflow
 procedure TIMER0_COMP_A_ISR; external name 'TIMER0_COMP_A_ISR'; // Interrupt 16 Timer/Counter0 Compare Match A
 procedure TIMER0_OVF_ISR; external name 'TIMER0_OVF_ISR'; // Interrupt 17 Timer/Counter0 Overflow
@@ -522,8 +522,8 @@ procedure WDT_ISR; external name 'WDT_ISR'; // Interrupt 25 Watchdog Timeout Int
 procedure EE_READY_ISR; external name 'EE_READY_ISR'; // Interrupt 26 EEPROM Ready
 procedure TIMER0_COMPB_ISR; external name 'TIMER0_COMPB_ISR'; // Interrupt 27 Timer Counter 0 Compare Match B
 procedure INT3_ISR; external name 'INT3_ISR'; // Interrupt 28 External Interrupt Request 3
-procedure RESERVED30_ISR; external name 'RESERVED30_ISR'; // Interrupt 29 
-procedure RESERVED31_ISR; external name 'RESERVED31_ISR'; // Interrupt 30 
+procedure RESERVED30_ISR; external name 'RESERVED30_ISR'; // Interrupt 29
+procedure RESERVED31_ISR; external name 'RESERVED31_ISR'; // Interrupt 30
 procedure SPM_READY_ISR; external name 'SPM_READY_ISR'; // Interrupt 31 Store Program Memory Read
 
 procedure _FPC_start; assembler; nostackframe; noreturn; public name '_START'; section '.init';

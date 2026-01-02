@@ -230,19 +230,19 @@ type
  ** The values apply to a single image of an image destination. *}
 
 
-{ The desired compression quality to use when writing to an image 
- * destination. If present, the value of this key is a CFNumberRef 
+{ The desired compression quality to use when writing to an image
+ * destination. If present, the value of this key is a CFNumberRef
  * in the range 0.0 to 1.0. A value of 1.0 implies lossless
- * compression is desired if destination format supports it. 
- * A value of 0.0 implies that that maximum compression is 
+ * compression is desired if destination format supports it.
+ * A value of 0.0 implies that that maximum compression is
  * desired. }
 
 var kCGImageDestinationLossyCompressionQuality: CFStringRef; external name '_kCGImageDestinationLossyCompressionQuality'; (* attribute const *)
 (* IMAGEIO_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
-{ The desired background color to composite against when writing 
- * an image with alpha to a destination format that does not support 
+{ The desired background color to composite against when writing
+ * an image with alpha to a destination format that does not support
  * alpha. If present, the value of this key is a CGColorRef without
  * any alpha component of its own.  If not present a white color
  * will be used if needed. }
@@ -345,18 +345,18 @@ var kCGImageDestinationMetadata: CFStringRef; external name '_kCGImageDestinatio
 (* IMAGEIO_AVAILABLE_STARTING(__MAC_10_8, __IPHONE_NA) *)
 
 { If true, The metadata will be copied from the source and merged with the tags
- * specified in kCGImageDestinationMetadata. If a tag does not exist in the 
- * source, it will be added. If the tag exists in the source, it will be 
- * updated. A metadata tag can be removed by setting the tag's value to 
- * kCFNull. If present, the value of this key is a CFBoooleanRef. The default
+ * specified in kCGImageDestinationMetadata. If a tag does not exist in the
+ * source, it will be added. If the tag exists in the source, it will be
+ * updated. A metadata tag can be removed by setting the tag's value to
+ * kCFNull. If present, the value of this key is a CFBooleanRef. The default
  * is kCFBooleanFalse.
- } 
+ }
 var kCGImageDestinationMergeMetadata: CFStringRef; external name '_kCGImageDestinationMergeMetadata'; (* attribute const *)
 (* IMAGEIO_AVAILABLE_STARTING(__MAC_10_8, __IPHONE_NA) *)
 
-{ XMP data will not be written to the destination. If used in conjunction with 
- * kCGImageDestinationMetadata, EXIF and/or IPTC tags will be preserved, but 
- * an XMP packet will not be written to the file. If present, the value for 
+{ XMP data will not be written to the destination. If used in conjunction with
+ * kCGImageDestinationMetadata, EXIF and/or IPTC tags will be preserved, but
+ * an XMP packet will not be written to the file. If present, the value for
  * this key is a CFBooleanRef. The default is kCFBooleanFalse.
  }
 var kCGImageMetadataShouldExcludeXMP: CFStringRef; external name '_kCGImageMetadataShouldExcludeXMP'; (* attribute const *)
@@ -364,7 +364,7 @@ var kCGImageMetadataShouldExcludeXMP: CFStringRef; external name '_kCGImageMetad
 
 { Updates the DateTime parameters of the image metadata. Only values
  * present in the original image will updated. If present, the value should
- * be a CFStringRef or a CFDateRef. If CFString, the value must be in 
+ * be a CFStringRef or a CFDateRef. If CFString, the value must be in
  * Exif DateTime or ISO 8601 DateTime format. This option is mutually
  * exclusive with kCGImageDestinationMetadata.
  }
@@ -372,21 +372,21 @@ var kCGImageDestinationDateTime: CFStringRef; external name '_kCGImageDestinatio
 (* IMAGEIO_AVAILABLE_STARTING(__MAC_10_8, __IPHONE_NA) *)
 
 { Updates the orientation in the image metadata. The image data itself will
- * not be rotated. If present, the value should be a CFNumberRef from 1 to 8. 
+ * not be rotated. If present, the value should be a CFNumberRef from 1 to 8.
  * This option is mutually exclusive with kCGImageDestinationMetadata.
  }
 var kCGImageDestinationOrientation: CFStringRef; external name '_kCGImageDestinationOrientation'; (* attribute const *)
 (* IMAGEIO_AVAILABLE_STARTING(__MAC_10_8, __IPHONE_NA) *)
 
-{ Losslessly copies the contents of the image source, 'isrc', to the 
- * destination, 'idst'. The image data will not be modified. The image's 
- * metadata can be modified by adding the keys and values defined above to 
- * 'options'. No other images should be added to the image destination. 
+{ Losslessly copies the contents of the image source, 'isrc', to the
+ * destination, 'idst'. The image data will not be modified. The image's
+ * metadata can be modified by adding the keys and values defined above to
+ * 'options'. No other images should be added to the image destination.
  * CGImageDestinationFinalize() should not be called afterward -
- * the result is saved to the destination when this function returns. 
+ * the result is saved to the destination when this function returns.
  * The image type of the destination must match the image source. Returns true
- * if the operation was successful. If an error occurs, false will be returned 
- * and 'err' will be set to a CFErrorRef. Not all image formats are supported 
+ * if the operation was successful. If an error occurs, false will be returned
+ * and 'err' will be set to a CFErrorRef. Not all image formats are supported
  * for this operation. }
 function CGImageDestinationCopyImageSource( idst: CGImageDestinationRef; isrc: CGImageSourceRef; options: CFDictionaryRef; var err: CFErrorRef ): CBool; external name '_CGImageDestinationCopyImageSource';
 (* IMAGEIO_AVAILABLE_STARTING(__MAC_10_8, __IPHONE_NA) *)

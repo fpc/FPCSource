@@ -236,41 +236,41 @@ uses MacTypes,CFBase,CFArray,MacErrors,Files,QuickdrawTypes,PMDefinitions,CFData
 
 {
 *  PMRetain()
-*  
+*
 *  Summary:
 *    Increases a printing objects refcount by 1.
-*  
+*
 *  Discussion:
 *    You should retain a printing object when you receive it from
 *    elsewhere (that is, you did not create or copy it) and you want
 *    it to persist. If you retain a printing object you are
 *    responsible for releasing it.
-*  
+*
 *  Parameters:
-*    
+*
 *    object:
 *      A Carbon Printing Manager object, such as a PMPrintSession
 *      object, a PMPageFormat object, a PMPrintSettings object, or
 *      PMPrinter object.
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
 *    CarbonLib:        in CarbonLib 1.1 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMRetain( objct: PMObject ): OSStatus; external name '_PMRetain';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 {
 *  PMRelease()
-*  
+*
 *  Summary:
 *    Decreases a printing objects refcount by 1.
-*  
+*
 *  Discussion:
 *    Your application should use the PMRelease function to release any
 *    printing objects it creates or retains. When an object’s
@@ -282,22 +282,22 @@ function PMRetain( objct: PMObject ): OSStatus; external name '_PMRetain';
 *    PMPageFormat and PMPrintSettings objects to PMRelease. You can
 *    pass a NULL object but be aware a kPMInvalidParameter error will
 *    be returned.
-*  
+*
 *  Parameters:
-*    
+*
 *    object:
 *      A Carbon Printing Manager object, such as a PMPrintSession
 *      object, a PMPageFormat object, a PMPrintSettings object, or
 *      PMPrinter object.
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
 *    CarbonLib:        in CarbonLib 1.1 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMRelease( objct: PMObject ): OSStatus; external name '_PMRelease';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
@@ -310,22 +310,22 @@ function PMRelease( objct: PMObject ): OSStatus; external name '_PMRelease';
 
 {
 *  PMCreateSession()
-*  
+*
 *  Summary:
 *    Creates and initializes a printing session object and creates a
 *    context for printing operations.
-*  
+*
 *  Discussion:
 *    A session is created with a refcount of 1.
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
 *    CarbonLib:        in CarbonLib 1.1 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMCreateSession( var printSession: PMPrintSession ): OSStatus; external name '_PMCreateSession';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
@@ -333,15 +333,15 @@ function PMCreateSession( var printSession: PMPrintSession ): OSStatus; external
 
 {
 *  PMSessionError()
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
 *    CarbonLib:        in CarbonLib 1.1 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMSessionError( printSession: PMPrintSession ): OSStatus; external name '_PMSessionError';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
@@ -349,15 +349,15 @@ function PMSessionError( printSession: PMPrintSession ): OSStatus; external name
 
 {
 *  PMSessionSetError()
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
 *    CarbonLib:        in CarbonLib 1.1 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMSessionSetError( printSession: PMPrintSession; printError: OSStatus ): OSStatus; external name '_PMSessionSetError';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
@@ -370,10 +370,10 @@ function PMSessionSetError( printSession: PMPrintSession; printError: OSStatus )
 
 {
 *  PMSessionBeginCGDocumentNoDialog()
-*  
+*
 *  Summary:
 *    Begin a new print job for client drawing to a CoreGraphics context.
-*  
+*
 *  Discussion:
 *    This is an updated version of the function
 *    PMSessionBeginDocumentNoDialog. The functionality is identical to
@@ -383,15 +383,15 @@ function PMSessionSetError( printSession: PMPrintSession; printError: OSStatus )
 *    (CGContextRef). This function should be used in conjunction with
 *    PMSessionGetCGGraphicsContext instead of
 *    PMSessionGetGraphicsContext.
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.4 and later in ApplicationServices.framework
 *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.4 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMSessionBeginCGDocumentNoDialog( printSession: PMPrintSession; printSettings: PMPrintSettings; pageFormat: PMPageFormat ): OSStatus; external name '_PMSessionBeginCGDocumentNoDialog';
 (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
@@ -399,15 +399,15 @@ function PMSessionBeginCGDocumentNoDialog( printSession: PMPrintSession; printSe
 
 {
 *  PMSessionEndDocumentNoDialog()
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
 *    CarbonLib:        in CarbonLib 1.6 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMSessionEndDocumentNoDialog( printSession: PMPrintSession ): OSStatus; external name '_PMSessionEndDocumentNoDialog';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
@@ -422,15 +422,15 @@ function PMSessionEndDocumentNoDialog( printSession: PMPrintSession ): OSStatus;
 }
 {
 *  PMSessionBeginPageNoDialog()
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
 *    CarbonLib:        in CarbonLib 1.6 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMSessionBeginPageNoDialog( printSession: PMPrintSession; pageFormat: PMPageFormat; pageFrame: PMRectPtr ): OSStatus; external name '_PMSessionBeginPageNoDialog';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
@@ -445,15 +445,15 @@ function PMSessionBeginPageNoDialog( printSession: PMPrintSession; pageFormat: P
 }
 {
 *  PMSessionEndPageNoDialog()
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
 *    CarbonLib:        in CarbonLib 1.6 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMSessionEndPageNoDialog( printSession: PMPrintSession ): OSStatus; external name '_PMSessionEndPageNoDialog';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
@@ -461,11 +461,11 @@ function PMSessionEndPageNoDialog( printSession: PMPrintSession ): OSStatus; ext
 
 {
 *  PMSessionGetCGGraphicsContext()
-*  
+*
 *  Summary:
 *    Return the CGContextRef for the current page in the printing
 *    session.
-*  
+*
 *  Discussion:
 *    This function returns the CGContextRef for the printing session.
 *    This function must be called for each page. To use
@@ -473,25 +473,25 @@ function PMSessionEndPageNoDialog( printSession: PMPrintSession ): OSStatus; ext
 *    PMSessionBeginCGDocument or PMSessionBeginCGDocumentNoDialog
 *    instead of PMSessionBeginDocument or
 *    PMSessionBeginDocumentNoDialog.
-*  
+*
 *  Parameters:
-*    
+*
 *    printSession:
 *      The session for the print job.
-*    
+*
 *    context:
 *      A pointer to a caller supplied CGContextRef variable. If this
 *      function succeeds then *context will be filled in with the
 *      printing CGContextRef.
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.4 and later in ApplicationServices.framework
 *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.4 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMSessionGetCGGraphicsContext( printSession: PMPrintSession; var context: CGContextRef ): OSStatus; external name '_PMSessionGetCGGraphicsContext';
 (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
@@ -504,68 +504,68 @@ function PMSessionGetCGGraphicsContext( printSession: PMPrintSession; var contex
 
 {
 *  PMSessionGetDestinationType()
-*  
+*
 *  Summary:
 *    Hand back the destination type that will be used for a print job
 *    with the specified print settings and print session.
-*  
+*
 *  Discussion:
 *    Currently there are five destination types:
 *    kPMDestinationPrinter, kPMDestinationFile, kPMDestinationFax and
 *    kPMDestinationPreview, and kPMDestinationProcessPDF.
-*  
+*
 *  Parameters:
-*    
+*
 *    printSession:
 *      The session to be used for a print job. The session holds the
 *      preview setting which can override the destination type in the
 *      print settings.
-*    
+*
 *    printSettings:
 *      The print settings to be used for a print job. The print
 *      settings specify whether a job will be directed toward a
 *      printer or to file.
-*    
+*
 *    destTypeP:
 *      A pointer to a caller supplied PMDestinationType variable. If
 *      this function succeeds then *'destTypeP' will be filled in with
 *      the destination type for a print job that used the specified
 *      session and print settings. If this function fails, then
 *      *'destType' will be set to kPMDestinationInvalid.
-*    
+*
 *    SPECIAL_AVAILABILITY_NOTE:
 *      This routine is available in ApplicationsServices.framework in
 *      Mac OS X version 10.1 and later. On Mac OS X it is available to
 *      CFM applications through CarbonLib starting with Mac OS X
 *      version 10.2 and later.
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.1 and later in ApplicationServices.framework
 *    CarbonLib:        in CarbonLib 1.5 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMSessionGetDestinationType( printSession: PMPrintSession; printSettings: PMPrintSettings; var destTypeP: PMDestinationType ): OSStatus; external name '_PMSessionGetDestinationType';
 (* AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER *)
 
 {
 *  PMSessionCopyDestinationFormat()
-*  
+*
 *  Summary:
 *    Hand back the destination output MIME type associated with the
 *    provided print session and print settings.
-*  
+*
 *  Parameters:
-*    
+*
 *    printSession:
 *      A currently open print session.
-*    
+*
 *    printSettings:
 *      The print settings that are to be searched.
-*    
+*
 *    destFormatP:
 *      A pointer to a caller allocated CFStringRef variable. If this
 *      routine returns noErr then *'destFormatP' will either be a copy
@@ -573,21 +573,21 @@ function PMSessionGetDestinationType( printSession: PMPrintSession; printSetting
 *      job, or NULL indicating that the default output format will be
 *      used. If this function return an error, then *'destFormatP'
 *      will be set to NULL.
-*    
+*
 *    SPECIAL_AVAILABILITY_NOTE:
 *      This routine is available in ApplicationsServices.framework in
 *      Mac OS X version 10.1 and later. On Mac OS X it is available to
 *      CFM applications through CarbonLib starting with Mac OS X
 *      version 10.2 and later.
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.1 and later in ApplicationServices.framework
 *    CarbonLib:        in CarbonLib 1.5 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMSessionCopyDestinationFormat( printSession: PMPrintSession; printSettings: PMPrintSettings; var destFormatP: CFStringRef ): OSStatus; external name '_PMSessionCopyDestinationFormat';
 (* AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER *)
@@ -595,25 +595,25 @@ function PMSessionCopyDestinationFormat( printSession: PMPrintSession; printSett
 
 {
 *  PMSessionCopyDestinationLocation()
-*  
+*
 *  Summary:
 *    Hand back the URL destination location given a print session and
 *    print settings.
-*  
+*
 *  Discussion:
 *    Some destination type support a destination location which
-*    further defines where the output from a pritn job should be sent.
-*    The kPMDestinationFile destiation type, for example, will use a
+*    further defines where the output from a print job should be sent.
+*    The kPMDestinationFile destination type, for example, will use a
 *    file URL to determine where a new file should be created.
-*  
+*
 *  Parameters:
-*    
+*
 *    printSession:
 *      A currently open print session.
-*    
+*
 *    printSettings:
 *      The print settings that are to be searched.
-*    
+*
 *    destLocationP:
 *      A pointer to a caller allocated CFURLRef variable. If this
 *      routine returns noErr then *'outputFileP' will either be NULL
@@ -621,21 +621,21 @@ function PMSessionCopyDestinationFormat( printSession: PMPrintSession; printSett
 *      location for the current destination type or a copy of a
 *      CFURLRef will be placed in *'destLocationP'. If this function
 *      returns an error then 'destLocationP' will be set to NULL.
-*    
+*
 *    SPECIAL_AVAILABILITY_NOTE:
 *      This routine is available in ApplicationsServices.framework in
 *      Mac OS X version 10.1 and later. On Mac OS X it is available to
 *      CFM applications through CarbonLib starting with Mac OS X
 *      version 10.2 and later.
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.1 and later in ApplicationServices.framework
 *    CarbonLib:        in CarbonLib 1.5 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMSessionCopyDestinationLocation( printSession: PMPrintSession; printSettings: PMPrintSettings; var destLocationP: CFURLRef ): OSStatus; external name '_PMSessionCopyDestinationLocation';
 (* AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER *)
@@ -643,12 +643,12 @@ function PMSessionCopyDestinationLocation( printSession: PMPrintSession; printSe
 
 {
 *  PMSessionSetDestination()
-*  
+*
 *  Summary:
 *    Alter a print session and print settings so that an associated
 *    print job is sent to the provided destination type in the,
 *    optional, MIME document format.
-*  
+*
 *  Discussion:
 *    This function is most useful when an application would like to
 *    write its print output to disk without requiring user
@@ -656,77 +656,77 @@ function PMSessionCopyDestinationLocation( printSession: PMPrintSession; printSe
 *    provided destination can be obtained from
 *    PMSessionCopyOutputFormatList and one of these passed to this
 *    function.
-*  
+*
 *  Parameters:
-*    
+*
 *    printSession:
 *      The session to be used for a print job. The session holds the
 *      preview setting which can override the destination type in the
 *      print settings.
-*    
+*
 *    printSettings:
 *      The print settings to be used for a print job. The print
 *      settings specify whether a job will be directed toward a
 *      printer or to file. It also holds the requested MIME output
 *      type.
-*    
+*
 *    destType:
-*      The destiation type for a print job associated with the
+*      The destination type for a print job associated with the
 *      provided print session and print settings. Fax is currently not
 *      supported, but kPMDestinationPrinter, kPMDestinationFile, and
 *      kPMDestinationPreview can be set.
-*    
+*
 *    destFormat:
 *      The MIME type to be generated for the provided destination
 *      type. This parameter can be NULL in which the default format
 *      for the requested destination type is used. To obtain a list of
-*      valid formats for a given destiation type, use the function
+*      valid formats for a given destination type, use the function
 *      PMSessionCopyOutputFormatList.
-*    
+*
 *    destLocation:
 *      Some destination types support a destination location. The
 *      clearest example is the kPMDestinationFile destination type
 *      which allows a caller to also supply a file URL specifying
 *      where the output file is to be created.
-*    
+*
 *    SPECIAL_AVAILABILITY_NOTE:
 *      This routine is available in ApplicationsServices.framework in
 *      Mac OS X version 10.1 and later. On Mac OS X it is available to
 *      CFM applications through CarbonLib starting with Mac OS X
 *      version 10.2 and later.
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.1 and later in ApplicationServices.framework
 *    CarbonLib:        in CarbonLib 1.5 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMSessionSetDestination( printSession: PMPrintSession; printSettings: PMPrintSettings; destType: PMDestinationType; destFormat: CFStringRef; destLocation: CFURLRef ): OSStatus; external name '_PMSessionSetDestination';
 (* AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER *)
 
 {
 *  PMSessionCopyOutputFormatList()
-*  
+*
 *  Summary:
 *    Hands back an an array of MIME types describing the possible
 *    output formats for the printer module associated with the current
 *    printer.
-*  
+*
 *  Parameters:
-*    
+*
 *    printSession:
 *      This session's current printer's printer module will be queried
 *      for its supported output MIME types.
-*    
+*
 *    destType:
 *      A print job can have one of several possible destination types.
 *      The list of valid output formats is dependent upon the
 *      destination type. This parameter specifies destination type of
 *      interest when retrieving the output formats list.
-*    
+*
 *    documentFormatP:
 *      A pointer to a caller's CFArrayRef variable. If this routine
 *      completes successfully, then *'documentFormatP' will be set to
@@ -734,55 +734,6 @@ function PMSessionSetDestination( printSession: PMPrintSession; printSettings: P
 *      array is a MIME type specifying a type of output that can be
 *      generated by the printer module associated with the current
 *      printer.
-*    
-*    SPECIAL_AVAILABILITY_NOTE:
-*      This routine is available in ApplicationsServices.framework in
-*      Mac OS X version 10.1 and later. On Mac OS X it is available to
-*      CFM applications through CarbonLib starting with Mac OS X
-*      version 10.2 and later. On Mac OS 8/9 using CarbonLib, this
-*      routine returns kPMNotImplemented
-*  
-*  Availability:
-*    Mac OS X:         in version 10.1 and later in ApplicationServices.framework
-*    CarbonLib:        in CarbonLib 1.6 and later
-*    Non-Carbon CFM:   not available
-*  
-*  Compatibility:
-*  	Not appropriate for CUPS filters, drivers, and backends.
-*  
-}
-function PMSessionCopyOutputFormatList( printSession: PMPrintSession; destType: PMDestinationType; var documentFormatP: CFArrayRef ): OSStatus; external name '_PMSessionCopyOutputFormatList';
-(* AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER *)
-
-
-{
-*  PMSessionCreatePageFormatList()
-*  
-*  Summary:
-*    Hand back a list of page format instances. Each page format
-*    instance describes a paper size available on the specified
-*    printer.
-*  
-*  Parameters:
-*    
-*    printSession:
-*      A currently valid print session.
-*    
-*    printer:
-*      The printer whose page size list should be enumerated. 
-*    
-*    pageFormatList:
-*      If this function is successful then noErr will be returned and
-*      *'pageFormatList' will be set to a newly created CFArray. Each
-*      element in the array will be a PMPageFormat describing an
-*      available paper size for the specified printer. If this
-*      function fails then a non-zero error code will be returned and
-*      *'pageFormatList' will be set to NULL.
-*    
-*  Discussion:
-*	If you want to create the page format list for the session's current printer,
-*      pass the PMPrinter object returned by PMSessionGetCurrentPrinter() as the
-*	printer parameter. 
 *
 *    SPECIAL_AVAILABILITY_NOTE:
 *      This routine is available in ApplicationsServices.framework in
@@ -790,15 +741,64 @@ function PMSessionCopyOutputFormatList( printSession: PMPrintSession; destType: 
 *      CFM applications through CarbonLib starting with Mac OS X
 *      version 10.2 and later. On Mac OS 8/9 using CarbonLib, this
 *      routine returns kPMNotImplemented
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.1 and later in ApplicationServices.framework
 *    CarbonLib:        in CarbonLib 1.6 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
+}
+function PMSessionCopyOutputFormatList( printSession: PMPrintSession; destType: PMDestinationType; var documentFormatP: CFArrayRef ): OSStatus; external name '_PMSessionCopyOutputFormatList';
+(* AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER *)
+
+
+{
+*  PMSessionCreatePageFormatList()
+*
+*  Summary:
+*    Hand back a list of page format instances. Each page format
+*    instance describes a paper size available on the specified
+*    printer.
+*
+*  Parameters:
+*
+*    printSession:
+*      A currently valid print session.
+*
+*    printer:
+*      The printer whose page size list should be enumerated.
+*
+*    pageFormatList:
+*      If this function is successful then noErr will be returned and
+*      *'pageFormatList' will be set to a newly created CFArray. Each
+*      element in the array will be a PMPageFormat describing an
+*      available paper size for the specified printer. If this
+*      function fails then a non-zero error code will be returned and
+*      *'pageFormatList' will be set to NULL.
+*
+*  Discussion:
+*	If you want to create the page format list for the session's current printer,
+*      pass the PMPrinter object returned by PMSessionGetCurrentPrinter() as the
+*	printer parameter.
+*
+*    SPECIAL_AVAILABILITY_NOTE:
+*      This routine is available in ApplicationsServices.framework in
+*      Mac OS X version 10.1 and later. On Mac OS X it is available to
+*      CFM applications through CarbonLib starting with Mac OS X
+*      version 10.2 and later. On Mac OS 8/9 using CarbonLib, this
+*      routine returns kPMNotImplemented
+*
+*  Availability:
+*    Mac OS X:         in version 10.1 and later in ApplicationServices.framework
+*    CarbonLib:        in CarbonLib 1.6 and later
+*    Non-Carbon CFM:   not available
+*
+*  Compatibility:
+*  	Not appropriate for CUPS filters, drivers, and backends.
+*
 }
 function PMSessionCreatePageFormatList( printSession: PMPrintSession; printer: PMPrinter; var pageFormatList: CFArrayRef ): OSStatus; external name '_PMSessionCreatePageFormatList';
 (* AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER *)
@@ -808,81 +808,81 @@ function PMSessionCreatePageFormatList( printSession: PMPrintSession; printer: P
 *  PMSessionCreatePrinterList()
 *
 *  See also: PMServerCreatePrinterList.
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.1 and later in ApplicationServices.framework
 *    CarbonLib:        in CarbonLib 1.4 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMSessionCreatePrinterList( printSession: PMPrintSession; var printerList: CFArrayRef; var currentIndex: CFIndex; var currentPrinter: PMPrinter ): OSStatus; external name '_PMSessionCreatePrinterList';
 (* AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER *)
 
 {
 *  PMSessionGetCurrentPrinter()
-*  
+*
 *  Summary:
 *    Hand back the session's current printer.
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
 *    CarbonLib:        in CarbonLib 1.1 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMSessionGetCurrentPrinter( printSession: PMPrintSession; var currentPrinter: PMPrinter ): OSStatus; external name '_PMSessionGetCurrentPrinter';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 {
 *  PMSessionSetCurrentPMPrinter()
-*  
+*
 *  Summary:
 *    Set the session's current printer to a specified PMPrinter.
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.3 and later in ApplicationServices.framework
 *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMSessionSetCurrentPMPrinter( session: PMPrintSession; printer: PMPrinter ): OSStatus; external name '_PMSessionSetCurrentPMPrinter';
 (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
 
 {
 *  PMSessionGetDataFromSession()
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
 *    CarbonLib:        in CarbonLib 1.1 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMSessionGetDataFromSession( printSession: PMPrintSession; key: CFStringRef; var data: CFTypeRef ): OSStatus; external name '_PMSessionGetDataFromSession';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 {
 *  PMSessionSetDataInSession()
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
 *    CarbonLib:        in CarbonLib 1.1 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMSessionSetDataInSession( printSession: PMPrintSession; key: CFStringRef; data: CFTypeRef ): OSStatus; external name '_PMSessionSetDataInSession';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
@@ -895,52 +895,52 @@ function PMSessionSetDataInSession( printSession: PMPrintSession; key: CFStringR
 
 {
 *  PMCreatePageFormat()
-*  
+*
 *  Summary:
 *    Allocates memory for a new PMPageFormat object in your
 *    application’s memory space.
-*  
+*
 *  Discussion:
 *    A pageformat is created with a refcount of 1.
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
 *    CarbonLib:        in CarbonLib 1.1 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMCreatePageFormat( var pageFormat: PMPageFormat ): OSStatus; external name '_PMCreatePageFormat';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 {
 *  PMSessionDefaultPageFormat()
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
 *    CarbonLib:        in CarbonLib 1.1 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMSessionDefaultPageFormat( printSession: PMPrintSession; pageFormat: PMPageFormat ): OSStatus; external name '_PMSessionDefaultPageFormat';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 {
 *  PMSessionValidatePageFormat()
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
 *    CarbonLib:        in CarbonLib 1.1 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMSessionValidatePageFormat( printSession: PMPrintSession; pageFormat: PMPageFormat; result: BooleanPtr ): OSStatus; external name '_PMSessionValidatePageFormat';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
@@ -949,15 +949,15 @@ function PMSessionValidatePageFormat( printSession: PMPrintSession; pageFormat: 
 
 {
 *  PMCopyPageFormat()
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
 *    CarbonLib:        in CarbonLib 1.0 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMCopyPageFormat( formatSrc: PMPageFormat; formatDest: PMPageFormat ): OSStatus; external name '_PMCopyPageFormat';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
@@ -965,53 +965,53 @@ function PMCopyPageFormat( formatSrc: PMPageFormat; formatDest: PMPageFormat ): 
 
 {
 *  PMCreatePageFormatWithPMPaper()
-*  
+*
 *  Summary:
 *    Create a pageformat with a specific paper.
-*  
+*
 *  Parameters:
-*    
+*
 *    pageFormat:
 *      On return, will contain the pageformat which was created
-*    
+*
 *    paper:
 *      The paper that will be associate with the pageformat
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.3 and later in ApplicationServices.framework
 *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMCreatePageFormatWithPMPaper( var pageFormat: PMPageFormat; paper: PMPaper ): OSStatus; external name '_PMCreatePageFormatWithPMPaper';
 (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
 
 {
 *  PMPageFormatCreateDataRepresentation()
-*  
+*
 *  Summary:
 *    Returns a data representation of a PMPageFormat object as a CFDataRef.
 *    The caller is responsible for releasing the CFData object returned.
-*  
+*
 *  Discussion:
 *    This function is similar to PMFlattenPageFormatToCFData but allows you
-*    to specify the format of the data that is returned. Use  
-*    PMPageFormatCreateWithDataRepresentation to create a PMPageFormat from 
+*    to specify the format of the data that is returned. Use
+*    PMPageFormatCreateWithDataRepresentation to create a PMPageFormat from
 *    a CFDataRef created by this call.
-*  
-*    See PMDataFormat for information about the available data formats.  
+*
+*    See PMDataFormat for information about the available data formats.
 *
 *  Availability:
 *    Mac OS X:         in version 10.5 and later in ApplicationServices.framework
 *    CarbonLib:        not available
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMPageFormatCreateDataRepresentation( pageFormat: PMPageFormat; var data: CFDataRef; format: PMDataFormat ): OSStatus; external name '_PMPageFormatCreateDataRepresentation';
 (* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
@@ -1019,20 +1019,20 @@ function PMPageFormatCreateDataRepresentation( pageFormat: PMPageFormat; var dat
 
 {
 *  PMPageFormatCreateWithDataRepresentation()
-*  
+*
 *  Summary:
 *    Creates a PMPageFormat object from a data representation created with
 *	  PMPageFormatCreateDataRepresentation. The caller is responsible
 *    for releasing the PMPrintSettings object returned with PMRelease.
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.5 and later in ApplicationServices.framework
 *    CarbonLib:        not available
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMPageFormatCreateWithDataRepresentation( data: CFDataRef; var pageFormat: PMPageFormat ): OSStatus; external name '_PMPageFormatCreateWithDataRepresentation';
 (* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
@@ -1041,15 +1041,15 @@ function PMPageFormatCreateWithDataRepresentation( data: CFDataRef; var pageForm
 
 {
 *  PMGetAdjustedPageRect()
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
 *    CarbonLib:        in CarbonLib 1.0 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMGetAdjustedPageRect( pageFormat: PMPageFormat; var pageRect: PMRect ): OSStatus; external name '_PMGetAdjustedPageRect';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
@@ -1057,15 +1057,15 @@ function PMGetAdjustedPageRect( pageFormat: PMPageFormat; var pageRect: PMRect )
 
 {
 *  PMGetAdjustedPaperRect()
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
 *    CarbonLib:        in CarbonLib 1.0 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMGetAdjustedPaperRect( pageFormat: PMPageFormat; var paperRect: PMRect ): OSStatus; external name '_PMGetAdjustedPaperRect';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
@@ -1073,15 +1073,15 @@ function PMGetAdjustedPaperRect( pageFormat: PMPageFormat; var paperRect: PMRect
 
 {
 *  PMGetOrientation()
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
 *    CarbonLib:        in CarbonLib 1.0 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMGetOrientation( pageFormat: PMPageFormat; var orientation: PMOrientation ): OSStatus; external name '_PMGetOrientation';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
@@ -1089,31 +1089,31 @@ function PMGetOrientation( pageFormat: PMPageFormat; var orientation: PMOrientat
 
 {
 *  PMGetPageFormatExtendedData()
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
 *    CarbonLib:        in CarbonLib 1.0 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMGetPageFormatExtendedData( pageFormat: PMPageFormat; dataID: OSType; var size: UInt32; extendedData: UnivPtr ): OSStatus; external name '_PMGetPageFormatExtendedData';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 {
 *  PMPageFormatGetPrinterID()
-*  
+*
 *  Summary:
 *		Obtains the formatting printer for the pageformat.
 *
 *  Discussion:
 *		Will either return the formatting printer for the pageformat
 *		or will return NULL if the pageformat doesn't have that information.
-* 
+*
 *  Parameters:
-*    
+*
 *    pageFormat:
 *      The pageformat to obtain the information from.
 *
@@ -1124,10 +1124,10 @@ function PMGetPageFormatExtendedData( pageFormat: PMPageFormat; dataID: OSType; 
 *    Mac OS X:         in version 10.5 and later in ApplicationServices.framework
 *    CarbonLib:        not available
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMPageFormatGetPrinterID( pageFormat: PMPageFormat; var printerID: CFStringRef ): OSStatus; external name '_PMPageFormatGetPrinterID';
 (* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
@@ -1135,22 +1135,22 @@ function PMPageFormatGetPrinterID( pageFormat: PMPageFormat; var printerID: CFSt
 
 {
 *  PMGetScale()
-*  
+*
 *  Summary:
 *    Obtains the scaling factor currently applied to the page and
 *    paper rectangles.
-*  
+*
 *  Discussion:
 *    A value of 100.0 means 100% (no scaling). 50.0 means 50% scaling
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
 *    CarbonLib:        in CarbonLib 1.0 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMGetScale( pageFormat: PMPageFormat; var scale: Float64 ): OSStatus; external name '_PMGetScale';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
@@ -1158,24 +1158,24 @@ function PMGetScale( pageFormat: PMPageFormat; var scale: Float64 ): OSStatus; e
 
 {
 *  PMGetUnadjustedPageRect()
-*  
+*
 *  Summary:
 *    Obtains the size of the imageable area in points, unaffected by
 *    orientation, resolution, or scaling.
-*  
+*
 *  Discussion:
 *    This is the imageable area of the page without regard to
 *    resolution, orientation or scaling. Dimensions are returned as a 72dpi
 *    values.
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
 *    CarbonLib:        in CarbonLib 1.1 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMGetUnadjustedPageRect( pageFormat: PMPageFormat; var pageRect: PMRect ): OSStatus; external name '_PMGetUnadjustedPageRect';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
@@ -1183,24 +1183,24 @@ function PMGetUnadjustedPageRect( pageFormat: PMPageFormat; var pageRect: PMRect
 
 {
 *  PMGetUnadjustedPaperRect()
-*  
+*
 *  Summary:
 *    Obtains a rectangle that specifies the size of the paper in
 *    points, unaffected by rotation, resolution, or scaling.
-*  
+*
 *  Discussion:
 *    This is the physical size of the paper without regard to
 *    resolution, orientation or scaling. Dimensions are returned as a 72dpi
 *    values.
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
 *    CarbonLib:        in CarbonLib 1.1 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMGetUnadjustedPaperRect( pageFormat: PMPageFormat; var paperRect: PMRect ): OSStatus; external name '_PMGetUnadjustedPaperRect';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
@@ -1223,15 +1223,15 @@ function PMGetUnadjustedPaperRect( pageFormat: PMPageFormat; var paperRect: PMRe
 
 {
 *  PMSetOrientation()
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
 *    CarbonLib:        in CarbonLib 1.0 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMSetOrientation( pageFormat: PMPageFormat; orientation: PMOrientation; lock: Boolean ): OSStatus; external name '_PMSetOrientation';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
@@ -1239,15 +1239,15 @@ function PMSetOrientation( pageFormat: PMPageFormat; orientation: PMOrientation;
 
 {
 *  PMSetPageFormatExtendedData()
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
 *    CarbonLib:        in CarbonLib 1.0 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMSetPageFormatExtendedData( pageFormat: PMPageFormat; dataID: OSType; size: UInt32; extendedData: UnivPtr ): OSStatus; external name '_PMSetPageFormatExtendedData';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
@@ -1255,15 +1255,15 @@ function PMSetPageFormatExtendedData( pageFormat: PMPageFormat; dataID: OSType; 
 
 {
 *  PMSetScale()
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
 *    CarbonLib:        in CarbonLib 1.0 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMSetScale( pageFormat: PMPageFormat; scale: Float64 ): OSStatus; external name '_PMSetScale';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
@@ -1277,52 +1277,52 @@ function PMSetScale( pageFormat: PMPageFormat; scale: Float64 ): OSStatus; exter
 {$ifc PM_USE_SESSION_APIS}
 {
 *  PMCreatePrintSettings()
-*  
+*
 *  Summary:
 *    Allocates memory for a new PMPrintSettings object in your
 *    application’s memory space.
-*  
+*
 *  Discussion:
 *    A printSettings is created with a refcount of 1.
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
 *    CarbonLib:        in CarbonLib 1.1 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMCreatePrintSettings( var printSettings: PMPrintSettings ): OSStatus; external name '_PMCreatePrintSettings';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 {
 *  PMSessionDefaultPrintSettings()
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
 *    CarbonLib:        in CarbonLib 1.1 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMSessionDefaultPrintSettings( printSession: PMPrintSession; printSettings: PMPrintSettings ): OSStatus; external name '_PMSessionDefaultPrintSettings';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 {
 *  PMSessionValidatePrintSettings()
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
 *    CarbonLib:        in CarbonLib 1.1 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMSessionValidatePrintSettings( printSession: PMPrintSession; printSettings: PMPrintSettings; result: BooleanPtr ): OSStatus; external name '_PMSessionValidatePrintSettings';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
@@ -1331,15 +1331,15 @@ function PMSessionValidatePrintSettings( printSession: PMPrintSession; printSett
 
 {
 *  PMCopyPrintSettings()
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
 *    CarbonLib:        in CarbonLib 1.0 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMCopyPrintSettings( settingSrc: PMPrintSettings; settingDest: PMPrintSettings ): OSStatus; external name '_PMCopyPrintSettings';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
@@ -1347,27 +1347,27 @@ function PMCopyPrintSettings( settingSrc: PMPrintSettings; settingDest: PMPrintS
 
 {
 *  PMPrintSettingsCreateDataRepresentation()
-*  
+*
 *  Summary:
 *    Returns a data representation of a PMPrintSettings object as a CFDataRef.
 *    The caller is responsible for releasing the CFData object returned.
-*  
+*
 *  Discussion:
 *    This function is similar to PMFlattenPrintSettingsToCFData but allows you
-*    to specify the format of the data that is returned. Use  
-*    PMPrintSettingsCreateWithDataRepresentation to create a PMPrintSettings from 
+*    to specify the format of the data that is returned. Use
+*    PMPrintSettingsCreateWithDataRepresentation to create a PMPrintSettings from
 *    a CFDataRef created by this call.
 *
-*    See PMDataFormat for information about the available data formats.  
+*    See PMDataFormat for information about the available data formats.
 *
 *  Availability:
 *    Mac OS X:         in version 10.5 and later in ApplicationServices.framework
 *    CarbonLib:        not available
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMPrintSettingsCreateDataRepresentation( printSettings: PMPrintSettings; var data: CFDataRef; format: PMDataFormat ): OSStatus; external name '_PMPrintSettingsCreateDataRepresentation';
 (* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
@@ -1375,21 +1375,21 @@ function PMPrintSettingsCreateDataRepresentation( printSettings: PMPrintSettings
 
 {
 *  PMPrintSettingsCreateWithDataRepresentation()
-*  
+*
 *  Summary:
 *    Creates a PMPrintSettings object from a data representation created with
 *	  PMPrintSettingsCreateDataRepresentation. The caller is responsible
 *    for releasing the PMPrintSettings object returned with PMRelease.
-*    
-*  
+*
+*
 *  Availability:
 *    Mac OS X:         in version 10.5 and later in ApplicationServices.framework
 *    CarbonLib:        not available
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMPrintSettingsCreateWithDataRepresentation( data: CFDataRef; var printSettings: PMPrintSettings ): OSStatus; external name '_PMPrintSettingsCreateWithDataRepresentation';
 (* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
@@ -1398,15 +1398,15 @@ function PMPrintSettingsCreateWithDataRepresentation( data: CFDataRef; var print
 
 {
 *  PMGetCollate()
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework
 *    CarbonLib:        in CarbonLib 1.6 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMGetCollate( printSettings: PMPrintSettings; var collate: Boolean ): OSStatus; external name '_PMGetCollate';
 (* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
@@ -1414,15 +1414,15 @@ function PMGetCollate( printSettings: PMPrintSettings; var collate: Boolean ): O
 
 {
 *  PMGetCopies()
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
 *    CarbonLib:        in CarbonLib 1.0 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMGetCopies( printSettings: PMPrintSettings; var copies: UInt32 ): OSStatus; external name '_PMGetCopies';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
@@ -1430,15 +1430,15 @@ function PMGetCopies( printSettings: PMPrintSettings; var copies: UInt32 ): OSSt
 
 {
 *  PMGetDuplex()
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.4 and later in ApplicationServices.framework
 *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.4 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMGetDuplex( printSettings: PMPrintSettings; var duplexSetting: PMDuplexMode ): OSStatus; external name '_PMGetDuplex';
 (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
@@ -1446,15 +1446,15 @@ function PMGetDuplex( printSettings: PMPrintSettings; var duplexSetting: PMDuple
 
 {
 *  PMGetFirstPage()
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
 *    CarbonLib:        in CarbonLib 1.0 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMGetFirstPage( printSettings: PMPrintSettings; var first: UInt32 ): OSStatus; external name '_PMGetFirstPage';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
@@ -1462,15 +1462,15 @@ function PMGetFirstPage( printSettings: PMPrintSettings; var first: UInt32 ): OS
 
 {
 *  PMGetLastPage()
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
 *    CarbonLib:        in CarbonLib 1.0 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMGetLastPage( printSettings: PMPrintSettings; var last: UInt32 ): OSStatus; external name '_PMGetLastPage';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
@@ -1478,65 +1478,65 @@ function PMGetLastPage( printSettings: PMPrintSettings; var last: UInt32 ): OSSt
 
 {
 *  PMGetPageRange()
-*  
+*
 *  Summary:
 *    Obtains the valid range of pages that can be printed.
-*  
+*
 *  Discussion:
 *    The default page range is 1 - (all pages). The page range is
 *    something that is set by the application. It is NOT the first and
 *    last page to print. It serves as limits for setting the first and
 *    last page.
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
 *    CarbonLib:        in CarbonLib 1.0 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMGetPageRange( printSettings: PMPrintSettings; var minPage: UInt32; var maxPage: UInt32 ): OSStatus; external name '_PMGetPageRange';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 {
 *  PMPrintSettingsGetJobName()
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.4 and later in ApplicationServices.framework
 *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.4 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMPrintSettingsGetJobName( printSettings: PMPrintSettings; var name: CFStringRef ): OSStatus; external name '_PMPrintSettingsGetJobName';
 (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
 
 {
 *  PMPrintSettingsGetValue()
-*  
+*
 *  Parameters:
-*    
+*
 *    printSettings:
 *      The printsettings to retrieve the value from
-*    
+*
 *    key:
 *      The key to look for
-*    
+*
 *    value:
 *      The return value. Its either the value for the key or NULL
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.4 and later in ApplicationServices.framework
 *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.4 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMPrintSettingsGetValue( printSettings: PMPrintSettings; key: CFStringRef; var value: CFTypeRef ): OSStatus; external name '_PMPrintSettingsGetValue';
 (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
@@ -1545,15 +1545,15 @@ function PMPrintSettingsGetValue( printSettings: PMPrintSettings; key: CFStringR
 
 {
 *  PMSetCollate()
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework
 *    CarbonLib:        in CarbonLib 1.6 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMSetCollate( printSettings: PMPrintSettings; collate: Boolean ): OSStatus; external name '_PMSetCollate';
 (* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
@@ -1561,15 +1561,15 @@ function PMSetCollate( printSettings: PMPrintSettings; collate: Boolean ): OSSta
 
 {
 *  PMSetCopies()
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
 *    CarbonLib:        in CarbonLib 1.0 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMSetCopies( printSettings: PMPrintSettings; copies: UInt32; lock: Boolean ): OSStatus; external name '_PMSetCopies';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
@@ -1577,15 +1577,15 @@ function PMSetCopies( printSettings: PMPrintSettings; copies: UInt32; lock: Bool
 
 {
 *  PMSetDuplex()
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.4 and later in ApplicationServices.framework
 *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.4 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMSetDuplex( printSettings: PMPrintSettings; duplexSetting: PMDuplexMode ): OSStatus; external name '_PMSetDuplex';
 (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
@@ -1593,15 +1593,15 @@ function PMSetDuplex( printSettings: PMPrintSettings; duplexSetting: PMDuplexMod
 
 {
 *  PMSetFirstPage()
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
 *    CarbonLib:        in CarbonLib 1.0 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMSetFirstPage( printSettings: PMPrintSettings; first: UInt32; lock: Boolean ): OSStatus; external name '_PMSetFirstPage';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
@@ -1609,15 +1609,15 @@ function PMSetFirstPage( printSettings: PMPrintSettings; first: UInt32; lock: Bo
 
 {
 *  PMSetLastPage()
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
 *    CarbonLib:        in CarbonLib 1.0 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMSetLastPage( printSettings: PMPrintSettings; last: UInt32; lock: Boolean ): OSStatus; external name '_PMSetLastPage';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
@@ -1625,23 +1625,23 @@ function PMSetLastPage( printSettings: PMPrintSettings; last: UInt32; lock: Bool
 
 {
 *  PMSetPageRange()
-*  
+*
 *  Summary:
 *    Sets the valid range of pages that can be printed.
-*  
+*
 *  Discussion:
 *    The first and last page are immediately clipped to the new range.
 *    You may pass kPMPrintAllPages for the maxPage value to specified
 *    that all pages are available for printing.
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
 *    CarbonLib:        in CarbonLib 1.0 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMSetPageRange( printSettings: PMPrintSettings; minPage: UInt32; maxPage: UInt32 ): OSStatus; external name '_PMSetPageRange';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
@@ -1649,15 +1649,15 @@ function PMSetPageRange( printSettings: PMPrintSettings; minPage: UInt32; maxPag
 
 {
 *  PMPrintSettingsSetJobName()
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.4 and later in ApplicationServices.framework
 *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.4 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMPrintSettingsSetJobName( printSettings: PMPrintSettings; name: CFStringRef ): OSStatus; external name '_PMPrintSettingsSetJobName';
 (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
@@ -1665,31 +1665,31 @@ function PMPrintSettingsSetJobName( printSettings: PMPrintSettings; name: CFStri
 
 {
 *  PMPrintSettingsSetValue()
-*  
+*
 *  Parameters:
-*    
+*
 *    printSettings:
 *      The printsettings in which to set the value
-*    
+*
 *    key:
 *      The key to store the value in
-*    
+*
 *    value:
 *      The value to store in the key. If NULL, any existing setting item with
 *      the specified key is removed.
-*    
+*
 *    locked:
 *      A boolean value indicating whether the item being set should be
 *      locked. It is strongly recommended to pass false.
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.4 and later in ApplicationServices.framework
 *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.4 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMPrintSettingsSetValue( printSettings: PMPrintSettings; key: CFStringRef; value: CFTypeRef; locked: Boolean ): OSStatus; external name '_PMPrintSettingsSetValue';
 (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
@@ -1697,53 +1697,53 @@ function PMPrintSettingsSetValue( printSettings: PMPrintSettings; key: CFStringR
 
 {
 *  PMPrintSettingsCopyAsDictionary()
-*  
+*
 *  Parameters:
-*    
+*
 *    printSettings:
 *      Represent these print settings as a dictionary.
-*    
+*
 *    settingsDictionary:
 *      On exit, if successful *'settingsDictionary' will contain a reference to
 *      a CFDictionary describing the print settings. The caller is
 *      responsible for releasing this reference. If this call returns
 *      an error, then *'settingsDictionary' will be set to NULL.
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.5 and later in ApplicationServices.framework
 *    CarbonLib:        not available
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMPrintSettingsCopyAsDictionary( printSettings: PMPrintSettings; var settingsDictionary: CFDictionaryRef ): OSStatus; external name '_PMPrintSettingsCopyAsDictionary';
 (* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
 
 {
 *  PMPrintSettingsCopyKeys()
-*  
+*
 *  Parameters:
-*    
+*
 *    printSettings:
 *      Return the keys for items in this print settings.
-*    
+*
 *    settingsKeys:
 *      On exit, if successful *'settingsKeys' will contain a reference to
 *      a CFArray describing the item keys in the print settings. Each of these
 *		keys may be passed to PMPrintSettingsGetValue() to obtain a value.
 *		The caller is responsible for releasing this reference. If this call returns
 *      an error, then *'settingsKeys' will be set to NULL.
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.5 and later in ApplicationServices.framework
 *    CarbonLib:        not available
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMPrintSettingsCopyKeys( printSettings: PMPrintSettings; var settingsKeys: CFArrayRef ): OSStatus; external name '_PMPrintSettingsCopyKeys';
 (* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
@@ -1768,39 +1768,39 @@ function PMPrintSettingsCopyKeys( printSettings: PMPrintSettings; var settingsKe
 *    Mac OS X:         in version 10.5 and later in ApplicationServices.framework
 *    CarbonLib:        not available
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMCreateGenericPrinter( var printer: PMPrinter ): OSStatus; external name '_PMCreateGenericPrinter';
 (* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
 
 {
 *  PMServerCreatePrinterList()
-*  
+*
 *  Summary:
 *    Hand back an array of PMPrinter objects that represents the list of printers
 *    known to the specified print server.
 *
 *  Parameters:
-*    
+*
 *    server:
 *      The print server for which you want to obtain the list of printers.
 *      Use kPMServerLocal for the local print server.
-*    
+*
 *    printerList:
 *      On return, *printerList contains the array of PMPrinter objects returned. The
 *	caller is responsible for releasing this array. On error, *printerList is NULL.
-*    
+*
 *  Availability:
 *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework
 *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMServerCreatePrinterList( server: PMServer; var printerList: CFArrayRef ): OSStatus; external name '_PMServerCreatePrinterList';
 (* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
@@ -1808,63 +1808,63 @@ function PMServerCreatePrinterList( server: PMServer; var printerList: CFArrayRe
 
 {
 *  PMServerLaunchPrinterBrowser()
-*  
+*
 *  Summary:
 *    Launch the printer browser, browsing the printers available for
 *    the specified print server.
 *
 *  Parameters:
-*    
+*
 *    server:
 *      The print server whose available printers the browser should browse.
 *      Pass kPMServerLocal for the local print server.
-*    
+*
 *    options:
-*      A CFDictionaryRef specifying how the browser should be presented. 
-*      Passing NULL presents the browser in the default fashion. 
+*      A CFDictionaryRef specifying how the browser should be presented.
+*      Passing NULL presents the browser in the default fashion.
 *
 *  Discussion:	The local print server allows its printers to be browsed but
 *		not all print servers do. Passing in a server whose printers cannot be
 *      browsed returns the error code kPMInvalidParameter.
-*    
+*
 *  Availability:
 *    Mac OS X:         in version 10.5 and later in ApplicationServices.framework
 *    CarbonLib:        not available
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMServerLaunchPrinterBrowser( server: PMServer; options: CFDictionaryRef ): OSStatus; external name '_PMServerLaunchPrinterBrowser';
 (* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
 
 {
 *  PMPrinterCreateFromPrinterID()
-*  
+*
 *  Summary:
 *    Create a PMPrinter instance from the supplied printerID.
-*  
+*
 *  Discussion:
 *    Returns a PMPrinter instance for the printer whose ID is
 *    printerID. The caller is responsible for releasing this instance
 *    with PMRelease. The PMPrinter instance returned will be NULL if
 *    there is no printer available which corresponds to the supplied
 *    printerID.
-*  
+*
 *  Parameters:
-*    
+*
 *    printerID:
 *      The printerID for the printer for which you want the PMPrinter.
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.4 and later in ApplicationServices.framework
 *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.4 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMPrinterCreateFromPrinterID( printerID: CFStringRef ): PMPrinter; external name '_PMPrinterCreateFromPrinterID';
 (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
@@ -1872,18 +1872,18 @@ function PMPrinterCreateFromPrinterID( printerID: CFStringRef ): PMPrinter; exte
 
 {
 *  PMPrinterCopyDescriptionURL()
-*  
+*
 *  Summary:
 *    Hand back a URL to the printer's PostScript Printer Description (PPD) file in fileURL.
-*  
+*
 *  Parameters:
-*    
+*
 *    printer:
 *      The printer whose PPD will be returned.
-*    
+*
 *    descriptionType:
 *      The type of description desired. Only kPMPPDDescriptionType is currently supported.
-*    
+*
 *    fileURL:
 *      A pointer to storage for a CFURL reference that will be returned. The caller is responsible
 *      for releasing the reference returned. If this call returns an error, then *fileURL will
@@ -1897,10 +1897,10 @@ function PMPrinterCreateFromPrinterID( printerID: CFStringRef ): PMPrinter; exte
 *    Mac OS X:         in version 10.4 and later in ApplicationServices.framework
 *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.4 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMPrinterCopyDescriptionURL( printer: PMPrinter; descriptionType: CFStringRef; var fileURL: CFURLRef ): OSStatus; external name '_PMPrinterCopyDescriptionURL';
 (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
@@ -1908,29 +1908,29 @@ function PMPrinterCopyDescriptionURL( printer: PMPrinter; descriptionType: CFStr
 
 {
 *  PMPrinterCopyDeviceURI()
-*  
+*
 *  Summary:
 *    Hand back the URI of the printer's device.
-*  
+*
 *  Parameters:
-*    
+*
 *    printer:
 *      The printer whose device URI is to be retrieved.
-*    
+*
 *    deviceURI:
 *      On exit, if successful *'deviceURI' will contain a reference to
 *      a CFURL describing the printer's device. The caller is
 *      responsible for releasing this reference. If this call returns
 *      an error, then *'deviceURI' will be set to NULL.
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.4 and later in ApplicationServices.framework
 *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.4 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMPrinterCopyDeviceURI( printer: PMPrinter; var deviceURI: CFURLRef ): OSStatus; external name '_PMPrinterCopyDeviceURI';
 (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
@@ -1938,7 +1938,7 @@ function PMPrinterCopyDeviceURI( printer: PMPrinter; var deviceURI: CFURLRef ): 
 
 {
 *  PMPrinterCopyHostName()
-*  
+*
 *  Summary:
 *    Hand back the host name of the print server hosting the printer's print queue.
 *
@@ -1946,10 +1946,10 @@ function PMPrinterCopyDeviceURI( printer: PMPrinter; var deviceURI: CFURLRef ): 
 *    Mac OS X:         in version 10.3 and later in ApplicationServices.framework
 *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMPrinterCopyHostName( printer: PMPrinter; var hostNameP: CFStringRef ): OSStatus; external name '_PMPrinterCopyHostName';
 (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
@@ -1957,38 +1957,38 @@ function PMPrinterCopyHostName( printer: PMPrinter; var hostNameP: CFStringRef )
 
 {
 *  PMPrinterCopyPresets()
-*  
+*
 *  Summary:
 *    Provides a list of print settings presets for the specified
 *    printer.
-*  
+*
 *  Discussion:
 *    A printer may have associated with it a list of preset settings.
 *    Each setting is optimized for a particular printing situation.
 *    This function returns all of the presets for a given printer. To
 *    obtain more information about a particular preset see
 *    PMPresetGetAttributes().
-*  
+*
 *  Parameters:
-*    
+*
 *    printer:
 *      Obtain the presets for this printer.
-*    
+*
 *    presetList:
 *      On exit, *'presetList' is set to reference an array of presets.
 *      The caller must call CFRelease when it no longer needs the
 *      array. Each element of the array is a PMPreset. If this
 *      function fails, returning a non-zero error code, then
 *      *'presetList' will be set to NULL.
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.3 and later in ApplicationServices.framework
 *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMPrinterCopyPresets( printer: PMPrinter; var presetList: CFArrayRef ): OSStatus; external name '_PMPrinterCopyPresets';
 (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
@@ -1996,11 +1996,11 @@ function PMPrinterCopyPresets( printer: PMPrinter; var presetList: CFArrayRef ):
 
 {
 *  PMPrinterGetCommInfo()
-*  
+*
 *  Summary:
 *    Provides information about the comm channel characteristics for
 *    the printer.
-*  
+*
 *  Discussion:
 *    This function is typically relevant only to PostScript capable
 *    printers. All PostScript printers, regardless of what
@@ -2012,30 +2012,30 @@ function PMPrinterCopyPresets( printer: PMPrinter; var presetList: CFArrayRef ):
 *    *supportsEightBitP indicates whether the comm channel to this
 *    printer supports bytes with the high bit set, i.e. bytes in the
 *    range 0x80 - 0xFF.
-*  
+*
 *  Parameters:
-*    
+*
 *    printer:
 *      Obtain the comm information for this printer.
-*    
+*
 *    supportsControlCharRangeP:
 *      Storage for the returned Boolean indicating whether the comm
 *      channel to this printer can accept data bytes in the range
 *      0x0 - 0x1F
-*    
+*
 *    supportsEightBitP:
 *      Storage for the returned Boolean indicating whether the comm
-*      channel to this printer can accept data bytes in the range 
+*      channel to this printer can accept data bytes in the range
 *      0x80 - 0xFF
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.3 and later in ApplicationServices.framework
 *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMPrinterGetCommInfo( printer: PMPrinter; var supportsControlCharRangeP: Boolean; var supportsEightBitP: Boolean ): OSStatus; external name '_PMPrinterGetCommInfo';
 (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
@@ -2043,15 +2043,15 @@ function PMPrinterGetCommInfo( printer: PMPrinter; var supportsControlCharRangeP
 
 {
 *  PMPrinterGetID()
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework
 *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMPrinterGetID( printer: PMPrinter ): CFStringRef; external name '_PMPrinterGetID';
 (* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
@@ -2059,15 +2059,15 @@ function PMPrinterGetID( printer: PMPrinter ): CFStringRef; external name '_PMPr
 
 {
 *  PMPrinterGetLocation()
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework
 *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMPrinterGetLocation( printer: PMPrinter ): CFStringRef; external name '_PMPrinterGetLocation';
 (* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
@@ -2075,15 +2075,15 @@ function PMPrinterGetLocation( printer: PMPrinter ): CFStringRef; external name 
 
 {
 *  PMPrinterGetDriverCreator()
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
 *    CarbonLib:        in CarbonLib 1.1 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMPrinterGetDriverCreator( printer: PMPrinter; var creator: OSType ): OSStatus; external name '_PMPrinterGetDriverCreator';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
@@ -2091,15 +2091,15 @@ function PMPrinterGetDriverCreator( printer: PMPrinter; var creator: OSType ): O
 
 {
 *  PMPrinterGetDriverReleaseInfo()
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
 *    CarbonLib:        in CarbonLib 1.1 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMPrinterGetDriverReleaseInfo( printer: PMPrinter; var release: VersRec ): OSStatus; external name '_PMPrinterGetDriverReleaseInfo';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
@@ -2107,15 +2107,15 @@ function PMPrinterGetDriverReleaseInfo( printer: PMPrinter; var release: VersRec
 
 {
 *  PMPrinterGetPrinterResolutionCount()
-*  
+*
 *  Summary:
-*    Provides the number of available hardware resolution settings a printer supports. 
-*  
+*    Provides the number of available hardware resolution settings a printer supports.
+*
 *  Parameters:
-*    
+*
 *    printer:
 *      Obtain the resolution count for this printer.
-*    
+*
 *    countP:
 *      Storage for the returned count indicating the number of available hardware
 *      resolution settings for the specified printer.
@@ -2124,30 +2124,30 @@ function PMPrinterGetDriverReleaseInfo( printer: PMPrinter; var release: VersRec
 *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
 *    CarbonLib:        in CarbonLib 1.1 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMPrinterGetPrinterResolutionCount( printer: PMPrinter; var countP: UInt32 ): OSStatus; external name '_PMPrinterGetPrinterResolutionCount';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 {
 *  PMPrinterGetIndexedPrinterResolution()
-*  
+*
 *  Summary:
 *    Together with PMPrinterGetPrinterResolutionCount, allows iterating over the
-*    hardware resolution settings a printer supports. 
-*  
+*    hardware resolution settings a printer supports.
+*
 *  Parameters:
-*    
+*
 *    printer:
 *      The printer of interest.
-*    
+*
 *    index:
 *      The index of the resolution to return. The minimum value for index is 1 and
 *      the maximum value of index is the count returned by PMPrinterGetPrinterResolutionCount.
-*    
+*
 *    resolutionP:
 *      Storage for the returned PMResolution data.
 *
@@ -2155,10 +2155,10 @@ function PMPrinterGetPrinterResolutionCount( printer: PMPrinter; var countP: UIn
 *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
 *    CarbonLib:        in CarbonLib 1.1 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMPrinterGetIndexedPrinterResolution( printer: PMPrinter; index: UInt32; var resolutionP: PMResolution ): OSStatus; external name '_PMPrinterGetIndexedPrinterResolution';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
@@ -2166,11 +2166,11 @@ function PMPrinterGetIndexedPrinterResolution( printer: PMPrinter; index: UInt32
 
 {
 *  PMPrinterGetOutputResolution()
-*  
+*
 *  Summary:
 *    Obtain the printer hardware output resolution for the supplied
-*    printer and print settings. 
-*  
+*    printer and print settings.
+*
 *  Discussion:
 *    Some printers allow programmatic control of their hardware output
 *    resolution on a print job basis. The hardware resolution is determined
@@ -2178,24 +2178,24 @@ function PMPrinterGetIndexedPrinterResolution( printer: PMPrinter; index: UInt32
 *    PMPrinterGetOutputResolution returns the best guess as to what printer
 *    resolution setting will be used for the destination print job. If the
 *    resolution setting cannot be reliably determined this function returns
-*    kPMKeyNotFound. 
-*  
+*    kPMKeyNotFound.
+*
 *    Most applications do not need to use this function since they draw the same
 *    content regardless of the destination device. For those few applications that
 *    do adjust their drawing based on the output device, they should only do so
 *    when the print job destination is kPMDestinationPrinter or kPMDestinationFax.
-*  
+*
 *    This call should be used after displaying the print dialog to the user so
 *    that it correctly reflects settings changes performed prior to printing.
-*  
+*
 *  Parameters:
-*    
+*
 *    printer:
 *      The destination printer.
-*    
+*
 *    printSettings:
 *      The print settings from which to obtain the printer hardware output resolution.
-*    
+*
 *    resolutionP:
 *      Storage for the returned PMResolution data.
 *
@@ -2203,21 +2203,21 @@ function PMPrinterGetIndexedPrinterResolution( printer: PMPrinter; index: UInt32
 *    Mac OS X:         in version 10.5 and later in ApplicationServices.framework
 *    CarbonLib:        not available
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMPrinterGetOutputResolution( printer: PMPrinter; printSettings: PMPrintSettings; var resolutionP: PMResolution ): OSStatus; external name '_PMPrinterGetOutputResolution';
 (* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
 
 {
 *  PMPrinterSetOutputResolution()
-*  
+*
 *  Summary:
 *    Set the printer hardware output resolution in the print settings
-*    for the supplied printer. 
-*  
+*    for the supplied printer.
+*
 *  Discussion:
 *    Some printers allow programmatic control of their hardware output
 *    resolution on a print job basis. The hardware resolution is determined
@@ -2226,17 +2226,17 @@ function PMPrinterGetOutputResolution( printer: PMPrinter; printSettings: PMPrin
 *    resolution setting that can be used for the destination print job. Note
 *    that not all printers allow control of their resolution setting.
 *
-*    This function is rarely used since most applications do not set the output 
+*    This function is rarely used since most applications do not set the output
 *    resolution but instead use the setting supplied by the user in the print dialog.
-*  
+*
 *  Parameters:
-*    
+*
 *    printer:
 *      The destination printer.
-*    
+*
 *    printSettings:
 *      The print settings in which to set the hardware resolution.
-*    
+*
 *    resolutionP:
 *      A pointer to the PMResolution to use to set the hardware output resolution.
 *
@@ -2244,10 +2244,10 @@ function PMPrinterGetOutputResolution( printer: PMPrinter; printSettings: PMPrin
 *    Mac OS X:         in version 10.5 and later in ApplicationServices.framework
 *    CarbonLib:        not available
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMPrinterSetOutputResolution( printer: PMPrinter; printSettings: PMPrintSettings; const (*var*) resolutionP: PMResolution ): OSStatus; external name '_PMPrinterSetOutputResolution';
 (* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
@@ -2255,15 +2255,15 @@ function PMPrinterSetOutputResolution( printer: PMPrinter; printSettings: PMPrin
 
 {
 *  PMPrinterGetLanguageInfo()
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
 *    CarbonLib:        in CarbonLib 1.1 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMPrinterGetLanguageInfo( printer: PMPrinter; var info: PMLanguageInfo ): OSStatus; external name '_PMPrinterGetLanguageInfo';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
@@ -2271,15 +2271,15 @@ function PMPrinterGetLanguageInfo( printer: PMPrinter; var info: PMLanguageInfo 
 
 {
 *  PMPrinterGetMakeAndModelName()
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework
 *    CarbonLib:        in CarbonLib 1.6 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMPrinterGetMakeAndModelName( printer: PMPrinter; var makeAndModel: CFStringRef ): OSStatus; external name '_PMPrinterGetMakeAndModelName';
 (* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
@@ -2287,21 +2287,21 @@ function PMPrinterGetMakeAndModelName( printer: PMPrinter; var makeAndModel: CFS
 
 {
 *  PMPrinterGetMimeTypes()
-*  
+*
 *  Summary:
 *    Return the array of mime type supported by the printer for a
 *    given set of print settings.
-*  
+*
 *  Parameters:
-*    
+*
 *    printer:
 *      The printer.
-*    
+*
 *    settings:
 *      The print settings for the print job. The part of the print
 *      settings that effects the available mime type is the
 *      destination. This parameter can be NULL.
-*    
+*
 *    mimeTypes:
 *      If this function returns without error then *'mimeTypes' is
 *      filled in with a reference to an array of CFStrings. Each
@@ -2309,15 +2309,15 @@ function PMPrinterGetMakeAndModelName( printer: PMPrinter; var makeAndModel: CFS
 *      specified print settings. The caller must not release this
 *      reference without first doing a retain. If this function
 *      returns an error then 'mimeTypes' will be set to NULL.
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.3 and later in ApplicationServices.framework
 *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMPrinterGetMimeTypes( printer: PMPrinter; settings: PMPrintSettings; var mimeTypes: CFArrayRef ): OSStatus; external name '_PMPrinterGetMimeTypes';
 (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
@@ -2325,15 +2325,15 @@ function PMPrinterGetMimeTypes( printer: PMPrinter; settings: PMPrintSettings; v
 
 {
 *  PMPrinterGetName()
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework
 *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMPrinterGetName( printer: PMPrinter ): CFStringRef; external name '_PMPrinterGetName';
 (* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
@@ -2341,28 +2341,28 @@ function PMPrinterGetName( printer: PMPrinter ): CFStringRef; external name '_PM
 
 {
 *  PMPrinterGetPaperList()
-*  
+*
 *  Summary:
 *    Returns the list of papers available for a given printer.
-*  
+*
 *  Parameters:
-*    
+*
 *    printer:
 *      Obtain the paper list for this printer.
-*    
+*
 *    paperList:
 *      If successful noErr is returned and *paperList is a CFArray of
 *      PMPapers representing the list of papers available for the
 *      printer.
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.3 and later in ApplicationServices.framework
 *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMPrinterGetPaperList( printer: PMPrinter; var paperList: CFArrayRef ): OSStatus; external name '_PMPrinterGetPaperList';
 (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
@@ -2370,15 +2370,15 @@ function PMPrinterGetPaperList( printer: PMPrinter; var paperList: CFArrayRef ):
 
 {
 *  PMPrinterGetState()
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework
 *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMPrinterGetState( printer: PMPrinter; var state: PMPrinterState ): OSStatus; external name '_PMPrinterGetState';
 (* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
@@ -2386,15 +2386,15 @@ function PMPrinterGetState( printer: PMPrinter; var state: PMPrinterState ): OSS
 
 {
 *  PMPrinterIsDefault()
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework
 *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMPrinterIsDefault( printer: PMPrinter ): Boolean; external name '_PMPrinterIsDefault';
 (* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
@@ -2402,18 +2402,18 @@ function PMPrinterIsDefault( printer: PMPrinter ): Boolean; external name '_PMPr
 
 {
 *  PMPrinterIsFavorite()
-*  
+*
 *  Summary:
 *    Return true if the printer is in the user's favorite printer list.
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework
 *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMPrinterIsFavorite( printer: PMPrinter ): Boolean; external name '_PMPrinterIsFavorite';
 (* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
@@ -2421,15 +2421,15 @@ function PMPrinterIsFavorite( printer: PMPrinter ): Boolean; external name '_PMP
 
 {
 *  PMPrinterIsPostScriptCapable()
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework
 *    CarbonLib:        in CarbonLib 1.6 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMPrinterIsPostScriptCapable( printer: PMPrinter ): Boolean; external name '_PMPrinterIsPostScriptCapable';
 (* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
@@ -2444,10 +2444,10 @@ function PMPrinterIsPostScriptCapable( printer: PMPrinter ): Boolean; external n
 *    Mac OS X:         in version 10.5 and later in ApplicationServices.framework
 *    CarbonLib:        not available
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMPrinterIsPostScriptPrinter( printer: PMPrinter; var isPSPrinter: Boolean ): OSStatus; external name '_PMPrinterIsPostScriptPrinter';
 (* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
@@ -2455,10 +2455,10 @@ function PMPrinterIsPostScriptPrinter( printer: PMPrinter; var isPSPrinter: Bool
 
 {
 *  PMPrinterIsRemote()
-*  
+*
 *  Summary:
 *    Hand back a boolean indicating whether the printer is hosted by remote print server.
-*  
+*
 *  Discussion:
 *    If on return *isRemoteP is true, the print queue represents a printer hosted and
 *    managed by a remote print server.
@@ -2469,15 +2469,15 @@ function PMPrinterIsPostScriptPrinter( printer: PMPrinter; var isPSPrinter: Bool
 *    with the printer.
 *
 *    Whether a printer is remote is derived from the CUPS printer-type attribute for the print queue.
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.3 and later in ApplicationServices.framework
 *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMPrinterIsRemote( printer: PMPrinter; var isRemoteP: Boolean ): OSStatus; external name '_PMPrinterIsRemote';
 (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
@@ -2485,28 +2485,28 @@ function PMPrinterIsRemote( printer: PMPrinter; var isRemoteP: Boolean ): OSStat
 
 {
 *  PMPrinterSetDefault()
-*  
+*
 *  Summary:
 *    Set the default printer for the current user.
-*  
+*
 *  Parameters:
-*    
+*
 *    printer:
 *      The printer to set as the default printer.
-*  
+*
 *  Special considerations:
 *      It is not typical for an application to set the current default printer
 *      for the user; the printing system itself takes care of managing the default printer.
 *      This function should be used only in rare circumstances.
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.5 and later in ApplicationServices.framework
 *    CarbonLib:        not available
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMPrinterSetDefault( printer: PMPrinter ): OSStatus; external name '_PMPrinterSetDefault';
 (* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
@@ -2518,28 +2518,28 @@ function PMPrinterSetDefault( printer: PMPrinter ): OSStatus; external name '_PM
 *)
 {
 *  PMPresetCopyName()
-*  
+*
 *  Summary:
 *    Hand back a copy of the localized name for the specified preset.
-*  
+*
 *  Parameters:
-*    
+*
 *    preset:
 *      The preset whose name is needed.
-*    
+*
 *    name:
 *      On exit, if this routine succeeds, *'name' is filled in with a
 *      reference to a localized string with the preset's name. If this
 *      routine fails, then *'name' is set to NULL.
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.3 and later in ApplicationServices.framework
 *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMPresetCopyName( preset: PMPreset; var name: CFStringRef ): OSStatus; external name '_PMPresetCopyName';
 (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
@@ -2547,33 +2547,33 @@ function PMPresetCopyName( preset: PMPreset; var name: CFStringRef ): OSStatus; 
 
 {
 *  PMPresetCreatePrintSettings()
-*  
+*
 *  Summary:
 *    Create a print settings conforming to the specified print
 *    settings preset.
-*  
+*
 *  Parameters:
-*    
+*
 *    preset:
 *      A preset specifying a set of initial print settings.
-*    
+*
 *    session:
 *      A valid print session.
-*    
+*
 *    printSettings:
 *      On exit, *'printSettings' is set to a newly created print
 *      settings that contains the settings specified by 'preset'. The
 *      caller is responsible for calling PMRelease when the print
 *      settings are no longer needed.
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.3 and later in ApplicationServices.framework
 *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMPresetCreatePrintSettings( preset: PMPreset; session: PMPrintSession; var printSettings: PMPrintSettings ): OSStatus; external name '_PMPresetCreatePrintSettings';
 (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
@@ -2581,36 +2581,36 @@ function PMPresetCreatePrintSettings( preset: PMPreset; session: PMPrintSession;
 
 {
 *  PMPresetGetAttributes()
-*  
+*
 *  Summary:
 *    Hand back the meta-data describing a given preset.
-*  
+*
 *  Discussion:
 *    Each preset has associated with it a dictionary containing
 *    meta-data. The meta-data provides the preset's id, the preset's
 *    localized names, and descriptions of the environment for which
 *    the preset it intended.
-*  
+*
 *  Parameters:
-*    
+*
 *    preset:
 *      A print settings preset as obtained from PMPrinterCopyPresets().
-*    
+*
 *    attributes:
 *      On exit, *'attributes' is set to reference a dictionary
 *      containing the preset's meta-data. The caller is responsible
 *      for retaining this reference if it is to be used beyond the
 *      lifetime of 'preset'. If this function fails, returning a
 *      non-zero error code, then *'attributes' is set to NULL.
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.3 and later in ApplicationServices.framework
 *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMPresetGetAttributes( preset: PMPreset; var attributes: CFDictionaryRef ): OSStatus; external name '_PMPresetGetAttributes';
 (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
@@ -2622,28 +2622,28 @@ function PMPresetGetAttributes( preset: PMPreset; var attributes: CFDictionaryRe
 *)
 {
 *  PMGetPageFormatPaper()
-*  
+*
 *  Summary:
 *    Returns the paper associated with a pageformat.
-*  
+*
 *  Parameters:
-*    
+*
 *    format:
 *      Obtain the paper for this pageformat.
-*    
+*
 *    paper:
 *      If successful noErr is returned and *paper will contain a
 *      PMPaper object describing the current paper associated with the
 *      pageformat.
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.3 and later in ApplicationServices.framework
 *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMGetPageFormatPaper( format: PMPageFormat; var paper: PMPaper ): OSStatus; external name '_PMGetPageFormatPaper';
 (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
@@ -2651,130 +2651,130 @@ function PMGetPageFormatPaper( format: PMPageFormat; var paper: PMPaper ): OSSta
 
 {
 *  PMPaperCreateCustom()
-*  
+*
 *  Summary:
 *    Create a new custom paper instance.
-*  
+*
 *  Parameters:
-*    
+*
 *    printer:
 *      The new paper size is appropriate for this printer.
-*    
+*
 *    id:
 *      A unique identifier for this paper type.
-*    
+*
 *    name:
 *      The name to display to the user for this paper type.
-*    
+*
 *    width:
 *      The width, in points, of the paper.
-*    
+*
 *    height:
 *      The height, in points, of the paper.
-*    
+*
 *    margins:
 *      The unprintable margins on the paper.
-*    
+*
 *    paperP:
 *      if this function is successful, returning noErr, then *'paperP'
 *      is set to be a reference to a newly created PMPaper instance.
 *      The caller is responsible for calling PMRelease when the
 *      instance is no longer needed. If this functions fails, it will
 *      return a non-zero error and set *'paperP' to NULL.
-*  
+*
 *  Discussion:
 *		This function creates a new custom paper instance. To obtain one of the available
 *		built-in paper sizes for a given printer, use PMPrinterGetPaperList.
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.5 and later in ApplicationServices.framework
 *    CarbonLib:        not available
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMPaperCreateCustom( printer: PMPrinter; id: CFStringRef; name: CFStringRef; width: Float64; height: Float64; const (*var*) margins: PMPaperMargins; var paperP: PMPaper ): OSStatus; external name '_PMPaperCreateCustom';
 (* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
 
 {
 *  PMPaperGetWidth()
-*  
+*
 *  Summary:
 *    Returns the width for a given paper.
-*  
+*
 *  Parameters:
-*    
+*
 *    paper:
 *      Obtain the width for this paper.
-*    
+*
 *    paperWidth:
 *      If successful noErr is returned and *paperWidth is set to the
 *      width of the paper.
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.3 and later in ApplicationServices.framework
 *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMPaperGetWidth( paper: PMPaper; var paperWidth: Float64 ): OSStatus; external name '_PMPaperGetWidth';
 (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
 
 {
 *  PMPaperGetHeight()
-*  
+*
 *  Summary:
 *    Returns the height for a given paper.
-*  
+*
 *  Parameters:
-*    
+*
 *    paper:
 *      Obtain the height for this paper.
-*    
+*
 *    paperHeight:
 *      If successful noErr is returned and *paperHeight is set to the
 *      height of the paper.
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.3 and later in ApplicationServices.framework
 *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMPaperGetHeight( paper: PMPaper; var paperHeight: Float64 ): OSStatus; external name '_PMPaperGetHeight';
 (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
 
 {
 *  PMPaperGetMargins()
-*  
+*
 *  Summary:
 *    Returns the margins for a given paper.
-*  
+*
 *  Parameters:
-*    
+*
 *    paper:
 *      Obtain the margin information for this paper.
-*    
+*
 *    paperMargins:
 *      If successful noErr is returned and *paperMargins is set to the
 *      margins of the paper.
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.3 and later in ApplicationServices.framework
 *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMPaperGetMargins( paper: PMPaper; var paperMargins: PMPaperMargins ): OSStatus; external name '_PMPaperGetMargins';
 (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
@@ -2782,60 +2782,60 @@ function PMPaperGetMargins( paper: PMPaper; var paperMargins: PMPaperMargins ): 
 
 {
 *  PMPaperGetID()
-*  
+*
 *  Summary:
 *    Returns the id for a given paper.
-*  
+*
 *  Parameters:
-*    
+*
 *    paper:
 *      Obtain the id for this paper.
-*    
+*
 *    paperID:
 *      If successful noErr is returned and *paperID is set to the id
 *      of the paper.
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.3 and later in ApplicationServices.framework
 *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMPaperGetID( paper: PMPaper; var paperID: CFStringRef ): OSStatus; external name '_PMPaperGetID';
 (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
 
 {
 *  PMPaperGetPPDPaperName()
-*  
+*
 *  Summary:
 *    Returns the PPD name for a given paper.
-*  
+*
 *  Parameters:
-*    
+*
 *    paper:
 *      Obtain the PPD name for this paper.
-*    
+*
 *    paperName:
 *      If successful, noErr is returned and *paperName is set to the
 *      PPD name of the paper. The returned result may be NULL.
-*  
+*
 *  Discussion:
 *      The Mac OS X printing system uses a PostScript Printer Description (PPD)
 *      file to describe a given printer and print queue for that printer. The
 *      PPD name is the name that uniquely identifies a given paper
-*      to the printer to which the paper corresponds. 
-*    
+*      to the printer to which the paper corresponds.
+*
 *  Availability:
 *    Mac OS X:         in version 10.5 and later in ApplicationServices.framework
 *    CarbonLib:        not available
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMPaperGetPPDPaperName( paper: PMPaper; var paperName: CFStringRef ): OSStatus; external name '_PMPaperGetPPDPaperName';
 (* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
@@ -2843,85 +2843,85 @@ function PMPaperGetPPDPaperName( paper: PMPaper; var paperName: CFStringRef ): O
 
 {
 *  PMPaperCreateLocalizedName()
-*  
+*
 *  Summary:
-*    Returns the localized name for a given paper. 
+*    Returns the localized name for a given paper.
 *    Use of PMPaperCreateLocalizedName
 *    is recommended instead of PMPaperGetName.
-*  
+*
 *  Parameters:
-*    
+*
 *    paper:
 *      Obtain the localized name for this paper.
-*    
+*
 *    printer:
 *      The printer for which the localization should be performed.
-*    
+*
 *    paperName:
 *      If successful, noErr is returned and *paperName is set to the
 *      localized name of the paper. The returned paper name is that appropriate
 *      to display to a user. The returned result may be NULL.
-*      If non-NULL, the caller is responsible for releasing the name returned. 
-*  
+*      If non-NULL, the caller is responsible for releasing the name returned.
+*
 *  Availability:
 *    Mac OS X:         in version 10.5 and later in ApplicationServices.framework
 *    CarbonLib:        not available
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMPaperCreateLocalizedName( paper: PMPaper; printer: PMPrinter; var paperName: CFStringRef ): OSStatus; external name '_PMPaperCreateLocalizedName';
 (* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
 
 {
 *  PMPaperGetPrinterID()
-*  
+*
 *  Summary:
 *    Returns the printerID of the printer for which the paper corresponds.
-*  
+*
 *  Parameters:
-*    
+*
 *    paper:
 *      Obtain the printer ID for this paper.
-*    
+*
 *    printerID:
 *      If successful, noErr is returned and *printerID is set to the
 *      ID of the printer for which the paper corresponds. The returned
-*      result may be NULL. 
-*  
+*      result may be NULL.
+*
 *  Availability:
 *    Mac OS X:         in version 10.5 and later in ApplicationServices.framework
 *    CarbonLib:        not available
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMPaperGetPrinterID( paper: PMPaper; var printerID: CFStringRef ): OSStatus; external name '_PMPaperGetPrinterID';
 (* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
 
 {
 *  PMPaperIsCustom()
-*  
+*
 *  Summary:
 *    Returns true if the paper is a custom paper.
-*  
+*
 *  Parameters:
-*    
+*
 *    paper:
 *      Determines if this is a custom paper.
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.5 and later in ApplicationServices.framework
 *    CarbonLib:        not available
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMPaperIsCustom( paper: PMPaper ): Boolean; external name '_PMPaperIsCustom';
 (* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
@@ -2933,13 +2933,13 @@ function PMPaperIsCustom( paper: PMPaper ): Boolean; external name '_PMPaperIsCu
 *)
 {
 *  PMWorkflowCopyItems()
-*  
+*
 *  Summary:
 *    Hand back an array of dictionaries describing the PDF Workflow
 *    items installed on the system
-*  
+*
 *  Parameters:
-*    
+*
 *    workflowItems:
 *      If this function returns without error then *'workflowItems'
 *      will be filled in with a reference to an array. It is the
@@ -2955,15 +2955,15 @@ function PMPaperIsCustom( paper: PMPaper ): Boolean; external name '_PMPaperIsCu
 *      folder. items - A CFArrayRef describing the workflow items in
 *      the folder. If this function returns a non-zero error code then
 *      *'workflowItems' will be set to NULL.
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.3 and later in ApplicationServices.framework
 *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMWorkflowCopyItems( var workflowItems: CFArrayRef ): OSStatus; external name '_PMWorkflowCopyItems';
 (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
@@ -2971,19 +2971,19 @@ function PMWorkflowCopyItems( var workflowItems: CFArrayRef ): OSStatus; externa
 
 {
 *  PMWorkflowSubmitPDFWithOptions()
-*  
+*
 *  Summary:
 *    Submit a PDF file for workflow processing.
-*  
+*
 *  Discussion:
 *    The print dialog uses this function is conjunction with
 *    PMWorkflowGetItems to implement the PDF workflow button. Caller's
 *    can use PMWorkflowGetItems to obtain a CFURLRef that can be
 *    passed to PMWorkflowPDF or they can create a CFURLRef to another
 *    file system item.
-*  
+*
 *  Parameters:
-*    
+*
 *    workflowItem:
 *      A file system URL pointing to the workflow item that will
 *      handle the PDF file. Here are the different types of workflow
@@ -2994,27 +2994,27 @@ function PMWorkflowCopyItems( var workflowItems: CFArrayRef ): OSStatus; externa
 *      run with an open event along with a reference to the PDF file.
 *      executable tool: The tool is run with the following parameters:
 *      title options pdfFile
-*    
+*
 *    title:
 *      The user displayable name of the document.
-*    
+*
 *    options:
 *      A string of CUPS style key-value pairs that may be passed to
 *      the PDF Workflow item. This parameter can be NULL in which case
 *      an empty string of options is used.
-*    
+*
 *    pdfFile:
 *      A file system URL pointing to the file to be processed by the
 *      workflow item.
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.3 and later in ApplicationServices.framework
 *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMWorkflowSubmitPDFWithOptions( workflowItem: CFURLRef; title: CFStringRef; options: ConstCStringPtr; pdfFile: CFURLRef ): OSStatus; external name '_PMWorkflowSubmitPDFWithOptions';
 (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
@@ -3022,19 +3022,19 @@ function PMWorkflowSubmitPDFWithOptions( workflowItem: CFURLRef; title: CFString
 
 {
 *  PMWorkflowSubmitPDFWithSettings()
-*  
+*
 *  Summary:
 *    Submit a PDF file for workflow processing.
-*  
+*
 *  Discussion:
 *    The print dialog uses this function is conjunction with
 *    PMWorkflowGetItems to implement the PDF workflow button. Caller's
 *    can use PMWorkflowGetItems to obtain a CFURLRef that can be
 *    passed to PMWorkflowPDF or they can create a CFURLRef to another
 *    file system item.
-*  
+*
 *  Parameters:
-*    
+*
 *    workflowItem:
 *      A file system URL pointing to the workflow item that will
 *      handle the PDF file. Here are the different types of workflow
@@ -3045,22 +3045,22 @@ function PMWorkflowSubmitPDFWithOptions( workflowItem: CFURLRef; title: CFString
 *      run with an open event along with a reference to the PDF file.
 *      executable tool: The tool is run with the following parameters:
 *      title options pdfFile
-*    
+*
 *    settings:
 *      The prints settings to apply to the PDF.
-*    
+*
 *    pdfFile:
 *      A file system URL pointing to the file to be processed by the
 *      workflow item.
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.3 and later in ApplicationServices.framework
 *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMWorkflowSubmitPDFWithSettings( workflowItem: CFURLRef; settings: PMPrintSettings; pdfFile: CFURLRef ): OSStatus; external name '_PMWorkflowSubmitPDFWithSettings';
 (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
@@ -3072,41 +3072,41 @@ function PMWorkflowSubmitPDFWithSettings( workflowItem: CFURLRef; settings: PMPr
 *)
 {
 *  PMPrinterPrintWithProvider()
-*  
+*
 *  Summary:
 *    Submit print data to a specified printer.
-*  
+*
 *  Discussion:
 *    For using EPS data together with other application drawing
 *    using Quartz, see PMCGImageCreateWithEPSDataProvider.
 *
 *  Parameters:
-*    
+*
 *    printer:
 *      The printer.
-*    
+*
 *    settings:
 *      The print settings for the print job.
-*    
+*
 *    format:
 *      The page format specifying the physical page size and orientation on which the document
 *      should be printed. This parameter can be NULL.
-*    
+*
 *    mimeType:
 *      The mime type of the file to be printed. This parameter can not
 *      be NULL. Use PMPrinterPrintWithFile() if auto-typing is desired.
-*    
+*
 *    provider:
 *      The data provider that supplies the print data.
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.3 and later in ApplicationServices.framework
 *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMPrinterPrintWithProvider( printer: PMPrinter; settings: PMPrintSettings; format: PMPageFormat; mimeType: CFStringRef; provider: CGDataProviderRef ): OSStatus; external name '_PMPrinterPrintWithProvider';
 (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
@@ -3114,46 +3114,46 @@ function PMPrinterPrintWithProvider( printer: PMPrinter; settings: PMPrintSettin
 
 {
 *  PMPrinterPrintWithFile()
-*  
+*
 *  Summary:
 *    Submit a file for printing to a specified printer.
-*  
+*
 *  Discussion:
 *
 *    One reason this function may fail is if the specified printer can
 *    not handle the file's mime type. Use PMPrinterGetMimeTypes() to
 *    check whether a mime type is supported.
-*  
+*
 *    For using EPS data together with other application drawing
 *    using Quartz, see PMCGImageCreateWithEPSDataProvider.
 *
 *  Parameters:
-*    
+*
 *    printer:
 *      The printer.
-*    
+*
 *    settings:
 *      The print settings for the print job.
-*    
+*
 *    format:
 *      The page format specifying the physical page size and orientation on which the document
 *      should be printed. This parameter can be NULL.
-*    
+*
 *    mimeType:
 *      The mime type of the file to be printed. If this parameter is
 *      NULL then the supplied file will be auto-typed.
-*    
+*
 *    fileURL:
 *      A file URL specifying the file to be printed.
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.3 and later in ApplicationServices.framework
 *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMPrinterPrintWithFile( printer: PMPrinter; settings: PMPrintSettings; format: PMPageFormat; mimeType: CFStringRef; fileURL: CFURLRef ): OSStatus; external name '_PMPrinterPrintWithFile';
 (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
@@ -3200,10 +3200,10 @@ function PMPrinterPrintWithFile( printer: PMPrinter; settings: PMPrintSettings; 
 *    Mac OS X:         in version 10.5 and later in ApplicationServices.framework
 *    CarbonLib:        not available
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMPrinterWritePostScriptToURL( printer: PMPrinter; settings: PMPrintSettings; format: PMPageFormat; mimeType: CFStringRef; sourceFileURL: CFURLRef; destinationFileURL: CFURLRef ): OSStatus; external name '_PMPrinterWritePostScriptToURL';
 (* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
@@ -3211,31 +3211,31 @@ function PMPrinterWritePostScriptToURL( printer: PMPrinter; settings: PMPrintSet
 
 {
 *  PMPrintSettingsToOptions()
-*  
+*
 *  Summary:
 *    Convert print settings to a CUPS style options string.
-*  
+*
 *  Parameters:
-*    
+*
 *    settings:
 *      The print settings that should be converted to a CUPS style
 *      options string.
-*    
+*
 *    options:
 *      On exit *'options' will be filled in with a malloc'ed C string
 *      describing the passed in print settings. It is the caller's
 *      responsibility to free this memory when done with it. If this
 *      function fails returning a non-zero error code then *'options'
 *      will be set to NULL.
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.3 and later in ApplicationServices.framework
 *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMPrintSettingsToOptions( settings: PMPrintSettings; var options: CStringPtr ): OSStatus; external name '_PMPrintSettingsToOptions';
 (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
@@ -3243,37 +3243,37 @@ function PMPrintSettingsToOptions( settings: PMPrintSettings; var options: CStri
 
 {
 *  PMPrintSettingsToOptionsWithPrinterAndPageFormat()
-*  
+*
 *  Summary:
 *    Convert a print settings and page format to a CUPS style options string.
-*  
+*
 *  Parameters:
-*    
+*
 *    settings:
 *      The print settings that should be converted to a CUPS style
 *      options string. Must not be NULL.
-*    
+*
 *    printer:
 *      The printer to use for converting the print settings. Must not be NULL.
 *
 *    format:
 *      The page format for use in creating the cups options. Can be NULL.
-*    
+*
 *    options:
 *      On exit *'options' will be filled in with a malloc'd C string
 *      describing the passed in print settings and format. It is the caller's
 *      responsibility to free this memory when done with it. If this
 *      function fails returning a non-zero error code then *'options'
 *      will be set to NULL.
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.5 and later in ApplicationServices.framework
 *    CarbonLib:        not available
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMPrintSettingsToOptionsWithPrinterAndPageFormat( settings: PMPrintSettings; printer: PMPrinter; pageFormat: PMPageFormat; var options: CStringPtr ): OSStatus; external name '_PMPrintSettingsToOptionsWithPrinterAndPageFormat';
 (* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
@@ -3310,10 +3310,10 @@ function PMPrintSettingsToOptionsWithPrinterAndPageFormat( settings: PMPrintSett
 *  Availability:
 *    Mac OS X:         in version 10.6 and later in ApplicationServices.framework
 *    CarbonLib:        not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMPrinterSendCommand( printer: PMPrinter; commandString: CFStringRef; jobTitle: CFStringRef; options: CFDictionaryRef ): OSStatus; external name '_PMPrinterSendCommand';
 (* AVAILABLE_MAC_OS_X_VERSION_10_6_AND_LATER *)
@@ -3377,10 +3377,10 @@ function PMPrinterSendCommand( printer: PMPrinter; commandString: CFStringRef; j
 *  Availability:
 *    Mac OS X:         in version 10.6 and later in ApplicationServices.framework
 *    CarbonLib:        not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 
 function PMPrinterCopyState( printer: PMPrinter; var stateDict: CFDictionaryRef ): OSStatus; external name '_PMPrinterCopyState';
@@ -3393,30 +3393,30 @@ function PMPrinterCopyState( printer: PMPrinter; var stateDict: CFDictionaryRef 
 *)
 {
 *  PMCopyAvailablePPDs()
-*  
+*
 *  Summary:
 *    Hand back the list of PPDs in the specified PPD domain.
-*  
+*
 *  Parameters:
-*    
+*
 *    domain:
 *      The domain to search for PPDs.
-*    
+*
 *    ppds:
 *      If this function completes without error, *'ppds' is set to an
 *      array of CFURLs. Each CFURL specifies the location of a PPD
 *      file or a compressed PPD file. The caller is responsible for
 *      releasing the array. If this function returns a non-zero error
 *      code then *'ppds' is set to NULL.
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.3 and later in ApplicationServices.framework
 *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMCopyAvailablePPDs( domain: PMPPDDomain; var ppds: CFArrayRef ): OSStatus; external name '_PMCopyAvailablePPDs';
 (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
@@ -3424,30 +3424,30 @@ function PMCopyAvailablePPDs( domain: PMPPDDomain; var ppds: CFArrayRef ): OSSta
 
 {
 *  PMCopyLocalizedPPD()
-*  
+*
 *  Summary:
 *    Hand back a reference to a localized PPD.
-*  
+*
 *  Parameters:
-*    
+*
 *    ppd:
 *      A PPD reference. Typically this is a CFURLRef returned from
 *      PMCopyAvailablePPDs().
-*    
+*
 *    localizedPPD:
 *      If this function completes without error, *'localizedPPD' will
 *      be set to a CFURLRef referencing the PPD that should be used
 *      given the current user's language preferences. If this function
 *      returns an error then *'localizedPPD' will be set to to NULL.
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.3 and later in ApplicationServices.framework
 *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMCopyLocalizedPPD( ppd: CFURLRef; var localizedPPD: CFURLRef ): OSStatus; external name '_PMCopyLocalizedPPD';
 (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
@@ -3455,31 +3455,31 @@ function PMCopyLocalizedPPD( ppd: CFURLRef; var localizedPPD: CFURLRef ): OSStat
 
 {
 *  PMCopyPPDData()
-*  
+*
 *  Summary:
 *    Hand back the uncompressed PPD data for a PPD or compressed PPD
 *    file.
-*  
+*
 *  Parameters:
-*    
+*
 *    ppd:
 *      A reference to a PPD or compressed PPD file. This reference is
 *      usually obtained from PMCopyAvailablePPDs() or from
 *      PMCopyLocalizedPPD().
-*    
+*
 *    data:
 *      If this function completes without error then *'data' is set to
 *      reference the uncompressed PPD data from the PPD file. If this
 *      function returns a non-zero error then *'data is set to NULL.
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.3 and later in ApplicationServices.framework
 *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMCopyPPDData( ppd: CFURLRef; var data: CFDataRef ): OSStatus; external name '_PMCopyPPDData';
 (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
@@ -3491,12 +3491,12 @@ function PMCopyPPDData( ppd: CFURLRef; var data: CFDataRef ): OSStatus; external
 *)
 {
 *  PMCGImageCreateWithEPSDataProvider()
-*  
+*
 *  Summary:
 *    Create an image reference that references both the PostScript
 *    contents of an EPS file and a preview (proxy) image for that EPS
 *    file.
-*  
+*
 *  Discussion:
 *    For OS X 10.1.0, this function ignores the passed in data
 *    provider. The passed in image reference is retained and then
@@ -3515,15 +3515,15 @@ function PMCopyPPDData( ppd: CFURLRef; var data: CFDataRef ): OSStatus; external
 *    no longer needed by your application. For Mac OS X 10.2 and
 *    later, the contents of the EPS provider at the time of this call
 *    can be dumped to a file if you first do the following, BEFORE
-*    running your application. 
+*    running your application.
 *
 *	  From the command line in terminal:
 *		defaults write NSGlobalDomain com.apple.print.eps.testProvider /tmp/dump.eps
-*    
+*
 *	  causes a dump of the EPS data into a file /tmp/dump.eps.
-*  
+*
 *  Parameters:
-*    
+*
 *    epsDataProvider:
 *      A Core Graphics data provider that can supply the PostScript
 *      contents of the EPS file. Post OS X 10.1, there will be some
@@ -3531,26 +3531,26 @@ function PMCopyPPDData( ppd: CFURLRef; var data: CFDataRef ): OSStatus; external
 *      PMCGImageCreateWithEPSDataProvider() call. It is important that
 *      the EPS data begin with the EPSF required header and bounding
 *      box DSC comments.
-*    
+*
 *    epsPreview:
 *      A Core Graphics image reference to the proxy image for the EPS
 *      file. When the image reference result of this function is
 *      rendered on screen or printed to a printer that can not render
 *      PostScript this proxy image is drawn instead.
-*  
+*
 *  Result:
 *    an image reference capable of rendering either the EPS content or
 *    the proxy image depending upon the capabilities of the targeted
 *    context.
-*  
+*
 *  Availability:
 *    Mac OS X:         in version 10.1 and later in ApplicationServices.framework
 *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.1 and later
 *    Non-Carbon CFM:   not available
-*  
+*
 *  Compatibility:
 *  	Not appropriate for CUPS filters, drivers, and backends.
-*  
+*
 }
 function PMCGImageCreateWithEPSDataProvider( epsDataProvider: CGDataProviderRef; epsPreview: CGImageRef ): CGImageRef; external name '_PMCGImageCreateWithEPSDataProvider';
 (* AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER *)

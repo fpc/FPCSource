@@ -270,8 +270,8 @@ const
 	kCTFontTraitMonoSpace = 1 shl 10;    // Use fixed-pitch glyphs if available. May have multiple glyph advances (most CJK glyphs may contain two spaces)
 	kCTFontTraitVertical = 1 shl 11;    // Use vertical glyph variants and metrics
 	kCTFontTraitUIOptimized = 1 shl 12;    // Synthesize appropriate attributes for UI rendering such as control titles if necessary
-    kCTFontTraitColorGlyphs         = 1 shl 13;    // Color bitmap glyphs are available. 
-    kCTFontTraitComposite           = 1 shl 14;    // The font is a CFR (Composite font reference), a cascade list is expected per font. 
+    kCTFontTraitColorGlyphs         = 1 shl 13;    // Color bitmap glyphs are available.
+    kCTFontTraitComposite           = 1 shl 14;    // The font is a CFR (Composite font reference), a cascade list is expected per font.
 
 	kCTFontTraitClassMask = 15 shl kCTFontClassMaskShift; // Mask for the font class
 

@@ -1,17 +1,17 @@
 {
      File:       HIToolbox/TextEdit.h
- 
+
      Contains:   TextEdit Interfaces.
- 
+
      Version:    HIToolbox-624~3
- 
+
      Copyright:  © 1985-2008 by Apple Computer, Inc., all rights reserved
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {       Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, August 2005 }
 {       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
@@ -228,11 +228,11 @@ uses MacTypes,QuickdrawTypes,MixedMode;
 {$ifc TARGET_OS_MAC}
 
 {***********************************************************************************************
-    All functions in this file are deprecated for Mac OS 10.4. The Multilingual Text Engine (MLTE) 
-    API is recommended instead. Although there is no one-to-one correspondence between the two API, 
-    MLTE should be used instead of TE since it provides support for Unicode text. MLTE uses ATSUI 
+    All functions in this file are deprecated for Mac OS 10.4. The Multilingual Text Engine (MLTE)
+    API is recommended instead. Although there is no one-to-one correspondence between the two API,
+    MLTE should be used instead of TE since it provides support for Unicode text. MLTE uses ATSUI
     for text layout and Quartz for text rendering. Please see MacTextEditor.h for a description of
-    the MLTE API. 
+    the MLTE API.
 *************************************************************************************************}
 
 
@@ -255,36 +255,36 @@ type
 	TEDoTextProcPtr = procedure( pTE: TEPtr; firstChar: UInt16; lastChar: UInt16; selector: SInt16; var currentGrafPort: GrafPtr; var charPosition: SInt16 );
 	TEClickLoopProcPtr = function( pTE: TEPtr ): Boolean;
 	WordBreakProcPtr = function( text: Ptr; charPos: SInt16 ): Boolean;
-{ 
+{
     Important note about TEClickLoopProcPtr and WordBreakProcPtr
 
-    At one point these were defined as returning the function result in the 
+    At one point these were defined as returning the function result in the
     condition code Z-bit.  This was correct, in that it was what the 68K
-    implementation of TextEdit actually tested.  But, MixedMode had a different 
+    implementation of TextEdit actually tested.  But, MixedMode had a different
     idea of what returning a boolean in the Z-bit meant.  MixedMode was setting
-    the Z-bit the complement of what was wanted.  
-    
+    the Z-bit the complement of what was wanted.
+
     Therefore, these ProcPtrs have been changed (back) to return the result in
-    register D0.  It turns out that for register based routines, 
-    MixedMode sets the Z-bit of the 68K emulator based on the contents 
-    of the return result register.  Thus we can get the Z-bit set correctly.  
-    
+    register D0.  It turns out that for register based routines,
+    MixedMode sets the Z-bit of the 68K emulator based on the contents
+    of the return result register.  Thus we can get the Z-bit set correctly.
+
     But, when TextEdit is recoded in PowerPC, if it calls a 68K ClickLoop
     or WordBreak routine, register D0 had better have the result (in addition
     to the Z-bit). Therefore all 68K apps should make sure their ClickLoop or
     WordBreak routines set register D0 at the end.
 }
 
-{ 
+{
     There is no function to get/set the low-mem for FindWordHook at 0x07F8.
     This is because it is not a low-mem ProcPtr. That address is the entry
-    in the OS TrapTable for trap 0xA0FE.  You can use Get/SetTrapAddress to 
-    acccess it. 
+    in the OS TrapTable for trap 0xA0FE.  You can use Get/SetTrapAddress to
+    access it.
 }
 
 {
-    The following ProcPtrs cannot be written in or called from a high-level 
-    language without the help of mixed mode or assembly glue because they 
+    The following ProcPtrs cannot be written in or called from a high-level
+    language without the help of mixed mode or assembly glue because they
     use the following parameter-passing conventions:
 
     typedef pascal void (*HighHookProcPtr)(const Rect *r, TEPtr pTE);
@@ -320,7 +320,7 @@ type
             <=  unsigned short          D1.W
 
     typedef pascal unsigned short (*NWidthHookProcPtr)(unsigned short styleRunLen,
-     unsigned short styleRunOffset, short slop, short direction, void *textBufferPtr, 
+     unsigned short styleRunOffset, short slop, short direction, void *textBufferPtr,
      short *lineStart, TEPtr pTE, TEHandle hTE);
 
         In:
@@ -349,7 +349,7 @@ type
 
     typedef pascal Boolean (*HitTestHookProcPtr)(unsigned short styleRunLen,
      unsigned short styleRunOffset, unsigned short slop, void *textBufferPtr,
-     TEPtr pTE, TEHandle hTE, unsigned short *pixelWidth, unsigned short *charOffset, 
+     TEPtr pTE, TEHandle hTE, unsigned short *pixelWidth, unsigned short *charOffset,
      Boolean *pixelInChar);
 
         In:
@@ -365,7 +365,7 @@ type
             <=  charOffset              D1.W
             <=  pixelInChar             D2.W
 
-    typedef pascal void (*TEFindWordProcPtr)(unsigned short currentPos, short caller, 
+    typedef pascal void (*TEFindWordProcPtr)(unsigned short currentPos, short caller,
      TEPtr pTE, TEHandle hTE, unsigned short *wordStart, unsigned short *wordEnd);
 
         In:
@@ -399,7 +399,7 @@ type
         Out:
             <=  currentGrafPort         A0.L
             <=  charPosition            D0.W
-            
+
 }
 	HighHookUPP = HighHookProcPtr;
 	EOLHookUPP = EOLHookProcPtr;
@@ -623,7 +623,7 @@ type
 	TEIntHook = SInt16;
 {
  *  NewHighHookUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -634,7 +634,7 @@ function NewHighHookUPP( userRoutine: HighHookProcPtr ): HighHookUPP; external n
 
 {
  *  NewEOLHookUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -645,7 +645,7 @@ function NewEOLHookUPP( userRoutine: EOLHookProcPtr ): EOLHookUPP; external name
 
 {
  *  NewCaretHookUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -656,7 +656,7 @@ function NewCaretHookUPP( userRoutine: CaretHookProcPtr ): CaretHookUPP; externa
 
 {
  *  NewWidthHookUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -667,7 +667,7 @@ function NewWidthHookUPP( userRoutine: WidthHookProcPtr ): WidthHookUPP; externa
 
 {
  *  NewTextWidthHookUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -678,7 +678,7 @@ function NewTextWidthHookUPP( userRoutine: TextWidthHookProcPtr ): TextWidthHook
 
 {
  *  NewNWidthHookUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -689,7 +689,7 @@ function NewNWidthHookUPP( userRoutine: NWidthHookProcPtr ): NWidthHookUPP; exte
 
 {
  *  NewDrawHookUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -700,7 +700,7 @@ function NewDrawHookUPP( userRoutine: DrawHookProcPtr ): DrawHookUPP; external n
 
 {
  *  NewHitTestHookUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -711,7 +711,7 @@ function NewHitTestHookUPP( userRoutine: HitTestHookProcPtr ): HitTestHookUPP; e
 
 {
  *  NewTEFindWordUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -722,7 +722,7 @@ function NewTEFindWordUPP( userRoutine: TEFindWordProcPtr ): TEFindWordUPP; exte
 
 {
  *  NewTERecalcUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -733,7 +733,7 @@ function NewTERecalcUPP( userRoutine: TERecalcProcPtr ): TERecalcUPP; external n
 
 {
  *  NewTEDoTextUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -744,7 +744,7 @@ function NewTEDoTextUPP( userRoutine: TEDoTextProcPtr ): TEDoTextUPP; external n
 
 {
  *  NewTEClickLoopUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -755,7 +755,7 @@ function NewTEClickLoopUPP( userRoutine: TEClickLoopProcPtr ): TEClickLoopUPP; e
 
 {
  *  NewWordBreakUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -764,7 +764,7 @@ function NewTEClickLoopUPP( userRoutine: TEClickLoopProcPtr ): TEClickLoopUPP; e
 
 {
  *  DisposeHighHookUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -775,7 +775,7 @@ procedure DisposeHighHookUPP( userUPP: HighHookUPP ); external name '_DisposeHig
 
 {
  *  DisposeEOLHookUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -786,7 +786,7 @@ procedure DisposeEOLHookUPP( userUPP: EOLHookUPP ); external name '_DisposeEOLHo
 
 {
  *  DisposeCaretHookUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -797,7 +797,7 @@ procedure DisposeCaretHookUPP( userUPP: CaretHookUPP ); external name '_DisposeC
 
 {
  *  DisposeWidthHookUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -808,7 +808,7 @@ procedure DisposeWidthHookUPP( userUPP: WidthHookUPP ); external name '_DisposeW
 
 {
  *  DisposeTextWidthHookUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -819,7 +819,7 @@ procedure DisposeTextWidthHookUPP( userUPP: TextWidthHookUPP ); external name '_
 
 {
  *  DisposeNWidthHookUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -830,7 +830,7 @@ procedure DisposeNWidthHookUPP( userUPP: NWidthHookUPP ); external name '_Dispos
 
 {
  *  DisposeDrawHookUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -841,7 +841,7 @@ procedure DisposeDrawHookUPP( userUPP: DrawHookUPP ); external name '_DisposeDra
 
 {
  *  DisposeHitTestHookUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -852,7 +852,7 @@ procedure DisposeHitTestHookUPP( userUPP: HitTestHookUPP ); external name '_Disp
 
 {
  *  DisposeTEFindWordUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -863,7 +863,7 @@ procedure DisposeTEFindWordUPP( userUPP: TEFindWordUPP ); external name '_Dispos
 
 {
  *  DisposeTERecalcUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -874,7 +874,7 @@ procedure DisposeTERecalcUPP( userUPP: TERecalcUPP ); external name '_DisposeTER
 
 {
  *  DisposeTEDoTextUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -885,7 +885,7 @@ procedure DisposeTEDoTextUPP( userUPP: TEDoTextUPP ); external name '_DisposeTED
 
 {
  *  DisposeTEClickLoopUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -896,7 +896,7 @@ procedure DisposeTEClickLoopUPP( userUPP: TEClickLoopUPP ); external name '_Disp
 
 {
  *  DisposeWordBreakUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -905,7 +905,7 @@ procedure DisposeTEClickLoopUPP( userUPP: TEClickLoopUPP ); external name '_Disp
 
 {
  *  InvokeHighHookUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -916,7 +916,7 @@ procedure InvokeHighHookUPP( const (*var*) r: Rect; pTE: TEPtr; userUPP: HighHoo
 
 {
  *  InvokeEOLHookUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -927,7 +927,7 @@ function InvokeEOLHookUPP( theChar: ByteParameter; pTE: TEPtr; hTE: TEHandle; us
 
 {
  *  InvokeCaretHookUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -938,7 +938,7 @@ procedure InvokeCaretHookUPP( const (*var*) r: Rect; pTE: TEPtr; userUPP: CaretH
 
 {
  *  InvokeWidthHookUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -949,7 +949,7 @@ function InvokeWidthHookUPP( textLen: UInt16; textOffset: UInt16; textBufferPtr:
 
 {
  *  InvokeTextWidthHookUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -960,7 +960,7 @@ function InvokeTextWidthHookUPP( textLen: UInt16; textOffset: UInt16; textBuffer
 
 {
  *  InvokeNWidthHookUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -971,7 +971,7 @@ function InvokeNWidthHookUPP( styleRunLen: UInt16; styleRunOffset: UInt16; slop:
 
 {
  *  InvokeDrawHookUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -982,7 +982,7 @@ procedure InvokeDrawHookUPP( textOffset: UInt16; drawLen: UInt16; textBufferPtr:
 
 {
  *  InvokeHitTestHookUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -993,7 +993,7 @@ function InvokeHitTestHookUPP( styleRunLen: UInt16; styleRunOffset: UInt16; slop
 
 {
  *  InvokeTEFindWordUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1004,7 +1004,7 @@ procedure InvokeTEFindWordUPP( currentPos: UInt16; caller: SInt16; pTE: TEPtr; h
 
 {
  *  InvokeTERecalcUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1015,7 +1015,7 @@ procedure InvokeTERecalcUPP( pTE: TEPtr; changeLength: UInt16; var lineStart: UI
 
 {
  *  InvokeTEDoTextUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1026,7 +1026,7 @@ procedure InvokeTEDoTextUPP( pTE: TEPtr; firstChar: UInt16; lastChar: UInt16; se
 
 {
  *  InvokeTEClickLoopUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1037,7 +1037,7 @@ function InvokeTEClickLoopUPP( pTE: TEPtr; userUPP: TEClickLoopUPP ): Boolean; e
 
 {
  *  InvokeWordBreakUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         not available
  *    CarbonLib:        not available
@@ -1053,10 +1053,10 @@ const
 
 {
  *  TEScrapHandle()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1068,10 +1068,10 @@ function TEScrapHandle: Handle; external name '_TEScrapHandle';
 
 {
  *  TEGetScrapLength()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1083,10 +1083,10 @@ function TEGetScrapLength: SIGNEDLONG; external name '_TEGetScrapLength';
 
 {
  *  TENew()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1098,10 +1098,10 @@ function TENew( const (*var*) destRect: Rect; const (*var*) viewRect: Rect ): TE
 
 {
  *  TEDispose()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1113,10 +1113,10 @@ procedure TEDispose( hTE: TEHandle ); external name '_TEDispose';
 
 {
  *  TESetText()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1128,10 +1128,10 @@ procedure TESetText( text: {const} UnivPtr; length: SIGNEDLONG; hTE: TEHandle );
 
 {
  *  TEGetText()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1143,10 +1143,10 @@ function TEGetText( hTE: TEHandle ): CharsHandle; external name '_TEGetText';
 
 {
  *  TEIdle()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1158,10 +1158,10 @@ procedure TEIdle( hTE: TEHandle ); external name '_TEIdle';
 
 {
  *  TESetSelect()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1173,10 +1173,10 @@ procedure TESetSelect( selStart: SIGNEDLONG; selEnd: SIGNEDLONG; hTE: TEHandle )
 
 {
  *  TEActivate()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1188,10 +1188,10 @@ procedure TEActivate( hTE: TEHandle ); external name '_TEActivate';
 
 {
  *  TEDeactivate()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1203,10 +1203,10 @@ procedure TEDeactivate( hTE: TEHandle ); external name '_TEDeactivate';
 
 {
  *  TEKey()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1218,10 +1218,10 @@ procedure TEKey( key: CharParameter; hTE: TEHandle ); external name '_TEKey';
 
 {
  *  TECut()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1233,10 +1233,10 @@ procedure TECut( hTE: TEHandle ); external name '_TECut';
 
 {
  *  TECopy()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1248,10 +1248,10 @@ procedure TECopy( hTE: TEHandle ); external name '_TECopy';
 
 {
  *  TEPaste()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1263,10 +1263,10 @@ procedure TEPaste( hTE: TEHandle ); external name '_TEPaste';
 
 {
  *  TEDelete()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1278,10 +1278,10 @@ procedure TEDelete( hTE: TEHandle ); external name '_TEDelete';
 
 {
  *  TEInsert()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1293,10 +1293,10 @@ procedure TEInsert( text: {const} UnivPtr; length: SIGNEDLONG; hTE: TEHandle ); 
 
 {
  *  TESetAlignment()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1308,10 +1308,10 @@ procedure TESetAlignment( just: SInt16; hTE: TEHandle ); external name '_TESetAl
 
 {
  *  TEUpdate()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1323,10 +1323,10 @@ procedure TEUpdate( const (*var*) rUpdate: Rect; hTE: TEHandle ); external name 
 
 {
  *  TETextBox()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1338,10 +1338,10 @@ procedure TETextBox( text: {const} UnivPtr; length: SIGNEDLONG; const (*var*) bo
 
 {
  *  TEScroll()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1353,10 +1353,10 @@ procedure TEScroll( dh: SInt16; dv: SInt16; hTE: TEHandle ); external name '_TES
 
 {
  *  TESelView()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1368,10 +1368,10 @@ procedure TESelView( hTE: TEHandle ); external name '_TESelView';
 
 {
  *  TEPinScroll()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1383,10 +1383,10 @@ procedure TEPinScroll( dh: SInt16; dv: SInt16; hTE: TEHandle ); external name '_
 
 {
  *  TEAutoView()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1398,10 +1398,10 @@ procedure TEAutoView( fAuto: Boolean; hTE: TEHandle ); external name '_TEAutoVie
 
 {
  *  TECalText()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1413,10 +1413,10 @@ procedure TECalText( hTE: TEHandle ); external name '_TECalText';
 
 {
  *  TEGetOffset()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1428,10 +1428,10 @@ function TEGetOffset( pt: Point; hTE: TEHandle ): SInt16; external name '_TEGetO
 
 {
  *  TEGetPoint()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1443,10 +1443,10 @@ function TEGetPoint( offset: SInt16; hTE: TEHandle ): Point; external name '_TEG
 
 {
  *  TEClick()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1458,10 +1458,10 @@ procedure TEClick( pt: Point; fExtend: Boolean; h: TEHandle ); external name '_T
 
 {
  *  TEStyleNew()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1473,10 +1473,10 @@ function TEStyleNew( const (*var*) destRect: Rect; const (*var*) viewRect: Rect 
 
 {
  *  TESetStyleHandle()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1488,10 +1488,10 @@ procedure TESetStyleHandle( theHandle: TEStyleHandle; hTE: TEHandle ); external 
 
 {
  *  TEGetStyleHandle()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1503,10 +1503,10 @@ function TEGetStyleHandle( hTE: TEHandle ): TEStyleHandle; external name '_TEGet
 
 {
  *  TEGetStyle()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1518,10 +1518,10 @@ procedure TEGetStyle( offset: SInt16; var theStyle: TextStyle; var lineHeight: S
 
 {
  *  TEStylePaste()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1533,10 +1533,10 @@ procedure TEStylePaste( hTE: TEHandle ); external name '_TEStylePaste';
 
 {
  *  TESetStyle()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1548,10 +1548,10 @@ procedure TESetStyle( mode: SInt16; const (*var*) newStyle: TextStyle; fRedraw: 
 
 {
  *  TEReplaceStyle()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1563,10 +1563,10 @@ procedure TEReplaceStyle( mode: SInt16; const (*var*) oldStyle: TextStyle; const
 
 {
  *  TEGetStyleScrapHandle()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1578,10 +1578,10 @@ function TEGetStyleScrapHandle( hTE: TEHandle ): StScrpHandle; external name '_T
 
 {
  *  TEStyleInsert()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1593,10 +1593,10 @@ procedure TEStyleInsert( text: {const} UnivPtr; length: SIGNEDLONG; hST: StScrpH
 
 {
  *  TEGetHeight()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1608,10 +1608,10 @@ function TEGetHeight( endLine: SIGNEDLONG; startLine: SIGNEDLONG; hTE: TEHandle 
 
 {
  *  TEContinuousStyle()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1623,10 +1623,10 @@ function TEContinuousStyle( var mode: SInt16; var aStyle: TextStyle; hTE: TEHand
 
 {
  *  TEUseStyleScrap()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1638,10 +1638,10 @@ procedure TEUseStyleScrap( rangeStart: SIGNEDLONG; rangeEnd: SIGNEDLONG; newStyl
 
 {
  *  TECustomHook()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1653,10 +1653,10 @@ procedure TECustomHook( which: TEIntHook; var addr: UniversalProcPtr; hTE: TEHan
 
 {
  *  TENumStyles()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1668,10 +1668,10 @@ function TENumStyles( rangeStart: SIGNEDLONG; rangeEnd: SIGNEDLONG; hTE: TEHandl
 
 {
  *  TEFeatureFlag()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1683,10 +1683,10 @@ function TEFeatureFlag( feature: SInt16; action: SInt16; hTE: TEHandle ): SInt16
 
 {
  *  TEGetHiliteRgn()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1698,10 +1698,10 @@ function TEGetHiliteRgn( region: RgnHandle; hTE: TEHandle ): OSErr; external nam
 
 {
  *  TESetScrapLength()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1713,10 +1713,10 @@ procedure TESetScrapLength( length: SIGNEDLONG ); external name '_TESetScrapLeng
 
 {
  *  TEFromScrap()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1728,10 +1728,10 @@ function TEFromScrap: OSErr; external name '_TEFromScrap';
 
 {
  *  TEToScrap()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1743,10 +1743,10 @@ function TEToScrap: OSErr; external name '_TEToScrap';
 
 {
  *  TESetClickLoop()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1758,10 +1758,10 @@ procedure TESetClickLoop( clikProc: TEClickLoopUPP; hTE: TEHandle ); external na
 
 {
  *  TEGetDoTextHook()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1773,10 +1773,10 @@ function TEGetDoTextHook: TEDoTextUPP; external name '_TEGetDoTextHook';
 
 {
  *  TESetDoTextHook()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1788,10 +1788,10 @@ procedure TESetDoTextHook( value: TEDoTextUPP ); external name '_TESetDoTextHook
 
 {
  *  TEGetRecalcHook()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1803,10 +1803,10 @@ function TEGetRecalcHook: TERecalcUPP; external name '_TEGetRecalcHook';
 
 {
  *  TESetRecalcHook()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1818,10 +1818,10 @@ procedure TESetRecalcHook( value: TERecalcUPP ); external name '_TESetRecalcHook
 
 {
  *  TEGetFindWordHook()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1833,10 +1833,10 @@ function TEGetFindWordHook: TEFindWordUPP; external name '_TEGetFindWordHook';
 
 {
  *  TESetFindWordHook()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1848,10 +1848,10 @@ procedure TESetFindWordHook( value: TEFindWordUPP ); external name '_TESetFindWo
 
 {
  *  TEGetScrapHandle()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1863,10 +1863,10 @@ function TEGetScrapHandle: Handle; external name '_TEGetScrapHandle';
 
 {
  *  TESetScrapHandle()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1882,10 +1882,10 @@ procedure TESetScrapHandle( value: Handle ); external name '_TESetScrapHandle';
 { on MacOS X, so setting it will have no effect.                   }
 {
  *  LMGetWordRedraw()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -1897,10 +1897,10 @@ function LMGetWordRedraw: UInt8; external name '_LMGetWordRedraw';
 
 {
  *  LMSetWordRedraw()   *** DEPRECATED ***
- *  
+ *
  *  Mac OS X threading:
  *    Not thread safe
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later

@@ -1,9 +1,9 @@
 {
      File:       CarbonCore/FixMath.h
- 
+
      Contains:   Fixed Math Interfaces.
                  The contents of this header file are deprecated.
- 
+
      Copyright:  © 1985-2011 by Apple Inc. All rights reserved.
 }
 {
@@ -229,7 +229,7 @@ const
 }
 {
  *  FixRatio()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -241,7 +241,7 @@ function FixRatio( numer: SInt16; denom: SInt16 ): Fixed; external name '_FixRat
 
 {
  *  FixMul()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -253,7 +253,7 @@ function FixMul( a: Fixed; b: Fixed ): Fixed; external name '_FixMul';
 
 {
  *  FixRound()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -265,7 +265,7 @@ function FixRound( x: Fixed ): SInt16; external name '_FixRound';
 
 {
  *  Fix2Frac()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -277,7 +277,7 @@ function Fix2Frac( x: Fixed ): Fract; external name '_Fix2Frac';
 
 {
  *  Fix2Long()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -289,7 +289,7 @@ function Fix2Long( x: Fixed ): SInt32; external name '_Fix2Long';
 
 {
  *  Long2Fix()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -301,7 +301,7 @@ function Long2Fix( x: SInt32 ): Fixed; external name '_Long2Fix';
 
 {
  *  Frac2Fix()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -313,7 +313,7 @@ function Frac2Fix( x: Fract ): Fixed; external name '_Frac2Fix';
 
 {
  *  FracMul()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -325,7 +325,7 @@ function FracMul( x: Fract; y: Fract ): Fract; external name '_FracMul';
 
 {
  *  FixDiv()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -337,7 +337,7 @@ function FixDiv( x: Fixed; y: Fixed ): Fixed; external name '_FixDiv';
 
 {
  *  FracDiv()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -349,7 +349,7 @@ function FracDiv( x: Fract; y: Fract ): Fract; external name '_FracDiv';
 
 {
  *  FracSqrt()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -361,7 +361,7 @@ function FracSqrt( x: Fract ): Fract; external name '_FracSqrt';
 
 {
  *  FracSin()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -373,7 +373,7 @@ function FracSin( x: Fixed ): Fract; external name '_FracSin';
 
 {
  *  FracCos()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -385,7 +385,7 @@ function FracCos( x: Fixed ): Fract; external name '_FracCos';
 
 {
  *  FixATan2()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -400,13 +400,13 @@ function FixATan2( x: SInt32; y: SInt32 ): Fixed; external name '_FixATan2';
     the floating point type "extended" (that's what the X is for).
     On the original Mac this was 80-bits and the functions could be
     accessed via A-Traps.  When the 68881 co-processor was added,
-    it used 96-bit floating point types, so the A-Traps could not 
+    it used 96-bit floating point types, so the A-Traps could not
     be used.  When PowerPC was added, it used 64-bit floating point
     types, so yet another prototype was added.
 }
 {
  *  Frac2X()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -418,7 +418,7 @@ function Frac2X( x: Fract ): Float64; external name '_Frac2X';
 
 {
  *  Fix2X()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -430,7 +430,7 @@ function Fix2X( x: Fixed ): Float64; external name '_Fix2X';
 
 {
  *  X2Fix()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -442,7 +442,7 @@ function X2Fix( x: Float64 ): Fixed; external name '_X2Fix';
 
 {
  *  X2Frac()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -454,19 +454,19 @@ function X2Frac( x: Float64 ): Fract; external name '_X2Frac';
 
 {
  *  WideCompare()
- *  
+ *
  *  Parameters:
- *    
+ *
  *    target:
  *      a pointer to the first wide to compare
- *    
+ *
  *    source:
  *      a pointer to the second wide to compare
- *  
+ *
  *  Result:
  *    return 0 if the value in target == the value in source ; a value
  *    < 0 if *target < *source and a value > 0 if *target > *source
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -478,22 +478,22 @@ function WideCompare( const (*var*) target: wide; const (*var*) source: wide ): 
 
 {
  *  WideAdd()
- *  
+ *
  *  Discussion:
  *    Adds the value in source to target and returns target.  Note that
  *    target is updated to the new value.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    target:
  *      a pointer to the value to have source added to
- *    
+ *
  *    source:
  *      a pointer to the value to be added to target
- *  
+ *
  *  Result:
  *    returns the value target
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -505,22 +505,22 @@ function WideAdd( var target: wide; const (*var*) source: wide ): widePtr; exter
 
 {
  *  WideSubtract()
- *  
+ *
  *  Discussion:
- *    Subtracts the value in source from target and returns target. 
+ *    Subtracts the value in source from target and returns target.
  *    Note that target is updated to the new value.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    target:
  *      a pointer to the value to have source subtracted from
- *    
+ *
  *    source:
- *      a pointer to the value to be substracted from target
- *  
+ *      a pointer to the value to be subtracted from target
+ *
  *  Result:
  *    returns the value target
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -532,18 +532,18 @@ function WideSubtract( var target: wide; const (*var*) source: wide ): widePtr; 
 
 {
  *  WideNegate()
- *  
+ *
  *  Discussion:
  *    Negates the value ( twos complement ) in target and returns
  *    target.  Note that target is updated to the new value.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    target:
- *  
+ *
  *  Result:
  *    returns the value target
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -555,20 +555,20 @@ function WideNegate( var target: wide ): widePtr; external name '_WideNegate';
 
 {
  *  WideShift()
- *  
+ *
  *  Discussion:
  *    Shift the value in target by shift bits with upwards rounding of
  *    the remainder.    Note that target is updated to the new value.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    target:
  *      the value to be shifted
- *    
+ *
  *    shift:
  *      the count of bits to shift, positive values shift right and
  *      negative values shift left
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -580,19 +580,19 @@ function WideShift( var target: wide; shift: SInt32 ): widePtr; external name '_
 
 {
  *  WideSquareRoot()
- *  
+ *
  *  Discussion:
  *    Return the closest integer value to the square root for the given
  *    number.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    source:
  *      the value to calculate the root for
- *  
+ *
  *  Result:
  *    the closest integer value to the square root of source
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -604,23 +604,23 @@ function WideSquareRoot( const (*var*) source: wide ): UInt32; external name '_W
 
 {
  *  WideMultiply()
- *  
+ *
  *  Discussion:
- *    Returns the wide result of multipling two SInt32 values
- *  
+ *    Returns the wide result of multiplying two SInt32 values
+ *
  *  Parameters:
- *    
+ *
  *    multiplicand:
- *    
+ *
  *    multiplier:
- *    
+ *
  *    target:
  *      a pointer to where to put the result  of multiplying
  *      multiplicand and multiplier, must not be NULL
- *  
+ *
  *  Result:
  *    the value target
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -632,31 +632,31 @@ function WideMultiply( multiplicand: SInt32; multiplier: SInt32; var target: wid
 
 {
  *  WideDivide()
- *  
+ *
  *  Discussion:
  *    Returns the integer and remainder results after dividing a wide
  *    value by an SInt32. Will overflow to positiveInfinity or
  *    negativeInfinity if the result won't fit into an SInt32.  If
  *    remainder is (SInt32) -1 then any overflow rounds to
  *    negativeInfinity.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    dividend:
  *      the value to be divided
- *    
+ *
  *    divisor:
  *      the value to divide by
- *    
+ *
  *    remainder:
  *      a pointer to where to put the remainder result, between 0 and
- *      divisor, after dividing divident by divisor. If NULL, no
+ *      divisor, after dividing dividend by divisor. If NULL, no
  *      remainder is returned.  If (SInt32*) -1, then any overflow
  *      result will round to negativeInfinity.
- *  
+ *
  *  Result:
  *    the integer signed result of dividend / divisor
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -668,27 +668,27 @@ function WideDivide( const (*var*) dividend: wide; divisor: SInt32; var remainde
 
 {
  *  WideWideDivide()
- *  
+ *
  *  Discussion:
  *    Returns the wide integer and remainder results after dividing a
  *    wide value by an SInt32. Note that dividend is updated with the
  *    result.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    dividend:
  *      the value to be divided
- *    
+ *
  *    divisor:
  *      the value to divide by
- *    
+ *
  *    remainder:
  *      a pointer to where to put the remainder result, between 0 and
- *      divisor, after dividing divident by divisor
- *  
+ *      divisor, after dividing dividend by divisor
+ *
  *  Result:
  *    the wide result of dividend / divisor
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -700,23 +700,23 @@ function WideWideDivide( var dividend: wide; divisor: SInt32; var remainder: SIn
 
 {
  *  WideBitShift()
- *  
+ *
  *  Discussion:
  *    Shift the value in target by shift bits.  Note that target is
  *    updated with the shifted result.
- *  
+ *
  *  Parameters:
- *    
+ *
  *    target:
  *      the value to be shifted
- *    
+ *
  *    shift:
  *      the count of bits to shift, positive values shift right and
  *      negative values shift left
- *  
+ *
  *  Result:
  *    return the value target
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -728,7 +728,7 @@ function WideBitShift( var target: wide; shift: SInt32 ): widePtr; external name
 
 {
  *  UnsignedFixedMulDiv()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available

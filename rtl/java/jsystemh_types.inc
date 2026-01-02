@@ -417,7 +417,7 @@ Type
   PAnsiChar           = ^AnsiChar;
   PPAnsiChar          = ^PAnsiChar;
   PPPAnsiChar         = ^PPAnsiChar;
-  
+
   // Char is an alias
   PChar               = ^Char;
   PPChar              = ^PChar;
@@ -692,7 +692,7 @@ var
   IsConsole : boolean = false; public name 'operatingsystem_isconsole';
   NoErrMsg: Boolean platform = False;
   FirstDotAtFileNameStartIsExtension : Boolean = False;
-  
+
   DefaultSystemCodePage,
   DefaultUnicodeCodePage,
   { the code page to use when sending paths/file names to OS file system API

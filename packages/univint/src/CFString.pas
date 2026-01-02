@@ -219,7 +219,7 @@ detail. For instance, CFString might choose to use an array of 8-bit characters
 to store its contents, or it might use multiple blocks of memory, or whatever.
 This is especially true since CFString is toll-free bridged with NSString, enabling
 any NSString instance to be used as a CFString. Furthermore, the implementation
-may change depending on the default system encoding, the user's language, 
+may change depending on the default system encoding, the user's language,
 or even a release or update of the OS.
 
 What this means is that you should use the following advanced functions with care:
@@ -318,7 +318,7 @@ const
 { CFString type ID }
 function CFStringGetTypeID: CFTypeID; external name '_CFStringGetTypeID';
 
-{ CFSTR() allows creation of compile-time constant CFStringRefs; the argument 
+{ CFSTR() allows creation of compile-time constant CFStringRefs; the argument
 should be a constant C-string.
 
 CFSTR(), not being a "Copy" or "Create" function, does not return a new
@@ -332,58 +332,58 @@ a CFSTR() return value to a function such as SetMenuItemWithCFString(), the
 function can retain it, then later, when it's done with it, it can release it.
 
 #if MAC_OS_X_VERSION_MIN_REQUIRED <= MAC_OS_X_VERSION_10_5
-At this point non-7 bit characters (that is, characters > 127) in CFSTR() are not 
+At this point non-7 bit characters (that is, characters > 127) in CFSTR() are not
 supported and using them will lead to unpredictable results. This includes escaped
-(\nnn) characters whose values are > 127. Even if it works for you in testing, 
+(\nnn) characters whose values are > 127. Even if it works for you in testing,
 it might not work for a user with a different language preference.
 #else
 Non-7 bit characters (that is, above 127) in CFSTR() are supported, although care must
 be taken in dealing with files containing them. If you can trust your editor and tools
-to deal with non-ASCII characters in the source code, then you can use them directly 
-in CFSTR(); otherwise, you can represent such characters with their escaped octal 
-equivalents in the encoding the compiler will use to interpret them (for instance, 
-O-umlaut is \303\226 in UTF-8). UTF-8 is the recommended encoding here, 
+to deal with non-ASCII characters in the source code, then you can use them directly
+in CFSTR(); otherwise, you can represent such characters with their escaped octal
+equivalents in the encoding the compiler will use to interpret them (for instance,
+O-umlaut is \303\226 in UTF-8). UTF-8 is the recommended encoding here,
 since it is the default choice with Mac OS X developer tools.
 #endif
 
 }
 {
 	*** Pascal Usage of CFSTR et al ***
-	
+
 	For Pascal:
-	
-		To define your own constant CFStrings, call call CFSTRP with a 
-		constant Pascal single-quoted string only, for example 
+
+		To define your own constant CFStrings, call call CFSTRP with a
+		constant Pascal single-quoted string only, for example
 		CFSTRP('a constant string').
 
 	For MetroWerks Pascal:
-	
+
 		Include the CFStringGlue file in your project (it defines the private function,
 		CFSTRP0, which you should never call directly.
-		
+
 		In your uses clause, use CFString and CFStringGlue and whichever PInterface files
 		defining the constant CFStrings (or define your own using CFSTRP('pascal string')).
-	
+
 	For GNU Pascal:
-	
+
 		Include the GPCMacros.inc file (for example $I GPCMacros.inc).
-		
-		In your uses clause, use CFString (and, optionally, CFStringGlue and the 
+
+		In your uses clause, use CFString (and, optionally, CFStringGlue and the
 		PInterface files defining the constant CFStrings).
-		
+
 		You can optionally use CFSTR with a constant double-quoted C String (for example,
 		CFSTR("a constant C string")) although it will make no difference, but will
 		result in closer  C source code similarity.
-	
+
 	For maximum compatibility in both GPC and MetroWerks Pascal
-	
+
 		Include the GPCMacros.inc file in GPC as part of your GPC prefix.
-		
+
 		Include the CFStringGlue file in your MW project.
-		
+
 		Only ever use CFSTRP with a constant Pascal string.
-		
-		In your uses clause for a unit, use the CFString, CFStringGlue and any 
+
+		In your uses clause for a unit, use the CFString, CFStringGlue and any
 		PInterface files defining any constant CFStrings you need.
 }
 
@@ -417,13 +417,13 @@ function CFStringCreateWithBytes( alloc: CFAllocatorRef; bytes: UnivPtr; numByte
 
 function CFStringCreateWithCharacters( alloc: CFAllocatorRef; chars: UniCharPtr; numChars: CFIndex ): CFStringRef; external name '_CFStringCreateWithCharacters';
 
-{ These functions try not to copy the provided buffer. The buffer will be deallocated 
+{ These functions try not to copy the provided buffer. The buffer will be deallocated
 with the provided contentsDeallocator when it's no longer needed; to not free
 the buffer, specify kCFAllocatorNull here. As usual, NULL means default allocator.
 
-NOTE: Do not count on these buffers as being used by the string; 
+NOTE: Do not count on these buffers as being used by the string;
 in some cases the CFString might free the buffer and use something else
-(for instance if it decides to always use Unicode encoding internally). 
+(for instance if it decides to always use Unicode encoding internally).
 
 NOTE: If you are not transferring ownership of the buffer to the CFString
 (for instance, you supplied contentsDeallocator = kCFAllocatorNull), it is your
@@ -489,11 +489,11 @@ procedure CFStringGetCharacters( theString: CFStringRef; range: CFRange; buffer:
 {** Conversion to other encodings **}
 
 { These two convert into the provided buffer; they return false if conversion isn't possible
-(due to conversion error, or not enough space in the provided buffer). 
+(due to conversion error, or not enough space in the provided buffer).
 These functions do zero-terminate or put the length byte; the provided bufferSize should include
 space for this (so pass 256 for Str255). More sophisticated usages can go through CFStringGetBytes().
-These functions are equivalent to calling CFStringGetBytes() with 
-the range of the string; lossByte = 0; and isExternalRepresentation = false; 
+These functions are equivalent to calling CFStringGetBytes() with
+the range of the string; lossByte = 0; and isExternalRepresentation = false;
 if successful, they then insert the leading length or terminating zero, as desired.
 }
 function CFStringGetPascalString( theString: CFStringRef; buffer: StringPtr; bufferSize: CFIndex; encoding: CFStringEncoding ): Boolean; external name '_CFStringGetPascalString';
@@ -513,17 +513,17 @@ function CFStringGetCStringPtr( theString: CFStringRef; encoding: CFStringEncodi
 function CFStringGetCharactersPtr( theString: CFStringRef ): UniCharPtr; external name '_CFStringGetCharactersPtr'; { May return NULL at any time; be prepared for NULL }
 
 { The primitive conversion routine; allows you to convert a string piece at a time
-       into a fixed size buffer. Returns number of characters converted. 
+       into a fixed size buffer. Returns number of characters converted.
    Characters that cannot be converted to the specified encoding are represented
        with the byte specified by lossByte; if lossByte is 0, then lossy conversion
        is not allowed and conversion stops, returning partial results.
-   Pass buffer==NULL if you don't care about the converted string (but just the convertability,
-       or number of bytes required). 
+   Pass buffer==NULL if you don't care about the converted string (but just the convertibility,
+       or number of bytes required).
    maxBufLength indicates the maximum number of bytes to generate. It is ignored when buffer==NULL.
-   Does not zero-terminate. If you want to create Pascal or C string, allow one extra byte at start or end. 
-   Setting isExternalRepresentation causes any extra bytes that would allow 
+   Does not zero-terminate. If you want to create Pascal or C string, allow one extra byte at start or end.
+   Setting isExternalRepresentation causes any extra bytes that would allow
        the data to be made persistent to be included; for instance, the Unicode BOM. Note that
-       CFString prepends UTF encoded data with the Unicode BOM <http://www.unicode.org/faq/utf_bom.html> 
+       CFString prepends UTF encoded data with the Unicode BOM <http://www.unicode.org/faq/utf_bom.html>
        when generating external representation if the target encoding allows. It's important to note that
        only UTF-8, UTF-16, and UTF-32 define the handling of the byte order mark character, and the "LE"
        and "BE" variants of UTF-16 and UTF-32 don't.
@@ -532,8 +532,8 @@ function CFStringGetBytes( theString: CFStringRef; range: CFRange; encoding: CFS
 
 { Convenience functions String <-> Data. These generate "external" formats, that is, formats that
    can be written out to disk. For instance, if the encoding is Unicode,
-   CFStringCreateFromExternalRepresentation() pays attention to the BOM character (if any) 
-   and does byte swapping if necessary. Similarly CFStringCreateExternalRepresentation() will  
+   CFStringCreateFromExternalRepresentation() pays attention to the BOM character (if any)
+   and does byte swapping if necessary. Similarly CFStringCreateExternalRepresentation() will
    include a BOM character if appropriate. See CFStringGetBytes() for more on this and lossByte.
 }
 function CFStringCreateFromExternalRepresentation( alloc: CFAllocatorRef; data: CFDataRef; encoding: CFStringEncoding ): CFStringRef; external name '_CFStringCreateFromExternalRepresentation';	{ May return NULL on conversion error }
@@ -560,7 +560,7 @@ function CFStringGetMaximumSizeForEncoding( length: CFIndex; encoding: CFStringE
 function CFStringGetFileSystemRepresentation( strng: CFStringRef; buffer: CStringPtr; maxBufLen: CFIndex ): Boolean; external name '_CFStringGetFileSystemRepresentation';
 (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
 
-{ Get the upper bound on the number of bytes required to hold the file system representation for the string. This result is returned quickly as a very rough approximation, and could be much larger than the actual space required. The result includes space for the zero termination. If you are allocating a buffer for long-term keeping, it's recommended that you reallocate it smaller (to be the right size) after calling CFStringGetFileSystemRepresentation(). 
+{ Get the upper bound on the number of bytes required to hold the file system representation for the string. This result is returned quickly as a very rough approximation, and could be much larger than the actual space required. The result includes space for the zero termination. If you are allocating a buffer for long-term keeping, it's recommended that you reallocate it smaller (to be the right size) after calling CFStringGetFileSystemRepresentation().
 }
 function CFStringGetMaximumSizeOfFileSystemRepresentation( strng: CFStringRef ): CFIndex; external name '_CFStringGetMaximumSizeOfFileSystemRepresentation';
 (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
@@ -573,7 +573,7 @@ function CFStringCreateWithFileSystemRepresentation( alloc: CFAllocatorRef; buff
 
 {** Comparison functions. **}
 
-{ Find and compare flags; these are OR'ed together and provided as CFStringCompareFlags in the various functions. 
+{ Find and compare flags; these are OR'ed together and provided as CFStringCompareFlags in the various functions.
 }
 type
 	CFStringCompareFlags = CFOptionFlags;
@@ -676,7 +676,7 @@ function CFStringGetRangeOfComposedCharactersAtIndex( theString: CFStringRef; th
                         is undefined.
 	@param result The pointer to a CFRange supplied by the caller in
 			which the search result is stored.  Note that the length
-			of this range can be more than 1, if for instance the 
+			of this range can be more than 1, if for instance the
 			result is a composed character. If a pointer to an invalid
 			memory is specified, the behavior is undefined.
 	@result true, if at least a character which is a member of the character
@@ -707,7 +707,7 @@ procedure CFStringGetParagraphBounds( strng: CFStringRef; range: CFRange; var pa
 	@param string The CFString which is to be hyphenated.  If this
                 		parameter is not a valid CFString, the behavior is
               		undefined.
-	@param location An index in the string.  If a valid hyphen index is returned, it 
+	@param location An index in the string.  If a valid hyphen index is returned, it
 	                will be before this index.
 	@param limitRange The range of characters within the string to search. If
 			the range location or end point (defined by the location
@@ -869,7 +869,7 @@ procedure CFStringNormalize( theString: CFMutableStringRef; theForm: CFStringNor
 	@param theString  The string which is to be folded.  If this parameter is not
 		a valid mutable CFString, the behavior is undefined.
 	@param theFlag  The equivalency flags which describes the character folding form.
-		Only those flags containing the word "insensitive" are recognized here; other flags are ignored.		
+		Only those flags containing the word "insensitive" are recognized here; other flags are ignored.
 		Folding with kCFCompareCaseInsensitive removes case distinctions in accordance with the mapping
 		specified by ftp://ftp.unicode.org/Public/UNIDATA/CaseFolding.txt.  Folding with
 		kCFCompareDiacriticInsensitive removes distinctions of accents and other diacritics.  Folding
@@ -967,12 +967,12 @@ function CFStringConvertEncodingToIANACharSetName( encoding: CFStringEncoding ):
 function CFStringGetMostCompatibleMacStringEncoding( encoding: CFStringEncoding ): CFStringEncoding; external name '_CFStringGetMostCompatibleMacStringEncoding';
 
 
-{ The next two functions allow fast access to the contents of a string, 
+{ The next two functions allow fast access to the contents of a string,
    assuming you are doing sequential or localized accesses. To use, call
    CFStringInitInlineBuffer() with a CFStringInlineBuffer (on the stack, say),
    and a range in the string to look at. Then call CFStringGetCharacterFromInlineBuffer()
    as many times as you want, with a index into that range (relative to the start
-   of that range). These are INLINE functions and will end up calling CFString only 
+   of that range). These are INLINE functions and will end up calling CFString only
    once in a while, to fill a buffer.  CFStringGetCharacterFromInlineBuffer() returns 0 if
    a location outside the original range is specified.
 }
@@ -996,7 +996,7 @@ type
 //     buf->directBuffer = CFStringGetCharactersPtr(str);
 //     buf->bufferedRangeStart = buf->bufferedRangeEnd = 0;
 // }
-// 
+//
 // CF_INLINE UniChar CFStringGetCharacterFromInlineBuffer(CFStringInlineBuffer *buf, CFIndex idx) {
 //     if (buf->directBuffer) {
 // 	if (idx < 0 || idx >= buf->rangeToBuffer.length) return 0;
@@ -1011,32 +1011,32 @@ type
 //     }
 //     return buf->buffer[idx - buf->bufferedRangeStart];
 // }
-// 
+//
 // #else
 // { If INLINE functions are not available, we do somewhat less powerful macros that work similarly (except be aware that the buf argument is evaluated multiple times).
 // }
 // #define CFStringInitInlineBuffer(str, buf, range) \
 //     do {(buf)->theString = str; (buf)->rangeToBuffer = range; (buf)->directBuffer = CFStringGetCharactersPtr(str);} while (0)
-// 
+//
 // #define CFStringGetCharacterFromInlineBuffer(buf, idx) \
 //     (((idx) < 0 || (idx) >= (buf)->rangeToBuffer.length) ? 0 : ((buf)->directBuffer ? (buf)->directBuffer[(idx) + (buf)->rangeToBuffer.location] : CFStringGetCharacterAtIndex((buf)->theString, (idx) + (buf)->rangeToBuffer.location)))
-// 
+//
 // #endif { CF_INLINE }
-// 
+//
 // { UTF-16 surrogate support
 //  }
 // CF_INLINE Boolean CFStringIsSurrogateHighCharacter(UniChar character) {
 //     return ((character >= 0xD800UL) && (character <= 0xDBFFUL) ? true : false);
 // }
-// 
+//
 // CF_INLINE Boolean CFStringIsSurrogateLowCharacter(UniChar character) {
 //     return ((character >= 0xDC00UL) && (character <= 0xDFFFUL) ? true : false);
 // }
-// 
+//
 // CF_INLINE UTF32Char CFStringGetLongCharacterForSurrogatePair(UniChar surrogateHigh, UniChar surrogateLow) {
 //     return ((surrogateHigh - 0xD800UL) << 10) + (surrogateLow - 0xDC00UL) + 0x0010000UL;
 // }
-// 
+//
 // // Maps a UTF-32 character to a pair of UTF-16 surrogate characters. The buffer pointed by surrogates has to have space for at least 2 UTF-16 characters. Returns true if mapped to a surrogate pair.
 // CF_INLINE Boolean CFStringGetSurrogatePairForLongCharacter(UTF32Char character, UniChar *surrogates) {
 //     if ((character > 0xFFFFUL) && (character < 0x110000UL)) { // Non-BMP character

@@ -1,4 +1,4 @@
-unit libcomb; 
+unit libcomb;
 interface
 const
 // Status bits

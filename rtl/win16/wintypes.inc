@@ -1,13 +1,13 @@
 type
   Bool = WordBool;
-  
+
   UINT = Word;
   LONG = LongInt;
-  
+
   WPARAM = UINT;
   LPARAM = LONG;
   LRESULT = LONG;
-  
+
   { The Win16 C headers define the P-prefixed types - PSTR, etc. as near pointers.
     Borland Pascal 7 defines them as far pointers (in other words, the same as the
     LP-prefixed type - LPSTR)  We define them as the default pointer type for the
@@ -20,30 +20,30 @@ type
   NPSTR = ^AnsiChar; near;
 //  LPSTR = ^AnsiChar; far;
   LPCSTR = ^AnsiChar; far;
-  
+
   { PBYTE is already defined in system }
   LPBYTE = ^Byte; far;
-  
+
   PINT = ^SmallInt;
   LPINT = ^SmallInt; far;
-  
+
   { PWORD is already defined in system }
   LPWORD = ^Word; far;
 
   PUINT = ^UINT;
   LPUINT = ^UINT; far;
-  
+
   PLONG = ^LONG;
   LPLONG = ^LONG; far;
-  
+
   { PDWORD is already defined in system }
   LPDWORD = ^DWORD; far;
-  
+
   PBOOL = ^BOOL;
   LPBOOL = ^BOOL; far;
-  
+
   LPVOID = FarPointer;
-  
+
   FARPROC = FarPointer;
   TFarProc = FARPROC;
 
@@ -51,19 +51,19 @@ type
   PHANDLE = ^THandle;
   SPHANDLE = ^THandle; near;
   LPHANDLE = ^THandle; far;
-  
+
 //  HGLOBAL = THandle;
   HLOCAL = THandle;
-  
+
   TGlobalHandle = THandle;
   TLocalHandle = THandle;
-  
+
   ATOM = UINT;
   TAtom = ATOM;
-  
+
   HINST = THandle; { instead of HINSTANCE, to avoid conflict with var hInstance }
 //  HMODULE = HINST;
-  
+
 const
   { GetWinFlags result mask values }
   WF_PMODE      = $0001;

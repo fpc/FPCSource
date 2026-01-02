@@ -1,17 +1,17 @@
 {
      File:       AE/AEObjects.h
- 
+
      Contains:   Object Support Library Interfaces.
- 
-    
- 
+
+
+
      Copyright:  © 1991-2008 by Apple Computer, Inc., all rights reserved
- 
+
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
- 
+
                      http://bugs.freepascal.org
- 
+
 }
 {
     Modified for use with Free Pascal
@@ -349,7 +349,7 @@ type
 	OSLAdjustMarksUPP = OSLAdjustMarksProcPtr;
 {
  *  NewOSLAccessorUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -360,7 +360,7 @@ function NewOSLAccessorUPP( userRoutine: OSLAccessorProcPtr ): OSLAccessorUPP; e
 
 {
  *  NewOSLCompareUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -371,7 +371,7 @@ function NewOSLCompareUPP( userRoutine: OSLCompareProcPtr ): OSLCompareUPP; exte
 
 {
  *  NewOSLCountUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -382,7 +382,7 @@ function NewOSLCountUPP( userRoutine: OSLCountProcPtr ): OSLCountUPP; external n
 
 {
  *  NewOSLDisposeTokenUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -393,7 +393,7 @@ function NewOSLDisposeTokenUPP( userRoutine: OSLDisposeTokenProcPtr ): OSLDispos
 
 {
  *  NewOSLGetMarkTokenUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -404,7 +404,7 @@ function NewOSLGetMarkTokenUPP( userRoutine: OSLGetMarkTokenProcPtr ): OSLGetMar
 
 {
  *  NewOSLGetErrDescUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -415,7 +415,7 @@ function NewOSLGetErrDescUPP( userRoutine: OSLGetErrDescProcPtr ): OSLGetErrDesc
 
 {
  *  NewOSLMarkUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -426,7 +426,7 @@ function NewOSLMarkUPP( userRoutine: OSLMarkProcPtr ): OSLMarkUPP; external name
 
 {
  *  NewOSLAdjustMarksUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -437,7 +437,7 @@ function NewOSLAdjustMarksUPP( userRoutine: OSLAdjustMarksProcPtr ): OSLAdjustMa
 
 {
  *  DisposeOSLAccessorUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -448,7 +448,7 @@ procedure DisposeOSLAccessorUPP( userUPP: OSLAccessorUPP ); external name '_Disp
 
 {
  *  DisposeOSLCompareUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -459,7 +459,7 @@ procedure DisposeOSLCompareUPP( userUPP: OSLCompareUPP ); external name '_Dispos
 
 {
  *  DisposeOSLCountUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -470,7 +470,7 @@ procedure DisposeOSLCountUPP( userUPP: OSLCountUPP ); external name '_DisposeOSL
 
 {
  *  DisposeOSLDisposeTokenUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -481,7 +481,7 @@ procedure DisposeOSLDisposeTokenUPP( userUPP: OSLDisposeTokenUPP ); external nam
 
 {
  *  DisposeOSLGetMarkTokenUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -492,7 +492,7 @@ procedure DisposeOSLGetMarkTokenUPP( userUPP: OSLGetMarkTokenUPP ); external nam
 
 {
  *  DisposeOSLGetErrDescUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -503,7 +503,7 @@ procedure DisposeOSLGetErrDescUPP( userUPP: OSLGetErrDescUPP ); external name '_
 
 {
  *  DisposeOSLMarkUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -514,7 +514,7 @@ procedure DisposeOSLMarkUPP( userUPP: OSLMarkUPP ); external name '_DisposeOSLMa
 
 {
  *  DisposeOSLAdjustMarksUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -525,7 +525,7 @@ procedure DisposeOSLAdjustMarksUPP( userUPP: OSLAdjustMarksUPP ); external name 
 
 {
  *  InvokeOSLAccessorUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -536,7 +536,7 @@ function InvokeOSLAccessorUPP( desiredClass: DescType; const (*var*) container: 
 
 {
  *  InvokeOSLCompareUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -547,7 +547,7 @@ function InvokeOSLCompareUPP( oper: DescType; const (*var*) obj1: AEDesc; const 
 
 {
  *  InvokeOSLCountUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -558,7 +558,7 @@ function InvokeOSLCountUPP( desiredType: DescType; containerClass: DescType; con
 
 {
  *  InvokeOSLDisposeTokenUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -569,7 +569,7 @@ function InvokeOSLDisposeTokenUPP( var unneededToken: AEDesc; userUPP: OSLDispos
 
 {
  *  InvokeOSLGetMarkTokenUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -580,7 +580,7 @@ function InvokeOSLGetMarkTokenUPP( const (*var*) dContainerToken: AEDesc; contai
 
 {
  *  InvokeOSLGetErrDescUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -591,7 +591,7 @@ function InvokeOSLGetErrDescUPP( var appDescPtr: AEDescPtr; userUPP: OSLGetErrDe
 
 {
  *  InvokeOSLMarkUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -602,7 +602,7 @@ function InvokeOSLMarkUPP( const (*var*) dToken: AEDesc; const (*var*) markToken
 
 {
  *  InvokeOSLAdjustMarksUPP()
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -613,10 +613,10 @@ function InvokeOSLAdjustMarksUPP( newStart: SIGNEDLONG; newStop: SIGNEDLONG; con
 
 {
  *  AEObjectInit()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -630,10 +630,10 @@ function AEObjectInit: OSErr; external name '_AEObjectInit';
   such that further calls can be via inline }
 {
  *  AESetObjectCallbacks()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -645,10 +645,10 @@ function AESetObjectCallbacks( myCompareProc: OSLCompareUPP; myCountProc: OSLCou
 
 {
  *  AEResolve()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -660,10 +660,10 @@ function AEResolve( const (*var*) objectSpecifier: AEDesc; callbackFlags: SInt16
 
 {
  *  AEInstallObjectAccessor()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -675,10 +675,10 @@ function AEInstallObjectAccessor( desiredClass: DescType; containerType: DescTyp
 
 {
  *  AERemoveObjectAccessor()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -690,10 +690,10 @@ function AERemoveObjectAccessor( desiredClass: DescType; containerType: DescType
 
 {
  *  AEGetObjectAccessor()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -705,10 +705,10 @@ function AEGetObjectAccessor( desiredClass: DescType; containerType: DescType; v
 
 {
  *  AEDisposeToken()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -720,10 +720,10 @@ function AEDisposeToken( var theToken: AEDesc ): OSErr; external name '_AEDispos
 
 {
  *  AECallObjectAccessor()
- *  
+ *
  *  Mac OS X threading:
  *    Thread safe since version 10.2
- *  
+ *
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later

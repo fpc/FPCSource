@@ -223,7 +223,7 @@ uses MacTypes;
 type
 	__GLIContextRec = record end;
 	GLIContext = ^__GLIContextRec;
-	
+
 	__GLISharedRec = record end;
 	GLIShared = ^__GLISharedRec;
 
