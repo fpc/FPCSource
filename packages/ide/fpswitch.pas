@@ -1010,11 +1010,15 @@ var
   s : string;
   res : boolean;
   OldSwitchesMode,i : TSwitchMode;
+  oFileMode : byte;
 begin
+  oFileMode:=FileMode;   {save file open mode}
+  FileMode:=0;           {Reset will open file in read only mode }
   assign(CfgFile,fn);
   {$I-}
    reset(CfgFile);
   {$I+}
+  FileMode:=oFileMode;   {restore file open mode}
   if ioresult<>0 then
    begin
      SetDefaultSwitches;
