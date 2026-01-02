@@ -15,7 +15,7 @@
 
 {
   The OS heap manager is a small heap manager for smaller targets with an
-  operating system. It's similar in comcept to the "cmem" memory manager
+  operating system. It's similar in concept to the "cmem" memory manager
   for systems with libc support, but it aims systems that have a direct
   heap management API (Sinclair QL, AmigaOS, MacOS Classic, some
   embedded systems, etc), but not necessarily libc. It's also designed

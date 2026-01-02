@@ -65,7 +65,7 @@ const
 
 // Vag & Vab Structure
 type
-	VabHdr = packed record			// VAB Bank Headdings
+	VabHdr = packed record			// VAB Bank Headings
 		form : longint;          	// always 'VABp'
 		ver : longint;           	// VAB file version number
 		id : longint;            	// VAB id

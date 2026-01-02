@@ -845,7 +845,7 @@ DosGetProcessorStatus allows checking status of individual processors
 in a SMP machine.
 
 Parameters:
-ProcID = Procesor ID numbered 1 through n, where there are n processors in
+ProcID = Processor ID numbered 1 through n, where there are n processors in
          total.
 Status = Returned processor status defined as follows:
   PROC_OFFLINE 0x00000000 Processor is offline

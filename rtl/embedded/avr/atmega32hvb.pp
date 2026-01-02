@@ -172,7 +172,7 @@ const
   // CADCSRB
   CADACIE = 6; //
   CADRCIE = 5; // Regular Current Interrupt Enable
-  CADICIE = 4; // CAD Instantenous Current Interrupt Enable
+  CADICIE = 4; // CAD Instantaneous Current Interrupt Enable
   CADACIF = 2; // CC-ADC Accumulate Current Interrupt Flag
   CADRCIF = 1; // CC-ADC Accumulate Current Interrupt Flag
   CADICIF = 0; // CC-ADC Instantaneous Current Interrupt Flag

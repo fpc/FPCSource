@@ -291,7 +291,7 @@ end;
   A thread is created using BeginThread, which in turn calls
   pthread_create. So the threads here are always posix threads.
   Posix doesn't define anything for suspending threads as this is
-  inherintly unsafe. Just don't suspend threads at points they cannot
+  inherently unsafe. Just don't suspend threads at points they cannot
   control. Therefore, I didn't implement .Suspend() if its called from
   outside the threads execution flow (except on Linux _without_ NPTL).
 

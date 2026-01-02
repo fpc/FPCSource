@@ -12,7 +12,7 @@
 
     The routines are fairly OS independent but can't move to
     OS independent because the lowlevel units baseunix/unix depend
-    on them. If they need to be generally accessable, copy these
+    on them. If they need to be generally accessible, copy these
     functions to a general purpose, OS independent, supportable unit.
 
     See the file COPYING.FPC, included in this distribution,

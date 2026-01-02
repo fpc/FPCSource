@@ -21,7 +21,7 @@ The tree contains subdirectories for all the supported operating systems,
 as well as all processor architectures. The processor directories contain
 low-level routines which are required for the system unit (if they are not
 available in high-level language form), as well as optimized versions of
-the pascal generic routines (the generic routine source code is localed in
+the pascal generic routines (the generic routine source code is localized in
 the inc subdirectory).
 
 Enjoy.
