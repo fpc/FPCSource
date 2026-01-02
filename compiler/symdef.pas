@@ -5693,7 +5693,10 @@ implementation
 
     function trecorddef.GetTypeName : string;
       begin
-         GetTypeName:='<record type>'
+        if assigned(typesym) then
+          GetTypeName:='<record type '+typesymbolprettyname+'>'
+        else
+          GetTypeName:='<record type>';
       end;
 
 {$ifdef DEBUG_NODE_XML}
