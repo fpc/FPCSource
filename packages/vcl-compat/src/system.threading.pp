@@ -197,7 +197,7 @@ type
     class var FDefaultPool: TThreadPool;
     const
       RetireDelay  = 5000;      // in milliseconds. Time after which a thread retires
-      SuspendDelay = 5500;      // in milliseconds. Minimum time between 2 thread suspending themselved
+      SuspendDelay = 5500;      // in milliseconds. Minimum time between 2 thread suspending themselves
       SuspendTime  = 6000;      // in milliseconds. Time for which a suspended thread sleeps.
       SuspendTries = 3;         // Number of tries for suspend loop
       MaxCPUUsage  = 95;        // CPU usage % at which we stop threads.
