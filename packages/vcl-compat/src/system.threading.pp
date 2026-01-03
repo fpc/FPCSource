@@ -3683,7 +3683,6 @@ begin
       end;
   finally
     FreeAndNil(Event);
-//    FreeAndNil(Lock);
   end;
 end;
 
@@ -4953,7 +4952,6 @@ end;
 
 destructor TParallel.TLoopParams.Destroy;
 begin
-//  FreeAndNil(FStateLock);
   inherited Destroy;
 end;
 
