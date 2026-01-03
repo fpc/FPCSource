@@ -261,6 +261,35 @@ type
     property Count: Integer read FCount;
     property NextSpinCycleWillYield: Boolean read GetNextSpinCycleWillYield;
   end;
+  
+  // Fast lock, to be used only when lock is held for short times: uses the spinner.
+Type
+  { TSpinLock }
+
+  TSpinLock = record
+  private
+    FLock: LongInt;
+    FOwningThread: TThreadID;
+    FRecursionCount: Integer;
+    FThreadTracking: Boolean;
+    function GetIsLocked: Boolean; inline;
+    function GetIsLockedByCurrentThread: Boolean;
+    function GetIsThreadTrackingEnabled: Boolean; inline;
+    function GetIsOwnedByCurrentThread: Boolean; inline;
+  public
+    constructor Create(EnableThreadTracking: Boolean);
+    procedure Enter; inline;
+    procedure Exit(PublishNow: Boolean = True); inline;
+    function TryEnter: Boolean; overload; inline;
+    function TryEnter(Timeout: Cardinal): Boolean; overload; inline;
+    function TryEnter(const Timeout: TTimeSpan): Boolean; overload; inline;
+
+    property IsLocked: Boolean read GetIsLocked;
+    property IsOwnedByCurrentThread: Boolean read GetIsOwnedByCurrentThread;
+    property IsLockedByCurrentThread: Boolean read GetIsLockedByCurrentThread;
+    property IsThreadTrackingEnabled: Boolean read GetIsThreadTrackingEnabled;
+  end;
+
 
   // Guardian pattern. Use to see if an object was freed or not by adding a guardian instance to it.
 
@@ -1220,6 +1249,154 @@ begin
       Exit(True);
     lElapsedTime:=MilliSecondsBetween(Now,lStartTime);
   until (lElapsedTime >= lWaitTime) or lWait.NextSpinCycleWillYield;
+end;
+
+{ ---------------------------------------------------------------------
+  TSpinLock
+  ---------------------------------------------------------------------}
+
+
+function TSpinLock.GetIsLocked: Boolean;
+
+begin
+  Result:=FLock <> 0;
+end;
+
+
+function TSpinLock.GetIsThreadTrackingEnabled: Boolean; 
+
+begin
+  Result:=FThreadTracking;
+end;
+
+
+function TSpinLock.GetIsOwnedByCurrentThread: Boolean;
+
+begin
+  Result:=(FOwningThread = GetCurrentThreadId);
+end;
+
+
+function TSpinLock.GetIsLockedByCurrentThread: Boolean;
+
+begin
+  Result:=GetIsThreadTrackingEnabled and GetIsLocked and GetIsOwnedByCurrentThread
+end;
+
+
+constructor TSpinLock.Create(EnableThreadTracking: Boolean);
+ 
+begin
+  FLock:=0;
+  FOwningThread:=0;
+  FRecursionCount:=0;
+  FThreadTracking:=EnableThreadTracking;
+end;
+
+
+procedure TSpinLock.Enter;
+
+var
+  Spinner: TSpinWait;
+  CT: TThreadID;
+  
+begin
+  if FThreadTracking then
+    begin
+    CT:=GetCurrentThreadId;
+    if (FOwningThread=CT) then
+      begin
+      Inc(FRecursionCount);
+      System.Exit;
+      end;
+    end;
+
+  Spinner.Reset;
+  while TInterlocked.CompareExchange(FLock,1,0)<>0 do
+    Spinner.SpinCycle;
+
+  if FThreadTracking then
+    begin
+    FOwningThread:=GetCurrentThreadId;
+    FRecursionCount:=1;
+    end;
+end;
+
+
+procedure TSpinLock.Exit(PublishNow: Boolean);
+
+var
+  CT: TThreadID;
+
+begin
+  if FThreadTracking then
+    begin
+    CT:=GetCurrentThreadId;
+    if (FOwningThread<>CT) then
+      raise ELockException.Create('Thread does not own the lock');
+    
+    Dec(FRecursionCount);
+    if (FRecursionCount>0) then 
+      System.Exit;
+    FOwningThread:=TThreadID(0);
+    end;
+  
+  if PublishNow then
+    TInterlocked.Exchange(FLock, 0)
+  else
+    begin
+    // Not 100% sure about this one ?
+    ReadWriteBarrier;
+    FLock:=0;
+    end;
+end;
+
+
+function TSpinLock.TryEnter: Boolean;
+
+begin
+  if FThreadTracking and IsOwnedByCurrentThread then
+    begin
+    Inc(FRecursionCount);
+    System.Exit(True);
+    end;
+
+  Result:=TInterlocked.CompareExchange(FLock,1,0)=0;
+  
+  if Result and FThreadTracking then
+  begin
+    FOwningThread:=GetCurrentThreadId;
+    FRecursionCount:=1;
+  end;
+end;
+
+function TSpinLock.TryEnter(const Timeout: TTimeSpan): Boolean;
+var
+  LSpinner: TSpinWait;
+  LStart: QWord;
+  LTotalMs: QWord;
+begin
+  if TryEnter then 
+    System.Exit(True);
+
+  LTotalMs:=Round(Timeout.TotalMilliseconds);
+  LStart:=GetTickCount64;
+  LSpinner.Reset;
+
+  while (GetTickCount64-LStart)<LTotalMs do
+    begin
+    LSpinner.SpinCycle;
+    if TryEnter then 
+      System.Exit(True);
+    end;
+  Result:=False;
+end;
+
+
+function TSpinLock.TryEnter(Timeout: Cardinal): Boolean;
+
+begin
+  Result:=TryEnter(TTimeSpan.FromMilliseconds(Timeout));
 end;
 
 { ---------------------------------------------------------------------
