@@ -7,7 +7,7 @@ uses
   SysUtils, libtar;
 
 const
-  TAR_FILENAME = 'simple_test.tar';
+  TAR_FILENAME = 'tlibtar1.tar';
   CONTENT_1 = 'Hello, World!';
   CONTENT_2 = 'Some data in a subdirectory';
   CONTENT_3 = 'hello.txt';
