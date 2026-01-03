@@ -186,7 +186,7 @@ TYPE
                   FUNCTION  FindNext (VAR DirRec : TTarDirRec) : BOOLEAN;  // Reads next Directory Info Record. FALSE if EOF reached
                   PROCEDURE ReadFile (Buffer   : POINTER); OVERLOAD;       // Reads file data for last Directory Record
                   PROCEDURE ReadFile (Stream   : TStream); OVERLOAD;       // -;-
-                  PROCEDURE ReadFile (Filename : STRING);  OVERLOAD;       // -;-
+                  PROCEDURE ReadFile (const Filename : AnsiString);  OVERLOAD;       // -;-
                   FUNCTION  ReadFile : RawByteString;      OVERLOAD;         // -;-  RawByteString in D2009+. Not active due to FPC unicode architecture not being finalized
 
                   PROCEDURE GetFilePos (VAR Current, Size : INT64);        // Current File Position
@@ -723,7 +723,7 @@ BEGIN
 END;
 
 
-PROCEDURE TTarArchive.ReadFile (Filename : STRING);
+PROCEDURE TTarArchive.ReadFile (const Filename : AnsiString);
           // Reads file data for the last Directory Record.
           // The entire file is saved in the given Filename
 VAR
@@ -738,7 +738,7 @@ BEGIN
 END;
 
 
-FUNCTION  TTarArchive.ReadFile : RawByteSTRING;
+FUNCTION  TTarArchive.ReadFile : RawByteString;
           // Reads file data for the last Directory Record. The entire file is returned
           // as a large ANSI Ansistring.
 VAR
