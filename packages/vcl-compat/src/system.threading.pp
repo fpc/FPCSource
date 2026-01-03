@@ -41,6 +41,7 @@ uses
 
 type
   TLightweightEvent = TEvent;
+  
   Generic TFunctionEvent<T> = function (Sender: TObject): T of object;
   Generic TProc<T> = reference to procedure (arg : T);
   Generic TProc2<T1,T2> = reference to procedure (arg1 : T1;arg2 : T2);
@@ -117,7 +118,7 @@ type
       TArrayOfT = specialize TArray<T>;
   private
     FArray: TArrayOfT;
-    FLock: TCriticalSection;
+    FLock: TSpinLock;
   public
     constructor Create(aInitialSize: Integer);
     destructor Destroy; override;
@@ -136,7 +137,7 @@ type
       TItemList = specialize TList<T>;
   Private
     FItems : TItemList;
-    FLock : TCriticalSection;
+    FLock : TSpinLock;
     FEvent : TEvent;
     function GetCount: Integer;
     function GetIsEmpty: Boolean;
@@ -160,7 +161,7 @@ type
   TObjectCache = class
   Private
     FStack :{$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Contnrs.TStack;
-    FLock : TCriticalSection;
+    FLock : TSpinLock;
     FItemClass : TClass;
   public const
     CObjectCacheLimit = 50;
@@ -235,7 +236,7 @@ type
     FPreviousRequestCount : Integer; // During monitor check, this is used to determine whether the number of request grows/shrinks
     FThreadCreationAt : Int64; // Tick at which the last thread was created.
     FRetireEvent : TEvent;
-    FQueueLock : TCriticalSection;
+    FQueueLock : TSpinlock;
     FQueueEvent : TEvent;    // Set when a work item is queued.
     FCPUInfo: TThread.TSystemTimes;
     FCpuUsageArray: array[0..TThreadPool.NumCPUUsageSamples - 1] of Cardinal;
@@ -521,7 +522,7 @@ type
   TAbstractTask = class(TThreadPool.TAbstractWorkerData)
   protected
     type
-    IInternalTask = interface(ITask) ['{4C5EFFA7-FB5F-4C38-3E20-84FF25678812}']
+    IInternalTask = interface(ITask) ['{4C5EFFA7-FB5F-4C38-3E20-84FF25678812}']  
       procedure AddCompleteEvent(const aProc: TITaskProc);
       procedure HandleChildCompletion(const aTask: IInternalTask);
       procedure HandleChildCompletion(const aTask: TTask);
@@ -576,7 +577,7 @@ type
     FParams : TTaskParams;
     FTaskID : Integer;
     FSubTasks : Integer;
-    FStateLock : TCriticalSection;
+    FStateLock : TSpinLock;
     FTasksWithExceptions : Array of TTask;
     FCompletedEvents : TITaskProcArray;
     FCompletedEventCount : Integer;
@@ -791,7 +792,7 @@ type
       Errors : TExceptionArray;
       ErrorCount : Integer;
       StateFlags : TLoopStateFlagSet;
-      FStateLock : TCriticalSection;
+      FStateLock : TSpinLock;
       FStrideCount : Integer;
       FNextStrideAt : Integer;
       FRootTask: ITask;
@@ -999,12 +1000,14 @@ procedure SetThreadPoolInteractive(APool: TThreadPool; AValue: Boolean);
 {
   These must be exposed, otherwise they cannot be used inside generic methods :/
 
-  At optimization level 1, the threadlog is not called at all if the routine is empty.
+  At optimization level 1, the {$IFDEF USE_THREADLOG}ThreadLog is not called at all if the routine is empty.
   So if DEBUGTHREADPOOL is not defined, we must ensure the methods are empty.
   without optimization, the methods are called but will not do anything.
 }
+{$IFDEF USE_THREADLOG}
 procedure ThreadLog(const Method,Msg: string); overload;
 procedure ThreadLog(const Method,Fmt: string; Args: array of const); overload;
+{$ENDIF}
 
 
 implementation
@@ -1021,8 +1024,18 @@ Resourcestring
   SErrOneOrMoreTasksCancelled = 'One or more tasks where cancelled';
   SAggregateExceptionCount = 'Aggregate exception for %d exceptions';
 
+Type
+  TSpinLockHelper = record helper for TSpinLock
+    procedure leave;
+  end;
+
+procedure TSpinLockHelper.leave;
+begin
+  Exit;
+end;
 
 
+{$IFDEF USE_THREADLOG}
 procedure ThreadLog(const Method,Msg: string); overload;
 
 {$IFDEF DEBUGTHREADPOOL}
@@ -1043,10 +1056,11 @@ end;
 procedure ThreadLog(const Method,Fmt: string; Args: array of const); overload;
 begin
 {$IFDEF DEBUGTHREADPOOL}
-  ThreadLog(Method,SafeFormat(Fmt,Args));
+  ThreadLog(Method,SafeFormat(Fmt,Args));{}
 {$ENDIF}
 end;
 
+{$ENDIF USE_THREADLOG}
 
 Function BToS(B : Boolean) : String;
 begin
@@ -1343,7 +1357,7 @@ end;
 
 constructor TSparseArray.Create(aInitialSize: Integer);
 begin
-  FLock:=TCriticalSection.Create;
+  FLock:=TSpinLock.Create(False);
   if aInitialSize < 1 then
     aInitialSize:=1;
   SetLength(FArray,aInitialSize);
@@ -1351,7 +1365,6 @@ end;
 
 destructor TSparseArray.Destroy;
 begin
-  FreeAndNil(FLock);
   inherited Destroy;
 end;
 
@@ -1362,7 +1375,7 @@ end;
 
 procedure TSparseArray.Unlock;
 begin
-  FLock.Leave;
+  FLock.Exit;
 end;
 
 function TSparseArray.Add(const aItem: T): Integer;
@@ -1433,37 +1446,38 @@ end;
 
 procedure TWorkStealingQueue.Lock;
 begin
-  ThreadLog('TWorkStealingQueue.Lock','Enter %d',[PtrInt(Self)]);
+  {$IFDEF USE_THREADLOG}ThreadLog('TWorkStealingQueue.Lock','Enter %d',[PtrInt(Self)]);{$ENDIF USE_THREADLOG}
   try
     FLock.Enter;
   except
     on E : Exception do
-      ThreadLog('TWorkStealingQueue.Lock','%d Exception: %s %s',[PtrInt(Self),E.ClassName,E.Message]);
+	  begin
+      {$IFDEF USE_THREADLOG}ThreadLog('TWorkStealingQueue.Lock','%d Exception: %s %s',[PtrInt(Self),E.ClassName,E.Message]);{$ENDIF USE_THREADLOG}
+	  end;
   end;
-  ThreadLog('TWorkStealingQueue.Lock','Leave %d',[PtrInt(Self)]);
+  {$IFDEF USE_THREADLOG}ThreadLog('TWorkStealingQueue.Lock','Leave %d',[PtrInt(Self)]);{$ENDIF USE_THREADLOG}
 end;
 
 procedure TWorkStealingQueue.UnLock;
 begin
-  ThreadLog('TWorkStealingQueue.UnLock','Enter %d',[PtrInt(Self)]);
-  FLock.Leave;
-  ThreadLog('TWorkStealingQueue.UnLock','Leave %d',[PtrInt(Self)]);
+  {$IFDEF USE_THREADLOG}ThreadLog('TWorkStealingQueue.UnLock','Enter %d',[PtrInt(Self)]);{$ENDIF USE_THREADLOG}
+  FLock.Exit;
+  {$IFDEF USE_THREADLOG}ThreadLog('TWorkStealingQueue.UnLock','Leave %d',[PtrInt(Self)]);{$ENDIF USE_THREADLOG}
 end;
 
 constructor TWorkStealingQueue.Create;
 begin
-  ThreadLog('TWorkStealingQueue.Create',IntToStr(PtrInt(Self)));
+  {$IFDEF USE_THREADLOG}ThreadLog('TWorkStealingQueue.Create',IntToStr(PtrInt(Self)));{$ENDIF USE_THREADLOG}
   FItems:=TItemList.Create;
-  FLock:=TCriticalSection.Create;
+  FLock:=TSpinLock.Create(False);
   FEvent:=TEvent.Create(False);
 end;
 
 destructor TWorkStealingQueue.Destroy;
 begin
-  ThreadLog('TWorkStealingQueue.Destroy',IntToStr(PtrInt(Self)));
+  {$IFDEF USE_THREADLOG}ThreadLog('TWorkStealingQueue.Destroy',IntToStr(PtrInt(Self)));{$ENDIF USE_THREADLOG}
   FreeAndNil(FItems);
   FreeAndNil(FEvent);
-  FreeAndNil(Flock);
   inherited Destroy;
 end;
 
@@ -1531,14 +1545,13 @@ constructor TObjectCache.Create(aClass: TClass);
 begin
   FItemClass:=aClass;
   FStack:={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Contnrs.TStack.Create();
-  FLock:=TCriticalSection.Create;
+  FLock:=TSpinLock.Create(False);
 end;
 
 destructor TObjectCache.Destroy;
 begin
   Clear;
   FreeAndNil(FStack);
-  FreeAndNil(FLock);
   inherited Destroy;
 end;
 
@@ -1557,7 +1570,7 @@ begin
       P:=FStack.Pop;
       end;
   finally
-    FLock.Leave;
+    FLock.Exit;
   end;
 end;
 
@@ -1569,7 +1582,7 @@ begin
     if Result then
       FStack.Push(Instance);
   finally
-    FLock.Leave;
+    FLock.Exit;
   end;
 end;
 
@@ -1580,7 +1593,7 @@ begin
   try
     Result:=FStack.Pop;
   finally
-    FLock.Leave;
+    FLock.Exit;
   end;
 end;
 
@@ -1624,16 +1637,16 @@ var
 
 begin
   // Notify waiting threads.
-  ThreadLog('TThreadPool.WorkQueued','enter');
+  {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.WorkQueued','enter');{$ENDIF USE_THREADLOG}
   AtomicIncrement(FRequestCount);
-  ThreadLog('TThreadPool.WorkQueued','Queueing work (Requests: %d)',[FRequestCount]);
+  {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.WorkQueued','Queueing work (Requests: %d)',[FRequestCount]);{$ENDIF USE_THREADLOG}
   DoEventSignal:=FIdleThreads>=FRequestCount;
-  ThreadLog('TThreadPool.WorkQueued','DoEventSignal %s (%d>%d)',[BToS(DoEventSignal),FIdleThreads,FRequestCount]);
+  {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.WorkQueued','DoEventSignal %s (%d>%d)',[BToS(DoEventSignal),FIdleThreads,FRequestCount]);{$ENDIF USE_THREADLOG}
   if DoEventSignal then
     FQueueEvent.SetEvent
   else
     GrowPool;
-  ThreadLog('TThreadPool.WorkQueued','leave');
+  {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.WorkQueued','leave');{$ENDIF USE_THREADLOG}
 end;
 
 procedure TThreadPool.GrowPool;
@@ -1641,13 +1654,13 @@ procedure TThreadPool.GrowPool;
   procedure DoAdd;
 
   begin
-    ThreadLog('TThreadPool.GrowPool.DoAdd','Enter');
+    {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.GrowPool.DoAdd','Enter');{$ENDIF USE_THREADLOG}
     LockQueue;
     try
       AddThreadToPool;
     finally
       UnlockQueue;
-      ThreadLog('TThreadPool.GrowPool.DoAdd','Leave');
+      {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.GrowPool.DoAdd','Leave');{$ENDIF USE_THREADLOG}
     end;
   end;
 
@@ -1655,20 +1668,20 @@ Var
   DoGrow,NeedMinimum,IdleDeficit,HaveRoom : Boolean;
 
 begin
-  ThreadLog('TThreadPool.GrowPool','Enter');
+  {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.GrowPool','Enter');{$ENDIF USE_THREADLOG}
   NeedMinimum:=(FThreadCount<FMinThreads);
   IdleDeficit:=(FIdleThreads<FRequestCount);
   HaveRoom:=(FThreadCount<FMaxThreads);
   DoGrow:=NeedMinimum or (IdleDeficit and HaveRoom);
-  ThreadLog('TThreadPool.GrowPool','DoGrow: %s, NeedMinimum: %s, IdleDeficit: %s, HaveRoom: %s',[BToS(DoGrow),BToS(NeedMinimum),BToS(IdleDeficit),BToS(HaveRoom)]);
+  {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.GrowPool','DoGrow: %s, NeedMinimum: %s, IdleDeficit: %s, HaveRoom: %s',[BToS(DoGrow),BToS(NeedMinimum),BToS(IdleDeficit),BToS(HaveRoom)]);{$ENDIF USE_THREADLOG}
   if Not DoGrow then
     begin
-    ThreadLog('TThreadPool.GrowPool','Leave (not DoGrow)');
+    {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.GrowPool','Leave (not DoGrow)');{$ENDIF USE_THREADLOG}
     exit;
     end;
   if FRetiring>0 then
      begin
-     ThreadLog('TThreadPool.GrowPool','Waking retired threads: %d',[FRetiring]);
+     {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.GrowPool','Waking retired threads: %d',[FRetiring]);{$ENDIF USE_THREADLOG}
      FRetireEvent.SetEvent;
      end
   else
@@ -1676,11 +1689,11 @@ begin
     DoAdd;
     while (FThreadCount<FMinThreads) do
       begin
-      ThreadLog('TThreadPool.GrowPool','Adding thread to pool: %d<%d',[FThreadCount,FMinThreads]);
+      {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.GrowPool','Adding thread to pool: %d<%d',[FThreadCount,FMinThreads]);{$ENDIF USE_THREADLOG}
       DoAdd;
       end;
     end;
-  ThreadLog('TThreadPool.GrowPool','Leave');
+  {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.GrowPool','Leave');{$ENDIF USE_THREADLOG}
 end;
 
 
@@ -1697,7 +1710,7 @@ begin
   If Assigned(FThreads) then
     FThreads.Remove(aThread);
   AtomicDecrement(FThreadCount);
-  ThreadLog('TThreadPool.RemoveThread','Thread count now %d',[FThreadCount]);
+  {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.RemoveThread','Thread count now %d',[FThreadCount]);{$ENDIF USE_THREADLOG}
   if assigned(FOnThreadTerminate) then
     FOnThreadTerminate(aThread);
 end;
@@ -1712,12 +1725,12 @@ end;
 procedure TThreadPool.AssignWorkToGlobalQueue(const WorkerData: IThreadPoolWorkItem);
 
 begin
-  ThreadLog('TThreadPool.AssignWorkToGlobalQueue','locking queue');
+  {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.AssignWorkToGlobalQueue','locking queue');{$ENDIF USE_THREADLOG}
   LockQueue;
   try
     FWorkQueue.Push(WorkerData);
   finally
-    ThreadLog('TThreadPool.AssignWorkToGlobalQueue','unlocking queue');
+    {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.AssignWorkToGlobalQueue','unlocking queue');{$ENDIF USE_THREADLOG}
     UnLockQueue;
   end;
   WorkQueued;
@@ -1753,14 +1766,14 @@ end;
 
 procedure TThreadPool.DoQueueWorkItem(const WorkerData: IThreadPoolWorkItem; PreferThread : TQueueWorkerThread);
 begin
-  ThreadLog('TThreadPool.DoQueueWorkItem','enter');
+  {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.DoQueueWorkItem','enter');{$ENDIF USE_THREADLOG}
   if assigned(PreferThread) then
     AssignWorkToLocalQueue(WorkerData,PreferThread)
   else
     AssignWorkToGlobalQueue(WorkerData);
   if FMonitorStatus = MonitorNone then
     CreateMonitorThread;
-  ThreadLog('TThreadPool.DoQueueWorkItem','leave');
+  {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.DoQueueWorkItem','leave');{$ENDIF USE_THREADLOG}
 end;
 
 
@@ -1771,7 +1784,7 @@ var
 begin
   FRetireEvent:=TLightweightEvent.Create;
   FQueueEvent:=TEvent.Create;
-  FQueueLock:=TCriticalSection.Create;
+  FQueueLock:=TSpinLock.Create(False);
   FWorkQueue:={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Contnrs.TQueue.Create;
   PC:=TThread.ProcessorCount;
   FQueues:=TWorkStealingQueueThreadPoolWorkItemArray.Create(PC);
@@ -1805,7 +1818,7 @@ begin
         for T in List do
           begin
           T.Terminate;
-          ThreadLog('TThreadPool.WaitForThreads','Terminated thread');
+          {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.WaitForThreads','Terminated thread');{$ENDIF USE_THREADLOG}
           end;
     finally
       FThreads.UnlockList;
@@ -1827,7 +1840,6 @@ begin
   FreeAndNil(FQueues);
   FreeAndNil(FRetireEvent);
   FreeAndNil(FQueueEvent);
-  FreeAndNil(FQueueLock);
   FreeAndNil(FThreads);
   inherited Destroy;
 end;
@@ -1882,12 +1894,12 @@ end;
 procedure TThreadPool.SignalExecuting(aThread : TQueueWorkerThread);
 
 begin
-  ThreadLog('TThreadPool.SignalExecuting','Enter (Requests left: %d, Idle: %d)',[FRequestCount,FIdleThreads]);
+  {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.SignalExecuting','Enter (Requests left: %d, Idle: %d)',[FRequestCount,FIdleThreads]);{$ENDIF USE_THREADLOG}
   if aThread.Idle then
     AtomicDecrement(FIdleThreads);
   aThread.Idle:=False;
   AtomicDecrement(FRequestCount);
-  ThreadLog('TThreadPool.SignalExecuting','Leave (Requests left: %d, Idle: %d)',[FRequestCount,FIdleThreads]);
+  {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.SignalExecuting','Leave (Requests left: %d, Idle: %d)',[FRequestCount,FIdleThreads]);{$ENDIF USE_THREADLOG}
 end;
 
 function TThreadPool.CheckShouldTerminate(aThread : TQueueWorkerThread) : Boolean;
@@ -1917,16 +1929,16 @@ end;
 
 procedure TThreadPool.LockQueue;
 begin
-  ThreadLog('TThreadPool.LockQueue','Enter');
+  {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.LockQueue','Enter');{$ENDIF USE_THREADLOG}
   FQueueLock.Enter;
-  ThreadLog('TThreadPool.LockQueue','Leave');
+  {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.LockQueue','Leave');{$ENDIF USE_THREADLOG}
 end;
 
 procedure TThreadPool.UnLockQueue;
 begin
-  ThreadLog('TThreadPool.UnLockQueue','Enter');
+  {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.UnLockQueue','Enter');{$ENDIF USE_THREADLOG}
   FQueueLock.Leave;
-  ThreadLog('TThreadPool.UnLockQueue','Leave');
+  {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.UnLockQueue','Leave');{$ENDIF USE_THREADLOG}
 end;
 
 
@@ -1966,7 +1978,7 @@ begin
   if aThread.Idle then
     begin
     AtomicDecrement(FIdleThreads);
-    Threadlog('TThreadPool.UnRegisterWorkerThread','Idle count: %d',[FIdleThreads]);
+    {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.UnRegisterWorkerThread','Idle count: %d',[FIdleThreads]);{$ENDIF USE_THREADLOG}
     end;
   QueueThread:=Nil;
 end;
@@ -1991,55 +2003,55 @@ begin
   Result:=True;
   if FShutDown and (FRequestCount=0) then
     begin
-    ThreadLog('TThreadPool.GetWorkItemForThread','Shutting down, no work -> quit');
+    {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.GetWorkItemForThread','Shutting down, no work -> quit');{$ENDIF USE_THREADLOG}
     Exit(False);
     end;
-  ThreadLog('TThreadPool.GetWorkItemForThread','locking queue');
+  {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.GetWorkItemForThread','locking queue');{$ENDIF USE_THREADLOG}
   LockQueue;
   try
     if (FWorkQueue.Count > 0) then
       begin
       // FWorkQueue is thread safe.
-      ThreadLog('TThreadPool.GetWorkItemForThread','Have global work');
+      {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.GetWorkItemForThread','Have global work');{$ENDIF USE_THREADLOG}
       Itm:=IThreadPoolWorkItem(FWorkQueue.Pop);
       if assigned(Itm) then
         begin
-        ThreadLog('TThreadPool.GetWorkItemForThread','Global work, -> no quit');
+        {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.GetWorkItemForThread','Global work, -> no quit');{$ENDIF USE_THREADLOG}
         Exit(True); // We got work, do not stop thread
         end;
       end;
   finally
-    ThreadLog('TThreadPool.GetWorkItemForThread','unlocking queue');
+    {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.GetWorkItemForThread','unlocking queue');{$ENDIF USE_THREADLOG}
     UnLockQueue;
   end;
   // No local work, check global
   if not aThread.Idle then
     begin
-    ThreadLog('TThreadPool.GetWorkItemForThread','marking thread %d as idle',[PtrInt(aThread.ThreadID)]);
+    {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.GetWorkItemForThread','marking thread %d as idle',[PtrInt(aThread.ThreadID)]);{$ENDIF USE_THREADLOG}
     AtomicIncrement(FIdleThreads);
     aThread.Idle:=True;
     end;
-  ThreadLog('TThreadPool.GetWorkItemForThread','Waiting for queue event (%d ms.)',[aThread.CheckWaitTime]);
+  {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.GetWorkItemForThread','Waiting for queue event (%d ms.)',[aThread.CheckWaitTime]);{$ENDIF USE_THREADLOG}
   CheckThreadQueues:=(FQueueEvent.WaitFor(aThread.CheckWaitTime)<>wrTimeout);
-  ThreadLog('TThreadPool.GetWorkItemForThread','Work queued triggered: %s',[BToS(CheckThreadQueues)]);
+  {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.GetWorkItemForThread','Work queued triggered: %s',[BToS(CheckThreadQueues)]);{$ENDIF USE_THREADLOG}
   if FShutdown then
     begin
-    ThreadLog('TThreadPool.GetWorkItemForThread','Shutdown -> quit');
+    {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.GetWorkItemForThread','Shutdown -> quit');{$ENDIF USE_THREADLOG}
     Exit(False); // Stop thread
     end;
   if CheckThreadQueues then
     begin
-    ThreadLog('TThreadPool.GetWorkItemForThread','Checking other queues');
+    {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.GetWorkItemForThread','Checking other queues');{$ENDIF USE_THREADLOG}
     if GetWorkItemFromQueues(aThread.WorkQueue,Itm) then
       begin
-      ThreadLog('TThreadPool.GetWorkItemForThread','Checked other queues, got work -> no quit');
+      {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.GetWorkItemForThread','Checked other queues, got work -> no quit');{$ENDIF USE_THREADLOG}
       Exit(True); // We got work, do not stop thread
       end;
-    ThreadLog('TThreadPool.GetWorkItemForThread','No work in other queues');
+    {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.GetWorkItemForThread','No work in other queues');{$ENDIF USE_THREADLOG}
     end;
   if FShutdown then
     begin
-    ThreadLog('TThreadPool.GetWorkItemForThread','Shutdown -> quit');
+    {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.GetWorkItemForThread','Shutdown -> quit');{$ENDIF USE_THREADLOG}
     Exit(False); // Stop thread
     end;
   // Nothing to do. Adjust waiting time or stop thread.
@@ -2051,7 +2063,7 @@ begin
       begin
       if (aThread.CheckWaitTime>EnoughThreadsTimeOut) then
         begin
-        ThreadLog('TThreadPool.GetWorkItemForThread','Enough threads to handle workload -> quit');
+        {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.GetWorkItemForThread','Enough threads to handle workload -> quit');{$ENDIF USE_THREADLOG}
         Exit(False); // Stop thread
         end;
       end;
@@ -2063,7 +2075,7 @@ begin
     // if we waited long enough...
     if (aThread.CheckWaitTime>NoRequestsTimeOut) then
       begin
-      ThreadLog('TThreadPool.GetWorkItemForThread','One thread, waiting quite long -> quit');
+      {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.GetWorkItemForThread','One thread, waiting quite long -> quit');{$ENDIF USE_THREADLOG}
       Exit(False); // Stop thread
       end;
     aThread.AdjustWaitTime;
@@ -2109,31 +2121,31 @@ begin
   HaveRoomForWork:=(FRequestCount>0) and (FThreadCount<FMaxThreads);
   if Not HaveRoomForWork then
     begin
-    ThreadLog('TThreadPool.GrowIfStarved','No work (%d>0) and (%d<%d) is False. Not creating new threads',[FRequestCount,FThreadCount,FMaxThreads]);
+    {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.GrowIfStarved','No work (%d>0) and (%d<%d) is False. Not creating new threads',[FRequestCount,FThreadCount,FMaxThreads]);{$ENDIF USE_THREADLOG}
     Exit;
     end;
   PrevRequestCount:=FPreviousRequestCount;
   FPreviousRequestCount:=FRequestCount;
-  ThreadLog('TThreadPool.GrowIfStarved','(FRequestCount>=PrevRequestCount) and IsThrottledDelay(FThreadCreationAt,FThreadCount):');
+  {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.GrowIfStarved','(FRequestCount>=PrevRequestCount) and IsThrottledDelay(FThreadCreationAt,FThreadCount):');{$ENDIF USE_THREADLOG}
   ThrottleOK:=IsThrottledDelay(FThreadCreationAt,FThreadCount);
   IncreasingRequests:=(FRequestCount>=PrevRequestCount);
   B:=IncreasingRequests and ThrottleOK;
-  ThreadLog('TThreadPool.GrowIfStarved','IncreasingRequests (%d>=%d) [%s] and ThrottleOK (%d,%d) [%s] : %s',[FRequestCount,PrevRequestCount,BToS(IncreasingRequests),FThreadCreationAt, FThreadCount, BToS(ThrottleOK),BToS(B)]);
+  {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.GrowIfStarved','IncreasingRequests (%d>=%d) [%s] and ThrottleOK (%d,%d) [%s] : %s',[FRequestCount,PrevRequestCount,BToS(IncreasingRequests),FThreadCreationAt, FThreadCount, BToS(ThrottleOK),BToS(B)]);{$ENDIF USE_THREADLOG}
   if not B then
     Exit;
   if B then
     begin
     CreateNewThread:=False;
-    ThreadLog('TThreadPool.GrowIfStarved','locking queue');
+    {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.GrowIfStarved','locking queue');{$ENDIF USE_THREADLOG}
     LockQueue;
     try
       IncreasingRequests:=(FRequestCount>=PrevRequestCount);
       AllowMoreThreads:=(FThreadCount<FMaxThreads);
-      ThreadLog('TThreadPool.GrowIfStarved','IncreasingRequests (%d>=%d) : %s ',[FRequestCount,PrevRequestCount,BToS(IncreasingRequests)]);
-      ThreadLog('TThreadPool.GrowIfStarved','AllowMoreThreads (%d<%d) : %s',[FThreadCount,FMaxThreads,BToS(AllowMoreThreads)]);
-      ThreadLog('TThreadPool.GrowIfStarved','(FIdleThreads=FRetiring) : (%d=%d) %s',[FIdleThreads,FRetiring,BToS(FIdleThreads=FRetiring)]);
+      {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.GrowIfStarved','IncreasingRequests (%d>=%d) : %s ',[FRequestCount,PrevRequestCount,BToS(IncreasingRequests)]);{$ENDIF USE_THREADLOG}
+      {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.GrowIfStarved','AllowMoreThreads (%d<%d) : %s',[FThreadCount,FMaxThreads,BToS(AllowMoreThreads)]);{$ENDIF USE_THREADLOG}
+      {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.GrowIfStarved','(FIdleThreads=FRetiring) : (%d=%d) %s',[FIdleThreads,FRetiring,BToS(FIdleThreads=FRetiring)]);{$ENDIF USE_THREADLOG}
       B:=IncreasingRequests and AllowMoreThreads and (FIdleThreads=FRetiring);
-      ThreadLog('TThreadPool.GrowIfStarved','Attempt to create new thread %s',[BToS(B)]);
+      {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.GrowIfStarved','Attempt to create new thread %s',[BToS(B)]);{$ENDIF USE_THREADLOG}
       if B then
       begin
         CreateNewThread:=FRetiring<=0;
@@ -2141,7 +2153,7 @@ begin
           AddThreadToPool;
       end;
     finally
-      ThreadLog('TThreadPool.GrowIfStarved','unlocking queue');
+      {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.GrowIfStarved','unlocking queue');{$ENDIF USE_THREADLOG}
       UnLockQueue;
     end;
     if Not CreateNewThread then
@@ -2152,11 +2164,11 @@ end;
 function TThreadPool.AddThreadToPool : TQueueWorkerThread;
 
 begin
-  ThreadLog('TThreadPool.AddThreadToPool','Enter');
+  {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.AddThreadToPool','Enter');{$ENDIF USE_THREADLOG}
   FThreadCreationAt:=GetTickCount64;
   Result:=TQueueWorkerThread.Create(Self);
   AtomicIncrement(FThreadCount);
-  ThreadLog('TThreadPool.AddThreadToPool','Leave (thread count: %d)',[FThreadCount]);
+  {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.AddThreadToPool','Leave (thread count: %d)',[FThreadCount]);{$ENDIF USE_THREADLOG}
 end;
 
 function TThreadPool.DoMonitor : TMonitorResult;
@@ -2533,23 +2545,23 @@ begin
         if not ThreadPool.GetWorkItemForThread(Self,Itm) then
           begin
           // if it returned false, we stop
-          ThreadLog('TThreadPool.TQueueWorkerThread.Execute','No work, stopping');
+          {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.TQueueWorkerThread.Execute','No work, stopping');{$ENDIF USE_THREADLOG}
           Terminate;
           end;
       if Assigned(Itm) then
         begin
-        ThreadLog('TThreadPool.TQueueWorkerThread.Execute','Calling WrapExecute. Idle: %s',[BToS(Idle)]);
+        {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.TQueueWorkerThread.Execute','Calling WrapExecute. Idle: %s',[BToS(Idle)]);{$ENDIF USE_THREADLOG}
         WrapExecute(Itm);
         FCheckWaitTime:=IdleTimeout;
-        ThreadLog('TThreadPool.TQueueWorkerThread.Execute','Called WrapExecute. Idle: %s',[BToS(Idle)]);
+        {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.TQueueWorkerThread.Execute','Called WrapExecute. Idle: %s',[BToS(Idle)]);{$ENDIF USE_THREADLOG}
         end;
       if ThreadPool.CheckShouldTerminate(Self) then
         begin
-        ThreadLog('TThreadPool.TQueueWorkerThread.Execute','Threadpool said to stop; terminating');
+        {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.TQueueWorkerThread.Execute','Threadpool said to stop; terminating');{$ENDIF USE_THREADLOG}
         Terminate;
         end;
       if Terminated then
-        ThreadLog('TThreadPool.TQueueWorkerThread.Execute','Thread Terminated');
+        {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.TQueueWorkerThread.Execute','Thread Terminated');{$ENDIF USE_THREADLOG}
       end;
   finally
     ThreadPool.UnRegisterWorkerThread(Self);
@@ -2701,7 +2713,6 @@ end;
 destructor TTask.Destroy;
 begin
   FreeAndNil(FException);
-  FreeAndNil(FStateLock);
   FreeAndNil(FDoneEvent);
   inherited Destroy;
 end;
@@ -2775,7 +2786,7 @@ end;
 Procedure TTask.UnLockState;
 
 begin
-  FStateLock.Leave;
+  FStateLock.Exit;
 end;
 
 Procedure TTask.CalcStatus;
@@ -2874,11 +2885,11 @@ procedure TTask.CheckFaulted;
 var
   E: TObject;
 begin
-  ThreadLog('TTask.CheckFaulted','CheckFaulted');
+  {$IFDEF USE_THREADLOG}ThreadLog('TTask.CheckFaulted','CheckFaulted');{$ENDIF USE_THREADLOG}
   E:=GetExceptionObject;
   if Assigned(E) then
     begin
-    ThreadLog('TTask.CheckFaulted','CheckFaulted have error');
+    {$IFDEF USE_THREADLOG}ThreadLog('TTask.CheckFaulted','CheckFaulted have error');{$ENDIF USE_THREADLOG}
     SetRaisedState;
     raise E;
     end;
@@ -3068,7 +3079,7 @@ begin
         Run(MakeProc(Self,Proc),FParams.Pool)
       else
         try
-          // Execute immediately
+          // Execute immediatly
           Proc(Self);
         except
           // What to do with an exception ??
@@ -3089,12 +3100,12 @@ var
   BusyCheck : Boolean;
 
 begin
-  ThreadLog('TTask.InternalWork','Enter');
+  {$IFDEF USE_THREADLOG}ThreadLog('TTask.InternalWork','Enter');{$ENDIF USE_THREADLOG}
   BusyCheck:=aCheckExecuting or (TOptionStateFlag.Replicating in FStateFlags);
-  ThreadLog('TTask.InternalWork','busycheck: %s:=%s or (%s));',[BToS(BusyCheck),BToS(aCheckExecuting),BToS(TOptionStateFlag.Replicating in FStateFlags)]);
+  {$IFDEF USE_THREADLOG}ThreadLog('TTask.InternalWork','busycheck: %s:=%s or (%s));',[BToS(BusyCheck),BToS(aCheckExecuting),BToS(TOptionStateFlag.Replicating in FStateFlags)]);{$ENDIF USE_THREADLOG}
   if Not BusyCheck then
     begin
-    ThreadLog('TTask.InternalWork','set running');
+    {$IFDEF USE_THREADLOG}ThreadLog('TTask.InternalWork','set running');{$ENDIF USE_THREADLOG}
     ForceStateFlags([TOptionStateFlag.CallbackRun]);
     end
   else if not UpdateStateAtomic([TOptionStateFlag.CallbackRun], [TOptionStateFlag.CallbackRun]) and
@@ -3104,7 +3115,7 @@ begin
     Complete(False)
   else
     begin
-    ThreadLog('TTask.InternalWork','calling internalexecute');
+    {$IFDEF USE_THREADLOG}ThreadLog('TTask.InternalWork','calling internalexecute');{$ENDIF USE_THREADLOG}
     InternalExecute(_CurrentTask);
     end;
   Result:=True;
@@ -3169,11 +3180,11 @@ begin
   P:=@DoCallusercode;
   While aRoot.ShouldCreateReplica do
     begin
-    ThreadLog('TTask.ExecuteReplicates','Creating replica');
+    {$IFDEF USE_THREADLOG}ThreadLog('TTask.ExecuteReplicates','Creating replica');{$ENDIF USE_THREADLOG}
     Sub:=aRoot.CreateReplicaTask(P,aRoot,[TCreateFlag.Replicating, TCreateFlag.Replica],FParams.ParentControlFlag);
-    ThreadLog('TTask.ExecuteReplicates','Starting replica');
+    {$IFDEF USE_THREADLOG}ThreadLog('TTask.ExecuteReplicates','Starting replica');{$ENDIF USE_THREADLOG}
     Sub.Start;
-    ThreadLog('TTask.ExecuteReplicates','Started replica');
+    {$IFDEF USE_THREADLOG}ThreadLog('TTask.ExecuteReplicates','Started replica');{$ENDIF USE_THREADLOG}
     end;
   DoCallUserCode;
 end;
@@ -3243,12 +3254,12 @@ function TTask.Wait(aTimeout: Cardinal): Boolean;
 
   Procedure RunChecks; inline;
   begin
-    ThreadLog('TTask.Wait.RunChecks','Enter');
+    {$IFDEF USE_THREADLOG}ThreadLog('TTask.Wait.RunChecks','Enter');{$ENDIF USE_THREADLOG}
     try
       CheckCanceled;
       CheckFaulted;
     finally
-      ThreadLog('TTask.Wait.RunChecks','Leave');
+      {$IFDEF USE_THREADLOG}ThreadLog('TTask.Wait.RunChecks','Leave');{$ENDIF USE_THREADLOG}
     end;
   end;
 
@@ -3257,18 +3268,18 @@ var
   Watch : TStopWatch;
 
 begin
-  ThreadLog('TTask.Wait','Enter (atimeout: %d) ',[aTimeout]);
+  {$IFDEF USE_THREADLOG}ThreadLog('TTask.Wait','Enter (atimeout: %d) ',[aTimeout]);{$ENDIF USE_THREADLOG}
   Result:=IsComplete;
   if Result then
     begin
-    ThreadLog('TTask.Wait','Complete');
+    {$IFDEF USE_THREADLOG}ThreadLog('TTask.Wait','Complete');{$ENDIF USE_THREADLOG}
     Runchecks;
     Exit;
     end;
   NeedSync:=(TThread.CurrentThread.ThreadID=MainThreadID) and FParams.Pool.Interactive;
   if Not NeedSync then
     begin
-    ThreadLog('TTask.Wait','Waiting for done event (%d)',[aTimeout]);
+    {$IFDEF USE_THREADLOG}ThreadLog('TTask.Wait','Waiting for done event (%d)',[aTimeout]);{$ENDIF USE_THREADLOG}
     Result:=DoneEvent.WaitFor(aTimeout)<>wrTimeout;
     if Result then
       RunChecks;
@@ -3443,7 +3454,7 @@ begin
     Include(FStateFlags, TOptionStateFlag.Replicating);
   if TCreateFlag.Replica in aParams.CreateFlags then
     Include(FStateFlags, TOptionStateFlag.Replica);
-  FStateLock:=TCriticalSection.Create;
+  FStateLock:=TSpinLock.Create(False);
   FDoneEvent:=TEvent.Create;
 end;
 
@@ -3557,7 +3568,7 @@ class function TTask.DoWaitForAny(const aTasks: array of ITask; aTimeout: Cardin
 
 var
   Res : Integer;
-  Lock : TCriticalSection;
+  Lock : TSpinLock;
   Event : TEvent;
 
   Function MakeCompleted(aIndex : integer) : TITaskProc;
@@ -3573,7 +3584,7 @@ var
           Event.SetEvent;
           end;
       finally
-        Lock.Leave;
+        Lock.Exit;
       end;
       if aTask<>Nil then;
       end;
@@ -3640,7 +3651,7 @@ begin
   WaitTasks:=[];
   NeedSync:=(TThread.CurrentThread.ThreadID=MainThreadID) and ((aTasks[0] as TTask).FParams.Pool.FInteractive);
   Event:=Nil;
-  Lock:=TCriticalSection.Create;
+  Lock:=TSpinLock.Create(False);
   try
     Event:=TEvent.Create;
     Res:=FillWaitList;
@@ -3672,7 +3683,6 @@ begin
       end;
   finally
     FreeAndNil(Event);
-    FreeAndNil(Lock);
   end;
 end;
 
@@ -3862,31 +3872,31 @@ end;
 function TReplicableTask.ShouldCreateReplica: Boolean;
 
 begin
-  ThreadLog('TReplicableTask.ShouldCreateReplica','Enter (TaskCount: %d)',[FTaskCount]);
+  {$IFDEF USE_THREADLOG}ThreadLog('TReplicableTask.ShouldCreateReplica','Enter (TaskCount: %d)',[FTaskCount]);{$ENDIF USE_THREADLOG}
   Result:=False;
   if (FTaskCount<=0) then
     exit;
   AtomicDecrement(FTaskCount);
   Result:=FTaskCount>0;
-  ThreadLog('TReplicableTask.ShouldCreateReplica','Leave: %s ',[BToS(Result)]);
+  {$IFDEF USE_THREADLOG}ThreadLog('TReplicableTask.ShouldCreateReplica','Leave: %s ',[BToS(Result)]);{$ENDIF USE_THREADLOG}
 end;
 
 function TReplicableTask.CreateReplicaTask(const aParams : TTaskParams): TTask;
 
 begin
-  ThreadLog('TReplicableTask.CreateReplicaTask','Enter');
+  {$IFDEF USE_THREADLOG}ThreadLog('TReplicableTask.CreateReplicaTask','Enter');{$ENDIF USE_THREADLOG}
   Result:=TReplicatedTask.Create(aParams);
-  ThreadLog('TReplicableTask.CreateReplicaTask','Leave');
+  {$IFDEF USE_THREADLOG}ThreadLog('TReplicableTask.CreateReplicaTask','Leave');{$ENDIF USE_THREADLOG}
 end;
 
 constructor TReplicableTask.Create(const aParams : TTaskParams; aTaskCount: Integer);
 begin
-  ThreadLog('TReplicableTask.Create','Enter  (%d)',[aTaskCount]);
+  {$IFDEF USE_THREADLOG}ThreadLog('TReplicableTask.Create','Enter  (%d)',[aTaskCount]);{$ENDIF USE_THREADLOG}
   inherited Create(aParams);
   FTaskCount:=aTaskCount;
   if FTaskCount<0 then
     FTaskCount:=2*TThread.ProcessorCount;
-  ThreadLog('TReplicableTask.Create','Leave');
+  {$IFDEF USE_THREADLOG}ThreadLog('TReplicableTask.Create','Leave');{$ENDIF USE_THREADLOG}
 end;
 
 { *********************************************************************
@@ -4453,11 +4463,11 @@ begin
   Result:=GetCurrentStride;
   MaxReached:=(Result>=FMaxStride);
   NextOK:=(AtomicIncrement(FStrideCount) mod FNextStrideAt) = 0;
-  ThreadLog('TParallel.TInt32LoopParams.GetNextStride','Current: %d, Count: %d, nextat: %d',[Result, FStrideCount, FNextStrideAt]);
-  ThreadLog('TParallel.TInt32LoopParams.GetNextStride','if %s or not %s then',[BToS(MaxReached), BToS(NextOK)]);
+  {$IFDEF USE_THREADLOG}ThreadLog('TParallel.TInt32LoopParams.GetNextStride','Current: %d, Count: %d, nextat: %d',[Result, FStrideCount, FNextStrideAt]);{$ENDIF USE_THREADLOG}
+  {$IFDEF USE_THREADLOG}ThreadLog('TParallel.TInt32LoopParams.GetNextStride','if %s or not %s then',[BToS(MaxReached), BToS(NextOK)]);{$ENDIF USE_THREADLOG}
   if MaxReached  or Not NextOK then
     begin
-    ThreadLog('TParallel.TInt32LoopParams.GetNextStride','Early exit');
+    {$IFDEF USE_THREADLOG}ThreadLog('TParallel.TInt32LoopParams.GetNextStride','Early exit');{$ENDIF USE_THREADLOG}
     exit;
     end;
   NewValue:=Result*2;
@@ -4465,7 +4475,7 @@ begin
     NewValue:=FMaxStride;
   // Only get new value if old did not change
   AtomicCmpExchange(FLoopProc.Stride,NewValue,Result);
-  ThreadLog('TParallel.TInt32LoopParams.GetNextStride','Result: %d',[Result]);
+  {$IFDEF USE_THREADLOG}ThreadLog('TParallel.TInt32LoopParams.GetNextStride','Result: %d',[Result]);{$ENDIF USE_THREADLOG}
 end;
 
 function TParallel.TInt32LoopParams.ShouldExitLoop: Boolean;
@@ -4501,9 +4511,9 @@ var
 
 begin
   aStride:=GetCurrentStride;
-  ThreadLog('TParallel.TInt32LoopParams.GetCurrentStart','Index: %d, Stride: %d',[FLoopProc.Index,aStride]);
+  {$IFDEF USE_THREADLOG}ThreadLog('TParallel.TInt32LoopParams.GetCurrentStart','Index: %d, Stride: %d',[FLoopProc.Index,aStride]);{$ENDIF USE_THREADLOG}
   Result:=TInterlocked.Add(FLoopProc.Index,aStride)-aStride;
-  ThreadLog('TParallel.TInt32LoopParams.GetCurrentStart','Result : %d',[Result]);
+  {$IFDEF USE_THREADLOG}ThreadLog('TParallel.TInt32LoopParams.GetCurrentStart','Result : %d',[Result]);{$ENDIF USE_THREADLOG}
 end;
 
 constructor TParallel.TInt32LoopParams.Create(aLoopProc: TInt32LoopProc);
@@ -4516,9 +4526,9 @@ end;
 
 destructor TParallel.TInt32LoopParams.Destroy;
 begin
-  ThreadLog('TParallel.TInt32LoopParams.Destroy','Enter (%d)',[PtrInt(Self)]);
+  {$IFDEF USE_THREADLOG}ThreadLog('TParallel.TInt32LoopParams.Destroy','Enter (%d)',[PtrInt(Self)]);{$ENDIF USE_THREADLOG}
   inherited Destroy;
-  ThreadLog('TParallel.TInt32LoopParams.Destroy','Leave (%d)',[PtrInt(Self)]);
+  {$IFDEF USE_THREADLOG}ThreadLog('TParallel.TInt32LoopParams.Destroy','Leave (%d)',[PtrInt(Self)]);{$ENDIF USE_THREADLOG}
 end;
 
 procedure TParallel.TInt32LoopParams.Invoke;
@@ -4527,23 +4537,23 @@ var
   I, Start, Limit, UpperLimit, MyStride: Integer;
 
 begin
-  ThreadLog('TParallel.TInt32LoopParams.Invoke','Enter');
-  ThreadLog('TParallel.TInt32LoopParams.Invoke','Loop params: '+Self.FLoopProc.ToString);
+  {$IFDEF USE_THREADLOG}ThreadLog('TParallel.TInt32LoopParams.Invoke','Enter');{$ENDIF USE_THREADLOG}
+  {$IFDEF USE_THREADLOG}ThreadLog('TParallel.TInt32LoopParams.Invoke','Loop params: '+Self.FLoopProc.ToString);{$ENDIF USE_THREADLOG}
   UpperLimit:=HighExclusive;
   Try
     Start:=GetCurrentStart;
     MyStride:=GetCurrentStride;
-    ThreadLog('TParallel.TInt32LoopParams.Invoke','Start: %d, Upper: %d, Stride: %d',[Start,UpperLimit,MyStride]);
+    {$IFDEF USE_THREADLOG}ThreadLog('TParallel.TInt32LoopParams.Invoke','Start: %d, Upper: %d, Stride: %d',[Start,UpperLimit,MyStride]);{$ENDIF USE_THREADLOG}
     while Start<UpperLimit do
       begin
       I:=Start;
       Limit:=Start+MyStride;
       If Limit>UpperLimit then
         Limit:=UpperLimit;
-      ThreadLog('TParallel.TInt32LoopParams.Invoke','Inner loop from %d to Limit: %d',[I,Limit]);
+      {$IFDEF USE_THREADLOG}ThreadLog('TParallel.TInt32LoopParams.Invoke','Inner loop from %d to Limit: %d',[I,Limit]);{$ENDIF USE_THREADLOG}
       while (I<Limit) and not ShouldExitLoop(Start) do
         begin
-        ThreadLog('TParallel.TInt32LoopParams.Invoke','Executing loop at %d',[I]);
+        {$IFDEF USE_THREADLOG}ThreadLog('TParallel.TInt32LoopParams.Invoke','Executing loop at %d',[I]);{$ENDIF USE_THREADLOG}
         FLoopProc.Execute(I);
         Inc(I);
         end;
@@ -4552,13 +4562,13 @@ begin
       GetNextStride;
       MyStride:=GetCurrentStride;
       Start:=GetCurrentStart;
-      ThreadLog('TParallel.TInt32LoopParams.Invoke','Next loop from %d to %d',[Start,Start+MyStride]);
+      {$IFDEF USE_THREADLOG}ThreadLog('TParallel.TInt32LoopParams.Invoke','Next loop from %d to %d',[Start,Start+MyStride]);{$ENDIF USE_THREADLOG}
       end;
   except
 //    Fparams.SharedFlags.SetFaulted;
     raise;
   end;
-  ThreadLog('TParallel.TInt32LoopParams.Invoke','leave');
+  {$IFDEF USE_THREADLOG}ThreadLog('TParallel.TInt32LoopParams.Invoke','leave');{$ENDIF USE_THREADLOG}
 end;
 
 
@@ -4599,11 +4609,11 @@ begin
   Result:=GetCurrentStride;
   MaxReached:=(Result>=FMaxStride);
   NextOK:=(AtomicIncrement(FStrideCount) mod FNextStrideAt) = 0;
-  ThreadLog('TParallel.TInt64LoopParams.GetNextStride','Current: %d, Count: %d, nextat: %d',[Result, FStrideCount, FNextStrideAt]);
-  ThreadLog('TParallel.TInt64LoopParams.GetNextStride','if %s or not %s then',[BToS(MaxReached), BToS(NextOK)]);
+  {$IFDEF USE_THREADLOG}ThreadLog('TParallel.TInt64LoopParams.GetNextStride','Current: %d, Count: %d, nextat: %d',[Result, FStrideCount, FNextStrideAt]);{$ENDIF USE_THREADLOG}
+  {$IFDEF USE_THREADLOG}ThreadLog('TParallel.TInt64LoopParams.GetNextStride','if %s or not %s then',[BToS(MaxReached), BToS(NextOK)]);{$ENDIF USE_THREADLOG}
   if MaxReached  or Not NextOK then
     begin
-    ThreadLog('TParallel.TInt64LoopParams.GetNextStride','Early exit');
+    {$IFDEF USE_THREADLOG}ThreadLog('TParallel.TInt64LoopParams.GetNextStride','Early exit');{$ENDIF USE_THREADLOG}
     exit;
     end;
   NewValue:=Result*2;
@@ -4611,7 +4621,7 @@ begin
     NewValue:=FMaxStride;
   // Only get new value if old did not change
   AtomicCmpExchange(FLoopProc.Stride,NewValue,Result);
-  ThreadLog('TParallel.TInt64LoopParams.GetNextStride','Result: %d',[Result]);
+  {$IFDEF USE_THREADLOG}ThreadLog('TParallel.TInt64LoopParams.GetNextStride','Result: %d',[Result]);{$ENDIF USE_THREADLOG}
 end;
 
 function TParallel.TInt64LoopParams.ShouldExitLoop: Boolean;
@@ -4647,9 +4657,9 @@ var
 
 begin
   aStride:=GetCurrentStride;
-  ThreadLog('TParallel.TInt64LoopParams.GetCurrentStart','Index: %d, Stride: %d',[FLoopProc.Index,aStride]);
+  {$IFDEF USE_THREADLOG}ThreadLog('TParallel.TInt64LoopParams.GetCurrentStart','Index: %d, Stride: %d',[FLoopProc.Index,aStride]);{$ENDIF USE_THREADLOG}
   Result:=TInterlocked.Add(FLoopProc.Index,aStride)-aStride;
-  ThreadLog('TParallel.TInt64LoopParams.GetCurrentStart','Result : %d',[Result]);
+  {$IFDEF USE_THREADLOG}ThreadLog('TParallel.TInt64LoopParams.GetCurrentStart','Result : %d',[Result]);{$ENDIF USE_THREADLOG}
 end;
 
 constructor TParallel.TInt64LoopParams.Create(aLoopProc: TInt64LoopProc);
@@ -4662,9 +4672,9 @@ end;
 
 destructor TParallel.TInt64LoopParams.Destroy;
 begin
-  ThreadLog('TParallel.TInt64LoopParams.Destroy','Enter (%d)',[PtrInt(Self)]);
+  {$IFDEF USE_THREADLOG}ThreadLog('TParallel.TInt64LoopParams.Destroy','Enter (%d)',[PtrInt(Self)]);{$ENDIF USE_THREADLOG}
   inherited Destroy;
-  ThreadLog('TParallel.TInt64LoopParams.Destroy','Leave (%d)',[PtrInt(Self)]);
+  {$IFDEF USE_THREADLOG}ThreadLog('TParallel.TInt64LoopParams.Destroy','Leave (%d)',[PtrInt(Self)]);{$ENDIF USE_THREADLOG}
 end;
 
 procedure TParallel.TInt64LoopParams.Invoke;
@@ -4673,23 +4683,23 @@ var
   I, Start, Limit, UpperLimit, MyStride: Int64;
 
 begin
-  ThreadLog('TParallel.TInt64LoopParams.Invoke','Enter');
-  ThreadLog('TParallel.TInt64LoopParams.Invoke','Loop params: '+Self.FLoopProc.ToString);
+  {$IFDEF USE_THREADLOG}ThreadLog('TParallel.TInt64LoopParams.Invoke','Enter');{$ENDIF USE_THREADLOG}
+  {$IFDEF USE_THREADLOG}ThreadLog('TParallel.TInt64LoopParams.Invoke','Loop params: '+Self.FLoopProc.ToString);{$ENDIF USE_THREADLOG}
   UpperLimit:=HighExclusive;
   Try
     Start:=GetCurrentStart;
     MyStride:=GetCurrentStride;
-    ThreadLog('TParallel.TInt64LoopParams.Invoke','Start: %d, Upper: %d, Stride: %d',[Start,UpperLimit,MyStride]);
+    {$IFDEF USE_THREADLOG}ThreadLog('TParallel.TInt64LoopParams.Invoke','Start: %d, Upper: %d, Stride: %d',[Start,UpperLimit,MyStride]);{$ENDIF USE_THREADLOG}
     while Start<UpperLimit do
       begin
       I:=Start;
       Limit:=Start+MyStride;
       If Limit>UpperLimit then
         Limit:=UpperLimit;
-      ThreadLog('TParallel.TInt64LoopParams.Invoke','Inner loop from %d to Limit: %d',[I,Limit]);
+      {$IFDEF USE_THREADLOG}ThreadLog('TParallel.TInt64LoopParams.Invoke','Inner loop from %d to Limit: %d',[I,Limit]);{$ENDIF USE_THREADLOG}
       while (I<Limit) and not ShouldExitLoop(Start) do
         begin
-        ThreadLog('TParallel.TInt64LoopParams.Invoke','Executing loop at %d',[I]);
+        {$IFDEF USE_THREADLOG}ThreadLog('TParallel.TInt64LoopParams.Invoke','Executing loop at %d',[I]);{$ENDIF USE_THREADLOG}
         FLoopProc.Execute(I);
         Inc(I);
         end;
@@ -4698,13 +4708,13 @@ begin
       GetNextStride;
       MyStride:=GetCurrentStride;
       Start:=GetCurrentStart;
-      ThreadLog('TParallel.TInt64LoopParams.Invoke','Next loop from %d to %d',[Start,Start+MyStride]);
+      {$IFDEF USE_THREADLOG}ThreadLog('TParallel.TInt64LoopParams.Invoke','Next loop from %d to %d',[Start,Start+MyStride]);{$ENDIF USE_THREADLOG}
       end;
   except
 //    Fparams.SharedFlags.SetFaulted;
     raise;
   end;
-  ThreadLog('TParallel.TInt64LoopParams.Invoke','leave');
+  {$IFDEF USE_THREADLOG}ThreadLog('TParallel.TInt64LoopParams.Invoke','leave');{$ENDIF USE_THREADLOG}
 end;
 
 {$ENDIF}
@@ -4716,7 +4726,7 @@ end;
 procedure TParallel.TInt32LoopProc.Execute(Iteration: Integer);
 
 begin
-  ThreadLog('TParallel.TInt32LoopProc.Execute','enter (%d)',[Iteration]);
+  {$IFDEF USE_THREADLOG}ThreadLog('TParallel.TInt32LoopProc.Execute','enter (%d)',[Iteration]);{$ENDIF USE_THREADLOG}
   //       This would make it so that only a single virtual call is made to process the iterations.
   if Assigned(Event) then
     Event(Sender, Iteration)
@@ -4732,7 +4742,7 @@ begin
     State.CurrentIteration:=Iteration;
     StateEvent(Sender,Iteration, State);
   end;
-  ThreadLog('TParallel.TInt32LoopProc.Execute','leave (%d) ',[Iteration]);
+  {$IFDEF USE_THREADLOG}ThreadLog('TParallel.TInt32LoopProc.Execute','leave (%d) ',[Iteration]);{$ENDIF USE_THREADLOG}
 end;
 
 function TParallel.TInt32LoopProc.NumTasks: Integer;
@@ -4802,7 +4812,7 @@ end;
 procedure TParallel.TInt64LoopProc.Execute(Iteration: Int64);
 
 begin
-  ThreadLog('TParallel.TInt64LoopProc.Execute','enter (%d)',[Iteration]);
+  {$IFDEF USE_THREADLOG}ThreadLog('TParallel.TInt64LoopProc.Execute','enter (%d)',[Iteration]);{$ENDIF USE_THREADLOG}
   //       This would make it so that only a single virtual call is made to process the iterations.
   if Assigned(Event) then
     Event(Sender, Iteration)
@@ -4818,7 +4828,7 @@ begin
     State.CurrentIteration:=Iteration;
     StateEvent(Sender,Iteration, State);
   end;
-  ThreadLog('TParallel.TInt64LoopProc.Execute','leave (%d) ',[Iteration]);
+  {$IFDEF USE_THREADLOG}ThreadLog('TParallel.TInt64LoopProc.Execute','leave (%d) ',[Iteration]);{$ENDIF USE_THREADLOG}
 end;
 
 function TParallel.TInt64LoopProc.NumTasks: Integer;
@@ -4937,12 +4947,11 @@ end;
 
 constructor TParallel.TLoopParams.Create;
 begin
-  FStateLock:=TCriticalSection.Create;
+  FStateLock:=TSpinLock.Create(False);
 end;
 
 destructor TParallel.TLoopParams.Destroy;
 begin
-  FreeAndNil(FStateLock);
   inherited Destroy;
 end;
 
@@ -4953,7 +4962,7 @@ end;
 
 procedure TParallel.TLoopParams.UnLock;
 begin
-  FStateLock.Leave;
+  FStateLock.Exit;
 end;
 
 procedure TParallel.TLoopParams.HandleException(O: TObject);

@@ -82,3 +82,4 @@ testappexit.pp Test/Demo for TApplication exit code handling. (ExitCode and Exce
 demoio.pp    Demo for AssignStream from streamio unit.
 testthreadpool  Demo for fpthreadpool unit.
 demolg       TLockGuard demo.
+demo_spinlock TSpinLock demo.
