@@ -1288,7 +1288,7 @@ constructor TSpinLock.Create(EnableThreadTracking: Boolean);
  
 begin
   FLock:=0;
-  FOwningThread:=0;
+  FOwningThread:=TThreadID(0);
   FRecursionCount:=0;
   FThreadTracking:=EnableThreadTracking;
 end;
