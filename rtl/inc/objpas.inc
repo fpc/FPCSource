@@ -498,7 +498,7 @@ end;
            fillchar(instance^, InstanceSize, 0);
            { insert VMT pointer into the new created memory area }
            { (in class methods self contains the VMT!)           }
-           {$IFNDEF SYSTEM_HAS_FEATURE_MONITOR}
+           {$IFNDEF FPC_HAS_FEATURE_MONITOR}
              ppointer(instance)^:=pointer(self);
            {$ELSE}
              {$IFDEF VER3_2}
@@ -926,7 +926,7 @@ end;
 {$endif def FPC_HAS_FEATURE_RTTI}
                vmt:= vmt^.vParent;
              end;
-           {$IFDEF SYSTEM_HAS_FEATURE_MONITOR}
+           {$IFDEF FPC_HAS_FEATURE_MONITOR}
            if Assigned(_MonitorData) then
              TMonitor.FreeMonitorData(_MonitorData);
            {$ENDIF}
@@ -1240,7 +1240,7 @@ end;
         // Do nothing since we have no reference count.
       end;
 
-      {$IFDEF SYSTEM_HAS_FEATURE_MONITOR}
+      {$IFDEF FPC_HAS_FEATURE_MONITOR}
 
        function TObject.SetMonitorData(aData,aCheckOld : Pointer) : Pointer;
        begin
@@ -1251,7 +1251,7 @@ end;
        begin
          Result:=_MonitorData;
        end;
-      {$ENDIF}
+      {$ENDIF FPC_HAS_FEATURE_MONITOR}
 
 
 {****************************************************************************
@@ -2016,6 +2016,6 @@ end;
 
 {$ENDIF}
 
-{$IFDEF SYSTEM_HAS_FEATURE_MONITOR}
+{$IFDEF FPC_HAS_FEATURE_MONITOR}
 {$i monitor.inc}
-{$ENDIF}
+{$ENDIF FPC_HAS_FEATURE_MONITOR}

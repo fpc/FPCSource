@@ -242,7 +242,7 @@
        end;
 
        TObject = class
-       {$IFDEF SYSTEM_HAS_FEATURE_MONITOR}
+       {$IFDEF FPC_HAS_FEATURE_MONITOR}
        strict private
           _MonitorData : Pointer;
        private
@@ -610,7 +610,7 @@
   {*****************************************************************************
                                 TMonitor support
    *****************************************************************************}
-  {$IFDEF SYSTEM_HAS_FEATURE_MONITOR}
+  {$IFDEF FPC_HAS_FEATURE_MONITOR}
   Type
 
   PPMonitor = ^PMonitor;
@@ -675,7 +675,7 @@
   // Will set Do(S|G)etMonitorObjectData fields on aNew, and returns the old manager
   function SetMonitorManager (var aNew : TMonitorManager) : TMonitorManager;
   function GetMonitorManager : TMonitorManager;
-  {$ENDIF}
+  {$ENDIF FPC_HAS_FEATURE_MONITOR}
 
 {$endif FPC_HAS_FEATURE_CLASSES}
 
