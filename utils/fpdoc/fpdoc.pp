@@ -205,11 +205,12 @@ Const
   SOptProject = '--project=';
   SOptPackage = '--package=';
   SOptMacro = '--macro=';
+  SOptDefine = '--define=';
 
   Function ProjectOpt(Const s : string) : boolean;
 
   begin
-    Result:=(Copy(s,1,3)='-p=') or (Copy(s,1,Length(SOptProject))=SOptProject) or (Copy(s,1,Length(SOptMacro))=SOptMacro);
+    Result:=(Copy(s,1,3)='-p=') or (Copy(s,1,Length(SOptProject))=SOptProject) or (Copy(s,1,Length(SOptMacro))=SOptMacro) or (Copy(s,1,Length(SOptDefine))=SOptDefine);
   end;
 
   Function PackageOpt(Const s : string) : boolean;
@@ -359,6 +360,11 @@ begin
       AddDirToFileList(SelectedPackage.Descriptions, Arg, '*.xml')
     else if (Cmd = '--base-descr-dir') then
       FCreator.BaseDescrDir:=Arg
+    else if (Cmd = '--define') then
+      begin
+      Writeln('Defining : ',Arg);
+      FCreator.Defines.Add(Arg)
+      end
     else if (Cmd = '--macro') then
       begin
       If Pos('=',Arg)=0 then

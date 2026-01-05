@@ -12,6 +12,7 @@ Type
 
   TXMLFPDocOptions = Class(TComponent)
   private
+    FDefines : TStrings;
   Protected
     Function PreProcessFile(const AFileName: String; Macros: TStrings): TStream; virtual;
     Procedure Error(Const Msg : String);
@@ -25,10 +26,12 @@ Type
     procedure SaveInputFile(const AInputFile: String; XML: TXMLDocument; AParent: TDOMElement);virtual;
     Procedure SavePackage(APackage : TFPDocPackage; XML : TXMLDocument; AParent : TDOMElement); virtual;
   Public
+    Destructor destroy; override;
     Procedure LoadOptionsFromFile(AProject : TFPDocProject; Const AFileName : String; Macros : TStrings = Nil);
     Procedure LoadFromXML(AProject : TFPDocProject; XML : TXMLDocument); virtual;
     Procedure SaveOptionsToFile(AProject : TFPDocProject; Const AFileName : String);
     procedure SaveToXML(AProject : TFPDocProject; ADoc: TXMLDocument); virtual;
+    Procedure SetDefines(aDefines : TStrings);
   end;
   EXMLFPdoc = Class(Exception);
 
@@ -79,6 +82,10 @@ procedure TXMLFPDocOptions.LoadPackage(APackage: TFPDocPackage; E: TDOMElement);
     S : UnicodeString;
 
   begin
+    S:=I['if'];
+    if S<>'' then
+      If Not (Assigned(FDefines) and (FDefines.IndexOf(S)<>-1)) then
+        exit('');
     Result:=I['file'];
     If (Result='') then
       Error(SErrNoInputFile);
@@ -88,8 +95,13 @@ procedure TXMLFPDocOptions.LoadPackage(APackage: TFPDocPackage; E: TDOMElement);
   end;
 
   Function LoadDescription(I : TDOMElement) : UnicodeString;
-
+  var
+    S : UnicodeString;
   begin
+    S:=I['if'];
+    if S<>'' then
+      If Not (Assigned(FDefines) and (FDefines.IndexOf(S)<>-1)) then
+        exit('');
     Result:=I['file'];
     If (Result='') then
       Error(SErrNoDescrFile);
@@ -101,6 +113,10 @@ procedure TXMLFPDocOptions.LoadPackage(APackage: TFPDocPackage; E: TDOMElement);
     S : UnicodeString;
 
   begin
+    S:=I['if'];
+    if S<>'' then
+      If Not (Assigned(FDefines) and (FDefines.IndexOf(S)<>-1)) then
+        exit('');
     Result:=I['file'];
     If (Result='') then
       Error(SErrNoImportFile);
@@ -113,7 +129,7 @@ procedure TXMLFPDocOptions.LoadPackage(APackage: TFPDocPackage; E: TDOMElement);
 Var
   N,S : TDOMNode;
   O : TDomElement;
-
+  lInput,lDescr : UnicodeString;
 begin
   APackage.Name:=UTF8Encode(E['name']);
   APackage.output:=UTF8Encode(E['output']);
@@ -130,7 +146,11 @@ begin
         While (S<>Nil) do
           begin
           If (S.NodeType=Element_Node) and (S.NodeName='unit') then
-            APackage.Inputs.add(UTF8Encode(LoadInput(S as TDomElement)));
+            begin
+            lInput:=LoadInput(S as TDomElement);
+            if lInput<>'' then
+              APackage.Inputs.add(UTF8Encode(lInput));
+            end;
           S:=S.NextSibling;
           end;
         end
@@ -140,7 +160,11 @@ begin
         While (S<>Nil) do
           begin
           If (S.NodeType=Element_Node) and (S.NodeName='description') then
-            APackage.Descriptions.add(UTF8Encode(LoadDescription(S as TDomElement)));
+            begin
+            lDescr:=LoadDescription(S as TDomElement);
+            if lDescr<>'' then
+              APackage.Descriptions.add(UTF8Encode(lDescr));
+            end;
           S:=S.NextSibling;
           end;
         end
@@ -241,6 +265,13 @@ begin
     E.AppendChild(PE);
     SavePackage(AProject.Packages[i],ADoc,PE);
     end;
+end;
+
+procedure TXMLFPDocOptions.SetDefines(aDefines: TStrings);
+begin
+  if not assigned(FDefines) then
+    FDefines:=TStringList.Create;
+  FDefines.AddStrings(aDefines);
 end;
 
 procedure TXMLFPDocOptions.SaveEngineOptions(Options: TEngineOptions;
@@ -356,6 +387,12 @@ begin
     end;
 end;
 
+destructor TXMLFPDocOptions.destroy;
+begin
+  FreeAndNil(FDefines);
+  inherited destroy;
+end;
+
 
 Function TXMLFPDocOptions.PreprocessFile(const AFileName: String; Macros : TStrings) : TStream;
 
@@ -397,11 +434,12 @@ Var
 
 begin
   XML:=Nil;
-  if Macros=Nil then
-    S:=TFileStream.Create(AFileName,fmOpenRead or fmShareDenyWrite)
-  else
-    S:=PreProcessFile(AFileName,Macros);
+  S:=nil;
   try
+    if Macros=Nil then
+      S:=TFileStream.Create(AFileName,fmOpenRead or fmShareDenyWrite)
+    else
+      S:=PreProcessFile(AFileName,Macros);
     ReadXMLFile(XML,S);
     LoadFromXML(AProject,XML);
   finally
