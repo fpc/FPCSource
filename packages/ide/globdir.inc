@@ -95,7 +95,7 @@
 
 {$ifdef OS2}
   {define SUPPORTREDIR}
-  {define WinClipSupported}
+  {$define WinClipSupported}
   {define HasSignal}
   {$define FSCaseInsensitive}
 {$endif}
