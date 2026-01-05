@@ -766,7 +766,7 @@ implementation
             else
               CGMessage1(scanner_w_local_alignment_larger_than_max,def.typename);
           end
-        else if (alignment>lalign) then
+        else if (alignment>lalign) and (current_settings.alignment.localalignmax>1) then
           begin
             if assigned(sym) then
               CGMessage1(scanner_n_local_alignment_larger_than_max,sym.name)
