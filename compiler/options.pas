@@ -2219,7 +2219,7 @@ begin
 
   { monitor support? }
   if not(target_info.system in systems_aix+systems_bsd+systems_linux+
-    systems_nativent+systems_solaris+systems_wasm+systems_all_windows) then
+    systems_nativent+systems_solaris+systems_wasm+systems_all_windows+systems_darwin) then
     Include(target_unsup_features,f_monitor);
 
   if def then
