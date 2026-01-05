@@ -189,6 +189,7 @@ var
   OS2ClipboardSupported: boolean = false;
   PMWHandle: cardinal;
   MsgQueueHandle: cardinal;
+  PIB: PProcessInfoBlock;
 
 type
 (*  TWinSetClipbrdOwner = function (hab, hwnd: cardinal): longbool; cdecl;*)
@@ -292,9 +293,10 @@ procedure InitClipboard;
 var
   RC: cardinal;
   ProcOK: boolean;
-  PIB: PProcessInfoBlock;
   TIB: PThreadInfoBlock;
   PMWModHandle: THandle;
+  Err: string;
+  ErrL: cardinal;
 begin
   if OS2ClipboardSupported then
    Exit;
@@ -302,7 +304,8 @@ begin
   OrigSessType := PIB^.tType;
   PIB^.tType := 3;
 
-  RC := DosQueryModuleHandle ('PMWIN', PMWModHandle);
+{  RC := DosQueryModuleHandle ('PMWIN', PMWModHandle);}
+  RC := DosLoadModule (Err, ErrL, 'PMWIN', PMWModHandle);
   if RC <> 0 then
    begin
     PIB^.tType := OrigSessType;
