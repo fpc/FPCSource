@@ -237,7 +237,7 @@ TYPE
 
 // --- Some useful constants
 CONST
-  FILETYPE_NAME : ARRAY [TFileType] OF STRING =
+  FILETYPE_NAME : ARRAY [TFileType] OF STRING[14] =
                   ('Regular', 'Link', 'Symbolic Link', 'AnsiChar File', 'Block File',
                    'Directory', 'FIFO File', 'Contiguous', 'Dir Dump', 'Multivol', 'Volume Header');
 
