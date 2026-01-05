@@ -1,3 +1,5 @@
+{ Use fpcres instead of default windres utility }
+{ %OPT=-FF }
 program timage_jpegorientation;
 
 {$mode objfpc}{$H+}
