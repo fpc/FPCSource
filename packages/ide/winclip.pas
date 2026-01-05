@@ -56,6 +56,11 @@ implementation
     clipboard,cliputils;
 {$endif}
 
+{$ifdef os2}
+  uses
+    DosCalls, OS2Def;
+{$endif os2}
+
 
 {$ifdef DOS}
 function WinClipboardSupported : boolean;
@@ -203,6 +208,197 @@ begin
 end;
 {$endif HASAMIGA}
 
+{$ifdef os2}
+const
+  CF_TEXT = 1;
+  CF_BITMAP = 2;
+  CF_DSPTEXT = 3;
+  CF_DSPBITMAP = 4;
+  CF_METAFILE = 5;
+  CF_DSPMETAFILE = 6;
+  CF_PALETTE = 9;
+
+  CFI_OWNERFREE = $0001;
+  CFI_OWNERDISPLAY = $0002;
+  CFI_POINTER = $0400;
+  CFI_HANDLE = $0200;
+
+var
+  OS2ClipboardSupported: boolean = false;
+  PMWHandle: cardinal;
+  MsgQueueHandle: cardinal;
+
+type
+(*  TWinSetClipbrdOwner = function (hab, hwnd: cardinal): longbool; cdecl;*)
+  TWinSetClipbrdData = function (hab, ulData, fmt, rgfFmtInfo: cardinal): longbool;  cdecl;
+  TWinQueryClipbrdData = function (hab, fmt: cardinal): cardinal; cdecl;
+  TWinQueryClipbrdFmtInfo = function (hab, fmt: cardinal; var prgfFmtInfo: cardinal): longbool; cdecl;
+{    function WinSetClipbrdViewer(hab,hwndNewClipViewer : cardinal) : longbool;  cdecl;}
+{    function WinEnumClipbrdFmts(hab,fmt : cardinal) : cardinal; cdecl;}
+  TWinEmptyClipbrd = function (hab: cardinal): longbool; cdecl;
+  TWinOpenClipbrd = function (hab: cardinal): longbool; cdecl;
+  TWinCloseClipbrd = function (hab: cardinal): longbool; cdecl;
+(*  TWinQueryClipbrdOwner = function (hab: cardinal): cardinal; cdecl;*)
+{    function WinQueryClipbrdViewer(hab : cardinal) : cardinal; cdecl;}
+  TWinInitialize = function (flOptions: cardinal): cardinal; cdecl;
+  TWinTerminate = function (hab: cardinal): longbool; cdecl;
+  TWinCreateMsgQueue = function (hab: cardinal; cmsg: longint): cardinal; cdecl;
+  TWinDestroyMsgQueue = function (hmq: cardinal): longbool; cdecl;
+
+var
+(*  WinSetClipbrdOwner: TWinSetClipbrdOwner;*)
+  ClWinSetClipbrdData: TWinSetClipbrdData;
+  ClWinQueryClipbrdData: TWinQueryClipbrdData;
+  ClWinQueryClipbrdFmtInfo: TWinQueryClipbrdFmtInfo;
+{    function WinSetClipbrdViewer(hab,hwndNewClipViewer : cardinal) : longbool;  cdecl;}
+{    function WinEnumClipbrdFmts(hab,fmt : cardinal) : cardinal; cdecl;}
+  ClWinEmptyClipbrd: TWinEmptyClipbrd;
+  ClWinOpenClipbrd: TWinOpenClipbrd;
+  ClWinCloseClipbrd: TWinCloseClipbrd;
+(*  WinQueryClipbrdOwner: TWinQueryClipbrdOwner;*)
+{    function WinQueryClipbrdViewer(hab : cardinal) : cardinal; cdecl;}
+  ClWinInitialize: TWinInitialize;
+  ClWinTerminate: TWinTerminate;
+  ClWinCreateMsgQueue: TWinCreateMsgQueue;
+  ClWinDestroyMsgQueue: TWinDestroyMsgQueue;
+
+  OrigSessType: cardinal;
+
+
+function WinClipboardSupported : boolean;
+begin
+  WinClipboardSupported:=OS2ClipboardSupported;
+end;
+
+function OpenWinClipboard : boolean;
+var
+  SessType: cardinal;
+begin
+  OpenWinClipboard := false;
+  if not (OS2ClipboardSupported) then
+   Exit;
+  SessType := PIB^.tType;
+  PIB^.tType := 3;
+  OpenWinClipboard := ClWinOpenClipbrd (PMWHandle);
+  PIB^.tType := SessType;
+end;
+
+function EmptyWinClipboard : boolean;
+var
+  SessType: cardinal;
+begin
+  EmptyWinClipboard := false;
+  if not (OS2ClipboardSupported) then
+   Exit;
+  SessType := PIB^.tType;
+  PIB^.tType := 3;
+  EmptyWinClipboard := ClWinEmptyClipbrd (PMWHandle);
+  PIB^.tType := SessType;
+end;
+
+function CloseWinClipboard : boolean;
+var
+  SessType: cardinal;
+begin
+  CloseWinClipboard := false;
+  if not (OS2ClipboardSupported) then
+   Exit;
+  SessType := PIB^.tType;
+  PIB^.tType := 3;
+  CloseWinClipboard := ClWinCloseClipbrd (PMWHandle);
+  PIB^.tType := SessType;
+end;
+
+function InternGetDataSize : longint;
+var
+  P: PAnsiChar;
+  SessType: cardinal;
+begin
+  InternGetDataSize := 0;
+  if not (OS2ClipboardSupported) then
+   Exit;
+  SessType := PIB^.tType;
+  PIB^.tType := 3;
+  P := PAnsiChar (ClWinQueryClipbrdData (PMWHandle, CF_TEXT));
+  PIB^.tType := SessType;
+
+  if P <> nil then
+   InternGetDataSize := StrLen (PAnsiChar (P)) + 1;
+end;
+
+procedure InitClipboard;
+var
+  RC: cardinal;
+  ProcOK: boolean;
+  PIB: PProcessInfoBlock;
+  TIB: PThreadInfoBlock;
+  PMWModHandle: THandle;
+begin
+  if OS2ClipboardSupported then
+   Exit;
+  DosGetInfoBlocks (TIB, PIB);
+  OrigSessType := PIB^.tType;
+  PIB^.tType := 3;
+
+  RC := DosQueryModuleHandle ('PMWIN', PMWModHandle);
+  if RC <> 0 then
+   begin
+    PIB^.tType := OrigSessType;
+    Exit;
+   end;
+
+  ProcOK := (DosQueryProcAddr (PMWModHandle, 707, nil, pointer (ClWinCloseClipbrd)) = 0)
+     and
+   (DosQueryProcAddr (PMWModHandle, 716, nil, pointer (ClWinCreateMsgQueue)) = 0) and
+   (DosQueryProcAddr (PMWModHandle, 726, nil, pointer (ClWinDestroyMsgQueue)) = 0) and
+   (DosQueryProcAddr (PMWModHandle, 733, nil, pointer (ClWinEmptyClipbrd)) = 0) and
+   (DosQueryProcAddr (PMWModHandle, 763, nil, pointer (ClWinInitialize)) = 0) and
+   (DosQueryProcAddr (PMWModHandle, 793, nil, pointer (ClWinOpenClipbrd)) = 0) and
+   (DosQueryProcAddr (PMWModHandle, 806, nil, pointer (ClWinQueryClipbrdData)) = 0) and
+   (DosQueryProcAddr (PMWModHandle, 807, nil, pointer (ClWinQueryClipbrdFmtInfo)) = 0) and
+   (DosQueryProcAddr (PMWModHandle, 854, nil, pointer (ClWinSetClipbrdData)) = 0) and
+   (DosQueryProcAddr (PMWModHandle, 888, nil, pointer (ClWinTerminate)) = 0);
+
+  if ProcOK then
+   begin
+    PMWHandle := ClWinInitialize (0);
+    if PMWHandle <> 0 then
+     begin
+      MsgQueueHandle := ClWinCreateMsgQueue (PMWHandle, 0);
+      ProcOK := MsgQueueHandle <> 0;
+     end
+    else
+     ProcOK := false;
+   end;
+
+  PIB^.tType := OrigSessType;
+
+  if ProcOK then
+   OS2ClipboardSupported := true;
+end;
+
+procedure DoneClipboard;
+var
+  SessType: cardinal;
+begin
+  if not (OS2ClipboardSupported) then
+   Exit;
+  OS2ClipboardSupported := false;
+  SessType := PIB^.tType;
+  PIB^.tType := 3;
+  if MsgQueueHandle <> 0 then
+   begin
+    ClWinDestroyMsgQueue (MsgQueueHandle);
+    MsgQueueHandle := 0;
+   end;
+  if PMWHandle <> 0 then
+   begin
+    ClWinTerminate (PMWHandle);
+    PMWHandle := 0;
+   end;
+  PIB^.tType := SessType;
+end;
+{$endif os2}
 
 function GetTextWinClipboardSize : longint;
 begin
@@ -228,6 +424,10 @@ var
   Text: AnsiString;
   pp: PAnsiChar;
 {$endif HASAMIGA}
+{$IFDEF OS2}
+  PP: PAnsiChar;
+  SessType: cardinal;
+{$ENDIF OS2}
 begin
   p:=nil;
   GetTextWinClipBoardData:=False;
@@ -274,6 +474,27 @@ begin
   Move(pp^,p^,l);
   GetTextWinClipBoardData := True;
 {$endif HASAMIGA}
+{$IFDEF OS2}
+  GetTextWinClipboardData := false;
+  L := 0;
+  if not (OS2ClipboardSupported) then
+   Exit;
+  SessType := PIB^.tType;
+  PIB^.tType := 3;
+  PP := PAnsiChar (ClWinQueryClipbrdData (PMWHandle, CF_TEXT));
+  PIB^.tType := SessType;
+
+  if PP <> nil then
+   begin
+    L := StrLen (PAnsiChar (PP)) + 1;
+    GetMem (P, L);
+    if P <> nil then
+     begin
+      Move (PP^, P^, L);
+      GetTextWinClipBoardData := true;
+     end;
+   end;
+{$ENDIF OS2}
   CloseWinClipBoard;
 {$ifdef DOS}
   M.MoveDataFrom(l,P^);
@@ -299,6 +520,11 @@ var
   pp: PAnsiChar;
   Test: AnsiString;
 {$endif HASAMIGA}
+{$IFDEF OS2}
+  RC: cardinal;
+  PShared: pointer;
+  SessType: cardinal;
+{$ENDIF OS2}
 begin
   SetTextWinClipBoardData:=False;
   if (l=0) or (l>65520) then
@@ -345,8 +571,33 @@ begin
 {$ifdef HASAMIGA}
   PutTextToClip(0, AnsiString(p));
 {$endif HASAMIGA}
+{$IFDEF OS2}
+  SetTextWinClipboardData := false;
+  if not (OS2ClipboardSupported) then
+   Exit;
+  RC := DosAllocSharedMem (PShared, nil, Succ (L),
+                                      PAG_WRITE or PAG_COMMIT or OBJ_GIVEABLE);
+  if RC = 0 then
+   begin
+    Move (P^, PShared^, Succ (L));
+
+    SessType := PIB^.tType;
+    PIB^.tType := 3;
+    SetTextWinClipboardData := ClWinSetClipbrdData (PMWHandle,
+                                     cardinal (PShared), CF_TEXT, CFI_POINTER);
+    PIB^.tType := SessType;
+   end;
+{$ENDIF OS2}
   CloseWinClipBoard;
 end;
+
+{$ifdef os2}
+initialization
+ InitClipboard;
+
+finalization
+ DoneClipboard;
+{$endif os2}
 
 {$endif WinClipSupported}
 end.
