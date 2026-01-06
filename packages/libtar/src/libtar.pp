@@ -875,6 +875,7 @@ FUNCTION  TTarArchive.ReadFile : RawByteString;
 VAR
   RestBytes : INTEGER;
 BEGIN
+  ReadFile := '';
   IF FBytesToGo = 0 THEN EXIT;
   RestBytes := Records (FBytesToGo) * RECORDSIZE - FBytesToGo;
   SetLength (Result, FBytesToGo);
