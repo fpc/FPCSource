@@ -9,10 +9,10 @@ unit buildrtl;
       rtlconsts, sysconst, sysutils, math, types,
       typinfo, fgl, classes,
 {$ifdef cpui386}
-      mmx, cpu,
+      mmx, cpu, intrinsics,
 {$endif}
 {$ifdef cpux86_64}
-      cpu,
+      cpu, intrinsics,
 {$endif}
       charset, cpall, getopts,
       character, fpwidestring, unicodedata,
