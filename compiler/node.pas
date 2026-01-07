@@ -883,7 +883,7 @@ implementation
         else
           write(t,', resultdef = <nil> ');
         printfileinfo(t,fileinfo);
-	writeln(t,', loc = ',tcgloc2str[location.loc],
+	write(t,', loc = ',tcgloc2str[location.loc],
                   ', expectloc = ',tcgloc2str[expectloc],
                   ', flags = [');
         first:=true;

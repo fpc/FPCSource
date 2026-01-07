@@ -29,7 +29,7 @@ Const
   AllTargetsObjPas = DateUtilsOses +DateUtilOSes+
                   VarutilsOses + ConvutilsOSes + ConvutilOSes + StdConvsOSes+
                   FmtBCDOSes + StrUtilsOSes + UITypesOSes;
-  MonitorOSes   = [Win32,win64]+UnixLikes-[BeOS,Haiku]+[wasip1,wasip1threads];
+  MonitorOSes   = [Win32,win64,wince]+UnixLikes-[BeOS,Haiku]+[wasip1,wasip1threads];
 
 Var
   P : TPackage;
