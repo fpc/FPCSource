@@ -2218,8 +2218,8 @@ begin
   end;
 
   { monitor support? }
-  if not(target_info.system in systems_aix+systems_bsd+systems_linux+
-    systems_nativent+systems_solaris+systems_wasm+systems_all_windows+systems_darwin) then
+  if not(target_info.system in systems_aix+systems_bsd+systems_linux+systems_android+
+    systems_nativent+systems_solaris+systems_wasm+systems_all_windows-[system_i8086_win16]+systems_darwin) then
     Include(target_unsup_features,f_monitor);
 
   if def then
