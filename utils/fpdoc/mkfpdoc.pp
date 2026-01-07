@@ -27,6 +27,7 @@ Type
     FBaseDescrDir: String;
     FBaseInputDir: String;
     FCurPackage : TFPDocPackage;
+    FDefines: TStrings;
     FExamplesPath: String;
     FProcessedUnits : TStrings;
     FOnLog: TPasParserLogHandler;
@@ -40,6 +41,7 @@ Type
     function GetPackages: TFPDocPackages;
     procedure SetBaseDescrDir(AValue: String);
     procedure SetBaseInputDir(AValue: String);
+    procedure SetDefines(const aValue: TStrings);
     procedure SetExamplesPath(AValue: String);
     procedure SetProjectMacros(AValue: TStrings);
   Protected
@@ -73,6 +75,7 @@ Type
     Property ExamplesPath : String Read FExamplesPath Write SetExamplesPath;
     // Macros used when loading the project file
     Property ProjectMacros : TStrings Read FProjectMacros Write SetProjectMacros;
+    Property Defines : TStrings Read FDefines Write SetDefines;
   end;
 
 implementation
@@ -191,6 +194,12 @@ begin
     FBaseInputDir:=IncludeTrailingPathDelimiter(FBaseInputDir);
 end;
 
+procedure TFPDocCreator.SetDefines(const aValue: TStrings);
+begin
+  if FDefines=aValue then Exit;
+  FDefines.Assign(aValue);
+end;
+
 procedure TFPDocCreator.SetExamplesPath(AValue: String);
 begin
   if FExamplesPath=AValue then Exit;
@@ -221,10 +230,12 @@ begin
   FProject.Options.EndianNess:=DefEndianNess;
   FProcessedUnits:=TStringList.Create;
   FProjectMacros:=TStringList.Create;
+  FDefines:=TStringList.Create;
 end;
 
 destructor TFPDocCreator.Destroy;
 begin
+  FreeAndNil(FDefines);
   FreeAndNil(FProcessedUnits);
   FreeAndNil(FProject);
   FreeAndNil(FProjectMacros);
@@ -398,6 +409,7 @@ procedure TFPDocCreator.LoadProjectFile(const AFileName: string);
 begin
   With TXMLFPDocOptions.Create(self) do
     try
+      SetDefines(Self.Defines);
       if (ProjectMacros.Count>0) then
         LoadOptionsFromFile(FProject,AFileName,ProjectMacros)
       else

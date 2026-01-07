@@ -1516,7 +1516,7 @@ end;
 
 class function TPath.Exists(const aPath: string; aFollowLink: Boolean): Boolean;
 begin
-  Result:=TDirectory.Exists(aPath, aFollowLink) and TFile.Exists(aPath, aFollowLink);
+  Result:=TDirectory.Exists(aPath, aFollowLink) or TFile.Exists(aPath, aFollowLink);
 end;
 
 class function TPath.GetAttributes(const aPath: string; aFollowLink: Boolean

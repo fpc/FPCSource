@@ -77,7 +77,9 @@ Type
     fhandle: psqlite3;
     FOpenFlags: TSQLiteOpenFlags;
     FVFS: String;
+    function GetAlwaysUseMemo: Boolean;
     function GetSQLiteOpenFlags: Integer;
+    procedure SetAlwaysUseMemo(const aValue: Boolean);
     procedure SetOpenFlags(AValue: TSQLiteOpenFlags);
     procedure SetVFS(const AValue: String);
   protected
@@ -136,6 +138,7 @@ Type
     Property OpenFlags : TSQLiteOpenFlags Read FOpenFlags Write SetOpenFlags default DefaultOpenFlags;
     Property VFS : String Read FVFS Write SetVFS;
     Property AlwaysUseBigint : Boolean Read GetAlwaysUseBigint Write SetAlwaysUseBigint;
+    Property AlwaysUseMemo : Boolean Read GetAlwaysUseMemo Write SetAlwaysUseMemo stored true;
   end;
 
   { TSQLite3ConnectionDef }
@@ -329,6 +332,7 @@ end;
 
 Const
   SUseBigint = 'AlwaysUseBigint';
+  SUseMemo = 'AlwaysUseMemo';
 
 function TSQLite3Connection.GetAlwaysUseBigint : Boolean;
 
@@ -549,7 +553,12 @@ begin
         stInteger: FT:=ftLargeInt;
         stFloat:   FT:=ftFloat;
         stBlob:    FT:=ftBlob;
-        stText:    FT:=ftMemo;
+        stText:    begin
+        if AlwaysUseMemo then
+          FT:=ftMemo
+        else
+          FT:=ftString
+        end;
       else
         FT:=ftString;
       end;
@@ -872,6 +881,22 @@ begin
   For F in TSQLiteOpenFlags do
     if F in FOpenFlags then
       Result:=Result or NativeFlags[F];
+end;
+
+function TSQLite3Connection.GetAlwaysUseMemo: Boolean;
+begin
+  {$IFDEF VER3_2}
+  // Must be set to 1 to take effect
+  Result:=Params.Values[SUseMemo]='1'
+  {$ELSE}
+  // Must be set to 0 to disable
+  Result:=Params.Values[SUseMemo]<>'0'
+  {$ENDIF}
+end;
+
+procedure TSQLite3Connection.SetAlwaysUseMemo(const aValue: Boolean);
+begin
+   Params.Values[SUseMemo]:=IntToStr(Ord(aValue));
 end;
 
 
