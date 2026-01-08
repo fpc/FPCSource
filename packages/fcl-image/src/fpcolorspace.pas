@@ -37,11 +37,11 @@ type
   TIlluminant = string[10];
 
   PXYZReferenceWhite = ^TXYZReferenceWhite;
-  TXYZReferenceWhite = packed record
+  TXYZReferenceWhite = record
     X, Y, Z: single;
     ObserverAngle: integer;
-    Illuminant: TIlluminant;
     L,M,S: single;
+    Illuminant: TIlluminant;
   end;
 
   TSpectralLocusPoint = record
