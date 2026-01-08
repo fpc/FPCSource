@@ -1341,7 +1341,7 @@ type
     ar: pointer absolute result;
     fv, fp: pointer;
     arSizeFlags, prevSize2, maxFv, minFragment, fSizeFlags, hNext, hNext2, oldph: uint32;
-    prevSize, binIndex, oldpsize, statv, arSize: SizeUint;
+    prevSize, binIndex, oldpsize, statv, moveSize: SizeUint;
   {$ifdef FPC_HAS_FEATURE_THREADING}
     pts: ^pThreadState;
   {$endif FPC_HAS_FEATURE_THREADING}
@@ -1429,6 +1429,7 @@ type
 
       So if there is a choice, moving is performed if fragments on BOTH sides are larger than 1/8 (12.5%) of the (new) size. }
 
+    oldph := pVarHeader(p)[-1].ch.h;
     if arSizeFlags and PrevIsFreeFlag <> 0 then
     begin
       prevSize2 := pFreeVarTail(p - (VarHeaderSize + FreeVarTailSize))^.size;
@@ -1442,27 +1443,24 @@ type
         if prevSize2 >= MinSearchableVarHeaderAndPayload then
           varFree.Remove(ar);
         inc(arSizeFlags, prevSize2 - PrevIsFreeFlag); { Add prevSize back, and remove PrevIsFreeFlag. }
-        { Move(p^, ar^, ...) is postponed, see below. }
+        moveSize := oldph and VarSizeMask;
+        if uint32(size) < uint32(moveSize) then
+          moveSize := uint32(size);
+        { Might overwrite old p header, so must use oldph from now on.
+          Otherwise is safe: won’t overwrite the header of the free chunk after p, won’t be performed in the no-op case. }
+        Move(p^, ar^, moveSize - VarHeaderSize);
       end else
         { Not moving; finish the removal of the previous chunk from “ar”. arSizeFlags is already decreased by prevSize, and keeps PrevIsFreeFlag. }
         ar := p; { Same as inc(ar, prevSize2). }
     end;
 
-    { Remove the free chunk after p. Note that:
-
-      — Under some circumstances, it can be overwritten with Move, so Move must be postponed.
-
-      — This section might decide that TryResizeVar is a complete no-op and exit “early”, and this decision depends on the decision to move,
-        so the decision to move must be made first.
-        Though a nontrivial amount of work has been done by this point, some more remains and can be skipped to speed up no-op ReallocMems (e.g. 26 → 16 ns).
-        Without shortcutting the no-op case, this entire section can be simply moved above the previous one and postponing Move would not be required. }
-
-    oldph := pVarHeader(p)[-1].ch.h;
     oldpsize := oldph and VarSizeMask;
     if (uint32(size) = uint32(oldpsize)) and (ar = p) then
       { TryResizeVar was a no-op, and with some explicit efforts we managed to write nothing by this point,
         so we use our last chance to get out. }
       exit;
+
+    { Remove the free chunk after p. }
     if oldph and LastFlag = 0 then
     begin
       hNext2 := pVarHeader(p + oldpsize - VarHeaderSize)^.ch.h;
@@ -1471,21 +1469,13 @@ type
     end;
     dec(used, oldpsize);
 
-    if ar <> p then
-    begin
-      if uint32(size) < uint32(oldpsize) then { oldpsize is reused as “moveSize”. }
-        oldpsize := uint32(size);
-      Move(p^, ar^, oldpsize - VarHeaderSize);
-    end;
-
     { Format the free chunk after ar, or its absence. }
     fSizeFlags := uint32(arSizeFlags - uint32(size)) and (VarSizeMask or LastFlag);
     if fSizeFlags >= uint32(MinAnyVarHeaderAndPayload + (MinSearchableVarHeaderAndPayload - MinAnyVarHeaderAndPayload) div LastFlag * (fSizeFlags and LastFlag)) then
     begin
       dec(arSizeFlags, fSizeFlags);
-      arSize := arSizeFlags and VarSizeMask;
-      fp := ar + arSize;
-      pVarHeader(fp)[-1].ofsToOs := pVarHeader(ar)[-1].ofsToOs - int32(arSize);
+      fp := ar + size;
+      pVarHeader(fp)[-1].ofsToOs := pVarHeader(ar)[-1].ofsToOs - int32(size);
       pVarHeader(fp)[-1].ch.h := fSizeFlags;
       if fSizeFlags and LastFlag = 0 then
       begin

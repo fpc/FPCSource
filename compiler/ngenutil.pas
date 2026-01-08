@@ -985,7 +985,7 @@ implementation
               Message1(scanner_w_alignment_larger_than_max,sym.name);
               varalign:=explicitalign;
             end
-          else if (wantedalign>varalign) then
+          else if (wantedalign>varalign) and (target_info.alignment.varalignmax>1) then
             begin
               { varalign:=wantedalign; this can lead to
                 troubles on systems like for instance
