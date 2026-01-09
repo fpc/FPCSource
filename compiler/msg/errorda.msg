@@ -1,7 +1,7 @@
 %%% Reordering of errorda.msg respective to errore.msg
 %%% Contains all comments from errorda.msg
 #$
-#   $Id: errorda.msg 621 2006-07-02 15:44:03Z chrivers 
+#   $Id: errorda.msg 621 2006-07-02 15:44:03Z chrivers
 #   This file is part of the Free Pascal Compiler
 #   Copyright (c) 1999-2018 by the Free Pascal Development team
 #
@@ -2750,7 +2750,7 @@ asmr_e_higher_cpu_mode_required=07097_E_Højere cpu-mode krævet ($1)
 % Trying to use an instruction which is not supported in the current
 % cpu mode. Use a higher cpu generation to be able to use this
 % opcode in your assembler block
-asmr_w_unable_to_determine_reference_size_using_dword=07098_W_Ingen størrelse angivet, og det var ikke muligt at fastslå størrelsen af operanderne. Bruger DWORD. 
+asmr_w_unable_to_determine_reference_size_using_dword=07098_W_Ingen størrelse angivet, og det var ikke muligt at fastslå størrelsen af operanderne. Bruger DWORD.
 % You should specify explicitly a size for the reference, because
 % the compiler is unable to determine what size (byte,word,dword,etc.) it
 % should use for the reference. This warning is only used in Delphi mode where
@@ -3381,7 +3381,7 @@ option_end_reading_configfile=11031_H_Er færdig med at læse konfigurationsfil 
 % End of config file parsing.
 option_interpreting_option=11032_D_fortolker indstilling "$1"
 % The compiler is interpreting an option
-option_interpreting_firstpass_option=11036_D_fortolker indstilling til første gennemløb "$1" 
+option_interpreting_firstpass_option=11036_D_fortolker indstilling til første gennemløb "$1"
 % The compiler is interpreting an option for the first time.
 option_interpreting_file_option=11033_D_fortolker filindstilling "$1"
 % The compiler is interpreting an option which it read from the configuration file.
@@ -3535,7 +3535,7 @@ wpo_cant_create_feedback_file=12019_E_Cannot create specified whole program opti
 #
 option_logo=11023_[
 Free Pascal Compiler version $FPCFULLVERSION [$FPCDATE] til $FPCTARGET
-Copyright (c) 1993-2025 Florian Klaempfl and others
+Copyright (c) 1993-2026 Florian Klaempfl and others
 ]
 
 #
@@ -3644,7 +3644,7 @@ option_help_pages=11025_[
 **2Mdelphi_forsøg at være Delphi-kompatibel
 **2Mtp_forsøg at være Turbo/Borland Pascal 7.0-kompatibel
 **2Mgpc_forsøg at være GNU-Pascal-kompatibel
-**2Mmacpas_forsøg at være kompatibel med pascal-dialekter fra macintosh 
+**2Mmacpas_forsøg at være kompatibel med pascal-dialekter fra macintosh
 **1n_spring læsning af standardkonfigurationsfil over
 **1o<x>_ændr navnet af det producerede program til <x>
 **1pg_generér profileringskode til gprof (definerer FPC_PROFILE)

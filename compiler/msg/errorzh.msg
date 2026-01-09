@@ -3317,7 +3317,7 @@ package_u_ppl_filename=13029_U_PPL 文件名 $1
 #
 option_logo=11023_[
 Free Pascal 编译器版本 $FPCFULLVERSION [$FPCDATE] 用于 $FPCCPU
-版权所有 (c) 1993-2025 Florian Klaempfl 和其他人
+版权所有 (c) 1993-2026 Florian Klaempfl 和其他人
 ]
 
 #

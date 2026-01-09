@@ -56,37 +56,37 @@
 % display useful information. The number of such messages can be
 % controlled with the various verbosity level \var{-v} switches.
 % \begin{description}
-general_t_compilername=01000_T_одгш: $1
+general_t_compilername=01000_T_пїЅпїЅпїЅпїЅ: $1
 % When the \var{-vt} switch is used, this line tells you what compiler
 % is used.
-general_d_sourceos=01001_D_отшлъ дфтмд: $1
+general_d_sourceos=01001_D_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ: $1
 % When the \var{-vd} switch is used, this line tells you what the source
 % operating system is.
-general_i_targetos=01002_I_отшлъ дфтмд ойетгъ: $1
+general_i_targetos=01002_I_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ: $1
 % When the \var{-vd} switch is used, this line tells you what the target
 % operating system is.
-general_t_exepath=01003_T_ощъощ бръйб дшцд: $1
+general_t_exepath=01003_T_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ: $1
 % When the \var{-vt} switch is used, this line tells you where the compiler
 % looks for its binaries.
-general_t_unitpath=01004_T_ощъощ бръйб дйзйгеъ: $1
+general_t_unitpath=01004_T_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ: $1
 % When the \var{-vt} switch is used, this line tells you where the compiler
 % looks for compiled units. You can set this path with the \var{-Fu}
-general_t_includepath=01005_T_ощъощ бръйб доесу: $1
+general_t_includepath=01005_T_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ: $1
 % When the \var{-vt} switch is used, this line tells you where the compiler
 % looks for its include files (files used in \var{\{\$I xxx\}} statements).
 % You can set this path with the \var{-I} option.
-general_t_librarypath=01006_T_ощъощ бръйб дсфшйд: $1
+general_t_librarypath=01006_T_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ: $1
 % When the \var{-vt} switch is used, this line tells you where the compiler
 % looks for the libraries. You can set this path with the \var{-Fl} option.
 general_t_objectpath=01007_T_Using object path: $1
 % When the \var{-vt} switch is used, this line tells you where the compiler
 % looks for object files you link in (files used in \var{\{\$L xxx\}} statements).
 % You can set this path with the \var{-Fo} option.
-general_i_abslines_compiled=01008_I_$1 щешеъ дегше, б$2 щрйеъ
+general_i_abslines_compiled=01008_I_$1 пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ, пїЅ$2 пїЅпїЅпїЅпїЅпїЅ
 % When the \var{-vi} switch is used, the compiler reports the number
 % of lines compiled, and the time it took to compile them (real time,
 % not program time).
-general_f_no_memory_left=01009_F_ма рщаш жлшеп
+general_f_no_memory_left=01009_F_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % The compiler doesn't have enough memory to compile your program. There are
 % several remedies for this:
 % \begin{itemize}
@@ -97,33 +97,33 @@ general_f_no_memory_left=01009_F_ма рщаш жлшеп
 % \item If the previous two don't work, recompile the compiler with a bigger
 % heap (you can use the \var{-Ch} option for this, \seeo{Ch})
 % \end{itemize}
-general_i_writingresourcefile=01010_I_леъб аъ чебх ощабй ибмъ дозшежеъ: $1
+general_i_writingresourcefile=01010_I_пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ: $1
 % This message is shown when the compiler writes the Resource String Table
 % file containing all the resource strings for a program.
-general_e_errorwritingresourcefile=01011_E_леъб аъ чебх ощабй ибмъ дозшежеъ: $1
+general_e_errorwritingresourcefile=01011_E_пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ: $1
 % This message is shown when the compiler encountered an error when writing
 % the Resource String Table file
-general_i_fatal=01012_I_щвйад чшйийъ:
+general_i_fatal=01012_I_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ:
 % Prefix for Fatal Errors
-general_i_error=01013_I_щвйад:
+general_i_error=01013_I_пїЅпїЅпїЅпїЅпїЅ:
 % Prefix for Errors
-general_i_warning=01014_I_дъшад:
+general_i_warning=01014_I_пїЅпїЅпїЅпїЅпїЅ:
 % Prefix for Warnings
-general_i_note=01015_I_дтшд:
+general_i_note=01015_I_пїЅпїЅпїЅпїЅ:
 % Prefix for Notes
-general_i_hint=01016_I_шож:
+general_i_hint=01016_I_пїЅпїЅпїЅ:
 % Prefix for Hints
-general_e_path_does_not_exist=01017_E_дръйб "$1" айре чййн
+general_e_path_does_not_exist=01017_E_пїЅпїЅпїЅпїЅпїЅ "$1" пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
 % The specified path does not exist.
-general_f_compilation_aborted=01018_F_ддйгеш беим
+general_f_compilation_aborted=01018_F_пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
 % Compilation was aborted.
 general_text_bytes_code=01019_bytes code
 general_text_bytes_data=01020_bytes data
-general_i_number_of_warnings=01021_I_аждшеъ $1 дерфче
+general_i_number_of_warnings=01021_I_пїЅпїЅпїЅпїЅпїЅпїЅ $1 пїЅпїЅпїЅпїЅпїЅпїЅ
 % Total number of warnings issued during compilation.
-general_i_number_of_hints=01022_I_дерфче  $1 шожйн
+general_i_number_of_hints=01022_I_пїЅпїЅпїЅпїЅпїЅпїЅ  $1 пїЅпїЅпїЅпїЅпїЅ
 % Total number of hints issued during compilation.
-general_i_number_of_notes=01023_I_дерфче $1 дтшеъ
+general_i_number_of_notes=01023_I_пїЅпїЅпїЅпїЅпїЅпїЅ $1 пїЅпїЅпїЅпїЅпїЅ
 % Total number of notes issued during compilation.
 % \end{description}
 #
@@ -137,7 +137,7 @@ general_i_number_of_notes=01023_I_дерфче $1 дтшеъ
 % reserved words, strings, etc. It also takes care of directives and
 % conditional compiling handling.
 % \begin{description}
-scan_f_end_of_file=02000_F_сеу чебх ма цфей
+scan_f_end_of_file=02000_F_пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ
 % this typically happens in one of the following cases :
 % \begin{itemize}
 % \item The source file ends before the final \var{end.} statement. This
@@ -146,217 +146,217 @@ scan_f_end_of_file=02000_F_сеу чебх ма цфей
 % \item An include file ends in the middle of a statement.
 % \item A comment was not closed
 % \end{itemize}
-scan_f_string_exceeds_line=02001_F_озшежъ вемщъ ощешд
+scan_f_string_exceeds_line=02001_F_пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % There is a missing closing ' in a string, so it occupies
 % multiple lines.
-scan_f_illegal_char=02002_F_ъе ма зечй "$1" ($2)
+scan_f_illegal_char=02002_F_пїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ "$1" ($2)
 % An illegal character was encountered in the input file.
-scan_f_syn_expected=02003_F_щвйаъ ъзбйш: оцфд м "$1" абм "$2" роца
+scan_f_syn_expected=02003_F_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ: пїЅпїЅпїЅпїЅ пїЅ "$1" пїЅпїЅпїЅ "$2" пїЅпїЅпїЅпїЅ
 % This indicates that the compiler expected a different token than
 % the one you typed. It can occur almost everywhere where you make a
 % mistake against the pascal language.
-scan_t_start_include_file=02004_TL_оъзйм чшйад щм чебх ъесфеъ $1
+scan_t_start_include_file=02004_TL_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ $1
 % When you provide the \var{-vt} switch, the compiler tells you
 % when it starts reading an included file.
-scan_w_comment_level=02005_W_шоъ дтшеъ $1 роцад
+scan_w_comment_level=02005_W_пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ $1 пїЅпїЅпїЅпїЅпїЅ
 % When the \var{-vw} switch is used, then the compiler warns you if
 % it finds nested comments. Nested comments are not allowed in Turbo Pascal
 % and can be a possible source of errors.
-scan_n_ignored_switch=02008_N_оътмн ооъв одгш "$1"
+scan_n_ignored_switch=02008_N_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ "$1"
 % With \var{-vn} on, the compiler warns if it ignores a switch
-scan_w_illegal_switch=02009_W_оъв одгш "$1" айре зечй
+scan_w_illegal_switch=02009_W_пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ "$1" пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
 % You included a compiler switch (i.e. \var{\{\$... \}}) which the compiler
 % does not recognise
-scan_w_switch_is_global=02010_W_ойчен щвей моъв одгш вмебмй
+scan_w_switch_is_global=02010_W_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % The compiler switch is misplaced, and should be located at
 % the start of the unit or program.
-scan_e_illegal_char_const=02011_E_ъе чбет ма зечй
+scan_e_illegal_char_const=02011_E_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ
 % This happens when you specify a character with its ASCII code, as in
 % \var{\#96}, but the number is either illegal, or out of range.
-scan_f_cannot_open_input=02012_F_ма рйъп мфъез аъ чебх "$1"
+scan_f_cannot_open_input=02012_F_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ "$1"
 % \fpc cannot find the program or unit source file you specified on the
 % command line.
-scan_f_cannot_open_includefile=02013_F_ма рйъп мфъез аъ чебх дъесфеъ "$1"
+scan_f_cannot_open_includefile=02013_F_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ "$1"
 % \fpc cannot find the source file you specified in a \var{\{\$include ..\}}
 % statement.
-scan_e_illegal_pack_records=02015_E_ййщеш шщеод ма зечй оййцв "$1"
+scan_e_illegal_pack_records=02015_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ "$1"
 % You are specifying the \var{\{\$PACKRECORDS n\} } or \var{\{\$ALIGN n\} }
 % with an illegal value for \var{n}. For \$PACKRECORDS valid alignments are 1, 2, 4, 8, 16, 32, C,
 % NORMAL, DEFAULT, and for \$ALIGN valid alignment are 1, 2, 4, 8, 16, 32, ON,
 % OFF. Under mode MacPas \$ALIGN also supports MAC68K, POWER and RESET.
-scan_e_illegal_pack_enum=02016_E_осфш ойрйомй щм орййд доййцв "$1" айре зечй
+scan_e_illegal_pack_enum=02016_E_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ "$1" пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
 % You are specifying the \var{\{\$PACKENUM n\}} with an illegal value for
 % \var{n}. Only 1,2,4, NORMAL or DEFAULT are valid here.
-scan_e_endif_expected=02017_E_оцфд м$ENDIF бдвгшд $1 $2 дроцаъ б$3 щешд $4
+scan_e_endif_expected=02017_E_пїЅпїЅпїЅпїЅ пїЅ$ENDIF пїЅпїЅпїЅпїЅпїЅпїЅ $1 $2 пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ$3 пїЅпїЅпїЅпїЅ $4
 % Your conditional compilation statements are unbalanced.
-scan_e_preproc_syntax_error=02018_E_щвйаъ ъзбйш бтъ рйъез ощфи ърай
+scan_e_preproc_syntax_error=02018_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
 % There is an error in the expression following the \var{\{\$if ..\}}, $ifc or $setc compiler
 % directives.
-scan_e_error_in_preproc_expr=02019_E_дтшлъ ощфи ърай
+scan_e_error_in_preproc_expr=02019_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
 % There is an error in the expression following the \var{\{\$if ..\}}, $ifc or $setc compiler
 % directives.
-scan_w_macro_cut_after_255_chars=02020_W_ъелп дочше оевбм маешк щм 255 ъеейн
+scan_w_macro_cut_after_255_chars=02020_W_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ 255 пїЅпїЅпїЅпїЅпїЅ
 % The contents of macros cannot be longer than 255 characters.
-scan_e_endif_without_if=02021_E_ENDIF мма  IF(N)DEF
+scan_e_endif_without_if=02021_E_ENDIF пїЅпїЅпїЅ  IF(N)DEF
 % Your \var{\{\$IFDEF ..\}} and {\{\$ENDIF\}} statements aren't balanced.
-scan_f_user_defined=02022_F_двгшъ ощъощ: $1
+scan_f_user_defined=02022_F_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ: $1
 % A user defined fatal error occurred. see also the \progref
-scan_e_user_defined=02023_E_двгшъ ощъощ: $1
+scan_e_user_defined=02023_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ: $1
 % A user defined error occurred. see also the \progref
-scan_w_user_defined=02024_W_двгшъ ощъощ: $1
+scan_w_user_defined=02024_W_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ: $1
 % A user defined warning occurred. see also the \progref
-scan_n_user_defined=02025_N_двгшъ ощъощ: $1
+scan_n_user_defined=02025_N_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ: $1
 % A user defined note was encountered. see also the \progref
-scan_h_user_defined=02026_H_двгшъ ощъощ: $1
+scan_h_user_defined=02026_H_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ: $1
 % A user defined hint was encountered. see also the \progref
-scan_i_user_defined=02027_I_двгшъ ощъощ: $1
+scan_i_user_defined=02027_I_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ: $1
 % User defined information was encountered. see also the \progref
-scan_e_keyword_cant_be_a_macro=02028_E_оймъ офъз доевгшъ озгщ лочше айрд олймд дщфтд
+scan_e_keyword_cant_be_a_macro=02028_E_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % You cannot redefine keywords with macros.
-scan_f_macro_buffer_overflow=02029_F_вмйщъ оавш очше бтъ чшйад ае дшзбд щм очше
+scan_f_macro_buffer_overflow=02029_F_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ
 % Your macro or its result was too long for the compiler.
-scan_w_macro_too_deep=02030_W_дшзбъ очше вемщъ отеоч щм 16.
+scan_w_macro_too_deep=02030_W_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ 16.
 % When expanding a macro, macros have been nested to a level of 16.
 % The compiler will expand no further, since this may be a sign that
 % recursion is used.
-scan_w_wrong_styled_switch=02031_W_ оъвй фтемъ одгш айрн ръолйн бдтшеъ осев //
+scan_w_wrong_styled_switch=02031_W_ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ //
 % Compiler switches should be in normal pascal style comments.
-scan_d_handling_switch=02032_DL_оифм боъв "$1"
+scan_d_handling_switch=02032_DL_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ "$1"
 % When you set debugging info on (\var{-vd}) the compiler tells you when it
 % is evaluating conditional compile statements.
-scan_c_endif_found=02033_CL_роца ENDIF $1
+scan_c_endif_found=02033_CL_пїЅпїЅпїЅпїЅ ENDIF $1
 % When you turn on conditional messages(\var{-vc}), the compiler tells you
 % where it encounters conditional statements.
-scan_c_ifdef_found=02034_CL_роца IFDEF $1, $2
+scan_c_ifdef_found=02034_CL_пїЅпїЅпїЅпїЅ IFDEF $1, $2
 % When you turn on conditional messages(\var{-vc}), the compiler tells you
 % where it encounters conditional statements.
-scan_c_ifopt_found=02035_CL_роца IFOPT $1, $2
+scan_c_ifopt_found=02035_CL_пїЅпїЅпїЅпїЅ IFOPT $1, $2
 % When you turn on conditional messages(\var{-vc}), the compiler tells you
 % where it encounters conditional statements.
-scan_c_if_found=02036_CL_роца IF $1, $2
+scan_c_if_found=02036_CL_пїЅпїЅпїЅпїЅ IF $1, $2
 % When you turn on conditional messages(\var{-vc}), the compiler tells you
 % where it encounters conditional statements.
-scan_c_ifndef_found=02037_CL_роца IFNDEF $1, $2
+scan_c_ifndef_found=02037_CL_пїЅпїЅпїЅпїЅ IFNDEF $1, $2
 % When you turn on conditional messages(\var{-vc}), the compiler tells you
 % where it encounters conditional statements.
-scan_c_else_found=02038_CL_роца ELSE $1, $2
+scan_c_else_found=02038_CL_пїЅпїЅпїЅпїЅ ELSE $1, $2
 % When you turn on conditional messages(\var{-vc}), the compiler tells you
 % where it encounters conditional statements.
-scan_c_skipping_until=02039_CL_огмв...
+scan_c_skipping_until=02039_CL_пїЅпїЅпїЅпїЅ...
 % When you turn on conditional messages(\var{-vc}), the compiler tells you
 % where it encounters conditional statements, and whether it is skipping or
 % compiling parts.
-scan_i_press_enter=02040_I_мзх тм <return> мдощйк
+scan_i_press_enter=02040_I_пїЅпїЅпїЅ пїЅпїЅ <return> пїЅпїЅпїЅпїЅпїЅпїЅ
 % When the \var{-vi} switch is used, the compiler stops compilation
 % and waits for the \var{Enter} key to be pressed when it encounters
 % a \var{\{\$STOP\}} directive.
-scan_w_unsupported_switch=02041_W_оъв "$1" айре ръок
+scan_w_unsupported_switch=02041_W_пїЅпїЅпїЅ "$1" пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
 % When warnings are turned on (\var{-vw}) the compiler warns you about
 % unsupported switches. This means that the switch is used in Delphi or
 % Turbo Pascal, but not in \fpc
-scan_w_illegal_directive=02042_W_дешаъ додгш "$1" айрд зечйъ
+scan_w_illegal_directive=02042_W_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ "$1" пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % When warings are turned on (\var{-vw}) the compiler warns you about
 % unrecognised switches. For a list of recognised switches, \progref
-scan_t_back_in=02043_TL_зжшд б$1
+scan_t_back_in=02043_TL_пїЅпїЅпїЅпїЅ пїЅ$1
 % When you use (\var{-vt}) the compiler tells you when it has finished
 % reading an include file.
-scan_w_unsupported_app_type=02044_W_айп ъойлд мсев дафмйчцйд: "$1"
+scan_w_unsupported_app_type=02044_W_пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ: "$1"
 % You get this warning, if you specify an unknown application type
 % with the directive \var{\{\$APPTYPE\}}
-scan_w_app_type_not_support=02045_W_APPTYPE айре ръок т"й ддотшлъ дфтмд добечщъ
+scan_w_app_type_not_support=02045_W_APPTYPE пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅ"пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 % The \var{\{\$APPTYPE\}} directive is supported by certain operating systems only.
-scan_w_description_not_support=02046_W_DESCRIPTION айре ръок т"й отшлъ ддфтмд добечщъ
+scan_w_description_not_support=02046_W_DESCRIPTION пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅ"пїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 % The \var{\{\$DESCRIPTION\}} directive is not supported on this target OS
-scan_n_version_not_support=02047_N_VERSION айре ръок т"й отшлъ дфтмд добечщъ
+scan_n_version_not_support=02047_N_VERSION пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅ"пїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 % The \var{\{\$VERSION\}} directive is not supported on this target OS
-scan_n_only_exe_version=02048_N_VERSION шч мчбцй exe ае DLL
+scan_n_only_exe_version=02048_N_VERSION пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ exe пїЅпїЅ DLL
 % The \var{\{\$VERSION\}} directive is only used for executable or DLL sources.
-scan_w_wrong_version_ignored=02049_W_фешои щвей мдешаъ VERSION: "$1"
+scan_w_wrong_version_ignored=02049_W_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ VERSION: "$1"
 % The \var{\{\$VERSION\}} directive format is majorversion.minorversion
 % where majorversion and minorversion are words.
-scan_e_illegal_asmmode_specifier=02050_E_свреп дасобмш щцеййп "$1" айре зечй
+scan_e_illegal_asmmode_specifier=02050_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ "$1" пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
 % When you specify an assembler mode with the \var{\{\$ASMMODE xxx\}}
 % the compiler didn't recognize the mode you specified.
-scan_w_no_asm_reader_switch_inside_asm=02051_W_оъв чеша дASM айре афщшй бъек ощфи асобмй. "$1" йдйд йщфйт шч бдлшжд дбад/
+scan_w_no_asm_reader_switch_inside_asm=02051_W_пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅASM пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ. "$1" пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ/
 % It is not possible to switch from one assembler reader to another
 % inside an assembler block. The new reader will be used for next
 % assembler statements only.
-scan_e_wrong_switch_toggle=02052_E_щйоещ щвей боъв. дщъощ бON/OFF ае б +/-
+scan_e_wrong_switch_toggle=02052_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ. пїЅпїЅпїЅпїЅпїЅ пїЅON/OFF пїЅпїЅ пїЅ +/-
 % You need to use ON or OFF or a + or - to toggle the switch
-scan_e_resourcefiles_not_supported=02053_E_чебх дощабйн айре ръок бйтг дрбзш
+scan_e_resourcefiles_not_supported=02053_E_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % The target you are compiling for doesn't support resource files.
-scan_w_include_env_not_found=02054_W_ощърд дсбйбд "$1" ма роца бсбйбд
+scan_w_include_env_not_found=02054_W_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ "$1" пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % The included environment variable can't be found in the environment, it will
 % be replaced by an empty string instead.
-scan_e_invalid_maxfpureg_value=02055_E_тшк ма зечй мдвбмеъ аевш дFPC
+scan_e_invalid_maxfpureg_value=02055_E_пїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅFPC
 % Valid values for this directive are 0..8 and NORMAL/DEFAULT
-scan_w_only_one_resourcefile_supported=02056_W_шч чебх ощабйн азг ръок бйтг жд
+scan_w_only_one_resourcefile_supported=02056_W_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ
 % The target you are compiling for supports only one resource file.
 % The first resource file found is used, the others are discarded.
-scan_w_macro_support_turned_off=02057_W_дъойлд бочше лебд
+scan_w_macro_support_turned_off=02057_W_пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
 % A macro declaration has been found, but macro support is currently off,
 % so the declaration will be ignored. To turn macro support on compile with
 % -Sm on the commandline or add \{\$MACRO ON\} in the source
-scan_e_invalid_interface_type=02058_E_делшж сев оощч ма зечй. двгшеъ зечйеъ дн COM, CORBA ае DEFAULT
+scan_e_invalid_interface_type=02058_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ. пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ COM, CORBA пїЅпїЅ DEFAULT
 % The interface type that was specified is not supported
-scan_w_appid_not_support=02059_W_APPID ръок шч бPALMOS
+scan_w_appid_not_support=02059_W_APPID пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅPALMOS
 % The \var{\{\$APPID\}} directive is only supported for the PalmOS target.
-scan_w_appname_not_support=02060_W_APPNAME ръок шч бPALMOS
+scan_w_appname_not_support=02060_W_APPNAME пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅPALMOS
 % The \var{\{\$APPNAME\}} directive is only supported for the PalmOS target.
-scan_e_string_exceeds_255_chars=02061_E_озшежъ чбетд ма йлемд мдйеъ отм 255 ъеейн
+scan_e_string_exceeds_255_chars=02061_E_пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ 255 пїЅпїЅпїЅпїЅпїЅ
 % A single string constant can contain at most 255 chars. Try splitting up the
 % string in multiple smaller parts and concatenate them with a + operator.
-scan_f_include_deep_ten=02062_F_десфъ чбцй дinclude вмщ отеоч д16
+scan_f_include_deep_ten=02062_F_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅinclude пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅ16
 % When including include files the files have been nested to a level of 16.
 % The compiler will expand no further, since this may be a sign that
 % recursion is used.
-scan_e_too_many_push=02063_F_йеъш ойгй щлбеъ PUSH
+scan_e_too_many_push=02063_F_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ PUSH
 % A maximum of 20 levels is allowed. This error occurs only in mode MacPas.
-scan_e_too_many_pop=02064_E_POP мма щзшеш щм PUSH
+scan_e_too_many_pop=02064_E_POP пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ PUSH
 % This error occurs only in mode MacPas.
-scan_e_error_macro_lacks_value=02065_E_очше "$1" ма олйм тшлйн
+scan_e_error_macro_lacks_value=02065_E_пїЅпїЅпїЅпїЅ "$1" пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % Thus the conditional compile time expression cannot be evaluated.
-scan_e_wrong_switch_toggle_default=02066_E_щйоещ боъв щвей, дщъощ б ON/OFF/DEFAULT ае б+/-/*
+scan_e_wrong_switch_toggle_default=02066_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅ пїЅ ON/OFF/DEFAULT пїЅпїЅ пїЅ+/-/*
 % You need to use ON or OFF or DEFAULT or a + or - or * to toggle the switch
-scan_e_mode_switch_not_allowed=02067_E_оцб оъв "$1" ма оешщд
+scan_e_mode_switch_not_allowed=02067_E_пїЅпїЅпїЅ пїЅпїЅпїЅ "$1" пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % A mode switch has already been encountered, or, in case of option -Mmacpas,
 % a mode switch occur after UNIT.
-scan_e_error_macro_undefined=02068_E_ощърд жоп дйгеш "$1" ма девгш.
+scan_e_error_macro_undefined=02068_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ "$1" пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ.
 % Thus the conditional compile time expression cannot be evaluated. Only in mode MacPas.
-scan_e_utf8_bigger_than_65535=02069_E_роца чег UTF-8 вбедд йеъш о65535
+scan_e_utf8_bigger_than_65535=02069_E_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ UTF-8 пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅ65535
 % \fpc handles utf-8 strings internally as widestrings e.g. the char codes are limited to 65535
-scan_e_utf8_malformed=02070_E_озшежъ UTF-8 ъчемд
+scan_e_utf8_malformed=02070_E_пїЅпїЅпїЅпїЅпїЅпїЅ UTF-8 пїЅпїЅпїЅпїЅпїЅ
 % The given string isn't a valid UTF-8 string
 scan_c_switching_to_utf8=02071_C_UTF-8 signature found, using UTF-8 encoding
 % The compiler found an UTF-8 encoding signature (\$ef, \$bb, \$bf) at the beginning of a file,
 % so it interprets it as an UTF-8 file
-scan_e_compile_time_typeerror=02072_E_бйией бжоп дйгеш: ргшщ $1 абм дъчбм $2 б$3
+scan_e_compile_time_typeerror=02072_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ: пїЅпїЅпїЅпїЅ $1 пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ $2 пїЅ$3
 % Type check of a compile time expression failed.
-scan_n_app_type_not_support=02073_N_APPTYPE ма ръок ботшлъ ддфтмд добечщъ
+scan_n_app_type_not_support=02073_N_APPTYPE пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 % The \var{\{\$APPTYPE\}} directive is supported by certain operating systems only.
-scan_e_illegal_optimization_specifier=02074_E_сефч ойиеб ма зечй "$1"
+scan_e_illegal_optimization_specifier=02074_E_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ "$1"
 % When you specify an optimization with the \var{\{\$OPTIMIZATION xxx\}}
 % the compiler didn't recognize the optimization you specified.
-scan_w_setpeflags_not_support=02075_W_SETPEFLAGS айре ръок ботшлъ ддфтмд добечщъ
+scan_w_setpeflags_not_support=02075_W_SETPEFLAGS пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 % The \var{\{\$SETPEFLAGS\}} directive is not supported by the target OS
-scan_w_imagebase_not_support=02076_W_IMAGEBASE айре ръок тм йгй отшлъ ддфтмд добечщъ
+scan_w_imagebase_not_support=02076_W_IMAGEBASE пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 % The \var{\{\$IMAGEBASE\}} directive is not supported by the target OS
-scan_w_minstacksize_not_support=02077_W_MINSTACKSIZE айре ръок тм йгй отшлъ ддфтмд добечщъ
+scan_w_minstacksize_not_support=02077_W_MINSTACKSIZE пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 % The \var{\{\$MINSTACKSIZE\}} directive is not supported by the target OS
-scan_w_maxstacksize_not_support=02078_W_MAXSTACKSIZE айре ръок тм йгй отшлъ ддфтмд добечщъ
+scan_w_maxstacksize_not_support=02078_W_MAXSTACKSIZE пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 % The \var{\{\$MAXSTACKSIZE\}} directive is not supported by the target OS
-scanner_e_illegal_warn_state=02079_E_щйоещ ма зечй бдрзйъ $WARN
+scanner_e_illegal_warn_state=02079_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ $WARN
 % Only ON and OFF can be used as state with a \$warn compiler directive
-scan_e_only_packset=02080_E_тшк щм ашйжд ма зечй
+scan_e_only_packset=02080_E_пїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ
 % Only 0, 1, 2, 4, 8, DEFAULT and NORMAL are allowed as packset parameter
-scan_w_pic_ignored=02081_W_оътмн одешаъ PIC
+scan_w_pic_ignored=02081_W_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ PIC
 % Several targets like windows do not support neither need PIC so the PIC directive and switch are
 % ignored.
-scan_w_unsupported_switch_by_target=02082_W_доъв "$1" айре ръок бсев ъецад щрбзш
+scan_w_unsupported_switch_by_target=02082_W_пїЅпїЅпїЅпїЅ "$1" пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % Some compiler switches like \$E are not supported by all targets.
-scan_w_frameworks_darwin_only=02084_W_афщшейеъ обессеъ освшъ ръолеъ шч тбеш Darwin/Mac OS X
+scan_w_frameworks_darwin_only=02084_W_пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ Darwin/Mac OS X
 % Frameworks are not a known concept, or at least not supported by FPC, on operating systems other than Darwin/Mac OS X.
-scan_e_illegal_minfpconstprec=02085_E_гйеч дтшк дчбет щм дрчегд дтщшерйъ дойрйомйъ "$1" айре зечй
+scan_e_illegal_minfpconstprec=02085_E_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ "$1" пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
 % Valid minimal precisions for floating point constants are default, 32 and 64, which mean respectively minimal (usually 32 bit), 32 bit and 64 bit precision.
 % \end{description}
 #
@@ -369,46 +369,46 @@ scan_e_illegal_minfpconstprec=02085_E_гйеч дтшк дчбет щм дрчегд дтщшерйъ дойрйом
 % semantics of you language, i.e. it determines if your pascal constructs
 % are correct.
 % \begin{description}
-parser_e_syntax_error=03000_E_офшщ - щвйад ъзбйшйъ
+parser_e_syntax_error=03000_E_пїЅпїЅпїЅпїЅ - пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 % An error against the Turbo Pascal language was encountered. This happens
 % typically when an illegal character is found in the sources file.
-parser_e_dont_nest_interrupt=03004_E_фшецгешъ фсйчд айрд йлемд мдйеъ очерръ
+parser_e_dont_nest_interrupt=03004_E_пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % An \var{INTERRUPT} procedure must be global.
-parser_w_proc_directive_ignored=03005_W_оътмн осев фшецгешд "$1"
+parser_w_proc_directive_ignored=03005_W_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ "$1"
 % The specified procedure directive is ignored by FPC programs.
-parser_e_no_overload_for_all_procs=03006_E_ма лм ддлжшеъ щм "$1" бтмеъ длшжъ OVERLOAD
+parser_e_no_overload_for_all_procs=03006_E_пїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ "$1" пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ OVERLOAD
 % When you want to use overloading using the \var{OVERLOAD} directive, then
 % all declarations need to have \var{OVERLOAD} specified.
-parser_e_export_name_double=03008_E_лфймейеъ бййцеа щн дферчцйд "$1"
+parser_e_export_name_double=03008_E_пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ "$1"
 % Exported function names inside a specific DLL must all be different
-parser_e_export_ordinal_double=03009_E_лфймейеъ бййцеа айргчс дферчцйд "$1"
+parser_e_export_ordinal_double=03009_E_пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ "$1"
 % Exported function names inside a specific DLL must all be different
-parser_e_export_invalid_index=03010_E_айргчс ма ъчйп мййцеа дферчцйд
+parser_e_export_invalid_index=03010_E_пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 % DLL function index must be in the range \var{1..\$FFFF}
-parser_w_parser_reloc_no_debug=03011_W_щйрей ойчен ръерй дрйфей ма тебгйн мчбцй DLL ае чбцй дшцд. дъбим.
-parser_w_parser_win32_debug_needs_WN=03012_W_мафщш рйфей щвйаеъ мwin32 йщ мбим аъ щйрей дойчен т"й дафщшеъ -WN
+parser_w_parser_reloc_no_debug=03011_W_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ DLL пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ. пїЅпїЅпїЅпїЅпїЅ.
+parser_w_parser_win32_debug_needs_WN=03012_W_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅwin32 пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ"пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ -WN
 % Stabs info is wrong for relocatable DLL or EXES use -WN
 % if you want to debug win32 executables.
-parser_e_constructorname_must_be_init=03013_E_щн йецш зййб мдйеъ INIT
+parser_e_constructorname_must_be_init=03013_E_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ INIT
 % You are declaring an object constructor with a name which is not \var{init}, and the
 % \var{-Ss} switch is in effect. See the \var{-Ss} switch (\seeo{Ss}).
-parser_e_destructorname_must_be_done=03014_E_щн дешс зййб мдйеъ DONE
+parser_e_destructorname_must_be_done=03014_E_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ DONE
 % You are declaring an object destructor with a name which is not \var{done}, and the
 % \var{-Ss} switch is in effect. See the \var{-Ss} switch (\seeo{Ss}).
-parser_e_proc_inline_not_supported=03016_E_фшецгешъ INLINE ма ръолъ
+parser_e_proc_inline_not_supported=03016_E_пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ INLINE пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % You tried to compile a program with C++ style inlining, and forgot to
 % specify the \var{-Si} option (\seeo{Si}). The compiler doesn't support C++
 % styled inlining by default.
-parser_w_constructor_should_be_public=03018_W_йецш цшйк мдйеъ цйбешй
+parser_w_constructor_should_be_public=03018_W_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % Constructors must be in the 'public' part of an object (class) declaration.
-parser_w_destructor_should_be_public=03019_W_дешс цшйк мдйеъ цйбешй
+parser_w_destructor_should_be_public=03019_W_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % Destructors must be in the 'public' part of an object (class) declaration.
-parser_n_only_one_destructor=03020_N_озмчд цшйлд дешс азг бмбг
+parser_n_only_one_destructor=03020_N_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
 % You can declare only one destructor for a class.
-parser_e_no_local_objects=03021_E_двгшеъ озмчд очеойеъ айрн оешщеъ
+parser_e_no_local_objects=03021_E_пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % Classes must be defined globally. They cannot be defined inside a
 % procedure or function
-parser_f_no_anonym_objects=03022_F_двгшеъ озмчд арерйойеъ айрн оешщеъ
+parser_f_no_anonym_objects=03022_F_пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % An invalid object (class) declaration was encountered, i.e. an
 % object or class without methods that isn't derived from another object or
 % class. For example:
@@ -418,29 +418,29 @@ parser_f_no_anonym_objects=03022_F_двгшеъ озмчд арерйойеъ айрн оешщеъ
 %          end;
 % \end{verbatim}
 % will trigger this error.
-parser_n_object_has_no_vmt=03023_N_даебййчи "$1" мма VMT
+parser_n_object_has_no_vmt=03023_N_пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ "$1" пїЅпїЅпїЅ VMT
 % This is a note indicating that the declared object has no
 % virtual method table.
-parser_e_illegal_parameter_list=03024_E_шщйоъ фшоишйн ма зечйъ
+parser_e_illegal_parameter_list=03024_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % You are calling a function with parameters that are of a different type than
 % the declared parameters of the function.
-parser_e_wrong_parameter_size=03026_E_осфш щвей щм фшоишйн цейп тбеш дчшйад м "$1"
+parser_e_wrong_parameter_size=03026_E_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ "$1"
 % There is an error in the parameter list of the function or procedure,
 % the number of parameters is not correct.
-parser_e_overloaded_no_procedure=03027_E_ождд дошебд щйоещ "$1" айре ферчцйд
+parser_e_overloaded_no_procedure=03027_E_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ "$1" пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 % The compiler encountered a symbol with the same name as an overloaded
 % function, but it is not a function it can overload.
-parser_e_overloaded_have_same_parameters=03028_E_ферчцйеъ ошебеъ щйоещ олймеъ аъ аеън шщйоъ фшоишйн
+parser_e_overloaded_have_same_parameters=03028_E_пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 % You're declaring overloaded functions, but with the same parameter list.
 % Overloaded function must have at least 1 different parameter in their
 % declaration.
-parser_e_header_dont_match_forward=03029_E_двгшъ дферчцйд айрд ъеаоъ аъ ддвгшд дчегоъ "$1"
+parser_e_header_dont_match_forward=03029_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ "$1"
 % You declared a function with same parameters but
 % different result type or function modifiers.
-parser_e_header_different_var_names=03030_E_двгшъ дферчцйд "$1" айрд ъеаоъ аъ дойоещ: щн ощърд дщърд $2 => $3
+parser_e_header_different_var_names=03030_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ "$1" пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ: пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ $2 => $3
 % You declared the function in the \var{interface} part, or with the
 % \var{forward} directive, but define it with a different parameter list.
-parser_n_duplicate_enum=03031_N_тшлйн бсев орйд зййбйн мдйеъ бсгш темд
+parser_n_duplicate_enum=03031_N_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
 % \fpc allows enumeration constructions as in C. Given the following
 % declaration two declarations:
 % \begin{verbatim}
@@ -449,67 +449,67 @@ parser_n_duplicate_enum=03031_N_тшлйн бсев орйд зййбйн мдйеъ бсгш темд
 % \end{verbatim}
 % The second declaration would produce an error. \var{A\_UAS} needs to have a
 % value higher than \var{A\_E}, i.e. at least 7.
-parser_e_no_with_for_variable_in_other_segments=03033_E_With айре осевм мдщъощ бощърйн оочит щерд
+parser_e_no_with_for_variable_in_other_segments=03033_E_With пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
 % With stores a variable locally on the stack,
 % but this is not possible if the variable belongs to another segment.
-parser_e_too_much_lexlevel=03034_E_ферчцйд очерръ > 31
+parser_e_too_much_lexlevel=03034_E_пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ > 31
 % You can nest function definitions only 31 times.
-parser_e_range_check_error=03035_E_щвйад ббгйчъ иеез бтъ дтшлъ чбетйн
+parser_e_range_check_error=03035_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % The constants are out of their allowed range.
-parser_w_range_check_error=03036_W_щвйад ббгйчъ иеез бтъ дтшлъ чбетйн
+parser_w_range_check_error=03036_W_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % The constants are out of their allowed range.
-parser_e_double_caselabel=03037_E_длжшъ ъеейъ лфемд бcase
+parser_e_double_caselabel=03037_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅcase
 % You are specifying the same label 2 times in a \var{case} statement.
-parser_e_case_lower_less_than_upper_bound=03038_E_диеез дсефй чип одиеез ддъзмъй
+parser_e_case_lower_less_than_upper_bound=03038_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 % The upper bound of a \var{case} label is less than the lower bound and this
 % is useless
-parser_e_type_const_not_possible=03039_E_длшжъ ийфес чбетйн щм озмчеъ ае оощчйн асешд
+parser_e_type_const_not_possible=03039_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % You cannot declare a constant of type class or object.
-parser_e_no_overloaded_procvars=03040_E_ощърйн щм ферчцйеъ ошебеъ щйоещ айрн оешщеъ
+parser_e_no_overloaded_procvars=03040_E_пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % You are trying to assign an overloaded function to a procedural variable.
 % This is not allowed
-parser_e_invalid_string_size=03041_E_аешк озшежъ зййб мдйеъ тн тшлйн о1 м255
+parser_e_invalid_string_size=03041_E_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅ1 пїЅ255
 % The length of a shortstring in Pascal is limited to 255 characters. You are
 % trying to declare a string with length lower than 1 or greater than 255
-parser_w_use_extended_syntax_for_objects=03042_W_дщъощ бъзбйш оешзб щм NEW еDISPOSE мтеъчйн щм аебййчи
+parser_w_use_extended_syntax_for_objects=03042_W_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ NEW пїЅDISPOSE пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 % If you have a pointer \var{a} to a class type, then the statement
 % \var{new(a)} will not initialize the class (i.e. the constructor isn't
 % called), although space will be allocated. you should issue the
 % \var{new(a,init)} statement. This will allocate space, and call the
 % constructor of the object
-parser_w_no_new_dispose_on_void_pointers=03043_W_дщйоещ боцбйт ма оевгш тн NEW е DISPOSE зсш ощотеъ
-parser_e_no_new_dispose_on_void_pointers=03044_E_бмъй афщшй мдщъощ боцбйт ма оевгш тн NEW ае DISPOSE
+parser_w_no_new_dispose_on_void_pointers=03043_W_пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ NEW пїЅ DISPOSE пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
+parser_e_no_new_dispose_on_void_pointers=03044_E_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ NEW пїЅпїЅ DISPOSE
 % You cannot use \var{new(p)} or \var{dispose(p)} if \var{p} is an untyped pointer
 % because no size is associated to an untyped pointer.
 % Accepted for compatibility in \var{tp} and \var{delphi} modes.
-parser_e_class_id_expected=03045_E_оцфд мождд озмчд
+parser_e_class_id_expected=03045_E_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % This happens when the compiler scans a procedure declaration that contains
 % a dot,
 % i.e., a object or class method, but the type in front of the dot is not
 % a known type.
-parser_e_no_type_not_allowed_here=03046_E_сев ождд ма оешщд бойчен дрелзй
+parser_e_no_type_not_allowed_here=03046_E_пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % You cannot use a type inside an expression.
-parser_e_methode_id_expected=03047_E_оцфд мождд оъегй
+parser_e_methode_id_expected=03047_E_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % This identifier is not a method.
 % This happens when the compiler scans a procedure declaration that contains
 % a dot, i.e., a object or class method, but the procedure name is not a
 % procedure of this type.
-parser_e_header_dont_match_any_member=03048_E_двгшъ дферчцйд ма ждд моъегеъ щм дозмчд "$1"
+parser_e_header_dont_match_any_member=03048_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ "$1"
 % This identifier is not a method.
 % This happens when the compiler scans a procedure declaration that contains
 % a dot, i.e., a object or class method, but the procedure name is not a
 % procedure of this type.
-parser_d_procedure_start=03049_DL_фшецгешд/ферчцйд $1
+parser_d_procedure_start=03049_DL_пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ/пїЅпїЅпїЅпїЅпїЅпїЅпїЅ $1
 % When using the \var{-vd} switch, the compiler tells you when it starts
 % processing a procedure or function implementation.
-parser_e_error_in_real=03050_E_чбет щм осфш оощй айре зечй
+parser_e_error_in_real=03050_E_пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
 % The compiler expects a floating point expression, and gets something else.
-parser_e_fail_only_in_constructor=03051_E_FAIL йлем мдйеъ бщйоещ шч бъек йецш
+parser_e_fail_only_in_constructor=03051_E_FAIL пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
 % You are using the \var{fail} keyword outside a constructor method.
-parser_e_no_paras_for_destructor=03052_E_дешсйн ма йлемйн мдлйм фшоишйн
+parser_e_no_paras_for_destructor=03052_E_пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 % You are declaring a destructor with a parameter list. Destructor methods
 % cannot have parameters.
-parser_e_only_class_methods_via_class_ref=03053_E_шч оъегеъ озмчд йлемеъ мдйеъ оевгшеъ бдъййзсеъ озмчд
+parser_e_only_class_methods_via_class_ref=03053_E_пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % This error occurs in a situation like the following:
 % \begin{verbatim}
 % Type :
@@ -523,7 +523,7 @@ parser_e_only_class_methods_via_class_ref=03053_E_шч оъегеъ озмчд йлемеъ мдйеъ о
 % \end{verbatim}
 % \var{Free} is not a class method and hence cannot be called with a class
 % reference.
-parser_e_only_class_methods=03054_E_шч оъегъ озмчд йлемд мвщъ моъегъ озмчд
+parser_e_only_class_methods=03054_E_пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % This is related to the previous error. You cannot call a method of an object
 % from a inside a class method. The following code would produce this error:
 % \begin{verbatim}
@@ -534,24 +534,24 @@ parser_e_only_class_methods=03054_E_шч оъегъ озмчд йлемд мвщъ моъегъ озмчд
 % \end{verbatim}
 % Because free is a normal method of a class it cannot be called from a class
 % method.
-parser_e_case_mismatch=03055_E_чбетйн есев CASE айрн оъайойн
+parser_e_case_mismatch=03055_E_пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ CASE пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 % One of the labels is not of the same type as the case variable.
-parser_e_illegal_symbol_exported=03056_E_ма рйъп мййца аъ дсом осфшййд
+parser_e_illegal_symbol_exported=03056_E_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 % You can only export procedures and functions when you write a library. You
 % cannot export variables or constants.
-parser_w_should_use_override=03057_W_оъегъ йшещд рсъшъ т"й "$1"
+parser_w_should_use_override=03057_W_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅ"пїЅ "$1"
 % A method that is declared \var{virtual} in a parent class, should be
 % overridden in the descendent class with the \var{override} directive. If you
 % don't specify the \var{override} directive, you will hide the parent method;
 % you will not override it.
-parser_e_nothing_to_be_overridden=03058_E_айп оъегд  бозмчд щм даб ащш рйъп мщлъб: "$1"
+parser_e_nothing_to_be_overridden=03058_E_пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ  пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ: "$1"
 % You are trying to \var{override} a virtual method of a parent class that does
 % not exist.
-parser_e_no_procedure_to_access_property=03059_E_ма рйъп осфш мвщъ моафййп
+parser_e_no_procedure_to_access_property=03059_E_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 % You specified no \var{read} directive for a property.
-parser_w_stored_not_implemented=03060_W_оафййп щоеш айре обецт тгййп
+parser_w_stored_not_implemented=03060_W_пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % The \var{stored} directive is not yet implemented
-parser_e_ill_property_access_sym=03061_E_сйоп ма зечй мвйщъ доафййп
+parser_e_ill_property_access_sym=03061_E_пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 % There is an error in the \var{read} or \var{write} directives for an array
 % property. When you declare an array property, you can only access it with
 % procedures and functions. The following code would cause such an error.
@@ -561,107 +561,107 @@ parser_e_ill_property_access_sym=03061_E_сйоп ма зечй мвйщъ доафййп
 %   property x [i : integer]: integer read I write i;
 % \end{verbatim}
 %
-parser_e_cant_access_protected_member=03062_E_ма рйъп мвщъ мщгд оевп баебййчи дрелзй
+parser_e_cant_access_protected_member=03062_E_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % Fields that are declared in a \var{protected} section of an object or class
 % declaration cannot be accessed outside the module where the object is
 % defined, or outside descendent object methods.
-parser_e_cant_access_private_member=03063_E_ма рйъп мвщъ мщгд фший баебчййи дрелзй
+parser_e_cant_access_private_member=03063_E_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % Fields that are declared in a \var{private} section of an object or class
 % declaration cannot be accessed outside the module where the class is
 % defined.
-parser_e_overridden_methods_not_same_ret=03066_E_оъегд ошебъ щйоещ зййбъ мдйеъ ждд бсев дощърд: "$2" бщйоещ т"й "$1", ащш олймд сев ощърд азш
+parser_e_overridden_methods_not_same_ret=03066_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ: "$2" пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ"пїЅ "$1", пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ
 % If you declare overridden methods in a class definition, they must
 % have the same return type.
-parser_e_dont_nest_export=03067_E_двггшъ ферчцйеъ EXPORT ма йлемеъ мдйеъ очерреъ
+parser_e_dont_nest_export=03067_E_пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ EXPORT пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 % You cannot declare a function or procedure within a function or procedure
 % that was declared as an export procedure.
-parser_e_methods_dont_be_export=03068_E_ай афщш мййца аъ доъегд
+parser_e_methods_dont_be_export=03068_E_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % You cannot declare a procedure that is a method for an object as
 % \var{export}ed.
-parser_e_call_by_ref_without_typeconv=03069_E_дщйоещ бфшоиш щм ощърд зййб мдйеъ ждд: олйм "$1" оцфд м"$2"
+parser_e_call_by_ref_without_typeconv=03069_E_пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ: пїЅпїЅпїЅпїЅ "$1" пїЅпїЅпїЅпїЅ пїЅ"$2"
 % When calling a function declared with \var{var} parameters, the variables in
 % the function call must be of exactly the same type. There is no automatic
 % type conversion.
-parser_e_no_super_class=03070_E_дозмчд айррд озмчъ аб щм дозмчд дрелзйъ
+parser_e_no_super_class=03070_E_пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 % When calling inherited methods, you are trying to call a method of a non-related
 % class. You can only call an inherited method of a parent class.
-parser_e_self_not_in_method=03071_E_SELF оешщд шч боъегеъ
+parser_e_self_not_in_method=03071_E_SELF пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 % You are trying to use the \var{self} parameter outside an object's method.
 % Only methods get passed the \var{self} parameters.
-parser_e_generic_methods_only_in_methods=03072_E_оъегеъ йлемеъ мдйчша йщйшеъ шч бъек оъегеъ азшеъ тн сев ождд щмдозмчд
+parser_e_generic_methods_only_in_methods=03072_E_пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 % A construction like \var{sometype.somemethod} is only allowed in a method.
-parser_e_illegal_colon_qualifier=03073_E_щйоещ ма зечй щм ':'
+parser_e_illegal_colon_qualifier=03073_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ ':'
 % You are using the format \var{:} (colon) 2 times on an expression that
 % is not a real expression.
-parser_e_illegal_set_expr=03074_E_щвйад ббгйчъ иеез бсгшъ йецшйн ае щлфем сгшд
+parser_e_illegal_set_expr=03074_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
 % The declaration of a set contains an error. Either one of the elements is
 % outside the range of the set type, either two of the elements are in fact
 % the same.
-parser_e_pointer_to_class_expected=03075_E_оцфд моцбйт аебййчи
+parser_e_pointer_to_class_expected=03075_E_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 % You specified an illegal type in a \var{new} statement.
 % The extended syntax of \var{new} needs an object as a parameter.
-parser_e_expr_have_to_be_constructor_call=03076_E_дбйией зййб мдйеъ чшйаъ йецш
+parser_e_expr_have_to_be_constructor_call=03076_E_пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
 % When using the extended syntax of \var{new}, you must specify the constructor
 % method of the object you are trying to create. The procedure you specified
 % is not a constructor.
-parser_e_expr_have_to_be_destructor_call=03077_E_дбйией зййб мдйеъ чшйаъ дешс
+parser_e_expr_have_to_be_destructor_call=03077_E_пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
 % When using the extended syntax of \var{dispose}, you must specify the
 % destructor method of the object you are trying to dispose of.
 % The procedure you specified is not a destructor.
-parser_e_invalid_record_const=03078_E_сгш ма зечй щм аморийн бшщеод
+parser_e_invalid_record_const=03078_E_пїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % When declaring a constant record, you specified the fields in the wrong
 % order.
-parser_e_false_with_expr=03079_E_сев бйией зййб мдйеъ бйией шщеод ае озмчд
+parser_e_false_with_expr=03079_E_пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % A \var{with} statement needs an argument that is of the type \var{record}
 % or \var{class}. You are using \var{with} on an expression that is not of
 % this type.
-parser_e_void_function=03080_E_фшецгешд ма йлемд мдзжйш тшк
+parser_e_void_function=03080_E_пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ
 % In \fpc, you can specify a return value for a function when using
 % the \var{exit} statement. This error occurs when you try to do this with a
 % procedure. Procedures cannot return a value.
-parser_e_only_methods_allowed=03081_E_дйецшйн еддешсйн зййбйн мдйеъ оъегййн
+parser_e_only_methods_allowed=03081_E_пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 % You're declaring a procedure as destructor, constructor or class operator, when the
 % procedure isn't a class method.
-parser_e_operator_not_overloaded=03082_E_даефшйиеш ма ошебд щйоещ
+parser_e_operator_not_overloaded=03082_E_пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % You're trying to use an overloaded operator when it is not overloaded for
 % this type.
-parser_e_no_such_assignment=03083_E_ма рйъп мдцйб тшлйн мсевйн ошебй щйоещ
+parser_e_no_such_assignment=03083_E_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % You can not overload assignment for types
 % that the compiler considers as equal.
-parser_e_overload_impossible=03084_E_бмъй афщшй мдщъощ баефшиеш ошебд щйоещ
+parser_e_overload_impossible=03084_E_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % The combination of operator, arguments and return type are
 % incompatible.
-parser_e_no_reraise_possible=03085_E_ма рйъп мдшйн зшйвд
+parser_e_no_reraise_possible=03085_E_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % You are trying to raise an exception where it is not allowed. You can only
 % raise exceptions in an \var{except} block.
-parser_e_no_new_or_dispose_for_classes=03086_E_дъзбйш доешзб щм NEW ае DISPOSE ма оешщд мозмчеъ
+parser_e_no_new_or_dispose_for_classes=03086_E_пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ NEW пїЅпїЅ DISPOSE пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 % You cannot generate an instance of a class with the extended syntax of
 % \var{new}. The constructor must be used for that. For the same reason, you
 % cannot call \var{dispose} to de-allocate an instance of a class, the
 % destructor must be used for that.
-parser_e_procedure_overloading_is_off=03088_E_дафщшеъ мфшецгешеъ ошебеъ щйоещ лбей
+parser_e_procedure_overloading_is_off=03088_E_пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
 % When using the \var{-So} switch, procedure overloading is switched off.
 % Turbo Pascal does not support function overloading.
-parser_e_overload_operator_failed=03089_E_ма рйъп мдтойс тм сев даефшиеш дрелзй. дтосъ даефшиешйн дчщешйн мфтемд (ан блмм) дн: $1
+parser_e_overload_operator_failed=03089_E_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ. пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅ пїЅпїЅпїЅпїЅ) пїЅпїЅ: $1
 % You are trying to overload an operator which cannot be overloaded.
 % The following operators can be overloaded :
 % \begin{verbatim}
 %    +, -, *, /, =, >, <, <=, >=, is, as, in, **, :=
 % \end{verbatim}
-parser_e_comparative_operator_return_boolean=03090_E_аефшиеш дщееаъй зййб мдзжйш тшк бемйарй
+parser_e_comparative_operator_return_boolean=03090_E_пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 % When overloading the \var{=} operator, the function must return a boolean
 % value.
-parser_e_only_virtual_methods_abstract=03091_E_шч щйид еейшиеамйъ йлемд мдйеъ оефщи
+parser_e_only_virtual_methods_abstract=03091_E_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % You are declaring a method as abstract, when it is not declared to be
 % virtual.
-parser_f_unsupported_feature=03092_F_щйоещ баефцйд ма ръолъ!
+parser_f_unsupported_feature=03092_F_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ!
 % You're trying to force the compiler into doing something it cannot do yet.
-parser_e_mix_of_classes_and_objects=03093_E_дтшбеб щм тцойн щерйн (озмчеъ, тцн, оощч еле') айре оешщд
+parser_e_mix_of_classes_and_objects=03093_E_пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅ, пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ') пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % You cannot derive \var{objects}, \var{classes}, \var{cppclasses} and \var{interfaces} interttwined . E.g.
 % a class cannot have an object as parent and vice versa.
-parser_w_unknown_proc_directive_ignored=03094_W_оътмн одрзйъ дщвшд: "$1"
+parser_w_unknown_proc_directive_ignored=03094_W_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ: "$1"
 % The procedure directive you specified is unknown.
-parser_e_absolute_only_one_var=03095_E_absolute рйъп мщйоещ шч тн ощърд азъ
+parser_e_absolute_only_one_var=03095_E_absolute пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ
 % You cannot specify more than one variable before the \var{absolute} directive.
 % Thus, the following construct will provide this error:
 % \begin{verbatim}
@@ -677,7 +677,7 @@ parser_e_absolute_only_one_var=03095_E_absolute рйъп мщйоещ шч тн ощърд азъ
 %  var p : longint absolute x;
 % \end{verbatim}
 %
-parser_e_absolute_only_to_var_or_const=03096_E_рйъп мдщъощ бabsolute шч тн ощърд ае чбет
+parser_e_absolute_only_to_var_or_const=03096_E_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅabsolute пїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ
 % The address of a \var{absolute} directive can only point to a variable or
 % constant. Therefore, the following code will produce this error:
 % \begin{verbatim}
@@ -686,57 +686,57 @@ parser_e_absolute_only_to_var_or_const=03096_E_рйъп мдщъощ бabsolute шч тн ощърд
 %  var p : longint absolute x;
 % \end{verbatim}
 %
-parser_e_initialized_only_one_var=03097_E_рйъп маъзм шч ощърд азг
+parser_e_initialized_only_one_var=03097_E_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ
 % You cannot specify more than one variable with a initial value
 % in Delphi mode.
-parser_e_abstract_no_definition=03098_E_оъегд оефщиъ айрд жчечд мдвгшд (тн веу щм ферчцйд)
+parser_e_abstract_no_definition=03098_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅ пїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ)
 % Abstract methods can only be declared, you cannot implement them. They
 % should be overridden by a descendant class.
-parser_e_overloaded_must_be_all_global=03099_E_дтосъ дйъш щм дферчцйд айрд йлемд мдйеъ очеойъ (зййбъ мдйеъ ойецаъ)
+parser_e_overloaded_must_be_all_global=03099_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ)
 % You are defining a overloaded function in the implementation part of a unit,
 % but there is no corresponding declaration in the interface part of the unit.
-parser_w_virtual_without_constructor=03100_W_щйоещ боъегеъ еейшиеамйеъ мма йецш б "$1"
+parser_w_virtual_without_constructor=03100_W_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅ "$1"
 % If you declare objects or classes that contain virtual methods, you need
 % to have a constructor and destructor to initialize them. The compiler
 % encountered an object or class with virtual methods that doesn't have
 % a constructor/destructor pair.
-parser_c_macro_defined=03101_CL_двгшъ оачше: $1
+parser_c_macro_defined=03101_CL_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ: $1
 % When \var{-vc} is used, the compiler tells you when it defines macros.
-parser_c_macro_undefined=03102_CL_оачше ма оевгш: $1
+parser_c_macro_undefined=03102_CL_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ: $1
 % When \var{-vc} is used, the compiler tells you when it undefines macros.
-parser_c_macro_set_to=03103_CL_оачше $1 оевгш л $2
+parser_c_macro_set_to=03103_CL_пїЅпїЅпїЅпїЅпїЅ $1 пїЅпїЅпїЅпїЅпїЅ пїЅ $2
 % When \var{-vc} is used, the compiler tells you what values macros get.
-parser_i_compiling=03104_I_одгш $1
+parser_i_compiling=03104_I_пїЅпїЅпїЅпїЅ $1
 % When you turn on information messages (\var{-vi}), the compiler tells you
 % what units it is recompiling.
-parser_u_parsing_interface=03105_UL_офшщ аъ доощч щм дйзйгд $1
+parser_u_parsing_interface=03105_UL_пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ $1
 % This tells you that the reading of the interface
 % of the current unit starts
-parser_u_parsing_implementation=03106_UL_офшщ аъ дбйцет щм $1
+parser_u_parsing_implementation=03106_UL_пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ $1
 % This tells you that the code reading of the implementation
 % of the current unit, library or program starts
-parser_d_compiling_second_time=03107_DL_одгш аъ $1 бфтн дщрййд
+parser_d_compiling_second_time=03107_DL_пїЅпїЅпїЅпїЅ пїЅпїЅ $1 пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % When you request debug messages (\var{-vd}) the compiler tells you what
 % units it recompiles for the second time.
-parser_e_no_property_found_to_override=03109_E_ма роцад ълерд мтчйфд
+parser_e_no_property_found_to_override=03109_E_пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % You want to override a property of a parent class, when there is, in fact,
 % no such property in the parent class.
-parser_e_only_one_default_property=03110_E_шч ълерд азъ тн бшйшъ озгм оешщъ
+parser_e_only_one_default_property=03110_E_пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % You specified a property as \var{Default}, but the class already has a
 % default property, and a class can have only one default property.
-parser_e_property_need_paras=03111_E_дъерд тн бшйшъ озгм зййбъ мдйеъ ълерд щм отшк
+parser_e_property_need_paras=03111_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ
 % Only array properties of classes can be made \var{default} properties.
-parser_e_constructor_cannot_be_not_virtual=03112_E_йецшйн еейшиеамйн ръолйн шч бозмчд
+parser_e_constructor_cannot_be_not_virtual=03112_E_пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % You cannot have virtual constructors in objects. You can only have them
 % in classes.
-parser_e_no_default_property_available=03113_E_тшк бшйшъ озгм айре чййн мълерд
+parser_e_no_default_property_available=03113_E_пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % You are trying to access a default property of a class, but this class (or one of
 % its ancestors) doesn't have a default property.
-parser_e_cant_have_published=03114_E_дозмчд айрд йлемд мдлйм аъ зък published, дщъощ боъв {$M+}
+parser_e_cant_have_published=03114_E_пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅ published, пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ {$M+}
 % If you want a \var{published} section in a class definition, you must
 % use the \var{\{\$M+\}} switch, whch turns on generation of type
 % information.
-parser_e_forward_declaration_must_be_resolved=03115_E_ргшщъ двгшд шащерйъ щм дозмчд "$1" мфрй дщйоещ бд лозмчд йешщъ
+parser_e_forward_declaration_must_be_resolved=03115_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ "$1" пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % To be able to use an object as an ancestor object, it must be defined
 % first. This error occurs in the following situation:
 % \begin{verbatim}
@@ -746,123 +746,123 @@ parser_e_forward_declaration_must_be_resolved=03115_E_ргшщъ двгшд шащерйъ щм доз
 %       end;
 % \end{verbatim}
 % Where \var{ParentClass} is declared but not defined.
-parser_e_no_local_operator=03116_E_дщйоещ баефшйиеш очеой айре ръок
+parser_e_no_local_operator=03116_E_пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
 % You cannot overload locally, i.e. inside procedures or function
 % definitions.
-parser_e_proc_dir_not_allowed_in_interface=03117_E_очгн щйвшд "$1" айре оешщд бщйоещ бъек доощч
+parser_e_proc_dir_not_allowed_in_interface=03117_E_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ "$1" пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % This procedure directive is not allowed in the \var{interface} section of
 % a unit. You can only use it in the \var{implementation} section.
-parser_e_proc_dir_not_allowed_in_implementation=03118_E_очгн щйвшд "$1" айре оешщд бзмч дбйцетй
+parser_e_proc_dir_not_allowed_in_implementation=03118_E_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ "$1" пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 % This procedure directive is not defined in the \var{implementation} section of
 % a unit. You can only use it in the \var{interface} section.
-parser_e_proc_dir_not_allowed_in_procvar=03119_E_очгн щйвшд "$1" айре оешщд лзмч одвгшъ дщйвшд
+parser_e_proc_dir_not_allowed_in_procvar=03119_E_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ "$1" пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % This procedure directive cannot be part of a procedural or function
 % type declaration.
-parser_e_function_already_declared_public_forward=03120_E_двгшъ дферчцйд "$1" лбш бецтд
+parser_e_function_already_declared_public_forward=03120_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ "$1" пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % You will get this error if a function is defined as \var{forward} twice.
 % Or it is once in the \var{interface} section, and once as a \var{forward}
 % declaration in the \var{implmentation} section.
-parser_e_not_external_and_export=03121_E_ма рйъп мдщъощ вн б EXPORT евн EXTERNAL
+parser_e_not_external_and_export=03121_E_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅ EXPORT пїЅпїЅпїЅ EXTERNAL
 % These two procedure directives are mutually exclusive
-parser_n_not_supported_for_inline=03123_N_"$1" айре ръок тгййп бъек ферчцйъ/щвшъ inline
+parser_n_not_supported_for_inline=03123_N_"$1" пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ/пїЅпїЅпїЅпїЅ inline
 % Inline procedures don't support this declaration.
-parser_h_inlining_disabled=03124_H_дщйоещ дйщйш обеим
+parser_h_inlining_disabled=03124_H_пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % Inlining of procedures is disabled.
-parser_i_writing_browser_log=03125_I_леъб йеоп гфгфп $1
+parser_i_writing_browser_log=03125_I_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ $1
 % When information messages are on, the compiler warns you when it
 % writes the browser log (generated with the \var{\{\$Y+ \}} switch).
-parser_h_maybe_deref_caret_missing=03126_H_ййълп лй зсш ъелп моцбйт
+parser_h_maybe_deref_caret_missing=03126_H_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % The compiler thinks that a pointer may need a dereference.
-parser_f_assembler_reader_not_supported=03127_F_айп ъойлд боасу дрбзш
+parser_f_assembler_reader_not_supported=03127_F_пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % The selected assembler reader (with \var{\{\$ASMMODE xxx\}} is not
 % supported. The compiler can be compiled with or without support for a
 % particular assembler reader.
-parser_e_proc_dir_conflict=03128_E_очгн дщйвшд "$1" оървщ тн очгойн азшйн
+parser_e_proc_dir_conflict=03128_E_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ "$1" пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % You specified a procedure directive that conflicts with other directives.
 % for instance \var{cdecl} and \var{pascal} are mutually exclusive.
-parser_e_call_convention_dont_match_forward=03129_E_дщйоещ бдвгшд дрелзйъ айре ждд мдвгшд дшащерйъ
+parser_e_call_convention_dont_match_forward=03129_E_пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 % This error happens when you declare a function or procedure with
 % e.g. \var{cdecl;} but omit this directive in the implementation, or vice
 % versa. The calling convention is part of the function declaration, and
 % must be repeated in the function definition.
-parser_e_property_cant_have_a_default_value=03131_E_ълереъ айрп йлемеъ мдлйм тшк бшйшъ озгм
+parser_e_property_cant_have_a_default_value=03131_E_пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
 % Set properties or indexed properties cannot have a default value.
-parser_e_property_default_value_must_const=03132_E_тшк бшйшъ дозгмч щъ дълерд зййб мдйеъ чбет
+parser_e_property_default_value_must_const=03132_E_пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
 % The value of a \var{default} declared property must be known at compile
 % time. The value you specified is only known at run time. This happens
 % .e.g. if you specify a variable name as a default value.
-parser_e_cant_publish_that=03133_E_дсом айре йлем мдйеъ бщйоещ бъек озмчд мма двгшъе бъек дозмчд
+parser_e_cant_publish_that=03133_E_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % Only class type variables can be in a \var{published} section of a class
 % if they are not declared as a property.
-parser_e_cant_publish_that_property=03134_E_сев жд щм ълерд айре йлем мдйеъ бщйоещ
+parser_e_cant_publish_that_property=03134_E_пїЅпїЅпїЅ пїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % Properties in a \var{published} section cannot be array properties.
 % they must be moved to public sections. Properties in a \var{published}
 % section must be an ordinal type, a real type, strings or sets.
-parser_e_empty_import_name=03136_E_ргшщ щн ййбеа
+parser_e_empty_import_name=03136_E_пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % Some targets need a name for the imported procedure or a \var{cdecl} specifier
-parser_e_division_by_zero=03138_E_змеч бафс
+parser_e_division_by_zero=03138_E_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
 % There is a division by zero encounted
-parser_e_invalid_float_operation=03139_E_фтемъ тщшерйъ ма зечйъ
+parser_e_invalid_float_operation=03139_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % An operation on two real type values produced an overflow or a division
 % by zero.
-parser_e_array_lower_less_than_upper_bound=03140_E_двбем дтмйеп роек йеъш одвбем дъзъеп
+parser_e_array_lower_less_than_upper_bound=03140_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % The upper bound of a an array declaration is less than the lower bound and this
 % is not possible
-parser_w_string_too_long=03141_W_аешк дозшежъ щм "$1" ашек йеъш о "$1"
+parser_w_string_too_long=03141_W_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ "$1" пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅ "$1"
 % The size of the constant string is larger than the size you specified in
 % string type definition
-parser_e_string_larger_array=03142_E_аешк дозшежъ ашек йеъш оаешк отшк дъеейн
+parser_e_string_larger_array=03142_E_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % The size of the constant string is larger than the size you specified in
 % the array[x..y] of char definition
-parser_e_ill_msg_expr=03143_E_дъелп щм дбйией мазш ддегтд айре зечй
+parser_e_ill_msg_expr=03143_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
 % \fpc supports only integer or string values as message constants
-parser_e_ill_msg_param=03144_E_ийфем бдегтеъ зййб мдйеъ бобрд чбет щм фшоишйн
+parser_e_ill_msg_param=03144_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 % A method declared with the \var{message}-directive as message handler
 % can take only one parameter which must be declared as call by reference
 % Parameters are declared as call by reference using the \var{var}-directive
-parser_e_duplicate_message_label=03145_E_ъеейъ дегтд лфемд: "$1"
+parser_e_duplicate_message_label=03145_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ: "$1"
 % A label for a message is used twice in one object/class
-parser_e_self_in_non_message_handler=03146_E_Self зййб мдйеъ фшоиш боъегд щм оифм ддегтеъ
+parser_e_self_in_non_message_handler=03146_E_Self пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 % The self parameter can only be passed explicitly to a method which
 % is declared as message handler.
-parser_e_threadvars_only_sg=03147_E_Threadvars зййбйн мдйеъ сииййн ае вмебмййн
+parser_e_threadvars_only_sg=03147_E_Threadvars пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 % Threadvars must be static or global, you can't declare a thread
 % local to a procedure. Local variables are always local to a thread,
 % because every thread has its own stack and local variables
 % are stored on the stack
-parser_f_direct_assembler_not_allowed=03148_F_дщйоещ боасу дрелзй айре ъеок бесв дъецад дбйрашйъ
+parser_f_direct_assembler_not_allowed=03148_F_пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 % You can't use direct assembler when using a binary writer, choose an
 % other outputformat or use another assembler reader
-parser_w_no_objpas_use_mode=03149_W_асеш мчшеа мйзйгъ OBJPAS йщйшеъ, йщ мдщъощ б \{\$mode objfpc\} ае б \{\$mode delphi\} бочен
+parser_w_no_objpas_use_mode=03149_W_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ OBJPAS пїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ \{\$mode objfpc\} пїЅпїЅ пїЅ \{\$mode delphi\} пїЅпїЅпїЅпїЅпїЅ
 % You are trying to load the ObjPas unit manually from a uses clause. This is
 % not a good idea. Use the \var{\{\$mode objfpc\}} or
 % \var{\{\$mode delphi\}}
 % directives which load the unit automatically
-parser_e_no_object_override=03150_E_OVERRIDE айре йлем мдйеъ бщйоещ баебййчийн
+parser_e_no_object_override=03150_E_OVERRIDE пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 % Override is not supported for objects, use \var{virtual} instead to override
 % a method of a parent object
-parser_e_cant_use_inittable_here=03151_E_ийфесй ръерйн ащш гешщйн аъзем ае сйлен айрн йлемйн мдйеъ бшщеоеъ variant
+parser_e_cant_use_inittable_here=03151_E_пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ variant
 % Some data type (e.g. \var{ansistring}) needs initialization/finalization
 % code which is implicitly generated by the compiler. Such data types
 % can't be used in the variant part of a record.
-parser_e_resourcestring_only_sg=03152_E_ма рйъп мдвгйш Resourcestring бъеш двгшд очеойъ, шч двгшд вмебмйъ ае сиийъ
+parser_e_resourcestring_only_sg=03152_E_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ Resourcestring пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % Resourcestring can not be declared local, only global or using the static
 % directive.
-parser_e_exit_with_argument_not__possible=03153_E_дщйоещ бщйвшд exit айре йлем мдъбцт бойчен дрелзй
+parser_e_exit_with_argument_not__possible=03153_E_пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ exit пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % an exit statement with an argument for the return value can't be used here, this
 % can happen e.g. in \var{try..except} or \var{try..finally} blocks
-parser_e_stored_property_must_be_boolean=03154_E_ийфес дръерйн бсйоем дазсеп зййб мдйеъ бемйарй
+parser_e_stored_property_must_be_boolean=03154_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 % If you specify a storage symbol in a property declaration, it must be of
 % the type boolean
-parser_e_ill_property_storage_sym=03155_E_дсйоем айре йлем мдщощ лсйоем мазсеп
+parser_e_ill_property_storage_sym=03155_E_пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % You can't use this type of symbol as storage specifier in property
 % declaration. You can use only methods with the result type boolean,
 % boolean class fields or boolean constants
-parser_e_only_publishable_classes_can_be_published=03156_E_шч озмчд додегшъ боцб $M+ йлемд мдйеъ айжеш д published
+parser_e_only_publishable_classes_can_be_published=03156_E_пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ $M+ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅ published
 % In the published section of a class can be only class as fields used which
 % are compiled in \var{\{\$M+\}} or which are derived from such a class. Normally
 % such a class should be derived from TPersitent
-parser_e_proc_directive_expected=03157_E_оцфд мдрзййъ щйвшд
+parser_e_proc_directive_expected=03157_E_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % This error is triggered when you have a \var{\{\$Calling\}} directive without
 % a calling convention specified.
 % It also happens when declaring a procedure in a const block and you
@@ -874,35 +874,35 @@ parser_e_proc_directive_expected=03157_E_оцфд мдрзййъ щйвшд
 %   p : procedure;stdcall=nil;
 %   p : procedure stdcall=nil;
 % \end{verbatim}
-parser_e_invalid_property_index_value=03158_E_дтшк дайргчс щм дълерд зййб мдйеъ ийфес осегш
+parser_e_invalid_property_index_value=03158_E_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % The value you use to index a property must be of an ordinal type, for
 % example an integer or enumerated type.
-parser_e_procname_to_short_for_export=03159_E_щн дщвшд чцш ойгй мййцеа
+parser_e_procname_to_short_for_export=03159_E_пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % The length of the procedure/function name must be at least 2 characters
 % long. This is because of a bug in dlltool which doesn't parse the .def
 % file correct with a name of length 1.
-parser_e_dlltool_unit_var_problem=03160_E_ма рйъп мййцш змч DEFFILE мощърйн вмебмййн бйзйгд
-parser_e_dlltool_unit_var_problem2=03161_E_дгш мма щйоещ б -WD
+parser_e_dlltool_unit_var_problem=03160_E_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ DEFFILE пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
+parser_e_dlltool_unit_var_problem2=03161_E_пїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅ -WD
 % You need to compile this file without the -WD switch on the
 % commandline
-parser_f_need_objfpc_or_delphi_mode=03162_F_йщ мдщъощ боцб ObjFpc (-S2) ае боцб Delphi (-Sd) мдгш аъ доегем
+parser_f_need_objfpc_or_delphi_mode=03162_F_пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ ObjFpc (-S2) пїЅпїЅ пїЅпїЅпїЅпїЅ Delphi (-Sd) пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % You need to use \{\$mode objfpc\} or \{\$mode delphi\} to compile this file.
 % Or use the equivalent commandline switches -S2 or -Sd.
-parser_e_no_export_with_index_for_target=03163_E_ай афщш мййца тн айргчс ъзъ $1
+parser_e_no_export_with_index_for_target=03163_E_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ $1
 % Exporting of functions or procedures with a specified index is not
 % supported on this target.
-parser_e_no_export_of_variables_for_target=03164_E_ййцеа щм ощъощ айре ръок б$1
+parser_e_no_export_of_variables_for_target=03164_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅ$1
 % Exporting of variables is not supported on this target.
-parser_e_improper_guid_syntax=03165_E_ъзбйш GUID айре зечй
+parser_e_improper_guid_syntax=03165_E_пїЅпїЅпїЅпїЅпїЅ GUID пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
 % The GUID indication does not have the proper syntax. It should be of the form
 % \begin{verbatim}
 % {XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX}
 % \end{verbatim}
 % Where each \var{X} represents a hexadecimal digit.
-parser_w_interface_mapping_notfound=03168_W_дщвшд "$1" роцад ак мма дфшоишйн добечщйн щм $2.$3
+parser_w_interface_mapping_notfound=03168_W_пїЅпїЅпїЅпїЅпїЅ "$1" пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ $2.$3
 % The compiler cannot find a suitable procedure which implements the given method of an interface.
 % A procedure with the same name is found, but the arguments do not match.
-parser_e_interface_id_expected=03169_E_оцфд мождд оощч
+parser_e_interface_id_expected=03169_E_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
 % This happens when the compiler scans a \var{class} declaration that contains
 % \var{interface} function name mapping code like this:
 % \begin{verbatim}
@@ -912,54 +912,54 @@ parser_e_interface_id_expected=03169_E_оцфд мождд оощч
 %     ....
 % \end{verbatim}
 % and the \var{interface} before the dot not listed in the inheritance list.
-parser_e_type_cant_be_used_in_array_index=03170_E_дсев "$1" айре йлем мдйеъ бщйоещ бъеш сев айргчс мотшк
+parser_e_type_cant_be_used_in_array_index=03170_E_пїЅпїЅпїЅпїЅ "$1" пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % Types like \var{qword} or \var{int64} aren't allowed as array index type
-parser_e_no_con_des_in_interfaces=03171_E_йецш едешс айрн оешщйн боощчйн
+parser_e_no_con_des_in_interfaces=03171_E_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 % Constructor and destructor declarations aren't allowed in interface
 % In the most cases the method \var{QueryInterface} of \var{IUnknown} can
 % be used to create a new interface.
-parser_e_no_access_specifier_in_interfaces=03172_E_ождд лрйсд айре йлем мдйеъ бщйоещ тн оощчйн
+parser_e_no_access_specifier_in_interfaces=03172_E_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % The access specifiers \var{public}, \var{private}, \var{protected} and
 % \var{pusblished} can't be used in interfaces because all methods
 % of an interfaces must be public.
-parser_e_no_vars_in_interfaces=03173_E_оощч айре йлем мдлйм щгеъ
+parser_e_no_vars_in_interfaces=03173_E_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
 % Declarations of fields aren't allowed in interfaces. An interface
 % can contain only methods
-parser_e_no_local_proc_external=03174_E_ма рйъп мдвгйш щвшд очеойъ лзйцерйъ
+parser_e_no_local_proc_external=03174_E_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 % Declaring local procedures as external is not possible. Local procedures
 % get hidden parameters that will make the chance of errors very high
-parser_w_skipped_fields_before=03175_W_змч одщгеъ дбайн мфрй "$1" ма аеъзме
+parser_w_skipped_fields_before=03175_W_пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ "$1" пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % In Delphi mode, not all fields of a typed constant record have to be
 % initialized, but the compiler warns you when it detects such situations.
-parser_e_skipped_fields_before=03176_E_змч одщгеъ дбайн мфрй "$1" ма аеъзме
+parser_e_skipped_fields_before=03176_E_пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ "$1" пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % In all syntax modes but Delphi mode, you can't leave some fields uninitialized
 % in the middle of a typed constant record
-parser_w_skipped_fields_after=03177_W_змч одщгеъ дбайн азшй "$1" ма аеъзме
+parser_w_skipped_fields_after=03177_W_пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ "$1" пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % You can leave some fields at the end of a type constant record uninitialized
 % (the compiler will initialize them to zero automatically). This may be the cause
 % of subtle problems.
-parser_e_varargs_need_cdecl_and_external=03178_E_дщйоещ бVarArgs (ае '...' бMacPas) зййб мдйеъ бщйоещ тн CDecl/CPPDecl/MWPascal е External
+parser_e_varargs_need_cdecl_and_external=03178_E_пїЅпїЅпїЅпїЅпїЅпїЅ пїЅVarArgs (пїЅпїЅ '...' пїЅMacPas) пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ CDecl/CPPDecl/MWPascal пїЅ External
 % The varargs directive (or the ``...'' varargs parameter in MacPas mode) can only be used with procedures or functions
 % that are declared with \var{external} and one of \var{cdecl}, \var{cppdecl} and \var{mwpascal}. This functionality
 % is only supported to provide a compatible interface to C functions like printf.
-parser_e_self_call_by_value=03179_E_Self зййб мдйеъ фшоиш швйм (call-by-value)
+parser_e_self_call_by_value=03179_E_Self пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ (call-by-value)
 % You can't declare self as a const or var parameter, it must always be
 % a call-by-value parameter
-parser_e_interface_has_no_guid=03180_E_доощч "$1" айре олйм ождд GUID
+parser_e_interface_has_no_guid=03180_E_пїЅпїЅпїЅпїЅпїЅ "$1" пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ GUID
 % When you want to assign an interface to a constant, then the interface
 % must have a GUID value set.
-parser_e_illegal_field_or_method=03181_E_дождд щм щгд ае оъегд щм озмчд "$1" айрн йгетйн
+parser_e_illegal_field_or_method=03181_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ "$1" пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % Properties must refer to a field or method in the same class.
-parser_w_proc_overriding_calling=03182_W_темд тм оеслоеъ дфтмд "$1" тн "$2"
+parser_w_proc_overriding_calling=03182_W_пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ "$1" пїЅпїЅ "$2"
 % There are two directives in the procedure declaration that specify a calling
 % convention. Only the last directive will be used
-parser_e_no_procvarobj_const=03183_E_рйъп маъзм ийфес чбет щм "procedure of object" шч тн NIL
+parser_e_no_procvarobj_const=03183_E_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ "procedure of object" пїЅпїЅ пїЅпїЅ NIL
 % You can't assign the address of a method to a typed constant which has a
 % 'procedure of object' type, because such a constant requires two addresses:
 % that of the method (which is known at compile time) and that of the object or
 % class instance it operates on (which can not be known at compile time).
-parser_e_default_value_only_one_para=03184_E_тшк бшйшъ озгм йлем мдйеъ бщйоещ шч тн фшоиш азг
-% It is not possible to specify a default value for several parameters at once. 
+parser_e_default_value_only_one_para=03184_E_пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ
+% It is not possible to specify a default value for several parameters at once.
 % The following is invalid:
 % \begin{verbatim}
 % Procedure MyProcedure (A,B : Integer = 0);
@@ -968,49 +968,49 @@ parser_e_default_value_only_one_para=03184_E_тшк бшйшъ озгм йлем мдйеъ бщйоещ шч
 % \begin{verbatim}
 % Procedure MyProcedure (A : Integer = 0; B : Integer = 0);
 % \end{verbatim}
-parser_e_default_value_expected_for_para=03185_E_фшоиш бшйшъ озгм гшещ тбеш "$1"
+parser_e_default_value_expected_for_para=03185_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ "$1"
 % The specified parameter requires a default value.
-parser_w_unsupported_feature=03186_W_щйоещ боафййп ма ръок !
+parser_w_unsupported_feature=03186_W_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ !
 % You're trying to force the compiler into doing something it cannot do yet.
-parser_h_c_arrays_are_references=03187_H_отшлйн щм C оетбшйн лдфрйд
+parser_h_c_arrays_are_references=03187_H_пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ C пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % Any array passed to a C functions is passed
 % by a pointer (i.e. by reference).
-parser_e_C_array_of_const_must_be_last=03188_E_отшк C щм чбет зййб мдйеъ дашвеори дазшеп
+parser_e_C_array_of_const_must_be_last=03188_E_пїЅпїЅпїЅпїЅ C пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % You can not add any other argument after an \var{array of const} for
 % \var{cdecl} functions, as the size pushed on stack for this argument is
 % not known.
-parser_h_type_redef=03189_H_двгшд озегщъ щм дийфес "$1"
+parser_h_type_redef=03189_H_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ "$1"
 % This is an indicator that a previously declared type is
 % being redefined as something else. This may, or may not
 % be, a cause for errors.
-parser_w_cdecl_has_no_high=03190_W_айп мферчцйеъ cdecl фшоиш вбедд
+parser_w_cdecl_has_no_high=03190_W_пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ cdecl пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % Functions declared with cdecl modifier do not pass an extra implicit parameter.
-parser_w_cdecl_no_openstring=03191_W_ферчцйеъ cdecel айрп ъеолеъ б open string
+parser_w_cdecl_no_openstring=03191_W_пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ cdecel пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ open string
 % Openstring is not supported for cdecl'ared functions.
-parser_e_initialized_not_for_threadvar=03192_E_айп афщшеъ маъзм ощърд доевгш лthreadvar
+parser_e_initialized_not_for_threadvar=03192_E_пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅthreadvar
 % Variables declared as threadvar can not be initialized with a default value.
 % The variables will always be filled with zero at the start of a new thread.
-parser_e_msg_only_for_classes=03193_E_рйъп мдщъощ бдрзййъ message шч бъек озмчд
+parser_e_msg_only_for_classes=03193_E_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ message пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % The message directive is only supported for Class types.
-parser_e_procedure_or_function_expected=03194_E_оцфд мщйвшд ае ферчцйд
+parser_e_procedure_or_function_expected=03194_E_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 % A class method can only be specified for procedures and functions.
-parser_e_illegal_calling_convention=03195_W_оътмн ооеслоъ ддфтмд: "$1"
+parser_e_illegal_calling_convention=03195_W_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ: "$1"
 % Some calling conventions are supported only by certain CPUs. I.e. most non-i386 ports support
 % only the standard ABI calling convention of the CPU.
-parser_e_no_object_reintroduce=03196_E_ма рйъп мдщъощ бREINTRODUCE бъек аебййчи
+parser_e_no_object_reintroduce=03196_E_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅREINTRODUCE пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 % \var{reintroduce} is not supported for objects.
-parser_e_paraloc_only_one_para=03197_E_лм ашвеори зййб мдлйм ойчен тцоай.
+parser_e_paraloc_only_one_para=03197_E_пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ.
 % If locations for arguments are specified explicitly as it is required by
 % some syscall conventions, each argument must have it's only location, things
 % like \var{procedure p(i,j : longint 'r1');} aren't allowed
-parser_e_paraloc_all_paras=03198_E_лм ашвеори зййб мдлйм ойчен оевгш
+parser_e_paraloc_all_paras=03198_E_пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % If one argument has an explicit argument location, all arguments of a procedure
 % must have one.
-parser_e_illegal_explicit_paraloc=03199_E_ойчен ашвеори ма йгет
+parser_e_illegal_explicit_paraloc=03199_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ
 % The location specified for an argument isn't recognized by the compiler
-parser_e_32bitint_or_pointer_variable_expected=03200_E_оцфд мсев ощърд щм осфш щмн 32-Bit ае оцбйт
+parser_e_32bitint_or_pointer_variable_expected=03200_E_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ 32-Bit пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % The libbase for MorphOS/AmigaOS can be give only as \var{longint}, \var{dword} or any pointer variable.
-parser_e_goto_outside_proc=03201_E_ма рйъп мдщощ бgoto бйп щрй щйвшеъ
+parser_e_goto_outside_proc=03201_E_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅgoto пїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % It isn't allowed to use the \var{goto} statements referencing labels outside the
 % current procedure. The following example shows the problem:
 % \begin{verbatim}
@@ -1031,113 +1031,113 @@ parser_e_goto_outside_proc=03201_E_ма рйъп мдщощ бgoto бйп щрй щйвшеъ
 % ...
 %
 % \end{verbatim}
-parser_f_too_complex_proc=03202_F_дщйвшд осеблъ ойгй егешщъ щйоещ щм аевшйн шбйн ойгй
+parser_f_too_complex_proc=03202_F_пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
 % Your procedure body is too long for the compiler. You should split the
 % procedure into multiple smaller procedures.
-parser_e_illegal_expression=03203_E_бйией ма зечй
+parser_e_illegal_expression=03203_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ
 % This can occur under many circumstances. Mostly when trying to evaluate
 % constant expressions.
-parser_e_invalid_integer=03204_E_дбйией щм досфш дщмн айре зечй
+parser_e_invalid_integer=03204_E_пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
 % You made an expression which isn't an integer, and the compiler expects the
 % result to be an integer.
-parser_e_invalid_qualifier=03205_E_щйоещ ма зечй бобзйп
+parser_e_invalid_qualifier=03205_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % One of the following is happening :
 % \begin{itemize}
 % \item You're trying to access a field of a variable that is not a record.
 % \item You're indexing a variable that is not an array.
 % \item You're dereferencing a variable that is not a pointer.
 % \end{itemize}
-parser_e_upper_lower_than_lower=03206_E_иеез ддвбмд двбедд чип оиеез ддвбмд дроелд
+parser_e_upper_lower_than_lower=03206_E_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % You are declaring a subrange, and the lower limit is higher than the high
 % limit of the range.
-parser_e_macpas_exit_wrong_param=03207_E_дфшоиш щм Exit зййб мдйеъ щн дщйвшд ъзъйе деа роца
+parser_e_macpas_exit_wrong_param=03207_E_пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ Exit пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
 % Non local exit is not allowed. This error occurs only in mode MacPas.
-parser_e_illegal_assignment_to_count_var=03208_E_дцбд ма зечйъ щм дощърд бмемаъ д for "$1"
+parser_e_illegal_assignment_to_count_var=03208_E_пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ for "$1"
 % The type of a \var{for} loop variable must be an ordinal type.
 % Loop variables cannot be reals or strings. You can also not assign values to
 % loop variables inside the loop (except in Delphi and TP modes). Use a while or
 % repeat loop instead if you need to do something like that, since those
 % constructs were built for that.
-parser_e_no_local_var_external=03209_E_ма рйъп мдвгйш ощърйн очеоййн лзйцерййн
+parser_e_no_local_var_external=03209_E_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 % Declaring local variables as external is not allowed. Only global variables can reference
 % to external variables.
-parser_e_proc_already_external=03210_E_дщйвшд лбш оевгшъ лзйцерйъ
+parser_e_proc_already_external=03210_E_пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 % The procedure is already declared with the EXTERNAL directive in an interface or
 % forward declaration.
-parser_w_implicit_uses_of_variants_unit=03211_W_щйоещ ощъот бйзйгъ Variants
+parser_w_implicit_uses_of_variants_unit=03211_W_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ Variants
 % The Variant type is used in the unit without any used unit using the Variants unit. The
 % compiler has implicitly added the Variants unit to the uses list. To remove this warning
 % the Variants unit needs to be added to the uses statement.
-parser_e_no_static_method_in_interfaces=03212_E_дщйоещ бозмчд еоъегеъ сииййн айрн йлемйеъ мдйеъ бщйоещ боощч
+parser_e_no_static_method_in_interfaces=03212_E_пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % The specifier \var{class} and directive \var{static} can't be used in interfaces
 % because all methods of an interfaces must be public.
-parser_e_arithmetic_operation_overflow=03213_E_вмйщд бфтемд оъоийъ
+parser_e_arithmetic_operation_overflow=03213_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % An operation on two integers values produced an overflow
-parser_e_protected_or_private_expected=03214_E_оцфд майжеш Protected ае Private
+parser_e_protected_or_private_expected=03214_E_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ Protected пїЅпїЅ Private
 % \var{strict} can be only used together with \var{protected} or \var{private}.
-parser_e_illegal_slice=03215_E_SLICE айр йлем мдйеъ бщйоещ озех мшщйоъ фшоишйн
+parser_e_illegal_slice=03215_E_SLICE пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 % \var{slice} can be used only for arguments accepting an open array parameter
-parser_e_dispinterface_cant_have_parent=03216_E_озмчъ DISPINTERFACE айрд йлемд мдлйм дешд
+parser_e_dispinterface_cant_have_parent=03216_E_пїЅпїЅпїЅпїЅпїЅ DISPINTERFACE пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
 % A DISPINMTERFACE is a special type of interface which can't have a parent class
-parser_e_dispinterface_needs_a_guid=03217_E_DISPINTERFACE зййб GUID
+parser_e_dispinterface_needs_a_guid=03217_E_DISPINTERFACE пїЅпїЅпїЅпїЅ GUID
 % A DISPINMTERFACE always needs an interface identification
-parser_w_overridden_methods_not_same_ret=03218_W_доъегеъ дзгщеъ зййбеъ мдзжйш аъ аеъе ийфес ръерйн. дчег дрелзй йлем мвшен мчшйсд бтчбеъ бав щм дофшщ щм гмфй (“$2” темд тм “$1” ащш олйм ийфес ръерйн азш бдзжшд)
+parser_w_overridden_methods_not_same_ret=03218_W_пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ. пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ (пїЅ$2пїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅ$1пїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ)
 % If you declare overridden methods in a class definition, they must
 % have the same return type. Some versions of Delphi allow you to change the
 % return type of interface methods, and even to change procedures into
 % functions, but the resulting code may crash depending on the types used
 % and the way the methods are called.
-parser_e_dispid_must_be_ord_const=03219_E_ождд Dispatch зййб мдйеъ чбет бтм тшк сйгешй
-parser_e_array_range_out_of_bounds=03220_E_диеез щм дотшк вбедд ойгй
+parser_e_dispid_must_be_ord_const=03219_E_пїЅпїЅпїЅпїЅ Dispatch пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
+parser_e_array_range_out_of_bounds=03220_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
 % Regardless of the size taken up by its elements, an array cannot have more
 % than high(ptrint) elements. Additionally, the range type must be a subrange
 % of ptrint.
-parser_e_packed_element_no_var_addr=03221_E_ма рйъп моцеа аъ длъебъ щм бйи дотшк ашеж, аморийн ае щгеъ щм дотшк
+parser_e_packed_element_no_var_addr=03221_E_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % If you declare an array or record as \var{packed} in Mac Pascal mode (or as \var{packed} in any mode with \var{\{\$bitpacking on\}}), it will
 % be packed at the bit level. This means it becomes impossible to take addresses
 % of individual array elements or record fields. The only exception to this rule is in case of packed arrays elements
 % whose packed size is a multple of 8 bits.
-parser_e_packed_dynamic_open_array=03222_E_ма рйъп машеж отшк гйраой
+parser_e_packed_dynamic_open_array=03222_E_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % Only regular (and possibly in the future also open) arrays can be packed
-parser_e_packed_element_no_loop=03223_E_аморийн ещгеъ щм отшлй бйи ашежйн айрн йлемйн мщощ лощърйн ммемаеъ
+parser_e_packed_element_no_loop=03223_E_пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 % If you declare an array or record as \var{packed} in Mac Pascal mode (or as \var{packed} in any mode with \var{\{\$bitpacking on\}}), it will
 % be packed at the bit level. For performance reasons, they cannot be
 % used as loop variables.
-parser_e_type_and_var_only_in_generics=03224_E_рйъп мдщъощ б VAR е TYPE шч тн generics
+parser_e_type_and_var_only_in_generics=03224_E_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ VAR пїЅ TYPE пїЅпїЅ пїЅпїЅ generics
 % The usage of VAR and TYPE to declare new types inside an object is allowed only inside
 % generics.
-parser_e_cant_create_generics_of_this_type=03225_E_дийфес айре йлем мдйеъ generic
+parser_e_cant_create_generics_of_this_type=03225_E_пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ generic
 % Only Classes, Objects, Interfaces and Records are allowed to be used as generic
-parser_w_no_lineinfo_use_switch=03226_W_айп митеп аъ дсфшййд LINEINFO бцешд йгрйъ. тм оръ мдщъощ бсфшййд йщ мдщъощ боъв -gl бочен
+parser_w_no_lineinfo_use_switch=03226_W_пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ LINEINFO пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ. пїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ -gl пїЅпїЅпїЅпїЅпїЅ
 % Do not use the LINEINFO unit directly, Use the \var{-gl} switch which automatically adds the
 % unit for reading the selected type of debugging information instead.
-parser_e_no_funcret_specified=03227_E_ма цеййп ийфес дзжшд тбеш дферчцйд "$1"
+parser_e_no_funcret_specified=03227_E_пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ "$1"
 % The first time you declare a function you have to declare it completely,
 % including all parameters and the result type.
-parser_e_special_onlygenerics=03228_E_дщйоещ бSpecialization оешщд шч лащш ощъощйн бийфесй generic
+parser_e_special_onlygenerics=03228_E_пїЅпїЅпїЅпїЅпїЅпїЅ пїЅSpecialization пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ generic
 % Types not being generics can't be specialized
-parser_e_no_generics_as_params=03229_E_ма рйъп мдщъощ бgenerics бъеш фшоишйн лащш йщ щйоещ б spezializing generics
+parser_e_no_generics_as_params=03229_E_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅgenerics пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅ spezializing generics
 % When specializing a generic, only non-generic types can be used as parameters.
-parser_e_type_object_constants=03230_E_дщйоещ бчбетйн щм аебййчийн долймйн VMT айре оешщд
+parser_e_type_object_constants=03230_E_пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ VMT пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % If an object requires a VMT either because it contains a constructor or virtual methods,
 % it's not allowed to create constants of it. In TP and Delphi mode this is allowed
 % for compatibility reasons.
-parser_e_label_outside_proc=03231_E_щйоещ блъебъ щм ъеейеъ доелшжеъ озех моъзн дрелзй айре оешщд
+parser_e_label_outside_proc=03231_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % It isn't allowed to take the addresss of labels outside the
 % current procedure.
-parser_e_initialized_not_for_external=03233_E_ма рйъп маъзм тшк бшйшъ озгм мощърйн доевгшйн лexternal
+parser_e_initialized_not_for_external=03233_E_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅexternal
 % Variables declared as external can not be initialized with a default value.
-parser_e_illegal_function_result=03234_E_ийфес дзжшд щм дферчцйд айре зечй
+parser_e_illegal_function_result=03234_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
 % Some types like file types can not be used as function result
-parser_e_no_common_type=03235_E_айп ийфес ощеъу м "$1" е "$2"
+parser_e_no_common_type=03235_E_пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅ "$1" пїЅ "$2"
 % To perform an operation beween integers, the compiler converts both operands
 % to their common type, which appears to be an invalid type. To determine the
 % common type of the operands, the compiler takes the minimum of the minimal values
 % of both types, and the maximum of the maximal values of both types. The common
 % type is then minimum..maximum.
-parser_e_no_generics_as_types=03236_E_Generics мма specialization айре йлем мдйеъ бщйоещ бъеш ийфес мощърд
+parser_e_no_generics_as_types=03236_E_Generics пїЅпїЅпїЅ specialization пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % Generics must be always specialized before being used as variable type
-parser_w_register_list_ignored=03237_W_оътмн ошщйоъ даевшйн тбеш щвшеъ assemblter идешеъ
+parser_w_register_list_ignored=03237_W_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ assemblter пїЅпїЅпїЅпїЅпїЅпїЅ
 % When using pure assembler routines, the list with modified registers is ignored.
 
 % \end{description}
@@ -1150,7 +1150,7 @@ parser_w_register_list_ignored=03237_W_оътмн ошщйоъ даевшйн тбеш щвшеъ assemblte
 % This section lists all errors that can occur when type checking is
 % performed.
 % \begin{description}
-type_e_mismatch=04000_E_ийфес ръерйн ма зефу
+type_e_mismatch=04000_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ
 % This can happen in many cases:
 % \begin{itemize}
 % \item The variable you're assigning to is of a different type than the
@@ -1158,7 +1158,7 @@ type_e_mismatch=04000_E_ийфес ръерйн ма зефу
 % \item You are calling a function or procedure with parameters that are
 % incompatible with the parameters in the function or procedure definition.
 % \end{itemize}
-type_e_incompatible_types=04001_E_ийфес ръерйн ма ъеан: ртщд щйоещ б "$1" оцфд м"$2"
+type_e_incompatible_types=04001_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ: пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅ "$1" пїЅпїЅпїЅпїЅ пїЅ"$2"
 % There is no conversion possible between the two types
 % Another possiblity is that they are declared in different
 % declarations:
@@ -1172,28 +1172,28 @@ type_e_incompatible_types=04001_E_ийфес ръерйн ма ъеан: ртщд щйоещ б "$1" оцфд м
 %              is due the strict type checking of pascal }
 % End.
 % \end{verbatim}
-type_e_not_equal_types=04002_E_ай дъаод бйп ийфесй дръерйн "$1" е "$2"
+type_e_not_equal_types=04002_E_пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ "$1" пїЅ "$2"
 % The types are not equal
-type_e_type_id_expected=04003_E_оцфд мийфес ръерйн
+type_e_type_id_expected=04003_E_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % The identifier is not a type, or you forgot to supply a type identifier.
-type_e_variable_id_expected=04004_E_оцфд мождд щм ощърд
+type_e_variable_id_expected=04004_E_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % This happens when you pass a constant to a routine (such as \var{Inc} var or \var{Dec})
 % when it expects a variable. You can only pass variables as arguments to these functions.
-type_e_integer_expr_expected=04005_E_оцфд мосфш щмн, ак дъчбм "$1"
+type_e_integer_expr_expected=04005_E_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ, пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ "$1"
 % The compiler expects an expression of type integer, but gets a different
 % type.
-type_e_boolean_expr_expected=04006_E_оцфд мбйией бемйарй, ак дъчбм "$1"
+type_e_boolean_expr_expected=04006_E_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ "$1"
 % The expression must be a boolean type, it should be return true or
 % false.
-type_e_ordinal_expr_expected=04007_E_оцфд мийфес сегш
+type_e_ordinal_expr_expected=04007_E_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
 % The expression must be of ordinal type, i.e., maximum a \var{Longint}.
 % This happens, for instance, when you specify a second argument
 % to \var{Inc} or \var{Dec} that doesn't evaluate to an ordinal value.
-type_e_pointer_type_expected=04008_E_оцфд моцбйт, ак дъчбм "$1"
+type_e_pointer_type_expected=04008_E_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ "$1"
 % The variable or expression isn't of the type \var{pointer}. This
 % happens when you pass a variable that isn't a pointer to \var{New}
 % or \var{Dispose}.
-type_e_class_type_expected=04009_E_оцфд мозмчд, ак дъчбм "$1"
+type_e_class_type_expected=04009_E_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ "$1"
 % The variable of expression isn't of the type \var{class}. This happens
 % typically when
 % \begin{enumerate}
@@ -1201,220 +1201,220 @@ type_e_class_type_expected=04009_E_оцфд мозмчд, ак дъчбм "$1"
 % \item An exception handler (\var{On}) contains a type identifier that
 % isn't a class.
 % \end{enumerate}
-type_e_cant_eval_constant_expr=04011_E_ма рйъп мръз аъ дбйией дчбет
+type_e_cant_eval_constant_expr=04011_E_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % This error can occur when the bounds of an array you declared does
 % not evaluate to ordinal constants
-type_e_set_element_are_not_comp=04012_E_даморийн щм дчбецд айрн ъеаойн
+type_e_set_element_are_not_comp=04012_E_пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % You are trying to make an operation on two sets, when the set element types
 % are not the same. The base type of a set must be the same when taking the
 % union
-type_e_set_operation_unknown=04013_E_дфтемд айрд бщйоещ тн чбецеъ
+type_e_set_operation_unknown=04013_E_пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % several binary operations are not defined for sets
 % like div mod ** (also >= <= for now)
-type_w_convert_real_2_comp=04014_W_дошд аеиеоийъ щм ийфес тщшерй м COMP ащш деа осфш щмн
+type_w_convert_real_2_comp=04014_W_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ COMP пїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ
 % An implicit type conversion from a real type to a \var{comp} is
 % encountered. Since \var{comp} is a 64 bit integer type, this may indicate
 % an error.
-type_h_use_div_for_int=04015_H_дщъощ бDIV бочен тм оръ мчбм ъецад щм осфш щмн
+type_h_use_div_for_int=04015_H_пїЅпїЅпїЅпїЅпїЅ пїЅDIV пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ
 % When hints are on, then an integer division with the '/' operator will
 % procuce this message, because the result will then be of type real
-type_e_strict_var_string_violation=04016_E_ийфес дозшежъ айрн ъеан бвмм дщйоещ боъв $V+
+type_e_strict_var_string_violation=04016_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ $V+
 % When compiling in \var{\{\$V+\}} mode, the string you pass as a parameter
 % should be of the exact same type as the declared parameter of the procedure.
-type_e_succ_and_pred_enums_with_assign_not_possible=04017_E_ма рйъп мдцйб тшлйн морйеъ ъек щйоещ бsucc ае pred
+type_e_succ_and_pred_enums_with_assign_not_possible=04017_E_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅsucc пїЅпїЅ pred
 % When you declared an enumeration type which has assignments in it, as in C,
 % like in the following:
 % \begin{verbatim}
 %   Tenum = (a,b,e:=5);
 % \end{verbatim}
 % you cannot use the \var{Succ} or \var{Pred} functions on them.
-type_e_cant_read_write_type=04018_E_ма рйъп мчшеа ае млъеб ощърйн одсев дрелзй
+type_e_cant_read_write_type=04018_E_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % You are trying to \var{read} or \var{write} a variable from or to a
 % file of type text, which doesn't support that. Only integer types,
 % reals, pchars and strings can be read from/written to a text file.
 % Booleans can only be written to text files.
-type_e_no_readln_writeln_for_typed_file=04019_E_ма рйъп мдщъощ бreadln еwriteln тм ийфес ръерйн осев file
+type_e_no_readln_writeln_for_typed_file=04019_E_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅreadln пїЅwriteln пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ file
 % \var{readln} and \var{writeln} are only allowed for text files.
-type_e_no_read_write_for_untyped_file=04020_E_ма рйъп мчшеа ае млъеб ийфес ма оевш щм чбцйн
+type_e_no_read_write_for_untyped_file=04020_E_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % \var{read} and \var{write} are only allowed for text or typed files.
-type_e_typeconflict_in_set=04021_E_дървщеъ щм ийфес ръерйн бъек айбшйн щм чбецд
+type_e_typeconflict_in_set=04021_E_пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % There is at least one set element which is of the wrong type, i.e. not of
 % the set type.
-type_w_maybe_wrong_hi_lo=04022_W_lo/hi(dword/qword) озжйш аъ дтшк дтмйеп/ъзъеп щм word/dword
+type_w_maybe_wrong_hi_lo=04022_W_lo/hi(dword/qword) пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ/пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ word/dword
 % \fpc supports an overloaded version of \var{lo/hi} for \var{longint/dword/int64/qword}
 % which returns the lower/upper word/dword of the argument. TP always uses
 % a 16 bit \var{lo/hi} which returns always bits 0..7 for \var{lo} and the
 % bits 8..15 for \var{hi}. If you want the TP behavior you have
 % to type cast the argument to \var{word/integer}
-type_e_integer_or_real_expr_expected=04023_E_оцфд мбйией щм осфш щмн ае осфш оощй
+type_e_integer_or_real_expr_expected=04023_E_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
 % The first argument to \var{str} must a real or integer type.
-type_e_wrong_type_in_array_constructor=04024_E_щйоещ щвей бийфес "$1" бъек йецш дотшк
+type_e_wrong_type_in_array_constructor=04024_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ "$1" пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % You are trying to use a type in an array constructor which is not
 % allowed.
-type_e_wrong_parameter_type=04025_E_ийфес ма оъайн машвеори осфш $1: дъчбм "$2", оцфд м"$3"
+type_e_wrong_parameter_type=04025_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ $1: пїЅпїЅпїЅпїЅпїЅ "$2", пїЅпїЅпїЅпїЅ пїЅ"$3"
 % You are trying to pass an invalid type for the specified parameter.
-type_e_no_method_and_procedure_not_compatible=04026_E_дощърд щм доъегд едщвшд айрн ъеаойн
+type_e_no_method_and_procedure_not_compatible=04026_E_пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % You can't assign a method to a procedure variable or a procedure to a
 % method pointer.
-type_e_wrong_math_argument=04027_E_бйией чбет ма зечй дежп мферчцйд оъоийъ фрйойъ
+type_e_wrong_math_argument=04027_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % The constant argument passed to a ln or sqrt function is out of
 % the definition range of these functions.
-type_e_no_addr_of_constant=04028_E_ма рйъп мчбм аъ длъебъ щм дчбет
+type_e_no_addr_of_constant=04028_E_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % It is not possible to get the address of a constant expression, because they
 % aren't stored in memory. You can try making it a typed constant. This error
 % can also be displayed if you try to pass a property to a var parameter.
-type_e_argument_cant_be_assigned=04029_E_ма рйъп мдщйн аъ дашвеори
+type_e_argument_cant_be_assigned=04029_E_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 % Only expressions which can be on the left side of an
 % assignment can be passed as call by reference argument
 % Remark: Properties can be only
 % used on the left side of an assignment, but they cannot be used as arguments
-type_e_cannot_local_proc_to_procvar=04030_E_ма рйъп мщййк ферчцйд/щйвшд очеойъ мощърд осев щйвшд
+type_e_cannot_local_proc_to_procvar=04030_E_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ/пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % It's not allowed to assign a local procedure/function to a
 % procedure variable, because the calling of local procedure/function is
 % different. You can only assign local procedure/function to a void pointer.
-type_e_no_assign_to_addr=04031_E_ма рйъп мщййк тшк млъебъ
+type_e_no_assign_to_addr=04031_E_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % It is not allowed to assign a value to an address of a variable,constant,
 % procedure or function. You can try compiling with -So if the identifier
 % is a procedure variable.
-type_e_no_assign_to_const=04032_E_ма рйъп мщййк тшк мощърд чбет
+type_e_no_assign_to_const=04032_E_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
 % It's not allowed to assign a value to a variable which is declared
 % as a const. This is normally a parameter declared as const, to allow
 % changing the value make the parameter as a value parameter or a var.
-type_e_array_required=04033_E_ргшщ ощърд осев отшк
+type_e_array_required=04033_E_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
 % If you are accessing a variable using an index '[<x>]' then
 % the type must be an array. In FPC mode also a pointer is allowed.
-type_e_interface_type_expected=04034_E_оцфд мийфес осев оощч, абм дъчбм "$1"
+type_e_interface_type_expected=04034_E_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ, пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ "$1"
 % The compiler expected to encounter an interface type name, but got something else.
 % The following code would provoke this error:
 % \begin{verbatim}
 % Type
 %   TMyStream = Class(TStream,Integer)
 % \end{verbatim}
-type_w_mixed_signed_unsigned=04035_W_тйшбеб бйиейй сйорйн еlongwords осфчйн ъецад щм 64bit
+type_w_mixed_signed_unsigned=04035_W_пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅlongwords пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ 64bit
 % If you divide (or calculate the modulus of) a signed expression by a longword (or vice versa),
 % or if you have overflow and/or range checking turned on and use an arithmetic
 % expression (+, -, *, div, mod) in which both signed numbers and longwords appear,
 % then everything has to be evaluated in 64bit which is slower than normal
 % 32bit arithmetic. You can avoid this by typecasting one operand so it
 % matches the result type of the other one.
-type_w_mixed_signed_unsigned2=04036_W_тшбеб бйиейй сйорйн еосфшйн щмойн вбедйн тмем мвшен мщвйаъ иеез осфшйн
+type_w_mixed_signed_unsigned2=04036_W_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % If you use a binary operator (and, or, xor) and one of
 % the operands is a longword while the other one is a signed expression, then,
 % if range checking is turned on, you may get a range check error because in
 % such a case both operands are converted to longword before the operation is
 % carried out. You can avoid this by typecasting one operand so it
 % matches the result type of the other one.
-type_e_typecast_wrong_size_for_assignment=04037_E_йщре дбгм бвегм бдцбд щм typecast ($1-> $2) 
+type_e_typecast_wrong_size_for_assignment=04037_E_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ typecast ($1-> $2)
 % Type casting to a type with a different size is not allowed when the variable is
 % used for assigning.
-type_e_array_index_enums_with_assign_not_possible=04038_E_орйеъ тн ъелп щм дцбд айрн йлемйн мщощ бъеш айргчс мотшк
+type_e_array_index_enums_with_assign_not_possible=04038_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % When you declared an enumeration type which has assignments in it, as in C,
 % like in the following:
 % \begin{verbatim}
 %   Tenum = (a,b,e:=5);
 % \end{verbatim}
 % you cannot use it as index of an array.
-type_e_classes_not_related=04039_E_айп чйшбд бйп ийфесй озмчеъ ае аебййчийн щм "$1" е "$2"
+type_e_classes_not_related=04039_E_пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ "$1" пїЅ "$2"
 % There is a typecast from one class or object to another while the class/object
 % are not related. This will probably lead to errors
-type_w_classes_not_related=04040_W_айп чйшбд бйп ийфесй дозмчеъ щм "$1" е "$2"
+type_w_classes_not_related=04040_W_пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ "$1" пїЅ "$2"
 % There is a typecast from one class or object to another while the class/object
 % are not related. This will probably lead to errors
-type_e_class_or_interface_type_expected=04041_E_оцфд мийфесй озмчеъ ае оощчйн, абм "$1" дъчбм
+type_e_class_or_interface_type_expected=04041_E_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅ "$1" пїЅпїЅпїЅпїЅпїЅ
 % The compiler expected a class or interface name, but got another type or identifier.
-type_e_type_is_not_completly_defined=04042_E_дийфес "$1" ма девгш бомеае
+type_e_type_is_not_completly_defined=04042_E_пїЅпїЅпїЅпїЅпїЅпїЅ "$1" пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % This error occurs when a type is not complete: i.e. a pointer type which points to
 % an undefined type.
-type_w_string_too_long=04043_W_дъелп щм дозшежъ олйм йеъш ъеейн оод щрйъп мдлйм баешк щм озшежъ чцшд
+type_w_string_too_long=04043_W_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
 % The size of the constant string, which is assigned to a shortstring,
 % is longer than the maximum size of the shortstring
-type_w_signed_unsigned_always_false=04044_W_ддщееад ъойг ъзжйш тшк щм false бвмм иеез дтшлйн
+type_w_signed_unsigned_always_false=04044_W_пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅ false пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % There is a comparison between an unsigned value and a signed constant which is
 % less than zero. Because of type promotion, the statement will always evaluate to
 % false. Exlicitly typecast the constant to the correct range to avoid this problem.
-type_w_signed_unsigned_always_true=04045_W_ддщееад ъойг ъзжйш тшк щм true  бвмм иеез дтшлйн
+type_w_signed_unsigned_always_true=04045_W_пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅ true  пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % There is a comparison between an unsigned value and a signed constant which is
 % less than zero. Because of type promotion, the statement will always evaluate to
 % true. Exlicitly typecast the constant to the correct range to avoid this problem.
-type_w_instance_with_abstract=04046_W_оаъзм аъ дозмчд "$1" тн оъегеъ ма ооеощеъ
+type_w_instance_with_abstract=04046_W_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ "$1" пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 % An instance of a class is created which contains non-implemented abstract
 % methods. This will probably lead to a runtime error 211 in the code if that
 % routine is ever called. All abstract methods should be overridden.
-type_h_in_range_check=04047_H_дтшк дщоамй щм даефшрг IN цшйк мдйеъ бвегм щм бйъ
+type_h_in_range_check=04047_H_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ IN пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅ
 % The left operand of the \var{in} operator is not an ordinal or enumeration which fits
 % within 8-bits, this may lead to range check errors. The \var{in} operator
 % currently only supports a left operand which fits within a byte. In the case of
 % enumerations, the size of an element of an enumeration can be controlled with
 % the \var{\{\$PACKENUM\}} or \var{\{\$Zn\}} switches.
-type_w_smaller_possible_range_check=04048_W_вегм дийфес айре оъайн, йщрд афщшеъ майбег ойгт ае щвйад ббгйчъ диеез
+type_w_smaller_possible_range_check=04048_W_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % There is an assignment to a smaller type than the source type. This means that
 % this may cause a range-check error, or may lead to possible loss of data.
-type_h_smaller_possible_range_check=04049_H_вегм дийфес айре оъайн, йщрд афщшеъ майбег ойгт ае щвйад ббгйчъ диеез
+type_h_smaller_possible_range_check=04049_H_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % There is an assignment to a smaller type than the source type. This means that
 % this may cause a range-check error, or may lead to possible loss of data.
-type_e_cant_take_address_of_abstract_method=04050_E_ма рйъп мсфч аъ лъебъ доъегд доевгшъ л abstract
+type_e_cant_take_address_of_abstract_method=04050_E_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ abstract
 % An abstract method has no body, so the address of an abstract method can't be taken.
-type_e_assignment_not_allowed=04051_E_ма рйъп мщййк аъ дтшк мфшоишйн шщоййн еотшлйн фъезйн
+type_e_assignment_not_allowed=04051_E_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % You are trying to assign a value to a formal (untyped var, const or out)
 % parameter, or to an open array.
-type_e_constant_expr_expected=04052_E_оцфд мбйией чбет
+type_e_constant_expr_expected=04052_E_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
 % The compiler expects an constant expression, but gets a variable expression.
-type_e_operator_not_supported_for_types=04053_E_дфтемд "$1" айрд ръолъ мийфесйн "$1" е "$3"
+type_e_operator_not_supported_for_types=04053_E_пїЅпїЅпїЅпїЅпїЅпїЅ "$1" пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ "$1" пїЅ "$3"
 % The operation is not allowed for the supplied types
-type_e_illegal_type_conversion=04054_E_дошд ма зечйъ щм дийфес щм "$1" м "$2"
+type_e_illegal_type_conversion=04054_E_пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ "$1" пїЅ "$2"
 % When doing a type-cast, you must take care that the sizes of the variable and
 % the destination type are the same.
-type_h_pointer_to_longint_conv_not_portable=04055_H_ддошд бйп осфш моцбйт айрд афщшйъ блм дотшлеъ
+type_h_pointer_to_longint_conv_not_portable=04055_H_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 % If you typecast a pointer to a longint (or vice-versa), this code will not compile
 % on a machine using 64-bit for pointer storage.
-type_w_pointer_to_longint_conv_not_portable=04056_W_ддошд бйп осфш моцбйт айрд афщшйъ блм дотшлеъ
+type_w_pointer_to_longint_conv_not_portable=04056_W_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 % If you typecast a pointer to a ordinal type of a different size (or vice-versa), this can
 % cause problems. This is a warning to help finding the 32bit specific code where cardinal/longint is used
 % to typecast pointers to ordinals. A solution is to use the ptrint/ptruint types instead.
-type_e_cant_choose_overload_function=04057_E_ма рйъп мдзмйи байже ферчцйъ тоесъ йъш мдщъощ
+type_e_cant_choose_overload_function=04057_E_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % You're calling overloaded functions with a parameter that doesn't correspond
 % to any of the declared function parameter lists. e.g. when you have declared
 % a function with parameters \var{word} and \var{longint}, and then you call
 % it with a parameter which is of type \var{integer}.
-type_e_illegal_count_var=04058_E_ощърд сфйшд ма зечй
+type_e_illegal_count_var=04058_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ
 % The type of a \var{for} loop variable must be an ordinal type.
 % Loop variables cannot be reals or strings.
-type_w_double_c_varargs=04059_W_оойш аъ дийфес real мийфес double мощърд C. десу typecast сфцйфй морет аъ доцб.
+type_w_double_c_varargs=04059_W_пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ real пїЅпїЅпїЅпїЅпїЅпїЅ double пїЅпїЅпїЅпїЅпїЅпїЅ C. пїЅпїЅпїЅпїЅ typecast пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ.
 % In C, constant real values are double by default. For this reason, if you
 % pass a constant real value to a variable argument part of a C function, FPC
 % by default converts this constant to double as well. If you want to prevent
 % this from happening, add an explicit typecast around the constant.
-type_e_class_or_cominterface_type_expected=04060_E_оцфд мийфес озмчд ае оощч COM, абм дъчбм "$1"
+type_e_class_or_cominterface_type_expected=04060_E_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ COM, пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ "$1"
 % Some operators like the AS operator are only appliable to classes or COM interfaces.
-type_e_no_const_packed_array=04061_E_айп ъойлд ботшк чбет гзес
+type_e_no_const_packed_array=04061_E_пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
 % You cannot declare a (bit)packed array as a typed constant.
-type_e_got_expected_packed_array=04062_E_зесш ъайоеъ мийфес дръерйн щм ашвеори $1. дъчбм: "$2" оца м "(bit)packed array" 
+type_e_got_expected_packed_array=04062_E_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ $1. пїЅпїЅпїЅпїЅпїЅ: "$2" пїЅпїЅпїЅ пїЅ "(bit)packed array"
 % The compiler expects a (bit)packed array as the specified parameter
-type_e_got_expected_unpacked_array=04063_E_зесш ъайоеъ ийфес дръерйн щм ашвеори $1. дъчбм "$2" оцфд м "(not packed) Array"
+type_e_got_expected_unpacked_array=04063_E_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ $1. пїЅпїЅпїЅпїЅпїЅ "$2" пїЅпїЅпїЅпїЅ пїЅ "(not packed) Array"
 % The compiler expects a regular (i.e., not packed) array as the specified parameter
-type_e_no_packed_inittable=04064_E_амоийн щм отшк гзес айрн йлемйн мдйеъ оийфес ръерйн ащш гешщ аъзем
+type_e_no_packed_inittable=04064_E_пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % Support for packed arrays of types that need initialization (such as ansistrings, or records which contain ansistrings) is not yet implemented.
-type_e_no_const_packed_record=04065_E_айп ъойлд мшщеоеъ еабййчийн чбетйн егзесйн
+type_e_no_const_packed_record=04065_E_пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 % You cannot declare a (bit)packed array as a typed constant at this time.
-type_w_untyped_arithmetic_unportable=04066_W_зйщеб "$1" тм ийфес ма оевгш щм оцбйт айре ръок боцб {$T+}, ак рйъп мдщъощ бtypecast
+type_w_untyped_arithmetic_unportable=04066_W_пїЅпїЅпїЅпїЅпїЅ "$1" пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ {$T+}, пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅtypecast
 % Addition/subtraction from untyped pointer may work differently in \var{\{\$T+\}}, use typecast to typed pointer
-type_e_cant_take_address_of_local_subroutine=04076_E_ма рйъп мчзъ аъ лъебъ дщйвшд досеоръ лочеойъ
+type_e_cant_take_address_of_local_subroutine=04076_E_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 % The address of a subroutine marked as local can't be taken.
-type_e_cant_export_local=04077_E_ма рйъп мййца щйвшд досеоръ лочеойъ бъек йзйгд
+type_e_cant_export_local=04077_E_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % A subroutine marked as local can't be export from a unit.
-type_e_not_automatable=04078_E_дийфес айре аеиеои: "$1"
+type_e_not_automatable=04078_E_пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ: "$1"
 % Only byte, integer, longint, smallint, currency, single, double, ansistring,
 % widestring, tdatetime, variant, olevariant, wordbool and all interfaces are automatable.
-type_h_convert_add_operands_to_prevent_overflow=04079_H_дошъ даефшрг м"$1" мфрй фтемъ дзйбеш, йлем морет щвйаеъ вмйщд.
+type_h_convert_add_operands_to_prevent_overflow=04079_H_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ"$1" пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ.
 % Adding two types can cause overflow errors. Since you are converting the result to a larger type, you
 % could prevent such errors by converting the operands to this type before doing the addition.
-type_h_convert_sub_operands_to_prevent_overflow=04080_H_дошъ даефшрг м"$1" мфрй фтемъ дзйбеш йлемд морет щвйаеъ вмйщд.
+type_h_convert_sub_operands_to_prevent_overflow=04080_H_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ"$1" пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ.
 % Subtracting two types can cause overflow errors. Since you are converting the result to a larger type, you
 % could prevent such errors by converting the operands to this type before doing the subtraction.
-type_h_convert_mul_operands_to_prevent_overflow=04081_H_дошъ даефшрг "$1" мфрй фтемъ длфм йлемд морет щвйаеъ вмйщд.
+type_h_convert_mul_operands_to_prevent_overflow=04081_H_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ "$1" пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ.
 % Multiplying two types can cause overflow errors. Since you are converting the result to a larger type, you
 % could prevent such errors by converting the operands to this type before doing the multiplication.
-type_w_pointer_to_signed=04082_W_дошъ оцбйтйн мосфшйн щмойн тн сйоп тмемд мвшен мщвйаеъ бъецаеъ дщееад ебиеезйн. йщ мдщъощ бочен жаъ бийфес мма сйоп.
+type_w_pointer_to_signed=04082_W_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ. пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ.
 % The virtual address space on 32-bit machines runs from \$00000000 to \$ffffffff. Many operating systems allow you to
 % allocate memory above \$80000000, for example both Windows and Linux allow pointers in the range \$0000000 to \$bfffffff.
 % If you convert pointers to signed types, this can cause overflow and range check errors, but also \$80000000 < \$7fffffff.
@@ -1429,22 +1429,22 @@ type_w_pointer_to_signed=04082_W_дошъ оцбйтйн мосфшйн щмойн тн сйоп тмемд мвшен 
 % This section lists all the messages that concern the handling of symbols.
 % This means all things that have to do with procedure and variable names.
 % \begin{description}
-sym_e_id_not_found=05000_E_дождд ма роца "$1"
+sym_e_id_not_found=05000_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ "$1"
 % The compiler doesn't know this symbol. Usually happens when you misspel
 % the name of a variable or procedure, or when you forgot to declare a
 % variable.
-sym_f_internal_error_in_symtablestack=05001_F_щвйад фрйойъ бSymTableStack()
+sym_f_internal_error_in_symtablestack=05001_F_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅSymTableStack()
 % An internal error occurred in the compiler; If you encounter such an error,
 % please contact the developers and try to provide an exact description of
 % the circumstances in which the error occurs.
-sym_e_duplicate_id=05002_E_ождд лфем "$1"
+sym_e_duplicate_id=05002_E_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ "$1"
 % The identifier was already declared in the current scope.
-sym_h_duplicate_id_where=05003_H_дождд лбш оевгш б$1 бщешд $2
+sym_h_duplicate_id_where=05003_H_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅ$1 пїЅпїЅпїЅпїЅпїЅ $2
 % The identifier was already declared in a previous scope.
-sym_e_unknown_id=05004_E_ождд ма оелш "$1"
+sym_e_unknown_id=05004_E_пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ "$1"
 % The identifier encountered has not been declared, or is used outside the
 % scope where it is defined.
-sym_e_forward_not_resolved=05005_E_двгшъ Forward ма ооеощъ
+sym_e_forward_not_resolved=05005_E_пїЅпїЅпїЅпїЅпїЅ Forward пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % This can happen in two cases:
 % \begin{itemize}
 % \item This happens when you declare a function (in the \var{interface} part, or
@@ -1452,138 +1452,138 @@ sym_e_forward_not_resolved=05005_E_двгшъ Forward ма ооеощъ
 % \item You reference a type which isn't declared in the current \var{type}
 % block.
 % \end{itemize}
-sym_e_error_in_type_def=05007_E_щвйад бдвгшъ ийфес
+sym_e_error_in_type_def=05007_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % There is an error in your definition of a new array type:
 % \item One of the range delimiters in an array declaration is erroneous.
 % For example, \var{Array [1..1.25]} will trigger this error.
-sym_e_forward_type_not_resolved=05009_E_двгшъ дийфес ма дещмд "$1"
+sym_e_forward_type_not_resolved=05009_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ "$1"
 % A symbol was forward defined, but no declaration was encountered.
-sym_e_only_static_in_static=05010_E_шч ощърйн сииййн йлемйн мдйеъ бщйоещ тн оъегеъ сиийеъ ае озех моиегеъ
+sym_e_only_static_in_static=05010_E_пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 % A static method of an object can only access static variables.
 sym_e_type_must_be_rec_or_object_or_class=05012_E_Record or object or class type expected
 % The variable or expression isn't of the type \var{record} or \var{object} or \var{class}.
-sym_e_no_instance_of_abstract_object=05013_E_агвн щм озмчеъ ае аебййчийн тн оъегеъ abstract айрн оешщйн
+sym_e_no_instance_of_abstract_object=05013_E_пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ abstract пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % You are trying to generate an instance of a class which has an abstract
 % method that wasn't overridden.
-sym_w_label_not_defined=05014_W_дъеейъ "$1" айрд оевгшъ
+sym_w_label_not_defined=05014_W_пїЅпїЅпїЅпїЅпїЅпїЅ "$1" пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % A label was declared, but not defined.
-sym_e_label_used_and_not_defined=05015_E_дъеейъ "$1" бщйоещ, абм ма овгшъ
+sym_e_label_used_and_not_defined=05015_E_пїЅпїЅпїЅпїЅпїЅпїЅ "$1" пїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % A label was declared and used, but not defined.
-sym_e_ill_label_decl=05016_E_двгшъ ъеейъ ма зечйъ
+sym_e_ill_label_decl=05016_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % This error should never happen; it occurs if a label is defined outside a
 % procedure or function.
-sym_e_goto_and_label_not_supported=05017_E_GOTO е LABEL айрн ръолйн (дщъощ боъв -Sg)
+sym_e_goto_and_label_not_supported=05017_E_GOTO пїЅ LABEL пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ -Sg)
 % You must compile a program which has \var{label}s and \var{goto} statements
 % with the \var{-Sg} switch. By default, \var{label} and \var{goto} aren't
 % supported.
-sym_e_label_not_found=05018_E_дъеейъ ма роцад
+sym_e_label_not_found=05018_E_пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % A \var{goto label} was encountered, but the label isn't declared.
-sym_e_id_is_no_label_id=05019_E_дождд айре ъеейъ
+sym_e_id_is_no_label_id=05019_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % The identifier specified after the \var{goto} isn't of type label.
-sym_e_label_already_defined=05020_E_дъеейъ лбш девгшд
+sym_e_label_already_defined=05020_E_пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % You are defining a label twice. You can define a label only once.
-sym_e_ill_type_decl_set=05021_E_двгшъ ийфес сйгшд ма зечйъ
+sym_e_ill_type_decl_set=05021_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % The declaration of a set contains an invalid type definition.
-sym_e_class_forward_not_resolved=05022_E_двгшд очгйод щм озмчд "$1" ма ооеощъ
+sym_e_class_forward_not_resolved=05022_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ "$1" пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % You declared a class, but you did not implement it.
-sym_n_unit_not_used=05023_H_дйзйгд "$1" айрд бщйоещ б $2
+sym_n_unit_not_used=05023_H_пїЅпїЅпїЅпїЅпїЅпїЅ "$1" пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ $2
 % The unit referenced in the \var{uses} clause is not used.
-sym_h_para_identifier_not_used=05024_H_дфшоиш "$1" айре бщйоещ
+sym_h_para_identifier_not_used=05024_H_пїЅпїЅпїЅпїЅпїЅпїЅ "$1" пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % The identifier was declared (locally or globally) but
 % was not used (locally or globally).
-sym_n_local_identifier_not_used=05025_N_дощърд дочеой "$1" айре бщйоещ
+sym_n_local_identifier_not_used=05025_N_пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ "$1" пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % You have declared, but not used a variable in a procedure or function
 % implementation.
-sym_h_para_identifier_only_set=05026_H_дтшк щм дфшоиш "$1" дежп ак деа ма бщйоещ
+sym_h_para_identifier_only_set=05026_H_пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ "$1" пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % The identifier was declared (locally or globally)
 % set but not used (locally or globally).
-sym_n_local_identifier_only_set=05027_N_дтшк щм дфшоиш "$1" дежп ак деа ма бщйоещ
+sym_n_local_identifier_only_set=05027_N_пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ "$1" пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % The variable in a procedure or function
 % implementation is declared, set but never used.
-sym_h_local_symbol_not_used=05028_H_$1 "$2" очеой ма бщйоещ
+sym_h_local_symbol_not_used=05028_H_$1 "$2" пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % A local symbol is never used.
-sym_n_private_identifier_not_used=05029_N_щгд фший "$1.$2" ма бщйоещ
+sym_n_private_identifier_not_used=05029_N_пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ "$1.$2" пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % The indicated private field is defined, but is never used in the code.
-sym_n_private_identifier_only_set=05030_N_дщгд дфший "$1.$2" бтм тшк, ак ма бщйоещ
+sym_n_private_identifier_only_set=05030_N_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ "$1.$2" пїЅпїЅпїЅ пїЅпїЅпїЅ, пїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % The indicated private field is declared, assigned but never read.
-sym_n_private_method_not_used=05031_N_доъегд дфшийъ "$1.$2" айрд бщйоещ
+sym_n_private_method_not_used=05031_N_пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ "$1.$2" пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % The indicated private method is declared but is never used in the code.
-sym_e_set_expected=05032_E_оцфд мийфес сгшд
+sym_e_set_expected=05032_E_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
 % The variable or expression is not of type \var{set}. This happens in an
 % \var{in} statement.
-sym_w_function_result_not_set=05033_W_дферчцйд лршад ма озжйшд тшк
+sym_w_function_result_not_set=05033_W_пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ
 % You can get this warning if the compiler thinks that a function return
 % value is not set. This will not be displayed for assembler procedures,
 % or procedures that contain assembler blocks.
-sym_w_wrong_C_pack=05034_W_дийфес "$1" айре оййещш рлеп мшщеод щм щфъ C
+sym_w_wrong_C_pack=05034_W_пїЅпїЅпїЅпїЅпїЅпїЅ "$1" пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅ C
 % Arrays with sizes not multiples of 4 will be wrongly aligned
 % for C structures.
-sym_e_illegal_field=05035_E_щгд щм шщеод ма зечй "$1"
+sym_e_illegal_field=05035_E_пїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ "$1"
 % The field doesn't exist in the record/object definition.
-sym_w_uninitialized_local_variable=05036_W_дощърд дочеой "$1" айре ршад оаеъзм
+sym_w_uninitialized_local_variable=05036_W_пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ "$1" пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % This message is displayed if the compiler thinks that a variable will
 % be used (i.e. appears in the right-hand-side of an expression) when it
 % was not initialized first (i.e. appeared in the left-hand side of an
 % assigment)
-sym_w_uninitialized_variable=05037_W_дощърд "$1" айре ршад оаеъзм
+sym_w_uninitialized_variable=05037_W_пїЅпїЅпїЅпїЅпїЅпїЅ "$1" пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % This message is displayed if the compiler thinks that a variable will
 % be used (i.e. appears in the right-hand-side of an expression) when it
 % was not initialized first (i.e. appeared in the left-hand side of an
 % assigment)
-sym_e_id_no_member=05038_E_дождд бщйоещ айре збш б"$1"
+sym_e_id_no_member=05038_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅ"$1"
 % This error is generated when an identifier of a record,
 % field, or method is accessed while it is not defined.
-sym_h_param_list=05039_H_роцад ддлшжд: $1
+sym_h_param_list=05039_H_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ: $1
 % You get this when you use the \var{-vh} switch. In case an overloaded
 % procedure is not found, then all candidate overloaded procedures are
 % listed, with their parameter lists.
-sym_e_segment_too_large=05040_E_вегм дойгт щм дамори вгем ойгй
+sym_e_segment_too_large=05040_E_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
 % You get this when you declare a data element whose size exceeds the
 % prescribed limit (2 Gb on 80386+/68020+ processors)
-sym_e_no_matching_implementation_found=05042_E_ма роца бйцет моъегд "$1" щм доощч
+sym_e_no_matching_implementation_found=05042_E_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ "$1" пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % There was no matching method found which could implement the interface
 % method. Check argument types and result type of the methods.
-sym_w_deprecated_symbol=05043_W_дсйоем "$1" ойещп
+sym_w_deprecated_symbol=05043_W_пїЅпїЅпїЅпїЅпїЅпїЅ "$1" пїЅпїЅпїЅпїЅпїЅ
 % This means that a symbol (a variable, routine, etc...) which is
 % declared as \var{deprecated} is used. Deprecated symbols may no longer
 % be available in newer versions of the unit / library. Usage of this symbol
 % should be avoided as much as possible.
-sym_w_non_portable_symbol=05044_W_дсйоем "$1" айре рййг
+sym_w_non_portable_symbol=05044_W_пїЅпїЅпїЅпїЅпїЅпїЅ "$1" пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
 % This means that a symbol (a variable, routine, etc...) which is
 % declared as \var{platform} is used. This symbol's value, usage
 % and availability is platform specific and should not be used
 % if the source code must be portable.
-sym_w_non_implemented_symbol=05055_W_дсйоем "$1" айре обецт
+sym_w_non_implemented_symbol=05055_W_пїЅпїЅпїЅпїЅпїЅпїЅ "$1" пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % This means that a symbol (a variable, routine, etc...) which is
 % declared as \var{unimplemented} is used. This symbol is defined,
 % but is not yet implemented on this specific platform.
-sym_e_cant_create_unique_type=05056_E_ма рйъп мйцеш ийфес ййзегй одийфес дрелзй
+sym_e_cant_create_unique_type=05056_E_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % Only simple types like ordinal, float and string types are supported when
 % redefining a type with \var{type newtype = type oldtype;}.
-sym_h_uninitialized_local_variable=05057_H_дощърд дочеой "$1" айре ршад оаеъзм
+sym_h_uninitialized_local_variable=05057_H_пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ "$1" пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % This message is displayed if the compiler thinks that a variable will
 % be used (i.e. appears in the right-hand-side of an expression) when it
 % was not initialized first (i.e. appeared in the left-hand side of an
 % assigment)
-sym_h_uninitialized_variable=05058_H_дощърд "$1" айре ршад оаеъзм
+sym_h_uninitialized_variable=05058_H_пїЅпїЅпїЅпїЅпїЅпїЅ "$1" пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % This message is displayed if the compiler thinks that a variable will
 % be used (i.e. appears in the right-hand-side of an expression) when it
 % was not initialized first (i.e. appeared in the left-hand side of an
 % assigment)
-sym_w_function_result_uninitialized=05059_W_дтшк доезжш одферчцйд айре ршад лоаеъзм
+sym_w_function_result_uninitialized=05059_W_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 % This message is displayed if the compiler thinks that the function result
 % variable will be used (i.e. appears in the right-hand-side of an expression)
 % before it is initialized (i.e. appeared in the left-hand side of an
 % assigment)
-sym_h_function_result_uninitialized=05060_H_дтшк доезжш одферчцйд айре ршад лоаеъзм
+sym_h_function_result_uninitialized=05060_H_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 % This message is displayed if the compiler thinks that the function result
 % variable will be used (i.e. appears in the right-hand-side of an expression)
 % before it is initialized (i.e. appeared in the left-hand side of an
 % assigment)
-sym_w_identifier_only_read=05061_W_дощърд "$1" рчша, ак отемн ма чйбм ъелп
+sym_w_identifier_only_read=05061_W_пїЅпїЅпїЅпїЅпїЅпїЅ "$1" пїЅпїЅпїЅпїЅ, пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
 % You have read the value of a variable, but nowhere assigned a value to
 % it.
-sym_h_abstract_method_list=05062_H_роцад оъегд оефщиъ: $1
+sym_h_abstract_method_list=05062_H_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ: $1
 % When getting a warning about constructing a class/object with abstract methods
 % you get this hint to find the affected method.
 % \end{description}
@@ -1596,13 +1596,13 @@ sym_h_abstract_method_list=05062_H_роцад оъегд оефщиъ: $1
 % This section lists all messages that can be displayed if the code
 % generator encounters an error condition.
 % \begin{description}
-cg_e_parasize_too_big=06009_E_двегш щм шщйоъ фшоишйн вгемд о 65535 бъйн
+cg_e_parasize_too_big=06009_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅ 65535 пїЅпїЅпїЅпїЅ
 % The I386 processor limits the parameter list to 65535 bytes (the \var{RET}
 % instruction causes this)
-cg_e_file_must_call_by_reference=06012_E_ийфес щм чебх зййб мдйеъ ощърд оевгш
+cg_e_file_must_call_by_reference=06012_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % You cannot specify files as value parameters, i.e. they must always be
 % declared \var{var} parameters.
-cg_e_cant_use_far_pointer_there=06013_E_дщйоещ боцбйт far айре оешщд бойчен дрелзй
+cg_e_cant_use_far_pointer_there=06013_E_пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ far пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % Free Pascal doesn't support far pointers, so you cannot take the address of
 % an expression which has a far reference as a result. The \var{mem} construct
 % has a far reference as a result, so the following code will produce this
@@ -1612,15 +1612,15 @@ cg_e_cant_use_far_pointer_there=06013_E_дщйоещ боцбйт far айре оешщд бойчен дрел
 % ...
 % p:=@mem[a000:000];
 % \end{verbatim}
-cg_e_dont_call_exported_direct=06015_E_ма рйъп мчшеа мферчцйеъ тн двгшъ EXPORT
+cg_e_dont_call_exported_direct=06015_E_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ EXPORT
 % No longer in use.
-cg_w_member_cd_call_from_method=06016_W_лршад чшйад ма зечйъ щм йецш ае дешс
+cg_w_member_cd_call_from_method=06016_W_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ
 % The compiler detected that a constructor or destructor is called within a
 % a method. This will probably lead to problems, since constructors / destructors
 % require parameters on entry.
-cg_n_inefficient_code=06017_N_зсш чег
+cg_n_inefficient_code=06017_N_пїЅпїЅпїЅ пїЅпїЅпїЅ
 % Your statement seems dubious to the compiler.
-cg_w_unreachable_code=06018_W_ма рйъп мдшйх аъ чит дчег
+cg_w_unreachable_code=06018_W_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
 % You specified a construct which will never be executed. Example:
 % \begin{verbatim}
 % while false do
@@ -1628,31 +1628,31 @@ cg_w_unreachable_code=06018_W_ма рйъп мдшйх аъ чит дчег
 %   {.. code ...}
 %   end;
 % \end{verbatim}
-cg_e_cant_call_abstract_method=06020_E_ма рйъп мчшеа моъегеъ Abstract бцешд йщйшд
+cg_e_cant_call_abstract_method=06020_E_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ Abstract пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % You cannot call an abstract method directy, instead you must call a
 % overriding child method, because an abstract method isn't implemented.
-cg_d_register_weight=06027_DL_Register $1 ощчм $2 $3
+cg_d_register_weight=06027_DL_Register $1 пїЅпїЅпїЅпїЅ $2 $3
 % Debugging message. Shown when the compiler considers a variable for
 % keeping in the registers.
-cg_d_stackframe_omited=06029_DL_ощойи аъ освшъ дозсрйъ
+cg_d_stackframe_omited=06029_DL_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 % Some procedure/functions do not need a complete stack-frame, so it is omitted.
 % This message will be displayed when the {-vd} switch is used.
-cg_e_unable_inline_object_methods=06031_E_оъегеъ щм аебййчи ае озмчд айрн йлемйн мдйеъ inline
+cg_e_unable_inline_object_methods=06031_E_пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ inline
 % You cannot have inlined object methods.
-cg_e_unable_inline_procvar=06032_E_чшйаеъ Procvar айрн йлемйн мдйеъ inline
+cg_e_unable_inline_procvar=06032_E_пїЅпїЅпїЅпїЅпїЅпїЅ Procvar пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ inline
 % A procedure with a procedural variable call cannot be inlined.
-cg_e_no_code_for_inline_stored=06033_E_айп чег мфшецгешеъ inline
+cg_e_no_code_for_inline_stored=06033_E_пїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ inline
 % The compiler couldn't store code for the inline procedure.
-cg_e_can_access_element_zero=06035_E_амори дафс щм ansi/wide- ае longstring ма рвйщ, дщъощ б (set)length бочен
+cg_e_can_access_element_zero=06035_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ ansi/wide- пїЅпїЅ longstring пїЅпїЅ пїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅ пїЅ (set)length пїЅпїЅпїЅпїЅпїЅ
 % You should use \var{setlength} to set the length of an ansi/wide/longstring
 % and \var{length} to get the length of such a string types
-cg_e_cannot_call_cons_dest_inside_with=06037_E_ма рйъп мчшеа мйецшйн ае дешсйн бъек змч щм 'with'
+cg_e_cannot_call_cons_dest_inside_with=06037_E_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅ 'with'
 % Inside a \var{with} clause you cannot call a constructor or destructor for the
 % object you have in the \var{with} clause.
-cg_e_cannot_call_message_direct=06038_E_ма рйъп мчшеа моъегеъ щм оифм дегаеъ бцешд йщйшд
+cg_e_cannot_call_message_direct=06038_E_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % A message method handler method cannot be called directly if it contains an
 % explicit self argument
-cg_e_goto_inout_of_exception_block=06039_E_чфйцд ам ъек ае озех мбмеч щм exception
+cg_e_goto_inout_of_exception_block=06039_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ exception
 % It is not allowed to jump in or outside of an exception block like \var{try..finally..end;}:
 % \begin{verbatim}
 % label 1;
@@ -1668,7 +1668,7 @@ cg_e_goto_inout_of_exception_block=06039_E_чфйцд ам ъек ае озех мбмеч щм excepti
 % 1:
 % ...
 % \end{verbatim}
-cg_e_control_flow_outside_finally=06040_E_дщйоещ ббйиеййн дщемийн бжшйоъ дчег айрн оешщйн бзмч д finally
+cg_e_control_flow_outside_finally=06040_E_пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅ finally
 % It isn't allowed to use the control flow statements \var{break},
 % \var{continue} and \var{exit}
 % inside a finally statement. The following example shows the problem:
@@ -1686,33 +1686,33 @@ cg_e_control_flow_outside_finally=06040_E_дщйоещ ббйиеййн дщемийн бжшйоъ дчег ай
 % If the procedure \var{p} raises an exception the finally block is
 % executed. If the execution reaches the exit, it's unclear what to do:
 % exiting the procedure or searching for another exception handler
-cg_w_parasize_too_big=06041_W_вегм дфшоийн вемщ аъ ддвбмеъ щм змч одотбгйн
+cg_w_parasize_too_big=06041_W_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 % This indicates that you are declaring more than 64K of parameters, which
 % might not be supported on other processor targets.
-cg_w_localsize_too_big=06042_W_двегм щм дощърд дочеой вемщ одвбмеъ щм змч одотбгйн
+cg_w_localsize_too_big=06042_W_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 % This indicates that you are declaring more than 32K of local variables, which
 % might not be supported on other processor targets.
-cg_e_localsize_too_big=06043_E_вегм ощърйн очеоййн вемщ одвбмеъ дръолеъ
+cg_e_localsize_too_big=06043_E_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 % This indicates that you are declaring more than 32K of local variables, which
 % is not supported by this processor.
-cg_e_break_not_allowed=06044_E_BREAK айре оешщд
+cg_e_break_not_allowed=06044_E_BREAK пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % You're trying to use \var{break} outside a loop construction.
-cg_e_continue_not_allowed=06045_E_CONTINUE айре оешщд
+cg_e_continue_not_allowed=06045_E_CONTINUE пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % You're trying to use \var{continue} outside a loop construction.
-cg_f_unknown_compilerproc=06046_F_compilerproc "$1" ма йгет. бгеч ан дщъощ бсфшййъ жоп дшйцд дрлерд.
+cg_f_unknown_compilerproc=06046_F_compilerproc "$1" пїЅпїЅ пїЅпїЅпїЅпїЅ. пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ.
 % The compiler expects that the runtime library contains certain subroutines. If you see this error
 % and you didn't change the runtime library code, it's very likely that the runtime library
 % you're using doesn't match the used compiler. If you changed the runtime library this error means
 % that you removed a subroutine which the compiler needs for internal use.
-cg_f_unknown_system_type=06047_F_ма рйъп моцеа ийфес отшлъ "$1". бгеч дан аъд ощъощ бсфшййъ жоп дшйцд тглрйъ.
+cg_f_unknown_system_type=06047_F_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ "$1". пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ.
 % The compiler expects that the runtime library contains certain type definitions. If you see this error
 % and you didn't change the runtime library code, it's very likely that the runtime library
 % you're using doesn't match the used compiler. If you changed the runtime library this error means
 % that you removed a type which the compiler needs for internal use.
-cg_h_inherited_ignored=06048_H_оътмн одщйоещ бinherited боъегд осев abstract
+cg_h_inherited_ignored=06048_H_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅinherited пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ abstract
 % This messages appears only in Delphi mode when you call an abstract method
 % of a parent class via \var{inherited;}. The call is then ignored.
-cg_e_goto_label_not_found=06049_E_ъеейъ д Goto "$1" ма девгшд ае ма тбшд аефийойжцйд
+cg_e_goto_label_not_found=06049_E_пїЅпїЅпїЅпїЅпїЅ пїЅ Goto "$1" пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 % The label used in the goto definition is not defined or optimized away by the
 % unreachable code elemination.
 % \end{description}
@@ -1723,214 +1723,214 @@ cg_e_goto_label_not_found=06049_E_ъеейъ д Goto "$1" ма девгшд ае ма тбшд аефийой
 #
 # 07105 is the last used one
 #
-asmr_d_start_reading=07000_DL_оъзйм бсвреп офшщ асобмш $1
+asmr_d_start_reading=07000_DL_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ $1
 % This informs you that an assembler block is being parsed
-asmr_d_finish_reading=07001_DL_дсъййн рйъез свреп асобмш $1
+asmr_d_finish_reading=07001_DL_пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ $1
 % This informs you that an assembler block has finished.
-asmr_e_none_label_contain_at=07002_E_ъбрйъ мма ъеейъ олймд аъ дъе @
+asmr_e_none_label_contain_at=07002_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅ @
 % A identifier which isn't a label can't contain a @.
-asmr_e_building_record_offset=07004_E_щвйад ббрййъ дйси дшщеод
+asmr_e_building_record_offset=07004_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % An error occurred while building the offset of a record/object
 % structure, this can happend when there is no field specified at all or
 % an unknown field identifier is used.
-asmr_e_offset_without_identifier=07005_E_ртщд щйоещ бOFFSET мма ождд
+asmr_e_offset_without_identifier=07005_E_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅOFFSET пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
 % You can only use OFFSET with an identifier. Other syntaxes aren't
 % supported
-asmr_e_type_without_identifier=07006_E_ртщд щйоещ бTYPE мма ождд
+asmr_e_type_without_identifier=07006_E_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅTYPE пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
 % You can only use TYPE with an identifier. Other syntaxes aren't
 % supported
-asmr_e_no_local_or_para_allowed=07007_E_ма рйъп мдщъощ бощъод очеой ае фшоиш бойчен дрелзй
+asmr_e_no_local_or_para_allowed=07007_E_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % You can't use a local variable or parameter here, mostly because the
 % addressing of locals and parameters is done using the frame pointer register so the
 % address can't be obtained directly.
-asmr_e_need_offset=07008_E_йщ цешк мдщъощ б OFFSET
+asmr_e_need_offset=07008_E_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ OFFSET
 % You need to use OFFSET <id> here to get the address of the identifier.
-asmr_e_need_dollar=07009_E_йщ цешк мдщъощ б$
+asmr_e_need_dollar=07009_E_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ$
 % You need to use $<id> here to get the address of the identifier.
-asmr_e_cant_have_multiple_relocatable_symbols=07010_E_ма рйъп мдщъощ б relocatable symbols ошебйн
+asmr_e_cant_have_multiple_relocatable_symbols=07010_E_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ relocatable symbols пїЅпїЅпїЅпїЅпїЅпїЅ
 % You can't have more than one relocatable symbol (variable/typed constant)
 % in one argument.
-asmr_e_only_add_relocatable_symbol=07011_E_рйъп мдесйу шч relocatable symbol
+asmr_e_only_add_relocatable_symbol=07011_E_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ relocatable symbol
 % Relocatable symbols (variable/typed constant) can't be used with other
 % operators. Only addition is allowed.
-asmr_e_invalid_constant_expression=07012_E_бйией чбет ма зечй
+asmr_e_invalid_constant_expression=07012_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ
 % There is an error in the constant expression.
-asmr_e_relocatable_symbol_not_allowed=07013_E_Relocatable symbol айре оешщд
+asmr_e_relocatable_symbol_not_allowed=07013_E_Relocatable symbol пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % You can't use a relocatable symbol (variable/typed constant) here.
-asmr_e_invalid_reference_syntax=07014_E_ъзбйш дфрйеъ ма зечй
+asmr_e_invalid_reference_syntax=07014_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ
 % There is an error in the reference.
-asmr_e_local_para_unreachable=07015_E_ма рйъп мвщъ м $1 одчег
+asmr_e_local_para_unreachable=07015_E_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅ $1 пїЅпїЅпїЅпїЅпїЅ
 % You can not read directly the value of a local variable or parameter
 % of a higher level procedure in assembler code (except for
 % local assembler code without parameter nor locals).
-asmr_e_local_label_not_allowed_as_ref=07016_E_сйоемйн/ъеейеъ очеойеъ айрн оешщйн лдфрйеъ
+asmr_e_local_label_not_allowed_as_ref=07016_E_пїЅпїЅпїЅпїЅпїЅпїЅпїЅ/пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 % You can't use local symbols/labels as references
-asmr_e_wrong_base_index=07017_E_щйоещ щвей ббсйс еайргчс щм аевш
+asmr_e_wrong_base_index=07017_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ
 % There is an error with the base and index register, they are
 % probably incorrect
-asmr_w_possible_object_field_bug=07018_W_йълп лй йщ щвйад бийфем дщгеъ щм аебййчи
+asmr_w_possible_object_field_bug=07018_W_пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 % Fields of objects or classes can be reached directly in normal or objfpc
 % modes but TP and Delphi modes treat the field name as a simple offset.
-asmr_e_wrong_scale_factor=07019_E_цеййп иеез семн щвей
+asmr_e_wrong_scale_factor=07019_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
 % The scale factor given is wrong, only 1,2,4 and 8 are allowed
-asmr_e_multiple_index=07020_E_щйоещ ошебд байрчс даевш
+asmr_e_multiple_index=07020_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % You are trying to use more than one index register
-asmr_e_invalid_operand_type=07021_E_ийфес аефшрг щвей
+asmr_e_invalid_operand_type=07021_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
 % The operand type doesn't match with the opcode used
-asmr_e_invalid_string_as_opcode_operand=07022_E_ащйоещ бозшежъ лаефшрг opcode щвей: $1 
+asmr_e_invalid_string_as_opcode_operand=07022_E_пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ opcode пїЅпїЅпїЅпїЅ: $1
 % The string specified as operand is not correct with this opcode
-asmr_w_CODE_and_DATA_not_supported=07023_W_дщйоещ б@CODE е@DATA ма ръок
+asmr_w_CODE_and_DATA_not_supported=07023_W_пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ@CODE пїЅ@DATA пїЅпїЅ пїЅпїЅпїЅпїЅ
 % @CODE and @DATA are unsupported and are ignored.
-asmr_e_null_label_ref_not_allowed=07024_E_дъййзсеъ мъеейъ шйчд айрд оешщъ
-asmr_e_expr_zero_divide=07025_E_зймеч бафс бдтшлъ asm
+asmr_e_null_label_ref_not_allowed=07024_E_пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
+asmr_e_expr_zero_divide=07025_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ asm
 % There is a division by zero in a constant expression
-asmr_e_expr_illegal=07026_E_бйией ма зечй
+asmr_e_expr_illegal=07026_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ
 % There is an illegal expression in a constant expression
-asmr_e_escape_seq_ignored=07027_E_оътмн ошцу чйгег: $1
+asmr_e_escape_seq_ignored=07027_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ: $1
 % There is a C-styled string, but the escape sequence in the string
 % is unknown, and is therefore ignored
-asmr_e_invalid_symbol_ref=07028_E_дъййзсеъ сйоем ма ъчйрд
-asmr_w_fwait_emu_prob=07029_W_FWAIT осевм мвшен мбтйеъ зйчей бemu387
-asmr_w_fadd_to_faddp=07030_W_$1 мма ъшвен аефшрг м$1P
-asmr_w_enter_not_supported_by_linux=07031_W_дешаъ ENTER айрд ръолъ т"й мйбъ Linux
+asmr_e_invalid_symbol_ref=07028_E_пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
+asmr_w_fwait_emu_prob=07029_W_FWAIT пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅemu387
+asmr_w_fadd_to_faddp=07030_W_$1 пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ$1P
+asmr_w_enter_not_supported_by_linux=07031_W_пїЅпїЅпїЅпїЅпїЅ ENTER пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅ"пїЅ пїЅпїЅпїЅпїЅ Linux
 % ENTER instruction can generate a stack page fault that is not
 % caught correctly by the i386 Linux page handler.
-asmr_w_calling_overload_func=07032_W_обцт чшйад мферчцйд ощелъбъ бassembler
+asmr_w_calling_overload_func=07032_W_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅassembler
 % There is a call to an overloaded method in the assembler block,
 % this might be the sign there is a problem
-asmr_e_unsupported_symbol_type=07033_E_ийфес дсйоем щм даефшрг айре ръок
-asmr_e_constant_out_of_bounds=07034_E_ъелп дчбет озех мвбемеъ
-asmr_e_error_converting_decimal=07035_E_щвйад бжоп дошд гцйомйъ $1
+asmr_e_unsupported_symbol_type=07033_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
+asmr_e_constant_out_of_bounds=07034_E_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+asmr_e_error_converting_decimal=07035_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ $1
 % A constant decimal value does not have the correct syntax
-asmr_e_error_converting_octal=07036_E_щвйад бжоп дошд аечимйъ $1
+asmr_e_error_converting_octal=07036_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ $1
 % A constant octal value does not have the correct syntax
-asmr_e_error_converting_binary=07037_E_щвйад бжоп дошд бйршйъ $1
+asmr_e_error_converting_binary=07037_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ $1
 % A constant binary value does not have the correct syntax
-asmr_e_error_converting_hexadecimal=07038_E_щвйад бжоп дошд дчсд-гцйомйъ $1
+asmr_e_error_converting_hexadecimal=07038_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ-пїЅпїЅпїЅпїЅпїЅпїЅпїЅ $1
 % A constant hexadecimal value does not have the correct syntax
-asmr_h_direct_global_to_mangled=07039_H_$1 ъешвн м $2
-asmr_w_direct_global_is_overloaded_func=07040_W_$1 ощеййк мферчцйд ощелъбъ
-asmr_e_cannot_use_SELF_outside_a_method=07041_E_ма рйъп мдщъощ б SELF озех моъегд
+asmr_h_direct_global_to_mangled=07039_H_$1 пїЅпїЅпїЅпїЅпїЅ пїЅ $2
+asmr_w_direct_global_is_overloaded_func=07040_W_$1 пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+asmr_e_cannot_use_SELF_outside_a_method=07041_E_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ SELF пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % There is a reference to the \var{self} symbol while it is not
 % allowed. \var{self} can only be referenced inside methods
-asmr_e_cannot_use_OLDEBP_outside_nested_procedure=07042_E_ма рйъп мдщъощ б OLDEBP озех мфшецгешд очерръ
+asmr_e_cannot_use_OLDEBP_outside_nested_procedure=07042_E_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ OLDEBP пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % There is a reference to the \var{oldebp} symbol while it is not
 % allowed. \var{oldebp} can only be referenced inside nested routines
-asmr_e_void_function=07043_W_фшецгешеъ айрн йлемйн мдзжйш тшк бъек чег assembly
+asmr_e_void_function=07043_W_пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ assembly
 % Trying to return a value while in a procedure. A procedure
 % does not have any return value
-asmr_e_SEG_not_supported=07044_E_SEG айре ръок
-asmr_e_size_suffix_and_dest_dont_match=07045_E_вегм сефй ейтг, ае очеш двегм айрн ъеаойн
+asmr_e_SEG_not_supported=07044_E_SEG пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
+asmr_e_size_suffix_and_dest_dont_match=07045_E_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ, пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % The register size and the opcode size suffix don't match. This is
 % probably an error in the assembler statement
-asmr_w_size_suffix_and_dest_dont_match=07046_W_вегм сефй ейтг, ае очеш двегм айрн ъеаойн
+asmr_w_size_suffix_and_dest_dont_match=07046_W_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ, пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % The register size and the opcode size suffix don't match. This is
 % probably an error in the assembler statement
-asmr_e_syntax_error=07047_E_щвйад бъзбйш Assembler
+asmr_e_syntax_error=07047_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ Assembler
 % There is an assembler syntax error
-asmr_e_invalid_opcode_and_operand=07048_E_щймеб ма зечй бйп opcode еаефшрг
+asmr_e_invalid_opcode_and_operand=07048_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ opcode пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 % The opcode cannot be used with this type of operand
-asmr_e_syn_operand=07049_E_щвйад бъзбйш аефшрг бAssembler
-asmr_e_syn_constant=07050_E_щвйад бъзбйш чбет бAssembler
-asmr_e_invalid_string_expression=07051_E_бйией озшежъ ма ъчйп
-asmr_w_const32bit_for_address=07052_W_дчбет бтм дсйоем $1 млъебъ, деа ма оцбйт
+asmr_e_syn_operand=07049_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅAssembler
+asmr_e_syn_constant=07050_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅAssembler
+asmr_e_invalid_string_expression=07051_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ
+asmr_w_const32bit_for_address=07052_W_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ $1 пїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % A constant expression represents an address which does not fit
 % into a pointer. The address is probably incorrect
-asmr_e_unknown_opcode=07053_E_opcode $1 айре оелш
+asmr_e_unknown_opcode=07053_E_opcode $1 пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
 % This opcode is not known
-asmr_e_invalid_or_missing_opcode=07054_E_opcode зсш ае ма ъчйп
-asmr_e_invalid_prefix_and_opcode=07055_E_щймеб щм ъзймйъ еopcode ма ъчйп : $1
-asmr_e_invalid_override_and_opcode=07056_E_дщймеб щм щлъеб еopcode ма ъчйп: $1
+asmr_e_invalid_or_missing_opcode=07054_E_opcode пїЅпїЅпїЅ пїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ
+asmr_e_invalid_prefix_and_opcode=07055_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅopcode пїЅпїЅ пїЅпїЅпїЅпїЅ : $1
+asmr_e_invalid_override_and_opcode=07056_E_пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅopcode пїЅпїЅ пїЅпїЅпїЅпїЅ: $1
 asmr_e_too_many_operands=07057_E_Too many operands on line
 % There are too many operands for this opcode. Check your
 % assembler syntax
-asmr_w_near_ignored=07058_W_оътмн оNEAR
-asmr_w_far_ignored=07059_W_оътмн о FAR
-asmr_e_dup_local_sym=07060_E_щйлфем щм дсйоем дочеой $1
-asmr_e_unknown_local_sym=07061_E_дсйоем дочеой $1 айре оевгш
-asmr_e_unknown_label_identifier=07062_E_ождд ъеейъ $1 ма йгет
-asmr_e_invalid_register=07063_E_щн аевш щвей
+asmr_w_near_ignored=07058_W_пїЅпїЅпїЅпїЅпїЅ пїЅNEAR
+asmr_w_far_ignored=07059_W_пїЅпїЅпїЅпїЅпїЅ пїЅ FAR
+asmr_e_dup_local_sym=07060_E_пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ $1
+asmr_e_unknown_local_sym=07061_E_пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ $1 пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
+asmr_e_unknown_label_identifier=07062_E_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ $1 пїЅпїЅ пїЅпїЅпїЅпїЅ
+asmr_e_invalid_register=07063_E_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
 % There is an unknown register name used as operand.
-asmr_e_invalid_fpu_register=07064_E_щн аевш мрчегд цфд ма ъчйп
+asmr_e_invalid_fpu_register=07064_E_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ
 % There is an unknown register name used as operand.
-asmr_w_modulo_not_supported=07066_W_оегеме ма ръок
-asmr_e_invalid_float_const=07067_E_чбет щм рчегд цфд ма ъчйп $1
+asmr_w_modulo_not_supported=07066_W_пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ
+asmr_e_invalid_float_const=07067_E_пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ $1
 % The floating point constant declared in an assembler block is
 % invalid.
-asmr_e_invalid_float_expr=07068_E_бйией ма ъчйп щм рчегд цфд
+asmr_e_invalid_float_expr=07068_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ
 % The floating point expression declared in an assembler block is
 % invalid.
-asmr_e_wrong_sym_type=07069_E_сев сйоем щвей
-asmr_e_cannot_index_relative_var=07070_E_ма рйъп мщоеш цйеп щм фшоиш ае ощърд очеой тн аевш
+asmr_e_wrong_sym_type=07069_E_пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
+asmr_e_cannot_index_relative_var=07070_E_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ
 % Trying to index using a base register a symbol which is already relative
 % to a register. This is not possible, and will probably lead to crashes.
-asmr_e_invalid_seg_override=07071_E_бйией дойчит дощелъб айре ъчйп
-asmr_w_id_supposed_external=07072_W_дождд $1 айре роца, орйз щдождд зйцерй
+asmr_e_invalid_seg_override=07071_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
+asmr_w_id_supposed_external=07072_W_пїЅпїЅпїЅпїЅпїЅ $1 пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % There is a reference to an undefined symbol. This will not result
 % in an error, since the symbol might be external, but may cause
 % problems at link time if the symbol is not defined anywhere.
-asmr_e_string_not_allowed_as_const=07073_E_дозшежеъ айрп оешщеъ мдйеъ чбетеъ
+asmr_e_string_not_allowed_as_const=07073_E_пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % Character strings are not allowed as constants.
-asmr_e_no_var_type_specified=07074_ма цеййп ийфес дощърд
+asmr_e_no_var_type_specified=07074_пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % The syntax expects a type idenfitifer after the dot, but
 % none was found.
-asmr_w_assembler_code_not_returned_to_text=07075_E_чег дassembler ма зжш майжеш дичси
+asmr_w_assembler_code_not_returned_to_text=07075_E_пїЅпїЅпїЅ пїЅassembler пїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % There was a directive in the assembler block to change sections,
 % but there is a missing return to the text section at the end
 % of the assembler block. This might cause errors during link time.
-asmr_e_not_directive_or_local_symbol=07076_E_$1 деа ма дрзйд ае сйоем очеой
+asmr_e_not_directive_or_local_symbol=07076_E_$1 пїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % This symbol is unknown.
-asmr_w_using_defined_as_local=07077_E_ощъощ бдвгшъ дщн лъеейъ очеойъ
-asmr_e_dollar_without_identifier=07078_E_дщйоещ бъе дгемш оъбцт мма ождд
+asmr_w_using_defined_as_local=07077_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
+asmr_e_dollar_without_identifier=07078_E_пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
 % A constant expression has an identifier which does not start with
 % the $ symbol.
-asmr_w_32bit_const_for_address=07079_W_осфч лъебъ щм 32 сйбйеъ мчбет
+asmr_w_32bit_const_for_address=07079_W_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ 32 пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % A constant was used as an address. This is probably an error,
 % since using absolute addresses will probably not work.
-asmr_n_align_is_target_specific=07080_N_дщйоещ б.align обесс тм сев йтг, дщъощ б.balign ае .p2align
+asmr_n_align_is_target_specific=07080_N_пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ.align пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅ пїЅ.balign пїЅпїЅ .p2align
 % Using the .align directive is platform specific, and its meaning will vary
 % from one platform to another.
-asmr_e_cannot_access_field_directly_for_parameters=07081_E_ма рйъп мдщъощ бцешд йщйшд бщгеъ щм фшоишйн
+asmr_e_cannot_access_field_directly_for_parameters=07081_E_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 % You should load the parameter first into a register and then access the
 % fields using that register.
-asmr_e_cannot_access_object_field_directly=07082_E_ма рйъп мвщъ бцешд йщйшд мщгеъ щм аебййчийн/озмчеъ
+asmr_e_cannot_access_object_field_directly=07082_E_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ/пїЅпїЅпїЅпїЅпїЅпїЅ
 % You should load the self pointer first into a register and then access the
 % fields using the register as base. By default the self pointer is available
 % in the esi register on i386.
-asmr_e_unable_to_determine_reference_size=07083_E_ма рйъп мчбет аъ вегм даефшргйн мма цйеп щм двегм
+asmr_e_unable_to_determine_reference_size=07083_E_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % You should specify explicitly a size for the reference, because
 % the compiler is unable to determine what size (byte,word,dword,etc.) it
 % should use for the reference.
-asmr_e_cannot_use_RESULT_here=07084_E_ма рйъп мдщъощ бRESULT бферчцйд дрелзйъ
+asmr_e_cannot_use_RESULT_here=07084_E_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅRESULT пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 % Some functions which return complex types cannot use the \var{result}
 % keyword.
-asmr_w_adding_explicit_args_fXX=07086_W_"$1" мма ъшвен щм аефшргйн м "$1 %st,%st(1)"
-asmr_w_adding_explicit_first_arg_fXX=07087_W_"$1 %st(n)" ъешвн м "$1 %st,%st(n)"
-asmr_w_adding_explicit_second_arg_fXX=07088_W_"$1 %st(n)" ъешвн м "$1 %st(n),%st"
-asmr_e_invalid_char_smaller=07089_E_дъе > айре оешщд лап
+asmr_w_adding_explicit_args_fXX=07086_W_"$1" пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ "$1 %st,%st(1)"
+asmr_w_adding_explicit_first_arg_fXX=07087_W_"$1 %st(n)" пїЅпїЅпїЅпїЅпїЅ пїЅ "$1 %st,%st(n)"
+asmr_w_adding_explicit_second_arg_fXX=07088_W_"$1 %st(n)" пїЅпїЅпїЅпїЅпїЅ пїЅ "$1 %st(n),%st"
+asmr_e_invalid_char_smaller=07089_E_пїЅпїЅпїЅ > пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ
 % The shift operator requires the << characters. Only one
 % of those characters was found.
-asmr_e_invalid_char_greater=07090_E_дъе < айре оешщд лап
+asmr_e_invalid_char_greater=07090_E_пїЅпїЅпїЅ < пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ
 % The shift operator requires the >> characters. Only one
 % of those characters was found.
-asmr_w_align_not_supported=07093_W_ALIGN айре ръок
-asmr_e_no_inc_and_dec_together=07094_E_дщйоещ INC е DEC айрн йлемйн мдвйт бййзг
+asmr_w_align_not_supported=07093_W_ALIGN пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
+asmr_e_no_inc_and_dec_together=07094_E_пїЅпїЅпїЅпїЅпїЅпїЅ INC пїЅ DEC пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % Trying to use an increment and a decrement within the same
 % opcode on the 680x0. This is impossible.
-asmr_e_invalid_reg_list_in_movem=07095_E_щйоещ бreglist м movem ма ъчйп
+asmr_e_invalid_reg_list_in_movem=07095_E_пїЅпїЅпїЅпїЅпїЅ пїЅreglist пїЅ movem пїЅпїЅ пїЅпїЅпїЅпїЅ
 % Trying to use the \var{movem} opcode with invalid registers
 % to save or restore.
-asmr_e_invalid_reg_list_for_opcode=07096_E_щйоещ щвей бreglist мopcode
-asmr_e_higher_cpu_mode_required=07097_E_жчеч моцб отбг вбедд йеъш ($1)
+asmr_e_invalid_reg_list_for_opcode=07096_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅreglist пїЅopcode
+asmr_e_higher_cpu_mode_required=07097_E_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ ($1)
 % Trying to use an instruction which is not supported in the current
 % cpu mode. Use a higher cpu generation to be able to use this
 % opcode in your assembler block
-asmr_w_unable_to_determine_reference_size_using_dword=07098_W_ма цеййп вегм щм аефшрг ема рйъп мрзщ аъ двегм, ощъощ бDWORD лбшйшъ озгм
+asmr_w_unable_to_determine_reference_size_using_dword=07098_W_пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅ пїЅDWORD пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
 % You should specify explicitly a size for the reference, because
 % the compiler is unable to determine what size (byte,word,dword,etc.) it
 % should use for the reference. This warning is only used in Delphi mode where
 % it falls back to use DWORD as default.
-asmr_e_illegal_shifterop_syntax=07099_E_щвйаъ ъзбйш бтъ рйсйеп мфшщ дсиъ аефшрг
+asmr_e_illegal_shifterop_syntax=07099_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % ARM only; ARM assembler supports a so called shifter operand. The used syntax isn't
 % a valid shifter operand. Example for an operation with shifter operand:
 % \begin{verbatim}
@@ -1938,61 +1938,61 @@ asmr_e_illegal_shifterop_syntax=07099_E_щвйаъ ъзбйш бтъ рйсйеп мфшщ дсиъ аефшрг
 %   orr     r2,r2,r2,lsl #8
 % end;
 % \end{verbatim}
-asmr_e_packed_element=07100_E_длъебъ щм шлйб ашеж айре роца биеез щм бйъ
+asmr_e_packed_element=07100_E_пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅ
 % Packed components (record fields and array elements) may start at an arbitrary
 % bit inside a byte. On CPU which do not support bit-addressable memory (which
 % includes all currently supported CPUs by FPC) you will therefore get an error
 % message when trying to index arrays with elements whose size is not a multiple
 % of 8 bits. The same goes for accessing record fields with such an address.
 % multiple of 8 bits.
-asmr_w_unable_to_determine_reference_size_using_byte=07101_W_ма цеййп вегм, едодгш айре оцмйз мчбет аъ вегм даефшрг, ощъощ бвегм BYTE бъеш бшйшъ озгм
+asmr_w_unable_to_determine_reference_size_using_byte=07101_W_пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ BYTE пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
 % You should specify explicitly a size for the reference, because
 % the compiler is unable to determine what size (byte,word,dword,etc.) it
 % should use for the reference. This warning is only used in Delphi mode where
 % it falls back to use BYTE as default.
-asmr_w_no_direct_ebp_for_parameter=07102_W_ма рйъп мдщъощ б+дси(%ebp) бойчен дрелй тбеш дфшоишйн
+asmr_w_no_direct_ebp_for_parameter=07102_W_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ+пїЅпїЅпїЅ(%ebp) пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 % Using direct 8(%ebp) reference for function/procedure parameters is invalid
 % if parameters are in registers.
-asmr_w_direct_ebp_for_parameter_regcall=07103_W_дщйоещ б+дси(%ebp) айре ъеан тн оеслоеъ д regcall
+asmr_w_direct_ebp_for_parameter_regcall=07103_W_пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ+пїЅпїЅпїЅ(%ebp) пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ regcall
 % Using direct 8(%ebp) reference for function/procedure parameters is invalid
 % if parameters are in registers.
-asmr_w_direct_ebp_neg_offset=07104_W_дщйоещ б-дси(%ebp) айре оеомх тбеш вйщд мощърйн очеоййн
+asmr_w_direct_ebp_neg_offset=07104_W_пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ-пїЅпїЅпїЅ(%ebp) пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 % Using -8(%ebp) to access a local variable is not recommended
-asmr_w_direct_esp_neg_offset=07105_W_дщйоещ б-дси(%ebp) тмем мвшен мчшйсд щм дъелрйъ ае майбег дойгт
+asmr_w_direct_esp_neg_offset=07105_W_пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ-пїЅпїЅпїЅ(%ebp) пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % Using -8(%esp) to access a local stack is not recommended, as
 % this stack portion can be overwritten by any function calls or interrupts.
-asmr_e_no_vmtoffset_possible=07106_E_дщйоещ б VMTOffset зййб мдвйт бщймеб щм оъегеъ еейшиеамйеъ е "$1" айре еейшиеамй
+asmr_e_no_vmtoffset_possible=07106_E_пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ VMTOffset пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ "$1" пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 % \end{verbatim}
 #
 # Assembler/binary writers
 #
 # 08018 is the last used one
 #
-asmw_f_too_many_asm_files=08000_F_йеъш ойгй чбцй assembler
+asmw_f_too_many_asm_files=08000_F_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ assembler
 % With smartlinking enabled, there are too many assembler
 % files generated. Disable smartlinking.
-asmw_f_assembler_output_not_supported=08001_F_сев дфми щм дassembler айре ръок
-asmw_f_comp_not_supported=08002_F_Comp айре ръок
-asmw_f_direct_not_supported=08003_F_оцб йщйш щм assembler айре ръок т"й леъбйн бйрашййн
+asmw_f_assembler_output_not_supported=08001_F_пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅassembler пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
+asmw_f_comp_not_supported=08002_F_Comp пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
+asmw_f_direct_not_supported=08003_F_пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ assembler пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅ"пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 % Direct assembler mode is not supported for binary writers.
-asmw_e_alloc_data_only_in_bss=08004_E_аъзем дойгт оешщд шч бзмч дbss
-asmw_f_no_binary_writer_selected=08005_F_ма рбзш леъб бйрашй
-asmw_e_opcode_not_in_table=08006_E_Asm: Opcode $1 деа ма ибмд
-asmw_e_invalid_opcode_and_operands=08007_E_Asm: $1 дйре щймеб щвей бйп opcode мбйп аефшрг
-asmw_e_16bit_not_supported=08008_E_Asm: дъййзсеъ щм 16 сйбйеъ айре ръок
-asmw_e_invalid_effective_address=08009_E_Asm: отп бфтем ма ъчйп
-asmw_e_immediate_or_reference_expected=08010_E_Asm: оцфд мдъййзсеъ маефшрг ае аефшрг ойгй
-asmw_e_value_exceeds_bounds=08011_E_Asm: $1 вемщ одвбемеъ $2
-asmw_e_short_jmp_out_of_range=08012_E_Asm: Short jump озех миеез $1
-asmw_e_undefined_label=08013_E_Asm: ъеейъ ма оевгшъ $1
-asmw_e_comp_not_supported=08014_E_Asm: дийфес COMP ма ръок бйтг добечщ
-asmw_e_extended_not_supported=08015_E_Asm: дийфес Extended айре ръок бйтг добечщ
-asmw_e_duplicate_label=08016_E_Asm: ъеейеъ лфемд $1
-asmw_e_redefined_label=08017_E_Asm: овгйш озгщ аъ дъеейъ $1
-asmw_e_first_defined_label=08018_E_Asm: оевгш лап мшащерд
-asmw_e_invalid_register=08019_E_Asm: аевш щвей $1
-asmw_e_16bit_32bit_not_supported=08020_E_Asm: ддъййзсеъ м16 ае 32 сйбйеъ айрд ръолъ
-asmw_e_64bit_not_supported=08021_E_Asm: даефшри 64 сйбйеъ айре ръок
+asmw_e_alloc_data_only_in_bss=08004_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅbss
+asmw_f_no_binary_writer_selected=08005_F_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
+asmw_e_opcode_not_in_table=08006_E_Asm: Opcode $1 пїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ
+asmw_e_invalid_opcode_and_operands=08007_E_Asm: $1 пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ opcode пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
+asmw_e_16bit_not_supported=08008_E_Asm: пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ 16 пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
+asmw_e_invalid_effective_address=08009_E_Asm: пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ
+asmw_e_immediate_or_reference_expected=08010_E_Asm: пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
+asmw_e_value_exceeds_bounds=08011_E_Asm: $1 пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ $2
+asmw_e_short_jmp_out_of_range=08012_E_Asm: Short jump пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ $1
+asmw_e_undefined_label=08013_E_Asm: пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ $1
+asmw_e_comp_not_supported=08014_E_Asm: пїЅпїЅпїЅпїЅпїЅпїЅ COMP пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
+asmw_e_extended_not_supported=08015_E_Asm: пїЅпїЅпїЅпїЅпїЅпїЅ Extended пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
+asmw_e_duplicate_label=08016_E_Asm: пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ $1
+asmw_e_redefined_label=08017_E_Asm: пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ $1
+asmw_e_first_defined_label=08018_E_Asm: пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+asmw_e_invalid_register=08019_E_Asm: пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ $1
+asmw_e_16bit_32bit_not_supported=08020_E_Asm: пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ16 пїЅпїЅ 32 пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
+asmw_e_64bit_not_supported=08021_E_Asm: пїЅпїЅпїЅпїЅпїЅпїЅпїЅ 64 пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
 
 #
 # Executing linker/assembler
@@ -2005,77 +2005,77 @@ asmw_e_64bit_not_supported=08021_E_Asm: даефшри 64 сйбйеъ айре ръок
 % This section lists errors that occur when the compiler is processing the
 % command line or handling the configuration files.
 % \begin{description}
-exec_w_source_os_redefined=09000_W_очеш отшлъ ддфтмд оевгш озгщ
+exec_w_source_os_redefined=09000_W_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
 % The source operating system is redefined.
-exec_i_assembling_pipe=09001_I_ошлйб (цйреш) $1
+exec_i_assembling_pipe=09001_I_пїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅ) $1
 % Assembling using a pipe to an external assembler.
-exec_d_cant_create_asmfile=09002_E_ма рйъп мйцеш аъ чебх дassembler $1
+exec_d_cant_create_asmfile=09002_E_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅassembler $1
 % The mentioned file can't be created. Check if you have got
 % access permissions to create this file
-exec_e_cant_create_objectfile=09003_E_ма рйъп мйцеш аъ чебх аебййчи $1
+exec_e_cant_create_objectfile=09003_E_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ $1
 % The mentioned file can't be created. Check if you've
 % got access permissions to create this file
-exec_e_cant_create_archivefile=09004_E_ма рйъп мйцеш аъ чебх дашлйеп $1
+exec_e_cant_create_archivefile=09004_E_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ $1
 % The mentioned file can't be created. Check if you've
 % access permissions to create this file
-exec_e_assembler_not_found=09005_E_дочщш $1 айре роца, тебш моасу зйцерй
+exec_e_assembler_not_found=09005_E_пїЅпїЅпїЅпїЅпїЅ $1 пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % The assembler program was not found. The compiler will produce a script that
 % can be used to assemble and link the program.
-exec_t_using_assembler=09006_T_ощъощ боасу: $1
+exec_t_using_assembler=09006_T_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ: $1
 % Information message saying which assembler is being used.
-exec_e_error_while_assembling=09007_E_щвйад бжоп айсеу чег йцйад $1
+exec_e_error_while_assembling=09007_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ $1
 % There was an error while assembling the file using an external assembler.
 % Consult the documentation of the assembler tool to find out more information
 % on this error.
-exec_e_cant_call_assembler=09008_E_ма рйъп мдшйх аъ доасу, щвйад $1, ошйх оасу зйцерй
+exec_e_cant_call_assembler=09008_E_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅ $1, пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % An error occurred when calling an external assembler, The compiler will produce a script that
 % can be used to assemble and link the program.
-exec_i_assembling=09009_I_очщш $1
+exec_i_assembling=09009_I_пїЅпїЅпїЅпїЅ $1
 % An informational message stating which file is being assembled.
-exec_i_assembling_smart=09010_I_аесу тн smartlinking $1
+exec_i_assembling_smart=09010_I_пїЅпїЅпїЅпїЅ пїЅпїЅ smartlinking $1
 % An informational message stating which file is being assembled using smartlinking.
-exec_w_objfile_not_found=09011_W_даебййчи $1 ма роца, ршад щдайсеу йлщм !
+exec_w_objfile_not_found=09011_W_пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ $1 пїЅпїЅ пїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ !
 % One of the object file is missing, and linking will probably fail.
 % Check your paths.
-exec_w_libfile_not_found=09012_W_дсфшййд $1 ма роцад, ршад щдайсеу йлщм !
+exec_w_libfile_not_found=09012_W_пїЅпїЅпїЅпїЅпїЅпїЅпїЅ $1 пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ !
 % One of the library file is missing, and linking will probably fail.
 % Check your paths.
-exec_e_error_while_linking=09013_E_щвйад бжоп чйщеш
+exec_e_error_while_linking=09013_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % Generic error while linking.
-exec_e_cant_call_linker=09014_E_ма рйъп мдшйх аъ дочщш, тебш мочщш зйцерй
+exec_e_cant_call_linker=09014_E_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % An error occurred when calling an external linker, The compiler will produce a script that
 % can be used to assemble and link the program.
-exec_i_linking=09015_I_очщш $1
+exec_i_linking=09015_I_пїЅпїЅпїЅпїЅ $1
 % An informational message, showing which program or library is being linked.
-exec_e_util_not_found=09016_E_длмй $1 ма роца, тебш мочщш зйцерй
+exec_e_util_not_found=09016_E_пїЅпїЅпїЅпїЅ $1 пїЅпїЅ пїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % An external tool was not found, the compiler will produce a script that
 % can be used to assemble and link or postprocess the program.
-exec_t_using_util=09017_T_ощъощ блмй $1
+exec_t_using_util=09017_T_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ $1
 % An informational message, showing which external program (usually a postprocessor) is being used.
-exec_e_exe_not_supported=09018_E_айп ъойлд бйцйшъ чбцй шйцд
+exec_e_exe_not_supported=09018_E_пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
 % Creating executable programs is not supported for this platform, because it was
 % not yet implemented in the compiler.
-exec_e_dll_not_supported=09019_E_айп ъойлд бйцйшъ сфшйеъ гйройеъ/ощеъфеъ
+exec_e_dll_not_supported=09019_E_пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ/пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 % Creating dynamically loadable libraries is not supported for this platform, because it was
 % not yet implemented in the compiler.
-exec_i_closing_script=09020_I_севш аъ дъсшйи $1
+exec_i_closing_script=09020_I_пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ $1
 % Informational message showing when the external assembling an linking script is finished.
-exec_e_res_not_found=09021_E_одгш ощабйн ма роца, тебш моцб зйцерй
+exec_e_res_not_found=09021_E_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % An external resource compiler was not found, the compiler will produce a script that
 % can be used to assemble, compile resources and link or postprocess the program.
-exec_i_compilingresource=09022_I_одгш аъ дощаб $1
+exec_i_compilingresource=09022_I_пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ $1
 % An informational message, showing which resource is being compiled.
-exec_t_unit_not_static_linkable_switch_to_smart=09023_T_ма рйъп мчщш аъ дйзйгд $1 бцешд сиийъ, тебш мчйщеш злн
+exec_t_unit_not_static_linkable_switch_to_smart=09023_T_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ $1 пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ
 % Statical linking was requested, but a unit which is not statically linkable was used.
-exec_t_unit_not_smart_linkable_switch_to_static=09024_T_ма рйъп мчщш бцешд злод аъ дйзйгд $1, тебш мчйщеш сиий
+exec_t_unit_not_smart_linkable_switch_to_static=09024_T_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ $1, пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
 % Smart linking was requested, but a unit which is not smart-linkable was used.
-exec_t_unit_not_shared_linkable_switch_to_static=09025_T_ма рйъп мчщш аъ дйзйгд $1 бчйщеш ощеъу, тебш мчйщеш сиий
+exec_t_unit_not_shared_linkable_switch_to_static=09025_T_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ $1 пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
 % Shared linking was requested, but a unit which is not shared-linkable  was used.
-exec_e_unit_not_smart_or_static_linkable=09026_E_ма рйъп мчщш аъ дйзйгд $1 бчйщеш злн ае бчйщеш сиий
+exec_e_unit_not_smart_or_static_linkable=09026_E_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ $1 пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
 % Smart or static linking was requested, but a unit which cannot be used for either  was used.
-exec_e_unit_not_shared_or_static_linkable=09027_E_ма рйъп мчщш аъ дйзйгд $1 бчйщеш ощеъу ае сиий
+exec_e_unit_not_shared_or_static_linkable=09027_E_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ $1 пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ
 % Shared or static linking was requested, but a unit which cannot be used for either  was used.
-exec_d_resbin_params=09028_D_ошйх аъ одгш дощабйн "$1" тн "$2" бъеш щешъ фчегд
+exec_d_resbin_params=09028_D_пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ "$1" пїЅпїЅ "$2" пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % An informational message showing which command-line is used for the resource compiler.
 %\end{description}
 # EndOfTeX
@@ -2088,19 +2088,19 @@ exec_d_resbin_params=09028_D_ошйх аъ одгш дощабйн "$1" тн "$2" бъеш щешъ фчегд
 % This section lists all messages that the compiler emits when an executable program is produced,
 % and only when the internal linker is used.
 % \begin{description}
-execinfo_f_cant_process_executable=09128_F_ма оцмйз мбцт отбш сефй тм чебх ддшцд $1
+execinfo_f_cant_process_executable=09128_F_пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ $1
 % Fatal error when the compiler is unable to post-process an executable.
-execinfo_f_cant_open_executable=09129_F_ма оцмйз мфъез аъ чебх дшйцд $1
+execinfo_f_cant_open_executable=09129_F_пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ $1
 % Fatal error when the compiler cannot open the file for the executable.
-execinfo_x_codesize=09130_X_вегм дчег: $1 бъйн
+execinfo_x_codesize=09130_X_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ: $1 пїЅпїЅпїЅпїЅ
 % Informational message showing the size of the produced code section.
-execinfo_x_initdatasize=09131_X_двегм щм ойгт оаеъзм: $1 бъйн
+execinfo_x_initdatasize=09131_X_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ: $1 пїЅпїЅпїЅпїЅ
 % Informational message showing the size of the initialized data section.
-execinfo_x_uninitdatasize=09132_X_ойгт щм ойгт ма оаеъзм: $1 бъйн
+execinfo_x_uninitdatasize=09132_X_пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ: $1 пїЅпїЅпїЅпїЅ
 % Informational message showing the size of the uninitialized data section.
-execinfo_x_stackreserve=09133_X_вегм дозсрйъ дщоешд: $1 бъйн
+execinfo_x_stackreserve=09133_X_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ: $1 пїЅпїЅпїЅпїЅ
 % Informational message showing the stack size that the compiler reserved for the executable.
-execinfo_x_stackcommit=09134_X_вегм дозсрйъ бщйоещ: $1 бъйн
+execinfo_x_stackcommit=09134_X_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ: $1 пїЅпїЅпїЅпїЅ
 % Informational message showing the stack size that the compiler commites for the executable.
 %\end{description}
 # EndOfTeX
@@ -2116,185 +2116,185 @@ execinfo_x_stackcommit=09134_X_вегм дозсрйъ бщйоещ: $1 бъйн
 % loading a unit from disk into memory. Many of these messages are
 % informational messages.
 % \begin{description}
-unit_t_unitsearch=10000_T_озфщ аъ дйзйгд: $1
+unit_t_unitsearch=10000_T_пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ: $1
 % When you use the \var{-vt}, the compiler tells you where it tries to find
 % unit files.
-unit_t_ppu_loading=10001_T_иетп аъ чебх д PPU $1
+unit_t_ppu_loading=10001_T_пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅ PPU $1
 % When the \var{-vt} switch is used, the compiler tells you
 % what units it loads.
-unit_u_ppu_name=10002_U_щн д PPU: $1
+unit_u_ppu_name=10002_U_пїЅпїЅ пїЅ PPU: $1
 % When you use the \var{-vu} flag, the unit name is shown.
-unit_u_ppu_flags=10003_U_гвмй PPU: $1
+unit_u_ppu_flags=10003_U_пїЅпїЅпїЅпїЅ PPU: $1
 % When you use the \var{-vu} flag, the unit flags are shown.
 unit_u_ppu_crc=10004_U_PPU Crc: $1
 % When you use the \var{-vu} flag, the unit CRC check is shown.
-unit_u_ppu_time=10005_U_жоп PPU: $1
+unit_u_ppu_time=10005_U_пїЅпїЅпїЅ PPU: $1
 % When you use the \var{-vu} flag, the time the unit was compiled is shown.
-unit_u_ppu_file_too_short=10006_U_чебх дPPU чцш ойгй
+unit_u_ppu_file_too_short=10006_U_пїЅпїЅпїЅпїЅ пїЅPPU пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
 % The ppufile is too short, not all declarations are present.
-unit_u_ppu_invalid_header=10007_U_дшащ щм чебх д PPU айре ъчйп (дчебх айре олйм PPU бдъзмд)
+unit_u_ppu_invalid_header=10007_U_пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅ PPU пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ PPU пїЅпїЅпїЅпїЅпїЅпїЅ)
 % A unit file contains as the first three bytes the ascii codes of \var{PPU}
-unit_u_ppu_invalid_version=10008_U_вшсд ма ъчйрд щм дPPU $1
+unit_u_ppu_invalid_version=10008_U_пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅPPU $1
 % This unit file was compiled with a different version of the compiler, and
 % cannot be read.
-unit_u_ppu_invalid_processor=10009_U_чебх дPPU дегш мотбг азш
+unit_u_ppu_invalid_processor=10009_U_пїЅпїЅпїЅпїЅ пїЅPPU пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ
 % This unit file was compiled for a different processor type, and
 % cannot be read
-unit_u_ppu_invalid_target=10010_U_чебх дPPU дегш моишд азшъ
+unit_u_ppu_invalid_target=10010_U_пїЅпїЅпїЅпїЅ пїЅPPU пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
 % This unit file was compiled for a different target, and
 % cannot be read
-unit_u_ppu_source=10011_U_очеш дPPU: $1
+unit_u_ppu_source=10011_U_пїЅпїЅпїЅпїЅ пїЅPPU: $1
 % When you use the \var{-vu} flag, the unit source file name is shown.
-unit_u_ppu_write=10012_U_леъб $1
+unit_u_ppu_write=10012_U_пїЅпїЅпїЅпїЅ $1
 % When you specify the \var{-vu} switch, the compiler will tell you where it
 % writes the unit file.
-unit_f_ppu_cannot_write=10013_F_ма леъб аъ чебх д PPU
+unit_f_ppu_cannot_write=10013_F_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅ PPU
 % An error occurred when writing the unit file.
-unit_f_ppu_read_error=10014_F_щвйад бжоп чшйаъ чебх д PPU
+unit_f_ppu_read_error=10014_F_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅ PPU
 % This means that the unit file was corrupted, and contains invalid
 % information. Recompilation will be necessary.
-unit_f_ppu_read_unexpected_end=10015_F_сеу чебх ма цфей (чебх PPU)
+unit_f_ppu_read_unexpected_end=10015_F_пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅ PPU)
 % Unexpected end of file. This may mean that the PPU file is
 % corrupted.
-unit_f_ppu_invalid_entry=10016_F_лрйсд ма ъчйрд бчебх д PPU: $1
+unit_f_ppu_invalid_entry=10016_F_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅ PPU: $1
 % The unit the compiler is trying to read is corrupted, or generated with a
 % newer version of the compiler.
-unit_f_ppu_dbx_count_problem=10017_F_бтйд бсфйшъ Dbx бчебх PPU
+unit_f_ppu_dbx_count_problem=10017_F_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ Dbx пїЅпїЅпїЅпїЅпїЅ PPU
 % There is an inconsistency in the debugging information of the unit.
-unit_e_illegal_unit_name=10018_E_щн йзйгд ма ъчйп: $1
+unit_e_illegal_unit_name=10018_E_пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ: $1
 % The name of the unit does not match the file name.
-unit_f_too_much_units=10019_F_йеъш ойгй йзйгеъ
+unit_f_too_much_units=10019_F_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % \fpc has a limit of 1024 units in a program. You can change this behavior
 % by changing the \var{maxunits} constant in the \file{fmodule.pas} file of the
 % compiler, and recompiling the compiler.
-unit_f_circular_unit_reference=10020_F_чшйад отвмйъ бйп дйзйгеъ $1 е $2
+unit_f_circular_unit_reference=10020_F_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ $1 пїЅ $2
 % Two units are using each other in the interface part. This is only allowed
 % in the \var{implementation} part. At least one unit must contain the other one
 % in the \var{implementation} section.
-unit_f_cant_compile_unit=10021_F_айп осфйч ощабйн тм оръ мдгш аъ дйзйгд $1
+unit_f_cant_compile_unit=10021_F_пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ $1
 % A unit was found that needs to be recompiled, but no sources are
 % available.
-unit_f_cant_find_ppu=10022_F_ма оеца аъ дйзйгд $1
+unit_f_cant_find_ppu=10022_F_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ $1
 % You tried to use a unit of which the PPU file isn't found by the
 % compiler. Check your configuration file for the unit paths
-unit_w_unit_name_error=10023_W_дйзйгд $1 ма роцад, абм $2 чййн
+unit_w_unit_name_error=10023_W_пїЅпїЅпїЅпїЅпїЅпїЅ $1 пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅ $2 пїЅпїЅпїЅпїЅ
 % This error message is no longer used.
-unit_f_unit_name_error=10024_F_озфщ аъ дйзйгд $1, абм $2 роца
+unit_f_unit_name_error=10024_F_пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ $1, пїЅпїЅпїЅ $2 пїЅпїЅпїЅпїЅ
 % Dos truncation of 8 letters for unit PPU files
 % may lead to problems when unit name is longer than 8 letters.
-unit_w_switch_us_missed=10025_W_дйгеш йзйгъ system гешщъ аъ доъв -Us
+unit_w_switch_us_missed=10025_W_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ system пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ -Us
 % When recompiling the system unit (it needs special treatment), the
 % \var{-Us} must be specified.
-unit_f_errors_in_unit=10026_F_тецш мазш щроцае $1 щвйаеъ бжоп дйгеш доегем
+unit_f_errors_in_unit=10026_F_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ $1 пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % When the compiler encounters a fatal error or too many errors in a module
 % then it stops with this message.
-unit_u_load_unit=10027_U_иетп $1 ($2) йзйгд $3
+unit_u_load_unit=10027_U_пїЅпїЅпїЅпїЅ $1 ($2) пїЅпїЅпїЅпїЅпїЅ $3
 % When you use the \var{-vu} flag, which unit is loaded from which unit is
 % shown.
-unit_u_recompile_crc_change=10028_U_одгш аъ $1 мазш щдзъйод щеръд м $2
-% The unit is recompiled because the checksum of a unit it depends on has 
+unit_u_recompile_crc_change=10028_U_пїЅпїЅпїЅпїЅ пїЅпїЅ $1 пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅ $2
+% The unit is recompiled because the checksum of a unit it depends on has
 % changed.
-unit_u_recompile_source_found_alone=10029_U_роца шч чег очеш, одгш озгщ аъ $1
+unit_u_recompile_source_found_alone=10029_U_пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ $1
 % When you use the \var{-vu} flag, these messages tell you why the current
 % unit is recompiled.
-unit_u_recompile_staticlib_is_older=10030_U_одгш озгщ аъ дйзйгд. дсфшййд дсиийъ йщрд йеъш очебх д PPU
+unit_u_recompile_staticlib_is_older=10030_U_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ. пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅ PPU
 % When you use the \var{-vu} flag, the compiler warns if the static library
 % of the unit are older than the unit file itself.
-unit_u_recompile_sharedlib_is_older=10031_U_одгш озгщ аъ дйзйгд. дсфшййд дощеъфъ йщрд йеъш очебх д PPU
+unit_u_recompile_sharedlib_is_older=10031_U_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ. пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅ PPU
 % When you use the \var{-vu} flag, the compiler warns if the shared library
 % of the unit are older than the unit file itself.
-unit_u_recompile_obj_and_asm_older=10032_U_одгш озгщ аъ д дйзйгд. чбцй д obj едasm йщрйн йеъш очебх д PPU
+unit_u_recompile_obj_and_asm_older=10032_U_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ. пїЅпїЅпїЅпїЅ пїЅ obj пїЅпїЅasm пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅ PPU
 % When you use the \var{-vu} flag, the compiler warns if the assembler or
 % object file of the unit are older than the unit file itself.
-unit_u_recompile_obj_older_than_asm=10033_U_одгш озгщ аъ дйзйгд. чебх дobj йщп йеъш очебх дasm
+unit_u_recompile_obj_older_than_asm=10033_U_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ. пїЅпїЅпїЅпїЅ пїЅobj пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅasm
 % When you use the \var{-vu} flag, the compiler warns if the assembler
 % file of the unit is older than the object file of the unit.
-unit_u_parsing_interface=10034_U_офшщ аъ змч доощч щм $1
+unit_u_parsing_interface=10034_U_пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ $1
 % When you use the \var{-vu} flag, the compiler warns that it starts
 % parsing the interface part of the unit
-unit_u_parsing_implementation=10035_U_офшщ аъ змч дбйцетй щм $1
+unit_u_parsing_implementation=10035_U_пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ $1
 % When you use the \var{-vu} flag, the compiler warns that it starts
 % parsing the implementation part of the unit
-unit_u_second_load_unit=10036_U_итйрд щрййд щм дйзйгд $1
+unit_u_second_load_unit=10036_U_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ $1
 % When you use the \var{-vu} flag, the compiler warns that it starts
 % recompiling a unit for the second time. This can happend with interdepend
 % units.
-unit_u_check_time=10037_U_бгйчъ чебх PPU $1 жоп $2
+unit_u_check_time=10037_U_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ PPU $1 пїЅпїЅпїЅ $2
 % When you use the \var{-vu} flag, the compiler show the filename and
 % date and time of the file which a recompile depends on
 ### The following two error msgs is currently disabled.
-#unit_h_cond_not_set_in_last_compile=10038_H_дърайн щм $1 ма девгше бдъзмъ дшйцд бдйгеш дазшеп щм $2
+#unit_h_cond_not_set_in_last_compile=10038_H_пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ $1 пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ $2
 #% when recompilation of an unit is required the compiler will check that
 #% the same conditionals are set for the recompiliation. The compiler has
 #% found a conditional that currently is defined, but was not used the last
 #% time the unit was compiled.
-#unit_h_cond_set_in_last_compile=10039_H_дърайн щм $1 девгше бдъзмъ дшйцд бдйгеш дазшеп щм $2
+#unit_h_cond_set_in_last_compile=10039_H_пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ $1 пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ $2
 #% when recompilation of an unit is required the compiler will check that
 #% the same conditionals are set for the recompiliation. The compiler has
 #% found a conditional that was used the last time the unit was compiled, but
 #% the conditional is currently not defined.
-unit_w_cant_compile_unit_with_changed_incfile=10040_W_ма рйъп мдгш аъ дйзйгд $1 мошеъ щчбцй дinclude щере
+unit_w_cant_compile_unit_with_changed_incfile=10040_W_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ $1 пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅinclude пїЅпїЅпїЅпїЅ
 % A unit was found to have modified include files, but
 % some source files were not found, so recompilation is impossible.
-unit_u_source_modified=10041_U_дчебх $1 згщ йеъш одчебх PPU $2
+unit_u_source_modified=10041_U_пїЅпїЅпїЅпїЅпїЅ $1 пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ PPU $2
 % A modified source file for a compiler unit was found.
-unit_u_ppu_invalid_fpumode=10042_U_орсд мдщъощ бйзйгд ащш дегшд моцб FPU щерд
+unit_u_ppu_invalid_fpumode=10042_U_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ FPU пїЅпїЅпїЅпїЅ
 % Trying to compile code while using units which were not compiled with
 % the same floating point format mode. Either all code should be compiled
 % with FPU emulation on, or with FPU emulation off.
-unit_u_loading_interface_units=10043_U_иетп аъ змч доощч щм дйзйгеъ о $1
+unit_u_loading_interface_units=10043_U_пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ $1
 % When you use the \var{-vu} flag, the compiler warns that it starts
 % loading the units defined in the interface part of the unit.
-unit_u_loading_implementation_units=10044_U_иетп аъ дзмч дбйцетй щм дйзйгеъ о $1
+unit_u_loading_implementation_units=10044_U_пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ $1
 % When you use the \var{-vu} flag, the compiler warns that it starts
 % loading the units defined in the implementation part of the unit.
-unit_u_interface_crc_changed=10045_U_зъйоъ д CRC щм змч доощч дщърд бйзйгд $1
+unit_u_interface_crc_changed=10045_U_пїЅпїЅпїЅпїЅпїЅ пїЅ CRC пїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ $1
 % When you use the \var{-vu} flag, the compiler warns that it the
 % CRC calculated for the interface has been changed after the implementation
 % has been parsed.
-unit_u_implementation_crc_changed=10046_U_зъйоъ дCRC щм дзмч дбйцетй дщърд мйзйгд $1
+unit_u_implementation_crc_changed=10046_U_пїЅпїЅпїЅпїЅпїЅ пїЅCRC пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ $1
 % When you use the \var{-vu} flag, the compiler warns that it the
 % CRC calculated has been changed after the implementation
 % has been parsed.
-unit_u_finished_compiling=10047_U_дсъййн дйгеш дйзйгд $1
+unit_u_finished_compiling=10047_U_пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ $1
 % When you use the \var{-vu} flag, the compiler warns that it
 % has finished compiling the unit.
-unit_u_add_depend_to=10048_U_оесйу аъ дъмеъ щм $1 м$2
+unit_u_add_depend_to=10048_U_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ $1 пїЅ$2
 % When you use the \var{-vu} flag, the compiler warns that it
 % has added a dependency between the two units.
-unit_u_no_reload_is_caller=10049_U_айп чшйад озегщъ щм дчебх бщбйм $1
+unit_u_no_reload_is_caller=10049_U_пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ $1
 % When you use the \var{-vu} flag, the compiler warns that it
 % has will not reload the unit because it is the unit that wants
 % to load this unit
-unit_u_no_reload_in_second_compile=10050_U_айп итйрд озгщ, бжоп дйгеш щрй щм дйзйгд $1
+unit_u_no_reload_in_second_compile=10050_U_пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ $1
 % When you use the \var{-vu} flag, the compiler warns that it
 % has will not reload the unit because it is already in a second recompile
-unit_u_flag_for_reload=10051_U_гвм митйрд озегщъ: $1
+unit_u_flag_for_reload=10051_U_пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ: $1
 % When you use the \var{-vu} flag, the compiler warns that it
 % has to reload the unit
-unit_u_forced_reload=10052_U_лефд тм итйрд озегщъ
+unit_u_forced_reload=10052_U_пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % When you use the \var{-vu} flag, the compiler warns that it
 % has is reloading the unit because it was required
-unit_u_previous_state=10053_U_доцб дйщп щм $1: $2
+unit_u_previous_state=10053_U_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ $1: $2
 % When you use the \var{-vu} flag, the compiler shows the
 % previous state of the unit
-unit_u_second_compile_unit=10054_U_роца лбш бъдмйк дйгеш $1, оййщн дйгеш щрй
+unit_u_second_compile_unit=10054_U_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ $1, пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ
 % When you use the \var{-vu} flag, the compiler warns that it starts
 % recompiling a unit for the second time. This can happend with interdepend
 % units.
-unit_u_loading_unit=10055_U_иетп аъ дйзйгд $1
+unit_u_loading_unit=10055_U_пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ $1
 % When you use the \var{-vu} flag, the compiler warns that it starts
 % loading the unit.
-unit_u_finished_loading_unit=10056_U_осййн митеп аъ дйзйгд $1
+unit_u_finished_loading_unit=10056_U_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ $1
 % When you use the \var{-vu} flag, the compiler warns that it finished
 % loading the unit.
-unit_u_registering_new_unit=10057_U_шещн йзйгд згщд $1
+unit_u_registering_new_unit=10057_U_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ $1
 % When you use the \var{-vu} flag, the compiler warns that it has
 % found a new unit and registers it in the internal lists.
-unit_u_reresolving_unit=10058_U_озщб озгщ аъ дйзйгд $1
+unit_u_reresolving_unit=10058_U_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ $1
 % When you use the \var{-vu} flag, the compiler warns that it
 % has to recalculate the internal data of the unit
-unit_u_skipping_reresolving_unit=10059_U_огмв тм итйрд озегщъ щм дйзйгд $1, тгййп бжоп итйръ йзйгеъ бщйоещ
+unit_u_skipping_reresolving_unit=10059_U_пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ $1, пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % When you use the \var{-vu} flag, the compiler warns that it
 % skips to recalculate the internal data of the unit because there
 % is no data to recalculate
@@ -2313,90 +2313,90 @@ option_usage=11000_O_$1 [options] <inputfile> [options]
 % This section lists errors that occur when the compiler is processing the
 % command line or handling the configuration files.
 % \begin{description}
-option_only_one_source_support=11001_W_ъеок шч бчебх очеш азг бщешъ дфчегд
+option_only_one_source_support=11001_W_пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % You can specify only one source file on the command line. The first
 % one will be compiled, others will be ignored. This may indicate that
 % you forgot a \var{'-'} sign.
-option_def_only_for_os2=11002_W_рйъп мйцеш аъ чебх д DEF шч мOS/2
+option_def_only_for_os2=11002_W_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅ DEF пїЅпїЅ пїЅOS/2
 % This option can only be specified when you're compiling for OS/2
-option_no_nested_response_file=11003_E_айп ъойлд бчбцй ъвебд очеррйн
+option_no_nested_response_file=11003_E_пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 % you cannot nest response files with the \var{@file} command-line option.
-option_no_source_found=11004_F_ма цеййп чебх очеш бщешъ дфчегд
+option_no_source_found=11004_F_пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % The compiler expects a source file name on the command line.
-option_no_option_found=11005_N_ма цейре афщшейеъ бъек чебх ддвгшеъ $1
+option_no_option_found=11005_N_пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ $1
 % The compiler didn't find any option in that config file.
-option_illegal_para=11006_E_фшоиш ма зечй: $1
+option_illegal_para=11006_E_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ: $1
 % You specified an unknown option.
-option_help_pages_para=11007_H_-? леъб гфй тжшд
+option_help_pages_para=11007_H_-? пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
 % When an unknown option is given, this message is diplayed.
-option_too_many_cfg_files=11008_F_йеъш ойгй чбцй двгшеъ очеррйн
+option_too_many_cfg_files=11008_F_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 % You can only nest up to 16 config files.
-option_unable_open_file=11009_F_ма рйъп мфъез аъ дчебх $1
+option_unable_open_file=11009_F_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ $1
 % The option file cannot be found.
-option_reading_further_from=11010_D_чеша двгшеъ ресфеъ о $1
+option_reading_further_from=11010_D_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ $1
 % Displayed when you have notes turned on, and the compiler switches
 % to another options file.
-option_target_is_already_set=11011_W_доишд лбш девгшд м: $1
+option_target_is_already_set=11011_W_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ: $1
 % Displayed if more than one \var{-T} option is specified.
-option_no_shared_lib_under_dos=11012_W_DOS айре ъеок бсфшйеъ ощеъфеъ, зежш мсфшйеъ сиийеъ
+option_no_shared_lib_under_dos=11012_W_DOS пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % If you specify \var{-CD} for the \dos platform, this message is displayed.
 % The compiler supports only static libraries under \dos
-option_too_many_ifdef=11013_F_IF(N)DEF шбйн ойгй
+option_too_many_ifdef=11013_F_IF(N)DEF пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
 % the \var{\#IF(N)DEF} statements in the options file are not balanced with
 % the \var{\#ENDIF} statements.
-option_too_many_endif=11014_F_ENDIF шбйн ойгй
+option_too_many_endif=11014_F_ENDIF пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
 % the \var{\#IF(N)DEF} statements in the options file are not balanced with
 % the \var{\#ENDIF} statements.
-option_too_less_endif=11015_F_ърай фъез бсеу дчебх
+option_too_less_endif=11015_F_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % the \var{\#IF(N)DEF} statements in the options file are not balanced with
 % the \var{\#ENDIF} statements.
-option_no_debug_support=11016_W_ойгт рйфей щвйаеъ айре ръок бсев чебх дшйцд добечщ
+option_no_debug_support=11016_W_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % It is possible to have a compiler executable that doesn't support
 % the generation of debugging info. If you use such an executable with the
 % \var{-g} switch, this warning will be displayed.
-option_no_debug_support_recompile_fpc=11017_H_рсд мдгш озгщ тн доъв -dGDB
+option_no_debug_support_recompile_fpc=11017_H_пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ -dGDB
 % It is possible to have a compiler executable that doesn't support
 % the generation of debugging info. If you use such an executable with the
 % \var{-g} switch, this warning will be displayed.
-option_obsolete_switch=11018_W_аъд ощъощ боъв дойещп $1
+option_obsolete_switch=11018_W_пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ $1
 % this warns you when you use a switch that is not needed/supported anymore.
 % It is recommended that you remove the switch to overcome problems in the
 % future, when the switch meaning may change.
-option_obsolete_switch_use_new=11019_W_аъд ощъощ боъв дойещп $1, дщъощ боъв $2 бочен
+option_obsolete_switch_use_new=11019_W_пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ $1, пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ $2 пїЅпїЅпїЅпїЅпїЅ
 % this warns you when you use a switch that is not supported anymore. You
 % must now use the second switch instead.
 % It is recommended that you change the switch to overcome problems in the
 % future, when the switch meaning may change.
-option_switch_bin_to_src_assembler=11020_N_отбйш аъ даесу моцб бшйшъ озгм щм лъйбъ оасу
+option_switch_bin_to_src_assembler=11020_N_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
 % this notifies you that the assembler has been changed because you used the
 % -a switch which can't be used with a binary assembler writer.
-option_incompatible_asm=11021_W_дъелп дрбзш щм дassembler "$1" айре оъайн м "$2"
-option_asm_forced=11022_W_дъелп щм доасу "$1" ма осевм мйцеш чбцй аебййчи, ощъощ боасу бшйшъ дозгм бочен
+option_incompatible_asm=11021_W_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅassembler "$1" пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅ "$2"
+option_asm_forced=11022_W_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ "$1" пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 % The assembler output selected can not generate
 % object files with the correct format. Therefore, the
 % default assembler for this target is used instead.
-option_using_file=11026_T_чеша афщшейеъ одчебх $1
+option_using_file=11026_T_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ $1
 % Options are also read from this file
-option_using_env=11027_T_чеша афщшейеъ одсбйбд $1
+option_using_env=11027_T_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ $1
 % Options are also read from this environment string
-option_handling_option=11028_D_оифм бафщшеъ "$1"
+option_handling_option=11028_D_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ "$1"
 % Debug info that an option is found and will be handled
-option_help_press_enter=11029__*** мзх тм enter ***
-option_start_reading_configfile=11030_H_оъзйм бчшйаъ чебх ддвгшеъ $1
+option_help_press_enter=11029__*** пїЅпїЅпїЅ пїЅпїЅ enter ***
+option_start_reading_configfile=11030_H_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ $1
 % Starting of config file parsing.
-option_end_reading_configfile=11031_H_сйен чшйаъ чебх ддвгшеъ $1
+option_end_reading_configfile=11031_H_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ $1
 % End of config file parsing.
-option_interpreting_option=11032_D_офшщ аъ дафщшеъ "$1"
-option_interpreting_firstpass_option=11036_D_офшщ аъ дотбш дшащеп тм дафщшеъ "$1"
-option_interpreting_file_option=11033_D_офшщ аъ двгшъ дчебх "$1"
-option_read_config_file=11034_D_чеша аъ чебх ддвгшеъ "$1"
-option_found_file=11035_D_роца чебх очеш бщн "$1"
+option_interpreting_option=11032_D_пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ "$1"
+option_interpreting_firstpass_option=11036_D_пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ "$1"
+option_interpreting_file_option=11033_D_пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ "$1"
+option_read_config_file=11034_D_пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ "$1"
+option_found_file=11035_D_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ "$1"
 % Additional infos about options, displayed
 % when you have debug option turned on.
-option_code_page_not_available=11039_E_чег гу ма йгет
-option_config_is_dir=11040_F_роцад сфшййд бочен чебх ддвгшеъ $1
+option_code_page_not_available=11039_E_пїЅпїЅпїЅ пїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ
+option_config_is_dir=11040_F_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ $1
 % Directories can not be used as configuration files.
-option_confict_asm_debug=11041_W_сев дфми щм доасу щрбзш "$1" айре йлем мйцеш ойгт тбеш рйфей щвйаеъ. обим рйфей щвйаеъ
+option_confict_asm_debug=11041_W_пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ "$1" пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ. пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 % The assembler output selected can not generate
 % debugging information, debugging option is therefore disabled.
 %\end{description}
@@ -2407,7 +2407,7 @@ option_confict_asm_debug=11041_W_сев дфми щм доасу щрбзш "$1" айре йлем мйцеш ой
 #
 option_logo=11023_[
 Free Pascal Compiler version $FPCFULLVERSION [$FPCDATE] for $FPCCPU
-Copyright (c) 1993-2025 by Florian Klaempfl and others
+Copyright (c) 1993-2026 by Florian Klaempfl and others
 ]
 
 #
@@ -2416,25 +2416,25 @@ Copyright (c) 1993-2025 by Florian Klaempfl and others
 option_info=11024_[
 Free Pascal Compiler version $FPCVERSION
 
-ъашйк одгш : $FPCDATE
-одгш мотбг: $FPCCPU
+пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ : $FPCDATE
+пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ: $FPCCPU
 
-отшлеъ дфтмд ръолеъ:
+пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ:
   $OSTARGETS
 
-дешаеъ отбг ръолеъ:
+пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ:
   $INSTRUCTIONSETS
 
-дешаеъ ръолеъ щм йзйгъ рчегд цфд:
+пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ:
   $FPUINSTRUCTIONSETS
 
-ъойлъ дойиеб:
+пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ:
   $OPTIMIZATIONS
 
-дъелрд оевщъ ъзъ шйщйеп GNU General Public License
-мойгт ресу йщ мчшеа аъ COPYING.v2
+пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ GNU General Public License
+пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ COPYING.v2
 
-гйеез тм ъчмеъ (бавйн), дцтеъ еле':
+пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅ), пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ':
                  https://bugs.freepascal.org
 ]
 
@@ -2459,250 +2459,250 @@ Free Pascal Compiler version $FPCVERSION
 #  The third character represents the indentation level.
 #
 option_help_pages=11025_[
-**0*_десу аъ дсйоп + мазш афщшеъ оъв бемйарй мафщш аъ дафщшеъ, десу аъ дсйоп - мбим аъ дафщшеъ
-**1a_додгш айре оезч аъ чебх дassembler щрецш
-**2al_шещн шщйод щм щешеъ чег очеш бчебх дassembler
-**2an_шщйоъ ойгт щм цоъйн бчебх дassembler
-*L2ap_дщъощ бцйрешеъ бочен чбцй assembler жорййн
-**2ar_шщйод аегеъ шйщен щм дчцад/щзшеш бчебх дassembler
-**2at_шщйод жорйъ аегеъ дчцад/щзшеш бчебх дassembler
-**1A<x>_ъсгйшй фми:
-**2Adefault_дщъощ боасу бшйшъ озгм
-3*2Aas_асеу тн GNU AS
-3*2Anasmcoff_чебх COFF (Go32v2) бщйоещ тн Nasm
-3*2Anasmelf_чебх ELF32 (Linux) бщйоещ тн Nasm
-3*2Anasmwin32_чебх аебййчи Win32 бщйоещ тн Nasm
-3*2Anasmwdosx_чебх аебййчи Win32/WDOSX бщйоещ тн Nasm
-3*2Awasm_чебх obj бщйоещ тн Wasm (Watcom)
-3*2Anasmobj_чебх obj бщйоещ тн Nasm
-3*2Amasm_чебх obj бщйоещ тн Masm (Microsoft)
-3*2Atasm_чебх obj бщйоещ Tasm (Borland)
-3*2Aelf_чебх ELF32 (Linux) бщйоещ леъб фрйой
-3*2Acoff_чебх OFF (Go32v2) бщйоещ леъб фрйой
-3*2Apecoff_чебх pecoff (Win32) бщйоещ леъб фрйой
-4*2Aas_асеу тн GNU AS
-6*2Aas_чебх-o Unix бщйоещ GNU AS
+**0*_пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ + пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ - пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+**1a_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅassembler пїЅпїЅпїЅпїЅпїЅ
+**2al_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅassembler
+**2an_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅassembler
+*L2ap_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ assembler пїЅпїЅпїЅпїЅпїЅпїЅ
+**2ar_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ/пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅassembler
+**2at_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ/пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅassembler
+**1A<x>_пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ:
+**2Adefault_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
+3*2Aas_пїЅпїЅпїЅпїЅ пїЅпїЅ GNU AS
+3*2Anasmcoff_пїЅпїЅпїЅпїЅ COFF (Go32v2) пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ Nasm
+3*2Anasmelf_пїЅпїЅпїЅпїЅ ELF32 (Linux) пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ Nasm
+3*2Anasmwin32_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ Win32 пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ Nasm
+3*2Anasmwdosx_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ Win32/WDOSX пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ Nasm
+3*2Awasm_пїЅпїЅпїЅпїЅ obj пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ Wasm (Watcom)
+3*2Anasmobj_пїЅпїЅпїЅпїЅ obj пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ Nasm
+3*2Amasm_пїЅпїЅпїЅпїЅ obj пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ Masm (Microsoft)
+3*2Atasm_пїЅпїЅпїЅпїЅ obj пїЅпїЅпїЅпїЅпїЅпїЅ Tasm (Borland)
+3*2Aelf_пїЅпїЅпїЅпїЅ ELF32 (Linux) пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
+3*2Acoff_пїЅпїЅпїЅпїЅ OFF (Go32v2) пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
+3*2Apecoff_пїЅпїЅпїЅпїЅ pecoff (Win32) пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
+4*2Aas_пїЅпїЅпїЅпїЅ пїЅпїЅ GNU AS
+6*2Aas_пїЅпїЅпїЅпїЅ-o Unix пїЅпїЅпїЅпїЅпїЅпїЅ GNU AS
 6*2Agas_GNU Motorola assembler
-6*2Amit_MIT Syntax (GAS йщп)
-6*2Amot_Motorola assembler ъчрй
-A*2Aas_асеу тн GNU AS
-P*2Aas_асеу тн GNU AS
-S*2Aas_асеу тн GNU AS
-**1b_ййцш ойгт мгфгеу
-**2bl_ййцш ойгт тм сомйн очеоййн
-**1B_брд аъ лм доегемйн
-**1C<x>_афщшейеъ йцйшъ чег:
-**2Cc<x>_чебт оеслоеъ дфтмд бшйшъ озгм м <с>
-**2CD_цеш вн сфшййд гйраойъ (ма ръок)
-**2Ce_одгш тн дгоййд щм opcodes дщййлйн мрчегд цфд
-**2Cf<x>_бзш дешаеъ FPU мщйоещ, шад fpc -i мтшлйн афщшййн
-**2CF<x>_гйеч рчегд тщшерйъ чбетд ойрйомйъ (default, 32, 64)
-**2Cg_цеш чег PIC
-**2Ch<n>_лоеъ щм <n> бъйн м оцбеш (бйп 1023 е67107840)
-**2Ci_бгйчъ IO
-**2Cn_дщои оцб чйщеш
-**2Co_бгеч вмйщд щм фтемеъ осфш щмн
-**2CO_бгеч тбеш фтемеъ вмйщд афщшейеъ щм осфш щмн
-**2Cp<x>_бзш чбецъ дешаеъ, шад fpc -i мтшлйн афщшййн
-**2CP<x>=<y>_двгшеъ ашйжд
-**3CPPACKSET=<y>_ <y> осгш дчцад: 0, 1 ае DEFAULT ае NORMAL, 2, 4 е 8
-**2Cr_бгйчъ иеез
-**2CR_еега чшйад ъчйрд моъегд
-**2Cs<n>_чбт вегм озсрйъ м <n>
-**2Ct_бгйчъ озсрйъ
-**2CX_цеш вн сфшййд щм чйщеш злн
-**1d<x>_овгйш аъ дсом <x>
-**1D_йецш чебх DEF
-**2Dd<x>_йецш ъаеш м <x>
-**2Dv<x>_йецш вшсъ DLL м <x>
-*O2Dw_йщен PM
-**1e<x>_чебт ръйб мчебх шйцд
-**1E_ждд м -Cn
-**1fPIC_ждд м -Cg
-**1F<x>_чебт щн чбцйн еойчеойн:
-**2Fa<x>[,y]_чегн иетп аъ дйзйгеъ <x> е [y] шащереъ, мфрй рйъез щешъ д uses
-**2Fc<x>_чебт чег гу щм чми м<x>
-**2FC<x>_чбт щн одгш RC бйрашй м <x>
-**2FD<x>_чебт аъ дсфшййд бд афщш мзфщ аъ лмй дтжш щм додгш
-**2Fe<x>_дфрд дегтеъ щвйад м<x>
-**2Ff<x>_десу аъ <x> мръйб досвшъ (шч б Darwin)
-**2FE<x>_дфрд фми щм exe/unit мръйб <x>
-**2Fi<x>_оесйу аъ <x> мшщйоъ дръйбйн
-**2Fl<x>_оесйу аъ <x> мшщйоъ дръйбйн щм дсфшйд
-**2FL<x>_ощъощ б<x> лочщш гйраой
-**2Fm<x>_иетп ибмъ дошд щм йерйчег одчебх x>.txt> осфшййъ додгш
-**2Fo<x>_оесйу аъ <x> мшщйръ дръйбйн щм аебййчи
-**2Fr<x>_иетп чебх дегтеъ щвйад <x>
-**2FR<x>_чбт очщш мчебх res м <x>
-**2Fu<x>_оесйу аъ <x> мшщйоъ дръйбйн щм йзйгд
-**2FU<x>_чебт аъ дойчен дфми щм дйзйгеъ м <x> еощлъб аъ -FE
-*g1g_йецш ойгт мрйфей щвйаеъ
-*g2gc_йецш бгйчеъ моцбйтйн
-*g2gh_дщъощ бйзйгд heaptrace (тбеш гмйфеъ жлшеп/бтйеъ брйфей щвйаеъ)
-*g2gl_дщъощ бйзйгъ ойгт щм щешд мдцйв ойгт ресу мbacktraces
-*g2go<x>_цеш афщшейеъ мрйфей щвйаеъ
-*g3godwarfsets_афщш ойгт мрйдем ойгт тбеш рйфей щвйаеъ щм Dwarf (щебш аъ gdb < 6.5)
-*g2gp_ощош вегм щоеъ сомй дstabs
-*g2gs_оййцш ойгт мрйфей щвйаеъ stub
-*g2gt_млмк ощърйн очеоййн (мжйдей ойгт ма оаеъзм)
-*g2gv_оййцш ъелреъ тн йлемъ отчб щм valgrind
-*g2gw_оййцш ойгт мрйфей щвйаеъ мdwarf
-*g2gw2_ойцш ойгт мрйфей щвйаеъ dwarf-2
-*g2gw3_ойцш ойгт мрйфей щвйаеъ dwarf-3
-**1i_ойгт
-**2iD_дцв ъашйк додгш
-**2iV_дцв вшсъ додгш
-**2iW_дцв вшсд омад щм додгш
-**2iSO_дцв отшлъ дфтмд щм додгш
-**2iSP_дцв вшсъ отбг щм додгш
-**2iTO_дцв аъ доишд щм отшлъ ддфтмд 
-**2iTP_дцв аъ доишд щм дотбг
-**1I<x>_десу аъ <x> мшщйоъ дръйбйн мдесфд
-**1k<x>_дтбш аъ <x> мочщш
-**1l_лъеб сомйм
-**1M<x>_двгш оцб щфд м <x>
-**2Mfpc_гйамчи щм Free Pascal (бшйшъ озгм)
-**2Mobjfpc_афщш лод ъесфеъ щм Delphi 2
-**2Mdelphi_орсд мдйеъ ъеан Delphi
-**2Mtp_орсд мдйеъ ъеан м TP/BP 7.0
-**2Mmacpas_орсд мдйеъ ъеан ммдв щм Macintosh Pascal
-**1n_ам ъчша аъ чебх двгшеъ бшйшъ дозгм
-**1o<x>_щрд аъ щн чебх дшйцд щдъчбм м <x>
-**1O<x>_ойиебйн:
-**2O-_бим ойиеб
-**2O1_ойиеб шод 1 (одйш еиеб мрйфей щвйаеъ)
-**2O2_ойиеб шод 2 (-O1 + ойиеб одйш)
-**2O3_ойиеб шод 3 (-O2 + ойиеб айий)
-**2Oa<x>=<y>_чбт ййщеш
-**2Oo[NO]<x>_т"о мафщш ае мафщш ойиебйн, шад fpc -i мафщшейеъ
-**2Op<x>_мчбйтъ ойиеб мотбг рбзш, шад fpc -i мафщшейеъ
-**2Os_цеш чег чип
-**1pg_цеш чег фшефйм тбеш gprof (овгйш аъ FPC_PROFILE)
-**1R<x>_свреп чшйаъ дасу:
-**2Rdefault_дщъощ боасу бшйшъ озгм
-3*2Ratt_чша свреп очщш щм AT&T
-3*2Rintel_чша свреп очщш щм Intel
-4*2Ratt_чша свреп очщш щм AT&T
-4*2Rintel_чша свреп очщш щм Intel
-8*2Ratt_чша свреп очщш щм AT&T
-8*2Rintel_чша свреп очщш щм Intel
-6*2RMOT_чша свреп очщш щм Motorola
-**1S<x>_афщшейеъ ъзбйш:
-**2S2_ждд м -Mobjfpc
-**2Sc_ъеок аефшиешйн бсвреп C (*=, +=, /= е -=)
-**2Sa_десу чег итръ ърай чбйтд (assertion)
-**2Sd_ждд м -Mdelphi
-**2Se<x>_афщшейеъ щвйад. <x> дйре дщймеб дба:
-**3*_<n> : додгш тецш мазш <n> щвйаеъ (бшйшъ озгм дйа 1)
-**3*_w : додгш тецш вн мазш аждшеъ
-**3*_n : додгш тецш мазш дтшеъ
-**3*_h : додгш тецш мазш шожйн
-**2Sg_афщш LABEL е GOTO
-**2Sh_дщъощ б ansistrings
-**2Si_ъоек бсвреп C++ щм INLINE
-**2Sk_итп аъ дйзйгд fpcylix
-**2SI<x>_чбт свреп оощч м<x>
-**3SIcom_ъеан оощчй COM (бшйшъ озгм)
-**3SIcorba_ъеан оощчй CORBA
-**2Sm_ъоек бочше геойн мC (вмебмййн)
-**2So_ждд м -Mtp
-**2Ss_щн йецш зййб мдйеъ init (щн дешс зййб мдйеъ done)
-**2Sx_афщш оймеъ офъз мexception (бшйшъ озгм боцбй Delphi/ObjFPC)
-**1s_ам ъчша моасу едочщш
-**2sh_цеш ъсшйи мчйщеш боашз
-**2st_цеш ъсшйи мчйщеш боишд
-**2sr_гмв тм шйщен дчцаъ оефт (дщъощ бййзг тн -alr)
-**1T<x>_оишъ отшлъ ддфтмд:
-3*2Temx_OS/2 бщйоещ EMX ( бййзг тн дшзбъ EMX/RSX)
+6*2Amit_MIT Syntax (GAS пїЅпїЅпїЅ)
+6*2Amot_Motorola assembler пїЅпїЅпїЅпїЅ
+A*2Aas_пїЅпїЅпїЅпїЅ пїЅпїЅ GNU AS
+P*2Aas_пїЅпїЅпїЅпїЅ пїЅпїЅ GNU AS
+S*2Aas_пїЅпїЅпїЅпїЅ пїЅпїЅ GNU AS
+**1b_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
+**2bl_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+**1B_пїЅпїЅпїЅ пїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+**1C<x>_пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ:
+**2Cc<x>_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅ <пїЅ>
+**2CD_пїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅ пїЅпїЅпїЅпїЅ)
+**2Ce_пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ opcodes пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ
+**2Cf<x>_пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ FPU пїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅ fpc -i пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+**2CF<x>_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (default, 32, 64)
+**2Cg_пїЅпїЅпїЅ пїЅпїЅпїЅ PIC
+**2Ch<n>_пїЅпїЅпїЅпїЅ пїЅпїЅ <n> пїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅ 1023 пїЅ67107840)
+**2Ci_пїЅпїЅпїЅпїЅпїЅ IO
+**2Cn_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
+**2Co_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ
+**2CO_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ
+**2Cp<x>_пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅ fpc -i пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+**2CP<x>=<y>_пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
+**3CPPACKSET=<y>_ <y> пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ: 0, 1 пїЅпїЅ DEFAULT пїЅпїЅ NORMAL, 2, 4 пїЅ 8
+**2Cr_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
+**2CR_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
+**2Cs<n>_пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ <n>
+**2Ct_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
+**2CX_пїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ
+**1d<x>_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ <x>
+**1D_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ DEF
+**2Dd<x>_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅ <x>
+**2Dv<x>_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ DLL пїЅ <x>
+*O2Dw_пїЅпїЅпїЅпїЅ PM
+**1e<x>_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
+**1E_пїЅпїЅпїЅ пїЅ -Cn
+**1fPIC_пїЅпїЅпїЅ пїЅ -Cg
+**1F<x>_пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ:
+**2Fa<x>[,y]_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ <x> пїЅ [y] пїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅ uses
+**2Fc<x>_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅ пїЅпїЅ пїЅпїЅпїЅ пїЅ<x>
+**2FC<x>_пїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ RC пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ <x>
+**2FD<x>_пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
+**2Fe<x>_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅ<x>
+**2Ff<x>_пїЅпїЅпїЅпїЅ пїЅпїЅ <x> пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅ пїЅ Darwin)
+**2FE<x>_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅ exe/unit пїЅпїЅпїЅпїЅпїЅ <x>
+**2Fi<x>_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ <x> пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+**2Fl<x>_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ <x> пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
+**2FL<x>_пїЅпїЅпїЅпїЅпїЅ пїЅ<x> пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
+**2Fm<x>_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ x>.txt> пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
+**2Fo<x>_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ <x> пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+**2Fr<x>_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ <x>
+**2FR<x>_пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ res пїЅ <x>
+**2Fu<x>_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ <x> пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
+**2FU<x>_пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ <x> пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ -FE
+*g1g_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
+*g2gc_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+*g2gh_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ heaptrace (пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ/пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ)
+*g2gl_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅbacktraces
+*g2go<x>_пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
+*g3godwarfsets_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ Dwarf (пїЅпїЅпїЅпїЅ пїЅпїЅ gdb < 6.5)
+*g2gp_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅstabs
+*g2gs_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ stub
+*g2gt_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ)
+*g2gv_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ valgrind
+*g2gw_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅdwarf
+*g2gw2_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ dwarf-2
+*g2gw3_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ dwarf-3
+**1i_пїЅпїЅпїЅпїЅ
+**2iD_пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
+**2iV_пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
+**2iW_пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
+**2iSO_пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
+**2iSP_пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
+**2iTO_пїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
+**2iTP_пїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
+**1I<x>_пїЅпїЅпїЅпїЅ пїЅпїЅ <x> пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
+**1k<x>_пїЅпїЅпїЅпїЅ пїЅпїЅ <x> пїЅпїЅпїЅпїЅпїЅ
+**1l_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
+**1M<x>_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅ пїЅ <x>
+**2Mfpc_пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ Free Pascal (пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ)
+**2Mobjfpc_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ Delphi 2
+**2Mdelphi_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ Delphi
+**2Mtp_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅ TP/BP 7.0
+**2Mmacpas_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ Macintosh Pascal
+**1n_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
+**1o<x>_пїЅпїЅпїЅ пїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ <x>
+**1O<x>_пїЅпїЅпїЅпїЅпїЅпїЅпїЅ:
+**2O-_пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
+**2O1_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ 1 (пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ)
+**2O2_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ 2 (-O1 + пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ)
+**2O3_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ 3 (-O2 + пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ)
+**2Oa<x>=<y>_пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
+**2Oo[NO]<x>_пїЅ"пїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅ fpc -i пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+**2Op<x>_пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ, пїЅпїЅпїЅ fpc -i пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+**2Os_пїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅ
+**1pg_пїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ gprof (пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ FPC_PROFILE)
+**1R<x>_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ:
+**2Rdefault_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
+3*2Ratt_пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ AT&T
+3*2Rintel_пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ Intel
+4*2Ratt_пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ AT&T
+4*2Rintel_пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ Intel
+8*2Ratt_пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ AT&T
+8*2Rintel_пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ Intel
+6*2RMOT_пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ Motorola
+**1S<x>_пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ:
+**2S2_пїЅпїЅпїЅ пїЅ -Mobjfpc
+**2Sc_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ C (*=, +=, /= пїЅ -=)
+**2Sa_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ (assertion)
+**2Sd_пїЅпїЅпїЅ пїЅ -Mdelphi
+**2Se<x>_пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ. <x> пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ:
+**3*_<n> : пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ <n> пїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ 1)
+**3*_w : пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
+**3*_n : пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
+**3*_h : пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
+**2Sg_пїЅпїЅпїЅпїЅ LABEL пїЅ GOTO
+**2Sh_пїЅпїЅпїЅпїЅпїЅ пїЅ ansistrings
+**2Si_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ C++ пїЅпїЅ INLINE
+**2Sk_пїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ fpcylix
+**2SI<x>_пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅ<x>
+**3SIcom_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ COM (пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ)
+**3SIcorba_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ CORBA
+**2Sm_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅC (пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ)
+**2So_пїЅпїЅпїЅ пїЅ -Mtp
+**2Ss_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ init (пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ done)
+**2Sx_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅexception (пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ Delphi/ObjFPC)
+**1s_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
+**2sh_пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
+**2st_пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
+**2sr_пїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ -alr)
+**1T<x>_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ:
+3*2Temx_OS/2 пїЅпїЅпїЅпїЅпїЅпїЅ EMX ( пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ EMX/RSX)
 3*2Tfreebsd_FreeBSD
-3*2Tgo32v2_вшсд 2 щм дшзбъ DJ Delorie DOS 
+3*2Tgo32v2_пїЅпїЅпїЅпїЅ 2 пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ DJ Delorie DOS
 3*2Tlinux_Linux
 3*2Tnetbsd_NetBSD
 3*2Tnetware_Novell Netware Module (clib)
 3*2Tnetwlibc_Novell Netware Module (libc)
 3*2Topenbsd_OpenBSD
 3*2Tos2_OS/2 / eComStation
-3*2Twatcom_Watcom ъеан дшзбъ DOS
-3*2Twdosx_WDOSX дшзбъ DOS
-3*2Twin32_Windows 32 сйбйеъ
+3*2Twatcom_Watcom пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ DOS
+3*2Twdosx_WDOSX пїЅпїЅпїЅпїЅпїЅ DOS
+3*2Twin32_Windows 32 пїЅпїЅпїЅпїЅпїЅпїЅ
 3*2Twince_Windows CE
 4*2Tlinux_Linux
 6*2Tamiga_Commodore Amiga
 6*2Tatari_Atari ST/STe/TT
 6*2Tlinux_Linux/m68k
-6*2Tmacos_Macintosh m68k (ма ръок)
+6*2Tmacos_Macintosh m68k (пїЅпїЅ пїЅпїЅпїЅпїЅ)
 6*2Tpalmos_PalmOS
 A*2Tlinux_Linux
 A*2Twince_Windows CE
-P*2Tamiga_AmigaOS тм PowerPC
-P*2Tdarwin_Darwin е Mac OS X тм PowerPC
-P*2Tlinux_Linux тм PowerPC
-P*2Tmacos_Mac OS (чмасй) тм PowerPC
+P*2Tamiga_AmigaOS пїЅпїЅ PowerPC
+P*2Tdarwin_Darwin пїЅ Mac OS X пїЅпїЅ PowerPC
+P*2Tlinux_Linux пїЅпїЅ PowerPC
+P*2Tmacos_Mac OS (пїЅпїЅпїЅпїЅпїЅ) пїЅпїЅ PowerPC
 P*2Tmorphos_MorphOS
 S*2Tlinux_Linux
-**1u<x>_осйш аъ ддвгшд щм дсом <x>
-**1U_двгшеъ йзйгд:
-**2Un_ам ъбгеч аъ щн дйзйгд
-**2Ur_цеш чбцй щзшеш щм йзйгеъ
-**2Us_дгш аъ йзйгъ дsystem
-**1v<x>_ъдйд офеши йеъш. <x> дйре щймеб щм дъеейн дбайн:
-**2*_e : дцв дегтеъ щвйад (бшйшъ озгм)
-**2*_0 : ам ъцйв лмен (моти дегтеъ щвйад)
-**2*_w : дцв аждшеъ
-**2*_u : дцв ойгт тм йзйгд
-**2*_n : дцв дтшеъ
-**2*_t : дцв чбцйн щдйе бщйоещ
-**2*_h : дцв шожйн
-**2*_c : дцв ърайн
-**2*_i : дцв ойгт лммй
-**2*_d : дцв ойгт мрфей щвйаеъ
-**2*_l : дцв осфшй щешеъ
-**2*_r : оцб ъеан Rhide/GCC
-**2*_a : дцв длем
-**2*_x : дцв ойгт тм чебх дшйцд (шч бWin32)
-**2*_b : лъеб дегтеъ тн щоеъ чбцйн еръйбйн омайн
-**2*_v : лъеб аъ дчебх fpcdebug.txt тн дшбд ойгт тм рйфей щвйаеъ
-**2*_p : лъеб аъ дчебх tree.log тн рйъез тх
-3*1W<x>_афщшеъ обессъ оишд (оишеъ)
-A*1W<x>_афщшеъ обессъ оишд (оишеъ)
-P*1W<x>_афщшеъ обессъ оишд (оишеъ)
-3*2Wb_цеш збймд бочен сфшййд (Darwin)
-P*2Wb_цеш збймд бочен сфшййд (Darwin)
-p*2Wb_цеш збймд бочен сфшййд (Darwin)
-3*2WB_цеш ъоерд дрйъръ мойчен озегщ (Windows)
-A*2WB_цеш ъоерд дрйъръ мойчен озегщ (Windows, Symbian)
-3*2WC_оцййп афмйчцйд осев осеу (EMX, OS/2, Windows)
-A*2WC_оцййп афмйчцйд осев осеу (Windows)
-P*2WC_оцййп афмйчцйд осев осеу (Classic Mac OS)
-3*2WD_дщъощ б DEFFILE мййца фрчцйеъ щм DLL ае EXE (Windows)
-A*2WD_дщъощ б DEFFILE мййца фрчцйеъ щм DLL ае EXE (Windows)
-3*2WF_оцййп афмйчцйд осев оск ома (EMX, OS/2)
-3*2WG_оцййп афмйчцйд осев вшфй (EMX, OS/2, Windows)
-A*2WG_оцййп афмйчцйд осев вшфй (Windows)
-P*2WG_оцййп афмйчцйд осев вшфй (Classic Mac OS)
-3*2WN_ам ъцеш чег ощрд ойчен, ргшщ тбеш рйфей щвйаеъ (Windows)
-A*2WN_ам ъцеш чег ощрд ойчен, ргшщ тбеш рйфей щвйаеъ (Windows)
-3*2WR_ъйцеш чег ощрд ойчен (Windows)
-A*2WR_ъйцеш чег ощрд ойчен (Windows)
-P*2WT_цййп афмйчцйд осев лмй MPW (Classic Mac OS)
-**1X_двгшеъ шйцд:
-**2Xc_дтбш --shared/-dynamic мочщш (BeOS, Darwin, FreeBSD, Linux)
-**2Xd_ам ъщъощ бръйб зйфещ дсфшйеъ дсиргшийеъ (ргшщ тбеш дйгеш машлйичиешеъ азшеъ)
-**2Xe_дщъощ бочщш зйцерй
-**2XD_рсд мчщш йзйгеъ бцешд гйраойъ (овгйш FPC_LINK_DYNAMIC)
-**2Xi_дщъощ бочщш фрйой
-**2Xm_цеш офъ чйщешйн
-**2XM<x>_двгш аъ дщн щм шеийрд д'тйчшйъ' щм дъелрд (бшйшъ озгм деа 'main')
-**2XP<x>_цшу аъ дщоеъ довйтйн тн дъзймйъ <x> оbinutils
-**2Xr<x>_двгш аъ ръйб зйфещ дсфшйеъ м <x> (ргшщ тбеш дйгеш машлйичиешеъ азшеъ) (BeOS, Linux)
-**2XR<x>_цшу аъ <x> млм ръйбй дзйфещ щм дочщш (BeOS, Darwin, FreeBSD, Linux, Mac OS, Solaris)
-**2Xs_рчд аъ лм дсомйн очбцй ддшцд
-**2XS_рсд мчщш йзйгеъ бцешд сиийъ (бшйшъ озгм, овгйш FPC_LINK_STATIC)
-**2Xt_чщш тн сфшйеъ сиийеъ (отбйш -static мочщш)
-**2XX_ърсд мбцт smartlink мйзйгеъ (овгйш FPC_LINK_SMART)
+**1u<x>_пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ <x>
+**1U_пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ:
+**2Un_пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
+**2Ur_пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
+**2Us_пїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅsystem
+**1v<x>_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ. <x> пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ:
+**2*_e : пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ)
+**2*_0 : пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ)
+**2*_w : пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
+**2*_u : пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
+**2*_n : пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
+**2*_t : пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
+**2*_h : пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
+**2*_c : пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
+**2*_i : пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
+**2*_d : пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
+**2*_l : пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
+**2*_r : пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ Rhide/GCC
+**2*_a : пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
+**2*_x : пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ (пїЅпїЅ пїЅWin32)
+**2*_b : пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
+**2*_v : пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ fpcdebug.txt пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
+**2*_p : пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ tree.log пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ
+3*1W<x>_пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅ)
+A*1W<x>_пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅ)
+P*1W<x>_пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅ)
+3*2Wb_пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ (Darwin)
+P*2Wb_пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ (Darwin)
+p*2Wb_пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ (Darwin)
+3*2WB_пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ (Windows)
+A*2WB_пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ (Windows, Symbian)
+3*2WC_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ (EMX, OS/2, Windows)
+A*2WC_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ (Windows)
+P*2WC_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ (Classic Mac OS)
+3*2WD_пїЅпїЅпїЅпїЅпїЅ пїЅ DEFFILE пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ DLL пїЅпїЅ EXE (Windows)
+A*2WD_пїЅпїЅпїЅпїЅпїЅ пїЅ DEFFILE пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ DLL пїЅпїЅ EXE (Windows)
+3*2WF_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅ (EMX, OS/2)
+3*2WG_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ (EMX, OS/2, Windows)
+A*2WG_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ (Windows)
+P*2WG_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ (Classic Mac OS)
+3*2WN_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ (Windows)
+A*2WN_пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ (Windows)
+3*2WR_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ (Windows)
+A*2WR_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ (Windows)
+P*2WT_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ MPW (Classic Mac OS)
+**1X_пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ:
+**2Xc_пїЅпїЅпїЅпїЅ --shared/-dynamic пїЅпїЅпїЅпїЅпїЅ (BeOS, Darwin, FreeBSD, Linux)
+**2Xd_пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ)
+**2Xe_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
+**2XD_пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅ FPC_LINK_DYNAMIC)
+**2Xi_пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
+**2Xm_пїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+**2XM<x>_пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ'пїЅпїЅпїЅпїЅпїЅпїЅ' пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ 'main')
+**2XP<x>_пїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ <x> пїЅbinutils
+**2Xr<x>_пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ <x> (пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ) (BeOS, Linux)
+**2XR<x>_пїЅпїЅпїЅ пїЅпїЅ <x> пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ (BeOS, Darwin, FreeBSD, Linux, Mac OS, Solaris)
+**2Xs_пїЅпїЅпїЅ пїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
+**2XS_пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅ FPC_LINK_STATIC)
+**2Xt_пїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅ -static пїЅпїЅпїЅпїЅпїЅ)
+**2XX_пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ smartlink пїЅпїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅ FPC_LINK_SMART)
 **1*_
-**1?_дцв аъ тжшд же
-**1h_дцв тжшд же мма мзлеъ
+**1?_пїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ
+**1h_пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 
 ]
 
