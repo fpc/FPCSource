@@ -1832,7 +1832,7 @@ implementation
         { on Windows/(PE)COFF, global symbols are hidden by default: global
           symbols that are not explicitly exported from an executable/library,
           become hidden }
-        if (target_info.system in (systems_windows+systems_wince+systems_nativent)) then
+        if (target_info.system in (systems_windows+systems_wince+systems_nativent+[system_i386_go32v2])) then
           exit;
         if target_info.system in systems_darwin then
           writer.AsmWrite(#9'.private_extern ')

@@ -30,7 +30,7 @@
 #   exec_     calls to assembler, external linker, binder
 #   link_     internal linker
 #   package_  package handling
-#   sym_      symbol handling 
+#   sym_      symbol handling
 #
 # <type> the type of the message it should normally used for
 #   f_   fatal error
@@ -3926,7 +3926,7 @@ package_u_ppl_filename=13029_U_PPL filename $1
 #
 option_logo=11023_[
 Free Pascal Compiler version $FPCFULLVERSION [$FPCDATE] for $FPCCPU
-Copyright (c) 1993-2025 by Florian Klaempfl and others
+Copyright (c) 1993-2026 by Florian Klaempfl and others
 ]
 
 #
@@ -4453,7 +4453,7 @@ W*2Twasip1threads_The WebAssembly System Interface Preview 1 with Multithreading
 W*2Twasip2_The WebAssembly System Interface Preview 2 (WASI 0.2) (experimental)
 # end of targets section
 **1t<x>_Target architecture
-**2*_ * Defines FPC_SUBTARGET_<x> 
+**2*_ * Defines FPC_SUBTARGET_<x>
 **2*_ * Defines FPC_SUBTARGET as <arg>
 **2*_ * Additionally reads config file fpc-<subtarget>.cfg
 **1u<x>_Undefines the symbol <x>

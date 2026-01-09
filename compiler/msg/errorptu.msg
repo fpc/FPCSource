@@ -1872,7 +1872,7 @@ type_e_ordinal_or_string_expr_expected=04088_E_Ordinal ou expressão 'string' es
 type_e_string_expr_expected=04089_E_Expressão 'string' esperada
 % The expression must be a string type.
 type_w_zero_to_nil=04090_W_Convertendo 0 para NIL
-% Use NIL rather than 0 when initialising a pointer. 
+% Use NIL rather than 0 when initialising a pointer.
 type_e_protocol_type_expected=04091_E_Tipo protocolo Objective-C esperado, mas obtido "$1"
 % The compiler expected a protocol type name, but found something else.
 type_e_objc_type_unsupported=04092_E_O tipo "$1" não é suportado para interação com código Objective-C de tempo execução.
@@ -2199,7 +2199,7 @@ sym_w_deprecated_symbol_with_msg=05066_W_Símbolo "$1" está depreciado: "$2"
 % should be avoided as much as possible.
 sym_e_no_enumerator=05067_E_Impossível encontrar um enumerador para o tipo "$1"
 % This means that compiler cannot find an apropriate enumerator to use in the for-in loop.
-% To create an enumerator you need to defind an operator enumerator or add a public or published 
+% To create an enumerator you need to defind an operator enumerator or add a public or published
 % GetEnumerator method to the class or object definition.
 sym_e_no_enumerator_move=05068_E_Impossível encontrar um método "MoveNext" no enumerador "$1"
 % This means that compiler cannot find a public MoveNext method with the Boolean return type in
@@ -3514,7 +3514,7 @@ wpo_cant_create_feedback_file=12019_E_Impossível criar arquivo retorno otimiza�
 #
 option_logo=11023_[
 Compilador Free Pascal versão $FPCFULLVERSION [$FPCDATE] para $FPCCPU
-Copyright (c) 1993-2025 by Florian Klaempfl and others
+Copyright (c) 1993-2026 by Florian Klaempfl and others
 ]
 
 #
