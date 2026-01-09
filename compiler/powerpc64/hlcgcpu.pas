@@ -56,17 +56,24 @@ implementation
   procedure thlcgcpu.a_load_subsetreg_reg(list: TAsmList; subsetsize, tosize: tdef; const sreg: tsubsetregister; destreg: tregister);
     var
       subsetcgsize: tcgsize;
+      tocgsize: tcgsize;
+      bitlen, ssbitlen, tobitlen: word;
     begin
       subsetcgsize:=def_cgsize(subsetsize);
+      tocgsize:=def_cgsize(tosize);
+      bitlen:=sreg.bitlen;
+      tobitlen:=tcgsize2size[tocgsize]*8;
+      ssbitlen:=tcgsize2size[subsetcgsize]*8;
 {$ifdef extdebug}
-      list.concat(tai_comment.create(strpnew('a_load_subsetreg_reg subsetregsize = ' + tcgsize2str(sreg.subsetregsize) + ' subsetsize = ' + tcgsize2str(subsetcgsize) + ' startbit = ' + ToStr(sreg.startbit) + ' tosize = ' + tcgsize2str(def_cgsize(tosize)))));
+      list.concat(tai_comment.create(strpnew('a_load_subsetreg_reg subsetregsize = ' + tcgsize2str(sreg.subsetregsize) + ' subsetsize = ' + tcgsize2str(subsetcgsize) + ' startbit = ' + ToStr(sreg.startbit) + ' tosize = ' + tcgsize2str(tocgsize))));
 {$endif}
       { do the extraction if required and then extend the sign correctly. (The latter is actually required only for signed subsets
       and if that subset is not >= the tosize). }
-      if (sreg.startbit<>0) or
-         (sreg.bitlen<>tcgsize2size[subsetcgsize]*8) then
+      if (sreg.startbit<>0) or (bitlen<>ssbitlen) or (bitlen<>ssbitlen) then
         begin
-          list.concat(taicpu.op_reg_reg_const_const(A_RLDICL,destreg,sreg.subsetreg,(64-sreg.startbit) and 63,64-sreg.bitlen));
+          if (subsetcgsize in [OS_8..OS_128]) and (bitlen>tobitlen) then
+            bitlen:=tobitlen;
+          list.concat(taicpu.op_reg_reg_const_const(A_RLDICL,destreg,sreg.subsetreg,(64-sreg.startbit) and 63,64-bitlen));
           if subsetcgsize in [OS_S8..OS_S128] then
             if (sreg.bitlen mod 8)=0 then
               begin
