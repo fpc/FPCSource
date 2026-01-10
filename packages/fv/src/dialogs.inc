@@ -1854,6 +1854,7 @@ Len, I: Integer;
     i : sw_integer;
     st: sw_string;
     wlen : sw_integer;
+    Event : TEvent;  { For new key event. Has to be local variable, can not reuse parent Event. M. }
    begin
      {$ifdef FV_UNICODE}
      wlen:=ASize*2+2;  { over estimate length }
@@ -1872,14 +1873,15 @@ Len, I: Integer;
        If not assigned(validator) or
           Validator^.IsValidInput(st,False)  then
          Begin
-           Event.What:=evKeyDown;
+           Event.What:=evKeyDown;                     { New key event }
+           Event.KeyShift:=0;                         { Clear shift state }
+           Event.KeyCode:=0;                          { Clear key }
            {$ifdef FV_UNICODE}
-           Event.UnicodeChar:=s[i];
+           Event.UnicodeChar:=s[i];                   { Set unicode char }
            {$else}
-           Event.CharCode:=s[i];
+           Event.CharCode:=s[i];                      { Set char }
            {$endif}
-           Event.Scancode:=0;
-           TInputLine.HandleEvent(Event);             { add pasted chars}
+           TInputLine.HandleEvent(Event);             { Add pasted chars }
          End;
        {$ifndef FV_UNICODE}
        if length(st)=255 then break;
@@ -2036,7 +2038,7 @@ BEGIN
 {$ifdef FV_UNICODE}
            Else Case Event.UnicodeChar Of
              ' '..#$FFFF:   { Character key }
-               if (NOT (GetShiftState AND $04 <> 0)) then { Only insert if Ctrl is not pressed }
+               If (Event.KeyShift AND $04 = 0) Then     { Only insert if Ctrl is not pressed }
                Begin
                  If (State AND sfCursorIns <> 0) Then
                    Delete(Data Sw_PString_DeRef, CurPos + 1, 1) Else    { Overwrite character }
@@ -2062,7 +2064,7 @@ BEGIN
 {$else FV_UNICODE}
            Else Case Event.CharCode Of
              ' '..#255:
-               If (NOT (GetShiftState AND $04 <> 0)) Then { Only insert if Ctrl is not pressed }
+               //If (Event.KeyShift AND $04 = 0) Then       { Only insert if Ctrl is not pressed }
                Begin
                  If Data <> Sw_PString_Empty Then Begin   { Character key }
                    If (State AND sfCursorIns <> 0) Then
