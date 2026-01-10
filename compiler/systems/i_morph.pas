@@ -35,7 +35,8 @@ unit i_morph;
             name         : 'MorphOS';
             shortname    : 'MorphOS';
             flags        : [tf_files_case_aware,tf_requires_proper_alignment,tf_smartlink_sections,
-                            tf_has_winlike_resources,tf_needs_symbol_type,tf_needs_symbol_size];
+                            tf_has_winlike_resources,tf_needs_symbol_type,tf_needs_symbol_size,
+                            tf_supports_hidden_symbols];
             cpu          : cpu_powerpc;
             unit_env     : 'MORPHOSUNITS';
             extradefines : 'HASAMIGA';
