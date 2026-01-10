@@ -3926,7 +3926,7 @@ package_u_ppl_filename=13029_U_PPL filename $1
 #
 option_logo=11023_[
 Free Pascal Compiler version $FPCFULLVERSION [$FPCDATE] for $FPCCPU
-Copyright (c) 1993-2025 by Florian Klaempfl and others
+Copyright (c) 1993-2026 by Florian Klaempfl and others
 ]
 
 #
