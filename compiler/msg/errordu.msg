@@ -6,7 +6,7 @@
 #   Based on errore.msg of git commit 548a07c0, 27 July, 2025
 #
 #   This file is part of the Free Pascal Compiler
-#   Copyright (c) 1998-2026 by the Free Pascal Development team
+#   Copyright (c) 1998-2025 by the Free Pascal Development team
 #
 #   See the file COPYING.v2, included in this distribution,
 #   for details about the copyright.

@@ -93,7 +93,7 @@ general_f_no_memory_left=01009_F_Memori tidak tersisa
 % \begin{itemize}
 % \item Jika anda menggunakan opsi pembangunan kompilator, coba mengompilasi
 % unit-unit berbeda secara manual.
-% \item Jika anda mengompilasi program besar, pisahkan dalam units, dan
+% \item Jika anda mengompilasi program besar, pisahkan dalam units, dan 
 % kompilasi ini secara terpisah.
 % \item Jika kedua item sebelumnya tidak bekerja, rekompilasi kompilator dengan
 % heap lebih besar (anda dapat memakai opsi \var{-Ch} untuk ini, \lihat o{Ch})
@@ -135,7 +135,7 @@ general_i_number_of_notes=01023_I_$1 catatan diterbitkan
 # 02084 is the last used one
 #
 % \section{Pesan pemindai.}
-% Seksi ini mendaftarkan pesan-pesan yang dikeluarkan pemindai. Pemindai
+% Seksi ini mendaftarkan pesan-pesan yang dikeluarkan pemindai. Pemindai 
 % memelihara struktur leksikal atas file pascal, misalnya ia mencoba menemukan
 % kata-kata terpakai, string, dll. Ia juga memelihara direktif dan penanganan
 % kompilasi kondisional.
@@ -179,7 +179,7 @@ scan_t_start_include_file=02004_TL_Mulai membaca file include $1
 % kapan ia mulai membaca sebuah file yang disertakan.
 scan_w_comment_level=02005_W_Tingkat komentar $1 ditemukan
 % Saat saklar \var{-vw} dipakai, maka kompilator memperingatkan anda bila
-% ia menemukan komentar berulang. Komentar berulang tidak dibolehkan dalam
+% ia menemukan komentar berulang. Komentar berulang tidak dibolehkan dalam 
 % Turbo Pascal dan mungkin menjadi sumber kesalahan.
 scan_n_ignored_switch=02008_N_Saklar kompilator "$1" diabaikan
 % Dengan \var{-vn} hidup, kompilator memperingatkan bila ia mengabaikan saklar
@@ -209,10 +209,10 @@ scan_e_illegal_pack_enum=02016_E_Pembeda besar-minimum enum "$1" tidak benar
 scan_e_endif_expected=02017_E_$ENDIF diharapkan untuk $1 $2 didefinisikan dalam $3 baris $4
 % Pernyataan kompilasi kondisional anda tidak seimbang.
 scan_e_preproc_syntax_error=02018_E_Sintaks salah saat mengurai ekspresi kompilasi kondisional
-% Ini adalah kesalahan dalam ekspresi mengikuti direktori kompilator \var{\{\$if ..\}},
+% Ini adalah kesalahan dalam ekspresi mengikuti direktori kompilator \var{\{\$if ..\}}, 
 % $ifc atau $setc.
 scan_e_error_in_preproc_expr=02019_E_Mengevaluasi ekspresi kompilasi kondisional
-% Ini adalah kesalahan dalam ekspresi mengikuti direktori kompilator \var{\{\$if ..\}},
+% Ini adalah kesalahan dalam ekspresi mengikuti direktori kompilator \var{\{\$if ..\}}, 
 % $ifc atau $setc.
 scan_w_macro_cut_after_255_chars=02020_W_Panjang isi makro dibatasi 255 karakter
 % Isi dari makro tidak bisa lebih panjang dari 255 karakter.
@@ -468,7 +468,7 @@ parser_e_destructorname_must_be_done=03014_E_Nama destruktor harus DONE
 % \var{-Ss} dipakai. Lihat saklar \var{-Ss} (\seeo{Ss}).
 parser_e_proc_inline_not_supported=03016_E_Tipe prosedur INLINE tidak didukung
 % Anda mencoba untuk mengompilasi program dengan gaya inline C++, dan lupa
-% menetapkan opsi \var{-Si} (\seeo{Si}). Standarnya kompilator tidak mendukung
+% menetapkan opsi \var{-Si} (\seeo{Si}). Standarnya kompilator tidak mendukung 
 % gaya inline C++.
 parser_w_constructor_should_be_public=03018_W_Konstruktor harus public
 % Konstruktor harus dalam bagian 'public' pada sebuah deklarasi obyek (class).
@@ -518,7 +518,7 @@ parser_n_duplicate_enum=03031_N_Nilai dalam tipe enumerasi harus membesar
 % type a = (A_A,A_B,A_E:=6,A_UAS:=200);
 % type a = (A_A,A_B,A_E:=6,A_UAS:=4);
 % \end{verbatim}
-% Deklarasi kedua akan menghasilkan kesalahan. \var{A\_UAS} perlu mempunyai
+% Deklarasi kedua akan menghasilkan kesalahan. \var{A\_UAS} perlu mempunyai 
 % nilai lebih tinggi daripada \var{A\_E}, misalnya minimal 7.
 parser_e_no_with_for_variable_in_other_segments=03033_E_With tidak bisa dipakai untuk variabel dalam segmen berbeda
 % With menyimpan variabel secara lokal pada stack, tapi ini tidak mungkin
@@ -624,7 +624,7 @@ parser_w_stored_not_implemented=03060_W_Direktif properti tersimpan belum diimpl
 % Direktif \var{stored} belum diimplementasikan
 parser_e_ill_property_access_sym=03061_E_Simbol tidak benar untuk akses properti
 % Ada kesalahan dalam direktif \var{read} atau \var{write} untuk sebuah properti
-% array. Ketika anda mendeklarasikan sebuah properti array, anda hanya bisa
+% array. Ketika anda mendeklarasikan sebuah properti array, anda hanya bisa 
 % mengaksesnya dengan prosedur atau fungsi. Kode berikut akan membuat kesalahan
 % \begin{verbatim}
 % tmyobject = class
@@ -633,18 +633,18 @@ parser_e_ill_property_access_sym=03061_E_Simbol tidak benar untuk akses properti
 % \end{verbatim}
 %
 parser_e_cant_access_protected_member=03062_E_Tidak bisa mengakses field protected pada obyek di sini
-% Field yang dideklarasikan dalam seksi \var{protected} pada deklarasi obyek
-% atau kelas tidak bisa diakses dari luar modul di mana obyek itu
+% Field yang dideklarasikan dalam seksi \var{protected} pada deklarasi obyek 
+% atau kelas tidak bisa diakses dari luar modul di mana obyek itu 
 % didefinisikan, atau di luar metode obyek turunannya.
 parser_e_cant_access_private_member=03063_E_Tidak bisa mengakses field private pada obyek di sini
-% Field yang dideklarasikan dalam seksi \var{private} pada deklarasi obyek
-% atau kelas tidak bisa diakses dari luar modul di mana obyek itu
+% Field yang dideklarasikan dalam seksi \var{private} pada deklarasi obyek 
+% atau kelas tidak bisa diakses dari luar modul di mana obyek itu 
 % didefinisikan, atau di luar metode obyek turunannya.
 parser_e_overridden_methods_not_same_ret=03066_E_Metode yang diganti harus mengembalikan tipe: "$2" diganti oleh "$1" yang menghasilkan tipe lain
 % Jika anda mendeklarasikan metode pengganti dalam definisi kelas, keduanya harus
 % memiliki tipe hasil yang sama.
 parser_e_dont_nest_export=03067_E_Fungsi yang dideklarasikan EXPORT tidak bisa diulang
-% Anda tidak bisa mendeklarasikan sebuah fungsi atau prosedur di dalam function atau
+% Anda tidak bisa mendeklarasikan sebuah fungsi atau prosedur di dalam function atau 
 % procedure yang sudah dideklarasikan sebagai prosedur ekspor.
 parser_e_methods_dont_be_export=03068_E_Method tidak bisa DIEKSPOR
 % Anda tidak bisa mendeklarasikan procedure yang metode obyeknya bisa
@@ -684,7 +684,7 @@ parser_e_invalid_record_const=03078_E_Urutan elemen record tidak benar
 % yang salah.
 parser_e_false_with_expr=03079_E_Tipe ekspresi harus tipe kelas atau record
 % Pernyataan \var{with} memerlukan argumen yang tipenya adalah \var{record}
-% atau \var{class}. Anda mencoba menggunakan \var{with} pada ekspresi yang
+% atau \var{class}. Anda mencoba menggunakan \var{with} pada ekspresi yang 
 % bukan tipe ini.
 parser_e_void_function=03080_E_Prosedur tidak mengembalikan nilai
 % Dalam \fpc, anda dapat menetapkan nilai balik untuk sebuah fungsi saat
@@ -782,10 +782,10 @@ parser_d_compiling_second_time=03107_DL_Mengompilasi $1 untuk kedua kalinya
 % Ketika anda meminta pesan debug (\var{-vd}) kompilator memberitahu anda unit
 % apa yang dikompilasi untuk kedua kalinya.
 parser_e_no_property_found_to_override=03109_E_Tidak ada properti yang ditemukan untuk diganti
-% Anda ingin mengganti sebuah properti dari kelas leluhur, saat ia ada,
+% Anda ingin mengganti sebuah properti dari kelas leluhur, saat ia ada, 
 % kenyataannya, tidak ada properti seperti itu dalam kelas leluhur.
 parser_e_only_one_default_property=03110_E_Hanya sati properti default yang dibolehkan
-% Anda menetapkan properti sebagai \var{Default}, tapi kelas sudah mempunyai
+% Anda menetapkan properti sebagai \var{Default}, tapi kelas sudah mempunyai 
 % properti default, dan kelas hanya dapat memiliki satu properti default.
 parser_e_property_need_paras=03111_E_Properti default harus berupa properti array
 % Hanya properti array dari kelas dapat dibuat menjadi properti \var{default}.
@@ -793,7 +793,7 @@ parser_e_constructor_cannot_be_not_virtual=03112_E_Konstruktor virtual hanya did
 % Anda tidak bisa memiliki konstruktor virtual dalam obyek. Anda hanya memilikinya
 % dalam kelas.
 parser_e_no_default_property_available=03113_E_Tidak ada properti default yang tersedia
-% Anda mencoba mengakses properti default pada sebuah kelas, tapi kelas ini
+% Anda mencoba mengakses properti default pada sebuah kelas, tapi kelas ini 
 % atau salah satu leluhurnya) tidak mempunyai properti default.
 parser_e_cant_have_published=03114_E_Kelas tidak mempunyai seksi published, pakai saklar {$M+}
 % Jika anda ingin seksi \var{published} dalam sebuah definisi class, anda harus
@@ -869,7 +869,7 @@ parser_e_invalid_float_operation=03139_E_Operasi floating point tidak benar
 % Operasi pada dua nilai tipe real menhasilkan overflow atau pembagian dengan
 % nol.
 parser_e_array_lower_less_than_upper_bound=03140_E_Batas atas jangkauan kurang dari batas lebih rendah
-% Batas lebih atas pada deklarasi array kurang dari batas lebih rendah dan ini
+% Batas lebih atas pada deklarasi array kurang dari batas lebih rendah dan ini 
 % mungkin
 parser_w_string_too_long=03141_W_string "$1" lebih panjang dari "$2"
 % Ukuran konstan string lebih besar dari ukuran yang anda tetapkan dalam
@@ -881,13 +881,13 @@ parser_e_ill_msg_expr=03143_E_Ekspresi tidak benar setelah direktif pesan
 % \fpc hanya mendukung nilai integer atau string sebagai konstan pesan
 parser_e_ill_msg_param=03144_E_Pengendali pesan hanya dapat mengambil satu panggilan dengan parameter ref.
 % Metode yang dideklarasikan dengan direktif-\var{message} sebagai pengendali
-% pesan hanya mengambil satu parameter yang harus dideklarasikan sebagai
+% pesan hanya mengambil satu parameter yang harus dideklarasikan sebagai 
 % panggilan dengan referensi. Parameter dideklarasikan sebagai panggilan dengan
 % referensi menggunakan direktif-\var{var}
 parser_e_duplicate_message_label=03145_E_Duplikasi label pesan: "$1"
 % Label untuk sebuah pesan dipakai dua kali dalam satu object/class
 parser_e_self_in_non_message_handler=03146_E_Self hanya bisa berupa parameter eksplisit dalam metode yang merupakan pengendali pesan
-% Parameter self hanya dapat dioper secara eksplisit ke metode yang
+% Parameter self hanya dapat dioper secara eksplisit ke metode yang 
 % dideklarasikan sebagai pengendali pesan.
 parser_e_threadvars_only_sg=03147_E_Threadvars hanya bisa berupa static atau global
 % Threadvars harus berupa static atau global, anda tidak bisa mendeklarasikan
@@ -903,7 +903,7 @@ parser_w_no_objpas_use_mode=03149_W_Jangan ambil unit OBJPAS secara manual, seba
 % \var{\{\$mode delphi\}}
 % yang mengambil unit secara otomatis
 parser_e_no_object_override=03150_E_OVERRIDE tidak bisa dipakai dalam obyek
-% Override tidak didukung untuk obyek, sebaliknya gunakan \var{virtual} untuk
+% Override tidak didukung untuk obyek, sebaliknya gunakan \var{virtual} untuk 
 % mengganti metode obyek leluhur
 parser_e_cant_use_inittable_here=03151_E_Tipe data yang memerlukan initialization/finalization tidak bisa dipakai dalam variant record
 % Beberapa tipe data (misalnya \var{ansistring}) memerlukan kode initialization/finalization
@@ -916,14 +916,14 @@ parser_e_exit_with_argument_not__possible=03153_E_Exit dengan argumen tidak bisa
 % Pernyataan exit dengan sebuah argumen untuk nilai balik tidak bisa dipakai
 % di sini, ini terjadi misalnya dalam blok \var{try..except} atau \var{try..finally}
 parser_e_stored_property_must_be_boolean=03154_E_Tipe penyimpanan simbol harus boolean
-% Jika anda menetapkan penyimpanan simbol dalam deklarasi properti, ia harus
+% Jika anda menetapkan penyimpanan simbol dalam deklarasi properti, ia harus 
 % berupa tipe boolean
 parser_e_ill_property_storage_sym=03155_E_Simbol ini tidak diijinkan sebagai penyimpanan simbol
 % Anda tidak bisa menggunakan tipe ini pada simbol sebagai pembeda penyimpanan
 % dalam deklarasi properti. Anda hanya bia menggunakan metode dengan tipe hasil
 % boolean, field kelas boolean atau konstan boolean
 parser_e_only_publishable_classes_can_be_published=03156_E_Hanya kelas yang dikompilasi dalam mode $M+ yang bisa dipublikasikan
-% Dalam seksi published dari kelas hanya bisa berupa kelas sebagai field yang dipakai
+% Dalam seksi published dari kelas hanya bisa berupa kelas sebagai field yang dipakai 
 % dikompilasi dalam \var{\{\$M+\}} atau yang diturunkan dari kelas seperti itu.
 % Normalnya kelas demikian harus dideklarasikan dari TPersitent
 parser_e_proc_directive_expected=03157_E_Direktif prosedur diharapkan
@@ -939,7 +939,7 @@ parser_e_proc_directive_expected=03157_E_Direktif prosedur diharapkan
 %   p : procedure stdcall=nil;
 % \end{verbatim}
 parser_e_invalid_property_index_value=03158_E_Nilai indeks properti harus tipe ordinal
-% Nilai yang anda pakai untuk mengindeks properti harus berupa tipe ordinal,
+% Nilai yang anda pakai untuk mengindeks properti harus berupa tipe ordinal, 
 % sebagai contoh tipe integer atau dienumerasi.
 parser_e_procname_to_short_for_export=03159_E_Nama prosedur terlalu pendek untuk diekspor
 % Panjang nama procedure/function harus setidaknya 2 karakter. Ini dikarenakan
@@ -996,7 +996,7 @@ parser_w_skipped_fields_before=03175_W_Beberapa field datang sebelum "$1" diinis
 % Dalam mode Delphi, tidak semua field dari record tipe konstan harus
 % diinisialisasi, tapi kompilator memperingatkan anda saat ia mendeteksi situasi itu.
 parser_e_skipped_fields_before=03176_E_Beberapa field datang sebelum "$1" diinisialisasi
-% Dalam semua mode sintaks kecuali mode Delphi, anda tidak bisa meninggalkan
+% Dalam semua mode sintaks kecuali mode Delphi, anda tidak bisa meninggalkan 
 % beberapa field tidak diinisialisasi di tengah konstan tipe record
 parser_w_skipped_fields_after=03177_W_Beberapa field datang setelah "$1" tidak diinisialisasi
 % Anda dapat meninggalkan beberapa fields di akhir konstan tipe record tidak
@@ -1004,7 +1004,7 @@ parser_w_skipped_fields_after=03177_W_Beberapa field datang setelah "$1" tidak d
 % Ini dapat menjadi penyebab masalah yang kentara.
 parser_e_varargs_need_cdecl_and_external=03178_E_Direktif VarArgs (atau '...' dalam MacPas) tanpa CDecl/CPPDecl/MWPascal dan External
 % Direktif varargs (atau parameter varargs ``...'' dalam mode MacPas) hanya bisa
-% dipakai dengan prosedur atau fungsi yang dideklarasikan dengan \var{external} dan salah satu
+% dipakai dengan prosedur atau fungsi yang dideklarasikan dengan \var{external} dan salah satu 
 % dari \var{cdecl}, \var{cppdecl} dan \var{mwpascal}. Fungsionalitas ini hanya
 % didukung untuk menyediakan interface kompatibel terhadap fungsi C seperti printf.
 parser_e_self_call_by_value=03179_E_Self harus berupa parameter normal (dipanggil-dengan-nilai)
@@ -1041,7 +1041,7 @@ parser_h_c_arrays_are_references=03187_H_Array C dikirimkan dengan referensi
 % Setiap array yang dikirimkan ke fungsi C dioper dengan pointer
 % (misalnya dengan referensi).
 parser_e_C_array_of_const_must_be_last=03188_E_Array of const pada C harus argumen terakhir
-% Anda tidak bisa menambah argumen lain setelah \var{array of const} untuk
+% Anda tidak bisa menambah argumen lain setelah \var{array of const} untuk 
 % fungsi \var{cdecl}, karena ukuran yang disimpan pada stack untuk argumen ini
 % tidak diketahui.
 parser_h_type_redef=03189_H_Redefinisi tipe "$1"
@@ -1069,7 +1069,7 @@ parser_e_paraloc_only_one_para=03197_E_Setiap argumen harus memiliki lokasi send
 % beberapa konvensi syscall, setiap argumen harus memiliki lokasinya sendiri, hal
 % seperti \var{procedure p(i,j : longint 'r1');} tidak diijinkan
 parser_e_paraloc_all_paras=03198_E_Setiap argumen harus memiliki lokasi eksplisit
-% Jika satu argumen mempunyai lokasi argumen eksplisit, semua argument pada
+% Jika satu argumen mempunyai lokasi argumen eksplisit, semua argument pada 
 % prosedur harus memilikinya.
 parser_e_illegal_explicit_paraloc=03199_E_Lokasi argumen tidak dikenal
 % Lokasi yang ditetapkan untuk argumen tidak dikenal oleh kompilator
@@ -1120,7 +1120,7 @@ parser_e_macpas_exit_wrong_param=03207_E_Parameter Exit harus berupa nama prosed
 parser_e_illegal_assignment_to_count_var=03208_E_Penempatan ke variabel for-loop "$1" tidak benar
 % Tipe variabel \var{for} loop harus berupa tipe ordinal.
 % Variabel loop tidak bisa real atau string. Anda juga tidak bisa menempatkan
-% nilai ke variabel loop di dalam loop (kecuali dalam mode Delphi dan TP).
+% nilai ke variabel loop di dalam loop (kecuali dalam mode Delphi dan TP). 
 % Sebaliknya gunakan while atau repeat loop jika anda perlu melakukan sesuatu
 % seperti itu, karena konstruksinya dibangun untuk itu.
 parser_e_no_local_var_external=03209_E_Tidak bisa mendeklarasikan variabel lokal sebagai EXTERNAL
@@ -1159,10 +1159,10 @@ parser_e_array_range_out_of_bounds=03220_E_Jangkauan array terlalu besar
 % high(ptrint) elemen. Sebagai tambahan, tipe jangkauan harus sub jangkauan
 % dari ptrint.
 parser_e_packed_element_no_var_addr=03221_E_Alamat tidak bisa diambil dari elemen packed array dan field record
-% Jika anda mendeklarasikan array atau record sebagai \var{packed} dalam mode Mac Pascal
+% Jika anda mendeklarasikan array atau record sebagai \var{packed} dalam mode Mac Pascal 
 % (atau sebagai \var{packed} dalam setiap mode dengan \var{\{\$bitpacking on\}}),
-% ia akan di-packed di tingkat bit. Ini berarti ia menjadi tidak mungkin untuk
-% mengambil alamat dari elemen individual array atau field record. Ini hanya
+% ia akan di-packed di tingkat bit. Ini berarti ia menjadi tidak mungkin untuk 
+% mengambil alamat dari elemen individual array atau field record. Ini hanya 
 % kekecualian pada aturan ini bila elemen packed array yang ukuran pemadatannya
 % adalah multpele dari 8 bit.
 parser_e_packed_dynamic_open_array=03222_E_Array dinamis tidak bisa dipadatkan
@@ -1188,7 +1188,7 @@ parser_e_no_generics_as_params=03229_E_Generik tidak bisa dipakai sebagai parame
 % Ketika menspesialisasi generik, hanya tipe non-generik yang dapat dipakai sebagai parameter.
 parser_e_type_object_constants=03230_E_Konstan obyek yang berisi VMT tidak dibolehkan
 % Jika sebuah obyek memerlukan VMT baik karena ia berisi konstruktor ataupun metode virtual,
-% tidak diijinkan untuk membuat konstan darinya. Dalam mode TP dan Delphi ini
+% tidak diijinkan untuk membuat konstan darinya. Dalam mode TP dan Delphi ini 
 % dibolehkan untuk alasan kompatibilitas.
 parser_e_label_outside_proc=03231_E_Mengambil alamat label yang didefinisikan di luar lingkup saat ini tidak dibolehkan
 % Tidak diperbolehkan untuk mengambil alamat label di luar prosedur
@@ -1201,7 +1201,7 @@ parser_e_no_common_type=03235_E_Tidak ada tipe umum yang mungkin antara "$1" dan
 % Untuk melakukan operasi diantara integer, kompilator mengubah kedua operand
 % ke tipe umum, yang terlihat tipe tidak benar. Untuk menentukan tipe umum
 % dari operand, kompilator mengambil minimum dari nilai minimal kedua tipe,
-% dan maksimum dari maksimal nilai kedua tipe. Tipe umum adalah
+% dan maksimum dari maksimal nilai kedua tipe. Tipe umum adalah 
 % minimum..maksimum.
 parser_e_no_generics_as_types=03236_E_Generik tanpa spesialisasi tidak bisa dipakai sebagai tipe untuk variabel
 % Generik harus selalu dispesialisasi sebelum dipakai sebagai tipe variabel
@@ -1604,7 +1604,7 @@ type_e_type_id_expected=04003_E_Pengenal tipe diharapkan
 % Pengenal bukan sebuah tipe, atau anda lupa menyertakan pengenal tipe.
 type_e_variable_id_expected=04004_E_Pengenal variabel diharapkan
 % Ini terjadi saat anda mengirimkan konstan ke sebuah rutin (seperti \var{Inc} var atau \var{Dec})
-% ketia ia mengharapkan sebuah variabel. Anda juga bisa mengirimkan variabel
+% ketia ia mengharapkan sebuah variabel. Anda juga bisa mengirimkan variabel 
 % sebagai argumen ke fungsi ini.
 type_e_integer_expr_expected=04005_E_Ekspresi integer diharapkan, tapi didapat "$1"
 % Kompilator mengharapkan ekspresi tipe integer, tetapi mendapatkan tipe yang
@@ -1622,7 +1622,7 @@ type_e_class_type_expected=04009_E_Tipe class diharapkan, tapi didapat "$1"
 % Ekspresi variabel bukan tipe \var{class}. Ini terjadi biasanya ketika
 % \begin{enumerate}
 % \item Kelas leluhur dalam deklarasi kelas bukan sebuah class.
-% \item Pengendali eksepsi (\var{On}) berisi pengenal tipe yang bukan sebuah
+% \item Pengendali eksepsi (\var{On}) berisi pengenal tipe yang bukan sebuah 
 % class.
 % \end{enumerate}
 type_e_cant_eval_constant_expr=04011_E_Tidak bisa mengevaluasi ekspresi konstan
@@ -1632,7 +1632,7 @@ type_e_set_element_are_not_comp=04012_E_Set elemen tidak kompatibel
 % Anda mencoba untuk membuat operasi pada dua set, ketika set tipe elemen
 % tidak sama. Tipe basis dari sebuah set harus sama saat mengambil union
 type_e_set_operation_unknown=04013_E_Operasi tidak diimplementasikan untuk set
-% Beberapa operasi biner tidak mendefinisikan untuk set seperti
+% Beberapa operasi biner tidak mendefinisikan untuk set seperti 
 % div mod ** (juga >= <= untuk saat ini)
 type_w_convert_real_2_comp=04014_W_Konversi tipe otomatis dari tipe floating ke COMP yang adalah tipe integer
 % Konversi tipe implisit dari tipe real ke \var{comp} ditemukan. Karena
@@ -1686,13 +1686,13 @@ type_e_no_addr_of_constant=04028_E_Tidak bisas mengambil alamat dari ekspresi ko
 % dalam memori. Anda dapat mencoba membuat tipe konstan. Kesalahan ini juga bisa
 % ditampilkan jika anda mencoba mengirimkan properti ke parameter var.
 type_e_argument_cant_be_assigned=04029_E_Argumen tidak bisa ditempatkan
-% Hanya ekspresi yang bisa di sisi kiri dari penempatan yang bisa dikirimkan
+% Hanya ekspresi yang bisa di sisi kiri dari penempatan yang bisa dikirimkan 
 % sebagai panggilan dengan referensi argumen.
 % Catatan: Properti hanya bisa dipakai pada sisi kiri dari penempatan,
 % tapi ia tidak bisas digunakan sebagai argumen
 type_e_cannot_local_proc_to_procvar=04030_E_Tidak bisa menempatkan prosedur/fungsi lokal ke variabel prosedur
 % Tidak dibolehkan untuk menempatkan prosedur/fungsi lokal ke sebuah variabel
-% prosedur, karena pemanggilan prosedur/fungsi lokal berbeda. Anda hanya bisa
+% prosedur, karena pemanggilan prosedur/fungsi lokal berbeda. Anda hanya bisa 
 % menempatkan prosedur/fungsi lokal ke sebuah pointer.
 type_e_no_assign_to_addr=04031_E_Tidak bisa menempatkan nilai ke alamat
 % Tidak dibolehkan untuk menempatkan nilai ke alamat dari variabel, konstan,
@@ -1723,14 +1723,14 @@ type_w_mixed_signed_unsigned2=04036_W_Mencampur ekspresi bertanda dan cardinal d
 % Jika anda menggunakan operator biner (and, or, xor) dan salah satu operand
 % adalah longword sementara yang lainnya ekspresi bertanda, maka jika
 % pemeriksaan jangkauan dihidupkan, anda akan mendapatkan kesalahan pemeriksaan
-% jangkauan, karena kedua operand dikonversi ke longword sebelum operasi
+% jangkauan, karena kedua operand dikonversi ke longword sebelum operasi 
 % dilakukan. Anda dapat menghindari ini dengan typecasting satu operand agar
 % sesuai dengan tipe hasil atas yang lain.
 type_e_typecast_wrong_size_for_assignment=04037_E_Typecast mempunyai ukuran berbeda ($1 -> $2) dalam penempatan
-% Type casting ke sebuah tipe dengan ukuran berbeda tidak dibolehkan saat
+% Type casting ke sebuah tipe dengan ukuran berbeda tidak dibolehkan saat 
 % variabel dipakai untuk penempatan.
 type_e_array_index_enums_with_assign_not_possible=04038_E_enum dengan penempatan tidak bisa dipakai sebagai indeks array
-% Ketika anda mendeklarasikan tipe enumerasi yang memiliki penempatan
+% Ketika anda mendeklarasikan tipe enumerasi yang memiliki penempatan 
 % didalamnya, seperti dalam C, sepeprti berikut:
 % \begin{verbatim}
 %   Tenum = (a,b,e:=5);
@@ -1838,11 +1838,11 @@ type_h_convert_add_operands_to_prevent_overflow=04079_H_Mengkonversi operand ke 
 % seperti itu dengan mengubah operand ke tipe ini sebelum melakukan penambahan.
 type_h_convert_sub_operands_to_prevent_overflow=04080_H_Mengkonversi operand ke "$1" sebelum melakukan pengurangan dapat menghindari kesalahan overflow.
 % Pengurangan dua tipe dapat menyebabkan kesalahan overflow. Karena anda
-% mengkonversi hasil ke tipe lebih besar, anda menghindari
+% mengkonversi hasil ke tipe lebih besar, anda menghindari 
 % seperti itu dengan mengubah operand ke tipe ini sebelum melakukan pengurangan.
 type_h_convert_mul_operands_to_prevent_overflow=04081_H_Mengkonversi operand ke "$1" sebelum melakukan perkalian dapat menghindari kesalahan overflow.
 % Perkalian dua tipe dapat menyebabkan kesalahan overflow. Karena anda
-% mengkonversi hasil ke tipe lebih besar, anda menghindari
+% mengkonversi hasil ke tipe lebih besar, anda menghindari 
 % seperti itu dengan mengubah operand ke tipe ini sebelum melakukan pengurangan.
 type_w_pointer_to_signed=04082_W_Mengkonversi pointer ke integer bertanda dapat membuat hasil perbandingan yang salah dan kesalahan jangkauan, sebaiknya gunakan tipe unsigned.
 % Ruang alamat virtual pada mesin 32-bit berjalan dari \$00000000 sampai
@@ -2067,7 +2067,7 @@ sym_w_label_not_defined=05014_W_Label tidak didefinisikan "$1"
 sym_e_label_used_and_not_defined=05015_E_Label dipakai tapi tidak didefinisikan "$1"
 % Label dideklarasikan dan dipakai, tapi tidak didefinisikan.
 sym_e_ill_label_decl=05016_E_Deklarasi label tidak benar
-% Kesalahan ini seharusnya tidak pernah terjadi; ia terjadi jika label
+% Kesalahan ini seharusnya tidak pernah terjadi; ia terjadi jika label 
 % didefinisikan di luar prosedur atau fungsi.
 sym_e_goto_and_label_not_supported=05017_E_GOTO dan LABEL tidak didukung (gunakan saklar -Sg)
 % Anda harus mengompilasi program yang mempunyai pernyataan \var{label}s dan \var{goto}
@@ -2119,7 +2119,7 @@ sym_e_illegal_field=05035_E_Pengenal field record "$1" tidak dikenal
 % Field tidak ada dalam definisi record/object.
 sym_w_uninitialized_local_variable=05036_W_Variabel lokal "$1" nampaknya belum diinisialisasi
 % Pesan ini ditampilkan jika kompilator berpikir bahwa variabel akan dipakai
-% (misalnya muncul dalam ekspresi sisi-tangan-kanan) saat ia tidak
+% (misalnya muncul dalam ekspresi sisi-tangan-kanan) saat ia tidak 
 % diinisialisasi lebih dulu (misalnya muncul dalam sisi tangan-kiri pada
 % penempatan)
 sym_w_uninitialized_variable=05037_W_Variabel "$1" nampaknya belum diinisialisasi
@@ -2138,7 +2138,7 @@ sym_e_segment_too_large=05040_E_Elemen data terlalu besar
 % Anda mendapatkan in ketika anda mendeklarasikan elemen data yang ukurannya
 % melebihi batas yang ditetapkan (2 Gb pada prosesor 80386+/68020+)
 sym_e_no_matching_implementation_found=05042_E_Tidak ada implementasi yang sesuai untuk metode interface "$1" yang ditemukan
-% Tidak ada metode yang sama ditemukan yang dapat mengimplementasi metode
+% Tidak ada metode yang sama ditemukan yang dapat mengimplementasi metode 
 % interface. Periksa tipe argumen dan tipe hasil pada metode.
 sym_w_deprecated_symbol=05043_W_Simbol "$1" tidak dipakai lagi
 % Ini berarti bahwa simbol (variabel, rutin, dll...) yang dideklarasikan
@@ -2369,7 +2369,7 @@ cg_e_dont_call_exported_direct=06015_E_Fungsi yang dideklarasikan EXPORT tidak b
 % Tidak dipakai lagi.
 cg_w_member_cd_call_from_method=06016_W_Kemungkinan tidak benar pemanggilan atas constructor atau destructor
 % Kompilator mendeteksi bahwa constructor atau destructor dipanggil di dalam
-% sebuah metode. Ini mungkin akan menimbulkan masalah, karena constructors/
+% sebuah metode. Ini mungkin akan menimbulkan masalah, karena constructors/ 
 % destructors memerlukan parameter saat masuk.
 cg_n_inefficient_code=06017_N_Kode tidak efisien
 % Pernyataan anda nampaknya diragukan oleh kompilator.
@@ -2454,14 +2454,14 @@ cg_e_continue_not_allowed=06045_E_CONTINUE tidak diperbolehkan
 % Anda mencoba untuk menggunakan \var{continue} di luar konstruksi loop.
 cg_f_unknown_compilerproc=06046_F_Tidak dikenal compilerproc "$1". Periksa apakah anda menggunakan run time library yang benar.
 % Kompilator mengharapkan bahwa runtime library berisi subrutin tertentu. Jika
-% anda melihat kesalahan ini dan anda tidak mengubah kode runtime library,
-% nampaknya runtime library yang anda pakai tidak sesuai dengan kompilator.
+% anda melihat kesalahan ini dan anda tidak mengubah kode runtime library, 
+% nampaknya runtime library yang anda pakai tidak sesuai dengan kompilator. 
 % Jika anda mengubah runtime library kesalahan ini berarti bahwa anda
 % menghapus subrutin yang diperlukan kompilator untuk pemakaian internalnya.
 cg_f_unknown_system_type=06047_F_Tidak bisa menemukan tipe sistem "$1". Periksa apakah anda menggunakan run time library yang benar.
 % Kompilator mengharapkan bahwa runtime library berisi definisi tipe tertentu.
-% Jika anda melihat kesalahan ini dan anda tidak mengubah kode runtime library,
-% nampaknya runtime library yang anda pakai tidak sesuai dengan kompilator.
+% Jika anda melihat kesalahan ini dan anda tidak mengubah kode runtime library, 
+% nampaknya runtime library yang anda pakai tidak sesuai dengan kompilator. 
 % Jika anda mengubah runtime library kesalahan ini berarti bahwa anda
 % menghapus subrutin yang diperlukan kompilator untuk pemakaian internalnya.
 cg_h_inherited_ignored=06048_H_Pemanggilan turunan ke metode abstrak diabaikan
@@ -2556,7 +2556,7 @@ asmr_e_wrong_base_index=07017_E_Penggunaan basis dan indeks register tidak benar
 % Ada kesalahan dengan base dan index register, keduanya mungkin
 % tidak benar
 asmr_w_possible_object_field_bug=07018_W_Kemungkinan kesalahan dalam penanganan field obyek
-% Field obyek atau kelas dapat dicapai secara langsung dalam mode normal atau
+% Field obyek atau kelas dapat dicapai secara langsung dalam mode normal atau 
 % objfpc tapi mode TP dan Delphi memperlakukan nama field sebagai ofset sederhana.
 asmr_e_wrong_scale_factor=07019_E_Faktor skala yang ditetapkan salah
 % Faktor skala yang diberikan salah, hanya 1,2,4 dan 8 yang dibolehkan
@@ -2674,7 +2674,7 @@ asmr_w_32bit_const_for_address=07079_W_Konstan 32bit dibuat untuk alamat
 % Konstan dipakai sebagai alamat. Ini mungkin kesalahan karena menggunakan
 % alamat absolut yang mungkin tidak akan bekerja.
 asmr_n_align_is_target_specific=07080_N_.align adalah spesifik target, gunakan .balign atau .p2align
-% Menggunakan direktif .align adalah spesifik platform, dan artinya akan
+% Menggunakan direktif .align adalah spesifik platform, dan artinya akan 
 % berlainan dari satu platform ke yang lainnya.
 asmr_e_cannot_access_field_directly_for_parameters=07081_E_Tidak bisa mengakses field secara langsung untuk parameter
 % Anda harus mengambil parameter lebih duku ke dalam register dan kemudian
@@ -2726,7 +2726,7 @@ asmr_e_illegal_shifterop_syntax=07099_E_Kesalahan sintaks saat mencoba mengurai 
 % \end{verbatim}
 asmr_e_packed_element=07100_E_Alamat komponen yang di-packed tidak pada batasan byte
 % Komponen yang di-packed (field record dan elemen array) dapat dimulai pada bit
-% mana saja di dalam sebuah byte. Pada CPU yang tidak mendukung memori
+% mana saja di dalam sebuah byte. Pada CPU yang tidak mendukung memori 
 % dialamatkan-bit (yang menyertakan semua CPU yang didukung oleh FPC saat ini) anda akan
 % mendapatkan pesan kesalahan saat mencoba untuk mengindeks arrays dengan elemen
 % yang ukurannya bukan multipel dari 8 bit. Hal yang sama untuk mengakses field record
@@ -2905,7 +2905,7 @@ exec_e_cant_create_archivefile=09004_E_Tidak bisa membuat file arsip: $1
 % File yang disebutkan tadi tidak bisa dibuat. Periksa apakah anda memiliki
 % perijinan akses untuk membuat file ini
 exec_e_assembler_not_found=09005_E_Assembler $1 tidak ditemukan, beralih ke assmembling eksternal
-% Program assembler tidak ditemukan. Kompilator akan menghasilkannaskah yang
+% Program assembler tidak ditemukan. Kompilator akan menghasilkannaskah yang 
 % dapat dipakai untuk meng-assemble dan me-link program.
 exec_t_using_assembler=09006_T_Menggunakan assembler: $1
 % Pesan informasi yang mengatakan assembler mana yang sedang dipakai.
@@ -2942,7 +2942,7 @@ exec_e_exe_not_supported=09018_E_Pembuatan Executable tidak didukung
 % Pembuatan program executable tidak didukung untuk platform ini, karena belum
 % diimplementasikan dalam kompilator.
 exec_e_dll_not_supported=09019_E_Pembuatan Librari Dinamis/Berbagai tidak didukung
-% Pembuatan dynamically loadable libraries tidak didukung untuk platform ini,
+% Pembuatan dynamically loadable libraries tidak didukung untuk platform ini, 
 % karena belum diimplementasikan dalam kompilator.
 exec_e_static_lib_not_supported=09035_E_Creation of Static Libraries not supported
 % Creating static libraries is not supported for this platform, because it was
@@ -2950,7 +2950,7 @@ exec_e_static_lib_not_supported=09035_E_Creation of Static Libraries not support
 exec_i_closing_script=09020_I_Menutup naskah $1
 % Pesan informasional yang tampil saat naskah linking assembling eskternal selesai.
 exec_e_res_not_found=09021_E_kompilator resource tidak ditemukan, beralih ke mode eksternal
-% Kompilator resource eksternal tidak ditemukan, kompilator akan membuat naskah yang dapat
+% Kompilator resource eksternal tidak ditemukan, kompilator akan membuat naskah yang dapat 
 % dipakai untuk memasang, mengompilasi resources dan me-link atau memproses akhir program.
 exec_i_compilingresource=09022_I_Mengompilasi resource $1
 % Pesan informasional, menampilkan resource mana yang sedang dikompilasi.
@@ -3092,7 +3092,7 @@ unit_f_ppu_read_error=10014_F_Kesalahan membaca File-PPU
 % Ini berarti bahwa file unit sudah rusak, dan berisi informasi tidak benar.
 % Diperlukan rekompilasi.
 unit_f_ppu_read_unexpected_end=10015_F_akhir File-PPU diharapkan
-% Akhir file tidak diharapkan. Ini berarti bahwa file PPU
+% Akhir file tidak diharapkan. Ini berarti bahwa file PPU 
 % rusak.
 unit_f_ppu_invalid_entry=10016_F_Entri File-PPU tidak benar: $1
 % Unit yang coba dibaca kompilator rusak, atau dibuat dengan versi
@@ -3136,10 +3136,10 @@ unit_u_recompile_source_found_alone=10029_U_Rekompilasi $1, hanya ditemukan sumb
 % Saat anda menggunakan flag \var{-vu}, pesan ini memberitahu anda mengapa
 % unit saat ini dikompilasi ulang.
 unit_u_recompile_staticlib_is_older=10030_U_Rekompilasi unit, lib statis lebih lama dari ppufile
-% Saat anda menggunakan flag \var{-vu}, kompilator memperingatkan bila unit
+% Saat anda menggunakan flag \var{-vu}, kompilator memperingatkan bila unit 
 % librari statis lebih lama dari file unit itu sendiri.
 unit_u_recompile_sharedlib_is_older=10031_U_Rekompilasi unit, lib berbagi lebih lama dari ppufile
-% Saat anda menggunakan flag \var{-vu}, kompilator memperingatkan bila unit
+% Saat anda menggunakan flag \var{-vu}, kompilator memperingatkan bila unit 
 % librari berbagi lebih lama dari file unit itu sendiri.
 unit_u_recompile_obj_and_asm_older=10032_U_Rekompilasi unit, obj dan asm lebih lama dari ppufile
 % Saat anda menggunakan flag \var{-vu}, kompilator memperingatkan bila assembler
@@ -3177,7 +3177,7 @@ unit_w_cant_compile_unit_with_changed_incfile=10040_W_Tidak bisa merekompilasi u
 unit_u_source_modified=10041_U_File $1 lebih baru daripada file PPU $2
 % File sumber dimodifikasi untuk unit yang ditemukan kompilator.
 unit_u_ppu_invalid_fpumode=10042_U_Mencoba menggunakan unit yang dikompilasi dengan mode FPU berbeda
-% Mencoba untuk mengompilasi kode sementara menggunakan unit yang tidak
+% Mencoba untuk mengompilasi kode sementara menggunakan unit yang tidak 
 % dikompilasi dengan mode format pecahan yang sama. Baik semua kode harus
 % dikompilasi dengan emulasi FPU on ataupun dengan emulasi FPU off.
 unit_u_loading_interface_units=10043_U_Mengambil unit interface dari $1
@@ -3853,12 +3853,12 @@ P*2WT_Tetapkan aplikasi tipe piranti MPW (Mac OS Klasik)
 %   MyLinkedList: TMyLinkedList
 % \end{verbatim}
 %%% type_w_mixed_signed_unsigned=04035_W_Mencampur ekspresi bertanda dan longword memberikan hasil 64bit
-% Jika anda membagi (atau menghitung modulus dari) ekspresi bertanda dengan
-% longword (atau sebaliknya), atau jika anda memiliki overflow dan/atau
+% Jika anda membagi (atau menghitung modulus dari) ekspresi bertanda dengan 
+% longword (atau sebaliknya), atau jika anda memiliki overflow dan/atau 
 % menghidupkan pemeriksaan jangkauan dan menggunakan ekspresi aritmatika
 % (+, -, *, div, mod) dalam kedua angka bertanda dan longwords muncul,
-% maka kesemuanya harus dievaluasi dalam 64bit yang lebih lambat daripada
-% aritmatika 32bit normal. Anda bisa menghindari ini dengan typecasting satu
+% maka kesemuanya harus dievaluasi dalam 64bit yang lebih lambat daripada 
+% aritmatika 32bit normal. Anda bisa menghindari ini dengan typecasting satu 
 % operand agar ia sesuai tipe hasil atas yang lainnya.
 %%% type_w_signed_unsigned_always_false=04044_W_Perbandingan selalu salah karena jangkauan nilai
 % Ada perbandingan antara nilai unsigned dan konstan bertanda yang kurang dari

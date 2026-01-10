@@ -3538,7 +3538,7 @@ option_help_pages=11025_[
 **2Cr_Bereikcontrole (range check)
 **2Cs<n>_Stel stackgrootte in op <n>
 **2Ct_Stackcontrole
-3*2CS_Creï¿½er dynamische bibliotheek
+3*2CS_Cre‰er dynamische bibliotheek
 3*2Cx_Gebruik slim linken
 **1d<x>_definieer het symbool <x>
 *O1D_genereer een DEF bestand
