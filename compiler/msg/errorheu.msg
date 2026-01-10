@@ -1023,7 +1023,7 @@ parser_e_no_procvarobj_const=03183_E_ניתן לאתחל טיפוס קבוע ש�
 % that of the method (which is known at compile time) and that of the object or
 % class instance it operates on (which can not be known at compile time).
 parser_e_default_value_only_one_para=03184_E_ערך ברירת מחדל יכול להיות בשימוש רק עם פרמטר אחד
-% It is not possible to specify a default value for several parameters at once.
+% It is not possible to specify a default value for several parameters at once. 
 % The following is invalid:
 % \begin{verbatim}
 % Procedure MyProcedure (A,B : Integer = 0);
@@ -1728,7 +1728,7 @@ type_w_mixed_signed_unsigned2=04036_W_ערבוב ביטויי סימנים ומ�
 % such a case both operands are converted to longword before the operation is
 % carried out. You can avoid this by typecasting one operand so it
 % matches the result type of the other one.
-type_e_typecast_wrong_size_for_assignment=04037_E_ישנו הבדל בגודל בהצבה של typecast ($1-> $2)
+type_e_typecast_wrong_size_for_assignment=04037_E_ישנו הבדל בגודל בהצבה של typecast ($1-> $2) 
 % Type casting to a type with a different size is not allowed when the variable is
 % used for assigning.
 type_e_array_index_enums_with_assign_not_possible=04038_E_מניות עם תוכן של הצבה אינם יכולים לשמש בתור אינדקס למערך
@@ -1814,7 +1814,7 @@ type_e_class_or_cominterface_type_expected=04060_E_מצפה לטיפוס מחל�
 % Some operators like the AS operator are only appliable to classes or COM interfaces.
 type_e_no_const_packed_array=04061_E_אין תמיכה במערך קבוע דחוס
 % You cannot declare a (bit)packed array as a typed constant.
-type_e_got_expected_packed_array=04062_E_חוסר תאימות לטיפוס הנתונים של ארגומנט $1. התקבל: "$2" מצא ל "(bit)packed array"
+type_e_got_expected_packed_array=04062_E_חוסר תאימות לטיפוס הנתונים של ארגומנט $1. התקבל: "$2" מצא ל "(bit)packed array" 
 % The compiler expects a (bit)packed array as the specified parameter
 type_e_got_expected_unpacked_array=04063_E_חוסר תאימות טיפוס הנתונים של ארגומנט $1. התקבל "$2" מצפה ל "(not packed) Array"
 % The compiler expects a regular (i.e., not packed) array as the specified parameter
@@ -2555,7 +2555,7 @@ asmr_e_multiple_index=07020_E_שימוש מרובה באינקס האוגר
 % You are trying to use more than one index register
 asmr_e_invalid_operand_type=07021_E_טיפוס אופרנד שגוי
 % The operand type doesn't match with the opcode used
-asmr_e_invalid_string_as_opcode_operand=07022_E_אשימוש במחרוזת כאופרנד opcode שגוי: $1
+asmr_e_invalid_string_as_opcode_operand=07022_E_אשימוש במחרוזת כאופרנד opcode שגוי: $1 
 % The string specified as operand is not correct with this opcode
 asmr_w_CODE_and_DATA_not_supported=07023_W_השימוש ב@CODE ו@DATA לא נתמך
 % @CODE and @DATA are unsupported and are ignored.
@@ -3122,7 +3122,7 @@ unit_u_load_unit=10027_U_טוען $1 ($2) יחידה $3
 % When you use the \var{-vu} flag, which unit is loaded from which unit is
 % shown.
 unit_u_recompile_crc_change=10028_U_מהדר את $1 לאחר שהחתימה שונתה ל $2
-% The unit is recompiled because the checksum of a unit it depends on has
+% The unit is recompiled because the checksum of a unit it depends on has 
 % changed.
 unit_u_recompile_source_found_alone=10029_U_נמצא רק קוד מקור, מהדר מחדש את $1
 % When you use the \var{-vu} flag, these messages tell you why the current
@@ -3496,7 +3496,7 @@ wpo_cant_create_feedback_file=12019_E_Cannot create specified whole program opti
 #
 option_logo=11023_[
 Free Pascal Compiler version $FPCFULLVERSION [$FPCDATE] for $FPCCPU
-Copyright (c) 1993-2026 by Florian Klaempfl and others
+Copyright (c) 1993-2025 by Florian Klaempfl and others
 ]
 
 #
@@ -3644,7 +3644,7 @@ S*2Aas_אסוף עם GNU AS
 **2iW_הצג גרסה מלאה של המהדר
 **2iSO_הצג מערכת הפעלה של המהדר
 **2iSP_הצג גרסת מעבד של המהדר
-**2iTO_הצג את המטרה של מערכת ההפעלה
+**2iTO_הצג את המטרה של מערכת ההפעלה 
 **2iTP_הצג את המטרה של המעבד
 **1I<x>_הוסף את <x> לרשימת הנתיבים להוספה
 **1k<x>_העבר את <x> למקשר
@@ -3704,7 +3704,7 @@ S*2Aas_אסוף עם GNU AS
 **1T<x>_מטרת מערכת ההפעלה:
 3*2Temx_OS/2 בשימוש EMX ( בייחד עם הרחבת EMX/RSX)
 3*2Tfreebsd_FreeBSD
-3*2Tgo32v2_גרסה 2 של הרחבת DJ Delorie DOS
+3*2Tgo32v2_גרסה 2 של הרחבת DJ Delorie DOS 
 3*2Tlinux_Linux
 3*2Tnetbsd_NetBSD
 3*2Tnetware_Novell Netware Module (clib)

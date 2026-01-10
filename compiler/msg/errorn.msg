@@ -3485,7 +3485,7 @@ wpo_cant_create_feedback_file=12019_E_Cannot create specified whole program opti
 #
 option_logo=11023_[
 Free Pascal Compiler versie $FPCFULLVERSION [$FPCDATE] voor $FPCTARGET
-Copyright (c) 1993-2026 door Florian Klaempfl en anderen
+Copyright (c) 1993-2025 door Florian Klaempfl en anderen
 ]
 #
 # Info (option -i)
@@ -3538,7 +3538,7 @@ option_help_pages=11025_[
 **2Cr_Bereikcontrole (range check)
 **2Cs<n>_Stel stackgrootte in op <n>
 **2Ct_Stackcontrole
-3*2CS_Creï¿½er dynamische bibliotheek
+3*2CS_Cre‰er dynamische bibliotheek
 3*2Cx_Gebruik slim linken
 **1d<x>_definieer het symbool <x>
 *O1D_genereer een DEF bestand
