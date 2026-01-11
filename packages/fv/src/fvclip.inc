@@ -32,22 +32,26 @@ unit fvclip;
 
 interface
 
-{$IFDEF FPC_DOTTEDUNITS}
-{$ifdef FV_UNICODE}
-uses System.Objects, FreeVision.Uapp;
-{$else FV_UNICODE}
-uses System.Objects, FreeVision.App;
-{$endif FV_UNICODE}
-{$ELSE}
-{$ifdef FV_UNICODE}
-uses objects,uapp;
-{$else FV_UNICODE}
-uses objects,app;
-{$endif FV_UNICODE}
-{$ENDIF}
+{$undef WinClipSupported}
 
-{Should be called after InitKeyboard}
-procedure InitClip(AProgram :PProgram);
+{$ifdef LINUX}
+  {$define WinClipSupported}
+{$endif}
+{$ifdef BSD}
+  {$define WinClipSupported}
+{$endif}
+
+
+function WinClipboardSupported : boolean;
+function OpenWinClipboard : boolean;
+function EmptyWinClipboard : boolean;
+function CloseWinClipboard : boolean;
+function GetTextWinClipboardSize : longint;
+function GetTextWinClipBoardData(var p : PAnsiChar;var l : longint) : boolean;
+function SetTextWinClipBoardData(p : PAnsiChar;l : longint) : boolean;
+
+{Should be called after InitKeyboard }
+procedure InitClip;
 procedure DoneClip;
 
 {Request clipboard content}
@@ -62,28 +66,77 @@ implementation
 {$IFDEF FPC_DOTTEDUNITS}
 uses
 {$ifdef unix}
-  UnixApi.Base, System.Console.Keyboard,
+  UnixApi.Base,UnixApi.TermIO,System.Console.Keyboard, FreeVision.Sysmsg
 {$endif}
-{$ifdef FV_UNICODE}
-  FreeVision.UDrivers, FreeVision.Ufvcommon,
-{$else FV_UNICODE}
-  FreeVision.Drivers, FreeVision.Fvcommon,
-{$endif FV_UNICODE}
-  FreeVision.Fvconsts;
+  ,FreeVision.Fvconsts;
 {$ELSE}
 uses
 {$ifdef unix}
-  baseUnix,keyboard,
+  baseUnix,termio,keyboard,sysmsg
 {$endif}
-{$ifdef FV_UNICODE}
-  udrivers, UFVCommon,
-{$else FV_UNICODE}
-  drivers, FVCommon,
-{$endif FV_UNICODE}
-  fvconsts;
+  ,fvconsts;
 {$ENDIF}
-var cProgram : PProgram;
-  PText : PAnsiChar;
+
+
+{$ifdef UNIX}
+function WinClipboardSupported : boolean;
+var term, typ : string;
+    thistty : shortstring;
+begin
+  WinClipboardSupported:=false;
+{$ifndef LINUX}
+  thistty:=ttyname(stdinputhandle);
+  if (copy(thistty,1,8)<>'/dev/tty') then
+    WinClipboardSupported:=true; { probably we are good }
+{$endif}
+{$ifdef LINUX}
+  typ:=fpgetenv('XDG_SESSION_TYPE');
+  if length(typ)>0 then
+    if lowercase(typ)='tty' then
+      Exit; { in console mode OSC 52 is not supported }
+  term:=fpgetenv('TERM');
+  if length(term)>0 then
+    if lowercase(term)<>'linux' then
+      WinClipboardSupported:=true; { probably we are good }
+{$endif}
+end;
+
+function OpenWinClipboard : boolean;
+begin
+  OpenWinClipboard:=true;
+end;
+
+function EmptyWinClipboard : boolean;
+begin
+  EmptyWinClipboard:=true;
+end;
+
+function CloseWinClipboard : boolean;
+begin
+  CloseWinClipboard:=true;
+end;
+
+function GetTextWinClipboardSize : longint;
+begin
+  GetTextWinClipboardSize:=0;
+end;
+
+function GetTextWinClipBoardData(var P : PAnsiChar;var L : longint) : boolean;
+begin
+  GetTextWinClipBoardData:=true;
+  GetGlobalClipboardData;
+end;
+
+function SetTextWinClipBoardData(P : PAnsiChar; L : longint) : boolean;
+begin
+  SetTextWinClipBoardData:= SetGlobalClipboardData(P,L);
+end;
+{$endif}
+
+
+
+{$ifdef UNIX}
+var PText : PAnsiChar;
 
 {Could not use unit base64 because of Sysutils and reasons }
 {Speed or reusability here is not a concern                }
@@ -92,7 +145,7 @@ const
     'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 Alphabet = ['a'..'z','A'..'Z','0'..'9','+','/','=']; // all 65 chars that are in the base64 encoding alphabet
 
-{ Memory have to be preallocated;  source p, destination d }
+{ Memory has to be preallocated;  source p, destination d }
 procedure encodeBase64(p:PAnsiChar;len:longint; d:PAnsiChar; var outlen: longint);
 var
   i, rem : longint;
@@ -136,7 +189,7 @@ begin
   end;
 end;
 
-{ Memory have to be preallocated;  source p, destination d }
+{ Memory has to be preallocated;  source p, destination d }
 procedure decodeBase64(p:PAnsiChar; len: longint; d:PAnsiChar; var outlen: longint);
 var
   i,rlen : longint;
@@ -185,30 +238,37 @@ begin
      outlen:=rlen; {length for output}
 end;
 
-{$ifdef unix}
-procedure PutInEventQue (var zt: AnsiString;l:sw_integer);
-var Event:TEvent;
+
+procedure PutInEventQue (var zt: AnsiString;l:Longint);
+var SysEvent:TSystemEvent;
+    PrevPText : PAnsiChar;
+    NewPText : PAnsiChar;
 begin
-  if Assigned(PText) then
-    FreeMem(PText);
-  GetMem(PText,l+1);
-  Move(zt[1],PText^,l+1);
-  Event.What:=evCommand;
-  Event.Command:=cmPasteText;
-  Event.Id:=l; {length of pasted text}
-  Event.InfoPtr:=pointer(PText);
-  cProgram^.PutEvent(Event);
+  GetMem(NewPText,l+1);
+  Move(zt[1],NewPText^,l+1);
+  { Create paste event }
+  SysEvent.Typ:=SysPaste;
+  SysEvent.P:=PAnsiChar(NewPText);
+  SysEvent.Len:=l;
+  PutSystemEvent(SysEvent);
+  { Discard previous pasted data }
+  { This is not Thread safe, but expectation is that FV is running in single thread }
+  PrevPText:=PText;
+  PText:=NewPText;
+  if Assigned(PrevPText) then
+    FreeMem(PrevPText);
 end;
 
-procedure LinuxClipBoardData;
+
+procedure OSC_52_ClipboardData;
 var zt,rt  : AnsiString;
   escSeq : ShortString;
   inEsc,inRead : boolean;
-  k : sw_integer;
+  k : Longint;
   ch : AnsiChar;
   timewait,finalparsec : TimeSpec;
   ree:longint;
-  countemptines : sw_integer;
+  countemptines : Longint;
   rlen : longint;
 begin
   countemptines:=0;
@@ -267,14 +327,15 @@ begin
   PutInEventQue(rt,rlen);
 end;
 
+
 procedure BracketedPaste;
 var zt  : AnsiString;
-  k : sw_integer;
+  k : Longint;
   ch : AnsiChar;
   timewait,finalparsec : TimeSpec;
   ree:longint;
-  countemptines : sw_integer;
-  len : sw_integer;
+  countemptines : Longint;
+  len : Longint;
 begin
   countemptines:=0;
   zt:='';
@@ -313,15 +374,14 @@ begin
 end;
 {$endif}
 
-procedure InitClip(AProgram :PProgram);
+procedure InitClip;
 begin
 {$ifdef unix}
   if Assigned(PText) then
     FreeMem(PText);
   PText:=nil;
-  cProgram:=AProgram;
   AddSpecialSequence(#27'[200~',@BracketedPaste);
-  AddSpecialSequence(#27']52;c',@LinuxClipBoardData);
+  AddSpecialSequence(#27']52;c',@OSC_52_ClipboardData);
   write(#27'[?2004h');
 {$endif}
 end;
@@ -339,7 +399,6 @@ end;
 {function GetGlobalClipboardData(var P: PAnsiChar;var ASize: longint): boolean;}
 procedure GetGlobalClipboardData;
 begin
-  {GetGlobalClipboardData:=false;}
 {$ifdef unix}
   write(#27']52;c;?'#7); { OSC 52  Get Clipboard Content }
 {$endif}
@@ -362,5 +421,46 @@ begin
   write(#7); { String Terminator }
 {$endif}
 end;
+
+
+{$ifndef WinClipSupported}
+{ Implementation for not supported OS clipboard. }
+
+function WinClipboardSupported : boolean;
+begin
+  WinClipboardSupported:=false;
+end;
+
+function OpenWinClipboard : boolean;
+begin
+  OpenWinClipboard:=false;
+end;
+
+function EmptyWinClipboard : boolean;
+begin
+  EmptyWinClipboard:=false;
+end;
+
+function CloseWinClipboard : boolean;
+begin
+  CloseWinClipboard:=false;
+end;
+
+function GetTextWinClipboardSize : longint;
+begin
+  GetTextWinClipboardSize:=0;
+end;
+
+function GetTextWinClipBoardData(var P : PAnsiChar;var L : longint) : boolean;
+begin
+  GetTextWinClipBoardData:=false;
+end;
+
+function SetTextWinClipBoardData(P : PAnsiChar; L : longint) : boolean;
+begin
+  SetTextWinClipBoardData:=false;
+end;
+{$endif}
+
 
 end.

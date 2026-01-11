@@ -114,8 +114,10 @@ USES
 {$ifdef FV_UNICODE}
    FreeVision.UfvCommon,
    System.Unicode.Graphemebreakproperty,
+   FreeVision.Ufvclip,
 {$else FV_UNICODE}
    FreeVision.Fvcommon,
+   FreeVision.Fvclip,
 {$endif FV_UNICODE}
    System.Objects;                                 { GFV standard units }
 {$ELSE FPC_DOTTEDUNITS}
@@ -165,8 +167,10 @@ USES
 {$ifdef FV_UNICODE}
    UFVCommon,
    GraphemeBreakProperty,
+   ufvclip,
 {$else FV_UNICODE}
    FVCommon,
+   fvclip,
 {$endif FV_UNICODE}
    Objects;                                 { GFV standard units }
 {$ENDIF FPC_DOTTEDUNITS}
@@ -1523,6 +1527,13 @@ begin
           Event.Id:=SysEvent.x;
           Event.InfoWord:=SysEvent.y;
         end;
+      SysPaste :
+        begin
+          Event.What:=evCommand;
+          Event.Command:=cmPasteText;
+          Event.Id:=SysEvent.Len;
+          Event.InfoPtr:=SysEvent.P;
+        end;
       else
         Event.What:=evNothing;
       end;
@@ -1558,6 +1569,7 @@ BEGIN
      MouseEvents := True;                             { Set initialized flag }
     end;
   InitSystemMsg;
+  InitClip;
 END;
 
 {---------------------------------------------------------------------------}
@@ -1565,6 +1577,7 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE DoneEvents;
 BEGIN
+  DoneClip;
   DoneSystemMsg;
   {$IFDEF FPC_DOTTEDUNITS}System.Console.{$ENDIF}Mouse.DoneMouse;
   MouseEvents:=false;
