@@ -377,6 +377,7 @@ var
 {$ifdef DOS}
   r : Registers;
   M : MemPtr;
+  pp: PAnsiChar;
 {$endif DOS}
 {$ifdef Windows}
   h : HGlobal;
@@ -403,7 +404,7 @@ begin
       CloseWinClipBoard;
       exit;
     end;
-  GetMem(p,l);
+  GetMem(p,l+1);
   GetDosMem(M,l);
   r.ax:=$1705;
   r.dx:=7{ OEM Text rather then 1 : Text };
@@ -457,6 +458,8 @@ begin
 {$ifdef DOS}
   M.MoveDataFrom(l,P^);
   FreeDosMem(M);
+  pp:=p+l;
+  pp^:=#0; { make null terminated }
 {$endif DOS}
 end;
 
@@ -465,6 +468,8 @@ var
 {$ifdef DOS}
   r : Registers;
   M : MemPtr;
+  pp: PAnsiChar;
+  op: PAnsiChar;
 {$endif DOS}
 {$ifdef Windows}
   h : HGlobal;
@@ -488,8 +493,13 @@ begin
     exit;
   EmptyWinClipBoard;
 {$ifdef DOS}
+  GetMem(pp,l+1);
+  Move(p^,pp^,l);
+  op:=pp+l;
+  op^:=#0; { make sure that string is null terminated }
   GetDosMem(M,l+1);
-  M.MoveDataTo(P^,l+1);
+  M.MoveDataTo(PP^,l+1);
+  FreeMem(pp);
   r.ax:=$1703;
   r.dx:=7{ OEM Text rather then 1 : Text };
   r.es:=M.DosSeg;
@@ -498,6 +508,7 @@ begin
   r.cx:=l and $ffff;
   RealIntr($2F,r);
   SetTextWinClipBoardData:=(r.ax<>0);
+  (*
   r.ax:=$1703;
   r.dx:=1{ Empty  Text };
   r.es:=M.DosSeg;
@@ -505,6 +516,7 @@ begin
   r.si:=0;
   r.cx:=0;
   RealIntr($2F,r);
+  *)
   FreeDosMem(M);
 {$endif DOS}
 {$ifdef Windows}
