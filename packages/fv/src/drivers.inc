@@ -84,13 +84,13 @@ USES
 
    {$IFDEF OS_OS2}                                    { OS2 CODE }
      {$IFDEF PPC_Virtual}                             { VIRTUAL PASCAL UNITS }
-       OS2Api.os2def, OS2Base, OS2PMAPI,                     { Standard units }
+       os2def, OS2Base, OS2PMAPI,                     { Standard units }
      {$ENDIF}
      {$IFDEF PPC_Speed}                               { SPEED PASCAL UNITS }
        BseDos, Os2Def,                                { Standard units }
      {$ENDIF}
      {$IFDEF PPC_FPC}                                 { FPC UNITS }
-       OS2Api.doscalls, Os2Def,                              { Standard units }
+       OS2Api.doscalls, OS2Api.Os2Def,                { Standard units }
      {$ENDIF}
    {$ENDIF}
 
@@ -106,7 +106,7 @@ USES
    {$ENDIF}
 
    {$IFDEF OS_AMIGA}
-      dos, Amiga.Core.Amigados,
+      TP.DOS, Amiga.Core.Amigados,
    {$ENDIF}
 
    System.Console.Video,
