@@ -399,6 +399,7 @@ begin
           AddUnit('udrivers');
           AddUnit('uviews');
         end;
+    T:=P.Targets.AddUnit('pmode.pas',[go32v2]);
     T:=P.Targets.AddUnit('statuses.pas');
       with T.Dependencies do
         begin
