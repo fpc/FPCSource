@@ -541,7 +541,7 @@ Type
 { Zero - terminated strings }
 
 {$IF DECLARED(AnsiChar)}
-// Compiler defines AnsiChar and WideChar, not AnsiChar
+// Compiler defines AnsiChar and WideChar, not Char
 {$IFDEF UNICODERTL}
   Char = WideChar;
 {$ElSE}

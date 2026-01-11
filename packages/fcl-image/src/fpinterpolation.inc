@@ -118,14 +118,14 @@ begin
       Factor:=double(OldSize-1)/double(NewSize);
       for i:=0 to NewSize-1 do
       begin
-        StartPos:=Factor*i+Factor/2;
+        StartPos:=Factor*(i+0.5);
         StartIndex:=Floor(StartPos);
         PInteger(Entry)^:=StartIndex;
         inc(Entry,SizeOf(Integer));
         // first pixel
-        FirstValue:=(1.0-(StartPos-double(StartIndex)));
+        FirstValue := StartPos-double(StartIndex);
         // convert linear distribution
-        FirstValue:=Min(1.0,Max(0.0,Filter(FirstValue/MaxSupport)));
+        FirstValue:=Min(1.0,Max(0.0,Filter(FirstValue)));
         PSingle(Entry)^:=FirstValue;
         inc(Entry,SizeOf(Single));
         // last pixel
@@ -247,7 +247,7 @@ end;
 
 function TFPBaseInterpolation.Filter(x: double): double;
 begin
-  Result:=x;
+  Result := 1.0 - x;
 end;
 
 function TFPBaseInterpolation.MaxSupport: double;
@@ -255,9 +255,9 @@ begin
   Result:=1.0;
 end;
 
-{ TMitchelInterpolation }
+{ TMitchellInterpolation }
 
-function TMitchelInterpolation.Filter(x: double): double;
+function TMitchellInterpolation.Filter(x: double): double;
 const
   B  = (1.0/3.0);
   C  = (1.0/3.0);
@@ -283,7 +283,7 @@ begin
   result := 0.0;
 end;
 
-function TMitchelInterpolation.MaxSupport: double;
+function TMitchellInterpolation.MaxSupport: double;
 begin
   result := 2.0;
 end;
