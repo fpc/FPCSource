@@ -181,7 +181,7 @@ uses
   WinClip,
 {$endif WinClipSupported}
 {$ifdef Unix}
-  fpKeys,FVClip,
+  fpKeys,
 {$endif Unix}
   FpDpAnsi,WConsts,
   Video,Mouse,Keyboard,
@@ -1508,7 +1508,6 @@ begin
     UserScreen^.SaveIDEScreen;
   DoneSysError;
   DoneEvents;
-  {$ifdef unix}DoneClip;{$endif}
   { DoneKeyboard should be called last to
     restore the keyboard correctly PM }
 {$ifndef go32v2}
@@ -1516,7 +1515,7 @@ begin
 {$endif ndef go32v2}
   DoneKeyboard;
   If UseMouse then
-    DoneMouse
+    { DoneMouse  called by DoneEvents }
   else
     ButtonCount:=0;
 {  DoneDosMem;}
@@ -1534,12 +1533,11 @@ begin
 {  InitDosMem;}
   InitKeyboard;
   If UseMouse then
-    InitMouse
+    { InitMouse  called by InitEvents }
   else
     ButtonCount:=0;
   oldH:=ScreenHeight;
   oldW:=ScreenWidth;
-  {$ifdef unix}InitClip(@Self);{$endif}
 {$ifndef go32v2}
   initvideo;
 {$endif ndef go32v2}
