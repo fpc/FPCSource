@@ -216,13 +216,14 @@ type
     function MaxSupport : double; virtual;
   end;
 
-  { TMitchelInterpolation }
+  { TMitchellInterpolation }
 
-  TMitchelInterpolation = class (TFPBaseInterpolation)
+  TMitchellInterpolation = class (TFPBaseInterpolation)
   protected
     function Filter (x : double) : double; override;
     function MaxSupport : double; override;
   end;
+  TMitchelInterpolation = TFPBaseInterpolation deprecated 'Use TMitchellInterpolation';
 
   TFPCustomRegion = class
   public
