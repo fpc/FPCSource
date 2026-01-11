@@ -178,7 +178,7 @@ uses
   fpcatch,
 {$endif HasSignal}
 {$ifdef WinClipSupported}
-  WinClip,
+  FvClip,
 {$endif WinClipSupported}
 {$ifdef Unix}
   fpKeys,

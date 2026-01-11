@@ -303,7 +303,7 @@ implementation
 uses Mouse,
 {     Resource,}
 {$ifdef WinClipSupported}
-     WinClip,
+     FvClip,
 {$endif WinClipSupported}
      FpConst,
      FVConsts,
