@@ -33,12 +33,15 @@ type
     SysSetFocus,
     SysReleaseFocus,
     SysClose,
-    SysResize );
+    SysResize,
+    SysPaste  { OSC 52 or Bracketed paste }
+    );
 
   TSystemEvent = Record
     case typ : TSystemMessage of
       SysClose : ( CloseTyp : Longint);
       SysResize : (X,Y : Longint);
+      SysPaste : (P :PAnsiChar; Len : Longint);
     end;
 
   PSystemEvent = ^TSystemEvent;

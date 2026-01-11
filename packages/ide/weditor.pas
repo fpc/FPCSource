@@ -849,7 +849,7 @@ implementation
 uses
   Strings,Video,MsgBox,App,Validate,
 {$ifdef WinClipSupported}
-  WinClip,
+  FvClip,
 {$endif WinClipSupported}
 {$ifdef TEST_REGEXP}
   {$ifdef USE_OLD_REGEXP}
@@ -6509,7 +6509,7 @@ begin
         OK:=false
       else
         OK:=GetTextWinClipBoardData(p,l);
-      if OK then
+      if OK and assigned(p) then
         begin
           PasteText(p,l);
           { we must free the allocated memory }

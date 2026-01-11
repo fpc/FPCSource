@@ -47,3 +47,4 @@ src/gadgets.pas=namespaced/FreeVision.Gadgets.pas
 src/ugadgets.pas=namespaced/FreeVision.Ugadgets.pas
 src/fvclip.pas=namespaced/FreeVision.Fvclip.pas
 src/ufvclip.pas=namespaced/FreeVision.Ufvclip.pas
+src/pmode.pas=namespaced/FreeVision.Pmode.pas

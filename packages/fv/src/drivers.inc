@@ -84,13 +84,13 @@ USES
 
    {$IFDEF OS_OS2}                                    { OS2 CODE }
      {$IFDEF PPC_Virtual}                             { VIRTUAL PASCAL UNITS }
-       OS2Api.os2def, OS2Base, OS2PMAPI,                     { Standard units }
+       os2def, OS2Base, OS2PMAPI,                     { Standard units }
      {$ENDIF}
      {$IFDEF PPC_Speed}                               { SPEED PASCAL UNITS }
        BseDos, Os2Def,                                { Standard units }
      {$ENDIF}
      {$IFDEF PPC_FPC}                                 { FPC UNITS }
-       OS2Api.doscalls, Os2Def,                              { Standard units }
+       OS2Api.doscalls, OS2Api.Os2Def,                { Standard units }
      {$ENDIF}
    {$ENDIF}
 
@@ -106,7 +106,7 @@ USES
    {$ENDIF}
 
    {$IFDEF OS_AMIGA}
-      dos, Amiga.Core.Amigados,
+      TP.DOS, Amiga.Core.Amigados,
    {$ENDIF}
 
    System.Console.Video,
@@ -114,8 +114,10 @@ USES
 {$ifdef FV_UNICODE}
    FreeVision.UfvCommon,
    System.Unicode.Graphemebreakproperty,
+   FreeVision.Ufvclip,
 {$else FV_UNICODE}
    FreeVision.Fvcommon,
+   FreeVision.Fvclip,
 {$endif FV_UNICODE}
    System.Objects;                                 { GFV standard units }
 {$ELSE FPC_DOTTEDUNITS}
@@ -165,8 +167,10 @@ USES
 {$ifdef FV_UNICODE}
    UFVCommon,
    GraphemeBreakProperty,
+   ufvclip,
 {$else FV_UNICODE}
    FVCommon,
+   fvclip,
 {$endif FV_UNICODE}
    Objects;                                 { GFV standard units }
 {$ENDIF FPC_DOTTEDUNITS}
@@ -1523,6 +1527,13 @@ begin
           Event.Id:=SysEvent.x;
           Event.InfoWord:=SysEvent.y;
         end;
+      SysPaste :
+        begin
+          Event.What:=evCommand;
+          Event.Command:=cmPasteText;
+          Event.Id:=SysEvent.Len;
+          Event.InfoPtr:=SysEvent.P;
+        end;
       else
         Event.What:=evNothing;
       end;
@@ -1558,6 +1569,7 @@ BEGIN
      MouseEvents := True;                             { Set initialized flag }
     end;
   InitSystemMsg;
+  InitClip;
 END;
 
 {---------------------------------------------------------------------------}
@@ -1565,6 +1577,7 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE DoneEvents;
 BEGIN
+  DoneClip;
   DoneSystemMsg;
   {$IFDEF FPC_DOTTEDUNITS}System.Console.{$ENDIF}Mouse.DoneMouse;
   MouseEvents:=false;

@@ -225,6 +225,7 @@ type
     function   InsertChar (AChar : Sw_Char) : Boolean;
     procedure  ScrollTo (X, Y : Sw_Integer);
     function   Search (const FindStr : String; Opts : Word) : Boolean;
+    function   GetSelectedText (var Text : Pointer; var Length : Sw_Word) : Boolean;
     function   SetBufSize (NewSize : Sw_Word) : Boolean; virtual;
     procedure  SetCmdState (Command : Word; Enable : Boolean);
     procedure  SetSelect (NewStart, NewEnd : Sw_Word; CurStart : Boolean);
@@ -290,6 +291,7 @@ type
     procedure  Scroll_Up;
     procedure  Select_Word;
     procedure  SetBufLen (Length : Sw_Word);
+    function   SetTextWinClip : Boolean; { Copy to OS clipboard. }
     procedure  Set_Place_Marker (Element : Byte);
     procedure  Set_Right_Margin;
     procedure  Set_Tabs;
@@ -364,6 +366,15 @@ function ReformDocDialog : PDialog;
 function RightMarginDialog : PDialog;
 function TabStopDialog : PDialog;
 function StdEditorDialog(Dialog: SmallInt; Info: Pointer): Word;
+
+{ If true then use OS clipboard otherwise use local clipboard (Editor.Clipboard). }
+{ At unit initalization its value is set to value of WinClipboardSupported. }
+function GlobalClipboard : boolean; inline;
+
+{ Set to false to use local clipboard.
+  If set to True then GlobalClipboard value will be value of WinClipboardSupported. }
+procedure SetGlobalClipboard( AGlobalClipboard : boolean);
+
 
 const
   WordChars    : set of AnsiChar = ['!'..#255];
@@ -488,7 +499,8 @@ implementation
 uses
   TP.DOS,
 {$ifdef FV_UNICODE}
-  System.Console.Video, System.Unicode.Graphemebreakproperty, FreeVision.Uapp, FreeVision.Ustddlg, FreeVision.Umsgbox, FreeVision.Ufvclip;
+  System.Console.Video, System.Unicode.Graphemebreakproperty, FreeVision.Uapp,
+  FreeVision.Ustddlg, FreeVision.Umsgbox, FreeVision.Ufvclip;
 {$else FV_UNICODE}
   FreeVision.App, FreeVision.Stddlg, FreeVision.Msgbox, FreeVision.Fvclip;
 {$ENDIF}
@@ -693,6 +705,19 @@ CONST
   { PRETAB - Stop. } { Added @FormatKeys for new ^O? keys. }
   { JLINE  - Stop. } { Added @JumpKeys for new ^J? keys.   }
   { CENTER - Stop. } { Added @FormatKeys for new ^O? keys. }
+
+
+var DefaultGlobalClipboard : boolean;
+
+function GlobalClipboard : boolean;
+begin
+  GlobalClipboard:=DefaultGlobalClipboard;
+end;
+
+procedure SetGlobalClipboard( AGlobalClipboard : boolean);
+begin
+  DefaultGlobalClipboard:=AGlobalClipboard and WinClipboardSupported;
+end;
 
 
 {****************************************************************************
@@ -1726,30 +1751,7 @@ end; {Check_For_Word_Wrap}
 
 
 function TEditor.ClipCopy : Boolean;
-var
-  SelectedTextAnsi: AnsiString;
-  Len: Sw_Word;
 begin
-  if HasSelection then
-  begin
-    Len := SelEnd - SelStart;
-    SetLength(SelectedTextAnsi, Len);
-    if Len > 0 then
-    begin
-      if SelEnd <= CurPtr then
-        Move(Buffer^[SelStart], SelectedTextAnsi[1], Len)
-      else if SelStart >= CurPtr then
-        Move(Buffer^[SelStart + GapLen], SelectedTextAnsi[1], Len)
-      else
-      begin
-        Move(Buffer^[SelStart], SelectedTextAnsi[1], CurPtr - SelStart);
-        Move(Buffer^[CurPtr + GapLen], SelectedTextAnsi[1 + (CurPtr - SelStart)], SelEnd - CurPtr);
-      end;
-      if Length(SelectedTextAnsi) > 0 then
-        SetGlobalClipboardData(PAnsiChar(SelectedTextAnsi), Length(SelectedTextAnsi));
-    end;
-  end;
-
   ClipCopy := False;
   if Assigned(Clipboard) and (Clipboard <> @Self) then
    begin
@@ -2774,6 +2776,10 @@ begin
              (Event.Command <> cmBackSpace) and
              (Event.Command <> cmTabKey)    and
              (Event.Command <> cmSelectAll) and
+{$ifdef unix}
+             { this is due to fact that OSC 52 paste is delayed and performed later via cmPasteText or never }
+             ((Event.Command <> cmPaste) or ((Event.Command = cmPaste) and (not GlobalClipboard) )) and
+{$endif}
               Modified then
             Remove_EOL_Spaces (SelectMode);
           Unlock;
@@ -2950,12 +2956,109 @@ begin
 end; { TEditor.InsertChar }
 
 
-function TEditor.InsertFrom (Editor : PEditor) : Boolean;
+function TEditor.SetTextWinClip : Boolean;
+var
+  SelectedTextAnsi: AnsiString;
+  Len: Sw_Word;
+var InsertToClipboard : boolean;
 begin
+  SetTextWinClip:=false;
+  InsertToClipboard:=IsClipboard;
+  if HasSelection then
+  begin
+    Len := SelEnd - SelStart;
+    SetLength(SelectedTextAnsi, Len);
+    if Len > 0 then
+    begin
+      if SelEnd <= CurPtr then
+      begin
+        Move(Buffer^[SelStart], SelectedTextAnsi[1], Len)
+      end
+      else if SelStart >= CurPtr then
+        Move(Buffer^[SelStart + GapLen], SelectedTextAnsi[1], Len);
+      if Length(SelectedTextAnsi) > 0 then
+        SetTextWinClip:=SetTextWinClipBoardData(PAnsiChar(SelectedTextAnsi), Length(SelectedTextAnsi));
+    end;
+  end;
+end; { TEditor.SetTextWinClip }
+
+
+function TEditor.InsertFrom (Editor : PEditor) : Boolean;
+var InsertToClipboard : boolean;
+    InsertFromClipboard : boolean;
+    Len  : longint;
+    P : PAnsiChar;
+begin
+  InsertToClipboard:=IsClipboard;
+  InsertFromClipboard:=(Editor = Clipboard);
+  { Look if Clipboard then might be need to interact with OS clipboard. }
+  if InsertToClipboard or InsertFromClipboard then
+    if GlobalClipboard and not (InsertToClipboard and InsertFromClipboard) then
+      if InsertToClipboard then
+      begin
+        { Insert to OS clipboard (Copy or Cut) }
+        if not Editor^.SetTextWinClip then
+        begin
+           { Fail to set OS clipboard, not much to do about. }
+        end;
+      end else
+      begin
+        { Insert from OS clipboard (Paste) }
+        P:=nil; Len:=0;
+        if GetTextWinClipBoardData (P , Len ) then
+        begin
+          if assigned(P) then
+          begin
+            { Insert OS clipboard text in local Clipboard }
+            InsertFrom := Editor^.InsertBuffer (PEditBuffer(P),0,Len, Editor^.CanUndo, InsertToClipboard);
+            { Insert OS clipboard text in itself }
+            InsertFrom := InsertBuffer (PEditBuffer(P),0,Len, CanUndo, InsertToClipboard);
+            FreeMem(p);
+          end;
+          exit;
+        end;
+      end;
+
   InsertFrom := InsertBuffer (Editor^.Buffer,
     Editor^.BufPtr (Editor^.SelStart),
-    Editor^.SelEnd - Editor^.SelStart, CanUndo, IsClipboard);
+    Editor^.SelEnd - Editor^.SelStart, CanUndo, InsertToClipboard);
 end; { TEditor.InsertFrom }
+
+
+function TEditor.GetSelectedText (var Text : Pointer; var Length : Sw_Word) : Boolean;
+{ Return reference to TEditor's selected text. True if there are any text }
+{ selected. If Editor is Clipboard then return OS clipboard content if    }
+{ available and configured to do so.                                      }
+var GetFromClipboard : boolean;
+   Offset : Longword;
+   Len  : longint;
+   P : PAnsiChar;
+begin
+  GetSelectedText:=False;
+  Text:=nil;Length:=0;
+  GetFromClipboard:=IsClipboard;
+  { Look if Clipboard then might be need to interact with OS clipboard. }
+  if GetFromClipboard then
+    if GlobalClipboard then                            { Use OS clipboard }
+    begin
+      P:=nil; Len:=0;
+      if GetTextWinClipBoardData (P , Len ) then       { Get OS clipboard data }
+        if assigned(P) then
+        begin
+          InsertBuffer (PEditBuffer(P),0,Len, False, True);{ Insert and select }
+          FreeMem(p);
+        end else
+          Exit; {no data}
+    end;
+
+  if SelStart<>SelEnd then
+  begin
+    Offset:=BufPtr (SelStart);
+    Text:=@Buffer^[Offset];
+    Length:=SelEnd-SelStart;
+    GetSelectedText:=True;
+  end;
+end; { TEditor.GetSelectedText }
 
 
 procedure TEditor.Insert_Line (Select_Mode : Byte);
@@ -2973,7 +3076,20 @@ end; { TEditor.Insert_Line }
 function TEditor.InsertText (Text       : Pointer;
                              Length     : Sw_Word;
                              SelectText : Boolean) : Boolean;
+var InsertToClipboard : boolean;
 begin
+  InsertToClipboard:=IsClipboard;
+  { Look if Clipboard then might be need to interact with OS clipboard. }
+  if InsertToClipboard and SelectText then
+    if GlobalClipboard then
+    begin
+      { Insert to clipboard (Copy or Cut) }
+      if not SetTextWinClipBoardData(PAnsiChar(Text), Length) then
+        begin
+           { Fail to set OS clipboard, not much to do about. }
+        end;
+    end;
+
   if assigned(Text) and not Search_Replace then
     Update_Place_Markers (Length, 0, Self.SelStart, Self.SelEnd);
   InsertText := InsertBuffer (PEditBuffer (Text),
@@ -4662,4 +4778,6 @@ begin
 end; { RegisterEditors }
 
 
+begin
+  DefaultGlobalClipboard:=WinClipboardSupported;
 end. { Unit NewEdit }

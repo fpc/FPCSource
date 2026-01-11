@@ -70,7 +70,7 @@
     OS_XXXX         The operating system used (XXXX may be one of:
                        DOS, OS2, Linux, Windows, Go32)
     PPC_XXXX        The compiler used: BP, FPK, Virtual, Speed
-    BIT_XX          The number of bits of the target platform: 16 or 32
+    BIT_XX          The number of bits of the target platform: 16, 32 or 64
     PROC_XXXX       The mode of the target processor (Real or Protected)
                     This shouldn't be used, except for i386 specific parts.
     ASM_XXXX        This is the assembler type: BP, ISO-ANSI, FPK
@@ -215,7 +215,8 @@ FOR FPC THESE ARE THE TRANSLATIONS
 {$IFDEF LINUX}
   {$UNDEF OS_DOS}
   {$DEFINE OS_LINUX}
-  {$DEFINE OS_UNIX}{$ENDIF}
+  {$DEFINE OS_UNIX}
+{$ENDIF}
 
 {$IFDEF FreeBSD}
   {$UNDEF OS_DOS}
@@ -387,8 +388,7 @@ FOR FPC THESE ARE THE TRANSLATIONS
   {$DEFINE PPC_DELPHI3}
   {$DEFINE PPC_DELPHI4}
   {$DEFINE PPC_DELPHI5}
-  {$UNDEF BP_VMTLink
-  }
+  {$UNDEF BP_VMTLink}
 {$ENDIF}
 
 {---------------------------------------------------------------------------}

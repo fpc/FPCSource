@@ -50,7 +50,6 @@ begin
           AddUnit('dialogs');
           AddUnit('msgbox');
           AddUnit('fvconsts');
-          AddUnit('fvclip',AllUnixOSes);
         end;
     T.ResourceStrings := True;
     T:=P.Targets.AddUnit('uapp.pas',P.OSes-[msdos,win16]);
@@ -66,7 +65,6 @@ begin
           AddUnit('udialogs');
           AddUnit('umsgbox');
           AddUnit('fvconsts');
-          AddUnit('ufvclip',AllUnixOSes);
         end;
     T.ResourceStrings := True;
     T:=P.Targets.AddUnit('asciitab.pas');
@@ -176,6 +174,7 @@ begin
           AddUnit('validate');
           AddUnit('app');
           AddUnit('histlist');
+          AddUnit('editors');
         end;
     T.ResourceStrings := True;
     T:=P.Targets.AddUnit('udialogs.pas',P.OSes-[msdos,win16]);
@@ -190,6 +189,7 @@ begin
           AddUnit('uvalidate');
           AddUnit('uapp');
           AddUnit('uhistlist');
+          AddUnit('ueditors');
         end;
     T.ResourceStrings := True;
     T:=P.Targets.AddUnit('drivers.pas');
@@ -200,6 +200,7 @@ begin
           AddUnit('sysmsg');
           AddUnit('fvcommon');
           AddUnit('fvconsts');
+          AddUnit('fvclip');
         end;
     T:=P.Targets.AddUnit('udrivers.pas',P.OSes-[msdos,win16]);
       with T.Dependencies do
@@ -209,6 +210,7 @@ begin
           AddUnit('sysmsg');
           AddUnit('ufvcommon');
           AddUnit('fvconsts');
+          AddUnit('ufvclip');
         end;
     T:=P.Targets.AddUnit('editors.pas');
       with T.Dependencies do
@@ -223,6 +225,7 @@ begin
           AddUnit('app');
           AddUnit('stddlg');
           AddUnit('msgbox');
+          AddUnit('fvclip');
         end;
     T.ResourceStrings := True;
     T:=P.Targets.AddUnit('ueditors.pas',P.OSes-[msdos,win16]);
@@ -238,27 +241,24 @@ begin
           AddUnit('uapp');
           AddUnit('ustddlg');
           AddUnit('umsgbox');
+          AddUnit('ufvclip');
         end;
     T.ResourceStrings := True;
-    T:=P.Targets.AddUnit('fvclip.pas',AllUnixOSes);
+    T:=P.Targets.AddUnit('fvclip.pas');
       with T.Dependencies do
         begin
           AddInclude('fvclip.inc');
           AddInclude('platform.inc');
-          AddUnit('drivers');
+          AddUnit('sysmsg');
           AddUnit('fvconsts');
-          AddUnit('app');
-          AddUnit('fvcommon');
         end;
-    T:=P.Targets.AddUnit('ufvclip.pas',AllUnixOSes);
+    T:=P.Targets.AddUnit('ufvclip.pas',P.OSes-[msdos,win16]);
       with T.Dependencies do
         begin
           AddInclude('fvclip.inc');
           AddInclude('platform.inc');
-          AddUnit('udrivers');
+          AddUnit('sysmsg');
           AddUnit('fvconsts');
-          AddUnit('uapp');
-          AddUnit('ufvcommon');
         end;
     T:=P.Targets.AddUnit('fvcommon.pas');
       with T.Dependencies do
@@ -399,6 +399,7 @@ begin
           AddUnit('udrivers');
           AddUnit('uviews');
         end;
+    T:=P.Targets.AddUnit('pmode.pas',[go32v2]);
     T:=P.Targets.AddUnit('statuses.pas');
       with T.Dependencies do
         begin
@@ -553,6 +554,11 @@ begin
         end;
     P.ExamplePath.Add('examples');
     P.ExamplePath.Add('src');
+    P.Targets.AddExampleProgram('examples/keytest.pas');
+    P.Targets.AddExampleProgram('examples/demoedit.pas');
+    P.Targets.AddExampleProgram('examples/colorselonly.pp');
+    P.Targets.AddExampleProgram('examples/filedlg.pas');
+    P.Targets.AddExampleProgram('examples/testuapp.pas',P.OSes-[msdos,win16]);
     P.Targets.AddExampleProgram('examples/testapp.pas');
     P.Targets.AddExampleProgram('src/platform.inc');
     // 'examples/Makefile

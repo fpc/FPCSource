@@ -403,21 +403,9 @@ CONST
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
 
 {$IFDEF FPC_DOTTEDUNITS}
-uses    System.Console.Mouse
-{$ifdef FV_UNICODE}
-  {$ifdef unix},FreeVision.Ufvclip{$endif}
-{$else FV_UNICODE}
-  {$ifdef unix},FreeVision.Fvclip{$endif}
-{$endif FV_UNICODE}
-  ;
+uses    System.Console.Mouse;
 {$ELSE FPC_DOTTEDUNITS}
-uses    Mouse
-{$ifdef FV_UNICODE}
-  {$ifdef unix},ufvclip{$endif}
-{$else FV_UNICODE}
-  {$ifdef unix},fvclip{$endif}
-{$endif FV_UNICODE}
-  ;
+uses    Mouse;
 {$ENDIF FPC_DOTTEDUNITS}
 
 resourcestring  sVideoFailed='Video initialization failed.';
@@ -1136,7 +1124,6 @@ BEGIN
 {$endif FV_UNICODE}
    InitHistory;                                               { Start history up }
    Inherited Init;                                            { Call ancestor }
-   {$ifdef unix}InitClip(@Self);{$endif}
    InitMsgBox;
    { init mouse and cursor }
    {$IFDEF FPC_DOTTEDUNITS}System.Console.{$ENDIF}Video.SetCursorType(crHidden);
@@ -1160,7 +1147,6 @@ BEGIN
    {$IFDEF FPC_DOTTEDUNITS}FreeVision.{$ENDIF}drivers.donevideo;
 {$endif FV_UNICODE}
 {   DoneMemory;}                                       { Close memory }
-   {$ifdef unix}DoneClip;{$endif}
    donekeyboard;
 {   DoneResource;}
 END;
@@ -1196,7 +1182,6 @@ var s:string;
 {$endif}
 
 BEGIN                                                 { Compatibility only }
-  {$ifdef unix}DoneClip;{$endif}
   DoneSysError;
   DoneEvents;
 {$ifdef FV_UNICODE}
@@ -1232,7 +1217,6 @@ BEGIN                                                 { Compatibility only }
   InitScreen;
   InitEvents;
   InitSysError;
-  {$ifdef unix}InitClip(@Self);{$endif}
   if (PrevHeight<>ScreenHeight) or (PrevWidth<>ScreenWidth) then
     { acknowledge new screen dimensions }
     { prevents to draw out of boundaries of new video buffer }
