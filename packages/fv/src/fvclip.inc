@@ -72,8 +72,10 @@ implementation
 {$endif}
 
 {$ifdef Windows}
+{$define WinClipSupported}
   uses
-    System.Strings,WinApi.Windows;
+    System.Strings,
+    WinApi.Windows;
 {$endif Windows}
 
 {$ifdef HASAMIGA}
@@ -107,8 +109,14 @@ implementation
 {$endif}
 
 {$ifdef Windows}
+{$define WinClipSupported}
   uses
-    strings,windows;
+    strings,
+ {$ifdef win16}
+    winprocs,wintypes;
+ {$else not win16}
+    windows;
+ {$endif not win16}
 {$endif Windows}
 
 {$ifdef HASAMIGA}
@@ -522,7 +530,6 @@ end;
 {$endif}
 
 {$ifdef Windows}
-{$define WinClipSupported}
 function WinClipboardSupported : boolean;
 begin
   WinClipboardSupported:=true;
@@ -948,7 +955,11 @@ begin
   res:=(SetClipboardData(CF_OEMTEXT,h)=h);
   h:=GlobalAlloc(GMEM_MOVEABLE or GMEM_DDESHARE,l+1);
   pp:=PAnsiChar(GlobalLock(h));
+{$ifdef win16}
+  OemToAnsiBuff(p,pp,l+1);
+{$else not win16}
   OemToCharBuffA(p,pp,l+1);
+{$endif not win16}
   SetClipboardData(CF_TEXT,h);
   GlobalUnlock(h);
   SetTextWinClipBoardData:=res;
