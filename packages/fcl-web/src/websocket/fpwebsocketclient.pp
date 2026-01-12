@@ -657,7 +657,7 @@ begin
   FList:=TThreadList.Create;
   FReads:=[];
   FExceptions:=[];
-  Finterval:=50;
+  Finterval:=25;
 end;
 
 destructor TWSMessagePump.Destroy;
@@ -704,14 +704,36 @@ end;
 
 procedure TWSThreadMessagePump.ThreadTerminated(Sender: TObject);
 begin
+  Writeln('Setting thread to nil');
   FThread:=Nil;
 end;
 
 procedure TWSThreadMessagePump.Terminate;
+var
+  lThread: TThread;
+  lCounter: Integer;
 begin
-  FThread.Terminate;
-  if Assigned(FThread) then
-    FThread.WaitFor;
+  lThread := FThread;
+  if Assigned(lThread) then
+  begin
+    lThread.Terminate;
+
+    // Wait till it stops
+    lCounter := 0;
+    while Assigned(FThread) and (lCounter < 200) do // 5 second timeout
+    begin
+      Sleep(10);
+      Inc(lCounter);
+    end;
+
+    // If thread still hasn't finished, there's a serious problem
+    if Assigned(FThread) then
+    begin
+      FThread.OnTerminate:=Nil;
+      // Force cleanup as last resort
+      FThread := nil;
+    end;
+  end;
 end;
 
 { TWSThreadMessagePump.TMessageDriverThread }
@@ -732,7 +754,16 @@ begin
     if FPump.CheckConnections then
       FPump.ReadConnections
     else
+      begin
       TThread.Sleep(FPump.Interval);
+      end;
+  // OnTerminate is called in a synchronize. However, if no-one calls CheckSynchronize, it is never called.
+  // So we call it ourselves.
+  if assigned(OnTerminate) then
+    begin
+    OnTerminate(Self);
+    OnTerminate:=Nil;
+    end;
 end;
 
 end.
