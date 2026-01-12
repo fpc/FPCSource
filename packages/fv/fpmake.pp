@@ -36,6 +36,7 @@ begin
       P.Dependencies.Add('amunits',[amiga]);
     if Defaults.CPU=powerpc then
       P.Dependencies.Add('os4units',[amiga]);
+    P.Dependencies.add('ami-extra',[amiga,aros,morphos]);
 
     T:=P.Targets.AddUnit('app.pas');
       with T.Dependencies do
