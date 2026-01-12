@@ -704,7 +704,6 @@ end;
 
 procedure TWSThreadMessagePump.ThreadTerminated(Sender: TObject);
 begin
-  Writeln('Setting thread to nil');
   FThread:=Nil;
 end;
 
