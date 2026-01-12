@@ -83,6 +83,10 @@ uses
   {$DEFINE USE_FUTIMES}
 {$endif}
 
+{$if declared(fpfutimens)}
+  {$DEFINE USE_FUTIMES}
+{$endif}
+
 { Include platform independent interface part }
 {$i sysutilh.inc}
 
