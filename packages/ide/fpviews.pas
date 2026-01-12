@@ -34,7 +34,7 @@ uses
     gdbint,
   {$endif GDBMI}
 {$endif NODEBUG}
-  FPConst,FPUsrScr;
+  FPConst,FPUsrScr,FPSwitch;
 
 type
     TEditor = TCodeEditor;
@@ -417,6 +417,16 @@ type
       procedure   CalcBounds (Var Bounds: TRect; Delta: TPoint); virtual;
     end;
 
+    PFPSwitchesDialog = ^TFPSwitchesDialog;
+    TFPSwitchesDialog = object(TFPVerticalResizeDialog)
+      SwitchesCount : Sw_Integer;
+      VScrollBar : PScrollBar;
+      RB: PScrollerRadioButtons;
+      constructor Init(Bounds: TRect; ATitle, ALabel: String; ASwitches : PSwitches );
+      procedure   ChangeBounds (Var Bounds: TRect); virtual;
+      procedure   SizeLimits (Var Min, Max: TPoint); virtual;
+    end;
+
     PFPASCIIChart = ^TFPASCIIChart;
     TFPASCIIChart = object(TASCIIChart)
       constructor Init;
@@ -592,7 +602,7 @@ uses
 {$endif USE_EXTERNAL_COMPILER}
   {$ifdef VESA}Vesa,{$endif}
   FPSymbol,FPDebug,FPVars,FPUtils,FPCompil,FPHelp,
-  FPTools,FPIDE,FPCodTmp,FPCodCmp,FPSwitch;
+  FPTools,FPIDE,FPCodTmp,FPCodCmp;
 
 const
   RSourceEditor: TStreamRec = (
@@ -4958,6 +4968,70 @@ begin
   DeltaWidth:=CalcMiddleDelta(Owner^.Size.Y, Delta.Y, R.A.Y, R.B.Y);
   Bounds.A.Y:=R.A.Y+DeltaWidth;
   Bounds.B.Y:=R.B.Y+DeltaWidth;
+end;
+
+constructor TFPSwitchesDialog.Init(Bounds: TRect; ATitle, ALabel: String; ASwitches : PSwitches );
+var R,R2,R3: TRect;
+    TargetCount,TargetHeight,I: Sw_Integer;
+    LastItem: PSItem;
+    LI: PSItem;
+    L: longint;
+    V : PView;
+begin
+  TargetCount:=ASwitches^.ItemCount;
+  R:=Bounds;
+  TargetHeight:=R.B.Y-R.A.Y-4;
+
+  inherited Init(R, ATitle);
+  SwitchesCount:=TargetCount;
+  GetExtent(R); R.Grow(-3,-1); Inc(R.A.Y);
+  R2.Copy(R); Inc(R2.A.Y); R2.B.Y:=R2.A.Y+TargetHeight;
+  {have scroll bar for Targets only if they does not fit in view}
+  VScrollBar :=nil;
+  //if TargetHeight<>TargetCount then
+  begin
+    Dec(R2.B.X);
+    R3.Copy(R2);R3.A.X:=R3.B.X; R3.B.X:=R3.B.X+1;
+    R3.B.Y:=R3.B.Y-3; {-3 because of InsertButtons later}
+    VScrollBar := New(PScrollBar, Init(R3));
+    VScrollBar^.GrowMode := gfGrowHiY;
+    Insert(VScrollBar);
+  end;
+  LastItem:=nil;
+  for I:=TargetCount-1 downto 0 do
+    LastItem:=NewSItem(ASwitches^.ItemName(I), LastItem);
+  New(RB, Init(R2, LastItem, VScrollBar));
+  L:=ord(ASwitches^.GetCurrSel);
+  RB^.SetData(L);
+  RB^.CentreSelected;
+
+  Insert(RB);
+  R2.Copy(R);
+  R2.B.Y:=R2.A.Y+1;
+  Insert(New(PLabel, Init(R2, ALabel, RB)));
+
+  InsertButtons(@self);
+  V:=First;
+  V^.GrowMode := gfGrowLoY + gfGrowHiY; { Cancel button glued to bottom line }
+  V:=V^.Next;
+  V^.GrowMode := gfGrowLoY + gfGrowHiY; { Ok button glued to bottom line }
+  RB^.GrowMode := gfGrowHiY;
+  RB^.Select;
+end;
+
+procedure TFPSwitchesDialog.ChangeBounds (Var Bounds: TRect);
+var SizeY, Y : Sw_Integer;
+begin
+  inherited ChangeBounds (Bounds);
+  UpdateScrollBar(RB,VScrollBar);
+end;
+
+procedure TFPSwitchesDialog.SizeLimits (Var Min, Max: TPoint);
+begin
+  Min.X:=Size.X;
+  Min.Y:=10;
+  Max.X:=Size.X;
+  Max.Y:=SwitchesCount+7;
 end;
 
 constructor TFPASCIIChart.Init;
