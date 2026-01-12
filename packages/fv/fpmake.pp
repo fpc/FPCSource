@@ -252,6 +252,7 @@ begin
           AddInclude('platform.inc');
           AddUnit('sysmsg');
           AddUnit('fvconsts');
+          AddUnit('pmode',[go32v2]);
         end;
     T:=P.Targets.AddUnit('ufvclip.pas',P.OSes-[msdos,win16]);
       with T.Dependencies do
@@ -260,6 +261,7 @@ begin
           AddInclude('platform.inc');
           AddUnit('sysmsg');
           AddUnit('fvconsts');
+          AddUnit('pmode',[go32v2]);
         end;
     T:=P.Targets.AddUnit('fvcommon.pas');
       with T.Dependencies do
