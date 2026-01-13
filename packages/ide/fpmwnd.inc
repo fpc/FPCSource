@@ -116,8 +116,13 @@ end;
 type
     PWindowListBox = ^TWindowListBox;
     TWindowListBox = object(TAdvancedListBox)
+      SearchPos : Sw_Word;
+      CurString : String;
       constructor Init(var Bounds: TRect; AScrollBar: PScrollBar);
       function    GetText(Item,MaxLen: Sw_Integer): String; virtual;
+      procedure   HandleEvent(var Event: TEvent); virtual;
+      function    GetKey(var S: String): Pointer; virtual;
+      procedure   NewList(AList: PCollection); virtual;
     end;
 
     PWindowListDialog = ^TWindowListDialog;
@@ -137,6 +142,8 @@ type
 constructor TWindowListBox.Init(var Bounds: TRect; AScrollBar: PScrollBar);
 begin
   inherited Init(Bounds,1,AScrollBar);
+  SearchPos:=0;
+  CurString:='';
 end;
 
 function TWindowListBox.GetText(Item,MaxLen: Sw_Integer): String;
@@ -176,6 +183,138 @@ begin
       S:='*'+S+' - '+msg_windowlist_hidden;
     end;
   GetText:=copy(S,1,MaxLen);
+end;
+
+procedure TWindowListBox.HandleEvent(var Event: TEvent);
+const
+  SpecialChars: set of AnsiChar = [#0,#9,#27];
+var
+  K: Pointer;
+  Value : Sw_integer;
+  OldPos, OldValue: Sw_Integer;
+  T: Boolean;
+  nX : Sw_Integer;
+  NewString: String;//Sw_String;
+
+  function UnsortedListSearch(AKey : PString; var AValue, nX : Sw_Integer):boolean;
+  var Count, k,n,z : Sw_Integer;
+      Found : boolean;
+      S : String;
+  begin
+    UnsortedListSearch:=false;
+    nX:=1;
+    if List=nil then exit;
+    if AKey=nil then exit;
+    if Length(AKey^)=0 then exit; {make no sense to search for empty Key}
+    Count:= List^.Count;
+    Found:=false;
+    for k:=0 to Count-1 do
+    begin
+      S:=GetText(K,Min(Size.X+1,255));
+      {locate beginning of file name, skip path}
+      N:=Length(S);
+      While (N>2) do
+      begin
+        if S[N-1] = DirectorySeparator then break;
+        dec(N);
+      end;
+      {compare with Key byte by byte}
+      for z:=1 to Length(AKey^) do
+      begin
+        if Upcase(S[n-1+z])<>Upcase(AKey^[z]) then break;
+        if z = Length(AKey^) then
+        begin
+          nX:=N; { mark Cursor.X start position }
+          AValue:=k;
+          Found:=true;
+        end;
+      end;
+      if Found then break;
+    end;
+    UnsortedListSearch:=Found;
+  end;
+
+begin
+  OldValue := Focused;
+  T:=false;
+  if not ((Event.What = evKeyDown) and (Event.CharCode=' ')) then {skip space key}
+    Inherited HandleEvent(Event);
+  if (OldValue <> Focused) or
+     ((Event.What = evBroadcast) and (Event.InfoPtr = @Self) and
+      (Event.Command = cmReleasedFocus)) then
+  begin
+    SearchPos := 0;
+    CurString:='';
+    HideCursor; { no search, no cursor shown }
+  end;
+  if Event.What = evKeyDown then
+  begin
+    { patched to prevent error when no or empty list or Escape pressed }
+    if (not (Event.CharCode in SpecialChars)) and
+       (List <> nil) and (List^.Count > 0) then
+    begin
+      Value := Focused;
+      ShowCursor;  {Show cursor only when in search mode }
+      OldPos := SearchPos;
+      if Event.KeyCode = kbBack then
+        begin
+          if SearchPos = 0 then Exit;
+          Dec(SearchPos);
+          OldPos:=SearchPos;
+          SetLength(CurString,SearchPos);
+        end
+      else
+        begin
+          Inc(SearchPos);
+          SetLength(CurString,SearchPos);
+          CurString[SearchPos] := Event.CharCode;
+        end;
+
+      K := GetKey(CurString);
+      T := UnsortedListSearch( K, Value, nX);
+
+      if CurString='' then
+        SetCursor(2, Cursor.Y);
+      if Value < Range then
+      begin
+          if Value < Range then
+            NewString := GetText(Value, 255)
+          else
+            NewString := '';
+          if T then
+          begin
+            if Value <> OldValue then
+              FocusItem(Value);
+            SetCursor({Cursor.X}nX+SearchPos, Cursor.Y);
+          end
+            else
+              SearchPos := OldPos;
+      end
+        else SearchPos := OldPos;
+
+      if (SearchPos <> OldPos) or (Event.CharCode in [#08,'0'..'1','A'..'Z','a'..'z']) then
+         ClearEvent(Event);
+    end;
+  end;
+
+  if not T and (Event.What = evKeyDown) and (Event.CharCode=' ') then
+    Inherited HandleEvent(Event); {now handel space key}
+end;
+
+function TWindowListBox.GetKey(var S: String): Pointer;
+begin
+//{$ifdef FV_UNICODE}
+//  GetKey := Pointer(S);
+//{$else}
+  GetKey := @S;
+//{$endif}
+end;
+
+procedure TWindowListBox.NewList(AList: PCollection);
+begin
+  inherited NewList(AList);
+  SearchPos:=0;
+  CurString:='';
 end;
 
 constructor TWindowListDialog.Init;
