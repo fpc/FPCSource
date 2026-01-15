@@ -164,7 +164,7 @@ type
     // Helper to quickly parse a stringlist into a markdown document
     class function FastParse(aSource: TStrings; aOptions: TMarkDownOptions): TMarkDownDocument;
     // Helper to quickly parse a stringlist into a markdown document
-    class function FastParseFile(const aFileName : string; aOptions: TMarkDownOptions): TMarkDownDocument;
+    class function FastParseFile(const aFileName : string; aOptions: TMarkDownOptions = []): TMarkDownDocument;
     // State control in lazy continuation .
     property Lazy : Boolean Read FLazy Write FLazy;
     // HTML entities to convert

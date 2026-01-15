@@ -130,6 +130,12 @@ Type
     Procedure TestFromVarRecQWord;
     Procedure TestFromVarRecUnicodeString;
     Procedure TestArrayOfConstToTValue;
+    procedure TestCastAnsiString;
+{$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
+    procedure TestCastUnicodeString;
+{$endif}
+    procedure TestCastWideString;
+    procedure TestCastShortString;
   end;
 
   { TMyUNknown }
@@ -717,6 +723,61 @@ begin
   CheckEquals(1,S[0].AsInteger,'Value 1');
   CheckEquals('something',S[1].AsString,'Value 3');
   CheckEquals(1.23,S[2].AsDouble,0.01,'Value 3');
+end;
+
+procedure TTestValueVariant.TestCastAnsiString;
+var
+  s: AnsiString;
+  v: Variant;
+  vvar, vstr: TValue;
+begin
+  s := 'Test';
+  v := s;
+  vvar := TValue.{$ifdef fpc}specialize{$endif}From<Variant>(v);
+  CheckTrue(vvar.TryCast(TypeInfo(AnsiString), vstr));
+  CheckEquals(s, vstr.AsAnsiString);
+end;
+
+{$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
+procedure TTestValueVariant.TestCastUnicodeString;
+var
+  u: UnicodeString;
+  v: Variant;
+  vvar, vstr: TValue;
+begin
+  u := 'Test';
+  TVarData(v).vType := varUString;
+  TVarData(v).vuString := Pointer(u);
+  vvar := TValue.{$ifdef fpc}specialize{$endif}From<Variant>(v);
+  CheckTrue(vvar.TryCast(TypeInfo(UnicodeString), vstr));
+  CheckEquals(u, vstr.AsUnicodeString);
+end;
+{$endif}
+
+procedure TTestValueVariant.TestCastWideString;
+var
+  w: WideString;
+  v: Variant;
+  vvar, vstr: TValue;
+begin
+  w := 'Test';
+  v := w;
+  vvar := TValue.{$ifdef fpc}specialize{$endif}From<Variant>(v);
+  CheckTrue(vvar.TryCast(TypeInfo(WideString), vstr));
+  CheckEquals(w, vstr.AsUnicodeString);
+end;
+
+procedure TTestValueVariant.TestCastShortString;
+var
+  s: ShortString;
+  v: Variant;
+  vvar, vstr: TValue;
+begin
+  s := 'Test';
+  v := s;
+  vvar := TValue.{$ifdef fpc}specialize{$endif}From<Variant>(v);
+  CheckTrue(vvar.TryCast(TypeInfo(ShortString), vstr));
+  CheckEquals(s, vstr.AsAnsiString);
 end;
 
 { TMyUNknown }

@@ -2327,6 +2327,10 @@ begin
       Dest.vType := varOleStr;
       Dest.vOleStr := nil;
       WideString(Pointer(Dest.vOleStr)) := WideString(Pointer(vOleStr));
+    end else if vType = varUString then begin
+      Dest.vType := varUString;
+      Dest.vustring := Nil;
+      UnicodeString(Dest.vustring) := UnicodeString(vustring);
     end else if vType = varAny then begin
       Dest := Source;
       RefAnyProc(Dest);
@@ -2456,6 +2460,11 @@ begin
         varDate:     SysVarFromTDateTime(Variant(aDest), VariantToDate(aSource));
 {$endif}
         varOleStr:   DoVarCastWStr(aDest, aSource);
+        varUString:  begin
+          DoVarClearIfComplex(aDest);
+          aDest.vType := aVarType;
+          UnicodeString(aDest.vustring) := VariantToUnicodeString(aSource);
+        end;
         varBoolean:  SysVarFromBool(Variant(aDest), VariantToBoolean(aSource));
         varShortInt: SysVarFromInt(Variant(aDest), VariantToShortInt(aSource), -1);
         varByte:     SysVarFromInt(Variant(aDest), VariantToByte(aSource), 1);
@@ -2466,13 +2475,10 @@ begin
 
         varDispatch: DoVarCastDispatch(aDest, aSource);
         varUnknown:  DoVarCastInterface(aDest, aSource);
-      else
-        case aVarType of
-          varString: DoVarCastLStr(aDest, aSource);
-          varAny:    VarCastError(vType, varAny);
+        varString:   DoVarCastLStr(aDest, aSource);
+        varAny:      VarCastError(vType, varAny);
         else
           DoVarCastComplex(aDest, aSource, aVarType);
-        end;
       end;
     end;
 
