@@ -1084,13 +1084,16 @@ implementation
 
       begin
         { flag all units that depend on this unit for reloading }
-        pm:=tdependent_unit(current_module.dependent_units.first);
+        pm:=tdependent_unit(dependent_units.first);
         while assigned(pm) do
          begin
            { We do not have to reload the unit that wants to load
              this unit, unless this unit is already compiled during
              the loading }
            m:=pm.u;
+           {$IFDEF DEBUG_PPU_CYCLES}
+           writeln('PPUALGO tmodule.flagdependent ',modulename^,' state=',state,', dependent ',m.modulename^,' ',m.state);
+           {$ENDIF}
            if (m=callermodule) and (m.state<ms_compiled_waitcrc) then
              Message1(unit_u_no_reload_is_caller,m.modulename^)
            else

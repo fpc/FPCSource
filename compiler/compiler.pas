@@ -306,7 +306,6 @@ begin
          { We need to add the initial module manually to the list of units }
          addloadedunit(m);
          main_module:=m;
-         m.state:=ms_compile;
          task_handler.addmodule(m);
          task_handler.processqueue;
          end;

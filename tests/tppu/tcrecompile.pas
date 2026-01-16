@@ -43,6 +43,8 @@ type
     procedure TestChangeInner1; // prog+2 units, change inner unit, keep leaf
     procedure TestChangeInlineBodyBug; // Bug: prog+1 unit plus a package of 2 units, change of inline body should change crc, but does not
 
+    procedure TestBug41457; // two cycles of size 2 and 3
+
     // inline modifier in implementation (not in interface)
     procedure TestImplInline1; // 2 units, cycle, impl inline
     procedure TestImplInline2; // program + 2 units cycle, impl inline
@@ -343,6 +345,29 @@ begin
   //CheckCompiled(['testcib_prog.pas','testcib_elk.pas']);
   // But it does not:
   CheckCompiled(['testcib_prog.pas']);
+end;
+
+procedure TTestRecompile.TestBug41457;
+begin
+  UnitPath:='bug41457';
+  OutDir:=UnitPath+PathDelim+'ppus';
+  MainSrc:=UnitPath+PathDelim+'bug41457_bird.pas';
+
+  Step:='First compile';
+  CleanOutputDir;
+  Compile;
+  CheckCompiled(['bug41457_ant.pas',
+    'bug41457_bird.pas',
+    'bug41457_eagle.pas',
+    'bug41457_hawk.pas',
+    'bug41457_seagull.pas']);
+
+  Step:='Second compile';
+  // the two deepest nodes of the two cycles are eagle and hawk, which are not recompiled
+  Compile;
+  CheckCompiled(['bug41457_ant.pas',
+    'bug41457_bird.pas',
+    'bug41457_seagull.pas']);
 end;
 
 procedure TTestRecompile.TestImplInline1;

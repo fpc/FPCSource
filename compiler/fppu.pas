@@ -687,6 +687,9 @@ var
             if [auSrc]=fnd then
              begin
                sources_avail:=true;
+               {$IFDEF DEBUG_PPU_CYCLES}
+               writeln('PPUALGO tppumodule.search_unit only sources, no ppu -> ',modulename^,' old=',state,' new=',ms_compile);
+               {$ENDIF}
                state:=ms_compile;
                recompile_reason:=rr_noppu;
                mainsource:=hs;
@@ -1285,6 +1288,9 @@ var
                       if (orgfiletime<>-1) and
                          (source_time<>orgfiletime) then
                         begin
+                          {$IFDEF DEBUG_PPU_CYCLES}
+                          writeln('PPUALGO tppumodule.readsourcefiles sourcechanged ',modulename^,' old=',state,' new=',ms_compile);
+                          {$ENDIF}
                           state:=ms_compile;
                           recompile_reason:=rr_sourcenewer;
                           Message2(unit_u_source_modified,hs,ppufilename,@queuecomment);
@@ -1321,8 +1327,11 @@ var
         available }
         if do_build and sources_avail then
           begin
-             state:=ms_compile;
-             recompile_reason:=rr_build;
+            {$IFDEF DEBUG_PPU_CYCLES}
+            writeln('PPUALGO tppumodule.readsourcefiles do_build ',modulename^,' old=',state,' new=',ms_compile);
+            {$ENDIF}
+            state:=ms_compile;
+            recompile_reason:=rr_build;
           end;
       end;
 
@@ -1338,7 +1347,6 @@ var
         isnew : boolean;
 
       begin
-
         while not ppufile.endofentry do
          begin
            hs:=ppufile.getstring;
@@ -2019,6 +2027,9 @@ var
                    Comment(V_Normal,'  implcrc change: '+hexstr(pu.u.crc,8)+' for '+pu.u.ppufilename+' <> '+hexstr(pu.checksum,8)+' in unit '+realmodulename^);
 {$endif DEBUG_UNIT_CRC_CHANGES}
                  recompile_reason:=rr_crcchanged;
+                 {$IFDEF DEBUG_PPU_CYCLES}
+                 writeln('PPUALGO tppumodule.load_usedunits ',modulename^,' interface uses "',pu.u.modulename^,'" old=',state,' new=',ms_compile);
+                 {$ENDIF}
                  state:=ms_compile;
                  exit;
                end;
@@ -2057,7 +2068,7 @@ var
               tppumodule(pu.u).loadppu(self);
               { if this unit is compiled we can stop }
               if state=ms_compiled then
-               exit;
+                exit;
               { add this unit to the dependencies }
               pu.u.adddependency(self,false);
               { need to recompile the current unit ? }
@@ -2072,6 +2083,9 @@ var
                     Comment(V_Normal,'  indcrc change (2): '+hexstr(pu.u.indirect_crc,8)+' for '+pu.u.ppufilename+' <> '+hexstr(pu.indirect_checksum,8)+' in unit '+realmodulename^);
 {$endif DEBUG_UNIT_CRC_CHANGES}
                   recompile_reason:=rr_crcchanged;
+                  {$IFDEF DEBUG_PPU_CYCLES}
+                  writeln('PPUALGO tppumodule.load_usedunits ',modulename^,' implementation uses "',pu.u.modulename^,'" old=',state,' new=',ms_compile);
+                  {$ENDIF}
                   state:=ms_compile;
                   exit;
                 end;
@@ -2156,7 +2170,7 @@ var
               (hp.defsgeneration<defsgeneration) then
              begin
                hp.defsgeneration:=defsgeneration;
-               hp.loadppu(self)
+               hp.loadppu(self);
              end
            else
              hp.do_reload:=false;
@@ -2240,6 +2254,9 @@ var
           if state in CompileStates then
             begin
               Message1(unit_u_second_compile_unit,modulename^);
+              {$IFDEF DEBUG_PPU_CYCLES}
+              writeln('PPUALGO tppumodule.prepare_second_load ',modulename^,' old=',state,' new=',ms_compile);
+              {$ENDIF}
               state:=ms_compile;
             end
           else
@@ -2252,8 +2269,12 @@ var
         Message1(unit_u_loading_unit,modulename^);
         if auPPU in search_unit_files(from_module,false) then
           state:=ms_load
-        else
+        else begin
+          {$IFDEF DEBUG_PPU_CYCLES}
+          writeln('PPUALGO tppumodule.try_load_ppufile ',modulename^,' old=',state,' new=',ms_compile);
+          {$ENDIF}
           state:=ms_compile;
+        end;
         if not (state=ms_compile) then
          begin
            load_interface;
@@ -2261,8 +2282,12 @@ var
            if not (state=ms_compile) then
             begin
               load_usedunits;
-              if not (state=ms_compile) then
+              if not (state=ms_compile) then begin
+                {$IFDEF DEBUG_PPU_CYCLES}
+                writeln('PPUALGO tppumodule.try_load_ppufile ',modulename^,' state=',state,' do_reload=',do_reload);
+                {$ENDIF}
                 Message1(unit_u_finished_loading_unit,modulename^);
+              end;
             end;
          end;
         { PPU is not needed anymore }
@@ -2306,6 +2331,9 @@ var
           comments.free;
           comments:=nil;
         end;
+        {$IFDEF DEBUG_PPU_CYCLES}
+        writeln('PPUALGO tppumodule.recompile_from_sources ',modulename^,' old=',state,' new=',ms_compile);
+        {$ENDIF}
         { Flag modules to reload }
         flagdependent(from_module);
         { Reset the module }
@@ -2326,7 +2354,7 @@ var
 
       { for a second_time recompile reload all dependent units,
         for a first time compile register the unit _once_ }
-      if second_time then
+      if second_time or do_reload then
         reload_flagged_units;
 
       { reopen the old module }
@@ -2343,7 +2371,7 @@ var
         ImplIntf : array[boolean] of string[15]=('implementation','interface');
       var
         do_load,
-        second_time        : boolean;
+        second_time: boolean;
 
       begin
         Inc(LoadCount);
@@ -2354,10 +2382,11 @@ var
                  modulename^);
 
         { check if the globalsymtable is already available, but
-          we must reload when the do_reload flag is set }
+          we must reload when the do_reload flag is set
+          The globalsymtable is created after loading the interface ppus }
         if (not do_reload) and
-           assigned(globalsymtable) then
-           exit(True);
+            assigned(globalsymtable) then
+          exit(True);
 
         { reset }
         do_load:=true;
@@ -2370,27 +2399,34 @@ var
         check_reload(from_module, do_load);
 
         if not do_load then
-          begin
-            // No need to do anything, restore situation and exit.
-            set_current_module(from_module);
-            exit(state=ms_compiled);
-          end;
+        begin
+          // No need to do anything, restore situation and exit.
+          set_current_module(from_module);
+          exit(state=ms_compiled);
+        end;
 
         { loading the unit for a second time? }
+        {$IFDEF DEBUG_PPU_CYCLES}
+        writeln('PPUALGO tppumodule.loadppu ',modulename^,' ',state);
+        {$ENDIF}
         if state=ms_registered then
           state:=ms_load
         else if (state in [ms_compile, ms_compiling_waitintf]) then
-          begin
+        begin
           { no use continuing if we must be compiled }
           // but we still need to restore current_module!
           set_current_module(from_module);
-          exit(false)
-          end
+          exit(false);
+        end
         else
-          begin
-            second_time:=true;
-            prepare_second_load(from_module);
-          end;
+        begin
+          { ppu cycle, e.g. A intf uses B impl uses A }
+          second_time:=true;
+          prepare_second_load(from_module);
+          {$IFDEF DEBUG_PPU_CYCLES}
+          writeln('PPUALGO tppumodule.loadppu AFTER prepare_second_load ',modulename^,' ',state);
+          {$ENDIF}
+        end;
 
         { close old_current_ppu on system that are
           short on file handles like DOS PM }
@@ -2400,7 +2436,7 @@ var
           tppumodule(from_module).ppufile.tempclose;
 {$endif SHORT_ON_FILE_HANDLES}
 
-        { try to opening ppu, skip this when we already
+        { try opening ppu, skip this when we already
           know that we need to compile the unit }
         if not (state=ms_compile) then
           try_load_ppufile(from_module);
