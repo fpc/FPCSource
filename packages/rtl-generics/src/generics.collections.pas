@@ -3276,7 +3276,7 @@ end;
 
 procedure TCustomAVLTreeMap<TREE_CONSTRAINTS>.NodeNotify(ANode: PNode; ACollectionNotification: TCollectionNotification; ADispose: boolean);
 begin
-  if Assigned(FOnValueNotify) then
+  if Assigned(FOnNodeNotify) then
     FOnNodeNotify(Self, ANode, ACollectionNotification, ADispose);
   KeyNotify(ANode.Key, ACollectionNotification);
   ValueNotify(ANode.Value, ACollectionNotification);
