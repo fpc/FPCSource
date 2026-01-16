@@ -1338,7 +1338,6 @@ var
         isnew : boolean;
 
       begin
-
         while not ppufile.endofentry do
          begin
            hs:=ppufile.getstring;
@@ -2057,7 +2056,7 @@ var
               tppumodule(pu.u).loadppu(self);
               { if this unit is compiled we can stop }
               if state=ms_compiled then
-               exit;
+                exit;
               { add this unit to the dependencies }
               pu.u.adddependency(self,false);
               { need to recompile the current unit ? }
@@ -2156,7 +2155,7 @@ var
               (hp.defsgeneration<defsgeneration) then
              begin
                hp.defsgeneration:=defsgeneration;
-               hp.loadppu(self)
+               hp.loadppu(self);
              end
            else
              hp.do_reload:=false;
@@ -2356,8 +2355,8 @@ var
         { check if the globalsymtable is already available, but
           we must reload when the do_reload flag is set }
         if (not do_reload) and
-           assigned(globalsymtable) then
-           exit(True);
+            assigned(globalsymtable) then
+          exit(True);
 
         { reset }
         do_load:=true;
@@ -2370,27 +2369,27 @@ var
         check_reload(from_module, do_load);
 
         if not do_load then
-          begin
-            // No need to do anything, restore situation and exit.
-            set_current_module(from_module);
-            exit(state=ms_compiled);
-          end;
+        begin
+          // No need to do anything, restore situation and exit.
+          set_current_module(from_module);
+          exit(state=ms_compiled);
+        end;
 
         { loading the unit for a second time? }
         if state=ms_registered then
           state:=ms_load
         else if (state in [ms_compile, ms_compiling_waitintf]) then
-          begin
+        begin
           { no use continuing if we must be compiled }
           // but we still need to restore current_module!
           set_current_module(from_module);
-          exit(false)
-          end
+          exit(false);
+        end
         else
-          begin
-            second_time:=true;
-            prepare_second_load(from_module);
-          end;
+        begin
+          second_time:=true;
+          prepare_second_load(from_module);
+        end;
 
         { close old_current_ppu on system that are
           short on file handles like DOS PM }
