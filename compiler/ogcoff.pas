@@ -295,6 +295,9 @@ interface
        COFF_BIG_OBJ_VERSION = 2;
 
     function ReadDLLImports(const dllname:string;readdllproc:Treaddllproc):boolean;
+    procedure MaybeSwap(var v : tcoffsechdr);
+    procedure MaybeSwap(var v : tcoffheader);
+    procedure MaybeSwap(var v : tcoffpeoptheader);
 
 implementation
 

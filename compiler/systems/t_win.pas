@@ -1692,11 +1692,15 @@ implementation
           Message1(execinfo_f_cant_open_executable,fn);
         { read headers }
         blockread(f,dosheader,sizeof(tdosheader));
+        if source_info.endian<>target_info.endian then
+          dosheader.e_lfanew:=SwapEndian(dosheader.e_lfanew);
         peheaderpos:=dosheader.e_lfanew;
         { skip to headerpos and skip pe magic }
         seek(f,peheaderpos+4);
         blockread(f,peheader,sizeof(tcoffheader));
+	maybeswap(peheader);
         blockread(f,peoptheader,sizeof(tcoffpeoptheader));
+	maybeswap(peoptheader);
         { write info }
         Message1(execinfo_x_codesize,tostr(peoptheader.tsize));
         Message1(execinfo_x_initdatasize,tostr(peoptheader.dsize));
@@ -1739,16 +1743,20 @@ implementation
         peheader.time:=0;
         { write header back, skip pe magic }
         seek(f,peheaderpos+4);
+	maybeswap(peheader);
         blockwrite(f,peheader,sizeof(tcoffheader));
         if ioresult<>0 then
           Message1(execinfo_f_cant_process_executable,fn);
+	maybeswap(peoptheader);
         blockwrite(f,peoptheader,sizeof(tcoffpeoptheader));
         if ioresult<>0 then
           Message1(execinfo_f_cant_process_executable,fn);
         { skip to headerpos and skip pe magic }
         seek(f,peheaderpos+4);
         blockread(f,peheader,sizeof(tcoffheader));
+	maybeswap(peheader);
         blockread(f,peoptheader,sizeof(tcoffpeoptheader));
+	maybeswap(peoptheader);
         { write the value after the change }
         Message1(execinfo_x_stackreserve,tostr(peoptheader.SizeOfStackReserve));
         Message1(execinfo_x_stackcommit,tostr(peoptheader.SizeOfStackCommit));
@@ -1759,6 +1767,7 @@ implementation
         for l:=1 to peheader.nsects do
          begin
            blockread(f,coffsec,sizeof(tcoffsechdr));
+	   maybeswap(coffsec);
            if coffsec.datapos>0 then
             begin
               if secroot=nil then
