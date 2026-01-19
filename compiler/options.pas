@@ -4764,6 +4764,14 @@ procedure read_arguments(cmd:TCmdStr);
         def_system_macro('FPC_HAS_TYPE_EXTENDED');
         def_system_macro('FPC_HAS_TYPE_DOUBLE');
         def_system_macro('FPC_HAS_TYPE_SINGLE');
+        { Clear memory model defines so we don't end up with two of them defined at the same time. 
+          That could have happen if configuration file would set differnet memory model from default. }
+        undef_system_macro('FPC_MM_TINY');
+        undef_system_macro('FPC_MM_SMALL');
+        undef_system_macro('FPC_MM_MEDIUM');
+        undef_system_macro('FPC_MM_COMPACT');
+        undef_system_macro('FPC_MM_LARGE');
+        undef_system_macro('FPC_MM_TINY');
         case init_settings.x86memorymodel of
           mm_tiny:    def_system_macro('FPC_MM_TINY');
           mm_small:   def_system_macro('FPC_MM_SMALL');
