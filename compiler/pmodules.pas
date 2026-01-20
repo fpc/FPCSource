@@ -1773,7 +1773,7 @@ type
               Compute the final CRC of this module, for the case of a
               circular dependency, and wait.
             }
-            {$IFDEF Debug_WaitCRC}
+            {$IF defined(Debug_WaitCRC) or defined(Debug_FreeParseMem)}
             writeln('finish_compile_unit ',module.realmodulename^,' waiting for used unit CRCs...');
             {$ENDIF}
             tppumodule(module).getppucrc;
@@ -1798,6 +1798,9 @@ type
         waitingmodule : tmodule;
 
       begin
+        {$IF defined(Debug_WaitCRC) or defined(Debug_FreeParseMem)}
+        writeln('finish_unit ',module.realmodulename^,' write ppu and free mem...');
+        {$ENDIF}
         result:=true;
 
         { Write out the ppufile after the object file has been created }
