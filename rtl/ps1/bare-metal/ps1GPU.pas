@@ -149,7 +149,7 @@ function gp1_vramSize(size: LongInt): LongWord; inline;
 
 
 type
-  DMAChain = record
+  DMAChain = packed record
     data: array of LongWord;
     nextPacket: pdword;
     orderingTable: array of LongWord;
@@ -520,7 +520,7 @@ end;
 
 procedure WaitForVSync;
 begin
-
+exit;
   // Wait until IRQ vertical blank flag is set.
   while (IRQ_STAT and (1 shl IRQ_VSYNC)) = 0 do
     asm

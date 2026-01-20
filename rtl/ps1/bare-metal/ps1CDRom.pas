@@ -192,6 +192,8 @@ var
   cdromRespLength: byte;
   cdromStatus: byte;
 
+  cdromIsReading: Boolean;
+
 function CDROM_BUSY: boolean;
 
 procedure initCDROM;
@@ -413,6 +415,8 @@ var
   msf : TCDROMMSF;
 
 begin
+  
+  cdromIsReading:= true;
 
   cdromReadDataPtr        := ptr;
   cdromReadDataNumSectors := numSectors;
@@ -445,12 +449,17 @@ begin
   DMA_MADR_Set(DMA_CDROM, dword(cdromReadDataPtr));
   DMA_BCR_Set (DMA_CDROM, cdromReadDataSectorSize div 4);
   DMA_CHCR_Set(DMA_CDROM, DMA_CHCR_ENABLE or DMA_CHCR_TRIGGER);
+
+  while (DMA_CHCR(DMA_CDROM) and DMA_CHCR_ENABLE) <> 0 do ; // spin until DMA finished
   
  // Advance pointer now that DMA has finished
   cdromReadDataPtr:= pointer(cdromReadDataPtr + cdromReadDataSectorSize);
 
   Dec(cdromReadDataNumSectors);
-  if cdromReadDataNumSectors <= 0 then issueCDROMCommand(CDROM_CMD_PAUSE, nil, 0);
+  if cdromReadDataNumSectors <= 0 then begin
+    cdromIsReading:= False;
+    issueCDROMCommand(CDROM_CMD_PAUSE, nil, 0);
+  end;
 
 end;
 
@@ -458,7 +467,7 @@ end;
 procedure cdromINT2;
 begin
 
-  cdromReadDone:= true;
+  if not cdromIsReading then cdromReadDone:= true;
 
 end;
 
@@ -755,13 +764,20 @@ end;
 procedure loadFile(var theFile: TFile);
 var
   numSelectors : dword;
+  data : pointer;
 
 begin
 
+  numSelectors:= (theFile.size + 2048 - 1) div 2048;
+  getmem(data, numSelectors * 2048);
+
+  startCDROMRead(theFile.lba, data, numSelectors, 2048, true, true);
+
   getmem(theFile.data, theFile.size);
 
-  numSelectors:= theFile.size div 2048;
-  startCDROMRead(theFile.lba, theFile.data, numSelectors, 2048, true, true);
+  move(data^, theFile.data^, theFile.size);
+
+  freemem(data);
 
 end;
 

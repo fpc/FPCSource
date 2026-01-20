@@ -636,7 +636,7 @@ procedure setInterruptHandler(func: TArgFunction; arg: Pointer);
 
 
 {
- * @brief Temporarily disables interrupts, then calls the BIOS function to clear
+ * Temporarily disables interrupts, then calls the BIOS function to clear
  * the instruction cache.
 }
 procedure flushCache;
@@ -730,7 +730,10 @@ procedure switchThreadImmediate(thread: PThread);
 
 
 var
-  HandleCDROMIRQ : procedure;
+  HandleCDROMIRQ : procedure = nil;
+  HandleVSyncIRQ : procedure = nil;
+
+  vblankCount : dword = 0;
 
 procedure InterruptHandlerFunction(arg: Pointer); cdecl;
 procedure InitIRQ;
@@ -1164,6 +1167,7 @@ procedure InterruptHandlerFunction(arg: Pointer); cdecl;
 begin
 
   if acknowledgeInterrupt(IRQ_CDROM) then if assigned(HandleCDROMIRQ) then HandleCDROMIRQ;
+  if acknowledgeInterrupt(IRQ_VSYNC) then if assigned(HandleVSyncIRQ) then HandleVSyncIRQ else inc(vblankCount);
 
 end;
 
@@ -1175,7 +1179,7 @@ begin
 
   setInterruptHandler(@InterruptHandlerFunction, nil);
 
-  IRQ_MASK := (1 shl IRQ_CDROM);
+  IRQ_MASK := (1 shl IRQ_CDROM) or (1 shl IRQ_VSYNC);
 
   enableInterrupts;
 

@@ -4,27 +4,25 @@ interface
 uses ps1COP0;
 
 type
-	// 12.4 fixed point
+	// sign.3.12 fixed point
 	GTEVector16 = packed record
 					x, y : smallint;
 					z, _padding : smallint;
 	end;
-
-	GTEVector32 = packed record
-					x, y, z : longint;
-	end;
-
+	pGTEVector16 = ^GTEVector16;
+	// sign.3.12 fixed point
 	GTEMatrix = packed record
-					values : array[0..2, 0..2] of smallint;
+					m : array[0..2, 0..2] of smallint;
 					_padding : smallint;
 	end;
+	pGTEMatrix = ^GTEMatrix;
 
 { Command definitions and Flags}
 const
 	GTE_CMD_BITMASK = 63 shl  0;
 	GTE_CMD_RTPS    =  1 shl  0; // Perspective transformation (1 vertex)
 	GTE_CMD_NCLIP   =  6 shl  0; // Normal clipping
-	GTE_CMD_OP      = 12 shl  0; // Outer product
+	GTE_CMD_OP      = 12 shl  0; // Outer product (Cross product of 2 vectors)
 	GTE_CMD_DPCS    = 16 shl  0; // Depth cue (1 vertex)
 	GTE_CMD_INTPL   = 17 shl  0; // Depth cue with vector
 	GTE_CMD_MVMVA   = 18 shl  0; // Matrix-vector multiplication
@@ -33,7 +31,7 @@ const
 	GTE_CMD_NCDT    = 22 shl  0; // Normal color depth (3 vertices)
 	GTE_CMD_NCCS    = 27 shl  0; // Normal color color (1 vertex)
 	GTE_CMD_CC      = 28 shl  0; // Color color
-	GTE_CMD_NCS     = 30 shl  0; // Normal color (1 vertex)
+	GTE_CMD_NCS     = 30 shl  0; // Normal color (1 vertex) (NORM)
 	GTE_CMD_NCT     = 32 shl  0; // Normal color (3 vertices)
 	GTE_CMD_SQR     = 40 shl  0; // Square of vector
 	GTE_CMD_DCPL    = 41 shl  0; // Depth cue with light
@@ -199,13 +197,13 @@ procedure gte_setLightColorMatrix(v11, v12, v13,
 							 	  v21, v22, v23,
 							  	  v31, v32, v33: smallint);
 
-procedure gte_loadRotationMatrix(const input: GTEMatrix);
-procedure gte_loadLightMatrix(const input: GTEMatrix);
-procedure gte_loadLightColorMatrix(const input: GTEMatrix);
+procedure gte_loadRotationMatrix(values: pdword);				// GTEMatrix
+procedure gte_loadLightMatrix(values: pdword);					// GTEMatrix
+procedure gte_loadLightColorMatrix(values: pdword);				// GTEMatrix
 
-procedure gte_storeRotationMatrix(var output: GTEMatrix);
-procedure gte_storeLightMatrix(var output: GTEMatrix);
-procedure gte_storeLightColorMatrix(var output: GTEMatrix);
+procedure gte_storeRotationMatrix(output: pGTEMatrix);
+procedure gte_storeLightMatrix(output: pGTEMatrix);
+procedure gte_storeLightColorMatrix(output: pGTEMatrix);
 
 
 { Data register definitions }
@@ -373,14 +371,14 @@ procedure gte_storeDataRegLZCR(offset: dword; ptr: Pointer);
 	
 
 procedure gte_setV0(x, y, z: smallint);
-procedure gte_loadV0(const input: GTEVector16);
-procedure gte_storeV0(const output: GTEVector16);
+procedure gte_loadV0(input: pGTEVector16);
+procedure gte_storeV0(output: pGTEVector16);
 procedure gte_setV1(x, y, z: smallint);
-procedure gte_loadV1(const input: GTEVector16);
-procedure gte_storeV1(const output: GTEVector16);
+procedure gte_loadV1(input: pGTEVector16);
+procedure gte_storeV1(output: pGTEVector16);
 procedure gte_setV2(x, y, z: smallint);
-procedure gte_loadV2(const input: GTEVector16);
-procedure gte_storeV2(const output: GTEVector16);
+procedure gte_loadV2(input: pGTEVector16);
+procedure gte_storeV2(output: pGTEVector16);
 
 procedure gte_setRowVectors(v11, v12, v13,
 							v21, v22, v23,
@@ -391,7 +389,7 @@ procedure gte_setColumnVectors(v11, v12, v13,
 
 
 procedure setupGTE(width, height: Integer);
-
+{
 const
 	sintable : array [0..359] of longint = (
 	0,71,143,214,286,357,428,499,570,641,711,782,852,921,991,1060,1129,1198,1266,1334,1401,1468,1534,1600,1666,
@@ -412,7 +410,7 @@ const
 
 function isin(x: Int32): Int32;
 function icos(x: Int32): Int32;
-
+}
 implementation
 uses ps1GPU;
 
@@ -836,13 +834,9 @@ begin
 end;
 
 
-procedure gte_loadRotationMatrix(const input: GTEMatrix);
-var
-  Values: PLongWord;
-
+procedure gte_loadRotationMatrix(values: pdword);
 begin
 
-  Values := @Input;
   gte_setControlRegRT11RT12(Values[0]);
   gte_setControlRegRT13RT21(Values[1]);
   gte_setControlRegRT22RT23(Values[2]);
@@ -852,13 +846,9 @@ begin
 end;
 
 
-procedure gte_loadLightMatrix(const input: GTEMatrix);
-var
-  Values: PLongWord;
-
+procedure gte_loadLightMatrix(values: pdword);
 begin
 
-  Values := @Input;
   gte_setControlRegL11L12(Values[0]);
   gte_setControlRegL13L21(Values[1]);
   gte_setControlRegL22L23(Values[2]);
@@ -868,13 +858,9 @@ begin
 end;
 
 
-procedure gte_loadLightColorMatrix(const input: GTEMatrix);
-var
-  Values: PLongWord;
-
+procedure gte_loadLightColorMatrix(values: pdword);
 begin
 
-  Values := @Input;
   gte_setControlRegLC11LC12(Values[0]);
   gte_setControlRegLC13LC21(Values[1]);
   gte_setControlRegLC22LC23(Values[2]);
@@ -884,54 +870,54 @@ begin
 end;
 
 
-procedure gte_storeRotationMatrix(var output: GTEMatrix);
+procedure gte_storeRotationMatrix(output: pGTEMatrix);
 begin
   // Row 0
-  output.values[0,0] := gte_getControlRegRT11RT12 and $FFFF;
-  output.values[0,1] := gte_getControlRegRT11RT12 shr 16;
-  output.values[0,2] := gte_getControlRegRT13RT21 and $FFFF;
+  output^.m[0,0]:= gte_getControlRegRT11RT12 and $FFFF;
+  output^.m[0,1]:= gte_getControlRegRT11RT12 shr 16;
+  output^.m[0,2]:= gte_getControlRegRT13RT21 and $FFFF;
   // Row 1
-  output.values[1,0] := gte_getControlRegRT13RT21 shr 16;
-  output.values[1,1] := gte_getControlRegRT22RT23 and $FFFF;
-  output.values[1,2] := gte_getControlRegRT22RT23 shr 16;
+  output^.m[1,0]:= gte_getControlRegRT13RT21 shr 16;
+  output^.m[1,1]:= gte_getControlRegRT22RT23 and $FFFF;
+  output^.m[1,2]:= gte_getControlRegRT22RT23 shr 16;
   // Row 2
-  output.values[2,0] := gte_getControlRegRT31RT32 and $FFFF;
-  output.values[2,1] := gte_getControlRegRT31RT32 shr 16;
-  output.values[2,2] := gte_getControlRegRT33 and $FFFF;
+  output^.m[2,0]:= gte_getControlRegRT31RT32 and $FFFF;
+  output^.m[2,1]:= gte_getControlRegRT31RT32 shr 16;
+  output^.m[2,2]:= gte_getControlRegRT33 and $FFFF;
 end;
 
 
-procedure gte_storeLightMatrix(var output: GTEMatrix);
+procedure gte_storeLightMatrix(output: pGTEMatrix);
 begin
   // Row 0
-  output.values[0,0] := gte_getControlRegL11L12 and $FFFF;
-  output.values[0,1] := gte_getControlRegL11L12 shr 16;
-  output.values[0,2] := gte_getControlRegL13L21 and $FFFF;
+  output^.m[0,0]:= gte_getControlRegL11L12 and $FFFF;
+  output^.m[0,1]:= gte_getControlRegL11L12 shr 16;
+  output^.m[0,2]:= gte_getControlRegL13L21 and $FFFF;
   // Row 1
-  output.values[1,0] := gte_getControlRegL13L21 shr 16;
-  output.values[1,1] := gte_getControlRegL22L23 and $FFFF;
-  output.values[1,2] := gte_getControlRegL22L23 shr 16;
+  output^.m[1,0]:= gte_getControlRegL13L21 shr 16;
+  output^.m[1,1]:= gte_getControlRegL22L23 and $FFFF;
+  output^.m[1,2]:= gte_getControlRegL22L23 shr 16;
   // Row 2
-  output.values[2,0] := gte_getControlRegL31L32 and $FFFF;
-  output.values[2,1] := gte_getControlRegL31L32 shr 16;
-  output.values[2,2] := gte_getControlRegL33 and $FFFF;
+  output^.m[2,0]:= gte_getControlRegL31L32 and $FFFF;
+  output^.m[2,1]:= gte_getControlRegL31L32 shr 16;
+  output^.m[2,2]:= gte_getControlRegL33 and $FFFF;
 end;
 
 
-procedure gte_storeLightColorMatrix(var output: GTEMatrix);
+procedure gte_storeLightColorMatrix(output: pGTEMatrix);
 begin
   // Row 0
-  output.values[0,0] := gte_getControlRegLC11LC12 and $FFFF;
-  output.values[0,1] := gte_getControlRegLC11LC12 shr 16;
-  output.values[0,2] := gte_getControlRegLC13LC21 and $FFFF;
+  output^.m[0,0]:= gte_getControlRegLC11LC12 and $FFFF;
+  output^.m[0,1]:= gte_getControlRegLC11LC12 shr 16;
+  output^.m[0,2]:= gte_getControlRegLC13LC21 and $FFFF;
   // Row 1
-  output.values[1,0] := gte_getControlRegLC13LC21 shr 16;
-  output.values[1,1] := gte_getControlRegLC22LC23 and $FFFF;
-  output.values[1,2] := gte_getControlRegLC22LC23 shr 16;
+  output^.m[1,0]:= gte_getControlRegLC13LC21 shr 16;
+  output^.m[1,1]:= gte_getControlRegLC22LC23 and $FFFF;
+  output^.m[1,2]:= gte_getControlRegLC22LC23 shr 16;
   // Row 2
-  output.values[2,0] := gte_getControlRegLC31LC32 and $FFFF;
-  output.values[2,1] := gte_getControlRegLC31LC32 shr 16;
-  output.values[2,2] := gte_getControlRegLC33 and $FFFF;
+  output^.m[2,0]:= gte_getControlRegLC31LC32 and $FFFF;
+  output^.m[2,1]:= gte_getControlRegLC31LC32 shr 16;
+  output^.m[2,2]:= gte_getControlRegLC33 and $FFFF;
 end;
 
 
@@ -1742,22 +1728,22 @@ end;
 
 procedure gte_setV0(x, y, z: smallint); inline;
 begin
-	gte_setDataRegVXY0((x and $ffff) or (y shl 16));
-	gte_setDataRegVZ0(z);
+	gte_setDataRegVXY0(dword((x and $ffff) or (y shl 16)));
+	gte_setDataRegVZ0(dword(z));
 end;
 
 
-procedure gte_loadV0(const input: GTEVector16); inline;
+procedure gte_loadV0(input: pGTEVector16); inline;
 begin
-	gte_loadDataRegVXY0(0, @input);
-	gte_loadDataRegVZ0(4, @input);
+	gte_loadDataRegVXY0(0, input);
+	gte_loadDataRegVZ0(4, input);
 end;
 
 
-procedure gte_storeV0(const output: GTEVector16); inline;
+procedure gte_storeV0(output: pGTEVector16); inline;
 begin
-	gte_storeDataRegVXY0(0, @output);
-	gte_storeDataRegVZ0(4, @output);
+	gte_storeDataRegVXY0(0, output);
+	gte_storeDataRegVZ0(4, output);
 end;
 
 
@@ -1768,14 +1754,14 @@ begin
 end;
 
 
-procedure gte_loadV1(const input: GTEVector16); inline;
+procedure gte_loadV1(input: pGTEVector16); inline;
 begin
-	gte_loadDataRegVXY1(0, @input);
-	gte_loadDataRegVZ1(4, @input);
+	gte_loadDataRegVXY1(0, input);
+	gte_loadDataRegVZ1(4, input);
 end;
 
 
-procedure gte_storeV1(const output: GTEVector16); inline;
+procedure gte_storeV1(output: pGTEVector16); inline;
 begin
 	gte_storeDataRegVXY1(0, @output);
 	gte_storeDataRegVZ1(4, @output);
@@ -1789,17 +1775,17 @@ begin
 end;
 
 
-procedure gte_loadV2(const input: GTEVector16); inline;
+procedure gte_loadV2(input: pGTEVector16); inline;
 begin
-	gte_loadDataRegVXY2(0, @input);
-	gte_loadDataRegVZ2(4, @input);
+	gte_loadDataRegVXY2(0, input);
+	gte_loadDataRegVZ2(4, input);
 end;
 
 
-procedure gte_storeV2(const output: GTEVector16); inline;
+procedure gte_storeV2(output: pGTEVector16); inline;
 begin
-	gte_storeDataRegVXY2(0, @output);
-	gte_storeDataRegVZ2(4, @output);
+	gte_storeDataRegVXY2(0, output);
+	gte_storeDataRegVZ2(4, output);
 end;
 
 
@@ -1836,13 +1822,13 @@ begin
 
   gte_setControlRegOFX((width shl 16) div 2);
   gte_setControlRegOFY((height shl 16) div 2);
-  gte_setControlRegH(height div 2);
+  gte_setControlRegH(256);
   gte_setControlRegZSF3(ORDERING_TABLE_SIZE div 3);
   gte_setControlRegZSF4(ORDERING_TABLE_SIZE div 4);
 
 end;
 
-
+{
 function isin(x: Int32): Int32;
 begin
   result:= sintable[x mod 359];
@@ -1853,5 +1839,5 @@ function icos(x: Int32): Int32;
 begin
   result:= SinTable[(90 + x) mod 359];
 end;
-
+}
 end.
