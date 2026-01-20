@@ -1,0 +1,25 @@
+#
+#   Makefile.fpc for PSY-Q-SDK bindings
+#
+
+[package]
+name=psy-q-sdk
+version=3.3.1
+
+[target]
+units=psyq
+
+[require]
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[compiler]
+includedir=src
+sourcedir=src tests
+
+[rules]
+.NOTPARALLEL:
