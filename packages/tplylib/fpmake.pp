@@ -32,6 +32,8 @@ begin
       P.OSes := P.OSes - [embedded];
     P.OSes := P.OSes - [wasip2];
 
+    P.OSes := P.OSes - [ps1];
+
     P.Author := '<various>';
     P.License := 'LGPL with modification';
     P.HomepageURL := 'www.freepascal.org';
