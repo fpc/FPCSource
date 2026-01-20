@@ -28,7 +28,7 @@ unit ctask;
 interface
 
 uses
-  fmodule, cclasses, globstat;
+  finput, fmodule, cclasses, globstat;
 
 type
   { ttask_list }
@@ -66,6 +66,8 @@ type
     function cancontinue(m : tmodule; checksub : boolean; out firstwaiting: tmodule): boolean;
     // Overload of cancontinue, based on task.
     function cancontinue(t: ttask_list; out firstwaiting: tmodule): boolean; inline;
+    // Check modules waiting for t, find highest state and count them
+    function countwaiting(m : tmodule; out highest_state: tmodulestate; out firsthighestwaiting: tmodule): integer;
     // Continue processing this module. Return true if the module is done and can be removed.
     function continue(t : ttask_list): Boolean;
     // process the queue. Note that while processing the queue, elements will be added.
@@ -86,7 +88,7 @@ procedure DoneTaskHandler;
 implementation
 
 uses
-  verbose, fppu, finput, globtype, sysutils,
+  verbose, fppu, globtype, sysutils,
   scanner, parser, pmodules, symbase;
 
 procedure InitTaskHandler;
@@ -259,6 +261,37 @@ begin
   Result:=cancontinue(t.module,true,firstwaiting);
 end;
 
+function ttask_handler.countwaiting(m: tmodule; out highest_state: tmodulestate; out
+  firsthighestwaiting: tmodule): integer;
+var
+  i: Integer;
+  waiting_module: tmodule;
+begin
+  Result:=0;
+  highest_state:=ms_registered;
+  firsthighestwaiting:=nil;
+
+  if (m.is_initial and not m.is_unit) then
+    // program/library
+    exit;
+
+  if m.waitingunits=nil then
+    exit;
+  for i:=0 to m.waitingunits.Count-1 do
+    begin
+    waiting_module:=tmodule(m.waitingunits[i]);
+    if waiting_module.state<highest_state then
+    else if waiting_module.state=highest_state then
+      inc(Result)
+    else
+      begin
+      Result:=1;
+      highest_state:=waiting_module.state;
+      firsthighestwaiting:=waiting_module;
+      end;
+    end;
+end;
+
 function ttask_handler.continue(t : ttask_list) : Boolean;
 
 var
@@ -337,74 +370,88 @@ end;
 procedure ttask_handler.processqueue;
 
 var
-  t,t2 : ttask_list;
-  process: boolean;
-  dummy,firstwaiting : tmodule;
+  t, besttask: ttask_list;
+  better: boolean;
+  firstwaiting, bestmod, m, firsthighestwaiting: tmodule;
+  cnt, bestcnt: Integer;
+  highest_state, bestwaitstate: tmodulestate;
 
 begin
-  t:=list.firsttask;
-  process:=true;
-  While t<>nil do
-    begin
+  // Strategy: goal is to write ppus early, so that mem is freed early and in case of an error
+  //           next compile can load ppus instead of compiling again.
 
-    process:=cancontinue(t,firstwaiting);
-    {$IFDEF Debug_WaitCRC}
-    if firstwaiting<>nil then
-      writeln('ttask_handler.processqueue "',t.module.realmodulename^,'" state=',t.module.state,' waitingfor="',firstwaiting.realmodulename^,'",',firstwaiting.state)
-    else
-      writeln('ttask_handler.processqueue "',t.module.realmodulename^,'" state=',t.module.state,' waitingfor=nil');
-    {$ENDIF}
-    if process then
-      begin
-      if continue(t) then
-        begin
-        {$IFDEF DEBUG_CTASK}Writeln(t.module.ToString,' is finished, removing from task list');{$ENDIF}
-        hash.Remove(t.module);
-        list.Remove(t);
-        FreeAndNil(t);
-        end;
+  repeat
+    {$IFDEF DEBUG_CTASK}writeln('ttask_handler.processqueue: list.count=',list.Count);{$ENDIF}
+    besttask:=list.firsttask;
+    if besttask=nil then
+      exit; // completed
 
-      // first search for any module that is ready to be written as ppu
-      t2:=list.firsttask;
-      while (t2<>nil)
-          and ((t2.module.state<>ms_compiled_waitcrc)
-            or not t2.module.usedunitsfinalcrc(firstwaiting)) do
-        t2:=t2.nexttask;
-      if t2<>nil then
-        begin
-        t:=t2;
-        {$IFDEF Debug_WaitCRC}
-        writeln('ttask_handler.processqueue FOUND CRC READY ',t.module.realmodulename^,' state=',t.module.state);
-        {$ENDIF}
-        end
-      else
-        begin
-        // maybe the strategy can be improved.
-        t:=list.firsttask;
-        end;
-      end
-    else if assigned(firstwaiting) and cancontinue(firstwaiting,true, dummy) then
+    // first search for any module that is ready to be written as ppu
+    while besttask<>nil do
       begin
-      t2:=findtask(firstwaiting);
-      if t2=nil then
-        t2:=t.nexttask;
-      t:=t2;
-      end
-    else
-      begin
-      t:=t.nexttask;
+      if (besttask.module.state=ms_compiled_waitcrc)
+          and besttask.module.usedunitsfinalcrc(firstwaiting) then
+        // module is ready to be written as ppu
+        break;
+      besttask:=besttask.nexttask;
       end;
-    if t=nil then
+
+    if besttask=nil then
       begin
+      // then search for any module, that can continue, with furthest state and most units waiting
+      bestcnt:=0;
+      bestwaitstate:=ms_registered;
       t:=list.firsttask;
-      if t<>nil then
+      while t<>nil do
+        begin
+        m:=t.module;
+        if (besttask<>nil) and (besttask.module.state>m.state) then
+          // skip
+        else if cancontinue(t.module,false,firstwaiting) then
+          begin
+          cnt:=countwaiting(m,highest_state,firsthighestwaiting);
+          {$IFDEF DEBUG_CTASK}
+          if firsthighestwaiting<>nil then
+            Writeln(t.module.ToString,' state=',t.module.state,' highwait: ',highest_state,' count=',cnt,' ',firsthighestwaiting.modulename^)
+          else
+            Writeln(t.module.ToString,' state=',t.module.state,' highwait: ',highest_state,' count=',cnt);
+          {$ENDIF}
+          better:=false;
+          if (besttask=nil)
+              or (besttask.module.state<m.state) then
+            better:=true
+          else if besttask.module.state=m.state then
+            begin
+              if bestwaitstate<highest_state then
+                better:=true
+              else if (bestwaitstate=highest_state) and (bestcnt>cnt) then
+                better:=true;
+            end;
+          if better then
+            begin
+            besttask:=t;
+            bestcnt:=cnt;
+            bestwaitstate:=highest_state;
+            end;
+          end;
+        t:=t.nexttask;
+        end;
+      if besttask=nil then
         begin
         // no progress possible
         write_queue;
-        InternalError(2025090301);
+        InternalError(2026012015);
         end;
       end;
-    end;
+
+    if continue(besttask) then
+      begin
+      {$IFDEF DEBUG_CTASK}Writeln(besttask.module.ToString,' is finished, removing from task list');{$ENDIF}
+      hash.Remove(besttask.module);
+      list.Remove(besttask);
+      FreeAndNil(besttask);
+      end;
+  until false;
 end;
 
 procedure ttask_handler.addmodule(m: tmodule);

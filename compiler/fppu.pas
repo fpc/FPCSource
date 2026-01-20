@@ -1648,8 +1648,8 @@ var
 
     procedure tppumodule.writeppu;
       begin
-        {$IFDEF Debug_WaitCRC}
-        writeln('tppumodule.writeppu ',realmodulename^);
+        {$IF defined(Debug_WaitCRC) or defined(Debug_FreeParseMem)}
+        writeln('tppumodule.writeppu START ',realmodulename^);
         {$ENDIF}
          Message1(unit_u_ppu_write,realmodulename^);
 
