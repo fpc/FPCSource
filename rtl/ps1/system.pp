@@ -44,7 +44,7 @@ var
   argv:PPAnsiChar;
   envp:PPAnsiChar;
 
-procedure GTECommand(Const AValue : DWord);[internproc:fpc_in_gtecommand_x];
+procedure gte_Command(Const AValue : DWord);[internproc:fpc_in_gtecommand_x];
 
 implementation
 
