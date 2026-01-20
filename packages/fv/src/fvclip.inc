@@ -56,6 +56,10 @@ procedure DoneClip;
 implementation
 
 {$IFDEF FPC_DOTTEDUNITS}
+{$ifdef MSDOS}
+  uses
+    TP.DOS;
+{$endif MSDOS}
 {$ifdef DOS}
   uses
     FreeVision.Pmode,
@@ -93,6 +97,10 @@ implementation
 {$endif os2}
 
 {$ELSE  not FPC_DOTTEDUNITS}
+{$ifdef MSDOS}
+  uses
+    dos;
+{$endif MSDOS}
 {$ifdef DOS}
   uses
     pmode,
@@ -419,6 +427,54 @@ begin
 {$endif}
 end;
 
+{$ifdef MSDOS}
+{$define WinClipSupported}
+function WinClipboardSupported : boolean;
+var
+  r : registers;
+begin
+  r.ax:=$1700;
+  Intr($2F,r);
+  WinClipboardSupported:=(r.ax<>$1700);
+end;
+
+function OpenWinClipboard : boolean;
+var
+  r : Registers;
+begin
+  r.ax:=$1701;
+  Intr($2F,r);
+  OpenWinClipboard:=(r.ax<>0);
+end;
+
+function EmptyWinClipboard : boolean;
+var
+  r : Registers;
+begin
+  r.ax:=$1702;
+  Intr($2F,r);
+  EmptyWinClipboard:=(r.ax<>0);
+end;
+
+function CloseWinClipboard : boolean;
+var
+  r : Registers;
+begin
+  r.ax:=$1708;
+  Intr($2F,r);
+  CloseWinClipboard:=(r.ax<>0);
+end;
+
+function InternGetDataSize : longint;
+var
+  r : Registers;
+begin
+  r.ax:=$1704;
+  r.dx:=7 {OEM Text rather then 1 : Text };
+  Intr($2F,r);
+  InternGetDataSize:=(r.dx shl 16) + r.ax;
+end;
+{$endif MSDOS}
 
 {$ifdef DOS}
 {$define WinClipSupported}
@@ -802,6 +858,10 @@ end;
 
 function GetTextWinClipBoardData(var p : PAnsiChar;var l : longint) : boolean;
 var
+{$ifdef MSDOS}
+  r : Registers;
+  pp: PAnsiChar;
+{$endif MSDOS}
 {$ifdef DOS}
   r : Registers;
   M : MemPtr;
@@ -824,6 +884,25 @@ begin
   GetTextWinClipBoardData:=False;
   if not OpenWinClipBoard then
     exit;
+{$ifdef MSDOS}
+  l:=InternGetDataSize;
+  if (l=0) or (l>65520) then
+    begin
+      l:=0;
+      CloseWinClipBoard;
+      exit;
+    end;
+  GetMem(p,l+1);
+  p^:=#0;
+  r.ax:=$1705;
+  r.dx:=7{ OEM Text rather then 1 : Text };
+  r.es:=Seg(p^);
+  r.bx:=Ofs(p^);
+  Intr($2F,r);
+  GetTextWinClipBoardData:=(r.ax<>0);
+  pp:=p+l;
+  pp^:=#0; { make null terminated }
+{$endif MSDOS}
 {$ifdef DOS}
   l:=InternGetDataSize;
   if (l=0) or (l>65520) then
@@ -893,11 +972,12 @@ end;
 
 function SetTextWinClipBoardData(p : PAnsiChar;l : longint) : boolean;
 var
+{$ifdef MSDOS}
+  r : Registers;
+{$endif}
 {$ifdef DOS}
   r : Registers;
   M : MemPtr;
-  pp: PAnsiChar;
-  op: PAnsiChar;
 {$endif DOS}
 {$ifdef Windows}
   h : HGlobal;
@@ -920,14 +1000,19 @@ begin
   if not OpenWinClipBoard then
     exit;
   EmptyWinClipBoard;
+{$ifdef MSDOS}
+  r.ax:=$1703;
+  r.dx:=7{ OEM Text rather then 1 : Text };
+  r.es:=Seg(p^);
+  r.bx:=Ofs(p^);
+  r.si:=l shr 16;
+  r.cx:=l and $ffff;
+  Intr($2F,r);
+  SetTextWinClipBoardData:=(r.ax<>0);
+{$endif MSDOS}
 {$ifdef DOS}
-  GetMem(pp,l+1);
-  Move(p^,pp^,l);
-  op:=pp+l;
-  op^:=#0; { make sure that string is null terminated }
-  GetDosMem(M,l+1);
-  M.MoveDataTo(PP^,l+1);
-  FreeMem(pp);
+  GetDosMem(M,l);
+  M.MoveDataTo(P^,l);
   r.ax:=$1703;
   r.dx:=7{ OEM Text rather then 1 : Text };
   r.es:=M.DosSeg;
