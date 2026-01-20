@@ -519,15 +519,24 @@ end;
 
 
 procedure WaitForVSync;
+var
+   currentCount : longint;
 begin
-exit;
+{
   // Wait until IRQ vertical blank flag is set.
-  while (IRQ_STAT and (1 shl IRQ_VSYNC)) = 0 do
-    asm
-      nop
-    end;
+  
+}
+    if (IRQ_MASK and 1) <> 0 then begin
+      
+      currentCount:= vblankCount;
+      while currentCount = vblankCount do ;
 
-  IRQ_STAT := not (1 shl IRQ_VSYNC);
+    end else begin
+
+      while (IRQ_STAT and (1 shl IRQ_VSYNC)) = 0 do ;
+      IRQ_STAT := not (1 shl IRQ_VSYNC);
+
+    end;
 
 end;
 
