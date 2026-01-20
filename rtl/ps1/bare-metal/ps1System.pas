@@ -1167,7 +1167,15 @@ procedure InterruptHandlerFunction(arg: Pointer); cdecl;
 begin
 
   if acknowledgeInterrupt(IRQ_CDROM) then if assigned(HandleCDROMIRQ) then HandleCDROMIRQ;
-  if acknowledgeInterrupt(IRQ_VSYNC) then if assigned(HandleVSyncIRQ) then HandleVSyncIRQ else inc(vblankCount);
+
+
+  if acknowledgeInterrupt(IRQ_VSYNC) then begin
+  
+    inc(vblankCount);
+  
+    if assigned(HandleVSyncIRQ) then HandleVSyncIRQ;
+
+  end;
 
 end;
 
