@@ -1018,6 +1018,10 @@ const
                   result := ctypeconvnode.create_internal(cunaryminusnode.create(right.getcopy),right.resultdef);
               end
 
+            { change "nil - val" to "-val" }
+            else if (left.nodetype=niln) and is_pointer(right.resultdef) then
+              result := ctypeconvnode.create_internal(cunaryminusnode.create(ctypeconvnode.create_internal(right.getcopy,resultdef)),resultdef)
+
             { convert n - n mod const into n div const*const }
             else if (right.nodetype=modn) and is_constintnode(tmoddivnode(right).right) and
               (left.isequal(tmoddivnode(right).left)) and not(might_have_sideeffects(left)) { and

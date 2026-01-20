@@ -1013,7 +1013,7 @@ implementation
 
     constructor tunaryminusnode.create(expr : tnode);
       begin
-         inherited create(unaryminusn,expr);
+        inherited create(unaryminusn,expr);
       end;
 
 
