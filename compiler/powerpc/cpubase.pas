@@ -361,6 +361,7 @@ uses
       LA_LR_AIX = 8;
       LA_LR_SYSV = 4;
       { offset in the linkage area for the saved RTOC register}
+      LA_RTOC_SYSV = 20;
       LA_RTOC_AIX = 20;
       LA_RTOC_ELFV2 = 12;
 
