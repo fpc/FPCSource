@@ -52,7 +52,7 @@ unit agrvgas;
 
     uses
        cutils,globals,verbose,
-       cgbase,
+       cgbase, comphook,
        itcpugas,cpuinfo,
        aasmcpu;
 
@@ -259,20 +259,34 @@ unit agrvgas;
       case target_info.abi of
         abi_riscv_ilp32:
           Replace(result,'$ABI','ilp32');
+        abi_riscv_ilp32d:
+          Replace(result,'$ABI','ilp32d');
+        abi_riscv_ilp32e:
+          Replace(result,'$ABI','ilp32e');
         abi_riscv_ilp32f:
           Replace(result,'$ABI','ilp32f');
 	else
-          Replace(result,'$ABI','ilp32d');
+          begin
+            Do_Comment(V_Warning,'Unrecognized riscv32 abi: '+tostr(ord(target_info.abi)));
+            Replace(result,'$ABI','ilp32d');
+	  end;
       end;
 {$endif RISCV32}
 {$ifdef RISCV64}
       case target_info.abi of
         abi_riscv_lp64:
           Replace(result,'$ABI','lp64');
+        abi_riscv_lp64d:
+          Replace(result,'$ABI','lp64d');
         abi_riscv_lp64f:
           Replace(result,'$ABI','lp64f');
+        abi_riscv_lp64q:
+          Replace(result,'$ABI','lp64q');
 	else
-          Replace(result,'$ABI','lp64d');
+          begin
+            Do_Comment(V_Warning,'Unrecognized riscv64 abi: '+tostr(ord(target_info.abi)));
+            Replace(result,'$ABI','lp64d');
+	  end;
       end;
 {$endif RISCV64}
       end;
