@@ -4422,6 +4422,7 @@ P*2Twii_Wii
 p*2Taix_AIX
 p*2Tdarwin_Darwin/Mac OS X
 p*2Tembedded_Embedded
+p*2Tfreebsd_FreeBSD
 p*2Tlinux_Linux
 # riscv32 targets
 R*2Tembedded_Embedded
