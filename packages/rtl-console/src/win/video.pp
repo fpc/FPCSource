@@ -212,12 +212,25 @@ begin
    SetConsoleCursorInfo(ConsoleOutHandle,ConsoleCursorInfo);
 end;
 
+Const
+  SysVideoModeCount = 7;
+  SysVMD : Array[0..SysVideoModeCount-1] of TVideoMode = (
+   (Col: 40; Row: 25; Color: True),
+   (Col: 80; Row: 25; Color: True),
+   (Col: 80; Row: 30; Color: True),
+   (Col: 80; Row: 43; Color: True),
+   (Col: 80; Row: 50; Color: True),
+   (Col: 80; Row: 25; Color: True), // Reserved for mode set by resize window
+   (Col: 80; Row: 25; Color: True)  // Reserved for TargetEntry
+  );
+
 function SysVideoModeSelector (const VideoMode: TVideoMode): boolean;
 
 var MI: Console_Screen_Buffer_Info;
     C: Coord;
     SR: Small_Rect;
-
+    I : Integer;
+    FoundVideoMode : Boolean;
 begin
   if not (GetConsoleScreenBufferInfo (ConsoleOutHandle, MI)) then
     SysVideoModeSelector := false
@@ -253,6 +266,26 @@ begin
             if SetConsoleWindowInfo (ConsoleOutHandle, true, SR) then
               begin
                 SysVideoModeSelector := true;
+                I:=SysVideoModeCount-1;
+                FoundVideoMode:=False;
+
+                While (I>=0) and Not FoundVideoMode do
+                If (VideoMode.col=SysVMD[i].col) and
+                   (VideoMode.Row=SysVMD[i].Row) and
+                   (VideoMode.Color=SysVMD[i].Color) then
+                  FoundVideoMode:=True
+                else
+                  Dec(I);
+
+                 If Not FoundVideoMode Then
+                   begin
+                     { As we where able to set this mode, this is avalable }
+                     { Register the curent video mode in reserved slot in System Modes }
+                     SysVMD[SysVideoModeCount-2].Col:=VideoMode.Col;
+                     SysVMD[SysVideoModeCount-2].Row:=VideoMode.Row;
+                     SysVMD[SysVideoModeCount-2].Color:={VideoMode.Color}True;
+                   end;
+
                 SetCursorType (LastCursorType);
                 ClearScreen;
               end
@@ -275,17 +308,6 @@ begin
     end;
 end;
 
-Const
-  SysVideoModeCount = 6;
-  SysVMD : Array[0..SysVideoModeCount-1] of TVideoMode = (
-   (Col: 40; Row: 25; Color: True),
-   (Col: 80; Row: 25; Color: True),
-   (Col: 80; Row: 30; Color: True),
-   (Col: 80; Row: 43; Color: True),
-   (Col: 80; Row: 50; Color: True),
-   (Col: 80; Row: 25; Color: True) // Reserved for TargetEntry
-  );
-
 
 Function SysSetVideoMode (Const Mode : TVideoMode) : Boolean;
 
@@ -302,15 +324,17 @@ begin
       SysSetVideoMode:=True
     else
       Dec(I);
-  If SysSetVideoMode then
+  if SysVideoModeSelector(Mode) then
     begin
-    if SysVideoModeSelector(Mode) then
-      begin
+      If Not SysSetVideoMode then
+        begin
+          I:=SysVideoModeCount-2;
+          SysSetVideoMode:=true;
+        end;
       ScreenWidth:=SysVMD[I].Col;
       ScreenHeight:=SysVMD[I].Row;
       ScreenColor:=SysVMD[I].Color;
-      end else SysSetVideoMode := false;
-    end;
+    end else SysSetVideoMode := false;
 end;
 
 Function SysGetVideoModeData (Index : Word; Var Data : TVideoMode) : boolean;
