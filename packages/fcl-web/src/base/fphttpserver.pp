@@ -929,7 +929,7 @@ end;
 
 procedure TFPHTTPConnectionResponse.EndServerEvents;
 begin
-  inherited EndServerEvents;
+  Connection.Socket.Close;
 end;
 
 { TFPHTTPConnection }
