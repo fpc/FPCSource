@@ -13,7 +13,7 @@
 
  **********************************************************************}
 {$IFNDEF FPC_DOTTEDUNITS}
-unit json2yaml;
+unit Json2Yaml;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {$MODE OBJFPC}

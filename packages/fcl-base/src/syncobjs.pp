@@ -27,7 +27,7 @@
 
 
 {$IFNDEF FPC_DOTTEDUNITS}
-unit syncobjs;
+unit SyncObjs;
 {$ENDIF FPC_DOTTEDUNITS}
 
 interface

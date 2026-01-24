@@ -15,7 +15,7 @@
 {$mode objfpc}
 {$h+}
 {$IFNDEF FPC_DOTTEDUNITS}
-unit jsonparser;
+unit JsonParser;
 {$ENDIF FPC_DOTTEDUNITS}
 
 interface

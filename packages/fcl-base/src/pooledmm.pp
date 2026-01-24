@@ -21,7 +21,7 @@
     profiling easier.
 }
 {$IFNDEF FPC_DOTTEDUNITS}
-unit pooledmm;
+unit PooledMM;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}

@@ -17,7 +17,7 @@
 {$H+}
 
 {$IFNDEF FPC_DOTTEDUNITS}
-unit gettext;
+unit GetText;
 {$ENDIF FPC_DOTTEDUNITS}
 
 interface

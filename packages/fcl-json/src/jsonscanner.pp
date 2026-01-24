@@ -17,7 +17,7 @@
 { $INLINE ON}
 
 {$IFNDEF FPC_DOTTEDUNITS}
-unit jsonscanner;
+unit JsonScanner;
 {$ENDIF FPC_DOTTEDUNITS}
 
 interface

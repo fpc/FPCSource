@@ -11,7 +11,7 @@
 
  **********************************************************************}
 {$IFNDEF FPC_DOTTEDUNITS}
-unit wtex;
+unit WTex;
 {$ENDIF FPC_DOTTEDUNITS}
 
 interface

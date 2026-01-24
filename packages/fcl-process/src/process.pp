@@ -11,7 +11,7 @@
 
  **********************************************************************}
 {$IFNDEF FPC_DOTTEDUNITS}
-unit process;
+unit Process;
 {$ENDIF FPC_DOTTEDUNITS}
 {$define windows}
 {$mode objfpc}

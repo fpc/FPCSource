@@ -11,7 +11,7 @@
 
  **********************************************************************}
 {$IFNDEF FPC_DOTTEDUNITS}
-unit wformat;
+unit WFormat;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {$ifdef fpc}

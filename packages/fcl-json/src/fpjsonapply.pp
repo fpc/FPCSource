@@ -13,7 +13,7 @@
 
  **********************************************************************}
 {$IFNDEF FPC_DOTTEDUNITS}
-unit fpjsonapply;
+unit fpJsonApply;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {$mode ObjFPC}{$H+}

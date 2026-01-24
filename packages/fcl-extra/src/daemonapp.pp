@@ -12,7 +12,7 @@
 
  **********************************************************************}
 {$IFNDEF FPC_DOTTEDUNITS}
-unit daemonapp;
+unit DaemonApp;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}

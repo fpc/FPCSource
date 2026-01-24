@@ -27,7 +27,7 @@
 
  **********************************************************************}
 {$IFNDEF FPC_DOTTEDUNITS}
-unit wmarkdown;
+unit WMarkDown;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {$ifdef fpc}

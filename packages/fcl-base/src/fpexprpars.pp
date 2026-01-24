@@ -16,7 +16,7 @@
 {$mode objfpc}
 {$h+}
 {$IFNDEF FPC_DOTTEDUNITS}
-unit fpexprpars;
+unit fpExprPars;
 {$ENDIF FPC_DOTTEDUNITS}
 
 interface

@@ -13,7 +13,7 @@
 
  **********************************************************************}
 {$IFNDEF FPC_DOTTEDUNITS}
-unit fpjson;
+unit fpJson;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {$i fcl-json.inc}

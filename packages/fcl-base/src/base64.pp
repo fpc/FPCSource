@@ -23,7 +23,7 @@
 {$H+}
 
 {$IFNDEF FPC_DOTTEDUNITS}
-unit base64;
+unit Base64;
 {$ENDIF FPC_DOTTEDUNITS}
 
 interface

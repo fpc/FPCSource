@@ -13,7 +13,7 @@
 {$mode objfpc}
 {$h+}
 {$IFNDEF FPC_DOTTEDUNITS}
-unit streamcoll;
+unit StreamColl;
 {$ENDIF FPC_DOTTEDUNITS}
 
 interface

@@ -36,7 +36,7 @@
 }
 
 {$IFNDEF FPC_DOTTEDUNITS}
-unit csvdocument;
+unit CsvDocument;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {$IFDEF FPC}

@@ -34,7 +34,7 @@
 }
 
 {$IFNDEF FPC_DOTTEDUNITS}
-unit fptimer;
+unit fpTimer;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}

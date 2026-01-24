@@ -14,7 +14,7 @@
 
  **********************************************************************}
 {$IFNDEF FPC_DOTTEDUNITS}
-unit pascodegen;
+unit PasCodeGen;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}

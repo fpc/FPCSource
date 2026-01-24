@@ -14,7 +14,7 @@
  **********************************************************************}
 
 {$IFNDEF FPC_DOTTEDUNITS}
- unit fpthreadpool;
+ unit fpThreadPool;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {$mode ObjFPC}{$H+}

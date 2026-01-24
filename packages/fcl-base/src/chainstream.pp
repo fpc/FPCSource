@@ -15,7 +15,7 @@
  **********************************************************************}
 
 {$IFNDEF FPC_DOTTEDUNITS}
-unit chainstream;
+unit ChainStream;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {$mode ObjFPC}{$H+}

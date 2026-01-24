@@ -20,7 +20,7 @@
 {$mode objfpc}
 {$h+}
 {$IFNDEF FPC_DOTTEDUNITS}
-unit streamex;
+unit StreamEx;
 {$ENDIF FPC_DOTTEDUNITS}
 
 Interface

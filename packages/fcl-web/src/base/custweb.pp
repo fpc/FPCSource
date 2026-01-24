@@ -17,7 +17,7 @@
 {$H+}
 
 {$IFNDEF FPC_DOTTEDUNITS}
-unit custweb;
+unit CustWeb;
 {$ENDIF FPC_DOTTEDUNITS}
 
 Interface

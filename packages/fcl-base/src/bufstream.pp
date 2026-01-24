@@ -17,7 +17,7 @@
 {$mode objfpc}
 {$H+}
 {$IFNDEF FPC_DOTTEDUNITS}
-unit bufstream;
+unit BufStream;
 {$ENDIF FPC_DOTTEDUNITS}
 
 interface

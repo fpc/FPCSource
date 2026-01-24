@@ -24,7 +24,7 @@
 }
 
 {$IFNDEF FPC_DOTTEDUNITS}
-unit memds;
+unit MemDs;
 {$ENDIF FPC_DOTTEDUNITS}
 
 interface

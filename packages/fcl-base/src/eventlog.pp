@@ -16,7 +16,7 @@
 {$mode objfpc}
 {$h+}
 {$IFNDEF FPC_DOTTEDUNITS}
-unit eventlog;
+unit EventLog;
 {$ENDIF FPC_DOTTEDUNITS}
 
 interface

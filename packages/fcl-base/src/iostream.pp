@@ -13,7 +13,7 @@
 {$mode objfpc}
 
 {$IFNDEF FPC_DOTTEDUNITS}
-unit iostream;
+unit IoStream;
 {$ENDIF FPC_DOTTEDUNITS}
 
 interface

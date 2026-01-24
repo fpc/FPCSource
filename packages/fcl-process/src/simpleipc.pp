@@ -14,7 +14,7 @@
 
  **********************************************************************}
 {$IFNDEF FPC_DOTTEDUNITS}
-unit simpleipc;
+unit SimpleIPC;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}

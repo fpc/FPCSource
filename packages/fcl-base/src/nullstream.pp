@@ -17,7 +17,7 @@ Emulates a memorystream as far as needed: by writing past the end you can
 increase its size; reading past the end gives an error}
 
 {$IFNDEF FPC_DOTTEDUNITS}
-unit nullstream;
+unit NullStream;
 {$ENDIF FPC_DOTTEDUNITS}
 
 interface

@@ -13,7 +13,7 @@
 
  **********************************************************************}
 {$IFNDEF FPC_DOTTEDUNITS}
-unit jsonreader;
+unit JsonReader;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {$I fcl-json.inc}

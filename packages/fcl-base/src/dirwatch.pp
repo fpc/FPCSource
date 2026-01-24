@@ -13,7 +13,7 @@
 
  **********************************************************************}
 
-unit dirwatch;
+unit DirWatch;
 
 { $define forcegeneric}
 

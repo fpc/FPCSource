@@ -36,7 +36,7 @@
 }
 
 {$IFNDEF FPC_DOTTEDUNITS}
-unit csvreadwrite;
+unit CsvReadWrite;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}

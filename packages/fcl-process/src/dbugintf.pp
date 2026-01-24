@@ -16,7 +16,7 @@
 {$mode objfpc}
 {$h+}
 {$IFNDEF FPC_DOTTEDUNITS}
-unit dbugintf;
+unit DbugIntf;
 {$ENDIF FPC_DOTTEDUNITS}
 
 interface

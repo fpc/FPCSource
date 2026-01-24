@@ -84,7 +84,7 @@ Date        Author Changes
 *)
 
 {$IFNDEF FPC_DOTTEDUNITS}
-UNIT libtar;
+UNIT LibTar;
 {$ENDIF FPC_DOTTEDUNITS}
 
 INTERFACE

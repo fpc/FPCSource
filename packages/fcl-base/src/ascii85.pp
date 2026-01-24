@@ -15,7 +15,7 @@
 // I, Danny Milosavljevic, hereby release this code into the public domain.
 
 {$IFNDEF FPC_DOTTEDUNITS}
-unit ascii85;
+unit Ascii85;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {$M+}

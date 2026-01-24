@@ -13,7 +13,7 @@
 
  **********************************************************************}
 {$IFNDEF FPC_DOTTEDUNITS}
-unit jsonwriter;
+unit JsonWriter;
 {$ENDIF}
 
 {$mode ObjFPC}{$H+}

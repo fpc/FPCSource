@@ -14,7 +14,7 @@
  **********************************************************************}
 
 {$IFNDEF FPC_DOTTEDUNITS}
-unit fpjsontopas;
+unit fpJsonToPas;
 {$ENDIF FPC_DOTTEDUNITS}
 
 // TODO : Array of Array LoadFromJSON/SaveToJSON

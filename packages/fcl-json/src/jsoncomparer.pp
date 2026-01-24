@@ -13,7 +13,7 @@
 
  **********************************************************************}
 {$IFNDEF FPC_DOTTEDUNITS}
-unit jsoncomparer;
+unit JsonComparer;
 {$ENDIF}
 
 {$mode ObjFPC}{$H+}

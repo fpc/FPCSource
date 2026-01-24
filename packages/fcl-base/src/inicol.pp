@@ -14,7 +14,7 @@
 {$mode objfpc}
 {$h+}
 {$IFNDEF FPC_DOTTEDUNITS}
-unit inicol;
+unit IniCol;
 {$ENDIF FPC_DOTTEDUNITS}
 
 interface

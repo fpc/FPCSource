@@ -12,7 +12,7 @@
  **********************************************************************}
 
 {$IFNDEF FPC_DOTTEDUNITS}
-unit fpobserver;
+unit fpObserver;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}

@@ -1,5 +1,5 @@
 {$IFNDEF FPC_DOTTEDUNITS}
-unit singleinstance;
+unit SingleInstance;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {

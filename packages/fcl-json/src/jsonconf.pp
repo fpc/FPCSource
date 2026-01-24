@@ -24,7 +24,7 @@
 {$ENDIF}
 
 {$IFNDEF FPC_DOTTEDUNITS}
-unit jsonConf;
+unit JsonConf;
 {$ENDIF FPC_DOTTEDUNITS}
 
 interface

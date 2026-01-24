@@ -29,7 +29,7 @@
 
  **********************************************************************}
 {$IFNDEF FPC_DOTTEDUNITS}
-unit wtext;
+unit WText;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {$ifdef fpc}

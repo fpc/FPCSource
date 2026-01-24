@@ -16,7 +16,7 @@
 {$endif}
 
 {$IFNDEF FPC_DOTTEDUNITS}
-Unit idea;
+Unit Idea;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {

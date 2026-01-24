@@ -1,5 +1,5 @@
 {$IFNDEF FPC_DOTTEDUNITS}
-unit fpjsonrtti;
+unit fpJsonRtti;
 {$ENDIF FPC_DOTTEDUNITS}
 {
     This file is part of the Free Pascal run time library.

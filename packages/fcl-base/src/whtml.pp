@@ -11,7 +11,7 @@
 
  **********************************************************************}
 {$IFNDEF FPC_DOTTEDUNITS}
-unit whtml;
+unit WHtml;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {$ifdef fpc}
