@@ -233,7 +233,7 @@ implementation
       defcmp,defutil,procinfo,
       aasmdata,aasmtai,
       cgbase,
-      nld,nbas;
+      nld,nbas,ncnv;
 
     function genintconstnode(const v : TConstExprInt) : tordconstnode;
       var
@@ -734,11 +734,10 @@ implementation
 *****************************************************************************}
 
     constructor tpointerconstnode.create(v : TConstPtrUInt;def:tdef);
-
       begin
-         inherited create(pointerconstn);
-         value:=v;
-         typedef:=def;
+        inherited create(pointerconstn);
+        value:=v;
+        typedef:=def;
       end;
 
 
@@ -773,28 +772,31 @@ implementation
 
 
     function tpointerconstnode.dogetcopy : tnode;
-
       var
          n : tpointerconstnode;
-
       begin
-         n:=tpointerconstnode(inherited dogetcopy);
-         n.value:=value;
-         n.typedef := typedef;
-         dogetcopy:=n;
+        n:=tpointerconstnode(inherited dogetcopy);
+        n.value:=value;
+        n.typedef := typedef;
+        dogetcopy:=n;
       end;
+
 
     function tpointerconstnode.pass_typecheck:tnode;
       begin
         result:=nil;
         resultdef:=typedef;
+        if is_voidpointer(resultdef) and (value=0) then
+          result:=cnilnode.create;
       end;
+
 
     function tpointerconstnode.pass_1 : tnode;
       begin
-         result:=nil;
-         expectloc:=LOC_CONSTANT;
+        result:=nil;
+        expectloc:=LOC_CONSTANT;
       end;
+
 
     function tpointerconstnode.docompare(p: tnode): boolean;
       begin
