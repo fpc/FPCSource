@@ -11,7 +11,7 @@
 
  **********************************************************************}
 {$IFNDEF FPC_DOTTEDUNITS}
-unit ezcgi;
+unit EzCgi;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {$mode delphi}

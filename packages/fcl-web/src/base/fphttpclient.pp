@@ -13,7 +13,7 @@
 
  **********************************************************************}
 {$IFNDEF FPC_DOTTEDUNITS}
-unit fphttpclient;
+unit fpHTTPClient;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}

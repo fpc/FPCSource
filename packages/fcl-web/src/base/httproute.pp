@@ -21,7 +21,7 @@
 {$H+}
 
 {$IFNDEF FPC_DOTTEDUNITS}
-unit httproute;
+unit HTTPRoute;
 {$ENDIF FPC_DOTTEDUNITS}
 
 interface

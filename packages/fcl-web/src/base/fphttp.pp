@@ -14,7 +14,7 @@
 {$mode objfpc}
 {$H+}
 {$IFNDEF FPC_DOTTEDUNITS}
-unit fphttp;
+unit fpHTTP;
 {$ENDIF FPC_DOTTEDUNITS}
 
 Interface

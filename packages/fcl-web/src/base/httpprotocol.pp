@@ -13,7 +13,7 @@
 
  **********************************************************************}
 {$IFNDEF FPC_DOTTEDUNITS}
-unit httpprotocol;
+unit HTTPProtocol;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}

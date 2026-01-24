@@ -13,7 +13,7 @@
 
  **********************************************************************}
 {$IFNDEF FPC_DOTTEDUNITS}
-unit fpmimetypes;
+unit fpMimeTypes;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
