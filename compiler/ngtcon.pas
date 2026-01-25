@@ -1615,6 +1615,12 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
             if not def.is_addressonly then
               ftcb.emit_tai(Tai_const.Create_sym(nil),voidpointertype);
           end
+        else if n.nodetype=niln then
+          begin
+            ftcb.queue_emit_ordconst(0,procaddrdef);
+            if not def.is_addressonly then
+              ftcb.emit_tai(Tai_const.Create_sym(nil),voidpointertype);
+          end
         else
           Message(parser_e_illegal_expression);
         ftcb.maybe_end_aggregate(def);
