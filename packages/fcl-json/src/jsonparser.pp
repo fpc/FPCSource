@@ -66,6 +66,8 @@ implementation
 
 Resourcestring
   SErrStructure = 'Structural error';
+  SErrUnexpectedEOF = 'Unexpected EOF encountered.';
+  SErrDuplicateKey = 'Duplicatekey or no object';
 
 { TJSONParser }
 
@@ -78,9 +80,10 @@ Var
 
 begin
   Data:=Nil;
-  AOptions:=[];
+  AOptions:=[joSingle];
   if AUseUTF8 then
     Include(AOptions,joUTF8);
+    
   P:=TJSONParser.Create(AStream,AOptions);
   try
     Data:=P.Parse;
@@ -98,7 +101,7 @@ Var
 
 begin
   Data:=Nil;
-  AOptions:=[];
+  AOptions:=[joSingle];
   if AUseUTF8 then
     Include(AOptions,joUTF8);
   P:=TJSONParser.Create(S,AOptions);
@@ -164,7 +167,7 @@ begin
   if (FStruct<>nil) and (FStruct.JSONType=jtObject) and (FKey='') then
     FKey:=Akey
   else
-    DoError('Duplicatekey or no object');
+    DoError(SErrDuplicateKey);
 end;
 
 procedure TJSONParser.StringValue(const AValue: TJSONStringType);
@@ -240,6 +243,8 @@ begin
   try
     DoExecute;
     Result:=FValue;
+    if (Result=Nil) and (joSingle in Options) then
+      Raise EJSONParser.Create(SErrUnexpectedEOF); 
   except
     On E : exception do
       begin
