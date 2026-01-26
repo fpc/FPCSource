@@ -915,6 +915,10 @@ initialization
 {$ifdef cpupowerpc64}
   {$ifdef FreeBSD}
     set_source_info(system_powerpc64_freebsd_info);
+    { on a little endian PPC64 platform -> use little endian as default }
+    {$ifdef FPC_LITTLE_ENDIAN}
+      source_info.endian:=endian_little;
+    {$endif}
   {$endif FreeBSD}
 {$endif powerpc64}
 {$ifdef cpuarm}
