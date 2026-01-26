@@ -271,6 +271,7 @@ const Oid_Bool     = 16;
       Oid_interval  = 1186;
       oid_numeric   = 1700;
       Oid_uuid      = 2950;
+      Oid_JSONB     = 3802;
 
 { TPQTransactionHandle }
 
@@ -1055,7 +1056,8 @@ begin
                              if size > MaxSmallint then size := MaxSmallint;
                              end;
 //    Oid_text               : Result := ftString;
-    Oid_text,Oid_JSON      : Result := ftMemo;
+    Oid_text,Oid_JSON,
+    Oid_JSONB              : Result := ftMemo;
     Oid_Bytea              : Result := ftBlob;
     Oid_oid                : Result := ftInteger;
     Oid_int8               : Result := ftLargeInt;
