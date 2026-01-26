@@ -24,9 +24,9 @@ interface
 
 uses
   {$IFDEF FPC_DOTTEDUNITS}
-  System.SysUtils, System.Generics.Collections, System.Classes, System.StrUtils;
+  System.SysUtils, System.Generics.Collections, System.Classes, System.StrUtils, System.DateUtils;
   {$ELSE}
-  SysUtils, Generics.Collections, Classes, StrUtils;
+  SysUtils, Generics.Collections, Classes, StrUtils, dateutils;
   {$ENDIF}
 
 const
@@ -65,7 +65,7 @@ type
     None, StartObject, StartArray, StartConstructor, PropertyName, Comment,
     Raw, Integer, Float, &String, Boolean, Null, Undefined, EndObject,
     EndArray, EndConstructor, Date, Bytes, Oid, RegEx, DBRef, CodeWScope,
-    MinKey, MaxKey, Decimal
+    MinKey, MaxKey, Decimal, TimeStamp
   );
 
 
@@ -263,11 +263,28 @@ Type
     property AsString: String read GetAsString write SetAsString;
   end;
 
+  { TJsonTimestamp }
+
+  TJsonTimestamp = record
+  private
+    function GetAsDateTime: TDateTime;
+    function GetAsString: string;
+    procedure SetAsDateTime(const aValue: TDateTime);
+    procedure SetAsString(const aValue: string);
+  public
+    t: Integer;
+    i: Integer;
+    constructor Create(aTime: Integer; aInc: Integer);
+    property AsString: string read GetAsString write SetAsString;
+    property AsDateTime: TDateTime read GetAsDateTime write SetAsDateTime;
+  end;
+
 var
   JSONFormatSettings: TFormatSettings;
   JSONSerializationVersion: Integer = 36; // as defined in Delphi
 
 implementation
+
 
 { ---------------------------------------------------------------------
   Constants
@@ -827,6 +844,47 @@ begin
     Options:=lParts[2];
     end;
   end;
+end;
+
+{ TJsonTimestamp }
+
+function TJsonTimestamp.GetAsDateTime: TDateTime;
+begin
+  Result:=UnixToDateTime(t,True);
+end;
+
+function TJsonTimestamp.GetAsString: string;
+begin
+  Result:=DateToISO8601(GetAsDateTime,True);
+  if i<>0 then
+    Result:=Result+','+IntToStr(i);
+end;
+
+procedure TJsonTimestamp.SetAsDateTime(const aValue: TDateTime);
+begin
+  t:=DateTimeToUnix(aValue,True);
+  i:=0;
+end;
+
+procedure TJsonTimestamp.SetAsString(const aValue: string);
+var
+  lTime,lInc : String;
+begin
+  lTime:=ExtractWord(1,aValue,[',']);
+  t:=DateTimeToUnix(ISO8601ToDate(lTime,True),True);
+  if WordCount(aValue,[','])<>2 then
+    I:=0
+  else
+    begin
+    lInc:=ExtractWord(2,aValue,[',']);
+    I:=StrToInt(lInc);
+    end;
+end;
+
+constructor TJsonTimestamp.Create(aTime: Integer; aInc: Integer);
+begin
+  t:=aTime;
+  i:=aInc;
 end;
 
 initialization
