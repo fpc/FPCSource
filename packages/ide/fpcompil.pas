@@ -83,6 +83,7 @@ type
     PCompilerStatusDialog = ^TCompilerStatusDialog;
     TCompilerStatusDialog = object(TCenterDialog)
       ST    : PAdvancedStaticText;
+      ST2   : PAdvancedStaticText;
       KeyST : PColorStaticText;
       starttime : real;
       constructor Init;
@@ -585,8 +586,13 @@ begin
   starttime:=getrealtime;
   GetExtent(R); R.B.Y:=11;
   R.Grow(-3,-2);
+  R.B.Y:=R.B.Y-4;
   New(ST, Init(R, ''));
   Insert(ST);
+  GetExtent(R); R.B.Y:=11;
+  R.Grow(-3,-2); R.A.Y:=R.A.Y+3;
+  New(ST2, Init(R, ''));
+  Insert(ST2);
   GetExtent(R); R.B.Y:=11;
   R.Grow(-1,-1); R.A.Y:=R.B.Y-1;
   New(KeyST, Init(R, '', Blue*16+White+longint($80+Blue*16+White)*256,true));
@@ -667,6 +673,13 @@ begin
   AddFormatParamStr(ShrinkPath(SmartPath(MainFile),
     MaxFileNameSize-Length('Main file: %s')));
   AddFormatParamStr(StatusS);
+  ST^.SetText(
+   FormatStrF(
+    'Main file: %s'#13+
+    '%s'+#13#13,
+   FormatParams)
+  );
+  ClearFormatParams;
   AddFormatParamStr(KillTilde(TargetSwitches^.ItemName(TargetSwitches^.GetCurrSel)));
   AddFormatParamInt(Status.CurrentLine);
   AddFormatParamInt(Status.CompiledLines);
@@ -677,10 +690,8 @@ begin
   r:=getrealtime;
   AddFormatParamInt(trunc(r-starttime));
   AddFormatParamInt(trunc(frac(r-starttime)*10));
-  ST^.SetText(
+  ST2^.SetText(
    FormatStrF(
-    'Main file: %s'#13+
-    '%s'+#13#13+
     'Target: %s'#13+
     'Line number: %6d     '+'Total lines:      %6d'+#13+
     'Used memory: %6dK    '+'Allocated memory: %6dK'#13+
