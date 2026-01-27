@@ -988,7 +988,7 @@ function IsWordSeparator(C: AnsiChar): boolean;
 begin
   IsWordSeparator:=C in
       [' ',#0,#255,':','=','''','"',
-      '.',',','/',';','$','#',
+      '.',',','/',';','$','#',  { In Lazarus "$", "#"  are not word separators }
       '(',')','<','>','^','*',
       '+','-','?','&','[',']',
       '{','}','@','~','%','\',
@@ -4604,31 +4604,60 @@ procedure TCustomCodeEditor.WordLeft;
 var X, Y: sw_integer;
     Line: sw_astring;
     GotIt,FoundNonSeparator: boolean;
+    N,orgX : sw_integer;
+    WhiteSpaceLen : sw_word;
 begin
   X:=CurPos.X;
   Y:=CurPos.Y;
+  orgX:=X;
   GotIt:=false;
   FoundNonSeparator:=false;
   while (Y>=0) do
    begin
+     X:=length(GetDisplayText(Y));
      if Y=CurPos.Y then
-      begin
-   X:=length(GetDisplayText(Y));
-   if CurPos.X<X then
-     X:=CurPos.X; Dec(X);
-   if (X=-1) then
+       if CurPos.X<X then
+         X:=CurPos.X;
+     Dec(X);
+     if (X=-1) then {at very beginning of line, go to prev line}
      begin
-       Dec(Y);
-       if Y>=0 then
-        X:=length(GetDisplayText(Y));
-       Break;
+       while true do  { skip all empyt lines }
+       begin
+         Dec(Y);
+         if Y>=0 then
+           X:=length(GetDisplayText(Y));
+         if (X >0) or (Y<=0) then
+           Break;
+       end;
+       break;
      end;
-      end
-     else
-      X:=length(GetDisplayText(Y))-1;
      Line:=GetDisplayText(Y);
+     if Y<>CurPos.Y then
+       orgX:=X;
+     WhiteSpaceLen:=0; {Count leading white spaces}
+     if (Length(Line)>=X+1) then
+       while (X>=WhiteSpaceLen) do
+         begin
+           if not (Line[WhiteSpaceLen+1] in [' ',#9]) then
+             break;
+           inc(WhiteSpaceLen);
+         end;
+     if WhiteSpaceLen>X then
+       X:=-1; { moving to next line }
+
      while (X>=0) and (GotIt=false) do
       begin
+        if (WhiteSpaceLen=0) and (X=0) and (orgX>0) then
+        begin
+          GotIt:=true; {stop at very beginning of line, if no white space}
+          break;
+        end;
+        if WhiteSpaceLen = X+1 then
+        begin
+          GotIt:=true; {stop before leading white space}
+          inc(X);
+          break;
+        end;
    if FoundNonSeparator then
     begin
       if IsWordSeparator(Line[X+1]) then
@@ -4640,7 +4669,55 @@ begin
     end
    else
     if not IsWordSeparator(Line[X+1]) then
-     FoundNonSeparator:=true;
+     FoundNonSeparator:=true
+    else
+      begin
+        { stop on comment start, comment end }
+        if Line[X+1] in ['(','*',')','/','{','}'] then
+        begin
+          (* comment  } at end of line *)
+          if (Length(line)=X+1) and (X<orgX-1) then
+             if  (Line[X+1] = '}') then
+               begin
+                 GotIt:=true;
+                 inc(X,2);
+               end;
+          if X<orgX then
+            if Length(line)>=X+2 then
+              if ((Line[X+1] = '/') and (Line[X+2] = '/'))
+                 or ((Line[X+1] = '(') and (Line[X+2] = '*'))
+                 or ((Line[X+1] = '*') and (Line[X+2] = ')'))
+                 or ((Line[X+1] = '{') and (Line[X+2] <> '{'))
+                 or ((Line[X+1] = '}') and (Line[X+2] <> '}'))
+                 or ((Line[X+1] = '{') and (X>0) and (Line[X] <> '{'))
+                then
+              begin
+                GotIt:=true;
+                (* comment  } *)
+                if GotIt and  (Line[X+1] = '}') then
+                  if (X<orgX-1) then
+                    Inc(X,1)
+                  else
+                    GotIt:=false;
+                { comment *) }
+                if GotIt and (Line[X+1] = '*') then
+                  if (X<orgX-2) then
+                    Inc(X,2)
+                  else
+                    GotIt:=false;
+                { comment // }
+                if Line[X+1] = '/' then
+                  for N:=1 to X do
+                    if (Line[N] = '/') and (Line[N+1] = '/') then
+                    begin
+                      GotIt:=false;
+                      break;
+                    end;
+                if GotIt then
+                  Inc(X);
+              end;
+        end; { of comment stop }
+      end;
    Dec(X);
    if (X=0) and (IsWordSeparator(Line[1])=false) then
     begin
@@ -4653,10 +4730,12 @@ begin
      X:=0;
      Dec(Y);
      if Y>=0 then
-      begin
-   X:=length(GetDisplayText(Y));
-   Break;
-      end;
+     begin
+       X:=length(GetDisplayText(Y));
+       if X>0 then
+         Break;
+     end;
+     orgX:=X;
    end;
   if Y<0 then Y:=0; if X<0 then X:=0;
   SetCurPtr(X,Y);
@@ -4666,45 +4745,113 @@ procedure TCustomCodeEditor.WordRight;
 var X, Y: sw_integer;
     Line: sw_astring;
     GotIt: boolean;
+    N : sw_integer;
 begin
   X:=CurPos.X; Y:=CurPos.Y; GotIt:=false;
   while (Y<GetLineCount) do
   begin
     if Y=CurPos.Y then
-       begin
-    X:=CurPos.X; Inc(X);
-    if (X>length(GetDisplayText(Y))-1) then
-       begin Inc(Y); X:=0; end;
-       end else X:=0;
+      begin
+        X:=CurPos.X; Inc(X);
+        if (X>length(GetDisplayText(Y))) then
+          begin
+            Inc(Y);
+            X:=0;
+          end;
+      end else X:=0;
     Line:=GetDisplayText(Y);
+    N:=X;
+    if N<1 then N:=1;
+    if (N<=length(Line)) and (Line[N] in [' ',#9]) then {sepcial exception if line beginning contains only spaces then we stop at the beginning of word (not at end)}
+    begin
+      N:=1;
+      {count spaces in beginning of line}
+      while (Y<GetLineCount) and (N<=length(Line)) and (Line[N] in [' ',#9]) do
+      begin
+        if N>=length(Line) then
+          break;
+        inc(N);
+      end;
+      {if not IsWordSeparator(Line[N]) then }
+         if X<N then   {special case detected, stop at first non white space character}
+           begin X:=N; dec(X); GotIt:=true; break; end;
+    end;
+    { find end of word}
     while (X<=length(Line)+1) and (GotIt=false) and (Line<>'') do
     begin
-      if X=length(Line)+1 then begin GotIt:=true; Dec(X); Break end;
-      if IsWordSeparator(Line[X]) then
-    begin
-      while (Y<GetLineCount) and
-       (X<=length(Line)) and (IsWordSeparator(Line[X])) do
-       begin
-         Inc(X);
-         if X>=length(Line) then
-            begin GotIt:=true; Dec(X); Break; end;
-       end;
-      if (GotIt=false) and (X<length(Line)) then
-      begin
-        Dec(X);
-        GotIt:=true;
-        Break;
-      end;
-    end;
+      if X=length(Line)+1 then  {end of line found }
+        begin
+          GotIt:=true;
+          Dec(X);
+          Break
+        end;
+      if not IsWordSeparator(Line[X]) then
+        begin
+          while (Y<GetLineCount) and (X<=length(Line)) and not (IsWordSeparator(Line[X])) do
+          begin
+            Inc(X);
+            if X>length(Line) then
+              begin GotIt:=true; Dec(X); Break; end;
+          end;
+          if (GotIt=false) and (X<=length(Line)) then
+            begin Dec(X); GotIt:=true; Break; end;
+        end
+      else
+        begin
+          { stop on comment start, comment end }
+          if Line[X+1] in ['(','*',')','/','{','}'] then
+          begin
+            (* comment "{" *)
+            if (Line[X+1] = '{') then
+            begin
+              if X>0 then
+                if (Line[X] <> '{') then
+                 GotIt:=true;
+              if X = 0 then
+                GotIt:=true;
+            end;
+            (* comment "}" *)
+            if (Line[X+1] = '}') then
+            begin
+              if X>0 then
+                if (Line[X] <> '}') then
+                 GotIt:=true;
+              if X = 0 then
+                GotIt:=true;
+              if GotIt then
+                inc(X);
+            end;
+            { comments  // (*  *) }
+            if (Length(Line)>=X+2) then
+              if ((Line[X+1] = '/') and (Line[X+2] = '/'))
+                or ((Line[X+1] = '(') and (Line[X+2] = '*'))
+                or ((Line[X+1] = '*') and (Line[X+2] = ')')) then
+              begin
+                GotIt:=true;
+                if ((Line[X+1] = '*') and (Line[X+2] = ')')) then
+                  inc(X,2);
+                if Line[X+1] = '/' then
+                  for N:=1 to X do
+                    if (Line[N] = '/') and (Line[N+1] = '/') then
+                      begin
+                        GotIt:=false; {there was line comment before }
+                        break;
+                      end;
+              end;
+          end; { of comment stop }
+        end;
+      if GotIt then Break;
       Inc(X);
     end;
     if GotIt then Break;
+    {next line}
     X:=0;
     Inc(Y);
     if (Y<GetLineCount) then
     begin
       Line:=GetDisplayText(Y);
-      if (Line<>'') and (IsWordSeparator(Line[1])=false) then Break;
+      if (Line<>'') and (IsWordSeparator(Line[1])=false) then
+        Break;
     end;
   end;
   if Y=GetLineCount then Y:=GetLineCount-1;
