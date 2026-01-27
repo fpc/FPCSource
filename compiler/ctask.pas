@@ -182,7 +182,7 @@ begin
       exit;
     result:=result.nexttask;
     end;
-  {$IFDEF DEBUG_CTASK}Writeln('No task found for '+m.ToString);{$ENDIF}
+  {$IFDEF DEBUG_CTASK_VERBOSE}Writeln('No task found for '+m.ToString);{$ENDIF}
 end;
 
 function ttask_handler.cancontinue(m: tmodule; checksub : boolean; out firstwaiting: tmodule): boolean;
@@ -240,8 +240,8 @@ begin
     if m2<>nil then
       firstwaiting:=m2;
     end;
-  {$IFDEF DEBUG_CTASK}
-  Write(m.ToString,' state: ',m.state,', can continue: ',Result);
+  {$IFDEF DEBUG_CTASK_VERBOSE}
+  Write('CTASK: ',m.ToString,' state: ',m.state,', can continue: ',Result);
   if result then
     Writeln
   else
@@ -265,30 +265,39 @@ function ttask_handler.countwaiting(m: tmodule; out highest_state: tmodulestate;
   firsthighestwaiting: tmodule): integer;
 var
   i: Integer;
-  waiting_module: tmodule;
+  dep_unit: tdependent_unit;
+  state: tmodulestate;
 begin
   Result:=0;
   highest_state:=ms_registered;
   firsthighestwaiting:=nil;
 
-  if (m.is_initial and not m.is_unit) then
+  if m.is_initial and not m.is_unit then
     // program/library
     exit;
 
-  if m.waitingunits=nil then
+  if m.dependent_units=nil then
     exit;
-  for i:=0 to m.waitingunits.Count-1 do
+
+  dep_unit:=tdependent_unit(m.dependent_units.First);
+  while dep_unit<>nil do
     begin
-    waiting_module:=tmodule(m.waitingunits[i]);
-    if waiting_module.state<highest_state then
-    else if waiting_module.state=highest_state then
+    state:=dep_unit.u.state;
+    if state in [ms_compiled, ms_processed] then
+      // not waiting
+    else if state<highest_state then
+      // worse
+    else if state=highest_state then
+      // same
       inc(Result)
     else
       begin
+      // better
       Result:=1;
-      highest_state:=waiting_module.state;
-      firsthighestwaiting:=waiting_module;
+      highest_state:=state;
+      firsthighestwaiting:=dep_unit.u;
       end;
+    dep_unit:=tdependent_unit(dep_unit.Next);
     end;
 end;
 
@@ -301,7 +310,7 @@ var
 begin
   m:=t.module;
   orgname:=m.modulename^;
-  {$IFDEF DEBUG_CTASK}Writeln(m.ToString,' Continues. State: ',m.state);{$ENDIF}
+  {$IFDEF DEBUG_CTASK}Writeln('CTASK: ',m.ToString,' Continues. State: ',m.state);{$ENDIF}
   if Assigned(t.state) then
     t.RestoreState;
   case m.state of
@@ -335,7 +344,7 @@ begin
     end;
   Result:=m.state=ms_processed;
   {$IFDEF DEBUG_CTASK}
-  Write(m.ToString,' done: ',Result);
+  Write('CTASK: ',m.ToString,' done: ',Result);
   if Result then
     Writeln
   else
@@ -381,7 +390,7 @@ begin
   //           next compile can load ppus instead of compiling again.
 
   repeat
-    {$IFDEF DEBUG_CTASK}writeln('ttask_handler.processqueue: list.count=',list.Count);{$ENDIF}
+    {$IFDEF DEBUG_CTASK}writeln('CTASK: ttask_handler.processqueue: task-count=',list.Count);{$ENDIF}
     besttask:=list.firsttask;
     if besttask=nil then
       exit; // completed
@@ -412,9 +421,9 @@ begin
           cnt:=countwaiting(m,highest_state,firsthighestwaiting);
           {$IFDEF DEBUG_CTASK}
           if firsthighestwaiting<>nil then
-            Writeln(t.module.ToString,' state=',t.module.state,' highwait: ',highest_state,' count=',cnt,' ',firsthighestwaiting.modulename^)
+            Writeln('CTASK: ',t.module.ToString,' state=',t.module.state,' highwait: ',highest_state,' count=',cnt,' ',firsthighestwaiting.modulename^)
           else
-            Writeln(t.module.ToString,' state=',t.module.state,' highwait: ',highest_state,' count=',cnt);
+            Writeln('CTASK: ',t.module.ToString,' state=',t.module.state,' highwait: ',highest_state,' count=',cnt);
           {$ENDIF}
           better:=false;
           if (besttask=nil)
@@ -424,7 +433,7 @@ begin
             begin
               if bestwaitstate<highest_state then
                 better:=true
-              else if (bestwaitstate=highest_state) and (bestcnt>cnt) then
+              else if (bestwaitstate=highest_state) and (bestcnt<cnt) then
                 better:=true;
             end;
           if better then
@@ -444,9 +453,10 @@ begin
         end;
       end;
 
+    {$IF defined(DEBUG_CTASK) or defined(Debug_FreeParseMem)}Writeln('CTASK: continuing ',besttask.module.ToString,' state=',besttask.module.state,' total-units=',loaded_units.Count,' tasks=',list.Count);{$ENDIF}
     if continue(besttask) then
       begin
-      {$IFDEF DEBUG_CTASK}Writeln(besttask.module.ToString,' is finished, removing from task list');{$ENDIF}
+      {$IFDEF DEBUG_CTASK}Writeln('CTASK: ',besttask.module.ToString,' is finished, removing from task list');{$ENDIF}
       hash.Remove(besttask.module);
       list.Remove(besttask);
       FreeAndNil(besttask);
@@ -461,11 +471,11 @@ var
   e, t : ttask_list;
 
 begin
-  {$IFDEF DEBUG_CTASK}Writeln(m.ToString,' added to task scheduler. State: ',m.state);{$ENDIF}
   n:=m.modulename^;
   e:=ttask_list(Hash.Find(n));
   if e=nil then
     begin
+    {$IFDEF DEBUG_CTASK}Writeln('CTASK: ',m.ToString,' added to task scheduler. State: ',m.state);{$ENDIF}
     // Clear reset flag.
     // This can happen when during load, reset is done and unit is added to task list.
     m.is_reset:=false;
@@ -480,7 +490,7 @@ begin
     // We have a task, if it was reset, then clear the state and move the task to the start.
     if m.is_reset then
       begin
-      {$IFDEF DEBUG_CTASK}Writeln(m.ToString,' was reset, resetting flag. State: ',m.state);{$ENDIF}
+      {$IFDEF DEBUG_CTASK}Writeln('CTASK: ',m.ToString,' was reset, resetting flag. State: ',m.state);{$ENDIF}
       m.is_reset:=false;
       t:=findtask(m);
       if assigned(t) then

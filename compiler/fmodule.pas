@@ -1144,13 +1144,13 @@ implementation
         while Result and assigned(itm) do
           begin
           result:=tused_unit(itm).u.state in states;
-          {$IFDEF DEBUG_CTASK}writeln('  ',ToString,' checking state of ', tused_unit(itm).u.ToString,' : ',tused_unit(itm).u.state,' : ',Result);{$ENDIF}
+          {$IFDEF DEBUG_CTASK_VERBOSE}writeln('  ',ToString,' checking state of ', tused_unit(itm).u.ToString,' : ',tused_unit(itm).u.state,' : ',Result);{$ENDIF}
           if not result then
             begin
             if firstwaiting=Nil then
               begin
               firstwaiting:=tused_unit(itm).u;
-              {$IFNDEF DEBUG_CTASK}
+              {$IFNDEF DEBUG_CTASK_VERBOSE}
               break;
               {$ENDIF}
               end;
