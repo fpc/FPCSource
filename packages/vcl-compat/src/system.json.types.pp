@@ -55,6 +55,7 @@ const
   JsonExtScopePropertyName      = '$scope';
   JsonExtTypePropertyName       = '$type';
   JsonExtUndefinedPropertyName  = '$undefined';
+  JsonExtTimestampPropertyName  = '$timestamp';
 
   JsonExtMaxPropertyNameLen     = Length(JsonExtNumberLongPropertyName);
 
