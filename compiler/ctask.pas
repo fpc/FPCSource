@@ -311,12 +311,12 @@ begin
         if m=main then
           begin
             macrosymtablestack.clear;
-	    FreeAndNil(macrosymtablestack);
+            FreeAndNil(macrosymtablestack);
           end;
         parser.compile_module(m);
       end;
-    ms_compiled : if (not m.is_initial) or m.is_unit  then
-                   (m as tppumodule).post_load_or_compile(m,m.compilecount>1);
+    ms_compiled : if (not m.is_initial) or m.is_unit then
+                    (m as tppumodule).post_load_or_compile(m,m.compilecount>1);
     ms_compiling_wait : pmodules.proc_program_declarations(m,m.islibrary);
     ms_compiling_waitintf : pmodules.parse_unit_interface_declarations(m);
     ms_compiling_waitimpl : pmodules.proc_unit_implementation(m);
