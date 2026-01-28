@@ -973,3 +973,9 @@ begin
   with Installer do
 {$include redis/fpmake.pp}
 end;
+
+procedure add_fpalsa(const ADirectory: string);
+begin
+  with Installer do
+{$include fpalsa/fpmake.pp}
+end;

@@ -172,3 +172,4 @@
   add_libjack(ADirectory+IncludeTrailingPathDelimiter('libjack'));
   add_libsndfile(ADirectory+IncludeTrailingPathDelimiter('libsndfile'));
   add_redis(ADirectory+IncludeTrailingPathDelimiter('redis'));
+  add_fpalsa(ADirectory+IncludeTrailingPathDelimiter('fpalsa'));
