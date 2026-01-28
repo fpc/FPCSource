@@ -27,7 +27,9 @@
  *
  *}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit asoundlib;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$MODE objfpc}
 {$PACKRECORDS c}
@@ -36,7 +38,11 @@ unit asoundlib;
 interface
 
 uses
+{$IFDEF FPC_DOTTEDUNITS}
+  System.CTypes, UnixApi.Base;
+{$ELSE FPC_DOTTEDUNITS}
   ctypes, BaseUnix;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   libasound = 'asound';
