@@ -1,0 +1,18 @@
+fpALSA is a Free Pascal translation of the ALSA (Advanced Linux Sound
+Architecture: http://www.alsa-project.org/) library headers. It allows the use
+of the ALSA C library from Pascal programs, using Free Pascal
+(http://www.freepascal.org/).
+
+This particular version is based on the headers of ALSA 1.0.29, and should
+work with (at least) fpc 3.0.4 or later. To compile, simply do:
+
+fpc asoundlib
+
+in the src/ directory. No makefiles needed :)
+
+Enjoy!
+
+Nikolay Nikolov (nickysn@users.sourceforge.net)
+
+Hope to see some really cool audio software, written in Pascal for Linux, using
+ this little port :)
