@@ -1362,13 +1362,6 @@ begin
            $e00d : keycode:=kbEnter;
          end;
        end;
-     if (essAlt in key.ShiftState) and (key.UnicodeChar <> #0) then
-     begin
-       // FIX: For Alt+Key combinations, build the KeyCode using the Unicode character
-       // instead of relying on the scancode-based character, which is wrong for non-latin layouts.
-       // The high byte keeps the scan code, the low byte gets the actual character code.
-       keycode := (keycode and $FF00) or (ord(key.UnicodeChar) and $FF);
-     end;
      Event.What:=evKeyDown;
      Event.KeyCode:=keycode;
      Event.CharCode:=chr(keycode and $ff);
