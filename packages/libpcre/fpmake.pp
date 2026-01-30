@@ -32,13 +32,13 @@ begin
     T:=P.Targets.AddUnit('libpcre2_8.pp');
       with T.Dependencies do
         begin
-          AddInclude('pcreconst.inc');
+          AddInclude('pcreconsts.inc');
         end;
     T:=P.Targets.AddUnit('libpcre2_16.pp');
     T.OSes:=[Win64,Linux];
       with T.Dependencies do
         begin
-          AddInclude('pcreconst.inc');
+          AddInclude('pcreconsts.inc');
         end;
     T:=P.Targets.AddUnit('libpcre2_32.pp');
     T.OSes:=[Win64,Linux];
