@@ -760,7 +760,7 @@ end;
 
 procedure glViewport(x, y: GLint; width, height: GLsizei); inline;
 begin
-  _GLViewport(tglContext, x, x, width, height);
+  _GLViewport(tglContext, x, y, width, height);
 end;
 {$ENDIF GL_UNIT}
 
