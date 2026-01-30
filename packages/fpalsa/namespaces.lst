@@ -1,0 +1,3 @@
+src/asoundlib.pp=namespaced/Api.ALSA.ASoundLib.pp
+{s*:src/}=namespaced/
+{i+:src/}
