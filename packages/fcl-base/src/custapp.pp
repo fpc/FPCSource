@@ -676,7 +676,7 @@ begin
           end
         else // Short Option.
           begin
-          HaveArg:=(I<ParamCount) and (Length(Params[I+1])>0) and (ParamStr(I+1)[1]<>FOptionChar);
+          HaveArg:=(I<ParamCount) and (Length(Params[I+1])>0) and (Params[I+1][1]<>FOptionChar);
           UsedArg:=False;
           If Not CaseSensitiveShortOptions then
             O:=LowerCase(O);
