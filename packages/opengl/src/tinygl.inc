@@ -275,6 +275,12 @@ syscall sysvbase TinyGLBase 760;
 procedure _GLUTMotionFunc(gcl: pointer; f: TGlut2IntCallback);
 syscall sysvbase TinyGLBase 766;
 
+procedure _GLUTPositionWindow(gcl: pointer; x, y: LongInt);
+syscall sysvbase TinyGLBase 790;
+
+procedure _GLUTReshapeWindow(gcl: pointer; width, height: LongInt);
+syscall sysvbase TinyGLBase 796;
+
 function _GLUTGet(gcl: pointer; t: GLenum): LongInt;
 syscall sysvbase TinyGLBase 802;
 
@@ -875,6 +881,16 @@ end;
 procedure GLUTMotionFunc(f: TGlut2IntCallback); inline;
 begin
   _GLUTMotionFunc(tglContext, f);
+end;
+
+procedure GLUTPositionWindow(x, y: Integer); inline;
+begin
+  _GLUTPositionWindow(tglContext, x, y);
+end;
+
+procedure GLUTReshapeWindow(width, height: Integer); inline;
+begin
+  _GLUTReshapeWindow(tglContext, width, height);
 end;
 
 procedure GLUTPassiveMotionFunc(f: TGlut2IntCallback); inline;

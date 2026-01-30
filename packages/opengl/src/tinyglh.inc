@@ -161,6 +161,8 @@ procedure GLUTMouseFunc(f: TGlut4IntCallback); inline;
 procedure GLUTSpecialFunc(f: TGlut3IntCallback); inline;
 procedure GLUTReshapeFunc(f: TGlut2IntCallback); inline;
 procedure GLUTMotionFunc(f: TGlut2IntCallback); inline;
+procedure GLUTPositionWindow(x, y: Integer); inline;
+procedure GLUTReshapeWindow(width, height: Integer); inline;
 procedure GLUTPassiveMotionFunc(f: TGlut2IntCallback); inline;
 
 procedure GLUTSwapBuffers; inline;
