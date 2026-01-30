@@ -628,7 +628,7 @@ begin
   I:=1;
   While (I<=ParamCount) and ((Result='') or AllErrors) do
     begin
-    O:=Paramstr(I);
+    O:=Params[I];
     If (Length(O)=0) or (O[1]<>FOptionChar) then
       begin
       If Assigned(NonOpts) then
@@ -676,7 +676,7 @@ begin
           end
         else // Short Option.
           begin
-          HaveArg:=(I<ParamCount) and (Length(ParamStr(I+1))>0) and (ParamStr(I+1)[1]<>FOptionChar);
+          HaveArg:=(I<ParamCount) and (Length(Params[I+1])>0) and (ParamStr(I+1)[1]<>FOptionChar);
           UsedArg:=False;
           If Not CaseSensitiveShortOptions then
             O:=LowerCase(O);
@@ -705,7 +705,7 @@ begin
           If HaveArg then
             begin
             Inc(I); // Skip argument.
-            OV:=Paramstr(I);
+            OV:=Params[I];
             end;
           end;
         If HaveArg and ((Result='') or AllErrors) then
