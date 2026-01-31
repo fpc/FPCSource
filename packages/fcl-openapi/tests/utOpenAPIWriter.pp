@@ -193,6 +193,14 @@ type
     procedure TestSchemaContentEncoding;
   end;
 
+  { TTestOpenApiWriterOAuth2Scopes }
+
+  TTestOpenApiWriterOAuth2Scopes = class(TTestOpenApiWriterBase)
+  Published
+    procedure TestOAuth2ScopesAsObject;
+    procedure TestOAuth2ScopesEmpty;
+  end;
+
   { TTestOpenApiWriterSecurity }
 
   TTestOpenApiWriterSecurity = class(TTestOpenApiWriterBase)
@@ -1031,6 +1039,38 @@ begin
   TestWrite('Path componentschema','{ "components" : { "schemas" : { "abc" : { "contentEncoding" : "utf8" } } } }');
 end;
 
+{ TTestOpenApiWriterOAuth2Scopes }
+
+procedure TTestOpenApiWriterOAuth2Scopes.TestOAuth2ScopesAsObject;
+var
+  Scheme: TSecuritySchemeOrReference;
+  Flow: TOAuthFlow;
+begin
+  Scheme := OpenAPI.Components.SecuritySchemes.AddItem('oauth2');
+  Scheme.Type_ := 'oauth2';
+  Flow := Scheme.Flows.ClientAuthorizationCode;
+  Flow.AuthorizationUrl := 'https://example.com/auth';
+  Flow.TokenURL := 'https://example.com/token';
+  Flow.Scopes.Add('read:user=Read user data');
+  Flow.Scopes.Add('write:user=Write user data');
+  TestWrite('OAuth2 scopes as object','{ "components" : { "securitySchemes" : { "oauth2" : { "type" : "oauth2", "flows" : { "authorizationCode" : { "authorizationUrl" : "https://example.com/auth", "tokenUrl" : "https://example.com/token", "scopes" : { "read:user" : "Read user data", "write:user" : "Write user data" } } } } } } }');
+end;
+
+procedure TTestOpenApiWriterOAuth2Scopes.TestOAuth2ScopesEmpty;
+var
+  Scheme: TSecuritySchemeOrReference;
+  Flow: TOAuthFlow;
+begin
+  Scheme := OpenAPI.Components.SecuritySchemes.AddItem('oauth2');
+  Scheme.Type_ := 'oauth2';
+  Flow := Scheme.Flows.ClientAuthorizationCode;
+  Flow.AuthorizationUrl := 'https://example.com/auth';
+  Flow.TokenURL := 'https://example.com/token';
+  // Access Scopes to ensure it's initialized but leave it empty
+  AssertEquals('Scopes count', 0, Flow.Scopes.Count);
+  TestWrite('OAuth2 empty scopes','{ "components" : { "securitySchemes" : { "oauth2" : { "type" : "oauth2", "flows" : { "authorizationCode" : { "authorizationUrl" : "https://example.com/auth", "tokenUrl" : "https://example.com/token", "scopes" : { } } } } } } }');
+end;
+
 { TTestOpenApiWriterSecurity }
 
 procedure TTestOpenApiWriterSecurity.TestOne;
@@ -1085,6 +1125,7 @@ initialization
     TTestOpenApiWriterPathResponsesLinks,
     TTestOpenApiWriterWebHooks,
     TTestOpenApiWriterComponents,
+    TTestOpenApiWriterOAuth2Scopes,
     TTestOpenApiWriterSecurity
   ]);
 

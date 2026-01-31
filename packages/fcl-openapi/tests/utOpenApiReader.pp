@@ -146,6 +146,11 @@ Type
     Procedure TestSchemaContentEncoding;
   end;
 
+  TTestOpenApiReaderOAuth2Scopes = Class(TTestOpenAPIReader)
+    Procedure TestOAuth2ScopesAsObject;
+    Procedure TestOAuth2ScopesEmpty;
+  end;
+
   TTestOpenApiReaderSecurity = Class(TTestOpenAPIReader)
     Procedure TestOne;
   end;
@@ -1048,6 +1053,32 @@ begin
   AssertEquals('OpenAPI.components.schemas.abc.contentEncoding','utf8',OpenAPI.components.schemas['abc'].Validations.contentEncoding);
 end;
 
+{ TTestOpenApiReaderOAuth2Scopes }
+
+procedure TTestOpenApiReaderOAuth2Scopes.TestOAuth2ScopesAsObject;
+
+begin
+  TestRead('{ "components" : { "securitySchemes" : { "oauth2" : { "type" : "oauth2", "flows" : { "authorizationCode" : { "authorizationUrl" : "https://example.com/auth", "tokenUrl" : "https://example.com/token", "scopes" : { "read:user" : "Read user data", "write:user" : "Write user data" } } } } } } }');
+  AssertNotNull('OpenAPI.components',OpenAPI.components);
+  AssertNotNull('OpenAPI.components.securitySchemes',OpenAPI.components.securitySchemes);
+  AssertNotNull('OpenAPI.components.securitySchemes.oauth2',OpenAPI.components.securitySchemes['oauth2']);
+  AssertNotNull('OpenAPI.components.securitySchemes.oauth2.flows',OpenAPI.components.securitySchemes['oauth2'].flows);
+  AssertNotNull('OpenAPI.components.securitySchemes.oauth2.flows.authorizationCode',OpenAPI.components.securitySchemes['oauth2'].flows.ClientAuthorizationCode);
+  AssertEquals('scopes count', 2, OpenAPI.components.securitySchemes['oauth2'].flows.ClientAuthorizationCode.Scopes.Count);
+  AssertEquals('scope read:user value', 'Read user data', OpenAPI.components.securitySchemes['oauth2'].flows.ClientAuthorizationCode.Scopes.Values['read:user']);
+  AssertEquals('scope write:user value', 'Write user data', OpenAPI.components.securitySchemes['oauth2'].flows.ClientAuthorizationCode.Scopes.Values['write:user']);
+end;
+
+procedure TTestOpenApiReaderOAuth2Scopes.TestOAuth2ScopesEmpty;
+
+begin
+  TestRead('{ "components" : { "securitySchemes" : { "oauth2" : { "type" : "oauth2", "flows" : { "authorizationCode" : { "authorizationUrl" : "https://example.com/auth", "tokenUrl" : "https://example.com/token", "scopes" : { } } } } } } }');
+  AssertNotNull('OpenAPI.components',OpenAPI.components);
+  AssertNotNull('OpenAPI.components.securitySchemes',OpenAPI.components.securitySchemes);
+  AssertNotNull('OpenAPI.components.securitySchemes.oauth2',OpenAPI.components.securitySchemes['oauth2']);
+  AssertEquals('scopes count', 0, OpenAPI.components.securitySchemes['oauth2'].flows.ClientAuthorizationCode.Scopes.Count);
+end;
+
 
 procedure TTestOpenApiReaderSecurity.TestOne;
 
@@ -1072,6 +1103,7 @@ initialization
     TTestOpenApiReaderPathResponsesLinks,
     TTestOpenApiReaderWebHooks,
     TTestOpenApiReaderComponents,
+    TTestOpenApiReaderOAuth2Scopes,
     TTestOpenApiReaderSecurity
   ]);
 

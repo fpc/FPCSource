@@ -76,6 +76,7 @@ Type
     Function ReadObjectArray(aList : TFPObjectList; aGetObject : TCreateAndReadObjectFunc) : integer;overload;
     function ReadMapObject(aList: TNamedOpenAPIObjectList; aObjectReader : TReadObjectProc; aCheckBracket: Boolean=True): integer;
     Function ReadObject(aList : TStrings) : integer;
+    Function ReadStringMap(aList : TStrings) : integer;
     // objects
     Procedure ReadOpenAPI(aObj : TOpenAPI; aCheckBracket : Boolean = True); virtual; overload;
     Procedure ReadInfo(aObj : TInfo; aCheckBracket : Boolean = True); virtual; overload;
@@ -426,6 +427,28 @@ begin
       InvalidToken(aToken);
     end;
     aToken:=GetToken;
+    end;
+end;
+
+function TOpenAPIReader.ReadStringMap(aList: TStrings): integer;
+// Reads a JSON object as key-value pairs into TStrings (Name=Value format)
+var
+  aToken: TJSONToken;
+  aKey, aValue: string;
+begin
+  Result:=0;
+  CheckNextToken(tkCurlyBraceOpen);
+  aToken:=CheckNextToken([tkString,tkIdentifier,tkCurlyBraceClose]);
+  while Not (aToken in [tkEOF,tkCurlyBraceClose]) do
+    begin
+    aKey:=GetTokenString;
+    CheckNextToken(tkColon);
+    aValue:=ReadString;
+    aList.Add(aKey+'='+aValue);
+    inc(Result);
+    aToken:=CheckNextToken([tkComma,tkCurlyBraceClose]);
+    if aToken=tkComma then
+      aToken:=CheckNextToken([tkString,tkIdentifier]);
     end;
 end;
 
@@ -1750,7 +1773,7 @@ begin
     dikPropertyName:
       aObj.PropertyName:=Readstring;
     dikMapping:
-      ReadObject(aObj.Mapping);
+      ReadStringMap(aObj.Mapping);
     else
       aObj.Extensions.Add(aName,ReadJSONData);
     end;
@@ -1955,7 +1978,7 @@ begin
     ofkRefreshURL:
       aObj.RefreshURL:=Readstring;
     ofkScopes:
-      ReadObject(aObj.Scopes);
+      ReadStringMap(aObj.Scopes);
     else
       aObj.Extensions.Add(aName,ReadJSONData);
     end;
