@@ -57,8 +57,35 @@ begin
     T.Dependencies.AddUnit('system.messaging');
     T:=P.Targets.AddUnit('system.json.pp');
     T.ResourceStrings := True;
+    
     T:=P.Targets.AddUnit('system.json.types.pp');
     T.Dependencies.AddUnit('system.json');
+    
+    T:=P.Targets.AddUnit('system.json.builders.pp');
+    T.Dependencies.AddUnit('system.json');
+    T.Dependencies.AddUnit('system.json.writers');
+    T.Dependencies.AddUnit('system.json.readers');
+    T.Dependencies.AddUnit('system.json.types');
+    
+    T:=P.Targets.AddUnit('system.json.readers.pp');
+    T.Dependencies.AddUnit('system.json.types');
+    T.Dependencies.AddUnit('system.json.utils');
+    T.Dependencies.AddUnit('system.json');
+    T.Dependencies.AddUnit('system.jsonconsts');
+
+    T:=P.Targets.AddUnit('system.json.utils.pp');
+    T.Dependencies.AddUnit('system.json.types');
+    T.Dependencies.AddUnit('system.json');
+    
+    T:=P.Targets.AddUnit('system.json.writers.pp');
+    T.Dependencies.AddUnit('system.json.readers');
+    T.Dependencies.AddUnit('system.json.types');
+    T.Dependencies.AddUnit('system.json.utils');
+    T.Dependencies.AddUnit('system.json');
+    T.Dependencies.AddUnit('system.jsonconsts');
+
+    T:=P.Targets.AddUnit('system.jsonconsts.pp');
+
     T:=P.Targets.AddUnit('system.pushnotifications.pp');
     T.ResourceStrings := True;
     T.Dependencies.AddUnit('system.messaging');
