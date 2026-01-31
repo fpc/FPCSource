@@ -213,12 +213,6 @@ syscall sysvbase TinyGLBase 604;
 
 procedure _GLDepthFunc(gcl: pointer; func: GLenum);
 syscall sysvbase TinyGLBase 628;
-
-function _GLInit: Pointer;
-syscall sysvbase TinyGLBase 640;
-
-procedure _GLClose(gcl: pointer);
-syscall sysvbase TinyGLBase 646;
 {$ENDIF GL_UNIT}
 
 {$IFDEF GLU_UNIT}
