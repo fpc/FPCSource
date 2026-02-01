@@ -126,7 +126,9 @@ type
     procedure WriteValue(Value: UInt64); overload; virtual;
     procedure WriteValue(Value: Single); overload; virtual;
     procedure WriteValue(Value: Double); overload; virtual;
+{$IFDEF FPC_HAS_TYPE_EXTENDED}
     procedure WriteValue(Value: Extended); overload; virtual;
+{$ENDIF FPC_HAS_TYPE_EXTENDED}
     procedure WriteValue(Value: Boolean); overload; virtual;
     procedure WriteValue(Value: Char); overload; virtual;
     procedure WriteValue(Value: Byte); overload; virtual;
@@ -222,7 +224,9 @@ type
     procedure WriteValue(aValue: UInt64); override;
     procedure WriteValue(aValue: Single); override;
     procedure WriteValue(aValue: Double); override;
+{$IFDEF FPC_HAS_TYPE_EXTENDED}
     procedure WriteValue(aValue: Extended); override;
+{$ENDIF FPC_HAS_TYPE_EXTENDED}
     procedure WriteValue(aValue: Boolean); override;
     procedure WriteValue(aValue: Char); override;
     procedure WriteValue(aValue: Byte); override;
@@ -288,7 +292,9 @@ type
     procedure WriteValue(aValue: UInt64); override;
     procedure WriteValue(aValue: Single); override;
     procedure WriteValue(aValue: Double); override;
+{$IFDEF FPC_HAS_TYPE_EXTENDED}
     procedure WriteValue(aValue: Extended); override;
+{$ENDIF FPC_HAS_TYPE_EXTENDED}
     procedure WriteValue(aValue: Boolean); override;
     procedure WriteValue(aValue: Char); override;
     procedure WriteValue(aValue: Byte); override;
@@ -847,10 +853,12 @@ begin
   InternalWriteValue(TJsonToken.Float);
 end;
 
+{$IFDEF FPC_HAS_TYPE_EXTENDED}
 procedure TJsonWriter.WriteValue(Value: Extended);
 begin
   InternalWriteValue(TJsonToken.Float);
 end;
+{$ENDIF FPC_HAS_TYPE_EXTENDED}
 
 procedure TJsonWriter.WriteValue(Value: Boolean);
 begin
@@ -1266,11 +1274,13 @@ begin
   FWriter.Write(FloatToStr(aValue, FFormatSettings));
 end;
 
+{$IFDEF FPC_HAS_TYPE_EXTENDED}
 procedure TJsonTextWriter.WriteValue(aValue: Extended);
 begin
   inherited WriteValue(aValue);
   FWriter.Write(FloatToStr(aValue, FFormatSettings));
 end;
+{$ENDIF FPC_HAS_TYPE_EXTENDED}
 
 procedure TJsonTextWriter.WriteValue(aValue: Boolean);
 begin
@@ -1744,11 +1754,13 @@ begin
   AddValueToContainer(TJSONNumber.Create(aValue));
 end;
 
+{$IFDEF FPC_HAS_TYPE_EXTENDED}
 procedure TJsonObjectWriter.WriteValue(aValue: Extended);
 begin
   inherited WriteValue(aValue);
   AddValueToContainer(TJSONNumber.Create(Double(aValue)));
 end;
+{$ENDIF FPC_HAS_TYPE_EXTENDED}
 
 procedure TJsonObjectWriter.WriteValue(aValue: Boolean);
 begin

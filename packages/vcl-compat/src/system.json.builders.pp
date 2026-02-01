@@ -63,7 +63,9 @@ type
       function add(const aValue: UInt64): TElements; overload;
       function add(const aValue: Single): TElements; overload;
       function add(const aValue: Double): TElements; overload;
+{$IFDEF FPC_HAS_TYPE_EXTENDED}
       function add(const aValue: Extended): TElements; overload;
+{$ENDIF FPC_HAS_TYPE_EXTENDED}
       function add(const aValue: Boolean): TElements; overload;
       function add(const aValue: Char): TElements; overload;
       function add(const aValue: Byte): TElements; overload;
@@ -94,7 +96,9 @@ type
       function add(const aKey: string; const aValue: UInt64): TPairs; overload;
       function add(const aKey: string; const aValue: Single): TPairs; overload;
       function add(const aKey: string; const aValue: Double): TPairs; overload;
+{$IFDEF FPC_HAS_TYPE_EXTENDED}
       function add(const aKey: string; const aValue: Extended): TPairs; overload;
+{$ENDIF FPC_HAS_TYPE_EXTENDED}
       function add(const aKey: string; const aValue: Boolean): TPairs; overload;
       function add(const aKey: string; const aValue: Char): TPairs; overload;
       function add(const aKey: string; const aValue: Byte): TPairs; overload;
@@ -144,7 +148,9 @@ type
       function add(const aValue: UInt64): TElements; overload; inline;
       function add(const aValue: Single): TElements; overload; inline;
       function add(const aValue: Double): TElements; overload; inline;
+{$IFDEF FPC_HAS_TYPE_EXTENDED}
       function add(const aValue: Extended): TElements; overload; inline;
+{$ENDIF FPC_HAS_TYPE_EXTENDED}
       function add(const aValue: Boolean): TElements; overload; inline;
       function add(const aValue: Char): TElements; overload; inline;
       function add(const aValue: Byte): TElements; overload; inline;
@@ -184,7 +190,9 @@ type
       function add(const aKey: string; const aValue: UInt64): TPairs; overload; inline;
       function add(const aKey: string; const aValue: Single): TPairs; overload; inline;
       function add(const aKey: string; const aValue: Double): TPairs; overload; inline;
+{$IFDEF FPC_HAS_TYPE_EXTENDED}
       function add(const aKey: string; const aValue: Extended): TPairs; overload; inline;
+{$ENDIF FPC_HAS_TYPE_EXTENDED}
       function add(const aKey: string; const aValue: Boolean): TPairs; overload; inline;
       function add(const aKey: string; const aValue: Char): TPairs; overload; inline;
       function add(const aKey: string; const aValue: Byte): TPairs; overload; inline;
@@ -224,7 +232,9 @@ type
       function add(const aValue: UInt64): TElements; overload; inline;
       function add(const aValue: Single): TElements; overload; inline;
       function add(const aValue: Double): TElements; overload; inline;
+{$IFDEF FPC_HAS_TYPE_EXTENDED}
       function add(const aValue: Extended): TElements; overload; inline;
+{$ENDIF FPC_HAS_TYPE_EXTENDED}
       function add(const aValue: Boolean): TElements; overload; inline;
       function add(const aValue: Char): TElements; overload; inline;
       function add(const aValue: Byte): TElements; overload; inline;
@@ -255,7 +265,9 @@ type
       function add(const aKey: string; const aValue: UInt64): TPairs; overload; inline;
       function add(const aKey: string; const aValue: Single): TPairs; overload; inline;
       function add(const aKey: string; const aValue: Double): TPairs; overload; inline;
+{$IFDEF FPC_HAS_TYPE_EXTENDED}
       function add(const aKey: string; aValue: Extended): TPairs; overload; inline;
+{$ENDIF FPC_HAS_TYPE_EXTENDED}
       function add(const aKey: string; aValue: Boolean): TPairs; overload; inline;
       function add(const aKey: string; aValue: Char): TPairs; overload; inline;
       function add(const aKey: string; aValue: Byte): TPairs; overload; inline;
@@ -532,7 +544,7 @@ begin
     vtAnsiString:
       Writer.WriteValue(string(ansiString(aValue.VAnsiString)));
     vtCurrency:
-      Writer.WriteValue(aValue.VCurrency^);
+      Writer.WriteValue(Extended(aValue.VCurrency^));
     vtVariant:
       WriteVariant(aValue.VVariant^);
     vtWideString:
@@ -1048,11 +1060,13 @@ begin
   Result := Owner.GetElements(FRootDepth);
 end;
 
+{$IFDEF FPC_HAS_TYPE_EXTENDED}
 function TJSONCollectionBuilder.TBaseCollection.Add(const aValue: Extended): TElements;
 begin
   FWriter.WriteValue(aValue);
   Result := Owner.GetElements(FRootDepth);
 end;
+{$ENDIF FPC_HAS_TYPE_EXTENDED}
 
 function TJSONCollectionBuilder.TBaseCollection.Add(const aValue: Boolean): TElements;
 begin
@@ -1230,12 +1244,14 @@ begin
   Result := Owner.GetPairs(FRootDepth);
 end;
 
+{$IFDEF FPC_HAS_TYPE_EXTENDED}
 function TJSONCollectionBuilder.TBaseCollection.Add(const aKey: string; const aValue: Extended): TPairs;
 begin
   FWriter.WritePropertyName(aKey);
   FWriter.WriteValue(aValue);
   Result := Owner.GetPairs(FRootDepth);
 end;
+{$ENDIF FPC_HAS_TYPE_EXTENDED}
 
 function TJSONCollectionBuilder.TBaseCollection.Add(const aKey: string; const aValue: Boolean): TPairs;
 begin
@@ -1866,10 +1882,12 @@ begin
   Result := inherited add(aValue);
 end;
 
+{$IFDEF FPC_HAS_TYPE_EXTENDED}
 function TJSONCollectionBuilder.TParentCollection.Add(const aValue: Extended): TElements;
 begin
   Result := inherited add(aValue);
 end;
+{$ENDIF FPC_HAS_TYPE_EXTENDED}
 
 function TJSONCollectionBuilder.TParentCollection.Add(const aValue: Boolean): TElements;
 begin
@@ -2011,10 +2029,12 @@ begin
   Result := inherited add(aKey, aValue);
 end;
 
+{$IFDEF FPC_HAS_TYPE_EXTENDED}
 function TJSONCollectionBuilder.TParentCollection.Add(const aKey: string; aValue: Extended): TPairs;
 begin
   Result := inherited add(aKey, aValue);
 end;
+{$ENDIF FPC_HAS_TYPE_EXTENDED}
 
 function TJSONCollectionBuilder.TParentCollection.Add(const aKey: string; aValue: Boolean): TPairs;
 begin
@@ -2205,11 +2225,13 @@ begin
   Result := Self;
 end;
 
+{$IFDEF FPC_HAS_TYPE_EXTENDED}
 function TJSONCollectionBuilder.TElements.Add(const aValue: Extended): TElements;
 begin
   inherited add(aValue);
   Result := Self;
 end;
+{$ENDIF FPC_HAS_TYPE_EXTENDED}
 
 function TJSONCollectionBuilder.TElements.Add(const aValue: Boolean): TElements;
 begin
@@ -2401,11 +2423,13 @@ begin
   Result := Self;
 end;
 
+{$IFDEF FPC_HAS_TYPE_EXTENDED}
 function TJSONCollectionBuilder.TPairs.Add(const aKey: string; const aValue: Extended): TPairs;
 begin
   inherited add(aKey, aValue);
   Result := Self;
 end;
+{$ENDIF FPC_HAS_TYPE_EXTENDED}
 
 function TJSONCollectionBuilder.TPairs.Add(const aKey: string; const aValue: Boolean): TPairs;
 begin
