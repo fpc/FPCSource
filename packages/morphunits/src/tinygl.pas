@@ -37,6 +37,7 @@ const
 
 type
   PGLContext = Pointer;
+  PPGLContext = ^PGLContext;
 
 var
   TinyGLBase: Pointer = nil;
@@ -63,6 +64,9 @@ const
 const
   GLA_EXTERNAL_READBUFFER_BITMAP = 1;
 
+
+function TGLGetContexts: Pointer;
+syscall sysvbase TinyGLBase 634;
 
 function GLInit: PGLContext;
 syscall sysvbase TinyGLBase 640;
@@ -105,6 +109,18 @@ syscall sysvbase TinyGLBase 1240;
 
 procedure GLASetAttr(context: PGLContext; attr: dword; value: dword);
 syscall sysvbase TinyGLBase 1414;
+
+procedure TGLEnableNewExtensions(context: PGLContext; value: DWord);
+syscall sysvbase TinyGLBase 4432;
+
+function TGLGetProcAddress(tglcontextpointer: PPGLContext; Name: PChar): Pointer;
+syscall sysvbase TinyGLBase 4438;
+
+procedure TGLSetContextVersion(context: PGLContext; contextversion: DWord);
+syscall sysvbase TinyGLBase 4498;
+
+function TGLGetContextVersion(GLContext: PGLContext): DWord;
+syscall sysvbase TinyGLBase 4504;
 
 function InitTinyGLLibrary : boolean;
 
