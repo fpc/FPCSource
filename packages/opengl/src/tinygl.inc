@@ -78,7 +78,12 @@ syscall sysvbase TinyGLBase 232;
 procedure _GLScalef(gcl: pointer; x, y, z: GLfloat);
 syscall sysvbase TinyGLBase 238;
 
-procedure _GLViewPort(gcl: pointer; x, y: GLint; width, height: GLsizei);
+{ Older (pre-V53, MorphOS v3.18) TinyGL's ABI for glViewport() did not respect OpenGL
+  conventions, and expected the viewport coordinates in floats. This was deprecated
+  and no longer present in the public C headers, but the library still respects the
+  old ABI, and will keep doing so. There was a new function added with the right
+  argument types, at offset 1912. See _GLViewport() below. }
+procedure _GLViewportOld(gcl: pointer; x, y: GLfloat; width, height: GLfloat);
 syscall sysvbase TinyGLBase 244;
 
 procedure _GLFrustum(gcl: pointer; left, right, bottom, top, zNear, zFar: GLdouble);
@@ -347,6 +352,11 @@ procedure _GLCopyTexImage2D(gcl: pointer; target: GLenum; level: GLint; internal
 syscall sysvbase TinyGLBase 1402;
 {$ENDIF GL_UNIT}
 
+{$IFDEF GL_UNIT}
+{ See the comment at _GLViewportOld() }
+procedure _GLViewport(gcl: pointer; x, y: GLint; width, height: GLsizei);
+syscall sysvbase TinyGLBase 1912;
+{$ENDIF GL_UNIT}
 
 { ****************************************************************************************************** }
 { ** GL functions                                                                                     ** }
@@ -760,7 +770,12 @@ end;
 
 procedure glViewport(x, y: GLint; width, height: GLsizei); inline;
 begin
-  _GLViewport(tglContext, x, y, width, height);
+  if PLibrary(TinyGLBase)^.lib_Version >= 53 then
+    _GLViewport(tglContext, x, y, width, height)
+  else
+    { we support calling _GLViewportOld() to work with older TinyGL
+    versions. See the comment there. }
+    _GLViewportOld(tglContext, x, y, width, height);
 end;
 {$ENDIF GL_UNIT}
 

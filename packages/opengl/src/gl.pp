@@ -63,7 +63,7 @@ uses
   WinApi.Windows, System.DynLibs
   {$ELSE WinApi.Windows}
   {$IFDEF MorphOS}
-  MorphApi.Tinygl
+  MorphApi.Exec, MorphApi.Tinygl
   {$ELSE MorphOS}
   System.DynLibs
   {$ENDIF MorphOS}
@@ -75,7 +75,7 @@ uses
   Windows, dynlibs
   {$ELSE Windows}
   {$IFDEF MorphOS}
-  TinyGL
+  exec, TinyGL
   {$ELSE MorphOS}
   dynlibs
   {$ENDIF MorphOS}
