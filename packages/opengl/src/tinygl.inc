@@ -358,6 +358,12 @@ procedure _GLViewport(gcl: pointer; x, y: GLint; width, height: GLsizei);
 syscall sysvbase TinyGLBase 1912;
 {$ENDIF GL_UNIT}
 
+{$IFDEF GL_UNIT}
+procedure _GLIndexi(gcl: pointer; c: GLint);
+syscall sysvbase TinyGLBase 2908;
+{$ENDIF GL_UNIT}
+
+
 { ****************************************************************************************************** }
 { ** GL functions                                                                                     ** }
 { ****************************************************************************************************** }
@@ -470,8 +476,7 @@ end;
 
 procedure glIndexi(c: GLint); inline;
 begin
-{$WARNING glIndexi is dummy.}
-  // DUMMY, FIX ME!!!
+  _GLIndexi(tglContext, c);
 end;
 
 procedure glLightModelfv(pname: GLenum; const params: PGLfloat); inline;
