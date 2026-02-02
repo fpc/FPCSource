@@ -44,6 +44,7 @@ type
 
     procedure TestCycle2_ChangeB; // prog->ant->bird, bird.impl->ant, change bird
     procedure TestCycle3_ChangeC; // prog->ant->bird->cat, cat.impl->ant, change cat
+    procedure TestCycleImpl3_ChangeC; // prog->ant.impl->bird.impl->cat, cat.impl->ant, change cat
 
     procedure TestChangeInlineBodyBug; // Bug: prog+1 unit plus a package of 2 units, change of inline body should change crc, but does not
 
@@ -348,6 +349,31 @@ begin
   Compile;
   // the main src is always compiled, cat changed, so bird must be recompiled as well
   CheckCompiled(['cycle3_changec_prg.pas','cycle3_changec_ant.pas','cycle3_changec_bird.pas','cycle3_changec_cat.pas']);
+end;
+
+procedure TTestRecompile.TestCycleImpl3_ChangeC;
+// prog->ant->bird->cat, cat.impl->ant, change cat
+var
+  Dir: String;
+begin
+  Dir:='cycleimpl3_changec';
+  UnitPath:=Dir+';'+Dir+PathDelim+'src1';
+  OutDir:=Dir+PathDelim+'ppus';
+  MainSrc:=Dir+PathDelim+'cycleimpl3_changec_prg.pas';
+  MakeDateDiffer(
+    Dir+PathDelim+'src1'+PathDelim+'cycleimpl3_changec_cat.pas',
+    Dir+PathDelim+'src2'+PathDelim+'cycleimpl3_changec_cat.pas');
+
+  Step:='First compile';
+  CleanOutputDir;
+  Compile;
+  CheckCompiled(['cycleimpl3_changec_prg.pas','cycleimpl3_changec_ant.pas','cycleimpl3_changec_bird.pas','cycleimpl3_changec_cat.pas']);
+
+  Step:='Second compile';
+  UnitPath:=Dir+';'+Dir+PathDelim+'src2';
+  Compile;
+  // the main src is always compiled, cat changed, so bird must be recompiled as well
+  CheckCompiled(['cycleimpl3_changec_prg.pas','cycleimpl3_changec_ant.pas','cycleimpl3_changec_bird.pas','cycleimpl3_changec_cat.pas']);
 end;
 
 procedure TTestRecompile.TestChangeInlineBodyBug;
