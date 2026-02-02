@@ -38,9 +38,13 @@ type
     procedure GetCompiler;
     procedure CheckCompiler;
   published
-    procedure TestTwoUnits; // 2 units
-    procedure TestChangeLeaf1; // prog+2 units, change leaf
-    procedure TestChangeInner1; // prog+2 units, change inner unit, keep leaf
+    procedure TestTwoUnits; // 2 units, recompile first
+    procedure TestChangeLeaf1; // prog->ant->bird, change bird
+    procedure TestChangeInner1; // prog->ant->bird, change ant, keep bird.ppu
+
+    procedure TestCycle2_ChangeB; // prog->ant->bird, bird.impl->ant, change bird
+    procedure TestCycle3_ChangeC; // prog->ant->bird->cat, cat.impl->ant, change cat
+
     procedure TestChangeInlineBodyBug; // Bug: prog+1 unit plus a package of 2 units, change of inline body should change crc, but does not
 
     procedure TestBug41457; // two cycles of size 2 and 3
@@ -247,6 +251,7 @@ begin
 end;
 
 procedure TTestRecompile.TestChangeLeaf1;
+// prog->ant->bird, change bird
 var
   Dir: String;
 begin
@@ -271,6 +276,7 @@ begin
 end;
 
 procedure TTestRecompile.TestChangeInner1;
+// prog->ant->bird, change ant
 var
   Dir: String;
 begin
@@ -294,11 +300,61 @@ begin
   CheckCompiled(['changeinner1_prg.pas','changeinner1_ant.pas']);
 end;
 
+procedure TTestRecompile.TestCycle2_ChangeB;
+// prog->ant->bird, bird.impl->ant, change bird
+var
+  Dir: String;
+begin
+  Dir:='cycle2_changeb';
+  UnitPath:=Dir+';'+Dir+PathDelim+'src1';
+  OutDir:=Dir+PathDelim+'ppus';
+  MainSrc:=Dir+PathDelim+'cycle2_changeb_prg.pas';
+  MakeDateDiffer(
+    Dir+PathDelim+'src1'+PathDelim+'cycle2_changeb_bird.pas',
+    Dir+PathDelim+'src2'+PathDelim+'cycle2_changeb_bird.pas');
+
+  Step:='First compile';
+  CleanOutputDir;
+  Compile;
+  CheckCompiled(['cycle2_changeb_prg.pas','cycle2_changeb_ant.pas','cycle2_changeb_bird.pas']);
+
+  Step:='Second compile';
+  UnitPath:=Dir+';'+Dir+PathDelim+'src2';
+  Compile;
+  // the main src is always compiled, bird changed, so ant must be recompiled as well
+  CheckCompiled(['cycle2_changeb_prg.pas','cycle2_changeb_ant.pas','cycle2_changeb_bird.pas']);
+end;
+
+procedure TTestRecompile.TestCycle3_ChangeC;
+// prog->ant->bird->cat, cat.impl->ant, change cat
+var
+  Dir: String;
+begin
+  Dir:='cycle3_changec';
+  UnitPath:=Dir+';'+Dir+PathDelim+'src1';
+  OutDir:=Dir+PathDelim+'ppus';
+  MainSrc:=Dir+PathDelim+'cycle3_changec_prg.pas';
+  MakeDateDiffer(
+    Dir+PathDelim+'src1'+PathDelim+'cycle3_changec_cat.pas',
+    Dir+PathDelim+'src2'+PathDelim+'cycle3_changec_cat.pas');
+
+  Step:='First compile';
+  CleanOutputDir;
+  Compile;
+  CheckCompiled(['cycle3_changec_prg.pas','cycle3_changec_ant.pas','cycle3_changec_bird.pas','cycle3_changec_cat.pas']);
+
+  Step:='Second compile';
+  UnitPath:=Dir+';'+Dir+PathDelim+'src2';
+  Compile;
+  // the main src is always compiled, cat changed, so bird must be recompiled as well
+  CheckCompiled(['cycle3_changec_prg.pas','cycle3_changec_ant.pas','cycle3_changec_bird.pas','cycle3_changec_cat.pas']);
+end;
+
 procedure TTestRecompile.TestChangeInlineBodyBug;
 var
   ProgDir, PkgDir, PkgOutDir: String;
 begin
-  // unit testcib_elk uses an inline function of unit testcib_bird
+  // unit elk uses an inline function of unit bird
   // elk belongs to the program, bird to the package, so they are compiled separately
   // when the inline body of bird changes, the elk.ppu must be rebuilt too
 
