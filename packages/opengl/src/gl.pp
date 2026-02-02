@@ -58,7 +58,9 @@ interface
 
 {$IFDEF FPC_DOTTEDUNITS}
 uses
+  {$IFNDEF MORPHOS}
   System.SysUtils,
+  {$ENDIF}
   {$IFDEF Windows}
   WinApi.Windows, System.DynLibs
   {$ELSE WinApi.Windows}
@@ -70,7 +72,9 @@ uses
   {$ENDIF Windows};
 {$ELSE FPC_DOTTEDUNITS}
 uses
+  {$IFNDEF MORPHOS}
   SysUtils,
+  {$ENDIF}
   {$IFDEF Windows}
   Windows, dynlibs
   {$ELSE Windows}
