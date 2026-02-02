@@ -209,11 +209,19 @@ Type
 
   TKeywordEscapeMode = (kemAmpersand,kemSuffix,kemPrefix);
 
+  // How to handle reserved type names that conflict with standard library types
+  TReservedTypeBehaviour = (
+    rtbEscape,   // Escape the type name (e.g., TTimeZone -> TTimeZone_)
+    rtbQualify   // Use fully qualified name in serializer references
+  );
+
   { TSchemaData }
 
   TSchemaData = class(TObject)
   private
     FKeywordEscapeMode: TKeywordEscapeMode;
+    FReservedTypeBehaviour: TReservedTypeBehaviour;
+    FReservedTypes: TStrings;
     FTypeList : TPascalTypeDataList;
     FAliasList : TPascalTypeDataList;
     FTypeMap : TFPObjectHashTable;
@@ -225,6 +233,7 @@ Type
     FObjectTypeSuffix: string;
     FOnLog: TSchemaCodeGenLogEvent;
     FUseEnums: Boolean;
+    procedure SetReservedTypes(AValue: TStrings);
     function GetSchemaType(aIndex : Integer): TPascalTypeData;
     function GetSchemaTypeCount: Integer;
   protected
@@ -249,6 +258,8 @@ Type
     function Sanitize(const aName : string) : String;
     // Sort types in dependency order
     procedure SortTypes;
+    // Define default reserved type names.
+    procedure DefineDefaultReservedTypes; virtual;
   Public
     Constructor Create; virtual;
     Destructor Destroy; override;
@@ -256,8 +267,14 @@ Type
     procedure DefineStandardPascalTypes;
     // Is the word a pascal keyword ?
     class function IsKeyWord(const aWord : String) : Boolean;
+    // Is the type name a reserved type that conflicts with standard library types ?
+    function IsReservedTypeName(const aTypeName : String) : Boolean;
     // Escape the word if it is a pascal keyword ?
     function EscapeKeyWord(const aWord : string) : string;
+    // Handle reserved type name - escape or return as-is based on ReservedTypeBehaviour
+    function HandleReservedTypeName(const aTypeName : string) : string;
+    // Get qualified type name for serializer use (returns UnitName.TypeName for reserved types when rtbQualify)
+    function GetQualifiedTypeName(const aTypeName, aUnitName : string) : string;
     // Get the pascal name based on schema name
     function GetTypeMap(const aName : string): String;
     // Return index of named schema type (name as in OpenApi). Return -1 if not found.
@@ -304,6 +321,10 @@ Type
     Property OnLog : TSchemaCodeGenLogEvent Read FOnLog Write FOnLog;
     // how to escape keywords
     Property KeywordEscapeMode : TKeywordEscapeMode Read FKeywordEscapeMode Write FKeywordEscapeMode;
+    // List of reserved type names that conflict with standard library types (one per line, without T prefix)
+    Property ReservedTypes : TStrings Read FReservedTypes Write SetReservedTypes;
+    // How to handle reserved type names: escape them or use qualified names
+    Property ReservedTypeBehaviour : TReservedTypeBehaviour Read FReservedTypeBehaviour Write FReservedTypeBehaviour;
   end;
 
 implementation
@@ -963,7 +984,7 @@ begin
               end;
             end;
           lName:='{'+lBaseName+'}';
-          lPascalName:=ObjectTypePrefix+Sanitize(lBaseName);
+          lPascalName:=HandleReservedTypeName(ObjectTypePrefix+Sanitize(lBaseName));
           Result:=FindSchemaTypeData(lName);
           if (Result=Nil) and AllowCreate then
             begin
@@ -1074,6 +1095,26 @@ begin
   Result:=lType;
 end;
 
+procedure TSchemaData.DefineDefaultReservedTypes;
+begin
+  With FReservedTypes do
+    begin
+    // Default reserved types that conflict with FPC/Delphi standard library
+    Add('TimeZone');      // DateUtils.TTimeZone
+    Add('Date');          // Common type name
+    Add('Time');          // Common type name
+    Add('DateTime');      // SysUtils.TDateTime
+    Add('Stream');        // Classes.TStream
+    Add('List');          // Contnrs/Generics.TList
+    Add('StringList');    // Classes.TStringList
+    Add('Strings');       // Classes.TStrings
+    Add('Thread');        // Classes.TThread
+    Add('Component');     // Classes.TComponent
+    Add('Collection');    // Classes.TCollection
+    Add('Object');        // System.TObject
+    end;
+end;
+
 
 constructor TSchemaData.Create;
 
@@ -1081,12 +1122,17 @@ begin
   FTypeMap:=TFPObjectHashTable.Create(False);
   FTypeList:=TPascalTypeDataList.Create(True);
   FAliasList:=TPascalTypeDataList.Create(True);
+  FReservedTypes:=TStringList.Create;
+  DefineDefaultReservedTypes;
+  TStringList(FReservedTypes).Duplicates:=dupIgnore;
+  TStringList(FReservedTypes).Sorted:=True;
   FObjectTypePrefix:='T';
   FObjectTypeSuffix:='';
   FInterfaceTypePrefix:='I';
   FArrayTypeSuffix:='Array';
   FArrayTypePrefix:='';
   FKeywordEscapeMode:=kemSuffix;
+  FReservedTypeBehaviour:=rtbEscape;
 end;
 
 
@@ -1096,6 +1142,7 @@ begin
   FreeAndNil(FTypeList);
   FreeAndNil(FAliasList);
   FreeAndNil(FTypeMap);
+  FreeAndNil(FReservedTypes);
   inherited Destroy;
 end;
 
@@ -1164,6 +1211,65 @@ begin
       kemPrefix : Result:='_'+Result;
       kemAmpersand : Result:='&'+Result;
     end;
+end;
+
+
+procedure TSchemaData.SetReservedTypes(AValue: TStrings);
+
+begin
+  if FReservedTypes = AValue then Exit;
+  FReservedTypes.Clear;
+  FReservedTypes.AddStrings(AValue);
+end;
+
+
+function TSchemaData.IsReservedTypeName(const aTypeName: String): Boolean;
+
+var
+  lName: string;
+  I: Integer;
+
+begin
+  Result := False;
+  // Check if the type name (without prefix) matches any reserved type
+  lName := aTypeName;
+  // Remove common prefixes for comparison
+  if (Length(lName) > 1) and (lName[1] = 'T') then
+    lName := Copy(lName, 2, Length(lName) - 1);
+  for I := 0 to FReservedTypes.Count - 1 do
+    if SameText(lName, FReservedTypes[I]) then
+      Exit(True);
+end;
+
+
+function TSchemaData.HandleReservedTypeName(const aTypeName: string): string;
+
+begin
+  Result := aTypeName;
+  if not IsReservedTypeName(aTypeName) then
+    Exit;
+  case ReservedTypeBehaviour of
+    rtbEscape:
+      case KeywordEscapeMode of
+        kemSuffix : Result := Result + '_';
+        kemPrefix : Result := '_' + Result;
+        kemAmpersand : Result := '&' + Result;
+      end;
+    rtbQualify:
+      { For rtbQualify, do not modify the name here - the code generator
+        will use the fully qualified name when using the type using 
+        GetQualifiedTypeName}
+      ;
+  end;
+end;
+
+
+function TSchemaData.GetQualifiedTypeName(const aTypeName, aUnitName: string): string;
+
+begin
+  Result := aTypeName;
+  if (ReservedTypeBehaviour = rtbQualify) and IsReservedTypeName(aTypeName) and (aUnitName <> '') then
+    Result := aUnitName + '.' + aTypeName;
 end;
 
 

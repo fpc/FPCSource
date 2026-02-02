@@ -91,6 +91,8 @@ Type
     FConvertUTC: Boolean;
     FDataUnitName: string;
   protected
+    // Get qualified type name for deserializer references (handles rtbQualify for reserved types)
+    function QualifyTypeName(const aTypeName: string): string; virtual;
     function MustSerializeType(aType : TPascalTypeData) : boolean; virtual;
     function FieldToJSON(aProperty: TPascalPropertyData) : string; virtual;
     function ArrayMemberToField(aType: TPascalType; const aPropertyTypeName: String; const aFieldName: string): string; virtual;
@@ -562,6 +564,15 @@ end;
 
 { TSerializerCodeGenerator }
 
+function TSerializerCodeGenerator.QualifyTypeName(const aTypeName: string): string;
+begin
+  // Only qualify reserved type names to avoid conflicts with standard library types
+  if Assigned(TypeData) and TypeData.IsReservedTypeName(aTypeName) then
+    Result := TypeData.GetQualifiedTypeName(aTypeName, DataUnitName)
+  else
+    Result := aTypeName;
+end;
+
 function TSerializerCodeGenerator.MustSerializeType(aType: TPascalTypeData): boolean;
 begin
   Result:=Assigned(aType);
@@ -639,11 +650,11 @@ var
 begin
   if aType in [ptSchemaStruct,ptAnonStruct] then
   begin
-    Result := Format('%s.Deserialize(%s)', [aPropertyTypeName, ObjectField(aKeyName)]);
+    Result := Format('%s.Deserialize(%s)', [QualifyTypeName(aPropertyTypeName), ObjectField(aKeyName)]);
   end
   else if aType = ptArray then
   begin
-    Result := Format('%s.Deserialize(%s)', [aPropertyTypeName, ArrayField(aKeyName)]);
+    Result := Format('%s.Deserialize(%s)', [QualifyTypeName(aPropertyTypeName), ArrayField(aKeyName)]);
   end
   else
   begin
@@ -700,9 +711,9 @@ var
 
 begin
   if aType in [ptAnonStruct,ptSchemaStruct] then
-    Result := Format('%s.Deserialize(%s as TJSONObject)', [aPropertyTypeName, aFieldName])
+    Result := Format('%s.Deserialize(%s as TJSONObject)', [QualifyTypeName(aPropertyTypeName), aFieldName])
   else if aType = ptArray then
-    Result := Format('%s.Deserialize(%s as TJSONArray)', [aPropertyTypeName, aFieldName])
+    Result := Format('%s.Deserialize(%s as TJSONArray)', [QualifyTypeName(aPropertyTypeName), aFieldName])
   else
     begin
     case aType of
@@ -730,6 +741,7 @@ begin
         else
           Result := Format('%s.As%s', [aFieldName, lType]);
       end;
+      ptJSON,
       ptAnonStruct:
       begin
         if DelphiCode then
@@ -948,7 +960,7 @@ var
   lHasArray: boolean;
 
 begin
-  Addln('class function %s.Deserialize(aJSON : TJSONObject) : %s;', [aType.SerializerName, aType.PascalName]);
+  Addln('class function %s.Deserialize(aJSON : TJSONObject) : %s;', [aType.SerializerName, QualifyTypeName(aType.PascalName)]);
   Addln('');
   lHasArray := aType.HasArrayProperty;
   //  lHasObject:=aType.HasObjectProperty(True);
@@ -967,9 +979,9 @@ begin
   Addln('begin');
   indent;
   if WriteClassType then
-    Addln('Result := %s.Create;', [aType.PascalName])
+    Addln('Result := %s.Create;', [QualifyTypeName(aType.PascalName)])
   else
-    Addln('Result := Default(%s);', [aType.PascalName]);
+    Addln('Result := Default(%s);', [QualifyTypeName(aType.PascalName)]);
   Addln('If (aJSON=Nil) then');
   indent;
   Addln('exit;');
@@ -985,7 +997,7 @@ end;
 procedure TSerializerCodeGenerator.WriteDtoDeserializer(aType: TPascalTypeData);
 
 begin
-  Addln('class function %s.Deserialize(aJSON : String) : %s;', [aType.SerializerName, aType.PascalName]);
+  Addln('class function %s.Deserialize(aJSON : String) : %s;', [aType.SerializerName, QualifyTypeName(aType.PascalName)]);
   Addln('');
   Addln('var');
   indent;
@@ -993,7 +1005,7 @@ begin
   undent;
   Addln('begin');
   indent;
-  Addln('Result := Default(%s);', [aType.PascalName]);
+  Addln('Result := Default(%s);', [QualifyTypeName(aType.PascalName)]);
   Addln('if (aJSON='''') then');
   indent;
   Addln('exit;');
@@ -1025,12 +1037,12 @@ procedure TSerializerCodeGenerator.WriteDtoHelper(aType: TPascalTypeData);
 
 begin
   if WriteClassType then
-    Addln('%s = class helper for %s', [aType.SerializerName, aType.PascalName])
+    Addln('%s = class helper for %s', [aType.SerializerName, QualifyTypeName(aType.PascalName)])
   else
   if DelphiCode then
-    Addln('%s = record helper for %s', [aType.SerializerName, aType.PascalName])
+    Addln('%s = record helper for %s', [aType.SerializerName, QualifyTypeName(aType.PascalName)])
   else
-    Addln('%s = type helper for %s', [aType.SerializerName, aType.PascalName]);
+    Addln('%s = type helper for %s', [aType.SerializerName, QualifyTypeName(aType.PascalName)]);
   indent;
   if stSerialize in aType.SerializeTypes then
   begin
@@ -1039,8 +1051,8 @@ begin
   end;
   if stDeserialize in aType.SerializeTypes then
   begin
-    Addln('class function Deserialize(aJSON : TJSONObject) : %s; overload; static;', [aType.PascalName]);
-    Addln('class function Deserialize(aJSON : String) : %s; overload; static;', [aType.PascalName]);
+    Addln('class function Deserialize(aJSON : TJSONObject) : %s; overload; static;', [QualifyTypeName(aType.PascalName)]);
+    Addln('class function Deserialize(aJSON : String) : %s; overload; static;', [QualifyTypeName(aType.PascalName)]);
   end;
   undent;
   Addln('end;');
@@ -1050,9 +1062,9 @@ procedure TSerializerCodeGenerator.WriteArrayHelper(aType: TPascalTypeData);
 
 begin
   if DelphiCode then
-    Addln('%s = record helper for %s', [aType.SerializerName, aType.PascalName])
+    Addln('%s = record helper for %s', [aType.SerializerName, QualifyTypeName(aType.PascalName)])
   else
-    Addln('%s = type helper for %s', [aType.SerializerName, aType.PascalName]);
+    Addln('%s = type helper for %s', [aType.SerializerName, QualifyTypeName(aType.PascalName)]);
   Indent;
   if stSerialize in aType.SerializeTypes then
     begin
@@ -1061,8 +1073,8 @@ begin
     end;
   if stDeserialize in aType.SerializeTypes then
     begin
-    Addln('class function Deserialize(aJSON : TJSONArray) : %s; overload; static;', [aType.PascalName]);
-    Addln('class function Deserialize(aJSON : String) : %s; overload; static;', [aType.PascalName]);
+    Addln('class function Deserialize(aJSON : TJSONArray) : %s; overload; static;', [QualifyTypeName(aType.PascalName)]);
+    Addln('class function Deserialize(aJSON : String) : %s; overload; static;', [QualifyTypeName(aType.PascalName)]);
     end;
   undent;
   Addln('end;');
@@ -1139,7 +1151,7 @@ procedure TSerializerCodeGenerator.WriteArrayHelperDeSerializeArray(aType: TPasc
 var
   lType : string;
 begin
-  Addln('class function %s.Deserialize(aJSON : TJSONArray) : %s; ', [aType.SerializerName, aType.PascalName]);
+  Addln('class function %s.Deserialize(aJSON : TJSONArray) : %s; ', [aType.SerializerName, QualifyTypeName(aType.PascalName)]);
   Addln('');
   Addln('var');
   indent;
@@ -1160,7 +1172,7 @@ end;
 
 procedure TSerializerCodeGenerator.WriteArrayHelperDeserialize(aType: TPascalTypeData);
 begin
-  Addln('class function %s.Deserialize(aJSON : String) : %s; ', [aType.SerializerName,aType.PascalName]);
+  Addln('class function %s.Deserialize(aJSON : String) : %s; ', [aType.SerializerName, QualifyTypeName(aType.PascalName)]);
   Addln('');
   Addln('var');
   indent;
