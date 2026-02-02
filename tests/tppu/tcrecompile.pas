@@ -55,6 +55,9 @@ type
     procedure TestImplInline2; // program + 2 units cycle, impl inline
     procedure TestImplInline_Bug41291; // program plus 3 cycles
     procedure TestImplInline3; // program + 2 units cycle, impl inline, implementation changed
+
+    // generics
+    procedure TestGeneric_IndirectUses; // specialization of an inherited class in an indirectly used unit
   end;
 
 
@@ -534,6 +537,35 @@ begin
   Compile;
   // the main src is always compiled, and the ant impl changed, so bird is also compiled
   CheckCompiled(['implinline3_prg.pas','implinline3_ant.pas','implinline3_bird.pas']);
+end;
+
+procedure TTestRecompile.TestGeneric_IndirectUses;
+// prog->ant.impl->bird->cat, ant specializes cat, change the generic func of cat
+var
+  Dir: String;
+begin
+  Dir:='generic_indirectuses';
+  UnitPath:=Dir+';'+Dir+PathDelim+'src1';
+  OutDir:=Dir+PathDelim+'ppus';
+  MainSrc:=Dir+PathDelim+'generic_indirectuses_prg.pas';
+  MakeDateDiffer(
+    Dir+PathDelim+'src1'+PathDelim+'generic_indirectuses_cat.pas',
+    Dir+PathDelim+'src2'+PathDelim+'generic_indirectuses_cat.pas');
+
+  Step:='First compile';
+  CleanOutputDir;
+  Compile;
+  CheckCompiled(['generic_indirectuses_prg.pas','generic_indirectuses_ant.pas',
+     'generic_indirectuses_bird.pas','generic_indirectuses_cat.pas']);
+
+  Step:='Second compile';
+  UnitPath:=Dir+';'+Dir+PathDelim+'src2';
+  Compile;
+  // the main src is always compiled,
+  // cat changed, so bird must be recompiled as well. bird should get the same CRCs.
+  // finally even though ant does ant directly use cat, ant specializes the changed generic
+  //   function from cat, so ant must be recompiled as well.
+  CheckCompiled(['generic_indirectuses_prg.pas','generic_indirectuses_ant.pas','generic_indirectuses_bird.pas','generic_indirectuses_cat.pas']);
 end;
 
 initialization
