@@ -60,6 +60,30 @@ type
     Property Index : Integer Read FIndex;
   end;
 
+  { TAPIResponseInfo }
+
+  // Holds information about a single HTTP response from an OpenAPI operation
+  TAPIResponseInfo = Class(TObject)
+  private
+    FStatusCode: String;        // '200', '404', 'default', etc.
+    FContentType: String;       // 'application/json', 'text/plain', etc.
+    FTypeData: TAPITypeData;    // Pascal type data for this response
+    FResponseKindName: String;  // Pascal enum constant name (e.g., 'rkSuccess')
+    FIsSuccess: Boolean;        // True for 2xx status codes
+  public
+    constructor Create(const AStatusCode, AContentType: String; ATypeData: TAPITypeData);
+    // HTTP status code or 'default'
+    property StatusCode: String read FStatusCode;
+    // Content-Type for this response
+    property ContentType: String read FContentType;
+    // Pascal type data for the response body (may be nil for empty responses)
+    property TypeData: TAPITypeData read FTypeData write FTypeData;
+    // Name for the response kind enum constant
+    property ResponseKindName: String read FResponseKindName write FResponseKindName;
+    // True if this is a success response (2xx)
+    property IsSuccess: Boolean read FIsSuccess;
+  end;
+
   { TAPIServiceMethod }
 
   { TAPIServiceMethodParam }
@@ -106,11 +130,14 @@ type
     FService: TAPIService;
     FPath : TPathItem;
     FParams : TFPObjectList;
+    FResponses: TFPObjectList;  // List of TAPIResponseInfo
     function GetParam(aIndex : Integer): TAPIServiceMethodParam;
     function GetParamCount: Integer;
     function GetRequestBodyType: String;
     function GetResultCallbackType: String;
     function GetResultType(AIndex: TNameType): String;
+    function GetResponse(aIndex: Integer): TAPIResponseInfo;
+    function GetResponseCount: Integer;
   protected
     // override this if you want to subclass the parameter
     function CreateParam(const aType: TPascaltype; const aOriginalName, aName, aTypeName: String; aParam: TParameter     ): TAPIServiceMethodParam; virtual;
@@ -129,11 +156,21 @@ type
     Function HasQueryParam : Boolean;
     // Does this method have parameters with default values ?
     Function HasOptionalParams : Boolean;
+    // Add a response info
+    function AddResponse(const AStatusCode, AContentType: String; ATypeData: TAPITypeData): TAPIResponseInfo;
+    // Get response by status code
+    function ResponseByStatusCode(const AStatusCode: String): TAPIResponseInfo;
+    // Get the primary success response (first 2xx response)
+    function GetSuccessResponse: TAPIResponseInfo;
+    // Check if this method has a simple response (single 2xx JSON response) - for backward compatibility
+    function HasSimpleResponse: Boolean;
+    // Check if this method needs a complex result type (multiple responses or non-JSON)
+    function NeedsComplexResultType: Boolean;
     // Pascal type of request body. May be empty.
     Property RequestBodyType : String Read GetRequestBodyType; deprecated;
     // Pascal type of request body. May be empty.
     Property RequestBodyDataType : TAPITypeData Read FBodyType Write FBodyType;
-    // Result data type. Can be nil
+    // Result data type. Can be nil (for backward compatibility, returns first success response type)
     Property ResultDataType : TAPITypeData Read FResultDataType Write FResultDataType;
     // Result type. Can be empty
     Property ResultType : String index ntInterface Read GetResultType;
@@ -155,6 +192,10 @@ type
     Property Param[aIndex : Integer] : TAPIServiceMethodParam Read GetParam;
     // Number of parameters.
     Property ParamCount: Integer Read GetParamCount;
+    // Indexed access to responses
+    Property Responses[aIndex: Integer]: TAPIResponseInfo read GetResponse;
+    // Number of responses
+    Property ResponseCount: Integer read GetResponseCount;
   end;
 
   TAPIService = Class(TObject)
@@ -181,6 +222,8 @@ type
     destructor destroy; override;
     // Add a method to the list of methods.
     Function AddMethod(const aName : String; aOperation : TAPIOperation; aPath : TPathItem) : TAPIserviceMethod;
+    // Find a method by name. Returns nil if not found.
+    Function FindMethod(const aName : String) : TAPIserviceMethod;
     // Does this service need authentication ?
     Property NeedsAuthentication : Boolean read FNeedsAuthentication Write FNeedsAuthentication;
     // Pascal name of the service
@@ -262,6 +305,10 @@ type
     function GenerateMethodResultCallBackName(aMethod: TAPIServiceMethod): String; virtual;
     // Configure the service method. Called after it is created.
     procedure ConfigureServiceMethod(aService: TAPIService; aMethod: TAPIServiceMethod); virtual;
+    // Collect all responses for a method from the OpenAPI operation
+    procedure CollectMethodResponses(aMethod: TAPIServiceMethod); virtual;
+    // Get type data for a response's content type
+    function GetResponseTypeData(aResponse: TResponse; const aContentType: String): TAPITypeData; virtual;
     // Add a parameter to a method.
     function AddServiceMethodParam(aService: TAPIservice; aMethod: TAPIServiceMethod; Idx: Integer; aParam: TParameterOrReference   ): TAPIServiceMethodParam; virtual;
     // Check the input of various operations of a OpenAPI path item. Used in determining the need for serialization
@@ -392,6 +439,26 @@ begin
 end;
 
 
+{ TAPIResponseInfo }
+
+constructor TAPIResponseInfo.Create(const AStatusCode, AContentType: String;
+  ATypeData: TAPITypeData);
+var
+  Code: Integer;
+begin
+  FStatusCode:=AStatusCode;
+  FContentType:=AContentType;
+  FTypeData:=ATypeData;
+  FResponseKindName:='';
+  // Determine if this is a success response (2xx status code)
+  if AStatusCode = 'default' then
+    FIsSuccess:=False
+  else if TryStrToInt(AStatusCode, Code) then
+    FIsSuccess:=(Code >= 200) and (Code < 300)
+  else
+    FIsSuccess:=False;
+end;
+
 { TAPIServiceMethodParam }
 
 function TAPIServiceMethodParam.Getlocation: TParamLocation;
@@ -489,8 +556,22 @@ end;
 
 function TAPIService.AddMethod(const aName: String; aOperation: TAPIOperation; aPath : TPathItem): TAPIserviceMethod;
 begin
+  // Check if a method with this name already exists
+  Result := FindMethod(aName);
+  if Result <> nil then
+    Raise EGenAPI.CreateFmt('Duplicate method : %s',[aName]);
   Result:=CreateMethod(aOperation,aPath,aName);
   FMethods.Add(Result);
+end;
+
+function TAPIService.FindMethod(const aName: String): TAPIserviceMethod;
+var
+  I: Integer;
+begin
+  Result := nil;
+  for I := 0 to FMethods.Count - 1 do
+    if SameText(TAPIServiceMethod(FMethods[I]).MethodName, aName) then
+      Exit(TAPIServiceMethod(FMethods[I]));
 end;
 
 { TAPIServiceMethod }
@@ -546,12 +627,88 @@ begin
   FMethodName:=aMethod;
   FPath:=aPath;
   FParams:=TFPObjectList.Create(True);
+  FResponses:=TFPObjectList.Create(True);
 end;
 
 destructor TAPIServiceMethod.Destroy;
 begin
+  FreeAndNil(FResponses);
   FreeAndNil(FParams);
   inherited Destroy;
+end;
+
+function TAPIServiceMethod.GetResponse(aIndex: Integer): TAPIResponseInfo;
+begin
+  Result:=TAPIResponseInfo(FResponses[aIndex]);
+end;
+
+function TAPIServiceMethod.GetResponseCount: Integer;
+begin
+  Result:=FResponses.Count;
+end;
+
+function TAPIServiceMethod.AddResponse(const AStatusCode, AContentType: String;
+  ATypeData: TAPITypeData): TAPIResponseInfo;
+begin
+  Result:=TAPIResponseInfo.Create(AStatusCode, AContentType, ATypeData);
+  FResponses.Add(Result);
+end;
+
+function TAPIServiceMethod.ResponseByStatusCode(const AStatusCode: String): TAPIResponseInfo;
+var
+  I: Integer;
+begin
+  Result:=nil;
+  for I:=0 to FResponses.Count-1 do
+    if TAPIResponseInfo(FResponses[I]).StatusCode = AStatusCode then
+      Exit(TAPIResponseInfo(FResponses[I]));
+end;
+
+function TAPIServiceMethod.GetSuccessResponse: TAPIResponseInfo;
+var
+  I: Integer;
+  Resp: TAPIResponseInfo;
+begin
+  Result:=nil;
+  for I:=0 to FResponses.Count-1 do
+  begin
+    Resp:=TAPIResponseInfo(FResponses[I]);
+    if Resp.IsSuccess then
+      Exit(Resp);
+  end;
+  // Fallback to 'default' if no success response found
+  Result:=ResponseByStatusCode('default');
+end;
+
+function TAPIServiceMethod.HasSimpleResponse: Boolean;
+var
+  SuccessCount, I: Integer;
+  Resp: TAPIResponseInfo;
+begin
+  // Simple response: exactly one success response with application/json content type
+  if FResponses.Count = 0 then
+    Exit(True); // No responses defined, use void result
+
+  SuccessCount:=0;
+  for I:=0 to FResponses.Count-1 do
+  begin
+    Resp:=TAPIResponseInfo(FResponses[I]);
+    if Resp.IsSuccess then
+    begin
+      Inc(SuccessCount);
+      // Must be application/json for simple response
+      if Pos('application/json', LowerCase(Resp.ContentType)) = 0 then
+        Exit(False);
+    end;
+  end;
+
+  // Simple if we have 0 or 1 success responses and no error responses defined
+  Result:=(SuccessCount <= 1) and (FResponses.Count <= 1);
+end;
+
+function TAPIServiceMethod.NeedsComplexResultType: Boolean;
+begin
+  Result:=not HasSimpleResponse;
 end;
 
 function TAPIServiceMethod.CreateParam(const aType : TPascaltype; const aOriginalName,aName, aTypeName: String; aParam: TParameter): TAPIServiceMethodParam;
@@ -871,7 +1028,7 @@ begin
     lType:=lSchema.Validations.GetFirstType;
     if (lType in [sstArray,sstObject,sstInteger,sstString]) then
       begin
-      lTypeName:=EscapeKeyWord(ObjectTypePrefix+Sanitize(lName)+ObjectTypeSuffix);
+      lTypeName:=HandleReservedTypeName(EscapeKeyWord(ObjectTypePrefix+Sanitize(lName)+ObjectTypeSuffix));
       case lType of
         sstObject :
           lData:=CreatePascalType(I,ptSchemaStruct,lName,lTypeName,lSchema);
@@ -899,7 +1056,7 @@ begin
     lType:=lSchema.Validations.GetFirstType;
     if (lType in [sstArray,sstObject,sstInteger,sstString]) then
       begin
-      lTypeName:=EscapeKeyWord(ObjectTypePrefix+Sanitize(lName)+ObjectTypeSuffix);
+      lTypeName:=HandleReservedTypeName(EscapeKeyWord(ObjectTypePrefix+Sanitize(lName)+ObjectTypeSuffix));
       case lType of
         sstObject :
           lData:=CreatePascalType(I,ptSchemaStruct,lName,lTypeName,lSchema);
@@ -1200,8 +1357,87 @@ end;
 procedure TAPIData.ConfigureServiceMethod(aService : TAPIService; aMethod : TAPIServiceMethod);
 
 begin
+  // Collect all responses first
+  CollectMethodResponses(aMethod);
+  // For backward compatibility, also set ResultDataType from the first success response
   aMethod.ResultDataType:=GetMethodResultTypeData(aMethod);
   aMethod.RequestBodyDataType:=GetMethodRequestBodyType(aMethod);
+end;
+
+function TAPIData.GetResponseTypeData(aResponse: TResponse; const aContentType: String): TAPITypeData;
+var
+  lMedia: TMediaType;
+  S: String;
+begin
+  Result:=nil;
+  if aResponse.Content.Count = 0 then
+    Exit;
+
+  lMedia:=aResponse.Content.MediaTypes[aContentType];
+  if lMedia = nil then
+    Exit;
+
+  if Pos('application/json', LowerCase(aContentType)) > 0 then
+  begin
+    // JSON content type - get schema type
+    if lMedia.Schema <> nil then
+      Result:=TAPITypeData(GetSchemaTypeData(nil, lMedia.Schema, True));
+  end
+  else
+  begin
+    // Check for stream content types
+    for S in StreamContentTypes do
+      if Pos(LowerCase(S), LowerCase(aContentType)) > 0 then
+      begin
+        Result:=GetStreamTypeData(aContentType);
+        Exit;
+      end;
+    // For other content types (text/plain, etc.), return nil
+    // The code generator will handle this as raw string content
+    Result:=nil;
+  end;
+end;
+
+procedure TAPIData.CollectMethodResponses(aMethod: TAPIServiceMethod);
+var
+  I, J: Integer;
+  lResponse: TResponse;
+  lStatusCode, lContentType: String;
+  lTypeData: TAPITypeData;
+  lResponseInfo: TAPIResponseInfo;
+  lMediaTypes: TMediaTypeMap;
+begin
+  if aMethod.Operation.Responses.Count = 0 then
+    Exit;
+
+  for I := 0 to aMethod.Operation.Responses.Count - 1 do
+  begin
+    lResponse:=aMethod.Operation.Responses.ResponseByIndex[I];
+    lStatusCode:=aMethod.Operation.Responses.Names[I];
+
+    if lResponse.Content.Count = 0 then
+    begin
+      // No content - add a void response
+      lResponseInfo:=aMethod.AddResponse(lStatusCode, '', nil);
+      lResponseInfo.ResponseKindName:=Format('rk%s', [lStatusCode]);
+    end
+    else
+    begin
+      // Iterate through content types
+      lMediaTypes:=lResponse.Content;
+      for J := 0 to lMediaTypes.Count - 1 do
+      begin
+        lContentType:=lMediaTypes.Names[J];
+        lTypeData:=GetResponseTypeData(lResponse, lContentType);
+        lResponseInfo:=aMethod.AddResponse(lStatusCode, lContentType, lTypeData);
+        // Generate response kind name
+        if Pos('application/json', LowerCase(lContentType)) > 0 then
+          lResponseInfo.ResponseKindName:=Format('rk%s', [lStatusCode])
+        else
+          lResponseInfo.ResponseKindName:=Format('rk%sOther', [lStatusCode]);
+      end;
+    end;
+  end;
 end;
 
 function TAPIData.IsResponseContentStreamable(aOperation : TAPIOperation) : boolean;
@@ -1311,16 +1547,19 @@ begin
           ConfigService(lService);
           end;
         lMethodName:=GenerateServiceMethodName(lUrl,lPath,lOperation);
-        lMethod:=lService.AddMethod(lMethodName,lOperation,lPath);
-        ConfigureServiceMethod(lService,lMethod);
-        if lOperation.HasKeyWord(okParameters) then
-          for J:=0 to lOperation.Parameters.Count-1 do
-            AddServiceMethodParam(lService,lMethod,j,lOperation.Parameters[j]);
+        if lService.FindMethod(lMethodName)=Nil then
+          begin
+          lMethod:=lService.AddMethod(lMethodName,lOperation,lPath);
+          ConfigureServiceMethod(lService,lMethod);
+          if lOperation.HasKeyWord(okParameters) then
+            for J:=0 to lOperation.Parameters.Count-1 do
+              AddServiceMethodParam(lService,lMethod,j,lOperation.Parameters[j]);
+          end;
         if lOperation.OperationId='' then
           lMap:=lOperation.PathComponent+'.'+lPath.PathComponent
         else
           lMap:=lOperation.OperationID;
-        doLog(etInfo,'Map %s on %s.%s',[lMap,lService.ServiceName,lMethod.MethodName]);
+        doLog(etInfo,'Map %s on %s.%s',[lMap,lService.ServiceName,lMethodName]);
         end;
       end;
     end;

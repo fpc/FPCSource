@@ -68,6 +68,8 @@ type
   TOpenAPICodeGen = class(TComponent)
   private
     FAbstractServiceCalls: Boolean;
+    FReservedTypeBehaviour: TReservedTypeBehaviour;
+    FReservedTypes: TStrings;
     FAPI: TOpenAPI;
     FAsyncService: boolean;
     FBaseOutputFileName: string;
@@ -208,7 +210,10 @@ type
     Property ServiceNameSuffix : String Read FServiceNameSuffix Write FServiceNameSuffix;
     // Prefix for client/server service name
     Property ServiceNamePrefix : String Read FServiceNamePrefix Write FServiceNamePrefix;
-    // Prefix for client/server service name
+    // How to handle reserved type names that conflict with standard library types
+    Property ReservedTypeBehaviour : TReservedTypeBehaviour Read FReservedTypeBehaviour Write FReservedTypeBehaviour;
+    // List of reserved type names (one per line, without T prefix)
+    Property ReservedTypes : TStrings Read FReservedTypes;
   end;
 
 
@@ -253,6 +258,7 @@ begin
   FTypeAliases := TStringList.Create;
   FUUIDMap := TStringList.Create;
   FServiceMap := TStringList.Create;
+  FReservedTypes := TStringList.Create;
   DefaultSettings;
 end;
 
@@ -263,6 +269,7 @@ begin
   FreeAndNil(FTypeAliases);
   FreeAndNil(FUUIDMap);
   FreeAndNil(FServiceMap);
+  FreeAndNil(FReservedTypes);
   inherited Destroy;
 end;
 
@@ -575,6 +582,9 @@ begin
     lAPIData.DelphiTypes := Self.DelphiCode;
     lAPIData.ServiceNamePrefix := ServiceNamePrefix;
     lAPIData.ServiceNameSuffix := ServiceNameSuffix;
+    lAPIData.ReservedTypeBehaviour := Self.ReservedTypeBehaviour;
+    if FReservedTypes.Count > 0 then
+      lAPIData.ReservedTypes := Self.FReservedTypes;
     PrepareAPIData(lAPIData);
     GenerateRecordDefs(lAPIData);
     GenerateSerializerDefs(lAPIData);
