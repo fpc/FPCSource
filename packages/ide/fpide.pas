@@ -624,6 +624,7 @@ resourcestring  menu_local_gotosource = '~G~oto source';
                 label_editor_highlightrow = 'Highlight ~r~ow';
                 label_editor_autoclosingbrackets = 'Aut~o~-closing brackets';
                 label_editor_keeptrailingspaces = '~K~eep trailing spaces';
+                label_editor_enhancedwordrightleft = 'Conte~x~t-aware word left/right';
                 label_editor_codecomplete = 'Co~d~eComplete enabled';
                 label_editor_folds = 'E~n~able folds';
                 label_editor_editoroptions = '~E~ditor options';

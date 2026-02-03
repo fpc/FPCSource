@@ -1240,6 +1240,7 @@ begin
   if (EFlags and efCodeComplete      )<>0 then EFValue:=EFValue or (1 shl 14);
   if (EFlags and efFolds             )<>0 then EFValue:=EFValue or (1 shl 15);
   if (EFlags and efBlockInsCursor    )<>0 then EFValue:=EFValue or (1 shl 16);
+  if (EFlags and efEnhWordRightLeft  )<>0 then EFValue:=EFValue or (1 shl 17);
 
   R.Assign(0,0,66,21);
   New(D, Init(R, Title));
@@ -1266,7 +1267,8 @@ begin
       NewSItem(label_editor_codecomplete,
       NewSItem(label_editor_folds,
       NewSItem(label_editor_blockinsertcursor,
-      nil)))))))))))))))))));
+      NewSItem(label_editor_enhancedwordrightleft,
+      nil))))))))))))))))))));
     CB^.Value:=EFValue;
     Insert(CB);
     R2.Move(0,-1); R2.B.Y:=R2.A.Y+1;
@@ -1325,6 +1327,7 @@ begin
     if (CB^.Value and (1 shl 14))<>0 then EFlags:=EFlags or efCodeComplete;
     if (CB^.Value and (1 shl 15))<>0 then EFlags:=EFlags or efFolds;
     if (CB^.Value and (1 shl 16))<>0 then EFlags:=EFlags or efBlockInsCursor;
+    if (CB^.Value and (1 shl 17))<>0 then EFlags:=EFlags or efEnhWordRightLeft;
     TabSize:=StrToInt(ILTab^.Data^);
     IndentSize:=StrToInt(ILIdent^.Data^);
     if Editor=nil then

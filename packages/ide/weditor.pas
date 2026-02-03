@@ -96,6 +96,7 @@ const
       efKeepLineAttr        = $00020000;
       efOverwriteBlocks     = $00040000;
       efShowIndent          = $00080000;
+      efEnhWordRightLeft    = $00100000;
       efStoreContent        = $80000000;
 
       attrAsm       = 1;
@@ -4606,7 +4607,9 @@ var X, Y: sw_integer;
     GotIt,FoundNonSeparator: boolean;
     N,orgX : sw_integer;
     WhiteSpaceLen : sw_word;
+    EnhancedStops : boolean;
 begin
+  EnhancedStops:=IsFlagSet(efEnhWordRightLeft);
   X:=CurPos.X;
   Y:=CurPos.Y;
   orgX:=X;
@@ -4628,6 +4631,8 @@ begin
            X:=length(GetDisplayText(Y));
          if (X >0) or (Y<=0) then
            Break;
+         if not EnhancedStops then
+           break; {stop even at empty lines (TP compatibility)}
        end;
        break;
      end;
@@ -4647,12 +4652,12 @@ begin
 
      while (X>=0) and (GotIt=false) do
       begin
-        if (WhiteSpaceLen=0) and (X=0) and (orgX>0) then
+        if EnhancedStops and (WhiteSpaceLen=0) and (X=0) and (orgX>0) then
         begin
           GotIt:=true; {stop at very beginning of line, if no white space}
           break;
         end;
-        if WhiteSpaceLen = X+1 then
+        if EnhancedStops and (WhiteSpaceLen = X+1) then
         begin
           GotIt:=true; {stop before leading white space}
           inc(X);
@@ -4670,7 +4675,7 @@ begin
    else
     if not IsWordSeparator(Line[X+1]) then
      FoundNonSeparator:=true
-    else
+    else if EnhancedStops then
       begin
         { stop on comment start, comment end }
         if Line[X+1] in ['(','*',')','/','{','}'] then
@@ -4741,6 +4746,8 @@ begin
        X:=length(GetDisplayText(Y));
        if X>0 then
          Break;
+       if not EnhancedStops then
+         break; {stop even at empty lines (TP compatibility)}
      end;
      orgX:=X;
    end;
@@ -4753,7 +4760,9 @@ var X, Y: sw_integer;
     Line: sw_astring;
     GotIt: boolean;
     N : sw_integer;
+    EnhancedStops : boolean;
 begin
+  EnhancedStops:=IsFlagSet(efEnhWordRightLeft);
   X:=CurPos.X; Y:=CurPos.Y; GotIt:=false;
   while (Y<GetLineCount) do
   begin
@@ -4769,11 +4778,11 @@ begin
     Line:=GetDisplayText(Y);
     N:=X;
     if N<1 then N:=1;
-    if (N<=length(Line)) and (Line[N] in [' ',#9]) then {sepcial exception if line beginning contains only spaces then we stop at the beginning of word (not at end)}
+    if EnhancedStops and (N<=length(Line)) and (Line[N] = ' ') then {sepcial exception if line beginning contains only spaces then we stop at the beginning of word (not at end)}
     begin
       N:=1;
       {count spaces in beginning of line}
-      while (Y<GetLineCount) and (N<=length(Line)) and (Line[N] in [' ',#9]) do
+      while (Y<GetLineCount) and (N<=length(Line)) and (Line[N] = ' ') do
       begin
         if N>=length(Line) then
           break;
@@ -4783,7 +4792,17 @@ begin
          if X<N then   {special case detected, stop at first non white space character}
            begin X:=N; dec(X); GotIt:=true; break; end;
     end;
-    { find end of word}
+    if not EnhancedStops then { skip current word }
+    begin
+      if (X=0) and (Length(Line)>0) then
+        inc(X);
+      while (X<=length(Line)) and (GotIt=false) and (Line<>'') do
+      begin
+        if IsWordSeparator(Line[X]) then break;
+        Inc(X);
+      end;
+    end;
+    { find end of word (if EnhancedStops=false then beginning of word) }
     while (X<=length(Line)+1) and (GotIt=false) and (Line<>'') do
     begin
       if X=length(Line)+1 then  {end of line found }
@@ -4794,6 +4813,8 @@ begin
         end;
       if (X>0) and (not IsWordSeparator(Line[X])) then
         begin
+          if not EnhancedStops then { stop at beginning of word }
+            begin GotIt:=true; Dec(X); Break; end;
           while (Y<GetLineCount) and (X<=length(Line)) and not (IsWordSeparator(Line[X])) do
           begin
             Inc(X);
@@ -4803,7 +4824,7 @@ begin
           if (GotIt=false) and (X<=length(Line)) then
             begin Dec(X); GotIt:=true; Break; end;
         end
-      else
+      else if EnhancedStops then
         begin
           { stop on comment start, comment end }
           (* comment } *)
