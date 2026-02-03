@@ -38,7 +38,7 @@ type
     procedure second_sqr_real; override;
     procedure second_sqrt_real; override;
     procedure second_get_frame; override;
-    procedure second_gtecommand; override;
+    procedure second_gteCommand; override;
   private
     procedure load_fpu_location;
   end;
@@ -167,16 +167,11 @@ begin
 end;
 
 
-procedure tMIPSELinlinenode.second_gtecommand;
+procedure tMIPSELinlinenode.second_gteCommand;
 begin
   
   secondpass(left);
-{
-  writeln(left.nodetype);     // ordconstn
-  writeln(left.expectloc);    // LOC_CONSTANT
-  writeln(left.location.loc); //  LOC_CONSTANT
-  writeln(left.location.value);
-}
+
   current_asmdata.CurrAsmList.concat(taicpu.op_none(A_NOP));
   current_asmdata.CurrAsmList.concat(taicpu.op_none(A_NOP));
   current_asmdata.CurrAsmList.concat(taicpu.op_const(A_COP2, left.location.value));
