@@ -4682,12 +4682,19 @@ begin
                  GotIt:=true;
                  inc(X,2);
                end;
+          (* comment  { at end of line or right in front of cursor *)
+          if (Length(line)=X+1) and (X<=orgX-1) then
+             if  (Line[X+1] = '{') and ((X=0) or ((X>1) and (Line[X]<>'{'))) then
+               begin
+                 GotIt:=true;
+                 inc(X,1);
+               end;
           if X<orgX then
             if Length(line)>=X+2 then
               if ((Line[X+1] = '/') and (Line[X+2] = '/'))
                  or ((Line[X+1] = '(') and (Line[X+2] = '*'))
                  or ((Line[X+1] = '*') and (Line[X+2] = ')'))
-                 or ((Line[X+1] = '{') and (Line[X+2] <> '{'))
+                 or ((Line[X+1] = '{') and (Line[X+2] <> '{') and ((X=0) or ((X>0) and (Line[X] <> '{') )))
                  or ((Line[X+1] = '}') and (Line[X+2] <> '}'))
                  or ((Line[X+1] = '{') and (X>0) and (Line[X] <> '{'))
                 then
@@ -4785,7 +4792,7 @@ begin
           Dec(X);
           Break
         end;
-      if not IsWordSeparator(Line[X]) then
+      if (X>0) and (not IsWordSeparator(Line[X])) then
         begin
           while (Y<GetLineCount) and (X<=length(Line)) and not (IsWordSeparator(Line[X])) do
           begin
@@ -4799,7 +4806,15 @@ begin
       else
         begin
           { stop on comment start, comment end }
-          if Line[X+1] in ['(','*',')','/','{','}'] then
+          (* comment } *)
+          if (X>0) and (Line[X] = '}') then
+            if X<length(Line) then
+              if (Line[X+1] <> '}') then
+                GotIt:=true;
+          { comment  *)  cursor on ")"}
+          if ((X>1)and (Line[X-1] = '*') and (Line[X] = ')')) then
+            GotIt:=true;
+          if not GotIt and (Line[X+1] in ['(','*',')','/','{']) then
           begin
             (* comment "{" *)
             if (Line[X+1] = '{') then
@@ -4810,24 +4825,16 @@ begin
               if X = 0 then
                 GotIt:=true;
             end;
-            (* comment "}" *)
-            if (Line[X+1] = '}') then
-            begin
-              if X>0 then
-                if (Line[X] <> '}') then
-                 GotIt:=true;
-              if X = 0 then
-                GotIt:=true;
-              if GotIt then
-                inc(X);
-            end;
             { comments  // (*  *) }
             if (Length(Line)>=X+2) then
               if ((Line[X+1] = '/') and (Line[X+2] = '/'))
                 or ((Line[X+1] = '(') and (Line[X+2] = '*'))
-                or ((Line[X+1] = '*') and (Line[X+2] = ')')) then
+                or ((Line[X+1] = '*') and (Line[X+2] = ')'))
+                or ((X>0)and (Line[X] = '*') and (Line[X+1] = ')')) then
               begin
                 GotIt:=true;
+                if ((X>0)and (Line[X] = '*') and (Line[X+1] = ')')) then
+                  inc(X,1);
                 if ((Line[X+1] = '*') and (Line[X+2] = ')')) then
                   inc(X,2);
                 if Line[X+1] = '/' then
