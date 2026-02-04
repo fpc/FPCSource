@@ -222,6 +222,8 @@ Type
     FKeywordEscapeMode: TKeywordEscapeMode;
     FReservedTypeBehaviour: TReservedTypeBehaviour;
     FReservedTypes: TStrings;
+    FTypeAliases: TStrings;
+    FMaxIdentifierLength: Integer;
     FTypeList : TPascalTypeDataList;
     FAliasList : TPascalTypeDataList;
     FTypeMap : TFPObjectHashTable;
@@ -234,6 +236,7 @@ Type
     FOnLog: TSchemaCodeGenLogEvent;
     FUseEnums: Boolean;
     procedure SetReservedTypes(AValue: TStrings);
+    procedure SetTypeAliases(AValue: TStrings);
     function GetSchemaType(aIndex : Integer): TPascalTypeData;
     function GetSchemaTypeCount: Integer;
   protected
@@ -273,8 +276,14 @@ Type
     function EscapeKeyWord(const aWord : string) : string;
     // Handle reserved type name - escape or return as-is based on ReservedTypeBehaviour
     function HandleReservedTypeName(const aTypeName : string) : string;
+    // Load type aliases from file (format: SchemaTypeName=AliasName per line)
+    procedure LoadTypeAliases(const aFileName : string);
+    // Apply type name shortening: first check aliases, then auto-shorten if too long
+    function ApplyTypeNameShortening(const aSchemaName : string) : string;
     // Get qualified type name for serializer use (returns UnitName.TypeName for reserved types when rtbQualify)
     function GetQualifiedTypeName(const aTypeName, aUnitName : string) : string;
+    // Ensure Pascal type name is unique (case-insensitive check), append suffix if needed
+    function EnsureUniquePascalName(const aPascalName : string) : string;
     // Get the pascal name based on schema name
     function GetTypeMap(const aName : string): String;
     // Return index of named schema type (name as in OpenApi). Return -1 if not found.
@@ -325,6 +334,10 @@ Type
     Property ReservedTypes : TStrings Read FReservedTypes Write SetReservedTypes;
     // How to handle reserved type names: escape them or use qualified names
     Property ReservedTypeBehaviour : TReservedTypeBehaviour Read FReservedTypeBehaviour Write FReservedTypeBehaviour;
+    // Type aliases for shortening long type names (format: SchemaTypeName=AliasName)
+    Property TypeAliases : TStrings Read FTypeAliases Write SetTypeAliases;
+    // Maximum identifier length (default 120, to leave room for Array suffix under FPC's 127 limit)
+    Property MaxIdentifierLength : Integer Read FMaxIdentifierLength Write FMaxIdentifierLength;
   end;
 
 implementation
@@ -1134,8 +1147,8 @@ begin
     Add('Collection');    // Classes.TCollection
     Add('Object');        // System.TObject
     Add('Word');          // SysUtils.TWordArray conflicts
-    Add('JsonObject');    // fpJson.TJSONObject conflicts 
-    Add('EventType');     // Sysutils.TEventType conflicts
+    Add('JsonObject');    // fpJson.TJSONObject conflicts
+    Add('EventType');     // SysUtils.TEventType conflicts
     end;
 end;
 
@@ -1150,6 +1163,9 @@ begin
   DefineDefaultReservedTypes;
   TStringList(FReservedTypes).Duplicates:=dupIgnore;
   TStringList(FReservedTypes).Sorted:=True;
+  FTypeAliases:=TStringList.Create;
+  TStringList(FTypeAliases).Duplicates:=dupIgnore;
+  FMaxIdentifierLength:=120;
   FObjectTypePrefix:='T';
   FObjectTypeSuffix:='';
   FInterfaceTypePrefix:='I';
@@ -1167,6 +1183,7 @@ begin
   FreeAndNil(FAliasList);
   FreeAndNil(FTypeMap);
   FreeAndNil(FReservedTypes);
+  FreeAndNil(FTypeAliases);
   inherited Destroy;
 end;
 
@@ -1186,6 +1203,7 @@ begin
   lArr:=AddAliasToTypeMap(ptArray,'[integer--int64]','[integer--int64]','TInt64DynArray',Nil);
   lArr.ElementTypeData:=lElem;
 
+  // Google Discovery uint32/uint64 formats
   AddAliasToTypeMap(ptInteger,'integer--uint32','integer','Cardinal',Nil);
   lElem:=AddAliasToTypeMap(ptInt64,'integer--uint64','integer','QWord',Nil);
   lArr:=AddAliasToTypeMap(ptArray,'[integer--uint64]','[integer--uint64]','TQWordDynArray',Nil);
@@ -1199,6 +1217,7 @@ begin
   AddAliasToTypeMap(ptDateTime,'string--time','string','TDateTime',Nil);
   AddAliasToTypeMap(ptDateTime,'string--date-time','string','TDateTime',Nil);
 
+  // Google Discovery uses strings for large integers (JSON/JavaScript limitation)
   AddAliasToTypeMap(ptString,'string--int64','string','string',Nil);
   AddAliasToTypeMap(ptString,'string--uint64','string','string',Nil);
 
@@ -1256,6 +1275,70 @@ begin
 end;
 
 
+procedure TSchemaData.SetTypeAliases(AValue: TStrings);
+
+begin
+  if FTypeAliases = AValue then Exit;
+  FTypeAliases.Clear;
+  FTypeAliases.AddStrings(AValue);
+end;
+
+
+procedure TSchemaData.LoadTypeAliases(const aFileName: string);
+
+begin
+  if FileExists(aFileName) then
+    FTypeAliases.LoadFromFile(aFileName);
+end;
+
+
+function TSchemaData.ApplyTypeNameShortening(const aSchemaName: string): string;
+
+var
+  lIdx: Integer;
+  lFullName: string;
+  lHash: Cardinal;
+  lHashStr: string;
+  lMaxNameLen: Integer;
+
+  function SimpleHash(const S: string): Cardinal;
+  var
+    I: Integer;
+  begin
+    Result := 0;
+    for I := 1 to Length(S) do
+      Result := ((Result shl 5) + Result) + Ord(S[I]);
+  end;
+
+begin
+  // Tier 1: Check user-defined aliases first
+  lIdx := FTypeAliases.IndexOfName(aSchemaName);
+  if lIdx >= 0 then
+  begin
+    Result := FTypeAliases.ValueFromIndex[lIdx];
+    DoLog(etInfo, 'Using alias for type %s -> %s', [aSchemaName, Result]);
+    Exit;
+  end;
+
+  // Tier 2: Check if shortening is needed
+  lFullName := ObjectTypePrefix + Sanitize(aSchemaName) + ObjectTypeSuffix;
+
+  if Length(lFullName) <= FMaxIdentifierLength then
+  begin
+    Result := aSchemaName;
+    Exit;
+  end;
+
+  // Fallback: truncate and add hash to ensure uniqueness
+  lHash := SimpleHash(aSchemaName);
+  lHashStr := '_' + IntToHex(lHash, 4);
+  // Calculate max name length excluding prefix, suffix, and hash
+  lMaxNameLen := FMaxIdentifierLength - Length(ObjectTypePrefix) - Length(ObjectTypeSuffix) - Length(lHashStr);
+  Result := Copy(aSchemaName, 1, lMaxNameLen) + lHashStr;
+  DoLog(etWarning, 'Type name too long, truncated with hash: %s -> %s', [aSchemaName, Result]);
+end;
+
+
 function TSchemaData.IsReservedTypeName(const aTypeName: String): Boolean;
 
 var
@@ -1305,6 +1388,34 @@ begin
   // Only qualify if rtbQualify is set and type is reserved
   if (ReservedTypeBehaviour = rtbQualify) and IsReservedTypeName(aTypeName) and (aUnitName <> '') then
     Result := aUnitName + '.' + aTypeName;
+end;
+
+
+function TSchemaData.EnsureUniquePascalName(const aPascalName: string): string;
+
+var
+  I, Suffix: Integer;
+  Found: Boolean;
+
+begin
+  Result := aPascalName;
+  Suffix := 2;
+
+  // Check if any existing type has the same Pascal name (case-insensitive)
+  repeat
+    Found := False;
+    for I := 0 to FTypeList.Count - 1 do
+    begin
+      if SameText(TPascalTypeData(FTypeList[I]).PascalName, Result) then
+      begin
+        Found := True;
+        Result := aPascalName + '_' + IntToStr(Suffix);
+        Inc(Suffix);
+        DoLog(etWarning, 'Type name conflict (case-insensitive): %s renamed to %s', [aPascalName, Result]);
+        Break;
+      end;
+    end;
+  until not Found;
 end;
 
 
