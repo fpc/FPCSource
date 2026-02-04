@@ -1135,6 +1135,7 @@ begin
     Add('Object');        // System.TObject
     Add('Word');          // SysUtils.TWordArray conflicts
     Add('JsonObject');    // fpJson.TJSONObject conflicts 
+    Add('EventType');     // Sysutils.TEventType conflicts
     end;
 end;
 
