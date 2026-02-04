@@ -1134,6 +1134,7 @@ begin
     Add('Collection');    // Classes.TCollection
     Add('Object');        // System.TObject
     Add('Word');          // SysUtils.TWordArray conflicts
+    Add('JsonObject');    // fpJson.TJSONObject conflicts 
     end;
 end;
 
