@@ -1028,7 +1028,7 @@ begin
     lType:=lSchema.Validations.GetFirstType;
     if (lType in [sstArray,sstObject,sstInteger,sstString]) then
       begin
-      lTypeName:=HandleReservedTypeName(EscapeKeyWord(ObjectTypePrefix+Sanitize(lName)+ObjectTypeSuffix));
+      lTypeName:=EnsureUniquePascalName(HandleReservedTypeName(EscapeKeyWord(ObjectTypePrefix+Sanitize(ApplyTypeNameShortening(lName))+ObjectTypeSuffix)));
       case lType of
         sstObject :
           lData:=CreatePascalType(I,ptSchemaStruct,lName,lTypeName,lSchema);
@@ -1056,7 +1056,7 @@ begin
     lType:=lSchema.Validations.GetFirstType;
     if (lType in [sstArray,sstObject,sstInteger,sstString]) then
       begin
-      lTypeName:=HandleReservedTypeName(EscapeKeyWord(ObjectTypePrefix+Sanitize(lName)+ObjectTypeSuffix));
+      lTypeName:=EnsureUniquePascalName(HandleReservedTypeName(EscapeKeyWord(ObjectTypePrefix+Sanitize(ApplyTypeNameShortening(lName))+ObjectTypeSuffix)));
       case lType of
         sstObject :
           lData:=CreatePascalType(I,ptSchemaStruct,lName,lTypeName,lSchema);
@@ -1125,7 +1125,7 @@ begin
   else
     begin
     lStrings:=SplitString(lFullName,'.');
-    Result:=LStrings[0];
+    Result:=CleanIdentifier(LStrings[0]);
     end;
   if (aOperation.OperationID<>'') and (lFullName='') then
     begin
@@ -1180,7 +1180,7 @@ begin
     lStrings:=SplitString(lFullName,'.');
     Result:=LStrings[1];
     end;
-  Result:=PrettyPrint(Result);
+  Result:=PrettyPrint(EscapeKeyWord(Sanitize(Result)));
 end;
 
 function TAPIData.AddServiceMethodParam(aService: TAPIservice; aMethod : TAPIServiceMethod; Idx : Integer; aParam : TParameterOrReference) : TAPIServiceMethodParam;
@@ -1204,7 +1204,7 @@ begin
     lTypeName:=lTypeData.GetTypeName(ntPascal);
     lType:=lTypeData.Pascaltype;
     lOriginalName:=aParam.Name;
-    lName:='a'+PrettyPrint(lOriginalName);
+    lName:='a'+PrettyPrint(Sanitize(lOriginalName));
     end;
   if lName='' then
     lName:=Format('aParam%d',[Idx]);
