@@ -1214,7 +1214,7 @@ Const
       'to;type;unit;until;uses;var;while;with;xor;dispose;exit;false;new;true;'+
       'as;class;dispinterface;except;exports;finalization;finally;initialization;'+
       'inline;is;library;on;out;packed;property;raise;resourcestring;threadvar;try;'+
-      'private;published;length;setlength;result;create;destroy;free;';
+      'private;published;length;setlength;result;create;destroy;free;methodname;default;';
 
 begin
   Result:=Pos(';'+lowercase(aWord)+';',KW)<>0;
