@@ -16,6 +16,10 @@
 
 {$asmmode gas}
 
+{ External global handle defined in prt0.as }
+var
+  __dso_handle: pointer; external name '__dso_handle';
+
 procedure __init; cdecl; external name '__init';
 procedure c_exit(exit_code: cint); cdecl; noreturn; external name 'exit';
 function _csu_finish(_argv: PPAnsiChar; _envp: PPAnsiChar; _cleanup: TCdeclProcedure): PPPChar; cdecl; external name '_csu_finish';
