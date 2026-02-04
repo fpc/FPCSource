@@ -6,6 +6,14 @@
 	.ascii "OpenBSD\0"
 	.long	0
 	.previous
+
+	/* Define the DSO handle for C++ ABI compatibility.
+	   This is required for exit() to work on OpenBSD. */
+	.globl	__dso_handle
+	.hidden	__dso_handle
+	__dso_handle:
+		.quad	__dso_handle
+
 	.file	"crt0.c"
 	.globl	__progname
 	.section	.rodata
