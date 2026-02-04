@@ -100,6 +100,15 @@ type
     function GetMethodResultType(aMethod: TAPIServiceMethod): string; virtual;
     function MethodResultCallBackName(aMethod: TAPIServiceMethod): string; virtual;
     function ParameterToArg(Idx: integer; aParam: TAPIServiceMethodParam): string;  virtual;
+    // Complex response handling
+    procedure WriteComplexResultTypes; virtual;
+    procedure GenerateResponseKindEnum(aMethod: TAPIServiceMethod); virtual;
+    procedure GenerateComplexResultRecord(aMethod: TAPIServiceMethod); virtual;
+    procedure GenerateComplexResultRecordImpl(aData: TAPIData); virtual;
+    function GetComplexMethodResultType(aMethod: TAPIServiceMethod): string; virtual;
+    function GetResponseKindEnumName(aMethod: TAPIServiceMethod): string; virtual;
+    function GetResponseFieldName(aResponse: TAPIResponseInfo): string; virtual;
+    function NeedsComplexResultTypes: Boolean; virtual;
   public
     constructor Create(AOwner: TComponent); override;
     property ServiceName: string read FServiceName write FServiceName;
@@ -136,6 +145,7 @@ type
     procedure GenerateServiceMethodImpl(aService: TAPIService; aMethod: TAPIServiceMethod); virtual;
     procedure GenerateURLConstruction(aService: TAPIService; aMethod: TAPIServiceMethod); virtual;
     procedure GenerateServiceImplementationDecl(aService: TAPIService); virtual;
+    procedure GenerateComplexResultHandling(aMethod: TAPIServiceMethod); virtual;
   public
     constructor Create(AOwner: TComponent); override;
     procedure Execute(aData: TAPIData); virtual;
@@ -486,13 +496,353 @@ end;
 function TOpenAPIServiceCodeGen.GetMethodResultType(aMethod: TAPIServiceMethod): string;
 
 begin
-  Result:=aMethod.ResultDtoType;
-  if Result<>'' then
-    Result:=Result+'ServiceResult'
+  // For complex responses, use the generated result type
+  if aMethod.NeedsComplexResultType then
+    Result:=GetComplexMethodResultType(aMethod)
   else
-    Result:='TVoidServiceResult';
+  begin
+    // Simple response - use TServiceResult<T>
+    Result:=aMethod.ResultDtoType;
+    if Result<>'' then
+      Result:=Result+'ServiceResult'
+    else
+      Result:='TVoidServiceResult';
+  end;
 end;
 
+function TOpenAPIServiceCodeGen.NeedsComplexResultTypes: Boolean;
+var
+  I, J: Integer;
+  lService: TAPIService;
+  lMethod: TAPIServiceMethod;
+begin
+  Result:=False;
+  for I:=0 to APIData.ServiceCount-1 do
+  begin
+    lService:=APIData.Services[I];
+    if (Self.ServiceName = '') or SameText(lService.ServiceName, Self.ServiceName) then
+      for J:=0 to lService.MethodCount-1 do
+      begin
+        lMethod:=lService.Methods[J];
+        if lMethod.NeedsComplexResultType then
+          Exit(True);
+      end;
+  end;
+end;
+
+function TOpenAPIServiceCodeGen.GetComplexMethodResultType(aMethod: TAPIServiceMethod): string;
+begin
+  Result:='T'+aMethod.Service.ServiceName+aMethod.MethodName+'Result';
+end;
+
+function TOpenAPIServiceCodeGen.GetResponseKindEnumName(aMethod: TAPIServiceMethod): string;
+begin
+  Result:='T'+aMethod.Service.ServiceName+aMethod.MethodName+'ResponseKind';
+end;
+
+function TOpenAPIServiceCodeGen.GetResponseFieldName(aResponse: TAPIResponseInfo): string;
+begin
+  // Generate field name based on status code
+  if aResponse.StatusCode = 'default' then
+    Result:='DefaultResponse'
+  else if aResponse.IsSuccess then
+    Result:='Value'
+  else
+    Result:='Error'+aResponse.StatusCode;
+end;
+
+procedure TOpenAPIServiceCodeGen.GenerateResponseKindEnum(aMethod: TAPIServiceMethod);
+var
+  I: Integer;
+  lResp: TAPIResponseInfo;
+  lEnumName, lKindName, lPrefix: String;
+  lKinds: TStringList;
+begin
+  lEnumName:=GetResponseKindEnumName(aMethod);
+  // Create unique prefix for this method's enum values
+  lPrefix:=aMethod.Service.ServiceName+aMethod.MethodName;
+  lKinds:=TStringList.Create;
+  try
+    lKinds.Sorted:=True;
+    lKinds.Duplicates:=dupIgnore;
+    // Collect unique response kinds
+    for I:=0 to aMethod.ResponseCount-1 do
+    begin
+      lResp:=aMethod.Responses[I];
+      if lResp.StatusCode = 'default' then
+        lKindName:=lPrefix+'rkDefault'
+      else if lResp.IsSuccess then
+        lKindName:=lPrefix+'rkSuccess'
+      else
+        lKindName:=lPrefix+'rkError'+lResp.StatusCode;
+      lKinds.Add(lKindName);
+    end;
+    // Add unexpected kind
+    lKinds.Add(lPrefix+'rkUnexpected');
+    // Reset sorted so items appear in logical order
+    lKinds.Sorted:=False;
+
+    // Generate enum
+    Addln('%s = (', [lEnumName]);
+    Indent;
+    for I:=0 to lKinds.Count-1 do
+    begin
+      if I < lKinds.Count-1 then
+        Addln('%s,', [lKinds[I]])
+      else
+        Addln('%s', [lKinds[I]]);
+    end;
+    Undent;
+    Addln(');');
+    Addln('');
+  finally
+    lKinds.Free;
+  end;
+end;
+
+procedure TOpenAPIServiceCodeGen.GenerateComplexResultRecord(aMethod: TAPIServiceMethod);
+var
+  I: Integer;
+  lResp: TAPIResponseInfo;
+  lResultName, lEnumName, lFieldName, lTypeName: String;
+  lFields: TStringList;
+  lStreamFields: TStringList;
+begin
+  lResultName:=GetComplexMethodResultType(aMethod);
+  lEnumName:=GetResponseKindEnumName(aMethod);
+
+  lFields:=TStringList.Create;
+  lStreamFields:=TStringList.Create;
+  try
+    lFields.Duplicates:=dupIgnore;
+    lStreamFields.Duplicates:=dupIgnore;
+
+    Addln('%s = record', [lResultName]);
+    Indent;
+    Addln('public');
+
+    // Public fields (prefixed with F for convention, but accessible for proxy implementation)
+    Addln('FStatusCode: Integer;');
+    Addln('FStatusText: String;');
+    Addln('FContentType: String;');
+    Addln('FResponseKind: %s;', [lEnumName]);
+    Addln('FRawContent: String;');
+    Addln('FRawStream: TStream;');
+    lStreamFields.Add('RawStream');  // Track TStream fields for Extract methods
+
+    // Fields for each response type
+    for I:=0 to aMethod.ResponseCount-1 do
+    begin
+      lResp:=aMethod.Responses[I];
+      lFieldName:='F'+GetResponseFieldName(lResp);
+      if lFields.IndexOf(lFieldName) >= 0 then
+        Continue; // Skip duplicate fields
+      lFields.Add(lFieldName);
+
+      if lResp.TypeData <> nil then
+      begin
+        lTypeName:=lResp.TypeData.PascalName;
+        Addln('%s: %s;', [lFieldName, lTypeName]);
+        // Track TStream fields for Extract methods
+        if lResp.TypeData.BinaryData then
+          lStreamFields.Add(GetResponseFieldName(lResp));
+      end;
+    end;
+
+    // Properties (provide cleaner read access to fields)
+    Addln('property StatusCode: Integer read FStatusCode;');
+    Addln('property StatusText: String read FStatusText;');
+    Addln('property ContentType: String read FContentType;');
+    Addln('property ResponseKind: %s read FResponseKind;', [lEnumName]);
+    Addln('property RawContent: String read FRawContent;');
+    Addln('property RawStream: TStream read FRawStream;');
+
+    // Response-specific properties
+    lFields.Clear;
+    for I:=0 to aMethod.ResponseCount-1 do
+    begin
+      lResp:=aMethod.Responses[I];
+      lFieldName:=GetResponseFieldName(lResp);
+      if lFields.IndexOf(lFieldName) >= 0 then
+        Continue;
+      lFields.Add(lFieldName);
+
+      if lResp.TypeData <> nil then
+      begin
+        lTypeName:=lResp.TypeData.PascalName;
+        Addln('property %s: %s read F%s;', [lFieldName, lTypeName, lFieldName]);
+      end;
+    end;
+
+    // Helper methods
+    Addln('function Success: Boolean; inline;');
+    Addln('function IsClientError: Boolean; inline;');
+    Addln('function IsServerError: Boolean; inline;');
+    Addln('procedure Clear;');
+
+    // Extract methods for TStream fields (transfer ownership to caller)
+    for I:=0 to lStreamFields.Count-1 do
+      Addln('function Extract%s: TStream;', [lStreamFields[I]]);
+
+    Undent;
+    Addln('end;');
+    Addln('');
+  finally
+    lFields.Free;
+    lStreamFields.Free;
+  end;
+end;
+
+procedure TOpenAPIServiceCodeGen.WriteComplexResultTypes;
+var
+  I, J: Integer;
+  lService: TAPIService;
+  lMethod: TAPIServiceMethod;
+begin
+  if not NeedsComplexResultTypes then
+    Exit;
+
+  Addln('// Complex response result types');
+  Addln('');
+
+  for I:=0 to APIData.ServiceCount-1 do
+  begin
+    lService:=APIData.Services[I];
+    if (Self.ServiceName = '') or SameText(lService.ServiceName, Self.ServiceName) then
+      for J:=0 to lService.MethodCount-1 do
+      begin
+        lMethod:=lService.Methods[J];
+        if lMethod.NeedsComplexResultType then
+        begin
+          GenerateResponseKindEnum(lMethod);
+          GenerateComplexResultRecord(lMethod);
+        end;
+      end;
+  end;
+end;
+
+procedure TOpenAPIServiceCodeGen.GenerateComplexResultRecordImpl(aData: TAPIData);
+var
+  I, J, K: Integer;
+  lService: TAPIService;
+  lMethod: TAPIServiceMethod;
+  lResultName, lFieldName, lTypeName, lEnumName: String;
+  lResp: TAPIResponseInfo;
+  lFields: TStringList;
+  lStreamFields: TStringList;
+  lObjectFields: TStringList;
+begin
+  lFields:=TStringList.Create;
+  lStreamFields:=TStringList.Create;
+  lObjectFields:=TStringList.Create;
+  try
+    lFields.Duplicates:=dupIgnore;
+    lStreamFields.Duplicates:=dupIgnore;
+    lObjectFields.Duplicates:=dupIgnore;
+
+    for I:=0 to aData.ServiceCount-1 do
+    begin
+      lService:=aData.Services[I];
+      if (Self.ServiceName = '') or SameText(lService.ServiceName, Self.ServiceName) then
+        for J:=0 to lService.MethodCount-1 do
+        begin
+          lMethod:=lService.Methods[J];
+          if lMethod.NeedsComplexResultType then
+          begin
+            lResultName:=GetComplexMethodResultType(lMethod);
+            lEnumName:=GetResponseKindEnumName(lMethod);
+
+            // Collect field information for Clear method
+            lFields.Clear;
+            lStreamFields.Clear;
+            lObjectFields.Clear;
+            lStreamFields.Add('RawStream');  // Always present
+
+            for K:=0 to lMethod.ResponseCount-1 do
+            begin
+              lResp:=lMethod.Responses[K];
+              lFieldName:=GetResponseFieldName(lResp);
+              if lFields.IndexOf(lFieldName) >= 0 then
+                Continue;
+              lFields.Add(lFieldName);
+
+              if lResp.TypeData <> nil then
+              begin
+                if lResp.TypeData.BinaryData then
+                  lStreamFields.Add(lFieldName)
+                else if lResp.TypeData.PascalType in [ptSchemaStruct, ptAnonStruct] then
+                  lObjectFields.Add(lFieldName);
+              end;
+            end;
+
+            // Generate Success method
+            Addln('function %s.Success: Boolean;', [lResultName]);
+            Addln('begin');
+            Indent;
+            Addln('Result:=(FStatusCode >= 200) and (FStatusCode < 300);');
+            Undent;
+            Addln('end;');
+            Addln('');
+
+            // Generate IsClientError method
+            Addln('function %s.IsClientError: Boolean;', [lResultName]);
+            Addln('begin');
+            Indent;
+            Addln('Result:=(FStatusCode >= 400) and (FStatusCode < 500);');
+            Undent;
+            Addln('end;');
+            Addln('');
+
+            // Generate IsServerError method
+            Addln('function %s.IsServerError: Boolean;', [lResultName]);
+            Addln('begin');
+            Indent;
+            Addln('Result:=(FStatusCode >= 500) and (FStatusCode < 600);');
+            Undent;
+            Addln('end;');
+            Addln('');
+
+            // Generate Clear method
+            Addln('procedure %s.Clear;', [lResultName]);
+            Addln('begin');
+            Indent;
+            Addln('FStatusCode:=0;');
+            Addln('FStatusText:='''';');
+            Addln('FContentType:='''';');
+            Addln('FResponseKind:=Default(%s);', [lEnumName]);
+            Addln('FRawContent:='''';');
+            // Free TStream fields
+            for K:=0 to lStreamFields.Count-1 do
+              Addln('FreeAndNil(F%s);', [lStreamFields[K]]);
+            // Free object fields
+            for K:=0 to lObjectFields.Count-1 do
+              Addln('FreeAndNil(F%s);', [lObjectFields[K]]);
+            Undent;
+            Addln('end;');
+            Addln('');
+
+            // Generate Extract methods for TStream fields
+            for K:=0 to lStreamFields.Count-1 do
+            begin
+              lFieldName:=lStreamFields[K];
+              Addln('function %s.Extract%s: TStream;', [lResultName, lFieldName]);
+              Addln('begin');
+              Indent;
+              Addln('Result:=F%s;', [lFieldName]);
+              Addln('F%s:=nil;', [lFieldName]);
+              Undent;
+              Addln('end;');
+              Addln('');
+            end;
+          end;
+        end;
+    end;
+  finally
+    lFields.Free;
+    lStreamFields.Free;
+    lObjectFields.Free;
+  end;
+end;
 
 { TServiceInterfaceCodeGen }
 
@@ -534,6 +884,7 @@ var
   I: integer;
   lName, lDef, lResType: string;
   lTypes: TStringList;
+  lMethod: TAPIServiceMethod;
 
 begin
   Addln('// Service result types');
@@ -546,7 +897,11 @@ begin
     for I:=0 to lTypes.Count-1 do
       begin
       lName:=lTypes[I];
-      lResType:=TAPIServiceMethod(lTypes.objects[I]).ResultDtoType;
+      lMethod:=TAPIServiceMethod(lTypes.objects[I]);
+      // Skip methods that use complex result types (already defined in WriteComplexResultTypes)
+      if lMethod.NeedsComplexResultType then
+        Continue;
+      lResType:=lMethod.ResultDtoType;
       lDef:=Format('%s<%s>', [ServiceResultType, lResType]);
       if not DelphiCode then
         lDef:='specialize '+lDef;
@@ -591,7 +946,8 @@ procedure TOpenAPIServiceCodeGen.GenerateAuxiliaryTypes;
 begin
   if DefineServiceResultType then
     GenerateServiceResultType;
-  WriteResultTypes;
+  WriteComplexResultTypes;  // Generate complex result types first (enums and records)
+  WriteResultTypes;         // Generate simple result type aliases
   if AsyncService then
     WriteCallbackTypes;
 end;
@@ -609,15 +965,19 @@ begin
     GenerateHeader;
     Addln('unit %s;', [Self.OutputUnitName]);
     Addln('');
-    if AsyncService then
+    if AsyncService and NeedsComplexResultTypes then
+      GenerateFPCDirectives(['functionreferences', 'advancedrecords'])
+    else if AsyncService then
       GenerateFPCDirectives(['functionreferences'])
+    else if NeedsComplexResultTypes then
+      GenerateFPCDirectives(['advancedrecords'])
     else
       GenerateFPCDirectives();
     Addln('interface');
     Addln('');
     Addln('uses');
     indent;
-    Addln(' classes, fpopenapiclient, %s;', [DtoUnit]);
+    Addln(' SysUtils, classes, fpopenapiclient, %s;', [DtoUnit]);
     undent;
     Addln('');
     EnsureSection(csType);
@@ -633,6 +993,8 @@ begin
     Addln('');
     Addln('implementation');
     Addln('');
+    // Generate implementations for complex result record methods
+    GenerateComplexResultRecordImpl(aData);
     Addln('end.');
   finally
     SetTypeData(nil);
@@ -809,44 +1171,155 @@ begin
       Addln('lResponse:=ExecuteRequest(''%s'',lURL,%s,aResponseStream);', [lHTTPMethod, lBodyArg])
     else
       Addln('lResponse:=ExecuteRequest(''%s'',lURL,%s);', [lHTTPMethod, lBodyArg]);
-  AddLn('Result:=%s.Create(lResponse);', [GetMethodResultType(aMethod)]);
-  lResultType:=aMethod.ResultDataType;
-  if (aMethod.ResultDataType=nil) then
-    Addln('Result.Value:=Result.Success;')
-  else if lResultType.BinaryData then
-    Addln('Result.Value:=aResponseStream;')
+
+  // Check if we need complex result handling
+  if aMethod.NeedsComplexResultType then
+    GenerateComplexResultHandling(aMethod)
   else
-    begin
-    Addln('if Result.Success then');
-    indent;
-    S:=lResultType.PascalName;
-    Case lResultType.Pascaltype of
-    ptSchemaStruct,ptAnonStruct,ptArray:
-      Addln('Result.Value:=%s.Deserialize(lResponse.Content);', [S]);
-    ptString,
-    ptJSON:
-      Addln('Result.Value:=lResponse.Content;');
-    ptBoolean:
-      Addln('Result.Value:=StrToBoolDef(lResponse.Content,False);');
-    ptInteger:
-      Addln('Result.Value:=StrToIntDef(lResponse.Content,0);');
-    ptInt64:
-      Addln('Result.Value:=StrToInt64Def(lResponse.Content,0);');
-    ptDateTime:
-      Addln('Result.Value:=ISO8601ToDateDef(lResponse.Content,0);');
-    ptFloat32,
-    ptFloat64:
-      Addln('Result.Value:=StrToFloatDef(lResponse.Content,0.0);');
-    ptEnum:
+  begin
+    // Simple result handling (backward compatible)
+    AddLn('Result:=%s.Create(lResponse);', [GetMethodResultType(aMethod)]);
+    lResultType:=aMethod.ResultDataType;
+    if (aMethod.ResultDataType=nil) then
+      Addln('Result.Value:=Result.Success;')
+    else if lResultType.BinaryData then
+      Addln('Result.Value:=aResponseStream;')
+    else
       begin
-      Raise EOpenAPi.Create('Enum result not supported');
+      Addln('if Result.Success then');
+      indent;
+      S:=lResultType.PascalName;
+      Case lResultType.Pascaltype of
+      ptSchemaStruct,ptAnonStruct,ptArray:
+        Addln('Result.Value:=%s.Deserialize(lResponse.Content);', [S]);
+      ptString,
+      ptJSON:
+        Addln('Result.Value:=lResponse.Content;');
+      ptBoolean:
+        Addln('Result.Value:=StrToBoolDef(lResponse.Content,False);');
+      ptInteger:
+        Addln('Result.Value:=StrToIntDef(lResponse.Content,0);');
+      ptInt64:
+        Addln('Result.Value:=StrToInt64Def(lResponse.Content,0);');
+      ptDateTime:
+        Addln('Result.Value:=ISO8601ToDateDef(lResponse.Content,0);');
+      ptFloat32,
+      ptFloat64:
+        Addln('Result.Value:=StrToFloatDef(lResponse.Content,0.0);');
+      ptEnum:
+        begin
+        Raise EOpenAPi.Create('Enum result not supported');
+        end;
       end;
-    end;
-    Undent;
-    end;
+      Undent;
+      end;
+  end;
   undent;
   Addln('end;');
   Addln('');
+end;
+
+procedure TServiceImplementationCodeGen.GenerateComplexResultHandling(aMethod: TAPIServiceMethod);
+var
+  I: Integer;
+  lResp: TAPIResponseInfo;
+  lEnumName, lFieldName, lTypeName, lKindName: String;
+  lStatusCodes: TStringList;
+begin
+  lEnumName:=GetResponseKindEnumName(aMethod);
+
+  // Set basic response fields
+  Addln('Result.FStatusCode:=lResponse.StatusCode;');
+  Addln('Result.FStatusText:=lResponse.StatusText;');
+  Addln('Result.FContentType:=lResponse.ContentType;');
+  Addln('Result.FRawContent:=lResponse.Content;');
+  Addln('Result.FRawStream:=lResponse.ContentStream;');
+  Addln('');
+
+  // Generate case statement for status codes
+  Addln('case lResponse.StatusCode of');
+  Indent;
+
+  lStatusCodes:=TStringList.Create;
+  try
+    lStatusCodes.Duplicates:=dupIgnore;
+
+    for I:=0 to aMethod.ResponseCount-1 do
+    begin
+      lResp:=aMethod.Responses[I];
+      if lResp.StatusCode = 'default' then
+        Continue; // Handle default at the end
+
+      if lStatusCodes.IndexOf(lResp.StatusCode) >= 0 then
+        Continue;
+      lStatusCodes.Add(lResp.StatusCode);
+
+      // Determine kind name (with method-unique prefix)
+      if lResp.IsSuccess then
+        lKindName:=aMethod.Service.ServiceName+aMethod.MethodName+'rkSuccess'
+      else
+        lKindName:=aMethod.Service.ServiceName+aMethod.MethodName+'rkError'+lResp.StatusCode;
+
+      Addln('%s: begin', [lResp.StatusCode]);
+      Indent;
+      Addln('Result.FResponseKind:=%s.%s;', [lEnumName, lKindName]);
+
+      // Deserialize if we have a type
+      if lResp.TypeData <> nil then
+      begin
+        lFieldName:='F'+GetResponseFieldName(lResp);
+        lTypeName:=lResp.TypeData.PascalName;
+
+        if Pos('application/json', LowerCase(lResp.ContentType)) > 0 then
+        begin
+          case lResp.TypeData.PascalType of
+            ptSchemaStruct, ptAnonStruct, ptArray:
+              Addln('Result.%s:=%s.Deserialize(lResponse.Content);', [lFieldName, lTypeName]);
+            ptString, ptJSON:
+              Addln('Result.%s:=lResponse.Content;', [lFieldName]);
+            ptBoolean:
+              Addln('Result.%s:=StrToBoolDef(lResponse.Content, False);', [lFieldName]);
+            ptInteger:
+              Addln('Result.%s:=StrToIntDef(lResponse.Content, 0);', [lFieldName]);
+            ptInt64:
+              Addln('Result.%s:=StrToInt64Def(lResponse.Content, 0);', [lFieldName]);
+          end;
+        end;
+      end;
+
+      Undent;
+      Addln('end;');
+    end;
+
+    // Default case
+    Addln('else begin');
+    Indent;
+
+    // Check for 'default' response
+    lResp:=aMethod.ResponseByStatusCode('default');
+    if lResp <> nil then
+    begin
+      Addln('Result.FResponseKind:=%s.%s;', [lEnumName, aMethod.Service.ServiceName+aMethod.MethodName+'rkDefault']);
+      if lResp.TypeData <> nil then
+      begin
+        lFieldName:='F'+GetResponseFieldName(lResp);
+        lTypeName:=lResp.TypeData.PascalName;
+        if Pos('application/json', LowerCase(lResp.ContentType)) > 0 then
+          Addln('Result.%s:=%s.Deserialize(lResponse.Content);', [lFieldName, lTypeName]);
+      end;
+    end
+    else
+      Addln('Result.FResponseKind:=%s.%s;', [lEnumName, aMethod.Service.ServiceName+aMethod.MethodName+'rkUnexpected']);
+
+    Undent;
+    Addln('end;');
+
+  finally
+    lStatusCodes.Free;
+  end;
+
+  Undent;
+  Addln('end;');
 end;
 
 procedure TServiceImplementationCodeGen.GenerateServiceImplementationImpl(aService: TAPIService);
