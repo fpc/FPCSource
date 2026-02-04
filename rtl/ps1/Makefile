@@ -3008,7 +3008,7 @@ ps1COP0$(PPUEXT) : bare-metal/ps1COP0.pas ps1System$(PPUEXT) $(OBJPASUNIT)$(PPUE
 	$(COMPILER) $<
 ps1GPU$(PPUEXT) : bare-metal/ps1GPU.pas ps1System$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
-ps1GTE$(PPUEXT) : bare-metal/ps1GTE.pas ps1System$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+ps1GTE$(PPUEXT) : bare-metal/ps1GTE.pas ps1System$(PPUEXT) ps1GPU$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
 ps1SPU$(PPUEXT) : bare-metal/ps1SPU.pas ps1System$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<      
