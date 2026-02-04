@@ -136,6 +136,8 @@ type
     procedure SaveConfig(aConfigFile: String);
     // Generate code.
     procedure Execute;
+    // Load type aliases from file (format: SchemaTypeName=AliasName per line)
+    procedure LoadTypeAliases(const aFileName: string);
     // The OpenAPI description to work with. Set before calling Execute
     property API: TOpenAPI read FAPI write FAPI;
     // Base unit filename
@@ -445,6 +447,9 @@ end;
 function TOpenAPICodeGen.GetBaseOutputUnitName: string;
 begin
   Result := ExtractFileName(BaseOutputFileName);
+  // Escape unit name if it's a Pascal reserved word
+  if TSchemaData.IsKeyWord(Result) then
+    Result := Result + '_';
 end;
 
 function TOpenAPICodeGen.GetServerProxyModuleName: String;
@@ -568,6 +573,14 @@ begin
 end;
 
 
+procedure TOpenAPICodeGen.LoadTypeAliases(const aFileName: string);
+
+begin
+  if FileExists(aFileName) then
+    FTypeAliases.LoadFromFile(aFileName);
+end;
+
+
 procedure TOpenAPICodeGen.Execute;
 
 var
@@ -585,6 +598,8 @@ begin
     lAPIData.ReservedTypeBehaviour := Self.ReservedTypeBehaviour;
     if FReservedTypes.Count > 0 then
       lAPIData.ReservedTypes := Self.FReservedTypes;
+    if FTypeAliases.Count > 0 then
+      lAPIData.TypeAliases := Self.FTypeAliases;
     PrepareAPIData(lAPIData);
     GenerateRecordDefs(lAPIData);
     GenerateSerializerDefs(lAPIData);
