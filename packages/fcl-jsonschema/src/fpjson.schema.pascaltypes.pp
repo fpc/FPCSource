@@ -627,21 +627,37 @@ end;
 
 function TPascalTypeData.DependsOn(aData: TPascalTypeData; Recurse: Boolean): TDependencyType;
 
+  function DoCheck(aType: TPascalTypeData; aVisited: TFPObjectList): TDependencyType;
+  var
+    I: Integer;
+  begin
+    Result := dtNone;
+    if Not Assigned(aType.FDependencies) then
+      exit;
+    // Check if already visited to prevent infinite recursion on circular dependencies
+    if aVisited.IndexOf(aType) >= 0 then
+      exit;
+    aVisited.Add(aType);
+    For I := 0 to aType.DependencyCount-1 do
+      if (aType.Dependency[i] = aData) then
+        exit(dtDirect);
+    if not Recurse then
+      exit;
+    For I := 0 to aType.DependencyCount-1 do
+      if (DoCheck(aType.Dependency[i], aVisited) <> dtNone) then
+        Exit(dtIndirect);
+  end;
+
 var
-  I : Integer;
+  lVisited: TFPObjectList;
 
 begin
-  Result:=dtNone;
-  if Not Assigned(FDependencies) then
-    exit;
-  For I:=0 to DependencyCount-1 do
-    if (Dependency[i]=aData) then
-      exit(dtDirect);
-  if not Recurse then
-    exit;
-  For I:=0 to DependencyCount-1 do
-    if (Dependency[i].DependsOn(aData,True)<>dtNone) then
-      Exit(dtIndirect);
+  lVisited := TFPObjectList.Create(False);
+  try
+    Result := DoCheck(Self, lVisited);
+  finally
+    lVisited.Free;
+  end;
 end;
 
 
@@ -671,17 +687,21 @@ procedure TSchemaData.CheckDependencies;
         Case lPropData.Pascaltype of
         ptAnonStruct,ptSchemaStruct:
           begin
-          lTop.AddDependency(lPropData);
-          CheckProps(lTop,lPropData);
+          if lTop.DependsOn(lPropData, False) = dtNone then
+            begin
+            lTop.AddDependency(lPropData);
+            CheckProps(lTop,lPropData);
+            end;
           end;
         ptArray:
           begin
           lPropData:=lPropData.ElementTypeData;
           if assigned(lPropData) and (lPropData.PascalType in [ptAnonStruct,ptSchemaStruct]) then
-            begin
-            lTop.AddDependency(lPropData);
-            CheckProps(lTop,lPropData);
-            end;
+            if lTop.DependsOn(lPropData, False) = dtNone then
+              begin
+              lTop.AddDependency(lPropData);
+              CheckProps(lTop,lPropData);
+              end;
           end
         else
           ;
@@ -1115,7 +1135,7 @@ begin
     end;
 end;
 
-
+ 
 constructor TSchemaData.Create;
 
 begin
@@ -1194,7 +1214,7 @@ Const
       'to;type;unit;until;uses;var;while;with;xor;dispose;exit;false;new;true;'+
       'as;class;dispinterface;except;exports;finalization;finally;initialization;'+
       'inline;is;library;on;out;packed;property;raise;resourcestring;threadvar;try;'+
-      'private;published;length;setlength;';
+      'private;published;length;setlength;result;create;destroy;free;';
 
 begin
   Result:=Pos(';'+lowercase(aWord)+';',KW)<>0;
@@ -1250,6 +1270,7 @@ begin
     Exit;
   case ReservedTypeBehaviour of
     rtbEscape:
+      // Escape by adding suffix (consistent with keyword escaping)
       case KeywordEscapeMode of
         kemSuffix : Result := Result + '_';
         kemPrefix : Result := '_' + Result;
@@ -1268,6 +1289,7 @@ function TSchemaData.GetQualifiedTypeName(const aTypeName, aUnitName: string): s
 
 begin
   Result := aTypeName;
+  // Only qualify if rtbQualify is set and type is reserved
   if (ReservedTypeBehaviour = rtbQualify) and IsReservedTypeName(aTypeName) and (aUnitName <> '') then
     Result := aUnitName + '.' + aTypeName;
 end;
@@ -1344,10 +1366,10 @@ procedure TSchemaData.SortTypes;
   begin
     if aType.Sorted then
       exit;
+    aType.Sorted:=True;  // Mark before recursing to prevent infinite recursion on circular dependencies
     for I:=0 to aType.DependencyCount-1 do
       AddToList(aList,aType.Dependency[i]);
     aList.Add(aType);
-    aType.Sorted:=True;
   end;
 
 var
