@@ -1120,6 +1120,7 @@ begin
   With FReservedTypes do
     begin
     // Default reserved types that conflict with FPC/Delphi standard library
+    Add('TimeStamp');     // DateUtils.TTimeStamp
     Add('TimeZone');      // DateUtils.TTimeZone
     Add('Date');          // Common type name
     Add('Time');          // Common type name
@@ -1132,6 +1133,7 @@ begin
     Add('Component');     // Classes.TComponent
     Add('Collection');    // Classes.TCollection
     Add('Object');        // System.TObject
+    Add('Word');          // SysUtils.TWordArray conflicts
     end;
 end;
 
@@ -1182,6 +1184,11 @@ begin
   lArr:=AddAliasToTypeMap(ptArray,'[integer--int64]','[integer--int64]','TInt64DynArray',Nil);
   lArr.ElementTypeData:=lElem;
 
+  AddAliasToTypeMap(ptInteger,'integer--uint32','integer','Cardinal',Nil);
+  lElem:=AddAliasToTypeMap(ptInt64,'integer--uint64','integer','QWord',Nil);
+  lArr:=AddAliasToTypeMap(ptArray,'[integer--uint64]','[integer--uint64]','TQWordDynArray',Nil);
+  lArr.ElementTypeData:=lElem;
+
   lElem:=AddAliasToTypeMap(ptString,'string','string','string',Nil);
   lArr:=AddAliasToTypeMap(ptArray,'[string]','[string]','TStringDynArray',Nil);
   lArr.ElementTypeData:=lElem;
@@ -1189,6 +1196,9 @@ begin
   AddAliasToTypeMap(ptDateTime,'string--date','string','TDateTime',Nil);
   AddAliasToTypeMap(ptDateTime,'string--time','string','TDateTime',Nil);
   AddAliasToTypeMap(ptDateTime,'string--date-time','string','TDateTime',Nil);
+
+  AddAliasToTypeMap(ptString,'string--int64','string','string',Nil);
+  AddAliasToTypeMap(ptString,'string--uint64','string','string',Nil);
 
   lElem:=AddAliasToTypeMap(ptFloat64,'number','number','double',Nil);
   lArr:=AddAliasToTypeMap(ptArray,'[number]','[number]','TDoubleDynArray',Nil);
@@ -1214,7 +1224,8 @@ Const
       'to;type;unit;until;uses;var;while;with;xor;dispose;exit;false;new;true;'+
       'as;class;dispinterface;except;exports;finalization;finally;initialization;'+
       'inline;is;library;on;out;packed;property;raise;resourcestring;threadvar;try;'+
-      'private;published;length;setlength;result;create;destroy;free;methodname;default;';
+      'private;published;length;setlength;result;create;destroy;free;methodname;'+
+      'default;classname;strict;instancesize;classtype;';
 
 begin
   Result:=Pos(';'+lowercase(aWord)+';',KW)<>0;
