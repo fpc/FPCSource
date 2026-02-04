@@ -980,7 +980,7 @@ begin
       sstArray:
         begin
         lElTypeData:=GetSchemaTypeData(Nil,lSchema.Items[0],True);
-        lPascalName:=Sanitize(ArrayTypePrefix+lElTypeData.PascalName+ArrayTypeSuffix);
+        lPascalName:=EnsureUniquePascalName(Sanitize(ArrayTypePrefix+lElTypeData.PascalName+ArrayTypeSuffix));
         lName:='['+lElTypeData.SchemaName;
         if lSchema.Items[0].Validations.HasKeywordData(jskformat) then
           lName:=lName+'--'+lSchema.Items[0].Validations.Format;
