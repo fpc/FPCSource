@@ -38,7 +38,8 @@ type
     procedure second_sqr_real; override;
     procedure second_sqrt_real; override;
     procedure second_get_frame; override;
-    procedure second_gteCommand; override;
+    procedure second_gteCommand;
+    procedure pass_generate_code_cpu;override;
   private
     procedure load_fpu_location;
   end;
@@ -47,7 +48,7 @@ type
 implementation
 
 uses
-  systems,
+  systems, compinnr,
   globtype,globals,
   cutils, verbose,
   symconst, symdef,
@@ -175,6 +176,14 @@ begin
   current_asmdata.CurrAsmList.concat(taicpu.op_none(A_NOP));
   current_asmdata.CurrAsmList.concat(taicpu.op_none(A_NOP));
   current_asmdata.CurrAsmList.concat(taicpu.op_const(A_COP2, left.location.value));
+
+end;
+
+
+procedure tMIPSELinlinenode.pass_generate_code_cpu;
+begin
+
+  if inlinenumber = in_gtecommand_x then second_gteCommand;
 
 end;
 
