@@ -225,7 +225,7 @@ implementation
 
         procedure genitem(t : pcaselabel);
           var
-             range, gap: aint;
+             range, gap, extra: aint;
           begin
              if assigned(t^.less) then
                genitem(t^.less);
@@ -251,6 +251,7 @@ implementation
              else
                begin
                   range := aint(t^._high.svalue - t^._low.svalue);
+                  extra := 0;
                   { it begins with the smallest label, if the value }
                   { is even smaller then jump immediately to the    }
                   { ELSE-label                                }
@@ -272,7 +273,7 @@ implementation
                         because A_DEC does not set the correct flags, therefor
                         using a_op_const_reg(OP_SUB) is not possible }
                       if (gap = 1) and (cond_lt in [F_C,F_NC,F_A,F_AE,F_B,F_BE]) then
-                        emit_const_reg(A_SUB, TCGSize2OpSize[opcgsize], gap, hregister)
+                        extra := 1
                       else
                         cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opcgsize, gap, hregister);
                       { no jump necessary here if the new range starts at
@@ -285,9 +286,9 @@ implementation
                     because A_DEC does not set the correct flags, therefor
                     using a_op_const_reg(OP_SUB) is not possible }
                   if (cond_le in [F_C,F_NC,F_A,F_AE,F_B,F_BE]) and (range = 1) then
-                    emit_const_reg(A_SUB,TCGSize2OpSize[opcgsize], range, hregister)
+                    emit_const_reg(A_SUB,TCGSize2OpSize[opcgsize], range + extra, hregister)
                   else
-                    cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opcgsize, range, hregister);
+                    cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opcgsize, range + extra, hregister);
 
                   cg.a_jmp_flags(current_asmdata.CurrAsmList,cond_le,blocklabel(t^.blockid));
                   cg.a_reg_dealloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
