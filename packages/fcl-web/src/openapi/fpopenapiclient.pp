@@ -41,6 +41,7 @@ Type
     RequestID : TServiceRequestID;
     StatusCode : Integer;
     StatusText : String;
+    ContentType : String;
     Content : String;
     ContentStream : TStream;
   end;
@@ -303,6 +304,7 @@ begin
       ProcessResponse(lResponse);
       Result.StatusCode:=lResponse.StatusCode;
       Result.StatusText:=lResponse.StatusText;
+      Result.ContentType:=lResponse.Headers.Values['Content-Type'];
       Result.ContentStream:=aResponseBody;
     except
       on E : Exception do
@@ -385,6 +387,7 @@ begin
          var
            aResult : TServiceResponse;
          begin
+           aResult:=default(TServiceResponse);
            if not aResponse.Success then
              begin
              ProcessServiceException(lReq,aResponse.Error);
@@ -392,7 +395,6 @@ begin
                begin
                aResult.StatusText:=Format('%s : %s',[ClassName,Message]);
                aResult.StatusCode:=999;
-               aResult.Content:='';
                end
              end
            else
@@ -400,6 +402,7 @@ begin
              ProcessResponse(aResponse.Response);
              aResult.StatusCode:=aResponse.Response.StatusCode;
              aResult.StatusText:=aResponse.Response.StatusText;
+             aResult.ContentType:=aResponse.Response.Headers.Values['Content-Type'];
              aResult.Content:=aResponse.Response.GetContentAsString;
              end;
            aCallBack(aResult);
@@ -447,6 +450,7 @@ begin
       ProcessResponse(lResponse);
       Result.StatusCode:=lResponse.StatusCode;
       Result.StatusText:=lResponse.StatusText;
+      Result.ContentType:=lResponse.Headers.Values['Content-Type'];
       Result.ContentStream:=lResponse.Content;
     except
       on E : Exception do
