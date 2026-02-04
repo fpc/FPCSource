@@ -102,7 +102,7 @@ const
 // SSL and Crypto DLL arrays must have the same length and contain
 // matched pairs of DLL filenames. Place newer versions at the beginning.
 {$IF DEFINED(WIN64)}
-  {$IF CPUAARCH64}
+  {$IFDEF CPUAARCH64}
     SSL_DLL_Names:    array[1..1] of AnsiString = ('libssl-3-arm64');
     Crypto_DLL_Names: array[1..1] of AnsiString = ('libcrypto-3-arm64');
   {$ELSE}
