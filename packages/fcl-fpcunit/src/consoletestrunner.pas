@@ -399,6 +399,9 @@ begin
     begin
     Ini:=TMemIniFile.Create(FN);
     try
+      Ini.SetBoolStringValues(true,['1','true','yes','on']);
+      Ini.SetBoolStringValues(false,['0','false','no','off']);
+      // Read options
       F:=Ini.ReadString(S,'format','');
       if (F<>'') then
         FormatParam:=StrToFormat(F);
