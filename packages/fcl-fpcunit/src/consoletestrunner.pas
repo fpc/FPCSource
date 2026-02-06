@@ -412,7 +412,7 @@ Function TTestRunner.ParseOptions : Boolean;
 
 begin
   Result:=True;
-  if HasOption('h', 'help') or ((ParamCount = 0) and (FRunMode<>rmAll)) then
+  if HasOption('h', 'help') or ((ParamCount = 0) and (FRunMode=rmUnknown)) then
     begin
     Usage;
     if not HasOption('h','help') then
