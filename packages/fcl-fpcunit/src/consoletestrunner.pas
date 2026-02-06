@@ -105,6 +105,11 @@ const
      ('all', 'list', 'progress', 'help', 'skiptiming',
       'suite:', 'format:', 'file:', 'stylesheet:','sparse','no-addresses','status','no-exitcode');
 
+const
+  DefaultsFileNameConst = 'testdefaults.ini';
+  DefaultsFileNameEnvVar = 'FPCUNITCONFIG';
+  DefaultsFileParamSection = 'defaults';
+
 Type
   TTestDecoratorClass = Class of TTestDecorator;
 
@@ -335,13 +340,14 @@ begin
     writeln(Title);
     writeln(Version);
     writeln;
-    writeln('Usage: ');
+    writeln('Commands:');
     writeln('  -h or --help              Show help and version');
     writeln('  -l or --list              Show a list of registered tests');
     writeln('  -a or --all               Run all registered tests');
     writeln('  -s or --suite=<name>      Run a test suite with the specified name, or all test suites');
     writeln('                            of the specified class (a descendant of the TTestCase)');
     writeln;
+    writeln('Options:');
     writeln('  --format=<FMT>            Select output format, <FMT> is one of:');
     writeln('    xml                       output as XML source (default)');
     writeln('    plain                     output as plain ASCII source');
@@ -358,21 +364,30 @@ begin
     writeln('  --file=<filename>         Output results to file');
     WriteCustomHelp;
     writeln;
-    Writeln('Defaults for long options will be read from ini file ',DefaultsFileName);
+    writeln('Config file:');
+    writeln('  Defaults for long options can be specified in the "',DefaultsFileNameConst,'" file in the executable folder.');
+    writeln('  The path to this file can be overridden by the environment variable "',DefaultsFileNameEnvVar,'".');
+    writeln('  All values must be located in "[',DefaultsFileParamSection,']" section, the option names specified without the "--" sign.');
+    writeln('  The value of logical options indicated via "1"/"0". Example file contents:');
+    writeln('    [',DefaultsFileParamSection,']');
+    writeln('    all=1');
+    writeln('    format=plain');
+    writeln('    sparse=1');
+    writeln('  Command line options take precedence and override the values in this file.');
 end;
 
 Function TTestRunner.DefaultsFileName : String;
 
 begin
-  Result:=GetEnvironmentVariable('FPCUNITCONFIG');
+  Result:=GetEnvironmentVariable(DefaultsFileNameEnvVar);
   if (Result='') then
-    Result:=Location+'testdefaults.ini';
+    Result:=Location+DefaultsFileNameConst;
 end;
 
 procedure TTestRunner.ReadDefaults;
 
 Const
-  S = 'defaults';
+  S = DefaultsFileParamSection;
 
 Var
   Ini : TMemIniFile;
