@@ -1657,7 +1657,8 @@ type
   begin
     if gs.lockUse <> 0 then
       EnterCriticalSection(HeapInc.gs.lock);
-    FlushToFree; { Performing it under gs.lock guarantees there will be no new toFree requests. }
+    if assigned(toFree) then
+      FlushToFree; { Performing it under gs.lock guarantees there will be no new toFree requests. }
     FreeEmptyArenas; { Has to free all empty arenas, otherwise the chunk that contains only empty arenas can leak. }
 
 {$if not defined(HAS_SYSOSFREE)}
