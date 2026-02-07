@@ -393,7 +393,7 @@ begin
       FSkipTiming:=Ini.ReadBool(S,'skiptiming',FSKipTiming);
       FSparse:=Ini.ReadBool(S,'sparse',FSparse);
       FSkipAddressInfo:=Ini.ReadBool(S,'no-addresses',FSkipAddressInfo);
-      NoExitCodeOnError:=Ini.ReadBool(S,'no-exitocde',FNoExitCodeOnError);
+      NoExitCodeOnError:=Ini.ReadBool(S,'no-exitcode',FNoExitCodeOnError);
       // Determine runmode
       FSuite:=Ini.ReadString(S,'suite','');
       if (FSuite<>'') then
