@@ -38,7 +38,7 @@ uses
 {$ENDIF FPC_DOTTEDUNITS}
 
 const
-  Version = '0.3';
+  Version = '0.5';
 
 type
   TFormat = (fPlain, fLatex, fXML, fPlainNoTiming, fJUnit);
