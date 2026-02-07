@@ -214,6 +214,7 @@ var
   i: integer;
 
 begin
+  Result := '';
   if (ASuite.TestSuiteName<>'') then
     begin
     Prefix:='  '+Prefix;
