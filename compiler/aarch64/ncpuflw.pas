@@ -187,7 +187,6 @@ constructor taarch64tryfinallynode.create_implicit(l, r: TNode);
         include(finalizepi.flags,pi_do_call);
         { the init/final code is messing with asm nodes, so inform the compiler about this }
         include(finalizepi.flags,pi_has_assembler_block);
-        finalizepi.allocate_push_parasize(32);
       end;
   end;
 
