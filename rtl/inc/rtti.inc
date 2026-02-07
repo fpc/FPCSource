@@ -104,9 +104,9 @@ end;
 
 procedure InitializeRecord(Data : pointer;Ri : PRecordInfoInit); forward;
 
-procedure InlinedInitialize(Data,TypeInfo : pointer); inline; { Should come before InitializeRecord for inlining. }
 const
-  Flatten: array[TTypeKind] of uint8 =
+  RTTIFlattenInitializePointer = 0;
+  RTTIFlattenInitialize: array[TTypeKind] of uint8 =
   ( { 0: pointer, 1: record, 2: array, 3: variant, 255: unmanaged. }
     {tkUnknown} 255, {tkInteger} 255, {tkChar} 255, {tkEnumeration} 255, {tkFloat} 255,
     {tkSet} 255, {tkMethod} 255, {tkSString} 255, {tkLString} 255, {tkAString} 0,
@@ -115,11 +115,13 @@ const
     {tkDynArray} 0, {tkInterfaceRaw} 255, {tkProcVar} 255, {tkUString} 0, {tkUChar} 255,
     {tkHelper} 255, {tkFile} 255, {tkClassRef} 255, {tkPointer} 255
   );
+
+procedure InlinedInitialize(Data,TypeInfo : pointer); inline; { Should come before InitializeRecord for inlining. }
 var
   ri: PRecordInfoInit;
 begin
-  case cardinal(Flatten[PTypeKind(TypeInfo)^]) of
-    0: { pointer }
+  case cardinal(RTTIFlattenInitialize[PTypeKind(TypeInfo)^]) of
+    RTTIFlattenInitializePointer: { pointer }
       PPointer(Data)^:=Nil;
     1: { record }
       InitializeRecord(Data,RTTIRecordInfoInit(TypeInfo));
@@ -389,11 +391,25 @@ procedure fpc_initialize_array(data,typeinfo : pointer;count : SizeInt); [public
   end;
 
 
+function SkipTrailingNils(data : PPointer;count : SizeInt) : SizeInt;
+  var
+    pd: PPointer;
+  begin
+    pd:=data+count;
+    while (pd<>data) and not Assigned(pd[-1]) do
+      dec(pd);
+    result:=SizeUint(pointer(pd)-pointer(data)) div sizeof(pointer);
+  end;
+
+
 procedure fpc_finalize_array(data,typeinfo : pointer;count : SizeInt); [Public,Alias:'FPC_FINALIZE_ARRAY'];  compilerproc;
   var
     size,i : SizeInt;
   begin
-    if RTTIManagementAndSize(typeinfo, rotFinalize, size, false) then
+    if RTTIFlattenInitialize[PTypeKind(typeinfo)^]=RTTIFlattenInitializePointer then
+      for i:=0 to SkipTrailingNils(data,count)-1 do
+        int_finalize(PPointer(data)+i,typeinfo)
+    else if RTTIManagementAndSize(typeinfo, rotFinalize, size, false) then
       for i:=0 to count-1 do
         int_finalize(data+size*i,typeinfo);
   end;
@@ -403,7 +419,10 @@ procedure fpc_addref_array(data,typeinfo: pointer; count: SizeInt); [public,alia
   var
     size,i : SizeInt;
   begin
-    if RTTIManagementAndSize(typeinfo, rotAddRef, size, false) then
+    if RTTIFlattenInitialize[PTypeKind(typeinfo)^]=RTTIFlattenInitializePointer then
+      for i:=0 to SkipTrailingNils(data,count)-1 do
+        int_addref(PPointer(data)+i,typeinfo)
+    else if RTTIManagementAndSize(typeinfo, rotAddRef, size, false) then
       for i:=0 to count-1 do
         int_addref(data+size*i,typeinfo);
   end;
