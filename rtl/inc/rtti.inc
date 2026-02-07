@@ -80,18 +80,28 @@ begin
     end;
 end;
 
-{ if you modify this procedure, fpc_copy must be probably modified as well }
-procedure RecordRTTI(Data:Pointer;Ri:PRecordInfoInit;rttiproc:TRTTIProc);
+procedure FinalizeRecordFields(Data:Pointer;Ri:PRecordInfoInit);
 var
   i : longint;
   Re : PRecordElement;
 begin
-  { Get element info, hacky, but what else can we do? }
   Re:=AlignTypeData(Pointer(@Ri^.Count)+SizeOf(Ri^.Count));
-  { Process elements }
   for i:=Ri^.Count downto 1 Do
     begin
-      rttiproc(Data+Re^.Offset,Re^.TypeInfo^);
+      int_finalize(Data+Re^.Offset,Re^.TypeInfo^);
+      Inc(Re);
+    end;
+end;
+
+procedure AddRefRecordFields(Data:Pointer;Ri:PRecordInfoInit);
+var
+  i : longint;
+  Re : PRecordElement;
+begin
+  Re:=AlignTypeData(Pointer(@Ri^.Count)+SizeOf(Ri^.Count));
+  for i:=Ri^.Count downto 1 Do
+    begin
+      int_addref(Data+Re^.Offset,Re^.TypeInfo^);
       Inc(Re);
     end;
 end;
@@ -184,7 +194,7 @@ begin
         ri:=RTTIRecordInfoInit(typeinfo);
         if Assigned(ri^.recordop) and Assigned(ri^.recordop^.Finalize) then
           ri^.recordop^.Finalize(data);
-        recordrtti(data,ri,@int_finalize);
+        FinalizeRecordFields(data,ri);
       end;
 {$ifdef FPC_HAS_FEATURE_CLASSES}
     tkInterface:
@@ -228,7 +238,7 @@ begin
     tkrecord :
       begin
         ri:=RTTIRecordInfoInit(typeinfo);
-        recordrtti(data,ri,@int_addref);
+        AddRefRecordFields(data,ri);
         if Assigned(ri^.recordop) and Assigned(ri^.recordop^.AddRef) then
           ri^.recordop^.AddRef(Data);
       end;

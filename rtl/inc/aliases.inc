@@ -36,8 +36,5 @@ Function int_Copy_with_move_semantics(Src, Dest, TypeInfo : Pointer) : SizeInt;[
 {$endif}
 
 {$if defined(FPC_HAS_FEATURE_RTTI) and not defined(cpujvm)}
-type
-  TRTTIProc=procedure(Data,TypeInfo:Pointer);
-
-procedure RecordRTTI(Data:Pointer;Ri:PRecordInfoInit;rttiproc:TRTTIProc); forward;
+procedure FinalizeRecordFields(Data:Pointer;Ri:PRecordInfoInit); forward;
 {$endif FPC_HAS_FEATURE_RTTI and not cpujvm}
