@@ -197,15 +197,20 @@ function taarch64tryfinallynode.simplify(forinline: boolean): tnode;
       exit;
     if (result=nil) then
       begin
-        { generate a copy of the code }
-        finalizepi.code:=right.getcopy;
-        foreachnodestatic(right,@copy_parasize,finalizepi);
-        { For implicit frames, no actual code is available at this time,
-          it is added later in assembler form. So store the nested procinfo
-          for later use. }
-        if implicitframe then
+        { actually, this is not really the right place to do a node transformation like this }
+        if not(assigned(finalizepi.code)) then
           begin
-            current_procinfo.finalize_procinfo:=finalizepi;
+            finalizepi.code:=right;
+            foreachnodestatic(right,@copy_parasize,finalizepi);
+            right:=ccallnode.create(nil,tprocsym(finalizepi.procdef.procsym),nil,nil,[],nil);
+            firstpass(right);
+            { For implicit frames, no actual code is available at this time,
+              it is added later in assembler form. So store the nested procinfo
+              for later use. }
+            if implicitframe then
+              begin
+                current_procinfo.finalize_procinfo:=finalizepi;
+              end;
           end;
       end;
   end;
