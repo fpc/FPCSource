@@ -321,6 +321,12 @@ procedure taarch64tryfinallynode.pass_generate_code;
         cg.a_label(current_asmdata.CurrAsmList,endtrylabel);
       end;
 
+      { i32913 - if the try..finally block is also inside a try..finally or
+        try..except block, make a note of any Exit calls so all necessary labels
+        are generated. [Kit] }
+      if ((flowcontrol*[fc_exit,fc_break,fc_continue])<>[]) and (fc_inflowcontrol in oldflowcontrol) then
+        oldflowcontrol:=oldflowcontrol+(flowcontrol*[fc_exit,fc_break,fc_continue]);
+
     flowcontrol:=[fc_inflowcontrol];
     { store the tempflags so that we can generate a copy of the finally handler
       later on }
