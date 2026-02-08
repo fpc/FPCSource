@@ -58,8 +58,10 @@ uses
 {$ifdef CPU64}
   {$define PUREPASCAL}
   {$ifdef CPUX64}
-    {$define CPUINTEL}
-    {$ASMMODE INTEL}
+    {$ifndef DISABLE_X86_CPUINTEL}
+      {$define CPUINTEL}
+      {$ASMMODE INTEL}
+    {$endif}
   {$endif CPUX64}
 {$else}
   {$ifdef CPUX86}
