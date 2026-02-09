@@ -850,12 +850,7 @@ begin
     if (firstR3 <> NR_NO) and (secondR2 <> NR_NO) and (firstR3 = secondR2) then goto skip2nop;
     if (firstR3 <> NR_NO) and (secondR3 <> NR_NO) and (firstR3 = secondR3) then goto skip2nop;
 
-{
-    writeln;
-    writeln('- curInstruction ', taicpu(pp).opcode, ' ', Register2String(firstR1), ' ', Register2String(firstR2), ' ', Register2String(firstR3));
-    writeln('- nextInstruction ', taicpu(nextInstruction).opcode, ' ', Register2String(secondR1), ' ', Register2String(secondR2), ' ', Register2String(secondR3));
-    writeln('-> insert ', taicpu(nextInstruction).opcode);
-}
+
     list.remove(nextInstructionListPointer);
     list.insertAfter(nextInstruction, l);
 
