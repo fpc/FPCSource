@@ -127,6 +127,11 @@ unit tgobj;
           procedure getlocal(list: TAsmList; size: asizeint; def: tdef; var ref : treference);
           procedure getlocal(list: TAsmList; size: asizeint; alignment,explicitalignment: shortint; def: tdef; sym : tsym; var ref : treference); virtual;
           procedure UnGetLocal(list: TAsmList; const ref : treference);
+          { Discard the free list so that previously freed temp slots cannot be
+            reused by subsequent allocations. Used on AArch64-Win64 before
+            generating exceptfilter code to prevent handler temps from reusing
+            freed parent slots. }
+          procedure discard_freelist;
        end;
        ttgobjclass = class of ttgobj;
 
@@ -780,6 +785,12 @@ implementation
     procedure ttgobj.UnGetLocal(list: TAsmList; const ref : treference);
       begin
         FreeTemp(list,ref.temppos,[tt_persistent]);
+      end;
+
+
+    procedure ttgobj.discard_freelist;
+      begin
+        tempfreelist:=nil;
       end;
 
 end.

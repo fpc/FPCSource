@@ -66,6 +66,12 @@ interface
         init_asmnode    : tasmnode;
         temps_finalized : boolean;
         dfabuilder : TDFABuilder;
+        { Last temp offset of the parent procedure at the time exceptfilter
+          code generation begins. Temps below this boundary belong to the parent
+          and must be adjusted to FP-relative in the handler. Temps at or above
+          this boundary belong to the handler and stay SP-relative.
+          Only used on AArch64-Win64. }
+        exceptfilter_parent_tempend : longint;
 
         destructor  destroy;override;
 
@@ -1652,10 +1658,23 @@ implementation
       var
         hpi : tcgprocinfo;
       begin
+        { On AArch64-Win64, exceptfilter code generation is deferred (after the
+          parent's prolog has been emitted). Record the parent's current lasttemp
+          so that adjust_exceptfilter_ref can distinguish parent temps (which must
+          be converted to FP-relative) from handler temps (which stay SP-relative
+          in the handler's own stack frame). Also discard the TG free list to
+          prevent handler temps from reusing freed parent param/local slots,
+          which would cause collisions with still-live parent data. }
+        if target_info.system=system_aarch64_win64 then
+          begin
+            exceptfilter_parent_tempend:=tg.lasttemp;
+            tg.discard_freelist;
+          end;
         hpi:=tcgprocinfo(get_first_nestedproc);
         while assigned(hpi) do
           begin
-            if hpi.procdef.proctypeoption=potype_exceptfilter then
+            if (hpi.procdef.proctypeoption=potype_exceptfilter) and
+               assigned(hpi.code) then
               begin
                 hpi.apply_tempflags;
                 generate_exceptfilter(hpi);

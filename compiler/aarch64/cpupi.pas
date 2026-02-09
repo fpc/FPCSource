@@ -37,6 +37,9 @@ interface
       scopecount: longint;
       unwindflags: byte;
     public
+      { Total stack frame size including saved registers (for SEH on AArch64-Win64).
+        This is the offset from FP to SP after the prolog completes. }
+      total_stackframe_size: longint;
       constructor create(aparent: tprocinfo); override;
       destructor destroy; override;
       procedure set_first_temp_offset; override;

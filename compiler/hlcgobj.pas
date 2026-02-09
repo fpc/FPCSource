@@ -649,7 +649,7 @@ unit hlcgobj;
          protected
           { helpers called by gen_initialize_code/gen_finalize_code }
           procedure inittempvariables(list:TAsmList);virtual;
-          procedure finalizetempvariables(list:TAsmList);virtual;
+          procedure finalizetempvariables(list:TAsmList;for_finalization:boolean);virtual;
           procedure initialize_regvars(p:TObject;arg:pointer);virtual;
           { generates the code for decrementing the reference count of parameters }
           procedure final_paras(p:TObject;arg:pointer);
@@ -5035,13 +5035,16 @@ implementation
   procedure thlcgobj.gen_finalize_code(list: TAsmList);
     var
       old_current_procinfo: tprocinfo;
+      for_finalization: boolean;
     begin
       old_current_procinfo:=current_procinfo;
+      for_finalization:=false;
       if (current_procinfo.procdef.proctypeoption=potype_exceptfilter) then
         begin
           if (current_procinfo.parent.finalize_procinfo<>current_procinfo) then
             exit;
           current_procinfo:=current_procinfo.parent;
+          for_finalization:=true;
         end;
 
       { finalize paras data }
@@ -5050,7 +5053,7 @@ implementation
         current_procinfo.procdef.parast.SymList.ForEachCall(@final_paras,list);
 
       { finalize temporary data }
-      finalizetempvariables(list);
+      finalizetempvariables(list,for_finalization);
 
       current_procinfo:=old_current_procinfo;
     end;
@@ -5150,7 +5153,7 @@ implementation
        end;
     end;
 
-  procedure thlcgobj.finalizetempvariables(list: TAsmList);
+  procedure thlcgobj.finalizetempvariables(list: TAsmList;for_finalization:boolean);
     var
       hp : ptemprecord;
       href : treference;
@@ -5164,6 +5167,8 @@ implementation
           begin
             include(current_procinfo.flags,pi_needs_implicit_finally);
             tg.temp_to_ref(hp,href);
+            if for_finalization then
+              cg.adjust_exceptfilter_ref(href,true);
             g_finalize(list,hp^.def,href);
           end;
          hp:=hp^.next;
@@ -5252,7 +5257,12 @@ implementation
                     hsym:=tparavarsym(get_high_value_sym(tparavarsym(p)));
                     if not assigned(hsym) then
                       internalerror(201003032);
-                    highloc:=hsym.initialloc
+                    highloc:=hsym.initialloc;
+                    { adjust high bound reference for exceptfilter finalization }
+                    if assigned(current_procinfo.finalize_procinfo) and
+                       (current_procinfo.finalize_procinfo.procdef.proctypeoption=potype_exceptfilter) and
+                       (highloc.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
+                      cg.adjust_exceptfilter_ref(highloc.reference,true);
                   end
                 else
                   highloc.loc:=LOC_INVALID;

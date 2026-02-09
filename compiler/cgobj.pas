@@ -468,6 +468,13 @@ unit cgobj;
           procedure g_check_for_fpu_exception(list : TAsmList; force,clear : boolean); virtual;
           procedure maybe_check_for_fpu_exception(list: TAsmList);
 
+          { Called to adjust references in exceptfilter handlers. Override
+            in CPU-specific code generator for platforms that need special handling
+            (e.g., AArch64-Win64 where SP-relative references must be converted to FP-relative).
+            Set for_finalization=true when called during finalization of parent's temps
+            for an exceptfilter (current_procinfo is parent, finalize_procinfo is exceptfilter). }
+          procedure adjust_exceptfilter_ref(var ref: treference; for_finalization: boolean); virtual;
+
          protected
           function g_indirect_sym_load(list:TAsmList;const symname: string; const flags: tindsymflags): tregister;virtual;
        end;
@@ -3110,6 +3117,12 @@ implementation
       begin
         current_procinfo.FPUExceptionCheckNeeded:=true;
         g_check_for_fpu_exception(list,false,true);
+      end;
+
+
+    procedure tcg.adjust_exceptfilter_ref(var ref: treference; for_finalization: boolean);
+      begin
+        { empty by default, override in CPU-specific code generator }
       end;
 
 {*****************************************************************************

@@ -572,6 +572,9 @@ interface
         if not(ti_valid in tempflags) then
           internalerror(200108231);
         location:=tempinfo^.location;
+        { Allow CPU-specific adjustment of temp references (e.g., for exceptfilters) }
+        if location.loc=LOC_REFERENCE then
+          cg.adjust_exceptfilter_ref(location.reference,false);
         case tempinfo^.location.loc of
           LOC_REFERENCE:
             begin
