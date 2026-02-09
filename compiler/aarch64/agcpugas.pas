@@ -495,17 +495,21 @@ unit agcpugas;
                               comment(V_Error,'Function is larger than 1 MB which is not supported for SEH currently');
 
                             unwindrec:=min(totalcount,(1 shl 18)-1);
+                            { ARM64 xdata header format:
+                              bits 0-17:  Function length / 4
+                              bits 18-19: Version (must be 0)
+                              bit 20:     X - exception data present
+                              bit 21:     E - single epilog packed in header
+                              bits 22-26: Epilog count (if E=0) or epilog start index (if E=1)
+                              bits 27-31: Code words count }
                             if handlerflags<>0 then
-                              unwindrec:=unwindrec or (1 shl 20);
+                              unwindrec:=unwindrec or (1 shl 20);  { X bit - exception data present }
 
-                            { currently we only have one epilog, so E needs to be
-                              set to 1 and epilog scope index needs to be 0, no
-                              matter if we require the extension for the unwinddata
-                              or not }
-                            unwindrec:=unwindrec or (1 shl 21);
+                            unwindrec:=unwindrec or (1 shl 21);  { E bit - single epilog }
+                            unwindrec:=unwindrec or (1 shl 22);  { epilog start index = 1 }
 
                             if unwinddata.size div 4<=31 then
-                              unwindrec:=unwindrec or ((unwinddata.size div 4) shl 27);
+                              unwindrec:=unwindrec or ((unwinddata.size div 4) shl 27);  { code_words in bits 27-31 }
 
                             { exception record headers }
                             tmplist.concat(tai_const.Create_32bit(longint(unwindrec)));
