@@ -2164,8 +2164,10 @@ implementation
                 load_regs(list,R_MMREGISTER,RS_D8,RS_D15,R_SUBMMD);
                 load_regs(list,R_INTREGISTER,RS_X19,RS_X28,R_SUBWHOLE);
                 { on Windows also restore SP even if the add should be enough
-                  to have matching exit sequence to the entry sequence }
-                if target_info.system=system_aarch64_win64 then
+                  to have matching exit sequence to the entry sequence.
+                  Skip for exceptfilters where FP points to parent's frame, not local frame. }
+                if (target_info.system=system_aarch64_win64) and
+                   (current_procinfo.procdef.proctypeoption<>potype_exceptfilter) then
                   a_load_reg_reg(list,OS_ADDR,OS_ADDR,NR_FP,NR_SP);
               end
             else if current_procinfo.final_localsize<>0 then
@@ -2177,13 +2179,16 @@ implementation
                   begin
                     handle_reg_imm12_reg(list,A_ADD,OS_ADDR,current_procinfo.framepointer,current_procinfo.final_localsize,
                       current_procinfo.framepointer,NR_IP0,false,true);
-                    if not (pi_no_framepointer_needed in current_procinfo.flags) then
+                    { Skip mov sp,fp for exceptfilters where FP points to parent's frame }
+                    if not (pi_no_framepointer_needed in current_procinfo.flags) and
+                       (current_procinfo.procdef.proctypeoption<>potype_exceptfilter) then
                       a_load_reg_reg(list,OS_ADDR,OS_ADDR,NR_FP,NR_SP);
                   end
-                else if pi_no_framepointer_needed in current_procinfo.flags  then
+                else if pi_no_framepointer_needed in current_procinfo.flags then
                   handle_reg_imm12_reg(list,A_ADD,OS_ADDR,current_procinfo.framepointer,current_procinfo.final_localsize,
                     current_procinfo.framepointer,NR_IP0,false,true)
-                else
+                else if current_procinfo.procdef.proctypeoption<>potype_exceptfilter then
+                  { Skip for exceptfilters where FP points to parent's frame }
                   a_load_reg_reg(list,OS_ADDR,OS_ADDR,NR_FP,NR_SP);
               end;
 
