@@ -104,6 +104,7 @@ interface
         procedure g_concatcopy(list: TAsmList; const source, dest: treference; len: tcgint);override;
         procedure g_adjust_self_value(list: TAsmList; procdef: tprocdef; ioffset: tcgint);override;
         procedure g_check_for_fpu_exception(list: TAsmList; force, clear: boolean);override;
+        procedure g_local_unwind(list: TAsmList; l: TAsmLabel);override;
         procedure g_profilecode(list: TAsmList);override;
        private
         function save_regs(list: TAsmList; rt: tregistertype; lowsr, highsr: tsuperregister; sub: tsubregister): longint;
@@ -2703,6 +2704,54 @@ implementation
           end
         else
           internalerror(2020021901);
+      end;
+
+
+    procedure tcgaarch64.g_local_unwind(list: TAsmList; l: TAsmLabel);
+      var
+        para1,para2: tcgpara;
+        pd: tprocdef;
+        reg: tregister;
+        href: treference;
+      begin
+        if target_info.system<>system_aarch64_win64 then
+          begin
+            inherited g_local_unwind(list,l);
+            exit;
+          end;
+        pd:=search_system_proc('_fpc_local_unwind');
+        para1.init;
+        para2.init;
+        paramanager.getcgtempparaloc(list,pd,1,para1);
+        paramanager.getcgtempparaloc(list,pd,2,para2);
+        { On AArch64-Win64, pass FP+16 as TargetFrame for RtlUnwindEx.
+          Windows ARM64 computes EstablisherFrame as SP-at-function-entry.
+          Since the standard prolog saves FP/LR with "stp fp,lr,[sp,#-16]!",
+          SP-at-entry = FP + 16. RtlUnwindEx validates TargetFrame >= EstablisherFrame,
+          so passing FP alone fails (FP is 16 bytes below EstablisherFrame).
+          Passing FP+16 satisfies the validation and matches the frame correctly. }
+        reg:=getaddressregister(list);
+        a_op_const_reg_reg(list,OP_ADD,OS_ADDR,16,NR_FRAME_POINTER_REG,reg);
+        a_load_reg_cgpara(list,OS_ADDR,reg,para1);
+        { pass target label address }
+        para2.check_simple_location;
+        if para2.location^.loc in [LOC_CREGISTER,LOC_REGISTER] then
+          begin
+            paramanager.allocparaloc(list,para2.location);
+            reg:=para2.location^.register;
+          end
+        else
+          reg:=getaddressregister(list);
+        { ADR is simpler and doesn't require symbol table entries (±1MB range is sufficient for local labels) }
+        reference_reset_symbol(href,l,0,sizeof(pint),[]);
+        list.concat(taicpu.op_reg_ref(A_ADR,reg,href));
+        if not(para2.location^.loc in [LOC_CREGISTER,LOC_REGISTER]) then
+          a_load_reg_cgpara(list,OS_ADDR,reg,para2);
+        paramanager.freecgpara(list,para2);
+        paramanager.freecgpara(list,para1);
+        g_call(list,'_FPC_local_unwind');
+        para2.done;
+        para1.done;
       end;
 
 
