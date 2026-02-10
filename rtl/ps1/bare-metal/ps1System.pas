@@ -532,6 +532,75 @@ var
 
 
 
+{ --- JOYSTICK CONTROLLER ------------------------------------------------------------------ }
+const
+  ADDR_CONTROLLER_VALUE  = $01;
+  ADDR_MEMORY_CARD_VALUE = $81;
+
+  CMD_INIT_PRESSURE_VALUE   = Ord('@');
+  CMD_POLL_VALUE            = Ord('B');
+  CMD_CONFIG_MODE_VALUE     = Ord('C');
+  CMD_SET_ANALOG_VALUE      = Ord('D');
+  CMD_GET_ANALOG_VALUE      = Ord('E');
+  CMD_GET_MOTOR_INFO_VALUE  = Ord('F');
+  CMD_GET_MOTOR_LIST_VALUE  = Ord('G');
+  CMD_GET_MOTOR_STATE_VALUE = Ord('H');
+  CMD_GET_MODE_VALUE        = Ord('L');
+  CMD_REQUEST_CONFIG_VALUE  = Ord('M');
+  CMD_RESPONSE_CONFIG_VALUE = Ord('O');
+  CMD_CARD_READ_VALUE       = Ord('R');
+  CMD_CARD_GET_SIZE_VALUE   = Ord('S');
+  CMD_CARD_WRITE_VALUE      = Ord('W');
+
+  { Controller type strings by 4-bit ID (0..15) }
+  ControllerTypes: array[0..15] of PChar = (
+    'Unknown',             { ID $0 }
+    'Mouse',               { ID $1 }
+    'neGcon',              { ID $2 }
+    'Konami Justifier',    { ID $3 }
+    'Digital controller',  { ID $4 }
+    'Analog stick',        { ID $5 }
+    'Guncon',              { ID $6 }
+    'Analog controller',   { ID $7 }
+    'Multitap',            { ID $8 }
+    'Keyboard',            { ID $9 }
+    'Unknown',             { ID $A }
+    'Unknown',             { ID $B }
+    'Unknown',             { ID $C }
+    'Unknown',             { ID $D }
+    'Jogcon',              { ID $E }
+    'Configuration mode'   { ID $F }
+  );
+
+  { Button names by bit index (0..15) }
+  ButtonNames: array[0..15] of PChar = (
+    'Select',    { Bit  0 }
+    'L3',        { Bit  1 }
+    'R3',        { Bit  2 }
+    'Start',     { Bit  3 }
+    'Up',        { Bit  4 }
+    'Right',     { Bit  5 }
+    'Down',      { Bit  6 }
+    'Left',      { Bit  7 }
+    'L2',        { Bit  8 }
+    'R2',        { Bit  9 }
+    'L1',        { Bit 10 }
+    'R1',        { Bit 11 }
+    'Triangle',  { Bit 12 }
+    'Circle',    { Bit 13 }
+    'X',         { Bit 14 }
+    'Square'     { Bit 15 }
+  );
+
+const
+  DTR_DELAY   = 60;
+  DSR_TIMEOUT = 120;
+  
+procedure InitJOYSTICKControllers;
+procedure SelectJoystickPort(port: Integer);
+function ExchangeSIO0Byte(value: Byte): Byte;
+function WaitForSIO0Acknowledge(timeout: Integer): Boolean;
+function ExchangeSIO0Packet(address: Byte; request: PByte; response: PByte; reqLength: Integer; maxRespLength: Integer): Integer;
 
 
 type
@@ -771,11 +840,83 @@ function SIO_STAT(N: dword): Word; inline; begin Result:= Pword((IO_BASE or $044
 function SIO_MODE(N: dword): Word; inline; begin Result:= Pword((IO_BASE or $048) + (16*N))^; end;
 function SIO_CTRL(N: dword): Word; inline; begin Result:= Pword((IO_BASE or $04A) + (16*N))^; end;
 function SIO_BAUD(N: dword): Word; inline; begin Result:= Pword((IO_BASE or $04E) + (16*N))^; end;
-procedure SIO_DATA_Set(N: dword; value: byte); inline; begin Pbyte((IO_BASE or $040) + (16*N))^:= value; end;
-procedure SIO_STAT_Set(N: dword; value: word); inline; begin Pword((IO_BASE or $044) + (16*N))^:= value; end;
-procedure SIO_MODE_Set(N: dword; value: word); inline; begin Pword((IO_BASE or $048) + (16*N))^:= value; end;
-procedure SIO_CTRL_Set(N: dword; value: word); inline; begin Pword((IO_BASE or $04A) + (16*N))^:= value; end;
-procedure SIO_BAUD_Set(N: dword; value: word); inline; begin Pword((IO_BASE or $04E) + (16*N))^:= value; end;
+
+procedure SIO_DATA_Set(N: dword; value: byte); inline; 
+begin 
+  Pbyte((IO_BASE or $040) + (16*N))^:= value; 
+end;
+
+procedure SIO_STAT_Set(N: dword; value: word); inline; 
+begin
+  asm
+    li $t0, IO_BASE | 0x044
+    la $v1, N
+    lw $t2, 0($v1)
+    nop
+    sll  $t2, $t2, 4
+    addu $t0, $t0, $t2
+
+    la $v0, value    
+    lhu $t1, 0($v0)
+    nop
+
+    sh $t1, 0($t0)
+  end;
+end;
+
+procedure SIO_MODE_Set(N: dword; value: word); inline; 
+begin
+  asm
+    li $t0, IO_BASE | 0x048
+    la $v1, N
+    lw $t2, 0($v1)
+    nop
+    sll  $t2, $t2, 4
+    addu $t0, $t0, $t2
+
+    la $v0, value    
+    lhu $t1, 0($v0)
+    nop
+
+    sh $t1, 0($t0)
+  end;
+end;
+
+procedure SIO_CTRL_Set(N: dword; value: word); inline; 
+begin
+  asm
+    li $t0, IO_BASE | 0x04A
+    la $v1, N
+    lw $t2, 0($v1)
+    nop
+    sll  $t2, $t2, 4
+    addu $t0, $t0, $t2
+
+    la $v0, value    
+    lhu $t1, 0($v0)
+    nop
+
+    sh $t1, 0($t0)
+  end;
+end;
+
+procedure SIO_BAUD_Set(N: dword; value: word); inline; 
+begin
+  asm
+    li $t0, IO_BASE | 0x04E
+    la $v1, N
+    lw $t2, 0($v1)
+    nop
+    sll  $t2, $t2, 4
+    addu $t0, $t0, $t2
+
+    la $v0, value    
+    lhu $t1, 0($v0)
+    nop
+
+    sh $t1, 0($t0)
+  end;
+end;
 
 
 { DMA }
@@ -791,18 +932,124 @@ function DMA_DICR_CH_STAT(N: dword): dword; inline; begin result:= 1 shl (N + 24
 function DMA_MADR(N: dword): LongWord; inline; begin result:= pdword((IO_BASE or $080) + (16*N))^; end;
 function DMA_BCR(N: dword): LongWord;  inline; begin result:= pdword((IO_BASE or $084) + (16*N))^; end;
 function DMA_CHCR(N: dword): LongWord; inline; begin result:= pdword((IO_BASE or $088) + (16*N))^; end;
-procedure DMA_MADR_Set(N: dword; value: LongWord); inline; begin pdword((IO_BASE or $080) + (16*N))^:= value; end;
-procedure DMA_BCR_Set(N: dword; value: LongWord); inline; begin pdword((IO_BASE or $084) + (16*N))^:= value; end;
-procedure DMA_CHCR_Set(N: dword; value: LongWord); inline; begin pdword((IO_BASE or $088) + (16*N))^:= value; end;
+
+procedure DMA_MADR_Set(N: dword; value: LongWord); inline; 
+begin
+  asm
+    li $t0, IO_BASE | 0x080
+    la $v1, N
+    lw $t2, 0($v1)
+    nop
+    sll  $t2, $t2, 4
+    addu $t0, $t0, $t2
+
+    la $v0, value    
+    lw $t1, 0($v0)
+    nop
+
+    sw $t1, 0($t0)
+  end;
+end;
+
+
+procedure DMA_BCR_Set(N: dword; value: LongWord); inline; 
+begin
+  asm
+    li $t0, IO_BASE | 0x084
+    la $v1, N
+    lw $t2, 0($v1)
+    nop
+    sll  $t2, $t2, 4
+    addu $t0, $t0, $t2
+
+    la $v0, value    
+    lw $t1, 0($v0)
+    nop
+
+    sw $t1, 0($t0)
+  end;
+end;
+
+procedure DMA_CHCR_Set(N: dword; value: LongWord); inline; 
+begin
+  asm
+    li $t0, IO_BASE | 0x088
+    la $v1, N
+    lw $t2, 0($v1)
+    nop
+    sll  $t2, $t2, 4
+    addu $t0, $t0, $t2
+
+    la $v0, value    
+    lw $t1, 0($v0)
+    nop
+
+    sw $t1, 0($t0)
+  end;
+end;
+
 
 { Timers }
 
 function TIMER_VALUE(N: dword): Word; inline; begin result:= Pword((IO_BASE or $100) + (16*N))^; end;
 function TIMER_CTRL_REG(N: dword): Word; inline; begin result:= Pword((IO_BASE or $104) + (16*N))^; end;
 function TIMER_RELOAD(N: dword): Word; inline; begin result:= Pword((IO_BASE or $108) + (16*N))^; end;
-procedure TIMER_VALUE_Set(N: dword; value: Word); inline; begin Pword((IO_BASE or $100) + (16*N))^:= value; end;
-procedure TIMER_CTRL_REG_Set(N: dword; value: Word); inline; begin Pword((IO_BASE or $104) + (16*N))^:= value; end;
-procedure TIMER_RELOAD_Set(N: dword; value: Word); inline; begin Pword((IO_BASE or $108) + (16*N))^:= value; end;
+
+procedure TIMER_VALUE_Set(N: dword; value: Word); inline; 
+begin
+  asm
+    li $t0, IO_BASE | 0x100
+    la $v1, N
+    lw $t2, 0($v1)
+    nop
+    sll  $t2, $t2, 4
+    addu $t0, $t0, $t2
+
+    la $v0, value    
+    lhu $t1, 0($v0)
+    nop
+
+    sh $t1, 0($t0)
+  end;
+end;
+
+
+procedure TIMER_CTRL_REG_Set(N: dword; value: Word); inline; 
+begin
+  asm
+    li $t0, IO_BASE | 0x104
+    la $v1, N
+    lw $t2, 0($v1)
+    nop
+    sll  $t2, $t2, 4
+    addu $t0, $t0, $t2
+
+    la $v0, value    
+    lhu $t1, 0($v0)
+    nop
+
+    sh $t1, 0($t0)
+  end;
+end;
+
+
+procedure TIMER_RELOAD_Set(N: dword; value: Word); inline; 
+begin
+  asm
+    li $t0, IO_BASE | 0x108
+    la $v1, N
+    lw $t2, 0($v1)
+    nop
+    sll  $t2, $t2, 4
+    addu $t0, $t0, $t2
+
+    la $v0, value    
+    lhu $t1, 0($v0)
+    nop
+
+    sh $t1, 0($t0)
+  end;
+end;
 
 
 { SPU channels }
@@ -815,13 +1062,139 @@ function SPU_CH_ADSR1(N: dword): Word; inline; begin result:= Pword((IO_BASE or 
 function SPU_CH_ADSR2(N: dword): Word; inline; begin result:= Pword((IO_BASE or $C0A) + (16*N))^; end;
 function SPU_CH_ADSR_VOL(N: dword): Word;  inline; begin result:= Pword((IO_BASE or $C0C) + (16*N))^; end;
 function SPU_CH_LOOP_ADDR(N: dword): Word; inline; begin result:= Pword((IO_BASE or $C0E) + (16*N))^; end;
-procedure SPU_CH_VOL_L_Set(N: dword; value: Word); inline; begin Pword((IO_BASE or $C00) + (16*N))^:= value; end;
-procedure SPU_CH_VOL_R_Set(N: dword; value: Word); inline; begin Pword((IO_BASE or $C02) + (16*N))^:= value; end;
-procedure SPU_CH_FREQ_Set(N: dword; value: Word); inline; begin Pword((IO_BASE or $C04) + (16*N))^:= value; end;
-procedure SPU_CH_ADDR_Set(N: dword; value: Word); inline; begin Pword((IO_BASE or $C06) + (16*N))^:= value; end;
-procedure SPU_CH_ADSR1_Set(N: dword; value: Word); inline; begin Pword((IO_BASE or $C08) + (16*N))^:= value; end;
-procedure SPU_CH_ADSR2_Set(N: dword; value: Word); inline; begin Pword((IO_BASE or $C0A) + (16*N))^:= value; end;
-procedure SPU_CH_LOOP_ADDR_Set(N: dword; value: Word); inline; begin Pword((IO_BASE or $C0E) + (16*N))^:= value; end;
+
+procedure SPU_CH_VOL_L_Set(N: dword; value: Word); inline; 
+begin
+  asm
+    li $t0, IO_BASE | 0xC00
+    la $v1, N
+    lw $t2, 0($v1)
+    nop
+    sll  $t2, $t2, 4
+    addu $t0, $t0, $t2
+
+    la $v0, value    
+    lhu $t1, 0($v0)
+    nop
+
+    sh $t1, 0($t0)
+  end;
+end;
+
+procedure SPU_CH_VOL_R_Set(N: dword; value: Word); inline; 
+begin
+  asm
+    li $t0, IO_BASE | 0xC02
+    la $v1, N
+    lw $t2, 0($v1)
+    nop
+    sll  $t2, $t2, 4
+    addu $t0, $t0, $t2
+
+    la $v0, value    
+    lhu $t1, 0($v0)
+    nop
+
+    sh $t1, 0($t0)
+  end;
+end;
+
+
+procedure SPU_CH_FREQ_Set(N: dword; value: Word); inline; 
+begin
+  asm
+    li $t0, IO_BASE | 0xC04
+    la $v1, N
+    lw $t2, 0($v1)
+    nop
+    sll  $t2, $t2, 4
+    addu $t0, $t0, $t2
+
+    la $v0, value    
+    lhu $t1, 0($v0)
+    nop
+
+    sh $t1, 0($t0)
+  end;
+end;
+
+  
+procedure SPU_CH_ADDR_Set(N: dword; value: Word); inline; 
+begin
+  asm
+    li $t0, IO_BASE | 0xC06
+    la $v1, N
+    lw $t2, 0($v1)
+    nop
+    sll  $t2, $t2, 4
+    addu $t0, $t0, $t2
+
+    la $v0, value    
+    lhu $t1, 0($v0)
+    nop
+
+    sh $t1, 0($t0)
+  end;
+end;
+
+
+procedure SPU_CH_ADSR1_Set(N: dword; value: Word); inline; 
+begin
+  asm
+    li $t0, IO_BASE | 0xC08
+    la $v1, N
+    lw $t2, 0($v1)
+    nop
+    sll  $t2, $t2, 4
+    addu $t0, $t0, $t2
+
+    la $v0, value    
+    lhu $t1, 0($v0)
+    nop
+
+    sh $t1, 0($t0)
+  end;
+end;
+
+
+
+
+procedure SPU_CH_ADSR2_Set(N: dword; value: Word); inline; 
+begin
+  asm
+    li $t0, IO_BASE | 0xC0A
+    la $v1, N
+    lw $t2, 0($v1)
+    nop
+    sll  $t2, $t2, 4
+    addu $t0, $t0, $t2
+
+    la $v0, value    
+    lhu $t1, 0($v0)
+    nop
+
+    sh $t1, 0($t0)
+  end;
+end;
+
+
+procedure SPU_CH_LOOP_ADDR_Set(N: dword; value: Word); inline; 
+begin
+  asm
+    li $t0, IO_BASE | 0xC0E
+    la $v1, N
+    lw $t2, 0($v1)
+    nop
+    sll  $t2, $t2, 4
+    addu $t0, $t0, $t2
+
+    la $v0, value    
+    lhu $t1, 0($v0)
+    nop
+
+    sh $t1, 0($t0)
+  end;
+end;
 
 
 const
@@ -1182,7 +1555,7 @@ end;
 
 procedure InitIRQ;
 begin
-  
+
   installExceptionHandler;
 
   setInterruptHandler(@InterruptHandlerFunction, nil);
@@ -1194,10 +1567,149 @@ begin
 end;
 
 
+procedure InitJOYSTICKControllers;
+begin
+  { Reset the serial interface }
+  SIO_CTRL_Set(0, SIO_CTRL_RESET);
+
+  { Configure mode: baud div 1, 8 data bits }
+  SIO_MODE_Set(0, SIO_MODE_BAUD_DIV1 or SIO_MODE_DATA_8);
+
+  { Set baud rate to 250000 bps }
+  SIO_BAUD_Set(0, F_CPU div 250000);
+
+  { Enable TX, RX and DSR interrupt }
+  SIO_CTRL_Set(0, SIO_CTRL_TX_ENABLE or SIO_CTRL_RX_ENABLE or SIO_CTRL_DSR_IRQ_ENABLE);
+end;
+
+
+procedure SelectJoystickPort(port: Integer);
+var
+  v: LongWord;
+
+begin
+
+  { Set/clear bit that selects port set for DTR (chip select) }
+  v := SIO_CTRL(0);
+
+  if port <> 0 then
+    v := v or SIO_CTRL_CS_PORT_2
+  else
+    v := v and (not SIO_CTRL_CS_PORT_2);
+
+  SIO_CTRL_Set(0, v);
+
+end;
+
+
+function ExchangeSIO0Byte(value: Byte): Byte;
+begin
+  
+  { Wait until TX FIFO can accept a byte }
+  while (SIO_STAT(0) and SIO_STAT_TX_NOT_FULL) = 0 do
+    asm
+      nop
+    end;
+  
+  { Send byte }
+  SIO_DATA_set(0, value);
+
+  { Wait until RX FIFO has received a byte }
+  while (SIO_STAT(0) and SIO_STAT_RX_NOT_EMPTY) = 0 do
+    asm
+      nop
+    end;
+
+  { Read and return received byte }
+  Result := Byte(SIO_DATA(0));
+
+end;
+
+
+function WaitForSIO0Acknowledge(timeout: Integer): Boolean;
+begin
+
+  Result := False;
+
+  while timeout > 0 do begin
+
+    if (IRQ_STAT and (1 shl IRQ_SIO0)) <> 0 then begin
+      { Clear IRQ flag }
+      IRQ_STAT := not (1 shl IRQ_SIO0);
+
+      { Acknowledge on SIO side }
+      SIO_CTRL_Set(0, SIO_CTRL(0) or SIO_CTRL_ACKNOWLEDGE);
+
+      Result := True;
+      Exit;
+    end;
+
+    delayMicroseconds(10);
+    Dec(timeout, 10);
+
+  end;
+
+end;
+
+
+function ExchangeSIO0Packet(address: Byte; request: PByte; response: PByte; reqLength: Integer; maxRespLength: Integer): Integer;
+var
+  respLength: Integer;
+
+begin
+
+  { Reset IRQ flag and assert DTR + ACK to start a packet }
+  IRQ_STAT:= not (1 shl IRQ_SIO0);
+  SIO_CTRL_Set(0, SIO_CTRL(0) or SIO_CTRL_DTR or SIO_CTRL_ACKNOWLEDGE);
+
+  delayMicroseconds(DTR_DELAY);
+
+  respLength := 0;
+
+  { Send address byte }
+  SIO_DATA_Set(0, address);
+
+  { Wait for DSR acknowledge; if present, flush RX buffer }
+  if WaitForSIO0Acknowledge(DSR_TIMEOUT) then begin
+
+    while (SIO_STAT(0) and SIO_STAT_RX_NOT_EMPTY) <> 0 do
+      SIO_DATA(0); { read/discard }
+
+    { Full-duplex transfer, pad TX with 0 if request is shorter than response }
+    while respLength < maxRespLength do begin
+
+      if reqLength > 0 then begin
+        response^ := ExchangeSIO0Byte(request^);
+        Inc(request);
+        Dec(reqLength);
+      end else begin
+        response^ := ExchangeSIO0Byte(0);
+      end;
+
+      Inc(response);
+      Inc(respLength);
+
+      { Stop when device stops pulsing DSR }
+      if not WaitForSIO0Acknowledge(DSR_TIMEOUT) then Break;
+
+    end;
+
+  end;
+
+  { Release DTR (let device go idle) }
+  delayMicroseconds(DTR_DELAY);
+  SIO_CTRL_Set(0, SIO_CTRL(0) and (not SIO_CTRL_DTR));
+
+  Result := respLength;
+
+end;
+
+
+
 
 initialization
 
-	currentThread:= @_mainThread;
+  currentThread:= @_mainThread;
   nextThread:= @_mainThread;
 
 end.

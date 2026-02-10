@@ -437,8 +437,9 @@ end;
 
 function RGB(r, g, b: byte): Word;
 var
-  R5, G5, B5: Word;
-  T: Word;
+  R5, G5, B5 : Word;
+  T : Word;
+
 begin
 
   { Convert 0–255 channel to 0–31 and mask to 5 bits }
@@ -522,10 +523,9 @@ procedure WaitForVSync;
 var
    currentCount : longint;
 begin
-{
+
   // Wait until IRQ vertical blank flag is set.
-  
-}
+
     if (IRQ_MASK and 1) <> 0 then begin
       
       currentCount:= vblankCount;
@@ -535,6 +535,8 @@ begin
 
       while (IRQ_STAT and (1 shl IRQ_VSYNC)) = 0 do ;
       IRQ_STAT := not (1 shl IRQ_VSYNC);
+
+      inc(vblankCount);
 
     end;
 
