@@ -33,12 +33,14 @@ type
     function first_abs_real: tnode; override;
     function first_sqr_real: tnode; override;
     function first_sqrt_real: tnode; override;
-    function first_gteCommand: tnode; override;
     procedure second_abs_real; override;
     procedure second_sqr_real; override;
     procedure second_sqrt_real; override;
     procedure second_get_frame; override;
+    {$if defined(MIPSEL)}
+    function first_gteCommand: tnode; override;
     procedure second_gteCommand;
+    {$endif}
     procedure pass_generate_code_cpu;override;
   private
     procedure load_fpu_location;
@@ -161,7 +163,7 @@ begin
 end;
 
 
-
+{$if defined(MIPSEL)}
 function tMIPSELinlinenode.first_gteCommand: tnode;
 begin
   result:= nil;
@@ -178,13 +180,13 @@ begin
   current_asmdata.CurrAsmList.concat(taicpu.op_const(A_COP2, left.location.value));
 
 end;
-
+{$endif}
 
 procedure tMIPSELinlinenode.pass_generate_code_cpu;
 begin
-
+ {$if defined(MIPSEL)}
   if inlinenumber = in_gtecommand_x then second_gteCommand;
-
+ {$endif}
 end;
 
 
