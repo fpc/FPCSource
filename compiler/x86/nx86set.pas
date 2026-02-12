@@ -26,7 +26,7 @@ unit nx86set;
 interface
 
     uses
-      globtype,constexp,
+      cdynset,globtype,constexp,
       node,nset,pass_1,ncgset;
 
     type
@@ -445,12 +445,13 @@ implementation
          extra_offset_reg: TRegister;
 {$endif i8086}
 
-         function analizeset(Aset:pconstset;is_small:boolean):boolean;
+         function analizeset(const Aset:tdynset;is_small:boolean):boolean;
            var
              compares,maxcompares:word;
-             i:byte;
+             i: longint;
+             maxelem: longint;
            begin
-             if tnormalset(Aset^)=[] then
+             if DynSetIsEmpty(Aset) then
                 {The expression...
                     if expr in []
                  ...is always false. It should be optimized away in the
@@ -472,8 +473,11 @@ implementation
                code is for littlesize also smaller when more compares are used }
              if is_small then
                maxcompares:=3;
-             for i:=0 to 255 do
-              if i in tnormalset(Aset^) then
+             maxelem:=length(Aset)*8-1;
+             if maxelem>255 then
+               maxelem:=255;
+             for i:=0 to maxelem do
+              if DynSetIn(Aset, i) then
                begin
                  if (numparts=0) or (i<>setparts[numparts].stop+1) then
                   begin

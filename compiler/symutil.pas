@@ -43,7 +43,7 @@ implementation
 
     uses
        systems,
-       globtype,cpuinfo,constexp,verbose,
+       cdynset,globtype,cpuinfo,constexp,verbose,
        widestr,
        symdef;
 
@@ -96,7 +96,7 @@ implementation
              else
                equal_constsym:=pbestreal(sym1.value.valueptr)^=pbestreal(sym2.value.valueptr)^;
            constset :
-             equal_constsym:=(pnormalset(sym1.value.valueptr)^=pnormalset(sym2.value.valueptr)^);
+             equal_constsym:=DynSetEqual(tdynset(sym1.value.valueptr),tdynset(sym2.value.valueptr));
            constnil :
              equal_constsym:=true;
            else

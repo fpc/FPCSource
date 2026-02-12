@@ -144,6 +144,7 @@ implementation
 {$ELSE}
       fksysutl,
 {$ENDIF}
+      cdynset,
       globtype,systems,constexp,compinnr,
       cutils,verbose,globals,widestr,
       tokens,
@@ -731,7 +732,7 @@ const
         c1,c2   : array[0..1] of char;
         s1,s2,stmp   : pchar;
         l1,l2   : longint;
-        resultset : Tconstset;
+        resultset : TDynSet;
         res,
         b       : boolean;
         cr, cl  : Tconstexprint;
@@ -1531,42 +1532,42 @@ const
              case nodetype of
                addn :
                  begin
-                   resultset:=tsetconstnode(right).value_set^ + tsetconstnode(left).value_set^;
+                   resultset:=DynSetUnionF(tsetconstnode(right).value_set, tsetconstnode(left).value_set);
                    t:=csetconstnode.create(@resultset,resultdef);
                  end;
                 muln :
                   begin
-                    resultset:=tsetconstnode(right).value_set^ * tsetconstnode(left).value_set^;
+                    resultset:=DynSetIntersectF(tsetconstnode(right).value_set, tsetconstnode(left).value_set);
                     t:=csetconstnode.create(@resultset,resultdef);
                   end;
                subn :
                   begin
-                    resultset:=tsetconstnode(left).value_set^ - tsetconstnode(right).value_set^;
+                    resultset:=DynSetDiffF(tsetconstnode(left).value_set, tsetconstnode(right).value_set);
                             t:=csetconstnode.create(@resultset,resultdef);
                   end;
                symdifn :
                   begin
-                    resultset:=tsetconstnode(right).value_set^ >< tsetconstnode(left).value_set^;
+                    resultset:=DynSetSymDifF(tsetconstnode(right).value_set, tsetconstnode(left).value_set);
                         t:=csetconstnode.create(@resultset,resultdef);
                   end;
                unequaln :
                   begin
-                    b:=tsetconstnode(right).value_set^ <> tsetconstnode(left).value_set^;
+                    b:=not DynSetEqual(tsetconstnode(right).value_set, tsetconstnode(left).value_set);
                     t:=cordconstnode.create(byte(b),pasbool1type,true);
                   end;
                equaln :
                   begin
-                    b:=tsetconstnode(right).value_set^ = tsetconstnode(left).value_set^;
+                    b:=DynSetEqual(tsetconstnode(right).value_set, tsetconstnode(left).value_set);
                     t:=cordconstnode.create(byte(b),pasbool1type,true);
                   end;
                lten :
                   begin
-                    b:=tsetconstnode(left).value_set^ <= tsetconstnode(right).value_set^;
+                    b:=DynSetSubset(tsetconstnode(left).value_set, tsetconstnode(right).value_set);
                     t:=cordconstnode.create(byte(b),pasbool1type,true);
                   end;
                gten :
                   begin
-                    b:=tsetconstnode(left).value_set^ >= tsetconstnode(right).value_set^;
+                    b:=DynSetSubset(tsetconstnode(right).value_set, tsetconstnode(left).value_set);
                     t:=cordconstnode.create(byte(b),pasbool1type,true);
                   end;
                 else
@@ -4949,8 +4950,8 @@ const
                  if not(might_have_sideeffects(varsetnode)) then
                    begin
                      result:=nil;
-                     for i:=low(tconstset) to high(tconstset) do
-                       if i in constsetnode.value_set^ then
+                     for i:=0 to length(constsetnode.value_set)*8-1 do
+                       if DynSetIn(constsetnode.value_set, i) then
                          begin
                            tempn:=cinnode.create(cordconstnode.create(i,tsetdef(constsetnode.resultdef).elementdef,false),varsetnode.getcopy);
                            if assigned(result) then

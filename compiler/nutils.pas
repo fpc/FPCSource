@@ -224,6 +224,7 @@ interface
 implementation
 
     uses
+      cdynset,
       cutils,verbose,globals,
       symconst,symdef,
       defcmp,defutil,
@@ -734,7 +735,7 @@ implementation
           result:=0;
           lastv:=High(lastv)-1;
           for i:=tsetdef(cs.resultdef).setbase to tsetdef(cs.resultdef).setmax do
-            if i in cs.value_set^ then
+            if DynSetIn(cs.value_set, i) then
               begin
                 if i<>lastv+1 then
                   begin

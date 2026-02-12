@@ -1074,9 +1074,6 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
 
 
     procedure tasmlisttypedconstbuilder.tc_emit_setdef(def: tsetdef; var node: tnode);
-      type
-         setbytes = array[0..31] of byte;
-         Psetbytes = ^setbytes;
       var
         i: longint;
         setval: cardinal;
@@ -1100,12 +1097,12 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                     if source_info.endian=target_info.endian then
                       begin
                         for i:=0 to node.resultdef.size-1 do
-                          ftcb.emit_tai(tai_const.create_8bit(Psetbytes(tsetconstnode(node).value_set)^[i]),u8inttype);
+                          ftcb.emit_tai(tai_const.create_8bit(tsetconstnode(node).getbyte(i)),u8inttype);
                       end
                     else
                       begin
                         for i:=0 to node.resultdef.size-1 do
-                          ftcb.emit_tai(tai_const.create_8bit(reverse_byte(Psetbytes(tsetconstnode(node).value_set)^[i])),u8inttype);
+                          ftcb.emit_tai(tai_const.create_8bit(reverse_byte(tsetconstnode(node).getbyte(i))),u8inttype);
                       end;
                   end
                 else
@@ -1117,12 +1114,12 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                     if source_info.endian=target_info.endian then
                       begin
                         for i:=0 to node.resultdef.size-1 do
-                          setval:=setval or (Psetbytes(tsetconstnode(node).value_set)^[i] shl (i*8));
+                          setval:=setval or (tsetconstnode(node).getbyte(i) shl (i*8));
                       end
                     else
                       begin
                         for i:=0 to node.resultdef.size-1 do
-                          setval:=setval or (reverse_byte(Psetbytes(tsetconstnode(node).value_set)^[i]) shl (i*8));
+                          setval:=setval or (reverse_byte(tsetconstnode(node).getbyte(i)) shl (i*8));
                       end;
                     case def.size of
                       1:

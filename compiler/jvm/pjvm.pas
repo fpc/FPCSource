@@ -48,7 +48,7 @@ interface
 implementation
 
   uses
-    cutils,cclasses,
+    cdynset,cutils,cclasses,
     verbose,globals,systems,
     fmodule,
     parabase,aasmdata,
@@ -652,7 +652,7 @@ implementation
                   conststr:='[';
                   first:=true;
                   for i:=0 to 255 do
-                    if i in pnormalset(csym.value.valueptr)^ then
+                    if DynSetIn(tdynset(csym.value.valueptr), i) then
                       begin
                         if not first then
                           conststr:=conststr+',';

@@ -280,7 +280,7 @@ interface
 implementation
 
     uses
-      sysutils,cutils,cfileutl,constexp,
+      cdynset,sysutils,cutils,cfileutl,constexp,
       version,globals,verbose,systems,
       cpubase,cpuinfo,paramgr,
       fmodule,
@@ -2841,8 +2841,7 @@ implementation
                   inc(i);
                 end;
             end;
-          constguid,
-          constset:
+          constguid:
             begin
               AddConstToAbbrev(ord(DW_FORM_block1));
               current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(usedef.size));
@@ -2851,6 +2850,24 @@ implementation
               while (i<size) do
                 begin
                   b:=pbyte(sym.value.valueptr+i)^;
+                  if (target_info.endian<>source_info.endian) then
+                    b:=reverse_byte(b);
+		  current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(b));
+                  inc(i);
+                end;
+            end;
+          constset:
+            begin
+              AddConstToAbbrev(ord(DW_FORM_block1));
+              current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(usedef.size));
+              i:=0;
+              size:=sym.constdef.size;
+              while (i<size) do
+                begin
+                  if i<length(tdynset(sym.value.valueptr)) then
+                    b:=tdynset(sym.value.valueptr)[i]
+                  else
+                    b:=0;
                   if (target_info.endian<>source_info.endian) then
                     b:=reverse_byte(b);
 		  current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(b));

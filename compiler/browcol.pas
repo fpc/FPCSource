@@ -271,7 +271,7 @@ procedure RegisterSymbols;
 implementation
 
 uses
-  globtype,globals,comphook,constexp,
+  cdynset,globtype,globals,comphook,constexp,
 {$ifdef DEBUG}
   verbose,
 {$endif DEBUG}
@@ -416,7 +416,7 @@ begin
   CharToStr:=S;
 end;
 
-function SetToStr(pSet:pnormalset): string;
+function SetToStr(const aSet:tdynset): string;
 var C,cFrom,cTo : AnsiChar;
     inSet,addToSet : boolean;
     S: string;
@@ -427,7 +427,7 @@ begin
   cFrom:=#0;cTo:=#0;
   for  C:=#0 to #255 do
   begin
-    if byte(C) in pSet^ then
+    if DynSetIn(aSet, byte(C)) then
       begin
         if inSet then
           cTo:=C
@@ -1567,7 +1567,7 @@ end;
       constreal:
         Name:=FloatToStr(PBestReal(sym.value.valueptr)^);
       constset:
-        Name:=SetToStr(pnormalset(sym.value.valueptr));
+        Name:=SetToStr(tdynset(sym.value.valueptr));
       constnil: ;
     end;
     GetConstValueName:=Name;

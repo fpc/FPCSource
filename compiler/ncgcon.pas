@@ -70,6 +70,7 @@ interface
 implementation
 
     uses
+      cdynset,
       globtype,widestr,systems,
       verbose,globals,cutils,
       aasmcnst,
@@ -398,9 +399,6 @@ implementation
 *****************************************************************************}
 
     function tcgsetconstnode.emitvarsetconst: tasmsymbol;
-      type
-        setbytes=array[0..31] of byte;
-        Psetbytes=^setbytes;
       var
         lab: tasmlabel;
         i: longint;
@@ -413,10 +411,10 @@ implementation
         tcb.maybe_begin_aggregate(resultdef);
         if (source_info.endian=target_info.endian) then
           for i:=0 to resultdef.size-1 do
-            tcb.emit_tai(tai_const.create_8bit(Psetbytes(value_set)^[i]),u8inttype)
+            tcb.emit_tai(tai_const.create_8bit(getbyte(i)),u8inttype)
         else
           for i:=0 to resultdef.size-1 do
-            tcb.emit_tai(tai_const.create_8bit(reverse_byte(Psetbytes(value_set)^[i])),u8inttype);
+            tcb.emit_tai(tai_const.create_8bit(reverse_byte(getbyte(i))),u8inttype);
         tcb.maybe_end_aggregate(resultdef);
         current_asmdata.asmlists[al_typedconsts].concatlist(tcb.get_final_asmlist(
           result,resultdef,sec_rodata_norel,result.name,const_align(8)));
@@ -433,7 +431,10 @@ implementation
         { const already used ? }
         if not assigned(lab_set) then
           begin
-            entry := current_asmdata.ConstPools[sp_varsets].FindOrAdd(value_set, resultdef.size);
+            { ensure value_set has at least resultdef.size bytes for hashing }
+            if length(value_set)<resultdef.size then
+              DynSetExpand(value_set, resultdef.size*8-1);
+            entry := current_asmdata.ConstPools[sp_varsets].FindOrAdd(@value_set[0], resultdef.size);
 
              { :-(, we must generate a new entry }
              if not assigned(entry^.Data) then
@@ -445,9 +446,6 @@ implementation
 
 
     procedure tcgsetconstnode.pass_generate_code;
-       type
-         setbytes=array[0..31] of byte;
-         Psetbytes=^setbytes;
 
         procedure smallsetconst;
           begin
@@ -458,11 +456,11 @@ implementation
                 { if changed to "paword", please also modify "32-resultdef.size*8" and      }
                 { cross-endian code below                                                   }
                 { Extra aint type cast to avoid range errors                                }
-                location.value:=aint(pCardinal(value_set)^)
+                location.value:=aint(getcardinal)
               end
             else
               begin
-                location.value:=aint(reverse_longword(Pcardinal(value_set)^));
+                location.value:=aint(reverse_longword(getcardinal));
               end;
             if (target_info.endian=endian_big) then
               location.value:=location.value shr (32-resultdef.size*8);

@@ -613,8 +613,6 @@ implementation
           setdef:
             begin
               result:=csetconstnode.create(nil,def);
-              New(tsetconstnode(result).value_set);
-              tsetconstnode(result).value_set^:=[];
             end;
           arraydef:
             begin

@@ -58,7 +58,7 @@ unit scandir;
 
     uses
       SysUtils,
-      cutils,cfileutl,
+      cdynset,cutils,cfileutl,
       globals,widestr,cpuinfo,tokens,
       verbose,comphook,ppu,
       scanner,switches,
@@ -1489,13 +1489,16 @@ unit scandir;
       function read_rtti_options: trtti_visibilities;
         var
           sym: ttypesym;
-          value: tnormalset;
+          value: tdynset;
         begin
           result:=[];
           sym:=search_system_type('TVISIBILITYCLASSES');
           if current_scanner.readpreprocset(tsetdef(sym.typedef),value,'RTTI') then
             begin
-              result:=prtti_visibilities(@value)^;
+              if length(value)>=sizeof(trtti_visibilities) then
+                result:=prtti_visibilities(@value[0])^
+              else
+                result:=[];
               // if the set was empty we need to read the next id
               if result=[] then
                 begin

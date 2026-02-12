@@ -324,6 +324,7 @@ interface
 implementation
 
    uses
+      cdynset,
       globtype,systems,constexp,compinnr,
       cutils,verbose,globals,widestr,ppu,
       symconst,symdef,symsym,symcpu,symtable,
@@ -426,7 +427,6 @@ implementation
         constp      : tsetconstnode;
         p2,p3,p4    : tnode;
         hdef        : tdef;
-        constset    : Pconstset;
         constsetlo,
         constsethi  : TConstExprInt;
 
@@ -496,9 +496,9 @@ implementation
              constsethi:=pos;
             if pos<constsetlo then
              constsetlo:=pos;
-            if pos in constset^ then
+            if DynSetIn(constp.value_set,pos) then
               Message(parser_e_illegal_set_expr);
-            include(constset^,pos);
+            DynSetInclude(constp.value_set,pos);
           end;
 
       var
@@ -511,8 +511,6 @@ implementation
         { keep in sync with arrayconstructor_can_be_set }
         if p.nodetype<>arrayconstructorn then
           internalerror(200205105);
-        new(constset);
-        constset^:=[];
         hdef:=nil;
         { make sure to set constsetlo correctly for empty sets }
         if assigned(tarrayconstructornode(p).left) then
@@ -521,7 +519,6 @@ implementation
           constsetlo:=0;
         constsethi:=0;
         constp:=csetconstnode.create(nil,hdef);
-        constp.value_set:=constset;
         result:=constp;
         hp:=tarrayconstructornode(p);
         if assigned(hp.left) then

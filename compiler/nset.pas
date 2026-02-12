@@ -159,6 +159,7 @@ interface
 implementation
 
     uses
+      cdynset,
       verbose,cutils,
       symconst,symdef,symsym,symtable,defutil,defcmp,
       htypechk,pass_1,
@@ -220,9 +221,9 @@ implementation
       var
         t : tnode;
 
-        function createsetconst(psd : tsetdef) : pconstset;
+        function createsetconst(psd : tsetdef) : pdynset;
         var
-          pcs : pconstset;
+          pcs : pdynset;
           i : longint;
         begin
           new(pcs);
@@ -231,13 +232,13 @@ implementation
               begin
                 for i := 0 to tenumdef(psd.elementdef).symtable.SymList.Count - 1 do
                   begin
-                    include(pcs^,tenumsym(tenumdef(psd.elementdef).symtable.SymList[i]).value);
+                    DynSetInclude(pcs^,tenumsym(tenumdef(psd.elementdef).symtable.SymList[i]).value);
                   end;
               end;
             orddef :
               begin
                 for i:=int64(torddef(psd.elementdef).low) to int64(torddef(psd.elementdef).high) do
-                  include(pcs^,i);
+                  DynSetInclude(pcs^,i);
               end;
             else
               internalerror(2019050516);
@@ -333,7 +334,7 @@ implementation
          { empty set then return false }
          if not assigned(tsetdef(right.resultdef).elementdef) or
             ((right.nodetype = setconstn) and
-             (tnormalset(tsetconstnode(right).value_set^) = [])) then
+             DynSetIsEmpty(tsetconstnode(right).value_set)) then
           begin
             t:=cordconstnode.create(0,pasbool1type,false);
             typecheckpass(t);
@@ -362,10 +363,10 @@ implementation
                  { value > high(longint) if we don't take the signedness    }
                  { into account                                             }
                  if Tordconstnode(left).value.signed then
-                   t:=cordconstnode.create(byte(tordconstnode(left).value.svalue in Tsetconstnode(right).value_set^),
+                   t:=cordconstnode.create(byte(DynSetIn(Tsetconstnode(right).value_set, tordconstnode(left).value.svalue)),
                      pasbool1type,true)
                  else
-                   t:=cordconstnode.create(byte(tordconstnode(left).value.uvalue in Tsetconstnode(right).value_set^),
+                   t:=cordconstnode.create(byte(DynSetIn(Tsetconstnode(right).value_set, tordconstnode(left).value.uvalue)),
                      pasbool1type,true);
                  typecheckpass(t);
                  result:=t;

@@ -68,7 +68,7 @@ interface
           setconsttype: tjvmsetconsttype;
           function pass_1: tnode; override;
           procedure pass_generate_code; override;
-          constructor create(s : pconstset;def:tdef);override;
+          constructor create(s : pdynset;def:tdef);override;
           function docompare(p: tnode): boolean; override;
           function dogetcopy: tnode; override;
          protected
@@ -85,7 +85,7 @@ interface
 implementation
 
     uses
-      globals,cutils,widestr,verbose,constexp,fmodule,
+      cdynset,globals,cutils,widestr,verbose,constexp,fmodule,
       symdef,symsym,symcpu,symtable,symconst,
       aasmdata,aasmcpu,defutil,
       nutils,ncnv,nld,nmem,pjvm,pass_1,
@@ -267,7 +267,7 @@ implementation
           begin
             wc:=0;
             for bit:=0 to 15 do
-              if (i*16+bit) in value_set^ then
+              if DynSetIn(value_set, i*16+bit) then
                 wc:=wc or (1 shl (15-bit));
             { don't add trailing zeroes }
             if wc=0 then
@@ -290,7 +290,7 @@ implementation
       var
         mp: tnode;
       begin
-        if value_set^=[] then
+        if DynSetIsEmpty(value_set) then
           begin
             mp:=cloadvmtaddrnode.create(ctypenode.create(java_jubitset));
             result:=ccallnode.createinternmethod(mp,'CREATE',nil);
@@ -416,7 +416,7 @@ implementation
         end;
       end;
 
-    constructor tjvmsetconstnode.create(s: pconstset; def: tdef);
+    constructor tjvmsetconstnode.create(s: pdynset; def: tdef);
       begin
         inherited create(s, def);
         setconsttype:=sct_constsymbol;
@@ -442,11 +442,11 @@ implementation
       var
         csym: tconstsym;
         ssym: tstaticvarsym;
-        ps: pnormalset;
+        ps: pointer;
       begin
         { add a read-only typed constant }
-        new(ps);
-        ps^:=value_set^;
+        ps:=nil;
+        tdynset(ps):=DynSetCopy(value_set);
         csym:=cconstsym.create_ptr('_$setconst'+tostr(current_module.symlist.count),constset,ps,resultdef);
         csym.visibility:=vis_private;
         include(csym.symoptions,sp_internal);
@@ -465,17 +465,17 @@ implementation
         result:=true;
         { find first element in set }
         while (i<=255) and
-              not(i in value_set^) do
+              not DynSetIn(value_set, i) do
           inc(i);
         start:=i;
         { go to end of the run }
         while (i<=255) and
-              (i in value_set^) do
+              DynSetIn(value_set, i) do
           inc(i);
         len:=i-start;
         { rest must be unset }
         while (i<=255) and
-              not(i in value_set^) do
+              not DynSetIn(value_set, i) do
           inc(i);
         if i<>256 then
           result:=false;

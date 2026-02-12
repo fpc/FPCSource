@@ -732,9 +732,9 @@ implementation
                     setconstn :
                       begin
                         if (source_info.endian=target_info.endian) then
-                          p.default:=plongint(tsetconstnode(pt).value_set)^
+                          p.default:=longint(tsetconstnode(pt).getcardinal)
                         else
-                          p.default:=longint(reverse_longword(plongword(tsetconstnode(pt).value_set)^));
+                          p.default:=longint(reverse_longword(tsetconstnode(pt).getcardinal));
                         include(p.propoptions,ppo_default_is_set);
                       end;
                     ordconstn :

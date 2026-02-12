@@ -24,6 +24,9 @@ unit globtype;
 
 interface
 
+    uses
+      cdynset;
+
     const
        maxidlen = 127;
 
@@ -148,8 +151,8 @@ interface
            1 : (value:extended);
        end;
 
-       pconstset = ^tconstset;
-       tconstset = set of 0..255;
+       tconstset = tdynset;
+       pconstset = pdynset;
 
        { Switches which can be changed locally }
        tlocalswitch = (cs_localnone,
@@ -880,8 +883,8 @@ interface
       TIDString = TSymStr;
 {$endif}
 
-      tnormalset = set of byte; { 256 elements set }
-      pnormalset = ^tnormalset;
+      tnormalset = tdynset; { variable size bitset }
+      pnormalset = pdynset;
 
       pboolean   = ^boolean;
       pdouble    = ^double;

@@ -26,7 +26,7 @@ unit ncgset;
 interface
 
     uses
-       globtype,globals,constexp,symtype,
+       cdynset,globtype,globals,constexp,symtype,
        node,nset,cpubase,cgbase,cgutils,cgobj,aasmbase,aasmtai,aasmdata;
 
     type
@@ -50,7 +50,7 @@ interface
          procedure pass_generate_code;override;
        protected
          function checkgenjumps(out setparts: Tsetparts; out numparts: byte; out use_small: boolean): boolean; virtual;
-         function analizeset(const Aset:Tconstset;out setparts: Tsetparts; out numparts: byte;is_small:boolean):boolean;virtual;
+         function analizeset(const Aset:TDynSet;out setparts: Tsetparts; out numparts: byte;is_small:boolean):boolean;virtual;
          procedure in_reg_const(uopdef: tdef; opsize: tcgsize);virtual;
        end;
 
@@ -126,10 +126,11 @@ implementation
 {*****************************************************************************
 *****************************************************************************}
 
-  function tcginnode.analizeset(const Aset:Tconstset; out setparts:tsetparts; out numparts: byte; is_small:boolean):boolean;
+  function tcginnode.analizeset(const Aset:TDynSet; out setparts:tsetparts; out numparts: byte; is_small:boolean):boolean;
     var
       compares,maxcompares:word;
-      i:byte;
+      i: longint;
+      maxelem: longint;
     begin
       analizeset:=false;
       fillchar(setparts,sizeof(setparts),0);
@@ -146,8 +147,11 @@ implementation
         code is for littlesize also smaller when more compares are used }
       if is_small then
         maxcompares:=3;
-      for i:=0 to 255 do
-        if i in Aset then
+      maxelem:=length(Aset)*8-1;
+      if maxelem>255 then
+        maxelem:=255;
+      for i:=0 to maxelem do
+        if DynSetIn(Aset, i) then
           begin
             if (numparts=0) or (i<>setparts[numparts].stop+1) then
               begin
@@ -261,7 +265,7 @@ implementation
 
          { Can we generate jumps? Possible for all types of sets }
          checkgenjumps:=(right.nodetype=setconstn) and
-                   analizeset(Tsetconstnode(right).value_set^,setparts,numparts,use_small);
+                   analizeset(Tsetconstnode(right).value_set,setparts,numparts,use_small);
       end;
 
 

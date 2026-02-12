@@ -548,7 +548,7 @@ implementation
 
     uses
        { global }
-       verbose,cmsgs,
+       cdynset,verbose,cmsgs,
        { target }
        systems,
        { symtable }
@@ -2793,7 +2793,6 @@ implementation
     constructor tconstsym.ppuload(ppufile:tcompilerppufile);
       var
          pd : pbestreal;
-         ps : pnormalset;
          pc : pchar;
          pw : tcompilerwidestring;
          i  : longint;
@@ -2864,9 +2863,8 @@ implementation
            constset :
              begin
                ppufile.getderef(constdefderef);
-               new(ps);
-               ppufile.getset(tppuset32(ps^));
-               value.valueptr:=ps;
+               setlength(tdynset(value.valueptr),32);
+               ppufile.getset(tdynset(value.valueptr));
              end;
            constguid :
              begin
@@ -2900,7 +2898,7 @@ implementation
           constreal :
             dispose(pbestreal(value.valueptr));
           constset :
-            dispose(pnormalset(value.valueptr));
+            tdynset(value.valueptr):=nil;
           constguid :
             dispose(pguid(value.valueptr));
         end;
@@ -2948,6 +2946,10 @@ implementation
           ppufile.putdata(value.valuews.data[0],value.valuews.len*sizeof(tcompilerwidechar));
       end;
 
+    var
+      tmpset: array[0..31] of byte;
+      setlen,
+      i: longint;
 
       begin
          inherited ppuwrite(ppufile);
@@ -2989,7 +2991,17 @@ implementation
            constset :
              begin
                ppufile.putderef(constdefderef);
-               ppufile.putset(tppuset32(value.valueptr^));
+               { the ppu format supports only sets up to 256 elements }
+               setlen:=length(tdynset(value.valueptr));
+               for i:=sizeof(tmpset) to setlen-1 do
+                 if tdynset(value.valueptr)[i]<>0 then
+                   internalerror(2026102302);
+               if setlen>sizeof(tmpset) then
+                 setlen:=sizeof(tmpset);
+               fillchar(tmpset,sizeof(tmpset),0);
+               if setlen>0 then
+                 move(tdynset(value.valueptr)[0],tmpset[0],setlen);
+               ppufile.putset(tmpset);
              end;
            constguid :
              begin

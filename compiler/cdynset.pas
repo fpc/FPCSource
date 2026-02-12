@@ -25,10 +25,15 @@ unit cdynset;
 
   interface
 
-
     type
+      { byte i contains the elements 8*i..8*i+7, the bits within a byte are
+        ordered like in a native set of the host, so the memory layout is the
+        same as the one of a native set }
       TDynSet = array of byte;
       PDynSet = ^TDynSet;
+
+    { expand s so that it can hold at least maxelement }
+    procedure DynSetExpand(var s : TDynSet;maxelement : integer);
 
     { add e to s }
     procedure DynSetInclude(var s : TDynSet;e : integer);
@@ -36,7 +41,7 @@ unit cdynset;
     { add s to d }
     procedure DynSetIncludeSet(var d : TDynSet;const s : TDynSet);
 
-    { remove s to d }
+    { remove s from d }
     procedure DynSetExcludeSet(var d : TDynSet;const s : TDynSet);
 
     { remove e from s }
@@ -48,14 +53,44 @@ unit cdynset;
     { d:=s1+s2; }
     procedure DynSetUnion(var d : TDynSet;const s1,s2 : TDynSet);
 
+    { s1+s2 }
+    function DynSetUnionF(const s1,s2 : TDynSet) : TDynSet;
+
     { d:=s1*s2; }
     procedure DynSetIntersect(var d : TDynSet;const s1,s2 : TDynSet);
+
+    { s1*s2 }
+    function DynSetIntersectF(const s1,s2 : TDynSet) : TDynSet;
 
     { d:=s1-s2; }
     procedure DynSetDiff(var d : TDynSet;const s1,s2 : TDynSet);
 
-    { s1<>s2; }
+    { s1-s2 }
+    function DynSetDiffF(const s1,s2 : TDynSet) : TDynSet;
+
+    { d:=s1 >< s2; }
+    procedure DynSetSymDif(var d : TDynSet;const s1,s2 : TDynSet);
+
+    { s1 >< s2 }
+    function DynSetSymDifF(const s1,s2 : TDynSet) : TDynSet;
+
+    { s1<>s2 }
     function DynSetNotEqual(const s1,s2 : TDynSet) : boolean;
+
+    { s1=s2 }
+    function DynSetEqual(const s1,s2 : TDynSet) : boolean;
+
+    { s1<=s2 (s1 is subset of s2) }
+    function DynSetSubset(const s1,s2 : TDynSet) : boolean;
+
+    { test if s is empty }
+    function DynSetIsEmpty(const s : TDynSet) : boolean;
+
+    { return an empty set }
+    function DynSetEmpty : TDynSet;
+
+    { return a deep copy of s }
+    function DynSetCopy(const s : TDynSet) : TDynSet;
 
     { output DynSet }
     procedure PrintDynSet(var f : text;s : TDynSet);
@@ -65,18 +100,43 @@ unit cdynset;
     uses
       cutils;
 
-    procedure DynSetInclude(var s : tDynset;e : integer);
+    { mask of element e within its byte }
+    function DynSetMask(e : integer) : byte; inline;
+      begin
+{$ifdef FPC_BIG_ENDIAN}
+        result:=$80 shr (e mod 8);
+{$else FPC_BIG_ENDIAN}
+        result:=1 shl (e mod 8);
+{$endif FPC_BIG_ENDIAN}
+      end;
+
+
+    procedure DynSetExpand(var s : TDynSet;maxelement : integer);
+      var
+        needed, oldlen: integer;
+      begin
+        needed:=(maxelement div 8)+1;
+        oldlen:=length(s);
+        if needed>oldlen then
+          begin
+            setlength(s,needed);
+            fillchar(s[oldlen],needed-oldlen,0);
+          end;
+      end;
+
+
+    procedure DynSetInclude(var s : TDynSet;e : integer);
       var
         e8 : Integer;
       begin
         e8:=e div 8;
         if e8>high(s) then
           SetLength(s,e8+1);
-        s[e8]:=s[e8] or (1 shl (e mod 8));
+        s[e8]:=s[e8] or DynSetMask(e);
       end;
 
 
-    procedure DynSetIncludeSet(var d : tDynset;const s : tDynset);
+    procedure DynSetIncludeSet(var d : TDynSet;const s : TDynSet);
       var
         i : integer;
       begin
@@ -87,7 +147,7 @@ unit cdynset;
       end;
 
 
-    procedure DynSetExcludeSet(var d : tDynset;const s : tDynset);
+    procedure DynSetExcludeSet(var d : TDynSet;const s : TDynSet);
       var
         i : integer;
       begin
@@ -98,29 +158,29 @@ unit cdynset;
       end;
 
 
-    procedure DynSetExclude(var s : tDynset;e : integer);
+    procedure DynSetExclude(var s : TDynSet;e : integer);
       var
         e8 : Integer;
       begin
         e8:=e div 8;
         if e8<=high(s) then
-          s[e8]:=s[e8] and not(1 shl (e mod 8));
+          s[e8]:=s[e8] and not(DynSetMask(e));
       end;
 
 
-    function DynSetIn(const s : tDynset;e : integer) : boolean;
+    function DynSetIn(const s : TDynSet;e : integer) : boolean;
       var
         e8 : Integer;
       begin
         e8:=e div 8;
-        if e8<=high(s) then
-          result:=(s[e8] and (1 shl (e mod 8)))<>0
+        if (e<0) or (e8>high(s)) then
+          result:=false
         else
-          result:=false;
+          result:=(s[e8] and DynSetMask(e))<>0;
       end;
 
 
-    procedure DynSetUnion(var d : tDynset;const s1,s2 : tDynset);
+    procedure DynSetUnion(var d : TDynSet;const s1,s2 : TDynSet);
       var
         i : integer;
       begin
@@ -136,7 +196,14 @@ unit cdynset;
       end;
 
 
-    procedure DynSetIntersect(var d : tDynset;const s1,s2 : tDynset);
+    function DynSetUnionF(const s1,s2 : TDynSet) : TDynSet;
+      begin
+        result:=nil;
+        DynSetUnion(result,s1,s2);
+      end;
+
+
+    procedure DynSetIntersect(var d : TDynSet;const s1,s2 : TDynSet);
       var
         i : integer;
       begin
@@ -146,7 +213,14 @@ unit cdynset;
       end;
 
 
-    procedure DynSetDiff(var d : tDynset;const s1,s2 : tDynset);
+    function DynSetIntersectF(const s1,s2 : TDynSet) : TDynSet;
+      begin
+        result:=nil;
+        DynSetIntersect(result,s1,s2);
+      end;
+
+
+    procedure DynSetDiff(var d : TDynSet;const s1,s2 : TDynSet);
       var
         i : integer;
       begin
@@ -159,33 +233,122 @@ unit cdynset;
       end;
 
 
-    function DynSetNotEqual(const s1,s2 : tDynset) : boolean;
-      var
-        i : integer;
+    function DynSetDiffF(const s1,s2 : TDynSet) : TDynSet;
       begin
+        result:=nil;
+        DynSetDiff(result,s1,s2);
+      end;
+
+
+    procedure DynSetSymDif(var d : TDynSet;const s1,s2 : TDynSet);
+      var
+        i, minlen : integer;
+      begin
+        SetLength(d,max(Length(s1),Length(s2)));
+        minlen:=min(length(s1),length(s2));
+        for i:=0 to minlen-1 do
+          d[i]:=s1[i] xor s2[i];
+        for i:=minlen to length(s1)-1 do
+          d[i]:=s1[i];
+        for i:=minlen to length(s2)-1 do
+          d[i]:=s2[i];
+      end;
+
+
+    function DynSetSymDifF(const s1,s2 : TDynSet) : TDynSet;
+      begin
+        result:=nil;
+        DynSetSymDif(result,s1,s2);
+      end;
+
+
+    function DynSetNotEqual(const s1,s2 : TDynSet) : boolean;
+      begin
+        result:=not DynSetEqual(s1,s2);
+      end;
+
+
+    function DynSetEqual(const s1,s2 : TDynSet) : boolean;
+      var
+        i, minlen : integer;
+      begin
+        minlen:=min(length(s1),length(s2));
+        for i:=0 to minlen-1 do
+          if s1[i]<>s2[i] then
+            begin
+              result:=false;
+              exit;
+            end;
+        { check that trailing bytes in the longer array are all zero }
+        for i:=minlen to length(s1)-1 do
+          if s1[i]<>0 then
+            begin
+              result:=false;
+              exit;
+            end;
+        for i:=minlen to length(s2)-1 do
+          if s2[i]<>0 then
+            begin
+              result:=false;
+              exit;
+            end;
         result:=true;
-        { one set could be larger than the other }
-        if length(s1)>length(s2) then
+      end;
+
+
+    function DynSetSubset(const s1,s2 : TDynSet) : boolean;
+      var
+        i: integer;
+      begin
+        for i:=0 to length(s1)-1 do
           begin
-            for i:=0 to high(s2) do
-              if s1[i]<>s2[i] then
-                exit;
-            { check remaining part being zero }
-            for i:=length(s2) to high(s1) do
-              if s1[i]<>0 then
-                exit;
-          end
-        else
-          begin
-            for i:=0 to high(s1) do
-              if s1[i]<>s2[i] then
-                exit;
-            { check remaining part being zero }
-            for i:=length(s1) to high(s2) do
-              if s2[i]<>0 then
-                exit;
+            if i<length(s2) then
+              begin
+                if (s1[i] and not s2[i])<>0 then
+                  begin
+                    result:=false;
+                    exit;
+                  end;
+              end
+            else
+              begin
+                if s1[i]<>0 then
+                  begin
+                    result:=false;
+                    exit;
+                  end;
+              end;
           end;
-        result:=false;
+        result:=true;
+      end;
+
+
+    function DynSetIsEmpty(const s : TDynSet) : boolean;
+      var
+        i: integer;
+      begin
+        for i:=0 to length(s)-1 do
+          if s[i]<>0 then
+            begin
+              result:=false;
+              exit;
+            end;
+        result:=true;
+      end;
+
+
+    function DynSetEmpty : TDynSet;
+      begin
+        result:=nil;
+      end;
+
+
+    function DynSetCopy(const s : TDynSet) : TDynSet;
+      begin
+        result:=nil;
+        setlength(result,length(s));
+        if length(s)>0 then
+          move(s[0],result[0],length(s));
       end;
 
 
@@ -209,4 +372,3 @@ unit cdynset;
 
 
 end.
-
