@@ -573,6 +573,14 @@ implementation
                 Comment(V_Warning, 'Unsupported esp-idf version');
             end;
 {$endif RISCV32}
+{$ifdef AVR}
+        if not(curr.is_unit) and (target_info.system=system_avr_embedded) and
+           (cs_link_cvt in current_settings.globalswitches) then
+          if embedded_controllers[current_settings.controllertype].flashsize>8192 then
+            CheckAddUnit('cvt_jmp')
+          else
+            CheckAddUnit('cvt_rjmp');
+{$endif AVR}
       end;
 
     { Load units provided on the command line

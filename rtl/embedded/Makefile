@@ -1035,7 +1035,7 @@ CPU_UNITS=atxmega8e5 atxmega16a4 atxmega16a4u atxmega16c4 atxmega16d4 atxmega16e
 	  atxmega32e5 avr64da28 avr64da28s avr64da32 avr64da32s avr64da48 avr64da48s \
 	  avr64da64 avr64da64s avr64db28 avr64db32 avr64db48 avr64db64 avr64dd14 \
 	  avr64dd20 avr64dd28 avr64dd32 avr64du28 avr64du32 avr64ea28 avr64ea32 \
-	  avr64ea48
+	  avr64ea48 cvt_jmp cvt_rjmp
 CPU_UNITS_DEFINED=1
 endif
 ifeq ($(SUBARCH),avrxmega3)
@@ -1051,14 +1051,14 @@ CPU_UNITS=atmega808 atmega809 atmega1608 atmega1609 atmega3208 atmega3209 atmega
 	  avr32da28s avr32da32 avr32da32s avr32da48 avr32da48s avr32db28 avr32db32 \
 	  avr32db48 avr32dd14 avr32dd20 avr32dd28 avr32dd32 avr32du14 avr32du20 \
 	  avr32du28 avr32du32 avr32ea28 avr32ea32 avr32ea48 avr32eb14 avr32eb20 \
-	  avr32eb28 avr32eb32
+	  avr32eb28 avr32eb32 cvt_jmp cvt_rjmp
 CPU_UNITS_DEFINED=1
 endif
 ifeq ($(SUBARCH),avrxmega4)
 CPU_UNITS=atxmega64a3 atxmega64a3u atxmega64a4u atxmega64b1 atxmega64b3 atxmega64c3 \
 	  atxmega64d3 atxmega64d4 avr128da28 avr128da28s avr128da32 avr128da32s \
 	  avr128da48 avr128da48s avr128da64 avr128da64s avr128db28 avr128db32 avr128db48 \
-	  avr128db64
+	  avr128db64 cvt_jmp cvt_rjmp
 CPU_UNITS_DEFINED=1
 endif
 ifeq ($(SUBARCH),avrxmega5)

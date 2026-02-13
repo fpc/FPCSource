@@ -2387,6 +2387,7 @@ const
         'Discard code initializing the zero register and stack pointer', {cs_link_discard_zeroreg_sp}
         'Discard initializing data', {cs_link_discard_copydata}
         'Discard jump to PASCALMAIN', {cs_link_discard_jmp_main}
+        'Link compact vector table startup code',
         'Link-Time Optimization disabled for system unit', {cs_lto_nosystem}
         'Assemble on target OS', {cs_assemble_on_target}
         'Use a memory model to support >2GB static data on 64 Bit target', {cs_large}
