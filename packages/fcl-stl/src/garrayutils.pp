@@ -243,7 +243,7 @@ class procedure TArrayUtils.RandomShuffle(Arr: TArr; size: SizeUInt);
 var i,r:SizeUInt; temp:Tvalue;
 begin
   for i:=size-1 downto 1 do begin
-    r:=random(Int64(i));
+    r:=random(Int64(i+1));
     temp:=Arr[r];
     Arr[r]:=Arr[i];
     Arr[i]:=temp;
