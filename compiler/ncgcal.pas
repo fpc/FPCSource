@@ -334,13 +334,13 @@ implementation
       begin
         hlcg.maybe_change_load_node_reg(current_asmdata.CurrAsmList,left,true);
 
-        paramanager.createtempparaloc(current_asmdata.CurrAsmList,aktcallnode.procdefinition.proccalloption,parasym,not followed_by_stack_tainting_call_cached,tempcgpara);
+        paramanager.createtempparaloc(current_asmdata.CurrAsmList,callnode.procdefinition.proccalloption,parasym,not followed_by_stack_tainting_call_cached,tempcgpara);
 
         { handle varargs first, because parasym is not valid }
         if (cpf_varargs_para in callparaflags) then
           begin
             if paramanager.push_addr_param(vs_value,left.resultdef,
-                   aktcallnode.procdefinition.proccalloption) then
+                   callnode.procdefinition.proccalloption) then
               push_addr_para
             else
               push_value_para;
@@ -362,13 +362,13 @@ implementation
                        param if the method is part of a type helper which
                        extends a pointer type }
                      (vo_is_self in parasym.varoptions) and
-                     (aktcallnode.procdefinition.owner.symtabletype=objectsymtable) and
-                     (is_objectpascal_helper(tdef(aktcallnode.procdefinition.owner.defowner))) and
-                     (tobjectdef(aktcallnode.procdefinition.owner.defowner).extendeddef.typ=pointerdef)
+                     (callnode.procdefinition.owner.symtabletype=objectsymtable) and
+                     (is_objectpascal_helper(tdef(callnode.procdefinition.owner.defowner))) and
+                     (tobjectdef(callnode.procdefinition.owner.defowner).extendeddef.typ=pointerdef)
                    )
                  ) and
                 paramanager.push_addr_param(parasym.varspez,parasym.vardef,
-                    aktcallnode.procdefinition.proccalloption));
+                    callnode.procdefinition.proccalloption));
 
             if pushaddr then
               begin
@@ -385,7 +385,7 @@ implementation
           push_formal_para
         { Normal parameter }
         else if paramanager.push_copyout_param(parasym.varspez,parasym.vardef,
-                    aktcallnode.procdefinition.proccalloption) then
+                    callnode.procdefinition.proccalloption) then
           push_copyout_para
         else
           begin
@@ -396,7 +396,7 @@ implementation
                     (left.resultdef.typ in [pointerdef,classrefdef])
                    ) and
                 paramanager.push_addr_param(parasym.varspez,parasym.vardef,
-                    aktcallnode.procdefinition.proccalloption)) and
+                    callnode.procdefinition.proccalloption)) and
                 { dyn. arrays passed to an array of const must be passed by value, see tests/webtbs/tw4219.pp }
                 not(
                     is_array_of_const(parasym.vardef) and
@@ -432,12 +432,12 @@ implementation
              { for type helper/record constructor check that it is self parameter }
              (
                (vo_is_self in parasym.varoptions) and
-               (aktcallnode.procdefinition.proctypeoption=potype_constructor) and
+               (callnode.procdefinition.proctypeoption=potype_constructor) and
                (parasym.vardef.typ<>objectdef)
              ) or
              (vo_is_funcret in parasym.varoptions)
            ) then
-          location_copy(aktcallnode.location,left.location);
+          location_copy(callnode.location,left.location);
       end;
 
 
@@ -989,7 +989,6 @@ implementation
         href : treference;
         pop_size : longint;
         pvreg : tregister;
-        oldaktcallnode : tcallnode;
         retlocitem: pcgparalocation;
         callpvdef: tabstractprocdef;
         pd : tprocdef;
@@ -1050,14 +1049,8 @@ implementation
               end;
           end;
 
-         { Process parameters, register parameters will be loaded
-           in imaginary registers. The actual load to the correct
-           register is done just before the call }
-         oldaktcallnode:=aktcallnode;
-         aktcallnode:=self;
          if assigned(left) then
            tcallparanode(left).secondcallparan;
-         aktcallnode:=oldaktcallnode;
 
          { procedure variable or normal function call ? }
          if (right=nil) then
