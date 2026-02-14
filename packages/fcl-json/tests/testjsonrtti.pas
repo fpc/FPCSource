@@ -85,6 +85,8 @@ type
     procedure TestDateTimeProp5;
     procedure TestDateTimeProp6;
     procedure TestDateTimeProp7;
+    Procedure TestQwordProp;
+
     Procedure TestVariantShortint;
     Procedure TestVariantbyte;
     Procedure TestVariantword;
@@ -1506,6 +1508,20 @@ begin
   StreamObject(TDateTimeComponent3.Create(Nil));
   AssertPropCount(1);
   AssertProp('DateTimeProp',FormatDateTime('hh:nn',EncodeDate(1996,8,1)+EncodeTime(23,20,0,0)));
+end;
+
+procedure TTestJSONStreamer.TestQwordProp;
+var
+  D : TJSONObject;
+  V : TJSONData;
+  Obj : TQWordObj;
+begin
+  Obj := TQWordObj.Create;
+  Obj.Value := High(QWord);
+  D:=StreamObject(Obj);
+  V := D.Find('Value');
+  AssertEquals('Max QWord type', 'TJSONQWordNumber', V.ClassName);
+  AssertEquals('Max QWord', High(QWord), V.AsQWord);
 end;
 
 procedure TTestJSONStreamer.TestVariantShortint;
