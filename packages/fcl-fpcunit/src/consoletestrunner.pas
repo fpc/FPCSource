@@ -55,11 +55,16 @@ type
     FSuite: String;
     FRunMode : TRunMode;
   protected
-    Class function StrToFormat(S: String): TFormat;
-    function DefaultsFileName: String;
+    const
+      CDefaultsFileNameConst = 'testdefaults.ini';
+      CDefaultsFileNameEnvVar = 'FPCUNITCONFIG';
+      CDefaultsFileIniSection = 'defaults';
+    function DefaultsFileName: String; virtual;
+    procedure ReadDefaults; virtual;
+  protected
+    Class function StrToFormat(const S: String): TFormat;
     procedure RunSuite; virtual;
     procedure ShowTestList; virtual;
-    procedure ReadDefaults; virtual;
     procedure Usage; virtual;
     property FileName: string read FFileName write FFileName;
     property LongOpts: TStrings read FLongOpts write FLongOpts;
@@ -84,10 +89,59 @@ implementation
 uses inifiles, testdecorator;
 
 const
-  ShortOpts = 'alhp';
-  DefaultLongOpts: array[1..11] of string =
-     ('all', 'list', 'progress', 'help', 'skiptiming',
-      'suite:', 'format:', 'file:', 'stylesheet:','sparse','no-addresses');
+  ArgHelp = 'help';
+  ArgList = 'list';
+  ArgAll = 'all';
+  ArgSuite = 'suite';
+  ArgFormat = 'format';
+  ArgSkipTiming = 'skiptiming';
+  ArgSparse = 'sparse';
+  ArgNoAddresses = 'no-addresses';
+  ArgStyleSheet = 'stylesheet';
+  ArgProgress = 'progress';
+  ArgStatus = 'status';
+  ArgNoExitCode = 'no-exitcode';
+  ArgFile = 'file';
+  ArgNoConfig = 'no-config';
+
+const
+  ShortOpts =
+    'h'+ // ArgHelp
+    'l'+ // ArgList
+    'a'+ // ArgAll
+    's:'+ // ArgSuite (requires value)
+    't'+ // ArgSkipTiming
+    'q'+ // ArgSparse
+    'd'+ // ArgNoAddresses
+    'y:'+ // ArgStyleSheet (requires value)
+    'p'+ // ArgProgress
+    'u'+ // ArgStatus
+    'x'+ // ArgNoExitCode
+    'f:'+ // ArgFile (requires value)
+    'n'; // ArgNoConfig
+  DefaultLongOpts: array[1..14] of string = (
+    ArgHelp,
+    ArgList,
+    ArgAll,
+    ArgSuite+':', // requires value
+    ArgFormat+':', // requires value
+    ArgSkipTiming,
+    ArgSparse,
+    ArgNoAddresses,
+    ArgStyleSheet+':', // requires value
+    ArgProgress,
+    ArgStatus,
+    ArgNoExitCode,
+    ArgFile+':', // requires value
+    ArgNoConfig
+  );
+
+const
+  ValXML = 'xml';
+  ValPlain = 'plain';
+  ValPlainNoTiming = 'plainnotiming';
+  ValLatex = 'latex';
+  ValJUnit = 'junit';
 
 Type
   TTestDecoratorClass = Class of TTestDecorator;
@@ -229,7 +283,7 @@ begin
   inherited Destroy;
 end;
 
-class function TTestRunner.StrToFormat(S: String): TFormat;
+class function TTestRunner.StrToFormat(const S: String): TFormat;
 
 begin
   Case lowercase(S) of
@@ -329,23 +383,31 @@ begin
     writeln('  --suite=MyTestSuiteName   run single test suite class');
     WriteCustomHelp;
     writeln;
-    Writeln('Defaults for long options will be read from ini file ',DefaultsFileName);
-    writeln('The results can be redirected to a file,');
-    writeln('for example: ', ParamStr(0),' --all > results.xml');
+    writeln('Configuration file:');
+    writeln('  Defaults for long options can be specified in the "',CDefaultsFileNameConst,'" file in the executable folder.');
+    writeln('  The path to this file can be overridden by the environment variable "',CDefaultsFileNameEnvVar,'".');
+    writeln('  All values must be located in "[',CDefaultsFileIniSection,']" section, the option names specified without the "--" sign.');
+    writeln('  The value of logical options indicated via "1"/"0". Example file contents:');
+    writeln('    [',CDefaultsFileIniSection,']');
+    writeln('    ',ArgAll,'=1');
+    writeln('    ',ArgFormat,'=',ValPlain);
+    writeln('    ',ArgSparse,'=1');
+    writeln('  Command line options take precedence and override the values in this file.');
 end;
 
 Function TTestRunner.DefaultsFileName : String;
 
 begin
-  Result:=GetEnvironmentVariable('FPCUNITCONFIG');
-  if (Result='') then
-    Result:=Location+'testdefaults.ini';
+  Result:=GetEnvironmentVariable(CDefaultsFileNameEnvVar);
+  if Result='' then
+    Result:=CDefaultsFileNameConst;
+  Result:=ExpandFileName(Result,Location);
 end;
 
 procedure TTestRunner.ReadDefaults;
 
 Const
-  S = 'defaults';
+  S = CDefaultsFileIniSection;
 
 Var
   Ini : TMemIniFile;
