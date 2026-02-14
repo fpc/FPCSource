@@ -1592,7 +1592,7 @@ begin
                         'WHERE '+
                           '(r.rdb$system_flag = 0 or r.rdb$system_flag is null) and (rdb$relation_name = ''' + Uppercase(SchemaObjectName) + ''') ' +
                         'ORDER BY '+
-                          'r.rdb$field_name';
+                          'r.rdb$field_position';
     stSequences  : s := 'SELECT ' +
                           'rdb$generator_id         as recno,' +
                           '''' + DatabaseName + ''' as sequence_catalog,' +
