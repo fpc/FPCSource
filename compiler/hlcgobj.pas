@@ -5028,7 +5028,8 @@ implementation
       end;
 
       { initialises temp. ansi/wide string data }
-      if (current_procinfo.procdef.proctypeoption<>potype_exceptfilter) then
+      if (current_procinfo.procdef.proctypeoption<>potype_exceptfilter) or
+         (target_info.system=system_aarch64_win64) then
         inittempvariables(list);
     end;
 
@@ -5147,6 +5148,20 @@ implementation
             is_managed_type(hp^.def) then
           begin
             tg.temp_to_ref(hp,href);
+            { On AArch64-Win64 exceptfilters have their own SP-relative temps
+              but share the parent's temp allocator. Parent temps are already
+              initialised by the parent; only handler-local temps need zeroing.
+              adjust_exceptfilter_ref converts parent temps to FP-relative,
+              so if the base changed from the framepointer it is a parent temp. }
+            if (current_procinfo.procdef.proctypeoption=potype_exceptfilter) then
+              begin
+                cg.adjust_exceptfilter_ref(href,false);
+                if href.base<>current_procinfo.framepointer then
+                  begin
+                    hp:=hp^.next;
+                    continue;
+                  end;
+              end;
             g_initialize(list,hp^.def,href);
           end;
          hp:=hp^.next;
