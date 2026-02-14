@@ -523,7 +523,7 @@ begin
   SHA512.Init;
   SetLength(lBuffer,BUFFER_SIZE);
   repeat
-     aLen:=aStream.Read(lBuffer, BUFFER_SIZE);
+     aLen:=aStream.Read(lBuffer[0], BUFFER_SIZE);
      if aLen = 0 then
        Break;
      SHA512.Update(PByte(lBuffer),aLen);

@@ -346,7 +346,7 @@ begin
   SHA256.Init;
   SetLength(Buffer,BUFFER_SIZE);
   repeat
-     aLen:=aStream.Read(Buffer, BUFFER_SIZE);
+     aLen:=aStream.Read(Buffer[0], BUFFER_SIZE);
      if aLen = 0 then
        Break;
      SHA256.Update(PByte(Buffer),aLen);
