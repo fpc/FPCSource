@@ -357,6 +357,9 @@ end;
 function THashmap.getenumerator: TIterator;
 begin
   result:=iterator;
+  result.Fh := 0;
+  // Dirty trick. Seems to work with range and overflow checks
+  result.Fp := High(SizeUInt); 
 end;
 
 function THashmapIterator.GetKey: TKey;
