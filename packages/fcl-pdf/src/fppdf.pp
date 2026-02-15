@@ -4139,8 +4139,8 @@ begin
     if Degrees <> 0.0 then
     begin
       rad := DegToRad(-Degrees);
-      a1 := Cos(rad); b1 := -Sin(rad);
-      c1 := Sin(rad); d1 := a1;
+      SinCos(rad, c1, a1); b1 := -c1;
+      d1 := a1;
     end
     else
       WriteString(FloatStr(X)+' '+FloatStr(Y)+' TD'+CRLF, AStream);
@@ -4291,8 +4291,8 @@ begin
     if Degrees <> 0.0 then
     begin
       rad := DegToRad(-Degrees);
-      a1 := Cos(rad); b1 := -Sin(rad);
-      c1 := Sin(rad); d1 := a1;
+      SinCos(rad, c1, a1); b1 := -c1;
+      d1 := a1;
     end
     else
       WriteString(FloatStr(X)+' '+FloatStr(Y)+' TD'+CRLF, AStream);
