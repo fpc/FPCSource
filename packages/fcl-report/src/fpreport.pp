@@ -9634,8 +9634,30 @@ begin
     begin
       // do nothing special
     end
-    else if (FVisibleOnPage in [vpNotOnFirst, vpLastOnly, vpNotOnFirstAndLast]) then
-      Exit; // user asked to skip this band
+    else if (FVisibleOnPage in [vpNotOnFirst, vpNotOnFirstAndLast]) then
+      Exit // user asked to skip this band
+    else if Report.TwoPass and Report.IsFirstPass then
+    begin
+      if FVisibleOnPage in [vpLastOnly] then
+      begin // last page not yet known. Include on page 1 to reserve space one time in the report
+        // do nothing special
+      end
+      else if FVisibleOnPage in [vpNotOnLast] then
+        Exit // last page not yet known. Exclude on page 1 to reserve space n-1 times in the report
+    end
+    else if (not Report.IsFirstPass) then
+    begin
+      if FVisibleOnPage in [vpLastOnly] then
+      begin // second pass, exclude if page 1 is not the last page
+        if Report.FPerDesignerPageCount[Report.FRTCurDsgnPageIdx] > 1 then
+          Exit; // user asked to skip this band
+      end
+      else if FVisibleOnPage in [vpNotOnLast] then
+      begin // second pass, exclude if page 1 is the last page
+        if Report.FPerDesignerPageCount[Report.FRTCurDsgnPageIdx] = 1 then
+          Exit; // user asked to skip this band
+      end;
+    end
   end
   else if (Report.FPageNumberPerDesignerPage > 1) then
   begin  // multi-page rules
@@ -9644,6 +9666,25 @@ begin
     else if FVisibleOnPage in [vpNotOnFirst] then
     begin
       // do nothing special
+    end
+    else if Report.TwoPass and Report.IsFirstPass then
+    begin
+      if FVisibleOnPage in [vpLastOnly] then
+        Exit // first pass: include on page 1 only, to reserve space only 1 time in the report
+      else if FVisibleOnPage in [vpFirstAndLastOnly] then
+      begin // first pass: include on pages 1-2, to reserve space 2 times in the report
+        if Report.FPageNumberPerDesignerPage > 2 then
+          Exit;  // skip this band, space has been reserved 2 times already
+      end
+      else if FVisibleOnPage in [vpNotOnLast] then
+      begin // first pass: exclude on page 1, include on other pages, to reserve space n-1 times
+        // do nothing special
+      end
+      else if FVisibleOnPage in [vpNotOnFirstAndLast] then
+      begin // first pass: exclude on pages 1-2, include on other pages, to reserve space n-2 times
+        if Report.FPageNumberPerDesignerPage <= 2 then
+          Exit; // skip this band, space will be reserved from page 3, to reserve space n-2 times
+      end;
     end
     else if (not Report.IsFirstPass) then
     begin // last page rules
