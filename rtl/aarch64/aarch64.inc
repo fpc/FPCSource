@@ -118,7 +118,6 @@ procedure RaisePendingExceptions;
 procedure fpc_throwfpuexception;[public,alias:'FPC_THROWFPUEXCEPTION'];
   var
     fpsr : qword;
-    f: TFPUException;
   begin
     { at this point, we know already, that an exception will be risen }
     fpsr:=getfpsr;
