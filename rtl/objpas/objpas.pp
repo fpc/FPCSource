@@ -402,6 +402,24 @@ begin
         end;
     end;
 end;
+
+procedure FinalizeResourceStringRefs;
+var
+  i: integer;
+  ptable: PResStrInitEntry;
+begin
+  for i:=1 to ResStrInitTable^.Count do
+    begin
+      ptable:=ResStrInitTable^.Tables[i];
+      while Assigned(ptable^.Addr) do
+        begin
+          AnsiString(ptable^.Addr^):='';
+          Inc(ptable);
+        end;
+    end;
+end;
+
+
 {$endif FPC_HAS_RESSTRINITS}
 
 Var
@@ -524,6 +542,9 @@ end;
 Initialization
 {  ResetResourceTables;}
 finalization
+  {$ifdef FPC_HAS_RESSTRINITS}
+  FinalizeResourceStringRefs;
+  {$endif FPC_HAS_RESSTRINITS}
   FinalizeResourceTables;
 {$endif FPC_HAS_FEATURE_RESOURCES}
 end.
