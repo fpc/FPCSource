@@ -433,12 +433,13 @@ var
         for x:=0 to FInfo.output_width-1 do
           SetPixel(x, y, CMYKToRGB(SampRow^[x*4+0], SampRow^[x*4+1], SampRow^[x*4+2], SampRow^[x*4+3]));
       else
-        for x:=0 to FInfo.output_width-1 do begin
-          Color.Red:=SampRow^[x*3+0] * 257;
-          Color.Green:=SampRow^[x*3+1] * 257;
-          Color.Blue:=SampRow^[x*3+2] * 257;
-          SetPixel(x, y, Color);
-        end;
+        if (FInfo.out_color_components = 3) then 
+          for x:=0 to FInfo.output_width-1 do begin
+            Color.Red:=SampRow^[x*3+0] * 257;
+            Color.Green:=SampRow^[x*3+1] * 257;
+            Color.Blue:=SampRow^[x*3+2] * 257;
+            SetPixel(x, y, Color);
+          end;
       end;
 
       inc(y);
