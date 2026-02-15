@@ -877,7 +877,8 @@ begin
         NewSize := ASize;
       end
       else
-        NewSize := ASize div FConnectionCharsetInfo.mbmaxlen;
+        // INFO tables sometimes report not multiple of mbmaxlen. issue #40186
+        NewSize := (ASize + FConnectionCharsetInfo.mbmaxlen - 1) div FConnectionCharsetInfo.mbmaxlen;
 {$ELSE}
       NewSize := ASize;
 {$ENDIF}
