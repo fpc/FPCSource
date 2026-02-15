@@ -501,8 +501,10 @@ begin
   ReleaseIBase60;
 {$ELSE}
   // Shutdown embedded subsystem with timeout 300ms (Firebird 2.5+)
-  // Required before unloading library; has no effect on non-embedded client
-  if (pointer(fb_shutdown)<>nil) and (fb_shutdown(300,1)<>0) then
+  // Only call fb_shutdown for embedded Firebird; calling it for a
+  // client connection shuts down the networking subsystem, causing
+  // subsequent reconnect attempts to fail with "connection shutdown".
+  if UseEmbeddedFirebird and (pointer(fb_shutdown)<>nil) and (fb_shutdown(300,1)<>0) then
   begin
     //todo: log error; still try to unload library below as the timeout may have been insufficient
   end;
