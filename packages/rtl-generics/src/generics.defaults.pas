@@ -1394,9 +1394,55 @@ begin
   Result := CompareStr(ALeft, ARight);
 end;
 
+// Used with permission from Arnaud Bouchez, see issue #40034
+function ByteCompareRawByteString(const A, B: RawByteString): integer;
+var
+  p1, p2: PByteArray;
+  l1, l2: PtrInt; // FPC will use very efficiently the CPU registers
+begin
+  // we can't use StrComp() since a RawByteString may contain #0
+  p1 := pointer(A);
+  p2 := pointer(B);
+  if p1 <> p2 then
+    if p1 <> nil then
+      if p2 <> nil then
+      begin
+        result := p1[0] - p2[0]; // compare first char for quicksort
+        if result <> 0 then
+          exit;
+        l1 := Length(A);
+        l2 := Length(B);
+        result := l1;
+        if l1 > l2 then
+          l1 := l2;
+        dec(result, l2);
+        p1 := @p1[l1];
+        p2 := @p2[l1];
+        dec(l1); // we already compared the first char
+        if l1 = 0 then
+          exit;
+        l1 := -l1;
+        repeat
+          if p1[l1] <> p2[l1] then
+            break;
+          inc(l1);
+          if l1 = 0 then
+            exit;
+        until false;
+        result := p1[l1] - p2[l1];
+      end
+      else
+        result := 1  // p2=''
+    else
+      result := -1   // p1=''
+  else
+    result := 0;     // p1=p2
+end;
+
+
 class function TCompare.AnsiString(const ALeft, ARight: AnsiString): Integer;
 begin
-  Result := AnsiCompareStr(ALeft, ARight);
+  Result := ByteCompareRawByteString(ALeft, ARight);
 end;
 
 class function TCompare.WideString(const ALeft, ARight: WideString): Integer;
