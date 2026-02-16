@@ -1987,7 +1987,10 @@ type
         writeln(outfp^, 'Allocated at:');
       DumpTrace(outfp^, n);
     end;
-    writeln(outfp^, 'Detected at:');
+    if ([CheckFlag.InCheckHeap, CheckFlag.InPublicCheckHeap] * cf = [CheckFlag.InCheckHeap]) or (CheckFlag.InFreeToFreeItems in cf) then
+      writeln(outfp^, 'Incidentally spotted by:')
+    else
+      writeln(outfp^, 'Detected by:');
     DumpStackAndMaybeThrowRunError(cf);
     dec(insideReport);
   end;
@@ -2746,7 +2749,7 @@ finalization
           'Exitcode = ', ExitCode)
       else
       begin
-        ht.CheckHeap(High(SizeUint), []);
+        CheckHeap; // Note ht.ReportCorrupted makes a slight difference between CheckHeap and ht.CheckHeap when forming a message.
         ht.Report(ht.outfp^, GlobalSkipIfNoLeaks);
       end;
     end;
