@@ -157,7 +157,6 @@ interface
           oldcurrent_filepos,
           oldcurrent_tokenpos : tfileposinfo;
 
-
           replaytokenbuf,
           recordtokenbuf : tdynamicarray;
 
@@ -192,6 +191,8 @@ interface
           in_multiline_string, had_multiline_string : boolean;
           multiline_start_line : longint;
           multiline_start_column : word;
+
+          current_commentstyle : tcommentstyle; { needed to use read_comment from directives }
 
           constructor Create(const fn:string; is_macro: boolean = false);
           destructor Destroy;override;
@@ -305,7 +306,6 @@ interface
         token,                        { current token being parsed }
         idtoken    : ttoken;          { holds the token if the pattern is a known word }
 
-        current_commentstyle : tcommentstyle; { needed to use read_comment from directives }
 {$ifdef PREPROCWRITE}
         preprocfile     : tpreprocfile;  { used with only preprocessing }
 {$endif PREPROCWRITE}
