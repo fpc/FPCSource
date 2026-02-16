@@ -213,7 +213,7 @@ interface
           procedure gettokenpos;
           procedure inc_comment_level;
           procedure dec_comment_level;
-          procedure illegal_char(c:char);
+          procedure illegal_char(ch:char);
           procedure end_of_file;
           procedure checkpreprocstack;
           procedure poppreprocstack;
@@ -4298,15 +4298,15 @@ type
       end;
 
 
-    procedure tscannerfile.illegal_char(c:char);
+    procedure tscannerfile.illegal_char(ch:char);
       var
         s : string;
       begin
-        if c in [#32..#255] then
-          s:=''''+c+''''
+        if ch in [#32..#255] then
+          s:=''''+ch+''''
         else
-          s:='#'+tostr(ord(c));
-        Message2(scan_f_illegal_char,s,'$'+hexstr(ord(c),2));
+          s:='#'+tostr(ord(ch));
+        Message2(scan_f_illegal_char,s,'$'+hexstr(ord(ch),2));
       end;
 
 
