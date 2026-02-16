@@ -1350,13 +1350,11 @@ begin
               Handled:=true;
               bd:= AParams[i].AsBlob;
               l:=length(BD);
+              GetMem(ar[i],l+1);
+              ar[i][l]:=#0;
               if l>0 then
-                begin
-                GetMem(ar[i],l+1);
-                ar[i][l]:=#0;
                 Move(BD[0],ar[i]^, L);
-                lengths[i]:=l;
-                end;
+              lengths[i]:=l;
               end
             else
               s := GetAsString(AParams[i]);
