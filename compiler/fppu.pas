@@ -39,7 +39,7 @@ interface
     uses
       cmsgs,verbose,
       cutils,cclasses,cstreams,
-      globtype,globals,finput,fmodule,
+      globtype,globals,fpchash,finput,fmodule,
       symbase,ppu,symtype;
 
     type
@@ -903,7 +903,10 @@ var
       end;
 
     procedure tppumodule.writeusedmacros;
+      var
+        oldcrc : boolean;
       begin
+        oldcrc:=ppufile.do_crc;
         ppufile.do_crc:=false;
         is_initial:= true;
         initialmacrosymtable.foreach(@writeusedmacro,nil);
@@ -912,7 +915,7 @@ var
           globalmacrosymtable.foreach(@writeusedmacro,nil);
         localmacrosymtable.foreach(@writeusedmacro,nil);
         ppufile.writeentry(ibusedmacros);
-        ppufile.do_crc:=true;
+        ppufile.do_crc:=oldcrc;
       end;
 {$ENDIF}
 
@@ -920,8 +923,10 @@ var
       var
         hp  : tinputfile;
         ifile : sizeint;
+        oldcrc : boolean;
       begin
       { write the used source files }
+        oldcrc:=ppufile.do_crc;
         ppufile.do_crc:=false;
       { write source files directly in good order }
         for ifile:=0 to sourcefiles.nfiles-1 do
@@ -931,7 +936,7 @@ var
             ppufile.putlongint(hp.getfiletime);
          end;
         ppufile.writeentry(ibsourcefiles);
-        ppufile.do_crc:=true;
+        ppufile.do_crc:=oldcrc;
       end;
 
 
@@ -944,6 +949,10 @@ var
         { write a reference for each used unit }
         {$IFDEF Debug_WaitCRC}
         writeln('tppumodule.writeusedunit START ',realmodulename^,' intf=',intf);
+        {$ENDIF}
+        {$IFDEF Debug_IndirectCRC}
+        if intf then
+          writeln('INDIRECT_CRC tppumodule.writeusedunit ',hexstr(ppufile.indirect_crc,8));
         {$ENDIF}
         hp:=tused_unit(used_units.first);
         while assigned(hp) do
@@ -965,13 +974,17 @@ var
                ppufile.putlongint(longint(hp.interface_checksum));
                ppufile.putlongint(longint(hp.indirect_checksum));
                ppufile.do_crc:=oldcrc;
-               { combine all indirect checksums from units used by this unit }
+               { Combine all indirect checksums from units used by this unit.
+                 The indirect_crc contains the classes+records of this unit as well. }
                if intf then
-                 ppufile.indirect_crc:=ppufile.indirect_crc xor u.indirect_crc;
+                 ppufile.indirect_crc:=UpdateCrc32(ppufile.indirect_crc,u.indirect_crc,sizeof(u.indirect_crc));
+               {$IFDEF Debug_IndirectCRC}
+               if intf then
+                 writeln('INDIRECT_CRC tppumodule.writeusedunit ',hexstr(ppufile.indirect_crc,8),' ',u.modulename^,' ',hexstr(u.indirect_crc,8),' ');
+               {$ENDIF}
              end;
            hp:=tused_unit(hp.next);
          end;
-        ppufile.do_interface_crc:=true;
         ppufile.writeentry(ibloadunit);
       end;
 
@@ -1986,12 +1999,12 @@ var
          crc:=ppufile.crc;
          if in_interface then
            begin
-             // make sure, the interface_crc is not affected by the implementation
+             // Note: the interface_crc is not affected by the implementation
              interface_crc:=ppufile.interface_crc;
              indirect_crc:=ppufile.indirect_crc;
            end;
          {$IFDEF Debug_WaitCRC}
-         writeln('tppumodule.getppucrc ',realmodulename^,' in_interface=',in_interface,' crc=',hexstr(crc,8),' interface_crc=',hexstr(interface_crc,8));
+         writeln('tppumodule.getppucrc ',realmodulename^,' in_interface=',in_interface,' crc=',hexstr(crc,8),' interface_crc=',hexstr(interface_crc,8),' indirect_crc=',hexstr(indirect_crc,8));
          {$ENDIF}
 
          { end of implementation, to generate a correct ppufile

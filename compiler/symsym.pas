@@ -658,7 +658,7 @@ implementation
 
     procedure tstoredsym.ppuwrite(ppufile:tcompilerppufile);
       var
-        oldintfcrc : boolean;
+        oldcrc : boolean;
       begin
 {$ifdef symansistr}
          ppufile.putansistring(realname);
@@ -675,12 +675,12 @@ implementation
            This does mean that changing e.g. the "deprecated" state of a symbol
            by itself will not trigger a recompilation of dependent units.
          }
-         oldintfcrc:=ppufile.do_interface_crc;
-         ppufile.do_interface_crc:=false;
+         oldcrc:=ppufile.do_crc;
+         ppufile.do_crc:=false;
          ppufile.putset(tppuset2(symoptions));
          if sp_has_deprecated_msg in symoptions then
            ppufile.putstring(deprecatedmsg^);
-         ppufile.do_interface_crc:=oldintfcrc;
+         ppufile.do_crc:=oldcrc;
          trtti_attribute_list.ppuwrite(rtti_attribute_list,ppufile);
       end;
 
@@ -1901,15 +1901,15 @@ implementation
 
     procedure tabstractvarsym.ppuwrite(ppufile:tcompilerppufile);
       var
-        oldintfcrc : boolean;
+        oldcrc : boolean;
       begin
          inherited ppuwrite(ppufile);
          ppufile.putbyte(byte(varspez));
-         oldintfcrc:=ppufile.do_crc;
+         oldcrc:=ppufile.do_crc;
          ppufile.do_crc:=false;
          ppufile.putbyte(byte(varregable));
          ppufile.putset(tppuset1(varsymaccess));
-         ppufile.do_crc:=oldintfcrc;
+         ppufile.do_crc:=oldcrc;
          ppufile.putderef(vardefderef);
          ppufile.putset(tppuset4(varoptions));
       end;
@@ -2496,7 +2496,7 @@ implementation
 
     procedure tparavarsym.ppuwrite(ppufile:tcompilerppufile);
       var
-        oldintfcrc : boolean;
+        oldcrc : boolean;
       begin
          inherited ppuwrite(ppufile);
          ppufile.putword(paranr);
@@ -2506,13 +2506,13 @@ implementation
            we write them to the unit file.
            This enables constant folding for inline procedures loaded from units
          }
-         oldintfcrc:=ppufile.do_crc;
+         oldcrc:=ppufile.do_crc;
          ppufile.do_crc:=false;
          ppufile.putbyte(ord(varstate));
          { write also info about the usage of parameters,
            the absolute usage does not matter }
          ppufile.putbyte(min(1,refs));
-         ppufile.do_crc:=oldintfcrc;
+         ppufile.do_crc:=oldcrc;
 
          if vo_has_explicit_paraloc in varoptions then
            begin
