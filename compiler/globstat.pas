@@ -69,7 +69,7 @@ type
     destructor destroy; override;
     procedure clearscanner;
     class procedure remove_scanner_from_states(scanner : tscannerfile); static;
-    procedure save(full : boolean);
+    procedure save;
     procedure restore(full : boolean);
   end;
 
@@ -130,7 +130,7 @@ var
 
   procedure save_global_state(state:tglobalstate);
     begin
-      state.save(true);
+      state.save;
     end;
 
   procedure restore_global_state(state:tglobalstate);
@@ -139,7 +139,7 @@ var
     state.restore(true);
   end;
 
-  procedure tglobalstate.save(full: boolean);
+  procedure tglobalstate.save;
 
     begin
       old_current_module:=current_module;
@@ -175,13 +175,10 @@ var
       old_settings:=current_settings;
       old_verbosity:=status.verbosity;
 
-      if full then
-        begin
-          old_asmdata:=current_asmdata;
-          old_debuginfo:=current_debuginfo;
-          old_parser_file:=parser_current_file;
-          old_scanner:=current_scanner;
-        end;
+      old_asmdata:=current_asmdata;
+      old_debuginfo:=current_debuginfo;
+      old_parser_file:=parser_current_file;
+      old_scanner:=current_scanner;
     end;
 
   procedure tglobalstate.restore(full: boolean);
@@ -223,7 +220,7 @@ var
 
     begin
       addstate(self);
-      save(true);
+      save;
     end;
 
   destructor tglobalstate.destroy;
