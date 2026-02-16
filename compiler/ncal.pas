@@ -89,8 +89,6 @@ interface
           procedure convert_carg_array_of_const;
           procedure order_parameters;
           function heuristics_favors_inlining:boolean;
-          procedure check_inlining;
-          function  pass1_normal:tnode;
           procedure register_created_object_types;
           function get_expect_loc: tcgloc;
           function  handle_compilerproc: tnode;
@@ -102,7 +100,7 @@ interface
           procedure gen_syscall_para(para: tcallparanode); virtual;
           procedure objc_convert_to_message_send;virtual;
 
-       protected
+       public
           { inlining support }
           inlinelevel             : PtrUInt;
           inlinelocals            : TFPObjectList;
@@ -122,7 +120,7 @@ interface
           function  replaceparaload(var n: tnode; arg: pointer): foreachnoderesult;
           procedure createlocaltemps(p:TObject;arg:pointer);
           function  optimize_funcret_assignment(inlineblock: tblocknode): tnode;
-          function  pass1_inline:tnode;
+          procedure check_inlining;
        protected
           pushedparasize : longint;
           { Objective-C support: force the call node to call the routine with
@@ -202,6 +200,7 @@ interface
           }
           procedure verifyabstract(sym:TObject;arg:pointer);
           procedure insertintolist(l : tnodelist);override;
+          function  pass_0 : tnode;
           function  pass_1 : tnode;override;
           function  pass_typecheck:tnode;override;
           function  simplify(forinline : boolean) : tnode;override;
@@ -4875,7 +4874,7 @@ implementation
       end;
 
 
-    function tcallnode.pass_1 : tnode;
+    function tcallnode.pass_0: tnode;
 
       procedure mark_unregable_parameters;
         var
@@ -4983,9 +4982,6 @@ implementation
                change at run, and for the same reason we also can't perform
                WPO on them (+ they have no constructors) }
 
-             { Check if the call can be inlined, sets the cnf_do_inline flag }
-             check_inlining;
-
              { must be called before maybe_load_in_temp(methodpointer), because
                it converts the methodpointer into a temp in case it's a call
                (and we want to know the original call)
@@ -5035,26 +5031,16 @@ implementation
             ([cnf_member_call,cnf_inherited] * callnodeflags <> []) then
            current_procinfo.ConstructorCallingConstructor:=true;
 
-         { Continue with checking a normal call or generate the inlined code }
-         if cnf_do_inline in callnodeflags then
-           result:=pass1_inline
-         else
-           begin
-             if (po_inline in procdefinition.procoptions) and not(po_compilerproc in procdefinition.procoptions) and
-                (procdefinition.typ=procdef) and
-                not (pio_inline_not_possible in tprocdef(procdefinition).implprocoptions) then
-               begin
-                 Message1(cg_n_no_inline,tprocdef(procdefinition).customprocname([pno_proctypeoption, pno_paranames,pno_ownername, pno_noclassmarker, pno_prettynames]));
-               end;
-             mark_unregable_parameters;
-             result:=pass1_normal;
-           end;
+         mark_unregable_parameters;
       end;
 
 
-    function tcallnode.pass1_normal : tnode;
+    function tcallnode.pass_1 : tnode;
       begin
-         result:=nil;
+         result:=pass_0;
+
+         if assigned(result) then
+           exit;
 
          { calculate the parameter info for the procdef }
          procdefinition.init_paraloc_info(callerside);
@@ -5628,160 +5614,5 @@ implementation
         firstpass(result);
       end;
 
-
-    { this procedure removes the user code flag because it prevents optimizations }
-    function removeusercodeflag(var n : tnode; arg : pointer) : foreachnoderesult;
-      begin
-        result:=fen_false;
-        if nf_usercode_entry in n.flags then
-          begin
-            exclude(n.flags,nf_usercode_entry);
-            result:=fen_norecurse_true;
-          end;
-      end;
-
-
-    function setinlinelevel(var n:tnode; arg:pointer):foreachnoderesult;
-      begin
-        if n.nodetype=calln then
-          tcallnode(n).inlinelevel:=PtrUInt(arg);
-        result:=fen_false;
-      end;
-
-
-    { reference symbols that are imported from another unit }
-    function importglobalsyms(var n:tnode; arg:pointer):foreachnoderesult;
-      var
-        sym : tsym;
-      begin
-        result:=fen_false;
-        if n.nodetype=loadn then
-          begin
-            sym:=tloadnode(n).symtableentry;
-            if sym.typ=staticvarsym then
-              begin
-                if FindUnitSymtable(tloadnode(n).symtable).moduleid<>current_module.moduleid then
-                  current_module.addimportedsym(sym);
-              end
-            else if (sym.typ=constsym) and (tconstsym(sym).consttyp in [constwresourcestring,constresourcestring]) then
-              begin
-                if tloadnode(n).symtableentry.owner.moduleid<>current_module.moduleid then
-                  current_module.addimportedsym(sym);
-              end;
-          end
-        else if (n.nodetype=calln) then
-          begin
-            if (assigned(tcallnode(n).procdefinition)) and
-               (tcallnode(n).procdefinition.typ=procdef) and
-               (findunitsymtable(tcallnode(n).procdefinition.owner).moduleid<>current_module.moduleid) then
-              current_module.addimportedsym(tprocdef(tcallnode(n).procdefinition).procsym);
-          end;
-      end;
-
-
-    function tcallnode.pass1_inline:tnode;
-      var
-        n,
-        body : tnode;
-        para : tcallparanode;
-        inlineblock,
-        inlinecleanupblock : tblocknode;
-      begin
-        result:=nil;
-        if not(assigned(tprocdef(procdefinition).inlininginfo) and
-               assigned(tprocdef(procdefinition).inlininginfo^.code)) then
-          internalerror(200412021);
-
-        inlinelocals:=TFPObjectList.create(true);
-
-        { inherit flags }
-        current_procinfo.flags:=current_procinfo.flags+
-          ((procdefinition as tprocdef).inlininginfo^.flags*inherited_inlining_flags);
-
-        { Create new code block for inlining }
-        inlineblock:=internalstatements(inlineinitstatement);
-        { make sure that valid_for_assign() returns false for this block
-          (otherwise assigning values to the block will result in assigning
-           values to the inlined function's result) }
-        include(inlineblock.flags,nf_no_lvalue);
-        inlinecleanupblock:=internalstatements(inlinecleanupstatement);
-
-        if assigned(callinitblock) then
-          addstatement(inlineinitstatement,callinitblock.getcopy);
-
-        { replace complex parameters with temps }
-        createinlineparas;
-
-        { create a copy of the body and replace parameter loads with the parameter values }
-        body:=tprocdef(procdefinition).inlininginfo^.code.getcopy;
-        foreachnodestatic(pm_postprocess,body,@removeusercodeflag,nil);
-        foreachnodestatic(pm_postprocess,body,@importglobalsyms,nil);
-        foreachnodestatic(pm_postprocess,body,@setinlinelevel,pointer(inlinelevel+1));
-        foreachnode(pm_preprocess,body,@replaceparaload,@fileinfo);
-
-        { Concat the body and finalization parts }
-        addstatement(inlineinitstatement,body);
-        addstatement(inlineinitstatement,inlinecleanupblock);
-        inlinecleanupblock:=nil;
-
-        if assigned(callcleanupblock) then
-          addstatement(inlineinitstatement,callcleanupblock.getcopy);
-
-        { the last statement of the new inline block must return the
-          location and type of the function result.
-          This is not needed when the result is not used, also the tempnode is then
-          already destroyed  by a tempdelete in the callcleanupblock tree }
-        if not is_void(resultdef) and
-           (cnf_return_value_used in callnodeflags) then
-          begin
-            if assigned(funcretnode) then
-              addstatement(inlineinitstatement,funcretnode.getcopy)
-            else
-              begin
-                para:=tcallparanode(left);
-                while assigned(para) do
-                  begin
-                    if (vo_is_hidden_para in para.parasym.varoptions) and
-                       (vo_is_funcret in para.parasym.varoptions) then
-                      begin
-                        addstatement(inlineinitstatement,para.left.getcopy);
-                        break;
-                      end;
-                    para:=tcallparanode(para.right);
-                  end;
-              end;
-          end;
-
-        typecheckpass(tnode(inlineblock));
-        doinlinesimplify(tnode(inlineblock));
-        firstpass(tnode(inlineblock));
-        result:=inlineblock;
-
-        { if the function result is used then verify that the blocknode
-          returns the same result type as the original callnode }
-        if (cnf_return_value_used in callnodeflags) and
-           (result.resultdef<>resultdef) then
-          internalerror(200709171);
-
-        { free the temps for the locals }
-        inlinelocals.free;
-        inlinelocals:=nil;
-        inlineinitstatement:=nil;
-        inlinecleanupstatement:=nil;
-
-        n:=optimize_funcret_assignment(inlineblock);
-        if assigned(n) then
-          begin
-            inlineblock.free;
-            inlineblock := nil;
-            result:=n;
-          end;
-
-{$ifdef DEBUGINLINE}
-        writeln;
-        writeln('**************************',tprocdef(procdefinition).mangledname);
-        printnode(output,result);
-{$endif DEBUGINLINE}
-      end;
-
 end.
+
