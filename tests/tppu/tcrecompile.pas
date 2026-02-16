@@ -58,6 +58,11 @@ type
     procedure TestImplInline_Bug41291; // program plus 3 cycles
     procedure TestImplInline3; // program + 2 units cycle, impl inline, implementation changed
 
+    // inherited
+    procedure TestAncestor_ChangeInheritedMethod; // changing inherited method in an indirectly used unit
+    // ToDo: TestAncestor_ChangeInheritedMethodParamType; // changing inherited method para type in an indirectly used unit
+    //         the indirect_crc does not yet support this. 16th Feb 2026
+
     // generics
     procedure TestGeneric_IndirectUses; // specialization of an inherited class in an indirectly used unit
   end;
@@ -607,6 +612,42 @@ begin
   Compile;
   // the main src is always compiled, and the ant impl changed, so bird is also compiled
   CheckCompiled(['implinline3_prg.pas','implinline3_ant.pas','implinline3_bird.pas']);
+end;
+
+procedure TTestRecompile.TestAncestor_ChangeInheritedMethod;
+// ant->bird->cat->eagle, change method in eagle used by bird
+var
+  Dir: String;
+begin
+  Dir:='ancestorchange1';
+  UnitPath:=Dir+';'+Dir+PathDelim+'src1';
+  OutDir:=Dir+PathDelim+'ppus';
+  MainSrc:=Dir+PathDelim+'ancestorchange1_ant.pas';
+  MakeDateDiffer(
+    Dir+PathDelim+'src1'+PathDelim+'ancestorchange1_eagle.pas',
+    Dir+PathDelim+'src2'+PathDelim+'ancestorchange1_eagle.pas');
+
+  Step:='First compile';
+  CleanOutputDir;
+  Compile;
+  CheckCompiled(['ancestorchange1_ant.pas','ancestorchange1_bird.pas','ancestorchange1_cat.pas',
+    'ancestorchange1_eagle.pas']);
+
+  Step:='Second compile';
+  UnitPath:=Dir+';'+Dir+PathDelim+'src2';
+  Compile;
+  {$IFDEF EnableCTaskPPU}
+  // the main src is always compiled, cat intf class TCat changed, so bird and ant are recompiled
+  CheckCompiled(['ancestorchange1_ant.pas','ancestorchange1_bird.pas','ancestorchange1_cat.pas',
+    'ancestorchange1_eagle.pas']);
+  {$ELSE}
+  // the main src is always compiled,
+  // cat changed, so bird must be recompiled as well. bird should get the same CRCs.
+  // finally even though ant does ant directly use cat, ant specializes the changed generic
+  //   function from cat, so ant must be recompiled as well.
+  CheckCompiled(['ancestorchange1_ant.pas','ancestorchange1_bird.pas','ancestorchange1_cat.pas',
+    'ancestorchange1_eagle.pas']);
+  {$ENDIF}
 end;
 
 procedure TTestRecompile.TestGeneric_IndirectUses;
