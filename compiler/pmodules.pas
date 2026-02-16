@@ -1825,6 +1825,7 @@ type
         store_indirect_crc : cardinal;
         i : longint;
         waitingmodule : tmodule;
+        hstatus : TFPCHeapStatus;
 
       begin
         {$IF defined(Debug_WaitCRC) or defined(Debug_FreeParseMem)}
@@ -1918,6 +1919,14 @@ type
 {$ifdef DEBUG_NODE_XML}
         XMLFinalizeNodeFile('unit');
 {$endif DEBUG_NODE_XML}
+        if ((status.verbosity and V_Status)<>0) then
+        begin
+          {$IF defined(Debug_FreeParseMem)}
+          writeln('finish_unit ',module.realmodulename^,' wrote ppu and freed mem.');
+          {$ENDIF}
+          hstatus:=GetFPCHeapStatus;
+          WriteLn(DStr(hstatus.CurrHeapUsed shr 10),'/',DStr(hstatus.CurrHeapSize shr 10),' Kb Used');
+        end;
       end;
 
     function proc_package(curr: tmodule) : boolean;

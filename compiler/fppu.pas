@@ -2245,7 +2245,7 @@ var
               If an unit of a cycle is recompiled, the whole cycle is recompiled.
 
               If this ppu was compiled with -Ur only check interface_crc, not crc }
-            CRCValid:=(not pu.u.do_reload) and (pu.u.state in [ms_load,ms_compiled,ms_processed]);
+            CRCValid:=(not pu.u.do_reload) and (pu.u.state in [ms_load,ms_compiled_waitcrc,ms_compiled,ms_processed]);
             IntfCRCValid:=CRCValid {or (pu.u.state in [ms_compiling_waitimpl,ms_compiling_waitfinish,ms_compiled_waitcrc])};
 
             if (IntfCRCValid and
