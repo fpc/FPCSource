@@ -42,7 +42,7 @@ const
 
 type
   TFormat = (fPlain, fLatex, fXML, fPlainNoTiming, fJUnit);
-  TRunMode = (rmUnknown,rmList,rmSuite,rmAll);
+  TRunMode = (rmUnknown,rmHelp,rmList,rmSuite,rmAll);
 
 var
   DefaultFormat : TFormat = fXML;
@@ -439,9 +439,11 @@ procedure TTestRunner.ReadCustomDefaults(Ini: TMemIniFile; Section: string);
 var
   s: string;
 begin
-  // Determine runmode (option ArgHelp by default, not required to read)
+  // Determine runmode (ArgHelp option may be useful in the config due to DefaultRunAllTests)
   FSuite:=Ini.ReadString(Section,ArgSuite,'');
-  if FSuite<>'' then
+  if Ini.ReadBool(Section,ArgHelp,false) then
+    FRunMode:=rmHelp
+  else if FSuite<>'' then
     FRunMode:=rmSuite
   else if Ini.ReadBool(Section,ArgAll,false) then
     FRunMode:=rmAll
@@ -488,16 +490,16 @@ Function TTestRunner.ParseOptions : Boolean;
 
 begin
   Result:=True;
-  // Maybe show usage
-  if HasOption('h', ArgHelp) or ((ParamCount = 0) and (FRunMode=rmUnknown)) then
-    begin
-    Usage;
-    if not HasOption('h',ArgHelp) then
-      ExitCode:=1;
-    Exit(False);
-    end;
   // Determine runmode
-  if HasOption('s',ArgSuite) then
+  if (ParamCount = 0) and (FRunMode=rmUnknown) then // FRunMode can be set earlier in ReadDefaults
+  begin
+    Usage;
+    ExitCode:=1;
+    exit;
+  end;
+  if HasOption('h', ArgHelp) then
+    FRunMode:=rmHelp
+  else if HasOption('s',ArgSuite) then
     begin
     FSuite:=GetOptionValue('s',ArgSuite);
     FRunMode:=rmSuite;
@@ -618,13 +620,13 @@ begin
     ReadDefaults;
   if Not ParseOptions then
     exit;
-  //get a list of all registered tests
   Case FRunMode of
+    rmHelp: Usage;
     rmList: ShowTestList;
     rmSuite: RunSuite;
     rmAll: DoTestRun(GetTestRegistry);
   else
-    Usage
+    // rmUnknown
   end;
 end;
 
