@@ -148,7 +148,6 @@ implementation
          InitScannerDirectives;
 
          { scanner }
-         c:=#0;
          set_current_scanner(nil);
          switchesstatestackpos:=0;
 

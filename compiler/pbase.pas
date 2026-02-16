@@ -181,7 +181,7 @@ implementation
           else
             Message2(scan_f_syn_expected,tokeninfo^[_POINT].str,tokeninfo^[token].str)
           end
-        else if c<>#0 then
+        else if current_scanner.c<>#0 then
           current_scanner.readtoken(true);
     end;
 

@@ -251,7 +251,7 @@ const
    token: tasmtoken;
    forcelabel: boolean;
   begin
-    c:=scanner.c;
+    c:=current_scanner.c;
     forcelabel := FALSE;
     actasmpattern :='';
     {* INIT TOKEN TO NOTHING *}

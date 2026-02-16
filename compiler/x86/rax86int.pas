@@ -314,7 +314,7 @@ Unit Rax86int;
       begin
         actoperextention := '';
 
-        c:=scanner.c;
+        c:=current_scanner.c;
         { save old token and reset new token }
         prevasmtoken:=actasmtoken;
         actasmtoken:=AS_NONE;

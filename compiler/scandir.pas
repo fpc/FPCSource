@@ -175,7 +175,7 @@ unit scandir;
             exit;
           end;
         isset:=true;
-        if c='.' then
+        if current_scanner.c='.' then
           begin
             current_scanner.readchar;
             current_scanner.readnumber;
@@ -185,7 +185,7 @@ unit scandir;
                 Message1(scan_w_wrong_version_ignored,tostr(majorl)+'.'+current_scanner.pattern);
                 exit;
               end;
-            if (c='.') and
+            if (current_scanner.c='.') and
                allowrevision then
               begin
                  current_scanner.readchar;
@@ -226,7 +226,7 @@ unit scandir;
         b : longint;
       begin
         current_scanner.skipspace;
-        if not(c in ['0'..'9']) then
+        if not(current_scanner.c in ['0'..'9']) then
          begin
            { Support also the ON and OFF as switch }
            hs:=current_scanner.readid;
@@ -699,7 +699,7 @@ unit scandir;
         s : string;
       begin
         current_scanner.skipspace;
-        if scanner.c = '''' then
+        if current_scanner.c = '''' then
           begin
             s:= current_scanner.readquotedstring;
             current_scanner.readcomment
@@ -717,7 +717,7 @@ unit scandir;
         s : string;
       begin
         current_scanner.skipspace;
-        if scanner.c = '''' then
+        if current_scanner.c = '''' then
           begin
             s:= current_scanner.readquotedstring;
             current_scanner.readcomment
@@ -744,7 +744,7 @@ unit scandir;
         linkMode : tLinkMode;
       begin
         current_scanner.skipspace;
-        if scanner.c = '''' then
+        if current_scanner.c = '''' then
           begin
             libname:= current_scanner.readquotedstring;
             s:= current_scanner.readcomment;
@@ -842,7 +842,7 @@ unit scandir;
          hs : string;
       begin
          current_scanner.skipspace;
-         if not(c in ['0'..'9']) then
+         if not(current_scanner.c in ['0'..'9']) then
            begin
               hs:=current_scanner.readid;
               if (hs='NORMAL') or (hs='DEFAULT') then
@@ -916,14 +916,14 @@ unit scandir;
           stacksize:=min(l,{$ifdef cpu16bitaddr}65520{$else}67107839{$endif})
         else
           Message(scan_w_invalid_stacksize);
-        if c=',' then
+        if current_scanner.c=',' then
           begin
             current_scanner.readchar;
             current_scanner.skipspace;
             l:=current_scanner.readval64;
             if l>=1024 then
               heapsize:=min(l,heapsize_limit);
-            if c=',' then
+            if current_scanner.c=',' then
               begin
                 current_scanner.readchar;
                 current_scanner.skipspace;
@@ -946,7 +946,7 @@ unit scandir;
         w:=0;
         current_scanner.skipspace;
         { Message level specified? }
-        if c='''' then
+        if current_scanner.c='''' then
           w:=scan_n_user_defined
         else
           begin
@@ -975,7 +975,7 @@ unit scandir;
         if w<>0 then
           begin
             current_scanner.skipspace;
-            if c='''' then
+            if current_scanner.c='''' then
               s:=current_scanner.readlongquotedstring
             else
               s:=current_scanner.readlongcomment;
@@ -1064,7 +1064,7 @@ unit scandir;
         if not (m_multiline_strings in current_settings.modeswitches) then
           Message1(scan_e_illegal_directive,'MULTILINESTRINGTRIMLEFT');
         current_scanner.skipspace;
-        if (c in ['0'..'9']) then
+        if (current_scanner.c in ['0'..'9']) then
           begin
             count:=current_scanner.readval;
             if (count<0) or (count>high(word)) then
@@ -1139,7 +1139,7 @@ unit scandir;
               else // copied when correct module is activated
                 premodule_namespacelist.Insert(s);
               s:='';
-              if c=',' then
+              if current_scanner.c=',' then
                 begin
                   current_scanner.readchar;
                   current_scanner.skipspace;
@@ -1163,7 +1163,7 @@ unit scandir;
             current_scanner.skipspace;
             current_scanner.readstring;
             s:=current_scanner.orgpattern;
-            while c='.' do
+            while current_scanner.c='.' do
               begin
                 current_scanner.readchar;
                 current_scanner.readstring;
@@ -1247,7 +1247,7 @@ unit scandir;
         v : longint;
       begin
         current_scanner.skipspace;
-        if not(c in ['0'..'9']) then
+        if not(current_scanner.c in ['0'..'9']) then
          begin
            hs:=current_scanner.readid;
            if (hs='NORMAL') or (hs='DEFAULT') then
@@ -1284,7 +1284,7 @@ unit scandir;
         if target_info.system in systems_managed_vm then
           Message1(scanner_w_directive_ignored_on_target, 'PACKRECORDS');
         current_scanner.skipspace;
-        if not(c in ['0'..'9']) then
+        if not(current_scanner.c in ['0'..'9']) then
          begin
            hs:=current_scanner.readid;
            { C has the special recordalignmax of C_alignment }
@@ -1314,7 +1314,7 @@ unit scandir;
         v : longint;
       begin
         current_scanner.skipspace;
-        if not(c in ['1','2','4','8']) then
+        if not(current_scanner.c in ['1','2','4','8']) then
          begin
            hs:=current_scanner.readid;
            if (hs='FIXED') or (hs='DEFAULT') OR (hs='NORMAL') then
@@ -1452,7 +1452,7 @@ unit scandir;
         s : string;
       begin
         current_scanner.skipspace;
-        if scanner.c = '''' then
+        if current_scanner.c = '''' then
           begin
             s:= current_scanner.readquotedstring;
             current_scanner.readcomment
@@ -1747,14 +1747,14 @@ unit scandir;
         { note: *not* recorded in the tokenstream, so not replayed for generics }
         current_scanner.skipspace;
         name:=current_scanner.readid;
-        if c='=' then
+        if current_scanner.c='=' then
           begin
             current_scanner.readchar;
             current_scanner.readid;
             value:=current_scanner.orgpattern;
             UpdateTargetSwitchStr(name+'='+value,current_settings.targetswitches,current_module.in_global);
           end
-        else if c='-' then
+        else if current_scanner.c='-' then
           begin
             current_scanner.readchar;
             UpdateTargetSwitchStr(name+'-',current_settings.targetswitches,current_module.in_global);
@@ -1841,7 +1841,7 @@ unit scandir;
                 Message1(scan_w_wrong_version_ignored,current_scanner.pattern);
                 exit;
               end;
-            if c='.' then
+            if current_scanner.c='.' then
               begin
                 current_scanner.readchar;
                 current_scanner.readnumber;
@@ -1851,7 +1851,7 @@ unit scandir;
                     Message1(scan_w_wrong_version_ignored,tostr(major)+'.'+current_scanner.pattern);
                     exit;
                   end;
-                if (c='.') and
+                if (current_scanner.c='.') and
                    (target_info.system in [system_i386_netware,system_i386_netwlibc]) then
                   begin
                      current_scanner.readchar;
@@ -1907,9 +1907,9 @@ unit scandir;
         current_scanner.skipspace;
         ident:=current_scanner.readid;
         current_scanner.skipspace;
-        if c in ['+','-'] then
+        if current_scanner.c in ['+','-'] then
           begin
-            state:=c;
+            state:=current_scanner.c;
             current_scanner.readchar;
           end
         else

@@ -148,6 +148,9 @@ interface
           lasttoken,
           nexttoken    : ttoken;
 
+          { read strings }
+          c              : char;
+
           orgpattern,
           pattern        : string;
           cstringpattern : ansistring;
@@ -299,9 +302,6 @@ interface
 {$endif PREPROCWRITE}
 
     var
-        { read strings }
-        c              : char;
-
         { token }
         token,                        { current token being parsed }
         idtoken    : ttoken;          { holds the token if the pattern is a known word }
@@ -968,8 +968,8 @@ implementation
         s : string;
       begin
         current_scanner.skipspace;
-        if c <> '''' then
-          Message2(scan_f_syn_expected, '''', c);
+        if current_scanner.c <> '''' then
+          Message2(scan_f_syn_expected, '''', current_scanner.c);
         s := current_scanner.readquotedstring;
         stringdispose(outputprefix);
         outputprefix := stringdup(s);
@@ -982,8 +982,8 @@ implementation
         s : string;
       begin
         current_scanner.skipspace;
-        if c <> '''' then
-          Message2(scan_f_syn_expected, '''', c);
+        if current_scanner.c <> '''' then
+          Message2(scan_f_syn_expected, '''', current_scanner.c);
         s := current_scanner.readquotedstring;
         stringdispose(outputsuffix);
         outputsuffix := stringdup(s);
@@ -996,8 +996,8 @@ implementation
         s : string;
       begin
         current_scanner.skipspace;
-        if c <> '''' then
-          Message2(scan_f_syn_expected, '''', c);
+        if current_scanner.c <> '''' then
+          Message2(scan_f_syn_expected, '''', current_scanner.c);
         s := current_scanner.readquotedstring;
         if OutputFileName='' then
           OutputFileName:=InputFileName;
@@ -2604,10 +2604,10 @@ type
              if not macstyle then
                begin
                  { may be a macro? }
-                 if c <> ':' then
+                 if current_scanner.c <> ':' then
                    exit;
                  current_scanner.readchar;
-                 if c <> '=' then
+                 if current_scanner.c <> '=' then
                    exit;
                  mac.is_c_macro:=true;
                  current_scanner.readchar;
@@ -2626,7 +2626,7 @@ type
                to have a $ifdef etc. in the macro }
              bracketcount:=0;
              repeat
-               case c of
+               case current_scanner.c of
                  '}' :
                    if (bracketcount=0) then
                     break
@@ -2641,7 +2641,7 @@ type
                end;
                if macropos>=maxmacrolen then
                  Message(scan_f_macro_buffer_overflow);
-               macrobuffer[macropos]:=c;
+               macrobuffer[macropos]:=current_scanner.c;
                inc(macropos);
                current_scanner.readchar;
              until false;
@@ -2655,10 +2655,10 @@ type
            { check if there is an assignment, then we need to give a
              warning }
              current_scanner.skipspace;
-             if c=':' then
+             if current_scanner.c=':' then
               begin
                 current_scanner.readchar;
-                if c='=' then
+                if current_scanner.c='=' then
                   Message(scan_w_macro_support_turned_off);
               end;
           end;
@@ -2707,9 +2707,9 @@ type
 
         { macro assignment can be both := and = }
         current_scanner.skipspace;
-        if c=':' then
+        if current_scanner.c=':' then
           current_scanner.readchar;
-        if c='=' then
+        if current_scanner.c='=' then
           begin
              current_scanner.readchar;
              exprvalue:=preproc_comp_expr(nil);
@@ -2910,7 +2910,7 @@ type
                dec(current_scanner.inputpointer);
 {$endif  CHECK_INPUTPOINTER_LIMITS}
                { reset c }
-               c:=#0;
+               current_scanner.c:=#0;
                { shutdown current file }
                current_scanner.tempcloseinputfile;
                { load new file }
@@ -5443,7 +5443,7 @@ type
       start, i,stripcol,col,newlen : integer;
       crlf : boolean;
       tmp : tcompilerwidestring;
-      c : tcompilerwidechar;
+      ch : tcompilerwidechar;
       file_pos : tfileposinfo;
 
     begin
@@ -5469,17 +5469,17 @@ type
       dec(len,quote_count-1);
       for I:=Start to len do
         begin
-        c:=getcharwidestring(patternw,i);
+        ch:=getcharwidestring(patternw,i);
         inc(col);
-        if (col>stripcol) or (c=10) or (c=13) then
+        if (col>stripcol) or (ch=10) or (ch=13) then
           begin
           inc(newlen);
-          concatwidestringchar(patternw,c);
+          concatwidestringchar(patternw,ch);
           end
         else
           begin
           // if less spaces than in the last line, report error
-          if not (c in [9,32,11]) then
+          if not (ch in [9,32,11]) then
             begin
             if not malformed then
               begin
@@ -5491,12 +5491,12 @@ type
               end;
             end;
           end;
-        if (c=10) or (c=13) then
+        if (ch=10) or (ch=13) then
           col:=0;
         end;
       // remove last CR/LF
-      c:=getcharwidestring(tmp,newlen);
-      if (c=10) or (c=13) then
+      ch:=getcharwidestring(tmp,newlen);
+      if (ch=10) or (ch=13) then
         begin
         Case current_settings.lineendingtype of
           le_cr,le_lf : dec(newlen);
@@ -5523,7 +5523,7 @@ type
       start, i,stripcol,col,newlen : integer;
       crlf : boolean;
       tmp : ansistring;
-      c : ansichar;
+      ch : ansichar;
       file_pos : tfileposinfo;
 
     begin
@@ -5549,17 +5549,17 @@ type
       dec(len,quote_count-1);
       for I:=Start to len do
         begin
-        c:=cstringpattern[i];
+        ch:=cstringpattern[i];
         inc(col);
-        if (col>stripcol) or (c in [#10,#13]) then
+        if (col>stripcol) or (ch in [#10,#13]) then
           begin
           inc(newlen);
-          tmp[newlen]:=c;
+          tmp[newlen]:=ch;
           end
         else
           begin
           // if less spaces than in the last line, report error
-          if not (c in [#9,#32,#11]) then
+          if not (ch in [#9,#32,#11]) then
             begin
             if not malformed then
               begin
@@ -5571,7 +5571,7 @@ type
               end;
             end;
           end;
-        if c in [#10,#13] then
+        if ch in [#10,#13] then
           col:=0;
         end;
       // remove last CR/LF

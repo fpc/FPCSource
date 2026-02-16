@@ -43,7 +43,6 @@ type
     oldidtoken,
     oldtoken       : ttoken;
     oldtokenpos    : tfileposinfo;
-    oldc           : char;
     old_block_type : tblock_type;
   { symtable }
     oldsymtablestack,
@@ -150,7 +149,6 @@ var
       oldcurrent_procinfo:=current_procinfo;
 
       { save scanner state }
-      oldc:=c;
       oldtoken:=token;
       oldidtoken:=idtoken;
       old_block_type:=block_type;
@@ -185,7 +183,6 @@ var
 
     begin
       { restore scanner }
-      c:=oldc;
       token:=oldtoken;
       idtoken:=oldidtoken;
       current_tokenpos:=oldtokenpos;
@@ -234,7 +231,6 @@ var
     oldidtoken:=NOTOKEN;
     oldtoken:=NOTOKEN;
     oldtokenpos:=Default(tfileposinfo);
-    oldc:=#0;
     old_block_type:=bt_none;
   end;
 

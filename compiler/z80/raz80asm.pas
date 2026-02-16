@@ -161,7 +161,7 @@ Unit raz80asm;
         srsymtable : TSymtable;
         can_be_condition : Boolean;
       begin
-        c:=scanner.c;
+        c:=current_scanner.c;
         { certain instructions can have a condition, as an operand. We need to set this flag,
           because 'C' can be either a register, or a condition, depending on the context }
         can_be_condition:=(actasmtoken=AS_OPCODE) and (actopcode in [A_JP,A_JR,A_JRJP,A_CALL,A_RET]);
