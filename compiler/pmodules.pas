@@ -364,7 +364,7 @@ implementation
 
         { load_intern_types resets the scanner... }
         current_scanner.tempcloseinputfile;
-        state:=tglobalstate.create(true);
+        state:=tglobalstate.create;
         load_intern_types;
         state.restore(true);
         FreeAndNil(state);
@@ -725,7 +725,7 @@ implementation
       begin
         Result:=true;
         current_scanner.tempcloseinputfile;
-        state:=tglobalstate.create(true);
+        state:=tglobalstate.create;
         { Load the units }
         pu:=tused_unit(curr.used_units.first);
         while assigned(pu) do

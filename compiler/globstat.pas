@@ -65,7 +65,7 @@ type
     old_debuginfo : tdebuginfo;
     old_scanner : tscannerfile;
     old_parser_file : string;
-    constructor create(savefull : boolean);
+    constructor create;
     destructor destroy; override;
     procedure clearscanner;
     class procedure remove_scanner_from_states(scanner : tscannerfile); static;
@@ -219,11 +219,11 @@ var
         end;
     end;
 
-    constructor tglobalstate.create(savefull: boolean);
+    constructor tglobalstate.create;
 
     begin
       addstate(self);
-      save(savefull);
+      save(true);
     end;
 
   destructor tglobalstate.destroy;

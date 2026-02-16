@@ -150,7 +150,7 @@ end;
 procedure ttask_list.SaveState;
 begin
   if State=Nil then
-    State:=tglobalstate.Create(true)
+    State:=tglobalstate.Create
   else
     State.save(true);
 end;
