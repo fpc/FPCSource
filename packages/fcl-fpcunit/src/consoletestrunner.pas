@@ -565,18 +565,22 @@ begin
   if (S <> '') then
     begin
     Writeln(S);
-    Exit;
-    end;
-  ReadDefaults;
-  if Not ParseOptions then
+    ExitCode:=1;
     exit;
-  //get a list of all registed tests
+    end;
+  if not HasOption('n',ArgNoConfig) then
+    ReadDefaults;
+  if not ParseOptions then
+    begin
+    ExitCode:=1;
+    exit;
+    end;
   Case FRunMode of
     rmList: ShowTestList;
     rmSuite: RunSuite;
     rmAll: DoTestRun(GetTestRegistry);
-  else
-    Usage
+  else // rmUnknown
+    // do not set the ExitCode here so as not to overwrite the code set in ParseOptions
   end;
 end;
 
