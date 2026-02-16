@@ -158,7 +158,7 @@ end;
 procedure ttask_list.RestoreState;
 begin
   if not module.is_reset then
-    state.restore(true);
+    state.restore;
   if assigned(current_scanner) and assigned(current_scanner.inputfile) then
       if current_scanner.inputfile.closed then
       begin

@@ -70,7 +70,7 @@ type
     procedure clearscanner;
     class procedure remove_scanner_from_states(scanner : tscannerfile); static;
     procedure save;
-    procedure restore(full : boolean);
+    procedure restore;
   end;
 
 procedure save_global_state(state:tglobalstate);
@@ -136,7 +136,7 @@ var
   procedure restore_global_state(state:tglobalstate);
 
   begin
-    state.restore(true);
+    state.restore;
   end;
 
   procedure tglobalstate.save;
@@ -181,7 +181,7 @@ var
       old_scanner:=current_scanner;
     end;
 
-  procedure tglobalstate.restore(full: boolean);
+  procedure tglobalstate.restore;
 
     begin
       { restore scanner }
@@ -207,13 +207,10 @@ var
 
       RestoreLocalVerbosity(current_settings.pmessage);
 
-      if full then
-        begin
-          set_current_module(old_current_module);
-          // These can be different
-          current_asmdata:=old_asmdata;
-          current_debuginfo:=old_debuginfo;
-        end;
+      set_current_module(old_current_module);
+      // These can be different
+      current_asmdata:=old_asmdata;
+      current_debuginfo:=old_debuginfo;
     end;
 
     constructor tglobalstate.create;

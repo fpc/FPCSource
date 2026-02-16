@@ -366,7 +366,7 @@ implementation
         current_scanner.tempcloseinputfile;
         state:=tglobalstate.create;
         load_intern_types;
-        state.restore(true);
+        state.restore;
         FreeAndNil(state);
         current_scanner.tempopeninputfile;
 
@@ -712,7 +712,7 @@ implementation
          procedure restorestate;
 
          begin
-           state.restore(true);
+           state.restore;
            if assigned(current_scanner) and (current_module.scanner=current_scanner) then
               begin
               if assigned(current_scanner.inputfile) then
