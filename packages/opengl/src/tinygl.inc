@@ -304,6 +304,9 @@ syscall sysvbase TinyGLBase 856;
 function _GLGetString(gcl: pointer; name: GLenum): PAnsiChar;
 syscall sysvbase TinyGLBase 862;
 
+procedure _GLScissor(gcl: pointer; x, y: GLint; width, height: GLsizei);
+syscall sysvbase TinyGLBase 880;
+
 procedure _GLCallLists(gcl: pointer; n: GLsizei; atype: GLenum; const lists: Pointer);
 syscall sysvbase TinyGLBase 892;
 
@@ -781,6 +784,11 @@ begin
     { we support calling _GLViewportOld() to work with older TinyGL
     versions. See the comment there. }
     _GLViewportOld(tglContext, x, y, width, height);
+end;
+
+procedure glScissor(x, y: GLint; width, height: GLsizei); inline;
+begin
+  _GLScissor(tglContext, x, y, width, height)
 end;
 {$ENDIF GL_UNIT}
 

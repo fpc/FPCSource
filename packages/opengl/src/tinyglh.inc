@@ -126,6 +126,7 @@ procedure glBlendFunc(sfactor, dfactor: GLenum); inline;
 procedure glVertexPointer(size: GLint; atype: GLenum; stride: GLsizei; const pointer: Pointer); inline;
 
 procedure glViewport(x, y: GLint; width, height: GLsizei); inline;
+procedure glScissor(x, y: GLint; width, height: GLsizei); inline;
 {$ENDIF GL_UNIT}
 
 { ****************************************************************************************************** }
