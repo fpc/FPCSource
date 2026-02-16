@@ -73,8 +73,8 @@ type
     procedure restore(full : boolean);
   end;
 
-procedure save_global_state(state:tglobalstate;full:boolean);
-procedure restore_global_state(state:tglobalstate;full:boolean);
+procedure save_global_state(state:tglobalstate);
+procedure restore_global_state(state:tglobalstate);
 
 implementation
 
@@ -128,15 +128,15 @@ var
     Dec(Statecount);
   end;
 
-  procedure save_global_state(state:tglobalstate;full:boolean);
+  procedure save_global_state(state:tglobalstate);
     begin
-      state.save(full);
+      state.save(true);
     end;
 
-  procedure restore_global_state(state:tglobalstate;full:boolean);
+  procedure restore_global_state(state:tglobalstate);
 
   begin
-    state.restore(full);
+    state.restore(true);
   end;
 
   procedure tglobalstate.save(full: boolean);
