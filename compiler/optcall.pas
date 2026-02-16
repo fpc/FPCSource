@@ -110,7 +110,15 @@ unit optcall;
           exit;
         callnode:=tcallnode(_n);
 
-        callnode.check_inlining;
+        { fix me! }
+        n:=callnode.pass_0;
+        if assigned(n) then
+          begin
+            _n:=n;
+            pboolean(arg)^:=true;
+            exit;
+          end;
+
         if not(cnf_do_inline in callnode.callnodeflags) then
           exit;
 
@@ -119,14 +127,6 @@ unit optcall;
           (pio_inline_not_possible in tprocdef(callnode.procdefinition).implprocoptions) then
           begin
             Message1(cg_n_no_inline,tprocdef(callnode.procdefinition).customprocname([pno_proctypeoption, pno_paranames,pno_ownername, pno_noclassmarker, pno_prettynames]));
-            exit;
-          end;
-
-        { fix me! }
-        n:=callnode.pass_0;
-        if assigned(n) then
-          begin
-            _n:=n;
             exit;
           end;
 
