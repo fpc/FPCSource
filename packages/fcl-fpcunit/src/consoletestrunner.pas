@@ -614,19 +614,23 @@ begin
   if (S <> '') then
     begin
     Writeln(S);
-    Exit;
+    ExitCode:=1;
+    exit;
     end;
   if not HasOption('n',ArgNoConfig) then
     ReadDefaults;
-  if Not ParseOptions then
+  if not ParseOptions then
+    begin
+    ExitCode:=1;
     exit;
+    end;
   Case FRunMode of
     rmHelp: Usage;
     rmList: ShowTestList;
     rmSuite: RunSuite;
     rmAll: DoTestRun(GetTestRegistry);
-  else
-    // rmUnknown
+  else // rmUnknown
+    // do not set the ExitCode here so as not to overwrite the code set in ParseOptions
   end;
 end;
 
