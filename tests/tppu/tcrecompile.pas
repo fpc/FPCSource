@@ -15,6 +15,7 @@ type
   private
     FCompiled: TStringList;
     FMainSrc: string;
+    FOptionUr: boolean;
     FOutDir: string;
     FPP: string;
     FStep: string;
@@ -33,6 +34,7 @@ type
     property OutDir: string read FOutDir write FOutDir;
     property MainSrc: string read FMainSrc write FMainSrc;
     property Compiled: TStringList read FCompiled write FCompiled;
+    property OptionUr: boolean read FOptionUr write FOptionUr;
     property Step: string read FStep write FStep;
   public
     constructor Create; override;
@@ -47,6 +49,9 @@ type
     procedure TestCycle2_ChangeB; // prog->ant->bird, bird.impl->ant, change bird
     procedure TestCycle3_ChangeC; // prog->ant->bird->cat, cat.impl->ant, change cat
     procedure TestCycleImpl3_ChangeC; // prog->ant.impl->bird.impl->cat, cat.impl->ant, change cat
+
+    // -Ur Generate release unit files (never automatically recompiled)
+    procedure TestUr_cycle2;
 
     procedure TestChangeInlineBodyBug; // Bug: prog+1 unit plus a package of 2 units, change of inline body should change crc, but does not
 
@@ -79,6 +84,7 @@ begin
   UnitPath:='';
   OutDir:='';
   MainSrc:='';
+  OptionUr:=false;
   Compiled:=TStringList.Create;
 end;
 
@@ -158,6 +164,8 @@ begin
   try
     Params.Add('-Fu'+UnitPath);
     Params.Add('-FE'+OutDir);
+    if OptionUr then
+      Params.Add('-Ur');
     Params.Add(MainSrc);
     if not RunTool(PP,Params,'',false,true,Lines) then
       Fail('compile failed, Step='+Step);
@@ -425,6 +433,34 @@ begin
   Compile;
   // the main src is always compiled, cat changed but not crc
   CheckCompiled(['cycleimpl3_changec_prg.pas','cycleimpl3_changec_cat.pas']);
+end;
+
+procedure TTestRecompile.TestUr_cycle2;
+// ant->bird, bird.impl->ant
+var
+  Dir: String;
+begin
+  Dir:='ur_cycle2';
+  UnitPath:=Dir;
+  OutDir:=Dir+PathDelim+'ppus';
+  MainSrc:=Dir+PathDelim+'ur_cycle2_ant.pas';
+  OptionUr:=true;
+
+  Step:='First compile';
+  CleanOutputDir;
+  Compile;
+  CheckCompiled(['ur_cycle2_ant.pas','ur_cycle2_bird.pas']);
+
+  Step:='Second compile, only ant';
+  Compile;
+  // the main src is always compiled, bird is kept even though it is part of the cycle
+  CheckCompiled(['ur_cycle2_ant.pas']);
+
+  Step:='Third compile, only bird';
+  MainSrc:=Dir+PathDelim+'ur_cycle2_bird.pas';
+  Compile;
+  // the main src is always compiled, ant is kept even though it is part of the cycle
+  CheckCompiled(['ur_cycle2_bird.pas']);
 end;
 
 procedure TTestRecompile.TestChangeInlineBodyBug;
