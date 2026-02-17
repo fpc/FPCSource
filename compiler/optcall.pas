@@ -203,11 +203,7 @@ unit optcall;
           returns the same result type as the original callnode }
         if (cnf_return_value_used in callnode.callnodeflags) and
            not(equal_defs(_n.resultdef,callnode.resultdef)) then
-          begin
-            printnode(callnode);
-            printnode(_n);
-            internalerror(200709171);
-          end;
+          internalerror(200709171);
 
         { free the temps for the locals }
         callnode.inlinelocals.free;
