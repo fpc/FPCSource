@@ -593,7 +593,7 @@ uses
           end
         else
           specializename:='$';
-        while not (token in [_GT,_RSHARPBRACKET]) do
+        while not (current_scanner.token in [_GT,_RSHARPBRACKET]) do
           begin
             { "first" is set to false at the end of the loop! }
             if not first then
@@ -1447,7 +1447,7 @@ uses
           begin
             consume(_LSHARPBRACKET);
             { handle "<>" }
-            if (token=_GT) or (token=_RSHARPBRACKET) then
+            if (current_scanner.token=_GT) or (current_scanner.token=_RSHARPBRACKET) then
               begin
                 Message(type_e_type_id_expected);
                 if not try_to_consume(_GT) then
@@ -2186,7 +2186,7 @@ uses
                 end;
                 { Consume the remainder of the buffer }
                 while current_scanner.replay_stack_depth>replaydepth do
-                  consume(token);
+                  consume(current_scanner.token);
 
                 if assigned(recordbuf) then
                   begin
@@ -2301,7 +2301,7 @@ uses
               is_const:=true;
               const_list_index:=result.count;
             end;
-          if token=_ID then
+          if current_scanner.token=_ID then
             begin
               if is_const then
                 generictype:=cconstsym.create_undefined(current_scanner.orgpattern,cundefinedtype)
@@ -2367,7 +2367,7 @@ uses
               repeat
                 doconsume:=true;
 
-                case token of
+                case current_scanner.token of
                   _CONSTRUCTOR:
                     begin
                       if not allowconstructor or (gcf_constructor in constraintdata.flags) then
@@ -2436,7 +2436,7 @@ uses
                     end;
                 end;
                 if doconsume then
-                  consume(token);
+                  consume(current_scanner.token);
               until not try_to_consume(_COMMA);
 
               if ([gcf_class,gcf_constructor]*constraintdata.flags<>[]) or
@@ -2490,7 +2490,7 @@ uses
             end
           else
             begin
-              if token=_SEMICOLON then
+              if current_scanner.token=_SEMICOLON then
                 begin
                   { two different typeless parameters are considered as incompatible }
                   for i:=firstidx to result.count-1 do
@@ -2503,7 +2503,7 @@ uses
                   firstidx:=result.count;
                 end;
             end;
-          if token=_SEMICOLON then
+          if current_scanner.token=_SEMICOLON then
             begin
               is_const:=false;
               allowconst:=true;

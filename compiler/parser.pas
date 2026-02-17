@@ -488,18 +488,18 @@ implementation
            message if we are trying to use a program as unit.}
          try
            try
-             if (token=_UNIT) or (not module.is_initial) then
+             if (current_scanner.token=_UNIT) or (not module.is_initial) then
                begin
                  module.is_unit:=true;
                  finished:=proc_unit(module);
                end
-             else if (token=_ID) and (idtoken=_PACKAGE) then
+             else if (current_scanner.token=_ID) and (idtoken=_PACKAGE) then
                begin
                  module.IsPackage:=true;
                  finished:=proc_package(module);
                end
              else
-               finished:=proc_program(module,token=_LIBRARY);
+               finished:=proc_program(module,current_scanner.token=_LIBRARY);
            except
              on ECompilerAbort do
                raise;

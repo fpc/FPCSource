@@ -72,7 +72,7 @@ implementation
          consume(_IF);
          ex:=comp_expr([ef_accept_equal]);
          consume(_THEN);
-         if not(token in endtokens) then
+         if not(current_scanner.token in endtokens) then
            if_a:=statement
          else
            if_a:=nil;
@@ -93,7 +93,7 @@ implementation
       begin
          first:=nil;
          last:=nil;
-         while token<>_END do
+         while current_scanner.token<>_END do
            begin
               if first=nil then
                 begin
@@ -265,7 +265,7 @@ implementation
              sl2.free;
              sl2 := nil;
 
-             if token=_COMMA then
+             if current_scanner.token=_COMMA then
                consume(_COMMA)
              else
                break;
@@ -278,11 +278,11 @@ implementation
            { next block }
            inc(blockid);
 
-           if not(token in [_ELSE,_OTHERWISE,_END]) then
+           if not(current_scanner.token in [_ELSE,_OTHERWISE,_END]) then
              consume(_SEMICOLON);
-         until (token in [_ELSE,_OTHERWISE,_END]);
+         until (current_scanner.token in [_ELSE,_OTHERWISE,_END]);
 
-         if (token in [_ELSE,_OTHERWISE]) then
+         if (current_scanner.token in [_ELSE,_OTHERWISE]) then
            begin
               if not try_to_consume(_ELSE) then
                 consume(_OTHERWISE);
@@ -305,7 +305,7 @@ implementation
 
          first:=nil;
          last:=nil;
-         while token<>_UNTIL do
+         while current_scanner.token<>_UNTIL do
            begin
               if first=nil then
                 begin
@@ -785,7 +785,7 @@ implementation
             else
               begin
                 consume(_DO);
-                if token<>_SEMICOLON then
+                if current_scanner.token<>_SEMICOLON then
                   p:=statement
                 else
                   p:=cnothingnode.create;
@@ -824,7 +824,7 @@ implementation
              begin
                consume(_DO);
                { ignore all }
-               if token<>_SEMICOLON then
+               if current_scanner.token<>_SEMICOLON then
                 statement;
              end;
             result:=cerrornode.create;
@@ -847,7 +847,7 @@ implementation
          paddr:=nil;
          pframe:=nil;
          consume(_RAISE);
-         if not(token in endtokens) then
+         if not(current_scanner.token in endtokens) then
            begin
               { object }
               pobj:=comp_expr([ef_accept_equal]);
@@ -913,7 +913,7 @@ implementation
          old_block_type := block_type;
          block_type := bt_body;
 
-         while (token<>_FINALLY) and (token<>_EXCEPT) do
+         while (current_scanner.token<>_FINALLY) and (current_scanner.token<>_EXCEPT) do
            begin
               if first=nil then
                 begin
@@ -952,7 +952,7 @@ implementation
                 begin
                    repeat
                      consume(_ON);
-                     if token=_ID then
+                     if current_scanner.token=_ID then
                        begin
                           objname:=current_scanner.pattern;
                           objrealname:=current_scanner.orgpattern;
@@ -1045,7 +1045,7 @@ implementation
                      if not try_to_consume(_SEMICOLON) then
                         break;
                      consume_emptystats;
-                   until (token in [_END,_ELSE]);
+                   until (current_scanner.token in [_END,_ELSE]);
                    if try_to_consume(_ELSE) then
                      begin
                        { catch the other exceptions }
@@ -1121,15 +1121,15 @@ implementation
          { END is read, got a list of changed registers? }
          if try_to_consume(_LECKKLAMMER) then
            begin
-             if token<>_RECKKLAMMER then
+             if current_scanner.token<>_RECKKLAMMER then
               begin
                 if po_assembler in current_procinfo.procdef.procoptions then
                   Message(parser_w_register_list_ignored);
                 repeat
                   { it's possible to specify the modified registers }
-                  if token=_CSTRING then
+                  if current_scanner.token=_CSTRING then
                     reg:=std_regnum_search(lower(current_scanner.cstringpattern))
-                  else if token=_CCHAR then
+                  else if current_scanner.token=_CCHAR then
                     reg:=std_regnum_search(lower(current_scanner.pattern))
                   else
                     reg:=NR_NO;
@@ -1149,7 +1149,7 @@ implementation
                     end
                   else
                     Message(asmr_e_invalid_register);
-                  if token=_CCHAR then
+                  if current_scanner.token=_CCHAR then
                     consume(_CCHAR)
                   else
                     consume(_CSTRING);
@@ -1218,9 +1218,9 @@ implementation
           tokenbuf.reset;
           current_scanner.startrecordtokens(tokenbuf);
           nesting:=0;
-          while token<>_SLASH do
+          while current_scanner.token<>_SLASH do
             begin
-              case token of
+              case current_scanner.token of
                 _LKLAMMER:
                   inc(nesting);
                 _RKLAMMER:
@@ -1234,11 +1234,11 @@ implementation
                 else
                   ; {no action}
               end;
-              consume(token);
+              consume(current_scanner.token);
             end;
           current_scanner.stoprecordtokens;
           { Set the current token to ; to make the constant evaluator happy }
-          token:=_SEMICOLON;
+          current_scanner.token:=_SEMICOLON;
           { Parse recorded tokens }
           current_scanner.startreplaytokens(tokenbuf,false);
 
@@ -1257,7 +1257,7 @@ implementation
             else
               actype:=aitconst_128bit; { default size }
           sym:=nil;
-          if token=_ID then
+          if current_scanner.token=_ID then
             begin
               if searchsym(current_scanner.pattern,sym,symtable) then
                 begin
@@ -1268,7 +1268,7 @@ implementation
                       if (sym.typ=staticvarsym) and not (actype in [aitconst_128bit,aitconst_ptr]) then
                         Message1(type_e_integer_expr_expected,sym.name);
                       { Additional offset }
-                      if token in [_PLUS,_MINUS] then
+                      if current_scanner.token in [_PLUS,_MINUS] then
                         w:=eval_intconst
                       else
                         w:=0;
@@ -1345,24 +1345,24 @@ implementation
       begin
          filepos:=current_tokenpos;
          code:=nil;
-         case token of
+         case current_scanner.token of
            _GOTO :
              begin
                 if not(cs_support_goto in current_settings.moduleswitches) then
                   Message(sym_e_goto_and_label_not_supported);
                 consume(_GOTO);
-                if (token<>_INTCONST) and (token<>_ID) then
+                if (current_scanner.token<>_INTCONST) and (current_scanner.token<>_ID) then
                   begin
                     Message(sym_e_label_not_found);
                     code:=cerrornode.create;
                   end
                 else
                   begin
-                     if token=_ID then
+                     if current_scanner.token=_ID then
                        consume_sym(srsym,srsymtable)
                      else
                       begin
-                        if token<>_INTCONST then
+                        if current_scanner.token<>_INTCONST then
                           internalerror(201008021);
 
                         { strip leading 0's in iso mode }
@@ -1377,7 +1377,7 @@ implementation
                             srsym:=generrorsym;
                             srsymtable:=nil;
                           end;
-                        consume(token);
+                        consume(current_scanner.token);
                       end;
 
                      if srsym.typ<>labelsym then
@@ -1511,7 +1511,7 @@ implementation
 
              if p.nodetype=labeln then
                begin
-                 if not(token in endtokens) then
+                 if not(current_scanner.token in endtokens) then
                    begin
                      astatement:=statement();
                      typecheckpass(astatement);
@@ -1593,7 +1593,7 @@ implementation
          filepos:=current_tokenpos;
          consume(starttoken);
 
-         while not((token=_END) or (token=_FINALIZATION)) do
+         while not((current_scanner.token=_END) or (current_scanner.token=_FINALIZATION)) do
            begin
               if first=nil then
                 begin
@@ -1605,12 +1605,12 @@ implementation
                    tstatementnode(last).right:=cstatementnode.create(statement,nil);
                    last:=tstatementnode(last).right;
                 end;
-              if ((token=_END) or (token=_FINALIZATION)) then
+              if ((current_scanner.token=_END) or (current_scanner.token=_FINALIZATION)) then
                 break
               else
                 begin
                    { if no semicolon, then error and go on }
-                   if token<>_SEMICOLON then
+                   if current_scanner.token<>_SEMICOLON then
                      begin
                         consume(_SEMICOLON);
                         consume_all_until(_SEMICOLON);
@@ -1623,7 +1623,7 @@ implementation
          { don't consume the finalization token, it is consumed when
            reading the finalization block, but allow it only after
            an initialization ! }
-         if (starttoken<>_INITIALIZATION) or (token<>_FINALIZATION) then
+         if (starttoken<>_INITIALIZATION) or (current_scanner.token<>_FINALIZATION) then
            consume(_END);
 
          last:=cblocknode.create(first);
@@ -1658,7 +1658,7 @@ implementation
            current_procinfo.procdef.proccalloption:=pocall_register;
 
          { force the asm statement }
-         if token<>_ASM then
+         if current_scanner.token<>_ASM then
            consume(_ASM);
          include(current_procinfo.flags,pi_is_assembler);
          p:=_asm_statement;

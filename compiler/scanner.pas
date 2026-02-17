@@ -156,6 +156,9 @@ interface
           cstringpattern : ansistring;
           patternw       : tcompilerwidestring;
 
+          { token }
+          token : ttoken;                { current token being parsed }
+
           oldlasttokenpos     : longint; { temporary saving/restoring tokenpos }
           oldcurrent_filepos,
           oldcurrent_tokenpos : tfileposinfo;
@@ -302,8 +305,6 @@ interface
 {$endif PREPROCWRITE}
 
     var
-        { token }
-        token,                        { current token being parsed }
         idtoken    : ttoken;          { holds the token if the pattern is a known word }
 
 {$ifdef PREPROCWRITE}

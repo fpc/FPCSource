@@ -245,9 +245,9 @@ implementation
          repeat
            orgname:=current_scanner.orgpattern;
            filepos:=current_tokenpos;
-           isgeneric:=not (m_delphi in current_settings.modeswitches) and (token=_ID) and (idtoken=_GENERIC);
+           isgeneric:=not (m_delphi in current_settings.modeswitches) and (current_scanner.token=_ID) and (idtoken=_GENERIC);
            consume(_ID);
-           case token of
+           case current_scanner.token of
 
              _EQ:
                 begin
@@ -361,7 +361,7 @@ implementation
                 end;
 
               else
-                if not first and isgeneric and (token in [_PROCEDURE,_FUNCTION,_CLASS]) then
+                if not first and isgeneric and (current_scanner.token in [_PROCEDURE,_FUNCTION,_CLASS]) then
                   begin
                     had_generic:=true;
                     break;
@@ -372,7 +372,7 @@ implementation
            end;
 
            first:=false;
-         until (token<>_ID) or
+         until (current_scanner.token<>_ID) or
                (in_structure and
                 ((idtoken in [_PRIVATE,_PROTECTED,_PUBLIC,_PUBLISHED,_STRICT]) or
                  ((m_final_fields in current_settings.modeswitches) and
@@ -389,11 +389,11 @@ implementation
          if not(cs_support_goto in current_settings.moduleswitches) then
            Message(sym_e_goto_and_label_not_supported);
          repeat
-           if not(token in [_ID,_INTCONST]) then
+           if not(current_scanner.token in [_ID,_INTCONST]) then
              consume(_ID)
            else
              begin
-                if token=_ID then
+                if current_scanner.token=_ID then
                   labelsym:=clabelsym.create(current_scanner.orgpattern)
                 else
                   begin
@@ -422,10 +422,10 @@ implementation
                     { the buffer will be setup later, but avoid a hint }
                     tabstractvarsym(labelsym.jumpbuf).varstate:=vs_written;
                   end;
-                consume(token);
+                consume(current_scanner.token);
              end;
-           if token<>_SEMICOLON then consume(_COMMA);
-         until not(token in [_ID,_INTCONST]);
+           if current_scanner.token<>_SEMICOLON then consume(_COMMA);
+         until not(current_scanner.token in [_ID,_INTCONST]);
          consume(_SEMICOLON);
       end;
 
@@ -592,19 +592,19 @@ implementation
       begin
         newtype:=nil;
         wasforward:=false;
-        if ((token=_CLASS) or
-            (token=_INTERFACE) or
-            (token=_DISPINTERFACE) or
-            (token=_OBJCCLASS) or
-            (token=_OBJCPROTOCOL) or
-            (token=_OBJCCATEGORY)) and
+        if ((current_scanner.token=_CLASS) or
+            (current_scanner.token=_INTERFACE) or
+            (current_scanner.token=_DISPINTERFACE) or
+            (current_scanner.token=_OBJCCLASS) or
+            (current_scanner.token=_OBJCPROTOCOL) or
+            (current_scanner.token=_OBJCCATEGORY)) and
            (assigned(ttypesym(sym).typedef)) and
            is_implicit_pointer_object_type(ttypesym(sym).typedef) and
            (oo_is_forward in tobjectdef(ttypesym(sym).typedef).objectoptions) then
          begin
            wasforward:=true;
            objecttype:=odt_none;
-           case token of
+           case current_scanner.token of
              _CLASS :
                objecttype:=default_class_type;
              _INTERFACE :
@@ -626,7 +626,7 @@ implementation
              else
                internalerror(200811072);
            end;
-           consume(token);
+           consume(current_scanner.token);
            if assigned(genericdef) then
              gendef:=tstoreddef(genericdef)
            else
@@ -751,7 +751,7 @@ implementation
 
            { class attribute definitions? }
            if m_prefixed_attributes in current_settings.modeswitches then
-             while token=_LECKKLAMMER do
+             while current_scanner.token=_LECKKLAMMER do
                parse_rttiattributes(rtti_attrs_def);
 
            { fpc generic declaration? }
@@ -765,7 +765,7 @@ implementation
 
            { delphi generic declaration? }
            if (m_delphi in current_settings.modeswitches) then
-             isgeneric:=token=_LSHARPBRACKET;
+             isgeneric:=current_scanner.token=_LSHARPBRACKET;
 
            { Generic type declaration? }
            if isgeneric then
@@ -795,8 +795,8 @@ implementation
            { MacPas object model is more like Delphi's than like TP's, but }
            { uses the object keyword instead of class                      }
            if (m_mac in current_settings.modeswitches) and
-              (token = _OBJECT) then
-             token := _CLASS;
+              (current_scanner.token = _OBJECT) then
+             current_scanner.token := _CLASS;
 
            { Start recording a generic template }
            if assigned(generictypelist) then
@@ -1043,7 +1043,7 @@ implementation
                     else
                       if try_to_consume(_NEAR) then
                        begin
-                         if token <> _SEMICOLON then
+                         if current_scanner.token <> _SEMICOLON then
                            begin
                              segment_register:=get_stringconst;
                              case UpCase(segment_register) of
@@ -1223,11 +1223,11 @@ implementation
              end;
 
            if not (m_delphi in current_settings.modeswitches) and
-               (token=_ID) and (idtoken=_GENERIC) then
+               (current_scanner.token=_ID) and (idtoken=_GENERIC) then
              begin
                had_generic:=true;
                consume(_ID);
-               if token in [_PROCEDURE,_FUNCTION,_CLASS] then
+               if current_scanner.token in [_PROCEDURE,_FUNCTION,_CLASS] then
                  break;
              end
            else
@@ -1241,7 +1241,7 @@ implementation
             hdef.XMLPrintDef(newtype);
  {$endif DEBUG_NODE_XML}
 
-         until ((token<>_ID) and (token<>_LECKKLAMMER)) or
+         until ((current_scanner.token<>_ID) and (current_scanner.token<>_LECKKLAMMER)) or
                (in_structure and
                 ((idtoken in [_PRIVATE,_PROTECTED,_PUBLIC,_PUBLISHED,_STRICT]) or
                  ((m_final_fields in current_settings.modeswitches) and
@@ -1290,7 +1290,7 @@ implementation
          repeat
            read_property_dec(false, nil);
            consume(_SEMICOLON);
-         until token<>_ID;
+         until current_scanner.token<>_ID;
          block_type:=old_block_type;
       end;
 
@@ -1339,9 +1339,9 @@ implementation
          repeat
            orgname:=current_scanner.orgpattern;
            filepos:=current_tokenpos;
-           isgeneric:=not (m_delphi in current_settings.modeswitches) and (token=_ID) and (idtoken=_GENERIC);
+           isgeneric:=not (m_delphi in current_settings.modeswitches) and (current_scanner.token=_ID) and (idtoken=_GENERIC);
            consume(_ID);
-           case token of
+           case current_scanner.token of
              _EQ:
                 begin
                    consume(_EQ);
@@ -1417,7 +1417,7 @@ implementation
                 end;
               else
                 if not first and isgeneric and
-                    (token in [_PROCEDURE, _FUNCTION, _CLASS]) then
+                    (current_scanner.token in [_PROCEDURE, _FUNCTION, _CLASS]) then
                   begin
                     had_generic:=true;
                     break;
@@ -1426,7 +1426,7 @@ implementation
                   consume(_EQ);
            end;
            first:=false;
-         until token<>_ID;
+         until current_scanner.token<>_ID;
          block_type:=old_block_type;
       end;
 

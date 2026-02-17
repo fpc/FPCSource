@@ -152,13 +152,13 @@ implementation
       old_block_type: tblock_type;
     begin
       { would require saving of cstringpattern, patternw }
-      if (token=_CSTRING) or
-         (token=_CWCHAR) or
-         (token=_CWSTRING) then
+      if (current_scanner.token=_CSTRING) or
+         (current_scanner.token=_CWCHAR) or
+         (current_scanner.token=_CWSTRING) then
         internalerror(2011032201);
       sstate.old_scanner:=current_scanner;
       sstate.old_filepos:=current_filepos;
-      sstate.old_token:=token;
+      sstate.old_token:=current_scanner.token;
       sstate.old_c:=current_scanner.c;
       sstate.old_orgpattern:=current_scanner.orgpattern;
       sstate.old_modeswitches:=current_settings.modeswitches;
@@ -183,7 +183,7 @@ implementation
           sstate.new_scanner.free; // no nil needed
           set_current_scanner(sstate.old_scanner);
           current_filepos:=sstate.old_filepos;
-          token:=sstate.old_token;
+          current_scanner.token:=sstate.old_token;
           current_settings.modeswitches:=sstate.old_modeswitches;
           current_scanner.c:=sstate.old_c;
           current_scanner.orgpattern:=sstate.old_orgpattern;

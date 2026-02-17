@@ -152,20 +152,20 @@ implementation
     procedure consume(i : ttoken);
 
     begin
-        if (token<>i) and (idtoken<>i) then
+        if (current_scanner.token<>i) and (idtoken<>i) then
           begin
             if current_scanner.had_multiline_string then
               Message2(scan_f_unterminated_multiline_string,
                        tostr(current_scanner.multiline_start_line),
                        tostr(current_scanner.multiline_start_column))
-            else if token=_id then
+            else if current_scanner.token=_id then
               Message2(scan_f_syn_expected,tokeninfo^[i].str,'identifier '+current_scanner.pattern)
             else
-              Message2(scan_f_syn_expected,tokeninfo^[i].str,tokeninfo^[token].str);
+              Message2(scan_f_syn_expected,tokeninfo^[i].str,tokeninfo^[current_scanner.token].str);
           end
         else
           begin
-            if token=_END then
+            if current_scanner.token=_END then
               last_endtoken_filepos:=current_tokenpos;
             current_scanner.readtoken(true);
           end;
@@ -174,12 +174,12 @@ implementation
     procedure consume_last_dot;
 
     begin
-        if (token<>_POINT) then
+        if (current_scanner.token<>_POINT) then
           begin
-          if token=_id then
+          if current_scanner.token=_id then
             Message2(scan_f_syn_expected,tokeninfo^[_POINT].str,'identifier '+current_scanner.pattern)
           else
-            Message2(scan_f_syn_expected,tokeninfo^[_POINT].str,tokeninfo^[token].str)
+            Message2(scan_f_syn_expected,tokeninfo^[_POINT].str,tokeninfo^[current_scanner.token].str)
           end
         else if current_scanner.c<>#0 then
           current_scanner.readtoken(true);
@@ -188,10 +188,10 @@ implementation
     function try_to_consume(i:Ttoken):boolean;
       begin
         try_to_consume:=false;
-        if (token=i) or (idtoken=i) then
+        if (current_scanner.token=i) or (idtoken=i) then
          begin
            try_to_consume:=true;
-           if token=_END then
+           if current_scanner.token=_END then
             last_endtoken_filepos:=current_tokenpos;
            current_scanner.readtoken(true);
          end;
@@ -200,10 +200,10 @@ implementation
 
     procedure consume_all_until(atoken : ttoken);
       begin
-         while (token<>atoken) and (idtoken<>atoken) do
+         while (current_scanner.token<>atoken) and (idtoken<>atoken) do
           begin
-            Consume(token);
-            if token=_EOF then
+            Consume(current_scanner.token);
+            if current_scanner.token=_EOF then
              begin
                Consume(atoken);
                if current_scanner.had_multiline_string then
@@ -236,7 +236,7 @@ implementation
         t : ttoken;
       begin
         { first check for identifier }
-        if token<>_ID then
+        if current_scanner.token<>_ID then
           begin
             consume(_ID);
             srsym:=generrorsym;
@@ -269,7 +269,7 @@ implementation
         t : ttoken;
       begin
         { first check for identifier }
-        if token<>_ID then
+        if current_scanner.token<>_ID then
           begin
             consume(_ID);
             srsym:=generrorsym;
@@ -393,7 +393,7 @@ implementation
                         exit;
                       end;
                   end;
-                case token of
+                case current_scanner.token of
                   _ID:
                     begin
                       if cuf_check_attr_suffix in flags then
@@ -416,7 +416,7 @@ implementation
                           begin
                             consume(_ID);
                             is_specialize:=true;
-                            if token=_ID then
+                            if current_scanner.token=_ID then
                               begin
                                 if (cuf_check_attr_suffix in flags) and
                                     searchsym_in_module(tunitsym(srsym).module,current_scanner.pattern+custom_attribute_suffix,srsym,srsymtable) then
@@ -522,18 +522,18 @@ implementation
             else
               break;
           end;
-          consume(Token);
+          consume(current_scanner.token);
           { handle deprecated message }
-          if ((token=_CSTRING) or (token=_CCHAR)) and last_is_deprecated then
+          if ((current_scanner.token=_CSTRING) or (current_scanner.token=_CCHAR)) and last_is_deprecated then
             begin
               if not assigned(deprecatedmsg) then
                 begin
-                  if token=_CSTRING then
+                  if current_scanner.token=_CSTRING then
                     deprecatedmsg:=stringdup(current_scanner.cstringpattern)
                   else
                     deprecatedmsg:=stringdup(current_scanner.pattern);
                 end;
-              consume(token);
+              consume(current_scanner.token);
               include(symopt,sp_has_deprecated_msg);
             end;
         until false;

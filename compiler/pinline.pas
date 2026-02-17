@@ -83,7 +83,7 @@ implementation
           if (([m_iso,m_extpas]*current_settings.modeswitches)<>[]) and (is_record(tpointerdef(p.resultdef).pointeddef)) then
             begin
               variantdesc:=trecorddef(tpointerdef(p.resultdef).pointeddef).variantrecdesc;
-              while (token=_COMMA) and assigned(variantdesc) do
+              while (current_scanner.token=_COMMA) and assigned(variantdesc) do
                 begin
                   consume(_COMMA);
                   p2:=factor(false,[]);

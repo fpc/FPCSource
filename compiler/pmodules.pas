@@ -634,7 +634,7 @@ implementation
           sorg:=current_scanner.orgpattern;
           filepos:=current_tokenpos;
           consume(_ID);
-          while token=_POINT do
+          while current_scanner.token=_POINT do
             begin
               consume(_POINT);
               s:=s+'.'+current_scanner.pattern;
@@ -690,7 +690,7 @@ implementation
            end
           else
            Message1(sym_e_duplicate_id,s);
-          if token=_COMMA then
+          if current_scanner.token=_COMMA then
            begin
              current_scanner.pattern:='';
              consume(_COMMA);
@@ -1128,17 +1128,17 @@ implementation
             else
               break;
           end;
-          consume(Token);
+          consume(current_scanner.token);
           { handle deprecated message }
-          if ((token=_CSTRING) or (token=_CCHAR)) and last_is_deprecated then
+          if ((current_scanner.token=_CSTRING) or (current_scanner.token=_CCHAR)) and last_is_deprecated then
             begin
               if deprecatedmsg<>nil then
                 internalerror(201001221);
-              if token=_CSTRING then
+              if current_scanner.token=_CSTRING then
                 deprecatedmsg:=stringdup(current_scanner.cstringpattern)
               else
                 deprecatedmsg:=stringdup(current_scanner.pattern);
-              consume(token);
+              consume(current_scanner.token);
               include(moduleopt,mo_has_deprecated_msg);
             end;
         until false;
@@ -1223,7 +1223,7 @@ type
             curr.mainfilepos:=init_procinfo.entrypos;
 
             { parse finalization section }
-            if token=_FINALIZATION then
+            if current_scanner.token=_FINALIZATION then
               begin
                 { Compile the finalize }
                 finalize_procinfo:=create_main_proc(make_mangledname('',curr.localsymtable,'finalize$'),potype_unitfinalize,curr.localsymtable);
@@ -1360,7 +1360,7 @@ type
             consume(_IMPLEMENTATION);
             Message1(unit_u_loading_implementation_units,curr.modulename^);
             { Read the implementation units }
-            if token=_USES then
+            if current_scanner.token=_USES then
               begin
               parseusesclause(curr);
               if not loadunits(curr,false) then
@@ -1407,7 +1407,7 @@ type
 
          unitname:=current_scanner.orgpattern;
          consume(_ID);
-         while token=_POINT do
+         while current_scanner.token=_POINT do
            begin
              consume(_POINT);
              unitname:=unitname+'.'+current_scanner.orgpattern;
@@ -1508,7 +1508,7 @@ type
 
          { insert qualifier for the system unit (allows system.writeln) }
          if not(cs_compilesystem in current_settings.moduleswitches) and
-            (token=_USES) then
+            (current_scanner.token=_USES) then
            begin
              // We do this as late as possible.
              if Assigned(curr) then
@@ -1986,7 +1986,7 @@ type
 
          module_name:=current_scanner.orgpattern;
          consume(_ID);
-         while token=_POINT do
+         while current_scanner.token=_POINT do
            begin
              consume(_POINT);
              module_name:=module_name+'.'+current_scanner.orgpattern;
@@ -2033,17 +2033,17 @@ type
            current_namespacelist:=Nil;
 
          {Read the packages used by the package we compile.}
-         if (token=_ID) and (idtoken=_REQUIRES) then
+         if (current_scanner.token=_ID) and (idtoken=_REQUIRES) then
            begin
              { consume _REQUIRES word }
              consume(_ID);
              while true do
                begin
-                 if token=_ID then
+                 if current_scanner.token=_ID then
                    begin
                      module_name:=current_scanner.orgpattern;
                      consume(_ID);
-                     while token=_POINT do
+                     while current_scanner.token=_POINT do
                        begin
                          consume(_POINT);
                          module_name:=module_name+'.'+current_scanner.orgpattern;
@@ -2053,7 +2053,7 @@ type
                    end
                  else
                    consume(_ID);
-                 if token=_COMMA then
+                 if current_scanner.token=_COMMA then
                    consume(_COMMA)
                  else
                    break;
@@ -2079,17 +2079,17 @@ type
            end;
 
          {Load the units used by the program we compile.}
-         if (token=_ID) and (idtoken=_CONTAINS) then
+         if (current_scanner.token=_ID) and (idtoken=_CONTAINS) then
            begin
              { consume _CONTAINS word }
              consume(_ID);
              while true do
                begin
-                 if token=_ID then
+                 if current_scanner.token=_ID then
                    begin
                      module_name:=current_scanner.orgpattern;
                      consume(_ID);
-                     while token=_POINT do
+                     while current_scanner.token=_POINT do
                        begin
                          consume(_POINT);
                          module_name:=module_name+'.'+current_scanner.orgpattern;
@@ -2104,7 +2104,7 @@ type
                    end
                  else
                    consume(_ID);
-                 if token=_COMMA then
+                 if current_scanner.token=_COMMA then
                    consume(_COMMA)
                  else break;
                end;
@@ -2706,7 +2706,7 @@ type
         curr.mainfilepos:=main_procinfo.entrypos;
 
         { finalize? }
-        if token=_FINALIZATION then
+        if current_scanner.token=_FINALIZATION then
           begin
              { Parse the finalize }
              finalize_procinfo:=create_main_proc(make_mangledname('',curr.localsymtable,'finalize$'),potype_unitfinalize,curr.localsymtable);
@@ -2819,7 +2819,7 @@ type
         consume(_LIBRARY);
         program_name:=current_scanner.orgpattern;
         consume(_ID);
-        while token=_POINT do
+        while current_scanner.token=_POINT do
          begin
            consume(_POINT);
            program_name:=program_name+'.'+current_scanner.orgpattern;
@@ -2863,7 +2863,7 @@ type
           consume(_PROGRAM);
           program_name:=current_scanner.orgpattern;
           consume(_ID);
-          while token=_POINT do
+          while current_scanner.token=_POINT do
             begin
               consume(_POINT);
               program_name:=program_name+'.'+current_scanner.orgpattern;
@@ -2872,7 +2872,7 @@ type
           curr.setmodulename(program_name);
           if (target_info.system in systems_unit_program_exports) then
             exportlib.preparelib(program_name);
-          if token=_LKLAMMER then
+          if current_scanner.token=_LKLAMMER then
             begin
                consume(_LKLAMMER);
                paramnum:=1;
@@ -2967,7 +2967,7 @@ type
              proc_library_header(curr);
              consume_semicolon_after_loaded:=true;
            end
-         else if token=_PROGRAM then
+         else if current_scanner.token=_PROGRAM then
            { is there an program head ? }
            begin
              proc_program_header(curr,sc);
@@ -3033,7 +3033,7 @@ type
            end;
 
          { Load the units used by the program we compile. }
-         if token=_USES then
+         if current_scanner.token=_USES then
            begin
              // We can do this here: if there is no uses then the namespace directive makes no sense.
              if Assigned(curr) then

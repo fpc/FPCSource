@@ -85,7 +85,7 @@ implementation
           begin
             result:=true;
             def:=nil;
-            if token=_ID then
+            if current_scanner.token=_ID then
              begin
                if assigned(astruct) then
                  sym:=search_struct_member(astruct,current_scanner.pattern)
@@ -124,7 +124,7 @@ implementation
                 end;
                consume(_ID);
                repeat
-                 case token of
+                 case current_scanner.token of
                    _ID,
                    _SEMICOLON :
                      begin
@@ -374,7 +374,7 @@ implementation
              writeprocdef.procoptions:=[po_staticmethod,po_classmethod];
            end;
 
-         if token<>_ID then
+         if current_scanner.token<>_ID then
            begin
               consume(_ID);
               consume(_SEMICOLON);
@@ -455,7 +455,7 @@ implementation
          { force property interface
              there is a property parameter
              a global property }
-         if (token=_COLON) or (paranr>0) or (astruct=nil) then
+         if (current_scanner.token=_COLON) or (paranr>0) or (astruct=nil) then
            begin
               consume(_COLON);
               single_type(p.propdef,[stoAllowSpecialization]);
@@ -611,7 +611,7 @@ implementation
               begin
                 include(p.propoptions,ppo_stored);
                 p.propaccesslist[palt_stored].clear;
-                if token=_ID then
+                if current_scanner.token=_ID then
                   begin
                     { in the case that idtoken=_DEFAULT }
                     { we have to do nothing except      }
@@ -997,7 +997,7 @@ implementation
               else if try_to_consume(_NEAR) then
                 is_far:=false;
             end;
-          if (idtoken<>_NAME) and (token<>_SEMICOLON) then
+          if (idtoken<>_NAME) and (current_scanner.token<>_SEMICOLON) then
             begin
               is_dll:=true;
               dll_name:=get_stringconst;
@@ -1380,7 +1380,7 @@ implementation
          old_block_type:=block_type;
          block_type:=bt_var;
          { Force an expected ID error message }
-         if not (token in [_ID,_CASE,_END]) then
+         if not (current_scanner.token in [_ID,_CASE,_END]) then
            consume(_ID);
          { read vars }
          sc:=TFPObjectList.create(false);
@@ -1388,14 +1388,14 @@ implementation
          had_generic:=false;
          vs:=nil;
          fillchar(tmp_filepos,sizeof(tmp_filepos),0);
-         while (token=_ID) do
+         while (current_scanner.token=_ID) do
            begin
              semicoloneaten:=false;
              hasdefaultvalue:=false;
              allowdefaultvalue:=true;
              sc.clear;
              repeat
-               if (token = _ID) then
+               if (current_scanner.token = _ID) then
                  begin
                    isgeneric:=(vd_check_generic in options) and
                                 not (m_delphi in current_settings.modeswitches) and
@@ -1426,7 +1426,7 @@ implementation
                if not first
                    and isgeneric
                    and (sc.count=1)
-                   and (token in [_PROCEDURE,_FUNCTION,_CLASS]) then
+                   and (current_scanner.token in [_PROCEDURE,_FUNCTION,_CLASS]) then
                  begin
                    vs.free;
                    vs := nil;
@@ -1508,7 +1508,7 @@ implementation
 
              { Handling of Delphi typed const = initialized vars }
              if allowdefaultvalue and
-                (token=_EQ) and
+                (current_scanner.token=_EQ) and
                 not(m_tp7 in current_settings.modeswitches) and
                 (symtablestack.top.symtabletype<>parasymtable) then
                begin
@@ -1583,7 +1583,7 @@ implementation
                    flags:=hcc_default_actions_intf_struct;
                  handle_calling_convention(hdef,flags);
                  { Handling of Delphi typed const = initialized vars }
-                 if (token=_EQ) and
+                 if (current_scanner.token=_EQ) and
                     not(m_tp7 in current_settings.modeswitches) and
                     (symtablestack.top.symtabletype<>parasymtable) then
                    begin
@@ -1734,14 +1734,14 @@ implementation
          is_first_type:=true;
 {$endif powerpc or powerpc64}
          { Force an expected ID error message }
-         if not (token in [_ID,_CASE,_END]) then
+         if not (current_scanner.token in [_ID,_CASE,_END]) then
            consume(_ID);
          { read vars }
          sc:=TFPObjectList.create(false);
          removeclassoption:=false;
          had_generic:=false;
          attr_element_count:=0;
-         while (token=_ID) and
+         while (current_scanner.token=_ID) and
             not(((vd_object in options) or
                  ((vd_record in options) and (m_advanced_records in current_settings.modeswitches))) and
                 ((idtoken in [_PUBLIC,_PRIVATE,_PUBLISHED,_PROTECTED,_STRICT]) or
@@ -1753,7 +1753,7 @@ implementation
              sc.clear;
              repeat
                sorg:=current_scanner.orgpattern;
-               if token=_ID then
+               if current_scanner.token=_ID then
                  begin
                    vs:=cfieldvarsym.create(sorg,vs_value,generrordef,[]);
 
@@ -1771,7 +1771,7 @@ implementation
                if assigned(vs) and
                   (
                     not had_generic or
-                    not (token in [_PROCEDURE,_FUNCTION,_CLASS])
+                    not (current_scanner.token in [_PROCEDURE,_FUNCTION,_CLASS])
                   ) then
                  begin
                    vs.register_sym;
@@ -1890,7 +1890,7 @@ implementation
 
              { Records and objects can't have default values }
              { for a record there doesn't need to be a ; before the END or )    }
-             if not(token in [_END,_RKLAMMER]) and
+             if not(current_scanner.token in [_END,_RKLAMMER]) and
                 not(semicoloneaten) then
                consume(_SEMICOLON);
 
@@ -2015,7 +2015,7 @@ implementation
 
               { including a field declaration? }
               fieldvs:=nil;
-              if token=_ID then
+              if current_scanner.token=_ID then
                 begin
                   sorg:=current_scanner.orgpattern;
                   hs:=current_scanner.pattern;
@@ -2076,7 +2076,7 @@ implementation
                     end;
                   pt.free;
                   pt := nil;
-                  if token=_COMMA then
+                  if current_scanner.token=_COMMA then
                     consume(_COMMA)
                   else
                     break;
@@ -2089,7 +2089,7 @@ implementation
                 { read the vars }
                 consume(_LKLAMMER);
                 inc(variantrecordlevel);
-                if token<>_RKLAMMER then
+                if current_scanner.token<>_RKLAMMER then
                   read_record_fields([vd_record],nil,@variantdesc^^.branches[high(variantdesc^^.branches)].nestedvariant,hadgendummy,dummyattrelementcount);
                 dec(variantrecordlevel);
                 consume(_RKLAMMER);
@@ -2102,11 +2102,11 @@ implementation
                 unionsymtable.datasize:=startvarrecsize;
                 unionsymtable.fieldalignment:=startvarrecalign;
                 unionsymtable.padalignment:=startpadalign;
-                if (token<>_END) and (token<>_RKLAMMER) then
+                if (current_scanner.token<>_END) and (current_scanner.token<>_RKLAMMER) then
                   consume(_SEMICOLON)
                 else
                   break;
-              until (token=_END) or (token=_RKLAMMER);
+              until (current_scanner.token=_END) or (current_scanner.token=_RKLAMMER);
               symtablestack.pop(UnionSymtable);
               { at last set the record size to that of the biggest variant }
               unionsymtable.datasize:=maxsize;

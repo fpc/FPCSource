@@ -91,7 +91,7 @@ implementation
         if not in_structure and
            (
             (
-             (token = _ID) and
+             (current_scanner.token = _ID) and
              ((idtoken in [_EXPORT,_EXTERNAL,_PUBLIC,_CVAR]) or (idtoken = _WEAKEXTERNAL)) and
              (m_cvar_support in current_settings.modeswitches)
             ) or
