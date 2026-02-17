@@ -55,7 +55,7 @@ interface
     type
       trecompile_reason = (rr_unknown,
         rr_noppu,rr_sourcenewer,rr_build,rr_crcchanged
-        {$IFDEF EnableCTaskPPU}
+        {$IFNDEF DisableCTaskPPU}
         ,rr_buildcycle
         {$ENDIF}
       );
@@ -108,7 +108,7 @@ interface
       end;
       tderefmaparray = array of tderefmaprec;
 
-      {$IFDEF EnableCTaskPPU}
+      {$IFNDEF DisableCTaskPPU}
       tqueue_module_event = procedure(m: tmodule) of object;
       {$ENDIF}
 
@@ -122,7 +122,7 @@ interface
         in_interface    : boolean;
         u               : tmodule;
         unitsym         : tunitsym;
-        {$IFDEF EnableCTaskPPU}
+        {$IFNDEF DisableCTaskPPU}
         dependent_added : boolean;
         {$ENDIF}
         constructor create(_u : tmodule;intface,inuses:boolean;usym:tunitsym);
@@ -143,7 +143,7 @@ interface
       public
         is_reset,                 { has reset been called ? }
         do_reload,                { force reloading of the unit }
-        {$IFDEF EnableCTaskPPU}
+        {$IFNDEF DisableCTaskPPU}
         fromppu: boolean;
         {$ENDIF}
         sources_avail,            { if all sources are reachable }
@@ -236,7 +236,9 @@ interface
 
         moduleoptions: tmoduleoptions;
         deprecatedmsg: pshortstring;
-        loadcount : integer; // EnableCTaskPPU: remove
+        {$IFDEF DisableCTaskPPU}
+        loadcount : integer;
+        {$ENDIF}
         compilecount : integer;
         consume_semicolon_after_uses : Boolean;
         initfinalchecked : boolean;
@@ -294,7 +296,7 @@ interface
         procedure removedependency(callermodule:tmodule);
         function hasdependency(callermodule:tmodule): boolean;
         procedure flagdependent(callermodule:tmodule);
-        {$IFDEF EnableCTaskPPU}
+        {$IFNDEF DisableCTaskPPU}
         procedure disconnect_depending_modules; virtual;
         function is_reload_needed(du: tdependent_unit): boolean; virtual; // true if reload needed after self changed
         class var queue_module: tqueue_module_event;
@@ -538,15 +540,17 @@ implementation
         in_interface:=intface;
         in_uses:=inuses;
         unitsym:=usym;
-        if _u.state in [ms_compiled_waitcrc,ms_compiled,ms_processed] then
+        if _u.state in [ms_load,ms_compiled_waitcrc,ms_compiled,ms_processed] then
+          checksum:=u.crc
+        else
+          checksum:=0;
+        if _u.interface_compiled then
          begin
-           checksum:=u.crc;
            interface_checksum:=u.interface_crc;
            indirect_checksum:=u.indirect_crc;
          end
         else
          begin
-           checksum:=0;
            interface_checksum:=0;
            indirect_checksum:=0;
          end;
@@ -874,10 +878,11 @@ implementation
         m : tmodule;
       begin
         is_reset:=true;
-        {$IFDEF EnableCTaskPPU}
+        {$IFDEF DisableCTaskPPU}
+        LoadCount:=0;
+        {$ELSE}
         fromppu:=false;
         {$ENDIF}
-        LoadCount:=0;
         if assigned(scanner) then
           begin
             { also update current_scanner if it was pointing
@@ -1144,7 +1149,7 @@ implementation
           {$IFDEF DEBUG_PPU_CYCLES}
           writeln('PPUALGO tmodule.flagdependent ',modulename^,' state=',statestr,', is used by ',BoolToStr(dm.in_interface,'interface','implementation'),' of ',m.modulename^,' ',m.statestr);
           {$ENDIF}
-          {$IFDEF EnableCTaskPPU}
+          {$IFNDEF DisableCTaskPPU}
           if not m.do_reload and is_reload_needed(dm) then
           begin
             m.do_reload:=true;
@@ -1183,7 +1188,7 @@ implementation
         Result:='do_reload,'+Result;
     end;
 
-    {$IFDEF EnableCTaskPPU}
+    {$IFNDEF DisableCTaskPPU}
     procedure tmodule.disconnect_depending_modules;
     var
       uu: tused_unit;
@@ -1203,7 +1208,7 @@ implementation
              or (du.in_interface and du.u.interface_compiled);
         // Note: see also the override in fppu.tppumodule
       end;
-    {$ENDIF EnableCTaskPPU}
+    {$ENDIF}
 
     procedure tmodule.addimportedsym(sym:TSymEntry);
       begin
@@ -1221,7 +1226,7 @@ implementation
       end;
 
     function tmodule.usedunitsloaded(interface_units : boolean; out firstwaiting : tmodule): boolean;
-    {$IFDEF EnableCTaskPPU}
+    {$IFNDEF DisableCTaskPPU}
       var
         uu: tused_unit;
         ok: Boolean;
@@ -1232,9 +1237,9 @@ implementation
         while assigned(uu) do
         begin
           ok:=uu.u.interface_compiled and not uu.u.do_reload;
-          { $IFDEF DEBUG_CTASK_VERBOSE}
+          {$IFDEF DEBUG_CTASK_VERBOSE}
           writeln('  ',ToString,' checking state of ', uu.u.ToString,' : ',uu.u.statestr,' : ',ok);
-          { $ENDIF}
+          {$ENDIF}
           if not ok then
           begin
             Result:=false;

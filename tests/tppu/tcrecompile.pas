@@ -297,13 +297,8 @@ begin
   Step:='Second compile';
   UnitPath:=Dir+';'+Dir+PathDelim+'src2';
   Compile;
-  {$IFDEF EnableCTaskPPU}
   // the main src is always compiled, bird changed, ant is only reloaded, not recompiled
   CheckCompiled(['changeleaf1_prg.pas','changeleaf1_bird.pas']);
-  {$ELSE}
-  // the main src is always compiled, bird changed, so ant must be recompiled as well
-  CheckCompiled(['changeleaf1_prg.pas','changeleaf1_ant.pas','changeleaf1_bird.pas']);
-  {$ENDIF}
 end;
 
 procedure TTestRecompile.TestChangeInner1;
@@ -401,15 +396,10 @@ begin
   Step:='Second compile';
   UnitPath:=Dir+';'+Dir+PathDelim+'src2';
   Compile;
-  {$IFDEF EnableCTaskPPU}
   // the main src is always compiled, cat changed but not crc,
   // because a ppu needs the crc, bird waits in intf, so ant waits in intf, creating a waiting loop
   // triggering a recompile of all the ppus of the whole cycle
   CheckCompiled(['cycle3_changec_prg.pas','cycle3_changec_ant.pas','cycle3_changec_bird.pas','cycle3_changec_cat.pas']);
-  {$ELSE}
-  // the main src is always compiled, cat changed, so bird must be recompiled as well
-  CheckCompiled(['cycle3_changec_prg.pas','cycle3_changec_ant.pas','cycle3_changec_bird.pas','cycle3_changec_cat.pas']);
-  {$ENDIF}
 end;
 
 procedure TTestRecompile.TestCycleImpl3_ChangeC;
@@ -433,13 +423,8 @@ begin
   Step:='Second compile';
   UnitPath:=Dir+';'+Dir+PathDelim+'src2';
   Compile;
-  {$IFDEF EnableCTaskPPU}
   // the main src is always compiled, cat changed but not crc
   CheckCompiled(['cycleimpl3_changec_prg.pas','cycleimpl3_changec_cat.pas']);
-  {$ELSE}
-  // the main src is always compiled, cat changed, so bird must be recompiled as well
-  CheckCompiled(['cycleimpl3_changec_prg.pas','cycleimpl3_changec_ant.pas','cycleimpl3_changec_bird.pas','cycleimpl3_changec_cat.pas']);
-  {$ENDIF}
 end;
 
 procedure TTestRecompile.TestChangeInlineBodyBug;
@@ -517,12 +502,7 @@ begin
 
   Step:='Second compile';
   Compile;
-  {$IFDEF EnableCTaskPPU}
   CheckCompiled(['bug41457_ant.pas']);
-  {$ELSE}
-  // the main src is always compiled
-  CheckCompiled(['bug41457_ant.pas','bug41457_bird.pas','bug41457_seagull.pas']);
-  {$ENDIF}
 end;
 
 procedure TTestRecompile.TestImplInline1;
@@ -540,13 +520,8 @@ begin
 
   Step:='Second compile';
   Compile;
-  {$IFDEF EnableCTaskPPU}
   // the main src is always compiled
   CheckCompiled(['implinline1_ant.pas']);
-  {$ELSE}
-  // the main src is always compiled, and since bird ppu depends on ant, it is always compiled as well
-  CheckCompiled(['implinline1_ant.pas','implinline1_bird.pas']);
-  {$ENDIF}
 end;
 
 procedure TTestRecompile.TestImplInline2;
@@ -636,18 +611,9 @@ begin
   Step:='Second compile';
   UnitPath:=Dir+';'+Dir+PathDelim+'src2';
   Compile;
-  {$IFDEF EnableCTaskPPU}
   // the main src is always compiled, cat intf class TCat changed, so bird and ant are recompiled
   CheckCompiled(['ancestorchange1_ant.pas','ancestorchange1_bird.pas','ancestorchange1_cat.pas',
     'ancestorchange1_eagle.pas']);
-  {$ELSE}
-  // the main src is always compiled,
-  // cat changed, so bird must be recompiled as well. bird should get the same CRCs.
-  // finally even though ant does ant directly use cat, ant specializes the changed generic
-  //   function from cat, so ant must be recompiled as well.
-  CheckCompiled(['ancestorchange1_ant.pas','ancestorchange1_bird.pas','ancestorchange1_cat.pas',
-    'ancestorchange1_eagle.pas']);
-  {$ENDIF}
 end;
 
 procedure TTestRecompile.TestGeneric_IndirectUses;
@@ -672,16 +638,8 @@ begin
   Step:='Second compile';
   UnitPath:=Dir+';'+Dir+PathDelim+'src2';
   Compile;
-  {$IFDEF EnableCTaskPPU}
   // the main src is always compiled, cat impl of the generic changed, so specialization in ant changed
   CheckCompiled(['generic_indirectuses_prg.pas','generic_indirectuses_ant.pas','generic_indirectuses_cat.pas']);
-  {$ELSE}
-  // the main src is always compiled,
-  // cat changed, so bird must be recompiled as well. bird should get the same CRCs.
-  // finally even though ant does ant directly use cat, ant specializes the changed generic
-  //   function from cat, so ant must be recompiled as well.
-  CheckCompiled(['generic_indirectuses_prg.pas','generic_indirectuses_ant.pas','generic_indirectuses_bird.pas','generic_indirectuses_cat.pas']);
-  {$ENDIF}
 end;
 
 initialization

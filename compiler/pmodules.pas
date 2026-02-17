@@ -219,7 +219,7 @@ implementation
         begin
           { add to used units }
           uu:=curr.addusedunit(hp,false,unitsym);
-          {$IFDEF EnableCTaskPPU}
+          {$IFNDEF DisableCTaskPPU}
           uu.dependent_added:=true;
           {$ENDIF}
         end;
@@ -736,7 +736,7 @@ implementation
             if pu.in_uses and
                (pu.in_interface=frominterface) then
              begin
-               {$IFDEF EnableCTaskPPU}
+               {$IFNDEF DisableCTaskPPU}
                // always call loadppu for the cycle test
                tppumodule(lu).loadppu(curr);
                if not (curr.state in [ms_compile,ms_compiling_wait,ms_compiling_waitintf,ms_compiling_waitimpl]) then
@@ -1327,14 +1327,18 @@ type
         {$IFDEF Debug_WaitCRC}
         writeln('parse_unit_interface_declarations ',curr.realmodulename^);
         {$ENDIF}
+        {$IFDEF DisableCTaskPPU}
         if not(cs_compilesystem in current_settings.moduleswitches) and
           (Errorcount=0) then
            tppumodule(curr).getppucrc;
+        {$ELSE}
+        if Errorcount=0 then
+           tppumodule(curr).getppucrc;
+        {$ENDIF}
         curr.in_interface:=false;
         curr.interface_compiled:=true;
 
-        {$IFDEF EnableCTaskPPU}
-        {$ELSE}
+        {$IFDEF DisableCTaskPPU}
         { First reload all units depending on our interface, we need to do this
           in the implementation part to prevent erroneous circular references }
         tppumodule(curr).setdefgeneration;
@@ -1799,9 +1803,8 @@ type
           if not module.usedunitsfinalcrc(waitingmodule) then
             begin
             { Some used units are still compiling, so their CRCs can change.
-              Compute the final CRC of this module, for the case of a
-              circular dependency, and wait.
-            }
+              Compute the final CRC of this module and wait.
+              Needed for compiling circular dependent units. }
             {$IF defined(Debug_WaitCRC) or defined(Debug_FreeParseMem)}
             writeln('finish_compile_unit ',module.realmodulename^,' waiting for used unit CRCs...');
             {$ENDIF}
@@ -3047,7 +3050,7 @@ type
          else
            curr.consume_semicolon_after_uses:=false;
 
-         {$IFDEF EnableCTaskPPU}
+         {$IFNDEF DisableCTaskPPU}
          if curr.is_initial then
            load_ok:=false; // delay program, so ctask can finish all units
          if not load_ok then
