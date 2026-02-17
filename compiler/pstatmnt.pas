@@ -1135,7 +1135,7 @@ implementation
                     reg:=NR_NO;
                   { is_extra_reg is not exported on all architectures from cpubase }
 {$if defined(RISCV)}
-                  if (reg=NR_NO) and (token=_CSTRING) then
+                  if (reg=NR_NO) and (current_scanner.token=_CSTRING) then
                     reg:=is_extra_reg(upper(current_scanner.cstringpattern));
 {$endif defined(RISCV)}
                   if reg<>NR_NO then
