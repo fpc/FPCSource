@@ -175,7 +175,6 @@ uses
   wpoinfo,
   scanner,
   aasmbase,ogbase,
-  parser,
   comphook,
   entfile,fpkg,fpcp;
 
@@ -2063,8 +2062,10 @@ var
 
       function tppumodule.load_usedunits: boolean;
       // self is a ppu (or in a package)
+      {$IFDEF DisableCTaskPPU}
       var
         pu           : tused_unit;
+      {$ENDIF}
       begin
         Result:=true;
         if current_module<>self then
@@ -2338,7 +2339,7 @@ var
     function tppumodule.ppuloadcancontinue(out firstwaiting: tmodule): boolean;
     var
       pu: tused_unit;
-      uses_busy, check: Boolean;
+      check: Boolean;
     begin
       Result:=false;
       firstwaiting:=nil;
@@ -2843,8 +2844,6 @@ var
     function tppumodule.continueloadppu: boolean;
       var
         old_module: tmodule;
-        do_load: boolean;
-        pu: tused_unit;
       begin
         Result:=false;
         old_module:=current_module;

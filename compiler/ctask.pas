@@ -202,8 +202,6 @@ begin
 end;
 
 function ttask_handler.cancontinue(m: tmodule; out firstwaiting: tmodule): boolean;
-var
-  m2 : tmodule;
 begin
   firstwaiting:=nil;
 
@@ -399,6 +397,7 @@ begin
   if tppumodule.cycle_stamp=high(dword) then
     Internalerror(2026021623);
   inc(tppumodule.cycle_stamp);
+
   Search(tppumodule(last.module));
 end;
 {$ENDIF}
@@ -422,7 +421,7 @@ procedure ttask_handler.processqueue;
 
 var
   t, besttask: ttask_list;
-  firstwaiting, bestmod, m, firsthighestwaiting: tmodule;
+  firstwaiting, m: tmodule;
 
 begin
   // Strategy: goal is to write ppus early, so that mem is freed early and in case of an error
