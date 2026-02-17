@@ -38,7 +38,6 @@ interface
       new_scanner: tscannerfile;
       old_scanner: tscannerfile;
       old_filepos: tfileposinfo;
-      old_orgpattern: string;
       old_modeswitches: tmodeswitches;
       old_idtoken: ttoken;
       valid: boolean;
@@ -156,7 +155,6 @@ implementation
         internalerror(2011032201);
       sstate.old_scanner:=current_scanner;
       sstate.old_filepos:=current_filepos;
-      sstate.old_orgpattern:=current_scanner.orgpattern;
       sstate.old_modeswitches:=current_settings.modeswitches;
       sstate.old_idtoken:=current_scanner.idtoken;
       sstate.valid:=true;
@@ -180,8 +178,6 @@ implementation
           set_current_scanner(sstate.old_scanner);
           current_filepos:=sstate.old_filepos;
           current_settings.modeswitches:=sstate.old_modeswitches;
-          current_scanner.orgpattern:=sstate.old_orgpattern;
-          current_scanner.pattern:=upper(sstate.old_orgpattern);
           current_scanner.idtoken:=sstate.old_idtoken;
         end;
     end;
