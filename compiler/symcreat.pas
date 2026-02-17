@@ -39,7 +39,6 @@ interface
       old_scanner: tscannerfile;
       old_filepos: tfileposinfo;
       old_modeswitches: tmodeswitches;
-      old_idtoken: ttoken;
       valid: boolean;
     end;
 
@@ -156,7 +155,6 @@ implementation
       sstate.old_scanner:=current_scanner;
       sstate.old_filepos:=current_filepos;
       sstate.old_modeswitches:=current_settings.modeswitches;
-      sstate.old_idtoken:=current_scanner.idtoken;
       sstate.valid:=true;
       { creating a new scanner resets the block type, while we want to continue
         in the current one }
@@ -178,7 +176,6 @@ implementation
           set_current_scanner(sstate.old_scanner);
           current_filepos:=sstate.old_filepos;
           current_settings.modeswitches:=sstate.old_modeswitches;
-          current_scanner.idtoken:=sstate.old_idtoken;
         end;
     end;
 
