@@ -2846,6 +2846,7 @@ var
         do_load: boolean;
         pu: tused_unit;
       begin
+        Result:=false;
         old_module:=current_module;
         set_current_module(self);
 
