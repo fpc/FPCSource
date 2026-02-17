@@ -683,6 +683,11 @@ implementation
                     hlcg.a_load_reg_loc(current_asmdata.CurrAsmList,resultdef,resultdef,location.register,funcretnode.location);
                   location_free(current_asmdata.CurrAsmList,location);
                 end;
+              LOC_MMREGISTER :
+                begin
+                  hlcg.a_loadmm_reg_loc(current_asmdata.CurrAsmList,resultdef,resultdef,location.register,funcretnode.location,nil);
+                  location_free(current_asmdata.CurrAsmList,location);
+                end;
               LOC_REFERENCE:
                 begin
                   case funcretnode.location.loc of
