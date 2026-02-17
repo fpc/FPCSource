@@ -3122,7 +3122,7 @@ implementation
                      { class modifier is only allowed for procedures, functions, }
                      { constructors, destructors                                 }
                      if not((current_scanner.token in [_FUNCTION,_PROCEDURE,_DESTRUCTOR,_OPERATOR]) or (current_scanner.token=_CONSTRUCTOR)) and
-                        not((current_scanner.token=_ID) and (idtoken=_OPERATOR)) then
+                        not((current_scanner.token=_ID) and (current_scanner.idtoken=_OPERATOR)) then
                        Message(parser_e_procedure_or_function_expected);
 
                      if is_interface(current_structdef) then
@@ -3179,7 +3179,7 @@ implementation
                 end;
               else
                 begin
-                  case idtoken of
+                  case current_scanner.idtoken of
                     _RESOURCESTRING:
                       begin
                         handle_unexpected_had_generic;
@@ -3295,7 +3295,7 @@ implementation
                end;
              else
                begin
-                 case idtoken of
+                 case current_scanner.idtoken of
                    _RESOURCESTRING :
                      begin
                        handle_unexpected_had_generic;

@@ -463,7 +463,7 @@ implementation
               if is_dispinterface(astruct) and not is_automatable(p.propdef) then
                 Message1(type_e_not_automatable,p.propdef.typename);
 
-              if (idtoken=_INDEX) then
+              if (current_scanner.idtoken=_INDEX) then
                 begin
                    consume(_INDEX);
                    pt:=comp_expr([ef_accept_equal]);
@@ -617,7 +617,7 @@ implementation
                     { we have to do nothing except      }
                     { setting ppo_stored, it's the same }
                     { as stored true                    }
-                    if idtoken<>_DEFAULT then
+                    if current_scanner.idtoken<>_DEFAULT then
                      begin
                        { parse_symlist cannot deal with constsyms, and
                          we also don't want to put constsyms in symlists
@@ -928,7 +928,7 @@ implementation
       { only allowed for one var }
       vs:=tabstractvarsym(sc[0]);
       if sc.count>1 then
-        Message1(parser_e_directive_only_one_var,arraytokeninfo[idtoken].str);
+        Message1(parser_e_directive_only_one_var,arraytokeninfo[current_scanner.idtoken].str);
       read_public_and_external(vs);
     end;
 
@@ -997,7 +997,7 @@ implementation
               else if try_to_consume(_NEAR) then
                 is_far:=false;
             end;
-          if (idtoken<>_NAME) and (current_scanner.token<>_SEMICOLON) then
+          if (current_scanner.idtoken<>_NAME) and (current_scanner.token<>_SEMICOLON) then
             begin
               is_dll:=true;
               dll_name:=get_stringconst;
@@ -1010,7 +1010,7 @@ implementation
         end;
 
       { export or public }
-      if idtoken in [_EXPORT,_PUBLIC] then
+      if current_scanner.idtoken in [_EXPORT,_PUBLIC] then
         begin
           consume(_ID);
           if is_external_var then
@@ -1093,7 +1093,7 @@ implementation
 
     procedure try_consume_sectiondirective(var asection: ansistring);
       begin
-        if idtoken=_SECTION then
+        if current_scanner.idtoken=_SECTION then
           begin
             consume(_ID);
             asection:=get_stringconst;
@@ -1123,7 +1123,7 @@ implementation
       { only allowed for one var }
       vs:=tabstractvarsym(sc[0]);
       if sc.count>1 then
-        Message1(parser_e_directive_only_one_var,arraytokeninfo[idtoken].str);
+        Message1(parser_e_directive_only_one_var,arraytokeninfo[current_scanner.idtoken].str);
       try_read_field_external(vs);
     end;
 
@@ -1399,7 +1399,7 @@ implementation
                  begin
                    isgeneric:=(vd_check_generic in options) and
                                 not (m_delphi in current_settings.modeswitches) and
-                                (idtoken=_GENERIC);
+                                (current_scanner.idtoken=_GENERIC);
                    case symtablestack.top.symtabletype of
                      localsymtable :
                        vs:=clocalvarsym.create(current_scanner.orgpattern,vs_value,generrordef,[]);
@@ -1486,7 +1486,7 @@ implementation
                end;
 
              { Check for EXTERNAL etc directives before a semicolon }
-             if (idtoken in [_EXPORT,_EXTERNAL,_PUBLIC,_CVAR]) or (idtoken = _WEAKEXTERNAL) then
+             if (current_scanner.idtoken in [_EXPORT,_EXTERNAL,_PUBLIC,_CVAR]) or (current_scanner.idtoken = _WEAKEXTERNAL) then
                begin
                  read_public_and_external_sc(sc);
                  allowdefaultvalue:=false;
@@ -1595,7 +1595,7 @@ implementation
              { Check for EXTERNAL etc directives or, in macpas, if cs_external_var is set}
              if (
                  (
-                  ((idtoken in [_EXPORT,_EXTERNAL,_PUBLIC,_CVAR]) or (idtoken = _WEAKEXTERNAL)) and
+                  ((current_scanner.idtoken in [_EXPORT,_EXTERNAL,_PUBLIC,_CVAR]) or (current_scanner.idtoken = _WEAKEXTERNAL)) and
                   (m_cvar_support in current_settings.modeswitches)
                  ) or
                  (
@@ -1611,7 +1611,7 @@ implementation
              { try to parse a section directive }
              if (target_info.system in systems_allow_section) and
                 (symtablestack.top.symtabletype in [staticsymtable,globalsymtable]) and
-                (idtoken=_SECTION) then
+                (current_scanner.idtoken=_SECTION) then
                begin
                  try_consume_sectiondirective(sectionname);
                  if sectionname<>'' then
@@ -1744,9 +1744,9 @@ implementation
          while (current_scanner.token=_ID) and
             not(((vd_object in options) or
                  ((vd_record in options) and (m_advanced_records in current_settings.modeswitches))) and
-                ((idtoken in [_PUBLIC,_PRIVATE,_PUBLISHED,_PROTECTED,_STRICT]) or
+                ((current_scanner.idtoken in [_PUBLIC,_PRIVATE,_PUBLISHED,_PROTECTED,_STRICT]) or
                  ((m_final_fields in current_settings.modeswitches) and
-                  (idtoken=_FINAL)))) do
+                  (current_scanner.idtoken=_FINAL)))) do
            begin
              visibility:=symtablestack.top.currentvisibility;
              semicoloneaten:=false;
@@ -1762,7 +1762,7 @@ implementation
                      potentially mixed visibility, and then the individual
                      symbols need to have their visibility already set }
                    vs.visibility:=visibility;
-                   if (vd_check_generic in options) and (idtoken=_GENERIC) then
+                   if (vd_check_generic in options) and (current_scanner.idtoken=_GENERIC) then
                      had_generic:=true;
                  end
                else

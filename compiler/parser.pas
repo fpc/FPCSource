@@ -493,7 +493,7 @@ implementation
                  module.is_unit:=true;
                  finished:=proc_unit(module);
                end
-             else if (current_scanner.token=_ID) and (idtoken=_PACKAGE) then
+             else if (current_scanner.token=_ID) and (current_scanner.idtoken=_PACKAGE) then
                begin
                  module.IsPackage:=true;
                  finished:=proc_package(module);

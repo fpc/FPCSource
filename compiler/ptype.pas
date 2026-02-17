@@ -373,7 +373,7 @@ implementation
          if checkcurrentrecdef and
             try_parse_structdef_nested_type(def,current_structdef,isforwarddef) then
            exit;
-         if not allowunitsym and not (m_delphi in current_settings.modeswitches) and (idtoken=_SPECIALIZE) then
+         if not allowunitsym and not (m_delphi in current_settings.modeswitches) and (current_scanner.idtoken=_SPECIALIZE) then
            begin
              consume(_ID);
              is_specialize:=true;
@@ -773,7 +773,7 @@ implementation
               end;
             _ID, _CASE, _OPERATOR :
               begin
-                case idtoken of
+                case current_scanner.idtoken of
                   _PRIVATE :
                     begin
                       check_unbound_attributes;
@@ -827,7 +827,7 @@ implementation
                         consume(_STRICT);
                         if current_scanner.token=_ID then
                           begin
-                            case idtoken of
+                            case current_scanner.idtoken of
                               _PRIVATE:
                                 begin
                                   consume(_PRIVATE);
@@ -855,7 +855,7 @@ implementation
                         member_blocktype:=bt_general;
                      end
                     else
-                    if is_classdef and (idtoken=_OPERATOR) then
+                    if is_classdef and (current_scanner.idtoken=_OPERATOR) then
                       begin
                         check_unbound_attributes;
                         pd:=parse_record_method_dec(current_structdef,is_classdef,false);
@@ -866,7 +866,7 @@ implementation
                       begin
                         if member_blocktype=bt_general then
                           begin
-                            if (idtoken=_GENERIC) and
+                            if (current_scanner.idtoken=_GENERIC) and
                                 not (m_delphi in current_settings.modeswitches) and
                                 not fields_allowed then
                               begin
@@ -879,7 +879,7 @@ implementation
                               end
                             else
                               begin
-                                if (not fields_allowed)and(idtoken<>_CASE) then
+                                if (not fields_allowed)and(current_scanner.idtoken<>_CASE) then
                                   Message(parser_e_field_not_allowed_here);
                                 vdoptions:=[vd_record];
                                 if classfields then
@@ -942,7 +942,7 @@ implementation
                 { constructors, destructors, fields and properties          }
                 if (hadgeneric and not (current_scanner.token in [_FUNCTION,_PROCEDURE])) or
                     (not hadgeneric and (not ((current_scanner.token in [_FUNCTION,_PROCEDURE,_PROPERTY,_VAR,_DESTRUCTOR,_OPERATOR,_THREADVAR]) or (current_scanner.token=_CONSTRUCTOR)) and
-                   not((current_scanner.token=_ID) and (idtoken=_OPERATOR)))) then
+                   not((current_scanner.token=_ID) and (current_scanner.idtoken=_OPERATOR)))) then
                   Message(parser_e_procedure_or_function_expected);
 
                 if IsAnonOrLocal then
@@ -1832,7 +1832,7 @@ implementation
                (current_scanner.token<>_ID) or
                (
                  (m_function_references in current_settings.modeswitches) and
-                 (idtoken=_REFERENCE)
+                 (current_scanner.idtoken=_REFERENCE)
                )
              ) and
              (current_scanner.token<>_STRING) and (current_scanner.token<>_FILE) then
@@ -1961,7 +1961,7 @@ implementation
             _RECORD:
               begin
                 consume(current_scanner.token);
-                if (idtoken=_HELPER) and (m_advanced_records in current_settings.modeswitches) then
+                if (current_scanner.idtoken=_HELPER) and (m_advanced_records in current_settings.modeswitches) then
                   begin
                     consume(_HELPER);
                     def:=object_dec(odt_helper,name,newsym,genericdef,genericlist,nil,ht_record);
@@ -2044,7 +2044,7 @@ implementation
                       Message1(type_e_class_or_objcclass_type_expected,hdef.typename);
                   end
                 else
-                if (idtoken=_HELPER) then
+                if (current_scanner.idtoken=_HELPER) then
                   begin
                     consume(_HELPER);
                     def:=object_dec(odt_helper,name,newsym,genericdef,genericlist,nil,ht_class);
@@ -2112,7 +2112,7 @@ implementation
               end;
             _ID:
               begin
-                case idtoken of
+                case current_scanner.idtoken of
                   _HELPER:
                     begin
                       if hadtypetoken and

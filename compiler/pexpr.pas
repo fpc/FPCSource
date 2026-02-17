@@ -636,7 +636,7 @@ implementation
               got_addrn:=true;
               p1:=factor(true,[]);
               { inside parentheses a full expression is allowed, see also tests\webtbs\tb27517.pp }
-              if current_scanner.token<>_RKLAMMER then
+              if token<>_RKLAMMER then
                 p1:=sub_expr(opcompare,[ef_accept_equal],p1);
               p1:=geninlinenode(in_faraddr_x,false,p1);
               got_addrn:=false;
@@ -1774,7 +1774,7 @@ implementation
                  if not (m_delphi in current_settings.modeswitches) and
                      (block_type in inline_specialization_block_types) and
                      (current_scanner.token=_ID) and
-                     (idtoken=_SPECIALIZE) then
+                     (current_scanner.idtoken=_SPECIALIZE) then
                    begin
                      consume(_ID);
                      if current_scanner.token<>_ID then
@@ -1817,7 +1817,7 @@ implementation
                 if not (m_delphi in current_settings.modeswitches) and
                     (block_type in inline_specialization_block_types) and
                     (current_scanner.token=_ID) and
-                    (idtoken=_SPECIALIZE) then
+                    (current_scanner.idtoken=_SPECIALIZE) then
                   begin
                     consume(_ID);
                     if current_scanner.token<>_ID then
@@ -2445,7 +2445,7 @@ implementation
              begin
                consume(_POINT);
                allowspecialize:=not (m_delphi in current_settings.modeswitches) and (block_type in inline_specialization_block_types);
-               if allowspecialize and (current_scanner.token=_ID) and (idtoken=_SPECIALIZE) then
+               if allowspecialize and (current_scanner.token=_ID) and (current_scanner.idtoken=_SPECIALIZE) then
                  begin
                    //consume(_ID);
                    isspecialize:=true;
@@ -3381,7 +3381,7 @@ implementation
            allowspecialize:=not (m_delphi in current_settings.modeswitches) and
                             not (ef_had_specialize in flags) and
                             (block_type in inline_specialization_block_types);
-           if allowspecialize and (current_scanner.token=_ID) and (idtoken=_SPECIALIZE) then
+           if allowspecialize and (current_scanner.token=_ID) and (current_scanner.idtoken=_SPECIALIZE) then
              begin
                consume(_ID);
                isspecialize:=true;
@@ -3758,7 +3758,7 @@ implementation
          begin
            again:=true;
            { Handle references to self }
-           if (idtoken=_SELF) and can_load_self_node then
+           if (current_scanner.idtoken=_SELF) and can_load_self_node then
              begin
                p1:=load_self_node;
                consume(_ID);
@@ -3893,7 +3893,7 @@ implementation
                        if not (m_delphi in current_settings.modeswitches) and
                            (block_type in inline_specialization_block_types) and
                            (current_scanner.token=_ID) and
-                           (idtoken=_SPECIALIZE) then
+                           (current_scanner.idtoken=_SPECIALIZE) then
                          begin
                            consume(_ID);
                            if current_scanner.token<>_ID then

@@ -162,7 +162,7 @@ implementation
       sstate.old_c:=current_scanner.c;
       sstate.old_orgpattern:=current_scanner.orgpattern;
       sstate.old_modeswitches:=current_settings.modeswitches;
-      sstate.old_idtoken:=idtoken;
+      sstate.old_idtoken:=current_scanner.idtoken;
       sstate.valid:=true;
       { creating a new scanner resets the block type, while we want to continue
         in the current one }
@@ -188,7 +188,7 @@ implementation
           current_scanner.c:=sstate.old_c;
           current_scanner.orgpattern:=sstate.old_orgpattern;
           current_scanner.pattern:=upper(sstate.old_orgpattern);
-          idtoken:=sstate.old_idtoken;
+          current_scanner.idtoken:=sstate.old_idtoken;
         end;
     end;
 

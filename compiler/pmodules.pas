@@ -1094,7 +1094,7 @@ implementation
         deprecated_seen:=false;
         repeat
           last_is_deprecated:=false;
-          case idtoken of
+          case current_scanner.idtoken of
             _LIBRARY :
               begin
                 include(moduleopt,mo_hint_library);
@@ -2036,7 +2036,7 @@ type
            current_namespacelist:=Nil;
 
          {Read the packages used by the package we compile.}
-         if (current_scanner.token=_ID) and (idtoken=_REQUIRES) then
+         if (current_scanner.token=_ID) and (current_scanner.idtoken=_REQUIRES) then
            begin
              { consume _REQUIRES word }
              consume(_ID);
@@ -2082,7 +2082,7 @@ type
            end;
 
          {Load the units used by the program we compile.}
-         if (current_scanner.token=_ID) and (idtoken=_CONTAINS) then
+         if (current_scanner.token=_ID) and (current_scanner.idtoken=_CONTAINS) then
            begin
              { consume _CONTAINS word }
              consume(_ID);

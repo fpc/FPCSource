@@ -448,7 +448,7 @@ implementation
                   end;
                 if (target_info.system in [system_powerpc_morphos,system_m68k_amiga]) then
                   begin
-                    if (idtoken=_LOCATION) then
+                    if (current_scanner.idtoken=_LOCATION) then
                       begin
                         consume(_LOCATION);
                         locationstr:=current_scanner.cstringpattern;
@@ -637,7 +637,7 @@ implementation
             sym : ttypesym;
           begin
             lasttoken:=current_scanner.token;
-            lastidtoken:=idtoken;
+            lastidtoken:=current_scanner.idtoken;
             if assigned(genericparams) then
               for i:=0 to genericparams.count-1 do
                 begin
@@ -668,7 +668,7 @@ implementation
                 orgspnongen:=orgsp;
                 if firstpart and
                     not (m_delphi in current_settings.modeswitches) and
-                    (idtoken=_SPECIALIZE) then
+                    (current_scanner.idtoken=_SPECIALIZE) then
                   hadspecialize:=true;
                 consume(_ID);
                 if ((ppf_generic in flags) or (m_delphi in current_settings.modeswitches)) and
@@ -1486,7 +1486,7 @@ implementation
                  read_returndef(pd);
                  if (target_info.system in [system_m68k_amiga]) then
                   begin
-                   if (idtoken=_LOCATION) then
+                   if (current_scanner.idtoken=_LOCATION) then
                     begin
                      if po_explicitparaloc in pd.procoptions then
                       begin
@@ -1753,7 +1753,7 @@ implementation
             end;
         else
           if (current_scanner.token=_OPERATOR) or
-             ((ppf_classmethod in flags) and (idtoken=_OPERATOR)) then
+             ((ppf_classmethod in flags) and (current_scanner.idtoken=_OPERATOR)) then
             begin
               { we need to set the block type to bt_body, so that operator names
                 like ">", "=>" or "<>" are parsed correctly instead of e.g.
@@ -2244,12 +2244,12 @@ procedure pd_syscall(pd:tabstractprocdef);
           system_i386_aros,
           system_x86_64_aros:
               begin
-                syscall:=get_syscall_by_token(idtoken);
+                syscall:=get_syscall_by_token(current_scanner.idtoken);
                 if assigned(syscall) then
                   begin
                     if target_info.system in syscall^.validon then
                       begin
-                        consume(idtoken);
+                        consume(current_scanner.idtoken);
                         include(pd.procoptions,syscall^.procoption);
                       end
                   end
@@ -2431,7 +2431,7 @@ begin
         so we check if an semicolon follows, else a string constant have to
         follow (FK) }
       if not is_java_external and
-         not(current_scanner.token=_SEMICOLON) and not(idtoken=_NAME) then
+         not(current_scanner.token=_SEMICOLON) and not(current_scanner.idtoken=_NAME) then
         begin
           { Always add library prefix and suffix to create an uniform name }
           hs:=get_stringconst;
@@ -2444,7 +2444,7 @@ begin
             Replace(hs,'.','/');
           import_dll:=stringdup(hs);
           include(procoptions,po_has_importdll);
-          if (idtoken=_NAME) then
+          if (current_scanner.idtoken=_NAME) then
            begin
              consume(_NAME);
              import_name:=stringdup(get_stringconst);
@@ -2452,7 +2452,7 @@ begin
              if import_name^='' then
                message(parser_e_empty_import_name);
            end;
-          if (idtoken=_INDEX) then
+          if (current_scanner.idtoken=_INDEX) then
            begin
              {After the word index follows the index number in the DLL.}
              consume(_INDEX);
@@ -2462,16 +2462,16 @@ begin
              else
                import_nr:=longint(v.svalue);
            end;
-          if (idtoken=_SUSPENDING) then
+          if (current_scanner.idtoken=_SUSPENDING) then
            begin
              if (target_info.system in systems_wasm) then
               begin
                 consume(_SUSPENDING);
                 include(procoptions,po_wasm_suspending);
                 synthetickind:=tsk_wasm_suspending_first;
-                if idtoken=_FIRST then
+                if current_scanner.idtoken=_FIRST then
                   consume(_FIRST)
-                else if idtoken=_LAST then
+                else if current_scanner.idtoken=_LAST then
                   begin
                     consume(_LAST);
                     synthetickind:=tsk_wasm_suspending_last;
@@ -2481,9 +2481,9 @@ begin
               begin
                 message(parser_e_suspending_externals_not_supported_on_current_platform);
                 consume(_SUSPENDING);
-                if idtoken=_FIRST then
+                if current_scanner.idtoken=_FIRST then
                   consume(_FIRST)
-                else if idtoken=_LAST then
+                else if current_scanner.idtoken=_LAST then
                   consume(_LAST);
               end;
            end;
@@ -2496,7 +2496,7 @@ begin
         end
       else
         begin
-          if (idtoken=_NAME) or
+          if (current_scanner.idtoken=_NAME) or
              is_java_external then
            begin
              consume(_NAME);
@@ -3092,12 +3092,12 @@ const
       begin
         result:=false;
         for i:=1 to num_proc_directives do
-         if proc_direcdata[i].idtok=idtoken then
+         if proc_direcdata[i].idtok=current_scanner.idtoken then
           begin
             if ((not isprocvar) or
                (pd_procvar in proc_direcdata[i].pd_flags)) and
                { don't eat a public directive in classes }
-               not((idtoken=_PUBLIC) and (symtablestack.top.symtabletype=ObjectSymtable)) then
+               not((current_scanner.idtoken=_PUBLIC) and (symtablestack.top.symtabletype=ObjectSymtable)) then
               result:=true;
             exit;
           end;
@@ -3125,12 +3125,12 @@ const
         tokenloc : TFilePosInfo;
       begin
         parse_proc_direc:=false;
-        name:=tokeninfo^[idtoken].str;
+        name:=tokeninfo^[current_scanner.idtoken].str;
 
       { Hint directive? Then exit immediately }
         if (m_hintdirective in current_settings.modeswitches) then
          begin
-           case idtoken of
+           case current_scanner.idtoken of
              _LIBRARY,
              _PLATFORM,
              _UNIMPLEMENTED,
@@ -3152,12 +3152,12 @@ const
 
         { C directive is MacPas only, because it breaks too much existing code
           on other platforms (PFV) }
-        if (idtoken=_C) and
+        if (current_scanner.idtoken=_C) and
            not(m_mac in current_settings.modeswitches) then
           exit;
 
       { retrieve data for directive if found }
-      p:=find_proc_directive_index(idtoken);
+      p:=find_proc_directive_index(current_scanner.idtoken);
 
       { Check if the procedure directive is known }
         if p=-1 then
@@ -3165,7 +3165,7 @@ const
             { parsing a procvar type the name can be any
               next variable !! }
             if ((pdflags * [pd_procvar,pd_object,pd_record,pd_objcclass,pd_objcprot])=[]) and
-               not(idtoken in [_PROPERTY,_GENERIC]) then
+               not(current_scanner.idtoken in [_PROPERTY,_GENERIC]) then
               Message1(parser_w_unknown_proc_directive_ignored,current_scanner.pattern);
             exit;
          end;

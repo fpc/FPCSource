@@ -40,7 +40,6 @@ type
 
   tglobalstate = class
   { scanner }
-    oldidtoken     : ttoken;
     oldtokenpos    : tfileposinfo;
     old_block_type : tblock_type;
   { symtable }
@@ -148,7 +147,6 @@ var
       oldcurrent_procinfo:=current_procinfo;
 
       { save scanner state }
-      oldidtoken:=idtoken;
       old_block_type:=block_type;
       oldtokenpos:=current_tokenpos;
       {
@@ -181,7 +179,6 @@ var
 
     begin
       { restore scanner }
-      idtoken:=oldidtoken;
       current_tokenpos:=oldtokenpos;
       block_type:=old_block_type;
       switchesstatestack:=old_switchesstatestack;
@@ -225,7 +222,6 @@ var
 
   begin
     old_scanner:=nil;
-    oldidtoken:=NOTOKEN;
     oldtokenpos:=Default(tfileposinfo);
     old_block_type:=bt_none;
   end;

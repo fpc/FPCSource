@@ -130,7 +130,7 @@ implementation
            if we just parsed the a token that has m_class }
          if not(m_class in current_settings.modeswitches) and
             (Upper(s)=current_scanner.pattern) and
-            (m_class in tokeninfo^[idtoken].keyword) then
+            (m_class in tokeninfo^[current_scanner.idtoken].keyword) then
            Message(parser_f_need_objfpc_or_delphi_mode);
        end;
 
@@ -142,7 +142,7 @@ implementation
            if we just parsed the a token that has m_class }
          if not(m_class in current_settings.modeswitches) and
             (Upper(s)=current_scanner.pattern) and
-            (m_class in tokeninfo^[idtoken].keyword) then
+            (m_class in tokeninfo^[current_scanner.idtoken].keyword) then
            MessagePos(filepos,parser_f_need_objfpc_or_delphi_mode);
        end;
 
@@ -152,7 +152,7 @@ implementation
     procedure consume(i : ttoken);
 
     begin
-        if (current_scanner.token<>i) and (idtoken<>i) then
+        if (current_scanner.token<>i) and (current_scanner.idtoken<>i) then
           begin
             if current_scanner.had_multiline_string then
               Message2(scan_f_unterminated_multiline_string,
@@ -188,7 +188,7 @@ implementation
     function try_to_consume(i:Ttoken):boolean;
       begin
         try_to_consume:=false;
-        if (current_scanner.token=i) or (idtoken=i) then
+        if (current_scanner.token=i) or (current_scanner.idtoken=i) then
          begin
            try_to_consume:=true;
            if current_scanner.token=_END then
@@ -200,7 +200,7 @@ implementation
 
     procedure consume_all_until(atoken : ttoken);
       begin
-         while (current_scanner.token<>atoken) and (idtoken<>atoken) do
+         while (current_scanner.token<>atoken) and (current_scanner.idtoken<>atoken) do
           begin
             Consume(current_scanner.token);
             if current_scanner.token=_EOF then
@@ -412,7 +412,7 @@ implementation
                             searchsym_in_module(tunitsym(srsym).module,'ANSICHAR',srsym,srsymtable)
                         end
                       else
-                        if (cuf_allow_specialize in flags) and (idtoken=_SPECIALIZE) then
+                        if (cuf_allow_specialize in flags) and (current_scanner.idtoken=_SPECIALIZE) then
                           begin
                             consume(_ID);
                             is_specialize:=true;
@@ -477,11 +477,11 @@ implementation
           exit;
         repeat
           last_is_deprecated:=false;
-          case idtoken of
+          case current_scanner.idtoken of
             _LIBRARY:
               begin
                 if sp_hint_library in symopt then
-                  Message1(parser_e_dir_not_allowed,arraytokeninfo[idtoken].str)
+                  Message1(parser_e_dir_not_allowed,arraytokeninfo[current_scanner.idtoken].str)
                 else
                   include(symopt,sp_hint_library);
                 try_consume_hintdirective:=true;
@@ -489,7 +489,7 @@ implementation
             _DEPRECATED:
               begin
                 if sp_hint_deprecated in symopt then
-                  Message1(parser_e_dir_not_allowed,arraytokeninfo[idtoken].str)
+                  Message1(parser_e_dir_not_allowed,arraytokeninfo[current_scanner.idtoken].str)
                 else
                   include(symopt,sp_hint_deprecated);
                 try_consume_hintdirective:=true;
@@ -498,7 +498,7 @@ implementation
             _EXPERIMENTAL:
               begin
                 if sp_hint_experimental in symopt then
-                  Message1(parser_e_dir_not_allowed,arraytokeninfo[idtoken].str)
+                  Message1(parser_e_dir_not_allowed,arraytokeninfo[current_scanner.idtoken].str)
                 else
                   include(symopt,sp_hint_experimental);
                 try_consume_hintdirective:=true;
@@ -506,7 +506,7 @@ implementation
             _PLATFORM:
               begin
                 if sp_hint_platform in symopt then
-                  Message1(parser_e_dir_not_allowed,arraytokeninfo[idtoken].str)
+                  Message1(parser_e_dir_not_allowed,arraytokeninfo[current_scanner.idtoken].str)
                 else
                   include(symopt,sp_hint_platform);
                 try_consume_hintdirective:=true;
@@ -514,7 +514,7 @@ implementation
             _UNIMPLEMENTED:
               begin
                 if sp_hint_unimplemented in symopt then
-                  Message1(parser_e_dir_not_allowed,arraytokeninfo[idtoken].str)
+                  Message1(parser_e_dir_not_allowed,arraytokeninfo[current_scanner.idtoken].str)
                 else
                   include(symopt,sp_hint_unimplemented);
                 try_consume_hintdirective:=true;

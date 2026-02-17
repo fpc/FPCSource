@@ -245,7 +245,7 @@ implementation
          repeat
            orgname:=current_scanner.orgpattern;
            filepos:=current_tokenpos;
-           isgeneric:=not (m_delphi in current_settings.modeswitches) and (current_scanner.token=_ID) and (idtoken=_GENERIC);
+           isgeneric:=not (m_delphi in current_settings.modeswitches) and (current_scanner.token=_ID) and (current_scanner.idtoken=_GENERIC);
            consume(_ID);
            case current_scanner.token of
 
@@ -374,9 +374,9 @@ implementation
            first:=false;
          until (current_scanner.token<>_ID) or
                (in_structure and
-                ((idtoken in [_PRIVATE,_PROTECTED,_PUBLIC,_PUBLISHED,_STRICT]) or
+                ((current_scanner.idtoken in [_PRIVATE,_PROTECTED,_PUBLIC,_PUBLISHED,_STRICT]) or
                  ((m_final_fields in current_settings.modeswitches) and
-                  (idtoken=_FINAL))));
+                  (current_scanner.idtoken=_FINAL))));
          block_type:=old_block_type;
       end;
 
@@ -1223,7 +1223,7 @@ implementation
              end;
 
            if not (m_delphi in current_settings.modeswitches) and
-               (current_scanner.token=_ID) and (idtoken=_GENERIC) then
+               (current_scanner.token=_ID) and (current_scanner.idtoken=_GENERIC) then
              begin
                had_generic:=true;
                consume(_ID);
@@ -1243,9 +1243,9 @@ implementation
 
          until ((current_scanner.token<>_ID) and (current_scanner.token<>_LECKKLAMMER)) or
                (in_structure and
-                ((idtoken in [_PRIVATE,_PROTECTED,_PUBLIC,_PUBLISHED,_STRICT]) or
+                ((current_scanner.idtoken in [_PRIVATE,_PROTECTED,_PUBLIC,_PUBLISHED,_STRICT]) or
                  ((m_final_fields in current_settings.modeswitches) and
-                  (idtoken=_FINAL))));
+                  (current_scanner.idtoken=_FINAL))));
          { resolve type block forward declarations and restore a unit
            container for them }
          resolve_forward_types;
@@ -1339,7 +1339,7 @@ implementation
          repeat
            orgname:=current_scanner.orgpattern;
            filepos:=current_tokenpos;
-           isgeneric:=not (m_delphi in current_settings.modeswitches) and (current_scanner.token=_ID) and (idtoken=_GENERIC);
+           isgeneric:=not (m_delphi in current_settings.modeswitches) and (current_scanner.token=_ID) and (current_scanner.idtoken=_GENERIC);
            consume(_ID);
            case current_scanner.token of
              _EQ:

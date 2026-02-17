@@ -509,7 +509,7 @@ implementation
                     include(current_structdef.objectoptions,oo_is_sealed)
                   else if (current_objectdef.objecttype=odt_javaclass) and
                           (current_scanner.token=_ID) and
-                          (idtoken=_EXTERNAL) then
+                          (current_scanner.idtoken=_EXTERNAL) then
                     begin
                       get_cpp_or_java_class_external_status(current_objectdef);
                       gotexternal:=true;
@@ -1253,13 +1253,13 @@ implementation
             _ID :
               begin
                 if is_objcprotocol(current_structdef) and
-                   ((idtoken=_REQUIRED) or
-                    (idtoken=_OPTIONAL)) then
+                   ((current_scanner.idtoken=_REQUIRED) or
+                    (current_scanner.idtoken=_OPTIONAL)) then
                   begin
-                    current_structdef.symtable.currentlyoptional:=(idtoken=_OPTIONAL);
-                    consume(idtoken)
+                    current_structdef.symtable.currentlyoptional:=(current_scanner.idtoken=_OPTIONAL);
+                    consume(current_scanner.idtoken)
                   end
-                else case idtoken of
+                else case current_scanner.idtoken of
                   _PRIVATE :
                     begin
                       parse_visibility(vis_private,oo_has_private);
@@ -1285,7 +1285,7 @@ implementation
                          consume(_STRICT);
                         if current_scanner.token=_ID then
                           begin
-                            case idtoken of
+                            case current_scanner.idtoken of
                               _PRIVATE:
                                 begin
                                   consume(_PRIVATE);
@@ -1314,7 +1314,7 @@ implementation
                      end
                     else if (m_final_fields in current_settings.modeswitches) and
                             (current_scanner.token=_ID) and
-                            (idtoken=_FINAL) then
+                            (current_scanner.idtoken=_FINAL) then
                       begin
                         { currently only supported for external classes, because
                           requires fully working DFA otherwise }
@@ -1332,7 +1332,7 @@ implementation
                       begin
                         if object_member_blocktype=bt_general then
                           begin
-                            if (idtoken=_GENERIC) and
+                            if (current_scanner.idtoken=_GENERIC) and
                                 not (m_delphi in current_settings.modeswitches) and
                                 (
                                   not fields_allowed or
