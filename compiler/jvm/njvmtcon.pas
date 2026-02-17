@@ -182,7 +182,7 @@ implementation
         arrstringdata.arraybase:=basenode.getcopy;
         old_parsingordarray:=parsingordarray;
         parsingordarray:=true;
-        if (token=_LKLAMMER) or
+        if (current_scanner.token=_LKLAMMER) or
            not is_char(def.elementdef) then
           inherited
         else
