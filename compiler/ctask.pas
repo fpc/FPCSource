@@ -276,7 +276,7 @@ begin
   if m.do_reload then
   begin
     tppumodule(m).reload;
-    exit;
+    exit(false);
   end;
   {$ENDIF}
   case m.state of
