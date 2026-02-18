@@ -110,15 +110,6 @@ unit optcall;
           exit;
         callnode:=tcallnode(_n);
 
-        { fix me! }
-        n:=callnode.pass_0;
-        if assigned(n) then
-          begin
-            _n:=n;
-            pboolean(arg)^:=true;
-            exit;
-          end;
-
         if not(cnf_do_inline in callnode.callnodeflags) then
           exit;
 

@@ -200,7 +200,6 @@ interface
           }
           procedure verifyabstract(sym:TObject;arg:pointer);
           procedure insertintolist(l : tnodelist);override;
-          function  pass_0 : tnode;
           function  pass_1 : tnode;override;
           function  pass_typecheck:tnode;override;
           function  simplify(forinline : boolean) : tnode;override;
@@ -4874,7 +4873,7 @@ implementation
       end;
 
 
-    function tcallnode.pass_0: tnode;
+    function tcallnode.pass_1: tnode;
 
       procedure mark_unregable_parameters;
         var
@@ -5033,15 +5032,6 @@ implementation
            current_procinfo.ConstructorCallingConstructor:=true;
 
          mark_unregable_parameters;
-      end;
-
-
-    function tcallnode.pass_1 : tnode;
-      begin
-         result:=pass_0;
-
-         if assigned(result) then
-           exit;
 
          { calculate the parameter info for the procdef }
          procdefinition.init_paraloc_info(callerside);
