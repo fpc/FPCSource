@@ -342,7 +342,7 @@ implementation
          repeat
            current_scanner.readtoken(true);
            preprocfile.AddSpace;
-           case token of
+           case current_scanner.token of
              _ID :
                begin
                  preprocfile.Add(current_scanner.orgpattern);
@@ -383,12 +383,11 @@ implementation
              _EOF :
                break;
              else
-               preprocfile.Add(tokeninfo^[token].str)
+               preprocfile.Add(tokeninfo^[current_scanner.token].str)
            end;
          until false;
        { free scanner }
          current_scanner.free;
-         current_scanner := nil;
          set_current_scanner(nil);
        { close }
          preprocfile.free;
