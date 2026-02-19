@@ -4918,7 +4918,10 @@ implementation
       var
         para: tcallparanode;
       begin
-         result:=nil;
+         result:=simplify(false);
+
+         if assigned(result) then
+           exit;
 
          { as pass_1 is never called on the methodpointer node, we must check
            here that it's not a helper type }
