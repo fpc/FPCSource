@@ -1368,7 +1368,9 @@ else
 ifeq ($(OS_TARGET),android)
   RTLDEFSINCDIR = $(LINUXINC)
 else
+ifeq ($(RTLDEFSINCDIR),) 
   RTLDEFSINCDIR = $(OSDIR)
+endif
 endif
 endif
 
