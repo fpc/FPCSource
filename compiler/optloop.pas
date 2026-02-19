@@ -40,6 +40,9 @@ unit optloop;
     uses
       cutils,compinnr,cdynset,
       globtype,globals,constexp,
+{$ifdef i386}
+      cpuinfo,
+{$endif i386}
       verbose,
       symdef,symsym,
       defutil,
