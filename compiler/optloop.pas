@@ -38,12 +38,11 @@ unit optloop;
   implementation
 
     uses
-      cutils,cclasses,compinnr,cdynset,
+      cutils,compinnr,cdynset,
       globtype,globals,constexp,
       verbose,
       symdef,symsym,
       defutil,
-      cpuinfo,
       nutils,
       nadd,nbas,nflw,ncon,ninl,ncal,nld,nmem,ncnv,
       ncgmem,
