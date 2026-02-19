@@ -291,6 +291,7 @@ interface
         destructor destroy;override;
         procedure reset(for_recompile: boolean);virtual;
         function statestr: string; virtual;
+        procedure checkstate; virtual;
         procedure loadlocalnamespacelist;
         procedure adddependency(callermodule:tmodule; frominterface : boolean);
         procedure removedependency(callermodule:tmodule);
@@ -1188,6 +1189,42 @@ implementation
         Result:='do_reload,'+Result;
     end;
 
+    procedure tmodule.checkstate;
+    begin
+      // Note: ms_load is checked in tppumodule.checkstate
+
+      if interface_compiled then
+      begin
+        if state in [ms_registered,ms_compile,ms_compiling_wait,ms_compiling_waitintf] then
+        begin
+          writeln('tmodule.checkstate ',modulename^,' ',statestr,' interface_compiled=true');
+          Internalerror(2026021912);
+        end;
+      end else begin
+        if state in [ms_compiling_waitimpl,ms_compiling_waitfinish,ms_compiled_waitcrc,ms_compiled,ms_processed] then
+        begin
+          writeln('tmodule.checkstate ',modulename^,' ',statestr,' interface_compiled=false');
+          Internalerror(2026021911);
+        end;
+      end;
+
+      if crc_final then
+      begin
+        if state in [ms_registered,ms_compile,ms_compiling_wait,ms_compiling_waitintf,
+          ms_compiling_waitimpl,ms_compiling_waitfinish] then
+        begin
+          writeln('tmodule.checkstate ',modulename^,' ',statestr,' crc_final=true');
+          Internalerror(2026021910);
+        end;
+      end else begin
+        if state in [ms_compiled_waitcrc,ms_compiled,ms_processed] then
+        begin
+          writeln('tmodule.checkstate ',modulename^,' ',statestr,' crc_final=false');
+          Internalerror(2026021909);
+        end;
+      end;
+    end;
+
     {$IFNDEF DisableCTaskPPU}
     procedure tmodule.disconnect_depending_modules;
     var
@@ -1236,17 +1273,21 @@ implementation
         uu:=tused_unit(used_units.First);
         while assigned(uu) do
         begin
-          ok:=uu.u.interface_compiled and not uu.u.do_reload;
-          {$IFDEF DEBUG_CTASK_VERBOSE}
-          writeln('  ',ToString,' checking state of ', uu.u.ToString,' : ',uu.u.statestr,' : ',ok);
-          {$ENDIF}
-          if not ok then
+          if uu.in_interface=interface_units then
           begin
-            Result:=false;
-            firstwaiting:=uu.u;
-            {$IFNDEF DEBUG_CTASK_VERBOSE}
-            break;
+            ok:=uu.u.interface_compiled and not uu.u.do_reload;
+            {$IFDEF DEBUG_CTASK_VERBOSE}
+            writeln('  ',ToString,' checking state of ', uu.u.ToString,' : ',uu.u.statestr,' : ',ok);
+            uu.u.checkstate;
             {$ENDIF}
+            if not ok then
+            begin
+              Result:=false;
+              firstwaiting:=uu.u;
+              {$IFNDEF DEBUG_CTASK_VERBOSE}
+              break;
+              {$ENDIF}
+            end;
           end;
           uu:=tused_unit(uu.Next);
         end;

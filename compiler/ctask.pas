@@ -332,47 +332,51 @@ end;
 
 {$IFNDEF DisableCTaskPPU}
 function ttask_handler.check_cycle: boolean;
+// returns true if something changed
 var
   last: ttask_list;
+  cycle_unit: tppumodule;
 
   function Search(m: tppumodule): boolean;
   var
-    uu: tused_unit;
     pm: tppumodule;
+    firstwaiting: tmodule;
   begin
     Result:=false;
 
     // mark module as searched
     m.cycle_search_stamp:=m.cycle_stamp;
 
-    uu:=tused_unit(m.used_units.First);
-    while uu<>nil do
+    cancontinue(m,firstwaiting);
+    if firstwaiting=nil then
+      Internalerror(2026021913);
+    pm:=tppumodule(firstwaiting);
+    if pm.cycle_stamp=pm.cycle_search_stamp then
     begin
-      pm:=tppumodule(uu.u);
-      if pm<>nil then
-      begin
-        if pm=last.module then
-          Result:=true
-        else if pm.cycle_stamp=pm.cycle_search_stamp then
-          // already searched
-        else
-          Result:=Result or Search(pm);
-      end;
-      uu:=tused_unit(uu.Next);
+      // cycle found
+      cycle_unit:=pm;
+      Result:=true;
+    end else if Search(pm) then
+    begin
+      // m and pm are part of the cycle
+      Result:=true;
     end;
 
     if Result then
     begin
-      // cycle detected -> recompile ppu
-      if m.state=ms_load then
+      // m is part of the cycle -> recompile ppu
+      if m.fromppu then
       begin
         {$IFDEF DEBUG_CTASK}
         writeln('PPUALGO check_cycle last=',last.module.modulename^,' ',last.module.statestr,', RECOMPILE ',m.modulename^,' ',m.statestr);
         {$ENDIF}
         m.recompile_cycle;
-        check_cycle:=true;
+        check_cycle:=true; // something changed
       end;
     end;
+
+    if m=cycle_unit then
+      Result:=false; // the cycle started with m, the remaining path is not part of the cycle
   end;
 
 var
@@ -398,6 +402,7 @@ begin
     Internalerror(2026021623);
   inc(tppumodule.cycle_stamp);
 
+  cycle_unit:=nil;
   Search(tppumodule(last.module));
 end;
 {$ENDIF}
@@ -484,7 +489,17 @@ var
 
 begin
   n:=m.modulename^;
-  e:=ttask_list(Hash.Find(n));
+  //e:=ttask_list(Hash.Find(n));
+
+  e:=findtask(m);
+  {$IFDEF DEBUG_CTASK}
+  //if findtask(m)<>e then
+  //begin
+  //  writeln('ttask_handler.addmodule Hash<>findtask ',m.modulename^);
+  //  Internalerror(2026021902);
+  //end;
+  {$ENDIF}
+
   if e=nil then
     begin
     {$IFDEF DEBUG_CTASK}Writeln('CTASK: ',m.ToString,' added to task scheduler. State: ',m.state,' unit_index=',m.unit_index);{$ENDIF}
@@ -517,9 +532,50 @@ end;
 
 procedure ttask_handler.write_queue;
 var
-  t: ttask_list;
+  last: ttask_list;
+  cycle_unit: tppumodule;
+
+  function Search(m: tppumodule): boolean;
+  var
+    pm: tppumodule;
+    firstwaiting: tmodule;
+  begin
+    Result:=false;
+
+    // mark module as searched
+    m.cycle_search_stamp:=m.cycle_stamp;
+
+    cancontinue(m,firstwaiting);
+    if firstwaiting=nil then
+      exit;
+    pm:=tppumodule(firstwaiting);
+    if pm.cycle_stamp=pm.cycle_search_stamp then
+    begin
+      // cycle found
+      cycle_unit:=pm;
+      Result:=true;
+      writeln('cycle found: ',pm.modulename^,' ',pm.statestr,' ppu=',pm.fromppu,' used by...');
+    end else if Search(pm) then
+    begin
+      // m and pm are part of the cycle
+      Result:=true;
+    end;
+
+    if Result then
+    begin
+      // m is part of the cycle -> recompile ppu
+      writeln(' cycle-path: ',m.modulename^,' ',m.statestr,' ppu=',m.fromppu,' used by...');
+    end;
+
+    if m=cycle_unit then
+      Result:=false; // the cycle started with m, the remaining path is not part of the cycle
+  end;
+
+var
+  t, wt: ttask_list;
   firstwaiting, m: tmodule;
   cc: Boolean;
+  n: TSymStr;
 begin
   writeln('ttask_handler.write_queue:');
   t:=list.firsttask;
@@ -527,12 +583,46 @@ begin
     begin
     cc:=cancontinue(t,firstwaiting);
     m:=t.module;
+
+    if m.is_unit then
+    begin
+      n:=m.modulename^;
+      wt:=ttask_list(Hash.Find(n));
+      if wt<>t then
+        writeln('Error: module=',m.modulename^,' ',m.statestr,' wrong hash task');
+    end;
+
     if firstwaiting<>nil then
-      writeln('queue: ',m.realmodulename^,' ',m.statestr,' cancontinue=',cc,' firstwaiting=',firstwaiting.realmodulename^,' ',firstwaiting.state)
+    begin
+      writeln('queue: ',m.modulename^,' ',m.statestr,' cancontinue=',cc,' firstwaiting=',firstwaiting.modulename^,' ',firstwaiting.statestr,' intfcompiled=',firstwaiting.interface_compiled,' crc=',firstwaiting.crc_final);
+      wt:=findtask(firstwaiting);
+      if wt=nil then
+        writeln('Error: waiting for ',firstwaiting.modulename^,', which is not in queue');
+    end
     else
-      writeln('queue: ',m.realmodulename^,' ',m.statestr,' cancontinue=',cc,' firstwaiting=nil');
+      writeln('queue: ',m.modulename^,' ',m.statestr,' cancontinue=',cc,' firstwaiting=nil');
     t:=t.nexttask;
     end;
+
+  // write a cycle:
+
+  // find highest unit_index in queue
+  t:=list.firsttask;
+  if t=nil then exit;
+  last:=nil;
+  while t<>nil do
+    begin
+    if (last=nil) or (last.module.unit_index<t.module.unit_index) then
+      last:=t;
+    t:=t.nexttask;
+    end;
+  writeln('last unit_index: ',last.module.modulename^,' ',last.module.unit_index);
+
+  if tppumodule.cycle_stamp=high(dword) then
+    Internalerror(2026021624);
+  inc(tppumodule.cycle_stamp);
+
+  Search(tppumodule(last.module));
 end;
 
 end.

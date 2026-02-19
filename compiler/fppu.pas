@@ -73,6 +73,7 @@ interface
           constructor create(LoadedFrom:TModule;const amodulename: string; const afilename:TPathStr;_is_unit:boolean);
           destructor destroy;override;
           function statestr: string; override;
+          procedure checkstate; override;
           procedure reset(for_recompile: boolean);override;
           procedure re_resolve(loadfrom: tmodule);
           function  openppufile:boolean;
@@ -220,6 +221,14 @@ var
         else
           Result:=Result+',waitintf';
         {$ENDIF}
+      end;
+
+    procedure tppumodule.checkstate;
+      begin
+        if state=ms_load then
+
+        else
+          inherited checkstate;
       end;
 
     procedure tppumodule.reset(for_recompile : boolean);
@@ -3021,112 +3030,93 @@ var
 
     function registerunit(callermodule:tmodule;const s : TIDString;const fn:string; out is_new:boolean) : tppumodule;
 
-
-          function FindCycle(aFile, SearchFor: TModule; var Cycle: TFPList): boolean;
-          // Note: when traversing, add every search file to Cycle, to avoid running in circles.
-          // When a cycle is detected, clear the Cycle list and build the cycle path
+          function FindCycle(aFile, SearchFor: tppumodule; var Cycle: TFPList): boolean;
           var
-
             aParent: tdependent_unit;
           begin
-            Cycle.Add(aFile);
+            // check already visited
+            if aFile.cycle_stamp=tppumodule.cycle_stamp then
+              exit(false);
+            aFile.cycle_stamp:=tppumodule.cycle_stamp; // mark visited
+
             aParent:=tdependent_unit(afile.dependent_units.First);
             While Assigned(aParent) do
-              begin
+            begin
               if aParent.in_interface then
-                begin
+              begin
                 // writeln('Registering ',Callermodule.get_modulename,': checking cyclic dependency of ',aFile.get_modulename, ' on ',aparent.u.get_modulename);
                 if aParent.u=SearchFor then
                 begin
                   // unit cycle found
-                  Cycle.Clear;
+                  if Cycle=nil then Cycle:=TFPList.Create;
                   Cycle.Add(aParent.u);
                   Cycle.Add(aFile);
                   // Writeln('exit at ',aParent.u.get_modulename);
                   exit(true);
                 end;
-                if Cycle.IndexOf(aParent.u)<0 then
-                  if FindCycle(aParent.u,SearchFor,Cycle) then
-                    begin
-                    // Writeln('Cycle found, exit at ',aParent.u.get_modulename);
-                    Cycle.Add(aFile);
-                    exit(true);
-                    end;
+                if FindCycle(tppumodule(aParent.u),SearchFor,Cycle) then
+                begin
+                  // Writeln('Cycle found, exit at ',aParent.u.get_modulename);
+                  Cycle.Add(aFile);
+                  exit(true);
                 end;
-              aParent:=tdependent_unit(aParent.Next);
               end;
-           Result:=false;
+              aParent:=tdependent_unit(aParent.Next);
+            end;
+            Result:=false;
           end;
-
 
       var
         ups   : TIDString;
         hp    : tppumodule;
-        hp2   : tmodule;
         cycle : TFPList;
-        havecycle: boolean;
 {$IFDEF DEBUGCYCLE}
-        cyclepath : ansistring
+        cyclepath : ansistring;
+        hp2   : tmodule;
 {$ENDIF}
 
       begin
         { Info }
         ups:=upper(s);
-        { search all loaded units }
+        { search all loaded units, skip program/library }
         hp:=tppumodule(loaded_units.first);
-        hp2:=nil;
-        while assigned(hp) do
-         begin
-           if hp.modulename^=ups then
-            begin
-              { only check for units. The main program is also
-                as a unit in the loaded_units list. We simply need
-                to ignore this entry (PFV) }
-              if hp.is_unit then
-               begin
-                 { both units in interface ? }
-                 if hp.in_interface and callermodule.in_interface then
-                  begin
-                    { check for a cycle }
-                    Cycle:=TFPList.Create;
-                    try
-                      HaveCycle:=FindCycle(CallerModule,hp,Cycle);
-                      if HaveCycle then
-                      begin
-                        {$IFDEF DEBUGCYCLE}
-                        Writeln('Done cycle check');
-                        CyclePath:='';
-                        hp2:=TModule(Cycle[Cycle.Count-1]);
-                        for i:=0 to Cycle.Count-1 do begin
-                          if i>0 then CyclePath:=CyclePath+',';
-                          CyclePath:=CyclePath+TModule(Cycle[i]).realmodulename^;
-                        end;
-                        Writeln('Unit cycle detected: ',CyclePath);
-                        {$ENDIF}
-                        Message2(unit_f_circular_unit_reference,callermodule.realmodulename^,hp.realmodulename^);
-                      end;
-                    finally
-                      Cycle.Free;
-                      Cycle := nil;
-                    end;
-                    if assigned(hp2) then
-                      Message2(unit_f_circular_unit_reference,callermodule.realmodulename^,hp.realmodulename^);
-                  end;
-                 break;
-               end;
-            end;
-           { the next unit }
-           hp:=tppumodule(hp.next);
-         end;
-        { the unit is not in the loaded units,
-          we create an entry and register the unit }
+        while assigned(hp) and ((hp.modulename^<>ups) or not hp.is_unit) do
+          hp:=tppumodule(hp.next);
+
         is_new:=not assigned(hp);
         if is_new then
-         begin
-           Message1(unit_u_registering_new_unit,ups);
-           hp:=tppumodule.create(callermodule,s,fn,true);
-           addloadedunit(hp);
-         end;
+        begin
+          { the unit is not in the loaded units,
+            we create an entry and register the unit }
+          Message1(unit_u_registering_new_unit,ups);
+          hp:=tppumodule.create(callermodule,s,fn,true);
+          addloadedunit(hp);
+        end
+        else if callermodule.in_interface then
+        begin
+          { check for a cycle }
+          Cycle:=nil;
+          try
+            inc(tppumodule.cycle_stamp);
+            if FindCycle(CallerModule as tppumodule,hp,Cycle) then
+            begin
+              {$IFDEF DEBUGCYCLE}
+              Writeln('Done cycle check');
+              CyclePath:='';
+              hp2:=TModule(Cycle[Cycle.Count-1]);
+              for i:=0 to Cycle.Count-1 do begin
+                if i>0 then CyclePath:=CyclePath+',';
+                CyclePath:=CyclePath+TModule(Cycle[i]).realmodulename^;
+              end;
+              Writeln('Unit cycle detected: ',CyclePath);
+              {$ENDIF}
+              Message2(unit_f_circular_unit_reference,callermodule.realmodulename^,hp.realmodulename^);
+            end;
+          finally
+            Cycle.Free;
+          end;
+        end;
+
         { return }
         registerunit:=hp;
       end;
