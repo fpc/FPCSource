@@ -44,7 +44,6 @@ type
     procedure TestTwoUnits; // 2 units, recompile first
     procedure TestChangeLeaf1; // prog->ant->bird, change bird, recompile ant as well
     procedure TestChangeInner1; // prog->ant->bird, change ant, keep bird.ppu
-    procedure TestTouchLeaf1; // TODO prog->ant->bird, touch bird, keep ant.ppu
 
     procedure TestCycle2_ChangeB; // prog->ant->bird, bird.impl->ant, change bird, same crc
     procedure TestCycle3_ChangeC; // prog->ant->bird->cat, cat.impl->ant, change cat same crc
@@ -74,6 +73,8 @@ type
 
     // generics
     procedure TestGeneric_IndirectUses; // specialization of an inherited class in an indirectly used unit
+    procedure TestGeneric_Cycle1; // prg->ant->bird, bird.impl->ant, TAnt->TBird
+    procedure TestGeneric_Cycle2; // prg->ant.impl->bird, bird.impl->ant, TAnt->TBird
   end;
 
 
@@ -767,6 +768,48 @@ begin
   Compile;
   // the main src is always compiled, cat impl of the generic changed, so specialization in ant changed
   CheckCompiled(['generic_indirectuses_prg.pas','generic_indirectuses_ant.pas','generic_indirectuses_cat.pas']);
+end;
+
+procedure TTestRecompile.TestGeneric_Cycle1;
+// prg->ant->bird, bird.impl->ant, TAnt->TBird
+var
+  Dir: String;
+begin
+  Dir:='generic_cycle1';
+  UnitPath:=Dir;
+  OutDir:=Dir+PathDelim+'ppus';
+  MainSrc:=Dir+PathDelim+'generic_cycle1_prg.pas';
+
+  Step:='First compile';
+  CleanOutputDir;
+  Compile;
+  CheckCompiled(['generic_cycle1_prg.pas','generic_cycle1_ant.pas','generic_cycle1_bird.pas']);
+
+  Step:='Second compile';
+  Compile;
+  // the main src is always compiled
+  CheckCompiled(['generic_cycle1_prg.pas']);
+end;
+
+procedure TTestRecompile.TestGeneric_Cycle2;
+// prg->ant.impl->bird, bird.impl->ant, TAnt->TBird
+var
+  Dir: String;
+begin
+  Dir:='generic_cycle1';
+  UnitPath:=Dir;
+  OutDir:=Dir+PathDelim+'ppus';
+  MainSrc:=Dir+PathDelim+'generic_cycle1_prg.pas';
+
+  Step:='First compile';
+  CleanOutputDir;
+  Compile;
+  CheckCompiled(['generic_cycle1_prg.pas','generic_cycle1_ant.pas','generic_cycle1_bird.pas']);
+
+  Step:='Second compile';
+  Compile;
+  // the main src is always compiled
+  CheckCompiled(['generic_cycle1_prg.pas']);
 end;
 
 initialization
