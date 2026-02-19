@@ -318,14 +318,81 @@ procedure Move(const source;var dest;count:longint);[public, alias: 'FPC_MOVE'];
 
 
 {****************************************************************************
-                               Integer math
+                               Integer atomic operations
 ****************************************************************************}
+
+{$ifndef FPC_SYSTEM_HAS_MEM_BARRIER}
+{$define FPC_SYSTEM_HAS_MEM_BARRIER}
+
+const
+  LoadLoad   = $01;
+  StoreLoad  = $02;
+  LoadStore  = $04;
+  StoreStore = $08;
+  LookAside  = $10;
+  MemIssue   = $20;
+  Sync       = $40;
+
+{$if not(defined(SPARCV7)) and not(defined(SPARCV8))}
+{$define CPUSPARC_HAS_MEMBAR}
+{$endif}
+
+procedure ReadBarrier;assembler;nostackframe;
+asm
+{$ifdef CPUSPARC_HAS_MEMBAR}
+  ba,pt .L1
+  membar LoadLoad
+.L1:
+{$endif}
+end;
+
+procedure ReadDependencyBarrier;
+begin
+  { reads imply barrier on earlier reads depended on }
+end;
+
+procedure ReadWriteBarrier;assembler;nostackframe;
+asm
+{$ifdef CPUSPARC_HAS_MEMBAR}
+  ba,pt .L1
+  membar LoadLoad + LoadStore + StoreLoad + StoreStore
+.L1:
+{$endif}
+end;
+
+procedure WriteBarrier;assembler;nostackframe;
+asm
+{$ifdef CPUSPARC_HAS_MEMBAR}
+  ba,pt .L1
+  stbar
+.L1:
+{$endif}
+end;
+
+{$endif}
 
 var
   fpc_system_lock : byte;export name 'fpc_system_lock';
-
+{$ifdef solaris}
+procedure atomic_dec_32(var l : longint);cdecl;external;
+procedure atomic_inc_32(var l : longint); cdecl; external;
+function atomic_dec_32_nv(var l : longint): longint; cdecl; external;
+function atomic_inc_32_nv(var l : longint): longint; cdecl; external;
+function atomic_swap_32(var l : longint; s : longint): longint; cdecl; external;
+function atomic_add_32(var l : longint; s : longint): longint; cdecl; external;
+function atomic_cas_32(var l : longint;old, new : longint) : longint; cdecl; external;
+function atomic_cas_8(var l : byte;old, new : byte) : longint; cdecl; external;
+{$endif solaris}
 
 {$define FPC_SYSTEM_HAS_DECLOCKED_LONGINT}
+{$ifdef solaris}
+function declocked(var l : longint) : boolean;
+begin
+  atomic_cas_8(fpc_system_lock,0,1);
+  declocked:=(atomic_dec_32_nv(l)=0);
+  atomic_cas_8(fpc_system_lock,1,0);
+end;
+{$else}
 function declocked(var l : longint) : boolean;assembler;
 {$ifndef FPC_PIC}nostackframe;{$endif}
 asm
@@ -373,9 +440,17 @@ asm
 {$endif FPC_PIC}
   stb %g0,[%g1]
 end;
-
+{$endif not solaris}
 
 {$define FPC_SYSTEM_HAS_INCLOCKED_LONGINT}
+{$ifdef solaris}
+procedure inclocked(var l : longint);
+begin
+  atomic_cas_8(fpc_system_lock,0,1);
+  atomic_inc_32(l);
+  atomic_cas_8(fpc_system_lock,1,0);
+end;
+{$else}
 procedure inclocked(var l : longint);assembler;
 {$ifndef FPC_PIC}nostackframe;{$endif}
 asm
@@ -416,8 +491,25 @@ asm
 {$endif FPC_PIC}
   stb %g0,[%g1]
 end;
+{$endif not solaris}
 
 
+{$ifdef solaris}
+{$ifdef VER3_2}
+function InterLockedDecrement (var Target: longint) : longint;
+begin
+  atomic_cas_8(fpc_system_lock,0,1);
+  InterLockedDecrement:=atomic_dec_32_nv(Target);
+  atomic_cas_8(fpc_system_lock,1,0);
+end;
+{$else VER3_2}
+{$define FPC_SYSTEM_HAS_ATOMIC_DEC_32}
+function fpc_atomic_dec_32 (var Target: longint) : longint;
+begin
+  fpc_atomic_dec_32:=atomic_dec_32_nv(Target);
+end;
+{$endif VER3_2}
+{$else}
 {$ifdef VER3_2}
 function InterLockedDecrement (var Target: longint) : longint; assembler;
 {$else VER3_2}
@@ -468,7 +560,24 @@ asm
 {$endif FPC_PIC}
   stb %g0,[%g1]
 end;
+{$endif not solaris}
 
+{$ifdef solaris}
+{$ifdef VER3_2}
+function InterLockedIncrement (var Target: longint) : longint;
+begin
+  atomic_cas_8(fpc_system_lock,0,1);
+  InterLockedIncrement:=atomic_inc_32_nv(Target);
+  atomic_cas_8(fpc_system_lock,1,0);
+end;
+{$else VER3_2}
+{$define FPC_SYSTEM_HAS_ATOMIC_INC_32}
+function fpc_atomic_inc_32 (var Target: longint) : longint;
+begin
+  fpc_atomic_inc_32:=atomic_inc_32_nv(Target);
+end;
+{$endif VER3_2}
+{$else}
 {$ifdef VER3_2}
 function InterLockedIncrement (var Target: longint) : longint; assembler;
 {$else VER3_2}
@@ -519,8 +628,26 @@ asm
 {$endif FPC_PIC}
   stb %g0,[%g1]
 end;
+{$endif not solaris}
 
-
+{$ifdef solaris}
+{$ifdef VER3_2}
+function InterLockedExchange (var Target: longint;Source : longint) : longint;
+begin
+  atomic_cas_8(fpc_system_lock,0,1);
+  InterLockedExchange:=atomic_swap_32(Target,Source);
+  atomic_cas_8(fpc_system_lock,1,0);
+end;
+{$else VER3_2}
+{$define FPC_SYSTEM_HAS_ATOMIC_XCHG_32}
+function fpc_atomic_xchg_32 (var Target: longint;Source : longint) : longint;
+begin
+  atomic_cas_8(fpc_system_lock,0,1);
+  fpc_atomic_xchg_32:=atomic_swap_32(Target,Source);
+  atomic_cas_8(fpc_system_lock,1,0);
+end;
+{$endif VER3_2}
+{$else}
 {$ifdef VER3_2}
 function InterLockedExchange (var Target: longint;Source : longint) : longint; assembler;
 {$else VER3_2}
@@ -569,8 +696,29 @@ asm
 {$endif FPC_PIC}
   stb %g0,[%g1]
 end;
+{$endif not solaris}
 
 
+{$ifdef solaris}
+{$ifdef VER3_2}
+function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint;
+begin
+  atomic_cas_8(fpc_system_lock,0,1);
+  InterLockedExchangeAdd:=atomic_swap_32(Target, Source);
+  atomic_add_32(Target,InterLockedExchangeAdd);
+  atomic_cas_8(fpc_system_lock,1,0);
+end;
+{$else VER3_2}
+{$define FPC_SYSTEM_HAS_ATOMIC_ADD_32}
+function fpc_atomic_add_32 (var Target: longint;Value : longint) : longint;
+begin
+  atomic_cas_8(fpc_system_lock,0,1);
+  fpc_atomic_add_32:=atomic_swap_32(Target, Value);
+  atomic_add_32(Target,fpc_atomic_add_32);
+  atomic_cas_8(fpc_system_lock,1,0);
+end;
+{$endif VER3_2}
+{$else}
 {$ifdef VER3_2}
 function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint; assembler;
 {$else VER3_2}
@@ -621,8 +769,24 @@ asm
 {$endif FPC_PIC}
   stb %g0,[%g1]
 end;
+{$endif not solaris}
 
-
+{$ifdef solaris}
+{$ifdef VER3_2}
+function InterlockedCompareExchange(var Target: longint; NewValue: longint; Comperand: longint): longint;
+begin
+  atomic_cas_8(fpc_system_lock,0,1);
+  InterLockedCompareExchange:=atomic_cas_32(Target,Comperand,NewValue);
+  atomic_cas_8(fpc_system_lock,1,0);
+end;
+{$else VER3_2}
+{$define FPC_SYSTEM_HAS_ATOMIC_XCHG_32}
+function fpc_atomic_xchg_32 (var Target: longint; NewValue: longint; Comparand: longint) : longint; [public,alias:'FPC_ATOMIC_CMP_XCHG_32'];
+begin
+  fpc_atomic_xchg_32:=atomic_cas_32(Target,Comparand,NewValue);
+end;
+{$endif VER3_2}
+{$else}
 {$ifdef VER3_2}
 function InterlockedCompareExchange(var Target: longint; NewValue: longint; Comperand: longint): longint; assembler;
 {$else VER3_2}
@@ -680,56 +844,7 @@ asm
 {$endif FPC_PIC}
   stb %g0,[%g1]
 end;
-
-{$ifndef FPC_SYSTEM_HAS_MEM_BARRIER}
-{$define FPC_SYSTEM_HAS_MEM_BARRIER}
-
-const
-  LoadLoad   = $01;
-  StoreLoad  = $02;
-  LoadStore  = $04;
-  StoreStore = $08;
-  LookAside  = $10;
-  MemIssue   = $20;
-  Sync       = $40;
-
-{$if not(defined(SPARCV7)) and not(defined(SPARCV8))}
-{$define CPUSPARC_HAS_MEMBAR}
-{$endif}
-
-procedure ReadBarrier;assembler;nostackframe;
-asm
-{$ifdef CPUSPARC_HAS_MEMBAR}
-  ba,pt .L1
-  membar LoadLoad
-.L1:
-{$endif}
-end;
-
-procedure ReadDependencyBarrier;
-begin
-  { reads imply barrier on earlier reads depended on }
-end;
-
-procedure ReadWriteBarrier;assembler;nostackframe;
-asm
-{$ifdef CPUSPARC_HAS_MEMBAR}
-  ba,pt .L1
-  membar LoadLoad + LoadStore + StoreLoad + StoreStore
-.L1:
-{$endif}
-end;
-
-procedure WriteBarrier;assembler;nostackframe;
-asm
-{$ifdef CPUSPARC_HAS_MEMBAR}
-  ba,pt .L1
-  stbar
-.L1:
-{$endif}
-end;
-
-{$endif}
+{$endif not solaris}
 
 {$ifndef FPC_SYSTEM_HAS_SAR_QWORD}
 {$define FPC_SYSTEM_HAS_SAR_QWORD}
