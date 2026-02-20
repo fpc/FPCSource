@@ -3,7 +3,9 @@ program tstrutils;
 {$mode objfpc}{$H+}
 
 uses
+  {$IFDEF UNIX}
   cwstring,
+  {$ENDIF}
   Classes, consoletestrunner, tcstrutils, tcstringlist, tclist;
 
 type
