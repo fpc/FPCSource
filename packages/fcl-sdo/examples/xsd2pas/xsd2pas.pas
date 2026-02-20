@@ -3,7 +3,10 @@ program xsd2pas;
 {$mode objfpc}{$H+}
 
 uses
-  cwstring, Classes, SysUtils, sdo, sdo_datafactory, sdo_xsdintf,
+  {$IFDEF UNIX}
+  cwstring,
+  {$ENDIF}
+  Classes, SysUtils, sdo, sdo_datafactory, sdo_xsdintf,
   sdo_xsd_helper, xsd_generator, pas_generator;
 
   procedure LoadSchemaFile(AFactory : ISDODataFactory; AFileName : string);
