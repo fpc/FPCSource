@@ -28,7 +28,7 @@ unit ctask;
 interface
 
 uses
-  finput, fmodule, cclasses, globstat;
+  finput, fmodule, cclasses, globtype, globstat;
 
 type
   { ttask_list
@@ -66,26 +66,30 @@ type
     hash : TFPHashList;
     main : tmodule;
     procedure rebuild_hash;
+    procedure check_hash;
+    procedure renamemodule(m: tmodule; const oldname: TSymStr);
   public
     constructor create;
     destructor destroy; override;
-    // Find the task for module m
+    { Find the task for module m }
     function findtask(m : tmodule) : ttask_list;
     // Can we continue processing this module ? If not, firstwaiting contains first module that m is waiting for.
     function cancontinue(m : tmodule; out firstwaiting: tmodule): boolean;
-    // Overload of cancontinue, based on task.
+    { Overload of cancontinue, based on task. }
     function cancontinue(t: ttask_list; out firstwaiting: tmodule): boolean; inline;
-    // Continue processing this module. Return true if the module is done and can be removed.
+    { Continue processing this module. Return true if the module is done and can be removed. }
     function continue_task(t : ttask_list): Boolean;
     {$IFNDEF DisableCTaskPPU}
-    // Check for a circular dependency and fix it
+    { Check all modules needing a reload }
+    function check_reloads: boolean;
+    { Check for a circular dependency and fix it }
     function check_cycle: boolean;
     {$ENDIF}
-    // process the queue. Note that while processing the queue, elements will be added.
+    { process the queue. Note that while processing the queue, elements will be added. }
     procedure processqueue;
-    // add a module to the queue. If a module is already in the queue, we do not add it again.
+    { add a module to the queue. If a module is already in the queue, we do not add it again. }
     procedure addmodule(m : tmodule);
-    // write current queue and what is waiting for what
+    { write current queue and what is waiting for what }
     procedure write_queue;
   end;
 
@@ -99,7 +103,7 @@ procedure DoneTaskHandler;
 implementation
 
 uses
-  verbose, fppu, globtype, sysutils,
+  verbose, fppu, sysutils,
   scanner, parser, pmodules, symbase;
 
 procedure InitTaskHandler;
@@ -173,6 +177,7 @@ begin
   hash:=TFPHashList.Create;
   {$IFNDEF DisableCTaskPPU}
   tmodule.queue_module:=@addmodule;
+  tmodule.rename_module:=@renamemodule;
   {$ENDIF}
 end;
 
@@ -205,13 +210,13 @@ function ttask_handler.cancontinue(m: tmodule; out firstwaiting: tmodule): boole
 begin
   firstwaiting:=nil;
 
-  // We do not need to consider the program as long as there are units that need to be treated.
+  { We do not need to consider the program as long as there are units that need to be treated. }
   if (m.is_initial and not m.is_unit) and (list.count>1) then
     exit(False);
 
   {$IFNDEF DisableCTaskPPU}
   if m.do_reload then
-    cancontinue:=tppumodule(m).canreload(firstwaiting)
+    cancontinue:=tppumodule(m).canreload(firstwaiting,false)
   else
   {$ENDIF}
   begin
@@ -304,7 +309,7 @@ begin
   end;
 
   if (m.is_initial and not m.is_unit) and (list.Count>1) then
-    // program must wait for all units to finish
+    { program must wait for all units to finish }
   else if m.state=ms_compiled then
     begin
     parsing_done(m);
@@ -320,7 +325,7 @@ begin
     Writeln(', state is now: ',m.state);
   {$ENDIF}
   if not result then
-    // Not done, save state
+    { Not done, save state }
     t.SaveState;
   {
     the name can change as a result of processing, e.g. PROGRAM -> TB0406
@@ -331,8 +336,32 @@ begin
 end;
 
 {$IFNDEF DisableCTaskPPU}
+function ttask_handler.check_reloads: boolean;
+{ returns true, if something changed }
+var
+  t: ttask_list;
+  m: tppumodule;
+  firstwaiting: tmodule;
+begin
+  Result:=false;
+
+  { check if any do_reload module needs recompile due to crc }
+  t:=list.firsttask;
+  while t<>nil do
+    begin
+    m:=tppumodule(t.module);
+    if m.do_reload then
+      begin
+        m.canreload(firstwaiting,true);
+        if m.do_reload=false then
+          Result:=true;
+      end;
+    t:=t.nexttask;
+    end;
+end;
+
 function ttask_handler.check_cycle: boolean;
-// returns true if something changed
+{ returns true if something changed }
 var
   last: ttask_list;
   cycle_unit: tppumodule;
@@ -344,7 +373,7 @@ var
   begin
     Result:=false;
 
-    // mark module as searched
+    { mark module as searched }
     m.cycle_search_stamp:=m.cycle_stamp;
 
     cancontinue(m,firstwaiting);
@@ -353,30 +382,34 @@ var
     pm:=tppumodule(firstwaiting);
     if pm.cycle_stamp=pm.cycle_search_stamp then
     begin
-      // cycle found
+      { cycle found }
       cycle_unit:=pm;
       Result:=true;
     end else if Search(pm) then
     begin
-      // m and pm are part of the cycle
+      { m and pm are part of the cycle }
       Result:=true;
     end;
 
     if Result then
     begin
-      // m is part of the cycle -> recompile ppu
+      { m is part of the cycle -> recompile ppu }
       if m.fromppu then
       begin
         {$IFDEF DEBUG_CTASK}
-        writeln('PPUALGO check_cycle last=',last.module.modulename^,' ',last.module.statestr,', RECOMPILE ',m.modulename^,' ',m.statestr);
+        writeln('PPUALGO check_cycle cycle_unit=',cycle_unit.modulename^,' ',cycle_unit.statestr,', RECOMPILE ',m.modulename^,' ',m.statestr);
         {$ENDIF}
         m.recompile_cycle;
-        check_cycle:=true; // something changed
+        check_cycle:=true; { something changed }
+      end else begin
+        {$IFDEF DEBUG_CTASK}
+        writeln('PPUALGO check_cycle cycle_unit=',cycle_unit.modulename^,' ',cycle_unit.statestr,', KEEPING ',m.modulename^,' ',m.statestr);
+        {$ENDIF}
       end;
     end;
 
     if m=cycle_unit then
-      Result:=false; // the cycle started with m, the remaining path is not part of the cycle
+      Result:=false; { the cycle started with m, the remaining path is not part of the cycle }
   end;
 
 var
@@ -384,7 +417,7 @@ var
 begin
   Result:=false;
 
-  // find highest unit_index in queue
+  { find highest unit_index in queue }
   t:=list.firsttask;
   if t=nil then exit;
   last:=nil;
@@ -420,6 +453,74 @@ begin
     Hash.Add(t.module.modulename^,t);
     t:=t.nexttask;
     end;
+  {$IFDEF DEBUG_CTASK}
+  check_hash;
+  {$ENDIF}
+end;
+
+procedure ttask_handler.check_hash;
+var
+  t, t2: ttask_list;
+  m: tmodule;
+  n: TSymStr;
+begin
+  { check all in tasklist are in the hashlist }
+  t:=list.firsttask;
+  while t<>nil do
+    begin
+    m:=t.module;
+    n:=m.modulename^;
+    t2:=ttask_list(Hash.Find(n));
+    if (t<>t2) and m.is_unit then
+      begin
+      if t2=nil then
+        writeln('ttask_handler.check_hash hash of scheduled module not found: ',m.modulename^,' ',m.statestr)
+      else
+        writeln('ttask_handler.check_hash hash of scheduled module mismatch: expected ',m.modulename^,' ',m.statestr,', but found ',t2.module.modulename^,' ',t2.module.statestr);
+      Internalerror(2026021921);
+      end;
+    t:=t.nexttask;
+    end;
+
+  { check none of the other units are in the hashlist }
+  m:=tmodule(loaded_units.first);
+  while assigned(m) do
+    begin
+      if m.is_unit then
+      begin
+        n:=m.modulename^;
+        t:=findtask(m);
+        t2:=ttask_list(Hash.Find(n));
+        if t<>t2 then
+          begin
+            if t=nil then
+              writeln('ttask_handler.check_hash not-scheduled module still in hash: ',m.modulename^,' ',m.statestr)
+            else if t2=nil then
+              writeln('ttask_handler.check_hash hash of scheduled module missing: ',m.modulename^,' ',m.statestr)
+            else
+              writeln('ttask_handler.check_hash mismatch: expected ',m.modulename^,' ',m.statestr,', but found ',t2.module.modulename^,' ',t2.module.statestr);
+            Internalerror(2026021922);
+          end;
+      end;
+      m:=tmodule(m.next);
+    end;
+end;
+
+procedure ttask_handler.renamemodule(m: tmodule; const oldname: TSymStr);
+var
+  newname: TSymStr;
+  t: ttask_list;
+begin
+  newname:=m.modulename^;
+  t:=ttask_list(Hash.Find(oldname));
+  if t<>nil then
+    begin
+      Hash.Remove(t);
+      Hash.Add(newname,t);
+    end;
+  {$IFDEF DEBUG_CTASK}
+  check_hash;
+  {$ENDIF}
 end;
 
 procedure ttask_handler.processqueue;
@@ -429,28 +530,28 @@ var
   firstwaiting, m: tmodule;
 
 begin
-  // Strategy: goal is to write ppus early, so that mem is freed early and in case of an error
-  //           next compile can load ppus instead of compiling again.
+  { Strategy: goal is to write ppus early, so that mem is freed early and in case of an error
+              next compile can load ppus instead of compiling again. }
 
   repeat
     {$IFDEF DEBUG_CTASK}writeln('CTASK: ttask_handler.processqueue: task-count=',list.Count);{$ENDIF}
     besttask:=nil;
     if list.firsttask=nil then
-      exit; // completed
+      exit; { completed }
 
-    // search for any module, that can continue, with furthest state
+    { search for any module, that can continue, with furthest state }
     t:=list.firsttask;
     while t<>nil do
       begin
       m:=t.module;
       if (besttask<>nil) and (besttask.module.unit_index>m.unit_index) then
-        // skip
+        { skip }
       else if cancontinue(m,firstwaiting) then
         begin
         {$IFDEF DEBUG_CTASK}
         Writeln('CTASK: ',m.ToString,' state=',m.state,' unit_index=',m.unit_index);
         {$ENDIF}
-        // prefer highest unit_index to complete strongly connected components first
+        { prefer highest unit_index to complete strongly connected components first }
         if (besttask=nil)
             or (besttask.module.unit_index<m.unit_index) then
           besttask:=t;
@@ -460,12 +561,15 @@ begin
 
     {$IFNDEF DisableCTaskPPU}
     if besttask=nil then
-      if check_cycle then continue;
+      begin
+        if check_reloads then continue;
+        if check_cycle then continue;
+      end;
     {$ENDIF}
 
     if besttask=nil then
       begin
-      // no progress possible
+      { no progress possible }
       write_queue;
       InternalError(2026012015);
       end;
@@ -473,10 +577,16 @@ begin
     {$IF defined(DEBUG_CTASK) or defined(Debug_FreeParseMem)}Writeln('CTASK: continuing ',besttask.module.ToString,' state=',besttask.module.statestr,' total-units=',loaded_units.Count,' tasks=',list.Count);{$ENDIF}
     if continue_task(besttask) then
     begin
+      {$IFDEF DEBUG_CTASK}
+      check_hash;
+      {$ENDIF}
       {$IFDEF DEBUG_CTASK}Writeln('CTASK: ',besttask.module.ToString,' is finished, removing from task list');{$ENDIF}
-      hash.Remove(besttask.module);
+      hash.Remove(besttask);
       list.Remove(besttask);
       FreeAndNil(besttask);
+      {$IFDEF DEBUG_CTASK}
+      check_hash;
+      {$ENDIF}
     end;
   until false;
 end;
@@ -485,26 +595,29 @@ procedure ttask_handler.addmodule(m: tmodule);
 
 var
   n : TSymStr;
-  e, t : ttask_list;
+  t : ttask_list;
 
 begin
-  n:=m.modulename^;
-  //e:=ttask_list(Hash.Find(n));
-
-  e:=findtask(m);
   {$IFDEF DEBUG_CTASK}
-  //if findtask(m)<>e then
-  //begin
-  //  writeln('ttask_handler.addmodule Hash<>findtask ',m.modulename^);
-  //  Internalerror(2026021902);
-  //end;
+  check_hash;
   {$ENDIF}
 
-  if e=nil then
+  n:=m.modulename^;
+  t:=ttask_list(Hash.Find(n));
+
+  {$IFDEF DEBUG_CTASK}
+  if findtask(m)<>t then
+  begin
+    writeln('ttask_handler.addmodule Hash<>findtask ',m.modulename^);
+    Internalerror(2026021902);
+  end;
+  {$ENDIF}
+
+  if t=nil then
     begin
     {$IFDEF DEBUG_CTASK}Writeln('CTASK: ',m.ToString,' added to task scheduler. State: ',m.state,' unit_index=',m.unit_index);{$ENDIF}
-    // Clear reset flag.
-    // This can happen when during load, reset is done and unit is added to task list.
+    { Clear reset flag.
+      This can happen when during load, reset is done and unit is added to task list. }
     m.is_reset:=false;
     t:=ttask_list.create(m);
     list.insert(t);
@@ -514,20 +627,19 @@ begin
     end
   else
     begin
-    // We have a task, if it was reset, then clear the state and move the task to the start.
+    { We have a task, if it was reset, then clear the state and move the task to the start. }
     if m.is_reset then
       begin
       {$IFDEF DEBUG_CTASK}Writeln('CTASK: ',m.ToString,' was reset, resetting flag. State: ',m.state);{$ENDIF}
       m.is_reset:=false;
-      t:=findtask(m);
-      if assigned(t) then
-        begin
-        t.DiscardState;
-        list.Remove(t);
-        list.insertbefore(t,list.First);
-        end;
+      t.DiscardState;
+      list.Remove(t);
+      list.insertbefore(t,list.First);
       end;
     end;
+  {$IFDEF DEBUG_CTASK}
+  check_hash;
+  {$ENDIF}
 end;
 
 procedure ttask_handler.write_queue;
@@ -542,7 +654,7 @@ var
   begin
     Result:=false;
 
-    // mark module as searched
+    { mark module as searched }
     m.cycle_search_stamp:=m.cycle_stamp;
 
     cancontinue(m,firstwaiting);
@@ -551,24 +663,24 @@ var
     pm:=tppumodule(firstwaiting);
     if pm.cycle_stamp=pm.cycle_search_stamp then
     begin
-      // cycle found
+      { cycle found }
       cycle_unit:=pm;
       Result:=true;
       writeln('cycle found: ',pm.modulename^,' ',pm.statestr,' ppu=',pm.fromppu,' used by...');
     end else if Search(pm) then
     begin
-      // m and pm are part of the cycle
+      { m and pm are part of the cycle }
       Result:=true;
     end;
 
     if Result then
     begin
-      // m is part of the cycle -> recompile ppu
+      { m is part of the cycle -> recompile ppu }
       writeln(' cycle-path: ',m.modulename^,' ',m.statestr,' ppu=',m.fromppu,' used by...');
     end;
 
     if m=cycle_unit then
-      Result:=false; // the cycle started with m, the remaining path is not part of the cycle
+      Result:=false; { the cycle started with m, the remaining path is not part of the cycle }
   end;
 
 var
@@ -604,9 +716,9 @@ begin
     t:=t.nexttask;
     end;
 
-  // write a cycle:
+  { write a cycle: }
 
-  // find highest unit_index in queue
+  { find highest unit_index in queue }
   t:=list.firsttask;
   if t=nil then exit;
   last:=nil;

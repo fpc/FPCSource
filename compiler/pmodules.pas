@@ -737,7 +737,7 @@ implementation
                (pu.in_interface=frominterface) then
              begin
                {$IFNDEF DisableCTaskPPU}
-               // always call loadppu for the cycle test
+               { always call loadppu for the cycle test }
                tppumodule(lu).loadppu(curr);
                if not (curr.state in [ms_compile,ms_compiling_wait,ms_compiling_waitintf,ms_compiling_waitimpl]) then
                begin
@@ -754,8 +754,8 @@ implementation
                end;
                if not lu.interface_compiled or lu.do_reload then
                begin
-                 // an used unit is delayed
-                 // Important: load the rest of the uses section
+                 { an used unit is delayed
+                   Important: load the rest of the uses section }
                  Result:=false;
                end;
                {$ELSE}
@@ -1790,14 +1790,14 @@ type
              create_objectfile(module);
            end;
 
-        // remove all waits for this unit
+        { remove all waits for this unit }
         for i:=0 to module.waitingunits.count-1 do
           begin
             waitingmodule:=tmodule(module.waitingunits[i]);
             waitingmodule.remove_from_waitingforunits(module);
           end;
 
-        // compute CRC
+        { compute CRC }
         if ErrorCount=0 then
           begin
           if not module.usedunitsfinalcrc(waitingmodule) then
@@ -2029,7 +2029,7 @@ type
          { ensure that no packages are picked up from the options }
          packagelist.clear;
 
-         // There should always be a requires, except for the system package. So we load here
+         { There should always be a requires, except for the system package. So we load here }
          if Assigned(curr) then
            curr.Loadlocalnamespacelist
          else
@@ -3052,7 +3052,7 @@ type
 
          {$IFNDEF DisableCTaskPPU}
          if curr.is_initial then
-           load_ok:=false; // delay program, so ctask can finish all units
+           load_ok:=false; { delay program, so ctask can finish all units }
          if not load_ok then
            curr.state:=ms_compiling_wait;
          {$ELSE}

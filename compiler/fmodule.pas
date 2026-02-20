@@ -110,6 +110,7 @@ interface
 
       {$IFNDEF DisableCTaskPPU}
       tqueue_module_event = procedure(m: tmodule) of object;
+      trename_module_event = procedure(m: tmodule; const oldname: TSymStr) of object;
       {$ENDIF}
 
       { tused_unit }
@@ -144,13 +145,13 @@ interface
         is_reset,                 { has reset been called ? }
         do_reload,                { force reloading of the unit }
         {$IFNDEF DisableCTaskPPU}
-        fromppu: boolean;
+        fromppu: boolean;         { loaded from ppu }
         {$ENDIF}
         sources_avail,            { if all sources are reachable }
-        interface_compiled,       { if the interface section has been parsed/compiled/loaded }
+        interface_compiled,       { if the interface section has been parsed/compiled/loaded, interface_crc and indirect_crc are valid }
         is_dbginfo_written,
         is_unit,
-        in_interface,             { processing the implementation part? }
+        in_interface,             { processing the interface part? }
         { allow global settings }
         in_global     : boolean;
         { Whether a mode switch is still allowed at this point in the parsing.}
@@ -163,9 +164,9 @@ interface
         mainfilepos   : tfileposinfo;
         recompile_reason : trecompile_reason;  { the reason why the unit should be recompiled }
         crc_final: boolean;
-        crc,
-        interface_crc,
-        indirect_crc  : cardinal;
+        crc,                       { valid when crc_final=true }
+        interface_crc,             { valid when interface_compiled=true }
+        indirect_crc  : cardinal;  { valid when interface_compiled=true }
         headerflags   : cardinal;  { the PPU header flags }
         longversion   : cardinal;  { longer version than what fits in the ppu header }
         moduleflags   : tmoduleflags; { ppu flags that do not need to be known by just reading the ppu header }
@@ -301,6 +302,7 @@ interface
         procedure disconnect_depending_modules; virtual;
         function is_reload_needed(du: tdependent_unit): boolean; virtual; // true if reload needed after self changed
         class var queue_module: tqueue_module_event;
+        class var rename_module: trename_module_event;
         {$ENDIF}
         procedure addimportedsym(sym:TSymEntry);
         function  addusedunit(hp:tmodule;inuses:boolean;usym:tunitsym):tused_unit;
@@ -1165,7 +1167,7 @@ implementation
               must also be re-resolved, because they will also contain
               pointers to procdefs in the old trgobj (in case of a
               recompile, all old defs are freed) }
-            flagdependent(m);
+            m.flagdependent(self);
           end;
           {$ELSE}
           if (m=callermodule) and (m.state<ms_compiled_waitcrc) then
@@ -1557,11 +1559,15 @@ implementation
 
 
     procedure tmodule.setmodulename(const s:string);
+      var
+        oldname: TSymStr;
       begin
+        oldname:=modulename^;
         stringdispose(modulename);
         stringdispose(realmodulename);
         modulename:=stringdup(upper(s));
         realmodulename:=stringdup(s);
+        rename_module(self,oldname);
         { also update asmlibrary names }
         current_asmdata.name:=modulename;
       end;
