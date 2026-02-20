@@ -94,7 +94,7 @@ Const
   end;
 {$ENDIF USESQLDB}
 
-{$IFDEF USESQLLITE}
+{$IFDEF USESQLITE}
   Procedure ConfigSQLIte(SDB : TSQLiteIndexDB);
 
   begin
@@ -112,7 +112,7 @@ Var
   {$IFDEF USESQLDB}
   QDB : TSQLDBIndexDB;
   {$ENDIF}
-  {$IFDEF USESQLLITE}
+  {$IFDEF USESQLITE}
   SDB : TSQLiteIndexDB;
   {$ENDIF}
   MDB :  TFileIndexDB;
