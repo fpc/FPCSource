@@ -1,5 +1,7 @@
 program htmlwithsax;
 
+{$mode objfpc}{$H+}
+
 uses sysutils, classes, sax,sax_html, custapp;
 
 Type
