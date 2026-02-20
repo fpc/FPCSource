@@ -381,7 +381,7 @@ begin
   if (ArgV<>Nil) then
     FServiceParamStr := strpas(ArgV^);
   SetLastError(0);
-  FStatusHandle := RegisterServiceCtrlHandlerA(PChar(Name),@ServiceControllerEntry);
+  FStatusHandle := RegisterServiceCtrlHandlerA(PAnsiChar(Name),@ServiceControllerEntry);
   if FStatusHandle <> 0 then
     begin
     if ReportStartPending then
