@@ -5,7 +5,10 @@ program testure;
 {$CODEPAGE UTF8}
 
 uses
-  cwstring, Classes, SysUtils, uregexpr;
+  {$IFDEF UNIX}
+  cwstring,
+  {$ENDIF}
+  Classes, SysUtils, uregexpr;
 
 var
   r: TRegExpr;
