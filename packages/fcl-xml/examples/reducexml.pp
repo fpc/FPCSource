@@ -3,7 +3,11 @@ program reducexml;
 {$mode objfpc}
 {$h+}
 
-uses cwstring,SysUtils,classes,DOM,xmlutils,xmlread,xmlwrite;
+uses
+  {$IFDEF UNIX}
+  cwstring,
+  {$ENDIF}
+  SysUtils, classes, DOM, xmlutils, xmlread, xmlwrite;
 
 Var
   D : TXMLDocument;
