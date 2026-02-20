@@ -3,7 +3,10 @@ program cmdclient;
 {$mode objfpc}{$H+}
 
 uses
-  cwstring,Classes, SysUtils, CustApp, fphttpclient, db, bufdataset, XMLDatapacketReader;
+  {$IFDEF UNIX}
+  cwstring,
+  {$ENDIF}
+  Classes, SysUtils, CustApp, fphttpclient, db, bufdataset, XMLDatapacketReader;
 
 type
 
