@@ -2853,7 +2853,7 @@ implementation
 
     function tcallnode.handle_compilerproc: tnode;
       var
-        para: TCallParaNode;
+        para, encodingnode: TCallParaNode;
         maxlennode, outnode, valnode: TNode;
         MaxStrLen: Int64;
         StringLiteral, name: string;
@@ -2916,7 +2916,13 @@ implementation
                                       valnode := ttypeconvnode(valnode).left;
                                     end;
 
-                                  if is_constintnode(valnode) then
+                                  encodingnode:=GetParaFromIndex(0);
+
+                                  if is_constintnode(valnode) and
+                                  { for now replace only nodes if no encoding is passed }
+                                    not(assigned(encodingnode)) or
+                                    not(is_constintnode(encodingnode.left)) or
+                                    (tordconstnode(encodingnode.left).value=0) then
                                     begin
                                       MaxStrLen := TOrdConstNode(maxlennode).value.svalue;
 
