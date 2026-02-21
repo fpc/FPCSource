@@ -425,6 +425,19 @@ type
   tofar=Pointer;
 {$endif cpui8086}
 
+procedure CloseDwarf(needLock: boolean);
+begin
+  if needLock then
+    Lock(DwarfLock);
+  if e.isopen then
+    CloseExeFile(e);
+
+  // Reset last processed filename
+  lastfilename := '';
+  if needLock then
+    Unlock(DwarfLock);
+end;
+
 function OpenDwarf(addr : codepointer) : boolean;
 var
   oldprocessaddress: TExeProcessAddress;
@@ -458,7 +471,7 @@ begin
   end;
 
   // Close previously opened Dwarf
-  CloseDwarf;
+  CloseDwarf(false);
 
   // Reset last open dwarf result
   lastopendwarf := false;
@@ -502,11 +515,7 @@ end;
 
 procedure CloseDwarf;
 begin
-  if e.isopen then
-    CloseExeFile(e);
-
-  // Reset last processed filename
-  lastfilename := '';
+  CloseDwarf(true);
 end;
 
 
@@ -1519,7 +1528,7 @@ begin
   end;
 
   if not AllowReuseOfLineInfoData then
-    CloseDwarf;
+    CloseDwarf(false);
   Unlock(DwarfLock);
 
 {$ifdef has_LineInfoCache}
@@ -2159,6 +2168,6 @@ initialization
   BackTraceStrFunc := @DwarfBacktraceStr;
 
 finalization
-  CloseDwarf;
+  CloseDwarf(false);
 
 end.
