@@ -106,18 +106,17 @@ unit optcall;
         callnode: tcallnode;
       begin
         result:=fen_false;
-        if not(_n.nodetype=calln) then
+        if not(_n.nodetype=calln) or not(po_inline in tcallnode(_n).procdefinition.procoptions) then
           exit;
         callnode:=tcallnode(_n);
 
-        if not(cnf_do_inline in callnode.callnodeflags) then
-          exit;
-
-        if (po_inline in callnode.procdefinition.procoptions) and not(po_compilerproc in callnode.procdefinition.procoptions) and
+        if (po_inline in callnode.procdefinition.procoptions) and
           (callnode.procdefinition.typ=procdef) and
-          (pio_inline_not_possible in tprocdef(callnode.procdefinition).implprocoptions) then
+          ((pio_inline_not_possible in tprocdef(callnode.procdefinition).implprocoptions) or
+           not(cnf_do_inline in callnode.callnodeflags)) then
           begin
-            Message1(cg_n_no_inline,tprocdef(callnode.procdefinition).customprocname([pno_proctypeoption, pno_paranames,pno_ownername, pno_noclassmarker, pno_prettynames]));
+            if not(po_compilerproc in callnode.procdefinition.procoptions) then
+              Message1(cg_n_no_inline,tprocdef(callnode.procdefinition).customprocname([pno_proctypeoption, pno_paranames,pno_ownername, pno_noclassmarker, pno_prettynames]));
             exit;
           end;
 
