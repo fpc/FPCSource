@@ -2046,9 +2046,11 @@ end;
   end;
 
   procedure LineInfoCache.Put(addr: CodePointer; const func, source: shortstring; line: longint);
+  const
+    EvictionAlwaysMakesSpace = (MaxStrings >= 2) and (MaxStringsData >= 2 * (255 + StringHeaderSize));
   var
     addressHash, funcHash, sourceHash, reqStrings, reqData: SizeUint;
-    funcId, sourceId, addressId, evictPtr, prev, stringsToEvict, dataToEvict, origDataToEvict, alt: SizeInt;
+    funcId, sourceId, addressId, evictPtr, prev, stringsToEvict, dataToEvict, alt {$if not EvictionAlwaysMakesSpace}, origDataToEvict {$endif}: SizeInt;
   begin
     if longword(line) > 1 shl 24 - 1 then exit; // Won’t fit into lineLo16 + lineHi8...
 
@@ -2078,9 +2080,11 @@ end;
       begin
         alt := strings.dataSize div 8 + strings.dataSize div 32; // Evict at least 15.6% of strings at once, because PackStrings is slow.
         if alt > dataToEvict then dataToEvict := alt;
+      {$if not EvictionAlwaysMakesSpace}
         origDataToEvict := dataToEvict;
+      {$endif not EvictionAlwaysMakesSpace}
         evictPtr := SizeInt(SizeUint(strings.lastLru1)) - 1;
-        while (evictPtr <> -1) and ((stringsToEvict > 0) or (dataToEvict > 0)) do
+        while {$if not EvictionAlwaysMakesSpace} (evictPtr <> -1) and {$endif} ((stringsToEvict > 0) or (dataToEvict > 0)) do
         begin
           prev := SizeInt(SizeUint(strings.s[evictPtr].prevLru1)) - 1;
           if (evictPtr <> funcId) and (evictPtr <> sourceId) then
@@ -2091,13 +2095,15 @@ end;
           end;
           evictPtr := prev;
         end;
+      {$if not EvictionAlwaysMakesSpace}
         if dataToEvict <> origDataToEvict then
+      {$endif not EvictionAlwaysMakesSpace}
           PackStrings; // This is crucial.
-      {$if (MaxStrings <= 2) or (MaxStringsData <= 2 * (255 + StringHeaderSize))}
-        // Eviction hasn’t evicted enough. Impossible situation for large enough caches, hence the $ifdef.
+      {$if not EvictionAlwaysMakesSpace}
+        // Eviction hasn’t evicted enough. Impossible situation for large enough caches.
         // For small caches, a potential “improvement” is doing eviction in 2 passes, the first is just a simulation, so if the Put() request won’t fit anyway, don’t evict anything.
         if (stringsToEvict > 0) or (dataToEvict > 0) then exit;
-      {$endif eviction can fail to make space}
+      {$endif not EvictionAlwaysMakesSpace}
       end;
     end;
 
