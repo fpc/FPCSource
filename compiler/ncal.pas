@@ -2919,10 +2919,10 @@ implementation
                                   encodingnode:=GetParaFromIndex(0);
 
                                   if is_constintnode(valnode) and
-                                  { for now replace only nodes if no encoding is passed }
-                                    not(assigned(encodingnode)) or
-                                    not(is_constintnode(encodingnode.left)) or
-                                    (tordconstnode(encodingnode.left).value=0) then
+                                  { for now replace only nodes if no encoding is passed/encoding is zero }
+                                    (not(assigned(encodingnode)) or
+                                    (is_constintnode(encodingnode.left) and
+                                    (tordconstnode(encodingnode.left).value=0))) then
                                     begin
                                       MaxStrLen := TOrdConstNode(maxlennode).value.svalue;
 
