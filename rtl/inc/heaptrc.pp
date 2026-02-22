@@ -67,6 +67,17 @@ type
   procedure SetHeadSize(size: SizeUint);
   property head_size: SizeUint read GetHeadSize write SetHeadSize;
 
+  { Keep around KeepReleasedBytes + KeepReleasedPercents% released data to detect invalid writes into freed memory.
+    Also lets CheckPointer() show more information for pointers into freed memory.
+    Percents are presently from *max memory used ever*. }
+  function GetKeepReleasedBytes: SizeUint;
+  procedure SetKeepReleasedBytes(value: SizeUint);
+  property KeepReleasedBytes: SizeUint read GetKeepReleasedBytes write SetKeepReleasedBytes;
+
+  function GetKeepReleasedPercents: SizeUint;
+  procedure SetKeepReleasedPercents(value: SizeUint);
+  property KeepReleasedPercents: SizeUint read GetKeepReleasedPercents write SetKeepReleasedPercents;
+
   function GetKeepReleased: boolean;
   procedure SetKeepReleased(keep: boolean);
   property KeepReleased: boolean read GetKeepReleased write SetKeepReleased;
@@ -96,9 +107,6 @@ const
   HaltOnNotReleased : boolean = false;
   MaxLeaksToReport: SizeUint = 1024; { If you *really* need miles of reports, increase. }
 
-  { keep released blocks for a while do detect invalid writes into freed memory;
-    value is maximum total size in bytes. }
-  KeepReleasedBytes: SizeUint = 0;
   AutoCheckHeapStep: SizeUint = 3;
 
   PrintLeakedBlock: boolean = false;
@@ -1105,6 +1113,8 @@ type
     function CheckHeadAndTail(n: pNode): boolean;
     function CheckFreedMemory(n: pNode; sz: SizeUint): boolean;
     class function IndexNot(p: pointer; n: SizeUint; b: byte): SizeInt; static; // Slow function (or, rather, its speed is unimportant) for rechecking what exactly failed.
+    procedure UpdateMaxKeep;
+    procedure UpdateKeepReleased;
     procedure FreeToFreeItems(untilSumSize: SizeUint; justFreed: pNode; var freeBatch: PrevMgrToFreeBatch; cf: CheckFlags);
     procedure FreeToFreeItems(untilSumSize: SizeUint; cf: CheckFlags);
     function AllocateNode(info: SizeUint): pNode;
@@ -1168,6 +1178,14 @@ type
     // freeNodes[3] is used for nodes with extraInfos[0] (index = 1) and fullUserRequest stored, and so on.
     freeNodes: array[0 .. FreelistIndexMask] of pNode;
     extraInfos: array[0 .. MaxExtraInfos - 1] of ExtraInfoRec;
+
+    kr: record // “keep released”
+      usedMemory, // Used memory score, calculated the same way as toFree.sumSuze: <user-allocated bytes> + SumSizeAdjustmentPerItem * <# of user allocations>.
+      maxUsedMemory, // Maximum value of usedMemory ever.
+      maxKeep, // Final value for checking against toFree.sumSize, approximation of the ideal “bytes + maxUsedMemory * percents div 100”.
+      percentsMul256Div100, // Value equal to percents * 256 div 100, so multiplication by “(maxUsedMemory + 255) div 256” gives approximately percents% of usedMemory.
+      bytes, percents: SizeUint; // Values of KeepReleasedBytes and KeepReleasedPercents properties.
+    end;
 
     mgrInstalled, needCloseOutfp, errorInHeap: boolean;
   {$ifdef FPC_HAS_FEATURE_THREADING}
@@ -1344,6 +1362,22 @@ var
     result := -1;
   end;
 
+  procedure HeapTracer.UpdateMaxKeep;
+  begin
+    if kr.usedMemory > kr.maxUsedMemory then kr.maxUsedMemory := kr.usedMemory;
+    kr.maxKeep := SizeUint(kr.maxUsedMemory + 255) div 256 * kr.percentsMul256Div100 + kr.bytes;
+    if kr.maxKeep < kr.bytes then kr.maxKeep := High(SizeUint); // Overflow. Percentage can’t overflow, as long as percents ≤ 100.
+  end;
+
+  procedure HeapTracer.UpdateKeepReleased;
+  begin
+    Lock;
+    kr.percentsMul256Div100 := kr.percents * 256 div 100;
+    UpdateMaxKeep;
+    FreeToFreeItems(kr.maxKeep, [CheckFlag.InsideLock]);
+    Unlock;
+  end;
+
   procedure HeapTracer.FreeToFreeItems(untilSumSize: SizeUint; justFreed: pNode; var freeBatch: PrevMgrToFreeBatch; cf: CheckFlags);
   var
     head, next: pNode;
@@ -1487,6 +1521,8 @@ type
 
     inc(getMemCount);
     inc(getMemSize, size);
+    inc(kr.usedMemory, size + SumSizeAdjustmentPerItem);
+    if kr.usedMemory > kr.maxUsedMemory then UpdateMaxKeep;
     Unlock;
   end;
 
@@ -1505,7 +1541,7 @@ type
   begin
     if not Assigned(p) then exit(0);
     nTrace := NoTrace; // Skip collecting trace if definitely not required.
-    if KeepReleasedBytes > 0 then // Careful: “size” is usually DontVerifySize.
+    if kr.maxKeep > 0 then // Careful: “size” is usually DontVerifySize.
     begin
       nTrace := traceDepth;
       if nTrace > 0 then
@@ -1530,6 +1566,7 @@ type
     h.RemoveNode(hn, hnLink); // Even on size mismatch etc., remove from h so that double free still throws an error.
     if hCheck.hmask <> h.nhmask then hCheck.FixupPostRehash(h);
     result := n^.GetUserSizeRequest;
+    dec(SizeInt(kr.usedMemory), SizeInt(result + SumSizeAdjustmentPerItem));
     inc(freeMemSize, result);
     if size <> DontVerifySize then
       if size <> result then
@@ -1559,8 +1596,8 @@ type
         toFree.first := n;
       toFree.last := n;
       inc(toFree.sumSize, result + SumSizeAdjustmentPerItem);
-      if toFree.sumSize > KeepReleasedBytes then
-        FreeToFreeItems(KeepReleasedBytes, n, freeBatch, [CheckFlag.InsideLock, CheckFlag.InTraceXxx, CheckFlag.InDoGetFreeMem]);
+      if toFree.sumSize > kr.maxKeep then
+        FreeToFreeItems(kr.maxKeep, n, freeBatch, [CheckFlag.InsideLock, CheckFlag.InTraceXxx, CheckFlag.InDoGetFreeMem]);
     end;
     CheckHeap(AutoCheckHeapStep, [CheckFlag.InsideLock, CheckFlag.InTraceXxx, CheckFlag.InDoGetFreeMem]);
     Unlock;
@@ -1712,6 +1749,7 @@ type
         inc(this^.freeMemSize, SizeUint(oldSize - size))
       else
         inc(this^.getMemSize, SizeUint(size - oldSize));
+
     this^.traces.Release(n^.trace);
     if nTrace > 0 then n^.trace := this^.traces.Add(pByte(packedTrace), this^.nodesRgn);
     if info and (ExtraInfoIndexMask shl ExtraInfoIndexShift) <> 0 then
@@ -1719,6 +1757,9 @@ type
       fill := this^.extraInfos[info shr ExtraInfoIndexShift and ExtraInfoIndexMask - 1].fill;
       if Assigned(fill) then fill(pointer(@n^.extraIfNoFullUserRequest) + info and HasFullUserRequestBit * HasFullUserRequestBitToOffsetBetweenExtras);
     end;
+
+    inc(SizeInt(this^.kr.usedMemory), SizeInt(size) - SizeInt(oldSize));
+    if this^.kr.usedMemory > this^.kr.maxUsedMemory then this^.UpdateMaxKeep;
     this^.CheckHeap(AutoCheckHeapStep, [CheckFlag.InsideLock, CheckFlag.InTraceXxx]);
     this^.Unlock;
   end;
@@ -1817,6 +1858,8 @@ type
   {$if declared(SystemRealloc)}
     writeln(f, 'usedByInternalAllocations = ', usedByInternalAllocations, LineEnding);
   {$endif SystemRealloc}
+    if kr.maxKeep <> 0 then
+      writeln(f, 'KeepReleased: ', kr.bytes, ' + ', kr.percents, '% (256s: ', kr.percentsMul256Div100, '), usedMemory = ', kr.usedMemory, ' / max ', kr.maxUsedMemory, ', maxKeep = ', kr.maxKeep);
     write(f, 'ht.h: ');
     ht.h.Dump(f, @HeapTracer.DumpHNode);
     tf := toFree.first;
@@ -2385,14 +2428,39 @@ end;
       or uint32(uint32(ht.HeadTailSizeToIndex(SizeUint(size + (ht.HeadSizeUnit - 1)) div ht.HeadSizeUnit)) shl ht.HeadSizeIndexShift);
   end;
 
+  function GetKeepReleasedBytes: SizeUint;
+  begin
+    result := ht.kr.bytes;
+  end;
+
+  procedure SetKeepReleasedBytes(value: SizeUint);
+  begin
+    ht.kr.bytes := value;
+    ht.UpdateKeepReleased;
+  end;
+
+  function GetKeepReleasedPercents: SizeUint;
+  begin
+    result := ht.kr.percents;
+  end;
+
+  procedure SetKeepReleasedPercents(value: SizeUint);
+  begin
+    if value > 100 then value := 100;
+    ht.kr.percents := value;
+    ht.UpdateKeepReleased;
+  end;
+
   function GetKeepReleased: boolean;
   begin
-    result := KeepReleasedBytes <> 0;
+    result := ht.kr.bytes or ht.kr.percents <> 0;
   end;
 
   procedure SetKeepReleased(keep: boolean);
   begin
-    if keep then KeepReleasedBytes := High(SizeUint) else KeepReleasedBytes := 0;
+    ht.kr.percents := 0;
+    ht.kr.bytes := SizeUint(-SizeInt(keep));
+    ht.UpdateKeepReleased;
   end;
 
   function GetTraceDepth: SizeUint;
@@ -2614,6 +2682,7 @@ type
     class function ScanIgnoringCase(s, patLower: pAnsiChar): pAnsiChar; static;
     class function ScanEq(s: pAnsiChar): pAnsiChar; static;
     class function ScanSizeUint(s: pAnsiChar; out v: SizeUint): pAnsiChar; static;
+    class function ParseKeepReleased(s: pAnsiChar): pAnsiChar; static;
     class procedure ParseEnv(s: pAnsiChar); static;
   end;
 
@@ -2652,6 +2721,53 @@ type
     result := s;
   end;
 
+  class function OptionsParser.ParseKeepReleased(s: pAnsiChar): pAnsiChar;
+  var
+    v, bytes, percents, iSuff: SizeUint;
+    anything: boolean;
+    s2: pAnsiChar;
+  begin
+    // Syntax: keepreleased, keepreleased=1000, keepreleased=1000+10%, keepreleased=2m+128k+10%+20%.
+    // % can also be spelled as pc.
+    result := ScanEq(s);
+    if result = s then
+    begin // “keepreleased” without =.
+      KeepReleased := true;
+      exit;
+    end;
+    bytes := 0;
+    percents := 0;
+    anything := false;
+    repeat
+      s := result;
+      while s^ = ' ' do inc(s);
+      if s^ = '+' then inc(s);
+      while s^ = ' ' do inc(s);
+      s2 := ScanSizeUint(s, v);
+      if s2 = s then
+        if anything then break else exit;
+      if (s2^ = '%') or (s2[0] = 'p') and (s2[1] = 'c') then
+      begin
+        inc(s2, 1 + ord(s2^ <> '%')); // 1 for %, 2 for pc.
+        inc(percents, v);
+      end else
+      begin
+        for iSuff := 0 to 2 do
+          if ord(s2^) or 32 = ord(pAnsiChar('kmg')[iSuff]) then
+          begin
+            v := v shl (10 * (1 + iSuff));
+            inc(s2);
+            break;
+          end;
+        inc(bytes, v);
+      end;
+      anything := true;
+      result := s2;
+    until false;
+    KeepReleasedBytes := bytes;
+    KeepReleasedPercents := percents;
+  end;
+
   class procedure OptionsParser.ParseEnv(s: pAnsiChar);
   type
     OptionEnum = (KeepReleased, Disabled, NoHalt, HaltOnNotReleased, SkipIfNoLeaks, TailSize, HeadSize, TraceDepth, Log);
@@ -2681,22 +2797,18 @@ type
       s := s2;
 
       case opt of
-        OptionEnum.KeepReleased, OptionEnum.TailSize, OptionEnum.HeadSize, OptionEnum.TraceDepth:
+        OptionEnum.KeepReleased:
+          s := ParseKeepReleased(s);
+        OptionEnum.TailSize, OptionEnum.HeadSize, OptionEnum.TraceDepth:
           begin
             s2 := ScanEq(s);
-            if s2 <> s then
-            begin
-              s := ScanSizeUint(s2, v);
-              if s <> s2 then
-                case opt of
-                  OptionEnum.KeepReleased: KeepReleasedBytes := v;
-                  OptionEnum.TailSize: tail_size := v;
-                  OptionEnum.HeadSize: head_size := v;
-                  else {OptionEnum.TraceDepth} TraceDepth := v;
-                end;
-            end else
-              if opt = OptionEnum.KeepReleased then // “keepreleased” without =.
-                KeepReleasedBytes := High(SizeUint);
+            if s2 <> s then s := ScanSizeUint(s2, v);
+            if s <> s2 then
+              case opt of
+                OptionEnum.TailSize: tail_size := v;
+                OptionEnum.HeadSize: head_size := v;
+                else {OptionEnum.TraceDepth} TraceDepth := v;
+              end;
           end;
         OptionEnum.Disabled: UseHeapTrace := false;
         OptionEnum.NoHalt: HaltOnError := false;
