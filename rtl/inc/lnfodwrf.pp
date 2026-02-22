@@ -72,7 +72,6 @@ type
     // String data format, stored in strings.data and referenced by strings.dataOfs:
     // 3 bytes: StringDataHeader.
     // N bytes: string data.
-    // 0‒(DataAlignment−1) bytes: alignment to StringDataAlignment.
     StringHeaderSize = sizeof(StringDataHeader);
     File0Function1 = 2;
 
@@ -135,11 +134,15 @@ type
       nextCollision1: array[0 .. MaxAddresses - 1] of AddressIndexType;
       fileFunc: array[0 .. MaxAddresses - 1, 0 .. File0Function1 - 1] of StringIndexType;
       u: array[0 .. MaxAddresses - 1] of record
-        // prevUser1[N] corresponds to fileFunc[N], but only for this very address.
-        // I.e., if addresses[5].fileFunc[0] refers to 'ABC' and addresses[5].nextUser1[0] = 1 + 20,
-        // then addresses[20] is the next user of 'ABC', but it might be addresses[20].fileFunc[1],
-        // in which case addresses[20].prevUser1[1] = 1 + 5, not addresses[20].prevUser1[0].
-        // The index in these 2-element arrays is usually determined with ord(stringUsedByAddress <> fileFunc[0]).
+        // Addresses don’t distinguish between file and function names,
+        // so address A might use string S as file name: fileFunc[A, 0] = S,
+        // and address B might use the same string S as function name: fileFunc[B, 1] = S.
+        //
+        // If such a B is the user of S that immediately follows A,
+        // u[A].nextUser[0] = 1 + B, and u[B].prevUser1[1] = 1 + A.
+        //
+        // These File0Function1 indices for a particular address A that uses a particular string S
+        // can be determined with ord(S <> fileFunc[A, 0]).
         //
         // Special case: fileFunc[0] = fileFunc[1]. Only prev/nextUser1[0] are used then, and prev/nextUser1[1] are garbage.
         // (So ord(stringUsedByAddress = fileFunc[1]) won’t work.)
