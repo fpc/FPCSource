@@ -154,6 +154,7 @@ type
     coWriteDebugLog,
     coWriteMsgToStdErr,
     coPrecompile, // create precompile file
+    coCheckOnly, // Do not analyze or create code. Only parse and resolve.
     // optimizations
     coEnumValuesAsNumbers, // -O1
     coKeepNotUsedPrivates, // -O-
@@ -218,6 +219,7 @@ const
     'Write pas2jsdebug.log',
     'Write messages to StdErr',
     'Create precompiled units',
+    'Skip analyze and convert stages.',
     'Enum values as numbers',
     'Keep not used private declarations',
     'Keep not used declarations (WPO)',
@@ -2087,9 +2089,13 @@ begin
     FMainFile.ReadUnit;
     ProcessQueue;
 
+    if coCheckOnly in Options then
+      exit;
+
     // whole program optimization
     if MainFile.PasModule is TPasProgram then
       OptimizeProgram(MainFile);
+
 
     // check what files need building
     Checked:=CreateSetOfCompilerFiles(kcFilename);
@@ -4111,6 +4117,7 @@ begin
       if MainSrcFile<>'' then
         ParamFatal('Only one Pascal file is supported, but got "'+MainSrcFile+'" and "'+Param+'".');
       MainSrcFile:=ExpandFileName(Param);
+      Writeln('Info: MainSrcFile ',Param,' -> ',MainSrcFile);
     end;
   end;
 end;
@@ -4157,12 +4164,13 @@ var
   Enabled, Disabled: string;
   i: Integer;
 begin
-  ReadSingleLetterOptions(Param,p,'orR',Enabled,Disabled);
+  ReadSingleLetterOptions(Param,p,'orRN',Enabled,Disabled);
   for i:=1 to length(Enabled) do begin
     case Enabled[i] of
     'o': Options:=Options+[coOverflowChecks];
     'r': Options:=Options+[coRangeChecks];
     'R': Options:=Options+[coObjectChecks];
+    'N': Options:=Options+[coCheckOnly];
     end;
   end;
   for i:=1 to length(Disabled) do begin
@@ -4170,6 +4178,7 @@ begin
     'o': Options:=Options-[coOverflowChecks];
     'r': Options:=Options-[coRangeChecks];
     'R': Options:=Options-[coObjectChecks];
+    'N': Options:=Options-[coCheckOnly];
     end;
   end;
 end;
@@ -4320,6 +4329,7 @@ end;
 function TPas2jsCompiler.FormatPath(const aPath: String): String;
 begin
   Result:=FS.FormatPath(aPath);
+  Writeln('Info: Formatpath ',aPath,' -> ',Result);
 end;
 
 function TPas2jsCompiler.FullFormatPath(const aPath: String): String;
@@ -4837,6 +4847,7 @@ begin
   w('    -iJ  : Write list of supported JavaScript identifiers -JoRTL-<x>');
   w('  -C<x>  : Code generation options. <x> is a combination of the following letters:');
   // -C3        Turn on ieee error checking for constants
+  w('    N    : Skip analysis and conversion. Only parse and resolve.');
   w('    o    : Overflow checking of integer operations');
   // -CO        Check for possible overflow of integer operations
   w('    r    : Range checking');
