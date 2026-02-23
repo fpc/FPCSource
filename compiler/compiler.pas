@@ -160,6 +160,10 @@ type
                                 TCompiler
 ****************************************************************************}
   TCompiler = class
+  private
+    procedure InitCompiler(const cmd:TCmdStr);
+    procedure DoneCompiler;
+  public
     function Compile(const cmd:TCmdStr):longint;
   end;
 
@@ -182,10 +186,10 @@ var
 
 
 {****************************************************************************
-                                Compiler
+                                TCompiler
 ****************************************************************************}
 
-procedure DoneCompiler;
+procedure TCompiler.DoneCompiler;
 begin
   if not CompilerInited then
    exit;
@@ -211,7 +215,7 @@ begin
 end;
 
 
-procedure InitCompiler(const cmd:TCmdStr);
+procedure TCompiler.InitCompiler(const cmd:TCmdStr);
 begin
   if CompilerInited then
    DoneCompiler;
