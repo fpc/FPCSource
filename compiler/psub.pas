@@ -1986,6 +1986,7 @@ implementation
         { Print out nodes as they appear after the first pass }
         XMLPrintProc(True);
 {$endif DEBUG_NODE_XML}
+
         { firstpass everything }
         flowcontrol:=[];
         do_firstpass(code);

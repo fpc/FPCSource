@@ -110,10 +110,7 @@ unit optcall;
           exit;
         callnode:=tcallnode(_n);
 
-        if (po_inline in callnode.procdefinition.procoptions) and
-          (callnode.procdefinition.typ=procdef) and
-          ((pio_inline_not_possible in tprocdef(callnode.procdefinition).implprocoptions) or
-           not(cnf_do_inline in callnode.callnodeflags)) then
+        if not(callnode.doinlining) then
           begin
             if not(po_compilerproc in callnode.procdefinition.procoptions) then
               Message1(cg_n_no_inline,tprocdef(callnode.procdefinition).customprocname([pno_proctypeoption, pno_paranames,pno_ownername, pno_noclassmarker, pno_prettynames]));
@@ -229,14 +226,15 @@ unit optcall;
         writeln('****************************************************************************');
 {$endif EXTDEBUG_INLINE}
         foreachnodestatic(pm_postprocess, rootnode, @doinline, @changed);
-{$ifdef EXTDEBUG_INLINE}
         if changed then
           begin
+            doinlinesimplify(rootnode);
+{$ifdef EXTDEBUG_INLINE}
             writeln('************************ Tree after inlining ******************************');
             printnode(rootnode);
             writeln('****************************************************************************');
-          end;
 {$endif EXTDEBUG_INLINE}
+          end;
       end;
 
 end.

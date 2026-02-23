@@ -121,6 +121,7 @@ interface
           procedure createlocaltemps(p:TObject;arg:pointer);
           function  optimize_funcret_assignment(inlineblock: tblocknode): tnode;
           procedure check_inlining;
+          function doinlining: boolean;
        protected
           pushedparasize : longint;
           { Objective-C support: force the call node to call the routine with
@@ -1103,7 +1104,8 @@ implementation
              not is_array_of_const(parasym.vardef)) or
             not(callnode.procdefinition.proccalloption in cdecl_pocalls)) and
            paramanager.push_addr_param(vs_value,parasym.vardef,
-                      callnode.procdefinition.proccalloption) then
+                      callnode.procdefinition.proccalloption) and
+           not(callnode.doinlining) then
           copy_value_by_ref_para;
 
         if assigned(fparainit) then
@@ -4876,6 +4878,15 @@ implementation
                 para:=tcallparanode(para.nextpara);
               end;
           end;
+      end;
+
+
+    function tcallnode.doinlining: boolean;
+      begin
+        result:=not((po_inline in procdefinition.procoptions) and
+          (procdefinition.typ=procdef) and
+          ((pio_inline_not_possible in tprocdef(procdefinition).implprocoptions) or
+           not(cnf_do_inline in callnodeflags)))
       end;
 
 
