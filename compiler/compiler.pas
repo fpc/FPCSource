@@ -155,6 +155,14 @@ uses
   ,ctask
   ,globtype;
 
+type
+{****************************************************************************
+                                TCompiler
+****************************************************************************}
+  TCompiler = class
+    function Compile(const cmd:TCmdStr):longint;
+  end;
+
 function Compile(const cmd:TCmdStr):longint;
 
 implementation
@@ -242,7 +250,7 @@ begin
 end;
 
 
-function Compile(const cmd:TCmdStr):longint;
+function TCompiler.Compile(const cmd:TCmdStr):longint;
 
 {$maxfpuregisters 0}
 
@@ -441,6 +449,18 @@ begin
     result:=0
   else
     result:=1;
+end;
+
+function Compile(const cmd:TCmdStr):longint;
+var
+  Compiler: TCompiler;
+begin
+  Compiler:=TCompiler.Create;
+  try
+    Result:=Compiler.Compile(cmd);
+  finally
+    Compiler.Free;
+  end;
 end;
 
 end.
