@@ -161,6 +161,9 @@ type
 ****************************************************************************}
   TCompiler = class
   private
+    CompilerInitedAfterArgs,
+    CompilerInited : boolean;
+
     procedure InitCompiler(const cmd:TCmdStr);
     procedure DoneCompiler;
   public
@@ -179,10 +182,6 @@ uses
 {$if defined(MEMDEBUG)}
   {$define SHOWUSEDMEM}
 {$endif}
-
-var
-  CompilerInitedAfterArgs,
-  CompilerInited : boolean;
 
 
 {****************************************************************************
