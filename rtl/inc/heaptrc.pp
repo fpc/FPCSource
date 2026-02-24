@@ -2133,6 +2133,7 @@ end;
     n: pNode;
     display: TDisplayExtraInfoProc;
     status: TFPCHeapStatus;
+    emptyCluster: boolean;
   begin
     if skipIfNoLeaks and (h.nItems = 0) and (getMemCount = freeMemCount) and (getMemSize = freeMemSize) then
       exit;
@@ -2160,6 +2161,7 @@ end;
     rem := h.nItems;
     if rem > MaxLeaksToReport then rem := MaxLeaksToReport;
     ih := 0;
+    emptyCluster := false;
     while (ih <= h.nhmask) and (rem > 0) do
     begin
       hn := h.h[ih];
@@ -2167,20 +2169,31 @@ end;
       begin
         n := pointer(hn) - PtrUint(@Node(nil^).hn);
         sz := n^.GetUserSizeRequest;
-        writeln(f, 'Call trace for block $', HexStr(n^.userPtr), ' size ', sz);
-        if printleakedblock then HexDump(f, n^.userPtr, sz);
+        if Assigned(n^.trace) and emptyCluster then // Cluster multiple “N/A”s without extra newlines.
+          writeln(f);
+        emptyCluster := not Assigned(n^.trace) and not printleakedblock;
+        write(f, 'Call trace for block $', HexStr(n^.userPtr), ' size ', sz);
+        if Assigned(n^.trace) then writeln(f) else writeln(f, ': N/A.');
         if n^.info and (ExtraInfoIndexMask shl ExtraInfoIndexShift) <> 0 then
         begin
           display := extraInfos[n^.info shr ExtraInfoIndexShift and ExtraInfoIndexMask - 1].display;
           if Assigned(display) then
+          begin
             display(outfp^, pointer(@n^.extraIfNoFullUserRequest) + n^.info and HasFullUserRequestBit * HasFullUserRequestBitToOffsetBetweenExtras);
+            emptyCluster := false;
+          end;
         end;
-        DumpTrace(f, n);
+        if printleakedblock then HexDump(f, n^.userPtr, sz);
+        if Assigned(n^.trace) then
+          DumpTrace(f, n)
+        else if not emptyCluster then
+          writeln(f);
         dec(rem);
         hn := hn^.next;
       end;
       inc(ih);
     end;
+    if emptyCluster then writeln(f);
     // Recover rehashes.
     h.minItems := savedMinItems;
     h.maxItems := savedMaxItems;
