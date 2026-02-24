@@ -415,6 +415,17 @@ resourcestring  sVideoFailed='Video initialization failed.';
 {***************************************************************************}
 {                        PRIVATE DEFINED CONSTANTS                          }
 {***************************************************************************}
+{$ifdef windows}
+Const
+   fvConsoleMode =(ENABLE_MOUSE_INPUT or
+                   ENABLE_WINDOW_INPUT or
+                   ENABLE_EXTENDED_FLAGS)
+           and not (ENABLE_PROCESSED_INPUT or
+                    ENABLE_LINE_INPUT or
+                    ENABLE_ECHO_INPUT or
+                    ENABLE_INSERT_MODE or
+                    ENABLE_QUICK_EDIT_MODE);
+{$endif windows}
 
 {***************************************************************************}
  {                      PRIVATE INITIALIZED VARIABLES                        }
@@ -1128,6 +1139,9 @@ BEGIN
    { init mouse and cursor }
    {$IFDEF FPC_DOTTEDUNITS}System.Console.{$ENDIF}Video.SetCursorType(crHidden);
    SetMouseXY(0,0);    { mouse is zero based, set to left upper corner }
+   {$ifdef windows}
+   SetConsoleMode(GetStdHandle(cardinal(Std_Input_Handle)),fvConsoleMode);
+   {$endif windows}
 END;
 
 {--TApplication-------------------------------------------------------------}
@@ -1149,6 +1163,9 @@ BEGIN
 {   DoneMemory;}                                       { Close memory }
    donekeyboard;
 {   DoneResource;}
+   {$ifdef windows}
+   SetConsoleMode(GetStdHandle(cardinal(Std_Input_Handle)),StartupConsoleMode);
+   {$endif windows}
 END;
 
 {--TApplication-------------------------------------------------------------}
@@ -1182,6 +1199,9 @@ var s:string;
 {$endif}
 
 BEGIN                                                 { Compatibility only }
+  {$ifdef windows}
+  SetConsoleMode(GetStdHandle(cardinal(Std_Input_Handle)),StartupConsoleMode);
+  {$endif windows}
   DoneSysError;
   DoneEvents;
 {$ifdef FV_UNICODE}
@@ -1217,6 +1237,9 @@ BEGIN                                                 { Compatibility only }
   InitScreen;
   InitEvents;
   InitSysError;
+  {$ifdef windows}
+  SetConsoleMode(GetStdHandle(cardinal(Std_Input_Handle)),fvConsoleMode);
+  {$endif windows}
   if (PrevHeight<>ScreenHeight) or (PrevWidth<>ScreenWidth) then
     { acknowledge new screen dimensions }
     { prevents to draw out of boundaries of new video buffer }
