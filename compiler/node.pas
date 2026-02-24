@@ -26,6 +26,7 @@ unit node;
 interface
 
     uses
+       compilerbase,
        cclasses,
        globtype,globals,cgbase,cgutils,
        symtype,
@@ -290,6 +291,7 @@ interface
          fppuidx : longint;
          function getppuidx:longint;
       public
+         compiler : TCompilerBase;
          { type of this node }
          nodetype : tnodetype;
          { type of the current code block, general/const/type }
@@ -989,6 +991,7 @@ implementation
             { superclass (for compatibility), so also check the classtype (JM) }
             (p.classtype=classtype) and
             (p.nodetype=nodetype) and
+            (p.compiler=compiler) and
             (flags*flagsequal=p.flags*flagsequal) and
             (transientflags*transientflagsequal=p.transientflags*transientflagsequal) and
             docompare(p));
@@ -1049,6 +1052,7 @@ implementation
          p.fileinfo:=fileinfo;
          p.localswitches:=localswitches;
          p.verbosity:=verbosity;
+         p.compiler:=compiler;
 {         p.list:=list; }
          result:=p;
       end;
