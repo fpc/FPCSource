@@ -1068,8 +1068,10 @@ begin
     if VOK and ((VM.Col<>ScreenMode.Col) or
        (VM.Row<>ScreenMode.Row) or (VM.Color<>ScreenMode.Color)) then
       begin
+        {$ifndef windows}
         if Assigned(Application) then
           Application^.SetScreenVideoMode(VM);
+        {$endif windows}
       end;
     if not VOK then
      begin
