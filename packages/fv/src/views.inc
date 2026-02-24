@@ -285,7 +285,11 @@ CONST
    MaxViewWidth = 1024;                                  { Max view width }
 {$else}
 {$ifdef windows}
-   MaxViewWidth = 255;                                  { Max view width }
+{$ifndef win16}
+   MaxViewWidth = 1024;                                  { Max view width }
+{$else}
+   MaxViewWidth = 255;                                   { Max view width }
+{$endif}
 {$else}
    MaxViewWidth = 255;                                   { Max view width }
 {$endif}
