@@ -30,6 +30,7 @@ unit compiler;
 interface
 
 uses
+  compilerbase,
 {$ifdef GO32V2}
   emu387,
 {$endif GO32V2}
@@ -159,7 +160,7 @@ type
 {****************************************************************************
                                 TCompiler
 ****************************************************************************}
-  TCompiler = class
+  TCompiler = class(TCompilerBase)
   private
     CompilerInitedAfterArgs,
     CompilerInited : boolean;
