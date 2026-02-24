@@ -183,7 +183,7 @@ const {The following constants were variables in the past.
       LowAscii = true;
       NoExtendedFrame = false;
 
-      FVMaxWidth = 240;
+      FVMaxWidth = 1024;
 
 operator = (const a,b : TEnhancedVideoCell) res: Boolean;
 
