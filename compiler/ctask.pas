@@ -302,11 +302,11 @@ begin
       end;
     ms_compiled : if (not m.is_initial) or m.is_unit then
                     (m as tppumodule).post_load_or_compile(m,m.compilecount>1);
-    ms_compiling_wait : pmodules.proc_program_declarations(m,m.islibrary);
-    ms_compiling_waitintf : pmodules.parse_unit_interface_declarations(m);
-    ms_compiling_waitimpl : pmodules.proc_unit_implementation(m);
-    ms_compiling_waitfinish : pmodules.finish_compile_unit(m);
-    ms_compiled_waitcrc : pmodules.finish_unit(m);
+    ms_compiling_wait : tcompiler(compiler).parser.pmodules.proc_program_declarations(m,m.islibrary);
+    ms_compiling_waitintf : tcompiler(compiler).parser.pmodules.parse_unit_interface_declarations(m);
+    ms_compiling_waitimpl : tcompiler(compiler).parser.pmodules.proc_unit_implementation(m);
+    ms_compiling_waitfinish : tcompiler(compiler).parser.pmodules.finish_compile_unit(m);
+    ms_compiled_waitcrc : tcompiler(compiler).parser.pmodules.finish_unit(m);
     ms_processed : ;
   else
     InternalError(2024011801);

@@ -25,7 +25,9 @@ unit parser;
 
 interface
 
-uses fmodule;
+uses
+  fmodule,
+  pmodules;
 
 type
 
@@ -33,6 +35,8 @@ type
 
   TParser = class
   private
+    FPModules: TModulesParser;
+
     procedure initparser;
     procedure doneparser;
   public
@@ -44,6 +48,8 @@ type
     function compile(const filename:string) : boolean;
     function compile_module(module : tmodule) : boolean;
     procedure parsing_done(module : tmodule);
+
+    property pmodules: TModulesParser read FPModules;
   end;
 
 implementation
@@ -62,7 +68,7 @@ implementation
       cscript,gendef,
       comphook,
       scanner,scandir,
-      pbase,psystem,pmodules,psub,ncgrtti,
+      pbase,psystem,psub,ncgrtti,
       cpuinfo,procinfo;
 
     procedure TParser.parsing_done(module: tmodule);
@@ -326,11 +332,13 @@ implementation
     constructor TParser.Create;
       begin
         InitParser;
+        FPModules:=TModulesParser.Create;
       end;
 
 
     destructor TParser.Destroy;
       begin
+        FreeAndNil(FPModules);
         DoneParser;
         inherited;
       end;
@@ -511,15 +519,15 @@ implementation
              if (current_scanner.token=_UNIT) or (not module.is_initial) then
                begin
                  module.is_unit:=true;
-                 finished:=proc_unit(module);
+                 finished:=pmodules.proc_unit(module);
                end
              else if (current_scanner.token=_ID) and (current_scanner.idtoken=_PACKAGE) then
                begin
                  module.IsPackage:=true;
-                 finished:=proc_package(module);
+                 finished:=pmodules.proc_package(module);
                end
              else
-               finished:=proc_program(module,current_scanner.token=_LIBRARY);
+               finished:=pmodules.proc_program(module,current_scanner.token=_LIBRARY);
            except
              on ECompilerAbort do
                raise;

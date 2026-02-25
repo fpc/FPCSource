@@ -27,6 +27,8 @@ interface
 
 uses fmodule;
 
+type
+  TModulesParser = class
     function proc_unit(curr: tmodule):boolean;
     function parse_unit_interface_declarations(curr : tmodule) : boolean;
     function proc_unit_implementation(curr: tmodule):boolean;
@@ -35,6 +37,7 @@ uses fmodule;
     function proc_program_declarations(curr : tmodule; islibrary : boolean) : boolean;
     function finish_compile_unit(module:tmodule): boolean;
     function finish_unit(module:tmodule): boolean;
+  end;
 
 implementation
 
@@ -1174,7 +1177,7 @@ type
 
 
 
-    function proc_unit_implementation(curr: tmodule):boolean;
+    function TModulesParser.proc_unit_implementation(curr: tmodule):boolean;
 
       var
         init_procinfo,
@@ -1260,7 +1263,7 @@ type
           curr.state:=ms_compiling_waitfinish;
       end;
 
-    function parse_unit_interface_declarations(curr : tmodule) : boolean;
+    function TModulesParser.parse_unit_interface_declarations(curr : tmodule) : boolean;
 
       begin
         result:=true;
@@ -1392,11 +1395,11 @@ type
           result:=proc_unit_implementation(curr);
       end;
 
-    function proc_unit(curr: tmodule):boolean;
+    function TModulesParser.proc_unit(curr: tmodule):boolean;
       var
          main_file: tinputfile;
          s1,s2  : ^string; {Saves stack space}
-         unitname : ansistring;
+         _unitname : ansistring;
          unitname8 : string[8];
          feature : tfeature;
          load_ok : boolean;
@@ -1411,12 +1414,12 @@ type
          if curr.is_initial then
           Status.IsExe:=false;
 
-         unitname:=current_scanner.orgpattern;
+         _unitname:=current_scanner.orgpattern;
          consume(_ID);
          while current_scanner.token=_POINT do
            begin
              consume(_POINT);
-             unitname:=unitname+'.'+current_scanner.orgpattern;
+             _unitname:=_unitname+'.'+current_scanner.orgpattern;
              consume(_ID);
            end;
 
@@ -1428,7 +1431,7 @@ type
          new(s1);
          s1^:=curr.modulename^;
          curr.SetFileName(main_file.path+main_file.name,true);
-         curr.SetModuleName(unitname);
+         curr.SetModuleName(_unitname);
 
 {$ifdef DEBUG_NODE_XML}
          XMLInitializeNodeFile('unit', unitname);
@@ -1561,7 +1564,7 @@ type
         curr.finishstate:=nil;
       end;
 
-    function finish_compile_unit(module: tmodule): boolean;
+    function TModulesParser.finish_compile_unit(module: tmodule): boolean;
 
       function is_assembler_generated:boolean;
       var
@@ -1820,7 +1823,7 @@ type
         result:=finish_unit(module);
       end;
 
-    function finish_unit(module: tmodule): boolean;
+    function TModulesParser.finish_unit(module: tmodule): boolean;
 
       var
 {$ifdef EXTDEBUG}
@@ -1934,7 +1937,7 @@ type
         end;
       end;
 
-    function proc_package(curr: tmodule) : boolean;
+    function TModulesParser.proc_package(curr: tmodule) : boolean;
       var
         main_file : tinputfile;
         hp,hp2    : tmodule;
@@ -2609,7 +2612,7 @@ type
 
       end;
 
-    function proc_program_declarations(curr : tmodule; islibrary : boolean) : boolean;
+    function TModulesParser.proc_program_declarations(curr : tmodule; islibrary : boolean) : boolean;
 
       var
         initpd    : tprocdef;
@@ -2911,7 +2914,7 @@ type
 {$endif DEBUG_NODE_XML}
         end;
 
-    function proc_program(curr: tmodule; islibrary : boolean) : boolean;
+    function TModulesParser.proc_program(curr: tmodule; islibrary : boolean) : boolean;
 
       var
          main_file : tinputfile;
