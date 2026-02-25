@@ -1063,7 +1063,7 @@ implementation
           pd.proccalloption:=pocall_cdecl;
         handle_calling_convention(pd,hcc_default_actions_impl);
         { set procinfo and current_procinfo.procdef }
-        result:=tcgprocinfo(cprocinfo.create(nil));
+        result:=tcgprocinfo(cprocinfo.create(nil,compiler));
         result.procdef:=pd;
         { main proc does always a call e.g. to init system unit }
         if potype<>potype_pkgstub then

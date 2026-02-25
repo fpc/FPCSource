@@ -2254,7 +2254,7 @@ implementation
           pd.aliasnames.insert(pd.mangledname);
           handle_calling_convention(pd,hcc_default_actions_impl);
           { set procinfo and current_procinfo.procdef }
-          pi:=tcgprocinfo(cprocinfo.create(nil));
+          pi:=tcgprocinfo(cprocinfo.create(nil,compiler));
           pi.procdef:=pd;
           { we always do a call, namely to the constructor }
           include(pi.flags,pi_do_call);

@@ -744,8 +744,6 @@ implementation
 
 
     procedure tcgprocinfo.maybe_add_constructor_wrapper(var tocode: tnode; withexceptblock: boolean);
-      const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
       var
         oldlocalswitches: tlocalswitches;
         srsym: tsym;
@@ -891,8 +889,6 @@ implementation
 
 
     procedure tcgprocinfo.add_entry_exit_code;
-      const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
       var
         finalcode,
         bodyentrycode,
@@ -2645,6 +2641,8 @@ implementation
 
 
     procedure read_proc_body(old_current_procinfo:tprocinfo;pd:tprocdef);
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       {
         Parses the procedure directives, then parses the procedure body, then
         generates the code for it
@@ -2658,7 +2656,7 @@ implementation
         oldfailtokenmode:=[];
 
         { create a new procedure }
-        current_procinfo:=cprocinfo.create(old_current_procinfo);
+        current_procinfo:=cprocinfo.create(old_current_procinfo,compiler);
         current_module.procinfo:=current_procinfo;
         current_procinfo.procdef:=pd;
         isnestedproc:=(current_procinfo.procdef.parast.symtablelevel>normal_function_level);

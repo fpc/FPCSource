@@ -200,7 +200,7 @@ function tx64tryfinallynode.dogetcopy: tnode;
     n:=tx64tryfinallynode(inherited dogetcopy);
     if target_info.system=system_x86_64_win64 then
       begin
-        n.finalizepi:=tcgprocinfo(cprocinfo.create(finalizepi.parent));
+        n.finalizepi:=tcgprocinfo(cprocinfo.create(finalizepi.parent,compiler));
         n.finalizepi.force_nested;
         n.finalizepi.procdef:=create_outline_procdef('$fin$',current_procinfo.procdef.struct,potype_exceptfilter,voidtype);
         n.finalizepi.entrypos:=finalizepi.entrypos;

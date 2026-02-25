@@ -26,6 +26,7 @@ unit procinfo;
   interface
 
     uses
+      compilerbase,
       { common }
       cclasses,
       { global }
@@ -58,6 +59,8 @@ unit procinfo;
           { required alignment for this stackframe }
           fstackalignment : longint;
        public
+          { the compiler instance }
+          compiler : TCompilerBase;
           { pointer to parent in nested procedures }
           parent : tprocinfo;
           { the definition of the routine itself }
@@ -149,7 +152,7 @@ unit procinfo;
           saved_regs_address,
           saved_regs_mm: TCPURegisterSet;
 
-          constructor create(aparent:tprocinfo);virtual;
+          constructor create(aparent:tprocinfo;acompiler:tcompilerbase);virtual;
           destructor destroy;override;
 
           procedure allocate_push_parasize(size:longint);
@@ -232,8 +235,9 @@ implementation
                                  TProcInfo
 ****************************************************************************}
 
-    constructor tprocinfo.create(aparent:tprocinfo);
+    constructor tprocinfo.create(aparent:tprocinfo;acompiler:tcompilerbase);
       begin
+        compiler:=acompiler;
         parent:=aparent;
         procdef:=nil;
         para_stack_size:=0;
@@ -389,7 +393,7 @@ implementation
 
     function tprocinfo.create_for_outlining(const basesymname: string; astruct: tabstractrecorddef; potype: tproctypeoption; resultdef: tdef; entrynodeinfo: tnode): tprocinfo;
       begin
-        result:=cprocinfo.create(self);
+        result:=cprocinfo.create(self,compiler);
         result.force_nested;
         result.procdef:=create_outline_procdef(basesymname,astruct,potype,resultdef);
         result.entrypos:=entrynodeinfo.fileinfo;
