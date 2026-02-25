@@ -484,7 +484,7 @@ BEGIN
   { why are the screen contents parsed at startup? Gabor
     to be able to find location of error in last compilation
     from command line PM }
-  ParseUserScreen;
+  {ParseUserScreen;  comment out, it takes a lot of time and serves only to very particular use case (M) }
 
 {$IFDEF HASAMIGA}
   SetAmigaWindowTitle;
