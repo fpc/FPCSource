@@ -323,8 +323,8 @@ begin
          { We need to add the initial module manually to the list of units }
          addloadedunit(m);
          main_module:=m;
-         task_handler.addmodule(m);
-         task_handler.processqueue;
+         FTaskHandler.addmodule(m);
+         FTaskHandler.processqueue;
          end;
 
 
