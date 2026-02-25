@@ -25,10 +25,50 @@ unit pmodules;
 
 interface
 
-uses fmodule;
+uses fmodule,fppu,symbase,globtype,symconst,psub;
 
 type
   TModulesParser = class
+  private type
+    TProgramParam = record
+      name : ansistring;
+      nr : dword;
+    end;
+    TProgramParamArray = array of TProgramParam;
+  private
+    procedure create_objectfile(curr : tmodule);
+    procedure insertobjectfile(curr : tmodule);
+    procedure create_dwarf_frame;
+    Function CheckResourcesUsed(curr : tmodule) : boolean;
+    function AddUnit(curr : tmodule; const s:string;addasused:boolean): tppumodule;
+    function AddUnit(curr :tmodule; const s:string):tppumodule;
+    function maybeloadvariantsunit(curr : tmodule) : boolean;
+    function MaybeRemoveResUnit(curr : tmodule) : boolean;
+    function loadsystemunit(curr : tmodule) : boolean;
+    function loaddefaultunits(curr :tmodule) : boolean;
+    function loadautounits(curr: tmodule) : boolean;
+    procedure parseusesclause(curr: tmodule);
+    function loadunits(curr: tmodule; frominterface : boolean) : boolean;
+    procedure connect_loaded_units(_module : tmodule; preservest:tsymtable);
+    procedure reset_all_defs(curr: tmodule);
+    procedure free_localsymtables(st:TSymtable);
+    procedure free_unregistered_localsymtable_elements(curr : tmodule);
+    procedure setupglobalswitches;
+    function create_main_proc(const name:TSymStr;potype:tproctypeoption;st:TSymtable):tcgprocinfo;
+    procedure release_main_proc(curr: tmodule; pi:tcgprocinfo);
+    procedure maybe_load_got(curr: tmodule);
+    function gen_implicit_initfinal(curr: tmodule; flag:tmoduleflag;st:TSymtable):tcgprocinfo;
+    procedure copy_macro(p:TObject; arg:pointer);
+    function try_consume_hintdirective(var moduleopt:tmoduleoptions; var deprecatedmsg:pshortstring):boolean;
+{$ifdef jvm}
+    procedure addmoduleclass(curr : tmodule);
+{$endif jvm}
+    procedure module_is_done(curr: tmodule);inline;
+    procedure proc_create_executable(curr, sysinitmod: tmodule; islibrary : boolean);
+    procedure proc_program_after_parsing(curr : tmodule; islibrary : boolean);
+    procedure proc_library_header(curr: tmodule);
+    procedure proc_program_header(curr: tmodule; out sc : TProgramParamArray);
+  public
     function proc_unit(curr: tmodule):boolean;
     function parse_unit_interface_declarations(curr : tmodule) : boolean;
     function proc_unit_implementation(curr: tmodule):boolean;
@@ -43,10 +83,10 @@ implementation
 
     uses
        SysUtils,
-       globtype,systems,tokens,
+       systems,tokens,
        cutils,cfileutl,cclasses,comphook,
-       globals,verbose,finput,fppu,globstat,fpcp,fpkg,
-       symconst,symbase,symtype,symdef,symsym,symtable,defutil,symcreat,
+       globals,verbose,finput,globstat,fpcp,fpkg,
+       symtype,symdef,symsym,symtable,defutil,symcreat,
        wpoinfo,
        aasmtai,aasmdata,aasmbase,aasmcpu,
        cgbase,ngenutil,
@@ -56,12 +96,12 @@ implementation
        objcgutl,
        pkgutil,
        wpobase,
-       scanner,pbase,pexpr,psystem,psub,pgenutil,pparautl,ncgvmt,ncgrtti,
+       scanner,pbase,pexpr,psystem,pgenutil,pparautl,ncgvmt,ncgrtti,
        ctask,
        cpuinfo;
 
 
-    procedure create_objectfile(curr : tmodule);
+    procedure TModulesParser.create_objectfile(curr : tmodule);
       var
         DLLScanner      : TDLLScanner;
         s               : string;
@@ -132,7 +172,7 @@ implementation
       end;
 
 
-    procedure insertobjectfile(curr : tmodule);
+    procedure TModulesParser.insertobjectfile(curr : tmodule);
     { Insert the used object file for this unit in the used list for this unit }
       begin
         curr.linkunitofiles.add(curr.objfilename,link_static);
@@ -151,7 +191,7 @@ implementation
       end;
 
 
-    procedure create_dwarf_frame;
+    procedure TModulesParser.create_dwarf_frame;
       begin
         { Dwarf conflicts with smartlinking in separate .a files }
         if create_smartlink_library then
@@ -172,7 +212,7 @@ implementation
           end;
       end;
 
-    Function CheckResourcesUsed(curr : tmodule) : boolean;
+    Function TModulesParser.CheckResourcesUsed(curr : tmodule) : boolean;
       var
         hp           : tused_unit;
         found        : Boolean;
@@ -190,7 +230,7 @@ implementation
         CheckResourcesUsed:=found;
       end;
 
-    function AddUnit(curr : tmodule; const s:string;addasused:boolean): tppumodule;
+    function TModulesParser.AddUnit(curr : tmodule; const s:string;addasused:boolean): tppumodule;
       var
         hp : tppumodule;
         unitsym : tunitsym;
@@ -230,13 +270,13 @@ implementation
       end;
 
 
-    function AddUnit(curr :tmodule; const s:string):tppumodule;
+    function TModulesParser.AddUnit(curr :tmodule; const s:string):tppumodule;
       begin
         result:=AddUnit(curr,s,true);
       end;
 
 
-    function maybeloadvariantsunit(curr : tmodule) : boolean;
+    function TModulesParser.maybeloadvariantsunit(curr : tmodule) : boolean;
       var
         hp : tmodule;
         addsystemnamespace : Boolean;
@@ -267,12 +307,12 @@ implementation
       end;
 
 
-    function MaybeRemoveResUnit(curr : tmodule) : boolean;
+    function TModulesParser.MaybeRemoveResUnit(curr : tmodule) : boolean;
       var
         resources_used : boolean;
         hp : tmodule;
         uu : tused_unit;
-        unitname : shortstring;
+        _unitname : shortstring;
       begin
         { We simply remove the unit from:
            - usedunit list, so that things like init/finalization table won't
@@ -286,15 +326,15 @@ implementation
           begin
             { resources aren't used, so we don't need this unit }
             if target_res.id=res_ext then
-              unitname:='FPEXTRES'
+              _unitname:='FPEXTRES'
             else
-              unitname:='FPINTRES';
-            Message1(unit_u_unload_resunit,unitname);
+              _unitname:='FPINTRES';
+            Message1(unit_u_unload_resunit,_unitname);
             { find the module }
             hp:=tmodule(loaded_units.first);
             while assigned(hp) do
               begin
-                if hp.is_unit and (hp.modulename^=unitname) then break;
+                if hp.is_unit and (hp.modulename^=_unitname) then break;
                 hp:=tmodule(hp.next);
               end;
             if not assigned(hp) then
@@ -331,7 +371,7 @@ implementation
       end;
 
 
-    function loadsystemunit(curr : tmodule) : boolean;
+    function TModulesParser.loadsystemunit(curr : tmodule) : boolean;
       var
         state: tglobalstate;
         sys : tmodule;
@@ -391,7 +431,7 @@ implementation
 
 
     { Return true if all units were loaded, no recompilation needed. }
-    function loaddefaultunits(curr :tmodule) : boolean;
+    function TModulesParser.loaddefaultunits(curr :tmodule) : boolean;
 
       Procedure CheckAddUnit(s: string);
 
@@ -591,7 +631,7 @@ implementation
 
 
     { Return true if all units were loaded, no recompilation needed. }
-    function loadautounits(curr: tmodule) : boolean;
+    function TModulesParser.loadautounits(curr: tmodule) : boolean;
 
       Procedure CheckAddUnit(s: string);
 
@@ -618,7 +658,7 @@ implementation
         until false;
       end;
 
-    procedure parseusesclause(curr: tmodule);
+    procedure TModulesParser.parseusesclause(curr: tmodule);
 
       var
          s,sorg  : ansistring;
@@ -703,7 +743,7 @@ implementation
         until false;
       end;
 
-    function loadunits(curr: tmodule; frominterface : boolean) : boolean;
+    function TModulesParser.loadunits(curr: tmodule; frominterface : boolean) : boolean;
 
       var
          s  : ansistring;
@@ -800,7 +840,7 @@ implementation
        this can only be called after all units were actually loaded!
      }
 
-     procedure connect_loaded_units(_module : tmodule; preservest:tsymtable);
+     procedure TModulesParser.connect_loaded_units(_module : tmodule; preservest:tsymtable);
 
      var
        pu  : tused_unit;
@@ -880,14 +920,14 @@ implementation
 
 
 
-     procedure reset_all_defs(curr: tmodule);
+     procedure TModulesParser.reset_all_defs(curr: tmodule);
        begin
          if assigned(curr.wpoinfo) then
            curr.wpoinfo.resetdefs;
        end;
 
 
-    procedure free_localsymtables(st:TSymtable);
+    procedure TModulesParser.free_localsymtables(st:TSymtable);
       var
         i   : longint;
         def : tstoreddef;
@@ -914,7 +954,7 @@ implementation
       end;
 
 
-    procedure free_unregistered_localsymtable_elements(curr : tmodule);
+    procedure TModulesParser.free_unregistered_localsymtable_elements(curr : tmodule);
       procedure remove_from_procdeflist(adef: tdef);
         var
           i: Integer;
@@ -977,7 +1017,7 @@ implementation
       end;
 
 
-    procedure setupglobalswitches;
+    procedure TModulesParser.setupglobalswitches;
       begin
         if (cs_create_pic in current_settings.moduleswitches) then
           begin
@@ -987,7 +1027,7 @@ implementation
       end;
 
 
-    function create_main_proc(const name:TSymStr;potype:tproctypeoption;st:TSymtable):tcgprocinfo;
+    function TModulesParser.create_main_proc(const name:TSymStr;potype:tproctypeoption;st:TSymtable):tcgprocinfo;
       var
         ps  : tprocsym;
         pd  : tprocdef;
@@ -1024,7 +1064,7 @@ implementation
       end;
 
 
-    procedure release_main_proc(curr: tmodule; pi:tcgprocinfo);
+    procedure TModulesParser.release_main_proc(curr: tmodule; pi:tcgprocinfo);
       begin
         { remove localst as it was replaced by staticsymtable }
         pi.procdef.localst:=nil;
@@ -1038,7 +1078,7 @@ implementation
 
     { Insert _GLOBAL_OFFSET_TABLE_ symbol if system uses it }
 
-    procedure maybe_load_got(curr: tmodule);
+    procedure TModulesParser.maybe_load_got(curr: tmodule);
 {$if defined(i386) or defined (sparcgen)}
        var
          gotvarsym : tstaticvarsym;
@@ -1060,7 +1100,7 @@ implementation
 {$endif i386 or sparcgen}
       end;
 
-    function gen_implicit_initfinal(curr: tmodule; flag:tmoduleflag;st:TSymtable):tcgprocinfo;
+    function TModulesParser.gen_implicit_initfinal(curr: tmodule; flag:tmoduleflag;st:TSymtable):tcgprocinfo;
       const
         compiler = nil;  { TODO: fix node compiler reference!!! }
       begin
@@ -1085,12 +1125,12 @@ implementation
       end;
 
 
-    procedure copy_macro(p:TObject; arg:pointer);
+    procedure TModulesParser.copy_macro(p:TObject; arg:pointer);
       begin
         TModule(arg).globalmacrosymtable.insertsym(tmacro(p).getcopy);
       end;
 
-    function try_consume_hintdirective(var moduleopt:tmoduleoptions; var deprecatedmsg:pshortstring):boolean;
+    function TModulesParser.try_consume_hintdirective(var moduleopt:tmoduleoptions; var deprecatedmsg:pshortstring):boolean;
       var
         deprecated_seen,
         last_is_deprecated:boolean;
@@ -1151,7 +1191,7 @@ implementation
 
 
 {$ifdef jvm}
-      procedure addmoduleclass(curr : tmodule);
+      procedure TModulesParser.addmoduleclass(curr : tmodule);
         var
           def: tobjectdef;
           typesym: ttypesym;
@@ -1558,7 +1598,7 @@ type
            result:=parse_unit_interface_declarations(curr);
       end;
 
-    procedure module_is_done(curr: tmodule);inline;
+    procedure TModulesParser.module_is_done(curr: tmodule);inline;
       begin
         dispose(pfinishstate(curr.finishstate));
         curr.finishstate:=nil;
@@ -2381,7 +2421,7 @@ type
           end;
       end;
 
-    procedure proc_create_executable(curr, sysinitmod: tmodule; islibrary : boolean);
+    procedure TModulesParser.proc_create_executable(curr, sysinitmod: tmodule; islibrary : boolean);
 
       var
         program_uses_checkpointer : boolean;
@@ -2443,7 +2483,7 @@ type
 
       end;
 
-    procedure proc_program_after_parsing(curr : tmodule; islibrary : boolean);
+    procedure TModulesParser.proc_program_after_parsing(curr : tmodule; islibrary : boolean);
 
       var
         sysinitmod, hp,hp2 : tmodule;
@@ -2819,7 +2859,7 @@ type
 
       end;
 
-    procedure proc_library_header(curr: tmodule);
+    procedure TModulesParser.proc_library_header(curr: tmodule);
       var
         program_name : ansistring;
 
@@ -2853,14 +2893,7 @@ type
         {$endif DEBUG_NODE_XML}
       end;
 
-    type
-      TProgramParam = record
-        name : ansistring;
-        nr : dword;
-      end;
-      TProgramParamArray = array of TProgramParam;
-
-      procedure proc_program_header(curr: tmodule; out sc : TProgramParamArray);
+      procedure TModulesParser.proc_program_header(curr: tmodule; out sc : TProgramParamArray);
 
         var
           program_name : ansistring;
