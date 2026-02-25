@@ -60,6 +60,8 @@ implementation
 
 
     function new_dispose_statement(is_new:boolean) : tnode;
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       var
         newstatement : tstatementnode;
         temp         : ttempcreatenode;
@@ -77,6 +79,8 @@ implementation
         variantselectsymbol : tfieldvarsym;
 
       procedure ReadVariantRecordConstants;
+        const
+          compiler = nil;  { TODO: fix node compiler reference!!! }
         var
           i,j : longint;
         begin
@@ -115,8 +119,8 @@ implementation
                                 { setup variant selector }
                                 addstatement(newstatement,cassignmentnode.create(
                                     csubscriptnode.create(variantselectsymbol,
-                                      cderefnode.create(ctemprefnode.create(temp))),
-                                    p2));
+                                      cderefnode.create(ctemprefnode.create(temp,compiler),compiler),compiler),
+                                    p2,compiler));
                             end;
                         end
                       else
@@ -155,7 +159,7 @@ implementation
             if is_new then
               begin
                 sym:=search_struct_member(classh,'CREATE');
-                p2 := cloadvmtaddrnode.create(ctypenode.create(p.resultdef));
+                p2 := cloadvmtaddrnode.create(ctypenode.create(p.resultdef,compiler),compiler);
               end
             else
               begin
@@ -170,7 +174,7 @@ implementation
                  if is_new then
                    p2.free;
                    p2 := nil;
-                 new_dispose_statement := cerrornode.create;
+                 new_dispose_statement := cerrornode.create(compiler);
                  consume_all_until(_RKLAMMER);
                  consume(_RKLAMMER);
                  exit;
@@ -189,7 +193,7 @@ implementation
                     if (tcallnode(p2).procdefinition.proctypeoption<>potype_constructor) then
                       Message(parser_e_expr_have_to_be_constructor_call);
                     p2.resultdef:=p.resultdef;
-                    p2:=cassignmentnode.create(p,p2);
+                    p2:=cassignmentnode.create(p,p2,compiler);
                     typecheckpass(p2);
                   end
                 else
@@ -222,7 +226,7 @@ implementation
                  p.free;
                  p := nil;
                  consume(_RKLAMMER);
-                 new_dispose_statement:=cnothingnode.create;
+                 new_dispose_statement:=cnothingnode.create(compiler);
                  exit;
               end;
 
@@ -234,7 +238,7 @@ implementation
                  p.free;
                  p := nil;
                  consume(_RKLAMMER);
-                 new_dispose_statement:=cerrornode.create;
+                 new_dispose_statement:=cerrornode.create(compiler);
                  exit;
               end;
             { first parameter must be an object or class }
@@ -274,7 +278,7 @@ implementation
                   Message(parser_e_expr_have_to_be_destructor_call);
                  p.free;
                  p := nil;
-                 new_dispose_statement:=cerrornode.create;
+                 new_dispose_statement:=cerrornode.create(compiler);
               end
             else
               begin
@@ -282,11 +286,11 @@ implementation
                   p is also used in the assignment below }
                 if is_new then
                   begin
-                    p2:=cderefnode.create(p.getcopy);
+                    p2:=cderefnode.create(p.getcopy,compiler);
                     include(TDerefNode(p2).derefnodeflags,drnf_no_checkpointer);
                   end
                 else
-                  p2:=cderefnode.create(p);
+                  p2:=cderefnode.create(p,compiler);
                 do_typecheckpass(p2);
                 if is_new then
                   callflag:=cnf_new_call
@@ -300,7 +304,7 @@ implementation
                       do_member_read(classh,false,sym,p2,again,[callflag],nil)
                     else
                       begin
-                        p2:=ccallnode.create(nil,tprocsym(sym),sym.owner,p2,[callflag],nil);
+                        p2:=ccallnode.create(nil,tprocsym(sym),sym.owner,p2,[callflag],nil,compiler);
                         { support dispose(p,done()); }
                         if try_to_consume(_LKLAMMER) then
                           begin
@@ -325,7 +329,7 @@ implementation
                        if (tcallnode(p2).procdefinition.proctypeoption<>potype_constructor) then
                          Message(parser_e_expr_have_to_be_constructor_call);
                        p2.resultdef:=p.resultdef;
-                       p2:=cassignmentnode.create(p,p2);
+                       p2:=cassignmentnode.create(p,p2,compiler);
                      end
                     else
                      begin
@@ -353,13 +357,13 @@ implementation
                       p.free;
                       p := nil;
                       consume(_RKLAMMER);
-                      new_dispose_statement:=cnothingnode.create;
+                      new_dispose_statement:=cnothingnode.create(compiler);
                       exit;
                    end
                  else
                    begin
                      Message1(type_e_pointer_type_expected,p.resultdef.typename);
-                     new_dispose_statement:=cerrornode.create;
+                     new_dispose_statement:=cerrornode.create(compiler);
                    end;
                end
              else
@@ -384,30 +388,30 @@ implementation
                   if is_new then
                    begin
                      { create temp for result }
-                     temp := ctempcreatenode.create(p.resultdef,p.resultdef.size,tt_persistent,true);
+                     temp := ctempcreatenode.create(p.resultdef,p.resultdef.size,tt_persistent,true,compiler);
                      addstatement(newstatement,temp);
 
                      { create call to fpc_getmem }
                      para := ccallparanode.create(cordconstnode.create
-                         (tpointerdef(p.resultdef).pointeddef.size,ptruinttype,true),nil);
+                         (tpointerdef(p.resultdef).pointeddef.size,ptruinttype,true,compiler),nil,compiler);
                      addstatement(newstatement,cassignmentnode.create(
-                         ctemprefnode.create(temp),
-                         ccallnode.createintern('fpc_getmem',para)));
+                         ctemprefnode.create(temp,compiler),
+                         ccallnode.createintern('fpc_getmem',para),compiler));
 
                      { create call to fpc_initialize }
                      if is_managed_type(tpointerdef(p.resultdef).pointeddef) or
                        ((m_isolike_io in current_settings.modeswitches) and (tpointerdef(p.resultdef).pointeddef.typ=filedef)) then
-                       addstatement(newstatement,cnodeutils.initialize_data_node(cderefnode.create(ctemprefnode.create(temp)),false));
+                       addstatement(newstatement,cnodeutils.initialize_data_node(cderefnode.create(ctemprefnode.create(temp,compiler),compiler),false));
 
                      { copy the temp to the destination }
                      addstatement(newstatement,cassignmentnode.create(
                          p,
-                         ctemprefnode.create(temp)));
+                         ctemprefnode.create(temp,compiler),compiler));
 
                      ReadVariantRecordConstants;
 
                      { release temp }
-                     addstatement(newstatement,ctempdeletenode.create(temp));
+                     addstatement(newstatement,ctempdeletenode.create(temp,compiler));
                    end
                   else
                    begin
@@ -417,23 +421,23 @@ implementation
                        if might_have_sideeffects(p) then
                          begin
                            { ensure that p gets evaluated only once, in case it is e.g. a call }
-                           temp:=ctempcreatenode.create_value(p.resultdef,p.resultdef.size,tt_persistent,true,p);
+                           temp:=ctempcreatenode.create_value(p.resultdef,p.resultdef.size,tt_persistent,true,p,compiler);
                            addstatement(newstatement,temp);
-                           addstatement(newstatement,cnodeutils.finalize_data_node(cderefnode.create(ctemprefnode.create(temp))));
+                           addstatement(newstatement,cnodeutils.finalize_data_node(cderefnode.create(ctemprefnode.create(temp,compiler),compiler)));
                          end
                        else
-                         addstatement(newstatement,cnodeutils.finalize_data_node(cderefnode.create(p.getcopy)));
+                         addstatement(newstatement,cnodeutils.finalize_data_node(cderefnode.create(p.getcopy,compiler)));
 
                      ReadVariantRecordConstants;
 
                      { create call to fpc_freemem }
                      if not assigned(temp) then
-                       para := ccallparanode.create(p,nil)
+                       para := ccallparanode.create(p,nil,compiler)
                      else
-                       para := ccallparanode.create(ctemprefnode.create(temp),nil);
+                       para := ccallparanode.create(ctemprefnode.create(temp,compiler),nil,compiler);
                      addstatement(newstatement,ccallnode.createintern('fpc_freemem',para));
                      if assigned(temp) then
-                       addstatement(newstatement,ctempdeletenode.create(temp));
+                       addstatement(newstatement,ctempdeletenode.create(temp,compiler));
                    end;
                end;
           end;
@@ -442,6 +446,8 @@ implementation
 
 
     function new_function : tnode;
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       var
         p1,p2  : tnode;
         classh : tobjectdef;
@@ -460,7 +466,7 @@ implementation
            consume(_RKLAMMER);
            p1.free;
            p1 := nil;
-           new_function:=cerrornode.create;
+           new_function:=cerrornode.create(compiler);
            exit;
          end;
 
@@ -471,7 +477,7 @@ implementation
            consume(_RKLAMMER);
            p1.free;
            p1 := nil;
-           new_function:=cerrornode.create;
+           new_function:=cerrornode.create(compiler);
            exit;
          end;
 
@@ -484,7 +490,7 @@ implementation
             if p1.nodetype=typen then
               ttypenode(p1).allowed:=true;
 
-            p1:=cinlinenode.create(in_new_x,false,p1);
+            p1:=cinlinenode.create(in_new_x,false,p1,compiler);
           end
         else
           begin
@@ -496,13 +502,13 @@ implementation
                consume(_RKLAMMER);
                p1.free;
                p1 := nil;
-               new_function:=cerrornode.create;
+               new_function:=cerrornode.create(compiler);
                exit;
              end;
             classh:=tobjectdef(tpointerdef(p1.resultdef).pointeddef);
             { use the objectdef for loading the VMT }
             p2:=p1;
-            p1:=ctypenode.create(tpointerdef(p1.resultdef).pointeddef);
+            p1:=ctypenode.create(tpointerdef(p1.resultdef).pointeddef,compiler);
             do_typecheckpass(p1);
             { search the constructor also in the symbol tables of
               the parents }
@@ -530,6 +536,8 @@ implementation
 
 
     function inline_setlength : tnode;
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       var
         paras: tnode;
       begin
@@ -538,15 +546,17 @@ implementation
         consume(_RKLAMMER);
         if not assigned(paras) then
          begin
-           result:=cerrornode.create;
+           result:=cerrornode.create(compiler);
            CGMessage1(parser_e_wrong_parameter_size,'SetLength');
            exit;
          end;
-        result:=cinlinenode.create(in_setlength_x,false,paras);
+        result:=cinlinenode.create(in_setlength_x,false,paras,compiler);
       end;
 
 
     function inline_setstring : tnode;
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       var
         paras, strpara, pcharpara: tnode;
         procname: string;
@@ -574,7 +584,7 @@ implementation
                     cp:=tstringdef(strpara.resultdef).encoding;
                     if (cp=globals.CP_NONE) then
                       cp:=0;
-                    paras:=ccallparanode.create(genintconstnode(cp),paras);
+                    paras:=ccallparanode.create(genintconstnode(cp,compiler),paras,compiler);
                   end;
                 procname:='fpc_setstring_'+tstringdef(strpara.resultdef).stringtypname;
                 { decide which version to call based on the second parameter }
@@ -602,6 +612,8 @@ implementation
 
 
     function inline_initfinal(isinit: boolean): tnode;
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       var
         newblock,
         paras   : tnode;
@@ -610,7 +622,7 @@ implementation
         ppn     : tcallparanode;
       begin
         { for easy exiting if something goes wrong }
-        result := cerrornode.create;
+        result := cerrornode.create(compiler);
 
         consume(_LKLAMMER);
         paras:=parse_paras(false,false,_RKLAMMER);
@@ -634,11 +646,11 @@ implementation
            destppn:=tcallparanode(ppn.right);
            { create call to fpc_initialize/finalize_array }
            npara:=ccallparanode.create(ctypeconvnode.create
-                     (ppn.left,s32inttype),
+                     (ppn.left,s32inttype,compiler),
                   ccallparanode.create(caddrnode.create_internal
-                     (crttinode.create(tstoreddef(destppn.left.resultdef),initrtti,rdt_normal)),
+                     (crttinode.create(tstoreddef(destppn.left.resultdef),initrtti,rdt_normal,compiler),compiler),
                   ccallparanode.create(caddrnode.create_internal
-                     (destppn.left),nil)));
+                     (destppn.left,compiler),nil,compiler),compiler),compiler);
            if isinit then
              newblock:=ccallnode.createintern('fpc_initialize_array',npara)
            else
@@ -673,11 +685,13 @@ implementation
 
 
     function inline_copy_insert_delete(nr:tinlinenumber;const name:string;checkempty:boolean) : tnode;
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       var
         paras   : tnode;
         { for easy exiting if something goes wrong }
       begin
-        result := cerrornode.create;
+        result := cerrornode.create(compiler);
 
         consume(_LKLAMMER);
         paras:=parse_paras(false,false,_RKLAMMER);
@@ -688,7 +702,7 @@ implementation
             exit;
           end;
         result.free;
-        result:=cinlinenode.create(nr,false,paras);
+        result:=cinlinenode.create(nr,false,paras,compiler);
       end;
 
 

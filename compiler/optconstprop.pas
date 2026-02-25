@@ -76,6 +76,8 @@ unit optconstprop;
     { propagates the constant assignment passed in arg into n, it returns true if
       the search can continue with the next statement }
     function replaceBasicAssign(var n: tnode; arg: tnode; var tree_modified: boolean): boolean;
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       var
         st2, oldnode: tnode;
         old: pnode;
@@ -122,7 +124,7 @@ unit optconstprop;
           begin
             n.Free;
             n:=tassignmentnode(arg).right.getcopy;
-            inserttypeconv_internal(n, tassignmentnode(arg).left.resultdef);
+            inserttypeconv_internal(n, tassignmentnode(arg).left.resultdef,compiler);
 
             tree_modified:=true;
           end

@@ -624,6 +624,8 @@ unit optdfa;
 
 
     procedure TDFABuilder.createdfainfo(node : tnode);
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       var
         dfarec : tdfainfo;
       begin
@@ -649,7 +651,7 @@ unit optdfa;
           end
         else
           begin
-            resultnode:=cnothingnode.create;
+            resultnode:=cnothingnode.create(compiler);
             resultnode.allocoptinfo;
           end;
 

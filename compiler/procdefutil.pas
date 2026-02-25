@@ -801,6 +801,8 @@ implementation
 
 
   function capturer_add_procvar_or_proc(owner:tprocinfo;n:tnode;out capturer:tsym;out capturen:tnode):tobjectdef;
+    const
+      compiler = nil;  { TODO: fix node compiler reference!!! }
 
     function create_paras(pd:tprocdef):tcallparanode;
       var
@@ -813,7 +815,7 @@ implementation
             para:=tparavarsym(pd.paras[i]);
             if vo_is_hidden_para in para.varoptions then
               continue;
-            result:=ccallparanode.create(cloadnode.create(para,pd.parast),result);
+            result:=ccallparanode.create(cloadnode.create(para,pd.parast,compiler),result,compiler);
           end;
       end;
 
@@ -1065,7 +1067,7 @@ implementation
       fieldsym:=nil;
       if assigned(pinested) then
         begin
-          n1:=ccallnode.create(create_paras(pinested.procdef),ps,capturedef.symtable,cloadnode.create(capturer,capturer.owner),[],nil);
+          n1:=ccallnode.create(create_paras(pinested.procdef),ps,capturedef.symtable,cloadnode.create(capturer,capturer.owner,compiler),[],nil,compiler);
           { captured variables cannot be in registers }
           make_not_regable(tcallnode(n1).methodpointer,[ra_addr_regable,ra_addr_taken]);
         end
@@ -1078,13 +1080,13 @@ implementation
           capturedef.symtable.insertsym(fieldsym);
           tabstractrecordsymtable(capturedef.symtable).addfield(fieldsym,vis_public);
 
-          capturen:=csubscriptnode.create(fieldsym,cloadnode.create(capturer,capturer.owner));
+          capturen:=csubscriptnode.create(fieldsym,cloadnode.create(capturer,capturer.owner,compiler),compiler);
 
           selfsym:=tsym(pd.parast.find('self'));
           if not assigned(selfsym) then
             internalerror(2022052301);
           selfinfo.ignore:=selfsym;
-          n1:=ccallnode.create_procvar(create_paras(pd),csubscriptnode.create(fieldsym,cloadnode.create(selfsym,selfsym.owner)));
+          n1:=ccallnode.create_procvar(create_paras(pd),csubscriptnode.create(fieldsym,cloadnode.create(selfsym,selfsym.owner,compiler),compiler),compiler);
         end
       else
         begin
@@ -1092,7 +1094,7 @@ implementation
             internalerror(2022032401);
           if tloadnode(n).symtableentry.typ<>procsym then
             internalerror(2022032402);
-          n1:=ccallnode.create(create_paras(pd),tprocsym(tloadnode(n).symtableentry),tloadnode(n).symtable,tloadnode(n).left,[],nil);
+          n1:=ccallnode.create(create_paras(pd),tprocsym(tloadnode(n).symtableentry),tloadnode(n).symtable,tloadnode(n).left,[],nil,compiler);
           tloadnode(n).left:=nil;
         end;
       if assigned(pd.returndef) and not is_void(pd.returndef) then
@@ -1102,8 +1104,9 @@ implementation
           else
             sym:=pd.funcretsym;
           n1:=cassignmentnode.create(
-                      cloadnode.create(sym,sym.owner),
-                      n1
+                      cloadnode.create(sym,sym.owner,compiler),
+                      n1,
+                      compiler
                     );
           { captured variables cannot be in registers }
           make_not_regable(tassignmentnode(n1).left,[ra_addr_regable,ra_addr_taken]);
@@ -1312,12 +1315,16 @@ implementation
 
 
   function load_capturer(capturer:tabstractvarsym):tnode;inline;
+    const
+      compiler = nil;  { TODO: fix node compiler reference!!! }
     begin
-      result:=cloadnode.create(capturer,capturer.owner);
+      result:=cloadnode.create(capturer,capturer.owner,compiler);
     end;
 
 
   function instantiate_capturer(capturer_sym:tabstractvarsym):tnode;
+    const
+      compiler = nil;  { TODO: fix node compiler reference!!! }
     var
       capturer_def : tobjectdef;
       ctor : tprocsym;
@@ -1330,13 +1337,15 @@ implementation
         internalerror(2022010801);
 
       { Insert "Capturer := TCapturer.Create()" as the first statement of the routine }
-      result:=cloadvmtaddrnode.create(ctypenode.create(capturer_def));
-      result:=ccallnode.create(nil,ctor,capturer_def.symtable,result,[],nil);
-      result:=cassignmentnode.create(load_capturer(capturer_sym),result);
+      result:=cloadvmtaddrnode.create(ctypenode.create(capturer_def,compiler),compiler);
+      result:=ccallnode.create(nil,ctor,capturer_def.symtable,result,[],nil,compiler);
+      result:=cassignmentnode.create(load_capturer(capturer_sym),result,compiler);
     end;
 
 
   procedure initialize_captured_paras(pd:tprocdef;capturer:tabstractvarsym;var stmt:tstatementnode);
+    const
+      compiler = nil;  { TODO: fix node compiler reference!!! }
     var
       i : longint;
       psym: tparavarsym;
@@ -1348,14 +1357,15 @@ implementation
           if not psym.is_captured then
             continue;
           {$ifdef DEBUG_CAPTURER}writeln(#9'initialize captured parameter ',psym.RealName);{$endif}
-          n:=cloadnode.create(psym,psym.owner);
+          n:=cloadnode.create(psym,psym.owner,compiler);
           if psym.capture_sym.owner.defowner<>capturer.vardef then
             internalerror(2022010903);
           if (vo_is_self in psym.varoptions) and not is_implicit_pointer_object_type(psym.vardef) then
-            n:=caddrnode.create(n);
+            n:=caddrnode.create(n,compiler);
           n:=cassignmentnode.create(
-               csubscriptnode.create(psym.capture_sym,cloadnode.create(capturer,capturer.owner)),
-               n
+               csubscriptnode.create(psym.capture_sym,cloadnode.create(capturer,capturer.owner,compiler),compiler),
+               n,
+               compiler
                );
           addstatement(stmt,n);
         end;
@@ -1363,6 +1373,8 @@ implementation
 
 
   procedure attach_outer_capturer(ctx:tprocinfo;capturer:tabstractvarsym;var stmt:tstatementnode);
+    const
+      compiler = nil;  { TODO: fix node compiler reference!!! }
     var
       alivefield,
       selffield : tfieldvarsym;
@@ -1391,12 +1403,12 @@ implementation
           outercapturer:=get_capturer(tprocdef(ctx.procdef.owner.defowner));
           if not assigned(outercapturer) then
             internalerror(2022011605);
-          selfnode:=cloadnode.create(outercapturer,outercapturer.owner);
+          selfnode:=cloadnode.create(outercapturer,outercapturer.owner,compiler);
           make_not_regable(selfnode,[ra_different_scope]);
           outeralive:=get_capturer_alive(tprocdef(ctx.procdef.owner.defowner));
           if not assigned(outeralive) then
             internalerror(2022051706);
-          alivenode:=cloadnode.create(outeralive,outeralive.owner);
+          alivenode:=cloadnode.create(outeralive,outeralive.owner,compiler);
           make_not_regable(alivenode,[ra_different_scope]);
         end;
       addstatement(stmt,cassignmentnode.create(
@@ -1404,23 +1416,31 @@ implementation
                             selffield,
                             cloadnode.create(
                               capturer,
-                              capturer.owner
-                              )
+                              capturer.owner,
+                              compiler
+                              ),
+                              compiler
                             ),
-                            selfnode));
+                            selfnode,
+                            compiler));
       addstatement(stmt,cassignmentnode.create(
                           csubscriptnode.create(
                             alivefield,
                             cloadnode.create(
                               capturer,
-                              capturer.owner
-                              )
+                              capturer.owner,
+                              compiler
+                              ),
+                              compiler
                             ),
-                            alivenode));
+                            alivenode,
+                            compiler));
     end;
 
 
   procedure initialize_capturer(ctx:tprocinfo;var stmt:tstatementnode);
+    const
+      compiler = nil;  { TODO: fix node compiler reference!!! }
     var
       capturer_sym,
       keepalive_sym : tabstractvarsym;
@@ -1437,7 +1457,7 @@ implementation
           keepalive_sym:=get_capturer_alive(ctx.procdef);
           if not assigned(keepalive_sym) then
             internalerror(2022010701);
-          addstatement(stmt,cassignmentnode.create(cloadnode.create(keepalive_sym,keepalive_sym.owner),load_capturer(capturer_sym)));
+          addstatement(stmt,cassignmentnode.create(cloadnode.create(keepalive_sym,keepalive_sym.owner,compiler),load_capturer(capturer_sym),compiler));
         end;
     end;
 
@@ -1475,6 +1495,8 @@ implementation
 
 
   function convert_captured_sym(var n:tnode;arg:pointer):foreachnoderesult;
+    const
+      compiler = nil;  { TODO: fix node compiler reference!!! }
     var
       convertarg : pconvert_arg absolute arg;
       mapping : pconvert_mapping;
@@ -1501,13 +1523,13 @@ implementation
                 current_filepos:=n.fileinfo;
                 loadprocvar:=nf_load_procvar in n.flags;
                 n.free;
-                n:=csubscriptnode.create(mapping^.newsym,mapping^.selfnode.getcopy);
+                n:=csubscriptnode.create(mapping^.newsym,mapping^.selfnode.getcopy,compiler);
                 if loadprocvar then
                   include(n.flags,nf_load_procvar);
                 if (mapping^.oldsym.typ=paravarsym) and
                     (vo_is_self in tparavarsym(mapping^.oldsym).varoptions) and
                     not is_implicit_pointer_object_type(tparavarsym(mapping^.oldsym).vardef) then
-                  n:=cderefnode.create(n);
+                  n:=cderefnode.create(n,compiler);
                 typecheckpass(n);
                 current_filepos:=old_filepos;
                 break;
@@ -1530,7 +1552,7 @@ implementation
                   begin
                     if not (vo_is_hidden_para in paraold.parasym.varoptions) then
                       begin
-                        paranew:=ccallparanode.create(paraold.left,paranew);
+                        paranew:=ccallparanode.create(paraold.left,paranew,compiler);
                         paraold.left:=nil;
                       end;
                     paraold:=tcallparanode(paraold.right);
@@ -1540,7 +1562,7 @@ implementation
                   internalerror(2023120802);
                 cnf:=tcallnode(n).callnodeflags;
                 n.free;
-                n:=ccallnode.create(paranew,tprocsym(mapping^.newsym),mapping^.newsym.owner,mapping^.selfnode.getcopy,cnf,nil);
+                n:=ccallnode.create(paranew,tprocsym(mapping^.newsym),mapping^.newsym.owner,mapping^.selfnode.getcopy,cnf,nil,compiler);
                 if loadprocvar then
                   include(n.flags,nf_load_procvar);
                 typecheckpass(n);
@@ -1555,13 +1577,15 @@ implementation
 
 
   procedure convert_captured_syms(pd:tprocdef;tree:tnode);
+    const
+      compiler = nil;  { TODO: fix node compiler reference!!! }
 
     function self_tree_for_sym(selfsym:tsym;fieldsym:tsym):tnode;
       var
         fieldowner : tdef;
         newsym : tsym;
       begin
-        result:=cloadnode.create(selfsym,selfsym.owner);
+        result:=cloadnode.create(selfsym,selfsym.owner,compiler);
         fieldowner:=tdef(fieldsym.owner.defowner);
         newsym:=selfsym;
         while (tabstractvarsym(newsym).vardef<>fieldowner) do
@@ -1569,7 +1593,7 @@ implementation
             newsym:=tsym(tobjectdef(tabstractvarsym(newsym).vardef).symtable.find(outer_self_field_name));
             if not assigned(newsym) then
               internalerror(2022011101);
-            result:=csubscriptnode.create(newsym,result);
+            result:=csubscriptnode.create(newsym,result,compiler);
           end;
       end;
 

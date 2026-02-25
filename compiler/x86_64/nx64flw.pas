@@ -26,7 +26,7 @@ unit nx64flw;
 interface
 
   uses
-    node,nflw,ncgflw,psub;
+    compilerbase,node,nflw,ncgflw,psub;
 
   type
     tx64raisenode=class(tcgraisenode)
@@ -43,8 +43,8 @@ interface
 
     tx64tryfinallynode=class(tcgtryfinallynode)
       finalizepi: tcgprocinfo;
-      constructor create(l,r:TNode);override;
-      constructor create_implicit(l,r:TNode);override;
+      constructor create(l,r:TNode;acompiler:TCompilerBase);override;
+      constructor create_implicit(l,r:TNode;acompiler:TCompilerBase);override;
       function dogetcopy : tnode;override;
       function simplify(forinline: boolean): tnode;override;
       procedure pass_generate_code;override;
@@ -156,9 +156,9 @@ function copy_parasize(var n: tnode; arg: pointer): foreachnoderesult;
     result:=fen_true;
   end;
 
-constructor tx64tryfinallynode.create(l, r: TNode);
+constructor tx64tryfinallynode.create(l, r: TNode;acompiler:TCompilerBase);
   begin
-    inherited create(l,r);
+    inherited create(l,r,acompiler);
     if (target_info.system=system_x86_64_win64) and
       { Don't create child procedures for generic methods, their nested-like
         behavior causes compilation errors because real nested procedures
@@ -176,9 +176,9 @@ constructor tx64tryfinallynode.create(l, r: TNode);
   end;
 
 
-constructor tx64tryfinallynode.create_implicit(l, r: TNode);
+constructor tx64tryfinallynode.create_implicit(l, r: TNode;acompiler:TCompilerBase);
   begin
-    inherited create_implicit(l, r);
+    inherited create_implicit(l, r, acompiler);
     if (target_info.system=system_x86_64_win64) then
       begin
         if df_generic in current_procinfo.procdef.defoptions then
@@ -212,7 +212,7 @@ function tx64tryfinallynode.dogetcopy: tnode;
         if assigned(finalizepi.code) then
           begin
             n.finalizepi.code:=finalizepi.code.getcopy;
-            n.right:=ccallnode.create(nil,tprocsym(n.finalizepi.procdef.procsym),nil,nil,[],nil);
+            n.right:=ccallnode.create(nil,tprocsym(n.finalizepi.procdef.procsym),nil,nil,[],nil,compiler);
             firstpass(n.right);
           end;
       end;
@@ -232,7 +232,7 @@ function tx64tryfinallynode.simplify(forinline: boolean): tnode;
           begin
             finalizepi.code:=right;
             foreachnodestatic(right,@copy_parasize,finalizepi);
-            right:=ccallnode.create(nil,tprocsym(finalizepi.procdef.procsym),nil,nil,[],nil);
+            right:=ccallnode.create(nil,tprocsym(finalizepi.procdef.procsym),nil,nil,[],nil,compiler);
             firstpass(right);
             { For implicit frames, no actual code is available at this time,
               it is added later in assembler form. So store the nested procinfo

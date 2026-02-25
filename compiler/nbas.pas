@@ -26,6 +26,7 @@ unit nbas;
 interface
 
     uses
+       compilerbase,
        globtype,
        cgbase,cgutils,
        aasmtai,aasmdata,aasmcpu,
@@ -34,7 +35,7 @@ interface
 
     type
        tnothingnode = class(tnode)
-          constructor create;virtual;
+          constructor create(acompiler:TCompilerBase);virtual;
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
 {$ifdef DEBUG_NODE_XML}
@@ -44,7 +45,7 @@ interface
        tnothingnodeclass = class of tnothingnode;
 
        terrornode = class(tnode)
-          constructor create;virtual;
+          constructor create(acompiler:TCompilerBase);virtual;
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
           procedure mark_write;override;
@@ -56,15 +57,15 @@ interface
           getaddr:boolean;
           inheriteddef:tdef;
           unit_specific:boolean;
-          constructor create(l:tnode;g:boolean;s:tsym;u:boolean);virtual;
-          constructor create_inherited(l:tnode;g:boolean;s:tsym;i:tdef);virtual;
+          constructor create(l:tnode;g:boolean;s:tsym;u:boolean;acompiler:TCompilerBase);virtual;
+          constructor create_inherited(l:tnode;g:boolean;s:tsym;i:tdef;acompiler:TCompilerBase);virtual;
           function pass_1:tnode;override;
           function pass_typecheck:tnode;override;
        end;
        tspecializenodeclass = class of tspecializenode;
 
        tfinalizetempsnode = class(tnode)
-          constructor create;virtual;
+          constructor create(acompiler:TCompilerBase);virtual;
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
           function docompare(p: tnode): boolean; override;
@@ -83,8 +84,8 @@ interface
           asmnodeflags : TAsmNodeFlags;
           p_asm : TAsmList;
           currenttai : tai;
-          constructor create(p : TAsmList);virtual;
-          constructor create_get_position;
+          constructor create(p : TAsmList;acompiler:TCompilerBase);virtual;
+          constructor create_get_position(acompiler:TCompilerBase);
           destructor destroy;override;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -107,7 +108,7 @@ interface
        tasmnodeclass = class of tasmnode;
 
        tstatementnode = class(tbinarynode)
-          constructor create(l,r : tnode);virtual;
+          constructor create(l,r : tnode;acompiler:TCompilerBase);virtual;
           function simplify(forinline : boolean) : tnode; override;
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
@@ -125,7 +126,7 @@ interface
 
        tblocknode = class(tunarynode)
           blocknodeflags : TBlockNodeFlags;
-          constructor create(l : tnode);virtual;
+          constructor create(l : tnode;acompiler:TCompilerBase);virtual;
           destructor destroy; override;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -275,10 +276,10 @@ interface
           { where the node that receives the temp becomes responsible for       }
           { freeing it. In this last case, you must use only one reference      }
           { to it and *not* generate a ttempdeletenode                          }
-          constructor create(_typedef: tdef; _size: tcgint; _temptype: ttemptype;allowreg:boolean); virtual;
-          constructor create_withnode(_typedef: tdef; _size: tcgint; _temptype: ttemptype; allowreg:boolean; withnode: tnode); virtual;
-          constructor create_value(_typedef:tdef; _size: tcgint; _temptype: ttemptype;allowreg:boolean; templvalue: tnode);
-          constructor create_reference(_typedef:tdef; _size: tcgint; _temptype: ttemptype;allowreg:boolean; templvalue: tnode; readonly: boolean);
+          constructor create(_typedef: tdef; _size: tcgint; _temptype: ttemptype;allowreg:boolean;acompiler:TCompilerBase); virtual;
+          constructor create_withnode(_typedef: tdef; _size: tcgint; _temptype: ttemptype; allowreg:boolean; withnode: tnode;acompiler:TCompilerBase); virtual;
+          constructor create_value(_typedef:tdef; _size: tcgint; _temptype: ttemptype;allowreg:boolean; templvalue: tnode;acompiler:TCompilerBase);
+          constructor create_reference(_typedef:tdef; _size: tcgint; _temptype: ttemptype;allowreg:boolean; templvalue: tnode; readonly: boolean;acompiler:TCompilerBase);
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderefimpl;override;
@@ -296,7 +297,7 @@ interface
 
         { a node which is a reference to a certain temp }
         ttemprefnode = class(ttempbasenode)
-          constructor create(const temp: ttempcreatenode); virtual;
+          constructor create(const temp: ttempcreatenode;acompiler:TCompilerBase); virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure resolveppuidx;override;
@@ -313,10 +314,10 @@ interface
 
         { a node which removes a temp }
         ttempdeletenode = class(ttempbasenode)
-          constructor create(const temp: ttempcreatenode); virtual;
+          constructor create(const temp: ttempcreatenode;acompiler:TCompilerBase); virtual;
           { this will convert the persistent temp to a normal temp
             for returning to the other nodes }
-          constructor create_normal_temp(const temp: ttempcreatenode);
+          constructor create_normal_temp(const temp: ttempcreatenode;acompiler:TCompilerBase);
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure resolveppuidx;override;
@@ -392,10 +393,12 @@ implementation
 *****************************************************************************}
 
     function internalstatements(out laststatement:tstatementnode):tblocknode;
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       begin
         { create dummy initial statement }
-        laststatement := cstatementnode.create(cnothingnode.create,nil);
-        result := cblocknode.create(laststatement);
+        laststatement := cstatementnode.create(cnothingnode.create(compiler),nil,compiler);
+        result := cblocknode.create(laststatement,compiler);
         Include(result.blocknodeflags, bnf_strippable);
       end;
 
@@ -409,23 +412,27 @@ implementation
 
 
     procedure addstatement(var laststatement:tstatementnode;n:tnode);
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       begin
         if assigned(laststatement.right) then
           internalerror(200204201);
-        laststatement.right:=cstatementnode.create(n,nil);
+        laststatement.right:=cstatementnode.create(n,nil,compiler);
         laststatement:=tstatementnode(laststatement.right);
       end;
 
 
     function maybereplacewithtempref(var n: tnode; var block: tblocknode; var stat: tstatementnode; size: ASizeInt; readonly: boolean): ttempcreatenode;
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       begin
         result:=nil;
         if (node_complexity(n)>4) or
            might_have_sideeffects(n) then
           begin
-            result:=ctempcreatenode.create_reference(n.resultdef,size,tt_persistent,true,n,readonly);
+            result:=ctempcreatenode.create_reference(n.resultdef,size,tt_persistent,true,n,readonly,compiler);
             typecheckpass(tnode(result));
-            n:=ctemprefnode.create(result);
+            n:=ctemprefnode.create(result,compiler);
             typecheckpass(n);
             if not assigned(stat) then
               block:=internalstatements(stat);
@@ -434,14 +441,16 @@ implementation
       end;
 
     function maybereplacewithtemp(var n: tnode; var block: tblocknode; var stat: tstatementnode; size: ASizeInt; allowreg: boolean): ttempcreatenode;
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       begin
         result:=nil;
         if (node_complexity(n)>4) or
            might_have_sideeffects(n) then
           begin
-            result:=ctempcreatenode.create_value(n.resultdef,size,tt_persistent,allowreg,n);
+            result:=ctempcreatenode.create_value(n.resultdef,size,tt_persistent,allowreg,n,compiler);
             typecheckpass(tnode(result));
-            n:=ctemprefnode.create(result);
+            n:=ctemprefnode.create(result,compiler);
             typecheckpass(n);
             if not assigned(stat) then
               block:=internalstatements(stat);
@@ -453,9 +462,9 @@ implementation
                              TFIRSTNOTHING
 *****************************************************************************}
 
-    constructor tnothingnode.create;
+    constructor tnothingnode.create(acompiler:TCompilerBase);
       begin
-        inherited create(nothingn);
+        inherited create(nothingn,acompiler);
       end;
 
 
@@ -486,10 +495,10 @@ implementation
                              TFIRSTERROR
 *****************************************************************************}
 
-    constructor terrornode.create;
+    constructor terrornode.create(acompiler:TCompilerBase);
 
       begin
-         inherited create(errorn);
+         inherited create(errorn,acompiler);
       end;
 
 
@@ -519,17 +528,17 @@ implementation
                              TSPECIALIZENODE
 *****************************************************************************}
 
-    constructor tspecializenode.create(l:tnode;g:boolean;s:tsym;u:boolean);
+    constructor tspecializenode.create(l:tnode;g:boolean;s:tsym;u:boolean;acompiler:TCompilerBase);
       begin
-         inherited create(specializen,l);
+         inherited create(specializen,l,acompiler);
          sym:=s;
          getaddr:=g;
          unit_specific:=u;
       end;
 
-    constructor tspecializenode.create_inherited(l:tnode;g:boolean;s:tsym;i:tdef);
+    constructor tspecializenode.create_inherited(l:tnode;g:boolean;s:tsym;i:tdef;acompiler:TCompilerBase);
       begin
-        create(l,g,s,false);
+        create(l,g,s,false,acompiler);
         inheriteddef:=i;
       end;
 
@@ -555,9 +564,9 @@ implementation
                              TFINALIZETEMPSNODE
 *****************************************************************************}
 
-    constructor tfinalizetempsnode.create;
+    constructor tfinalizetempsnode.create(acompiler:TCompilerBase);
       begin
-        inherited create(finalizetempsn);
+        inherited create(finalizetempsn,acompiler);
       end;
 
     function tfinalizetempsnode.pass_1: tnode;
@@ -583,10 +592,10 @@ implementation
                             TSTATEMENTNODE
 *****************************************************************************}
 
-    constructor tstatementnode.create(l,r : tnode);
+    constructor tstatementnode.create(l,r : tnode;acompiler:TCompilerBase);
 
       begin
-         inherited create(statementn,l,r);
+         inherited create(statementn,l,r,acompiler);
       end;
 
 
@@ -692,10 +701,10 @@ implementation
                              TBLOCKNODE
 *****************************************************************************}
 
-    constructor tblocknode.create(l : tnode);
+    constructor tblocknode.create(l : tnode;acompiler:TCompilerBase);
 
       begin
-         inherited create(blockn,l);
+         inherited create(blockn,l,acompiler);
          blocknodeflags:=[];
       end;
 
@@ -1012,18 +1021,18 @@ implementation
                              TASMNODE
 *****************************************************************************}
 
-    constructor tasmnode.create(p : TAsmList);
+    constructor tasmnode.create(p : TAsmList;acompiler:TCompilerBase);
       begin
-        inherited create(asmn);
+        inherited create(asmn,acompiler);
         p_asm:=p;
         asmnodeflags:=[];
         currenttai:=nil;
       end;
 
 
-    constructor tasmnode.create_get_position;
+    constructor tasmnode.create_get_position(acompiler:TCompilerBase);
       begin
-        inherited create(asmn);
+        inherited create(asmn,acompiler);
         p_asm:=nil;
         asmnodeflags:=[asmnf_get_asm_position];
         currenttai:=nil;
@@ -1357,9 +1366,9 @@ implementation
                           TEMPCREATENODE
 *****************************************************************************}
 
-    constructor ttempcreatenode.create(_typedef:tdef; _size: tcgint; _temptype: ttemptype;allowreg:boolean);
+    constructor ttempcreatenode.create(_typedef:tdef; _size: tcgint; _temptype: ttemptype;allowreg:boolean;acompiler:TCompilerBase);
       begin
-        inherited create(tempcreaten);
+        inherited create(tempcreaten,acompiler);
         size := _size;
         new(tempinfo);
         fillchar(tempinfo^,sizeof(tempinfo^),0);
@@ -1380,27 +1389,27 @@ implementation
       end;
 
 
-    constructor ttempcreatenode.create_withnode(_typedef: tdef; _size: tcgint; _temptype: ttemptype; allowreg:boolean; withnode: tnode);
+    constructor ttempcreatenode.create_withnode(_typedef: tdef; _size: tcgint; _temptype: ttemptype; allowreg:boolean; withnode: tnode;acompiler:TCompilerBase);
       begin
-        self.create(_typedef,_size,_temptype,allowreg);
+        self.create(_typedef,_size,_temptype,allowreg,acompiler);
         tempinfo^.withnode:=withnode.getcopy;
       end;
 
 
-    constructor ttempcreatenode.create_value(_typedef:tdef; _size: tcgint; _temptype: ttemptype;allowreg:boolean; templvalue: tnode);
+    constructor ttempcreatenode.create_value(_typedef:tdef; _size: tcgint; _temptype: ttemptype;allowreg:boolean; templvalue: tnode;acompiler:TCompilerBase);
       begin
-        self.create(_typedef,_size,_temptype,allowreg);
+        self.create(_typedef,_size,_temptype,allowreg,acompiler);
         // store in ppuwrite
         ftemplvalue:=templvalue;
         // create from stored ftemplvalue in ppuload
-        tempinfo^.tempinitcode:=cassignmentnode.create(ctemprefnode.create(self),ftemplvalue);
+        tempinfo^.tempinitcode:=cassignmentnode.create(ctemprefnode.create(self,compiler),ftemplvalue,acompiler);
       end;
 
 
-     constructor ttempcreatenode.create_reference(_typedef: tdef; _size: tcgint; _temptype: ttemptype; allowreg: boolean; templvalue: tnode; readonly: boolean);
+     constructor ttempcreatenode.create_reference(_typedef: tdef; _size: tcgint; _temptype: ttemptype; allowreg: boolean; templvalue: tnode; readonly: boolean;acompiler:TCompilerBase);
       begin
         // store in ppuwrite
-        self.create(_typedef,_size,_temptype,allowreg);
+        self.create(_typedef,_size,_temptype,allowreg,acompiler);
         ftemplvalue:=templvalue;
         // no assignment node, just the tempvalue
         tempinfo^.tempinitcode:=ftemplvalue;
@@ -1496,7 +1505,7 @@ implementation
         if assigned(ftemplvalue) then
           begin
             ftemplvalue.derefimpl;
-            tempinfo^.tempinitcode:=cassignmentnode.create(ctemprefnode.create(self),ftemplvalue);
+            tempinfo^.tempinitcode:=cassignmentnode.create(ctemprefnode.create(self,compiler),ftemplvalue,compiler);
           end;
       end;
 
@@ -1590,9 +1599,9 @@ implementation
                              TEMPREFNODE
 *****************************************************************************}
 
-    constructor ttemprefnode.create(const temp: ttempcreatenode);
+    constructor ttemprefnode.create(const temp: ttempcreatenode;acompiler:TCompilerBase);
       begin
-        inherited create(temprefn);
+        inherited create(temprefn,acompiler);
         tempinfo := temp.tempinfo;
       end;
 
@@ -1734,17 +1743,17 @@ implementation
                              TEMPDELETENODE
 *****************************************************************************}
 
-    constructor ttempdeletenode.create(const temp: ttempcreatenode);
+    constructor ttempdeletenode.create(const temp: ttempcreatenode;acompiler:TCompilerBase);
       begin
-        inherited create(tempdeleten);
+        inherited create(tempdeleten,acompiler);
         tempinfo := temp.tempinfo;
         release_to_normal := false;
       end;
 
 
-    constructor ttempdeletenode.create_normal_temp(const temp: ttempcreatenode);
+    constructor ttempdeletenode.create_normal_temp(const temp: ttempcreatenode;acompiler:TCompilerBase);
       begin
-        inherited create(tempdeleten);
+        inherited create(tempdeleten,acompiler);
         tempinfo := temp.tempinfo;
         release_to_normal := true;
         if tempinfo^.temptype <> tt_persistent then

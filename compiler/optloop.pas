@@ -102,13 +102,15 @@ unit optloop;
 
 
     function replaceloadnodes(var n: tnode; arg: pointer): foreachnoderesult;
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       begin
         if n.isequal(preplaceinfo(arg)^.node) then
           begin
             if n.flags*[nf_modify,nf_write,nf_address_taken]<>[] then
               internalerror(2012090402);
             n.free;
-            n:=cordconstnode.create(preplaceinfo(arg)^.value,preplaceinfo(arg)^.node.resultdef,false);
+            n:=cordconstnode.create(preplaceinfo(arg)^.value,preplaceinfo(arg)^.node.resultdef,false,compiler);
             do_firstpass(n);
           end;
         result:=fen_false;
@@ -116,6 +118,8 @@ unit optloop;
 
 
     function unroll_loop(node : tnode) : tnode;
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       var
         unrolls,i : cardinal;
         counts : qword;
@@ -188,7 +192,7 @@ unit optloop;
                     if (counts mod unrolls<>0) and
                       ((counts mod unrolls)=unrolls-i) then
                       begin
-                        tfornode(node).entrylabel:=clabelnode.create(cnothingnode.create,clabelsym.create('$optunrol'));
+                        tfornode(node).entrylabel:=clabelnode.create(cnothingnode.create(compiler),clabelsym.create('$optunrol'),compiler);
                         addstatement(unrollstatement,tfornode(node).entrylabel);
                       end;
 
@@ -208,10 +212,10 @@ unit optloop;
                             { insert incr/decrementation of counter var }
                             if lnf_backward in tfornode(node).loopflags then
                               addstatement(unrollstatement,
-                                geninlinenode(in_dec_x,false,ccallparanode.create(tfornode(node).left.getcopy,nil)))
+                                geninlinenode(in_dec_x,false,ccallparanode.create(tfornode(node).left.getcopy,nil,compiler),compiler))
                             else
                               addstatement(unrollstatement,
-                                geninlinenode(in_inc_x,false,ccallparanode.create(tfornode(node).left.getcopy,nil)));
+                                geninlinenode(in_inc_x,false,ccallparanode.create(tfornode(node).left.getcopy,nil,compiler),compiler));
                           end;
                        end;
                   end;
@@ -327,6 +331,8 @@ unit optloop;
 
 
     function toptimizeinductionvariablescontext.findpreviousstrengthreduction(var n: tnode): boolean;
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       var
         i : longint;
         hp : tnode;
@@ -339,9 +345,9 @@ unit optloop;
               begin
                 case n.nodetype of
                   muln:
-                    hp:=ctemprefnode.create(inductions[i].temp);
+                    hp:=ctemprefnode.create(inductions[i].temp,compiler);
                   vecn:
-                    hp:=ctypeconvnode.create_internal(cderefnode.create(ctemprefnode.create(inductions[i].temp)),n.resultdef);
+                    hp:=ctypeconvnode.create_internal(cderefnode.create(ctemprefnode.create(inductions[i].temp,compiler),compiler),n.resultdef,compiler);
                   else
                     internalerror(200809211);
                 end;
@@ -373,6 +379,8 @@ unit optloop;
 
     { checks if the strength of n can be reduced, currforloop is the tforloop being considered }
     function toptimizeinductionvariablescontext.dostrengthreductiontest(var n: tnode): foreachnoderesult;
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       var
         tempnode,startvaltemp : ttempcreatenode;
         dummy : longint;
@@ -414,17 +422,17 @@ unit optloop;
                       writeln('**********************************************************************************');
 {$endif DEBUG_OPTSTRENGTH}
                       tempnode:=ctempcreatenode.create(n.resultdef,n.resultdef.size,tt_persistent,
-                        tstoreddef(n.resultdef).is_intregable or tstoreddef(n.resultdef).is_fpuregable);
+                        tstoreddef(n.resultdef).is_intregable or tstoreddef(n.resultdef).is_fpuregable,compiler);
                       addinduction(tempnode,n);
 
                       if lnf_backward in currforloop.loopflags then
                         addstatement(calccodestatements,
                           geninlinenode(in_dec_x,false,
-                          ccallparanode.create(ctemprefnode.create(tempnode),ccallparanode.create(taddnode(n).right.getcopy,nil))))
+                          ccallparanode.create(ctemprefnode.create(tempnode,compiler),ccallparanode.create(taddnode(n).right.getcopy,nil,compiler),compiler),compiler))
                       else
                         addstatement(calccodestatements,
                           geninlinenode(in_inc_x,false,
-                          ccallparanode.create(ctemprefnode.create(tempnode),ccallparanode.create(taddnode(n).right.getcopy,nil))));
+                          ccallparanode.create(ctemprefnode.create(tempnode,compiler),ccallparanode.create(taddnode(n).right.getcopy,nil,compiler),compiler),compiler));
 
                       addstatement(initcodestatements,tempnode);
                       nn:=currforloop.right.getcopy;
@@ -437,19 +445,20 @@ unit optloop;
                           else
                             nt:=subn;
                           nn:=caddnode.create_internal(nt,nn,
-                             cordconstnode.create(1,nn.resultdef,false));
+                             cordconstnode.create(1,nn.resultdef,false,compiler),compiler);
                         end;
-                      addstatement(initcodestatements,cassignmentnode.create(ctemprefnode.create(tempnode),
+                      addstatement(initcodestatements,cassignmentnode.create(ctemprefnode.create(tempnode,compiler),
                           caddnode.create(muln,nn,
-                            taddnode(n).right.getcopy)
+                            taddnode(n).right.getcopy,compiler),
+                            compiler
                           )
                         );
 
                       { finally replace the node by a temp. ref }
-                      n:=ctemprefnode.create(tempnode);
+                      n:=ctemprefnode.create(tempnode,compiler);
 
                       { ... and add a temp. release node }
-                      addstatement(deletecodestatements,ctempdeletenode.create(tempnode));
+                      addstatement(deletecodestatements,ctempdeletenode.create(tempnode,compiler));
                     end;
                   { set types }
                   do_firstpass(n);
@@ -491,25 +500,26 @@ unit optloop;
                       printnode(n);
                       writeln('**********************************************************************************');
 {$endif DEBUG_OPTSTRENGTH}
-                      tempnode:=ctempcreatenode.create(voidpointertype,voidpointertype.size,tt_persistent,true);
+                      tempnode:=ctempcreatenode.create(voidpointertype,voidpointertype.size,tt_persistent,true,compiler);
                       addinduction(tempnode,n);
 
                       if lnf_backward in currforloop.loopflags then
                         addstatement(calccodestatements,
                           cinlinenode.createintern(in_dec_x,false,
-                          ccallparanode.create(ctemprefnode.create(tempnode),ccallparanode.create(
-                          cordconstnode.create(tcgvecnode(n).get_mul_size,sizeuinttype,false),nil))))
+                          ccallparanode.create(ctemprefnode.create(tempnode,compiler),ccallparanode.create(
+                          cordconstnode.create(tcgvecnode(n).get_mul_size,sizeuinttype,false,compiler),nil,compiler),compiler),compiler))
                       else
                         addstatement(calccodestatements,
                           cinlinenode.createintern(in_inc_x,false,
-                          ccallparanode.create(ctemprefnode.create(tempnode),ccallparanode.create(
-                          cordconstnode.create(tcgvecnode(n).get_mul_size,sizeuinttype,false),nil))));
+                          ccallparanode.create(ctemprefnode.create(tempnode,compiler),ccallparanode.create(
+                          cordconstnode.create(tcgvecnode(n).get_mul_size,sizeuinttype,false,compiler),nil,compiler),compiler),compiler));
 
                       addstatement(initcodestatements,tempnode);
 
                       startvaltemp:=maybereplacewithtemp(currforloop.right,initcode,initcodestatements,currforloop.right.resultdef.size,true);
                       nn:=caddrnode.create(
-                          cvecnode.create(tvecnode(n).left.getcopy,ctypeconvnode.create_internal(currforloop.right.getcopy,tvecnode(n).right.resultdef))
+                          cvecnode.create(tvecnode(n).left.getcopy,ctypeconvnode.create_internal(currforloop.right.getcopy,tvecnode(n).right.resultdef,compiler),compiler),
+                          compiler
                         );
                       { If the calculation is not performed at the end
                         it is needed to adjust the starting value }
@@ -520,18 +530,18 @@ unit optloop;
                           else
                             nt:=subn;
                           nn:=caddnode.create_internal(nt,
-                             ctypeconvnode.create_internal(nn,voidpointertype),
-                             cordconstnode.create(tcgvecnode(n).get_mul_size,sizeuinttype,false));
+                             ctypeconvnode.create_internal(nn,voidpointertype,compiler),
+                             cordconstnode.create(tcgvecnode(n).get_mul_size,sizeuinttype,false,compiler),compiler);
                         end;
-                      addstatement(initcodestatements,cassignmentnode.create(ctemprefnode.create(tempnode),nn));
+                      addstatement(initcodestatements,cassignmentnode.create(ctemprefnode.create(tempnode,compiler),nn,compiler));
 
                       { finally replace the node by a temp. ref }
-                      n:=ctypeconvnode.create_internal(cderefnode.create(ctemprefnode.create(tempnode)),n.resultdef);
+                      n:=ctypeconvnode.create_internal(cderefnode.create(ctemprefnode.create(tempnode,compiler),compiler),n.resultdef,compiler);
 
                       { ... and add a temp. release node }
                       if startvaltemp<>nil then
-                        addstatement(deletecodestatements,ctempdeletenode.create(startvaltemp));
-                      addstatement(deletecodestatements,ctempdeletenode.create(tempnode));
+                        addstatement(deletecodestatements,ctempdeletenode.create(startvaltemp,compiler));
+                      addstatement(deletecodestatements,ctempdeletenode.create(tempnode,compiler));
                     end;
                   { Copy the nf_write,nf_modify flags to the new deref node of the temp.
                     Otherwise assignments to vector elements will be removed. }
@@ -559,6 +569,8 @@ unit optloop;
 
 
     procedure toptimizeinductionvariablescontext.optimizeinductionvariablessingleforloop(var n: tnode);
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       var
         loopcode : tblocknode;
         loopcodestatements,
@@ -591,7 +603,7 @@ unit optloop;
             do_firstpass(tnode(deletecode));
             { create a new for node, the old one will be released by the compiler }
             oldn:=n;
-            newfor:=cfornode.create(tfornode(oldn).left,tfornode(oldn).right,tfornode(oldn).t1,tfornode(oldn).t2,lnf_backward in tfornode(oldn).loopflags);
+            newfor:=cfornode.create(tfornode(oldn).left,tfornode(oldn).right,tfornode(oldn).t1,tfornode(oldn).t2,lnf_backward in tfornode(oldn).loopflags,compiler);
             tfornode(oldn).left:=nil;
             tfornode(oldn).right:=nil;
             tfornode(oldn).t1:=nil;
@@ -650,6 +662,8 @@ unit optloop;
       end;
 
     function OptimizeForLoop_iterforloops(var n: tnode; arg: pointer): foreachnoderesult;
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       begin
         Result:=fen_false;
         if (n.nodetype=forn) and
@@ -686,10 +700,10 @@ unit optloop;
                 include(tfornode(n).loopflags,lnf_backward);
                 tfornode(n).right:=ctypeconvnode.create_internal(
                   caddnode.create_internal(addn,caddnode.create_internal(subn,
-                    tfornode(n).t1,tfornode(n).right),
-                    cordconstnode.create(1,tfornode(n).left.resultdef,false)),
-                  tfornode(n).left.resultdef);
-                tfornode(n).t1:=cordconstnode.create(1,tfornode(n).left.resultdef,false);
+                    tfornode(n).t1,tfornode(n).right,compiler),
+                    cordconstnode.create(1,tfornode(n).left.resultdef,false,compiler),compiler),
+                  tfornode(n).left.resultdef,compiler);
+                tfornode(n).t1:=cordconstnode.create(1,tfornode(n).left.resultdef,false,compiler);
                 include(tfornode(n).loopflags,lnf_counter_not_used);
                 exclude(n.transientflags,tnf_pass1_done);
                 do_firstpass(n);

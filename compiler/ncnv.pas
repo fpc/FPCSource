@@ -26,6 +26,7 @@ unit ncnv;
 interface
 
     uses
+       compilerbase,
        node,
        symtype,
        defutil,defcmp,
@@ -54,10 +55,10 @@ interface
           convnodeflags : ttypeconvnodeflags;
           warn_pointer_to_signed,
           assignment_side: boolean;
-          constructor create(node : tnode;def:tdef);virtual;
-          constructor create_explicit(node : tnode;def:tdef);
-          constructor create_internal(node : tnode;def:tdef);
-          constructor create_proc_to_procvar(node : tnode);
+          constructor create(node : tnode;def:tdef;acompiler:TCompilerBase);virtual;
+          constructor create_explicit(node : tnode;def:tdef;acompiler:TCompilerBase);
+          constructor create_internal(node : tnode;def:tdef;acompiler:TCompilerBase);
+          constructor create_proc_to_procvar(node : tnode;acompiler:TCompilerBase);
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderefimpl;override;
@@ -287,8 +288,8 @@ interface
             so the call field is required
           }
           call: tnode;
-          constructor create(l,r : tnode);virtual;
-          constructor create_internal(l,r : tnode);virtual;
+          constructor create(l,r : tnode;acompiler:TCompilerBase);virtual;
+          constructor create_internal(l,r : tnode;acompiler:TCompilerBase);virtual;
           function pass_1 : tnode;override;
           function dogetcopy: tnode;override;
           function docompare(p: tnode): boolean; override;
@@ -297,8 +298,8 @@ interface
        tasnodeclass = class of tasnode;
 
        tisnode = class(tasisnode)
-          constructor create(l,r : tnode);virtual;
-          constructor create_internal(l,r : tnode);virtual;
+          constructor create(l,r : tnode;acompiler:TCompilerBase);virtual;
+          constructor create_internal(l,r : tnode;acompiler:TCompilerBase);virtual;
           function pass_1 : tnode;override;
           procedure pass_generate_code;override;
        end;
@@ -309,9 +310,9 @@ interface
        casnode : tasnodeclass = tasnode;
        cisnode : tisnodeclass=tisnode;
 
-    procedure inserttypeconv(var p:tnode;def:tdef);
-    procedure inserttypeconv_explicit(var p:tnode;def:tdef);
-    procedure inserttypeconv_internal(var p:tnode;def:tdef);
+    procedure inserttypeconv(var p:tnode;def:tdef;acompiler:TCompilerBase);
+    procedure inserttypeconv_explicit(var p:tnode;def:tdef;acompiler:TCompilerBase);
+    procedure inserttypeconv_internal(var p:tnode;def:tdef;acompiler:TCompilerBase);
     procedure arrayconstructor_to_set(var p : tnode);inline;
     function arrayconstructor_to_set(p:tnode;freep:boolean):tnode;
     function arrayconstructor_can_be_set(p:tnode):boolean;
@@ -338,7 +339,7 @@ implementation
     type
       ttypeconvnodetype = (tct_implicit,tct_explicit,tct_internal);
 
-    procedure do_inserttypeconv(var p: tnode;def: tdef; convtype: ttypeconvnodetype);
+    procedure do_inserttypeconv(var p: tnode;def: tdef; convtype: ttypeconvnodetype;acompiler:TCompilerBase);
 
       begin
         if not assigned(p.resultdef) then
@@ -377,11 +378,11 @@ implementation
          begin
            case convtype of
              tct_implicit:
-               p:=ctypeconvnode.create(p,def);
+               p:=ctypeconvnode.create(p,def,acompiler);
              tct_explicit:
-               p:=ctypeconvnode.create_explicit(p,def);
+               p:=ctypeconvnode.create_explicit(p,def,acompiler);
              tct_internal:
-               p:=ctypeconvnode.create_internal(p,def);
+               p:=ctypeconvnode.create_internal(p,def,acompiler);
            end;
            p.fileinfo:=ttypeconvnode(p).left.fileinfo;
            typecheckpass(p);
@@ -389,23 +390,23 @@ implementation
       end;
 
 
-    procedure inserttypeconv(var p:tnode;def:tdef);
+    procedure inserttypeconv(var p:tnode;def:tdef;acompiler:TCompilerBase);
 
       begin
-        do_inserttypeconv(p,def,tct_implicit);
+        do_inserttypeconv(p,def,tct_implicit,acompiler);
       end;
 
 
-    procedure inserttypeconv_explicit(var p: tnode; def: tdef);
+    procedure inserttypeconv_explicit(var p: tnode; def: tdef;acompiler:TCompilerBase);
 
       begin
-        do_inserttypeconv(p,def,tct_explicit);
+        do_inserttypeconv(p,def,tct_explicit,acompiler);
       end;
 
-    procedure inserttypeconv_internal(var p:tnode;def:tdef);
+    procedure inserttypeconv_internal(var p:tnode;def:tdef;acompiler:TCompilerBase);
 
       begin
-        do_inserttypeconv(p,def,tct_internal);
+        do_inserttypeconv(p,def,tct_internal,acompiler);
       end;
 
 
@@ -419,6 +420,8 @@ implementation
       end;
 
     function arrayconstructor_to_set(p:tnode;freep:boolean):tnode;
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       var
         constp      : tsetconstnode;
         p2,p3,p4    : tnode;
@@ -517,7 +520,7 @@ implementation
         else
           constsetlo:=0;
         constsethi:=0;
-        constp:=csetconstnode.create(nil,hdef);
+        constp:=csetconstnode.create(nil,hdef,compiler);
         constp.value_set:=constset;
         result:=constp;
         hp:=tarrayconstructornode(p);
@@ -560,7 +563,7 @@ implementation
                     if is_widechar(p2.resultdef) then
                       begin
                         if block_type<>bt_const then
-                          inserttypeconv(p2,cansichartype);
+                          inserttypeconv(p2,cansichartype,compiler);
                         if (p2.nodetype<>ordconstn) and not (m_default_unicodestring in current_settings.modeswitches) then
                           incompatibletypes(cwidechartype,cansichartype);
                       end;
@@ -571,7 +574,7 @@ implementation
                        if is_widechar(p3.resultdef) then
                          begin
                            if block_type<>bt_const then
-                             inserttypeconv(p3,cansichartype);
+                             inserttypeconv(p3,cansichartype,compiler);
                            if (p3.nodetype<>ordconstn) and not (m_default_unicodestring in current_settings.modeswitches) then
                              begin
                                current_filepos:=p3.fileinfo;
@@ -603,8 +606,8 @@ implementation
                                  end
                                else
                                  begin
-                                   inserttypeconv(p3,u8inttype);
-                                   inserttypeconv(p2,u8inttype);
+                                   inserttypeconv(p3,u8inttype,compiler);
+                                   inserttypeconv(p2,u8inttype,compiler);
                                  end;
 
                               if tordconstnode(p2).value.svalue>tordconstnode(p3).value.svalue then
@@ -619,18 +622,18 @@ implementation
                            else
                             begin
                               update_constsethi(p2.resultdef,false);
-                              inserttypeconv(p2,hdef);
+                              inserttypeconv(p2,hdef,compiler);
 
                               update_constsethi(p3.resultdef,false);
-                              inserttypeconv(p3,hdef);
+                              inserttypeconv(p3,hdef,compiler);
 
                               if assigned(hdef) then
-                                inserttypeconv(p3,hdef)
+                                inserttypeconv(p3,hdef,compiler)
                               else if first then
                                 hdef:=p3.resultdef
                               else
-                                inserttypeconv(p3,u8inttype);
-                              p4:=csetelementnode.create(p2,p3);
+                                inserttypeconv(p3,u8inttype,compiler);
+                              p4:=csetelementnode.create(p2,p3,compiler);
                             end;
                          end;
                      end
@@ -640,11 +643,11 @@ implementation
                        if p2.nodetype=ordconstn then
                         begin
                           if assigned(hdef) then
-                            inserttypeconv(p2,hdef)
+                            inserttypeconv(p2,hdef,compiler)
                           else if not(is_integer(p2.resultdef)) and first then
                             hdef:=p2.resultdef
                           else
-                            inserttypeconv(p2,u8inttype);
+                            inserttypeconv(p2,u8inttype,compiler);
 
                           if not(is_integer(p2.resultdef)) then
                             update_constsethi(p2.resultdef,true);
@@ -658,13 +661,13 @@ implementation
                           update_constsethi(p2.resultdef,false);
 
                           if assigned(hdef) then
-                            inserttypeconv(p2,hdef)
+                            inserttypeconv(p2,hdef,compiler)
                           else if not(is_integer(p2.resultdef)) and first then
                             hdef:=p2.resultdef
                           else
-                            inserttypeconv(p2,u8inttype);
+                            inserttypeconv(p2,u8inttype,compiler);
 
-                          p4:=csetelementnode.create(p2,nil);
+                          p4:=csetelementnode.create(p2,nil,compiler);
                         end;
                      end;
                   end;
@@ -673,7 +676,7 @@ implementation
               end;
               { insert the set creation tree }
               if assigned(p4) then
-               result:=caddnode.create(addn,result,p4);
+               result:=caddnode.create(addn,result,p4,compiler);
               { load next and dispose current node }
               p2:=hp;
               hp:=tarrayconstructornode(tarrayconstructornode(p2).right);
@@ -779,6 +782,8 @@ implementation
 
 
     procedure insert_varargstypeconv(var p : tnode; iscvarargs: boolean);
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       begin
         { procvars without arguments in variant arrays are always called by
           Delphi }
@@ -788,18 +793,18 @@ implementation
            (p.nodetype=stringconstn) and
            { don't cast to AnsiString if already casted to Wide/UnicodeString, issue #18266 }
            (tstringconstnode(p).cst_type in [cst_conststring,cst_shortstring,cst_longstring]) then
-          p:=ctypeconvnode.create_internal(p,getansistringdef)
+          p:=ctypeconvnode.create_internal(p,getansistringdef,compiler)
         else
           case p.resultdef.typ of
             enumdef :
-              p:=ctypeconvnode.create_internal(p,s32inttype);
+              p:=ctypeconvnode.create_internal(p,s32inttype,compiler);
             arraydef :
               begin
                 if is_chararray(p.resultdef) then
-                  p:=ctypeconvnode.create_internal(p,charpointertype)
+                  p:=ctypeconvnode.create_internal(p,charpointertype,compiler)
                 else
                   if is_widechararray(p.resultdef) then
-                    p:=ctypeconvnode.create_internal(p,widecharpointertype)
+                    p:=ctypeconvnode.create_internal(p,widecharpointertype,compiler)
                 else
                   CGMessagePos1(p.fileinfo,type_e_wrong_type_in_array_constructor,p.resultdef.typename);
               end;
@@ -808,7 +813,7 @@ implementation
                 if is_integer(p.resultdef) and
                    not(is_64bitint(p.resultdef)) then
                   if not(m_delphi in current_settings.modeswitches) then
-                    p:=ctypeconvnode.create(p,s32inttype)
+                    p:=ctypeconvnode.create(p,s32inttype,compiler)
                   else
                     { delphi doesn't generate a range error when passing a
                       cardinal >= $80000000, but since these are seen as
@@ -816,18 +821,18 @@ implementation
                       as a result, we require an explicit longint()
                       typecast in FPC mode on the caller side if range
                       checking should be disabled, but not in Delphi mode }
-                    p:=ctypeconvnode.create_internal(p,s32inttype)
+                    p:=ctypeconvnode.create_internal(p,s32inttype,compiler)
                 else if is_void(p.resultdef) then
                   CGMessagePos1(p.fileinfo,type_e_wrong_type_in_array_constructor,p.resultdef.typename)
                 else if iscvarargs and is_currency(p.resultdef)
                     and (current_settings.fputype<>fpu_none) then
-                  p:=ctypeconvnode.create(p,s64floattype);
+                  p:=ctypeconvnode.create(p,s64floattype,compiler);
               end;
             floatdef :
               if not(iscvarargs) then
                 begin
                   if not(is_currency(p.resultdef)) then
-                    p:=ctypeconvnode.create(p,pbestrealtype^);
+                    p:=ctypeconvnode.create(p,pbestrealtype^,compiler);
                 end
               else
                 begin
@@ -837,13 +842,13 @@ implementation
                   if (tfloatdef(p.resultdef).floattype in [s32real,s64currency]) or
                      (is_constrealnode(p) and
                       not(nf_explicit in p.flags)) then
-                    p:=ctypeconvnode.create(p,s64floattype);
+                    p:=ctypeconvnode.create(p,s64floattype,compiler);
                 end;
             procvardef :
-              p:=ctypeconvnode.create(p,voidpointertype);
+              p:=ctypeconvnode.create(p,voidpointertype,compiler);
             stringdef:
               if iscvarargs then
-                p:=ctypeconvnode.create(p,charpointertype);
+                p:=ctypeconvnode.create(p,charpointertype,compiler);
             variantdef:
               if iscvarargs then
                 CGMessagePos1(p.fileinfo,type_e_wrong_type_in_array_constructor,p.resultdef.typename);
@@ -855,10 +860,10 @@ implementation
               ;
             classrefdef:
               if iscvarargs then
-                p:=ctypeconvnode.create(p,voidpointertype);
+                p:=ctypeconvnode.create(p,voidpointertype,compiler);
             objectdef :
               if is_objc_class_or_protocol(p.resultdef) then
-                p:=ctypeconvnode.create(p,voidpointertype)
+                p:=ctypeconvnode.create(p,voidpointertype,compiler)
               else if iscvarargs or
                  is_object(p.resultdef) then
                 CGMessagePos1(p.fileinfo,type_e_wrong_type_in_array_constructor,p.resultdef.typename)
@@ -879,6 +884,8 @@ implementation
       solution is to remove the (wrong) conversion to a global procvar,
       and instead insert a conversion to the local procvar type. }
     function maybe_global_proc_to_nested(var fromnode: tnode; todef: tdef): boolean;
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       var
         hp: tnode;
       begin
@@ -893,7 +900,7 @@ implementation
            (proc_to_procvar_equal(tprocdef(ttypeconvnode(fromnode).left.resultdef),tprocvardef(todef),false)>=te_convert_l1) then
           begin
             hp:=fromnode;
-            fromnode:=ctypeconvnode.create_proc_to_procvar(ttypeconvnode(fromnode).left);
+            fromnode:=ctypeconvnode.create_proc_to_procvar(ttypeconvnode(fromnode).left,compiler);
             ttypeconvnode(fromnode).totypedef:=todef;
             typecheckpass(fromnode);
             ttypeconvnode(hp).left:=nil;
@@ -909,6 +916,8 @@ implementation
       in the loadnode so we can retrieve it here (rather than the symtable in
       which method was found, which may be a parent class) }
     function maybe_classmethod_to_methodprocvar(var fromnode: tnode; todef: tdef): boolean;
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       var
         hp: tnode;
       begin
@@ -927,8 +936,8 @@ implementation
             fromnode:=ttypeconvnode(fromnode).left;
             if (fromnode.nodetype=loadn) and
                not assigned(tloadnode(fromnode).left) then
-              tloadnode(fromnode).set_mp(cloadvmtaddrnode.create(ctypenode.create(tdef(tloadnode(fromnode).symtable.defowner))));
-            fromnode:=ctypeconvnode.create_proc_to_procvar(fromnode);
+              tloadnode(fromnode).set_mp(cloadvmtaddrnode.create(ctypenode.create(tdef(tloadnode(fromnode).symtable.defowner),compiler),compiler));
+            fromnode:=ctypeconvnode.create_proc_to_procvar(fromnode,compiler);
             ttypeconvnode(fromnode).totypedef:=todef;
             typecheckpass(fromnode);
             ttypeconvnode(hp).left:=nil;
@@ -943,10 +952,10 @@ implementation
 *****************************************************************************}
 
 
-    constructor ttypeconvnode.create(node : tnode;def:tdef);
+    constructor ttypeconvnode.create(node : tnode;def:tdef;acompiler:TCompilerBase);
 
       begin
-         inherited create(typeconvn,node);
+         inherited create(typeconvn,node,acompiler);
          convtype:=tc_none;
          convnodeflags:=[];
          totypedef:=def;
@@ -977,28 +986,28 @@ implementation
       end;
 
 
-    constructor ttypeconvnode.create_explicit(node : tnode;def:tdef);
+    constructor ttypeconvnode.create_explicit(node : tnode;def:tdef;acompiler:TCompilerBase);
 
       begin
-         self.create(node,def);
+         self.create(node,def,acompiler);
          include(flags,nf_explicit);
       end;
 
 
-    constructor ttypeconvnode.create_internal(node : tnode;def:tdef);
+    constructor ttypeconvnode.create_internal(node : tnode;def:tdef;acompiler:TCompilerBase);
 
       begin
-         self.create(node,def);
+         self.create(node,def,acompiler);
          { handle like explicit conversions }
          include(flags,nf_explicit);
          include(flags,nf_internal);
       end;
 
 
-    constructor ttypeconvnode.create_proc_to_procvar(node : tnode);
+    constructor ttypeconvnode.create_proc_to_procvar(node : tnode;acompiler:TCompilerBase);
 
       begin
-         self.create(node,voidtype);
+         self.create(node,voidtype,acompiler);
          convtype:=tc_proc_2_procvar;
       end;
 
@@ -1123,7 +1132,7 @@ implementation
               else
                 { in Delphi mode, these aren't caught in compare_defs_ext }
                 IncompatibleTypes(left.resultdef,resultdef);
-            result:=cpointerconstnode.create(TConstPtrUInt(tordconstnode(left).value.uvalue),resultdef);
+            result:=cpointerconstnode.create(TConstPtrUInt(tordconstnode(left).value.uvalue),resultdef,compiler);
           end
          else
           internalerror(200104023);
@@ -1144,15 +1153,15 @@ implementation
         if tstringdef(resultdef).stringtype=st_shortstring then
           begin
             newblock:=internalstatements(newstat);
-            restemp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,false);
+            restemp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,false,compiler);
             addstatement(newstat,restemp);
             addstatement(newstat,ccallnode.createintern('fpc_'+chartype+'array_to_shortstr',
               ccallparanode.create(cordconstnode.create(
-                ord(tarraydef(left.resultdef).lowrange=0),pasbool1type,false),
+                ord(tarraydef(left.resultdef).lowrange=0),pasbool1type,false,compiler),
               ccallparanode.create(left,ccallparanode.create(
-              ctemprefnode.create(restemp),nil)))));
-            addstatement(newstat,ctempdeletenode.create_normal_temp(restemp));
-            addstatement(newstat,ctemprefnode.create(restemp));
+              ctemprefnode.create(restemp,compiler),nil,compiler),compiler),compiler)));
+            addstatement(newstat,ctempdeletenode.create_normal_temp(restemp,compiler));
+            addstatement(newstat,ctemprefnode.create(restemp,compiler));
             result:=newblock;
           end
         else if (tstringdef(resultdef).stringtype=st_ansistring) then
@@ -1163,16 +1172,20 @@ implementation
                         cordconstnode.create(
                           ord(tarraydef(left.resultdef).lowrange=0),
                           pasbool1type,
-                          false
+                          false,
+                          compiler
                         ),
                         ccallparanode.create(
                           cordconstnode.create(
                             getparaencoding(resultdef),
                             u16inttype,
-                            true
+                            true,
+                            compiler
                           ),
-                          ccallparanode.create(left,nil)
-                        )
+                          ccallparanode.create(left,nil,compiler),
+                          compiler
+                        ),
+                        compiler
                       ),
                       resultdef
                     );
@@ -1181,8 +1194,8 @@ implementation
           result:=ccallnode.createinternres(
             'fpc_'+chartype+'array_to_'+tstringdef(resultdef).stringtypname,
             ccallparanode.create(cordconstnode.create(
-               ord(tarraydef(left.resultdef).lowrange=0),pasbool1type,false),
-             ccallparanode.create(left,nil)),resultdef);
+               ord(tarraydef(left.resultdef).lowrange=0),pasbool1type,false,compiler),
+             ccallparanode.create(left,nil,compiler),compiler),resultdef);
         left:=nil;
       end;
 
@@ -1221,7 +1234,7 @@ implementation
                    begin
                      pchtemp:=concatansistrings(tstringconstnode(left).asconstpchar,pchar(StringOfChar(#0,arrsize-tstringconstnode(left).len)),tstringconstnode(left).len,arrsize-tstringconstnode(left).len);
                      left.free;
-                     left:=cstringconstnode.createpchar(pchtemp,arrsize,nil);
+                     left:=cstringconstnode.createpchar(pchtemp,arrsize,nil,compiler);
                      freemem(pchtemp);
                      typecheckpass(left);
                    end;
@@ -1229,13 +1242,13 @@ implementation
                end;
              { Convert to wide/short/ansistring and call default helper }
              if is_widechar(tarraydef(resultdef).elementdef) then
-               inserttypeconv(left,cunicodestringtype)
+               inserttypeconv(left,cunicodestringtype,compiler)
              else
                begin
                  if tstringconstnode(left).len>255 then
-                   inserttypeconv(left,getansistringdef)
+                   inserttypeconv(left,getansistringdef,compiler)
                  else
-                   inserttypeconv(left,cshortstringtype);
+                   inserttypeconv(left,cshortstringtype,compiler);
                end;
            end;
         if is_widechar(tarraydef(resultdef).elementdef) then
@@ -1243,13 +1256,13 @@ implementation
         else
           chartype:='char';
         newblock:=internalstatements(newstat);
-        restemp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,false);
+        restemp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,false,compiler);
         addstatement(newstat,restemp);
         addstatement(newstat,ccallnode.createintern('fpc_'+tstringdef(left.resultdef).stringtypname+
           '_to_'+chartype+'array',ccallparanode.create(left,ccallparanode.create(
-          ctemprefnode.create(restemp),nil))));
-        addstatement(newstat,ctempdeletenode.create_normal_temp(restemp));
-        addstatement(newstat,ctemprefnode.create(restemp));
+          ctemprefnode.create(restemp,compiler),nil,compiler),compiler)));
+        addstatement(newstat,ctempdeletenode.create_normal_temp(restemp,compiler));
+        addstatement(newstat,ctemprefnode.create(restemp,compiler));
         result:=newblock;
         left:=nil;
       end;
@@ -1279,7 +1292,7 @@ implementation
                    concatwidestringchar(ws,tcompilerwidechar(tordconstnode(left).value.uvalue))
                  else
                    concatwidestringchar(ws,asciichar2unicode(chr(tordconstnode(left).value.uvalue)));
-                 hp:=cstringconstnode.createunistr(ws);
+                 hp:=cstringconstnode.createunistr(ws,compiler);
                  hp.changestringtype(resultdef);
                  donewidestring(ws);
                end
@@ -1300,16 +1313,16 @@ implementation
                               // Delphi converts UniocodeChar to ansistring at the compile time
                               // old behavior:
                               // hp:=cstringconstnode.createstr(unicode2asciichar(tcompilerwidechar(tordconstnode(left).value.uvalue)));
-                              para:=ccallparanode.create(left,nil);
+                              para:=ccallparanode.create(left,nil,compiler);
                               if tstringdef(resultdef).stringtype=st_ansistring then
-                                para:=ccallparanode.create(cordconstnode.create(getparaencoding(resultdef),u16inttype,true),para);
+                                para:=ccallparanode.create(cordconstnode.create(getparaencoding(resultdef),u16inttype,true,compiler),para,compiler);
                               result:=ccallnode.createinternres('fpc_uchar_to_'+tstringdef(resultdef).stringtypname,
                                 para,resultdef);
                               left:=nil;
                               exit;
                             end
                           else
-                            hp:=cstringconstnode.createstr(unicode2asciichar(tcompilerwidechar(tordconstnode(left).value.uvalue)));
+                            hp:=cstringconstnode.createstr(unicode2asciichar(tcompilerwidechar(tordconstnode(left).value.uvalue)),compiler);
                         end
                       else
                         begin
@@ -1317,7 +1330,7 @@ implementation
                           SetLength(sa,5);
                           l:=UnicodeToUtf8(@(sa[1]),Length(sa),@cw,1);
                           SetLength(sa,l-1);
-                          hp:=cstringconstnode.createstr(sa);
+                          hp:=cstringconstnode.createstr(sa,compiler);
                           { explicitly set the type of string constant to avoid unnecessary conversion }
                           if (tstringdef(resultdef).stringtype=st_ansistring) and
                              (tstringdef(resultdef).encoding=CP_UTF8) then
@@ -1328,7 +1341,7 @@ implementation
                         end
                     end
                   else
-                    hp:=cstringconstnode.createstr(chr(tordconstnode(left).value.uvalue));
+                    hp:=cstringconstnode.createstr(chr(tordconstnode(left).value.uvalue),compiler);
                   { output string consts in local ansistring encoding }
                   if is_ansistring(resultdef) and ((tstringdef(resultdef).encoding=0) or (tstringdef(resultdef).encoding=globals.CP_NONE)) then
                     tstringconstnode(hp).changestringtype(getansistringdef)
@@ -1344,10 +1357,10 @@ implementation
               (target_info.system in systems_managed_vm) then
              begin
                { parameter }
-               para:=ccallparanode.create(left,nil);
+               para:=ccallparanode.create(left,nil,compiler);
                { encoding required? }
                if tstringdef(resultdef).stringtype=st_ansistring then
-                 para:=ccallparanode.create(cordconstnode.create(getparaencoding(resultdef),u16inttype,true),para);
+                 para:=ccallparanode.create(cordconstnode.create(getparaencoding(resultdef),u16inttype,true,compiler),para,compiler);
 
                { create the procname }
                if torddef(left.resultdef).ordtype<>uwidechar then
@@ -1384,15 +1397,15 @@ implementation
 {$endif cpu8bitalu}
                { create word(byte(char) shl 8 or 1) for little endian machines}
                { and word(byte(char) or 256) for big endian machines          }
-               left := ctypeconvnode.create_internal(left,exprtype);
+               left := ctypeconvnode.create_internal(left,exprtype,compiler);
                if (target_info.endian = endian_little) then
                  left := caddnode.create(orn,
-                   cshlshrnode.create(shln,left,cordconstnode.create(8,exprtype,false)),
-                   cordconstnode.create(1,exprtype,false))
+                   cshlshrnode.create(shln,left,cordconstnode.create(8,exprtype,false,compiler),compiler),
+                   cordconstnode.create(1,exprtype,false,compiler),compiler)
                else
                  left := caddnode.create(orn,left,
-                   cordconstnode.create(1 shl 8,exprtype,false));
-               left := ctypeconvnode.create_internal(left,u16inttype);
+                   cordconstnode.create(1 shl 8,exprtype,false,compiler),compiler);
+               left := ctypeconvnode.create_internal(left,u16inttype,compiler);
                typecheckpass(left);
              end;
       end;
@@ -1421,9 +1434,11 @@ implementation
                         cordconstnode.create(
                           tstringdef(resultdef).encoding,
                           u16inttype,
-                          true
+                          true,
+                          compiler
                         ),
-                        ccallparanode.create(left,nil)
+                        ccallparanode.create(left,nil,compiler),
+                        compiler
                       ),
                       resultdef
                     );
@@ -1483,7 +1498,7 @@ implementation
                   Message(type_w_unicode_data_loss);
                 hp:=cordconstnode.create(
                       ord(unicode2asciichar(tcompilerwidechar(tordconstnode(left).value.uvalue))),
-                      cansichartype,true);
+                      cansichartype,true,compiler);
                 result:=hp;
               end
              else if (torddef(resultdef).ordtype=uwidechar) and
@@ -1491,7 +1506,7 @@ implementation
               begin
                 hp:=cordconstnode.create(
                       asciichar2unicode(chr(tordconstnode(left).value.uvalue)),
-                      cwidechartype,true);
+                      cwidechartype,true,compiler);
                 result:=hp;
               end
              else
@@ -1513,7 +1528,7 @@ implementation
               not(nf_internal in flags) then
              v:=v*10000;
            if (resultdef.typ=pointerdef) then
-             result:=cpointerconstnode.create(TConstPtrUInt(v.uvalue),resultdef)
+             result:=cpointerconstnode.create(TConstPtrUInt(v.uvalue),resultdef,compiler)
            else
              begin
                if is_currency(left.resultdef) then
@@ -1523,20 +1538,20 @@ implementation
                  end
                else if (resultdef.typ in [orddef,enumdef]) then
                  adaptrange(resultdef,v,([nf_internal,nf_absolute]*flags)<>[],nf_explicit in flags,cs_check_range in localswitches);
-               result:=cordconstnode.create(v,resultdef,false);
+               result:=cordconstnode.create(v,resultdef,false,compiler);
              end;
          end
         else if left.nodetype=pointerconstn then
          begin
            v:=tpointerconstnode(left).value;
            if (resultdef.typ=pointerdef) then
-             result:=cpointerconstnode.create(v.uvalue,resultdef)
+             result:=cpointerconstnode.create(v.uvalue,resultdef,compiler)
            else
              begin
                if is_currency(resultdef) and
                   not(nf_internal in flags) then
                  v:=v*10000;
-               result:=cordconstnode.create(v,resultdef,false);
+               result:=cordconstnode.create(v,resultdef,false,compiler);
              end;
          end
         else
@@ -1553,13 +1568,13 @@ implementation
              it'll get in an infinite loop to convert int->currency }
            else if is_currency(resultdef) then
             begin
-              result:=caddnode.create(muln,getcopy,cordconstnode.create(10000,resultdef,false));
+              result:=caddnode.create(muln,getcopy,cordconstnode.create(10000,resultdef,false,compiler),compiler);
               include(result.flags,nf_is_currency);
               include(taddnode(result).left.flags,nf_internal);
             end
            else if is_currency(left.resultdef) then
             begin
-              result:=cmoddivnode.create(divn,getcopy,cordconstnode.create(10000,resultdef,false));
+              result:=cmoddivnode.create(divn,getcopy,cordconstnode.create(10000,resultdef,false,compiler),compiler);
               include(result.flags,nf_is_currency);
               include(tmoddivnode(result).left.flags,nf_internal);
             end;
@@ -1581,7 +1596,7 @@ implementation
            else if is_currency(left.resultdef) and
               not(nf_internal in flags) then
              rv:=rv/10000.0;
-           result:=crealconstnode.create(rv,resultdef);
+           result:=crealconstnode.create(rv,resultdef,compiler);
          end
         else
          begin
@@ -1597,12 +1612,12 @@ implementation
              it'll get in an infinite loop to convert int->currency }
            else if is_currency(resultdef) then
             begin
-              result:=caddnode.create(muln,getcopy,crealconstnode.create(10000.0,resultdef));
+              result:=caddnode.create(muln,getcopy,crealconstnode.create(10000.0,resultdef,compiler),compiler);
               include(result.flags,nf_is_currency);
             end
            else if is_currency(left.resultdef) then
             begin
-              result:=caddnode.create(slashn,getcopy,crealconstnode.create(10000.0,resultdef));
+              result:=caddnode.create(slashn,getcopy,crealconstnode.create(10000.0,resultdef,compiler),compiler);
               include(result.flags,nf_is_currency);
             end;
          end;
@@ -1616,16 +1631,16 @@ implementation
         result:=nil;
         if not(nf_internal in flags) then
           begin
-            left:=caddnode.create(muln,left,crealconstnode.create(10000.0,left.resultdef));
+            left:=caddnode.create(muln,left,crealconstnode.create(10000.0,left.resultdef,compiler),compiler);
             include(left.flags,nf_is_currency);
             { Convert constants directly, else call Round() }
             if left.nodetype=realconstn then
-              result:=cordconstnode.create(round(trealconstnode(left).value_real),resultdef,false)
+              result:=cordconstnode.create(round(trealconstnode(left).value_real),resultdef,false,compiler)
             else
               begin
-                result:=cinlinenode.create(in_round_real,false,left);
+                result:=cinlinenode.create(in_round_real,false,left,compiler);
                 { Internal type cast to currency }
-                result:=ctypeconvnode.create_internal(result,s64currencytype);
+                result:=ctypeconvnode.create_internal(result,s64currencytype,compiler);
                 left:=nil;
               end
           end
@@ -1645,14 +1660,14 @@ implementation
            begin
              if is_currency(left.resultdef) and not(is_currency(resultdef)) then
                begin
-                 left:=caddnode.create(slashn,left,crealconstnode.create(10000.0,left.resultdef));
+                 left:=caddnode.create(slashn,left,crealconstnode.create(10000.0,left.resultdef,compiler),compiler);
                  include(left.flags,nf_is_currency);
                  typecheckpass(left);
                end
              else
                if is_currency(resultdef) and not(is_currency(left.resultdef)) then
                  begin
-                   left:=caddnode.create(muln,left,crealconstnode.create(10000.0,left.resultdef));
+                   left:=caddnode.create(muln,left,crealconstnode.create(10000.0,left.resultdef,compiler),compiler);
                    include(left.flags,nf_is_currency);
                    include(flags,nf_is_currency);
                    typecheckpass(left);
@@ -1674,7 +1689,7 @@ implementation
          { handle any constants via cunicodestringtype because the compiler
            cannot convert arbitrary unicodechar constants at compile time to
            a shortstring (since it doesn't know the code page to use) }
-         inserttypeconv(left,cunicodestringtype);
+         inserttypeconv(left,cunicodestringtype,compiler);
          { evaluate again, reset resultdef so the convert_typ
            will be calculated again and cstring_to_pchar will
            be used for further conversion }
@@ -1688,13 +1703,13 @@ implementation
       begin
          result:=nil;
          if is_pwidechar(resultdef) then
-           inserttypeconv(left,cunicodestringtype)
+           inserttypeconv(left,cunicodestringtype,compiler)
          else
            if is_pchar(resultdef) and
               (is_widestring(left.resultdef) or
                is_unicodestring(left.resultdef)) then
              begin
-               inserttypeconv(left,getansistringdef);
+               inserttypeconv(left,getansistringdef,compiler);
                { the second pass of second_cstring_to_pchar expects a  }
                { strinconstn, but this may become a call to the        }
                { widestring manager in case left contains "high ascii" }
@@ -1722,7 +1737,7 @@ implementation
            begin
              pb:=pbyte(tstringconstnode(left).asconstpchar);
              fcc:=(pb[0] shl 24) or (pb[1] shl 16) or (pb[2] shl 8) or pb[3];
-             result:=cordconstnode.create(fcc,u32inttype,false);
+             result:=cordconstnode.create(fcc,u32inttype,false,compiler);
            end
          else
            CGMessage2(type_e_illegal_type_conversion,left.resultdef.typename,resultdef.typename);
@@ -1752,11 +1767,11 @@ implementation
             { the set might contain a subrange element (e.g. through a variable),
               thus we need to insert another type conversion }
             if nf_explicit in flags then
-              result:=ctypeconvnode.create_explicit(hp,totypedef)
+              result:=ctypeconvnode.create_explicit(hp,totypedef,compiler)
             else if nf_internal in flags then
-              result:=ctypeconvnode.create_internal(hp,totypedef)
+              result:=ctypeconvnode.create_internal(hp,totypedef,compiler)
             else
-              result:=ctypeconvnode.create(hp,totypedef);
+              result:=ctypeconvnode.create(hp,totypedef,compiler);
           end
         else
           result:=hp;
@@ -1789,27 +1804,28 @@ implementation
         if tstringdef(resultdef).stringtype=st_shortstring then
           begin
             newblock:=internalstatements(newstat);
-            restemp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,false);
+            restemp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,false,compiler);
             addstatement(newstat,restemp);
             addstatement(newstat,ccallnode.createintern('fpc_pchar_to_shortstr',ccallparanode.create(left,ccallparanode.create(
-              ctemprefnode.create(restemp),nil))));
-            addstatement(newstat,ctempdeletenode.create_normal_temp(restemp));
-            addstatement(newstat,ctemprefnode.create(restemp));
+              ctemprefnode.create(restemp,compiler),nil,compiler),compiler)));
+            addstatement(newstat,ctempdeletenode.create_normal_temp(restemp,compiler));
+            addstatement(newstat,ctemprefnode.create(restemp,compiler));
             result:=newblock;
           end
         else if tstringdef(resultdef).stringtype=st_ansistring then
           result := ccallnode.createinternres(
                       'fpc_pchar_to_'+tstringdef(resultdef).stringtypname,
                       ccallparanode.create(
-                        cordconstnode.create(getparaencoding(resultdef),u16inttype,true),
-                        ccallparanode.create(left,nil)
+                        cordconstnode.create(getparaencoding(resultdef),u16inttype,true,compiler),
+                        ccallparanode.create(left,nil,compiler),
+                        compiler
                       ),
                       resultdef
                     )
         else
           result := ccallnode.createinternres(
             'fpc_pchar_to_'+tstringdef(resultdef).stringtypname,
-            ccallparanode.create(left,nil),resultdef);
+            ccallparanode.create(left,nil,compiler),resultdef);
         left:=nil;
       end;
 
@@ -1820,7 +1836,7 @@ implementation
           begin
             if not(oo_has_valid_guid in tobjectdef(left.resultdef).objectoptions) then
               CGMessage1(type_e_interface_has_no_guid,tobjectdef(left.resultdef).typename);
-            result:=cstringconstnode.createstr(tobjectdef(left.resultdef).iidstr^);
+            result:=cstringconstnode.createstr(tobjectdef(left.resultdef).iidstr^,compiler);
             tstringconstnode(result).changestringtype(cshortstringtype);
           end
         else
@@ -1834,7 +1850,7 @@ implementation
           begin
             if not(oo_has_valid_guid in tobjectdef(left.resultdef).objectoptions) then
               CGMessage1(type_e_interface_has_no_guid,tobjectdef(left.resultdef).typename);
-            result:=cguidconstnode.create(tobjectdef(left.resultdef).iidguid^);
+            result:=cguidconstnode.create(tobjectdef(left.resultdef).iidguid^,compiler);
           end
         else
           internalerror(2013112914);
@@ -1847,11 +1863,11 @@ implementation
           CGMessage(type_e_no_addr_of_constant);
         { a dynamic array is a pointer to an array, so to convert it to }
         { an open array, we have to dereference it (JM)                 }
-        result:=ctypeconvnode.create_internal(left,cpointerdef.getreusable(resultdef));
+        result:=ctypeconvnode.create_internal(left,cpointerdef.getreusable(resultdef),compiler);
         typecheckpass(result);
         { left is reused }
         left:=nil;
-        result:=cderefnode.create(result);
+        result:=cderefnode.create(result,compiler);
         include(TDerefNode(result).derefnodeflags,drnf_no_checkpointer);
       end;
 
@@ -1865,12 +1881,12 @@ implementation
         if tstringdef(resultdef).stringtype=st_shortstring then
           begin
             newblock:=internalstatements(newstat);
-            restemp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,false);
+            restemp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,false,compiler);
             addstatement(newstat,restemp);
             addstatement(newstat,ccallnode.createintern('fpc_pwidechar_to_shortstr',ccallparanode.create(left,ccallparanode.create(
-              ctemprefnode.create(restemp),nil))));
-            addstatement(newstat,ctempdeletenode.create_normal_temp(restemp));
-            addstatement(newstat,ctemprefnode.create(restemp));
+              ctemprefnode.create(restemp,compiler),nil,compiler),compiler)));
+            addstatement(newstat,ctempdeletenode.create_normal_temp(restemp,compiler));
+            addstatement(newstat,ctemprefnode.create(restemp,compiler));
             result:=newblock;
           end
         else if tstringdef(resultdef).stringtype=st_ansistring then
@@ -1881,9 +1897,11 @@ implementation
                            cordconstnode.create(
                              getparaencoding(resultdef),
                              u16inttype,
-                             true
+                             true,
+                             compiler
                            ),
-                           ccallparanode.create(left,nil)
+                           ccallparanode.create(left,nil,compiler),
+                           compiler
                          ),
                          resultdef
                       );
@@ -1891,7 +1909,7 @@ implementation
         else
           result := ccallnode.createinternres(
             'fpc_pwidechar_to_'+tstringdef(resultdef).stringtypname,
-            ccallparanode.create(left,nil),resultdef);
+            ccallparanode.create(left,nil,compiler),resultdef);
         left:=nil;
       end;
 
@@ -1900,8 +1918,9 @@ implementation
       begin
         result := ccallnode.createinternres(
           'fpc_variant_to_dynarray',
-          ccallparanode.create(caddrnode.create_internal(crttinode.create(tstoreddef(resultdef),initrtti,rdt_normal)),
-            ccallparanode.create(left,nil)
+          ccallparanode.create(caddrnode.create_internal(crttinode.create(tstoreddef(resultdef),initrtti,rdt_normal,compiler),compiler),
+            ccallparanode.create(left,nil,compiler),
+            compiler
           ),resultdef);
         typecheckpass(result);
         left:=nil;
@@ -1912,8 +1931,8 @@ implementation
       begin
         result := ccallnode.createinternres(
           'fpc_dynarray_to_variant',
-          ccallparanode.create(caddrnode.create_internal(crttinode.create(tstoreddef(left.resultdef),initrtti,rdt_normal)),
-            ccallparanode.create(ctypeconvnode.create_explicit(left,voidpointertype),nil)
+          ccallparanode.create(caddrnode.create_internal(crttinode.create(tstoreddef(left.resultdef),initrtti,rdt_normal,compiler),compiler),
+            ccallparanode.create(ctypeconvnode.create_explicit(left,voidpointertype,compiler),nil,compiler),compiler
           ),resultdef);
         typecheckpass(result);
         left:=nil;
@@ -1925,12 +1944,12 @@ implementation
         if def_is_related(tobjectdef(resultdef),tobjectdef(search_system_type('IDISPATCH').typedef)) then
           result := ccallnode.createinternres(
             'fpc_variant_to_idispatch',
-              ccallparanode.create(left,nil)
+              ccallparanode.create(left,nil,compiler)
             ,resultdef)
         else
           result := ccallnode.createinternres(
             'fpc_variant_to_interface',
-              ccallparanode.create(left,nil)
+              ccallparanode.create(left,nil,compiler)
             ,resultdef);
         typecheckpass(result);
         left:=nil;
@@ -1942,12 +1961,12 @@ implementation
         if def_is_related(tobjectdef(left.resultdef),tobjectdef(search_system_type('IDISPATCH').typedef)) then
           result := ccallnode.createinternres(
             'fpc_idispatch_to_variant',
-              ccallparanode.create(left,nil)
+              ccallparanode.create(left,nil,compiler)
             ,resultdef)
         else
           result := ccallnode.createinternres(
             'fpc_interface_to_variant',
-              ccallparanode.create(left,nil)
+              ccallparanode.create(left,nil,compiler)
             ,resultdef);
         typecheckpass(result);
         left:=nil;
@@ -1957,8 +1976,8 @@ implementation
     function ttypeconvnode.typecheck_variant_to_enum : tnode;
 
       begin
-        result := ctypeconvnode.create_internal(left,sinttype);
-        result := ctypeconvnode.create_internal(result,resultdef);
+        result := ctypeconvnode.create_internal(left,sinttype,compiler);
+        result := ctypeconvnode.create_internal(result,resultdef,compiler);
         typecheckpass(result);
         { left is reused }
         left := nil;
@@ -1968,8 +1987,8 @@ implementation
     function ttypeconvnode.typecheck_enum_to_variant : tnode;
 
       begin
-        result := ctypeconvnode.create_internal(left,sinttype);
-        result := ctypeconvnode.create_internal(result,cvarianttype);
+        result := ctypeconvnode.create_internal(left,sinttype,compiler);
+        result := ctypeconvnode.create_internal(result,cvarianttype,compiler);
         typecheckpass(result);
         { left is reused }
         left := nil;
@@ -1986,38 +2005,39 @@ implementation
         result:=internalstatements(newstatement);
 
         { create temp for result }
-        temp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,true);
+        temp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,true,compiler);
         addstatement(newstatement,temp);
 
         { get temp for array of lengths }
-        temp2:=ctempcreatenode.create(sinttype,sinttype.size,tt_persistent,false);
+        temp2:=ctempcreatenode.create(sinttype,sinttype.size,tt_persistent,false,compiler);
         addstatement(newstatement,temp2);
 
         { one dimensional }
         addstatement(newstatement,cassignmentnode.create(
-            ctemprefnode.create(temp2),
+            ctemprefnode.create(temp2,compiler),
             cordconstnode.create
-               (tarraydef(left.resultdef).highrange+1,s32inttype,true)));
+               (tarraydef(left.resultdef).highrange+1,s32inttype,true,compiler),compiler));
         { create call to fpc_dynarr_setlength }
         addstatement(newstatement,ccallnode.createintern('fpc_dynarray_setlength',
             ccallparanode.create(caddrnode.create_internal
-                  (ctemprefnode.create(temp2)),
+                  (ctemprefnode.create(temp2,compiler),compiler),
                ccallparanode.create(cordconstnode.create
-                  (1,s32inttype,true),
+                  (1,s32inttype,true,compiler),
                ccallparanode.create(caddrnode.create_internal
-                  (crttinode.create(tstoreddef(resultdef),initrtti,rdt_normal)),
+                  (crttinode.create(tstoreddef(resultdef),initrtti,rdt_normal,compiler),compiler),
                ccallparanode.create(
                  ctypeconvnode.create_internal(
-                   ctemprefnode.create(temp),voidpointertype),
-                 nil))))
+                   ctemprefnode.create(temp,compiler),voidpointertype,compiler),
+                 nil,compiler),compiler),compiler),compiler)
 
           ));
-        addstatement(newstatement,ctempdeletenode.create(temp2));
+        addstatement(newstatement,ctempdeletenode.create(temp2,compiler));
 
         { copy ... }
         addstatement(newstatement,cassignmentnode.create(
-          ctypeconvnode.create_internal(cderefnode.create(ctypeconvnode.create_internal(ctemprefnode.create(temp),voidpointertype)),left.resultdef),
-          left
+          ctypeconvnode.create_internal(cderefnode.create(ctypeconvnode.create_internal(ctemprefnode.create(temp,compiler),voidpointertype,compiler),compiler),left.resultdef,compiler),
+          left,
+          compiler
         ));
         { left is reused }
         left:=nil;
@@ -2025,8 +2045,8 @@ implementation
           location and type, this is done be referencing the
           temp and converting it first from a persistent temp to
           normal temp }
-        addstatement(newstatement,ctempdeletenode.create_normal_temp(temp));
-        addstatement(newstatement,ctemprefnode.create(temp));
+        addstatement(newstatement,ctempdeletenode.create_normal_temp(temp,compiler));
+        addstatement(newstatement,ctemprefnode.create(temp,compiler));
       end;
 
 
@@ -2054,7 +2074,7 @@ implementation
               is_emptyset(left)
             then
           begin
-            result:=cnilnode.create;
+            result:=cnilnode.create(compiler);
             exit;
           end;
 
@@ -2065,7 +2085,7 @@ implementation
 
         result:=internalstatements(newstatement);
         { create temp for result }
-        arrnode:=ctempcreatenode.create(totypedef,totypedef.size,tt_persistent,true);
+        arrnode:=ctempcreatenode.create(totypedef,totypedef.size,tt_persistent,true,compiler);
         addstatement(newstatement,arrnode);
 
         paracount:=0;
@@ -2083,9 +2103,10 @@ implementation
             addstatement(assstatement,
               cassignmentnode.create(
                 cvecnode.create(
-                  ctemprefnode.create(arrnode),
-                  cordconstnode.create(paracount,tarraydef(totypedef).rangedef,false)),
-                elemnode.left));
+                  ctemprefnode.create(arrnode,compiler),
+                  cordconstnode.create(paracount,tarraydef(totypedef).rangedef,false,compiler),compiler),
+                elemnode.left,
+                compiler));
             elemnode.left:=nil;
             inc(paracount);
             elemnode:=tarrayconstructornode(elemnode.right);
@@ -2094,32 +2115,32 @@ implementation
           end;
 
         { get temp for array of lengths }
-        temp2:=ctempcreatenode.create_value(sinttype,sinttype.size,tt_persistent,false,cordconstnode.create(paracount,s32inttype,true));
+        temp2:=ctempcreatenode.create_value(sinttype,sinttype.size,tt_persistent,false,cordconstnode.create(paracount,s32inttype,true,compiler),compiler);
         addstatement(newstatement,temp2);
 
         { create call to fpc_dynarr_setlength }
         addstatement(newstatement,ccallnode.createintern('fpc_dynarray_setlength',
             ccallparanode.create(caddrnode.create_internal
-                  (ctemprefnode.create(temp2)),
+                  (ctemprefnode.create(temp2,compiler),compiler),
                ccallparanode.create(cordconstnode.create
-                  (1,s32inttype,true),
+                  (1,s32inttype,true,compiler),
                ccallparanode.create(caddrnode.create_internal
-                  (crttinode.create(tstoreddef(totypedef),initrtti,rdt_normal)),
+                  (crttinode.create(tstoreddef(totypedef),initrtti,rdt_normal,compiler),compiler),
                ccallparanode.create(
                  ctypeconvnode.create_internal(
-                   ctemprefnode.create(arrnode),voidpointertype),
-                 nil))))
+                   ctemprefnode.create(arrnode,compiler),voidpointertype,compiler),
+                 nil,compiler),compiler),compiler),compiler)
 
           ));
         { add assignment statements }
-        addstatement(newstatement,ctempdeletenode.create(temp2));
+        addstatement(newstatement,ctempdeletenode.create(temp2,compiler));
         addstatement(newstatement,assnode);
         { the last statement should return the value as
           location and type, this is done be referencing the
           temp and converting it first from a persistent temp to
           normal temp }
-        addstatement(newstatement,ctempdeletenode.create_normal_temp(arrnode));
-        addstatement(newstatement,ctemprefnode.create(arrnode));
+        addstatement(newstatement,ctempdeletenode.create_normal_temp(arrnode,compiler));
+        addstatement(newstatement,ctemprefnode.create(arrnode,compiler));
       end;
 
 
@@ -2137,7 +2158,7 @@ implementation
 
         result:=internalstatements(newstatement);
         { create temp for result }
-        arrnode:=ctempcreatenode.create(totypedef,totypedef.size,tt_persistent,true);
+        arrnode:=ctempcreatenode.create(totypedef,totypedef.size,tt_persistent,true,compiler);
         addstatement(newstatement,arrnode);
 
         paracount:=0;
@@ -2155,9 +2176,10 @@ implementation
             addstatement(assstatement,
               cassignmentnode.create(
                 cvecnode.create(
-                  ctemprefnode.create(arrnode),
-                  cordconstnode.create(paracount+tarraydef(totypedef).lowrange,tarraydef(totypedef).rangedef,false)),
-                elemnode.left));
+                  ctemprefnode.create(arrnode,compiler),
+                  cordconstnode.create(paracount+tarraydef(totypedef).lowrange,tarraydef(totypedef).rangedef,false,compiler),compiler),
+                elemnode.left,
+                compiler));
             elemnode.left:=nil;
             inc(paracount);
             elemnode:=tarrayconstructornode(elemnode.right);
@@ -2166,18 +2188,18 @@ implementation
           end;
 
         { get temp for array of lengths }
-        temp2:=ctempcreatenode.create_value(sinttype,sinttype.size,tt_persistent,false,cordconstnode.create(paracount,s32inttype,true));
+        temp2:=ctempcreatenode.create_value(sinttype,sinttype.size,tt_persistent,false,cordconstnode.create(paracount,s32inttype,true,compiler),compiler);
         addstatement(newstatement,temp2);
 
         { add assignment statements }
-        addstatement(newstatement,ctempdeletenode.create(temp2));
+        addstatement(newstatement,ctempdeletenode.create(temp2,compiler));
         addstatement(newstatement,assnode);
         { the last statement should return the value as
           location and type, this is done be referencing the
           temp and converting it first from a persistent temp to
           normal temp }
-        addstatement(newstatement,ctempdeletenode.create_normal_temp(arrnode));
-        addstatement(newstatement,ctemprefnode.create(arrnode));
+        addstatement(newstatement,ctempdeletenode.create_normal_temp(arrnode,compiler));
+        addstatement(newstatement,ctemprefnode.create(arrnode,compiler));
       end;
 
 
@@ -2517,7 +2539,7 @@ implementation
                           )
                         ) then
                       begin
-                        result:=cerrornode.create;
+                        result:=cerrornode.create(compiler);
                         exit;
                       end;
 
@@ -2614,7 +2636,7 @@ implementation
                             insert_self_and_vmt_para(pd);
 
                             { there is no self, so load a nil value }
-                            tloadnode(left).set_mp(cnilnode.create);
+                            tloadnode(left).set_mp(cnilnode.create(compiler));
                           end;
                       end;
 
@@ -2631,7 +2653,7 @@ implementation
                   begin
                     if assigned(tprocdef(pd).capturedsyms) and (tprocdef(pd).capturedsyms.count>0) then
                       begin
-                        result:=cerrornode.create;
+                        result:=cerrornode.create(compiler);
                         exit;
                       end;
 
@@ -2659,7 +2681,7 @@ implementation
                         (tprocdef(pd).capturedsyms.count>0) and
                         (left.nodetype=loadn) then
                       begin
-                        tloadnode(left).left:=cloadparentfpnode.create(tprocdef(tloadnode(left).symtable.defowner),lpf_forload);
+                        tloadnode(left).left:=cloadparentfpnode.create(tprocdef(tloadnode(left).symtable.defowner),lpf_forload,compiler);
                         typecheckpass(tloadnode(left).left);
 
                         pi:=current_procinfo.get_first_nestedproc;
@@ -2715,8 +2737,8 @@ implementation
             left:=ttypeconvnode(left).left;
             if (left.nodetype=loadn) and
                not assigned(tloadnode(left).left) then
-              tloadnode(left).set_mp(cloadvmtaddrnode.create(ctypenode.create(tdef(tloadnode(left).symtable.defowner))));
-            left:=ctypeconvnode.create_proc_to_procvar(left);
+              tloadnode(left).set_mp(cloadvmtaddrnode.create(ctypenode.create(tdef(tloadnode(left).symtable.defowner),compiler),compiler));
+            left:=ctypeconvnode.create_proc_to_procvar(left,compiler);
             ttypeconvnode(left).totypedef:=resultdef;
             typecheckpass(left);
             ttypeconvnode(hp).left:=nil;
@@ -2728,25 +2750,25 @@ implementation
         if assigned(intfdef) then
           begin
             if assigned(capturer) then
-              ld:=cloadnode.create(capturer,capturer.owner)
+              ld:=cloadnode.create(capturer,capturer.owner,compiler)
             else
-              ld:=cnilnode.create;
+              ld:=cnilnode.create(compiler);
             result:=ctypeconvnode.create_internal(
                       ctypeconvnode.create_internal(
                         ld,
-                        intfdef),
-                      totypedef);
+                        intfdef,compiler),
+                      totypedef,compiler);
             if assigned(hp) then
               begin
                 blck:=internalstatements(stmt);
-                addstatement(stmt,cassignmentnode.create(hp,left));
+                addstatement(stmt,cassignmentnode.create(hp,left,compiler));
                 left:=nil;
                 addstatement(stmt,result);
                 result:=blck;
               end;
           end;
         if not assigned(result) then
-          result:=cerrornode.create;
+          result:=cerrornode.create(compiler);
       end;
 
 
@@ -2760,17 +2782,17 @@ implementation
         if assigned(intfdef) then
           begin
             if assigned(capturer) then
-              ldnode:=cloadnode.create(capturer,capturer.owner)
+              ldnode:=cloadnode.create(capturer,capturer.owner,compiler)
             else
-              ldnode:=cnilnode.create;
+              ldnode:=cnilnode.create(compiler);
             result:=ctypeconvnode.create_internal(
                       ctypeconvnode.create_internal(
                         ldnode,
-                        intfdef),
-                      totypedef);
+                        intfdef,compiler),
+                      totypedef,compiler);
           end
         else
-          result:=cerrornode.create;
+          result:=cerrornode.create(compiler);
       end;
 
 
@@ -2971,7 +2993,7 @@ implementation
                 begin
                   include(current_procinfo.flags,pi_do_call);
                   addsymref(aprocdef.procsym,aprocdef);
-                  hp:=ccallnode.create(ccallparanode.create(left,nil),Tprocsym(aprocdef.procsym),nil,nil,[],nil);
+                  hp:=ccallnode.create(ccallparanode.create(left,nil,compiler),Tprocsym(aprocdef.procsym),nil,nil,[],nil,compiler);
                   { tell explicitly which def we must use !! (PM) }
                   tcallnode(hp).procdefinition:=aprocdef;
                   left:=nil;
@@ -3027,7 +3049,7 @@ implementation
                             currprocdef:=tprocsym(tcallnode(left).symtableprocentry).find_procdef_byfuncrefdef(tobjectdef(resultdef));
                           end;
                         hp:=cloadnode.create_procvar(tprocsym(tcallnode(left).symtableprocentry),
-                            tprocdef(currprocdef),tcallnode(left).symtableproc);
+                            tprocdef(currprocdef),tcallnode(left).symtableproc,compiler);
                         if (tcallnode(left).symtableprocentry.owner.symtabletype=ObjectSymtable) then
                          begin
                            selfnode:=tcallnode(left).methodpointer;
@@ -3099,7 +3121,7 @@ implementation
                          end;
                          { we need explicit, because it can also be an enum }
                          if assigned(hdef) then
-                           inserttypeconv_internal(left,hdef)
+                           inserttypeconv_internal(left,hdef,compiler)
                          else
                            CGMessage2(type_e_illegal_type_conversion,left.resultdef.typename,resultdef.typename);
                        end;
@@ -3139,25 +3161,25 @@ implementation
                              newblock:=internalstatements(newstatement);
                              if (valid_for_var(left,false)) then
                                begin
-                                 tempnode:=ctempcreatenode.create(voidpointertype,voidpointertype.size,tt_persistent,true);
+                                 tempnode:=ctempcreatenode.create(voidpointertype,voidpointertype.size,tt_persistent,true,compiler);
                                  addstatement(newstatement,tempnode);
                                  addstatement(newstatement,cassignmentnode.create(
-                                   ctemprefnode.create(tempnode),
-                                   caddrnode.create_internal(left)));
-                                 left:=ctypeconvnode.create_internal(cderefnode.create(ctemprefnode.create(tempnode)),left.resultdef);
+                                   ctemprefnode.create(tempnode,compiler),
+                                   caddrnode.create_internal(left,compiler),compiler));
+                                 left:=ctypeconvnode.create_internal(cderefnode.create(ctemprefnode.create(tempnode,compiler),compiler),left.resultdef,compiler);
                                end
                              else
                                begin
-                                 tempnode:=ctempcreatenode.create(left.resultdef,left.resultdef.size,tt_persistent,true);
+                                 tempnode:=ctempcreatenode.create(left.resultdef,left.resultdef.size,tt_persistent,true,compiler);
                                  addstatement(newstatement,tempnode);
                                  addstatement(newstatement,cassignmentnode.create(
-                                   ctemprefnode.create(tempnode),
-                                   left));
-                                 left:=ctemprefnode.create(tempnode);
+                                   ctemprefnode.create(tempnode,compiler),
+                                   left,compiler));
+                                 left:=ctemprefnode.create(tempnode,compiler);
                                end;
-                             addstatement(newstatement,casnode.create(left.getcopy,cloadvmtaddrnode.create(ctypenode.create(resultdef))));
-                             addstatement(newstatement,ctempdeletenode.create_normal_temp(tempnode));
-                             addstatement(newstatement,ctypeconvnode.create_internal(left,resultdef));
+                             addstatement(newstatement,casnode.create(left.getcopy,cloadvmtaddrnode.create(ctypenode.create(resultdef,compiler),compiler),compiler));
+                             addstatement(newstatement,ctempdeletenode.create_normal_temp(tempnode,compiler));
+                             addstatement(newstatement,ctypeconvnode.create_internal(left,resultdef,compiler));
                              left:=nil;
                              result:=newblock;
                              exit;
@@ -3393,6 +3415,8 @@ implementation
 
     { remove int type conversions and set the result to the given type }
     procedure doremoveinttypeconvs(level : dword;var n: tnode; todef: tdef; forceunsigned: boolean; signedtype,unsignedtype : tdef);
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
 
       function SmallerOrSigned(def: tdef): Boolean;
         begin
@@ -3422,7 +3446,7 @@ implementation
           accurate truncation; fixes #39646 [Kit] }
         if (n.nodetype in [shrn,divn,modn]) and (level<>0) then
           begin
-            inserttypeconv_internal(n,todef);
+            inserttypeconv_internal(n,todef,compiler);
             exit;
           end;
         case n.nodetype of
@@ -3469,21 +3493,24 @@ implementation
                   if NeedMinus1Check then
                     begin
                       newblock:=internalstatements(newstatements);
-                      tempnode:=ctempcreatenode.create(n.resultdef,n.resultdef.size,tt_persistent,true);
+                      tempnode:=ctempcreatenode.create(n.resultdef,n.resultdef.size,tt_persistent,true,compiler);
                       addstatement(newstatements,tempnode);
                       addstatement(newstatements,cifnode.create_internal(
-                        caddnode.create_internal(equaln,tbinarynode(n).right.getcopy,cordconstnode.create(-1,n.resultdef,false)),
+                        caddnode.create_internal(equaln,tbinarynode(n).right.getcopy,cordconstnode.create(-1,n.resultdef,false,compiler),compiler),
                           cassignmentnode.create_internal(
-                            ctemprefnode.create(tempnode),
-                            cmoddivnode.create(n.nodetype,tbinarynode(originaldivtree).left.getcopy,cordconstnode.create(-1,tbinarynode(originaldivtree).right.resultdef,false))
+                            ctemprefnode.create(tempnode,compiler),
+                            cmoddivnode.create(n.nodetype,tbinarynode(originaldivtree).left.getcopy,cordconstnode.create(-1,tbinarynode(originaldivtree).right.resultdef,false,compiler),compiler),
+                            compiler
                           ),
                           cassignmentnode.create_internal(
-                            ctemprefnode.create(tempnode),n
-                          )
+                            ctemprefnode.create(tempnode,compiler),n,
+                            compiler
+                          ),
+                          compiler
                         )
                       );
-                      addstatement(newstatements,ctempdeletenode.create_normal_temp(tempnode));
-                      addstatement(newstatements,ctemprefnode.create(tempnode));
+                      addstatement(newstatements,ctempdeletenode.create_normal_temp(tempnode,compiler));
+                      addstatement(newstatements,ctemprefnode.create(tempnode,compiler));
                       n:=newblock;
                       do_typecheckpass(n);
                       originaldivtree.free;
@@ -3529,7 +3556,7 @@ implementation
               typecheckpass(n);
             end;
           else
-            inserttypeconv_internal(n,todef);
+            inserttypeconv_internal(n,todef,compiler);
         end;
       end;
 {$endif not CPUNO32BITOPS}
@@ -3599,7 +3626,7 @@ implementation
               (resultdef.typ=pointerdef) and
               cstringconstnode.emptydynstrnil then
             begin
-              result:=cnilnode.create;
+              result:=cnilnode.create(compiler);
               exit;
             end;
 
@@ -3619,7 +3646,7 @@ implementation
               if (result.nodetype = realconstn) then
                 begin
                   hp:=result;
-                  result:=crealconstnode.create(trealconstnode(hp).value_real,resultdef);
+                  result:=crealconstnode.create(trealconstnode(hp).value_real,resultdef,compiler);
                   if nf_is_currency in hp.flags then
                     include(result.flags,nf_is_currency);
                   if ([nf_explicit,nf_internal] * flags <> []) then
@@ -3634,7 +3661,7 @@ implementation
               { nil to ordinal node }
               if (resultdef.typ=orddef) then
                begin
-                 hp:=cordconstnode.create(0,resultdef,true);
+                 hp:=cordconstnode.create(0,resultdef,true,compiler);
                  if ([nf_explicit,nf_internal] * flags <> []) then
                    include(hp.flags, nf_explicit);
                  result:=hp;
@@ -3644,7 +3671,7 @@ implementation
                { fold nil to any pointer type }
                if (resultdef.typ=pointerdef) then
                 begin
-                  hp:=cnilnode.create;
+                  hp:=cnilnode.create(compiler);
                   hp.resultdef:=resultdef;
                   if ([nf_explicit,nf_internal] * flags <> []) then
                     include(hp.flags, nf_explicit);
@@ -3681,7 +3708,7 @@ implementation
                    if (target_info.system in systems_managed_vm) and
                       (tordconstnode(left).value<>0) then
                      message(parser_e_feature_unsupported_for_vm);
-                   hp:=cpointerconstnode.create(TConstPtrUInt(tordconstnode(left).value.uvalue),resultdef);
+                   hp:=cpointerconstnode.create(TConstPtrUInt(tordconstnode(left).value.uvalue),resultdef,compiler);
                    if ([nf_explicit,nf_internal] * flags <> []) then
                      include(hp.flags, nf_explicit);
                    result:=hp;
@@ -3762,7 +3789,7 @@ implementation
                   v:=tordconstnode(left).value;
                   if not(nf_internal in flags) and not(is_currency(left.resultdef)) then
                     v:=v*10000;
-                  result:=cordconstnode.create(v,resultdef,false);
+                  result:=cordconstnode.create(v,resultdef,false,compiler);
                   exit;
                 end;
             end;
@@ -3786,7 +3813,7 @@ implementation
               else if is_ordinal(resultdef) then
                 begin
                    hp:=cordconstnode.create(TConstExprInt(tpointerconstnode(left).value),
-                     resultdef,not(nf_explicit in flags));
+                     resultdef,not(nf_explicit in flags),compiler);
                    if ([nf_explicit,nf_internal] * flags <> []) then
                      include(hp.flags, nf_explicit);
                    result:=hp;
@@ -3926,8 +3953,8 @@ implementation
         if resultdef.size <> 1 then
           begin
             { convert first to string, then to chararray }
-            inserttypeconv(left,cshortstringtype);
-            inserttypeconv(left,resultdef);
+            inserttypeconv(left,cshortstringtype,compiler);
+            inserttypeconv(left,resultdef,compiler);
             result:=left;
             left := nil;
             exit;
@@ -3984,7 +4011,7 @@ implementation
             else
               fname:=fname+'s';
             result:=ccallnode.createintern(fname,ccallparanode.create(
-              left,nil));
+              left,nil,compiler));
             left:=nil;
             firstpass(result);
             exit;
@@ -4019,7 +4046,7 @@ implementation
             else
               fname:=fname+'float32';
             result:=ctypeconvnode.create_internal(ccallnode.createintern(fname,ccallparanode.create(
-              left,nil)),resultdef);
+              left,nil,compiler)),resultdef,compiler);
             left:=nil;
             firstpass(result);
             exit;
@@ -4177,7 +4204,7 @@ implementation
             (left.resultdef.size<>resultdef.size)
             and is_cbool(resultdef) then
            begin
-             left:=ctypeconvnode.create_internal(left,s32inttype);
+             left:=ctypeconvnode.create_internal(left,s32inttype,compiler);
              firstpass(left);
              exit;
            end;
@@ -4214,7 +4241,7 @@ implementation
         else
           internalerror(2007081201);
 
-        result := ccallnode.createintern(fname,ccallparanode.create(left,nil));
+        result := ccallnode.createintern(fname,ccallparanode.create(left,nil,compiler));
         left:=nil;
         firstpass(result);
       end;
@@ -4289,13 +4316,13 @@ implementation
             { accept set addn's -> assign to a temp first and pass the temp   }
             if not(left.expectloc in [LOC_REFERENCE,LOC_CREFERENCE]) then
               begin
-                temp:=ctempcreatenode.create(left.resultdef,left.resultdef.size,tt_persistent,false);
+                temp:=ctempcreatenode.create(left.resultdef,left.resultdef.size,tt_persistent,false,compiler);
                 addstatement(newstatement,temp);
                 { temp := left }
                 addstatement(newstatement,cassignmentnode.create(
-                  ctemprefnode.create(temp),left));
-                addstatement(newstatement,ctempdeletenode.create_normal_temp(temp));
-                addstatement(newstatement,ctemprefnode.create(temp));
+                  ctemprefnode.create(temp,compiler),left,compiler));
+                addstatement(newstatement,ctempdeletenode.create_normal_temp(temp,compiler));
+                addstatement(newstatement,ctemprefnode.create(temp,compiler));
                 left:=result;
                 firstpass(left);
                 { recreate the result's internalstatements list }
@@ -4303,18 +4330,18 @@ implementation
               end;
 
             { create temp for result }
-            temp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,true);
+            temp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,true,compiler);
             addstatement(newstatement,temp);
 
             addstatement(newstatement,ccallnode.createintern('fpc_varset_load',
-              ccallparanode.create(cordconstnode.create(tsetdef(left.resultdef).setbase div 8 - tsetdef(resultdef).setbase div 8,sinttype,false),
-              ccallparanode.create(cordconstnode.create(resultdef.size,sinttype,false),
-              ccallparanode.create(ctemprefnode.create(temp),
-              ccallparanode.create(cordconstnode.create(left.resultdef.size,sinttype,false),
-              ccallparanode.create(left,nil))))))
+              ccallparanode.create(cordconstnode.create(tsetdef(left.resultdef).setbase div 8 - tsetdef(resultdef).setbase div 8,sinttype,false,compiler),
+              ccallparanode.create(cordconstnode.create(resultdef.size,sinttype,false,compiler),
+              ccallparanode.create(ctemprefnode.create(temp,compiler),
+              ccallparanode.create(cordconstnode.create(left.resultdef.size,sinttype,false,compiler),
+              ccallparanode.create(left,nil,compiler),compiler),compiler),compiler),compiler))
             );
-            addstatement(newstatement,ctempdeletenode.create_normal_temp(temp));
-            addstatement(newstatement,ctemprefnode.create(temp));
+            addstatement(newstatement,ctempdeletenode.create_normal_temp(temp,compiler));
+            addstatement(newstatement,ctemprefnode.create(temp,compiler));
             left:=nil;
           end;
       end;
@@ -4358,7 +4385,7 @@ implementation
                          propaccesslist_to_node(result,tpropertysym(implintf.implementsgetter).owner,tpropertysym(implintf.implementsgetter).propaccesslist[palt_read]);
                          { this ensures proper refcounting when field is of class type }
                          if not is_interface(result.resultdef) then
-                           inserttypeconv(result, resultdef);
+                           inserttypeconv(result, resultdef, compiler);
                          left:=nil;
                        end
                      else
@@ -4374,11 +4401,11 @@ implementation
                          { constructor create(l:tnode; v : tprocsym;st : TSymtable; mp: tnode; callflags:tcallnodeflags); }
                          result:=ccallnode.create(nil,tprocsym(tpropertysym(implintf.implementsgetter).propaccesslist[palt_read].firstsym^.sym),
                            tprocsym(tpropertysym(implintf.implementsgetter).propaccesslist[palt_read].firstsym^.sym).owner,
-                           left,[],nil);
+                           left,[],nil,compiler);
                          addsymref(tpropertysym(implintf.implementsgetter).propaccesslist[palt_read].firstsym^.sym);
                          { if it is a class, process it further in a similar way }
                          if not is_interface(result.resultdef) then
-                           inserttypeconv(result, resultdef);
+                           inserttypeconv(result, resultdef, compiler);
                          left:=nil;
                        end
                      else if is_class(tobjectdef(resultdef)) then
@@ -4411,22 +4438,22 @@ implementation
         if tstringdef(resultdef).stringtype=st_shortstring then
           begin
             newblock:=internalstatements(newstat);
-            restemp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,false);
+            restemp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,false,compiler);
             addstatement(newstat,restemp);
             addstatement(newstat,ccallnode.createintern(procname,ccallparanode.create(left,ccallparanode.create(
-              ctemprefnode.create(restemp),nil))));
-            addstatement(newstat,ctempdeletenode.create_normal_temp(restemp));
-            addstatement(newstat,ctemprefnode.create(restemp));
+              ctemprefnode.create(restemp,compiler),nil,compiler),compiler)));
+            addstatement(newstat,ctempdeletenode.create_normal_temp(restemp,compiler));
+            addstatement(newstat,ctemprefnode.create(restemp,compiler));
             result:=newblock;
           end
         { encoding parameter required? }
         else if (tstringdef(resultdef).stringtype=st_ansistring) and
                 (tstringdef(left.resultdef).stringtype in [st_widestring,st_unicodestring,st_shortstring,st_ansistring]) then
             result:=ccallnode.createinternres(procname,
-              ccallparanode.create(cordconstnode.create(getparaencoding(resultdef),u16inttype,true),
-              ccallparanode.create(left,nil)),resultdef)
+              ccallparanode.create(cordconstnode.create(getparaencoding(resultdef),u16inttype,true,compiler),
+              ccallparanode.create(left,nil,compiler),compiler),resultdef)
         else
-          result:=ccallnode.createinternres(procname,ccallparanode.create(left,nil),resultdef);
+          result:=ccallnode.createinternres(procname,ccallparanode.create(left,nil,compiler),resultdef);
 
         left:=nil;
       end;
@@ -4994,7 +5021,7 @@ implementation
                       begin
                         if assigned(tobjectdef(right.resultdef).iidstr) then
                           begin
-                            hp:=cstringconstnode.createstr(tobjectdef(right.resultdef).iidstr^);
+                            hp:=cstringconstnode.createstr(tobjectdef(right.resultdef).iidstr^, compiler);
                             tstringconstnode(hp).changestringtype(cshortstringtype);
                             right.free;
                             right:=hp;
@@ -5008,7 +5035,7 @@ implementation
                           begin
                             if not(oo_has_valid_guid in tobjectdef(right.resultdef).objectoptions) then
                               CGMessage1(type_e_interface_has_no_guid,tobjectdef(right.resultdef).typename);
-                            hp:=cguidconstnode.create(tobjectdef(right.resultdef).iidguid^);
+                            hp:=cguidconstnode.create(tobjectdef(right.resultdef).iidguid^,compiler);
                             right.free;
                             right:=hp;
                           end
@@ -5027,17 +5054,17 @@ implementation
                                 TISNODE
 *****************************************************************************}
 
-    constructor tisnode.create(l,r : tnode);
+    constructor tisnode.create(l,r : tnode;acompiler:TCompilerBase);
 
       begin
-         inherited create(isn,l,r);
+         inherited create(isn,l,r,acompiler);
       end;
 
 
-    constructor tisnode.create_internal(l, r: tnode);
+    constructor tisnode.create_internal(l, r: tnode;acompiler:TCompilerBase);
 
       begin
-        create(l,r);
+        create(l,r,acompiler);
         include(flags,nf_internal);
       end;
 
@@ -5066,12 +5093,13 @@ implementation
                   (node_complexity(left)>2) then
                   begin
                     result:=internalstatements(statement);
-                    tempnode:=ctempcreatenode.create(left.resultdef,left.resultdef.size,tt_persistent,true);
+                    tempnode:=ctempcreatenode.create(left.resultdef,left.resultdef.size,tt_persistent,true,compiler);
                     addstatement(statement,tempnode);
-                    addstatement(statement,cassignmentnode.create_internal(ctemprefnode.create(tempnode),left));
+                    addstatement(statement,cassignmentnode.create_internal(ctemprefnode.create(tempnode,compiler),left,compiler));
                     addstatement(statement,caddnode.create_internal(andn,
-                      caddnode.create_internal(unequaln,ctemprefnode.create(tempnode),cnilnode.create),
-                      caddnode.create_internal(equaln,cloadvmtaddrnode.create(ctemprefnode.create(tempnode)),right)
+                      caddnode.create_internal(unequaln,ctemprefnode.create(tempnode,compiler),cnilnode.create(compiler),compiler),
+                      caddnode.create_internal(equaln,cloadvmtaddrnode.create(ctemprefnode.create(tempnode,compiler),compiler),right,compiler),
+                      compiler
                       )
                     );
 
@@ -5081,15 +5109,16 @@ implementation
                 else
                   begin
                     result:=caddnode.create_internal(andn,
-                      caddnode.create_internal(unequaln,left.getcopy,cnilnode.create),
-                      caddnode.create_internal(equaln,cloadvmtaddrnode.create(left.getcopy),right)
+                      caddnode.create_internal(unequaln,left.getcopy,cnilnode.create(compiler),compiler),
+                      caddnode.create_internal(equaln,cloadvmtaddrnode.create(left.getcopy,compiler),right,compiler),
+                      compiler
                       );
                     right:=nil;
                   end;
               end
             else
               result := ccallnode.createinternres('fpc_do_is',
-                ccallparanode.create(left,ccallparanode.create(right,nil)),
+                ccallparanode.create(left,ccallparanode.create(right,nil,compiler),compiler),
                 resultdef);
           end
         else
@@ -5105,7 +5134,7 @@ implementation
               else
                 procname := 'fpc_intf_is';
             result := ctypeconvnode.create_internal(ccallnode.createintern(procname,
-               ccallparanode.create(right,ccallparanode.create(left,nil))),resultdef);
+               ccallparanode.create(right,ccallparanode.create(left,nil,compiler),compiler)),resultdef,compiler);
           end;
         left := nil;
         right := nil;
@@ -5125,18 +5154,18 @@ implementation
                                 TASNODE
 *****************************************************************************}
 
-    constructor tasnode.create(l,r : tnode);
+    constructor tasnode.create(l,r : tnode;acompiler:TCompilerBase);
 
       begin
-         inherited create(asn,l,r);
+         inherited create(asn,l,r,acompiler);
          call := nil;
       end;
 
 
-    constructor tasnode.create_internal(l,r : tnode);
+    constructor tasnode.create_internal(l,r : tnode;acompiler:TCompilerBase);
 
       begin
-        create(l,r);
+        create(l,r,acompiler);
         include(flags,nf_internal);
       end;
 
@@ -5187,7 +5216,7 @@ implementation
             if is_class(left.resultdef) and
                (right.resultdef.typ=classrefdef) then
               call := ccallnode.createinternres('fpc_do_as',
-                ccallparanode.create(left,ccallparanode.create(right,nil)),
+                ccallparanode.create(left,ccallparanode.create(right,nil,compiler),compiler),
                 resultdef)
             else
               begin
@@ -5202,7 +5231,7 @@ implementation
                   else
                     procname := 'fpc_intf_as';
                 call := ctypeconvnode.create_internal(ccallnode.createintern(procname,
-                   ccallparanode.create(right,ccallparanode.create(left,nil))),resultdef);
+                   ccallparanode.create(right,ccallparanode.create(left,nil,compiler),compiler)),resultdef,compiler);
               end;
             left := nil;
             right := nil;

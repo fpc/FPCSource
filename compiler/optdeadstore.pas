@@ -45,6 +45,8 @@ unit optdeadstore;
 
 
     function deadstoreelim(var n: tnode; arg: pointer): foreachnoderesult;
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       var
         a: tassignmentnode;
         redundant: boolean;
@@ -94,7 +96,7 @@ unit optdeadstore;
 
                         tstatementnode(n).statement.free;
 
-                        tstatementnode(n).statement:=cnothingnode.create;
+                        tstatementnode(n).statement:=cnothingnode.create(compiler);
                         { do not run firstpass on n here, as it will remove the statement node
                           and this will make foreachnodestatic process the wrong nodes as the current statement
                           node will disappear }

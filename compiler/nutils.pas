@@ -399,6 +399,8 @@ implementation
 
 
     procedure load_procvar_from_calln(var p1:tnode);
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       var
         p2 : tnode;
       begin
@@ -414,7 +416,7 @@ implementation
         else
           begin
             p2:=cloadnode.create_procvar(tcallnode(p1).symtableprocentry,
-               tprocdef(tcallnode(p1).procdefinition),tcallnode(p1).symtableproc);
+               tprocdef(tcallnode(p1).procdefinition),tcallnode(p1).symtableproc,compiler);
             { when the methodpointer is typen we've something like:
               tobject.create. Then only the address is needed of the
               method without a self pointer }
@@ -429,6 +431,8 @@ implementation
 
 
     function maybe_call_procvar(var p1:tnode;tponly:boolean):boolean;
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       var
         hp : tnode;
       begin
@@ -466,7 +470,7 @@ implementation
         { a tempref is used when it is loaded from a withsymtable }
         if (hp.nodetype in [calln,loadn,temprefn]) then
           begin
-            hp:=ccallnode.create_procvar(nil,p1);
+            hp:=ccallnode.create_procvar(nil,p1,compiler);
             typecheckpass(hp);
             p1:=hp;
             result:=true;
@@ -576,6 +580,8 @@ implementation
 
 
     function load_vmt_for_self_node(self_node: tnode): tnode;
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       var
         self_resultdef: tdef;
         obj_def: tobjectdef;
@@ -626,12 +632,12 @@ implementation
               begin
                 self_temp:=ctempcreatenode.create_value(
                   cpointerdef.getreusable(self_resultdef),cpointerdef.getreusable(self_resultdef).size,tt_persistent,true,
-                  caddrnode.create(self_node));
+                  caddrnode.create(self_node,compiler),compiler);
               end
             else
               self_temp:=ctempcreatenode.create_value(
                 self_resultdef,self_resultdef.size,tt_persistent,true,
-                self_node);
+                self_node,compiler);
             addstatement(stat,self_temp);
 
             { in case of an object, self can only be nil if it's a dereferenced
@@ -640,22 +646,24 @@ implementation
             if not is_object(self_resultdef) or
                (actualtargetnode(@self_node)^.nodetype=derefn) then
               begin
-                check_self:=ctemprefnode.create(self_temp);
+                check_self:=ctemprefnode.create(self_temp,compiler);
                 addstatement(stat,cifnode.create(
                   caddnode.create(equaln,
                     ctypeconvnode.create_explicit(
                       check_self,
-                      voidpointertype
+                      voidpointertype,
+                      compiler
                     ),
-                    cnilnode.create),
+                    cnilnode.create(compiler),compiler),
                   ccallnode.createintern('fpc_objecterror',nil),
-                  nil)
+                  nil,
+                  compiler)
                 );
               end;
             if is_object(self_resultdef) then
-              self_node:=cderefnode.create(ctemprefnode.create(self_temp))
+              self_node:=cderefnode.create(ctemprefnode.create(self_temp,compiler),compiler)
             else
-              self_node:=ctemprefnode.create(self_temp)
+              self_node:=ctemprefnode.create(self_temp,compiler)
           end;
         { in case of a classref, the "instance" is a pointer
           to pointer to a VMT and there is no vmt field }
@@ -664,7 +672,7 @@ implementation
         { get the VMT field in case of a class/object }
         else if (self_resultdef.typ=objectdef) and
            assigned(tobjectdef(self_resultdef).vmt_field) then
-          result:=csubscriptnode.create(tobjectdef(self_resultdef).vmt_field,self_node)
+          result:=csubscriptnode.create(tobjectdef(self_resultdef).vmt_field,self_node,compiler)
         { in case of an interface, the "instance" is a pointer to a pointer
           to a VMT -> dereference once already }
         else
@@ -673,24 +681,28 @@ implementation
           result:=cderefnode.create(
             ctypeconvnode.create_explicit(
               self_node,
-              cpointerdef.getreusable(voidpointertype)
-            )
+              cpointerdef.getreusable(voidpointertype),
+              compiler
+            ),
+            compiler
           );
         result:=ctypeconvnode.create_explicit(
           result,
-          cpointerdef.getreusable(obj_def.vmt_def));
+          cpointerdef.getreusable(obj_def.vmt_def),
+          compiler);
         typecheckpass(result);
         if docheck then
           begin
             { add a vmt validity check }
-            vmt_temp:=ctempcreatenode.create_value(result.resultdef,result.resultdef.size,tt_persistent,true,result);
+            vmt_temp:=ctempcreatenode.create_value(result.resultdef,result.resultdef.size,tt_persistent,true,result,compiler);
             addstatement(stat,vmt_temp);
-            paras:=ccallparanode.create(ctemprefnode.create(vmt_temp),nil);
+            paras:=ccallparanode.create(ctemprefnode.create(vmt_temp,compiler),nil,compiler);
             if cs_check_object in current_settings.localswitches then
               begin
                 paras:=ccallparanode.create(
-                  cloadvmtaddrnode.create(ctypenode.create(obj_def)),
-                  paras
+                  cloadvmtaddrnode.create(ctypenode.create(obj_def,compiler),compiler),
+                  paras,
+                  compiler
                 );
                 addstatement(stat,
                   ccallnode.createintern(
@@ -704,9 +716,9 @@ implementation
                   'fpc_check_object',paras
                 )
               );
-            addstatement(stat,ctempdeletenode.create_normal_temp(vmt_temp));
-            addstatement(stat,ctempdeletenode.create(self_temp));
-            addstatement(stat,ctemprefnode.create(vmt_temp));
+            addstatement(stat,ctempdeletenode.create_normal_temp(vmt_temp,compiler));
+            addstatement(stat,ctempdeletenode.create(self_temp,compiler));
+            addstatement(stat,ctemprefnode.create(vmt_temp,compiler));
             result:=block;
           end
       end;
@@ -1129,15 +1141,19 @@ implementation
 
 
     function create_simplified_ord_const(const value: tconstexprint; def: tdef; forinline, rangecheck: boolean): tnode;
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       begin
         if not forinline then
-          result:=genintconstnode(value)
+          result:=genintconstnode(value,compiler)
         else
-          result:=cordconstnode.create(value,def,rangecheck);
+          result:=cordconstnode.create(value,def,rangecheck,compiler);
       end;
 
 
     procedure propaccesslist_to_node(var p1:tnode;st:TSymtable;pl:tpropaccesslist);
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       var
         plist : ppropaccesslistitem;
       begin
@@ -1173,24 +1189,24 @@ implementation
                      p1:=nil;
                    end;
                  if assigned(p1) then
-                  p1:=csubscriptnode.create(plist^.sym,p1)
+                  p1:=csubscriptnode.create(plist^.sym,p1,compiler)
                  else
-                  p1:=cloadnode.create(plist^.sym,st);
+                  p1:=cloadnode.create(plist^.sym,st,compiler);
                end;
              sl_subscript :
                begin
                  addsymref(plist^.sym);
-                 p1:=csubscriptnode.create(plist^.sym,p1);
+                 p1:=csubscriptnode.create(plist^.sym,p1,compiler);
                end;
              sl_typeconv :
-               p1:=ctypeconvnode.create_explicit(p1,plist^.def);
+               p1:=ctypeconvnode.create_explicit(p1,plist^.def,compiler);
              sl_absolutetype :
                begin
-                 p1:=ctypeconvnode.create(p1,plist^.def);
+                 p1:=ctypeconvnode.create(p1,plist^.def,compiler);
                  include(p1.flags,nf_absolute);
                end;
              sl_vec :
-               p1:=cvecnode.create(p1,cordconstnode.create(plist^.value,plist^.valuedef,true));
+               p1:=cvecnode.create(p1,cordconstnode.create(plist^.value,plist^.valuedef,true,compiler),compiler);
              else
                internalerror(200110205);
            end;
@@ -1246,6 +1262,8 @@ implementation
 
 
     function handle_staticfield_access(sym: tsym; var p1: tnode): boolean;
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
 
       function handle_generic_staticfield_access:boolean;
         var
@@ -1266,13 +1284,13 @@ implementation
                         begin
                           pd:=current_procinfo.get_normal_proc.procdef;
                           if assigned(pd) and pd.no_self_node then
-                            p1:=cloadvmtaddrnode.create(ctypenode.create(pd.struct))
+                            p1:=cloadvmtaddrnode.create(ctypenode.create(pd.struct,compiler),compiler)
                           else
                             p1:=load_self_node;
                         end
                       else
                         p1:=load_self_node;
-                      p1:=csubscriptnode.create(sym,p1);
+                      p1:=csubscriptnode.create(sym,p1,compiler);
                       exit(true);
                     end;
                   tmp:=tstoreddef(tmp.owner.defowner);
@@ -1333,6 +1351,8 @@ implementation
 
 
     function genloadfield(n: tnode; const fieldname: string): tnode;
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       var
         vs         : tsym;
       begin
@@ -1342,7 +1362,7 @@ implementation
         if not assigned(vs) or
            (vs.typ<>fieldvarsym) then
           internalerror(2010061902);
-        result:=csubscriptnode.create(vs,n);
+        result:=csubscriptnode.create(vs,n,compiler);
       end;
 
 

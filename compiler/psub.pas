@@ -277,6 +277,8 @@ implementation
 ****************************************************************************}
 
     procedure initializevars(p:TObject;arg:pointer);
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       var
         b : tblocknode;
       begin
@@ -289,9 +291,10 @@ implementation
               b:=tblocknode(arg);
               b.left:=cstatementnode.create(
                         cassignmentnode.create(
-                            cloadnode.create(tsym(p),tsym(p).owner),
-                            cloadnode.create(defaultconstsym,defaultconstsym.owner)),
-                        b.left);
+                            cloadnode.create(tsym(p),tsym(p).owner,compiler),
+                            cloadnode.create(defaultconstsym,defaultconstsym.owner,compiler),compiler),
+                        b.left,
+                        compiler);
             end
          end;
       end;
@@ -346,6 +349,8 @@ implementation
       end;
 
     function block(islibrary : boolean) : tnode;
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       begin
          { parse const,types and vars }
          read_declarations(islibrary);
@@ -375,7 +380,7 @@ implementation
                    { We need at least a node, else the entry/exit code is not
                      generated and thus no PASCALMAIN symbol which we need (PFV) }
                    if islibrary then
-                    block:=cnothingnode.create
+                    block:=cnothingnode.create(compiler)
                    else
                     block:=nil;
                 end
@@ -431,21 +436,25 @@ implementation
 
 
     procedure add_label_init(p:TObject;arg:pointer);
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       begin
         if tstoredsym(p).typ=labelsym then
           begin
             addstatement(tstatementnode(arg^),
               cifnode.create(caddnode.create(equaln,
                 ccallnode.createintern('fpc_setjmp',
-                  ccallparanode.create(cloadnode.create(tlabelsym(p).jumpbuf,tlabelsym(p).jumpbuf.owner),nil)),
-                cordconstnode.create(1,search_system_proc('fpc_setjmp').returndef,true))
-              ,cgotonode.create(tlabelsym(p)),nil)
+                  ccallparanode.create(cloadnode.create(tlabelsym(p).jumpbuf,tlabelsym(p).jumpbuf.owner,compiler),nil,compiler)),
+                cordconstnode.create(1,search_system_proc('fpc_setjmp').returndef,true,compiler),compiler)
+              ,cgotonode.create(tlabelsym(p),compiler),nil,compiler)
             );
           end;
       end;
 
 
     function generate_bodyentry_block:tnode;
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       var
         srsym        : tsym;
         para         : tcallparanode;
@@ -477,21 +486,22 @@ implementation
                         { if vmt=1 then newinstance }
                         call:=
                           ccallnode.create(nil,tprocsym(srsym),srsym.owner,
-                            ctypeconvnode.create_internal(load_self_pointer_node,cclassrefdef.create(current_structdef)),
-                            [],nil);
+                            ctypeconvnode.create_internal(load_self_pointer_node,cclassrefdef.create(current_structdef),compiler),
+                            [],nil,compiler);
                         include(call.callnodeflags,cnf_ignore_devirt_wpo);
                         addstatement(newstatement,cifnode.create(
                             caddnode.create_internal(equaln,
                                 ctypeconvnode.create_internal(
                                     load_vmt_pointer_node,
-                                    voidpointertype),
-                                cpointerconstnode.create(1,voidpointertype)),
+                                    voidpointertype,compiler),
+                                cpointerconstnode.create(1,voidpointertype,compiler),compiler),
                             cassignmentnode.create(
                                 ctypeconvnode.create_internal(
                                     load_self_pointer_node,
-                                    voidpointertype),
-                                call),
-                            nil));
+                                    voidpointertype,
+                                    compiler),
+                                call,compiler),
+                            nil,compiler));
                       end
                     else
                       Message(parser_e_no_suitable_newinstance_method_found);
@@ -505,21 +515,24 @@ implementation
                         that memory was allocated }
                       { parameter 1 : self pointer }
                       para:=ccallparanode.create(
-                                cordconstnode.create(tobjectdef(current_structdef).vmt_offset,s32inttype,false),
+                                cordconstnode.create(tobjectdef(current_structdef).vmt_offset,s32inttype,false,compiler),
                             ccallparanode.create(
                                 ctypeconvnode.create_internal(
                                     load_vmt_pointer_node,
-                                    voidpointertype),
+                                    voidpointertype,
+                                    compiler),
                             ccallparanode.create(
                                 ctypeconvnode.create_internal(
                                     load_self_pointer_node,
-                                    voidpointertype),
-                            nil)));
+                                    voidpointertype,
+                                    compiler),
+                            nil,compiler),compiler),compiler);
                       addstatement(newstatement,cassignmentnode.create(
                           ctypeconvnode.create_internal(
                               load_self_pointer_node,
-                              voidpointertype),
-                          ccallnode.createintern('fpc_help_constructor',para)));
+                              voidpointertype,
+                              compiler),
+                          ccallnode.createintern('fpc_help_constructor',para),compiler));
                     end
                 else
                   if is_javaclass(current_structdef) or
@@ -537,7 +550,7 @@ implementation
                          if assigned(srsym) and
                             (srsym.typ=procsym) then
                            begin
-                             call:=ccallnode.create(nil,tprocsym(srsym),srsym.owner,load_self_node,[cnf_inherited],nil);
+                             call:=ccallnode.create(nil,tprocsym(srsym),srsym.owner,load_self_node,[cnf_inherited],nil,compiler);
                              exclude(tcallnode(call).callnodeflags,cnf_return_value_used);
                              addstatement(newstatement,call);
                            end
@@ -559,9 +572,10 @@ implementation
                   addstatement(newstatement,cifnode.create(
                     caddnode.create(equaln,
                         load_self_pointer_node,
-                        cnilnode.create),
-                    cexitnode.create(nil),
-                    nil));
+                        cnilnode.create(compiler),
+                        compiler),
+                    cexitnode.create(nil,compiler),
+                    nil,compiler));
               end;
 
             { maybe call BeforeDestruction for classes }
@@ -576,11 +590,12 @@ implementation
                     addstatement(newstatement,cifnode.create(
                         caddnode.create(gtn,
                             ctypeconvnode.create_internal(
-                              load_vmt_pointer_node,ptrsinttype),
+                              load_vmt_pointer_node,ptrsinttype,
+                              compiler),
                             ctypeconvnode.create_internal(
-                              cnilnode.create,ptrsinttype)),
-                        ccallnode.create(nil,tprocsym(srsym),srsym.owner,load_self_node,[],nil),
-                        nil));
+                              cnilnode.create(compiler),ptrsinttype,compiler),compiler),
+                        ccallnode.create(nil,tprocsym(srsym),srsym.owner,load_self_node,[],nil,compiler),
+                        nil,compiler));
                   end
                 else
                   internalerror(200305104);
@@ -594,6 +609,8 @@ implementation
 
 
     function generate_bodyexit_block:tnode;
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       var
         srsym : tsym;
         para : tcallparanode;
@@ -626,14 +643,16 @@ implementation
                             caddnode.create(andn,
                                 caddnode.create(unequaln,
                                     load_self_pointer_node,
-                                    cnilnode.create),
+                                    cnilnode.create(compiler),
+                                    compiler),
                                 caddnode.create(unequaln,
                                     ctypeconvnode.create(
                                         load_vmt_pointer_node,
-                                        voidpointertype),
-                                    cpointerconstnode.create(0,voidpointertype))),
-                            ccallnode.create(nil,tprocsym(srsym),srsym.owner,load_self_node,[],nil),
-                            nil));
+                                        voidpointertype,
+                                        compiler),
+                                    cpointerconstnode.create(0,voidpointertype,compiler),compiler),compiler),
+                            ccallnode.create(nil,tprocsym(srsym),srsym.owner,load_self_node,[],nil,compiler),
+                            nil,compiler));
                       end
                     else
                       internalerror(2003051001);
@@ -646,25 +665,27 @@ implementation
                         begin
                           addstatement(newstatement,cifnode.create(
                             caddnode.create(unequaln,
-                              ctypeconvnode.create_internal(load_vmt_pointer_node,voidpointertype),
-                              cnilnode.create),
+                              ctypeconvnode.create_internal(load_vmt_pointer_node,voidpointertype,compiler),
+                              cnilnode.create(compiler),compiler),
                             cnodeutils.finalize_data_node(load_self_node),
-                            nil));
+                            nil,compiler));
                         end;
                       { parameter 3 : vmt_offset }
                       { parameter 2 : pointer to vmt }
                       { parameter 1 : self pointer }
                       para:=ccallparanode.create(
-                                cordconstnode.create(tobjectdef(current_structdef).vmt_offset,s32inttype,false),
+                                cordconstnode.create(tobjectdef(current_structdef).vmt_offset,s32inttype,false,compiler),
                             ccallparanode.create(
                                 ctypeconvnode.create_internal(
                                     load_vmt_pointer_node,
-                                    voidpointertype),
+                                    voidpointertype,
+                                    compiler),
                             ccallparanode.create(
                                 ctypeconvnode.create_internal(
                                     load_self_pointer_node,
-                                    voidpointertype),
-                            nil)));
+                                    voidpointertype,
+                                    compiler),
+                            nil,compiler),compiler),compiler);
                       addstatement(newstatement,
                           ccallnode.createintern('fpc_help_destructor',para));
                     end
@@ -723,6 +744,8 @@ implementation
 
 
     procedure tcgprocinfo.maybe_add_constructor_wrapper(var tocode: tnode; withexceptblock: boolean);
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       var
         oldlocalswitches: tlocalswitches;
         srsym: tsym;
@@ -762,8 +785,8 @@ implementation
                   beforedestruction should not be called if a destructor is
                   called from the constructor }
                 addstatement(newstatement,cassignmentnode.create(
-                  cloadnode.create(constructionsuccessful,procdef.localst),
-                  genintconstnode(-1))
+                  cloadnode.create(constructionsuccessful,procdef.localst,compiler),
+                  genintconstnode(-1,compiler),compiler)
                 );
                 { first execute all constructor code. If no exception
                   occurred then we will execute afterconstruction,
@@ -778,7 +801,7 @@ implementation
                   begin
                     include(tocode.flags,nf_block_with_exit);
                     if procdef.proctypeoption<>potype_exceptfilter then
-                      addstatement(newstatement,cfinalizetempsnode.create);
+                      addstatement(newstatement,cfinalizetempsnode.create(compiler));
                     cnodeutils.procdef_block_add_implicit_finalize_nodes(procdef,newstatement);
                     temps_finalized:=true;
                   end;
@@ -786,8 +809,8 @@ implementation
                 { construction successful -> beforedestruction should be called
                   if an exception happens now }
                 addstatement(newstatement,cassignmentnode.create(
-                  cloadnode.create(constructionsuccessful,procdef.localst),
-                  genintconstnode(1))
+                  cloadnode.create(constructionsuccessful,procdef.localst,compiler),
+                  genintconstnode(1,compiler),compiler)
                 );
                 { Self can be nil when fail is called }
                 { if self<>nil and vmt<>nil then afterconstruction }
@@ -795,12 +818,12 @@ implementation
                   caddnode.create(andn,
                     caddnode.create(unequaln,
                       load_self_node,
-                      cnilnode.create),
+                      cnilnode.create(compiler),compiler),
                     caddnode.create(unequaln,
                       load_vmt_pointer_node,
-                      cnilnode.create)),
-                    ccallnode.create(nil,tprocsym(srsym),srsym.owner,load_self_node,[],nil),
-                    nil));
+                      cnilnode.create(compiler),compiler),compiler),
+                    ccallnode.create(nil,tprocsym(srsym),srsym.owner,load_self_node,[],nil,compiler),
+                    nil,compiler));
                 tocode:=constructionblock;
               end;
 
@@ -822,28 +845,31 @@ implementation
                         cifnode.create(
                           caddnode.create(unequaln,
                             load_vmt_pointer_node,
-                            cnilnode.create),
+                            cnilnode.create(compiler),
+                            compiler),
                           { cnf_create_failed -> don't call BeforeDestruction }
-                          ccallnode.create(nil,tprocsym(pd.procsym),pd.procsym.owner,load_self_node,[cnf_create_failed],nil),
-                          nil))
+                          ccallnode.create(nil,tprocsym(pd.procsym),pd.procsym.owner,load_self_node,[cnf_create_failed],nil,compiler),
+                          nil,compiler))
                     else
                       { object without destructor, call 'fail' helper }
                       addstatement(newstatement,
                         ccallnode.createintern('fpc_help_fail',
                           ccallparanode.create(
-                            cordconstnode.create(tobjectdef(procdef.struct).vmt_offset,s32inttype,false),
+                            cordconstnode.create(tobjectdef(procdef.struct).vmt_offset,s32inttype,false,compiler),
                           ccallparanode.create(
                             ctypeconvnode.create_internal(
                               load_vmt_pointer_node,
-                              voidpointertype),
+                              voidpointertype,
+                              compiler),
                           ccallparanode.create(
                             ctypeconvnode.create_internal(
                               load_self_pointer_node,
-                              voidpointertype),
-                          nil))))
+                              voidpointertype,
+                              compiler),
+                          nil,compiler),compiler),compiler))
                       );
                     { then re-raise the exception }
-                    addstatement(newstatement,craisenode.create(nil,nil,nil));
+                    addstatement(newstatement,craisenode.create(nil,nil,nil,compiler));
                     current_filepos:=entrypos;
                     newblock:=internalstatements(newstatement);
                     { try
@@ -855,7 +881,7 @@ implementation
                     addstatement(newstatement,ctryexceptnode.create(
                       tocode,
                       nil,
-                      exceptblock));
+                      exceptblock,compiler));
                     tocode:=newblock;
                   end;
               end;
@@ -865,6 +891,8 @@ implementation
 
 
     procedure tcgprocinfo.add_entry_exit_code;
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       var
         finalcode,
         bodyentrycode,
@@ -882,14 +910,14 @@ implementation
         oldfilepos:=current_filepos;
         { Generate code/locations used at start of proc }
         current_filepos:=entrypos;
-        entry_asmnode:=casmnode.create_get_position;
-        loadpara_asmnode:=casmnode.create_get_position;
-        stackcheck_asmnode:=casmnode.create_get_position;
-        init_asmnode:=casmnode.create_get_position;
+        entry_asmnode:=casmnode.create_get_position(compiler);
+        loadpara_asmnode:=casmnode.create_get_position(compiler);
+        stackcheck_asmnode:=casmnode.create_get_position(compiler);
+        init_asmnode:=casmnode.create_get_position(compiler);
         bodyentrycode:=generate_bodyentry_block;
         { Generate code/locations used at end of proc }
         current_filepos:=exitpos;
-        exitlabel_asmnode:=casmnode.create_get_position;
+        exitlabel_asmnode:=casmnode.create_get_position(compiler);
         temps_finalized:=false;
         bodyexitcode:=generate_bodyexit_block;
         { Check if bodyexitcode is not empty }
@@ -916,7 +944,7 @@ implementation
             if assigned(tblocknode(procdef.parentfpinitblock).left) then
               begin
                 if cnodeutils.check_insert_trashing(procdef) then
-                  cnodeutils.maybe_trash_variable(newstatement,tabstractnormalvarsym(procdef.parentfpstruct),cloadnode.create(procdef.parentfpstruct,procdef.parentfpstruct.owner));
+                  cnodeutils.maybe_trash_variable(newstatement,tabstractnormalvarsym(procdef.parentfpstruct),cloadnode.create(procdef.parentfpstruct,procdef.parentfpstruct.owner,compiler));
                 { could be an asmn in case of a pure assembler procedure,
                   but those shouldn't access nested variables }
                 addstatement(newstatement,procdef.parentfpinitblock);
@@ -946,12 +974,12 @@ implementation
             { Generate code that will be in the try...finally }
             finalcode:=internalstatements(codestatement);
             if procdef.proctypeoption<>potype_exceptfilter then
-              addstatement(codestatement,cfinalizetempsnode.create);
+              addstatement(codestatement,cfinalizetempsnode.create(compiler));
             cnodeutils.procdef_block_add_implicit_finalize_nodes(procdef,codestatement);
             temps_finalized:=true;
 
             current_filepos:=entrypos;
-            wrappedbody:=ctryfinallynode.create_implicit(code,finalcode);
+            wrappedbody:=ctryfinallynode.create_implicit(code,finalcode,compiler);
             { afterconstruction must be called after finalizetemps, because it
                has to execute after the temps have been finalised in case of a
                refcounted class (afterconstruction decreases the refcount
@@ -974,13 +1002,13 @@ implementation
             addstatement(newstatement,code);
             current_filepos:=exitpos;
             if assigned(nestedexitlabel) then
-              addstatement(newstatement,clabelnode.create(cnothingnode.create,nestedexitlabel));
+              addstatement(newstatement,clabelnode.create(cnothingnode.create(compiler),nestedexitlabel,compiler));
             addstatement(newstatement,exitlabel_asmnode);
             addstatement(newstatement,bodyexitcode);
             if not is_constructor then
               begin
                 if procdef.proctypeoption<>potype_exceptfilter then
-                  addstatement(newstatement,cfinalizetempsnode.create);
+                  addstatement(newstatement,cfinalizetempsnode.create(compiler));
                 cnodeutils.procdef_block_add_implicit_finalize_nodes(procdef,newstatement);
                 temps_finalized:=true;
               end;

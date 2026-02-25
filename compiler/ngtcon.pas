@@ -179,13 +179,15 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
 *****************************************************************************}
 
       procedure ttypedconstbuilder.parse_orddef(def:torddef);
+        const
+          compiler = nil;  { TODO: fix node compiler reference!!! }
         var
           n : tnode;
         begin
            n:=comp_expr([ef_accept_equal]);
            { for C-style booleans, true=-1 and false=0) }
            if is_cbool(def) then
-             inserttypeconv(n,def);
+             inserttypeconv(n,def,compiler);
            tc_emit_orddef(def,n);
            n.free;
            n := nil;
@@ -494,6 +496,8 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
 
 
     procedure tasmlisttypedconstbuilder.tc_emit_stringdef(def: tstringdef; var node: tnode);
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       var
         strlength,
         defsize   : {$ifdef CPU8BITALU}smallint{$else}aint{$endif};
@@ -511,7 +515,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
           begin
             { convert to the expected string type so that
               for widestrings strval is a tcompilerwidestring }
-            inserttypeconv(node,def);
+            inserttypeconv(node,def,compiler);
             if (not codegenerror) and
                (node.nodetype=stringconstn) then
               begin
@@ -643,6 +647,8 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
 
 
     procedure tasmlisttypedconstbuilder.tc_emit_orddef(def: torddef; var node: tnode);
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       var
         intvalue: tconstexprint;
 
@@ -677,7 +683,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
            uchar :
              begin
                 if is_constwidecharnode(node) then
-                  inserttypeconv(node,cansichartype);
+                  inserttypeconv(node,cansichartype,compiler);
                 if is_constcharnode(node) or
                   ((m_delphi in current_settings.modeswitches) and
                    is_constwidecharnode(node) and
@@ -689,7 +695,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
            uwidechar :
              begin
                 if is_constcharnode(node) then
-                  inserttypeconv(node,cwidechartype);
+                  inserttypeconv(node,cwidechartype,compiler);
                 if is_constwidecharnode(node) then
                   ftcb.emit_ord_const(word(tordconstnode(node).value.svalue),def)
                 else
@@ -787,6 +793,8 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
 
 
     procedure tasmlisttypedconstbuilder.tc_emit_pointerdef(def: tpointerdef; var node: tnode);
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       var
         hp        : tnode;
         srsym     : tsym;
@@ -860,7 +868,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                 begin
                   initwidestring(pw);
                   concatwidestringchar(pw,tcompilerwidechar(word(tordconstnode(node).value.svalue)));
-                  hp:=cstringconstnode.createunistr(pw);
+                  hp:=cstringconstnode.createunistr(pw,compiler);
                   donewidestring(pw);
                   node.free;
                   do_typecheckpass(hp);
@@ -921,7 +929,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
               if (node.nodetype in [stringconstn,ordconstn]) then
                 begin
                   { convert to unicodestring stringconstn }
-                  inserttypeconv(node,cunicodestringtype);
+                  inserttypeconv(node,cunicodestringtype,compiler);
                   if (node.nodetype=stringconstn) and
                      (tstringconstnode(node).cst_type in [cst_widestring,cst_unicodestring]) then
                    begin
@@ -957,7 +965,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
              is_proc2procvar_load(node,pd) then
             begin
               { insert typeconv }
-              inserttypeconv(node,def);
+              inserttypeconv(node,def,compiler);
               hp:=node;
               while assigned(hp) and (hp.nodetype in [addrn,typeconvn,subscriptn,vecn,addn,subn]) do
                 hp:=tunarynode(hp).left;
@@ -1066,6 +1074,8 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
 
 
     procedure tasmlisttypedconstbuilder.tc_emit_setdef(def: tsetdef; var node: tnode);
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       type
          setbytes = array[0..31] of byte;
          Psetbytes = ^setbytes;
@@ -1077,7 +1087,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
           begin
             { be sure to convert to the correct result, else
               it can generate smallset data instead of normalset (PFV) }
-            inserttypeconv(node,def);
+            inserttypeconv(node,def,compiler);
             { we only allow const sets }
             if (node.nodetype<>setconstn) or
                assigned(tsetconstnode(node).left) then
@@ -1253,6 +1263,8 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
 
     procedure tasmlisttypedconstbuilder.parse_arraydef(def:tarraydef);
       const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
+      const
         LKlammerToken: array[Boolean] of TToken = (_LKLAMMER, _LECKKLAMMER);
         RKlammerToken: array[Boolean] of TToken = (_RKLAMMER, _RECKKLAMMER);
       var
@@ -1387,14 +1399,14 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                     1:
                      begin
                        if (tstringconstnode(n).cst_type in [cst_unicodestring,cst_widestring]) then
-                         inserttypeconv(n,getansistringdef);
+                         inserttypeconv(n,getansistringdef,compiler);
                        if n.nodetype<>stringconstn then
                          internalerror(2010033003);
                        ca:=pointer(tstringconstnode(n).valueas);
                      end;
                     2:
                       begin
-                        inserttypeconv(n,cunicodestringtype);
+                        inserttypeconv(n,cunicodestringtype,compiler);
                         if n.nodetype<>stringconstn then
                           internalerror(2010033009);
                         if tstringconstnode(n).valuews.len>0 then
@@ -1417,7 +1429,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                       ch[0]:=chr(tordconstnode(n).value.uvalue and $ff);
                     2:
                       begin
-                        inserttypeconv(n,cwidechartype);
+                        inserttypeconv(n,cwidechartype,compiler);
                         if not is_constwidecharnode(n) then
                           internalerror(2010033001);
                         widechar(ch):=widechar(tordconstnode(n).value.uvalue and $ffff);
@@ -1433,7 +1445,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                   case char_size of
                     1:
                       begin
-                        inserttypeconv(n,cansichartype);
+                        inserttypeconv(n,cansichartype,compiler);
                         if not is_constcharnode(n) then
                           internalerror(2010033006);
                         ch[0]:=chr(tordconstnode(n).value.uvalue and $ff);
@@ -1488,6 +1500,8 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
 
 
     procedure tasmlisttypedconstbuilder.parse_procvardef(def:tprocvardef);
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       var
         tmpn,n : tnode;
         pd : tprocdef;
@@ -1521,7 +1535,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
             exit;
           end;
         { let type conversion check everything needed }
-        inserttypeconv(n,def);
+        inserttypeconv(n,def,compiler);
         if codegenerror then
           begin
             n.free;
@@ -1630,6 +1644,8 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
 
 
     procedure tasmlisttypedconstbuilder.parse_recorddef(def:trecorddef);
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       var
         n       : tnode;
         symidx  : longint;
@@ -1669,7 +1685,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
               handle_stringconstn
             else
               begin
-                inserttypeconv(n,rec_tguid);
+                inserttypeconv(n,rec_tguid,compiler);
                 if n.nodetype=guidconstn then
                   ftcb.emit_guid_const(tguidconstnode(n).value)
                 else
@@ -1682,7 +1698,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         if (def=rec_tguid) and ((current_scanner.token=_CSTRING) or (current_scanner.token=_CCHAR)) then
           begin
             n:=comp_expr([ef_accept_equal]);
-            inserttypeconv(n,cshortstringtype);
+            inserttypeconv(n,cshortstringtype,compiler);
             if n.nodetype=stringconstn then
               handle_stringconstn
             else
@@ -1989,6 +2005,8 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
     { tnodetreetypedconstbuilder }
 
     procedure tnodetreetypedconstbuilder.parse_arraydef(def: tarraydef);
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       var
         n : tnode;
         i : longint;
@@ -1999,7 +2017,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
           begin
             { Only allow nil initialization }
             consume(_NIL);
-            addstatement(statmnt,cassignmentnode.create_internal(basenode,cnilnode.create));
+            addstatement(statmnt,cassignmentnode.create_internal(basenode,cnilnode.create(compiler),compiler));
             basenode:=nil;
           end
         { array const between brackets }
@@ -2008,7 +2026,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
             orgbase:=basenode;
             for i:=def.lowrange to def.highrange-1 do
               begin
-                basenode:=cvecnode.create(orgbase.getcopy,ctypeconvnode.create_explicit(genintconstnode(i),tarraydef(def).rangedef));
+                basenode:=cvecnode.create(orgbase.getcopy,ctypeconvnode.create_explicit(genintconstnode(i,compiler),tarraydef(def).rangedef,compiler),compiler);
                 read_typed_const_data(def.elementdef);
                 if current_scanner.token=_RKLAMMER then
                   begin
@@ -2019,7 +2037,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                 else
                   consume(_COMMA);
               end;
-            basenode:=cvecnode.create(orgbase,ctypeconvnode.create_explicit(genintconstnode(def.highrange),tarraydef(def).rangedef));
+            basenode:=cvecnode.create(orgbase,ctypeconvnode.create_explicit(genintconstnode(def.highrange,compiler),tarraydef(def).rangedef,compiler),compiler);
             read_typed_const_data(def.elementdef);
             consume(_RKLAMMER);
           end
@@ -2027,7 +2045,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         else if is_anychar(def.elementdef) then
           begin
              n:=comp_expr([ef_accept_equal]);
-             addstatement(statmnt,cassignmentnode.create_internal(basenode,n));
+             addstatement(statmnt,cassignmentnode.create_internal(basenode,n,compiler));
              basenode:=nil;
           end
         else
@@ -2039,13 +2057,17 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
 
 
     procedure tnodetreetypedconstbuilder.parse_procvardef(def: tprocvardef);
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       begin
-        addstatement(statmnt,cassignmentnode.create_internal(basenode,comp_expr([ef_accept_equal])));
+        addstatement(statmnt,cassignmentnode.create_internal(basenode,comp_expr([ef_accept_equal]),compiler));
         basenode:=nil;
       end;
 
 
     procedure tnodetreetypedconstbuilder.parse_recorddef(def: trecorddef);
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       var
         n,n2    : tnode;
         SymList:TFPHashObjectList;
@@ -2060,7 +2082,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
 
       procedure handle_stringconstn;
         begin
-          addstatement(statmnt,cassignmentnode.create_internal(basenode,n));
+          addstatement(statmnt,cassignmentnode.create_internal(basenode,n,compiler));
           basenode:=nil;
           n:=nil;
         end;
@@ -2074,10 +2096,10 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
               handle_stringconstn
             else
               begin
-                inserttypeconv(n,rec_tguid);
+                inserttypeconv(n,rec_tguid,compiler);
                 if n.nodetype=guidconstn then
                   begin
-                    n2:=cstringconstnode.createstr(guid2string(tguidconstnode(n).value));
+                    n2:=cstringconstnode.createstr(guid2string(tguidconstnode(n).value),compiler);
                     n.free;
                     n:=n2;
                     handle_stringconstn;
@@ -2092,7 +2114,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         if (def=rec_tguid) and ((current_scanner.token=_CSTRING) or (current_scanner.token=_CCHAR)) then
           begin
             n:=comp_expr([ef_accept_equal]);
-            inserttypeconv(n,cshortstringtype);
+            inserttypeconv(n,cshortstringtype,compiler);
             if n.nodetype=stringconstn then
               handle_stringconstn
             else
@@ -2186,7 +2208,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                    { only orddefs and enumdefs are bitpacked, as in gcc/gpc }
                    not(tfieldvarsym(srsym).vardef.typ in [orddef,enumdef]) then
                   recoffset:=align(recoffset,8);
-                basenode:=csubscriptnode.create(srsym,orgbasenode.getcopy);
+                basenode:=csubscriptnode.create(srsym,orgbasenode.getcopy,compiler);
                 read_typed_const_data(tfieldvarsym(srsym).vardef);
 
                 { keep previous field for checking whether whole }
@@ -2220,6 +2242,8 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
 
 
     procedure tnodetreetypedconstbuilder.parse_objectdef(def: tobjectdef);
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       var
         n,
         orgbasenode : tnode;
@@ -2247,7 +2271,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
               end
             else
               begin
-                addstatement(statmnt,cassignmentnode.create_internal(basenode,n));
+                addstatement(statmnt,cassignmentnode.create_internal(basenode,n,compiler));
                 n:=nil;
                 basenode:=nil;
               end;
@@ -2309,7 +2333,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                   objoffset:=fieldoffset+vardef.size;
 
                   { read the data }
-                  basenode:=csubscriptnode.create(srsym,orgbasenode.getcopy);
+                  basenode:=csubscriptnode.create(srsym,orgbasenode.getcopy,compiler);
                   read_typed_const_data(vardef);
 
                   if not try_to_consume(_SEMICOLON) then
@@ -2321,65 +2345,81 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
 
 
     procedure tnodetreetypedconstbuilder.tc_emit_orddef(def: torddef; var node: tnode);
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       begin
-        addstatement(statmnt,cassignmentnode.create_internal(basenode,node));
+        addstatement(statmnt,cassignmentnode.create_internal(basenode,node,compiler));
         basenode:=nil;
         node:=nil;
       end;
 
 
     procedure tnodetreetypedconstbuilder.tc_emit_floatdef(def: tfloatdef; var node: tnode);
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       begin
-        addstatement(statmnt,cassignmentnode.create_internal(basenode,node));
+        addstatement(statmnt,cassignmentnode.create_internal(basenode,node,compiler));
         basenode:=nil;
         node:=nil;
       end;
 
 
     procedure tnodetreetypedconstbuilder.tc_emit_classrefdef(def: tclassrefdef; var node: tnode);
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       begin
-        addstatement(statmnt,cassignmentnode.create_internal(basenode,node));
+        addstatement(statmnt,cassignmentnode.create_internal(basenode,node,compiler));
         basenode:=nil;
         node:=nil;
       end;
 
 
     procedure tnodetreetypedconstbuilder.tc_emit_pointerdef(def: tpointerdef; var node: tnode);
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       begin
-        addstatement(statmnt,cassignmentnode.create_internal(basenode,node));
+        addstatement(statmnt,cassignmentnode.create_internal(basenode,node,compiler));
         basenode:=nil;
         node:=nil;
       end;
 
 
     procedure tnodetreetypedconstbuilder.tc_emit_setdef(def: tsetdef; var node: tnode);
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       begin
-        addstatement(statmnt,cassignmentnode.create_internal(basenode,node));
+        addstatement(statmnt,cassignmentnode.create_internal(basenode,node,compiler));
         basenode:=nil;
         node:=nil;
       end;
 
 
     procedure tnodetreetypedconstbuilder.tc_emit_enumdef(def: tenumdef; var node: tnode);
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       begin
-        addstatement(statmnt,cassignmentnode.create_internal(basenode,node));
+        addstatement(statmnt,cassignmentnode.create_internal(basenode,node,compiler));
         basenode:=nil;
         node:=nil;
       end;
 
 
     procedure tnodetreetypedconstbuilder.tc_emit_stringdef(def: tstringdef; var node: tnode);
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       begin
-        addstatement(statmnt,cassignmentnode.create_internal(basenode,node));
+        addstatement(statmnt,cassignmentnode.create_internal(basenode,node,compiler));
         basenode:=nil;
         node:=nil;
       end;
 
 
     constructor tnodetreetypedconstbuilder.create(sym: tstaticvarsym; previnit: tnode);
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       begin
         inherited create(sym);
-        basenode:=cloadnode.create(sym,sym.owner);
+        basenode:=cloadnode.create(sym,sym.owner,compiler);
         resultblock:=internalstatements(statmnt);
         if assigned(previnit) then
           addstatement(statmnt,previnit);

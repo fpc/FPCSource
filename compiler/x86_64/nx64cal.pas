@@ -79,7 +79,7 @@ implementation
     procedure tx8664callnode.gen_syscall_para(para: tcallparanode);
       begin
         { lib parameter has no special type but proccalloptions must be a syscall }
-        para.left:=cloadnode.create(tcpuprocdef(procdefinition).libsym,tcpuprocdef(procdefinition).libsym.owner);
+        para.left:=cloadnode.create(tcpuprocdef(procdefinition).libsym,tcpuprocdef(procdefinition).libsym.owner, compiler);
       end;
 
 

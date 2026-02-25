@@ -62,6 +62,8 @@ unit opttree;
       end;
 
     function searchblock(var n : tnode;arg : pointer) : foreachnoderesult;
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       var
         hp,
         statements,
@@ -86,7 +88,7 @@ unit opttree;
               if assigned(tcallnode(n).callinitblock) then
                 begin
                   { create a new statement node and insert it }
-                  hp:=cstatementnode.create(tcallnode(n).callinitblock,pnode(arg)^);
+                  hp:=cstatementnode.create(tcallnode(n).callinitblock,pnode(arg)^,compiler);
                   pnode(arg)^:=hp;
                   { tree moved }
                   tcallnode(n).callinitblock:=nil;
@@ -96,7 +98,7 @@ unit opttree;
               if assigned(tcallnode(n).callcleanupblock) then
                 begin
                   { create a new statement node and append it }
-                  hp:=cstatementnode.create(tcallnode(n).callcleanupblock,tstatementnode(pnode(arg)^).right);
+                  hp:=cstatementnode.create(tcallnode(n).callcleanupblock,tstatementnode(pnode(arg)^).right,compiler);
                   tstatementnode(pnode(arg)^).right:=hp;
                   { tree moved }
                   tcallnode(n).callcleanupblock:=nil;
@@ -133,12 +135,12 @@ unit opttree;
                         temprefn:
                           begin
                             { create a new statement node and insert it }
-                            hp:=cstatementnode.create(n,pnode(arg)^);
+                            hp:=cstatementnode.create(n,pnode(arg)^,compiler);
                             pnode(arg)^:=hp;
                             { use the result node instead of the block node }
                             n:=res^;
                             { the old statement is not used anymore }
-                            res^:=cnothingnode.create;
+                            res^:=cnothingnode.create(compiler);
                             { process the newly generated statement }
                             foreachnodestatic(pnode(arg)^,@searchstatements,nil);
                           end
@@ -147,18 +149,18 @@ unit opttree;
                             { replace the last node of the block by an assignment to a temp, and move the block out
                               of the expression }
                             newblock:=internalstatements(statements);
-                            tempcreatenode:=ctempcreatenode.create(res^.resultdef,res^.resultdef.size,tt_persistent,true);
+                            tempcreatenode:=ctempcreatenode.create(res^.resultdef,res^.resultdef.size,tt_persistent,true,compiler);
                             addstatement(statements,tempcreatenode);
                             addstatement(statements,n);
 
                             { replace the old result node of the block by an assignment to the newly generated temp }
-                            res^:=cassignmentnode.create_internal(ctemprefnode.create(tempcreatenode),res^);
+                            res^:=cassignmentnode.create_internal(ctemprefnode.create(tempcreatenode,compiler),res^,compiler);
                             do_firstpass(res^);
-                            addstatement(statements,ctempdeletenode.create_normal_temp(tempcreatenode));
+                            addstatement(statements,ctempdeletenode.create_normal_temp(tempcreatenode,compiler));
                             addstatement(statements,pnode(arg)^);
 
                             { use the temp. ref instead of the block node }
-                            n:=ctemprefnode.create(tempcreatenode);
+                            n:=ctemprefnode.create(tempcreatenode,compiler);
                             { replace the statement with the block }
                             pnode(arg)^:=newblock;
                             { first pass the newly generated block }

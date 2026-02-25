@@ -26,6 +26,7 @@ unit ncon;
 interface
 
     uses
+      compilerbase,
       globtype,widestr,constexp,
       node,
       aasmbase,aasmcnst,cpuinfo,globals,
@@ -44,7 +45,7 @@ interface
           value_real : bestreal;
           value_currency : currency;
           lab_real : tasmlabel;
-          constructor create(v : bestreal;def:tdef);virtual;
+          constructor create(v : bestreal;def:tdef;acompiler:TCompilerBase);virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderefimpl;override;
@@ -70,7 +71,7 @@ interface
             _rangecheck determines if the value of the ordinal should be checked
             against the ranges of the type definition.
           }
-          constructor create(const v : tconstexprint;def:tdef; _rangecheck : boolean);virtual;
+          constructor create(const v : tconstexprint;def:tdef; _rangecheck : boolean;acompiler:TCompilerBase);virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderefimpl;override;
@@ -92,7 +93,7 @@ interface
           typedef : tdef;
           typedefderef : tderef;
           value   : TConstPtrUInt;
-          constructor create(v : TConstPtrUInt;def:tdef);virtual;
+          constructor create(v : TConstPtrUInt;def:tdef;acompiler:TCompilerBase);virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderefimpl;override;
@@ -128,9 +129,9 @@ interface
           astringdef : tdef;
           astringdefderef : tderef;
           cst_type : tconststringtype;
-          constructor createstr(const s : string);virtual;
-          constructor createpchar(s: pchar; l: longint; def: tdef);virtual;
-          constructor createunistr(w : tcompilerwidestring);virtual;
+          constructor createstr(const s : string;acompiler:TCompilerBase);virtual;
+          constructor createpchar(s: pchar; l: longint; def: tdef;acompiler:TCompilerBase);virtual;
+          constructor createunistr(w : tcompilerwidestring;acompiler:TCompilerBase);virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderefimpl;override;
@@ -161,7 +162,7 @@ interface
           typedefderef : tderef;
           value_set : pconstset;
           lab_set : tasmsymbol;
-          constructor create(s : pconstset;def:tdef);virtual;
+          constructor create(s : pconstset;def:tdef;acompiler:TCompilerBase);virtual;
           destructor destroy;override;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -180,7 +181,7 @@ interface
        tsetconstnodeclass = class of tsetconstnode;
 
        tnilnode = class(tconstnode)
-          constructor create;virtual;
+          constructor create(acompiler:TCompilerBase);virtual;
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
           function emit_data(tcb:ttai_typedconstbuilder):sizeint; override;
@@ -190,7 +191,7 @@ interface
        tguidconstnode = class(tconstnode)
           value : tguid;
           lab_set : tasmsymbol;
-          constructor create(const g:tguid);virtual;
+          constructor create(const g:tguid;acompiler:TCompilerBase);virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           function dogetcopy : tnode;override;
@@ -211,10 +212,10 @@ interface
        cnilnode : tnilnodeclass=tnilnode;
 
     { Creates tordconstnode with the smallest possible int type which can hold v }
-    function genintconstnode(const v : TConstExprInt) : tordconstnode; overload;
+    function genintconstnode(const v : TConstExprInt;acompiler:TCompilerBase) : tordconstnode; overload;
     { Creates tordconstnode with the preferredinttype type or a bigger type which can hold v }
-    function genintconstnode(const v : TConstExprInt; preferredinttype : tdef) : tordconstnode; overload;
-    function genenumnode(v : tenumsym) : tordconstnode;
+    function genintconstnode(const v : TConstExprInt; preferredinttype : tdef;acompiler:TCompilerBase) : tordconstnode; overload;
+    function genenumnode(v : tenumsym;acompiler:TCompilerBase) : tordconstnode;
 
     { some helper routines }
     function get_ordinal_value(p : tnode) : TConstExprInt;
@@ -235,32 +236,32 @@ implementation
       cgbase,
       nld,nbas,ncnv;
 
-    function genintconstnode(const v : TConstExprInt) : tordconstnode;
+    function genintconstnode(const v : TConstExprInt;acompiler:TCompilerBase) : tordconstnode;
       var
         htype : tdef;
       begin
          int_to_type(v,htype);
-         genintconstnode:=cordconstnode.create(v,htype,true);
+         genintconstnode:=cordconstnode.create(v,htype,true,acompiler);
       end;
 
 
-    function genintconstnode(const v : TConstExprInt; preferredinttype : tdef) : tordconstnode;
+    function genintconstnode(const v : TConstExprInt; preferredinttype : tdef;acompiler:TCompilerBase) : tordconstnode;
       var
         htype : tdef;
       begin
         int_to_type(v,htype);
         if htype.size<preferredinttype.size then
           htype:=preferredinttype;
-        result:=cordconstnode.create(v,htype,true);
+        result:=cordconstnode.create(v,htype,true,acompiler);
       end;
 
 
-    function genenumnode(v : tenumsym) : tordconstnode;
+    function genenumnode(v : tenumsym;acompiler:TCompilerBase) : tordconstnode;
       var
         htype : tdef;
       begin
          htype:=v.definition;
-         genenumnode:=cordconstnode.create(int64(v.value),htype,true);
+         genenumnode:=cordconstnode.create(int64(v.value),htype,true,acompiler);
       end;
 
 
@@ -279,6 +280,8 @@ implementation
       end;
 
     function get_string_value(p: tnode; def: tstringdef): tstringconstnode;
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       var
         stringVal: string;
         pWideStringVal: tcompilerwidestring;
@@ -288,13 +291,13 @@ implementation
           begin
             SetLength(stringVal,1);
             stringVal[1]:=char(tordconstnode(p).value.uvalue);
-            result:=cstringconstnode.createstr(stringVal);
+            result:=cstringconstnode.createstr(stringVal,compiler);
           end
         else if is_constwidecharnode(p) then
           begin
             initwidestring(pWideStringVal);
             concatwidestringchar(pWideStringVal, tcompilerwidechar(tordconstnode(p).value.uvalue));
-            result:=cstringconstnode.createunistr(pWideStringVal);
+            result:=cstringconstnode.createunistr(pWideStringVal,compiler);
           end
         else if p.nodetype=stringconstn then
           result:=tstringconstnode(p.getcopy)
@@ -302,7 +305,7 @@ implementation
           begin
             Message(type_e_string_expr_expected);
             stringVal:='';
-            result:=cstringconstnode.createstr(stringVal);
+            result:=cstringconstnode.createstr(stringVal,compiler);
           end;
         result.changestringtype(def);
       end;
@@ -324,6 +327,8 @@ implementation
 
 
     function genconstsymtree(p : tconstsym) : tnode;
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       var
         p1  : tnode;
         len : longint;
@@ -338,7 +343,7 @@ implementation
                 internalerror(200403232);
               { no range checking; if it has a fixed type, the necessary value
                 truncation was already performed at the declaration time }
-              p1:=cordconstnode.create(p.value.valueord,p.constdef,false);
+              p1:=cordconstnode.create(p.value.valueord,p.constdef,false,compiler);
             end;
           conststring :
             begin
@@ -351,17 +356,17 @@ implementation
               getmem(pc,len+1);
               move(pchar(p.value.valueptr)^,pc^,len);
               pc[len]:=#0;
-              p1:=cstringconstnode.createpchar(pc,len,p.constdef);
+              p1:=cstringconstnode.createpchar(pc,len,p.constdef,compiler);
               freemem(pc);
             end;
           constwstring :
-            p1:=cstringconstnode.createunistr(p.value.valuews);
+            p1:=cstringconstnode.createunistr(p.value.valuews,compiler);
           constreal :
             begin
               if (sp_generic_para in p.symoptions) and not (sp_generic_const in p.symoptions) then
-                p1:=crealconstnode.create(default(bestreal),p.constdef)
+                p1:=crealconstnode.create(default(bestreal),p.constdef,compiler)
               else
-                p1:=crealconstnode.create(pbestreal(p.value.valueptr)^,p.constdef);
+                p1:=crealconstnode.create(pbestreal(p.value.valueptr)^,p.constdef,compiler);
             end;
           constset :
             begin
@@ -369,34 +374,34 @@ implementation
                 begin
                   new(value_set);
                   value_set^:=pconstset(p.value.valueptr)^;
-                  p1:=csetconstnode.create(value_set,p.constdef);
+                  p1:=csetconstnode.create(value_set,p.constdef,compiler);
                 end
               else if sp_generic_para in p.symoptions then
                 begin
                   new(value_set);
-                  p1:=csetconstnode.create(value_set,p.constdef);
+                  p1:=csetconstnode.create(value_set,p.constdef,compiler);
                 end
               else
-                p1:=csetconstnode.create(pconstset(p.value.valueptr),p.constdef);
+                p1:=csetconstnode.create(pconstset(p.value.valueptr),p.constdef,compiler);
             end;
           constpointer :
             begin
               if sp_generic_para in p.symoptions then
-                p1:=cpointerconstnode.create(default(tconstptruint),p.constdef)
+                p1:=cpointerconstnode.create(default(tconstptruint),p.constdef,compiler)
               else
-                p1:=cpointerconstnode.create(p.value.valueordptr,p.constdef);
+                p1:=cpointerconstnode.create(p.value.valueordptr,p.constdef,compiler);
             end;
           constnil :
-            p1:=cnilnode.create;
+            p1:=cnilnode.create(compiler);
           constguid :
             begin
               if sp_generic_para in p.symoptions then
-                p1:=cguidconstnode.create(default(tguid))
+                p1:=cguidconstnode.create(default(tguid),compiler)
               else
-                p1:=cguidconstnode.create(pguid(p.value.valueptr)^);
+                p1:=cguidconstnode.create(pguid(p.value.valueptr)^,compiler);
             end;
           constnone :
-            p1:=cnothingnode.create
+            p1:=cnothingnode.create(compiler)
           else
             internalerror(200205103);
         end;
@@ -422,11 +427,11 @@ implementation
     { generic code     }
     { overridden by:   }
     {   i386           }
-    constructor trealconstnode.create(v : bestreal;def:tdef);
+    constructor trealconstnode.create(v : bestreal;def:tdef;acompiler:TCompilerBase);
       begin
          if current_settings.fputype=fpu_none then
             internalerror(2008022401);
-         inherited create(realconstn);
+         inherited create(realconstn,acompiler);
          typedef:=def;
          case tfloatdef(def).floattype of
            s32real:
@@ -620,10 +625,10 @@ implementation
                               TORDCONSTNODE
 *****************************************************************************}
 
-    constructor tordconstnode.create(const v : tconstexprint;def:tdef;_rangecheck : boolean);
+    constructor tordconstnode.create(const v : tconstexprint;def:tdef;_rangecheck : boolean;acompiler:TCompilerBase);
 
       begin
-         inherited create(ordconstn);
+         inherited create(ordconstn,acompiler);
          value:=v;
          typedef:=def;
          rangecheck := _rangecheck;
@@ -733,9 +738,9 @@ implementation
                             TPOINTERCONSTNODE
 *****************************************************************************}
 
-    constructor tpointerconstnode.create(v : TConstPtrUInt;def:tdef);
+    constructor tpointerconstnode.create(v : TConstPtrUInt;def:tdef;acompiler:TCompilerBase);
       begin
-        inherited create(pointerconstn);
+        inherited create(pointerconstn,acompiler);
         value:=v;
         typedef:=def;
       end;
@@ -787,7 +792,7 @@ implementation
         result:=nil;
         resultdef:=typedef;
         if is_voidpointer(resultdef) and (value=0) then
-          result:=cnilnode.create;
+          result:=cnilnode.create(compiler);
       end;
 
 
@@ -833,11 +838,11 @@ implementation
                              TSTRINGCONSTNODE
 *****************************************************************************}
 
-    constructor tstringconstnode.createstr(const s : string);
+    constructor tstringconstnode.createstr(const s : string;acompiler:TCompilerBase);
       var
          l : longint;
       begin
-         inherited create(stringconstn);
+         inherited create(stringconstn,acompiler);
          l:=length(s);
          len:=l;
          { stringdup write even past a #0 }
@@ -850,9 +855,9 @@ implementation
       end;
 
 
-    constructor tstringconstnode.createunistr(w : tcompilerwidestring);
+    constructor tstringconstnode.createunistr(w : tcompilerwidestring;acompiler:TCompilerBase);
       begin
-         inherited create(stringconstn);
+         inherited create(stringconstn,acompiler);
          len:=getlengthwidestring(w);
          initwidestring(valuews);
          copywidestring(w,valuews);
@@ -861,9 +866,9 @@ implementation
       end;
 
 
-    constructor tstringconstnode.createpchar(s: pchar; l: longint; def: tdef);
+    constructor tstringconstnode.createpchar(s: pchar; l: longint; def: tdef;acompiler:TCompilerBase);
       begin
-         inherited create(stringconstn);
+         inherited create(stringconstn,acompiler);
          len:=l;
          setlength(valueas,l+1);
          valueas[l]:=#0;
@@ -1328,10 +1333,10 @@ implementation
                              TSETCONSTNODE
 *****************************************************************************}
 
-    constructor tsetconstnode.create(s : pconstset;def:tdef);
+    constructor tsetconstnode.create(s : pconstset;def:tdef;acompiler:TCompilerBase);
 
       begin
-         inherited create(setconstn,nil);
+         inherited create(setconstn,nil,acompiler);
          typedef:=def;
          if assigned(s) then
            begin
@@ -1560,10 +1565,10 @@ implementation
                                TNILNODE
 *****************************************************************************}
 
-    constructor tnilnode.create;
+    constructor tnilnode.create(acompiler:TCompilerBase);
 
       begin
-        inherited create(niln);
+        inherited create(niln,acompiler);
       end;
 
     function tnilnode.pass_typecheck:tnode;
@@ -1591,10 +1596,10 @@ implementation
                             TGUIDCONSTNODE
 *****************************************************************************}
 
-    constructor tguidconstnode.create(const g:tguid);
+    constructor tguidconstnode.create(const g:tguid;acompiler:TCompilerBase);
 
       begin
-         inherited create(guidconstn);
+         inherited create(guidconstn,acompiler);
          value:=g;
       end;
 

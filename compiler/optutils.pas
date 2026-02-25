@@ -219,6 +219,8 @@ unit optutils;
 
 
     procedure SetNodeSucessors(p,last : tnode);
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       var
         BreakContinueStack : TBreakContinueStack;
         Exitsuccessor: TNode;
@@ -278,7 +280,7 @@ unit optutils;
                 result:=p;
                 { the successor of the last node of the for body is the dummy loop iteration node
                   it allows the dfa to inject needed life information into the loop }
-                tfornode(p).loopiteration:=cnothingnode.create;
+                tfornode(p).loopiteration:=cnothingnode.create(compiler);
 
                 DoSet(tfornode(p).t2,tfornode(p).loopiteration);
                 p.successor:=succ;

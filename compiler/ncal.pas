@@ -28,6 +28,7 @@ unit ncal;
 interface
 
     uses
+       compilerbase,
        cutils,cclasses,
        globtype,constexp,
        paramgr,parabase,cgbase,
@@ -177,8 +178,8 @@ interface
 
           { only the processor specific nodes need to override this }
           { constructor                                             }
-          constructor create(l:tnode; v : tprocsym;st : TSymtable; mp: tnode; callflags:tcallnodeflags;sc:tspecializationcontext);virtual;
-          constructor create_procvar(l,r:tnode);
+          constructor create(l:tnode; v : tprocsym;st : TSymtable; mp: tnode; callflags:tcallnodeflags;sc:tspecializationcontext;acompiler:TCompilerBase);virtual;
+          constructor create_procvar(l,r:tnode;acompiler:TCompilerBase);
           constructor createintern(const name: string; params: tnode);
           constructor createfromintrinsic(const intrinsic: TInlineNumber; const name: string; params: tnode);
           constructor createinternfromunit(const fromunit, procname: string; params: tnode);
@@ -259,7 +260,7 @@ interface
           originalindex: Integer;
           { only the processor specific nodes need to override this }
           { constructor                                             }
-          constructor create(expr,next : tnode);virtual;
+          constructor create(expr,next : tnode;acompiler:TCompilerBase);virtual;
           destructor destroy;override;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -368,6 +369,8 @@ implementation
     function translate_disp_call(selfnode,parametersnode: tnode; calltype: tdispcalltype; const methodname : ansistring;
       dispid : longint;resultdef : tdef) : tnode;
       const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
+      const
         DISPATCH_METHOD = $1;
         DISPATCH_PROPERTYGET = $2;
         DISPATCH_PROPERTYPUT = $4;
@@ -449,7 +452,7 @@ implementation
         if useresult then
           begin
             { get temp for the result }
-            result_data:=ctempcreatenode.create(colevarianttype,colevarianttype.size,tt_persistent,true);
+            result_data:=ctempcreatenode.create(colevarianttype,colevarianttype.size,tt_persistent,true,compiler);
             addstatement(statements,result_data);
           end;
 
@@ -474,19 +477,19 @@ implementation
 
             { insert some extra casts }
             if para.left.nodetype=stringconstn then
-              inserttypeconv_internal(para.left,cwidestringtype)
+              inserttypeconv_internal(para.left,cwidestringtype,compiler)
 
             { force automatable boolean type }
             else if is_boolean(para.left.resultdef) then
-              inserttypeconv_internal(para.left,bool16type)
+              inserttypeconv_internal(para.left,bool16type,compiler)
 
             { force automatable float type }
             else if is_extended(para.left.resultdef)
                 and (current_settings.fputype<>fpu_none) then
-              inserttypeconv_internal(para.left,s64floattype)
+              inserttypeconv_internal(para.left,s64floattype,compiler)
 
             else if is_shortstring(para.left.resultdef) then
-              inserttypeconv_internal(para.left,cwidestringtype)
+              inserttypeconv_internal(para.left,cwidestringtype,compiler)
 
             { skip this check if we've already typecasted to automatable type }
             else if (para.left.nodetype<>nothingn) and (not is_automatable(para.left.resultdef)) then
@@ -498,7 +501,7 @@ implementation
         { create a temp to store parameter values }
         vardispatchparadef:=crecorddef.create_global_internal('',voidpointertype.size,voidpointertype.size);
         { the size will be set once the vardistpatchparadef record has been completed }
-        params:=ctempcreatenode.create(vardispatchparadef,0,tt_persistent,false);
+        params:=ctempcreatenode.create(vardispatchparadef,0,tt_persistent,false,compiler);
         addstatement(statements,params);
 
         tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_new_section]);
@@ -555,12 +558,12 @@ implementation
             vardispatchfield:=vardispatchparadef.add_field_by_def('',assignmenttype);
             if assignmenttype=voidpointertype then
               addstatement(statements,cassignmentnode.create(
-                csubscriptnode.create(vardispatchfield,ctemprefnode.create(params)),
-                ctypeconvnode.create_internal(caddrnode.create_internal(para.left),voidpointertype)))
+                csubscriptnode.create(vardispatchfield,ctemprefnode.create(params,compiler),compiler),
+                ctypeconvnode.create_internal(caddrnode.create_internal(para.left,compiler),voidpointertype,compiler),compiler))
             else
               addstatement(statements,cassignmentnode.create(
-              csubscriptnode.create(vardispatchfield,ctemprefnode.create(params)),
-                ctypeconvnode.create_internal(para.left,assignmenttype)));
+              csubscriptnode.create(vardispatchfield,ctemprefnode.create(params,compiler),compiler),
+                ctypeconvnode.create_internal(para.left,assignmenttype,compiler),compiler));
 
             inc(paramssize,max(voidpointertype.size,assignmenttype.size));
             tcb.emit_ord_const(restype,u8inttype);
@@ -582,9 +585,9 @@ implementation
         pvardatadef:=tpointerdef(search_system_type('PVARDATA').typedef);
 
         if useresult then
-          resultvalue:=caddrnode.create(ctemprefnode.create(result_data))
+          resultvalue:=caddrnode.create(ctemprefnode.create(result_data,compiler),compiler)
         else
-          resultvalue:=cpointerconstnode.create(0,voidpointertype);
+          resultvalue:=cpointerconstnode.create(0,voidpointertype,compiler);
 
         if variantdispatch then
           begin
@@ -621,40 +624,40 @@ implementation
               see issues #26773 and #27044 }
             if not valid_for_var(selfnode,false) then
               begin
-                selftemp:=ctempcreatenode.create(selfnode.resultdef,selfnode.resultdef.size,tt_persistent,false);
+                selftemp:=ctempcreatenode.create(selfnode.resultdef,selfnode.resultdef.size,tt_persistent,false,compiler);
                 addstatement(statements,selftemp);
-                addstatement(statements,cassignmentnode.create(ctemprefnode.create(selftemp),selfnode));
-                selfpara:=ctemprefnode.create(selftemp);
+                addstatement(statements,cassignmentnode.create(ctemprefnode.create(selftemp,compiler),selfnode,compiler));
+                selfpara:=ctemprefnode.create(selftemp,compiler);
               end
             else
               selfpara:=selfnode;
 
             addstatement(statements,ccallnode.createintern('fpc_dispinvoke_variant',
               { parameters are passed always reverted, i.e. the last comes first }
-              ccallparanode.create(caddrnode.create(ctemprefnode.create(params)),
-              ccallparanode.create(caddrnode.create(cloadnode.create(calldescsym,current_module.localsymtable)),
-              ccallparanode.create(ctypeconvnode.create_internal(selfpara,vardatadef),
-              ccallparanode.create(ctypeconvnode.create_internal(resultvalue,pvardatadef),nil)))))
+              ccallparanode.create(caddrnode.create(ctemprefnode.create(params,compiler),compiler),
+              ccallparanode.create(caddrnode.create(cloadnode.create(calldescsym,current_module.localsymtable,compiler),compiler),
+              ccallparanode.create(ctypeconvnode.create_internal(selfpara,vardatadef,compiler),
+              ccallparanode.create(ctypeconvnode.create_internal(resultvalue,pvardatadef,compiler),nil,compiler),compiler),compiler),compiler))
             );
             if assigned(selftemp) then
-              addstatement(statements,ctempdeletenode.create(selftemp));
+              addstatement(statements,ctempdeletenode.create(selftemp,compiler));
           end
         else
           begin
             addstatement(statements,ccallnode.createintern('fpc_dispatch_by_id',
               { parameters are passed always reverted, i.e. the last comes first }
-              ccallparanode.create(caddrnode.create(ctemprefnode.create(params)),
-              ccallparanode.create(caddrnode.create(cloadnode.create(calldescsym,current_module.localsymtable)),
-              ccallparanode.create(ctypeconvnode.create_internal(selfnode,voidpointertype),
-              ccallparanode.create(ctypeconvnode.create_internal(resultvalue,pvardatadef),nil)))))
+              ccallparanode.create(caddrnode.create(ctemprefnode.create(params,compiler),compiler),
+              ccallparanode.create(caddrnode.create(cloadnode.create(calldescsym,current_module.localsymtable,compiler),compiler),
+              ccallparanode.create(ctypeconvnode.create_internal(selfnode,voidpointertype,compiler),
+              ccallparanode.create(ctypeconvnode.create_internal(resultvalue,pvardatadef,compiler),nil,compiler),compiler),compiler),compiler))
             );
           end;
-        addstatement(statements,ctempdeletenode.create(params));
+        addstatement(statements,ctempdeletenode.create(params,compiler));
         if useresult then
           begin
             { clean up }
-            addstatement(statements,ctempdeletenode.create_normal_temp(result_data));
-            addstatement(statements,ctemprefnode.create(result_data));
+            addstatement(statements,ctempdeletenode.create_normal_temp(result_data,compiler));
+            addstatement(statements,ctemprefnode.create(result_data,compiler));
           end;
       end;
 
@@ -702,7 +705,7 @@ implementation
             paraaddrtype:=cpointerdef.getreusable(orgparadef);
             { create temp with address of the parameter }
             temp:=ctempcreatenode.create(
-              paraaddrtype,paraaddrtype.size,tt_persistent,true);
+              paraaddrtype,paraaddrtype.size,tt_persistent,true,compiler);
             { put this code in the init/done statement of the call node, because
               we should finalize all out parameters before other parameters
               are evaluated (in case e.g. a managed out parameter is also
@@ -711,14 +714,14 @@ implementation
             callnode.add_init_statement(temp);
             callnode.add_init_statement(
               cassignmentnode.create(
-                ctemprefnode.create(temp),
-                caddrnode.create(left)));
+                ctemprefnode.create(temp,compiler),
+                caddrnode.create(left,compiler),compiler));
             if not is_open_array(resultdef) or
                not is_managed_type(tarraydef(resultdef).elementdef) then
               { finalize the entire parameter }
               callnode.add_init_statement(
                 cnodeutils.finalize_data_node(
-                  cderefnode.create(ctemprefnode.create(temp))))
+                  cderefnode.create(ctemprefnode.create(temp,compiler),compiler)))
             else
               begin
                 { passing a (part of, in case of slice) dynamic array as an
@@ -726,17 +729,17 @@ implementation
                   dynamic array itself }
                 npara:=ccallparanode.create(
                          { array length = high + 1 }
-                         caddnode.create(addn,third.getcopy,genintconstnode(1)),
+                         caddnode.create(addn,third.getcopy,genintconstnode(1,compiler),compiler),
                        ccallparanode.create(caddrnode.create_internal
-                          (crttinode.create(tstoreddef(tarraydef(resultdef).elementdef),initrtti,rdt_normal)),
+                          (crttinode.create(tstoreddef(tarraydef(resultdef).elementdef),initrtti,rdt_normal,compiler),compiler),
                        ccallparanode.create(caddrnode.create_internal(
-                          cderefnode.create(ctemprefnode.create(temp))),nil)));
+                          cderefnode.create(ctemprefnode.create(temp,compiler),compiler),compiler),nil,compiler),compiler),compiler);
                 callnode.add_init_statement(
                   ccallnode.createintern('fpc_finalize_array',npara));
               end;
-            left:=cderefnode.create(ctemprefnode.create(temp));
+            left:=cderefnode.create(ctemprefnode.create(temp,compiler),compiler);
             firstpass(left);
-            callnode.add_done_statement(ctempdeletenode.create(temp));
+            callnode.add_done_statement(ctempdeletenode.create(temp,compiler));
           end;
       end;
 
@@ -777,7 +780,7 @@ implementation
                (is_dynamic_array(left.resultdef) and
                 is_open_array(parasym.vardef)) then
               begin
-                 paratemp:=ctempcreatenode.create(voidpointertype,voidpointertype.size,tt_persistent,true);
+                 paratemp:=ctempcreatenode.create(voidpointertype,voidpointertype.size,tt_persistent,true,compiler);
                  if is_dynamic_array(left.resultdef) then
                    begin
                       { note that in insert_typeconv, this dynamic array was
@@ -789,28 +792,32 @@ implementation
                      temparraydef:=left.resultdef;
                      left.resultdef:=resultdef;
                      { get its address }
-                     lefttemp:=ctempcreatenode.create(voidpointertype,voidpointertype.size,tt_persistent,true);
+                     lefttemp:=ctempcreatenode.create(voidpointertype,voidpointertype.size,tt_persistent,true,compiler);
                      addstatement(initstat,lefttemp);
-                     addstatement(finistat,ctempdeletenode.create(lefttemp));
+                     addstatement(finistat,ctempdeletenode.create(lefttemp,compiler));
                      addstatement(initstat,
                        cassignmentnode.create(
-                         ctemprefnode.create(lefttemp),
-                         caddrnode.create_internal(left)
+                         ctemprefnode.create(lefttemp,compiler),
+                         caddrnode.create_internal(left,compiler),
+                         compiler
                        )
                      );
                      { now treat that address (correctly) as the original
                        dynamic array to get its start and length }
                      arraybegin:=cvecnode.create(
-                       ctypeconvnode.create_explicit(ctemprefnode.create(lefttemp),
-                         temparraydef),
-                       genintconstnode(0)
+                       ctypeconvnode.create_explicit(ctemprefnode.create(lefttemp,compiler),
+                         temparraydef,compiler),
+                       genintconstnode(0,compiler),
+                       compiler
                      );
                      arraysize:=caddnode.create(muln,
                        geninlinenode(in_length_x,false,
-                         ctypeconvnode.create_explicit(ctemprefnode.create(lefttemp),
-                           temparraydef)
+                         ctypeconvnode.create_explicit(ctemprefnode.create(lefttemp,compiler),
+                           temparraydef,compiler),
+                         compiler
                        ),
-                       genintconstnode(tarraydef(temparraydef).elementdef.size)
+                       genintconstnode(tarraydef(temparraydef).elementdef.size,compiler),
+                       compiler
                      );
                    end
                  else
@@ -818,18 +825,19 @@ implementation
                      { no problem here that left is used multiple times, as
                        sizeof() will simply evaluate to the high parameter }
                      arraybegin:=left.getcopy;
-                     arraysize:=geninlinenode(in_sizeof_x,false,left);
+                     arraysize:=geninlinenode(in_sizeof_x,false,left,compiler);
                    end;
                  addstatement(initstat,paratemp);
                  { paratemp:=getmem(sizeof(para)) }
                  addstatement(initstat,
                    cassignmentnode.create(
-                     ctemprefnode.create(paratemp),
+                     ctemprefnode.create(paratemp,compiler),
                      ccallnode.createintern('fpc_getmem',
                        ccallparanode.create(
-                         arraysize.getcopy,nil
+                         arraysize.getcopy,nil,compiler
                        )
-                     )
+                     ),
+                     compiler
                    )
                  );
                  { move(para,temp,sizeof(arr)) (no "left.getcopy" below because
@@ -839,20 +847,24 @@ implementation
                      caddnode.create_internal(
                        unequaln,
                        arraysize.getcopy,
-                       genintconstnode(0)
+                       genintconstnode(0,compiler),
+                       compiler
                      ),
                      ccallnode.createintern('MOVE',
                        ccallparanode.create(
                          arraysize,
                          ccallparanode.create(
-                           cderefnode.create(ctemprefnode.create(paratemp)),
+                           cderefnode.create(ctemprefnode.create(paratemp,compiler),compiler),
                            ccallparanode.create(
-                             arraybegin,nil
-                           )
-                         )
+                             arraybegin,nil,compiler
+                           ),
+                           compiler
+                         ),
+                         compiler
                        )
                      ),
-                     nil
+                     nil,
+                     compiler
                    )
                  );
                  { no reference count increases, that's still done on the callee
@@ -865,7 +877,7 @@ implementation
                  addstatement(finistat,
                    ccallnode.createintern('fpc_freemem',
                      ccallparanode.create(
-                       ctemprefnode.create(paratemp),nil
+                       ctemprefnode.create(paratemp,compiler),nil,compiler
                      )
                    )
                  );
@@ -873,46 +885,50 @@ implementation
                    temp typecasted to the same type as the original parameter
                    (don't free left, it has been reused above) }
                  left:=ctypeconvnode.create_internal(
-                   cderefnode.create(ctemprefnode.create(paratemp)),
-                   left.resultdef);
+                   cderefnode.create(ctemprefnode.create(paratemp,compiler),compiler),
+                   left.resultdef,compiler);
               end
             else if is_shortstring(parasym.vardef) then
               begin
                 { the shortstring parameter may have a different size than the
                   parameter type -> assign and truncate/extend }
-                paratemp:=ctempcreatenode.create(parasym.vardef,parasym.vardef.size,tt_persistent,false);
+                paratemp:=ctempcreatenode.create(parasym.vardef,parasym.vardef.size,tt_persistent,false,compiler);
                 addstatement(initstat,paratemp);
                 { assign shortstring }
                 addstatement(initstat,
                   cassignmentnode.create(
-                    ctemprefnode.create(paratemp),left
+                    ctemprefnode.create(paratemp,compiler),left,
+                    compiler
                   )
                 );
                 { replace parameter with temp (don't free left, it has been
                   reused above) }
-                left:=ctemprefnode.create(paratemp);
+                left:=ctemprefnode.create(paratemp,compiler);
               end
             else if parasym.vardef.typ=variantdef then
               begin
                 vardatatype:=search_system_type('TVARDATA').typedef;
-                paratemp:=ctempcreatenode.create(vardatatype,vardatatype.size,tt_persistent,false);
+                paratemp:=ctempcreatenode.create(vardatatype,vardatatype.size,tt_persistent,false,compiler);
                 addstatement(initstat,paratemp);
                 addstatement(initstat,
                   ccallnode.createintern('fpc_variant_copy_overwrite',
                     ccallparanode.create(
-                      ctypeconvnode.create_explicit(ctemprefnode.create(paratemp),
-                          vardatatype
+                      ctypeconvnode.create_explicit(ctemprefnode.create(paratemp,compiler),
+                          vardatatype,
+                          compiler
                         ),
                       ccallparanode.create(ctypeconvnode.create_explicit(left,
-                        vardatatype),
-                        nil
-                      )
+                        vardatatype,compiler),
+                        nil,
+                        compiler
+                      ),
+                      compiler
                     )
                   )
                 );
                 { replace parameter with temp (don't free left, it has been
                   reused above) }
-                left:=ctypeconvnode.create_explicit(ctemprefnode.create(paratemp),parasym.vardef);
+                left:=ctypeconvnode.create_explicit(ctemprefnode.create(paratemp,compiler),parasym.vardef,compiler);
               end
             else if is_managed_type(left.resultdef) then
               begin
@@ -920,29 +936,30 @@ implementation
                   the callee (see (*) above) -> typecast to array of byte
                   for the assignment to the temp }
                 temparraydef:=carraydef.getreusable(u8inttype,left.resultdef.size);
-                paratemp:=ctempcreatenode.create(temparraydef,temparraydef.size,tt_persistent,false);
+                paratemp:=ctempcreatenode.create(temparraydef,temparraydef.size,tt_persistent,false,compiler);
                 addstatement(initstat,paratemp);
                 addstatement(initstat,
                   cassignmentnode.create(
-                    ctemprefnode.create(paratemp),
-                    ctypeconvnode.create_internal(left,temparraydef)
+                    ctemprefnode.create(paratemp,compiler),
+                    ctypeconvnode.create_internal(left,temparraydef,compiler),
+                    compiler
                   )
                 );
-                left:=ctypeconvnode.create_explicit(ctemprefnode.create(paratemp),left.resultdef);
+                left:=ctypeconvnode.create_explicit(ctemprefnode.create(paratemp,compiler),left.resultdef,compiler);
               end
             else
               begin
-                paratemp:=ctempcreatenode.create(left.resultdef,left.resultdef.size,tt_persistent,false);
+                paratemp:=ctempcreatenode.create(left.resultdef,left.resultdef.size,tt_persistent,false,compiler);
                 addstatement(initstat,paratemp);
                 addstatement(initstat,
-                  cassignmentnode.create(ctemprefnode.create(paratemp),left)
+                  cassignmentnode.create(ctemprefnode.create(paratemp,compiler),left,compiler)
                 );
                 { replace parameter with temp (don't free left, it has been
                   reused above) }
-                left:=ctemprefnode.create(paratemp);
+                left:=ctemprefnode.create(paratemp,compiler);
               end;
             { add the finish statements to the call cleanup block }
-            addstatement(finistat,ctempdeletenode.create(paratemp));
+            addstatement(finistat,ctempdeletenode.create(paratemp,compiler));
             callnode.add_done_statement(finiblock);
 
             firstpass(fparainit);
@@ -951,10 +968,10 @@ implementation
       end;
 
 
-    constructor tcallparanode.create(expr,next : tnode);
+    constructor tcallparanode.create(expr,next : tnode;acompiler:TCompilerBase);
 
       begin
-         inherited create(callparan,expr,next,nil);
+         inherited create(callparan,expr,next,nil,acompiler);
          if not assigned(expr) then
            internalerror(200305091);
          expr.fileinfo:=fileinfo;
@@ -1144,7 +1161,7 @@ implementation
                 (parasym.vardef.typ=procvardef) and
                 is_ambiguous_funcret_load(left,owningprocdef) then
                begin
-                 hp:=cloadnode.create_procvar(owningprocdef.procsym,owningprocdef,owningprocdef.procsym.owner);
+                 hp:=cloadnode.create_procvar(owningprocdef.procsym,owningprocdef,owningprocdef.procsym.owner,compiler);
                  typecheckpass(hp);
                  left.free;
                  left:=hp;
@@ -1212,7 +1229,7 @@ implementation
                    with its conversions of enum->ord }
                  if (left.nodetype=arrayconstructorn) and
                     (parasym.vardef.typ=setdef) then
-                   inserttypeconv(left,parasym.vardef);
+                   inserttypeconv(left,parasym.vardef,compiler);
 
                  { if an array constructor can be a set and it is passed to
                    a formaldef, a set must be passed, see also issue #37796 }
@@ -1256,13 +1273,13 @@ implementation
                        begin
                          { insert type conv but hold the ranges of the array }
                          olddef:=left.resultdef;
-                         inserttypeconv(left,parasym.vardef);
+                         inserttypeconv(left,parasym.vardef,compiler);
                          left.resultdef:=olddef;
                        end
                       else
                        begin
                          check_ranges(left.fileinfo,left,parasym.vardef);
-                         inserttypeconv(left,parasym.vardef);
+                         inserttypeconv(left,parasym.vardef,compiler);
                        end;
                       if codegenerror then
                         exit;
@@ -1293,14 +1310,14 @@ implementation
                      block:=internalstatements(statements);
                      { temp for the new string }
                      temp:=ctempcreatenode.create(parasym.vardef,parasym.vardef.size,
-                       tt_persistent,true);
+                       tt_persistent,true,compiler);
                      addstatement(statements,temp);
                      { assign parameter to temp }
-                     addstatement(statements,cassignmentnode.create(ctemprefnode.create(temp),left));
+                     addstatement(statements,cassignmentnode.create(ctemprefnode.create(temp,compiler),left,compiler));
                      left:=nil;
                      { release temp after next use }
-                     addstatement(statements,ctempdeletenode.create_normal_temp(temp));
-                     addstatement(statements,ctemprefnode.create(temp));
+                     addstatement(statements,ctempdeletenode.create_normal_temp(temp,compiler));
+                     addstatement(statements,ctemprefnode.create(temp,compiler));
                      typecheckpass(tnode(block));
                      left:=block;
                    end;
@@ -1333,10 +1350,10 @@ implementation
                            a procedure, which means that the type conversion
                            below will type convert the first instruction
                            bytes of the procedure -> convert to a procvar }
-                         left:=ctypeconvnode.create_proc_to_procvar(left);
+                         left:=ctypeconvnode.create_proc_to_procvar(left,compiler);
                          typecheckpass(left);
                        end;
-                     inserttypeconv_explicit(left,parasym.vardef);
+                     inserttypeconv_explicit(left,parasym.vardef,compiler);
                    end;
 
                  { Handle formal parameters separate }
@@ -1368,7 +1385,7 @@ implementation
                            else if (target_info.system in systems_managed_vm) and
                               (left.resultdef.typ in [orddef,floatdef]) then
                              begin
-                               left:=cinlinenode.create(in_box_x,false,ccallparanode.create(left,nil));
+                               left:=cinlinenode.create(in_box_x,false,ccallparanode.create(left,nil,compiler),compiler);
                                typecheckpass(left);
                              end;
                          end;
@@ -1574,12 +1591,12 @@ implementation
                                  TCALLNODE
  ****************************************************************************}
 
-    constructor tcallnode.create(l:tnode;v : tprocsym;st : TSymtable; mp: tnode; callflags:tcallnodeflags;sc:tspecializationcontext);
+    constructor tcallnode.create(l:tnode;v : tprocsym;st : TSymtable; mp: tnode; callflags:tcallnodeflags;sc:tspecializationcontext;acompiler:TCompilerBase);
       var
         srsym: tsym;
         srsymtable: tsymtable;
       begin
-         inherited create(calln,l,nil);
+         inherited create(calln,l,nil,acompiler);
          spezcontext:=sc;
          symtableprocentry:=v;
          symtableproc:=st;
@@ -1606,15 +1623,15 @@ implementation
                 begin
                   if not searchsym(copy(internaltypeprefixName[itp_vmt_afterconstruction_local],2,255),srsym,srsymtable) then
                     internalerror(2016090801);
-                  call_vmt_node:=cloadnode.create(srsym,srsymtable);
+                  call_vmt_node:=cloadnode.create(srsym,srsymtable,compiler);
                 end;
            end;
       end;
 
 
-    constructor tcallnode.create_procvar(l,r:tnode);
+    constructor tcallnode.create_procvar(l,r:tnode;acompiler:TCompilerBase);
       begin
-         create(l,nil,nil,nil,[],nil);
+         create(l,nil,nil,nil,[],nil,acompiler);
          right:=r;
       end;
 
@@ -1634,7 +1651,7 @@ implementation
          if not assigned(srsym) or
             (srsym.typ<>procsym) then
            Message1(cg_f_unknown_compilerproc,name);
-         create(params,tprocsym(srsym),srsym.owner,nil,[],nil);
+         create(params,tprocsym(srsym),srsym.owner,nil,[],nil,compiler);
        end;
 
 
@@ -1654,7 +1671,7 @@ implementation
          if not searchsym_in_named_module(fromunit,procname,srsym,srsymtable) or
             (srsym.typ<>procsym) then
            Message1(cg_f_unknown_compilerproc,fromunit+'.'+procname);
-         create(params,tprocsym(srsym),srsymtable,nil,[],nil);
+         create(params,tprocsym(srsym),srsymtable,nil,[],nil,compiler);
        end;
 
 
@@ -1711,7 +1728,7 @@ implementation
         if not assigned(ps) or
            (ps.typ<>procsym) then
           internalerror(2011062806);
-        create(params,tprocsym(ps),ps.owner,mp,[],nil);
+        create(params,tprocsym(ps),ps.owner,mp,[],nil,compiler);
       end;
 
 
@@ -2335,25 +2352,26 @@ implementation
             else
               hdef:=p.resultdef;
 
-            ptemp:=ctempcreatenode.create(hdef,hdef.size,tt_persistent,true);
+            ptemp:=ctempcreatenode.create(hdef,hdef.size,tt_persistent,true,compiler);
             if usederef then
               begin
-                loadp:=caddrnode.create_internal(p);
-                refp:=cderefnode.create(ctemprefnode.create(ptemp));
+                loadp:=caddrnode.create_internal(p,compiler);
+                refp:=cderefnode.create(ctemprefnode.create(ptemp,compiler),compiler);
               end
             else
               begin
                 loadp:=p;
-                refp:=ctemprefnode.create(ptemp);
+                refp:=ctemprefnode.create(ptemp,compiler);
                 { ensure that an invokable isn't called again }
                 if is_invokable(hdef) then
                   include(ttemprefnode(refp).flags,nf_load_procvar);
               end;
             add_init_statement(ptemp);
             add_init_statement(cassignmentnode.create(
-                ctemprefnode.create(ptemp),
-                loadp));
-            add_done_statement(ctempdeletenode.create(ptemp));
+                ctemprefnode.create(ptemp,compiler),
+                loadp,
+                compiler));
+            add_done_statement(ctempdeletenode.create(ptemp,compiler));
             { new tree is only a temp reference }
             p:=refp;
             typecheckpass(p);
@@ -2408,7 +2426,7 @@ implementation
                       begin
                         {Array slice using slice builtin function.}
                         l:=Tcallparanode(right).left;
-                        hightree:=caddnode.create(subn,geninlinenode(in_ord_x,false,l),genintconstnode(1));
+                        hightree:=caddnode.create(subn,geninlinenode(in_ord_x,false,l,compiler),genintconstnode(1,compiler),compiler);
                         Tcallparanode(right).left:=nil;
 
                         {Remove the inline node.}
@@ -2425,11 +2443,11 @@ implementation
                       {Array slice using .. operator.}
                       with Trangenode(Tvecnode(p).right) do
                         begin
-                          l:=geninlinenode(in_ord_x,false,left);  {Get lower bound.}
-                          r:=geninlinenode(in_ord_x,false,right); {Get upper bound.}
+                          l:=geninlinenode(in_ord_x,false,left,compiler);  {Get lower bound.}
+                          r:=geninlinenode(in_ord_x,false,right,compiler); {Get upper bound.}
                         end;
                       {In the procedure the array range is 0..(upper_bound-lower_bound).}
-                      hightree:=caddnode.create(subn,r,l);
+                      hightree:=caddnode.create(subn,r,l,compiler);
 
                       {Replace the rangnode in the tree by its lower_bound, and
                        dispose the rangenode.}
@@ -2455,15 +2473,15 @@ implementation
                   else
                     begin
                       maybe_load_in_temp(p);
-                      hightree:=geninlinenode(in_ord_x,false,geninlinenode(in_high_x,false,p.getcopy));
+                      hightree:=geninlinenode(in_ord_x,false,geninlinenode(in_high_x,false,p.getcopy,compiler),compiler);
                       typecheckpass(hightree);
                       { only subtract low(array) if it's <> 0 }
-                      temp:=geninlinenode(in_ord_x,false,geninlinenode(in_low_x,false,p.getcopy));
+                      temp:=geninlinenode(in_ord_x,false,geninlinenode(in_low_x,false,p.getcopy,compiler),compiler);
                       typecheckpass(temp);
                       if (temp.nodetype <> ordconstn) or
                          (tordconstnode(temp).value <> 0) then
                         begin
-                          hightree:=caddnode.create(subn,hightree,temp);
+                          hightree:=caddnode.create(subn,hightree,temp,compiler);
                           include(hightree.flags,nf_internal);
                         end
                       else
@@ -2486,7 +2504,7 @@ implementation
                    maybe_load_in_temp(p);
                  { handle via a normal inline in_high_x node }
                  loadconst := false;
-                 hightree := geninlinenode(in_high_x,false,p.getcopy);
+                 hightree := geninlinenode(in_high_x,false,p.getcopy,compiler);
                end
               else
                { handle special case of passing an single string to an array of string }
@@ -2504,8 +2522,8 @@ implementation
               else
                 begin
                   maybe_load_in_temp(p);
-                  hightree:=caddnode.create(subn,geninlinenode(in_length_x,false,p.getcopy),
-                                            cordconstnode.create(1,sizesinttype,false));
+                  hightree:=caddnode.create(subn,geninlinenode(in_length_x,false,p.getcopy,compiler),
+                                            cordconstnode.create(1,sizesinttype,false,compiler),compiler);
                   loadconst:=false;
                 end;
            end;
@@ -2513,13 +2531,13 @@ implementation
           len:=0;
         end;
         if loadconst then
-          hightree:=cordconstnode.create(len,sizesinttype,true)
+          hightree:=cordconstnode.create(len,sizesinttype,true,compiler)
         else
           begin
             if not assigned(hightree) then
               internalerror(200304071);
             { Need to use explicit, because it can also be a enum }
-            hightree:=ctypeconvnode.create_internal(hightree,sizesinttype);
+            hightree:=ctypeconvnode.create_internal(hightree,sizesinttype,compiler);
           end;
         result:=hightree;
       end;
@@ -2529,7 +2547,7 @@ implementation
       begin
         { Load tmehodpointer(right).self }
         result:=genloadfield(ctypeconvnode.create_internal(
-          right.getcopy,methodpointertype),
+          right.getcopy,methodpointertype,compiler),
           'self');
       end;
 
@@ -2538,7 +2556,7 @@ implementation
       begin
         { Load tnestedprocpointer(right).parentfp }
         result:=genloadfield(ctypeconvnode.create_internal(
-          right.getcopy,nestedprocpointertype),
+          right.getcopy,nestedprocpointertype,compiler),
           'parentfp');
       end;
 
@@ -2570,7 +2588,7 @@ implementation
            }
            if (procdefinition.procoptions*[po_classmethod,po_staticmethod] <> []) and
               (selftree.resultdef.typ<>classrefdef) then
-             selftree:=cloadvmtaddrnode.create(selftree);
+             selftree:=cloadvmtaddrnode.create(selftree,compiler);
           end
         else
           { constructors }
@@ -2582,14 +2600,14 @@ implementation
                   begin
                     if (cnf_new_call in callnodeflags) then
                       { old-style object: push 0 as self }
-                      selftree:=cpointerconstnode.create(0,voidpointertype)
+                      selftree:=cpointerconstnode.create(0,voidpointertype,compiler)
                     else
                       begin
                         { class-style: push classtype }
                         selftree:=methodpointer.getcopy;
                         if selftree.nodetype=typen then
                           begin
-                            selftree:=cloadvmtaddrnode.create(selftree);
+                            selftree:=cloadvmtaddrnode.create(selftree,compiler);
                             tloadvmtaddrnode(selftree).forcall:=true;
                           end;
                       end;
@@ -2597,7 +2615,7 @@ implementation
                 else
                  { special handling for Java constructors, handled in
                    tjvmcallnode.extra_pre_call_code }
-                  selftree:=cnothingnode.create
+                  selftree:=cnothingnode.create(compiler)
               else
                 begin
                   if methodpointer.nodetype=typen then
@@ -2607,16 +2625,16 @@ implementation
                           begin
                             { TSomeRecord.Constructor call. We need to allocate }
                             { self node as a temp node of the result type       }
-                            temp:=ctempcreatenode.create(methodpointer.resultdef,methodpointer.resultdef.size,tt_persistent,false);
+                            temp:=ctempcreatenode.create(methodpointer.resultdef,methodpointer.resultdef.size,tt_persistent,false,compiler);
                             add_init_statement(temp);
-                            add_done_statement(ctempdeletenode.create_normal_temp(temp));
-                            selftree:=ctemprefnode.create(temp);
+                            add_done_statement(ctempdeletenode.create_normal_temp(temp,compiler));
+                            selftree:=ctemprefnode.create(temp,compiler);
                           end
                         else
                           begin
                             { special handling for Java constructors, handled in
                               tjvmcallnode.extra_pre_call_code }
-                            selftree:=cnothingnode.create
+                            selftree:=cnothingnode.create(compiler)
                           end;
                       end
                     else
@@ -2649,10 +2667,10 @@ implementation
                   selftree:=methodpointer.getcopy;
                   if (methodpointer.resultdef.typ<>classrefdef) or
                      (methodpointer.nodetype = typen) then
-                    selftree:=cloadvmtaddrnode.create(selftree);
+                    selftree:=cloadvmtaddrnode.create(selftree,compiler);
                 end
               else
-                selftree:=cpointerconstnode.create(0,voidpointertype);
+                selftree:=cpointerconstnode.create(0,voidpointertype,compiler);
             end
         else
           begin
@@ -2929,7 +2947,8 @@ implementation
 
                                       result := cassignmentnode.create(
                                         outnode.getcopy,
-                                        cstringconstnode.createstr(StringLiteral)
+                                        cstringconstnode.createstr(StringLiteral,compiler),
+                                        compiler
                                       );
                                     end;
                                 end;
@@ -3038,14 +3057,15 @@ implementation
                             NewStatements,
                             CAssignmentNode.Create_Internal(
                               outnode.getcopy(), { The original will get destroyed }
-                              COrdConstNode.Create(ValCode, outnode.ResultDef, False)
+                              COrdConstNode.Create(ValCode, outnode.ResultDef, False, compiler),
+                              compiler
                             )
                           );
 
                           { Now actually create the function result }
                           case resultdef.typ of
                             orddef:
-                              valnode := COrdConstNode.Create(ValOutput, resultdef, False);
+                              valnode := COrdConstNode.Create(ValOutput, resultdef, False, compiler);
                             else
                               Internalerror(2024011401);
                           end;
@@ -3066,7 +3086,7 @@ implementation
         if not assigned(call_self_node) then
           begin
             CGMessage(parser_e_illegal_expression);
-            call_self_node:=cerrornode.create;
+            call_self_node:=cerrornode.create(compiler);
           end;
         result:=call_self_node;
       end;
@@ -3085,7 +3105,7 @@ implementation
           begin
             vmt_entry:=load_vmt_for_self_node(methodpointer.getcopy);
             { get the right entry in the VMT }
-            vmt_entry:=cderefnode.create(vmt_entry);
+            vmt_entry:=cderefnode.create(vmt_entry, compiler);
             typecheckpass(vmt_entry);
             vmt_def:=trecorddef(vmt_entry.resultdef);
             { tobjectdef(tprocdef(procdefinition).struct) can be a parent of the
@@ -3095,7 +3115,8 @@ implementation
                 trecordsymtable(vmt_def.symtable).findfieldbyoffset(
                   tobjectdef(tprocdef(procdefinition).struct).vmtmethodoffset(tprocdef(procdefinition).extnumber)
                 ),
-               vmt_entry
+               vmt_entry,
+               compiler
               );
             firstpass(vmt_entry);
           end;
@@ -3200,7 +3221,7 @@ implementation
              if (objcsupertype.typ<>recorddef) then
                internalerror(2009032901);
              { temp for the for the objc_super record }
-             temp:=ctempcreatenode.create(objcsupertype,objcsupertype.size,tt_persistent,false);
+             temp:=ctempcreatenode.create(objcsupertype,objcsupertype.size,tt_persistent,false,compiler);
              addstatement(statements,temp);
              { initialize objc_super record }
              selftree:=safe_call_self_node.getcopy;
@@ -3211,7 +3232,7 @@ implementation
              if (po_classmethod in procdefinition.procoptions) and
                 (selftree.resultdef.typ<>classrefdef) then
                begin
-                 selftree:=cloadvmtaddrnode.create(selftree);
+                 selftree:=cloadvmtaddrnode.create(selftree,compiler);
                  { since we're in a class method of the current class, its
                    information has already been initialized (and that of all of
                    its parent classes too) }
@@ -3225,8 +3246,9 @@ implementation
             { first the destination object/class instance }
              addstatement(statements,
                cassignmentnode.create(
-                 csubscriptnode.create(field,ctemprefnode.create(temp)),
-                 selftree
+                 csubscriptnode.create(field,ctemprefnode.create(temp,compiler),compiler),
+                 selftree,
+                 compiler
                )
              );
              { and secondly, the class type in which the selector must be looked
@@ -3237,13 +3259,14 @@ implementation
                internalerror(2009032903);
              addstatement(statements,
                cassignmentnode.create(
-                 csubscriptnode.create(field,ctemprefnode.create(temp)),
-                 objcsuperclassnode(selftree.resultdef)
+                 csubscriptnode.create(field,ctemprefnode.create(temp,compiler),compiler),
+                 objcsuperclassnode(selftree.resultdef),
+                 compiler
                )
              );
              { result of this block is the address of this temp }
              addstatement(statements,ctypeconvnode.create_internal(
-               caddrnode.create_internal(ctemprefnode.create(temp)),selfrestype)
+               caddrnode.create_internal(ctemprefnode.create(temp,compiler),compiler),selfrestype,compiler)
              );
              { replace the method pointer with the address of this temp }
              methodpointer.free;
@@ -3258,7 +3281,7 @@ implementation
                ((methodpointer.nodetype=typen) or
                 (methodpointer.resultdef.typ<>classrefdef)) then
               begin
-                methodpointer:=cloadvmtaddrnode.create(methodpointer);
+                methodpointer:=cloadvmtaddrnode.create(methodpointer,compiler);
                 { no need to obtain the class ref by calling class(), sending
                   this message will initialize it if necessary }
                 tloadvmtaddrnode(methodpointer).forcall:=true;
@@ -3291,7 +3314,7 @@ implementation
             { constructor call via classreference => allocate memory }
             if (procdefinition.proctypeoption=potype_constructor) then
               begin
-                vmttree:=cpointerconstnode.create(1,voidpointertype);
+                vmttree:=cpointerconstnode.create(1,voidpointertype,compiler);
               end
             else  { <class of xx>.destroy is not valid }
               InternalError(2014020601);
@@ -3302,7 +3325,7 @@ implementation
           begin
             { inherited call, no create/destroy }
             if (cnf_inherited in callnodeflags) then
-              vmttree:=cpointerconstnode.create(0,voidpointertype)
+              vmttree:=cpointerconstnode.create(0,voidpointertype,compiler)
             else
               { do not create/destroy when called from member function
                 without specifying self explicit }
@@ -3320,14 +3343,14 @@ implementation
                         call afterconstruction but not NewInstance, vmt=-1 }
                   if (procdefinition.proctypeoption=potype_destructor) then
                     if (current_procinfo.procdef.proctypeoption<>potype_constructor) then
-                      vmttree:=cpointerconstnode.create(1,voidpointertype)
+                      vmttree:=cpointerconstnode.create(1,voidpointertype,compiler)
                     else
-                      vmttree:=cpointerconstnode.create(0,voidpointertype)
+                      vmttree:=cpointerconstnode.create(0,voidpointertype,compiler)
                   else if (current_procinfo.procdef.proctypeoption=potype_constructor) and
                           (procdefinition.proctypeoption=potype_constructor) then
-                    vmttree:=cpointerconstnode.create(0,voidpointertype)
+                    vmttree:=cpointerconstnode.create(0,voidpointertype,compiler)
                   else
-                    vmttree:=cpointerconstnode.create(TConstPtrUInt(-1),voidpointertype);
+                    vmttree:=cpointerconstnode.create(TConstPtrUInt(-1),voidpointertype,compiler);
                 end
             else
             { normal call to method like cl1.proc }
@@ -3348,18 +3371,18 @@ implementation
                      is_class(methodpointer.resultdef) then
                     vmttree:=call_vmt_node.getcopy
                   else if not(cnf_create_failed in callnodeflags) then
-                    vmttree:=cpointerconstnode.create(1,voidpointertype)
+                    vmttree:=cpointerconstnode.create(1,voidpointertype,compiler)
                   else
-                    vmttree:=cpointerconstnode.create(TConstPtrUInt(-1),voidpointertype)
+                    vmttree:=cpointerconstnode.create(TConstPtrUInt(-1),voidpointertype,compiler)
                 else
                   begin
                     if (current_procinfo.procdef.proctypeoption=potype_constructor) and
                        (procdefinition.proctypeoption=potype_constructor) and
                        (methodpointer.nodetype=loadn) and
                        (loadnf_is_self in tloadnode(methodpointer).loadnodeflags) then
-                      vmttree:=cpointerconstnode.create(0,voidpointertype)
+                      vmttree:=cpointerconstnode.create(0,voidpointertype,compiler)
                     else
-                      vmttree:=cpointerconstnode.create(TConstPtrUInt(-1),voidpointertype);
+                      vmttree:=cpointerconstnode.create(TConstPtrUInt(-1),voidpointertype,compiler);
                   end;
               end;
           end
@@ -3368,20 +3391,20 @@ implementation
           begin
             { constructor with extended syntax called from new }
             if (cnf_new_call in callnodeflags) then
-                vmttree:=cloadvmtaddrnode.create(ctypenode.create(methodpointer.resultdef))
+                vmttree:=cloadvmtaddrnode.create(ctypenode.create(methodpointer.resultdef,compiler),compiler)
             else
               { destructor with extended syntax called from dispose }
               { value -1 is what fpc_help_constructor() changes VMT to when it allocates memory }
               if (cnf_dispose_call in callnodeflags) then
-                vmttree:=cpointerconstnode.create(TConstPtrUInt(-1),voidpointertype)
+                vmttree:=cpointerconstnode.create(TConstPtrUInt(-1),voidpointertype,compiler)
             else
               { destructor called from exception block in constructor }
               if (cnf_create_failed in callnodeflags) then
-                vmttree:=ctypeconvnode.create_internal(call_vmt_node.getcopy,voidpointertype)
+                vmttree:=ctypeconvnode.create_internal(call_vmt_node.getcopy,voidpointertype,compiler)
             else
               { inherited call, no create/destroy }
               if (cnf_inherited in callnodeflags) then
-                vmttree:=cpointerconstnode.create(0,voidpointertype)
+                vmttree:=cpointerconstnode.create(0,voidpointertype,compiler)
             else
               { do not create/destroy when called from member function
                 without specifying self explicit }
@@ -3389,7 +3412,7 @@ implementation
                 begin
                   { destructor: don't release instance, vmt=0
                     constructor: don't initialize instance, vmt=0 }
-                  vmttree:=cpointerconstnode.create(0,voidpointertype)
+                  vmttree:=cpointerconstnode.create(0,voidpointertype,compiler)
                 end
             else
             { normal object call like obj.proc }
@@ -3400,12 +3423,12 @@ implementation
                  begin
                    { old styled inherited call? }
                    if (methodpointer.nodetype=typen) then
-                     vmttree:=cpointerconstnode.create(0,voidpointertype)
+                     vmttree:=cpointerconstnode.create(0,voidpointertype,compiler)
                    else
-                     vmttree:=cloadvmtaddrnode.create(ctypenode.create(methodpointer.resultdef))
+                     vmttree:=cloadvmtaddrnode.create(ctypenode.create(methodpointer.resultdef,compiler),compiler)
                  end
                else
-                 vmttree:=cpointerconstnode.create(0,voidpointertype);
+                 vmttree:=cpointerconstnode.create(0,voidpointertype,compiler);
              end;
           end;
         result:=vmttree;
@@ -3598,7 +3621,7 @@ implementation
               begin
                 temp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,
                   (cnf_do_inline in callnodeflags) and
-                  not(tabstractvarsym(tprocdef(procdefinition).funcretsym).varregable in [vr_none,vr_addr]));
+                  not(tabstractvarsym(tprocdef(procdefinition).funcretsym).varregable in [vr_none,vr_addr]),compiler);
                 include(temp.flags,nf_is_funcret);
                 { if a managed type is returned by reference, assigning something
                   to the result on the caller side will take care of decreasing
@@ -3611,10 +3634,10 @@ implementation
                   a tempdeletenode and not after converting it to a normal temp }
                 if not(cnf_return_value_used in callnodeflags) and
                    (cnf_do_inline in callnodeflags) then
-                  add_done_statement(ctempdeletenode.create(temp))
+                  add_done_statement(ctempdeletenode.create(temp,compiler))
                 else
-                  add_done_statement(ctempdeletenode.create_normal_temp(temp));
-                funcretnode:=ctemprefnode.create(temp);
+                  add_done_statement(ctempdeletenode.create_normal_temp(temp,compiler));
+                funcretnode:=ctemprefnode.create(temp,compiler);
                 include(funcretnode.flags,nf_is_funcret);
               end;
           end;
@@ -3686,17 +3709,17 @@ implementation
                 else
                  if vo_is_range_check in para.parasym.varoptions then
                    begin
-                     para.left:=cordconstnode.create(Ord(cs_check_range in current_settings.localswitches),pasbool1type,false);
+                     para.left:=cordconstnode.create(Ord(cs_check_range in current_settings.localswitches),pasbool1type,false,compiler);
                    end
                 else
                  if vo_is_overflow_check in para.parasym.varoptions then
                    begin
-                     para.left:=cordconstnode.create(Ord(cs_check_overflow in current_settings.localswitches),pasbool1type,false);
+                     para.left:=cordconstnode.create(Ord(cs_check_overflow in current_settings.localswitches),pasbool1type,false,compiler);
                    end
                 else
                   if vo_is_msgsel in para.parasym.varoptions then
                     begin
-                      para.left:=cobjcselectornode.create(cstringconstnode.createstr(tprocdef(procdefinition).messageinf.str^));
+                      para.left:=cobjcselectornode.create(cstringconstnode.createstr(tprocdef(procdefinition).messageinf.str^,compiler),compiler);
                     end;
               end;
             if not assigned(para.left) then
@@ -3829,7 +3852,7 @@ implementation
             { update owning callnode of all callparanodes }
             while assigned(hp) do
               begin
-                left:=ccallparanode.create(hp.left,left);
+                left:=ccallparanode.create(hp.left,left,compiler);
                 tcallparanode(left).callnode:=self;
                 { set callparanode resultdef and flags }
                 left.resultdef:=hp.left.resultdef;
@@ -3842,7 +3865,7 @@ implementation
           in the list because it is required for bind_parasym.
           Generate a nothing to keep callparanoed.left valid }
         oldleft.left.free;
-        oldleft.left:=cnothingnode.create;
+        oldleft.left:=cnothingnode.create(compiler);
       end;
 
 
@@ -3920,7 +3943,8 @@ implementation
                     if not assigned(pt) or (i=0) then
                       internalerror(200304082);
                     hiddentree:=caddrnode.create_internal(
-                      crttinode.create(Tstoreddef(pt.resultdef),fullrtti,rdt_normal)
+                      crttinode.create(Tstoreddef(pt.resultdef),fullrtti,rdt_normal,compiler),
+                      compiler
                     );
                   end
               else if vo_is_parentfp in currpara.varoptions then
@@ -3935,17 +3959,17 @@ implementation
                           if paramanager.can_opt_unused_para(currpara) then
                             { If parentfp is unused by the target proc, create a dummy
                               pointerconstnode which will be discarded later. }
-                            hiddentree:=cpointerconstnode.create(0,currpara.vardef)
+                            hiddentree:=cpointerconstnode.create(0,currpara.vardef,compiler)
                           else
                             begin
-                              hiddentree:=cloadparentfpnode.create(tprocdef(procdefinition.owner.defowner),lpf_forpara);
+                              hiddentree:=cloadparentfpnode.create(tprocdef(procdefinition.owner.defowner),lpf_forpara,compiler);
                               if is_nested_pd(current_procinfo.procdef) then
                                 current_procinfo.set_needs_parentfp(tprocdef(procdefinition.owner.defowner).parast.symtablelevel);
                            end;
                         end
                       { exceptfilters called from main level are not owned }
                       else if procdefinition.proctypeoption=potype_exceptfilter then
-                        hiddentree:=cloadparentfpnode.create(current_procinfo.procdef,lpf_forpara)
+                        hiddentree:=cloadparentfpnode.create(current_procinfo.procdef,lpf_forpara,compiler)
                       else
                         internalerror(200309287);
                     end
@@ -3955,9 +3979,9 @@ implementation
                     hiddentree:=gen_block_context
                 end
               else
-                hiddentree:=cnothingnode.create;
+                hiddentree:=cnothingnode.create(compiler);
                 
-              pt:=ccallparanode.create(hiddentree,oldppt^);
+              pt:=ccallparanode.create(hiddentree,oldppt^,compiler);
               { set correct callnode }
               pt.callnode:=self;              
               oldppt^:=pt;
@@ -4136,12 +4160,12 @@ implementation
                   begin
                     if symtableprocentry.Name='SQR' then
                       begin
-                        result:=cinlinenode.createintern(in_sqr_real,false,tcallparanode(left).left.getcopy);
+                        result:=cinlinenode.createintern(in_sqr_real,false,tcallparanode(left).left.getcopy,compiler);
                         exit;
                       end;
                     if symtableprocentry.Name='ABS' then
                       begin
-                        result:=cinlinenode.createintern(in_abs_real,false,tcallparanode(left).left.getcopy);
+                        result:=cinlinenode.createintern(in_abs_real,false,tcallparanode(left).left.getcopy,compiler);
                         exit;
                       end;
                   end;
@@ -4189,7 +4213,7 @@ implementation
                       (symtableprocentry.owner.symtabletype=ObjectSymtable) and
                       (po_overload in tprocdef(symtableprocentry.ProcdefList[0]).procoptions) and
                       (symtableprocentry.ProcdefList.Count>=2) then
-                     result:=cnothingnode.create
+                     result:=cnothingnode.create(compiler)
                    else
                      begin
                        { in tp mode we can try to convert to procvar if
@@ -4201,7 +4225,7 @@ implementation
                           (not assigned(methodpointer) or
                            (methodpointer.nodetype <> typen)) then
                          begin
-                           hpt:=cloadnode.create(tprocsym(symtableprocentry),symtableproc);
+                           hpt:=cloadnode.create(tprocsym(symtableprocentry),symtableproc,compiler);
                            if assigned(methodpointer) then
                              tloadnode(hpt).set_mp(methodpointer.getcopy);
                            typecheckpass(hpt);
@@ -4349,7 +4373,7 @@ implementation
                if not assigned(tparavarsym(procdefinition.paras[paraidx]).defaultconstsym) then
                 internalerror(200212142);
                left:=ccallparanode.create(genconstsymtree(
-                   tconstsym(tparavarsym(procdefinition.paras[paraidx]).defaultconstsym)),left);
+                   tconstsym(tparavarsym(procdefinition.paras[paraidx]).defaultconstsym)),left,compiler);
                { set correct callnode }
                tcallparanode(left).callnode:=self;
                { Ignore vs_hidden parameters }
@@ -4390,17 +4414,17 @@ implementation
                { ptr and settextbuf need two args }
                if assigned(tcallparanode(left).right) then
                 begin
-                  hpt:=geninlinenode(tinlinenumber(tprocdef(procdefinition).extnumber),is_const,left);
+                  hpt:=geninlinenode(tinlinenumber(tprocdef(procdefinition).extnumber),is_const,left,compiler);
                   left:=nil;
                 end
                else
                 begin
-                  hpt:=geninlinenode(tinlinenumber(tprocdef(procdefinition).extnumber),is_const,tcallparanode(left).left);
+                  hpt:=geninlinenode(tinlinenumber(tprocdef(procdefinition).extnumber),is_const,tcallparanode(left).left,compiler);
                   tcallparanode(left).left:=nil;
                 end;
              end
             else
-             hpt:=geninlinenode(tinlinenumber(tprocdef(procdefinition).extnumber),is_const,nil);
+             hpt:=geninlinenode(tinlinenumber(tprocdef(procdefinition).extnumber),is_const,nil,compiler);
             result:=hpt;
             exit;
           end;
@@ -4459,7 +4483,7 @@ implementation
                  (cnf_anon_inherited in callnodeflags) then
                  begin
                    CGMessage(cg_h_inherited_ignored);
-                   result:=cnothingnode.create;
+                   result:=cnothingnode.create(compiler);
                    exit;
                  end
                else
@@ -4584,14 +4608,14 @@ implementation
               begin
                 result:=internalstatements(statements);
                 converted_result_data:=ctempcreatenode.create(procdefinition.returndef,sizeof(procdefinition.returndef),
-                  tt_persistent,true);
+                  tt_persistent,true,compiler);
                 addstatement(statements,converted_result_data);
-                addstatement(statements,cassignmentnode.create(ctemprefnode.create(converted_result_data),
+                addstatement(statements,cassignmentnode.create(ctemprefnode.create(converted_result_data,compiler),
                   ctypeconvnode.create_internal(
                     translate_disp_call(methodpointer,parameters,calltype,'',tprocdef(procdefinition).dispid,procdefinition.returndef),
-                  procdefinition.returndef)));
-                addstatement(statements,ctempdeletenode.create_normal_temp(converted_result_data));
-                addstatement(statements,ctemprefnode.create(converted_result_data));
+                  procdefinition.returndef,compiler),compiler));
+                addstatement(statements,ctempdeletenode.create_normal_temp(converted_result_data,compiler));
+                addstatement(statements,ctemprefnode.create(converted_result_data,compiler));
               end
             else
               result:=translate_disp_call(methodpointer,parameters,calltype,'',tprocdef(procdefinition).dispid,voidtype);
@@ -4964,7 +4988,7 @@ implementation
              { finally, remove it if no parameter with side effect has been found }
              if para=nil then
                begin
-                 result:=cnothingnode.create;
+                 result:=cnothingnode.create(compiler);
                  exit;
                end;
            end;
@@ -5235,17 +5259,17 @@ implementation
         else
           begin
             tempnode :=ctempcreatenode.create(tabstractvarsym(p).vardef,
-              tabstractvarsym(p).vardef.size,tt_persistent,tabstractvarsym(p).is_regvar(false));
+              tabstractvarsym(p).vardef.size,tt_persistent,tabstractvarsym(p).is_regvar(false),compiler);
             addstatement(inlineinitstatement,tempnode);
 
             if localvartrashing <> -1 then
-              cnodeutils.maybe_trash_variable(inlineinitstatement,tabstractnormalvarsym(p),ctemprefnode.create(tempnode));
+              cnodeutils.maybe_trash_variable(inlineinitstatement,tabstractnormalvarsym(p),ctemprefnode.create(tempnode,compiler));
 
-            addstatement(inlinecleanupstatement,ctempdeletenode.create(tempnode));
+            addstatement(inlinecleanupstatement,ctempdeletenode.create(tempnode,compiler));
             { inherit addr_taken flag }
             if (tabstractvarsym(p).addr_taken) then
               tempnode.includetempflag(ti_addr_taken);
-            inlinelocals[indexnr] := ctemprefnode.create(tempnode);
+            inlinelocals[indexnr] := ctemprefnode.create(tempnode,compiler);
           end;
       end;
 
@@ -5439,15 +5463,15 @@ implementation
         if paraneedsinlinetemp(para,pushconstaddr,complexpara) then
           begin
             tempnode:=ctempcreatenode.create(para.parasym.vardef,para.parasym.vardef.size,
-              tt_persistent,tparavarsym(para.parasym).is_regvar(false));
+              tt_persistent,tparavarsym(para.parasym).is_regvar(false),compiler);
             addstatement(inlineinitstatement,tempnode);
 
-            addstatement(inlinecleanupstatement,ctempdeletenode.create(tempnode));
+            addstatement(inlinecleanupstatement,ctempdeletenode.create(tempnode,compiler));
 
-            addstatement(inlineinitstatement,cassignmentnode.create(ctemprefnode.create(tempnode),
-              para.left));
+            addstatement(inlineinitstatement,cassignmentnode.create(ctemprefnode.create(tempnode,compiler),
+              para.left,compiler));
 
-            para.left := ctemprefnode.create(tempnode);
+            para.left := ctemprefnode.create(tempnode,compiler);
             { inherit addr_taken flag }
             if (tabstractvarsym(para.parasym).addr_taken) then
               tempnode.includetempflag(ti_addr_taken);
@@ -5521,24 +5545,24 @@ implementation
         isfuncretnode : boolean;
       begin
         ptrtype:=cpointerdef.getreusable(para.left.resultdef);
-        tempnode:=ctempcreatenode.create(ptrtype,ptrtype.size,tt_persistent,true);
+        tempnode:=ctempcreatenode.create(ptrtype,ptrtype.size,tt_persistent,true,compiler);
         addstatement(inlineinitstatement,tempnode);
         isfuncretnode:=nf_is_funcret in para.left.flags;
         if isfuncretnode then
-          addstatement(inlinecleanupstatement,ctempdeletenode.create_normal_temp(tempnode))
+          addstatement(inlinecleanupstatement,ctempdeletenode.create_normal_temp(tempnode,compiler))
         else
-          addstatement(inlinecleanupstatement,ctempdeletenode.create(tempnode));
+          addstatement(inlinecleanupstatement,ctempdeletenode.create(tempnode,compiler));
         { inherit addr_taken flag }
         if (tabstractvarsym(para.parasym).addr_taken) then
           tempnode.includetempflag(ti_addr_taken);
         { inherit read only }
         if tabstractvarsym(para.parasym).varspez=vs_const then
           tempnode.includetempflag(ti_const);
-        paraaddr:=caddrnode.create_internal(para.left);
+        paraaddr:=caddrnode.create_internal(para.left,compiler);
         include(paraaddr.addrnodeflags,anf_typedaddr);
-        addstatement(inlineinitstatement,cassignmentnode.create(ctemprefnode.create(tempnode),
-          paraaddr));
-        para.left:=cderefnode.create(ctemprefnode.create(tempnode));
+        addstatement(inlineinitstatement,cassignmentnode.create(ctemprefnode.create(tempnode,compiler),
+          paraaddr,compiler));
+        para.left:=cderefnode.create(ctemprefnode.create(tempnode,compiler),compiler);
         if isfuncretnode then
           Include(para.left.flags,nf_is_funcret);
       end;
@@ -5623,7 +5647,7 @@ implementation
           exit;
 
         { we made it! }
-        result:=ctypeconvnode.create_internal(tassignmentnode(resassign).right.getcopy,hp2.resultdef);
+        result:=ctypeconvnode.create_internal(tassignmentnode(resassign).right.getcopy,hp2.resultdef,compiler);
         node_reset_flags(result,[],[tnf_pass1_done]);
         firstpass(result);
       end;

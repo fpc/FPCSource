@@ -1058,6 +1058,8 @@ implementation
       end;
 
     function gen_implicit_initfinal(curr: tmodule; flag:tmoduleflag;st:TSymtable):tcgprocinfo;
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       begin
         { create procdef }
         case flag of
@@ -1076,7 +1078,7 @@ implementation
           else
             internalerror(200304253);
         end;
-        result.code:=cnothingnode.create;
+        result.code:=cnothingnode.create(compiler);
       end;
 
 

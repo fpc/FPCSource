@@ -26,6 +26,7 @@ unit nset;
 interface
 
     uses
+       compilerbase,
        sysutils,cclasses,constexp,
        node,globtype,globals,
        aasmbase,ncon,nflw,symtype;
@@ -74,14 +75,14 @@ interface
        end;
 
        tsetelementnode = class(tbinarynode)
-          constructor create(l,r : tnode);virtual;
+          constructor create(l,r : tnode;acompiler:TCompilerBase);virtual;
           function pass_typecheck:tnode;override;
           function pass_1 : tnode;override;
        end;
        tsetelementnodeclass = class of tsetelementnode;
 
        tinnode = class(tbinopnode)
-          constructor create(l,r : tnode);virtual;reintroduce;
+          constructor create(l,r : tnode;acompiler:TCompilerBase);virtual;reintroduce;
           function pass_typecheck:tnode;override;
           function simplify(forinline : boolean):tnode;override;
           function pass_1 : tnode;override;
@@ -89,7 +90,7 @@ interface
        tinnodeclass = class of tinnode;
 
        trangenode = class(tbinarynode)
-          constructor create(l,r : tnode);virtual;
+          constructor create(l,r : tnode;acompiler:TCompilerBase);virtual;
           function pass_typecheck:tnode;override;
           function pass_1 : tnode;override;
        end;
@@ -112,7 +113,7 @@ interface
           blocks    : TFPList;
           elseblock : tnode;
 
-          constructor create(l:tnode);virtual;
+          constructor create(l:tnode;acompiler:TCompilerBase);virtual;
           destructor destroy;override;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -170,10 +171,10 @@ implementation
                            TSETELEMENTNODE
 *****************************************************************************}
 
-    constructor tsetelementnode.create(l,r : tnode);
+    constructor tsetelementnode.create(l,r : tnode;acompiler:TCompilerBase);
 
       begin
-         inherited create(setelementn,l,r);
+         inherited create(setelementn,l,r,acompiler);
       end;
 
 
@@ -209,9 +210,9 @@ implementation
                               TINNODE
 *****************************************************************************}
 
-    constructor tinnode.create(l,r : tnode);
+    constructor tinnode.create(l,r : tnode;acompiler:TCompilerBase);
       begin
-         inherited create(inn,l,r);
+         inherited create(inn,l,r,acompiler);
       end;
 
 
@@ -309,15 +310,15 @@ implementation
 
              { type conversion/check }
              if assigned(tsetdef(right.resultdef).elementdef) then
-               inserttypeconv(left,tsetdef(right.resultdef).elementdef);
+               inserttypeconv(left,tsetdef(right.resultdef).elementdef,compiler);
            end
          else if not is_ordinal(left.resultdef) or (left.resultdef.size > u32inttype.size) then
            begin
              CGMessage(type_h_in_range_check);
              if is_signed(left.resultdef) then
-               inserttypeconv(left,s32inttype)
+               inserttypeconv(left,s32inttype,compiler)
              else
-               inserttypeconv(left,u32inttype);
+               inserttypeconv(left,u32inttype,compiler);
            end
          else if assigned(tsetdef(right.resultdef).elementdef) and
                  not(is_integer(tsetdef(right.resultdef).elementdef) and
@@ -328,14 +329,14 @@ implementation
             { Can't use the type conversion for integers because then     }
             { "longint in set_of_byte" will give a range check error      }
             { instead of false                                            }
-            inserttypeconv(left,tsetdef(right.resultdef).elementdef);
+            inserttypeconv(left,tsetdef(right.resultdef).elementdef,compiler);
 
          { empty set then return false }
          if not assigned(tsetdef(right.resultdef).elementdef) or
             ((right.nodetype = setconstn) and
              (tnormalset(tsetconstnode(right).value_set^) = [])) then
           begin
-            t:=cordconstnode.create(0,pasbool1type,false);
+            t:=cordconstnode.create(0,pasbool1type,false,compiler);
             typecheckpass(t);
             result:=t;
             exit;
@@ -363,10 +364,10 @@ implementation
                  { into account                                             }
                  if Tordconstnode(left).value.signed then
                    t:=cordconstnode.create(byte(tordconstnode(left).value.svalue in Tsetconstnode(right).value_set^),
-                     pasbool1type,true)
+                     pasbool1type,true,compiler)
                  else
                    t:=cordconstnode.create(byte(tordconstnode(left).value.uvalue in Tsetconstnode(right).value_set^),
-                     pasbool1type,true);
+                     pasbool1type,true,compiler);
                  typecheckpass(t);
                  result:=t;
                  exit;
@@ -376,7 +377,7 @@ implementation
                  if (Tordconstnode(left).value<int64(tsetdef(right.resultdef).setbase)) or
                     (Tordconstnode(left).value>int64(Tsetdef(right.resultdef).setmax)) then
                    begin
-                     t:=cordconstnode.create(0, pasbool1type, true);
+                     t:=cordconstnode.create(0, pasbool1type, true, compiler);
                      typecheckpass(t);
                      result:=t;
                      exit;
@@ -397,7 +398,7 @@ implementation
            ) and
            not(might_have_sideeffects(left,[mhs_exceptions])) then
            begin
-             t:=cordconstnode.create(1, pasbool1type, true);
+             t:=cordconstnode.create(1, pasbool1type, true, compiler);
              typecheckpass(t);
              result:=t;
              exit;
@@ -406,7 +407,7 @@ implementation
          else if is_emptyset(right) and
            not(might_have_sideeffects(left,[mhs_exceptions])) then
            begin
-             t:=cordconstnode.create(1, pasbool1type, false);
+             t:=cordconstnode.create(1, pasbool1type, false, compiler);
              typecheckpass(t);
              result:=t;
              exit;
@@ -430,7 +431,7 @@ implementation
                               TRANGENODE
 *****************************************************************************}
 
-    constructor trangenode.create(l,r : tnode);
+    constructor trangenode.create(l,r : tnode;acompiler:TCompilerBase);
       var
         value: string;
       begin
@@ -440,10 +441,10 @@ implementation
            begin
              value := char(tordconstnode(r).value.uvalue) + ''#0;
              r.free;
-             r := cstringconstnode.createstr(value);
+             r := cstringconstnode.createstr(value,acompiler);
              do_typecheckpass(r);
            end;
-         inherited create(rangen,l,r);
+         inherited create(rangen,l,r,acompiler);
       end;
 
 
@@ -630,9 +631,9 @@ implementation
                               TCASENODE
 *****************************************************************************}
 
-    constructor tcasenode.create(l:tnode);
+    constructor tcasenode.create(l:tnode;acompiler:TCompilerBase);
       begin
-         inherited create(casen,l);
+         inherited create(casen,l,acompiler);
          flabels:=nil;
          blocks:=TFPList.create;
          elseblock:=nil;
@@ -792,23 +793,23 @@ implementation
                 begin
                   if assigned(check) then
                     begin
-                      check:=caddnode.create(orn,check,nil);
+                      check:=caddnode.create(orn,check,nil,compiler);
                       newcheck:=@check.right
                     end
                   else
                     newcheck:=@check;
                   labitem:=TLinkedListCaseLabelItem(lablist[j]).casenode;
-                  newcheck^:=caddnode.create(equaln,left.getcopy,labitem^._low_str.getcopy);
+                  newcheck^:=caddnode.create(equaln,left.getcopy,labitem^._low_str.getcopy,compiler);
                   if (labitem^._low_str.fullcompare(labitem^._high_str)<>0) then
                     begin
                       newcheck^.nodetype:=gten;
                       newcheck^:=caddnode.create(
                         andn,newcheck^,caddnode.create(
-                          lten,left.getcopy,labitem^._high_str.getcopy));
+                          lten,left.getcopy,labitem^._high_str.getcopy,compiler),compiler);
                     end;
                 end;
               result:=cifnode.create(check,
-                pcaseblock(blocks[i])^.statement,result);
+                pcaseblock(blocks[i])^.statement,result,compiler);
               pcaseblock(blocks[i])^.statement:=nil;
             end;
           { will free its elements too because of create(true) }
@@ -854,16 +855,16 @@ implementation
              init_block := internalstatements(stmt);
              tempcaseexpr :=
                ctempcreatenode.create(
-                 left.resultdef, left.resultdef.size, tt_persistent, true);
-             temp_cleanup := ctempdeletenode.create(tempcaseexpr);
+                 left.resultdef, left.resultdef.size, tt_persistent, true, compiler);
+             temp_cleanup := ctempdeletenode.create(tempcaseexpr,compiler);
              typecheckpass(tnode(tempcaseexpr));
 
              addstatement(stmt, tempcaseexpr);
              addstatement(
                stmt, cassignmentnode.create(
-                 ctemprefnode.create(tempcaseexpr), left));
+                 ctemprefnode.create(tempcaseexpr,compiler), left, compiler));
 
-             left := ctemprefnode.create(tempcaseexpr);
+             left := ctemprefnode.create(tempcaseexpr,compiler);
              typecheckpass(left);
            end;
 
@@ -887,7 +888,7 @@ implementation
          else
            if blocks.count=0 then
              begin
-               result:=cnothingnode.create;
+               result:=cnothingnode.create(compiler);
                exit;
              end;
 
@@ -957,7 +958,7 @@ implementation
              else
                internalerror(200805031);
            end;
-           result:=cifnode.create(left,node_thenblock,node_elseblock);
+           result:=cifnode.create(left,node_thenblock,node_elseblock,compiler);
            left:=nil;
            exit;
          end;
@@ -968,39 +969,41 @@ implementation
              if flabels^._low=flabels^._high then
                begin
                  result:=cifnode.create_internal(
-                   caddnode.create_internal(equaln,left.getcopy,cordconstnode.create(flabels^._low,left.resultdef,false)),
-                   pcaseblock(blocks[flabels^.blockid])^.statement,elseblock);
+                   caddnode.create_internal(equaln,left.getcopy,cordconstnode.create(flabels^._low,left.resultdef,false,compiler),compiler),
+                   pcaseblock(blocks[flabels^.blockid])^.statement,elseblock,compiler);
                end
              else if not(might_have_sideeffects(left,[mhs_exceptions])) and (node_complexity(left)<=1) then
                begin
                  result:=cifnode.create_internal(
                    caddnode.create_internal(andn,
-                     caddnode.create_internal(gten,left.getcopy,cordconstnode.create(flabels^._low,left.resultdef,false)),
-                     caddnode.create_internal(lten,left.getcopy,cordconstnode.create(flabels^._high,left.resultdef,false))
+                     caddnode.create_internal(gten,left.getcopy,cordconstnode.create(flabels^._low,left.resultdef,false,compiler),compiler),
+                     caddnode.create_internal(lten,left.getcopy,cordconstnode.create(flabels^._high,left.resultdef,false,compiler),compiler),
+                     compiler
                    ),
-                   pcaseblock(blocks[flabels^.blockid])^.statement,elseblock);
+                   pcaseblock(blocks[flabels^.blockid])^.statement,elseblock,compiler);
                end
              else
                begin
                  init_block:=internalstatements(stmt);
                  tempcaseexpr:=ctempcreatenode.create(
-                   left.resultdef,left.resultdef.size,tt_persistent,true);
-                 temp_cleanup:=ctempdeletenode.create(tempcaseexpr);
+                   left.resultdef,left.resultdef.size,tt_persistent,true,compiler);
+                 temp_cleanup:=ctempdeletenode.create(tempcaseexpr,compiler);
                  typecheckpass(tnode(tempcaseexpr));
 
                  addstatement(stmt,tempcaseexpr);
                  addstatement(stmt,cassignmentnode.create(
-                   ctemprefnode.create(tempcaseexpr),left.getcopy));
+                   ctemprefnode.create(tempcaseexpr,compiler),left.getcopy,compiler));
 
-                 left:=ctemprefnode.create(tempcaseexpr);
+                 left:=ctemprefnode.create(tempcaseexpr,compiler);
                  typecheckpass(left);
 
                  addstatement(stmt,cifnode.create_internal(
                    caddnode.create_internal(andn,
-                     caddnode.create_internal(gten,left.getcopy,cordconstnode.create(flabels^._low,left.resultdef,false)),
-                     caddnode.create_internal(lten,left.getcopy,cordconstnode.create(flabels^._high,left.resultdef,false))
+                     caddnode.create_internal(gten,left.getcopy,cordconstnode.create(flabels^._low,left.resultdef,false,compiler),compiler),
+                     caddnode.create_internal(lten,left.getcopy,cordconstnode.create(flabels^._high,left.resultdef,false,compiler),compiler),
+                     compiler
                    ),
-                   pcaseblock(blocks[flabels^.blockid])^.statement,elseblock));
+                   pcaseblock(blocks[flabels^.blockid])^.statement,elseblock,compiler));
                  addstatement(stmt,temp_cleanup);
                  result:=init_block;
                end;
@@ -1049,7 +1052,7 @@ implementation
                 else
                   cgmessage(cg_w_case_incomplete);
                 { no else block, so there is no code to execute at all }
-                result:=cnothingnode.create;
+                result:=cnothingnode.create(compiler);
               end;
           end;
       end;

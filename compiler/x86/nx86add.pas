@@ -1413,17 +1413,17 @@ unit nx86add;
                                   <comparison constant shr (b - 1)>
                             }
 
-                            ThisNode:=ctypeconvnode.create_internal(TModDivNode(t).left, ThisDef);
+                            ThisNode:=ctypeconvnode.create_internal(TModDivNode(t).left, ThisDef,compiler);
                             TTypeConvNode(ThisNode).convtype:=tc_int_2_int;
                             ThisDef:=get_unsigned_inttype(ThisDef);
                             ThisNode.resultdef:=ThisDef;
 
                             TModDivNode(t).left:=nil;
 
-                            ConstNode:=cordconstnode.create(reciprocal, ThisDef, False);
+                            ConstNode:=cordconstnode.create(reciprocal, ThisDef, False, compiler);
                             ConstNode.resultdef:=ThisDef;
 
-                            ThisNode:=caddnode.create_internal(muln, ThisNode, ConstNode);
+                            ThisNode:=caddnode.create_internal(muln, ThisNode, ConstNode, compiler);
                             ThisNode.resultdef:=ThisDef;
 
 {$push}
@@ -1433,30 +1433,30 @@ unit nx86add;
                             else
                               comparison:=(aWord(1) shl ((N-1) and (SizeOf(aWord)*8-1))) div divisor;
 {$pop}
-                            ConstNode:=cordconstnode.create(comparison, ThisDef, False);
+                            ConstNode:=cordconstnode.create(comparison, ThisDef, False, compiler);
                             ConstNode.resultdef:=ThisDef;
 
-                            ThisNode:=caddnode.create_internal(addn, ThisNode, ConstNode);
+                            ThisNode:=caddnode.create_internal(addn, ThisNode, ConstNode, compiler);
                             ThisNode.resultdef:=ThisDef;
 
                             if shift>0 then
                               begin
-                                ConstNode:=cordconstnode.create(shift, u8inttype, False);
+                                ConstNode:=cordconstnode.create(shift, u8inttype, False, compiler);
                                 ConstNode.resultdef:=u8inttype;
                                 ThisNode:=cinlinenode.createintern(in_ror_x_y,false,
                                   ccallparanode.create(ConstNode,
-                                  ccallparanode.create(ThisNode, nil)));
+                                  ccallparanode.create(ThisNode, nil, compiler), compiler), compiler);
 
                                 ThisNode.resultdef:=ThisDef;
 
-                                ConstNode:=cordconstnode.create(comparison shr (shift - 1), ThisDef, False);
+                                ConstNode:=cordconstnode.create(comparison shr (shift - 1), ThisDef, False, compiler);
                               end
                             else
-                              ConstNode:=cordconstnode.create(comparison*2, ThisDef, False);
+                              ConstNode:=cordconstnode.create(comparison*2, ThisDef, False, compiler);
 
                             ConstNode.resultdef:=ThisDef;
 
-                            Result:=CAddNode.create_internal(ThisType, ThisNode, ConstNode);
+                            Result:=CAddNode.create_internal(ThisType, ThisNode, ConstNode, compiler);
                             Result.resultdef:=resultdef;
                             Exit;
                           end;
@@ -1542,21 +1542,21 @@ unit nx86add;
                             N:=ThisDef.size*8;
                             calc_mul_inverse(N, TOrdConstNode(TModDivNode(t).right).value.uvalue, reciprocal, shift);
 
-                            ConstNode:=cordconstnode.create(reciprocal, ThisDef, False);
+                            ConstNode:=cordconstnode.create(reciprocal, ThisDef, False, compiler);
                             ConstNode.resultdef:=ThisDef;
 
-                            ThisNode:=caddnode.create_internal(muln, TModDivNode(t).left, ConstNode);
+                            ThisNode:=caddnode.create_internal(muln, TModDivNode(t).left, ConstNode, compiler);
                             ThisNode.resultdef:=ThisDef;
 
                             TModDivNode(t).left:=nil;
 
                             if shift>0 then
                               begin
-                                ConstNode:=cordconstnode.create(shift, u8inttype, False);
+                                ConstNode:=cordconstnode.create(shift, u8inttype, False, compiler);
                                 ConstNode.resultdef:=u8inttype;
                                 ThisNode:=cinlinenode.createintern(in_ror_x_y,false,
                                   ccallparanode.create(ConstNode,
-                                  ccallparanode.create(ThisNode, nil)));
+                                  ccallparanode.create(ThisNode, nil, compiler), compiler), compiler);
 
                                 ThisNode.resultdef:=ThisDef;
 
@@ -1572,10 +1572,10 @@ unit nx86add;
 {$pop}
                               end;
 
-                            ConstNode:=cordconstnode.create(comparison, ThisDef, False);
+                            ConstNode:=cordconstnode.create(comparison, ThisDef, False, compiler);
                             ConstNode.resultdef:=ThisDef;
 
-                            Result:=CAddNode.create_internal(ThisType, ThisNode, ConstNode);
+                            Result:=CAddNode.create_internal(ThisType, ThisNode, ConstNode, compiler);
                             Result.resultdef:=resultdef;
                             Exit;
                           end;

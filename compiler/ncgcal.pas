@@ -26,6 +26,7 @@ unit ncgcal;
 interface
 
     uses
+      compilerbase,
       cpubase,
       globtype,
       parabase,cgutils,
@@ -46,7 +47,7 @@ interface
        public
           tempcgpara : tcgpara;
 
-          constructor create(expr,next : tnode);override;
+          constructor create(expr,next : tnode;acompiler:TCompilerBase);override;
           destructor destroy;override;
           procedure secondcallparan;override;
        end;
@@ -162,9 +163,9 @@ implementation
                              TCGCALLPARANODE
 *****************************************************************************}
 
-    constructor tcgcallparanode.create(expr,next : tnode);
+    constructor tcgcallparanode.create(expr,next : tnode;acompiler:TCompilerBase);
       begin
-        inherited create(expr,next);
+        inherited create(expr,next,acompiler);
         tempcgpara.init;
       end;
 

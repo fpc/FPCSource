@@ -172,6 +172,8 @@ implementation
       export;
 
   class function tnodeutils.call_fail_node:tnode;
+    const
+      compiler = nil;  { TODO: fix node compiler reference!!! }
     var
       para : tcallparanode;
       newstatement : tstatementnode;
@@ -191,12 +193,14 @@ implementation
                   caddnode.create(andn,
                       caddnode.create(unequaln,
                           load_self_pointer_node,
-                          cnilnode.create),
+                          cnilnode.create(compiler),
+                          compiler),
                       caddnode.create(unequaln,
                           load_vmt_pointer_node,
-                          cnilnode.create)),
-                  ccallnode.create(nil,tprocsym(srsym),srsym.owner,load_self_node,[],nil),
-                  nil));
+                          cnilnode.create(compiler),
+                          compiler),compiler),
+                  ccallnode.create(nil,tprocsym(srsym),srsym.owner,load_self_node,[],nil,compiler),
+                  nil,compiler));
             end
           else
             internalerror(2003051002);
@@ -208,16 +212,18 @@ implementation
             { parameter 2 : pointer to vmt }
             { parameter 1 : self pointer }
             para:=ccallparanode.create(
-                      cordconstnode.create(tobjectdef(current_structdef).vmt_offset,s32inttype,false),
+                      cordconstnode.create(tobjectdef(current_structdef).vmt_offset,s32inttype,false,compiler),
                   ccallparanode.create(
                       ctypeconvnode.create_internal(
                           load_vmt_pointer_node,
-                          voidpointertype),
+                          voidpointertype,
+                          compiler),
                   ccallparanode.create(
                       ctypeconvnode.create_internal(
                           load_self_pointer_node,
-                          voidpointertype),
-                  nil)));
+                          voidpointertype,
+                          compiler),
+                  nil,compiler),compiler),compiler);
             addstatement(newstatement,
                 ccallnode.createintern('fpc_help_fail',para));
           end
@@ -226,13 +232,15 @@ implementation
       { self:=nil }
       addstatement(newstatement,cassignmentnode.create(
           load_self_pointer_node,
-          cnilnode.create));
+          cnilnode.create(compiler),compiler));
       { exit }
-      addstatement(newstatement,cexitnode.create(nil));
+      addstatement(newstatement,cexitnode.create(nil,compiler));
     end;
 
 
   class function tnodeutils.initialize_data_node(p:tnode; force: boolean):tnode;
+    const
+      compiler = nil;  { TODO: fix node compiler reference!!! }
     begin
       { prevent initialisation of hidden syms that were moved to
         parentfpstructs: the original symbol isn't used anymore, the version
@@ -246,7 +254,7 @@ implementation
         begin
           p.free;
           p := nil;
-          result:=cnothingnode.create;
+          result:=cnothingnode.create(compiler);
         end
       else
         begin
@@ -258,16 +266,17 @@ implementation
              is_dynamic_array(p.resultdef) then
             begin
               result:=cassignmentnode.create(
-                 ctypeconvnode.create_internal(p,voidpointertype),
-                 cnilnode.create
+                 ctypeconvnode.create_internal(p,voidpointertype,compiler),
+                 cnilnode.create(compiler),
+                 compiler
                  );
             end
           else if (p.resultdef.typ=variantdef) then
             begin
               result:=ccallnode.createintern('fpc_variant_init',
                 ccallparanode.create(
-                  ctypeconvnode.create_internal(p,search_system_type('TVARDATA').typedef),
-                nil));
+                  ctypeconvnode.create_internal(p,search_system_type('TVARDATA').typedef,compiler),
+                nil,compiler));
             end
           else
             begin
@@ -275,16 +284,18 @@ implementation
                     ccallparanode.create(
                         caddrnode.create_internal(
                             crttinode.create(
-                                tstoreddef(p.resultdef),initrtti,rdt_normal)),
+                                tstoreddef(p.resultdef),initrtti,rdt_normal,compiler),compiler),
                     ccallparanode.create(
-                        caddrnode.create_internal(p),
-                    nil)));
+                        caddrnode.create_internal(p,compiler),
+                    nil,compiler),compiler));
             end;
         end;
     end;
 
 
   class function tnodeutils.finalize_data_node(p:tnode):tnode;
+    const
+      compiler = nil;  { TODO: fix node compiler reference!!! }
     var
       hs : string;
     begin
@@ -296,7 +307,7 @@ implementation
         begin
           p.free;
           p := nil;
-          result:=cnothingnode.create;
+          result:=cnothingnode.create(compiler);
         end
       else
         begin
@@ -317,29 +328,31 @@ implementation
           if hs<>'' then
             result:=ccallnode.createintern(hs,
                ccallparanode.create(
-                 ctypeconvnode.create_internal(p,voidpointertype),
-                 nil))
+                 ctypeconvnode.create_internal(p,voidpointertype,compiler),
+                 nil,compiler))
           else if p.resultdef.typ=variantdef then
             begin
               result:=ccallnode.createintern('fpc_variant_clear',
                 ccallparanode.create(
-                  ctypeconvnode.create_internal(p,search_system_type('TVARDATA').typedef),
-                nil));
+                  ctypeconvnode.create_internal(p,search_system_type('TVARDATA').typedef,compiler),
+                nil,compiler));
             end
           else
             result:=ccallnode.createintern('fpc_finalize',
                   ccallparanode.create(
                       caddrnode.create_internal(
                           crttinode.create(
-                              tstoreddef(p.resultdef),initrtti,rdt_normal)),
+                              tstoreddef(p.resultdef),initrtti,rdt_normal,compiler),compiler),
                   ccallparanode.create(
-                      caddrnode.create_internal(p),
-                  nil)));
+                      caddrnode.create_internal(p,compiler),
+                  nil,compiler),compiler));
         end;
     end;
 
 
   class procedure tnodeutils.sym_maybe_initialize(p: TObject; arg: pointer);
+    const
+      compiler = nil;  { TODO: fix node compiler reference!!! }
     var
       hp : tnode;
     begin
@@ -376,7 +389,7 @@ implementation
           ((m_iso in current_settings.modeswitches) and (tabstractvarsym(p).vardef.typ=filedef))
          ) then
         begin
-          hp:=cloadnode.create(tsym(p),tsym(p).owner);
+          hp:=cloadnode.create(tsym(p),tsym(p).owner,compiler);
           { ensure that a function reference is not converted to a call }
           include(hp.flags,nf_load_procvar);
           addstatement(tstatementnode(arg^),initialize_data_node(hp,false));
@@ -449,11 +462,13 @@ implementation
 
 
   class procedure tnodeutils.sym_maybe_finalize(var stat: tstatementnode; sym: tsym);
+    const
+      compiler = nil;  { TODO: fix node compiler reference!!! }
     var
       hp: tnode;
     begin
       include(current_procinfo.flags,pi_needs_implicit_finally);
-      hp:=cloadnode.create(sym,sym.owner);
+      hp:=cloadnode.create(sym,sym.owner,compiler);
       if (sym.typ=staticvarsym) and (vo_force_finalize in tstaticvarsym(sym).varoptions) then
         include(tloadnode(hp).loadnodeflags,loadnf_isinternal_ignoreconst);
       { ensure that a function reference interface is not converted to a call }
@@ -479,6 +494,8 @@ implementation
 
 
   class procedure tnodeutils.append_struct_initfinis(u: tmodule; initfini: tstructinifinipotype; var stat: tstatementnode);
+    const
+      compiler = nil;  { TODO: fix node compiler reference!!! }
     var
       structlist: tfplist;
       i: integer;
@@ -496,7 +513,7 @@ implementation
             begin
               { class constructors are private -> ignore visibility checks }
               addstatement(stat,
-                ccallnode.create(nil,tprocsym(pd.procsym),pd.owner,nil,[cnf_ignore_visibility],nil))
+                ccallnode.create(nil,tprocsym(pd.procsym),pd.owner,nil,[cnf_ignore_visibility],nil,compiler))
             end;
         end;
       structlist.free;
@@ -573,6 +590,8 @@ implementation
 
 
   class procedure tnodeutils.initialize_filerecs(p:TObject;statn:pointer);
+    const
+      compiler = nil;  { TODO: fix node compiler reference!!! }
     var
       stat: ^tstatementnode absolute statn;
     begin
@@ -585,38 +604,38 @@ implementation
               if cs_transparent_file_names in current_settings.globalswitches then
                 addstatement(stat^,ccallnode.createintern('fpc_textinit_filename_iso',
                   ccallparanode.create(
-                    cstringconstnode.createstr(tstaticvarsym(p).Name),
+                    cstringconstnode.createstr(tstaticvarsym(p).Name,compiler),
                   ccallparanode.create(
-                    cordconstnode.create(tstaticvarsym(p).isoindex,uinttype,false),
+                    cordconstnode.create(tstaticvarsym(p).isoindex,uinttype,false,compiler),
                   ccallparanode.create(
-                    cloadnode.create(tstaticvarsym(p),tstaticvarsym(p).Owner),
-                  nil)))))
+                    cloadnode.create(tstaticvarsym(p),tstaticvarsym(p).Owner,compiler),
+                  nil,compiler),compiler),compiler)))
               else
                 addstatement(stat^,ccallnode.createintern('fpc_textinit_iso',
                   ccallparanode.create(
-                    cordconstnode.create(tstaticvarsym(p).isoindex,uinttype,false),
+                    cordconstnode.create(tstaticvarsym(p).isoindex,uinttype,false,compiler),
                   ccallparanode.create(
-                    cloadnode.create(tstaticvarsym(p),tstaticvarsym(p).Owner),
-                  nil))));
+                    cloadnode.create(tstaticvarsym(p),tstaticvarsym(p).Owner,compiler),
+                  nil,compiler),compiler)));
             end;
           ft_typed:
             begin
               if cs_transparent_file_names in current_settings.globalswitches then
                 addstatement(stat^,ccallnode.createintern('fpc_typedfile_init_filename_iso',
                   ccallparanode.create(
-                    cstringconstnode.createstr(tstaticvarsym(p).Name),
+                    cstringconstnode.createstr(tstaticvarsym(p).Name,compiler),
                   ccallparanode.create(
-                    cordconstnode.create(tstaticvarsym(p).isoindex,uinttype,false),
+                    cordconstnode.create(tstaticvarsym(p).isoindex,uinttype,false,compiler),
                   ccallparanode.create(
-                    cloadnode.create(tstaticvarsym(p),tstaticvarsym(p).Owner),
-                  nil)))))
+                    cloadnode.create(tstaticvarsym(p),tstaticvarsym(p).Owner,compiler),
+                  nil,compiler),compiler),compiler)))
               else
                 addstatement(stat^,ccallnode.createintern('fpc_typedfile_init_iso',
                   ccallparanode.create(
-                    cordconstnode.create(tstaticvarsym(p).isoindex,uinttype,false),
+                    cordconstnode.create(tstaticvarsym(p).isoindex,uinttype,false,compiler),
                   ccallparanode.create(
-                    cloadnode.create(tstaticvarsym(p),tstaticvarsym(p).Owner),
-                  nil))));
+                    cloadnode.create(tstaticvarsym(p),tstaticvarsym(p).Owner,compiler),
+                  nil,compiler),compiler)));
             end;
           else
             ;
@@ -625,6 +644,8 @@ implementation
 
 
   class procedure tnodeutils.finalize_filerecs(p:TObject;statn:pointer);
+    const
+      compiler = nil;  { TODO: fix node compiler reference!!! }
     var
       stat: ^tstatementnode absolute statn;
     begin
@@ -636,15 +657,15 @@ implementation
             begin
               addstatement(stat^,ccallnode.createintern('fpc_textclose_iso',
                 ccallparanode.create(
-                  cloadnode.create(tstaticvarsym(p),tstaticvarsym(p).Owner),
-                nil)));
+                  cloadnode.create(tstaticvarsym(p),tstaticvarsym(p).Owner,compiler),
+                nil,compiler)));
             end;
           ft_typed:
             begin
               addstatement(stat^,ccallnode.createintern('fpc_typedfile_close_iso',
                 ccallparanode.create(
-                  cloadnode.create(tstaticvarsym(p),tstaticvarsym(p).Owner),
-                nil)));
+                  cloadnode.create(tstaticvarsym(p),tstaticvarsym(p).Owner,compiler),
+                nil,compiler)));
             end;
           else
             ;
@@ -653,22 +674,26 @@ implementation
 
 
   class procedure tnodeutils.load_parentfpstruct_nested_funcret(ressym: tsym; var stat: tstatementnode);
+    const
+      compiler = nil;  { TODO: fix node compiler reference!!! }
     var
       target: tnode;
     begin
-      target:=cloadnode.create(ressym, ressym.owner);
+      target:=cloadnode.create(ressym, ressym.owner,compiler);
       { ensure the target of this assignment doesn't translate the
         funcretsym also to its alias in the parentfpstruct }
       include(target.flags, nf_internal);
       addstatement(stat,
         cassignmentnode.create(
-          target, cloadnode.create(ressym, ressym.owner)
+          target, cloadnode.create(ressym, ressym.owner, compiler), compiler
         )
       );
     end;
 
 
   class function tnodeutils.wrap_proc_body(pd: tprocdef; n: tnode): tnode;
+    const
+      compiler = nil;  { TODO: fix node compiler reference!!! }
     var
       stat: tstatementnode;
       block: tnode;
@@ -685,8 +710,9 @@ implementation
           block:=internalstatements(stat);
           addstatement(stat,
             cassignmentnode.create(
-              cloadnode.create(ressym,ressym.owner),
-              genintconstnode(0)
+              cloadnode.create(ressym,ressym.owner,compiler),
+              genintconstnode(0,compiler),
+              compiler
             )
           );
           addstatement(stat,result);
@@ -728,7 +754,7 @@ implementation
                        (tprocsym(psym).procdeflist.count<>1) then
                       internalerror(2011040301);
                     addstatement(stat,ccallnode.create(nil,tprocsym(psym),
-                      pd.struct.symtable,nil,[],nil));
+                      pd.struct.symtable,nil,[],nil,compiler));
                   end;
                 addstatement(stat,result);
                 result:=block
@@ -814,6 +840,8 @@ implementation
 
 
   class procedure tnodeutils.maybe_trash_variable(var stat: tstatementnode; p: tabstractnormalvarsym; trashn: tnode);
+    const
+      compiler = nil;  { TODO: fix node compiler reference!!! }
     var
       size: asizeint;
       trashintval: int64;
@@ -828,11 +856,11 @@ implementation
               if tprocvardef(p.vardef).is_addressonly then
                 { in tp/delphi mode, you need @procvar to get at the contents of
                   a procvar ... }
-                trashn:=caddrnode.create(trashn)
+                trashn:=caddrnode.create(trashn,compiler)
               else
                 { ... but if it's a procedure of object, that will only return
                   the procedure address -> cast to tmethod instead }
-                trashn:=ctypeconvnode.create_explicit(trashn,methodpointertype);
+                trashn:=ctypeconvnode.create_explicit(trashn,methodpointertype,compiler);
             end;
           if is_managed_type(p.vardef) then
             begin
@@ -841,7 +869,8 @@ implementation
                   stringres:=
                     cstringconstnode.createstr(
                       'uninitialized function result in '+
-                      tprocdef(p.owner.defowner).customprocname([pno_proctypeoption, pno_paranames,pno_ownername, pno_noclassmarker])
+                      tprocdef(p.owner.defowner).customprocname([pno_proctypeoption, pno_paranames,pno_ownername, pno_noclassmarker]),
+                      compiler
                     );
                   { prevent attempts to convert the string to the specified
                     code page at compile time, as it may not be available (and
@@ -866,25 +895,25 @@ implementation
                     { open array -> at least size 1. Can also be zero-sized
                       record, so check it's actually an array }
                     if p.vardef.typ=arraydef then
-                      trash_large(stat,trashn,caddnode.create(addn,cinlinenode.create(in_high_x,false,trashn.getcopy),genintconstnode(1)),trashintval)
+                      trash_large(stat,trashn,caddnode.create(addn,cinlinenode.create(in_high_x,false,trashn.getcopy,compiler),genintconstnode(1,compiler),compiler),trashintval)
                     else
                       trashn.free;
                       trashn := nil;
                   end;
                 1: trash_small(stat,
-                  ctypeconvnode.create_internal(trashn,s8inttype),
-                    genintconstnode(shortint(trashintval)));
+                  ctypeconvnode.create_internal(trashn,s8inttype,compiler),
+                    genintconstnode(shortint(trashintval),compiler));
                 2: trash_small(stat,
-                  ctypeconvnode.create_internal(trashn,s16inttype),
-                    genintconstnode(smallint(trashintval)));
+                  ctypeconvnode.create_internal(trashn,s16inttype,compiler),
+                    genintconstnode(smallint(trashintval),compiler));
                 4: trash_small(stat,
-                  ctypeconvnode.create_internal(trashn,s32inttype),
-                    genintconstnode(longint(trashintval)));
+                  ctypeconvnode.create_internal(trashn,s32inttype,compiler),
+                    genintconstnode(longint(trashintval),compiler));
                 8: trash_small(stat,
-                  ctypeconvnode.create_internal(trashn,s64inttype),
-                    genintconstnode(int64(trashintval)));
+                  ctypeconvnode.create_internal(trashn,s64inttype,compiler),
+                    genintconstnode(int64(trashintval),compiler));
                 else
-                  trash_large(stat,trashn,genintconstnode(size),trashintval);
+                  trash_large(stat,trashn,genintconstnode(size,compiler),trashintval);
               end;
             end
           else
@@ -893,11 +922,11 @@ implementation
                 (for some helpers in the system unit)             }
               { an open string has at least size 2                      }
               trash_small(stat,
-                cvecnode.create(trashn.getcopy,genintconstnode(0)),
-                cordconstnode.create(tconstexprint(byte(trashintval)),cansichartype,false));
+                cvecnode.create(trashn.getcopy,genintconstnode(0,compiler),compiler),
+                cordconstnode.create(tconstexprint(byte(trashintval)),cansichartype,false,compiler));
               trash_small(stat,
-                cvecnode.create(trashn,genintconstnode(1)),
-                cordconstnode.create(tconstexprint(byte(trashintval)),cansichartype,false));
+                cvecnode.create(trashn,genintconstnode(1,compiler),compiler),
+                cordconstnode.create(tconstexprint(byte(trashintval)),cansichartype,false,compiler));
             end;
         end
       else
@@ -907,6 +936,8 @@ implementation
 
 
   class procedure tnodeutils.maybe_trash_variable_callback(p:TObject;statn:pointer);
+    const
+      compiler = nil;  { TODO: fix node compiler reference!!! }
     var
       stat: ^tstatementnode absolute statn;
     begin
@@ -914,22 +945,26 @@ implementation
         exit;
       if sp_internal in tsym(p).symoptions then
         exit;
-      maybe_trash_variable(stat^,tabstractnormalvarsym(p),cloadnode.create(tsym(p),tsym(p).owner));
+      maybe_trash_variable(stat^,tabstractnormalvarsym(p),cloadnode.create(tsym(p),tsym(p).owner,compiler));
     end;
 
 
   class procedure tnodeutils.trash_small(var stat: tstatementnode; trashn: tnode; trashvaln: tnode);
+    const
+      compiler = nil;  { TODO: fix node compiler reference!!! }
     begin
-      addstatement(stat,cassignmentnode.create(trashn,trashvaln));
+      addstatement(stat,cassignmentnode.create(trashn,trashvaln,compiler));
     end;
 
 
   class procedure tnodeutils.trash_large(var stat: tstatementnode; trashn, sizen: tnode; trashintval: int64);
+    const
+      compiler = nil;  { TODO: fix node compiler reference!!! }
     begin
       addstatement(stat,ccallnode.createintern('fpc_fillmem',
-        ccallparanode.Create(cordconstnode.create(tconstexprint(byte(trashintval)),u8inttype,false),
+        ccallparanode.Create(cordconstnode.create(tconstexprint(byte(trashintval)),u8inttype,false,compiler),
         ccallparanode.Create(sizen,
-        ccallparanode.Create(trashn,nil)))
+        ccallparanode.Create(trashn,nil,compiler),compiler),compiler)
         ));
     end;
 

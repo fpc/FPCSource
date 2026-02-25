@@ -113,6 +113,8 @@ end;
 *******************************************************************}
 
     function objcloadbasefield(n: tnode; const fieldname: string): tnode;
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       var
         vs         : tsym;
       begin
@@ -124,19 +126,23 @@ end;
           result:=ctypeconvnode.create_internal(
             cderefnode.create(
               ctypeconvnode.create_internal(n,
-                cpointerdef.getreusable(cpointerdef.getreusable(voidpointertype))
-              )
-            ),tfieldvarsym(vs).vardef
+                cpointerdef.getreusable(cpointerdef.getreusable(voidpointertype)),
+                compiler
+              ),
+              compiler
+            ),tfieldvarsym(vs).vardef,compiler
           )
         else
           begin
-            result:=cderefnode.create(ctypeconvnode.create_internal(n,objc_idtype));
-            result:=csubscriptnode.create(vs,result);
+            result:=cderefnode.create(ctypeconvnode.create_internal(n,objc_idtype,compiler),compiler);
+            result:=csubscriptnode.create(vs,result,compiler);
           end;
       end;
 
 
     function objcsuperclassnode(def: tdef): tnode;
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       var
         para       : tcallparanode;
       begin
@@ -158,11 +164,11 @@ end;
                 if (target_info.system in systems_objc_nfabi) and
                    (not MacOSXVersionMin.isvalid or
                     (MacOSXVersionMin.relationto(10,6,0)>=0)) then
-                  result:=cloadvmtaddrnode.create(ctypenode.create(tobjectdef(tclassrefdef(def).pointeddef).childof))
+                  result:=cloadvmtaddrnode.create(ctypenode.create(tobjectdef(tclassrefdef(def).pointeddef).childof,compiler),compiler)
                 else
-                  result:=cloadvmtaddrnode.create(ctypenode.create(tobjectdef(tclassrefdef(def).pointeddef).childof.childof));
+                  result:=cloadvmtaddrnode.create(ctypenode.create(tobjectdef(tclassrefdef(def).pointeddef).childof.childof,compiler),compiler);
                 tloadvmtaddrnode(result).forcall:=true;
-                result:=cloadvmtaddrnode.create(result);
+                result:=cloadvmtaddrnode.create(result,compiler);
                 typecheckpass(result);
                 { we're done }
                 exit;
@@ -170,16 +176,16 @@ end;
             else
               begin
                 { otherwise we need the superclass of the metaclass }
-                para:=ccallparanode.create(cstringconstnode.createstr(tobjectdef(tclassrefdef(def).pointeddef).objextname^),nil);
+                para:=ccallparanode.create(cstringconstnode.createstr(tobjectdef(tclassrefdef(def).pointeddef).objextname^,compiler),nil,compiler);
                 result:=ccallnode.createinternfromunit('OBJC','OBJC_GETMETACLASS',para);
               end
           end
         else
           begin
             if not(oo_is_classhelper in tobjectdef(def).objectoptions) then
-              result:=cloadvmtaddrnode.create(ctypenode.create(def))
+              result:=cloadvmtaddrnode.create(ctypenode.create(def,compiler),compiler)
             else
-              result:=cloadvmtaddrnode.create(ctypenode.create(tobjectdef(def).childof));
+              result:=cloadvmtaddrnode.create(ctypenode.create(tobjectdef(def).childof,compiler),compiler);
             tloadvmtaddrnode(result).forcall:=true;
           end;
 

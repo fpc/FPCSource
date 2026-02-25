@@ -26,6 +26,7 @@ unit nmem;
 interface
 
     uses
+       compilerbase,
        node,
        symdef,symsym,symtable,symtype;
 
@@ -37,7 +38,7 @@ interface
             uninitialized type to e.g. class_getInstanceSize() or so. No need
             to save to/restore from ppu. }
           forcall: boolean;
-          constructor create(l : tnode);virtual;
+          constructor create(l : tnode;acompiler:TCompilerBase);virtual;
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
           function docompare(p: tnode): boolean; override;
@@ -56,7 +57,7 @@ interface
           parentpd : tprocdef;
           parentpdderef : tderef;
           kind: tloadparentfpkind;
-          constructor create(pd: tprocdef; fpkind: tloadparentfpkind);virtual;
+          constructor create(pd: tprocdef; fpkind: tloadparentfpkind;acompiler:TCompilerBase);virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderefimpl;override;
@@ -79,9 +80,9 @@ interface
           getprocvardef : tprocvardef;
           getprocvardefderef : tderef;
           addrnodeflags : taddrnodeflags;
-          constructor create(l : tnode);virtual;
-          constructor create_internal(l : tnode); virtual;
-          constructor create_internal_nomark(l : tnode); virtual;
+          constructor create(l : tnode;acompiler:TCompilerBase);virtual;
+          constructor create_internal(l : tnode;acompiler:TCompilerBase); virtual;
+          constructor create_internal_nomark(l : tnode;acompiler:TCompilerBase); virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure mark_write;override;
@@ -111,7 +112,7 @@ interface
 
        tderefnode = class(tunarynode)
           derefnodeflags : TDerefNodeFlags;
-          constructor create(l : tnode);virtual;
+          constructor create(l : tnode;acompiler:TCompilerBase);virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           function dogetcopy : tnode;override;
@@ -127,7 +128,7 @@ interface
        tsubscriptnode = class(tunarynode)
           vs : tfieldvarsym;
           vsderef : tderef;
-          constructor create(varsym : tsym;l : tnode);virtual;
+          constructor create(varsym : tsym;l : tnode;acompiler:TCompilerBase);virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderefimpl;override;
@@ -158,7 +159,7 @@ interface
           function gen_array_rangecheck: tnode; virtual;
        public
           vecnodeflags: TVecNodeFlags;
-          constructor  create(l,r : tnode);virtual;
+          constructor  create(l,r : tnode;acompiler:TCompilerBase);virtual;
           constructor ppuload(t : tnodetype;ppufile : tcompilerppufile);override;
           procedure ppuwrite(ppufile : tcompilerppufile);override;
           function pass_1 : tnode;override;
@@ -201,9 +202,9 @@ implementation
                             TLOADVMTADDRNODE
 *****************************************************************************}
 
-    constructor tloadvmtaddrnode.create(l : tnode);
+    constructor tloadvmtaddrnode.create(l : tnode;acompiler:TCompilerBase);
       begin
-         inherited create(loadvmtaddrn,l);
+         inherited create(loadvmtaddrn,l,acompiler);
       end;
 
 
@@ -289,14 +290,14 @@ implementation
                    pointer }
                  if target_info.system in systems_objc_nfabi then
                    begin
-                     result:=ccallnode.createinternfromunit('OBJC','OBJECT_GETCLASS',ccallparanode.create(left,nil));
-                     inserttypeconv_explicit(result,resultdef);
+                     result:=ccallnode.createinternfromunit('OBJC','OBJECT_GETCLASS',ccallparanode.create(left,nil,compiler));
+                     inserttypeconv_explicit(result,resultdef,compiler);
                    end
                  else
                    result:=objcloadbasefield(left,'ISA');
                end
              else
-               result:=ctypeconvnode.create_internal(load_vmt_for_self_node(left),resultdef);
+               result:=ctypeconvnode.create_internal(load_vmt_for_self_node(left),resultdef,compiler);
              { reused }
              left:=nil;
            end
@@ -324,7 +325,7 @@ implementation
                 (vs.typ<>procsym) then
                internalerror(2011080601);
              { can't reuse "self", because it will be freed when we return }
-             result:=ccallnode.create(nil,tprocsym(vs),vs.owner,self.getcopy,[],nil);
+             result:=ccallnode.create(nil,tprocsym(vs),vs.owner,self.getcopy,[],nil,compiler);
            end;
       end;
 
@@ -333,9 +334,9 @@ implementation
                         TLOADPARENTFPNODE
 *****************************************************************************}
 
-    constructor tloadparentfpnode.create(pd: tprocdef; fpkind: tloadparentfpkind);
+    constructor tloadparentfpnode.create(pd: tprocdef; fpkind: tloadparentfpkind;acompiler:TCompilerBase);
       begin
-        inherited create(loadparentfpn,nil);
+        inherited create(loadparentfpn,nil,acompiler);
         if not assigned(pd) then
           internalerror(200309288);
         if (pd.parast.symtablelevel>current_procinfo.procdef.parast.symtablelevel) then
@@ -412,26 +413,26 @@ implementation
                              TADDRNODE
 *****************************************************************************}
 
-    constructor taddrnode.create(l : tnode);
+    constructor taddrnode.create(l : tnode;acompiler:TCompilerBase);
 
       begin
-         inherited create(addrn,l);
+         inherited create(addrn,l,acompiler);
          getprocvardef:=nil;
          addrnodeflags:=[];
          mark_read_written := true;
       end;
 
 
-    constructor taddrnode.create_internal(l : tnode);
+    constructor taddrnode.create_internal(l : tnode;acompiler:TCompilerBase);
       begin
-        self.create(l);
+        self.create(l,acompiler);
         include(flags,nf_internal);
       end;
 
 
-    constructor taddrnode.create_internal_nomark(l : tnode);
+    constructor taddrnode.create_internal_nomark(l : tnode;acompiler:TCompilerBase);
       begin
-        self.create_internal(l);
+        self.create_internal(l,acompiler);
         mark_read_written := false;
       end;
 
@@ -597,7 +598,7 @@ implementation
 
             if not isprocvar then
               begin
-                left:=ctypeconvnode.create_proc_to_procvar(left);
+                left:=ctypeconvnode.create_proc_to_procvar(left,compiler);
                 if need_conv_to_voidptr then
                   include(ttypeconvnode(left).convnodeflags,tcnf_proc_2_procvar_2_voidpointer);
                 if anf_ofs in addrnodeflags then
@@ -614,9 +615,9 @@ implementation
                 if tabstractprocdef(left.resultdef).is_addressonly then
                   begin
                     if anf_ofs in addrnodeflags then
-                      result:=ctypeconvnode.create_internal(left,tabstractprocdef(left.resultdef).ofs_address_type)
+                      result:=ctypeconvnode.create_internal(left,tabstractprocdef(left.resultdef).ofs_address_type,compiler)
                     else
-                      result:=ctypeconvnode.create_internal(left,voidcodepointertype);
+                      result:=ctypeconvnode.create_internal(left,voidcodepointertype,compiler);
                     include(result.flags,nf_load_procvar);
                     left:=nil;
                   end
@@ -638,7 +639,7 @@ implementation
                         { Load tmehodpointer(left).proc }
                         result:=csubscriptnode.create(
                                      hsym,
-                                     ctypeconvnode.create_internal(left,procpointertype));
+                                     ctypeconvnode.create_internal(left,procpointertype,compiler),compiler);
                         left:=nil;
                       end
                     else
@@ -756,7 +757,7 @@ implementation
               begin
                 { @PObjectType(nil)^.fields? }
                 if tderefnode(hp).left.nodetype=niln then
-                  result:=cpointerconstnode.create(fieldoffset,resultdef);
+                  result:=cpointerconstnode.create(fieldoffset,resultdef,compiler);
                 exit;
               end;
 
@@ -765,13 +766,13 @@ implementation
                 { @ObjectType(nil^).fields? }
                 if (ttypeconvnode(hp).left.nodetype=derefn) and
                    (tderefnode(ttypeconvnode(hp).left).left.nodetype=niln) then
-                  result:=cpointerconstnode.create(fieldoffset,resultdef);
+                  result:=cpointerconstnode.create(fieldoffset,resultdef,compiler);
                 exit;
               end;
 
             niln:
               { @ClassType(nil).fields. }
-              exit(cpointerconstnode.create(fieldoffset,resultdef));
+              exit(cpointerconstnode.create(fieldoffset,resultdef,compiler));
 
             else
               exit;
@@ -824,9 +825,9 @@ implementation
                 hp:=tunarynode(hp).left;
               end;
             if anf_typedaddr in addrnodeflags then
-              res:=cpointerconstnode.create(offset,cpointerdef.getreusable(left.resultdef))
+              res:=cpointerconstnode.create(offset,cpointerdef.getreusable(left.resultdef),compiler)
             else
-              res:=cpointerconstnode.create(offset,voidpointertype);
+              res:=cpointerconstnode.create(offset,voidpointertype,compiler);
             result:=true;
           end
         else if (nf_internal in flags) or
@@ -857,9 +858,9 @@ implementation
                              TDEREFNODE
 *****************************************************************************}
 
-    constructor tderefnode.create(l : tnode);
+    constructor tderefnode.create(l : tnode;acompiler:TCompilerBase);
       begin
-         inherited create(derefn,l);
+         inherited create(derefn,l,acompiler);
       end;
 
 
@@ -949,10 +950,10 @@ implementation
                             TSUBSCRIPTNODE
 *****************************************************************************}
 
-    constructor tsubscriptnode.create(varsym : tsym;l : tnode);
+    constructor tsubscriptnode.create(varsym : tsym;l : tnode;acompiler:TCompilerBase);
 
       begin
-         inherited create(subscriptn,l);
+         inherited create(subscriptn,l,acompiler);
          { vs should be changed to tsym! }
          vs:=tfieldvarsym(varsym);
       end;
@@ -1083,9 +1084,9 @@ implementation
                                TVECNODE
 *****************************************************************************}
 
-    constructor tvecnode.create(l,r : tnode);
+    constructor tvecnode.create(l,r : tnode;acompiler:TCompilerBase);
       begin
-         inherited create(vecn,l,r);
+         inherited create(vecn,l,r,acompiler);
          vecnodeflags:=[];
       end;
 
@@ -1121,9 +1122,9 @@ implementation
             (tstringconstnode(left).cst_type=cst_conststring) then
            begin
              if tstringconstnode(left).len>255 then
-               inserttypeconv(left,getansistringdef)
+               inserttypeconv(left,getansistringdef,compiler)
              else
-               inserttypeconv(left,cshortstringtype);
+               inserttypeconv(left,cshortstringtype,compiler);
            end;
 
          { In p[1] p is always valid, it is not possible to
@@ -1172,14 +1173,14 @@ implementation
                    begin
                      if is_signed(right.resultdef) and
                         not is_constnode(right) then
-                       inserttypeconv(right,sizesinttype)
+                       inserttypeconv(right,sizesinttype,compiler)
                      else
-                       inserttypeconv(right,sizeuinttype)
+                       inserttypeconv(right,sizeuinttype,compiler)
                    end
                  else if is_special_array(left.resultdef) then
                    {Arrays without a high bound (dynamic arrays, open arrays) are zero based,
                     convert indexes into these arrays to aword.}
-                   inserttypeconv(right,uinttype)
+                   inserttypeconv(right,uinttype,compiler)
                  { note: <> rather than </>, because indexing e.g. an array 0..0
                      must not result in truncating the indexing value from 2/4/8
                      bytes to 1 byte (with range checking off, the full index
@@ -1199,7 +1200,7 @@ implementation
                    inserttypeconv(right,cenumdef.create_subrange(tenumdef(right.resultdef),
                                                       asizeint(Tarraydef(left.resultdef).lowrange),
                                                       asizeint(Tarraydef(left.resultdef).highrange)
-                                                     ))
+                                                     ),compiler)
                  else if (htype.typ=orddef) and
                     { right can also be a variant or another type with
                       overloaded assignment }
@@ -1248,30 +1249,30 @@ implementation
                                                          int64(Tarraydef(left.resultdef).lowrange),
                                                          int64(Tarraydef(left.resultdef).highrange),
                                                          true
-                                                        ));
+                                                        ),compiler);
                    end
                  else
                    begin
-                     inserttypeconv(right,htype);
+                     inserttypeconv(right,htype,compiler);
                      { insert type conversion so cse can pick it up }
                      if (htype.size<ptrsinttype.size) and is_integer(htype) and not(cs_check_range in current_settings.localswitches) then
-                       inserttypeconv_internal(right,ptrsinttype);
+                       inserttypeconv_internal(right,ptrsinttype,compiler);
                    end;
                end;
              stringdef:
                if is_open_string(left.resultdef) then
-                 inserttypeconv(right,u8inttype)
+                 inserttypeconv(right,u8inttype,compiler)
                else if is_shortstring(left.resultdef) then
                  {Convert shortstring indexes to 0..length.}
-                 inserttypeconv(right,corddef.create(u8bit,0,int64(Tstringdef(left.resultdef).len),true))
+                 inserttypeconv(right,corddef.create(u8bit,0,int64(Tstringdef(left.resultdef).len),true),compiler)
                else
                  {Convert indexes into dynamically allocated strings to aword.}
-                 inserttypeconv(right,uinttype);
+                 inserttypeconv(right,uinttype,compiler);
              pointerdef:
-               inserttypeconv(right,tpointerdef(left.resultdef).pointer_arithmetic_int_type);
+               inserttypeconv(right,tpointerdef(left.resultdef).pointer_arithmetic_int_type,compiler);
              else
                {Others, (are there any?) indexes to aint.}
-               inserttypeconv(right,sinttype);
+               inserttypeconv(right,sinttype,compiler);
            end;
 
          { although we never put regular arrays or shortstrings in registers,
@@ -1330,7 +1331,7 @@ implementation
                 begin
                   { convert pointer to array }
                   htype:=carraydef.create_from_pointer(tpointerdef(left.resultdef));
-                  inserttypeconv(left,htype);
+                  inserttypeconv(left,htype,compiler);
                   if right.nodetype=rangen then
                     resultdef:=htype
                   else
@@ -1405,8 +1406,8 @@ implementation
            begin
              left := ctypeconvnode.create_internal(ccallnode.createintern('fpc_'+tstringdef(left.resultdef).stringtypname+'_unique',
                ccallparanode.create(
-                 ctypeconvnode.create_internal(left,voidpointertype),nil)),
-               left.resultdef);
+                 ctypeconvnode.create_internal(left,voidpointertype,compiler),nil,compiler)),
+               left.resultdef,compiler);
              firstpass(left);
              { double resultdef passes somewhere else may cause this to be }
              { reset though :/                                             }
@@ -1462,7 +1463,8 @@ implementation
                 Result := COrdConstNode.create(
                   TStringConstNode(left).valuews.data[PtrUInt(TOrdConstNode(right).value.uvalue) - 1],
                   resultdef,
-                  False
+                  False,
+                  compiler
                 );
               else
                 { while the conversion to PtrUInt is not correct when compiling from an 32 bit to a 64 bit platform because
@@ -1472,7 +1474,8 @@ implementation
                 Result := COrdConstNode.create(
                   Byte(TStringConstNode(left).valueas[PtrUInt(TOrdConstNode(right).value.uvalue) - 1]),
                   resultdef,
-                  False
+                  False,
+                  compiler
                 );
             end;
           end;
@@ -1541,14 +1544,14 @@ implementation
                 already been firstpassed }
               if not is_const(right) then
                 begin
-                  temp:=ctempcreatenode.create(right.resultdef,right.resultdef.size,tt_persistent,true);
+                  temp:=ctempcreatenode.create(right.resultdef,right.resultdef.size,tt_persistent,true,compiler);
                   addstatement(stat,temp);
                   { needed so we can typecheck its temprefnodes }
                   typecheckpass(tnode(temp));
                   addstatement(stat,cassignmentnode.create(
-                    ctemprefnode.create(temp),right)
+                    ctemprefnode.create(temp,compiler),right,compiler)
                   );
-                  right:=ctemprefnode.create(temp);
+                  right:=ctemprefnode.create(temp,compiler);
                   { right.resultdef is used below }
                   typecheckpass(right);
                 end;
@@ -1561,21 +1564,22 @@ implementation
                 hightree can be -1 in case the array was empty ->
                 add 1 before comparing (ignoring overflows) }
               htype:=get_unsigned_inttype(right.resultdef);
-              inserttypeconv_explicit(hightree,htype);
-              hightree:=caddnode.create(addn,hightree,genintconstnode(1));
+              inserttypeconv_explicit(hightree,htype,compiler);
+              hightree:=caddnode.create(addn,hightree,genintconstnode(1,compiler),compiler);
               hightree.localswitches:=hightree.localswitches-[cs_check_range,
                 cs_check_overflow];
-              indextree:=ctypeconvnode.create_explicit(right.getcopy,htype);
+              indextree:=ctypeconvnode.create_explicit(right.getcopy,htype,compiler);
               { range error if index >= hightree+1 }
               addstatement(stat,
                 cifnode.create_internal(
-                  caddnode.create_internal(gten,indextree,hightree),
+                  caddnode.create_internal(gten,indextree,hightree,compiler),
                   ccallnode.createintern('fpc_rangeerror',nil),
-                  nil
+                  nil,
+                  compiler
                 )
               );
               if assigned(temp) then
-                addstatement(stat,ctempdeletenode.create_normal_temp(temp));
+                addstatement(stat,ctempdeletenode.create_normal_temp(temp,compiler));
               addstatement(stat,self.getcopy);
             end;
         end;

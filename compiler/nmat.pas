@@ -26,6 +26,7 @@ unit nmat;
 interface
 
     uses
+       compilerbase,
        node,symtype;
 
     type
@@ -37,7 +38,7 @@ interface
 
        tmoddivnode = class(tbinopnode)
           moddivnodeflags : TModDivNodeFlags;
-          constructor create(t:tnodetype;l,r : tnode); override;
+          constructor create(t:tnodetype;l,r : tnode;acompiler:TCompilerBase); override;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           function pass_1 : tnode;override;
@@ -73,7 +74,7 @@ interface
        tshlshrnodeclass = class of tshlshrnode;
 
        tunaryminusnode = class(tunarynode)
-          constructor create(expr : tnode);virtual;
+          constructor create(expr : tnode;acompiler:TCompilerBase);virtual;
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
           function simplify(forinline : boolean) : tnode;override;
@@ -81,14 +82,14 @@ interface
        tunaryminusnodeclass = class of tunaryminusnode;
 
        tunaryplusnode = class(tunarynode)
-         constructor create(expr : tnode);virtual;
+         constructor create(expr : tnode;acompiler:TCompilerBase);virtual;
          function pass_1 : tnode;override;
          function pass_typecheck:tnode;override;
        end;
        tunaryplusnodeclass = class of tunaryplusnode;
 
        tnotnode = class(tunarynode)
-          constructor create(expr : tnode);virtual;
+          constructor create(expr : tnode;acompiler:TCompilerBase);virtual;
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
           function simplify(forinline : boolean) : tnode;override;
@@ -123,9 +124,9 @@ implementation
  ****************************************************************************}
 
 
-    constructor tmoddivnode.create(t:tnodetype;l,r : tnode);
+    constructor tmoddivnode.create(t:tnodetype;l,r : tnode;acompiler:TCompilerBase);
       begin
-        inherited create(t, l, r);
+        inherited create(t, l, r,acompiler);
         moddivnodeflags:=[];
       end;
 
@@ -158,7 +159,7 @@ implementation
               begin
                 case nodetype of
                   modn:
-                    result := cordconstnode.create(0,left.resultdef,true);
+                    result := cordconstnode.create(0,left.resultdef,true,compiler);
                   divn:
                     result := left.getcopy;
                   else
@@ -181,7 +182,7 @@ implementation
             if (rv=-1) and
                (nodetype=divn) then
               begin
-                result:=cunaryminusnode.create(left);
+                result:=cunaryminusnode.create(left,compiler);
                 left:=nil;
                 exit;
               end;
@@ -195,7 +196,7 @@ implementation
             else if (rv=-1) and
               (nodetype=modn) then
               begin
-                result:=cordconstnode.create(0,left.resultdef,true);
+                result:=cordconstnode.create(0,left.resultdef,true,compiler);
                 left:=nil;
                 exit;
               end;
@@ -205,13 +206,13 @@ implementation
               (compare_defs(resultdef,left.resultdef,nothingn)=te_exact) then
               begin
                 { re-use the current node so we get the result type right }
-                right:=caddnode.create_internal(muln,right,tmoddivnode(left).right.getcopy);
+                right:=caddnode.create_internal(muln,right,tmoddivnode(left).right.getcopy,compiler);
                 hp:=tmoddivnode(left).left.getcopy;
                 left.Free;
                 left:=hp;
                 Result:=getcopy;
                 Result.resultdef:=nil;
-                Result:=ctypeconvnode.create_internal(Result,resultdef);
+                Result:=ctypeconvnode.create_internal(Result,resultdef,compiler);
                 exit;
               end;
 
@@ -313,9 +314,9 @@ implementation
 
          { we need 2 orddefs always }
          if (left.resultdef.typ<>orddef) then
-           inserttypeconv(left,sinttype);
+           inserttypeconv(left,sinttype,compiler);
          if (right.resultdef.typ<>orddef) then
-           inserttypeconv(right,sinttype);
+           inserttypeconv(right,sinttype,compiler);
          if codegenerror then
            exit;
 
@@ -349,11 +350,11 @@ implementation
            begin
              if rd.size<uinttype.size then
                begin
-                 inserttypeconv(left,uinttype);
-                 inserttypeconv(right,uinttype);
+                 inserttypeconv(left,uinttype,compiler);
+                 inserttypeconv(right,uinttype,compiler);
                end
              else
-               inserttypeconv(left,rd);
+               inserttypeconv(left,rd,compiler);
              resultdef:=right.resultdef;
            end
          else if (ld.ordtype in [u8bit,u16bit,u32bit,u64bit]) and
@@ -365,11 +366,11 @@ implementation
            begin
              if ld.size<uinttype.size then
                begin
-                 inserttypeconv(left,uinttype);
-                 inserttypeconv(right,uinttype);
+                 inserttypeconv(left,uinttype,compiler);
+                 inserttypeconv(right,uinttype,compiler);
                end
              else
-               inserttypeconv(right,ld);
+               inserttypeconv(right,ld,compiler);
              resultdef:=left.resultdef;
            end
          else
@@ -380,9 +381,9 @@ implementation
             (rd.ordtype=scurrency) then
            begin
              if (ld.ordtype<>scurrency) then
-              inserttypeconv(left,s64currencytype);
+              inserttypeconv(left,s64currencytype,compiler);
              if (rd.ordtype<>scurrency) then
-              inserttypeconv(right,s64currencytype);
+              inserttypeconv(right,s64currencytype,compiler);
              resultdef:=left.resultdef;
            end
          else
@@ -394,16 +395,16 @@ implementation
              if is_signed(rd) or is_signed(ld) then
                begin
                   if (ld.ordtype<>s64bit) then
-                    inserttypeconv(left,s64inttype);
+                    inserttypeconv(left,s64inttype,compiler);
                   if (rd.ordtype<>s64bit) then
-                    inserttypeconv(right,s64inttype);
+                    inserttypeconv(right,s64inttype,compiler);
                end
              else
                begin
                   if (ld.ordtype<>u64bit) then
-                    inserttypeconv(left,u64inttype);
+                    inserttypeconv(left,u64inttype,compiler);
                   if (rd.ordtype<>u64bit) then
-                    inserttypeconv(right,u64inttype);
+                    inserttypeconv(right,u64inttype,compiler);
                end;
              resultdef:=left.resultdef;
            end
@@ -413,9 +414,9 @@ implementation
            begin
              nd:=get_common_intdef(ld,rd,false);
              if (ld.ordtype<>nd.ordtype) then
-               inserttypeconv(left,nd);
+               inserttypeconv(left,nd,compiler);
              if (rd.ordtype<>nd.ordtype) then
-               inserttypeconv(right,nd);
+               inserttypeconv(right,nd,compiler);
              resultdef:=left.resultdef;
            end
          else
@@ -429,18 +430,18 @@ implementation
               { get a signed int, larger than the native int }
               nd:=get_common_intdef(torddef(sinttype),torddef(uinttype),false);
               if (ld.ordtype<>nd.ordtype) then
-                inserttypeconv(left,nd);
+                inserttypeconv(left,nd,compiler);
               if (rd.ordtype<>nd.ordtype) then
-                inserttypeconv(right,nd);
+                inserttypeconv(right,nd,compiler);
               resultdef:=left.resultdef;
            end
          else
            begin
               { Make everything always default signed int }
               if not(rd.ordtype in [torddef(sinttype).ordtype,torddef(uinttype).ordtype]) then
-                inserttypeconv(right,sinttype);
+                inserttypeconv(right,sinttype,compiler);
               if not(ld.ordtype in [torddef(sinttype).ordtype,torddef(uinttype).ordtype]) then
-                inserttypeconv(left,sinttype);
+                inserttypeconv(left,sinttype,compiler);
               resultdef:=right.resultdef;
            end;
 
@@ -455,7 +456,7 @@ implementation
             not(nf_is_currency in flags) and
             is_currency(resultdef) then
           begin
-            hp:=caddnode.create(muln,getcopy,cordconstnode.create(10000,s64currencytype,false));
+            hp:=caddnode.create(muln,getcopy,cordconstnode.create(10000,s64currencytype,false,compiler),compiler);
             include(hp.flags,nf_is_currency);
             result:=hp;
           end;
@@ -464,36 +465,39 @@ implementation
            begin
              result:=internalstatements(statements);
              else_block:=internalstatements(else_statements);
-             result_data:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,true);
+             result_data:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,true,compiler);
 
              { right <=0? }
-             addstatement(statements,cifnode.create_internal(caddnode.create_internal(lten,right.getcopy,cordconstnode.create(0,resultdef,false)),
+             addstatement(statements,cifnode.create_internal(caddnode.create_internal(lten,right.getcopy,cordconstnode.create(0,resultdef,false,compiler),compiler),
                { then: result:=left mod right }
                ccallnode.createintern('fpc_divbyzero',nil),
-               nil
+               nil,
+               compiler
                ));
 
              { prepare else block }
              { result:=(-left) mod right }
-             addstatement(else_statements,cassignmentnode.create(ctemprefnode.create(result_data),cmoddivnode.create(modn,cunaryminusnode.create(left.getcopy),right.getcopy)));
+             addstatement(else_statements,cassignmentnode.create(ctemprefnode.create(result_data,compiler),cmoddivnode.create(modn,cunaryminusnode.create(left.getcopy,compiler),right.getcopy,compiler),compiler));
              { result<>0? }
-             addstatement(else_statements,cifnode.create_internal(caddnode.create_internal(unequaln,ctemprefnode.create(result_data),cordconstnode.create(0,resultdef,false)),
+             addstatement(else_statements,cifnode.create_internal(caddnode.create_internal(unequaln,ctemprefnode.create(result_data,compiler),cordconstnode.create(0,resultdef,false,compiler),compiler),
                { then: result:=right-result }
-               cassignmentnode.create_internal(ctemprefnode.create(result_data),caddnode.create_internal(subn,right.getcopy,ctemprefnode.create(result_data))),
-               nil
+               cassignmentnode.create_internal(ctemprefnode.create(result_data,compiler),caddnode.create_internal(subn,right.getcopy,ctemprefnode.create(result_data,compiler),compiler),compiler),
+               nil,
+               compiler
                ));
 
              addstatement(statements,result_data);
              { if left>=0 }
-             addstatement(statements,cifnode.create_internal(caddnode.create_internal(gten,left.getcopy,cordconstnode.create(0,resultdef,false)),
+             addstatement(statements,cifnode.create_internal(caddnode.create_internal(gten,left.getcopy,cordconstnode.create(0,resultdef,false,compiler),compiler),
                { then: result:=left mod right }
-               cassignmentnode.create_internal(ctemprefnode.create(result_data),cmoddivnode.create(modn,left.getcopy,right.getcopy)),
+               cassignmentnode.create_internal(ctemprefnode.create(result_data,compiler),cmoddivnode.create(modn,left.getcopy,right.getcopy,compiler),compiler),
                { else block }
-               else_block
+               else_block,
+               compiler
                ));
 
-             addstatement(statements,ctempdeletenode.create_normal_temp(result_data));
-             addstatement(statements,ctemprefnode.create(result_data));
+             addstatement(statements,ctempdeletenode.create_normal_temp(result_data,compiler));
+             addstatement(statements,ctemprefnode.create(result_data,compiler));
            end;
       end;
 
@@ -579,7 +583,7 @@ implementation
           procname := procname + 'qword';
 
         result := ccallnode.createintern(procname,ccallparanode.create(left,
-          ccallparanode.create(right,nil)));
+          ccallparanode.create(right,nil,compiler),compiler));
         left := nil;
         right := nil;
         firstpass(result);
@@ -623,12 +627,12 @@ implementation
                       shiftval:=left.resultdef.size*8-1;
 
                     result:=internalstatements(statements);
-                    temp:=ctempcreatenode.create(left.resultdef,left.resultdef.size,tt_persistent,true);
-                    resulttemp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,true);
+                    temp:=ctempcreatenode.create(left.resultdef,left.resultdef.size,tt_persistent,true,compiler);
+                    resulttemp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,true,compiler);
                     addstatement(statements,resulttemp);
                     addstatement(statements,temp);
-                    addstatement(statements,cassignmentnode.create(ctemprefnode.create(temp),
-                     left));
+                    addstatement(statements,cassignmentnode.create(ctemprefnode.create(temp,compiler),
+                     left,compiler));
                     left:=nil;
 
                     { masknode is (sar(temp,shiftval) and ((1 shl power)-1))
@@ -636,47 +640,50 @@ implementation
                     if power=1 then
                       masknode:=
                         cshlshrnode.create(shrn,
-                          ctemprefnode.create(temp),
-                          cordconstnode.create(shiftval,u8inttype,false)
+                          ctemprefnode.create(temp,compiler),
+                          cordconstnode.create(shiftval,u8inttype,false,compiler),
+                          compiler
                         )
                     else
                       masknode:=
                         caddnode.create(andn,
                           cinlinenode.create(in_sar_x_y,false,
-                            ccallparanode.create(cordconstnode.create(shiftval,u8inttype,false),
-                            ccallparanode.create(ctemprefnode.create(temp),nil))
+                            ccallparanode.create(cordconstnode.create(shiftval,u8inttype,false,compiler),
+                            ccallparanode.create(ctemprefnode.create(temp,compiler),nil,compiler),compiler),
+                            compiler
                           ),
                           cordconstnode.create(tcgint((qword(1) shl power)-1),
-                            right.resultdef,false)
+                            right.resultdef,false,compiler),
+                            compiler
                         );
 
                     if invertsign then
-                      addstatement(statements,cassignmentnode.create(ctemprefnode.create(resulttemp),
+                      addstatement(statements,cassignmentnode.create(ctemprefnode.create(resulttemp,compiler),
                         cunaryminusnode.create(
                           cinlinenode.create(in_sar_x_y,false,
-                            ccallparanode.create(cordconstnode.create(power,u8inttype,false),
-                            ccallparanode.create(caddnode.create(addn,ctemprefnode.create(temp),
-                              masknode),nil
-                            )))))
+                            ccallparanode.create(cordconstnode.create(power,u8inttype,false,compiler),
+                            ccallparanode.create(caddnode.create(addn,ctemprefnode.create(temp,compiler),
+                              masknode,compiler),nil,compiler
+                            ),compiler),compiler),compiler),compiler)
                       )
                     else
-                      addstatement(statements,cassignmentnode.create(ctemprefnode.create(resulttemp),
+                      addstatement(statements,cassignmentnode.create(ctemprefnode.create(resulttemp,compiler),
                         cinlinenode.create(in_sar_x_y,false,
-                          ccallparanode.create(cordconstnode.create(power,u8inttype,false),
-                          ccallparanode.create(caddnode.create(addn,ctemprefnode.create(temp),
-                            masknode),nil
-                          ))))
+                          ccallparanode.create(cordconstnode.create(power,u8inttype,false,compiler),
+                          ccallparanode.create(caddnode.create(addn,ctemprefnode.create(temp,compiler),
+                            masknode,compiler),nil,compiler
+                          ),compiler),compiler),compiler)
                       );
-                    addstatement(statements,ctempdeletenode.create(temp));
-                    addstatement(statements,ctempdeletenode.create_normal_temp(resulttemp));
-                    addstatement(statements,ctemprefnode.create(resulttemp));
+                    addstatement(statements,ctempdeletenode.create(temp,compiler));
+                    addstatement(statements,ctempdeletenode.create_normal_temp(resulttemp,compiler));
+                    addstatement(statements,ctemprefnode.create(resulttemp,compiler));
                     right.Free;
                     right := nil;
                   end
                 else
                   begin
                     tordconstnode(right).value:=power;
-                    result:=cshlshrnode.create(shrn,left,right)
+                    result:=cshlshrnode.create(shrn,left,right,compiler)
                   end;
               end
             else if is_signed(resultdef) then    { signed modulus }
@@ -688,49 +695,54 @@ implementation
                 tordconstnode(right).value.uvalue:=qword((qword(1) shl power)-1);
 
                 result:=internalstatements(statements);
-                temp:=ctempcreatenode.create(left.resultdef,left.resultdef.size,tt_persistent,true);
-                resulttemp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,true);
+                temp:=ctempcreatenode.create(left.resultdef,left.resultdef.size,tt_persistent,true,compiler);
+                resulttemp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,true,compiler);
                 addstatement(statements,resulttemp);
                 addstatement(statements,temp);
-                addstatement(statements,cassignmentnode.create(ctemprefnode.create(temp),left));
+                addstatement(statements,cassignmentnode.create(ctemprefnode.create(temp,compiler),left,compiler));
                 { mask:=sar(left,sizeof(left)*8-1) and ((1 shl power)-1); }
                 if power=1 then
                   masknode:=
                     cshlshrnode.create(shrn,
-                      ctemprefnode.create(temp),
-                      cordconstnode.create(shiftval,u8inttype,false)
+                      ctemprefnode.create(temp,compiler),
+                      cordconstnode.create(shiftval,u8inttype,false,compiler),
+                      compiler
                     )
                 else
                   masknode:=
                     caddnode.create(andn,
                       cinlinenode.create(in_sar_x_y,false,
-                        ccallparanode.create(cordconstnode.create(shiftval,u8inttype,false),
-                        ccallparanode.create(ctemprefnode.create(temp),nil))
+                        ccallparanode.create(cordconstnode.create(shiftval,u8inttype,false,compiler),
+                        ccallparanode.create(ctemprefnode.create(temp,compiler),nil,compiler),compiler),
+                        compiler
                       ),
                       cordconstnode.create(tcgint((qword(1) shl power)-1),
-                        right.resultdef,false)
+                        right.resultdef,false,compiler),
+                        compiler
                     );
-                addstatement(statements,cassignmentnode.create(ctemprefnode.create(resulttemp),masknode));
+                addstatement(statements,cassignmentnode.create(ctemprefnode.create(resulttemp,compiler),masknode,compiler));
 
                 { result:=((left+mask) and right)-mask; }
-                addstatement(statements,cassignmentnode.create(ctemprefnode.create(resulttemp),
+                addstatement(statements,cassignmentnode.create(ctemprefnode.create(resulttemp,compiler),
                   caddnode.create(subn,
                     caddnode.create(andn,
                       right,
                       caddnode.create(addn,
-                        ctemprefnode.create(temp),
-                        ctemprefnode.create(resulttemp))),
-                  ctemprefnode.create(resulttemp))
+                        ctemprefnode.create(temp,compiler),
+                        ctemprefnode.create(resulttemp,compiler),compiler),
+                        compiler),
+                  ctemprefnode.create(resulttemp,compiler),compiler),
+                  compiler
                 ));
 
-                addstatement(statements,ctempdeletenode.create(temp));
-                addstatement(statements,ctempdeletenode.create_normal_temp(resulttemp));
-                addstatement(statements,ctemprefnode.create(resulttemp));
+                addstatement(statements,ctempdeletenode.create(temp,compiler));
+                addstatement(statements,ctempdeletenode.create_normal_temp(resulttemp,compiler));
+                addstatement(statements,ctemprefnode.create(resulttemp,compiler));
               end
             else
               begin
                 tordconstnode(right).value.uvalue:=qword((qword(1) shl power)-1);
-                result := caddnode.create(andn,left,right);
+                result := caddnode.create(andn,left,right,compiler);
               end;
             { left and right are reused }
             left := nil;
@@ -869,7 +881,7 @@ implementation
             if (lvalue=0) and
                ((cs_opt_level4 in current_settings.optimizerswitches) or
                 not might_have_sideeffects(right)) then
-              result:=cordconstnode.create(0,resultdef,true);
+              result:=cordconstnode.create(0,resultdef,true,compiler);
           end;
       end;
 
@@ -931,9 +943,9 @@ implementation
                  if is_signed(left.resultdef) then
                    begin
 {$if defined(cpu64bitalu) or defined(cpu32bitalu)}
-                     inserttypeconv(left,s32inttype)
+                     inserttypeconv(left,s32inttype,compiler)
 {$elseif defined(cpu16bitalu) or defined(cpu8bitalu)}
-                     inserttypeconv(left,get_common_intdef(torddef(left.resultdef),torddef(sinttype),true));
+                     inserttypeconv(left,get_common_intdef(torddef(left.resultdef),torddef(sinttype),true),compiler);
 {$else}
                      internalerror(2013031301);
 {$endif}
@@ -941,16 +953,16 @@ implementation
                  else
                    begin
 {$if defined(cpu64bitalu) or defined(cpu32bitalu)}
-                     inserttypeconv(left,u32inttype);
+                     inserttypeconv(left,u32inttype,compiler);
 {$elseif defined(cpu16bitalu) or defined(cpu8bitalu)}
-                     inserttypeconv(left,get_common_intdef(torddef(left.resultdef),torddef(uinttype),true));
+                     inserttypeconv(left,get_common_intdef(torddef(left.resultdef),torddef(uinttype),true),compiler);
 {$else}
                      internalerror(2013031302);
 {$endif}
                    end
                end;
 
-             inserttypeconv(right,sinttype);
+             inserttypeconv(right,sinttype,compiler);
            end;
 
          resultdef:=left.resultdef;
@@ -1011,9 +1023,9 @@ implementation
                             TUNARYMINUSNODE
  ****************************************************************************}
 
-    constructor tunaryminusnode.create(expr : tnode);
+    constructor tunaryminusnode.create(expr : tnode;acompiler:TCompilerBase);
       begin
-        inherited create(unaryminusn,expr);
+        inherited create(unaryminusn,expr,acompiler);
       end;
 
 
@@ -1048,7 +1060,7 @@ implementation
             }
             if (cs_opt_fastmath in current_settings.optimizerswitches) and (left.nodetype=subn) then
               begin
-                result:=caddnode.create(subn,taddnode(left).right.getcopy,taddnode(left).left.getcopy);
+                result:=caddnode.create(subn,taddnode(left).right.getcopy,taddnode(left).left.getcopy,compiler);
                 exit;
               end;
 
@@ -1060,12 +1072,12 @@ implementation
             }
             if (left.nodetype=muln) and ((taddnode(left).left.nodetype=unaryminusn)) then
               begin
-                result:=caddnode.create(muln,tunaryminusnode(taddnode(left).left).left.getcopy,taddnode(left).right.getcopy);
+                result:=caddnode.create(muln,tunaryminusnode(taddnode(left).left).left.getcopy,taddnode(left).right.getcopy,compiler);
                 exit;
               end;
             if (left.nodetype=muln) and ((taddnode(left).right.nodetype=unaryminusn)) then
               begin
-                result:=caddnode.create(muln,taddnode(left).left.getcopy,tunaryminusnode(taddnode(left).right).left.getcopy);
+                result:=caddnode.create(muln,taddnode(left).left.getcopy,tunaryminusnode(taddnode(left).right).left.getcopy,compiler);
                 exit;
               end;
 
@@ -1077,12 +1089,12 @@ implementation
             }
             if (left.nodetype=slashn) and ((taddnode(left).left.nodetype=unaryminusn)) then
               begin
-                result:=caddnode.create(slashn,tunaryminusnode(taddnode(left).left).left.getcopy,taddnode(left).right.getcopy);
+                result:=caddnode.create(slashn,tunaryminusnode(taddnode(left).left).left.getcopy,taddnode(left).right.getcopy,compiler);
                 exit;
               end;
             if (left.nodetype=slashn) and ((taddnode(left).right.nodetype=unaryminusn)) then
               begin
-                result:=caddnode.create(slashn,taddnode(left).left.getcopy,tunaryminusnode(taddnode(left).right).left.getcopy);
+                result:=caddnode.create(slashn,taddnode(left).left.getcopy,tunaryminusnode(taddnode(left).right).left.getcopy,compiler);
                 exit;
               end;
 
@@ -1101,12 +1113,12 @@ implementation
           begin
             if is_constintnode(taddnode(left).right) and (tordconstnode(taddnode(left).right).value=1) then
               begin
-                result:=cnotnode.create(taddnode(left).left.getcopy);
+                result:=cnotnode.create(taddnode(left).left.getcopy,compiler);
                 exit;
               end
             else if is_constintnode(taddnode(left).left) and (tordconstnode(taddnode(left).left).value=1) then
               begin
-                result:=cnotnode.create(taddnode(left).right.getcopy);
+                result:=cnotnode.create(taddnode(left).right.getcopy,compiler);
                 exit;
               end;
           end;
@@ -1144,7 +1156,7 @@ implementation
              if not(tfloatdef(left.resultdef).floattype in [s64comp,s64currency]) and
                (cs_excessprecision in current_settings.localswitches) then
                begin
-                 inserttypeconv(left,pbestrealtype^);
+                 inserttypeconv(left,pbestrealtype^,compiler);
                  resultdef:=left.resultdef
                end;
            end
@@ -1164,18 +1176,18 @@ implementation
          else if is_oversizedord(left.resultdef) then
            begin
              if is_64bit(left.resultdef) then
-               inserttypeconv(left,s64inttype)
+               inserttypeconv(left,s64inttype,compiler)
              else if is_32bit(left.resultdef) then
-               inserttypeconv(left,s32inttype)
+               inserttypeconv(left,s32inttype,compiler)
              else if is_16bit(left.resultdef) then
-               inserttypeconv(left,s16inttype)
+               inserttypeconv(left,s16inttype,compiler)
              else
                internalerror(2013040701);
              resultdef:=left.resultdef;
            end
          else if (left.resultdef.typ=orddef) then
            begin
-             inserttypeconv(left,sinttype);
+             inserttypeconv(left,sinttype,compiler);
              resultdef:=left.resultdef
            end
          else
@@ -1224,7 +1236,7 @@ implementation
                   else
                     internalerror(2005082802);
                 end;
-                result:=ccallnode.createintern(procname,ccallparanode.create(left,nil));
+                result:=ccallnode.createintern(procname,ccallparanode.create(left,nil,compiler));
               end;
 
             left:=nil;
@@ -1247,9 +1259,9 @@ implementation
                              TUNARYPLUSNODE
  ****************************************************************************}
 
-    constructor tunaryplusnode.create(expr: tnode);
+    constructor tunaryplusnode.create(expr: tnode;acompiler:TCompilerBase);
       begin
-        inherited create(unaryplusn,expr);
+        inherited create(unaryplusn,expr,acompiler);
       end;
 
     function tunaryplusnode.pass_1: tnode;
@@ -1294,11 +1306,11 @@ implementation
         else if is_oversizedord(left.resultdef) then
           begin
             if is_64bit(left.resultdef) then
-              inserttypeconv(left,s64inttype)
+              inserttypeconv(left,s64inttype,compiler)
             else if is_32bit(left.resultdef) then
-              inserttypeconv(left,s32inttype)
+              inserttypeconv(left,s32inttype,compiler)
             else if is_16bit(left.resultdef) then
-              inserttypeconv(left,s16inttype)
+              inserttypeconv(left,s16inttype,compiler)
             else
               internalerror(2013040702);
             result:=left;
@@ -1306,7 +1318,7 @@ implementation
           end
         else if (left.resultdef.typ=orddef) then
           begin
-            inserttypeconv(left,sinttype);
+            inserttypeconv(left,sinttype,compiler);
             result:=left;
             left:=nil;
           end
@@ -1334,9 +1346,9 @@ implementation
         gten,gtn,lten,ltn,unequaln,equaln
       );
 
-    constructor tnotnode.create(expr : tnode);
+    constructor tnotnode.create(expr : tnode;acompiler:TCompilerBase);
       begin
-         inherited create(notn,expr);
+         inherited create(notn,expr,acompiler);
       end;
 
 
@@ -1386,13 +1398,13 @@ implementation
                generator using the size of left
                }
              if not(forinline) then
-               t:=cordconstnode.create(v,def,false)
+               t:=cordconstnode.create(v,def,false,compiler)
              else
                begin
                  { cut off the value if necessary }
-                 t:=cordconstnode.create(v,left.resultdef,false);
+                 t:=cordconstnode.create(v,left.resultdef,false,compiler);
                  { now convert to node's resultdef }
-                 inserttypeconv_explicit(t,def);
+                 inserttypeconv_explicit(t,def,compiler);
                end;
              result:=t;
              exit;

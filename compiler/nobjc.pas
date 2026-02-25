@@ -31,12 +31,13 @@ unit nobjc;
 interface
 
 uses
+  compilerbase,
   node;
 
 type
   tobjcselectornode = class(tunarynode)
    public
-    constructor create(formethod: tnode);
+    constructor create(formethod: tnode;acompiler:TCompilerBase);
     function pass_typecheck: tnode;override;
     function pass_1: tnode;override;
   end;
@@ -44,7 +45,7 @@ type
 
   tobjcprotocolnode = class(tunarynode)
    public
-    constructor create(forprotocol: tnode);
+    constructor create(forprotocol: tnode;acompiler:TCompilerBase);
     function pass_typecheck: tnode;override;
     function pass_1: tnode;override;
   end;
@@ -69,9 +70,9 @@ uses
                             TOBJCSELECTORNODE
 *****************************************************************************}
 
-constructor tobjcselectornode.create(formethod: tnode);
+constructor tobjcselectornode.create(formethod: tnode;acompiler:TCompilerBase);
   begin
-    inherited create(objcselectorn,formethod);
+    inherited create(objcselectorn,formethod,acompiler);
   end;
 
 
@@ -133,9 +134,9 @@ function tobjcselectornode.pass_1: tnode;
                             TOBJPROTOCOLNODE
 *****************************************************************************}
 
-constructor tobjcprotocolnode.create(forprotocol: tnode);
+constructor tobjcprotocolnode.create(forprotocol: tnode;acompiler:TCompilerBase);
   begin
-    inherited create(objcprotocoln,forprotocol);
+    inherited create(objcprotocoln,forprotocol,acompiler);
   end;
 
 
@@ -156,7 +157,7 @@ function tobjcprotocolnode.pass_typecheck: tnode;
 function tobjcprotocolnode.pass_1: tnode;
   begin
     result:=ccallnode.createinternresfromunit('OBJC','OBJC_GETPROTOCOL',
-      ccallparanode.create(cstringconstnode.createstr(tobjectdef(left.resultdef).objextname^),nil),
+      ccallparanode.create(cstringconstnode.createstr(tobjectdef(left.resultdef).objextname^,compiler),nil,compiler),
       resultdef
     );
     typecheckpass(result);

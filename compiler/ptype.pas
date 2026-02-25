@@ -1194,6 +1194,8 @@ implementation
     { reads a type definition and returns a pointer to it }
     procedure read_named_type(var def:tdef;const newsym:tsym;genericdef:tstoreddef;genericlist:tfphashobjectlist;parseprocvardir:boolean;var hadtypetoken:boolean);
       const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
+      const
         SingleTypeOptionsInTypeBlock:array[Boolean] of TSingleTypeOptions = ([],[stoIsForwardDef]);
       var
         pt : tnode;
@@ -1234,7 +1236,7 @@ implementation
                  between -3200..3200 will result in a signed-unsigned
                  conflict and give a range check error (PFV) }
                if not(is_integer(pt1.resultdef) and is_integer(pt2.resultdef)) then
-                 inserttypeconv(pt1,pt2.resultdef);
+                 inserttypeconv(pt1,pt2.resultdef,compiler);
                { both must be evaluated to constants now }
                if (pt1.nodetype=ordconstn) and
                   (pt2.nodetype=ordconstn) then
@@ -1615,7 +1617,7 @@ implementation
                                    between -3200..3200 will result in a signed-unsigned
                                    conflict and give a range check error (PFV) }
                                  if not(is_integer(trangenode(pt).left.resultdef) and is_integer(trangenode(pt).left.resultdef)) then
-                                   inserttypeconv(trangenode(pt).left,trangenode(pt).right.resultdef);
+                                   inserttypeconv(trangenode(pt).left,trangenode(pt).right.resultdef,compiler);
                                  lowval:=tordconstnode(trangenode(pt).left).value;
                                  highval:=tordconstnode(trangenode(pt).right).value;
                                  if highval<lowval then

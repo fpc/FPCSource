@@ -300,6 +300,8 @@ unit optcse;
 
 
     function searchcsedomain(var n: tnode; arg: pointer) : foreachnoderesult;
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       var
         csedomain : boolean;
         lists : tlists;
@@ -450,10 +452,10 @@ unit optcse;
 
                         if addrstored then
                           templist[i]:=ctempcreatenode.create_value(cpointerdef.getreusable(def),voidpointertype.size,tt_persistent,
-                            true,caddrnode.create_internal(tnode(lists.nodelist[i])))
+                            true,caddrnode.create_internal(tnode(lists.nodelist[i]),compiler),compiler)
                         else
                           templist[i]:=ctempcreatenode.create_value(def,def.size,tt_persistent,
-                            def.is_intregable or def.is_fpuregable or def.is_const_intregable,tnode(lists.nodelist[i]));
+                            def.is_intregable or def.is_fpuregable or def.is_const_intregable,tnode(lists.nodelist[i]),compiler);
 
                         { the value described by the temp. is immutable and the temp. can be always in register
 
@@ -468,7 +470,7 @@ unit optcse;
                         addstatement(creates,tnode(templist[i]));
 
                         { the delete node has no semantic use yet, it is just used to clean up memory }
-                        deletetemp:=ctempdeletenode.create(ttempcreatenode(templist[i]));
+                        deletetemp:=ctempdeletenode.create(ttempcreatenode(templist[i]),compiler);
                         deletetemp.includetempflag(ti_cleanup_only);
                         addstatement(tstatementnode(arg^),deletetemp);
 
@@ -480,9 +482,9 @@ unit optcse;
                         templist[i]:=hp;
 
                         if addrstored then
-                          pnode(lists.locationlist[i])^:=cderefnode.Create(ctemprefnode.create(ttempcreatenode(templist[i])))
+                          pnode(lists.locationlist[i])^:=cderefnode.Create(ctemprefnode.create(ttempcreatenode(templist[i]),compiler),compiler)
                         else
-                          pnode(lists.locationlist[i])^:=ctemprefnode.create(ttempcreatenode(templist[i]));
+                          pnode(lists.locationlist[i])^:=ctemprefnode.create(ttempcreatenode(templist[i]),compiler);
                         { make debugging easier and set temp. location to the original location }
                         pnode(lists.locationlist[i])^.fileinfo:=tnode(lists.nodelist[i]).fileinfo;
 
@@ -510,9 +512,9 @@ unit optcse;
 {$endif defined(csedebug) or defined(csestats)}
                         templist[i]:=templist[ptrint(lists.equalto[i])];
                         if addrstored then
-                          pnode(lists.locationlist[i])^:=cderefnode.Create(ctemprefnode.create(ttempcreatenode(templist[ptrint(lists.equalto[i])])))
+                          pnode(lists.locationlist[i])^:=cderefnode.Create(ctemprefnode.create(ttempcreatenode(templist[ptrint(lists.equalto[i])]),compiler),compiler)
                         else
-                          pnode(lists.locationlist[i])^:=ctemprefnode.create(ttempcreatenode(templist[ptrint(lists.equalto[i])]));
+                          pnode(lists.locationlist[i])^:=ctemprefnode.create(ttempcreatenode(templist[ptrint(lists.equalto[i])]),compiler);
 
                         { make debugging easier and set temp. location to the original location }
                         pnode(lists.locationlist[i])^.fileinfo:=tnode(lists.nodelist[i]).fileinfo;
@@ -669,6 +671,8 @@ unit optcse;
 
 
     function replaceconsts(var n:tnode; arg: pointer) : foreachnoderesult;
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       var
         hp: tnode;
       begin
@@ -678,11 +682,11 @@ unit optcse;
             { shall we take the address? }
             if CSEOnReference(pconstentry(arg)^.valuenode) then
               begin
-                hp:=ctypeconvnode.create_internal(cderefnode.create(ctemprefnode.create(pconstentry(arg)^.temp)),pconstentry(arg)^.valuenode.resultdef);
+                hp:=ctypeconvnode.create_internal(cderefnode.create(ctemprefnode.create(pconstentry(arg)^.temp,compiler),compiler),pconstentry(arg)^.valuenode.resultdef,compiler);
                 ttypeconvnode(hp).left.fileinfo:=n.fileinfo;
               end
             else
-              hp:=ctemprefnode.create(pconstentry(arg)^.temp);
+              hp:=ctemprefnode.create(pconstentry(arg)^.temp,compiler);
 
             hp.fileinfo:=n.fileinfo;
             n.Free;
@@ -693,6 +697,8 @@ unit optcse;
 
 
     function do_consttovar(var rootnode : tnode) : tnode;
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       var
         constentries : tconstentries;
       Procedure QuickSort(L, R : Longint);
@@ -801,9 +807,9 @@ unit optcse;
                         deleteblock:=internalstatements(deletes);
                       end;
                      constentries[i].temp:=ctempcreatenode.create(constentries[i].valuenode.resultdef,
-                       constentries[i].valuenode.resultdef.size,tt_persistent,true);
+                       constentries[i].valuenode.resultdef.size,tt_persistent,true,compiler);
                      addstatement(creates,constentries[i].temp);
-                     addstatement(creates,cassignmentnode.create_internal(ctemprefnode.create(constentries[i].temp),constentries[i].valuenode));
+                     addstatement(creates,cassignmentnode.create_internal(ctemprefnode.create(constentries[i].temp,compiler),constentries[i].valuenode,compiler));
                      current_filepos:=old_current_filepos;
                      foreachnodestatic(pm_postprocess,rootnode,@replaceconsts,@constentries[i]);
                      inc(fpu_regs_assigned);
@@ -825,10 +831,10 @@ unit optcse;
                         deleteblock:=internalstatements(deletes);
                       end;
                      constentries[i].temp:=ctempcreatenode.create(cpointerdef.getreusable(constentries[i].valuenode.resultdef),
-                       voidpointertype.size,tt_persistent,true);
+                       voidpointertype.size,tt_persistent,true,compiler);
                      addstatement(creates,constentries[i].temp);
-                     addstatement(creates,cassignmentnode.create_internal(ctemprefnode.create(constentries[i].temp),
-                       caddrnode.create_internal(constentries[i].valuenode)));
+                     addstatement(creates,cassignmentnode.create_internal(ctemprefnode.create(constentries[i].temp,compiler),
+                       caddrnode.create_internal(constentries[i].valuenode,compiler),compiler));
                      current_filepos:=old_current_filepos;
                      foreachnodestatic(pm_postprocess,rootnode,@replaceconsts,@constentries[i]);
                      inc(int_regs_assigned);

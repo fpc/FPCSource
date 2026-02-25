@@ -41,6 +41,8 @@ unit opttail;
       paramgr;
 
     procedure do_opttail(var n : tnode;p : tprocdef);
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
 
       var
         labelnode : tlabelnode;
@@ -154,27 +156,29 @@ unit opttail;
                           is_open_array(paranode.parasym.vardef));
                         if useaddr then
                           begin
-                            tempnode:=ctempcreatenode.create(voidpointertype,voidpointertype.size,tt_persistent,true);
+                            tempnode:=ctempcreatenode.create(voidpointertype,voidpointertype.size,tt_persistent,true,compiler);
                             addstatement(calcstatements,tempnode);
                             addstatement(calcstatements,
                               cassignmentnode.create(
-                                ctemprefnode.create(tempnode),
-                                caddrnode.create_internal(paranode.left)
+                                ctemprefnode.create(tempnode,compiler),
+                                caddrnode.create_internal(paranode.left,compiler),
+                                compiler
                                 ));
                           end
                         else
                           begin
-                            tempnode:=ctempcreatenode.create(paranode.left.resultdef,paranode.left.resultdef.size,tt_persistent,true);
+                            tempnode:=ctempcreatenode.create(paranode.left.resultdef,paranode.left.resultdef.size,tt_persistent,true,compiler);
                             addstatement(calcstatements,tempnode);
                             addstatement(calcstatements,
                               cassignmentnode.create_internal(
-                                ctemprefnode.create(tempnode),
-                                paranode.left
+                                ctemprefnode.create(tempnode,compiler),
+                                paranode.left,
+                                compiler
                                 ));
                           end;
 
                         { "cast" away const varspezs }
-                        loadnode:=cloadnode.create(paranode.parasym,paranode.parasym.owner);
+                        loadnode:=cloadnode.create(paranode.parasym,paranode.parasym.owner,compiler);
                         include(tloadnode(loadnode).loadnodeflags,loadnf_isinternal_ignoreconst);
 
                         { load the address of the symbol instead of symbol }
@@ -183,9 +187,10 @@ unit opttail;
                         addstatement(copystatements,
                           cassignmentnode.create_internal(
                             loadnode,
-                            ctemprefnode.create(tempnode)
+                            ctemprefnode.create(tempnode,compiler),
+                            compiler
                             ));
-                        addstatement(copystatements,ctempdeletenode.create_normal_temp(tempnode));
+                        addstatement(copystatements,ctempdeletenode.create_normal_temp(tempnode,compiler));
 
                         { reused }
                         paranode.left:=nil;
@@ -205,7 +210,7 @@ unit opttail;
                     addstatement(nodes,copynodes);
 
                     { create goto }
-                    addstatement(nodes,cgotonode.create(labelnode.labsym));
+                    addstatement(nodes,cgotonode.create(labelnode.labsym,compiler));
 
                     if assigned(usedcallnode.callcleanupblock) then
                       begin
@@ -275,7 +280,7 @@ unit opttail;
 {$endif fix_opttail}
 
         labelsym:=clabelsym.create('$opttail');
-        labelnode:=clabelnode.create(cnothingnode.create,labelsym);
+        labelnode:=clabelnode.create(cnothingnode.create(compiler),labelsym,compiler);
         if find_and_replace_tailcalls(n) then
           begin
 {$ifdef debug_opttail}

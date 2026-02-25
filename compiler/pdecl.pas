@@ -443,6 +443,8 @@ implementation
       end;
 
     procedure parse_rttiattributes(var rtti_attrs_def:trtti_attribute_list);
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
 
       function read_attr_paras:tnode;
         var
@@ -496,7 +498,7 @@ implementation
               if constrsym.typ<>procsym then
                 internalerror(2018102301);
 
-              pcalln:=ccallnode.create(paran,tprocsym(constrsym),od.symtable,cloadvmtaddrnode.create(p),[cnf_no_convert_procvar],nil);
+              pcalln:=ccallnode.create(paran,tprocsym(constrsym),od.symtable,cloadvmtaddrnode.create(p,compiler),[cnf_no_convert_procvar],nil,compiler);
               p:=nil;
               ecnt:=errorcount;
               typecheckpass(pcalln);

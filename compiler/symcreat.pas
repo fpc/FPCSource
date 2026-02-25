@@ -1974,6 +1974,8 @@ implementation
 
 
   function maybe_add_sym_to_parentfpstruct(pd: tprocdef; sym: tsym; vardef: tdef; addrparam: boolean): tsym;
+    const
+      compiler = nil;  { TODO: fix node compiler reference!!! }
     var
       fieldvardef,
       nestedvarsdef: tdef;
@@ -2019,7 +2021,7 @@ implementation
             begin
               old_filepos:=current_filepos;
               fillchar(current_filepos,sizeof(current_filepos),0);
-              initcode:=cloadnode.create(sym,sym.owner);
+              initcode:=cloadnode.create(sym,sym.owner,compiler);
               { indicate that this load should not be transformed into a load
                 from the parentfpstruct, but instead should load the original
                 value }
@@ -2028,14 +2030,14 @@ implementation
                 parameter in the struct }
               if addrparam then
                 begin
-                  initcode:=caddrnode.create_internal(initcode);
+                  initcode:=caddrnode.create_internal(initcode,compiler);
                   include(taddrnode(initcode).addrnodeflags,anf_typedaddr);
                 end;
               initcode:=cassignmentnode.create(
-                csubscriptnode.create(result,cloadnode.create(pd.parentfpstruct,pd.parentfpstruct.owner)),
-                initcode);
+                csubscriptnode.create(result,cloadnode.create(pd.parentfpstruct,pd.parentfpstruct.owner,compiler),compiler),
+                initcode,compiler);
               tblocknode(pd.parentfpinitblock).left:=cstatementnode.create
-                (initcode,tblocknode(pd.parentfpinitblock).left);
+                (initcode,tblocknode(pd.parentfpinitblock).left,compiler);
               current_filepos:=old_filepos;
 
               { also add the associated high para, if any. It may not be accessed
@@ -2195,20 +2197,25 @@ implementation
 
 
   function generate_pkg_stub(pd:tprocdef):tnode;
+    const
+      compiler = nil;  { TODO: fix node compiler reference!!! }
     begin
       if target_info.system in systems_all_windows+systems_nativent then
         begin
           insert_funcret_local(pd);
           result:=cassignmentnode.create(
-                      cloadnode.create(pd.funcretsym,pd.localst),
-                      cordconstnode.create(1,bool32type,false)
+                      cloadnode.create(pd.funcretsym,pd.localst,compiler),
+                      cordconstnode.create(1,bool32type,false,compiler),
+                      compiler
                     );
         end
       else
-        result:=cnothingnode.create;
+        result:=cnothingnode.create(compiler);
     end;
 
   procedure generate_attr_constrs(attrs:tfpobjectlist);
+    const
+      compiler = nil;  { TODO: fix node compiler reference!!! }
     var
       ps : tprocsym;
       pd : tprocdef;
@@ -2253,8 +2260,9 @@ implementation
           include(pi.flags,pi_do_call);
           insert_funcret_local(pd);
           pi.code:=cassignmentnode.create(
-                      cloadnode.create(pd.funcretsym,pd.localst),
-                      attr.constructorcall.getcopy
+                      cloadnode.create(pd.funcretsym,pd.localst,compiler),
+                      attr.constructorcall.getcopy,
+                      compiler
                     );
           pi.generate_code;
           attr.constructorpd:=pd;

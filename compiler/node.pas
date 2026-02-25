@@ -315,7 +315,7 @@ interface
          localswitches : tlocalswitches;
          verbosity     : longint;
          optinfo : poptinfo;
-         constructor create(t:tnodetype);
+         constructor create(t:tnodetype;acompiler:TCompilerBase);
          { this constructor is only for creating copies of class }
          { the fields are copied by getcopy                      }
          constructor createforcopy;
@@ -395,7 +395,7 @@ interface
       //punarynode = ^tunarynode;
       tunarynode = class(tnode)
          left : tnode;
-         constructor create(t:tnodetype;l : tnode);
+         constructor create(t:tnodetype;l : tnode;acompiler:TCompilerBase);
          constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
          destructor destroy;override;
          procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -417,7 +417,7 @@ interface
       //pbinarynode = ^tbinarynode;
       tbinarynode = class(tunarynode)
          right : tnode;
-         constructor create(t:tnodetype;l,r : tnode);
+         constructor create(t:tnodetype;l,r : tnode;acompiler:TCompilerBase);
          constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
          destructor destroy;override;
          procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -442,7 +442,7 @@ interface
       //ptertiarynode = ^ttertiarynode;
       ttertiarynode = class(tbinarynode)
          third : tnode;
-         constructor create(_t:tnodetype;l,r,t : tnode);
+         constructor create(_t:tnodetype;l,r,t : tnode;acompiler:TCompilerBase);
          constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
          destructor destroy;override;
          procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -462,7 +462,7 @@ interface
       end;
 
       tbinopnode = class(tbinarynode)
-         constructor create(t:tnodetype;l,r : tnode);virtual;
+         constructor create(t:tnodetype;l,r : tnode;acompiler:TCompilerBase);virtual;
          function docompare(p : tnode) : boolean;override;
 {$ifdef DEBUG_NODE_XML}
          procedure XMLPrintNodeData(var T: Text); override;
@@ -758,11 +758,12 @@ implementation
                                  TNODE
  ****************************************************************************}
 
-    constructor tnode.create(t:tnodetype);
+    constructor tnode.create(t:tnodetype;acompiler:TCompilerBase);
 
       begin
          inherited create;
          nodetype:=t;
+         compiler:=acompiler;
          blocktype:=block_type;
          { updated by firstpass }
          expectloc:=LOC_INVALID;
@@ -1078,9 +1079,9 @@ implementation
                                  TUNARYNODE
  ****************************************************************************}
 
-    constructor tunarynode.create(t:tnodetype;l : tnode);
+    constructor tunarynode.create(t:tnodetype;l : tnode;acompiler:TCompilerBase);
       begin
-         inherited create(t);
+         inherited create(t,acompiler);
          { transfer generic paramater flag }
          if assigned(l) and (nf_generic_para in l.flags) then
            include(flags,nf_generic_para);
@@ -1186,9 +1187,9 @@ implementation
                             TBINARYNODE
  ****************************************************************************}
 
-    constructor tbinarynode.create(t:tnodetype;l,r : tnode);
+    constructor tbinarynode.create(t:tnodetype;l,r : tnode;acompiler:TCompilerBase);
       begin
-         inherited create(t,l);
+         inherited create(t,l,acompiler);
          { transfer generic paramater flag }
          if assigned(r) and (nf_generic_para in r.flags) then
            include(flags,nf_generic_para);
@@ -1341,9 +1342,9 @@ implementation
                                  TTERTIARYNODE
  ****************************************************************************}
 
-    constructor ttertiarynode.create(_t:tnodetype;l,r,t : tnode);
+    constructor ttertiarynode.create(_t:tnodetype;l,r,t : tnode;acompiler:TCompilerBase);
       begin
-         inherited create(_t,l,r);
+         inherited create(_t,l,r,acompiler);
          { transfer generic parameter flag }
          if assigned(t) and (nf_generic_para in t.flags) then
            include(flags,nf_generic_para);
@@ -1457,9 +1458,9 @@ implementation
                             TBINOPNODE
  ****************************************************************************}
 
-    constructor tbinopnode.create(t:tnodetype;l,r : tnode);
+    constructor tbinopnode.create(t:tnodetype;l,r : tnode;acompiler:TCompilerBase);
       begin
-         inherited create(t,l,r);
+         inherited create(t,l,r,acompiler);
       end;
 
 

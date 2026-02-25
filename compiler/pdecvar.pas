@@ -72,6 +72,8 @@ implementation
 
 
     function read_property_dec(is_classproperty:boolean;astruct:tabstractrecorddef):tpropertysym;
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
 
         { convert a node tree to symlist and return the last
           symbol }
@@ -188,7 +190,7 @@ implementation
                                if (p.nodetype=ordconstn) then
                                  begin
                                    { type/range checking }
-                                   inserttypeconv(p,tarraydef(def).rangedef);
+                                   inserttypeconv(p,tarraydef(def).rangedef,compiler);
                                    if (Tordconstnode(p).value<int64(low(longint))) or
                                       (Tordconstnode(p).value>int64(high(longint))) then
                                      message(parser_e_array_range_out_of_bounds)
@@ -481,9 +483,9 @@ implementation
                      begin
                        if is_integer(pt.resultdef) then
 {$if defined(cpu8bitalu) or defined(cpu16bitalu)}
-                         inserttypeconv_internal(pt,s16inttype);
+                         inserttypeconv_internal(pt,s16inttype,compiler);
 {$else}
-                         inserttypeconv_internal(pt,s32inttype);
+                         inserttypeconv_internal(pt,s32inttype,compiler);
 {$endif}
                        p.index:=tordconstnode(pt).value.svalue;
                      end
@@ -723,7 +725,7 @@ implementation
                       arrayconstructor_to_set(pt);
                       do_typecheckpass(pt);
                     end;
-                  inserttypeconv(pt,p.propdef);
+                  inserttypeconv(pt,p.propdef,compiler);
                   if not(is_constnode(pt)) then
                     Message(parser_e_property_default_value_must_const);
                   { Set default value }
@@ -1692,6 +1694,8 @@ implementation
 
 
     procedure read_record_fields(options:Tvar_dec_options; reorderlist: TFPObjectList; variantdesc : ppvariantrecdesc;out had_generic:boolean; out attr_element_count : integer);
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       var
          sc : TFPObjectList;
          i  : longint;
@@ -2062,10 +2066,10 @@ implementation
                   pt:=comp_expr([ef_accept_equal]);
                   if not(pt.nodetype=ordconstn) then
                     Message(parser_e_illegal_expression);
-                  inserttypeconv(pt,casetype);
+                  inserttypeconv(pt,casetype,compiler);
                   { iso pascal does not support ranges in variant record definitions }
                   if (([m_iso,m_extpas]*current_settings.modeswitches)=[]) and try_to_consume(_POINTPOINT) then
-                    pt:=crangenode.create(pt,comp_expr([ef_accept_equal]))
+                    pt:=crangenode.create(pt,comp_expr([ef_accept_equal]),compiler)
                   else
                     begin
                       with variantdesc^^.branches[high(variantdesc^^.branches)] do

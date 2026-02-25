@@ -159,6 +159,8 @@ implementation
 
 
     function parse_paras(__colon,__namedpara : boolean;end_of_paras : ttoken) : tnode;
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       var
          p1,p2,argname : tnode;
          prev_in_args,
@@ -182,7 +184,7 @@ implementation
                if current_scanner.token=_COMMA then
                  begin
                    { empty parameter }
-                   p2:=ccallparanode.create(cnothingnode.create,p2);
+                   p2:=ccallparanode.create(cnothingnode.create(compiler),p2,compiler);
                  end
                else
                  begin
@@ -193,30 +195,30 @@ implementation
                      begin
                        argname:=p1;
                        p1:=comp_expr([ef_accept_equal]);
-                       p2:=ccallparanode.create(p1,p2);
+                       p2:=ccallparanode.create(p1,p2,compiler);
                        tcallparanode(p2).parametername:=argname;
                      end
                    else
-                     p2:=ccallparanode.create(p1,p2);
+                     p2:=ccallparanode.create(p1,p2,compiler);
                    found_arg_name:=false;
                  end;
              end
            else
              begin
                p1:=comp_expr([ef_accept_equal]);
-               p2:=ccallparanode.create(p1,p2);
+               p2:=ccallparanode.create(p1,p2,compiler);
              end;
            { it's for the str(l:5,s); }
            if __colon and (current_scanner.token=_COLON) then
              begin
                consume(_COLON);
                p1:=comp_expr([ef_accept_equal]);
-               p2:=ccallparanode.create(p1,p2);
+               p2:=ccallparanode.create(p1,p2,compiler);
                include(tcallparanode(p2).callparaflags,cpf_is_colon_para);
                if try_to_consume(_COLON) then
                  begin
                    p1:=comp_expr([ef_accept_equal]);
-                   p2:=ccallparanode.create(p1,p2);
+                   p2:=ccallparanode.create(p1,p2,compiler);
                    include(tcallparanode(p2).callparaflags,cpf_is_colon_para);
                  end
              end;
@@ -228,6 +230,8 @@ implementation
 
 
      function gen_c_style_operator(ntyp:tnodetype;p1,p2:tnode) : tnode;
+       const
+         compiler = nil;  { TODO: fix node compiler reference!!! }
        var
          hdef  : tdef;
          temp  : ttempcreatenode;
@@ -248,22 +252,24 @@ implementation
              typecheckpass(p1);
              result:=internalstatements(newstatement);
              hdef:=cpointerdef.getreusable(p1.resultdef);
-             temp:=ctempcreatenode.create(hdef,sizeof(pint),tt_persistent,false);
+             temp:=ctempcreatenode.create(hdef,sizeof(pint),tt_persistent,false,compiler);
              addstatement(newstatement,temp);
-             addstatement(newstatement,cassignmentnode.create(ctemprefnode.create(temp),caddrnode.create_internal(p1)));
+             addstatement(newstatement,cassignmentnode.create(ctemprefnode.create(temp,compiler),caddrnode.create_internal(p1,compiler),compiler));
              addstatement(newstatement,cassignmentnode.create(
-                 cderefnode.create(ctemprefnode.create(temp)),
+                 cderefnode.create(ctemprefnode.create(temp,compiler),compiler),
                  caddnode.create(ntyp,
-                     cderefnode.create(ctemprefnode.create(temp)),
-                     p2)));
-             addstatement(newstatement,ctempdeletenode.create(temp));
+                     cderefnode.create(ctemprefnode.create(temp,compiler),compiler),
+                     p2,compiler),compiler));
+             addstatement(newstatement,ctempdeletenode.create(temp,compiler));
            end
          else
-           result:=cassignmentnode.create(p1,caddnode.create(ntyp,p1.getcopy,p2));
+           result:=cassignmentnode.create(p1,caddnode.create(ntyp,p1.getcopy,p2,compiler),compiler);
        end;
 
 
      function statement_syssym(l : tinlinenumber) : tnode;
+       const
+         compiler = nil;  { TODO: fix node compiler reference!!! }
       var
         p1,p2,paras  : tnode;
         err,
@@ -294,7 +300,7 @@ implementation
               in_args:=true;
               p1:=comp_expr([ef_accept_equal]);
               consume(_RKLAMMER);
-              p1:=geninlinenode(l,false,p1);
+              p1:=geninlinenode(l,false,p1,compiler);
               statement_syssym := p1;
             end;
 
@@ -354,7 +360,7 @@ implementation
                                   exit_procinfo.procdef.localst.insertsym(exit_procinfo.nestedexitlabel.jumpbuf);
                                 end;
 
-                              statement_syssym:=cgotonode.create(exit_procinfo.nestedexitlabel);
+                              statement_syssym:=cgotonode.create(exit_procinfo.nestedexitlabel,compiler);
                               tgotonode(statement_syssym).labelsym:=exit_procinfo.nestedexitlabel;
                             end
                           else
@@ -368,38 +374,38 @@ implementation
               else
                 p1:=nil;
               if not assigned(statement_syssym) then
-                statement_syssym:=cexitnode.create(p1);
+                statement_syssym:=cexitnode.create(p1,compiler);
             end;
 
           in_break :
             begin
-              statement_syssym:=cbreaknode.create
+              statement_syssym:=cbreaknode.create(compiler)
             end;
 
           in_continue :
             begin
-              statement_syssym:=ccontinuenode.create
+              statement_syssym:=ccontinuenode.create(compiler)
             end;
 
           in_leave :
             begin
               if m_mac in current_settings.modeswitches then
-                statement_syssym:=cbreaknode.create
+                statement_syssym:=cbreaknode.create(compiler)
               else
                 begin
                   Message1(sym_e_id_not_found, current_scanner.orgpattern);
-                  statement_syssym:=cerrornode.create;
+                  statement_syssym:=cerrornode.create(compiler);
                 end;
             end;
 
           in_cycle :
             begin
               if m_mac in current_settings.modeswitches then
-                statement_syssym:=ccontinuenode.create
+                statement_syssym:=ccontinuenode.create(compiler)
               else
                 begin
                   Message1(sym_e_id_not_found, current_scanner.orgpattern);
-                  statement_syssym:=cerrornode.create;
+                  statement_syssym:=cerrornode.create(compiler);
                 end;
             end;
 
@@ -420,13 +426,13 @@ implementation
                    ((po_classmethod in current_procinfo.procdef.procoptions) or
                     (po_staticmethod in current_procinfo.procdef.procoptions)) and
                    (p1.resultdef.typ=classrefdef))) then
-               statement_syssym:=geninlinenode(in_typeof_x,false,p1)
+               statement_syssym:=geninlinenode(in_typeof_x,false,p1,compiler)
               else
                begin
                  Message(parser_e_class_id_expected);
                  p1.free;
                  p1 := nil;
-                 statement_syssym:=cerrornode.create;
+                 statement_syssym:=cerrornode.create(compiler);
                end;
             end;
 
@@ -448,10 +454,10 @@ implementation
                  { keep the function call if it is a type parameter to avoid arithmetic errors due to constant folding }
                  is_typeparam(p1.resultdef) then
                 begin
-                  statement_syssym:=geninlinenode(in_sizeof_x,false,p1);
+                  statement_syssym:=geninlinenode(in_sizeof_x,false,p1,compiler);
                   { no packed bit support for these things }
                   if l=in_bitsizeof_x then
-                    statement_syssym:=caddnode.create(muln,statement_syssym,cordconstnode.create(8,sizesinttype,true));
+                    statement_syssym:=caddnode.create(muln,statement_syssym,cordconstnode.create(8,sizesinttype,true,compiler),compiler);
                   { type sym is a generic parameter }
                   if assigned(p1.resultdef.typesym) and (sp_generic_para in p1.resultdef.typesym.symoptions) then
                     include(statement_syssym.flags,nf_generic_para);
@@ -473,12 +479,12 @@ implementation
                      not((p1.nodetype = subscriptn) and
                          is_packed_record_or_object(tsubscriptnode(p1).left.resultdef))) then
                    begin
-                     statement_syssym:=genintconstnode(p1.resultdef.size,sizesinttype);
+                     statement_syssym:=genintconstnode(p1.resultdef.size,sizesinttype,compiler);
                      if (l = in_bitsizeof_x) then
-                       statement_syssym:=caddnode.create(muln,statement_syssym,cordconstnode.create(8,sizesinttype,true));
+                       statement_syssym:=caddnode.create(muln,statement_syssym,cordconstnode.create(8,sizesinttype,true,compiler),compiler);
                    end
                  else
-                   statement_syssym:=genintconstnode(p1.resultdef.packedbitsize,sizesinttype);
+                   statement_syssym:=genintconstnode(p1.resultdef.packedbitsize,sizesinttype,compiler);
                  { type def is a struct with generic fields }
                  if df_has_generic_fields in p1.resultdef.defoptions then
                     include(statement_syssym.flags,nf_generic_para);
@@ -522,13 +528,13 @@ implementation
                        Message(parser_e_illegal_parameter_list);
                     end;}
                   consume(_RKLAMMER);
-                  p2:=geninlinenode(l,false,p1);
+                  p2:=geninlinenode(l,false,p1,compiler);
                   statement_syssym:=p2;
                 end
               else
                 begin
                   Message1(sym_e_id_not_found, current_scanner.orgpattern);
-                  statement_syssym:=cerrornode.create;
+                  statement_syssym:=cerrornode.create(compiler);
                 end;
             end;
 
@@ -538,7 +544,7 @@ implementation
               in_args:=true;
               p1:=comp_expr([ef_accept_equal]);
               consume(_RKLAMMER);
-              p2:=geninlinenode(l,false,p1);
+              p2:=geninlinenode(l,false,p1,compiler);
               statement_syssym:=p2;
             end;
 
@@ -550,8 +556,8 @@ implementation
               consume(_LKLAMMER);
               in_args:=true;
               p1:=comp_expr([ef_accept_equal]);
-              p2:=ccallparanode.create(p1,nil);
-              p2:=geninlinenode(l,false,p2);
+              p2:=ccallparanode.create(p1,nil,compiler);
+              p2:=geninlinenode(l,false,p2,compiler);
               consume(_RKLAMMER);
               statement_syssym:=p2;
             end;
@@ -602,14 +608,14 @@ implementation
                err:=true;
               if not err then
                begin
-                 p2:=ccallparanode.create(p1,nil);
-                 p2:=geninlinenode(in_assigned_x,false,p2);
+                 p2:=ccallparanode.create(p1,nil,compiler);
+                 p2:=geninlinenode(in_assigned_x,false,p2,compiler);
                end
               else
                begin
                  p1.free;
                  p1 := nil;
-                 p2:=cerrornode.create;
+                 p2:=cerrornode.create(compiler);
                end;
               consume(_RKLAMMER);
               statement_syssym:=p2;
@@ -623,7 +629,7 @@ implementation
               { inside parentheses a full expression is allowed, see also tests\webtbs\tb27517.pp }
               if current_scanner.token<>_RKLAMMER then
                 p1:=sub_expr(opcompare,[ef_accept_equal],p1);
-              p1:=caddrnode.create(p1);
+              p1:=caddrnode.create(p1,compiler);
               got_addrn:=false;
               consume(_RKLAMMER);
               statement_syssym:=p1;
@@ -655,11 +661,11 @@ implementation
               { inside parentheses a full expression is allowed, see also tests\webtbs\tb27517.pp }
               if current_scanner.token<>_RKLAMMER then
                 p1:=sub_expr(opcompare,[ef_accept_equal],p1);
-              p1:=caddrnode.create(p1);
+              p1:=caddrnode.create(p1,compiler);
               include(taddrnode(p1).addrnodeflags,anf_ofs);
               got_addrn:=false;
               { Ofs() returns a cardinal/qword, not a pointer }
-              inserttypeconv_internal(p1,uinttype);
+              inserttypeconv_internal(p1,uinttype,compiler);
               consume(_RKLAMMER);
               statement_syssym:=p1;
             end;
@@ -672,7 +678,7 @@ implementation
               { inside parentheses a full expression is allowed, see also tests\webtbs\tb27517.pp }
               if current_scanner.token<>_RKLAMMER then
                 p1:=sub_expr(opcompare,[ef_accept_equal],p1);
-              p1:=geninlinenode(in_seg_x,false,p1);
+              p1:=geninlinenode(in_seg_x,false,p1,compiler);
               got_addrn:=false;
               consume(_RKLAMMER);
               statement_syssym:=p1;
@@ -684,7 +690,7 @@ implementation
               consume(_LKLAMMER);
               in_args:=true;
               p1:=comp_expr([ef_accept_equal]);
-              p2:=geninlinenode(l,false,p1);
+              p2:=geninlinenode(l,false,p1,compiler);
               consume(_RKLAMMER);
               statement_syssym:=p2;
             end;
@@ -695,7 +701,7 @@ implementation
               consume(_LKLAMMER);
               in_args:=true;
               p1:=comp_expr([ef_accept_equal]);
-              p2:=geninlinenode(l,false,p1);
+              p2:=geninlinenode(l,false,p1,compiler);
               consume(_RKLAMMER);
               statement_syssym:=p2;
             end;
@@ -707,11 +713,11 @@ implementation
               in_args:=true;
               p1:=comp_expr([ef_accept_equal]);
               if try_to_consume(_COMMA) then
-                p2:=ccallparanode.create(comp_expr([ef_accept_equal]),nil)
+                p2:=ccallparanode.create(comp_expr([ef_accept_equal]),nil,compiler)
               else
                 p2:=nil;
-              p2:=ccallparanode.create(p1,p2);
-              statement_syssym:=geninlinenode(l,false,p2);
+              p2:=ccallparanode.create(p1,p2,compiler);
+              statement_syssym:=geninlinenode(l,false,p2,compiler);
               consume(_RKLAMMER);
             end;
 
@@ -725,7 +731,7 @@ implementation
                   comp_expr([ef_accept_equal]).free; // no nil needed
                   if try_to_consume(_COMMA) then
                     comp_expr([ef_accept_equal]).free; // no nil needed
-                  statement_syssym:=cerrornode.create;
+                  statement_syssym:=cerrornode.create(compiler);
                   consume(_RKLAMMER);
                 end
               else
@@ -735,11 +741,11 @@ implementation
                   p1:=comp_expr([ef_accept_equal]);
                   Consume(_COMMA);
                   if not(codegenerror) then
-                    p2:=ccallparanode.create(comp_expr([ef_accept_equal]),nil)
+                    p2:=ccallparanode.create(comp_expr([ef_accept_equal]),nil,compiler)
                   else
-                    p2:=cerrornode.create;
-                  p2:=ccallparanode.create(p1,p2);
-                  statement_syssym:=geninlinenode(l,false,p2);
+                    p2:=cerrornode.create(compiler);
+                  p2:=ccallparanode.create(p1,p2,compiler);
+                  statement_syssym:=geninlinenode(l,false,p2,compiler);
                   consume(_RKLAMMER);
                 end;
             end;
@@ -775,7 +781,7 @@ implementation
                end
               else
                paras:=nil;
-              p1:=geninlinenode(l,false,paras);
+              p1:=geninlinenode(l,false,paras,compiler);
               statement_syssym := p1;
             end;
 
@@ -792,14 +798,14 @@ implementation
                   in_args:=true;
                   { don't turn procsyms into calls (getaddr = true) }
                   p1:=factor(true,[]);
-                  p2:=geninlinenode(l,false,p1);
+                  p2:=geninlinenode(l,false,p1,compiler);
                   consume(_RKLAMMER);
                   statement_syssym:=p2;
                 end
               else
                 begin
                   Message1(sym_e_id_not_found, current_scanner.orgpattern);
-                  statement_syssym:=cerrornode.create;
+                  statement_syssym:=cerrornode.create(compiler);
                 end;
             end;
 
@@ -808,7 +814,7 @@ implementation
               consume(_LKLAMMER);
               in_args:=true;
               p1:=comp_expr([ef_accept_equal]);
-              p2:=geninlinenode(l,false,p1);
+              p2:=geninlinenode(l,false,p1,compiler);
               consume(_RKLAMMER);
               statement_syssym:=p2;
             end;
@@ -824,7 +830,7 @@ implementation
                end
               else
                paras:=nil;
-              p1 := geninlinenode(l,false,paras);
+              p1 := geninlinenode(l,false,paras,compiler);
               statement_syssym := p1;
             end;
 
@@ -833,7 +839,7 @@ implementation
               consume(_LKLAMMER);
               paras:=parse_paras(true,false,_RKLAMMER);
               consume(_RKLAMMER);
-              p1 := geninlinenode(l,false,paras);
+              p1 := geninlinenode(l,false,paras,compiler);
               statement_syssym := p1;
             end;
 
@@ -841,13 +847,13 @@ implementation
             Begin
               consume(_LKLAMMER);
               in_args := true;
-              p1:= ccallparanode.create(comp_expr([ef_accept_equal]), nil);
+              p1:= ccallparanode.create(comp_expr([ef_accept_equal]), nil, compiler);
               consume(_COMMA);
-              p2 := ccallparanode.create(comp_expr([ef_accept_equal]),p1);
+              p2 := ccallparanode.create(comp_expr([ef_accept_equal]),p1,compiler);
               if try_to_consume(_COMMA) then
-                p2 := ccallparanode.create(comp_expr([ef_accept_equal]),p2);
+                p2 := ccallparanode.create(comp_expr([ef_accept_equal]),p2,compiler);
               consume(_RKLAMMER);
-              p2 := geninlinenode(l,false,p2);
+              p2 := geninlinenode(l,false,p2,compiler);
               statement_syssym := p2;
             End;
 
@@ -859,7 +865,7 @@ implementation
               p1:=comp_expr([ef_accept_equal]);
               consume(_COMMA);
               p2:=comp_expr([ef_accept_equal]);
-              statement_syssym:=geninlinenode(l,false,ccallparanode.create(p1,ccallparanode.create(p2,nil)));
+              statement_syssym:=geninlinenode(l,false,ccallparanode.create(p1,ccallparanode.create(p2,nil,compiler),compiler),compiler);
               consume(_RKLAMMER);
             end;
 
@@ -873,7 +879,7 @@ implementation
               p2:=comp_expr([ef_accept_equal]);
               consume(_COMMA);
               paras:=comp_expr([ef_accept_equal]);
-              statement_syssym:=geninlinenode(l,false,ccallparanode.create(p1,ccallparanode.create(p2,ccallparanode.create(paras,nil))));
+              statement_syssym:=geninlinenode(l,false,ccallparanode.create(p1,ccallparanode.create(p2,ccallparanode.create(paras,nil,compiler),compiler),compiler),compiler);
               consume(_RKLAMMER);
             end;
 
@@ -887,14 +893,14 @@ implementation
               else
                begin
                  { then insert an empty string }
-                 p2:=cstringconstnode.createstr('');
+                 p2:=cstringconstnode.createstr('',compiler);
                end;
-              statement_syssym:=geninlinenode(l,false,ccallparanode.create(p1,ccallparanode.create(p2,nil)));
+              statement_syssym:=geninlinenode(l,false,ccallparanode.create(p1,ccallparanode.create(p2,nil,compiler),compiler),compiler);
               consume(_RKLAMMER);
             end;
           in_get_frame:
             begin
-              statement_syssym:=geninlinenode(l,false,nil);
+              statement_syssym:=geninlinenode(l,false,nil,compiler);
             end;
 (*
           in_get_caller_frame:
@@ -919,7 +925,7 @@ implementation
               in_args:=true;
               def:=nil;
               single_type(def,[stoAllowSpecialization]);
-              statement_syssym:=cerrornode.create;
+              statement_syssym:=cerrornode.create(compiler);
               if def<>generrordef then
                 { "type expected" error is already done by single_type }
                 if def.typ=forwarddef then
@@ -927,7 +933,7 @@ implementation
                 else
                   begin
                     statement_syssym.free;
-                    statement_syssym:=geninlinenode(in_default_x,false,ctypenode.create(def));
+                    statement_syssym:=geninlinenode(in_default_x,false,ctypenode.create(def,compiler),compiler);
                   end;
               { consume the right bracket here for a nicer error position }
               consume(_RKLAMMER);
@@ -952,7 +958,7 @@ implementation
               consume(_LKLAMMER);
               in_args:=true;
               p1:=comp_expr([ef_accept_equal]);
-              p2:=geninlinenode(l,true,p1);
+              p2:=geninlinenode(l,true,p1,compiler);
               consume(_RKLAMMER);
               statement_syssym:=p2;
             end;
@@ -965,11 +971,11 @@ implementation
               p1:=comp_expr([ef_accept_equal]);
               if try_to_consume(_COMMA) then
                 begin
-                  p2:=ccallparanode.create(comp_expr([ef_accept_equal]),nil);
+                  p2:=ccallparanode.create(comp_expr([ef_accept_equal]),nil,compiler);
                 end
               else
                 p2:=nil;
-              statement_syssym:=geninlinenode(l,false,ccallparanode.create(p1,p2));
+              statement_syssym:=geninlinenode(l,false,ccallparanode.create(p1,p2,compiler),compiler);
               consume(_RKLAMMER);
             end;
 
@@ -980,7 +986,7 @@ implementation
               p1:=comp_expr([ef_accept_equal]);
               consume(_COMMA);
               p2:=comp_expr([ef_accept_equal]);
-              statement_syssym:=geninlinenode(l,false,ccallparanode.create(p1,ccallparanode.create(p2,nil)));
+              statement_syssym:=geninlinenode(l,false,ccallparanode.create(p1,ccallparanode.create(p2,nil,compiler),compiler),compiler);
               consume(_RKLAMMER);
             end;
 
@@ -988,16 +994,16 @@ implementation
             begin
               consume(_LKLAMMER);
               in_args:=true;
-              paras:=ccallparanode.create(comp_expr([ef_accept_equal]),nil);
+              paras:=ccallparanode.create(comp_expr([ef_accept_equal]),nil,compiler);
               consume(_COMMA);
-              tcallparanode(paras).right:=ccallparanode.create(comp_expr([ef_accept_equal]),nil);
+              tcallparanode(paras).right:=ccallparanode.create(comp_expr([ef_accept_equal]),nil,compiler);
               consume(_COMMA);
-              tcallparanode(tcallparanode(paras).right).right:=ccallparanode.create(comp_expr([ef_accept_equal]),nil);
+              tcallparanode(tcallparanode(paras).right).right:=ccallparanode.create(comp_expr([ef_accept_equal]),nil,compiler);
               if try_to_consume(_COMMA) then
                 begin
-                  tcallparanode(tcallparanode(tcallparanode(paras).right).right).right:=ccallparanode.create(comp_expr([ef_accept_equal]),nil);
+                  tcallparanode(tcallparanode(tcallparanode(paras).right).right).right:=ccallparanode.create(comp_expr([ef_accept_equal]),nil,compiler);
                 end;
-              statement_syssym:=geninlinenode(l,false,paras);
+              statement_syssym:=geninlinenode(l,false,paras,compiler);
               consume(_RKLAMMER);
             end;
 
@@ -1010,6 +1016,8 @@ implementation
 
 
     function maybe_load_methodpointer(st:TSymtable;var p1:tnode):boolean;
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       var
         pd: tprocdef;
       begin
@@ -1032,9 +1040,9 @@ implementation
                      { We are calling from the static class method which has no self node }
                      if assigned(pd) and pd.no_self_node then
                        if st.symtabletype=recordsymtable then
-                         p1:=ctypenode.create(pd.struct)
+                         p1:=ctypenode.create(pd.struct,compiler)
                        else
-                         p1:=cloadvmtaddrnode.create(ctypenode.create(pd.struct))
+                         p1:=cloadvmtaddrnode.create(ctypenode.create(pd.struct,compiler),compiler)
                      else
                        p1:=load_self_node;
                    end
@@ -1055,6 +1063,8 @@ implementation
 
     { reads the parameter for a subroutine call }
     procedure do_proc_call(sym:tsym;st:TSymtable;obj:tabstractrecorddef;getaddr:boolean;var again : boolean;var p1:tnode;callflags:tcallnodeflags;spezcontext:tspecializationcontext);
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       var
          membercall,
          prevafterassn : boolean;
@@ -1111,7 +1121,7 @@ implementation
              if assigned(spezcontext) then
                begin
                  comment(v_error, 'Pointers to generics functions not implemented');
-                 p1:=cerrornode.create;
+                 p1:=cerrornode.create(compiler);
                  spezcontext.free;
                  spezcontext := nil;
                  exit;
@@ -1136,7 +1146,7 @@ implementation
 
              { generate a methodcallnode or proccallnode }
              { we shouldn't convert things like @tcollection.load }
-             p2:=cloadnode.create_procvar(sym,aprocdef,st);
+             p2:=cloadnode.create_procvar(sym,aprocdef,st,compiler);
              if assigned(p1) then
               begin
                 { for loading methodpointer of an inherited function
@@ -1159,7 +1169,7 @@ implementation
                          assigned(getfuncrefdef)
                        ) then
                       begin
-                        p1:=cloadvmtaddrnode.create(p1);
+                        p1:=cloadvmtaddrnode.create(p1,compiler);
                         tloadnode(p2).set_mp(p1);
                       end
                     else if (p1.resultdef.typ=objectdef) then
@@ -1192,10 +1202,10 @@ implementation
                           { anonymous inherited via msgid calls only require a var parameter for
                             both methods, so we need some type casting here }
                           para:=ccallparanode.create(ctypeconvnode.create_internal(ctypeconvnode.create_internal(
-                            cloadnode.create(currpara,currpara.owner),cformaltype),tparavarsym(tprocdef(srdef).paras[i]).vardef),
-                          para)
+                            cloadnode.create(currpara,currpara.owner,compiler),cformaltype,compiler),tparavarsym(tprocdef(srdef).paras[i]).vardef,compiler),
+                          para,compiler)
                         else
-                          para:=ccallparanode.create(cloadnode.create(currpara,currpara.owner),para);
+                          para:=ccallparanode.create(cloadnode.create(currpara,currpara.owner,compiler),para,compiler);
                       end;
                  end;
               end
@@ -1216,10 +1226,10 @@ implementation
                begin
                  if not (st.symtabletype in [ObjectSymtable,recordsymtable]) then
                    internalerror(200310031);
-                 p1:=ccallnode.create(para,tprocsym(sym),obj.symtable,p1,callflags,spezcontext);
+                 p1:=ccallnode.create(para,tprocsym(sym),obj.symtable,p1,callflags,spezcontext,compiler);
                end
              else
-               p1:=ccallnode.create(para,tprocsym(sym),st,p1,callflags,spezcontext);
+               p1:=ccallnode.create(para,tprocsym(sym),st,p1,callflags,spezcontext,compiler);
              { in case of calling an anonymous function we already know the concrete
                procdef that is going to be called }
              if (tprocsym(sym).ProcdefList.count=1) and (po_anonymous in tprocdef(tprocsym(sym).procdeflist[0]).procoptions) then
@@ -1230,6 +1240,8 @@ implementation
 
 
     procedure handle_procvar(pv : tprocvardef;var p2 : tnode);
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       var
         hp,hp2 : tnode;
         hpp    : ^tnode;
@@ -1256,7 +1268,7 @@ implementation
               currprocdef:=tcallnode(hp).symtableprocentry.Find_procdef_byprocvardef(pv);
               if assigned(currprocdef) then
                begin
-                 hp2:=cloadnode.create_procvar(tprocsym(tcallnode(hp).symtableprocentry),currprocdef,tcallnode(hp).symtableproc);
+                 hp2:=cloadnode.create_procvar(tprocsym(tcallnode(hp).symtableprocentry),currprocdef,tcallnode(hp).symtableproc,compiler);
                  if (po_methodpointer in pv.procoptions) then
                    tloadnode(hp2).set_mp(tcallnode(hp).methodpointer.getcopy);
                  hp.free;
@@ -1270,6 +1282,8 @@ implementation
 
 
     procedure handle_funcref(fr:tobjectdef;var p2:tnode);
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       var
         hp,hp2 : tnode;
         hpp    : ^tnode;
@@ -1298,7 +1312,7 @@ implementation
               currprocdef:=tcallnode(hp).symtableprocentry.Find_procdef_byfuncrefdef(fr);
               if assigned(currprocdef) then
                begin
-                 hp2:=cloadnode.create_procvar(tprocsym(tcallnode(hp).symtableprocentry),currprocdef,tcallnode(hp).symtableproc);
+                 hp2:=cloadnode.create_procvar(tprocsym(tcallnode(hp).symtableprocentry),currprocdef,tcallnode(hp).symtableproc,compiler);
                  hp.free;
                  hp := nil;
                  { replace the old callnode with the new loadnode }
@@ -1311,6 +1325,8 @@ implementation
 
     { the following procedure handles the access to a property symbol }
     procedure handle_propertysym(propsym : tpropertysym;st : TSymtable;var p1 : tnode);
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       var
          paras : tnode;
          p2    : tnode;
@@ -1333,8 +1349,8 @@ implementation
          { indexed property }
          if (ppo_indexed in propsym.propoptions) then
            begin
-             p2:=cordconstnode.create(propsym.index,propsym.indexdef,true);
-             paras:=ccallparanode.create(p2,paras);
+             p2:=cordconstnode.create(propsym.index,propsym.indexdef,true,compiler);
+             paras:=ccallparanode.create(p2,paras,compiler);
            end;
          { we need only a write property if a := follows }
          { if not(afterassignment) and not(in_args) then }
@@ -1351,7 +1367,7 @@ implementation
                          membercall:=maybe_load_methodpointer(st,p1);
                          if membercall then
                            include(callflags,cnf_member_call);
-                         p1:=ccallnode.create(paras,tprocsym(sym),st,p1,callflags,nil);
+                         p1:=ccallnode.create(paras,tprocsym(sym),st,p1,callflags,nil,compiler);
                          addsymref(sym);
                          paras:=nil;
                          consume(_ASSIGNMENT);
@@ -1365,7 +1381,7 @@ implementation
                            handle_procvar(getprocvardef,p2)
                          else if assigned(getfuncrefdef) then
                            handle_funcref(getfuncrefdef,p2);
-                         tcallnode(p1).left:=ccallparanode.create(p2,tcallnode(p1).left);
+                         tcallnode(p1).left:=ccallparanode.create(p2,tcallnode(p1).left,compiler);
                          { mark as property, both the tcallnode and the real call block }
                          include(p1.flags,nf_isproperty);
                          getprocvardef:=nil;
@@ -1390,18 +1406,18 @@ implementation
                            handle_funcref(getfuncrefdef,p2);
                          getprocvardef:=nil;
                          getfuncrefdef:=nil;
-                         p1:=cassignmentnode.create(p1,p2);
+                         p1:=cassignmentnode.create(p1,p2,compiler);
                       end
                     else
                       begin
-                        p1:=cerrornode.create;
+                        p1:=cerrornode.create(compiler);
                         Message(parser_e_no_procedure_to_access_property);
                       end;
                   end;
                 end
               else
                 begin
-                   p1:=cerrornode.create;
+                   p1:=cerrornode.create(compiler);
                    Message(parser_e_no_procedure_to_access_property);
                 end;
            end
@@ -1427,14 +1443,14 @@ implementation
                           membercall:=maybe_load_methodpointer(st,p1);
                           if membercall then
                             include(callflags,cnf_member_call);
-                          p1:=ccallnode.create(paras,tprocsym(sym),st,p1,callflags,nil);
+                          p1:=ccallnode.create(paras,tprocsym(sym),st,p1,callflags,nil,compiler);
                           paras:=nil;
                           include(p1.flags,nf_isproperty);
                           include(p1.flags,nf_no_lvalue);
                        end
                      else
                        begin
-                          p1:=cerrornode.create;
+                          p1:=cerrornode.create(compiler);
                           Message(type_e_mismatch);
                        end;
                   end;
@@ -1442,7 +1458,7 @@ implementation
               else
                 begin
                    { error, no function to read property }
-                   p1:=cerrornode.create;
+                   p1:=cerrornode.create(compiler);
                    Message(parser_e_no_procedure_to_access_property);
                 end;
            end;
@@ -1454,6 +1470,8 @@ implementation
 
     { the ID token has to be consumed before calling this function }
     procedure do_member_read(structh:tabstractrecorddef;getaddr:boolean;sym:tsym;var p1:tnode;var again:boolean;callflags:tcallnodeflags;spezcontext:tspecializationcontext);
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       var
         isclassref:boolean;
         isrecordtype:boolean;
@@ -1466,7 +1484,7 @@ implementation
               there is another ID just after the ID of sym }
               Message1(sym_e_id_no_member,current_scanner.orgpattern);
               p1.free;
-              p1:=cerrornode.create;
+              p1:=cerrornode.create(compiler);
               { try to clean up }
               spezcontext.free;
               spezcontext := nil;
@@ -1571,7 +1589,7 @@ implementation
                                   not def_is_related(current_structdef,structh)) then
                                 begin
                                   p1.free;
-                                  p1:=cerrornode.create;
+                                  p1:=cerrornode.create(compiler);
                                   Message(parser_e_only_static_members_via_object_type);
                                   exit;
                                 end;
@@ -1610,7 +1628,7 @@ implementation
                               Message(parser_e_only_class_members)
                             else
                               Message(parser_e_only_class_members_via_class_ref);
-                          p1:=csubscriptnode.create(sym,p1);
+                          p1:=csubscriptnode.create(sym,p1,compiler);
                         end;
                    end;
                  propertysym:
@@ -1626,16 +1644,16 @@ implementation
                       begin
                         p1:=comp_expr([ef_accept_equal]);
                         consume(_RKLAMMER);
-                        p1:=ctypeconvnode.create_explicit(p1,ttypesym(sym).typedef);
+                        p1:=ctypeconvnode.create_explicit(p1,ttypesym(sym).typedef,compiler);
                       end
                      else
                        begin
-                         p1:=ctypenode.create(ttypesym(sym).typedef);
+                         p1:=ctypenode.create(ttypesym(sym).typedef,compiler);
                          if (is_class(ttypesym(sym).typedef) or
                              is_objcclass(ttypesym(sym).typedef) or
                              is_javaclass(ttypesym(sym).typedef)) and
                             not(block_type in [bt_type,bt_const_type,bt_var_type]) then
-                           p1:=cloadvmtaddrnode.create(p1);
+                           p1:=cloadvmtaddrnode.create(p1,compiler);
                        end;
                    end;
                  constsym:
@@ -1648,7 +1666,7 @@ implementation
                      { typed constant is a staticvarsym
                        now they are absolutevarsym }
                      p1.free;
-                     p1:=cloadnode.create(sym,sym.Owner);
+                     p1:=cloadnode.create(sym,sym.Owner,compiler);
                    end;
                  absolutevarsym:
                    begin
@@ -1732,6 +1750,8 @@ implementation
 
 
     function handle_factor_typenode(hdef:tdef;getaddr:boolean;var again:boolean;sym:tsym;typeonly:boolean):tnode;
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       var
         srsym : tsym;
         srsymtable : tsymtable;
@@ -1756,7 +1776,7 @@ implementation
               Message(parser_e_no_category_as_types)
               { recovery by not creating a conversion node }
             else
-              result:=ctypeconvnode.create_explicit(result,hdef);
+              result:=ctypeconvnode.create_explicit(result,hdef,compiler);
           end
          { not LKLAMMER }
          else if (current_scanner.token=_POINT) and
@@ -1769,7 +1789,7 @@ implementation
                 not(getaddr) and
                 def_is_related(current_structdef,hdef) then
                begin
-                 result:=ctypenode.create(hdef);
+                 result:=ctypenode.create(hdef,compiler);
                  ttypenode(result).typesym:=sym;
                  if not (m_delphi in current_settings.modeswitches) and
                      (block_type in inline_specialization_block_types) and
@@ -1791,7 +1811,7 @@ implementation
                      if not handle_specialize_inline_specialization(srsym,false,srsymtable,spezcontext) then
                        begin
                          result.free;
-                         result:=cerrornode.create;
+                         result:=cerrornode.create(compiler);
                        end;
                    end
                  else
@@ -1812,7 +1832,7 @@ implementation
                 { handles:
                     * @TObject.Load
                     * static methods and variables }
-                result:=ctypenode.create(hdef);
+                result:=ctypenode.create(hdef,compiler);
                 ttypenode(result).typesym:=sym;
                 if not (m_delphi in current_settings.modeswitches) and
                     (block_type in inline_specialization_block_types) and
@@ -1846,7 +1866,7 @@ implementation
                             not (current_scanner.token in [_LT,_LSHARPBRACKET]) then
                           check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg,savedfilepos)
                         else
-                          result:=cspecializenode.create(result,getaddr,srsym,false);
+                          result:=cspecializenode.create(result,getaddr,srsym,false,compiler);
                         erroroutresult:=false;
                       end
                     else
@@ -1855,7 +1875,7 @@ implementation
                 if erroroutresult then
                   begin
                     result.free;
-                    result:=cerrornode.create;
+                    result:=cerrornode.create(compiler);
                   end
                 else
                   if result.nodetype<>specializen then
@@ -1883,7 +1903,7 @@ implementation
                   consume(_POINT);
                   { allows @Object.Method }
                   { also allows static methods and variables }
-                  result:=ctypenode.create(hdef);
+                  result:=ctypenode.create(hdef,compiler);
                   ttypenode(result).typesym:=sym;
                   { TP allows also @TMenu.Load if Load is only }
                   { defined in an ancestor class               }
@@ -1900,7 +1920,7 @@ implementation
                      if not(block_type in [bt_type,bt_const_type,bt_var_type]) and
                         (srsym.typ=procsym) and
                         (current_scanner.token in [_CARET,_POINT]) then
-                       result:=cloadvmtaddrnode.create(result);
+                       result:=cloadvmtaddrnode.create(result,compiler);
                      do_member_read(tabstractrecorddef(hdef),getaddr,srsym,result,again,[],nil);
                    end
                   else
@@ -1911,18 +1931,18 @@ implementation
                 end
                else
                 begin
-                  result:=ctypenode.create(hdef);
+                  result:=ctypenode.create(hdef,compiler);
                   ttypenode(result).typesym:=sym;
                   { For a type block we simply return only
                     the type. For all other blocks we return
                     a loadvmt node }
                   if not(block_type in [bt_type,bt_const_type,bt_var_type]) then
-                    result:=cloadvmtaddrnode.create(result);
+                    result:=cloadvmtaddrnode.create(result,compiler);
                 end;
              end
             else
               begin
-                result:=ctypenode.create(hdef);
+                result:=ctypenode.create(hdef,compiler);
                 ttypenode(result).typesym:=sym;
               end;
           end;
@@ -1934,6 +1954,8 @@ implementation
 
 
     function real_const_node_from_pattern(const s:string):tnode;
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       var
         d : bestreal;
         code : integer;
@@ -1948,17 +1970,17 @@ implementation
         if current_settings.fputype=fpu_none then
           begin
             Message(parser_e_unsupported_real);
-            result:=cerrornode.create;
+            result:=cerrornode.create(compiler);
             exit;
           end;
         if (current_settings.minfpconstprec=s32real) and
            (d = single(d)) then
-          result:=crealconstnode.create(d,s32floattype)
+          result:=crealconstnode.create(d,s32floattype,compiler)
         else if (current_settings.minfpconstprec=s64real) and
                 (d = double(d)) then
-          result:=crealconstnode.create(d,s64floattype)
+          result:=crealconstnode.create(d,s64floattype,compiler)
         else
-          result:=crealconstnode.create(d,pbestrealtype^);
+          result:=crealconstnode.create(d,pbestrealtype^,compiler);
         val(current_scanner.pattern,cur,code);
         if code=0 then
           trealconstnode(result).value_currency:=cur;
@@ -1970,6 +1992,8 @@ implementation
 
     { returns whether or not p1 has been changed }
     function postfixoperators(var p1:tnode;var again:boolean;getaddr:boolean): boolean;
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
 
       { tries to avoid syntax errors after invalid qualifiers }
       procedure recoverconsume_postfixops;
@@ -1999,6 +2023,8 @@ implementation
 
 
       procedure handle_variantarray;
+        const
+          compiler = nil;  { TODO: fix node compiler reference!!! }
        var
          p4 : tnode;
          newstatement : tstatementnode;
@@ -2023,17 +2049,19 @@ implementation
          until not try_to_consume(_COMMA);
 
          arraydef:=carraydef.getreusable(s32inttype,elements.count);
-         temp:=ctempcreatenode.create(arraydef,arraydef.size,tt_persistent,false);
+         temp:=ctempcreatenode.create(arraydef,arraydef.size,tt_persistent,false,compiler);
          addstatement(newstatement,temp);
          for countindices:=0 to elements.count-1 do
            begin
              addstatement(newstatement,
                cassignmentnode.create(
                  cvecnode.create(
-                   ctemprefnode.create(temp),
-                   genintconstnode(countindices)
+                   ctemprefnode.create(temp,compiler),
+                   genintconstnode(countindices,compiler),
+                   compiler
                  ),
-                 tnode(elements[countindices])
+                 tnode(elements[countindices]),
+                 compiler
                )
              );
            end;
@@ -2051,45 +2079,47 @@ implementation
 
              { create call to fpc_vararray_put }
              paras:=ccallparanode.create(cordconstnode.create
-                   (countindices,s32inttype,true),
+                   (countindices,s32inttype,true,compiler),
                 ccallparanode.create(caddrnode.create_internal
-               (cvecnode.create(ctemprefnode.create(temp),genintconstnode(0))),
-                ccallparanode.create(ctypeconvnode.create_internal(p4,cvarianttype),
-                ccallparanode.create(ctypeconvnode.create_internal(p1,cvarianttype)
-                  ,nil))));
+               (cvecnode.create(ctemprefnode.create(temp,compiler),genintconstnode(0,compiler),compiler),compiler),
+                ccallparanode.create(ctypeconvnode.create_internal(p4,cvarianttype,compiler),
+                ccallparanode.create(ctypeconvnode.create_internal(p1,cvarianttype,compiler)
+                  ,nil,compiler),compiler),compiler),compiler);
 
              addstatement(newstatement,ccallnode.createintern('fpc_vararray_put',paras));
-             addstatement(newstatement,ctempdeletenode.create(temp));
+             addstatement(newstatement,ctempdeletenode.create(temp,compiler));
            end
          else
            begin
              { create temp for result }
-             tempresultvariant:=ctempcreatenode.create(cvarianttype,cvarianttype.size,tt_persistent,true);
+             tempresultvariant:=ctempcreatenode.create(cvarianttype,cvarianttype.size,tt_persistent,true,compiler);
              addstatement(newstatement,tempresultvariant);
 
              { create call to fpc_vararray_get }
              paras:=ccallparanode.create(cordconstnode.create
-                   (countindices,s32inttype,true),
+                   (countindices,s32inttype,true,compiler),
                 ccallparanode.create(caddrnode.create_internal
-               (ctemprefnode.create(temp)),
+               (ctemprefnode.create(temp,compiler),compiler),
                 ccallparanode.create(p1,
                 ccallparanode.create(
-                    ctemprefnode.create(tempresultvariant)
-                  ,nil))));
+                    ctemprefnode.create(tempresultvariant,compiler)
+                  ,nil,compiler),compiler),compiler),compiler);
 
              addstatement(newstatement,ccallnode.createintern('fpc_vararray_get',paras));
-             addstatement(newstatement,ctempdeletenode.create(temp));
+             addstatement(newstatement,ctempdeletenode.create(temp,compiler));
              { the last statement should return the value as
                location and type, this is done be referencing the
                temp and converting it first from a persistent temp to
                normal temp }
-             addstatement(newstatement,ctempdeletenode.create_normal_temp(tempresultvariant));
-             addstatement(newstatement,ctemprefnode.create(tempresultvariant));
+             addstatement(newstatement,ctempdeletenode.create_normal_temp(tempresultvariant,compiler));
+             addstatement(newstatement,ctemprefnode.create(tempresultvariant,compiler));
            end;
          p1:=newblock;
        end;
 
       function parse_array_constructor(arrdef:tarraydef): tnode;
+        const
+          compiler = nil;  { TODO: fix node compiler reference!!! }
         var
           newstatement,assstatement:tstatementnode;
           arrnode:ttempcreatenode;
@@ -2099,7 +2129,7 @@ implementation
         begin
           result:=internalstatements(newstatement);
           { create temp for result }
-          arrnode:=ctempcreatenode.create(arrdef,arrdef.size,tt_persistent,true);
+          arrnode:=ctempcreatenode.create(arrdef,arrdef.size,tt_persistent,true,compiler);
           addstatement(newstatement,arrnode);
 
           paracount:=0;
@@ -2112,9 +2142,9 @@ implementation
                 addstatement(assstatement,
                   cassignmentnode.create(
                     cvecnode.create(
-                      ctemprefnode.create(arrnode),
-                      cordconstnode.create(paracount,arrdef.rangedef,false)),
-                    comp_expr([ef_accept_equal])));
+                      ctemprefnode.create(arrnode,compiler),
+                      cordconstnode.create(paracount,arrdef.rangedef,false,compiler),compiler),
+                    comp_expr([ef_accept_equal]),compiler));
                 inc(paracount);
               until not try_to_consume(_COMMA);
               consume(_RKLAMMER);
@@ -2123,38 +2153,38 @@ implementation
             assnode:=nil;
 
           { get temp for array of lengths }
-          temp2:=ctempcreatenode.create(sinttype,sinttype.size,tt_persistent,false);
+          temp2:=ctempcreatenode.create(sinttype,sinttype.size,tt_persistent,false,compiler);
           addstatement(newstatement,temp2);
 
           { one dimensional }
           addstatement(newstatement,cassignmentnode.create(
-              ctemprefnode.create(temp2),
+              ctemprefnode.create(temp2,compiler),
               cordconstnode.create
-                 (paracount,s32inttype,true)));
+                 (paracount,s32inttype,true,compiler),compiler));
           { create call to fpc_dynarr_setlength }
           addstatement(newstatement,ccallnode.createintern('fpc_dynarray_setlength',
               ccallparanode.create(caddrnode.create_internal
-                    (ctemprefnode.create(temp2)),
+                    (ctemprefnode.create(temp2,compiler),compiler),
                  ccallparanode.create(cordconstnode.create
-                    (1,s32inttype,true),
+                    (1,s32inttype,true,compiler),
                  ccallparanode.create(caddrnode.create_internal
-                    (crttinode.create(tstoreddef(arrdef),initrtti,rdt_normal)),
+                    (crttinode.create(tstoreddef(arrdef),initrtti,rdt_normal,compiler),compiler),
                  ccallparanode.create(
                    ctypeconvnode.create_internal(
-                     ctemprefnode.create(arrnode),voidpointertype),
-                   nil))))
+                     ctemprefnode.create(arrnode,compiler),voidpointertype,compiler),
+                   nil,compiler),compiler),compiler),compiler)
 
             ));
           { add assignment statements }
-          addstatement(newstatement,ctempdeletenode.create(temp2));
+          addstatement(newstatement,ctempdeletenode.create(temp2,compiler));
           if assigned(assnode) then
             addstatement(newstatement,assnode);
           { the last statement should return the value as
             location and type, this is done be referencing the
             temp and converting it first from a persistent temp to
             normal temp }
-          addstatement(newstatement,ctempdeletenode.create_normal_temp(arrnode));
-          addstatement(newstatement,ctemprefnode.create(arrnode));
+          addstatement(newstatement,ctempdeletenode.create_normal_temp(arrnode,compiler));
+          addstatement(newstatement,ctemprefnode.create(arrnode,compiler));
         end;
 
       function try_type_helper(var node:tnode;def:tdef):boolean;
@@ -2188,11 +2218,11 @@ implementation
                       extdef:=tobjectdef(srsymtable.defowner).extendeddef;
                       newstatement:=nil;
                       n:=internalstatements(newstatement);
-                      temp:=ctempcreatenode.create(extdef,extdef.size,tt_persistent,false);
+                      temp:=ctempcreatenode.create(extdef,extdef.size,tt_persistent,false,compiler);
                       addstatement(newstatement,temp);
-                      addstatement(newstatement,cassignmentnode.create(ctemprefnode.create(temp),node));
-                      addstatement(newstatement,ctempdeletenode.create_normal_temp(temp));
-                      addstatement(newstatement,ctemprefnode.create(temp));
+                      addstatement(newstatement,cassignmentnode.create(ctemprefnode.create(temp,compiler),node,compiler));
+                      addstatement(newstatement,ctempdeletenode.create_normal_temp(temp,compiler));
+                      addstatement(newstatement,ctemprefnode.create(temp,compiler));
                       node:=n;
                       do_typecheckpass(node)
                     end;
@@ -2257,7 +2287,7 @@ implementation
                   (p1.resultdef.typ=procvardef) and
                   (tprocvardef(p1.resultdef).returndef.typ=pointerdef) then
                  begin
-                   p1:=ccallnode.create_procvar(nil,p1);
+                   p1:=ccallnode.create_procvar(nil,p1,compiler);
                    typecheckpass(p1);
                  end;
 
@@ -2268,13 +2298,13 @@ implementation
                    case tfiledef(p1.resultdef).filetyp of
                      ft_text:
                        begin
-                         p1:=cderefnode.create(ccallnode.createintern('fpc_getbuf_text',ccallparanode.create(p1,nil)));
+                         p1:=cderefnode.create(ccallnode.createintern('fpc_getbuf_text',ccallparanode.create(p1,nil,compiler)),compiler);
                          typecheckpass(p1);
                        end;
                      ft_typed:
                        begin
-                         p1:=cderefnode.create(ctypeconvnode.create_internal(ccallnode.createintern('fpc_getbuf_typedfile',ccallparanode.create(p1,nil)),
-                           cpointerdef.getreusable(tfiledef(p1.resultdef).typedfiledef)));
+                         p1:=cderefnode.create(ctypeconvnode.create_internal(ccallnode.createintern('fpc_getbuf_typedfile',ccallparanode.create(p1,nil,compiler)),
+                           cpointerdef.getreusable(tfiledef(p1.resultdef).typedfiledef),compiler),compiler);
                          typecheckpass(p1);
                        end;
                      else
@@ -2288,10 +2318,10 @@ implementation
                     Message(parser_e_invalid_qualifier);
                     recoverconsume_postfixops;
                     p1.free;
-                    p1:=cerrornode.create;
+                    p1:=cerrornode.create(compiler);
                  end
                else
-                 p1:=cderefnode.create(p1);
+                 p1:=cderefnode.create(p1,compiler);
              end;
 
           _LECKKLAMMER:
@@ -2303,7 +2333,7 @@ implementation
                   (p1.resultdef.typ=procvardef) and
                   (tprocvardef(p1.resultdef).returndef.typ=arraydef) then
                  begin
-                   p1:=ccallnode.create_procvar(nil,p1);
+                   p1:=ccallnode.create_procvar(nil,p1,compiler);
                    typecheckpass(p1);
                  end;
 
@@ -2317,7 +2347,7 @@ implementation
                    if not(assigned(protsym)) then
                      begin
                         p1.free;
-                        p1:=cerrornode.create;
+                        p1:=cerrornode.create(compiler);
                         again:=false;
                         message(parser_e_no_default_property_available);
                      end
@@ -2339,12 +2369,12 @@ implementation
                             { support delphi autoderef }
                             if (tpointerdef(p1.resultdef).pointeddef.typ=arraydef) and
                                (m_autoderef in current_settings.modeswitches) then
-                              p1:=cderefnode.create(p1);
+                              p1:=cderefnode.create(p1,compiler);
                             p2:=comp_expr([ef_accept_equal]);
                             { Support Pbytevar[0..9] which returns array [0..9].}
                             if try_to_consume(_POINTPOINT) then
-                              p2:=crangenode.create(p2,comp_expr([ef_accept_equal]));
-                            p1:=cvecnode.create(p1,p2);
+                              p2:=crangenode.create(p2,comp_expr([ef_accept_equal]),compiler);
+                            p1:=cvecnode.create(p1,p2,compiler);
                          end;
                        variantdef:
                          begin
@@ -2357,8 +2387,8 @@ implementation
                            p2:=comp_expr([ef_accept_equal]);
                            { Support string[0..9] which returns array [0..9] of char.}
                            if try_to_consume(_POINTPOINT) then
-                             p2:=crangenode.create(p2,comp_expr([ef_accept_equal]));
-                           p1:=cvecnode.create(p1,p2);
+                             p2:=crangenode.create(p2,comp_expr([ef_accept_equal]),compiler);
+                           p1:=cvecnode.create(p1,p2,compiler);
                          end;
                        arraydef:
                          begin
@@ -2419,8 +2449,8 @@ implementation
                              begin
                                if try_to_consume(_POINTPOINT) then
                                  { Support arrayvar[0..9] which returns array [0..9] of arraytype.}
-                                 p2:=crangenode.create(p2,comp_expr([ef_accept_equal]));
-                               p1:=cvecnode.create(p1,p2);
+                                 p2:=crangenode.create(p2,comp_expr([ef_accept_equal]),compiler);
+                               p1:=cvecnode.create(p1,p2,compiler);
                              end;
                          end;
                        else
@@ -2428,7 +2458,7 @@ implementation
                            if p1.resultdef.typ<>undefineddef then
                              Message(parser_e_invalid_qualifier);
                            p1.free;
-                           p1:=cerrornode.create;
+                           p1:=cerrornode.create(compiler);
                            comp_expr([ef_accept_equal]);
                            again:=false;
                          end;
@@ -2459,7 +2489,7 @@ implementation
                     below for supporting id.anyobjcmethod isn't triggered }
                   (p1.resultdef<>objc_idtype) then
                  begin
-                   p1:=cderefnode.create(p1);
+                   p1:=cderefnode.create(p1,compiler);
                    do_typecheckpass(p1);
                    autoderef:=true;
                  end;
@@ -2534,7 +2564,7 @@ implementation
                        if haderror then
                          begin
                            Message(parser_e_error_in_real);
-                           p2:=cerrornode.create;
+                           p2:=cerrornode.create(compiler);
                          end
                        else
                          p2:=real_const_node_from_pattern(valstr);
@@ -2546,7 +2576,7 @@ implementation
                    else
                      begin
                        { just convert the ordconst to a realconst }
-                       p2:=crealconstnode.create(tordconstnode(p1).value,pbestrealtype^);
+                       p2:=crealconstnode.create(tordconstnode(p1).value,pbestrealtype^,compiler);
                        p1.free;
                        p1:=p2;
                        again:=false;
@@ -2618,7 +2648,7 @@ implementation
                                      not (current_scanner.token in [_LT,_LSHARPBRACKET]) then
                                    check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg,old_current_filepos)
                                  else
-                                   p1:=cspecializenode.create(p1,getaddr,srsym,false);
+                                   p1:=cspecializenode.create(p1,getaddr,srsym,false,compiler);
                                  erroroutp1:=false;
                                end
                              else
@@ -2631,7 +2661,7 @@ implementation
                          if erroroutp1 then
                            begin
                              p1.free;
-                             p1:=cerrornode.create;
+                             p1:=cerrornode.create(compiler);
                            end
                          else
                            if p1.nodetype<>specializen then
@@ -2649,7 +2679,7 @@ implementation
                            begin
                              p1.free;
                              check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
-                             p1:=genenumnode(tenumsym(srsym));
+                             p1:=genenumnode(tenumsym(srsym),compiler);
                              consume(_ID);
                            end
                          else
@@ -2657,14 +2687,14 @@ implementation
                              begin
                                p1.free;
                                Message1(sym_e_id_no_member,current_scanner.orgpattern);
-                               p1:=cerrornode.create;
+                               p1:=cerrornode.create(compiler);
                                consume(_ID);
                              end;
                        end
                      else
                        begin
                          p1.free;
-                         p1:=cerrornode.create;
+                         p1:=cerrornode.create(compiler);
                          consume(_ID);
                        end
                    end;
@@ -2689,7 +2719,7 @@ implementation
                                        begin
                                          Message2(scan_f_syn_expected,'CREATE',current_scanner.pattern);
                                          p1.free;
-                                         p1:=cerrornode.create;
+                                         p1:=cerrornode.create(compiler);
                                          consume(_ID);
                                        end;
                                    end
@@ -2697,7 +2727,7 @@ implementation
                                    begin
                                      Message(parser_e_invalid_qualifier);
                                      p1.free;
-                                     p1:=cerrornode.create;
+                                     p1:=cerrornode.create(compiler);
                                      consume(_ID);
                                    end;
                                end;
@@ -2706,7 +2736,7 @@ implementation
                            begin
                              Message(parser_e_invalid_qualifier);
                              p1.free;
-                             p1:=cerrornode.create;
+                             p1:=cerrornode.create(compiler);
                              consume(_ID);
                            end;
                        end
@@ -2715,7 +2745,7 @@ implementation
                          begin
                            Message(parser_e_invalid_qualifier);
                            p1.free;
-                           p1:=cerrornode.create;
+                           p1:=cerrornode.create(compiler);
                            consume(_ID);
                          end;
                    end;
@@ -2753,7 +2783,7 @@ implementation
                                   { read the expression }
                                   p3:=comp_expr([ef_accept_equal]);
                                   { concat value parameter too }
-                                  p2:=ccallparanode.create(p3,p2);
+                                  p2:=ccallparanode.create(p3,p2,compiler);
                                   p1:=translate_disp_call(p1,p2,dct_propput,dispatchstring,0,voidtype);
                                 end
                               else
@@ -2800,7 +2830,7 @@ implementation
                                       not (current_scanner.token in [_LT,_LSHARPBRACKET]) then
                                     check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg,old_current_filepos)
                                   else
-                                    p1:=cspecializenode.create(p1,getaddr,srsym,false);
+                                    p1:=cspecializenode.create(p1,getaddr,srsym,false,compiler);
                                   erroroutp1:=false;
                                 end
                               else
@@ -2813,7 +2843,7 @@ implementation
                           if erroroutp1 then
                             begin
                               p1.free;
-                              p1:=cerrornode.create;
+                              p1:=cerrornode.create(compiler);
                             end
                           else
                             if p1.nodetype<>specializen then
@@ -2854,7 +2884,7 @@ implementation
                                        not (current_scanner.token in [_LT,_LSHARPBRACKET]) then
                                      check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg,old_current_filepos)
                                    else
-                                     p1:=cspecializenode.create(p1,getaddr,srsym,false);
+                                     p1:=cspecializenode.create(p1,getaddr,srsym,false,compiler);
                                    erroroutp1:=false;
                                 end
                               else
@@ -2867,7 +2897,7 @@ implementation
                           if erroroutp1 then
                             begin
                               p1.free;
-                              p1:=cerrornode.create;
+                              p1:=cerrornode.create(compiler);
                             end
                           else
                             if p1.nodetype<>specializen then
@@ -2929,7 +2959,7 @@ implementation
                           if p1.resultdef.typ<>undefineddef then
                             Message(parser_e_invalid_qualifier);
                           p1.free;
-                          p1:=cerrornode.create;
+                          p1:=cerrornode.create(compiler);
                           { Error }
                           consume(_ID);
                         end;
@@ -2968,7 +2998,7 @@ implementation
                         begin
                           p1:=comp_expr([ef_accept_equal]);
                           consume(_RKLAMMER);
-                          p1:=ctypeconvnode.create_explicit(p1,p1.resultdef);
+                          p1:=ctypeconvnode.create_explicit(p1,p1.resultdef,compiler);
                         end
                       else
                         again:=false
@@ -2979,13 +3009,13 @@ implementation
                         begin
                           p2:=parse_paras(false,false,_RKLAMMER);
                           consume(_RKLAMMER);
-                          p1:=ccallnode.create_procvar(p2,p1);
+                          p1:=ccallnode.create_procvar(p2,p1,compiler);
                           { proc():= is never possible }
                           if current_scanner.token=_ASSIGNMENT then
                             begin
                               Message(parser_e_illegal_expression);
                               p1.free;
-                              p1:=cerrornode.create;
+                              p1:=cerrornode.create(compiler);
                               again:=false;
                             end;
                         end
@@ -3044,6 +3074,8 @@ implementation
 
 
     function factor_handle_sym(srsym:tsym;srsymtable:tsymtable;var again:boolean;getaddr:boolean;unit_found:boolean;flags:texprflags;var spezcontext:tspecializationcontext):tnode;
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       var
         hdef : tdef;
         pd : tprocdef;
@@ -3059,11 +3091,11 @@ implementation
                 begin
                   result:=nil;
                   propaccesslist_to_node(result,nil,tabsolutevarsym(srsym).ref);
-                  result:=ctypeconvnode.create(result,tabsolutevarsym(srsym).vardef);
+                  result:=ctypeconvnode.create(result,tabsolutevarsym(srsym).vardef,compiler);
                   include(result.flags,nf_absolute);
                 end
               else
-                result:=cloadnode.create(srsym,srsymtable);
+                result:=cloadnode.create(srsym,srsymtable,compiler);
             end;
 
           staticvarsym,
@@ -3088,16 +3120,16 @@ implementation
                         (((current_structdef<>hdef) and is_owned_by(current_structdef,hdef)) or
                          (sp_static in srsym.symoptions)) then
                       if srsymtable.symtabletype=recordsymtable then
-                        result:=ctypenode.create(hdef)
+                        result:=ctypenode.create(hdef,compiler)
                       else
-                        result:=cloadvmtaddrnode.create(ctypenode.create(hdef))
+                        result:=cloadvmtaddrnode.create(ctypenode.create(hdef,compiler),compiler)
                     else
                       begin
                         if assigned(current_procinfo) then
                           begin
                             pd:=current_procinfo.get_normal_proc.procdef;
                             if assigned(pd) and pd.no_self_node then
-                              result:=cloadvmtaddrnode.create(ctypenode.create(pd.struct))
+                              result:=cloadvmtaddrnode.create(ctypenode.create(pd.struct,compiler),compiler)
                             else
                               result:=load_self_node;
                           end
@@ -3112,11 +3144,11 @@ implementation
                     do_member_read(tabstractrecorddef(hdef),getaddr,srsym,result,again,[],nil)
                   else
                     { otherwise it's a regular record subscript }
-                    result:=csubscriptnode.create(srsym,result);
+                    result:=csubscriptnode.create(srsym,result,compiler);
                 end
               else
                 { regular non-field load }
-                result:=cloadnode.create(srsym,srsymtable);
+                result:=cloadnode.create(srsym,srsymtable,compiler);
             end;
 
           syssym :
@@ -3143,7 +3175,7 @@ implementation
                            begin
                              spezcontext.free;
                              spezcontext := nil;
-                             result:=cerrornode.create;
+                             result:=cerrornode.create(compiler);
                              if try_to_consume(_LKLAMMER) then
                               begin
                                 parse_paras(false,false,_RKLAMMER);
@@ -3159,7 +3191,7 @@ implementation
                            end;
                        end
                      else
-                       result:=cspecializenode.create(nil,getaddr,srsym,unit_found)
+                       result:=cspecializenode.create(nil,getaddr,srsym,unit_found,compiler)
                    end
                  else
                    begin
@@ -3174,14 +3206,14 @@ implementation
 
           enumsym :
             begin
-              result:=genenumnode(tenumsym(srsym));
+              result:=genenumnode(tenumsym(srsym),compiler);
             end;
 
           constsym :
             begin
               if tconstsym(srsym).consttyp in [constresourcestring,constwresourcestring]then
                 begin
-                  result:=cloadnode.create(srsym,srsymtable);
+                  result:=cloadnode.create(srsym,srsymtable,compiler);
                   do_typecheckpass(result);
                   if is_systemunit_unicode then
                     result.resultdef:=cstringdef.createunicode(true)
@@ -3199,7 +3231,7 @@ implementation
                   (sp_generic_dummy in srsym.symoptions) and
                   (current_scanner.token in [_LT,_LSHARPBRACKET]) then
                 begin
-                  result:=cspecializenode.create(nil,getaddr,srsym,unit_found)
+                  result:=cspecializenode.create(nil,getaddr,srsym,unit_found,compiler)
                 end
               { check if it's a method/class method }
               else if is_member_read(srsym,srsymtable,result,hdef) then
@@ -3208,7 +3240,7 @@ implementation
                   { class we need to call it as a class member          }
                   if (srsymtable.symtabletype in [ObjectSymtable,recordsymtable]) and
                     assigned(current_structdef) and (current_structdef<>hdef) and is_owned_by(current_structdef,hdef) then
-                    result:=cloadvmtaddrnode.create(ctypenode.create(hdef));
+                    result:=cloadvmtaddrnode.create(ctypenode.create(hdef,compiler),compiler);
                   { not srsymtable.symtabletype since that can be }
                   { withsymtable as well                          }
                   if (srsym.owner.symtabletype in [ObjectSymtable,recordsymtable]) then
@@ -3252,9 +3284,9 @@ implementation
                     if (assigned(current_structdef) and (current_structdef<>hdef) and is_owned_by(current_structdef,hdef)) or
                        (assigned(current_procinfo) and current_procinfo.get_normal_proc.procdef.no_self_node) then
                       begin
-                        result:=ctypenode.create(hdef);
+                        result:=ctypenode.create(hdef,compiler);
                         if not is_record(hdef) then
-                          result:=cloadvmtaddrnode.create(result);
+                          result:=cloadvmtaddrnode.create(result,compiler);
                       end
                     else
                       result:=load_self_node;
@@ -3280,7 +3312,7 @@ implementation
                 begin
                   if srsym.owner<>current_procinfo.procdef.localst then
                     CGMessage(parser_e_label_outside_proc);
-                  result:=cloadnode.create(srsym,srsym.owner)
+                  result:=cloadnode.create(srsym,srsym.owner,compiler)
                 end
               else
                 begin
@@ -3294,14 +3326,14 @@ implementation
                         Message(sym_e_interprocgoto_into_init_final_code_not_allowed);
                     end;
                   tlabelsym(srsym).defined:=true;
-                  result:=clabelnode.create(nil,tlabelsym(srsym));
+                  result:=clabelnode.create(nil,tlabelsym(srsym),compiler);
                   tlabelsym(srsym).code:=result;
                 end;
             end;
 
           undefinedsym :
             begin
-              result:=cnothingnode.Create;
+              result:=cnothingnode.Create(compiler);
               result.resultdef:=cundefineddef.create(true);
               { clean up previously created dummy symbol }
               srsym.free;
@@ -3310,7 +3342,7 @@ implementation
 
           errorsym :
             begin
-              result:=cerrornode.create;
+              result:=cerrornode.create(compiler);
               if try_to_consume(_LKLAMMER) then
                begin
                  parse_paras(false,false,_RKLAMMER);
@@ -3320,7 +3352,7 @@ implementation
 
           else
             begin
-              result:=cerrornode.create;
+              result:=cerrornode.create(compiler);
               Message(parser_e_illegal_expression);
             end;
         end; { end case }
@@ -3328,6 +3360,8 @@ implementation
 
 
     function factor(getaddr:boolean;flags:texprflags) : tnode;
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
 
          {---------------------------------------------
                          Factor_read_id
@@ -3457,7 +3491,7 @@ implementation
                   (current_scanner.token=_ASSIGNMENT) then
                   begin
                     found_arg_name:=true;
-                    p1:=cstringconstnode.createstr(orgstoredpattern);
+                    p1:=cstringconstnode.createstr(orgstoredpattern,compiler);
                     consume(_ASSIGNMENT);
                     exit;
                   end;
@@ -3676,24 +3710,24 @@ implementation
          { be sure that a least one arrayconstructn is used, also for an
            empty [] }
            if current_scanner.token=_RECKKLAMMER then
-             buildp:=carrayconstructornode.create(nil,buildp)
+             buildp:=carrayconstructornode.create(nil,buildp,compiler)
            else
             repeat
               p1:=comp_expr([ef_accept_equal]);
               if try_to_consume(_POINTPOINT) then
                 begin
                   p2:=comp_expr([ef_accept_equal]);
-                  p1:=carrayconstructorrangenode.create(p1,p2);
+                  p1:=carrayconstructorrangenode.create(p1,p2,compiler);
                 end;
                { insert at the end of the tree, to get the correct order }
              if not assigned(buildp) then
                begin
-                 buildp:=carrayconstructornode.create(p1,nil);
+                 buildp:=carrayconstructornode.create(p1,nil,compiler);
                  lastp:=buildp;
                end
              else
                begin
-                 lastp.right:=carrayconstructornode.create(p1,nil);
+                 lastp.right:=carrayconstructornode.create(p1,nil,compiler);
                  lastp:=tarrayconstructornode(lastp.right);
                end;
            { there could be more elements }
@@ -3832,7 +3866,7 @@ implementation
                           p1:=nil;
                         end;
                     end;
-                  p1 := cexitnode.create(p1);
+                  p1 := cexitnode.create(p1,compiler);
                 end;
              _INHERITED :
                begin
@@ -3933,7 +3967,7 @@ implementation
                              if (srsym.typ=typesym) and not mightbegeneric then
                                begin
                                  Message(parser_e_methode_id_expected);
-                                 p1:=cerrornode.create;
+                                 p1:=cerrornode.create(compiler);
                                end
                              else
                                begin
@@ -3968,11 +4002,11 @@ implementation
                                    hdef:=cclassrefdef.create(hdef);
                                  if useself then
                                    begin
-                                     p1:=ctypeconvnode.create_internal(load_self_node,hdef);
+                                     p1:=ctypeconvnode.create_internal(load_self_node,hdef,compiler);
                                    end
                                  else
                                    begin
-                                     p1:=ctypenode.create(hdef);
+                                     p1:=ctypenode.create(hdef,compiler);
                                      { we need to allow helpers here }
                                      ttypenode(p1).helperallowed:=true;
                                    end;
@@ -3983,12 +4017,12 @@ implementation
                          else
                            begin
                              Message(parser_e_methode_id_expected);
-                             p1:=cerrornode.create;
+                             p1:=cerrornode.create(compiler);
                            end;
                        end;
                        if mightbegeneric then
                          begin
-                           p1:=cspecializenode.create_inherited(p1,getaddr,srsym,hclassdef);
+                           p1:=cspecializenode.create_inherited(p1,getaddr,srsym,hclassdef,compiler);
                          end
                        else
                          begin
@@ -4024,13 +4058,13 @@ implementation
                           else
                             begin
                               { we need to ignore the inherited; }
-                              p1:=cnothingnode.create;
+                              p1:=cnothingnode.create(compiler);
                             end;
                         end
                        else
                         begin
                           Message1(sym_e_id_no_member,hsorg);
-                          p1:=cerrornode.create;
+                          p1:=cerrornode.create(compiler);
                         end;
                        again:=false;
                      end;
@@ -4046,7 +4080,7 @@ implementation
                      else
                        Message(parser_e_generic_methods_only_in_methods);
                      again:=false;
-                     p1:=cerrornode.create;
+                     p1:=cerrornode.create(compiler);
                    end;
                  if p1.nodetype<>specializen then
                    postfixoperators(p1,again,getaddr);
@@ -4060,7 +4094,7 @@ implementation
                    begin
                       consume(_INTCONST);
                       int_to_type(ic,hdef);
-                      p1:=cordconstnode.create(ic,hdef,true);
+                      p1:=cordconstnode.create(ic,hdef,true,compiler);
                    end
                  else
                    begin
@@ -4070,7 +4104,7 @@ implementation
                        begin
                           consume(_INTCONST);
                           int_to_type(qc,hdef);
-                          p1:=cordconstnode.create(qc,hdef,true);
+                          p1:=cordconstnode.create(qc,hdef,true,compiler);
                        end;
                    end;
                  if code<>0 then
@@ -4082,12 +4116,12 @@ implementation
                           Message(parser_e_invalid_integer);
                           consume(_INTCONST);
                           l:=1;
-                          p1:=cordconstnode.create(l,sinttype,true);
+                          p1:=cordconstnode.create(l,sinttype,true,compiler);
                        end
                      else
                        begin
                           consume(_INTCONST);
-                          p1:=crealconstnode.create(d,pbestrealtype^);
+                          p1:=crealconstnode.create(d,pbestrealtype^,compiler);
                        end;
                    end
                  else
@@ -4121,14 +4155,14 @@ implementation
                   begin
                     p1:=comp_expr([ef_accept_equal]);
                     consume(_RKLAMMER);
-                    p1:=ctypeconvnode.create_explicit(p1,hdef);
+                    p1:=ctypeconvnode.create_explicit(p1,hdef,compiler);
                     { handle postfix operators here e.g. string(a)[10] }
                     again:=true;
                     postfixoperators(p1,again,getaddr);
                   end
                  else
                    begin
-                     p1:=ctypenode.create(hdef);
+                     p1:=ctypenode.create(hdef,compiler);
                      if current_scanner.token=_POINT then
                        begin
                          again:=true;
@@ -4147,20 +4181,20 @@ implementation
                   begin
                     p1:=comp_expr([ef_accept_equal]);
                     consume(_RKLAMMER);
-                    p1:=ctypeconvnode.create_explicit(p1,hdef);
+                    p1:=ctypeconvnode.create_explicit(p1,hdef,compiler);
                     { handle postfix operators here e.g. string(a)[10] }
                     again:=true;
                     postfixoperators(p1,again,getaddr);
                   end
                  else
                   begin
-                    p1:=ctypenode.create(hdef);
+                    p1:=ctypenode.create(hdef,compiler);
                   end;
                end;
 
              _CSTRING :
                begin
-                 p1:=cstringconstnode.createpchar(pchar(current_scanner.cstringpattern),length(current_scanner.cstringpattern),nil);
+                 p1:=cstringconstnode.createpchar(pchar(current_scanner.cstringpattern),length(current_scanner.cstringpattern),nil,compiler);
                  consume(_CSTRING);
                  if current_scanner.token in postfixoperator_tokens then
                    begin
@@ -4171,7 +4205,7 @@ implementation
 
              _CCHAR :
                begin
-                 p1:=cordconstnode.create(ord(current_scanner.pattern[1]),cansichartype,true);
+                 p1:=cordconstnode.create(ord(current_scanner.pattern[1]),cansichartype,true,compiler);
                  consume(_CCHAR);
                  if current_scanner.token=_POINT then
                    begin
@@ -4183,9 +4217,9 @@ implementation
              _CWSTRING:
                begin
                  if getlengthwidestring(current_scanner.patternw)=1 then
-                   p1:=cordconstnode.create(ord(getcharwidestring(current_scanner.patternw,0)),cwidechartype,true)
+                   p1:=cordconstnode.create(ord(getcharwidestring(current_scanner.patternw,0)),cwidechartype,true,compiler)
                  else
-                   p1:=cstringconstnode.createunistr(current_scanner.patternw);
+                   p1:=cstringconstnode.createunistr(current_scanner.patternw,compiler);
                  consume(_CWSTRING);
                  if current_scanner.token in postfixoperator_tokens then
                    begin
@@ -4196,7 +4230,7 @@ implementation
 
              _CWCHAR:
                begin
-                 p1:=cordconstnode.create(ord(getcharwidestring(current_scanner.patternw,0)),cwidechartype,true);
+                 p1:=cordconstnode.create(ord(getcharwidestring(current_scanner.patternw,0)),cwidechartype,true,compiler);
                  consume(_CWCHAR);
                  if current_scanner.token=_POINT then
                    begin
@@ -4234,7 +4268,7 @@ implementation
                     postfixoperators(p1,again,getaddr);
                   end;
                  got_addrn:=false;
-                 p1:=caddrnode.create(p1);
+                 p1:=caddrnode.create(p1,compiler);
                  p1.fileinfo:=filepos;
                  if cs_typed_addresses in current_settings.localswitches then
                    include(taddrnode(p1).addrnodeflags,anf_typedaddr);
@@ -4276,7 +4310,7 @@ implementation
                begin
                  consume(_PLUS);
                  p1:=factor(false,[]);
-                 p1:=cunaryplusnode.create(p1);
+                 p1:=cunaryplusnode.create(p1,compiler);
                end;
 
              _MINUS :
@@ -4296,13 +4330,13 @@ implementation
                           if tbinarynode(p1).left.nodetype=ordconstn then
                             begin
                               tordconstnode(tbinarynode(p1).left).value:=-tordconstnode(tbinarynode(p1).left).value;
-                              p1:=cunaryminusnode.create(p1);
+                              p1:=cunaryminusnode.create(p1,compiler);
                             end
                           else if tbinarynode(p1).left.nodetype=realconstn then
                             begin
                               trealconstnode(tbinarynode(p1).left).value_real:=-trealconstnode(tbinarynode(p1).left).value_real;
                               trealconstnode(tbinarynode(p1).left).value_currency:=-trealconstnode(tbinarynode(p1).left).value_currency;
-                              p1:=cunaryminusnode.create(p1);
+                              p1:=cunaryminusnode.create(p1,compiler);
                             end
                           else
                             internalerror(20021029);
@@ -4315,7 +4349,7 @@ implementation
                      else
                        p1:=sub_expr(oppower,[],nil);
 
-                     p1:=cunaryminusnode.create(p1);
+                     p1:=cunaryminusnode.create(p1,compiler);
                    end;
                end;
 
@@ -4323,13 +4357,13 @@ implementation
                begin
                  consume(_OP_NOT);
                  p1:=factor(false,[]);
-                 p1:=cnotnode.create(p1);
+                 p1:=cnotnode.create(p1,compiler);
                end;
 
              _NIL :
                begin
                  consume(_NIL);
-                 p1:=cnilnode.create;
+                 p1:=cnilnode.create(compiler);
                  { It's really ugly code nil^, but delphi allows it }
                  if current_scanner.token in [_CARET,_POINT] then
                   begin
@@ -4350,7 +4384,7 @@ implementation
                  consume(_LKLAMMER);
                  p1:=factor(false,[]);
                  consume(_RKLAMMER);
-                 p1:=cinlinenode.create(in_objc_protocol_x,false,p1);
+                 p1:=cinlinenode.create(in_objc_protocol_x,false,p1,compiler);
                end;
 
              _PROCEDURE,
@@ -4375,14 +4409,14 @@ implementation
                      if (p1.nodetype<>errorn) and getaddr then
                        begin
                          p1.free;
-                         p1:=cerrornode.create;
+                         p1:=cerrornode.create(compiler);
                          MessagePos(filepos,parser_e_illegal_expression);
                        end;
                    end
                  else
                    begin
                      Message(parser_e_illegal_expression);
-                     p1:=cerrornode.create;
+                     p1:=cerrornode.create(compiler);
                      { recover }
                      consume(current_scanner.token);
                    end;
@@ -4391,7 +4425,7 @@ implementation
              else
                begin
                  Message(parser_e_illegal_expression);
-                 p1:=cerrornode.create;
+                 p1:=cerrornode.create(compiler);
                  { recover }
                  consume(current_scanner.token);
                end;
@@ -4404,7 +4438,7 @@ implementation
 {$ifdef EXTDEBUG}
            Comment(V_Warning,'factor: p1=nil');
 {$endif}
-           p1:=cerrornode.create;
+           p1:=cerrornode.create(compiler);
            updatefpos:=true;
          end;
 
@@ -4444,6 +4478,8 @@ implementation
                              Sub_Expr
 ****************************************************************************}
     function sub_expr(pred_level:Toperator_precedence;flags:texprflags;factornode:tnode):tnode;
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
     {Reads a subexpression while the operators are of the current precedence
      level, or any higher level. Replaces the old term, simple_expr and
      simpl2_expr.}
@@ -4628,7 +4664,7 @@ implementation
                       { class we need to call it as a class member }
                       if (gensym.owner.symtabletype in [ObjectSymtable,recordsymtable]) and
                           assigned(current_structdef) and (current_structdef<>parseddef) and is_owned_by(current_structdef,parseddef) then
-                        result:=cloadvmtaddrnode.create(ctypenode.create(parseddef));
+                        result:=cloadvmtaddrnode.create(ctypenode.create(parseddef,compiler),compiler);
                       { not srsymtable.symtabletype since that can be }
                       { withsymtable as well                          }
                       if (gensym.owner.symtabletype in [ObjectSymtable,recordsymtable]) then
@@ -4659,7 +4695,7 @@ implementation
             if assigned(result) then
               result.fileinfo:=filepos
             else
-              result:=cerrornode.create;
+              result:=cerrornode.create(compiler);
 
           spezcontext.free;
           spezcontext := nil;
@@ -4749,17 +4785,17 @@ implementation
                p2:=sub_expr(succ(pred_level),flags+[ef_accept_equal],nil);
              case oldt of
                _PLUS :
-                 p1:=caddnode.create(addn,p1,p2);
+                 p1:=caddnode.create(addn,p1,p2,compiler);
                _MINUS :
-                 p1:=caddnode.create(subn,p1,p2);
+                 p1:=caddnode.create(subn,p1,p2,compiler);
                _STAR :
-                 p1:=caddnode.create(muln,p1,p2);
+                 p1:=caddnode.create(muln,p1,p2,compiler);
                _SLASH :
-                 p1:=caddnode.create(slashn,p1,p2);
+                 p1:=caddnode.create(slashn,p1,p2,compiler);
                _EQ:
-                 p1:=caddnode.create(equaln,p1,p2);
+                 p1:=caddnode.create(equaln,p1,p2,compiler);
                _GT :
-                 p1:=caddnode.create(gtn,p1,p2);
+                 p1:=caddnode.create(gtn,p1,p2,compiler);
                _LT :
                  begin
                    if maybe_handle_specialization(p1,p2,filepos) then
@@ -4809,7 +4845,7 @@ implementation
                              begin
                                identifier_not_found(tspecializenode(p1).sym.realname);
                                p1.free;
-                               p1:=cerrornode.create;
+                               p1:=cerrornode.create(compiler);
                              end;
                          end;
 
@@ -4826,7 +4862,7 @@ implementation
                          begin
                            identifier_not_found(ttypenode(p1).typedef.typesym.RealName);
                            p1.Free;
-                           p1:=cerrornode.create;
+                           p1:=cerrornode.create(compiler);
                          end;
 
                        { c) don't have their hints checked }
@@ -4848,17 +4884,17 @@ implementation
                          end;
 
                        { create the comparison node for "<" }
-                       p1:=caddnode.create(ltn,p1,p2)
+                       p1:=caddnode.create(ltn,p1,p2,compiler)
                      end;
                  end;
                _GTE :
-                 p1:=caddnode.create(gten,p1,p2);
+                 p1:=caddnode.create(gten,p1,p2,compiler);
                _LTE :
-                 p1:=caddnode.create(lten,p1,p2);
+                 p1:=caddnode.create(lten,p1,p2,compiler);
                _SYMDIF :
-                 p1:=caddnode.create(symdifn,p1,p2);
+                 p1:=caddnode.create(symdifn,p1,p2,compiler);
                _STARSTAR :
-                 p1:=caddnode.create(starstarn,p1,p2);
+                 p1:=caddnode.create(starstarn,p1,p2,compiler);
                _OP_AS,
                _OP_IS :
                  begin
@@ -4891,49 +4927,49 @@ implementation
                    { now generate the "is" or "as" node }
                    case oldt of
                      _OP_AS:
-                       p1:=casnode.create(p1,p2);
+                       p1:=casnode.create(p1,p2,compiler);
                      _OP_IS:
-                       p1:=cisnode.create(p1,p2);
+                       p1:=cisnode.create(p1,p2,compiler);
                      else
                        internalerror(2019050528);
                    end;
                  end;
                _OP_IN :
-                 p1:=cinnode.create(p1,p2);
+                 p1:=cinnode.create(p1,p2,compiler);
                _OP_OR,
                _PIPE {macpas only} :
                  begin
-                   p1:=caddnode.create(orn,p1,p2);
+                   p1:=caddnode.create(orn,p1,p2,compiler);
                    if (oldt = _PIPE) then
                      include(taddnode(p1).addnodeflags,anf_short_bool);
                  end;
                _OP_AND,
                _AMPERSAND {macpas only} :
                  begin
-                   p1:=caddnode.create(andn,p1,p2);
+                   p1:=caddnode.create(andn,p1,p2,compiler);
                    if (oldt = _AMPERSAND) then
                      include(taddnode(p1).addnodeflags,anf_short_bool);
                  end;
                _OP_DIV :
-                 p1:=cmoddivnode.create(divn,p1,p2);
+                 p1:=cmoddivnode.create(divn,p1,p2,compiler);
                _OP_NOT :
-                 p1:=cnotnode.create(p1);
+                 p1:=cnotnode.create(p1,compiler);
                _OP_MOD :
                  begin
-                   p1:=cmoddivnode.create(modn,p1,p2);
+                   p1:=cmoddivnode.create(modn,p1,p2,compiler);
                    if m_isolike_mod in current_settings.modeswitches then
                      include(tmoddivnode(p1).moddivnodeflags,mdnf_isomod);
                  end;
                _OP_SHL :
-                 p1:=cshlshrnode.create(shln,p1,p2);
+                 p1:=cshlshrnode.create(shln,p1,p2,compiler);
                _OP_SHR :
-                 p1:=cshlshrnode.create(shrn,p1,p2);
+                 p1:=cshlshrnode.create(shrn,p1,p2,compiler);
                _OP_XOR :
-                 p1:=caddnode.create(xorn,p1,p2);
+                 p1:=caddnode.create(xorn,p1,p2,compiler);
                _ASSIGNMENT :
-                 p1:=cassignmentnode.create(p1,p2);
+                 p1:=cassignmentnode.create(p1,p2,compiler);
                _NE :
-                 p1:=caddnode.create(unequaln,p1,p2);
+                 p1:=caddnode.create(unequaln,p1,p2,compiler);
                else
                  internalerror(2019050529);
              end;
@@ -4984,6 +5020,8 @@ implementation
 
 
     function expr(dotypecheck : boolean) : tnode;
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
 
       var
          p1,p2 : tnode;
@@ -5007,7 +5045,7 @@ implementation
              begin
                 consume(_POINTPOINT);
                 p2:=sub_expr(opcompare,[ef_accept_equal],nil);
-                p1:=crangenode.create(p1,p2);
+                p1:=crangenode.create(p1,p2,compiler);
              end;
            _ASSIGNMENT :
              begin
@@ -5024,7 +5062,7 @@ implementation
                   handle_funcref(getfuncrefdef,p2);
                 getprocvardef:=nil;
                 getfuncrefdef:=nil;
-                p1:=cassignmentnode.create(p1,p2);
+                p1:=cassignmentnode.create(p1,p2,compiler);
              end;
            _PLUSASN :
              begin

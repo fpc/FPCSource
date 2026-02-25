@@ -66,6 +66,8 @@ implementation
 
 
     function if_statement : tnode;
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       var
          ex,if_a,else_a : tnode;
       begin
@@ -81,11 +83,13 @@ implementation
             else_a:=statement
          else
            else_a:=nil;
-         result:=cifnode.create(ex,if_a,else_a);
+         result:=cifnode.create(ex,if_a,else_a,compiler);
       end;
 
     { creates a block (list) of statements, til the next END token }
     function statements_til_end : tnode;
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
 
       var
          first,last : tstatementnode;
@@ -97,12 +101,12 @@ implementation
            begin
               if first=nil then
                 begin
-                   last:=cstatementnode.create(statement,nil);
+                   last:=cstatementnode.create(statement,nil,compiler);
                    first:=last;
                 end
               else
                 begin
-                   last.right:=cstatementnode.create(statement,nil);
+                   last.right:=cstatementnode.create(statement,nil,compiler);
                    last:=tstatementnode(last.right);
                 end;
               if not try_to_consume(_SEMICOLON) then
@@ -110,13 +114,15 @@ implementation
               consume_emptystats;
            end;
          consume(_END);
-         statements_til_end:=cblocknode.create(first);
+         statements_til_end:=cblocknode.create(first,compiler);
          if assigned(first) then
            statements_til_end.fileinfo:=first.fileinfo;
       end;
 
 
     function case_statement : tnode;
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       var
          casedef : tdef;
          caseexpr,p : tnode;
@@ -133,7 +139,7 @@ implementation
          { variants must be accepted, but first they must be converted to integer }
          if caseexpr.resultdef.typ=variantdef then
            begin
-             caseexpr:=ctypeconvnode.create_internal(caseexpr,sinttype);
+             caseexpr:=ctypeconvnode.create_internal(caseexpr,sinttype,compiler);
              do_typecheckpass(caseexpr);
            end;
          set_varstate(caseexpr,vs_read,[vsf_must_be_valid]);
@@ -151,12 +157,12 @@ implementation
             CGMessage(type_e_ordinal_or_string_expr_expected);
             { create a correct tree }
             caseexpr.free;
-            caseexpr:=cordconstnode.create(0,u32inttype,false);
+            caseexpr:=cordconstnode.create(0,u32inttype,false,compiler);
             { set error flag so no rangechecks are done }
             casedeferror:=true;
           end;
          { Create casenode }
-         casenode:=ccasenode.create(caseexpr);
+         casenode:=ccasenode.create(caseexpr,compiler);
          consume(_OF);
          { Parse all case blocks }
          blockid:=0;
@@ -168,14 +174,14 @@ implementation
                begin
                   if (p.nodetype=rangen) then
                     begin
-                       trangenode(p).left:=ctypeconvnode.create(trangenode(p).left,cwidechartype);
-                       trangenode(p).right:=ctypeconvnode.create(trangenode(p).right,cwidechartype);
+                       trangenode(p).left:=ctypeconvnode.create(trangenode(p).left,cwidechartype,compiler);
+                       trangenode(p).right:=ctypeconvnode.create(trangenode(p).right,cwidechartype,compiler);
                        do_typecheckpass(trangenode(p).left);
                        do_typecheckpass(trangenode(p).right);
                     end
                   else
                     begin
-                       p:=ctypeconvnode.create(p,cwidechartype);
+                       p:=ctypeconvnode.create(p,cwidechartype,compiler);
                        do_typecheckpass(p);
                     end;
                end
@@ -185,13 +191,13 @@ implementation
                    begin
                       if (p.nodetype=ordconstn) then
                         begin
-                           p:=ctypeconvnode.create(p,cansichartype);
+                           p:=ctypeconvnode.create(p,cansichartype,compiler);
                            do_typecheckpass(p);
                         end
                       else if (p.nodetype=rangen) then
                         begin
-                           trangenode(p).left:=ctypeconvnode.create(trangenode(p).left,cansichartype);
-                           trangenode(p).right:=ctypeconvnode.create(trangenode(p).right,cansichartype);
+                           trangenode(p).left:=ctypeconvnode.create(trangenode(p).left,cansichartype,compiler);
+                           trangenode(p).right:=ctypeconvnode.create(trangenode(p).right,cansichartype,compiler);
                            do_typecheckpass(trangenode(p).left);
                            do_typecheckpass(trangenode(p).right);
                         end;
@@ -296,6 +302,8 @@ implementation
 
 
     function repeat_statement : tnode;
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
 
       var
          first,last,p_e : tnode;
@@ -309,12 +317,12 @@ implementation
            begin
               if first=nil then
                 begin
-                   last:=cstatementnode.create(statement,nil);
+                   last:=cstatementnode.create(statement,nil,compiler);
                    first:=last;
                 end
               else
                 begin
-                   tstatementnode(last).right:=cstatementnode.create(statement,nil);
+                   tstatementnode(last).right:=cstatementnode.create(statement,nil,compiler);
                    last:=tstatementnode(last).right;
                 end;
               if not try_to_consume(_SEMICOLON) then
@@ -323,13 +331,15 @@ implementation
            end;
          consume(_UNTIL);
 
-         first:=cblocknode.create(first);
+         first:=cblocknode.create(first,compiler);
          p_e:=comp_expr([ef_accept_equal]);
-         result:=cwhilerepeatnode.create(p_e,first,false,true);
+         result:=cwhilerepeatnode.create(p_e,first,false,true,compiler);
       end;
 
 
     function while_statement : tnode;
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
 
       var
          p_e,p_a : tnode;
@@ -339,7 +349,7 @@ implementation
          p_e:=comp_expr([ef_accept_equal]);
          consume(_DO);
          p_a:=statement;
-         result:=cwhilerepeatnode.create(p_e,p_a,true,false);
+         result:=cwhilerepeatnode.create(p_e,p_a,true,false,compiler);
       end;
 
     { a helper function which is used both by "with" and "for-in loop" nodes }
@@ -362,6 +372,8 @@ implementation
       end;
 
     function for_statement : tnode;
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
 
         procedure check_range(hp:tnode; fordef: tdef);
           begin
@@ -513,7 +525,7 @@ implementation
              if assigned(loopvarsym) then
                exclude(loopvarsym.varoptions,vo_is_loop_counter);
 
-             result:=cfornode.create(hloopvar,hfrom,hto,hblock,backward);
+             result:=cfornode.create(hloopvar,hfrom,hto,hblock,backward,compiler);
 
              { only in tp and mac pascal mode, we care about the value of the loop counter on loop exit
 
@@ -571,12 +583,14 @@ implementation
          else
            begin
              consume(_ASSIGNMENT); // fail
-             result:=cerrornode.create;
+             result:=cerrornode.create(compiler);
            end;
       end;
 
 
     function _with_statement : tnode;
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
 
       var
          p   : tnode;
@@ -668,12 +682,13 @@ implementation
                 { since we may need its address later on                 }
                 if not valid_for_addr(p,false) then
                   begin
-                    calltempnode:=ctempcreatenode.create(p.resultdef,p.resultdef.size,tt_persistent,true);
+                    calltempnode:=ctempcreatenode.create(p.resultdef,p.resultdef.size,tt_persistent,true,compiler);
                     addstatement(newstatement,calltempnode);
                     addstatement(newstatement,cassignmentnode.create(
-                        ctemprefnode.create(calltempnode),
-                        p));
-                    p:=ctemprefnode.create(calltempnode);
+                        ctemprefnode.create(calltempnode,compiler),
+                        p,
+                        compiler));
+                    p:=ctemprefnode.create(calltempnode,compiler);
                     typecheckpass(p);
                   end;
                 { several object types have implicit dereferencing }
@@ -693,24 +708,24 @@ implementation
                 else
                   hdef:=cpointerdef.create(p.resultdef);
                 { load address of the value in a temp }
-                tempnode:=ctempcreatenode.create_withnode(hdef,sizeof(pint),tt_persistent,true,p);
+                tempnode:=ctempcreatenode.create_withnode(hdef,sizeof(pint),tt_persistent,true,p,compiler);
                 typecheckpass(tnode(tempnode));
                 valuenode:=p;
-                refnode:=ctemprefnode.create(tempnode);
+                refnode:=ctemprefnode.create(tempnode,compiler);
                 fillchar(refnode.fileinfo,sizeof(tfileposinfo),0);
                 { add address call for valuenode and deref for refnode if this
                   is not done implicitly }
                 if not hasimplicitderef then
                   begin
-                    valuenode:=caddrnode.create_internal_nomark(valuenode);
+                    valuenode:=caddrnode.create_internal_nomark(valuenode,compiler);
                     include(taddrnode(valuenode).addrnodeflags,anf_typedaddr);
-                    refnode:=cderefnode.create(refnode);
+                    refnode:=cderefnode.create(refnode,compiler);
                     fillchar(refnode.fileinfo,sizeof(tfileposinfo),0);
                   end;
                 addstatement(newstatement,tempnode);
                 addstatement(newstatement,cassignmentnode.create(
-                    ctemprefnode.create(tempnode),
-                    valuenode));
+                    ctemprefnode.create(tempnode,compiler),
+                    valuenode,compiler));
                 typecheckpass(refnode);
               end;
             { Note: the symtable of the helper is pushed after the following
@@ -788,7 +803,7 @@ implementation
                 if current_scanner.token<>_SEMICOLON then
                   p:=statement
                 else
-                  p:=cnothingnode.create;
+                  p:=cnothingnode.create(compiler);
               end;
 
             { remove symtables in reverse order from the stack }
@@ -802,9 +817,9 @@ implementation
              begin
                addstatement(newstatement,p);
                if assigned(tempnode) then
-                 addstatement(newstatement,ctempdeletenode.create(tempnode));
+                 addstatement(newstatement,ctempdeletenode.create(tempnode,compiler));
                if assigned(calltempnode) then
-                 addstatement(newstatement,ctempdeletenode.create(calltempnode));
+                 addstatement(newstatement,ctempdeletenode.create(calltempnode,compiler));
                p:=newblock;
              end;
             result:=p;
@@ -827,7 +842,7 @@ implementation
                if current_scanner.token<>_SEMICOLON then
                 statement;
              end;
-            result:=cerrornode.create;
+            result:=cerrornode.create(compiler);
           end;
       end;
 
@@ -840,6 +855,8 @@ implementation
 
 
     function raise_statement : tnode;
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       var
          p,pobj,paddr,pframe : tnode;
       begin
@@ -865,12 +882,14 @@ implementation
            end;
          if (po_noreturn in current_procinfo.procdef.procoptions) and (exceptblockcounter=0) then
            Message(parser_e_raise_with_noreturn_not_allowed);
-         p:=craisenode.create(pobj,paddr,pframe);
+         p:=craisenode.create(pobj,paddr,pframe,compiler);
          raise_statement:=p;
       end;
 
 
     function try_statement : tnode;
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
 
       procedure check_type_valid(var def: tdef);
         begin
@@ -917,26 +936,26 @@ implementation
            begin
               if first=nil then
                 begin
-                   last:=cstatementnode.create(statement,nil);
+                   last:=cstatementnode.create(statement,nil,compiler);
                    first:=last;
                 end
               else
                 begin
-                   tstatementnode(last).right:=cstatementnode.create(statement,nil);
+                   tstatementnode(last).right:=cstatementnode.create(statement,nil,compiler);
                    last:=tstatementnode(last).right;
                 end;
               if not try_to_consume(_SEMICOLON) then
                 break;
               consume_emptystats;
            end;
-         p_try_block:=cblocknode.create(first);
+         p_try_block:=cblocknode.create(first,compiler);
 
          if try_to_consume(_FINALLY) then
            begin
               inc(exceptblockcounter);
               current_exceptblock := exceptblockcounter;
               p_finally_block:=statements_til_end;
-              try_statement:=ctryfinallynode.create(p_try_block,p_finally_block);
+              try_statement:=ctryfinallynode.create(p_try_block,p_finally_block,compiler);
               try_statement.fileinfo:=filepostry;
            end
          else
@@ -1008,11 +1027,11 @@ implementation
                      else
                        consume(_ID);
                      consume(_DO);
-                     hp:=connode.create(nil,statement);
+                     hp:=connode.create(nil,statement,compiler);
                      if ot.typ=errordef then
                        begin
                           hp.free;
-                          hp:=cerrornode.create;
+                          hp:=cerrornode.create(compiler);
                        end;
                      if p_specific=nil then
                        begin
@@ -1060,7 +1079,7 @@ implementation
                    p_default:=statements_til_end;
                 end;
 
-              try_statement:=ctryexceptnode.create(p_try_block,p_specific,p_default);
+              try_statement:=ctryexceptnode.create(p_try_block,p_specific,p_default,compiler);
            end;
          block_type:=old_block_type;
          current_exceptblock := oldcurrent_exceptblock;
@@ -1068,6 +1087,8 @@ implementation
 
 
     function _asm_statement : tnode;
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       var
         asmstat : tasmnode;
         reg     : tregister;
@@ -1093,7 +1114,7 @@ implementation
                  hl.insert(tai_marker.create(mark_asmblockstart));
                  hl.concat(tai_marker.create(mark_asmblockend));
                end;
-             asmstat:=casmnode.create(hl);
+             asmstat:=casmnode.create(hl,compiler);
              asmstat.fileinfo:=entrypos;
              asmreader.free;
              asmreader := nil;
@@ -1168,6 +1189,8 @@ implementation
 
     { Old Turbo Pascal INLINE(data/data/...) }
     function tp_inline_statement : tnode;
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       var
         actype : taiconst_type;
 
@@ -1206,7 +1229,7 @@ implementation
         consume(_INLINE);
         consume(_LKLAMMER);
         hl:=TAsmList.create;
-        asmstat:=casmnode.create(hl);
+        asmstat:=casmnode.create(hl,compiler);
         asmstat.fileinfo:=current_filepos;
         tokenbuf:=tdynamicarray.Create(16);
         cur_line:=0;
@@ -1334,6 +1357,8 @@ implementation
 
 
     function statement : tnode;
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       var
          p,
          astatement,
@@ -1354,7 +1379,7 @@ implementation
                 if (current_scanner.token<>_INTCONST) and (current_scanner.token<>_ID) then
                   begin
                     Message(sym_e_label_not_found);
-                    code:=cerrornode.create;
+                    code:=cerrornode.create(compiler);
                   end
                 else
                   begin
@@ -1383,7 +1408,7 @@ implementation
                      if srsym.typ<>labelsym then
                        begin
                           Message(sym_e_id_is_no_label_id);
-                          code:=cerrornode.create;
+                          code:=cerrornode.create(compiler);
                        end
                      else
                        begin
@@ -1397,7 +1422,7 @@ implementation
                              if is_nested_pd(current_procinfo.procdef) then
                                current_procinfo.set_needs_parentfp(srsym.owner.symtablelevel);
                            end;
-                         code:=cgotonode.create(tlabelsym(srsym));
+                         code:=cgotonode.create(tlabelsym(srsym),compiler);
                          tgotonode(code).labelsym:=tlabelsym(srsym);
                          { set flag that this label is used }
                          tlabelsym(srsym).used:=true;
@@ -1430,7 +1455,7 @@ implementation
            _ELSE,
            _UNTIL,
            _END:
-             code:=cnothingnode.create;
+             code:=cnothingnode.create(compiler);
            _FAIL :
              begin
                 if (current_procinfo.procdef.proctypeoption<>potype_constructor) then
@@ -1499,13 +1524,13 @@ implementation
                      end;
 
                    tlabelsym(srsym).defined:=true;
-                   p:=clabelnode.create(nil,tlabelsym(srsym));
+                   p:=clabelnode.create(nil,tlabelsym(srsym),compiler);
                    tlabelsym(srsym).code:=p;
                  end
                 else
                  begin
                    Message1(sym_e_label_used_and_not_defined,s);
-                   p:=cnothingnode.create;
+                   p:=cnothingnode.create(compiler);
                  end;
               end;
 
@@ -1515,7 +1540,7 @@ implementation
                    begin
                      astatement:=statement();
                      typecheckpass(astatement);
-                     p:=cblocknode.create(cstatementnode.create(p,cstatementnode.create(astatement,nil)));
+                     p:=cblocknode.create(cstatementnode.create(p,cstatementnode.create(astatement,nil,compiler),compiler),compiler);
                      Include(TBlockNode(p).blocknodeflags, bnf_strippable);
                    end;
                end
@@ -1582,6 +1607,8 @@ implementation
 
 
     function statement_block(starttoken : ttoken) : tnode;
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
 
       var
          first,last : tnode;
@@ -1597,12 +1624,12 @@ implementation
            begin
               if first=nil then
                 begin
-                   last:=cstatementnode.create(statement,nil);
+                   last:=cstatementnode.create(statement,nil,compiler);
                    first:=last;
                 end
               else
                 begin
-                   tstatementnode(last).right:=cstatementnode.create(statement,nil);
+                   tstatementnode(last).right:=cstatementnode.create(statement,nil,compiler);
                    last:=tstatementnode(last).right;
                 end;
               if ((current_scanner.token=_END) or (current_scanner.token=_FINALIZATION)) then
@@ -1626,7 +1653,7 @@ implementation
          if (starttoken<>_INITIALIZATION) or (current_scanner.token<>_FINALIZATION) then
            consume(_END);
 
-         last:=cblocknode.create(first);
+         last:=cblocknode.create(first,compiler);
          last.fileinfo:=filepos;
          statement_block:=last;
       end;

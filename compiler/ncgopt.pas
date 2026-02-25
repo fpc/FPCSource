@@ -60,7 +60,7 @@ begin
   { update the curmaxlen field (before converting to a string!) }
   updatecurmaxlen;
   if not is_shortstring(left.resultdef) then
-    inserttypeconv(left,cshortstringtype);
+    inserttypeconv(left,cshortstringtype,compiler);
   resultdef:=left.resultdef;
 end;
 

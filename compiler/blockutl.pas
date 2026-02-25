@@ -270,41 +270,43 @@ implementation
 
   { compose an on-stack block literal for a "procedure of object" }
   function get_pascal_method_literal(blockliteraldef: tdef; blockisasym: tstaticvarsym; blockflags: longint; procvarnode: tnode; invokepd: tprocdef; orgpv: tprocvardef; descriptor: tstaticvarsym): tnode;
+    const
+      compiler = nil;  { TODO: fix node compiler reference!!! }
     var
       statement: tstatementnode;
       literaltemp: ttempcreatenode;
     begin
       result:=internalstatements(statement);
       { create new block literal structure }
-      literaltemp:=ctempcreatenode.create(blockliteraldef,blockliteraldef.size,tt_persistent,false);
+      literaltemp:=ctempcreatenode.create(blockliteraldef,blockliteraldef.size,tt_persistent,false,compiler);
       addstatement(statement,literaltemp);
       { temp.base.isa:=@blockisasym }
       addstatement(statement,cassignmentnode.create(
-        genloadfield(genloadfield(ctemprefnode.create(literaltemp),'BASE'),'ISA'),
-        caddrnode.create(cloadnode.create(blockisasym,blockisasym.owner))));
+        genloadfield(genloadfield(ctemprefnode.create(literaltemp,compiler),'BASE'),'ISA'),
+        caddrnode.create(cloadnode.create(blockisasym,blockisasym.owner,compiler),compiler),compiler));
       { temp.base.flags:=blockflags }
       addstatement(statement,cassignmentnode.create(
-        genloadfield(genloadfield(ctemprefnode.create(literaltemp),'BASE'),'FLAGS'),
-        genintconstnode(blockflags)));
+        genloadfield(genloadfield(ctemprefnode.create(literaltemp,compiler),'BASE'),'FLAGS'),
+        genintconstnode(blockflags,compiler),compiler));
       { temp.base.reserved:=0 }
       addstatement(statement,cassignmentnode.create(
-        genloadfield(genloadfield(ctemprefnode.create(literaltemp),'BASE'),'RESERVED'),
-        genintconstnode(0)));
+        genloadfield(genloadfield(ctemprefnode.create(literaltemp,compiler),'BASE'),'RESERVED'),
+        genintconstnode(0,compiler),compiler));
       { temp.base.invoke:=tmethod(@invokepd) }
       addstatement(statement,cassignmentnode.create(
-        genloadfield(genloadfield(ctemprefnode.create(literaltemp),'BASE'),'INVOKE'),
+        genloadfield(genloadfield(ctemprefnode.create(literaltemp,compiler),'BASE'),'INVOKE'),
         ctypeconvnode.create_proc_to_procvar(
-          cloadnode.create_procvar(invokepd.procsym,invokepd,invokepd.owner))));
+          cloadnode.create_procvar(invokepd.procsym,invokepd,invokepd.owner,compiler),compiler),compiler));
       { temp.base.descriptor:=@descriptor }
       addstatement(statement,cassignmentnode.create(
-        genloadfield(genloadfield(ctemprefnode.create(literaltemp),'BASE'),'DESCRIPTOR'),
-        caddrnode.create(cloadnode.create(descriptor,descriptor.owner))));
+        genloadfield(genloadfield(ctemprefnode.create(literaltemp,compiler),'BASE'),'DESCRIPTOR'),
+        caddrnode.create(cloadnode.create(descriptor,descriptor.owner,compiler),compiler),compiler));
       { temp.pv:=tmethod(@orgpd) }
       addstatement(statement,cassignmentnode.create(
-        ctypeconvnode.create_explicit(genloadfield(ctemprefnode.create(literaltemp),'PV'),orgpv),
-          procvarnode.getcopy));
+        ctypeconvnode.create_explicit(genloadfield(ctemprefnode.create(literaltemp,compiler),'PV'),orgpv,compiler),
+          procvarnode.getcopy,compiler));
       { and return the address of the temp }
-      addstatement(statement,caddrnode.create(ctemprefnode.create(literaltemp)));
+      addstatement(statement,caddrnode.create(ctemprefnode.create(literaltemp,compiler),compiler));
       { typecheck this now, because the current source may be written in TP/
         Delphi/MacPas mode and the above node tree has been constructed for
         ObjFPC mode, which has been set by replace_scanner (in Delphi, the
@@ -314,6 +316,8 @@ implementation
 
 
   function generate_block_for_procaddr(procloadnode: tloadnode): tnode;
+    const
+      compiler = nil;  { TODO: fix node compiler reference!!! }
     var
       procvarnode: tnode;
       { procvardef representing the original function we want to invoke }
@@ -347,7 +351,7 @@ implementation
       { def representing the original function }
       orgpd:=tprocdef(procloadnode.resultdef);
       { def representing the corresponding procvar type }
-      procvarnode:=ctypeconvnode.create_proc_to_procvar(procloadnode.getcopy);
+      procvarnode:=ctypeconvnode.create_proc_to_procvar(procloadnode.getcopy,compiler);
       typecheckpass(procvarnode);
       orgpv:=tprocvardef(procvarnode.resultdef);
       { get blockdef for this kind of procdef }
@@ -365,7 +369,7 @@ implementation
         begin
           blockliteralsym:=get_global_proc_literal_sym(blockliteraldef,blockisasym,blockflags,invokepd,descriptor);
           { result: address of the block literal }
-          result:=caddrnode.create(cloadnode.create(blockliteralsym,blockliteralsym.owner));
+          result:=caddrnode.create(cloadnode.create(blockliteralsym,blockliteralsym.owner,compiler),compiler);
         end
       else
         begin

@@ -734,6 +734,8 @@ implementation
 
 
     function isunaryoverloaded(var t : tnode;ocf:toverload_check_flags) : boolean;
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       var
         ld      : tdef;
         optoken : ttoken;
@@ -786,7 +788,7 @@ implementation
             if not (ocf_check_only in ocf) then
               begin
                 CGMessage(parser_e_operator_not_overloaded);
-                t:=cnothingnode.create;
+                t:=cnothingnode.create(compiler);
               end;
             exit;
           end;
@@ -797,7 +799,7 @@ implementation
           ppn:=tcallparanode(tinlinenode(t).left.getcopy)
         else
           begin
-            ppn:=ccallparanode.create(tunarynode(t).left.getcopy,nil);
+            ppn:=ccallparanode.create(tunarynode(t).left.getcopy,nil,compiler);
             ppn.get_paratype;
           end;
         candidates.init_operator(optoken,ppn);
@@ -811,7 +813,7 @@ implementation
             if not (ocf_check_only in ocf) then
               begin
                 CGMessage2(parser_e_operator_not_overloaded_2,ld.typename,arraytokeninfo[optoken].str);
-                t:=cnothingnode.create;
+                t:=cnothingnode.create(compiler);
               end;
             exit;
           end;
@@ -833,7 +835,7 @@ implementation
             if not (ocf_check_only in ocf) then
               begin
                 CGMessage2(parser_e_operator_not_overloaded_2,ld.typename,arraytokeninfo[optoken].str);
-                t:=cnothingnode.create;
+                t:=cnothingnode.create(compiler);
               end;
             exit;
           end;
@@ -864,7 +866,7 @@ implementation
 
         { the nil as symtable signs firstcalln that this is
           an overloaded operator }
-        t:=ccallnode.create(ppn,Tprocsym(operpd.procsym),nil,nil,[],nil);
+        t:=ccallnode.create(ppn,Tprocsym(operpd.procsym),nil,nil,[],nil,compiler);
 
         { we already know the procdef to use, so it can
           skip the overload choosing in callnode.pass_typecheck }
@@ -873,6 +875,8 @@ implementation
 
 
     function isbinaryoverloaded(var t : tnode;ocf:toverload_check_flags) : boolean;
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       var
         rd,ld   : tdef;
         optoken : ttoken;
@@ -886,7 +890,7 @@ implementation
             candidates : tcallcandidates;
           begin
             { generate parameter nodes }
-            ppn:=ccallparanode.create(tbinarynode(t).right.getcopy,ccallparanode.create(tbinarynode(t).left.getcopy,nil));
+            ppn:=ccallparanode.create(tbinarynode(t).right.getcopy,ccallparanode.create(tbinarynode(t).left.getcopy,nil,compiler),compiler);
             ppn.get_paratype;
             candidates.init_operator(optoken,ppn);
 
@@ -988,7 +992,7 @@ implementation
             if not (ocf_check_only in ocf) then
               begin
                 CGMessage(parser_e_operator_not_overloaded);
-                t:=cnothingnode.create;
+                t:=cnothingnode.create(compiler);
               end;
             exit;
           end;
@@ -1010,7 +1014,7 @@ implementation
             ppn.free;
             ppn := nil;
             if not (ocf_check_only in ocf) then
-              t:=cnothingnode.create;
+              t:=cnothingnode.create(compiler);
             exit;
           end;
 
@@ -1026,7 +1030,7 @@ implementation
 
         { the nil as symtable signs firstcalln that this is
           an overloaded operator }
-        ht:=ccallnode.create(ppn,Tprocsym(operpd.procsym),nil,nil,[],nil);
+        ht:=ccallnode.create(ppn,Tprocsym(operpd.procsym),nil,nil,[],nil,compiler);
 
         { we already know the procdef to use, so it can
           skip the overload choosing in callnode.pass_typecheck }
@@ -1035,7 +1039,7 @@ implementation
         { if we found "=" operator for "<>" expression then use it
           together with "not" }
         if (t.nodetype=unequaln) and (optoken=_EQ) then
-          ht:=cnotnode.create(ht);
+          ht:=cnotnode.create(ht,compiler);
         t:=ht;
       end;
 

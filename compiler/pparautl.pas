@@ -1258,6 +1258,8 @@ implementation
 
 
     procedure build_parentfpstruct(pd: tprocdef);
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       var
         nestedvars: tsym;
         nestedvarsst: tsymtable;
@@ -1295,7 +1297,7 @@ implementation
             include(nestedvars.symoptions,sp_internal);
             pd.localst.insertsym(nestedvars);
             pd.parentfpstruct:=nestedvars;
-            pd.parentfpinitblock:=cblocknode.create(nil);
+            pd.parentfpinitblock:=cblocknode.create(nil,compiler);
           end;
         symtablestack.free;
         pd.parentfpstructptrtype:=pnestedvarsdef;

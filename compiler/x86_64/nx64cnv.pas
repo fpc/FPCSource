@@ -94,7 +94,7 @@ implementation
            (torddef(left.resultdef).ordtype=u32bit) and
            not(FPUX86_HAS_AVX512F in fpu_capabilities[current_settings.fputype]) then
           begin
-            inserttypeconv(left,s64inttype);
+            inserttypeconv(left,s64inttype, compiler);
             firstpass(left);
           end
         else
