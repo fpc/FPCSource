@@ -163,6 +163,7 @@ type
   TCompiler = class(TCompilerBase)
   private
     FTaskHandler: TTask_handler;
+    FParser: TParser;
 
     CompilerInitedAfterArgs,
     CompilerInited : boolean;
@@ -171,6 +172,8 @@ type
     procedure DoneCompiler;
   public
     function Compile(const cmd:TCmdStr):longint;
+
+    property Parser: TParser read FParser;
   end;
 
 function Compile(const cmd:TCmdStr):longint;
@@ -199,7 +202,7 @@ begin
   if CompilerInitedAfterArgs then
    begin
      CompilerInitedAfterArgs:=false;
-     DoneParser;
+     FreeAndNil(FParser);
      DoneImport;
      DoneExport;
      DoneLinker;
@@ -244,7 +247,7 @@ begin
 { read the arguments }
   read_arguments(cmd);
 { inits which depend on arguments }
-  InitParser;
+  FParser:=TParser.Create;
   InitImport;
   InitExport;
   InitLinker;

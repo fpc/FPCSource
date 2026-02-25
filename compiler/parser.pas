@@ -27,14 +27,24 @@ interface
 
 uses fmodule;
 
+type
+
+  { TParser }
+
+  TParser = class
+  private
+    procedure initparser;
+    procedure doneparser;
+  public
+    constructor Create;
+    destructor Destroy; override;
 {$ifdef PREPROCWRITE}
     procedure preprocess(const filename:string);
 {$endif PREPROCWRITE}
     function compile(const filename:string) : boolean;
     function compile_module(module : tmodule) : boolean;
     procedure parsing_done(module : tmodule);
-    procedure initparser;
-    procedure doneparser;
+  end;
 
 implementation
 
@@ -55,7 +65,7 @@ implementation
       pbase,psystem,pmodules,psub,ncgrtti,
       cpuinfo,procinfo;
 
-    procedure parsing_done(module: tmodule);
+    procedure TParser.parsing_done(module: tmodule);
 
     var
        hp,hp2 :  tmodule;
@@ -122,7 +132,7 @@ implementation
 
     end;
 
-    procedure initparser;
+    procedure TParser.initparser;
       begin
          { Current compiled module/proc }
          set_current_module(nil);
@@ -257,7 +267,7 @@ implementation
       end;
 
 
-    procedure doneparser;
+    procedure TParser.doneparser;
       begin
          { Reset current compiling info, so destroy routines can't
            reference the data that might already be destroyed }
@@ -313,10 +323,21 @@ implementation
       end;
 
 
+    constructor TParser.Create;
+      begin
+        InitParser;
+      end;
+
+
+    destructor TParser.Destroy;
+      begin
+        DoneParser;
+        inherited;
+      end;
 
 
 {$ifdef PREPROCWRITE}
-    procedure preprocess(const filename:string);
+    procedure TParser.preprocess(const filename:string);
       var
         i : longint;
       begin
@@ -400,7 +421,7 @@ implementation
                              Compile a source file
 *****************************************************************************}
 
-    function compile(const filename:string) : boolean;
+    function TParser.compile(const filename:string) : boolean;
 
     var
       m : TModule;
@@ -411,7 +432,7 @@ implementation
       result:=compile_module(m);
     end;
 
-    function compile_module(module : tmodule) : boolean;
+    function TParser.compile_module(module : tmodule) : boolean;
 
       var
          hp,hp2 : tmodule;

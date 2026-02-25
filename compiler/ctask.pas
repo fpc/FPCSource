@@ -105,7 +105,7 @@ implementation
 
 uses
   verbose, fppu, sysutils,
-  scanner, parser, pmodules, symbase;
+  scanner, parser, pmodules, symbase, compiler;
 
 function InitTaskHandler(acompiler: TCompilerBase): TTask_handler;
 begin
@@ -287,7 +287,7 @@ begin
   end;
   {$ENDIF}
   case m.state of
-    ms_registered : parser.compile_module(m);
+    ms_registered : tcompiler(compiler).parser.compile_module(m);
     {$IFNDEF DisableCTaskPPU}
     ms_load: (m as tppumodule).continueloadppu;
     {$ENDIF}
@@ -298,7 +298,7 @@ begin
             macrosymtablestack.clear;
             FreeAndNil(macrosymtablestack);
           end;
-        parser.compile_module(m);
+        tcompiler(compiler).parser.compile_module(m);
       end;
     ms_compiled : if (not m.is_initial) or m.is_unit then
                     (m as tppumodule).post_load_or_compile(m,m.compilecount>1);
@@ -316,7 +316,7 @@ begin
     { program must wait for all units to finish }
   else if m.state=ms_compiled then
     begin
-    parsing_done(m);
+    tcompiler(compiler).parser.parsing_done(m);
     if m.is_initial and not m.is_unit then
       m.state:=ms_processed;
     end;
