@@ -28,7 +28,7 @@ unit ctask;
 interface
 
 uses
-  finput, fmodule, cclasses, globtype, globstat;
+  compilerbase, finput, fmodule, cclasses, globtype, globstat;
 
 type
   { ttask_list
@@ -62,6 +62,7 @@ type
 
   ttask_handler = class
   private
+    compiler : TCompilerBase;
     list : ttasklinkedlist;
     hash : TFPHashList;
     main : tmodule;
@@ -69,7 +70,7 @@ type
     procedure check_hash;
     procedure renamemodule(m: tmodule; const oldname: TSymStr);
   public
-    constructor create;
+    constructor create(acompiler: TCompilerBase);
     destructor destroy; override;
     { Find the task for module m }
     function findtask(m : tmodule) : ttask_list;
@@ -97,7 +98,7 @@ type
 var
   task_handler : TTask_handler;
 
-function InitTaskHandler: TTask_handler;
+function InitTaskHandler(acompiler: TCompilerBase): TTask_handler;
 procedure DoneTaskHandler(var th: TTask_handler);
 
 implementation
@@ -106,9 +107,9 @@ uses
   verbose, fppu, sysutils,
   scanner, parser, pmodules, symbase;
 
-function InitTaskHandler: TTask_handler;
+function InitTaskHandler(acompiler: TCompilerBase): TTask_handler;
 begin
-  result:=ttask_handler.create;
+  result:=ttask_handler.create(acompiler);
   task_handler:=result;
 end;
 
@@ -173,8 +174,9 @@ end;
 
 { ttask_handler }
 
-constructor ttask_handler.create;
+constructor ttask_handler.create(acompiler: TCompilerBase);
 begin
+  compiler:=acompiler;
   list:=ttasklinkedlist.Create;
   hash:=TFPHashList.Create;
   {$IFNDEF DisableCTaskPPU}

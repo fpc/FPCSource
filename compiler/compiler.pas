@@ -251,7 +251,7 @@ begin
   InitAsm;
   InitWpo;
 
-  FTaskHandler:=InitTaskHandler;
+  FTaskHandler:=InitTaskHandler(self);
   CompilerInitedAfterArgs:=true;
 end;
 
