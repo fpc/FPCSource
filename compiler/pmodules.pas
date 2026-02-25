@@ -34,6 +34,7 @@ type
   TModulesParser = class
   private
     FCompiler: TCompilerBase;
+    property Compiler: TCompilerBase read FCompiler;
   private type
     TProgramParam = record
       name : ansistring;
@@ -1107,8 +1108,6 @@ implementation
       end;
 
     function TModulesParser.gen_implicit_initfinal(curr: tmodule; flag:tmoduleflag;st:TSymtable):tcgprocinfo;
-      const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
       begin
         { create procdef }
         case flag of
