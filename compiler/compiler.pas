@@ -247,7 +247,7 @@ begin
 { read the arguments }
   read_arguments(cmd);
 { inits which depend on arguments }
-  FParser:=TParser.Create;
+  FParser:=TParser.Create(self);
   InitImport;
   InitExport;
   InitLinker;

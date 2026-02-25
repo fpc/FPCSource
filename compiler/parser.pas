@@ -26,6 +26,7 @@ unit parser;
 interface
 
 uses
+  compilerbase,
   fmodule,
   pmodules;
 
@@ -35,12 +36,13 @@ type
 
   TParser = class
   private
+    FCompiler: TCompilerBase;
     FPModules: TModulesParser;
 
     procedure initparser;
     procedure doneparser;
   public
-    constructor Create;
+    constructor Create(acompiler: TCompilerBase);
     destructor Destroy; override;
 {$ifdef PREPROCWRITE}
     procedure preprocess(const filename:string);
@@ -329,8 +331,9 @@ implementation
       end;
 
 
-    constructor TParser.Create;
+    constructor TParser.Create(acompiler: TCompilerBase);
       begin
+        FCompiler:=acompiler;
         InitParser;
         FPModules:=TModulesParser.Create;
       end;
