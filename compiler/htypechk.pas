@@ -221,7 +221,7 @@ implementation
 
     uses
        systems,constexp,globals,
-       cutils,verbose,
+       cutils,verbose,compiler,
        symtable,symutil,
        defutil,defcmp,
        nbas,ncnv,nld,nmem,ncal,nmat,ninl,nutils,procinfo,
@@ -2249,6 +2249,8 @@ implementation
 
 
     procedure tcallcandidates.collect_overloads_in_struct(structdef:tabstractrecorddef;ProcdefOverloadList:TFPObjectList;flags:tcallcandidatesflags;spezcontext:tspecializationcontext);
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
 
       var
         changedhierarchy : boolean;
@@ -2263,12 +2265,12 @@ implementation
           foundanything:=false;
           { try to specialize the procsym }
           if srsym.could_be_implicitly_specialized and
-            try_implicit_specialization(srsym,FParaNode,ProcdefOverloadList,FParaAnonSyms,tsym(FProcsym),result) then
+            tcompiler(compiler).parser.pgenutil.try_implicit_specialization(srsym,FParaNode,ProcdefOverloadList,FParaAnonSyms,tsym(FProcsym),result) then
             foundanything:=true;
           for j:=0 to srsym.ProcdefList.Count-1 do
             begin
               pd:=tprocdef(srsym.ProcdefList[j]);
-              if not finalize_specialization(pd,spezcontext) then
+              if not tcompiler(compiler).parser.pgenutil.finalize_specialization(pd,spezcontext) then
                 continue;
               if (po_ignore_for_overload_resolution in pd.procoptions) then
                 begin
@@ -2437,6 +2439,8 @@ implementation
 
 
     procedure tcallcandidates.collect_overloads_in_units(ProcdefOverloadList:TFPObjectList; flags:tcallcandidatesflags;spezcontext:tspecializationcontext);
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       var
         j          : integer;
         pd         : tprocdef;
@@ -2497,11 +2501,11 @@ implementation
                     hasoverload:=false;
                     foundanything:=false;
                     if tprocsym(srsym).could_be_implicitly_specialized then
-                      foundanything:=try_implicit_specialization(srsym,FParaNode,ProcdefOverloadList,FParaAnonSyms,tsym(FProcsym),hasoverload);
+                      foundanything:=tcompiler(compiler).parser.pgenutil.try_implicit_specialization(srsym,FParaNode,ProcdefOverloadList,FParaAnonSyms,tsym(FProcsym),hasoverload);
                     for j:=0 to tprocsym(srsym).ProcdefList.Count-1 do
                       begin
                         pd:=tprocdef(tprocsym(srsym).ProcdefList[j]);
-                        if not finalize_specialization(pd,spezcontext) then
+                        if not tcompiler(compiler).parser.pgenutil.finalize_specialization(pd,spezcontext) then
                           continue;
                         if (po_ignore_for_overload_resolution in pd.procoptions) then
                           begin

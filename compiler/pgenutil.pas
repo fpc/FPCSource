@@ -38,6 +38,13 @@ uses
   { symtable }
   symtype,symdef,symbase;
 
+type
+  TGenericsParseUtils = class
+  private
+    procedure make_prettystring(paramtype:tdef;first:boolean;constprettyname:ansistring;var prettyname,specializename:ansistring);
+    function get_generic_param_def(sym:tsym):tdef;
+    function parse_generic_specialization_types_internal(paramlist:tfpobjectlist;poslist:tfplist;out prettyname,specializename:ansistring;parsedtype:tdef;parsedpos:tfileposinfo):boolean;
+  public
     procedure generate_specialization(var tt:tdef;enforce_unit:boolean;parse_class_parent:boolean;const _prettyname:string;parsedtype:tdef;const symname:string;parsedpos:tfileposinfo);inline;
     procedure generate_specialization(var tt:tdef;enforce_unit:boolean;parse_class_parent:boolean;const _prettyname:string;const symname:string;symtable:tsymtable);inline;
     function generate_specialization_phase1(out context:tspecializationcontext;genericdef:tdef;enforce_unit:boolean):tdef;inline;
@@ -66,6 +73,7 @@ uses
 
     procedure specialization_init(genericdef:tdef;var state:tspecializationstate);
     procedure specialization_done(var state:tspecializationstate);
+  end;
 
 implementation
 
@@ -90,7 +98,7 @@ uses
     tgeneric_param_const_types : tdeftypeset = [orddef,stringdef,floatdef,setdef,pointerdef,enumdef];
     tgeneric_param_nodes : tnodetypeset = [typen,ordconstn,stringconstn,realconstn,setconstn,niln];
 
-    procedure make_prettystring(paramtype:tdef;first:boolean;constprettyname:ansistring;var prettyname,specializename:ansistring);
+    procedure TGenericsParseUtils.make_prettystring(paramtype:tdef;first:boolean;constprettyname:ansistring;var prettyname,specializename:ansistring);
       var
         namepart : string;
         prettynamepart : ansistring;
@@ -126,7 +134,7 @@ uses
           prettyname:=prettyname+prettynamepart+paramtype.typesym.prettyname;
       end;
 
-    function get_generic_param_def(sym:tsym):tdef;
+    function TGenericsParseUtils.get_generic_param_def(sym:tsym):tdef;
       begin
         if sym.typ=constsym then
           result:=tconstsym(sym).constdef
@@ -325,7 +333,7 @@ uses
       end;
 
 
-    function check_generic_constraints(genericdef:tstoreddef;paramlist:tfpobjectlist;poslist:tfplist):boolean;
+    function TGenericsParseUtils.check_generic_constraints(genericdef:tstoreddef;paramlist:tfpobjectlist;poslist:tfplist):boolean;
       var
         i,j,
         intfcount : longint;
@@ -550,7 +558,7 @@ uses
           end;
       end;
 
-    function parse_generic_specialization_types_internal(paramlist:tfpobjectlist;poslist:tfplist;out prettyname,specializename:ansistring;parsedtype:tdef;parsedpos:tfileposinfo):boolean;
+    function TGenericsParseUtils.parse_generic_specialization_types_internal(paramlist:tfpobjectlist;poslist:tfplist;out prettyname,specializename:ansistring;parsedtype:tdef;parsedpos:tfileposinfo):boolean;
       var
         old_block_type : tblock_type;
         first : boolean;
@@ -653,7 +661,7 @@ uses
       end;
 
 
-    function parse_generic_specialization_types(paramlist:tfpobjectlist;poslist:tfplist;out prettyname,specializename:ansistring):boolean;
+    function TGenericsParseUtils.parse_generic_specialization_types(paramlist:tfpobjectlist;poslist:tfplist;out prettyname,specializename:ansistring):boolean;
       var
         dummypos : tfileposinfo;
       begin
@@ -662,7 +670,7 @@ uses
       end;
 
 
-    procedure generate_specialization(var tt:tdef;enforce_unit:boolean;parse_class_parent:boolean;const _prettyname:string;const symname:string;symtable:tsymtable);
+    procedure TGenericsParseUtils.generate_specialization(var tt:tdef;enforce_unit:boolean;parse_class_parent:boolean;const _prettyname:string;const symname:string;symtable:tsymtable);
       var
         context : tspecializationcontext;
         genericdef : tstoreddef;
@@ -678,7 +686,7 @@ uses
       end;
 
 
-    function finalize_specialization(var pd:tprocdef;spezcontext:tspecializationcontext):boolean;
+    function TGenericsParseUtils.finalize_specialization(var pd:tprocdef;spezcontext:tspecializationcontext):boolean;
       var
         def : tdef;
       begin
@@ -720,7 +728,7 @@ uses
       end;
 
 
-    function try_implicit_specialization(sym:tsym;para:tnode;pdoverloadlist:tfpobjectlist;var unnamed_syms:tfplist;var first_procsym:tsym;var hasoverload:boolean):boolean;
+    function TGenericsParseUtils.try_implicit_specialization(sym:tsym;para:tnode;pdoverloadlist:tfpobjectlist;var unnamed_syms:tfplist;var first_procsym:tsym;var hasoverload:boolean):boolean;
 
       { hash key for generic parameter lookups }
       function generic_param_hash(def:tdef):string;inline;
@@ -1381,7 +1389,7 @@ uses
         callerparams := nil;
       end;
 
-    function generate_specialization_phase1(out context:tspecializationcontext;genericdef:tdef;enforce_unit:boolean):tdef;
+    function TGenericsParseUtils.generate_specialization_phase1(out context:tspecializationcontext;genericdef:tdef;enforce_unit:boolean):tdef;
       var
         dummypos : tfileposinfo;
 {$push}
@@ -1392,7 +1400,7 @@ uses
 {$pop}
 
 
-    function generate_specialization_phase1(out context:tspecializationcontext;genericdef:tdef;enforce_unit:boolean;const symname:string;symtable:tsymtable):tdef;
+    function TGenericsParseUtils.generate_specialization_phase1(out context:tspecializationcontext;genericdef:tdef;enforce_unit:boolean;const symname:string;symtable:tsymtable):tdef;
       var
         dummypos : tfileposinfo;
 {$push}
@@ -1403,7 +1411,7 @@ uses
 {$pop}
 
 
-    function generate_specialization_phase1(out context:tspecializationcontext;genericdef:tdef;enforce_unit:boolean;parsedtype:tdef;const symname:string;symtable:tsymtable;parsedpos:tfileposinfo):tdef;
+    function TGenericsParseUtils.generate_specialization_phase1(out context:tspecializationcontext;genericdef:tdef;enforce_unit:boolean;parsedtype:tdef;const symname:string;symtable:tsymtable;parsedpos:tfileposinfo):tdef;
       var
         found,
         err : boolean;
@@ -1602,7 +1610,7 @@ uses
           consume(_RSHARPBRACKET);
       end;
 
-    function generate_specialization_phase2(context:tspecializationcontext;genericdef:tstoreddef;parse_class_parent:boolean;const _prettyname:ansistring):tdef;
+    function TGenericsParseUtils.generate_specialization_phase2(context:tspecializationcontext;genericdef:tstoreddef;parse_class_parent:boolean;const _prettyname:ansistring):tdef;
 
         procedure unset_forwarddef(def: tdef);
           var
@@ -2258,7 +2266,7 @@ uses
       end;
 
 
-    procedure generate_specialization(var tt:tdef;enforce_unit:boolean;parse_class_parent:boolean;const _prettyname:string;parsedtype:tdef;const symname:string;parsedpos:tfileposinfo);
+    procedure TGenericsParseUtils.generate_specialization(var tt:tdef;enforce_unit:boolean;parse_class_parent:boolean;const _prettyname:string;parsedtype:tdef;const symname:string;parsedpos:tfileposinfo);
       var
         context : tspecializationcontext;
         genericdef : tstoreddef;
@@ -2272,7 +2280,7 @@ uses
       end;
 
 
-    function parse_generic_parameters(allowconstraints:boolean):tfphashobjectlist;
+    function TGenericsParseUtils.parse_generic_parameters(allowconstraints:boolean):tfphashobjectlist;
       var
         generictype : tstoredsym;
         i,firstidx,const_list_index : longint;
@@ -2524,7 +2532,7 @@ uses
       end;
 
 
-    procedure insert_generic_parameter_types(def:tstoreddef;genericdef:tstoreddef;genericlist:tfphashobjectlist;isfwd:boolean);
+    procedure TGenericsParseUtils.insert_generic_parameter_types(def:tstoreddef;genericdef:tstoreddef;genericlist:tfphashobjectlist;isfwd:boolean);
       var
         i : longint;
         generictype,
@@ -2652,7 +2660,7 @@ uses
           end;
        end;
 
-    procedure maybe_insert_generic_rename_symbol(const name:tidstring;genericlist:tfphashobjectlist);
+    procedure TGenericsParseUtils.maybe_insert_generic_rename_symbol(const name:tidstring;genericlist:tfphashobjectlist);
       var
         gensym : ttypesym;
       begin
@@ -2686,7 +2694,7 @@ uses
           end;
       end;
 
-    function generate_generic_name(const name:tidstring;const specializename:ansistring;const owner_hierarchy:ansistring):tidstring;
+    function TGenericsParseUtils.generate_generic_name(const name:tidstring;const specializename:ansistring;const owner_hierarchy:ansistring):tidstring;
     var
       crc : cardinal;
     begin
@@ -2702,7 +2710,7 @@ uses
         end;
     end;
 
-    procedure split_generic_name(const name:tidstring;out nongeneric:string;out count:longint);
+    procedure TGenericsParseUtils.split_generic_name(const name:tidstring;out nongeneric:string;out count:longint);
       var
         i,code : longint;
         countstr : string;
@@ -2722,7 +2730,7 @@ uses
       end;
 
 
-    procedure add_generic_dummysym(sym:tsym;const name:tidstring);
+    procedure TGenericsParseUtils.add_generic_dummysym(sym:tsym;const name:tidstring);
       var
         list: TFPObjectList;
         srsym : tsym;
@@ -2772,7 +2780,7 @@ uses
       end;
 
 
-    function resolve_generic_dummysym(const name:tidstring):tsym;
+    function TGenericsParseUtils.resolve_generic_dummysym(const name:tidstring):tsym;
       var
         list : tfpobjectlist;
       begin
@@ -2784,14 +2792,14 @@ uses
       end;
 
 
-    function could_be_generic(const name:tidstring):boolean;
+    function TGenericsParseUtils.could_be_generic(const name:tidstring):boolean;
       begin
         result:=(name<>'') and
                   (current_module.genericdummysyms.findindexof(name)>=0);
       end;
 
 
-    function is_or_belongs_to_current_genericdef(def:tdef):boolean;
+    function TGenericsParseUtils.is_or_belongs_to_current_genericdef(def:tdef):boolean;
       var
         d : tdef;
         state : pspecializationstate;
@@ -2812,7 +2820,7 @@ uses
       end;
 
 
-    procedure specialization_init(genericdef:tdef;var state: tspecializationstate);
+    procedure TGenericsParseUtils.specialization_init(genericdef:tdef;var state: tspecializationstate);
     var
       pu : tused_unit;
       hmodule : tmodule;
@@ -2914,7 +2922,7 @@ uses
         end;
     end;
 
-    procedure specialization_done(var state: tspecializationstate);
+    procedure TGenericsParseUtils.specialization_done(var state: tspecializationstate);
     begin
       { Restore symtablestack }
       current_module.extendeddefs.free;
@@ -3008,7 +3016,7 @@ uses
       end;
 
 
-    procedure generate_specialization_procs;
+    procedure TGenericsParseUtils.generate_specialization_procs;
       var
         i : longint;
         list,
@@ -3091,7 +3099,7 @@ uses
       end;
 
 
-    procedure generate_specializations_for_forwarddef(def:tdef);
+    procedure TGenericsParseUtils.generate_specializations_for_forwarddef(def:tdef);
       var
         list : tfpobjectlist;
         idx,
@@ -3114,7 +3122,7 @@ uses
       end;
 
 
-    procedure maybe_add_pending_specialization(def:tdef;unnamed_syms: tfplist);
+    procedure TGenericsParseUtils.maybe_add_pending_specialization(def:tdef;unnamed_syms: tfplist);
       var
         hmodule : tmodule;
         st : tsymtable;
@@ -3134,7 +3142,7 @@ uses
       end;
 
 
-    function determine_generic_def(const name:tidstring):tstoreddef;
+    function TGenericsParseUtils.determine_generic_def(const name:tidstring):tstoreddef;
       var
         hashedid : THashedIDString;
         pd : tprocdef;

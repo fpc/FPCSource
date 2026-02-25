@@ -325,6 +325,7 @@ implementation
     uses
       systems,
       verbose,globals,fmodule,ppu,
+      compiler,
       aasmbase,aasmdata,
       symconst,defutil,defcmp,
       htypechk,pass_1,
@@ -4329,7 +4330,7 @@ implementation
                 procdefinition.register_def;
 
                 if procdefinition.is_specialization and (procdefinition.typ=procdef) then
-                  maybe_add_pending_specialization(procdefinition,candidates.para_anon_syms);
+                  tcompiler(compiler).parser.pgenutil.maybe_add_pending_specialization(procdefinition,candidates.para_anon_syms);
 
                 candidates.done;
               end; { end of procedure to call determination }

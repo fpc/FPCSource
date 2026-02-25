@@ -46,6 +46,7 @@ implementation
     uses
       sysutils,cutils,
       globals,verbose,systems,tokens,
+      compiler,
       symbase,symsym,symtable,symcreat,defcmp,
       node,ncon,
       fmodule,scanner,
@@ -1484,6 +1485,8 @@ implementation
 
 
     function object_dec(objecttype:tobjecttyp;const n:tidstring;objsym:tsym;genericdef:tstoreddef;genericlist:tfphashobjectlist;fd : tobjectdef;helpertype:thelpertype) : tobjectdef;
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       var
         old_current_structdef: tabstractrecorddef;
         old_current_genericdef,
@@ -1636,7 +1639,7 @@ implementation
                 current_module.checkforwarddefs.add(current_structdef);
 
                 symtablestack.push(current_structdef.symtable);
-                insert_generic_parameter_types(current_structdef,genericdef,genericlist,false);
+                tcompiler(compiler).parser.pgenutil.insert_generic_parameter_types(current_structdef,genericdef,genericlist,false);
                 { when we are parsing a generic already then this is a generic as
                   well }
                 if old_parse_generic then
@@ -1667,7 +1670,7 @@ implementation
               parse_object_options;
 
             symtablestack.push(current_structdef.symtable);
-            insert_generic_parameter_types(current_structdef,genericdef,genericlist,assigned(fd));
+            tcompiler(compiler).parser.pgenutil.insert_generic_parameter_types(current_structdef,genericdef,genericlist,assigned(fd));
             { when we are parsing a generic already then this is a generic as
               well }
             if old_parse_generic then
@@ -1676,7 +1679,7 @@ implementation
 
             { in non-Delphi modes we need a strict private symbol without type
               count and type parameters in the name to simplify resolving }
-            maybe_insert_generic_rename_symbol(n,genericlist);
+            tcompiler(compiler).parser.pgenutil.maybe_insert_generic_rename_symbol(n,genericlist);
 
             { parse list of parent classes }
             { for record helpers in mode Delphi this is not allowed }

@@ -58,6 +58,7 @@ implementation
        { global }
        globals,tokens,verbose,widestr,constexp,
        systems,aasmdata,fmodule,compinnr,
+       compiler,
        { symtable }
        symconst,symbase,symcpu,symcreat,defutil,defcmp,symtable,symutil,
        { pass 1 }
@@ -587,6 +588,8 @@ implementation
 
 
     function parse_forward_declaration(sym:tsym;gentypename,genorgtypename:tidstring;genericdef:tdef;generictypelist:tfphashobjectlist;out newtype:ttypesym):tdef;
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       var
         wasforward : boolean;
         objecttype : tobjecttyp;
@@ -634,7 +637,7 @@ implementation
            else
              { determine the generic def in case we are in a nested type
                of a specialization }
-             gendef:=determine_generic_def(gentypename);
+             gendef:=tcompiler(compiler).parser.pgenutil.determine_generic_def(gentypename);
            { we can ignore the result, the definition is modified }
            object_dec(objecttype,genorgtypename,newtype,gendef,generictypelist,tobjectdef(ttypesym(sym).typedef),ht_none);
            if wasforward and
@@ -696,6 +699,8 @@ implementation
       end;
 
     procedure types_dec(in_structure: boolean;out had_generic:boolean;var rtti_attrs_def: trtti_attribute_list);
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
 
       procedure finalize_class_external_status(od: tobjectdef);
         begin
@@ -776,7 +781,7 @@ implementation
                  Message(parser_f_no_generic_inside_generic);
 
                consume(_LSHARPBRACKET);
-               generictypelist:=parse_generic_parameters(true);
+               generictypelist:=tcompiler(compiler).parser.pgenutil.parse_generic_parameters(true);
                consume(_RSHARPBRACKET);
 
                str(generictypelist.Count,s);
@@ -860,7 +865,7 @@ implementation
                       ttypesym(sym).typedef.typesym:=sym;
                       sym.visibility:=symtablestack.top.currentvisibility;
                       { add as dummy symbol before adding it to the symtable stack }
-                      add_generic_dummysym(sym,typename);
+                      tcompiler(compiler).parser.pgenutil.add_generic_dummysym(sym,typename);
                       symtablestack.top.insertsym(sym);
                       ttypesym(sym).typedef.owner:=sym.owner;
                     end
@@ -873,7 +878,7 @@ implementation
                         { we need to find this symbol even if it's a variable or
                           something else when doing an inline specialization }
                         Include(sym.symoptions,sp_generic_dummy);
-                        add_generic_dummysym(sym,'');
+                        tcompiler(compiler).parser.pgenutil.add_generic_dummysym(sym,'');
                       end;
                 end
               else
@@ -893,7 +898,7 @@ implementation
 
                   { determine the generic def in case we are in a nested type
                     of a specialization }
-                  gendef:=determine_generic_def(gentypename);
+                  gendef:=tcompiler(compiler).parser.pgenutil.determine_generic_def(gentypename);
                 end;
               { insert a new type if we don't reuse an existing symbol }
               if not assigned(newtype) then
@@ -972,7 +977,7 @@ implementation
                     begin
                       hdef.typesym:=newtype;
                       if sp_generic_dummy in newtype.symoptions then
-                        add_generic_dummysym(newtype,'');
+                        tcompiler(compiler).parser.pgenutil.add_generic_dummysym(newtype,'');
                     end;
                 end;
               { in non-Delphi modes we need a reference to the generic def

@@ -93,6 +93,7 @@ implementation
        systems,tokens,
        cutils,cfileutl,cclasses,comphook,
        globals,verbose,finput,globstat,fpcp,fpkg,
+       compiler,
        symtype,symdef,symsym,symtable,defutil,symcreat,
        wpoinfo,
        aasmtai,aasmdata,aasmbase,aasmcpu,
@@ -1650,7 +1651,7 @@ type
          init_procinfo:=finishstate.init_procinfo;
 
          { Generate specializations of objectdefs methods }
-         generate_specialization_procs;
+         tcompiler(compiler).parser.pgenutil.generate_specialization_procs;
 
          // This needs to be done before we generate the VMTs
          if (target_cpu=tsystemcpu.cpu_wasm32) then
@@ -2770,7 +2771,7 @@ type
 
         { Generate specializations of objectdefs methods }
         if Errorcount=0 then
-          generate_specialization_procs;
+          tcompiler(compiler).parser.pgenutil.generate_specialization_procs;
 
         { This needs to be done before we generate the VMTs }
         if (target_cpu=tsystemcpu.cpu_wasm32) then

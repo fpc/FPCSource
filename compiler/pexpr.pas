@@ -71,6 +71,7 @@ implementation
        { global }
        verbose,
        systems,widestr,
+       compiler,
        { symtable }
        symconst,symtable,symsym,symcpu,defutil,defcmp,
        { module }
@@ -1683,6 +1684,8 @@ implementation
 
 
     function handle_specialize_inline_specialization(var srsym:tsym;enforce_unit:boolean;out srsymtable:tsymtable;out spezcontext:tspecializationcontext):boolean;
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       var
         spezdef : tdef;
       begin
@@ -1702,7 +1705,7 @@ implementation
                 spezdef:=tdef(tprocsym(srsym).procdeflist[0])
               else
                 spezdef:=nil;
-              spezdef:=generate_specialization_phase1(spezcontext,spezdef,enforce_unit,srsym.realname,srsym.owner);
+              spezdef:=tcompiler(compiler).parser.pgenutil.generate_specialization_phase1(spezcontext,spezdef,enforce_unit,srsym.realname,srsym.owner);
               case spezdef.typ of
                 errordef:
                   begin
@@ -1731,7 +1734,7 @@ implementation
                 arraydef,
                 procvardef:
                   begin
-                    spezdef:=generate_specialization_phase2(spezcontext,tstoreddef(spezdef),false,'');
+                    spezdef:=tcompiler(compiler).parser.pgenutil.generate_specialization_phase2(spezcontext,tstoreddef(spezdef),false,'');
                     spezcontext.free;
                     spezcontext:=nil;
                     if spezdef<>generrordef then
@@ -3510,7 +3513,7 @@ implementation
                          srsymtable:=nil;
                        {$push}
                        {$warn 5036 off}
-                       hdef:=generate_specialization_phase1(spezcontext,nil,unit_found,nil,orgstoredpattern,srsymtable,dummypos);
+                       hdef:=tcompiler(compiler).parser.pgenutil.generate_specialization_phase1(spezcontext,nil,unit_found,nil,orgstoredpattern,srsymtable,dummypos);
                        {$pop}
                        if hdef=generrordef then
                          begin
@@ -3523,7 +3526,7 @@ implementation
                          begin
                            if hdef.typ in [objectdef,recorddef,procvardef,arraydef] then
                              begin
-                               hdef:=generate_specialization_phase2(spezcontext,tstoreddef(hdef),false,'');
+                               hdef:=tcompiler(compiler).parser.pgenutil.generate_specialization_phase2(spezcontext,tstoreddef(hdef),false,'');
                                spezcontext.free;
                                spezcontext:=nil;
                                if hdef<>generrordef then
@@ -3586,7 +3589,7 @@ implementation
                      )
                    ) then
                  begin
-                   srsym:=resolve_generic_dummysym(srsym.name);
+                   srsym:=tcompiler(compiler).parser.pgenutil.resolve_generic_dummysym(srsym.name);
                    if assigned(srsym) then
                      srsymtable:=srsym.owner
                    else
@@ -3834,7 +3837,7 @@ implementation
                  end;
                  { if this is the case then the postfix handling is done in
                    sub_expr if necessary }
-                 dopostfix:=not could_be_generic(idstr);
+                 dopostfix:=not tcompiler(compiler).parser.pgenutil.could_be_generic(idstr);
                end;
            { TP7 ugliness: @proc^ is parsed as (@proc)^, but @notproc^ is parsed
              as @(notproc^) }
@@ -4578,9 +4581,9 @@ implementation
             end;
 
           if assigned(parseddef) and assigned(gensym) and assigned(p2) then
-            gendef:=generate_specialization_phase1(spezcontext,gendef,unitspecific,parseddef,gensym.realname,gensym.owner,p2.fileinfo)
+            gendef:=tcompiler(compiler).parser.pgenutil.generate_specialization_phase1(spezcontext,gendef,unitspecific,parseddef,gensym.realname,gensym.owner,p2.fileinfo)
           else
-            gendef:=generate_specialization_phase1(spezcontext,gendef,unitspecific,gensym.realname,gensym.owner);
+            gendef:=tcompiler(compiler).parser.pgenutil.generate_specialization_phase1(spezcontext,gendef,unitspecific,gensym.realname,gensym.owner);
           case gendef.typ of
             errordef:
               begin
@@ -4593,7 +4596,7 @@ implementation
             procvardef,
             arraydef:
               begin
-                gendef:=generate_specialization_phase2(spezcontext,tstoreddef(gendef),false,'');
+                gendef:=tcompiler(compiler).parser.pgenutil.generate_specialization_phase2(spezcontext,tstoreddef(gendef),false,'');
                 spezcontext.free;
                 spezcontext:=nil;
                 if gendef.typ=errordef then

@@ -97,6 +97,7 @@ implementation
        globtype,globals,verbose,constexp,
        systems,
        cpuinfo,
+       compiler,
        { assembler }
        aasmbase,
        { symtable }
@@ -536,6 +537,8 @@ implementation
 
 
     function parse_proc_head(astruct:tabstractrecorddef;potype:tproctypeoption;flags:tparse_proc_flags;genericdef:tdef;generictypelist:tfphashobjectlist;out pd:tprocdef):boolean;
+      const
+        compiler = nil;  { TODO: fix node compiler reference!!! }
       var
         hs       : string;
         orgsp,sp,orgspnongen,spnongen : TIDString;
@@ -679,7 +682,7 @@ implementation
                       message(type_e_type_id_expected)
                     else
                       begin
-                        genericparams:=parse_generic_parameters(true);
+                        genericparams:=tcompiler(compiler).parser.pgenutil.parse_generic_parameters(true);
                         if not assigned(genericparams) then
                           internalerror(2015061201);
                         if genericparams.count=0 then
@@ -781,7 +784,7 @@ implementation
             if hierarchy<>'' then
               hierarchy:='.'+hierarchy;
 
-            genname:=generate_generic_name(sp,specializename,module.modulename^+hierarchy);
+            genname:=tcompiler(compiler).parser.pgenutil.generate_generic_name(sp,specializename,module.modulename^+hierarchy);
             ugenname:=upper(genname);
 
             srsym:=search_object_name(ugenname,false);
@@ -1200,7 +1203,7 @@ implementation
                      if tsym(genericparams[i]).typ=typesym then
                        tstoreddef(ttypesym(genericparams[i]).typedef).register_def;
                   end;
-                insert_generic_parameter_types(pd,nil,genericparams,false);
+                tcompiler(compiler).parser.pgenutil.insert_generic_parameter_types(pd,nil,genericparams,false);
                 { the list is no longer required }
                 genericparams.free;
                 genericparams:=nil;
@@ -1237,7 +1240,7 @@ implementation
                 if not (sp_generic_dummy in dummysym.symoptions) then
                   begin
                     include(dummysym.symoptions,sp_generic_dummy);
-                    add_generic_dummysym(dummysym,'');
+                    tcompiler(compiler).parser.pgenutil.add_generic_dummysym(dummysym,'');
                   end;
                 if dummysym.typ=procsym then
                   tprocsym(dummysym).add_generic_overload(aprocsym);
@@ -1247,7 +1250,7 @@ implementation
               end;
           end
         else if assigned(genericdef) then
-          insert_generic_parameter_types(pd,tstoreddef(genericdef),generictypelist,false);
+          tcompiler(compiler).parser.pgenutil.insert_generic_parameter_types(pd,tstoreddef(genericdef),generictypelist,false);
 
         { methods inherit df_generic or df_specialization from the objectdef }
         if assigned(pd.struct) and

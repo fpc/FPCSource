@@ -28,7 +28,7 @@ interface
 uses
   compilerbase,
   fmodule,
-  pmodules;
+  pmodules,pgenutil;
 
 type
 
@@ -38,6 +38,7 @@ type
   private
     FCompiler: TCompilerBase;
     FPModules: TModulesParser;
+    FPGenUtil: TGenericsParseUtils;
 
     procedure initparser;
     procedure doneparser;
@@ -52,6 +53,7 @@ type
     procedure parsing_done(module : tmodule);
 
     property pmodules: TModulesParser read FPModules;
+    property pgenutil: TGenericsParseUtils read FPGenUtil;
   end;
 
 implementation

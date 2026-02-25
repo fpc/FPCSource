@@ -132,6 +132,7 @@ implementation
        { global }
        globtype,tokens,verbose,comphook,constexp,
        systems,cpubase,aasmbase,aasmtai,
+       compiler,
        { symtable }
        symconst,symbase,symsym,symtype,symtable,defutil,defcmp,procdefutil,symcreat,
        paramgr,
@@ -2709,7 +2710,7 @@ implementation
               begin
                 { also generate the bodies for all previously done
                   specializations so that we might inline them }
-                generate_specialization_procs;
+                tcompiler(compiler).parser.pgenutil.generate_specialization_procs;
                 { convert all load nodes that might have been captured by a
                   capture object }
                 tcgprocinfo(current_procinfo).convert_captured_syms;
