@@ -699,7 +699,6 @@ implementation
                     LOC_MMREGISTER:
                       hlcg.a_loadmm_reg_ref(current_asmdata.CurrAsmList,resultdef,resultdef,funcretnode.location.register,location.reference,nil);
                     else
-                      writeln(funcretnode.location.loc);
                       internalerror(200802121);
                   end;
                   location_freetemp(current_asmdata.CurrAsmList,location);
