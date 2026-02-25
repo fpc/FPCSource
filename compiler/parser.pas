@@ -335,7 +335,7 @@ implementation
       begin
         FCompiler:=acompiler;
         InitParser;
-        FPModules:=TModulesParser.Create;
+        FPModules:=TModulesParser.Create(acompiler);
       end;
 
 

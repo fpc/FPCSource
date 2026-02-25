@@ -25,10 +25,15 @@ unit pmodules;
 
 interface
 
-uses fmodule,fppu,symbase,globtype,symconst,psub;
+uses compilerbase,fmodule,fppu,symbase,globtype,symconst,psub;
 
 type
+
+  { TModulesParser }
+
   TModulesParser = class
+  private
+    FCompiler: TCompilerBase;
   private type
     TProgramParam = record
       name : ansistring;
@@ -69,6 +74,7 @@ type
     procedure proc_library_header(curr: tmodule);
     procedure proc_program_header(curr: tmodule; out sc : TProgramParamArray);
   public
+    constructor Create(ACompiler: TCompilerBase);
     function proc_unit(curr: tmodule):boolean;
     function parse_unit_interface_declarations(curr : tmodule) : boolean;
     function proc_unit_implementation(curr: tmodule):boolean;
@@ -212,7 +218,7 @@ implementation
           end;
       end;
 
-    Function TModulesParser.CheckResourcesUsed(curr : tmodule) : boolean;
+        function TModulesParser.CheckResourcesUsed(curr: tmodule): boolean;
       var
         hp           : tused_unit;
         found        : Boolean;
@@ -2946,6 +2952,11 @@ type
           XMLInitializeNodeFile('program', program_name);
 {$endif DEBUG_NODE_XML}
         end;
+
+    constructor TModulesParser.Create(ACompiler: TCompilerBase);
+      begin
+        FCompiler:=ACompiler;
+      end;
 
     function TModulesParser.proc_program(curr: tmodule; islibrary : boolean) : boolean;
 
