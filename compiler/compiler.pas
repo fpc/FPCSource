@@ -162,6 +162,8 @@ type
 ****************************************************************************}
   TCompiler = class(TCompilerBase)
   private
+    FTaskHandler: TTask_handler;
+
     CompilerInitedAfterArgs,
     CompilerInited : boolean;
 
@@ -211,7 +213,7 @@ begin
   DoneGlobals;
   DoneFileUtils;
   donetokens;
-  DoneTaskHandler;
+  DoneTaskHandler(FTaskHandler);
 end;
 
 
@@ -249,7 +251,7 @@ begin
   InitAsm;
   InitWpo;
 
-  InitTaskHandler;
+  FTaskHandler:=InitTaskHandler;
   CompilerInitedAfterArgs:=true;
 end;
 

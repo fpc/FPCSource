@@ -97,8 +97,8 @@ type
 var
   task_handler : TTask_handler;
 
-procedure InitTaskHandler;
-procedure DoneTaskHandler;
+function InitTaskHandler: TTask_handler;
+procedure DoneTaskHandler(var th: TTask_handler);
 
 implementation
 
@@ -106,14 +106,16 @@ uses
   verbose, fppu, sysutils,
   scanner, parser, pmodules, symbase;
 
-procedure InitTaskHandler;
+function InitTaskHandler: TTask_handler;
 begin
-  task_handler:=ttask_handler.create;
+  result:=ttask_handler.create;
+  task_handler:=result;
 end;
 
-procedure DoneTaskHandler;
+procedure DoneTaskHandler(var th: TTask_handler);
 begin
-  freeandnil(task_handler);
+  freeandnil(th);
+  task_handler:=nil;
 end;
 
 { ttasklinkedlist }
