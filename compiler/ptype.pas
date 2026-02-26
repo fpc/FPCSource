@@ -866,7 +866,7 @@ implementation
                     if is_classdef and (current_scanner.idtoken=_OPERATOR) then
                       begin
                         check_unbound_attributes;
-                        pd:=parse_record_method_dec(current_structdef,is_classdef,false);
+                        pd:=compiler.parser.pdecsub.parse_record_method_dec(current_structdef,is_classdef,false);
                         fields_allowed:=false;
                         is_classdef:=false;
                       end
@@ -963,7 +963,7 @@ implementation
               begin
                 if IsAnonOrLocal then
                   Message(parser_e_no_methods_in_local_anonymous_records);
-                pd:=parse_record_method_dec(current_structdef,is_classdef,hadgeneric);
+                pd:=compiler.parser.pdecsub.parse_record_method_dec(current_structdef,is_classdef,hadgeneric);
                 if assigned(rtti_attrs_def) then
                   begin
                   trtti_attribute_list.bind(rtti_attrs_def,pd.rtti_attribute_list);
@@ -1777,7 +1777,7 @@ implementation
               current_genericdef:=old_current_genericdef;
 
             if current_scanner.token=_LKLAMMER then
-              parse_parameter_dec(pd);
+              compiler.parser.pdecsub.parse_parameter_dec(pd);
             if is_func then
               begin
                 consume(_COLON);
@@ -1802,8 +1802,8 @@ implementation
             { possible proc directives }
             if parseprocvardir then
               begin
-                if check_proc_directive(true) then
-                  parse_proctype_directives(pd);
+                if compiler.parser.pdecsub.check_proc_directive(true) then
+                  compiler.parser.pdecsub.parse_proctype_directives(pd);
                 { Add implicit hidden parameters and function result }
                 handle_calling_convention(pd,hcc_default_actions_intf);
               end;

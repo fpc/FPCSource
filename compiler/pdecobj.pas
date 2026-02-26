@@ -68,15 +68,17 @@ implementation
 
 
     procedure constr_destr_finish_head(pd: tprocdef; const astruct: tabstractrecorddef);
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       begin
         case astruct.typ of
           recorddef:
             begin
-              parse_record_proc_directives(pd);
+              compiler.parser.pdecsub.parse_record_proc_directives(pd);
             end;
           objectdef:
             begin
-              parse_object_proc_directives(pd);
+              compiler.parser.pdecsub.parse_object_proc_directives(pd);
             end
           else
             internalerror(2011040502);
@@ -100,13 +102,15 @@ implementation
 
 
     function class_constructor_head(astruct: tabstractrecorddef):tprocdef;
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         pd : tprocdef;
       begin
         result:=nil;
         consume(_CONSTRUCTOR);
         { must be at same level as in implementation }
-        parse_proc_head(current_structdef,potype_class_constructor,[],nil,nil,pd);
+        compiler.parser.pdecsub.parse_proc_head(current_structdef,potype_class_constructor,[],nil,nil,pd);
         if not assigned(pd) then
           begin
             consume(_SEMICOLON);
@@ -125,13 +129,15 @@ implementation
       end;
 
     function constructor_head:tprocdef;
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         pd : tprocdef;
       begin
         result:=nil;
         consume(_CONSTRUCTOR);
         { must be at same level as in implementation }
-        parse_proc_head(current_structdef,potype_constructor,[],nil,nil,pd);
+        compiler.parser.pdecsub.parse_proc_head(current_structdef,potype_constructor,[],nil,nil,pd);
         if not assigned(pd) then
           begin
             consume(_SEMICOLON);
@@ -242,12 +248,14 @@ implementation
 
 
     function class_destructor_head(astruct: tabstractrecorddef):tprocdef;
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         pd : tprocdef;
       begin
         result:=nil;
         consume(_DESTRUCTOR);
-        parse_proc_head(current_structdef,potype_class_destructor,[],nil,nil,pd);
+        compiler.parser.pdecsub.parse_proc_head(current_structdef,potype_class_destructor,[],nil,nil,pd);
         if not assigned(pd) then
           begin
             consume(_SEMICOLON);
@@ -266,12 +274,14 @@ implementation
       end;
 
     function destructor_head:tprocdef;
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         pd : tprocdef;
       begin
         result:=nil;
         consume(_DESTRUCTOR);
-        parse_proc_head(current_structdef,potype_destructor,[],nil,nil,pd);
+        compiler.parser.pdecsub.parse_proc_head(current_structdef,potype_destructor,[],nil,nil,pd);
         if not assigned(pd) then
           begin
             consume(_SEMICOLON);
@@ -865,6 +875,8 @@ implementation
 
 
     function method_dec(astruct: tabstractrecorddef; is_classdef: boolean;hadgeneric:boolean): tprocdef;
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
 
       procedure chkobjc(pd: tprocdef);
         begin
@@ -934,14 +946,14 @@ implementation
                 include(flags,ppf_classmethod);
               if hadgeneric then
                 include(flags,ppf_generic);
-              result:=parse_proc_dec(flags,astruct);
+              result:=compiler.parser.pdecsub.parse_proc_dec(flags,astruct);
 
               { this is for error recovery as well as forward }
               { interface mappings, i.e. mapping to a method  }
               { which isn't declared yet                      }
               if assigned(result) then
                 begin
-                  parse_object_proc_directives(result);
+                  compiler.parser.pdecsub.parse_object_proc_directives(result);
 
                   { check if dispid is set }
                   if is_dispinterface(result.struct) and not (po_dispid in result.procoptions) then

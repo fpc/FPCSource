@@ -2393,7 +2393,7 @@ implementation
            not(assigned(parent) and
                assigned(parent.procdef) and
                assigned(parent.procdef.struct)) then
-          push_nested_hierarchy(procdef.struct);
+          compiler.parser.pdecsub.push_nested_hierarchy(procdef.struct);
 
         { insert parasymtable in symtablestack when parsing
           a function }
@@ -2423,7 +2423,7 @@ implementation
            not(assigned(parent) and
                assigned(parent.procdef) and
                assigned(parent.procdef.struct)) then
-          pop_nested_hierarchy(procdef.struct);
+          compiler.parser.pdecsub.pop_nested_hierarchy(procdef.struct);
       end;
 
 
@@ -2760,6 +2760,8 @@ implementation
 
 
     function read_proc(flags:tread_proc_flags; usefwpd: tprocdef):tprocdef;
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       {
         Parses the procedure directives, then parses the procedure body, then
         generates the code for it
@@ -2804,7 +2806,7 @@ implementation
 
          if not assigned(usefwpd) then
            { parse procedure declaration }
-           result:=parse_proc_dec(convert_flags_to_ppf,old_current_structdef)
+           result:=compiler.parser.pdecsub.parse_proc_dec(convert_flags_to_ppf,old_current_structdef)
          else
            result:=usefwpd;
 
@@ -2832,7 +2834,7 @@ implementation
          if not assigned(usefwpd) then
            begin
              { parse the directives that may follow }
-             parse_proc_directives(result,pdflags);
+             compiler.parser.pdecsub.parse_proc_directives(result,pdflags);
 
              if not (rpf_anonymous in flags) then
                { hint directives, these can be separated by semicolons here,
@@ -2892,7 +2894,7 @@ implementation
            end;
 
          { Set mangled name }
-         proc_set_mangledname(result);
+         compiler.parser.pdecsub.proc_set_mangledname(result);
 
          { inherit generic flags from parent routine }
          if assigned(old_current_procinfo) and
@@ -2972,7 +2974,7 @@ implementation
                      hlcg.handle_external_proc(
                        current_asmdata.asmlists[al_procedures],
                        result,
-                       proc_get_importname(result));
+                       compiler.parser.pdecsub.proc_get_importname(result));
                      destroy_hlcodegen;
                    end
                end;
@@ -3004,6 +3006,8 @@ implementation
 
 
     procedure import_external_proc(pd:tprocdef);
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         name : string;
       begin
@@ -3015,16 +3019,16 @@ implementation
           begin
             if assigned (pd.import_name) then
               current_module.AddExternalImport(pd.import_dll^,
-                pd.import_name^,proc_get_importname(pd),
+                pd.import_name^,compiler.parser.pdecsub.proc_get_importname(pd),
                 pd.import_nr,false,false)
             else
               current_module.AddExternalImport(pd.import_dll^,
-                proc_get_importname(pd),proc_get_importname(pd),
+                compiler.parser.pdecsub.proc_get_importname(pd),compiler.parser.pdecsub.proc_get_importname(pd),
                 pd.import_nr,false,true);
           end
         else
           begin
-            name:=proc_get_importname(pd);
+            name:=compiler.parser.pdecsub.proc_get_importname(pd);
             { add import name to external list for DLL scanning }
             if tf_has_dllscanner in target_info.flags then
               current_module.dllscannerinputlist.Add(name,pd);

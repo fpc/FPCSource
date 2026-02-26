@@ -2073,7 +2073,7 @@ uses
                 if genericdef.typ=procdef then
                   begin
                     current_scanner.startreplaytokens(tprocdef(genericdef).genericdecltokenbuf,hmodule.change_endian);
-                    parse_proc_head(tprocdef(genericdef).struct,tprocdef(genericdef).proctypeoption,[],genericdef,generictypelist,pd);
+                    compiler.parser.pdecsub.parse_proc_head(tprocdef(genericdef).struct,tprocdef(genericdef).proctypeoption,[],genericdef,generictypelist,pd);
                     if assigned(pd) then
                       begin
                         if assigned(psym) then
@@ -2083,7 +2083,7 @@ uses
                         ppflags:=[];
                         if po_classmethod in tprocdef(genericdef).procoptions then
                           include(ppflags,ppf_classmethod);
-                        parse_proc_dec_finish(pd,ppflags,tprocdef(genericdef).struct);
+                        compiler.parser.pdecsub.parse_proc_dec_finish(pd,ppflags,tprocdef(genericdef).struct);
                       end;
                     result:=pd;
                   end
@@ -2152,7 +2152,7 @@ uses
                       hintsprocessed:=false;
                       if replaydepth<current_scanner.replay_stack_depth then
                         begin
-                          if not check_proc_directive(true) then
+                          if not compiler.parser.pdecsub.check_proc_directive(true) then
                             begin
                               hintsprocessed:=try_consume_hintdirective(ttypesym(srsym).symoptions,ttypesym(srsym).deprecatedmsg);
                               if replaydepth<current_scanner.replay_stack_depth then
@@ -2162,7 +2162,7 @@ uses
                             hintsprocessed:=true;
                         end;
                       if replaydepth<current_scanner.replay_stack_depth then
-                        parse_proctype_directives(tprocvardef(result));
+                        compiler.parser.pdecsub.parse_proctype_directives(tprocvardef(result));
                       if po_is_function_ref in tprocvardef(result).procoptions then
                         adjust_funcref(result,srsym,nil);
                       if result.typ=procvardef then
@@ -2184,7 +2184,7 @@ uses
                         include(pdflags,pd_object)
                       else if genericdef.owner.symtabletype=recordsymtable then
                         include(pdflags,pd_record);
-                      parse_proc_directives(pd,pdflags);
+                      compiler.parser.pdecsub.parse_proc_directives(pd,pdflags);
                       while try_consume_hintdirective(pd.symoptions,pd.deprecatedmsg) do
                         consume(_SEMICOLON);
                       if parse_generic then

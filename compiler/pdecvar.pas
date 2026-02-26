@@ -925,9 +925,9 @@ implementation
               is_funcref(def)
             ) and
             (def.typesym=nil) and
-            check_proc_directive(true) then
+            compiler.parser.pdecsub.check_proc_directive(true) then
            begin
-              parse_proctype_directives(def);
+              compiler.parser.pdecsub.parse_proctype_directives(def);
               result:=true;
            end;
        end;

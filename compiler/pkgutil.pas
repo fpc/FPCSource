@@ -27,7 +27,7 @@ unit pkgutil;
 interface
 
   uses
-    fmodule,fpkg,link,cstreams,cclasses;
+    fmodule,fpkg,link,cstreams,cclasses,compilerbase;
 
   procedure createimportlibfromexternals;
   Function RewritePPU(const PPUFn:String;OutStream:TCStream):Boolean;
@@ -42,7 +42,7 @@ implementation
 
   uses
     sysutils,
-    globtype,systems,
+    globtype,systems,compiler,
     cutils,
     globals,verbose,
     aasmbase,aasmdata,aasmcnst,
@@ -598,6 +598,8 @@ implementation
 
 
   procedure createimportlibfromexternals;
+    const
+      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
     type
       tcacheentry=record
         pkg:tpackage;
@@ -696,7 +698,7 @@ implementation
                         if pd.has_alias_name(symname) or
                             (
                               ([po_external,po_has_importdll]*pd.procoptions=[po_external,po_has_importdll]) and
-                              (symname=proc_get_importname(pd))
+                              (symname=compiler.parser.pdecsub.proc_get_importname(pd))
                             ) then
                           begin
                             found:=true;

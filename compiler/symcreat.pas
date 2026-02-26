@@ -182,6 +182,8 @@ implementation
 
 
   function str_parse_method_dec(str: ansistring; potype: tproctypeoption; is_classdef: boolean; astruct: tabstractrecorddef; out pd: tprocdef): boolean;
+    const
+      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
     var
       oldparse_only: boolean;
     begin
@@ -210,7 +212,7 @@ implementation
           pd:=destructor_head;
         else if assigned(astruct) and
            (astruct.typ=recorddef) then
-          pd:=parse_record_method_dec(astruct,is_classdef,false)
+          pd:=compiler.parser.pdecsub.parse_record_method_dec(astruct,is_classdef,false)
         else
           pd:=method_dec(astruct,is_classdef,false);
       end;

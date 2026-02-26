@@ -343,8 +343,8 @@ implementation
                     begin
                       { Either "procedure; stdcall" or "procedure stdcall" }
                       expect_directive:=try_to_consume(_SEMICOLON);
-                      if check_proc_directive(true) then
-                        parse_proctype_directives(hdef)
+                      if compiler.parser.pdecsub.check_proc_directive(true) then
+                        compiler.parser.pdecsub.parse_proctype_directives(hdef)
                       else if expect_directive then
                        begin
                          Message(parser_e_proc_directive_expected);
@@ -1093,12 +1093,12 @@ implementation
                       end
                     else
                      begin
-                       if not check_proc_directive(true) then
+                       if not compiler.parser.pdecsub.check_proc_directive(true) then
                          begin
                            try_consume_hintdirective(newtype.symoptions,newtype.deprecatedmsg);
                            consume(_SEMICOLON);
                          end;
-                       parse_proctype_directives(tprocvardef(hdef));
+                       compiler.parser.pdecsub.parse_proctype_directives(tprocvardef(hdef));
                        if po_is_function_ref in tprocvardef(hdef).procoptions then
                          begin
                            if not (m_function_references in current_settings.modeswitches) and
@@ -1134,12 +1134,12 @@ implementation
                   begin
                     if is_funcref(hdef) then
                       begin
-                        if not check_proc_directive(true) then
+                        if not compiler.parser.pdecsub.check_proc_directive(true) then
                           begin
                             try_consume_hintdirective(newtype.symoptions,newtype.deprecatedmsg);
                             consume(_SEMICOLON);
                           end;
-                        parse_proctype_directives(hdef);
+                        compiler.parser.pdecsub.parse_proctype_directives(hdef);
                         if try_consume_hintdirective(newtype.symoptions,newtype.deprecatedmsg) then
                           consume(_SEMICOLON);
                       end
