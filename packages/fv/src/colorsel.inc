@@ -53,7 +53,8 @@ uses
   FVConsts;
 {$ENDIF FPC_DOTTEDUNITS}
 
-const dialog_colorsel_colors        = 'Colors';
+resourcestring
+      dialog_colorsel_colors        = 'Colors';
       label_colorsel_group          = '~G~roup';
       label_colorsel_item           = '~I~tem';
       label_colorsel_foreground     = '~F~oreground';
@@ -106,6 +107,7 @@ const dialog_colorsel_colors        = 'Colors';
       label_colors_focusedlist      = 'List focused';
       label_colors_listdivider      = 'List divider';
       label_colors_infopane         = 'Information pane';
+      label_colors_directory        = 'Directory normal';
 
 type
   TColorSel = (csBackground, csForeground);
@@ -1166,7 +1168,8 @@ begin
     ColorItem(label_colors_listdivider,      Offset + 28,
 
     ColorItem(label_colors_infopane,         Offset + 29,
-    Next))))))))))))))))))))))))))))));
+    ColorItem(label_colors_directory,        Offset + 31,
+    Next)))))))))))))))))))))))))))))));
 end;
 
 function MenuColorItems(const Next: PColorItem): PColorItem;

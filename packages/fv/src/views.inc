@@ -210,7 +210,7 @@ CONST
    CFrame      = #1#1#2#2#3;                          { Frame palette }
    CScrollBar  = #4#5#5;                              { Scrollbar palette }
    CScroller   = #6#7;                                { Scroller palette }
-   CListViewer = #26#26#27#28#29#31;                  { Listviewer palette }
+   CListViewer = #26#26#27#28#29;                     { Listviewer palette }
 
    CBlueWindow = #8#9#10#11#12#13#14#15;              { Blue window palette }
    CCyanWindow = #16#17#18#19#20#21#22#23;            { Cyan window palette }

@@ -184,6 +184,7 @@ type
     function DataSize: Sw_Word; virtual;
     procedure FocusItem(Item: Sw_Integer); virtual;
     procedure GetData(var Rec); virtual;
+    function GetPalette: PPalette; virtual;
     function GetText(Item,MaxLen: Sw_Integer): Sw_String; virtual;
     function GetKey(var S: Sw_String): Pointer; virtual;
     function GetItemColor(Item: Sw_Integer; IsFocused, IsSelectedInner: Boolean): Word; virtual;
@@ -191,6 +192,7 @@ type
     procedure ReadDirectory(AWildCard: PathStr);
     procedure SetData(var Rec); virtual;
   end;
+
 
   { TFileInfoPane is a TView that displays the information      }
   { about the currently selected file in the TFileList     }
@@ -372,6 +374,7 @@ var
 const
 
   CInfoPane = #30;
+  CFileList = #26#26#27#28#29#32;                    { TFileList palette }
 
   { TStream registration records }
 
@@ -1060,6 +1063,12 @@ begin
   UpStr(SR.Name);
 {$endif Unix}
   GetKey := @SR;
+end;
+
+function TFileList.GetPalette: PPalette;
+const P: String[Length(CFileList)] = CFileList;      { Always normal string }
+begin
+   GetPalette := PPalette(@P);                       { Return palette }
 end;
 
 function TFileList.GetText(Item,MaxLen: Sw_Integer): Sw_String;
