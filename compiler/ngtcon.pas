@@ -35,6 +35,8 @@ interface
 
     type
       ttypedconstbuilder = class
+       private
+        FCompiler: TCompilerBase;
        protected
         current_old_block_type : tblock_type;
         tcsym: tstaticvarsym;
@@ -61,8 +63,9 @@ interface
         procedure tc_emit_setdef(def: tsetdef; var node: tnode);virtual;abstract;
         procedure tc_emit_enumdef(def: tenumdef; var node: tnode);virtual;abstract;
         procedure tc_emit_stringdef(def: tstringdef; var node: tnode);virtual;abstract;
+        property Compiler: TCompilerBase read FCompiler;
        public
-        constructor create(sym: tstaticvarsym);
+        constructor create(sym: tstaticvarsym; acompiler: TCompilerBase);
       end;
       ttypedconstbuilderclass = class of ttypedconstbuilder;
 
@@ -100,7 +103,7 @@ interface
         procedure tc_emit_enumdef(def: tenumdef; var node: tnode);override;
         procedure tc_emit_stringdef(def: tstringdef; var node: tnode);override;
        public
-        constructor create(sym: tstaticvarsym);virtual;
+        constructor create(sym: tstaticvarsym;acompiler: TCompilerBase);virtual;
         destructor Destroy; override;
         procedure parse_into_asmlist;
         { the asmlist containing the definition of the parsed entity and another
@@ -132,7 +135,7 @@ interface
         procedure tc_emit_enumdef(def: tenumdef; var node: tnode);override;
         procedure tc_emit_stringdef(def: tstringdef; var node: tnode);override;
        public
-        constructor create(sym: tstaticvarsym; previnit: tnode);virtual;
+        constructor create(sym: tstaticvarsym; previnit: tnode; acompiler: TCompilerBase);virtual;
         destructor destroy;override;
         function parse_into_nodetree: tnode;
       end;
@@ -180,8 +183,6 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
 *****************************************************************************}
 
       procedure ttypedconstbuilder.parse_orddef(def:torddef);
-        const
-          compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
         var
           n : tnode;
         begin
@@ -195,8 +196,6 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         end;
 
       procedure ttypedconstbuilder.parse_floatdef(def:tfloatdef);
-        const
-          compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
         var
           n : tnode;
         begin
@@ -207,8 +206,6 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         end;
 
       procedure ttypedconstbuilder.parse_classrefdef(def:tclassrefdef);
-        const
-          compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
         var
           n : tnode;
         begin
@@ -229,8 +226,6 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         end;
 
       procedure ttypedconstbuilder.parse_pointerdef(def:tpointerdef);
-        const
-          compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
         var
           p: tnode;
         begin
@@ -241,8 +236,6 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         end;
 
       procedure ttypedconstbuilder.parse_setdef(def:tsetdef);
-        const
-          compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
         var
           p : tnode;
         begin
@@ -253,8 +246,6 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         end;
 
       procedure ttypedconstbuilder.parse_enumdef(def:tenumdef);
-        const
-          compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
         var
           p : tnode;
         begin
@@ -265,8 +256,6 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         end;
 
       procedure ttypedconstbuilder.parse_stringdef(def:tstringdef);
-        const
-          compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
         var
           n : tnode;
         begin
@@ -326,8 +315,9 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
       end;
 
 
-    constructor ttypedconstbuilder.create(sym: tstaticvarsym);
+    constructor ttypedconstbuilder.create(sym: tstaticvarsym; acompiler: TCompilerBase);
       begin
+        FCompiler:=acompiler;
         tcsym:=sym;
       end;
 
@@ -488,7 +478,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
 
 
 
-    constructor tasmlisttypedconstbuilder.create(sym: tstaticvarsym);
+    constructor tasmlisttypedconstbuilder.create(sym: tstaticvarsym;acompiler: TCompilerBase);
       begin
         inherited;
         fsym:=sym;
@@ -509,8 +499,6 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
 
 
     procedure tasmlisttypedconstbuilder.tc_emit_stringdef(def: tstringdef; var node: tnode);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         strlength,
         defsize   : {$ifdef CPU8BITALU}smallint{$else}aint{$endif};
@@ -660,8 +648,6 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
 
 
     procedure tasmlisttypedconstbuilder.tc_emit_orddef(def: torddef; var node: tnode);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         intvalue: tconstexprint;
 
@@ -806,8 +792,6 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
 
 
     procedure tasmlisttypedconstbuilder.tc_emit_pointerdef(def: tpointerdef; var node: tnode);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         hp        : tnode;
         srsym     : tsym;
@@ -1087,8 +1071,6 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
 
 
     procedure tasmlisttypedconstbuilder.tc_emit_setdef(def: tsetdef; var node: tnode);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       type
          setbytes = array[0..31] of byte;
          Psetbytes = ^setbytes;
@@ -1201,8 +1183,6 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
     { represented by curval etc (see explanation of bitpackval for }
     { what the different parameters mean)                          }
     function tasmlisttypedconstbuilder.parse_single_packed_const(def: tdef; var bp: tbitpackedval): boolean;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         node: tnode;
       begin
@@ -1277,8 +1257,6 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
 
 
     procedure tasmlisttypedconstbuilder.parse_arraydef(def:tarraydef);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       const
         LKlammerToken: array[Boolean] of TToken = (_LKLAMMER, _LECKKLAMMER);
         RKlammerToken: array[Boolean] of TToken = (_RKLAMMER, _RECKKLAMMER);
@@ -1515,8 +1493,6 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
 
 
     procedure tasmlisttypedconstbuilder.parse_procvardef(def:tprocvardef);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         tmpn,n : tnode;
         pd : tprocdef;
@@ -1659,8 +1635,6 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
 
 
     procedure tasmlisttypedconstbuilder.parse_recorddef(def:trecorddef);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         n       : tnode;
         symidx  : longint;
@@ -1886,8 +1860,6 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
 
 
     procedure tasmlisttypedconstbuilder.parse_objectdef(def:tobjectdef);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         n      : tnode;
         obj    : tobjectdef;
@@ -2022,8 +1994,6 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
     { tnodetreetypedconstbuilder }
 
     procedure tnodetreetypedconstbuilder.parse_arraydef(def: tarraydef);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         n : tnode;
         i : longint;
@@ -2074,8 +2044,6 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
 
 
     procedure tnodetreetypedconstbuilder.parse_procvardef(def: tprocvardef);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       begin
         addstatement(statmnt,cassignmentnode.create_internal(basenode,compiler.parser.pexpr.comp_expr([ef_accept_equal]),compiler));
         basenode:=nil;
@@ -2083,8 +2051,6 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
 
 
     procedure tnodetreetypedconstbuilder.parse_recorddef(def: trecorddef);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         n,n2    : tnode;
         SymList:TFPHashObjectList;
@@ -2259,8 +2225,6 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
 
 
     procedure tnodetreetypedconstbuilder.parse_objectdef(def: tobjectdef);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         n,
         orgbasenode : tnode;
@@ -2362,8 +2326,6 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
 
 
     procedure tnodetreetypedconstbuilder.tc_emit_orddef(def: torddef; var node: tnode);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       begin
         addstatement(statmnt,cassignmentnode.create_internal(basenode,node,compiler));
         basenode:=nil;
@@ -2372,8 +2334,6 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
 
 
     procedure tnodetreetypedconstbuilder.tc_emit_floatdef(def: tfloatdef; var node: tnode);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       begin
         addstatement(statmnt,cassignmentnode.create_internal(basenode,node,compiler));
         basenode:=nil;
@@ -2382,8 +2342,6 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
 
 
     procedure tnodetreetypedconstbuilder.tc_emit_classrefdef(def: tclassrefdef; var node: tnode);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       begin
         addstatement(statmnt,cassignmentnode.create_internal(basenode,node,compiler));
         basenode:=nil;
@@ -2392,8 +2350,6 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
 
 
     procedure tnodetreetypedconstbuilder.tc_emit_pointerdef(def: tpointerdef; var node: tnode);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       begin
         addstatement(statmnt,cassignmentnode.create_internal(basenode,node,compiler));
         basenode:=nil;
@@ -2402,8 +2358,6 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
 
 
     procedure tnodetreetypedconstbuilder.tc_emit_setdef(def: tsetdef; var node: tnode);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       begin
         addstatement(statmnt,cassignmentnode.create_internal(basenode,node,compiler));
         basenode:=nil;
@@ -2412,8 +2366,6 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
 
 
     procedure tnodetreetypedconstbuilder.tc_emit_enumdef(def: tenumdef; var node: tnode);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       begin
         addstatement(statmnt,cassignmentnode.create_internal(basenode,node,compiler));
         basenode:=nil;
@@ -2422,8 +2374,6 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
 
 
     procedure tnodetreetypedconstbuilder.tc_emit_stringdef(def: tstringdef; var node: tnode);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       begin
         addstatement(statmnt,cassignmentnode.create_internal(basenode,node,compiler));
         basenode:=nil;
@@ -2431,11 +2381,9 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
       end;
 
 
-    constructor tnodetreetypedconstbuilder.create(sym: tstaticvarsym; previnit: tnode);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    constructor tnodetreetypedconstbuilder.create(sym: tstaticvarsym; previnit: tnode; acompiler: TCompilerBase);
       begin
-        inherited create(sym);
+        inherited create(sym,acompiler);
         basenode:=cloadnode.create(sym,sym.owner,compiler);
         resultblock:=internalstatements(statmnt);
         if assigned(previnit) then

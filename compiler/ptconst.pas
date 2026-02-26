@@ -25,7 +25,7 @@ unit ptconst;
 
 interface
 
-   uses symtype,symsym,aasmdata;
+   uses symtype,symsym,aasmdata,compilerbase;
 
     procedure read_typed_const(list:tasmlist;sym:tstaticvarsym;in_structure:boolean);
 
@@ -42,6 +42,8 @@ implementation
        ;
 
     procedure read_typed_const(list:tasmlist;sym:tstaticvarsym;in_structure:boolean);
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         storefilepos : tfileposinfo;
         section      : ansistring;
@@ -65,7 +67,7 @@ implementation
         if not(target_info.system in systems_typed_constants_node_init) then
           begin
             maybe_new_object_file(list);
-            tcbuilder:=tasmlisttypedconstbuilderclass(ctypedconstbuilder).create(sym);
+            tcbuilder:=tasmlisttypedconstbuilderclass(ctypedconstbuilder).create(sym,compiler);
             tasmlisttypedconstbuilder(tcbuilder).parse_into_asmlist;
           end
         else
@@ -74,7 +76,7 @@ implementation
               previnit:=current_structdef.tcinitcode
             else
               previnit:=tnode(current_module.tcinitcode);
-            tcbuilder:=tnodetreetypedconstbuilderclass(ctypedconstbuilder).create(sym,previnit);
+            tcbuilder:=tnodetreetypedconstbuilderclass(ctypedconstbuilder).create(sym,previnit,compiler);
             restree:=tnodetreetypedconstbuilder(tcbuilder).parse_into_nodetree;
             if assigned(current_structdef) then
               current_structdef.tcinitcode:=restree
