@@ -54,7 +54,7 @@ implementation
        cutils,
        { global }
        globtype,globals,tokens,verbose,constexp,
-       systems,
+       systems,compiler,
        { symtable }
        symconst,symbase,defutil,defcmp,symutil,symcreat,
 {$if defined(i386) or defined(i8086) or defined(wasm)}
@@ -184,7 +184,7 @@ implementation
                          if assigned(def) and (def.typ=arraydef) then
                           begin
                             idx:=0;
-                            p:=comp_expr([ef_accept_equal]);
+                            p:=compiler.parser.pexpr.comp_expr([ef_accept_equal]);
                             if (not codegenerror) then
                              begin
                                if (p.nodetype=ordconstn) then
@@ -300,7 +300,7 @@ implementation
 
               if try_to_consume(_DISPID) then
                 begin
-                  pt:=comp_expr([ef_accept_equal]);
+                  pt:=compiler.parser.pexpr.comp_expr([ef_accept_equal]);
                   if is_constintnode(pt) then
                     if (Tordconstnode(pt).value<int64(low(longint))) or (Tordconstnode(pt).value>int64(high(longint))) then
                       message3(type_e_range_check_error_bounds,tostr(Tordconstnode(pt).value),tostr(low(longint)),tostr(high(longint)))
@@ -468,7 +468,7 @@ implementation
               if (current_scanner.idtoken=_INDEX) then
                 begin
                    consume(_INDEX);
-                   pt:=comp_expr([ef_accept_equal]);
+                   pt:=compiler.parser.pexpr.comp_expr([ef_accept_equal]);
                    { Only allow enum and integer indexes. Convert all integer
                      values to objpas.integer (s32int on 32- and 64-bit targets,
                      s16int on 16- and 8-bit) to be compatible with delphi,
@@ -710,7 +710,7 @@ implementation
                 begin
                   Message(parser_e_property_cant_have_a_default_value);
                   { Error recovery }
-                  pt:=comp_expr([ef_accept_equal]);
+                  pt:=compiler.parser.pexpr.comp_expr([ef_accept_equal]);
                   pt.free;
                   pt := nil;
                 end
@@ -718,7 +718,7 @@ implementation
                 begin
                   { Get the result of the default, the firstpass is
                     needed to support values like -1 }
-                  pt:=comp_expr([ef_accept_equal]);
+                  pt:=compiler.parser.pexpr.comp_expr([ef_accept_equal]);
                   if (p.propdef.typ=setdef) and
                      (pt.nodetype=arrayconstructorn) then
                     begin
@@ -936,6 +936,8 @@ implementation
 
 
     procedure read_public_and_external(vs: tabstractvarsym);
+    const
+      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
     var
       is_dll,
       is_far,
@@ -1002,12 +1004,12 @@ implementation
           if (current_scanner.idtoken<>_NAME) and (current_scanner.token<>_SEMICOLON) then
             begin
               is_dll:=true;
-              dll_name:=get_stringconst;
+              dll_name:=compiler.parser.pexpr.get_stringconst;
               if ExtractFileExt(dll_name)='' then
                 dll_name:=ChangeFileExt(dll_name,target_info.sharedlibext);
             end;
           if not(is_cdecl) and try_to_consume(_NAME) then
-            C_name:=get_stringconst;
+            C_name:=compiler.parser.pexpr.get_stringconst;
           consume(_SEMICOLON);
         end;
 
@@ -1020,11 +1022,11 @@ implementation
           else
             is_public_var:=true;
           if try_to_consume(_NAME) then
-            C_name:=get_stringconst;
+            C_name:=compiler.parser.pexpr.get_stringconst;
           if (target_info.system in systems_allow_section_no_semicolon) and
              (vs.typ=staticvarsym) and
              try_to_consume (_SECTION) then
-            section_name:=get_stringconst;
+            section_name:=compiler.parser.pexpr.get_stringconst;
           consume(_SEMICOLON);
         end;
 
@@ -1094,24 +1096,28 @@ implementation
 
 
     procedure try_consume_sectiondirective(var asection: ansistring);
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       begin
         if current_scanner.idtoken=_SECTION then
           begin
             consume(_ID);
-            asection:=get_stringconst;
+            asection:=compiler.parser.pexpr.get_stringconst;
             consume(_SEMICOLON);
           end;
       end;
 
 
     procedure try_read_field_external(vs: tabstractvarsym);
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         extname: string;
       begin
         if try_to_consume(_EXTERNAL) then
           begin
             consume(_NAME);
-            extname:=get_stringconst;
+            extname:=compiler.parser.pexpr.get_stringconst;
             tfieldvarsym(vs).set_externalname(extname);
             consume(_SEMICOLON);
           end;
@@ -1131,6 +1137,8 @@ implementation
 
 
     procedure read_var_decls(options:Tvar_dec_options;out had_generic:boolean);
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
 
         procedure read_default_value(sc : TFPObjectList);
         var
@@ -1214,7 +1222,7 @@ implementation
           if vo_is_typed_const in vs.varoptions then
             Message(parser_e_initialized_not_for_external);
           { parse the rest }
-          pt:=expr(true);
+          pt:=compiler.parser.pexpr.expr(true);
           { check allowed absolute types }
           if (pt.nodetype=stringconstn) or
             (is_constcharnode(pt)) then
@@ -2063,13 +2071,13 @@ implementation
                 fillchar(variantdesc^^.branches[high(variantdesc^^.branches)],
                   sizeof(variantdesc^^.branches[high(variantdesc^^.branches)]),0);
                 repeat
-                  pt:=comp_expr([ef_accept_equal]);
+                  pt:=compiler.parser.pexpr.comp_expr([ef_accept_equal]);
                   if not(pt.nodetype=ordconstn) then
                     Message(parser_e_illegal_expression);
                   inserttypeconv(pt,casetype,compiler);
                   { iso pascal does not support ranges in variant record definitions }
                   if (([m_iso,m_extpas]*current_settings.modeswitches)=[]) and try_to_consume(_POINTPOINT) then
-                    pt:=crangenode.create(pt,comp_expr([ef_accept_equal]),compiler)
+                    pt:=crangenode.create(pt,compiler.parser.pexpr.comp_expr([ef_accept_equal]),compiler)
                   else
                     begin
                       with variantdesc^^.branches[high(variantdesc^^.branches)] do

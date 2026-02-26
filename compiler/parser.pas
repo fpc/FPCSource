@@ -28,7 +28,7 @@ interface
 uses
   compilerbase,
   fmodule,
-  pmodules,pgenutil,pstatmnt;
+  pmodules,pgenutil,pstatmnt,pexpr;
 
 type
 
@@ -40,6 +40,7 @@ type
     FPModules: TModulesParser;
     FPGenUtil: TGenericsParseUtils;
     FPStatmnt: TStatementsParser;
+    FPExpr: TExpressionParser;
 
     procedure initparser;
     procedure doneparser;
@@ -56,6 +57,7 @@ type
     property pmodules: TModulesParser read FPModules;
     property pgenutil: TGenericsParseUtils read FPGenUtil;
     property pstatmnt: TStatementsParser read FPStatmnt;
+    property pexpr: TExpressionParser read FPExpr;
   end;
 
 implementation

@@ -46,6 +46,7 @@ type
   TGenericsParseUtils = class
   private
     FCompiler: TCompilerBase;
+    property Compiler: TCompilerBase read FCompiler;
     procedure make_prettystring(paramtype:tdef;first:boolean;constprettyname:ansistring;var prettyname,specializename:ansistring);
     function get_generic_param_def(sym:tsym):tdef;
     function parse_generic_specialization_types_internal(paramlist:tfpobjectlist;poslist:tfplist;out prettyname,specializename:ansistring;parsedtype:tdef;parsedpos:tfileposinfo):boolean;
@@ -87,7 +88,7 @@ uses
   { common }
   cutils,fpchash,
   { global }
-  globals,tokens,verbose,finput,constexp,
+  globals,tokens,verbose,finput,constexp,compiler,
   { symtable }
   symconst,symsym,symtable,defcmp,defutil,procinfo,
   { modules }
@@ -614,7 +615,7 @@ uses
               consume(_COMMA);
             block_type:=bt_type;
             tmpparampos:=current_filepos;
-            typeparam:=factor(false,[ef_accept_equal]);
+            typeparam:=compiler.parser.pexpr.factor(false,[ef_accept_equal]);
             { determine if the typeparam node is a valid type or const }
             validparam:=typeparam.nodetype in tgeneric_param_nodes;
             if validparam then

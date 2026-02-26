@@ -508,7 +508,7 @@ implementation
            again:=false;
              case current_scanner.token of
                _STRING:
-                 string_dec(def,stoAllowTypeDef in options);
+                 compiler.parser.pexpr.string_dec(def,stoAllowTypeDef in options);
                _FILE:
                  begin
                     consume(_FILE);
@@ -1169,7 +1169,7 @@ implementation
          if (current_scanner.token=_ID) and (current_scanner.pattern='ALIGN') then
            begin
              consume(_ID);
-             alignment:=get_intconst.svalue;
+             alignment:=compiler.parser.pexpr.get_intconst.svalue;
              { "(alignment and not $7F) = 0" means it's between 0 and 127, and
                PopCnt = 1 for powers of 2 }
              if ((alignment and not $7F) <> 0) or (PopCnt(Byte(alignment))<>1) then
@@ -1234,11 +1234,11 @@ implementation
              if try_parse_structdef_nested_type(def,current_structdef,false) then
                exit;
            { we can't accept a equal in type }
-           pt1:=comp_expr([ef_type_only]);
+           pt1:=compiler.parser.pexpr.comp_expr([ef_type_only]);
            if try_to_consume(_POINTPOINT) then
              begin
                { get high value of range }
-               pt2:=comp_expr([]);
+               pt2:=compiler.parser.pexpr.comp_expr([]);
                { make both the same type or give an error. This is not
                  done when both are integer values, because typecasting
                  between -3200..3200 will result in a signed-unsigned
@@ -1330,7 +1330,7 @@ implementation
                          def:=current_structdef;
                        if assigned(def) then
                          { handle nested types }
-                         post_comp_expr_gendef(def)
+                         compiler.parser.pexpr.post_comp_expr_gendef(def)
                        else
                          def:=generrordef;
                      end;
@@ -1341,7 +1341,7 @@ implementation
                        compiler.parser.pgenutil.generate_specialization(def,false,false,name,ttypenode(pt1).typesym.name,ttypenode(pt1).typesym.owner);
                        { handle nested types }
                        if assigned(def) then
-                         post_comp_expr_gendef(def);
+                         compiler.parser.pexpr.post_comp_expr_gendef(def);
                      end
                    else
                      begin
@@ -1604,7 +1604,7 @@ implementation
                    end
                   else
                    begin
-                     pt:=expr(true);
+                     pt:=compiler.parser.pexpr.expr(true);
                      isgeneric:=false;
                      if pt.nodetype=typen then
                        setdefdecl(pt.resultdef)
@@ -1909,7 +1909,7 @@ implementation
                     begin
                        oldlocalswitches:=current_settings.localswitches;
                        include(current_settings.localswitches,cs_allow_enum_calc);
-                       p:=comp_expr([ef_accept_equal]);
+                       p:=compiler.parser.pexpr.comp_expr([ef_accept_equal]);
                        current_settings.localswitches:=oldlocalswitches;
                        if (p.nodetype=ordconstn) then
                         begin

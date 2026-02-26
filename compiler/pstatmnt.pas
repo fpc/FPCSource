@@ -66,7 +66,7 @@ implementation
        cutils,cclasses,
        { global }
        globtype,globals,verbose,constexp,
-       systems,
+       systems,compiler,
        { aasm }
        cpubase,aasmtai,aasmdata,aasmbase,
        { symtable }
@@ -91,7 +91,7 @@ implementation
          ex,if_a,else_a : tnode;
       begin
          consume(_IF);
-         ex:=comp_expr([ef_accept_equal]);
+         ex:=compiler.parser.pexpr.comp_expr([ef_accept_equal]);
          consume(_THEN);
          if not(current_scanner.token in endtokens) then
            if_a:=statement
@@ -148,7 +148,7 @@ implementation
          casenode : tcasenode;
       begin
          consume(_CASE);
-         caseexpr:=comp_expr([ef_accept_equal]);
+         caseexpr:=compiler.parser.pexpr.comp_expr([ef_accept_equal]);
          { determines result type }
          do_typecheckpass(caseexpr);
          { variants must be accepted, but first they must be converted to integer }
@@ -184,7 +184,7 @@ implementation
          repeat
            { maybe an instruction has more case labels }
            repeat
-             p:=expr(true);
+             p:=compiler.parser.pexpr.expr(true);
              if is_widechar(casedef) then
                begin
                   if (p.nodetype=rangen) then
@@ -345,7 +345,7 @@ implementation
          consume(_UNTIL);
 
          first:=cblocknode.create(first,compiler);
-         p_e:=comp_expr([ef_accept_equal]);
+         p_e:=compiler.parser.pexpr.comp_expr([ef_accept_equal]);
          result:=cwhilerepeatnode.create(p_e,first,false,true,compiler);
       end;
 
@@ -357,7 +357,7 @@ implementation
 
       begin
          consume(_WHILE);
-         p_e:=comp_expr([ef_accept_equal]);
+         p_e:=compiler.parser.pexpr.comp_expr([ef_accept_equal]);
          consume(_DO);
          p_a:=statement;
          result:=cwhilerepeatnode.create(p_e,p_a,true,false,compiler);
@@ -495,7 +495,7 @@ implementation
              else
                MessagePos(hloopvar.fileinfo,type_e_illegal_count_var);
 
-             hfrom:=comp_expr([ef_accept_equal]);
+             hfrom:=compiler.parser.pexpr.comp_expr([ef_accept_equal]);
 
              if try_to_consume(_DOWNTO) then
                backward:=true
@@ -505,7 +505,7 @@ implementation
                  backward:=false;
                end;
 
-             hto:=comp_expr([ef_accept_equal]);
+             hto:=compiler.parser.pexpr.comp_expr([ef_accept_equal]);
              consume(_DO);
 
              { Check if the constants fit in the range }
@@ -559,7 +559,7 @@ implementation
               else
                 loopvarsym:=nil;
 
-              expr:=comp_expr([ef_accept_equal]);
+              expr:=compiler.parser.pexpr.comp_expr([ef_accept_equal]);
 
               consume(_DO);
 
@@ -582,7 +582,7 @@ implementation
          { parse loop header }
          consume(_FOR);
 
-         hloopvar:=factor(false,[]);
+         hloopvar:=compiler.parser.pexpr.factor(false,[]);
          valid_for_loopvar(hloopvar,true);
 
          if try_to_consume(_ASSIGNMENT) then
@@ -645,7 +645,7 @@ implementation
 
       begin
          calltempnode:=nil;
-         p:=comp_expr([ef_accept_equal]);
+         p:=compiler.parser.pexpr.comp_expr([ef_accept_equal]);
          do_typecheckpass(p);
 
          if (p.nodetype=vecn) and
@@ -872,12 +872,12 @@ implementation
          if not(current_scanner.token in endtokens) then
            begin
               { object }
-              pobj:=comp_expr([ef_accept_equal]);
+              pobj:=compiler.parser.pexpr.comp_expr([ef_accept_equal]);
               if try_to_consume(_AT) then
                 begin
-                   paddr:=comp_expr([ef_accept_equal]);
+                   paddr:=compiler.parser.pexpr.comp_expr([ef_accept_equal]);
                    if try_to_consume(_COMMA) then
-                     pframe:=comp_expr([ef_accept_equal]);
+                     pframe:=compiler.parser.pexpr.comp_expr([ef_accept_equal]);
                 end;
            end
          else
@@ -1198,7 +1198,7 @@ implementation
           cv : Tconstexprint;
           def: tdef;
         begin
-          cv:=get_intconst;
+          cv:=compiler.parser.pexpr.get_intconst;
           case actype of
             aitconst_8bit:
               def:=s8inttype;
@@ -1493,7 +1493,7 @@ implementation
              { don't typecheck yet, because that will also simplify, which may
                result in not detecting certain kinds of syntax errors --
                see mantis #15594 }
-             p:=expr(false);
+             p:=compiler.parser.pexpr.expr(false);
              { save the current_scanner.pattern here for latter usage, the label could be "000",
                even if we read an expression, the current_scanner.pattern is still valid if it's really
                a label (FK)

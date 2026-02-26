@@ -406,11 +406,13 @@ implementation
 
 
     procedure readinterfaceiid;
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         p : tnode;
         valid : boolean;
       begin
-        p:=comp_expr([ef_accept_equal]);
+        p:=compiler.parser.pexpr.comp_expr([ef_accept_equal]);
         if p.nodetype=stringconstn then
           begin
             stringdispose(current_objectdef.iidstr);
@@ -428,6 +430,8 @@ implementation
       end;
 
     procedure get_cpp_or_java_class_external_status(od: tobjectdef);
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         hs: string;
       begin
@@ -441,7 +445,7 @@ implementation
             if current_scanner.token in [_CSTRING,_CWSTRING,_CCHAR,_CWCHAR] then
               begin
                 { Always add library prefix and suffix to create an uniform name }
-                hs:=get_stringconst;
+                hs:=compiler.parser.pexpr.get_stringconst;
                 if ExtractFileExt(hs)='' then
                   hs:=ChangeFileExt(hs,target_info.sharedlibext);
                 if Copy(hs,1,length(target_info.sharedlibprefix))<>target_info.sharedlibprefix then
@@ -457,7 +461,7 @@ implementation
               end;
             { check if we shall use another name for the class }
             if try_to_consume(_NAME) then
-              od.objextname:=stringdup(get_stringconst)
+              od.objextname:=stringdup(compiler.parser.pexpr.get_stringconst)
             else
               od.objextname:=stringdup(od.objrealname^);
             include(od.objectoptions,oo_is_external);
@@ -470,6 +474,8 @@ implementation
 
 
     procedure get_objc_class_or_protocol_external_status(od: tobjectdef);
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       begin
         { Objective-C classes can be external -> all messages inside are
           external (defined at the class level instead of per method, so
@@ -478,7 +484,7 @@ implementation
         if try_to_consume(_EXTERNAL) then
           begin
             if try_to_consume(_NAME) then
-              od.objextname:=stringdup(get_stringconst)
+              od.objextname:=stringdup(compiler.parser.pexpr.get_stringconst)
             else
               { the external name doesn't matter for formally declared
                 classes, and allowing to specify one would mean that we would

@@ -800,7 +800,7 @@ implementation
           var
             node : tnode;
           begin
-            node:=factor(false,[ef_type_only,ef_had_specialize]);
+            node:=compiler.parser.pexpr.factor(false,[ef_type_only,ef_had_specialize]);
             if node.nodetype=typen then
               begin
                 sp:=ttypenode(node).typedef.typesym.name;
@@ -1852,13 +1852,15 @@ implementation
 ****************************************************************************}
 
 procedure pd_compilerproc(pd:tabstractprocdef);
+const
+  compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
 var
   v : Tconstexprint;
 begin
   { check for optional syssym index }
   if try_to_consume(_COLON) then
     begin
-      v:=get_intconst;
+      v:=compiler.parser.pexpr.get_intconst;
       if (v<int64(low(longint))) or (v>int64(high(longint))) then
         message3(type_e_range_check_error_bounds,tostr(v),tostr(low(longint)),tostr(high(longint)))
       else if not assigned(tsyssym.find_by_number(longint(v.svalue))) then
@@ -1897,22 +1899,26 @@ end;
 
 
 procedure pd_alias(pd:tabstractprocdef);
+const
+  compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
 begin
   if pd.typ<>procdef then
     internalerror(200304266);
   consume(_COLON);
-  tprocdef(pd).aliasnames.insert(get_stringconst);
+  tprocdef(pd).aliasnames.insert(compiler.parser.pexpr.get_stringconst);
   include(pd.procoptions,po_has_public_name);
 end;
 
 
 procedure pd_public(pd:tabstractprocdef);
+const
+  compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
 begin
   if pd.typ<>procdef then
     internalerror(2003042601);
   if try_to_consume(_NAME) then
     begin
-      tprocdef(pd).aliasnames.insert(get_stringconst);
+      tprocdef(pd).aliasnames.insert(compiler.parser.pexpr.get_stringconst);
       include(pd.procoptions,po_has_public_name);
     end;
 end;
@@ -1938,6 +1944,8 @@ end;
 
 
 procedure pd_internconst(pd:tabstractprocdef);
+const
+  compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
 
 var v:Tconstexprint;
 
@@ -1945,7 +1953,7 @@ begin
   if pd.typ<>procdef then
     internalerror(200304268);
   consume(_COLON);
-  v:=get_intconst;
+  v:=compiler.parser.pexpr.get_intconst;
   if (v<int64(low(longint))) or (v>int64(high(longint))) then
     message3(type_e_range_check_error_bounds,tostr(v),tostr(low(longint)),tostr(high(longint)))
   else
@@ -1954,6 +1962,8 @@ end;
 
 
 procedure pd_internproc(pd:tabstractprocdef);
+const
+  compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
 
 var v:Tconstexprint;
 
@@ -1961,7 +1971,7 @@ begin
   if pd.typ<>procdef then
     internalerror(2003042602);
   consume(_COLON);
-  v:=get_intconst;
+  v:=compiler.parser.pexpr.get_intconst;
   if (v<int64(low(longint))) or (v>int64(high(longint))) then
     message3(type_e_range_check_error_bounds,tostr(v),tostr(low(longint)),tostr(high(longint)))
   else
@@ -2082,13 +2092,15 @@ end;
 
 
 procedure pd_dispid(pd:tabstractprocdef);
+const
+  compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
 
 var pt:Tnode;
 
 begin
   if pd.typ<>procdef then
     internalerror(200604301);
-  pt:=comp_expr([ef_accept_equal]);
+  pt:=compiler.parser.pexpr.comp_expr([ef_accept_equal]);
   if is_constintnode(pt) then
     if (Tordconstnode(pt).value<int64(low(longint))) or (Tordconstnode(pt).value>int64(high(longint))) then
       message3(type_e_range_check_error_bounds,tostr(Tordconstnode(pt).value),tostr(low(longint)),tostr(high(longint)))
@@ -2147,6 +2159,8 @@ begin
 end;
 
 procedure pd_message(pd:tabstractprocdef);
+const
+  compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
 var
   pt : tnode;
   paracnt : longint;
@@ -2174,7 +2188,7 @@ begin
       if paracnt<>1 then
         Message(parser_e_ill_msg_param);
     end;
-  pt:=comp_expr([ef_accept_equal]);
+  pt:=compiler.parser.pexpr.comp_expr([ef_accept_equal]);
   { message is 1-character long }
   if is_constcharnode(pt) then
     begin
@@ -2230,6 +2244,8 @@ end;
 
 
 procedure pd_syscall(pd:tabstractprocdef);
+const
+  compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
 
     procedure include_po_syscall;
       var
@@ -2319,14 +2335,14 @@ begin
 
   if target_info.system in [system_arm_palmos, system_m68k_palmos] then
     begin
-      v:=get_intconst;
+      v:=compiler.parser.pexpr.get_intconst;
       tprocdef(pd).extnumber:=longint(v.svalue);
       if ((v<0) or (v>high(word))) then
         message(parser_e_range_check_error);
 
       if try_to_consume(_COMMA) then
         begin
-          v:=get_intconst;
+          v:=compiler.parser.pexpr.get_intconst;
           if ((v<0) or (v>high(word))) then
             message(parser_e_range_check_error);
           tprocdef(pd).import_nr:=longint(v.svalue);
@@ -2337,13 +2353,13 @@ begin
 
   if target_info.system = system_m68k_atari then
     begin
-      v:=get_intconst;
+      v:=compiler.parser.pexpr.get_intconst;
       if ((v<0) or (v>15)) then
         message(parser_e_range_check_error)
       else
         tprocdef(pd).extnumber:=longint(v.svalue);
 
-      v:=get_intconst;
+      v:=compiler.parser.pexpr.get_intconst;
       if ((v<0) or (v>high(smallint))) then
         message(parser_e_range_check_error)
       else
@@ -2354,7 +2370,7 @@ begin
 
   if target_info.system = system_m68k_human68k then
     begin
-      v:=get_intconst;
+      v:=compiler.parser.pexpr.get_intconst;
       if ((v<$ff00) or (v>high(word))) then
         message(parser_e_range_check_error)
       else
@@ -2386,7 +2402,7 @@ begin
   paramanager.create_funcretloc_info(pd,calleeside);
   paramanager.create_funcretloc_info(pd,callerside);
 
-  v:=get_intconst;
+  v:=compiler.parser.pexpr.get_intconst;
   if (v<low(Tprocdef(pd).extnumber)) or (v>high(Tprocdef(pd).extnumber)) then
     message3(type_e_range_check_error_bounds,tostr(v),tostr(low(Tprocdef(pd).extnumber)),tostr(high(Tprocdef(pd).extnumber)))
   else
@@ -2399,6 +2415,8 @@ end;
 
 
 procedure pd_external(pd:tabstractprocdef);
+const
+  compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
 {
   If import_dll=nil the procedure is assumed to be in another
   object file. In that object file it should have the name to
@@ -2438,7 +2456,7 @@ begin
          not(current_scanner.token=_SEMICOLON) and not(current_scanner.idtoken=_NAME) then
         begin
           { Always add library prefix and suffix to create an uniform name }
-          hs:=get_stringconst;
+          hs:=compiler.parser.pexpr.get_stringconst;
           if ExtractFileExt(hs)='' then
             hs:=ChangeFileExt(hs,target_info.sharedlibext);
           if Copy(hs,1,length(target_info.sharedlibprefix))<>target_info.sharedlibprefix then
@@ -2451,7 +2469,7 @@ begin
           if (current_scanner.idtoken=_NAME) then
            begin
              consume(_NAME);
-             import_name:=stringdup(get_stringconst);
+             import_name:=stringdup(compiler.parser.pexpr.get_stringconst);
              include(procoptions,po_has_importname);
              if import_name^='' then
                message(parser_e_empty_import_name);
@@ -2460,7 +2478,7 @@ begin
            begin
              {After the word index follows the index number in the DLL.}
              consume(_INDEX);
-             v:=get_intconst;
+             v:=compiler.parser.pexpr.get_intconst;
              if (v<int64(low(import_nr))) or (v>int64(high(import_nr))) then
                message(parser_e_range_check_error)
              else
@@ -2504,7 +2522,7 @@ begin
              is_java_external then
            begin
              consume(_NAME);
-             import_name:=stringdup(get_stringconst);
+             import_name:=stringdup(compiler.parser.pexpr.get_stringconst);
              include(procoptions,po_has_importname);
              if import_name^='' then
                message(parser_e_empty_import_name);
@@ -2544,15 +2562,17 @@ begin
 end;
 
 procedure pd_section(pd:tabstractprocdef);
+const
+  compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
 begin
   if pd.typ<>procdef then
     internalerror(2021032801);
   if not (target_info.system in systems_allow_section) then
     Message(parser_e_section_directive_not_allowed_for_target);
 {$ifdef symansistr}
-  tprocdef(pd).section:=get_stringconst;
+  tprocdef(pd).section:=compiler.parser.pexpr.get_stringconst;
 {$else symansistr}
-  tprocdef(pd).section:=stringdup(get_stringconst);
+  tprocdef(pd).section:=stringdup(compiler.parser.pexpr.get_stringconst);
 {$endif}
 end;
 

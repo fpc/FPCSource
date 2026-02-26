@@ -83,6 +83,8 @@ implementation
     end;
 
     function readconstant(const orgname:string;const filepos:tfileposinfo; out nodetype: tnodetype):tconstsym;
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         hp : tconstsym;
         p : tnode;
@@ -97,7 +99,7 @@ implementation
         if orgname='' then
          internalerror(9584582);
         hp:=nil;
-        p:=comp_expr([ef_accept_equal]);
+        p:=compiler.parser.pexpr.comp_expr([ef_accept_equal]);
         nodetype:=p.nodetype;
         storetokenpos:=current_tokenpos;
         current_tokenpos:=filepos;
@@ -457,7 +459,7 @@ implementation
               { we only want constants here }
               old_block_type:=block_type;
               block_type:=bt_const;
-              result:=parse_paras(false,false,_RKLAMMER);
+              result:=compiler.parser.pexpr.parse_paras(false,false,_RKLAMMER);
               block_type:=old_block_type;
               consume(_RKLAMMER);
             end
@@ -479,7 +481,7 @@ implementation
 
         repeat
           { Parse attribute type }
-          p:=factor(false,[ef_type_only,ef_check_attr_suffix]);
+          p:=compiler.parser.pexpr.factor(false,[ef_type_only,ef_check_attr_suffix]);
           if p.nodetype=typen then
             begin
               typesym:=ttypesym(ttypenode(p).typesym);
@@ -944,7 +946,7 @@ implementation
                           { check if it is an ansistring(codepage) declaration }
                           if is_ansistring(hdef) and try_to_consume(_LKLAMMER) then
                             begin
-                              p:=comp_expr([ef_accept_equal]);
+                              p:=compiler.parser.pexpr.comp_expr([ef_accept_equal]);
                               consume(_RKLAMMER);
                               if not is_constintnode(p) then
                                 begin
@@ -1053,7 +1055,7 @@ implementation
                        begin
                          if current_scanner.token <> _SEMICOLON then
                            begin
-                             segment_register:=get_stringconst;
+                             segment_register:=compiler.parser.pexpr.get_stringconst;
                              case UpCase(segment_register) of
                                'CS': tcpupointerdef(hdef).x86pointertyp:=x86pt_near_cs;
                                'DS': tcpupointerdef(hdef).x86pointertyp:=x86pt_near_ds;
@@ -1321,6 +1323,8 @@ implementation
 
 
     procedure resourcestring_dec(out had_generic:boolean);
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
          orgname : TIDString;
          p : tnode;
@@ -1353,7 +1357,7 @@ implementation
              _EQ:
                 begin
                    consume(_EQ);
-                   p:=comp_expr([ef_accept_equal]);
+                   p:=compiler.parser.pexpr.comp_expr([ef_accept_equal]);
                    storetokenpos:=current_tokenpos;
                    current_tokenpos:=filepos;
                    sym:=nil;

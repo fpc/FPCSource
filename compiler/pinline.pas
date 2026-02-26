@@ -49,7 +49,7 @@ implementation
     uses
        { global }
        globtype,tokens,verbose,constexp,
-       systems,compinnr,
+       systems,compinnr,compiler,
        { symtable }
        symbase,symconst,symdef,symsym,symtable,defutil,
        { pass 1 }
@@ -91,7 +91,7 @@ implementation
               while (current_scanner.token=_COMMA) and assigned(variantdesc) do
                 begin
                   consume(_COMMA);
-                  p2:=factor(false,[]);
+                  p2:=compiler.parser.pexpr.factor(false,[]);
                   do_typecheckpass(p2);
                   if p2.nodetype=ordconstn then
                     begin
@@ -137,7 +137,7 @@ implementation
         if target_info.system in systems_managed_vm then
           message(parser_e_feature_unsupported_for_vm);
         consume(_LKLAMMER);
-        p:=comp_expr([ef_accept_equal]);
+        p:=compiler.parser.pexpr.comp_expr([ef_accept_equal]);
         { calc return type }
         if is_new then
           begin
@@ -181,7 +181,7 @@ implementation
                  exit;
               end;
 
-            do_member_read(classh,false,sym,p2,again,[],nil);
+            compiler.parser.pexpr.do_member_read(classh,false,sym,p2,again,[],nil);
 
             { we need the real called method }
             do_typecheckpass(p2);
@@ -223,7 +223,7 @@ implementation
             if is_typeparam(p.resultdef) then
               begin
                  p.free;
-                 p:=factor(false,[]);
+                 p:=compiler.parser.pexpr.factor(false,[]);
                  p.free;
                  p := nil;
                  consume(_RKLAMMER);
@@ -235,7 +235,7 @@ implementation
               begin
                  Message1(type_e_pointer_type_expected,p.resultdef.typename);
                  p.free;
-                 p:=factor(false,[]);
+                 p:=compiler.parser.pexpr.factor(false,[]);
                  p.free;
                  p := nil;
                  consume(_RKLAMMER);
@@ -248,7 +248,7 @@ implementation
                  Message(parser_e_pointer_to_class_expected);
                  p.free;
                  p := nil;
-                 new_dispose_statement:=factor(false,[]);
+                 new_dispose_statement:=compiler.parser.pexpr.factor(false,[]);
                  consume_all_until(_RKLAMMER);
                  consume(_RKLAMMER);
                  exit;
@@ -258,7 +258,7 @@ implementation
             if is_class(classh) then
               begin
                  Message(parser_e_no_new_or_dispose_for_classes);
-                 new_dispose_statement:=factor(false,[]);
+                 new_dispose_statement:=compiler.parser.pexpr.factor(false,[]);
                  consume_all_until(_RKLAMMER);
                  consume(_RKLAMMER);
                  exit;
@@ -298,11 +298,11 @@ implementation
                 else
                   callflag:=cnf_dispose_call;
                 if is_new then
-                  do_member_read(classh,false,sym,p2,again,[callflag],nil)
+                  compiler.parser.pexpr.do_member_read(classh,false,sym,p2,again,[callflag],nil)
                 else
                   begin
                     if not(m_fpc in current_settings.modeswitches) then
-                      do_member_read(classh,false,sym,p2,again,[callflag],nil)
+                      compiler.parser.pexpr.do_member_read(classh,false,sym,p2,again,[callflag],nil)
                     else
                       begin
                         p2:=ccallnode.create(nil,tprocsym(sym),sym.owner,p2,[callflag],nil,compiler);
@@ -459,7 +459,7 @@ implementation
         if target_info.system in systems_managed_vm then
           message(parser_e_feature_unsupported_for_vm);
         consume(_LKLAMMER);
-        p1:=factor(false,[]);
+        p1:=compiler.parser.pexpr.factor(false,[]);
         if p1.nodetype<>typen then
          begin
            Message(type_e_type_id_expected);
@@ -516,7 +516,7 @@ implementation
             afterassignment:=false;
             searchsym_in_class(classh,classh,current_scanner.pattern,srsym,srsymtable,[ssf_search_helper]);
             consume(_ID);
-            do_member_read(classh,false,srsym,p1,again,[cnf_new_call],nil);
+            compiler.parser.pexpr.do_member_read(classh,false,srsym,p1,again,[cnf_new_call],nil);
             { we need to know which procedure is called }
             do_typecheckpass(p1);
             if not(
@@ -543,7 +543,7 @@ implementation
         paras: tnode;
       begin
         consume(_LKLAMMER);
-        paras:=parse_paras(false,false,_RKLAMMER);
+        paras:=compiler.parser.pexpr.parse_paras(false,false,_RKLAMMER);
         consume(_RKLAMMER);
         if not assigned(paras) then
          begin
@@ -564,7 +564,7 @@ implementation
         cp: tstringencoding;
       begin
         consume(_LKLAMMER);
-        paras:=parse_paras(false,false,_RKLAMMER);
+        paras:=compiler.parser.pexpr.parse_paras(false,false,_RKLAMMER);
         consume(_RKLAMMER);
         procname:='';
         if assigned(paras) and
@@ -626,7 +626,7 @@ implementation
         result := cerrornode.create(compiler);
 
         consume(_LKLAMMER);
-        paras:=parse_paras(false,false,_RKLAMMER);
+        paras:=compiler.parser.pexpr.parse_paras(false,false,_RKLAMMER);
         consume(_RKLAMMER);
         ppn:=tcallparanode(paras);
 
@@ -695,7 +695,7 @@ implementation
         result := cerrornode.create(compiler);
 
         consume(_LKLAMMER);
-        paras:=parse_paras(false,false,_RKLAMMER);
+        paras:=compiler.parser.pexpr.parse_paras(false,false,_RKLAMMER);
         consume(_RKLAMMER);
         if not assigned(paras) and checkempty then
           begin

@@ -696,7 +696,7 @@ implementation
           fn:='';
           if not(m_tp7 in current_settings.modeswitches) and
              try_to_consume(_OP_IN) then
-            fn:=FixFileName(get_stringconst);
+            fn:=FixFileName(compiler.parser.pexpr.get_stringconst);
           { Give a warning if lineinfo is loaded }
           if s='LINEINFO' then
             begin
