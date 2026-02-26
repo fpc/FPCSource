@@ -115,14 +115,29 @@ const
 
   // Implementing SystemRealloc might reduce the effect of heaptrc on the allocation pattern, especially when combined with tail_size = 0.
   // If not implemented, internal allocations will use the wrapped memory manager.
+  //
+  // Implementing Readable lets heaptrc heuristically detect class instances and display their names in leak reports.
 {$if defined(win32) or defined(win64)}
 const
   HEAP_GENERATE_EXCEPTIONS = $4;
+  MEM_COMMIT = $1000;
+  PAGE_READONLY = 2;
+  PAGE_READWRITE = 4;
+  PAGE_WRITECOPY = 8;
+
+type
+  MEMORY_BASIC_INFORMATION = record
+    BaseAddress, AllocationBase: pointer;
+    AllocationProtect: uint32;
+    RegionSize: SizeUint;
+    State, Protect, &Type: uint32;
+  end;
 
   function GetProcessHeap: PtrUint; winapi; external 'kernel32' name 'GetProcessHeap';
   function HeapAlloc(hHeap: PtrUint; dwFlags: uint32; dwBytes: PtrUint): pointer; winapi; external 'kernel32' name 'HeapAlloc';
   function HeapReAlloc(hHeap: PtrUint; dwFlags: uint32; lpMem: pointer; dwBytes: PtrUint): pointer; winapi; external 'kernel32' name 'HeapReAlloc';
   function HeapFree(hHeap: PtrUint; dwFlags: uint32; lpMem: pointer): LongBool; winapi; external 'kernel32' name 'HeapFree';
+  function VirtualQuery(lpAddress: Pointer; out lpBuffer: MEMORY_BASIC_INFORMATION; dwLength: SizeUint): SizeUint; winapi; external 'kernel32' name 'VirtualQuery';
 
   function SystemRealloc(p: pointer; oldSize, newSize: SizeUint): pointer;
   var
@@ -137,9 +152,35 @@ const
     else
       result := HeapReAlloc(ph, HEAP_GENERATE_EXCEPTIONS, p, newSize);
   end;
+
+  function Readable(p: pointer; n: SizeUint): boolean;
+  var
+    mi: MEMORY_BASIC_INFORMATION;
+  begin
+    result := (VirtualQuery(p, mi, sizeof(mi)) <> 0) and (SizeUint(p - mi.BaseAddress) + n <= mi.RegionSize) and
+      (mi.State = MEM_COMMIT) and (mi.Protect and (PAGE_READONLY or PAGE_READWRITE or PAGE_WRITECOPY) <> 0);
+  end;
 {$endif SystemRealloc}
 
   function InternalRealloc(p: pointer; oldSize, newSize: SizeUint): pointer; forward;
+
+{$if declared(Readable)}
+  function LooksLikeClassInstance(p: pointer; n: SizeUint; out name: shortstring): boolean;
+  var
+    v: PVmt;
+    i: SizeInt;
+  begin
+    result := false;
+    if n < sizeof(pointer) then exit;
+    v := PPointer(p)^;
+    if not Readable(v, sizeof(TVmt)) or (v^.vInstanceSize <> SizeInt(n)) or (v^.vInstanceSize2 <> -SizeInt(n)) or
+      not Readable(v^.vClassName, 1) or not Readable(v^.vClassName, length(v^.vClassName^)) then exit;
+    for i := 1 to length(v^.vClassName^) do
+      if not (v^.vClassName^[i] in ['a' .. 'z', 'A' .. 'Z', '_']) and ((i = 1) or not (v^.vClassName^[i] in ['0' .. '9'])) then exit;
+    result := true;
+    name := v^.vClassName^;
+  end;
+{$endif Readable}
 
 type
   MemoryRegion = record
@@ -2134,6 +2175,9 @@ end;
     display: TDisplayExtraInfoProc;
     status: TFPCHeapStatus;
     emptyCluster: boolean;
+  {$if declared(LooksLikeClassInstance)}
+    name: shortstring;
+  {$endif LooksLikeClassInstance}
   begin
     if skipIfNoLeaks and (h.nItems = 0) and (getMemCount = freeMemCount) and (getMemSize = freeMemSize) then
       exit;
@@ -2173,6 +2217,10 @@ end;
           writeln(f);
         emptyCluster := not Assigned(n^.trace) and not printleakedblock;
         write(f, 'Call trace for block $', HexStr(n^.userPtr), ' size ', sz);
+      {$if declared(LooksLikeClassInstance)}
+        if LooksLikeClassInstance(n^.userPtr, n^.GetUserSizeRequest, name) then
+          write(f, ' (', name, ')');
+      {$endif LooksLikeClassInstance}
         if Assigned(n^.trace) then writeln(f) else writeln(f, ': N/A.');
         if n^.info and (ExtraInfoIndexMask shl ExtraInfoIndexShift) <> 0 then
         begin
