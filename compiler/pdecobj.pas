@@ -29,6 +29,28 @@ interface
       cclasses,compilerbase,
       globtype,symconst,symtype,symdef;
 
+type
+  TObjectDeclarationsParser = class
+  private
+    FCompiler: TCompilerBase;
+    procedure constr_destr_finish_head(pd: tprocdef; const astruct: tabstractrecorddef);
+    procedure setinterfacemethodoptions;
+    procedure setobjcclassmethodoptions;
+    procedure handleImplementedInterface(intfdef : tobjectdef);
+    procedure handleImplementedProtocolOrJavaIntf(intfdef : tobjectdef);
+    procedure readImplementedInterfacesAndProtocols(intf: boolean);
+    procedure readinterfaceiid;
+    procedure get_cpp_or_java_class_external_status(od: tobjectdef);
+    procedure get_objc_class_or_protocol_external_status(od: tobjectdef);
+    procedure parse_object_options;
+    procedure parse_parent_classes;
+    procedure parse_extended_type(helpertype:thelpertype);
+    procedure parse_guid;
+    procedure parse_object_members;
+    property Compiler: TCompilerBase read FCompiler;
+  public
+    constructor Create(ACompiler: TCompilerBase);
+
     { parses a object declaration }
     function object_dec(objecttype:tobjecttyp;const n:tidstring;objsym:tsym;genericdef:tstoreddef;genericlist:tfphashobjectlist;fd : tobjectdef;helpertype:thelpertype) : tobjectdef;
 
@@ -40,6 +62,7 @@ interface
     function constructor_head:tprocdef;
     function destructor_head:tprocdef;
     procedure struct_property_dec(is_classproperty:boolean;var rtti_attrs_def: trtti_attribute_list);
+  end;
 
 implementation
 
@@ -67,9 +90,13 @@ implementation
       current_objectdef : tobjectdef absolute current_structdef;
 
 
-    procedure constr_destr_finish_head(pd: tprocdef; const astruct: tabstractrecorddef);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    constructor TObjectDeclarationsParser.Create(ACompiler: TCompilerBase);
+      begin
+        FCompiler:=ACompiler;
+      end;
+
+
+    procedure TObjectDeclarationsParser.constr_destr_finish_head(pd: tprocdef; const astruct: tabstractrecorddef);
       begin
         case astruct.typ of
           recorddef:
@@ -101,9 +128,7 @@ implementation
       end;
 
 
-    function class_constructor_head(astruct: tabstractrecorddef):tprocdef;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    function TObjectDeclarationsParser.class_constructor_head(astruct: tabstractrecorddef):tprocdef;
       var
         pd : tprocdef;
       begin
@@ -128,9 +153,7 @@ implementation
         result:=pd;
       end;
 
-    function constructor_head:tprocdef;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    function TObjectDeclarationsParser.constructor_head:tprocdef;
       var
         pd : tprocdef;
       begin
@@ -169,9 +192,7 @@ implementation
       end;
 
 
-    procedure struct_property_dec(is_classproperty:boolean;var rtti_attrs_def: trtti_attribute_list);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    procedure TObjectDeclarationsParser.struct_property_dec(is_classproperty:boolean;var rtti_attrs_def: trtti_attribute_list);
       var
         p : tpropertysym;
         _deprecatedmsg: pshortstring;
@@ -247,9 +268,7 @@ implementation
       end;
 
 
-    function class_destructor_head(astruct: tabstractrecorddef):tprocdef;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    function TObjectDeclarationsParser.class_destructor_head(astruct: tabstractrecorddef):tprocdef;
       var
         pd : tprocdef;
       begin
@@ -273,9 +292,7 @@ implementation
         result:=pd;
       end;
 
-    function destructor_head:tprocdef;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    function TObjectDeclarationsParser.destructor_head:tprocdef;
       var
         pd : tprocdef;
       begin
@@ -304,7 +321,7 @@ implementation
       end;
 
 
-    procedure setinterfacemethodoptions;
+    procedure TObjectDeclarationsParser.setinterfacemethodoptions;
       var
         i   : longint;
         def : tdef;
@@ -323,7 +340,7 @@ implementation
       end;
 
 
-    procedure setobjcclassmethodoptions;
+    procedure TObjectDeclarationsParser.setobjcclassmethodoptions;
       var
         i   : longint;
         def : tdef;
@@ -340,7 +357,7 @@ implementation
       end;
 
 
-    procedure handleImplementedInterface(intfdef : tobjectdef);
+    procedure TObjectDeclarationsParser.handleImplementedInterface(intfdef : tobjectdef);
       begin
         if not is_interface(intfdef) then
           begin
@@ -359,7 +376,7 @@ implementation
       end;
 
 
-    procedure handleImplementedProtocolOrJavaIntf(intfdef : tobjectdef);
+    procedure TObjectDeclarationsParser.handleImplementedProtocolOrJavaIntf(intfdef : tobjectdef);
       begin
         intfdef:=find_real_class_definition(intfdef,false);
         case current_objectdef.objecttype of
@@ -393,7 +410,7 @@ implementation
       end;
 
 
-    procedure readImplementedInterfacesAndProtocols(intf: boolean);
+    procedure TObjectDeclarationsParser.readImplementedInterfacesAndProtocols(intf: boolean);
       var
         hdef : tdef;
       begin
@@ -417,9 +434,7 @@ implementation
       end;
 
 
-    procedure readinterfaceiid;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    procedure TObjectDeclarationsParser.readinterfaceiid;
       var
         p : tnode;
         valid : boolean;
@@ -441,9 +456,7 @@ implementation
         p := nil;
       end;
 
-    procedure get_cpp_or_java_class_external_status(od: tobjectdef);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    procedure TObjectDeclarationsParser.get_cpp_or_java_class_external_status(od: tobjectdef);
       var
         hs: string;
       begin
@@ -485,9 +498,7 @@ implementation
       end;
 
 
-    procedure get_objc_class_or_protocol_external_status(od: tobjectdef);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    procedure TObjectDeclarationsParser.get_objc_class_or_protocol_external_status(od: tobjectdef);
       begin
         { Objective-C classes can be external -> all messages inside are
           external (defined at the class level instead of per method, so
@@ -510,7 +521,7 @@ implementation
       end;
 
 
-    procedure parse_object_options;
+    procedure TObjectDeclarationsParser.parse_object_options;
       var
         gotexternal: boolean;
       begin
@@ -556,7 +567,7 @@ implementation
         end;
       end;
 
-    procedure parse_parent_classes;
+    procedure TObjectDeclarationsParser.parse_parent_classes;
       var
         intfchildof,
         childof : tobjectdef;
@@ -730,7 +741,7 @@ implementation
           end;
       end;
 
-    procedure parse_extended_type(helpertype:thelpertype);
+    procedure TObjectDeclarationsParser.parse_extended_type(helpertype:thelpertype);
 
       procedure validate_extendeddef_typehelper(var def:tdef);
         begin
@@ -860,7 +871,7 @@ implementation
           current_objectdef.extendeddef:=hdef;
       end;
 
-    procedure parse_guid;
+    procedure TObjectDeclarationsParser.parse_guid;
       begin
         { read GUID }
         if (current_objectdef.objecttype in [odt_interfacecom,odt_interfacecorba,odt_dispinterface]) and
@@ -874,9 +885,7 @@ implementation
       end;
 
 
-    function method_dec(astruct: tabstractrecorddef; is_classdef: boolean;hadgeneric:boolean): tprocdef;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    function TObjectDeclarationsParser.method_dec(astruct: tabstractrecorddef; is_classdef: boolean;hadgeneric:boolean): tprocdef;
 
       procedure chkobjc(pd: tprocdef);
         begin
@@ -1092,9 +1101,7 @@ implementation
       end;
 
 
-    procedure parse_object_members;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    procedure TObjectDeclarationsParser.parse_object_members;
 
       var
         typedconstswritable: boolean;
@@ -1506,9 +1513,7 @@ implementation
       end;
 
 
-    function object_dec(objecttype:tobjecttyp;const n:tidstring;objsym:tsym;genericdef:tstoreddef;genericlist:tfphashobjectlist;fd : tobjectdef;helpertype:thelpertype) : tobjectdef;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    function TObjectDeclarationsParser.object_dec(objecttype:tobjecttyp;const n:tidstring;objsym:tsym;genericdef:tstoreddef;genericlist:tfphashobjectlist;fd : tobjectdef;helpertype:thelpertype) : tobjectdef;
       var
         old_current_structdef: tabstractrecorddef;
         old_current_genericdef,

@@ -644,7 +644,7 @@ implementation
                of a specialization }
              gendef:=compiler.parser.pgenutil.determine_generic_def(gentypename);
            { we can ignore the result, the definition is modified }
-           object_dec(objecttype,genorgtypename,newtype,gendef,generictypelist,tobjectdef(ttypesym(sym).typedef),ht_none);
+           compiler.parser.pdecobj.object_dec(objecttype,genorgtypename,newtype,gendef,generictypelist,tobjectdef(ttypesym(sym).typedef),ht_none);
            if wasforward and
              (tobjectdef(ttypesym(sym).typedef).objecttype<>objecttype) then
              Message1(type_e_forward_interface_type_does_not_match,tobjectdef(ttypesym(sym).typedef).GetTypeName);

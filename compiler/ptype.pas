@@ -936,7 +936,7 @@ implementation
               begin
                 if IsAnonOrLocal then
                   Message(parser_e_no_properties_in_local_anonymous_records);
-                struct_property_dec(is_classdef, rtti_attrs_def);
+                compiler.parser.pdecobj.struct_property_dec(is_classdef, rtti_attrs_def);
                 fields_allowed:=false;
                 is_classdef:=false;
               end;
@@ -988,10 +988,10 @@ implementation
                 oldparse_only:=parse_only;
                 parse_only:=true;
                 if is_classdef then
-                  pd:=class_constructor_head(current_structdef)
+                  pd:=compiler.parser.pdecobj.class_constructor_head(current_structdef)
                 else
                   begin
-                    pd:=constructor_head;
+                    pd:=compiler.parser.pdecobj.constructor_head;
                     if pd.minparacount = 0 then
                       MessagePos(pd.procsym.fileinfo,parser_e_no_parameterless_constructor_in_records);
                   end;
@@ -1015,9 +1015,9 @@ implementation
                 oldparse_only:=parse_only;
                 parse_only:=true;
                 if is_classdef then
-                  pd:=class_destructor_head(current_structdef)
+                  pd:=compiler.parser.pdecobj.class_destructor_head(current_structdef)
                 else
-                  pd:=destructor_head;
+                  pd:=compiler.parser.pdecobj.destructor_head;
 
                 parse_only:=oldparse_only;
                 fields_allowed:=false;
@@ -1976,7 +1976,7 @@ implementation
                 if (current_scanner.idtoken=_HELPER) and (m_advanced_records in current_settings.modeswitches) then
                   begin
                     consume(_HELPER);
-                    def:=object_dec(odt_helper,name,newsym,genericdef,genericlist,nil,ht_record);
+                    def:=compiler.parser.pdecobj.object_dec(odt_helper,name,newsym,genericdef,genericlist,nil,ht_record);
                   end
                 else
                   def:=record_dec(name,newsym,genericdef,genericlist);
@@ -2006,12 +2006,12 @@ implementation
                       _CLASS :
                         begin
                           consume(_CLASS);
-                          def:=object_dec(odt_class,name,newsym,genericdef,genericlist,nil,ht_none);
+                          def:=compiler.parser.pdecobj.object_dec(odt_class,name,newsym,genericdef,genericlist,nil,ht_none);
                         end;
                       _OBJECT :
                         begin
                           consume(_OBJECT);
-                          def:=object_dec(odt_object,name,newsym,genericdef,genericlist,nil,ht_none);
+                          def:=compiler.parser.pdecobj.object_dec(odt_object,name,newsym,genericdef,genericlist,nil,ht_none);
                         end;
                       else begin
                         consume(_RECORD);
@@ -2028,7 +2028,7 @@ implementation
                 if not(m_class in current_settings.modeswitches) then
                   Message(parser_f_need_objfpc_or_delphi_mode);
                 consume(current_scanner.token);
-                def:=object_dec(odt_dispinterface,name,newsym,genericdef,genericlist,nil,ht_none);
+                def:=compiler.parser.pdecobj.object_dec(odt_dispinterface,name,newsym,genericdef,genericlist,nil,ht_none);
               end;
             _CLASS :
               begin
@@ -2059,15 +2059,15 @@ implementation
                 if (current_scanner.idtoken=_HELPER) then
                   begin
                     consume(_HELPER);
-                    def:=object_dec(odt_helper,name,newsym,genericdef,genericlist,nil,ht_class);
+                    def:=compiler.parser.pdecobj.object_dec(odt_helper,name,newsym,genericdef,genericlist,nil,ht_class);
                   end
                 else
-                  def:=object_dec(default_class_type,name,newsym,genericdef,genericlist,nil,ht_none);
+                  def:=compiler.parser.pdecobj.object_dec(default_class_type,name,newsym,genericdef,genericlist,nil,ht_none);
               end;
             _CPPCLASS :
               begin
                 consume(current_scanner.token);
-                def:=object_dec(odt_cppclass,name,newsym,genericdef,genericlist,nil,ht_none);
+                def:=compiler.parser.pdecobj.object_dec(odt_cppclass,name,newsym,genericdef,genericlist,nil,ht_none);
               end;
             _OBJCCLASS :
               begin
@@ -2075,7 +2075,7 @@ implementation
                   Message(parser_f_need_objc);
 
                 consume(current_scanner.token);
-                def:=object_dec(odt_objcclass,name,newsym,genericdef,genericlist,nil,ht_none);
+                def:=compiler.parser.pdecobj.object_dec(odt_objcclass,name,newsym,genericdef,genericlist,nil,ht_none);
               end;
             _INTERFACE :
               begin
@@ -2086,11 +2086,11 @@ implementation
                 consume(current_scanner.token);
                 case current_settings.interfacetype of
                   it_interfacecom:
-                    def:=object_dec(odt_interfacecom,name,newsym,genericdef,genericlist,nil,ht_none);
+                    def:=compiler.parser.pdecobj.object_dec(odt_interfacecom,name,newsym,genericdef,genericlist,nil,ht_none);
                   it_interfacecorba:
-                    def:=object_dec(odt_interfacecorba,name,newsym,genericdef,genericlist,nil,ht_none);
+                    def:=compiler.parser.pdecobj.object_dec(odt_interfacecorba,name,newsym,genericdef,genericlist,nil,ht_none);
                   it_interfacejava:
-                    def:=object_dec(odt_interfacejava,name,newsym,genericdef,genericlist,nil,ht_none);
+                    def:=compiler.parser.pdecobj.object_dec(odt_interfacejava,name,newsym,genericdef,genericlist,nil,ht_none);
                 end;
               end;
             _OBJCPROTOCOL :
@@ -2099,7 +2099,7 @@ implementation
                   Message(parser_f_need_objc);
 
                 consume(current_scanner.token);
-                def:=object_dec(odt_objcprotocol,name,newsym,genericdef,genericlist,nil,ht_none);
+                def:=compiler.parser.pdecobj.object_dec(odt_objcprotocol,name,newsym,genericdef,genericlist,nil,ht_none);
                end;
             _OBJCCATEGORY :
                begin
@@ -2107,12 +2107,12 @@ implementation
                   Message(parser_f_need_objc);
 
                 consume(current_scanner.token);
-                def:=object_dec(odt_objccategory,name,newsym,genericdef,genericlist,nil,ht_none);
+                def:=compiler.parser.pdecobj.object_dec(odt_objccategory,name,newsym,genericdef,genericlist,nil,ht_none);
                end;
             _OBJECT :
               begin
                 consume(current_scanner.token);
-                def:=object_dec(odt_object,name,newsym,genericdef,genericlist,nil,ht_none);
+                def:=compiler.parser.pdecobj.object_dec(odt_object,name,newsym,genericdef,genericlist,nil,ht_none);
               end;
             _PROCEDURE,
             _FUNCTION:
@@ -2134,7 +2134,7 @@ implementation
                             as a "unique" type }
                           hadtypetoken:=false;
                           consume(_HELPER);
-                          def:=object_dec(odt_helper,name,newsym,genericdef,genericlist,nil,ht_type);
+                          def:=compiler.parser.pdecobj.object_dec(odt_helper,name,newsym,genericdef,genericlist,nil,ht_type);
                         end
                       else
                         expr_type

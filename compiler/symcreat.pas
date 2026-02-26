@@ -203,18 +203,18 @@ implementation
       { and parse it... }
       case potype of
         potype_class_constructor:
-          pd:=class_constructor_head(astruct);
+          pd:=compiler.parser.pdecobj.class_constructor_head(astruct);
         potype_class_destructor:
-          pd:=class_destructor_head(astruct);
+          pd:=compiler.parser.pdecobj.class_destructor_head(astruct);
         potype_constructor:
-          pd:=constructor_head;
+          pd:=compiler.parser.pdecobj.constructor_head;
         potype_destructor:
-          pd:=destructor_head;
+          pd:=compiler.parser.pdecobj.destructor_head;
         else if assigned(astruct) and
            (astruct.typ=recorddef) then
           pd:=compiler.parser.pdecsub.parse_record_method_dec(astruct,is_classdef,false)
         else
-          pd:=method_dec(astruct,is_classdef,false);
+          pd:=compiler.parser.pdecobj.method_dec(astruct,is_classdef,false);
       end;
       if assigned(pd) then
         result:=true;
