@@ -164,6 +164,8 @@ implementation
 
 
     procedure struct_property_dec(is_classproperty:boolean;var rtti_attrs_def: trtti_attribute_list);
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         p : tpropertysym;
         _deprecatedmsg: pshortstring;
@@ -175,7 +177,7 @@ implementation
                (not(m_tp7 in current_settings.modeswitches) and (is_object(current_structdef)))) then
           Message(parser_e_syntax_error);
         consume(_PROPERTY);
-        p:=read_property_dec(is_classproperty,current_structdef);
+        p:=compiler.parser.pdecvar.read_property_dec(is_classproperty,current_structdef);
         consume(_SEMICOLON);
         if try_to_consume(_DEFAULT) then
           begin
@@ -1079,6 +1081,8 @@ implementation
 
 
     procedure parse_object_members;
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
 
       var
         typedconstswritable: boolean;
@@ -1384,7 +1388,7 @@ implementation
                                   include(vdoptions,vd_threadvar);
                                 // Record count
                                 fldCount:=FieldList.Count;
-                                read_record_fields(vdoptions,fieldlist,nil,hadgeneric,attr_element_count);
+                                compiler.parser.pdecvar.read_record_fields(vdoptions,fieldlist,nil,hadgeneric,attr_element_count);
                                 {
                                   attr_element_count returns the number of fields to which the attribute must be applied.
                                   For

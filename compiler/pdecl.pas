@@ -320,7 +320,7 @@ implementation
                      begin
                        { note: we keep hdef so that we might at least read the
                                constant data correctly for error recovery }
-                       check_allowed_for_var_or_const(hdef,false);
+                       compiler.parser.pdecvar.check_allowed_for_var_or_const(hdef,false);
                        sym:=cfieldvarsym.create(orgname,varspez,hdef,[]);
                        symtablestack.top.insertsym(sym);
                        sym:=make_field_static(symtablestack.top,tfieldvarsym(sym));
@@ -1281,15 +1281,19 @@ implementation
 
 
     procedure var_dec(out had_generic:boolean);
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
     { parses variable declarations and inserts them in }
     { the top symbol table of symtablestack         }
       begin
         consume(_VAR);
-        read_var_decls([vd_check_generic],had_generic);
+        compiler.parser.pdecvar.read_var_decls([vd_check_generic],had_generic);
       end;
 
 
     procedure property_dec;
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
     { parses a global property (fpc mode feature) }
       var
          old_block_type: tblock_type;
@@ -1300,7 +1304,7 @@ implementation
          old_block_type:=block_type;
          block_type:=bt_const;
          repeat
-           read_property_dec(false, nil);
+           compiler.parser.pdecvar.read_property_dec(false, nil);
            consume(_SEMICOLON);
          until current_scanner.token<>_ID;
          block_type:=old_block_type;
@@ -1308,6 +1312,8 @@ implementation
 
 
     procedure threadvar_dec(out had_generic:boolean);
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
     { parses thread variable declarations and inserts them in }
     { the top symbol table of symtablestack                }
       begin
@@ -1315,11 +1321,11 @@ implementation
         if not(symtablestack.top.symtabletype in [staticsymtable,globalsymtable]) then
           message(parser_e_threadvars_only_sg);
         if f_threading in features then
-          read_var_decls([vd_threadvar,vd_check_generic],had_generic)
+          compiler.parser.pdecvar.read_var_decls([vd_threadvar,vd_check_generic],had_generic)
         else
           begin
             Message1(parser_f_unsupported_feature,featurestr[f_threading]);
-            read_var_decls([vd_check_generic],had_generic);
+            compiler.parser.pdecvar.read_var_decls([vd_check_generic],had_generic);
           end;
       end;
 

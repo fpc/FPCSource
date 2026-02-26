@@ -34,6 +34,19 @@ interface
       tvar_dec_option=(vd_record,vd_object,vd_threadvar,vd_class,vd_final,vd_canreorder,vd_check_generic);
       tvar_dec_options=set of tvar_dec_option;
 
+  { TVariableDeclarationsParser }
+
+  TVariableDeclarationsParser = class
+  private
+    FCompiler: TCompilerBase;
+    property Compiler: TCompilerBase read FCompiler;
+    function maybe_parse_proc_directives(def:tdef):boolean;
+    procedure read_public_and_external_sc(sc:TFPObjectList);
+    procedure try_read_field_external(vs: tabstractvarsym);
+    procedure try_read_field_external_sc(sc:TFPObjectList);
+  public
+    constructor Create(ACompiler: TCompilerBase);
+
     function  read_property_dec(is_classproperty:boolean;astruct:tabstractrecorddef):tpropertysym;
 
     procedure read_var_decls(options:Tvar_dec_options;out had_generic:boolean);
@@ -45,6 +58,7 @@ interface
     procedure try_consume_sectiondirective(var asection: ansistring);
 
     function check_allowed_for_var_or_const(def:tdef;allowdynarray:boolean):boolean;
+  end;
 
 implementation
 
@@ -71,9 +85,7 @@ implementation
        pbase,pexpr,ptype,ptconst,pdecsub,pparautl;
 
 
-    function read_property_dec(is_classproperty:boolean;astruct:tabstractrecorddef):tpropertysym;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    function TVariableDeclarationsParser.read_property_dec(is_classproperty:boolean;astruct:tabstractrecorddef):tpropertysym;
 
         { convert a node tree to symlist and return the last
           symbol }
@@ -902,7 +914,7 @@ implementation
       end;
 
 
-     function maybe_parse_proc_directives(def:tdef):boolean;
+     function TVariableDeclarationsParser.maybe_parse_proc_directives(def:tdef):boolean;
        begin
          result:=false;
          { Process procvar directives before = and ; }
@@ -923,7 +935,7 @@ implementation
        variantrecordlevel : longint = 0;
 
 
-    procedure read_public_and_external_sc(sc:TFPObjectList);
+    procedure TVariableDeclarationsParser.read_public_and_external_sc(sc:TFPObjectList);
     var
       vs: tabstractvarsym;
     begin
@@ -935,9 +947,13 @@ implementation
     end;
 
 
-    procedure read_public_and_external(vs: tabstractvarsym);
-    const
-      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    constructor TVariableDeclarationsParser.Create(ACompiler: TCompilerBase);
+    begin
+      FCompiler:=ACompiler;
+    end;
+
+
+    procedure TVariableDeclarationsParser.read_public_and_external(vs: tabstractvarsym);
     var
       is_dll,
       is_far,
@@ -1095,9 +1111,7 @@ implementation
     end;
 
 
-    procedure try_consume_sectiondirective(var asection: ansistring);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    procedure TVariableDeclarationsParser.try_consume_sectiondirective(var asection: ansistring);
       begin
         if current_scanner.idtoken=_SECTION then
           begin
@@ -1108,9 +1122,7 @@ implementation
       end;
 
 
-    procedure try_read_field_external(vs: tabstractvarsym);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    procedure TVariableDeclarationsParser.try_read_field_external(vs: tabstractvarsym);
       var
         extname: string;
       begin
@@ -1124,7 +1136,7 @@ implementation
       end;
 
 
-    procedure try_read_field_external_sc(sc:TFPObjectList);
+    procedure TVariableDeclarationsParser.try_read_field_external_sc(sc:TFPObjectList);
     var
       vs: tabstractvarsym;
     begin
@@ -1136,9 +1148,7 @@ implementation
     end;
 
 
-    procedure read_var_decls(options:Tvar_dec_options;out had_generic:boolean);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    procedure TVariableDeclarationsParser.read_var_decls(options:Tvar_dec_options;out had_generic:boolean);
 
         procedure read_default_value(sc : TFPObjectList);
         var
@@ -1660,7 +1670,7 @@ implementation
       end;
 
 
-    function check_allowed_for_var_or_const(def:tdef;allowdynarray:boolean):boolean;
+    function TVariableDeclarationsParser.check_allowed_for_var_or_const(def:tdef;allowdynarray:boolean):boolean;
       var
         stowner,tmpdef : tdef;
         st : tsymtable;
@@ -1701,9 +1711,7 @@ implementation
       end;
 
 
-    procedure read_record_fields(options:Tvar_dec_options; reorderlist: TFPObjectList; variantdesc : ppvariantrecdesc;out had_generic:boolean; out attr_element_count : integer);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    procedure TVariableDeclarationsParser.read_record_fields(options:Tvar_dec_options; reorderlist: TFPObjectList; variantdesc : ppvariantrecdesc;out had_generic:boolean; out attr_element_count : integer);
       var
          sc : TFPObjectList;
          i  : longint;

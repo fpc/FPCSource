@@ -690,6 +690,8 @@ implementation
       end;
 
     procedure parse_record_members(recsym:tsym);
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
 
       function IsAnonOrLocal: Boolean;
         begin
@@ -895,7 +897,7 @@ implementation
                                 if threadvarfields then
                                   include(vdoptions,vd_threadvar);
                                 fldCount:=current_structdef.symtable.SymList.Count;
-                                read_record_fields(vdoptions,nil,nil,hadgeneric,attr_element_count);
+                                compiler.parser.pdecvar.read_record_fields(vdoptions,nil,nil,hadgeneric,attr_element_count);
                                 {
                                   attr_element_count returns the number of fields to which the attribute must be applied.
                                   For
@@ -1154,7 +1156,7 @@ implementation
            end
          else
            begin
-             read_record_fields([vd_record],nil,nil,hadgendummy,dummyattrelcount);
+             compiler.parser.pdecvar.read_record_fields([vd_record],nil,nil,hadgendummy,dummyattrelcount);
 {$ifdef jvm}
              { we need a constructor to create temps, a deep copy helper, ... }
              add_java_default_record_methods_intf(trecorddef(current_structdef));

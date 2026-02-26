@@ -28,7 +28,7 @@ interface
 uses
   compilerbase,
   fmodule,
-  pmodules,pgenutil,pstatmnt,pexpr,pexports,ptconst;
+  pmodules,pgenutil,pstatmnt,pexpr,pexports,ptconst,pdecvar;
 
 type
 
@@ -43,6 +43,7 @@ type
     FPExpr: TExpressionParser;
     FPExports: TExportsParser;
     FPTConst: TTypedConstParser;
+    FPDecVar: TVariableDeclarationsParser;
 
     procedure initparser;
     procedure doneparser;
@@ -62,6 +63,7 @@ type
     property pexpr: TExpressionParser read FPExpr;
     property pexports: TExportsParser read FPExports;
     property ptconst: TTypedConstParser read FPTConst;
+    property pdecvar: TVariableDeclarationsParser read FPDecVar;
   end;
 
 implementation

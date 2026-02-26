@@ -46,7 +46,7 @@ implementation
     uses
        globtype,systems,globals,verbose,cutils,tokens,
        aasmbase,aasmtai,
-       fmodule,
+       fmodule,compiler,
        scanner,pbase,pdecvar,
        node,ngtcon,
        symconst,symbase,symdef
@@ -120,7 +120,7 @@ implementation
              )
             )
            ) then
-          read_public_and_external(sym);
+          compiler.parser.pdecvar.read_public_and_external(sym);
 
 
         { try to parse a section directive }
@@ -128,7 +128,7 @@ implementation
            (symtablestack.top.symtabletype in [staticsymtable,globalsymtable]) and
            (current_scanner.idtoken=_SECTION) then
           begin
-            try_consume_sectiondirective(section);
+            compiler.parser.pdecvar.try_consume_sectiondirective(section);
             if section<>'' then
               begin
                 if (sym.varoptions *[vo_is_external,vo_is_weak_external])<>[] then
