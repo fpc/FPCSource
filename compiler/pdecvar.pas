@@ -39,11 +39,13 @@ interface
   TVariableDeclarationsParser = class
   private
     FCompiler: TCompilerBase;
-    property Compiler: TCompilerBase read FCompiler;
+    variantrecordlevel : longint;
+
     function maybe_parse_proc_directives(def:tdef):boolean;
     procedure read_public_and_external_sc(sc:TFPObjectList);
     procedure try_read_field_external(vs: tabstractvarsym);
     procedure try_read_field_external_sc(sc:TFPObjectList);
+    property Compiler: TCompilerBase read FCompiler;
   public
     constructor Create(ACompiler: TCompilerBase);
 
@@ -931,10 +933,6 @@ implementation
        end;
 
 
-    const
-       variantrecordlevel : longint = 0;
-
-
     procedure TVariableDeclarationsParser.read_public_and_external_sc(sc:TFPObjectList);
     var
       vs: tabstractvarsym;
@@ -950,6 +948,7 @@ implementation
     constructor TVariableDeclarationsParser.Create(ACompiler: TCompilerBase);
     begin
       FCompiler:=ACompiler;
+      variantrecordlevel:=0;
     end;
 
 
