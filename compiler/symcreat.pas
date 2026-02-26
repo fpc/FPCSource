@@ -133,7 +133,7 @@ interface
 implementation
 
   uses
-    cutils,globals,verbose,systems,comphook,fmodule,constexp,
+    cutils,globals,verbose,systems,comphook,fmodule,constexp,compiler,
     symtable,defutil,symutil,procinfo,
     pbase,pdecl, pdecobj,pdecsub,psub,ptconst,pparautl,
 {$ifdef jvm}
@@ -280,6 +280,8 @@ implementation
 
 
   procedure str_parse_typedconst(list: TAsmList; str: ansistring; ssym: tstaticvarsym);
+    const
+      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
     var
       old_block_type: tblock_type;
       old_parse_only: boolean;
@@ -294,7 +296,7 @@ implementation
       block_type:=bt_const;
       current_scanner.substitutemacro('typed_const_macro',@str[1],length(str),current_scanner.line_no,current_scanner.inputfile.ref_index,true);
       current_scanner.readtoken(false);
-      read_typed_const(list,ssym,ssym.owner.symtabletype in [recordsymtable,objectsymtable]);
+      compiler.parser.ptconst.read_typed_const(list,ssym,ssym.owner.symtabletype in [recordsymtable,objectsymtable]);
       parse_only:=old_parse_only;
       block_type:=old_block_type;
       { remove the temporary macro input file again }

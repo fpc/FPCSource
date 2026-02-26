@@ -27,7 +27,18 @@ interface
 
    uses symtype,symsym,aasmdata,compilerbase;
 
+type
+
+  { TTypedConstParser }
+
+  TTypedConstParser = class
+  private
+    FCompiler: TCompilerBase;
+    property Compiler: TCompilerBase read FCompiler;
+  public
+    constructor Create(ACompiler: TCompilerBase);
     procedure read_typed_const(list:tasmlist;sym:tstaticvarsym;in_structure:boolean);
+  end;
 
 
 implementation
@@ -41,9 +52,13 @@ implementation
        symconst,symbase,symdef
        ;
 
-    procedure read_typed_const(list:tasmlist;sym:tstaticvarsym;in_structure:boolean);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    constructor TTypedConstParser.Create(ACompiler: TCompilerBase);
+      begin
+        FCompiler:=ACompiler;
+      end;
+
+
+    procedure TTypedConstParser.read_typed_const(list:tasmlist;sym:tstaticvarsym;in_structure:boolean);
       var
         storefilepos : tfileposinfo;
         section      : ansistring;

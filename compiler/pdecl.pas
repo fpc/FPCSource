@@ -225,6 +225,8 @@ implementation
       end;
 
     procedure consts_dec(in_structure, allow_typed_const: boolean;out had_generic:boolean);
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
          orgname : TIDString;
          hdef : tdef;
@@ -360,7 +362,7 @@ implementation
                     begin
                       consume(_EQ);
                       maybe_guarantee_record_typesym(tstaticvarsym(sym).vardef,tstaticvarsym(sym).vardef.owner);
-                      read_typed_const(current_asmdata.asmlists[asmtype],tstaticvarsym(sym),in_structure);
+                      compiler.parser.ptconst.read_typed_const(current_asmdata.asmlists[asmtype],tstaticvarsym(sym),in_structure);
                     end;
                 end;
 

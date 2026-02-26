@@ -1159,7 +1159,7 @@ implementation
                 include(tcsym.symoptions,sp_internal);
                 symtablestack.top.insertsym(tcsym);
                 templist:=tasmlist.create;
-                read_typed_const(templist,tcsym,false);
+                compiler.parser.ptconst.read_typed_const(templist,tcsym,false);
                 { in case of a generic routine, this initialisation value is not
                   used, and will be re-parsed during specialisations (and the
                   current version is not type-correct and hence breaks code
@@ -1175,7 +1175,7 @@ implementation
             staticvarsym :
               begin
                 maybe_guarantee_record_typesym(vs.vardef,vs.vardef.owner);
-                read_typed_const(current_asmdata.asmlists[al_typedconsts],tstaticvarsym(vs),false);
+                compiler.parser.ptconst.read_typed_const(current_asmdata.asmlists[al_typedconsts],tstaticvarsym(vs),false);
               end;
             else
               internalerror(200611051);
