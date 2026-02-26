@@ -1236,10 +1236,12 @@ begin
     SR := PSearchRec(List^.At(Item));
     if (SR^.Attr and Directory <> 0) then
     begin
-      if IsSelectedInner then
+      if (State AND (sfSelected + sfActive) = (sfSelected + sfActive)) AND IsFocused AND (Range > 0) then
         Result := GetColor(3)
+      else if (Item < Range) AND IsSelectedInner then
+        Result := GetColor(4)  // Selected, but List is inactive
       else
-        Result := GetColor(6);
+        Result := GetColor(6); // Normal
       Exit;
     end;
   end;
