@@ -340,6 +340,7 @@ implementation
         FCompiler:=acompiler;
         InitParser;
         FPModules:=TModulesParser.Create(acompiler);
+        FPGenUtil:=TGenericsParseUtils.Create(acompiler);
         FPStatmnt:=TStatementsParser.Create(acompiler);
       end;
 
@@ -347,6 +348,7 @@ implementation
     destructor TParser.Destroy;
       begin
         FreeAndNil(FPStatmnt);
+        FreeAndNil(FPGenUtil);
         FreeAndNil(FPModules);
         DoneParser;
         inherited;

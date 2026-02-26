@@ -29,6 +29,7 @@ interface
 uses
   { common }
   cclasses,
+  compilerbase,
   { global }
   globtype,
   { parser }
@@ -39,12 +40,17 @@ uses
   symtype,symdef,symbase;
 
 type
+
+  { TGenericsParseUtils }
+
   TGenericsParseUtils = class
   private
+    FCompiler: TCompilerBase;
     procedure make_prettystring(paramtype:tdef;first:boolean;constprettyname:ansistring;var prettyname,specializename:ansistring);
     function get_generic_param_def(sym:tsym):tdef;
     function parse_generic_specialization_types_internal(paramlist:tfpobjectlist;poslist:tfplist;out prettyname,specializename:ansistring;parsedtype:tdef;parsedpos:tfileposinfo):boolean;
   public
+    constructor Create(ACompiler: TCompilerBase);
     procedure generate_specialization(var tt:tdef;enforce_unit:boolean;parse_class_parent:boolean;const _prettyname:string;parsedtype:tdef;const symname:string;parsedpos:tfileposinfo);inline;
     procedure generate_specialization(var tt:tdef;enforce_unit:boolean;parse_class_parent:boolean;const _prettyname:string;const symname:string;symtable:tsymtable);inline;
     function generate_specialization_phase1(out context:tspecializationcontext;genericdef:tdef;enforce_unit:boolean):tdef;inline;
@@ -658,6 +664,12 @@ uses
             first:=false;
           end;
         block_type:=old_block_type;
+      end;
+
+
+    constructor TGenericsParseUtils.Create(ACompiler: TCompilerBase);
+      begin
+        FCompiler:=ACompiler;
       end;
 
 
