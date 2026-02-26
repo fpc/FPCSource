@@ -28,7 +28,8 @@ interface
 uses
   compilerbase,
   fmodule,
-  pmodules,pgenutil,pstatmnt,pexpr,pexports,ptconst,pdecvar,pdecsub,pdecobj;
+  pmodules,pgenutil,pstatmnt,pexpr,pexports,ptconst,pdecvar,pdecsub,pdecobj,
+  pdecl;
 
 type
 
@@ -46,6 +47,7 @@ type
     FPDecVar: TVariableDeclarationsParser;
     FPDecSub: TSubroutineParser;
     FPDecObj: TObjectDeclarationsParser;
+    FPDecl: TDeclarationParser;
 
     procedure initparser;
     procedure doneparser;
@@ -68,6 +70,7 @@ type
     property pdecvar: TVariableDeclarationsParser read FPDecVar;
     property pdecsub: TSubroutineParser read FPDecSub;
     property pdecobj: TObjectDeclarationsParser read FPDecObj;
+    property pdecl: TDeclarationParser read FPDecl;
   end;
 
 implementation
@@ -358,11 +361,13 @@ implementation
         FPTConst:=TTypedConstParser.Create(acompiler);
         FPDecSub:=TSubroutineParser.Create(acompiler);
         FPDecObj:=TObjectDeclarationsParser.Create(acompiler);
+        FPDecl:=TDeclarationParser.Create(acompiler);
       end;
 
 
     destructor TParser.Destroy;
       begin
+        FreeAndNil(FPDecl);
         FreeAndNil(FPDecObj);
         FreeAndNil(FPDecSub);
         FreeAndNil(FPTConst);

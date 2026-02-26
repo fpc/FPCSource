@@ -32,9 +32,20 @@ interface
       { global }
       globtype,
       { symtable }
-      symsym,symdef,symtype,
+      symbase,symsym,symdef,symtype,
       { pass_1 }
       node;
+
+type
+  TDeclarationParser = class
+  private
+    FCompiler: TCompilerBase;
+    function is_system_custom_attribute_descendant(def:tdef):boolean;
+    function find_create_constructor(objdef:tobjectdef):tsymentry;
+    procedure pd_set_objc_related_result(def: tobject; para: pointer);
+    property Compiler: TCompilerBase read FCompiler;
+  public
+    constructor Create(ACompiler: TCompilerBase);
 
     function  readconstant(const orgname:string;const filepos:tfileposinfo; out nodetype: tnodetype):tconstsym;
 
@@ -49,6 +60,7 @@ interface
     procedure resourcestring_dec(out had_generic:boolean);
     procedure parse_rttiattributes(var rtti_attrs_def:trtti_attribute_list);
     function parse_forward_declaration(sym:tsym;gentypename,genorgtypename:tidstring;genericdef:tdef;generictypelist:tfphashobjectlist;out newtype:ttypesym):tdef;
+  end;
 
 implementation
 
@@ -61,7 +73,7 @@ implementation
        systems,aasmdata,fmodule,compinnr,
        compiler,
        { symtable }
-       symconst,symbase,symcpu,symcreat,defutil,defcmp,symtable,symutil,
+       symconst,symcpu,symcreat,defutil,defcmp,symtable,symutil,
        { pass 1 }
        ninl,ncon,nobj,ngenutil,nld,nmem,ncal,pass_1,
        { parser }
@@ -75,16 +87,19 @@ implementation
        cpuinfo
        ;
 
-    function is_system_custom_attribute_descendant(def:tdef):boolean;
+    constructor TDeclarationParser.Create(ACompiler: TCompilerBase);
+      begin
+        FCompiler:=ACompiler;
+      end;
+
+    function TDeclarationParser.is_system_custom_attribute_descendant(def:tdef):boolean;
     begin
       if not assigned(class_tcustomattribute) then
         class_tcustomattribute:=tobjectdef(search_system_type('TCUSTOMATTRIBUTE').typedef);
       Result:=def_is_related(def,class_tcustomattribute);
     end;
 
-    function readconstant(const orgname:string;const filepos:tfileposinfo; out nodetype: tnodetype):tconstsym;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    function TDeclarationParser.readconstant(const orgname:string;const filepos:tfileposinfo; out nodetype: tnodetype):tconstsym;
       var
         hp : tconstsym;
         p : tnode;
@@ -218,15 +233,13 @@ implementation
         readconstant:=hp;
       end;
 
-    procedure const_dec(out had_generic:boolean);
+    procedure TDeclarationParser.const_dec(out had_generic:boolean);
       begin
         consume(_CONST);
         consts_dec(false,true,had_generic);
       end;
 
-    procedure consts_dec(in_structure, allow_typed_const: boolean;out had_generic:boolean);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    procedure TDeclarationParser.consts_dec(in_structure, allow_typed_const: boolean;out had_generic:boolean);
       var
          orgname : TIDString;
          hdef : tdef;
@@ -387,7 +400,7 @@ implementation
       end;
 
 
-    procedure label_dec;
+    procedure TDeclarationParser.label_dec;
       var
         labelsym : tlabelsym;
       begin
@@ -435,7 +448,7 @@ implementation
          consume(_SEMICOLON);
       end;
 
-    function find_create_constructor(objdef:tobjectdef):tsymentry;
+    function TDeclarationParser.find_create_constructor(objdef:tobjectdef):tsymentry;
       begin
          while assigned(objdef) do
            begin
@@ -448,9 +461,7 @@ implementation
          internalerror(2012111101);
       end;
 
-    procedure parse_rttiattributes(var rtti_attrs_def:trtti_attribute_list);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    procedure TDeclarationParser.parse_rttiattributes(var rtti_attrs_def:trtti_attribute_list);
 
       function read_attr_paras:tnode;
         var
@@ -592,9 +603,7 @@ implementation
       end;
 
 
-    function parse_forward_declaration(sym:tsym;gentypename,genorgtypename:tidstring;genericdef:tdef;generictypelist:tfphashobjectlist;out newtype:ttypesym):tdef;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    function TDeclarationParser.parse_forward_declaration(sym:tsym;gentypename,genorgtypename:tidstring;genericdef:tdef;generictypelist:tfphashobjectlist;out newtype:ttypesym):tdef;
       var
         wasforward : boolean;
         objecttype : tobjecttyp;
@@ -668,7 +677,7 @@ implementation
       If a method with a related result type is overridden by a subclass method, the subclass method must also return
       a type that is compatible with the subclass type.
     }
-    procedure pd_set_objc_related_result(def: tobject; para: pointer);
+    procedure TDeclarationParser.pd_set_objc_related_result(def: tobject; para: pointer);
       var
         pd: tprocdef;
         i, firstcamelend: longint;
@@ -703,9 +712,7 @@ implementation
           include(pd.procoptions,po_objc_related_result_type);
       end;
 
-    procedure types_dec(in_structure: boolean;out had_generic:boolean;var rtti_attrs_def: trtti_attribute_list);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    procedure TDeclarationParser.types_dec(in_structure: boolean;out had_generic:boolean;var rtti_attrs_def: trtti_attribute_list);
 
       procedure finalize_class_external_status(od: tobjectdef);
         begin
@@ -1268,7 +1275,7 @@ implementation
 
 
     { reads a type declaration to the symbol table }
-    procedure type_dec(out had_generic:boolean);
+    procedure TDeclarationParser.type_dec(out had_generic:boolean);
       var
         rtti_attrs_def: trtti_attribute_list;
       begin
@@ -1280,9 +1287,7 @@ implementation
       end;
 
 
-    procedure var_dec(out had_generic:boolean);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    procedure TDeclarationParser.var_dec(out had_generic:boolean);
     { parses variable declarations and inserts them in }
     { the top symbol table of symtablestack         }
       begin
@@ -1291,9 +1296,7 @@ implementation
       end;
 
 
-    procedure property_dec;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    procedure TDeclarationParser.property_dec;
     { parses a global property (fpc mode feature) }
       var
          old_block_type: tblock_type;
@@ -1311,9 +1314,7 @@ implementation
       end;
 
 
-    procedure threadvar_dec(out had_generic:boolean);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    procedure TDeclarationParser.threadvar_dec(out had_generic:boolean);
     { parses thread variable declarations and inserts them in }
     { the top symbol table of symtablestack                }
       begin
@@ -1330,9 +1331,7 @@ implementation
       end;
 
 
-    procedure resourcestring_dec(out had_generic:boolean);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    procedure TDeclarationParser.resourcestring_dec(out had_generic:boolean);
       var
          orgname : TIDString;
          p : tnode;

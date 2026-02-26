@@ -3125,27 +3125,27 @@ implementation
               _LABEL:
                 begin
                   handle_unexpected_had_generic;
-                  label_dec;
+                  compiler.parser.pdecl.label_dec;
                 end;
               _CONST:
                 begin
                   handle_unexpected_had_generic;
-                  const_dec(hadgeneric);
+                  compiler.parser.pdecl.const_dec(hadgeneric);
                 end;
               _TYPE:
                 begin
                   handle_unexpected_had_generic;
-                  type_dec(hadgeneric);
+                  compiler.parser.pdecl.type_dec(hadgeneric);
                 end;
               _VAR:
                 begin
                   handle_unexpected_had_generic;
-                  var_dec(hadgeneric);
+                  compiler.parser.pdecl.var_dec(hadgeneric);
                 end;
               _THREADVAR:
                 begin
                   handle_unexpected_had_generic;
-                  threadvar_dec(hadgeneric);
+                  compiler.parser.pdecl.threadvar_dec(hadgeneric);
                 end;
               _CLASS:
                 begin
@@ -3206,7 +3206,7 @@ implementation
                 begin
                   handle_unexpected_had_generic;
                   if (m_fpc in current_settings.modeswitches) then
-                    property_dec
+                    compiler.parser.pdecl.property_dec
                   else
                     break;
                 end;
@@ -3219,7 +3219,7 @@ implementation
                         { m_class is needed, because the resourcestring
                           loading is in the ObjPas unit }
 {                        if (m_class in current_settings.modeswitches) then}
-                          resourcestring_dec(hadgeneric)
+                          compiler.parser.pdecl.resourcestring_dec(hadgeneric)
 {                        else
                           break;}
                       end;
@@ -3273,6 +3273,8 @@ implementation
 
 
     procedure read_interface_declarations;
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         hadgeneric : boolean;
 
@@ -3294,22 +3296,22 @@ implementation
              _CONST :
                begin
                  handle_unexpected_had_generic;
-                 const_dec(hadgeneric);
+                 compiler.parser.pdecl.const_dec(hadgeneric);
                end;
              _TYPE :
                begin
                  handle_unexpected_had_generic;
-                 type_dec(hadgeneric);
+                 compiler.parser.pdecl.type_dec(hadgeneric);
                end;
              _VAR :
                begin
                  handle_unexpected_had_generic;
-                 var_dec(hadgeneric);
+                 compiler.parser.pdecl.var_dec(hadgeneric);
                end;
              _THREADVAR :
                begin
                  handle_unexpected_had_generic;
-                 threadvar_dec(hadgeneric);
+                 compiler.parser.pdecl.threadvar_dec(hadgeneric);
                end;
              _FUNCTION,
              _PROCEDURE,
@@ -3332,13 +3334,13 @@ implementation
                    _RESOURCESTRING :
                      begin
                        handle_unexpected_had_generic;
-                       resourcestring_dec(hadgeneric);
+                       compiler.parser.pdecl.resourcestring_dec(hadgeneric);
                      end;
                    _PROPERTY:
                      begin
                        handle_unexpected_had_generic;
                        if (m_fpc in current_settings.modeswitches) then
-                         property_dec
+                         compiler.parser.pdecl.property_dec
                        else
                          break;
                      end;

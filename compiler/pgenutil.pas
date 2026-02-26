@@ -2093,7 +2093,7 @@ uses
                     if assigned(context.forwarddef) then
                       begin
                         tsrsym:=nil;
-                        result:=parse_forward_declaration(context.forwarddef.typesym,ufinalspecializename,finalspecializename,genericdef,generictypelist,tsrsym);
+                        result:=compiler.parser.pdecl.parse_forward_declaration(context.forwarddef.typesym,ufinalspecializename,finalspecializename,genericdef,generictypelist,tsrsym);
                         srsym:=tsrsym;
                       end
                     else

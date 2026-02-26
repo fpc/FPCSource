@@ -924,9 +924,9 @@ implementation
                               end;
                           end
                         else if member_blocktype=bt_type then
-                          types_dec(true,hadgeneric, rtti_attrs_def)
+                          compiler.parser.pdecl.types_dec(true,hadgeneric, rtti_attrs_def)
                         else if member_blocktype=bt_const then
-                          consts_dec(true,true,hadgeneric)
+                          compiler.parser.pdecl.consts_dec(true,true,hadgeneric)
                         else
                           internalerror(201001110);
                       end;
@@ -1026,7 +1026,7 @@ implementation
             _LECKKLAMMER:
               begin
                 if m_prefixed_attributes in current_settings.modeswitches then
-                  parse_rttiattributes(rtti_attrs_def)
+                  compiler.parser.pdecl.parse_rttiattributes(rtti_attrs_def)
                 else
                   consume(_ID);
               end;

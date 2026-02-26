@@ -290,7 +290,7 @@ implementation
                bt:=block_type;
                block_type:=bt_const;
                { prefix 'def' to the parameter name }
-               defaultvalue:=ReadConstant('$def'+vs.name,vs.fileinfo,nodetype);
+               defaultvalue:=compiler.parser.pdecl.ReadConstant('$def'+vs.name,vs.fileinfo,nodetype);
                block_type:=bt;
                if assigned(defaultvalue) then
                  begin

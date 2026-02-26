@@ -1241,7 +1241,7 @@ implementation
                 if (current_scanner.token=_LECKKLAMMER) and (m_prefixed_attributes in current_settings.modeswitches) then
                   begin
                     check_unbound_attributes;
-                    types_dec(true,hadgeneric, rtti_attrs_def);
+                    compiler.parser.pdecl.types_dec(true,hadgeneric, rtti_attrs_def);
                   end
                 else
                   { expect at least one type declaration }
@@ -1442,7 +1442,7 @@ implementation
                         else if object_member_blocktype=bt_type then
                           begin
                           check_unbound_attributes;
-                          types_dec(true,hadgeneric, rtti_attrs_def)
+                          compiler.parser.pdecl.types_dec(true,hadgeneric, rtti_attrs_def)
                           end
                         else if object_member_blocktype=bt_const then
                           begin
@@ -1455,7 +1455,7 @@ implementation
                                 typedconstswritable:=cs_typed_const_writable in current_settings.localswitches;
                                 exclude(current_settings.localswitches,cs_typed_const_writable);
                               end;
-                            consts_dec(true,not is_javainterface(current_structdef),hadgeneric);
+                            compiler.parser.pdecl.consts_dec(true,not is_javainterface(current_structdef),hadgeneric);
                             if final_fields and
                                typedconstswritable then
                               include(current_settings.localswitches,cs_typed_const_writable);
@@ -1491,7 +1491,7 @@ implementation
             _LECKKLAMMER:
               begin
                 if m_prefixed_attributes in current_settings.modeswitches then
-                  parse_rttiattributes(rtti_attrs_def)
+                  compiler.parser.pdecl.parse_rttiattributes(rtti_attrs_def)
                 else
                   consume(_ID);
               end;

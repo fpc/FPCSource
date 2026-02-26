@@ -308,6 +308,8 @@ implementation
     end;
 
     function str_parse_objecttypedef(typename : shortstring;str: ansistring): tobjectdef;
+     const
+       compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
      var
        b,oldparse_only: boolean;
        i : integer;
@@ -326,7 +328,7 @@ implementation
       { inject the string in the scanner }
       current_scanner.substitutemacro('hidden_interface_class_macro',@str[1],length(str),current_scanner.line_no,current_scanner.inputfile.ref_index,true);
       current_scanner.readtoken(false);
-      type_dec(b);
+      compiler.parser.pdecl.type_dec(b);
       // In the interface part, the object def is not necessarily the last one, the methods also generate defs.
       i:=current_module.DefList.count-1;
       While (result=nil) and (i>=0) do
