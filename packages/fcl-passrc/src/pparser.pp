@@ -1822,7 +1822,10 @@ begin
     end
   else
     UngetToken;
-  Result.DestType:=TPasStringType(CreateElement(TPasStringType,'string',Result));
+  if CodePageAsText <> '' then
+    Result.DestType:=TPasStringType(CreateElement(TPasStringType,'string$'+CodePageAsText,Result))
+  else
+    Result.DestType:=TPasStringType(CreateElement(TPasStringType,'string',Result));
   TPasStringType(Result.DestType).LengthExpr:=LengthAsText;
   TPasStringType(Result.DestType).CodePageExpr:=CodePageAsText;
 end;
