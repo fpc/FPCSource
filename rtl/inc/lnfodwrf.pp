@@ -838,7 +838,7 @@ end;
 
 
 function ParseCompilationUnit(var er : TEReader; const addr : TOffset; const segment : TSegment; const file_offset : QWord;
-  var source : String; var line : longint; var found : Boolean) : QWord;
+  var source : ShortString; var line : longint; var found : Boolean) : QWord;
 var
   state : TMachineState;
   { we need both headers on the stack, although we only use the 64 bit one internally }
@@ -1239,7 +1239,7 @@ begin
 end;
 
 function ParseCompilationUnitForFunctionName(var er: TEReader; const addr : TOffset; const segment : TSegment; const file_offset : QWord;
-  var func : String; var found : Boolean) : QWord;
+  var func : ShortString; var found : Boolean) : QWord;
 var
   { we need both headers on the stack, although we only use the 64 bit one internally }
   header64 : TDebugInfoProgramHeader64;
